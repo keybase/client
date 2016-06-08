@@ -15,6 +15,11 @@ import {log} from '../native/log/logui'
 import {constants} from '../constants/types/keybase-v1'
 import {printOutstandingRPCs} from '../local-debug'
 
+const NO_ENGINE = process.env.KEYBASE_NO_ENGINE
+if (NO_ENGINE) {
+  console.log('Engine disabled!')
+}
+
 class Engine {
   constructor () {
     setupLocalLogs()
@@ -36,30 +41,34 @@ class Engine {
     }
 
     this.program = 'keybase.1'
-    this.rpcClient = new RpcClient(
-      new Transport(
-        payload => {
-          if (__DEV__ && process.env.KEYBASE_RPC_DELAY_RESULT) {
-            setTimeout(() => this._rpcIncoming(payload), process.env.KEYBASE_RPC_DELAY_RESULT)
-          } else {
-            this._rpcIncoming(payload)
-          }
-        },
-        this._rpcWrite,
-        () => this.onConnect()
-      ),
-      this.program
-    )
 
-    if (this.rpcClient.transport.needsConnect) {
-      this.rpcClient.transport.connect(err => {
-        if (err != null) {
-          console.log('Error in connecting to transport rpc:', err)
-        }
-      })
+    if (!NO_ENGINE) {
+      this.rpcClient = new RpcClient(
+        new Transport(
+          payload => {
+            if (__DEV__ && process.env.KEYBASE_RPC_DELAY_RESULT) {
+              setTimeout(() => this._rpcIncoming(payload), process.env.KEYBASE_RPC_DELAY_RESULT)
+            } else {
+              this._rpcIncoming(payload)
+            }
+          },
+          this._rpcWrite,
+          () => this._onConnect()
+        ),
+        this.program
+      )
+
+      if (this.rpcClient.transport.needsConnect) {
+        this.rpcClient.transport.connect(err => {
+          if (err != null) {
+            console.log('Error in connecting to transport rpc:', err)
+          }
+        })
+      }
+
+      this._setupListener()
     }
 
-    this.setupListener()
     this.sessionID = 123
 
     // to find callMap for rpc callbacks, including waitingHandler
@@ -81,13 +90,17 @@ class Engine {
     this._failOnError = false
   }
 
-  onConnect () {
+  _onConnect () {
     this.inListenerCallback = true
     Object.keys(this.onConnectFns).forEach(k => this.onConnectFns[k]())
     this.inListenerCallback = false
   }
 
   listenOnConnect (key, f) {
+    if (NO_ENGINE) {
+      return
+    }
+
     if (!f) {
       throw new Error('Null callback sent to listenOnConnect')
     }
@@ -106,12 +119,12 @@ class Engine {
     this.onConnectFns[key] = f
   }
 
-  getSessionID () {
+  _getSessionID () {
     this.sessionID++
     return this.sessionID
   }
 
-  setupListener () {
+  _setupListener () {
     this.subscription = NativeEventEmitter.addListener(
       engine.eventName,
       payload => {
@@ -143,7 +156,7 @@ class Engine {
   }
 
   _serverInitIncomingRPC (method, param, response) {
-    const sid = this.getSessionID()
+    const sid = this._getSessionID()
     const cbs = {
       start: callMap => {
         this.sessionIDToIncomingCall[sid] = {incomingCallMap: callMap, waitingHandler: null}
@@ -313,11 +326,15 @@ class Engine {
   // (name of call, {arguments object}, {methodName: function(params, response)}, function(err, data), function(waiting, method, sessionID)
   // Use rpc() instead
   rpcUnchecked (method, param, incomingCallMap, callback, waitingHandler) {
+    if (NO_ENGINE) {
+      return
+    }
+
     if (!param) {
       param = {}
     }
 
-    const sessionID = param.sessionID = this.getSessionID()
+    const sessionID = param.sessionID = this._getSessionID()
     this.sessionIDToIncomingCall[sessionID] = {incomingCallMap, waitingHandler}
     this.sessionIDToResponse[sessionID] = null
 
