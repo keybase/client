@@ -1,5 +1,6 @@
 // @flow
 import React, {Component} from 'react'
+import ReactDOM from 'react-dom'
 import {Box, Text, Input} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 import dumbComponentMap from './dumb-component-map.desktop'
@@ -22,12 +23,19 @@ class Render extends Component<void, any, any> {
     }, 300)
   }
 
+  componentDidMount () {
+    // After all child components have loaded (and their autoFocuses, if present, have been triggered)
+    // return focus back to the main filter field of the dumb sheet.
+    ReactDOM.findDOMNode(this.refs.filterInput).querySelector('input').focus()
+  }
+
   render () {
     return (
       <Box style={{flex: 1, padding: 20}}>
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text type='Header'>Filter:</Text>
           <Input
+            ref='filterInput'
             value={this.state.filter}
             onChange={event => this._onFilterChange(event.target.value.toLowerCase())}
           />
@@ -54,7 +62,7 @@ class Render extends Component<void, any, any> {
                       <Component key={mockKey} {...mock} />
                     </Box>
                   </Box>
-                  )
+                )
               })}
             </Box>
             )
