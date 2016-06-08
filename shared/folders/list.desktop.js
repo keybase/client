@@ -21,13 +21,13 @@ const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onClick, onR
       {showIgnored && <Box style={styles.bottomBox}>
         <Text type='BodySmallSemibold' style={stylesDividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
       </Box>}
-      {showIgnored && ignored.map((i, idx) => (
+      {showIgnored && (ignored || []).map((i, idx) => (
         <Row
           key={rowKey(i.users)}
           {...i}
           users={i.users}
           isPublic={isPublic}
-          ignored
+          ignored={true} // eslint-disable-line
           onClick={onClick}
           onRekey={onRekey}
           isFirst={!idx} />
