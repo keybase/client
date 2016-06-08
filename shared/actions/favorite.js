@@ -134,7 +134,6 @@ export function favoriteList (): (dispatch: Dispatch) => void {
           let body = `You have ${total} new folders`
 
           if (total <= 3) {
-            console.log(folderProps.private.tlfs, folderProps.public.tlfs)
             body = [].concat(folderProps.private.tlfs || [], folderProps.public.tlfs || [])
               .filter(t => t.meta === 'new')
               .map(t => t.path).join('\n')
