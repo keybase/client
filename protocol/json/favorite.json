@@ -403,6 +403,33 @@
         }
       ],
       "doc": "Folder represents a favorite top-level folder in kbfs.\n    This type is likely to change significantly as all the various parts are\n    connected and tested."
+    },
+    {
+      "type": "record",
+      "name": "FavoritesResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Folder"
+          },
+          "name": "favorites"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Folder"
+          },
+          "name": "ignored"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Folder"
+          },
+          "name": "xnew"
+        }
+      ]
     }
   ],
   "messages": {
@@ -420,7 +447,7 @@
       "response": "null",
       "doc": "Adds a folder to a user's list of favorite folders."
     },
-    "favoriteDelete": {
+    "favoriteIgnore": {
       "request": [
         {
           "name": "sessionID",
@@ -434,17 +461,14 @@
       "response": "null",
       "doc": "Removes a folder from a user's list of favorite folders."
     },
-    "favoriteList": {
+    "getFavorites": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "Folder"
-      },
+      "response": "FavoritesResult",
       "doc": "Returns all of a user's favorite folders."
     }
   },

@@ -15,6 +15,17 @@ protocol favorite {
     boolean created;          // this folder was just created by this user
   }
 
+  // Each of your TLFs is in one of 3 states with respect to favoriting. Either
+  // you've favorited it, or you've ignored it, or you haven't done either of
+  // those things yet ("new"). The favorite/list endpoint returns 3 lists,
+  // representing all the TLFs you have in each of those 3 states, and we
+  // marshall that result into this struct.
+  record FavoritesResult {
+    array<Folder> favorites;
+    array<Folder> ignored;
+    array<Folder> xnew;  // "new" is an illegal variable prefix in ObjC :p
+  }
+
   /**
     Adds a folder to a user's list of favorite folders.
     */
@@ -23,10 +34,10 @@ protocol favorite {
   /**
     Removes a folder from a user's list of favorite folders.
     */
-  void favoriteDelete(int sessionID, Folder folder);
+  void favoriteIgnore(int sessionID, Folder folder);
 
   /**
     Returns all of a user's favorite folders.
     */
-  array<Folder> favoriteList(int sessionID);
+  FavoritesResult getFavorites(int sessionID);
 }

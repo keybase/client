@@ -252,6 +252,12 @@ export type FSStatusCode =
   | 1 // FINISH_1
   | 2 // ERROR_2
 
+export type FavoritesResult = {
+  favorites: Array<Folder>;
+  ignored: Array<Folder>;
+  xnew: Array<Folder>;
+}
+
 export type Feature = {
   allow: boolean;
   defaultValue: boolean;
@@ -1758,10 +1764,10 @@ export type favoriteFavoriteAddRpc = {
   callback: (null | (err: ?any) => void)
 }
 
-export type favoriteFavoriteDeleteResult = void
+export type favoriteFavoriteIgnoreResult = void
 
-export type favoriteFavoriteDeleteRpc = {
-  method: 'favorite.favoriteDelete',
+export type favoriteFavoriteIgnoreRpc = {
+  method: 'favorite.favoriteIgnore',
   param: {
     folder: Folder
   },
@@ -1769,12 +1775,12 @@ export type favoriteFavoriteDeleteRpc = {
   callback: (null | (err: ?any) => void)
 }
 
-export type favoriteFavoriteListResult = Array<Folder>
+export type favoriteGetFavoritesResult = FavoritesResult
 
-export type favoriteFavoriteListRpc = {
-  method: 'favorite.favoriteList',
+export type favoriteGetFavoritesRpc = {
+  method: 'favorite.getFavorites',
   incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any, response: favoriteFavoriteListResult) => void)
+  callback: (null | (err: ?any, response: favoriteGetFavoritesResult) => void)
 }
 
 export type gpgUiConfirmDuplicateKeyChosenResult = boolean
@@ -3518,8 +3524,8 @@ export type rpc =
   | deviceDeviceHistoryListRpc
   | deviceDeviceListRpc
   | favoriteFavoriteAddRpc
-  | favoriteFavoriteDeleteRpc
-  | favoriteFavoriteListRpc
+  | favoriteFavoriteIgnoreRpc
+  | favoriteGetFavoritesRpc
   | gpgUiConfirmDuplicateKeyChosenRpc
   | gpgUiSelectKeyAndPushOptionRpc
   | gpgUiSelectKeyRpc
@@ -4073,7 +4079,7 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
-  'keybase.1.favorite.favoriteDelete'?: (
+  'keybase.1.favorite.favoriteIgnore'?: (
     params: {
       sessionID: int,
       folder: Folder
@@ -4083,13 +4089,13 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
-  'keybase.1.favorite.favoriteList'?: (
+  'keybase.1.favorite.getFavorites'?: (
     params: {
       sessionID: int
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: favoriteFavoriteListResult) => void
+      result: (result: favoriteGetFavoritesResult) => void
     }
   ) => void,
   'keybase.1.gpgUi.wantToAddGPGKey'?: (

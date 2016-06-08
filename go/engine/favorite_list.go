@@ -11,7 +11,7 @@ import (
 // FavoriteList is an engine.
 type FavoriteList struct {
 	libkb.Contextified
-	result FavoritesResult
+	result FavoritesAPIResult
 }
 
 // NewFavoriteList creates a FavoriteList engine.
@@ -43,13 +43,14 @@ func (e *FavoriteList) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-type FavoritesResult struct {
+type FavoritesAPIResult struct {
 	Status    libkb.AppStatus   `json:"status"`
 	Favorites []keybase1.Folder `json:"favorites"`
 	Ignored   []keybase1.Folder `json:"ignored"`
+	New       []keybase1.Folder `json:"new"`
 }
 
-func (f *FavoritesResult) GetAppStatus() *libkb.AppStatus {
+func (f *FavoritesAPIResult) GetAppStatus() *libkb.AppStatus {
 	return &f.Status
 }
 
@@ -63,6 +64,11 @@ func (e *FavoriteList) Run(ctx *Context) error {
 }
 
 // Favorites returns the list of favorites that Run generated.
-func (e *FavoriteList) Favorites() []keybase1.Folder {
-	return e.result.Favorites
+func (e *FavoriteList) Result() keybase1.FavoritesResult {
+	return keybase1.FavoritesResult{
+		Favorites: e.result.Favorites,
+		Ignored:   e.result.Ignored,
+		// The name "new" is illegal in ObjC. "X" is just a filler character.
+		Xnew: e.result.New,
+	}
 }
