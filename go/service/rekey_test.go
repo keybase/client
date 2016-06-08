@@ -152,8 +152,9 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 }
 
 type fakeRekeyUI struct {
-	sessionID   int
-	refreshArgs []keybase1.RefreshArg
+	sessionID     int
+	refreshArgs   []keybase1.RefreshArg
+	notifyRefresh chan bool
 }
 
 // A rekey is needed, but the user closes the rekey status window.
@@ -162,6 +163,7 @@ func TestRekeyNeededUserClose(t *testing.T) {
 	defer tc.Cleanup()
 
 	rkeyui := &fakeRekeyUI{}
+	rkeyui.notifyRefresh = make(chan bool, 10)
 	router := fakeUIRouter{
 		rekeyUI: rkeyui,
 	}
@@ -180,6 +182,15 @@ func TestRekeyNeededUserClose(t *testing.T) {
 		t.Fatal("timeout waiting for rekeyHandler.notifyStart")
 	}
 
+	// since this is testing that the user closes a rekey status window,
+	// wait for the refresh call:
+	select {
+	case <-rkeyui.notifyRefresh:
+	case <-time.After(20 * time.Second):
+		t.Fatal("timeout waiting for rekeyui.notifyRefresh")
+	}
+
+	// now call finish
 	outcome, err := h.RekeyStatusFinish(context.Background(), rkeyui.sessionID)
 	if err != nil {
 		t.Fatal(err)
@@ -214,6 +225,10 @@ func (f *fakeRekeyUI) DelegateRekeyUI(ctx context.Context) (int, error) {
 
 func (f *fakeRekeyUI) Refresh(ctx context.Context, arg keybase1.RefreshArg) error {
 	f.refreshArgs = append(f.refreshArgs, arg)
+	select {
+	case f.notifyRefresh <- true:
+	default:
+	}
 	return nil
 }
 
