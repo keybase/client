@@ -1,0 +1,10 @@
+/* @flow */
+
+export type FeatureKeys = 'admin' | 'mainWindow' | 'mobileAppsExist' | 'tabPeopleEnabled' | 'tabFoldersEnabled'
+| 'tabSettingsEnabled' | 'tabProfileEnabled' | 'searchEnabled'
+
+export type FeatureFlags = {[key: FeatureKeys]: boolean}
+
+const ff: FeatureFlags = {}
+
+export default ff

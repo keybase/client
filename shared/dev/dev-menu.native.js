@@ -6,7 +6,7 @@ import {switchTab} from '../actions/tabbed-router'
 import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
-import MenuList from './menu-list'
+import MenuList from '../settings/menu-list'
 
 import {loginTab} from '../constants/tabs'
 import engine from '../engine'
