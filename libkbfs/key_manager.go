@@ -508,6 +508,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	// Figure out if we need to add or remove any keys.
 	// If we're already incrementing the key generation then we don't need to
 	// figure out the key delta.
+	addNewReaderDeviceForSelf := false
 	if !incKeyGen {
 		// See if there is at least one new device in relation to the
 		// current key bundle
@@ -526,6 +527,10 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		incKeyGen = len(wRemoved) > 0 || len(rRemoved) > 0
 
 		promotedReaders = make(map[keybase1.UID]bool, len(rRemoved))
+
+		// Before we add the removed devices, check if we are adding a
+		// new reader device for ourselves.
+		_, addNewReaderDeviceForSelf = newReaderUsers[uid]
 
 		for u := range rRemoved {
 			// FIXME (potential): this could cause a reader to attempt to rekey
@@ -568,7 +573,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		} else {
 			// No new reader device for our user, so the reader can't do
 			// anything
-			return false, nil, NewReadAccessError(resolvedHandle, username)
+			return false, nil, RekeyIncompleteError{}
 		}
 	}
 
@@ -639,8 +644,8 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	if !isWriter {
 		if len(newReaderUsers) > 0 || addNewWriterDevice || incKeyGen {
 			// If we're a reader but we haven't completed all the work, return
-			// RekeyIncompleteError
-			return false, nil, RekeyIncompleteError{}
+			// RekeyIncompleteError.
+			return addNewReaderDeviceForSelf, nil, RekeyIncompleteError{}
 		}
 		// Otherwise, there's nothing left to do!
 		return true, nil, nil

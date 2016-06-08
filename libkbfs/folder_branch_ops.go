@@ -3461,10 +3461,17 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		md.clearLastRevision()
 
 	case RekeyIncompleteError:
+		if !rekeyDone && rekeyWasSet {
+			// The rekey bit was already set, and there's nothing else
+			// we can to do, so don't put any new revisions.
+			fbo.log.CDebugf(ctx, "No further rekey possible by this user.")
+			return nil
+		}
+
+		// Rekey incomplete, fallthrough without early exit, to ensure
+		// we write the metadata with any potential changes
 		fbo.log.CDebugf(ctx,
 			"Rekeyed reader devices, but still need writer rekey")
-	// Rekey incomplete, fallthrough without early exit, to ensure we write
-	// the metadata with any potential changes
 
 	case NeedOtherRekeyError:
 		stillNeedsRekey = true
