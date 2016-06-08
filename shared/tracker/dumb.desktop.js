@@ -106,7 +106,8 @@ const propsNonUser: TrackerProps = {
   isPrivate: false,
   proofs: [],
   nonUser: true,
-  name: '@aliceb',
+  name: 'aliceb@reddit',
+  serviceName: 'reddit',
   reason: 'Success! You opened a private folder with aliceb@twitter.',
   inviteLink: 'keybase.io/inv/9999999999',
   parentProps: {

@@ -38,6 +38,7 @@ export type TrackerProps = {
   currentlyFollowing: boolean,
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   name?: string,
+  serviceName?: string,
   inviteLink?: ?string,
   isPrivate?: boolean
 }
@@ -91,6 +92,7 @@ export function trackerPropsToRenderProps (props: TrackerProps): RenderProps {
     },
     nonUser: props.nonUser,
     name: props.name,
+    serviceName: props.serviceName,
     reason: props.reason,
     inviteLink: props.inviteLink,
     isPrivate: props.isPrivate

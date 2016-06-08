@@ -115,12 +115,13 @@ type DismissReason struct {
 }
 
 type DisplayTLFCreateWithInviteArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	FolderName string `codec:"folderName" json:"folderName"`
-	IsPrivate  bool   `codec:"isPrivate" json:"isPrivate"`
-	Assertion  string `codec:"assertion" json:"assertion"`
-	InviteLink string `codec:"inviteLink" json:"inviteLink"`
-	Throttled  bool   `codec:"throttled" json:"throttled"`
+	SessionID       int             `codec:"sessionID" json:"sessionID"`
+	FolderName      string          `codec:"folderName" json:"folderName"`
+	IsPrivate       bool            `codec:"isPrivate" json:"isPrivate"`
+	Assertion       string          `codec:"assertion" json:"assertion"`
+	SocialAssertion SocialAssertion `codec:"socialAssertion" json:"socialAssertion"`
+	InviteLink      string          `codec:"inviteLink" json:"inviteLink"`
+	Throttled       bool            `codec:"throttled" json:"throttled"`
 }
 
 type DelegateIdentifyUIArg struct {

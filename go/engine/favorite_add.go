@@ -116,11 +116,12 @@ func (e *FavoriteAdd) checkInviteNeeded(ctx *Context) error {
 
 		e.G().Log.Debug("invitation requested, informing folder creator with result")
 		arg := keybase1.DisplayTLFCreateWithInviteArg{
-			FolderName: e.arg.Folder.Name,
-			Assertion:  assertion.String(),
-			IsPrivate:  e.arg.Folder.Private,
-			Throttled:  inv.Throttled,
-			InviteLink: inv.Link(),
+			FolderName:      e.arg.Folder.Name,
+			Assertion:       assertion.String(),
+			SocialAssertion: assertion,
+			IsPrivate:       e.arg.Folder.Private,
+			Throttled:       inv.Throttled,
+			InviteLink:      inv.Link(),
 		}
 		if err := ctx.IdentifyUI.DisplayTLFCreateWithInvite(arg); err != nil {
 			return err
