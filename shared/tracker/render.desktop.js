@@ -8,17 +8,23 @@ import Bio from './bio.render.desktop'
 import ProofsRender from './proofs.render.desktop'
 import commonStyles from '../styles/common'
 import NonUser from './non-user'
+import {autoResize} from '../../desktop/renderer/remote-component-helper'
 
 import type {RenderProps} from './render'
 
-export default class Render extends Component {
+export default class Render extends Component<void, RenderProps, void> {
   props: RenderProps;
+
+  componentDidMount () {
+    autoResize()
+  }
 
   render () {
     if (this.props.nonUser) {
       return <NonUser
         onClose={this.props.headerProps.onClose}
         name={this.props.name}
+        serviceName={this.props.serviceName}
         reason={this.props.reason}
         inviteLink={this.props.inviteLink}
         isPrivate={this.props.isPrivate} />

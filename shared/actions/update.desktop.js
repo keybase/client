@@ -5,7 +5,7 @@ import engine from '../engine'
 import moment from 'moment'
 
 import {updateUi} from '../constants/types/keybase-v1'
-import type {delegateUiCtl_registerUpdateUI_rpc, incomingCallMapType} from '../constants/types/flow-types'
+import type {delegateUiCtlRegisterUpdateUIRpc, incomingCallMapType} from '../constants/types/flow-types'
 import type {ShowUpdateConfirmAction, RegisterUpdateListenerAction, OnCancelAction, OnSkipAction,
   OnSnoozeAction, OnConfirmUpdateAction, SetAlwaysUpdateAction, ShowUpdatePausedAction, OnForceAction} from '../constants/update'
 import type {ConfigState} from '../reducers/config'
@@ -25,7 +25,7 @@ export function registerUpdateListener (): (dispatch: Dispatch, getState: () => 
   updatePausedResponse = null
   return (dispatch, getState) => {
     engine.listenOnConnect('registerUpdateUI', () => {
-      const params : delegateUiCtl_registerUpdateUI_rpc = {
+      const params : delegateUiCtlRegisterUpdateUIRpc = {
         method: 'delegateUiCtl.registerUpdateUI',
         param: {},
         incomingCallMap: {},

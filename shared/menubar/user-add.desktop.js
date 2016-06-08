@@ -28,7 +28,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username}) => (
   <Box style={{...stylesInputContainer,
     backgroundColor: isPublic ? globalColors.lightGrey : globalColors.darkBlue3
   }}>
-    {!isPublic && <Text type='BodySemibold' style={stylesPrivatePrefix}>{username},</Text>}
+    {!isPublic && <Text type='BodySemiboldItalic' style={stylesPrivatePrefix}>{username},</Text>}
     <Input
       small
       autoFocus

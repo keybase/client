@@ -75,5 +75,7 @@ docker run \
   -v "$HOME/.ssh:/SSH:ro" \
   -v "$s3cmd_temp:/S3CMD:ro" \
   -e BUCKET_NAME \
+  -e GITHUB_TOKEN \
+  -e NOWAIT \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

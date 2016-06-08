@@ -81,7 +81,7 @@ const Render = ({banner, name, type, deviceID, currentDevice, timeline, revokedA
         </Box>
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Header name={name} currentDevice={currentDevice} revokedAt={revokedAt} />
-          <Timeline timeline={timeline} />
+          {!!timeline && <Timeline timeline={timeline} />}
           {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={() => showRemoveDevicePage(device)} />}
         </Box>
       </Box>

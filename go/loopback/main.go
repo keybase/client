@@ -15,6 +15,7 @@ import (
 
 var con net.Conn
 var startOnce sync.Once
+var logSendContext libkb.LogSendContext
 
 // Init ServerURI should match run mode environment.
 func Init(homeDir string, logFile string, runModeStr string, serverURI string, accessGroupOverride bool) {
@@ -40,13 +41,25 @@ func Init(homeDir string, logFile string, runModeStr string, serverURI string, a
 		service.StartLoopbackServer()
 		service.G().SetService()
 
+		serviceLog := config.GetLogFile()
+		logs := libkb.Logs{
+			Service: serviceLog,
+		}
+
+		logSendContext = libkb.LogSendContext{
+			Contextified: libkb.NewContextified(service.G()),
+			Logs:         logs,
+		}
+
 		Reset()
 	})
 }
 
 // LogSend sends a log to kb
 func LogSend(uiLogPath string) (string, error) {
-	return "TODO", nil
+	logSendContext.Logs.Desktop = uiLogPath
+
+	return logSendContext.LogSend("", 10000)
 }
 
 // WriteB64 Takes base64 encoded msgpack rpc payload

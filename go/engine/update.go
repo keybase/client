@@ -171,7 +171,6 @@ func NewUpdateSource(g *libkb.GlobalContext, sourceName sources.UpdateSourceName
 func DefaultUpdaterOptions(g *libkb.GlobalContext) keybase1.UpdateOptions {
 	updateOptions := keybase1.UpdateOptions{
 		Version:  libkb.VersionString(),
-		Channel:  "main", // The default channel
 		Platform: runtime.GOOS,
 		Source:   string(sources.DefaultUpdateSourceName()),
 	}

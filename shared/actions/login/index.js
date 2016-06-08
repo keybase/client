@@ -30,12 +30,12 @@ import type {DeviceType} from '../../constants/types/more'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {
   incomingCallMapType,
-  login_recoverAccountFromEmailAddress_rpc,
-  login_login_rpc,
-  login_logout_rpc,
-  device_deviceAdd_rpc,
-  login_getConfiguredAccounts_rpc,
-  login_clearStoredSecret_rpc
+  loginRecoverAccountFromEmailAddressRpc,
+  loginLoginRpc,
+  loginLogoutRpc,
+  deviceDeviceAddRpc,
+  loginGetConfiguredAccountsRpc,
+  loginClearStoredSecretRpc
 } from '../../constants/types/flow-types'
 import {overrideLoggedInTab} from '../../local-debug'
 import type {DeviceRole} from '../../constants/login'
@@ -88,7 +88,7 @@ export function navBasedOnLoginState () :AsyncAction {
 
 function getAccounts (): AsyncAction {
   return dispatch => {
-    const params: login_getConfiguredAccounts_rpc = {
+    const params: loginGetConfiguredAccountsRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'login.getConfiguredAccounts',
       param: {},
@@ -114,7 +114,7 @@ export function login (): AsyncAction {
         const onBack = response => { dispatch(cancelLogin(response)) }
         const onProvisionerSuccess = () => { dispatch(navBasedOnLoginState()) }
         const incomingMap = makeKex2IncomingMap(dispatch, getState, onBack, onProvisionerSuccess)
-        const params : login_login_rpc = {
+        const params : loginLoginRpc = {
           ...makeWaitingHandler(dispatch),
           method: 'login.login',
           param: {
@@ -225,7 +225,7 @@ export function submitForgotPassword () : AsyncAction {
   return (dispatch, getState) => {
     dispatch({type: Constants.actionSetForgotPasswordSubmitting, payload: undefined})
 
-    const params : login_recoverAccountFromEmailAddress_rpc = {
+    const params : loginRecoverAccountFromEmailAddressRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'login.recoverAccountFromEmailAddress',
       param: {email: getState().login.forgotPasswordEmailAddress},
@@ -254,7 +254,7 @@ export function submitForgotPassword () : AsyncAction {
 export function autoLogin () : AsyncAction {
   return dispatch => {
     const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
-    const params : login_login_rpc = {
+    const params : loginLoginRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'login.login',
       param: {
@@ -287,7 +287,7 @@ export function autoLogin () : AsyncAction {
 export function relogin (user: string, passphrase: string, store: boolean) : AsyncAction {
   return dispatch => {
     const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
-    const params : login_login_rpc = {
+    const params : loginLoginRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'login.login',
       param: {
@@ -319,7 +319,7 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
 
 export function logout () : AsyncAction {
   return dispatch => {
-    const params : login_logout_rpc = {
+    const params : loginLogoutRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'login.logout',
       param: {},
@@ -354,7 +354,7 @@ export function saveInKeychainChanged (username: string, saveInKeychain: bool) :
       return
     }
 
-    const params: login_clearStoredSecret_rpc = {
+    const params: loginClearStoredSecretRpc = {
       method: 'login.clearStoredSecret',
       param: {
         username
@@ -453,7 +453,7 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
       response.result(deviceType)
     }
 
-    const params : device_deviceAdd_rpc = {
+    const params : deviceDeviceAddRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'device.deviceAdd',
       param: {},

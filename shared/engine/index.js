@@ -312,7 +312,7 @@ class Engine {
   // Make an RPC and call callbacks in the incomingCallMap
   // (name of call, {arguments object}, {methodName: function(params, response)}, function(err, data), function(waiting, method, sessionID)
   // Use rpc() instead
-  rpc_unchecked (method, param, incomingCallMap, callback, waitingHandler) {
+  rpcUnchecked (method, param, incomingCallMap, callback, waitingHandler) {
     if (!param) {
       param = {}
     }
@@ -369,7 +369,7 @@ class Engine {
 
   rpc (params) {
     const {method, param, incomingCallMap, callback, waitingHandler} = params
-    return this.rpc_unchecked(method, param, incomingCallMap, callback, waitingHandler)
+    return this.rpcUnchecked(method, param, incomingCallMap, callback, waitingHandler)
   }
 
   cancelRPC (response, error) {

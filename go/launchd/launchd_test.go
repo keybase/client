@@ -11,6 +11,7 @@ import (
 	"math/rand"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/kardianos/osext"
 )
@@ -41,8 +42,7 @@ func TestPlist(t *testing.T) {
 	}
 }
 
-// TODO: Fix (fails on travis)
-func todoTestCheckPlist(t *testing.T) {
+func TestCheckPlist(t *testing.T) {
 	label := fmt.Sprintf("keybase.testing.checkplist.%s", randStringBytes(32))
 	t.Logf("Label: %s", label)
 	service := NewService(label)
@@ -65,7 +65,7 @@ func todoTestCheckPlist(t *testing.T) {
 		t.Fatalf("We shouldn't have a plist")
 	}
 
-	err = service.Install(plist)
+	err = service.Install(plist, time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +89,7 @@ func todoTestCheckPlist(t *testing.T) {
 		t.Fatal("New plist should be invalid")
 	}
 
-	err = service.Install(plistNew)
+	err = service.Install(plistNew, time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}

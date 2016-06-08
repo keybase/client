@@ -14,6 +14,7 @@ build_dir="$2"
 here="$(dirname "$BASH_SOURCE")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 serverops_dir="$client_dir/../server-ops"
+kbfs_dir="$client_dir/../kbfs"
 
 export BUCKET_NAME="${BUCKET_NAME:-prerelease.keybase.io}"
 echo "Using BUCKET_NAME $BUCKET_NAME"
@@ -22,13 +23,20 @@ echo "Using BUCKET_NAME $BUCKET_NAME"
 rm -rf "$build_dir"
 mkdir -p "$build_dir"
 
-echo "Checking CI for this commit"
-(
-  temp="$(mktemp -d)"
-  (cd "$temp" && npm i github-ci-status)
-  (cd "$client_dir" && "$temp/node_modules/.bin/ci" --required-tests 3)
-  rm -r "$temp"
-)
+echo "Loading release tool"
+release_gopath="$HOME/release_gopath"
+GOPATH="$release_gopath" "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+release_bin="$release_gopath/bin/release"
+
+# NB: This is duplicated in packaging/prerelease/build_app.sh.
+if [ ! "${NOWAIT:-}" = "1" ]; then
+  echo "Checking client CI"
+  "$release_bin" wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="client-windows-master-only/label=windows" --context="client-linux-master-only/label=master" --context="client-osx-master-only/label=osx" --context="ci/circleci"
+  if [ "$mode" != "production" ] ; then
+    echo "Checking kbfs CI"
+    "$release_bin" wait-ci --repo="kbfs" --commit="$(git -C $kbfs_dir rev-parse HEAD)" --context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch"
+  fi
+fi
 
 # Build all the packages!
 "$here/build_binaries.sh" "$mode" "$build_dir"
@@ -114,11 +122,6 @@ release_prerelease() {
 
   json_tmp=`mktemp`
   echo "Writing version into JSON to $json_tmp"
-
-  echo "Loading release tool"
-  export GOPATH="$HOME/s3_gopath"  # for building the Go release binary
-  "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
-  release_bin="$GOPATH/bin/release"
 
   "$release_bin" update-json --version="$version" --description="Latest Linux release" > "$json_tmp"
 

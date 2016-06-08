@@ -23,6 +23,7 @@ type RekeyUIHandler struct {
 	alwaysAlive    bool
 	updatersMu     sync.RWMutex
 	updaters       map[int]*rekeyStatusUpdater
+	notifyStart    chan int // for testing purposes
 	notifyComplete chan int // for testing purposes
 	scorer         func(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error)
 }
@@ -116,6 +117,10 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 		r.updatersMu.Lock()
 		r.updaters[sessionID] = up
 		r.updatersMu.Unlock()
+		select {
+		case r.notifyStart <- sessionID:
+		default:
+		}
 		up.Start()
 		r.G().Log.Debug("updater for %d complete", sessionID)
 		r.updatersMu.Lock()
@@ -164,11 +169,13 @@ func (r *RekeyUIHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (
 	defer r.updatersMu.Unlock()
 	up, ok := r.updaters[sessionID]
 	if ok && up != nil {
+		r.G().Log.Debug("RekeyStatusFinish called for sessionID %d, telling updater to finish", sessionID)
 		up.Finish()
 		return keybase1.Outcome_IGNORED, nil
 	}
 
-	return keybase1.Outcome_NONE, errors.New("not implemented")
+	r.G().Log.Debug("RekeyStatusFinish called for sessionID %d but no updater found", sessionID)
+	return keybase1.Outcome_NONE, nil
 }
 
 type rekeyStatusUpdaterArgs struct {
