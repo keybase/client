@@ -8,6 +8,7 @@ package engine
 import (
 	"fmt"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libkb"
@@ -26,16 +27,16 @@ func AfterUpdateApply(g *libkb.GlobalContext, willRestart bool) error {
 		g.Log.Info("Re-installing KBFS")
 		err := install.InstallKBFS(g, "", false)
 		if err != nil {
-			g.Log.Errorf("Error re-installing KBFS: %s", err)
+			g.Log.Errorf("Error re-installing KBFS (after Fuse upgrade): %s", err)
 		}
 	}
 	return nil
 }
 
 // checkFuseUpgrade will see if the Fuse version in the Keybase.app bundle
-// matches whats currently installed, and if not, will uninstall KBFS so that
-// it can re-install new version of Fuse.
-// Returns true if KBFS should be re-installed.
+// is new, and if so will uninstall KBFS so that it can upgrade Fuse.
+// Returns true if KBFS should be re-installed (after the Fuse upgrade succeeded
+// or failed).
 func checkFuseUpgrade(g *libkb.GlobalContext, appPath string) (reinstallKBFS bool, err error) {
 	runMode := g.Env.GetRunMode()
 	log := g.Log
@@ -73,7 +74,8 @@ func checkFuseUpgrade(g *libkb.GlobalContext, appPath string) (reinstallKBFS boo
 		// Do Fuse upgrade
 		log.Info("Installing Fuse")
 		var out []byte
-		out, err = exec.Command("/Applications/Keybase.app/Contents/Resources/KeybaseInstaller.app/Contents/MacOS/Keybase",
+		out, err = exec.Command(
+			filepath.Join(appPath, "Contents/Resources/KeybaseInstaller.app/Contents/MacOS/Keybase"),
 			fmt.Sprintf("--app-path=%s", appPath),
 			"--run-mode=prod",
 			"--install-fuse").CombinedOutput()
