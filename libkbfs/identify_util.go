@@ -16,13 +16,12 @@ func identifyUID(ctx context.Context, nug normalizedUsernameGetter, identifier i
 	if err != nil {
 		return err
 	}
-	var pubOrPri string
+	var reason string
 	if isPublic {
-		pubOrPri = "public"
+		reason = "You accessed a public folder."
 	} else {
-		pubOrPri = "private"
+		reason = fmt.Sprintf("You accessed a private folder with %s.", username.String())
 	}
-	reason := fmt.Sprintf("You accessed a %s folder with %s.", pubOrPri, username.String())
 	userInfo, err := identifier.Identify(ctx, username.String(), reason)
 	if err != nil {
 		return err
