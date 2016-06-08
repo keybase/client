@@ -6,7 +6,7 @@ import {globalColors, globalStyles} from '../styles/style-guide'
 import type {Props} from './non-user'
 
 const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
-  const message = inviteLink ? `You can message ${name} this link to skip the invitation queue:` : `Since you're out of invites, ${name} will need to request a signup on Keybase.io. Encourage them to join.`
+  const message = inviteLink ? `You can send ${name} this link to skip the invitation queue:` : `Since you're out of invites, ${name} will need to request a signup on Keybase.io. Encourage them to join.`
   const icon = inviteLink ? 'invite-link-m' : isPrivate ? 'folder-private-success-m' : 'folder-public-success-m'
   const iconStyle = inviteLink ? {marginTop: 33, marginBottom: 16} : {marginTop: 24, marginBottom: 22}
 
