@@ -118,7 +118,7 @@ precommit hooks to make sure your code passes `gofmt` and `govet`:
 
 ```bash
 go get golang.org/x/tools/cmd/vet
-ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPATH/src/github.com/keybase/kbfs/.git/pre-commit
+ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPATH/src/github.com/keybase/kbfs/.git/hooks/pre-commit
 ```
 
 Though it doesn't happen automatically, we also expect your code to be
