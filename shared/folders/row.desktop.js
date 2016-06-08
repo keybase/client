@@ -6,25 +6,32 @@ import type {Props as IconProps} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
-const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar}) => (
-  <Box style={{
-    ...styles.avatarContainer,
-    width: smallMode ? 32 : 48,
-    minHeight: 48, paddingTop: 12, paddingBottom: 12,
-    paddingLeft: smallMode ? 4 : 8, paddingRight: smallMode ? 4 : 8}}>
-    {groupAvatar
-      ? <Icon type={smallMode ? styles.groupIcon.small : styles.groupIcon.normal} />
-      : <Avatar size={smallMode ? 24 : 32} username={userAvatar} />}
-  </Box>
-)
+const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar}) => {
+  const paddingLR = smallMode ? 4 : 8
+  const paddingTB = smallMode ? 8 : 12
+  return (
+    <Box style={{
+      ...styles.avatarContainer,
+      width: smallMode ? 32 : 48,
+      minHeight: smallMode ? 40 : 48,
+      paddingTop: paddingTB, paddingBottom: paddingTB,
+      paddingLeft: paddingLR, paddingRight: paddingLR}}>
+      {groupAvatar
+        ? <Icon type={smallMode ? styles.groupIcon.small : styles.groupIcon.normal} />
+        : <Avatar size={smallMode ? 24 : 32} username={userAvatar} />}
+    </Box>
+  )
+}
 
-const Modified = ({styles, modified}) => {
-  const iconColor = Text._colorStyleBackgroundMode(styles.modifiedMode, 'BodySmallLink')
+const Modified = ({smallMode, styles, modified}) => {
+  const iconColor = Text._colorStyleBackgroundMode(styles.modifiedMode, 'BodyXSmall')
+  const boltStyle = {fontSize: smallMode ? 12 : 10, alignSelf: 'center',
+    ...(smallMode ? {marginTop: 2} : {marginLeft: -2, marginRight: 2}), ...iconColor}
   return (
     <Box style={stylesModified}>
-      <Icon type='fa-kb-iconfont-thunderbolt' style={{fontSize: 12, alignSelf: 'center', marginLeft: -2, marginRight: 2, ...iconColor}} title='Modified' />
-      <Text type='BodySmall' backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
-      <Text type='BodySmallLink' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
+      <Icon type='fa-kb-iconfont-thunderbolt' style={boltStyle} title='Modified' />
+      <Text type={smallMode ? 'BodyXSmall' : 'BodySmall'} backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
+      <Text type={smallMode ? 'BodyXSmallLink' : 'BodySmallLink'} backgroundMode={styles.modifiedMode}>{modified.username}</Text>
     </Box>
   )
 }
@@ -52,7 +59,8 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onCl
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   const containerStyle = {
-    ...styles.rowContainer
+    ...styles.rowContainer,
+    minHeight: smallMode ? 40 : 48
   }
 
   const icon: IconProps.type = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
@@ -63,9 +71,9 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onCl
       <Box style={{...globalStyles.flexBoxRow}}>
         <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} />
         <Box style={stylesBodyContainer}>
-          <Usernames users={users} type='BodySemibold' style={{color: styles.nameColor}} />
+          <Usernames users={users} type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'} style={{color: styles.nameColor}} />
           {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
-          {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
+          {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} smallMode={smallMode} />}
         </Box>
         <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
           {!smallMode && meta !== 'rekey' && <Text
@@ -111,8 +119,8 @@ const stylesPrivate = {
     backgroundColor: 'rgba(0, 26, 51, 0.4)'
   },
   groupIcon: {
-    small: 'folder-private-group-24',
-    normal: 'folder-private-group-32'
+    small: 'icon-folder-private-group-24',
+    normal: 'icon-folder-private-group-32'
   },
   avatarContainer: {
     backgroundColor: globalColors.darkBlue3,
@@ -144,7 +152,7 @@ const stylesPublic = {
   avatarContainer: {
     backgroundColor: globalColors.yellowGreen
   },
-  nameColor: globalColors.yellowGreen,
+  nameColor: globalColors.yellowGreen2,
   modifiedMode: 'Normal'
 }
 
