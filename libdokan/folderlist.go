@@ -59,7 +59,7 @@ func (fl *FolderList) reportErr(ctx context.Context,
 // open tries to open the correct thing. Following aliases and deferring to
 // Dir.open as necessary.
 func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, isDir bool, err error) {
-	fl.fs.log.CDebugf(ctx, "FL Lookup %#v", path)
+	fl.fs.log.CDebugf(ctx, "FL Lookup %#v public=%v", path, fl.public)
 	if len(path) == 0 {
 		return oc.returnDirNoCleanup(fl)
 	}
