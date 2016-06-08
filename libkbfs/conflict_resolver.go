@@ -220,12 +220,28 @@ func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState) (
 	if err != nil {
 		return nil, nil, err
 	}
+	// Deep copy because CR may change them.
+	for i, md := range unmerged {
+		mdCopy, err := md.deepCopy(cr.config.Codec(), true)
+		if err != nil {
+			return nil, nil, err
+		}
+		unmerged[i] = mdCopy
+	}
 
 	// now get all the merged MDs, starting from after the branch point
 	merged, err = getMergedMDUpdates(ctx, cr.fbo.config, cr.fbo.id(),
 		branchPoint+1)
 	if err != nil {
 		return nil, nil, err
+	}
+	// Deep copy because CR may change them.
+	for i, md := range merged {
+		mdCopy, err := md.deepCopy(cr.config.Codec(), true)
+		if err != nil {
+			return nil, nil, err
+		}
+		merged[i] = mdCopy
 	}
 
 	// re-embed all the block changes
