@@ -30,10 +30,10 @@ export function selectService (base, service) {
   }
 }
 
-let next_nonce = 0
+let nextNonce = 0
 
-const submitSearch_debounced = _.debounce((base, term, dispatch, getState) => {
-  const nonce = next_nonce++
+const submitSearchDebounced = _.debounce((base, term, dispatch, getState) => {
+  const nonce = nextNonce++
 
   dispatch({
     type: Constants.searchRunning,
@@ -43,12 +43,12 @@ const submitSearch_debounced = _.debounce((base, term, dispatch, getState) => {
     }
   })
 
-  const bad_nonce = () => (getState().search.getIn([base, 'nonce']) !== nonce)
+  const badNonce = () => (getState().search.getIn([base, 'nonce']) !== nonce)
 
   const doRPC = (...args) => new Promise((resolve, reject) => {
     // TODO think about using rpc
-    engine.rpc_unchecked(...args, (error, results) => {
-      if (bad_nonce()) { return }
+    engine.rpcUnchecked(...args, (error, results) => {
+      if (badNonce()) { return }
       if (error) { throw new Error(error) }
       if (results) {
         dispatch(loadSummaries(results.map(r => r.uid)))
@@ -97,6 +97,6 @@ export function submitSearch (base, term) {
         term
       }
     })
-    submitSearch_debounced(base, term, dispatch, getState)
+    submitSearchDebounced(base, term, dispatch, getState)
   }
 }

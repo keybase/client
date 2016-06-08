@@ -1,7 +1,7 @@
 /* @flow */
 
 import engine from '../engine'
-import type {notifyCtl_setNotifications_rpc} from '../constants/types/flow-types'
+import type {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
 
 type NotificationChannels = {
   session?: true,
@@ -26,7 +26,7 @@ export default function (channels: NotificationChannels): Promise<void> {
     }
 
     engine.listenOnConnect('setNotifications', () => {
-      const params : notifyCtl_setNotifications_rpc = {
+      const params : notifyCtlSetNotificationsRpc = {
         method: 'notifyCtl.setNotifications',
         param: {channels: toSend},
         incomingCallMap: {},

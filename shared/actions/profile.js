@@ -3,7 +3,7 @@ import * as Constants from '../constants/profile'
 import {routeAppend} from './router'
 import engine from '../engine'
 import {identify} from '../constants/types/keybase-v1'
-import type {incomingCallMapType, user_loadUncheckedUserSummaries_rpc, identify_identify_rpc, UserSummary} from '../constants/types/flow-types'
+import type {incomingCallMapType, userLoadUncheckedUserSummariesRpc, identifyIdentifyRpc, UserSummary} from '../constants/types/flow-types'
 import type {AsyncAction, TypedAction} from '../constants/types/flux'
 const enums = identify
 
@@ -109,7 +109,7 @@ export function refreshProfile (username: string) : AsyncAction {
       }
     }
 
-    const params : identify_identify_rpc = {
+    const params : identifyIdentifyRpc = {
       method: 'identify.identify',
       param: {
         userAssertion: username,
@@ -153,7 +153,7 @@ export function loadSummaries (uids: Array<string>) : AsyncAction {
       payload: uids
     })
 
-    const params : user_loadUncheckedUserSummaries_rpc = {
+    const params : userLoadUncheckedUserSummariesRpc = {
       method: 'user.loadUncheckedUserSummaries',
       param: {uids: uids},
       incomingCallMap: {},
