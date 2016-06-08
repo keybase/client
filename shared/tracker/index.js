@@ -8,7 +8,7 @@ import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
 import {metaNone} from '../constants/tracker'
 
-import type {RenderProps} from './render'
+import type {RenderPropsUnshaped} from './render'
 import type {UserInfo} from './bio.render'
 import type {Proof} from './proofs.render'
 import type {SimpleProofState} from '../constants/tracker'
@@ -43,7 +43,7 @@ export type TrackerProps = {
   isPrivate?: boolean
 }
 
-export function trackerPropsToRenderProps (props: TrackerProps): RenderProps {
+export function trackerPropsToRenderProps (props: TrackerProps): RenderPropsUnshaped {
   const renderChangedTitle = props.trackerMessage
   const failedProofsNotFollowingText = `Some of ${props.username}'s proofs couldn't be verified. Track the working proofs?`
   const currentlyFollowing = !!props.lastTrack
@@ -55,6 +55,7 @@ export function trackerPropsToRenderProps (props: TrackerProps): RenderProps {
   const reason = currentlyFollowing && renderChangedTitle ? renderChangedTitle : props.reason
 
   return {
+    parentProps: props.parentProps || {},
     bioProps: {
       username: props.username,
       userInfo: props.userInfo,

@@ -8,11 +8,16 @@ import Bio from './bio.render.desktop'
 import ProofsRender from './proofs.render.desktop'
 import commonStyles from '../styles/common'
 import NonUser from './non-user'
+import {autoResize} from '../../desktop/renderer/remote-component-helper'
 
 import type {RenderProps} from './render'
 
 export default class Render extends Component<void, RenderProps, void> {
   props: RenderProps;
+
+  componentDidMount () {
+    autoResize()
+  }
 
   render () {
     if (this.props.nonUser) {
