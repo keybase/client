@@ -131,12 +131,14 @@ export function favoriteList (): (dispatch: Dispatch) => void {
         if (total && !_.isEqual(newNotify, previousNotify)) {
           previousNotify = newNotify
 
-          let body = `You have ${total} new folders`
+          let body = null
 
           if (total <= 3) {
             body = [].concat(folderProps.private.tlfs || [], folderProps.public.tlfs || [])
               .filter(t => t.meta === 'new')
               .map(t => t.path).join('\n')
+          } else {
+            body = `You have ${total} new folders`
           }
 
           NotifyPopup('New Keybase Folders!', {body}, 60 * 10)
