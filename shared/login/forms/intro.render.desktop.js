@@ -17,7 +17,7 @@ export default class Intro extends Component<void, IntroProps, void> {
         </Box>}
         <Icon type='logo-160' />
         <Text style={stylesHeader} type='HeaderJumbo'>Join Keybase</Text>
-        <Text style={stylesHeaderSub} type='Body'>Folders for anyone in the world.</Text>
+        <Text style={stylesHeaderSub} type='Body'>Public key crypto for everyone</Text>
         <Button style={stylesButton} type='Primary' onClick={this.props.onSignup} label='Create an account' />
         <Text style={stylesLoginHeader} type='Body' onClick={this.props.onLogin}>Already on Keybase?</Text>
         <Text type='BodyPrimaryLink' onClick={this.props.onLogin}>Log in</Text>

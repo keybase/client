@@ -43,7 +43,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
 const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
-      <Text type='BodySmallSemibold' style={styleWarningBanner} >This computer and possibly others are unable to read this folder. To avoid losing data forever, please take one of the actions below.</Text>
+      <Text type='BodySmallSemibold' style={styleWarningBanner}>Until you take one of the steps below, you're at risk of losing data forever.</Text>
       <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
         {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
         youCanUnlock.map(device => (
