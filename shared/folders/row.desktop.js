@@ -42,7 +42,7 @@ const RowMeta = ({ignored, meta, styles}) => {
 
   const metaProps = ignored
     ? {title: 'ignored', style: styles.ignored}
-    : {title: meta || '', style: {color: metaColors[meta], backgroundColor: metaBGColors[meta]}}
+    : {title: meta || '', style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {}}
 
   return <Meta {...metaProps} />
 }

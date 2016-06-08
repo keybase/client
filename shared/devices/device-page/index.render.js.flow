@@ -5,7 +5,8 @@ import type {Time} from '../../constants/types/flow-types'
 
 export type TimelineItem = {
   type: 'LastUsed' | 'Added' | 'Revoked',
-  desc: string
+  desc: string,
+  subDesc?: string
 }
 
 export type BannerItem = {

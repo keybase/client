@@ -6,7 +6,7 @@ import {globalStyles, globalColors} from '../../styles/style-guide'
 import type {Props, SearchResult} from './render'
 import type {Props as TextProps} from '../../common-adapters/text'
 
-function EmboldenTextMatch ({text, match, style, textType, emboldenStyle}: {text: string, match: string, emboldenStyle: Object, style: Object, textType: TextProps.type}) {
+function EmboldenTextMatch ({text, match, style, textType, emboldenStyle}: {text: string, match: string, emboldenStyle?: Object, style?: Object, textType: TextProps.type}) {
   const indexOfMatch = text.indexOf(match)
   if (indexOfMatch > -1) {
     return (
@@ -115,7 +115,7 @@ export default class Render extends Component<void, Props, void> {
             <Input type='text' autoCapitalize='none' value={this.props.searchText} hintText={this.props.searchHintText} iosOmitUnderline style={{marginTop: 0, height: 32}} />
           </Box>}
           action={<Box />} />
-        {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} searchText={this.props.searchText} />)}
+        {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} searchText={this.props.searchText || ''} />)}
       </Box>
     )
   }
