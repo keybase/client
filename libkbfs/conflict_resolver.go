@@ -75,11 +75,11 @@ func NewConflictResolver(
 		},
 	}
 
-	cr.startProcessing()
+	cr.startProcessing(context.Background)
 	return cr
 }
 
-func (cr *ConflictResolver) startProcessing() {
+func (cr *ConflictResolver) startProcessing(ctxMaker func() context.Context) {
 	cr.inputChanLock.Lock()
 	defer cr.inputChanLock.Unlock()
 
@@ -87,7 +87,7 @@ func (cr *ConflictResolver) startProcessing() {
 		return
 	}
 	cr.inputChan = make(chan conflictInput)
-	go cr.processInput(cr.inputChan)
+	go cr.processInput(ctxMaker, cr.inputChan)
 }
 
 func (cr *ConflictResolver) stopProcessing() {
@@ -105,7 +105,8 @@ func (cr *ConflictResolver) stopProcessing() {
 // channel until it is closed. This function uses a parameter for the
 // channel instead of accessing cr.inputChan directly so that it
 // doesn't have to hold inputChanLock.
-func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
+func (cr *ConflictResolver) processInput(ctxMaker func() context.Context,
+	inputChan <-chan conflictInput) {
 	var cancel context.CancelFunc
 	var prevCRDone chan struct{}
 	defer func() {
@@ -114,8 +115,7 @@ func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
 		}
 	}()
 	for ci := range inputChan {
-		ctx := ctxWithRandomID(context.Background(), CtxCRIDKey,
-			CtxCROpID, cr.log)
+		ctx := ctxWithRandomID(ctxMaker(), CtxCRIDKey, CtxCROpID, cr.log)
 
 		valid := func() bool {
 			cr.inputLock.Lock()
@@ -199,9 +199,15 @@ func (cr *ConflictResolver) Pause() {
 	cr.stopProcessing()
 }
 
-// Restart re-enables conflict resolution.
-func (cr *ConflictResolver) Restart() {
-	cr.startProcessing()
+// Restart re-enables conflict resolution, with a function that makes
+// the base context for CR operations.  If ctxMaker is nil,
+// context.Background is used.
+func (cr *ConflictResolver) Restart(
+	ctxMaker func() context.Context) {
+	if ctxMaker == nil {
+		ctxMaker = context.Background
+	}
+	cr.startProcessing(ctxMaker)
 }
 
 func (cr *ConflictResolver) checkDone(ctx context.Context) error {
