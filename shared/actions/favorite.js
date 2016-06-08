@@ -10,6 +10,7 @@ import type {Dispatch} from '../constants/types/flux'
 import type {FavoriteList} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
 import flags from '../util/feature-flags'
+import {NotifyPopup} from '../native/notifications'
 
 const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: string = ''): FolderProps => { // eslint-disable-line space-infix-ops
   let privateBadge = 0
@@ -28,7 +29,7 @@ const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: str
     const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)
     const userAvatar = groupAvatar ? null : users[users.length - 1].username
     const meta = null
-    // const meta = (__DEV__ && Math.random() < 0.2) ? 'new' : null // uncomment to test seeing new before we integrate fully
+    // const meta = (__DEV__ && Math.random() < 0.05) ? 'new' : null // uncomment to test seeing new before we integrate fully
 
     if (meta === 'new') {
       if (f.private) {
@@ -81,6 +82,9 @@ const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: str
   }
 }
 
+// If the notify data has changed, show a popup
+let previousNotify = null
+
 export function favoriteList (): (dispatch: Dispatch) => void {
   return (dispatch, getState) => {
     const params : favoriteFavoriteListRpc = {
@@ -120,6 +124,24 @@ export function favoriteList (): (dispatch: Dispatch) => void {
         const action: FavoriteList = {type: Constants.favoriteList, payload: {folders: folderProps}}
         dispatch(action)
         dispatch(badgeApp('newTLFs', !!(folderProps.publicBadge || folderProps.privateBadge)))
+
+        const newNotify = {public: folderProps.publicBadge, private: folderProps.privateBadge}
+        const total = folderProps.publicBadge + folderProps.privateBadge
+
+        if (total && !_.isEqual(newNotify, previousNotify)) {
+          previousNotify = newNotify
+
+          let body = `You have ${total} new folders`
+
+          if (total <= 3) {
+            console.log(folderProps.private.tlfs, folderProps.public.tlfs)
+            body = [].concat(folderProps.private.tlfs || [], folderProps.public.tlfs || [])
+              .filter(t => t.meta === 'new')
+              .map(t => t.path).join('\n')
+          }
+
+          NotifyPopup('New Keybase Folders!', {body}, 60 * 10)
+        }
       }
     }
     engine.rpc(params)
