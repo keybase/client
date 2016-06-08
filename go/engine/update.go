@@ -91,8 +91,8 @@ func (u UpdaterContext) GetUpdateUI() (updater.UpdateUI, error) {
 	return ui, nil
 }
 
-func (u UpdaterContext) AfterUpdateApply(willRestart bool) error {
-	if err := AfterUpdateApply(u.g, willRestart); err != nil {
+func (u UpdaterContext) AfterUpdateApply(willRestart bool, force bool) error {
+	if err := AfterUpdateApply(u.g, willRestart, force); err != nil {
 		// Errors on after update apply shouldn't be fatal
 		u.g.Log.Warning("Error in after update apply: %s", err)
 	}

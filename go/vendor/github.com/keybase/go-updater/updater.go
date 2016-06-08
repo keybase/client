@@ -43,7 +43,7 @@ type UpdateUI interface {
 // Context defines state during an update session
 type Context interface {
 	GetUpdateUI() (UpdateUI, error)
-	AfterUpdateApply(willRestart bool) error
+	AfterUpdateApply(willRestart bool, force bool) error
 	Verify(r io.Reader, signature string) error
 }
 
@@ -501,7 +501,7 @@ func (u *Updater) update(ctx Context, force bool, requested bool) (update *keyba
 		return
 	}
 
-	err = ctx.AfterUpdateApply(updateQuitResponse.Quit)
+	err = ctx.AfterUpdateApply(updateQuitResponse.Quit, false)
 	if err != nil {
 		return
 	}

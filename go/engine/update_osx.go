@@ -12,14 +12,15 @@ import (
 
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol"
 )
 
 // AfterUpdateApply runs after an update has been applied
-func AfterUpdateApply(g *libkb.GlobalContext, willRestart bool) error {
+func AfterUpdateApply(g *libkb.GlobalContext, willRestart bool, force bool) error {
 	if !willRestart {
 		return nil
 	}
-	reinstallKBFS, err := checkFuseUpgrade(g, "/Applications/Keybase.app")
+	reinstallKBFS, err := checkFuseUpgrade(g, "/Applications/Keybase.app", force)
 	if err != nil {
 		g.Log.Errorf("Error trying to upgrade Fuse: %s", err)
 	}
@@ -35,9 +36,10 @@ func AfterUpdateApply(g *libkb.GlobalContext, willRestart bool) error {
 
 // checkFuseUpgrade will see if the Fuse version in the Keybase.app bundle
 // is new, and if so will uninstall KBFS so that it can upgrade Fuse.
+// If force is true, the Fuse upgrade is attempted even if it's not needed.
 // Returns true if KBFS should be re-installed (after the Fuse upgrade succeeded
 // or failed).
-func checkFuseUpgrade(g *libkb.GlobalContext, appPath string) (reinstallKBFS bool, err error) {
+func checkFuseUpgrade(g *libkb.GlobalContext, appPath string, force bool) (reinstallKBFS bool, err error) {
 	runMode := g.Env.GetRunMode()
 	log := g.Log
 	var mountDir string
@@ -60,12 +62,12 @@ func checkFuseUpgrade(g *libkb.GlobalContext, appPath string) (reinstallKBFS boo
 		}
 	}
 
-	if true { //fuseStatus.InstallAction == keybase1.InstallAction_UPGRADE {
+	if fuseStatus.InstallAction == keybase1.InstallAction_UPGRADE || force {
 		log.Info("Fuse needs upgrade")
 		if hasKBFuseMounts {
 			log.Info("We have mounts, let's uninstall KBFS so the installer can upgrade")
 			reinstallKBFS = true
-			err = install.UninstallKBFS(runMode, mountDir, log)
+			err = install.UninstallKBFS(runMode, mountDir, true, log)
 			if err != nil {
 				return
 			}

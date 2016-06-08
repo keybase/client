@@ -36,19 +36,25 @@ func Unmount(dir string, force bool, log logger.Logger) error {
 		}
 		// Unmount failed and we want to force it.
 		log.Info("Unmount %s failed: %s; We will try to force it", dir, err)
-		err = ForceUnmount(dir)
+		err = ForceUnmount(dir, log)
 	}
 	return err
 }
 
 // ForceUnmount tries to forceably unmount a directory
-func ForceUnmount(dir string) (err error) {
-	if runtime.GOOS == "darwin" {
-		_, err = exec.Command("/usr/sbin/diskutil", "unmountDisk", "force", dir).Output()
-	} else if runtime.GOOS == "linux" {
-		_, err = exec.Command("umount", "-l", dir).Output()
-	} else {
-		err = errors.New("Forced unmount is not supported on this platform yet")
+func ForceUnmount(dir string, log logger.Logger) error {
+	switch runtime.GOOS {
+	case "darwin":
+		log.Info("Force unmounting with diskutil")
+		out, err := exec.Command("/usr/sbin/diskutil", "unmountDisk", "force", dir).CombinedOutput()
+		log.Debug("Output: %s", string(out))
+		return err
+	case "linux":
+		log.Info("Force unmounting with umount -l")
+		out, err := exec.Command("umount", "-l", dir).CombinedOutput()
+		log.Debug("Output: %s", string(out))
+		return err
+	default:
+		return errors.New("Forced unmount is not supported on this platform yet")
 	}
-	return
 }
