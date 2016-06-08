@@ -107,7 +107,7 @@ func (f *FS) GetDiskFreeSpace() (freeSpace dokan.FreeSpace, err error) {
 	// TODO should this be refused to other users?
 	// Refuse private directories while we are in a error state.
 	if f.remoteStatus.ExtraFileName() != "" {
-		f.log.CWarningf(ctx, "Dummy disk free space while errors are present!")
+		f.log.Warning("Dummy disk free space while errors are present!")
 		return dokan.FreeSpace{
 			TotalNumberOfBytes:     dummyFreeSpace,
 			TotalNumberOfFreeBytes: dummyFreeSpace,
