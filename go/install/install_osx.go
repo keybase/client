@@ -350,7 +350,7 @@ func Install(g *libkb.GlobalContext, binPath string, components []string, force 
 	g.Log.Debug("Installing components: %s", components)
 
 	if libkb.IsIn(string(ComponentNameUpdater), components, false) {
-		err = installUpdater(binPath, force, libkb.VersionString(), g.Log)
+		err = installUpdater(binPath, force, g.Log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameUpdater), err))
 	}
 
@@ -799,7 +799,7 @@ func RunAfterStartup(g *libkb.GlobalContext, isService bool) error {
 	return nil
 }
 
-func installUpdater(keybaseBinPath string, force bool, keybaseVersion string, log logger.Logger) error {
+func installUpdater(keybaseBinPath string, force bool, log logger.Logger) error {
 	keybaseBinPath, err := chooseBinPath(keybaseBinPath)
 	if err != nil {
 		return err
@@ -812,7 +812,7 @@ func installUpdater(keybaseBinPath string, force bool, keybaseVersion string, lo
 
 	label := string(AppUpdaterLabel)
 	service := launchd.NewService(label)
-	plist := keybaseUpdaterPlist(label, updaterBinPath, keybaseBinPath, keybaseVersion)
+	plist := keybaseUpdaterPlist(label, updaterBinPath, keybaseBinPath)
 
 	launchdStatus, err := service.LoadStatus()
 	if err != nil {
@@ -849,7 +849,7 @@ func installUpdater(keybaseBinPath string, force bool, keybaseVersion string, lo
 	return nil
 }
 
-func keybaseUpdaterPlist(label string, serviceBinPath string, keybaseBinPath string, keybaseVersion string) launchd.Plist {
+func keybaseUpdaterPlist(label string, serviceBinPath string, keybaseBinPath string) launchd.Plist {
 	plistArgs := []string{fmt.Sprintf("-path-to-keybase=%s", keybaseBinPath)}
 	envVars := DefaultLaunchdEnvVars(label)
 	comment := "It's not advisable to edit this plist, it may be overwritten"
