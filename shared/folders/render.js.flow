@@ -9,11 +9,11 @@ export type Props = {
   private: ListProps,
   publicBadge?: number,
   public: ListProps,
-  onSwitchTab?: (showingPublic: boolean) => void,
+  showingPrivate: boolean,
+  onSwitchTab?: (showingPrivate: boolean) => void,
   listStyle?: any,
   smallMode?: boolean,
   onClick?: (path: string) => void,
-  openToPrivate?: boolean,
   onRekey: (path: string) => void
 }
 

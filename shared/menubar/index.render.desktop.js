@@ -105,7 +105,8 @@ class Render extends Component<DefaultProps, Props, State> {
       smallMode: true,
       private: newPrivate,
       public: newPublic,
-      onSwitchTab: showingPublic => this.setState({showingPrivate: !showingPublic}),
+      onSwitchTab: showingPrivate => this.setState({showingPrivate}),
+      showingPrivate: this.state.showingPrivate,
       onRekey: this.props.onRekey
     }
 

@@ -66,6 +66,7 @@ const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: str
 
   return {
     onRekey: () => {},
+    showingPrivate: true,
     smallMode: false,
     showComingSoon: !flags.tabFoldersEnabled,
     privateBadge,

@@ -6,7 +6,7 @@ import {map} from '../folders/dumb'
 import {globalStyles} from '../styles/style-guide'
 
 const propsNormal = {
-  folderProps: map.mocks.Normal,
+  folderProps: map.mocks['Normal Private'],
   username: 'max',
   showOpenApp: true,
   openApp: () => console.log('open app'),

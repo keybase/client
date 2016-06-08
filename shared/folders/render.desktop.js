@@ -6,26 +6,7 @@ import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import List from './list'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
-type State = {
-  showingPrivate: boolean
-}
-
-type DefaultProps = {
-  openToPrivate: boolean
-}
-
-class Render extends Component<DefaultProps, Props, State> {
-  static defaultProps: DefaultProps;
-  state: State;
-
-  constructor (props: Props & DefaultProps) {
-    super(props)
-
-    this.state = {
-      showingPrivate: props.openToPrivate
-    }
-  }
-
+class Render extends Component<void, Props, void> {
   _renderComingSoon () {
     return <ComingSoon />
   }
@@ -59,16 +40,13 @@ class Render extends Component<DefaultProps, Props, State> {
     }
 
     return (
-      <Box style={{...stylesContainer, backgroundColor: this.state.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
+      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
         <TabBar tabBarStyle={tabBarStyle}>
           <TabBarItem
-            selected={this.state.showingPrivate}
+            selected={this.props.showingPrivate}
             containerStyle={itemContainerStyle}
-            tabBarButton={this._makeItem(false, this.state.showingPrivate === true)}
-            onClick={() => {
-              this.setState({showingPrivate: true})
-              this.props.onSwitchTab && this.props.onSwitchTab(false)
-            }}>
+            tabBarButton={this._makeItem(false, this.props.showingPrivate === true)}
+            onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(true) }}>
             <List
               {...this.props.private}
               style={this.props.listStyle}
@@ -77,13 +55,10 @@ class Render extends Component<DefaultProps, Props, State> {
               onClick={this.props.onClick} />
           </TabBarItem>
           <TabBarItem
-            selected={!this.state.showingPrivate}
+            selected={!this.props.showingPrivate}
             containerStyle={itemContainerStyle}
-            tabBarButton={this._makeItem(true, this.state.showingPrivate === false)}
-            onClick={() => {
-              this.setState({showingPrivate: false})
-              this.props.onSwitchTab && this.props.onSwitchTab(true)
-            }}>
+            tabBarButton={this._makeItem(true, this.props.showingPrivate === false)}
+            onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(false) }}>
             <List
               {...this.props.public}
               style={this.props.listStyle}
@@ -95,10 +70,6 @@ class Render extends Component<DefaultProps, Props, State> {
       </Box>
     )
   }
-}
-
-Render.defaultProps = {
-  openToPrivate: true
 }
 
 const stylesContainer = {
