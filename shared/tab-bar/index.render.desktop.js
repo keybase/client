@@ -98,7 +98,7 @@ export default class Render extends Component<void, Props, void> {
         <TabBarItem
           key={t} tabBarButton={button}
           selected={this.props.selectedTab === t} onClick={onClick} containerStyle={{...stylesTabBarItem, ...(isProfile && {flex: 2, justifyContent: 'flex-end'})}}>
-          <Box style={{overflow: 'scroll', flex: 1}}>{this.props.tabContent[t]}</Box>
+          <Box style={{overflow: 'auto', flex: 1, ...globalStyles.flexBoxColumn}}>{this.props.tabContent[t]}</Box>
         </TabBarItem>
       )
     })
