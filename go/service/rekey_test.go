@@ -62,6 +62,7 @@ func rekeyBroadcast(tc libkb.TestContext, gUID gregor1.UID, h *gregorHandler, bo
 }
 
 func TestRekeyNeededMessageNoScores(t *testing.T) {
+	t.Skip()
 	tc := libkb.SetupTest(t, "gregor", 1)
 	defer tc.Cleanup()
 
@@ -93,6 +94,7 @@ const problemSet = `{
 }`
 
 func TestRekeyNeededMessageWithScores(t *testing.T) {
+	t.Skip()
 	tc := libkb.SetupTest(t, "gregor", 1)
 	defer tc.Cleanup()
 
@@ -142,6 +144,7 @@ type fakeRekeyUI struct {
 
 // A rekey is needed, but the user closes the rekey status window.
 func TestRekeyNeededUserClose(t *testing.T) {
+	t.Skip()
 	tc := libkb.SetupTest(t, "gregor", 1)
 	defer tc.Cleanup()
 
