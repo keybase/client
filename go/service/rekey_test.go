@@ -126,7 +126,6 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 				return
 			default:
 				clock.Advance(1 * time.Second)
-				time.Sleep(10 * time.Millisecond)
 			}
 		}
 	}()
