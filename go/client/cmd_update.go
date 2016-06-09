@@ -19,12 +19,12 @@ import (
 func NewCmdUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "update",
-		Usage:        "Support for updater",
+		Usage:        "The updater",
 		ArgumentHelp: "[arguments...]",
 		HideHelp:     true,
 		Subcommands: []cli.Command{
-			newCmdUpdateCheck(cl, g),
-			newCmdUpdateRun(cl, g),
+			newCmdUpdateCheck(cl, g), // Deprecated
+			newCmdUpdateRun(cl, g),   // Deprecated
 			newCmdUpdateCheckInUse(cl, g),
 			newCmdUpdateNotify(cl, g),
 		},
