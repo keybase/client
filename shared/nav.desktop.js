@@ -56,6 +56,7 @@ class Nav extends Component<void, Props, State> {
 
   constructor (props) {
     super(props)
+    this._setupDebug()
     this.props.bootstrap()
 
     this.state = {searchActive: false}
@@ -65,6 +66,12 @@ class Nav extends Component<void, Props, State> {
     window.addEventListener('online', () => this.props.bootstrap())
 
     this._lastCheckedTab = null // the last tab we resized for
+  }
+
+  _setupDebug () {
+    if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
+      require('devtron').install()
+    }
   }
 
   _handleTabsChange (e, key, payload) {
