@@ -757,10 +757,7 @@ func (md *RootMetadata) swapCachedBlockChanges() {
 // TlfHandleExtensions returns a list of handle extensions associated with the TLf.
 func (md *RootMetadata) TlfHandleExtensions() (extensions []TlfHandleExtension) {
 	if md.ConflictInfo != nil {
-		ext := *md.ConflictInfo
-		// Might not be set in older versions of metadata.
-		ext.Type = TlfHandleExtensionConflict
-		extensions = append(extensions, ext)
+		extensions = append(extensions, *md.ConflictInfo)
 	}
 	if md.FinalizedInfo != nil {
 		extensions = append(extensions, *md.FinalizedInfo)
