@@ -285,9 +285,10 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 	var h TlfHandle
 
 	require.Nil(t, h.ConflictInfo())
-	info := ConflictInfo{
+	info := TlfHandleExtension{
 		Date:   100,
 		Number: 50,
+		Type:   TlfHandleExtensionConflict,
 	}
 
 	h.SetConflictInfo(&info)
@@ -298,6 +299,26 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 
 	h.SetConflictInfo(nil)
 	require.Nil(t, h.ConflictInfo())
+}
+
+func TestTlfHandleFinalizedInfo(t *testing.T) {
+	var h TlfHandle
+
+	require.Nil(t, h.FinalizedInfo())
+	info := TlfHandleExtension{
+		Date:   100,
+		Number: 50,
+		Type:   TlfHandleExtensionFinalized,
+	}
+
+	h.SetFinalizedInfo(&info)
+	require.Equal(t, info, *h.FinalizedInfo())
+
+	info.Date = 101
+	require.NotEqual(t, info, *h.FinalizedInfo())
+
+	h.SetFinalizedInfo(nil)
+	require.Nil(t, h.FinalizedInfo())
 }
 
 func TestParseTlfHandleSocialAssertion(t *testing.T) {
@@ -376,9 +397,10 @@ func TestParseTlfHandleConflictSuffix(t *testing.T) {
 		daemon: daemon,
 	}
 
-	ci := &ConflictInfo{
+	ci := &TlfHandleExtension{
 		Date:   1462838400,
 		Number: 1,
+		Type:   TlfHandleExtensionConflict,
 	}
 
 	a := "u1 " + ci.String()
@@ -509,13 +531,43 @@ func TestResolveAgainConflict(t *testing.T) {
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
 	daemon.addNewAssertionForTest("u3", "u3@twitter")
-	ci, err := NewConflictInfo(1)
+	ext, err := NewTlfHandleExtension(TlfHandleExtensionConflict, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	h.conflictInfo = ci
+	h.conflictInfo = ext
 	newH, err := h.ResolveAgain(ctx, daemon)
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName("u1,u2#u3"+
-		ConflictSuffixSep+ci.String()), newH.GetCanonicalName())
+		TlfHandleExtensionSep+ext.String()), newH.GetCanonicalName())
+}
+
+func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name := "u1,u2#u3 (conflicted copy 2016-03-14 #3) (finalized 2016-03-14 #2)"
+	h, err := ParseTlfHandle(ctx, kbpki, name, false)
+	require.Nil(t, err)
+	assert.Equal(t, TlfHandleExtension{
+		Type:   TlfHandleExtensionConflict,
+		Date:   1457913600,
+		Number: 3,
+	}, *h.ConflictInfo())
+	assert.Equal(t, TlfHandleExtension{
+		Type:   TlfHandleExtensionFinalized,
+		Date:   1457913600,
+		Number: 2,
+	}, *h.FinalizedInfo())
+
+	nonCanonicalName := "u1,u2#u3 (finalized 2016-03-14 #2) (conflicted copy 2016-03-14 #3)"
+	_, err = ParseTlfHandle(ctx, kbpki, nonCanonicalName, false)
+	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
 }

@@ -20,9 +20,9 @@ const (
 	// TLF name.
 	ReaderSep = "#"
 
-	// ConflictSuffixSep is the string that separates the folder
-	// participants from a conflict suffix in the TLF name.
-	ConflictSuffixSep = " "
+	// TlfHandleExtensionSep is the string that separates the folder
+	// participants from an extension suffix in the TLF name.
+	TlfHandleExtensionSep = " "
 
 	// PublicUIDName is the name given to keybase1.PublicUID.  This string
 	// should correspond to an illegal or reserved Keybase user name.
@@ -84,8 +84,8 @@ func (s SignatureInfo) IsNil() bool {
 	return s.Version.IsNil() && len(s.Signature) == 0 && s.VerifyingKey.IsNil()
 }
 
-// deepCopyForTest makes a complete copy of this SignatureInfo.
-func (s SignatureInfo) deepCopyForTest() SignatureInfo {
+// deepCopy makes a complete copy of this SignatureInfo.
+func (s SignatureInfo) deepCopy() SignatureInfo {
 	signature := make([]byte, len(s.Signature))
 	copy(signature[:], s.Signature[:])
 	return SignatureInfo{s.Version, signature, s.VerifyingKey}

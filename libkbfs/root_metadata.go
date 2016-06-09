@@ -153,7 +153,11 @@ type RootMetadata struct {
 
 	// ConflictInfo is set if there's a conflict for the given folder's
 	// handle after a social assertion resolution.
-	ConflictInfo *ConflictInfo `codec:"ci,omitempty"`
+	ConflictInfo *TlfHandleExtension `codec:"ci,omitempty"`
+
+	// FinalizedInfo is set if there are no more valid writer keys capable
+	// of writing to the given folder.
+	FinalizedInfo *TlfHandleExtension `codec:"fi,omitempty"`
 
 	codec.UnknownFieldSetHandler
 
@@ -351,13 +355,19 @@ func (md *RootMetadata) clearLastRevision() {
 
 func (md *RootMetadata) deepCopy(codec Codec, copyHandle bool) (*RootMetadata, error) {
 	var newMd RootMetadata
-	err := CodecUpdate(codec, &newMd, md)
-	if err != nil {
+	if err := md.deepCopyInPlace(codec, copyHandle, &newMd); err != nil {
 		return nil, err
 	}
-	err = CodecUpdate(codec, &newMd.data, md.data)
-	if err != nil {
-		return nil, err
+	return &newMd, nil
+}
+
+func (md *RootMetadata) deepCopyInPlace(codec Codec, copyHandle bool,
+	newMd *RootMetadata) error {
+	if err := CodecUpdate(codec, newMd, md); err != nil {
+		return err
+	}
+	if err := CodecUpdate(codec, &newMd.data, md.data); err != nil {
+		return err
 	}
 
 	if copyHandle {
@@ -366,7 +376,7 @@ func (md *RootMetadata) deepCopy(codec Codec, copyHandle bool) (*RootMetadata, e
 
 	// No need to copy mdID.
 
-	return &newMd, nil
+	return nil
 }
 
 // DeepCopyForServerTest returns a complete copy of this RootMetadata
@@ -548,7 +558,9 @@ func (md *RootMetadata) makeBareTlfHandle() (BareTlfHandle, error) {
 	}
 
 	return MakeBareTlfHandle(
-		writers, readers, md.Extra.UnresolvedWriters, md.UnresolvedReaders, md.ConflictInfo)
+		writers, readers,
+		md.Extra.UnresolvedWriters, md.UnresolvedReaders,
+		md.TlfHandleExtensions())
 }
 
 // MakeBareTlfHandle makes a BareTlfHandle for this
@@ -709,6 +721,7 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
 
 	md.Extra.UnresolvedWriters = newHandle.UnresolvedWriters()
 	md.ConflictInfo = newHandle.ConflictInfo()
+	md.FinalizedInfo = newHandle.FinalizedInfo()
 
 	bareHandle, err := md.makeBareTlfHandle()
 	if err != nil {
@@ -739,6 +752,17 @@ func (md *RootMetadata) swapCachedBlockChanges() {
 		md.data.Changes.Ops[0].
 			AddRefBlock(md.data.cachedChanges.Info.BlockPointer)
 	}
+}
+
+// TlfHandleExtensions returns a list of handle extensions associated with the TLf.
+func (md *RootMetadata) TlfHandleExtensions() (extensions []TlfHandleExtension) {
+	if md.ConflictInfo != nil {
+		extensions = append(extensions, *md.ConflictInfo)
+	}
+	if md.FinalizedInfo != nil {
+		extensions = append(extensions, *md.FinalizedInfo)
+	}
+	return extensions
 }
 
 // RootMetadataSigned is the top-level MD object stored in MD server
@@ -790,12 +814,42 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 	// new version.
 	if len(rmds.MD.Extra.UnresolvedWriters) > 0 ||
 		len(rmds.MD.UnresolvedReaders) > 0 ||
-		rmds.MD.ConflictInfo != nil {
+		rmds.MD.ConflictInfo != nil ||
+		rmds.MD.FinalizedInfo != nil {
 		return InitialExtraMetadataVer
 	}
 	// Let other types of MD objects use the older version since they
 	// are still compatible with older clients.
 	return PreExtraMetadataVer
+}
+
+// MakeFinalCopy returns a complete copy of this RootMetadataSigned (but with
+// cleared serialized metadata), with the revision incremented and the final bit set.
+func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
+	*RootMetadataSigned, error) {
+	if rmds.MD.IsFinal() {
+		return nil, MetadataIsFinalError{}
+	}
+	var newRmds RootMetadataSigned
+	err := rmds.MD.deepCopyInPlace(config.Codec(), false, &newRmds.MD)
+	if err != nil {
+		return nil, err
+	}
+	// Copy the signature.
+	newRmds.SigInfo = rmds.SigInfo.deepCopy()
+	// Clear the serialized data.
+	newRmds.MD.SerializedPrivateMetadata = nil
+	// Set the final flag.
+	newRmds.MD.Flags |= MetadataFlagFinal
+	// Increment revision but keep the PrevRoot --
+	// We want the client to be able to verify the signature by masking out the final
+	// bit, decrementing the revision, and nulling out the finalized extension info.
+	// This way it can easily tell a server didn't modify anything unexpected when
+	// creating the final metadata block. Note that PrevRoot isn't being updated. This
+	// is to make verification easier for the client as otherwise it'd need to request
+	// the head revision - 1.
+	newRmds.MD.Revision = rmds.MD.Revision + 1
+	return &newRmds, nil
 }
 
 func makeRekeyReadError(

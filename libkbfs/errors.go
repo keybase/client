@@ -985,16 +985,16 @@ func (e NoSuchTlfHandleError) Error() string {
 	return fmt.Sprintf("Folder handle for %s not found", e.ID)
 }
 
-// TlfHandleConflictInfoMismatchError indicates the expected conflict
-// info doesn't match the server's conflict info for the given handle.
-type TlfHandleConflictInfoMismatchError struct {
-	Expected *ConflictInfo
-	Actual   *ConflictInfo
+// TlfHandleExtensionMismatchError indicates the expected extension
+// doesn't match the server's extension for the given handle.
+type TlfHandleExtensionMismatchError struct {
+	Expected *TlfHandleExtension
+	Actual   *TlfHandleExtension
 }
 
-// Error implements the error interface for TlfHandleConflictInfoMismatchError
-func (e TlfHandleConflictInfoMismatchError) Error() string {
-	return fmt.Sprint("Folder handle conflict info mismatch, "+
+// Error implements the error interface for TlfHandleExtensionMismatchError
+func (e TlfHandleExtensionMismatchError) Error() string {
+	return fmt.Sprint("Folder handle extension  mismatch, "+
 		"expected: %s, actual: %s", e.Expected, e.Actual)
 }
 
