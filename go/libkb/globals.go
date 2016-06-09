@@ -74,7 +74,7 @@ type GlobalContext struct {
 	ProofCheckerFactory ProofCheckerFactory // Makes new ProofCheckers
 	ExitCode            keybase1.ExitCode   // Value to return to OS on Exit()
 	RateLimits          *RateLimits         // tracks the last time certain actions were taken
-	clockMu             sync.RWMutex        // protects Clock
+	clockMu             sync.Mutex          // protects Clock
 	clock               clockwork.Clock     // RealClock unless we're testing
 	SecretStoreAll      SecretStoreAll      // nil except for tests and supported platforms
 	hookMu              sync.RWMutex        // protects loginHooks, logoutHooks
