@@ -23,8 +23,35 @@ func NewCmdUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		ArgumentHelp: "[arguments...]",
 		HideHelp:     true,
 		Subcommands: []cli.Command{
+			newCmdUpdateCheck(cl, g),
+			newCmdUpdateRun(cl, g),
 			newCmdUpdateCheckInUse(cl, g),
 			newCmdUpdateNotify(cl, g),
+		},
+	}
+}
+
+func newCmdUpdateCheck(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:  "check",
+		Usage: "Trigger an update check",
+		Action: func(c *cli.Context) {
+			updaterPath, err := install.UpdaterBinPath()
+			if err != nil {
+				g.Log.Errorf("Error finding updater path: %s", err)
+				return
+			}
+			g.Log.Errorf("This is no longer supported. Instead you can run:\n\n\t%s check", updaterPath)
+		},
+	}
+}
+
+func newCmdUpdateRun(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:  "run",
+		Usage: "Run the updater with custom options",
+		Action: func(c *cli.Context) {
+			g.Log.Error("This is no longer supported. See update check.")
 		},
 	}
 }
