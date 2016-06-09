@@ -463,6 +463,23 @@
       "doc": "ProblemSet is for a particular (user,kid) that initiated a rekey problem.\n   This problem consists of one or more problem TLFs, which are individually scored\n   and have attendant solutions --- devices that if they came online can rekey and\n   solve the ProblemTLF."
     },
     {
+      "type": "record",
+      "name": "ProblemSetDevices",
+      "fields": [
+        {
+          "type": "ProblemSet",
+          "name": "problemSet"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Device"
+          },
+          "name": "devices"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "Outcome",
       "symbols": [
@@ -521,7 +538,7 @@
           "type": "int"
         }
       ],
-      "response": "ProblemSet",
+      "response": "ProblemSetDevices",
       "doc": "getProblemSet is called by the UI to render which TLFs need to be fixed.\n   The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice\n   below"
     },
     "rekeyStatusFinish": {

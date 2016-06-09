@@ -13,11 +13,8 @@
           "type": "int"
         },
         {
-          "name": "tlfs",
-          "type": {
-            "type": "array",
-            "items": "ProblemTLF"
-          }
+          "name": "problemSetDevices",
+          "type": "ProblemSetDevices"
         }
       ],
       "response": "null",

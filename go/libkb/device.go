@@ -124,6 +124,9 @@ func (d *Device) ProtExport() *keybase1.Device {
 	if d.Status != nil {
 		ex.Status = *d.Status
 	}
+	if d.Kid.Exists() {
+		ex.VerifyKey = d.Kid
+	}
 	return ex
 }
 

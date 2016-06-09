@@ -191,6 +191,8 @@ type rekeyStatusUpdater struct {
 	problemSet keybase1.ProblemSet
 	msgID      gregor.MsgID
 	scorer     func(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error)
+	sessionID  int
+	me         *libkb.User
 	done       chan struct{}
 	libkb.Contextified
 }
@@ -201,6 +203,7 @@ func newRekeyStatusUpdater(g *libkb.GlobalContext, args rekeyStatusUpdaterArgs) 
 		problemSet:   args.problemSet,
 		msgID:        args.msgID,
 		scorer:       args.scorer,
+		sessionID:    args.sessionID,
 		done:         make(chan struct{}),
 		Contextified: libkb.NewContextified(g),
 	}
@@ -221,8 +224,14 @@ func (u *rekeyStatusUpdater) update() {
 			u.G().Log.Debug("rekeyStatusUpdater done chan closed, terminating update loop")
 			return
 		default:
+			set, err := u.problemSetDevices()
+			if err != nil {
+				u.G().Log.Errorf("rekey ui lookup devices error: %s", err)
+				return
+			}
 			arg := keybase1.RefreshArg{
-				Tlfs: u.problemSet.Tlfs,
+				SessionID:         u.sessionID,
+				ProblemSetDevices: set,
 			}
 			if err = u.rekeyUI.Refresh(context.TODO(), arg); err != nil {
 				u.G().Log.Errorf("rekey ui Refresh error: %s", err)
@@ -258,4 +267,37 @@ func (u *rekeyStatusUpdater) update() {
 func (u *rekeyStatusUpdater) Finish() {
 	u.G().Log.Debug("closing rekey status updater done ch")
 	close(u.done)
+}
+
+func (u *rekeyStatusUpdater) problemSetDevices() (keybase1.ProblemSetDevices, error) {
+	var set keybase1.ProblemSetDevices
+	set.ProblemSet = u.problemSet
+	if len(set.ProblemSet.Tlfs) == 0 {
+		return set, nil
+	}
+
+	if u.me == nil {
+		me, err := libkb.LoadMe(libkb.NewLoadUserArg(u.G()))
+		if err != nil {
+			return keybase1.ProblemSetDevices{}, err
+		}
+		u.me = me
+	}
+	ckf := u.me.GetComputedKeyFamily()
+
+	dset := make(map[keybase1.DeviceID]bool)
+	for _, f := range u.problemSet.Tlfs {
+		for _, kid := range f.Solutions {
+			dev, err := ckf.GetDeviceForKID(kid)
+			if err != nil {
+				return keybase1.ProblemSetDevices{}, err
+			}
+			if dset[dev.ID] {
+				continue
+			}
+			dset[dev.ID] = true
+			set.Devices = append(set.Devices, *(dev.ProtExport()))
+		}
+	}
+	return set, nil
 }

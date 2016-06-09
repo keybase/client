@@ -32,6 +32,11 @@ protocol rekey {
     array<ProblemTLF> tlfs;
   }
 
+  record ProblemSetDevices {
+    ProblemSet problemSet;
+    array<Device> devices;
+  }
+
   enum Outcome {
     NONE_0,
     FIXED_1,
@@ -57,7 +62,7 @@ protocol rekey {
    The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
    below
    */
-  ProblemSet getProblemSet(int sessionID);
+  ProblemSetDevices getProblemSet(int sessionID);
 
   /**
    rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
