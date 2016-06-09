@@ -828,7 +828,7 @@ func (s *LoginState) requests() {
 
 	// Run a cleanup routine on the Account object every minute.
 	// We're supposed to timeout & cleanup Paper Keys after an hour of inactivity.
-	maketimer := func() <-chan time.Time { return s.G().GetClock().After(1 * time.Minute) }
+	maketimer := func() <-chan time.Time { return s.G().Clock().After(1 * time.Minute) }
 	timer := maketimer()
 	s.G().Log.Debug("LoginState: Running request loop")
 

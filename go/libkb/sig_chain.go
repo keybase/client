@@ -79,7 +79,7 @@ func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
 }
 
 func (sc SigChain) GetFutureChainTail() (ret *MerkleTriple) {
-	now := sc.G().GetClock().Now()
+	now := sc.G().Clock().Now()
 	if sc.localChainTail != nil && now.Sub(sc.localChainUpdateTime) < ServerUpdateLag {
 		ret = sc.localChainTail
 	}
@@ -125,7 +125,7 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 	mt.Seqno = sc.GetLastKnownSeqno() + 1
 	sc.G().Log.Debug("| Bumping SigChain LastKnownSeqno to %d", mt.Seqno)
 	sc.localChainTail = &mt
-	sc.localChainUpdateTime = sc.G().GetClock().Now()
+	sc.localChainUpdateTime = sc.G().Clock().Now()
 }
 
 func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
@@ -860,7 +860,7 @@ func (l *SigChainLoader) merkleTreeEldestMatchesLastLinkEldest() bool {
 // all of the steps to load a chain in from storage, to refresh it against
 // the server, and to verify its integrity.
 func (l *SigChainLoader) Load() (ret *SigChain, err error) {
-	defer TimeLog(fmt.Sprintf("SigChainLoader.Load: %s", l.user.GetName()), l.G().GetClock().Now(), l.G().Log.Debug)
+	defer TimeLog(fmt.Sprintf("SigChainLoader.Load: %s", l.user.GetName()), l.G().Clock().Now(), l.G().Log.Debug)
 	var current bool
 	var preload bool
 

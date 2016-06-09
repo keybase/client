@@ -516,7 +516,7 @@ func (g *GlobalContext) GetRunMode() RunMode {
 	return g.Env.GetRunMode()
 }
 
-func (g *GlobalContext) GetClock() clockwork.Clock {
+func (g *GlobalContext) Clock() clockwork.Clock {
 	g.clockMu.Lock()
 	defer g.clockMu.Unlock()
 	if g.clock == nil {

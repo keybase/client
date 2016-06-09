@@ -71,7 +71,7 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 		return err
 	}
 
-	if r.G().GetClock().Now().Sub(item.Metadata().CTime()) > 10*time.Second {
+	if r.G().Clock().Now().Sub(item.Metadata().CTime()) > 10*time.Second {
 		// if the message isn't fresh, get:
 		var err error
 		problemSet, err = r.scorer(r.G(), problemSet)
@@ -244,7 +244,7 @@ func (u *rekeyStatusUpdater) update() {
 		case <-u.done:
 			u.G().Log.Debug("rekeyStatusUpdater done chan closed, terminating update loop")
 			return
-		case <-u.G().GetClock().After(1 * time.Second):
+		case <-u.G().Clock().After(1 * time.Second):
 		}
 
 		u.problemSet, err = u.scorer(u.G(), u.problemSet)
