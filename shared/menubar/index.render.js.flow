@@ -13,6 +13,7 @@ export type Props = {
   showKBFS: () => void,
   showBug: () => void,
   onRekey: (path: string) => void,
+  onFolderClick: (path: string) => void,
   refresh: () => void,
   quit: () => void,
   username: ?string,

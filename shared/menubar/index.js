@@ -164,7 +164,7 @@ class Menubar extends Component<void, Props, void> {
       quit={() => this._quit()}
       refresh={() => this._checkForFolders(true)}
       onRekey={(path: string) => this._onRekey(path)} // eslint-disable-line arrow-parens
-      onClick={(path: string) => this._openFolder(path)} // eslint-disable-line arrow-parens
+      onFolderClick={(path: string) => this._openFolder(path)} // eslint-disable-line arrow-parens
     />
   }
 }
