@@ -312,6 +312,7 @@ func makeTlfHandleHelper(
 		canonicalName += ReaderSep + strings.Join(readerNames, ",")
 	}
 
+	sort.Sort(tlfHandleExtnesionList(extensions))
 	canonicalName += NewTlfHandleExtensionSuffix(extensions)
 
 	var conflictInfo, finalizedInfo *TlfHandleExtension

@@ -301,6 +301,26 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 	require.Nil(t, h.ConflictInfo())
 }
 
+func TestTlfHandleFinalizedInfo(t *testing.T) {
+	var h TlfHandle
+
+	require.Nil(t, h.FinalizedInfo())
+	info := TlfHandleExtension{
+		Date:   100,
+		Number: 50,
+		Type:   TlfHandleExtensionFinalized,
+	}
+
+	h.SetFinalizedInfo(&info)
+	require.Equal(t, info, *h.FinalizedInfo())
+
+	info.Date = 101
+	require.NotEqual(t, info, *h.FinalizedInfo())
+
+	h.SetFinalizedInfo(nil)
+	require.Nil(t, h.FinalizedInfo())
+}
+
 func TestParseTlfHandleSocialAssertion(t *testing.T) {
 	ctx := context.Background()
 
@@ -520,4 +540,24 @@ func TestResolveAgainConflict(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName("u1,u2#u3"+
 		TlfHandleExtensionSep+ext.String()), newH.GetCanonicalName())
+}
+
+func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name := "u1,u2#u3 (conflicted copy 2016-06-08 #3) (finalized 2016-06-08 #2)"
+	_, err := ParseTlfHandle(ctx, kbpki, name, false)
+	require.Nil(t, err)
+
+	nonCanonicalName := "u1,u2#u3 (finalized 2016-06-08 #2) (conflicted copy 2016-06-08 #3)"
+	_, err = ParseTlfHandle(ctx, kbpki, nonCanonicalName, false)
+	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
 }
