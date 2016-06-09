@@ -4,13 +4,14 @@
 package engine
 
 import (
+	"testing"
+	"time"
+
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/gregor"
 	gregor1 "github.com/keybase/gregor/protocol/gregor1"
-	"testing"
-	"time"
 )
 
 func TestTrackToken(t *testing.T) {
@@ -87,7 +88,7 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	fakeClock := clockwork.NewFakeClock()
-	tc.G.Clock = fakeClock
+	tc.G.SetClock(fakeClock)
 	// to pick up the new clock...
 	tc.G.ResetLoginState()
 
@@ -213,7 +214,7 @@ func TestTrackRemoteThenLocalTemp(t *testing.T) {
 
 	// Tracking remote means we have to agree what time it is
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
-	tc.G.Clock = fakeClock
+	tc.G.SetClock(fakeClock)
 	// to pick up the new clock...
 	tc.G.ResetLoginState()
 
@@ -334,7 +335,7 @@ func TestTrackFailTempRecover(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	fakeClock := clockwork.NewFakeClock()
-	tc.G.Clock = fakeClock
+	tc.G.SetClock(fakeClock)
 	// to pick up the new clock...
 	tc.G.ResetLoginState()
 

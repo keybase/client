@@ -48,7 +48,7 @@ func rekeyBroadcast(tc libkb.TestContext, gUID gregor1.UID, h *gregorHandler, bo
 			StateUpdate_: &gregor1.StateUpdateMessage{
 				Md_: gregor1.Metadata{
 					MsgID_: msgID,
-					Ctime_: gregor1.ToTime(tc.G.Clock.Now()),
+					Ctime_: gregor1.ToTime(tc.G.Clock().Now()),
 					Uid_:   gUID,
 				},
 				Creation_: &gregor1.Item{
@@ -108,7 +108,7 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 	tc.G.SetUIRouter(&router)
 
 	clock := clockwork.NewFakeClock()
-	tc.G.Clock = clock
+	tc.G.SetClock(clock)
 
 	gUID, h, rekeyHandler := rekeySetup(tc)
 
@@ -185,7 +185,7 @@ func TestRekeyNeededUserClose(t *testing.T) {
 	tc.G.SetUIRouter(&router)
 
 	clock := clockwork.NewFakeClock()
-	tc.G.Clock = clock
+	tc.G.SetClock(clock)
 
 	gUID, h, rekeyHandler := rekeySetup(tc)
 

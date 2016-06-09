@@ -4,12 +4,13 @@
 package engine
 
 import (
-	"github.com/jonboulle/clockwork"
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type flakeyRooterAPI struct {
@@ -64,7 +65,7 @@ func TestSoftSnooze(t *testing.T) {
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
-	tc.G.Clock = fakeClock
+	tc.G.SetClock(fakeClock)
 	// to pick up the new clock...
 	tc.G.ResetLoginState()
 
