@@ -131,7 +131,7 @@ export function favoriteList (): (dispatch: Dispatch) => void {
         if (total && !_.isEqual(newNotify, previousNotify)) {
           previousNotify = newNotify
 
-          let body = null
+          let body
 
           if (total <= 3) {
             body = [].concat(folderProps.private.tlfs || [], folderProps.public.tlfs || [])
