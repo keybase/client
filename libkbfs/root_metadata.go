@@ -825,12 +825,6 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 
 // MakeFinalCopy returns a complete copy of this RootMetadataSigned (but with
 // cleared serialized metadata), with the revision incremented and the final bit set.
-// We want the client to be able to verify the signature if masking out the final bit,
-// decrementing the revision, and nulling out the finalized extension info. This way
-// it can easily tell a server didn't modify anything unexpected when creating the
-// final metadata block. Note that PrevRoot isn't being updated. This is to make
-// verification easier for the client as otherwise it'd need to request the head
-// revision - 1.
 func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 	*RootMetadataSigned, error) {
 	if rmds.MD.IsFinal() {
@@ -841,13 +835,19 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 	if err != nil {
 		return nil, err
 	}
-	// copy the signature
+	// Copy the signature.
 	newRmds.SigInfo = rmds.SigInfo.deepCopy()
-	// clear the serialized data.
+	// Clear the serialized data.
 	newRmds.MD.SerializedPrivateMetadata = nil
-	// set the final flag
+	// Set the final flag.
 	newRmds.MD.Flags |= MetadataFlagFinal
-	// increment revision but keep the prev root
+	// Increment revision but keep the PrevRoot --
+	// We want the client to be able to verify the signature if masking out the final
+	// bit, decrementing the revision, and nulling out the finalized extension info.
+	// This way it can easily tell a server didn't modify anything unexpected when
+	// creating the final metadata block. Note that PrevRoot isn't being updated. This
+	// is to make verification easier for the client as otherwise it'd need to request
+	// the head revision - 1.
 	newRmds.MD.Revision = rmds.MD.Revision + 1
 	return &newRmds, nil
 }
