@@ -20,6 +20,9 @@ fi
 if fusermount -uz /keybase &> /dev/null ; then
   echo Unmounting /keybase...
 fi
+if killall kbupdater &> /dev/null ; then
+  echo Shutting down updater...
+fi
 if killall kbfsfuse &> /dev/null ; then
   echo Shutting down kbfsfuse...
 fi
@@ -42,12 +45,14 @@ logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
 mkdir -p "$logdir"
 
 echo Launching keybase service...
-keybase service &>> "$logdir/keybase.service.log" &
+keybase -d --log-file="$logdir/keybase.service.log" service &>> "$logdir/keybase.start.log" &
 echo Mounting /keybase...
 kbfsfuse -debug -mdserver mdserver.kbfs.keybase.io:443 \
-  -bserver bserver.kbfs.keybase.io:443 -log-to-file /keybase &>> "$logdir/keybase.startkbfs.log" &
+  -bserver bserver.kbfs.keybase.io:443 -log-to-file /keybase &>> "$logdir/keybase.start.log" &
 echo Launching Keybase GUI...
 /opt/keybase/Keybase &>> "$logdir/Keybase.app.log" &
+echo Launching updater...
+kbupdater -log-to-file &>> "$logdir/keybase.start.log" &
 
 echo 'Success!'
 # Magical squirrel produced by https://github.com/erkin/ponysay

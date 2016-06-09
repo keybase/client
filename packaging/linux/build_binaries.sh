@@ -5,6 +5,7 @@ set -e -u -o pipefail
 here="$(dirname "$BASH_SOURCE")"
 this_repo="$(git -C "$here" rev-parse --show-toplevel)"
 kbfs_repo="$(dirname "$this_repo")/kbfs"
+updater_repo="$(dirname "$this_repo")/go-updater"
 
 mode="$("$here/../build_mode.sh" "$@")"
 binary_name="$("$here/../binary_name.sh" "$@")"
@@ -102,6 +103,11 @@ build_one_architecture() {
   ln -snf "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
   go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
+
+  # Build the (kb)updater binary.
+  echo "Building updater for $GOARCH..."
+  ln -snf "$updater_repo" "$GOPATH/src/github.com/keybase/go-updater"
+  go build -o "$layout_dir/usr/bin/kbupdater" github.com/keybase/go-updater/service
 
   # Build Electron.
   echo "Building Electron client for $electron_arch..."
