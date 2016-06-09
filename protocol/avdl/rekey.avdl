@@ -54,15 +54,7 @@ protocol rekey {
    the passed-in parameters. These are the parameters that are typically delivered via direct
    gregor injection. Will be used primarily in debugging or in advanced command-line usage.
    */
-  void showRekeyStatus(int sessionID, array<TLFID> tlfs, union { null, UID } user, union { null, KID } kid);
-
-
-  /**
-   getProblemSet is called by the UI to render which TLFs need to be fixed.
-   The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
-   below
-   */
-  ProblemSetDevices getProblemSet(int sessionID);
+  void debugShowRekeyStatus(int sessionID, array<TLFID> tlfs, union { null, UID } user, union { null, KID } kid);
 
   /**
    rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome

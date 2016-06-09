@@ -500,7 +500,7 @@
       "response": "null",
       "doc": "ShowPendingRekeyStatus shows either pending gregor-initiated rekey harassments\n   or nothing if none were pending."
     },
-    "showRekeyStatus": {
+    "debugShowRekeyStatus": {
       "request": [
         {
           "name": "sessionID",
@@ -530,16 +530,6 @@
       ],
       "response": "null",
       "doc": "ShowRekeyStatus is used by the CLI to kick off a \"ShowRekeyStatus\" window for the given user based on\n   the passed-in parameters. These are the parameters that are typically delivered via direct\n   gregor injection. Will be used primarily in debugging or in advanced command-line usage."
-    },
-    "getProblemSet": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": "ProblemSetDevices",
-      "doc": "getProblemSet is called by the UI to render which TLFs need to be fixed.\n   The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice\n   below"
     },
     "rekeyStatusFinish": {
       "request": [

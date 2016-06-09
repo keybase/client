@@ -29,12 +29,8 @@ func (h *RekeyHandler) ShowPendingRekeyStatus(ctx context.Context, sessionID int
 	return nil
 }
 
-func (h *RekeyHandler) ShowRekeyStatus(ctx context.Context, arg keybase1.ShowRekeyStatusArg) error {
+func (h *RekeyHandler) DebugShowRekeyStatus(ctx context.Context, arg keybase1.DebugShowRekeyStatusArg) error {
 	return nil
-}
-
-func (h *RekeyHandler) GetProblemSet(ctx context.Context, sessionID int) (keybase1.ProblemSetDevices, error) {
-	return keybase1.ProblemSetDevices{}, nil
 }
 
 func (h *RekeyHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {

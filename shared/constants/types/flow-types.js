@@ -2899,12 +2899,17 @@ export type quotaVerifySessionRpc = {
   callback: (null | (err: ?any, response: quotaVerifySessionResult) => void)
 }
 
-export type rekeyGetProblemSetResult = ProblemSetDevices
+export type rekeyDebugShowRekeyStatusResult = void
 
-export type rekeyGetProblemSetRpc = {
-  method: 'rekey.getProblemSet',
+export type rekeyDebugShowRekeyStatusRpc = {
+  method: 'rekey.debugShowRekeyStatus',
+  param: {
+    tlfs: Array<TLFID>,
+    user: (null | UID),
+    kid: (null | KID)
+  },
   incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any, response: rekeyGetProblemSetResult) => void)
+  callback: (null | (err: ?any) => void)
 }
 
 export type rekeyRekeyStatusFinishResult = Outcome
@@ -2919,19 +2924,6 @@ export type rekeyShowPendingRekeyStatusResult = void
 
 export type rekeyShowPendingRekeyStatusRpc = {
   method: 'rekey.showPendingRekeyStatus',
-  incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type rekeyShowRekeyStatusResult = void
-
-export type rekeyShowRekeyStatusRpc = {
-  method: 'rekey.showRekeyStatus',
-  param: {
-    tlfs: Array<TLFID>,
-    user: (null | UID),
-    kid: (null | KID)
-  },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
@@ -3623,10 +3615,9 @@ export type rpc =
   | provisionUiProvisionerSuccessRpc
   | provisionUiSwitchToGPGSignOKRpc
   | quotaVerifySessionRpc
-  | rekeyGetProblemSetRpc
+  | rekeyDebugShowRekeyStatusRpc
   | rekeyRekeyStatusFinishRpc
   | rekeyShowPendingRekeyStatusRpc
-  | rekeyShowRekeyStatusRpc
   | rekeyUIDelegateRekeyUIRpc
   | rekeyUIRefreshRpc
   | revokeRevokeDeviceRpc
@@ -5201,7 +5192,7 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
-  'keybase.1.rekey.showRekeyStatus'?: (
+  'keybase.1.rekey.debugShowRekeyStatus'?: (
     params: {
       sessionID: int,
       tlfs: Array<TLFID>,
@@ -5211,15 +5202,6 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: () => void
-    }
-  ) => void,
-  'keybase.1.rekey.getProblemSet'?: (
-    params: {
-      sessionID: int
-    },
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: rekeyGetProblemSetResult) => void
     }
   ) => void,
   'keybase.1.rekey.rekeyStatusFinish'?: (
