@@ -1,7 +1,17 @@
 /* @flow */
 
+import {Component} from 'react'
+
+import type {UserInfo} from '../common-adapters/user-bio'
+import type {Proof} from '../common-adapters/user-proofs'
+
 export type Props = {
+  currentlyFollowing: boolean,
+  onFollow: () => void,
+  onUnfollow: () => void,
+  username: string,
+  userInfo: UserInfo,
+  proofs: Array<Proof>
 }
 
-export default class Render extends React$Component<void, Props, void> {
-}
+export default class Render extends Component<void, Props, void> { }

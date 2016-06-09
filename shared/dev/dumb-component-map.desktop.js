@@ -10,6 +10,7 @@ import DeviceRevokeMap from '../devices/device-revoke/dumb.desktop'
 import TabBarMap from '../tab-bar/dumb.desktop'
 import FoldersMap from '../folders/dumb'
 import FoldersConfirmMap from '../folders/confirm/dumb'
+import ProfileMap from '../profile/dumb'
 import type {DumbComponentMap} from './dumb'
 
 const map : DumbComponentMap = {
@@ -24,7 +25,8 @@ const map : DumbComponentMap = {
   ...DeviceRevokeMap,
   ...TabBarMap,
   ...FoldersMap,
-  ...FoldersConfirmMap
+  ...FoldersConfirmMap,
+  ...ProfileMap
 }
 
 export default map

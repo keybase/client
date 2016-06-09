@@ -8,8 +8,8 @@ import {metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored} from '
 
 import {identify} from '../constants/types/keybase-v1'
 
-import type {UserInfo} from '../tracker/bio.render'
-import type {Proof} from '../tracker/proofs.render'
+import type {UserInfo} from '../common-adapters/user-bio'
+import type {Proof} from '../common-adapters/user-proofs'
 import type {SimpleProofState, SimpleProofMeta, NonUserActions} from '../constants/tracker'
 
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, TrackSummary} from '../constants/types/flow-types'

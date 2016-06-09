@@ -8,10 +8,10 @@ import electron from 'electron'
 const shell = electron.shell || electron.remote.shell
 const avatarSize = 80
 
-import type {BioProps} from './bio.render'
+import type {Props} from './user-bio'
 
 export default class BioRender extends Component {
-  props: BioProps;
+  props: Props;
 
   _onClickAvatar () {
     shell.openExternal(`https://keybase.io/${this.props.username}`)
