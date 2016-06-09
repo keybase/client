@@ -85,8 +85,8 @@ export default class Input extends Component {
           onKeyDown={e => this._onKeyDown(e)}
           fullWidth
           textAlign='center'
-          inputStyle={{...inputStyle, ...alignStyle, ...this.props.inputStyle}}
-          underlineStyle={{borderColor: globalColors.black_10, bottom: 'auto', ...this.props.underlineStyle}}
+          inputStyle={{...(this.props.small ? {} : {marginTop: 6}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}
+          underlineStyle={{...styles.underlineStyle, ...this.props.underlineStyle}}
           errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
           style={{...textStyle, ...globalStyles.flexBoxColumn}}
           autoFocus={this.props.autoFocus}
@@ -131,9 +131,15 @@ export const styles = {
     lineHeight: '11px'
   },
   underlineFocusStyle: {
+    marginTop: 4,
     borderColor: globalColors.blue,
     borderBottom: 'solid 1px',
     transition: ''
+  },
+  underlineStyle: {
+    borderColor: globalColors.black_10,
+    bottom: 'auto',
+    marginTop: 4
   },
   errorStyle: {
     ...globalStyles.fontRegular,
@@ -154,18 +160,22 @@ export const styles = {
   },
   floatingLabelStyle: {
     ...globalStyles.fontSemibold,
-    transform: 'scale(1) translate3d(0, 0, 0)',
-    color: globalColors.black_10,
     alignSelf: 'center',
+    color: globalColors.black_10,
+    fontSize: 24,
+    lineHeight: '29px',
     position: 'inherit',
-    top: 34,
+    transform: 'scale(1) translate3d(0, 0, 0)',
     transition: 'color 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms'
   },
   floatingLabelFocusStyle: {
+    ...globalStyles.fontSemibold,
+    alignSelf: 'center',
     color: globalColors.blue,
     fontSize: 14,
-    lineHeight: '18px',
-    transform: 'perspective(1px) scale(1) translate3d(2px, -28px, 0)',
+    lineHeight: '29px',
+    position: 'inherit',
+    transform: 'perspective(1px) scale(1) translate3d(2px, -29px, 0)',
     transformOrigin: 'center top'
   }
 }

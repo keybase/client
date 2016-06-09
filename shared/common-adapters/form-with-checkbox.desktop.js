@@ -15,7 +15,7 @@ export default class FormWithCheckbox extends Component {
 
     return (
       <div style={{...globalStyles.flexBoxColumn, marginBottom: 15, ...this.props.style}}>
-        <Input errorStyle={{marginTop: 24}} {...inputProps} />
+        <Input errorStyle={{marginTop: 26}} {...inputProps} />
         <div style={{...styles.checkboxContainer, ...this.props.checkboxContainerStyle}}>
           {checkboxesProps.map(p => {
             const checkProps: CheckboxProps = {key: p.label, ...p}
@@ -32,6 +32,6 @@ const styles = {
     ...globalStyles.flexBoxRow,
     justifyContent: 'center',
     position: 'relative',
-    bottom: 8
+    bottom: 7
   }
 }
