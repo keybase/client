@@ -88,6 +88,7 @@ if [ -f "$helper" ]; then
   echo "Checking Helper..."
   codesign -dvvvv $app_name.app/Contents/Library/LaunchServices/keybase.Helper
   # You don't spctl assess binaries anymore (only bundles)
+  # http://www.openradar.me/25618668
   #spctl --assess --verbose=4 $app_name.app/Contents/Library/LaunchServices/keybase.Helper
 fi
 
