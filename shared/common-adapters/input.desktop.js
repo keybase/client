@@ -163,7 +163,9 @@ export const styles = {
   },
   floatingLabelFocusStyle: {
     color: globalColors.blue,
-    transform: 'perspective(1px) scale(0.64) translate3d(2px, -28px, 0)',
+    fontSize: 14,
+    lineHeight: '18px',
+    transform: 'perspective(1px) scale(1) translate3d(2px, -28px, 0)',
     transformOrigin: 'center top'
   }
 }
