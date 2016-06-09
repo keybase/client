@@ -236,6 +236,8 @@ func (l tlfHandleExtensionList) Swap(i, j int) {
 	l[i], l[j] = l[j], l[i]
 }
 
+// Splat will deconstruct the list for the caller into individual extension
+// pointers (or nil.)
 func (l tlfHandleExtensionList) Splat() (ci, fi *TlfHandleExtension) {
 	for _, extension := range l {
 		tmp := extension

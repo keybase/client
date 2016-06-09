@@ -842,7 +842,7 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 	// Set the final flag.
 	newRmds.MD.Flags |= MetadataFlagFinal
 	// Increment revision but keep the PrevRoot --
-	// We want the client to be able to verify the signature if masking out the final
+	// We want the client to be able to verify the signature by masking out the final
 	// bit, decrementing the revision, and nulling out the finalized extension info.
 	// This way it can easily tell a server didn't modify anything unexpected when
 	// creating the final metadata block. Note that PrevRoot isn't being updated. This
