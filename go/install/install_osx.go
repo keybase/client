@@ -869,3 +869,15 @@ func installUpdaterService(service launchd.Service, plist launchd.Plist, log log
 func uninstallUpdater() error {
 	return launchd.Uninstall(string(AppUpdaterLabel), defaultWait, nil)
 }
+
+// kbfsBinName returns the name for the KBFS executable
+func kbfsBinName(runMode libkb.RunMode) (string, error) {
+	if runMode != libkb.ProductionRunMode {
+		return "", fmt.Errorf("KBFS install is currently only supported in production")
+	}
+	return "kbfs", nil
+}
+
+func updaterBinName() (string, error) {
+	return "updater", nil
+}
