@@ -150,11 +150,13 @@ func scoreProblemFolders(g *libkb.GlobalContext, existing keybase1.ProblemSet) (
 		tlfIDs[i] = v.Tlf.Tlfid.String()
 	}
 	args := libkb.HTTPArgs{
-		"tlfs":   libkb.S{Val: strings.Join(tlfIDs, ",")},
-		"helpee": libkb.S{Val: existing.User.Uid.String()},
+		"tlfs": libkb.S{Val: strings.Join(tlfIDs, ",")},
 	}
 	if existing.Kid.Exists() {
 		args["new_kid"] = libkb.S{Val: existing.Kid.String()}
+	}
+	if existing.User.Uid.Exists() {
+		args["helpee"] = libkb.S{Val: existing.User.Uid.String()}
 	}
 	var updated scoreResult
 	err := g.API.GetDecode(libkb.APIArg{

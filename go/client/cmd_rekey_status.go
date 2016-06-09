@@ -4,6 +4,10 @@
 package client
 
 import (
+	"fmt"
+
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -32,6 +36,15 @@ func (c *CmdRekeyStatus) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdRekeyStatus) Run() error {
+	cli, err := GetRekeyClient()
+	if err != nil {
+		return err
+	}
+	pset, err := cli.GetPendingRekeyStatus(context.Background(), 0)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("problem set: %+v\b", pset)
 	return nil
 }
 

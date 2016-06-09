@@ -500,6 +500,16 @@
       "response": "null",
       "doc": "ShowPendingRekeyStatus shows either pending gregor-initiated rekey harassments\n   or nothing if none were pending."
     },
+    "getPendingRekeyStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "ProblemSetDevices",
+      "doc": "GetPendingRekeyStatus returns the pending ProblemSetDevices."
+    },
     "debugShowRekeyStatus": {
       "request": [
         {

@@ -50,6 +50,10 @@ type ShowPendingRekeyStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type GetPendingRekeyStatusArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type DebugShowRekeyStatusArg struct {
 	SessionID int     `codec:"sessionID" json:"sessionID"`
 	Tlfs      []TLFID `codec:"tlfs" json:"tlfs"`
@@ -65,6 +69,8 @@ type RekeyInterface interface {
 	// ShowPendingRekeyStatus shows either pending gregor-initiated rekey harassments
 	// or nothing if none were pending.
 	ShowPendingRekeyStatus(context.Context, int) error
+	// GetPendingRekeyStatus returns the pending ProblemSetDevices.
+	GetPendingRekeyStatus(context.Context, int) (ProblemSetDevices, error)
 	// ShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for the given user based on
 	// the passed-in parameters. These are the parameters that are typically delivered via direct
 	// gregor injection. Will be used primarily in debugging or in advanced command-line usage.
@@ -90,6 +96,22 @@ func RekeyProtocol(i RekeyInterface) rpc.Protocol {
 						return
 					}
 					err = i.ShowPendingRekeyStatus(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getPendingRekeyStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]GetPendingRekeyStatusArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetPendingRekeyStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetPendingRekeyStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.GetPendingRekeyStatus(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -139,6 +161,13 @@ type RekeyClient struct {
 func (c RekeyClient) ShowPendingRekeyStatus(ctx context.Context, sessionID int) (err error) {
 	__arg := ShowPendingRekeyStatusArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.rekey.showPendingRekeyStatus", []interface{}{__arg}, nil)
+	return
+}
+
+// GetPendingRekeyStatus returns the pending ProblemSetDevices.
+func (c RekeyClient) GetPendingRekeyStatus(ctx context.Context, sessionID int) (res ProblemSetDevices, err error) {
+	__arg := GetPendingRekeyStatusArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.rekey.getPendingRekeyStatus", []interface{}{__arg}, &res)
 	return
 }
 

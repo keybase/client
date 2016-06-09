@@ -2912,6 +2912,14 @@ export type rekeyDebugShowRekeyStatusRpc = {
   callback: (null | (err: ?any) => void)
 }
 
+export type rekeyGetPendingRekeyStatusResult = ProblemSetDevices
+
+export type rekeyGetPendingRekeyStatusRpc = {
+  method: 'rekey.getPendingRekeyStatus',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: rekeyGetPendingRekeyStatusResult) => void)
+}
+
 export type rekeyRekeyStatusFinishResult = Outcome
 
 export type rekeyRekeyStatusFinishRpc = {
@@ -3616,6 +3624,7 @@ export type rpc =
   | provisionUiSwitchToGPGSignOKRpc
   | quotaVerifySessionRpc
   | rekeyDebugShowRekeyStatusRpc
+  | rekeyGetPendingRekeyStatusRpc
   | rekeyRekeyStatusFinishRpc
   | rekeyShowPendingRekeyStatusRpc
   | rekeyUIDelegateRekeyUIRpc
@@ -5190,6 +5199,15 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: () => void
+    }
+  ) => void,
+  'keybase.1.rekey.getPendingRekeyStatus'?: (
+    params: {
+      sessionID: int
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: rekeyGetPendingRekeyStatusResult) => void
     }
   ) => void,
   'keybase.1.rekey.debugShowRekeyStatus'?: (

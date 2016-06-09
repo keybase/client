@@ -720,34 +720,6 @@ func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
 	return incomingClient.ConsumeMessage(context.TODO(), dismissal)
 }
 
-func (g *gregorHandler) ShowPendingRekeyStatus(ctx context.Context, sessionID int) error {
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g.G()))
-	if err != nil {
-		return err
-	}
-	// XXX change this...don't need uid...once max's change goes into keybase/keybase
-	pset, err := scoreProblemFolders(g.G(), keybase1.ProblemSet{User: keybase1.User{Uid: me.GetUID()}})
-	if err != nil {
-		return err
-	}
-	psetDevices, err := newProblemSetDevices(me, pset)
-	if err != nil {
-		return err
-	}
-	rekeyUI, err := g.G().UIRouter.GetRekeyUINoSessionID()
-	if err != nil {
-		return err
-	}
-	if rekeyUI == nil {
-		return errors.New("no rekey ui")
-	}
-	arg := keybase1.RefreshArg{
-		SessionID:         sessionID,
-		ProblemSetDevices: psetDevices,
-	}
-	return rekeyUI.Refresh(ctx, arg)
-}
-
 func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {
 	for _, handler := range g.ibmHandlers {
 		if !handler.IsAlive() {
@@ -759,27 +731,4 @@ func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (k
 	}
 
 	return keybase1.Outcome_NONE, errors.New("no alive RekeyUIHandler found")
-}
-
-func newProblemSetDevices(u *libkb.User, pset keybase1.ProblemSet) (keybase1.ProblemSetDevices, error) {
-	var set keybase1.ProblemSetDevices
-	set.ProblemSet = pset
-
-	ckf := u.GetComputedKeyFamily()
-
-	dset := make(map[keybase1.DeviceID]bool)
-	for _, f := range pset.Tlfs {
-		for _, kid := range f.Solutions {
-			dev, err := ckf.GetDeviceForKID(kid)
-			if err != nil {
-				return keybase1.ProblemSetDevices{}, err
-			}
-			if dset[dev.ID] {
-				continue
-			}
-			dset[dev.ID] = true
-			set.Devices = append(set.Devices, *(dev.ProtExport()))
-		}
-	}
-	return set, nil
 }
