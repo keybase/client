@@ -8,14 +8,15 @@ import TabBar from './tab-bar/index.render.native'
 
 import Devices from './devices'
 import NoTab from './no-tab'
-import More from './more'
+import Settings from './settings'
+import Profile from './profile'
 import Login from './login'
 import {mapValues} from 'lodash'
 
 import {dumbFullscreen} from './local-debug'
-import DumbSheet from './more/dumb-sheet'
+import DumbSheet from './dev/dumb-sheet'
 
-import {devicesTab, moreTab, folderTab, peopleTab, loginTab, profileTab, prettify} from './constants/tabs'
+import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab, prettify} from './constants/tabs'
 
 import {switchTab} from './actions/tabbed-router'
 import {navigateBack} from './actions/router'
@@ -27,11 +28,12 @@ import hello from './util/hello'
 import forwardLogs from './native/forward-logs'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
-  [profileTab]: {module: Login, name: 'Login'},
-  [devicesTab]: {module: Devices, name: 'Devices'},
-  [folderTab]: {module: More, name: 'More'},
-  [peopleTab]: {module: More, name: 'More'},
-  [moreTab]: {module: More, name: 'More'}
+  [settingsTab]: {module: Settings, name: 'Settings'},
+  [profileTab]: {module: Profile, name: 'Profile'},
+  [folderTab]: {module: Settings, name: 'Folders'},
+  [chatTab]: {module: Settings, name: 'Chat'},
+  [peopleTab]: {module: Settings, name: 'People'},
+  [devicesTab]: {module: Devices, name: 'Devices'}
 }
 
 forwardLogs()

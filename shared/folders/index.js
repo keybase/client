@@ -4,7 +4,22 @@ import {connect} from 'react-redux'
 import Render from './render'
 import flags from '../util/feature-flags'
 
-class Folders extends Component {
+type Props = {}
+
+type State = {
+  showingPrivate: boolean
+}
+
+class Folders extends Component<void, Props, State> {
+  state: State;
+
+  constructor (props: Props) {
+    super(props)
+    this.state = {
+      showingPrivate: true
+    }
+  }
+
   render () {
     return <Render
       onRekey={() => {}}
@@ -14,7 +29,8 @@ class Folders extends Component {
       private={{isPublic: false}}
       publicBadge={0}
       public={{isPublic: true}}
-      onSwitchTab={showingPublic => {}}
+      onSwitchTab={showingPrivate => this.setState({showingPrivate})}
+      showingPrivate={this.state.showingPrivate}
       />
   }
 
