@@ -34,7 +34,7 @@ if (__DEV__ && true) {
   config.devStoreChangingFunctions = true
   config.printOutstandingRPCs = true
   config.reactPerf = false
-  config.overrideLoggedInTab = Tabs.moreTab
+  config.overrideLoggedInTab = Tabs.settingsTab
   config.dumbFilter = ''
   config.dumbIndex = 0
   config.dumbFullscreen = false
@@ -70,8 +70,8 @@ export function initTabbedRouterState (state) {
     tabs: {
       ...state.tabs,
       [Tabs.loginTab]: createRouterState([], []),
-      [Tabs.moreTab]: createRouterState(['devMenu', 'dumbSheet'], [])
+      [Tabs.settingsTab]: createRouterState(['devMenu', 'dumbSheet'], [])
     },
-    activeTab: Tabs.loginTab
+    activeTab: Tabs.settingsTab
   }
 }
