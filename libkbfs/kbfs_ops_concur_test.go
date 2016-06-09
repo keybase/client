@@ -301,7 +301,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 
 	// Make sure there are no dirty blocks left at the end of the test.
 	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
-	numDirtyBlocks := len(dbcs.dirty)
+	numDirtyBlocks := len(dbcs.cache)
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
@@ -438,7 +438,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 
 	// Make sure there are no dirty blocks left at the end of the test.
 	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
-	numDirtyBlocks := len(dbcs.dirty)
+	numDirtyBlocks := len(dbcs.cache)
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
@@ -1335,7 +1335,7 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 
 	// Make sure there are no dirty blocks left at the end of the test.
 	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
-	numDirtyBlocks := len(dbcs.dirty)
+	numDirtyBlocks := len(dbcs.cache)
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
@@ -1585,7 +1585,8 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 
 	// Write over the dirty amount of data.  TODO: make this
 	// configurable for a speedier test.
-	data := make([]byte, dirtyBytesThreshold+1)
+	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
+	data := make([]byte, dbcs.maxSyncBufferSize+1)
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	if err != nil {
 		t.Errorf("Couldn't write file: %v", err)
@@ -1610,13 +1611,16 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 		writeErrCh <- kbfsOps.Write(ctx, fileNode, newData, int64(len(data)))
 	}()
 
-	// Wait until the write is blocked
+	// Wait until the second write is blocked
 	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
 	func() {
 		lState := makeFBOLockState()
+		filePath := ops.nodeCache.PathFromNode(fileNode)
 		ops.blocks.blockLock.Lock(lState)
 		defer ops.blocks.blockLock.Unlock(lState)
-		for len(ops.blocks.syncListeners) == 0 {
+		df := ops.blocks.getOrCreateDirtyFileLocked(lState, filePath)
+		// TODO: locking
+		for len(df.errListeners) != 2 {
 			ops.blocks.blockLock.Unlock(lState)
 			runtime.Gosched()
 			ops.blocks.blockLock.Lock(lState)

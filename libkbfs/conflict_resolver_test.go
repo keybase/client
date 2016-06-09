@@ -1055,7 +1055,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 		t.Fatalf("Couldn't re-make file: %v", err)
 	}
 
-	// user2 updates the file attribute and writes to
+	// user2 updates the file attribute and writes too.
 	err = config2.KBFSOps().SetEx(ctx, file2, true)
 	if err != nil {
 		t.Fatalf("Couldn't set ex: %v", err)
@@ -1063,6 +1063,10 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	err = config2.KBFSOps().Write(ctx, file2, []byte{1, 2, 3}, 0)
 	if err != nil {
 		t.Fatalf("Couldn't write: %v", err)
+	}
+	err = config2.KBFSOps().Sync(ctx, file2)
+	if err != nil {
+		t.Fatalf("Couldn't sync: %v", err)
 	}
 
 	// Now step through conflict resolution manually for user 2

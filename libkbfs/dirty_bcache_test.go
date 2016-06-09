@@ -41,12 +41,12 @@ func testExpectedMissingDirty(t *testing.T, id BlockID,
 }
 
 func TestDirtyBcachePut(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard()
+	dirtyBcache := NewDirtyBlockCacheStandard(5<<20, 10<<20)
 	testDirtyBcachePut(t, fakeBlockID(1), dirtyBcache)
 }
 
 func TestDirtyBcachePutDuplicate(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard()
+	dirtyBcache := NewDirtyBlockCacheStandard(5<<20, 10<<20)
 	id1 := fakeBlockID(1)
 
 	// Dirty a specific reference nonce, and make sure the
@@ -89,7 +89,7 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 }
 
 func TestDirtyBcacheDelete(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard()
+	dirtyBcache := NewDirtyBlockCacheStandard(5<<20, 10<<20)
 
 	id1 := fakeBlockID(1)
 	testDirtyBcachePut(t, id1, dirtyBcache)

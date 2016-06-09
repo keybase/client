@@ -54,8 +54,6 @@ const (
 	secondsBetweenBackgroundFlushes = 10
 	// Cap the number of times we retry after a recoverable error
 	maxRetriesOnRecoverableErrors = 10
-	// When the number of dirty bytes exceeds this level, force a sync.
-	dirtyBytesThreshold = maxParallelBlockPuts * (512 << 10)
 	// The timeout for any background task.
 	backgroundTaskTimeout = 1 * time.Minute
 )
@@ -2746,10 +2744,6 @@ func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 	if err != nil {
 		return
 	}
-	defer func() {
-		lState := makeFBOLockState()
-		fbo.blocks.NotifyBlockedWrites(lState, err)
-	}()
 
 	var stillDirty bool
 	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,

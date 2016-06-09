@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -569,7 +570,7 @@ func (c *ConfigLocal) ResetCaches() {
 	c.kcache = NewKeyCacheStandard(5000)
 	// Limit the block cache to 10K entries or 512 MB of bytes
 	c.bcache = NewBlockCacheStandard(c, 10000, 512*1024*1024)
-	c.dirtyBcache = NewDirtyBlockCacheStandard()
+	c.dirtyBcache = NewDirtyBlockCacheStandard(5<<20, 10<<20)
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.
@@ -657,15 +658,30 @@ func (c *ConfigLocal) Shutdown() error {
 		}
 	}
 
+	var errors []error
 	err := c.KBFSOps().Shutdown()
-	// Continue with shutdown regardless of err.
+	if err != nil {
+		errors = append(errors, err)
+		// Continue with shutdown regardless of err.
+	}
 	c.MDServer().Shutdown()
 	c.KeyServer().Shutdown()
 	c.KeybaseDaemon().Shutdown()
 	c.BlockServer().Shutdown()
 	c.Crypto().Shutdown()
 	c.Reporter().Shutdown()
-	return err
+	err = c.DirtyBlockCache().Shutdown()
+	if err != nil {
+		errors = append(errors, err)
+	}
+
+	if len(errors) == 1 {
+		return errors[0]
+	} else if len(errors) > 1 {
+		// Aggregate errors
+		return fmt.Errorf("Multiple errors on shutdown: %v", errors)
+	}
+	return nil
 }
 
 // CheckStateOnShutdown implements the Config interface for ConfigLocal.
