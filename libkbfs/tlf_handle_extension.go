@@ -23,9 +23,14 @@ const (
 	// TlfHandleExtensionNumberRegex is the regular expression matching the TlfHandleExtension
 	// number member in string form.
 	TlfHandleExtensionNumberRegex = "[0-9]+"
+	// TlfHandleExtensionConflictString is the string identifying a conflict extension.
+	TlfHandleExtensionConflictString = "conflicted copy"
+	// TlfHandleExtensionFinalizedString is the string identifying a finalized extension.
+	TlfHandleExtensionFinalizedString = "finalized"
 	// TlfHandleExtensionTypeRegex is the regular expression matching the TlfHandleExtension
 	// type string.
-	TlfHandleExtensionTypeRegex = "conflicted copy|finalized"
+	TlfHandleExtensionTypeRegex = TlfHandleExtensionConflictString + "|" +
+		TlfHandleExtensionFinalizedString
 	// TlfHandleExtensionFormat is the formate string for a TlfHandleExtension.
 	TlfHandleExtensionFormat = "(%s %s%s)"
 )
@@ -48,9 +53,9 @@ const (
 func (et TlfHandleExtensionType) String() string {
 	switch et {
 	case TlfHandleExtensionConflict:
-		return "conflicted copy"
+		return TlfHandleExtensionConflictString
 	case TlfHandleExtensionFinalized:
-		return "finalized"
+		return TlfHandleExtensionFinalizedString
 	}
 	return "<unknown extension type>"
 }
@@ -58,9 +63,9 @@ func (et TlfHandleExtensionType) String() string {
 // ParseTlfHandleExtensionType parses an extension type from a string.
 func ParseTlfHandleExtensionType(s string) TlfHandleExtensionType {
 	switch s {
-	case "conflicted copy":
+	case TlfHandleExtensionConflictString:
 		return TlfHandleExtensionConflict
-	case "finalized":
+	case TlfHandleExtensionFinalizedString:
 		return TlfHandleExtensionFinalized
 	}
 	return TlfHandleExtensionUnknown
@@ -202,7 +207,6 @@ func ParseTlfHandleExtensionSuffix(s string) ([]TlfHandleExtension, error) {
 		}
 		extMap[ext.Type] = true
 		extensions = append(extensions, *ext)
-
 	}
 	return extensions, nil
 }

@@ -140,16 +140,21 @@ func TestTlfHandleExtensionUnknownFields(t *testing.T) {
 }
 
 func TestTlfHandleExtensionMultiple(t *testing.T) {
-	e, err := NewTlfHandleExtension(TlfHandleExtensionConflict, 1)
+	e, err := NewTestTlfHandleExtensionStaticTime(TlfHandleExtensionConflict, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	e2, err := NewTlfHandleExtension(TlfHandleExtensionFinalized, 2)
+	e2, err := NewTestTlfHandleExtensionStaticTime(TlfHandleExtensionFinalized, 2)
 	if err != nil {
 		t.Fatal(err)
 	}
 	exts := []TlfHandleExtension{*e, *e2}
-	exts2, err := ParseTlfHandleExtensionSuffix(NewTlfHandleExtensionSuffix(exts))
+	suffix := NewTlfHandleExtensionSuffix(exts)
+	expectSuffix := " (conflicted copy 2016-03-14) (finalized 2016-03-14 #2)"
+	if suffix != expectSuffix {
+		t.Fatalf("Expected suffix '%s', got: '%s'", expectSuffix, suffix)
+	}
+	exts2, err := ParseTlfHandleExtensionSuffix(suffix)
 	if err != nil {
 		t.Fatal(err)
 	}
