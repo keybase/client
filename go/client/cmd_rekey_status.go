@@ -4,8 +4,6 @@
 package client
 
 import (
-	"fmt"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -44,7 +42,20 @@ func (c *CmdRekeyStatus) Run() error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("problem set: %+v\b", pset)
+
+	if len(pset.ProblemSet.Tlfs) == 0 {
+		GlobUI.Println("No TLFs need rekeying.")
+		return nil
+	}
+
+	GlobUI.Println("TLFs need rekeying:")
+	for _, f := range pset.ProblemSet.Tlfs {
+		GlobUI.Println(f.Tlf.Name)
+	}
+	GlobUI.Printf("\nDevices that can rekey:\n")
+	for _, d := range pset.Devices {
+		GlobUI.Printf("%s\t%s\n", d.Type, d.Name)
+	}
 	return nil
 }
 
