@@ -66,9 +66,8 @@ func (e *FavoriteList) Run(ctx *Context) error {
 // Favorites returns the list of favorites that Run generated.
 func (e *FavoriteList) Result() keybase1.FavoritesResult {
 	return keybase1.FavoritesResult{
-		Favorites: e.result.Favorites,
-		Ignored:   e.result.Ignored,
-		// The name "new" is illegal in ObjC. "X" is just a filler character.
-		Xnew: e.result.New,
+		FavoriteFolders: e.result.Favorites,
+		IgnoredFolders:  e.result.Ignored,
+		NewFolders:      e.result.New,
 	}
 }

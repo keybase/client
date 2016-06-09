@@ -253,9 +253,9 @@ export type FSStatusCode =
   | 2 // ERROR_2
 
 export type FavoritesResult = {
-  favorites: Array<Folder>;
-  ignored: Array<Folder>;
-  xnew: Array<Folder>;
+  favoriteFolders: Array<Folder>;
+  ignoredFolders: Array<Folder>;
+  newFolders: Array<Folder>;
 }
 
 export type Feature = {

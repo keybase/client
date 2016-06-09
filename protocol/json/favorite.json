@@ -413,21 +413,21 @@
             "type": "array",
             "items": "Folder"
           },
-          "name": "favorites"
+          "name": "favoriteFolders"
         },
         {
           "type": {
             "type": "array",
             "items": "Folder"
           },
-          "name": "ignored"
+          "name": "ignoredFolders"
         },
         {
           "type": {
             "type": "array",
             "items": "Folder"
           },
-          "name": "xnew"
+          "name": "newFolders"
         }
       ]
     }
