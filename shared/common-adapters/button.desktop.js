@@ -184,7 +184,7 @@ const stylesButtonUnfollow = {
 }
 const stylesButtonSmall = {
   height: 28,
-  lineHeight: '28px'
+  lineHeight: '27px'
 }
 const stylesButtonLabel = {
   ...globalStyles.fontSemibold,
