@@ -324,7 +324,7 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		},
 		cli.StringFlag{
 			Name:  "updater-config-file",
-			Usage: "specify a path to the updater config file",
+			Usage: "Specify a path to the updater config file",
 		},
 		cli.StringFlag{
 			Name:  "session-file",

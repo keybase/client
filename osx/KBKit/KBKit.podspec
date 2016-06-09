@@ -23,8 +23,7 @@ Pod::Spec.new do |s|
   s.dependency "MDPSplitView"
   s.dependency "Tikppa"
 
-  s.osx.platform = :osx, "10.10"
-  s.osx.deployment_target = "10.10"
+  s.platform = :osx, "10.10"
   s.osx.source_files = "KBKit/**/*.{h,m}"
 
 end

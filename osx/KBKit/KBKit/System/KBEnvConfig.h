@@ -54,6 +54,7 @@ typedef NS_ENUM (NSInteger, KBRunMode) {
 
 - (NSString *)launchdServiceLabel;
 - (NSString *)launchdKBFSLabel;
+- (NSString *)launchdUpdaterLabel;
 
 - (BOOL)isInApplications:(NSString *)path;
 - (BOOL)isInUserApplications:(NSString *)path;
