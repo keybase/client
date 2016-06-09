@@ -5,7 +5,9 @@ import React, {Component} from 'react'
 type CommonProps = {
   size: 176 | 112 | 80 | 64 | 48 | 32 | 24 | 16,
   style?: ?Object,
-  onClick?: ?(() => void)
+  onClick?: ?(() => void),
+  following?: ?boolean,
+  followsYou?: ?boolean
 }
 
 export type Props = ({url: ?string} & CommonProps) | ({username: ?string} & CommonProps)

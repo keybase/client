@@ -32,10 +32,11 @@ export default class Avatar extends Component {
   }
 
   render () {
-    const width = this.props.size
-    const height = this.props.size
+    const {size} = this.props
+    const width = size
+    const height = size
     const url = this._createUrl()
-    const avatarStyle = {width, height, borderRadius: this.props.size / 2, position: 'absolute'}
+    const avatarStyle = {width, height, borderRadius: size / 2, position: 'absolute'}
 
     return (
       <div onClick={this.props.onClick} style={{...globalStyles.noSelect, position: 'relative', width, height, ...this.props.style}}>
@@ -52,8 +53,50 @@ export default class Avatar extends Component {
             backgroundColor: globalColors.white
           }}
           onLoad={() => this.setState({avatarLoaded: true})} />
+        <div>
+        {size > 16 && (this.props.following || this.props.followsYou) &&
+          <div>
+            {this.props.followsYou && <div style={{...followTop(size, globalColors.green)}}> <div style={{...followInner(size, globalColors.white)}} /></div>}
+            <div style={{...followBottom(size, this.props.following ? globalColors.green : globalColors.grey)}} />
+          </div>
+        }
+        </div>
       </div>
     )
+  }
+}
+
+const followBadgeCommon = (size, color) => ({
+  position: 'absolute',
+  width: Math.round(size / 60 * 12),
+  height: Math.round(size / 60 * 12),
+  background: color,
+  borderRadius: '50%',
+  border: `${Math.round(size / 60 * 2)}px solid ${globalColors.white}`
+})
+
+const followTop = (size, color) => ({
+  ...followBadgeCommon(size, color),
+  bottom: Math.round(size / 60 * 5),
+  right: 0
+})
+
+const followBottom = (size, color) => ({
+  ...followBadgeCommon(size, color),
+  bottom: 0,
+  right: Math.round(size / 60 * 5)
+})
+
+const followInner = (size, color) => {
+  const padding = Math.round(size / 60 * 12 / 7)
+  return {
+    position: 'absolute',
+    background: color,
+    borderRadius: '50%',
+    top: padding,
+    right: padding,
+    bottom: padding,
+    left: padding
   }
 }
 
