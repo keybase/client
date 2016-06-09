@@ -150,9 +150,11 @@ func scoreProblemFolders(g *libkb.GlobalContext, existing keybase1.ProblemSet) (
 		tlfIDs[i] = v.Tlf.Tlfid.String()
 	}
 	args := libkb.HTTPArgs{
-		"tlfs":    libkb.S{Val: strings.Join(tlfIDs, ",")},
-		"new_kid": libkb.S{Val: existing.Kid.String()},
-		"helpee":  libkb.S{Val: existing.User.Uid.String()},
+		"tlfs":   libkb.S{Val: strings.Join(tlfIDs, ",")},
+		"helpee": libkb.S{Val: existing.User.Uid.String()},
+	}
+	if existing.Kid.Exists() {
+		args["new_kid"] = libkb.S{Val: existing.Kid.String()}
 	}
 	var updated scoreResult
 	err := g.API.GetDecode(libkb.APIArg{
@@ -270,12 +272,6 @@ func (u *rekeyStatusUpdater) Finish() {
 }
 
 func (u *rekeyStatusUpdater) problemSetDevices() (keybase1.ProblemSetDevices, error) {
-	var set keybase1.ProblemSetDevices
-	set.ProblemSet = u.problemSet
-	if len(set.ProblemSet.Tlfs) == 0 {
-		return set, nil
-	}
-
 	if u.me == nil {
 		me, err := libkb.LoadMe(libkb.NewLoadUserArg(u.G()))
 		if err != nil {
@@ -283,21 +279,6 @@ func (u *rekeyStatusUpdater) problemSetDevices() (keybase1.ProblemSetDevices, er
 		}
 		u.me = me
 	}
-	ckf := u.me.GetComputedKeyFamily()
 
-	dset := make(map[keybase1.DeviceID]bool)
-	for _, f := range u.problemSet.Tlfs {
-		for _, kid := range f.Solutions {
-			dev, err := ckf.GetDeviceForKID(kid)
-			if err != nil {
-				return keybase1.ProblemSetDevices{}, err
-			}
-			if dset[dev.ID] {
-				continue
-			}
-			dset[dev.ID] = true
-			set.Devices = append(set.Devices, *(dev.ProtExport()))
-		}
-	}
-	return set, nil
+	return newProblemSetDevices(u.me, u.problemSet)
 }

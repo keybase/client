@@ -26,7 +26,7 @@ func NewRekeyHandler(xp rpc.Transporter, g *libkb.GlobalContext, gregor *gregorH
 }
 
 func (h *RekeyHandler) ShowPendingRekeyStatus(ctx context.Context, sessionID int) error {
-	return nil
+	return h.gregor.ShowPendingRekeyStatus(ctx, sessionID)
 }
 
 func (h *RekeyHandler) DebugShowRekeyStatus(ctx context.Context, arg keybase1.DebugShowRekeyStatusArg) error {
