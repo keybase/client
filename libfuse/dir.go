@@ -717,7 +717,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 	}
 
 	tlf.folder.fs.log.CDebugf(ctx, "Loading root directory for folder %s "+
-		"(public: %t)", tlf.folder.name, tlf.isPublic())
+		"(public: %t)", tlf.folder.name(), tlf.isPublic())
 	defer func() {
 		if filterErr {
 			exitEarly, err = libfs.FilterTLFEarlyExitError(ctx, err, tlf.folder.fs.log, tlf.folder.name())
@@ -775,7 +775,7 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 	dir := tlf.getStoredDir()
 	if dir == nil {
 		tlf.folder.fs.log.CDebugf(
-			ctx, "Faking Attr for TLF %s", tlf.folder.name)
+			ctx, "Faking Attr for TLF %s", tlf.folder.name())
 		// Have a low non-zero value for Valid to avoid being
 		// swamped with requests, while still not showing
 		// stale data for too long if we end up loading the
