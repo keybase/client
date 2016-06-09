@@ -100,7 +100,7 @@ func UpdaterServiceStatus(g *libkb.GlobalContext, label string) keybase1.Service
 		return keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
 	}
 	updaterService := launchd.NewService(label)
-	status, err := updaterService.WaitForStatus(5 * time.Second)
+	status, err := updaterService.WaitForStatus(5*time.Second, 500*time.Millisecond)
 	if err != nil {
 		return keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())}
 	}
