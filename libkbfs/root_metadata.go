@@ -828,7 +828,9 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 // We want the client to be able to verify the signature if masking out the final bit,
 // decrementing the revision, and nulling out the finalized extension info. This way
 // it can easily tell a server didn't modify anything unexpected when creating the
-// final metadata block. Note that PrevRoot isn't being updated.
+// final metadata block. Note that PrevRoot isn't being updated. This is to make
+// verification easier for the client as otherwise it'd need to request the head
+// revision - 1.
 func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 	*RootMetadataSigned, error) {
 	if rmds.MD.IsFinal() {
