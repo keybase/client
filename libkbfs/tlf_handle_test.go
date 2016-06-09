@@ -400,7 +400,7 @@ func TestParseTlfHandleConflictSuffix(t *testing.T) {
 	ci := &TlfHandleExtension{
 		Date:   1462838400,
 		Number: 1,
-		Type: TlfHandleExtensionConflict,
+		Type:   TlfHandleExtensionConflict,
 	}
 
 	a := "u1 " + ci.String()
@@ -553,11 +553,21 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 		daemon: daemon,
 	}
 
-	name := "u1,u2#u3 (conflicted copy 2016-06-08 #3) (finalized 2016-06-08 #2)"
-	_, err := ParseTlfHandle(ctx, kbpki, name, false)
+	name := "u1,u2#u3 (conflicted copy 2016-03-14 #3) (finalized 2016-03-14 #2)"
+	h, err := ParseTlfHandle(ctx, kbpki, name, false)
 	require.Nil(t, err)
+	assert.Equal(t, TlfHandleExtension{
+		Type:   TlfHandleExtensionConflict,
+		Date:   1457913600,
+		Number: 3,
+	}, *h.ConflictInfo())
+	assert.Equal(t, TlfHandleExtension{
+		Type:   TlfHandleExtensionFinalized,
+		Date:   1457913600,
+		Number: 2,
+	}, *h.FinalizedInfo())
 
-	nonCanonicalName := "u1,u2#u3 (finalized 2016-06-08 #2) (conflicted copy 2016-06-08 #3)"
+	nonCanonicalName := "u1,u2#u3 (finalized 2016-03-14 #2) (conflicted copy 2016-03-14 #3)"
 	_, err = ParseTlfHandle(ctx, kbpki, nonCanonicalName, false)
 	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
 }

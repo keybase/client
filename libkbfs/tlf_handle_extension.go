@@ -221,17 +221,29 @@ func NewTlfHandleExtensionSuffix(extensions []TlfHandleExtension) string {
 	return suffix
 }
 
-// tlfHandleExtnesionList allows us to sort extensions by type.
-type tlfHandleExtnesionList []TlfHandleExtension
+// tlfHandleExtensionList allows us to sort extensions by type.
+type tlfHandleExtensionList []TlfHandleExtension
 
-func (l tlfHandleExtnesionList) Len() int {
+func (l tlfHandleExtensionList) Len() int {
 	return len(l)
 }
 
-func (l tlfHandleExtnesionList) Less(i, j int) bool {
+func (l tlfHandleExtensionList) Less(i, j int) bool {
 	return l[i].Type < l[j].Type
 }
 
-func (l tlfHandleExtnesionList) Swap(i, j int) {
+func (l tlfHandleExtensionList) Swap(i, j int) {
 	l[i], l[j] = l[j], l[i]
+}
+
+func (l tlfHandleExtensionList) Splat() (ci, fi *TlfHandleExtension) {
+	for _, extension := range l {
+		tmp := extension
+		if extension.Type == TlfHandleExtensionConflict {
+			ci = &tmp
+		} else if extension.Type == TlfHandleExtensionFinalized {
+			fi = &tmp
+		}
+	}
+	return ci, fi
 }

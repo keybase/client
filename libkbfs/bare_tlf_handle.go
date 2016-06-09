@@ -121,14 +121,7 @@ func MakeBareTlfHandle(
 		sort.Sort(socialAssertionList(unresolvedReadersCopy))
 	}
 
-	var conflictInfo, finalizedInfo *TlfHandleExtension
-	for _, extension := range extensions {
-		if extension.Type == TlfHandleExtensionConflict {
-			conflictInfo = &extension
-		} else if extension.Type == TlfHandleExtensionFinalized {
-			finalizedInfo = &extension
-		}
-	}
+	conflictInfo, finalizedInfo := tlfHandleExtensionList(extensions).Splat()
 
 	return BareTlfHandle{
 		Writers:           writersCopy,
@@ -264,10 +257,7 @@ func (h BareTlfHandle) ResolveAssertions(
 // Extensions returns a list of extensions for the given handle.
 func (h BareTlfHandle) Extensions() (extensions []TlfHandleExtension) {
 	if h.ConflictInfo != nil {
-		ext := *h.ConflictInfo
-		// Might not be set in older versions of BareTlfHandle.
-		ext.Type = TlfHandleExtensionConflict
-		extensions = append(extensions, ext)
+		extensions = append(extensions, *h.ConflictInfo)
 	}
 	if h.FinalizedInfo != nil {
 		extensions = append(extensions, *h.FinalizedInfo)
