@@ -85,7 +85,7 @@ func TestLoginSessionTimeout(t *testing.T) {
 	tc := SetupTest(t, "login_session_test", 1)
 	tc.G.API = &FakeAPI{}
 	c := clockwork.NewFakeClock()
-	tc.G.Clock = c
+	tc.G.SetClock(c)
 	defer tc.Cleanup()
 
 	sesh := NewLoginSession("logintest", tc.G)
@@ -97,7 +97,7 @@ func TestLoginSessionTimeout(t *testing.T) {
 		t.Fatal("Fresh LoginSession says expired")
 	}
 	c.Advance(LoginSessionMemoryTimeout + 1*time.Second)
-	tc.G.Clock = c // ??
+	tc.G.SetClock(c) // ??
 	if sesh.NotExpired() {
 		t.Fatal("Stale LoginSession says not expired")
 	}

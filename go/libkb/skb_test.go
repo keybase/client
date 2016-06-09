@@ -212,7 +212,7 @@ func TestPromptCancelCache(t *testing.T) {
 	defer tc.Cleanup()
 
 	fakeClock := clockwork.NewFakeClock()
-	tc.G.Clock = fakeClock
+	tc.G.SetClock(fakeClock)
 
 	lks := makeTestLKSec(t, tc.G)
 	skb := makeTestSKB(t, lks, tc.G)

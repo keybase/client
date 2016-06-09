@@ -166,7 +166,7 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 
 	// We'll need to generate two proofs, so set the Ctime
 	// so that we get the same time both times
-	d.Ctime = d.G().Clock.Now().Unix()
+	d.Ctime = d.G().GetClock().Now().Unix()
 
 	// For a sibkey signature, we first sign the blob with the
 	// sibkey, and then embed that signature for the delegating key

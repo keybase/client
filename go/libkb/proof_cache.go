@@ -208,7 +208,7 @@ func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError) error {
 	cr := CheckResult{
 		Contextified: pc.Contextified,
 		Status:       pe,
-		Time:         pc.G().Clock.Now(),
+		Time:         pc.G().GetClock().Now(),
 	}
 	pc.memPut(sid, cr)
 	return pc.dbPut(sid, cr)
