@@ -285,9 +285,10 @@ func TestTlfHandleConflictInfo(t *testing.T) {
 	var h TlfHandle
 
 	require.Nil(t, h.ConflictInfo())
-	info := ConflictInfo{
+	info := TlfHandleExtension{
 		Date:   100,
 		Number: 50,
+		Type:   TlfHandleExtensionConflict,
 	}
 
 	h.SetConflictInfo(&info)
@@ -376,9 +377,10 @@ func TestParseTlfHandleConflictSuffix(t *testing.T) {
 		daemon: daemon,
 	}
 
-	ci := &ConflictInfo{
+	ci := &TlfHandleExtension{
 		Date:   1462838400,
 		Number: 1,
+		Type: TlfHandleExtensionConflict,
 	}
 
 	a := "u1 " + ci.String()

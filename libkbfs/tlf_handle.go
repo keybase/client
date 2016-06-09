@@ -150,31 +150,31 @@ func (h *TlfHandle) SetConflictInfo(info *TlfHandleExtension) {
 
 // FinalizedInfo returns the handle's finalized info, if any.
 func (h TlfHandle) FinalizedInfo() *TlfHandleExtension {
-	if h.conflictInfo == nil {
+	if h.finalizedInfo == nil {
 		return nil
 	}
-	conflictInfoCopy := *h.conflictInfo
-	return &conflictInfoCopy
+	finalizedInfoCopy := *h.finalizedInfo
+	return &finalizedInfoCopy
 }
 
 // SetFinalizedInfo sets the handle's finalized info to the given one,
 // which may be nil.
 func (h *TlfHandle) SetFinalizedInfo(info *TlfHandleExtension) {
 	if info == nil {
-		h.conflictInfo = nil
+		h.finalizedInfo = nil
 		return
 	}
-	conflictInfoCopy := *info
-	h.conflictInfo = &conflictInfoCopy
+	finalizedInfoCopy := *info
+	h.finalizedInfo = &finalizedInfoCopy
 }
 
 // Extensions returns a list of extensions for the given handle.
 func (h TlfHandle) Extensions() (extensions []TlfHandleExtension) {
-	if h.ConflictInfo != nil {
-		extensions = append(extensions, *h.ConflictInfo)
+	if h.ConflictInfo() != nil {
+		extensions = append(extensions, *h.ConflictInfo())
 	}
-	if h.FinalizedInfo != nil {
-		extensions = append(extensions, *h.FinalizedInfo)
+	if h.FinalizedInfo() != nil {
+		extensions = append(extensions, *h.FinalizedInfo())
 	}
 	return extensions
 }
@@ -406,6 +406,7 @@ func (h *TlfHandle) deepCopy() *TlfHandle {
 		unresolvedWriters: h.UnresolvedWriters(),
 		unresolvedReaders: h.UnresolvedReaders(),
 		conflictInfo:      h.ConflictInfo(),
+		finalizedInfo:     h.FinalizedInfo(),
 	}
 
 	hCopy.resolvedWriters = make(map[keybase1.UID]libkb.NormalizedUsername, len(h.resolvedWriters))
@@ -516,7 +517,7 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 		}
 	}
 
-	newH, err := makeTlfHandleHelper(ctx, h.IsPublic(), writers, readers, h.ConflictInfo())
+	newH, err := makeTlfHandleHelper(ctx, h.IsPublic(), writers, readers, h.Extensions())
 	if err != nil {
 		return nil, err
 	}

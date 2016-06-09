@@ -16,7 +16,8 @@ type BareTlfHandle struct {
 	Readers           []keybase1.UID             `codec:"r,omitempty"`
 	UnresolvedWriters []keybase1.SocialAssertion `codec:"uw,omitempty"`
 	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
-	ConflictInfo      *ConflictInfo              `codec:"ci,omitempty"`
+	ConflictInfo      *TlfHandleExtension        `codec:"ci,omitempty"`
+	FinalizedInfo     *TlfHandleExtension        `codec:"fi,omitempty"`
 }
 
 // ErrNoWriters is the error returned by MakeBareTlfHandle if it is
@@ -71,7 +72,7 @@ func (u socialAssertionList) Swap(i, j int) {
 func MakeBareTlfHandle(
 	writers, readers []keybase1.UID,
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
-	conflictInfo *ConflictInfo) (BareTlfHandle, error) {
+	extensions []TlfHandleExtension) (BareTlfHandle, error) {
 	if len(writers) == 0 {
 		return BareTlfHandle{}, ErrNoWriters
 	}
@@ -120,12 +121,22 @@ func MakeBareTlfHandle(
 		sort.Sort(socialAssertionList(unresolvedReadersCopy))
 	}
 
+	var conflictInfo, finalizedInfo *TlfHandleExtension
+	for _, extension := range extensions {
+		if extension.Type == TlfHandleExtensionConflict {
+			conflictInfo = &extension
+		} else if extension.Type == TlfHandleExtensionFinalized {
+			finalizedInfo = &extension
+		}
+	}
+
 	return BareTlfHandle{
 		Writers:           writersCopy,
 		Readers:           readersCopy,
 		UnresolvedWriters: unresolvedWritersCopy,
 		UnresolvedReaders: unresolvedReadersCopy,
 		ConflictInfo:      conflictInfo,
+		FinalizedInfo:     finalizedInfo,
 	}, nil
 }
 
@@ -248,4 +259,18 @@ func (h BareTlfHandle) ResolveAssertions(
 	sort.Sort(socialAssertionList(h.UnresolvedWriters))
 	sort.Sort(socialAssertionList(h.UnresolvedReaders))
 	return h
+}
+
+// Extensions returns a list of extensions for the given handle.
+func (h BareTlfHandle) Extensions() (extensions []TlfHandleExtension) {
+	if h.ConflictInfo != nil {
+		ext := *h.ConflictInfo
+		// Might not be set in older versions of BareTlfHandle.
+		ext.Type = TlfHandleExtensionConflict
+		extensions = append(extensions, ext)
+	}
+	if h.FinalizedInfo != nil {
+		extensions = append(extensions, *h.FinalizedInfo)
+	}
+	return extensions
 }
