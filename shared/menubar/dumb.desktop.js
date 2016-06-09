@@ -9,6 +9,7 @@ const propsNormal = {
   folderProps: map.mocks['Normal Private'],
   username: 'max',
   showOpenApp: true,
+  onFolderClick: () => console.log('folder clicked'),
   openApp: () => console.log('open app'),
   showKBFS: () => console.log('show kbfs'),
   logIn: () => console.log('login'),

@@ -72,7 +72,7 @@ class Render extends Component<DefaultProps, Props, State> {
   }
 
   _onAdd (path: string) {
-    this.props.onClick && this.props.onClick(path)
+    this.props.onFolderClick(path)
     this.props.refresh()
   }
 
@@ -101,6 +101,7 @@ class Render extends Component<DefaultProps, Props, State> {
 
     const mergedProps = {
       ...this.props.folderProps,
+      onClick: this.props.onFolderClick,
       showComingSoon: false,
       smallMode: true,
       private: newPrivate,
