@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import {connect, bindActionCreators} from 'react-redux'
+import {connect} from 'react-redux'
+import {bindActionCreators} from 'redux'
 import {search} from '../actions/search'
 import Render from './render'
 import type {Props} from './render'
