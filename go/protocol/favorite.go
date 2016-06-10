@@ -19,9 +19,9 @@ type Folder struct {
 }
 
 type FavoritesResult struct {
-	Favorites []Folder `codec:"favorites" json:"favorites"`
-	Ignored   []Folder `codec:"ignored" json:"ignored"`
-	Xnew      []Folder `codec:"xnew" json:"xnew"`
+	FavoriteFolders []Folder `codec:"favoriteFolders" json:"favoriteFolders"`
+	IgnoredFolders  []Folder `codec:"ignoredFolders" json:"ignoredFolders"`
+	NewFolders      []Folder `codec:"newFolders" json:"newFolders"`
 }
 
 type FavoriteAddArg struct {

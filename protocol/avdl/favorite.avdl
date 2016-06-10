@@ -21,9 +21,9 @@ protocol favorite {
   // representing all the TLFs you have in each of those 3 states, and we
   // marshall that result into this struct.
   record FavoritesResult {
-    array<Folder> favorites;
-    array<Folder> ignored;
-    array<Folder> xnew;  // "new" is an illegal variable prefix in ObjC :p
+    array<Folder> favoriteFolders;
+    array<Folder> ignoredFolders;
+    array<Folder> newFolders;
   }
 
   /**

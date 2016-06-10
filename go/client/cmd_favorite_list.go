@@ -47,7 +47,7 @@ func (c *CmdFavoriteList) Run() error {
 	if err != nil {
 		return err
 	}
-	for _, f := range result.Favorites {
+	for _, f := range result.FavoriteFolders {
 		acc := "public"
 		if f.Private {
 			acc = "private"

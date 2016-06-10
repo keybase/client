@@ -133,7 +133,7 @@ func TestFavoriteList(t *testing.T) {
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
-	favs := eng.Result().Favorites
+	favs := eng.Result().FavoriteFolders
 	if len(favs) != 2 {
 		t.Fatalf("num favs: %d, expected 2", len(favs))
 	}
@@ -179,5 +179,5 @@ func listfav(tc libkb.TestContext) []keybase1.Folder {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	return eng.Result().Favorites
+	return eng.Result().FavoriteFolders
 }
