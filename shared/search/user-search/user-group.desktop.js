@@ -56,7 +56,7 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
         {avatar}
         {name}
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'flex-end', marginRight: 16}}>
-          <Icon onClick={() => onRemove(user)} type={'fa-times-circle'} style={{fontSize: 24, color: globalColors.black_20}} />
+          <Icon onClick={e => { e && e.stopPropagation(); onRemove(user) }} type={'fa-times-circle'} style={{fontSize: 24, color: globalColors.black_20}} />
         </Box>
       </Box>
       {insertSpacing && <Box style={{height: 1}} />}
