@@ -115,6 +115,12 @@ func newCmdUpdateNotify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Name:         "notify",
 		ArgumentHelp: "<event>",
 		Usage:        "Notify the service about an update event",
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "f, force",
+				Usage: "Force action",
+			},
+		},
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -125,6 +131,7 @@ func newCmdUpdateNotify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 
 type cmdUpdateNotify struct {
 	libkb.Contextified
+	force bool
 	event string
 }
 
@@ -142,6 +149,7 @@ func (v *cmdUpdateNotify) GetUsage() libkb.Usage {
 }
 
 func (v *cmdUpdateNotify) ParseArgv(ctx *cli.Context) error {
+	v.force = ctx.Bool("force")
 	v.event = ctx.Args().First()
 	if v.event == "" {
 		return fmt.Errorf("No event specified")
@@ -153,7 +161,7 @@ func (v *cmdUpdateNotify) Run() error {
 	v.G().Log.Debug("Received event: %s", v.event)
 	switch v.event {
 	case "after-apply":
-		return engine.AfterUpdateApply(v.G(), true)
+		return engine.AfterUpdateApply(v.G(), true, v.force)
 	default:
 		return fmt.Errorf("Unrecognized event: %s", v.event)
 	}

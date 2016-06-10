@@ -7,6 +7,6 @@ package engine
 
 import "github.com/keybase/client/go/libkb"
 
-func AfterUpdateApply(g *libkb.GlobalContext, willRestart bool) error {
+func AfterUpdateApply(g *libkb.GlobalContext, willRestart bool, force bool) error {
 	return nil
 }

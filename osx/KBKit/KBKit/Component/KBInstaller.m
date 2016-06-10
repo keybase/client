@@ -24,6 +24,8 @@
 - (void)installWithEnvironment:(KBEnvironment *)environment force:(BOOL)force completion:(void (^)(NSError *error, NSArray *installables))completion {
   // TODO force
 
+  DDLogDebug(@"Installables: %@", environment.installables);
+
   KBRunOver *rover = [[KBRunOver alloc] init];
   rover.enumerator = [environment.installables objectEnumerator];
   rover.runBlock = ^(KBInstallable *installable, KBRunCompletion runCompletion) {
@@ -87,6 +89,11 @@
 }
 
 + (void)setFileListFavoriteEnabled:(BOOL)fileListFavoriteEnabled config:(KBEnvConfig *)config {
+  if (!config.mountDir) {
+    DDLogError(@"No mount dir");
+    return;
+  }
+
   NSURL *URL = [NSURL fileURLWithPath:config.mountDir];
   NSString *name = [config appName];
   NSError *error = nil;
