@@ -15,6 +15,7 @@ here="$(dirname "$BASH_SOURCE")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 serverops_dir="$client_dir/../server-ops"
 kbfs_dir="$client_dir/../kbfs"
+updater_dir="$client_dir/../go-updater"
 
 export BUCKET_NAME="${BUCKET_NAME:-prerelease.keybase.io}"
 echo "Using BUCKET_NAME $BUCKET_NAME"
@@ -31,10 +32,12 @@ release_bin="$release_gopath/bin/release"
 # NB: This is duplicated in packaging/prerelease/build_app.sh.
 if [ ! "${NOWAIT:-}" = "1" ]; then
   echo "Checking client CI"
-  "$release_bin" wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="client-windows-master-only/label=windows" --context="client-linux-master-only/label=master" --context="client-osx-master-only/label=osx" --context="ci/circleci"
+  "$release_bin" wait-ci --repo="client" --commit="$(git -C "$client_dir" rev-parse HEAD)" --context="client-windows-master-only/label=windows" --context="client-linux-master-only/label=master" --context="client-osx-master-only/label=osx" --context="ci/circleci"
   if [ "$mode" != "production" ] ; then
     echo "Checking kbfs CI"
-    "$release_bin" wait-ci --repo="kbfs" --commit="$(git -C $kbfs_dir rev-parse HEAD)" --context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch"
+    "$release_bin" wait-ci --repo="kbfs" --commit="$(git -C "$kbfs_dir" rev-parse HEAD)" --context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch"
+    echo "Checking updater CI"
+    "$release_bin" wait-ci --repo="go-updater" --commit="$(git -C "$updater_dir" rev-parse HEAD)" --context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch"
   fi
 fi
 
