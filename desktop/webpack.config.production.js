@@ -17,6 +17,9 @@ config.devtool = 'source-map'
 config.output.publicPath = '/dist/'
 config.cache = false // Electron exposes the module as 2 different things depending on the context....
 
+config.module.loaders[0].query.plugins.push('transform-react-constant-elements')
+config.module.loaders[0].query.plugins.push('transform-react-inline-elements')
+
 config.plugins.push(
   new webpack.DefinePlugin(defines),
   new webpack.optimize.OccurenceOrderPlugin()
