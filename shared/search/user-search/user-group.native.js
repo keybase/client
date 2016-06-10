@@ -5,7 +5,7 @@ import {Avatar, Box, Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
 import type {IconType} from '../../common-adapters/icon'
-import type {Props} from './user-group'
+import type {Props, UserFn} from './user-group'
 import type {SearchResult, ExtraInfo} from './render'
 
 function fullName (extraInfo: ExtraInfo): string {
@@ -19,7 +19,7 @@ function fullName (extraInfo: ExtraInfo): string {
   return ''
 }
 
-function User ({user, insertSpacing, onRemove}: {user: SearchResult, insertSpacing: boolean, onRemove: (user: SearchResult) => void}) {
+function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult, insertSpacing: boolean, onRemove: UserFn, onClickUser: UserFn}) {
   let avatar: React$Element
 
   if (user.service === 'keybase') {
@@ -52,16 +52,20 @@ function User ({user, insertSpacing, onRemove}: {user: SearchResult, insertSpaci
   }
 
   return (
-    <Box style={{...globalStyles.flexBoxColumn}}>
-      <Box style={{...globalStyles.flexBoxRow, height: 64, alignItems: 'center', backgroundColor: globalColors.white}}>
-        {avatar}
-        {name}
-        <Box style={{flex: 1, justifyContent: 'center', alignItems: 'flex-end', marginRight: 16}}>
-          <Icon onClick={() => onRemove(user)} type={'fa-times-circle'} style={{fontSize: 24}} />
+    <TouchableHighlight
+      onPress={() => onClickUser(user)}
+      activeOpacity={0.8}>
+      <Box style={{...globalStyles.flexBoxColumn}}>
+        <Box style={{...globalStyles.flexBoxRow, height: 64, alignItems: 'center', backgroundColor: globalColors.white}}>
+          {avatar}
+          {name}
+          <Box style={{flex: 1, justifyContent: 'center', alignItems: 'flex-end', marginRight: 16}}>
+            <Icon onClick={() => onRemove(user)} type={'fa-times-circle'} style={{fontSize: 24}} />
+          </Box>
         </Box>
+        {insertSpacing && <Box style={{height: 1}} />}
       </Box>
-      {insertSpacing && <Box style={{height: 1}} />}
-    </Box>
+    </TouchableHighlight>
   )
 }
 
@@ -91,11 +95,11 @@ function RowButton ({icon, text, onClick}: {icon: IconType, text: string, onClic
   )
 }
 
-export default function UserGroup ({users, onAddUser, onRemoveUser, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, chatEnabled, onGroupChat}: Props) {
+export default function UserGroup ({users, onAddUser, onRemoveUser, onClickUser, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, chatEnabled, onGroupChat}: Props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, backgroundColor: globalColors.lightGrey}}>
       <AddUser onClick={onAddUser} />
-      {users.map(u => <User key={u.service + u.username} user={u} onRemove={onRemoveUser} insertSpacing />)}
+      {users.map(u => <User key={u.service + u.username} user={u} onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
       <RowButton icon='icon-folder-private-open-32' text='Open private folder' onClick={onOpenPrivateGroupFolder} />
       <RowButton icon='icon-folder-public-open-32' text='Open public folder' onClick={onOpenPublicGroupFolder} />
       {chatEnabled && <RowButton icon='icon-chat-32' text='Start a chat' onClick={onGroupChat} />}
