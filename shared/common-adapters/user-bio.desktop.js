@@ -6,7 +6,6 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import electron from 'electron'
 
 const shell = electron.shell || electron.remote.shell
-const avatarSize = 80
 
 import type {Props} from './user-bio'
 
@@ -41,7 +40,7 @@ export default class BioRender extends Component {
   }
 
   render () {
-    const {username, userInfo, currentlyFollowing} = this.props
+    const {avatarSize, username, userInfo, currentlyFollowing} = this.props
     if (!userInfo) {
       return null
     }

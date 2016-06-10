@@ -21,6 +21,7 @@ class Render extends Component<void, Props, void> {
         <Box style={{...styleHeader, backgroundColor: headerColor}} />
         <Box style={globalStyles.flexBoxRow}>
           <UserBio
+            avatarSize={112}
             username={this.props.username}
             userInfo={this.props.userInfo}
             currentlyFollowing={this.props.currentlyFollowing}

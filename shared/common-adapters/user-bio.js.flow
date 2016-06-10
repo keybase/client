@@ -1,5 +1,7 @@
 /* @flow */
 
+import type {AvatarSize} from './avatar'
+
 export type UserInfo = {
   fullname: string,
   followersCount: number,
@@ -11,6 +13,7 @@ export type UserInfo = {
 }
 
 export type Props = {
+  avatarSize: AvatarSize,
   username: ?string,
   userInfo: ?UserInfo,
   currentlyFollowing: boolean
