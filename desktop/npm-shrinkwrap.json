@@ -984,6 +984,11 @@
       "from": "detect-indent@>=3.0.1 <4.0.0",
       "resolved": "https://registry.npmjs.org/detect-indent/-/detect-indent-3.0.1.tgz"
     },
+    "devtron": {
+      "version": "1.2.0",
+      "from": "devtron@1.2.0",
+      "resolved": "https://registry.npmjs.org/devtron/-/devtron-1.2.0.tgz"
+    },
     "diff": {
       "version": "1.4.0",
       "from": "diff@1.4.0",
@@ -1020,31 +1025,31 @@
       "resolved": "https://registry.npmjs.org/electron-osx-sign/-/electron-osx-sign-0.3.1.tgz"
     },
     "electron-packager": {
-      "version": "7.0.1",
-      "from": "electron-packager@7.0.1",
-      "resolved": "https://registry.npmjs.org/electron-packager/-/electron-packager-7.0.1.tgz",
+      "version": "7.0.3",
+      "from": "electron-packager@7.0.3",
+      "resolved": "https://registry.npmjs.org/electron-packager/-/electron-packager-7.0.3.tgz",
       "dependencies": {
         "fs-extra": {
-          "version": "0.26.7",
-          "from": "fs-extra@>=0.26.5 <0.27.0",
-          "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-0.26.7.tgz"
+          "version": "0.28.0",
+          "from": "fs-extra@>=0.28.0 <0.29.0",
+          "resolved": "https://registry.npmjs.org/fs-extra/-/fs-extra-0.28.0.tgz"
         }
       }
     },
     "electron-positioner": {
-      "version": "2.0.3",
-      "from": "electron-positioner@>=2.0.3 <3.0.0",
-      "resolved": "https://registry.npmjs.org/electron-positioner/-/electron-positioner-2.0.3.tgz"
+      "version": "3.0.0",
+      "from": "electron-positioner@>=3.0.0 <4.0.0",
+      "resolved": "https://registry.npmjs.org/electron-positioner/-/electron-positioner-3.0.0.tgz"
     },
     "electron-prebuilt": {
-      "version": "0.37.3",
-      "from": "electron-prebuilt@0.37.3",
-      "resolved": "https://registry.npmjs.org/electron-prebuilt/-/electron-prebuilt-0.37.3.tgz"
+      "version": "1.2.2",
+      "from": "electron-prebuilt@1.2.2",
+      "resolved": "https://registry.npmjs.org/electron-prebuilt/-/electron-prebuilt-1.2.2.tgz"
     },
     "electron-rebuild": {
-      "version": "1.1.3",
-      "from": "electron-rebuild@1.1.3",
-      "resolved": "https://registry.npmjs.org/electron-rebuild/-/electron-rebuild-1.1.3.tgz",
+      "version": "1.1.5",
+      "from": "electron-rebuild@1.1.5",
+      "resolved": "https://registry.npmjs.org/electron-rebuild/-/electron-rebuild-1.1.5.tgz",
       "dependencies": {
         "babel-runtime": {
           "version": "5.8.38",
@@ -1262,9 +1267,9 @@
       "resolved": "https://registry.npmjs.org/forwarded/-/forwarded-0.1.0.tgz"
     },
     "framed-msgpack-rpc": {
-      "version": "1.1.9",
-      "from": "keybase/node-framed-msgpack-rpc#nojima/keybase-client-changes",
-      "resolved": "git://github.com/keybase/node-framed-msgpack-rpc.git#3da13a39e63aaa97a36b0e88fada60b974393a20"
+      "version": "1.1.12",
+      "from": "git://github.com/keybase/node-framed-msgpack-rpc.git#e3c96a2ebb8350836f5bae9710b89d04fb1fc87a",
+      "resolved": "git://github.com/keybase/node-framed-msgpack-rpc.git#e3c96a2ebb8350836f5bae9710b89d04fb1fc87a"
     },
     "fresh": {
       "version": "0.3.0",
@@ -2029,6 +2034,11 @@
       "from": "hawk@>=3.1.3 <3.2.0",
       "resolved": "https://registry.npmjs.org/hawk/-/hawk-3.1.3.tgz"
     },
+    "highlight.js": {
+      "version": "9.4.0",
+      "from": "highlight.js@>=9.3.0 <10.0.0",
+      "resolved": "https://registry.npmjs.org/highlight.js/-/highlight.js-9.4.0.tgz"
+    },
     "hoek": {
       "version": "2.16.3",
       "from": "hoek@>=2.0.0 <3.0.0",
@@ -2084,10 +2094,20 @@
       "from": "https-browserify@0.0.0",
       "resolved": "https://registry.npmjs.org/https-browserify/-/https-browserify-0.0.0.tgz"
     },
+    "humanize-plus": {
+      "version": "1.8.2",
+      "from": "humanize-plus@>=1.8.1 <2.0.0",
+      "resolved": "https://registry.npmjs.org/humanize-plus/-/humanize-plus-1.8.2.tgz"
+    },
     "iced-error": {
       "version": "0.0.9",
       "from": "iced-error@0.0.9",
       "resolved": "https://registry.npmjs.org/iced-error/-/iced-error-0.0.9.tgz"
+    },
+    "iced-lock": {
+      "version": "1.0.2",
+      "from": "iced-lock@>=1.0.2 <2.0.0",
+      "resolved": "https://registry.npmjs.org/iced-lock/-/iced-lock-1.0.2.tgz"
     },
     "iced-runtime": {
       "version": "1.0.3",
@@ -2384,9 +2404,9 @@
       "resolved": "https://registry.npmjs.org/kind-of/-/kind-of-3.0.3.tgz"
     },
     "klaw": {
-      "version": "1.2.0",
+      "version": "1.3.0",
       "from": "klaw@>=1.0.0 <2.0.0",
-      "resolved": "https://registry.npmjs.org/klaw/-/klaw-1.2.0.tgz"
+      "resolved": "https://registry.npmjs.org/klaw/-/klaw-1.3.0.tgz"
     },
     "lazy-cache": {
       "version": "1.0.4",
@@ -2536,9 +2556,9 @@
       "resolved": "https://registry.npmjs.org/memory-fs/-/memory-fs-0.3.0.tgz"
     },
     "menubar": {
-      "version": "3.0.0",
-      "from": "keybase/menubar",
-      "resolved": "git://github.com/keybase/menubar.git#cb50ac180ec04a96598a1af9a5c7e8aa4e720809"
+      "version": "4.1.1",
+      "from": "menubar@latest",
+      "resolved": "https://registry.npmjs.org/menubar/-/menubar-4.1.1.tgz"
     },
     "meow": {
       "version": "3.7.0",
@@ -2836,9 +2856,9 @@
       "resolved": "https://registry.npmjs.org/normalize-path/-/normalize-path-2.0.1.tgz"
     },
     "npm": {
-      "version": "3.9.3",
+      "version": "3.9.5",
       "from": "npm@>=3.5.3 <4.0.0",
-      "resolved": "https://registry.npmjs.org/npm/-/npm-3.9.3.tgz",
+      "resolved": "https://registry.npmjs.org/npm/-/npm-3.9.5.tgz",
       "dependencies": {
         "abbrev": {
           "version": "1.0.7",
@@ -2861,9 +2881,9 @@
           "resolved": "https://registry.npmjs.org/ansistyles/-/ansistyles-0.1.3.tgz"
         },
         "aproba": {
-          "version": "1.0.1",
-          "from": "aproba@>=1.0.1 <1.1.0",
-          "resolved": "https://registry.npmjs.org/aproba/-/aproba-1.0.1.tgz"
+          "version": "1.0.3",
+          "from": "aproba@latest",
+          "resolved": "https://registry.npmjs.org/aproba/-/aproba-1.0.3.tgz"
         },
         "archy": {
           "version": "1.0.0",

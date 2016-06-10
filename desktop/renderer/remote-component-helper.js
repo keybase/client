@@ -1,6 +1,4 @@
-import electron from 'electron'
-
-const remote = electron.remote
+import {remote} from 'electron'
 
 export function autoResize () {
   let previousHeight = 0

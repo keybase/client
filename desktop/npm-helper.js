@@ -146,7 +146,7 @@ const commands = {
     help: 'Rebuild electron native code'
   },
   'postinstall': {
-    help: 'Window: fixup symlinks, all: install global eslint',
+    help: 'Window: fixup symlinks, all: install global eslint. dummy msgpack',
     code: postInstall
   },
   'setup-dev-tools': {
@@ -175,6 +175,9 @@ function postInstall () {
         })
     })
   }
+
+  // Inject dummy module
+  exec("mkdir -p node_modules/msgpack; echo 'module.exports = null' > node_modules/msgpack/index.js; echo '{\"main\": \"index.js\"}' > node_modules/msgpack/package.json")
 }
 
 function installDevTools () {
