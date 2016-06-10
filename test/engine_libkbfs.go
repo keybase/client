@@ -347,7 +347,8 @@ func (k *LibKBFS) ReenableUpdates(u User, tlfName string, isPublic bool) error {
 		return fmt.Errorf("Couldn't re-enable updates for %s (public=%t)", tlfName, isPublic)
 	}
 
-	err = libkbfs.RestartCRForTesting(config, dir.GetFolderBranch())
+	err = libkbfs.RestartCRForTesting(context.Background(), config,
+		dir.GetFolderBranch())
 	if err != nil {
 		return err
 	}

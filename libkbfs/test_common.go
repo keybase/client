@@ -445,20 +445,22 @@ func DisableCRForTesting(config Config, folderBranch FolderBranch) error {
 	return nil
 }
 
-// RestartCRForTesting re-enables conflict resolution for the given
-// folder.
-func RestartCRForTesting(config Config, folderBranch FolderBranch) error {
+// RestartCRForTesting re-enables conflict resolution for
+// the given folder.
+func RestartCRForTesting(baseCtx context.Context, config Config,
+	folderBranch FolderBranch) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
 	}
 
 	ops := kbfsOps.getOpsNoAdd(folderBranch)
-	ops.cr.Restart()
+	ops.cr.Restart(baseCtx)
 	// Start a resolution for anything we've missed.
 	if ops.staged {
 		lState := makeFBOLockState()
-		ops.cr.Resolve(ops.getCurrMDRevision(lState), MetadataRevisionUninitialized)
+		ops.cr.Resolve(ops.getCurrMDRevision(lState),
+			MetadataRevisionUninitialized)
 	}
 	return nil
 }

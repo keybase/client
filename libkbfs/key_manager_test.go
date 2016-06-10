@@ -1396,7 +1396,8 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid2, 0)
 
 	// Stall user 1's rekey, to ensure a conflict.
-	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config1)
+	onPutStalledCh, putUnstallCh, putCtx :=
+		setStallingMDOpsForPut(ctx, config1, false)
 
 	// Have user 1 also try to rekey but fail due to conflict
 	errChan := make(chan error)

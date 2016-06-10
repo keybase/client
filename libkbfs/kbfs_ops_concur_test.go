@@ -111,16 +111,21 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	}
 }
 
-func setStallingMDOpsForPut(ctx context.Context, config Config) (
+func setStallingMDOpsForPut(ctx context.Context, config Config,
+	stallAfterPut bool) (
 	<-chan struct{}, chan<- struct{}, context.Context) {
 	onPutStalledCh := make(chan struct{}, 1)
 	putUnstallCh := make(chan struct{})
 
 	stallKey := "requestName"
 	putValue := "put"
+	opName := "Put"
+	if stallAfterPut {
+		opName = "AfterPut"
+	}
 
 	config.SetMDOps(&stallingMDOps{
-		stallOpName: "Put",
+		stallOpName: opName,
 		stallKey:    stallKey,
 		stallMap: map[interface{}]staller{
 			putValue: staller{
@@ -140,7 +145,8 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
-	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config)
+	onPutStalledCh, putUnstallCh, putCtx :=
+		setStallingMDOpsForPut(ctx, config, true)
 
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
@@ -189,7 +195,8 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
-	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config)
+	onPutStalledCh, putUnstallCh, putCtx :=
+		setStallingMDOpsForPut(ctx, config, true)
 
 	// Use the smallest possible block size.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -323,7 +330,8 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
-	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config)
+	onPutStalledCh, putUnstallCh, putCtx :=
+		setStallingMDOpsForPut(ctx, config, true)
 
 	// Use the smallest possible block size.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -893,7 +901,8 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
-	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config)
+	onPutStalledCh, putUnstallCh, putCtx :=
+		setStallingMDOpsForPut(ctx, config, true)
 
 	// make blocks small
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = 5
@@ -1337,7 +1346,8 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
-	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config)
+	onPutStalledCh, putUnstallCh, putCtx :=
+		setStallingMDOpsForPut(ctx, config, true)
 
 	// Use the smallest possible block size.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())

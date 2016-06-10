@@ -103,6 +103,13 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 	return rmds, nil
 }
 
+// getMergedMDUpdates returns a slice of all the merged MDs for a TLF,
+// starting from the given startRev.  The returned MDs are the same
+// instances that are stored in the MD cache, so they should be
+// modified with care.
+//
+// TODO: Accept a parameter to express that we want copies of the MDs
+// instead of the cached versions.
 func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 	startRev MetadataRevision) (mergedRmds []*RootMetadata, err error) {
 	// We don't yet know about any revisions yet, so there's no range
@@ -148,6 +155,13 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 	return mergedRmds, nil
 }
 
+// getUnmergedMDUpdates returns a slice of the unmerged MDs for a TLF
+// and unmerged branch, between the merge point for that branch and
+// startRev (inclusive).  The returned MDs are the same instances that
+// are stored in the MD cache, so they should be modified with care.
+//
+// TODO: Accept a parameter to express that we want copies of the MDs
+// instead of the cached versions.
 func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
 	bid BranchID, startRev MetadataRevision) (
 	currHead MetadataRevision, unmergedRmds []*RootMetadata, err error) {

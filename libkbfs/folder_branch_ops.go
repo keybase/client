@@ -1745,7 +1745,8 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 	md.AddOp(gco)
 
 	if !fbo.config.BlockSplitter().ShouldEmbedBlockChanges(&md.data.Changes) {
-		_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+		var uid keybase1.UID
+		_, uid, err = fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 		if err != nil {
 			return err
 		}
@@ -1755,6 +1756,12 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 		if err != nil {
 			return err
 		}
+
+		defer func() {
+			if err != nil {
+				fbo.fbm.cleanUpBlockState(md, bps)
+			}
+		}()
 
 		ptrsToDelete, err := fbo.doBlockPuts(ctx, md, *bps)
 		if err != nil {
@@ -3225,6 +3232,11 @@ func (fbo *folderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 	return nil
 }
 
+// getUnmergedMDUpdates returns a slice of the unmerged MDs for this
+// TLF's current unmerged branch and unmerged branch, between the
+// merge point for the branch and the current head.  The returned MDs
+// are the same instances that are stored in the MD cache, so they
+// should be modified with care.
 func (fbo *folderBranchOps) getUnmergedMDUpdates(
 	ctx context.Context, lState *lockState) (
 	MetadataRevision, []*RootMetadata, error) {

@@ -75,11 +75,11 @@ func NewConflictResolver(
 		},
 	}
 
-	cr.startProcessing()
+	cr.startProcessing(context.Background())
 	return cr
 }
 
-func (cr *ConflictResolver) startProcessing() {
+func (cr *ConflictResolver) startProcessing(baseCtx context.Context) {
 	cr.inputChanLock.Lock()
 	defer cr.inputChanLock.Unlock()
 
@@ -87,7 +87,7 @@ func (cr *ConflictResolver) startProcessing() {
 		return
 	}
 	cr.inputChan = make(chan conflictInput)
-	go cr.processInput(cr.inputChan)
+	go cr.processInput(baseCtx, cr.inputChan)
 }
 
 func (cr *ConflictResolver) stopProcessing() {
@@ -105,7 +105,8 @@ func (cr *ConflictResolver) stopProcessing() {
 // channel until it is closed. This function uses a parameter for the
 // channel instead of accessing cr.inputChan directly so that it
 // doesn't have to hold inputChanLock.
-func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
+func (cr *ConflictResolver) processInput(baseCtx context.Context,
+	inputChan <-chan conflictInput) {
 	var cancel context.CancelFunc
 	var prevCRDone chan struct{}
 	defer func() {
@@ -114,8 +115,7 @@ func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
 		}
 	}()
 	for ci := range inputChan {
-		ctx := ctxWithRandomID(context.Background(), CtxCRIDKey,
-			CtxCROpID, cr.log)
+		ctx := ctxWithRandomID(baseCtx, CtxCRIDKey, CtxCROpID, cr.log)
 
 		valid := func() bool {
 			cr.inputLock.Lock()
@@ -199,9 +199,10 @@ func (cr *ConflictResolver) Pause() {
 	cr.stopProcessing()
 }
 
-// Restart re-enables conflict resolution.
-func (cr *ConflictResolver) Restart() {
-	cr.startProcessing()
+// Restart re-enables conflict resolution, with a base context for CR
+// operations.
+func (cr *ConflictResolver) Restart(baseCtx context.Context) {
+	cr.startProcessing(baseCtx)
 }
 
 func (cr *ConflictResolver) checkDone(ctx context.Context) error {
@@ -220,12 +221,28 @@ func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState) (
 	if err != nil {
 		return nil, nil, err
 	}
+	// Deep copy because CR may change them.
+	for i, md := range unmerged {
+		mdCopy, err := md.deepCopy(cr.config.Codec(), true)
+		if err != nil {
+			return nil, nil, err
+		}
+		unmerged[i] = mdCopy
+	}
 
 	// now get all the merged MDs, starting from after the branch point
 	merged, err = getMergedMDUpdates(ctx, cr.fbo.config, cr.fbo.id(),
 		branchPoint+1)
 	if err != nil {
 		return nil, nil, err
+	}
+	// Deep copy because CR may change them.
+	for i, md := range merged {
+		mdCopy, err := md.deepCopy(cr.config.Codec(), true)
+		if err != nil {
+			return nil, nil, err
+		}
+		merged[i] = mdCopy
 	}
 
 	// re-embed all the block changes
@@ -2648,16 +2665,15 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 
 // syncBlocks takes in the complete set of paths affected by this
 // conflict resolution, and organizes them into a tree, which it then
-// syncs using syncTree.  It also puts all the resulting blocks to the
-// servers.  It returns a map describing how blocks were updated in
-// the merged branch, as well as the complete set of blocks that were
-// put to the server as a result of this resolution (for later
-// caching).
+// syncs using syncTree.  It returns a map describing how blocks were
+// updated in the merged branch, as well as the complete set of blocks
+// that need to be put to the server (and cached) to complete this
+// resolution.
 func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	md *RootMetadata, unmergedChains *crChains, mergedChains *crChains,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
 	newFileBlocks fileBlockMap) (
-	map[BlockPointer]BlockPointer, *blockPutState, error) {
+	updates map[BlockPointer]BlockPointer, bps *blockPutState, err error) {
 	// Construct a tree out of the merged paths, and do a sync at each leaf.
 	var root *crPathTreeNode
 	for _, p := range resolvedPaths {
@@ -2731,7 +2747,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		}
 	}
 
-	updates := make(map[BlockPointer]BlockPointer)
+	updates = make(map[BlockPointer]BlockPointer)
 	if root == nil {
 		return updates, newBlockPutState(0), nil
 	}
@@ -2743,7 +2759,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 
 	// Now do a depth-first walk, and syncBlock back up to the fork on
 	// every branch
-	bps, err := cr.syncTree(ctx, lState, md, uid, root, BlockPointer{},
+	bps, err = cr.syncTree(ctx, lState, md, uid, root, BlockPointer{},
 		lbc, newFileBlocks)
 	if err != nil {
 		return nil, nil, err
@@ -2872,13 +2888,6 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 			return nil, nil, err
 		}
 	}
-
-	// Put all the blocks.  TODO: deal with recoverable block errors?
-	_, err = cr.fbo.doBlockPuts(ctx, md, *bps)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	return updates, bps, nil
 }
 
@@ -3023,7 +3032,7 @@ func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	lState *lockState, unmergedChains *crChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path, lbc localBcache,
-	newFileBlocks fileBlockMap, unmergedMDs []*RootMetadata) error {
+	newFileBlocks fileBlockMap, unmergedMDs []*RootMetadata) (err error) {
 	md, err := cr.createResolvedMD(ctx, lState, unmergedPaths, unmergedChains,
 		mergedChains)
 	if err != nil {
@@ -3039,6 +3048,18 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	updates, bps, err := cr.syncBlocks(
 		ctx, lState, md, unmergedChains, mergedChains,
 		resolvedPaths, lbc, newFileBlocks)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			cr.fbo.fbm.cleanUpBlockState(md, bps)
+		}
+	}()
+
+	// Put all the blocks.  TODO: deal with recoverable block errors?
+	_, err = cr.fbo.doBlockPuts(ctx, md, *bps)
 	if err != nil {
 		return err
 	}

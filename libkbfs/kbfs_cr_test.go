@@ -474,7 +474,8 @@ func TestBasicCRNoConflict(t *testing.T) {
 
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -592,7 +593,8 @@ func TestBasicCRFileConflict(t *testing.T) {
 
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -704,7 +706,8 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -851,7 +854,8 @@ func TestCRDouble(t *testing.T) {
 
 	// Do one CR.
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -906,7 +910,8 @@ func TestCRDouble(t *testing.T) {
 
 	// Do a second CR.
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -1048,7 +1053,8 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	// re-enable updates, and wait for CR to complete.
 	// this should also cause a rekey of the folder.
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -1216,7 +1222,8 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	// re-enable updates, and wait for CR to complete.
 	// this should also cause a rekey of the folder.
 	c <- struct{}{}
-	err = RestartCRForTesting(config1, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config1,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -1437,12 +1444,167 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	}
 
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+}
+
+// Test that a resolution can be canceled right before the Put due to
+// another operation, and then the second resolution includes both
+// unmerged operations.  Regression test for KBFS-1133.
+func TestCRCanceledAfterNewOperation(t *testing.T) {
+	// simulate two users
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CheckConfigAndShutdown(t, config1)
+	config1.MDServer().DisableRekeyUpdatesForTesting()
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	defer CheckConfigAndShutdown(t, config2)
+	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	config2.MDServer().DisableRekeyUpdatesForTesting()
+
+	clock, now := newTestClockAndTimeNow()
+	config2.SetClock(clock)
+	name := userName1.String() + "," + userName2.String()
+
+	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config1, name, false)
+	kbfsOps1 := config1.KBFSOps()
+	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	data := []byte{1, 2, 3, 4, 5}
+	err = kbfsOps1.Write(ctx, aNode1, data, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	err = kbfsOps1.Sync(ctx, aNode1)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// look it up on user2
+	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+
+	kbfsOps2 := config2.KBFSOps()
+	aNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	if err != nil {
+		t.Fatalf("Couldn't lookup dir: %v", err)
+	}
+	// disable updates and CR on user 2
+	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+	err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+
+	// User 1 truncates file a.
+	err = kbfsOps1.Truncate(ctx, aNode1, 0)
+	if err != nil {
+		t.Fatalf("Couldn't truncate file: %v", err)
+	}
+	err = kbfsOps1.Sync(ctx, aNode1)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// User 2 writes to the file, creating a conflict.
+	data2 := []byte{5, 4, 3, 2, 1}
+	err = kbfsOps2.Write(ctx, aNode2, data2, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	err = kbfsOps2.Sync(ctx, aNode2)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	onPutStalledCh, putUnstallCh, putCtx :=
+		setStallingMDOpsForPut(ctx, config2, false)
+
+	var wg sync.WaitGroup
+	putCtx, cancel := context.WithCancel(putCtx)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		c <- struct{}{}
+		// Make sure the CR gets done with a context we can use for
+		// stalling.
+		err = RestartCRForTesting(putCtx, config2,
+			rootNode2.GetFolderBranch())
+		if err != nil {
+			t.Fatalf("Couldn't disable updates: %v", err)
+		}
+		err = kbfsOps2.SyncFromServerForTesting(putCtx,
+			rootNode2.GetFolderBranch())
+		if err == nil {
+			t.Fatalf("Unexpected successful sync/CR: %v", err)
+		}
+	}()
+	<-onPutStalledCh
+	cancel()
+	close(putUnstallCh)
+	wg.Wait()
+
+	// Disable again
+	c, err = DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+	err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+
+	// Do a second operation and complete the resolution.
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	c <- struct{}{}
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't finish resolution: %v", err)
+	}
+
+	// Now there should be a conflict file containing data2.
+	cre := WriterDeviceDateConflictRenamer{}
+	// Make sure they both see the same set of children
+	expectedChildren := []string{
+		"a",
+		cre.ConflictRenameHelper(now, "u2", "dev1", "a"),
+		"b",
+	}
+	children2, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
+	if err != nil {
+		t.Fatalf("Couldn't get children: %v", err)
+	}
+	if g, e := len(children2), len(expectedChildren); g != e {
+		t.Errorf("Wrong number of children: %d vs %d", g, e)
+	}
+	for _, child := range expectedChildren {
+		if _, ok := children2[child]; !ok {
+			t.Errorf("Couldn't find child %s", child)
+		}
 	}
 }
