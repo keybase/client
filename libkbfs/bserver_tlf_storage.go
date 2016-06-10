@@ -144,14 +144,12 @@ func (s *bserverTlfStorage) getDataLocked(id BlockID, context BlockContext) (
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
 
-	var serverHalfData [32]byte
-	if len(buf) != len(serverHalfData) {
-		return nil, BlockCryptKeyServerHalf{},
-			fmt.Errorf("Corrupt server half data file %s",
-				keyServerHalfPath)
+	var serverHalf BlockCryptKeyServerHalf
+	err = serverHalf.UnmarshalBinary(buf)
+	if err != nil {
+		return nil, BlockCryptKeyServerHalf{}, err
 	}
-	copy(serverHalfData[:], buf)
-	serverHalf := MakeBlockCryptKeyServerHalf(serverHalfData)
+
 	return data, serverHalf, nil
 }
 
@@ -324,7 +322,7 @@ func (s *bserverTlfStorage) putData(
 
 		if existingServerHalf != serverHalf {
 			return fmt.Errorf(
-				"key server half mismatch: expected %v, got %v",
+				"key server half mismatch: expected %s, got %s",
 				existingServerHalf, serverHalf)
 		}
 	}

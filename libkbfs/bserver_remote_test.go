@@ -7,8 +7,6 @@ package libkbfs
 import (
 	"bytes"
 	"errors"
-	"fmt"
-	"sync"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -18,19 +16,20 @@ import (
 )
 
 type FakeBServerClient struct {
-	blocks     map[keybase1.GetBlockArg]keybase1.GetBlockRes
-	blocksLock sync.Mutex
+	bserverMem *BlockServerMemory
+
 	readyChan  chan<- struct{}
 	goChan     <-chan struct{}
 	finishChan chan<- struct{}
 }
 
 func NewFakeBServerClient(
+	config Config,
 	readyChan chan<- struct{},
 	goChan <-chan struct{},
 	finishChan chan<- struct{}) *FakeBServerClient {
 	return &FakeBServerClient{
-		blocks:     make(map[keybase1.GetBlockArg]keybase1.GetBlockRes),
+		bserverMem: NewBlockServerMemory(config),
 		readyChan:  readyChan,
 		goChan:     goChan,
 		finishChan: finishChan,
@@ -74,11 +73,26 @@ func (fc *FakeBServerClient) PutBlock(ctx context.Context, arg keybase1.PutBlock
 		return err
 	}
 
-	fc.blocksLock.Lock()
-	defer fc.blocksLock.Unlock()
-	fc.blocks[keybase1.GetBlockArg{Bid: arg.Bid, Folder: arg.Folder}] =
-		keybase1.GetBlockRes{BlockKey: arg.BlockKey, Buf: arg.Buf}
-	return nil
+	id, err := BlockIDFromString(arg.Bid.BlockHash)
+	if err != nil {
+		return err
+	}
+
+	tlfID, err := ParseTlfID(arg.Folder)
+	if err != nil {
+		return err
+	}
+
+	serverHalf, err := ParseBlockCryptKeyServerHalf(arg.BlockKey)
+	if err != nil {
+		return err
+	}
+
+	bCtx := BlockContext{
+		RefNonce: zeroBlockRefNonce,
+		Creator:  arg.Bid.ChargedTo,
+	}
+	return fc.bserverMem.Put(ctx, id, tlfID, bCtx, arg.Buf, serverHalf)
 }
 
 func (fc *FakeBServerClient) GetBlock(ctx context.Context, arg keybase1.GetBlockArg) (keybase1.GetBlockRes, error) {
@@ -88,18 +102,52 @@ func (fc *FakeBServerClient) GetBlock(ctx context.Context, arg keybase1.GetBlock
 		return keybase1.GetBlockRes{}, err
 	}
 
-	fc.blocksLock.Lock()
-	defer fc.blocksLock.Unlock()
-	getRes, ok := fc.blocks[arg]
-	if !ok {
-		return keybase1.GetBlockRes{}, fmt.Errorf("No such block: %v", arg)
+	id, err := BlockIDFromString(arg.Bid.BlockHash)
+	if err != nil {
+		return keybase1.GetBlockRes{}, err
 	}
-	return getRes, nil
+
+	tlfID, err := ParseTlfID(arg.Folder)
+	if err != nil {
+		return keybase1.GetBlockRes{}, err
+	}
+
+	// Always use this block context (the one the block was
+	// originally put with) since the RPC API doesn't pass along
+	// all the info from the block context passed into
+	// BlockServer.Get().
+	bCtx := BlockContext{
+		RefNonce: zeroBlockRefNonce,
+		Creator:  arg.Bid.ChargedTo,
+	}
+
+	data, serverHalf, err := fc.bserverMem.Get(ctx, id, tlfID, bCtx)
+	if err != nil {
+		return keybase1.GetBlockRes{}, err
+	}
+	return keybase1.GetBlockRes{
+		BlockKey: serverHalf.String(),
+		Buf:      data,
+	}, nil
 }
 
-func (fc *FakeBServerClient) AddReference(context.Context, keybase1.AddReferenceArg) error {
-	// Do nothing.
-	return nil
+func (fc *FakeBServerClient) AddReference(ctx context.Context, arg keybase1.AddReferenceArg) error {
+	id, err := BlockIDFromString(arg.Ref.Bid.BlockHash)
+	if err != nil {
+		return err
+	}
+
+	tlfID, err := ParseTlfID(arg.Folder)
+	if err != nil {
+		return err
+	}
+
+	bCtx := BlockContext{
+		RefNonce: BlockRefNonce(arg.Ref.Nonce),
+		Creator:  arg.Ref.ChargedTo,
+	}
+
+	return fc.bserverMem.AddBlockReference(ctx, id, tlfID, bCtx)
 }
 
 func (fc *FakeBServerClient) DelReference(context.Context, keybase1.DelReferenceArg) error {
@@ -125,27 +173,29 @@ func (fc *FakeBServerClient) GetUserQuotaInfo(context.Context) ([]byte, error) {
 }
 
 func (fc *FakeBServerClient) numBlocks() int {
-	fc.blocksLock.Lock()
-	defer fc.blocksLock.Unlock()
-	return len(fc.blocks)
+	return fc.bserverMem.numBlocks()
 }
 
 // Test that putting a block, and getting it back, works
 func TestBServerRemotePutAndGet(t *testing.T) {
 	codec := NewCodecMsgpack()
-	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"testuser"})
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"user1", "user2"})
 	currentUID := localUsers[0].UID
-	config := &ConfigLocal{codec: codec}
+	crypto := &CryptoLocal{CryptoCommon: MakeCryptoCommonNoConfig()}
+	config := &ConfigLocal{codec: codec, crypto: crypto}
 	setTestLogger(config, t)
-	fc := NewFakeBServerClient(nil, nil, nil)
+	fc := NewFakeBServerClient(config, nil, nil, nil)
 	b := newBlockServerRemoteWithClient(config, fc)
 
-	bID := fakeBlockID(1)
 	tlfID := FakeTlfID(2, false)
 	bCtx := BlockContext{currentUID, "", zeroBlockRefNonce}
 	data := []byte{1, 2, 3, 4}
-	crypto := MakeCryptoCommon(config)
-	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+	bID, err := crypto.MakePermanentBlockID(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	serverHalf, err := config.Crypto().MakeRandomBlockCryptKeyServerHalf()
 	if err != nil {
 		t.Errorf("Couldn't make block server key half: %v", err)
 	}
@@ -172,6 +222,26 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	if key != serverHalf {
 		t.Errorf("Got bad key -- got %v, expected %v", key, serverHalf)
 	}
+
+	// Add a reference.
+	nonce, err := crypto.MakeBlockRefNonce()
+	if err != nil {
+		t.Fatal(err)
+	}
+	bCtx2 := BlockContext{currentUID, localUsers[1].UID, nonce}
+	b.AddBlockReference(ctx, bID, tlfID, bCtx2)
+
+	// Now get the same block back
+	buf, key, err = b.Get(ctx, bID, tlfID, bCtx2)
+	if err != nil {
+		t.Fatalf("Get returned an error: %v", err)
+	}
+	if !bytes.Equal(buf, data) {
+		t.Errorf("Got bad data -- got %v, expected %v", buf, data)
+	}
+	if key != serverHalf {
+		t.Errorf("Got bad key -- got %v, expected %v", key, serverHalf)
+	}
 }
 
 // If we cancel the RPC before the RPC returns, the call should error quickly.
@@ -179,7 +249,8 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	codec := NewCodecMsgpack()
 	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"testuser"})
 	currentUID := localUsers[0].UID
-	config := &ConfigLocal{codec: codec}
+	crypto := &CryptoLocal{CryptoCommon: MakeCryptoCommonNoConfig()}
+	config := &ConfigLocal{codec: codec, crypto: crypto}
 	setTestLogger(config, t)
 
 	serverConn, conn := rpc.MakeConnectionForTest(t)
@@ -191,8 +262,8 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 		tlfID := FakeTlfID(2, false)
 		bCtx := BlockContext{currentUID, "", zeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}
-		crypto := MakeCryptoCommon(config)
-		serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
+		serverHalf, err :=
+			config.Crypto().MakeRandomBlockCryptKeyServerHalf()
 		if err != nil {
 			t.Errorf("Couldn't make block server key half: %v", err)
 		}

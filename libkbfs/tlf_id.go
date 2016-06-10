@@ -7,7 +7,6 @@ package libkbfs
 import (
 	"encoding"
 	"encoding/hex"
-	"errors"
 )
 
 const (
@@ -47,7 +46,7 @@ func (id TlfID) String() string {
 func (id TlfID) MarshalBinary() (data []byte, err error) {
 	suffix := id.id[TlfIDByteLen-1]
 	if suffix != TlfIDSuffix && suffix != PubTlfIDSuffix {
-		return nil, errors.New("invalid TlfID")
+		return nil, InvalidTlfID{id.String()}
 	}
 	return id.id[:], nil
 }
@@ -56,11 +55,11 @@ func (id TlfID) MarshalBinary() (data []byte, err error) {
 // for TlfID.
 func (id *TlfID) UnmarshalBinary(data []byte) error {
 	if len(data) != TlfIDByteLen {
-		return errors.New("invalid TlfID")
+		return InvalidTlfID{hex.EncodeToString(data)}
 	}
 	suffix := data[TlfIDByteLen-1]
 	if suffix != TlfIDSuffix && suffix != PubTlfIDSuffix {
-		return errors.New("invalid TlfID")
+		return InvalidTlfID{hex.EncodeToString(data)}
 	}
 	copy(id.id[:], data)
 	return nil
@@ -71,19 +70,20 @@ func (id TlfID) IsPublic() bool {
 	return id.id[TlfIDByteLen-1] == PubTlfIDSuffix
 }
 
-// ParseTlfID parses a hex encoded TlfID. Returns NullTlfID on failure.
-func ParseTlfID(s string) TlfID {
+// ParseTlfID parses a hex encoded TlfID. Returns NullTlfID and an
+// InvalidTlfID on failure.
+func ParseTlfID(s string) (TlfID, error) {
 	if len(s) != TlfIDStringLen {
-		return NullTlfID
+		return NullTlfID, InvalidTlfID{s}
 	}
 	bytes, err := hex.DecodeString(s)
 	if err != nil {
-		return NullTlfID
+		return NullTlfID, InvalidTlfID{s}
 	}
 	var id TlfID
 	err = id.UnmarshalBinary(bytes)
 	if err != nil {
-		return NullTlfID
+		return NullTlfID, InvalidTlfID{s}
 	}
-	return id
+	return id, nil
 }

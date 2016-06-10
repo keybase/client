@@ -351,9 +351,9 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID,
 	}
 
 	// response
-	id = ParseTlfID(response.FolderID)
-	if id == NullTlfID {
-		return id, nil, MDInvalidTlfID{response.FolderID}
+	id, err = ParseTlfID(response.FolderID)
+	if err != nil {
+		return id, nil, err
 	}
 
 	// deserialize blocks
@@ -446,9 +446,9 @@ func (md *MDServerRemote) PruneBranch(ctx context.Context, id TlfID, bid BranchI
 
 // MetadataUpdate implements the MetadataUpdateProtocol interface.
 func (md *MDServerRemote) MetadataUpdate(_ context.Context, arg keybase1.MetadataUpdateArg) error {
-	id := ParseTlfID(arg.FolderID)
-	if id == NullTlfID {
-		return MDServerErrorBadRequest{"Invalid folder ID"}
+	id, err := ParseTlfID(arg.FolderID)
+	if err != nil {
+		return err
 	}
 
 	md.observerMu.Lock()
@@ -466,9 +466,9 @@ func (md *MDServerRemote) MetadataUpdate(_ context.Context, arg keybase1.Metadat
 
 // FolderNeedsRekey implements the MetadataUpdateProtocol interface.
 func (md *MDServerRemote) FolderNeedsRekey(_ context.Context, arg keybase1.FolderNeedsRekeyArg) error {
-	id := ParseTlfID(arg.FolderID)
-	if id == NullTlfID {
-		return MDServerErrorBadRequest{"Invalid folder ID"}
+	id, err := ParseTlfID(arg.FolderID)
+	if err != nil {
+		return err
 	}
 	md.log.Debug("MDServerRemote: folder needs rekey: %s", id.String())
 	if md.squelchRekey {

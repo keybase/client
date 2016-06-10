@@ -678,17 +678,6 @@ func (e NotDirectFileBlockError) Error() string {
 	return fmt.Sprintf("Unexpected block type; expected a direct file block")
 }
 
-// MDInvalidTlfID indicates whether the folder ID returned from the
-// MD server was not parsable/invalid.
-type MDInvalidTlfID struct {
-	id string
-}
-
-// Error implements the error interface for MDInvalidTlfID.
-func (e MDInvalidTlfID) Error() string {
-	return fmt.Sprintf("Invalid TLF ID returned from server: %s", e.id)
-}
-
 // KeyHalfMismatchError is returned when the key server doesn't return the expected key half.
 type KeyHalfMismatchError struct {
 	Expected TLFCryptKeyServerHalfID
@@ -709,6 +698,16 @@ type InvalidHashError struct {
 
 func (e InvalidHashError) Error() string {
 	return fmt.Sprintf("Invalid hash %s", e.H)
+}
+
+// InvalidTlfID indicates whether the TLF ID string is not parseable
+// or invalid.
+type InvalidTlfID struct {
+	id string
+}
+
+func (e InvalidTlfID) Error() string {
+	return fmt.Sprintf("Invalid TLF ID %q", e.id)
 }
 
 // UnknownHashTypeError is returned whenever a hash with an unknown

@@ -997,7 +997,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	// give it a remote block server with a fake client
-	fc := NewFakeBServerClient(nil, nil, nil)
+	fc := NewFakeBServerClient(config, nil, nil, nil)
 	b := newBlockServerRemoteWithClient(config, fc)
 	config.BlockServer().Shutdown()
 	config.SetBlockServer(b)

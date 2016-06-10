@@ -305,6 +305,21 @@ func MakeBlockCryptKeyServerHalf(data [32]byte) BlockCryptKeyServerHalf {
 	return BlockCryptKeyServerHalf{byte32Container{data}}
 }
 
+// ParseBlockCryptKeyServerHalf returns a BlockCryptKeyServerHalf
+// containing the given hex-encoded data, or an error.
+func ParseBlockCryptKeyServerHalf(s string) (BlockCryptKeyServerHalf, error) {
+	buf, err := hex.DecodeString(s)
+	if err != nil {
+		return BlockCryptKeyServerHalf{}, err
+	}
+	var serverHalf BlockCryptKeyServerHalf
+	err = serverHalf.UnmarshalBinary(buf)
+	if err != nil {
+		return BlockCryptKeyServerHalf{}, err
+	}
+	return serverHalf, nil
+}
+
 // BlockCryptKey is used to encrypt/decrypt block data. (See 4.1.2.)
 type BlockCryptKey struct {
 	// Should only be used by implementations of Crypto.

@@ -224,7 +224,7 @@ func (b *BlockServerMemory) Put(ctx context.Context, id BlockID, tlfID TlfID,
 
 		if entry.keyServerHalf != serverHalf {
 			return fmt.Errorf(
-				"key server half mismatch: expected %v, got %v",
+				"key server half mismatch: expected %s, got %s",
 				entry.keyServerHalf, serverHalf)
 		}
 
@@ -397,6 +397,12 @@ func (b *BlockServerMemory) getAll(tlfID TlfID) (
 		res[id] = entry.refs.getStatuses()
 	}
 	return res, nil
+}
+
+func (b *BlockServerMemory) numBlocks() int {
+	b.lock.RLock()
+	defer b.lock.RUnlock()
+	return len(b.m)
 }
 
 // Shutdown implements the BlockServer interface for BlockServerMemory.

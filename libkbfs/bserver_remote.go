@@ -182,6 +182,28 @@ func (b *BlockServerRemote) ShouldRetryOnConnect(err error) bool {
 	return !inputCanceled
 }
 
+func makeBlockIDCombo(id BlockID, context BlockContext) keybase1.BlockIdCombo {
+	// ChargedTo is somewhat confusing when this BlockIdCombo is
+	// used in a BlockReference -- it just refers to the original
+	// creator of the block, i.e. the original user charged for
+	// the block.
+	//
+	// This may all change once we implement groups.
+	return keybase1.BlockIdCombo{
+		BlockHash: id.String(),
+		ChargedTo: context.GetCreator(),
+	}
+}
+
+func makeBlockReference(id BlockID, context BlockContext) keybase1.BlockReference {
+	return keybase1.BlockReference{
+		Bid: makeBlockIDCombo(id, context),
+		// The actual writer to modify quota for.
+		ChargedTo: context.GetWriter(),
+		Nonce:     keybase1.BlockRefNonce(context.GetRefNonce()),
+	}
+}
+
 // Get implements the BlockServer interface for BlockServerRemote.
 func (b *BlockServerRemote) Get(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
@@ -189,19 +211,18 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID, tlfID TlfID,
 	size := -1
 	defer func() {
 		if err != nil {
-			b.deferLog.CWarningf(ctx, "Get id=%s uid=%s sz=%d err=%v",
-				id, context.GetWriter(), size, err)
+			b.deferLog.CWarningf(
+				ctx, "Get id=%s tlf=%s context=%s sz=%d err=%v",
+				id, tlfID, context, size, err)
 		} else {
-			b.deferLog.CDebugf(ctx, "Get id=%s uid=%s sz=%d",
-				id, context.GetWriter(), size)
+			b.deferLog.CDebugf(
+				ctx, "Get id=%s tlf=%s context=%s sz=%d",
+				id, tlfID, context, size)
 		}
 	}()
 
 	arg := keybase1.GetBlockArg{
-		Bid: keybase1.BlockIdCombo{
-			BlockHash: id.String(),
-			ChargedTo: context.GetWriter(),
-		},
+		Bid:    makeBlockIDCombo(id, context),
 		Folder: tlfID.String(),
 	}
 
@@ -229,19 +250,19 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	defer func() {
 		if err != nil {
 			b.deferLog.CWarningf(
-				ctx, "Put id=%s uid=%s sz=%d err=%v",
-				id, context.GetWriter(), size, err)
+				ctx, "Put id=%s tlf=%s context=%s sz=%d err=%v",
+				id, tlfID, context, size, err)
 		} else {
-			b.deferLog.CDebugf(ctx, "Put id=%s uid=%s sz=%d",
-				id, context.GetWriter(), size)
+			b.deferLog.CDebugf(
+				ctx, "Put id=%s tlf=%s context=%s sz=%d",
+				id, tlfID, context, size)
 		}
 	}()
 
 	arg := keybase1.PutBlockArg{
-		Bid: keybase1.BlockIdCombo{
-			ChargedTo: context.GetWriter(),
-			BlockHash: id.String(),
-		},
+		Bid: makeBlockIDCombo(id, context),
+		// BlockKey is misnamed -- it contains just the server
+		// half.
 		BlockKey: serverHalf.String(),
 		Folder:   tlfID.String(),
 		Buf:      buf,
@@ -264,26 +285,17 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	defer func() {
 		if err != nil {
 			b.deferLog.CWarningf(
-				ctx, "AddBlockReference id=%s uid=%s err=%v",
-				id, context.GetWriter(), err)
+				ctx, "AddBlockReference id=%s tlf=%s context=%s err=%v",
+				id, tlfID, context, err)
 		} else {
 			b.deferLog.CDebugf(
-				ctx, "AddBlockReference id=%s uid=%s",
-				id, context.GetWriter())
+				ctx, "AddBlockReference id=%s tlf=%s context=%s",
+				id, tlfID, context)
 		}
 	}()
 
-	ref := keybase1.BlockReference{
-		Bid: keybase1.BlockIdCombo{
-			ChargedTo: context.GetCreator(),
-			BlockHash: id.String(),
-		},
-		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
-		Nonce:     keybase1.BlockRefNonce(context.GetRefNonce()),
-	}
-
 	err = b.client.AddReference(ctx, keybase1.AddReferenceArg{
-		Ref:    ref,
+		Ref:    makeBlockReference(id, context),
 		Folder: tlfID.String(),
 	})
 	if err != nil {
@@ -421,14 +433,8 @@ func (b *BlockServerRemote) getNotDone(all map[BlockID][]BlockContext, doneRefs 
 					continue
 				}
 			}
-			notDone = append(notDone, keybase1.BlockReference{
-				Bid: keybase1.BlockIdCombo{
-					ChargedTo: context.GetCreator(),
-					BlockHash: id.String(),
-				},
-				ChargedTo: context.GetWriter(),
-				Nonce:     keybase1.BlockRefNonce(context.GetRefNonce()),
-			})
+			ref := makeBlockReference(id, context)
+			notDone = append(notDone, ref)
 		}
 	}
 	return notDone
