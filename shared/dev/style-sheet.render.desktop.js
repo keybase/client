@@ -262,7 +262,7 @@ const Inputs = () => (
 export default class Render extends Component {
   render () {
     return (
-      <Box style={{...globalStyles.flexBoxColumn, margin: 20}}>
+      <Box style={{flex: 1, overflow: 'auto', margin: 20}}>
         <Container title='Text'><Fonts /></Container>
         <Container title='Icons'><Icons /></Container>
         <Container title='Buttons'><Buttons /></Container>

@@ -5,19 +5,17 @@ import fs from 'fs'
 
 const postinstallGlobals = {
   'babel-eslint': '@6.0.4',
-  'eslint': '@2.9.0',
-  'eslint-config-standard': '@5.3.0',
+  'eslint': '@2.11.1',
+  'eslint-config-standard': '@5.3.1',
   'eslint-config-standard-jsx': '@1.2.0',
   'eslint-config-standard-react': '@2.4.0',
   'eslint-plugin-babel': '@3.2.0',
-  'eslint-plugin-filenames': '@0.2.0',
+  'eslint-plugin-filenames': '@1.0.0',
   'eslint-plugin-flow-vars': '@0.4.0',
   'eslint-plugin-mocha': '@2.2.0',
-  'eslint-plugin-promise': '@1.1.0',
-  'eslint-plugin-react': '@5.0.1',
-  'eslint-plugin-standard': '@1.3.2',
-  'estraverse': '@4.2.0',
-  'estraverse-fb': '@1.3.1'
+  'eslint-plugin-promise': '@1.3.1',
+  'eslint-plugin-react': '@5.1.1',
+  'eslint-plugin-standard': '@1.3.2'
 }
 
 const [,, command, ...rest] = process.argv
@@ -148,7 +146,7 @@ const commands = {
     help: 'Rebuild electron native code'
   },
   'postinstall': {
-    help: 'Window: fixup symlinks, all: install global eslint',
+    help: 'Window: fixup symlinks, all: install global eslint. dummy msgpack',
     code: postInstall
   },
   'setup-dev-tools': {
@@ -157,7 +155,7 @@ const commands = {
   },
   'render-screenshots': {
     nodePathDesktop: true,
-    shell: 'webpack --config webpack.config.visdiff.js && ./node_modules/.bin/electron ./dist/render-visdiff.bundle.js',
+    shell: 'webpack --config webpack.config.visdiff.js && KEYBASE_NO_ENGINE=1 ELECTRON_ENABLE_LOGGING=1 ./node_modules/.bin/electron ./dist/render-visdiff.bundle.js',
     help: 'Render images of dumb components'
   }
 }
@@ -177,6 +175,9 @@ function postInstall () {
         })
     })
   }
+
+  // Inject dummy module
+  exec("mkdir -p node_modules/msgpack; echo 'module.exports = null' > node_modules/msgpack/index.js; echo '{\"main\": \"index.js\"}' > node_modules/msgpack/package.json")
 }
 
 function installDevTools () {

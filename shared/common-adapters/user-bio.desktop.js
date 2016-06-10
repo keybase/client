@@ -52,15 +52,13 @@ export default class BioRender extends Component {
     return (
       <div style={stylesOuter}>
         <div style={stylesContainer}>
-          <div style={stylesAvatarOuter}>
-            <Avatar onClick={() => this._onClickAvatar()} style={globalStyles.clickable} url={userInfo.avatar} size={avatarSize} />
-            {(followsYou || currentlyFollowing) &&
-              <div>
-                {followsYou && <div style={followBadgeStyles.followsYou}> <div style={{...followBadgeCommon, height: 6, width: 6, top: 2, right: 2}} /></div>}
-                <div style={currentlyFollowing ? followBadgeStyles.following : followBadgeStyles.notFollowing} />
-              </div>
-            }
-          </div>
+          <Avatar
+            onClick={() => this._onClickAvatar()}
+            style={{...globalStyles.clickable, zIndex: 2}}
+            url={userInfo.avatar}
+            size={avatarSize}
+            following={currentlyFollowing}
+            followsYou={followsYou} />
           <div style={stylesContent}>
             <Text
               type='HeaderBig'
@@ -108,12 +106,6 @@ const stylesContainer = {
   width: 320,
   marginTop: -40
 }
-const stylesAvatarOuter = {
-  width: avatarSize,
-  height: avatarSize,
-  position: 'relative',
-  zIndex: 2
-}
 const stylesContent = {
   backgroundColor: globalColors.white,
   ...globalStyles.flexBoxColumn,
@@ -157,44 +149,4 @@ const stylesLocation = {
   paddingLeft: 30,
   paddingRight: 30,
   textAlign: 'center'
-}
-
-const followBadgeCommon = {
-  position: 'absolute',
-  background: globalColors.white,
-  width: 14,
-  height: 14,
-  borderRadius: '50%',
-  border: `2px solid ${globalColors.white}`
-}
-
-const followTop = {
-  ...followBadgeCommon,
-  bottom: 5,
-  right: 2
-}
-
-const followBottom = {
-  ...followBadgeCommon,
-  bottom: 0,
-  right: 8
-}
-
-const followBadgeStyles = {
-  followsYou: {
-    ...followTop,
-    background: globalColors.green
-  },
-  notFollowsYou: {
-    ...followTop,
-    background: globalColors.grey
-  },
-  following: {
-    ...followBottom,
-    background: globalColors.green
-  },
-  notFollowing: {
-    ...followBottom,
-    background: globalColors.grey
-  }
 }

@@ -1,91 +1,28 @@
 /*eslint-disable */
-declare module 'electron' {
-  declare var exports: any;
-}
 
-declare module 'getenv' {
-  declare var exports: any;
-}
+declare module 'Interpolation' { declare var exports: any; }
+declare module 'electron' { declare var exports: any; }
+declare module 'getenv' { declare var exports: any; }
+declare module 'lodash' { declare var exports: any; }
+declare module 'lodash/debounce' { declare var exports: any; }
+declare module 'lodash/merge' { declare var exports: any; }
+declare module 'marked' { declare var exports: any; }
+declare module 'material-ui' { declare var exports: any; }
+declare module 'material-ui/Popover' { declare var exports: any; }
+declare module 'material-ui/styles' { declare var exports: any; }
+declare module 'material-ui/svg-icons' { declare var exports: any; }
+declare module 'moment' { declare var exports: any; }
+declare module 'qrcode-generator' { declare var exports: any; }
+declare module 'react-native' { declare var exports: any; }
+declare module 'react-native-android-permissions' { declare var exports: any; }
+declare module 'react-native-barcodescanner' { declare var exports: any; }
+declare module 'react-native-camera' { declare var exports: any; }
+declare module 'react-redux' { declare var exports: any; }
+declare module 'react-tap-event-plugin' { declare var exports: any; }
+declare module 'redux' { declare var exports: any; }
+declare module 'redux-devtools' { declare var exports: any; }
 
-declare module 'immutable' {
-  declare var exports: any;
-}
-
-declare module 'react-native-android-permissions' {
-  declare var exports: any;
-}
-
-declare module 'react-native-barcodescanner' {
-  declare var exports: any;
-}
-
-declare module 'react-native-camera' {
-  declare var exports: any;
-}
-
-declare module 'Interpolation' {
-  declare var exports: any;
-}
-
-declare module 'invariant' {
-  declare var exports: (callback: any) => any;
-}
-
-declare module 'lodash' {
-  declare var exports: any;
-}
-
-declare module 'lodash/merge' {
-  declare var exports: any;
-}
-
-declare module 'lodash/debounce' {
-  declare var exports: any;
-}
-
-declare module 'marked' {
-  declare var exports: any;
-}
-
-declare module 'material-ui' {
-  declare var exports: any;
-}
-
-declare module 'material-ui/lib/popover/popover' {
-  declare var exports: any;
-}
-
-declare module 'material-ui/lib/popover/popover-animation-from-top' {
-  declare var exports: any;
-}
-
-declare module 'material-ui/lib/styles/spacing' {
-  declare var exports: any;
-}
-
-declare module 'material-ui/lib/styles/theme-manager' {
-  declare var exports: any;
-}
-
-declare module 'material-ui/lib/svg-icons/navigation/arrow-drop-down' {
-  declare var exports: any;
-}
-
-declare module 'material-ui/lib/svg-icons/navigation/close' {
-  declare var exports: any;
-}
-
-declare module 'moment' {
-  declare var exports: any;
-}
-
-declare class Notification {
-}
-
-declare module 'qrcode-generator' {
-  declare var exports: any;
-}
-
+declare module 'invariant' { declare var exports: (callback: any) => any; }
 declare module 'react-addons-perf' {
   declare var exports: {
     start: () => void,
@@ -98,32 +35,14 @@ declare module 'react-addons-perf' {
   };
 }
 
-declare module 'react-native' {
-  declare var exports: any;
-}
-
-declare module 'react-redux' {
-  declare var exports: any;
-}
-
-declare module 'react-tap-event-plugin' {
-  declare var exports: any;
-}
-
-declare module 'redux' {
-  declare var exports: any;
-}
-
-declare module 'redux-devtools' {
-  declare var exports: any;
-}
-
 declare module 'resolveRoot' {
   declare var exports: {
     default: (paths: any) => string;
     resolveImage: (paths: any) => string;
   }
 }
+
+declare class Notification { }
 
 declare var __VERSION__: string;
 declare var __DEV__: boolean;

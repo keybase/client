@@ -28,7 +28,7 @@
         "arrow-parens": [2, "as-needed"],
         "react/jsx-no-bind": [2, {"allowArrowFunctions": true}],
         "react/prop-types": [0],
-        "filenames/filenames": [2, "^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$"],
+        "filenames/match-regex": [2, "^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$"],
         "no-duplicate-imports": [0]
     }
 }

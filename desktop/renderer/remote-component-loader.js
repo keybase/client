@@ -1,8 +1,7 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import {Provider} from 'react-redux'
-import remote from 'remote'
-import {ipcRenderer} from 'electron'
+import {remote, ipcRenderer} from 'electron'
 import RemoteStore from './remote-store'
 import {ipcLogsRenderer} from '../app/console-helper'
 import hello from '../shared/util/hello'
@@ -14,6 +13,8 @@ import update from '../shared/update'
 
 import {setupContextMenu} from '../app/menu-helper'
 import loadPerf from '../shared/util/load-perf'
+import {MuiThemeProvider} from 'material-ui/styles'
+import materialTheme from '../shared/styles/material-theme.desktop'
 
 ipcLogsRenderer()
 
@@ -156,9 +157,11 @@ class RemoteComponentLoader extends Component {
     }
     return (
       <div style={styles.container}>
-        <Provider store={this.store}>
-          <Component {...this.state.props} />
-        </Provider>
+        <MuiThemeProvider muiTheme={materialTheme}>
+          <Provider store={this.store}>
+            <Component {...this.state.props} />
+          </Provider>
+        </MuiThemeProvider>
       </div>
     )
   }
