@@ -1745,7 +1745,8 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 	md.AddOp(gco)
 
 	if !fbo.config.BlockSplitter().ShouldEmbedBlockChanges(&md.data.Changes) {
-		_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+		var uid keybase1.UID
+		_, uid, err = fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 		if err != nil {
 			return err
 		}
@@ -1755,6 +1756,12 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 		if err != nil {
 			return err
 		}
+
+		defer func() {
+			if err != nil {
+				fbo.fbm.cleanUpBlockState(md, bps)
+			}
+		}()
 
 		ptrsToDelete, err := fbo.doBlockPuts(ctx, md, *bps)
 		if err != nil {
