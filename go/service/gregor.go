@@ -644,7 +644,7 @@ func (g *gregorHandler) pingLoop() {
 			g.G().Log.Errorf("gregor handler: error in ping loop: %s", err)
 		}
 
-		g.G().Clock.Sleep(g.G().Env.GetGregorPingInterval())
+		g.G().Clock().Sleep(g.G().Env.GetGregorPingInterval())
 	}
 }
 

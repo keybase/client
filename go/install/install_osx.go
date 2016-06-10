@@ -24,6 +24,9 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
+// defaultWait is how long we should wait after install, start, etc
+const defaultWait = 5 * time.Second
+
 // ServiceLabel is an identifier string for a service
 type ServiceLabel string
 
@@ -91,6 +94,31 @@ func KBFSServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.Se
 	status.InstallAction = installAction
 	status.Status = kbStatus
 	return
+}
+
+func UpdaterServiceStatus(g *libkb.GlobalContext, label string) keybase1.ServiceStatus {
+	if label == "" {
+		return keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
+	}
+	updaterService := launchd.NewService(label)
+	status, err := updaterService.WaitForStatus(5*time.Second, 500*time.Millisecond)
+	if err != nil {
+		return keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())}
+	}
+	serviceStatus := keybase1.ServiceStatus{
+		Label:          label,
+		Pid:            status.Pid(),
+		LastExitStatus: status.LastExitStatus(),
+	}
+	if status.Pid() != "" {
+		serviceStatus.InstallStatus = keybase1.InstallStatus_INSTALLED
+		serviceStatus.InstallAction = keybase1.InstallAction_NONE
+	} else {
+		serviceStatus.InstallStatus = keybase1.InstallStatus_NOT_INSTALLED
+		serviceStatus.InstallAction = keybase1.InstallAction_INSTALL
+	}
+	serviceStatus.Status = keybase1.StatusOK("")
+	return serviceStatus
 }
 
 func serviceStatusFromLaunchd(ls launchd.Service, infoPath string, log logger.Logger) (status keybase1.ServiceStatus, err error) {
@@ -208,7 +236,7 @@ func keybasePlist(g *libkb.GlobalContext, binPath string, label string) launchd.
 }
 
 func installKeybaseService(g *libkb.GlobalContext, service launchd.Service, plist launchd.Plist) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, g.Log)
+	err := launchd.Install(plist, defaultWait, g.Log)
 	if err != nil {
 		return nil, err
 	}
@@ -219,8 +247,8 @@ func installKeybaseService(g *libkb.GlobalContext, service launchd.Service, plis
 
 // Uninstall keybase all services for this run mode.
 func uninstallKeybaseServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppServiceLabel.String(), true, nil)
-	err2 := launchd.Uninstall(BrewServiceLabel.String(), true, nil)
+	err1 := launchd.Uninstall(AppServiceLabel.String(), defaultWait, nil)
+	err2 := launchd.Uninstall(BrewServiceLabel.String(), defaultWait, nil)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -253,7 +281,7 @@ func kbfsPlist(g *libkb.GlobalContext, kbfsBinPath string, label string) (plist 
 }
 
 func installKBFSService(g *libkb.GlobalContext, service launchd.Service, plist launchd.Plist) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, g.Log)
+	err := launchd.Install(plist, defaultWait, g.Log)
 	if err != nil {
 		return nil, err
 	}
@@ -263,8 +291,8 @@ func installKBFSService(g *libkb.GlobalContext, service launchd.Service, plist l
 }
 
 func uninstallKBFSServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppKBFSLabel.String(), true, nil)
-	err2 := launchd.Uninstall(BrewKBFSLabel.String(), true, nil)
+	err1 := launchd.Uninstall(AppKBFSLabel.String(), defaultWait, nil)
+	err2 := launchd.Uninstall(BrewKBFSLabel.String(), defaultWait, nil)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -278,6 +306,8 @@ func NewServiceLabel(s string) (ServiceLabel, error) {
 		return AppKBFSLabel, nil
 	case string(BrewKBFSLabel):
 		return BrewKBFSLabel, nil
+	case string(AppUpdaterLabel):
+		return AppUpdaterLabel, nil
 	}
 	return UnknownLabel, fmt.Errorf("Unknown service label: %s", s)
 }
@@ -292,6 +322,8 @@ func (l ServiceLabel) ComponentName() ComponentName {
 		return ComponentNameService
 	case AppKBFSLabel, BrewKBFSLabel:
 		return ComponentNameKBFS
+	case AppUpdaterLabel:
+		return ComponentNameUpdater
 	}
 	return ComponentNameUnknown
 }
@@ -303,6 +335,9 @@ func ServiceStatus(g *libkb.GlobalContext, label ServiceLabel) (*keybase1.Servic
 		return &st, nil
 	case ComponentNameKBFS:
 		st := KBFSServiceStatus(g, string(label))
+		return &st, nil
+	case ComponentNameUpdater:
+		st := UpdaterServiceStatus(g, string(label))
 		return &st, nil
 	default:
 		return nil, fmt.Errorf("Invalid label: %s", label)
@@ -316,7 +351,7 @@ func Install(g *libkb.GlobalContext, binPath string, components []string, force 
 	g.Log.Debug("Installing components: %s", components)
 
 	if libkb.IsIn(string(ComponentNameUpdater), components, false) {
-		err = installUpdater(binPath, force, libkb.VersionString(), g.Log)
+		err = installUpdater(binPath, force, g.Log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameUpdater), err))
 	}
 
@@ -765,7 +800,7 @@ func RunAfterStartup(g *libkb.GlobalContext, isService bool) error {
 	return nil
 }
 
-func installUpdater(keybaseBinPath string, force bool, keybaseVersion string, log logger.Logger) error {
+func installUpdater(keybaseBinPath string, force bool, log logger.Logger) error {
 	keybaseBinPath, err := chooseBinPath(keybaseBinPath)
 	if err != nil {
 		return err
@@ -778,7 +813,7 @@ func installUpdater(keybaseBinPath string, force bool, keybaseVersion string, lo
 
 	label := string(AppUpdaterLabel)
 	service := launchd.NewService(label)
-	plist := keybaseUpdaterPlist(label, updaterBinPath, keybaseBinPath, keybaseVersion)
+	plist := keybaseUpdaterPlist(label, updaterBinPath, keybaseBinPath)
 
 	launchdStatus, err := service.LoadStatus()
 	if err != nil {
@@ -815,15 +850,15 @@ func installUpdater(keybaseBinPath string, force bool, keybaseVersion string, lo
 	return nil
 }
 
-func keybaseUpdaterPlist(label string, serviceBinPath string, keybaseBinPath string, keybaseVersion string) launchd.Plist {
+func keybaseUpdaterPlist(label string, serviceBinPath string, keybaseBinPath string) launchd.Plist {
 	plistArgs := []string{fmt.Sprintf("-path-to-keybase=%s", keybaseBinPath)}
 	envVars := DefaultLaunchdEnvVars(label)
-	comment := fmt.Sprintf("It's not advisable to edit this plist, it may be overwritten. This was installed by keybase version %s.", keybaseVersion)
+	comment := "It's not advisable to edit this plist, it may be overwritten"
 	return launchd.NewPlist(label, serviceBinPath, plistArgs, envVars, libkb.UpdaterLogFileName, comment)
 }
 
 func installUpdaterService(service launchd.Service, plist launchd.Plist, log logger.Logger) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, log)
+	err := launchd.Install(plist, defaultWait, log)
 	if err != nil {
 		return nil, err
 	}
@@ -833,5 +868,5 @@ func installUpdaterService(service launchd.Service, plist launchd.Plist, log log
 }
 
 func uninstallUpdater() error {
-	return launchd.Uninstall(string(AppUpdaterLabel), true, nil)
+	return launchd.Uninstall(string(AppUpdaterLabel), defaultWait, nil)
 }

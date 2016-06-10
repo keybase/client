@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -549,7 +550,7 @@ func TestProvisionPaper(t *testing.T) {
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
 	tc2 := SetupEngineTest(t, "login")
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
-	tc2.G.Clock = fakeClock
+	tc2.G.SetClock(fakeClock)
 	// to pick up the new clock...
 	tc2.G.ResetLoginState()
 	defer tc2.Cleanup()
@@ -796,6 +797,7 @@ func TestProvisionGPGImportMultiple(t *testing.T) {
 // Provision device using a private GPG key (not synced to keybase
 // server), use gpg to sign (no private key import).
 func TestProvisionGPGSign(t *testing.T) {
+	skipWindows(t)
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -890,6 +892,7 @@ func TestProvisionGPGSignFailedSign(t *testing.T) {
 // server), use gpg to sign (no private key import).
 // Enable secret storage.  keybase-issues#1822
 func TestProvisionGPGSignSecretStore(t *testing.T) {
+	skipWindows(t)
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -939,6 +942,7 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 // server). Import private key to lksec fails, switches to gpg
 // sign, which works.
 func TestProvisionGPGSwitchToSign(t *testing.T) {
+	skipWindows(t)
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -2333,4 +2337,10 @@ func (g *gpgImportFailer) Index(secret bool, query string) (ki *libkb.GpgKeyInde
 		return nil, w, err
 	}
 	return gpg.Index(secret, query)
+}
+
+func skipWindows(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows")
+	}
 }

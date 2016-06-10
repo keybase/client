@@ -12,7 +12,8 @@ import {routeAppend, navigateUp} from '../../actions/router'
 import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
 import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../../constants/signup'
-import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc, signup_inviteRequest_rpc, device_checkDeviceNameFormat_rpc} from '../../constants/types/flow-types'
+import type {signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
+  signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../../constants/types/flow-types'
 
 function nextPhase (): TypedAsyncAction<RouteAppend> {
   return (dispatch, getState) => {
@@ -33,7 +34,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
   return dispatch => new Promise((resolve, reject) => {
     dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
 
-    const params: signup_checkInvitationCode_rpc = {
+    const params: signupCheckInvitationCodeRpc = {
       method: 'signup.checkInvitationCode',
       param: {
         invitationCode: inviteCode
@@ -72,7 +73,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
       return
     }
 
-    const params: signup_inviteRequest_rpc = {
+    const params: signupInviteRequestRpc = {
       method: 'signup.inviteRequest',
       param: {
         email: email,
@@ -171,7 +172,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
       return
     }
 
-    const params: signup_checkUsernameAvailable_rpc = {
+    const params: signupCheckUsernameAvailableRpc = {
       method: 'signup.checkUsernameAvailable',
       param: {username},
       waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
@@ -249,7 +250,7 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
         payload: {deviceNameError}
       })
     } else {
-      const params: device_checkDeviceNameFormat_rpc = {
+      const params: deviceCheckDeviceNameFormatRpc = {
         method: 'device.checkDeviceNameFormat',
         param: {name: deviceName},
         waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
@@ -301,7 +302,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
     paperKeyResponse = null
 
     if (email && username && inviteCode && passphrase && deviceName) {
-      const params: signup_signup_rpc = {
+      const params: signupSignupRpc = {
         method: 'signup.signup',
         waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
         param: {

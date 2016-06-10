@@ -5,7 +5,7 @@ import engine from '../engine'
 import {navigateTo, navigateUp, switchTab} from './router'
 import Immutable from 'immutable'
 import type {AsyncAction} from '../constants/types/flux'
-import type {incomingCallMapType, login_deprovision_rpc, revoke_revokeDevice_rpc, device_deviceHistoryList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
+import type {incomingCallMapType, loginDeprovisionRpc, revokeRevokeDeviceRpc, deviceDeviceHistoryListRpc, loginPaperKeyRpc} from '../constants/types/flow-types'
 import {setRevokedSelf} from './login'
 import HiddenString from '../util/hidden-string'
 
@@ -16,7 +16,7 @@ export function loadDevices () : AsyncAction {
       payload: null
     })
 
-    const params : device_deviceHistoryList_rpc = {
+    const params : deviceDeviceHistoryListRpc = {
       method: 'device.deviceHistoryList',
       param: {},
       incomingCallMap: {},
@@ -66,7 +66,7 @@ export function generatePaperKey () : AsyncAction {
       }
     }
 
-    const params : login_paperKey_rpc = {
+    const params : loginPaperKeyRpc = {
       method: 'login.paperKey',
       param: {},
       incomingCallMap: incomingMap,
@@ -94,7 +94,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
         console.warn('No username in removeDevice')
         return
       }
-      const params: login_deprovision_rpc = {
+      const params: loginDeprovisionRpc = {
         method: 'login.deprovision',
         param: {username, doRevoke: true},
         incomingCallMap: {},
@@ -114,7 +114,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
       }
       engine.rpc(params)
     } else {
-      const params: revoke_revokeDevice_rpc = {
+      const params: revokeRevokeDeviceRpc = {
         method: 'revoke.revokeDevice',
         param: {deviceID, force: false},
         incomingCallMap: {},

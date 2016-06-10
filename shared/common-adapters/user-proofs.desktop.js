@@ -12,10 +12,10 @@ import type {Props as IconProps} from '../common-adapters/icon'
 
 const shell = electron.shell || electron.remote.shell
 
-import type {Proof, ProofsProps} from './proofs.render'
+import type {Proof, Props} from './user-proofs'
 
 class ProofsRender extends Component {
-  props: ProofsProps;
+  props: Props;
 
   _openLink (url: string): void {
     shell.openExternal(url)

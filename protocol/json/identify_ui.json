@@ -1073,6 +1073,10 @@
           "type": "string"
         },
         {
+          "name": "socialAssertion",
+          "type": "SocialAssertion"
+        },
+        {
           "name": "inviteLink",
           "type": "string"
         },

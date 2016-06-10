@@ -1,7 +1,6 @@
 /* @flow */
 
 import type {Device as _Device} from '../constants/types/flow-types'
-import type {Device} from '../constants/types/more'
 
 export type Props = {
   devices: Array<_Device>,
@@ -10,8 +9,8 @@ export type Props = {
   addNewPhone: () => void,
   addNewComputer: () => void,
   addNewPaperKey: () => void,
-  showRemoveDevicePage: (device: Device) => void,
-  showExistingDevicePage: (device: Device) => void
+  showRemoveDevicePage: (device: _Device) => void,
+  showExistingDevicePage: (device: _Device) => void
 }
 
 export default class Render extends React$Component<void, Props, void> {

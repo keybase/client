@@ -4,7 +4,7 @@ import {trackerPropsToRenderProps} from './index'
 import {normal, checking, revoked, error} from '../constants/tracker'
 import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
 import type {TrackerProps} from '../tracker'
-import type {Proof} from '../tracker/proofs.render'
+import type {Proof} from '../common-adapters/user-proofs'
 import type {TrackSummary} from '../constants/types/flow-types'
 import {globalStyles} from '../styles/style-guide'
 
@@ -106,7 +106,8 @@ const propsNonUser: TrackerProps = {
   isPrivate: false,
   proofs: [],
   nonUser: true,
-  name: '@aliceb',
+  name: 'aliceb@reddit',
+  serviceName: 'reddit',
   reason: 'Success! You opened a private folder with aliceb@twitter.',
   inviteLink: 'keybase.io/inv/9999999999',
   parentProps: {

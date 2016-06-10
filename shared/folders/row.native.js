@@ -7,9 +7,11 @@ import type {Props as IconProps} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 const Avatars = ({styles, users, isPublic}) => {
+  // TODO (MM) fix type
+  const groupIcon: any = styles.groupIcon
   const contents = users.length === 1 || users.length === 2
       ? <Avatar size={32} username={users[users.length - 1].username} />
-      : <Icon type={styles.groupIcon} />
+      : <Icon type={groupIcon} />
 
   if (isPublic) {
     return <Box style={styles.avatarContainer}>{contents}</Box>
@@ -69,7 +71,7 @@ const RowMeta = ({ignored, meta, styles}) => {
 
   const metaProps = ignored
     ? {title: 'ignored', style: styles.ignored}
-    : {title: meta || '', style: {color: metaColors[meta], backgroundColor: metaBGColors[meta]}}
+    : {title: meta || '', style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {}}
 
   return <Meta {...metaProps} />
 }

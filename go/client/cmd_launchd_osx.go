@@ -35,6 +35,9 @@ func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 	}
 }
 
+// defaultWait is how long we should wait after install, start, etc
+const defaultWait = 5 * time.Second
+
 func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "install",
@@ -60,7 +63,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			envVars := install.DefaultLaunchdEnvVars(label)
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars, logFileName, "")
-			err := launchd.Install(plist, g.Log)
+			err := launchd.Install(plist, defaultWait, g.Log)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -269,6 +272,8 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 		labelStr = install.DefaultServiceLabel()
 	case "kbfs":
 		labelStr = install.DefaultKBFSLabel()
+	case "updater":
+		labelStr = "keybase.updater"
 	}
 
 	label, err := install.NewServiceLabel(labelStr)
@@ -324,13 +329,13 @@ func (v *CmdLaunchdAction) ParseArgv(ctx *cli.Context) error {
 func (v *CmdLaunchdAction) Run() error {
 	switch v.action {
 	case "start":
-		return launchd.Start(v.label, v.G().Log)
+		return launchd.Start(v.label, defaultWait, v.G().Log)
 	case "restart":
-		return launchd.Restart(v.label, v.G().Log)
+		return launchd.Restart(v.label, defaultWait, v.G().Log)
 	case "stop":
-		return launchd.Stop(v.label, true, v.G().Log)
+		return launchd.Stop(v.label, defaultWait, v.G().Log)
 	case "uninstall":
-		return launchd.Uninstall(v.label, true, v.G().Log)
+		return launchd.Uninstall(v.label, defaultWait, v.G().Log)
 	}
 
 	return nil
@@ -339,7 +344,7 @@ func (v *CmdLaunchdAction) Run() error {
 func StartLaunchdService(g *libkb.GlobalContext, label string, wait bool) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
-	err := launchService.Start()
+	err := launchService.Start(defaultWait)
 	if err != nil {
 		return err
 	}
@@ -352,13 +357,13 @@ func StartLaunchdService(g *libkb.GlobalContext, label string, wait bool) error 
 func StopLaunchdService(g *libkb.GlobalContext, label string, wait bool) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
-	return launchService.Stop(wait)
+	return launchService.Stop(defaultWait)
 }
 
 func RestartLaunchdService(g *libkb.GlobalContext, label string) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
-	err := launchService.Restart()
+	err := launchService.Restart(defaultWait)
 	if err != nil {
 		return err
 	}
@@ -366,7 +371,7 @@ func RestartLaunchdService(g *libkb.GlobalContext, label string) error {
 }
 
 func WaitForService(g *libkb.GlobalContext, launchService launchd.Service) error {
-	launchdStatus, err := launchService.WaitForStatus(5 * time.Second)
+	launchdStatus, err := launchService.WaitForStatus(defaultWait, 500*time.Millisecond)
 	if err != nil {
 		return err
 	}

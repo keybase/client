@@ -15,7 +15,10 @@ class Profile extends Component<void, Props, void> {
 
   render () {
     return (
-      <Render showComingSoon={!flags.tabProfileEnabled} />
+      <Render
+        showComingSoon={!flags.tabProfileEnabled}
+        {...this.props}
+      />
     )
   }
 }

@@ -6,7 +6,7 @@ import {globalColors, globalStyles} from '../styles/style-guide'
 import type {Props} from './non-user'
 
 const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
-  const message = inviteLink ? `You can message ${name} this link to skip the invitation queue:` : `Since you're out of invites, ${name} will need to request a signup on Keybase.io. Encourage them to join.`
+  const message = inviteLink ? `You can send ${name} this link to skip the invitation queue:` : `Since you're out of invites, ${name} will need to request a signup on Keybase.io. Encourage them to join.`
   const icon = inviteLink ? 'invite-link-m' : isPrivate ? 'folder-private-success-m' : 'folder-public-success-m'
   const iconStyle = inviteLink ? {marginTop: 33, marginBottom: 16} : {marginTop: 24, marginBottom: 22}
 
@@ -25,12 +25,12 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
   )
 }
 
-const Bottom = ({onClose, name}) => (
+const Bottom = ({onClose, name, serviceName}) => (
   <Box style={stylesNext}>
     <Text style={{marginBottom: 16}} type='Header'>What's next?</Text>
     <Box style={stylesBullet}>
       <Text type='BodySmall' style={{marginRight: 8}}>•</Text>
-      <Text type='BodySmall'>When {name} connects Keybase and their Twitter account, your computer will verify them and rekey the folder.</Text>
+      <Text type='BodySmall'>When {name} connects Keybase and their {serviceName || 'other'} account, your computer will verify them and rekey the folder.</Text>
     </Box>
     <Box style={{...stylesBullet, marginTop: 5}}>
       <Text type='BodySmall' style={{marginRight: 8}}>•</Text>
@@ -41,10 +41,10 @@ const Bottom = ({onClose, name}) => (
   </Box>
 )
 
-const Render = ({name, reason, inviteLink, onClose, isPrivate}: Props) => (
+const Render = ({name, reason, inviteLink, onClose, isPrivate, serviceName}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
     <Top reason={reason} isPrivate={isPrivate} inviteLink={inviteLink} name={name} />
-    <Bottom onClose={onClose} name={name} />
+    <Bottom onClose={onClose} name={name} serviceName={serviceName} />
   </Box>
 )
 

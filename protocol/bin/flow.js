@@ -67,6 +67,10 @@ function figureType (type) {
   return type
 }
 
+function capitalize (s) {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
 function analyzeMessages (json) {
   return Object.keys(json.messages).map(m => {
     const message = json.messages[m]
@@ -79,14 +83,14 @@ function analyzeMessages (json) {
       }).join(',\n')
     }
 
-    const name = `${json.protocol}_${m}`
+    const name = `${json.protocol}${capitalize(m)}`
     const responseType = figureType(message.response)
-    const response = `export type ${name}_result = ${responseType === 'null' ? 'void' : responseType}`
+    const response = `export type ${name}Result = ${responseType === 'null' ? 'void' : responseType}`
 
     const isNotify = message.hasOwnProperty('notify')
     let r = null
     if (!isNotify) {
-      const type = (responseType === 'null') ? '' : `result: ${name}_result`
+      const type = (responseType === 'null') ? '' : `result: ${name}Result`
       r = `,\n    response: {
       error: (err: RPCError) => void,
       result: (${type}) => void
@@ -105,16 +109,15 @@ function analyzeMessages (json) {
 
     r = ''
     if (responseType !== 'null') {
-      r = `, response: ${name}_result`
+      r = `, response: ${name}Result`
     }
 
     p = params(false, '    ')
     if (p) { p = `\n${p}\n  ` }
 
-    const rpc = `export type ${name}_rpc = {
-  method: '${json.protocol}.${m}',
-  param: {${p}},
-  incomingCallMap: ?incomingCallMapType,
+    const rpc = `export type ${name}Rpc = {
+  method: '${json.protocol}.${m}',${p ? `\n  param: {${p}},` : ''}
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any${r}) => void)
 }`
 
@@ -187,7 +190,7 @@ function parseRecord (t) {
 }
 
 function makeRpcUnionType (typeDefs) {
-  const rpcTypes = typeDefs.map(t => t.match(/(\w*_rpc)/g)).filter(t => t).reduce((acc, t) => acc.concat(t), []).join('\n  | ')
+  const rpcTypes = typeDefs.map(t => t.match(/(\w*Rpc)/g)).filter(t => t).reduce((acc, t) => acc.concat(t), []).join('\n  | ')
   const unionRpcType = `export type rpc =
     ${rpcTypes}\n\n`
   return typeDefs.concat(unionRpcType)

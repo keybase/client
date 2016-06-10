@@ -18,7 +18,7 @@ class BaseTransport extends RobustTransport {
     }
   }
 
-  unwrap_incoming_error (err) {
+  unwrap_incoming_error (err) { // eslint-disable-line camelcase
     if (!err) {
       return null
     }
@@ -30,7 +30,7 @@ class BaseTransport extends RobustTransport {
     }
   }
 
-  _connect_critical_section (cb) {
+  _connect_critical_section (cb) { // eslint-disable-line camelcase
     super._connect_critical_section(cb)
     windowsHack()
   }

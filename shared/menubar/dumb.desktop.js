@@ -6,9 +6,10 @@ import {map} from '../folders/dumb'
 import {globalStyles} from '../styles/style-guide'
 
 const propsNormal = {
-  folderProps: map.mocks.Normal,
+  folderProps: map.mocks['Normal Private'],
   username: 'max',
   showOpenApp: true,
+  onFolderClick: () => console.log('folder clicked'),
   openApp: () => console.log('open app'),
   showKBFS: () => console.log('show kbfs'),
   logIn: () => console.log('login'),
@@ -30,22 +31,30 @@ const propsNormal = {
   }
 }
 
+const propsTruncated = {
+  ...propsNormal,
+  parentProps: {
+    style: {
+      ...globalStyles.flexBoxColumn,
+      width: 325,
+      height: 200,
+      padding: 2,
+      backgroundColor: 'red'
+    }
+  }
+}
+
+const propsMenuShowing = {...propsNormal, openWithMenuShowing: true}
+
 const dumbComponentMap: DumbComponentMap<Menubar> = {
   component: Menubar,
   mocks: {
-    'Truncated': {
-      ...propsNormal,
-      parentProps: {
-        style: {
-          ...globalStyles.flexBoxColumn,
-          width: 325,
-          height: 200,
-          padding: 2,
-          backgroundColor: 'red'
-        }
-      }
-    },
-    'Normal': propsNormal,
+    'Private: Normal': propsNormal,
+    'Private: Truncated': propsTruncated,
+    'Private: Menu Showing': propsMenuShowing,
+    'Public: Normal': {...propsNormal, openToPrivate: false},
+    'Public: Truncated': {...propsTruncated, openToPrivate: false},
+    'Public: Menu Showing': {...propsMenuShowing, openToPrivate: false},
     'LoggedOut': {
       ...propsNormal,
       loggedIn: false

@@ -78,7 +78,7 @@ const Render = ({banner, name, type, deviceID, currentDevice, timeline, revokedA
       {(banner != null) && <Banner type={banner.type} desc={banner.desc} />}
       <Icon type={icon} style={{opacity: revokedAt ? 0.4 : 1, marginTop: 32}} />
       <Header name={name} isCurrent={currentDevice} isRevoked={revokedAt} />
-      <Timeline timeline={timeline} />
+      {!!timeline && <Timeline timeline={timeline} />}
       {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={() => showRemoveDevicePage(device)} />}
     </Box>)
 }

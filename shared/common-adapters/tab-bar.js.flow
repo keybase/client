@@ -4,15 +4,15 @@ import React, {Component} from 'react'
 import Avatar from './avatar'
 import type {Props as IconProps} from './icon'
 
-export type ItemProps = $Shape<{
+export type ItemProps = {
   tabBarButton?: React$Element,
   label?: string,
   style?: Object,
-  selected?: bool,
+  selected?: boolean,
   onClick?: () => void,
   containerStyle?: Object,
   children?: React$Element
-}>
+}
 
 export class TabBarItem extends Component<void, ItemProps, void> {
 }
@@ -23,7 +23,7 @@ export type Props = {
   children?: Array<React$Element<ItemProps>>,
   tabBarOnBottom?: boolean,
   tabWidth?: number,
-  underlined?: bool
+  underlined?: boolean
 }
 
 export type TabBarButtonProps = {

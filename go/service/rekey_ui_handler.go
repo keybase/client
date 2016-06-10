@@ -23,6 +23,7 @@ type RekeyUIHandler struct {
 	alwaysAlive    bool
 	updatersMu     sync.RWMutex
 	updaters       map[int]*rekeyStatusUpdater
+	notifyStart    chan int // for testing purposes
 	notifyComplete chan int // for testing purposes
 	scorer         func(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error)
 }
@@ -70,7 +71,7 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 		return err
 	}
 
-	if r.G().Clock.Now().Sub(item.Metadata().CTime()) > 10*time.Second {
+	if r.G().Clock().Now().Sub(item.Metadata().CTime()) > 10*time.Second {
 		// if the message isn't fresh, get:
 		var err error
 		problemSet, err = r.scorer(r.G(), problemSet)
@@ -116,6 +117,10 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 		r.updatersMu.Lock()
 		r.updaters[sessionID] = up
 		r.updatersMu.Unlock()
+		select {
+		case r.notifyStart <- sessionID:
+		default:
+		}
 		up.Start()
 		r.G().Log.Debug("updater for %d complete", sessionID)
 		r.updatersMu.Lock()
@@ -164,11 +169,13 @@ func (r *RekeyUIHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (
 	defer r.updatersMu.Unlock()
 	up, ok := r.updaters[sessionID]
 	if ok && up != nil {
+		r.G().Log.Debug("RekeyStatusFinish called for sessionID %d, telling updater to finish", sessionID)
 		up.Finish()
 		return keybase1.Outcome_IGNORED, nil
 	}
 
-	return keybase1.Outcome_NONE, errors.New("not implemented")
+	r.G().Log.Debug("RekeyStatusFinish called for sessionID %d but no updater found", sessionID)
+	return keybase1.Outcome_NONE, nil
 }
 
 type rekeyStatusUpdaterArgs struct {
@@ -184,6 +191,8 @@ type rekeyStatusUpdater struct {
 	problemSet keybase1.ProblemSet
 	msgID      gregor.MsgID
 	scorer     func(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error)
+	sessionID  int
+	me         *libkb.User
 	done       chan struct{}
 	libkb.Contextified
 }
@@ -194,6 +203,7 @@ func newRekeyStatusUpdater(g *libkb.GlobalContext, args rekeyStatusUpdaterArgs) 
 		problemSet:   args.problemSet,
 		msgID:        args.msgID,
 		scorer:       args.scorer,
+		sessionID:    args.sessionID,
 		done:         make(chan struct{}),
 		Contextified: libkb.NewContextified(g),
 	}
@@ -214,8 +224,14 @@ func (u *rekeyStatusUpdater) update() {
 			u.G().Log.Debug("rekeyStatusUpdater done chan closed, terminating update loop")
 			return
 		default:
+			set, err := u.problemSetDevices()
+			if err != nil {
+				u.G().Log.Errorf("rekey ui lookup devices error: %s", err)
+				return
+			}
 			arg := keybase1.RefreshArg{
-				Tlfs: u.problemSet.Tlfs,
+				SessionID:         u.sessionID,
+				ProblemSetDevices: set,
 			}
 			if err = u.rekeyUI.Refresh(context.TODO(), arg); err != nil {
 				u.G().Log.Errorf("rekey ui Refresh error: %s", err)
@@ -237,7 +253,7 @@ func (u *rekeyStatusUpdater) update() {
 		case <-u.done:
 			u.G().Log.Debug("rekeyStatusUpdater done chan closed, terminating update loop")
 			return
-		case <-u.G().Clock.After(1 * time.Second):
+		case <-u.G().Clock().After(1 * time.Second):
 		}
 
 		u.problemSet, err = u.scorer(u.G(), u.problemSet)
@@ -251,4 +267,37 @@ func (u *rekeyStatusUpdater) update() {
 func (u *rekeyStatusUpdater) Finish() {
 	u.G().Log.Debug("closing rekey status updater done ch")
 	close(u.done)
+}
+
+func (u *rekeyStatusUpdater) problemSetDevices() (keybase1.ProblemSetDevices, error) {
+	var set keybase1.ProblemSetDevices
+	set.ProblemSet = u.problemSet
+	if len(set.ProblemSet.Tlfs) == 0 {
+		return set, nil
+	}
+
+	if u.me == nil {
+		me, err := libkb.LoadMe(libkb.NewLoadUserArg(u.G()))
+		if err != nil {
+			return keybase1.ProblemSetDevices{}, err
+		}
+		u.me = me
+	}
+	ckf := u.me.GetComputedKeyFamily()
+
+	dset := make(map[keybase1.DeviceID]bool)
+	for _, f := range u.problemSet.Tlfs {
+		for _, kid := range f.Solutions {
+			dev, err := ckf.GetDeviceForKID(kid)
+			if err != nil {
+				return keybase1.ProblemSetDevices{}, err
+			}
+			if dset[dev.ID] {
+				continue
+			}
+			dset[dev.ID] = true
+			set.Devices = append(set.Devices, *(dev.ProtExport()))
+		}
+	}
+	return set, nil
 }

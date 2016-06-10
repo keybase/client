@@ -74,7 +74,8 @@ type GlobalContext struct {
 	ProofCheckerFactory ProofCheckerFactory // Makes new ProofCheckers
 	ExitCode            keybase1.ExitCode   // Value to return to OS on Exit()
 	RateLimits          *RateLimits         // tracks the last time certain actions were taken
-	Clock               clockwork.Clock     // RealClock unless we're testing
+	clockMu             sync.Mutex          // protects Clock
+	clock               clockwork.Clock     // RealClock unless we're testing
 	SecretStoreAll      SecretStoreAll      // nil except for tests and supported platforms
 	hookMu              sync.RWMutex        // protects loginHooks, logoutHooks
 	loginHooks          []LoginHook         // call these on login
@@ -89,7 +90,7 @@ func NewGlobalContext() *GlobalContext {
 		Log:                 log,
 		VDL:                 NewVDebugLog(log),
 		ProofCheckerFactory: defaultProofCheckerFactory,
-		Clock:               clockwork.NewRealClock(),
+		clock:               clockwork.NewRealClock(),
 	}
 }
 
@@ -515,11 +516,19 @@ func (g *GlobalContext) GetRunMode() RunMode {
 	return g.Env.GetRunMode()
 }
 
-func (g *GlobalContext) GetClock() clockwork.Clock {
-	if g.Clock == nil {
-		return clockwork.NewRealClock()
+func (g *GlobalContext) Clock() clockwork.Clock {
+	g.clockMu.Lock()
+	defer g.clockMu.Unlock()
+	if g.clock == nil {
+		g.clock = clockwork.NewRealClock()
 	}
-	return g.Clock
+	return g.clock
+}
+
+func (g *GlobalContext) SetClock(c clockwork.Clock) {
+	g.clockMu.Lock()
+	defer g.clockMu.Unlock()
+	g.clock = c
 }
 
 func (g *GlobalContext) GetMyClientDetails() keybase1.ClientDetails {

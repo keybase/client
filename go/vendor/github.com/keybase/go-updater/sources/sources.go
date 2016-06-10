@@ -24,9 +24,6 @@ const (
 var UpdateSourceNames = []UpdateSourceName{KeybaseSource, RemoteSource, PrereleaseSource, LocalSource}
 
 func DefaultUpdateSourceName() UpdateSourceName {
-	if IsPrerelease {
-		return PrereleaseSource
-	}
 	return KeybaseSource
 }
 

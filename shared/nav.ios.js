@@ -12,8 +12,8 @@ import globalRoutes from './router/global-routes'
 
 import Devices from './devices'
 import NoTab from './no-tab'
-import More from './more'
-import Startup from './start-up'
+import Settings from './settings'
+import Profile from './profile'
 import Login from './login'
 
 import {switchTab} from './actions/tabbed-router'
@@ -23,21 +23,21 @@ import {bootstrap} from './actions/config'
 import {constants as styleConstants} from './styles/common'
 
 import {dumbFullscreen} from './local-debug'
-import DumbSheet from './more/dumb-sheet'
+import DumbSheet from './dev/dumb-sheet'
 
-import {devicesTab, moreTab, startupTab, folderTab, peopleTab, loginTab, profileTab} from './constants/tabs'
+import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 import type {VisibleTab} from './constants/tabs' // eslint-disable-line
 import ListenLogUi from './native/listen-log-ui'
 import {listenForNotifications} from './actions/notifications'
 import hello from './util/hello'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
-  [profileTab]: {module: Login, name: 'Login'},
-  [devicesTab]: {module: Devices, name: 'Devices'},
-  [folderTab]: {module: More, name: 'More'},
-  [peopleTab]: {module: More, name: 'More'},
-  [moreTab]: {module: More, name: 'More'},
-  [startupTab]: {module: Startup}
+  [settingsTab]: {module: Settings, name: 'Settings'},
+  [profileTab]: {module: Profile, name: 'Profile'},
+  [folderTab]: {module: Settings, name: 'Folders'},
+  [chatTab]: {module: Settings, name: 'Chat'},
+  [peopleTab]: {module: Settings, name: 'People'},
+  [devicesTab]: {module: Devices, name: 'Devices'}
 }
 
 function NavigationBarRouteMapper (navigateTo, navigateUp) {

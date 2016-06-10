@@ -33,6 +33,11 @@ type ProblemSet struct {
 	Tlfs []ProblemTLF `codec:"tlfs" json:"tlfs"`
 }
 
+type ProblemSetDevices struct {
+	ProblemSet ProblemSet `codec:"problemSet" json:"problemSet"`
+	Devices    []Device   `codec:"devices" json:"devices"`
+}
+
 type Outcome int
 
 const (
@@ -71,7 +76,7 @@ type RekeyInterface interface {
 	// getProblemSet is called by the UI to render which TLFs need to be fixed.
 	// The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
 	// below
-	GetProblemSet(context.Context, int) (ProblemSet, error)
+	GetProblemSet(context.Context, int) (ProblemSetDevices, error)
 	// rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
 	// can be Fixed or Ignored.
 	RekeyStatusFinish(context.Context, int) (Outcome, error)
@@ -172,7 +177,7 @@ func (c RekeyClient) ShowRekeyStatus(ctx context.Context, __arg ShowRekeyStatusA
 // getProblemSet is called by the UI to render which TLFs need to be fixed.
 // The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
 // below
-func (c RekeyClient) GetProblemSet(ctx context.Context, sessionID int) (res ProblemSet, err error) {
+func (c RekeyClient) GetProblemSet(ctx context.Context, sessionID int) (res ProblemSetDevices, err error) {
 	__arg := GetProblemSetArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.rekey.getProblemSet", []interface{}{__arg}, &res)
 	return

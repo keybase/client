@@ -128,17 +128,6 @@ function processDiff (commitRange, results) {
     }
   })
 
-  if (!DRY_RUN) {
-    const s3Env = {
-      ...process.env,
-      AWS_ACCESS_KEY_ID: process.env['VISDIFF_AWS_ACCESS_KEY_ID'],
-      AWS_SECRET_ACCESS_KEY: process.env['VISDIFF_AWS_SECRET_ACCESS_KEY']
-    }
-    console.log(`Uploading ${diffDir} to ${BUCKET_S3}...`)
-    execSync(`s3cmd put --acl-public -r screenshots/${diffDir} ${BUCKET_S3}`, {env: s3Env})
-    console.log('Screenshots uploaded.')
-  }
-
   const commentLines = []
   let imageCount = 0
 
@@ -178,8 +167,17 @@ function processDiff (commitRange, results) {
     const commentBody = commentLines.join('\n')
 
     if (!DRY_RUN) {
+      const s3Env = {
+        ...process.env,
+        AWS_ACCESS_KEY_ID: process.env['VISDIFF_AWS_ACCESS_KEY_ID'],
+        AWS_SECRET_ACCESS_KEY: process.env['VISDIFF_AWS_SECRET_ACCESS_KEY']
+      }
+      console.log(`Uploading ${diffDir} to ${BUCKET_S3}...`)
+      execSync(`s3cmd put --acl-public -r screenshots/${diffDir} ${BUCKET_S3}`, {env: s3Env})
+      console.log('Screenshots uploaded.')
+
       var ghClient = github.client(process.env['VISDIFF_GH_TOKEN'])
-      var ghIssue = ghClient.issue('keybase/client', process.env['TRAVIS_PULL_REQUEST'])
+      var ghIssue = ghClient.issue('keybase/client', process.env['VISDIFF_PR_ID'])
       ghIssue.createComment({body: commentBody}, (err, res) => {
         if (err) {
           console.log('Failed to post visual diff on GitHub:', err.toString(), err.body)

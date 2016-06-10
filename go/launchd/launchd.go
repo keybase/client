@@ -19,29 +19,28 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 )
 
 // Service defines a service
 type Service struct {
 	label string
-	log   logger.Logger
+	log   Log
 }
 
 // NewService constructs a launchd service.
 func NewService(label string) Service {
 	return Service{
 		label: label,
+		log:   emptyLog{},
 	}
 }
 
-func (s *Service) SetLogger(log logger.Logger) {
-	s.log = log
-}
-
-func (s Service) info(format string, args ...interface{}) {
-	if s.log != nil {
-		s.log.Info(format, args...)
+// SetLogger sets the logger
+func (s *Service) SetLogger(log Log) {
+	if log != nil {
+		s.log = log
+	} else {
+		s.log = emptyLog{}
 	}
 }
 
@@ -83,16 +82,27 @@ func NewPlist(label string, binPath string, args []string, envVars []EnvVar, log
 	}
 }
 
-// Load will start the service.
-func (s Service) Start() error {
+// Start will start the service.
+func (s Service) Start(wait time.Duration) error {
 	if !s.HasPlist() {
 		return fmt.Errorf("No service (plist) installed with label: %s", s.label)
 	}
 
 	plistDest := s.plistDestination()
-	s.info("Starting %s", s.label)
+	s.log.Info("Starting %s", s.label)
 	// We start using load -w on plist file
-	_, err := exec.Command("/bin/launchctl", "load", "-w", plistDest).Output()
+	output, err := exec.Command("/bin/launchctl", "load", "-w", plistDest).Output()
+	s.log.Debug("Output (launchctl): %s", string(output))
+
+	if wait > 0 {
+		status, waitErr := s.WaitForStatus(wait, 500*time.Millisecond)
+		if waitErr != nil {
+			return waitErr
+		}
+		if status != nil {
+			s.log.Debug("Service status: %#v", status)
+		}
+	}
 	return err
 }
 
@@ -106,16 +116,17 @@ func (s Service) HasPlist() bool {
 }
 
 // Stop a service.
-func (s Service) Stop(wait bool) error {
-	s.info("Stopping %s", s.label)
+func (s Service) Stop(wait time.Duration) error {
+	s.log.Info("Stopping %s", s.label)
 	// We stop by removing the job. This works for non-demand and demand jobs.
-	_, err := exec.Command("/bin/launchctl", "remove", s.label).Output()
-	if wait {
+	output, err := exec.Command("/bin/launchctl", "remove", s.label).Output()
+	s.log.Debug("Output (launchctl): %s", string(output))
+	if wait > 0 {
 		// The docs say launchd ExitTimeOut defaults to 20 seconds, but in practice
 		// it seems more like 5 seconds before it resorts to a SIGKILL.
 		// Because of the SIGKILL fallback we can use a large timeout here of 25
 		// seconds, which we'll likely never reach unless the process is zombied.
-		err = s.WaitForExit(time.Second * 5)
+		err = s.WaitForExit(wait)
 		if err != nil {
 			return err
 		}
@@ -124,12 +135,12 @@ func (s Service) Stop(wait bool) error {
 }
 
 // Restart a service.
-func (s Service) Restart() error {
-	return Restart(s.Label(), s.log)
+func (s Service) Restart(wait time.Duration) error {
+	return Restart(s.Label(), wait, s.log)
 }
 
 // WaitForStatus waits for service status to be available
-func (s Service) WaitForStatus(wait time.Duration) (*ServiceStatus, error) {
+func (s Service) WaitForStatus(wait time.Duration, delay time.Duration) (*ServiceStatus, error) {
 	t := time.Now()
 	i := 1
 	for time.Now().Sub(t) < wait {
@@ -142,9 +153,9 @@ func (s Service) WaitForStatus(wait time.Duration) (*ServiceStatus, error) {
 		}
 		// Tell user we're waiting for status after 4 seconds, every 4 seconds
 		if i%4 == 0 {
-			s.info("Waiting for %s to be loaded...", s.label)
+			s.log.Info("Waiting for %s to be loaded...", s.label)
 		}
-		time.Sleep(time.Second)
+		time.Sleep(delay)
 		i++
 	}
 	return nil, nil
@@ -166,7 +177,7 @@ func (s Service) WaitForExit(wait time.Duration) error {
 		}
 		// Tell user we're waiting for exit after 4 seconds, every 4 seconds
 		if i%4 == 0 {
-			s.info("Waiting for %s to exit...", s.label)
+			s.log.Info("Waiting for %s to exit...", s.label)
 		}
 		time.Sleep(time.Second)
 		i++
@@ -178,12 +189,12 @@ func (s Service) WaitForExit(wait time.Duration) error {
 }
 
 // Install will install the launchd service
-func (s Service) Install(p Plist) error {
+func (s Service) Install(p Plist, wait time.Duration) error {
 	plistDest := s.plistDestination()
-	return s.install(p, plistDest)
+	return s.install(p, plistDest, wait)
 }
 
-func (s Service) install(p Plist, plistDest string) error {
+func (s Service) install(p Plist, plistDest string, wait time.Duration) error {
 	if _, ferr := os.Stat(p.binPath); os.IsNotExist(ferr) {
 		return fmt.Errorf("%s doesn't exist", p.binPath)
 	}
@@ -194,28 +205,27 @@ func (s Service) install(p Plist, plistDest string) error {
 		return err
 	}
 
-	s.info("Saving %s", plistDest)
+	s.log.Info("Saving %s", plistDest)
 	file := libkb.NewFile(plistDest, []byte(plist), 0644)
 	if err := file.Save(); err != nil {
 		return err
 	}
 
-	return s.Start()
+	return s.Start(wait)
 }
 
 // Uninstall will uninstall the launchd service
-func (s Service) Uninstall(wait bool) (err error) {
-	err = s.Stop(wait)
-	if err != nil {
-		return
+func (s Service) Uninstall(wait time.Duration) error {
+	if err := s.Stop(wait); err != nil {
+		return err
 	}
 
 	plistDest := s.plistDestination()
 	if _, err := os.Stat(plistDest); err == nil {
-		s.info("Removing %s", plistDest)
-		err = os.Remove(plistDest)
+		s.log.Info("Removing %s", plistDest)
+		return os.Remove(plistDest)
 	}
-	return
+	return nil
 }
 
 // ListServices will return service with label that starts with a filter string.
@@ -338,35 +348,35 @@ func (s Service) CheckPlist(plist Plist) (bool, error) {
 }
 
 // Install will install a service
-func Install(plist Plist, log logger.Logger) error {
+func Install(plist Plist, wait time.Duration, log Log) error {
 	service := NewService(plist.label)
 	service.SetLogger(log)
-	return service.Install(plist)
+	return service.Install(plist, wait)
 }
 
 // Uninstall will uninstall a service
-func Uninstall(label string, wait bool, log logger.Logger) error {
+func Uninstall(label string, wait time.Duration, log Log) error {
 	service := NewService(label)
 	service.SetLogger(log)
 	return service.Uninstall(wait)
 }
 
 // Start will start a service
-func Start(label string, log logger.Logger) error {
+func Start(label string, wait time.Duration, log Log) error {
 	service := NewService(label)
 	service.SetLogger(log)
-	return service.Start()
+	return service.Start(wait)
 }
 
 // Stop will stop a service
-func Stop(label string, wait bool, log logger.Logger) error {
+func Stop(label string, wait time.Duration, log Log) error {
 	service := NewService(label)
 	service.SetLogger(log)
 	return service.Stop(wait)
 }
 
 // ShowStatus shows status info for a service
-func ShowStatus(label string, log logger.Logger) error {
+func ShowStatus(label string, log Log) error {
 	service := NewService(label)
 	service.SetLogger(log)
 	status, err := service.LoadStatus()
@@ -382,24 +392,26 @@ func ShowStatus(label string, log logger.Logger) error {
 }
 
 // Restart restarts a service
-func Restart(label string, log logger.Logger) error {
+func Restart(label string, wait time.Duration, log Log) error {
 	service := NewService(label)
 	service.SetLogger(log)
-	err := service.Stop(true)
+	err := service.Stop(wait)
 	if err != nil {
 		return err
 	}
-	return service.Start()
+	return service.Start(wait)
 }
 
 func launchAgentDir() string {
 	return filepath.Join(launchdHomeDir(), "Library", "LaunchAgents")
 }
 
+// PlistDestination is the plist path for a label
 func PlistDestination(label string) string {
 	return filepath.Join(launchAgentDir(), label+".plist")
 }
 
+// PlistDestination is the service plist path
 func (s Service) PlistDestination() string {
 	return s.plistDestination()
 }
@@ -416,6 +428,7 @@ func launchdHomeDir() string {
 	return currentUser.HomeDir
 }
 
+// LogDir is the directory for logs
 func LogDir() string {
 	return filepath.Join(launchdHomeDir(), "Library", "Logs")
 }
@@ -516,3 +529,14 @@ func (p Plist) plistXML() string {
 
 	return xml
 }
+
+// Log is the logging interface for this package
+type Log interface {
+	Debug(s string, args ...interface{})
+	Info(s string, args ...interface{})
+}
+
+type emptyLog struct{}
+
+func (l emptyLog) Debug(s string, args ...interface{}) {}
+func (l emptyLog) Info(s string, args ...interface{})  {}

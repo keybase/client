@@ -6,11 +6,11 @@ import * as Constants from '../constants/unlock-folders'
 
 import type {TypedAsyncAction} from '../constants/types/flux'
 import type {LoadDevices, ToPaperKeyInput, OnBackFromPaperKey, CheckPaperKey, Finish, Close, Waiting} from '../constants/unlock-folders'
-import type {device_deviceList_rpc} from '../constants/types/flow-types'
+import type {deviceDeviceListRpc} from '../constants/types/flow-types'
 
 export function loadDevice (): TypedAsyncAction<LoadDevices> {
   return dispatch => {
-    const params : device_deviceList_rpc = {
+    const params : deviceDeviceListRpc = {
       method: 'device.deviceList',
       param: {},
       incomingCallMap: {},
