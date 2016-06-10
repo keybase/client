@@ -93,10 +93,11 @@ const userGroupMap: DumbComponentMap<UserGroup> = {
           icon: 'fa-twitter',
           username: 'malgorithms',
           extraInfo: {
-            service: 'keybase',
-            username: 'chris',
-            fullName: 'Chris Coyne',
-            isFollowing: true
+            service: 'external',
+            icon: 'fa-twitter',
+            serviceUsername: 'malgorithms',
+            serviceAvatar: null,
+            fullNameOnService: 'Chris Coyne'
           }
         }
       ],
