@@ -1352,6 +1352,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.Installer;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "7cc30809-4a30-4fd1-b973-355c84bd6fcf";
+				STRIP_INSTALLED_PRODUCT = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -1366,6 +1367,7 @@
 				CODE_SIGN_ENTITLEMENTS = Installer/Installer.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				INFOPLIST_FILE = "$(SRCROOT)/Installer/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -1373,6 +1375,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.Installer;
 				PRODUCT_NAME = Keybase;
 				PROVISIONING_PROFILE = "7cc30809-4a30-4fd1-b973-355c84bd6fcf";
+				STRIP_INSTALLED_PRODUCT = NO;
 			};
 			name = Release;
 		};
