@@ -22,11 +22,11 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
   let avatar: React$Element
 
   if (user.service === 'keybase') {
-    avatar = <Avatar style={avatarStyle} size={48} username={user.username} />
+    avatar = <Avatar style={avatarStyle} size={32} username={user.username} />
   } else if (user.extraInfo === 'external') {
-    avatar = <Avatar style={avatarStyle} size={48} url={user.extraInfo.serviceAvatar} />
+    avatar = <Avatar style={avatarStyle} size={32} url={user.extraInfo.serviceAvatar} />
   } else {
-    avatar = <Avatar style={avatarStyle} size={48} url={null} />
+    avatar = <Avatar style={avatarStyle} size={32} url={null} />
   }
 
   let name: React$Element
@@ -52,7 +52,7 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
 
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
-      <Box onClick={() => onClickUser(user)} style={userRowStyle}>
+      <Box onClick={() => onClickUser(user)} style={userRowStyle} className={'highlight-row'}>
         {avatar}
         {name}
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'flex-end', marginRight: 16}}>
@@ -66,7 +66,7 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
 
 function RowButton ({icon, text, onClick}: {icon: IconType, text: string, onClick: () => void}) {
   return (
-    <Box onClick={onClick} style={rowButtonStyle}>
+    <Box onClick={onClick} style={rowButtonStyle} className={'highlight-row'}>
       <Icon type={icon} />
       <Text type='Body' style={{marginLeft: 8, color: globalColors.blue}}>{text}</Text>
     </Box>
@@ -74,12 +74,17 @@ function RowButton ({icon, text, onClick}: {icon: IconType, text: string, onClic
 }
 
 export default function UserGroup ({users, onClickUser, onRemoveUser, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, chatEnabled, onGroupChat}: Props) {
+  const realCSS = `
+    .highlight-row { background-color: ${globalColors.white}; }
+    .highlight-row:hover { background-color: ${globalColors.blue4}; }
+  `
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, backgroundColor: globalColors.lightGrey}}>
+      <style>{realCSS}</style>
       {users.map(u => <User key={u.service + u.username} user={u} onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
-      <RowButton icon='icon-folder-private-open-32' text='Open private folder' onClick={onOpenPrivateGroupFolder} />
-      <RowButton icon='icon-folder-public-open-32' text='Open public folder' onClick={onOpenPublicGroupFolder} />
-      {chatEnabled && <RowButton icon='icon-chat-32' text='Start a chat' onClick={onGroupChat} />}
+      <RowButton icon='icon-folder-private-open-24' text='Open private folder' onClick={onOpenPrivateGroupFolder} />
+      <RowButton icon='icon-folder-public-open-24' text='Open public folder' onClick={onOpenPublicGroupFolder} />
+      {chatEnabled && <RowButton icon='icon-chat-24' text='Start a chat' onClick={onGroupChat} />}
     </Box>
   )
 }
@@ -91,7 +96,7 @@ const avatarStyle = {
 
 const rowButtonStyle = {
   ...globalStyles.flexBoxRow,
-  backgroundColor: globalColors.white,
+  ...globalStyles.clickable,
   height: 48,
   alignItems: 'center',
   justifyContent: 'center'
@@ -99,7 +104,7 @@ const rowButtonStyle = {
 
 const userRowStyle = {
   ...globalStyles.flexBoxRow,
-  height: 64,
-  alignItems: 'center',
-  backgroundColor: globalColors.white
+  ...globalStyles.clickable,
+  height: 48,
+  alignItems: 'center'
 }
