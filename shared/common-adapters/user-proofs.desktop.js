@@ -101,7 +101,7 @@ class ProofsRender extends Component {
     }
   }
 
-  _renderProofRow (proof: Proof) {
+  _renderProofRow (proof: Proof, idx: number) {
     const metaColor = this._metaColor(proof)
     const proofNameColor = this._proofColor(proof)
     const proofStatusIcon = this._proofStatusIcon(proof)
@@ -126,7 +126,7 @@ class ProofsRender extends Component {
     const proofIcon = proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this._onClickProof(proof)} />
 
     return (
-      <p style={styleRow} key={`${proof.id}${proof.type}`}>
+      <p style={{...styleRow, paddingTop: idx > 0 ? 8 : 0}} key={`${proof.id}${proof.type}`}>
         <Icon style={styleService} type={this._iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
         <span style={styleProofNameSection}>
           <span style={styleProofNameLabelContainer}>
@@ -144,8 +144,8 @@ class ProofsRender extends Component {
 
   render () {
     return (
-      <div style={styleContainer}>
-        {this.props.proofs.map(p => this._renderProofRow(p))}
+      <div style={{...styleContainer, ...this.props.style}}>
+        {this.props.proofs.map((p, idx) => this._renderProofRow(p, idx))}
       </div>
     )
   }
@@ -158,9 +158,6 @@ const styleContainer = {
 
 const styleRow = {
   ...globalStyles.flexBoxRow,
-  paddingTop: 8,
-  paddingLeft: 30,
-  paddingRight: 30,
   alignItems: 'flex-start',
   justifyContent: 'flex-start'
 }
