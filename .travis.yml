@@ -41,8 +41,8 @@ script:
   - go install github.com/keybase/kbfs/...
   # Run libkbfs tests with an in-memory bserver, and run all other
   # tests with the tempdir bserver.
-  - cd libkbfs && go test -i && go test -race -c && ./libkbfs.test -test.timeout 1m
-  - env KEYBASE_TEST_BSERVER_ADDR=tempdir ./libkbfs.test -test.timeout 1m
+  - cd libkbfs && go test -i && go test -race -c && ./libkbfs.test -test.timeout 2m
+  - env KEYBASE_TEST_BSERVER_ADDR=tempdir ./libkbfs.test -test.timeout 2m
   - cd ../libfuse && go test -i && go test -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./libfuse.test -test.timeout 2m
   - cd ../test
   - go test -i -tags fuse && go test -race -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./test.test -test.timeout 4m
