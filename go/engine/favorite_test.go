@@ -99,7 +99,7 @@ func TestFavoriteAddSocial(t *testing.T) {
 	}
 }
 
-func TestFavoriteDelete(t *testing.T) {
+func TestFavoriteIgnore(t *testing.T) {
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
 	CreateAndSignupFakeUser(tc, "fav")
@@ -133,7 +133,7 @@ func TestFavoriteList(t *testing.T) {
 	if err := RunEngine(eng, ctx); err != nil {
 		t.Fatal(err)
 	}
-	favs := eng.Favorites()
+	favs := eng.Result().FavoriteFolders
 	if len(favs) != 2 {
 		t.Fatalf("num favs: %d, expected 2", len(favs))
 	}
@@ -162,10 +162,10 @@ func addfav(name string, private, created bool, idUI libkb.IdentifyUI, tc libkb.
 
 func rmfav(name string, private bool, tc libkb.TestContext) {
 	ctx := &Context{}
-	arg := keybase1.FavoriteDeleteArg{
+	arg := keybase1.FavoriteIgnoreArg{
 		Folder: keybase1.Folder{Name: name, Private: private},
 	}
-	eng := NewFavoriteDelete(&arg, tc.G)
+	eng := NewFavoriteIgnore(&arg, tc.G)
 	err := RunEngine(eng, ctx)
 	if err != nil {
 		tc.T.Fatal(err)
@@ -179,5 +179,5 @@ func listfav(tc libkb.TestContext) []keybase1.Folder {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	return eng.Favorites()
+	return eng.Result().FavoriteFolders
 }

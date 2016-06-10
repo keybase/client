@@ -5,7 +5,7 @@ import * as Constants from '../constants/favorite'
 import {badgeApp} from './notifications'
 import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
 import _ from 'lodash'
-import type {Folder, favoriteFavoriteListRpc} from '../constants/types/flow-types'
+import type {Folder, favoriteGetFavoritesRpc, FavoritesResult} from '../constants/types/flow-types'
 import type {Dispatch} from '../constants/types/flux'
 import type {FavoriteList} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
@@ -88,15 +88,17 @@ let previousNotify = null
 
 export function favoriteList (): (dispatch: Dispatch) => void {
   return (dispatch, getState) => {
-    const params : favoriteFavoriteListRpc = {
+    const params : favoriteGetFavoritesRpc = {
       param: {},
       incomingCallMap: {},
-      method: 'favorite.favoriteList',
-      callback: (error, folders: Array<Folder>) => {
+      method: 'favorite.getFavorites',
+      callback: (error, favorites: FavoritesResult) => {
         if (error) {
-          console.warn('Err in favorite.favoriteList', error)
+          console.warn('Err in favorite.getFavorites', error)
           return
         }
+
+        let folders = favorites.favoriteFolders
 
         if (!folders) {
           folders = []

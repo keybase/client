@@ -35,19 +35,19 @@ func (h *FavoriteHandler) FavoriteAdd(_ context.Context, arg keybase1.FavoriteAd
 	return engine.RunEngine(eng, ctx)
 }
 
-// FavoriteDelete handles the favoriteDelete RPC.
-func (h *FavoriteHandler) FavoriteDelete(_ context.Context, arg keybase1.FavoriteDeleteArg) error {
-	eng := engine.NewFavoriteDelete(&arg, h.G())
+// FavoriteIgnore handles the favoriteIgnore RPC.
+func (h *FavoriteHandler) FavoriteIgnore(_ context.Context, arg keybase1.FavoriteIgnoreArg) error {
+	eng := engine.NewFavoriteIgnore(&arg, h.G())
 	ctx := &engine.Context{}
 	return engine.RunEngine(eng, ctx)
 }
 
 // FavoriteList handles the favoriteList RPC.
-func (h *FavoriteHandler) FavoriteList(_ context.Context, sessionID int) ([]keybase1.Folder, error) {
+func (h *FavoriteHandler) GetFavorites(_ context.Context, sessionID int) (keybase1.FavoritesResult, error) {
 	eng := engine.NewFavoriteList(h.G())
 	ctx := &engine.Context{}
 	if err := engine.RunEngine(eng, ctx); err != nil {
-		return nil, err
+		return keybase1.FavoritesResult{}, err
 	}
-	return eng.Favorites(), nil
+	return eng.Result(), nil
 }

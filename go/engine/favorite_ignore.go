@@ -10,53 +10,54 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-// FavoriteDelete is an engine.
-type FavoriteDelete struct {
-	arg *keybase1.FavoriteDeleteArg
+// FavoriteIgnore is an engine.
+type FavoriteIgnore struct {
+	arg *keybase1.FavoriteIgnoreArg
 	libkb.Contextified
 }
 
-// NewFavoriteDelete creates a FavoriteDelete engine.
-func NewFavoriteDelete(arg *keybase1.FavoriteDeleteArg, g *libkb.GlobalContext) *FavoriteDelete {
-	return &FavoriteDelete{
+// NewFavoriteIgnore creates a FavoriteIgnore engine.
+func NewFavoriteIgnore(arg *keybase1.FavoriteIgnoreArg, g *libkb.GlobalContext) *FavoriteIgnore {
+	return &FavoriteIgnore{
 		arg:          arg,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *FavoriteDelete) Name() string {
-	return "FavoriteDelete"
+func (e *FavoriteIgnore) Name() string {
+	return "FavoriteIgnore"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *FavoriteDelete) Prereqs() Prereqs {
+func (e *FavoriteIgnore) Prereqs() Prereqs {
 	return Prereqs{
 		Device: true,
 	}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *FavoriteDelete) RequiredUIs() []libkb.UIKind {
+func (e *FavoriteIgnore) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *FavoriteDelete) SubConsumers() []libkb.UIConsumer {
+func (e *FavoriteIgnore) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
 // Run starts the engine.
-func (e *FavoriteDelete) Run(ctx *Context) error {
+func (e *FavoriteIgnore) Run(ctx *Context) error {
 	if e.arg == nil {
-		return fmt.Errorf("FavoriteDelete arg is nil")
+		return fmt.Errorf("FavoriteIgnore arg is nil")
 	}
 	_, err := e.G().API.Post(libkb.APIArg{
-		Endpoint:    "kbfs/favorite/delete",
+		Endpoint:    "kbfs/favorite/add",
 		NeedSession: true,
 		Args: libkb.HTTPArgs{
 			"tlf_name": libkb.S{Val: e.arg.Folder.Name},
 			"private":  libkb.B{Val: e.arg.Folder.Private},
+			"status":   libkb.S{Val: "ignored"},
 		},
 	})
 	return err

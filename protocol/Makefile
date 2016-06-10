@@ -28,10 +28,11 @@ go-build-stamp: avdl/*.avdl $(AVDLC) | config
 	(cd ../go/protocol && go fmt ./...)
 	date > $@
 
-objc-build-stamp: build-stamp | config
-	@ # Runs without generating files (to validate)
-	ruby ./bin/objc.rb
-	date > $@
+# We no longer build an objc client
+# objc-build-stamp: build-stamp | config
+	# @ # Runs without generating files (to validate)
+	# ruby ./bin/objc.rb
+	# date > $@
 
 js/flow-types.js: build-stamp | config
 	@mkdir -p js/
@@ -55,6 +56,6 @@ clean:
 fmt:
 	@./fmt.sh
 
-build: fmt build-stamp go-build-stamp js/keybase_v1.js js/flow-types.js objc-build-stamp swift-build-stamp
+build: fmt build-stamp go-build-stamp js/keybase_v1.js js/flow-types.js swift-build-stamp
 
 .PHONY: test config
