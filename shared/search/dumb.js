@@ -104,6 +104,7 @@ const userGroupMap: DumbComponentMap<UserGroup> = {
       onOpenPrivateGroupFolder: () => console.log('onOpenPrivateGroupFolder'),
       onOpenPublicGroupFolder: () => console.log('onOpenPublicGroupFolder'),
       onRemoveUser: u => console.log('onRemoveUser', u),
+      onClickUser: u => console.log('onClickUser', u),
       onGroupChat: () => console.log('onGroupChat'),
       onAddUser: () => console.log('onAddUser'),
       chatEnabled: true

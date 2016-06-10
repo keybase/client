@@ -35,9 +35,9 @@ if (__DEV__ && true) {
   config.printOutstandingRPCs = true
   config.reactPerf = false
   config.overrideLoggedInTab = Tabs.settingsTab
-  config.dumbFilter = ''
-  config.dumbIndex = 0
-  config.dumbFullscreen = false
+  config.dumbFilter = 'user'
+  config.dumbIndex = 1
+  config.dumbFullscreen = true
   config.printRoutes = true
 }
 

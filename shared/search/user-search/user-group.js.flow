@@ -5,11 +5,13 @@ import React, {Component} from 'react'
 import type {SearchResult} from './render'
 import type {IconType} from '../../common-adapters/icon'
 
+export type UserFn = (user: SearchResult) => void
 
 export type Props = {
   users: Array<SearchResult>,
-  onRemoveUser: (user: SearchResult) => void,
-  onAddUser: () => void,
+  onRemoveUser: UserFn,
+  onClickUser: UserFn, // TODO(mm) add this to mobile
+  onAddUser?: () => void,
   onOpenPrivateGroupFolder: () => void,
   onOpenPublicGroupFolder: () => void,
   onGroupChat: () => void,

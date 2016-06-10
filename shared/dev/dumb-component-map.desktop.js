@@ -11,6 +11,7 @@ import TabBarMap from '../tab-bar/dumb.desktop'
 import FoldersMap from '../folders/dumb'
 import FoldersConfirmMap from '../folders/confirm/dumb'
 import ProfileMap from '../profile/dumb'
+import SearchMap from '../search/dumb'
 import type {DumbComponentMap} from './dumb'
 
 const map : DumbComponentMap = {
@@ -26,7 +27,8 @@ const map : DumbComponentMap = {
   ...TabBarMap,
   ...FoldersMap,
   ...FoldersConfirmMap,
-  ...ProfileMap
+  ...ProfileMap,
+  ...SearchMap
 }
 
 export default map
