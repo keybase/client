@@ -3,13 +3,13 @@
 import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
 import type {Dispatch} from '../constants/types/flux'
-import type {incomingCallMapType} from '../constants/types/flow-types'
+import type {IncomingCallMapType} from '../constants/types/flow-types'
 
 // Keep track of the last time we notified and ignore if its the same
 let lastLoggedInNotifyUsername = null
 
 // TODO(mm) Move these to their own actions
-export default function (dispatch: Dispatch, getState: () => Object, notify: any): incomingCallMapType {
+export default function (dispatch: Dispatch, getState: () => Object, notify: any): IncomingCallMapType {
   return {
     'keybase.1.NotifySession.loggedOut': params => {
       lastLoggedInNotifyUsername = null

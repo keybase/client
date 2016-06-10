@@ -4,7 +4,7 @@
 import engine from '../engine'
 import keybase from '../constants/types/keybase-v1'
 
-import type {ClientDetails, configHelloIAmRpc} from '../constants/types/flow-types'
+import type {ClientDetails, ConfigHelloIAmRpc} from '../constants/types/flow-types'
 
 export default function (pid: number, desc: string, argv: Array<string>, version: string): Promise<void> {
   const details: ClientDetails = {
@@ -17,7 +17,7 @@ export default function (pid: number, desc: string, argv: Array<string>, version
 
   return new Promise((resolve, reject) => {
     engine.listenOnConnect('hello', () => {
-      const params : configHelloIAmRpc = {
+      const params: ConfigHelloIAmRpc = {
         method: 'config.helloIAm',
         param: {details},
         incomingCallMap: {},

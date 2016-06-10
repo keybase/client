@@ -1,7 +1,8 @@
 /* @flow */
 
-export type Props = {
-}
+import type {Props as UserSearchProps} from './user-search/render'
+
+export type Props = UserSearchProps
 
 export default class Render extends React$Component<void, Props, void> {
 }

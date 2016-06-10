@@ -13,7 +13,7 @@ import FoldersConfirmMap from '../folders/confirm/dumb'
 import ProfileMap from '../profile/dumb'
 import type {DumbComponentMap} from './dumb'
 
-const map : DumbComponentMap = {
+const map: DumbComponentMap = {
   ...CommonMap,
   ...DevicesMap,
   ...LoginMap,

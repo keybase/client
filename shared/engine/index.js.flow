@@ -1,16 +1,16 @@
 /* @flow */
 
-import type {rpc, incomingCallMapType} from '../constants/types/flow-types'
+import type {Rpc, IncomingCallMapType} from '../constants/types/flow-types'
 
 export type responseError = {
   error: (err: Object) => void
 }
 
 declare class Engine {
-  rpc (params: rpc): void;
+  rpc (params: Rpc): void;
   cancelRPC (response: responseError): void;
   listenOnConnect (key: string, f: () => void): void;
-  listenGeneralIncomingRpc (m: incomingCallMapType): void;
+  listenGeneralIncomingRpc (m: IncomingCallMapType): void;
 }
 
 var engine = new Engine()
