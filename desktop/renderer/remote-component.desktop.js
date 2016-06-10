@@ -54,7 +54,7 @@ export default class RemoteComponent extends Component {
     ipcRenderer.send('listenForRemoteWindowClosed', this.remoteWindowId)
 
     const componentRequireName = this.props.component
-    this.remoteWindow.loadUrl(`${resolveRootAsURL('renderer', 'remoteComponent.html')}?component=${componentRequireName || ''}&src=${hotPath('remote-component-loader.bundle.js')}&selectorParams=${this.props.selectorParams}&title=${encodeURI(this.props.title || '')}`)
+    this.remoteWindow.loadURL(`${resolveRootAsURL('renderer', 'remoteComponent.html')}?component=${componentRequireName || ''}&src=${hotPath('remote-component-loader.bundle.js')}&selectorParams=${this.props.selectorParams}&title=${encodeURI(this.props.title || '')}`)
   }
 
   componentWillUnmount () {
