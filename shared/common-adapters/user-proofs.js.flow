@@ -13,8 +13,10 @@ export type Proof = {
   isTracked: bool
 }
 
-export type ProofsProps = {
+export type Props = {
   proofs: Array<Proof>,
   username: ?string,
   currentlyFollowing: boolean
 }
+
+export default class Render extends React$Component<void, Props, void> {}

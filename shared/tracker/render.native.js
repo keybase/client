@@ -2,9 +2,8 @@ import React, {Component} from 'react'
 import {View} from 'react-native'
 
 import Header from './header.render'
+import {UserBio, UserProofs} from '../common-adapters'
 import Action from './action.render'
-import Bio from './bio.render'
-import Proofs from './proofs.render'
 
 export default class Render extends Component {
   render () {
@@ -12,8 +11,8 @@ export default class Render extends Component {
       <View style={{backgroundColor: 'red', display: 'flex', flex: 1, flexDirection: 'column'}}>
         <Header />
         <View style={{backgroundColor: 'green', display: 'flex', flex: 1, flexDirection: 'row', height: 480}}>
-          <Bio />
-          <Proofs />
+          <UserBio />
+          <UserProofs />
         </View>
         <Action />
       </View>

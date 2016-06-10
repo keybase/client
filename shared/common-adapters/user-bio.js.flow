@@ -10,8 +10,10 @@ export type UserInfo = {
   location: string
 }
 
-export type BioProps = {
+export type Props = {
   username: ?string,
   userInfo: ?UserInfo,
   currentlyFollowing: boolean
 }
+
+export default class Render extends React$Component<void, Props, void> {}

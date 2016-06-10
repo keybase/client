@@ -9,8 +9,8 @@ import {bindActionCreators} from 'redux'
 import {metaNone} from '../constants/tracker'
 
 import type {RenderPropsUnshaped} from './render'
-import type {UserInfo} from './bio.render'
-import type {Proof} from './proofs.render'
+import type {UserInfo} from '../common-adapters/user-bio'
+import type {Proof} from '../common-adapters/user-proofs'
 import type {SimpleProofState} from '../constants/tracker'
 
 import type {TrackSummary} from '../constants/types/flow-types'
