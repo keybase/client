@@ -23,6 +23,8 @@ import RemoteManager from './remote-manager'
 import {ipcLogsRenderer} from '../app/console-helper'
 import loadPerf from '../shared/util/load-perf'
 import merge from 'lodash/merge'
+import {MuiThemeProvider} from 'material-ui/styles'
+import materialTheme from '../shared/styles/material-theme.desktop'
 
 ipcLogsRenderer()
 
@@ -113,13 +115,15 @@ class Keybase extends Component {
     }
 
     return (
-      <Provider store={store}>
-        <div style={{display: 'flex', flex: 1}}>
-          <RemoteManager />
-          <Nav />
-          {dt}
-        </div>
-      </Provider>
+      <MuiThemeProvider muiTheme={materialTheme}>
+        <Provider store={store}>
+          <div style={{display: 'flex', flex: 1}}>
+            <RemoteManager />
+            <Nav />
+            {dt}
+          </div>
+        </Provider>
+      </MuiThemeProvider>
     )
   }
 }

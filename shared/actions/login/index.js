@@ -24,7 +24,7 @@ import {devicesTab, loginTab} from '../../constants/tabs'
 import {loadDevices} from '../devices'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {bootstrap} from '../config'
-import Immutable from 'immutable'
+import {Map} from 'immutable'
 
 import type {DeviceType} from '../../constants/types/more'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
@@ -436,7 +436,7 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
 
     const onBack = response => {
       dispatch(loadDevices())
-      dispatch(navigateUp(devicesTab, Immutable.Map({path: 'root'})))
+      dispatch(navigateUp(devicesTab, Map({path: 'root'})))
       if (response) {
         engine.cancelRPC(response, InputCancelError)
       }

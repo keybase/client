@@ -27,7 +27,6 @@
 ../desktop
 
 [libs]
-./libs/immutable.js.flow
 ./libs/flow-interface.js
 
 [options]

@@ -15,7 +15,8 @@ function loginRouter (currentPath: Map<string, string>, uri: URI): any {
   let element = <ErrorText currentPath={currentPath} />
 
   const path = currentPath.get('path')
-  let {componentAtTop: {component: Component, props, element: dynamicElement}} = currentPath.get('parseRoute') || {componentAtTop: {}}
+  const parseRoute: any = currentPath.get('parseRoute')
+  let {componentAtTop: {component: Component, props, element: dynamicElement}} = parseRoute || {componentAtTop: {}}
 
   if (dynamicElement) {
     element = dynamicElement

@@ -3,9 +3,8 @@ import React, {Component} from 'react'
 import {TextField} from 'material-ui'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {styles as TextStyles, specialStyles} from './text'
-import materialTheme from '../styles/material-theme.desktop'
 import MultiLineInput from './multi-line-input.desktop'
-
+import KeyCodes from '../constants/keycodes'
 import type {Props} from './input'
 
 export default class Input extends Component {
@@ -21,12 +20,6 @@ export default class Input extends Component {
       focused: false
     }
   }
-  getChildContext (): Object {
-    return {
-      muiTheme: materialTheme
-    }
-  }
-
   getValue (): ?string {
     return this.state.value
   }
@@ -43,6 +36,16 @@ export default class Input extends Component {
 
   blur () {
     this._textField && this._textField.blur()
+  }
+
+  _onKeyDown (e: SyntheticKeyboardEvent) {
+    if (this.props.onKeyDown) {
+      this.props.onKeyDown(e)
+    }
+
+    if (this.props.onEnterKeyDown && e.keyCode === KeyCodes['enter']) {
+      this.props.onEnterKeyDown(e)
+    }
   }
 
   render () {
@@ -78,38 +81,35 @@ export default class Input extends Component {
       <div style={{...style, ...this.props.style}} onClick={() => { this._textField && this._textField.focus() }}>
         <TextField
           ref={textField => (this._textField = textField)}
-          onKeyDown={this.props.onKeyDown}
+          name='name'
+          onKeyDown={e => this._onKeyDown(e)}
           fullWidth
           textAlign='center'
-          inputStyle={{...inputStyle, ...alignStyle, ...this.props.inputStyle}}
-          underlineStyle={{borderColor: globalColors.black_10, bottom: 'auto', ...this.props.underlineStyle}}
+          inputStyle={{...(this.props.small ? {} : {marginTop: 6}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}
+          underlineStyle={{...styles.underlineStyle, ...this.props.underlineStyle}}
           errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
           style={{...textStyle, ...globalStyles.flexBoxColumn}}
           autoFocus={this.props.autoFocus}
           errorText={this.props.errorText}
           floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
-          floatingLabelStyle={{...styles.floatingLabelStyle, ...(this.state.value || this.state.focused ? {color: globalColors.blue, transform: 'perspective(1px) scale(0.64) translate3d(2px, -28px, 0)', transformOrigin: 'center top'} : {transform: 'scale(1) translate3d(0, 0, 0)'})}}
+          floatingLabelStyle={styles.floatingLabelStyle}
+          floatingLabelFocusStyle={styles.floatingLabelFocusStyle}
           onFocus={() => this.setState({focused: true})}
           onBlur={() => this.setState({focused: false})}
           hintText={this.props.hintText}
           hintStyle={{...styles.hintStyle, ...(this.props.multiLine ? {textAlign: 'center'} : {top: 3, bottom: 'auto'}), ...this.props.hintStyle}}
           multiLine={this.props.multiLine}
           onChange={event => this.onChange(event)}
-          onEnterKeyDown={this.props.onEnterKeyDown}
           underlineFocusStyle={{...styles.underlineFocusStyle, ...this.props.underlineStyle}}
           rows={this.props.rows}
           rowsMax={this.props.rowsMax}
           autoComplete={(passwordVisible || password) ? 'off' : undefined}
           type={password ? 'password' : 'text'}
-          value={this.state.value}
+          value={this.state.value || ''}
           />
       </div>
     )
   }
-}
-
-Input.childContextTypes = {
-  muiTheme: React.PropTypes.object
 }
 
 export const styles = {
@@ -131,9 +131,15 @@ export const styles = {
     lineHeight: '11px'
   },
   underlineFocusStyle: {
+    marginTop: 4,
     borderColor: globalColors.blue,
     borderBottom: 'solid 1px',
     transition: ''
+  },
+  underlineStyle: {
+    borderColor: globalColors.black_10,
+    bottom: 'auto',
+    marginTop: 4
   },
   errorStyle: {
     ...globalStyles.fontRegular,
@@ -154,10 +160,23 @@ export const styles = {
   },
   floatingLabelStyle: {
     ...globalStyles.fontSemibold,
-    color: globalColors.black_10,
     alignSelf: 'center',
+    color: globalColors.black_10,
+    fontSize: 24,
+    lineHeight: '29px',
     position: 'inherit',
-    top: 34,
+    transform: 'scale(1) translate3d(0, 0, 0)',
     transition: 'color 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms'
+  },
+  floatingLabelFocusStyle: {
+    ...globalStyles.fontSemibold,
+    alignSelf: 'center',
+    color: globalColors.blue,
+    fontSize: 14,
+    lineHeight: '29px',
+    position: 'inherit',
+    transform: 'perspective(1px) scale(1) translate3d(2px, -29px, 0)',
+    transformOrigin: 'center top'
   }
 }
+

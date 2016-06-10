@@ -137,14 +137,10 @@ class Button extends Component {
 }
 
 const buttonCommon = {
-  ...globalStyles.fontSemibold,
-  color: globalColors.white,
-  whiteSpace: 'nowrap',
   borderRadius: 55,
   fontSize: 16,
   height: 32,
-  lineHeight: '24px',
-  textTransform: 'none',
+  lineHeight: '32px',
   minWidth: 10
 }
 
@@ -188,17 +184,26 @@ const stylesButtonUnfollow = {
 }
 const stylesButtonSmall = {
   height: 28,
-  lineHeight: '24px'
+  lineHeight: '27px'
 }
 const stylesButtonLabel = {
+  ...globalStyles.fontSemibold,
   paddingLeft: 25,
-  paddingRight: 25
+  paddingRight: 25,
+  verticalAlign: 'initial',
+  color: globalColors.white,
+  whiteSpace: 'nowrap',
+  fontSize: 16,
+  height: 'auto',
+  lineHeight: 0,
+  textTransform: 'none'
 }
 const stylesButtonSmallLabel = {
   ...globalStyles.fontSemibold,
   fontSize: 14,
   paddingLeft: 20,
-  paddingRight: 20
+  paddingRight: 20,
+  lineHeight: 0
 }
 const stylesProgress = {
   position: 'absolute',

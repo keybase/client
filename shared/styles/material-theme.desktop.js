@@ -1,24 +1,6 @@
 // @flow
-
-// Used to inject values into material classes w/o all the style overrides
-//
-// Example:
-//
-// class MyComponent extends Component {
-//   getChildContext () {
-//     return {
-//       muiTheme: MaterialTheme
-//     }
-//   }
-//
-//
-// MyComponent.childContextTypes = {
-//   muiTheme: React.PropTypes.object
-// }
-
-import Spacing from 'material-ui/lib/styles/spacing'
+import {Spacing, getMuiTheme} from 'material-ui/styles'
 import {globalColors, globalStyles} from './style-guide'
-import ThemeManager from 'material-ui/lib/styles/theme-manager'
 
 const base = {
   spacing: Spacing,
@@ -38,7 +20,7 @@ const base = {
   }
 }
 
-const mui = ThemeManager.getMuiTheme(base, mui)
+const mui = getMuiTheme(base, mui)
 
 // TODO endit sub properties here if you need to
 
