@@ -80,6 +80,15 @@ const userGroupMap: DumbComponentMap<UserGroup> = {
       users: [
         {
           service: 'keybase',
+          username: 'max',
+          isFollowing: false,
+          extraInfo: {
+            service: 'none',
+            fullName: 'Max Krohn'
+          }
+        },
+        {
+          service: 'keybase',
           username: 'malg',
           isFollowing: false,
           extraInfo: {
