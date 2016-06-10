@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
+	"golang.org/x/net/context"
 )
 
 // UpdatesFile represents a write-only file where any write of at
@@ -38,8 +39,8 @@ func (f *UpdatesFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n 
 		if f.folder.updateChan == nil {
 			return 0, errors.New("Updates are already enabled")
 		}
-		err = libkbfs.RestartCRForTesting(f.folder.fs.config,
-			f.folder.getFolderBranch())
+		err = libkbfs.RestartCRForTesting(context.Background(),
+			f.folder.fs.config, f.folder.getFolderBranch())
 		if err != nil {
 			return 0, err
 		}

@@ -75,11 +75,11 @@ func NewConflictResolver(
 		},
 	}
 
-	cr.startProcessing(context.Background)
+	cr.startProcessing(context.Background())
 	return cr
 }
 
-func (cr *ConflictResolver) startProcessing(ctxMaker func() context.Context) {
+func (cr *ConflictResolver) startProcessing(baseCtx context.Context) {
 	cr.inputChanLock.Lock()
 	defer cr.inputChanLock.Unlock()
 
@@ -87,7 +87,7 @@ func (cr *ConflictResolver) startProcessing(ctxMaker func() context.Context) {
 		return
 	}
 	cr.inputChan = make(chan conflictInput)
-	go cr.processInput(ctxMaker, cr.inputChan)
+	go cr.processInput(baseCtx, cr.inputChan)
 }
 
 func (cr *ConflictResolver) stopProcessing() {
@@ -105,7 +105,7 @@ func (cr *ConflictResolver) stopProcessing() {
 // channel until it is closed. This function uses a parameter for the
 // channel instead of accessing cr.inputChan directly so that it
 // doesn't have to hold inputChanLock.
-func (cr *ConflictResolver) processInput(ctxMaker func() context.Context,
+func (cr *ConflictResolver) processInput(baseCtx context.Context,
 	inputChan <-chan conflictInput) {
 	var cancel context.CancelFunc
 	var prevCRDone chan struct{}
@@ -115,7 +115,7 @@ func (cr *ConflictResolver) processInput(ctxMaker func() context.Context,
 		}
 	}()
 	for ci := range inputChan {
-		ctx := ctxWithRandomID(ctxMaker(), CtxCRIDKey, CtxCROpID, cr.log)
+		ctx := ctxWithRandomID(baseCtx, CtxCRIDKey, CtxCROpID, cr.log)
 
 		valid := func() bool {
 			cr.inputLock.Lock()
@@ -199,15 +199,10 @@ func (cr *ConflictResolver) Pause() {
 	cr.stopProcessing()
 }
 
-// Restart re-enables conflict resolution, with a function that makes
-// the base context for CR operations.  If ctxMaker is nil,
-// context.Background is used.
-func (cr *ConflictResolver) Restart(
-	ctxMaker func() context.Context) {
-	if ctxMaker == nil {
-		ctxMaker = context.Background
-	}
-	cr.startProcessing(ctxMaker)
+// Restart re-enables conflict resolution, with a base context for CR
+// operations.
+func (cr *ConflictResolver) Restart(baseCtx context.Context) {
+	cr.startProcessing(baseCtx)
 }
 
 func (cr *ConflictResolver) checkDone(ctx context.Context) error {

@@ -474,7 +474,8 @@ func TestBasicCRNoConflict(t *testing.T) {
 
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -592,7 +593,8 @@ func TestBasicCRFileConflict(t *testing.T) {
 
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -704,7 +706,8 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -851,7 +854,8 @@ func TestCRDouble(t *testing.T) {
 
 	// Do one CR.
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -906,7 +910,8 @@ func TestCRDouble(t *testing.T) {
 
 	// Do a second CR.
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -1048,7 +1053,8 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	// re-enable updates, and wait for CR to complete.
 	// this should also cause a rekey of the folder.
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -1216,7 +1222,8 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	// re-enable updates, and wait for CR to complete.
 	// this should also cause a rekey of the folder.
 	c <- struct{}{}
-	err = RestartCRForTesting(config1, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config1,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -1437,7 +1444,8 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	}
 
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -1537,9 +1545,8 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 		c <- struct{}{}
 		// Make sure the CR gets done with a context we can use for
 		// stalling.
-		err = RestartCRForTestingWithCtxMaker(config2,
-			rootNode2.GetFolderBranch(),
-			func() context.Context { return putCtx })
+		err = RestartCRForTesting(putCtx, config2,
+			rootNode2.GetFolderBranch())
 		if err != nil {
 			t.Fatalf("Couldn't disable updates: %v", err)
 		}
@@ -1570,7 +1577,8 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 	c <- struct{}{}
-	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	err = RestartCRForTesting(context.Background(), config2,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}

@@ -445,17 +445,17 @@ func DisableCRForTesting(config Config, folderBranch FolderBranch) error {
 	return nil
 }
 
-// RestartCRForTestingWithCtxMaker re-enables conflict resolution for
+// RestartCRForTesting re-enables conflict resolution for
 // the given folder.
-func RestartCRForTestingWithCtxMaker(config Config, folderBranch FolderBranch,
-	ctxMaker func() context.Context) error {
+func RestartCRForTesting(baseCtx context.Context, config Config,
+	folderBranch FolderBranch) error {
 	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 	if !ok {
 		return errors.New("Unexpected KBFSOps type")
 	}
 
 	ops := kbfsOps.getOpsNoAdd(folderBranch)
-	ops.cr.Restart(ctxMaker)
+	ops.cr.Restart(baseCtx)
 	// Start a resolution for anything we've missed.
 	if ops.staged {
 		lState := makeFBOLockState()
@@ -463,12 +463,6 @@ func RestartCRForTestingWithCtxMaker(config Config, folderBranch FolderBranch,
 			MetadataRevisionUninitialized)
 	}
 	return nil
-}
-
-// RestartCRForTesting re-enables conflict resolution for the given
-// folder.
-func RestartCRForTesting(config Config, folderBranch FolderBranch) error {
-	return RestartCRForTestingWithCtxMaker(config, folderBranch, nil)
 }
 
 // ForceQuotaReclamationForTesting kicks off quota reclamation under
