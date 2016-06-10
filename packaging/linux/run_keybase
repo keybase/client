@@ -14,14 +14,14 @@ set -e -u -o pipefail
 # Stop any existing services. These commands will return errors if keybase
 # isn't already running, but putting them in if-statements prevents those
 # errors from aborting the whole script.
+if killall kbupdater &> /dev/null ; then
+  echo Shutting down updater...
+fi
 if killall Keybase &> /dev/null ; then
   echo Shutting down Keybase GUI...
 fi
 if fusermount -uz /keybase &> /dev/null ; then
   echo Unmounting /keybase...
-fi
-if killall kbupdater &> /dev/null ; then
-  echo Shutting down updater...
 fi
 if killall kbfsfuse &> /dev/null ; then
   echo Shutting down kbfsfuse...
