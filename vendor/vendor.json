@@ -121,34 +121,34 @@
 			"revisionTime": "2016-05-17T06:10:00Z"
 		},
 		{
-			"checksumSHA1": "u4PBIpt/vmySsbJXa0Ss78CLB44=",
+			"checksumSHA1": "hajIhCr8Znf3CAx6HrkWMTzeoPE=",
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "fd3331d1db1c927878512e1fccceae97f2b3e2c9",
-			"revisionTime": "2016-06-01T21:03:13Z"
+			"revision": "9ac76dd2b2280d7f90e953ded53ef55c6a92b556",
+			"revisionTime": "2016-06-10T22:58:26Z"
 		},
 		{
 			"checksumSHA1": "CzXn2I3yTTfbJrJmvWxyOnDdTxA=",
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "fd3331d1db1c927878512e1fccceae97f2b3e2c9",
-			"revisionTime": "2016-06-01T21:03:13Z"
+			"revision": "9ac76dd2b2280d7f90e953ded53ef55c6a92b556",
+			"revisionTime": "2016-06-10T22:58:26Z"
 		},
 		{
-			"checksumSHA1": "2ukTBnmH/tj9bviA60pn2QJeu98=",
+			"checksumSHA1": "G6zAlO+oHfgqZGGqQGwTCQnFTSU=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "fd3331d1db1c927878512e1fccceae97f2b3e2c9",
-			"revisionTime": "2016-06-01T21:03:13Z"
+			"revision": "9ac76dd2b2280d7f90e953ded53ef55c6a92b556",
+			"revisionTime": "2016-06-10T22:58:26Z"
 		},
 		{
 			"checksumSHA1": "IfYcIYhfP9mF4ZsbYLIKWvxf2jg=",
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "fd3331d1db1c927878512e1fccceae97f2b3e2c9",
-			"revisionTime": "2016-06-01T21:03:13Z"
+			"revision": "9ac76dd2b2280d7f90e953ded53ef55c6a92b556",
+			"revisionTime": "2016-06-10T22:58:26Z"
 		},
 		{
-			"checksumSHA1": "e056g+uxgQx2dQ6+cEjM/DIuYtA=",
+			"checksumSHA1": "0cPVgVKRTR4hWBIaJ/aiCo58WIs=",
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "fd3331d1db1c927878512e1fccceae97f2b3e2c9",
-			"revisionTime": "2016-06-01T21:03:13Z"
+			"revision": "9ac76dd2b2280d7f90e953ded53ef55c6a92b556",
+			"revisionTime": "2016-06-10T22:58:26Z"
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",
@@ -266,6 +266,12 @@
 			"path": "github.com/rcrowley/go-metrics",
 			"revision": "7839c01b09d2b1d7068034e5fe6e423f6ac5be22",
 			"revisionTime": "2015-11-29T16:13:40-08:00"
+		},
+		{
+			"checksumSHA1": "GUoUEVIFbwrc65Iqo9bYXlA+sCA=",
+			"path": "github.com/rogpeppe/rog-go/reverse",
+			"revision": "f57ad5e24ab7813942c045f86eda1066eb969e98",
+			"revisionTime": "2015-01-10T16:24:53Z"
 		},
 		{
 			"path": "github.com/stretchr/testify/assert",

@@ -475,7 +475,7 @@ func (u *user) checkKey(kid keybase1.KID) error {
 func (v *CredentialAuthority) CheckUserKey(ctx context.Context, uid keybase1.UID,
 	username *libkb.NormalizedUsername, kid *keybase1.KID) (err error) {
 	v.log.Debug("CheckUserKey uid %s, kid %s", uid, kid)
-	retCh := make(chan error)
+	retCh := make(chan error, 1) // buffered in case the ctx is canceled
 	v.checkCh <- checkArg{uid: uid, username: username, kid: kid, retCh: retCh}
 	select {
 	case <-ctx.Done():
@@ -502,7 +502,7 @@ func (v *CredentialAuthority) CheckUsers(ctx context.Context, users []keybase1.U
 // It returns true if the sets are equal.
 func (v *CredentialAuthority) CompareUserKeys(ctx context.Context, uid keybase1.UID, sibkeys, subkeys []keybase1.KID) (
 	err error) {
-	retCh := make(chan error)
+	retCh := make(chan error, 1) // buffered in case the ctx is canceled
 	v.checkCh <- checkArg{uid: uid, sibkeys: sibkeys, subkeys: subkeys, retCh: retCh}
 	select {
 	case <-ctx.Done():

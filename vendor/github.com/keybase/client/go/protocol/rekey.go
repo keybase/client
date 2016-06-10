@@ -17,16 +17,25 @@ type TLF struct {
 	IsPrivate bool     `codec:"isPrivate" json:"isPrivate"`
 }
 
-type ProblemUser struct {
-	User           User     `codec:"user" json:"user"`
-	ProblemDevices []Device `codec:"problemDevices" json:"problemDevices"`
+type ProblemTLF struct {
+	Tlf       TLF   `codec:"tlf" json:"tlf"`
+	Score     int   `codec:"score" json:"score"`
+	Solutions []KID `codec:"solutions" json:"solutions"`
 }
 
-type RekeyTLF struct {
-	Tlf          TLF           `codec:"tlf" json:"tlf"`
-	ProblemUsers []ProblemUser `codec:"problemUsers" json:"problemUsers"`
-	Score        int           `codec:"score" json:"score"`
-	Solutions    []DeviceID    `codec:"solutions" json:"solutions"`
+// ProblemSet is for a particular (user,kid) that initiated a rekey problem.
+// This problem consists of one or more problem TLFs, which are individually scored
+// and have attendant solutions --- devices that if they came online can rekey and
+// solve the ProblemTLF.
+type ProblemSet struct {
+	User User         `codec:"user" json:"user"`
+	Kid  KID          `codec:"kid" json:"kid"`
+	Tlfs []ProblemTLF `codec:"tlfs" json:"tlfs"`
+}
+
+type ProblemSetDevices struct {
+	ProblemSet ProblemSet `codec:"problemSet" json:"problemSet"`
+	Devices    []Device   `codec:"devices" json:"devices"`
 }
 
 type Outcome int
@@ -48,7 +57,7 @@ type ShowRekeyStatusArg struct {
 	Kid       *KID    `codec:"kid,omitempty" json:"kid,omitempty"`
 }
 
-type GetRekeyTLFsArg struct {
+type GetProblemSetArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
@@ -58,18 +67,18 @@ type RekeyStatusFinishArg struct {
 
 type RekeyInterface interface {
 	// ShowPendingRekeyStatus shows either pending gregor-initiated rekey harassments
-	// * or nothing if none were pending.
+	// or nothing if none were pending.
 	ShowPendingRekeyStatus(context.Context, int) error
 	// ShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for the given user based on
-	// * the passed-in parameters. These are the parameters that are typically delivered via direct
-	// * gregor injection. Will be used primarily in debugging or in advanced command-line usage.
+	// the passed-in parameters. These are the parameters that are typically delivered via direct
+	// gregor injection. Will be used primarily in debugging or in advanced command-line usage.
 	ShowRekeyStatus(context.Context, ShowRekeyStatusArg) error
-	// getRekeyTLFs is called by the UI to render which TLFs need to be fixed.
-	// * The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
-	// * below
-	GetRekeyTLFs(context.Context, int) ([]RekeyTLF, error)
-	// finish is called when work is completed on a given RekeyStatus window. The Outcome
-	// * can be Fixed or Ignored.
+	// getProblemSet is called by the UI to render which TLFs need to be fixed.
+	// The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
+	// below
+	GetProblemSet(context.Context, int) (ProblemSetDevices, error)
+	// rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
+	// can be Fixed or Ignored.
 	RekeyStatusFinish(context.Context, int) (Outcome, error)
 }
 
@@ -109,18 +118,18 @@ func RekeyProtocol(i RekeyInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getRekeyTLFs": {
+			"getProblemSet": {
 				MakeArg: func() interface{} {
-					ret := make([]GetRekeyTLFsArg, 1)
+					ret := make([]GetProblemSetArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetRekeyTLFsArg)
+					typedArgs, ok := args.(*[]GetProblemSetArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]GetRekeyTLFsArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetProblemSetArg)(nil), args)
 						return
 					}
-					ret, err = i.GetRekeyTLFs(ctx, (*typedArgs)[0].SessionID)
+					ret, err = i.GetProblemSet(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -150,7 +159,7 @@ type RekeyClient struct {
 }
 
 // ShowPendingRekeyStatus shows either pending gregor-initiated rekey harassments
-// * or nothing if none were pending.
+// or nothing if none were pending.
 func (c RekeyClient) ShowPendingRekeyStatus(ctx context.Context, sessionID int) (err error) {
 	__arg := ShowPendingRekeyStatusArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.rekey.showPendingRekeyStatus", []interface{}{__arg}, nil)
@@ -158,24 +167,24 @@ func (c RekeyClient) ShowPendingRekeyStatus(ctx context.Context, sessionID int) 
 }
 
 // ShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for the given user based on
-// * the passed-in parameters. These are the parameters that are typically delivered via direct
-// * gregor injection. Will be used primarily in debugging or in advanced command-line usage.
+// the passed-in parameters. These are the parameters that are typically delivered via direct
+// gregor injection. Will be used primarily in debugging or in advanced command-line usage.
 func (c RekeyClient) ShowRekeyStatus(ctx context.Context, __arg ShowRekeyStatusArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.rekey.showRekeyStatus", []interface{}{__arg}, nil)
 	return
 }
 
-// getRekeyTLFs is called by the UI to render which TLFs need to be fixed.
-// * The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
-// * below
-func (c RekeyClient) GetRekeyTLFs(ctx context.Context, sessionID int) (res []RekeyTLF, err error) {
-	__arg := GetRekeyTLFsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.rekey.getRekeyTLFs", []interface{}{__arg}, &res)
+// getProblemSet is called by the UI to render which TLFs need to be fixed.
+// The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
+// below
+func (c RekeyClient) GetProblemSet(ctx context.Context, sessionID int) (res ProblemSetDevices, err error) {
+	__arg := GetProblemSetArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.rekey.getProblemSet", []interface{}{__arg}, &res)
 	return
 }
 
-// finish is called when work is completed on a given RekeyStatus window. The Outcome
-// * can be Fixed or Ignored.
+// rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
+// can be Fixed or Ignored.
 func (c RekeyClient) RekeyStatusFinish(ctx context.Context, sessionID int) (res Outcome, err error) {
 	__arg := RekeyStatusFinishArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.rekey.rekeyStatusFinish", []interface{}{__arg}, &res)

@@ -18,17 +18,23 @@ type Folder struct {
 	Created         bool   `codec:"created" json:"created"`
 }
 
+type FavoritesResult struct {
+	FavoriteFolders []Folder `codec:"favoriteFolders" json:"favoriteFolders"`
+	IgnoredFolders  []Folder `codec:"ignoredFolders" json:"ignoredFolders"`
+	NewFolders      []Folder `codec:"newFolders" json:"newFolders"`
+}
+
 type FavoriteAddArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Folder    Folder `codec:"folder" json:"folder"`
 }
 
-type FavoriteDeleteArg struct {
+type FavoriteIgnoreArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Folder    Folder `codec:"folder" json:"folder"`
 }
 
-type FavoriteListArg struct {
+type GetFavoritesArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
@@ -36,9 +42,9 @@ type FavoriteInterface interface {
 	// Adds a folder to a user's list of favorite folders.
 	FavoriteAdd(context.Context, FavoriteAddArg) error
 	// Removes a folder from a user's list of favorite folders.
-	FavoriteDelete(context.Context, FavoriteDeleteArg) error
+	FavoriteIgnore(context.Context, FavoriteIgnoreArg) error
 	// Returns all of a user's favorite folders.
-	FavoriteList(context.Context, int) ([]Folder, error)
+	GetFavorites(context.Context, int) (FavoritesResult, error)
 }
 
 func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
@@ -61,34 +67,34 @@ func FavoriteProtocol(i FavoriteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"favoriteDelete": {
+			"favoriteIgnore": {
 				MakeArg: func() interface{} {
-					ret := make([]FavoriteDeleteArg, 1)
+					ret := make([]FavoriteIgnoreArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]FavoriteDeleteArg)
+					typedArgs, ok := args.(*[]FavoriteIgnoreArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]FavoriteDeleteArg)(nil), args)
+						err = rpc.NewTypeError((*[]FavoriteIgnoreArg)(nil), args)
 						return
 					}
-					err = i.FavoriteDelete(ctx, (*typedArgs)[0])
+					err = i.FavoriteIgnore(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"favoriteList": {
+			"getFavorites": {
 				MakeArg: func() interface{} {
-					ret := make([]FavoriteListArg, 1)
+					ret := make([]GetFavoritesArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]FavoriteListArg)
+					typedArgs, ok := args.(*[]GetFavoritesArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]FavoriteListArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetFavoritesArg)(nil), args)
 						return
 					}
-					ret, err = i.FavoriteList(ctx, (*typedArgs)[0].SessionID)
+					ret, err = i.GetFavorites(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -108,14 +114,14 @@ func (c FavoriteClient) FavoriteAdd(ctx context.Context, __arg FavoriteAddArg) (
 }
 
 // Removes a folder from a user's list of favorite folders.
-func (c FavoriteClient) FavoriteDelete(ctx context.Context, __arg FavoriteDeleteArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteDelete", []interface{}{__arg}, nil)
+func (c FavoriteClient) FavoriteIgnore(ctx context.Context, __arg FavoriteIgnoreArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteIgnore", []interface{}{__arg}, nil)
 	return
 }
 
 // Returns all of a user's favorite folders.
-func (c FavoriteClient) FavoriteList(ctx context.Context, sessionID int) (res []Folder, err error) {
-	__arg := FavoriteListArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.favorite.favoriteList", []interface{}{__arg}, &res)
+func (c FavoriteClient) GetFavorites(ctx context.Context, sessionID int) (res FavoritesResult, err error) {
+	__arg := GetFavoritesArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.favorite.getFavorites", []interface{}{__arg}, &res)
 	return
 }

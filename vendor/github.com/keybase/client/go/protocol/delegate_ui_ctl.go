@@ -17,10 +17,14 @@ type RegisterSecretUIArg struct {
 type RegisterUpdateUIArg struct {
 }
 
+type RegisterRekeyUIArg struct {
+}
+
 type DelegateUiCtlInterface interface {
 	RegisterIdentifyUI(context.Context) error
 	RegisterSecretUI(context.Context) error
 	RegisterUpdateUI(context.Context) error
+	RegisterRekeyUI(context.Context) error
 }
 
 func DelegateUiCtlProtocol(i DelegateUiCtlInterface) rpc.Protocol {
@@ -60,6 +64,17 @@ func DelegateUiCtlProtocol(i DelegateUiCtlInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"registerRekeyUI": {
+				MakeArg: func() interface{} {
+					ret := make([]RegisterRekeyUIArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.RegisterRekeyUI(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -80,5 +95,10 @@ func (c DelegateUiCtlClient) RegisterSecretUI(ctx context.Context) (err error) {
 
 func (c DelegateUiCtlClient) RegisterUpdateUI(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerUpdateUI", []interface{}{RegisterUpdateUIArg{}}, nil)
+	return
+}
+
+func (c DelegateUiCtlClient) RegisterRekeyUI(ctx context.Context) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.delegateUiCtl.registerRekeyUI", []interface{}{RegisterRekeyUIArg{}}, nil)
 	return
 }
