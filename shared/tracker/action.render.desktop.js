@@ -37,7 +37,7 @@ export default class ActionRender extends Component {
 
   renderLoggedOut () {
     return (
-      <div style={{...styleLoggedOutContainer}}>
+      <div style={styleLoggedOutContainer}>
         <div style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'space-between', alignItems: 'center'}}>
           <Icon type='terminal' style={{width: 29}} />
           <div style={{textAlign: 'center'}}>
@@ -56,7 +56,7 @@ export default class ActionRender extends Component {
 
   renderClose () {
     return (
-      <div style={{...styleContainer}}>
+      <div style={styleContainer}>
         <Button style={styleActionButton} type='Secondary' label='Close' onClick={() => this.props.onClose()} />
       </div>
     )
@@ -64,7 +64,7 @@ export default class ActionRender extends Component {
 
   renderNormal () {
     return (
-      <div style={{...styleContainer}}>
+      <div style={styleContainer}>
         {!this.props.currentlyFollowing &&
           <Button waiting={this.props.waiting} style={styleActionButton} type='Follow' label='Track' onClick={() => this.props.onFollow()} />}
         {this.props.currentlyFollowing &&
@@ -75,7 +75,7 @@ export default class ActionRender extends Component {
 
   renderChanged () {
     return (
-      <div style={{...styleContainer}}>
+      <div style={styleContainer}>
         <Button waiting={this.props.waiting} type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onIgnore()} />
         <Button waiting={this.props.waiting} style={styleActionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow()} />
       </div>
