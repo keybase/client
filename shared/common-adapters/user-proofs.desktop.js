@@ -168,6 +168,9 @@ const styleRow = {
 const styleService = {
   ...globalStyles.clickable,
   fontSize: 15,
+  width: 15,
+  flexShrink: 0,
+  textAlign: 'center',
   color: globalColors.black_75,
   hoverColor: globalColors.black_75,
   marginRight: 9,
