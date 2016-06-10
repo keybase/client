@@ -2665,11 +2665,10 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 
 // syncBlocks takes in the complete set of paths affected by this
 // conflict resolution, and organizes them into a tree, which it then
-// syncs using syncTree.  It also puts all the resulting blocks to the
-// servers.  It returns a map describing how blocks were updated in
-// the merged branch, as well as the complete set of blocks that were
-// put to the server as a result of this resolution (for later
-// caching).
+// syncs using syncTree.  It returns a map describing how blocks were
+// updated in the merged branch, as well as the complete set of blocks
+// that need to be put to the server (and cached) to complete this
+// resolution.
 func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	md *RootMetadata, unmergedChains *crChains, mergedChains *crChains,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
@@ -2889,19 +2888,6 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 			return nil, nil, err
 		}
 	}
-
-	defer func() {
-		if err != nil {
-			cr.fbo.fbm.cleanUpBlockState(md, bps)
-		}
-	}()
-
-	// Put all the blocks.  TODO: deal with recoverable block errors?
-	_, err = cr.fbo.doBlockPuts(ctx, md, *bps)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	return updates, bps, nil
 }
 
@@ -3071,6 +3057,12 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 			cr.fbo.fbm.cleanUpBlockState(md, bps)
 		}
 	}()
+
+	// Put all the blocks.  TODO: deal with recoverable block errors?
+	_, err = cr.fbo.doBlockPuts(ctx, md, *bps)
+	if err != nil {
+		return err
+	}
 
 	err = cr.finalizeResolution(ctx, lState, md, unmergedChains,
 		mergedChains, updates, bps)
