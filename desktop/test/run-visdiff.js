@@ -179,7 +179,7 @@ function processDiff (commitRange, results) {
 
     if (!DRY_RUN) {
       var ghClient = github.client(process.env['VISDIFF_GH_TOKEN'])
-      var ghIssue = ghClient.issue('keybase/client', process.env['TRAVIS_PULL_REQUEST'])
+      var ghIssue = ghClient.issue('keybase/client', process.env['VISDIFF_PR_ID'])
       ghIssue.createComment({body: commentBody}, (err, res) => {
         if (err) {
           console.log('Failed to post visual diff on GitHub:', err.toString(), err.body)
