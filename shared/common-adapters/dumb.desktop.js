@@ -1,6 +1,7 @@
 // @flow
 
 import React from 'react'
+import _ from 'lodash'
 
 import Checkbox from './checkbox'
 import {Button, Box, TabBar, Text, Avatar, ListItem, PopupMenu} from './index'
@@ -142,9 +143,32 @@ const popupMenuMap: DumbComponentMap<PopupMenu> = {
   }
 }
 
+const mockAvatarSizes = (title, sizes, modifiers) => _.chain(sizes)
+  .map(size => ({size, username: 'awendland', ...modifiers}))
+  .keyBy(props => `${title} x${props.size}`)
+  .value()
+
+const avatarMap: DumbComponentMap<Avatar> = {
+  component: Avatar,
+  mocks: {
+    ...mockAvatarSizes('Normal', [32], {}),
+    ...mockAvatarSizes('Following', [48], {
+      following: true
+    }),
+    ...mockAvatarSizes('Follows You', [64], {
+      followsYou: true
+    }),
+    ...mockAvatarSizes('Mutual Follow', [112], {
+      following: true,
+      followsYou: true
+    })
+  }
+}
+
 export default {
   Checkbox: checkboxMap,
   TabBar: tabBarMap,
   ListItem: listItemMap,
-  PopupMenu: popupMenuMap
+  PopupMenu: popupMenuMap,
+  Avatar: avatarMap
 }
