@@ -16,15 +16,40 @@ export class TabBarItem extends Component {
 }
 
 type SimpleTabBarButtonProps = {
-  selected: boolean,
   label: string,
-  tabWidth?: ?number,
-  style?: Object
+  selected: boolean,
+  selectedColor?: string,
+  underlined?: boolean,
+  onBottom?: boolean,
+  styleContainer?: Object,
+  styleLabel?: Object
 }
 
 class SimpleTabBarButton extends Component<void, SimpleTabBarButtonProps, void> {
   render () {
-    return <Text type='BodySemibold'>Not implemented, use tab bar button</Text>
+    const selectedColor = this.props.selectedColor || globalColors.blue
+    const borderLocation = this.props.onBottom ? 'borderTop' : 'borderBottom'
+    const underlineStyle = this.props.underlined ? {textDecoration: 'underlined'} : {}
+    return (
+      <Box
+        style={{
+          [borderLocation]: this.props.selected
+            ? `solid 2px ${selectedColor}`
+            : 'solid 2px transparent',
+          padding: '4px 12px',
+          ...this.props.styleContainer
+        }}>
+        <Text
+          type='BodySmall'
+          style={{
+            color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
+            ...underlineStyle,
+            ...this.props.styleLabel
+          }}>
+          {this.props.label}
+        </Text>
+      </Box>
+    )
   }
 }
 
@@ -108,7 +133,16 @@ class TabBar extends Component {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item, i) => (
       <Box key={item.props.label || i} style={item.props.containerStyle} onClick={item.props.onClick}>
-        {item.props.tabBarButton || <SimpleTabBarButton label={item.props.label} selected={item.props.selected} underlined={this.props.underlined} />}
+        {item.props.tabBarButton ||
+          <SimpleTabBarButton
+            label={item.props.label}
+            selected={item.props.selected}
+            selectedColor={item.props.selectedColor}
+            underlined={this.props.underlined}
+            onBottom={this.props.tabBarOnBottom}
+            styleContainer={item.props.styleContainer}
+            styleLabel={item.props.styleLabel}
+          />}
       </Box>
     ))
   }
