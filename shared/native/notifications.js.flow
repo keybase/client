@@ -2,4 +2,4 @@
 
 import type {Dispatch} from '../constants/types/flux'
 
-export function NotifyPopup (title: string, opts: ?Object): void {}
+export function NotifyPopup (title: string, opts: ?Object, rateLimitSeconds?: number): void {}
