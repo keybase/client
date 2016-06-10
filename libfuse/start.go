@@ -56,6 +56,7 @@ func Start(mounter Mounter, options StartOptions) *libfs.Error {
 			// Was not mounted successfully yet, so do nothing. Note that the mount
 			// could still happen, but that's a rare enough edge case.
 		}
+		libkbfs.Shutdown()
 	}
 
 	log.Debug("Initializing")
