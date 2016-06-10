@@ -39,7 +39,7 @@ export default class Render extends Component<void, RenderProps, void> {
       <div style={styles.container}>
         <Header {...this.props.headerProps} />
         <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar'>
-          <UserBio {...this.props.bioProps} avatarSize={80} />
+          <UserBio {...this.props.bioProps} style={{marginTop: 50}} avatarSize={80} />
           <UserProofs {...this.props.proofsProps} />
         </div>
         <div style={styles.footer}>

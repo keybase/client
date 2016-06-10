@@ -49,7 +49,7 @@ export default class BioRender extends Component {
     const followLabel = this._followLabel()
 
     return (
-      <div style={stylesOuter}>
+      <div style={this.props.style}>
         <div style={stylesContainer}>
           <Avatar
             onClick={() => this._onClickAvatar()}
@@ -95,15 +95,11 @@ export default class BioRender extends Component {
   }
 }
 
-const stylesOuter = {
-  marginTop: 90
-}
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',
-  width: 320,
-  marginTop: -40
+  width: 320
 }
 const stylesContent = {
   backgroundColor: globalColors.white,
