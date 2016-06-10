@@ -3225,6 +3225,11 @@ func (fbo *folderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 	return nil
 }
 
+// getUnmergedMDUpdates returns a slice of the unmerged MDs for this
+// TLF's current unmerged branch and unmerged branch, between the
+// merge point for the branch and the current head.  The returned MDs
+// are the same instances that are stored in the MD cache, so they
+// should be modified with care.
 func (fbo *folderBranchOps) getUnmergedMDUpdates(
 	ctx context.Context, lState *lockState) (
 	MetadataRevision, []*RootMetadata, error) {
