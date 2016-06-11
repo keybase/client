@@ -40,9 +40,10 @@
 
     <InstallExecuteSequence>
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
-      <Custom Action="StopGUI" Before="InstallValidate">Installed</Custom>
-      <Custom Action="StopKBFS" Before="InstallValidate">Installed</Custom>
-      <Custom Action="StopMainApp" Before="InstallValidate">Installed</Custom>
+      <Custom Action="StopUpdater" Before="InstallValidate"/>
+      <Custom Action="StopGUI" Before="InstallValidate"/>
+      <Custom Action="StopKBFS" Before="InstallValidate"/>
+      <Custom Action="StopMainApp" Before="InstallValidate"/>
       <Custom Action="RunMainApp" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
       <Custom Action="RunGUI" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
     </InstallExecuteSequence>
@@ -222,14 +223,21 @@
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [INSTALLFOLDER]keybase.exe ctl stop"
               Execute="immediate"
-              Return="check"/>
+              Return="ignore"/>
   </Fragment>
   <Fragment>
     <CustomAction Id="StopKBFS"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM kbfsdokan.exe"
               Execute="immediate"
-              Return="check"/>
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="StopUpdater"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM upd.exe"
+              Execute="immediate"
+              Return="ignore"/>
   </Fragment>
 
   <Fragment>
@@ -244,6 +252,6 @@
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM Keybase.exe"
               Execute="immediate"
-              Return="check"/>
+              Return="ignore"/>
   </Fragment>
   </Wix>
