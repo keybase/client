@@ -23,18 +23,18 @@ func newTimedGenericKey(g *GlobalContext, k GenericKey, w string) *timedGenericK
 	return &timedGenericKey{
 		Contextified: NewContextified(g),
 		key:          k,
-		atime:        g.GetClock().Now(),
+		atime:        g.Clock().Now(),
 		which:        w,
 	}
 }
 
 func (t *timedGenericKey) getKey() GenericKey {
-	t.atime = t.G().GetClock().Now()
+	t.atime = t.G().Clock().Now()
 	return t.key
 }
 
 func (t *timedGenericKey) clean() {
-	now := t.G().GetClock().Now()
+	now := t.G().Clock().Now()
 	if t.key != nil && (now.Sub(t.atime) > PaperKeyMemoryTimeout) {
 		t.G().Log.Debug("Cleaned out key %q at %s", t.which, now)
 		t.key = nil
@@ -537,7 +537,7 @@ func (a *Account) SkipSecretPrompt() bool {
 		return false
 	}
 
-	if a.G().Clock.Now().Sub(a.secretPromptCanceledAt) < SecretPromptCancelDuration {
+	if a.G().Clock().Now().Sub(a.secretPromptCanceledAt) < SecretPromptCancelDuration {
 		return true
 	}
 
@@ -546,5 +546,5 @@ func (a *Account) SkipSecretPrompt() bool {
 }
 
 func (a *Account) SecretPromptCanceled() {
-	a.secretPromptCanceledAt = a.G().Clock.Now()
+	a.secretPromptCanceledAt = a.G().Clock().Now()
 }

@@ -31,7 +31,7 @@ func (cr CheckResult) Pack() *jsonw.Wrapper {
 }
 
 func (cr CheckResult) Freshness() keybase1.CheckResultFreshness {
-	now := cr.G().GetClock().Now()
+	now := cr.G().Clock().Now()
 	age := now.Sub(cr.Time)
 	switch {
 	case cr.Status == nil:
@@ -56,7 +56,7 @@ func NewNowCheckResult(g *GlobalContext, pe ProofError) *CheckResult {
 	return &CheckResult{
 		Contextified: NewContextified(g),
 		Status:       pe,
-		Time:         g.GetClock().Now(),
+		Time:         g.Clock().Now(),
 	}
 }
 
@@ -208,7 +208,7 @@ func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError) error {
 	cr := CheckResult{
 		Contextified: pc.Contextified,
 		Status:       pe,
-		Time:         pc.G().Clock.Now(),
+		Time:         pc.G().Clock().Now(),
 	}
 	pc.memPut(sid, cr)
 	return pc.dbPut(sid, cr)

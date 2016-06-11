@@ -266,7 +266,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 
 	ctime := arg.CreationTime
 	if ctime == 0 {
-		ctime = g.Clock.Now().Unix()
+		ctime = g.Clock().Now().Unix()
 	}
 
 	ei := arg.ExpireIn

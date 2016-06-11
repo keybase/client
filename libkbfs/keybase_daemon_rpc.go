@@ -593,12 +593,17 @@ func (k *KeybaseDaemonRPC) FavoriteAdd(ctx context.Context, folder keybase1.Fold
 
 // FavoriteDelete implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
-	return k.favoriteClient.FavoriteDelete(ctx, keybase1.FavoriteDeleteArg{Folder: folder})
+	return k.favoriteClient.FavoriteIgnore(ctx,
+		keybase1.FavoriteIgnoreArg{Folder: folder})
 }
 
 // FavoriteList implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
-	return k.favoriteClient.FavoriteList(ctx, sessionID)
+	results, err := k.favoriteClient.GetFavorites(ctx, sessionID)
+	if err != nil {
+		return nil, err
+	}
+	return results.FavoriteFolders, nil
 }
 
 // Notify implements the KeybaseDaemon interface for KeybaseDaemonRPC.

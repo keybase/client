@@ -99,7 +99,7 @@ func (s *LoginSession) ExistsFor(emailOrUsername string) bool {
 }
 
 func (s *LoginSession) NotExpired() bool {
-	now := s.G().GetClock().Now()
+	now := s.G().Clock().Now()
 
 	if now.Sub(s.createTime) < LoginSessionMemoryTimeout {
 		return true
@@ -187,7 +187,7 @@ func (s *LoginSession) Load() error {
 	s.loginSession = ls
 	s.loaded = true
 	s.cleared = false
-	s.createTime = s.G().GetClock().Now()
+	s.createTime = s.G().Clock().Now()
 
 	return nil
 }
