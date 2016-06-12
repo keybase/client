@@ -86,6 +86,16 @@ func (df *dirtyFile) setBlockDirty(ptr BlockPointer) (
 	return needsCaching, isSyncing
 }
 
+func (df *dirtyFile) setBlockNotDirty(ptr BlockPointer) (
+	needsCaching bool, isSyncing bool) {
+	df.lock.Lock()
+	defer df.lock.Unlock()
+	state := df.fileBlockStates[ptr]
+	state.copy = blockNeedsCopy
+	df.fileBlockStates[ptr] = state
+	return
+}
+
 func (df *dirtyFile) isBlockSyncing(ptr BlockPointer) bool {
 	df.lock.Lock()
 	defer df.lock.Unlock()

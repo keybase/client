@@ -1108,6 +1108,11 @@ func (fbo *folderBlockOps) createIndirectBlockLocked(lState *lockState,
 			},
 		},
 	}
+
+	df := fbo.getOrCreateDirtyFileLocked(lState, file)
+	// Mark the old block ID as not dirty, so that we will treat the
+	// old block ID as newly dirtied in cacheBlockIfNotYetDirtyLocked.
+	df.setBlockNotDirty(file.tailPointer())
 	err = fbo.cacheBlockIfNotYetDirtyLocked(lState, file.tailPointer(), file,
 		fblock)
 	if err != nil {
