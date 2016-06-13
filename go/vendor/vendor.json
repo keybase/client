@@ -178,10 +178,10 @@
 			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
-			"checksumSHA1": "jpUqeZQ0mjQc5tN4Ecr+A12M2VA=",
+			"checksumSHA1": "bQYKzjpfY6drHZIr7jncJHAh8BQ=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "2a4cdfc4f2ce5894aef188818ec5f03ed3ea9614",
-			"revisionTime": "2016-05-16T17:05:43-05:00"
+			"revision": "090895b12240aa18b8d6a759a2638f0c1065c7d0",
+			"revisionTime": "2016-06-15T14:04:14Z"
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",
