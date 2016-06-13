@@ -19,7 +19,7 @@ before_script:
   - export DISPLAY=:99.0
 script:
   - export BASE=$PWD
-  - cd $BASE/desktop && ../packaging/npm_mess.sh && npm run setup-dev-tools &&
+  - cd $BASE/desktop && ../packaging/npm_mess.sh && npm i -g babylon@6.8.0 && npm run setup-dev-tools && rm -rf $NODE_PATH/babel-eslint/node_modules/babylon &&
     cd $BASE/shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
     cd $BASE && eslint . &&
     if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
