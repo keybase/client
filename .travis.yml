@@ -21,7 +21,7 @@ script:
   - export BASE=$PWD
   - cd $BASE/desktop && ../packaging/npm_mess.sh && npm run setup-dev-tools &&
     cd $BASE/shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
-    cd $BASE && eslint . &&
+    cd $BASE && desktop/node_modules/.bin/eslint . &&
     if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
       cd $BASE/desktop && npm install octonode && VISDIFF_PR_ID=$TRAVIS_PULL_REQUEST npm run visdiff -- "`git rev-parse HEAD^1`...`git rev-parse HEAD`";
     fi &&
