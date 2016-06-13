@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {UserList} from '../common-adapters/usernames'
+import type {FileSection, ParticipantUnlock, UnlockDevice} from './files/render'
 
 export type Folder = {
   users: UserList,
@@ -12,10 +13,13 @@ export type Folder = {
   },
   isPublic: boolean,
   ignored: boolean,
-  isFirst: boolean,
   hasData: boolean,
   groupAvatar: boolean,
-  userAvatar: ?string
+  userAvatar: ?string,
+  path: string,
+  recentFiles: Array<FileSection>, // TODO make pure
+  waitingForParticipantUnlock: Array<ParticipantUnlock>, // TODO make pure
+  youCanUnlock: Array<UnlockDevice> // TODO make pure
 }
 
 export type Props = {

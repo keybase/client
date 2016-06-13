@@ -9,10 +9,17 @@ import type {Folder, favoriteGetFavoritesRpc, FavoritesResult} from '../constant
 import type {Dispatch} from '../constants/types/flux'
 import type {FavoriteList} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
+import type {UserList} from '../common-adapters/usernames'
 import flags from '../util/feature-flags'
 import {NotifyPopup} from '../native/notifications'
 
-const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: string = ''): FolderProps => { // eslint-disable-line space-infix-ops
+export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
+  const sortName = users.map(u => u.username).join(',')
+  const path = `/keybase/${isPublic ? 'private' : 'public'}/${sortName}`
+  return {sortName, path}
+}
+
+const folderToProps = (folders: Array<Folder>, username: string = ''): FolderProps => { // eslint-disable-line space-infix-ops
   let privateBadge = 0
   let publicBadge = 0
 
@@ -23,9 +30,8 @@ const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: str
         you: u === username,
         broken: false
       }))
-    const sortName = users.map(u => u.username).join(',')
-    const path = `/keybase/${f.private ? 'private' : 'public'}/${sortName}`
 
+    const {sortName, path} = pathFromFolder({users, isPublic: !f.private})
     const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)
     const userAvatar = groupAvatar ? null : users[users.length - 1].username
     const meta = null
@@ -46,8 +52,11 @@ const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: str
       isPublic: !f.private,
       groupAvatar,
       userAvatar,
+      meta,
       onRekey: null,
-      meta
+      recentFiles: [],
+      waitingForParticipationUnlock: [],
+      youCanUnlock: []
     }
   }).sort((a, b) => {
     // New first
@@ -123,7 +132,7 @@ export function favoriteList (): (dispatch: Dispatch) => void {
           })
         }
 
-        const folderProps = folderToProps(dispatch, folders, currentUser)
+        const folderProps = folderToProps(folders, currentUser)
         const action: FavoriteList = {type: Constants.favoriteList, payload: {folders: folderProps}}
         dispatch(action)
         dispatch(badgeApp('newTLFs', !!(folderProps.publicBadge || folderProps.privateBadge)))
@@ -150,4 +159,8 @@ export function favoriteList (): (dispatch: Dispatch) => void {
     }
     engine.rpc(params)
   }
+}
+
+export function ignoreFolder (path: string) {
+  return () => console.log('TODO: implement ignore folder action')
 }

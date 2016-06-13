@@ -33,7 +33,9 @@ export type Props = {
   onBack: () => void,
   onTogglePopupMenu: () => void,
   recentFilesSection: Array<FileSection>,
+  recentFilesEnabled: boolean, // TODO (AW): remove when recentFiles feature is finished
   openCurrentFolder: () => void,
+  ignoreCurrentFolder: () => void,
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
   youCanUnlock: Array<UnlockDevice>
 }

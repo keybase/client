@@ -4,11 +4,16 @@ import Files from './files/render'
 import File from './files/file/render'
 import type {PropsOf} from '../constants/types/more'
 import type {Folder} from './list'
+import type {Props as FilesProps} from './files/render'
 import type {DumbComponentMap} from '../constants/types/more'
 import {globalStyles} from '../styles/style-guide'
+import {pathFromFolder} from '../actions/favorite'
 
-const f1: Folder = {
-  path: '/keybase/private/cecileb,jeresig,throughnothing,cdixon,bob,aliceb,lmorchard,chris,chris1,chris2,chris3,chris4,chris5,chris6,chris7,chris8,chris9,chris10,chris11,chris12,chris13',
+function createFolder (partialFolder: $Shape<Folder>) {
+  return {...partialFolder, path: pathFromFolder(partialFolder).path}
+}
+
+const f1: Folder = createFolder({
   users: [
     {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true},
@@ -35,14 +40,15 @@ const f1: Folder = {
   meta: 'new',
   ignored: false,
   isPublic: false,
-  isFirst: true,
   hasData: true,
   groupAvatar: true,
-  userAvatar: null
-}
+  userAvatar: null,
+  recentFiles: [],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: []
+})
 
-const f2: Folder = {
-  path: '/keybase/private/cecileb,jeresig,throughnothing',
+const f2: Folder = createFolder({
   users: [
     {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true},
@@ -54,14 +60,15 @@ const f2: Folder = {
   },
   ignored: false,
   isPublic: false,
-  isFirst: false,
   hasData: true,
   groupAvatar: true,
-  userAvatar: null
-}
+  userAvatar: null,
+  recentFiles: [],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: []
+})
 
-const f3: Folder = {
-  path: '/keybase/private/cecileb,bob',
+const f3: Folder = createFolder({
   users: [
     {username: 'cecileb', you: true},
     {username: 'bob'}
@@ -72,38 +79,42 @@ const f3: Folder = {
   },
   ignored: false,
   isPublic: false,
-  isFirst: false,
   hasData: true,
   groupAvatar: false,
-  userAvatar: 'bob'
-}
+  userAvatar: 'bob',
+  recentFiles: [],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: []
+})
 
-const f4: Folder = {
-  path: '/keybase/private/cecileb,jenbee',
+const f4: Folder = createFolder({
   users: [
     {username: 'cecileb', you: true},
     {username: 'jenbee'}
   ],
   ignored: false,
   isPublic: false,
-  isFirst: false,
   hasData: false,
   groupAvatar: false,
-  userAvatar: 'jenbee'
-}
+  userAvatar: 'jenbee',
+  recentFiles: [],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: []
+})
 
-const f5: Folder = {
-  path: '/keybase/private/cecileb',
+const f5: Folder = createFolder({
   users: [
     {username: 'cecileb', you: true}
   ],
   ignored: false,
   isPublic: false,
-  isFirst: false,
   hasData: true,
   groupAvatar: false,
-  userAvatar: 'cecileb'
-}
+  userAvatar: 'cecileb',
+  recentFiles: [],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: []
+})
 
 const f6: Folder = {
   path: '/keybase/private/cecileb,jenbeeb',
@@ -117,13 +128,15 @@ const f6: Folder = {
   isFirst: false,
   hasData: false,
   groupAvatar: false,
-  userAvatar: 'jenbee'
+  userAvatar: 'jenbee',
+  recentFiles: [],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: []
 }
 
 const tlfs: Array<Folder> = [f1, f2, f3, f4, f5, f6]
 
-const i1: Folder = {
-  path: '/keybase/private/cecileb,jeresig,cdixon',
+const i1: Folder = createFolder({
   users: [
     {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true},
@@ -131,25 +144,28 @@ const i1: Folder = {
   ],
   ignored: true,
   isPublic: false,
-  isFirst: true,
   hasData: true,
   groupAvatar: true,
-  userAvatar: null
-}
+  userAvatar: null,
+  recentFiles: [],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: []
+})
 
-const i2: Folder = {
-  path: '/keybase/private/cecileb,jeresig',
+const i2: Folder = createFolder({
   users: [
     {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true}
   ],
   ignored: true,
   isPublic: false,
-  isFirst: true,
   hasData: false,
   groupAvatar: false,
-  userAvatar: 'jeresig'
-}
+  userAvatar: 'jeresig',
+  recentFiles: [],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: []
+})
 
 const ignored: Array<Folder> = [i1, i2]
 
@@ -275,7 +291,7 @@ const filesMenuItems = [
   {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true}
 ]
 
-const commonFiles = isPrivate => ({
+const commonFiles = (isPrivate): FilesProps => ({ // eslint-disable-line arrow-parens
   theme: isPrivate ? 'private' : 'public',
   visiblePopupMenu: false,
   popupMenuItems: filesMenuItems,
@@ -287,11 +303,13 @@ const commonFiles = isPrivate => ({
   youCanUnlock: [],
   onBack: () => console.log('onBack:files'),
   openCurrentFolder: () => console.log('open current folder'),
+  ignoreCurrentFolder: () => console.log('ignore current folder'),
   onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
   recentFilesSection: [
     {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, isPrivate)},
     {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, isPrivate)}
-  ]
+  ],
+  recentFilesEnabled: true
 })
 
 const commonParticipant = {
@@ -354,6 +372,16 @@ export const files: DumbComponentMap<Files> = {
     'You can unlock - Private': {
       ...commonFiles(true),
       ...commonUnlock
+    },
+    'Recent Files Disabled - Private': {
+      ...commonFiles(true),
+      recentFilesSection: undefined,
+      recentFilesEnabled: false
+    },
+    'Recent Files Disabled - Public': {
+      ...commonFiles(false),
+      recentFilesSection: undefined,
+      recentFilesEnabled: false
     }
   }
 }
