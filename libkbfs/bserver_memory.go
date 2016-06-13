@@ -109,7 +109,7 @@ type blockMemEntry struct {
 // BlockServerMemory implements the BlockServer interface by just
 // storing blocks in memory.
 type BlockServerMemory struct {
-	crypto Crypto
+	crypto cryptoPure
 	log    logger.Logger
 
 	lock sync.RWMutex
@@ -164,7 +164,7 @@ func (b *BlockServerMemory) Get(ctx context.Context, id BlockID, tlfID TlfID,
 }
 
 func validateBlockServerPut(
-	crypto Crypto, id BlockID, context BlockContext, buf []byte) error {
+	crypto cryptoPure, id BlockID, context BlockContext, buf []byte) error {
 	if context.GetCreator() != context.GetWriter() {
 		return fmt.Errorf("Can't Put() a block with creator=%s != writer=%s",
 			context.GetCreator(), context.GetWriter())

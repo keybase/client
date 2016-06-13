@@ -42,7 +42,7 @@ import (
 // dir/01ff/f...ff/refs/ffffffffffffffff
 type bserverTlfStorage struct {
 	codec  Codec
-	crypto Crypto
+	crypto cryptoPure
 	dir    string
 
 	// Protects any IO operations in dir or any of its children,
@@ -52,7 +52,7 @@ type bserverTlfStorage struct {
 }
 
 func makeBserverTlfStorage(
-	codec Codec, crypto Crypto, dir string) *bserverTlfStorage {
+	codec Codec, crypto cryptoPure, dir string) *bserverTlfStorage {
 	return &bserverTlfStorage{codec: codec, crypto: crypto, dir: dir}
 }
 

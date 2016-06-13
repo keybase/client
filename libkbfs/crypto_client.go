@@ -33,8 +33,9 @@ var _ rpc.ConnectionHandler = (*CryptoClient)(nil)
 
 // NewCryptoClient constructs a new CryptoClient.
 func NewCryptoClient(config Config, kbCtx *libkb.GlobalContext) *CryptoClient {
+	log := config.MakeLogger("")
 	c := &CryptoClient{
-		CryptoCommon: MakeCryptoCommon(config),
+		CryptoCommon: MakeCryptoCommon(config.Codec(), log),
 		config:       config,
 	}
 	conn := NewSharedKeybaseConnection(kbCtx, config, c)
@@ -45,8 +46,9 @@ func NewCryptoClient(config Config, kbCtx *libkb.GlobalContext) *CryptoClient {
 
 // newCryptoClientWithClient should only be used for testing.
 func newCryptoClientWithClient(config Config, client rpc.GenericClient) *CryptoClient {
+	log := config.MakeLogger("")
 	return &CryptoClient{
-		CryptoCommon: MakeCryptoCommon(config),
+		CryptoCommon: MakeCryptoCommon(config.Codec(), log),
 		client:       keybase1.CryptoClient{Cli: client},
 	}
 }

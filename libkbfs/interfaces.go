@@ -540,8 +540,9 @@ type DirtyBlockCache interface {
 	DirtyBytesEstimate() uint64
 }
 
-// Crypto signs, verifies, encrypts, and decrypts stuff.
-type Crypto interface {
+// cryptoPure contains all methods of Crypto that don't depend on
+// implicit state, i.e. they're pure functions of the input.
+type cryptoPure interface {
 	// MakeRandomTlfID generates a dir ID using a CSPRNG.
 	MakeRandomTlfID(isPublic bool) (TlfID, error)
 
@@ -594,11 +595,6 @@ type Crypto interface {
 	UnmaskBlockCryptKey(serverHalf BlockCryptKeyServerHalf,
 		tlfCryptKey TLFCryptKey) (BlockCryptKey, error)
 
-	// Sign signs the msg with the current device's private key.
-	Sign(ctx context.Context, msg []byte) (sigInfo SignatureInfo, err error)
-	// Sign signs the msg with the current device's private key and output
-	// the full serialized NaclSigInfo.
-	SignToString(ctx context.Context, msg []byte) (signature string, err error)
 	// Verify verifies that sig matches msg being signed with the
 	// private key that corresponds to verifyingKey.
 	Verify(msg []byte, sigInfo SignatureInfo) error
@@ -608,32 +604,6 @@ type Crypto interface {
 	EncryptTLFCryptKeyClientHalf(privateKey TLFEphemeralPrivateKey,
 		publicKey CryptPublicKey, clientHalf TLFCryptKeyClientHalf) (
 		EncryptedTLFCryptKeyClientHalf, error)
-
-	// DecryptTLFCryptKeyClientHalf decrypts a TLFCryptKeyClientHalf
-	// using the current device's private key and the TLF's ephemeral
-	// public key.
-	DecryptTLFCryptKeyClientHalf(ctx context.Context,
-		publicKey TLFEphemeralPublicKey,
-		encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
-		TLFCryptKeyClientHalf, error)
-
-	// DecryptTLFCryptKeyClientHalfAny decrypts one of the
-	// TLFCryptKeyClientHalf using the available private keys and the
-	// ephemeral public key.  If promptPaper is true, the service will
-	// prompt the user for any unlocked paper keys.
-	DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
-		keys []EncryptedTLFCryptKeyClientAndEphemeral, promptPaper bool) (
-		TLFCryptKeyClientHalf, int, error)
-
-	// GetTLFCryptKeyServerHalfID creates a unique ID for this particular
-	// TLFCryptKeyServerHalf.
-	GetTLFCryptKeyServerHalfID(
-		user keybase1.UID, deviceKID keybase1.KID,
-		serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error)
-
-	// VerifyTLFCryptKeyServerHalfID verifies the ID is the proper HMAC result.
-	VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID, user keybase1.UID,
-		deviceKID keybase1.KID, serverHalf TLFCryptKeyServerHalf) error
 
 	// EncryptPrivateMetadata encrypts a PrivateMetadata object.
 	EncryptPrivateMetadata(pmd *PrivateMetadata, key TLFCryptKey) (EncryptedPrivateMetadata, error)
@@ -651,6 +621,16 @@ type Crypto interface {
 	// block) <= len(encryptedBlock).
 	DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey, block Block) error
 
+	// GetTLFCryptKeyServerHalfID creates a unique ID for this particular
+	// TLFCryptKeyServerHalf.
+	GetTLFCryptKeyServerHalfID(
+		user keybase1.UID, deviceKID keybase1.KID,
+		serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error)
+
+	// VerifyTLFCryptKeyServerHalfID verifies the ID is the proper HMAC result.
+	VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID, user keybase1.UID,
+		deviceKID keybase1.KID, serverHalf TLFCryptKeyServerHalf) error
+
 	// EncryptMerkleLeaf encrypts a Merkle leaf node with the TLFPublicKey.
 	EncryptMerkleLeaf(leaf MerkleLeaf, pubKey TLFPublicKey, nonce *[24]byte,
 		ePrivKey TLFEphemeralPrivateKey) (EncryptedMerkleLeaf, error)
@@ -658,6 +638,32 @@ type Crypto interface {
 	// DecryptMerkleLeaf decrypts a Merkle leaf node with the TLFPrivateKey.
 	DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf, privKey TLFPrivateKey,
 		nonce *[24]byte, ePubKey TLFEphemeralPublicKey) (*MerkleLeaf, error)
+}
+
+// Crypto signs, verifies, encrypts, and decrypts stuff.
+type Crypto interface {
+	cryptoPure
+
+	// Sign signs the msg with the current device's private key.
+	Sign(ctx context.Context, msg []byte) (sigInfo SignatureInfo, err error)
+	// Sign signs the msg with the current device's private key and output
+	// the full serialized NaclSigInfo.
+	SignToString(ctx context.Context, msg []byte) (signature string, err error)
+	// DecryptTLFCryptKeyClientHalf decrypts a TLFCryptKeyClientHalf
+	// using the current device's private key and the TLF's ephemeral
+	// public key.
+	DecryptTLFCryptKeyClientHalf(ctx context.Context,
+		publicKey TLFEphemeralPublicKey,
+		encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
+		TLFCryptKeyClientHalf, error)
+
+	// DecryptTLFCryptKeyClientHalfAny decrypts one of the
+	// TLFCryptKeyClientHalf using the available private keys and the
+	// ephemeral public key.  If promptPaper is true, the service will
+	// prompt the user for any unlocked paper keys.
+	DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
+		keys []EncryptedTLFCryptKeyClientAndEphemeral, promptPaper bool) (
+		TLFCryptKeyClientHalf, int, error)
 
 	// Shutdown frees any resources associated with this instance.
 	Shutdown()
