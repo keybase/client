@@ -43,18 +43,20 @@ func (c *CmdRekeyStatus) Run() error {
 		return err
 	}
 
+	t := c.G().UI.GetTerminalUI()
+
 	if len(pset.ProblemSet.Tlfs) == 0 {
-		GlobUI.Println("No TLFs need rekeying.")
+		t.Printf("No TLFs need rekeying.\n")
 		return nil
 	}
 
-	GlobUI.Println("TLFs need rekeying:")
+	t.Printf("TLFs need rekeying:\n")
 	for _, f := range pset.ProblemSet.Tlfs {
-		GlobUI.Println(f.Tlf.Name)
+		t.Printf(f.Tlf.Name + "\n")
 	}
-	GlobUI.Printf("\nDevices that can rekey:\n")
+	t.Printf("\nDevices that can rekey:\n")
 	for _, d := range pset.Devices {
-		GlobUI.Printf("%s\t%s\n", d.Type, d.Name)
+		t.Printf("%s\t%s\n", d.Type, d.Name)
 	}
 	return nil
 }
