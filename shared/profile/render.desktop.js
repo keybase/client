@@ -25,6 +25,7 @@ class Render extends Component<void, Props, void> {
             username={this.props.username}
             userInfo={this.props.userInfo}
             currentlyFollowing={this.props.currentlyFollowing}
+            trackerState={this.props.trackerState}
           />
           <UserProofs
             username={this.props.username}

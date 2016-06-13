@@ -59,6 +59,7 @@ export function trackerPropsToRenderProps (props: TrackerProps): RenderPropsUnsh
     bioProps: {
       username: props.username,
       userInfo: props.userInfo,
+      trackerState: props.trackerState,
       currentlyFollowing
     },
     headerProps: {

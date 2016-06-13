@@ -36,6 +36,7 @@ const propsBase: RenderProps = {
   ...userBase,
   proofs: proofsDefault,
   currentlyFollowing: false,
+  trackerState: normal,
   onFollow: () => {},
   onUnfollow: () => {}
 }

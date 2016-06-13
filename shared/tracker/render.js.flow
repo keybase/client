@@ -2,6 +2,7 @@
 
 import {Component} from 'react'
 
+import type {SimpleProofState} from '../constants/tracker'
 import type {UserInfo} from '../common-adapters/user-bio'
 import type {Props as ProofsProps} from '../common-adapters/user-proofs'
 import type {ActionProps} from './action.render'
@@ -14,6 +15,7 @@ export type RenderPropsUnshaped = {
     // refactor of the tracker UI.
     username: ?string,
     userInfo: ?UserInfo,
+    trackerState: SimpleProofState,
     currentlyFollowing: boolean
   },
   actionProps: ActionProps,

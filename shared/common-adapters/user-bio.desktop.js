@@ -2,6 +2,7 @@
 
 import React, {Component} from 'react'
 import {Text, Avatar} from '../common-adapters'
+import {error as proofError} from '../constants/tracker'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import electron from 'electron'
 
@@ -40,13 +41,20 @@ export default class BioRender extends Component {
   }
 
   render () {
-    const {avatarSize, username, userInfo, currentlyFollowing} = this.props
+    const {avatarSize, username, userInfo, currentlyFollowing, trackerState} = this.props
     if (!userInfo) {
       return null
     }
 
     const followsYou = userInfo.followsYou
     const followLabel = this._followLabel()
+
+    let stylesUsernameState
+    if (trackerState === proofError) {
+      stylesUsernameState = stylesUsernameError
+    } else {
+      stylesUsernameState = currentlyFollowing ? stylesUsernameFollowing : stylesUsernameNotFollowing
+    }
 
     return (
       <div style={this.props.style}>
@@ -61,7 +69,7 @@ export default class BioRender extends Component {
           <div style={stylesContent}>
             <Text
               type='HeaderBig'
-              style={{...stylesUsername, ...(currentlyFollowing ? stylesUsernameFollowing : stylesUsernameNotFollowing)}}
+              style={{...stylesUsername, ...stylesUsernameState}}
               onClick={() => this._onClickAvatar()}>
               {username}
             </Text>
@@ -120,6 +128,9 @@ const stylesUsernameFollowing = {
 }
 const stylesUsernameNotFollowing = {
   color: globalColors.orange
+}
+const stylesUsernameError = {
+  color: globalColors.red
 }
 const stylesFullname = {
   ...globalStyles.selectable,

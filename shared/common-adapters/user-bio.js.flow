@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {AvatarSize} from './avatar'
+import type {SimpleProofState} from '../constants/tracker'
 
 export type UserInfo = {
   fullname: string,
@@ -17,6 +18,7 @@ export type Props = {
   style?: Object,
   username: ?string,
   userInfo: ?UserInfo,
+  trackerState: SimpleProofState,
   currentlyFollowing: boolean
 }
 
