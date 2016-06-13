@@ -21,9 +21,9 @@ const userEntryContainerStyle = {
   ...globalStyles.clickable,
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  justifyContent: 'center',
+  justifyContent: 'flex-start',
   width: 130,
-  height: 130
+  padding: '10px 5px'
 }
 
 const userEntryAvatarStyle = {
@@ -31,11 +31,13 @@ const userEntryAvatarStyle = {
 }
 
 const userEntryUsernameStyle = followsYou => ({
-  color: followsYou ? globalColors.green : globalColors.blue
+  color: followsYou ? globalColors.green : globalColors.blue,
+  textAlign: 'center'
 })
 
 const userEntryFullnameStyle = {
-  color: globalColors.black_40
+  color: globalColors.black_40,
+  textAlign: 'center'
 }
 
 class Render extends Component<void, Props, void> {
