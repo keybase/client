@@ -11,7 +11,7 @@ class Search extends Component<void, Props, void> {
   render () {
     return (
       <Render
-        showComingSoon={!flags.searchEnabled}
+        showComingSoon={/*!flags.searchEnabled*/false}
         searchHintText={this.props.searchHintText}
         onSearch={this.props.onSearch}
         searchText={this.props.searchText}
@@ -19,6 +19,12 @@ class Search extends Component<void, Props, void> {
         results={this.props.results}
         />
     )
+  }
+
+  static parseRoute () {
+    return {
+      componentAtTop: {title: 'Search'}
+    }
   }
 }
 
@@ -31,4 +37,4 @@ export default connect(
   }),
   dispatch => (bindActionCreators({
     onSearch: search
-  })))(Search)
+  }, dispatch)))(Search)

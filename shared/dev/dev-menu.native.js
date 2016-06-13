@@ -3,7 +3,6 @@ import {connect} from 'react-redux'
 import {routeAppend} from '../actions/router'
 import {pushNewProfile} from '../actions/profile'
 import {switchTab} from '../actions/tabbed-router'
-import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
 import MenuList from '../settings/menu-list'
@@ -11,6 +10,7 @@ import MenuList from '../settings/menu-list'
 import {loginTab} from '../constants/tabs'
 import engine from '../engine'
 
+import search from '../search'
 import developer from './developer'
 import login from '../login'
 import components from './component-sheet'
@@ -37,7 +37,7 @@ class DevMenu extends Component {
         this.props.routeAppend('developer')
       }},
       {name: 'Search', hasChildren: true, onClick: () => {
-        this.props.pushNewSearch()
+        this.props.routeAppend('search')
       }},
       {name: 'Profile', hasChildren: true, onClick: () => {
         this.props.pushNewProfile('test12')
@@ -60,18 +60,9 @@ class DevMenu extends Component {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Dev Menu'},
-      subRoutes: {developer, login, components, styleSheet, dumbSheet}
+      subRoutes: {developer, login, components, styleSheet, dumbSheet, search}
     }
   }
-}
-
-DevMenu.propTypes = {
-  routeAppend: React.PropTypes.func.isRequired,
-  logout: React.PropTypes.func.isRequired,
-  pushNewSearch: React.PropTypes.func.isRequired,
-  pushNewProfile: React.PropTypes.func.isRequired,
-  showTrackerListener: React.PropTypes.func.isRequired,
-  switchTab: React.PropTypes.func.isRequired
 }
 
 export default connect(
@@ -81,7 +72,6 @@ export default connect(
       routeAppend: uri => dispatch(routeAppend(uri)),
       switchTab: tabName => dispatch(switchTab(tabName)),
       logout: () => dispatch(logout()),
-      pushNewSearch: () => dispatch(pushNewSearch()),
       pushNewProfile: username => dispatch(pushNewProfile(username)),
       showTrackerListener: username => dispatch(pushDebugTracker(username))
     }

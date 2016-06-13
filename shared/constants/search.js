@@ -37,3 +37,4 @@ export const results = 'search:results'
 export type Results = TypedAction<'search:results', {term: string, results: Array<SearchResult>}, void>
 
 export type SearchActions = Search | Results
+export type SearchPlatforms = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Coinbase' | 'Hackernews'
