@@ -33,9 +33,7 @@ class SimpleTabBarButton extends Component<void, SimpleTabBarButtonProps, void> 
     return (
       <Box
         style={{
-          [borderLocation]: this.props.selected
-            ? `solid 2px ${selectedColor}`
-            : 'solid 2px transparent',
+          [borderLocation]: `solid 2px ${this.props.selected ? selectedColor : 'transparent'}`,
           padding: '4px 12px',
           ...this.props.styleContainer
         }}>

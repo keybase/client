@@ -9,24 +9,13 @@ type UserEntryProps = UserInfo & {
   onClick?: (username: string) => void
 };
 
-class RenderUserEntry extends Component<void, UserEntryProps, void> {
-  render () {
-    return (
-      <Box
-        style={userEntryContainerStyle}
-        onClick={() => { this.props.onClick && this.props.onClick(this.props.username) }}>
-        <Avatar
-          style={userEntryAvatarStyle}
-          size={48}
-          username={this.props.username}
-          followsYou={this.props.followsYou}
-          following={this.props.following} />
-        <Text type='BodySmall' style={userEntryUsernameStyle(this.props.followsYou)}>{this.props.username}</Text>
-        <Text type='BodySmall' style={userEntryFullnameStyle}>{this.props.fullname}</Text>
-      </Box>
-    )
-  }
-}
+const UserEntry = ({onClick, username, followsYou, following, fullname}: UserEntryProps) => (
+  <Box style={userEntryContainerStyle} onClick={() => { onClick && onClick(username) }}>
+    <Avatar style={userEntryAvatarStyle} size={48} username={username} followsYou={followsYou} following={following} />
+    <Text type='BodySmall' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
+    <Text type='BodySmall' style={userEntryFullnameStyle}>{fullname}</Text>
+  </Box>
+)
 
 const userEntryContainerStyle = {
   ...globalStyles.clickable,
@@ -52,26 +41,24 @@ const userEntryFullnameStyle = {
 class Render extends Component<void, Props, void> {
   render () {
     return (
-      <Box>
-        <TabBar>
-          <TabBarItem
-            selected={this.props.currentTab === 'FOLLOWERS'}
-            label={`FOLLOWERS (${this.props.followers.length})`}
-            onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('FOLLOWERS') }}>
-            <Box style={tabItemContainerStyle}>
-              {this.props.followers.map(user => <RenderUserEntry key={user.username} {...user} />)}
-            </Box>
-          </TabBarItem>
-          <TabBarItem
-            selected={this.props.currentTab === 'FOLLOWING'}
-            label={`FOLLOWING (${this.props.following.length})`}
-            onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('FOLLOWING') }}>
-            <Box style={tabItemContainerStyle}>
-              {this.props.following.map(user => <RenderUserEntry key={user.username} {...user} />)}
-            </Box>
-          </TabBarItem>
-        </TabBar>
-      </Box>
+      <TabBar>
+        <TabBarItem
+          selected={this.props.currentTab === 'FOLLOWERS'}
+          label={`FOLLOWERS (${this.props.followers.length})`}
+          onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('FOLLOWERS') }}>
+          <Box style={tabItemContainerStyle}>
+            {this.props.followers.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />)}
+          </Box>
+        </TabBarItem>
+        <TabBarItem
+          selected={this.props.currentTab === 'FOLLOWING'}
+          label={`FOLLOWING (${this.props.following.length})`}
+          onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('FOLLOWING') }}>
+          <Box style={tabItemContainerStyle}>
+            {this.props.following.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />)}
+          </Box>
+        </TabBarItem>
+      </TabBar>
     )
   }
 }
