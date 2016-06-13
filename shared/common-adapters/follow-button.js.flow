@@ -1,0 +1,13 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type Props = {
+  following?: boolean,
+  waiting?: boolean,
+  style?: Object,
+  onFollow?: () => void,
+  onUnfollow?: () => void
+}
+
+declare export default class FollowButton extends Component<void, Props, void> {}

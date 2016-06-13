@@ -118,6 +118,8 @@ class Button extends Component {
       <div style={outerStyle}>
         <FlatButton
           onClick={this.props.onClick}
+          onMouseEnter={this.props.onMouseEnter}
+          onMouseLeave={this.props.onMouseLeave}
           style={{...backgroundStyle, ...smallStyle, ...this.props.style}}
           labelStyle={{...stylesButtonLabel, ...labelStyle, ...this.props.labelStyle}}
           {...rippleStyle}
@@ -179,6 +181,9 @@ const stylesButtonFollowing = {
 const stylesButtonUnfollow = {
   ...buttonCommon,
   backgroundColor: globalColors.blue,
+  // mimic border width from following state to work around animation jitter during FollowButton hover transition
+  border: `solid 2px ${globalColors.blue}`,
+  lineHeight: '28px',
   disabledOpacity: 0.2,
   marginRight: 10,
   minWidth: 125
