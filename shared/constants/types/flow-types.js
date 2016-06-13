@@ -207,7 +207,12 @@ export type ExitCode =
 export type ExtendedStatus = {
   standalone: boolean;
   passphraseStreamCached: boolean;
-  lksecLoaded: boolean;
+  deviceSigKeyCached: boolean;
+  deviceEncKeyCached: boolean;
+  paperSigKeyCached: boolean;
+  paperEncKeyCached: boolean;
+  storedSecret: boolean;
+  secretPromptSkip: boolean;
   device?: ?Device;
   logDir: string;
   session?: ?SessionStatus;

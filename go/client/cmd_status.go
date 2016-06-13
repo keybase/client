@@ -52,9 +52,14 @@ type fstatus struct {
 	UserID                 string
 	Device                 *keybase1.Device
 	LoggedInProvisioned    bool `json:"LoggedIn"`
-	PassphraseStreamCached bool `json:"KeychainUnlocked"`
-	LKSecLoaded            bool `json:"LocalKeySecurityLoaded"`
-	SessionIsValid         bool `json:"SessionIsValid"`
+	PassphraseStreamCached bool
+	DeviceSigKeyCached     bool
+	DeviceEncKeyCached     bool
+	PaperSigKeyCached      bool
+	PaperEncKeyCached      bool
+	StoredSecret           bool
+	SecretPromptSkip       bool
+	SessionIsValid         bool
 	SessionStatus          string
 	ConfigPath             string
 
@@ -155,7 +160,12 @@ func (c *CmdStatus) load() (*fstatus, error) {
 
 	status.SessionStatus = c.sessionStatus(extStatus.Session)
 	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
-	status.LKSecLoaded = extStatus.LksecLoaded
+	status.DeviceSigKeyCached = extStatus.DeviceSigKeyCached
+	status.DeviceEncKeyCached = extStatus.DeviceEncKeyCached
+	status.PaperSigKeyCached = extStatus.PaperSigKeyCached
+	status.PaperEncKeyCached = extStatus.PaperEncKeyCached
+	status.StoredSecret = extStatus.StoredSecret
+	status.SecretPromptSkip = extStatus.SecretPromptSkip
 
 	if kbfs := getFirstClient(extStatus.Clients, keybase1.ClientType_KBFS); kbfs != nil {
 		status.KBFS.Version = kbfs.Version
@@ -221,8 +231,33 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	}
 	dui.Printf("Session:       %s\n", status.SessionStatus)
 	dui.Printf("    is valid:  %s\n", BoolString(status.SessionIsValid, "yes", "no"))
-	dui.Printf("    keys:      %s\n", BoolString(status.PassphraseStreamCached, "unlocked", "locked"))
-	dui.Printf("    lksec:     %s\n", BoolString(status.LKSecLoaded, "loaded", "not loaded"))
+
+	var deviceKeysLockStatus string
+	switch {
+	case status.PassphraseStreamCached:
+		deviceKeysLockStatus = "unlocked"
+	case status.DeviceSigKeyCached && status.DeviceEncKeyCached:
+		deviceKeysLockStatus = "unlocked"
+	case status.StoredSecret:
+		deviceKeysLockStatus = "unlockable via stored secret"
+	case status.DeviceSigKeyCached:
+		deviceKeysLockStatus = "signing only"
+	case status.DeviceEncKeyCached:
+		deviceKeysLockStatus = "encryption only"
+	default:
+		deviceKeysLockStatus = "locked"
+	}
+	dui.Printf("    keys:      %s\n", deviceKeysLockStatus)
+
+	dui.Printf("\nKey status:\n")
+	dui.Printf("    stream:    %s\n", BoolString(status.PassphraseStreamCached, "cached", "not cached"))
+	dui.Printf("    secret:    %s\n", BoolString(status.StoredSecret, "stored", "not stored"))
+	dui.Printf("    dev sig:   %s\n", BoolString(status.DeviceSigKeyCached, "cached", "not cached"))
+	dui.Printf("    dev enc:   %s\n", BoolString(status.DeviceEncKeyCached, "cached", "not cached"))
+	dui.Printf("    paper sig: %s\n", BoolString(status.PaperSigKeyCached, "cached", "not cached"))
+	dui.Printf("    paper enc: %s\n", BoolString(status.PaperEncKeyCached, "cached", "not cached"))
+	dui.Printf("    prompt:    %s\n", BoolString(status.SecretPromptSkip, "skip", "show"))
+
 	dui.Printf("\nKBFS:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.KBFS.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.KBFS.Version)

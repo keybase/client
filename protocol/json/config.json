@@ -497,7 +497,27 @@
         },
         {
           "type": "boolean",
-          "name": "lksecLoaded"
+          "name": "deviceSigKeyCached"
+        },
+        {
+          "type": "boolean",
+          "name": "deviceEncKeyCached"
+        },
+        {
+          "type": "boolean",
+          "name": "paperSigKeyCached"
+        },
+        {
+          "type": "boolean",
+          "name": "paperEncKeyCached"
+        },
+        {
+          "type": "boolean",
+          "name": "storedSecret"
+        },
+        {
+          "type": "boolean",
+          "name": "secretPromptSkip"
         },
         {
           "type": [

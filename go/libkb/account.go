@@ -50,7 +50,7 @@ type Account struct {
 	skbKeyring   *SKBKeyringFile
 	secSigKey    GenericKey // cached secret signing key
 	secEncKey    GenericKey // cached secret encryption key
-	lksec        *LKSec     // local key security
+	lksec        *LKSec     // local key security (this member not currently used)
 
 	paperSigKey *timedGenericKey // cached, unlocked paper signing key
 	paperEncKey *timedGenericKey // cached, unlocked paper encryption key
@@ -256,6 +256,8 @@ func (a *Account) LKSec() *LKSec {
 	return a.lksec
 }
 
+// LKSecUnlock isn't used, but it could be.  It's here for a future
+// refactoring of the key unlock mess.
 func (a *Account) LKSecUnlock(locked []byte) ([]byte, PassphraseGeneration, error) {
 	if a.lksec == nil {
 		return nil, 0, errors.New("LKSecUnlock: no lksec in account")
