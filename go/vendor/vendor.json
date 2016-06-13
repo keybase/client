@@ -128,6 +128,11 @@
 			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
+			"path": "github.com/keybase/go-crypto/cast5",
+			"revision": "15e69f9c18a2e63cf7fc25a2d2ff643330616d2b",
+			"revisionTime": "2016-04-25T17:22:39-04:00"
+		},
+		{
 			"path": "github.com/keybase/go-crypto/openpgp",
 			"revision": "24795fd7db28eb65a498ff3cb0ce21ab59702c53",
 			"revisionTime": "2016-06-10T21:37:45-04:00"
