@@ -2,12 +2,13 @@
 
 import React, {Component} from 'react'
 
-import type {Props as IconProps} from '../../common-adapters/icon'
+import type {IconType} from '../../common-adapters/icon'
 
 export type ExtraInfo = {
   service: 'external',
-  icon: IconProps.type,
+  icon: IconType,
   serviceUsername: string, // i.e. with twitter it would be malgorithms
+  serviceAvatar: ?string, // i.e. with twitter it would be their twitter avatar url
   fullNameOnService: ?string // Say with twitter we know malgorithms is "Chris Coyne"
 } | {
   service: 'keybase',
@@ -26,7 +27,7 @@ export type SearchResult = {
   extraInfo: ExtraInfo
 } | {
   service: 'external',
-  icon: IconProps.type,
+  icon: IconType,
   username: string,
   extraInfo: ExtraInfo
 }
@@ -34,7 +35,7 @@ export type SearchResult = {
 export type Props = {
   searchHintText: string,
   searchText: ?string,
-  searchIcon: IconProps.type,
+  searchIcon: IconType,
   results: Array<SearchResult>
 }
 

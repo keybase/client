@@ -41,6 +41,7 @@ function KeybaseExtraInfo ({username, fullName, isFollowing, searchText}) {
   )
 }
 
+// TODO(MM) use serviceAvatar
 function ExternalExtraInfo ({serviceUsername, fullNameOnService, icon, searchText}) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end'}}>

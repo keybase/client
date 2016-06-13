@@ -1,0 +1,20 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+import type {SearchResult} from './render'
+import type {IconType} from '../../common-adapters/icon'
+
+
+export type Props = {
+  users: Array<SearchResult>,
+  onRemoveUser: (user: SearchResult) => void,
+  onAddUser: () => void,
+  onOpenPrivateGroupFolder: () => void,
+  onOpenPublicGroupFolder: () => void,
+  onGroupChat: () => void,
+  chatEnabled: boolean
+}
+
+export default class Render extends Component<void, Props, void> { }
+

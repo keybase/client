@@ -28,6 +28,7 @@ class Render extends Component<void, any, any> {
   render () {
     const components = []
     const componentsOnly = []
+    const parentPropsOnly = []
 
     Object.keys(dumbComponentMap).forEach(key => {
       if (this.state.filter && key.toLowerCase().indexOf(this.state.filter) === -1) {
@@ -50,6 +51,7 @@ class Render extends Component<void, any, any> {
           </Box>
         )
         componentsOnly.push(<Component key={mockKey} {...mock} />)
+        parentPropsOnly.push(parentProps)
       })
     })
 
@@ -57,7 +59,7 @@ class Render extends Component<void, any, any> {
 
     if (dumbFullscreen) {
       return (
-        <Box style={{flex: 1}}>
+        <Box style={{flex: 1}} {...parentPropsOnly[this.state.index % components.length]}>
           {componentsOnly[this.state.index % components.length]}
         </Box>
       )
