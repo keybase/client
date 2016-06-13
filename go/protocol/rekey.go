@@ -55,10 +55,7 @@ type GetPendingRekeyStatusArg struct {
 }
 
 type DebugShowRekeyStatusArg struct {
-	SessionID int     `codec:"sessionID" json:"sessionID"`
-	Tlfs      []TLFID `codec:"tlfs" json:"tlfs"`
-	User      *UID    `codec:"user,omitempty" json:"user,omitempty"`
-	Kid       *KID    `codec:"kid,omitempty" json:"kid,omitempty"`
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type RekeyStatusFinishArg struct {
@@ -71,10 +68,9 @@ type RekeyInterface interface {
 	ShowPendingRekeyStatus(context.Context, int) error
 	// GetPendingRekeyStatus returns the pending ProblemSetDevices.
 	GetPendingRekeyStatus(context.Context, int) (ProblemSetDevices, error)
-	// ShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for the given user based on
-	// the passed-in parameters. These are the parameters that are typically delivered via direct
-	// gregor injection. Will be used primarily in debugging or in advanced command-line usage.
-	DebugShowRekeyStatus(context.Context, DebugShowRekeyStatusArg) error
+	// DebugShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for
+	// the current user.
+	DebugShowRekeyStatus(context.Context, int) error
 	// rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
 	// can be Fixed or Ignored.
 	RekeyStatusFinish(context.Context, int) (Outcome, error)
@@ -127,7 +123,7 @@ func RekeyProtocol(i RekeyInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]DebugShowRekeyStatusArg)(nil), args)
 						return
 					}
-					err = i.DebugShowRekeyStatus(ctx, (*typedArgs)[0])
+					err = i.DebugShowRekeyStatus(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -171,10 +167,10 @@ func (c RekeyClient) GetPendingRekeyStatus(ctx context.Context, sessionID int) (
 	return
 }
 
-// ShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for the given user based on
-// the passed-in parameters. These are the parameters that are typically delivered via direct
-// gregor injection. Will be used primarily in debugging or in advanced command-line usage.
-func (c RekeyClient) DebugShowRekeyStatus(ctx context.Context, __arg DebugShowRekeyStatusArg) (err error) {
+// DebugShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for
+// the current user.
+func (c RekeyClient) DebugShowRekeyStatus(ctx context.Context, sessionID int) (err error) {
+	__arg := DebugShowRekeyStatusArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.rekey.debugShowRekeyStatus", []interface{}{__arg}, nil)
 	return
 }

@@ -6,6 +6,8 @@
 package client
 
 import (
+	"golang.org/x/net/context"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -34,7 +36,11 @@ func (c *CmdRekeyTrigger) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdRekeyTrigger) Run() error {
-	return nil
+	cli, err := GetRekeyClient()
+	if err != nil {
+		return err
+	}
+	return cli.DebugShowRekeyStatus(context.Background(), 0)
 }
 
 func (c *CmdRekeyTrigger) GetUsage() libkb.Usage {

@@ -55,11 +55,10 @@ protocol rekey {
   ProblemSetDevices getPendingRekeyStatus(int sessionID);
 
   /**
-   ShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for the given user based on
-   the passed-in parameters. These are the parameters that are typically delivered via direct
-   gregor injection. Will be used primarily in debugging or in advanced command-line usage.
+   DebugShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for 
+   the current user.
    */
-  void debugShowRekeyStatus(int sessionID, array<TLFID> tlfs, union { null, UID } user, union { null, KID } kid);
+  void debugShowRekeyStatus(int sessionID);
 
   /**
    rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome

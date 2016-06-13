@@ -2903,11 +2903,6 @@ export type rekeyDebugShowRekeyStatusResult = void
 
 export type rekeyDebugShowRekeyStatusRpc = {
   method: 'rekey.debugShowRekeyStatus',
-  param: {
-    tlfs: Array<TLFID>,
-    user: (null | UID),
-    kid: (null | KID)
-  },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
@@ -5212,10 +5207,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.rekey.debugShowRekeyStatus'?: (
     params: {
-      sessionID: int,
-      tlfs: Array<TLFID>,
-      user: (null | UID),
-      kid: (null | KID)
+      sessionID: int
     },
     response: {
       error: (err: RPCError) => void,
