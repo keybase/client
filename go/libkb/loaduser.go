@@ -248,7 +248,7 @@ func loadUser(g *GlobalContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, fo
 	var ret *User
 	if !loadRemote && !force {
 		ret = local
-	} else if ret, err = loadUserFromServer(g, uid, resolveBody); err != nil {
+	} else if ret, err = LoadUserFromServer(g, uid, resolveBody); err != nil {
 		return nil, refresh, err
 	}
 
@@ -288,7 +288,7 @@ func loadUserFromLocalStorage(g *GlobalContext, uid keybase1.UID) (u *User, err 
 	return
 }
 
-func loadUserFromServer(g *GlobalContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
+func LoadUserFromServer(g *GlobalContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
 	g.Log.Debug("+ Load User from server: %s", uid)
 
 	// Res.body might already have been preloaded a a result of a Resolve call earlier.

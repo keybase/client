@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
 
@@ -126,6 +127,21 @@ func (h *UserHandler) LoadPublicKeys(_ context.Context, arg keybase1.LoadPublicK
 	var publicKeys []keybase1.PublicKey
 	if u.GetComputedKeyFamily() != nil {
 		publicKeys = u.GetComputedKeyFamily().Export()
+	}
+	return publicKeys, nil
+}
+
+func (h *UserHandler) LoadAllPublicKeysUnverified(_ context.Context,
+	arg keybase1.LoadAllPublicKeysUnverifiedArg) (keys []keybase1.PublicKey, err error) {
+
+	body := &jsonw.Wrapper{}
+	u, err := libkb.LoadUserFromServer(h.G(), arg.Uid, body)
+	if err != nil {
+		return
+	}
+	var publicKeys []keybase1.PublicKey
+	if u.GetKeyFamily() != nil {
+		publicKeys = u.GetKeyFamily().Export()
 	}
 	return publicKeys, nil
 }

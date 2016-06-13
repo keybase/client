@@ -3415,6 +3415,17 @@ export type userListTrackingRpc = {
   callback: (null | (err: ?any, response: userListTrackingResult) => void)
 }
 
+export type userLoadAllPublicKeysUnverifiedResult = Array<PublicKey>
+
+export type userLoadAllPublicKeysUnverifiedRpc = {
+  method: 'user.loadAllPublicKeysUnverified',
+  param: {
+    uid: UID
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void)
+}
+
 export type userLoadPublicKeysResult = Array<PublicKey>
 
 export type userLoadPublicKeysRpc = {
@@ -3669,6 +3680,7 @@ export type rpc =
   | userListTrackersSelfRpc
   | userListTrackingJSONRpc
   | userListTrackingRpc
+  | userLoadAllPublicKeysUnverifiedRpc
   | userLoadPublicKeysRpc
   | userLoadUncheckedUserSummariesRpc
   | userLoadUserPlusKeysRpc
@@ -5725,6 +5737,16 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: userSearchResult) => void
+    }
+  ) => void,
+  'keybase.1.user.loadAllPublicKeysUnverified'?: (
+    params: {
+      sessionID: int,
+      uid: UID
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: userLoadAllPublicKeysUnverifiedResult) => void
     }
   ) => void
 }
