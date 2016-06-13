@@ -116,7 +116,7 @@
            between CLI and KBFS, and must reboot regardless - another, custom MSI for cleanup
            could get around this possibly. -->
       <ExePackage
-        SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\runquiet\runquiet.exe"
+        SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe"
           InstallCommand="-wait [InnoUninstallString] /NORESTART"
           DetectCondition="NOT InnoUninstallString"
           InstallCondition="InnoUninstallString"

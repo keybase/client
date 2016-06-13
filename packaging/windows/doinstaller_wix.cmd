@@ -13,17 +13,19 @@ set PathName=%Folder%keybase.exe
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
 
-:: Capture the windows style version - this is the only way to store it in a .cmd variable
-for /f %%i in ('%Folder%winresource.exe -w') do set BUILDVER=%%i
-echo %BUILDVER%
+:: Capture the windows style version
+for /f %%i in ('%Folder%winresource.exe -w') do set KEYBASE_WINVER=%%i
+echo %KEYBASE_WINVER%
 
-:: Capture keybase's semantic version - this is the only way to store it in a .cmd variable
+:: Capture keybase's semantic version
 for /f "tokens=3" %%i in ('%PathName% -version') do set SEMVER=%%i
 echo %SEMVER%
+::Set this again for Jenkins
+set KEYBASE_VERSION=%SEMVER%
 
 :: dokan source binaries.
 :: There are 8 (4 windows versions times 32/64 bit) but they all seem to have the same version.
-for /f %%i in ('PowerShell "(Get-Item %GOPATH%\bin\dokan-dev\dokan-v0.8.0\Win32\Win10Release\dokan.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
+for /f %%i in ('PowerShell "(Get-Item %GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4\Win32\Win10Release\dokan1.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
 echo %DOKANVER%
 IF %DOKANVER%=="" (
   EXIT /B 1
@@ -82,7 +84,9 @@ IF %ERRORLEVEL% NEQ 0 (
 
 if NOT DEFINED BUILD_TAG set BUILD_TAG=%SEMVER%
 
-"%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /O%BUILD_TAG% /DMyExePathName=%PathName% /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% /DNewDokanVersion=%DOKANVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" %GOPATH%\src\github.com\keybase\client\packaging\windows\setup_windows_gui.iss
+pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers
+msbuild WIX_Installers.sln  /p:Configuration=Release /p:Platform=x86 /t:Build
+popd
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -91,11 +95,15 @@ go get github.com/keybase/release
 go install github.com/keybase/release
 set ReleaseBin=%GOPATH%\bin\windows_386\release.exe
 
-
+if not EXIST %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG% mkdir %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 
-for /f %%i in ('dir /od /b') do set KEYBASE_INSTALLER_NAME=%%i
-echo %KEYBASE_INSTALLER_NAME%
+move %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseApps\bin\Release\*.msi %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
+move %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseBundle\bin\Release\*.exe %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
+for /f %%i in ('dir /od /b *.exe') do set KEYBASE_INSTALLER_NAME=%%i
+for /f %%i in ('dir /od /b *.msi') do set KEYBASE_UPDATE_NAME=%%i
+
+:: echo %KEYBASE_INSTALLER_NAME%
 
 :: Double check that the installer is codesigned
 signtool verify /pa %KEYBASE_INSTALLER_NAME%
@@ -103,16 +111,31 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
+:: Double check that the installer is codesigned
+signtool verify /pa %KEYBASE_UPDATE_NAME%
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
 if NOT DEFINED JSON_UPDATE_FILENAME set JSON_UPDATE_FILENAME=update-windows-prod.json
 
-:: Run keybase sign to get signature
-set KeybaseBin="c:\Program Files (x86)\Keybase\keybase.exe"
+if NOT DEFINED JSON_PACKAGE_FILENAME set JSON_PACKAGE_FILENAME=package-windows-prod.json
+
+:: Run keybase sign to get signature of update
+set KeybaseBin="%ProgramFiles(x86)%\Keybase\keybase.exe"
 set SigFile=sig.txt
+%KeybaseBin% sign -d -i %KEYBASE_UPDATE_NAME% -o %SigFile%
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_UPDATE_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_UPDATE_FILENAME%
+
+:: Run keybase sign to get signature of package
+set SigFile=package_sig.txt
 %KeybaseBin% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_UPDATE_FILENAME%
-
-echo off
+%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_PACKAGE_FILENAME%
