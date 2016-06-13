@@ -3,7 +3,7 @@
 import * as Constants from '../constants/pinentry'
 import engine from '../engine'
 
-import type {GUIEntryFeatures, incomingCallMapType, delegateUiCtlRegisterSecretUIRpc} from '../constants/types/flow-types'
+import type {GUIEntryFeatures, IncomingCallMapType, DelegateUiCtlRegisterSecretUIRpc} from '../constants/types/flow-types'
 import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
 
 import type {Dispatch, AsyncAction} from '../constants/types/flux'
@@ -14,7 +14,7 @@ const uglySessionIDResponseMapper: {[key: number]: any} = {}
 export function registerPinentryListener (): AsyncAction {
   return dispatch => {
     engine.listenOnConnect('registerSecretUI', () => {
-      const params: delegateUiCtlRegisterSecretUIRpc = {
+      const params: DelegateUiCtlRegisterSecretUIRpc = {
         method: 'delegateUiCtl.registerSecretUI',
         param: {},
         incomingCallMap: {},
@@ -77,7 +77,7 @@ function uglyResponse (sessionID: number, result: any, err: ?any): void {
   delete uglySessionIDResponseMapper[sessionID]
 }
 
-function pinentryListenersCreator (dispatch: Dispatch): incomingCallMapType {
+function pinentryListenersCreator (dispatch: Dispatch): IncomingCallMapType {
   return {
     'keybase.1.secretUi.getPassphrase': (payload, response) => {
       console.log('Asked for passphrase')

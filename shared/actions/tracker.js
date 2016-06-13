@@ -17,9 +17,9 @@ import type {Action, Dispatch} from '../constants/types/flux'
 
 import type {ShowNonUser} from '../constants/tracker'
 
-import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtlRegisterIdentifyUIRpc,
-  trackCheckTrackingRpc, trackUntrackRpc, trackTrackWithTokenRpc, incomingCallMapType,
-  identifyIdentify2Rpc, trackDismissWithTokenRpc} from '../constants/types/flow-types'
+import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, DelegateUiCtlRegisterIdentifyUIRpc,
+  TrackCheckTrackingRpc, TrackUntrackRpc, TrackTrackWithTokenRpc, IncomingCallMapType,
+  IdentifyIdentify2Rpc, TrackDismissWithTokenRpc} from '../constants/types/flow-types'
 
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState, config: ConfigState}) => ?Promise
 
@@ -37,7 +37,7 @@ export function startTimer (): TrackerActionCreator {
           clearInterval(intervalId)
         }
 
-        const params : trackCheckTrackingRpc = {
+        const params: TrackCheckTrackingRpc = {
           method: 'track.checkTracking',
           param: {},
           incomingCallMap: {},
@@ -59,7 +59,7 @@ export function stopTimer (): Action {
 
 export function registerTrackerChangeListener (): TrackerActionCreator {
   return dispatch => {
-    const params: incomingCallMapType = {
+    const params: IncomingCallMapType = {
       'keybase.1.NotifyTracking.trackingChanged': args => {
         dispatch({
           type: Constants.userUpdated,
@@ -75,7 +75,7 @@ export function registerTrackerChangeListener (): TrackerActionCreator {
 
 export function registerUserChangeListener (): TrackerActionCreator {
   return dispatch => {
-    const params: incomingCallMapType = {
+    const params: IncomingCallMapType = {
       'keybase.1.NotifyUsers.userChanged': ({uid}) => {
         dispatch(triggerIdentify(uid))
       }
@@ -95,7 +95,7 @@ export function registerTrackerIncomingRpcs (): TrackerActionCreator {
 
 export function triggerIdentify (uid: string): TrackerActionCreator {
   return (dispatch, getState) => new Promise((resolve, reject) => {
-    const params: identifyIdentify2Rpc = {
+    const params: IdentifyIdentify2Rpc = {
       method: 'identify.identify2',
       param: {
         uid,
@@ -132,7 +132,7 @@ export function triggerIdentify (uid: string): TrackerActionCreator {
 export function registerIdentifyUi (): TrackerActionCreator {
   return (dispatch, getState) => {
     engine.listenOnConnect('registerIdentifyUi', () => {
-      const params : delegateUiCtlRegisterIdentifyUIRpc = {
+      const params: DelegateUiCtlRegisterIdentifyUIRpc = {
         method: 'delegateUiCtl.registerIdentifyUI',
         param: {},
         incomingCallMap: {},
@@ -202,7 +202,7 @@ export function onRefollow (username: string): TrackerActionCreator {
 }
 export function onUnfollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    const params : trackUntrackRpc = {
+    const params: TrackUntrackRpc = {
       method: 'track.untrack',
       param: {username},
       incomingCallMap: {},
@@ -238,7 +238,7 @@ function trackUser (trackToken: ?string, localIgnore: bool): Promise<boolean> {
 
   return new Promise((resolve, reject) => {
     if (trackToken != null) {
-      const params : trackTrackWithTokenRpc = {
+      const params : TrackTrackWithTokenRpc = {
         method: 'track.trackWithToken',
         param: {trackToken, options},
         incomingCallMap: {},
@@ -302,7 +302,7 @@ export function onFollow (username: string, localIgnore: bool): (dispatch: Dispa
 }
 
 function _dismissWithToken (trackToken) {
-  const params : trackDismissWithTokenRpc = {
+  const params : TrackDismissWithTokenRpc = {
     method: 'track.dismissWithToken',
     param: {trackToken},
     incomingCallMap: {},

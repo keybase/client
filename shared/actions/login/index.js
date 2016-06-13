@@ -29,13 +29,13 @@ import {Map} from 'immutable'
 import type {DeviceType} from '../../constants/types/more'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {
-  incomingCallMapType,
-  loginRecoverAccountFromEmailAddressRpc,
-  loginLoginRpc,
-  loginLogoutRpc,
-  deviceDeviceAddRpc,
-  loginGetConfiguredAccountsRpc,
-  loginClearStoredSecretRpc
+  IncomingCallMapType,
+  LoginRecoverAccountFromEmailAddressRpc,
+  LoginLoginRpc,
+  LoginLogoutRpc,
+  DeviceDeviceAddRpc,
+  LoginGetConfiguredAccountsRpc,
+  LoginClearStoredSecretRpc
 } from '../../constants/types/flow-types'
 import {overrideLoggedInTab} from '../../local-debug'
 import type {DeviceRole} from '../../constants/login'
@@ -88,7 +88,7 @@ export function navBasedOnLoginState () :AsyncAction {
 
 function getAccounts (): AsyncAction {
   return dispatch => {
-    const params: loginGetConfiguredAccountsRpc = {
+    const params: LoginGetConfiguredAccountsRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'login.getConfiguredAccounts',
       param: {},
@@ -114,7 +114,7 @@ export function login (): AsyncAction {
         const onBack = response => { dispatch(cancelLogin(response)) }
         const onProvisionerSuccess = () => { dispatch(navBasedOnLoginState()) }
         const incomingMap = makeKex2IncomingMap(dispatch, getState, onBack, onProvisionerSuccess)
-        const params : loginLoginRpc = {
+        const params: LoginLoginRpc = {
           ...makeWaitingHandler(dispatch),
           method: 'login.login',
           param: {
@@ -225,7 +225,7 @@ export function submitForgotPassword () : AsyncAction {
   return (dispatch, getState) => {
     dispatch({type: Constants.actionSetForgotPasswordSubmitting, payload: undefined})
 
-    const params : loginRecoverAccountFromEmailAddressRpc = {
+    const params: LoginRecoverAccountFromEmailAddressRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'login.recoverAccountFromEmailAddress',
       param: {email: getState().login.forgotPasswordEmailAddress},
@@ -254,7 +254,7 @@ export function submitForgotPassword () : AsyncAction {
 export function autoLogin () : AsyncAction {
   return dispatch => {
     const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
-    const params : loginLoginRpc = {
+    const params: LoginLoginRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'login.login',
       param: {
@@ -287,7 +287,7 @@ export function autoLogin () : AsyncAction {
 export function relogin (user: string, passphrase: string, store: boolean) : AsyncAction {
   return dispatch => {
     const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
-    const params : loginLoginRpc = {
+    const params : LoginLoginRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'login.login',
       param: {
@@ -319,7 +319,7 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
 
 export function logout () : AsyncAction {
   return dispatch => {
-    const params : loginLogoutRpc = {
+    const params : LoginLogoutRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'login.logout',
       param: {},
@@ -354,7 +354,7 @@ export function saveInKeychainChanged (username: string, saveInKeychain: bool) :
       return
     }
 
-    const params: loginClearStoredSecretRpc = {
+    const params: LoginClearStoredSecretRpc = {
       method: 'login.clearStoredSecret',
       param: {
         username
@@ -453,7 +453,7 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
       response.result(deviceType)
     }
 
-    const params : deviceDeviceAddRpc = {
+    const params : DeviceDeviceAddRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'device.deviceAdd',
       param: {},
@@ -473,7 +473,7 @@ export function openAccountResetPage () : AsyncAction {
 }
 
 type SimpleCB = () => void
-function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisionerSuccess: SimpleCB) : incomingCallMapType {
+function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisionerSuccess: SimpleCB) : IncomingCallMapType {
   function appendRouteElement (element: React$Element) {
     dispatch(routeAppend({parseRoute: {componentAtTop: {element}}}))
   }

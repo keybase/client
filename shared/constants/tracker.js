@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {identifyUiDisplayTLFCreateWithInviteRpc} from './types/flow-types'
+import type {IdentifyUiDisplayTLFCreateWithInviteRpc} from './types/flow-types'
 import type {TypedAction} from './types/flux'
 
 // Simple state of the overall proof result
@@ -60,6 +60,6 @@ export const stopTimer = 'tracker:stopTimer'
 export const rpcUpdateTimerSeconds = 60 * 1000
 
 export const showNonUser = 'tracker:showNonUser'
-export type ShowNonUser = TypedAction<'tracker:showNonUser', identifyUiDisplayTLFCreateWithInviteRpc.param, void>
+export type ShowNonUser = TypedAction<'tracker:showNonUser', IdentifyUiDisplayTLFCreateWithInviteRpc.param, void>
 
 export type NonUserActions = ShowNonUser | OnClose

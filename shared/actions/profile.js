@@ -3,7 +3,7 @@ import * as Constants from '../constants/profile'
 import {routeAppend} from './router'
 import engine from '../engine'
 import {identify} from '../constants/types/keybase-v1'
-import type {incomingCallMapType, userLoadUncheckedUserSummariesRpc, identifyIdentifyRpc, UserSummary} from '../constants/types/flow-types'
+import type {IncomingCallMapType, UserLoadUncheckedUserSummariesRpc, IdentifyIdentifyRpc, UserSummary} from '../constants/types/flow-types'
 import type {AsyncAction, TypedAction} from '../constants/types/flux'
 const enums = identify
 
@@ -32,7 +32,7 @@ export function refreshProfile (username: string) : AsyncAction {
       payload: username
     })
 
-    const incomingMap: incomingCallMapType = {
+    const incomingMap: IncomingCallMapType = {
       'keybase.1.identifyUi.start': (param, response) => { response.result() },
       'keybase.1.identifyUi.reportLastTrack': (param, response) => { response.result() },
       'keybase.1.identifyUi.displayKey': ({key}, response) => {
@@ -109,7 +109,7 @@ export function refreshProfile (username: string) : AsyncAction {
       }
     }
 
-    const params : identifyIdentifyRpc = {
+    const params: IdentifyIdentifyRpc = {
       method: 'identify.identify',
       param: {
         userAssertion: username,
@@ -153,7 +153,7 @@ export function loadSummaries (uids: Array<string>) : AsyncAction {
       payload: uids
     })
 
-    const params : userLoadUncheckedUserSummariesRpc = {
+    const params: UserLoadUncheckedUserSummariesRpc = {
       method: 'user.loadUncheckedUserSummaries',
       param: {uids: uids},
       incomingCallMap: {},

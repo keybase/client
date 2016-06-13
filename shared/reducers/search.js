@@ -2,56 +2,51 @@
 
 import * as Constants from '../constants/search'
 import * as CommonConstants from '../constants/common'
+import type {Props as IconProps} from '../common-adapters/icon'
+import type {SearchResult, SearchActions} from '../constants/search'
 
-import {Map, fromJS} from 'immutable'
+type State = {
+  searchHintText: string,
+  searchText: string,
+  searchIcon: IconProps.type,
+  results: Array<SearchResult>
+}
 
-import type {URI} from './router'
+const initialState: State = {
+  searchHintText: '',
+  searchText: '',
+  searchIcon: 'logo-24',
+  results: []
+}
 
-type Base = URI
-
-// TODO settle on some error type and put it in a common type folder
-// instead of duplicating this Error type
-type Error = string
-
-type SubSearchState = MapADT5<'base', Base, 'waitingForServer', boolean, 'error', ?Error, 'term', string | ''> // eslint-disable-line no-undef
-type SearchState = Map<Base, SubSearchState>
-
-const initialState: SearchState = Map()
-
-export default function (state: SearchState = initialState, action: any): SearchState {
+export default function (state: State = initialState, action: SearchActions): State {
   if (action.type === CommonConstants.resetStore) {
-    return initialState.asMutable().asImmutable()
+    return {...initialState}
   }
 
-  if (!action.payload || !action.payload.base) {
-    return state
-  }
-
-  return state.update(action.payload.base, oldValue => {
-    switch (action.type) {
-      case Constants.initSearch:
-        return fromJS({
-          base: action.payload.base,
-          waitingForServer: false,
-          term: '',
+  switch (action.type) {
+    case Constants.search:
+      if (!action.error) {
+        return {
+          ...state,
+          searchText: action.payload.term,
           results: []
-        })
-      case Constants.searchService:
-        return oldValue.set('service', action.payload.service)
-      case Constants.searchTerm:
-        return oldValue.set('term', action.payload.term)
-      case Constants.searchRunning:
-        return oldValue.merge({
-          nonce: action.payload.nonce,
-          error: null,
-          waitingForServer: true
-        })
-      case Constants.searchResults:
-        return oldValue.merge({
-          waitingForServer: false,
-          results: action.payload.results,
-          error: action.payload.error
-        })
-    }
-  })
+        }
+      }
+      break
+    case Constants.results:
+      if (!action.error) {
+        if (action.payload.term !== state.searchText) {
+          return state
+        }
+
+        return {
+          ...state,
+          results: action.payload.results
+        }
+      }
+      break
+  }
+
+  return state
 }

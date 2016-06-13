@@ -8,12 +8,12 @@ import {navBasedOnLoginState} from '../../actions/login'
 import * as native from './index.native'
 
 import type {AsyncAction} from '../../constants/types/flux'
-import type {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc} from '../../constants/types/flow-types' // eslint-disable-line
+import type {ConfigGetConfigRpc, ConfigGetExtendedStatusRpc, ConfigGetCurrentStatusRpc} from '../../constants/types/flow-types' // eslint-disable-line
 
 function getConfig (): AsyncAction {
   return (dispatch, getState) => {
     return new Promise((resolve, reject) => {
-      const params : configGetConfigRpc = {
+      const params: ConfigGetConfigRpc = {
         method: 'config.getConfig',
         param: {},
         incomingCallMap: {},
@@ -36,7 +36,7 @@ function getConfig (): AsyncAction {
 function getExtendedStatus (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
-      const params : configGetExtendedStatusRpc = {
+      const params: ConfigGetExtendedStatusRpc = {
         method: 'config.getExtendedStatus',
         param: {},
         incomingCallMap: {},
@@ -81,7 +81,7 @@ export function bootstrap (): AsyncAction {
 function getCurrentStatus (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
-      const params : configGetCurrentStatusRpc = {
+      const params: ConfigGetCurrentStatusRpc = {
         method: 'config.getCurrentStatus',
         param: {},
         incomingCallMap: {},

@@ -70,7 +70,7 @@ export function initTabbedRouterState (state) {
     tabs: {
       ...state.tabs,
       [Tabs.loginTab]: createRouterState([], []),
-      [Tabs.settingsTab]: createRouterState(['devMenu', 'dumbSheet'], [])
+      [Tabs.settingsTab]: createRouterState(['devMenu', 'search'], [])
     },
     activeTab: Tabs.settingsTab
   }
