@@ -172,6 +172,7 @@ const stylesButtonFollowing = {
   ...buttonCommon,
   backgroundColor: globalColors.white,
   border: `solid 2px ${globalColors.green}`,
+  lineHeight: '28px',
   marginRight: 10,
   minWidth: 125
 }
