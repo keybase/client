@@ -147,7 +147,18 @@ function postInstall () {
   }
 
   // Inject dummy module
-  exec("mkdir -p node_modules/msgpack; echo 'module.exports = null' > node_modules/msgpack/index.js; echo '{\"main\": \"index.js\"}' > node_modules/msgpack/package.json")
+  if (process.platform === 'win32') {
+    exec('if not exist node_modules\\msgpack mkdir node_modules\\msgpack')
+    exec('echo module.exports = null > node_modules\\msgpack\\index.js')
+    exec('echo {"main": "index.js"} > node_modules\\msgpack\\package.json')
+  } else {
+    exec("mkdir -p node_modules/msgpack; echo 'module.exports = null' > node_modules/msgpack/index.js; echo '{\"main\": \"index.js\"}' > node_modules/msgpack/package.json")
+  }
+}
+
+function installDevTools () {
+  const modules = Object.keys(postinstallGlobals).map(k => `${k}${postinstallGlobals[k]}`).join(' ')
+  exec(`npm install -g -E ${modules}`)
 }
 
 function setupDebugMain () {
