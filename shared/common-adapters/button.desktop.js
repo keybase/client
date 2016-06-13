@@ -45,6 +45,9 @@ class Button extends Component {
           ...stylesButtonUnfollow,
           opacity: disabled ? stylesButtonUnfollow.disabledOpacity : 1
         }
+        labelStyle = {
+          color: globalColors.black_75
+        }
         break
       case 'Danger':
         backgroundStyle = {
@@ -179,12 +182,10 @@ const stylesButtonFollowing = {
   minWidth: 125
 }
 const stylesButtonUnfollow = {
-  ...buttonCommon,
-  backgroundColor: globalColors.blue,
+  ...stylesButtonSecondary,
   // mimic border width from following state to work around animation jitter during FollowButton hover transition
-  border: `solid 2px ${globalColors.blue}`,
+  border: `solid 2px ${globalColors.lightGrey2}`,
   lineHeight: '28px',
-  disabledOpacity: 0.2,
   marginRight: 10,
   minWidth: 125
 }
