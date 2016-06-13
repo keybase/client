@@ -1,4 +1,10 @@
-## 1.0.16
+## 1.0.17
+- Allow signatures with DSA keys without needing to specify explicit signing flags
+  in the Public key. Also, better tie-breaking if there are two self-signatures
+  at the same time; use the one with the valid flags.
+   (via vendored PR: keybase/go-crypto#31 and keybase/go-crypto#32 respectively)
+
+## 1.0.16 (2016-05-23)
 - Don't publish private warnings to debug log
 - Ignore signatures over attributes like pictures in OpenPGP keys
    (via vendored PR: keybase/go-crypto#29)

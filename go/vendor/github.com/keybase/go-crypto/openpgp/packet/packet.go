@@ -11,10 +11,11 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/des"
-	"github.com/keybase/go-crypto/openpgp/errors"
-	"golang.org/x/crypto/cast5"
 	"io"
 	"math/big"
+
+	"github.com/keybase/go-crypto/cast5"
+	"github.com/keybase/go-crypto/openpgp/errors"
 )
 
 // readFull is the same as io.ReadFull except that reading zero bytes returns

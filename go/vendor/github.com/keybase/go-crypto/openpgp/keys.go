@@ -254,6 +254,8 @@ func (el EntityList) KeysByIdUsage(id uint64, requiredUsage byte) (keys []Key) {
 				// in encryptionKey() above.
 				usage |= packet.KeyFlagEncryptCommunications
 				usage |= packet.KeyFlagEncryptStorage
+			} else if key.PublicKey.PubKeyAlgo == packet.PubKeyAlgoDSA {
+				usage |= packet.KeyFlagSign
 			}
 			if usage&requiredUsage != requiredUsage {
 				continue
@@ -417,9 +419,17 @@ EachPacket:
 
 			// Next handle the case of a self-signature. According to RFC8440,
 			// Section 5.2.3.3, if there are several self-signatures,
-			// we should take the newer one.
+			// we should take the newer one.  If they were both created
+			// at the same time, but one of them has keyflags specified and the
+			// other doesn't, keep the one with the keyflags. We have actually
+			// seen this in the wild (see the 'Yield' test in read_test.go).
+			// If there is a tie, and both have the same value for FlagsValid,
+			// then "last writer wins."
 			if current != nil &&
-				(current.SelfSignature == nil || pkt.CreationTime.After(current.SelfSignature.CreationTime)) &&
+				(current.SelfSignature == nil ||
+					pkt.CreationTime.After(current.SelfSignature.CreationTime) ||
+					(pkt.CreationTime.Equal(current.SelfSignature.CreationTime) &&
+						pkt.FlagsValid && !current.SelfSignature.FlagsValid)) &&
 				(pkt.SigType == packet.SigTypePositiveCert || pkt.SigType == packet.SigTypeGenericCert) &&
 				pkt.IssuerKeyId != nil &&
 				*pkt.IssuerKeyId == e.PrimaryKey.KeyId {

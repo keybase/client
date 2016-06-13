@@ -28,6 +28,14 @@ const (
 	KeyFlagEncryptStorage
 )
 
+// Signer can be implemented by application code to do actual signing.
+type Signer interface {
+	hash.Hash
+	Sign(sig *Signature) error
+	KeyId() uint64
+	PublicKeyAlgo() PublicKeyAlgorithm
+}
+
 // Signature represents a signature. See RFC 4880, section 5.2.
 type Signature struct {
 	SigType    SignatureType
@@ -54,6 +62,7 @@ type Signature struct {
 
 	SigLifetimeSecs, KeyLifetimeSecs                        *uint32
 	PreferredSymmetric, PreferredHash, PreferredCompression []uint8
+	PreferredKeyServer                                      string
 	IssuerKeyId                                             *uint64
 	IsPrimaryId                                             *bool
 
@@ -217,6 +226,7 @@ const (
 	issuerSubpacket              signatureSubpacketType = 16
 	prefHashAlgosSubpacket       signatureSubpacketType = 21
 	prefCompressionSubpacket     signatureSubpacketType = 22
+	prefKeyServerSubpacket       signatureSubpacketType = 24
 	primaryUserIdSubpacket       signatureSubpacketType = 25
 	policyURISubpacket           signatureSubpacketType = 26
 	keyFlagsSubpacket            signatureSubpacketType = 27
@@ -408,6 +418,8 @@ func parseSignatureSubpacket(sig *Signature, subpacket []byte, isHashed bool) (r
 		if isCritical {
 			sig.StubbedOutCriticalError = errors.UnsupportedError("regex support is stubbed out")
 		}
+	case prefKeyServerSubpacket:
+		sig.PreferredKeyServer = string(subpacket[:])
 	default:
 		if isCritical {
 			err = errors.UnsupportedError("unknown critical signature subpacket type " + strconv.Itoa(int(packetType)))
@@ -535,9 +547,21 @@ func (sig *Signature) signPrepareHash(h hash.Hash) (digest []byte, err error) {
 // On success, the signature is stored in sig. Call Serialize to write it out.
 // If config is nil, sensible defaults will be used.
 func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err error) {
+	signer, hashIsSigner := h.(Signer)
+
+	if !hashIsSigner && (priv == nil || priv.PrivateKey == nil) {
+		err = errors.InvalidArgumentError("attempting to sign with nil PrivateKey")
+		return
+	}
+
 	sig.outSubpackets = sig.buildSubpackets()
 	digest, err := sig.signPrepareHash(h)
 	if err != nil {
+		return
+	}
+
+	if hashIsSigner {
+		err = signer.Sign(sig)
 		return
 	}
 
@@ -563,8 +587,8 @@ func (sig *Signature) Sign(h hash.Hash, priv *PrivateKey, config *Config) (err e
 	case PubKeyAlgoECDSA:
 		r, s, err := ecdsa.Sign(config.Random(), priv.PrivateKey.(*ecdsa.PrivateKey), digest)
 		if err == nil {
-			sig.ECDSASigR = fromBig(r)
-			sig.ECDSASigS = fromBig(s)
+			sig.ECDSASigR = FromBig(r)
+			sig.ECDSASigS = FromBig(s)
 		}
 	default:
 		err = errors.UnsupportedError("public key algorithm: " + strconv.Itoa(int(sig.PubKeyAlgo)))
@@ -585,6 +609,16 @@ func (sig *Signature) SignUserId(id string, pub *PublicKey, priv *PrivateKey, co
 	return sig.Sign(h, priv, config)
 }
 
+// SignUserIdWithSigner computes a signature from priv, asserting that pub is a
+// valid key for the identity id.  On success, the signature is stored in sig.
+// Call Serialize to write it out.
+// If config is nil, sensible defaults will be used.
+func (sig *Signature) SignUserIdWithSigner(id string, pub *PublicKey, s Signer, config *Config) error {
+	updateUserIdSignatureHash(id, pub, s)
+
+	return sig.Sign(s, nil, config)
+}
+
 // SignKey computes a signature from priv, asserting that pub is a subkey. On
 // success, the signature is stored in sig. Call Serialize to write it out.
 // If config is nil, sensible defaults will be used.
@@ -594,6 +628,15 @@ func (sig *Signature) SignKey(pub *PublicKey, priv *PrivateKey, config *Config) 
 		return err
 	}
 	return sig.Sign(h, priv, config)
+}
+
+// SignKeyWithSigner computes a signature using s, asserting that
+// signeePubKey is a subkey. On success, the signature is stored in sig. Call
+// Serialize to write it out. If config is nil, sensible defaults will be used.
+func (sig *Signature) SignKeyWithSigner(signeePubKey *PublicKey, signerPubKey *PublicKey, s Signer, config *Config) error {
+	updateKeySignatureHash(signerPubKey, signeePubKey, s)
+
+	return sig.Sign(s, nil, config)
 }
 
 // Serialize marshals sig to w. Sign, SignUserId or SignKey must have been

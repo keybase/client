@@ -8,7 +8,7 @@ vet:
 	go vet ./...
 
 lint:
-	golint ./... | grep -v ^vendor | grep -v ^protocol | grep -v comment | grep -v KeysById | grep -v "error should be the last type" || echo "Lint-free!"
+	golint ./... | grep -v ^vendor | grep -v ^protocol | grep -v comment | grep -v KeysById | grep -v "error should be the last type" | grep -v stutters || echo "Lint-free!"
 	# Strict linting on saltpack
 	golint saltpack/...
 
