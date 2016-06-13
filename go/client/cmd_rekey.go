@@ -16,7 +16,7 @@ func NewCmdRekey(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 	return cli.Command{
 		Name:         "rekey",
 		Usage:        "Rekey status and actions",
-		ArgumentHelp: "[arguments...]",
+		ArgumentHelp: "[status]", // the CLI command to enter paper key for rekey might go here
 		Subcommands: []cli.Command{
 			NewCmdRekeyStatus(cl, g),
 		},
