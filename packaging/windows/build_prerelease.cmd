@@ -37,7 +37,12 @@ popd
 
 :: Updater
 pushd %GOPATH%\src\github.com\keybase\go-updater\service
-go build -a -o updater.exe
+go build -a -o upd.exe
+popd
+
+:: runquiet
+pushd %GOPATH%\src\github.com\keybase\client\go\tools\runquiet
+go build -ldflags "-H windowsgui"
 popd
 
 :: Then the desktop:
