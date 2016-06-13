@@ -77,6 +77,22 @@
 			"revisionTime": "2015-09-05T19:33:21-07:00"
 		},
 		{
+			"checksumSHA1": "egYe7ZwngazaWRW/WfawGNClGJg=",
+			"origin": "github.com/aalness/goamz/aws",
+			"path": "github.com/goamz/goamz/aws",
+			"revision": "30143e3f33a7db39c8d0afe3f265e5fe27f359fa",
+			"revisionTime": "2016-06-15T16:34:33Z",
+			"tree": true
+		},
+		{
+			"checksumSHA1": "X2F1YJK7jkq6ZZSKx74t8EyWZhQ=",
+			"origin": "github.com/aalness/goamz/dynamodb",
+			"path": "github.com/goamz/goamz/dynamodb",
+			"revision": "30143e3f33a7db39c8d0afe3f265e5fe27f359fa",
+			"revisionTime": "2016-06-15T16:34:33Z",
+			"tree": true
+		},
+		{
 			"path": "github.com/golang/mock/gomock",
 			"revision": "58a501f87109a45c68afc54e6b1368398678d386",
 			"revisionTime": "2015-12-12T20:20:50-08:00"
