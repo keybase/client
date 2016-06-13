@@ -90,6 +90,15 @@ export const globalStyles = {
   ...util
 }
 
+export const globalMargins = {
+  xtiny: 4,
+  tiny: 8,
+  small: 16,
+  medium: 32,
+  large: 48,
+  xlarge: 64
+}
+
 export function transition (...properties: Array<string>) : Object {
   return {
     transition: properties.map(p => `${p} 0.2s ease-out`).join(', ')
