@@ -2,10 +2,10 @@
     hooks:
     -   id: eslint
         name: eslint
-        entry: eslint
+        entry: sh
         language: system
         files: \.js$
-        args: []
+        args: [-c, 'desktop/node_modules/.bin/eslint .']
     -   id: flow
         name: flow
         entry: sh

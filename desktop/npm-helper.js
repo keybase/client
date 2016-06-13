@@ -3,21 +3,6 @@ import path from 'path'
 import childProcess, {execSync} from 'child_process'
 import fs from 'fs'
 
-const postinstallGlobals = {
-  'babel-eslint': '@6.0.4',
-  'eslint': '@2.11.1',
-  'eslint-config-standard': '@5.3.1',
-  'eslint-config-standard-jsx': '@1.2.0',
-  'eslint-config-standard-react': '@2.4.0',
-  'eslint-plugin-babel': '@3.2.0',
-  'eslint-plugin-filenames': '@1.0.0',
-  'eslint-plugin-flow-vars': '@0.4.0',
-  'eslint-plugin-mocha': '@2.2.0',
-  'eslint-plugin-promise': '@1.3.1',
-  'eslint-plugin-react': '@5.1.1',
-  'eslint-plugin-standard': '@1.3.2'
-}
-
 const [,, command, ...rest] = process.argv
 
 const inject = info => {
@@ -149,10 +134,6 @@ const commands = {
     help: 'Window: fixup symlinks, all: install global eslint. dummy msgpack',
     code: postInstall
   },
-  'setup-dev-tools': {
-    help: 'Install dev tooling (linters, etc)',
-    code: installDevTools
-  },
   'render-screenshots': {
     nodePathDesktop: true,
     shell: 'webpack --config webpack.config.visdiff.js && KEYBASE_NO_ENGINE=1 ELECTRON_ENABLE_LOGGING=1 ./node_modules/.bin/electron ./dist/render-visdiff.bundle.js',
@@ -165,17 +146,6 @@ function postInstall () {
     fixupSymlinks()
   }
 
-  if (!process.env.KEYBASE_SKIP_DEV_TOOLS) {
-    Object.keys(postinstallGlobals).forEach(k => {
-      childProcess.exec(`npm -g ls ${k}${postinstallGlobals[k]}`, {},
-        err => {
-          if (err) {
-            console.log('>>>>> Missing dev tooling', k, postinstallGlobals[k], 'please run "npm run setup-dev-tools"')
-          }
-        })
-    })
-  }
-
   // Inject dummy module
   if (process.platform === 'win32') {
     exec("if not exist node_modules\\msgpack mkdir node_modules\\msgpack")
@@ -184,11 +154,6 @@ function postInstall () {
   } else {
       exec("mkdir -p node_modules/msgpack; echo 'module.exports = null' > node_modules/msgpack/index.js; echo '{\"main\": \"index.js\"}' > node_modules/msgpack/package.json")
   }
-}
-
-function installDevTools () {
-  const modules = Object.keys(postinstallGlobals).map(k => `${k}${postinstallGlobals[k]}`).join(' ')
-  exec(`npm install -g -E ${modules}`)
 }
 
 function setupDebugMain () {
