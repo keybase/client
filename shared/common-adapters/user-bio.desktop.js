@@ -135,7 +135,7 @@ const stylesUsernameError = {
 const stylesFullname = {
   ...globalStyles.selectable,
   textAlign: 'center',
-  color: '#444444'
+  color: globalColors.black_75
 }
 const stylesFollowLabel = {
   fontSize: 11,

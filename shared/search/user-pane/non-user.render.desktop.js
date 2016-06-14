@@ -93,7 +93,7 @@ const styleUsername = {
 
 const styleFullname = {
   ...globalStyles.selectable,
-  color: '#444444',
+  color: globalColors.black_75,
   marginTop: 2
 }
 
