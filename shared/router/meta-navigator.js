@@ -25,6 +25,10 @@ class MetaNavigator extends Component {
     )
   }
 
+  _resetRouteStack (routeStack) {
+    this.state.navigator.immediatelyResetRouteStack(routeStack.toJS())
+  }
+
   shouldComponentUpdate (nextProps, nextState) {
     if (nextProps === this.props) {
       return false
@@ -43,17 +47,34 @@ class MetaNavigator extends Component {
 
     const {rootComponent} = this.props
     const {componentAtTop, routeStack: nextRouteStack} = this.getComponentAtTop(rootComponent, nextRoute)
+    const navRoutes = this.state.navigator.getCurrentRoutes()
+    const lastNavRoute = navRoutes[navRoutes.length - 1]
+
+    // Let's try to make sure our navigator is in sync with our route state
+    if (navRoutes.length !== route.count() || !lastNavRoute.uri || !Immutable.is(lastNavRoute.uri, route)) {
+      this._resetRouteStack(nextRouteStack)
+      return true
+    }
+
     if (this.isParentOfRoute(route, nextRoute)) {
       this.state.navigator.push(componentAtTop)
       return true
     // TODO: also check to see if this route exists in the navigator's route
     } else if (this.isParentOfRoute(nextRoute, route)) {
-      const navRoutes = this.state.navigator.getCurrentRoutes()
       const targetRoute = navRoutes[nextRouteStack.count() - 1]
-      this.state.navigator.popToRoute(targetRoute)
+      if (Immutable.is(targetRoute.uri, nextRoute)) {
+        this._resetRouteStack(nextRouteStack)
+        // This doesn't happen immediately, so it breaks under cases
+        // when you pop, then go to another route immediately
+        // TODO(MM) maybe future version of RN fixes this
+        // We can also hack it and keep track of when we enter the failure mode.
+        // this.state.navigator.popToRoute(targetRoute)
+      } else {
+        this._resetRouteStack(nextRouteStack)
+      }
       return true
     } else {
-      this.state.navigator.immediatelyResetRouteStack(nextRouteStack.toJS())
+      this._resetRouteStack(nextRouteStack)
       return true
     }
   }
@@ -63,6 +84,7 @@ class MetaNavigator extends Component {
     let nextPath = uri.rest().first()
     let restPath = uri.rest().rest()
     let routeStack = Immutable.List()
+    let uriSoFar = Immutable.List([currentPath])
 
     let nextComponent = rootComponent
     let parseNextRoute = rootComponent.parseRoute
@@ -72,6 +94,7 @@ class MetaNavigator extends Component {
       const t = parseNextRoute(currentPath, uri)
       componentAtTop = {
         ...t.componentAtTop,
+        uri: uriSoFar,
         upLink: currentPath.get('upLink'),
         upTitle: currentPath.get('upTitle')
       }
@@ -107,6 +130,7 @@ class MetaNavigator extends Component {
       routeStack = routeStack.push(componentAtTop)
 
       currentPath = nextPath
+      uriSoFar = uriSoFar.push(currentPath)
       nextPath = restPath.first()
       restPath = restPath.rest()
     }
