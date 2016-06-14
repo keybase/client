@@ -156,11 +156,6 @@ function postInstall () {
   }
 }
 
-function installDevTools () {
-  const modules = Object.keys(postinstallGlobals).map(k => `${k}${postinstallGlobals[k]}`).join(' ')
-  exec(`npm install -g -E ${modules}`)
-}
-
 function setupDebugMain () {
   let electronVer = null
   try {
