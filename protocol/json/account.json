@@ -1,105 +1,12 @@
 {
   "protocol": "account",
-  "types": [
+  "imports": [
     {
-      "type": "record",
-      "name": "Feature",
-      "fields": [
-        {
-          "type": "boolean",
-          "name": "allow"
-        },
-        {
-          "type": "boolean",
-          "name": "defaultValue"
-        },
-        {
-          "type": "boolean",
-          "name": "readonly"
-        },
-        {
-          "type": "string",
-          "name": "label"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "GUIEntryFeatures",
-      "fields": [
-        {
-          "type": "Feature",
-          "name": "storeSecret"
-        },
-        {
-          "type": "Feature",
-          "name": "showTyping"
-        }
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "PassphraseType",
-      "symbols": [
-        "NONE_0",
-        "PAPER_KEY_1",
-        "PASS_PHRASE_2",
-        "VERIFY_PASS_PHRASE_3"
-      ]
-    },
-    {
-      "type": "record",
-      "name": "GUIEntryArg",
-      "fields": [
-        {
-          "type": "string",
-          "name": "windowTitle"
-        },
-        {
-          "type": "string",
-          "name": "prompt"
-        },
-        {
-          "type": "string",
-          "name": "username"
-        },
-        {
-          "type": "string",
-          "name": "submitLabel"
-        },
-        {
-          "type": "string",
-          "name": "cancelLabel"
-        },
-        {
-          "type": "string",
-          "name": "retryLabel"
-        },
-        {
-          "type": "PassphraseType",
-          "name": "type"
-        },
-        {
-          "type": "GUIEntryFeatures",
-          "name": "features"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "GetPassphraseRes",
-      "fields": [
-        {
-          "type": "string",
-          "name": "passphrase"
-        },
-        {
-          "type": "boolean",
-          "name": "storeSecret"
-        }
-      ]
+      "path": "passphrase_common.avdl",
+      "type": "idl"
     }
   ],
+  "types": [],
   "messages": {
     "passphraseChange": {
       "request": [
@@ -120,7 +27,7 @@
           "type": "boolean"
         }
       ],
-      "response": "null",
+      "response": null,
       "doc": "Change the passphrase from old to new. If old isn't set, and force is false,\n    then prompt at the UI for it. If old isn't set and force is true, then we'll\n    try to force a passphrase change."
     },
     "passphrasePrompt": {

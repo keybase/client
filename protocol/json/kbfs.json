@@ -1,81 +1,12 @@
 {
   "protocol": "kbfs",
-  "types": [
+  "imports": [
     {
-      "type": "enum",
-      "name": "FSStatusCode",
-      "symbols": [
-        "START_0",
-        "FINISH_1",
-        "ERROR_2"
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "FSNotificationType",
-      "symbols": [
-        "ENCRYPTING_0",
-        "DECRYPTING_1",
-        "SIGNING_2",
-        "VERIFYING_3",
-        "REKEYING_4",
-        "CONNECTION_5",
-        "MD_READ_SUCCESS_6"
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "FSErrorType",
-      "symbols": [
-        "ACCESS_DENIED_0",
-        "USER_NOT_FOUND_1",
-        "REVOKED_DATA_DETECTED_2",
-        "NOT_LOGGED_IN_3",
-        "TIMEOUT_4",
-        "REKEY_NEEDED_5",
-        "BAD_FOLDER_6",
-        "NOT_IMPLEMENTED_7",
-        "OLD_VERSION_8"
-      ]
-    },
-    {
-      "type": "record",
-      "name": "FSNotification",
-      "fields": [
-        {
-          "type": "boolean",
-          "name": "publicTopLevelFolder"
-        },
-        {
-          "type": "string",
-          "name": "filename"
-        },
-        {
-          "type": "string",
-          "name": "status"
-        },
-        {
-          "type": "FSStatusCode",
-          "name": "statusCode"
-        },
-        {
-          "type": "FSNotificationType",
-          "name": "notificationType"
-        },
-        {
-          "type": "FSErrorType",
-          "name": "errorType"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "string"
-          },
-          "name": "params"
-        }
-      ]
+      "path": "kbfs_common.avdl",
+      "type": "idl"
     }
   ],
+  "types": [],
   "messages": {
     "FSEvent": {
       "request": [
@@ -84,7 +15,7 @@
           "type": "FSNotification"
         }
       ],
-      "response": "null",
+      "response": null,
       "doc": "Idea is that kbfs would call the function below whenever these actions are\n    performed on a file.\n\n    Note that this list/interface is very temporary and highly likely to change\n    significantly.\n\n    It is just a starting point to get kbfs notifications through the daemon to\n    the clients."
     }
   },
