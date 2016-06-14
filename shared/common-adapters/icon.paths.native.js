@@ -870,6 +870,8 @@ export const images = {
   'icon-github-logo-48': require('../images/icons/icon-github-logo-48.png'),
   'icon-history-clear-48': require('../images/icons/icon-history-clear-48.png'),
   'icon-history-clear-64': require('../images/icons/icon-history-clear-64.png'),
+  'icon-invite-link-24': require('../images/icons/icon-invite-link-24.png'),
+  'icon-invite-link-32': require('../images/icons/icon-invite-link-32.png'),
   'icon-invite-link-negative-48': require('../images/icons/icon-invite-link-negative-48.png'),
   'icon-invite-link-negative-64': require('../images/icons/icon-invite-link-negative-64.png'),
   'icon-keybase-dog-badged-black-22': require('../images/icons/icon-keybase-dog-badged-black-22.png'),
