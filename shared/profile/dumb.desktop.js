@@ -27,7 +27,7 @@ export const mockUserInfo: {username: string, userInfo: UserInfo} = {
     location: 'NYC & Maine',
     bio: 'Co-founder of Keybase, OkCupid, SparkNotes, and some random other junk. I like making things.',
     avatar: 'https://keybase.io/chris/picture',
-    followsYou: false
+    followsYou: true
   }
 }
 
