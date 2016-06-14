@@ -3,7 +3,9 @@
      xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Bundle Name="Keybase" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="418432ab-0366-40fd-a396-8cc0c4200252">
-		<BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
+    <Variable Name="LOGPATH_PROP" Type="string" Value="$(var.KeybaseApps.TargetPath)" />
+    <Log PathVariable="LOGPATH_PROP"/>
+    <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication
             LicenseUrl="https://keybase.io/docs/terms"
             ThemeFile="HyperlinkTheme.xml"
@@ -93,19 +95,40 @@
                  Win64="yes"
                  />
 
-    <util:RegistrySearch Id="DokanUninstall"
+    <!-- Dokany Product Codes: v1.0.0-RC4.1 -->
+    <util:RegistrySearch Id="DokanUninstallx86"
                  Variable="DokanUninstallString"
                  Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160511152538}"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A986-3DC3-0100-0000-160615162835}"
                  Value="UninstallString"
                  Format="raw"
                  />
-    <util:RegistrySearch Id="DokanUninstall64"
-                 After="DokanUninstall"        
+    <util:RegistrySearch Id="DokanUninstallx86_64"
+                 After="DokanUninstallx86"        
                  Condition="NOT DokanUninstallString"        
                  Variable="DokanUninstallString"
                  Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160511152538}"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A986-3DC3-0100-0000-160615162835}"
+                 Value="UninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
+    
+    <util:RegistrySearch Id="DokanUninstall64"
+                 After="DokanUninstallx86_64"        
+                 Condition="NOT DokanUninstallString"        
+                 Variable="DokanUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160615162835}"
+                 Value="UninstallString"
+                 Format="raw"
+                 />
+    <util:RegistrySearch Id="DokanUninstall64_64"
+                 After="DokanUninstallx86_64"
+                 Condition="NOT DokanUninstallString"
+                 Variable="DokanUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160615162835}"
                  Value="UninstallString"
                  Format="raw"
                  Win64="yes"
@@ -119,19 +142,18 @@
         SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe"
           InstallCommand="-wait [InnoUninstallString] /NORESTART"
           DetectCondition="NOT InnoUninstallString"
-          InstallCondition="InnoUninstallString"
           PerMachine="yes"
           Permanent="yes">
         <ExitCode Behavior="forceReboot"/>
       </ExePackage>
       
       <ExePackage
-        SourceFile="$(env.GOPATH)\bin\dokan-dev\dokan-v1.0.0-RC4\DokanSetup.exe"
+        SourceFile="$(env.GOPATH)\bin\dokan-dev\dokan-v1.0.0-RC4.1\DokanSetup_redist.exe"
           InstallCommand="/quiet"
           UninstallCommand="/quiet /uninstall"
-          DetectCondition="ExeDetectedVariable"
+          DetectCondition="DokanUninstallString and NOT WixBundleAction=3"
           PerMachine="yes"
-          Permanent="no">
+          Permanent="yes">
       </ExePackage>
       
       <MsiPackage Id="KeybasePrograms" 

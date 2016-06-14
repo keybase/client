@@ -25,7 +25,7 @@ set KEYBASE_VERSION=%SEMVER%
 
 :: dokan source binaries.
 :: There are 8 (4 windows versions times 32/64 bit) but they all seem to have the same version.
-for /f %%i in ('PowerShell "(Get-Item %GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4\Win32\Win10Release\dokan1.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
+for /f %%i in ('PowerShell "(Get-Item %GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.1\Win32\Win10Release\dokan1.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
 echo %DOKANVER%
 IF %DOKANVER%=="" (
   EXIT /B 1
