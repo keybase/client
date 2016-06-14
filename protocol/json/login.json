@@ -128,7 +128,7 @@
           "type": "string"
         }
       ],
-      "response": "null",
+      "response": null,
       "doc": "paperKeySubmit checks that paperPhrase is a valid paper key\n    for the logged in user, caches the keys, and sends a notification."
     },
     "unlock": {

@@ -2,7 +2,7 @@
 // Send helloIAm message to service
 
 import engine from '../engine'
-import keybase from '../constants/types/keybase-v1'
+import {Common} from '../constants/types/keybase-v1'
 
 import type {ClientDetails, configHelloIAmRpc} from '../constants/types/flow-types'
 
@@ -12,7 +12,7 @@ export default function (pid: number, desc: string, argv: Array<string>, version
     desc,
     version,
     argv: argv,
-    clientType: keybase.config.ClientType.gui
+    clientType: Common.ClientType.gui
   }
 
   return new Promise((resolve, reject) => {

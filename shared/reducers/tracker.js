@@ -6,7 +6,7 @@ import * as CommonConstants from '../constants/common'
 import {normal, warning, error, checking} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored} from '../constants/tracker'
 
-import {identify} from '../constants/types/keybase-v1'
+import {identify, identifyCommon, proveCommon} from '../constants/types/keybase-v1'
 
 import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof} from '../common-adapters/user-proofs'
@@ -395,11 +395,11 @@ function stateToColor (state: SimpleProofState): string {
 
 function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff, remoteDiff: ?TrackDiff): SimpleProofState {
   // If there is no difference in what we've tracked from the server or remote resource it's good.
-  if (diff && remoteDiff && diff.type === identify.TrackDiffType.none && remoteDiff.type === identify.TrackDiffType.none) {
+  if (diff && remoteDiff && diff.type === identifyCommon.TrackDiffType.none && remoteDiff.type === identifyCommon.TrackDiffType.none) {
     return normal
   }
 
-  const statusName: ?string = mapTagToName(identify.ProofState, proofState)
+  const statusName: ?string = mapTagToName(proveCommon.ProofState, proofState)
   switch (statusName) {
     case 'ok':
       return normal
@@ -418,7 +418,7 @@ function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff,
 }
 
 function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracked: bool) : {diffMeta: ?SimpleProofMeta, statusMeta: ?SimpleProofMeta} {
-  if (status && status !== identify.ProofStatus.ok && isTracked) {
+  if (status && status !== proveCommon.ProofStatus.ok && isTracked) {
     return {
       diffMeta: metaIgnored,
       statusMeta: null
@@ -501,13 +501,13 @@ function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracke
 /* eslint-disable no-multi-spaces */
 function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, humanUrl: ?string): string {
   switch (proofType) {
-    case identify.ProofType.dns            : return `http://${name}`
-    case identify.ProofType.genericWebSite : return `${key}://${name}`
-    case identify.ProofType.twitter        : return `https://twitter.com/${name}`
-    case identify.ProofType.github         : return `https://github.com/${name}`
-    case identify.ProofType.reddit         : return `https://reddit.com/user/${name}`
-    case identify.ProofType.coinbase       : return `https://coinbase.com/${name}`
-    case identify.ProofType.hackernews     : return `https://news.ycombinator.com/user?id=${name}`
+    case proveCommon.ProofType.dns            : return `http://${name}`
+    case proveCommon.ProofType.genericWebSite : return `${key}://${name}`
+    case proveCommon.ProofType.twitter        : return `https://twitter.com/${name}`
+    case proveCommon.ProofType.github         : return `https://github.com/${name}`
+    case proveCommon.ProofType.reddit         : return `https://reddit.com/user/${name}`
+    case proveCommon.ProofType.coinbase       : return `https://coinbase.com/${name}`
+    case proveCommon.ProofType.hackernews     : return `https://news.ycombinator.com/user?id=${name}`
     default: return humanUrl || ''
   }
 }
@@ -515,10 +515,10 @@ function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, hu
 
 function remoteProofToProofType (rp: RemoteProof): string {
   let proofType: string = ''
-  if (rp.proofType === identify.ProofType.genericWebSite) {
+  if (rp.proofType === proveCommon.ProofType.genericWebSite) {
     proofType = rp.key
   } else {
-    proofType = mapTagToName(identify.ProofType, rp.proofType) || ''
+    proofType = mapTagToName(proveCommon.ProofType, rp.proofType) || ''
   }
   return proofType
 }
@@ -539,7 +539,7 @@ function revokedProofToProof (rv: RevokedProof): Proof {
 
 function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
   const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || checking
-  const isTracked = !!(lcr && lcr.diff && lcr.diff.type === identify.TrackDiffType.none && !lcr.breaksTracking)
+  const isTracked = !!(lcr && lcr.diff && lcr.diff.type === identifyCommon.TrackDiffType.none && !lcr.breaksTracking)
   const {diffMeta, statusMeta} = diffAndStatusMeta(lcr && lcr.diff && lcr.diff.type, lcr && lcr.proofResult && lcr.proofResult.status, isTracked)
   const humanUrl = (lcr && lcr.hint && lcr.hint.humanUrl)
 

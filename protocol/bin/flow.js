@@ -7,7 +7,7 @@ var root = 'json'
 
 fs
 .readdirAsync(root)
-.filter(jsonOnly)
+.filter(jsonOnlySkipGregor)
 .map(load)
 .map(analyze)
 .reduce((acc, typeDefs) => acc.concat(typeDefs), [])
@@ -17,8 +17,8 @@ fs
 
 let incomingMaps = {}
 
-function jsonOnly (file) {
-  return !!file.match(/.*\.json$/)
+function jsonOnlySkipGregor (file) {
+  return file !== 'gregor.json' && !!file.match(/.*\.json$/)
 }
 
 function load (file) {
@@ -50,8 +50,11 @@ function analyze (json) {
 }
 
 function figureType (type) {
+  if (!type) {
+    type = 'null' // keep backwards compat with old script
+  }
   if (type instanceof Array) {
-    return `(${type.join(' | ')})`
+    return `(${type.map(t => t ? t : 'null').join(' | ')})`
   } else if (typeof type === 'object') {
     switch (type.type) {
       case 'array':
@@ -127,8 +130,11 @@ function analyzeMessages (json) {
 
 // Type parsing
 function parseInnerType (t) {
+  if (!t) {
+    t = 'null' // keep backwards compat with old script
+  }
   if (t.constructor === Array) {
-    if (t.length === 2 && t.indexOf('null') >= 0) {
+    if (t.length === 2 && t.indexOf(null) >= 0) {
       return parseMaybe(t)
     }
     return parseUnion(t)
@@ -159,7 +165,7 @@ function parseEnum (t) {
 }
 
 function parseMaybe (t) {
-  var maybeType = t.filter(x => x !== 'null')[0]
+  var maybeType = t.filter(x => x !== null)[0]
   return `?${maybeType}`
 }
 
