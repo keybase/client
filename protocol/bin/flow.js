@@ -75,7 +75,6 @@ function capitalize (s) {
 }
 
 function analyzeMessages (json) {
-  console.log(json)
   return Object.keys(json.messages).map(m => {
     const message = json.messages[m]
 
