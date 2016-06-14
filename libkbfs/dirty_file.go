@@ -60,6 +60,9 @@ type dirtyFile struct {
 	// blockSyncing and blockAlreadyCopied, then just defer the
 	// writes.
 	fileBlockStates map[BlockPointer]dirtyBlockState
+	// notYetSyncingBytes is the number of bytes that are dirty in the
+	// file, but haven't yet started syncing to the server yet.
+	notYetSyncingBytes int64
 	// totalSyncBytes is the total number of outstanding dirty bytes
 	// for this file, including those blocks that have already
 	// finished syncing.
@@ -91,6 +94,13 @@ func (df *dirtyFile) blockNeedsCopy(ptr BlockPointer) bool {
 	df.lock.Lock()
 	defer df.lock.Unlock()
 	return df.fileBlockStates[ptr].copy == blockNeedsCopy
+}
+
+func (df *dirtyFile) updateNotYetSyncingBytes(newBytes int64) {
+	df.lock.Lock()
+	defer df.lock.Unlock()
+	df.notYetSyncingBytes += newBytes
+	df.dirtyBcache.UpdateUnsyncedBytes(newBytes)
 }
 
 // setBlockDirty transitions a block to a dirty state, and returns
@@ -151,6 +161,7 @@ func (df *dirtyFile) setBlockSyncing(ptr BlockPointer) error {
 	}
 	state.syncSize = int64(len(fblock.Contents))
 	df.totalSyncBytes += state.syncSize
+	df.notYetSyncingBytes -= state.syncSize
 	df.fileBlockStates[ptr] = state
 	return nil
 }
@@ -248,6 +259,12 @@ func (df *dirtyFile) finishSync() error {
 	df.dirtyBcache.SyncFinished(df.totalSyncBytes)
 	df.totalSyncBytes = 0
 	df.deferredNewBytes = 0
+	if df.notYetSyncingBytes > 0 {
+		// The sync will never happen (probably because the underlying
+		// file was removed).
+		df.dirtyBcache.UpdateUnsyncedBytes(-df.notYetSyncingBytes)
+		df.notYetSyncingBytes = 0
+	}
 	return nil
 }
 

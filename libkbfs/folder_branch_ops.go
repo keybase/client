@@ -2671,8 +2671,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		// stat calls accurately if the user still has an open
 		// handle to this file. TODO: Hook this in with the
 		// node cache GC logic to be perfectly accurate.
-		fbo.blocks.ClearCacheInfo(lState, file)
-		return true, nil
+		return true, fbo.blocks.ClearCacheInfo(lState, file)
 	}
 
 	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
