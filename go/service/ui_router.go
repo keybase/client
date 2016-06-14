@@ -155,3 +155,20 @@ func (u *UIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) {
 	}
 	return ret, sessionID, nil
 }
+
+func (u *UIRouter) GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error) {
+	var err error
+	defer u.G().Trace("UIRouter.GetRekeyUINoSessionID", func() error { return err })()
+
+	x := u.getUI(libkb.RekeyUIKind)
+	if x == nil {
+		return nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	uicli := keybase1.RekeyUIClient{Cli: cli}
+	ret := &RekeyUI{
+		cli:          &uicli,
+		Contextified: libkb.NewContextified(u.G()),
+	}
+	return ret, nil
+}

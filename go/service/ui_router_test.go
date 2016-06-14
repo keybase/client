@@ -34,4 +34,8 @@ func (f fakeUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) {
 	return f.rekeyUI, f.rekeyUI.sessionID, nil
 }
 
+func (f fakeUIRouter) GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error) {
+	return f.rekeyUI, nil
+}
+
 func (f fakeUIRouter) Shutdown() {}

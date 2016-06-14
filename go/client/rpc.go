@@ -255,3 +255,11 @@ func GetPaperProvisionClient(g *libkb.GlobalContext) (cli keybase1.Paperprovisio
 	cli = keybase1.PaperprovisionClient{Cli: rcli}
 	return cli, nil
 }
+
+func GetRekeyClient() (keybase1.RekeyClient, error) {
+	rcli, _, err := GetRPCClient()
+	if err != nil {
+		return keybase1.RekeyClient{}, err
+	}
+	return keybase1.RekeyClient{Cli: rcli}, nil
+}
