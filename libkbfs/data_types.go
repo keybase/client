@@ -777,6 +777,14 @@ type UserQuotaInfo struct {
 	Limit   int64
 }
 
+// NewUserQuotaInfo returns a newly constructed UserQuotaInfo.
+func NewUserQuotaInfo() *UserQuotaInfo {
+	return &UserQuotaInfo{
+		Folders: make(map[string]*UsageStat),
+		Total:   NewUsageStat(),
+	}
+}
+
 // AccumOne combines one quota charge to the existing UserQuotaInfo
 func (u *UserQuotaInfo) AccumOne(change int, folder string, usage UsageType) {
 	if _, ok := u.Folders[folder]; !ok {
