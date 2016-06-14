@@ -4,7 +4,7 @@ import * as Constants from '../constants/update'
 import engine from '../engine'
 import moment from 'moment'
 
-import {updateUi} from '../constants/types/keybase-v1'
+import {updateUi, updateCommon} from '../constants/types/keybase-v1'
 import type {delegateUiCtlRegisterUpdateUIRpc, incomingCallMapType} from '../constants/types/flow-types'
 import type {ShowUpdateConfirmAction, RegisterUpdateListenerAction, OnCancelAction, OnSkipAction,
   OnSnoozeAction, OnConfirmUpdateAction, SetAlwaysUpdateAction, ShowUpdatePausedAction, OnForceAction} from '../constants/update'
@@ -60,9 +60,9 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
       const {alwaysAutoInstall} = payload.options
 
       const windowTitle = {
-        [updateUi.UpdateType.normal]: 'Update: Version ' + version,
-        [updateUi.UpdateType.bugfix]: 'Update: Version ' + version,
-        [updateUi.UpdateType.critical]: 'Critical Update: Version ' + version
+        [updateCommon.UpdateType.normal]: 'Update: Version ' + version,
+        [updateCommon.UpdateType.bugfix]: 'Update: Version ' + version,
+        [updateCommon.UpdateType.critical]: 'Critical Update: Version ' + version
       }[type]
 
       let oldVersion = ''
@@ -85,7 +85,7 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
       dispatch(({
         type: Constants.showUpdateConfirm,
         payload: {
-          isCritical: type === updateUi.UpdateType.critical,
+          isCritical: type === updateCommon.UpdateType.critical,
           newVersion: version,
           description,
           type,

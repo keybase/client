@@ -6,7 +6,7 @@ import {routeAppend} from './router'
 import engine from '../engine'
 import {createServer} from '../engine/server'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
-import {identify} from '../constants/types/keybase-v1'
+import {identifyCommon, Common} from '../constants/types/keybase-v1'
 
 import setNotifications from '../util/set-notifications'
 
@@ -106,11 +106,11 @@ export function triggerIdentify (uid: string): TrackerActionCreator {
         useDelegateUI: true,
         needProofSet: true,
         reason: {
-          type: identify.IdentifyReasonType.id,
+          type: identifyCommon.IdentifyReasonType.id,
           reason: '',
           resource: ''
         },
-        source: identify.ClientType.gui
+        source: Common.ClientType.gui
       },
       incomingCallMap: {},
       callback: (error, response) => {

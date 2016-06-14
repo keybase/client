@@ -82,16 +82,16 @@ const (
 	ProofType_ROOTER           ProofType = 100001
 )
 
-type Prove_commonInterface interface {
+type ProveCommonInterface interface {
 }
 
-func Prove_commonProtocol(i Prove_commonInterface) rpc.Protocol {
+func ProveCommonProtocol(i ProveCommonInterface) rpc.Protocol {
 	return rpc.Protocol{
-		Name:    "keybase.1.prove_common",
+		Name:    "keybase.1.proveCommon",
 		Methods: map[string]rpc.ServeHandlerDescription{},
 	}
 }
 
-type Prove_commonClient struct {
+type ProveCommonClient struct {
 	Cli rpc.GenericClient
 }
