@@ -148,8 +148,7 @@ class Render extends Component<void, Props, State> {
 }
 
 const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  position: 'relative'
+  ...globalStyles.scrollable
 }
 
 const stylesCommonRow = {

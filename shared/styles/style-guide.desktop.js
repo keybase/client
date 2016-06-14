@@ -62,6 +62,9 @@ const util = {
     justifyContent: 'center',
     alignItems: 'center'
   },
+  scrollable: {
+    overflowY: 'auto'
+  },
   selectable: {
     WebkitUserSelect: 'initial'
   },

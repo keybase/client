@@ -31,7 +31,7 @@ class Render extends Component<void, any, any> {
 
   render () {
     return (
-      <Box style={{flex: 1, padding: 20}}>
+      <Box style={{...globalStyles.scrollable, padding: 20}}>
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text type='Header'>Filter:</Text>
           <Input

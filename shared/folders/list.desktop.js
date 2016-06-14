@@ -56,37 +56,31 @@ class Render extends Component<void, Props, State> {
     const styles = this.props.isPublic ? stylesPublic : stylesPrivate
 
     return (
-      <Box style={{...stylesScrollContainer, ...this.props.style}}>
-        <Box style={stylesContainer}>
-          <style>{realCSS}</style>
-          {this.props.extraRows}
-          {this.props.tlfs && this.props.tlfs.map((t, idx) => (
-            <Row
-              key={rowKey(t.users)}
-              {...t}
-              isPublic={this.props.isPublic}
-              ignored={false}
-              onClick={this.props.onClick}
-              onRekey={this.props.onRekey}
-              smallMode={this.props.smallMode}
-              isFirst={!idx} />
-            ))}
-            {this.props.ignored && this.props.ignored.length > 0 && <Ignored
-              ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles} onRekey={this.props.onRekey}
-              isPublic={this.props.isPublic} onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />}
-        </Box>
+      <Box style={{...stylesContainer, ...this.props.style}}>
+        <style>{realCSS}</style>
+        {this.props.extraRows}
+        {this.props.tlfs && this.props.tlfs.map((t, idx) => (
+          <Row
+            key={rowKey(t.users)}
+            {...t}
+            isPublic={this.props.isPublic}
+            ignored={false}
+            onClick={this.props.onClick}
+            onRekey={this.props.onRekey}
+            smallMode={this.props.smallMode}
+            isFirst={!idx} />
+          ))}
+          {this.props.ignored && this.props.ignored.length > 0 && <Ignored
+            ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles} onRekey={this.props.onRekey}
+            isPublic={this.props.isPublic} onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />}
       </Box>
     )
   }
 }
 
-const stylesScrollContainer = {
-  overflowY: 'auto',
-  overflowX: 'hidden'
-}
-
 const stylesContainer = {
-  ...globalStyles.flexBoxColumn
+  ...globalStyles.scrollable,
+  overflowX: 'hidden'
 }
 
 const stylesIgnoreContainer = {
