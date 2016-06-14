@@ -1,22 +1,10 @@
 /* @flow */
 import UserPane from './user.render'
 import NonUserPane from './non-user.render'
-import {normal, checking, revoked, error, metaNone} from '../../constants/tracker'
+import {normal, error} from '../../constants/tracker'
+import {proofsDefault, proofsTracked, proofsChanged, mockUserInfo} from '../../profile/dumb.desktop'
 import type {Props as UserRenderProps} from './user.render'
-import type {Proof} from '../../common-adapters/user-proofs'
 import type {DumbComponentMap} from '../../constants/types/more'
-
-const proofsDefault: Array<Proof> = [
-  {name: 'malgorithms', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com', isTracked: false},
-  {name: 'malgorithms', type: 'github', id: 'githubId', state: normal, meta: metaNone, humanUrl: 'github.com', profileUrl: 'http://github.com', isTracked: false},
-  {name: 'malgorithms', type: 'reddit', id: 'redditId', state: normal, meta: metaNone, humanUrl: 'reddit.com', profileUrl: 'http://reddit.com', isTracked: false},
-  {name: 'keybase.io', type: 'dns', id: 'dnsId', state: normal, meta: metaNone, humanUrl: 'keybase.io', profileUrl: 'http://keybase.io', isTracked: false},
-  {name: 'keybase.pub', type: 'dns', id: 'dns2Id', state: normal, meta: metaNone, humanUrl: 'keybase.pub', profileUrl: 'http://keybase.pub', isTracked: false}
-]
-
-const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: true}))
-
-const proofsChanged = proofsDefault.map((proof, idx) => ({...proof, state: idx % 2 ? checking : revoked}))
 
 const defaultParentProps = {
   style: {
@@ -26,16 +14,7 @@ const defaultParentProps = {
 }
 
 const userPaneBase: UserRenderProps = {
-  username: 'chris',
-  userInfo: {
-    fullname: 'Chris Coyne',
-    followersCount: 1871,
-    followingCount: 356,
-    location: 'NYC & Maine',
-    bio: 'Co-founder of Keybase, OkCupid, SparkNotes, and some random other junk. I like making things.',
-    avatar: 'https://keybase.io/chris/picture',
-    followsYou: false
-  },
+  ...mockUserInfo,
   proofs: proofsDefault,
   trackerState: normal,
   currentlyFollowing: false,

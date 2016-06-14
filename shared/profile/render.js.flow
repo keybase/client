@@ -11,6 +11,7 @@ export type Props = {
   currentlyFollowing: boolean,
   onFollow: () => void,
   onUnfollow: () => void,
+  onAcceptProofs: () => void,
   username: string,
   userInfo: UserInfo,
   proofs: Array<Proof>

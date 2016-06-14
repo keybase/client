@@ -1,43 +1,14 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {normal as proofNormal} from '../../constants/tracker'
-import {Box, Button, FollowButton, UserProofs, UserBio} from '../../common-adapters'
+import {Box, UserProofs, UserBio} from '../../common-adapters'
+import {userHeaderColor, UserActions} from '../../profile/common.desktop'
 import {globalColors, globalStyles, globalMargins} from '../../styles/style-guide'
 import type {Props} from './user.render'
 
 export default class Render extends Component<void, Props, void> {
   render () {
-    let headerColor
-    if (this.props.trackerState === proofNormal) {
-      headerColor = this.props.currentlyFollowing ? globalColors.green : globalColors.blue
-    } else {
-      headerColor = globalColors.red
-    }
-
-    let actions
-    if (this.props.trackerState === proofNormal) {
-      if (this.props.currentlyFollowing) {
-        actions = (
-          <Box style={styleActionBox}>
-            <FollowButton following onUnfollow={this.props.onUnfollow} style={styleFollowButton} />
-          </Box>
-        )
-      } else {
-        actions = (
-          <Box style={styleActionBox}>
-            <FollowButton following={false} onFollow={this.props.onFollow} style={styleFollowButton} />
-          </Box>
-        )
-      }
-    } else {
-      actions = (
-        <Box style={styleActionBox}>
-          <Button type='Unfollow' label='Untrack' onClick={this.props.onUnfollow} />
-          <Button type='Follow' label='Accept' onClick={this.props.onAcceptProofs} style={styleFollowButton} />
-        </Box>
-      )
-    }
+    const headerColor = userHeaderColor(this.props.trackerState, this.props.currentlyFollowing)
 
     return (
       <Box style={styleContainer}>
@@ -58,7 +29,14 @@ export default class Render extends Component<void, Props, void> {
             currentlyFollowing={this.props.currentlyFollowing}
           />
         </Box>
-        {actions}
+        <UserActions
+          style={styleActionBox}
+          trackerState={this.props.trackerState}
+          currentlyFollowing={this.props.currentlyFollowing}
+          onFollow={this.props.onFollow}
+          onUnfollow={this.props.onUnfollow}
+          onAcceptProofs={this.props.onAcceptProofs}
+        />
       </Box>
     )
   }
@@ -90,8 +68,4 @@ const styleActionBox = {
   padding: globalMargins.small,
   boxShadow: `0 0 5px ${globalColors.black_20}`,
   zIndex: 1
-}
-
-const styleFollowButton = {
-  marginRight: 0
 }
