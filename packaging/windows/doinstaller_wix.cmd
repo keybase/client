@@ -98,12 +98,8 @@ set ReleaseBin=%GOPATH%\bin\windows_386\release.exe
 if not EXIST %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG% mkdir %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 
-move %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseApps\bin\Release\*.msi %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 move %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseBundle\bin\Release\*.exe %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 for /f %%i in ('dir /od /b *.exe') do set KEYBASE_INSTALLER_NAME=%%i
-for /f %%i in ('dir /od /b *.msi') do set KEYBASE_UPDATE_NAME=%%i
-
-:: echo %KEYBASE_INSTALLER_NAME%
 
 :: Double check that the installer is codesigned
 signtool verify /pa %KEYBASE_INSTALLER_NAME%
@@ -111,31 +107,14 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-:: Double check that the installer is codesigned
-signtool verify /pa %KEYBASE_UPDATE_NAME%
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-
-if NOT DEFINED JSON_UPDATE_FILENAME set JSON_UPDATE_FILENAME=update-windows-prod.json
-
-if NOT DEFINED JSON_PACKAGE_FILENAME set JSON_PACKAGE_FILENAME=package-windows-prod.json
+if NOT DEFINED JSON_UPDATE_FILENAME set JSON_UPDATE_FILENAME=update-windows-prod-v2.json
 
 :: Run keybase sign to get signature of update
 set KeybaseBin="%ProgramFiles(x86)%\Keybase\keybase.exe"
 set SigFile=sig.txt
-%KeybaseBin% sign -d -i %KEYBASE_UPDATE_NAME% -o %SigFile%
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-
-%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_UPDATE_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_UPDATE_FILENAME%
-
-:: Run keybase sign to get signature of package
-set SigFile=package_sig.txt
 %KeybaseBin% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_PACKAGE_FILENAME%
+%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_UPDATE_FILENAME%
