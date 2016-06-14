@@ -93,6 +93,7 @@ type Item interface {
 type Reminder interface {
 	Item() Item
 	RemindTime() time.Time
+	Seqno() int
 }
 
 type MsgRange interface {
@@ -108,6 +109,7 @@ type Dismissal interface {
 type State interface {
 	Items() ([]Item, error)
 	ItemsInCategory(c Category) ([]Item, error)
+	ItemsWithCategoryPrefix(c Category) ([]Item, error)
 	Marshal() ([]byte, error)
 	Hash() ([]byte, error)
 }
@@ -115,6 +117,17 @@ type State interface {
 type Message interface {
 	ToInBandMessage() InBandMessage
 	ToOutOfBandMessage() OutOfBandMessage
+}
+
+type ReminderSet interface {
+	Reminders() []Reminder
+	MoreRemindersReady() bool
+}
+
+type ReminderID interface {
+	MsgID() MsgID
+	UID() UID
+	Seqno() int
 }
 
 // MessageConsumer consumes state update messages. It's half of
@@ -140,6 +153,11 @@ type StateMachine interface {
 	// at the given time.
 	State(u UID, d DeviceID, t TimeOrOffset) (State, error)
 
+	// StateByCategoryPrefix returns the IBMs in the given state that match
+	// the given category prefix. It's similar to calling State().ItemsInCategory()
+	// but results in less data transfer.
+	StateByCategoryPrefix(u UID, d DeviceID, t TimeOrOffset, cp Category) (State, error)
+
 	// IsEphemeral returns whether the backend storage needs to be saved/restored.
 	IsEphemeral() bool
 
@@ -161,16 +179,20 @@ type StateMachine interface {
 	InBandMessagesSince(u UID, d DeviceID, t time.Time) ([]InBandMessage, error)
 
 	// Reminders returns a slice of non-dismissed items past their RemindTimes.
-	Reminders() ([]Reminder, error)
+	Reminders(maxReminders int) (ReminderSet, error)
 
-	// DeleteReminder deletes a reminder.
-	DeleteReminder(r Reminder) error
+	// DeleteReminder deletes a reminder so it won't be in the queue any longer.
+	DeleteReminder(r ReminderID) error
 
 	// ObjFactory returns the ObjFactory used by this StateMachine.
 	ObjFactory() ObjFactory
 
 	// Clock returns the clockwork.Clock used by this StateMachine.
 	Clock() clockwork.Clock
+
+	// How long we lock access to reminders; after this time, it's open to other
+	// consumers.
+	ReminderLockDuration() time.Duration
 }
 
 type ObjFactory interface {
@@ -180,7 +202,8 @@ type ObjFactory interface {
 	MakeBody(b []byte) (Body, error)
 	MakeCategory(s string) (Category, error)
 	MakeItem(u UID, msgid MsgID, deviceid DeviceID, ctime time.Time, c Category, dtime *time.Time, body Body) (Item, error)
-	MakeReminder(i Item, t time.Time) (Reminder, error)
+	MakeReminder(i Item, seqno int, t time.Time) (Reminder, error)
+	MakeReminderID(u UID, msgid MsgID, seqno int) (ReminderID, error)
 	MakeDismissalByRange(uid UID, msgid MsgID, devid DeviceID, ctime time.Time, c Category, d time.Time) (InBandMessage, error)
 	MakeDismissalByIDs(uid UID, msgid MsgID, devid DeviceID, ctime time.Time, d []MsgID) (InBandMessage, error)
 	MakeStateSyncMessage(uid UID, msgid MsgID, devid DeviceID, ctime time.Time) (InBandMessage, error)
@@ -189,6 +212,8 @@ type ObjFactory interface {
 	MakeInBandMessageFromItem(i Item) (InBandMessage, error)
 	MakeMessageFromInBandMessage(i InBandMessage) (Message, error)
 	MakeTimeOrOffsetFromTime(t time.Time) (TimeOrOffset, error)
+	MakeTimeOrOffsetFromOffset(d time.Duration) (TimeOrOffset, error)
+	MakeReminderSetFromReminders([]Reminder, bool) (ReminderSet, error)
 	UnmarshalState([]byte) (State, error)
 }
 
