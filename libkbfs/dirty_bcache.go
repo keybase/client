@@ -34,6 +34,10 @@ type DirtyBlockCacheStandard struct {
 	bytesDecreasedChan chan struct{}
 	// shutdownChan is closed when Shutdown is called.
 	shutdownChan chan struct{}
+	// blockedChanForTesting sends out the number of bytes of the
+	// request currently waiting.  Sends out -1 when the request is
+	// accepted. Used only for testing.
+	blockedChanForTesting chan<- int64
 
 	// When the number of un-synced dirty bytes exceeds this level,
 	// block new writes.
@@ -155,17 +159,25 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 			reqChan = nil
 		}
 
+		newReq := false
 		select {
 		case <-d.shutdownChan:
 			return
 		case <-d.bytesDecreasedChan:
 		case r := <-reqChan:
 			currentReq = r
+			newReq = true
 		}
 
 		if currentReq.respChan != nil && d.acceptNewWrite(currentReq.bytes) {
 			close(currentReq.respChan)
 			currentReq = dirtyReq{}
+			if d.blockedChanForTesting != nil {
+				d.blockedChanForTesting <- -1
+			}
+		} else if d.blockedChanForTesting != nil &&
+			currentReq.respChan != nil && newReq {
+			d.blockedChanForTesting <- currentReq.bytes
 		}
 	}
 }

@@ -42,11 +42,13 @@ func testExpectedMissingDirty(t *testing.T, id BlockID,
 
 func TestDirtyBcachePut(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(5<<20, 10<<20)
+	defer dirtyBcache.Shutdown()
 	testDirtyBcachePut(t, fakeBlockID(1), dirtyBcache)
 }
 
 func TestDirtyBcachePutDuplicate(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(5<<20, 10<<20)
+	defer dirtyBcache.Shutdown()
 	id1 := fakeBlockID(1)
 
 	// Dirty a specific reference nonce, and make sure the
@@ -90,6 +92,7 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 
 func TestDirtyBcacheDelete(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(5<<20, 10<<20)
+	defer dirtyBcache.Shutdown()
 
 	id1 := fakeBlockID(1)
 	testDirtyBcachePut(t, id1, dirtyBcache)
@@ -105,4 +108,73 @@ func TestDirtyBcacheDelete(t *testing.T) {
 	if !dirtyBcache.IsDirty(BlockPointer{ID: id1}, newBranch) {
 		t.Errorf("New branch block is now unexpectedly clean")
 	}
+}
+
+func TestDirtyBcacheRequestPermission(t *testing.T) {
+	bufSize := int64(5)
+	dirtyBcache := NewDirtyBlockCacheStandard(bufSize, bufSize*2)
+	defer dirtyBcache.Shutdown()
+	blockedChan := make(chan int64)
+	dirtyBcache.blockedChanForTesting = blockedChan
+
+	// The first write should get immediate permission.
+	c1 := dirtyBcache.RequestPermissionToDirty(bufSize)
+	<-c1
+	// Now the unsynced buffer is full
+	if !dirtyBcache.ShouldForceSync() {
+		t.Fatalf("Unsynced not full after a request")
+	}
+	// Not blocked
+	if blockedSize := <-blockedChan; blockedSize != -1 {
+		t.Fatalf("Wrong blocked size: %d", blockedSize)
+	}
+
+	// The next request should block
+	c2 := dirtyBcache.RequestPermissionToDirty(bufSize)
+	if blockedSize := <-blockedChan; blockedSize != bufSize {
+		t.Fatalf("Wrong blocked size: %d", blockedSize)
+	}
+	select {
+	case <-c2:
+		t.Fatalf("Request should be blocked")
+	default:
+	}
+
+	// Let's say the actual number of unsynced bytes for c1 was double
+	dirtyBcache.UpdateUnsyncedBytes(2 * bufSize)
+	// Now release the previous bytes
+	dirtyBcache.UpdateUnsyncedBytes(-bufSize)
+
+	// Request 2 should still be blocked.  (This check isn't
+	// fool-proof, since it doesn't necessarily give time for the
+	// background thread to run.)
+	select {
+	case <-c2:
+		t.Fatalf("Request should be blocked")
+	default:
+	}
+
+	// Finish syncing full size, but c2 is still blocked because we
+	// haven't finished the sync yet.
+	dirtyBcache.BlockSyncFinished(bufSize)
+	dirtyBcache.BlockSyncFinished(bufSize)
+	if !dirtyBcache.ShouldForceSync() {
+		t.Fatalf("Total not full before sync finishes")
+	}
+	select {
+	case <-c2:
+		t.Fatalf("Request should be blocked")
+	default:
+	}
+
+	// Finally, finish off the sync, which should unblock c2
+	dirtyBcache.SyncFinished(2 * bufSize)
+	if dirtyBcache.ShouldForceSync() {
+		t.Fatalf("Buffers still full after sync finished")
+	}
+
+	if blockedSize := <-blockedChan; blockedSize != -1 {
+		t.Fatalf("Wrong blocked size: %d", blockedSize)
+	}
+	<-c2
 }
