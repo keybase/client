@@ -1039,12 +1039,8 @@ func (fbo *folderBlockOps) Read(
 }
 
 func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
-	ctx context.Context, lState *lockState, file Node) error {
-	// If there is too much unflushed data, we should wait until some
-	// of it gets flush so our memory usage doesn't grow without
-	// bound.
-	c := fbo.config.DirtyBlockCache().RequestPermissionToDirty()
-
+	ctx context.Context, lState *lockState, file Node,
+	c DirtyPermChan) error {
 	var errListener chan error
 	err := func() error {
 		fbo.blockLock.Lock(lState)
@@ -1324,7 +1320,13 @@ func (fbo *folderBlockOps) writeDataLocked(
 func (fbo *folderBlockOps) Write(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	file Node, data []byte, off int64) error {
-	err := fbo.maybeWaitOnDeferredWrites(ctx, lState, file)
+	// If there is too much unflushed data, we should wait until some
+	// of it gets flush so our memory usage doesn't grow without
+	// bound.
+	c := fbo.config.DirtyBlockCache().RequestPermissionToDirty(
+		int64(len(data)))
+	defer fbo.config.DirtyBlockCache().UpdateUnsyncedBytes(-int64(len(data)))
+	err := fbo.maybeWaitOnDeferredWrites(ctx, lState, file, c)
 	if err != nil {
 		return err
 	}
@@ -1593,7 +1595,17 @@ func (fbo *folderBlockOps) truncateLocked(
 func (fbo *folderBlockOps) Truncate(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	file Node, size uint64) error {
-	err := fbo.maybeWaitOnDeferredWrites(ctx, lState, file)
+	// If there is too much unflushed data, we should wait until some
+	// of it gets flush so our memory usage doesn't grow without
+	// bound.
+	//
+	// Assume the whole remaining file will be dirty after this
+	// truncate.  TODO: try to figure out how many bytes actually will
+	// be dirtied ahead of time?
+	c := fbo.config.DirtyBlockCache().RequestPermissionToDirty(
+		int64(size))
+	defer fbo.config.DirtyBlockCache().UpdateUnsyncedBytes(-int64(size))
+	err := fbo.maybeWaitOnDeferredWrites(ctx, lState, file, c)
 	if err != nil {
 		return err
 	}

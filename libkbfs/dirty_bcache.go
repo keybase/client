@@ -15,6 +15,11 @@ type dirtyBlockID struct {
 	branch   BranchName
 }
 
+type dirtyReq struct {
+	respChan chan<- struct{}
+	bytes    int64
+}
+
 // DirtyBlockCacheStandard implements the DirtyBlockCache interface by
 // storing blocks in an in-memory cache.  Dirty blocks are identified
 // by their block ID, branch name, and reference nonce, since the same
@@ -23,7 +28,7 @@ type dirtyBlockID struct {
 type DirtyBlockCacheStandard struct {
 	// requestsChan is a queue for channels that should be closed when
 	// permission is granted to dirty new data.
-	requestsChan chan chan<- struct{}
+	requestsChan chan dirtyReq
 	// bytesDecreasedChan is signalled when syncs have finished or dirty
 	// blocks have been deleted.
 	bytesDecreasedChan chan struct{}
@@ -48,7 +53,7 @@ type DirtyBlockCacheStandard struct {
 func NewDirtyBlockCacheStandard(maxSyncBufferSize int64,
 	maxDirtyBufferSize int64) *DirtyBlockCacheStandard {
 	d := &DirtyBlockCacheStandard{
-		requestsChan:       make(chan chan<- struct{}, 1000),
+		requestsChan:       make(chan dirtyReq, 1000),
 		bytesDecreasedChan: make(chan struct{}, 10),
 		shutdownChan:       make(chan struct{}),
 		cache:              make(map[dirtyBlockID]Block),
@@ -128,18 +133,24 @@ func (d *DirtyBlockCacheStandard) IsDirty(
 	return
 }
 
-func (d *DirtyBlockCacheStandard) canAcceptNewWrite() bool {
+func (d *DirtyBlockCacheStandard) acceptNewWrite(newBytes int64) bool {
 	d.lock.Lock()
 	defer d.lock.Unlock()
-	return d.unsyncedDirtyBytes < d.maxSyncBufferSize &&
+	// Accept any write, as long as we're not already over the limits.
+	canAccept := d.unsyncedDirtyBytes < d.maxSyncBufferSize &&
 		d.totalDirtyBytes < d.maxDirtyBufferSize
+	if canAccept {
+		d.unsyncedDirtyBytes += newBytes
+		d.totalDirtyBytes += newBytes
+	}
+	return canAccept
 }
 
 func (d *DirtyBlockCacheStandard) processPermission() {
-	var currentReq chan<- struct{}
+	var currentReq dirtyReq
 	for {
 		reqChan := d.requestsChan
-		if currentReq != nil {
+		if currentReq.respChan != nil {
 			// We are already waiting on a request
 			reqChan = nil
 		}
@@ -148,22 +159,26 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 		case <-d.shutdownChan:
 			return
 		case <-d.bytesDecreasedChan:
-		case c := <-reqChan:
-			currentReq = c
+		case r := <-reqChan:
+			currentReq = r
 		}
 
-		if currentReq != nil && d.canAcceptNewWrite() {
-			close(currentReq)
-			currentReq = nil
+		if currentReq.respChan != nil && d.acceptNewWrite(currentReq.bytes) {
+			close(currentReq.respChan)
+			currentReq = dirtyReq{}
 		}
 	}
 }
 
 // RequestPermissionToDirty implements the DirtyBlockCache interface
 // for DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) RequestPermissionToDirty() DirtyPermChan {
+func (d *DirtyBlockCacheStandard) RequestPermissionToDirty(
+	estimatedDirtyBytes int64) DirtyPermChan {
+	if estimatedDirtyBytes < 0 {
+		panic("Must request permission for a positive number of bytes.")
+	}
 	c := make(chan struct{})
-	d.requestsChan <- c
+	d.requestsChan <- dirtyReq{c, estimatedDirtyBytes}
 	return c
 }
 
@@ -205,7 +220,7 @@ func (d *DirtyBlockCacheStandard) SyncFinished(size int64) {
 // ShouldForceSync implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) ShouldForceSync() bool {
-	return !d.canAcceptNewWrite()
+	return !d.acceptNewWrite(0)
 }
 
 // Shutdown implements the DirtyBlockCache interface for

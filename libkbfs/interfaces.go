@@ -540,15 +540,17 @@ type DirtyBlockCache interface {
 	// given block pointer and branch name is dirty in this cache.
 	IsDirty(ptr BlockPointer, branch BranchName) bool
 	// RequestPermissionToDirty is called whenever a user wants to
-	// write data to a file.  It returns a channel that blocks until
-	// the cache is ready to receive more dirty data, at which point
-	// the channel is closed.  The user must call AddDirtyDelta once
-	// it has completed its write.
-	//
-	// TODO: Send along an estimate of the bytes it expects to dirty?
-	// DIfficult without first fetching blocks and determining the
-	// block size.
-	RequestPermissionToDirty() DirtyPermChan
+	// write data to a file.  The caller provides an estimated number
+	// of bytes that will become dirty -- this is difficult to know
+	// exactly without pre-fetching all the blocks involved, but in
+	// practice we can just use the number of bytes sent in via the
+	// Write. It returns a channel that blocks until the cache is
+	// ready to receive more dirty data, at which point the channel is
+	// closed.  The user must call
+	// `UpdateUnsyncedBytes(-estimatedDirtyBytes)` once it has
+	// completed its write and called `UpdateUnsyncedBytes` for all
+	// the exact dirty block sizes.
+	RequestPermissionToDirty(estimatedDirtyBytes int64) DirtyPermChan
 	// UpdateUnsyncedBytes is called by a user, who has already been
 	// granted permission to write, with the delta in block sizes that
 	// were dirtied as part of the write.  So for example, if a
