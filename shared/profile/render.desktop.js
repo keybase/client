@@ -2,20 +2,21 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import {normal as proofNormal} from '../constants/tracker'
-import {Box, Icon, Text, ComingSoon, UserBio, UserProofs, Usernames} from '../common-adapters'
+import {Box, Icon, Text, UserBio, UserProofs, Usernames} from '../common-adapters'
 import {userHeaderColor, UserActions} from './common.desktop'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import ProfileHelp from './help.desktop'
 import type {Props} from './render'
 
 const HEADER_SIZE = 96
 
 class Render extends Component<void, Props, void> {
   _renderComingSoon () {
-    return <ComingSoon />
+    return <ProfileHelp username={this.props.username} />
   }
 
   render () {
-    if (this.props.showComingSoon) {
+    if (true || this.props.showComingSoon) {
       return this._renderComingSoon()
     }
 

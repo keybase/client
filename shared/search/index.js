@@ -8,7 +8,10 @@ import flags from '../util/feature-flags'
 class Search extends Component<void, Props, void> {
   render () {
     return (
-      <Render showComingSoon={!flags.searchEnabled} />
+      <Render
+        showComingSoon={!flags.searchEnabled}
+        username={this.props.username}
+      />
     )
   }
 }
