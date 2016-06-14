@@ -81,8 +81,7 @@ class Render extends Component<void, Props, State> {
 }
 
 const stylesScrollContainer = {
-  overflowY: 'auto',
-  overflowX: 'hidden'
+  ...globalStyles.scrollable
 }
 
 const stylesContainer = {
