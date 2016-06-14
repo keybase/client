@@ -1,5 +1,6 @@
 {
   "protocol": "constants",
+  "imports": [],
   "types": [
     {
       "type": "enum",

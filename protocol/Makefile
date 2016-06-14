@@ -19,7 +19,7 @@ config:
 # messages but should be made into .json's...
 build-stamp: avdl/*.avdl $(AVDL2JSON) | config
 	@mkdir -p json
-	$(AVDL2JSON) -b -o json -f avdl/constants.avdl -f avdl/install.avdl  avdl/*.avdl
+	$(AVDL2JSON) -2 -b -o json -f avdl/constants.avdl -f avdl/install.avdl  avdl/*.avdl
 	date > $@
 
 go-build-stamp: avdl/*.avdl $(AVDLC) | config

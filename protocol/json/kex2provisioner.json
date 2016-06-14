@@ -1,10 +1,11 @@
 {
   "protocol": "Kex2Provisioner",
+  "imports": [],
   "types": [],
   "messages": {
     "kexStart": {
       "request": [],
-      "response": "null",
+      "response": null,
       "notify": ""
     }
   },

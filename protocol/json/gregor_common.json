@@ -1,0 +1,49 @@
+{
+  "protocol": "gregorCommon",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "GregorItem",
+      "fields": [
+        {
+          "type": "string",
+          "name": "msgID"
+        },
+        {
+          "type": "string",
+          "name": "category"
+        },
+        {
+          "type": "bytes",
+          "name": "body"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
+        }
+      ],
+      "doc": "It would be nice import the gregor data structures from the\n    main gregor repo, but we've had problems with porting over the\n    inclusion mechanism to flow/JS. So just hack in this workaround\n    for now."
+    },
+    {
+      "type": "record",
+      "name": "GregorOutOfBandMessage",
+      "fields": []
+    },
+    {
+      "type": "record",
+      "name": "GregorState",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "GregorItem"
+          },
+          "name": "items"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

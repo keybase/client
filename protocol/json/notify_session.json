@@ -1,10 +1,11 @@
 {
   "protocol": "NotifySession",
+  "imports": [],
   "types": [],
   "messages": {
     "loggedOut": {
       "request": [],
-      "response": "null",
+      "response": null,
       "notify": ""
     },
     "loggedIn": {
@@ -14,7 +15,7 @@
           "type": "string"
         }
       ],
-      "response": "null"
+      "response": null
     },
     "clientOutOfDate": {
       "request": [
@@ -31,7 +32,7 @@
           "type": "string"
         }
       ],
-      "response": "null"
+      "response": null
     }
   },
   "namespace": "keybase.1"
