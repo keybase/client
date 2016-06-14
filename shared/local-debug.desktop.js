@@ -46,10 +46,12 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.printRoutes = true
 
   let envJson = null
-  try {
-    envJson = JSON.parse(process.env.KEYBASE_LOCAL_DEBUG_JSON)
-  } catch (e) {
-    console.warn('Invalid KEYBASE_LOCAL_DEBUG_JSON:', e)
+  if (process.env.KEYBASE_LOCAL_DEBUG_JSON) {
+    try {
+      envJson = JSON.parse(process.env.KEYBASE_LOCAL_DEBUG_JSON)
+    } catch (e) {
+      console.warn('Invalid KEYBASE_LOCAL_DEBUG_JSON:', e)
+    }
   }
 
   config = {...config, ...envJson}
