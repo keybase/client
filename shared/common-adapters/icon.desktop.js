@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {FontIcon} from 'material-ui'
 import type {Props} from './icon'
-import {resolveImage} from '../../desktop/resolve-root'
+import {resolveImageAsURL} from '../../desktop/resolve-root'
 import * as shared from './icon.shared'
 
 export default class Icon extends Component {
@@ -52,7 +52,7 @@ export default class Icon extends Component {
   }
 }
 
-const imgName = (type, ext, mult) => `${encodeURI(resolveImage('icons', type))}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`
+const imgName = (type, ext, mult) => `${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`
 const imgPath = (type, ext) => [1, 2, 3].map(mult => imgName(type, ext, mult)).join(', ')
 
 export const styles = {
