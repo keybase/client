@@ -73,6 +73,7 @@ class Render extends Component<void, Props, void> {
 }
 
 const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
   flexGrow: 1
 }
 
