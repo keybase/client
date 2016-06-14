@@ -42,10 +42,9 @@ logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
 mkdir -p "$logdir"
 
 echo Launching keybase service...
-keybase service &>> "$logdir/keybase.service.log" &
+keybase -d --log-file="$logdir/keybase.service.log" service &>> "$logdir/keybase.start.log" &
 echo Mounting /keybase...
-kbfsfuse -debug -mdserver mdserver.kbfs.keybase.io:443 \
-  -bserver bserver.kbfs.keybase.io:443 -log-to-file /keybase &>> "$logdir/keybase.startkbfs.log" &
+kbfsfuse -debug -log-to-file /keybase &>> "$logdir/keybase.start.log" &
 echo Launching Keybase GUI...
 /opt/keybase/Keybase &>> "$logdir/Keybase.app.log" &
 
