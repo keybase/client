@@ -2,11 +2,11 @@
 
 import React, {Component} from 'react'
 import {Text, Avatar} from '../common-adapters'
+import {error as proofError} from '../constants/tracker'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import electron from 'electron'
 
 const shell = electron.shell || electron.remote.shell
-const avatarSize = 80
 
 import type {Props} from './user-bio'
 
@@ -41,7 +41,7 @@ export default class BioRender extends Component {
   }
 
   render () {
-    const {username, userInfo, currentlyFollowing} = this.props
+    const {avatarSize, username, userInfo, currentlyFollowing, trackerState} = this.props
     if (!userInfo) {
       return null
     }
@@ -49,8 +49,15 @@ export default class BioRender extends Component {
     const followsYou = userInfo.followsYou
     const followLabel = this._followLabel()
 
+    let stylesUsernameState
+    if (trackerState === proofError) {
+      stylesUsernameState = stylesUsernameError
+    } else {
+      stylesUsernameState = currentlyFollowing ? stylesUsernameFollowing : stylesUsernameNotFollowing
+    }
+
     return (
-      <div style={stylesOuter}>
+      <div style={this.props.style}>
         <div style={stylesContainer}>
           <Avatar
             onClick={() => this._onClickAvatar()}
@@ -62,7 +69,7 @@ export default class BioRender extends Component {
           <div style={stylesContent}>
             <Text
               type='HeaderBig'
-              style={{...stylesUsername, ...(currentlyFollowing ? stylesUsernameFollowing : stylesUsernameNotFollowing)}}
+              style={{...stylesUsername, ...stylesUsernameState}}
               onClick={() => this._onClickAvatar()}>
               {username}
             </Text>
@@ -96,15 +103,11 @@ export default class BioRender extends Component {
   }
 }
 
-const stylesOuter = {
-  marginTop: 90
-}
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',
-  width: 320,
-  marginTop: -40
+  width: 320
 }
 const stylesContent = {
   backgroundColor: globalColors.white,
@@ -126,10 +129,13 @@ const stylesUsernameFollowing = {
 const stylesUsernameNotFollowing = {
   color: globalColors.orange
 }
+const stylesUsernameError = {
+  color: globalColors.red
+}
 const stylesFullname = {
   ...globalStyles.selectable,
   textAlign: 'center',
-  color: '#444444'
+  color: globalColors.black_75
 }
 const stylesFollowLabel = {
   fontSize: 11,

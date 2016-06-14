@@ -1,0 +1,19 @@
+/* @flow */
+
+import {Component} from 'react'
+import type {UserInfo} from '../../common-adapters/user-bio'
+import type {Proof} from '../../common-adapters/user-proofs'
+import type {SimpleProofState} from '../../constants/tracker'
+
+export type Props = {
+  username: string,
+  userInfo: UserInfo,
+  proofs: Array<Proof>,
+  currentlyFollowing: boolean,
+  trackerState: SimpleProofState,
+  onFollow: () => void,
+  onUnfollow: () => void,
+  onAcceptProofs: () => void
+}
+
+export default class Render extends Component<void, Props, void> {}

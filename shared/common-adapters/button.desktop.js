@@ -45,6 +45,9 @@ class Button extends Component {
           ...stylesButtonUnfollow,
           opacity: disabled ? stylesButtonUnfollow.disabledOpacity : 1
         }
+        labelStyle = {
+          color: globalColors.black_75
+        }
         break
       case 'Danger':
         backgroundStyle = {
@@ -118,6 +121,8 @@ class Button extends Component {
       <div style={outerStyle}>
         <FlatButton
           onClick={this.props.onClick}
+          onMouseEnter={this.props.onMouseEnter}
+          onMouseLeave={this.props.onMouseLeave}
           style={{...backgroundStyle, ...smallStyle, ...this.props.style}}
           labelStyle={{...stylesButtonLabel, ...labelStyle, ...this.props.labelStyle}}
           {...rippleStyle}
@@ -172,13 +177,15 @@ const stylesButtonFollowing = {
   ...buttonCommon,
   backgroundColor: globalColors.white,
   border: `solid 2px ${globalColors.green}`,
+  lineHeight: '28px',
   marginRight: 10,
   minWidth: 125
 }
 const stylesButtonUnfollow = {
-  ...buttonCommon,
-  backgroundColor: globalColors.blue,
-  disabledOpacity: 0.2,
+  ...stylesButtonSecondary,
+  // mimic border width from following state to work around animation jitter during FollowButton hover transition
+  border: `solid 2px ${globalColors.lightGrey2}`,
+  lineHeight: '28px',
   marginRight: 10,
   minWidth: 125
 }

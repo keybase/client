@@ -4,6 +4,8 @@ import React, {Component} from 'react'
 
 export type Props = {
   onClick: ?Function,
+  onMouseEnter?: Function,
+  onMouseLeave?: Function,
   label: ?string,
   style?: ?Object,
   labelStyle?: ?Object,

@@ -2,8 +2,10 @@
 
 import React, {Component} from 'react'
 
+export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 32 | 24 | 16
+
 type CommonProps = {
-  size: 176 | 112 | 80 | 64 | 48 | 32 | 24 | 16,
+  size: AvatarSize,
   style?: ?Object,
   onClick?: ?(() => void),
   following?: ?boolean,

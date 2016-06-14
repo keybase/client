@@ -2,10 +2,12 @@
 
 import {Component} from 'react'
 
+import type {SimpleProofState} from '../constants/tracker'
 import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof} from '../common-adapters/user-proofs'
 
 export type Props = {
+  trackerState: SimpleProofState,
   currentlyFollowing: boolean,
   onFollow: () => void,
   onUnfollow: () => void,
