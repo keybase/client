@@ -1,0 +1,4 @@
+@namespace("gregor.1")
+protocol index {
+	import idl "common.avdl";
+}

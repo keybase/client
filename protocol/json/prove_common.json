@@ -1,0 +1,83 @@
+{
+  "protocol": "prove_common",
+  "imports": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "ProofState",
+      "symbols": [
+        "NONE_0",
+        "OK_1",
+        "TEMP_FAILURE_2",
+        "PERM_FAILURE_3",
+        "LOOKING_4",
+        "SUPERSEDED_5",
+        "POSTED_6",
+        "REVOKED_7"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ProofStatus",
+      "symbols": [
+        "NONE_0",
+        "OK_1",
+        "LOCAL_2",
+        "FOUND_3",
+        "BASE_ERROR_100",
+        "HOST_UNREACHABLE_101",
+        "PERMISSION_DENIED_103",
+        "FAILED_PARSE_106",
+        "DNS_ERROR_107",
+        "AUTH_FAILED_108",
+        "HTTP_429_129",
+        "HTTP_500_150",
+        "TIMEOUT_160",
+        "INTERNAL_ERROR_170",
+        "BASE_HARD_ERROR_200",
+        "NOT_FOUND_201",
+        "CONTENT_FAILURE_202",
+        "BAD_USERNAME_203",
+        "BAD_REMOTE_ID_204",
+        "TEXT_NOT_FOUND_205",
+        "BAD_ARGS_206",
+        "CONTENT_MISSING_207",
+        "TITLE_NOT_FOUND_208",
+        "SERVICE_ERROR_209",
+        "TOR_SKIPPED_210",
+        "TOR_INCOMPATIBLE_211",
+        "HTTP_300_230",
+        "HTTP_400_240",
+        "HTTP_OTHER_260",
+        "EMPTY_JSON_270",
+        "DELETED_301",
+        "SERVICE_DEAD_302",
+        "BAD_SIGNATURE_303",
+        "BAD_API_URL_304",
+        "UNKNOWN_TYPE_305",
+        "NO_HINT_306",
+        "BAD_HINT_TEXT_307"
+      ],
+      "doc": "3: It's been found in the hunt, but not proven yet\n    1xx: Retryable soft errors\n    2xx: Will likely result in a hard error, if repeated enough\n    3xx: Hard final errors"
+    },
+    {
+      "type": "enum",
+      "name": "ProofType",
+      "symbols": [
+        "NONE_0",
+        "KEYBASE_1",
+        "TWITTER_2",
+        "GITHUB_3",
+        "REDDIT_4",
+        "COINBASE_5",
+        "HACKERNEWS_6",
+        "GENERIC_WEB_SITE_1000",
+        "DNS_1001",
+        "PGP_1002",
+        "ROOTER_100001"
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}
