@@ -144,7 +144,25 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 
 	h.G().LoginState().Account(func(a *libkb.Account) {
 		res.PassphraseStreamCached = a.PassphraseStreamCache().Valid()
-		res.LksecLoaded = a.LKSec() != nil
+
+		// cached keys status
+		sk, err := a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType})
+		if err == nil && sk != nil {
+			res.DeviceSigKeyCached = true
+		}
+		ek, err := a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType})
+		if err == nil && ek != nil {
+			res.DeviceEncKeyCached = true
+		}
+		if a.GetUnlockedPaperSigKey() != nil {
+			res.PaperSigKeyCached = true
+		}
+		if a.GetUnlockedPaperEncKey() != nil {
+			res.PaperEncKeyCached = true
+		}
+
+		res.SecretPromptSkip = a.SkipSecretPrompt()
+
 		if a.LoginSession() != nil {
 			res.Session = a.LoginSession().Status()
 		}
@@ -162,6 +180,13 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 	}
 	res.ProvisionedUsernames = p
 	res.PlatformInfo = getPlatformInfo()
+
+	if me != nil && h.G().SecretStoreAll != nil {
+		s, err := h.G().SecretStoreAll.RetrieveSecret(me.GetNormalizedName())
+		if err == nil && s != nil {
+			res.StoredSecret = true
+		}
+	}
 
 	return res, nil
 }

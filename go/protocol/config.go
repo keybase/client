@@ -41,7 +41,12 @@ type PlatformInfo struct {
 type ExtendedStatus struct {
 	Standalone             bool            `codec:"standalone" json:"standalone"`
 	PassphraseStreamCached bool            `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
-	LksecLoaded            bool            `codec:"lksecLoaded" json:"lksecLoaded"`
+	DeviceSigKeyCached     bool            `codec:"deviceSigKeyCached" json:"deviceSigKeyCached"`
+	DeviceEncKeyCached     bool            `codec:"deviceEncKeyCached" json:"deviceEncKeyCached"`
+	PaperSigKeyCached      bool            `codec:"paperSigKeyCached" json:"paperSigKeyCached"`
+	PaperEncKeyCached      bool            `codec:"paperEncKeyCached" json:"paperEncKeyCached"`
+	StoredSecret           bool            `codec:"storedSecret" json:"storedSecret"`
+	SecretPromptSkip       bool            `codec:"secretPromptSkip" json:"secretPromptSkip"`
 	Device                 *Device         `codec:"device,omitempty" json:"device,omitempty"`
 	LogDir                 string          `codec:"logDir" json:"logDir"`
 	Session                *SessionStatus  `codec:"session,omitempty" json:"session,omitempty"`
