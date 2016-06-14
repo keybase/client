@@ -241,7 +241,7 @@ func (m *Message) SetCTime(ctime time.Time) {
 
 func (r Reminder) Item() gregor.Item     { return r.Item_ }
 func (r Reminder) RemindTime() time.Time { return FromTime(r.RemindTime_) }
-func (r Reminder) Seqno() int { return r.Seqno_ }
+func (r Reminder) Seqno() int            { return r.Seqno_ }
 
 func (r ReminderID) UID() gregor.UID     { return r.Uid_ }
 func (r ReminderID) MsgID() gregor.MsgID { return r.MsgID_ }
