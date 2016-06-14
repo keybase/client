@@ -17,5 +17,8 @@ class Search extends Component<void, Props, void> {
 }
 
 export default connect(
-  state => ({}),
-  dispatch => ({}))(Search)
+  state => ({
+    username: state.config.username,
+  }),
+  dispatch => ({})
+)(Search)
