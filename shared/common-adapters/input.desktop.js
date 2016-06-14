@@ -4,7 +4,6 @@ import {TextField} from 'material-ui'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {styles as TextStyles, specialStyles} from './text'
 import MultiLineInput from './multi-line-input.desktop'
-import KeyCodes from '../constants/keycodes'
 import type {Props} from './input'
 
 export default class Input extends Component {
@@ -43,7 +42,7 @@ export default class Input extends Component {
       this.props.onKeyDown(e)
     }
 
-    if (this.props.onEnterKeyDown && e.keyCode === KeyCodes['enter']) {
+    if (this.props.onEnterKeyDown && e.key === 'Enter') {
       this.props.onEnterKeyDown(e)
     }
   }
