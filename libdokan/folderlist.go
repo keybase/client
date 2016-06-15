@@ -8,6 +8,7 @@ package libdokan
 
 import (
 	"sync"
+	"time"
 
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
@@ -27,8 +28,9 @@ type FolderList struct {
 	// only accept public folders
 	public bool
 
-	mu      sync.Mutex
-	folders map[string]fileOpener
+	mu         sync.Mutex
+	folders    map[string]fileOpener
+	aliasCache map[string]string
 }
 
 // GetFileInformation for dokan.
@@ -76,8 +78,12 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			return nil, false, dokan.ErrObjectNameNotFound
 		}
 
+		var aliasTarget string
 		fl.mu.Lock()
 		child, ok := fl.folders[name]
+		if !ok {
+			aliasTarget = fl.aliasCache[name]
+		}
 		fl.mu.Unlock()
 
 		if ok {
@@ -95,6 +101,15 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			return e, true, nil
 		}
 
+		if aliasTarget != "" {
+			fl.fs.log.CDebugf(ctx, "FL Lookup aliasCache hit: %q -> %q", name, aliasTarget)
+			if len(path) == 1 && oc.isOpenReparsePoint() {
+				return &Alias{canon: aliasTarget}, true, nil
+			}
+			path[0] = aliasTarget
+			continue
+		}
+
 		h, err := libkbfs.ParseTlfHandle(
 			ctx, fl.fs.config.KBPKI(), name, fl.public)
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing -> %v,%v", h, err)
@@ -105,19 +120,21 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 
 		case libkbfs.TlfNameNotCanonical:
 			// Only permit Aliases to targets that contain no errors.
-			if !fl.isValidAliasTarget(ctx, err.NameToTry) {
-				fl.fs.log.CDebugf(ctx, "FL Refusing alias to non-valid target %q", err.NameToTry)
+			aliasTarget = err.NameToTry
+			fl.fs.log.CDebugf(ctx, "FL Lookup set alias: %q -> %q", name, aliasTarget)
+			if !fl.isValidAliasTarget(ctx, aliasTarget) {
+				fl.fs.log.CDebugf(ctx, "FL Refusing alias to non-valid target %q", aliasTarget)
 				return nil, false, dokan.ErrObjectNameNotFound
 			}
+			fl.mu.Lock()
+			fl.aliasCache[name] = aliasTarget
+			fl.mu.Unlock()
 
 			if len(path) == 1 && oc.isOpenReparsePoint() {
-				// Non-canonical name.
-				n := &Alias{
-					canon: err.NameToTry,
-				}
-				return n, true, nil
+				fl.fs.log.CDebugf(ctx, "FL Lookup ret alias, oc: %#v", oc.CreateData)
+				return &Alias{canon: aliasTarget}, true, nil
 			}
-			path[0] = err.NameToTry
+			path[0] = aliasTarget
 			continue
 
 		case libkbfs.NoSuchNameError, libkbfs.BadTLFNameError:
@@ -202,4 +219,23 @@ func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 	fl.folders[newName] = tlf
 	// TODO: invalidate kernel cache for this name? (Make sure to
 	// do so outside of the lock!)
+}
+
+func (fl *FolderList) clearAliasCache() {
+	fl.mu.Lock()
+	fl.aliasCache = map[string]string{}
+	fl.mu.Unlock()
+}
+
+func clearFolderListCacheLoop(ctx context.Context, r *Root) {
+	t := time.NewTicker(time.Hour)
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+		}
+		r.private.clearAliasCache()
+		r.public.clearAliasCache()
+	}
 }
