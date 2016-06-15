@@ -16,14 +16,14 @@ import (
 )
 
 type V2Signer struct {
-	auth    Auth
+	auth    *Auth
 	service ServiceInfo
 	host    string
 }
 
 var b64 = base64.StdEncoding
 
-func NewV2Signer(auth Auth, service ServiceInfo) (*V2Signer, error) {
+func NewV2Signer(auth *Auth, service ServiceInfo) (*V2Signer, error) {
 	u, err := url.Parse(service.Endpoint)
 	if err != nil {
 		return nil, err
@@ -32,11 +32,12 @@ func NewV2Signer(auth Auth, service ServiceInfo) (*V2Signer, error) {
 }
 
 func (s *V2Signer) Sign(method, path string, params map[string]string) {
-	params["AWSAccessKeyId"] = s.auth.AccessKey
+	accessKey, secretKey, token := s.auth.Credentials()
+	params["AWSAccessKeyId"] = accessKey
 	params["SignatureVersion"] = "2"
 	params["SignatureMethod"] = "HmacSHA256"
-	if s.auth.Token() != "" {
-		params["SecurityToken"] = s.auth.Token()
+	if token != "" {
+		params["SecurityToken"] = token
 	}
 
 	// AWS specifies that the parameters in a signed request must
@@ -53,7 +54,7 @@ func (s *V2Signer) Sign(method, path string, params map[string]string) {
 	}
 	joined := strings.Join(sarray, "&")
 	payload := method + "\n" + s.host + "\n" + path + "\n" + joined
-	hash := hmac.New(sha256.New, []byte(s.auth.SecretKey))
+	hash := hmac.New(sha256.New, []byte(secretKey))
 	hash.Write([]byte(payload))
 	signature := make([]byte, b64.EncodedLen(hash.Size()))
 	b64.Encode(signature, hash.Sum(nil))
@@ -68,10 +69,10 @@ const (
 )
 
 type Route53Signer struct {
-	auth Auth
+	auth *Auth
 }
 
-func NewRoute53Signer(auth Auth) *Route53Signer {
+func NewRoute53Signer(auth *Auth) *Route53Signer {
 	return &Route53Signer{auth: auth}
 }
 
@@ -89,8 +90,8 @@ func (s *Route53Signer) getCurrentDate() string {
 }
 
 // Creates the authorize signature based on the date stamp and secret key
-func (s *Route53Signer) getHeaderAuthorize(message string) string {
-	hmacSha256 := hmac.New(sha256.New, []byte(s.auth.SecretKey))
+func (s *Route53Signer) getHeaderAuthorize(message, secretKey string) string {
+	hmacSha256 := hmac.New(sha256.New, []byte(secretKey))
 	hmacSha256.Write([]byte(message))
 	cryptedString := hmacSha256.Sum(nil)
 
@@ -100,9 +101,10 @@ func (s *Route53Signer) getHeaderAuthorize(message string) string {
 // Adds all the required headers for AWS Route53 API to the request
 // including the authorization
 func (s *Route53Signer) Sign(req *http.Request) {
+	accessKey, secretKey, _ := s.auth.Credentials()
 	date := s.getCurrentDate()
 	authHeader := fmt.Sprintf("AWS3-HTTPS AWSAccessKeyId=%s,Algorithm=%s,Signature=%s",
-		s.auth.AccessKey, "HmacSHA256", s.getHeaderAuthorize(date))
+		accessKey, "HmacSHA256", s.getHeaderAuthorize(date, secretKey))
 
 	req.Header.Set("Host", req.Host)
 	req.Header.Set("X-Amzn-Authorization", authHeader)
@@ -115,7 +117,7 @@ The V4Signer encapsulates all of the functionality to sign a request with the AW
 Signature Version 4 Signing Process. (http://goo.gl/u1OWZz)
 */
 type V4Signer struct {
-	auth        Auth
+	auth        *Auth
 	serviceName string
 	region      Region
 }
@@ -123,7 +125,7 @@ type V4Signer struct {
 /*
 Return a new instance of a V4Signer capable of signing AWS requests.
 */
-func NewV4Signer(auth Auth, serviceName string, region Region) *V4Signer {
+func NewV4Signer(auth *Auth, serviceName string, region Region) *V4Signer {
 	return &V4Signer{auth: auth, serviceName: serviceName, region: region}
 }
 
@@ -140,14 +142,17 @@ The signed request will include a new "Authorization" header indicating that the
 Any changes to the request after signing the request will invalidate the signature.
 */
 func (s *V4Signer) Sign(req *http.Request) {
-	req.Header.Set("host", req.Host)                  // host header must be included as a signed header
-	t := s.requestTime(req)                           // Get requst time
-	creq := s.canonicalRequest(req)                   // Build canonical request
-	sts := s.stringToSign(t, creq)                    // Build string to sign
-	signature := s.signature(t, sts)                  // Calculate the AWS Signature Version 4
-	auth := s.authorization(req.Header, t, signature) // Create Authorization header value
-	req.Header.Set("Authorization", auth)             // Add Authorization header to request
-	return
+	accessKey, secretKey, token := s.auth.Credentials()
+	if token != "" {
+		req.Header.Set("X-Amz-Security-Token", token)
+	}
+	req.Header.Set("host", req.Host)                             // host header must be included as a signed header
+	t := s.requestTime(req)                                      // Get requst time
+	creq := s.canonicalRequest(req)                              // Build canonical request
+	sts := s.stringToSign(t, creq)                               // Build string to sign
+	signature := s.signature(t, sts, secretKey)                  // Calculate the AWS Signature Version 4
+	auth := s.authorization(req.Header, t, signature, accessKey) // Create Authorization header value
+	req.Header.Set("Authorization", auth)                        // Add Authorization header to request
 }
 
 /*
@@ -308,8 +313,8 @@ signature method calculates the AWS Signature Version 4 according to Task 3 of t
 
 	signature = HexEncode(HMAC(derived-signing-key, string-to-sign))
 */
-func (s *V4Signer) signature(t time.Time, sts string) string {
-	h := s.hmac(s.derivedKey(t), []byte(sts))
+func (s *V4Signer) signature(t time.Time, sts, secretKey string) string {
+	h := s.hmac(s.derivedKey(t, secretKey), []byte(sts))
 	return fmt.Sprintf("%x", h)
 }
 
@@ -322,8 +327,8 @@ derivedKey method derives a signing key to be used for signing a request.
     kService = HMAC(kRegion, Service)
     kSigning = HMAC(kService, "aws4_request")
 */
-func (s *V4Signer) derivedKey(t time.Time) []byte {
-	h := s.hmac([]byte("AWS4"+s.auth.SecretKey), []byte(t.Format(ISO8601BasicFormatShort)))
+func (s *V4Signer) derivedKey(t time.Time, secretKey string) []byte {
+	h := s.hmac([]byte("AWS4"+secretKey), []byte(t.Format(ISO8601BasicFormatShort)))
 	h = s.hmac(h, []byte(s.region.Name))
 	h = s.hmac(h, []byte(s.serviceName))
 	h = s.hmac(h, []byte("aws4_request"))
@@ -333,10 +338,10 @@ func (s *V4Signer) derivedKey(t time.Time) []byte {
 /*
 authorization method generates the authorization header value.
 */
-func (s *V4Signer) authorization(header http.Header, t time.Time, signature string) string {
+func (s *V4Signer) authorization(header http.Header, t time.Time, signature, accessKey string) string {
 	w := new(bytes.Buffer)
 	fmt.Fprint(w, "AWS4-HMAC-SHA256 ")
-	fmt.Fprintf(w, "Credential=%s/%s, ", s.auth.AccessKey, s.credentialScope(t))
+	fmt.Fprintf(w, "Credential=%s/%s, ", accessKey, s.credentialScope(t))
 	fmt.Fprintf(w, "SignedHeaders=%s, ", s.signedHeaders(header))
 	fmt.Fprintf(w, "Signature=%s", signature)
 	return w.String()

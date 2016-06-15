@@ -19,7 +19,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/aalness/goamz/dynamodb"
+	"github.com/goamz/goamz/dynamodb"
 	"github.com/goamz/goamz/aws"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -190,7 +190,7 @@ func (tdr *TestDynamoDBRunner) Run(t logger.TestLogBackend) {
 			DynamoDBEndpoint:        LocalDynamoDBUri,
 			DynamoDBStreamsEndpoint: LocalDynamoDBUri,
 		}
-		auth := aws.Auth{AccessKey: "DUMMY_KEY", SecretKey: "DUMMY_SECRET"}
+		auth := aws.NewAuth("DUMMY_KEY", "DUMMY_SECRET", "", time.Time{})
 		server := &dynamodb.Server{Auth: auth, Region: region}
 		if _, err := server.ListTables(); err != nil {
 			time.Sleep(time.Millisecond * 250)

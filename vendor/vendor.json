@@ -32,12 +32,6 @@
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		},
 		{
-			"checksumSHA1": "S11rroKdF24lPp3PM9Ern9+PNwg=",
-			"path": "github.com/aalness/goamz/dynamodb",
-			"revision": "bf3fffd7aa093577f5ca22361b1b603c27c02129",
-			"revisionTime": "2016-04-12T14:53:53-07:00"
-		},
-		{
 			"path": "github.com/agl/ed25519",
 			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
 			"revisionTime": "2016-03-16T16:25:20-04:00"
@@ -83,9 +77,20 @@
 			"revisionTime": "2015-09-05T19:33:21-07:00"
 		},
 		{
+			"checksumSHA1": "egYe7ZwngazaWRW/WfawGNClGJg=",
+			"origin": "github.com/aalness/goamz/aws",
 			"path": "github.com/goamz/goamz/aws",
-			"revision": "be371d06631a6ea076cccefc6654fa5c29be074d",
-			"revisionTime": "2015-10-22T11:50:32+02:00"
+			"revision": "30143e3f33a7db39c8d0afe3f265e5fe27f359fa",
+			"revisionTime": "2016-06-15T16:34:33Z",
+			"tree": true
+		},
+		{
+			"checksumSHA1": "X2F1YJK7jkq6ZZSKx74t8EyWZhQ=",
+			"origin": "github.com/aalness/goamz/dynamodb",
+			"path": "github.com/goamz/goamz/dynamodb",
+			"revision": "30143e3f33a7db39c8d0afe3f265e5fe27f359fa",
+			"revisionTime": "2016-06-15T16:34:33Z",
+			"tree": true
 		},
 		{
 			"path": "github.com/golang/mock/gomock",
