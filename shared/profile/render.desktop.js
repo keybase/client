@@ -16,7 +16,7 @@ class Render extends Component<void, Props, void> {
   }
 
   render () {
-    if (true || this.props.showComingSoon) {
+    if (this.props.showComingSoon) {
       return this._renderComingSoon()
     }
 
