@@ -19,39 +19,43 @@ export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: Us
   return {sortName, path}
 }
 
-const folderToProps = (folders: Array<Folder>, username: string = ''): FolderProps => { // eslint-disable-line space-infix-ops
+type FolderWithMeta = {
+  folder: Folder,
+  meta: ?string
+}
+
+const folderToProps = (folders: Array<FolderWithMeta>, username: string = ''): FolderProps => { // eslint-disable-line space-infix-ops
   let privateBadge = 0
   let publicBadge = 0
 
   const converted = folders.map(f => {
-    const users = canonicalizeUsernames(username, parseFolderNameToUsers(f.name))
+    const users = canonicalizeUsernames(username, parseFolderNameToUsers(f.folder.name))
       .map(u => ({
         username: u,
         you: u === username,
         broken: false
       }))
 
-    const {sortName, path} = pathFromFolder({users, isPublic: !f.private})
-    const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)
+    const {sortName, path} = pathFromFolder({users, isPublic: !f.folder.private})
+    const groupAvatar = f.folder.private ? (users.length > 2) : (users.length > 1)
     const userAvatar = groupAvatar ? null : users[users.length - 1].username
-    const meta = null
-    // const meta = (__DEV__ && Math.random() < 0.05) ? 'new' : null // uncomment to test seeing new before we integrate fully
-
+    const meta = f.meta
     if (meta === 'new') {
-      if (f.private) {
+      if (f.folder.private) {
         privateBadge++
       } else {
         publicBadge++
       }
     }
-
+    const ignored = f.meta === 'ignored'
     return {
       path,
       users,
       sortName,
-      isPublic: !f.private,
+      isPublic: !f.folder.private,
       groupAvatar,
       userAvatar,
+      ignored,
       meta,
       onRekey: null,
       recentFiles: [],
@@ -72,8 +76,9 @@ const folderToProps = (folders: Array<Folder>, username: string = ''): FolderPro
     return a.sortName.localeCompare(b.sortName)
   })
 
-  const [priv, pub] = _.partition(converted, {isPublic: false})
-
+  const [priFolders, pubFolders] = _.partition(converted, {isPublic: false})
+  let [privIgnored, priv] = _.partition(priFolders, {ignored: true})
+  let [pubIgnored, pub] = _.partition(pubFolders, {ignored: true})
   return {
     onRekey: () => {},
     showingPrivate: true,
@@ -83,10 +88,12 @@ const folderToProps = (folders: Array<Folder>, username: string = ''): FolderPro
     publicBadge,
     private: {
       tlfs: priv,
+      ignored: privIgnored,
       isPublic: false
     },
     public: {
       tlfs: pub,
+      ignored: pubIgnored,
       isPublic: true
     }
   }
@@ -107,11 +114,16 @@ export function favoriteList (): (dispatch: Dispatch) => void {
           return
         }
 
-        let folders = favorites.favoriteFolders
-
-        if (!folders) {
-          folders = []
-        }
+        let folders = []
+        favorites.favoriteFolders.forEach(f => {
+          folders.push({folder: f, meta: null})
+        })
+        favorites.newFolders.forEach(f => {
+          folders.push({folder: f, meta: 'new'})
+        })
+        favorites.ignoredFolders.forEach(f => {
+          folders.push({folder: f, meta: 'ignored'})
+        })
 
         const config = getState && getState().config
         const currentUser = config && config.username
@@ -120,8 +132,8 @@ export function favoriteList (): (dispatch: Dispatch) => void {
         // Ensure private/public folders exist for us
         if (currentUser && loggedIn) {
           [true, false].forEach(isPrivate => {
-            const idx = folders.findIndex(f => f.name === currentUser && f.private === isPrivate)
-            let toAdd = {name: currentUser, private: isPrivate, notificationsOn: false, created: false}
+            const idx = folders.findIndex(f => f.folder.name === currentUser && f.folder.private === isPrivate)
+            let toAdd = {meta: null, folder: {name: currentUser, private: isPrivate, notificationsOn: false, created: false}}
 
             if (idx !== -1) {
               toAdd = folders[idx]
