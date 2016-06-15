@@ -99,6 +99,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		if aliasTarget != "" {
+			fl.fs.log.CDebugf(ctx, "FL Lookup aliasCache hit: %q -> %q", name, aliasTarget)
 			if len(path) == 1 && oc.isOpenReparsePoint() {
 				return &Alias{canon: aliasTarget}, true, nil
 			}
@@ -117,6 +118,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		case libkbfs.TlfNameNotCanonical:
 			// Only permit Aliases to targets that contain no errors.
 			aliasTarget = err.NameToTry
+			fl.fs.log.CDebugf(ctx, "FL Lookup set alias: %q -> %q", name, aliasTarget)
 			if !fl.isValidAliasTarget(ctx, aliasTarget) {
 				fl.fs.log.CDebugf(ctx, "FL Refusing alias to non-valid target %q", aliasTarget)
 				return nil, false, dokan.ErrObjectNameNotFound
@@ -126,6 +128,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			fl.mu.Unlock()
 
 			if len(path) == 1 && oc.isOpenReparsePoint() {
+				fl.fs.log.CDebugf(ctx, "FL Lookup ret alias, oc: %#v", oc.CreateData)
 				return &Alias{canon: aliasTarget}, true, nil
 			}
 			path[0] = aliasTarget
