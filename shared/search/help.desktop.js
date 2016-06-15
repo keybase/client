@@ -26,8 +26,17 @@ class RenderHelp extends Component<void, Props, State> {
       return (
         <Box
           style={{
+            /* TODO (AW): uncomment and fill in final image
+             *  backgroundImage: `url('${resolveImageAsURL('folders', 'king-of-the-oranges.jpg')}')`,
+             */
             backgroundSize: 'cover',
-            flexGrow: 1,
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            bottom: 0,
+            right: 0,
           }}
           onClick={() => this.setState({showingSoggyCheeto: false})}
         />
@@ -43,7 +52,8 @@ class RenderHelp extends Component<void, Props, State> {
             <Text type='Body'>
               This tab is not <Text
                 type='BodyPrimaryLink'
-                onClick={() => this.setState({showingSoggyCheeto: true})}>
+                /* TODO (AW): change set state to true once final image has been decided */
+                onClick={() => this.setState({showingSoggyCheeto: false})}>
                 fully cooked
               </Text> yet.
             </Text>
