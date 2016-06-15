@@ -85,7 +85,10 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			return child.open(ctx, oc, path[1:])
 		}
 
-		if len(path) == 1 && oc.isCreateDirectory() && isNewFolderName(name) {
+		if len(path) == 1 && isNewFolderName(name) {
+			if !oc.isCreateDirectory() {
+				return nil, false, dokan.ErrObjectNameNotFound
+			}
 			fl.fs.log.CDebugf(ctx, "FL Lookup creating EmptyFolder for Explorer")
 			e := &EmptyFolder{}
 			fl.lockedAddChild(name, e)
