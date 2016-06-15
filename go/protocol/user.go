@@ -106,6 +106,11 @@ type SearchArg struct {
 	Query     string `codec:"query" json:"query"`
 }
 
+type LoadAllPublicKeysUnverifiedArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	Uid       UID `codec:"uid" json:"uid"`
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -126,6 +131,9 @@ type UserInterface interface {
 	ListTrackingJSON(context.Context, ListTrackingJSONArg) (string, error)
 	// Search for users who match a given query.
 	Search(context.Context, SearchArg) ([]SearchResult, error)
+	// Load all the user's public keys (even those in reset key families)
+	// from the server with no verification
+	LoadAllPublicKeysUnverified(context.Context, LoadAllPublicKeysUnverifiedArg) ([]PublicKey, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -292,6 +300,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"loadAllPublicKeysUnverified": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadAllPublicKeysUnverifiedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoadAllPublicKeysUnverifiedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoadAllPublicKeysUnverifiedArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadAllPublicKeysUnverified(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -357,5 +381,12 @@ func (c UserClient) ListTrackingJSON(ctx context.Context, __arg ListTrackingJSON
 // Search for users who match a given query.
 func (c UserClient) Search(ctx context.Context, __arg SearchArg) (res []SearchResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.search", []interface{}{__arg}, &res)
+	return
+}
+
+// Load all the user's public keys (even those in reset key families)
+// from the server with no verification
+func (c UserClient) LoadAllPublicKeysUnverified(ctx context.Context, __arg LoadAllPublicKeysUnverifiedArg) (res []PublicKey, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.loadAllPublicKeysUnverified", []interface{}{__arg}, &res)
 	return
 }

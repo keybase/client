@@ -17,6 +17,7 @@ import (
 )
 
 type CmdSearch struct {
+	libkb.Contextified
 	query string
 	json  bool
 }
@@ -31,7 +32,7 @@ func (c *CmdSearch) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdSearch) Run() (err error) {
-	cli, err := GetUserClient()
+	cli, err := GetUserClient(c.G())
 	if err != nil {
 		return err
 	}
@@ -45,7 +46,7 @@ func (c *CmdSearch) Run() (err error) {
 		return err
 	}
 
-	userSummaries, err := UserSummariesForSearchResults(results)
+	userSummaries, err := UserSummariesForSearchResults(results, c.G())
 	if err != nil {
 		return err
 	}
@@ -53,8 +54,10 @@ func (c *CmdSearch) Run() (err error) {
 	return c.showResults(userSummaries)
 }
 
-func UserSummariesForSearchResults(results []keybase1.SearchResult) ([]keybase1.UserSummary, error) {
-	cli, err := GetUserClient()
+func UserSummariesForSearchResults(results []keybase1.SearchResult,
+	g *libkb.GlobalContext) ([]keybase1.UserSummary, error) {
+
+	cli, err := GetUserClient(g)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +133,7 @@ func (c *CmdSearch) showJSONResults(results []keybase1.UserSummary) error {
 	return nil
 }
 
-func NewCmdSearch(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdSearch(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "search",
 		ArgumentHelp: "<query>",
@@ -142,7 +145,7 @@ func NewCmdSearch(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdSearch{}, "search", c)
+			cl.ChooseCommand(&CmdSearch{Contextified: libkb.NewContextified(g)}, "search", c)
 		},
 	}
 }

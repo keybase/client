@@ -141,9 +141,9 @@ func GetDeviceClient() (cli keybase1.DeviceClient, err error) {
 	return
 }
 
-func GetUserClient() (cli keybase1.UserClient, err error) {
+func GetUserClient(g *libkb.GlobalContext) (cli keybase1.UserClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.UserClient{Cli: rcli}
 	}
 	return

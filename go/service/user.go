@@ -129,3 +129,17 @@ func (h *UserHandler) LoadPublicKeys(_ context.Context, arg keybase1.LoadPublicK
 	}
 	return publicKeys, nil
 }
+
+func (h *UserHandler) LoadAllPublicKeysUnverified(_ context.Context,
+	arg keybase1.LoadAllPublicKeysUnverifiedArg) (keys []keybase1.PublicKey, err error) {
+
+	u, err := libkb.LoadUserFromServer(h.G(), arg.Uid, nil)
+	if err != nil {
+		return
+	}
+	var publicKeys []keybase1.PublicKey
+	if u.GetKeyFamily() != nil {
+		publicKeys = u.GetKeyFamily().Export()
+	}
+	return publicKeys, nil
+}

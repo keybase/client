@@ -50,7 +50,7 @@ func (v *CmdDumpKeyfamily) Run() (err error) {
 	}
 	myUID := currentStatus.User.Uid
 
-	userCli, err := GetUserClient()
+	userCli, err := GetUserClient(v.G())
 	if err != nil {
 		return err
 	}

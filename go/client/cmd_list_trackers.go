@@ -20,6 +20,7 @@ import (
 // CmdListTrackers is the 'list-trackers' command.  It displays
 // all the trackers for a user.
 type CmdListTrackers struct {
+	libkb.Contextified
 	uid      keybase1.UID
 	username string
 	verbose  bool
@@ -28,7 +29,7 @@ type CmdListTrackers struct {
 }
 
 // NewCmdListTrackers creates a new cli.Command.
-func NewCmdListTrackers(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdListTrackers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "list-trackers",
 		ArgumentHelp: "<username>",
@@ -52,7 +53,7 @@ func NewCmdListTrackers(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdListTrackers{}, "list-trackers", c)
+			cl.ChooseCommand(&CmdListTrackers{Contextified: libkb.NewContextified(g)}, "list-trackers", c)
 		},
 	}
 }
@@ -82,7 +83,7 @@ func populateList(trs []keybase1.Tracker, summarizer batchfn) (ret []keybase1.Us
 
 // RunClient runs the command in client/server mode.
 func (c *CmdListTrackers) Run() error {
-	cli, err := GetUserClient()
+	cli, err := GetUserClient(c.G())
 	if err != nil {
 		return err
 	}

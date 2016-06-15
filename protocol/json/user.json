@@ -707,6 +707,23 @@
         "items": "SearchResult"
       },
       "doc": "Search for users who match a given query."
+    },
+    "loadAllPublicKeysUnverified": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PublicKey"
+      },
+      "doc": "Load all the user's public keys (even those in reset key families)\n    from the server with no verification"
     }
   },
   "namespace": "keybase.1"
