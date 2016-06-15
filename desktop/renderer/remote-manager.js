@@ -79,6 +79,7 @@ class RemoteManager extends Component {
     const windowsOpts = {height: 470, width: 320}
     return Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
       <RemoteComponent
+        positionBottomRight
         windowsOpts={windowsOpts}
         title={`tracker - ${username}`}
         waitForState

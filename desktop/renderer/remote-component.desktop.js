@@ -3,7 +3,7 @@ import {remote, ipcRenderer} from 'electron'
 import {resolveRootAsURL} from '../resolve-root'
 import menuHelper from '../app/menu-helper'
 import hotPath from '../hot-path'
-
+import {screen as electronScreen} from 'electron'
 const {BrowserWindow} = remote
 
 const remoteIdsToComponents = {}
@@ -37,6 +37,12 @@ export default class RemoteComponent extends Component {
       ...this.props.windowsOpts}
 
     this.remoteWindow = new BrowserWindow(windowsOpts)
+
+    if (this.props.positionBottomRight && electronScreen.getPrimaryDisplay()) {
+      const {width, height} = electronScreen.getPrimaryDisplay().workAreaSize
+      this.remoteWindow.setPosition(width - windowsOpts.width - 100, height - windowsOpts.height - 100, false)
+    }
+
     // Keep remoteWindowId since remoteWindow properties are not accessible if destroyed
     this.remoteWindowId = this.remoteWindow.id
     remoteIdsToComponents[this.remoteWindowId] = this
