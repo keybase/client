@@ -15,7 +15,7 @@ import {NotifyPopup} from '../native/notifications'
 
 export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
   const sortName = users.map(u => u.username).join(',')
-  const path = `/keybase/${isPublic ? 'private' : 'public'}/${sortName}`
+  const path = `/keybase/${isPublic ? 'public' : 'private'}/${sortName}`
   return {sortName, path}
 }
 
