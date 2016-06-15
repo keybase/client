@@ -33,7 +33,7 @@ Terminal.propTypes = {
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColors.darkBlue3,
+    backgroundColor: globalColors.midnightBlue,
     padding: 10,
     alignItems: 'flex-start',
   },
