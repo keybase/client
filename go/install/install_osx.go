@@ -11,7 +11,6 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -366,7 +365,7 @@ func Install(g *libkb.GlobalContext, binPath string, components []string, force 
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		err = InstallKBFS(g, binPath, force)
+		err = installKBFS(g, binPath, force)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 	}
 
@@ -460,7 +459,7 @@ func installService(g *libkb.GlobalContext, binPath string, force bool) error {
 	return nil
 }
 
-func InstallKBFS(g *libkb.GlobalContext, binPath string, force bool) error {
+func installKBFS(g *libkb.GlobalContext, binPath string, force bool) error {
 	runMode := g.Env.GetRunMode()
 	label := DefaultKBFSLabel()
 	kbfsService := launchd.NewService(label)
@@ -515,7 +514,7 @@ func Uninstall(g *libkb.GlobalContext, components []string) keybase1.UninstallRe
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
 		mountDir, err := g.Env.GetMountDir()
 		if err == nil {
-			err = UninstallKBFS(g.Env.GetRunMode(), mountDir, true, g.Log)
+			err = UninstallKBFS(g.Env.GetRunMode(), mountDir, g.Log)
 		}
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 	}
@@ -534,7 +533,7 @@ func Uninstall(g *libkb.GlobalContext, components []string) keybase1.UninstallRe
 }
 
 // UninstallKBFS uninstalls all KBFS services and unmounts the directory
-func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, log logger.Logger) error {
+func UninstallKBFS(runMode libkb.RunMode, mountDir string, log logger.Logger) error {
 	err := uninstallKBFSServices(runMode)
 	if err != nil {
 		return err
@@ -548,9 +547,9 @@ func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, lo
 	if err != nil {
 		return err
 	}
-	log.Debug("Mounted: %s", strconv.FormatBool(mounted))
+	log.Debug("Mounted: %s", mounted)
 	if mounted {
-		err = mounter.Unmount(mountDir, forceUnmount, log)
+		err = mounter.Unmount(mountDir, false, log)
 		if err != nil {
 			return err
 		}
@@ -869,4 +868,16 @@ func installUpdaterService(service launchd.Service, plist launchd.Plist, log log
 
 func uninstallUpdater() error {
 	return launchd.Uninstall(string(AppUpdaterLabel), defaultWait, nil)
+}
+
+// kbfsBinName returns the name for the KBFS executable
+func kbfsBinName(runMode libkb.RunMode) (string, error) {
+	if runMode != libkb.ProductionRunMode {
+		return "", fmt.Errorf("KBFS install is currently only supported in production")
+	}
+	return "kbfs", nil
+}
+
+func updaterBinName() (string, error) {
+	return "updater", nil
 }
