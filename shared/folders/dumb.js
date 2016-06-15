@@ -9,7 +9,7 @@ import type {DumbComponentMap} from '../constants/types/more'
 import {globalStyles} from '../styles/style-guide'
 import {pathFromFolder} from '../actions/favorite'
 
-function createFolder (partialFolder: $Shape<Folder>) {
+export function createFolder (partialFolder: $Shape<Folder>) {
   return {...partialFolder, path: pathFromFolder(partialFolder).path}
 }
 

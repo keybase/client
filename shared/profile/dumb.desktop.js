@@ -1,6 +1,7 @@
 /* @flow */
 import Profile from './render'
 import {normal, checking, revoked, error, metaNone} from '../constants/tracker'
+import {createFolder} from '../folders/dumb'
 import type {Props as RenderProps} from './render'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {UserInfo} from '../common-adapters/user-bio'
@@ -31,9 +32,56 @@ export const mockUserInfo: {username: string, userInfo: UserInfo} = {
   }
 }
 
+const baseFolder = {
+  ignored: false,
+  hasData: true,
+  groupAvatar: true,
+  userAvatar: null,
+  recentFiles: [],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: []
+}
+
+const folders = [
+  createFolder({
+    users: [
+      {username: 'cecileb', you: true},
+      {username: 'chris'}
+    ],
+    isPublic: true,
+    ...baseFolder
+  }),
+  createFolder({
+    users: [
+      {username: 'cecileb', you: true},
+      {username: 'chris'}
+    ],
+    isPublic: false,
+    ...baseFolder
+  }),
+  createFolder({
+    users: [
+      {username: 'cecileb', you: true},
+      {username: 'chris'},
+      {username: 'max'}
+    ],
+    isPublic: false,
+    ...baseFolder
+  }),
+  createFolder({
+    users: [
+      {username: 'cecileb', you: true},
+      {username: 'max'}
+    ],
+    isPublic: true,
+    ...baseFolder
+  })
+]
+
 const propsBase: RenderProps = {
   ...mockUserInfo,
   proofs: proofsDefault,
+  tlfs: folders,
   trackerState: normal,
   currentlyFollowing: false,
   onFollow: () => console.log('onFollow'),

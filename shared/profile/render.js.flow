@@ -5,6 +5,7 @@ import {Component} from 'react'
 import type {SimpleProofState} from '../constants/tracker'
 import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof} from '../common-adapters/user-proofs'
+import type {Folder} from '../folders/list'
 
 export type Props = {
   trackerState: SimpleProofState,
@@ -14,7 +15,8 @@ export type Props = {
   onAcceptProofs: () => void,
   username: string,
   userInfo: UserInfo,
-  proofs: Array<Proof>
+  proofs: Array<Proof>,
+  tlfs?: Array<Folder>
 }
 
 export default class Render extends Component<void, Props, void> { }

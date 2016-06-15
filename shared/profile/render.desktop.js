@@ -1,7 +1,8 @@
 /* @flow */
 import React, {Component} from 'react'
+import _ from 'lodash'
 import {normal as proofNormal} from '../constants/tracker'
-import {Box, Text, ComingSoon, UserBio, UserProofs} from '../common-adapters'
+import {Box, Icon, Text, ComingSoon, UserBio, UserProofs, Usernames} from '../common-adapters'
 import {userHeaderColor, UserActions} from './common.desktop'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import type {Props} from './render'
@@ -24,6 +25,16 @@ class Render extends Component<void, Props, void> {
     if (this.props.trackerState !== proofNormal) {
       proofNotice = `Some of ${this.props.username}'s proofs have changed since you last tracked them.`
     }
+
+    const folders = _.chain(this.props.tlfs)
+      .sortBy('isPublic')
+      .map(folder => (
+        <Box style={styleFolderLine}>
+          <Icon type={folder.isPublic ? 'icon-folder-public-32' : 'icon-folder-private-32'} style={styleFolderIcon} />
+          <Usernames users={folder.users} type={'Body'} />
+        </Box>
+      ))
+      .value()
 
     return (
       <Box style={styleContainer}>
@@ -58,6 +69,7 @@ class Render extends Component<void, Props, void> {
               proofs={this.props.proofs}
               currentlyFollowing={this.props.currentlyFollowing}
             />
+            {folders}
           </Box>
         </Box>
       </Box>
@@ -89,23 +101,36 @@ const styleActions = {
 const styleProofColumn = {
   ...globalStyles.flexBoxColumn,
   width: 320,
+  marginLeft: globalMargins.medium,
+  marginRight: globalMargins.medium,
   zIndex: 2
 }
 
 const styleProofNoticeBox = {
   ...globalStyles.flexBoxRow,
   height: HEADER_SIZE,
-  marginLeft: globalMargins.medium,
-  marginRight: globalMargins.medium,
   alignItems: 'center',
+  justifyContent: 'center',
   textAlign: 'center'
 }
 
 const styleProofs = {
   // header + small space from top of header + tiny space to pad top of first item
-  marginTop: globalMargins.small + globalMargins.tiny,
-  marginLeft: globalMargins.medium,
-  marginRight: globalMargins.medium
+  marginTop: globalMargins.small + globalMargins.tiny
+}
+
+const styleFolderLine = {
+  ...globalStyles.flexBoxRow,
+  ...globalStyles.clickable,
+  alignItems: 'center',
+  marginTop: globalMargins.tiny,
+  color: globalColors.black_60
+}
+
+const styleFolderIcon = {
+  width: 16,
+  height: 16,
+  marginRight: globalMargins.tiny
 }
 
 export default Render
