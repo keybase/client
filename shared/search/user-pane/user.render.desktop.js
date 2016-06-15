@@ -15,6 +15,7 @@ export default class Render extends Component<void, Props, void> {
         <Box style={styleScroller} className='hide-scrollbar'>
           <Box style={{...styleHeader, backgroundColor: headerColor}} />
           <UserBio
+            type='Tracker'
             avatarSize={112}
             style={{marginTop: 39}}
             username={this.props.username}

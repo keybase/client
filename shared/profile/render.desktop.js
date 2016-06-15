@@ -31,6 +31,7 @@ class Render extends Component<void, Props, void> {
         <Box style={globalStyles.flexBoxRow}>
           <Box style={styleBioColumn}>
             <UserBio
+              type='Profile'
               avatarSize={112}
               style={{marginTop: 39}}
               username={this.props.username}

@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import {Text, Avatar} from '../common-adapters'
 import {error as proofError} from '../constants/tracker'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import electron from 'electron'
 
 const shell = electron.shell || electron.remote.shell
@@ -89,7 +89,7 @@ export default class BioRender extends Component {
               </span>
             </Text>
             {userInfo.bio &&
-              <Text type='BodySmall' style={stylesBio} lineClamp={userInfo.location ? 2 : 3}>
+              <Text type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'} style={{...stylesBio, ...stylesBioType[this.props.type]}} lineClamp={userInfo.location ? 2 : 3}>
                 {userInfo.bio}
               </Text>
             }
@@ -149,6 +149,12 @@ const stylesBio = {
   paddingLeft: 30,
   paddingRight: 30,
   textAlign: 'center'
+}
+const stylesBioType = {
+  Profile: {
+    marginTop: globalMargins.tiny
+  },
+  Tracker: {}
 }
 const stylesLocation = {
   ...globalStyles.selectable,
