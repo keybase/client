@@ -1326,7 +1326,7 @@ type Attr struct {
 	Ctime     time.Time   // time of last inode change
 	Crtime    time.Time   // time of creation (OS X only)
 	Mode      os.FileMode // file mode
-	Nlink     uint32      // number of links
+	Nlink     uint32      // number of links (usually 1)
 	Uid       uint32      // owner uid
 	Gid       uint32      // group gid
 	Rdev      uint32      // device numbers

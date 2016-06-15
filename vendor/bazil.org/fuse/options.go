@@ -83,6 +83,37 @@ func VolumeName(name string) MountOption {
 	return volumeName(name)
 }
 
+// NoAppleDouble makes OSXFUSE disallow files with names used by OS X
+// to store extended attributes on file systems that do not support
+// them natively.
+//
+// Such file names are:
+//
+//     ._*
+//     .DS_Store
+//
+// OS X only.  Others ignore this option.
+func NoAppleDouble() MountOption {
+	return noAppleDouble
+}
+
+// NoAppleXattr makes OSXFUSE disallow extended attributes with the
+// prefix "com.apple.". This disables persistent Finder state and
+// other such information.
+//
+// OS X only.  Others ignore this option.
+func NoAppleXattr() MountOption {
+	return noAppleXattr
+}
+
+// DaemonTimeout sets the time in seconds between a request and a reply before
+// the FUSE mount is declared dead.
+//
+// OS X and FreeBSD only. Others ignore this option.
+func DaemonTimeout(name string) MountOption {
+	return daemonTimeout(name)
+}
+
 var ErrCannotCombineAllowOtherAndAllowRoot = errors.New("cannot combine AllowOther and AllowRoot")
 
 // AllowOther allows other users to access the file system.
@@ -109,6 +140,24 @@ func AllowRoot() MountOption {
 			return ErrCannotCombineAllowOtherAndAllowRoot
 		}
 		conf.options["allow_root"] = ""
+		return nil
+	}
+}
+
+// AllowDev enables interpreting character or block special devices on the
+// filesystem.
+func AllowDev() MountOption {
+	return func(conf *mountConfig) error {
+		conf.options["dev"] = ""
+		return nil
+	}
+}
+
+// AllowSUID allows set-user-identifier or set-group-identifier bits to take
+// effect.
+func AllowSUID() MountOption {
+	return func(conf *mountConfig) error {
+		conf.options["suid"] = ""
 		return nil
 	}
 }

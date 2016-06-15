@@ -3,28 +3,28 @@
 	"ignore": "test appengine appenginevm",
 	"package": [
 		{
-			"checksumSHA1": "II2RjEFgX9EzV4fJSgV/oZrB7aE=",
+			"checksumSHA1": "xCAVewAtJpNeqReS0fRzarfwfjA=",
 			"path": "bazil.org/fuse",
-			"revision": "5d02b06737b3b3c2e6a44e03348b6f2b44aa6835",
-			"revisionTime": "2016-04-22T03:27:55Z"
+			"revision": "0dfaa72ce1313ab5a43f1cb501fd87e2f367283f",
+			"revisionTime": "2015-11-25T17:25:30Z"
 		},
 		{
-			"checksumSHA1": "rtIltwN9oB5n/tvuHCHw8enNGzA=",
+			"checksumSHA1": "389JFJTJADMtZkTIfdSnsmHVOUs=",
 			"path": "bazil.org/fuse/fs",
-			"revision": "5d02b06737b3b3c2e6a44e03348b6f2b44aa6835",
-			"revisionTime": "2016-04-22T03:27:55Z"
+			"revision": "0dfaa72ce1313ab5a43f1cb501fd87e2f367283f",
+			"revisionTime": "2015-11-25T17:25:30Z"
 		},
 		{
 			"checksumSHA1": "wy8DrEJ4Al2iZk5hKQEbIqaghGM=",
 			"path": "bazil.org/fuse/fs/fstestutil",
-			"revision": "5d02b06737b3b3c2e6a44e03348b6f2b44aa6835",
-			"revisionTime": "2016-04-22T03:27:55Z"
+			"revision": "0dfaa72ce1313ab5a43f1cb501fd87e2f367283f",
+			"revisionTime": "2015-11-25T17:25:30Z"
 		},
 		{
 			"checksumSHA1": "NPgkh9UWMsaTtsAAs3kPrclHT9Y=",
 			"path": "bazil.org/fuse/fuseutil",
-			"revision": "5d02b06737b3b3c2e6a44e03348b6f2b44aa6835",
-			"revisionTime": "2016-04-22T03:27:55Z"
+			"revision": "0dfaa72ce1313ab5a43f1cb501fd87e2f367283f",
+			"revisionTime": "2015-11-25T17:25:30Z"
 		},
 		{
 			"path": "github.com/PuerkitoBio/goquery",

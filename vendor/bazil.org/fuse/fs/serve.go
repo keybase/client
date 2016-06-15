@@ -91,6 +91,13 @@ type FSInodeGenerator interface {
 // simple, read-only filesystem.
 type Node interface {
 	// Attr fills attr with the standard metadata for the node.
+	//
+	// Fields with reasonable defaults are prepopulated. For example,
+	// all times are set to a fixed moment when the program started.
+	//
+	// If Inode is left as 0, a dynamic inode number is chosen.
+	//
+	// The result may be cached for the duration set in Valid.
 	Attr(ctx context.Context, attr *fuse.Attr) error
 }
 
