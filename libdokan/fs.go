@@ -64,13 +64,15 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 
 	f.root = &Root{
 		private: &FolderList{
-			fs:      f,
-			folders: make(map[string]fileOpener),
+			fs:         f,
+			folders:    make(map[string]fileOpener),
+			aliasCache: map[string]string{},
 		},
 		public: &FolderList{
-			fs:      f,
-			public:  true,
-			folders: make(map[string]fileOpener),
+			fs:         f,
+			public:     true,
+			folders:    make(map[string]fileOpener),
+			aliasCache: map[string]string{},
 		}}
 
 	ctx = context.WithValue(ctx, CtxAppIDKey, f)
@@ -81,6 +83,7 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 
 	f.remoteStatus.Init(ctx, f.log, f.config)
 	f.launchNotificationProcessor(ctx)
+	go clearFolderListCacheLoop(ctx, f.root)
 
 	return f, nil
 }
