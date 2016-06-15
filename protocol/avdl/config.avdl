@@ -39,6 +39,7 @@ protocol config {
   record ExtendedStatus {
     boolean standalone;
     boolean passphraseStreamCached;
+    boolean tsecCached;
     boolean deviceSigKeyCached;
     boolean deviceEncKeyCached;
     boolean paperSigKeyCached;

@@ -207,6 +207,7 @@ export type ExitCode =
 export type ExtendedStatus = {
   standalone: boolean;
   passphraseStreamCached: boolean;
+  tsecCached: boolean;
   deviceSigKeyCached: boolean;
   deviceEncKeyCached: boolean;
   paperSigKeyCached: boolean;

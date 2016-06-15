@@ -53,6 +53,7 @@ type fstatus struct {
 	Device                 *keybase1.Device
 	LoggedInProvisioned    bool `json:"LoggedIn"`
 	PassphraseStreamCached bool
+	TsecCached             bool
 	DeviceSigKeyCached     bool
 	DeviceEncKeyCached     bool
 	PaperSigKeyCached      bool
@@ -160,6 +161,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 
 	status.SessionStatus = c.sessionStatus(extStatus.Session)
 	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
+	status.TsecCached = extStatus.TsecCached
 	status.DeviceSigKeyCached = extStatus.DeviceSigKeyCached
 	status.DeviceEncKeyCached = extStatus.DeviceEncKeyCached
 	status.PaperSigKeyCached = extStatus.PaperSigKeyCached
@@ -257,6 +259,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    paper sig: %s\n", BoolString(status.PaperSigKeyCached, "cached", "not cached"))
 	dui.Printf("    paper enc: %s\n", BoolString(status.PaperEncKeyCached, "cached", "not cached"))
 	dui.Printf("    prompt:    %s\n", BoolString(status.SecretPromptSkip, "skip", "show"))
+	dui.Printf("    tsec:      %s\n", BoolString(status.TsecCached, "cached", "not cached"))
 
 	dui.Printf("\nKBFS:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.KBFS.Running, "running", "not running"))
