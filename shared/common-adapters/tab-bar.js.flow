@@ -9,8 +9,10 @@ export type ItemProps = {
   label?: string,
   style?: Object,
   selected?: boolean,
+  selectedColor?: string,
   onClick?: () => void,
-  containerStyle?: Object,
+  styleContainer?: Object,
+  styleLabel?: Object,
   children?: React$Element
 }
 
