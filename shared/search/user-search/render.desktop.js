@@ -5,7 +5,7 @@ import {Text} from '../../common-adapters'
 import {Avatar, Box, Icon, Input} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
-import {FlatButton} from 'material-ui'
+import {IconButton} from 'material-ui'
 
 import type {Props, SearchResult, SearchResultFn, ServiceFn} from './render'
 import type {IconType} from '../../common-adapters/icon'
@@ -119,7 +119,7 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   )
 }
 
-function ServiceIcon ({serviceName, iconType, selected, onClickService}: {serviceName: string, iconType: IconType, selected: boolean, onClickService: ServiceFn}) {
+function ServiceIcon ({serviceName, tooltip, iconType, selected, onClickService}: {serviceName: string, tooltip: string, iconType: IconType, selected: boolean, onClickService: ServiceFn}) {
   const iconStyles = {
     borderRadius: 24,
     minWidth: 48,
@@ -127,12 +127,15 @@ function ServiceIcon ({serviceName, iconType, selected, onClickService}: {servic
     height: 48,
     backgroundColor: selected ? globalColors.blue4 : null
   }
+
   return (
-    <FlatButton
+    <IconButton
+      tooltip={tooltip}
+      tooltipPosition='top-center'
       style={iconStyles}
-      onMouseLeave={() => onClickService(serviceName)}
-      icon={<Icon type={iconType} />}
-      />
+      onMouseLeave={() => onClickService(serviceName)}>
+      <Icon type={iconType} />
+    </IconButton>
   )
 }
 
@@ -150,30 +153,35 @@ export default class Render extends Component<void, Props, void> {
           <Box style={styles.servicesContainer}>
             <ServiceIcon
               serviceName='keybase'
+              tooltip='Keybase'
               iconType='keybase-logo-mascot-only-dz-2-24'
               selected={this.props.selectedService === 'keybase'}
               onClickService={this.props.onClickService}
               />
             <ServiceIcon
               serviceName='twitter'
+              tooltip='Twitter'
               iconType='icon-twitter-logo-24'
               selected={this.props.selectedService === 'twitter'}
               onClickService={this.props.onClickService}
               />
             <ServiceIcon
               serviceName='github'
+              tooltip='Github'
               iconType='icon-github-logo-24'
               selected={this.props.selectedService === 'github'}
               onClickService={this.props.onClickService}
               />
             <ServiceIcon
               serviceName='coinbase'
+              tooltip='Coinbase'
               iconType='icon-coinbase-logo-24'
               selected={this.props.selectedService === 'coinbase'}
               onClickService={this.props.onClickService}
               />
             <ServiceIcon
               serviceName='pgp'
+              tooltip='PGP Key'
               iconType='icon-pgp-key-24'
               selected={this.props.selectedService === 'pgp'}
               onClickService={this.props.onClickService}
