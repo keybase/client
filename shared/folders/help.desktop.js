@@ -4,7 +4,11 @@ import {Box, Text, Terminal, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {shell} from 'electron'
 
-const RenderHelp = () => (
+type Props = {
+  username: string
+}
+
+const RenderHelp = ({username}: Props) => (
   <Box style={stylesScrollContainer}>
     <Box style={stylesContainer}>
       <Box style={styleIconHeader}>
@@ -30,18 +34,18 @@ const RenderHelp = () => (
           True end-to-end crypto.
         </Text>
         <Terminal style={styleTerminal}>
-          <Text type='Terminal'>cd /keybase/public/cnojima</Text>
-          <Text type='Terminal'>cd /keybase/private/cnojima</Text>
-          <Text type='Terminal'>cd /keybase/private/cnojima,chris</Text>
+          <Text type='Terminal'>{`cd /keybase/public/${username}`}</Text>
+          <Text type='Terminal'>{`cd /keybase/private/${username}`}</Text>
+          <Text type='Terminal'>{`cd /keybase/private/${username},chris`}</Text>
           <Text type='TerminalEmpty' />
           <Text type='TerminalComment'>works even before maxtaco has joined keybase:</Text>
-          <Text type='Terminal'>cd /keybase/private/cnojima,maxtaco@twitter</Text>
+          <Text type='Terminal'>{`cd /keybase/private/${username},maxtaco@twitter`}</Text>
           <Text type='TerminalEmpty' />
           <Text type='TerminalComment'>OSX tip: this opens Finder</Text>
-          <Text type='Terminal'>open /keybase/private/cnojima</Text>
+          <Text type='Terminal'>{`open /keybase/private/${username}`}</Text>
           <Text type='TerminalEmpty' />
           <Text type='TerminalComment'>to hide a folder in your Finder</Text>
-          <Text type='Terminal'>rmdir /keybase/private/cnojima,some_enemy</Text>
+          <Text type='Terminal'>{`rmdir /keybase/private/${username},some_enemy`}</Text>
         </Terminal>
       </Box>
     </Box>

@@ -105,6 +105,7 @@ const folderToProps = (folders: Array<FolderWithMeta>, username: string = ''): F
     showingPrivate: true,
     smallMode: false,
     showComingSoon: !flags.tabFoldersEnabled,
+    username,
     privateBadge,
     publicBadge,
     private: {

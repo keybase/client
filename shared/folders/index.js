@@ -12,6 +12,7 @@ import type {Props as RenderProps} from './render'
 export type Props = {
   folderProps: ?RenderProps,
   openInKBFS: (path: string) => void,
+  username: string,
   routeAppend: (path: any) => void
 }
 
@@ -38,6 +39,7 @@ class Folders extends Component<void, Props, State> {
         onSwitchTab={showingPrivate => this.setState({showingPrivate})}
         showingPrivate={this.state.showingPrivate}
         showComingSoon={!flags.tabFoldersEnabled}
+        username={this.props.username}
       />
     )
   }
@@ -52,6 +54,7 @@ class Folders extends Component<void, Props, State> {
 
 export default connect(
   state => ({
+    username: state.config.username,
     folderProps: state.favorite && state.favorite.folders,
   }),
   dispatch => bindActionCreators({routeAppend, openInKBFS}, dispatch)

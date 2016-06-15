@@ -9,7 +9,7 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 
 class Render extends Component<void, Props, void> {
   _renderComingSoon () {
-    return <FoldersHelp />
+    return <FoldersHelp username={this.props.username} />
   }
 
   _makeItem (isPublic: boolean, isSelected: boolean) {
