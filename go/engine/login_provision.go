@@ -103,6 +103,9 @@ func (e *loginProvision) Run(ctx *Context) error {
 		return err
 	}
 
+	// provisioning was successful, so the user has changed:
+	e.G().NotifyRouter.HandleUserChanged(e.arg.User.GetUID())
+
 	return nil
 }
 

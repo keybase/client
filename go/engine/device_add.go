@@ -122,5 +122,8 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 		return err
 	}
 
+	// provisioning was successful, so the user has changed:
+	e.G().NotifyRouter.HandleUserChanged(e.G().Env.GetUID())
+
 	return nil
 }
