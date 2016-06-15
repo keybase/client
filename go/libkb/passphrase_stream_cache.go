@@ -53,10 +53,21 @@ func (s *PassphraseStreamCache) PassphraseStreamRef() *PassphraseStream {
 }
 
 func (s *PassphraseStreamCache) Valid() bool {
+	return s.ValidPassphraseStream() && s.ValidTsec()
+}
+
+func (s *PassphraseStreamCache) ValidPassphraseStream() bool {
 	if s == nil {
 		return false
 	}
-	return s.tsec != nil && s.passphraseStream != nil
+	return s.passphraseStream != nil
+}
+
+func (s *PassphraseStreamCache) ValidTsec() bool {
+	if s == nil {
+		return false
+	}
+	return s.tsec != nil
 }
 
 func (s *PassphraseStreamCache) Clear() {

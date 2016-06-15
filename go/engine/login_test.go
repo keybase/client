@@ -196,6 +196,10 @@ func TestProvisionDesktop(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// after provisioning, the passphrase stream should be cached
+	// (note that this just checks the passphrase stream, not 3sec)
+	assertPassphraseStreamCache(tcY)
+
 	// after provisioning, the device keys should be cached
 	assertDeviceKeysCached(tcY)
 
@@ -2349,14 +2353,10 @@ func skipWindows(t *testing.T) {
 }
 
 func assertDeviceKeysCached(tc libkb.TestContext) {
-	fmt.Println("assertDev")
-	defer fmt.Println("assertDev done")
-
 	var sk, ek libkb.GenericKey
 	var skerr, ekerr error
 
 	aerr := tc.G.LoginState().Account(func(a *libkb.Account) {
-		fmt.Println("have account")
 		sk, skerr = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType})
 		ek, ekerr = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType})
 	}, "assertDeviceKeysCached")
@@ -2374,5 +2374,16 @@ func assertDeviceKeysCached(tc libkb.TestContext) {
 	}
 	if ek == nil {
 		tc.T.Error("cached encryption key nil")
+	}
+}
+
+func assertPassphraseStreamCache(tc libkb.TestContext) {
+	var ppsValid bool
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		ppsValid = a.PassphraseStreamCache().ValidPassphraseStream()
+	}, "assertPassphraseStreamCache")
+
+	if !ppsValid {
+		tc.T.Fatal("passphrase stream not cached")
 	}
 }

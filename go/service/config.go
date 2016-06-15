@@ -143,7 +143,8 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 	}
 
 	h.G().LoginState().Account(func(a *libkb.Account) {
-		res.PassphraseStreamCached = a.PassphraseStreamCache().Valid()
+		res.PassphraseStreamCached = a.PassphraseStreamCache().ValidPassphraseStream()
+		res.TsecCached = a.PassphraseStreamCache().ValidTsec()
 
 		// cached keys status
 		sk, err := a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType})

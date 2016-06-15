@@ -114,9 +114,6 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 		return err
 	}
 
-	// cache the device keys after successful provision
-	e.cacheKeys()
-
 	return nil
 }
 
@@ -242,6 +239,11 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 
 	// post the key sigs to the api server
 	if err = e.postSigs(eddsaArgs, dhArgs); err != nil {
+		return err
+	}
+
+	// cache the device keys in memory
+	if err = e.cacheKeys(); err != nil {
 		return err
 	}
 

@@ -41,6 +41,7 @@ type PlatformInfo struct {
 type ExtendedStatus struct {
 	Standalone             bool            `codec:"standalone" json:"standalone"`
 	PassphraseStreamCached bool            `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
+	TsecCached             bool            `codec:"tsecCached" json:"tsecCached"`
 	DeviceSigKeyCached     bool            `codec:"deviceSigKeyCached" json:"deviceSigKeyCached"`
 	DeviceEncKeyCached     bool            `codec:"deviceEncKeyCached" json:"deviceEncKeyCached"`
 	PaperSigKeyCached      bool            `codec:"paperSigKeyCached" json:"paperSigKeyCached"`
