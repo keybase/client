@@ -100,14 +100,14 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 	}
 
 	// Create client interface to gregord
-	if gh.gregorCli, err = newGregorClient(g); err != nil {
+	if gh.gregorCli, err = newGregorClient(g, gh); err != nil {
 		return nil, err
 	}
 
 	return gh, nil
 }
 
-func newGregorClient(g *libkb.GlobalContext) (*grclient.Client, error) {
+func newGregorClient(g *libkb.GlobalContext, gh *gregorHandler) (*grclient.Client, error) {
 	objFactory := gregor1.ObjFactory{}
 	sm := grstorage.NewMemEngine(objFactory, clockwork.NewRealClock())
 
@@ -143,13 +143,25 @@ func newGregorClient(g *libkb.GlobalContext) (*grclient.Client, error) {
 		g.Env.GetGregorSaveInterval(), g.Log)
 
 	// Bring up local state
-	g.Log.Debug("gregor handler: restoring state from leveldb")
+	gh.Debug("restoring state from leveldb")
 	if err = gcli.Restore(); err != nil {
 		// If this fails, we'll keep trying since the server can bail us out
-		g.Log.Debug("gregor handler: restore local state failed: %s", err)
+		gh.Debug("restore local state failed: %s", err)
 	}
 
 	return gcli, nil
+}
+
+func (g *gregorHandler) Debug(s string, args ...interface{}) {
+	g.G().Log.Debug("push handler: "+s, args...)
+}
+
+func (g *gregorHandler) Warning(s string, args ...interface{}) {
+	g.G().Log.Warning("push handler: "+s, args...)
+}
+
+func (g *gregorHandler) Errorf(s string, args ...interface{}) {
+	g.G().Log.Errorf("push handler: "+s, args...)
 }
 
 func (g *gregorHandler) Connect(uri *rpc.FMPURI) error {
@@ -176,7 +188,7 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 	g.ibmHandlers = append(g.ibmHandlers, handler)
 
 	if _, err := g.replayInBandMessages(context.TODO(), time.Time{}, handler); err != nil {
-		g.G().Log.Errorf("gregor handler: replayInBandMessages on PushHandler failed: %s", err)
+		g.Errorf("replayInBandMessages on PushHandler failed: %s", err)
 	}
 }
 
@@ -189,11 +201,11 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
 	var msgs []gregor.InBandMessage
 	var err error
 	if msgs, err = g.gregorCli.StateMachineInBandMessagesSince(t); err != nil {
-		g.G().Log.Errorf("gregor handler: unable to fetch messages for reply: %s", err)
+		g.Warning("unable to fetch messages for reply: %s", err)
 		return nil, err
 	}
 
-	g.G().Log.Debug("gregor handler: replaying %d messages", len(msgs))
+	g.Debug("replaying %d messages", len(msgs))
 	for _, msg := range msgs {
 		// If we have a handler, just run it on that, otherwise run it against
 		// all of the handlers we know about
@@ -223,22 +235,22 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 		if pt != nil {
 			t = *pt
 		}
-		g.G().Log.Debug("gregor handler: starting sync from: %s", t)
+		g.Debug("starting sync from: %s", t)
 	} else {
-		g.G().Log.Debug("gregor handler: performing a fresh sync")
+		g.Debug("performing a fresh sync")
 	}
 
 	// Sync down everything from the server
 	consumedMsgs, err := g.gregorCli.Sync(cli)
 	if err != nil {
-		g.G().Log.Errorf("gregor handler: error syncing from the server, bailing: %s", err)
+		g.Errorf("error syncing from the server, reason: %s", err)
 		return nil, nil, err
 	}
 
 	// Replay in-band messages
 	replayedMsgs, err := g.replayInBandMessages(ctx, t, nil)
 	if err != nil {
-		g.G().Log.Errorf("gregor handler: replay messages failed")
+		g.Errorf("replay messages failed: %s", err)
 		return nil, nil, err
 	}
 
@@ -255,8 +267,8 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	g.Lock()
 	defer g.Unlock()
 
-	g.G().Log.Debug("gregor handler: connected")
-	g.G().Log.Debug("gregor handler: registering protocols")
+	g.Debug("connected")
+	g.Debug("registering protocols")
 	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
 		return err
 	}
@@ -264,16 +276,15 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	// Use the client parameter instead of conn.GetClient(), since we can get stuck
 	// in a recursive loop if we keep retrying on reconnect.
 	if err := g.auth(ctx, cli); err != nil {
-		g.G().Log.Error("gregor handler: auth error!")
 		return err
 	}
 
 	// Sync down events since we have been dead
 	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: cli})
 	if err != nil {
-		g.G().Log.Error("gregor handler: sync failure!")
+		g.Errorf("sync failure: %s", err)
 	} else {
-		g.G().Log.Debug("gregor handler: sync success: replayed: %d consumed: %d",
+		g.Debug("sync success: replayed: %d consumed: %d",
 			len(replayedMsgs), len(consumedMsgs))
 	}
 
@@ -281,19 +292,19 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 }
 
 func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
-	g.G().Log.Debug("gregor handler: connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
+	g.Debug("connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
 }
 
 func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
-	g.G().Log.Debug("gregor handler: disconnected: %v", status)
+	g.Debug("disconnected: %v", status)
 }
 
 func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
-	g.G().Log.Debug("gregor handler: do command error: %s, nextTime: %s", err, nextTime)
+	g.Debug("do command error: %s, nextTime: %s", err, nextTime)
 }
 
 func (g *gregorHandler) ShouldRetry(name string, err error) bool {
-	g.G().Log.Debug("gregor handler: should retry: name %s, err %v (returning false)", name, err)
+	g.Debug("should retry: name %s, err %v (returning false)", name, err)
 	return false
 }
 
@@ -302,9 +313,9 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 		return false
 	}
 
-	g.G().Log.Debug("gregor handler: should retry on connect, err %v", err)
+	g.Debug("should retry on connect, err %v", err)
 	if g.skipRetryConnect {
-		g.G().Log.Debug("gregor handler: should retry on connect, skip retry flag set, returning false")
+		g.Debug("should retry on connect, skip retry flag set, returning false")
 		g.skipRetryConnect = false
 		return false
 	}
@@ -324,19 +335,19 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	// Handle the message
 	ibm := m.ToInBandMessage()
 	if ibm != nil {
-		g.G().Log.Debug("gregor handler: broadcast: in-band message: msgID: %s Ctime: %s",
+		g.Debug("broadcast: in-band message: msgID: %s Ctime: %s",
 			m.ToInBandMessage().Metadata().MsgID(), m.ToInBandMessage().Metadata().CTime())
 		return g.handleInBandMessage(ctx, ibm)
 	}
 
 	obm := m.ToOutOfBandMessage()
 	if obm != nil {
-		g.G().Log.Debug("gregor handler: broadcast: out-of-band message: uid: %s",
+		g.Debug("broadcast: out-of-band message: uid: %s",
 			m.ToOutOfBandMessage().UID())
 		return g.handleOutOfBandMessage(ctx, obm)
 	}
 
-	g.G().Log.Error("gregor handler: both in-band and out-of-band message nil")
+	g.Warning("BroadcastMessage: both in-band and out-of-band message nil")
 	return errors.New("invalid gregor message")
 }
 
@@ -352,11 +363,11 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 			if handled, err := g.handleInBandMessageWithHandler(ctx, ibm, handler); err != nil {
 				if handled {
 					// only bail out of this loop if the handler was supposed to handle this message and failed
-					g.G().Log.Errorf("gregor handler: handleInBandMessage() failed to run %s handler: %s", handler.Name(), err)
+					g.Errorf("failed to run %s handler: %s", handler.Name(), err)
 					return err
 				}
 
-				g.G().Log.Debug("gregor handler: handleInBandMessage() failed to run %s handler: %s", handler.Name(), err)
+				g.Debug("handleInBandMessage() failed to run %s handler: %s", handler.Name(), err)
 			}
 			freshHandlers = append(freshHandlers, handler)
 		}
@@ -369,22 +380,22 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 // handleInBandMessageWithHandler runs a message against the specified handler
 func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 	ibm gregor.InBandMessage, handler libkb.GregorInBandMessageHandler) (bool, error) {
-	g.G().Log.Debug("gregor handler: handleInBand: %+v", ibm)
+	g.Debug("handleInBand: %+v", ibm)
 
 	sync := ibm.ToStateSyncMessage()
 	if sync != nil {
-		g.G().Log.Debug("gregor handler: state sync message")
+		g.Debug("state sync message")
 		return false, nil
 	}
 
 	update := ibm.ToStateUpdateMessage()
 	if update != nil {
-		g.G().Log.Debug("gregor handler: state update message")
+		g.Debug("state update message")
 
 		item := update.Creation()
 		if item != nil {
 			id := item.Metadata().MsgID().String()
-			g.G().Log.Debug("gregor handler: msg ID %s created ctime: %s", id,
+			g.Debug("msg ID %s created ctime: %s", id,
 				item.Metadata().CTime())
 
 			// Store the item in a map according to its ID. We use this when
@@ -394,7 +405,7 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 			category := ""
 			if item.Category() != nil {
 				category = item.Category().String()
-				g.G().Log.Debug("gregor handler: item %s has category %s", id, category)
+				g.Debug("item %s has category %s", id, category)
 			}
 
 			if handled, err := handler.Create(ctx, category, item); err != nil {
@@ -404,19 +415,19 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 
 		dismissal := update.Dismissal()
 		if dismissal != nil {
-			g.G().Log.Debug("gregor handler: received dismissal")
+			g.Debug("received dismissal")
 			for _, id := range dismissal.MsgIDsToDismiss() {
 				item, present := g.itemsByID[id.String()]
 				if !present {
-					g.G().Log.Warning("gregor handler: tried to dismiss item %s, not present", id.String())
+					g.Warning("tried to dismiss item %s, not present", id.String())
 					continue
 				}
-				g.G().Log.Debug("gregor handler: dismissing item %s", id.String())
+				g.Debug("dismissing item %s", id.String())
 
 				category := ""
 				if item.Category() != nil {
 					category = item.Category().String()
-					g.G().Log.Debug("gregor handler: dismissal %s has category %s", id, category)
+					g.Debug("dismissal %s has category %s", id, category)
 				}
 
 				if handled, err := handler.Dismiss(ctx, category, item); handled && err != nil {
@@ -427,7 +438,7 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 				delete(g.itemsByID, id.String())
 			}
 			if len(dismissal.RangesToDismiss()) > 0 {
-				g.G().Log.Error("gregor handler: message range dismissing not implemented")
+				g.Debug("message range dismissing not implemented")
 			}
 		}
 
@@ -456,42 +467,42 @@ func (h IdentifyUIHandler) Dismiss(ctx context.Context, category string, item gr
 }
 
 func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, item gregor.Item) error {
-	h.G().Log.Debug("gregor handler: handleShowTrackerPopupCreate: %+v", item)
+	h.G().Log.Debug("handleShowTrackerPopupCreate: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor handler for show_tracker_popup: nil message body")
 	}
 	body, err := jsonw.Unmarshal(item.Body().Bytes())
 	if err != nil {
-		h.G().Log.Error("body failed to unmarshal", err)
+		h.G().Log.Debug("body failed to unmarshal", err)
 		return err
 	}
 	uidString, err := body.AtPath("uid").GetString()
 	if err != nil {
-		h.G().Log.Error("failed to extract uid", err)
+		h.G().Log.Debug("failed to extract uid", err)
 		return err
 	}
 	uid, err := keybase1.UIDFromString(uidString)
 	if err != nil {
-		h.G().Log.Error("failed to convert UID from string", err)
+		h.G().Log.Debug("failed to convert UID from string", err)
 		return err
 	}
 
 	identifyUI, err := h.G().UIRouter.GetIdentifyUI()
 	if err != nil {
-		h.G().Log.Error("failed to get IdentifyUI", err)
+		h.G().Log.Debug("failed to get IdentifyUI", err)
 		return err
 	}
 	if identifyUI == nil {
-		h.G().Log.Error("got nil IdentifyUI")
+		h.G().Log.Debug("got nil IdentifyUI")
 		return errors.New("got nil IdentifyUI")
 	}
 	secretUI, err := h.G().UIRouter.GetSecretUI(0)
 	if err != nil {
-		h.G().Log.Error("failed to get SecretUI", err)
+		h.G().Log.Debug("failed to get SecretUI", err)
 		return err
 	}
 	if secretUI == nil {
-		h.G().Log.Error("got nil SecretUI")
+		h.G().Log.Debug("got nil SecretUI")
 		return errors.New("got nil SecretUI")
 	}
 	engineContext := engine.Context{
@@ -510,38 +521,38 @@ func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, ite
 }
 
 func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, item gregor.Item) error {
-	h.G().Log.Debug("gregor handler: handleShowTrackerPopupDismiss: %+v", item)
+	h.G().Log.Debug("handleShowTrackerPopupDismiss: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor dismissal for show_tracker_popup: nil message body")
 	}
 	body, err := jsonw.Unmarshal(item.Body().Bytes())
 	if err != nil {
-		h.G().Log.Error("body failed to unmarshal", err)
+		h.G().Log.Debug("body failed to unmarshal", err)
 		return err
 	}
 	uidString, err := body.AtPath("uid").GetString()
 	if err != nil {
-		h.G().Log.Error("failed to extract uid", err)
+		h.G().Log.Debug("failed to extract uid", err)
 		return err
 	}
 	uid, err := keybase1.UIDFromString(uidString)
 	if err != nil {
-		h.G().Log.Error("failed to convert UID from string", err)
+		h.G().Log.Debug("failed to convert UID from string", err)
 		return err
 	}
 	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(h.G(), uid))
 	if err != nil {
-		h.G().Log.Error("failed to load user from UID", err)
+		h.G().Log.Debug("failed to load user from UID", err)
 		return err
 	}
 
 	identifyUI, err := h.G().UIRouter.GetIdentifyUI()
 	if err != nil {
-		h.G().Log.Error("failed to get IdentifyUI", err)
+		h.G().Log.Debug("failed to get IdentifyUI", err)
 		return err
 	}
 	if identifyUI == nil {
-		h.G().Log.Error("got nil IdentifyUI")
+		h.G().Log.Debug("got nil IdentifyUI")
 		return errors.New("got nil IdentifyUI")
 	}
 
@@ -554,7 +565,7 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, it
 }
 
 func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {
-	g.G().Log.Debug("gregor handler: handleOutOfBand: %+v", obm)
+	g.Debug("handleOutOfBand: %+v", obm)
 	if obm.System() == nil {
 		return errors.New("nil system in out of band message")
 	}
@@ -617,20 +628,20 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) error {
 		g.skipRetryConnect = true
 		return aerr
 	}
-	g.G().Log.Debug("gregor handler: have session token")
+	g.Debug("have session token")
 
-	g.G().Log.Debug("gregor handler: authenticating")
+	g.Debug("authenticating")
 	ac := gregor1.AuthClient{Cli: cli}
 	auth, err := ac.AuthenticateSessionToken(ctx, gregor1.SessionToken(token))
 	if err != nil {
-		g.G().Log.Debug("gregor handler: auth error: %s", err)
+		g.Debug("auth error: %s", err)
 		return err
 	}
 
-	g.G().Log.Debug("gregor handler: auth result: %+v", auth)
+	g.Debug("auth result: %+v", auth)
 	if !bytes.Equal(auth.Uid, uid.ToBytes()) {
 		g.skipRetryConnect = true
-		return fmt.Errorf("gregor handler: auth result uid %x doesn't match session uid %q", auth.Uid, uid)
+		return fmt.Errorf("auth result uid %x doesn't match session uid %q", auth.Uid, uid)
 	}
 	g.sessionID = auth.Sid
 
@@ -641,7 +652,7 @@ func (g *gregorHandler) pingLoop() {
 	for {
 		_, err := gregor1.IncomingClient{Cli: g.cli}.Ping(context.Background())
 		if err != nil {
-			g.G().Log.Errorf("gregor handler: error in ping loop: %s", err)
+			g.Warning("error in ping loop: %s", err)
 		}
 
 		g.G().Clock().Sleep(g.G().Env.GetGregorPingInterval())
@@ -650,12 +661,12 @@ func (g *gregorHandler) pingLoop() {
 
 func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 
-	g.G().Log.Debug("connecting to gregord via TLS at %s", uri)
+	g.Debug("connecting to gregord via TLS at %s", uri)
 	rawCA := g.G().Env.GetBundledCA(uri.Host)
 	if len(rawCA) == 0 {
 		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
-	g.G().Log.Debug("Using CA for gregor: %s", libkb.ShortCA(rawCA))
+	g.Debug("Using CA for gregor: %s", libkb.ShortCA(rawCA))
 	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), keybase1.ErrorUnwrapper{}, g, true, libkb.NewRPCLogFactory(g.G()), keybase1.WrapError, g.G().Log, nil)
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
@@ -674,7 +685,7 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 
 func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 
-	g.G().Log.Debug("connecting to gregord without TLS at %s", uri)
+	g.Debug("connecting to gregord without TLS at %s", uri)
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.conn = rpc.NewConnectionWithTransport(g, t, keybase1.ErrorUnwrapper{}, true, keybase1.WrapError, g.G().Log, nil)
 	g.cli = g.conn.GetClient()
@@ -687,7 +698,7 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 }
 
 func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
-	g.G().Log.Debug("gregorHandler.DismissItem called with MsgID %s", id.String())
+	g.Debug("gregorHandler.DismissItem called with MsgID %s", id.String())
 
 	gregorMsgIDToDismiss := gregor1.MsgID(id.Bytes())
 
