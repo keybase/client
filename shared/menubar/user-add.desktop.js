@@ -2,7 +2,6 @@ import React, {Component} from 'react'
 import type {Props} from './user-add'
 import {Box, Button, Input, Icon, Text} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles/style-guide'
-import KeyCodes from '../constants/keycodes'
 
 type State = {
   showingInput: boolean,
@@ -39,9 +38,9 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username}) => (
       underlineStyle={stylesInputUnderline}
       onChangeText={onUpdateText}
       onKeyDown={event => {
-        if (event.keyCode === KeyCodes['enter']) {
+        if (event.key === 'Enter') {
           onSubmit()
-        } else if (event.keyCode === KeyCodes['escape']) {
+        } else if (event.key === 'Escape') {
           onCancel()
         }
       }} />
