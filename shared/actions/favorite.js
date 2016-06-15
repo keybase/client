@@ -5,9 +5,9 @@ import * as Constants from '../constants/favorite'
 import {badgeApp} from './notifications'
 import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
 import _ from 'lodash'
-import type {Folder, favoriteGetFavoritesRpc, FavoritesResult} from '../constants/types/flow-types'
+import type {Folder, favoriteGetFavoritesRpc, favoriteFavoriteIgnoreRpc, FavoritesResult} from '../constants/types/flow-types'
 import type {Dispatch} from '../constants/types/flux'
-import type {FavoriteList} from '../constants/favorite'
+import type {FavoriteList, FavoriteIgnore} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
 import type {UserList} from '../common-adapters/usernames'
 import flags from '../util/feature-flags'
@@ -193,6 +193,28 @@ export function favoriteList (): (dispatch: Dispatch) => void {
   }
 }
 
-export function ignoreFolder (path: string) {
-  return () => console.log('TODO: implement ignore folder action')
+export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
+  return (dispatch, getState) => {
+    const folder = folderFromPath(path)
+    if (!folder) {
+      const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: {error: 'no folder'}}
+      dispatch(action)
+      return
+    }
+
+    const params : favoriteFavoriteIgnoreRpc = {
+      param: {folder},
+      incomingCallMap: {},
+      method: 'favorite.favoriteIgnore',
+      callback: error => {
+        if (error) {
+          console.warn('Err in favorite.favoriteIgnore', error)
+          return
+        }
+        const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: {}}
+        dispatch(action)
+      }
+    }
+    engine.rpc(params)
+  }
 }
