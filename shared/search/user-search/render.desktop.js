@@ -60,7 +60,7 @@ function ExternalExtraInfo ({serviceUsername, fullNameOnService, icon, searchTex
 }
 
 export function Result ({result, searchText, onClickResult}: {result: SearchResult, searchText: string, onClickResult: UserFn}) {
-  const iconStyle = {height: 32, width: 32, marginLeft: 8, marginRight: 16}
+  const iconStyle = {height: 32, width: 32, marginRight: 16}
 
   let icon
   let body = <Box />
@@ -102,6 +102,8 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
     height: 48,
     paddingTop: 8,
     paddingBottom: 8,
+    paddingRight: 8,
+    paddingLeft: 8,
     borderTop: 'solid 1px',
     borderTopColor: globalColors.black_10
   }
