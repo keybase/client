@@ -229,7 +229,10 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 		t.Fatal(err)
 	}
 	bCtx2 := BlockContext{currentUID, localUsers[1].UID, nonce}
-	b.AddBlockReference(ctx, bID, tlfID, bCtx2)
+	err = b.AddBlockReference(ctx, bID, tlfID, bCtx2)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Now get the same block back
 	buf, key, err = b.Get(ctx, bID, tlfID, bCtx2)

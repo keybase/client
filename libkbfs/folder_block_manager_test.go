@@ -435,10 +435,14 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 	oneDedupFound := false
 	for id, refs := range endBlocks {
-		if len(refs) > 1 && (len(refs) > 2 || oneDedupFound) {
-			t.Errorf("Block %v unexpectedly had %d references", id, len(refs))
+		if len(refs) > 2 {
+			t.Errorf("Block %v unexpectedly had %d refs %v", id, len(refs), refs)
 		} else if len(refs) == 2 {
-			oneDedupFound = true
+			if oneDedupFound {
+				t.Errorf("Extra dedup block %v with refs %v", id, refs)
+			} else {
+				oneDedupFound = true
+			}
 		}
 	}
 	if !oneDedupFound {

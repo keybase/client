@@ -348,9 +348,9 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 			}
 		}
 		for id := range g {
-			if _, ok := e[id]; !ok {
+			if eRefs, ok := e[id]; !ok {
 				sc.log.CDebugf(ctx, "Did not find matching expected "+
-					"ID for found block %v", id)
+					"ID for found block %v (with refs %v)", id, eRefs)
 			}
 		}
 
