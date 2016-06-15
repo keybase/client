@@ -15,8 +15,28 @@ import {NotifyPopup} from '../native/notifications'
 
 export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
   const sortName = users.map(u => u.username).join(',')
-  const path = `/keybase/${isPublic ? 'private' : 'public'}/${sortName}`
+  const path = `/keybase/${isPublic ? 'public' : 'private'}/${sortName}`
   return {sortName, path}
+}
+
+export function folderFromPath (path: string): ?Folder {
+  if (path.startsWith('/keybase/private/')) {
+    return {
+      name: path.replace('/keybase/private/', ''),
+      private: true,
+      notificationsOn: false,
+      created: false
+    }
+  } else if (path.startsWith('/keybase/public/')) {
+    return {
+      name: path.replace('/keybase/public/', ''),
+      private: false,
+      notificationsOn: false,
+      created: false
+    }
+  } else {
+    return null
+  }
 }
 
 type FolderWithMeta = {
