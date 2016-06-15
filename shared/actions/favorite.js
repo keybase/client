@@ -211,7 +211,7 @@ export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
           console.warn('Err in favorite.favoriteIgnore', error)
           return
         }
-        const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: {}}
+        const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: {error: null}}
         dispatch(action)
       }
     }
