@@ -6,6 +6,7 @@
 package install
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
@@ -65,4 +66,16 @@ func KBFSBinPath(runMode libkb.RunMode, binPath string) (string, error) {
 
 func RunAfterStartup(g *libkb.GlobalContext, isService bool) error {
 	return nil
+}
+
+// kbfsBinName returns the name for the KBFS executable
+func kbfsBinName(runMode libkb.RunMode) (string, error) {
+	if runMode != libkb.ProductionRunMode {
+		return "", fmt.Errorf("KBFS install is currently only supported in production")
+	}
+	return "kbfsfuse", nil
+}
+
+func updaterBinName() (string, error) {
+	return "kbupdater", nil
 }

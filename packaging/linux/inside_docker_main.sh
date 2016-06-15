@@ -15,6 +15,7 @@ commit="$2"
 client_clone="/root/client"
 kbfs_clone="/root/kbfs"
 serverops_clone="/root/server-ops"
+updater_clone="/root/go-updater"
 build_dir="/root/build"
 
 # Copy the s3cmd config to root's home dir, then test the credentials.
@@ -53,6 +54,8 @@ echo "Cloning the client repo..."
 git clone git@github.com:keybase/client "$client_clone" --reference /CLIENT
 echo "Cloning the kbfs repo..."
 git clone git@github.com:keybase/kbfs "$kbfs_clone" --reference /KBFS
+echo "Cloning the updater repo..."
+git clone git@github.com:keybase/go-updater "$updater_clone" --reference /UPDATER
 # The server-ops repo is like a gigabyte, so don't clone it unnecessarily.
 if [ "$mode" != prerelease ] ; then
   echo "Cloning the server-ops repo..."
