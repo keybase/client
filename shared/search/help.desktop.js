@@ -79,7 +79,7 @@ class RenderHelp extends Component<void, Props, State> {
               <Text type='TerminalEmpty' />
               <Text type='Terminal'>{`cd /keybase/private/${this.props.username},somefriend@twitter`}</Text>
               <Text type='TerminalEmpty' />
-              <Text type='Terminal'>cp ~/pics.zip</Text>
+              <Text type='Terminal'>cp ~/pics.zip .</Text>
             </Terminal>
           </Box>
         </Box>
