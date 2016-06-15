@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import commonStyles from '../styles/common'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {Icon, Text, Meta} from '../common-adapters/index'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
@@ -170,7 +170,7 @@ const styleService = {
   textAlign: 'center',
   color: globalColors.black_75,
   hoverColor: globalColors.black_75,
-  marginRight: 9,
+  marginRight: globalMargins.tiny,
   marginTop: 5
 }
 
