@@ -98,8 +98,8 @@ const folderToProps = (folders: Array<FolderWithMeta>, username: string = ''): F
   })
 
   const [priFolders, pubFolders] = _.partition(converted, {isPublic: false})
-  let [privIgnored, priv] = _.partition(priFolders, {ignored: true})
-  let [pubIgnored, pub] = _.partition(pubFolders, {ignored: true})
+  const [privIgnored, priv] = _.partition(priFolders, {ignored: true})
+  const [pubIgnored, pub] = _.partition(pubFolders, {ignored: true})
   return {
     onRekey: () => {},
     showingPrivate: true,
@@ -198,7 +198,7 @@ export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
   return (dispatch, getState) => {
     const folder = folderFromPath(path)
     if (!folder) {
-      const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: {error: 'no folder'}}
+      const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: {error: true}}
       dispatch(action)
       return
     }
@@ -212,7 +212,7 @@ export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
           console.warn('Err in favorite.favoriteIgnore', error)
           return
         }
-        const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: {error: null}}
+        const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: {}}
         dispatch(action)
         dispatch(favoriteList())
         dispatch(navigateBack())

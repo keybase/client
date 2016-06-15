@@ -7,6 +7,6 @@ export const favoriteList = 'favorite:favoriteList'
 export type FavoriteList = TypedAction<'favorite:favoriteList', {folders: FolderProps}, void>
 
 export const favoriteIgnore = 'favorite:favoriteIgnore'
-export type FavoriteIgnore = TypedAction<'favorite:favoriteIgnore', {error: ?string}, void>
+export type FavoriteIgnore = TypedAction<'favorite:favoriteIgnore', {error?: true}, void>
 
 export type FavoriteAction = FavoriteList | FavoriteIgnore
