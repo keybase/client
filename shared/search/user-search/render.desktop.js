@@ -7,7 +7,7 @@ import {globalStyles, globalColors} from '../../styles/style-guide'
 
 import {FlatButton} from 'material-ui'
 
-import type {Props, UserFn, ServiceFn, SearchResult} from './render'
+import type {Props, SearchResult, SearchResultFn, ServiceFn} from './render'
 import type {IconType} from '../../common-adapters/icon'
 import type {Props as TextProps} from '../../common-adapters/text'
 
@@ -59,7 +59,7 @@ function ExternalExtraInfo ({serviceUsername, fullNameOnService, icon, searchTex
   )
 }
 
-export function Result ({result, searchText, onClickResult}: {result: SearchResult, searchText: string, onClickResult: UserFn}) {
+export function Result ({result, searchText, onClickResult}: {result: SearchResult, searchText: string, onClickResult: SearchResultFn}) {
   const iconStyle = {height: 32, width: 32, marginRight: 16}
 
   let icon
@@ -120,15 +120,12 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
 }
 
 function ServiceIcon ({serviceName, iconType, selected, onClickService}: {serviceName: string, iconType: IconType, selected: boolean, onClickService: ServiceFn}) {
-  var iconStyles: Object = {
+  const iconStyles = {
     borderRadius: 24,
     minWidth: 48,
     width: 48,
     height: 48,
-    backgroundColor: null
-  }
-  if (selected) {
-    iconStyles['backgroundColor'] = globalColors.blue4
+    backgroundColor: selected ? globalColors.blue4 : null
   }
   return (
     <FlatButton
@@ -140,14 +137,6 @@ function ServiceIcon ({serviceName, iconType, selected, onClickService}: {servic
 }
 
 export default class Render extends Component<void, Props, void> {
-
-  selectService (serviceName: string) {
-    console.log('Select service: ', serviceName)
-  }
-
-  selectResult (result: SearchResult) {
-    console.log('Select result: ', result)
-  }
 
   render () {
     const realCSS = `
@@ -163,36 +152,36 @@ export default class Render extends Component<void, Props, void> {
               serviceName='keybase'
               iconType='keybase-logo-mascot-only-dz-2-24'
               selected={this.props.selectedService === 'keybase'}
-              onClickService={this.selectService}
+              onClickService={this.props.onClickService}
               />
             <ServiceIcon
               serviceName='twitter'
               iconType='icon-twitter-logo-24'
               selected={this.props.selectedService === 'twitter'}
-              onClickService={this.selectService}
+              onClickService={this.props.onClickService}
               />
             <ServiceIcon
               serviceName='github'
               iconType='icon-github-logo-24'
               selected={this.props.selectedService === 'github'}
-              onClickService={this.selectService}
+              onClickService={this.props.onClickService}
               />
             <ServiceIcon
               serviceName='coinbase'
               iconType='icon-coinbase-logo-24'
               selected={this.props.selectedService === 'coinbase'}
-              onClickService={this.selectService}
+              onClickService={this.props.onClickService}
               />
             <ServiceIcon
               serviceName='pgp'
               iconType='icon-pgp-key-24'
               selected={this.props.selectedService === 'pgp'}
-              onClickService={this.selectService}
+              onClickService={this.props.onClickService}
               />
           </Box>
           <Input type='text' value={this.props.searchText} hintText={this.props.searchHintText} style={styles.input} underlineStyle={{display: 'none'}} />
         </Box>
-        {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} searchText={this.props.searchText || ''} onClickResult={this.selectResult} />)}
+        {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} searchText={this.props.searchText || ''} onClickResult={this.props.onClickResult} />)}
       </Box>
     )
   }

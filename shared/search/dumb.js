@@ -68,6 +68,8 @@ const userSearchMap: DumbComponentMap<UserSearch> = {
       searchText: 'malg',
       searchIcon: 'logo-32',
       selectedService: 'keybase',
+      onClickService: () => console.log('onClickService'),
+      onClickResult: () => console.log('onClickResult'),
       results
     }
   }

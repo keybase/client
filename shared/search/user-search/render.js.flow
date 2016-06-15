@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 
 import type {IconType} from '../../common-adapters/icon'
 
-export type UserFn = (user: SearchResult) => void
+export type SearchResultFn = (searchResult: SearchResult) => void
 export type ServiceFn = (serviceName: string) => void
 
 export type ExtraInfo = {
@@ -40,7 +40,9 @@ export type Props = {
   searchText: ?string,
   searchIcon: IconType,
   selectedService: string,
-  results: Array<SearchResult>
+  results: Array<SearchResult>,
+  onClickService: ServiceFn,
+  onClickResult: SearchResultFn
 }
 
 export default class Render extends Component<void, Props, void> { }
