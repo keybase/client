@@ -80,6 +80,11 @@ type LoadUserArg struct {
 	Uid       UID `codec:"uid" json:"uid"`
 }
 
+type LoadUserByNameArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+}
+
 type LoadUserPlusKeysArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -121,6 +126,7 @@ type UserInterface interface {
 	LoadUncheckedUserSummaries(context.Context, LoadUncheckedUserSummariesArg) ([]UserSummary, error)
 	// Load a user from the server.
 	LoadUser(context.Context, LoadUserArg) (User, error)
+	LoadUserByName(context.Context, LoadUserByNameArg) (User, error)
 	// Load a user + device keys from the server.
 	LoadUserPlusKeys(context.Context, LoadUserPlusKeysArg) (UserPlusKeys, error)
 	// Load public keys for a user.
@@ -216,6 +222,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.LoadUser(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"loadUserByName": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadUserByNameArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoadUserByNameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoadUserByNameArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadUserByName(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -351,6 +373,11 @@ func (c UserClient) LoadUncheckedUserSummaries(ctx context.Context, __arg LoadUn
 // Load a user from the server.
 func (c UserClient) LoadUser(ctx context.Context, __arg LoadUserArg) (res User, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.loadUser", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) LoadUserByName(ctx context.Context, __arg LoadUserByNameArg) (res User, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserByName", []interface{}{__arg}, &res)
 	return
 }
 

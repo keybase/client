@@ -99,6 +99,16 @@ func (h *UserHandler) LoadUser(_ context.Context, arg keybase1.LoadUserArg) (use
 	return
 }
 
+func (h *UserHandler) LoadUserByName(_ context.Context, arg keybase1.LoadUserByNameArg) (user keybase1.User, err error) {
+	u, err := libkb.LoadUser(libkb.LoadUserArg{Name: arg.Username, Contextified: libkb.NewContextified(h.G())})
+	if err != nil {
+		return
+	}
+	exportedUser := u.Export()
+	user = *exportedUser
+	return
+}
+
 func (h *UserHandler) LoadUserPlusKeys(_ context.Context, arg keybase1.LoadUserPlusKeysArg) (keybase1.UserPlusKeys, error) {
 	return libkb.LoadUserPlusKeys(h.G(), arg.Uid)
 }

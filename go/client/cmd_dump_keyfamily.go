@@ -29,7 +29,7 @@ type CmdDumpKeyfamily struct {
 func (v *CmdDumpKeyfamily) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	if nargs > 1 {
-		return fmt.Errorf("dump-keyfamily only takes on argument, the user to lookup")
+		return fmt.Errorf("dump-keyfamily only takes one argument, the user to lookup")
 	}
 	if nargs == 1 {
 		v.user = ctx.Args()[0]
@@ -64,15 +64,11 @@ func (v *CmdDumpKeyfamily) Run() (err error) {
 		return fmt.Errorf("Not logged in.")
 	}
 
-	var UID keybase1.UID
+	var username string
 	if v.user != "" {
-		res := v.G().Resolver.Resolve(v.user)
-		if res.GetError() != nil {
-			return fmt.Errorf("invalid user specified")
-		}
-		UID = res.GetUID()
+		username = v.user
 	} else {
-		UID = currentStatus.User.Uid
+		username = currentStatus.User.Username
 	}
 
 	userCli, err := GetUserClient(v.G())
@@ -80,12 +76,12 @@ func (v *CmdDumpKeyfamily) Run() (err error) {
 		return err
 	}
 
-	user, err := userCli.LoadUser(context.TODO(), keybase1.LoadUserArg{Uid: UID})
+	user, err := userCli.LoadUserByName(context.TODO(), keybase1.LoadUserByNameArg{Username: username})
 	if err != nil {
 		return fmt.Errorf("error loading user: %s", err)
 	}
 
-	publicKeys, err := userCli.LoadPublicKeys(context.TODO(), keybase1.LoadPublicKeysArg{Uid: UID})
+	publicKeys, err := userCli.LoadPublicKeys(context.TODO(), keybase1.LoadPublicKeysArg{Uid: user.Uid})
 	if err != nil {
 		return fmt.Errorf("error loading keys: %s", err)
 	}
