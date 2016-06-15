@@ -57,9 +57,7 @@ export default function makeMenu (window) {
   } else {
     const template = [{
       label: '&File',
-      submenu: [
-        {label: '&Close', accelerator: 'CmdOrCtrl+W', click () { this.remoteWindow.close() }}
-      ]
+      submenu: [{label: '&Close', accelerator: 'CmdOrCtrl+W', role: 'close'}]
     }, {
       label: 'Help',
       submenu: [{label: 'Learn More', click () { shell.openExternal('https://keybase.io') }}]
