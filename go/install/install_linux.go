@@ -43,6 +43,7 @@ func autostartFilePath(g *libkb.GlobalContext) string {
 	return path.Join(autostartDir(g), "keybase_autostart.desktop")
 }
 
+// AutoInstall installs auto start on linux
 func AutoInstall(g *libkb.GlobalContext, _ string, _ bool) ( /* newProc */ bool, error) {
 	// If the desktop file already exists, short circuit.
 	if _, err := os.Stat(autostartFilePath(g)); err == nil {
@@ -55,6 +56,7 @@ func AutoInstall(g *libkb.GlobalContext, _ string, _ bool) ( /* newProc */ bool,
 	return false, ioutil.WriteFile(autostartFilePath(g), []byte(autostartFileText), 0644)
 }
 
+// CheckIfValidLocation is not used on linux
 func CheckIfValidLocation() error {
 	return nil
 }
@@ -64,6 +66,7 @@ func KBFSBinPath(runMode libkb.RunMode, binPath string) (string, error) {
 	return kbfsBinPathDefault(runMode, binPath)
 }
 
+// RunAfterStartup is not used on linux
 func RunAfterStartup(g *libkb.GlobalContext, isService bool) error {
 	return nil
 }
@@ -77,5 +80,5 @@ func kbfsBinName(runMode libkb.RunMode) (string, error) {
 }
 
 func updaterBinName() (string, error) {
-	return "kbupdater", nil
+	return "", fmt.Errorf("Updater isn't supported on linux")
 }
