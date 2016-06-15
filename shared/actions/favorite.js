@@ -1,6 +1,7 @@
 /* @flow */
 
 import engine from '../engine'
+import {navigateBack} from '../actions/router'
 import * as Constants from '../constants/favorite'
 import {badgeApp} from './notifications'
 import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
@@ -213,6 +214,8 @@ export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
         }
         const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: {error: null}}
         dispatch(action)
+        dispatch(favoriteList())
+        dispatch(navigateBack())
       }
     }
     engine.rpc(params)
