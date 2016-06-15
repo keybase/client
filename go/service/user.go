@@ -90,7 +90,17 @@ func (h *UserHandler) ListTrackingJSON(_ context.Context, arg keybase1.ListTrack
 }
 
 func (h *UserHandler) LoadUser(_ context.Context, arg keybase1.LoadUserArg) (user keybase1.User, err error) {
-	u, err := libkb.LoadUser(libkb.LoadUserArg{UID: arg.Uid, Contextified: libkb.NewContextified(h.G())})
+	u, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(h.G(), arg.Uid))
+	if err != nil {
+		return
+	}
+	exportedUser := u.Export()
+	user = *exportedUser
+	return
+}
+
+func (h *UserHandler) LoadUserByName(_ context.Context, arg keybase1.LoadUserByNameArg) (user keybase1.User, err error) {
+	u, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(h.G(), arg.Username))
 	if err != nil {
 		return
 	}

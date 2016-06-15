@@ -3449,6 +3449,17 @@ export type userLoadUncheckedUserSummariesRpc = {
   callback: (null | (err: ?any, response: userLoadUncheckedUserSummariesResult) => void)
 }
 
+export type userLoadUserByNameResult = User
+
+export type userLoadUserByNameRpc = {
+  method: 'user.loadUserByName',
+  param: {
+    username: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userLoadUserByNameResult) => void)
+}
+
 export type userLoadUserPlusKeysResult = UserPlusKeys
 
 export type userLoadUserPlusKeysRpc = {
@@ -3684,6 +3695,7 @@ export type rpc =
   | userLoadAllPublicKeysUnverifiedRpc
   | userLoadPublicKeysRpc
   | userLoadUncheckedUserSummariesRpc
+  | userLoadUserByNameRpc
   | userLoadUserPlusKeysRpc
   | userLoadUserRpc
   | userSearchRpc
@@ -5687,6 +5699,16 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: userLoadUserResult) => void
+    }
+  ) => void,
+  'keybase.1.user.loadUserByName'?: (
+    params: {
+      sessionID: int,
+      username: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: userLoadUserByNameResult) => void
     }
   ) => void,
   'keybase.1.user.loadUserPlusKeys'?: (

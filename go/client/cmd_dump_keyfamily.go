@@ -23,12 +23,27 @@ func indentSpace(level int) string {
 
 type CmdDumpKeyfamily struct {
 	libkb.Contextified
+	user string
+}
+
+func (v *CmdDumpKeyfamily) ParseArgv(ctx *cli.Context) error {
+	nargs := len(ctx.Args())
+	if nargs > 1 {
+		return fmt.Errorf("dump-keyfamily only takes one argument, the user to lookup")
+	}
+	if nargs == 1 {
+		v.user = ctx.Args()[0]
+	}
+	return nil
 }
 
 func NewCmdDumpKeyfamily(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "dump-keyfamily",
-		Flags: []cli.Flag{},
+		Name:         "dump-keyfamily",
+		ArgumentHelp: "[username]",
+		Usage:        "Print out a user's current key family",
+		Description:  "Print out a user's current key family. Don't specify a username to dump out your own keys.",
+		Flags:        []cli.Flag{},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdDumpKeyfamily{Contextified: libkb.NewContextified(g)}, "dump-keyfamily", c)
 		},
@@ -48,21 +63,27 @@ func (v *CmdDumpKeyfamily) Run() (err error) {
 	if !currentStatus.LoggedIn {
 		return fmt.Errorf("Not logged in.")
 	}
-	myUID := currentStatus.User.Uid
+
+	var username string
+	if v.user != "" {
+		username = v.user
+	} else {
+		username = currentStatus.User.Username
+	}
 
 	userCli, err := GetUserClient(v.G())
 	if err != nil {
 		return err
 	}
 
-	me, err := userCli.LoadUser(context.TODO(), keybase1.LoadUserArg{Uid: myUID})
+	user, err := userCli.LoadUserByName(context.TODO(), keybase1.LoadUserByNameArg{Username: username})
 	if err != nil {
-		return err
+		return fmt.Errorf("error loading user: %s", err)
 	}
 
-	publicKeys, err := userCli.LoadPublicKeys(context.TODO(), keybase1.LoadPublicKeysArg{Uid: myUID})
+	publicKeys, err := userCli.LoadPublicKeys(context.TODO(), keybase1.LoadPublicKeysArg{Uid: user.Uid})
 	if err != nil {
-		return err
+		return fmt.Errorf("error loading keys: %s", err)
 	}
 
 	devCli, err := GetDeviceClient()
@@ -71,10 +92,10 @@ func (v *CmdDumpKeyfamily) Run() (err error) {
 	}
 	devs, err := devCli.DeviceList(context.TODO(), 0)
 	if err != nil {
-		return err
+		return fmt.Errorf("error loading device list: %s", err)
 	}
 
-	v.printExportedMe(me, publicKeys, devs)
+	v.printExportedUser(user, publicKeys, devs)
 	return nil
 }
 
@@ -88,7 +109,9 @@ func findSubkeys(parentID keybase1.KID, allKeys []keybase1.PublicKey) []keybase1
 	return ret
 }
 
-func (v *CmdDumpKeyfamily) printExportedMe(me keybase1.User, publicKeys []keybase1.PublicKey, devices []keybase1.Device) error {
+func (v *CmdDumpKeyfamily) printExportedUser(user keybase1.User, publicKeys []keybase1.PublicKey,
+	devices []keybase1.Device) error {
+
 	dui := v.G().UI.GetDumbOutputUI()
 	if len(publicKeys) == 0 {
 		dui.Printf("No public keys.\n")
@@ -167,10 +190,6 @@ func (v *CmdDumpKeyfamily) printKey(key keybase1.PublicKey, subkeys []keybase1.P
 			v.printKey(subkey, nil, indent+2)
 		}
 	}
-	return nil
-}
-
-func (v *CmdDumpKeyfamily) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 

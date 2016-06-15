@@ -52,6 +52,7 @@ protocol user {
     Load a user from the server.
     */
   User loadUser(int sessionID, UID uid);
+  User loadUserByName(int sessionID, string username);
 
   /**
     Load a user + device keys from the server.

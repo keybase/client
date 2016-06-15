@@ -626,6 +626,19 @@
       "response": "User",
       "doc": "Load a user from the server."
     },
+    "loadUserByName": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": "User"
+    },
     "loadUserPlusKeys": {
       "request": [
         {
