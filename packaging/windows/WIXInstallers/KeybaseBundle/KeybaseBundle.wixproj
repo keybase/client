@@ -6,7 +6,7 @@
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>418432ab-0366-40fd-a396-8cc0c4200252</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>Keybase_%25KEYBASE_VERSION%25</OutputName>
+    <OutputName>Keybase_%25KEYBASE_VERSION%25.%25GOARCH%25</OutputName>
     <OutputType>Bundle</OutputType>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
