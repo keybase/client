@@ -5122,3 +5122,22 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 		t.Fatalf("Could unexpectedly lookup the file: %v", err)
 	}
 }
+
+// Test that the size of a single empty block doesn't change.  If this
+// test ever fails, consult max or strib before merging.
+func TestKBFSOpsEmptyTlfSize(t *testing.T) {
+	config, _, ctx := kbfsOpsInitNoMocks(t, "test_user")
+	defer CheckConfigAndShutdown(t, config)
+
+	// Create a TLF.
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+	status, _, err := config.KBFSOps().FolderStatus(ctx,
+		rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't get folder status: %v", err)
+	}
+	if status.DiskUsage != 313 {
+		t.Fatalf("Disk usage of an empty TLF is no longer 313.  " +
+			"Talk to max or strib about why this matters.")
+	}
+}
