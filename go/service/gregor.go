@@ -65,6 +65,7 @@ type gregorHandler struct {
 	gregorCli        *grclient.Client
 	freshSync        bool
 	ibmHandlers      []libkb.GregorInBandMessageHandler
+	shutdownCh       chan struct{}
 }
 
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
@@ -97,6 +98,7 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 		itemsByID:    make(map[string]gregor.Item),
 		ibmHandlers:  []libkb.GregorInBandMessageHandler{},
 		freshSync:    true,
+		shutdownCh:   make(chan struct{}),
 	}
 
 	// Create client interface to gregord
@@ -289,38 +291,6 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	}
 
 	return nil
-}
-
-func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
-	g.Debug("connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
-}
-
-func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
-	g.Debug("disconnected: %v", status)
-}
-
-func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
-	g.Debug("do command error: %s, nextTime: %s", err, nextTime)
-}
-
-func (g *gregorHandler) ShouldRetry(name string, err error) bool {
-	g.Debug("should retry: name %s, err %v (returning false)", name, err)
-	return false
-}
-
-func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	g.Debug("should retry on connect, err %v", err)
-	if g.skipRetryConnect {
-		g.Debug("should retry on connect, skip retry flag set, returning false")
-		g.skipRetryConnect = false
-		return false
-	}
-
-	return true
 }
 
 // BroadcastMessage is called when we receive a new messages from gregord. Grabs
@@ -582,6 +552,7 @@ func (g *gregorHandler) Shutdown() {
 	if g.conn == nil {
 		return
 	}
+	close(g.shutdownCh)
 	g.conn.Shutdown()
 	g.conn = nil
 }
@@ -650,12 +621,15 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) error {
 
 func (g *gregorHandler) pingLoop() {
 	for {
-		_, err := gregor1.IncomingClient{Cli: g.cli}.Ping(context.Background())
-		if err != nil {
-			g.Warning("error in ping loop: %s", err)
+		select {
+		case <-g.G().Clock().After(g.G().Env.GetGregorPingInterval()):
+			_, err := gregor1.IncomingClient{Cli: g.cli}.Ping(context.Background())
+			if err != nil {
+				g.Warning("error in ping loop: %s", err)
+			}
+		case <-g.shutdownCh:
+			return
 		}
-
-		g.G().Clock().Sleep(g.G().Env.GetGregorPingInterval())
 	}
 }
 
@@ -742,4 +716,36 @@ func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (k
 	}
 
 	return keybase1.Outcome_NONE, errors.New("no alive RekeyUIHandler found")
+}
+
+func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
+	g.Debug("connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
+}
+
+func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
+	g.Debug("disconnected: %v", status)
+}
+
+func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
+	g.Debug("do command error: %s, nextTime: %s", err, nextTime)
+}
+
+func (g *gregorHandler) ShouldRetry(name string, err error) bool {
+	g.Debug("should retry: name %s, err %v (returning false)", name, err)
+	return false
+}
+
+func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	g.Debug("should retry on connect, err %v", err)
+	if g.skipRetryConnect {
+		g.Debug("should retry on connect, skip retry flag set, returning false")
+		g.skipRetryConnect = false
+		return false
+	}
+
+	return true
 }
