@@ -593,11 +593,11 @@ func (g *GlobalContext) GetAppStartMode() AppStartMode {
 }
 
 func (g *GlobalContext) GetConfigDir() string {
-	return g.GetConfigDir()
+	return g.Env.GetConfigDir()
 }
 
 func (g *GlobalContext) GetMountDir() (string, error) {
-	return g.GetMountDir()
+	return g.Env.GetMountDir()
 }
 
 func (g *GlobalContext) GetServiceInfoPath() string {
