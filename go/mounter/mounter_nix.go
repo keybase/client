@@ -11,13 +11,11 @@ import (
 	"os/exec"
 	"runtime"
 
-	"github.com/keybase/client/go/logger"
-
 	"bazil.org/fuse"
 )
 
 // Unmount tries to unmount normally and then if force if unsuccessful.
-func Unmount(dir string, force bool, log logger.Logger) error {
+func Unmount(dir string, force bool, log Log) error {
 	if !force {
 		mounted, err := IsMounted(dir, log)
 		if err != nil {
@@ -42,7 +40,7 @@ func Unmount(dir string, force bool, log logger.Logger) error {
 }
 
 // ForceUnmount tries to forceably unmount a directory
-func ForceUnmount(dir string, log logger.Logger) error {
+func ForceUnmount(dir string, log Log) error {
 	switch runtime.GOOS {
 	case "darwin":
 		log.Info("Force unmounting with diskutil")

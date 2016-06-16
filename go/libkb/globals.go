@@ -587,3 +587,19 @@ func (g *GlobalContext) CallLogoutHooks() {
 		}
 	}
 }
+
+func (g *GlobalContext) GetAppStartMode() AppStartMode {
+	return g.Env.GetAppStartMode()
+}
+
+func (g *GlobalContext) GetConfigDir() string {
+	return g.GetConfigDir()
+}
+
+func (g *GlobalContext) GetMountDir() (string, error) {
+	return g.GetMountDir()
+}
+
+func (g *GlobalContext) GetServiceInfoPath() string {
+	return g.Env.GetServiceInfoPath()
+}
