@@ -6,7 +6,6 @@ import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
-import {metaNone} from '../constants/tracker'
 
 import type {RenderPropsUnshaped} from './render'
 import type {UserInfo} from '../common-adapters/user-bio'
@@ -16,15 +15,17 @@ import type {SimpleProofState} from '../constants/tracker'
 import type {TrackSummary} from '../constants/types/flow-types'
 
 export type TrackerProps = {
+  changed: boolean,
+  currentlyFollowing: boolean,
   loggedIn: boolean,
   trackerState: SimpleProofState,
-  trackerMessage: ?string,
   username: string,
   shouldFollow: ?boolean,
   reason: string,
   waiting: boolean,
   userInfo: ?UserInfo,
   nonUser: ?boolean,
+  parentProps: ?Object,
   proofs: Array<Proof>,
   onClose: () => void,
   onRefollow: () => void,
@@ -43,61 +44,32 @@ export type TrackerProps = {
   isPrivate?: boolean
 }
 
+// TODO remove this
 export function trackerPropsToRenderProps (props: TrackerProps): RenderPropsUnshaped {
-  const renderChangedTitle = props.trackerMessage
-  const failedProofsNotFollowingText = `Some of ${props.username}'s proofs couldn't be verified. Track the working proofs?`
-  const currentlyFollowing = !!props.lastTrack
-
-  const changed = !(props.proofs || []).every(function (proof, index, ar) {
-    return (!proof.meta || proof.meta === metaNone)
-  })
-
-  const reason = currentlyFollowing && renderChangedTitle ? renderChangedTitle : props.reason
-
   return {
-    parentProps: props.parentProps || {},
-    bioProps: {
-      username: props.username,
-      userInfo: props.userInfo,
-      trackerState: props.trackerState,
-      currentlyFollowing,
-    },
-    headerProps: {
-      reason: reason,
-      onClose: () => props.onClose(props.username),
-      trackerState: props.trackerState,
-      currentlyFollowing,
-      changed,
-      lastAction: props.lastAction,
-      loggedIn: props.loggedIn,
-    },
-    actionProps: {
-      loggedIn: props.loggedIn,
-      state: props.trackerState,
-      username: props.username,
-      waiting: props.waiting,
-      renderChangedTitle,
-      failedProofsNotFollowingText,
-      shouldFollow: props.shouldFollow,
-      onClose: () => props.onClose(props.username),
-      onRefollow: () => props.onRefollow(props.username),
-      onIgnore: () => props.onIgnore(props.username),
-      onUnfollow: () => props.onUnfollow(props.username),
-      onFollow: () => props.onFollow(props.username),
-      currentlyFollowing,
-      lastAction: props.lastAction,
-    },
-    proofsProps: {
-      username: props.username,
-      proofs: props.proofs,
-      currentlyFollowing,
-    },
-    nonUser: props.nonUser,
-    name: props.name,
-    serviceName: props.serviceName,
-    reason: props.reason,
+    changed: props.changed,
+    currentlyFollowing: props.currentlyFollowing,
     inviteLink: props.inviteLink,
     isPrivate: props.isPrivate,
+    lastAction: props.lastAction,
+    loggedIn: props.loggedIn,
+    name: props.name,
+    nonUser: props.nonUser,
+    onClose: props.onClose,
+    onFollow: props.onFollow,
+    onIgnore: props.onIgnore,
+    onRefollow: props.onRefollow,
+    onUnfollow: props.onUnfollow,
+    parentProps: props.parentProps,
+    proofs: props.proofs,
+    reason: props.reason,
+    serviceName: props.serviceName,
+    shouldFollow: props.shouldFollow,
+    state: props.trackerState,
+    trackerState: props.trackerState,
+    userInfo: props.userInfo,
+    username: props.username,
+    waiting: props.waiting,
   }
 }
 
@@ -144,7 +116,18 @@ export default connect(
   }),
   dispatch => {
     return bindActionCreators(trackerActions, dispatch)
-  })(Tracker)
+  },
+  (stateProps, dispatchProps, ownProps) => ({
+    ...ownProps,
+    ...stateProps,
+    ...dispatchProps,
+    onClose: () => dispatchProps.onClose(ownProps.username),
+    onFollow: () => dispatchProps.onFollow(ownProps.username),
+    onIgnore: () => dispatchProps.onIgnore(ownProps.username),
+    onRefollow: () => dispatchProps.onRefollow(ownProps.username),
+    onUnfollow: () => dispatchProps.onUnfollow(ownProps.username),
+  })
+)(Tracker)
 
 export function selector (username: string): (store: Object) => ?Object {
   return store => {

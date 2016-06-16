@@ -84,6 +84,7 @@ const propsBase: RenderProps = {
   tlfs: folders,
   trackerState: normal,
   currentlyFollowing: false,
+  refresh: () => console.log('refresh'),
   onFollow: () => console.log('onFollow'),
   onUnfollow: () => console.log('onUnfollow'),
   onAcceptProofs: () => console.log('onAcceptProofs'),

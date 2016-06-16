@@ -93,17 +93,34 @@ export function registerTrackerIncomingRpcs (): TrackerActionCreator {
   }
 }
 
-export function triggerIdentify (uid: string): TrackerActionCreator {
+export function getProfile (username: string): TrackerActionCreator {
+  return (dispatch, getState) => {
+    dispatch(triggerIdentify('', username, true, serverCallMap(dispatch, getState, true), false, true, true))
+  }
+}
+
+export function getMyProfile (): TrackerActionCreator {
+  return (dispatch, getState) => {
+    const status = getState().config.status
+    const myUID = status && status.user && status.user.uid
+    if (myUID) {
+      dispatch(triggerIdentify(myUID, '', true, serverCallMap(dispatch, getState, true), false, true, true))
+    }
+  }
+}
+
+export function triggerIdentify (uid: string = '', userAssertion: string = '', allowSelf: boolean = false, incomingCallMap: Object = {},
+  useDelegateUI: boolean = true, allowEmptySelfID: boolean = false, noSkipSelf: boolean = true): TrackerActionCreator {
   return (dispatch, getState) => new Promise((resolve, reject) => {
     const params: identifyIdentify2Rpc = {
       method: 'identify.identify2',
       param: {
         uid,
-        userAssertion: '',
+        userAssertion,
         alwaysBlock: false,
         noErrorOnTrackFailure: true,
         forceRemoteCheck: false,
-        useDelegateUI: true,
+        useDelegateUI,
         needProofSet: true,
         reason: {
           type: identifyCommon.IdentifyReasonType.id,
@@ -111,8 +128,10 @@ export function triggerIdentify (uid: string): TrackerActionCreator {
           resource: '',
         },
         source: Common.ClientType.gui,
+        allowEmptySelfID,
+        noSkipSelf,
       },
-      incomingCallMap: {},
+      incomingCallMap,
       callback: (error, response) => {
         console.log('called identify and got back', error, response)
         resolve()
@@ -123,7 +142,7 @@ export function triggerIdentify (uid: string): TrackerActionCreator {
     const myUID = status && status.user && status.user.uid
 
     // Don't identify ourself
-    if (myUID !== uid) {
+    if (allowSelf || myUID !== uid) {
       engine.rpc(params)
     }
   })
@@ -351,7 +370,7 @@ function updateUserInfo (userCard: UserCard, username: string, getState: () => {
 }
 
 // TODO: if we get multiple tracker calls we should cancel one of the sessionIDs, now they'll clash
-function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
+function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: boolean = false): CallMap {
   /* eslint-disable arrow-parens */
   const sessionIDToUsername: { [key: number]: string } = {}
   const identifyUi = {
@@ -388,7 +407,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
         dispatch({type: Constants.updateEldestKidChanged, payload: {username}})
         dispatch({type: Constants.updateReason, payload: {username, reason: `${username} has reset their account!`}})
         dispatch({type: Constants.updateProofState, payload: {username}})
-        dispatch({type: Constants.showTracker, payload: {username}})
+        if (!skipPopups) {
+          dispatch({type: Constants.showTracker, payload: {username}})
+        }
       }
     },
     reportLastTrack: ({sessionID, track}) => {
@@ -398,7 +419,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
         payload: {username, track},
       })
 
-      if (!track) {
+      if (!track && !skipPopups) {
         dispatch({type: Constants.showTracker, payload: {username}})
       }
     },
@@ -413,7 +434,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
         payload: {username, identity},
       })
       dispatch({type: Constants.updateProofState, payload: {username}})
-      if (identity.breaksTracking) {
+      if (identity.breaksTracking && !skipPopups) {
         dispatch({type: Constants.showTracker, payload: {username}})
       }
     },
@@ -433,7 +454,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       dispatch(updateProof(rp, lcr, username))
       dispatch({type: Constants.updateProofState, payload: {username}})
 
-      if (lcr.breaksTracking) {
+      if (lcr.breaksTracking && !skipPopups) {
         dispatch({type: Constants.showTracker, payload: {username}})
       }
     },
@@ -442,7 +463,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       dispatch(updateProof(rp, lcr, username))
       dispatch({type: Constants.updateProofState, payload: {username}})
 
-      if (lcr.breaksTracking) {
+      if (lcr.breaksTracking && !skipPopups) {
         dispatch({type: Constants.showTracker, payload: {username}})
       }
     },
@@ -477,7 +498,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       // Check if there were any errors in the proofs
       dispatch({type: Constants.updateProofState, payload: {username}})
 
-      if (showAllTrackers) {
+      if (showAllTrackers && !skipPopups) {
         console.log('showAllTrackers is on, so showing tracker')
         dispatch({type: Constants.showTracker, payload: {username}})
       }

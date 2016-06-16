@@ -10,6 +10,7 @@ import type {Folder} from '../folders/list'
 export type Props = {
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
+  refresh: () => void,
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,

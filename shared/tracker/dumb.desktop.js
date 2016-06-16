@@ -48,8 +48,10 @@ const proofsChanged: Array<Proof> = [
 ]
 
 const propsBase = {
+  changed: false,
   closed: false,
   lastTrack: null,
+  parentProps: {},
   currentlyFollowing: false,
   onFollow: () => {},
   onRefollow: () => {},
@@ -60,7 +62,6 @@ const propsBase = {
   onIgnore: () => {},
   waiting: false,
   loggedIn: true,
-  trackerMessage: null,
   lastAction: null,
 }
 
