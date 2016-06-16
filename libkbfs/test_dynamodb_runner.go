@@ -19,8 +19,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/goamz/goamz/dynamodb"
 	"github.com/goamz/goamz/aws"
+	"github.com/goamz/goamz/dynamodb"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 )
