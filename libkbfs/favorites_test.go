@@ -82,11 +82,6 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 		Times(2).Return(nil)
 	config.mockKbpki.EXPECT().FavoriteDelete(gomock.Any(), folder1).
 		Return(nil)
-	// 2nd delete (temporary)
-	folder1WithSuffix := folder1
-	folder1WithSuffix.Name += "#public"
-	config.mockKbpki.EXPECT().FavoriteDelete(gomock.Any(), folder1WithSuffix).
-		Return(nil)
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
