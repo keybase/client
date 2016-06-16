@@ -25,6 +25,7 @@ export type UnlockDevice = {
 
 export type Props = {
   theme: 'public' | 'private',
+  ignored: boolean,
   visiblePopupMenu: boolean,
   popupMenuItems: MenuProps.items,
   selfUsername: string,
@@ -36,6 +37,7 @@ export type Props = {
   recentFilesEnabled: boolean, // TODO (AW): remove when recentFiles feature is finished
   openCurrentFolder: () => void,
   ignoreCurrentFolder: () => void,
+  unIgnoreCurrentFolder: () => void,
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
   youCanUnlock: Array<UnlockDevice>
 }

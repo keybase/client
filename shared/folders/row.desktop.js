@@ -54,8 +54,16 @@ const RowMeta = ({ignored, meta, styles}) => {
   return <Meta {...metaProps} />
 }
 
-const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onClick, groupAvatar, userAvatar, onRekey, path}:
-  {smallMode: boolean, onClick: (path: string) => void, onRekey: (path: string) => void} & Folder) => {
+const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onOpen, onClick, groupAvatar, userAvatar, onRekey, path}:
+  {smallMode: boolean, onOpen: (path: string) => void, onClick: (path: string) => void, onRekey: (path: string) => void} & Folder) => {
+  const onOpenClick = event => {
+    event.preventDefault()
+    event.stopPropagation()
+    if (onOpen) {
+      onOpen(path)
+    }
+  }
+
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   const containerStyle = {
@@ -77,7 +85,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onCl
         </Box>
         <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
           {!smallMode && meta !== 'rekey' && <Text
-            type='BodySmall' className='folder-row-hover-action' style={stylesAction}>Open</Text>}
+            type='BodySmall' className='folder-row-hover-action' onClick={onOpenClick} style={stylesAction}>Open</Text>}
           {meta === 'rekey' && <Button
             backgroundMode={styles.modifiedMode} small={smallMode} type='Secondary'
             onClick={() => onRekey && onRekey(path)} label='Rekey' style={stylesAction} />}
@@ -182,4 +190,3 @@ const stylesModified = {
 }
 
 export default Row
-

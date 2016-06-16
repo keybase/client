@@ -65,14 +65,16 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode}) => {
 
 export default class Render extends Component<void, Props, void> {
 
-  _renderContents (isPrivate: boolean) {
+  _renderContents (isPrivate: boolean, ignored: boolean) {
     const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
 
     if (!this.props.recentFilesEnabled) {
       return (
         <Box style={{...styleRecentFilesNotEnabled}}>
-          <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />
-          <Button type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' />
+          {ignored
+          ? <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' />
+          : <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />}
+          <Button key='open' type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' />
         </Box>
       )
     }
@@ -112,10 +114,12 @@ export default class Render extends Component<void, Props, void> {
         <Box style={{...globalStyles.flexBoxRow, ...styleHeaderThemed[this.props.theme], height: 48}}>
           <BackButton onClick={this.props.onBack} style={{marginLeft: 16}}
             iconStyle={{color: backButtonColor}} textStyle={{color: backButtonColor}} />
-          <Icon
-            style={{...styleMenu, color: menuColor, hoverColor: menuColor, marginRight: 16, position: 'relative', top: 14}}
-            type='fa-kb-iconfont-hamburger'
-            onClick={this.props.onTogglePopupMenu} />
+          {this.props.recentFilesEnabled &&
+            <Icon
+              style={{...styleMenu, color: menuColor, hoverColor: menuColor, marginRight: 16, position: 'relative', top: 14}}
+              type='fa-kb-iconfont-hamburger'
+              onClick={this.props.onTogglePopupMenu} />
+          }
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, ...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
           <Box style={{...globalStyles.flexBoxRow, height: 0, justifyContent: 'center', position: 'relative', bottom: 16}}>
@@ -127,7 +131,7 @@ export default class Render extends Component<void, Props, void> {
           </Box>
         </Box>
         <PopupMenu style={{marginLeft: 'auto', marginRight: 8, marginTop: 36, width: 320}} items={this.props.popupMenuItems} visible={this.props.visiblePopupMenu} onHidden={this.props.onTogglePopupMenu} />
-        {this._renderContents(isPrivate)}
+        {this._renderContents(isPrivate, this.props.ignored)}
       </Box>
     )
   }

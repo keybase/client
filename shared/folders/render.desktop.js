@@ -52,6 +52,7 @@ class Render extends Component<void, Props, void> {
               style={this.props.listStyle}
               smallMode={this.props.smallMode}
               onRekey={this.props.onRekey}
+              onOpen={this.props.onOpen}
               onClick={this.props.onClick} />
           </TabBarItem>
           <TabBarItem
@@ -64,6 +65,7 @@ class Render extends Component<void, Props, void> {
               style={this.props.listStyle}
               smallMode={this.props.smallMode}
               onRekey={this.props.onRekey}
+              onOpen={this.props.onOpen}
               onClick={this.props.onClick} />
           </TabBarItem>
         </TabBar>
@@ -75,6 +77,7 @@ class Render extends Component<void, Props, void> {
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   flexGrow: 1
+  paddingTop: 45
 }
 
 const styleBadge = {
