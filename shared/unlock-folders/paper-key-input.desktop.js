@@ -8,7 +8,7 @@ import HiddenString from '../util/hidden-string'
 export type Props = {
   onBack: () => void,
   onContinue: (paperkey: HiddenString) => void,
-  paperkeyError: ?HiddenString,
+  paperkeyError: ?string,
   waiting: ?boolean
 }
 
@@ -25,7 +25,7 @@ export default class PaperKeyInput extends Component<void, Props, State> {
   }
 
   render () {
-    const errorText = this.props.paperkeyError && this.props.paperkeyError.stringValue()
+    const errorText = this.props.paperkeyError
 
     return (
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
@@ -38,7 +38,7 @@ export default class PaperKeyInput extends Component<void, Props, State> {
           hintText='elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose' />
         <Button type='Primary' label='Continue' style={continueStyle}
           waiting={this.props.waiting}
-          onClick={this.props.onContinue} />
+          onClick={() => this.props.onContinue(new HiddenString(this.state.paperkey))} />
       </div>
     )
   }

@@ -6,14 +6,13 @@ import type {Device} from '../constants/unlock-folders'
 import HiddenString from '../util/hidden-string'
 
 export type Props = {
-  paperKeysHidden: boolean,
   phase: State.phase,
   devices: ?Array<Device>,
   onClose: () => void,
   toPaperKeyInput: () => void,
   onBackFromPaperKey: () => void,
   onContinueFromPaperKey: (paperkey: HiddenString) => void,
-  paperkeyError: ?HiddenString,
+  paperkeyError: ?string,
   waiting: boolean,
   onFinish: () => void
 }
