@@ -9,11 +9,10 @@ type UserEntryProps = UserInfo & {
   onClick?: (username: string) => void
 };
 
-const UserEntry = ({onClick, username, followsYou, following, fullname}: UserEntryProps) => (
+const UserEntry = ({onClick, username, followsYou, following}: UserEntryProps) => (
   <Box style={userEntryContainerStyle} onClick={() => { onClick && onClick(username) }}>
     <Avatar style={userEntryAvatarStyle} size={48} username={username} followsYou={followsYou} following={following} />
     <Text type='BodySmall' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
-    <Text type='BodySmall' style={userEntryFullnameStyle}>{fullname}</Text>
   </Box>
 )
 
@@ -34,11 +33,6 @@ const userEntryUsernameStyle = followsYou => ({
   color: followsYou ? globalColors.green : globalColors.blue,
   textAlign: 'center',
 })
-
-const userEntryFullnameStyle = {
-  color: globalColors.black_40,
-  textAlign: 'center',
-}
 
 class Render extends Component<void, Props, void> {
   render () {
