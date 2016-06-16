@@ -1194,7 +1194,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 		if dirtyBcache.ShouldForceSync() {
 			select {
 			// If we can't send on the channel, that means a sync is
-			// already in progress
+			// already in progress.
 			case fbo.forceSyncChan <- struct{}{}:
 				fbo.log.CDebugf(ctx, "Forcing a sync due to full buffer")
 			default:

@@ -3787,11 +3787,22 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 	defer ticker.Stop()
 	lState := makeFBOLockState()
 	for {
-		select {
-		case <-ticker.C:
-		case <-fbo.forceSyncChan:
-		case <-fbo.shutdownChan:
-			return
+		doSelect := true
+		if fbo.blocks.GetState(lState) == dirtyState &&
+			fbo.config.DirtyBlockCache().ShouldForceSync() {
+			// We have dirty files, and the system has a full buffer,
+			// so don't bother waiting for a signal, just get right to
+			// the main attraction.
+			doSelect = false
+		}
+
+		if doSelect {
+			select {
+			case <-ticker.C:
+			case <-fbo.forceSyncChan:
+			case <-fbo.shutdownChan:
+				return
+			}
 		}
 		dirtyRefs := fbo.blocks.GetDirtyRefs(lState)
 		fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
