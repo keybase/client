@@ -43,7 +43,7 @@ const Bottom = ({onClose, name, serviceName}) => (
 
 const Render = ({name, reason, inviteLink, onClose, isPrivate, serviceName}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-    <Top reason={reason} isPrivate={isPrivate} inviteLink={inviteLink} name={name} />
+    <Top onClose={onClose} reason={reason} isPrivate={isPrivate} inviteLink={inviteLink} name={name} />
     <Bottom onClose={onClose} name={name} serviceName={serviceName} />
   </Box>
 )
@@ -84,6 +84,7 @@ const stylesLinkBox = {
 
 const stylesLink = {
   ...globalStyles.selectable,
+  ...globalStyles.windowDraggingClickable,
   marginLeft: 7,
   color: globalColors.green2
 }

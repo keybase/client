@@ -115,7 +115,7 @@ function updateNonUserState (state: NonUserState, action: NonUserActions): NonUs
         hidden: false,
         name: action.payload.assertion,
         serviceName: action.payload.socialAssertion.service,
-        reason: `You tried to access ${action.payload.folderName}`,
+        reason: `You opened ${action.payload.folderName}`,
         isPrivate: action.payload.isPrivate,
         inviteLink: action.payload.throttled ? null : action.payload.inviteLink
       }
