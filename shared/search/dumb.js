@@ -8,7 +8,7 @@ const results = [
   {
     service: 'external',
     serviceAvatar: null,
-    icon: 'fa-twitter',
+    icon: 'icon-twitter-logo-32',
     username: 'malgorithms',
     extraInfo: {
       service: 'keybase',
@@ -67,6 +67,9 @@ const userSearchMap: DumbComponentMap<UserSearch> = {
       searchHintText: 'Search Keybase',
       searchText: 'malg',
       searchIcon: 'logo-32',
+      selectedService: 'keybase',
+      onClickService: () => console.log('onClickService'),
+      onClickResult: () => console.log('onClickResult'),
       results
     }
   }
