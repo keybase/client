@@ -127,7 +127,8 @@ func (b *BlockCacheStandard) CheckForKnownPtr(tlf TlfID, block *FileBlock) (
 	}
 
 	_, hash := DoRawDefaultHash(block.Contents)
-	key := idCacheKey{tlf, hash}
+	block.hash = &hash
+	key := idCacheKey{tlf, *block.hash}
 	tmp, ok := b.ids.Get(key)
 	if !ok {
 		return BlockPointer{}, nil
@@ -182,8 +183,12 @@ func (b *BlockCacheStandard) Put(
 	// If it's the right type of block and lifetime, store the
 	// hash -> ID mapping.
 	if fBlock, ok := block.(*FileBlock); b.ids != nil && lifetime == TransientEntry && ok && !fBlock.IsInd {
-		_, hash := DoRawDefaultHash(fBlock.Contents)
-		key := idCacheKey{tlf, hash}
+		if fBlock.hash == nil {
+			_, hash := DoRawDefaultHash(fBlock.Contents)
+			fBlock.hash = &hash
+		}
+
+		key := idCacheKey{tlf, *fBlock.hash}
 		// zero out the refnonce, it doesn't matter
 		ptr.RefNonce = zeroBlockRefNonce
 		b.ids.Add(key, ptr)

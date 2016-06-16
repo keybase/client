@@ -356,3 +356,30 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
 }
+
+func TestPutNoHashCalculation(t *testing.T) {
+	config := blockCacheTestInit(t, 100, 1<<30)
+	defer CheckConfigAndShutdown(t, config)
+	bcache := config.BlockCache()
+	ptr := BlockPointer{ID: fakeBlockID(1)}
+	tlf := FakeTlfID(1, false)
+	block := NewFileBlock().(*FileBlock)
+	block.Contents = []byte{1, 2, 3, 4}
+
+	// this is an invalid hash; if Put() does not calculate hash, it should go
+	// into the cache
+	block.hash = &RawDefaultHash{}
+	if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
+		t.Errorf("Got error on Put for block %s: %v", ptr.ID, err)
+	}
+
+	// CheckForKnownPtr() calculates hash, which results in a valid hash at
+	// block.hash. If the block with invalid hash was put into cache, this should
+	// fail to find the block.
+	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
+	if err != nil {
+		t.Errorf("Unexpected error checking id: %v", err)
+	} else if checkedPtr == ptr {
+		t.Errorf("Put() is calculating hash")
+	}
+}

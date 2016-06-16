@@ -99,6 +99,10 @@ type FileBlock struct {
 	Contents []byte `codec:"c,omitempty"`
 	// if indirect, contains the indirect pointers to the next level of blocks
 	IPtrs []IndirectFilePtr `codec:"i,omitempty"`
+
+	// this is used for caching plaintext (block.Contents) hash. It is used by
+	// only direct blocks.
+	hash *RawDefaultHash
 }
 
 // NewFileBlock creates a new, empty FileBlock.

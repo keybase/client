@@ -179,6 +179,7 @@ func makeFakeFileBlockFuture(t *testing.T) fileBlockFuture {
 			},
 			[]byte{0xa, 0xb},
 			nil,
+			nil,
 		},
 		[]indirectFilePtrFuture{
 			makeFakeIndirectFilePtrFuture(t),
