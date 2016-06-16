@@ -1,0 +1,26 @@
+{
+  "protocol": "gregorUI",
+  "imports": [
+    {
+      "path": "github.com/keybase/gregor/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "pushMessage": {
+      "request": [
+        {
+          "name": "messages",
+          "type": {
+            "type": "array",
+            "items": "gregor1.Message"
+          }
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

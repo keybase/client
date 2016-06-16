@@ -48,6 +48,11 @@ func (d *DelegateUICtlHandler) RegisterUpdateUI(_ context.Context) error {
 	return nil
 }
 
+func (d *DelegateUICtlHandler) RegisterGregorUI(_ context.Context) error {
+	d.G().UIRouter.SetUI(d.id, libkb.GregorUIKind)
+	return nil
+}
+
 func (d *DelegateUICtlHandler) RegisterRekeyUI(_ context.Context) error {
 	d.G().UIRouter.SetUI(d.id, libkb.RekeyUIKind)
 
