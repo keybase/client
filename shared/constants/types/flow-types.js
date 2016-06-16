@@ -2160,6 +2160,17 @@ export type loginPaperKeyRpc = {
   callback: (null | (err: ?any) => void)
 }
 
+export type loginPaperKeySubmitResult = void
+
+export type loginPaperKeySubmitRpc = {
+  method: 'login.paperKeySubmit',
+  param: {
+    paperPhrase: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type loginRecoverAccountFromEmailAddressResult = void
 
 export type loginRecoverAccountFromEmailAddressRpc = {
@@ -3582,6 +3593,7 @@ export type rpc =
   | loginLoginRpc
   | loginLogoutRpc
   | loginPaperKeyRpc
+  | loginPaperKeySubmitRpc
   | loginRecoverAccountFromEmailAddressRpc
   | loginUiDisplayPaperKeyPhraseRpc
   | loginUiDisplayPrimaryPaperKeyRpc
@@ -4499,6 +4511,16 @@ export type incomingCallMapType = {
   'keybase.1.login.paperKey'?: (
     params: {
       sessionID: int
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.login.paperKeySubmit'?: (
+    params: {
+      sessionID: int,
+      paperPhrase: string
     },
     response: {
       error: (err: RPCError) => void,
