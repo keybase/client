@@ -110,11 +110,13 @@ const styleTerminal = {
   marginTop: 16,
   width: '100%',
   maxWidth: 576,
+  minWidth: 490,
 }
 
 const styleTerminalGroups = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
+  textAlign: 'left',
 }
 
 export default RenderHelp
