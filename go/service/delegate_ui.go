@@ -48,8 +48,13 @@ func (d *DelegateUICtlHandler) RegisterUpdateUI(_ context.Context) error {
 	return nil
 }
 
-func (d *DelegateUICtlHandler) RegisterGregorUI(_ context.Context) error {
-	d.G().UIRouter.SetUI(d.id, libkb.GregorUIKind)
+func (d *DelegateUICtlHandler) RegisterGregorFirehose(_ context.Context) error {
+	if d.G().GregorListener != nil {
+		d.G().Log.Debug("Registering firehose on connection %d", d.id)
+		d.G().GregorListener.PushFirehoseHandler(newGregorFirehoseHandler(d.G(), d.id, d.xp))
+	} else {
+		d.G().Log.Info("Failed to register firehose on connection %d", d.id)
+	}
 	return nil
 }
 

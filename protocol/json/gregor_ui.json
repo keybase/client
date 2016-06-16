@@ -9,7 +9,7 @@
   ],
   "types": [],
   "messages": {
-    "pushMessage": {
+    "pushMessages": {
       "request": [
         {
           "name": "messages",
@@ -20,6 +20,11 @@
         }
       ],
       "response": null
+    },
+    "reconnected": {
+      "request": [],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"
