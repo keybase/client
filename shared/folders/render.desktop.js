@@ -40,7 +40,7 @@ class Render extends Component<void, Props, void> {
     }
 
     return (
-      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
+      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, paddingTop: this.props.smallMode ? 0 : 45}}>
         <TabBar tabBarStyle={tabBarStyle}>
           <TabBarItem
             selected={this.props.showingPrivate}
@@ -76,8 +76,7 @@ class Render extends Component<void, Props, void> {
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  flexGrow: 1,
-  paddingTop: 45
+  flexGrow: 1
 }
 
 const styleBadge = {
