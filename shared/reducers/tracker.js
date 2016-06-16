@@ -4,15 +4,14 @@ import * as Constants from '../constants/tracker'
 import * as CommonConstants from '../constants/common'
 
 import {normal, warning, error, checking} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored} from '../constants/tracker'
-
+import {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored} from '../constants/tracker'
 import {identifyCommon, proveCommon} from '../constants/types/keybase-v1'
 
 import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {SimpleProofState, SimpleProofMeta, NonUserActions} from '../constants/tracker'
-
-import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, TrackSummary} from '../constants/types/flow-types'
+import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff,
+  TrackDiffType, ProofStatus} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
 export type TrackerState = {
@@ -20,7 +19,6 @@ export type TrackerState = {
   eldestKidChanged: boolean,
   serverActive: boolean,
   trackerState: SimpleProofState,
-  trackerMessage: ?string,
   username: string,
   shouldFollow: ?boolean,
   reason: ?string,
@@ -30,7 +28,6 @@ export type TrackerState = {
   closed: boolean,
   hidden: boolean,
   trackToken: ?string,
-  lastTrack: ?TrackSummary,
   needTrackTokenDismiss: boolean
 }
 
@@ -62,22 +59,19 @@ const initialState: State = {
 
 function initialTrackerState (username: string): TrackerState {
   return {
-    type: 'tracker',
-    eldestKidChanged: false,
-    serverActive: false,
-    username,
-    trackerState: initialProofState,
-    trackerMessage: null,
-    shouldFollow: true,
-    proofs: [],
-    reason: null,
     closed: true,
-    waiting: false,
+    currentlyFollowing: false,
+    eldestKidChanged: false,
     hidden: false,
-    lastTrack: null,
-    trackToken: null,
     lastAction: null,
     needTrackTokenDismiss: false,
+    proofs: [],
+    reason: null,
+    serverActive: false,
+    shouldFollow: true,
+    trackToken: null,
+    trackerState: initialProofState,
+    type: 'tracker',
     userInfo: {
       fullname: '', // TODO get this info,
       followersCount: -1,
@@ -87,18 +81,20 @@ function initialTrackerState (username: string): TrackerState {
       avatar: null,
       location: '', // TODO: get this information
     },
+    username,
+    waiting: false,
   }
 }
 
 function initialNonUserState (assertion: string): NonUserState {
   return {
-    type: 'nonUser',
     closed: true,
     hidden: true,
+    inviteLink: null,
+    isPrivate: false,
     name: assertion,
     reason: '',
-    isPrivate: false,
-    inviteLink: null,
+    type: 'nonUser',
   }
 }
 
@@ -113,11 +109,11 @@ function updateNonUserState (state: NonUserState, action: NonUserActions): NonUs
         ...state,
         closed: false,
         hidden: false,
-        name: action.payload.assertion,
-        serviceName: action.payload.socialAssertion.service,
-        reason: `You opened ${action.payload.folderName}`,
-        isPrivate: action.payload.isPrivate,
         inviteLink: action.payload.throttled ? null : action.payload.inviteLink,
+        isPrivate: action.payload.isPrivate,
+        name: action.payload.assertion,
+        reason: `You opened ${action.payload.folderName}`,
+        serviceName: action.payload.socialAssertion.service,
       }
     case Constants.onClose:
       return {
@@ -159,8 +155,8 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         closed: true,
         hidden: false,
         lastAction: null,
-        shouldFollow: false, // don't follow if they close x out the window
         needTrackTokenDismiss: !state.trackToken, // did we have a track token at this time?
+        shouldFollow: false, // don't follow if they close x out the window
       }
     case Constants.setNeedTrackTokenDismiss:
       return {
@@ -217,11 +213,19 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       const anyUpgradedProofs : boolean = proofs.reduce(anyMetaCheck(metaUpgraded), false)
       const anyNewProofs: boolean = proofs.reduce(anyMetaCheck(metaNew), false)
 
+      const changed = !(proofs || []).every(function (proof, index, ar) {
+        return (!proof.meta || proof.meta === metaNone)
+      })
+
+      const trackerMessage = deriveTrackerMessage(state.username, allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs)
+      const reason = state.currentlyFollowing && trackerMessage ? trackerMessage : state.reason
+
       return {
         ...state,
+        changed,
         shouldFollow: deriveShouldFollow(allOk),
+        reason,
         trackerState: deriveTrackerState(allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs, state.eldestKidChanged),
-        trackerMessage: deriveTrackerMessage(state.username, allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs),
       }
 
     case Constants.setProofs:
@@ -267,9 +271,10 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       }
 
     case Constants.reportLastTrack:
+      const lastTrack = action.payload && action.payload.track
       return {
         ...state,
-        lastTrack: action.payload && action.payload.track,
+        currentlyFollowing: !!lastTrack,
       }
 
     case Constants.showTracker:
@@ -283,6 +288,17 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       return {
         ...state,
         closed: true,
+      }
+
+    case Constants.updateTrackers:
+      if (action.error) {
+        return state
+      }
+
+      return {
+        ...state,
+        trackers: action.payload.trackers,
+        tracking: action.payload.tracking,
       }
 
     default:
