@@ -18,7 +18,7 @@ fs
 let incomingMaps = {}
 
 function jsonOnlySkipGregor (file) {
-  return file !== 'gregor.json' && !!file.match(/.*\.json$/)
+  return file !== 'gregor.json' && file !== "gregor_ui.json" && !!file.match(/.*\.json$/)
 }
 
 function load (file) {
