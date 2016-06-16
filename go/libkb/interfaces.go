@@ -309,6 +309,7 @@ type PromptArg struct {
 	Checker        *Checker
 	RetryMessage   string
 	UseSecretStore bool
+	ShowTyping     bool
 }
 
 type LoginUI interface {

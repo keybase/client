@@ -922,6 +922,7 @@ export type SecretEntryArg = {
   ok: string;
   reason: string;
   useSecretStore: boolean;
+  showTyping: boolean;
 }
 
 export type SecretEntryRes = {

@@ -35,6 +35,25 @@ func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
 	return res.Passphrase, nil
 }
 
+// PromptPaperPhrase asks the user to enter a paper key phrase.
+// Used in `rekey paper` command.
+func PromptPaperPhrase(g *libkb.GlobalContext) (string, error) {
+	arg := libkb.DefaultPassphraseArg(g, false)
+	arg.WindowTitle = "Enter a paper key phrase"
+	arg.Prompt = "Enter a paper key phrase"
+	arg.Type = keybase1.PassphraseType_PAPER_KEY
+	arg.Features.StoreSecret.Allow = false
+	arg.Features.ShowTyping.Allow = true
+	arg.Features.ShowTyping.DefaultValue = true
+
+	prompter := newClientPrompter(g)
+	res, err := libkb.GetPassphraseUntilCheck(g, arg, prompter, &libkb.PaperChecker{})
+	if err != nil {
+		return "", err
+	}
+	return res.Passphrase, nil
+}
+
 func promptPassphraseWithArg(g *libkb.GlobalContext, arg keybase1.GUIEntryArg, promptConfirm string) (keybase1.GetPassphraseRes, error) {
 	prompter := newClientPrompter(g)
 
