@@ -163,7 +163,7 @@ function processDiff (commitRange, results) {
   })
 
   if (commentLines.length > 0) {
-    commentLines.unshift(':mag_right: These commits introduced some visual changes:')
+    commentLines.unshift(`:mag_right: The commits ${commitRange[0]}...${commitRange[1]} introduced some visual changes:`)
     const commentBody = commentLines.join('\n')
 
     if (!DRY_RUN) {
