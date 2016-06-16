@@ -6,7 +6,7 @@
     <ProductVersion>%25KEYBASE_VERSION%25</ProductVersion>
     <ProjectGuid>cb18799f-a8c7-4571-b80f-6c00a0cd88fd</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>Keybase_%25KEYBASE_VERSION%25</OutputName>
+    <OutputName>Keybase</OutputName>
     <OutputType>Package</OutputType>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' AND '$(MSBuildExtensionsPath32)' != '' ">$(MSBuildExtensionsPath32)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
     <WixTargetsPath Condition=" '$(WixTargetsPath)' == '' ">$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
