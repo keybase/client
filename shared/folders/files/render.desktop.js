@@ -75,7 +75,6 @@ export default class Render extends Component<void, Props, void> {
           ? <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' />
           : <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />}
           <Button key='open' type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' />
-          ]}
         </Box>
       )
     }

@@ -76,7 +76,8 @@ class Render extends Component<void, Props, void> {
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1
+  flex: 1,
+  paddingTop: 45
 }
 
 const styleBadge = {
