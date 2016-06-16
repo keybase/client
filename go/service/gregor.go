@@ -302,6 +302,14 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	// Send message to local state machine
 	g.gregorCli.StateMachineConsumeMessage(m)
 
+	if ui, err := g.G().UIRouter.GetGregorUI(); err != nil {
+		g.Warning("error fetch a gregor UI router: %s", err)
+	} else if ui == nil {
+		g.Debug("no-op on message, since no Gregor UIs are registerd")
+	} else if err := ui.PushMessage(context.Background(), []gregor1.Message{m}); err != nil {
+		g.Warning("Error pushing message to gregor UI: %s", err)
+	}
+
 	// Handle the message
 	ibm := m.ToInBandMessage()
 	if ibm != nil {
@@ -748,4 +756,31 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 	}
 
 	return true
+}
+
+type gregorRPCHandler struct {
+	libkb.Contextified
+	xp rpc.Transporter
+	gh *gregorHandler
+}
+
+func newGregorRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *gregorRPCHandler {
+	return &gregorRPCHandler{
+		Contextified: libkb.NewContextified(g),
+		xp:           xp,
+		gh:           gh,
+	}
+}
+
+func (g *gregorRPCHandler) GetState(_ context.Context) (res gregor1.State, err error) {
+	var s gregor.State
+	var ok bool
+	s, err = g.gh.gregorCli.StateMachineState(nil)
+	if err != nil {
+		return res, err
+	}
+	if res, ok = s.(gregor1.State); !ok {
+		return res, errors.New("failed to convert state to exportable format")
+	}
+	return res, nil
 }

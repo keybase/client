@@ -134,6 +134,8 @@ export const gpgUi = {}
 
 export const gregor = {}
 
+export const gregorUI = {}
+
 export const identify = {}
 
 export const identifyCommon = {
@@ -479,6 +481,7 @@ export default {
   gpgCommon,
   gpgUi,
   gregor,
+  gregorUI,
   identify,
   identifyCommon,
   identifyUi,

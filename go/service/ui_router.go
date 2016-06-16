@@ -172,3 +172,12 @@ func (u *UIRouter) GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error) {
 	}
 	return ret, nil
 }
+
+func (u *UIRouter) GetGregorUI() (keybase1.GregorUIInterface, error) {
+	x := u.getUI(libkb.GregorUIKind)
+	if x == nil {
+		return nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	return keybase1.GregorUIClient{Cli: cli}, nil
+}

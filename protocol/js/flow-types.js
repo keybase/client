@@ -1855,6 +1855,17 @@ export type gpgUiWantToAddGPGKeyRpc = {
   callback: (null | (err: ?any, response: gpgUiWantToAddGPGKeyResult) => void)
 }
 
+export type gregorUIPushMessageResult = void
+
+export type gregorUIPushMessageRpc = {
+  method: 'gregorUI.pushMessage',
+  param: {
+    messages: Array<gregor1.Message>
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type identifyIdentify2Result = Identify2Res
 
 export type identifyIdentify2Rpc = {
@@ -3583,6 +3594,7 @@ export type rpc =
   | gpgUiSelectKeyRpc
   | gpgUiSignRpc
   | gpgUiWantToAddGPGKeyRpc
+  | gregorUIPushMessageRpc
   | identifyIdentify2Rpc
   | identifyIdentifyRpc
   | identifyResolve2Rpc
@@ -4199,6 +4211,15 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: gpgUiSignResult) => void
+    }
+  ) => void,
+  'keybase.1.gregorUI.pushMessage'?: (
+    params: {
+      messages: Array<gregor1.Message>
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
     }
   ) => void,
   'keybase.1.identify.Resolve'?: (
