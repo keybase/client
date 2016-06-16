@@ -7,13 +7,12 @@ import type {Props, UserInfo} from './friendships'
 
 type UserEntryProps = UserInfo & {
   onClick?: (username: string) => void
-};
+}
 
-const UserEntry = ({onClick, username, followsYou, following, fullname}: UserEntryProps) => (
+const UserEntry = ({onClick, username, followsYou, following}: UserEntryProps) => (
   <Box style={userEntryContainerStyle} onClick={() => { onClick && onClick(username) }}>
     <Avatar style={userEntryAvatarStyle} size={48} username={username} followsYou={followsYou} following={following} />
     <Text type='BodySmall' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
-    <Text type='BodySmall' style={userEntryFullnameStyle}>{fullname}</Text>
   </Box>
 )
 
@@ -22,8 +21,8 @@ const userEntryContainerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'flex-start',
-  width: 120,
-  padding: 5,
+  width: 105,
+  padding: 2,
 }
 
 const userEntryAvatarStyle = {
@@ -35,12 +34,6 @@ const userEntryUsernameStyle = followsYou => ({
   color: followsYou ? globalColors.green : globalColors.blue,
   textAlign: 'center',
 })
-
-const userEntryFullnameStyle = {
-  color: globalColors.black_40,
-  textAlign: 'center',
-  marginBottom: 5,
-}
 
 class Render extends Component<void, Props, void> {
   render () {
