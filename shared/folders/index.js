@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './render'
+import {openInKBFS} from '../actions/kbfs'
 import {bindActionCreators} from 'redux'
 import {routeAppend} from '../actions/router'
 import Files from './files'
@@ -9,6 +10,7 @@ import type {Props as RenderProps} from './render'
 
 export type Props = {
   folderProps: ?RenderProps,
+  openInKBFS: (path: string) => void,
   routeAppend: (path: any) => void
 }
 
@@ -31,6 +33,7 @@ class Folders extends Component<void, Props, State> {
       <Render
         {...this.props.folderProps}
         onClick={path => this.props.routeAppend(path)}
+        onOpen={path => this.props.openInKBFS(path)}
         onSwitchTab={showingPrivate => this.setState({showingPrivate})}
         showingPrivate={this.state.showingPrivate}
       />
@@ -49,5 +52,5 @@ export default connect(
   state => ({
     folderProps: state.favorite && state.favorite.folders
   }),
-  dispatch => bindActionCreators({routeAppend}, dispatch)
+  dispatch => bindActionCreators({routeAppend, openInKBFS}, dispatch)
 )(Folders)

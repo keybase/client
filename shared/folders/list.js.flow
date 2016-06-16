@@ -30,6 +30,7 @@ export type Props = {
   smallMode?: boolean,
   onClick?: (path: string) => void,
   onRekey?: (path: string) => void,
+  onOpen?: (path: string) => void,
   extraRows?: Array<React$Element>
 }
 
