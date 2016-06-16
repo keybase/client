@@ -7,7 +7,7 @@ export type UserInfo = { // TODO (AW): replace with reference to bio's/profile's
   following: boolean
 }
 
-export type Tab = 'FOLLOWERS' | 'FOLLOWING'
+export type Tab = 'Followers' | 'Following'
 
 export type Props = {
   currentTab: Tab,

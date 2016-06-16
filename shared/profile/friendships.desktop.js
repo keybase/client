@@ -39,17 +39,17 @@ class Render extends Component<void, Props, void> {
     return (
       <TabBar>
         <TabBarItem
-          selected={this.props.currentTab === 'FOLLOWERS'}
+          selected={this.props.currentTab === 'Followers'}
           label={`FOLLOWERS (${this.props.followers.length})`}
-          onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('FOLLOWERS') }}>
+          onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Followers') }}>
           <Box style={tabItemContainerStyle}>
             {this.props.followers.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />)}
           </Box>
         </TabBarItem>
         <TabBarItem
-          selected={this.props.currentTab === 'FOLLOWING'}
+          selected={this.props.currentTab === 'Following'}
           label={`FOLLOWING (${this.props.following.length})`}
-          onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('FOLLOWING') }}>
+          onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Following') }}>
           <Box style={tabItemContainerStyle}>
             {this.props.following.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />)}
           </Box>
