@@ -26,8 +26,9 @@ type SaltpackSender struct {
 }
 
 type SaltpackPromptForDecryptArg struct {
-	SessionID int            `codec:"sessionID" json:"sessionID"`
-	Sender    SaltpackSender `codec:"sender" json:"sender"`
+	SessionID      int            `codec:"sessionID" json:"sessionID"`
+	Sender         SaltpackSender `codec:"sender" json:"sender"`
+	UsedDelegateUI bool           `codec:"usedDelegateUI" json:"usedDelegateUI"`
 }
 
 type SaltpackVerifySuccessArg struct {

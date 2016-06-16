@@ -20,7 +20,7 @@ protocol saltpackUi {
 
   // Users might want to prevent a decryption on the basis of who sent the message,
   // and if something fishy might have happened.
-  void saltpackPromptForDecrypt(int sessionID, SaltpackSender sender);
+  void saltpackPromptForDecrypt(int sessionID, SaltpackSender sender, bool usedDelegateUI);
 
   void saltpackVerifySuccess(int sessionID, KID signingKID, SaltpackSender sender);
 }

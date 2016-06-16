@@ -18,7 +18,7 @@ import (
 
 type fakeSaltpackUI struct{}
 
-func (s fakeSaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1.SaltpackPromptForDecryptArg) (err error) {
+func (s fakeSaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1.SaltpackPromptForDecryptArg, usedDelegateUI bool) (err error) {
 	return nil
 }
 
@@ -103,7 +103,7 @@ type testDecryptSaltpackUI struct {
 	f func(arg keybase1.SaltpackPromptForDecryptArg) error
 }
 
-func (t *testDecryptSaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1.SaltpackPromptForDecryptArg) (err error) {
+func (t *testDecryptSaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1.SaltpackPromptForDecryptArg, usedDelegateUI bool) (err error) {
 	if t.f == nil {
 		return nil
 	}
