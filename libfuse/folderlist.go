@@ -161,6 +161,19 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 	fl.fs.log.CDebugf(ctx, "FolderList Remove %s", req.Name)
 	defer func() { fl.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
 
+	func() {
+		fl.mu.Lock()
+		defer fl.mu.Unlock()
+		if tlf, ok := fl.folders[req.Name]; ok {
+			// Fake future attr calls for this TLF until the user
+			// actually opens the TLF again, because some OSes (*cough
+			// OS X cough*) like to do immediate lookup/attr calls
+			// right after doing a remove, which would otherwise end
+			// up re-adding the favorite.
+			tlf.clearStoredDir()
+		}
+	}()
+
 	// TODO trying to delete non-canonical folder handles
 	// could be skipped.
 	//
