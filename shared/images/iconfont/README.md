@@ -44,9 +44,12 @@ Go [here](https://www.fontsquirrel.com/tools/webfont-generator)
 1. turn off subsetting
 1. truetype hinting = keep existing
 
-## Update the fonts on the React native side!
+## Update the flowtype and fonts on the React native side!
 
-```
-cd react-native
-npm run update-font-icon
-```
+1. Add new icons to shared/common-adapters/icon.js.flow
+1. Regen react-native icon paths
+    
+    ```
+    cd react-native
+    npm run update-font-icon
+    ```
