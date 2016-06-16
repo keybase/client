@@ -16,6 +16,8 @@ export type ConfigState = {
   error: ?any;
   devConfig: ?any;
   bootstrapped: number;
+  followers: {[key: string]: true};
+  following: {[key: string]: true};
 }
 
 const initialState: ConfigState = {
@@ -28,6 +30,8 @@ const initialState: ConfigState = {
   error: null,
   devConfig: null,
   bootstrapped: 0,
+  followers: {},
+  following: {},
 }
 
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
@@ -107,6 +111,20 @@ export default function (state: ConfigState = initialState, action: Action): Con
         bootstrapped: state.bootstrapped + 1,
       }
     }
+
+    case Constants.updateFollowing: {
+      return {
+        ...state,
+        following: action.payload.following,
+      }
+    }
+    case Constants.updateFollowers: {
+      return {
+        ...state,
+        followers: action.payload.followers,
+      }
+    }
+
     default:
       return state
   }

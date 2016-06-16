@@ -31,6 +31,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
         <Text
           type='BodySmall'
           style={{
+            ...globalStyles.clickable,
             color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
             ...underlineStyle,
           }}>
@@ -135,7 +136,7 @@ class TabBar extends Component {
 
   render () {
     const tabBarButtons = (
-      <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
+      <Box style={{...globalStyles.flexBoxRow, flexShrink: 0, ...this.props.styleTabBar}}>
         {this._labels()}
       </Box>
     )

@@ -30,6 +30,7 @@ export const updateUsername = 'tracker:updateUsername'
 export const updateUserInfo = 'tracker:updateUserInfo'
 export const updateReason = 'tracker:updateReason'
 export const updateEldestKidChanged = 'tracker:updateEldestKidChanged'
+export const updateTrackers = 'tracker:updateTrackers'
 
 export const setProofs = 'tracker:setProofs'
 export const updateProof = 'tracker:updateProof'
@@ -63,3 +64,10 @@ export const showNonUser = 'tracker:showNonUser'
 export type ShowNonUser = TypedAction<'tracker:showNonUser', identifyUiDisplayTLFCreateWithInviteRpc.param, void>
 
 export type NonUserActions = ShowNonUser | OnClose
+
+export type TrackingInfo = {
+  username: string,
+  fullname: string,
+  followsYou: boolean,
+  following: boolean
+}

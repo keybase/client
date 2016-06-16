@@ -2,15 +2,31 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import {normal as proofNormal} from '../constants/tracker'
-import {Box, Icon, Text, UserBio, UserProofs, Usernames} from '../common-adapters'
+import {Box, Icon, Text, UserBio, UserProofs, Usernames, BackButton} from '../common-adapters'
 import {userHeaderColor, UserActions} from './common.desktop'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import ProfileHelp from './help.desktop'
 import type {Props} from './render'
+import Friendships from './friendships'
+import type {Tab} from './friendships'
 
 const HEADER_SIZE = 96
 
-class Render extends Component<void, Props, void> {
+type State = {
+  friendshipsTab: Tab
+}
+
+class Render extends Component<void, Props, State> {
+  state: State;
+
+  constructor (props: Props) {
+    super(props)
+
+    this.state = {
+      friendshipsTab: 'FOLLOWERS',
+    }
+  }
+
   _renderComingSoon () {
     return <ProfileHelp username={this.props.username} />
   }
@@ -30,7 +46,7 @@ class Render extends Component<void, Props, void> {
     const folders = _.chain(this.props.tlfs)
       .sortBy('isPublic')
       .map(folder => (
-        <Box style={styleFolderLine}>
+        <Box style={styleFolderLine} key={folder.path}>
           <Icon type={folder.isPublic ? 'icon-folder-public-32' : 'icon-folder-private-32'} style={styleFolderIcon} />
           <Usernames users={folder.users} type={'Body'} />
         </Box>
@@ -40,7 +56,9 @@ class Render extends Component<void, Props, void> {
     return (
       <Box style={styleContainer}>
         <Box style={{...styleHeader, backgroundColor: headerColor}} />
-        <Box style={globalStyles.flexBoxRow}>
+        {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 10, top: 10}}
+          textStyle={{color: globalColors.white}} iconStyle={{color: globalColors.white}} />}
+        <Box style={{...globalStyles.flexBoxRow, flexShrink: 0}}>
           <Box style={styleBioColumn}>
             <UserBio
               type='Profile'
@@ -73,6 +91,13 @@ class Render extends Component<void, Props, void> {
             {folders}
           </Box>
         </Box>
+        <Friendships
+          style={{marginTop: 35, flex: 1}}
+          currentTab={this.state.friendshipsTab}
+          onSwitchTab={friendshipsTab => this.setState({friendshipsTab})}
+          onUserClick={username => this.props.onPushProfile(username)}
+          followers={this.props.trackers || []}
+          following={this.props.tracking || []} />
       </Box>
     )
   }

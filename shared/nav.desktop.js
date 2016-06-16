@@ -4,6 +4,7 @@ import {remote, ipcRenderer} from 'electron'
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import MetaNavigator from './router/meta-navigator'
+import globalRoutes from './router/global-routes'
 import Folders from './folders'
 import Chat from './chat'
 import People from './people'
@@ -188,6 +189,7 @@ class Nav extends Component<void, Props, State> {
     return (
       <MetaNavigator
         tab={tab}
+        globalRoutes={globalRoutes}
         rootComponent={module || NoTab} />
     )
   }
