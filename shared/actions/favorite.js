@@ -20,7 +20,7 @@ export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: Us
   return {sortName, path}
 }
 
-export function folderFromPath (path: string): ?Folder {
+function folderFromPath (path: string): ?Folder {
   if (path.startsWith('/keybase/private/')) {
     return {
       name: path.replace('/keybase/private/', ''),
@@ -198,7 +198,7 @@ export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
   return (dispatch, getState) => {
     const folder = folderFromPath(path)
     if (!folder) {
-      const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: {error: true}}
+      const action: FavoriteIgnore = {type: Constants.favoriteIgnore, error: true, payload: {errorText: 'No folder specified'}}
       dispatch(action)
       return
     }
@@ -210,11 +210,11 @@ export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
       callback: error => {
         if (error) {
           console.warn('Err in favorite.favoriteIgnore', error)
+          dispatch(navigateBack())
           return
         }
-        const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: {}}
+        const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: undefined}
         dispatch(action)
-        dispatch(favoriteList())
         dispatch(navigateBack())
       }
     }
