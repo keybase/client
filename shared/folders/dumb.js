@@ -293,6 +293,7 @@ const filesMenuItems = [
 
 const commonFiles = (isPrivate): FilesProps => ({ // eslint-disable-line arrow-parens
   theme: isPrivate ? 'private' : 'public',
+  ignored: false,
   visiblePopupMenu: false,
   popupMenuItems: filesMenuItems,
   selfUsername: 'cecileb',

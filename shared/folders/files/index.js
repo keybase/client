@@ -53,6 +53,7 @@ class Files extends Component<void, Props, State> {
     const ignoreCurrentFolder = () => { this.props.ignoreFolder(this.props.path) }
     return (
       <Render
+        ignored={folder.ignored}
         theme={folder.isPublic ? 'public' : 'private'}
         popupMenuItems={[
           {onClick: openCurrentFolder, title: 'Open folder'},
@@ -85,7 +86,12 @@ class Files extends Component<void, Props, State> {
 
 const ConnectedFiles = connect(
   (state, ownProps) => {
-    const folders: Array<Folder> = [].concat(_.get(state, 'favorite.folders.private.tlfs'), _.get(state, 'favorite.folders.public.tlfs'))
+    const folders: Array<Folder> = [].concat(
+      _.get(state, 'favorite.folders.private.tlfs'),
+      _.get(state, 'favorite.folders.public.tlfs'),
+      _.get(state, 'favorite.folders.private.ignored'),
+      _.get(state, 'favorite.folders.public.ignored')
+    )
     const folder = folders.find(f => f.path === ownProps.path)
     return {
       folder,

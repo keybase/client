@@ -25,6 +25,7 @@ export type UnlockDevice = {
 
 export type Props = {
   theme: 'public' | 'private',
+  ignored: boolean,
   visiblePopupMenu: boolean,
   popupMenuItems: MenuProps.items,
   selfUsername: string,
