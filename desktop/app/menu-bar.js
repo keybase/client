@@ -68,7 +68,7 @@ export default function () {
     })
 
     if (process.platform === 'linux') {
-      mb.tray.setToolTip('View Folders')
+      mb.tray.setToolTip('Show Keybase')
     }
 
     mb.on('show', () => {
