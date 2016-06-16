@@ -1,5 +1,5 @@
 {
-  "protocol": "notifyCtl",
+  "protocol": "NotifyPaperKey",
   "types": [
     {
       "type": "record",
@@ -380,47 +380,26 @@
         }
       ],
       "doc": "UserResolution maps how an unresolved user assertion has been resolved."
-    },
-    {
-      "type": "record",
-      "name": "NotificationChannels",
-      "fields": [
-        {
-          "type": "boolean",
-          "name": "session"
-        },
-        {
-          "type": "boolean",
-          "name": "users"
-        },
-        {
-          "type": "boolean",
-          "name": "kbfs"
-        },
-        {
-          "type": "boolean",
-          "name": "tracking"
-        },
-        {
-          "type": "boolean",
-          "name": "favorites"
-        },
-        {
-          "type": "boolean",
-          "name": "paperkeys"
-        }
-      ]
     }
   ],
   "messages": {
-    "setNotifications": {
+    "paperKeyCached": {
       "request": [
         {
-          "name": "channels",
-          "type": "NotificationChannels"
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "encKID",
+          "type": "KID"
+        },
+        {
+          "name": "sigKID",
+          "type": "KID"
         }
       ],
-      "response": "null"
+      "response": "null",
+      "notify": ""
     }
   },
   "namespace": "keybase.1"

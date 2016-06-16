@@ -11,6 +11,7 @@ import (
 type PaperKeySubmit struct {
 	libkb.Contextified
 	paperPhrase string
+	pair        *keypair
 }
 
 // NewPaperKeySubmit creates a PaperKeySubmit engine.
@@ -50,13 +51,13 @@ func (e *PaperKeySubmit) Run(ctx *Context) error {
 		return err
 	}
 
-	kp, err := matchPaperKey(ctx, e.G(), me, e.paperPhrase)
+	e.pair, err = matchPaperKey(ctx, e.G(), me, e.paperPhrase)
 	if err != nil {
 		return err
 	}
 
 	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
-		err = a.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
+		err = a.SetUnlockedPaperKey(e.pair.sigKey, e.pair.encKey)
 	}, "PaperKeySubmit - cache paper key")
 	if aerr != nil {
 		return aerr
@@ -64,6 +65,10 @@ func (e *PaperKeySubmit) Run(ctx *Context) error {
 	if err != nil {
 		return err
 	}
+
+	// send a notification that a paper key has been cached
+	// for rekey purposes
+	e.G().NotifyRouter.HandlePaperKeyCached(me.GetUID(), e.pair.encKey.GetKID(), e.pair.sigKey.GetKID())
 
 	return nil
 }
