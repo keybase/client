@@ -7,5 +7,5 @@ protocol delegateUiCtl {
   void registerSecretUI();
   void registerUpdateUI();
   void registerRekeyUI();
-  void registerGregorUI();
+  void registerGregorFirehose();
 }

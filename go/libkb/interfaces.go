@@ -24,6 +24,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 	gregor "github.com/keybase/gregor"
+	gregor1 "github.com/keybase/gregor/protocol/gregor1"
 )
 
 type CommandLine interface {
@@ -415,7 +416,6 @@ type UIRouter interface {
 	GetUpdateUI() (UpdateUI, error)
 	GetRekeyUI() (keybase1.RekeyUIInterface, int, error)
 	GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error)
-	GetGregorUI() (keybase1.GregorUIInterface, error)
 
 	Shutdown()
 }
@@ -441,6 +441,13 @@ type GregorInBandMessageHandler interface {
 	Dismiss(ctx context.Context, category string, ibm gregor.Item) (bool, error)
 }
 
+type GregorFirehoseHandler interface {
+	IsAlive() bool
+	PushMessages([]gregor1.Message)
+	Reconnected()
+}
+
 type GregorListener interface {
 	PushHandler(handler GregorInBandMessageHandler)
+	PushFirehoseHandler(handler GregorFirehoseHandler)
 }

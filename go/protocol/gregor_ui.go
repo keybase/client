@@ -9,33 +9,48 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type PushMessageArg struct {
+type PushMessagesArg struct {
 	Messages []gregor1.Message `codec:"messages" json:"messages"`
 }
 
+type ReconnectedArg struct {
+}
+
 type GregorUIInterface interface {
-	PushMessage(context.Context, []gregor1.Message) error
+	PushMessages(context.Context, []gregor1.Message) error
+	Reconnected(context.Context) error
 }
 
 func GregorUIProtocol(i GregorUIInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.gregorUI",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"pushMessage": {
+			"pushMessages": {
 				MakeArg: func() interface{} {
-					ret := make([]PushMessageArg, 1)
+					ret := make([]PushMessagesArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PushMessageArg)
+					typedArgs, ok := args.(*[]PushMessagesArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]PushMessageArg)(nil), args)
+						err = rpc.NewTypeError((*[]PushMessagesArg)(nil), args)
 						return
 					}
-					err = i.PushMessage(ctx, (*typedArgs)[0].Messages)
+					err = i.PushMessages(ctx, (*typedArgs)[0].Messages)
 					return
 				},
 				MethodType: rpc.MethodCall,
+			},
+			"reconnected": {
+				MakeArg: func() interface{} {
+					ret := make([]ReconnectedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.Reconnected(ctx)
+					return
+				},
+				MethodType: rpc.MethodNotify,
 			},
 		},
 	}
@@ -45,8 +60,13 @@ type GregorUIClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c GregorUIClient) PushMessage(ctx context.Context, messages []gregor1.Message) (err error) {
-	__arg := PushMessageArg{Messages: messages}
-	err = c.Cli.Call(ctx, "keybase.1.gregorUI.pushMessage", []interface{}{__arg}, nil)
+func (c GregorUIClient) PushMessages(ctx context.Context, messages []gregor1.Message) (err error) {
+	__arg := PushMessagesArg{Messages: messages}
+	err = c.Cli.Call(ctx, "keybase.1.gregorUI.pushMessages", []interface{}{__arg}, nil)
+	return
+}
+
+func (c GregorUIClient) Reconnected(ctx context.Context) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.reconnected", []interface{}{ReconnectedArg{}})
 	return
 }

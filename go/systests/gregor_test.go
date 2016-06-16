@@ -17,21 +17,28 @@ import (
 )
 
 type electronMock struct {
-	errCh chan error
-	msgCh chan gregor1.Message
+	errCh   chan error
+	msgCh   chan gregor1.Message
+	reconCh chan struct{}
 }
 
-func (e *electronMock) PushMessage(ctx context.Context, messages []gregor1.Message) (err error) {
+func (e *electronMock) PushMessages(ctx context.Context, messages []gregor1.Message) (err error) {
 	for _, m := range messages {
 		e.msgCh <- m
 	}
 	return nil
 }
 
+func (e *electronMock) Reconnected(_ context.Context) error {
+	e.reconCh <- struct{}{}
+	return nil
+}
+
 func newElectronMock() *electronMock {
 	return &electronMock{
-		errCh: make(chan error, 1),
-		msgCh: make(chan gregor1.Message, 1),
+		errCh:   make(chan error, 1),
+		msgCh:   make(chan gregor1.Message, 1),
+		reconCh: make(chan struct{}, 1),
 	}
 }
 
@@ -83,7 +90,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 	err = srv.Register(keybase1.GregorUIProtocol(em))
 	check()
 	ncli := keybase1.DelegateUiCtlClient{Cli: cli}
-	err = ncli.RegisterGregorUI(context.TODO())
+	err = ncli.RegisterGregorFirehose(context.TODO())
 	check()
 
 	// Spin until gregor comes up; it should come up after signup
@@ -97,6 +104,12 @@ func TestGregorForwardToElectron(t *testing.T) {
 	}
 	if !ok {
 		t.Fatal("Gregor never came up after we signed up")
+	}
+
+	select {
+	case <-em.reconCh:
+	case <-time.After(3 * time.Second):
+		t.Fatalf("never got a reconnect message")
 	}
 
 	msgID, err := svc.GregorInject("foo", []byte("bar"))

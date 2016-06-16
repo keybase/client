@@ -19,7 +19,6 @@ const (
 	UpdateUIKind
 	SaltpackUIKind
 	RekeyUIKind
-	GregorUIKind
 )
 
 func (u UIKind) String() string {
@@ -46,8 +45,6 @@ func (u UIKind) String() string {
 		return "SaltpackUI"
 	case RekeyUIKind:
 		return "RekeyUI"
-	case GregorUIKind:
-		return "GregorUI"
 	}
 	panic(fmt.Sprintf("unhandled uikind: %d", u))
 }

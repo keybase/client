@@ -50,21 +50,55 @@ func (h *IdentifyUIHandler) toggleAlwaysAlive(alive bool) {
 	h.alwaysAlive = alive
 }
 
+type gregorFirehoseHandler struct {
+	libkb.Contextified
+	connID libkb.ConnectionID
+	cli    keybase1.GregorUIClient
+}
+
+func newGregorFirehoseHandler(g *libkb.GlobalContext, connID libkb.ConnectionID, xp rpc.Transporter) *gregorFirehoseHandler {
+	return &gregorFirehoseHandler{
+		Contextified: libkb.NewContextified(g),
+		connID:       connID,
+		cli:          keybase1.GregorUIClient{Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{})},
+	}
+}
+
+func (h *gregorFirehoseHandler) IsAlive() bool {
+	return h.G().ConnectionManager.LookupConnection(h.connID) != nil
+}
+
+func (h *gregorFirehoseHandler) PushMessages(m []gregor1.Message) {
+	err := h.cli.PushMessages(context.Background(), m)
+	if err != nil {
+		h.G().Log.Error(fmt.Sprintf("Error in firehose push messages: %s", err))
+	}
+}
+
+func (h *gregorFirehoseHandler) Reconnected() {
+	err := h.cli.Reconnected(context.Background())
+	if err != nil {
+		h.G().Log.Error(fmt.Sprintf("error in firehose reconnected message: %s", err))
+	}
+}
+
 type gregorHandler struct {
 	libkb.Contextified
 
-	// This lock is to protect ibmHandlers and gregorCli. Only public methods
+	// This lock is to protect ibmHandlers and gregorCli and firehoseHandlers. Only public methods
 	// should grab it.
 	sync.Mutex
+	ibmHandlers      []libkb.GregorInBandMessageHandler
+	gregorCli        *grclient.Client
+	firehoseHandlers []libkb.GregorFirehoseHandler
 
 	conn             *rpc.Connection
 	cli              rpc.GenericClient
 	sessionID        gregor1.SessionID
 	skipRetryConnect bool
 	itemsByID        map[string]gregor.Item
-	gregorCli        *grclient.Client
 	freshSync        bool
-	ibmHandlers      []libkb.GregorInBandMessageHandler
+
 	shutdownCh       chan struct{}
 }
 
@@ -96,7 +130,6 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 	gh = &gregorHandler{
 		Contextified: libkb.NewContextified(g),
 		itemsByID:    make(map[string]gregor.Item),
-		ibmHandlers:  []libkb.GregorInBandMessageHandler{},
 		freshSync:    true,
 		shutdownCh:   make(chan struct{}),
 	}
@@ -194,6 +227,38 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 	}
 }
 
+// PushFirehoseHandler pushes a new firehose handler onto the list of currently
+// active firehose handles. We can have several of these active at once. All
+// get the "firehose" of gregor events. They're removed lazily as their underlying
+// connections die.
+func (g *gregorHandler) PushFirehoseHandler(handler libkb.GregorFirehoseHandler) {
+	g.Lock()
+	defer g.Unlock()
+	g.firehoseHandlers = append(g.firehoseHandlers, handler)
+}
+
+// iterateOverFirehoseHandlers applies the function f to all live fireshose handlers
+// and then resets the list to only include the live ones.
+func (g *gregorHandler) iterateOverFirehoseHandlers(f func(h libkb.GregorFirehoseHandler)) {
+	var freshHandlers []libkb.GregorFirehoseHandler
+	for _, h := range g.firehoseHandlers {
+		if h.IsAlive() {
+			f(h)
+			freshHandlers = append(freshHandlers, h)
+		}
+	}
+	g.firehoseHandlers = freshHandlers
+	return
+}
+
+func (g *gregorHandler) pushMessagesIntoFirehoses(m []gregor1.Message) {
+	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) { h.PushMessages(m) })
+}
+
+func (g *gregorHandler) sendReconnectsToFirehoses() {
+	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) { h.Reconnected() })
+}
+
 // replayInBandMessages will replay all the messages in the current state from
 // the given time. If a handler is specified, it will only replay using it,
 // otherwise it will try all of them. gregorHandler needs to be locked when calling
@@ -281,6 +346,8 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return err
 	}
 
+	g.sendReconnectsToFirehoses()
+
 	// Sync down events since we have been dead
 	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: cli})
 	if err != nil {
@@ -325,27 +392,6 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 	return true
 }
 
-func (g *gregorHandler) forwardMessage(m gregor1.Message) {
-	if g.G().UIRouter == nil {
-		g.Debug("no UI router available when broadcast message arrived")
-		return
-	}
-	ui, err := g.G().UIRouter.GetGregorUI()
-	if err != nil {
-		g.Warning("error fetch a gregor UI router: %s", err)
-		return
-	}
-	if ui == nil {
-		g.Debug("no-op on message, since no Gregor UIs are registerd")
-		return
-	}
-	err = ui.PushMessage(context.Background(), []gregor1.Message{m})
-	if err != nil {
-		g.Warning("Error pushing message to gregor UI: %s", err)
-	}
-	return
-}
-
 // BroadcastMessage is called when we receive a new messages from gregord. Grabs
 // the lock protect the state machine and handleInBandMessage
 func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
@@ -356,7 +402,7 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	g.gregorCli.StateMachineConsumeMessage(m)
 
 	// Forward to electron or whichever UI is listening for gregor updates
-	g.forwardMessage(m)
+	g.pushMessagesIntoFirehoses([]gregor1.Message{m})
 
 	// Handle the message
 	ibm := m.ToInBandMessage()
