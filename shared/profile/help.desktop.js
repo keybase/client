@@ -28,7 +28,7 @@ const RenderHelp = ({username}: Props) => (
         <Text type='BodySmall' style={{...styleBodyText}}>
           However, you can use the terminal to manage your keys and identity.
           When you run the commands below, you’ll see your <Text
-            type='BodyPrimaryLink'
+            type='BodySmallPrimaryLink'
             onClick={() => shell.openExternal(`https://keybase.io/${username}/graph`)}>
             identity graph
           </Text> update on the site.
