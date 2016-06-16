@@ -1,13 +1,13 @@
 // @flow
 import React from 'react'
-import {Box, Text, Terminal} from '../common-adapters'
+import {Box, Text, Terminal, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 const RenderHelp = () => (
   <Box style={stylesScrollContainer}>
     <Box style={stylesContainer}>
       <Box style={styleIconHeader}>
-        // TODO (AW): add header icon
+        <Icon type='icon-fancy-settings-64' />
       </Box>
       <Box style={styleTextHeader}>
         <Text type='Body'>
@@ -47,6 +47,8 @@ const styleIconHeader = {
   marginTop: 64,
   height: 80,
   marginBottom: 16,
+  ...globalStyles.flexBoxColumn,
+  justifyContent: 'center',
 }
 
 const styleTextHeader = {

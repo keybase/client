@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Text, Terminal} from '../common-adapters'
+import {Box, Text, Terminal, Icon, Avatar} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {shell} from 'electron'
 
@@ -12,7 +12,8 @@ const RenderHelp = ({username}: Props) => (
   <Box style={stylesScrollContainer}>
     <Box style={stylesContainer}>
       <Box style={styleIconHeader}>
-        // TODO (AW): add header icon
+        <Box style={styleIconWrapper}><Icon type='icon-fancy-bubbles-123-x-64' /></Box>
+        <Box style={styleIconWrapper}><Avatar size={48} username={username} /></Box>
       </Box>
       <Box style={styleTextHeader}>
         <Text type='Body'>
@@ -72,6 +73,13 @@ const styleIconHeader = {
   marginTop: 64,
   height: 80,
   marginBottom: 16,
+  position: 'relative',
+}
+
+const styleIconWrapper = {
+  position: 'absolute',
+  top: '50%',
+  transform: 'translate(-50%, -50%)',
 }
 
 const styleTextHeader = {
