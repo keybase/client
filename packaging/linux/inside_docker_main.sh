@@ -19,10 +19,9 @@ build_dir="/root/build"
 
 # Copy the s3cmd config to root's home dir, then test the credentials.
 cp /S3CMD/.s3cfg ~
-echo "Testing S3 credentials..."
-canary="s3://${BUCKET_NAME:-prerelease.keybase.io}/build_canary_file"
-echo build canary | s3cmd put - "$canary"
-s3cmd del "$canary"
+
+# Same with the GitHub token.
+cp /GITHUB_TOKEN/.github_token ~
 
 # Copy the SSH configs to the home dir. We copy instead of sharing directly
 # from the host, because SSH complains if ~/.ssh/config is owned by anyone
@@ -41,6 +40,9 @@ true > /GPG/code_signing_key  # truncate it, just in case
 eval "$(gpg-agent --daemon --max-cache-ttl 315360000 --default-cache-ttl 315360000)"
 gpg --sign --use-agent --default-key "$code_signing_fingerprint" \
   --output /dev/null /dev/null
+
+# Test all these credentials.
+"$client_clone/packaging/linux/test_all_credentials.sh"
 
 # Clone all the repos we'll use in the build. The --reference flag makes this
 # pretty cheap. (The shared repos we're referencing were just updated by
