@@ -52,10 +52,24 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 	if err != nil {
 		return nil, err
 	}
-	paperPhrase := libkb.NewPaperKeyPhrase(passphrase)
 
-	// the checker in GetPaperKeyPassphrase should check both of these, but
-	// just to make sure:
+	return matchPaperKey(ctx, g, me, passphrase)
+}
+
+// matchPaperKey checks to make sure paper is a valid paper phrase and that it exists
+// in the user's keyfamily.
+func matchPaperKey(ctx *Context, g *libkb.GlobalContext, me *libkb.User, paper string) (*keypair, error) {
+	cki := me.GetComputedKeyInfos()
+	if cki == nil {
+		return nil, fmt.Errorf("no computed key infos")
+	}
+	bdevs := cki.PaperDevices()
+	if len(bdevs) == 0 {
+		return nil, libkb.NoPaperKeysError{}
+	}
+
+	paperPhrase := libkb.NewPaperKeyPhrase(paper)
+
 	version, err := paperPhrase.Version()
 	if err != nil {
 		return nil, err
