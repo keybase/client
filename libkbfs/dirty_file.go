@@ -212,12 +212,9 @@ func (df *dirtyFile) setBlockSyncedLocked(ptr BlockPointer) error {
 	}
 	state.sync = blockSynced
 	df.dirtyBcache.BlockSyncFinished(state.syncSize)
-	//state.syncSize = 0
 	// Keep syncSize set in case the block needs to be re-dirtied due
 	// to an error.
 	df.fileBlockStates[ptr] = state
-	// TODO: Eventually we'll need to free up space in the buffer
-	// taken up by these sync'd blocks, so new writes can proceed.
 	return nil
 }
 

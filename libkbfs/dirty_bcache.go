@@ -187,7 +187,7 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 func (d *DirtyBlockCacheStandard) RequestPermissionToDirty(
 	estimatedDirtyBytes int64) DirtyPermChan {
 	if estimatedDirtyBytes < 0 {
-		panic("Must request permission for a positive number of bytes.")
+		panic("Must request permission for a non-negative number of bytes.")
 	}
 	c := make(chan struct{})
 	d.requestsChan <- dirtyReq{c, estimatedDirtyBytes}

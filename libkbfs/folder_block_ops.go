@@ -108,7 +108,7 @@ func (si *syncInfo) DeepCopy(codec Codec) (*syncInfo, error) {
 //     creates a new copy of those blocks, and the whole size of that block
 //     (not just the newly-dirtied bytes) count for the total.  However,
 //     when the write gets replayed, folderBlockOps first subtracts those bytes
-//     from the system-wide numbers, since they are about the be replayed.
+//     from the system-wide numbers, since they are about to be replayed.
 //   * When a Sync is retried after a recoverable failure, dirtyFile adds
 //     the newly-dirtied deferred bytes to the system-wide numbers, since they
 //     are now being assimilated into this Sync.
