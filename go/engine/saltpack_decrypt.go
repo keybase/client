@@ -80,6 +80,9 @@ func (e *SaltpackDecrypt) promptForDecrypt(ctx *Context, mki *saltpack.MessageKe
 	arg := keybase1.SaltpackPromptForDecryptArg{
 		Sender: spsiEng.Result(),
 	}
+	if ui, err := e.G().UIRouter.GetIdentifyUI(); err == nil && ui != nil {
+		e.G().Log.Info("Message authored by " + arg.Sender.Username)
+	}
 
 	err = ctx.SaltpackUI.SaltpackPromptForDecrypt(context.TODO(), arg)
 	if err != nil {
