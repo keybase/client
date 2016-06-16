@@ -12,9 +12,6 @@ export type Device = {
   deviceID: DeviceID
 }
 
-export const loadDevices = 'unlockFolders:loadDevices'
-export type LoadDevices = TypedAction<'unlockFolders:loadDevices', {devices: Array<ServiceDevice>}, {error: any}>
-
 // transistions to the next paper key phase
 export const toPaperKeyInput = 'unlockFolders:toPaperKeyInput'
 export type ToPaperKeyInput = TypedAction<'unlockFolders:toPaperKeyInput', {}, {}>
@@ -34,4 +31,11 @@ export type Close = TypedAction<'unlockFolders:close', {}, {}>
 export const waiting = 'unlockFolders:waiting'
 export type Waiting = TypedAction<'unlockFolders:waiting', boolean, {}>
 
-export type UnlockFolderActions = LoadDevices | ToPaperKeyInput | OnBackFromPaperKey | CheckPaperKey | Finish | Close | Waiting
+export type RegisterRekeyListenerAction = TypedAction<'notifications:registerRekeyListener', any, any>
+export const registerRekeyListener = 'notifications:registerRekeyListener'
+
+export type NewRekeyPopupAction = TypedAction<'notifications:newRekeyPopup', {sessionID: number, devices: Array<ServiceDevice>}, void>
+export const newRekeyPopup = 'notifications:newRekeyPopup'
+
+export type UnlockFolderActions = ToPaperKeyInput | OnBackFromPaperKey | CheckPaperKey | Finish
+| Close | Waiting | RegisterRekeyListenerAction | NewRekeyPopupAction

@@ -3,6 +3,7 @@
 import React, {Component} from 'react'
 import typedConnect, {ConnectedComponent} from '../util/typed-connect'
 import HiddenString from '../util/hidden-string'
+import flags from '../util/feature-flags'
 
 import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
 import type {Device, UnlockFolderActions} from '../constants/unlock-folders'
@@ -13,7 +14,9 @@ import * as actions from '../actions/unlock-folders'
 
 import Render from './render'
 
-type OwnProps = {}
+type OwnProps = {
+  onCancel: () => void
+}
 
 export type Props = {
   devices: ?Array<Device>,
@@ -31,6 +34,7 @@ class UnlockFolders extends Component<void, Props, void> {
   render () {
     return (
       <Render
+        paperKeysHidden={!flags.rekeyPaperkeysEnabled}
         phase={this.props.phase}
         devices={this.props.devices}
         onClose={this.props.close}
@@ -50,7 +54,7 @@ type Dispatch = TypedDispatch<UnlockFolderActions>
 // Luckily if this declared type is wrong, flow will tell us.
 const Connected: Class<ConnectedComponent<OwnProps>> = typedConnect(
   ({unlockFolders: {devices, phase, paperkeyError, waiting}}: TypedState, dispatch: Dispatch, ownProps: OwnProps): Props => ({
-    close: () => { dispatch(actions.close()) },
+    close: () => { ownProps.onCancel() },
     toPaperKeyInput: () => { dispatch(actions.toPaperKeyInput()) },
     onBackFromPaperKey: () => { dispatch(actions.onBackFromPaperKey()) },
     onContinueFromPaperKey: pk => { dispatch(actions.checkPaperKey(pk)) },
@@ -61,5 +65,9 @@ const Connected: Class<ConnectedComponent<OwnProps>> = typedConnect(
     phase
   })
 )(UnlockFolders)
+
+export function selector (): (store: Object) => ?Object {
+  return store => ({unlockFolders: store.unlockFolders})
+}
 
 export default Connected

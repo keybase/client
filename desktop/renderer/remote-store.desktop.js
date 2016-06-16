@@ -1,7 +1,7 @@
 /* @flow */
 import {ipcRenderer} from 'electron'
 
-export default class RemoteStore {
+class RemoteStore {
   listeners: Array<Function>;
   internalState: any;
 
@@ -45,3 +45,5 @@ export default class RemoteStore {
     })
   }
 }
+
+export default RemoteStore
