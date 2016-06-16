@@ -37,16 +37,23 @@ type Context interface {
 	GetAppStartMode() libkb.AppStartMode
 }
 
+// ComponentName defines a component name
 type ComponentName string
 
 const (
-	ComponentNameCLI     ComponentName = "cli"
+	// ComponentNameCLI is the command line component
+	ComponentNameCLI ComponentName = "cli"
+	// ComponentNameService is the service component
 	ComponentNameService ComponentName = "service"
-	ComponentNameKBFS    ComponentName = "kbfs"
+	// ComponentNameKBFS is the KBFS component
+	ComponentNameKBFS ComponentName = "kbfs"
+	// ComponentNameUpdater is the updater component
 	ComponentNameUpdater ComponentName = "updater"
+	// ComponentNameUnknown is placeholder for unknown components
 	ComponentNameUnknown ComponentName = "unknown"
 )
 
+// ComponentNames are all the valid component names
 var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater}
 
 func (c ComponentName) String() string {
@@ -63,6 +70,7 @@ func (c ComponentName) String() string {
 	return "Unknown"
 }
 
+// ComponentNameFromString returns ComponentName from a string
 func ComponentNameFromString(s string) ComponentName {
 	switch s {
 	case string(ComponentNameCLI):
@@ -77,6 +85,7 @@ func ComponentNameFromString(s string) ComponentName {
 	return ComponentNameUnknown
 }
 
+// ResolveInstallStatus will determine necessary install actions for the current environment
 func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus string) (installStatus keybase1.InstallStatus, installAction keybase1.InstallAction, status keybase1.Status) {
 	installStatus = keybase1.InstallStatus_UNKNOWN
 	installAction = keybase1.InstallAction_UNKNOWN
@@ -125,6 +134,7 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 	return
 }
 
+// KBFSBundleVersion returns the bundle (not installed) version for KBFS
 func KBFSBundleVersion(context Context, binPath string) (string, error) {
 	runMode := context.GetRunMode()
 	kbfsBinPath, err := KBFSBinPath(runMode, binPath)

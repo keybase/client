@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/go-kext"
 )
 
+// KeybaseFuseStatus returns Fuse status
 func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	st := keybase1.FuseStatus{
 		BundleVersion: bundleVersion,
@@ -105,6 +106,7 @@ func mountInfo(fstype string) ([]keybase1.FuseMountInfo, error) {
 	return mountInfos, nil
 }
 
+// KeybaseFuseStatusForAppBundle returns Fuse status for application at appPath
 func KeybaseFuseStatusForAppBundle(appPath string, log Log) (keybase1.FuseStatus, error) {
 	bundleVersion, err := fuseBundleVersion(appPath)
 	if err != nil {

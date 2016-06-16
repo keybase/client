@@ -44,6 +44,7 @@ const (
 	UnknownLabel ServiceLabel = ""
 )
 
+// KeybaseServiceStatus returns service status for Keybase service
 func KeybaseServiceStatus(context Context, label string, log Log) (status keybase1.ServiceStatus) {
 	if label == "" {
 		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
@@ -67,6 +68,7 @@ func KeybaseServiceStatus(context Context, label string, log Log) (status keybas
 	return
 }
 
+// KBFSServiceStatus returns service status for KBFS
 func KBFSServiceStatus(context Context, label string, log Log) (status keybase1.ServiceStatus) {
 	if label == "" {
 		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
@@ -95,6 +97,7 @@ func KBFSServiceStatus(context Context, label string, log Log) (status keybase1.
 	return
 }
 
+// UpdaterServiceStatus returns service status for the Updater service
 func UpdaterServiceStatus(context Context, label string) keybase1.ServiceStatus {
 	if label == "" {
 		return keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
@@ -182,6 +185,7 @@ func serviceStatusesFromLaunchd(context Context, ls []launchd.Service, log Log) 
 	return c
 }
 
+// ListServices returns status for all services
 func ListServices(context Context, log Log) (*keybase1.ServicesStatus, error) {
 	services, err := launchd.ListServices([]string{"keybase.service", "homebrew.mxcl.keybase"})
 	if err != nil {
@@ -203,6 +207,7 @@ func ListServices(context Context, log Log) (*keybase1.ServicesStatus, error) {
 	}, nil
 }
 
+// DefaultLaunchdEnvVars returns default environment vars for launchd
 func DefaultLaunchdEnvVars(label string) []launchd.EnvVar {
 	return []launchd.EnvVar{
 		launchd.NewEnvVar("KEYBASE_LABEL", label),
@@ -210,6 +215,7 @@ func DefaultLaunchdEnvVars(label string) []launchd.EnvVar {
 	}
 }
 
+// DefaultServiceLabel returns the default label for Keybase service in launchd
 func DefaultServiceLabel() string {
 	if libkb.IsBrewBuild {
 		return BrewServiceLabel.String()
@@ -217,6 +223,7 @@ func DefaultServiceLabel() string {
 	return AppServiceLabel.String()
 }
 
+// DefaultKBFSLabel returns the default label for KBFS service in launchd
 func DefaultKBFSLabel() string {
 	if libkb.IsBrewBuild {
 		return BrewKBFSLabel.String()
@@ -224,14 +231,15 @@ func DefaultKBFSLabel() string {
 	return AppKBFSLabel.String()
 }
 
+const defaultPlistComment = "It's not advisable to edit this plist, it may be overwritten"
+
 func keybasePlist(context Context, binPath string, label string, log Log) launchd.Plist {
 	// TODO: Remove -d when doing real release
 	logFile := filepath.Join(launchd.LogDir(), libkb.ServiceLogFileName)
 	plistArgs := []string{"-d", fmt.Sprintf("--log-file=%s", logFile), "service"}
 	envVars := DefaultLaunchdEnvVars(label)
 	envVars = append(envVars, launchd.NewEnvVar("KEYBASE_RUN_MODE", string(context.GetRunMode())))
-	comment := "It's not advisable to edit this plist, it may be overwritten"
-	return launchd.NewPlist(label, binPath, plistArgs, envVars, libkb.StartLogFileName, comment)
+	return launchd.NewPlist(label, binPath, plistArgs, envVars, libkb.StartLogFileName, defaultPlistComment)
 }
 
 func installKeybaseService(context Context, service launchd.Service, plist launchd.Plist, log Log) (*keybase1.ServiceStatus, error) {
@@ -268,8 +276,7 @@ func kbfsPlist(context Context, kbfsBinPath string, label string) (plist launchd
 	}
 	envVars := DefaultLaunchdEnvVars(label)
 	envVars = append(envVars, launchd.NewEnvVar("KEYBASE_RUN_MODE", string(context.GetRunMode())))
-	comment := "It's not advisable to edit this plist, it may be overwritten"
-	plist = launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, libkb.StartLogFileName, comment)
+	plist = launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, libkb.StartLogFileName, defaultPlistComment)
 
 	_, err = os.Stat(mountDir)
 	if err != nil {
@@ -295,6 +302,7 @@ func uninstallKBFSServices(runMode libkb.RunMode) error {
 	return libkb.CombineErrors(err1, err2)
 }
 
+// NewServiceLabel constructs a service label
 func NewServiceLabel(s string) (ServiceLabel, error) {
 	switch s {
 	case string(AppServiceLabel):
@@ -315,6 +323,7 @@ func (l ServiceLabel) String() string {
 	return string(l)
 }
 
+// ComponentName returns the component name for a service label
 func (l ServiceLabel) ComponentName() ComponentName {
 	switch l {
 	case AppServiceLabel, BrewServiceLabel:
@@ -327,6 +336,7 @@ func (l ServiceLabel) ComponentName() ComponentName {
 	return ComponentNameUnknown
 }
 
+// ServiceStatus returns status for a service named by label
 func ServiceStatus(context Context, label ServiceLabel, log Log) (*keybase1.ServiceStatus, error) {
 	switch label.ComponentName() {
 	case ComponentNameService:
@@ -343,6 +353,7 @@ func ServiceStatus(context Context, label ServiceLabel, log Log) (*keybase1.Serv
 	}
 }
 
+// Install installs all keybase components
 func Install(context Context, binPath string, components []string, force bool, log Log) keybase1.InstallResult {
 	var err error
 	componentResults := []keybase1.ComponentResult{}
@@ -365,11 +376,11 @@ func Install(context Context, binPath string, components []string, force bool, l
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		err = InstallKBFS(context, binPath, force, log)
+		err = KBFS(context, binPath, force, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 	}
 
-	return NewInstallResult(componentResults)
+	return newInstallResult(componentResults)
 }
 
 func installCommandLine(context Context, binPath string, force bool, log Log) error {
@@ -459,7 +470,8 @@ func installService(context Context, binPath string, force bool, log Log) error 
 	return nil
 }
 
-func InstallKBFS(context Context, binPath string, force bool, log Log) error {
+// KBFS installs the KBFS service
+func KBFS(context Context, binPath string, force bool, log Log) error {
 	runMode := context.GetRunMode()
 	label := DefaultKBFSLabel()
 	kbfsService := launchd.NewService(label)
@@ -500,6 +512,7 @@ func InstallKBFS(context Context, binPath string, force bool, log Log) error {
 	return nil
 }
 
+// Uninstall uninstalls all keybase services
 func Uninstall(context Context, components []string, log Log) keybase1.UninstallResult {
 	var err error
 	componentResults := []keybase1.ComponentResult{}
@@ -512,7 +525,8 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		mountDir, err := context.GetMountDir()
+		var mountDir string
+		mountDir, err = context.GetMountDir()
 		if err == nil {
 			err = UninstallKBFS(context.GetRunMode(), mountDir, true, log)
 		}
@@ -529,7 +543,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 		componentResults = append(componentResults, componentResult(string(ComponentNameUpdater), err))
 	}
 
-	return NewUninstallResult(componentResults)
+	return newUninstallResult(componentResults)
 }
 
 // UninstallKBFS uninstalls all KBFS services and unmounts the directory
@@ -566,14 +580,16 @@ func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, lo
 	return nil
 }
 
+// AutoInstallWithStatus runs the auto install and returns a result
 func AutoInstallWithStatus(context Context, binPath string, force bool, log Log) keybase1.InstallResult {
 	_, res, err := autoInstall(context, binPath, force, log)
 	if err != nil {
 		return keybase1.InstallResult{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
 	}
-	return NewInstallResult(res)
+	return newInstallResult(res)
 }
 
+// AutoInstall runs the auto install
 func AutoInstall(context Context, binPath string, force bool, log Log) (newProc bool, err error) {
 	if context.GetRunMode() != libkb.ProductionRunMode {
 		return false, fmt.Errorf("Auto install is only supported in production")
@@ -618,6 +634,8 @@ func autoInstall(context Context, binPath string, force bool, log Log) (newProc 
 	return
 }
 
+// CheckIfValidLocation checks if the current environment is running from a valid location.
+// For example, this will return an error if this isn't running from /Applications/Keybase.app on MacOS.
 func CheckIfValidLocation() *keybase1.Error {
 	keybasePath, err := BinPath()
 	if err != nil {
@@ -688,11 +706,11 @@ func bundleDirForPath(p string) string {
 	return filepath.Clean(pathJoined)
 }
 
-func NewInstallResult(componentResults []keybase1.ComponentResult) keybase1.InstallResult {
+func newInstallResult(componentResults []keybase1.ComponentResult) keybase1.InstallResult {
 	return keybase1.InstallResult{ComponentResults: componentResults, Status: statusFromResults(componentResults)}
 }
 
-func NewUninstallResult(componentResults []keybase1.ComponentResult) keybase1.UninstallResult {
+func newUninstallResult(componentResults []keybase1.ComponentResult) keybase1.UninstallResult {
 	return keybase1.UninstallResult{ComponentResults: componentResults, Status: statusFromResults(componentResults)}
 }
 
