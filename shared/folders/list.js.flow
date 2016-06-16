@@ -16,7 +16,6 @@ export type Folder = {
   hasData: boolean,
   groupAvatar: boolean,
   userAvatar: ?string,
-  path: string,
   recentFiles: Array<FileSection>, // TODO make pure
   waitingForParticipantUnlock: Array<ParticipantUnlock>, // TODO make pure
   youCanUnlock: Array<UnlockDevice> // TODO make pure

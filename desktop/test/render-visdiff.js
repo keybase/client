@@ -37,7 +37,7 @@ app.on('ready', () => {
 
   ipcMain.on('display-done', (ev, msg) => {
     win.capturePage(msg.rect, img => {
-      const filenameParts = [msg.key, msg.mockKey].map(s => _.words(s).join('_'))
+      const filenameParts = [msg.key, msg.mockKey].map(s => _.words(s).join('_').replace(/[^\w_]/g, ''))
       const filename = filenameParts.join('-') + '.png'
       fs.writeFileSync(path.join(outputDir, filename), img.toPng())
       console.log('wrote', filename)

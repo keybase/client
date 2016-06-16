@@ -7,10 +7,13 @@ import type {UserInfo} from '../common-adapters/user-bio'
 import type {UserInfo as FriendshipUserInfo} from './friendships'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {Folder} from '../folders/list'
+import type {UserInfo as FriendInfo} from './friendships'
 
 export type Props = {
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
+  refresh: () => void,
+  onBack: ?() => void,
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,

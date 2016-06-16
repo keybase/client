@@ -68,6 +68,7 @@ const tabItemContainerStyle = {
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   borderTop: `solid 1px ${globalColors.black_10}`,
+  overflowY: 'auto',
 }
 
 export default Render

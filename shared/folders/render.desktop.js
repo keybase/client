@@ -118,6 +118,8 @@ const itemContainerStyle = {
 
 const tabBarStyle = {
   ...globalStyles.flexBoxRow,
+  minHeight: 32,
+  flexShrink: 1,
 }
 
 export default Render
