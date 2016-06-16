@@ -36,6 +36,7 @@ class RemoteTracker extends Component<void, Props, void> {
       <div>
         {Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
           <RemoteComponent
+            positionBottomRight
             windowsOpts={windowsOpts}
             title={`tracker - ${username}`}
             waitForState
