@@ -162,7 +162,9 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		var index int
 		clientHalf, index, err = crypto.DecryptTLFCryptKeyClientHalfAny(ctx,
 			keys, flags&getTLFCryptKeyPromptPaper != 0)
-		if _, ok := err.(libkb.DecryptionError); ok {
+		_, isDecryptError := err.(libkb.DecryptionError)
+		_, isNoKeyError := err.(libkb.NoSecretKeyError)
+		if isDecryptError || isNoKeyError {
 			km.log.CDebugf(ctx, "Got decryption error from service: %v", err)
 			return TLFCryptKey{}, localMakeRekeyReadError()
 		} else if err != nil {
