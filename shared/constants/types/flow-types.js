@@ -875,6 +875,7 @@ export type SaltpackEncryptedMessageInfo = {
   devices: Array<Device>;
   numAnonReceivers: int;
   receiverIsAnon: boolean;
+  sender: SaltpackSender;
 }
 
 export type SaltpackSender = {

@@ -80,6 +80,7 @@ func (e *SaltpackDecrypt) promptForDecrypt(ctx *Context, mki *saltpack.MessageKe
 	arg := keybase1.SaltpackPromptForDecryptArg{
 		Sender: spsiEng.Result(),
 	}
+	e.res.Sender = arg.Sender
 
 	err = ctx.SaltpackUI.SaltpackPromptForDecrypt(context.TODO(), arg)
 	if err != nil {
