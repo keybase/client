@@ -1,9 +1,10 @@
 ## How to build the font icon
 
 - Go to https://icomoon.io
-- Add all of font-awesome
-- Add all svgs under ./svgs (protip you can export all assets in Zeplin under assets if you don't have anything selected)
-- Change settings:
+- Import project file kb-icomoon-project.json
+- Save exported svgs from Zeplin to this directory (protip you can export all assets in Zeplin under assets if you don't have anything selected)
+- Add new svgs to icomoon
+- Ensure settings:
 
 ```
 font name: kb
@@ -17,7 +18,7 @@ Leave the rest as the defaults
 
 ```
 
-- Edit grid size of the icon you've added by clicking the pencil in the top right under selection.
+- Edit grid size of icons you've added by clicking the pencil in the top right under selection.
 <img width="1308" alt="screen shot 2016-05-24 at 5 07 12 pm" src="https://cloud.githubusercontent.com/assets/594035/15523983/583b52d8-21d3-11e6-8cb7-c146cb30bfb0.png">
 
 - When you get to the font download screen you should see each icon in the correct grid size category (visible in the upper left) like this picture:
