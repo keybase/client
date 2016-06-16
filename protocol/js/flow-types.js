@@ -1708,6 +1708,14 @@ export type debuggingSecondStepRpc = {
   callback: (null | (err: ?any, response: debuggingSecondStepResult) => void)
 }
 
+export type delegateUiCtlRegisterGregorUIResult = void
+
+export type delegateUiCtlRegisterGregorUIRpc = {
+  method: 'delegateUiCtl.registerGregorUI',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type delegateUiCtlRegisterIdentifyUIResult = void
 
 export type delegateUiCtlRegisterIdentifyUIRpc = {
@@ -3578,6 +3586,7 @@ export type rpc =
   | debuggingFirstStepRpc
   | debuggingIncrementRpc
   | debuggingSecondStepRpc
+  | delegateUiCtlRegisterGregorUIRpc
   | delegateUiCtlRegisterIdentifyUIRpc
   | delegateUiCtlRegisterRekeyUIRpc
   | delegateUiCtlRegisterSecretUIRpc
@@ -4093,6 +4102,13 @@ export type incomingCallMapType = {
     }
   ) => void,
   'keybase.1.delegateUiCtl.registerRekeyUI'?: (
+    params: {},
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.delegateUiCtl.registerGregorUI'?: (
     params: {},
     response: {
       error: (err: RPCError) => void,

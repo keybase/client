@@ -4,6 +4,7 @@
 package service
 
 import (
+	"errors"
 	"io"
 	"net"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/gregor"
 )
 
 type Service struct {
@@ -452,4 +454,22 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 	return []cli.Command{
 		NewCmdService(cl, g),
 	}
+}
+
+func (d *Service) GregorDismiss(id gregor.MsgID) error {
+	if d.gregor == nil {
+		return errors.New("can't gregor dismiss without a gregor")
+	}
+	return d.gregor.DismissItem(id)
+}
+
+func (d *Service) GregorInject(cat string, body []byte) (gregor.MsgID, error) {
+	if d.gregor == nil {
+		return nil, errors.New("can't gregor inject without a gregor")
+	}
+	return d.gregor.InjectItem(cat, body)
+}
+
+func (d *Service) HasGregor() bool {
+	return d.gregor != nil
 }

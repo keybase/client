@@ -293,6 +293,59 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	return nil
 }
 
+func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
+	g.Debug("connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
+}
+
+func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
+	g.Debug("disconnected: %v", status)
+}
+
+func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
+	g.Debug("do command error: %s, nextTime: %s", err, nextTime)
+}
+
+func (g *gregorHandler) ShouldRetry(name string, err error) bool {
+	g.Debug("should retry: name %s, err %v (returning false)", name, err)
+	return false
+}
+
+func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	g.Debug("should retry on connect, err %v", err)
+	if g.skipRetryConnect {
+		g.Debug("should retry on connect, skip retry flag set, returning false")
+		g.skipRetryConnect = false
+		return false
+	}
+
+	return true
+}
+
+func (g *gregorHandler) forwardMessage(m gregor1.Message) {
+	if g.G().UIRouter == nil {
+		g.Debug("no UI router available when broadcast message arrived")
+		return
+	}
+	ui, err := g.G().UIRouter.GetGregorUI()
+	if err != nil {
+		g.Warning("error fetch a gregor UI router: %s", err)
+		return
+	}
+	if ui == nil {
+		g.Debug("no-op on message, since no Gregor UIs are registerd")
+		return
+	}
+	err = ui.PushMessage(context.Background(), []gregor1.Message{m})
+	if err != nil {
+		g.Warning("Error pushing message to gregor UI: %s", err)
+	}
+	return
+}
+
 // BroadcastMessage is called when we receive a new messages from gregord. Grabs
 // the lock protect the state machine and handleInBandMessage
 func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
@@ -302,13 +355,8 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	// Send message to local state machine
 	g.gregorCli.StateMachineConsumeMessage(m)
 
-	if ui, err := g.G().UIRouter.GetGregorUI(); err != nil {
-		g.Warning("error fetch a gregor UI router: %s", err)
-	} else if ui == nil {
-		g.Debug("no-op on message, since no Gregor UIs are registerd")
-	} else if err := ui.PushMessage(context.Background(), []gregor1.Message{m}); err != nil {
-		g.Warning("Error pushing message to gregor UI: %s", err)
-	}
+	// Forward to electron or whichever UI is listening for gregor updates
+	g.forwardMessage(m)
 
 	// Handle the message
 	ibm := m.ToInBandMessage()
@@ -679,38 +727,78 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 	return nil
 }
 
-func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
-	g.Debug("gregorHandler.DismissItem called with MsgID %s", id.String())
+func NewGregorMsgID() (gregor1.MsgID, error) {
+	r, err := libkb.RandBytes(16) // TODO: Create a shared function for this.
+	if err != nil {
+		return nil, err
+	}
+	return gregor1.MsgID(r), nil
+}
 
-	gregorMsgIDToDismiss := gregor1.MsgID(id.Bytes())
-
+func (g *gregorHandler) templateMessage() (*gregor1.Message, error) {
 	uid := g.G().Env.GetUID()
 	if uid.IsNil() {
-		return fmt.Errorf("Can't dismiss gregor items without a current UID.")
+		return nil, fmt.Errorf("Can't create new gregor items without a current UID.")
 	}
 	gregorUID := gregor1.UID(uid.ToBytes())
 
-	newMsgID, randErr := libkb.RandBytes(16) // TODO: Create a shared function for this.
-	if randErr != nil {
-		return randErr
+	newMsgID, err := NewGregorMsgID()
+	if err != nil {
+		return nil, err
 	}
 
-	dismissal := gregor1.Message{
+	return &gregor1.Message{
 		Ibm_: &gregor1.InBandMessage{
 			StateUpdate_: &gregor1.StateUpdateMessage{
 				Md_: gregor1.Metadata{
 					Uid_:   gregorUID,
 					MsgID_: newMsgID,
 				},
-				Dismissal_: &gregor1.Dismissal{
-					MsgIDs_: []gregor1.MsgID{gregorMsgIDToDismiss},
-				},
 			},
 		},
+	}, nil
+}
+
+func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
+	var err error
+	defer g.G().Trace(fmt.Sprintf("gregorHandler.DismissItem(%s)", id.String()),
+		func() error { return err },
+	)()
+
+	dismissal, err := g.templateMessage()
+	if err != nil {
+		return err
 	}
+
+	dismissal.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
+		MsgIDs_: []gregor1.MsgID{gregor1.MsgID(id.Bytes())},
+	}
+
 	incomingClient := gregor1.IncomingClient{Cli: g.cli}
 	// TODO: Should the interface take a context from the caller?
-	return incomingClient.ConsumeMessage(context.TODO(), dismissal)
+	err = incomingClient.ConsumeMessage(context.TODO(), *dismissal)
+	return err
+}
+
+func (g *gregorHandler) InjectItem(cat string, body []byte) (gregor.MsgID, error) {
+	var err error
+	defer g.G().Trace(fmt.Sprintf("gregorHandler.InjectItem(%s)", cat),
+		func() error { return err },
+	)()
+
+	creation, err := g.templateMessage()
+	if err != nil {
+		return nil, err
+	}
+	creation.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
+		Category_: gregor1.Category(cat),
+		Body_:     gregor1.Body(body),
+	}
+
+	incomingClient := gregor1.IncomingClient{Cli: g.cli}
+	// TODO: Should the interface take a context from the caller?
+	err = incomingClient.ConsumeMessage(context.TODO(), *creation)
+	return creation.Ibm_.StateUpdate_.Md_.MsgID_, err
 }
 
 func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {

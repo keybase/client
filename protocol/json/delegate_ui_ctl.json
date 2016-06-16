@@ -23,6 +23,10 @@
     "registerRekeyUI": {
       "request": [],
       "response": null
+    },
+    "registerGregorUI": {
+      "request": [],
+      "response": null
     }
   },
   "namespace": "keybase.1"
