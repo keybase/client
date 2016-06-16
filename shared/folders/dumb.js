@@ -305,6 +305,7 @@ const commonFiles = (isPrivate): FilesProps => ({ // eslint-disable-line arrow-p
   onBack: () => console.log('onBack:files'),
   openCurrentFolder: () => console.log('open current folder'),
   ignoreCurrentFolder: () => console.log('ignore current folder'),
+  unIgnoreCurrentFolder: () => console.log('unignore current folder'),
   onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
   recentFilesSection: [
     {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, isPrivate)},

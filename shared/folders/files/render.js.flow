@@ -37,6 +37,7 @@ export type Props = {
   recentFilesEnabled: boolean, // TODO (AW): remove when recentFiles feature is finished
   openCurrentFolder: () => void,
   ignoreCurrentFolder: () => void,
+  unIgnoreCurrentFolder: () => void,
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
   youCanUnlock: Array<UnlockDevice>
 }

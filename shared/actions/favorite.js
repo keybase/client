@@ -6,9 +6,9 @@ import * as Constants from '../constants/favorite'
 import {badgeApp} from './notifications'
 import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
 import _ from 'lodash'
-import type {Folder, favoriteGetFavoritesRpc, favoriteFavoriteIgnoreRpc, FavoritesResult} from '../constants/types/flow-types'
+import type {Folder, favoriteGetFavoritesRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc, FavoritesResult} from '../constants/types/flow-types'
 import type {Dispatch} from '../constants/types/flux'
-import type {FavoriteList, FavoriteIgnore} from '../constants/favorite'
+import type {FavoriteAdd, FavoriteList, FavoriteIgnore} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
 import type {UserList} from '../common-adapters/usernames'
 import flags from '../util/feature-flags'
@@ -214,6 +214,34 @@ export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
           return
         }
         const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: undefined}
+        dispatch(action)
+        dispatch(navigateBack())
+      }
+    }
+    engine.rpc(params)
+  }
+}
+
+export function favoriteFolder (path: string): (dispatch: Dispatch) => void {
+  return (dispatch, getState) => {
+    const folder = folderFromPath(path)
+    if (!folder) {
+      const action: FavoriteAdd = {type: Constants.favoriteAdd, error: true, payload: {errorText: 'No folder specified'}}
+      dispatch(action)
+      return
+    }
+
+    const params : favoriteFavoriteAddRpc = {
+      param: {folder},
+      incomingCallMap: {},
+      method: 'favorite.favoriteAdd',
+      callback: error => {
+        if (error) {
+          console.warn('Err in favorite.favoriteAdd', error)
+          dispatch(navigateBack())
+          return
+        }
+        const action: FavoriteAdd = {type: Constants.favoriteAdd, payload: undefined}
         dispatch(action)
         dispatch(navigateBack())
       }
