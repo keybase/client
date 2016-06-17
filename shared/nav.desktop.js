@@ -147,12 +147,12 @@ class Nav extends Component<void, Props, State> {
 
   _handleKeyDown (e: SyntheticKeyboardEvent) {
     const modKey = process.platform === 'darwin' ? e.metaKey : e.ctrlKey
-    if (modKey && e.keyCode === 37 /* left arrow */) {
+    if (modKey && e.key === 'ArrowLeft') {
       e.preventDefault()
       this.props.navigateBack()
       return
     }
-    if (modKey && e.keyCode === 38 /* up arrow */) {
+    if (modKey && e.key === 'ArrowUp') {
       e.preventDefault()
       this.props.navigateUp()
       return
@@ -173,7 +173,7 @@ class Nav extends Component<void, Props, State> {
 
   componentDidMount () {
     this._checkTabChanged()
-    window.addEventListener('keydown', this._handleKeyDown)
+    if (flags.admin) window.addEventListener('keydown', this._handleKeyDown)
   }
 
   componentDidUpdate () {
@@ -181,7 +181,7 @@ class Nav extends Component<void, Props, State> {
   }
 
   componentWillUnmount () {
-    window.removeEventListener('keydown', this._handleKeyDown)
+    if (flags.admin) window.removeEventListener('keydown', this._handleKeyDown)
   }
 
   _renderContent (tab, module) {
