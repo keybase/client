@@ -455,25 +455,27 @@ func (f *FS) processNotifications(ctx context.Context) {
 			}
 			return
 		case i := <-f.notifications.Out():
-			notifyFn, ok := i.(func())
-			if !ok {
-				f.log.CWarningf(ctx, "Got a bad notification function: %v", i)
-				continue
-			}
-			notifyFn()
-			f.notificationGroup.Done()
+			func() {
+				defer f.notificationGroup.Done()
+				notifyFn, ok := i.(func())
+				if !ok {
+					f.log.CWarningf(ctx, "Got a bad notification function: %v", i)
+					return
+				}
+				notifyFn()
+			}()
 		}
 	}
 }
 
 func (f *FS) queueNotification(fn func()) {
-	f.notificationGroup.Add(1)
 	f.notificationMutex.RLock()
 	if f.notifications == nil {
 		f.log.Warning("Ignoring notification, no available channel")
 		return
 	}
 	f.notificationMutex.RUnlock()
+	f.notificationGroup.Add(1)
 	f.notifications.In() <- fn
 }
 
