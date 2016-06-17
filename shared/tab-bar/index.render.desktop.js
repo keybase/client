@@ -49,9 +49,12 @@ export default class Render extends Component<void, Props, void> {
 
     return (
       <TabBarItem
-        key='search' tabBarButton={button}
+        key='search'
+        tabBarButton={button}
         selected={searchActive}
-        onClick={onClick} containerStyle={{...stylesTabBarItem}}>
+        onClick={onClick}
+        style={{...stylesTabBarItem}}
+      >
         {this.props.searchContent || <Box />}
       </TabBarItem>
     )
@@ -64,7 +67,6 @@ export default class Render extends Component<void, Props, void> {
     const label = this.props.username
     return (
       <TabBarButton
-        style={{flex: 0}}
         label={label}
         selected={this.props.selectedTab === tab}
         badgeNumber={this.props.badgeNumbers[tab]}
@@ -96,8 +98,13 @@ export default class Render extends Component<void, Props, void> {
 
       return (
         <TabBarItem
-          key={t} tabBarButton={button}
-          selected={this.props.selectedTab === t} onClick={onClick} containerStyle={{...stylesTabBarItem, ...(isProfile && {flex: 1, justifyContent: 'flex-end'})}}>
+          key={t}
+          tabBarButton={button}
+          selected={this.props.selectedTab === t}
+          onClick={onClick}
+          style={{...stylesTabBarItem}}
+          styleContainer={{...(isProfile ? {flex: 1, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'} : {})}}
+        >
           <Box style={{flex: 1, ...globalStyles.flexBoxColumn}}>{this.props.tabContent[t]}</Box>
         </TabBarItem>
       )
@@ -116,7 +123,7 @@ export default class Render extends Component<void, Props, void> {
 
     return (
       <TabBar style={stylesTabBarContainer}
-        tabBarStyle={{...stylesTabBar, backgroundColor}}>
+        styleTabBar={{...stylesTabBar, backgroundColor}}>
         {tabItems}
       </TabBar>
     )

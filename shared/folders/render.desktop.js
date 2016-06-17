@@ -41,10 +41,10 @@ class Render extends Component<void, Props, void> {
 
     return (
       <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, paddingTop: this.props.smallMode ? 0 : 45}}>
-        <TabBar tabBarStyle={tabBarStyle}>
+        <TabBar styleTabBar={tabBarStyle}>
           <TabBarItem
             selected={this.props.showingPrivate}
-            containerStyle={itemContainerStyle}
+            styleContainer={itemContainerStyle}
             tabBarButton={this._makeItem(false, this.props.showingPrivate === true)}
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(true) }}>
             <List
@@ -57,7 +57,7 @@ class Render extends Component<void, Props, void> {
           </TabBarItem>
           <TabBarItem
             selected={!this.props.showingPrivate}
-            containerStyle={itemContainerStyle}
+            styleContainer={itemContainerStyle}
             tabBarButton={this._makeItem(true, this.props.showingPrivate === false)}
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(false) }}>
             <List
