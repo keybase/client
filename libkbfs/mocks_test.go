@@ -1211,14 +1211,59 @@ func (_mr *_MockDirtyBlockCacheRecorder) IsDirty(arg0, arg1 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsDirty", arg0, arg1)
 }
 
-func (_m *MockDirtyBlockCache) DirtyBytesEstimate() uint64 {
-	ret := _m.ctrl.Call(_m, "DirtyBytesEstimate")
-	ret0, _ := ret[0].(uint64)
+func (_m *MockDirtyBlockCache) RequestPermissionToDirty(ctx context.Context, estimatedDirtyBytes int64) (DirtyPermChan, error) {
+	ret := _m.ctrl.Call(_m, "RequestPermissionToDirty", ctx, estimatedDirtyBytes)
+	ret0, _ := ret[0].(DirtyPermChan)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockDirtyBlockCacheRecorder) RequestPermissionToDirty(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RequestPermissionToDirty", arg0, arg1)
+}
+
+func (_m *MockDirtyBlockCache) UpdateUnsyncedBytes(newUnsyncedBytes int64) {
+	_m.ctrl.Call(_m, "UpdateUnsyncedBytes", newUnsyncedBytes)
+}
+
+func (_mr *_MockDirtyBlockCacheRecorder) UpdateUnsyncedBytes(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateUnsyncedBytes", arg0)
+}
+
+func (_m *MockDirtyBlockCache) BlockSyncFinished(size int64) {
+	_m.ctrl.Call(_m, "BlockSyncFinished", size)
+}
+
+func (_mr *_MockDirtyBlockCacheRecorder) BlockSyncFinished(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BlockSyncFinished", arg0)
+}
+
+func (_m *MockDirtyBlockCache) SyncFinished(size int64) {
+	_m.ctrl.Call(_m, "SyncFinished", size)
+}
+
+func (_mr *_MockDirtyBlockCacheRecorder) SyncFinished(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncFinished", arg0)
+}
+
+func (_m *MockDirtyBlockCache) ShouldForceSync() bool {
+	ret := _m.ctrl.Call(_m, "ShouldForceSync")
+	ret0, _ := ret[0].(bool)
 	return ret0
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) DirtyBytesEstimate() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "DirtyBytesEstimate")
+func (_mr *_MockDirtyBlockCacheRecorder) ShouldForceSync() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ShouldForceSync")
+}
+
+func (_m *MockDirtyBlockCache) Shutdown() error {
+	ret := _m.ctrl.Call(_m, "Shutdown")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockDirtyBlockCacheRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
 // Mock of cryptoPure interface

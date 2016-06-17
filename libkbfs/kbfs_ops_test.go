@@ -78,7 +78,7 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	// Each test is expected to check the cache for correctness at the
 	// end of the test.
 	config.SetBlockCache(NewBlockCacheStandard(config, 100, 1<<30))
-	config.SetDirtyBlockCache(NewDirtyBlockCacheStandard())
+	config.SetDirtyBlockCache(NewDirtyBlockCacheStandard(5<<20, 10<<20))
 	config.mockBcache = nil
 	config.mockDirtyBcache = nil
 
@@ -173,7 +173,7 @@ func checkBlockCache(t *testing.T, config *ConfigMock,
 				"the end of the test: err %v", ptr, branch, err)
 		}
 	}
-	if len(dirtyBcache.dirty) != len(expectedDirtyBlocks) {
+	if len(dirtyBcache.cache) != len(expectedDirtyBlocks) {
 		t.Errorf("BlockCache has extra dirty blocks at end of test")
 	}
 }
@@ -4330,6 +4330,8 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	config.SetBlockCache(config.mockBcache)
 	config.mockDirtyBcache = NewMockDirtyBlockCache(mockCtrl)
 	config.SetDirtyBlockCache(config.mockDirtyBcache)
+	config.mockDirtyBcache.EXPECT().BlockSyncFinished(gomock.Any()).AnyTimes()
+	config.mockDirtyBcache.EXPECT().SyncFinished(gomock.Any())
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -4525,6 +4527,8 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	config.SetBlockCache(config.mockBcache)
 	config.mockDirtyBcache = NewMockDirtyBlockCache(mockCtrl)
 	config.SetDirtyBlockCache(config.mockDirtyBcache)
+	config.mockDirtyBcache.EXPECT().BlockSyncFinished(gomock.Any()).AnyTimes()
+	config.mockDirtyBcache.EXPECT().SyncFinished(gomock.Any())
 
 	uid, id, rmd := injectNewRMD(t, config)
 

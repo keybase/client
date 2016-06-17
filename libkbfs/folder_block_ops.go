@@ -67,6 +67,57 @@ func (si *syncInfo) DeepCopy(codec Codec) (*syncInfo, error) {
 // blockLock. It will eventually also contain all the methods that
 // must be synchronized by blockLock, so that folderBranchOps will
 // have no knowledge of blockLock.
+//
+// -- And now, a primer on tracking dirty bytes --
+//
+// The DirtyBlockCache tracks the number of bytes that are dirtied
+// system-wide, as the number of bytes that haven't yet been synced
+// ("unsynced"), and a number of bytes that haven't yet been resolved
+// yet because the overall file Sync hasn't finished yet ("total").
+// This data helps us decide when we need to block incoming Writes, in
+// order to keep memory usage from exploding.
+//
+// It's the responsibility of folderBlockOps (and its helper struct
+// dirtyFile) to update these totals in DirtyBlockCache for the
+// individual files within this TLF.  This is complicated by a few things:
+//   * New writes to a file are "deferred" while a Sync is happening, and
+//     are replayed after the Sync finishes.
+//   * Syncs can be canceled or error out halfway through syncing the blocks,
+//     leaving the file in a dirty state until the next Sync.
+//   * Syncs can fail with a /recoverable/ error, in which case they get
+//     retried automatically by folderBranchOps.  In that case, the retried
+//     Sync also sucks in any outstanding deferred writes.
+//
+// With all that in mind, here is the rough breakdown of how this
+// bytes-tracking is implemented:
+//   * On a Write/Truncate to a block, folderBranchOps counts all the
+//     newly-dirtied bytes in a file as "unsynced".  That is, if the block was
+//     already in the dirty cache (and not already being synced), only
+//     extensions to the block count as "unsynced" bytes.
+//   * When a Sync starts, dirtyFile remembers the total of bytes being synced,
+//     and the size of each block being synced.
+//   * When each block put finishes successfully, dirtyFile subtracts the size
+//     of that block from "unsynced".
+//   * When a Sync finishes successfully, the total sum of bytes in that sync
+//     are subtracted from the "total" dirty bytes outstanding.
+//   * If a Sync fails, but some blocks were put successfully, those blocks
+//     are "re-dirtied", which means they count as unsynced bytes again.
+//     dirtyFile handles this.
+//   * When a Write/Truncate is deferred due to an ongoing Sync, its bytes
+//     still count towards the "unsynced" total.  In fact, this essentially
+//     creates a new copy of those blocks, and the whole size of that block
+//     (not just the newly-dirtied bytes) count for the total.  However,
+//     when the write gets replayed, folderBlockOps first subtracts those bytes
+//     from the system-wide numbers, since they are about to be replayed.
+//   * When a Sync is retried after a recoverable failure, dirtyFile adds
+//     the newly-dirtied deferred bytes to the system-wide numbers, since they
+//     are now being assimilated into this Sync.
+//   * dirtyFile also exposes a concept of "orphaned" blocks.  These are child
+//     blocks being synced that are now referenced via a new, permanent block
+//     ID from the parent indirect block.  This matters for when hard failures
+//     occur during a Sync -- the blocks will no longer be accessible under
+//     their previous old pointers, and so dirtyFile needs to know their old
+//     bytes can be cleaned up now.
 type folderBlockOps struct {
 	config       Config
 	log          logger.Logger
@@ -100,12 +151,6 @@ type folderBlockOps struct {
 	// Blocks that need to be deleted from the dirty cache before any
 	// deferred writes are replayed.
 	deferredDirtyDeletes []BlockPointer
-	// If there are too many deferred bytes outstanding, writes should
-	// add themselves to this list (while holding blockLock).  They
-	// will be able to receive on the channel on an outstanding Sync()
-	// completes.  If they receive an error, they should fail the
-	// write.
-	syncListeners []chan error
 
 	// set to true if this write or truncate should be deferred
 	doDeferWrite bool
@@ -681,7 +726,7 @@ func (fbo *folderBlockOps) getOrCreateDirtyFileLocked(lState *lockState,
 	ptr := file.tailPointer()
 	df := fbo.dirtyFiles[ptr]
 	if df == nil {
-		df = newDirtyFile(file)
+		df = newDirtyFile(file, fbo.config.DirtyBlockCache())
 		fbo.dirtyFiles[ptr] = df
 	}
 	return df
@@ -808,6 +853,14 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableError(
 	// redirty all the sync'd blocks under their new IDs, so that
 	// future syncs will know they failed.
 	df := fbo.dirtyFiles[file.tailPointer()]
+	if df != nil {
+		// Un-orphan old blocks, since we are reverting back to the
+		// previous state.
+		for _, oldPtr := range redirtyOnRecoverableError {
+			fbo.log.CDebugf(ctx, "Un-orphaning %v", oldPtr)
+			df.setBlockOrphaned(oldPtr, false)
+		}
+	}
 	if df == nil || !df.isBlockDirty(file.tailPointer()) ||
 		!df.isBlockSyncing(file.tailPointer()) {
 		return
@@ -986,62 +1039,53 @@ func (fbo *folderBlockOps) Read(
 }
 
 func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
-	ctx context.Context, lState *lockState) error {
-	// If there is too much unflushed data, we should wait until some
-	// of it gets flush so our memory usage doesn't grow without
-	// bound.
-	dirtyBcache := fbo.config.DirtyBlockCache()
-	var syncBlockingCh chan error
-	for {
-		overThreshold := func() bool {
-			fbo.blockLock.Lock(lState)
-			defer fbo.blockLock.Unlock(lState)
-			dirtyBytes := dirtyBcache.DirtyBytesEstimate()
-			if dirtyBytes < dirtyBytesThreshold {
-				return false
-			}
-			fbo.log.CDebugf(ctx, "Blocking a write because of %d dirty bytes",
-				dirtyBytes)
-			if syncBlockingCh == nil {
-				syncBlockingCh = make(chan error, 1)
-				fbo.syncListeners =
-					append(fbo.syncListeners, syncBlockingCh)
-			}
-			return true
-		}()
-		if !overThreshold {
-			break
+	ctx context.Context, lState *lockState, file Node,
+	c DirtyPermChan) error {
+	var errListener chan error
+	err := func() error {
+		fbo.blockLock.Lock(lState)
+		defer fbo.blockLock.Unlock(lState)
+		filePath, err := fbo.pathFromNodeForBlockWriteLocked(lState, file)
+		if err != nil {
+			return err
 		}
-
-		select {
-		// If we can't send on the channel, that means a sync is
-		// already in progress
-		case fbo.forceSyncChan <- struct{}{}:
-		default:
-		}
-
-		// Check again periodically, in case some other TLF is hogging
-		// all the dirty bytes.
-		t := time.NewTimer(100 * time.Millisecond)
-		select {
-		case err := <-syncBlockingCh:
-			syncBlockingCh = nil
-			if err != nil {
-				// XXX: should we ignore non-fatal errors (like
-				// context.Canceled), or errors that are specific only
-				// to some other file being sync'd (e.g.,
-				// "recoverable" block errors from which we couldn't
-				// recover)?
-				return err
-			}
-		case <-t.C:
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-
-		fbo.log.CDebugf(ctx, "Write unblocked")
+		df := fbo.getOrCreateDirtyFileLocked(lState, filePath)
+		errListener = make(chan error, 1)
+		df.addErrListener(errListener)
+		return nil
+	}()
+	if err != nil {
+		return err
 	}
-	return nil
+
+	logTimer := time.After(100 * time.Millisecond)
+	doLogUnblocked := false
+	for {
+		select {
+		case <-c:
+			if doLogUnblocked {
+				fbo.log.CDebugf(ctx, "Write unblocked")
+			}
+			// Make sure there aren't any queued errors.
+			select {
+			case err := <-errListener:
+				return err
+			default:
+			}
+			return nil
+		case <-logTimer:
+			// Print a log message once if it's taking too long.
+			fbo.log.CDebugf(ctx,
+				"Blocking a write because of a full dirty buffer")
+			doLogUnblocked = true
+		case err := <-errListener:
+			// XXX: should we ignore non-fatal errors (like
+			// context.Canceled), or errors that are specific only to
+			// some other file being sync'd (e.g., "recoverable" block
+			// errors from which we couldn't recover)?
+			return err
+		}
+	}
 }
 
 func (fbo *folderBlockOps) pathFromNodeForBlockWriteLocked(
@@ -1125,39 +1169,60 @@ func (fbo *folderBlockOps) createIndirectBlockLocked(lState *lockState,
 // to be cleaned up if the write is deferred.
 func (fbo *folderBlockOps) writeDataLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata, file path,
-	data []byte, off int64) (WriteRange, []BlockPointer, error) {
+	data []byte, off int64) (latestWrite WriteRange, dirtyPtrs []BlockPointer,
+	newlyDirtiedChildBytes int64, err error) {
 	if sz := off + int64(len(data)); uint64(sz) > fbo.config.MaxFileBytes() {
-		return WriteRange{}, nil, FileTooBigError{file, sz, fbo.config.MaxFileBytes()}
+		return WriteRange{}, nil, 0,
+			FileTooBigError{file, sz, fbo.config.MaxFileBytes()}
 	}
 
 	fblock, uid, err := fbo.writeGetFileLocked(ctx, lState, md, file)
 	if err != nil {
-		return WriteRange{}, nil, err
+		return WriteRange{}, nil, 0, err
 	}
 
 	dirtyBcache := fbo.config.DirtyBlockCache()
 	bsplit := fbo.config.BlockSplitter()
 	n := int64(len(data))
 	nCopied := int64(0)
+	df := fbo.getOrCreateDirtyFileLocked(lState, file)
+	defer func() {
+		// Always update unsynced bytes and potentially force a sync,
+		// even on an error, since the previously-dirty bytes stay in
+		// the cache.
+		df.updateNotYetSyncingBytes(newlyDirtiedChildBytes)
+		if dirtyBcache.ShouldForceSync() {
+			select {
+			// If we can't send on the channel, that means a sync is
+			// already in progress.
+			case fbo.forceSyncChan <- struct{}{}:
+				fbo.log.CDebugf(ctx, "Forcing a sync due to full buffer")
+			default:
+			}
+		}
+	}()
 
 	de, err := fbo.getDirtyEntryLocked(ctx, lState, md, file)
 	if err != nil {
-		return WriteRange{}, nil, err
+		return WriteRange{}, nil, 0, err
 	}
+	oldSize := de.Size
 
 	si := fbo.getOrCreateSyncInfoLocked(lState, de)
-	var dirtyPtrs []BlockPointer
 	for nCopied < n {
 		ptr, parentBlock, indexInParent, block, nextBlockOff, startOff, err :=
 			fbo.getFileBlockAtOffsetLocked(
 				ctx, lState, md, file, fblock,
 				off+nCopied, blockWrite)
 		if err != nil {
-			return WriteRange{}, nil, err
+			return WriteRange{}, nil, newlyDirtiedChildBytes, err
 		}
 
 		oldLen := len(block.Contents)
-		// Take care not to write past the beginning of the next block by using max.
+		wasDirty := dirtyBcache.IsDirty(ptr, file.Branch)
+
+		// Take care not to write past the beginning of the next block
+		// by using max.
 		max := len(data)
 		if nextBlockOff > 0 {
 			if room := int(nextBlockOff - off); room < max {
@@ -1178,7 +1243,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 				fblock, err = fbo.createIndirectBlockLocked(lState, md, file,
 					uid, DefaultNewBlockDataVersion(fbo.config, false))
 				if err != nil {
-					return WriteRange{}, nil, err
+					return WriteRange{}, nil, newlyDirtiedChildBytes, err
 				}
 				ptr = fblock.IPtrs[0].BlockPointer
 			}
@@ -1188,14 +1253,14 @@ func (fbo *folderBlockOps) writeDataLocked(
 			err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
 				file, fblock, startOff+int64(len(block.Contents)), md)
 			if err != nil {
-				return WriteRange{}, nil, err
+				return WriteRange{}, nil, newlyDirtiedChildBytes, err
 			}
 		} else if nCopied < n && off+nCopied < nextBlockOff {
 			// We need a new block to be inserted here
 			err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
 				file, fblock, startOff+int64(len(block.Contents)), md)
 			if err != nil {
-				return WriteRange{}, nil, err
+				return WriteRange{}, nil, newlyDirtiedChildBytes, err
 			}
 			// And push the indirect pointers to right
 			newb := fblock.IPtrs[len(fblock.IPtrs)-1]
@@ -1211,6 +1276,13 @@ func (fbo *folderBlockOps) writeDataLocked(
 			fbo.deCache[file.tailPointer().ref()] = de
 		}
 
+		// Calculate the amount of bytes we've newly-dirtied as part
+		// of this write.
+		newlyDirtiedChildBytes += int64(len(block.Contents))
+		if wasDirty {
+			newlyDirtiedChildBytes -= int64(oldLen)
+		}
+
 		if parentBlock != nil {
 			// remember how many bytes it was
 			si.unrefs = append(si.unrefs,
@@ -1220,7 +1292,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 		// keep the old block ID while it's dirty
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState, ptr, file,
 			block); err != nil {
-			return WriteRange{}, nil, err
+			return WriteRange{}, nil, newlyDirtiedChildBytes, err
 		}
 		dirtyPtrs = append(dirtyPtrs, ptr)
 	}
@@ -1234,32 +1306,36 @@ func (fbo *folderBlockOps) writeDataLocked(
 		// the dirtyFiles map.
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
 			file.tailPointer(), file, fblock); err != nil {
-			return WriteRange{}, nil, err
+			return WriteRange{}, nil, newlyDirtiedChildBytes, err
 		}
 		dirtyPtrs = append(dirtyPtrs, file.tailPointer())
-	}
-	latestWrite := si.op.addWrite(uint64(off), uint64(len(data)))
 
-	if d := dirtyBcache.DirtyBytesEstimate(); d > dirtyBytesThreshold {
-		fbo.log.CDebugf(ctx, "Forcing a sync due to %d dirty bytes", d)
-		select {
-		// If we can't send on the channel, that means a sync is
-		// already in progress
-		case fbo.forceSyncChan <- struct{}{}:
-		default:
+		if fbo.doDeferWrite && de.Size > oldSize {
+			df.addDeferredNewBytes(int64(de.Size - oldSize))
 		}
 	}
+	latestWrite = si.op.addWrite(uint64(off), uint64(len(data)))
 
-	return latestWrite, dirtyPtrs, nil
+	return latestWrite, dirtyPtrs, newlyDirtiedChildBytes, nil
 }
 
 // Write writes the given data to the given file. May block if there
 // is too much unflushed data; in that case, it will be unblocked by a
-// future sync (as controlled by NotifyBlockedWrites).
+// future sync.
 func (fbo *folderBlockOps) Write(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	file Node, data []byte, off int64) error {
-	if err := fbo.maybeWaitOnDeferredWrites(ctx, lState); err != nil {
+	// If there is too much unflushed data, we should wait until some
+	// of it gets flush so our memory usage doesn't grow without
+	// bound.
+	c, err := fbo.config.DirtyBlockCache().RequestPermissionToDirty(ctx,
+		int64(len(data)))
+	if err != nil {
+		return err
+	}
+	defer fbo.config.DirtyBlockCache().UpdateUnsyncedBytes(-int64(len(data)))
+	err = fbo.maybeWaitOnDeferredWrites(ctx, lState, file, c)
+	if err != nil {
 		return err
 	}
 
@@ -1275,7 +1351,7 @@ func (fbo *folderBlockOps) Write(
 		fbo.doDeferWrite = false
 	}()
 
-	latestWrite, dirtyPtrs, err := fbo.writeDataLocked(
+	latestWrite, dirtyPtrs, newlyDirtiedChildBytes, err := fbo.writeDataLocked(
 		ctx, lState, md, filePath, data, off)
 	if err != nil {
 		return err
@@ -1300,9 +1376,14 @@ func (fbo *folderBlockOps) Write(
 			dirtyPtrs...)
 		fbo.deferredWrites = append(fbo.deferredWrites,
 			func(ctx context.Context, lState *lockState, rmd *RootMetadata, f path) error {
+				// We are about to re-dirty these bytes, so mark that
+				// they will no longer be synced via the old file.
+				df := fbo.getOrCreateDirtyFileLocked(lState, filePath)
+				df.updateNotYetSyncingBytes(-newlyDirtiedChildBytes)
+
 				// Write the data again.  We know this won't be
 				// deferred, so no need to check the new ptrs.
-				_, _, err = fbo.writeDataLocked(
+				_, _, _, err = fbo.writeDataLocked(
 					ctx, lState, rmd, f, dataCopy, off)
 				return err
 			})
@@ -1391,13 +1472,12 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	dirtyPtrs = append(dirtyPtrs, file.tailPointer())
 	latestWrite := si.op.addTruncate(size)
 
-	dirtyBcache := fbo.config.DirtyBlockCache()
-	if d := dirtyBcache.DirtyBytesEstimate(); d > dirtyBytesThreshold {
-		fbo.log.CDebugf(ctx, "Forcing a sync due to %d dirty bytes", d)
+	if fbo.config.DirtyBlockCache().ShouldForceSync() {
 		select {
 		// If we can't send on the channel, that means a sync is
 		// already in progress
 		case fbo.forceSyncChan <- struct{}{}:
+			fbo.log.CDebugf(ctx, "Forcing a sync due to full buffer")
 		default:
 		}
 	}
@@ -1414,10 +1494,10 @@ const truncateExtendCutoffPoint = 128 * 1024
 // that might need to be cleaned up if the truncate is deferred.
 func (fbo *folderBlockOps) truncateLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata,
-	file path, size uint64) (*WriteRange, []BlockPointer, error) {
+	file path, size uint64) (*WriteRange, []BlockPointer, int64, error) {
 	fblock, _, err := fbo.writeGetFileLocked(ctx, lState, md, file)
 	if err != nil {
-		return &WriteRange{}, nil, err
+		return &WriteRange{}, nil, 0, err
 	}
 
 	// find the block where the file should now end
@@ -1431,31 +1511,42 @@ func (fbo *folderBlockOps) truncateLocked(
 		latestWrite, dirtyPtrs, err := fbo.truncateExtendLocked(
 			ctx, lState, md, file, uint64(iSize))
 		if err != nil {
-			return &latestWrite, dirtyPtrs, err
+			return &latestWrite, dirtyPtrs, 0, err
 		}
-		return &latestWrite, dirtyPtrs, err
+		return &latestWrite, dirtyPtrs, 0, err
 	} else if currLen < iSize {
 		moreNeeded := iSize - currLen
-		latestWrite, dirtyPtrs, err := fbo.writeDataLocked(
-			ctx, lState, md, file,
-			make([]byte, moreNeeded, moreNeeded), currLen)
+		latestWrite, dirtyPtrs, newlyDirtiedChildBytes, err :=
+			fbo.writeDataLocked(ctx, lState, md, file,
+				make([]byte, moreNeeded, moreNeeded), currLen)
 		if err != nil {
-			return &latestWrite, dirtyPtrs, err
+			return &latestWrite, dirtyPtrs, newlyDirtiedChildBytes, err
 		}
-		return &latestWrite, dirtyPtrs, err
+		return &latestWrite, dirtyPtrs, newlyDirtiedChildBytes, err
 	} else if currLen == iSize && nextBlockOff < 0 {
 		// same size!
-		return nil, nil, nil
+		return nil, nil, 0, nil
 	}
 
 	// update the local entry size
 	de, err := fbo.getDirtyEntryLocked(ctx, lState, md, file)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, 0, err
 	}
+
+	oldLen := len(block.Contents)
+	dirtyBcache := fbo.config.DirtyBlockCache()
+	wasDirty := dirtyBcache.IsDirty(ptr, file.Branch)
 
 	// otherwise, we need to delete some data (and possibly entire blocks)
 	block.Contents = append([]byte(nil), block.Contents[:iSize-startOff]...)
+
+	newlyDirtiedChildBytes := int64(len(block.Contents))
+	if wasDirty {
+		newlyDirtiedChildBytes -= int64(oldLen) // negative
+	}
+	df := fbo.getOrCreateDirtyFileLocked(lState, file)
+	df.updateNotYetSyncingBytes(newlyDirtiedChildBytes)
 
 	si := fbo.getOrCreateSyncInfoLocked(lState, de)
 	if nextBlockOff > 0 {
@@ -1467,7 +1558,7 @@ func (fbo *folderBlockOps) truncateLocked(
 		// always make the parent block dirty, so we will sync it
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
 			file.tailPointer(), file, parentBlock); err != nil {
-			return nil, nil, err
+			return nil, nil, newlyDirtiedChildBytes, err
 		}
 	}
 
@@ -1480,7 +1571,7 @@ func (fbo *folderBlockOps) truncateLocked(
 		// the dirtyFiles map.
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
 			file.tailPointer(), file, fblock); err != nil {
-			return nil, nil, err
+			return nil, nil, newlyDirtiedChildBytes, err
 		}
 	}
 
@@ -1502,20 +1593,33 @@ func (fbo *folderBlockOps) truncateLocked(
 	// Keep the old block ID while it's dirty.
 	if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
 		ptr, file, block); err != nil {
-		return nil, nil, err
+		return nil, nil, newlyDirtiedChildBytes, err
 	}
 
-	return &latestWrite, nil, nil
+	return &latestWrite, nil, newlyDirtiedChildBytes, nil
 }
 
 // Truncate truncates or extends the given file to the given size.
 // May block if there is too much unflushed data; in that case, it
-// will be unblocked by a future sync (as controlled by
-// NotifyBlockedWrites).
+// will be unblocked by a future sync.
 func (fbo *folderBlockOps) Truncate(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	file Node, size uint64) error {
-	if err := fbo.maybeWaitOnDeferredWrites(ctx, lState); err != nil {
+	// If there is too much unflushed data, we should wait until some
+	// of it gets flush so our memory usage doesn't grow without
+	// bound.
+	//
+	// Assume the whole remaining file will be dirty after this
+	// truncate.  TODO: try to figure out how many bytes actually will
+	// be dirtied ahead of time?
+	c, err := fbo.config.DirtyBlockCache().RequestPermissionToDirty(ctx,
+		int64(size))
+	if err != nil {
+		return err
+	}
+	defer fbo.config.DirtyBlockCache().UpdateUnsyncedBytes(-int64(size))
+	err = fbo.maybeWaitOnDeferredWrites(ctx, lState, file, c)
+	if err != nil {
 		return err
 	}
 
@@ -1531,7 +1635,7 @@ func (fbo *folderBlockOps) Truncate(
 		fbo.doDeferWrite = false
 	}()
 
-	latestWrite, dirtyPtrs, err := fbo.truncateLocked(
+	latestWrite, dirtyPtrs, newlyDirtiedChildBytes, err := fbo.truncateLocked(
 		ctx, lState, md, filePath, size)
 	if err != nil {
 		return err
@@ -1552,9 +1656,14 @@ func (fbo *folderBlockOps) Truncate(
 			dirtyPtrs...)
 		fbo.deferredWrites = append(fbo.deferredWrites,
 			func(ctx context.Context, lState *lockState, rmd *RootMetadata, f path) error {
+				// We are about to re-dirty these bytes, so mark that
+				// they will no longer be synced via the old file.
+				df := fbo.getOrCreateDirtyFileLocked(lState, filePath)
+				df.updateNotYetSyncingBytes(-newlyDirtiedChildBytes)
+
 				// Truncate the file again.  We know this won't be
 				// deferred, so no need to check the new ptrs.
-				_, _, err := fbo.truncateLocked(
+				_, _, _, err := fbo.truncateLocked(
 					ctx, lState, rmd, f, size)
 				return err
 			})
@@ -1571,18 +1680,28 @@ func (fbo *folderBlockOps) IsDirty(lState *lockState, file path) bool {
 	return fbo.config.DirtyBlockCache().IsDirty(file.tailPointer(), file.Branch)
 }
 
-func (fbo *folderBlockOps) clearCacheInfoLocked(lState *lockState, file path) {
+func (fbo *folderBlockOps) clearCacheInfoLocked(lState *lockState,
+	file path) error {
 	fbo.blockLock.AssertLocked(lState)
 	ref := file.tailPointer().ref()
 	delete(fbo.deCache, ref)
 	delete(fbo.unrefCache, ref)
+	df := fbo.dirtyFiles[file.tailPointer()]
+	if df != nil {
+		err := df.finishSync()
+		if err != nil {
+			return err
+		}
+		delete(fbo.dirtyFiles, file.tailPointer())
+	}
+	return nil
 }
 
 // ClearCacheInfo removes any cached info for the the given file.
-func (fbo *folderBlockOps) ClearCacheInfo(lState *lockState, file path) {
+func (fbo *folderBlockOps) ClearCacheInfo(lState *lockState, file path) error {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
-	fbo.clearCacheInfoLocked(lState, file)
+	return fbo.clearCacheInfoLocked(lState, file)
 }
 
 // revertSyncInfoAfterRecoverableError updates the saved sync info to
@@ -1759,6 +1878,11 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 	bcache := fbo.config.BlockCache()
 	dirtyBcache := fbo.config.DirtyBlockCache()
 	df := fbo.getOrCreateDirtyFileLocked(lState, file)
+	// If there were any deferred writes from before we started this
+	// sync, it implies that we are retrying a previous sync, and will
+	// be assimilating those bytes into this sync.
+	// TODO: clear the deferred writes slice in that case?
+	df.assimilateDeferredNewBytes()
 
 	// Note: below we add possibly updated file blocks as "unref" and
 	// "ref" blocks.  This is fine, since conflict resolution or
@@ -1894,6 +2018,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 				if err != nil {
 					return nil, nil, syncState, err
 				}
+				df.setBlockOrphaned(ptr.BlockPointer, true)
 
 				// Defer the DirtyBlockCache.Delete until after the
 				// new path is ready, in case anyone tries to read the
@@ -2003,6 +2128,10 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		return
 	}
 
+	// Notify error listeners before we reset the dirty blocks and
+	// permissions to be granted.
+	fbo.notifyErrListeners(lState, file.tailPointer(), err)
+
 	// If there was an error, we need to back out any changes that
 	// might have been filled into the sync op, because it could
 	// get reused again in a later Sync call.
@@ -2028,7 +2157,6 @@ func (fbo *folderBlockOps) CleanupSyncState(
 	defer fbo.blockLock.Unlock(lState)
 	// Old syncing blocks are now just dirty
 	if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
-		fbo.log.CDebugf(nil, "Calling error on sync")
 		df.resetSyncingBlocksToDirty()
 	}
 
@@ -2061,14 +2189,6 @@ func (fbo *folderBlockOps) FinishSync(
 		}
 	}
 
-	df := fbo.dirtyFiles[oldPath.tailPointer()]
-	if df != nil {
-		err = df.finishSync()
-		if err != nil {
-			return true, err
-		}
-		delete(fbo.dirtyFiles, oldPath.tailPointer())
-	}
 	// Redo any writes or truncates that happened to our file while
 	// the sync was happening.
 	deletes := fbo.deferredDirtyDeletes
@@ -2085,17 +2205,6 @@ func (fbo *folderBlockOps) FinishSync(
 		}
 	}
 
-	// Clear cached info for the old path.  We are guaranteed that any
-	// concurrent write to this file was deferred, even if it was to a
-	// block that wasn't currently being sync'd, since the top-most
-	// block is always in dirtyFiles and is always dirtied during a
-	// write/truncate.
-	//
-	// Also, we can get rid of all the sync state that might have
-	// happened during the sync, since we will replay the writes
-	// below anyway.
-	fbo.clearCacheInfoLocked(lState, oldPath)
-
 	for _, f := range writes {
 		err = f(ctx, lState, md, newPath)
 		if err != nil {
@@ -2105,19 +2214,31 @@ func (fbo *folderBlockOps) FinishSync(
 		}
 	}
 
+	// Clear cached info for the old path.  We are guaranteed that any
+	// concurrent write to this file was deferred, even if it was to a
+	// block that wasn't currently being sync'd, since the top-most
+	// block is always in dirtyFiles and is always dirtied during a
+	// write/truncate.
+	//
+	// Also, we can get rid of all the sync state that might have
+	// happened during the sync, since we will replay the writes
+	// below anyway.
+	if err := fbo.clearCacheInfoLocked(lState, oldPath); err != nil {
+		return true, err
+	}
+
 	return stillDirty, nil
 }
 
-// NotifyBlockedWrites notifies any write operations that are blocked
-// so that they can check if they can be unblocked. Should be called
-// after a sync.
-func (fbo *folderBlockOps) NotifyBlockedWrites(lState *lockState, err error) {
+// notifyErrListeners notifies any write operations that are blocked
+// on a file so that they can learn about a sync error.
+func (fbo *folderBlockOps) notifyErrListeners(lState *lockState,
+	ptr BlockPointer, err error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
-	listeners := fbo.syncListeners
-	fbo.syncListeners = nil
-	for _, listener := range listeners {
-		listener <- err
+	df := fbo.dirtyFiles[ptr]
+	if df != nil {
+		df.notifyErrListeners(err)
 	}
 }
 

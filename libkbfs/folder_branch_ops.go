@@ -54,8 +54,6 @@ const (
 	secondsBetweenBackgroundFlushes = 10
 	// Cap the number of times we retry after a recoverable error
 	maxRetriesOnRecoverableErrors = 10
-	// When the number of dirty bytes exceeds this level, force a sync.
-	dirtyBytesThreshold = maxParallelBlockPuts * (512 << 10)
 	// The timeout for any background task.
 	backgroundTaskTimeout = 1 * time.Minute
 )
@@ -2673,8 +2671,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		// stat calls accurately if the user still has an open
 		// handle to this file. TODO: Hook this in with the
 		// node cache GC logic to be perfectly accurate.
-		fbo.blocks.ClearCacheInfo(lState, file)
-		return true, nil
+		return true, fbo.blocks.ClearCacheInfo(lState, file)
 	}
 
 	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
@@ -2746,10 +2743,6 @@ func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 	if err != nil {
 		return
 	}
-	defer func() {
-		lState := makeFBOLockState()
-		fbo.blocks.NotifyBlockedWrites(lState, err)
-	}()
 
 	var stillDirty bool
 	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,
@@ -3794,11 +3787,22 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 	defer ticker.Stop()
 	lState := makeFBOLockState()
 	for {
-		select {
-		case <-ticker.C:
-		case <-fbo.forceSyncChan:
-		case <-fbo.shutdownChan:
-			return
+		doSelect := true
+		if fbo.blocks.GetState(lState) == dirtyState &&
+			fbo.config.DirtyBlockCache().ShouldForceSync() {
+			// We have dirty files, and the system has a full buffer,
+			// so don't bother waiting for a signal, just get right to
+			// the main attraction.
+			doSelect = false
+		}
+
+		if doSelect {
+			select {
+			case <-ticker.C:
+			case <-fbo.forceSyncChan:
+			case <-fbo.shutdownChan:
+				return
+			}
 		}
 		dirtyRefs := fbo.blocks.GetDirtyRefs(lState)
 		fbo.runUnlessShutdown(func(ctx context.Context) (err error) {

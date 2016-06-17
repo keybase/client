@@ -512,6 +512,12 @@ type BlockCache interface {
 	DeleteKnownPtr(tlf TlfID, block *FileBlock) error
 }
 
+// DirtyPermChan is a channel that gets closed when the holder has
+// permission to write.  We are forced to define it as a type due to a
+// bug in mockgen that can't handle return values with a chan
+// struct{}.
+type DirtyPermChan <-chan struct{}
+
 // DirtyBlockCache gets and puts plaintext dir blocks and file blocks
 // into a cache, which have been modified by the application and not
 // yet committed on the KBFS servers.  They are identified by a
@@ -533,11 +539,47 @@ type DirtyBlockCache interface {
 	// IsDirty states whether or not the block associated with the
 	// given block pointer and branch name is dirty in this cache.
 	IsDirty(ptr BlockPointer, branch BranchName) bool
-	// DirtyBytesEstimate counts the number of outstanding bytes held
-	// in dirty blocks.  It's an estimate because callers can be
-	// modifying the size of the dirty blocks outside of the cache
-	// while this is being called.
-	DirtyBytesEstimate() uint64
+	// RequestPermissionToDirty is called whenever a user wants to
+	// write data to a file.  The caller provides an estimated number
+	// of bytes that will become dirty -- this is difficult to know
+	// exactly without pre-fetching all the blocks involved, but in
+	// practice we can just use the number of bytes sent in via the
+	// Write. It returns a channel that blocks until the cache is
+	// ready to receive more dirty data, at which point the channel is
+	// closed.  The user must call
+	// `UpdateUnsyncedBytes(-estimatedDirtyBytes)` once it has
+	// completed its write and called `UpdateUnsyncedBytes` for all
+	// the exact dirty block sizes.
+	RequestPermissionToDirty(ctx context.Context,
+		estimatedDirtyBytes int64) (DirtyPermChan, error)
+	// UpdateUnsyncedBytes is called by a user, who has already been
+	// granted permission to write, with the delta in block sizes that
+	// were dirtied as part of the write.  So for example, if a
+	// newly-dirtied block of 20 bytes was extended by 5 bytes, they
+	// should send 25.  If on the next write (before any syncs), bytes
+	// 10-15 of that same block were overwritten, they should send 0
+	// over the channel because there were no new bytes.  If an
+	// already-dirtied block is truncated, or if previously requested
+	// bytes have now been updated more accurately in previous
+	// requests, newUnsyncedBytes may be negative.
+	UpdateUnsyncedBytes(newUnsyncedBytes int64)
+	// BlockSyncFinished is called when a particular block has
+	// finished syncing, though the overall sync might not yet be
+	// complete.  This lets the cache know it might be able to grant
+	// more permission to writers.
+	BlockSyncFinished(size int64)
+	// SyncFinished is called when a complete sync has completed and
+	// its dirty blocks have been removed from the cache.  This lets
+	// the cache know it might be able to grant more permission to
+	// writers.
+	SyncFinished(size int64)
+	// ShouldForceSync returns true if the sync buffer is full enough
+	// to force all callers to sync their data immediately.
+	ShouldForceSync() bool
+
+	// Shutdown frees any resources associated with this instance.  It
+	// returns an error if there are any unsynced blocks.
+	Shutdown() error
 }
 
 // cryptoPure contains all methods of Crypto that don't depend on
