@@ -8,16 +8,11 @@ import type {Device} from '../constants/unlock-folders'
 
 export type Props = {
   devices: ?Array<Device>,
-  paperKeysHidden: boolean,
   toPaperKeyInput: () => void
 }
 
-class DeviceRow extends Component<void, {device: Device, paperKeysHidden: boolean}, void> {
+class DeviceRow extends Component<void, {device: Device}, void> {
   render () {
-    if (this.props.paperKeysHidden && this.props.device.type === 'backup') {
-      return null
-    }
-
     const icon = {
       'desktop': 'icon-computer-bw-32',
       'backup': 'icon-paper-key-32',
@@ -40,14 +35,14 @@ export default class DeviceList extends Component<void, Props, void> {
     return (
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
         <Text type='Body' style={styles.infoText}>This computer and possibly others are unable to read some of your folders. To avoid losing data forever, please turn on one of the devices below:</Text>
-        <div style={{...styles.devicesContainer, height: this.props.paperKeysHidden ? 202 : 162}}>
+        <div style={styles.devicesContainer}>
           {this.props.devices &&
-            this.props.devices.map(d => <DeviceRow key={d.deviceID} device={d} paperKeysHidden={this.props.paperKeysHidden} />)}
+            this.props.devices.map(d => <DeviceRow key={d.deviceID} device={d} />)}
         </div>
-        {!this.props.paperKeysHidden && <div style={styles.buttonsContainer}>
+        <div style={styles.buttonsContainer}>
           <Button type='Secondary' label='Enter a paper key instead' style={styles.enterPaperKey}
             onClick={this.props.toPaperKeyInput} />
-        </div>}
+        </div>
       </div>
     )
   }

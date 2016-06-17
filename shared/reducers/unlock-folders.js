@@ -2,7 +2,6 @@
 
 import * as Constants from '../constants/unlock-folders'
 import * as CommonConstants from '../constants/common'
-import HiddenString from '../util/hidden-string'
 import type {UnlockFolderActions, Device} from '../constants/unlock-folders'
 import {toDeviceType} from '../constants/types/more'
 
@@ -12,7 +11,7 @@ export type State = {
   phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
   devices: ?Array<Device>,
   waiting: boolean,
-  paperkeyError: ?HiddenString,
+  paperkeyError: ?string,
   sessionID: ?number
 }
 
@@ -75,7 +74,8 @@ export default function (state: State = initialState, action: UnlockFolderAction
     case Constants.finish:
       return {
         ...state,
-        phase: 'dead'
+        phase: 'dead',
+        closed: true
       }
 
     case Constants.registerRekeyListener:
