@@ -46,6 +46,23 @@ const (
 
 // Constants used in this file.  TODO: Make these configurable?
 const (
+	// MaxBlockSizeBytesDefault is the default maximum block size for KBFS.
+	// 512K blocks by default, block changes embedded max == 8K.
+	// Block size was chosen somewhat arbitrarily by trying to
+	// minimize the overall size of the history written by a user when
+	// appending 1KB writes to a file, up to a 1GB total file.  Here
+	// is the output of a simple script that approximates that
+	// calculation:
+	//
+	// Total history size for 0065536-byte blocks: 1134341128192 bytes
+	// Total history size for 0131072-byte blocks: 618945052672 bytes
+	// Total history size for 0262144-byte blocks: 412786622464 bytes
+	// Total history size for 0524288-byte blocks: 412786622464 bytes
+	// Total history size for 1048576-byte blocks: 618945052672 bytes
+	// Total history size for 2097152-byte blocks: 1134341128192 bytes
+	// Total history size for 4194304-byte blocks: 2216672886784 bytes
+	MaxBlockSizeBytesDefault = 512 << 10
+	// Maximum number of blocks that can be sent in parallel
 	maxParallelBlockPuts = 10
 	// Max response size for a single DynamoDB query is 1MB.
 	maxMDsAtATime = 10
@@ -54,6 +71,8 @@ const (
 	secondsBetweenBackgroundFlushes = 10
 	// Cap the number of times we retry after a recoverable error
 	maxRetriesOnRecoverableErrors = 10
+	// When the number of dirty bytes exceeds this level, force a sync.
+	dirtyBytesThreshold = maxParallelBlockPuts * MaxBlockSizeBytesDefault
 	// The timeout for any background task.
 	backgroundTaskTimeout = 1 * time.Minute
 )

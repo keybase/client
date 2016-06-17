@@ -304,21 +304,7 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 
 	config := NewConfigLocal()
 
-	// 512K blocks by default, block changes embedded max == 8K.
-	// Block size was chosen somewhat arbitrarily by trying to
-	// minimize the overall size of the history written by a user when
-	// appending 1KB writes to a file, up to a 1GB total file.  Here
-	// is the output of a simple script that approximates that
-	// calculation:
-	//
-	// Total history size for 0065536-byte blocks: 1134341128192 bytes
-	// Total history size for 0131072-byte blocks: 618945052672 bytes
-	// Total history size for 0262144-byte blocks: 412786622464 bytes
-	// Total history size for 0524288-byte blocks: 412786622464 bytes
-	// Total history size for 1048576-byte blocks: 618945052672 bytes
-	// Total history size for 2097152-byte blocks: 1134341128192 bytes
-	// Total history size for 4194304-byte blocks: 2216672886784 bytes
-	bsplitter, err := NewBlockSplitterSimple(512*1024, 8*1024,
+	bsplitter, err := NewBlockSplitterSimple(MaxBlockSizeBytesDefault, 8*1024,
 		config.Codec())
 	if err != nil {
 		return nil, err
