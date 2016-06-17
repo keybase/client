@@ -20,6 +20,7 @@ import (
 type electronMock struct {
 	errCh   chan error
 	stateCh chan keybase1.PushStateArg
+	oobmCh  chan gregor1.OutOfBandMessage
 }
 
 func (e *electronMock) PushState(ctx context.Context, a keybase1.PushStateArg) (err error) {
@@ -27,14 +28,18 @@ func (e *electronMock) PushState(ctx context.Context, a keybase1.PushStateArg) (
 	return nil
 }
 
-func (e *electronMock) PushOutOfBandMessages(_ context.Context, m []gregor1.OutOfBandMessage) error {
-	panic("no expected this just yet!!")
+func (e *electronMock) PushOutOfBandMessages(_ context.Context, msgs []gregor1.OutOfBandMessage) error {
+	for _, m := range msgs {
+		e.oobmCh <- m
+	}
+	return nil
 }
 
 func newElectronMock() *electronMock {
 	return &electronMock{
 		errCh:   make(chan error, 1),
 		stateCh: make(chan keybase1.PushStateArg, 10),
+		oobmCh:  make(chan gregor1.OutOfBandMessage, 10),
 	}
 }
 
@@ -116,7 +121,8 @@ func TestGregorForwardToElectron(t *testing.T) {
 
 	msgID, err := svc.GregorInject("foo", []byte("bar"))
 	check()
-	pushArg := <-em.stateCh
+	err = svc.GregorInjectOutOfBandMessage("baz", []byte("bip"))
+	check()
 
 	checkState := func(s gregor1.State) {
 		if n := len(s.Items_); n != 1 {
@@ -134,10 +140,29 @@ func TestGregorForwardToElectron(t *testing.T) {
 			t.Error("Wrong gregor body")
 		}
 	}
-	checkState(pushArg.State)
-	if pushArg.Reason != keybase1.PushReason_NEW_DATA {
-		t.Errorf("wrong reason for push: %v", pushArg.Reason)
+
+	select {
+	case pushArg := <-em.stateCh:
+		checkState(pushArg.State)
+		if pushArg.Reason != keybase1.PushReason_NEW_DATA {
+			t.Errorf("wrong reason for push: %v", pushArg.Reason)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatalf("never got an IBM")
 	}
+
+	select {
+	case oobm := <-em.oobmCh:
+		if oobm.System_ != "baz" {
+			t.Fatalf("Got wrong OOBM system: %s", oobm.System_)
+		}
+		if s := string(oobm.Body_); s != "bip" {
+			t.Fatalf("Got wrong OOBM body: %s", s)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatalf("never got an OOBM")
+	}
+
 	gcli := keybase1.GregorClient{Cli: cli}
 	state, err := gcli.GetState(context.TODO())
 	check()

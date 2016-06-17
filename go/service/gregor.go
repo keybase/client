@@ -859,6 +859,33 @@ func (g *gregorHandler) InjectItem(cat string, body []byte) (gregor.MsgID, error
 	return creation.Ibm_.StateUpdate_.Md_.MsgID_, err
 }
 
+func (g *gregorHandler) InjectOutOfBandMessage(system string, body []byte) error {
+	var err error
+	defer g.G().Trace(fmt.Sprintf("gregorHandler.InjectOutOfBandMessage(%s)", system),
+		func() error { return err },
+	)()
+
+	uid := g.G().Env.GetUID()
+	if uid.IsNil() {
+		err = fmt.Errorf("Can't create new gregor items without a current UID.")
+		return err
+	}
+	gregorUID := gregor1.UID(uid.ToBytes())
+
+	msg := gregor1.Message{
+		Oobm_: &gregor1.OutOfBandMessage{
+			Uid_:    gregorUID,
+			System_: gregor1.System(system),
+			Body_:   gregor1.Body(body),
+		},
+	}
+
+	incomingClient := gregor1.IncomingClient{Cli: g.cli}
+	// TODO: Should the interface take a context from the caller?
+	err = incomingClient.ConsumeMessage(context.TODO(), msg)
+	return err
+}
+
 func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {
 	for _, handler := range g.ibmHandlers {
 		if !handler.IsAlive() {
