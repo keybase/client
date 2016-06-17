@@ -6,6 +6,7 @@ package test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -73,6 +74,12 @@ type Engine interface {
 	// SetEx is called by the test harness as the given user to set/unset the executable bit on the
 	// given file.
 	SetEx(u User, file Node, ex bool) (err error)
+	// SetMtime is called by the test harness as the given user to
+	// set the mtime on the given file.
+	SetMtime(u User, file Node, mtime time.Time) (err error)
+	// GetMtime is called by the test harness as the given user to get
+	// the mtime of the given file.
+	GetMtime(u User, file Node) (mtime time.Time, err error)
 
 	// All functions below don't take nodes so that they can be
 	// run before any real FS operations.

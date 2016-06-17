@@ -7,6 +7,7 @@ package test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -286,6 +287,24 @@ func (k *LibKBFS) SetEx(u User, file Node, ex bool) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
 	return kbfsOps.SetEx(context.Background(), file.(libkbfs.Node), ex)
+}
+
+// SetMtime implements the Engine interface.
+func (k *LibKBFS) SetMtime(u User, file Node, mtime time.Time) (err error) {
+	config := u.(*libkbfs.ConfigLocal)
+	kbfsOps := config.KBFSOps()
+	return kbfsOps.SetMtime(context.Background(), file.(libkbfs.Node), &mtime)
+}
+
+// GetMtime implements the Engine interface.
+func (k *LibKBFS) GetMtime(u User, file Node) (mtime time.Time, err error) {
+	config := u.(*libkbfs.ConfigLocal)
+	kbfsOps := config.KBFSOps()
+	info, err := kbfsOps.Stat(context.Background(), file.(libkbfs.Node))
+	if err != nil {
+		return time.Time{}, err
+	}
+	return time.Unix(0, info.Mtime), nil
 }
 
 // getRootNode is like GetRootDir, but doesn't check the canonical TLF

@@ -8,6 +8,7 @@ package test
 
 import (
 	"testing"
+	"time"
 )
 
 // Check that renaming over a file correctly cleans up state
@@ -35,6 +36,21 @@ func TestRenameDirOverFile(t *testing.T) {
 			rename("a/c", "a/b"),
 			lsdir("a/", m{"b": "DIR"}),
 			read("a/b/d", "world"),
+		),
+	)
+}
+
+func TestSetMtime(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+			setmtime("a/b", targetMtime),
+			mtime("a/b", targetMtime),
+		),
+		as(bob,
+			mtime("a/b", targetMtime),
 		),
 	)
 }
