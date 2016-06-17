@@ -446,25 +446,14 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 		// Check with the server to see if the handle became a conflict.
 		latestHandle, err := km.config.MDOps().GetLatestHandleForTLF(ctx, md.ID)
-		if err != nil {
-			return false, nil, err
-		}
-		resolvedInfo := resolvedHandle.ConflictInfo()
-		if latestHandle.ConflictInfo != resolvedInfo {
+		if latestHandle.ConflictInfo != nil {
 			km.log.CDebugf(ctx, "handle for %s is conflicted",
 				handle.GetCanonicalPath())
-			if resolvedInfo != nil {
-				// ConflictInfo is inconsistent.
-				err := TlfHandleExtensionMismatchError{
-					Expected: resolvedInfo,
-					Actual:   latestHandle.ConflictInfo,
-				}
-				return false, nil, err
-			}
-			// Set the conflict info in the resolved handle.
-			// This will get stored in the metadata block.
-			// TODO: We should do some verification of this.
-			resolvedHandle.SetConflictInfo(latestHandle.ConflictInfo)
+		}
+		err = resolvedHandle.UpdateConflictInfo(
+			km.config.Codec(), latestHandle.ConflictInfo)
+		if err != nil {
+			return false, nil, err
 		}
 	}
 
