@@ -181,16 +181,13 @@ func isBeforeOrSame(a, b time.Time) bool {
 
 func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
 	var items []gregor.Item
-	if t == nil {
-		t = timeOrOffset(now)
-	}
 	for _, i := range u.items {
 		md := i.item.Metadata()
 		did := md.DeviceID()
 		if d != nil && did != nil && !bytes.Equal(did.Bytes(), d.Bytes()) {
 			continue
 		}
-		if toTime(now, t).Before(i.ctime) {
+		if t != nil && toTime(now, t).Before(i.ctime) {
 			continue
 		}
 		if i.isDismissedAt(toTime(now, t)) {
