@@ -1,5 +1,6 @@
 // @flow
 import React, {Component} from 'react'
+import _ from 'lodash'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Box from './box'
 import Text from './text'
@@ -118,11 +119,14 @@ class TabBar extends Component {
 
   _labels (): Array<React$Element> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
-    return (this.props.children || []).map((item: {props: ItemProps}, i) => (
-      <Box key={`${i}-${item.props.label}`} style={item.props.styleContainer} onClick={item.props.onClick}>
-        {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
-      </Box>
-    ))
+    return (this.props.children || []).map((item: {props: ItemProps}, i) => {
+      const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
+      return (
+        <Box key={key} style={item.props.styleContainer} onClick={item.props.onClick}>
+          {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
+        </Box>
+      )
+    })
   }
 
   _content (): any {
