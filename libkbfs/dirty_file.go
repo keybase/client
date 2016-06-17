@@ -153,6 +153,11 @@ func (df *dirtyFile) setBlockSyncing(ptr BlockPointer) error {
 	state.sync = blockSyncing
 	block, err := df.dirtyBcache.Get(ptr, df.path.Branch)
 	if err != nil {
+		// The dirty block cache must always contain the dirty block
+		// until the full sync is completely done.  If the block is
+		// gone before we have even finished syncing it, that is a
+		// fatal bug, because no one would be able to read the dirtied
+		// version of the block.
 		panic(err)
 	}
 	fblock, ok := block.(*FileBlock)
@@ -273,9 +278,9 @@ func (df *dirtyFile) addErrListener(listener chan<- error) {
 
 func (df *dirtyFile) notifyErrListeners(err error) {
 	df.lock.Lock()
-	defer df.lock.Unlock()
 	listeners := df.errListeners
 	df.errListeners = nil
+	df.lock.Unlock()
 	if err == nil {
 		return
 	}

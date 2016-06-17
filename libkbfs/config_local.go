@@ -570,7 +570,16 @@ func (c *ConfigLocal) ResetCaches() {
 	c.kcache = NewKeyCacheStandard(5000)
 	// Limit the block cache to 10K entries or 512 MB of bytes
 	c.bcache = NewBlockCacheStandard(c, 10000, 512*1024*1024)
-	c.dirtyBcache = NewDirtyBlockCacheStandard(5<<20, 10<<20)
+	// Limit the number of unsynced (or actively syncing) bytes to 5
+	// MB (aka, the number of parallel block puts times the max size
+	// of a block).
+	unsyncedDirtyBytesLimit := int64(5 << 20)
+	// Limit the number of total dirty bytes (including those blocks
+	// that have already finished syncing, but for which the overall
+	// Sync operation isn't yet done) to 10 MB.
+	totalDirtyBytesLimit := 2 * unsyncedDirtyBytesLimit
+	c.dirtyBcache = NewDirtyBlockCacheStandard(unsyncedDirtyBytesLimit,
+		totalDirtyBytesLimit)
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.

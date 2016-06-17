@@ -48,7 +48,7 @@ type DirtyBlockCacheStandard struct {
 	// new writes.
 	maxDirtyBufferSize int64
 
-	lock               sync.Mutex
+	lock               sync.RWMutex
 	cache              map[dirtyBlockID]Block
 	unsyncedDirtyBytes int64
 	totalDirtyBytes    int64
@@ -80,8 +80,8 @@ func (d *DirtyBlockCacheStandard) Get(ptr BlockPointer, branch BranchName) (
 			refNonce: ptr.RefNonce,
 			branch:   branch,
 		}
-		d.lock.Lock()
-		defer d.lock.Unlock()
+		d.lock.RLock()
+		defer d.lock.RUnlock()
 		return d.cache[dirtyID]
 	}()
 	if block != nil {
@@ -133,8 +133,8 @@ func (d *DirtyBlockCacheStandard) IsDirty(
 		branch:   branch,
 	}
 
-	d.lock.Lock()
-	defer d.lock.Unlock()
+	d.lock.RLock()
+	defer d.lock.RUnlock()
 	_, isDirty = d.cache[dirtyID]
 	return
 }
@@ -153,11 +153,16 @@ func (d *DirtyBlockCacheStandard) acceptNewWrite(newBytes int64) bool {
 }
 
 func (d *DirtyBlockCacheStandard) processPermission() {
+	// Keep track of the most-recently seen request across loop
+	// iterations, because we aren't necessarily going to be able to
+	// deal with it as soon as we see it (since we might be past our
+	// limits already).
 	var currentReq dirtyReq
 	for {
 		reqChan := d.requestsChan
 		if currentReq.respChan != nil {
-			// We are already waiting on a request
+			// We are already waiting on a request, so don't bother
+			// trying to read another request from the requests chan.
 			reqChan = nil
 		}
 
@@ -171,15 +176,22 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 			newReq = true
 		}
 
-		if currentReq.respChan != nil && d.acceptNewWrite(currentReq.bytes) {
-			close(currentReq.respChan)
-			currentReq = dirtyReq{}
-			if d.blockedChanForTesting != nil {
-				d.blockedChanForTesting <- -1
+		if currentReq.respChan != nil {
+			if d.acceptNewWrite(currentReq.bytes) {
+				// If we have an active request, and we have room in
+				// our buffers to deal with it, grant permission to
+				// the requestor by closing the response channel.
+				close(currentReq.respChan)
+				currentReq = dirtyReq{}
+				if d.blockedChanForTesting != nil {
+					d.blockedChanForTesting <- -1
+				}
+			} else if d.blockedChanForTesting != nil && newReq {
+				// Otherwise, if this is the first time we've
+				// considered this request, inform any tests that the
+				// request is blocked.
+				d.blockedChanForTesting <- currentReq.bytes
 			}
-		} else if d.blockedChanForTesting != nil &&
-			currentReq.respChan != nil && newReq {
-			d.blockedChanForTesting <- currentReq.bytes
 		}
 	}
 }
