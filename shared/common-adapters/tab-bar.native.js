@@ -17,8 +17,9 @@ export class TabBarItem extends Component {
 }
 
 type SimpleTabBarButtonProps = {
-  selected: boolean,
   label: string,
+  selected: boolean,
+  selectedColor?: string,
   tabWidth?: ?number,
   style?: Object
 }
@@ -26,12 +27,13 @@ type SimpleTabBarButtonProps = {
 class SimpleTabBarButton extends Component<void, SimpleTabBarButtonProps, void> {
   render () {
     const tabWidth = this.props.tabWidth || 93
+    const selectedColor = this.props.selectedColor || globalColors.blue
     return (
       <Box style={{...stylesTab, width: tabWidth}}>
         <Text type='BodySemibold' style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_60}}>
           {this.props.label.toUpperCase()}
         </Text>
-        {this.props.selected && <Box style={stylesSelectedUnderline} />}
+        {this.props.selected && <Box style={{...stylesSelectedUnderline, backgroundColor: selectedColor}} />}
         {!this.props.selected && this.props.underlined && <Box style={stylesUnselectedUnderline} />}
       </Box>
     )
@@ -142,7 +144,6 @@ const stylesLabel = {
 
 const stylesSelectedUnderline = {
   height: 3,
-  backgroundColor: globalColors.blue,
   alignSelf: 'stretch'
 }
 
