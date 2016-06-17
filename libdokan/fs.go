@@ -251,6 +251,11 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 	// Unfortunately sometimes we end up in this case while using
 	// reparse points.
 	case PublicName == ps[0], "PUBLIC" == ps[0]:
+		// Refuse private directories while we are in a a generic error state.
+		if f.remoteStatus.ExtraFileName() == libfs.HumanErrorFileName {
+			f.log.CWarningf(ctx, "Refusing access to public directory while errors are present!")
+			return nil, false, dokan.ErrAccessDenied
+		}
 		return f.root.public.open(ctx, oc, ps[1:])
 	case PrivateName == ps[0], "PRIVATE" == ps[0]:
 		// Refuse private directories while we are in a error state.
@@ -538,23 +543,29 @@ func (r *Root) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
 // FindFiles for dokan readdir.
 func (r *Root) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) error {
 	var ns dokan.NamedStat
+	var err error
 	ns.NumberOfLinks = 1
 	ns.FileAttributes = fileAttributeDirectory
-	ns.Name = PublicName
-	err := callback(&ns)
-	if err != nil {
-		return err
-	}
-	if name, size := r.private.fs.remoteStatus.ExtraFileNameAndSize(); name != "" {
-		ns.Name = name
-		ns.FileAttributes = fileAttributeNormal
-		ns.FileSize = size
+	ename, esize := r.private.fs.remoteStatus.ExtraFileNameAndSize()
+	switch ename {
+	case "":
+		ns.Name = PrivateName
 		err = callback(&ns)
 		if err != nil {
 			return err
 		}
-	} else {
-		ns.Name = PrivateName
+		fallthrough
+	case libfs.HumanNoLoginFileName:
+		ns.Name = PublicName
+		err = callback(&ns)
+		if err != nil {
+			return err
+		}
+	}
+	if ename != "" {
+		ns.Name = ename
+		ns.FileAttributes = fileAttributeNormal
+		ns.FileSize = esize
 		err = callback(&ns)
 		if err != nil {
 			return err
