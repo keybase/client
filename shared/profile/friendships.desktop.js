@@ -21,7 +21,7 @@ const userEntryContainerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',
-  width: 144,
+  width: '25%',
   height: 96,
 }
 
