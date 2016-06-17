@@ -133,8 +133,8 @@ const stylesTabBarButtonIcon = {
 const stylesLabel = {
   fontSize: 14,
   lineHeight: 20,
-  marginTop: 5,
-  marginBottom: 5,
+  marginTop: 11,
+  marginBottom: 11,
 }
 
 const stylesSelectedUnderline = color => ({
