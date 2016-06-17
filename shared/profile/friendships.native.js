@@ -42,6 +42,7 @@ class Render extends Component<void, Props, void> {
         <TabBarItem
           selected={this.props.currentTab === 'FOLLOWERS'}
           label={'FOLLOWERS'}
+          styleContainer={{flex: 1}}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('FOLLOWERS') }}>
           <Box style={tabItemContainerStyle}>
             <Box style={tabItemContainerTopBorder} />
@@ -53,6 +54,7 @@ class Render extends Component<void, Props, void> {
         <TabBarItem
           selected={this.props.currentTab === 'FOLLOWING'}
           label={'FOLLOWING'}
+          styleContainer={{flex: 1}}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('FOLLOWING') }}>
           <Box style={tabItemContainerStyle}>
             <Box style={tabItemContainerTopBorder} />
