@@ -120,15 +120,6 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		if err != nil {
 			return err
 		}
-		if !folder.Private {
-			// Public folders may be stored under a different name,
-			// pending CORE-2695.  TODO: remove me!
-			folder.Name = folder.Name + ReaderSep + "public"
-			err := kbpki.FavoriteDelete(req.ctx, folder)
-			if err != nil {
-				return err
-			}
-		}
 		delete(f.cache, fav)
 	}
 

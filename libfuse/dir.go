@@ -701,6 +701,12 @@ func (tlf *TLF) getStoredDir() *Dir {
 	return tlf.dir
 }
 
+func (tlf *TLF) clearStoredDir() {
+	tlf.dirLock.Lock()
+	defer tlf.dirLock.Unlock()
+	tlf.dir = nil
+}
+
 func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 	dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
