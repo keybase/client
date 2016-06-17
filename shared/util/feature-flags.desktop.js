@@ -21,8 +21,7 @@ const ff: FeatureFlags = {
   tabSettingsEnabled: featureOn('tabSettingsEnabled'),
   tabProfileEnabled: featureOn('tabProfileEnabled'),
   searchEnabled: featureOn('searchEnabled'),
-  recentFilesEnabled: featureOn('recentFilesEnabled'),
-  rekeyPaperkeysEnabled: featureOn('rekeyPaperkeysEnabled')
+  recentFilesEnabled: featureOn('recentFilesEnabled')
 }
 
 if (__DEV__) {

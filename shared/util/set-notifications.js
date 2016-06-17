@@ -8,7 +8,8 @@ type NotificationChannels = {
   users?: true,
   kbfs?: true,
   tracking?: true,
-  favorites?: true
+  favorites?: true,
+  paperkeys?: true
 }
 
 let channelsSet = {}
@@ -22,7 +23,8 @@ export default function (channels: NotificationChannels): Promise<void> {
       users: !!channelsSet.users,
       kbfs: !!channelsSet.kbfs,
       tracking: !!channelsSet.tracking,
-      favorites: !!channelsSet.favorites
+      favorites: !!channelsSet.favorites,
+      paperkeys: !!channelsSet.paperkeys
     }
 
     engine.listenOnConnect('setNotifications', () => {

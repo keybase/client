@@ -1,7 +1,5 @@
 /* @flow */
 
-import HiddenString from '../util/hidden-string'
-
 import type {TypedAction} from '../constants/types/flux'
 import type {DeviceID, Device as ServiceDevice} from '../constants/types/flow-types'
 import type {DeviceType} from '../constants/types/more'
@@ -20,7 +18,7 @@ export const onBackFromPaperKey = 'unlockFolders:onBackFromPaperKey'
 export type OnBackFromPaperKey = TypedAction<'unlockFolders:onBackFromPaperKey', {}, {}>
 
 export const checkPaperKey = 'unlockFolders:checkPaperKey'
-export type CheckPaperKey = TypedAction<'unlockFolders:checkPaperKey', {success: true}, {error: HiddenString}>
+export type CheckPaperKey = TypedAction<'unlockFolders:checkPaperKey', {success: true}, {error: string}>
 
 export const finish = 'unlockFolders:finish'
 export type Finish = TypedAction<'unlockFolders:finish', {}, {}>

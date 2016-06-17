@@ -47,12 +47,12 @@ const unlockFolderMap: DumbComponentMap<UnlockFolders> = {
     'Paperkey error': {
       ...common,
       phase: 'paperKeyInput',
-      paperkeyError: new HiddenString('Invalid paperkey')
+      paperkeyError: 'Invalid paperkey'
     },
     'Paperkey error waiting': {
       ...common,
       phase: 'paperKeyInput',
-      paperkeyError: new HiddenString('Invalid paperkey'),
+      paperkeyError: 'Invalid paperkey',
       waiting: true
     },
     'Success': {

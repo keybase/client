@@ -374,6 +374,9 @@ const (
 	Kex2ScryptKeylen  = 32
 )
 
+// PaperKeyWordCountMin of 13 is based on the current state:
+// entropy: 143 (PaperKeySecretEntropy [117] + PaperKeyIDBits [22] + PaperKeyVersionBits [4])
+// len(secwords): 2048
 const (
 	PaperKeyScryptCost    = 32768
 	PaperKeyScryptR       = 8
@@ -383,6 +386,7 @@ const (
 	PaperKeyIDBits        = 22
 	PaperKeyVersionBits   = 4
 	PaperKeyVersion       = 0
+	PaperKeyWordCountMin  = 13 // this should never change to a value greater than 13
 )
 
 const UserSummaryLimit = 500 // max number of user summaries in one request

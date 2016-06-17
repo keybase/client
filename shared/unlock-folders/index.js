@@ -3,7 +3,6 @@
 import React, {Component} from 'react'
 import typedConnect, {ConnectedComponent} from '../util/typed-connect'
 import HiddenString from '../util/hidden-string'
-import flags from '../util/feature-flags'
 
 import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
 import type {Device, UnlockFolderActions} from '../constants/unlock-folders'
@@ -25,7 +24,7 @@ export type Props = {
   toPaperKeyInput: () => void,
   onBackFromPaperKey: () => void,
   onContinueFromPaperKey: (paperkey: HiddenString) => void,
-  paperkeyError: ?HiddenString,
+  paperkeyError: ?string,
   waiting: boolean,
   onFinish: () => void
 }
@@ -34,7 +33,6 @@ class UnlockFolders extends Component<void, Props, void> {
   render () {
     return (
       <Render
-        paperKeysHidden={!flags.rekeyPaperkeysEnabled}
         phase={this.props.phase}
         devices={this.props.devices}
         onClose={this.props.close}
