@@ -329,26 +329,33 @@ var lastUpgradeWarningMu sync.Mutex
 var lastUpgradeWarning *time.Time
 
 func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
-	u := resp.Header.Get("X-Keybase-Client-Upgrade-To")
-	p := resp.Header.Get("X-Keybase-Upgrade-URI")
-	m := resp.Header.Get("X-Keybase-Upgrade-Message")
-	if len(u) > 0 || len(m) > 0 {
+	upgradeTo := resp.Header.Get("X-Keybase-Client-Upgrade-To")
+	upgradeURI := resp.Header.Get("X-Keybase-Upgrade-URI")
+	customMessage := resp.Header.Get("X-Keybase-Upgrade-Message")
+	if customMessage != "" {
+		decoded, err := base64.StdEncoding.DecodeString(customMessage)
+		if err == nil {
+			customMessage = string(decoded)
+		} else {
+			// If base64-decode fails, just log the error and skip decoding.
+			a.G().Log.Errorf("Failed to decode X-Keybase-Upgrade-Message header: %s", err)
+		}
+	}
+	if len(upgradeTo) > 0 || len(customMessage) > 0 {
 		now := time.Now()
 		lastUpgradeWarningMu.Lock()
 		if lastUpgradeWarning == nil || now.Sub(*lastUpgradeWarning) > 3*time.Minute {
 			// Send the notification after we unlock
-			defer a.G().NotifyRouter.HandleClientOutOfDate(u, p, m)
-			if m != "" {
-				var decodedMsg []byte
-				decodedMsg, err = base64.StdEncoding.DecodeString(m)
-				a.G().Log.Warning("%s", decodedMsg)
+			defer a.G().NotifyRouter.HandleClientOutOfDate(upgradeTo, upgradeURI, customMessage)
+			if customMessage != "" {
+				a.G().Log.Warning("%s", customMessage)
 			}
-			if u != "" {
+			if upgradeTo != "" {
 				a.G().Log.Warning("Upgrade recommended to client version %s or above (you have v%s)",
-					u, VersionString())
+					upgradeTo, VersionString())
 			}
-			if p != "" {
-				platformSpecificUpgradeInstructions(a.G(), p)
+			if upgradeURI != "" {
+				platformSpecificUpgradeInstructions(a.G(), upgradeURI)
 			}
 			lastUpgradeWarning = &now
 		}
