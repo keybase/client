@@ -1,5 +1,6 @@
 /* @flow */
 import React, {Component} from 'react'
+import {TouchableHighlight} from 'react-native'
 import {Box, Avatar, Text} from '../common-adapters'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
@@ -10,10 +11,12 @@ type UserEntryProps = UserInfo & {
 }
 
 const UserEntry = ({onClick, username, followsYou, following}: UserEntryProps) => (
-  <Box style={userEntryContainerStyle} onClick={() => { onClick && onClick(username) }}>
-    <Avatar style={userEntryAvatarStyle} size={64} username={username} followsYou={followsYou} following={following} />
-    <Text type='BodySmall' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
-  </Box>
+  <TouchableHighlight onPress={() => { onClick && onClick(username) }}>
+    <Box style={userEntryContainerStyle}>
+      <Avatar style={userEntryAvatarStyle} size={64} username={username} followsYou={followsYou} following={following} />
+      <Text type='BodySmall' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
+    </Box>
+  </TouchableHighlight>
 )
 
 const userEntryContainerStyle = {
