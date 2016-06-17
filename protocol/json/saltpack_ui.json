@@ -422,6 +422,10 @@
         {
           "name": "sender",
           "type": "SaltpackSender"
+        },
+        {
+          "name": "usedDelegateUI",
+          "type": "bool"
         }
       ],
       "response": "null"

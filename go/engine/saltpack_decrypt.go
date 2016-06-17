@@ -81,7 +81,14 @@ func (e *SaltpackDecrypt) promptForDecrypt(ctx *Context, mki *saltpack.MessageKe
 		Sender: spsiEng.Result(),
 	}
 
-	err = ctx.SaltpackUI.SaltpackPromptForDecrypt(context.TODO(), arg)
+	usedDelegateUI := false
+	if e.G().UIRouter != nil {
+		if ui, err := e.G().UIRouter.GetIdentifyUI(); err == nil && ui != nil {
+			usedDelegateUI = true
+		}
+	}
+
+	err = ctx.SaltpackUI.SaltpackPromptForDecrypt(context.TODO(), arg, usedDelegateUI)
 	if err != nil {
 		return err
 	}

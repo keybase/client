@@ -3047,7 +3047,8 @@ export type saltpackUiSaltpackPromptForDecryptResult = void
 export type saltpackUiSaltpackPromptForDecryptRpc = {
   method: 'saltpackUi.saltpackPromptForDecrypt',
   param: {
-    sender: SaltpackSender
+    sender: SaltpackSender,
+    usedDelegateUI: bool
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -5352,7 +5353,8 @@ export type incomingCallMapType = {
   'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (
     params: {
       sessionID: int,
-      sender: SaltpackSender
+      sender: SaltpackSender,
+      usedDelegateUI: bool
     },
     response: {
       error: (err: RPCError) => void,
