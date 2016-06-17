@@ -470,6 +470,13 @@ func (d *Service) GregorInject(cat string, body []byte) (gregor.MsgID, error) {
 	return d.gregor.InjectItem(cat, body)
 }
 
+func (d *Service) GregorInjectOutOfBandMessage(sys string, body []byte) error {
+	if d.gregor == nil {
+		return errors.New("can't gregor inject without a gregor")
+	}
+	return d.gregor.InjectOutOfBandMessage(sys, body)
+}
+
 func (d *Service) HasGregor() bool {
 	return d.gregor != nil
 }
