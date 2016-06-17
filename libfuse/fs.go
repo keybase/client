@@ -8,12 +8,10 @@ import (
 	"os"
 	"runtime"
 	"strings"
-	"sync"
 	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"github.com/eapache/channels"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -28,17 +26,7 @@ type FS struct {
 	log    logger.Logger
 	errLog logger.Logger
 
-	// notifications is a channel for notification functions (which
-	// take no value and have no return value).
-	notifications channels.Channel
-
-	// notificationGroup can be used by tests to know when libfuse is
-	// done processing asynchronous notifications.
-	notificationGroup sync.WaitGroup
-
-	// protects access to the notifications channel member (though not
-	// sending/receiving)
-	notificationMutex sync.RWMutex
+	notifications *libfs.FSNotifications
 
 	// remoteStatus is the current status of remote connections.
 	remoteStatus libfs.RemoteStatus
@@ -56,7 +44,13 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool) *FS {
 		log.Configure("", true, "")
 		errLog.Configure("", true, "")
 	}
-	fs := &FS{config: config, conn: conn, log: log, errLog: errLog}
+	fs := &FS{
+		config:        config,
+		conn:          conn,
+		log:           log,
+		errLog:        errLog,
+		notifications: libfs.NewFSNotifications(log),
+	}
 	return fs
 }
 
@@ -68,74 +62,16 @@ func (f *FS) SetFuseConn(fuse *fs.Server, conn *fuse.Conn) {
 
 // NotificationGroupWait - wait on the notification group.
 func (f *FS) NotificationGroupWait() {
-	f.notificationGroup.Wait()
-}
-
-func (f *FS) processNotifications(ctx context.Context) {
-	for {
-		select {
-		case <-ctx.Done():
-			f.notificationMutex.Lock()
-			c := f.notifications
-			f.log.CDebugf(ctx, "Nilling notifications channel")
-			f.notifications = nil
-			f.notificationMutex.Unlock()
-			c.Close()
-			for range c.Out() {
-				// Drain the output queue to allow the Channel close
-				// Out() and shutdown any goroutines.
-				f.log.CWarningf(ctx,
-					"Throwing away notification after shutdown")
-			}
-			return
-		case i := <-f.notifications.Out():
-			func() {
-				defer f.notificationGroup.Done()
-				notifyFn, ok := i.(func())
-				if !ok {
-					f.log.CWarningf(ctx, "Got a bad notification function: %v", i)
-					return
-				}
-				notifyFn()
-			}()
-		}
-	}
+	f.notifications.Wait()
 }
 
 func (f *FS) queueNotification(fn func()) {
-	channel := func() channels.Channel {
-		f.notificationMutex.RLock()
-		defer f.notificationMutex.RUnlock()
-		return f.notifications
-	}()
-	if channel == nil {
-		f.log.Warning("Ignoring notification, no available channel")
-		return
-	}
-	f.notificationGroup.Add(1)
-	channel.In() <- fn
+	f.notifications.QueueNotification(fn)
 }
 
-// LaunchNotificationProcessor launches the  notification  processor.
+// LaunchNotificationProcessor launches the notification processor.
 func (f *FS) LaunchNotificationProcessor(ctx context.Context) {
-	f.notificationMutex.Lock()
-	defer f.notificationMutex.Unlock()
-
-	f.log.CDebugf(ctx, "Launching notifications channel")
-	// The notifications channel needs to have "infinite" capacity,
-	// because otherwise we risk a deadlock between libkbfs and
-	// libfuse.  The notification processor sends invalidates to the
-	// kernel.  In osxfuse 3.X, the kernel can call back into userland
-	// during an invalidate (a GetAttr()) call, which in turn takes
-	// locks within libkbfs.  So if libkbfs ever gets blocked while
-	// trying to enqueue a notification (while it is holding locks),
-	// we could have a deadlock.  Yes, if there are too many
-	// outstanding notifications we'll run out of memory and crash,
-	// but otherwise we risk deadlock.  Which is worse?
-	f.notifications = channels.NewInfiniteChannel()
-
-	// start the notification processor
-	go f.processNotifications(ctx)
+	f.notifications.LaunchProcessor(ctx)
 }
 
 // WithContext adds app- and request-specific values to the context.
@@ -180,7 +116,7 @@ func (f *FS) Serve(ctx context.Context) error {
 	})
 	f.fuse = srv
 
-	f.LaunchNotificationProcessor(ctx)
+	f.notifications.LaunchProcessor(ctx)
 	f.remoteStatus.Init(ctx, f.log, f.config)
 	// Blocks forever, unless an interrupt signal is received
 	// (handled by libkbfs.Init).

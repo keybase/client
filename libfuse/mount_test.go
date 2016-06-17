@@ -40,9 +40,10 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 
 	// TODO duplicates main() in kbfsfuse/main.go too much
 	filesys := &FS{
-		config: config,
-		log:    logger.NewTestLogger(t),
-		errLog: logger.NewTestLogger(t),
+		config:        config,
+		log:           log,
+		errLog:        log,
+		notifications: libfs.NewFSNotifications(log),
 	}
 	fn := func(mnt *fstestutil.Mount) fs.FS {
 		filesys.fuse = mnt.Server
