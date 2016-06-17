@@ -463,7 +463,11 @@ func (c CryptoCommon) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCrypt
 		return err
 	}
 
-	return c.codec.Decode(encodedBlock, &block)
+	err = c.codec.Decode(encodedBlock, &block)
+	if err != nil {
+		return BlockDecodeError{err}
+	}
+	return nil
 }
 
 // GetTLFCryptKeyServerHalfID implements the Crypto interface for CryptoCommon.

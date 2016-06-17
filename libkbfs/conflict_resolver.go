@@ -299,12 +299,12 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 func (cr *ConflictResolver) makeChains(ctx context.Context,
 	unmerged []*RootMetadata, merged []*RootMetadata) (
 	unmergedChains *crChains, mergedChains *crChains, err error) {
-	unmergedChains, err = newCRChains(ctx, cr.config, unmerged)
+	unmergedChains, err = newCRChains(ctx, cr.config, unmerged, &cr.fbo.blocks)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	mergedChains, err = newCRChains(ctx, cr.config, merged)
+	mergedChains, err = newCRChains(ctx, cr.config, merged, &cr.fbo.blocks)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1674,14 +1674,10 @@ func (cr *ConflictResolver) getActionsToMerge(unmergedChains *crChains,
 // directory (i.e., files are merged directly, they are just
 // renamed/copied).  It also collapses each action list to get rid of
 // redundant actions.
-func collapseActions(unmergedChains *crChains,
+func collapseActions(unmergedChains *crChains, unmergedPaths []path,
 	mergedPaths map[BlockPointer]path,
-	actionMap map[BlockPointer]crActionList) {
+	actionMap map[BlockPointer]crActionList) (newUnmergedPaths []path) {
 	for unmergedMostRecent, chain := range unmergedChains.byMostRecent {
-		if !chain.isFile() {
-			continue
-		}
-
 		// Find the parent directory path and combine
 		p, ok := mergedPaths[unmergedMostRecent]
 		if !ok {
@@ -1693,22 +1689,71 @@ func collapseActions(unmergedChains *crChains,
 			continue
 		}
 
+		// If this is a directory with setAttr(mtime)-related actions,
+		// just those action should be collapsed into the parent.
+		if !chain.isFile() {
+			var parentActions crActionList
+			var otherDirActions crActionList
+			for _, action := range fileActions {
+				if cAttr, ok := action.(*copyUnmergedAttrAction); ok &&
+					cAttr.attr[0] == mtimeAttr && !cAttr.moved {
+					cAttr.moved = true
+					parentActions = append(parentActions, cAttr)
+				} else if rua, ok := action.(*renameUnmergedAction); ok &&
+					rua.causedByAttr == mtimeAttr && !rua.moved {
+					rua.moved = true
+					parentActions = append(parentActions, rua)
+				} else {
+					otherDirActions = append(otherDirActions, action)
+				}
+			}
+			if len(parentActions) == 0 {
+				// A directory with no mtime actions, so treat it
+				// normally.
+				continue
+			}
+			fileActions = parentActions
+			if len(otherDirActions) > 0 {
+				actionMap[p.tailPointer()] = otherDirActions
+			} else {
+				delete(actionMap, p.tailPointer())
+			}
+		}
+
 		parentPath := *p.parentPath()
 		mergedParent := parentPath.tailPointer()
-		parentActions := actionMap[mergedParent]
+		parentActions, wasParentActions := actionMap[mergedParent]
 		combinedActions := append(parentActions, fileActions...)
 		actionMap[mergedParent] = combinedActions
-		mergedPaths[unmergedMostRecent] = parentPath
-		delete(actionMap, p.tailPointer())
+		if chain.isFile() {
+			mergedPaths[unmergedMostRecent] = parentPath
+			delete(actionMap, p.tailPointer())
+		} else if !wasParentActions {
+			// The parent isn't yet represented in our data
+			// structures, so we have to make sure its actions get
+			// executed.
+			//
+			// Find the unmerged path to get the unmerged parent.
+			for _, unmergedPath := range unmergedPaths {
+				if unmergedPath.tailPointer() != unmergedMostRecent {
+					continue
+				}
+				unmergedParentPath := *unmergedPath.parentPath()
+				newUnmergedPaths = append(newUnmergedPaths, unmergedParentPath)
+				unmergedParent := unmergedParentPath.tailPointer()
+				mergedPaths[unmergedParent] = parentPath
+			}
+		}
 	}
 
 	for ptr, actions := range actionMap {
 		actionMap[ptr] = actions.collapse()
 	}
+	return newUnmergedPaths
 }
 
 func (cr *ConflictResolver) computeActions(ctx context.Context,
-	unmergedChains *crChains, mergedChains *crChains,
+	unmergedChains *crChains, mergedChains *crChains, unmergedPaths []path,
 	mergedPaths map[BlockPointer]path, recreateOps []*createOp) (
 	map[BlockPointer]crActionList, []path, error) {
 	// Process all the recreateOps, adding them to the appropriate
@@ -1743,8 +1788,9 @@ func (cr *ConflictResolver) computeActions(ctx context.Context,
 
 	// Finally, merged the file actions back into their parent
 	// directory action list, and collapse everything together.
-	collapseActions(unmergedChains, mergedPaths, actionMap)
-	return actionMap, newUnmergedPaths, nil
+	moreNewUnmergedPaths =
+		collapseActions(unmergedChains, unmergedPaths, mergedPaths, actionMap)
+	return actionMap, append(newUnmergedPaths, moreNewUnmergedPaths...), nil
 }
 
 func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
@@ -2413,7 +2459,7 @@ func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 	md *RootMetadata, unmergedChains *crChains, mergedChains *crChains,
 	mergedPaths map[BlockPointer]path) (map[BlockPointer]path, error) {
 	resolvedChains, err := newCRChains(ctx, cr.config,
-		[]*RootMetadata{md})
+		[]*RootMetadata{md}, &cr.fbo.blocks)
 	if err != nil {
 		return nil, err
 	}
@@ -2630,6 +2676,7 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 		block, err := cr.fbo.blocks.GetBlockForReading(ctx, lState,
 			mergedChains.mostRecentMD, ptr, cr.fbo.branch())
 		if err != nil {
+			cr.log.CDebugf(ctx, "Got err reading %v", ptr)
 			return err
 		}
 
@@ -3227,7 +3274,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// the final merged state, including the resolution of any
 	// conflicts that occurred between the two branches.
 	actionMap, newUnmergedPaths, err := cr.computeActions(ctx, unmergedChains,
-		mergedChains, mergedPaths, recOps)
+		mergedChains, unmergedPaths, mergedPaths, recOps)
 	if err != nil {
 		return
 	}

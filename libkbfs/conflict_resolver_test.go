@@ -312,7 +312,7 @@ func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 
 	// Now for step 2 -- check the actions
 	actionMap, _, err := cr.computeActions(ctx, unmergedChains, mergedChains,
-		mergedPaths, recreateOps)
+		unmergedPaths, mergedPaths, recreateOps)
 	if err != nil {
 		t.Fatalf("Couldn't compute actions: %v", err)
 	}
@@ -983,7 +983,7 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 		mergedPathRoot.tailPointer(): {&renameUnmergedAction{
 			"file1",
 			cre.ConflictRenameHelper(now, "u2", "dev1", "file1"),
-			"", zeroPtr, zeroPtr}},
+			"", 0, false, zeroPtr, zeroPtr}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathRoot},
@@ -1090,7 +1090,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 		mergedPathRoot.tailPointer(): {&renameUnmergedAction{
 			"file",
 			cre.ConflictRenameHelper(now, "u2", "dev1", "file"),
-			"", zeroPtr, zeroPtr}},
+			"", 0, false, zeroPtr, zeroPtr}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathFile},
@@ -1153,7 +1153,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 	}
 
 	actionMap, _, err := cr2.computeActions(ctx, unmergedChains, mergedChains,
-		mergedPaths, recreateOps)
+		unmergedPaths, mergedPaths, recreateOps)
 	if err != nil {
 		t.Fatalf("Couldn't compute actions: %v", err)
 	}
@@ -1269,7 +1269,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	}
 
 	actionMap, _, err := cr2.computeActions(ctx, unmergedChains, mergedChains,
-		mergedPaths, recreateOps)
+		unmergedPaths, mergedPaths, recreateOps)
 	if err != nil {
 		t.Fatalf("Couldn't compute actions: %v", err)
 	}

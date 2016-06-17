@@ -15,9 +15,9 @@ func TestCRActionsCollapseNoChange(t *testing.T) {
 			DirEntry{}, nil},
 		&copyUnmergedEntryAction{"old2", "new2", "", false, false,
 			DirEntry{}, nil},
-		&renameUnmergedAction{"old3", "new3", "", zeroPtr, zeroPtr},
+		&renameUnmergedAction{"old3", "new3", "", 0, false, zeroPtr, zeroPtr},
 		&renameMergedAction{"old4", "new4", ""},
-		&copyUnmergedAttrAction{"old5", "new5", []attrChange{mtimeAttr}},
+		&copyUnmergedAttrAction{"old5", "new5", []attrChange{mtimeAttr}, false},
 	}
 
 	newList := al.collapse()
@@ -28,10 +28,10 @@ func TestCRActionsCollapseNoChange(t *testing.T) {
 
 func TestCRActionsCollapseEntry(t *testing.T) {
 	al := crActionList{
-		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}},
+		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}, false},
 		&copyUnmergedEntryAction{"old", "new", "", false, false,
 			DirEntry{}, nil},
-		&renameUnmergedAction{"old", "new", "", zeroPtr, zeroPtr},
+		&renameUnmergedAction{"old", "new", "", 0, false, zeroPtr, zeroPtr},
 	}
 
 	expected := crActionList{
@@ -65,13 +65,14 @@ func TestCRActionsCollapseEntry(t *testing.T) {
 }
 func TestCRActionsCollapseAttr(t *testing.T) {
 	al := crActionList{
-		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}},
-		&copyUnmergedAttrAction{"old", "new", []attrChange{exAttr}},
-		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}},
+		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}, false},
+		&copyUnmergedAttrAction{"old", "new", []attrChange{exAttr}, false},
+		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr}, false},
 	}
 
 	expected := crActionList{
-		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr, exAttr}},
+		&copyUnmergedAttrAction{"old", "new", []attrChange{mtimeAttr, exAttr},
+			false},
 	}
 
 	newList := al.collapse()

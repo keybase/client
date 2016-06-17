@@ -191,6 +191,124 @@ func TestCrUnmergedSetMtimeOnMovedFile(t *testing.T) {
 	)
 }
 
+// bob sets the mtime on a dir while unstaged
+func TestCrUnmergedSetMtimeOnDir(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("b", "hello"),
+		),
+		as(bob, noSync(),
+			setmtime("a", targetMtime),
+			reenableUpdates(),
+			lsdir("", m{"a": "DIR", "b": "FILE"}),
+			read("b", "hello"),
+			mtime("a", targetMtime),
+		),
+		as(alice,
+			lsdir("", m{"a": "DIR", "b": "FILE"}),
+			read("b", "hello"),
+			mtime("a", targetMtime),
+		),
+	)
+}
+
+// bob sets the mtime on a moved dir while unstaged
+func TestCrUnmergedSetMtimeOnMovedDir(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			mkdir("b"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			rename("a", "b/a"),
+		),
+		as(bob, noSync(),
+			setmtime("a", targetMtime),
+			reenableUpdates(),
+			lsdir("", m{"b": "DIR"}),
+			lsdir("b", m{"a": "DIR"}),
+			mtime("b/a", targetMtime),
+		),
+		as(alice,
+			lsdir("", m{"b": "DIR"}),
+			lsdir("b", m{"a": "DIR"}),
+			mtime("b/a", targetMtime),
+		),
+	)
+}
+
+// bob sets the mtime of a dir modified by alice.
+func TestCrUnmergedSetMtimeOnModifiedDir(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob, noSync(),
+			setmtime("a", targetMtime),
+			reenableUpdates(),
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{"b$": "FILE"}),
+			mtime("a", targetMtime),
+		),
+		as(alice,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{"b$": "FILE"}),
+			mtime("a", targetMtime),
+		),
+	)
+}
+
+// bob sets the mtime of a dir modified by both him and alice.
+func TestCrUnmergedSetMtimeOnDualModifiedDir(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob, noSync(),
+			mkfile("a/c", "hello"),
+			setmtime("a", targetMtime),
+			reenableUpdates(),
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{"b$": "FILE", "c$": "FILE"}),
+			mtime("a", targetMtime),
+		),
+		as(alice,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{"b$": "FILE", "c$": "FILE"}),
+			mtime("a", targetMtime),
+		),
+	)
+}
+
 // bob deletes a non-conflicting file while unstaged
 func TestCrUnmergedRmfile(t *testing.T) {
 	test(t,
@@ -536,6 +654,94 @@ func TestCrMergedSetMtime(t *testing.T) {
 			lsdir("a/", m{"b": "FILE", "c": "FILE"}),
 			read("a/c", "world"),
 			mtime("a/b", targetMtime),
+		),
+	)
+}
+
+// alice sets the mtime on a dir while unstaged
+func TestCrMergedSetMtimeOnDir(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			setmtime("a", targetMtime),
+		),
+		as(bob, noSync(),
+			write("b", "hello"),
+			reenableUpdates(),
+			lsdir("", m{"a": "DIR", "b": "FILE"}),
+			read("b", "hello"),
+			mtime("a", targetMtime),
+		),
+		as(alice,
+			lsdir("", m{"a": "DIR", "b": "FILE"}),
+			read("b", "hello"),
+			mtime("a", targetMtime),
+		),
+	)
+}
+
+// alice sets the mtime on a moved dir while bob is unstaged
+func TestCrMergedSetMtimeOnMovedDir(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			mkdir("b"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			setmtime("a", targetMtime),
+		),
+		as(bob, noSync(),
+			rename("a", "b/a"),
+			reenableUpdates(),
+			lsdir("", m{"b": "DIR"}),
+			lsdir("b", m{"a": "DIR"}),
+			mtime("b/a", targetMtime),
+		),
+		as(alice,
+			lsdir("", m{"b": "DIR"}),
+			lsdir("b", m{"a": "DIR"}),
+			mtime("b/a", targetMtime),
+		),
+	)
+}
+
+// alice sets the mtime of a dir modified by bob.
+func TestCrMergedSetMtimeOnModifiedDir(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			setmtime("a", targetMtime),
+		),
+		as(bob, noSync(),
+			mkfile("a/b", "hello"),
+			reenableUpdates(),
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{"b$": "FILE"}),
+			mtime("a", targetMtime),
+		),
+		as(alice,
+			lsdir("", m{"a$": "DIR"}),
+			lsdir("a", m{"b$": "FILE"}),
+			mtime("a", targetMtime),
 		),
 	)
 }

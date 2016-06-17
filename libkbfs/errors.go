@@ -252,6 +252,17 @@ func (e NotFileError) Error() string {
 	return fmt.Sprintf("%s is not a file (folder %s)", e.path, e.path.Tlf)
 }
 
+// BlockDecodeError indicates that a block couldn't be decoded as
+// expected; probably it is the wrong type.
+type BlockDecodeError struct {
+	decodeErr error
+}
+
+// Error implements the error interface for BlockDecodeError
+func (e BlockDecodeError) Error() string {
+	return fmt.Sprintf("Decode error for a block: %v", e.decodeErr)
+}
+
 // BadDataError indicates that KBFS is storing corrupt data for a block.
 type BadDataError struct {
 	ID BlockID

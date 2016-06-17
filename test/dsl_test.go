@@ -289,14 +289,14 @@ func initRoot() fileOp {
 
 func mkdir(name string) fileOp {
 	return fileOp{func(c *ctx) error {
-		_, _, err := c.getNode(name, true, false)
+		_, _, err := c.getNode(name, true, false, true)
 		return err
 	}, Defaults}
 }
 
 func write(name string, contents string) fileOp {
 	return fileOp{func(c *ctx) error {
-		f, _, err := c.getNode(name, true, true)
+		f, _, err := c.getNode(name, true, true, true)
 		if err != nil {
 			return err
 		}
@@ -306,7 +306,7 @@ func write(name string, contents string) fileOp {
 
 func truncate(name string, size uint64) fileOp {
 	return fileOp{func(c *ctx) error {
-		f, _, err := c.getNode(name, true, true)
+		f, _, err := c.getNode(name, true, true, true)
 		if err != nil {
 			return err
 		}
@@ -316,7 +316,7 @@ func truncate(name string, size uint64) fileOp {
 
 func read(name string, contents string) fileOp {
 	return fileOp{func(c *ctx) error {
-		file, _, err := c.getNode(name, false, true)
+		file, _, err := c.getNode(name, false, true, true)
 		if err != nil {
 			return err
 		}
@@ -333,13 +333,13 @@ func read(name string, contents string) fileOp {
 
 func exists(filename string) fileOp {
 	return fileOp{func(c *ctx) error {
-		_, _, err := c.getNode(filename, false, false)
+		_, _, err := c.getNode(filename, false, false, true)
 		return err
 	}, Defaults}
 }
 func notExists(filename string) fileOp {
 	return fileOp{func(c *ctx) error {
-		_, _, err := c.getNode(filename, false, false)
+		_, _, err := c.getNode(filename, false, false, true)
 		if err == nil {
 			return fmt.Errorf("File that should not exist exists: %q", filename)
 		}
@@ -349,7 +349,7 @@ func notExists(filename string) fileOp {
 
 func mkfile(name string, contents string) fileOp {
 	return fileOp{func(c *ctx) error {
-		f, wasCreated, err := c.getNode(name, true, true)
+		f, wasCreated, err := c.getNode(name, true, true, true)
 		if err != nil {
 			return err
 		}
@@ -368,7 +368,7 @@ func mkfile(name string, contents string) fileOp {
 func link(fromName, toPath string) fileOp {
 	return fileOp{func(c *ctx) error {
 		dir, name := path.Split(fromName)
-		parent, _, err := c.getNode(dir, false, false)
+		parent, _, err := c.getNode(dir, false, false, true)
 		if err != nil {
 			return err
 		}
@@ -378,7 +378,7 @@ func link(fromName, toPath string) fileOp {
 
 func setex(filepath string, ex bool) fileOp {
 	return fileOp{func(c *ctx) error {
-		file, _, err := c.getNode(filepath, false, true)
+		file, _, err := c.getNode(filepath, false, true, true)
 		if err != nil {
 			return err
 		}
@@ -388,7 +388,7 @@ func setex(filepath string, ex bool) fileOp {
 
 func setmtime(filepath string, mtime time.Time) fileOp {
 	return fileOp{func(c *ctx) error {
-		file, _, err := c.getNode(filepath, false, true)
+		file, _, err := c.getNode(filepath, false, true, false)
 		if err != nil {
 			return err
 		}
@@ -398,7 +398,7 @@ func setmtime(filepath string, mtime time.Time) fileOp {
 
 func mtime(filepath string, expectedMtime time.Time) fileOp {
 	return fileOp{func(c *ctx) error {
-		file, _, err := c.getNode(filepath, false, true)
+		file, _, err := c.getNode(filepath, false, true, false)
 		if err != nil {
 			return err
 		}
@@ -417,7 +417,7 @@ func mtime(filepath string, expectedMtime time.Time) fileOp {
 func rm(filepath string) fileOp {
 	return fileOp{func(c *ctx) error {
 		dir, name := path.Split(filepath)
-		parent, _, err := c.getNode(dir, false, false)
+		parent, _, err := c.getNode(dir, false, false, true)
 		if err != nil {
 			return err
 		}
@@ -428,7 +428,7 @@ func rm(filepath string) fileOp {
 func rmdir(filepath string) fileOp {
 	return fileOp{func(c *ctx) error {
 		dir, name := path.Split(filepath)
-		parent, _, err := c.getNode(dir, false, false)
+		parent, _, err := c.getNode(dir, false, false, true)
 		if err != nil {
 			return err
 		}
@@ -439,12 +439,12 @@ func rmdir(filepath string) fileOp {
 func rename(src, dst string) fileOp {
 	return fileOp{func(c *ctx) error {
 		sdir, sname := path.Split(src)
-		sparent, _, err := c.getNode(sdir, false, false)
+		sparent, _, err := c.getNode(sdir, false, false, true)
 		if err != nil {
 			return err
 		}
 		ddir, dname := path.Split(dst)
-		dparent, _, err := c.getNode(ddir, true, false)
+		dparent, _, err := c.getNode(ddir, true, false, true)
 		if err != nil {
 			return err
 		}
@@ -524,7 +524,7 @@ func lsprivatefavorites(contents []string) fileOp {
 
 func lsdir(name string, contents m) fileOp {
 	return fileOp{func(c *ctx) error {
-		folder, _, err := c.getNode(name, false, false)
+		folder, _, err := c.getNode(name, false, false, true)
 		if err != nil {
 			return err
 		}
@@ -554,8 +554,8 @@ func lsdir(name string, contents m) fileOp {
 	}, Defaults}
 }
 
-func (c *ctx) getNode(filepath string, create bool, isFile bool) (
-	Node, bool, error) {
+func (c *ctx) getNode(filepath string, create bool, isFile bool,
+	resolveSymNode bool) (Node, bool, error) {
 	if filepath == "" || filepath == "/" {
 		return c.rootNode, false, nil
 	}
@@ -586,7 +586,10 @@ func (c *ctx) getNode(filepath string, create bool, isFile bool) (
 			return nil, false, err
 		}
 		parent = node
-		if len(sym) > 0 {
+		// If this is a symlink, and either we're supposed to resolve
+		// all symlinks or this isn't the final one in the path, then
+		// go ahead and recurse on the resolved path.
+		if len(sym) > 0 && (resolveSymNode || i != len(components)-1) {
 			var tmp []string
 			if sym[0] == '/' {
 				tmp = []string{sym}
@@ -597,7 +600,7 @@ func (c *ctx) getNode(filepath string, create bool, isFile bool) (
 			tmp = append(tmp, components[i+1:]...)
 			newpath := path.Clean(path.Join(tmp...))
 			c.t.Log("getNode: symlink ", sym, " redirecting to ", newpath)
-			return c.getNode(newpath, create, isFile)
+			return c.getNode(newpath, create, isFile, resolveSymNode)
 		}
 	}
 	return node, wasCreated, nil

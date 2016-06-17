@@ -85,9 +85,9 @@ func (cuea *copyUnmergedEntryAction) swapUnmergedBlock(
 	}
 
 	// If:
-	//   * The entry BlockPointer has no unmerged chain with no (or
+	//   * The entry BlockPointer has an unmerged chain with no (or
 	//     attr-only) ops; AND
-	//   * The entry BlockPointer does have a merged chain
+	//   * The entry BlockPointer does have a (non-deleted) merged chain
 	// copy the merged entry instead by fetching the block for its merged
 	// most recent parent and using that as the source, just copying over
 	// the "sizeAttr" fields.
@@ -107,7 +107,8 @@ func (cuea *copyUnmergedEntryAction) swapUnmergedBlock(
 		}
 		ptr = chain.original
 	}
-	if _, ok := mergedChains.byOriginal[ptr]; !ok {
+	if _, ok := mergedChains.byOriginal[ptr]; !ok ||
+		mergedChains.isDeleted(ptr) {
 		return false, zeroPtr, nil
 	}
 
@@ -283,6 +284,7 @@ type copyUnmergedAttrAction struct {
 	fromName string
 	toName   string
 	attr     []attrChange
+	moved    bool // move this action to the parent at most one time
 }
 
 func (cuaa *copyUnmergedAttrAction) swapUnmergedBlock(
@@ -384,9 +386,11 @@ func (rmea *rmMergedEntryAction) String() string {
 // renameUnmergedAction says that the unmerged copy of a file needs to
 // be renamed, and the file blocks should be copied.
 type renameUnmergedAction struct {
-	fromName string
-	toName   string
-	symPath  string
+	fromName     string
+	toName       string
+	symPath      string
+	causedByAttr attrChange // was this rename caused by a setAttr?
+	moved        bool       // move this action to the parent at most one time
 
 	// Set if this conflict is between file writes, and the parent
 	// chains need to be updated with new create/rename operations.
@@ -569,7 +573,9 @@ func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 	}
 	if !found {
 		co = newCreateOp(rua.toName, unmergedMostRecent, mergedEntry.Type)
-		co.AddRefBlock(newMergedEntry.BlockPointer)
+		if rua.symPath == "" {
+			co.AddRefBlock(newMergedEntry.BlockPointer)
+		}
 		err = prependOpsToChain(unmergedMostRecent, unmergedChains, co)
 		if err != nil {
 			return err

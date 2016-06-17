@@ -17,6 +17,7 @@ import (
 type crChain struct {
 	ops                  []op
 	original, mostRecent BlockPointer
+	file                 bool
 }
 
 // collapse finds complementary pairs of operations that cancel each
@@ -124,7 +125,7 @@ func (cc *crChain) getActionsToMerge(renamer ConflictRenamer, mergedPath path,
 		if mergedChain != nil {
 			for _, mergedOp := range mergedChain.ops {
 				action, err :=
-					unmergedOp.CheckConflict(renamer, mergedOp)
+					unmergedOp.CheckConflict(renamer, mergedOp, cc.isFile())
 				if err != nil {
 					return nil, err
 				}
@@ -144,18 +145,53 @@ func (cc *crChain) getActionsToMerge(renamer ConflictRenamer, mergedPath path,
 }
 
 func (cc *crChain) isFile() bool {
+	return cc.file
+}
+
+// identifyType figures out whether this chain represents a file or
+// directory.  It tries to figure it out based purely on operation
+// state, but setAttr(mtime) can apply to either type; in that case,
+// we need to fetch the block to figure out the type.
+func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
+	md *RootMetadata) error {
 	if len(cc.ops) == 0 {
-		return false
+		return nil
 	}
 
-	// If the first op is setAttr or sync, this is a file chain.
-	switch cc.ops[0].(type) {
-	case *syncOp:
-		return true
-	case *setAttrOp:
-		return true
+	// If any op is setAttr (ex or size) or sync, this is a file
+	// chain.  If it only has a setAttr/mtime, we don't know what it
+	// is, just return false.
+	for _, op := range cc.ops {
+		switch realOp := op.(type) {
+		case *syncOp:
+			cc.file = true
+			return nil
+		case *setAttrOp:
+			if realOp.Attr != mtimeAttr {
+				cc.file = true
+				return nil
+			}
+			// We can't tell the file type from an mtimeAttr, so we
+			// may have to actually fetch the block to figure it out.
+		default:
+			return nil
+		}
 	}
-	return false
+
+	// If we get down here, we have an ambiguity, and need to fetch
+	// the block to figure out the file type.
+	_, err := fbo.GetDirBlockForReading(ctx, makeFBOLockState(), md,
+		cc.mostRecent, fbo.folderBranch.Branch, path{})
+	_, blockDecodeErr := err.(BlockDecodeError) // if we fetched remote block
+	_, notDirErr := err.(NotDirBlockError)      // block was already cached
+	if blockDecodeErr || notDirErr {
+		cc.file = true
+		return nil
+	} else if err != nil {
+		return err
+	}
+	// Directory!
+	return nil
 }
 
 type renameInfo struct {
@@ -510,7 +546,8 @@ func newCRChainsEmpty() *crChains {
 	}
 }
 
-func newCRChains(ctx context.Context, cfg Config, rmds []*RootMetadata) (
+func newCRChains(ctx context.Context, cfg Config, rmds []*RootMetadata,
+	fbo *folderBlockOps) (
 	ccs *crChains, err error) {
 	ccs = newCRChainsEmpty()
 
@@ -554,6 +591,14 @@ func newCRChains(ctx context.Context, cfg Config, rmds []*RootMetadata) (
 		// NOTE: even if we've removed all its ops, still keep the
 		// chain around so we can see the mapping between the original
 		// and most recent pointers.
+
+		// Figure out if this chain is a file or directory.
+		if len(rmds) > 0 {
+			err := chain.identifyType(ctx, fbo, rmds[len(rmds)-1])
+			if err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	if len(rmds) > 0 {
