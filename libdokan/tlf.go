@@ -130,6 +130,19 @@ func (tlf *TLF) SetFileTime(fi *dokan.FileInfo, creation time.Time, lastAccess t
 	return dir.SetFileTime(fi, creation, lastAccess, lastWrite)
 }
 
+// SetFileAttributes for Dokan.
+func (tlf *TLF) SetFileAttributes(fi *dokan.FileInfo, fileAttributes uint32) error {
+	ctx, cancel := NewContextWithOpID(tlf.folder.fs, "TLF SetFileAttributes")
+	defer cancel()
+	dir, _, err := tlf.loadDirHelper(ctx, "TLF SetFileAttributes", false)
+	if err != nil {
+		return err
+	}
+	return dir.SetFileAttributes(fi, fileAttributes)
+
+	return nil
+}
+
 // GetFileInformation for dokan.
 func (tlf *TLF) GetFileInformation(fi *dokan.FileInfo) (st *dokan.Stat, err error) {
 	dir := tlf.getStoredDir()
