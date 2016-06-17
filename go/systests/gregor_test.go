@@ -5,6 +5,7 @@ package systests
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -18,27 +19,22 @@ import (
 
 type electronMock struct {
 	errCh   chan error
-	msgCh   chan gregor1.Message
-	reconCh chan struct{}
+	stateCh chan keybase1.PushStateArg
 }
 
-func (e *electronMock) PushMessages(ctx context.Context, messages []gregor1.Message) (err error) {
-	for _, m := range messages {
-		e.msgCh <- m
-	}
+func (e *electronMock) PushState(ctx context.Context, a keybase1.PushStateArg) (err error) {
+	e.stateCh <- a
 	return nil
 }
 
-func (e *electronMock) Reconnected(_ context.Context) error {
-	e.reconCh <- struct{}{}
-	return nil
+func (e *electronMock) PushOutOfBandMessages(_ context.Context, m []gregor1.OutOfBandMessage) error {
+	panic("no expected this just yet!!")
 }
 
 func newElectronMock() *electronMock {
 	return &electronMock{
 		errCh:   make(chan error, 1),
-		msgCh:   make(chan gregor1.Message, 1),
-		reconCh: make(chan struct{}, 1),
+		stateCh: make(chan keybase1.PushStateArg, 10),
 	}
 }
 
@@ -107,35 +103,27 @@ func TestGregorForwardToElectron(t *testing.T) {
 	}
 
 	select {
-	case <-em.reconCh:
+	case a := <-em.stateCh:
+		if a.Reason != keybase1.PushReason_RECONNECTED {
+			t.Fatal(fmt.Sprintf("got wrong reason: %v", a.Reason))
+		}
+		if d := len(a.State.Items_); d != 0 {
+			t.Fatal(fmt.Sprintf("Wrong number of items in state -- should have 0, but got %d", d))
+		}
 	case <-time.After(3 * time.Second):
 		t.Fatalf("never got a reconnect message")
 	}
 
 	msgID, err := svc.GregorInject("foo", []byte("bar"))
 	check()
-	newMsg := <-em.msgCh
+	pushArg := <-em.stateCh
 
-	checkMsg := func(m gregor1.Message) {
-		if !bytes.Equal(m.Ibm_.StateUpdate_.Md_.MsgID_.Bytes(), msgID.Bytes()) {
-			t.Error("Wrong gregor message ID received")
+	checkState := func(s gregor1.State) {
+		if n := len(s.Items_); n != 1 {
+			t.Errorf("Expected one item back; got %d", n)
+			return
 		}
-		if m.Ibm_.StateUpdate_.Creation_.Category_.String() != "foo" {
-			t.Error("Wrong gregor category")
-		}
-		if string(m.Ibm_.StateUpdate_.Creation_.Body_.Bytes()) != "bar" {
-			t.Error("Wrong gregor body")
-		}
-	}
-
-	checkMsg(newMsg)
-	gcli := keybase1.GregorClient{Cli: cli}
-	state, err := gcli.GetState(context.TODO())
-	check()
-	if n := len(state.Items_); n != 1 {
-		t.Fatalf("Expected one item back; got %d", n)
-	}
-	checkItem := func(i gregor1.ItemAndMetadata) {
+		i := s.Items_[0]
 		if !bytes.Equal(i.Md_.MsgID_.Bytes(), msgID.Bytes()) {
 			t.Error("Wrong gregor message ID received")
 		}
@@ -146,7 +134,14 @@ func TestGregorForwardToElectron(t *testing.T) {
 			t.Error("Wrong gregor body")
 		}
 	}
-	checkItem(state.Items_[0])
+	checkState(pushArg.State)
+	if pushArg.Reason != keybase1.PushReason_NEW_DATA {
+		t.Errorf("wrong reason for push: %v", pushArg.Reason)
+	}
+	gcli := keybase1.GregorClient{Cli: cli}
+	state, err := gcli.GetState(context.TODO())
+	check()
+	checkState(state)
 
 	if err := stopper.Run(); err != nil {
 		t.Fatal(err)

@@ -442,8 +442,8 @@ type GregorInBandMessageHandler interface {
 
 type GregorFirehoseHandler interface {
 	IsAlive() bool
-	PushMessages([]gregor1.Message)
-	Reconnected()
+	PushState(gregor1.State, keybase1.PushReason)
+	PushOutOfBandMessages([]gregor1.OutOfBandMessage)
 }
 
 type GregorListener interface {

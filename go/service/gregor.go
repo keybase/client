@@ -68,17 +68,17 @@ func (h *gregorFirehoseHandler) IsAlive() bool {
 	return h.G().ConnectionManager.LookupConnection(h.connID) != nil
 }
 
-func (h *gregorFirehoseHandler) PushMessages(m []gregor1.Message) {
-	err := h.cli.PushMessages(context.Background(), m)
+func (h *gregorFirehoseHandler) PushState(s gregor1.State, r keybase1.PushReason) {
+	err := h.cli.PushState(context.Background(), keybase1.PushStateArg{State: s, Reason: r})
 	if err != nil {
-		h.G().Log.Error(fmt.Sprintf("Error in firehose push messages: %s", err))
+		h.G().Log.Error(fmt.Sprintf("Error in firehose push state: %s", err))
 	}
 }
 
-func (h *gregorFirehoseHandler) Reconnected() {
-	err := h.cli.Reconnected(context.Background())
+func (h *gregorFirehoseHandler) PushOutOfBandMessages(m []gregor1.OutOfBandMessage) {
+	err := h.cli.PushOutOfBandMessages(context.Background(), m)
 	if err != nil {
-		h.G().Log.Error(fmt.Sprintf("error in firehose reconnected message: %s", err))
+		h.G().Log.Error(fmt.Sprintf("Error in firehose push out-of-band messages: %s", err))
 	}
 }
 
@@ -251,12 +251,17 @@ func (g *gregorHandler) iterateOverFirehoseHandlers(f func(h libkb.GregorFirehos
 	return
 }
 
-func (g *gregorHandler) pushMessagesIntoFirehoses(m []gregor1.Message) {
-	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) { h.PushMessages(m) })
+func (g *gregorHandler) pushState(r keybase1.PushReason) {
+	s, err := g.getState()
+	if err != nil {
+		g.Warning("Cannot push state in firehose handler: %s", err)
+		return
+	}
+	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) { h.PushState(s, r) })
 }
 
-func (g *gregorHandler) sendReconnectsToFirehoses() {
-	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) { h.Reconnected() })
+func (g *gregorHandler) pushOutOfBandMessages(m []gregor1.OutOfBandMessage) {
+	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) { h.PushOutOfBandMessages(m) })
 }
 
 // replayInBandMessages will replay all the messages in the current state from
@@ -346,7 +351,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return err
 	}
 
-	g.sendReconnectsToFirehoses()
+	g.pushState(keybase1.PushReason_RECONNECTED)
 
 	// Sync down events since we have been dead
 	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: cli})
@@ -401,8 +406,8 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	// Send message to local state machine
 	g.gregorCli.StateMachineConsumeMessage(m)
 
-	// Forward to electron or whichever UI is listening for gregor updates
-	g.pushMessagesIntoFirehoses([]gregor1.Message{m})
+	// Forward to electron or whichever UI is listening for the new gregor state
+	g.pushState(keybase1.PushReason_NEW_DATA)
 
 	// Handle the message
 	ibm := m.ToInBandMessage()
@@ -638,8 +643,15 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, it
 
 func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {
 	g.Debug("handleOutOfBand: %+v", obm)
+
 	if obm.System() == nil {
 		return errors.New("nil system in out of band message")
+	}
+
+	if tmp, ok := obm.(gregor1.OutOfBandMessage); ok {
+		g.pushOutOfBandMessages([]gregor1.OutOfBandMessage{tmp})
+	} else {
+		g.G().Log.Warning("Got non-exportable out-of-band message")
 	}
 
 	switch obm.System().String() {
@@ -906,10 +918,10 @@ func newGregorRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 	}
 }
 
-func (g *gregorRPCHandler) GetState(_ context.Context) (res gregor1.State, err error) {
+func (g *gregorHandler) getState() (res gregor1.State, err error) {
 	var s gregor.State
 	var ok bool
-	s, err = g.gh.gregorCli.StateMachineState(nil)
+	s, err = g.gregorCli.StateMachineState(nil)
 	if err != nil {
 		return res, err
 	}
@@ -917,4 +929,8 @@ func (g *gregorRPCHandler) GetState(_ context.Context) (res gregor1.State, err e
 		return res, errors.New("failed to convert state to exportable format")
 	}
 	return res, nil
+}
+
+func (g *gregorRPCHandler) GetState(_ context.Context) (res gregor1.State, err error) {
+	return g.gh.getState()
 }
