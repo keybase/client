@@ -60,7 +60,7 @@ class RemoteComponentLoader extends Component {
     super(props)
     this.state = {
       loaded: false,
-      unmounted: false
+      unmounted: false,
     }
 
     loadPerf()
@@ -171,11 +171,11 @@ class RemoteComponentLoader extends Component {
 const styles = {
   container: {
     overflow: 'hidden',
-    backgroundColor: globalColors.white
+    backgroundColor: globalColors.white,
   },
   loading: {
-    backgroundColor: globalColors.grey5
-  }
+    backgroundColor: globalColors.grey5,
+  },
 }
 
 ReactDOM.render(<RemoteComponentLoader />, document.getElementById('remoteComponent'))

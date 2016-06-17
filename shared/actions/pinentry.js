@@ -24,7 +24,7 @@ export function registerPinentryListener (): AsyncAction {
           } else {
             console.log('Registered secret ui')
           }
-        }
+        },
       }
 
       engine.rpc(params)
@@ -32,7 +32,7 @@ export function registerPinentryListener (): AsyncAction {
 
     dispatch(({
       type: Constants.registerPinentryListener,
-      payload: {started: true}
+      payload: {started: true},
     }: RegisterPinentryListenerAction))
 
     const pinentryListeners = pinentryListenersCreator(dispatch)
@@ -56,7 +56,7 @@ export function onCancel (sessionID: number): AsyncAction {
     dispatch({type: Constants.onCancel, payload: {sessionID}})
     uglyResponse(sessionID, null, {
       code: constants.StatusCode.scinputcanceled,
-      desc: 'Input canceled'
+      desc: 'Input canceled',
     })
   }
 }
@@ -94,11 +94,11 @@ function pinentryListenersCreator (dispatch: Dispatch): incomingCallMapType {
           submitLabel,
           cancelLabel,
           windowTitle,
-          retryLabel
-        }
+          retryLabel,
+        },
       }: NewPinentryAction))
 
       uglySessionIDResponseMapper[sessionID] = response
-    }
+    },
   }
 }

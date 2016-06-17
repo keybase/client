@@ -16,9 +16,9 @@ class DeviceRevoke extends Component<void, Props, void> {
       componentAtTop: {
         title: 'Device revoke',
         props: {
-          device: currentPath.get('device')
-        }
-      }
+          device: currentPath.get('device'),
+        },
+      },
     }
   }
 
@@ -46,7 +46,7 @@ export default connect(
       onSubmit: ({deviceID, name, currentDevice}) => {
         dispatch(devicesActions.removeDevice(deviceID, name, currentDevice))
       },
-      onCancel: () => dispatch(navigateUp())
+      onCancel: () => dispatch(navigateUp()),
     }
   }
 )(DeviceRevoke)

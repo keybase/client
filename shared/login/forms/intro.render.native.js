@@ -23,21 +23,21 @@ export default class Render extends Component {
 const stylesLoginForm = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  flex: 1
+  flex: 1,
 }
 const stylesHeader = {
   marginTop: 27,
-  color: globalColors.orange
+  color: globalColors.orange,
 }
 const stylesHeaderSub = {
-  marginTop: 10
+  marginTop: 10,
 }
 const stylesLoginHeader = {
   marginTop: 91,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 const stylesButton = {
-  marginTop: 15
+  marginTop: 15,
 }
 
 const stylesRevoked = {
@@ -51,5 +51,5 @@ const stylesRevoked = {
   paddingTop: 14,
   paddingBottom: 14,
   alignSelf: 'stretch',
-  backgroundColor: globalColors.green
+  backgroundColor: globalColors.green,
 }

@@ -31,5 +31,5 @@ export default class QR extends Component<void, Props, void> {
 
 const cameraStyle = {
   ...globalStyles.flexBoxColumn,
-  flex: 1
+  flex: 1,
 }

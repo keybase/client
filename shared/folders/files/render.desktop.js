@@ -141,62 +141,62 @@ const styleHeaderThemed = {
   'private': {
     backgroundColor: globalColors.darkBlue3,
     backgroundImage: `url(${resolveImageAsURL('icons', 'damier-pattern-good-open.png')})`,
-    backgroundRepeat: 'repeat'
+    backgroundRepeat: 'repeat',
   },
 
   'public': {
-    backgroundColor: globalColors.yellowGreen
-  }
+    backgroundColor: globalColors.yellowGreen,
+  },
 }
 
 const styleTLFHeader = {
   height: 64,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 const styleTLFHeaderThemed = {
   'private': {
-    backgroundColor: globalColors.darkBlue
+    backgroundColor: globalColors.darkBlue,
   },
 
   'public': {
-    backgroundColor: globalColors.white
-  }
+    backgroundColor: globalColors.white,
+  },
 }
 
 const styleTLFTextThemed = {
   'private': {
-    color: globalColors.white
+    color: globalColors.white,
   },
 
   'public': {
-    color: globalColors.yellowGreen
-  }
+    color: globalColors.yellowGreen,
+  },
 }
 
 const styleSectionTextThemed = {
   'public': {
-    color: globalColors.black_60
+    color: globalColors.black_60,
   },
   'private': {
-    color: globalColors.blue3_40
-  }
+    color: globalColors.blue3_40,
+  },
 }
 
 const backgroundColorThemed = {
   'public': globalColors.lightGrey,
-  'private': globalColors.darkBlue3
+  'private': globalColors.darkBlue3,
 }
 
 const styleMenu = {
   ...globalStyles.clickable,
   marginLeft: 'auto',
-  fontSize: 24
+  fontSize: 24,
 }
 
 const backButtonColorThemed = {
   'private': globalColors.white,
-  'public': globalColors.white
+  'public': globalColors.white,
 }
 
 const styleRecentFilesNotEnabled = {
@@ -204,7 +204,7 @@ const styleRecentFilesNotEnabled = {
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
-  padding: 64
+  padding: 64,
 }
 
 const styleNoFiles = {
@@ -212,7 +212,7 @@ const styleNoFiles = {
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
-  padding: 64
+  padding: 64,
 }
 
 const styleWarningBanner = {
@@ -222,7 +222,7 @@ const styleWarningBanner = {
   paddingBottom: 13,
   paddingLeft: 64,
   paddingRight: 64,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 function styleMenuColorThemed (theme, showingMenu): string {

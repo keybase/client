@@ -9,7 +9,7 @@ const defines = {
   '__DEV__': true,
   '__SCREENSHOT__': false,
   'process.env.NODE_ENV': JSON.stringify('development'),
-  '__VERSION__': JSON.stringify('Development')
+  '__VERSION__': JSON.stringify('Development'),
 }
 
 console.log('Injecting dev defines: ', defines)

@@ -80,7 +80,7 @@ export default class HeaderRender extends Component {
 }
 
 const styleOuter = {
-  position: 'relative'
+  position: 'relative',
 }
 
 const styleHeader = {
@@ -90,37 +90,37 @@ const styleHeader = {
   top: 0,
   ...globalStyles.flexBoxRow,
   height: 90,
-  width: 320
+  width: 320,
 }
 
 const styleHeaderNotFollowing = {
-  backgroundColor: globalColors.blue
+  backgroundColor: globalColors.blue,
 }
 
 const styleHeaderFollowing = {
-  backgroundColor: globalColors.green
+  backgroundColor: globalColors.green,
 }
 
 const styleHeaderWarning = {
-  backgroundColor: globalColors.yellow
+  backgroundColor: globalColors.yellow,
 }
 
 const styleHeaderTextNormal = {
   color: globalColors.white,
   fontSize: 14,
   lineHeight: 'normal',
-  opacity: 1
+  opacity: 1,
 }
 
 const styleHeaderTextWarning = {
   color: globalColors.brown_60,
   fontSize: 14,
   lineHeight: 'normal',
-  opacity: 1
+  opacity: 1,
 }
 
 const styleHeaderError = {
-  backgroundColor: globalColors.red
+  backgroundColor: globalColors.red,
 }
 
 const styleClose = {
@@ -129,7 +129,7 @@ const styleClose = {
   zIndex: 2,
   position: 'absolute',
   top: 7,
-  right: 9
+  right: 9,
 }
 
 const styleText = {
@@ -141,5 +141,5 @@ const styleText = {
   marginRight: 30,
   marginBottom: 32,
   fontSize: 14,
-  textAlign: 'center'
+  textAlign: 'center',
 }

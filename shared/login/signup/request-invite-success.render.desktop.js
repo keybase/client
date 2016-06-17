@@ -23,20 +23,20 @@ class Render extends Component<void, Props, void> {
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 const stylesIcon = {
-  marginTop: 80
+  marginTop: 80,
 }
 const stylesHeader = {
   marginTop: 50,
-  marginBottom: 10
+  marginBottom: 10,
 }
 const stylesBody = {
   paddingLeft: 15,
   paddingRight: 15,
   marginBottom: 35,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 export default Render

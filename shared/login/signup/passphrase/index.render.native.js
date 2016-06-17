@@ -29,20 +29,20 @@ class Render extends Component {
 }
 
 const stylesOuter = {
-  backgroundColor: globalColors.black_10
+  backgroundColor: globalColors.black_10,
 }
 
 const stylesFirst = {
-  marginTop: 100
+  marginTop: 100,
 }
 
 const stylesSecond = {
   marginTop: 55,
-  marginBottom: 30
+  marginBottom: 30,
 }
 
 const stylesCard = {
-  alignItems: 'stretch'
+  alignItems: 'stretch',
 }
 
 export default Render

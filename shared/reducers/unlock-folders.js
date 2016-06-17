@@ -22,7 +22,7 @@ const initialState: State = {
   waiting: false,
   devices: null,
   paperkeyError: null,
-  sessionID: null
+  sessionID: null,
 }
 
 export default function (state: State = initialState, action: UnlockFolderActions): State {
@@ -30,13 +30,13 @@ export default function (state: State = initialState, action: UnlockFolderAction
     case CommonConstants.resetStore:
       return {
         ...initialState,
-        started: state.started
+        started: state.started,
       }
 
     case Constants.close:
       return {
         ...state,
-        closed: true
+        closed: true,
       }
     case Constants.waiting:
       if (action.error) {
@@ -45,44 +45,44 @@ export default function (state: State = initialState, action: UnlockFolderAction
 
       return {
         ...state,
-        waiting: action.payload
+        waiting: action.payload,
       }
 
     case Constants.onBackFromPaperKey:
       return {
         ...state,
-        phase: 'promptOtherDevice'
+        phase: 'promptOtherDevice',
       }
 
     case Constants.toPaperKeyInput:
       return {
         ...state,
-        phase: 'paperKeyInput'
+        phase: 'paperKeyInput',
       }
     case Constants.checkPaperKey:
       if (action.error) {
         return {
           ...state,
-          paperkeyError: action.payload.error
+          paperkeyError: action.payload.error,
         }
       } else {
         return {
           ...state,
-          phase: 'success'
+          phase: 'success',
         }
       }
     case Constants.finish:
       return {
         ...state,
         phase: 'dead',
-        closed: true
+        closed: true,
       }
 
     case Constants.registerRekeyListener:
       if (action.payload && action.payload.started) {
         return {
           ...state,
-          started: true
+          started: true,
         }
       } else {
         return state
@@ -91,11 +91,11 @@ export default function (state: State = initialState, action: UnlockFolderAction
       if (state.started && action.payload) {
         const devices = action.payload.devices.map(({name, type, deviceID}) => ({
           type: toDeviceType(type),
-          name, deviceID
+          name, deviceID,
         }))
         return {
           ...state, devices, closed: false,
-          sessionID: action.payload.sessionID
+          sessionID: action.payload.sessionID,
         }
       }
       return state

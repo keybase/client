@@ -31,7 +31,7 @@ export default class WelcomeRender extends Component {
 
 WelcomeRender.propTypes = {
   onGotoLoginPage: React.PropTypes.func.isRequired,
-  onGotoSignupPage: React.PropTypes.func.isRequired
+  onGotoSignupPage: React.PropTypes.func.isRequired,
 }
 
 const styles = StyleSheet.create({
@@ -39,6 +39,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     marginLeft: 8,
-    marginRight: 8
-  }
+    marginRight: 8,
+  },
 })

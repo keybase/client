@@ -57,7 +57,7 @@ const stylesRow = {
   paddingTop: 8,
   paddingBottom: 8,
   paddingLeft: 15,
-  paddingRight: 15
+  paddingRight: 15,
 }
 
 const stylesMenuCatcher = {
@@ -68,7 +68,7 @@ const stylesMenuCatcher = {
   top: 0,
   bottom: 0,
   left: 0,
-  right: 0
+  right: 0,
 }
 
 const stylesMenu = {
@@ -82,12 +82,12 @@ const stylesMenu = {
   marginLeft: 4,
   boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
   overflowX: 'hidden',
-  overflowY: 'auto'
+  overflowY: 'auto',
 }
 
 const stylesMenuText = {
   ...globalStyles.clickable,
-  color: undefined
+  color: undefined,
 }
 
 export default Menu

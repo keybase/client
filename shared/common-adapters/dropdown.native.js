@@ -35,7 +35,7 @@ class Dropdown extends Component {
 
     this.state = {
       modalVisible: false,
-      value: this._stateValue(this.props.value)
+      value: this._stateValue(this.props.value),
     }
   }
 
@@ -89,14 +89,14 @@ class Dropdown extends Component {
 
     return {
       [otherItemValue]: this.props.type === 'Username' ? 'Someone else...' : 'Or something else',
-      [pickItemValue]: 'Pick an option'
+      [pickItemValue]: 'Pick an option',
     }[value] || value
   }
 
   _renderLabelAndCaret (): Array<React$Element> {
     return [
       <Text key='text' type='Header' style={{...styleText, ...this._itemStyle()}}>{this._label(this.state.value)}</Text>,
-      <Icon key='icon' type='fa-caret-down' style={styleIcon} />
+      <Icon key='icon' type='fa-caret-down' style={styleIcon} />,
     ]
   }
 
@@ -165,26 +165,26 @@ const styleContainer = {
   paddingLeft: 17,
   paddingRight: 17,
   borderWidth: 1,
-  borderColor: globalColors.black_10
+  borderColor: globalColors.black_10,
 }
 
 const styleText = {
   flex: 1,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 const styleIcon = {
-  width: 20
+  width: 20,
 }
 
 const stylePickerContainer = {
   flex: 1,
   justifyContent: 'flex-end',
-  backgroundColor: globalColors.black_40
+  backgroundColor: globalColors.black_40,
 }
 
 const stylePickerIOS = {
-  backgroundColor: globalColors.white
+  backgroundColor: globalColors.white,
 }
 
 const stylePickerAndroid = {
@@ -194,7 +194,7 @@ const stylePickerAndroid = {
   left: 0,
   top: 0,
   bottom: 0,
-  right: 0
+  right: 0,
 }
 
 export default Dropdown

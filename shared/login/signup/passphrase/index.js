@@ -22,7 +22,7 @@ class PassphraseForm extends Component {
 
     this.state = {
       pass1: '',
-      pass2: ''
+      pass2: '',
     }
   }
 
@@ -43,12 +43,12 @@ class PassphraseForm extends Component {
 
 PassphraseForm.propTypes = {
   passphraseError: React.PropTypes.instanceOf(HiddenString),
-  checkPassphrase: React.PropTypes.func
+  checkPassphrase: React.PropTypes.func,
 }
 
 export default connect(
   state => ({
-    passphraseError: state.signup.passphraseError
+    passphraseError: state.signup.passphraseError,
   }),
   dispatch => bindActionCreators({checkPassphrase, resetSignup}, dispatch)
 )(PassphraseForm)

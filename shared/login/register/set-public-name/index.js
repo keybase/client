@@ -12,7 +12,7 @@ export class SetPublicName extends Component<void, Props, State> {
     super(props)
 
     this.state = {
-      deviceName: null
+      deviceName: null,
     }
   }
 
@@ -39,8 +39,8 @@ export class SetPublicName extends Component<void, Props, State> {
       componentAtTop: {
         title: '',
         component: SetPublicName,
-        leftButtonTitle: ''
-      }
+        leftButtonTitle: '',
+      },
     }
   }
 }

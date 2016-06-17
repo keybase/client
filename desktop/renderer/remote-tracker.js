@@ -58,13 +58,13 @@ class RemoteTracker extends Component<void, Props, void> {
 export default connect(
   state => ({
     started: state.tracker.serverStarted,
-    trackers: state.tracker.trackers
+    trackers: state.tracker.trackers,
   }),
   dispatch => bindActionCreators({
     registerIdentifyUi,
     startTimer,
     stopTimer,
     onClose,
-    registerTrackerIncomingRpcs
+    registerTrackerIncomingRpcs,
   }, dispatch)
 )(RemoteTracker)

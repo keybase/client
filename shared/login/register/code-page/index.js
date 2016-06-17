@@ -14,7 +14,7 @@ class CodePage extends Component {
     super(props)
 
     this.state = {
-      enterText: ''
+      enterText: '',
     }
   }
 
@@ -54,7 +54,7 @@ CodePage.propTypes = {
   qrScanned: React.PropTypes.func.isRequired,
   setCameraBrokenMode: React.PropTypes.func.isRequired,
   textEntered: React.PropTypes.func.isRequired,
-  doneRegistering: React.PropTypes.func.isRequired
+  doneRegistering: React.PropTypes.func.isRequired,
 }
 
 export default connect(

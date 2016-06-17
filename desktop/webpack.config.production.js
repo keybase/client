@@ -8,7 +8,7 @@ const SKIP_OPTIMIZE = false
 const defines = {
   '__DEV__': false,
   '__SCREENSHOT__': false,
-  'process.env.NODE_ENV': JSON.stringify('production')
+  'process.env.NODE_ENV': JSON.stringify('production'),
 }
 
 console.log('Injecting production defines: ', defines)
@@ -50,8 +50,8 @@ if (!SKIP_OPTIMIZE) {
         pure_funcs: null,
         drop_console: false,
         keep_fargs: true,
-        keep_fnames: false
-      }
+        keep_fnames: false,
+      },
     }),
     new webpack.optimize.DedupePlugin()
   )

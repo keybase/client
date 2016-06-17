@@ -26,7 +26,7 @@ class Keybase extends Component {
         NativeAppEventEmitter.addListener('backInTime', () => store.dispatch({type: timeTravel, payload: {direction: timeTravelBack}})),
         NativeAppEventEmitter.addListener('forwardInTime', () => store.dispatch({type: timeTravel, payload: {direction: timeTravelForward}})),
         NativeAppEventEmitter.addListener('saveState', () => store.dispatch({type: serializeSave})),
-        NativeAppEventEmitter.addListener('clearState', () => AsyncStorage.removeItem(stateKey))
+        NativeAppEventEmitter.addListener('clearState', () => AsyncStorage.removeItem(stateKey)),
       ]
     }
   }

@@ -17,7 +17,7 @@ class Render extends Component<void, any, any> {
     this.state = {
       filter: (dumbFilter && dumbFilter.toLowerCase()) || '',
       filterShow: false,
-      index: dumbIndex || 0
+      index: dumbIndex || 0,
     }
 
     this._onFilterChange = debounce(filter => {
@@ -92,19 +92,19 @@ const styleBox = {
   flex: 1,
   height: 800,
   paddingTop: 20,
-  marginTop: 10
+  marginTop: 10,
 }
 
 const inputStyle = {
   height: 40,
-  marginTop: 0
+  marginTop: 0,
 }
 
 const stylesControls = {
   ...globalStyles.flexBoxRow,
   position: 'absolute',
   top: 0,
-  right: 0
+  right: 0,
 }
 
 const stylesButton = {
@@ -117,7 +117,7 @@ const stylesButton = {
   paddingLeft: 0,
   paddingRight: 0,
   paddingBottom: 20,
-  borderRadius: 10
+  borderRadius: 10,
 }
 
 export default Render

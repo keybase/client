@@ -56,18 +56,18 @@ class Render extends Component<void, Props, State> {
 }
 
 const stylesContainer = {
-  flex: 1
+  flex: 1,
 }
 const stylesInput = {
   flex: 1,
   marginTop: 55,
-  marginBottom: 55
+  marginBottom: 55,
 }
 const stylesOuterCard = {
-  marginTop: 40
+  marginTop: 40,
 }
 const stylesCard = {
-  alignItems: 'stretch'
+  alignItems: 'stretch',
 }
 
 export default Render

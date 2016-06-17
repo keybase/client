@@ -60,7 +60,7 @@ export function trackerPropsToRenderProps (props: TrackerProps): RenderPropsUnsh
       username: props.username,
       userInfo: props.userInfo,
       trackerState: props.trackerState,
-      currentlyFollowing
+      currentlyFollowing,
     },
     headerProps: {
       reason: reason,
@@ -69,7 +69,7 @@ export function trackerPropsToRenderProps (props: TrackerProps): RenderPropsUnsh
       currentlyFollowing,
       changed,
       lastAction: props.lastAction,
-      loggedIn: props.loggedIn
+      loggedIn: props.loggedIn,
     },
     actionProps: {
       loggedIn: props.loggedIn,
@@ -85,19 +85,19 @@ export function trackerPropsToRenderProps (props: TrackerProps): RenderPropsUnsh
       onUnfollow: () => props.onUnfollow(props.username),
       onFollow: () => props.onFollow(props.username),
       currentlyFollowing,
-      lastAction: props.lastAction
+      lastAction: props.lastAction,
     },
     proofsProps: {
       username: props.username,
       proofs: props.proofs,
-      currentlyFollowing
+      currentlyFollowing,
     },
     nonUser: props.nonUser,
     name: props.name,
     serviceName: props.serviceName,
     reason: props.reason,
     inviteLink: props.inviteLink,
-    isPrivate: props.isPrivate
+    isPrivate: props.isPrivate,
   }
 }
 
@@ -127,9 +127,9 @@ class Tracker extends Component {
       componentAtTop: {
         title: 'Tracker',
         props: {
-          username: currentPath.get('username')
-        }
-      }
+          username: currentPath.get('username'),
+        },
+      },
     }
   }
 }
@@ -140,7 +140,7 @@ export default connect(
     nonUser: state.tracker.trackers[ownProps.username] && state.tracker.trackers[ownProps.username].type === 'nonUser',
     loggedIn: state.config && state.config.status && state.config.status.loggedIn,
     ...state.tracker.trackers[ownProps.username],
-    ...ownProps
+    ...ownProps,
   }),
   dispatch => {
     return bindActionCreators(trackerActions, dispatch)
@@ -152,10 +152,10 @@ export function selector (username: string): (store: Object) => ?Object {
       return {
         tracker: {
           trackers: {
-            [username]: store.tracker.trackers[username]
-          }
+            [username]: store.tracker.trackers[username],
+          },
         },
-        config: store.config
+        config: store.config,
       }
     }
 

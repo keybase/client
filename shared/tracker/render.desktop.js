@@ -54,7 +54,7 @@ Render.propTypes = {
   headerProps: React.PropTypes.any,
   bioProps: React.PropTypes.any,
   proofsProps: React.PropTypes.any,
-  actionProps: React.PropTypes.any
+  actionProps: React.PropTypes.any,
 }
 
 const styles = {
@@ -62,19 +62,19 @@ const styles = {
     ...commonStyles.flexBoxColumn,
     width: 320,
     height: 470,
-    position: 'relative'
+    position: 'relative',
   },
   content: {
     overflowY: 'auto',
     overflowX: 'hidden',
     // This value is added to the footer height to set the actual paddingBottom
     paddingBottom: 12,
-    zIndex: 1
+    zIndex: 1,
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
-    right: 0
-  }
+    right: 0,
+  },
 }

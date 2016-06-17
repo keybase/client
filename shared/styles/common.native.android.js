@@ -5,7 +5,7 @@ import {StyleSheet} from 'react-native'
 
 export default {
   navBarHeight: 60,
-  tabBarHeight: 48
+  tabBarHeight: 48,
 }
 
 export const styles = {

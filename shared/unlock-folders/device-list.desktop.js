@@ -16,7 +16,7 @@ class DeviceRow extends Component<void, {device: Device}, void> {
     const icon = {
       'desktop': 'icon-computer-bw-32',
       'backup': 'icon-paper-key-32',
-      'mobile': 'icon-phone-bw-32'
+      'mobile': 'icon-phone-bw-32',
     }[this.props.device.type]
 
     return (
@@ -54,7 +54,7 @@ const styles = {
     marginBottom: 8,
     paddingLeft: 55,
     paddingRight: 55,
-    textAlign: 'center'
+    textAlign: 'center',
   },
 
   devicesContainer: {
@@ -64,25 +64,25 @@ const styles = {
     backgroundColor: globalColors.lightGrey,
     alignSelf: 'center',
     paddingTop: 15,
-    paddingBottom: 15
+    paddingBottom: 15,
   },
 
   buttonsContainer: {
     ...globalStyles.flexBoxRow,
     marginTop: 15,
     marginRight: 30,
-    alignSelf: 'flex-end'
+    alignSelf: 'flex-end',
   },
 
   enterPaperKey: {
     height: 32,
     width: 236,
-    marginRight: 7
+    marginRight: 7,
   },
 
   accessFolders: {
-    marginRight: 0
-  }
+    marginRight: 0,
+  },
 }
 
 const deviceRowStyles = {
@@ -90,6 +90,6 @@ const deviceRowStyles = {
     width: 24,
     marginLeft: 33,
     display: 'flex',
-    justifyContent: 'center'
-  }
+    justifyContent: 'center',
+  },
 }

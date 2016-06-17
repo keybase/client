@@ -66,7 +66,7 @@ const styleBadgeOuter = {
   borderRadius: 10,
   position: 'absolute',
   top: 10,
-  left: 40
+  left: 40,
 }
 
 const styleBadge = {
@@ -77,7 +77,7 @@ const styleBadge = {
   paddingLeft: 2,
   paddingRight: 2,
   borderRadius: 10,
-  flex: 0
+  flex: 0,
 }
 
 class TabBar extends Component {
@@ -116,13 +116,13 @@ class TabBar extends Component {
 }
 
 const stylesContainer = {
-  ...globalStyles.flexBoxColumn
+  ...globalStyles.flexBoxColumn,
 }
 
 const stylesTab = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  justifyContent: 'flex-end'
+  justifyContent: 'flex-end',
 }
 
 const stylesTabBarButtonIcon = {
@@ -130,27 +130,27 @@ const stylesTabBarButtonIcon = {
   justifyContent: 'center',
   alignItems: 'center',
   paddingRight: 22,
-  paddingLeft: 22
+  paddingLeft: 22,
 }
 
 const stylesLabel = {
   fontSize: 14,
   lineHeight: 20,
   marginTop: 5,
-  marginBottom: 5
+  marginBottom: 5,
 }
 
 const stylesSelectedUnderline = {
   height: 3,
   backgroundColor: globalColors.blue,
-  alignSelf: 'stretch'
+  alignSelf: 'stretch',
 }
 
 const stylesUnselectedUnderline = {
   height: 2,
   marginTop: 1,
   backgroundColor: globalColors.black_10,
-  alignSelf: 'stretch'
+  alignSelf: 'stretch',
 }
 
 export default TabBar

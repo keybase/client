@@ -17,14 +17,14 @@ const baseMock = {
   textEntered: () => console.log('textEntered'),
   onChangeText: () => console.log('onChangeText'),
   onBack: () => console.log('onBack'),
-  enterText: 'Foo Enter Text'
+  enterText: 'Foo Enter Text',
 }
 
 const dumbComponentMap: DumbComponentMap<Render> = {
   component: Render,
   mocks: {
-    'Normal': baseMock
-  }
+    'Normal': baseMock,
+  },
 }
 
 export default dumbComponentMap

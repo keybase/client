@@ -35,19 +35,19 @@ const Render = ({onBack, onSubmit, onChangePaperKey, paperKey, waitingForRespons
 const styles = {
   container: {
     flex: 1,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   header: {
-    marginTop: 46
+    marginTop: 46,
   },
   icon: {
     marginTop: 45,
-    marginBottom: 65
+    marginBottom: 65,
   },
   input: {
     alignSelf: 'stretch',
-    marginBottom: 55
-  }
+    marginBottom: 55,
+  },
 }
 
 export default Render

@@ -48,11 +48,11 @@ const styles = {
   container: {
     position: 'relative',
     height: 300,
-    width: 500
+    width: 500,
   },
 
   header: {
     position: 'absolute',
-    width: '100%'
-  }
+    width: '100%',
+  },
 }

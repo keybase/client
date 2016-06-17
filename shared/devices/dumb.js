@@ -11,7 +11,7 @@ const dev1: Device = {
   provisioner: null,
   provisionedAt: 1444423192000,
   revokedAt: null,
-  lastUsed: 1444423192001
+  lastUsed: 1444423192001,
 }
 
 const dev2: Device = {
@@ -23,7 +23,7 @@ const dev2: Device = {
   provisioner: null,
   provisionedAt: 1444423193000,
   revokedAt: null,
-  lastUsed: 1444423193001
+  lastUsed: 1444423193001,
 }
 
 const dev3: Device = {
@@ -35,41 +35,41 @@ const dev3: Device = {
   provisioner: null,
   provisionedAt: 1450305567000,
   revokedAt: null,
-  lastUsed: 1450305567000
+  lastUsed: 1450305567000,
 }
 
 const rev1: Device = {
   ...dev1,
   name: 'Paper Key (revo ked...)',
-  revokedAt: 1444423192000
+  revokedAt: 1444423192000,
 }
 
 const rev2: Device = {
   ...dev2,
   name: 'My Revoked Desktop',
   currentDevice: false,
-  revokedAt: 1444423193000
+  revokedAt: 1444423193000,
 }
 
 const rev3: Device = {
   ...dev3,
   name: 'My Revoked Phone',
-  revokedAt: 1444423193000
+  revokedAt: 1444423193000,
 }
 
 const devices: Array<Device> = [
-  dev1, dev2, dev3
+  dev1, dev2, dev3,
 ]
 
 const revokedDevices: Array<Device> = [
-  rev1, rev2, rev3
+  rev1, rev2, rev3,
 ]
 
 export default {
   'Devices List': {
     component: Devices,
     mocks: {
-      'Devices': {devices, revokedDevices}
-    }
-  }
+      'Devices': {devices, revokedDevices},
+    },
+  },
 }

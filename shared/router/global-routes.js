@@ -7,5 +7,5 @@ import Profile from '../profile'
 
 export default {
   search: Search,
-  profile: Profile
+  profile: Profile,
 }

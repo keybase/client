@@ -44,7 +44,7 @@ const initialState: LoginState = {
     codeCountDown: 0,
     textCode: null,
     qrScanned: null,
-    qrCode: null
+    qrCode: null,
   },
   registerUserPassError: null,
   registerUserPassLoading: false,
@@ -55,12 +55,12 @@ const initialState: LoginState = {
   deviceName: {
     onSubmit: () => {},
     existingDevices: [],
-    deviceName: ''
+    deviceName: '',
   },
   configuredAccounts: null,
   waitingForResponse: false,
   loginError: null,
-  justRevokedSelf: null
+  justRevokedSelf: null,
 }
 
 export default function (state: LoginState = initialState, action: any): LoginState {
@@ -97,21 +97,21 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       toMerge = {
         forgotPasswordEmailAddress: action.error ? null : action.payload,
         forgotPasswordSuccess: false,
-        forgotPasswordError: action.error ? action.payload : null
+        forgotPasswordError: action.error ? action.payload : null,
       }
       break
     case Constants.actionSetForgotPasswordSubmitting:
       toMerge = {
         forgotPasswordSubmitting: true,
         forgotPasswordSuccess: false,
-        forgotPasswordError: null
+        forgotPasswordError: null,
       }
       break
     case Constants.actionForgotPasswordDone:
       toMerge = {
         forgotPasswordSubmitting: false,
         forgotPasswordSuccess: !action.error,
-        forgotPasswordError: action.error
+        forgotPasswordError: action.error,
       }
       break
     case Constants.cameraBrokenMode:
@@ -123,8 +123,8 @@ export default function (state: LoginState = initialState, action: any): LoginSt
           codeCountDown: 0,
           textCode: null,
           qrScanned: null,
-          qrCode: null
-        }
+          qrCode: null,
+        },
       }
       break
     }

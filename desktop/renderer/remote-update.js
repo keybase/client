@@ -62,7 +62,7 @@ class RemoteUpdate extends Component<void, Props, void> {
       onSkip: () => this.props.onSkip(),
       onSnooze: () => this.props.onSnooze(),
       onUpdate: () => this.props.onUpdate(),
-      setAlwaysUpdate: alwaysUpdate => this.props.setAlwaysUpdate(alwaysUpdate)
+      setAlwaysUpdate: alwaysUpdate => this.props.setAlwaysUpdate(alwaysUpdate),
     }
     return (
       <RemoteComponent
@@ -88,7 +88,7 @@ class RemoteUpdate extends Component<void, Props, void> {
     let windowOpts = {width: 500, height: 345}
     let options = {
       onCancel: () => this.props.onPauseCancel(),
-      onForce: () => this.props.onForce()
+      onForce: () => this.props.onForce(),
     }
 
     return (
@@ -108,7 +108,7 @@ class RemoteUpdate extends Component<void, Props, void> {
 export default connect(
   state => ({
     updateConfirmState: state.updateConfirm,
-    updatePausedState: state.updatePaused
+    updatePausedState: state.updatePaused,
   }),
   dispatch => bindActionCreators({
     registerUpdateListener,
@@ -118,6 +118,6 @@ export default connect(
     onUpdate,
     setAlwaysUpdate,
     onForce,
-    onPauseCancel
+    onPauseCancel,
   }, dispatch)
 )(RemoteUpdate)

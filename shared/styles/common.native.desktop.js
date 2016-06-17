@@ -1,10 +1,10 @@
 export default {
   navBarHeight: 0,
-  tabBarHeight: 0
+  tabBarHeight: 0,
 }
 
 const flexBox = {
-  display: 'flex'
+  display: 'flex',
 }
 
 const button = {
@@ -15,56 +15,56 @@ const button = {
   height: 32,
   lineHeight: '32px',
   textTransform: 'none',
-  width: 123
+  width: 123,
 }
 
 export const styles = {
   clickable: {
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   windowDragging: { // allow frameless window dragging
-    WebkitAppRegion: 'drag'
+    WebkitAppRegion: 'drag',
   },
   windowDraggingClickable: { // allow things in frameless regions to be clicked and not dragged
-    WebkitAppRegion: 'no-drag'
+    WebkitAppRegion: 'no-drag',
   },
   button,
   primaryButton: {
     ...button,
-    backgroundColor: '#86e2f9'
+    backgroundColor: '#86e2f9',
   },
   secondaryButton: {
     ...button,
     backgroundColor: '#ffa9a9',
-    marginRight: 7
+    marginRight: 7,
   },
   noWrapCheckboxLabel: {
-    width: 'initial'
+    width: 'initial',
   },
   noSelect: {
-    WebkitUserSelect: 'none'
+    WebkitUserSelect: 'none',
   },
   flexBoxColumn: {
     ...flexBox,
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   flexBoxRow: {
     ...flexBox,
-    flexDirection: 'row'
+    flexDirection: 'row',
   },
   vr: {
     maxWidth: 1,
     minWidth: 1,
-    backgroundColor: 'rgba(0,0,0,0.1)'
+    backgroundColor: 'rgba(0,0,0,0.1)',
   },
   hr: {
     minHeight: 1,
     maxHeight: 1,
-    backgroundColor: 'rgba(0,0,0,0.1)'
+    backgroundColor: 'rgba(0,0,0,0.1)',
   },
   loadingContainer: {
-    backgroundColor: '#F7F7F7'
-  }
+    backgroundColor: '#F7F7F7',
+  },
 }
 
 export function sheet (obj) {

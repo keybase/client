@@ -8,7 +8,7 @@ class DumbSheet extends Component {
 
   static parseRoute () {
     return {
-      componentAtTop: {title: 'DumbSheet'}
+      componentAtTop: {title: 'DumbSheet'},
     }
   }
 }

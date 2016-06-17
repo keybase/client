@@ -55,7 +55,7 @@ const combinedReducer = combineReducers({
   updatePaused,
   signup,
   unlockFolders,
-  notifications
+  notifications,
 })
 
 let reducer

@@ -8,7 +8,7 @@ const devices = [
   {type: 'mobile', name: 'my phone', deviceID: 'deadbeef'},
   {type: 'desktop', name: 'my computer', deviceID: 'deadbeee'},
   {type: 'desktop', name: 'my laptop', deviceID: 'deadbeea'},
-  {type: 'backup', name: 'my paperkey', deviceID: 'deadbee0'}
+  {type: 'backup', name: 'my paperkey', deviceID: 'deadbee0'},
 ]
 
   // phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
@@ -23,46 +23,46 @@ const common = {
   onContinueFromPaperKey: (paperkey: HiddenString) => { console.log('onContinueFromPaperKey') }, // eslint-disable-line arrow-parens
   paperkeyError: null,
   waiting: false,
-  onFinish: () => { console.log('onFinish') }
+  onFinish: () => { console.log('onFinish') },
 }
 
 const unlockFolderMap: DumbComponentMap<UnlockFolders> = {
   component: UnlockFolders,
   mocks: {
     'Normal': {
-      ...common
+      ...common,
     },
     'No paperkeys': {
       ...common,
-      paperKeysHidden: true
+      paperKeysHidden: true,
     },
     'Single': {
       ...common,
-      devices: [devices[0]]
+      devices: [devices[0]],
     },
     'Paperkey input': {
       ...common,
-      phase: 'paperKeyInput'
+      phase: 'paperKeyInput',
     },
     'Paperkey error': {
       ...common,
       phase: 'paperKeyInput',
-      paperkeyError: 'Invalid paperkey'
+      paperkeyError: 'Invalid paperkey',
     },
     'Paperkey error waiting': {
       ...common,
       phase: 'paperKeyInput',
       paperkeyError: 'Invalid paperkey',
-      waiting: true
+      waiting: true,
     },
     'Success': {
       ...common,
       phase: 'success',
-      waiting: false
-    }
-  }
+      waiting: false,
+    },
+  },
 }
 
 export default {
-  'unlock folders': unlockFolderMap
+  'unlock folders': unlockFolderMap,
 }

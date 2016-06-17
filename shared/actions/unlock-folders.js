@@ -29,7 +29,7 @@ export function checkPaperKey (paperKey: HiddenString): TypedAsyncAction<CheckPa
     const params: loginPaperKeySubmitRpc = {
       method: 'login.paperKeySubmit',
       param: {
-        paperPhrase: paperKey.stringValue()
+        paperPhrase: paperKey.stringValue(),
       },
       incomingCallMap: {},
       waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
@@ -39,7 +39,7 @@ export function checkPaperKey (paperKey: HiddenString): TypedAsyncAction<CheckPa
         } else {
           dispatch({type: Constants.checkPaperKey, payload: {success: true}})
         }
-      }
+      },
     }
 
     engine.rpc(params)
@@ -70,7 +70,7 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
           } else {
             console.log('Registered rekey ui')
           }
-        }
+        },
       }
 
       engine.rpc(params)
@@ -107,7 +107,7 @@ function rekeyListenersCreator (dispatch: Dispatch): incomingCallMapType {
       console.log('Asked for rekey')
       dispatch(({type: Constants.newRekeyPopup, payload: {devices: problemSetDevices.devices, sessionID}}: NewRekeyPopupAction))
       uglySessionIDResponseMapper['refresh'] = response
-    }
+    },
   }
 }
 

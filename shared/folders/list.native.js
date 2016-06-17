@@ -44,7 +44,7 @@ class Render extends Component<void, Props, State> {
     super(props)
 
     this.state = {
-      showIgnored: false
+      showIgnored: false,
     }
   }
 
@@ -70,81 +70,81 @@ class Render extends Component<void, Props, State> {
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1
+  flex: 1,
 }
 
 const stylesIgnoreContainer = {
-  ...globalStyles.flexBoxColumn
+  ...globalStyles.flexBoxColumn,
 }
 
 const stylesIgnoreDesc = {
   ...globalStyles.flexBoxColumn,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 const stylesIgnoreDivider = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   padding: 7,
-  height: 32
+  height: 32,
 }
 
 const stylesDividerText = {
   ...globalStyles.clickable,
-  marginRight: 7
+  marginRight: 7,
 }
 
 const stylesDividerBodyText = {
   width: 360,
   padding: 7,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 const stylesIgnoreCaret = {
   color: globalColors.white_75,
   width: 8,
-  height: 8
+  height: 8,
 }
 
 const stylesPrivate = {
   topBox: {
     ...stylesIgnoreDivider,
-    backgroundColor: globalColors.darkBlue3
+    backgroundColor: globalColors.darkBlue3,
   },
   dividerText: {
     ...stylesDividerText,
-    color: globalColors.white_75
+    color: globalColors.white_75,
   },
   dividerBodyText: {
     ...stylesDividerBodyText,
-    color: globalColors.white_40
+    color: globalColors.white_40,
   },
   bottomBox: {
     ...stylesIgnoreDesc,
-    backgroundColor: globalColors.darkBlue3
+    backgroundColor: globalColors.darkBlue3,
   },
   iconCaretRight: 'caret-right-white',
-  iconCaretDown: 'caret-down-white'
+  iconCaretDown: 'caret-down-white',
 }
 
 const stylesPublic = {
   topBox: {
     ...stylesIgnoreDivider,
-    backgroundColor: globalColors.lightGrey
+    backgroundColor: globalColors.lightGrey,
   },
   dividerText: {
     ...stylesDividerText,
-    color: globalColors.black_40
+    color: globalColors.black_40,
   },
   dividerBodyText: {
     ...stylesDividerBodyText,
-    color: globalColors.black_40
+    color: globalColors.black_40,
   },
   bottomBox: {
     ...stylesIgnoreDesc,
-    backgroundColor: globalColors.lightGrey
+    backgroundColor: globalColors.lightGrey,
   },
   iconCaretRight: 'caret-right-black',
-  iconCaretDown: 'caret-down-black'
+  iconCaretDown: 'caret-down-black',
 }
 export default Render

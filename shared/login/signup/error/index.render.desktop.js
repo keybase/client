@@ -22,7 +22,7 @@ class Render extends Component<void, Props, void> {
 const container = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  flex: 1
+  flex: 1,
 }
 
 const topMargin = {marginTop: 30}

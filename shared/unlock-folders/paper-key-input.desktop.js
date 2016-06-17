@@ -45,22 +45,22 @@ export default class PaperKeyInput extends Component<void, Props, State> {
 }
 
 const headerTextStyle = {
-  marginTop: 30
+  marginTop: 30,
 }
 
 const paperKeyIconStyle = {
-  marginTop: 17
+  marginTop: 17,
 }
 
 const paperKeyInputStyle = {
   marginTop: 18,
-  width: 440
+  width: 440,
 }
 
 const backStyle = {
   position: 'absolute',
   top: 30,
-  left: 30
+  left: 30,
 }
 
 const continueStyle = {
@@ -68,5 +68,5 @@ const continueStyle = {
   marginTop: 38,
   height: 32,
   width: 116,
-  alignSelf: 'flex-end'
+  alignSelf: 'flex-end',
 }

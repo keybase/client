@@ -26,9 +26,9 @@ const propsNormal = {
       width: 325,
       height: 350,
       padding: 2,
-      backgroundColor: 'red'
-    }
-  }
+      backgroundColor: 'red',
+    },
+  },
 }
 
 const propsTruncated = {
@@ -39,9 +39,9 @@ const propsTruncated = {
       width: 325,
       height: 200,
       padding: 2,
-      backgroundColor: 'red'
-    }
-  }
+      backgroundColor: 'red',
+    },
+  },
 }
 
 const propsMenuShowing = {...propsNormal, openWithMenuShowing: true}
@@ -57,11 +57,11 @@ const dumbComponentMap: DumbComponentMap<Menubar> = {
     'Public: Menu Showing': {...propsMenuShowing, openToPrivate: false},
     'LoggedOut': {
       ...propsNormal,
-      loggedIn: false
-    }
-  }
+      loggedIn: false,
+    },
+  },
 }
 
 export default {
-  'Menubar': dumbComponentMap
+  'Menubar': dumbComponentMap,
 }

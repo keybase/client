@@ -17,35 +17,35 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
   const errors = {
     [kbfsCommon.FSErrorType.accessDenied]: {
       title: 'Keybase: Access denied',
-      body: `${user} does not have ${notification.params.mode} access to ${tlf}`
+      body: `${user} does not have ${notification.params.mode} access to ${tlf}`,
     },
     [kbfsCommon.FSErrorType.userNotFound]: {
       title: 'Keybase: User not found',
-      body: `${notification.params.username} is not a Keybase user`
+      body: `${notification.params.username} is not a Keybase user`,
     },
     [kbfsCommon.FSErrorType.revokedDataDetected]: {
       title: 'Keybase: Possibly revoked data detected',
-      body: `${tlf} was modified by a revoked or bad device. Use 'keybase log send' to file an issue with the Keybase admins.`
+      body: `${tlf} was modified by a revoked or bad device. Use 'keybase log send' to file an issue with the Keybase admins.`,
     },
     [kbfsCommon.FSErrorType.notLoggedIn]: {
       title: `Keybase: Permission denied in ${tlf}`,
-      body: "You are not logged into Keybase. Try 'keybase login'."
+      body: "You are not logged into Keybase. Try 'keybase login'.",
     },
     [kbfsCommon.FSErrorType.timeout]: {
       title: `Keybase: ${_.capitalize(notification.params.mode)} timeout in ${tlf}`,
-      body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`
+      body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
     },
     [kbfsCommon.FSErrorType.rekeyNeeded]: notification.params.rekeyself ? {
       title: 'Keybase: Files need to be rekeyed',
-      body: `Please open one of your other computers to unlock ${tlf}`
+      body: `Please open one of your other computers to unlock ${tlf}`,
     } : {
       title: 'Keybase: Friends needed',
-      body: `Please ask another member of ${tlf} to open Keybase on one of their computers to unlock it for you.`
+      body: `Please ask another member of ${tlf} to open Keybase on one of their computers to unlock it for you.`,
     },
     [kbfsCommon.FSErrorType.badFolder]: {
       title: 'Keybase: Bad folder',
-      body: `${notification.params.tlf} is not a Keybase folder. All folders begin with /keybase/private or /keybase/public.`
-    }
+      body: `${notification.params.tlf} is not a Keybase folder. All folders begin with /keybase/private or /keybase/public.`,
+    },
   }
 
   if (notification.errorType in errors) {
@@ -54,7 +54,7 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
 
   return ({
     title: 'Keybase: KBFS error',
-    body: `${notification.status}`
+    body: `${notification.status}`,
   })
 
   // This code came from the kbfs team but this isn't plumbed through the protocol. Leaving this for now
@@ -93,7 +93,7 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
     [kbfsCommon.FSNotificationType.decrypting]: 'Decrypting, verifying, and downloading',
     [kbfsCommon.FSNotificationType.signing]: 'Signing and uploading',
     [kbfsCommon.FSNotificationType.verifying]: 'Verifying and downloading',
-    [kbfsCommon.FSNotificationType.rekeying]: 'Rekeying'
+    [kbfsCommon.FSNotificationType.rekeying]: 'Rekeying',
   }[notification.notificationType]
 
   if (action === undefined) {
@@ -104,7 +104,7 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
   const state = {
     [kbfsCommon.FSStatusCode.start]: 'starting',
     [kbfsCommon.FSStatusCode.finish]: 'finished',
-    [kbfsCommon.FSStatusCode.error]: 'errored'
+    [kbfsCommon.FSStatusCode.error]: 'errored',
   }[notification.statusCode]
 
   // KBFS fires a notification when it changes state between connected

@@ -50,45 +50,45 @@ export default class Render extends Component<void, Props, void> {
 
 const filenameStyleThemed = {
   'public': {
-    color: globalColors.yellowGreen2
+    color: globalColors.yellowGreen2,
   },
   'private': {
-    color: globalColors.white
-  }
+    color: globalColors.white,
+  },
 }
 
 const fileContainerStyleThemed = {
   'public': {
-    backgroundColor: globalColors.white
+    backgroundColor: globalColors.white,
   },
   'private': {
-    backgroundColor: globalColors.darkBlue
-  }
+    backgroundColor: globalColors.darkBlue,
+  },
 }
 
 const pathStyleThemed = {
   'public': {
-    color: globalColors.black_60
+    color: globalColors.black_60,
   },
   'private': {
-    color: globalColors.white_75
-  }
+    color: globalColors.white_75,
+  },
 }
 
 const modifiedByStyleThemed = {
   'public': {
-    color: globalColors.black_40
+    color: globalColors.black_40,
   },
   'private': {
-    color: globalColors.white_40
-  }
+    color: globalColors.white_40,
+  },
 }
 
 const modifyingUserStyleThemed = {
   'public': {
-    color: globalColors.black_40
+    color: globalColors.black_40,
   },
   'private': {
-    color: globalColors.white_75
-  }
+    color: globalColors.white_75,
+  },
 }

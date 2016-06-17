@@ -44,13 +44,13 @@ export default class Avatar extends Component {
           <div
             style={{...avatarStyle,
               backgroundImage: `url('${noAvatar}')`,
-              backgroundSize: 'cover'
+              backgroundSize: 'cover',
             }} />}
         <img
           src={url}
           style={{...avatarStyle,
             display: this.state.avatarLoaded ? 'block' : 'none',
-            backgroundColor: globalColors.white
+            backgroundColor: globalColors.white,
           }}
           onLoad={() => this.setState({avatarLoaded: true})} />
         <div>
@@ -72,19 +72,19 @@ const followBadgeCommon = (size, color) => ({
   height: Math.round(size / 60 * 12),
   background: color,
   borderRadius: '50%',
-  border: `${Math.round(size / 60 * 2)}px solid ${globalColors.white}`
+  border: `${Math.round(size / 60 * 2)}px solid ${globalColors.white}`,
 })
 
 const followTop = (size, color) => ({
   ...followBadgeCommon(size, color),
   bottom: Math.round(size / 60 * 5),
-  right: 0
+  right: 0,
 })
 
 const followBottom = (size, color) => ({
   ...followBadgeCommon(size, color),
   bottom: 0,
-  right: Math.round(size / 60 * 5)
+  right: Math.round(size / 60 * 5),
 })
 
 const followInner = (size, color) => {
@@ -96,7 +96,7 @@ const followInner = (size, color) => {
     top: padding,
     right: padding,
     bottom: padding,
-    left: padding
+    left: padding,
   }
 }
 

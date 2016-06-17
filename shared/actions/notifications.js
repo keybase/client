@@ -25,7 +25,7 @@ export function listenForNotifications (): (dispatch: Dispatch) => void {
     setNotifications({
       session: true,
       users: true,
-      kbfs: true
+      kbfs: true,
     })
 
     const listeners: incomingCallMapType = ListenerCreator(dispatch, getState, NotifyPopup)
@@ -37,6 +37,6 @@ export function listenForNotifications (): (dispatch: Dispatch) => void {
 export function badgeApp (key: NotificationKeys, on: boolean): NotificationAction {
   return {
     type: Constants.badgeApp,
-    payload: {key, on}
+    payload: {key, on},
   }
 }

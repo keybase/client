@@ -7,7 +7,7 @@ import {OS_IOS, OS_ANDROID} from '../constants/platform.shared'
 export {default as globalColors} from './style-guide-colors'
 
 const fontCommon = {
-  letterSpacing: 0.3
+  letterSpacing: 0.3,
 }
 
 const font = {
@@ -15,80 +15,80 @@ const font = {
     fontRegular: {
       ...fontCommon,
       fontFamily: 'Lato',
-      fontWeight: '400'
+      fontWeight: '400',
     },
     fontSemibold: {
       ...fontCommon,
       fontFamily: 'Lato',
-      fontWeight: '600'
+      fontWeight: '600',
     },
     fontBold: {
       ...fontCommon,
       fontFamily: 'Lato',
-      fontWeight: '700'
+      fontWeight: '700',
     },
     italic: {
-      fontStyle: 'italic'
+      fontStyle: 'italic',
     },
     fontTerminal: {
       ...fontCommon,
-      fontFamily: 'Source Code Pro'
+      fontFamily: 'Source Code Pro',
     },
     fontTerminalSemibold: {
       ...fontCommon,
       fontFamily: 'Source Code Pro',
-      fontWeight: '600'
-    }
+      fontWeight: '600',
+    },
   },
   [OS_ANDROID]: {
     fontRegular: {
       ...fontCommon,
-      fontFamily: 'Lato'
+      fontFamily: 'Lato',
     },
     fontSemibold: {
       ...fontCommon,
       fontFamily: 'Lato-Semi',
-      fontWeight: 'bold'
+      fontWeight: 'bold',
     },
     fontBold: {
       ...fontCommon,
       fontFamily: 'Lato',
-      fontWeight: 'bold'
+      fontWeight: 'bold',
     },
     italic: {
       fontFamily: 'Lato-Semibold',
-      fontStyle: 'italic'
+      fontStyle: 'italic',
     },
     fontTerminal: {
       ...fontCommon,
-      fontFamily: 'SourceCodePro'
+      fontFamily: 'SourceCodePro',
     },
     fontTerminalSemibold: {
       ...fontCommon,
       fontFamily: 'SourceCodePro-Semi',
-      fontWeight: 'bold'
-    }
-  }
+      fontWeight: 'bold',
+    },
+  },
 // $FlowIssue doesn't understand computed props
 }[OS]
 
 const util = {
   flexBoxColumn: {
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   flexBoxRow: {
-    flexDirection: 'row'
+    flexDirection: 'row',
   },
   flexBoxCenter: {
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   rounded: {
-    borderRadius: 3
-  }
+    borderRadius: 3,
+  },
 }
 
 export const globalStyles = {
   ...font,
-  ...util
+  ...util,
 }

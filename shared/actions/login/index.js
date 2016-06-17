@@ -35,7 +35,7 @@ import type {
   loginLogoutRpc,
   deviceDeviceAddRpc,
   loginGetConfiguredAccountsRpc,
-  loginClearStoredSecretRpc
+  loginClearStoredSecretRpc,
 } from '../../constants/types/flow-types'
 import {overrideLoggedInTab} from '../../local-debug'
 import type {DeviceRole} from '../../constants/login'
@@ -46,14 +46,14 @@ const InputCancelError = {desc: 'Cancel Login', code: constants.StatusCode.scinp
 
 function makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
   return {
-    waitingHandler: bindActionCreators(waitingForResponse, dispatch)
+    waitingHandler: bindActionCreators(waitingForResponse, dispatch),
   }
 }
 
 function waitingForResponse (waiting: boolean) : TypedAction<'login:waitingForResponse', boolean, void> {
   return {
     type: Constants.waitingForResponse,
-    payload: waiting
+    payload: waiting,
   }
 }
 
@@ -99,7 +99,7 @@ function getAccounts (): AsyncAction {
         } else {
           dispatch({type: Constants.configuredAccounts, payload: {accounts}})
         }
-      }
+      },
     }
     engine.rpc(params)
   }
@@ -120,7 +120,7 @@ export function login (): AsyncAction {
           param: {
             deviceType,
             usernameOrEmail: usernameOrEmail,
-            clientType: Common.ClientType.gui
+            clientType: Common.ClientType.gui,
           },
           incomingCallMap: incomingMap,
           callback: (error, response) => {
@@ -128,32 +128,32 @@ export function login (): AsyncAction {
               dispatch({
                 type: Constants.loginDone,
                 error: true,
-                payload: error
+                payload: error,
               })
 
               if (!(error.raw && error.raw.code === InputCancelError.code)) {
                 dispatch(routeAppend({
                   parseRoute: {componentAtTop: {component: Error, props: {
                     error,
-                    onBack: () => dispatch(cancelLogin())
-                  }}}
+                    onBack: () => dispatch(cancelLogin()),
+                  }}},
                 }))
               }
             } else {
               dispatch({
                 type: Constants.loginDone,
                 error: false,
-                payload: undefined
+                payload: undefined,
               })
 
               dispatch(loadDevices())
               dispatch(bootstrap())
             }
-          }
+          },
         }
 
         engine.rpc(params)
-      }
+      },
     }
     // We can either be a newDevice or an existingDevice.  Here in the login
     // flow, let's set ourselves to be a newDevice.  If we were in the Devices
@@ -161,7 +161,7 @@ export function login (): AsyncAction {
     dispatch({
       type: Constants.setMyDeviceCodeState,
       payload:
-        isMobile ? Constants.codePageDeviceRoleNewPhone : Constants.codePageDeviceRoleNewComputer
+        isMobile ? Constants.codePageDeviceRoleNewPhone : Constants.codePageDeviceRoleNewComputer,
     })
     // We ask for user since the login will auto login with the last user which we don't always want
     dispatch(routeAppend({parseRoute: {componentAtTop: {component: UsernameOrEmail, props}}}))
@@ -235,16 +235,16 @@ export function submitForgotPassword () : AsyncAction {
           dispatch({
             type: Constants.actionForgotPasswordDone,
             payload: error,
-            error: true
+            error: true,
           })
         } else {
           dispatch({
             type: Constants.actionForgotPasswordDone,
             payload: undefined,
-            error: false
+            error: false,
           })
         }
-      }
+      },
     }
 
     engine.rpc(params)
@@ -260,15 +260,15 @@ export function autoLogin () : AsyncAction {
       param: {
         deviceType,
         usernameOrEmail: '',
-        clientType: login.ClientType.gui
+        clientType: login.ClientType.gui,
       },
       incomingCallMap: {
         'keybase.1.loginUi.getEmailOrUsername': (_, response) => {
           response.error({
             code: constants.StatusCode.scnoui,
-            desc: 'Attempting auto login'
+            desc: 'Attempting auto login',
           })
-        }
+        },
       },
       callback: (error, status) => {
         if (error) {
@@ -278,7 +278,7 @@ export function autoLogin () : AsyncAction {
           dispatch({type: Constants.loginDone, payload: status})
           dispatch(navBasedOnLoginState())
         }
-      }
+      },
     }
     engine.rpc(params)
   }
@@ -293,15 +293,15 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
       param: {
         deviceType,
         usernameOrEmail: user,
-        clientType: Common.ClientType.gui
+        clientType: Common.ClientType.gui,
       },
       incomingCallMap: {
         'keybase.1.secretUi.getPassphrase': ({pinentry: {type}}, response) => {
           response.result({
             passphrase,
-            storeSecret: store
+            storeSecret: store,
           })
-        }
+        },
       },
       callback: (error, status) => {
         if (error) {
@@ -311,7 +311,7 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
           dispatch({type: Constants.loginDone, payload: status})
           dispatch(navBasedOnLoginState())
         }
-      }
+      },
     }
     engine.rpc(params)
   }
@@ -330,7 +330,7 @@ export function logout () : AsyncAction {
         } else {
           dispatch(logoutDone())
         }
-      }
+      },
     }
     engine.rpc(params)
   }
@@ -357,10 +357,10 @@ export function saveInKeychainChanged (username: string, saveInKeychain: bool) :
     const params: loginClearStoredSecretRpc = {
       method: 'login.clearStoredSecret',
       param: {
-        username
+        username,
       },
       incomingCallMap: {},
-      callback: error => { error && console.log(error) }
+      callback: error => { error && console.log(error) },
     }
     engine.rpc(params)
   }
@@ -371,7 +371,7 @@ function askForCodePage (cb, onBack) : AsyncAction {
     const mapStateToProps = state => {
       const {
         mode, codeCountDown, textCode, qrCode,
-        myDeviceRole, otherDeviceRole, cameraBrokenMode
+        myDeviceRole, otherDeviceRole, cameraBrokenMode,
       } = state.login.codePage
       return {
         mode,
@@ -380,7 +380,7 @@ function askForCodePage (cb, onBack) : AsyncAction {
         qrCode,
         myDeviceRole,
         otherDeviceRole,
-        cameraBrokenMode
+        cameraBrokenMode,
       }
     }
 
@@ -391,13 +391,13 @@ function askForCodePage (cb, onBack) : AsyncAction {
       qrScanned: code => cb(code.data),
       setCameraBrokenMode: broken => dispatch(setCameraBrokenMode(broken)),
       textEntered: text => cb(text),
-      doneRegistering: () => dispatch(doneRegistering())
+      doneRegistering: () => dispatch(doneRegistering()),
     }
 
     dispatch(routeAppend({
       parseRoute: {
-        componentAtTop: {component: CodePage, props}
-      }
+        componentAtTop: {component: CodePage, props},
+      },
     }))
   }
 }
@@ -431,7 +431,7 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
     dispatch({
       type: Constants.setMyDeviceCodeState,
       payload:
-        isMobile ? Constants.codePageDeviceRoleExistingPhone : Constants.codePageDeviceRoleExistingComputer
+        isMobile ? Constants.codePageDeviceRoleExistingPhone : Constants.codePageDeviceRoleExistingComputer,
     })
 
     const onBack = response => {
@@ -446,7 +446,7 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
     incomingMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response) => {
       let deviceType = {
         [Constants.codePageDeviceRoleNewComputer]: provisionUi.DeviceType.desktop,
-        [Constants.codePageDeviceRoleNewPhone]: provisionUi.DeviceType.mobile
+        [Constants.codePageDeviceRoleNewPhone]: provisionUi.DeviceType.mobile,
       }[kind]
 
       dispatch(setCodePageOtherDeviceRole(kind))
@@ -460,7 +460,7 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
       incomingCallMap: incomingMap,
       callback: (ignoredError, response) => {
         onBack()
-      }
+      },
     }
     engine.rpc(params)
   }
@@ -498,7 +498,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
             const type: DeviceRole = devices[devices.findIndex(d => d.deviceID === deviceID)].type
             const role = ({
               mobile: Constants.codePageDeviceRoleExistingPhone,
-              desktop: Constants.codePageDeviceRoleExistingComputer
+              desktop: Constants.codePageDeviceRoleExistingComputer,
             }: {[key: DeviceType]: string})[type]
             dispatch(setCodePageOtherDeviceRole(role))
             response.result(deviceID)
@@ -522,7 +522,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
               prompt={prompt}
               onSubmit={passphrase => response.result({
                 passphrase,
-                storeSecret: false
+                storeSecret: false,
               })}
               onBack={() => onBack(response)}
               error={retryLabel}
@@ -531,7 +531,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
         default:
           response.error({
             code: constants.StatusCode.scnotfound,
-            desc: 'Unknown getPassphrase type'
+            desc: 'Unknown getPassphrase type',
           })
       }
     },
@@ -595,6 +595,6 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
     },
     'keybase.1.provisionUi.DisplaySecretExchanged': (param, response) => {
       response.result()
-    }
+    },
   }
 }

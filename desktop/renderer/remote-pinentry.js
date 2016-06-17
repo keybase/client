@@ -50,12 +50,12 @@ class RemotePinentry extends Component<void, Props, void> {
 
 export default connect(
   state => ({
-    pinentryStates: state.pinentry.pinentryStates || {}
+    pinentryStates: state.pinentry.pinentryStates || {},
   }),
   dispatch => bindActionCreators({
     registerPinentryListener,
     onCancel,
-    onSubmit
+    onSubmit,
   }, dispatch)
 )(RemotePinentry)
 

@@ -20,7 +20,7 @@ const map: DumbComponentMap = {
   ...DevicePageMap,
   ...FoldersMap,
   ...FoldersConfirmMap,
-  ...SearchMap
+  ...SearchMap,
 }
 
 export default map

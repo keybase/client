@@ -42,17 +42,17 @@ class Render extends Component<void, Props, void> {
 const stylesContainer = {
   flex: 1,
   alignItems: 'center',
-  marginTop: 40
+  marginTop: 40,
 }
 const stylesInput = {
   marginTop: 40,
-  marginBottom: 48
+  marginBottom: 48,
 }
 const stylesForgot = {
-  marginTop: 20
+  marginTop: 20,
 }
 const stylesCard = {
-  alignSelf: 'stretch'
+  alignSelf: 'stretch',
 }
 
 export default Render

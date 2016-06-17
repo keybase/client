@@ -33,7 +33,7 @@ export default connect(
   state => ({
     deviceNameError: state.signup.deviceNameError,
     deviceName: state.signup.deviceName,
-    waiting: state.signup.waiting
+    waiting: state.signup.waiting,
   }),
   dispatch => bindActionCreators(signupActions, dispatch)
 )(DeviceName)

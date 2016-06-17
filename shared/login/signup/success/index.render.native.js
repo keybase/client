@@ -25,7 +25,7 @@ export default class Render extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     this.state = {
-      checked: false
+      checked: false,
     }
   }
 
@@ -61,14 +61,14 @@ export default class Render extends Component<void, Props, State> {
 
 const confirmCheckboxStyle = {
   ...globalStyles.flexBoxRow,
-  alignSelf: 'center'
+  alignSelf: 'center',
 }
 
 const buttonStyle = {
 }
 
 const textCenter = {
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 const paperKeyContainerStyle = {
@@ -81,15 +81,15 @@ const paperKeyContainerStyle = {
   backgroundColor: globalColors.white,
   borderStyle: 'solid',
   borderWidth: 4,
-  borderColor: globalColors.darkBlue
+  borderColor: globalColors.darkBlue,
 }
 
 const paperkeyStyle = {
-  ...specialStyles.paperKey
+  ...specialStyles.paperKey,
 }
 
 const paperCornerStyle = {
   position: 'absolute',
   right: 0,
-  top: -4
+  top: -4,
 }

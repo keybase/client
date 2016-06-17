@@ -33,8 +33,8 @@ class Devices extends Component {
         genPaperKey: GenPaperKey,
         regExistingDevice: ExistingDevice,
         showDevice: ShowDevice,
-        removeDevice: RemoveDevice
-      }
+        removeDevice: RemoveDevice,
+      },
     }
   }
 
@@ -68,6 +68,6 @@ export default connect(
       showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),
       addNewPhone: () => dispatch(addNewPhone()),
       addNewComputer: () => dispatch(addNewComputer()),
-      addNewPaperKey: () => dispatch(addNewPaperKey())
+      addNewPaperKey: () => dispatch(addNewPaperKey()),
     }
   })(Devices)

@@ -32,15 +32,15 @@ export default class BackButton extends Component {
 
 BackButton.propTypes = {
   onClick: React.PropTypes.func.isRequired,
-  style: React.PropTypes.object
+  style: React.PropTypes.object,
 }
 
 export const styles = {
   container: {
     ...globalStyles.flexBoxRow,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   icon: {
-    marginRight: 8
-  }
+    marginRight: 8,
+  },
 }

@@ -68,7 +68,7 @@ const logFileWriter = t => fileWritable && fileWritable.write(t)
 const output = {
   error: tee(stdErrWriter, logFileWriter),
   log: tee(stdOutWriter, logFileWriter),
-  warn: tee(stdOutWriter, logFileWriter)
+  warn: tee(stdOutWriter, logFileWriter),
 }
 
 export default function pipeLogs () {

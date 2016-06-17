@@ -173,7 +173,7 @@ export default connect(
   state => ({
     username: state.config && state.config.username,
     loggedIn: state.config && state.config.status && state.config.status.loggedIn,
-    folderProps: state.favorite && state.favorite.folders
+    folderProps: state.favorite && state.favorite.folders,
   }),
   dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab}, dispatch)
 )(Menubar)
@@ -182,7 +182,7 @@ export function selector (): (store: Object) => Object {
   return store => {
     return {
       config: store.config,
-      favorite: store.favorite
+      favorite: store.favorite,
     }
   }
 }

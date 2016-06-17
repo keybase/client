@@ -57,7 +57,7 @@ const initialProofState = checking
 const initialState: State = {
   serverStarted: false,
   timerActive: 0,
-  trackers: {}
+  trackers: {},
 }
 
 function initialTrackerState (username: string): TrackerState {
@@ -85,8 +85,8 @@ function initialTrackerState (username: string): TrackerState {
       followsYou: false,
       bio: '',
       avatar: null,
-      location: '' // TODO: get this information
-    }
+      location: '', // TODO: get this information
+    },
   }
 }
 
@@ -98,7 +98,7 @@ function initialNonUserState (assertion: string): NonUserState {
     name: assertion,
     reason: '',
     isPrivate: false,
-    inviteLink: null
+    inviteLink: null,
   }
 }
 
@@ -117,13 +117,13 @@ function updateNonUserState (state: NonUserState, action: NonUserActions): NonUs
         serviceName: action.payload.socialAssertion.service,
         reason: `You opened ${action.payload.folderName}`,
         isPrivate: action.payload.isPrivate,
-        inviteLink: action.payload.throttled ? null : action.payload.inviteLink
+        inviteLink: action.payload.throttled ? null : action.payload.inviteLink,
       }
     case Constants.onClose:
       return {
         ...state,
         closed: true,
-        hidden: true
+        hidden: true,
       }
     default:
       return state
@@ -136,12 +136,12 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       // In case the reason is null, let's use our existing reason
       return {
         ...state,
-        reason: action.payload && action.payload.reason || state.reason
+        reason: action.payload && action.payload.reason || state.reason,
       }
     case Constants.updateTrackToken:
       return {
         ...state,
-        trackToken: action.payload && action.payload.trackToken
+        trackToken: action.payload && action.payload.trackToken,
       }
     case Constants.userUpdated:
       if (state.lastAction) {
@@ -150,7 +150,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         return {
           ...state,
           closed: true,
-          hidden: false
+          hidden: false,
         }
       }
     case Constants.onClose:
@@ -160,46 +160,46 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         hidden: false,
         lastAction: null,
         shouldFollow: false, // don't follow if they close x out the window
-        needTrackTokenDismiss: !state.trackToken // did we have a track token at this time?
+        needTrackTokenDismiss: !state.trackToken, // did we have a track token at this time?
       }
     case Constants.setNeedTrackTokenDismiss:
       return {
         ...state,
-        needTrackTokenDismiss: action.payload.needTrackTokenDismiss
+        needTrackTokenDismiss: action.payload.needTrackTokenDismiss,
       }
     case Constants.onWaiting:
       return {
         ...state,
-        waiting: action.payload.waiting
+        waiting: action.payload.waiting,
       }
     case Constants.onFollow:
       return {
         ...state,
         lastAction: 'followed',
-        reason: `You have followed ${state.username}.`
+        reason: `You have followed ${state.username}.`,
       }
     case Constants.onRefollow:
       return {
         ...state,
         lastAction: 'refollowed',
-        reason: `You have re-followed ${state.username}.`
+        reason: `You have re-followed ${state.username}.`,
       }
     case Constants.onUnfollow:
       return {
         ...state,
         lastAction: 'unfollowed',
-        reason: `You have unfollowed ${state.username}.`
+        reason: `You have unfollowed ${state.username}.`,
       }
     case Constants.onError:
       return {
         ...state,
         lastAction: 'error',
-        reason: 'There was an error updating your follow status.'
+        reason: 'There was an error updating your follow status.',
       }
     case Constants.updateEldestKidChanged: {
       return {
         ...state,
-        eldestKidChanged: true
+        eldestKidChanged: true,
       }
     }
     case Constants.updateProofState:
@@ -221,7 +221,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         ...state,
         shouldFollow: deriveShouldFollow(allOk),
         trackerState: deriveTrackerState(allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs, state.eldestKidChanged),
-        trackerMessage: deriveTrackerMessage(state.username, allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs)
+        trackerMessage: deriveTrackerMessage(state.username, allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs),
       }
 
     case Constants.setProofs:
@@ -234,8 +234,8 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         ...state,
         proofs: [
           ...(identity.revokedDetails || []).map(rv => revokedProofToProof(rv)),
-          ...identity.proofs.map(rp => remoteProofToProof(rp.proof))
-        ]
+          ...identity.proofs.map(rp => remoteProofToProof(rp.proof)),
+        ],
       }
 
     case Constants.updateProof:
@@ -247,7 +247,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       const lcr: LinkCheckResult = action.payload.linkCheckResult
       return {
         ...state,
-        proofs: updateProof(state.proofs, rp, lcr)
+        proofs: updateProof(state.proofs, rp, lcr),
       }
 
     case Constants.updateUserInfo:
@@ -256,33 +256,33 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       }
       return {
         ...state,
-        userInfo: action.payload.userInfo
+        userInfo: action.payload.userInfo,
       }
 
     case Constants.markActiveIdentifyUi:
       const serverActive = action.payload && !!action.payload.active || false
       return {
         ...state,
-        serverActive
+        serverActive,
       }
 
     case Constants.reportLastTrack:
       return {
         ...state,
-        lastTrack: action.payload && action.payload.track
+        lastTrack: action.payload && action.payload.track,
       }
 
     case Constants.showTracker:
       return {
         ...state,
         closed: false,
-        hidden: false
+        hidden: false,
       }
 
     case Constants.remoteDismiss:
       return {
         ...state,
-        closed: true
+        closed: true,
       }
 
     default:
@@ -301,17 +301,17 @@ export default function (state: State = initialState, action: Action): State {
     case CommonConstants.resetStore:
       return {
         ...state,
-        trackers: {}
+        trackers: {},
       }
     case Constants.startTimer:
       return {
         ...state,
-        timerActive: state.timerActive + 1
+        timerActive: state.timerActive + 1,
       }
     case Constants.stopTimer:
       return {
         ...state,
-        timerActive: state.timerActive - 1
+        timerActive: state.timerActive - 1,
       }
   }
 
@@ -325,8 +325,8 @@ export default function (state: State = initialState, action: Action): State {
       ...state,
       trackers: {
         ...state.trackers,
-        [userKey]: newTrackerState
-      }
+        [userKey]: newTrackerState,
+      },
     }
   } else if (userKey && trackerOrNonUserState && trackerOrNonUserState.type === 'nonUser') {
     const newNonUserState = updateNonUserState(trackerOrNonUserState, action)
@@ -338,8 +338,8 @@ export default function (state: State = initialState, action: Action): State {
       ...state,
       trackers: {
         ...state.trackers,
-        [userKey]: newNonUserState
-      }
+        [userKey]: newNonUserState,
+      },
     }
   } else {
     switch (action.type) {
@@ -347,7 +347,7 @@ export default function (state: State = initialState, action: Action): State {
         const serverStarted = action.payload && !!action.payload.started || false
         return {
           ...state,
-          serverStarted
+          serverStarted,
         }
       case Constants.updateUsername:
         if (!action.payload || !userKey) {
@@ -358,8 +358,8 @@ export default function (state: State = initialState, action: Action): State {
           ...state,
           trackers: {
             ...state.trackers,
-            [userKey]: initialTrackerState(userKey)
-          }
+            [userKey]: initialTrackerState(userKey),
+          },
         }
       case Constants.showNonUser:
         if (!userKey) return state
@@ -368,8 +368,8 @@ export default function (state: State = initialState, action: Action): State {
           ...state,
           trackers: {
             ...state.trackers,
-            [userKey]: updateNonUserState(initialNonUserState(userKey), action)
-          }
+            [userKey]: updateNonUserState(initialNonUserState(userKey), action),
+          },
         }
       default:
         return state
@@ -421,13 +421,13 @@ function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracke
   if (status && status !== proveCommon.ProofStatus.ok && isTracked) {
     return {
       diffMeta: metaIgnored,
-      statusMeta: null
+      statusMeta: null,
     }
   }
 
   return {
     diffMeta: trackDiffToSimpleProofMeta(diff),
-    statusMeta: proofStatusToSimpleProofMeta(status)
+    statusMeta: proofStatusToSimpleProofMeta(status),
   }
 
   function trackDiffToSimpleProofMeta (diff: TrackDiffType): ?SimpleProofMeta {
@@ -445,7 +445,7 @@ function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracke
       [identify.TrackDiffType.remotefail]: null,
       [identify.TrackDiffType.remoteworking]: null,
       [identify.TrackDiffType.remotechanged]: null,
-      [identify.TrackDiffType.neweldest]: null
+      [identify.TrackDiffType.neweldest]: null,
     }[diff]
   }
 
@@ -491,7 +491,7 @@ function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracke
       [identify.ProofStatus.badApiUrl]: metaUnreachable,
       [identify.ProofStatus.unknownType]: metaUnreachable,
       [identify.ProofStatus.noHint]: metaUnreachable,
-      [identify.ProofStatus.badHintText]: metaUnreachable
+      [identify.ProofStatus.badHintText]: metaUnreachable,
     }[status]
   }
 }
@@ -533,7 +533,7 @@ function revokedProofToProof (rv: RevokedProof): Proof {
     name: rv.proof.displayMarkup,
     humanUrl: '',
     profileUrl: '',
-    isTracked: false
+    isTracked: false,
   }
 }
 
@@ -552,7 +552,7 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     name: rp.displayMarkup,
     humanUrl: humanUrl,
     profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl),
-    isTracked
+    isTracked,
   }
 }
 

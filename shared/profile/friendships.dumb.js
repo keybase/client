@@ -16,13 +16,13 @@ const propsNormal: Props = {
     {username: 'chris', fullname: 'Chris Vendle', followsYou: false, following: false},
     {username: 'thor', fullname: 'Thor Asgard', followsYou: false, following: true},
     {username: 'alex', fullname: 'Alexander The-Gret', followsYou: true, following: false},
-    {username: 'daniel', fullname: 'Daniel Steven', followsYou: true, following: true}
+    {username: 'daniel', fullname: 'Daniel Steven', followsYou: true, following: true},
   ],
   following: [
     {username: 'zanderz', fullname: 'Steve Sanders', followsYou: false, following: false},
     {username: 'awendland', fullname: 'Alex Wendland', followsYou: true, following: false},
-    {username: 'strib', fullname: 'Jeremy Stribling', followsYou: false, following: true}
-  ]
+    {username: 'strib', fullname: 'Jeremy Stribling', followsYou: false, following: true},
+  ],
 }
 
 const dumbComponentMap: DumbComponentMap<Friendships> = {
@@ -31,11 +31,11 @@ const dumbComponentMap: DumbComponentMap<Friendships> = {
     'Followers': propsNormal,
     'Following': {
       ...propsNormal,
-      currentTab: 'FOLLOWING'
-    }
-  }
+      currentTab: 'FOLLOWING',
+    },
+  },
 }
 
 export default {
-  'Friendships': dumbComponentMap
+  'Friendships': dumbComponentMap,
 }

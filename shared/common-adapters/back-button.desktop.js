@@ -28,18 +28,18 @@ export default class BackButton extends Component {
 
 BackButton.propTypes = {
   onClick: React.PropTypes.func.isRequired,
-  style: React.PropTypes.object
+  style: React.PropTypes.object,
 }
 
 export const styles = {
   container: {
     ...globalStyles.flexBoxRow,
     ...globalStyles.clickable,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   icon: {
     fontSize: 11,
-    marginRight: 8
-  }
+    marginRight: 8,
+  },
 }
 

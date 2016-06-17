@@ -17,7 +17,7 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
   constructor (props: Props) {
     super(props)
     this.state = {
-      expanded: false
+      expanded: false,
     }
   }
 
@@ -45,7 +45,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
   const icon: IconProps.type = {
     'mobile': 'phone-bw-m',
     'desktop': 'computer-bw-s-2',
-    'backup': 'paper-key-m'
+    'backup': 'paper-key-m',
   }[device.type]
 
   let textStyle = {fontStyle: 'italic'}
@@ -54,7 +54,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
       ...textStyle,
       color: globalColors.black_40,
       textDecorationLine: 'line-through',
-      textDecorationStyle: 'solid'
+      textDecorationStyle: 'solid',
     }
   }
 
@@ -117,7 +117,7 @@ const Render = ({devices, revokedDevices, waitingForServer, showRemoveDevicePage
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white
+  backgroundColor: globalColors.white,
 }
 
 const stylesCommonCore = {
@@ -126,45 +126,45 @@ const stylesCommonCore = {
   borderBottomWidth: 1,
   height: 60,
   justifyContent: 'center',
-  padding: 8
+  padding: 8,
 }
 
 const stylesCommonRow = {
   ...globalStyles.flexBoxRow,
-  ...stylesCommonCore
+  ...stylesCommonCore,
 }
 
 const stylesRevokedRow = {
   ...stylesCommonRow,
   height: 30,
   justifyContent: 'flex-start',
-  backgroundColor: globalColors.lightGrey
+  backgroundColor: globalColors.lightGrey,
 }
 
 const stylesRevokedDescription = {
   ...globalStyles.flexBoxColumn,
   ...stylesCommonCore,
-  backgroundColor: globalColors.lightGrey
+  backgroundColor: globalColors.lightGrey,
 }
 
 const stylesCommonColumn = {
-  padding: 5
+  padding: 5,
 }
 
 const stylesRevokedColumn = {
   ...stylesCommonColumn,
   flex: 1,
-  alignItems: 'flex-end'
+  alignItems: 'flex-end',
 }
 
 const stylesIconColumn = {
   ...stylesCommonColumn,
-  width: 85
+  width: 85,
 }
 
 const stylesRevokedIconColumn = {
   ...stylesIconColumn,
-  opacity: 0.2
+  opacity: 0.2,
 }
 
 export default Render

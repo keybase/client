@@ -9,7 +9,7 @@ class Profile extends Component<void, Props, void> {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Profile'},
-      subRoutes: {}
+      subRoutes: {},
     }
   }
 

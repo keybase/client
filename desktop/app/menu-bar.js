@@ -24,7 +24,7 @@ export default function () {
     resizable: false,
     preloadWindow: true,
     icon: icon,
-    showDockIcon: true // This causes menubar to not touch dock icon, yeah it's weird
+    showDockIcon: true, // This causes menubar to not touch dock icon, yeah it's weird
   })
 
   ipcMain.on('showTrayLoading', () => {

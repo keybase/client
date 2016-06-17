@@ -16,7 +16,7 @@ export default class Render extends Component {
   constructor (props: Props) {
     super(props)
     this.state = {
-      inviteCode: this.props.inviteCode || ''
+      inviteCode: this.props.inviteCode || '',
     }
   }
 
@@ -42,23 +42,23 @@ export default class Render extends Component {
 const styles = {
   button: {
     marginTop: 35,
-    alignSelf: 'stretch'
+    alignSelf: 'stretch',
   },
   container: {
     ...globalStyles.flexBoxColumn,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   header: {
-    marginTop: 74
+    marginTop: 74,
   },
   icon: {
-    marginTop: 22
+    marginTop: 22,
   },
   input: {
     alignSelf: 'stretch',
-    marginTop: 0
+    marginTop: 0,
   },
   text: {
-    marginTop: 32
-  }
+    marginTop: 32,
+  },
 }

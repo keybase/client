@@ -49,7 +49,7 @@ class Keybase extends Component {
     loadPerf()
 
     this.state = {
-      panelShowing: false
+      panelShowing: false,
     }
 
     if (__DEV__) { // eslint-disable-line no-undef

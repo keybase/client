@@ -24,8 +24,8 @@ class Render extends Component<void, Props, State> {
         {name: 'Notifications', hasChildren: true, onClick: this.props.onNotifications},
         {name: 'Delete me', hasChildren: true, onClick: this.props.onDeleteMe},
         {name: 'Log Send', hasChildren: false, onClick: this.props.onLogSend},
-        {name: 'About', hasChildren: true, onClick: this.props.onAbout}
-      ]
+        {name: 'About', hasChildren: true, onClick: this.props.onAbout},
+      ],
     }
 
     if (__DEV__) {

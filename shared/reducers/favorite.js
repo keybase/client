@@ -9,7 +9,7 @@ type State = {
 }
 
 const initialState = {
-  folders: null
+  folders: null,
 }
 
 export default function (state: State = initialState, action: FavoriteAction): State {
@@ -20,7 +20,7 @@ export default function (state: State = initialState, action: FavoriteAction): S
     case Constants.favoriteList:
       return {
         ...state,
-        folders: action.payload && action.payload.folders
+        folders: action.payload && action.payload.folders,
       }
     default:
       return state

@@ -11,7 +11,7 @@ export default function (mainWindow) {
     let selector = {
       'tracker': trackerSelector,
       'menubar': menubarSelector,
-      'unlockFolders': unlockFoldersSelector
+      'unlockFolders': unlockFoldersSelector,
     }[component]
 
     if (selector) {

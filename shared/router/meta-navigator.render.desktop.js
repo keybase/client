@@ -34,10 +34,10 @@ MetaNavigatorRender.propTypes = {
   rootComponent: React.PropTypes.oneOfType([
     React.PropTypes.func,
     React.PropTypes.shape({
-      parseRoute: React.PropTypes.func.isRequired
-    })
+      parseRoute: React.PropTypes.func.isRequired,
+    }),
   ]).isRequired,
-  navigateUp: React.PropTypes.func.isRequired
+  navigateUp: React.PropTypes.func.isRequired,
 }
 
 const styles = {
@@ -46,8 +46,8 @@ const styles = {
     top: 0,
     right: 0,
     opacity: 0.8,
-    zIndex: 9999
-  }
+    zIndex: 9999,
+  },
 }
 
 export default connect(state => state, dispatch => bindActionCreators({navigateUp}, dispatch))(MetaNavigatorRender)

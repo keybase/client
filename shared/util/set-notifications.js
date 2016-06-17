@@ -24,7 +24,7 @@ export default function (channels: NotificationChannels): Promise<void> {
       kbfs: !!channelsSet.kbfs,
       tracking: !!channelsSet.tracking,
       favorites: !!channelsSet.favorites,
-      paperkeys: !!channelsSet.paperkeys
+      paperkeys: !!channelsSet.paperkeys,
     }
 
     engine.listenOnConnect('setNotifications', () => {
@@ -39,7 +39,7 @@ export default function (channels: NotificationChannels): Promise<void> {
           } else {
             resolve()
           }
-        }
+        },
       }
       engine.rpc(params)
     })

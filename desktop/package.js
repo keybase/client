@@ -18,7 +18,7 @@ const comment = argv.comment || ''
 // Inject app version
 cfg.plugins.push(
   new webpack.DefinePlugin({
-    '__VERSION__': JSON.stringify(appVersion)
+    '__VERSION__': JSON.stringify(appVersion),
   })
 )
 
@@ -36,7 +36,7 @@ fs.copySync('./renderer', 'build/desktop/renderer', {filter: f => !f.endsWith('.
 fs.writeJsonSync('build/package.json', {
   name: appName,
   version: appVersion,
-  main: 'desktop/dist/main.bundle.js'
+  main: 'desktop/dist/main.bundle.js',
 })
 
 const DEFAULT_OPTS = {
@@ -52,8 +52,8 @@ const DEFAULT_OPTS = {
     '/test($|/)',
     '/tools($|/)',
     '/release($|/)',
-    'node_modules/.bin'
-  ].concat(devDeps.map(name => `/node_modules/${name}($|/)`))
+    'node_modules/.bin',
+  ].concat(devDeps.map(name => `/node_modules/${name}($|/)`)),
 }
 
 const icon = argv.icon
@@ -127,7 +127,7 @@ function pack (plat, arch, cb) {
     platform: plat,
     arch: arch,
     prune: true,
-    out: `release/${plat}-${arch}`
+    out: `release/${plat}-${arch}`,
   })
 
   packager(opts, cb)

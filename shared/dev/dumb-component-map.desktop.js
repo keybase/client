@@ -34,7 +34,7 @@ const map : DumbComponentMap = {
   ...SearchMap,
   ...SearchUserPaneMap,
   ...FriendshipsMap,
-  ...UnlockFoldersMap
+  ...UnlockFoldersMap,
 }
 
 export default map

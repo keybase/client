@@ -26,14 +26,14 @@ function folderFromPath (path: string): ?Folder {
       name: path.replace('/keybase/private/', ''),
       private: true,
       notificationsOn: false,
-      created: false
+      created: false,
     }
   } else if (path.startsWith('/keybase/public/')) {
     return {
       name: path.replace('/keybase/public/', ''),
       private: false,
       notificationsOn: false,
-      created: false
+      created: false,
     }
   } else {
     return null
@@ -54,7 +54,7 @@ const folderToProps = (folders: Array<FolderWithMeta>, username: string = ''): F
       .map(u => ({
         username: u,
         you: u === username,
-        broken: false
+        broken: false,
       }))
 
     const {sortName, path} = pathFromFolder({users, isPublic: !f.folder.private})
@@ -81,7 +81,7 @@ const folderToProps = (folders: Array<FolderWithMeta>, username: string = ''): F
       onRekey: null,
       recentFiles: [],
       waitingForParticipationUnlock: [],
-      youCanUnlock: []
+      youCanUnlock: [],
     }
   }).sort((a, b) => {
     // New first
@@ -110,13 +110,13 @@ const folderToProps = (folders: Array<FolderWithMeta>, username: string = ''): F
     private: {
       tlfs: priv,
       ignored: privIgnored,
-      isPublic: false
+      isPublic: false,
     },
     public: {
       tlfs: pub,
       ignored: pubIgnored,
-      isPublic: true
-    }
+      isPublic: true,
+    },
   }
 }
 
@@ -188,7 +188,7 @@ export function favoriteList (): (dispatch: Dispatch) => void {
 
           NotifyPopup('New Keybase Folders!', {body}, 60 * 10)
         }
-      }
+      },
     }
     engine.rpc(params)
   }
@@ -216,7 +216,7 @@ export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
         const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: undefined}
         dispatch(action)
         dispatch(navigateBack())
-      }
+      },
     }
     engine.rpc(params)
   }
@@ -244,7 +244,7 @@ export function favoriteFolder (path: string): (dispatch: Dispatch) => void {
         const action: FavoriteAdd = {type: Constants.favoriteAdd, payload: undefined}
         dispatch(action)
         dispatch(navigateBack())
-      }
+      },
     }
     engine.rpc(params)
   }

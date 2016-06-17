@@ -13,7 +13,7 @@ export function loadDevices () : AsyncAction {
   return function (dispatch) {
     dispatch({
       type: Constants.loadingDevices,
-      payload: null
+      payload: null,
     })
 
     const params : deviceDeviceHistoryListRpc = {
@@ -26,17 +26,17 @@ export function loadDevices () : AsyncAction {
           dispatch({
             type: Constants.showDevices,
             payload: error,
-            error: true
+            error: true,
           })
         } else {
           dispatch({
             type: Constants.showDevices,
             payload: devices,
-            error: false
+            error: false,
           })
         }
         // dispatch()
-      }
+      },
     }
 
     engine.rpc(params)
@@ -47,7 +47,7 @@ export function generatePaperKey () : AsyncAction {
   return function (dispatch) {
     dispatch({
       type: Constants.paperKeyLoading,
-      payload: null
+      payload: null,
     })
 
     const incomingMap : incomingCallMapType = {
@@ -60,10 +60,10 @@ export function generatePaperKey () : AsyncAction {
       'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase: paperKey}, response) => {
         dispatch({
           type: Constants.paperKeyLoaded,
-          payload: new HiddenString(paperKey)
+          payload: new HiddenString(paperKey),
         })
         response.result()
-      }
+      },
     }
 
     const params : loginPaperKeyRpc = {
@@ -75,10 +75,10 @@ export function generatePaperKey () : AsyncAction {
           dispatch({
             type: Constants.paperKeyLoaded,
             payload: error,
-            error: true
+            error: true,
           })
         }
-      }
+      },
     }
 
     engine.rpc(params)
@@ -102,7 +102,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
           dispatch({
             type: Constants.deviceRemoved,
             payload: error,
-            error: !!error
+            error: !!error,
           })
           if (!error) {
             dispatch(loadDevices())
@@ -110,7 +110,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
             dispatch(navigateTo('', loginTab))
             dispatch(switchTab(loginTab))
           }
-        }
+        },
       }
       engine.rpc(params)
     } else {
@@ -122,13 +122,13 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
           dispatch({
             type: Constants.deviceRemoved,
             payload: error,
-            error: !!error
+            error: !!error,
           })
           if (!error) {
             dispatch(loadDevices())
             dispatch(navigateUp(devicesTab, Map({path: 'root'})))
           }
-        }
+        },
       }
       engine.rpc(params)
     }

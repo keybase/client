@@ -28,20 +28,20 @@ class Render extends Component<void, Props, void> {
 }
 
 const stylesOuter = {
-  backgroundColor: globalColors.black_10
+  backgroundColor: globalColors.black_10,
 }
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   justifyContent: 'center',
   alignItems: 'center',
-  marginTop: 15
+  marginTop: 15,
 }
 const stylesFirst = {
-  marginTop: 35
+  marginTop: 35,
 }
 
 const stylesCard = {
-  alignItems: 'stretch'
+  alignItems: 'stretch',
 }
 
 export default Render

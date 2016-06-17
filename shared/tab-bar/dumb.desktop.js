@@ -13,7 +13,7 @@ const badgeNumbers = {
   [peopleTab]: 12,
   [folderTab]: 8,
   [devicesTab]: 0,
-  [settingsTab]: 0
+  [settingsTab]: 0,
 }
 
 const DummyContent = ({text}) => <Text type='Body'>Filler: {text}</Text>
@@ -23,7 +23,7 @@ const tabContent = {
   [peopleTab]: <DummyContent text='people' />,
   [folderTab]: <DummyContent text='folder' />,
   [devicesTab]: <DummyContent text='devicees' />,
-  [settingsTab]: <DummyContent text='settings' />
+  [settingsTab]: <DummyContent text='settings' />,
 }
 
 const map: DumbComponentMap<TabBar> = {
@@ -34,7 +34,7 @@ const map: DumbComponentMap<TabBar> = {
       selectedTab: peopleTab,
       username: 'max',
       badgeNumbers,
-      tabContent
+      tabContent,
     },
     'Search Active': {
       onTabClick: t => console.log('tabbar:click', t),
@@ -42,11 +42,11 @@ const map: DumbComponentMap<TabBar> = {
       selectedTab: peopleTab,
       username: 'max',
       badgeNumbers,
-      tabContent
-    }
-  }
+      tabContent,
+    },
+  },
 }
 
 export default {
-  'App TabBar': map
+  'App TabBar': map,
 }

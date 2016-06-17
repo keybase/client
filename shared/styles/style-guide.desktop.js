@@ -5,92 +5,92 @@ export {default as globalColors} from './style-guide-colors'
 
 export const globalResizing = {
   login: {width: 700, height: 580},
-  normal: {width: 900, height: 900}
+  normal: {width: 900, height: 900},
 }
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
   textRendering: 'optimizeLegibility',
-  letterSpacing: '0.3px'
+  letterSpacing: '0.3px',
 }
 
 const font = {
   fontRegular: {
     ...fontCommon,
     fontFamily: 'Lato',
-    fontWeight: 400
+    fontWeight: 400,
   },
   fontSemibold: {
     ...fontCommon,
     fontFamily: 'Lato',
-    fontWeight: 600
+    fontWeight: 600,
   },
   fontBold: {
     ...fontCommon,
     fontFamily: 'Lato',
-    fontWeight: 700
+    fontWeight: 700,
   },
   italic: {
-    fontStyle: 'italic'
+    fontStyle: 'italic',
   },
   fontTerminal: {
     ...fontCommon,
-    fontFamily: 'Source Code Pro'
+    fontFamily: 'Source Code Pro',
   },
   fontTerminalSemibold: {
     ...fontCommon,
     fontFamily: 'Source Code Pro',
-    fontWeight: 600
-  }
+    fontWeight: 600,
+  },
 }
 
 const flexBoxCommon = {
-  display: 'flex'
+  display: 'flex',
 }
 
 const util = {
   flexBoxColumn: {
     ...flexBoxCommon,
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   flexBoxRow: {
     ...flexBoxCommon,
-    flexDirection: 'row'
+    flexDirection: 'row',
   },
   flexBoxCenter: {
     ...flexBoxCommon,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   scrollable: {
-    overflowY: 'auto'
+    overflowY: 'auto',
   },
   selectable: {
-    WebkitUserSelect: 'initial'
+    WebkitUserSelect: 'initial',
   },
   noSelect: {
-    WebkitUserSelect: 'none'
+    WebkitUserSelect: 'none',
   },
   windowDragging: { // allow frameless window dragging
-    WebkitAppRegion: 'drag'
+    WebkitAppRegion: 'drag',
   },
   windowDraggingClickable: { // allow things in frameless regions to be clicked and not dragged
-    WebkitAppRegion: 'no-drag'
+    WebkitAppRegion: 'no-drag',
   },
   rounded: {
-    borderRadius: 3
+    borderRadius: 3,
   },
   clickable: {
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   topMost: {
-    zIndex: 9999
-  }
+    zIndex: 9999,
+  },
 }
 
 export const globalStyles = {
   ...font,
-  ...util
+  ...util,
 }
 
 export const globalMargins = {
@@ -99,17 +99,17 @@ export const globalMargins = {
   small: 16,
   medium: 32,
   large: 48,
-  xlarge: 64
+  xlarge: 64,
 }
 
 export function transition (...properties: Array<string>) : Object {
   return {
-    transition: properties.map(p => `${p} 0.2s ease-out`).join(', ')
+    transition: properties.map(p => `${p} 0.2s ease-out`).join(', '),
   }
 }
 
 export function transitionColor () : Object {
   return {
-    transition: 'background 0.2s linear'
+    transition: 'background 0.2s linear',
   }
 }

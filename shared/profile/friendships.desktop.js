@@ -23,21 +23,21 @@ const userEntryContainerStyle = {
   alignItems: 'center',
   justifyContent: 'flex-start',
   width: 130,
-  padding: '10px 5px'
+  padding: '10px 5px',
 }
 
 const userEntryAvatarStyle = {
-  marginBottom: 2
+  marginBottom: 2,
 }
 
 const userEntryUsernameStyle = followsYou => ({
   color: followsYou ? globalColors.green : globalColors.blue,
-  textAlign: 'center'
+  textAlign: 'center',
 })
 
 const userEntryFullnameStyle = {
   color: globalColors.black_40,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 class Render extends Component<void, Props, void> {
@@ -69,7 +69,7 @@ const tabItemContainerStyle = {
   ...globalStyles.flexBoxRow,
   flex: 1,
   flexWrap: 'wrap',
-  borderTop: `solid 1px ${globalColors.black_10}`
+  borderTop: `solid 1px ${globalColors.black_10}`,
 }
 
 export default Render

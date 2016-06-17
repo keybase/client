@@ -47,6 +47,6 @@ export default connect(
   state => state.unlockFolders,
   dispatch => bindActionCreators({
     registerRekeyListener,
-    close
+    close,
   }, dispatch)
 )(RemoteUnlockFolders)

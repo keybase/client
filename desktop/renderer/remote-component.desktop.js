@@ -102,7 +102,7 @@ RemoteComponent.propTypes = {
   onRemoteClose: React.PropTypes.func,
   hidden: React.PropTypes.bool, // Hide the remote window (Does not close the window)
   selectorParams: React.PropTypes.string, // To get a substore
-  ignoreNewProps: React.PropTypes.bool // Do not send the remote window new props. Sometimes the remote component will have it's own store and can get it's own data. It doesn't need us to send it.
+  ignoreNewProps: React.PropTypes.bool, // Do not send the remote window new props. Sometimes the remote component will have it's own store and can get it's own data. It doesn't need us to send it.
 }
 
 export default RemoteComponent

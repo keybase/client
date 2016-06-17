@@ -30,6 +30,6 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
 
       dispatch(bootstrap())
       response.result()
-    }
+    },
   }
 }

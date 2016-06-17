@@ -27,21 +27,21 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
 )
 
 const stylesContainer = {
-  alignItems: 'center'
+  alignItems: 'center',
 }
 const stylesInput = {
   marginTop: 15,
-  width: 450
+  width: 450,
 }
 const stylesIcon = {
-  marginTop: 60
+  marginTop: 60,
 }
 const stylesButton = {
   alignSelf: 'flex-end',
-  marginTop: 40
+  marginTop: 40,
 }
 const stylesHeader = {
-  marginTop: 35
+  marginTop: 35,
 }
 
 export default SetPublicName

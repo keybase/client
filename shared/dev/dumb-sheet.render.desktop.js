@@ -15,7 +15,7 @@ class Render extends Component<void, any, any> {
     super(props)
 
     this.state = {
-      filter: (dumbFilter && dumbFilter.toLowerCase()) || ''
+      filter: (dumbFilter && dumbFilter.toLowerCase()) || '',
     }
 
     this._onFilterChange = debounce(filter => {
@@ -77,7 +77,7 @@ export const styleBox = {
   padding: 20,
   marginTop: 10,
   border: 'solid 1px lightgray',
-  boxShadow: '5px 5px lightgray'
+  boxShadow: '5px 5px lightgray',
 }
 
 export default Render

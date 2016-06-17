@@ -5,8 +5,8 @@ const tabBarProps = {
   name: 'TabBar',
   propTypes: {
     titles: PropTypes.array,
-    selectedStates: PropTypes.array
-  }
+    selectedStates: PropTypes.array,
+  },
 }
 
 class TabBarItem extends Component {
@@ -19,7 +19,7 @@ TabBarItem.propTypes = {
   title: PropTypes.string.isRequired,
   selected: PropTypes.bool.isRequired,
   onPress: PropTypes.func.isRequired,
-  children: PropTypes.element.isRequired
+  children: PropTypes.element.isRequired,
 }
 
 const NativeTabBar = requireNativeComponent(
@@ -33,7 +33,7 @@ const NativeTabBar = requireNativeComponent(
     scaleX: true,
     scaleY: true,
     translateX: true,
-    translateY: true
+    translateY: true,
   }}
 )
 
@@ -82,7 +82,7 @@ export default class TabBar extends Component {
 }
 
 TabBar.propTypes = {
-  children: PropTypes.array.isRequired
+  children: PropTypes.array.isRequired,
 }
 
 TabBar.Item = TabBarItem

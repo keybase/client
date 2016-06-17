@@ -31,6 +31,6 @@ function avatarStyle (size: number): Object {
     width: size,
     height: size,
     borderRadius: size / 2,
-    alignSelf: 'center'
+    alignSelf: 'center',
   }
 }

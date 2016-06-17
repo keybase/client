@@ -107,7 +107,7 @@ const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',
-  width: 320
+  width: 320,
 }
 const stylesContent = {
   backgroundColor: globalColors.white,
@@ -117,48 +117,48 @@ const stylesContent = {
   width: 320,
   marginTop: -35,
   paddingTop: 35,
-  zIndex: 1
+  zIndex: 1,
 }
 const stylesUsername = {
   ...globalStyles.selectable,
-  marginTop: 7
+  marginTop: 7,
 }
 const stylesUsernameFollowing = {
-  color: globalColors.green2
+  color: globalColors.green2,
 }
 const stylesUsernameNotFollowing = {
-  color: globalColors.orange
+  color: globalColors.orange,
 }
 const stylesUsernameError = {
-  color: globalColors.red
+  color: globalColors.red,
 }
 const stylesFullname = {
   ...globalStyles.selectable,
   textAlign: 'center',
-  color: globalColors.black_75
+  color: globalColors.black_75,
 }
 const stylesFollowLabel = {
   fontSize: 11,
-  textTransform: 'uppercase'
+  textTransform: 'uppercase',
 }
 const stylesFollowing = {
-  ...globalStyles.clickable
+  ...globalStyles.clickable,
 }
 const stylesBio = {
   ...globalStyles.selectable,
   paddingLeft: 30,
   paddingRight: 30,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 const stylesBioType = {
   Profile: {
-    marginTop: globalMargins.tiny
+    marginTop: globalMargins.tiny,
   },
-  Tracker: {}
+  Tracker: {},
 }
 const stylesLocation = {
   ...globalStyles.selectable,
   paddingLeft: 30,
   paddingRight: 30,
-  textAlign: 'center'
+  textAlign: 'center',
 }

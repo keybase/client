@@ -32,6 +32,6 @@ const styles = {
     ...globalStyles.flexBoxRow,
     justifyContent: 'space-around',
     position: 'relative',
-    top: 7
-  }
+    top: 7,
+  },
 }

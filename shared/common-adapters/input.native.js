@@ -22,7 +22,7 @@ class Input extends Component<void, Props, State> {
     super(props)
     this.state = {
       inputFocused: false,
-      text: this.props.value || ''
+      text: this.props.value || '',
     }
   }
 
@@ -80,14 +80,14 @@ const HorizontalLine = ({focused}) => <Box style={{
   right: 0,
   bottom: 0,
   height: 1,
-  backgroundColor: focused ? globalColors.blue : globalColors.black_10
+  backgroundColor: focused ? globalColors.blue : globalColors.black_10,
 }} />
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   height: 36,
   position: 'relative',
-  marginTop: 21
+  marginTop: 21,
 }
 
 const textInputStyle = {
@@ -97,11 +97,11 @@ const textInputStyle = {
   top: 0,
   bottom: -8,
   left: -4,
-  right: -4
+  right: -4,
 }
 
 const IOSMultilineTextInputStyle = {
-  bottom: 0
+  bottom: 0,
 }
 
 const floatingLabelStyle = {
@@ -109,7 +109,7 @@ const floatingLabelStyle = {
   textAlign: 'center',
   position: 'relative',
   height: 21,
-  top: -21
+  top: -21,
 }
 
 const errorText = {
@@ -117,7 +117,7 @@ const errorText = {
   position: 'absolute',
   left: 0,
   right: 0,
-  top: 36
+  top: 36,
 }
 
 export default Input

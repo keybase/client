@@ -12,27 +12,27 @@ export function getCurrentTab (state) {
 export function navigateUp (tab, till) {
   return {
     type: Constants.navigateUp,
-    payload: {tab, till}
+    payload: {tab, till},
   }
 }
 
 export function navigateBack (tab) {
   return {
     type: Constants.navigateBack,
-    payload: {tab}
+    payload: {tab},
   }
 }
 
 export function navigateTo (uri, tab) {
   return {
     type: Constants.navigate,
-    payload: {uri, tab}
+    payload: {uri, tab},
   }
 }
 
 export function routeAppend (route, tab) {
   return {
     type: Constants.navigateAppend,
-    payload: {route, tab}
+    payload: {route, tab},
   }
 }

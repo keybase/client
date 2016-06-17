@@ -39,12 +39,12 @@ function loginRouter (currentPath: Map<string, string>, uri: URI): any {
     componentAtTop: {
       element,
       hideBack: true,
-      hideNavBar: true
+      hideNavBar: true,
     },
-    parseNextRoute: loginRouter
+    parseNextRoute: loginRouter,
   }
 }
 
 export default {
-  parseRoute: loginRouter
+  parseRoute: loginRouter,
 }

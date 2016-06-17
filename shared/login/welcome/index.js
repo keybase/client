@@ -21,15 +21,15 @@ class Welcome extends Component {
       componentAtTop: {hideNavBar: true},
       subRoutes: {
         'login': Login,
-        'signup': Signup
-      }
+        'signup': Signup,
+      },
     }
   }
 }
 
 Welcome.propTypes = {
   onGotoLoginPage: React.PropTypes.func.isRequired,
-  onGotoSignupPage: React.PropTypes.func.isRequired
+  onGotoSignupPage: React.PropTypes.func.isRequired,
 }
 
 export default connect(
@@ -37,7 +37,7 @@ export default connect(
   dispatch => {
     return {
       onGotoLoginPage: () => dispatch(login()),
-      onGotoSignupPage: () => dispatch(routeAppend('signup'))
+      onGotoSignupPage: () => dispatch(routeAppend('signup')),
     }
   }
 )(Welcome)

@@ -35,14 +35,14 @@ class SimpleTabBarButton extends Component<void, SimpleTabBarButtonProps, void> 
         style={{
           [borderLocation]: `solid 2px ${this.props.selected ? selectedColor : 'transparent'}`,
           padding: '4px 12px',
-          ...this.props.styleContainer
+          ...this.props.styleContainer,
         }}>
         <Text
           type='BodySmall'
           style={{
             color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
             ...underlineStyle,
-            ...this.props.styleLabel
+            ...this.props.styleLabel,
           }}>
           {this.props.label}
         </Text>
@@ -111,7 +111,7 @@ const styleBadge = {
   borderRadius: 10,
   flex: 0,
   marginLeft: 'auto',
-  marginRight: 8
+  marginRight: 8,
 }
 
 const styleBadgeOutline = {
@@ -121,7 +121,7 @@ const styleBadgeOutline = {
   borderStyle: 'solid',
   position: 'relative',
   right: 10,
-  bottom: 10
+  bottom: 10,
 }
 
 class TabBar extends Component {
@@ -167,7 +167,7 @@ class TabBar extends Component {
 }
 
 const stylesContainer = {
-  ...globalStyles.flexBoxColumn
+  ...globalStyles.flexBoxColumn,
 }
 
 const stylesTabBarButtonIcon = {
@@ -176,7 +176,7 @@ const stylesTabBarButtonIcon = {
   flex: 1,
   alignItems: 'center',
   paddingLeft: 20,
-  position: 'relative'
+  position: 'relative',
 }
 
 const stylesIcon = {
@@ -185,7 +185,7 @@ const stylesIcon = {
   paddingRight: 9,
   lineHeight: '16px',
   marginBottom: 2,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 export default TabBar

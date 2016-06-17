@@ -36,7 +36,7 @@ const proofsDefault: Array<Proof> = [
   proofWeb4,
   proofWeb5,
   proofHN,
-  proofRooter
+  proofRooter,
 ]
 
 const proofsChanged: Array<Proof> = [
@@ -44,7 +44,7 @@ const proofsChanged: Array<Proof> = [
   {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: '', profileUrl: '', isTracked: false},
   {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, meta: metaNone, humanUrl: '', profileUrl: '', isTracked: false},
   {name: 'pending', type: 'https', id: 'pendingId', state: normal, meta: metaPending, humanUrl: '', profileUrl: '', isTracked: false},
-  {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: '', profileUrl: '', isTracked: false}
+  {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: '', profileUrl: '', isTracked: false},
 ]
 
 const propsBase = {
@@ -61,7 +61,7 @@ const propsBase = {
   waiting: false,
   loggedIn: true,
   trackerMessage: null,
-  lastAction: null
+  lastAction: null,
 }
 
 const propsDefault: TrackerProps = {
@@ -76,7 +76,7 @@ const propsDefault: TrackerProps = {
     location: 'San Francisco, California, USA, Earth, Milky Way',
     bio: 'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch. ',
     avatar: 'https://keybase.io/darksim905/picture',
-    followsYou: false
+    followsYou: false,
   },
   shouldFollow: true,
   trackerState: normal,
@@ -86,18 +86,18 @@ const propsDefault: TrackerProps = {
   headerProps: {
     onClose: () => {
       console.log('Close')
-    }
-  }
+    },
+  },
 }
 
 const lastTrackMax: TrackSummary = {
   username: 'max',
   time: 0,
-  isRemote: true
+  isRemote: true,
 }
 
 const propsNewUser: TrackerProps = {
-  ...propsDefault
+  ...propsDefault,
 }
 
 const propsNonUser: TrackerProps = {
@@ -114,24 +114,24 @@ const propsNonUser: TrackerProps = {
     style: {
       ...globalStyles.flexBoxColumn,
       width: 320,
-      height: 470
-    }
-  }
+      height: 470,
+    },
+  },
 }
 
 const propsNewUserFollowsYou: TrackerProps = {
   ...propsDefault,
   userInfo: {
     ...propsNewUser.userInfo,
-    followsYou: true
-  }
+    followsYou: true,
+  },
 }
 
 type setFollowFilter = (p: Proof) => bool;
 function setFollow (source: TrackerProps, filter: setFollowFilter): TrackerProps {
   source.proofs = source.proofs.map(p => filter(p) ? {
     ...p,
-    isTracked: true
+    isTracked: true,
   } : p)
   return source
 }
@@ -141,11 +141,11 @@ const propsFollowing: TrackerProps = setFollow({
   reason: 'You have tracked gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
-    followsYou: true
+    followsYou: true,
   },
   lastTrack: lastTrackMax,
   proofs: proofsDefault,
-  lastAction: 'followed'
+  lastAction: 'followed',
 }, () => true)
 
 const propsWhatevz: TrackerProps = setFollow({
@@ -153,8 +153,8 @@ const propsWhatevz: TrackerProps = setFollow({
   reason: 'You have tracked gabrielh',
   proofs: [
     proofGithub,
-    {...proofTwitter, meta: metaIgnored}
-  ]
+    {...proofTwitter, meta: metaIgnored},
+  ],
 }, () => true)
 
 const propsChangedProofs: TrackerProps = {
@@ -162,11 +162,11 @@ const propsChangedProofs: TrackerProps = {
   reason: 'Some of gabrielh\'s proofs have changed since you last tracked them.',
   userInfo: {
     ...propsNewUser.userInfo,
-    followsYou: true
+    followsYou: true,
   },
   lastTrack: lastTrackMax,
   trackerState: error,
-  proofs: proofsChanged
+  proofs: proofsChanged,
 }
 
 const propsUnfollowed: TrackerProps = {
@@ -174,9 +174,9 @@ const propsUnfollowed: TrackerProps = {
   reason: 'You have untracked gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
-    followsYou: true
+    followsYou: true,
   },
-  lastAction: 'unfollowed'
+  lastAction: 'unfollowed',
 }
 
 const propsLessData: TrackerProps = {
@@ -191,14 +191,14 @@ const propsLessData: TrackerProps = {
     followingCount: 0,
     followsYou: false,
     avatar: 'http://placehold.it/140x140/ffffff/000000',
-    location: ''
+    location: '',
   },
   shouldFollow: true,
   currentlyFollowing: false,
   trackerState: normal,
   proofs: [
-    proofGithub
-  ]
+    proofGithub,
+  ],
 }
 
 const propsLoggedOut: TrackerProps = {...propsDefault, loggedIn: false, reason: 'You accessed a public folder with gabrielh.'}
@@ -208,9 +208,9 @@ const propsFiveProof: TrackerProps = {
   userInfo: {
     ...propsDefault.userInfo,
     bio: 'bio',
-    location: ''
+    location: '',
   },
-  proofs: [0, 1, 2, 3, 4].map(proofGithubMaker)
+  proofs: [0, 1, 2, 3, 4].map(proofGithubMaker),
 }
 
 const dumbMap: DumbComponentMap<Tracker> = {
@@ -230,11 +230,11 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'You track them': trackerPropsToRenderProps({...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}}),
     'Unfollowed': trackerPropsToRenderProps(propsUnfollowed),
     'Barely there': trackerPropsToRenderProps(propsLessData),
-    'Whatevz': trackerPropsToRenderProps(propsWhatevz)
-  }
+    'Whatevz': trackerPropsToRenderProps(propsWhatevz),
+  },
 }
 
 export default {
-  'Tracker': dumbMap
+  'Tracker': dumbMap,
 }
 

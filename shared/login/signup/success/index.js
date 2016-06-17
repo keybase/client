@@ -22,13 +22,13 @@ class Success extends Component {
 
 Success.propTypes = {
   paperkey: React.PropTypes.instanceOf(HiddenString).isRequired,
-  onFinish: React.PropTypes.func.isRequired
+  onFinish: React.PropTypes.func.isRequired,
 }
 
 export default connect(
   state => ({paperkey: state.signup.paperkey}),
   dispatch => ({
     onFinish: () => dispatch(sawPaperKey()),
-    onBack: () => {}
+    onBack: () => {},
   })
 )(Success)

@@ -7,7 +7,7 @@ import type IntroProps from './intro'
 const props: IntroProps = {
   onSignup: () => {},
   onLogin: () => {},
-  justRevokedSelf: null
+  justRevokedSelf: null,
 }
 
 export const dumbMap: DumbComponentMap<Intro> = {
@@ -15,11 +15,11 @@ export const dumbMap: DumbComponentMap<Intro> = {
   mocks: {
     'First time user': props,
     'User who just revoked device': Object.assign({}, props, {
-      justRevokedSelf: 'DEVICE_NAME'
-    })
-  }
+      justRevokedSelf: 'DEVICE_NAME',
+    }),
+  },
 }
 
 export default {
-  'Intro': dumbMap
+  'Intro': dumbMap,
 }

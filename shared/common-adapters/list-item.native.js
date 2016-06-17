@@ -42,17 +42,17 @@ export default class ListItem extends Component<void, Props, void> {
 
 function containerStyle (clickable) {
   return {
-    ...(clickable ? globalStyles.clickable : {})
+    ...(clickable ? globalStyles.clickable : {}),
   }
 }
 
 const iconContainerThemed = {
   'Small': {
-    width: 48
+    width: 48,
   },
   'Large': {
-    width: 64
-  }
+    width: 64,
+  },
 }
 
 function actionStyle (extraMargin) {
@@ -66,6 +66,6 @@ function bodyContainerStyle (swipeToAction) {
     marginBottom: 8,
     marginTop: 8,
     marginRight: swipeToAction ? 0 : 16,
-    justifyContent: 'center'
+    justifyContent: 'center',
   }
 }

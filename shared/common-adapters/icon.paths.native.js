@@ -720,7 +720,7 @@ export const fontIcons = {
   'fa-hashtag': String.fromCharCode(0xf292),
   'fa-bluetooth': String.fromCharCode(0xf293),
   'fa-bluetooth-b': String.fromCharCode(0xf294),
-  'fa-percent': String.fromCharCode(0xf295)
+  'fa-percent': String.fromCharCode(0xf295),
 }
 
 export const images = {
@@ -1009,5 +1009,5 @@ export const images = {
   'update-64': require('../images/icons/update-64.png'),
   'update-pause-64': require('../images/icons/update-pause-64.png'),
   'user-card-m': require('../images/icons/user-card-m.png'),
-  'user-card': require('../images/icons/user-card.png')
+  'user-card': require('../images/icons/user-card.png'),
 }

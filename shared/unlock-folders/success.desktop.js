@@ -23,12 +23,12 @@ export default class PaperKeyInput extends Component<void, Props, void> {
 }
 
 const foldersUnlockedStyle = {
-  marginTop: 72
+  marginTop: 72,
 }
 
 const successStyle = {
   marginTop: 28,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 const finishStyle = {
@@ -36,5 +36,5 @@ const finishStyle = {
   marginRight: 30,
   height: 32,
   width: 181,
-  alignSelf: 'flex-end'
+  alignSelf: 'flex-end',
 }

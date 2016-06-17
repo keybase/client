@@ -31,7 +31,7 @@ const tabs = {
   [folderTab]: {module: Folders, name: 'Folders'},
   [chatTab]: {module: Chat, name: 'Chat'},
   [peopleTab]: {module: People, name: 'People'},
-  [devicesTab]: {module: Devices, name: 'Devices'}
+  [devicesTab]: {module: Devices, name: 'Devices'},
 }
 
 type State = {
@@ -205,7 +205,7 @@ class Nav extends Component<void, Props, State> {
 
 const stylesTabsContainer = {
   ...commonStyles.flexBoxColumn,
-  flex: 1
+  flex: 1,
 }
 
 export default connect(
@@ -214,12 +214,12 @@ export default connect(
     bootstrapped,
     provisioned: extendedConfig && !!extendedConfig.device,
     username,
-    menuBadge
+    menuBadge,
   }),
   dispatch => {
     return {
       switchTab: tab => dispatch(switchTab(tab)),
-      bootstrap: () => dispatch(bootstrap())
+      bootstrap: () => dispatch(bootstrap()),
     }
   }
 )(Nav)

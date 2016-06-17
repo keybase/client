@@ -12,7 +12,7 @@ export default class FollowButton extends Component<void, Props, State> {
     super(props)
 
     this.state = {
-      mouseOver: false
+      mouseOver: false,
     }
   }
 
@@ -42,5 +42,5 @@ export default class FollowButton extends Component<void, Props, State> {
 }
 
 const styleButton = {
-  width: 125
+  width: 125,
 }

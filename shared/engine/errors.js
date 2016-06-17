@@ -11,7 +11,7 @@ const niceMap = {
   alreadyloggedin: () => 'You are already logged in',
   apinetworkerror: () => 'Networking error, try again',
   badloginpassword: () => 'Invalid login',
-  sckeynomatchinggpg: () => 'No matching private GPG keys found on this device'
+  sckeynomatchinggpg: () => 'No matching private GPG keys found on this device',
 }
 
 export default class EngineError extends Error {

@@ -20,5 +20,5 @@ export default class Update extends Component {
 
 Update.propTypes = {
   type: React.PropTypes.oneOf(['confirm', 'paused']).isRequired,
-  options: React.PropTypes.any
+  options: React.PropTypes.any,
 }

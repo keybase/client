@@ -24,7 +24,7 @@ class Button extends Component {
       Danger,
       Follow,
       Following,
-      Unfollow
+      Unfollow,
     }[this.props.type]
 
     if (this.props.fullWidth) {
@@ -41,7 +41,7 @@ class Button extends Component {
       DangerLabel,
       FollowLabel,
       FollowingLabel,
-      UnfollowLabel
+      UnfollowLabel,
     }[this.props.type + 'Label']
 
     const onPress = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
@@ -73,15 +73,15 @@ const common = {
   height: regularHeight,
   borderRadius: 50,
   paddingLeft: 32,
-  paddingRight: 32
+  paddingRight: 32,
 }
 const commonLabel = {
   color: globalColors.white,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 const fullWidth = {
   height: fullWidthHeight,
-  width: null
+  width: null,
 }
 
 const disabled = {
@@ -90,47 +90,47 @@ const disabled = {
   Danger: {opacity: 0.2},
   Follow: {opacity: 0.3},
   Following: {opacity: 0.3},
-  Unfollow: {opacity: 0.3}
+  Unfollow: {opacity: 0.3},
 }
 
 const Primary = {
   ...common,
-  backgroundColor: globalColors.blue
+  backgroundColor: globalColors.blue,
 }
 const PrimaryLabel = {
-  ...commonLabel
+  ...commonLabel,
 }
 
 const Secondary = {
   ...common,
-  backgroundColor: globalColors.lightGrey2
+  backgroundColor: globalColors.lightGrey2,
 }
 const SecondaryLabel = {
   ...commonLabel,
-  color: globalColors.black_75
+  color: globalColors.black_75,
 }
 
 const Danger = {
   ...common,
-  backgroundColor: globalColors.red
+  backgroundColor: globalColors.red,
 }
 const DangerLabel = {
-  ...commonLabel
+  ...commonLabel,
 }
 
 const followCommon = {
   width: 154,
   paddingLeft: 32,
-  paddingRight: 32
+  paddingRight: 32,
 }
 
 const Follow = {
   ...common,
   ...followCommon,
-  backgroundColor: globalColors.green
+  backgroundColor: globalColors.green,
 }
 const FollowLabel = {
-  ...commonLabel
+  ...commonLabel,
 }
 
 const Following = {
@@ -139,24 +139,24 @@ const Following = {
   backgroundColor: globalColors.white,
   borderColor: globalColors.green,
   paddingTop: 5,
-  borderWidth: 2
+  borderWidth: 2,
 }
 const FollowingLabel = {
   ...commonLabel,
-  color: globalColors.green
+  color: globalColors.green,
 }
 
 const Unfollow = {
   ...common,
   ...followCommon,
-  backgroundColor: globalColors.blue
+  backgroundColor: globalColors.blue,
 }
 const UnfollowLabel = {
-  ...commonLabel
+  ...commonLabel,
 }
 
 const progress = {
-  marginTop: -regularHeight / 2
+  marginTop: -regularHeight / 2,
 }
 
 export default Button

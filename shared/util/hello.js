@@ -12,7 +12,7 @@ export default function (pid: number, desc: string, argv: Array<string>, version
     desc,
     version,
     argv: argv,
-    clientType: Common.ClientType.gui
+    clientType: Common.ClientType.gui,
   }
 
   return new Promise((resolve, reject) => {
@@ -28,7 +28,7 @@ export default function (pid: number, desc: string, argv: Array<string>, version
           } else {
             resolve()
           }
-        }
+        },
       }
 
       engine.rpc(params)

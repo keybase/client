@@ -37,7 +37,7 @@ const tabs: {[key: VisibleTab]: {module: any}} = {
   [folderTab]: {module: Settings, name: 'Folders'},
   [chatTab]: {module: Settings, name: 'Chat'},
   [peopleTab]: {module: Settings, name: 'People'},
-  [devicesTab]: {module: Devices, name: 'Devices'}
+  [devicesTab]: {module: Devices, name: 'Devices'},
 }
 
 function NavigationBarRouteMapper (navigateTo, navigateUp) {
@@ -85,7 +85,7 @@ function NavigationBarRouteMapper (navigateTo, navigateUp) {
           {route.title || ''}
         </Text>
       )
-    }
+    },
   }
 }
 
@@ -114,7 +114,7 @@ class Nav extends Component {
   _renderContent (tab, module) {
     const tabStyle = {
       flex: 1,
-      marginBottom: tab === loginTab ? 0 : styleConstants.tabBarHeight
+      marginBottom: tab === loginTab ? 0 : styleConstants.tabBarHeight,
     }
 
     return (
@@ -167,26 +167,26 @@ class Nav extends Component {
 
 const styles = StyleSheet.create({
   navBar: {
-    backgroundColor: 'white'
+    backgroundColor: 'white',
   },
   navBarText: {
     fontSize: 16,
-    marginVertical: 10
+    marginVertical: 10,
   },
   navBarTitleText: {
     color: 'blue',
     fontWeight: '500',
-    marginVertical: 9
+    marginVertical: 9,
   },
   navBarLeftButton: {
-    paddingLeft: 10
+    paddingLeft: 10,
   },
   navBarRightButton: {
-    paddingRight: 10
+    paddingRight: 10,
   },
   navBarButtonText: {
-    color: 'blue'
-  }
+    color: 'blue',
+  },
 })
 
 export default connect(
@@ -194,7 +194,7 @@ export default connect(
     tabbedRouter,
     bootstrapped,
     provisioned: extendedConfig && !!extendedConfig.device,
-    username
+    username,
   }),
   dispatch => {
     return {
@@ -202,7 +202,7 @@ export default connect(
       navigateUp: () => dispatch(navigateUp()),
       navigateTo: uri => dispatch(navigateTo(uri)),
       bootstrap: () => dispatch(bootstrap()),
-      listenForNotifications: () => dispatch(listenForNotifications())
+      listenForNotifications: () => dispatch(listenForNotifications()),
     }
   }
 )(Nav)

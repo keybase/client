@@ -35,7 +35,7 @@ const f1: Folder = createFolder({
     {username: 'chris10'},
     {username: 'chris11'},
     {username: 'chris12'},
-    {username: 'chris13'}
+    {username: 'chris13'},
   ],
   meta: 'new',
   ignored: false,
@@ -45,18 +45,18 @@ const f1: Folder = createFolder({
   userAvatar: null,
   recentFiles: [],
   waitingForParticipantUnlock: [],
-  youCanUnlock: []
+  youCanUnlock: [],
 })
 
 const f2: Folder = createFolder({
   users: [
     {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true},
-    {username: 'throughnothing'}
+    {username: 'throughnothing'},
   ],
   modified: {
     when: '2 hours ago',
-    username: 'jeresig'
+    username: 'jeresig',
   },
   ignored: false,
   isPublic: false,
@@ -65,17 +65,17 @@ const f2: Folder = createFolder({
   userAvatar: null,
   recentFiles: [],
   waitingForParticipantUnlock: [],
-  youCanUnlock: []
+  youCanUnlock: [],
 })
 
 const f3: Folder = createFolder({
   users: [
     {username: 'cecileb', you: true},
-    {username: 'bob'}
+    {username: 'bob'},
   ],
   modified: {
     when: '3 hours ago',
-    username: 'bob'
+    username: 'bob',
   },
   ignored: false,
   isPublic: false,
@@ -84,13 +84,13 @@ const f3: Folder = createFolder({
   userAvatar: 'bob',
   recentFiles: [],
   waitingForParticipantUnlock: [],
-  youCanUnlock: []
+  youCanUnlock: [],
 })
 
 const f4: Folder = createFolder({
   users: [
     {username: 'cecileb', you: true},
-    {username: 'jenbee'}
+    {username: 'jenbee'},
   ],
   ignored: false,
   isPublic: false,
@@ -99,12 +99,12 @@ const f4: Folder = createFolder({
   userAvatar: 'jenbee',
   recentFiles: [],
   waitingForParticipantUnlock: [],
-  youCanUnlock: []
+  youCanUnlock: [],
 })
 
 const f5: Folder = createFolder({
   users: [
-    {username: 'cecileb', you: true}
+    {username: 'cecileb', you: true},
   ],
   ignored: false,
   isPublic: false,
@@ -113,14 +113,14 @@ const f5: Folder = createFolder({
   userAvatar: 'cecileb',
   recentFiles: [],
   waitingForParticipantUnlock: [],
-  youCanUnlock: []
+  youCanUnlock: [],
 })
 
 const f6: Folder = {
   path: '/keybase/private/cecileb,jenbeeb',
   users: [
     {username: 'cecileb', you: true},
-    {username: 'jenbeeb'}
+    {username: 'jenbeeb'},
   ],
   meta: 'rekey',
   ignored: false,
@@ -131,7 +131,7 @@ const f6: Folder = {
   userAvatar: 'jenbee',
   recentFiles: [],
   waitingForParticipantUnlock: [],
-  youCanUnlock: []
+  youCanUnlock: [],
 }
 
 const tlfs: Array<Folder> = [f1, f2, f3, f4, f5, f6]
@@ -140,7 +140,7 @@ const i1: Folder = createFolder({
   users: [
     {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true},
-    {username: 'cdixon'}
+    {username: 'cdixon'},
   ],
   ignored: true,
   isPublic: false,
@@ -149,13 +149,13 @@ const i1: Folder = createFolder({
   userAvatar: null,
   recentFiles: [],
   waitingForParticipantUnlock: [],
-  youCanUnlock: []
+  youCanUnlock: [],
 })
 
 const i2: Folder = createFolder({
   users: [
     {username: 'cecileb', you: true},
-    {username: 'jeresig', broken: true}
+    {username: 'jeresig', broken: true},
   ],
   ignored: true,
   isPublic: false,
@@ -164,7 +164,7 @@ const i2: Folder = createFolder({
   userAvatar: 'jeresig',
   recentFiles: [],
   waitingForParticipantUnlock: [],
-  youCanUnlock: []
+  youCanUnlock: [],
 })
 
 const ignored: Array<Folder> = [i1, i2]
@@ -175,8 +175,8 @@ const parentProps = {
     width: 325,
     height: 350,
     padding: 2,
-    backgroundColor: 'red'
-  }
+    backgroundColor: 'red',
+  },
 }
 
 export const map: DumbComponentMap<Folders> = {
@@ -188,7 +188,7 @@ export const map: DumbComponentMap<Folders> = {
       showComingSoon: false,
       private: {tlfs, ignored, isPublic: false, parentProps},
       public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps},
-      showingPrivate: true
+      showingPrivate: true,
     },
     'Normal Public': {
       smallMode: false,
@@ -196,7 +196,7 @@ export const map: DumbComponentMap<Folders> = {
       showComingSoon: false,
       private: {tlfs, ignored, isPublic: false, parentProps},
       public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps},
-      showingPrivate: false
+      showingPrivate: false,
     },
     'ComingSoon': {
       smallMode: false,
@@ -204,9 +204,9 @@ export const map: DumbComponentMap<Folders> = {
       showComingSoon: true,
       private: {tlfs, ignored, isPublic: false, parentProps},
       public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps},
-      showingPrivate: true
-    }
-  }
+      showingPrivate: true,
+    },
+  },
 }
 
 const longFile = 'To be or not to be-that is the question: Whether tis nobler in the mind to suffer The slings and arrows of outrageous fortune, Or to take arms against a sea of troubles, And, by opposing, end them.rtf'
@@ -219,30 +219,30 @@ const commonFile = {
   lastModifiedBy: 'jenbee',
   modifiedMarker: true,
   fileIcon: 'logo-128',
-  onClick: () => console.log('onClick:file')
+  onClick: () => console.log('onClick:file'),
 }
 
 export const file: DumbComponentMap<File> = {
   component: File,
   mocks: {
     'Normal Private': {
-      ...commonFile
+      ...commonFile,
     },
     'Normal Private Long': {
-      ...commonFile
+      ...commonFile,
     },
     'Normal Private modified by self long file': {
       ...commonFile,
       name: longFile,
       lastModifiedBy: 'marcopolo',
-      lastModifiedBySelf: true
+      lastModifiedBySelf: true,
     },
     'Normal Public': {
       ...commonFile,
       parentProps: {style: {borderColor: 'black', borderWidth: 1, borderStyle: 'solid'}},
       theme: 'public',
       name: 'Cute Sloth.jpg',
-      path: 'spirit-animals/'
+      path: 'spirit-animals/',
     },
     'Normal Public No Modified meta': {
       ...commonFile,
@@ -252,9 +252,9 @@ export const file: DumbComponentMap<File> = {
       theme: 'public',
       name: 'Cute Sloth.jpg',
       path: 'spirit-animals/',
-      modifiedMarker: false
-    }
-  }
+      modifiedMarker: false,
+    },
+  },
 }
 
 function genFiles (offsetNumber: number, fileCount: number, isPrivate: boolean): Array<PropsOf<File>> {
@@ -272,7 +272,7 @@ function genFiles (offsetNumber: number, fileCount: number, isPrivate: boolean):
       path: 'pics/',
       modifiedMarker: false,
       fileIcon: 'logo-128',
-      onClick: () => console.log('onClick:file', wordGen(i))
+      onClick: () => console.log('onClick:file', wordGen(i)),
     })
   }
 
@@ -280,7 +280,7 @@ function genFiles (offsetNumber: number, fileCount: number, isPrivate: boolean):
 }
 
 const popupItemCommon = {
-  onClick: () => console.log('item clicked')
+  onClick: () => console.log('item clicked'),
 }
 
 const filesMenuItems = [
@@ -288,7 +288,7 @@ const filesMenuItems = [
   {...popupItemCommon, title: 'Ignore'},
   'Divider',
   {...popupItemCommon, title: 'Clear history (3.24 MB)', subTitle: 'Deletes old copies of files.', danger: true},
-  {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true}
+  {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true},
 ]
 
 const commonFiles = (isPrivate): FilesProps => ({ // eslint-disable-line arrow-parens
@@ -309,17 +309,17 @@ const commonFiles = (isPrivate): FilesProps => ({ // eslint-disable-line arrow-p
   onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
   recentFilesSection: [
     {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, isPrivate)},
-    {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, isPrivate)}
+    {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, isPrivate)},
   ],
-  recentFilesEnabled: true
+  recentFilesEnabled: true,
 })
 
 const commonParticipant = {
   recentFilesSection: [],
   waitingForParticipantUnlock: [
     {name: 'throughnothing', devices: 'Tell them to turn on: Home Computer, ben\'s iPhone or Work laptop.', onClick: () => console.log('clicked throughnothing')},
-    {name: 'bob', devices: 'Tell them to turn on bob\'s Android phone', onClick: () => console.log('clicked bob')}
-  ]
+    {name: 'bob', devices: 'Tell them to turn on bob\'s Android phone', onClick: () => console.log('clicked bob')},
+  ],
 }
 
 const commonUnlock = {
@@ -330,66 +330,66 @@ const commonUnlock = {
     {name: 'Home Computer', icon: 'icon-computer-bw-32'},
     {name: 'Cecil\'s iPhone', icon: 'icon-phone-bw-48'},
     {name: 'project green...', icon: 'icon-paper-key-32', onClickPaperkey: () => console.log('clicked on project green')},
-    {name: 'gumball sparkles...', icon: 'icon-paper-key-32', onClickPaperkey: () => console.log('clicked on gumball sparkles')}
-  ]
+    {name: 'gumball sparkles...', icon: 'icon-paper-key-32', onClickPaperkey: () => console.log('clicked on gumball sparkles')},
+  ],
 }
 
 export const files: DumbComponentMap<Files> = {
   component: Files,
   mocks: {
     'Normal - Public': {
-      ...commonFiles(false)
+      ...commonFiles(false),
     },
     'Popup - Public': {
       ...commonFiles(false),
-      visiblePopupMenu: true
+      visiblePopupMenu: true,
     },
     'Normal - Private': {
-      ...commonFiles(true)
+      ...commonFiles(true),
     },
     'Popup - Private': {
       ...commonFiles(true),
-      visiblePopupMenu: true
+      visiblePopupMenu: true,
     },
     'No files - Public': {
       ...commonFiles(false),
-      recentFilesSection: []
+      recentFilesSection: [],
     },
     'No files - Private': {
       ...commonFiles(true),
-      recentFilesSection: []
+      recentFilesSection: [],
     },
     'Participant Unlock - Public': {
       ...commonFiles(false),
-      ...commonParticipant
+      ...commonParticipant,
     },
     'Participant Unlock - Private': {
       ...commonFiles(true),
-      ...commonParticipant
+      ...commonParticipant,
     },
     'You can unlock - Public': {
       ...commonFiles(false),
-      ...commonUnlock
+      ...commonUnlock,
     },
     'You can unlock - Private': {
       ...commonFiles(true),
-      ...commonUnlock
+      ...commonUnlock,
     },
     'Recent Files Disabled - Private': {
       ...commonFiles(true),
       recentFilesSection: undefined,
-      recentFilesEnabled: false
+      recentFilesEnabled: false,
     },
     'Recent Files Disabled - Public': {
       ...commonFiles(false),
       recentFilesSection: undefined,
-      recentFilesEnabled: false
-    }
-  }
+      recentFilesEnabled: false,
+    },
+  },
 }
 
 export default {
   'Folders TLF': map,
   'Files': files,
-  'File': file
+  'File': file,
 }
