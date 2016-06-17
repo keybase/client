@@ -99,7 +99,7 @@ type gregorHandler struct {
 	itemsByID        map[string]gregor.Item
 	freshSync        bool
 
-	shutdownCh       chan struct{}
+	shutdownCh chan struct{}
 }
 
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
@@ -870,38 +870,6 @@ func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (k
 	}
 
 	return keybase1.Outcome_NONE, errors.New("no alive RekeyUIHandler found")
-}
-
-func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
-	g.Debug("connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
-}
-
-func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
-	g.Debug("disconnected: %v", status)
-}
-
-func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
-	g.Debug("do command error: %s, nextTime: %s", err, nextTime)
-}
-
-func (g *gregorHandler) ShouldRetry(name string, err error) bool {
-	g.Debug("should retry: name %s, err %v (returning false)", name, err)
-	return false
-}
-
-func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	g.Debug("should retry on connect, err %v", err)
-	if g.skipRetryConnect {
-		g.Debug("should retry on connect, skip retry flag set, returning false")
-		g.skipRetryConnect = false
-		return false
-	}
-
-	return true
 }
 
 type gregorRPCHandler struct {
