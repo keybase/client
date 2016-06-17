@@ -3,6 +3,5 @@
 protocol NotifyPaperKey {
   import idl "common.avdl";
 
-  @notify("")
-  void paperKeyCached(UID uid, KID encKID, KID sigKID);
+  void paperKeyCached(UID uid, KID encKID, KID sigKID) oneway;
 }

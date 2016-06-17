@@ -399,7 +399,7 @@
         }
       ],
       "response": "null",
-      "notify": ""
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

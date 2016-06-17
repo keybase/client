@@ -68,22 +68,14 @@ func matchPaperKey(ctx *Context, g *libkb.GlobalContext, me *libkb.User, paper s
 		return nil, libkb.NoPaperKeysError{}
 	}
 
-	paperPhrase := libkb.NewPaperKeyPhrase(paper)
-
-	version, err := paperPhrase.Version()
-	if err != nil {
+	pc := new(libkb.PaperChecker)
+	if err := pc.Check(g, paper); err != nil {
 		return nil, err
 	}
-	if version != libkb.PaperKeyVersion {
-		g.Log.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, libkb.PaperKeyVersion)
-		return nil, libkb.KeyVersionError{}
-	}
-	if len(paperPhrase.InvalidWords()) > 0 {
-		g.Log.Debug("paper phrase has invalid word(s) in it")
-		return nil, libkb.PassphraseError{Msg: "invalid word(s) in paper key phrase"}
-	}
 
-	// paperPhrase has the correct version and contains valid words
+	// phrase has the correct version and contains valid words
+
+	paperPhrase := libkb.NewPaperKeyPhrase(paper)
 
 	bkarg := &PaperKeyGenArg{
 		Passphrase: paperPhrase,

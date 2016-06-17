@@ -4838,9 +4838,11 @@ export type incomingCallMapType = {
       uid: UID,
       encKID: KID,
       sigKID: KID
-    } /* ,
-    response: {} // Notify call
-    */
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
   ) => void,
   'keybase.1.NotifySession.loggedOut'?: (
     params: {} /* ,
