@@ -1328,10 +1328,13 @@ func (fbo *folderBlockOps) Write(
 	// If there is too much unflushed data, we should wait until some
 	// of it gets flush so our memory usage doesn't grow without
 	// bound.
-	c := fbo.config.DirtyBlockCache().RequestPermissionToDirty(
+	c, err := fbo.config.DirtyBlockCache().RequestPermissionToDirty(ctx,
 		int64(len(data)))
+	if err != nil {
+		return err
+	}
 	defer fbo.config.DirtyBlockCache().UpdateUnsyncedBytes(-int64(len(data)))
-	err := fbo.maybeWaitOnDeferredWrites(ctx, lState, file, c)
+	err = fbo.maybeWaitOnDeferredWrites(ctx, lState, file, c)
 	if err != nil {
 		return err
 	}
@@ -1609,10 +1612,13 @@ func (fbo *folderBlockOps) Truncate(
 	// Assume the whole remaining file will be dirty after this
 	// truncate.  TODO: try to figure out how many bytes actually will
 	// be dirtied ahead of time?
-	c := fbo.config.DirtyBlockCache().RequestPermissionToDirty(
+	c, err := fbo.config.DirtyBlockCache().RequestPermissionToDirty(ctx,
 		int64(size))
+	if err != nil {
+		return err
+	}
 	defer fbo.config.DirtyBlockCache().UpdateUnsyncedBytes(-int64(size))
-	err := fbo.maybeWaitOnDeferredWrites(ctx, lState, file, c)
+	err = fbo.maybeWaitOnDeferredWrites(ctx, lState, file, c)
 	if err != nil {
 		return err
 	}

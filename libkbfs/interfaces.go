@@ -550,7 +550,8 @@ type DirtyBlockCache interface {
 	// `UpdateUnsyncedBytes(-estimatedDirtyBytes)` once it has
 	// completed its write and called `UpdateUnsyncedBytes` for all
 	// the exact dirty block sizes.
-	RequestPermissionToDirty(estimatedDirtyBytes int64) DirtyPermChan
+	RequestPermissionToDirty(ctx context.Context,
+		estimatedDirtyBytes int64) (DirtyPermChan, error)
 	// UpdateUnsyncedBytes is called by a user, who has already been
 	// granted permission to write, with the delta in block sizes that
 	// were dirtied as part of the write.  So for example, if a

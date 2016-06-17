@@ -4,7 +4,11 @@
 
 package libkbfs
 
-import "testing"
+import (
+	"testing"
+
+	"golang.org/x/net/context"
+)
 
 func testDirtyBcachePut(t *testing.T, id BlockID, dirtyBcache DirtyBlockCache) {
 	block := NewFileBlock()
@@ -116,9 +120,13 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	defer dirtyBcache.Shutdown()
 	blockedChan := make(chan int64)
 	dirtyBcache.blockedChanForTesting = blockedChan
+	ctx := context.Background()
 
 	// The first write should get immediate permission.
-	c1 := dirtyBcache.RequestPermissionToDirty(bufSize)
+	c1, err := dirtyBcache.RequestPermissionToDirty(ctx, bufSize)
+	if err != nil {
+		t.Fatalf("Request permission error: %v", err)
+	}
 	<-c1
 	// Now the unsynced buffer is full
 	if !dirtyBcache.ShouldForceSync() {
@@ -130,7 +138,10 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	}
 
 	// The next request should block
-	c2 := dirtyBcache.RequestPermissionToDirty(bufSize)
+	c2, err := dirtyBcache.RequestPermissionToDirty(ctx, bufSize)
+	if err != nil {
+		t.Fatalf("Request permission error: %v", err)
+	}
 	if blockedSize := <-blockedChan; blockedSize != bufSize {
 		t.Fatalf("Wrong blocked size: %d", blockedSize)
 	}

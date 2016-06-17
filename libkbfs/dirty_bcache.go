@@ -7,6 +7,8 @@ package libkbfs
 import (
 	"fmt"
 	"sync"
+
+	"golang.org/x/net/context"
 )
 
 type dirtyBlockID struct {
@@ -185,13 +187,17 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 // RequestPermissionToDirty implements the DirtyBlockCache interface
 // for DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) RequestPermissionToDirty(
-	estimatedDirtyBytes int64) DirtyPermChan {
+	ctx context.Context, estimatedDirtyBytes int64) (DirtyPermChan, error) {
 	if estimatedDirtyBytes < 0 {
 		panic("Must request permission for a non-negative number of bytes.")
 	}
 	c := make(chan struct{})
-	d.requestsChan <- dirtyReq{c, estimatedDirtyBytes}
-	return c
+	select {
+	case d.requestsChan <- dirtyReq{c, estimatedDirtyBytes}:
+		return c, nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }
 
 // UpdateUnsyncedBytes implements the DirtyBlockCache interface for

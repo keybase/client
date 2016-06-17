@@ -1211,14 +1211,15 @@ func (_mr *_MockDirtyBlockCacheRecorder) IsDirty(arg0, arg1 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsDirty", arg0, arg1)
 }
 
-func (_m *MockDirtyBlockCache) RequestPermissionToDirty(estimatedDirtyBytes int64) DirtyPermChan {
-	ret := _m.ctrl.Call(_m, "RequestPermissionToDirty", estimatedDirtyBytes)
+func (_m *MockDirtyBlockCache) RequestPermissionToDirty(ctx context.Context, estimatedDirtyBytes int64) (DirtyPermChan, error) {
+	ret := _m.ctrl.Call(_m, "RequestPermissionToDirty", ctx, estimatedDirtyBytes)
 	ret0, _ := ret[0].(DirtyPermChan)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) RequestPermissionToDirty(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RequestPermissionToDirty", arg0)
+func (_mr *_MockDirtyBlockCacheRecorder) RequestPermissionToDirty(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RequestPermissionToDirty", arg0, arg1)
 }
 
 func (_m *MockDirtyBlockCache) UpdateUnsyncedBytes(newUnsyncedBytes int64) {
