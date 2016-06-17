@@ -1,5 +1,5 @@
 @namespace("keybase.1")
-protocol prove_common {
+protocol proveCommon {
 
   enum ProofState {
     NONE_0,

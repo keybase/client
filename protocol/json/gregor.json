@@ -1,0 +1,18 @@
+{
+  "protocol": "gregor",
+  "imports": [
+    {
+      "path": "github.com/keybase/gregor/protocol/gregor1",
+      "type": "idl",
+      "import_as": "gregor1"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "getState": {
+      "request": [],
+      "response": "gregor1.State"
+    }
+  },
+  "namespace": "keybase.1"
+}

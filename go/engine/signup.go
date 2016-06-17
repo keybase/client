@@ -114,6 +114,9 @@ func (s *SignupEngine) Run(ctx *Context) error {
 	// a chance of timing out)
 	s.G().NotifyRouter.HandleLogin(s.arg.Username)
 
+	// For instance, setup gregor and friends...
+	s.G().CallLoginHooks()
+
 	return nil
 
 }

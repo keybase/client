@@ -2,10 +2,9 @@
 import * as Constants from '../constants/profile'
 import {routeAppend} from './router'
 import engine from '../engine'
-import {identify} from '../constants/types/keybase-v1'
+import {identifyCommon, Common, proveCommon} from '../constants/types/keybase-v1'
 import type {incomingCallMapType, userLoadUncheckedUserSummariesRpc, identifyIdentifyRpc, UserSummary} from '../constants/types/flow-types'
 import type {AsyncAction, TypedAction} from '../constants/types/flux'
-const enums = identify
 
 export function pushNewProfile (username: string) : AsyncAction {
   return function (dispatch) {
@@ -78,14 +77,14 @@ export function refreshProfile (username: string) : AsyncAction {
         } = param
 
         const warning = {
-          [enums['tempFailure']]: 'Temporarily unavailable',
-          [enums['looking']]: 'Looking'
+          [proveCommon.ProofState['tempFailure']]: 'Temporarily unavailable',
+          [proveCommon.ProofState['looking']]: 'Looking'
         }[proofState]
         const error = {
-          [enums['none']]: 'No proof',
-          [enums['permFailure']]: 'Failed',
-          [enums['superseded']]: 'Superseded',
-          [enums['revoked']]: 'Revoked'
+          [proveCommon.ProofState['none']]: 'No proof',
+          [proveCommon.ProofState['permFailure']]: 'Failed',
+          [proveCommon.ProofState['superseded']]: 'Superseded',
+          [proveCommon.ProofState['revoked']]: 'Revoked'
         }[proofState]
 
         dispatch({
@@ -115,11 +114,11 @@ export function refreshProfile (username: string) : AsyncAction {
         userAssertion: username,
         forceRemoteCheck: false,
         reason: {
-          type: enums.identify.IdentifyReasonType.none,
+          type: identifyCommon.IdentifyReasonType.none,
           reason: '',
           resource: ''
         },
-        source: enums.identify.ClientType.gui,
+        source: Common.ClientType.gui,
         useDelegateUI: false,
         trackStatement: false
       },

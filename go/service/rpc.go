@@ -47,3 +47,7 @@ func (t *connTransport) Finalize() {
 func (t *connTransport) Close() {
 	t.conn.Close()
 }
+
+func (t *connTransport) Reset() {
+	t.transport = nil
+}

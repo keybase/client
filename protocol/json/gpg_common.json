@@ -1,0 +1,42 @@
+{
+  "protocol": "gpgCommon",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "GPGKey",
+      "fields": [
+        {
+          "type": "string",
+          "name": "algorithm"
+        },
+        {
+          "type": "string",
+          "name": "keyID"
+        },
+        {
+          "type": "string",
+          "name": "creation"
+        },
+        {
+          "type": "string",
+          "name": "expiration"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PGPIdentity"
+          },
+          "name": "identities"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

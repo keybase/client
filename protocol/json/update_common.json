@@ -1,0 +1,92 @@
+{
+  "protocol": "updateCommon",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "Asset",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "digest"
+        },
+        {
+          "type": "string",
+          "name": "signature"
+        },
+        {
+          "type": "string",
+          "name": "localPath"
+        }
+      ],
+      "doc": "Asset describes a downloadable file."
+    },
+    {
+      "type": "enum",
+      "name": "UpdateType",
+      "symbols": [
+        "NORMAL_0",
+        "BUGFIX_1",
+        "CRITICAL_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Update",
+      "fields": [
+        {
+          "type": "string",
+          "name": "version"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "instructions"
+        },
+        {
+          "type": "UpdateType",
+          "name": "type"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "publishedAt"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "asset"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

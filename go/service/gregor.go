@@ -50,22 +50,57 @@ func (h *IdentifyUIHandler) toggleAlwaysAlive(alive bool) {
 	h.alwaysAlive = alive
 }
 
+type gregorFirehoseHandler struct {
+	libkb.Contextified
+	connID libkb.ConnectionID
+	cli    keybase1.GregorUIClient
+}
+
+func newGregorFirehoseHandler(g *libkb.GlobalContext, connID libkb.ConnectionID, xp rpc.Transporter) *gregorFirehoseHandler {
+	return &gregorFirehoseHandler{
+		Contextified: libkb.NewContextified(g),
+		connID:       connID,
+		cli:          keybase1.GregorUIClient{Cli: rpc.NewClient(xp, libkb.ErrorUnwrapper{})},
+	}
+}
+
+func (h *gregorFirehoseHandler) IsAlive() bool {
+	return h.G().ConnectionManager.LookupConnection(h.connID) != nil
+}
+
+func (h *gregorFirehoseHandler) PushState(s gregor1.State, r keybase1.PushReason) {
+	err := h.cli.PushState(context.Background(), keybase1.PushStateArg{State: s, Reason: r})
+	if err != nil {
+		h.G().Log.Error(fmt.Sprintf("Error in firehose push state: %s", err))
+	}
+}
+
+func (h *gregorFirehoseHandler) PushOutOfBandMessages(m []gregor1.OutOfBandMessage) {
+	err := h.cli.PushOutOfBandMessages(context.Background(), m)
+	if err != nil {
+		h.G().Log.Error(fmt.Sprintf("Error in firehose push out-of-band messages: %s", err))
+	}
+}
+
 type gregorHandler struct {
 	libkb.Contextified
 
-	// This lock is to protect ibmHandlers and gregorCli. Only public methods
+	// This lock is to protect ibmHandlers and gregorCli and firehoseHandlers. Only public methods
 	// should grab it.
 	sync.Mutex
-
-	conn             *rpc.Connection
-	cli              rpc.GenericClient
-	sessionID        gregor1.SessionID
-	skipRetryConnect bool
-	itemsByID        map[string]gregor.Item
-	gregorCli        *grclient.Client
-	freshSync        bool
 	ibmHandlers      []libkb.GregorInBandMessageHandler
-	shutdownCh       chan struct{}
+	gregorCli        *grclient.Client
+	firehoseHandlers []libkb.GregorFirehoseHandler
+
+	conn                *rpc.Connection
+	cli                 rpc.GenericClient
+	sessionID           gregor1.SessionID
+	skipRetryConnect    bool
+	itemsByID           map[string]gregor.Item
+	freshSync           bool
+	transportForTesting *connTransport
+
+	shutdownCh chan struct{}
 }
 
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
@@ -96,7 +131,6 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 	gh = &gregorHandler{
 		Contextified: libkb.NewContextified(g),
 		itemsByID:    make(map[string]gregor.Item),
-		ibmHandlers:  []libkb.GregorInBandMessageHandler{},
 		freshSync:    true,
 		shutdownCh:   make(chan struct{}),
 	}
@@ -194,6 +228,50 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 	}
 }
 
+// PushFirehoseHandler pushes a new firehose handler onto the list of currently
+// active firehose handles. We can have several of these active at once. All
+// get the "firehose" of gregor events. They're removed lazily as their underlying
+// connections die.
+func (g *gregorHandler) PushFirehoseHandler(handler libkb.GregorFirehoseHandler) {
+	g.Lock()
+	defer g.Unlock()
+	g.firehoseHandlers = append(g.firehoseHandlers, handler)
+
+	s, err := g.getState()
+	if err != nil {
+		g.Warning("Cannot push state in firehose handler: %s", err)
+		return
+	}
+	handler.PushState(s, keybase1.PushReason_RECONNECTED)
+}
+
+// iterateOverFirehoseHandlers applies the function f to all live fireshose handlers
+// and then resets the list to only include the live ones.
+func (g *gregorHandler) iterateOverFirehoseHandlers(f func(h libkb.GregorFirehoseHandler)) {
+	var freshHandlers []libkb.GregorFirehoseHandler
+	for _, h := range g.firehoseHandlers {
+		if h.IsAlive() {
+			f(h)
+			freshHandlers = append(freshHandlers, h)
+		}
+	}
+	g.firehoseHandlers = freshHandlers
+	return
+}
+
+func (g *gregorHandler) pushState(r keybase1.PushReason) {
+	s, err := g.getState()
+	if err != nil {
+		g.Warning("Cannot push state in firehose handler: %s", err)
+		return
+	}
+	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) { h.PushState(s, r) })
+}
+
+func (g *gregorHandler) pushOutOfBandMessages(m []gregor1.OutOfBandMessage) {
+	g.iterateOverFirehoseHandlers(func(h libkb.GregorFirehoseHandler) { h.PushOutOfBandMessages(m) })
+}
+
 // replayInBandMessages will replay all the messages in the current state from
 // the given time. If a handler is specified, it will only replay using it,
 // otherwise it will try all of them. gregorHandler needs to be locked when calling
@@ -224,7 +302,11 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
 	return msgs, nil
 }
 
-// serverSync is called from OnConnect to sync down the current state from
+func (g *gregorHandler) IsConnected() bool {
+	return g.conn != nil && g.conn.IsConnected()
+}
+
+// serverSync is called from
 // gregord. This can happen either on initial startup, or after a reconnect. Needs
 // to be called with gregorHandler locked.
 func (g *gregorHandler) serverSync(ctx context.Context,
@@ -281,6 +363,8 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return err
 	}
 
+	g.pushState(keybase1.PushReason_RECONNECTED)
+
 	// Sync down events since we have been dead
 	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: cli})
 	if err != nil {
@@ -291,6 +375,38 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	}
 
 	return nil
+}
+
+func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
+	g.Debug("connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
+}
+
+func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
+	g.Debug("disconnected: %v", status)
+}
+
+func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
+	g.Debug("do command error: %s, nextTime: %s", err, nextTime)
+}
+
+func (g *gregorHandler) ShouldRetry(name string, err error) bool {
+	g.Debug("should retry: name %s, err %v (returning false)", name, err)
+	return false
+}
+
+func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	g.Debug("should retry on connect, err %v", err)
+	if g.skipRetryConnect {
+		g.Debug("should retry on connect, skip retry flag set, returning false")
+		g.skipRetryConnect = false
+		return false
+	}
+
+	return true
 }
 
 // BroadcastMessage is called when we receive a new messages from gregord. Grabs
@@ -305,6 +421,10 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	// Handle the message
 	ibm := m.ToInBandMessage()
 	if ibm != nil {
+
+		// Forward to electron or whichever UI is listening for the new gregor state
+		g.pushState(keybase1.PushReason_NEW_DATA)
+
 		g.Debug("broadcast: in-band message: msgID: %s Ctime: %s",
 			m.ToInBandMessage().Metadata().MsgID(), m.ToInBandMessage().Metadata().CTime())
 		return g.handleInBandMessage(ctx, ibm)
@@ -536,8 +656,15 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, it
 
 func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {
 	g.Debug("handleOutOfBand: %+v", obm)
+
 	if obm.System() == nil {
 		return errors.New("nil system in out of band message")
+	}
+
+	if tmp, ok := obm.(gregor1.OutOfBandMessage); ok {
+		g.pushOutOfBandMessages([]gregor1.OutOfBandMessage{tmp})
+	} else {
+		g.G().Log.Warning("Got non-exportable out-of-band message")
 	}
 
 	switch obm.System().String() {
@@ -661,6 +788,7 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 
 	g.Debug("connecting to gregord without TLS at %s", uri)
 	t := newConnTransport(g.G(), uri.HostPort)
+	g.transportForTesting = t
 	g.conn = rpc.NewConnectionWithTransport(g, t, keybase1.ErrorUnwrapper{}, true, keybase1.WrapError, g.G().Log, nil)
 	g.cli = g.conn.GetClient()
 
@@ -671,38 +799,105 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 	return nil
 }
 
-func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
-	g.Debug("gregorHandler.DismissItem called with MsgID %s", id.String())
+func NewGregorMsgID() (gregor1.MsgID, error) {
+	r, err := libkb.RandBytes(16) // TODO: Create a shared function for this.
+	if err != nil {
+		return nil, err
+	}
+	return gregor1.MsgID(r), nil
+}
 
-	gregorMsgIDToDismiss := gregor1.MsgID(id.Bytes())
-
+func (g *gregorHandler) templateMessage() (*gregor1.Message, error) {
 	uid := g.G().Env.GetUID()
 	if uid.IsNil() {
-		return fmt.Errorf("Can't dismiss gregor items without a current UID.")
+		return nil, fmt.Errorf("Can't create new gregor items without a current UID.")
 	}
 	gregorUID := gregor1.UID(uid.ToBytes())
 
-	newMsgID, randErr := libkb.RandBytes(16) // TODO: Create a shared function for this.
-	if randErr != nil {
-		return randErr
+	newMsgID, err := NewGregorMsgID()
+	if err != nil {
+		return nil, err
 	}
 
-	dismissal := gregor1.Message{
+	return &gregor1.Message{
 		Ibm_: &gregor1.InBandMessage{
 			StateUpdate_: &gregor1.StateUpdateMessage{
 				Md_: gregor1.Metadata{
 					Uid_:   gregorUID,
 					MsgID_: newMsgID,
 				},
-				Dismissal_: &gregor1.Dismissal{
-					MsgIDs_: []gregor1.MsgID{gregorMsgIDToDismiss},
-				},
 			},
 		},
+	}, nil
+}
+
+func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
+	var err error
+	defer g.G().Trace(fmt.Sprintf("gregorHandler.DismissItem(%s)", id.String()),
+		func() error { return err },
+	)()
+
+	dismissal, err := g.templateMessage()
+	if err != nil {
+		return err
 	}
+
+	dismissal.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
+		MsgIDs_: []gregor1.MsgID{gregor1.MsgID(id.Bytes())},
+	}
+
 	incomingClient := gregor1.IncomingClient{Cli: g.cli}
 	// TODO: Should the interface take a context from the caller?
-	return incomingClient.ConsumeMessage(context.TODO(), dismissal)
+	err = incomingClient.ConsumeMessage(context.TODO(), *dismissal)
+	return err
+}
+
+func (g *gregorHandler) InjectItem(cat string, body []byte) (gregor.MsgID, error) {
+	var err error
+	defer g.G().Trace(fmt.Sprintf("gregorHandler.InjectItem(%s)", cat),
+		func() error { return err },
+	)()
+
+	creation, err := g.templateMessage()
+	if err != nil {
+		return nil, err
+	}
+	creation.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
+		Category_: gregor1.Category(cat),
+		Body_:     gregor1.Body(body),
+	}
+
+	incomingClient := gregor1.IncomingClient{Cli: g.cli}
+	// TODO: Should the interface take a context from the caller?
+	err = incomingClient.ConsumeMessage(context.TODO(), *creation)
+	return creation.Ibm_.StateUpdate_.Md_.MsgID_, err
+}
+
+func (g *gregorHandler) InjectOutOfBandMessage(system string, body []byte) error {
+	var err error
+	defer g.G().Trace(fmt.Sprintf("gregorHandler.InjectOutOfBandMessage(%s)", system),
+		func() error { return err },
+	)()
+
+	uid := g.G().Env.GetUID()
+	if uid.IsNil() {
+		err = fmt.Errorf("Can't create new gregor items without a current UID.")
+		return err
+	}
+	gregorUID := gregor1.UID(uid.ToBytes())
+
+	msg := gregor1.Message{
+		Oobm_: &gregor1.OutOfBandMessage{
+			Uid_:    gregorUID,
+			System_: gregor1.System(system),
+			Body_:   gregor1.Body(body),
+		},
+	}
+
+	incomingClient := gregor1.IncomingClient{Cli: g.cli}
+	// TODO: Should the interface take a context from the caller?
+	err = incomingClient.ConsumeMessage(context.TODO(), msg)
+	return err
 }
 
 func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {
@@ -718,34 +913,38 @@ func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (k
 	return keybase1.Outcome_NONE, errors.New("no alive RekeyUIHandler found")
 }
 
-func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
-	g.Debug("connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
+func (g *gregorHandler) simulateCrashForTesting() {
+	g.transportForTesting.Reset()
+	gregor1.IncomingClient{Cli: g.cli}.Ping(context.Background())
 }
 
-func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.DisconnectStatus) {
-	g.Debug("disconnected: %v", status)
+type gregorRPCHandler struct {
+	libkb.Contextified
+	xp rpc.Transporter
+	gh *gregorHandler
 }
 
-func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
-	g.Debug("do command error: %s, nextTime: %s", err, nextTime)
-}
-
-func (g *gregorHandler) ShouldRetry(name string, err error) bool {
-	g.Debug("should retry: name %s, err %v (returning false)", name, err)
-	return false
-}
-
-func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
-	if err == nil {
-		return false
+func newGregorRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *gregorRPCHandler {
+	return &gregorRPCHandler{
+		Contextified: libkb.NewContextified(g),
+		xp:           xp,
+		gh:           gh,
 	}
+}
 
-	g.Debug("should retry on connect, err %v", err)
-	if g.skipRetryConnect {
-		g.Debug("should retry on connect, skip retry flag set, returning false")
-		g.skipRetryConnect = false
-		return false
+func (g *gregorHandler) getState() (res gregor1.State, err error) {
+	var s gregor.State
+	var ok bool
+	s, err = g.gregorCli.StateMachineState(nil)
+	if err != nil {
+		return res, err
 	}
+	if res, ok = s.(gregor1.State); !ok {
+		return res, errors.New("failed to convert state to exportable format")
+	}
+	return res, nil
+}
 
-	return true
+func (g *gregorRPCHandler) GetState(_ context.Context) (res gregor1.State, err error) {
+	return g.gh.getState()
 }

@@ -24,6 +24,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 	gregor "github.com/keybase/gregor"
+	gregor1 "github.com/keybase/gregor/protocol/gregor1"
 )
 
 type CommandLine interface {
@@ -440,6 +441,13 @@ type GregorInBandMessageHandler interface {
 	Dismiss(ctx context.Context, category string, ibm gregor.Item) (bool, error)
 }
 
+type GregorFirehoseHandler interface {
+	IsAlive() bool
+	PushState(gregor1.State, keybase1.PushReason)
+	PushOutOfBandMessages([]gregor1.OutOfBandMessage)
+}
+
 type GregorListener interface {
 	PushHandler(handler GregorInBandMessageHandler)
+	PushFirehoseHandler(handler GregorFirehoseHandler)
 }

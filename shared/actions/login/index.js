@@ -7,7 +7,7 @@ import {isMobile} from '../../constants/platform'
 import {navigateTo, routeAppend, navigateUp} from '../router'
 import engine from '../../engine'
 import type {responseError} from '../../engine'
-import enums from '../../constants/types/keybase-v1'
+import {Common, constants, provisionUi, passphraseCommon} from '../../constants/types/keybase-v1'
 import ExistingDevice from '../../devices/existing-device'
 import SelectOtherDevice from '../../login/register/select-other-device'
 import UsernameOrEmail from '../../login/register/username-or-email'
@@ -42,7 +42,7 @@ import type {DeviceRole} from '../../constants/login'
 import HiddenString from '../../util/hidden-string'
 import openURL from '../../util/open-url'
 
-const InputCancelError = {desc: 'Cancel Login', code: enums.constants.StatusCode.scinputcanceled}
+const InputCancelError = {desc: 'Cancel Login', code: constants.StatusCode.scinputcanceled}
 
 function makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
   return {
@@ -120,7 +120,7 @@ export function login (): AsyncAction {
           param: {
             deviceType,
             usernameOrEmail: usernameOrEmail,
-            clientType: enums.login.ClientType.gui
+            clientType: Common.ClientType.gui
           },
           incomingCallMap: incomingMap,
           callback: (error, response) => {
@@ -260,12 +260,12 @@ export function autoLogin () : AsyncAction {
       param: {
         deviceType,
         usernameOrEmail: '',
-        clientType: enums.login.ClientType.gui
+        clientType: login.ClientType.gui
       },
       incomingCallMap: {
         'keybase.1.loginUi.getEmailOrUsername': (_, response) => {
           response.error({
-            code: enums.constants.StatusCode.scnoui,
+            code: constants.StatusCode.scnoui,
             desc: 'Attempting auto login'
           })
         }
@@ -293,7 +293,7 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
       param: {
         deviceType,
         usernameOrEmail: user,
-        clientType: enums.login.ClientType.gui
+        clientType: Common.ClientType.gui
       },
       incomingCallMap: {
         'keybase.1.secretUi.getPassphrase': ({pinentry: {type}}, response) => {
@@ -445,8 +445,8 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
     const incomingMap = makeKex2IncomingMap(dispatch, getState, onBack, onBack)
     incomingMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response) => {
       let deviceType = {
-        [Constants.codePageDeviceRoleNewComputer]: enums.provisionUi.DeviceType.desktop,
-        [Constants.codePageDeviceRoleNewPhone]: enums.provisionUi.DeviceType.mobile
+        [Constants.codePageDeviceRoleNewComputer]: provisionUi.DeviceType.desktop,
+        [Constants.codePageDeviceRoleNewPhone]: provisionUi.DeviceType.mobile
       }[kind]
 
       dispatch(setCodePageOtherDeviceRole(kind))
@@ -508,7 +508,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
     },
     'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, username, retryLabel}}, response) => {
       switch (type) {
-        case enums.secretUi.PassphraseType.paperKey:
+        case passphraseCommon.PassphraseType.paperKey:
           appendRouteElement((
             <PaperKey
               mapStateToProps={state => ({})}
@@ -516,7 +516,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
               onBack={() => onBack(response)}
               error={retryLabel} />))
           break
-        case enums.secretUi.PassphraseType.passPhrase:
+        case passphraseCommon.PassphraseType.passPhrase:
           appendRouteElement((
             <Passphrase
               prompt={prompt}
@@ -530,7 +530,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
           break
         default:
           response.error({
-            code: enums.constants.StatusCode.scnotfound,
+            code: constants.StatusCode.scnotfound,
             desc: 'Unknown getPassphrase type'
           })
       }
@@ -546,13 +546,13 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
         <ExistingDevice
           myDeviceRole={store.myDeviceRole}
           onSubmit={kind => {
-            let deviceType: DeviceType
+            let deviceType
             switch (kind) {
               case Constants.codePageDeviceRoleNewComputer:
-                deviceType = enums.provisionUi.DeviceType.desktop
+                deviceType = provisionUi.DeviceType.desktop
                 break
               case Constants.codePageDeviceRoleNewPhone:
-                deviceType = enums.provisionUi.DeviceType.mobile
+                deviceType = provisionUi.DeviceType.mobile
                 break
               default:
                 console.warn(`DeviceType not recognized: ${kind}`)
@@ -575,7 +575,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
     'keybase.1.provisionUi.chooseGPGMethod': (param, response) => {
       appendRouteElement((
         <GPGSign
-          onSubmit={exportKey => response.result(exportKey ? enums.provisionUi.GPGMethod.gpgImport : enums.provisionUi.GPGMethod.gpgSign)}
+          onSubmit={exportKey => response.result(exportKey ? provisionUi.GPGMethod.gpgImport : provisionUi.GPGMethod.gpgSign)}
           onBack={() => onBack(response)} />))
     },
     'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
