@@ -134,7 +134,13 @@ export const gpgUi = {}
 
 export const gregor = {}
 
-export const gregorUI = {}
+export const gregorUI = {
+  'PushReason': {
+    'none': 0,
+    'reconnected': 1,
+    'newData': 2
+  }
+}
 
 export const identify = {}
 

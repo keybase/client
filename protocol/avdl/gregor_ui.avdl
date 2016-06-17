@@ -2,6 +2,13 @@
 @namespace("keybase.1")
 protocol gregorUI {
   import idl "github.com/keybase/gregor/protocol/gregor1" as gregor1;
-  void pushMessages(array<gregor1.Message> messages);
-  void reconnected() oneway;
+
+  enum PushReason {
+    NONE_0,
+    RECONNECTED_1,
+    NEW_DATA_2
+  }
+
+  void pushState(gregor1.State state, PushReason reason);
+  void pushOutOfBandMessages(array<gregor1.OutOfBandMessage> oobm);
 }

@@ -9,48 +9,63 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type PushMessagesArg struct {
-	Messages []gregor1.Message `codec:"messages" json:"messages"`
+type PushReason int
+
+const (
+	PushReason_NONE        PushReason = 0
+	PushReason_RECONNECTED PushReason = 1
+	PushReason_NEW_DATA    PushReason = 2
+)
+
+type PushStateArg struct {
+	State  gregor1.State `codec:"state" json:"state"`
+	Reason PushReason    `codec:"reason" json:"reason"`
 }
 
-type ReconnectedArg struct {
+type PushOutOfBandMessagesArg struct {
+	Oobm []gregor1.OutOfBandMessage `codec:"oobm" json:"oobm"`
 }
 
 type GregorUIInterface interface {
-	PushMessages(context.Context, []gregor1.Message) error
-	Reconnected(context.Context) error
+	PushState(context.Context, PushStateArg) error
+	PushOutOfBandMessages(context.Context, []gregor1.OutOfBandMessage) error
 }
 
 func GregorUIProtocol(i GregorUIInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.gregorUI",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"pushMessages": {
+			"pushState": {
 				MakeArg: func() interface{} {
-					ret := make([]PushMessagesArg, 1)
+					ret := make([]PushStateArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]PushMessagesArg)
+					typedArgs, ok := args.(*[]PushStateArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]PushMessagesArg)(nil), args)
+						err = rpc.NewTypeError((*[]PushStateArg)(nil), args)
 						return
 					}
-					err = i.PushMessages(ctx, (*typedArgs)[0].Messages)
+					err = i.PushState(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"reconnected": {
+			"pushOutOfBandMessages": {
 				MakeArg: func() interface{} {
-					ret := make([]ReconnectedArg, 1)
+					ret := make([]PushOutOfBandMessagesArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					err = i.Reconnected(ctx)
+					typedArgs, ok := args.(*[]PushOutOfBandMessagesArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PushOutOfBandMessagesArg)(nil), args)
+						return
+					}
+					err = i.PushOutOfBandMessages(ctx, (*typedArgs)[0].Oobm)
 					return
 				},
-				MethodType: rpc.MethodNotify,
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
@@ -60,13 +75,13 @@ type GregorUIClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c GregorUIClient) PushMessages(ctx context.Context, messages []gregor1.Message) (err error) {
-	__arg := PushMessagesArg{Messages: messages}
-	err = c.Cli.Call(ctx, "keybase.1.gregorUI.pushMessages", []interface{}{__arg}, nil)
+func (c GregorUIClient) PushState(ctx context.Context, __arg PushStateArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.gregorUI.pushState", []interface{}{__arg}, nil)
 	return
 }
 
-func (c GregorUIClient) Reconnected(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.gregorUI.reconnected", []interface{}{ReconnectedArg{}})
+func (c GregorUIClient) PushOutOfBandMessages(ctx context.Context, oobm []gregor1.OutOfBandMessage) (err error) {
+	__arg := PushOutOfBandMessagesArg{Oobm: oobm}
+	err = c.Cli.Call(ctx, "keybase.1.gregorUI.pushOutOfBandMessages", []interface{}{__arg}, nil)
 	return
 }
