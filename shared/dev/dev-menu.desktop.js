@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {routeAppend} from '../actions/router'
+import {BackButton, Box} from '../common-adapters'
+import {routeAppend, navigateUp} from '../actions/router'
 import {switchTab} from '../actions/tabbed-router'
 import {pushNewProfile} from '../actions/profile'
 import {pushNewSearch} from '../actions/search'
@@ -82,7 +83,10 @@ class DevMenu extends Component {
       }},
     ]
     return (
-      <MenuList items={menuItems} />
+      <Box>
+        <BackButton onClick={() => this.props.navigateUp()} />
+        <MenuList items={menuItems} />
+      </Box>
     )
   }
 
@@ -98,6 +102,7 @@ export default connect(
   null,
   dispatch => {
     return {
+      navigateUp: () => dispatch(navigateUp()),
       routeAppend: uri => dispatch(routeAppend(uri)),
       switchTab: tabName => dispatch(switchTab(tabName)),
       logout: () => dispatch(logout()),
