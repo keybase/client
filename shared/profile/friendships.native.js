@@ -11,7 +11,7 @@ type UserEntryProps = UserInfo & {
 
 const UserEntry = ({onClick, username, followsYou, following}: UserEntryProps) => (
   <Box style={userEntryContainerStyle} onClick={() => { onClick && onClick(username) }}>
-    <Avatar style={userEntryAvatarStyle} size={48} username={username} followsYou={followsYou} following={following} />
+    <Avatar style={userEntryAvatarStyle} size={64} username={username} followsYou={followsYou} following={following} />
     <Text type='BodySmall' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
   </Box>
 )
@@ -22,12 +22,13 @@ const userEntryContainerStyle = {
   alignItems: 'center',
   justifyContent: 'flex-start',
   width: 105,
-  padding: 2,
+  height: 108,
+  margin: 2,
 }
 
 const userEntryAvatarStyle = {
   marginBottom: 2,
-  marginTop: 5,
+  marginTop: 2,
 }
 
 const userEntryUsernameStyle = followsYou => ({
@@ -86,6 +87,7 @@ const tabItemContainerUsers = {
   flex: 1,
   flexWrap: 'wrap',
   justifyContent: 'space-around',
+  paddingTop: 8,
 }
 
 export default Render
