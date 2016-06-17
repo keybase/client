@@ -92,12 +92,13 @@ type gregorHandler struct {
 	gregorCli        *grclient.Client
 	firehoseHandlers []libkb.GregorFirehoseHandler
 
-	conn             *rpc.Connection
-	cli              rpc.GenericClient
-	sessionID        gregor1.SessionID
-	skipRetryConnect bool
-	itemsByID        map[string]gregor.Item
-	freshSync        bool
+	conn                *rpc.Connection
+	cli                 rpc.GenericClient
+	sessionID           gregor1.SessionID
+	skipRetryConnect    bool
+	itemsByID           map[string]gregor.Item
+	freshSync           bool
+	transportForTesting *connTransport
 
 	shutdownCh chan struct{}
 }
@@ -235,6 +236,13 @@ func (g *gregorHandler) PushFirehoseHandler(handler libkb.GregorFirehoseHandler)
 	g.Lock()
 	defer g.Unlock()
 	g.firehoseHandlers = append(g.firehoseHandlers, handler)
+
+	s, err := g.getState()
+	if err != nil {
+		g.Warning("Cannot push state in firehose handler: %s", err)
+		return
+	}
+	handler.PushState(s, keybase1.PushReason_RECONNECTED)
 }
 
 // iterateOverFirehoseHandlers applies the function f to all live fireshose handlers
@@ -294,7 +302,11 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
 	return msgs, nil
 }
 
-// serverSync is called from OnConnect to sync down the current state from
+func (g *gregorHandler) IsConnected() bool {
+	return g.conn != nil && g.conn.IsConnected()
+}
+
+// serverSync is called from
 // gregord. This can happen either on initial startup, or after a reconnect. Needs
 // to be called with gregorHandler locked.
 func (g *gregorHandler) serverSync(ctx context.Context,
@@ -406,12 +418,13 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	// Send message to local state machine
 	g.gregorCli.StateMachineConsumeMessage(m)
 
-	// Forward to electron or whichever UI is listening for the new gregor state
-	g.pushState(keybase1.PushReason_NEW_DATA)
-
 	// Handle the message
 	ibm := m.ToInBandMessage()
 	if ibm != nil {
+
+		// Forward to electron or whichever UI is listening for the new gregor state
+		g.pushState(keybase1.PushReason_NEW_DATA)
+
 		g.Debug("broadcast: in-band message: msgID: %s Ctime: %s",
 			m.ToInBandMessage().Metadata().MsgID(), m.ToInBandMessage().Metadata().CTime())
 		return g.handleInBandMessage(ctx, ibm)
@@ -775,6 +788,7 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 
 	g.Debug("connecting to gregord without TLS at %s", uri)
 	t := newConnTransport(g.G(), uri.HostPort)
+	g.transportForTesting = t
 	g.conn = rpc.NewConnectionWithTransport(g, t, keybase1.ErrorUnwrapper{}, true, keybase1.WrapError, g.G().Log, nil)
 	g.cli = g.conn.GetClient()
 
@@ -897,6 +911,11 @@ func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (k
 	}
 
 	return keybase1.Outcome_NONE, errors.New("no alive RekeyUIHandler found")
+}
+
+func (g *gregorHandler) simulateCrashForTesting() {
+	g.transportForTesting.Reset()
+	gregor1.IncomingClient{Cli: g.cli}.Ping(context.Background())
 }
 
 type gregorRPCHandler struct {

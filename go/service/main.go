@@ -478,5 +478,13 @@ func (d *Service) GregorInjectOutOfBandMessage(sys string, body []byte) error {
 }
 
 func (d *Service) HasGregor() bool {
-	return d.gregor != nil
+	return d.gregor != nil && d.gregor.IsConnected()
+}
+
+func (d *Service) SimulateGregorCrashForTesting() {
+	if d.HasGregor() {
+		d.gregor.simulateCrashForTesting()
+	} else {
+		d.G().Log.Warning("Can't simulate a gregor crash without a gregor")
+	}
 }

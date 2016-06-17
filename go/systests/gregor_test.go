@@ -18,12 +18,14 @@ import (
 )
 
 type electronMock struct {
+	libkb.Contextified
 	errCh   chan error
 	stateCh chan keybase1.PushStateArg
 	oobmCh  chan gregor1.OutOfBandMessage
 }
 
 func (e *electronMock) PushState(ctx context.Context, a keybase1.PushStateArg) (err error) {
+	e.G().Log.Debug("electronMock::PushState: %#v\n", a)
 	e.stateCh <- a
 	return nil
 }
@@ -35,11 +37,12 @@ func (e *electronMock) PushOutOfBandMessages(_ context.Context, msgs []gregor1.O
 	return nil
 }
 
-func newElectronMock() *electronMock {
+func newElectronMock(g *libkb.GlobalContext) *electronMock {
 	return &electronMock{
-		errCh:   make(chan error, 1),
-		stateCh: make(chan keybase1.PushStateArg, 10),
-		oobmCh:  make(chan gregor1.OutOfBandMessage, 10),
+		Contextified: libkb.NewContextified(g),
+		errCh:        make(chan error, 1),
+		stateCh:      make(chan keybase1.PushStateArg, 10),
+		oobmCh:       make(chan gregor1.OutOfBandMessage, 10),
 	}
 }
 
@@ -87,12 +90,10 @@ func TestGregorForwardToElectron(t *testing.T) {
 	}
 	cli, xp, err := client.GetRPCClientWithContext(tc1.G)
 	srv := rpc.NewServer(xp, nil)
-	em := newElectronMock()
+	em := newElectronMock(tc.G)
 	err = srv.Register(keybase1.GregorUIProtocol(em))
 	check()
 	ncli := keybase1.DelegateUiCtlClient{Cli: cli}
-	err = ncli.RegisterGregorFirehose(context.TODO())
-	check()
 
 	// Spin until gregor comes up; it should come up after signup
 	var ok bool
@@ -106,6 +107,9 @@ func TestGregorForwardToElectron(t *testing.T) {
 	if !ok {
 		t.Fatal("Gregor never came up after we signed up")
 	}
+
+	err = ncli.RegisterGregorFirehose(context.TODO())
+	check()
 
 	select {
 	case a := <-em.stateCh:
@@ -161,6 +165,17 @@ func TestGregorForwardToElectron(t *testing.T) {
 		}
 	case <-time.After(3 * time.Second):
 		t.Fatalf("never got an OOBM")
+	}
+
+	svc.SimulateGregorCrashForTesting()
+	select {
+	case pushArg := <-em.stateCh:
+		checkState(pushArg.State)
+		if pushArg.Reason != keybase1.PushReason_RECONNECTED {
+			t.Errorf("wrong reason for push: %v", pushArg.Reason)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatalf("never got an IBM")
 	}
 
 	gcli := keybase1.GregorClient{Cli: cli}
