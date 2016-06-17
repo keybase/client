@@ -22,6 +22,7 @@ type CmdDecrypt struct {
 	recipients []string
 	spui       *SaltpackUI
 	opts       keybase1.SaltpackDecryptOptions
+	senderfile *FileSink
 }
 
 func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -55,6 +56,10 @@ func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			cli.BoolFlag{
 				Name:  "paperkey",
 				Usage: "Use a paper key for decryption",
+			},
+			cli.StringFlag{
+				Name:  "encryptor-outfile",
+				Usage: "Write the Keybase name of the encryptor to this file",
 			},
 		},
 	}
@@ -126,6 +131,13 @@ func (c *CmdDecrypt) Run() error {
 	info, err = cli.SaltpackDecrypt(context.TODO(), arg)
 	if _, ok := err.(libkb.NoDecryptionKeyError); ok {
 		c.explainDecryptionFailure(&info)
+	} else if c.senderfile != nil {
+		if info.Sender.Username != "" {
+			if _, err := c.senderfile.Write([]byte(info.Sender.Username)); err != nil {
+				c.G().Log.Errorf("failure writing sender file: %s", err)
+			}
+		}
+		c.senderfile.Close()
 	}
 
 	cerr := c.filter.Close(err)
@@ -155,8 +167,12 @@ func (c *CmdDecrypt) ParseArgv(ctx *cli.Context) error {
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
 	infile := ctx.String("infile")
+	senderfile := ctx.String("encryptor-outfile")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
+	}
+	if senderfile != "" {
+		c.senderfile = NewFileSink(senderfile)
 	}
 
 	return nil
