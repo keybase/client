@@ -196,6 +196,14 @@ func (d *Dir) GetFileInformation(*dokan.FileInfo) (st *dokan.Stat, err error) {
 	return eiToStat(d.folder.fs.config.KBFSOps().Stat(ctx, d.node))
 }
 
+// SetFileAttributes for Dokan.
+func (d *Dir) SetFileAttributes(fi *dokan.FileInfo, fileAttributes uint32) error {
+	_, cancel := NewContextWithOpID(d.folder.fs, "Dir SetFileAttributes")
+	cancel()
+	// TODO handle attributes for real.
+	return nil
+}
+
 // isNoSuchNameError checks for libkbfs.NoSuchNameError.
 func isNoSuchNameError(err error) bool {
 	_, ok := err.(libkbfs.NoSuchNameError)
