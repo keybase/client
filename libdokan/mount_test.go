@@ -116,15 +116,6 @@ func checkDir(t testing.TB, dir string, want map[string]fileInfoCheck) {
 	}
 }
 
-// fsTimeEqual compares two filesystem-related timestamps.
-//
-// On platforms that don't use nanosecond-accurate timestamps in their
-// filesystem APIs, it truncates the timestamps to make them
-// comparable.
-func fsTimeEqual(a, b time.Time) bool {
-	return a == b
-}
-
 // timeEqualFuzzy returns whether a is b+-skew.
 func timeEqualFuzzy(a, b time.Time, skew time.Duration) bool {
 	b1 := b.Add(-skew)

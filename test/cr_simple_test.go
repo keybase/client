@@ -6,7 +6,10 @@
 
 package test
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 // bob writes a non-conflicting file while unstaged
 func TestCrUnmergedFile(t *testing.T) {
@@ -123,6 +126,35 @@ func TestCrUnmergedSetex(t *testing.T) {
 		as(alice,
 			lsdir("a/", m{"b": "EXEC", "c": "FILE"}),
 			read("a/c", "world"),
+		),
+	)
+}
+
+// bob sets the mtime on a file while unstaged
+func TestCrUnmergedSetMtime(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/c", "world"),
+		),
+		as(bob, noSync(),
+			setmtime("a/b", targetMtime),
+			reenableUpdates(),
+			lsdir("a/", m{"b": "FILE", "c": "FILE"}),
+			read("a/c", "world"),
+			mtime("a/b", targetMtime),
+		),
+		as(alice,
+			lsdir("a/", m{"b": "FILE", "c": "FILE"}),
+			read("a/c", "world"),
+			mtime("a/b", targetMtime),
 		),
 	)
 }
@@ -443,6 +475,35 @@ func TestCrMergedSetex(t *testing.T) {
 		as(alice,
 			lsdir("a/", m{"b": "EXEC", "c": "FILE"}),
 			read("a/c", "world"),
+		),
+	)
+}
+
+// alice set the mtime of a non-conflicting file while bob is unstaged
+func TestCrMergedSetMtime(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			setmtime("a/b", targetMtime),
+		),
+		as(bob, noSync(),
+			write("a/c", "world"),
+			reenableUpdates(),
+			lsdir("a/", m{"b": "FILE", "c": "FILE"}),
+			read("a/c", "world"),
+			mtime("a/b", targetMtime),
+		),
+		as(alice,
+			lsdir("a/", m{"b": "FILE", "c": "FILE"}),
+			read("a/c", "world"),
+			mtime("a/b", targetMtime),
 		),
 	)
 }

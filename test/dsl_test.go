@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -382,6 +383,34 @@ func setex(filepath string, ex bool) fileOp {
 			return err
 		}
 		return c.engine.SetEx(c.user, file, ex)
+	}, Defaults}
+}
+
+func setmtime(filepath string, mtime time.Time) fileOp {
+	return fileOp{func(c *ctx) error {
+		file, _, err := c.getNode(filepath, false, true)
+		if err != nil {
+			return err
+		}
+		return c.engine.SetMtime(c.user, file, mtime)
+	}, Defaults}
+}
+
+func mtime(filepath string, expectedMtime time.Time) fileOp {
+	return fileOp{func(c *ctx) error {
+		file, _, err := c.getNode(filepath, false, true)
+		if err != nil {
+			return err
+		}
+		mtime, err := c.engine.GetMtime(c.user, file)
+		if err != nil {
+			return err
+		}
+		if !libfs.TimeEqual(mtime, expectedMtime) {
+			return fmt.Errorf("Mtime (name=%s) got=%s, expected=%s", filepath,
+				mtime, expectedMtime)
+		}
+		return nil
 	}, Defaults}
 }
 

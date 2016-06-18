@@ -16,6 +16,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -306,6 +307,25 @@ func (*fsEngine) SetEx(u User, file Node, ex bool) (err error) {
 		mode = 0755
 	}
 	return os.Chmod(n.path, mode)
+}
+
+// SetMtime is called by the test harness as the given user to set the
+// mtime on the given file.
+func (*fsEngine) SetMtime(u User, file Node, mtime time.Time) (err error) {
+	n := file.(fsNode)
+	// KBFS doesn't respect the atime, but we have to give it something
+	atime := mtime
+	return os.Chtimes(n.path, atime, mtime)
+}
+
+// GetMtime implements the Engine interface.
+func (*fsEngine) GetMtime(u User, file Node) (mtime time.Time, err error) {
+	n := file.(fsNode)
+	fi, err := os.Lstat(n.path)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return fi.ModTime(), err
 }
 
 func fiTypeString(fi os.FileInfo) string {
