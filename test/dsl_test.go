@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -405,7 +406,7 @@ func mtime(filepath string, expectedMtime time.Time) fileOp {
 		if err != nil {
 			return err
 		}
-		if mtime != expectedMtime {
+		if !libfs.TimeEqual(mtime, expectedMtime) {
 			return fmt.Errorf("Mtime (name=%s) got=%s, expected=%s", filepath,
 				mtime, expectedMtime)
 		}
