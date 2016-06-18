@@ -12,6 +12,8 @@ type ExternalHandler interface {
 	Log(level keybase1.LogLevel, format string, args []interface{})
 }
 
+type Fields map[string]interface{}
+
 type Logger interface {
 	// Debug logs a message at debug level, with formatting args.
 	Debug(format string, args ...interface{})
@@ -61,6 +63,10 @@ type Logger interface {
 	// Returns a logger that is like the current one, except with
 	// more logging depth added on.
 	CloneWithAddedDepth(depth int) Logger
+
+	// Returns a logger that is like the current one, except with
+	// the given fields added.
+	CloneWithAddedFields(fields Fields) Logger
 
 	// SetExternalHandler sets a handler that will be called with every log message.
 	SetExternalHandler(handler ExternalHandler)

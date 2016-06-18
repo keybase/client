@@ -75,6 +75,7 @@ type Standard struct {
 	filename       string
 	configureMutex sync.Mutex
 	module         string
+	fields         Fields
 
 	externalHandler ExternalHandler
 }
@@ -111,6 +112,8 @@ func (log *Standard) setLogLevelInfo() {
 		initLoggingSetLevelCalled[log.module] = struct{}{}
 	}
 }
+
+// TODO: Also print out fields, if we start using them in production.
 
 func (log *Standard) prepareString(
 	ctx context.Context, fmts string) string {
@@ -333,12 +336,29 @@ func PickFirstError(errors ...error) error {
 	return nil
 }
 
-func (log *Standard) CloneWithAddedDepth(depth int) Logger {
+func (log *Standard) clone() *Standard {
 	clone := *log
 	cloneInternal := *log.internal
-	cloneInternal.ExtraCalldepth = log.internal.ExtraCalldepth + depth
 	clone.internal = &cloneInternal
+	clone.fields = make(Fields, len(log.fields))
+	for k, v := range log.fields {
+		clone.fields[k] = v
+	}
 	return &clone
+}
+
+func (log *Standard) CloneWithAddedDepth(depth int) Logger {
+	clone := log.clone()
+	clone.internal.ExtraCalldepth += depth
+	return clone
+}
+
+func (log *Standard) CloneWithAddedFields(fields Fields) Logger {
+	clone := log.clone()
+	for k, v := range fields {
+		clone.fields[k] = v
+	}
+	return clone
 }
 
 func (log *Standard) SetExternalHandler(handler ExternalHandler) {

@@ -6,6 +6,7 @@ package logger
 import (
 	"fmt"
 	"runtime"
+	"sort"
 	"strings"
 
 	logging "github.com/keybase/go-logging"
@@ -17,12 +18,8 @@ import (
 // a *testing.T).  We define this in order to avoid pulling in the
 // "testing" package in exported code.
 type TestLogBackend interface {
-	Error(args ...interface{})
-	Errorf(format string, args ...interface{})
-	Fatal(args ...interface{})
-	Fatalf(format string, args ...interface{})
-	Log(args ...interface{})
 	Logf(format string, args ...interface{})
+	FailNow()
 }
 
 // TestLogger is a Logger that writes to a TestLogBackend.  All
@@ -30,95 +27,112 @@ type TestLogBackend interface {
 // test that is trying to test an error condition.  No context tags
 // are logged.
 type TestLogger struct {
-	log        TestLogBackend
+	backend    TestLogBackend
 	extraDepth int
+	fields     Fields
 }
 
 func NewTestLogger(log TestLogBackend) *TestLogger {
-	return &TestLogger{log: log}
+	return &TestLogger{backend: log}
 }
 
 // Verify TestLogger fully implements the Logger interface.
 var _ Logger = (*TestLogger)(nil)
 
-func prefixCaller(extraDepth int, lvl logging.Level, fmts string) string {
+func (log *TestLogger) log(lvl logging.Level, format string, args ...interface{}) {
 	// The testing library doesn't let us control the stack depth,
 	// and it always prints out its own prefix, so use \r to clear
 	// it out (at least on a terminal) and do our own formatting.
-	_, file, line, _ := runtime.Caller(2 + extraDepth)
+	_, file, line, _ := runtime.Caller(2 + log.extraDepth)
 	elements := strings.Split(file, "/")
-	return fmt.Sprintf("\r%s:%d: [%.1s] %s", elements[len(elements)-1], line, lvl, fmts)
+	var fieldsStr string
+	if len(log.fields) > 0 {
+		var keys []string
+		for k := range log.fields {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		var fields []string
+		for _, k := range keys {
+			fields = append(fields, fmt.Sprintf("%s:%v", k, log.fields[k]))
+		}
+		fieldsStr = ", " + strings.Join(fields, " ")
+	}
+	log.backend.Logf("\r%s:%d: [%.1s%s] "+format,
+		append([]interface{}{elements[len(elements)-1], line, lvl, fieldsStr}, args...)...)
 }
 
 func (log *TestLogger) Debug(fmts string, arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.DEBUG, fmts), arg...)
+	log.log(logging.DEBUG, fmts, arg...)
 }
 
 func (log *TestLogger) CDebugf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.DEBUG, fmts), arg...)
+	log.log(logging.DEBUG, fmts, arg...)
 }
 
 func (log *TestLogger) Info(fmts string, arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.INFO, fmts), arg...)
+	log.log(logging.INFO, fmts, arg...)
 }
 
 func (log *TestLogger) CInfof(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.INFO, fmts), arg...)
+	log.log(logging.INFO, fmts, arg...)
 }
 
 func (log *TestLogger) Notice(fmts string, arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.NOTICE, fmts), arg...)
+	log.log(logging.NOTICE, fmts, arg...)
 }
 
 func (log *TestLogger) CNoticef(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.NOTICE, fmts), arg...)
+	log.log(logging.NOTICE, fmts, arg...)
 }
 
 func (log *TestLogger) Warning(fmts string, arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.WARNING, fmts), arg...)
+	log.log(logging.WARNING, fmts, arg...)
 }
 
 func (log *TestLogger) CWarningf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.WARNING, fmts), arg...)
+	log.log(logging.WARNING, fmts, arg...)
 }
 
 func (log *TestLogger) Error(fmts string, arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.ERROR, fmts), arg...)
+	log.log(logging.ERROR, fmts, arg...)
 }
 
 func (log *TestLogger) Errorf(fmts string, arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.ERROR, fmts), arg...)
+	log.log(logging.ERROR, fmts, arg...)
 }
 
 func (log *TestLogger) CErrorf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.ERROR, fmts), arg...)
+	log.log(logging.ERROR, fmts, arg...)
 }
 
 func (log *TestLogger) Critical(fmts string, arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.CRITICAL, fmts), arg...)
+	log.log(logging.CRITICAL, fmts, arg...)
 }
 
 func (log *TestLogger) CCriticalf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.CRITICAL, fmts), arg...)
+	log.log(logging.CRITICAL, fmts, arg...)
 }
 
 func (log *TestLogger) Fatalf(fmts string, arg ...interface{}) {
-	log.log.Fatalf(prefixCaller(log.extraDepth, logging.CRITICAL, fmts), arg...)
+	log.log(logging.CRITICAL, fmts, arg...)
+	log.backend.FailNow()
 }
 
 func (log *TestLogger) CFatalf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Fatalf(prefixCaller(log.extraDepth, logging.CRITICAL, fmts), arg...)
+	log.log(logging.CRITICAL, fmts, arg...)
+	log.backend.FailNow()
 }
 
 func (log *TestLogger) Profile(fmts string, arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.CRITICAL, fmts), arg...)
+	log.log(logging.CRITICAL, fmts, arg...)
 }
 
 func (log *TestLogger) Configure(style string, debug bool, filename string) {
@@ -130,10 +144,27 @@ func (log *TestLogger) RotateLogFile() error {
 	return nil
 }
 
-func (log *TestLogger) CloneWithAddedDepth(depth int) Logger {
+func (log *TestLogger) clone() *TestLogger {
 	clone := *log
-	clone.extraDepth += depth
+	clone.fields = make(Fields, len(log.fields))
+	for k, v := range log.fields {
+		clone.fields[k] = v
+	}
 	return &clone
+}
+
+func (log *TestLogger) CloneWithAddedDepth(depth int) Logger {
+	clone := log.clone()
+	clone.extraDepth += depth
+	return clone
+}
+
+func (log *TestLogger) CloneWithAddedFields(fields Fields) Logger {
+	clone := log.clone()
+	for k, v := range fields {
+		clone.fields[k] = v
+	}
+	return clone
 }
 
 // no-op stubs to fulfill the Logger interface
