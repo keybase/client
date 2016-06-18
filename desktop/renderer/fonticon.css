@@ -1,9 +1,9 @@
 @font-face {
     font-family: 'kb';
     src:
-        url('fonts/kb.ttf?5jybu6') format('truetype'),
-        url('fonts/kb.woff?5jybu6') format('woff'),
-        url('fonts/kb.svg?5jybu6#kb') format('svg');
+        url('fonts/kb.ttf?rx71ry') format('truetype'),
+        url('fonts/kb.woff?rx71ry') format('woff'),
+        url('fonts/kb.svg?rx71ry#kb') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -24,79 +24,94 @@
 }
 
 .fa-kb-iconfont-back:before {
-    content: "\e900";
-}
-.fa-kb-iconfont-close:before {
-    content: "\e903";
-}
-.fa-kb-iconfont-coinbase:before {
-    content: "\e904";
-}
-.fa-kb-iconfont-identity-bitcoin:before {
-    content: "\e908";
-}
-.fa-kb-iconfont-identity-devices:before {
-    content: "\e909";
-}
-.fa-kb-iconfont-identity-github:before {
-    content: "\e90a";
-}
-.fa-kb-iconfont-identity-hn:before {
-    content: "\e90b";
-}
-.fa-kb-iconfont-identity-pgp:before {
-    content: "\e90c";
-}
-.fa-kb-iconfont-identity-reddit:before {
-    content: "\e90d";
-}
-.fa-kb-iconfont-identity-twitter:before {
-    content: "\e90e";
-}
-.fa-kb-iconfont-identity-website:before {
-    content: "\e90f";
-}
-.fa-kb-iconfont-link:before {
-    content: "\e910";
-}
-.fa-kb-iconfont-remove:before {
-    content: "\e915";
-}
-.fa-kb-iconfont-thunderbolt:before {
-    content: "\e918";
-}
-.fa-kb-iconfont-caret-down:before {
-    content: "\e901";
-}
-.fa-kb-iconfont-caret-right:before {
     content: "\e902";
 }
-.fa-kb-iconfont-device:before {
+.fa-kb-iconfont-close:before {
+    content: "\e904";
+}
+.fa-kb-iconfont-coinbase:before {
     content: "\e905";
 }
-.fa-kb-iconfont-folder:before {
+.fa-kb-iconfont-device:before {
     content: "\e906";
 }
-.fa-kb-iconfont-hamburger:before {
-    content: "\e907";
+.fa-kb-iconfont-folder-private:before {
+    content: "\e908";
 }
-.fa-kb-iconfont-people:before {
+.fa-kb-iconfont-folder-private-has-files:before {
+    content: "\e909";
+}
+.fa-kb-iconfont-folder-public:before {
+    content: "\e90a";
+}
+.fa-kb-iconfont-folder-public-has-files:before {
+    content: "\e90b";
+}
+.fa-kb-iconfont-identity-bitcoin:before {
+    content: "\e90d";
+}
+.fa-kb-iconfont-identity-github:before {
+    content: "\e90f";
+}
+.fa-kb-iconfont-identity-hn:before {
+    content: "\e910";
+}
+.fa-kb-iconfont-identity-pgp:before {
     content: "\e911";
 }
-.fa-kb-iconfont-proof-broken:before {
+.fa-kb-iconfont-identity-reddit:before {
     content: "\e912";
 }
-.fa-kb-iconfont-proof-good:before {
+.fa-kb-iconfont-identity-twitter:before {
     content: "\e913";
 }
-.fa-kb-iconfont-proof-pending:before {
+.fa-kb-iconfont-identity-website:before {
     content: "\e914";
 }
-.fa-kb-iconfont-search:before {
+.fa-kb-iconfont-link:before {
+    content: "\e91d";
+}
+.fa-kb-iconfont-remove:before {
+    content: "\e919";
+}
+.fa-kb-iconfont-thunderbolt:before {
+    content: "\e91c";
+}
+.fa-kb-iconfont-caret-down:before {
+    content: "\e900";
+}
+.fa-kb-iconfont-caret-right:before {
+    content: "\e901";
+}
+.fa-kb-iconfont-chat:before {
+    content: "\e903";
+}
+.fa-kb-iconfont-folder:before {
+    content: "\e907";
+}
+.fa-kb-iconfont-hamburger:before {
+    content: "\e90c";
+}
+.fa-kb-iconfont-identity-devices:before {
+    content: "\e90e";
+}
+.fa-kb-iconfont-people:before {
+    content: "\e915";
+}
+.fa-kb-iconfont-proof-broken:before {
     content: "\e916";
 }
-.fa-kb-iconfont-settings:before {
+.fa-kb-iconfont-proof-good:before {
     content: "\e917";
+}
+.fa-kb-iconfont-proof-pending:before {
+    content: "\e918";
+}
+.fa-kb-iconfont-search:before {
+    content: "\e91a";
+}
+.fa-kb-iconfont-settings:before {
+    content: "\e91b";
 }
 .fa-glass:before {
     content: "\f000";
@@ -1409,7 +1424,7 @@
 .fa-digg:before {
     content: "\f1a6";
 }
-.fa-pied-piper:before {
+.fa-pied-piper-pp:before {
     content: "\f1a7";
 }
 .fa-pied-piper-alt:before {
@@ -1560,6 +1575,9 @@
     content: "\f1d0";
 }
 .fa-rebel:before {
+    content: "\f1d0";
+}
+.fa-resistance:before {
     content: "\f1d0";
 }
 .fa-empire:before {
@@ -2179,5 +2197,110 @@
 }
 .fa-percent:before {
     content: "\f295";
+}
+.fa-gitlab:before {
+    content: "\f296";
+}
+.fa-wpbeginner:before {
+    content: "\f297";
+}
+.fa-wpforms:before {
+    content: "\f298";
+}
+.fa-envira:before {
+    content: "\f299";
+}
+.fa-universal-access:before {
+    content: "\f29a";
+}
+.fa-wheelchair-alt:before {
+    content: "\f29b";
+}
+.fa-question-circle-o:before {
+    content: "\f29c";
+}
+.fa-blind:before {
+    content: "\f29d";
+}
+.fa-audio-description:before {
+    content: "\f29e";
+}
+.fa-volume-control-phone:before {
+    content: "\f2a0";
+}
+.fa-braille:before {
+    content: "\f2a1";
+}
+.fa-assistive-listening-systems:before {
+    content: "\f2a2";
+}
+.fa-american-sign-language-interpreting:before {
+    content: "\f2a3";
+}
+.fa-asl-interpreting:before {
+    content: "\f2a3";
+}
+.fa-deaf:before {
+    content: "\f2a4";
+}
+.fa-deafness:before {
+    content: "\f2a4";
+}
+.fa-hard-of-hearing:before {
+    content: "\f2a4";
+}
+.fa-glide:before {
+    content: "\f2a5";
+}
+.fa-glide-g:before {
+    content: "\f2a6";
+}
+.fa-sign-language:before {
+    content: "\f2a7";
+}
+.fa-signing:before {
+    content: "\f2a7";
+}
+.fa-low-vision:before {
+    content: "\f2a8";
+}
+.fa-viadeo:before {
+    content: "\f2a9";
+}
+.fa-viadeo-square:before {
+    content: "\f2aa";
+}
+.fa-snapchat:before {
+    content: "\f2ab";
+}
+.fa-snapchat-ghost:before {
+    content: "\f2ac";
+}
+.fa-snapchat-square:before {
+    content: "\f2ad";
+}
+.fa-pied-piper:before {
+    content: "\f2ae";
+}
+.fa-first-order:before {
+    content: "\f2b0";
+}
+.fa-yoast:before {
+    content: "\f2b1";
+}
+.fa-themeisle:before {
+    content: "\f2b2";
+}
+.fa-google-plus-circle:before {
+    content: "\f2b3";
+}
+.fa-google-plus-official:before {
+    content: "\f2b3";
+}
+.fa-fa:before {
+    content: "\f2b4";
+}
+.fa-font-awesome:before {
+    content: "\f2b4";
 }
 
