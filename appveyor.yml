@@ -15,7 +15,7 @@ install:
   - 7z x go%GOVERSION%.windows-amd64.zip -o"C:\" -y > nul
   - set Path=c:\go\bin;%Path%
   # Keybase-built and signed v1.0.0-RC4
-  - appveyor DownloadFile https://github.com/keybase/dokany/files/312689/dokan.zip
+  - appveyor DownloadFile https://github.com/keybase/dokany/files/321479/dokan.zip
   - 7z x dokan.zip -o"C:\dokan" -y -aoa > nul
   - copy C:\dokan\x64\Win8.1Release\sys\dokan1.sys C:\windows\system32\drivers\
   - pushd C:\dokan\Win32\Release
