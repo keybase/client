@@ -461,6 +461,32 @@ func TestMkdir(t *testing.T) {
 	}
 }
 
+func TestMkdirNewFolder(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer libkbfs.CheckConfigAndShutdown(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	for _, q := range []string{"New Folder", "New folder"} {
+		p := filepath.Join(mnt.Dir, PrivateName, q)
+		fi, err := os.Lstat(p)
+		if err == nil {
+			t.Fatal("Non-existent new folder existed!")
+		}
+		if err = os.Mkdir(p, 0755); err != nil {
+			t.Fatal(err)
+		}
+		fi, err = os.Lstat(p)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if g, err := fi.Mode().String(), `drwxrwxrwx`; g != err {
+			t.Errorf("wrong mode for subdir: %q != %q", g, err)
+		}
+	}
+}
+
 func TestMkdirAndCreateDeep(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)
