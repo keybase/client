@@ -24,6 +24,7 @@ let config = {
   focusOnShow: true,
   dumbFilter: '',
   printRoutes: false,
+  skipLauncherDevtools: true,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -75,6 +76,7 @@ export const {
   focusOnShow,
   dumbFilter,
   printRoutes,
+  skipLauncherDevtools,
 } = config
 
 export function initTabbedRouterState (state) {
