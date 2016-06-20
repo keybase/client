@@ -137,7 +137,7 @@ class Dropdown extends Component {
     return (
       <TouchableWithoutFeedback onPress={() => this._showModal(true)}>
         <Box style={{...styleContainer, ...this.props.style}}>
-          <Modal animated transparent visible={this.state.modalVisible} onRequestClose={() => this._showModal(false)}>
+          <Modal animationType={'slide'} transparent visible={this.state.modalVisible} onRequestClose={() => this._showModal(false)}>
             <Box style={stylePickerContainer}>
               <TouchableWithoutFeedback onPress={() => this._showModal(false)}>
                 <Box style={{flex: 1}} />

@@ -1,5 +1,5 @@
 // @flow
-import React from 'react-native'
+import React from 'react'
 import {globalStyles} from '../../styles/style-guide'
 import {Box, BackButton} from '../../common-adapters'
 import type {Props} from './container'

@@ -10,7 +10,7 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import com.burnweb.rnpermissions.RNPermissionsPackage;
-import com.eguma.barcodescanner.BarcodeScanner;
+import com.eguma.barcodescanner.BarcodeScannerPackage;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
@@ -95,7 +95,7 @@ public class MainActivity extends ReactActivity {
     protected List<com.facebook.react.ReactPackage> getPackages() {
         return Arrays.asList(
           new MainReactPackage(),
-          new BarcodeScanner(),
+          new BarcodeScannerPackage(),
           new RNPermissionsPackage(),
           new KBReactPackage(logFile.getAbsolutePath()));
     }
