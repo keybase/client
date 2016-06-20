@@ -40,6 +40,6 @@ func updaterBinName() (string, error) {
 }
 
 // RunAfterStartup is not supported on Windows
-func RunAfterStartup(g *libkb.GlobalContext, isService bool) error {
+func RunAfterStartup(g *libkb.GlobalContext) error {
 	return nil
 }
