@@ -25,7 +25,7 @@ mkdir -p "$build_dir"
 
 echo "Loading release tool"
 release_gopath="$HOME/release_gopath"
-GOPATH="$release_gopath" "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+export GOPATH="$release_gopath" "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$release_gopath/bin/release"
 
 # The release tool wants GITHUB_TOKEN in the environment. Load it in. The
