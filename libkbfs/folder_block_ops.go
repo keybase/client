@@ -978,6 +978,9 @@ func (fbo *folderBlockOps) PrepRename(
 	return oldPBlock, newPBlock, newDe, lbc, nil
 }
 
+// The amount that the read timeout is smaller than the global one.
+const readTimeoutSmallerBy = 2 * time.Second
+
 // Read reads from the given file into the given buffer at the given
 // offset. It returns the number of bytes read and nil, or 0 and the
 // error if there was one.
@@ -993,6 +996,20 @@ func (fbo *folderBlockOps) Read(
 		return 0, err
 	}
 
+	// If we have a large enough timeout add a temporary timeout that is
+	// readTimeoutSmallerBy. Use that for reading so short reads get returned
+	// upstream without triggering the global timeout.
+	now := time.Now()
+	deadline, haveTimeout := ctx.Deadline()
+	if haveTimeout {
+		rem := deadline.Sub(now) - readTimeoutSmallerBy
+		if rem > 0 {
+			var cancel func()
+			ctx, cancel = context.WithTimeout(ctx, rem)
+			defer cancel()
+		}
+	}
+
 	nRead := int64(0)
 	n := int64(len(dest))
 
@@ -1002,6 +1019,15 @@ func (fbo *folderBlockOps) Read(
 		_, _, _, block, nextBlockOff, startOff, err := fbo.getFileBlockAtOffsetLocked(
 			ctx, lState, md, file, fblock, nextByte, blockRead)
 		if err != nil {
+			// If we hit a timeout while reading then return the bytes already read
+			// and no error. If the upstream tries to do something blocking they
+			// will encounter the error with the context again. Only do this
+			// if we have already read some bytes to avoid pathological cases
+			// causing a reader looping.
+			if err == context.DeadlineExceeded && nRead > 0 {
+				fbo.log.CDebugf(ctx, "Read short: read %d bytes of %d\n", nRead, n)
+				return nRead, nil
+			}
 			return 0, err
 		}
 		blockLen := int64(len(block.Contents))
