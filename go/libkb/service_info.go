@@ -9,8 +9,6 @@ import (
 	"io/ioutil"
 	"os"
 	"time"
-
-	"github.com/keybase/client/go/logger"
 )
 
 // ServiceInfo describes runtime info for a service.
@@ -51,9 +49,14 @@ func (s ServiceInfo) WriteFile(path string) error {
 	return ioutil.WriteFile(path, []byte(out), 0644)
 }
 
+// serviceLog is the log interface for ServiceInfo
+type serviceLog interface {
+	Debug(s string, args ...interface{})
+}
+
 // WaitForServiceInfoFile tries to wait for a service info file, which should be
 // written on successful service startup.
-func WaitForServiceInfoFile(path string, label string, pid string, maxAttempts int, wait time.Duration, reason string, log logger.Logger) (*ServiceInfo, error) {
+func WaitForServiceInfoFile(path string, label string, pid string, maxAttempts int, wait time.Duration, reason string, log serviceLog) (*ServiceInfo, error) {
 	if pid == "" {
 		return nil, fmt.Errorf("No pid to wait for")
 	}

@@ -26,7 +26,7 @@ func AfterUpdateApply(g *libkb.GlobalContext, willRestart bool, force bool) erro
 	}
 	if reinstallKBFS {
 		g.Log.Info("Re-installing KBFS")
-		err := install.InstallKBFS(g, "", false)
+		err := install.KBFS(g, "", false, g.Log)
 		if err != nil {
 			g.Log.Errorf("Error re-installing KBFS (after Fuse upgrade): %s", err)
 		}
