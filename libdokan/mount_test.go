@@ -470,15 +470,19 @@ func TestMkdirNewFolder(t *testing.T) {
 
 	for _, q := range []string{"New Folder", "New folder"} {
 		p := filepath.Join(mnt.Dir, PrivateName, q)
-		if err := os.Mkdir(p, 0755); err != nil {
+		fi, err := os.Lstat(p)
+		if err == nil {
+			t.Fatal("Non-existent new folder existed!")
+		}
+		if err = os.Mkdir(p, 0755); err != nil {
 			t.Fatal(err)
 		}
-		fi, err := os.Lstat(p)
+		fi, err = os.Lstat(p)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if g, e := fi.Mode().String(), `drwxrwxrwx`; g != e {
-			t.Errorf("wrong mode for subdir: %q != %q", g, e)
+		if g, err := fi.Mode().String(), `drwxrwxrwx`; g != err {
+			t.Errorf("wrong mode for subdir: %q != %q", g, err)
 		}
 	}
 }
