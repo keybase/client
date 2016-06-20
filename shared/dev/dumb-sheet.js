@@ -18,5 +18,5 @@ class DumbSheet extends Component {
 export default connect(
   state => ({}),
   dispatch => ({
-    onBack: () => dispatch(navigateUp())
+    onBack: () => dispatch(navigateUp()),
   }))(DumbSheet)

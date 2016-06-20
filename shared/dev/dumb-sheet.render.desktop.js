@@ -32,7 +32,7 @@ class Render extends Component<void, any, any> {
   render () {
     return (
       <Box style={{...globalStyles.scrollable, padding: 20}}>
-        <BackButton onClick={this.props.onBack()} />
+        <BackButton onClick={this.props.onBack} />
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text type='Header'>Filter:</Text>
           <Input

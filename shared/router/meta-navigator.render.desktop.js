@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
-import {connect, bindActionCreators} from 'react-redux'
+import {connect} from 'react-redux'
+import {bindActionCreators} from 'redux'
 import {navigateUp} from '../actions/router'
 import {globalStyles} from '../styles/style-guide'
 

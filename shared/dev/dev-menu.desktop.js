@@ -9,6 +9,7 @@ import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
 import MenuList from '../settings/menu-list'
 import RemoteComponent from '../../desktop/renderer/remote-component'
+import {globalStyles} from '../styles/style-guide'
 
 import {loginTab} from '../constants/tabs'
 import engine from '../engine'
@@ -83,7 +84,7 @@ class DevMenu extends Component {
       }},
     ]
     return (
-      <Box>
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <BackButton onClick={() => this.props.navigateUp()} />
         <MenuList items={menuItems} />
       </Box>
