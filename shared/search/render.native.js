@@ -1,6 +1,7 @@
 /* @flow */
 import React, {Component} from 'react'
-import {Box, ComingSoon} from '../common-adapters'
+import {ComingSoon} from '../common-adapters'
+import UserSearch from './user-search/render'
 import type {Props} from './render'
 
 class Render extends Component<void, Props, void> {
@@ -12,7 +13,9 @@ class Render extends Component<void, Props, void> {
     if (this.props.showComingSoon) {
       return this._renderComingSoon()
     }
-    return <Box>Search : TODO</Box>
+    return (
+      <UserSearch {...this.props} />
+    )
   }
 }
 

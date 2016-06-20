@@ -7,7 +7,8 @@ import {globalStyles, globalColors} from '../../styles/style-guide'
 
 import {IconButton} from 'material-ui'
 
-import type {Props, SearchResult, SearchResultFn, ServiceFn} from './render'
+import type {SearchResult} from '../../constants/search'
+import type {Props, SearchResultFn, ServiceFn} from './render'
 import type {IconType} from '../../common-adapters/icon'
 import type {Props as TextProps} from '../../common-adapters/text'
 

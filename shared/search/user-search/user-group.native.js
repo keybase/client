@@ -6,7 +6,7 @@ import {globalStyles, globalColors} from '../../styles/style-guide'
 
 import type {IconType} from '../../common-adapters/icon'
 import type {Props, UserFn} from './user-group'
-import type {SearchResult, ExtraInfo} from './render'
+import type {SearchResult, ExtraInfo} from '../../constants/search'
 
 function fullName (extraInfo: ExtraInfo): string {
   switch (extraInfo.service) {

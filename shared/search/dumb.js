@@ -64,6 +64,7 @@ const userSearchMap: DumbComponentMap<UserSearch> = {
   component: UserSearch,
   mocks: {
     'Normal': {
+      onSearch: text => console.log('OnSearch: ', text),
       searchHintText: 'Search Keybase',
       searchText: 'malg',
       searchIcon: 'logo-32',

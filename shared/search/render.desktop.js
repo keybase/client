@@ -13,7 +13,14 @@ class Render extends Component<void, Props, void> {
     if (this.props.showComingSoon) {
       return this._renderComingSoon()
     }
-    return <Box>Search : TODO</Box>
+    return (
+      <Box>
+        <Text type='Body' onClick={() => this.props.onSearch('chris')}>Search chris!</Text>
+        <Text type='Body' onClick={() => this.props.onSearch('malg', 'Twitter')}>Search malg!</Text>
+        <Text type='Body' onClick={() => this.props.onSearch('malg', 'Keybase')}>Search malg on keybase!</Text>
+        Search : TODO
+      </Box>
+    )
   }
 }
 
