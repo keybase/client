@@ -53,7 +53,7 @@ func AutoInstall(context Context, _ string, _ bool) ( /* newProc */ bool, error)
 	if err != nil {
 		return false, err
 	}
-	return false, ioutil.WriteFile(autostartFilePath(g), []byte(autostartFileText), 0644)
+	return false, ioutil.WriteFile(autostartFilePath(context), []byte(autostartFileText), 0644)
 }
 
 // CheckIfValidLocation is not used on linux
