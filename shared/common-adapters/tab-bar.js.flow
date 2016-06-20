@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import Avatar from './avatar'
 import type {$Exact} from '../constants/types/more'
-import type {Props as IconProps} from './icon'
+import type {IconType} from './icon'
 
 export type Props = $Exact<{
   style?: Object,
@@ -30,7 +30,7 @@ export class TabBarItem extends Component<void, ItemProps, void> { }
 
 export type TabBarButtonProps = $Exact<{
   selected?: boolean,
-  source: {type: 'icon', icon: IconProps.type} | {type: 'avatar', avatar: Avatar},
+  source: {type: 'icon', icon: IconType} | {type: 'avatar', avatar: Avatar},
   label?: string,
   badgeNumber?: ?number,
   style?: Object,

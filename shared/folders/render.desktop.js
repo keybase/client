@@ -12,8 +12,9 @@ class Render extends Component<void, Props, void> {
   }
 
   _makeItem (isPublic: boolean, isSelected: boolean) {
+    const icon = isPublic ? 'subnav-folders-public' : 'subnav-folders-private'
     return <TabBarButton
-      source={{type: 'icon', icon: `subnav-folders-${isPublic ? 'public' : 'private'}`}}
+      source={{type: 'icon', icon}}
       style={{
         ...styleItem,
         borderBottom: isSelected
