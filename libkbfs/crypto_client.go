@@ -32,7 +32,7 @@ var _ Crypto = (*CryptoClient)(nil)
 var _ rpc.ConnectionHandler = (*CryptoClient)(nil)
 
 // NewCryptoClient constructs a new CryptoClient.
-func NewCryptoClient(config Config, kbCtx *libkb.GlobalContext) *CryptoClient {
+func NewCryptoClient(config Config, kbCtx Context) *CryptoClient {
 	log := config.MakeLogger("")
 	c := &CryptoClient{
 		CryptoCommon: MakeCryptoCommon(config.Codec(), log),

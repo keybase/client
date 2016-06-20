@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libdokan"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -42,12 +43,12 @@ To run in a local testing environment:
 
 `
 
-func getUsageStr() string {
-	defaultBServer := libkbfs.GetDefaultBServer()
+func getUsageStr(ctx libkbfs.Context) string {
+	defaultBServer := libkbfs.GetDefaultBServer(ctx)
 	if len(defaultBServer) == 0 {
 		defaultBServer = "host:port"
 	}
-	defaultMDServer := libkbfs.GetDefaultMDServer()
+	defaultMDServer := libkbfs.GetDefaultMDServer(ctx)
 	if len(defaultMDServer) == 0 {
 		defaultMDServer = "host:port"
 	}
@@ -55,7 +56,8 @@ func getUsageStr() string {
 }
 
 func start() *libfs.Error {
-	kbfsParams := libkbfs.AddFlags(flag.CommandLine)
+	ctx := env.NewContext()
+	kbfsParams := libkbfs.AddFlags(flag.CommandLine, ctx)
 
 	flag.Parse()
 
@@ -65,12 +67,12 @@ func start() *libfs.Error {
 	}
 
 	if len(flag.Args()) < 1 {
-		fmt.Print(getUsageStr())
+		fmt.Print(getUsageStr(ctx))
 		return libfs.InitError("no mount specified")
 	}
 
 	if len(flag.Args()) > 1 {
-		fmt.Print(getUsageStr())
+		fmt.Print(getUsageStr(ctx))
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
 
@@ -88,7 +90,7 @@ func start() *libfs.Error {
 		Label:      *label,
 	}
 
-	return libdokan.Start(mounter, options)
+	return libdokan.Start(mounter, options, ctx)
 }
 
 func main() {

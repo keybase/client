@@ -19,7 +19,7 @@ import (
 // KeybaseDaemonRPC implements the KeybaseDaemon interface using RPC
 // calls.
 type KeybaseDaemonRPC struct {
-	libkb.Contextified
+	context        Context
 	identifyClient keybase1.IdentifyInterface
 	userClient     keybase1.UserInterface
 	sessionClient  keybase1.SessionInterface
@@ -56,7 +56,7 @@ var _ KeybaseDaemon = (*KeybaseDaemonRPC)(nil)
 
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given Keybase context.
-func NewKeybaseDaemonRPC(config Config, kbCtx *libkb.GlobalContext, log logger.Logger, debug bool) *KeybaseDaemonRPC {
+func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger, debug bool) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(kbCtx, log)
 	k.config = config
 	conn := NewSharedKeybaseConnection(kbCtx, config, k)
@@ -70,18 +70,18 @@ func NewKeybaseDaemonRPC(config Config, kbCtx *libkb.GlobalContext, log logger.L
 }
 
 // For testing.
-func newKeybaseDaemonRPCWithClient(kbCtx *libkb.GlobalContext, client rpc.GenericClient,
+func newKeybaseDaemonRPCWithClient(kbCtx Context, client rpc.GenericClient,
 	log logger.Logger) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(kbCtx, log)
 	k.fillClients(client)
 	return k
 }
 
-func newKeybaseDaemonRPC(kbCtx *libkb.GlobalContext, log logger.Logger) *KeybaseDaemonRPC {
+func newKeybaseDaemonRPC(kbCtx Context, log logger.Logger) *KeybaseDaemonRPC {
 	k := KeybaseDaemonRPC{
-		Contextified: libkb.NewContextified(kbCtx),
-		log:          log,
-		userCache:    make(map[keybase1.UID]UserInfo),
+		context:   kbCtx,
+		log:       log,
+		userCache: make(map[keybase1.UID]UserInfo),
 	}
 	return &k
 }

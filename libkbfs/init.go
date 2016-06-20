@@ -12,7 +12,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime/pprof"
-	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -55,27 +54,9 @@ type InitParams struct {
 	LogFileConfig logger.LogFileConfig
 }
 
-var libkbOnce sync.Once
-
-func initLibkb() {
-	libkbOnce.Do(func() {
-		libkb.G.Init()
-		libkb.G.ConfigureConfig()
-		libkb.G.ConfigureLogging()
-		libkb.G.ConfigureCaches()
-		libkb.G.ConfigureMerkleClient()
-	})
-}
-
-func getRunMode() libkb.RunMode {
-	// Initialize libkb.G.Env.
-	initLibkb()
-	return libkb.G.Env.GetRunMode()
-}
-
 // GetDefaultBServer returns the default value for the -bserver flag.
-func GetDefaultBServer() string {
-	switch getRunMode() {
+func GetDefaultBServer(ctx Context) string {
+	switch ctx.GetRunMode() {
 	case libkb.StagingRunMode:
 		return "bserver.dev.keybase.io:443"
 	case libkb.ProductionRunMode:
@@ -86,8 +67,8 @@ func GetDefaultBServer() string {
 }
 
 // GetDefaultMDServer returns the default value for the -mdserver flag.
-func GetDefaultMDServer() string {
-	switch getRunMode() {
+func GetDefaultMDServer(ctx Context) string {
+	switch ctx.GetRunMode() {
 	case libkb.StagingRunMode:
 		return "mdserver.dev.keybase.io:443"
 	case libkb.ProductionRunMode:
@@ -97,26 +78,26 @@ func GetDefaultMDServer() string {
 	}
 }
 
-func defaultLogPath() string {
+func defaultLogPath(ctx Context) string {
 	// TODO is there a better way to get G here?
-	return filepath.Join(libkb.G.Env.GetLogDir(), libkb.KBFSLogFileName)
+	return filepath.Join(ctx.GetLogDir(), libkb.KBFSLogFileName)
 }
 
 // AddFlags adds libkbfs flags to the given FlagSet. Returns an
 // InitParams that will be filled in once the given FlagSet is parsed.
-func AddFlags(flags *flag.FlagSet) *InitParams {
+func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	var params InitParams
 	flags.BoolVar(&params.Debug, "debug", BoolForString(os.Getenv("KBFS_DEBUG")), "Print debug messages")
 	flags.StringVar(&params.CPUProfile, "cpuprofile", "", "write cpu profile to file")
 
-	flags.StringVar(&params.BServerAddr, "bserver", GetDefaultBServer(), "host:port of the block server")
-	flags.StringVar(&params.MDServerAddr, "mdserver", GetDefaultMDServer(), "host:port of the metadata server")
+	flags.StringVar(&params.BServerAddr, "bserver", GetDefaultBServer(ctx), "host:port of the block server")
+	flags.StringVar(&params.MDServerAddr, "mdserver", GetDefaultMDServer(ctx), "host:port of the metadata server")
 
 	flags.BoolVar(&params.ServerInMemory, "server-in-memory", false, "use in-memory server (and ignore -bserver, -mdserver, and -server-root)")
 	flags.StringVar(&params.ServerRootDir, "server-root", "", "directory to put local server files (and ignore -bserver and -mdserver)")
 	flags.StringVar(&params.LocalUser, "localuser", "", "fake local user (used only with -server-in-memory or -server-root)")
 	flags.DurationVar(&params.TLFValidDuration, "tlf-valid", tlfValidDurationDefault, "time tlfs are valid before redoing identification")
-	flags.BoolVar(&params.LogToFile, "log-to-file", false, fmt.Sprintf("Log to default file: %s", defaultLogPath()))
+	flags.BoolVar(&params.LogToFile, "log-to-file", false, fmt.Sprintf("Log to default file: %s", defaultLogPath(ctx)))
 	flags.StringVar(&params.LogFileConfig.Path, "log-file", "", "Path to log file")
 	flags.DurationVar(&params.LogFileConfig.MaxAge, "log-file-max-age", 30*24*time.Hour, "Maximum age of a log file before rotation")
 	params.LogFileConfig.MaxSize = 128 * 1024 * 1024
@@ -126,7 +107,7 @@ func AddFlags(flags *flag.FlagSet) *InitParams {
 	return &params
 }
 
-func makeMDServer(config Config, serverInMemory bool, serverRootDir, mdserverAddr string) (
+func makeMDServer(config Config, serverInMemory bool, serverRootDir, mdserverAddr string, ctx Context) (
 	MDServer, error) {
 	if serverInMemory {
 		// local in-memory MD server
@@ -148,7 +129,7 @@ func makeMDServer(config Config, serverInMemory bool, serverRootDir, mdserverAdd
 
 	// remote MD server. this can't fail. reconnection attempts
 	// will be automatic.
-	mdServer := NewMDServerRemote(config, mdserverAddr)
+	mdServer := NewMDServerRemote(config, mdserverAddr, ctx)
 	return mdServer, nil
 }
 
@@ -177,7 +158,7 @@ func makeKeyServer(config Config, serverInMemory bool, serverRootDir, keyserverA
 	return keyServer, nil
 }
 
-func makeBlockServer(config Config, serverInMemory bool, serverRootDir, bserverAddr string, log logger.Logger) (
+func makeBlockServer(config Config, serverInMemory bool, serverRootDir, bserverAddr string, ctx Context, log logger.Logger) (
 	BlockServer, error) {
 	if serverInMemory {
 		// local in-memory block server
@@ -195,13 +176,13 @@ func makeBlockServer(config Config, serverInMemory bool, serverRootDir, bserverA
 	}
 
 	log.Debug("Using remote bserver %s", bserverAddr)
-	return NewBlockServerRemote(config, bserverAddr), nil
+	return NewBlockServerRemote(config, bserverAddr, ctx), nil
 }
 
-func makeKeybaseDaemon(config Config, serverInMemory bool, serverRootDir string, localUser libkb.NormalizedUsername, codec Codec, log logger.Logger, debug bool) (KeybaseDaemon, error) {
+func makeKeybaseDaemon(config Config, serverInMemory bool, serverRootDir string, localUser libkb.NormalizedUsername, codec Codec, ctx Context, log logger.Logger, debug bool) (KeybaseDaemon, error) {
 	if len(localUser) == 0 {
-		libkb.G.ConfigureSocketInfo()
-		return NewKeybaseDaemonRPC(config, libkb.G, log, debug), nil
+		ctx.ConfigureSocketInfo()
+		return NewKeybaseDaemonRPC(config, ctx, log, debug), nil
 	}
 
 	users := []libkb.NormalizedUsername{"strib", "max", "chris", "fred"}
@@ -242,7 +223,7 @@ func makeKeybaseDaemon(config Config, serverInMemory bool, serverRootDir string,
 // Returns a valid logger even on error, which are non-fatal, thus
 // errors from this function may be ignored.
 // Possible errors are logged to the logger returned.
-func InitLog(params InitParams) (logger.Logger, error) {
+func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 	var err error
 	log := logger.NewWithCallDepth("kbfs", 1)
 
@@ -251,7 +232,7 @@ func InitLog(params InitParams) (logger.Logger, error) {
 		if params.LogFileConfig.Path != "" {
 			return nil, fmt.Errorf("log-to-file and log-file flags can't be specified together")
 		}
-		params.LogFileConfig.Path = defaultLogPath()
+		params.LogFileConfig.Path = defaultLogPath(ctx)
 	}
 
 	if params.LogFileConfig.Path != "" {
@@ -276,9 +257,7 @@ func InitLog(params InitParams) (logger.Logger, error) {
 // Init should be called at the beginning of main. Shutdown (see
 // below) should then be called at the end of main (usually via
 // defer).
-func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, error) {
-	initLibkb()
-
+func Init(ctx Context, params InitParams, onInterruptFn func(), log logger.Logger) (Config, error) {
 	localUser := libkb.NewNormalizedUsername(params.LocalUser)
 
 	if params.CPUProfile != "" {
@@ -343,7 +322,7 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 	config.SetMDOps(NewMDOpsStandard(config))
 
 	mdServer, err := makeMDServer(
-		config, params.ServerInMemory, params.ServerRootDir, params.MDServerAddr)
+		config, params.ServerInMemory, params.ServerRootDir, params.MDServerAddr, ctx)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating MD server: %v", err)
 	}
@@ -362,7 +341,7 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 
 	config.SetKeyServer(keyServer)
 
-	daemon, err := makeKeybaseDaemon(config, params.ServerInMemory, params.ServerRootDir, localUser, config.Codec(), config.MakeLogger(""), params.Debug)
+	daemon, err := makeKeybaseDaemon(config, params.ServerInMemory, params.ServerRootDir, localUser, config.Codec(), ctx, config.MakeLogger(""), params.Debug)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating daemon: %s", err)
 	}
@@ -379,7 +358,7 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
 
 	if localUser == "" {
-		c := NewCryptoClient(config, libkb.G)
+		c := NewCryptoClient(config, ctx)
 		config.SetCrypto(c)
 	} else {
 		signingKey := MakeLocalUserSigningKeyOrBust(localUser)
@@ -387,7 +366,7 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 		config.SetCrypto(NewCryptoLocal(config, signingKey, cryptPrivateKey))
 	}
 
-	bserv, err := makeBlockServer(config, params.ServerInMemory, params.ServerRootDir, params.BServerAddr, log)
+	bserv, err := makeBlockServer(config, params.ServerInMemory, params.ServerRootDir, params.BServerAddr, ctx, log)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open block database: %v", err)
 	}

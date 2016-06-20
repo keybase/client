@@ -14,7 +14,7 @@ import (
 
 // NewSharedKeybaseConnection returns a connection that tries to
 // connect to the local keybase daemon.
-func NewSharedKeybaseConnection(kbCtx *libkb.GlobalContext, config Config,
+func NewSharedKeybaseConnection(kbCtx Context, config Config,
 	handler rpc.ConnectionHandler) *rpc.Connection {
 	transport := &SharedKeybaseTransport{kbCtx: kbCtx}
 	return rpc.NewConnectionWithTransport(handler, transport,
@@ -25,7 +25,7 @@ func NewSharedKeybaseConnection(kbCtx *libkb.GlobalContext, config Config,
 // SharedKeybaseTransport is a ConnectionTransport implementation that
 // uses a shared local socket to a keybase daemon.
 type SharedKeybaseTransport struct {
-	kbCtx *libkb.GlobalContext
+	kbCtx Context
 
 	// Protects everything below.
 	mutex           sync.Mutex

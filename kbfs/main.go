@@ -12,6 +12,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -38,12 +39,12 @@ The possible commands are:
 
 `
 
-func getUsageStr() string {
-	defaultBServer := libkbfs.GetDefaultBServer()
+func getUsageStr(kbCtx libkbfs.Context) string {
+	defaultBServer := libkbfs.GetDefaultBServer(kbCtx)
 	if len(defaultBServer) == 0 {
 		defaultBServer = "host:port"
 	}
-	defaultMDServer := libkbfs.GetDefaultMDServer()
+	defaultMDServer := libkbfs.GetDefaultMDServer(kbCtx)
 	if len(defaultMDServer) == 0 {
 		defaultMDServer = "host:port"
 	}
@@ -52,7 +53,8 @@ func getUsageStr() string {
 
 // Define this so deferred functions get executed before exit.
 func realMain() (exitStatus int) {
-	kbfsParams := libkbfs.AddFlags(flag.CommandLine)
+	kbCtx := env.NewContext()
+	kbfsParams := libkbfs.AddFlags(flag.CommandLine, kbCtx)
 
 	flag.Parse()
 
@@ -62,13 +64,13 @@ func realMain() (exitStatus int) {
 	}
 
 	if len(flag.Args()) < 1 {
-		fmt.Print(getUsageStr())
+		fmt.Print(getUsageStr(kbCtx))
 		return 1
 	}
 
 	log := logger.NewWithCallDepth("", 1)
 
-	config, err := libkbfs.Init(*kbfsParams, nil, log)
+	config, err := libkbfs.Init(kbCtx, *kbfsParams, nil, log)
 	if err != nil {
 		printError("kbfs", err)
 		return 1

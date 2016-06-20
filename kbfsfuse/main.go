@@ -14,6 +14,7 @@ import (
 	"bazil.org/fuse"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libfuse"
 	"github.com/keybase/kbfs/libkbfs"
@@ -43,12 +44,12 @@ To run in a local testing environment:
 
 `
 
-func getUsageStr() string {
-	defaultBServer := libkbfs.GetDefaultBServer()
+func getUsageStr(ctx libkbfs.Context) string {
+	defaultBServer := libkbfs.GetDefaultBServer(ctx)
 	if len(defaultBServer) == 0 {
 		defaultBServer = "host:port"
 	}
-	defaultMDServer := libkbfs.GetDefaultMDServer()
+	defaultMDServer := libkbfs.GetDefaultMDServer(ctx)
 	if len(defaultMDServer) == 0 {
 		defaultMDServer = "host:port"
 	}
@@ -59,7 +60,9 @@ func getUsageStr() string {
 }
 
 func start() *libfs.Error {
-	kbfsParams := libkbfs.AddFlags(flag.CommandLine)
+	ctx := env.NewContext()
+
+	kbfsParams := libkbfs.AddFlags(flag.CommandLine, ctx)
 	platformParams := libfuse.AddPlatformFlags(flag.CommandLine)
 
 	flag.Parse()
@@ -70,12 +73,12 @@ func start() *libfs.Error {
 	}
 
 	if len(flag.Args()) < 1 {
-		fmt.Print(getUsageStr())
+		fmt.Print(getUsageStr(ctx))
 		return libfs.InitError("no mount specified")
 	}
 
 	if len(flag.Args()) > 1 {
-		fmt.Print(getUsageStr())
+		fmt.Print(getUsageStr(ctx))
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
 
@@ -101,7 +104,7 @@ func start() *libfs.Error {
 		Label:      *label,
 	}
 
-	return libfuse.Start(mounter, options)
+	return libfuse.Start(mounter, options, ctx)
 }
 
 func main() {

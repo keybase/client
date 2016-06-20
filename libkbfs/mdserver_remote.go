@@ -65,7 +65,7 @@ var _ AuthTokenRefreshHandler = (*MDServerRemote)(nil)
 var _ rpc.ConnectionHandler = (*MDServerRemote)(nil)
 
 // NewMDServerRemote returns a new instance of MDServerRemote.
-func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
+func NewMDServerRemote(config Config, srvAddr string, ctx Context) *MDServerRemote {
 	mdServer := &MDServerRemote{
 		config:     config,
 		observers:  make(map[TlfID]chan<- error),
@@ -77,7 +77,7 @@ func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 		"libkbfs_mdserver_remote", mdServer)
 	conn := rpc.NewTLSConnection(srvAddr, GetRootCerts(srvAddr),
 		MDServerErrorUnwrapper{}, mdServer, true,
-		libkb.NewRPCLogFactory(libkb.G), libkb.WrapError,
+		ctx.NewRPCLogFactory(), libkb.WrapError,
 		config.MakeLogger(""), LogTagsFromContext)
 	mdServer.conn = conn
 	mdServer.client = keybase1.MetadataClient{Cli: conn.GetClient()}

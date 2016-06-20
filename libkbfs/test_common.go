@@ -15,6 +15,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/kbfs/env"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
@@ -104,7 +105,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 		}
 
 	case len(bserverAddr) != 0:
-		blockServer = NewBlockServerRemote(config, bserverAddr)
+		blockServer = NewBlockServerRemote(config, bserverAddr, env.NewContext())
 
 	default:
 		blockServer = NewBlockServerMemory(config)
@@ -132,7 +133,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 		libkb.G.ConfigureLogging()
 
 		// connect to server
-		mdServer = NewMDServerRemote(config, mdServerAddr)
+		mdServer = NewMDServerRemote(config, mdServerAddr, env.NewContext())
 		// for now the MD server acts as the key server in production
 		keyServer = mdServer.(*MDServerRemote)
 	} else {
@@ -197,7 +198,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	c.SetCrypto(crypto)
 
 	if s, ok := config.BlockServer().(*BlockServerRemote); ok {
-		blockServer := NewBlockServerRemote(c, s.RemoteAddress())
+		blockServer := NewBlockServerRemote(c, s.RemoteAddress(), env.NewContext())
 		c.SetBlockServer(blockServer)
 	} else {
 		c.SetBlockServer(config.BlockServer())
@@ -210,7 +211,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	var keyServer KeyServer
 	if len(mdServerAddr) != 0 {
 		// connect to server
-		mdServer = NewMDServerRemote(c, mdServerAddr)
+		mdServer = NewMDServerRemote(c, mdServerAddr, env.NewContext())
 		// for now the MD server also acts as the key server.
 		keyServer = mdServer.(*MDServerRemote)
 	} else {

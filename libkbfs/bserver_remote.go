@@ -42,7 +42,7 @@ var _ AuthTokenRefreshHandler = (*BlockServerRemote)(nil)
 
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
-func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
+func NewBlockServerRemote(config Config, blkSrvAddr string, ctx Context) *BlockServerRemote {
 	log := config.MakeLogger("BSR")
 	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
@@ -57,7 +57,7 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 		"libkbfs_bserver_remote", bs)
 	// This will connect only on-demand due to the last argument.
 	conn := rpc.NewTLSConnection(blkSrvAddr, GetRootCerts(blkSrvAddr),
-		bServerErrorUnwrapper{}, bs, false, libkb.NewRPCLogFactory(libkb.G),
+		bServerErrorUnwrapper{}, bs, false, ctx.NewRPCLogFactory(),
 		libkb.WrapError, config.MakeLogger(""), LogTagsFromContext)
 	bs.client = keybase1.BlockClient{Cli: conn.GetClient()}
 	bs.shutdownFn = conn.Shutdown
