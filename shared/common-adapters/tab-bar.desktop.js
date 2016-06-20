@@ -1,5 +1,6 @@
 // @flow
 import React, {Component} from 'react'
+import _ from 'lodash'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Box from './box'
 import Text from './text'
@@ -15,17 +16,7 @@ export class TabBarItem extends Component {
   }
 }
 
-type SimpleTabBarButtonProps = {
-  label: string,
-  selected: boolean,
-  selectedColor?: string,
-  underlined?: boolean,
-  onBottom?: boolean,
-  styleContainer?: Object,
-  styleLabel?: Object
-}
-
-class SimpleTabBarButton extends Component<void, SimpleTabBarButtonProps, void> {
+class SimpleTabBarButton extends Component<void, ItemProps, void> {
   render () {
     const selectedColor = this.props.selectedColor || globalColors.blue
     const borderLocation = this.props.onBottom ? 'borderTop' : 'borderBottom'
@@ -35,14 +26,13 @@ class SimpleTabBarButton extends Component<void, SimpleTabBarButtonProps, void> 
         style={{
           [borderLocation]: `solid 2px ${this.props.selected ? selectedColor : 'transparent'}`,
           padding: '4px 12px',
-          ...this.props.styleContainer,
+          ...this.props.style,
         }}>
         <Text
           type='BodySmall'
           style={{
             color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
             ...underlineStyle,
-            ...this.props.styleLabel,
           }}>
           {this.props.label}
         </Text>
@@ -55,8 +45,8 @@ export class TabBarButton extends Component<void, TabBarButtonProps, void> {
   _renderAvatar (backgroundColor: string, color: string, badgeNumber: number) {
     if (this.props.source.type !== 'avatar') return // needed to make flow happy
     return (
-      <Box style={{...globalStyles.flexBoxColumn, backgroundColor, paddingBottom: 21, paddingTop: 21}}>
-        <Box style={{...stylesTabBarButtonIcon, paddingLeft: 0, height: undefined, justifyContent: 'center', ...this.props.style}}>
+      <Box style={{...globalStyles.flexBoxColumn, backgroundColor, paddingBottom: 21, paddingTop: 21, ...this.props.style}}>
+        <Box style={{...stylesTabBarButtonIcon, paddingLeft: 0, height: undefined, justifyContent: 'center', ...this.props.styleContainer}}>
           {this.props.source.avatar}
           {badgeNumber > 0 &&
             <Box style={{width: 0, display: 'flex'}}>
@@ -129,20 +119,14 @@ class TabBar extends Component {
 
   _labels (): Array<React$Element> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
-    return (this.props.children || []).map((item, i) => (
-      <Box key={item.props.label || i} style={item.props.containerStyle} onClick={item.props.onClick}>
-        {item.props.tabBarButton ||
-          <SimpleTabBarButton
-            label={item.props.label}
-            selected={item.props.selected}
-            selectedColor={item.props.selectedColor}
-            underlined={this.props.underlined}
-            onBottom={this.props.tabBarOnBottom}
-            styleContainer={item.props.styleContainer}
-            styleLabel={item.props.styleLabel}
-          />}
-      </Box>
-    ))
+    return (this.props.children || []).map((item: {props: ItemProps}, i) => {
+      const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
+      return (
+        <Box key={key} style={item.props.styleContainer} onClick={item.props.onClick}>
+          {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
+        </Box>
+      )
+    })
   }
 
   _content (): any {
@@ -151,7 +135,7 @@ class TabBar extends Component {
 
   render () {
     const tabBarButtons = (
-      <Box style={{...globalStyles.flexBoxRow, ...this.props.tabBarStyle}}>
+      <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
         {this._labels()}
       </Box>
     )

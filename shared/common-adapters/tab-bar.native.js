@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {TouchableWithoutFeedback} from 'react-native'
+import _ from 'lodash'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Box from './box'
 import Text from './text'
@@ -16,22 +17,15 @@ export class TabBarItem extends Component {
   }
 }
 
-type SimpleTabBarButtonProps = {
-  selected: boolean,
-  label: string,
-  tabWidth?: ?number,
-  style?: Object
-}
-
-class SimpleTabBarButton extends Component<void, SimpleTabBarButtonProps, void> {
+class SimpleTabBarButton extends Component<void, ItemProps, void> {
   render () {
-    const tabWidth = this.props.tabWidth || 93
+    const selectedColor = this.props.selectedColor || globalColors.blue
     return (
-      <Box style={{...stylesTab, width: tabWidth}}>
+      <Box style={{...stylesTab, ...this.props.style}}>
         <Text type='BodySemibold' style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_60}}>
           {this.props.label.toUpperCase()}
         </Text>
-        {this.props.selected && <Box style={stylesSelectedUnderline} />}
+        {(!this.props.underlined || this.props.selected) && <Box style={stylesSelectedUnderline(this.props.selected ? selectedColor : 'transparent')} />}
         {!this.props.selected && this.props.underlined && <Box style={stylesUnselectedUnderline} />}
       </Box>
     )
@@ -85,13 +79,16 @@ class TabBar extends Component {
 
   _labels (): Array<React$Element> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
-    return (this.props.children || []).map((item, i) => (
-      <TouchableWithoutFeedback key={item.props.label || i} onPress={item.props.onClick || (() => {})}>
-        <Box style={item.props.containerStyle}>
-          {item.props.tabBarButton || <SimpleTabBarButton tabWidth={this.props.tabWidth} label={item.props.label} selected={item.props.selected} underlined={this.props.underlined} />}
-        </Box>
-      </TouchableWithoutFeedback>
-    ))
+    return (this.props.children || []).map((item: {props: ItemProps}, i) => {
+      const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
+      return (
+        <TouchableWithoutFeedback key={key} onPress={item.props.onClick || (() => {})}>
+          <Box style={item.props.styleContainer}>
+            {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
+          </Box>
+        </TouchableWithoutFeedback>
+      )
+    })
   }
 
   _content (): any {
@@ -100,7 +97,7 @@ class TabBar extends Component {
 
   render () {
     const tabBarButtons = (
-      <Box style={{...globalStyles.flexBoxRow, ...this.props.tabBarStyle}}>
+      <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
         {this._labels()}
       </Box>
     )
@@ -136,15 +133,15 @@ const stylesTabBarButtonIcon = {
 const stylesLabel = {
   fontSize: 14,
   lineHeight: 20,
-  marginTop: 5,
-  marginBottom: 5,
+  marginTop: 11,
+  marginBottom: 11,
 }
 
-const stylesSelectedUnderline = {
+const stylesSelectedUnderline = color => ({
   height: 3,
-  backgroundColor: globalColors.blue,
   alignSelf: 'stretch',
-}
+  backgroundColor: color,
+})
 
 const stylesUnselectedUnderline = {
   height: 2,
