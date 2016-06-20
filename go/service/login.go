@@ -75,6 +75,15 @@ func (h *LoginHandler) PaperKey(_ context.Context, sessionID int) error {
 	return engine.RunEngine(eng, ctx)
 }
 
+func (h *LoginHandler) PaperKeySubmit(_ context.Context, arg keybase1.PaperKeySubmitArg) error {
+	ctx := &engine.Context{
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+	eng := engine.NewPaperKeySubmit(h.G(), arg.PaperPhrase)
+	return engine.RunEngine(eng, ctx)
+}
+
 func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
 	ctx := &engine.Context{
 		LogUI:     h.getLogUI(sessionID),

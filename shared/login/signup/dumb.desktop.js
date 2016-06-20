@@ -17,10 +17,10 @@ const signupShared = {
     style: {
       position: 'relative',
       width: 700,
-      height: 580
-    }
+      height: 580,
+    },
   },
-  onBack: nullFunc
+  onBack: nullFunc,
 }
 
 const inviteShared = {
@@ -29,7 +29,7 @@ const inviteShared = {
   onRequestInvite: nullFunc,
   waiting: false,
   inviteCode: null,
-  inviteCodeErrorText: null
+  inviteCodeErrorText: null,
 }
 
 const requestShared = {
@@ -39,7 +39,7 @@ const requestShared = {
   nameErrorText: null,
   emailErrorText: null,
   onRequestInvite: nullFunc,
-  waiting: false
+  waiting: false,
 }
 
 const userEmailShared = {
@@ -49,13 +49,13 @@ const userEmailShared = {
   usernameErrorText: null,
   emailErrorText: null,
   submitUserEmail: nullFunc,
-  waiting: false
+  waiting: false,
 }
 
 const passphraseShared = {
   ...signupShared,
   passphraseError: null,
-  checkPassphrase: nullFunc
+  checkPassphrase: nullFunc,
 }
 
 const deviceNameShared = {
@@ -65,7 +65,7 @@ const deviceNameShared = {
   onChange: nullFunc,
   deviceNameError: null,
   deviceName: '',
-  waiting: false
+  waiting: false,
 }
 
 export default {
@@ -73,105 +73,105 @@ export default {
     component: InviteCode,
     mocks: {
       'Start': {
-        ...inviteShared
+        ...inviteShared,
       },
       'Code': {
         ...inviteShared,
-        inviteCode: 'Code Entered'
+        inviteCode: 'Code Entered',
       },
       'Waiting': {
         ...inviteShared,
         inviteCode: 'Code Entered',
-        waiting: true
+        waiting: true,
       },
       'Error': {
         ...inviteShared,
         inviteCode: 'Code Entered',
-        inviteCodeErrorText: 'This is an error'
-      }
-    }
+        inviteCodeErrorText: 'This is an error',
+      },
+    },
   },
   'RequestInviteSuccess': {
     component: RequestInviteSuccess,
     mocks: {
       'Start': {
-        ...signupShared
-      }
-    }
+        ...signupShared,
+      },
+    },
   },
   'RequestInvite': {
     component: RequesteInvite,
     mocks: {
       'Start': {
-        ...requestShared
+        ...requestShared,
       },
       'Name': {
         ...requestShared,
-        name: 'Name'
+        name: 'Name',
       },
       'Email': {
         ...requestShared,
-        email: 'Email@email.com'
+        email: 'Email@email.com',
       },
       'Name/Email': {
         ...requestShared,
         name: 'Name',
-        email: 'Email@email.com'
+        email: 'Email@email.com',
       },
       'Name Error': {
         ...requestShared,
         name: 'Name',
-        nameErrorText: 'Name bad, smash!'
+        nameErrorText: 'Name bad, smash!',
       },
       'Email Error': {
         ...requestShared,
         email: 'Email@email.com',
-        emailErrorText: 'Email bad, booo'
+        emailErrorText: 'Email bad, booo',
       },
       'Waiting': {
         ...requestShared,
         name: 'Name',
         email: 'Email@email.com',
-        waiting: true
-      }
-    }
+        waiting: true,
+      },
+    },
   },
   'UsernameEmail (Login)': {
     component: usernameEmail,
     mocks: {
       'Start': {
-        ...userEmailShared
+        ...userEmailShared,
       },
       'Name': {
         ...userEmailShared,
-        username: 'Name'
+        username: 'Name',
       },
       'Email': {
         ...userEmailShared,
-        email: 'Email@email.com'
+        email: 'Email@email.com',
       },
       'Name/Email': {
         ...userEmailShared,
         username: 'Name',
-        email: 'Email@email.com'
+        email: 'Email@email.com',
       },
       'Name Error': {
         ...userEmailShared,
         username: 'Name',
-        usernameErrorText: 'Name bad, smash!'
+        usernameErrorText: 'Name bad, smash!',
       },
       'Email Error': {
         ...userEmailShared,
         email: 'Email@email.com',
-        emailErrorText: 'Email bad, booo'
+        emailErrorText: 'Email bad, booo',
       },
       'Waiting': {
         ...userEmailShared,
         username: 'Name',
         email: 'Email@email.com',
-        waiting: true
-      }
-    }
+        waiting: true,
+      },
+    },
   },
   'Error': {
     component: Error,
@@ -179,21 +179,21 @@ export default {
       'Start': {
         ...signupShared,
         errorText: new HiddenString('This is an error'),
-        resetSignup: nullFunc
-      }
-    }
+        resetSignup: nullFunc,
+      },
+    },
   },
   'Passphrase': {
     component: Passphrase,
     mocks: {
       'Start': {
-        ...passphraseShared
+        ...passphraseShared,
       },
       'Error': {
         ...passphraseShared,
-        passphraseError: new HiddenString('This is an error')
-      }
-    }
+        passphraseError: new HiddenString('This is an error'),
+      },
+    },
   },
   'Success': {
     component: Success,
@@ -203,28 +203,28 @@ export default {
         paperkey: new HiddenString('This is a paper key phase blah blah blah'),
         onFinish: nullFunc,
         onBack: nullFunc,
-        title: 'Congratulations, you’ve just joined Keybase!'
-      }
-    }
+        title: 'Congratulations, you’ve just joined Keybase!',
+      },
+    },
   },
   'Device Name': {
     component: DeviceName,
     mocks: {
       'Start': {
-        ...deviceNameShared
+        ...deviceNameShared,
       },
       'Waiting': {
         ...deviceNameShared,
-        waiting: true
+        waiting: true,
       },
       'Name': {
         ...deviceNameShared,
-        deviceName: 'A name'
+        deviceName: 'A name',
       },
       'Error': {
         ...deviceNameShared,
-        deviceNameError: 'Some naming errors'
-      }
-    }
-  }
+        deviceNameError: 'Some naming errors',
+      },
+    },
+  },
 }

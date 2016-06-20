@@ -18,26 +18,26 @@ const checkboxMap: DumbComponentMap<Checkbox> = {
     'Normal - checked': {
       label: 'Normal - checked',
       onCheck,
-      checked: true
+      checked: true,
     },
     'Normal - unchecked': {
       label: 'Normal - unchecked',
       onCheck,
-      checked: false
+      checked: false,
     },
     'Disabled - checked': {
       label: 'Disabled - checked',
       onCheck,
       disabled: true,
-      checked: true
+      checked: true,
     },
     'Disabled - unchecked': {
       label: 'Disabled - unchecked',
       onCheck,
       disabled: true,
-      checked: false
-    }
-  }
+      checked: false,
+    },
+  },
 }
 
 const IconButton = ({selected, icon, badgeNumber, label}: any) => <TabBarButton label={label} source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber} style={{height: 40}} />
@@ -51,7 +51,7 @@ const tabBarCustomButtons = selectedIndex => ({
     {icon: 'fa-kb-iconfont-people', label: 'PEOPLE', badgeNumber: 3},
     {icon: 'fa-kb-iconfont-folder', label: 'FOLDERS'},
     {icon: 'fa-kb-iconfont-device', label: 'DEVICES', badgeNumber: 12},
-    {icon: 'fa-kb-iconfont-settings', label: 'SETTINGS'}
+    {icon: 'fa-kb-iconfont-settings', label: 'SETTINGS'},
   ].map((buttonInfo: any, i) => {
     const button = buttonInfo.avatar ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar} />
       : <IconButton icon={buttonInfo.icon} label={buttonInfo.label} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
@@ -61,15 +61,15 @@ const tabBarCustomButtons = selectedIndex => ({
         <Text type='Header' style={{flex: 1}}>Content here at: {i}</Text>
       </TabBarItem>
     )
-  })
+  }),
 })
 
 const tabBarMap: DumbComponentMap<TabBar> = {
   component: TabBar,
   mocks: {
     'Custom Buttons - 0': tabBarCustomButtons(0),
-    'Custom Buttons - 1': tabBarCustomButtons(1)
-  }
+    'Custom Buttons - 1': tabBarCustomButtons(1),
+  },
 }
 
 const listItemMap: DumbComponentMap<ListItem> = {
@@ -80,7 +80,7 @@ const listItemMap: DumbComponentMap<ListItem> = {
       type: 'Small',
       icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
-      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />
+      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
     },
     'Small list item with text action': {
       parentProps: {style: {border: 'solid 1px black'}},
@@ -88,14 +88,14 @@ const listItemMap: DumbComponentMap<ListItem> = {
       icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
-      extraRightMarginAction: true
+      extraRightMarginAction: true,
     },
     'Large list item with Button': {
       parentProps: {style: {border: 'solid 1px black'}},
       type: 'Large',
       icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
-      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />
+      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
     },
     'Large list item with text action': {
       parentProps: {style: {border: 'solid 1px black'}},
@@ -103,20 +103,20 @@ const listItemMap: DumbComponentMap<ListItem> = {
       icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
-      extraRightMarginAction: true
-    }
-  }
+      extraRightMarginAction: true,
+    },
+  },
 }
 
 const popupCommon = {
   parentProps: {style: {border: 'solid 1px black', position: 'relative', height: 300}},
   onHidden: () => console.log('popup hidden'),
   style: {marginLeft: 100, maxWidth: 320},
-  visible: true
+  visible: true,
 }
 
 const popupItemCommon = {
-  onClick: () => console.log('item clicked')
+  onClick: () => console.log('item clicked'),
 }
 
 const popupMenuMap: DumbComponentMap<PopupMenu> = {
@@ -127,8 +127,8 @@ const popupMenuMap: DumbComponentMap<PopupMenu> = {
       items: [
         {...popupItemCommon, title: 'One'},
         {...popupItemCommon, title: 'Two'},
-        {...popupItemCommon, title: 'Three'}
-      ]
+        {...popupItemCommon, title: 'Three'},
+      ],
     },
     'Popup Complex': {
       ...popupCommon,
@@ -137,10 +137,10 @@ const popupMenuMap: DumbComponentMap<PopupMenu> = {
         {...popupItemCommon, title: 'Ignore'},
         'Divider',
         {...popupItemCommon, title: 'Clear history (3.24 MB)', subTitle: 'Deletes old copies of files.', danger: true},
-        {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true}
-      ]
-    }
-  }
+        {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true},
+      ],
+    },
+  },
 }
 
 const mockAvatarSizes = (title, sizes, modifiers) => _.chain(sizes)
@@ -153,16 +153,16 @@ const avatarMap: DumbComponentMap<Avatar> = {
   mocks: {
     ...mockAvatarSizes('Normal', [32], {}),
     ...mockAvatarSizes('Following', [48], {
-      following: true
+      following: true,
     }),
     ...mockAvatarSizes('Follows You', [64], {
-      followsYou: true
+      followsYou: true,
     }),
     ...mockAvatarSizes('Mutual Follow', [112], {
       following: true,
-      followsYou: true
-    })
-  }
+      followsYou: true,
+    }),
+  },
 }
 
 export default {
@@ -170,5 +170,5 @@ export default {
   TabBar: tabBarMap,
   ListItem: listItemMap,
   PopupMenu: popupMenuMap,
-  Avatar: avatarMap
+  Avatar: avatarMap,
 }

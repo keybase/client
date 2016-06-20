@@ -41,32 +41,32 @@ class PaperKeyRender extends Component<void, Props, void> {
 
 const stylesBox = {
   ...globalStyles.flexBoxColumn,
-  padding: 10
+  padding: 10,
 }
 
 const stylesContainer = {
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 const stylesButton = {
   marginTop: 20,
-  marginBottom: 20
+  marginBottom: 20,
 }
 
 const stylesInput = {
   marginTop: 20,
   marginBottom: 20,
   alignSelf: 'stretch',
-  height: 80
+  height: 80,
 }
 
 const stylesIcon = {
   marginTop: 30,
-  marginBottom: 30
+  marginBottom: 30,
 }
 
 const stylesHeader = {
-  marginTop: 45
+  marginTop: 45,
 }
 
 export default PaperKeyRender

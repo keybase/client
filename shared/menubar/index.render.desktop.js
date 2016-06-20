@@ -26,7 +26,7 @@ class Render extends Component<DefaultProps, Props, State> {
 
     this.state = {
       showingPrivate: props.openToPrivate,
-      showingMenu: props.openWithMenuShowing
+      showingMenu: props.openWithMenuShowing,
     }
   }
 
@@ -66,7 +66,7 @@ class Render extends Component<DefaultProps, Props, State> {
         {title: 'Keybase.io', onClick: this.props.showUser},
         {title: 'Report a bug', onClick: this.props.showBug},
         {title: 'Help/Doc', onClick: this.props.showHelp},
-        {title: 'Quit', onClick: this.props.quit}
+        {title: 'Quit', onClick: this.props.quit},
       ]
     )
   }
@@ -84,7 +84,7 @@ class Render extends Component<DefaultProps, Props, State> {
         key='useraddPriv'
         isPublic={false}
         onAdded={path => this._onAdd(path)}
-        username={this.props.username} />]
+        username={this.props.username} />],
     }
 
     const newPublic = {
@@ -94,7 +94,7 @@ class Render extends Component<DefaultProps, Props, State> {
         key='useraddPub'
         isPublic
         onAdded={path => this._onAdd(path)}
-        username={this.props.username} />]
+        username={this.props.username} />],
     }
 
     const styles = this.state.showingPrivate ? stylesPrivate : stylesPublic
@@ -108,7 +108,7 @@ class Render extends Component<DefaultProps, Props, State> {
       public: newPublic,
       onSwitchTab: showingPrivate => this.setState({showingPrivate}),
       showingPrivate: this.state.showingPrivate,
-      onRekey: this.props.onRekey
+      onRekey: this.props.onRekey,
     }
 
     const menuColor = this.state.showingPrivate
@@ -134,13 +134,13 @@ class Render extends Component<DefaultProps, Props, State> {
 
 Render.defaultProps = {
   openToPrivate: true,
-  openWithMenuShowing: false
+  openWithMenuShowing: false,
 }
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  position: 'relative'
+  position: 'relative',
 }
 
 const stylesTopRow = {
@@ -148,27 +148,27 @@ const stylesTopRow = {
   alignItems: 'flex-start',
   minHeight: 34,
   paddingLeft: 10,
-  paddingTop: 4
+  paddingTop: 4,
 }
 
 const stylesPrivate = {
   container: {
     ...stylesContainer,
-    backgroundColor: globalColors.darkBlue
-  }
+    backgroundColor: globalColors.darkBlue,
+  },
 }
 
 const stylesPublic = {
   container: {
     ...stylesContainer,
-    backgroundColor: globalColors.white
-  }
+    backgroundColor: globalColors.white,
+  },
 }
 
 const stylesLogo = {
   alignSelf: 'center',
   color: globalColors.yellow,
-  marginBottom: 12
+  marginBottom: 12,
 }
 
 export default Render

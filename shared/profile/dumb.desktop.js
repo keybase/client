@@ -12,7 +12,7 @@ export const proofsDefault: Array<Proof> = [
   {name: 'malgorithms', type: 'github', id: 'githubId', state: normal, meta: metaNone, humanUrl: 'github.com', profileUrl: 'http://github.com', isTracked: false},
   {name: 'malgorithms', type: 'reddit', id: 'redditId', state: normal, meta: metaNone, humanUrl: 'reddit.com', profileUrl: 'http://reddit.com', isTracked: false},
   {name: 'keybase.io', type: 'dns', id: 'dnsId', state: normal, meta: metaNone, humanUrl: 'keybase.io', profileUrl: 'http://keybase.io', isTracked: false},
-  {name: 'keybase.pub', type: 'dns', id: 'dns2Id', state: normal, meta: metaNone, humanUrl: 'keybase.pub', profileUrl: 'http://keybase.pub', isTracked: false}
+  {name: 'keybase.pub', type: 'dns', id: 'dns2Id', state: normal, meta: metaNone, humanUrl: 'keybase.pub', profileUrl: 'http://keybase.pub', isTracked: false},
 ]
 
 export const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: true}))
@@ -28,8 +28,8 @@ export const mockUserInfo: {username: string, userInfo: UserInfo} = {
     location: 'NYC & Maine',
     bio: 'Co-founder of Keybase, OkCupid, SparkNotes, and some random other junk. I like making things.',
     avatar: 'https://keybase.io/chris/picture',
-    followsYou: true
-  }
+    followsYou: true,
+  },
 }
 
 const baseFolder = {
@@ -39,43 +39,43 @@ const baseFolder = {
   userAvatar: null,
   recentFiles: [],
   waitingForParticipantUnlock: [],
-  youCanUnlock: []
+  youCanUnlock: [],
 }
 
 const folders = [
   createFolder({
     users: [
       {username: 'cecileb', you: true},
-      {username: 'chris'}
+      {username: 'chris'},
     ],
     isPublic: true,
-    ...baseFolder
-  }),
-  createFolder({
-    users: [
-      {username: 'cecileb', you: true},
-      {username: 'chris'}
-    ],
-    isPublic: false,
-    ...baseFolder
+    ...baseFolder,
   }),
   createFolder({
     users: [
       {username: 'cecileb', you: true},
       {username: 'chris'},
-      {username: 'max'}
     ],
     isPublic: false,
-    ...baseFolder
+    ...baseFolder,
   }),
   createFolder({
     users: [
       {username: 'cecileb', you: true},
-      {username: 'max'}
+      {username: 'chris'},
+      {username: 'max'},
+    ],
+    isPublic: false,
+    ...baseFolder,
+  }),
+  createFolder({
+    users: [
+      {username: 'cecileb', you: true},
+      {username: 'max'},
     ],
     isPublic: true,
-    ...baseFolder
-  })
+    ...baseFolder,
+  }),
 ]
 
 const propsBase: RenderProps = {
@@ -90,9 +90,9 @@ const propsBase: RenderProps = {
   parentProps: {
     style: {
       width: 640,
-      height: 578
-    }
-  }
+      height: 578,
+    },
+  },
 }
 
 const dumbMap: DumbComponentMap<Profile> = {
@@ -102,17 +102,17 @@ const dumbMap: DumbComponentMap<Profile> = {
     'Followed': {
       ...propsBase,
       proofs: proofsTracked,
-      currentlyFollowing: true
+      currentlyFollowing: true,
     },
     'Changed': {
       ...propsBase,
       proofs: proofsChanged,
       trackerState: error,
-      currentlyFollowing: true
-    }
-  }
+      currentlyFollowing: true,
+    },
+  },
 }
 
 export default {
-  'Profile': dumbMap
+  'Profile': dumbMap,
 }

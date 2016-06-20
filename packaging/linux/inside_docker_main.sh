@@ -17,12 +17,11 @@ kbfs_clone="/root/kbfs"
 serverops_clone="/root/server-ops"
 build_dir="/root/build"
 
-# Copy the s3cmd config to root's home dir, then test the credentials.
+# Copy the s3cmd config to root's home dir.
 cp /S3CMD/.s3cfg ~
-echo "Testing S3 credentials..."
-canary="s3://${BUCKET_NAME:-prerelease.keybase.io}/build_canary_file"
-echo build canary | s3cmd put - "$canary"
-s3cmd del "$canary"
+
+# Same with the GitHub token.
+cp /GITHUB_TOKEN/.github_token ~
 
 # Copy the SSH configs to the home dir. We copy instead of sharing directly
 # from the host, because SSH complains if ~/.ssh/config is owned by anyone
@@ -61,6 +60,9 @@ fi
 
 # Check out the given client commit.
 git -C "$client_clone" checkout -f "$commit"
+
+# Test all the different credentials that need to be configured.
+"$client_clone/packaging/linux/test_all_credentials.sh"
 
 # Do the build!
 "$client_clone/packaging/linux/build_and_push_packages.sh" "$mode" "$build_dir"

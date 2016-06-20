@@ -9,8 +9,8 @@ import type {DumbComponentMap} from '../../constants/types/more'
 const defaultParentProps = {
   style: {
     width: 320,
-    height: 578
-  }
+    height: 578,
+  },
 }
 
 const userPaneBase: UserRenderProps = {
@@ -21,7 +21,7 @@ const userPaneBase: UserRenderProps = {
   onFollow: () => console.log('onFollow'),
   onUnfollow: () => console.log('onUnfollow'),
   onAcceptProofs: () => console.log('onAcceptProofs'),
-  parentProps: defaultParentProps
+  parentProps: defaultParentProps,
 }
 
 const dumbMapUser: DumbComponentMap<UserPane> = {
@@ -33,22 +33,22 @@ const dumbMapUser: DumbComponentMap<UserPane> = {
       parentProps: {
         style: {
           width: 320,
-          height: 400
-        }
-      }
+          height: 400,
+        },
+      },
     },
     'Followed': {
       ...userPaneBase,
       proofs: proofsTracked,
-      currentlyFollowing: true
+      currentlyFollowing: true,
     },
     'Changed': {
       ...userPaneBase,
       proofs: proofsChanged,
       trackerState: error,
-      currentlyFollowing: true
-    }
-  }
+      currentlyFollowing: true,
+    },
+  },
 }
 
 const dumbMapNonUser: DumbComponentMap<NonUserPane> = {
@@ -61,7 +61,7 @@ const dumbMapNonUser: DumbComponentMap<NonUserPane> = {
       serviceName: 'twitter',
       profileURL: 'https://twitter.com/Snowden',
       onSendInvite: () => console.log('onSendInvite'),
-      parentProps: defaultParentProps
+      parentProps: defaultParentProps,
     },
     'No Avatar': {
       avatar: null,
@@ -69,12 +69,12 @@ const dumbMapNonUser: DumbComponentMap<NonUserPane> = {
       serviceName: 'reddit',
       profileURL: 'https://www.reddit.com/user/spez',
       onSendInvite: () => console.log('onSendInvite'),
-      parentProps: defaultParentProps
-    }
-  }
+      parentProps: defaultParentProps,
+    },
+  },
 }
 
 export default {
   'Search User Pane': dumbMapUser,
-  'Search Non-User Pane': dumbMapNonUser
+  'Search Non-User Pane': dumbMapNonUser,
 }

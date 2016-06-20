@@ -85,7 +85,7 @@ function compareScreenshots (commitRange, diffDir, callback) {
 
     const compareOptions = {
       tolerance: 1e-6,  // leave a little wiggle room for antialiasing inconsistencies
-      file: diffPath
+      file: diffPath,
     }
     gm.compare(oldPath, newPath, compareOptions, (err, isEqual) => {
       if (err) {
@@ -170,7 +170,7 @@ function processDiff (commitRange, results) {
       const s3Env = {
         ...process.env,
         AWS_ACCESS_KEY_ID: process.env['VISDIFF_AWS_ACCESS_KEY_ID'],
-        AWS_SECRET_ACCESS_KEY: process.env['VISDIFF_AWS_SECRET_ACCESS_KEY']
+        AWS_SECRET_ACCESS_KEY: process.env['VISDIFF_AWS_SECRET_ACCESS_KEY'],
       }
       console.log(`Uploading ${diffDir} to ${BUCKET_S3}...`)
       execSync(`s3cmd put --acl-public -r screenshots/${diffDir} ${BUCKET_S3}`, {env: s3Env})

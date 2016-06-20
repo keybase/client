@@ -7,12 +7,12 @@ const defines = {
   '__DEV__': true,
   '__SCREENSHOT__': true,
   'process.env.NODE_ENV': JSON.stringify('development'),
-  '__VERSION__': JSON.stringify('Development')
+  '__VERSION__': JSON.stringify('Development'),
 }
 
 config.entry = {
   'render-visdiff': ['./test/render-visdiff.js'],
-  visdiff: ['./shared/test/render-dumb-sheet.js']
+  visdiff: ['./shared/test/render-dumb-sheet.js'],
 }
 config.plugins.push(
   new webpack.optimize.OccurenceOrderPlugin(),

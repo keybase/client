@@ -26,11 +26,11 @@ class Render extends Component<void, Props, void> {
               onEnterKeyDown: this.props.onSubmit,
               onChangeText: t => this.props.onChange(t),
               value: this.props.passphrase,
-              errorText: this.props.error
+              errorText: this.props.error,
             }}
             checkboxesProps={[
               {label: 'Save in keychain', checked: !!(saveInKeychain), onCheck: toggleSaveInKeychain},
-              {label: 'Show typing', checked: !!(showTyping), onCheck: toggleShowTyping}
+              {label: 'Show typing', checked: !!(showTyping), onCheck: toggleShowTyping},
             ]} />
 
           <Button
@@ -49,23 +49,23 @@ class Render extends Component<void, Props, void> {
 
 const stylesContainer = {
   flex: 1,
-  marginTop: 40
+  marginTop: 40,
 }
 const stylesInput = {
   flex: 1,
   marginTop: 40,
-  paddingBottom: 30
+  paddingBottom: 30,
 }
 const stylesForgot = {
-  marginTop: 20
+  marginTop: 20,
 }
 const stylesCard = {
-  alignItems: 'stretch'
+  alignItems: 'stretch',
 }
 
 const usernameStyle = {
   marginTop: 30,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 export default Render

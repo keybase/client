@@ -16,9 +16,10 @@ func NewCmdRekey(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 	return cli.Command{
 		Name:         "rekey",
 		Usage:        "Rekey status and actions",
-		ArgumentHelp: "[status, trigger]",
+		ArgumentHelp: "[status, paper, trigger]",
 		Subcommands: []cli.Command{
 			NewCmdRekeyStatus(cl, g),
+			NewCmdRekeyPaper(cl, g),
 			NewCmdRekeyTrigger(cl, g),
 		},
 	}

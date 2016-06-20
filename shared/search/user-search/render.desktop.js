@@ -105,7 +105,7 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
     paddingRight: 8,
     paddingLeft: 8,
     borderTop: 'solid 1px',
-    borderTopColor: globalColors.black_10
+    borderTopColor: globalColors.black_10,
   }
 
   return (
@@ -125,7 +125,7 @@ function ServiceIcon ({serviceName, tooltip, iconType, selected, onClickService}
     minWidth: 48,
     width: 48,
     height: 48,
-    backgroundColor: selected ? globalColors.blue4 : null
+    backgroundColor: selected ? globalColors.blue4 : null,
   }
 
   return (
@@ -197,16 +197,16 @@ export default class Render extends Component<void, Props, void> {
 
 export const styles = {
   container: {
-    ...globalStyles.flexBoxColumn
+    ...globalStyles.flexBoxColumn,
   },
   headerContainer: {
   },
   servicesContainer: {
     ...globalStyles.flexBoxRow,
-    height: 64
+    height: 64,
   },
   input: {
     textAlign: 'left',
-    height: 48
-  }
+    height: 48,
+  },
 }

@@ -12,7 +12,7 @@ export type Props = {
   toPaperKeyInput: () => void,
   onBackFromPaperKey: () => void,
   onContinueFromPaperKey: (paperkey: HiddenString) => void,
-  paperkeyError: ?HiddenString,
+  paperkeyError: ?string,
   waiting: boolean,
   onFinish: () => void
 }

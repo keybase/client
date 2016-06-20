@@ -24,7 +24,7 @@ class Folders extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     this.state = {
-      showingPrivate: true
+      showingPrivate: true,
     }
   }
 
@@ -43,14 +43,14 @@ class Folders extends Component<void, Props, State> {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Folders'},
-      parseNextRoute: Files.parseRoute
+      parseNextRoute: Files.parseRoute,
     }
   }
 }
 
 export default connect(
   state => ({
-    folderProps: state.favorite && state.favorite.folders
+    folderProps: state.favorite && state.favorite.folders,
   }),
   dispatch => bindActionCreators({routeAppend, openInKBFS}, dispatch)
 )(Folders)

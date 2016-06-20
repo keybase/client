@@ -16,7 +16,7 @@ class Render extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     this.state = {
-      inviteCode: this.props.inviteCode || ''
+      inviteCode: this.props.inviteCode || '',
     }
   }
 
@@ -41,25 +41,25 @@ class Render extends Component<void, Props, State> {
 const stylesButton = {
   marginTop: 10,
   marginRight: 0,
-  alignSelf: 'flex-end'
+  alignSelf: 'flex-end',
 }
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 const stylesHeader = {
-  marginTop: 30
+  marginTop: 30,
 }
 const stylesIcon = {
-  marginTop: 75
+  marginTop: 75,
 }
 const stylesInput = {
   height: 45,
   marginTop: 75,
-  width: 450
+  width: 450,
 }
 const stylesText = {
-  marginTop: 40
+  marginTop: 40,
 }
 
 export default Render

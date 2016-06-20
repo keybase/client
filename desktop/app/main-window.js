@@ -11,7 +11,7 @@ export default function () {
       useContentSize: true,
       width: globalResizing.login.width,
       height: globalResizing.login.height,
-      show: false
+      show: false,
     }
   )
 

@@ -6,7 +6,7 @@ import {routeAppend} from './router'
 import engine from '../engine'
 import {createServer} from '../engine/server'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
-import {identify} from '../constants/types/keybase-v1'
+import {identifyCommon, Common} from '../constants/types/keybase-v1'
 
 import setNotifications from '../util/set-notifications'
 
@@ -41,7 +41,7 @@ export function startTimer (): TrackerActionCreator {
           method: 'track.checkTracking',
           param: {},
           incomingCallMap: {},
-          callback: null
+          callback: null,
         }
 
         engine.rpc(params)
@@ -53,7 +53,7 @@ export function startTimer (): TrackerActionCreator {
 export function stopTimer (): Action {
   return {
     type: Constants.stopTimer,
-    payload: null
+    payload: null,
   }
 }
 
@@ -63,9 +63,9 @@ export function registerTrackerChangeListener (): TrackerActionCreator {
       'keybase.1.NotifyTracking.trackingChanged': args => {
         dispatch({
           type: Constants.userUpdated,
-          payload: args
+          payload: args,
         })
-      }
+      },
     }
 
     engine.listenGeneralIncomingRpc(params)
@@ -78,7 +78,7 @@ export function registerUserChangeListener (): TrackerActionCreator {
     const params: incomingCallMapType = {
       'keybase.1.NotifyUsers.userChanged': ({uid}) => {
         dispatch(triggerIdentify(uid))
-      }
+      },
     }
 
     engine.listenGeneralIncomingRpc(params)
@@ -106,17 +106,17 @@ export function triggerIdentify (uid: string): TrackerActionCreator {
         useDelegateUI: true,
         needProofSet: true,
         reason: {
-          type: identify.IdentifyReasonType.id,
+          type: identifyCommon.IdentifyReasonType.id,
           reason: '',
-          resource: ''
+          resource: '',
         },
-        source: identify.ClientType.gui
+        source: Common.ClientType.gui,
       },
       incomingCallMap: {},
       callback: (error, response) => {
         console.log('called identify and got back', error, response)
         resolve()
-      }
+      },
     }
 
     const status = getState().config.status
@@ -142,7 +142,7 @@ export function registerIdentifyUi (): TrackerActionCreator {
           } else {
             console.log('Registered identify ui')
           }
-        }
+        },
       }
 
       engine.rpc(params)
@@ -158,8 +158,8 @@ export function registerIdentifyUi (): TrackerActionCreator {
     dispatch({
       type: Constants.registerIdentifyUi,
       payload: {
-        started: true
-      }
+        started: true,
+      },
     })
   }
 }
@@ -168,7 +168,7 @@ export function pushDebugTracker (username: string): (dispatch: Dispatch) => voi
   return dispatch => {
     dispatch({
       type: Constants.updateUsername,
-      payload: {username}
+      payload: {username},
     })
 
     dispatch(routeAppend([{path: 'tracker', username}]))
@@ -182,13 +182,13 @@ export function onRefollow (username: string): TrackerActionCreator {
     const dispatchRefollowAction = () => {
       dispatch({
         type: Constants.onRefollow,
-        payload: {username}
+        payload: {username},
       })
     }
     const dispatchErrorAction = () => {
       dispatch({
         type: Constants.onError,
-        payload: {username}
+        payload: {username},
       })
     }
 
@@ -212,18 +212,18 @@ export function onUnfollow (username: string): TrackerActionCreator {
         } else {
           dispatch({
             type: Constants.reportLastTrack,
-            payload: {username}
+            payload: {username},
           })
           console.log('success in untracking')
         }
-      }
+      },
     }
 
     engine.rpc(params)
 
     dispatch({
       type: Constants.onUnfollow,
-      payload: {username}
+      payload: {username},
     })
   }
 }
@@ -233,7 +233,7 @@ function trackUser (trackToken: ?string, localIgnore: bool): Promise<boolean> {
     localOnly: localIgnore,
     expiringLocal: localIgnore,
     bypassConfirm: false,
-    forceRetrack: false
+    forceRetrack: false,
   }
 
   return new Promise((resolve, reject) => {
@@ -250,7 +250,7 @@ function trackUser (trackToken: ?string, localIgnore: bool): Promise<boolean> {
 
           console.log('Finished tracking', response)
           resolve(true)
-        }
+        },
       }
 
       engine.rpc(params)
@@ -310,7 +310,7 @@ function _dismissWithToken (trackToken) {
       if (err) {
         console.log('err dismissWithToken', err)
       }
-    }
+    },
   }
   engine.rpc(params)
 }
@@ -327,7 +327,7 @@ export function onClose (username: string): TrackerActionCreator {
 
     dispatch({
       type: Constants.onClose,
-      payload: {username}
+      payload: {username},
     })
   }
 }
@@ -343,10 +343,10 @@ function updateUserInfo (userCard: UserCard, username: string, getState: () => {
         followsYou: userCard.theyFollowYou,
         bio: userCard.bio,
         avatar: `https://keybase.io/${username}/picture`,
-        location: userCard.location
+        location: userCard.location,
       },
-      username
-    }
+      username,
+    },
   }
 }
 
@@ -360,22 +360,22 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
 
       dispatch({
         type: Constants.updateUsername,
-        payload: {username}
+        payload: {username},
       })
 
       dispatch({
         type: Constants.updateReason,
-        payload: {username, reason: reason && reason.reason}
+        payload: {username, reason: reason && reason.reason},
       })
 
       dispatch({
         type: Constants.markActiveIdentifyUi,
-        payload: {username, active: true}
+        payload: {username, active: true},
       })
 
       dispatch({
         type: Constants.reportLastTrack,
-        payload: {username}
+        payload: {username},
       })
     },
 
@@ -395,7 +395,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       const username = sessionIDToUsername[sessionID]
       dispatch({
         type: Constants.reportLastTrack,
-        payload: {username, track}
+        payload: {username, track},
       })
 
       if (!track) {
@@ -410,7 +410,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
 
       dispatch({
         type: Constants.setProofs,
-        payload: {username, identity}
+        payload: {username, identity},
       })
       dispatch({type: Constants.updateProofState, payload: {username}})
       if (identity.breaksTracking) {
@@ -424,7 +424,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
     dismiss: ({username, reason}) => {
       dispatch({
         type: Constants.remoteDismiss,
-        payload: {username, reason}
+        payload: {username, reason},
       })
     },
 
@@ -464,8 +464,8 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
           type: Constants.setNeedTrackTokenDismiss,
           payload: {
             username,
-            needTrackTokenDismiss: false
-          }
+            needTrackTokenDismiss: false,
+          },
         })
       }
     },
@@ -486,10 +486,10 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
         type: Constants.markActiveIdentifyUi,
         payload: {
           active: false,
-          username
-        }
+          username,
+        },
       })
-    }
+    },
   }
 
   return promisifyResponses(flattenCallMap({keybase: {'1': {identifyUi}}}))
@@ -499,6 +499,6 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
 function updateProof (remoteProof: RemoteProof, linkCheckResult: LinkCheckResult, username: string): Action {
   return {
     type: Constants.updateProof,
-    payload: {remoteProof, linkCheckResult, username}
+    payload: {remoteProof, linkCheckResult, username},
   }
 }

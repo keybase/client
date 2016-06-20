@@ -16,8 +16,8 @@ const base = {
     alternateTextColor: globalColors.black_75,
     canvasColor: globalColors.white,
     borderColor: globalColors.black_75,
-    disabledColor: globalColors.black_75
-  }
+    disabledColor: globalColors.black_75,
+  },
 }
 
 const mui = getMuiTheme(base, mui)

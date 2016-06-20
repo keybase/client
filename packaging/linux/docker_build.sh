@@ -41,6 +41,10 @@ done
 s3cmd_temp="$(mktemp -d)"
 cp ~/.s3cfg "$s3cmd_temp"
 
+# Same with the GitHub token.
+github_token_temp="$(mktemp -d)"
+cp ~/.github_token "$github_token_temp"
+
 # Prepare a folder that we'll share with the container, as the container's
 # /root directory, where all the build work gets done. Docker recommends that
 # write-heavy work happen in shared folders, for better performance.
@@ -74,8 +78,8 @@ docker run \
   -v "$gpg_tempdir:/GPG" \
   -v "$HOME/.ssh:/SSH:ro" \
   -v "$s3cmd_temp:/S3CMD:ro" \
+  -v "$github_token_temp:/GITHUB_TOKEN:ro" \
   -e BUCKET_NAME \
-  -e GITHUB_TOKEN \
   -e NOWAIT \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

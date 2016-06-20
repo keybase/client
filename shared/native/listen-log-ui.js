@@ -9,7 +9,7 @@ export default function ListenLogUi () {
       'keybase.1.logUi.log': (params, response) => {
         log(params)
         response.result()
-      }
+      },
     }
 
     engine.listenGeneralIncomingRpc(params)

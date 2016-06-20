@@ -23,7 +23,7 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
     this.state = {
       passphrase: '',
       features: {},
-      showTyping: false
+      showTyping: false,
     }
     for (const feature in this.props.features) {
       this.state.features[feature] = this.props.features[feature].defaultValue
@@ -38,8 +38,8 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
     this.setState({
       features: {
         ...this.state.features,
-        [feature]: checked
-      }
+        [feature]: checked,
+      },
     })
 
     if (feature === 'showTyping') {
@@ -61,7 +61,7 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
       onEnterKeyDown: () => submitPassphrase(),
       type: this.state.showTyping ? 'passwordVisible' : 'password',
       errorText: this.props.retryLabel,
-      autoFocus: true
+      autoFocus: true,
     }
 
     const checkboxProps = Object.keys(this.props.features).map(feature => {
@@ -71,7 +71,7 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
         key: feature,
         name: feature,
         style: styles.checkbox,
-        onCheck: checked => this.onCheck(feature, checked)
+        onCheck: checked => this.onCheck(feature, checked),
       })
     })
 
@@ -99,17 +99,17 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
 
 PinentryRender.defaultProps = {
   retryLabel: null,
-  submitLabel: 'Continue'
+  submitLabel: 'Continue',
 }
 
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColors.white
+    backgroundColor: globalColors.white,
   },
   checkbox: {
     ...globalStyles.topMost,
     color: globalColors.black,
-    marginLeft: 10
-  }
+    marginLeft: 10,
+  },
 }

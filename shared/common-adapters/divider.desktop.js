@@ -21,12 +21,12 @@ export default class Divider extends Component {
 Divider.propTypes = {
   vertical: React.PropTypes.bool,
   style: React.PropTypes.object,
-  key: React.PropTypes.object
+  key: React.PropTypes.object,
 }
 
 const styles = {
   divider: {
     backgroundColor: globalColors.black_10,
-    flex: 1
-  }
+    flex: 1,
+  },
 }

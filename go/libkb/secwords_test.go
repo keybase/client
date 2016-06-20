@@ -39,3 +39,13 @@ func TestSecWordList144(t *testing.T) {
 		t.Errorf("# words = %d, expected 14", len(words))
 	}
 }
+
+func TestSecWordListConstants(t *testing.T) {
+	words, err := SecWordList(PaperKeySecretEntropy + PaperKeyIDBits + PaperKeyVersionBits)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(words) != PaperKeyWordCountMin {
+		t.Errorf("paper key words for constants: %d, expected %d", len(words), PaperKeyWordCountMin)
+	}
+}

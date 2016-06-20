@@ -14,7 +14,7 @@ const icons: {[key: VisibleTab]: IconProps.type} = {
   [peopleTab]: 'fa-kb-iconfont-people',
   [folderTab]: 'fa-kb-iconfont-folder',
   [devicesTab]: 'fa-kb-iconfont-device',
-  [settingsTab]: 'fa-kb-iconfont-settings'
+  [settingsTab]: 'fa-kb-iconfont-settings',
 }
 
 function tabToIcon (t: VisibleTab): IconProps.type {

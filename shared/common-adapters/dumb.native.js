@@ -15,8 +15,8 @@ const tabBarButtonMap: DumbComponentMap<TabBarButton> = {
   // $FlowIssue
   component: props => <Box style={{height: 56}}><TabBarButton {...props} /></Box>,
   mocks: {
-    'Cog icon': {selected: false, style: {height: 56, width: 72}, source: {type: 'icon', icon: 'fa-cog'}, badgeNumber: 7}
-  }
+    'Cog icon': {selected: false, style: {height: 56, width: 72}, source: {type: 'icon', icon: 'fa-cog'}, badgeNumber: 7},
+  },
 }
 
 const tabBarBaseMock = {
@@ -30,8 +30,8 @@ const tabBarBaseMock = {
     </TabBarItem>),
     (<TabBarItem label='Three' selected={false} onClick={() => {}}>
       <Text type='Header'>Three</Text>
-    </TabBarItem>)
-  ]
+    </TabBarItem>),
+  ],
 }
 
 const IconButton = ({selected, icon, badgeNumber}: any) => <TabBarButton source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber} />
@@ -45,7 +45,7 @@ const tabBarCustomButtons = selectedIndex => ({
     {icon: 'fa-users', badgeNumber: 3},
     {icon: 'fa-folder'},
     {icon: 'phone-bw-m', badgeNumber: 12},
-    {icon: 'fa-cog'}
+    {icon: 'fa-cog'},
   ].map((buttonInfo: any, i) => {
     const button = buttonInfo.avatar ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar} />
       : <IconButton icon={buttonInfo.icon} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
@@ -55,7 +55,7 @@ const tabBarCustomButtons = selectedIndex => ({
         <Text type='Header' style={{flex: 2}}>Content here at: {i}</Text>
       </TabBarItem>
     )
-  })
+  }),
 })
 
 const tabBarMap: DumbComponentMap<TabBar> = {
@@ -66,8 +66,8 @@ const tabBarMap: DumbComponentMap<TabBar> = {
     'Custom Buttons - 2': tabBarCustomButtons(2),
     'Custom Buttons - 3 - bottom': {...tabBarCustomButtons(2), tabBarOnBottom: true},
     'Normal': tabBarBaseMock,
-    'Bottom': {...tabBarBaseMock, tabBarOnBottom: true}
-  }
+    'Bottom': {...tabBarBaseMock, tabBarOnBottom: true},
+  },
 }
 
 const onCheck = () => console.log('checkbox:onCheck')
@@ -78,26 +78,26 @@ const checkboxMap: DumbComponentMap<Checkbox> = {
     'Normal - checked': {
       label: 'Normal - checked',
       checked: true,
-      onCheck
+      onCheck,
     },
     'Normal - unchecked': {
       label: 'Normal - unchecked',
       checked: false,
-      onCheck
+      onCheck,
     },
     'Disabled - checked': {
       label: 'Disabled - checked',
       disabled: true,
       checked: true,
-      onCheck
+      onCheck,
     },
     'Disabled - unchecked': {
       label: 'Disabled - unchecked',
       disabled: true,
       checked: false,
-      onCheck
-    }
-  }
+      onCheck,
+    },
+  },
 }
 
 const listItemMap: DumbComponentMap<ListItem> = {
@@ -108,7 +108,7 @@ const listItemMap: DumbComponentMap<ListItem> = {
       type: 'Small',
       icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
-      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />
+      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
     },
     'Small list item with swipe action': {
       parentProps: {style: {borderColor: 'black', borderWidth: 1}},
@@ -116,14 +116,14 @@ const listItemMap: DumbComponentMap<ListItem> = {
       icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
-      swipeToAction: true
+      swipeToAction: true,
     },
     'Large list item with Button': {
       parentProps: {style: {borderColor: 'black', borderWidth: 1}},
       type: 'Large',
       icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
-      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />
+      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />,
     },
     'Large list item with swipe action': {
       parentProps: {style: {borderColor: 'black', borderWidth: 1}},
@@ -131,14 +131,14 @@ const listItemMap: DumbComponentMap<ListItem> = {
       icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
       body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
       action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
-      swipeToAction: true
-    }
-  }
+      swipeToAction: true,
+    },
+  },
 }
 
 export default {
   'TabBarButton': tabBarButtonMap,
   'TabBar': tabBarMap,
   'Checkbox': checkboxMap,
-  ListItem: listItemMap
+  ListItem: listItemMap,
 }

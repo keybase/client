@@ -19,7 +19,7 @@ class Developer extends Component {
           style={{
             flex: 1,
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
           }}>
           <Text>Loading…</Text>
         </View>
@@ -55,7 +55,7 @@ Developer.propTypes = {
   devConfig: React.PropTypes.object,
   getDevSettings: React.PropTypes.func.isRequired,
   saveDevSettings: React.PropTypes.func.isRequired,
-  updateDevSettings: React.PropTypes.func.isRequired
+  updateDevSettings: React.PropTypes.func.isRequired,
 }
 
 const styles = StyleSheet.create({
@@ -63,10 +63,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'stretch',
-    backgroundColor: 'red'
+    backgroundColor: 'red',
   },
   group: {
-    margin: 10
+    margin: 10,
   },
   label: {
   },
@@ -75,20 +75,20 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: '#0f0f0f',
     fontSize: 13,
-    padding: 4
+    padding: 4,
   },
   submitWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 10
+    marginTop: 10,
   },
   navBarRightButton: {
     fontSize: 16,
     marginVertical: 10,
     paddingRight: 10,
-    color: 'blue'
-  }
+    color: 'blue',
+  },
 })
 
 export default connect(
@@ -100,7 +100,7 @@ export default connect(
     return {
       getDevSettings: () => dispatch(getDevSettings()),
       saveDevSettings: () => dispatch(saveDevSettings()),
-      updateDevSettings: settings => dispatch(updateDevSettings(settings))
+      updateDevSettings: settings => dispatch(updateDevSettings(settings)),
     }
   }
 )(Developer)

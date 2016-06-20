@@ -18,7 +18,7 @@ class Settings extends Component {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Settings'},
-      subRoutes: {about, account, billing, appPrefs, invites, notifs, deleteMe, devMenu, logSend}
+      subRoutes: {about, account, billing, appPrefs, invites, notifs, deleteMe, devMenu, logSend},
     }
   }
 
@@ -51,6 +51,6 @@ export default connect(
       onDeleteMe: () => dispatch(routeAppend(['delete-me'])),
       onLogSend: () => dispatch(routeAppend(['logSend'])),
       onAbout: () => dispatch(routeAppend(['about'])),
-      onDev: () => dispatch(routeAppend(['devMenu']))
+      onDev: () => dispatch(routeAppend(['devMenu'])),
     }
   })(Settings)

@@ -42,10 +42,10 @@ const stylesRowContainer = {
   minHeight: 100,
   maxHeight: 100,
   alignItems: 'center',
-  padding: 20
+  padding: 20,
 }
 const stylesHeader = {
-  color: globalColors.blue
+  color: globalColors.blue,
 }
 const stylesIconContainer = {
   ...globalStyles.flexBoxRow,
@@ -56,7 +56,7 @@ const stylesIconContainer = {
   justifyContent: 'center',
   alignItems: 'center',
   marginRight: 25,
-  position: 'relative'
+  position: 'relative',
 }
 const stylesIcon = {
   ...transition('transform'),
@@ -65,7 +65,7 @@ const stylesIcon = {
   height: 'inherit',
   width: 'inherit',
   color: globalColors.black_75,
-  zIndex: 1
+  zIndex: 1,
 }
 const stylesIconBackground = {
   ...transition('opacity'),
@@ -77,7 +77,7 @@ const stylesIconBackground = {
   minHeight: 80,
   position: 'absolute',
   top: 0,
-  left: 0
+  left: 0,
 }
 
 export default Row

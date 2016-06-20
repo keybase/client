@@ -14,7 +14,7 @@ class MetaNavigator extends Component {
     super(props)
 
     this.state = {
-      navigator: null
+      navigator: null,
     }
   }
 
@@ -96,7 +96,7 @@ class MetaNavigator extends Component {
         ...t.componentAtTop,
         uri: uriSoFar,
         upLink: currentPath.get('upLink'),
-        upTitle: currentPath.get('upTitle')
+        upTitle: currentPath.get('upTitle'),
       }
 
       // If the component was created through subRoutes we have access to the nextComponent implicitly
@@ -112,7 +112,7 @@ class MetaNavigator extends Component {
       if (!parseNextRoute) {
         const subRoutes = {
           ...this.props.globalRoutes,
-          ...t.subRoutes
+          ...t.subRoutes,
         }
 
         if (nextPath && subRoutes[nextPath.get('path')]) {
@@ -168,13 +168,13 @@ MetaNavigator.propTypes = {
   rootComponent: React.PropTypes.oneOfType([
     React.PropTypes.func,
     React.PropTypes.shape({
-      parseRoute: React.PropTypes.func.isRequired
-    })
+      parseRoute: React.PropTypes.func.isRequired,
+    }),
   ]).isRequired,
   globalRoutes: React.PropTypes.object,
   NavBar: React.PropTypes.object,
   Navigator: React.PropTypes.func,
-  navBarHeight: React.PropTypes.number
+  navBarHeight: React.PropTypes.number,
 }
 
 export default connect(

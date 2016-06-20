@@ -33,7 +33,7 @@ const tabs: {[key: VisibleTab]: {module: any}} = {
   [folderTab]: {module: Settings, name: 'Folders'},
   [chatTab]: {module: Settings, name: 'Chat'},
   [peopleTab]: {module: Settings, name: 'People'},
-  [devicesTab]: {module: Devices, name: 'Devices'}
+  [devicesTab]: {module: Devices, name: 'Devices'},
 }
 
 forwardLogs()
@@ -63,7 +63,7 @@ class AndroidNavigator extends Component {
 
 AndroidNavigator.propTypes = {
   initialRouteStack: React.PropTypes.array.isRequired,
-  renderScene: React.PropTypes.func.isRequired
+  renderScene: React.PropTypes.func.isRequired,
 }
 
 class Nav extends Component {
@@ -182,16 +182,16 @@ Nav.propTypes = {
   bootstrap: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
-  }).isRequired
+  }).isRequired,
 }
 
 const styles = StyleSheet.create({
   tabContent: {
-    flex: 1
+    flex: 1,
   },
   toolbar: {
     height: 50,
-    flex: 0
+    flex: 0,
   },
 
   toolbarContent: {
@@ -199,25 +199,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 16,
-    paddingRight: 10
+    paddingRight: 10,
   },
 
   toolbarName: {
     fontWeight: 'bold',
     fontSize: 24,
-    color: 'black'
+    color: 'black',
   },
 
   toolbarImage: {
     height: 40,
-    width: 30
+    width: 30,
   },
 
   toolbarSearchWrapper: {
     flex: 2,
     flexDirection: 'row',
-    justifyContent: 'flex-end'
-  }
+    justifyContent: 'flex-end',
+  },
 })
 
 export default connect(
@@ -227,7 +227,7 @@ export default connect(
       switchTab: tab => dispatch(switchTab(tab)),
       navigateBack: () => dispatch(navigateBack()),
       bootstrap: () => dispatch(bootstrap()),
-      listenForNotifications: () => dispatch(listenForNotifications())
+      listenForNotifications: () => dispatch(listenForNotifications()),
     }
   }
 )(Nav)

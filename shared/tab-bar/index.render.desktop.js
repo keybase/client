@@ -15,14 +15,14 @@ const icons: {[key: VisibleTab]: IconProps.type} = {
   [peopleTab]: 'fa-kb-iconfont-people',
   [folderTab]: 'fa-kb-iconfont-folder',
   [devicesTab]: 'fa-kb-iconfont-device',
-  [settingsTab]: 'fa-kb-iconfont-settings'
+  [settingsTab]: 'fa-kb-iconfont-settings',
 }
 
 const labels: {[key: VisibleTab]: IconProps.type} = {
   [peopleTab]: 'PEOPLE',
   [folderTab]: 'FOLDERS',
   [devicesTab]: 'DEVICES',
-  [settingsTab]: 'SETTINGS'
+  [settingsTab]: 'SETTINGS',
 }
 
 export type SearchButton = 'TabBar:searchButton'
@@ -126,21 +126,21 @@ export default class Render extends Component<void, Props, void> {
 const stylesTabBarContainer = {
   ...globalStyles.flexBoxRow,
   flex: 1,
-  height: 580
+  height: 580,
 }
 
 const stylesTabBar = {
   ...globalStyles.flexBoxColumn,
   justifyContent: 'flex-start',
-  width: 160
+  width: 160,
 }
 
 const stylesTabButton = {
-  height: 40
+  height: 40,
 }
 
 const stylesTabBarItem = {
-  ...globalStyles.flexBoxColumn
+  ...globalStyles.flexBoxColumn,
 }
 
 const stylesSearchButton = {
@@ -151,5 +151,5 @@ const stylesSearchButton = {
   height: 80,
   width: 80,
   borderRadius: 100,
-  boxShadow: `0 2px 10px 0 ${globalColors.black_20}`
+  boxShadow: `0 2px 10px 0 ${globalColors.black_20}`,
 }

@@ -33,7 +33,7 @@ const initialState: UpdateConfirmState = {
   alwaysUpdate: true,
   snoozeTime: null,
   updateCommand: null,
-  canUpdate: true
+  canUpdate: true,
 }
 
 export default function (state: UpdateConfirmState = initialState, action: UpdateConfirmActions): UpdateConfirmState {
@@ -41,12 +41,12 @@ export default function (state: UpdateConfirmState = initialState, action: Updat
     case CommonConstants.resetStore:
       return {
         ...initialState,
-        started: state.started
+        started: state.started,
       }
     case Constants.registerUpdateListener:
       return {
         ...state,
-        started: !!(action.payload && action.payload.started)
+        started: !!(action.payload && action.payload.started),
       }
     case Constants.showUpdateConfirm:
       if (state.started === true && action.payload) {
@@ -58,14 +58,14 @@ export default function (state: UpdateConfirmState = initialState, action: Updat
           ...state,
           closed: false,
           newVersion, oldVersion, description, type, asset, snoozeTime, windowTitle,
-          alwaysUpdate, updateCommand, canUpdate
+          alwaysUpdate, updateCommand, canUpdate,
         }
       }
       return state
     case Constants.setAlwaysUpdate:
       return {
         ...state,
-        alwaysUpdate: action.payload && action.payload.alwaysUpdate
+        alwaysUpdate: action.payload && action.payload.alwaysUpdate,
       }
     case Constants.onSnooze:
       return {...state, closed: true}

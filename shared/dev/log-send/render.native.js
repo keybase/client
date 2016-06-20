@@ -60,9 +60,9 @@ const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   margin: 20,
   alignItems: 'center',
-  justifyContent: 'space-between'
+  justifyContent: 'space-between',
 }
 
 const stylesInfoText = {
-  marginTop: 20
+  marginTop: 20,
 }

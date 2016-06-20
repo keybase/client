@@ -20,8 +20,8 @@ class Startup extends Component {
       subRoutes: {
         login,
         // TODO when kex2 is done import Registration from './login/register'
-        register: RegisterPlaceHolder
-      }
+        register: RegisterPlaceHolder,
+      },
     }
   }
 }

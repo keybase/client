@@ -14,7 +14,7 @@ const LinkTypes = {
   'BodySmallLink': true,
   'BodySmallPrimaryLink': true,
   'BodySmallSecondaryLink': true,
-  'BodyXSmallLink': true
+  'BodyXSmallLink': true,
 }
 
 export default class Text extends Component {
@@ -25,7 +25,7 @@ export default class Text extends Component {
     return ({
       'TerminalEmpty': <span>&nbsp;</span>,
       'TerminalCommand': <span>> </span>,
-      'TerminalComment': <span># </span>
+      'TerminalComment': <span># </span>,
     }: {[key: string]: React$Element})[type]
   }
 
@@ -113,7 +113,7 @@ export default class Text extends Component {
       'TerminalPrivate': styles.textTerminalPrivate,
       'TerminalPublic': styles.textTerminalPublic,
       'TerminalSmall': {...styles.textTerminalSmall, color: (this.context.inTerminal ? globalColors.blue3 : globalColors.darkBlue)},
-      'TerminalUsername': styles.textTerminalUsername
+      'TerminalUsername': styles.textTerminalUsername,
     }[this.props.type]
   }
 
@@ -134,7 +134,7 @@ export default class Text extends Component {
       ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
       ...(this.props.onClick ? globalStyles.clickable : {}),
       ...(inline ? {...Text._inlineStyle(this.props.type, this.context)} : {display: 'block'}),
-      ...this.props.style
+      ...this.props.style,
     }
 
     const terminalPrefix = this._terminalPrefix(this.props.type)
@@ -162,80 +162,80 @@ export default class Text extends Component {
 }
 
 Text.contextTypes = {
-  inTerminal: React.PropTypes.bool
+  inTerminal: React.PropTypes.bool,
 }
 
 const sizeGroups: { [key: '32' | '24' | '18' | '16' | '14' | '12']: Object } = {
   '32': {
     fontSize: 32,
-    lineHeight: '38px'
+    lineHeight: '38px',
   },
   '24': {
     fontSize: 24,
-    lineHeight: '31px'
+    lineHeight: '31px',
   },
   '18': {
     fontSize: 18,
-    lineHeight: '25px'
+    lineHeight: '25px',
   },
   '16': {
     fontSize: 16,
-    lineHeight: '22px'
+    lineHeight: '22px',
   },
   '14': {
     fontSize: 14,
-    lineHeight: '19px'
+    lineHeight: '19px',
   },
   '12': {
     fontSize: 12,
-    lineHeight: '15px'
-  }
+    lineHeight: '15px',
+  },
 }
 
 const textCommon = {
   ...globalStyles.fontRegular,
   ...globalStyles.noSelect,
   cursor: 'inherit',
-  letterSpacing: '0.3px'
+  letterSpacing: '0.3px',
 }
 
 const textTerminal = {
   ...globalStyles.fontTerminalSemibold,
   fontSize: 14,
-  lineHeight: '21px'
+  lineHeight: '21px',
 }
 
 const headerStyles = {
   textHeaderJumbo: {
     ...textCommon,
     ...globalStyles.fontBold,
-    ...sizeGroups['32']
+    ...sizeGroups['32'],
   },
 
   textHeaderBig: {
     ...textCommon,
     ...globalStyles.fontBold,
-    ...sizeGroups['24']
+    ...sizeGroups['24'],
   },
 
   textHeader: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups['18']
+    ...sizeGroups['18'],
   },
 
   textHeaderLink: {
     ...textCommon,
     ...globalStyles.fontSemibold,
     ...sizeGroups['18'],
-    color: globalColors.blue
+    color: globalColors.blue,
   },
 
   textHeaderError: {
     ...textCommon,
     ...globalStyles.fontSemibold,
     ...sizeGroups['18'],
-    color: globalColors.red
+    color: globalColors.red,
   },
 
   textInputHeader: {
@@ -243,8 +243,8 @@ const headerStyles = {
     ...globalStyles.fontSemibold,
     fontSize: 14,
     lineHeight: '18px',
-    color: globalColors.blue
-  }
+    color: globalColors.blue,
+  },
 }
 
 export const specialStyles = {
@@ -252,136 +252,136 @@ export const specialStyles = {
     ...textCommon,
     ...globalStyles.fontSemibold,
     fontSize: 24,
-    lineHeight: '29px'
+    lineHeight: '29px',
   },
   paperKey: {
     ...textCommon,
     ...globalStyles.fontTerminalSemibold,
     color: globalColors.black_75,
     fontSize: 18,
-    lineHeight: '24px'
+    lineHeight: '24px',
   },
   username: {
     ...textCommon,
     ...globalStyles.fontBold,
     fontSize: 24,
     lineHeight: '31px',
-    color: globalColors.orange
-  }
+    color: globalColors.orange,
+  },
 }
 
 export const styles = {
   ...headerStyles,
   textBody: {
     ...textCommon,
-    ...sizeGroups['16']
+    ...sizeGroups['16'],
   },
   textBodyPrimaryLink: {
     ...textCommon,
     ...sizeGroups['16'],
-    color: globalColors.blue
+    color: globalColors.blue,
   },
   textBodySemibold: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups['16']
+    ...sizeGroups['16'],
   },
   textBodySmall: {
     ...textCommon,
-    ...sizeGroups['14']
+    ...sizeGroups['14'],
   },
   textBadge: {
     ...textCommon,
     ...globalStyles.fontBold,
     ...sizeGroups['14'],
     lineHeight: '18px',
-    color: globalColors.white
+    color: globalColors.white,
   },
   textBodySmallLink: {
     ...textCommon,
-    ...sizeGroups['14']
+    ...sizeGroups['14'],
   },
   textBodySmallError: {
     ...textCommon,
     ...sizeGroups['14'],
-    color: globalColors.red
+    color: globalColors.red,
   },
   textBodySmallPrimaryLink: {
     ...textCommon,
     ...sizeGroups['14'],
-    color: globalColors.blue
+    color: globalColors.blue,
   },
   textBodyXSmall: {
     ...textCommon,
-    ...sizeGroups['12']
+    ...sizeGroups['12'],
   },
   textBodyXSmallLink: {
     ...textCommon,
-    ...sizeGroups['12']
+    ...sizeGroups['12'],
   },
   textBodySmallSecondaryLink: {
     ...textCommon,
     ...sizeGroups['14'],
-    color: globalColors.black_60
+    color: globalColors.black_60,
   },
   textBodySmallSemibold: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups['14']
+    ...sizeGroups['14'],
   },
   textError: {
     ...textCommon,
     color: globalColors.red,
     fontSize: 14,
     lineHeight: '17px',
-    letterSpacing: '0.2px'
+    letterSpacing: '0.2px',
   },
   textTerminal,
   textTerminalCommand: {
-    ...textTerminal
+    ...textTerminal,
   },
   textTerminalComment: {
     ...textTerminal,
-    color: globalColors.white_40
+    color: globalColors.white_40,
   },
   textTerminalUsername: {
     ...textTerminal,
-    color: globalColors.orange
+    color: globalColors.orange,
   },
   textTerminalPublic: {
     ...textTerminal,
-    color: globalColors.yellowGreen2
+    color: globalColors.yellowGreen2,
   },
   textTerminalPrivate: {
     ...textTerminal,
-    color: globalColors.darkBlue2
+    color: globalColors.darkBlue2,
   },
   textTerminalEmpty: {
     ...textTerminal,
-    minHeight: 20
+    minHeight: 20,
   },
   textTerminalSmall: {
     ...textTerminal,
-    ...sizeGroups['14']
+    ...sizeGroups['14'],
   },
   textTerminalInline: {
     backgroundColor: globalColors.blue4,
     wordWrap: 'break-word',
     padding: 2,
-    display: 'inline'
-  }
+    display: 'inline',
+  },
 }
 
 const lineCommon = {
   overflow: 'hidden',
   display: '-webkit-box',
   textOverflow: 'ellipsis',
-  WebkitBoxOrient: 'vertical'
+  WebkitBoxOrient: 'vertical',
 }
 
 export function lineClamp (lines: number): Object {
   return {
     ...lineCommon,
-    WebkitLineClamp: lines
+    WebkitLineClamp: lines,
   }
 }

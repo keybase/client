@@ -11,7 +11,7 @@ export default class AccountRender extends Component {
       email: this.props.email,
       oldPassphrase: null,
       newPassphrase: null,
-      newPassphraseRepeat: null
+      newPassphraseRepeat: null,
     }
   }
 
@@ -73,39 +73,39 @@ AccountRender.propTypes = {
   emailVerified: React.PropTypes.bool.isRequired,
   onSave: React.PropTypes.func.isRequired,
   passphraseError: React.PropTypes.string,
-  emailError: React.PropTypes.string
+  emailError: React.PropTypes.string,
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
   },
   emailContainer: {
     flex: 0,
     marginBottom: 50,
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   changePasswordContainer: {
     flex: 1,
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   verifiedTag: {
     fontSize: 13,
-    textAlign: 'right'
+    textAlign: 'right',
   },
   saveContainer: {
     flex: 0,
     marginTop: 14,
     marginHorizontal: 10,
     alignItems: 'center',
-    flexDirection: 'row'
+    flexDirection: 'row',
   },
   errorInfo: {
-    color: 'red'
+    color: 'red',
   },
   saveButton: {
     width: 80,
-    alignSelf: 'flex-end'
-  }
+    alignSelf: 'flex-end',
+  },
 })

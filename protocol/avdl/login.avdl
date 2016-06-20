@@ -46,6 +46,12 @@ protocol login {
   void paperKey(int sessionID);
 
   /**
+    paperKeySubmit checks that paperPhrase is a valid paper key
+    for the logged in user, caches the keys, and sends a notification.
+    */
+  void paperKeySubmit(int sessionID, string paperPhrase);
+
+  /**
     Unlock restores access to local key store by priming passphrase stream cache.
     */
   void unlock(int sessionID);

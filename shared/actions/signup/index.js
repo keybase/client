@@ -37,7 +37,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
     const params: signupCheckInvitationCodeRpc = {
       method: 'signup.checkInvitationCode',
       param: {
-        invitationCode: inviteCode
+        invitationCode: inviteCode,
       },
       incomingCallMap: {},
       waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
@@ -51,7 +51,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
           dispatch(nextPhase())
           resolve()
         }
-      }
+      },
     }
 
     engine.rpc(params)
@@ -67,7 +67,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
       dispatch({
         type: Constants.requestInvite,
         error: true,
-        payload: {emailError, nameError, email, name}
+        payload: {emailError, nameError, email, name},
       })
       resolve()
       return
@@ -78,7 +78,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
       param: {
         email: email,
         fullname: name,
-        notes: 'Requested through GUI app'
+        notes: 'Requested through GUI app',
       },
       waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
       incomingCallMap: {},
@@ -86,14 +86,14 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
         if (err) {
           dispatch({
             type: Constants.requestInvite,
-            payload: {error: true, emailError: err.message, nameError: null, email, name}
+            payload: {error: true, emailError: err.message, nameError: null, email, name},
           })
           reject(err)
         } else {
           if (email && name) {
             dispatch({
               type: Constants.requestInvite,
-              payload: {error: null, email, name}
+              payload: {error: null, email, name},
             })
             dispatch(nextPhase())
             resolve()
@@ -101,7 +101,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
             reject(err)
           }
         }
-      }
+      },
     }
     engine.rpc(params)
   })
@@ -166,7 +166,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
       dispatch({
         type: Constants.checkUsernameEmail,
         error: true,
-        payload: {emailError, usernameError, email, username}
+        payload: {emailError, usernameError, email, username},
       })
       resolve()
       return
@@ -183,7 +183,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
           dispatch({
             type: Constants.checkUsernameEmail,
             error: true,
-            payload: {emailError, usernameError: `Username error: ${err.message}`, email, username}
+            payload: {emailError, usernameError: `Username error: ${err.message}`, email, username},
           })
           resolve()
         } else {
@@ -191,7 +191,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
           if (username && email) {
             dispatch({
               type: Constants.checkUsernameEmail,
-              payload: {username, email}
+              payload: {username, email},
             })
             dispatch(nextPhase())
             resolve()
@@ -199,7 +199,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
             reject()
           }
         }
-      }
+      },
     }
 
     engine.rpc(params)
@@ -221,12 +221,12 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
       dispatch({
         type: Constants.checkPassphrase,
         error: true,
-        payload: {passphraseError}
+        payload: {passphraseError},
       })
     } else {
       dispatch({
         type: Constants.checkPassphrase,
-        payload: {passphrase: new HiddenString(passphrase1)}
+        payload: {passphrase: new HiddenString(passphrase1)},
       })
       dispatch(nextPhase())
     }
@@ -247,7 +247,7 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
       dispatch({
         type: Constants.submitDeviceName,
         error: true,
-        payload: {deviceNameError}
+        payload: {deviceNameError},
       })
     } else {
       const params: deviceCheckDeviceNameFormatRpc = {
@@ -261,14 +261,14 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
             dispatch({
               type: Constants.submitDeviceName,
               error: true,
-              payload: {deviceNameError: `Device name is invalid: ${err.message}.`, deviceName}
+              payload: {deviceNameError: `Device name is invalid: ${err.message}.`, deviceName},
             })
             reject(err)
           } else {
             if (deviceName) {
               dispatch({
                 type: Constants.submitDeviceName,
-                payload: {deviceName}
+                payload: {deviceName},
               })
 
               const signupPromise = dispatch(signup(skipMail || false, onDisplayPaperKey))
@@ -279,7 +279,7 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
               }
             }
           }
-        }
+        },
       }
       engine.rpc(params)
     }
@@ -312,14 +312,14 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
           deviceName,
           passphrase: passphrase.stringValue(),
           storeSecret: false,
-          skipMail
+          skipMail,
         },
         incomingCallMap: {
           'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
             paperKeyResponse = response
             dispatch({
               type: Constants.showPaperKey,
-              payload: {paperkey: new HiddenString(phrase)}
+              payload: {paperkey: new HiddenString(phrase)},
             })
             onDisplayPaperKey && onDisplayPaperKey()
             dispatch(nextPhase())
@@ -327,7 +327,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
           'keybase.1.gpgUi.wantToAddGPGKey': (params, {error, result}) => {
             // Do not add a gpg key for now
             result(false)
-          }
+          },
         },
         callback: (err, {passphraseOk, postOk, writeOk}) => {
           if (err) {
@@ -335,7 +335,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
             dispatch({
               type: Constants.signup,
               error: true,
-              payload: {signupError: new HiddenString(err + '')}
+              payload: {signupError: new HiddenString(err + '')},
             })
             dispatch(nextPhase())
             reject()
@@ -343,7 +343,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
             console.log('Successful signup', passphraseOk, postOk, writeOk)
             resolve()
           }
-        }
+        },
       }
 
       engine.rpc(params)
@@ -357,7 +357,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
 function waiting (isWaiting: boolean): SignupWaiting {
   return {
     type: Constants.signupWaiting,
-    payload: isWaiting
+    payload: isWaiting,
   }
 }
 

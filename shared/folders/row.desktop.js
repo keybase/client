@@ -39,12 +39,12 @@ const Modified = ({smallMode, styles, modified}) => {
 const RowMeta = ({ignored, meta, styles}) => {
   const metaColors = {
     'new': globalColors.white,
-    'rekey': globalColors.white
+    'rekey': globalColors.white,
   }
 
   const metaBGColors = {
     'new': globalColors.orange,
-    'rekey': globalColors.red
+    'rekey': globalColors.red,
   }
 
   const metaProps = ignored
@@ -68,7 +68,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onOp
 
   const containerStyle = {
     ...styles.rowContainer,
-    minHeight: smallMode ? 40 : 48
+    minHeight: smallMode ? 40 : 48,
   }
 
   const icon: IconProps.type = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
@@ -102,66 +102,66 @@ const stylesLine = {
   position: 'absolute',
   top: 0,
   left: 0,
-  right: 0
+  right: 0,
 }
 
 const rowContainer = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.clickable,
   minHeight: 48,
-  position: 'relative'
+  position: 'relative',
 }
 
 const stylesPrivate = {
   rowContainer: {
     ...rowContainer,
     backgroundColor: globalColors.darkBlue,
-    color: globalColors.white
+    color: globalColors.white,
   },
   hasStuffIcon: {
     small: 'folder-private-has-stuff-24',
-    normal: 'folder-private-has-stuff-32'
+    normal: 'folder-private-has-stuff-32',
   },
   ignored: {
     color: globalColors.white_40,
-    backgroundColor: 'rgba(0, 26, 51, 0.4)'
+    backgroundColor: 'rgba(0, 26, 51, 0.4)',
   },
   groupIcon: {
     small: 'icon-folder-private-group-24',
-    normal: 'icon-folder-private-group-32'
+    normal: 'icon-folder-private-group-32',
   },
   avatarContainer: {
     backgroundColor: globalColors.darkBlue3,
     backgroundImage: `url(${resolveImageAsURL('icons', 'damier-pattern-good-open.png')})`,
-    backgroundRepeat: 'repeat'
+    backgroundRepeat: 'repeat',
   },
   nameColor: globalColors.white,
-  modifiedMode: 'Terminal'
+  modifiedMode: 'Terminal',
 }
 
 const stylesPublic = {
   rowContainer: {
     ...rowContainer,
     backgroundColor: globalColors.white,
-    color: globalColors.yellowGreen2
+    color: globalColors.yellowGreen2,
   },
   hasStuffIcon: {
     small: 'icon-folder-public-has-stuff-24',
-    normal: 'icon-folder-public-has-stuff-32'
+    normal: 'icon-folder-public-has-stuff-32',
   },
   ignored: {
     color: globalColors.white_75,
-    backgroundColor: globalColors.yellowGreen
+    backgroundColor: globalColors.yellowGreen,
   },
   groupIcon: {
     small: 'icon-folder-public-group-24',
-    normal: 'icon-folder-public-group-32'
+    normal: 'icon-folder-public-group-32',
   },
   avatarContainer: {
-    backgroundColor: globalColors.yellowGreen
+    backgroundColor: globalColors.yellowGreen,
   },
   nameColor: globalColors.yellowGreen2,
-  modifiedMode: 'Normal'
+  modifiedMode: 'Normal',
 }
 
 const stylesBodyContainer = {
@@ -169,24 +169,24 @@ const stylesBodyContainer = {
   flex: 1,
   justifyContent: 'center',
   padding: 8,
-  marginRight: 16
+  marginRight: 16,
 }
 
 const stylesActionContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  justifyContent: 'flex-end'
+  justifyContent: 'flex-end',
 }
 
 const stylesAction = {
   ...globalStyles.clickable,
   color: globalColors.white,
-  alignSelf: 'center'
+  alignSelf: 'center',
 }
 
 const stylesModified = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 export default Row

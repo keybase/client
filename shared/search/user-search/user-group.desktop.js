@@ -91,7 +91,7 @@ export default function UserGroup ({users, onClickUser, onRemoveUser, onOpenPubl
 
 const avatarStyle = {
   marginLeft: 8,
-  marginRight: 16
+  marginRight: 16,
 }
 
 const rowButtonStyle = {
@@ -99,12 +99,12 @@ const rowButtonStyle = {
   ...globalStyles.clickable,
   height: 48,
   alignItems: 'center',
-  justifyContent: 'center'
+  justifyContent: 'center',
 }
 
 const userRowStyle = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   height: 48,
-  alignItems: 'center'
+  alignItems: 'center',
 }

@@ -12,7 +12,7 @@ type State = {
 
 const initialState = {
   menuBadge: false,
-  keyState: {}
+  keyState: {},
 }
 
 export default function (state: State = initialState, action: NotificationAction): State {
@@ -24,7 +24,7 @@ export default function (state: State = initialState, action: NotificationAction
         return state
       }
       let keyState = {
-        ...state.keyState
+        ...state.keyState,
       }
 
       keyState[action.payload.key] = action.payload.on
@@ -36,7 +36,7 @@ export default function (state: State = initialState, action: NotificationAction
       return {
         ...state,
         menuBadge,
-        keyState
+        keyState,
       }
     default:
       return state

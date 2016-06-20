@@ -23,7 +23,7 @@ class GenPaperKey extends Component<void, Props, State> {
     super(props)
 
     this.state = {
-      loading: true
+      loading: true,
     }
 
     this.props.generatePaperKey()
@@ -59,7 +59,7 @@ export default connect(
   dispatch => {
     return {
       generatePaperKey: () => dispatch(generatePaperKey()),
-      onBack: () => dispatch(navigateUp())
+      onBack: () => dispatch(navigateUp()),
     }
   }
 )(GenPaperKey)

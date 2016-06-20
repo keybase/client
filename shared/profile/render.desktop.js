@@ -79,23 +79,23 @@ class Render extends Component<void, Props, void> {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  position: 'relative'
+  position: 'relative',
 }
 
 const styleHeader = {
   position: 'absolute',
   width: '100%',
-  height: HEADER_SIZE
+  height: HEADER_SIZE,
 }
 
 const styleBioColumn = {
   ...globalStyles.flexBoxColumn,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 const styleActions = {
   ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.small
+  marginTop: globalMargins.small,
 }
 
 const styleProofColumn = {
@@ -103,7 +103,7 @@ const styleProofColumn = {
   width: 320,
   marginLeft: globalMargins.medium,
   marginRight: globalMargins.medium,
-  zIndex: 2
+  zIndex: 2,
 }
 
 const styleProofNoticeBox = {
@@ -111,12 +111,12 @@ const styleProofNoticeBox = {
   height: HEADER_SIZE,
   alignItems: 'center',
   justifyContent: 'center',
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 const styleProofs = {
   // header + small space from top of header + tiny space to pad top of first item
-  marginTop: globalMargins.small + globalMargins.tiny
+  marginTop: globalMargins.small + globalMargins.tiny,
 }
 
 const styleFolderLine = {
@@ -124,13 +124,13 @@ const styleFolderLine = {
   ...globalStyles.clickable,
   alignItems: 'center',
   marginTop: globalMargins.tiny,
-  color: globalColors.black_60
+  color: globalColors.black_60,
 }
 
 const styleFolderIcon = {
   width: 16,
   height: 16,
-  marginRight: globalMargins.tiny
+  marginRight: globalMargins.tiny,
 }
 
 export default Render

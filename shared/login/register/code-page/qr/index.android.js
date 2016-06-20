@@ -18,7 +18,7 @@ export default class QR extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     this.state = {
-      permissionGranted: false
+      permissionGranted: false,
     }
 
     requestPermission('android.permission.CAMERA').then(() => {

@@ -50,7 +50,7 @@ class DevMenu extends Component {
       }},
       {name: 'Dumb components', hasChildren: true, onClick: () => {
         this.props.routeAppend('dumbSheet')
-      }}
+      }},
     ]
     return (
       <MenuList items={menuItems} />
@@ -60,7 +60,7 @@ class DevMenu extends Component {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Dev Menu'},
-      subRoutes: {developer, login, components, styleSheet, dumbSheet}
+      subRoutes: {developer, login, components, styleSheet, dumbSheet},
     }
   }
 }
@@ -71,7 +71,7 @@ DevMenu.propTypes = {
   pushNewSearch: React.PropTypes.func.isRequired,
   pushNewProfile: React.PropTypes.func.isRequired,
   showTrackerListener: React.PropTypes.func.isRequired,
-  switchTab: React.PropTypes.func.isRequired
+  switchTab: React.PropTypes.func.isRequired,
 }
 
 export default connect(
@@ -83,7 +83,7 @@ export default connect(
       logout: () => dispatch(logout()),
       pushNewSearch: () => dispatch(pushNewSearch()),
       pushNewProfile: username => dispatch(pushNewProfile(username)),
-      showTrackerListener: username => dispatch(pushDebugTracker(username))
+      showTrackerListener: username => dispatch(pushDebugTracker(username)),
     }
   }
 )(DevMenu)

@@ -21,38 +21,38 @@ class Button extends Component {
       case 'Primary':
         backgroundStyle = {
           ...stylesButtonPrimary,
-          opacity: disabled ? stylesButtonPrimary.disabledOpacity : 1
+          opacity: disabled ? stylesButtonPrimary.disabledOpacity : 1,
         }
         break
       case 'Follow':
         backgroundStyle = {
           ...stylesButtonFollow,
-          opacity: disabled ? stylesButtonFollow.disabledOpacity : 1
+          opacity: disabled ? stylesButtonFollow.disabledOpacity : 1,
         }
         break
       case 'Following':
         backgroundStyle = {
           ...stylesButtonFollowing,
-          opacity: disabled ? stylesButtonFollowing.disabledOpacity : 1
+          opacity: disabled ? stylesButtonFollowing.disabledOpacity : 1,
         }
         labelStyle = {
-          color: globalColors.green
+          color: globalColors.green,
         }
         progressColor = globalColors.black_75
         break
       case 'Unfollow':
         backgroundStyle = {
           ...stylesButtonUnfollow,
-          opacity: disabled ? stylesButtonUnfollow.disabledOpacity : 1
+          opacity: disabled ? stylesButtonUnfollow.disabledOpacity : 1,
         }
         labelStyle = {
-          color: globalColors.black_75
+          color: globalColors.black_75,
         }
         break
       case 'Danger':
         backgroundStyle = {
           ...stylesButtonDanger,
-          opacity: disabled ? stylesButtonDanger.disabledOpacity : 1
+          opacity: disabled ? stylesButtonDanger.disabledOpacity : 1,
         }
         break
       case 'Secondary':
@@ -60,10 +60,10 @@ class Button extends Component {
         backgroundStyle = {
           ...stylesButtonSecondary,
           backgroundColor: this.props.backgroundMode === 'Terminal' ? globalColors.blue_30 : stylesButtonSecondary.backgroundColor,
-          opacity: disabled ? stylesButtonSecondary.disabledOpacity : 1
+          opacity: disabled ? stylesButtonSecondary.disabledOpacity : 1,
         }
         labelStyle = {
-          color: this.props.backgroundMode === 'Terminal' ? globalColors.white : globalColors.black_75
+          color: this.props.backgroundMode === 'Terminal' ? globalColors.white : globalColors.black_75,
         }
         progressColor = globalColors.black_75
     }
@@ -80,14 +80,14 @@ class Button extends Component {
       smallStyle = stylesButtonSmall
       labelStyle = {
         ...labelStyle,
-        ...stylesButtonSmallLabel
+        ...stylesButtonSmallLabel,
       }
     }
 
     if (this.props.waiting) {
       labelStyle = {
         ...labelStyle,
-        opacity: 0
+        opacity: 0,
       }
     }
 
@@ -146,32 +146,32 @@ const buttonCommon = {
   fontSize: 16,
   height: 32,
   lineHeight: '32px',
-  minWidth: 10
+  minWidth: 10,
 }
 
 const stylesButtonPrimary = {
   ...buttonCommon,
   backgroundColor: globalColors.blue,
-  disabledOpacity: 0.2
+  disabledOpacity: 0.2,
 }
 const stylesButtonSecondary = {
   ...buttonCommon,
   backgroundColor: globalColors.lightGrey2,
   disabledOpacity: 0.3,
-  marginRight: 10
+  marginRight: 10,
 }
 const stylesButtonDanger = {
   ...buttonCommon,
   backgroundColor: globalColors.red,
   disabledOpacity: 0.2,
-  marginRight: 10
+  marginRight: 10,
 }
 const stylesButtonFollow = {
   ...buttonCommon,
   backgroundColor: globalColors.green,
   disabledOpacity: 0.3,
   marginRight: 10,
-  minWidth: 125
+  minWidth: 125,
 }
 const stylesButtonFollowing = {
   ...buttonCommon,
@@ -179,7 +179,7 @@ const stylesButtonFollowing = {
   border: `solid 2px ${globalColors.green}`,
   lineHeight: '28px',
   marginRight: 10,
-  minWidth: 125
+  minWidth: 125,
 }
 const stylesButtonUnfollow = {
   ...stylesButtonSecondary,
@@ -187,11 +187,11 @@ const stylesButtonUnfollow = {
   border: `solid 2px ${globalColors.lightGrey2}`,
   lineHeight: '28px',
   marginRight: 10,
-  minWidth: 125
+  minWidth: 125,
 }
 const stylesButtonSmall = {
   height: 28,
-  lineHeight: '27px'
+  lineHeight: '27px',
 }
 const stylesButtonLabel = {
   ...globalStyles.fontSemibold,
@@ -203,14 +203,14 @@ const stylesButtonLabel = {
   fontSize: 16,
   height: 'auto',
   lineHeight: 0,
-  textTransform: 'none'
+  textTransform: 'none',
 }
 const stylesButtonSmallLabel = {
   ...globalStyles.fontSemibold,
   fontSize: 14,
   paddingLeft: 20,
   paddingRight: 20,
-  lineHeight: 0
+  lineHeight: 0,
 }
 const stylesProgress = {
   position: 'absolute',
@@ -219,7 +219,7 @@ const stylesProgress = {
   right: 0,
   top: 0,
   bottom: 0,
-  margin: 'auto'
+  margin: 'auto',
 }
 
 export default Button

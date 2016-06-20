@@ -561,6 +561,7 @@ export type NotificationChannels = {
   kbfs: boolean;
   tracking: boolean;
   favorites: boolean;
+  paperkeys: boolean;
 }
 
 export type NotifyFSFSActivityResult = void
@@ -580,6 +581,19 @@ export type NotifyFavoritesFavoritesChangedRpc = {
   method: 'NotifyFavorites.favoritesChanged',
   param: {
     uid: UID
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type NotifyPaperKeyPaperKeyCachedResult = void
+
+export type NotifyPaperKeyPaperKeyCachedRpc = {
+  method: 'NotifyPaperKey.paperKeyCached',
+  param: {
+    uid: UID,
+    encKID: KID,
+    sigKID: KID
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -875,6 +889,7 @@ export type SaltpackEncryptedMessageInfo = {
   devices: Array<Device>;
   numAnonReceivers: int;
   receiverIsAnon: boolean;
+  sender: SaltpackSender;
 }
 
 export type SaltpackSender = {
@@ -922,6 +937,7 @@ export type SecretEntryArg = {
   ok: string;
   reason: string;
   useSecretStore: boolean;
+  showTyping: boolean;
 }
 
 export type SecretEntryRes = {
@@ -1692,6 +1708,14 @@ export type debuggingSecondStepRpc = {
   callback: (null | (err: ?any, response: debuggingSecondStepResult) => void)
 }
 
+export type delegateUiCtlRegisterGregorFirehoseResult = void
+
+export type delegateUiCtlRegisterGregorFirehoseRpc = {
+  method: 'delegateUiCtl.registerGregorFirehose',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type delegateUiCtlRegisterIdentifyUIResult = void
 
 export type delegateUiCtlRegisterIdentifyUIRpc = {
@@ -2156,6 +2180,17 @@ export type loginPaperKeyResult = void
 
 export type loginPaperKeyRpc = {
   method: 'login.paperKey',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type loginPaperKeySubmitResult = void
+
+export type loginPaperKeySubmitRpc = {
+  method: 'login.paperKeySubmit',
+  param: {
+    paperPhrase: string
+  },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
@@ -3047,7 +3082,8 @@ export type saltpackUiSaltpackPromptForDecryptResult = void
 export type saltpackUiSaltpackPromptForDecryptRpc = {
   method: 'saltpackUi.saltpackPromptForDecrypt',
   param: {
-    sender: SaltpackSender
+    sender: SaltpackSender,
+    usedDelegateUI: bool
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -3500,6 +3536,7 @@ export type rpc =
   | Kex2ProvisionerKexStartRpc
   | NotifyFSFSActivityRpc
   | NotifyFavoritesFavoritesChangedRpc
+  | NotifyPaperKeyPaperKeyCachedRpc
   | NotifySessionClientOutOfDateRpc
   | NotifySessionLoggedInRpc
   | NotifySessionLoggedOutRpc
@@ -3538,6 +3575,7 @@ export type rpc =
   | debuggingFirstStepRpc
   | debuggingIncrementRpc
   | debuggingSecondStepRpc
+  | delegateUiCtlRegisterGregorFirehoseRpc
   | delegateUiCtlRegisterIdentifyUIRpc
   | delegateUiCtlRegisterRekeyUIRpc
   | delegateUiCtlRegisterSecretUIRpc
@@ -3582,6 +3620,7 @@ export type rpc =
   | loginLoginRpc
   | loginLogoutRpc
   | loginPaperKeyRpc
+  | loginPaperKeySubmitRpc
   | loginRecoverAccountFromEmailAddressRpc
   | loginUiDisplayPaperKeyPhraseRpc
   | loginUiDisplayPrimaryPaperKeyRpc
@@ -4057,6 +4096,13 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
+  'keybase.1.delegateUiCtl.registerGregorFirehose'?: (
+    params: {},
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.device.deviceList'?: (
     params: {
       sessionID: int
@@ -4505,6 +4551,16 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
+  'keybase.1.login.paperKeySubmit'?: (
+    params: {
+      sessionID: int,
+      paperPhrase: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.login.unlock'?: (
     params: {
       sessionID: int
@@ -4794,6 +4850,17 @@ export type incomingCallMapType = {
     } /* ,
     response: {} // Notify call
     */
+  ) => void,
+  'keybase.1.NotifyPaperKey.paperKeyCached'?: (
+    params: {
+      uid: UID,
+      encKID: KID,
+      sigKID: KID
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
   ) => void,
   'keybase.1.NotifySession.loggedOut'?: (
     params: {} /* ,
@@ -5352,7 +5419,8 @@ export type incomingCallMapType = {
   'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (
     params: {
       sessionID: int,
-      sender: SaltpackSender
+      sender: SaltpackSender,
+      usedDelegateUI: bool
     },
     response: {
       error: (err: RPCError) => void,

@@ -86,7 +86,7 @@ const Fonts = () => (
           'Success': globalColors.green,
           'Information': globalColors.yellow,
           'HighRisk': globalColors.red,
-          'Documentation': globalColors.darkBlue
+          'Documentation': globalColors.darkBlue,
         }[backgroundMode]
 
         return (
@@ -225,12 +225,12 @@ const Icons = () => (
       'fa-kb-iconfont-proof-good',
       'fa-kb-iconfont-proof-pending',
       'fa-close',
-      'fa-mobile'
+      'fa-mobile',
     ].map(i => [
       <Icon onClick={() => console.log('clicked')} type={i} />,
       <Space />,
       <Icon style={{width: 100, height: 100}} onClick={() => console.log('clicked')} type={i} />,
-      <Space />
+      <Space />,
     ])}
     <Row key='a'><Icon type='fa-copy' style={{color: globalColors.blue}} /></Row>
     <Row key='a1'><Icon type='fa-copy' style={{color: globalColors.green}} /></Row>
@@ -253,7 +253,7 @@ const Inputs = () => (
       inputProps={{floatingLabelText: 'Passphrase', style: {marginBottom: 0}, errorText: 'Error Message'}}
       checkboxesProps={[
         {label: 'Save in Keychain', checked: true, onCheck: () => {}},
-        {label: 'Show Typing', checked: true, onCheck: () => {}}
+        {label: 'Show Typing', checked: true, onCheck: () => {}},
       ]}
     />
   </Box>

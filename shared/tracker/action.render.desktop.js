@@ -100,7 +100,7 @@ const styleContainer = {
   paddingBottom: globalMargins.small,
   paddingRight: globalMargins.small,
   position: 'relative',
-  zIndex: 1
+  zIndex: 1,
 }
 
 const styleCloseContainer = {
@@ -110,13 +110,13 @@ const styleCloseContainer = {
   width: '100%',
   alignItems: 'center',
   marginTop: globalMargins.small,
-  justifyContent: 'flex-end'
+  justifyContent: 'flex-end',
 }
 
 const styleActionButton = {
   width: 102,
   minWidth: 102,
-  marginRight: 0
+  marginRight: 0,
 }
 
 const styleLoggedOutContainer = {
@@ -129,5 +129,5 @@ const styleLoggedOutContainer = {
   justifyContent: 'flex-end',
   padding: globalMargins.small,
   position: 'relative',
-  zIndex: 1
+  zIndex: 1,
 }

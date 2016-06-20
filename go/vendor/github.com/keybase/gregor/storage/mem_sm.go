@@ -181,16 +181,13 @@ func isBeforeOrSame(a, b time.Time) bool {
 
 func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
 	var items []gregor.Item
-	if t == nil {
-		t = timeOrOffset(now)
-	}
 	for _, i := range u.items {
 		md := i.item.Metadata()
 		did := md.DeviceID()
 		if d != nil && did != nil && !bytes.Equal(did.Bytes(), d.Bytes()) {
 			continue
 		}
-		if toTime(now, t).Before(i.ctime) {
+		if t != nil && toTime(now, t).Before(i.ctime) {
 			continue
 		}
 		if i.isDismissedAt(toTime(now, t)) {
@@ -330,6 +327,18 @@ func (m *MemEngine) State(u gregor.UID, d gregor.DeviceID, t gregor.TimeOrOffset
 	return user.state(m.clock.Now(), m.objFactory, d, t)
 }
 
+func (m *MemEngine) StateByCategoryPrefix(u gregor.UID, d gregor.DeviceID, t gregor.TimeOrOffset, cp gregor.Category) (gregor.State, error) {
+	state, err := m.State(u, d, t)
+	if err != nil {
+		return nil, err
+	}
+	items, err := state.ItemsWithCategoryPrefix(cp)
+	if err != nil {
+		return nil, err
+	}
+	return m.objFactory.MakeState(items)
+}
+
 func (m *MemEngine) Clear() error {
 	m.users = make(map[string](*user))
 	return nil
@@ -359,12 +368,12 @@ func (m *MemEngine) InBandMessagesSince(u gregor.UID, d gregor.DeviceID, t time.
 	return msgs, nil
 }
 
-func (m *MemEngine) Reminders() ([]gregor.Reminder, error) {
+func (m *MemEngine) Reminders(maxReminders int) (gregor.ReminderSet, error) {
 	// Unimplemented for MemEngine
 	return nil, nil
 }
 
-func (m *MemEngine) DeleteReminder(r gregor.Reminder) error {
+func (m *MemEngine) DeleteReminder(r gregor.ReminderID) error {
 	// Unimplemented for MemEngine
 	return nil
 }
@@ -404,3 +413,5 @@ func (m *MemEngine) ObjFactory() gregor.ObjFactory {
 func (m *MemEngine) Clock() clockwork.Clock {
 	return m.clock
 }
+
+func (m *MemEngine) ReminderLockDuration() time.Duration { return time.Minute }

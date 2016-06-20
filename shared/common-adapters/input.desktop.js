@@ -16,7 +16,7 @@ export default class Input extends Component {
 
     this.state = {
       value: props.value,
-      focused: false
+      focused: false,
     }
   }
   getValue (): ?string {
@@ -68,7 +68,7 @@ export default class Input extends Component {
       height: 'auto', position: 'relative',
       // Other HACK: having a floating label affects position, but only in multiline
       bottom: (this.props.floatingLabelText ? 30 : 5),
-      marginTop: 6
+      marginTop: 6,
     }
     const inputStyle = this.props.multiLine ? multiLineStyleFix : {height: 'auto'}
     const alignStyle = this.props.style && this.props.style.textAlign ? {textAlign: this.props.style.textAlign} : {textAlign: 'center'}
@@ -113,32 +113,32 @@ export default class Input extends Component {
 
 export const styles = {
   container: {
-    marginBottom: 8
+    marginBottom: 8,
   },
   containerSmall: {
     margin: 0,
-    marginTop: 2
+    marginTop: 2,
   },
   input: {
     ...specialStyles.textInput,
-    height: 80
+    height: 80,
   },
   inputSmall: {
     ...TextStyles.textBody,
     ...TextStyles.textSmallMixin,
     height: 40,
-    lineHeight: '11px'
+    lineHeight: '11px',
   },
   underlineFocusStyle: {
     marginTop: 4,
     borderColor: globalColors.blue,
     borderBottom: 'solid 1px',
-    transition: ''
+    transition: '',
   },
   underlineStyle: {
     borderColor: globalColors.black_10,
     bottom: 'auto',
-    marginTop: 4
+    marginTop: 4,
   },
   errorStyle: {
     ...globalStyles.fontRegular,
@@ -148,14 +148,14 @@ export const styles = {
     lineHeight: '17px',
     position: 'initial',
     marginTop: 4,
-    paddingTop: 4
+    paddingTop: 4,
   },
   hintStyle: {
     ...globalStyles.fontSemibold,
     color: globalColors.black_10,
     width: '100%',
     textAlign: 'center',
-    marginTop: -3
+    marginTop: -3,
   },
   floatingLabelStyle: {
     ...globalStyles.fontSemibold,
@@ -165,7 +165,7 @@ export const styles = {
     lineHeight: '29px',
     position: 'inherit',
     transform: 'scale(1) translate3d(0, 0, 0)',
-    transition: 'color 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms'
+    transition: 'color 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms',
   },
   floatingLabelFocusStyle: {
     ...globalStyles.fontSemibold,
@@ -175,7 +175,7 @@ export const styles = {
     lineHeight: '29px',
     position: 'inherit',
     transform: 'perspective(1px) scale(1) translate3d(2px, -29px, 0)',
-    transformOrigin: 'center top'
-  }
+    transformOrigin: 'center top',
+  },
 }
 

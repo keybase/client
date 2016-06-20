@@ -13,7 +13,7 @@ export default class LogSend extends Component<void, {}, State> {
   constructor (props: {}) {
     super(props)
     this.state = {
-      logSendId: null
+      logSendId: null,
     }
   }
 

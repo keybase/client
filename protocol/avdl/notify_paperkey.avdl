@@ -1,0 +1,7 @@
+
+@namespace("keybase.1")
+protocol NotifyPaperKey {
+  import idl "common.avdl";
+
+  void paperKeyCached(UID uid, KID encKID, KID sigKID) oneway;
+}

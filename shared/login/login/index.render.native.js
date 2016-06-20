@@ -13,12 +13,12 @@ export default class LoginRender extends Component<void, Props, void> {
       type: this.props.showTyping ? 'passwordVisible' : 'password',
       onEnterKeyDown: () => this.props.onSubmit(),
       errorText: this.props.error,
-      autoFocus: true
+      autoFocus: true,
     }
 
     const checkboxProps = [
       {label: 'Save in Keychain', checked: this.props.saveInKeychain, onCheck: check => { this.props.saveInKeychainChange(check) }, style: {marginRight: 13}},
-      {label: 'Show Typing', checked: this.props.showTyping, onCheck: check => { this.props.showTypingChange(check) }}
+      {label: 'Show Typing', checked: this.props.showTyping, onCheck: check => { this.props.showTypingChange(check) }},
     ]
 
     return (
@@ -55,9 +55,9 @@ const styles = {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
     flex: 1,
-    backgroundColor: globalColors.lightGrey
+    backgroundColor: globalColors.lightGrey,
   },
   card: {
-    marginTop: 115
-  }
+    marginTop: 115,
+  },
 }

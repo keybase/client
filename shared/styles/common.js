@@ -5,14 +5,14 @@ const buttonHighlightCommon = {
   padding: 0,
   borderRadius: 2,
   backgroundColor: '#eeeeee',
-  borderColor: 'blue'
+  borderColor: 'blue',
 }
 
 const buttonCommon = {
   ...buttonHighlightCommon,
   padding: 10,
   textAlign: 'center',
-  color: 'black'
+  color: 'black',
 }
 
 export const colors = {
@@ -35,46 +35,46 @@ export const colors = {
   error: '#d0021b',
   backgroundBlue: '#20C0EE',
   codeBackground: '#F6F6F4',
-  darkGreyBackground: '#444444'
+  darkGreyBackground: '#444444',
 }
 
 const buttons = {
   button: {
-    ...buttonCommon
+    ...buttonCommon,
   },
   buttonHighlight: {
-    ...buttonHighlightCommon
+    ...buttonHighlightCommon,
   },
   disabledButtonHighlight: {
-    ...buttonHighlightCommon
+    ...buttonHighlightCommon,
   },
   actionButton: {
     ...buttonCommon,
-    backgroundColor: '#5E80FF'
+    backgroundColor: '#5E80FF',
   },
   disabledButton: {
     ...buttonCommon,
     color: colors.warmGrey,
     backgroundColor: '#999999',
-    textDecorationLine: 'line-through'
-  }
+    textDecorationLine: 'line-through',
+  },
 }
 
 export default sheet({
   ...buttons,
   error: {
     backgroundColor: 'red',
-    color: 'black'
+    color: 'black',
   },
   h1: {
-    fontSize: 18
+    fontSize: 18,
   },
   h2: {
-    fontSize: 16
+    fontSize: 16,
   },
   separator: {
     height: 1,
-    backgroundColor: colors.grey80
+    backgroundColor: colors.grey80,
   },
   textInput: {
     borderColor: '#0f0f0f',
@@ -85,19 +85,19 @@ export default sheet({
     marginBottom: 5,
     marginLeft: 10,
     marginRight: 10,
-    padding: 4
+    padding: 4,
   },
   greyText: {
-    color: colors.grey65
+    color: colors.grey65,
   },
   centerText: {
-    textAlign: 'center'
+    textAlign: 'center',
   },
   transparentBlack: {
     color: colors.black,
-    opacity: 0.6
+    opacity: 0.6,
   },
-  ...nativeStyles
+  ...nativeStyles,
 })
 
 // non stylesheet styles

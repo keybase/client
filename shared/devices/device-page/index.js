@@ -16,12 +16,12 @@ class DevicePage extends Component {
       componentAtTop: {
         title: 'Device page',
         props: {
-          device: currentPath.get('device')
-        }
+          device: currentPath.get('device'),
+        },
       },
       subRoutes: {
-        removeDevice: RemoveDevice
-      }
+        removeDevice: RemoveDevice,
+      },
     }
   }
 
@@ -33,20 +33,20 @@ class DevicePage extends Component {
       timeline.push({
         type: 'Revoked',
         desc: 'Revoked ' + revoked.format('MMM D, YYYY'),
-        subDesc: revoked.fromNow()
+        subDesc: revoked.fromNow(),
       })
     } else if (device.lastUsed) {
       const lastUsed = moment(device.lastUsed)
       timeline.push({
         type: 'LastUsed',
         desc: 'Last used ' + lastUsed.format('MMM D, YYYY'),
-        subDesc: lastUsed.fromNow()
+        subDesc: lastUsed.fromNow(),
       })
     }
     timeline.push({
       type: 'Added',
       desc: 'Added ' + added.format('MMM D, YYYY'),
-      subDesc: device.provisioner ? device.provisioner.name : ''
+      subDesc: device.provisioner ? device.provisioner.name : '',
     })
     return timeline
   }
@@ -73,13 +73,13 @@ export default connect(
     const devices = state.devices.devices.find(d => d.name === ownProps.device.name)
     return ({
       ...devices,
-      ...ownProps
+      ...ownProps,
     })
   },
   dispatch => {
     return {
       ...bindActionCreators(devicesActions, dispatch),
-      showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device}))
+      showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),
     }
   }
 )(DevicePage)

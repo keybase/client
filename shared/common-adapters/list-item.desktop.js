@@ -32,11 +32,11 @@ function containerStyle (clickable) {
 
 const iconContainerThemed = {
   'Small': {
-    width: 48
+    width: 48,
   },
   'Large': {
-    width: 64
-  }
+    width: 64,
+  },
 }
 
 function actionStyle (extraMargin) {
@@ -49,5 +49,5 @@ const bodyContainerStyle = {
   marginRight: 16,
   marginBottom: 8,
   marginTop: 8,
-  justifyContent: 'center'
+  justifyContent: 'center',
 }

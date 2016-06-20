@@ -24,17 +24,17 @@ class InviteCode extends Component {
 
 InviteCode.propTypes = {
   checkInviteCode: React.PropTypes.func,
-  errorText: React.PropTypes.string
+  errorText: React.PropTypes.string,
 }
 
 export default connect(
   state => ({
     errorText: state.signup.inviteCodeError,
     inviteCode: state.signup.inviteCode,
-    waiting: state.signup.waiting
+    waiting: state.signup.waiting,
   }),
     dispatch => bindActionCreators({
       ...signupActions,
-      navigateUp
+      navigateUp,
     }, dispatch)
 )(InviteCode)

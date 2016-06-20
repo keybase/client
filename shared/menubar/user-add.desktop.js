@@ -10,7 +10,7 @@ type State = {
 
 const UserButton = ({isPublic, onClick}: Props) => (
   <Box style={{...stylesButtonContainer,
-    backgroundColor: isPublic ? globalColors.white : globalColors.darkBlue
+    backgroundColor: isPublic ? globalColors.white : globalColors.darkBlue,
   }}>
     <Button
       fullWidth
@@ -25,7 +25,7 @@ const UserButton = ({isPublic, onClick}: Props) => (
 
 const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username}) => (
   <Box style={{...stylesInputContainer,
-    backgroundColor: isPublic ? globalColors.lightGrey : globalColors.darkBlue3
+    backgroundColor: isPublic ? globalColors.lightGrey : globalColors.darkBlue3,
   }}>
     {!isPublic && <Text type='BodySemiboldItalic' style={stylesPrivatePrefix}>{username},</Text>}
     <Input
@@ -56,7 +56,7 @@ class UserAdd extends Component<void, Props, State> {
 
     this.state = {
       showingInput: false,
-      text: ''
+      text: '',
     }
   }
 
@@ -94,7 +94,7 @@ const stylesButtonContainer = {
   alignItems: 'stretch',
   flex: 1,
   height: 40,
-  borderTop: `solid 1px ${globalColors.black_10}`
+  borderTop: `solid 1px ${globalColors.black_10}`,
 }
 
 const stylesInputContainer = {
@@ -104,29 +104,29 @@ const stylesInputContainer = {
   paddingRight: 10,
   alignItems: 'center',
   flex: 1,
-  height: 40
+  height: 40,
 }
 
 const stylesInput = {
   flex: 1,
-  height: 20
+  height: 20,
 }
 
 const stylesInputInput = {
   ...globalStyles.fontSemibold,
   fontSize: 14,
-  textAlign: 'left'
+  textAlign: 'left',
 }
 
 const stylesInputHint = {
   ...globalStyles.fontSemibold,
   fontSize: 14,
   textAlign: 'left',
-  marginTop: 1
+  marginTop: 1,
 }
 
 const stylesInputUnderline = {
-  display: 'none'
+  display: 'none',
 }
 
 const stylesPrivatePrefix = {
@@ -134,7 +134,7 @@ const stylesPrivatePrefix = {
   color: globalColors.white,
   fontSize: 14,
   marginRight: 2,
-  marginTop: 2
+  marginTop: 2,
 }
 
 export default UserAdd

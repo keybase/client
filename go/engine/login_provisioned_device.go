@@ -50,7 +50,8 @@ func (e *loginProvisionedDevice) Run(ctx *Context) error {
 	in, err := e.G().LoginState().LoggedInProvisionedLoad()
 	if err == nil && in {
 		if len(e.username) == 0 || e.G().Env.GetUsername() == libkb.NewNormalizedUsername(e.username) {
-			return nil
+			// already logged in, make sure to unlock device keys
+			return e.unlockDeviceKeys(ctx, nil)
 		}
 	}
 
@@ -108,5 +109,36 @@ func (e *loginProvisionedDevice) Run(ctx *Context) error {
 		}
 		return nil
 	}
-	return e.G().LoginState().LoginWithPrompt(e.username, ctx.LoginUI, ctx.SecretUI, afterLogin)
+	if err := e.G().LoginState().LoginWithPrompt(e.username, ctx.LoginUI, ctx.SecretUI, afterLogin); err != nil {
+		return err
+	}
+
+	// login was successful, unlock the device keys
+	return e.unlockDeviceKeys(ctx, me)
+}
+
+func (e *loginProvisionedDevice) unlockDeviceKeys(ctx *Context, me *libkb.User) error {
+	if me == nil {
+		var err error
+		me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+		if err != nil {
+			return err
+		}
+	}
+
+	ska := libkb.SecretKeyArg{
+		Me:      me,
+		KeyType: libkb.DeviceSigningKeyType,
+	}
+	_, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "unlock device keys"))
+	if err != nil {
+		return err
+	}
+	ska.KeyType = libkb.DeviceEncryptionKeyType
+	_, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "unlock device keys"))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

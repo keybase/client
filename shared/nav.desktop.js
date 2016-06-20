@@ -20,6 +20,7 @@ import type {Tabs} from './constants/tabs'
 
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 import {switchTab} from './actions/tabbed-router'
+import {navigateBack, navigateUp} from './actions/router'
 import TabBar from './tab-bar/index.render'
 
 import {bootstrap} from './actions/config'
@@ -31,7 +32,7 @@ const tabs = {
   [folderTab]: {module: Folders, name: 'Folders'},
   [chatTab]: {module: Chat, name: 'Chat'},
   [peopleTab]: {module: People, name: 'People'},
-  [devicesTab]: {module: Devices, name: 'Devices'}
+  [devicesTab]: {module: Devices, name: 'Devices'},
 }
 
 type State = {
@@ -45,7 +46,9 @@ type Props = {
   tabbedRouter: Object,
   bootstrapped: boolean,
   provisioned: boolean,
-  username: string
+  username: string,
+  navigateBack: () => void,
+  navigateUp: () => void
 }
 
 class Nav extends Component<void, Props, State> {
@@ -53,11 +56,13 @@ class Nav extends Component<void, Props, State> {
   _lastCheckedTab: ?Tabs;
   _checkingTab: boolean;
   _originalSize: $Shape<{width: number, height: number}>;
+  _handleKeyDown: (e: SyntheticKeyboardEvent) => void;
 
   constructor (props) {
     super(props)
     this._setupDebug()
     this.props.bootstrap()
+    this._handleKeyDown = this._handleKeyDown.bind(this)
 
     this.state = {searchActive: false}
 
@@ -140,6 +145,20 @@ class Nav extends Component<void, Props, State> {
     return this.props.tabbedRouter.get('activeTab')
   }
 
+  _handleKeyDown (e: SyntheticKeyboardEvent) {
+    const modKey = process.platform === 'darwin' ? e.metaKey : e.ctrlKey
+    if (modKey && e.key === 'ArrowLeft') {
+      e.preventDefault()
+      this.props.navigateBack()
+      return
+    }
+    if (modKey && e.key === 'ArrowUp') {
+      e.preventDefault()
+      this.props.navigateUp()
+      return
+    }
+  }
+
   shouldComponentUpdate (nextProps, nextState) {
     if (this.props.menuBadge !== nextProps.menuBadge) {
       ipcRenderer.send(this.props.menuBadge ? 'showTrayRegular' : 'showTrayBadged')
@@ -154,10 +173,15 @@ class Nav extends Component<void, Props, State> {
 
   componentDidMount () {
     this._checkTabChanged()
+    if (flags.admin) window.addEventListener('keydown', this._handleKeyDown)
   }
 
   componentDidUpdate () {
     this._checkTabChanged()
+  }
+
+  componentWillUnmount () {
+    if (flags.admin) window.removeEventListener('keydown', this._handleKeyDown)
   }
 
   _renderContent (tab, module) {
@@ -205,7 +229,7 @@ class Nav extends Component<void, Props, State> {
 
 const stylesTabsContainer = {
   ...commonStyles.flexBoxColumn,
-  flex: 1
+  flex: 1,
 }
 
 export default connect(
@@ -214,12 +238,14 @@ export default connect(
     bootstrapped,
     provisioned: extendedConfig && !!extendedConfig.device,
     username,
-    menuBadge
+    menuBadge,
   }),
   dispatch => {
     return {
       switchTab: tab => dispatch(switchTab(tab)),
-      bootstrap: () => dispatch(bootstrap())
+      bootstrap: () => dispatch(bootstrap()),
+      navigateBack: () => dispatch(navigateBack()),
+      navigateUp: () => dispatch(navigateUp()),
     }
   }
 )(Nav)

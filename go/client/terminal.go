@@ -139,7 +139,11 @@ func (t *Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.Secret
 	}
 
 	var txt string
-	txt, err = t.PromptPassword(prompt)
+	if arg.ShowTyping {
+		txt, err = t.Prompt(prompt)
+	} else {
+		txt, err = t.PromptPassword(prompt)
+	}
 
 	if err == io.EOF || err == minterm.ErrPromptInterrupted || len(txt) == 0 {
 		err = nil

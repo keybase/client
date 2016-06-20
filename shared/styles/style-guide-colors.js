@@ -34,6 +34,6 @@ export default {
   yellow: '#fff75a',
   yellowGreen2: '#94b52f',
   yellowGreen3: '#d2e697',
-  yellowGreen: '#a8cf36'
+  yellowGreen: '#a8cf36',
 }
 

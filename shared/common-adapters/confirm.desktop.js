@@ -28,7 +28,7 @@ const styleContainer = {
   padding: 64,
   alignItems: 'center',
   justifyContent: 'center',
-  position: 'relative'
+  position: 'relative',
 }
 
 const styleIconContainer = {
@@ -36,46 +36,46 @@ const styleIconContainer = {
   height: 80,
   marginBottom: 16,
   alignItems: 'center',
-  justifyContent: 'center'
+  justifyContent: 'center',
 }
 
 const backgroundColorThemed = {
   'public': {
-    backgroundColor: globalColors.white
+    backgroundColor: globalColors.white,
   },
   'private': {
-    backgroundColor: globalColors.darkBlue3
-  }
+    backgroundColor: globalColors.darkBlue3,
+  },
 }
 
 const cancelButtonThemed = {
   'public': {},
   'private': {
-    backgroundColor: globalColors.blue_30
-  }
+    backgroundColor: globalColors.blue_30,
+  },
 }
 
 const cancelButtonLabelThemed = {
   'public': {},
   'private': {
-    color: globalColors.white
-  }
+    color: globalColors.white,
+  },
 }
 
 const styleClose = {
   ...globalStyles.clickable,
   position: 'absolute',
   right: 16,
-  top: 16
+  top: 16,
 }
 
 const styleCloseThemed = {
   'public': {
-    color: globalColors.black_20
+    color: globalColors.black_20,
   },
   'private': {
-    color: globalColors.white_40
-  }
+    color: globalColors.white_40,
+  },
 }
 
 export default Confirm

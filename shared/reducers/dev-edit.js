@@ -52,6 +52,6 @@ export default function (state: State, action: any): State {
 export function devEditAction (keyPath: Array<String>, newValue: any): Action {
   return {
     type: 'dev:devEdit',
-    payload: {keyPath, newValue}
+    payload: {keyPath, newValue},
   }
 }

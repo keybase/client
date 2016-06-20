@@ -32,7 +32,7 @@ type EnabledFeatures = {[key: string]: Feature}
 
 const initialState: RootPinentryState = {
   started: false,
-  pinentryStates: {}
+  pinentryStates: {},
 }
 
 export default function (state: RootPinentryState = initialState, action: PinentryActions): RootPinentryState {
@@ -41,13 +41,13 @@ export default function (state: RootPinentryState = initialState, action: Pinent
     case CommonConstants.resetStore:
       return {
         ...initialState,
-        started: state.started
+        started: state.started,
       }
     case Constants.registerPinentryListener:
       if (action.payload && action.payload.started) {
         return {
           started: true,
-          pinentryStates: {}
+          pinentryStates: {},
         }
       }
       return initialState
@@ -65,14 +65,14 @@ export default function (state: RootPinentryState = initialState, action: Pinent
           canceled: false,
           submitted: false,
           ...action.payload,
-          features: enabledFeatures
+          features: enabledFeatures,
         }
         return {
           ...state,
           pinentryStates: {
             ...state.pinentryStates,
-            [sessionID]: newPinentryState
-          }
+            [sessionID]: newPinentryState,
+          },
         }
       }
       return state
@@ -82,8 +82,8 @@ export default function (state: RootPinentryState = initialState, action: Pinent
           ...state,
           pinentryStates: {
             ...state.pinentryStates,
-            [sessionID]: updatePinentryState(state.pinentryStates[sessionID] || {}, action)
-          }
+            [sessionID]: updatePinentryState(state.pinentryStates[sessionID] || {}, action),
+          },
         }
       }
       return state

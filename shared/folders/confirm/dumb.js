@@ -16,10 +16,10 @@ export const clearHistoryMap: DumbComponentMap<ConfirmClearHistory> = {
       folderSize: '3.14 MB',
       users: [
         {username: 'cecileb', you: true},
-        {username: 'aliceb'}
+        {username: 'aliceb'},
       ],
       onSubmit: () => console.log('onSubmit'),
-      onCancel: () => console.log('onCancel')
+      onCancel: () => console.log('onCancel'),
     },
     'Normal - Private': {
       parentProps: parentPropsCommon,
@@ -27,10 +27,10 @@ export const clearHistoryMap: DumbComponentMap<ConfirmClearHistory> = {
       folderSize: '3.14 MB',
       users: [
         {username: 'cecileb', you: true},
-        {username: 'aliceb'}
+        {username: 'aliceb'},
       ],
       onSubmit: () => console.log('onSubmit'),
-      onCancel: () => console.log('onCancel')
+      onCancel: () => console.log('onCancel'),
     },
     'Long Name - Public': {
       parentProps: parentPropsCommon,
@@ -48,12 +48,12 @@ export const clearHistoryMap: DumbComponentMap<ConfirmClearHistory> = {
         {username: 'akalin'},
         {username: 'jzila'},
         {username: 'cjb'},
-        {username: 'mgood'}
+        {username: 'mgood'},
       ],
       onSubmit: () => console.log('onSubmit'),
-      onCancel: () => console.log('onCancel')
-    }
-  }
+      onCancel: () => console.log('onCancel'),
+    },
+  },
 }
 
 export const deleteMap: DumbComponentMap<ConfirmDelete> = {
@@ -65,10 +65,10 @@ export const deleteMap: DumbComponentMap<ConfirmDelete> = {
       folderSize: '5.17 GB',
       users: [
         {username: 'cecileb', you: true},
-        {username: 'aliceb'}
+        {username: 'aliceb'},
       ],
       onSubmit: () => console.log('onSubmit'),
-      onCancel: () => console.log('onCancel')
+      onCancel: () => console.log('onCancel'),
     },
     'Normal - Private': {
       parentProps: parentPropsCommon,
@@ -76,12 +76,12 @@ export const deleteMap: DumbComponentMap<ConfirmDelete> = {
       folderSize: '5.17 GB',
       users: [
         {username: 'cecileb', you: true},
-        {username: 'aliceb'}
+        {username: 'aliceb'},
       ],
       onSubmit: () => console.log('onSubmit'),
-      onCancel: () => console.log('onCancel')
-    }
-  }
+      onCancel: () => console.log('onCancel'),
+    },
+  },
 }
 
 export const ignoreMap: DumbComponentMap<ConfirmIgnore> = {
@@ -92,28 +92,28 @@ export const ignoreMap: DumbComponentMap<ConfirmIgnore> = {
       isPrivate: false,
       users: [
         {username: 'cecileb', you: true},
-        {username: 'aliceb'}
+        {username: 'aliceb'},
       ],
       avatar: 'cecileb',
       onSubmit: () => console.log('onSubmit'),
-      onCancel: () => console.log('onCancel')
+      onCancel: () => console.log('onCancel'),
     },
     'Normal - Private': {
       parentProps: parentPropsCommon,
       isPrivate: true,
       users: [
         {username: 'cecileb', you: true},
-        {username: 'aliceb'}
+        {username: 'aliceb'},
       ],
       avatar: 'cecileb',
       onSubmit: () => console.log('onSubmit'),
-      onCancel: () => console.log('onCancel')
-    }
-  }
+      onCancel: () => console.log('onCancel'),
+    },
+  },
 }
 
 export default {
   'Folders Clear History Confirmation': clearHistoryMap,
   'Folders Delete Confirmation': deleteMap,
-  'Folders Ignore Confirmation': ignoreMap
+  'Folders Ignore Confirmation': ignoreMap,
 }

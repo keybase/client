@@ -164,7 +164,7 @@ class Engine {
       },
       end: () => {
         delete this.sessionIDToIncomingCall[sid]
-      }
+      },
     }
     this.serverListeners[method](param, cbs)
   }
@@ -222,7 +222,7 @@ class Engine {
         } else if (__DEV__) {
           console.warn('Calling response.error on non-response object: ', method)
         }
-      }
+      },
     }
 
     if (__DEV__ && process.env.KEYBASE_RPC_DELAY) {
@@ -274,7 +274,7 @@ class Engine {
     const {
       method: method,
       param: [param],
-      response: response
+      response: response,
     } = payload
 
     const {sessionID} = param
@@ -312,7 +312,7 @@ class Engine {
       if (response && response.error) {
         wrappedResponse.error({
           code: constants.StatusCode.scgeneric,
-          desc: 'Unhandled incoming RPC'
+          desc: 'Unhandled incoming RPC',
         })
       }
     }
@@ -406,7 +406,7 @@ class Engine {
 
 const cancelError = {
   code: constants.StatusCode.scgeneric,
-  desc: 'Canceling RPC'
+  desc: 'Canceling RPC',
 }
 
 export function isRPCCancelError (err) {

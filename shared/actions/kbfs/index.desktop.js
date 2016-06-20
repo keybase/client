@@ -2,7 +2,7 @@
 
 import {shell} from 'electron'
 import * as Constants from '../../constants/config'
-import {config} from '../../constants/types/keybase-v1'
+import {Common} from '../../constants/types/keybase-v1'
 import type {AsyncAction} from '../../constants/types/flux'
 import {cleanup} from '../../util/kbfs'
 
@@ -36,7 +36,7 @@ export function openInKBFS (path: string = Constants.defaultKBFSPath): AsyncActi
       const extendedConfig = Promise.resolve(state.config.extendedConfig)
 
       extendedConfig.then(extendedConfig => {
-        const kbfsClients = extendedConfig.Clients.filter(c => c.clientType === config.ClientType.kbfs)
+        const kbfsClients = extendedConfig.Clients.filter(c => c.clientType === Common.ClientType.kbfs)
         if (kbfsClients.length !== 1) {
           return Promise.reject("There isn't exactly one kbfs client")
         }

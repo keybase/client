@@ -41,7 +41,7 @@ export default class ComponentsUpdate extends Component {
             options={{
               onForce: () => {},
               onKillProcesses: () => {},
-              onCancel: () => {}
+              onCancel: () => {},
             }}
             />
         </div>
@@ -51,7 +51,7 @@ export default class ComponentsUpdate extends Component {
 
   static parseRoute () {
     return {
-      componentAtTop: {title: 'Components (Update)'}
+      componentAtTop: {title: 'Components (Update)'},
     }
   }
 }
@@ -60,9 +60,9 @@ const styles = {
   container: {
     marginTop: 20,
     marginLeft: 10,
-    marginBottom: 10
+    marginBottom: 10,
   },
   containerPopup: {
-    boxShadow: '0px 0px 10px 0px rgba(0,0,0,0.4)'
-  }
+    boxShadow: '0px 0px 10px 0px rgba(0,0,0,0.4)',
+  },
 }

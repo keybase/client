@@ -53,20 +53,20 @@ class UpdatePaused extends Component {
 
 const styles = {
   container: {
-    ...globalStyles.flexBoxColumn
+    ...globalStyles.flexBoxColumn,
   },
   body: {
     paddingTop: 15,
     paddingLeft: 30,
     paddingRight: 30,
     paddingBottom: 30,
-    textAlign: 'center'
+    textAlign: 'center',
   },
   actions: {
     ...globalStyles.flexBoxRow,
     justifyContent: 'flex-end',
-    marginTop: 15
-  }
+    marginTop: 15,
+  },
 }
 
 export default connect(

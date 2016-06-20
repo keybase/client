@@ -46,25 +46,25 @@ const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   padding: 60,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 const stylesHeader = {
   marginTop: 60,
-  marginBottom: 77
+  marginBottom: 77,
 }
 const stylesItemContainer = {
   ...globalStyles.flexBoxRow,
   flex: 1,
   alignItems: 'center',
-  justifyContent: 'center'
+  justifyContent: 'center',
 }
 const stylesItem = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.clickable,
   alignItems: 'center',
   margin: 15,
-  width: 150
+  width: 150,
 }
 const stylesIconContainer = {
   ...globalStyles.flexBoxColumn,
@@ -74,10 +74,10 @@ const stylesIconContainer = {
   height: 150,
   justifyContent: 'center',
   marginBottom: 15,
-  width: 150
+  width: 150,
 }
 const stylesIcon = {
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 export default Render

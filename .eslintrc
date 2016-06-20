@@ -26,6 +26,7 @@
         "standard/computed-property-even-spacing": [2, "never"],
         "strict": [2, "global"],
         "arrow-parens": [2, "as-needed"],
+        "comma-dangle": [2, "always-multiline"],
         "react/jsx-no-bind": [2, {"allowArrowFunctions": true}],
         "react/prop-types": [0],
         "filenames/match-regex": [2, "^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$"],

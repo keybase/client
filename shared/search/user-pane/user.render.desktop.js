@@ -46,7 +46,7 @@ export default class Render extends Component<void, Props, void> {
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
   width: 320,
-  height: '100%'
+  height: '100%',
 }
 
 const styleScroller = {
@@ -54,13 +54,13 @@ const styleScroller = {
   flex: 1,
   overflowY: 'auto',
   overflowX: 'hidden',
-  paddingBottom: globalMargins.small
+  paddingBottom: globalMargins.small,
 }
 
 const styleHeader = {
   position: 'absolute',
   width: '100%',
-  height: 96
+  height: 96,
 }
 
 const styleActionBox = {
@@ -68,5 +68,5 @@ const styleActionBox = {
   justifyContent: 'flex-end',
   padding: globalMargins.small,
   boxShadow: `0 0 5px ${globalColors.black_20}`,
-  zIndex: 1
+  zIndex: 1,
 }

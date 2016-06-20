@@ -25,7 +25,7 @@ const props: LoginProps = {
   passphraseChange: createLogger('passphraseChange'),
   showTypingChange: createLogger('showTypingChange'),
   saveInKeychainChange: createLogger('saveInKeychainChange'),
-  onSubmit: createLogger('onSubmit')
+  onSubmit: createLogger('onSubmit'),
 }
 
 export const dumbMap: DumbComponentMap<Login> = {
@@ -34,15 +34,15 @@ export const dumbMap: DumbComponentMap<Login> = {
     'Single previous user': props,
     'Error': {
       ...props,
-      error: 'Oh, no! What a mess!'
+      error: 'Oh, no! What a mess!',
     },
     'Multiple previous users': {
       ...props,
-      users: ['awendland', 'mgood', 'marcopolo']
-    }
-  }
+      users: ['awendland', 'mgood', 'marcopolo'],
+    },
+  },
 }
 
 export default {
-  'Login: Signed Out': dumbMap
+  'Login: Signed Out': dumbMap,
 }

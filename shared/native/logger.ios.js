@@ -1,5 +1,5 @@
 export default {
   info: () => {},
   warn: () => {},
-  error: () => {}
+  error: () => {},
 }

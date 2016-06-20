@@ -52,6 +52,19 @@ func TestLoginAndSwitch(t *testing.T) {
 	return
 }
 
+// Login should now unlock device keys at the end, no matter what.
+func TestLoginUnlocksDeviceKeys(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "login")
+	Logout(tc)
+	u1.LoginOrBust(tc)
+
+	assertPassphraseStreamCache(tc)
+	assertDeviceKeysCached(tc)
+}
+
 func TestCreateFakeUserNoKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -1305,8 +1318,6 @@ func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
 
 // We have obviated the unlock command by combining it with login.
 func TestLoginStreamCache(t *testing.T) {
-	t.Skip()
-
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -1318,6 +1329,7 @@ func TestLoginStreamCache(t *testing.T) {
 
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
+		a.ClearCachedSecretKeys()
 	}, "clear stream cache")
 
 	if !assertStreamCache(tc, false) {
@@ -1330,6 +1342,7 @@ func TestLoginStreamCache(t *testing.T) {
 	if !assertStreamCache(tc, true) {
 		t.Fatal("expected valid stream cache after login")
 	}
+	assertDeviceKeysCached(tc)
 }
 
 // Check the device type

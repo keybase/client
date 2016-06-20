@@ -26,7 +26,7 @@ class ShowTypingDemo extends Component<void, any, any> {
   constructor (props: any) {
     super(props)
     this.state = {
-      showTyping: this.props.initialShowTyping || false
+      showTyping: this.props.initialShowTyping || false,
     }
   }
 
@@ -36,7 +36,7 @@ class ShowTypingDemo extends Component<void, any, any> {
         inputProps={{floatingLabelText: 'Passphrase', type: (this.state.showTyping ? 'passwordVisible' : 'password'), hintText: 'Passphrase', errorText: 'Error Message'}}
         checkboxesProps={[
           {label: 'Save in Keychain', checked: true, onCheck: () => {}},
-          {label: 'Show Typing', checked: this.state.showTyping, onCheck: showTyping => this.setState({showTyping})}
+          {label: 'Show Typing', checked: this.state.showTyping, onCheck: showTyping => this.setState({showTyping})},
         ]} />
     )
   }
@@ -123,7 +123,7 @@ const Fonts = () => (
         'Information': globalColors.yellow,
         'HighRisk': globalColors.red,
         'Documentation': globalColors.darkBlue,
-        'Terminal': globalColors.darkBlue3
+        'Terminal': globalColors.darkBlue3,
       }[backgroundMode]
 
       return (
@@ -269,10 +269,10 @@ const Icons = () => (
       'fa-kb-iconfont-proof-good',
       'fa-kb-iconfont-proof-pending',
       'fa-close',
-      'fa-mobile'
+      'fa-mobile',
     ].map(i => [
       <Row key={i}><Icon onClick={() => console.log('clicked')} type={i} /></Row>,
-      <Row key={i + '100px'}><Icon style={{width: 100, height: 100}} onClick={() => console.log('clicked')} type={i} /></Row>
+      <Row key={i + '100px'}><Icon style={{width: 100, height: 100}} onClick={() => console.log('clicked')} type={i} /></Row>,
     ])}
     <Row key='a'><Icon type='fa-copy' style={{color: globalColors.blue}} /></Row>
     <Row key='a1'><Icon type='fa-copy' style={{color: globalColors.green}} /></Row>
@@ -340,7 +340,7 @@ export default class Render extends Component {
       userIdx: -1,
       optionIdx: -1,
       selectedOption: null,
-      tabSelected: [true, false, false]
+      tabSelected: [true, false, false],
     }
   }
 

@@ -34,7 +34,7 @@ export default function (state: SearchState = initialState, action: any): Search
           base: action.payload.base,
           waitingForServer: false,
           term: '',
-          results: []
+          results: [],
         })
       case Constants.searchService:
         return oldValue.set('service', action.payload.service)
@@ -44,13 +44,13 @@ export default function (state: SearchState = initialState, action: any): Search
         return oldValue.merge({
           nonce: action.payload.nonce,
           error: null,
-          waitingForServer: true
+          waitingForServer: true,
         })
       case Constants.searchResults:
         return oldValue.merge({
           waitingForServer: false,
           results: action.payload.results,
-          error: action.payload.error
+          error: action.payload.error,
         })
     }
   })

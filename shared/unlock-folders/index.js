@@ -13,7 +13,9 @@ import * as actions from '../actions/unlock-folders'
 
 import Render from './render'
 
-type OwnProps = {}
+type OwnProps = {
+  onCancel: () => void
+}
 
 export type Props = {
   devices: ?Array<Device>,
@@ -22,7 +24,7 @@ export type Props = {
   toPaperKeyInput: () => void,
   onBackFromPaperKey: () => void,
   onContinueFromPaperKey: (paperkey: HiddenString) => void,
-  paperkeyError: ?HiddenString,
+  paperkeyError: ?string,
   waiting: boolean,
   onFinish: () => void
 }
@@ -50,7 +52,7 @@ type Dispatch = TypedDispatch<UnlockFolderActions>
 // Luckily if this declared type is wrong, flow will tell us.
 const Connected: Class<ConnectedComponent<OwnProps>> = typedConnect(
   ({unlockFolders: {devices, phase, paperkeyError, waiting}}: TypedState, dispatch: Dispatch, ownProps: OwnProps): Props => ({
-    close: () => { dispatch(actions.close()) },
+    close: () => { ownProps.onCancel() },
     toPaperKeyInput: () => { dispatch(actions.toPaperKeyInput()) },
     onBackFromPaperKey: () => { dispatch(actions.onBackFromPaperKey()) },
     onContinueFromPaperKey: pk => { dispatch(actions.checkPaperKey(pk)) },
@@ -58,8 +60,12 @@ const Connected: Class<ConnectedComponent<OwnProps>> = typedConnect(
     paperkeyError,
     waiting,
     devices,
-    phase
+    phase,
   })
 )(UnlockFolders)
+
+export function selector (): (store: Object) => ?Object {
+  return store => ({unlockFolders: store.unlockFolders})
+}
 
 export default Connected

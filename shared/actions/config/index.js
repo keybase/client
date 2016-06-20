@@ -25,7 +25,7 @@ function getConfig (): AsyncAction {
 
           dispatch({type: Constants.configLoaded, payload: {config}})
           resolve()
-        }
+        },
       }
 
       engine.rpc(params)
@@ -48,7 +48,7 @@ function getExtendedStatus (): AsyncAction {
 
           dispatch({type: Constants.extendedConfigLoaded, payload: {extendedConfig}})
           resolve(extendedConfig)
-        }
+        },
       }
 
       engine.rpc(params)
@@ -93,11 +93,11 @@ function getCurrentStatus (): AsyncAction {
 
           dispatch({
             type: Constants.statusLoaded,
-            payload: {status}
+            payload: {status},
           })
 
           resolve()
-        }
+        },
       }
 
       engine.rpc(params)

@@ -27,5 +27,5 @@ export default class WelcomeRender extends Component {
 
 WelcomeRender.propTypes = {
   onGotoLoginPage: React.PropTypes.func.isRequired,
-  onGotoSignupPage: React.PropTypes.func.isRequired
+  onGotoSignupPage: React.PropTypes.func.isRequired,
 }

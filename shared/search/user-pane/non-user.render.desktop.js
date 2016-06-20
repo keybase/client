@@ -21,7 +21,7 @@ export default class Render extends Component<void, Props, void> {
       'github': 'github-logo-24',
       'reddit': 'reddit-logo-24',
       'pgp': 'icon-pgp-key-24',
-      'coinbase': 'coinbase-logo-24'
+      'coinbase': 'coinbase-logo-24',
     }[serviceName]
   }
 
@@ -62,13 +62,13 @@ const styleContainer = {
   ...globalStyles.flexBoxColumn,
   position: 'relative',
   width: 320,
-  height: '100%'
+  height: '100%',
 }
 
 const styleHeader = {
   position: 'absolute',
   width: '100%',
-  height: 96
+  height: 96,
 }
 
 const styleBioBlurb = {
@@ -76,49 +76,49 @@ const styleBioBlurb = {
   flex: 1,
   alignItems: 'center',
   justifyContent: 'flex-start',
-  marginTop: 39
+  marginTop: 39,
 }
 
 const styleUsernameRow = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   alignItems: 'center',
-  marginTop: globalMargins.tiny
+  marginTop: globalMargins.tiny,
 }
 
 const styleUsername = {
   ...globalStyles.selectable,
-  marginLeft: globalMargins.xtiny
+  marginLeft: globalMargins.xtiny,
 }
 
 const styleFullname = {
   ...globalStyles.selectable,
   color: globalColors.black_75,
-  marginTop: 2
+  marginTop: 2,
 }
 
 const styleServiceLabel = {
   fontSize: 11,
   lineHeight: '14px',
   textTransform: 'uppercase',
-  marginTop: globalMargins.xtiny
+  marginTop: globalMargins.xtiny,
 }
 
 const styleDetails = {
   marginLeft: globalMargins.medium,
   marginRight: globalMargins.medium,
   marginBottom: 42,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 const styleInviteLink = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
   justifyContent: 'center',
-  marginBottom: globalMargins.medium
+  marginBottom: globalMargins.medium,
 }
 
 const styleInviteLinkText = {
   color: globalColors.blue,
-  marginLeft: globalMargins.tiny
+  marginLeft: globalMargins.tiny,
 }

@@ -28,5 +28,5 @@ export default class FollowButton extends Component<void, Props, void> {
 }
 
 const styleButton = {
-  width: 125
+  width: 125,
 }

@@ -12,7 +12,7 @@ const common = {
   provisioner: null,
   provisionedAt: null,
   lastUsed: 1444423192001,
-  showRemoveDevicePage: () => {}
+  showRemoveDevicePage: () => {},
 }
 
 const map: DumbComponentMap<Render> = {
@@ -28,13 +28,13 @@ const map: DumbComponentMap<Render> = {
         {type: 'LastUsed',
           desc: 'Last used yesterday'},
         {type: 'Added',
-          desc: 'Added Mar 03, 2015'}
+          desc: 'Added Mar 03, 2015'},
       ],
       banner: {
         type: 'OutOfDate',
-        desc: 'Home Computer is running an outdated version of Keybase. Remember to update!'
+        desc: 'Home Computer is running an outdated version of Keybase. Remember to update!',
       },
-      device: common
+      device: common,
     },
 
     'Revoked': {
@@ -51,9 +51,9 @@ const map: DumbComponentMap<Render> = {
           subDesc: '83 days ago'},
         {type: 'Added',
           desc: 'Added Mar 03, 2014',
-          subDesc: 'Home Computer'}
+          subDesc: 'Home Computer'},
       ],
-      device: common
+      device: common,
     },
     'Unlock': {
       ...common,
@@ -66,13 +66,13 @@ const map: DumbComponentMap<Render> = {
           subDesc: '16 days ago'},
         {type: 'Added',
           desc: 'Added Mar 03, 2015',
-          subDesc: 'Home Computer'}
+          subDesc: 'Home Computer'},
       ],
       banner: {
         type: 'WillUnlock',
-        desc: 'Turning on this device will unlock 6 of your private folders.'
+        desc: 'Turning on this device will unlock 6 of your private folders.',
       },
-      device: common
+      device: common,
     },
     'Paper': {
       ...common,
@@ -82,13 +82,13 @@ const map: DumbComponentMap<Render> = {
       timeline: [
         {type: 'Added',
           desc: 'Created Mar 03, 2014',
-          subDesc: 'Home Computer'}
+          subDesc: 'Home Computer'},
       ],
-      device: common
-    }
-  }
+      device: common,
+    },
+  },
 }
 
 export default {
-  'Device Page': map
+  'Device Page': map,
 }

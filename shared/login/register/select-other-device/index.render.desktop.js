@@ -11,7 +11,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconProps.type = ({
     'mobile': 'phone-bw-m',
     'desktop': 'computer-bw-m',
-    'backup': 'paper-key-m'
+    'backup': 'paper-key-m',
   }: {[key: DeviceType]: IconProps.type})[type]
 
   const onClick = e => {
@@ -46,14 +46,14 @@ const stylesContainer = {}
 const stylesHeader = {
   alignSelf: 'center',
   marginTop: 46,
-  marginBottom: 20
+  marginBottom: 20,
 }
 const stylesDevicesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   overflow: 'auto',
   width: 375,
-  alignSelf: 'center'
+  alignSelf: 'center',
 }
 const stylesRow = {
   ...globalStyles.flexBoxColumn,
@@ -61,26 +61,26 @@ const stylesRow = {
   justifyContent: 'center',
   minHeight: 80,
   padding: 10,
-  borderBottom: `solid ${globalColors.black_10} 1px`
+  borderBottom: `solid ${globalColors.black_10} 1px`,
 }
 const stylesIconName = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 const stylesIconContainer = {
   ...globalStyles.flexBoxRow,
   justifyContent: 'center',
-  alignItems: 'center'
+  alignItems: 'center',
 }
 const stylesIcon = {
   color: globalColors.black,
   marginLeft: 32,
   marginRight: 22,
-  maxHeight: 60
+  maxHeight: 60,
 }
 const stylesWont = {
   marginTop: 10,
-  alignSelf: 'flex-end'
+  alignSelf: 'flex-end',
 }
 
 export default Render

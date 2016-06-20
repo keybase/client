@@ -20,7 +20,7 @@ let config = {
   dumbFilter: '',
   dumbIndex: 0,
   dumbFullscreen: false,
-  printRoutes: false
+  printRoutes: false,
 }
 
 if (__DEV__ && true) {
@@ -57,7 +57,7 @@ export const {
   dumbFilter,
   dumbIndex,
   dumbFullscreen,
-  printRoutes
+  printRoutes,
 } = config
 
 export function initTabbedRouterState (state) {
@@ -70,8 +70,8 @@ export function initTabbedRouterState (state) {
     tabs: {
       ...state.tabs,
       [Tabs.loginTab]: createRouterState([], []),
-      [Tabs.settingsTab]: createRouterState(['devMenu', 'dumbSheet'], [])
+      [Tabs.settingsTab]: createRouterState(['devMenu', 'dumbSheet'], []),
     },
-    activeTab: Tabs.settingsTab
+    activeTab: Tabs.settingsTab,
   }
 }

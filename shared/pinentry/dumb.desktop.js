@@ -12,16 +12,16 @@ const propsNormal: Props = {
       allow: true,
       defaultValue: false,
       readonly: false,
-      label: 'Save in keychain'
+      label: 'Save in keychain',
     },
     'showTyping': {
       allow: true,
       defaultValue: false,
       readonly: false,
-      label: 'Show typing'
-    }
+      label: 'Show typing',
+    },
   },
-  prompt: 'Enter your passphrase to unlock the secret key for home computer.'
+  prompt: 'Enter your passphrase to unlock the secret key for home computer.',
 }
 
 const dumbComponentMap: DumbComponentMap<Pinentry> = {
@@ -30,11 +30,11 @@ const dumbComponentMap: DumbComponentMap<Pinentry> = {
     'Normal': propsNormal,
     'With Error': {
       ...propsNormal,
-      retryLabel: 'That passphrase is incorrect.'
-    }
-  }
+      retryLabel: 'That passphrase is incorrect.',
+    },
+  },
 }
 
 export default {
-  'Pinentry': dumbComponentMap
+  'Pinentry': dumbComponentMap,
 }

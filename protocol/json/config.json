@@ -1,386 +1,12 @@
 {
   "protocol": "config",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
   "types": [
-    {
-      "type": "record",
-      "name": "Time",
-      "fields": [],
-      "typedef": "long"
-    },
-    {
-      "type": "record",
-      "name": "StringKVPair",
-      "fields": [
-        {
-          "type": "string",
-          "name": "key"
-        },
-        {
-          "type": "string",
-          "name": "value"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "Status",
-      "fields": [
-        {
-          "type": "int",
-          "name": "code"
-        },
-        {
-          "type": "string",
-          "name": "name"
-        },
-        {
-          "type": "string",
-          "name": "desc"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "StringKVPair"
-          },
-          "name": "fields"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UID",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "DeviceID",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "SigID",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "KID",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "Text",
-      "fields": [
-        {
-          "type": "string",
-          "name": "data"
-        },
-        {
-          "type": "boolean",
-          "name": "markup"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PGPIdentity",
-      "fields": [
-        {
-          "type": "string",
-          "name": "username"
-        },
-        {
-          "type": "string",
-          "name": "comment"
-        },
-        {
-          "type": "string",
-          "name": "email"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "PublicKey",
-      "fields": [
-        {
-          "type": "KID",
-          "name": "KID"
-        },
-        {
-          "type": "string",
-          "name": "PGPFingerprint"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "PGPIdentity"
-          },
-          "name": "PGPIdentities"
-        },
-        {
-          "type": "boolean",
-          "name": "isSibkey"
-        },
-        {
-          "type": "boolean",
-          "name": "isEldest"
-        },
-        {
-          "type": "string",
-          "name": "parentID"
-        },
-        {
-          "type": "DeviceID",
-          "name": "deviceID"
-        },
-        {
-          "type": "string",
-          "name": "deviceDescription"
-        },
-        {
-          "type": "string",
-          "name": "deviceType"
-        },
-        {
-          "type": "Time",
-          "name": "cTime"
-        },
-        {
-          "type": "Time",
-          "name": "eTime"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "KeybaseTime",
-      "fields": [
-        {
-          "type": "Time",
-          "name": "unix"
-        },
-        {
-          "type": "int",
-          "name": "chain"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "RevokedKey",
-      "fields": [
-        {
-          "type": "PublicKey",
-          "name": "key"
-        },
-        {
-          "type": "KeybaseTime",
-          "name": "time"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "User",
-      "fields": [
-        {
-          "type": "UID",
-          "name": "uid"
-        },
-        {
-          "type": "string",
-          "name": "username"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "Device",
-      "fields": [
-        {
-          "type": "string",
-          "name": "type"
-        },
-        {
-          "type": "string",
-          "name": "name"
-        },
-        {
-          "type": "DeviceID",
-          "name": "deviceID"
-        },
-        {
-          "type": "Time",
-          "name": "cTime"
-        },
-        {
-          "type": "Time",
-          "name": "mTime"
-        },
-        {
-          "type": "Time",
-          "name": "lastUsedTime"
-        },
-        {
-          "type": "KID",
-          "name": "encryptKey"
-        },
-        {
-          "type": "KID",
-          "name": "verifyKey"
-        },
-        {
-          "type": "int",
-          "name": "status"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "Stream",
-      "fields": [
-        {
-          "type": "int",
-          "name": "fd"
-        }
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "LogLevel",
-      "symbols": [
-        "NONE_0",
-        "DEBUG_1",
-        "INFO_2",
-        "NOTICE_3",
-        "WARN_4",
-        "ERROR_5",
-        "CRITICAL_6",
-        "FATAL_7"
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "ClientType",
-      "symbols": [
-        "NONE_0",
-        "CLI_1",
-        "GUI_2",
-        "KBFS_3"
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UserVersionVector",
-      "fields": [
-        {
-          "type": "long",
-          "name": "id"
-        },
-        {
-          "type": "int",
-          "name": "sigHints"
-        },
-        {
-          "type": "long",
-          "name": "sigChain"
-        },
-        {
-          "type": "Time",
-          "name": "cachedAt"
-        },
-        {
-          "type": "Time",
-          "name": "lastIdentifiedAt"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "UserPlusKeys",
-      "fields": [
-        {
-          "type": "UID",
-          "name": "uid"
-        },
-        {
-          "type": "string",
-          "name": "username"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "PublicKey"
-          },
-          "name": "deviceKeys"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "RevokedKey"
-          },
-          "name": "revokedDeviceKeys"
-        },
-        {
-          "type": "int",
-          "name": "pgpKeyCount"
-        },
-        {
-          "type": "UserVersionVector",
-          "name": "uvv"
-        }
-      ]
-    },
-    {
-      "type": "enum",
-      "name": "MerkleTreeID",
-      "symbols": [
-        "MASTER_0",
-        "KBFS_PUBLIC_1",
-        "KBFS_PRIVATE_2"
-      ]
-    },
-    {
-      "type": "record",
-      "name": "SocialAssertionService",
-      "fields": [],
-      "doc": "SocialAssertionService is a service that can be used to assert proofs for a\n    user.",
-      "typedef": "string"
-    },
-    {
-      "type": "record",
-      "name": "SocialAssertion",
-      "fields": [
-        {
-          "type": "string",
-          "name": "user"
-        },
-        {
-          "type": "SocialAssertionService",
-          "name": "service"
-        }
-      ],
-      "doc": "SocialAssertion contains a service and username for that service, that\n    together form an assertion about a user. Resolving an assertion requires\n    that the user posts a Keybase proof on the asserted service as the asserted\n    user."
-    },
-    {
-      "type": "record",
-      "name": "UserResolution",
-      "fields": [
-        {
-          "type": "SocialAssertion",
-          "name": "assertion"
-        },
-        {
-          "type": "UID",
-          "name": "userID"
-        }
-      ],
-      "doc": "UserResolution maps how an unresolved user assertion has been resolved."
-    },
     {
       "type": "record",
       "name": "GetCurrentStatusRes",
@@ -403,7 +29,7 @@
         },
         {
           "type": [
-            "null",
+            null,
             "User"
           ],
           "name": "user"
@@ -525,7 +151,7 @@
         },
         {
           "type": [
-            "null",
+            null,
             "Device"
           ],
           "name": "device"
@@ -536,7 +162,7 @@
         },
         {
           "type": [
-            "null",
+            null,
             "SessionStatus"
           ],
           "name": "session"
@@ -643,28 +269,28 @@
         },
         {
           "type": [
-            "null",
+            null,
             "boolean"
           ],
           "name": "b"
         },
         {
           "type": [
-            "null",
+            null,
             "int"
           ],
           "name": "i"
         },
         {
           "type": [
-            "null",
+            null,
             "string"
           ],
           "name": "s"
         },
         {
           "type": [
-            "null",
+            null,
             "string"
           ],
           "name": "o"
@@ -719,7 +345,7 @@
           "type": "string"
         }
       ],
-      "response": "null",
+      "response": null,
       "doc": "Change user config.\n    For example, to update primary picture source:\n      key=picture.source, value=twitter (or github)"
     },
     "setPath": {
@@ -733,7 +359,7 @@
           "type": "string"
         }
       ],
-      "response": "null"
+      "response": null
     },
     "helloIAm": {
       "request": [
@@ -742,7 +368,7 @@
           "type": "ClientDetails"
         }
       ],
-      "response": "null"
+      "response": null
     },
     "setValue": {
       "request": [
@@ -755,7 +381,7 @@
           "type": "ConfigValue"
         }
       ],
-      "response": "null"
+      "response": null
     },
     "clearValue": {
       "request": [
@@ -764,7 +390,7 @@
           "type": "string"
         }
       ],
-      "response": "null"
+      "response": null
     },
     "getValue": {
       "request": [

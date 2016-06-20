@@ -18,14 +18,14 @@ class Render extends Component<void, Props, void> {
         ...styleItem,
         borderBottom: isSelected
           ? `solid 2px ${isPublic ? globalColors.yellowGreen : globalColors.darkBlue2}`
-          : 'none'
+          : 'none',
       }}
       styleBadge={styleBadge}
       styleIcon={styleIcon}
       styleLabel={{
         color: isPublic
           ? (isSelected ? globalColors.black : globalColors.white_75)
-          : (isSelected ? globalColors.white : globalColors.black_75)
+          : (isSelected ? globalColors.white : globalColors.black_75),
       }}
       styleBadgeNumber={styleBadgeNumber}
       selected={isSelected}
@@ -40,7 +40,7 @@ class Render extends Component<void, Props, void> {
     }
 
     return (
-      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
+      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, paddingTop: this.props.smallMode ? 0 : 45}}>
         <TabBar tabBarStyle={tabBarStyle}>
           <TabBarItem
             selected={this.props.showingPrivate}
@@ -77,7 +77,6 @@ class Render extends Component<void, Props, void> {
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   flexGrow: 1,
-  paddingTop: 45
 }
 
 const styleBadge = {
@@ -91,34 +90,34 @@ const styleBadge = {
   justifyContent: 'center',
   alignItems: 'center',
   marginRight: 15,
-  marginLeft: 2
+  marginLeft: 2,
 }
 
 const styleIcon = {
   width: 'initial',
-  height: 'initial'
+  height: 'initial',
 }
 
 const styleItem = {
   ...globalStyles.flexBoxRow,
   paddingTop: 8,
   paddingBottom: 8,
-  backgroundColor: globalColors.transparent
+  backgroundColor: globalColors.transparent,
 }
 
 const styleBadgeNumber = {
   lineHeight: '12px',
-  fontSize: 10
+  fontSize: 10,
 }
 
 const itemContainerStyle = {
   ...globalStyles.flexBoxColumn,
-  minWidth: 127
+  minWidth: 127,
 }
 
 const tabBarStyle = {
   ...globalStyles.flexBoxRow,
-  minHeight: 32
+  minHeight: 32,
 }
 
 export default Render

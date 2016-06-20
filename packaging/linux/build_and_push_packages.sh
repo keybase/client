@@ -25,8 +25,12 @@ mkdir -p "$build_dir"
 
 echo "Loading release tool"
 release_gopath="$HOME/release_gopath"
-GOPATH="$release_gopath" "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+export GOPATH="$release_gopath" "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$release_gopath/bin/release"
+
+# The release tool wants GITHUB_TOKEN in the environment. Load it in. The
+# test_all_credentials.sh script checks that this file exists.
+export GITHUB_TOKEN="$(cat ~/.github_token)"
 
 # NB: This is duplicated in packaging/prerelease/build_app.sh.
 if [ ! "${NOWAIT:-}" = "1" ]; then

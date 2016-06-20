@@ -1,0 +1,20 @@
+@namespace("gregor.1")
+
+protocol incoming {
+	record SyncResult {
+		array<InBandMessage> msgs;
+		bytes hash;
+	}
+	SyncResult sync(UID uid, DeviceID deviceid, Time ctime);
+	void consumeMessage(Message m);
+	void consumePublishMessage(Message m);
+	string ping();
+
+	/**
+	  StateByCategoryPrefix loads the messages of the user's state whose
+	  categories are prefixed by the given prefix
+	 */
+	State stateByCategoryPrefix(UID uid, Category categoryPrefix);
+
+
+}

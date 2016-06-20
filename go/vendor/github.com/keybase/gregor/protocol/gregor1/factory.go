@@ -101,13 +101,14 @@ func (o ObjFactory) MakeItem(u gregor.UID, msgid gregor.MsgID, deviceid gregor.D
 	}, nil
 }
 
-func (o ObjFactory) MakeReminder(i gregor.Item, t time.Time) (gregor.Reminder, error) {
+func (o ObjFactory) MakeReminder(i gregor.Item, seqno int, t time.Time) (gregor.Reminder, error) {
 	it, ok := i.(ItemAndMetadata)
 	if !ok {
 		return nil, errors.New("item is not gregor1.ItemAndMetadata")
 	}
 	return Reminder{
 		Item_:       it,
+		Seqno_:      seqno,
 		RemindTime_: ToTime(t),
 	}, nil
 }
@@ -236,6 +237,26 @@ func (o ObjFactory) UnmarshalState(b []byte) (gregor.State, error) {
 
 func (o ObjFactory) MakeTimeOrOffsetFromTime(t time.Time) (gregor.TimeOrOffset, error) {
 	return timeToTimeOrOffset(&t), nil
+}
+
+func (o ObjFactory) MakeTimeOrOffsetFromOffset(d time.Duration) (gregor.TimeOrOffset, error) {
+	return TimeOrOffset{Offset_: DurationMsec(d / time.Millisecond)}, nil
+}
+
+func (o ObjFactory) MakeReminderID(u gregor.UID, msgid gregor.MsgID, seqno int) (gregor.ReminderID, error) {
+	return ReminderID{Uid_: u.Bytes(), MsgID_: msgid.Bytes(), Seqno_: seqno}, nil
+}
+
+func (o ObjFactory) MakeReminderSetFromReminders(reminders []gregor.Reminder, moreRemindersReady bool) (gregor.ReminderSet, error) {
+	ret := ReminderSet{MoreRemindersReady_: moreRemindersReady}
+	for _, reminder := range reminders {
+		if r, ok := reminder.(Reminder); ok {
+			ret.Reminders_ = append(ret.Reminders_, r)
+		} else {
+			return nil, errors.New("Can't upcast reminder")
+		}
+	}
+	return ret, nil
 }
 
 var _ gregor.ObjFactory = ObjFactory{}

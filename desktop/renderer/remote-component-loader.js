@@ -10,6 +10,7 @@ import {globalColors} from '../shared/styles/style-guide'
 import tracker from '../shared/tracker'
 import pinentry from '../shared/pinentry'
 import update from '../shared/update'
+import unlockFolders from '../shared/unlock-folders'
 
 import {setupContextMenu} from '../app/menu-helper'
 import loadPerf from '../shared/util/load-perf'
@@ -59,7 +60,7 @@ class RemoteComponentLoader extends Component {
     super(props)
     this.state = {
       loaded: false,
-      unmounted: false
+      unmounted: false,
     }
 
     loadPerf()
@@ -75,7 +76,7 @@ class RemoteComponentLoader extends Component {
 
     hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__) // eslint-disable-line no-undef
 
-    const component = {tracker, pinentry, update}
+    const component = {tracker, pinentry, update, unlockFolders}
 
     if (!componentToLoad || !component[componentToLoad]) {
       throw new TypeError('Invalid Remote Component passed through')
@@ -170,11 +171,11 @@ class RemoteComponentLoader extends Component {
 const styles = {
   container: {
     overflow: 'hidden',
-    backgroundColor: globalColors.white
+    backgroundColor: globalColors.white,
   },
   loading: {
-    backgroundColor: globalColors.grey5
-  }
+    backgroundColor: globalColors.grey5,
+  },
 }
 
 ReactDOM.render(<RemoteComponentLoader />, document.getElementById('remoteComponent'))

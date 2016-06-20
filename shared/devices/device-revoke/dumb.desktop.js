@@ -13,7 +13,7 @@ const common = {
   currentDevice: false,
   lastUsed: 1444423192001,
   onSubmit: () => { console.log('device revoke on submit') },
-  onCancel: () => { console.log('device revoke on cancel') }
+  onCancel: () => { console.log('device revoke on cancel') },
 }
 
 const map: DumbComponentMap<Render> = {
@@ -22,16 +22,16 @@ const map: DumbComponentMap<Render> = {
     'Normal': {
       ...common,
       type: 'mobile',
-      device: common
+      device: common,
     },
     'Current': {
       ...common,
       currentDevice: true,
-      device: common
-    }
-  }
+      device: common,
+    },
+  },
 }
 
 export default {
-  'Device Revoke': map
+  'Device Revoke': map,
 }

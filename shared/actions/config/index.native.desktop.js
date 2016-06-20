@@ -3,12 +3,12 @@ import * as Constants from '../../constants/config'
 export function getDevSettings () {
   return function (dispatch) {
     dispatch({
-      type: Constants.devConfigLoading
+      type: Constants.devConfigLoading,
     })
 
     dispatch({
       type: Constants.devConfigLoaded,
-      payload: {}
+      payload: {},
     })
   }
 }
@@ -22,6 +22,6 @@ export function saveDevSettings () {
 export function updateDevSettings (updates) {
   return {
     type: Constants.devConfigUpdate,
-    payload: {updates}
+    payload: {updates},
   }
 }

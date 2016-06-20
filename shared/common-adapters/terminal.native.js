@@ -9,7 +9,7 @@ export default class Terminal extends Component {
 
   getChildContext (): Context {
     return {
-      inTerminal: true
+      inTerminal: true,
     }
   }
 
@@ -23,11 +23,11 @@ export default class Terminal extends Component {
 }
 
 Terminal.childContextTypes = {
-  inTerminal: React.PropTypes.bool
+  inTerminal: React.PropTypes.bool,
 }
 
 Terminal.propTypes = {
-  style: React.PropTypes.object
+  style: React.PropTypes.object,
 }
 
 const styles = {
@@ -35,6 +35,6 @@ const styles = {
     ...globalStyles.flexBoxColumn,
     backgroundColor: globalColors.darkBlue3,
     padding: 10,
-    alignItems: 'flex-start'
-  }
+    alignItems: 'flex-start',
+  },
 }

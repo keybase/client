@@ -9,7 +9,7 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props
   const icon: IconProps.type = {
     'mobile': 'phone-color-revoke-m',
     'desktop': 'computer-bw-revoke-m',
-    'backup': 'paper-key-remove-m'
+    'backup': 'paper-key-remove-m',
   }[type]
 
   const header = (
@@ -26,14 +26,14 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props
 
 const styleIcon = {
   ...globalStyles.flexBoxColumn,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 const stylesName = {
   textDecorationLine: 'line-through',
   color: globalColors.red,
   fontStyle: 'italic',
-  marginTop: 4
+  marginTop: 4,
 }
 
 export default Render

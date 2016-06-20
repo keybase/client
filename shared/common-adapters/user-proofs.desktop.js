@@ -45,7 +45,7 @@ class ProofsRender extends Component {
       'rooter': 'fa-shopping-basket',
       'http': 'fa-globe',
       'https': 'fa-globe',
-      'dns': 'fa-globe'
+      'dns': 'fa-globe',
     }[proof.type]
   }
 
@@ -112,12 +112,12 @@ class ProofsRender extends Component {
       width: 208,
       display: 'inline-block',
       wordBreak: 'break-all',
-      ...styleProofName
+      ...styleProofName,
     }
 
     const proofNameStyle = {
       color: proofNameColor,
-      ...(proof.meta === metaDeleted ? {textDecoration: 'line-through'} : {})
+      ...(proof.meta === metaDeleted ? {textDecoration: 'line-through'} : {}),
     }
 
     const meta = proof.meta &&
@@ -153,13 +153,13 @@ class ProofsRender extends Component {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white
+  backgroundColor: globalColors.white,
 }
 
 const styleRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  justifyContent: 'flex-start'
+  justifyContent: 'flex-start',
 }
 
 const styleService = {
@@ -171,35 +171,35 @@ const styleService = {
   color: globalColors.black_75,
   hoverColor: globalColors.black_75,
   marginRight: globalMargins.tiny,
-  marginTop: 5
+  marginTop: 5,
 }
 
 const styleStatusIcon = {
   ...globalStyles.clickable,
   fontSize: 20,
   marginLeft: 10,
-  marginTop: 1
+  marginTop: 1,
 }
 
 const styleProofNameSection = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  flex: 1
+  flex: 1,
 }
 
 const styleProofNameLabelContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1
+  flex: 1,
 }
 
 const styleProofName = {
   ...commonStyles.clickable,
-  flex: 1
+  flex: 1,
 }
 
 const styleProofType = {
   color: globalColors.black_10,
-  wordBreak: 'normal'
+  wordBreak: 'normal',
 }
 
 export default ProofsRender

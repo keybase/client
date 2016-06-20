@@ -34,7 +34,7 @@ class UpdateConfirm extends Component {
     super(props)
 
     this.state = {
-      snackbarOpen: false
+      snackbarOpen: false,
     }
   }
 
@@ -111,22 +111,22 @@ class UpdateConfirm extends Component {
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
-    marginBottom: 30
+    marginBottom: 30,
   },
   headerContainer: {
     ...globalStyles.flexBoxColumn,
     paddingTop: 35,
-    paddingBottom: 15
+    paddingBottom: 15,
   },
   actionsContainer: {
     ...globalStyles.flexBoxRow,
     justifyContent: 'flex-end',
-    marginRight: 20
+    marginRight: 20,
   },
   body: {
     paddingLeft: 30,
     paddingRight: 30,
-    paddingBottom: 15
+    paddingBottom: 15,
   },
   descriptionBlock: {
     ...globalStyles.fontTerminal,
@@ -138,8 +138,8 @@ const styles = {
     minHeight: 130,
     maxHeight: 130,
     overflowY: 'auto',
-    padding: 15
-  }
+    padding: 15,
+  },
 }
 
 export default connect(

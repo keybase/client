@@ -26,16 +26,16 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
 
 const textColorThemed = {
   'public': {
-    color: globalColors.black_75
+    color: globalColors.black_75,
   },
   'private': {
-    color: globalColors.white
-  }
+    color: globalColors.white,
+  },
 }
 
 const iconThemed = {
   'public': 'files-public-delete-64',
-  'private': 'files-private-delete-64'
+  'private': 'files-private-delete-64',
 }
 
 export default Render

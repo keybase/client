@@ -14,8 +14,8 @@ const results = [
       service: 'keybase',
       username: 'chris',
       fullName: 'Chris Coyne',
-      isFollowing: true
-    }
+      isFollowing: true,
+    },
   },
   {
     service: 'keybase',
@@ -23,8 +23,8 @@ const results = [
     isFollowing: false,
     extraInfo: {
       service: 'none',
-      fullName: 'John Malg'
-    }
+      fullName: 'John Malg',
+    },
   },
   {
     service: 'keybase',
@@ -32,8 +32,8 @@ const results = [
     isFollowing: false,
     extraInfo: {
       service: 'none',
-      fullName: 'Malgo Malg'
-    }
+      fullName: 'Malgo Malg',
+    },
   },
   {
     service: 'keybase',
@@ -44,8 +44,8 @@ const results = [
       icon: 'fa-twitter',
       serviceUsername: 'malgorithms',
       serviceAvatar: null,
-      fullNameOnService: 'Chris Coyne'
-    }
+      fullNameOnService: 'Chris Coyne',
+    },
   },
   {
     service: 'keybase',
@@ -55,9 +55,9 @@ const results = [
       service: 'keybase',
       username: 'chris',
       fullName: 'Chris Coyne',
-      isFollowing: true
-    }
-  }
+      isFollowing: true,
+    },
+  },
 ]
 
 const userSearchMap: DumbComponentMap<UserSearch> = {
@@ -70,9 +70,9 @@ const userSearchMap: DumbComponentMap<UserSearch> = {
       selectedService: 'keybase',
       onClickService: () => console.log('onClickService'),
       onClickResult: () => console.log('onClickResult'),
-      results
-    }
-  }
+      results,
+    },
+  },
 }
 
 const userGroupMap: DumbComponentMap<UserGroup> = {
@@ -87,8 +87,8 @@ const userGroupMap: DumbComponentMap<UserGroup> = {
           isFollowing: false,
           extraInfo: {
             service: 'none',
-            fullName: 'Max Krohn'
-          }
+            fullName: 'Max Krohn',
+          },
         },
         {
           service: 'keybase',
@@ -96,8 +96,8 @@ const userGroupMap: DumbComponentMap<UserGroup> = {
           isFollowing: false,
           extraInfo: {
             service: 'none',
-            fullName: 'John Malg'
-          }
+            fullName: 'John Malg',
+          },
         },
         {
           service: 'external',
@@ -109,9 +109,9 @@ const userGroupMap: DumbComponentMap<UserGroup> = {
             icon: 'fa-twitter',
             serviceUsername: 'malgorithms',
             serviceAvatar: null,
-            fullNameOnService: 'Chris Coyne'
-          }
-        }
+            fullNameOnService: 'Chris Coyne',
+          },
+        },
       ],
       onOpenPrivateGroupFolder: () => console.log('onOpenPrivateGroupFolder'),
       onOpenPublicGroupFolder: () => console.log('onOpenPublicGroupFolder'),
@@ -119,12 +119,12 @@ const userGroupMap: DumbComponentMap<UserGroup> = {
       onClickUser: u => console.log('onClickUser', u),
       onGroupChat: () => console.log('onGroupChat'),
       onAddUser: () => console.log('onAddUser'),
-      chatEnabled: true
-    }
-  }
+      chatEnabled: true,
+    },
+  },
 }
 
 export default {
   'user search': userSearchMap,
-  'user group': userGroupMap
+  'user group': userGroupMap,
 }

@@ -6,5 +6,5 @@ import LoginMap from './login/dumb.desktop'
 export default {
   'Login: Error': {component: LoginError, mocks: loginErrorMocks},
   ...IntroMap,
-  ...LoginMap
+  ...LoginMap,
 }

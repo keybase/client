@@ -37,7 +37,7 @@ export default class ScopeBar extends Component {
 
 ScopeBar.propTypes = {
   selectedService: React.PropTypes.string,
-  onSelectService: React.PropTypes.func.isRequired
+  onSelectService: React.PropTypes.func.isRequired,
 }
 
 const styles = StyleSheet.create({
@@ -46,10 +46,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     height: 45,
-    paddingHorizontal: 10
+    paddingHorizontal: 10,
   },
   divider: {
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   button: {
     width: 36, height: 36,
@@ -57,17 +57,17 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
     marginVertical: 4,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   selectedButton: {
-    backgroundColor: 'rgba(127, 127, 127, 0.4)'
+    backgroundColor: 'rgba(127, 127, 127, 0.4)',
   },
   icon: {
     width: 24, height: 24,
-    borderRadius: 12
+    borderRadius: 12,
   },
   keybaseIcon: {
     borderRadius: 0,
-    overflow: 'visible'
-  }
+    overflow: 'visible',
+  },
 })

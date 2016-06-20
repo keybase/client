@@ -38,26 +38,26 @@ const styleAvatar = {
   boxSizing: 'content-box',
   position: 'absolute',
   right: 0,
-  bottom: 0
+  bottom: 0,
 }
 
 const textColorThemed = {
   'public': {
-    color: globalColors.black_75
+    color: globalColors.black_75,
   },
   'private': {
-    color: globalColors.white
-  }
+    color: globalColors.white,
+  },
 }
 
 const borderColorThemed = {
   'public': globalColors.white,
-  'private': globalColors.darkBlue3
+  'private': globalColors.darkBlue3,
 }
 
 const iconThemed = {
   'public': 'icon-folder-public-48',
-  'private': 'icon-folder-private-48'
+  'private': 'icon-folder-private-48',
 }
 
 export default Render

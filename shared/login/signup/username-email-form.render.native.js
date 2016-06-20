@@ -24,11 +24,11 @@ class Render extends Component {
 }
 
 const stylesOuter = {
-  backgroundColor: globalColors.black_10
+  backgroundColor: globalColors.black_10,
 }
 
 const stylesInput2 = {
-  marginTop: 70
+  marginTop: 70,
 }
 
 export default Render

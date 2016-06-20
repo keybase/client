@@ -35,31 +35,31 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
 
 const stylesBox = {
   ...globalStyles.flexBoxColumn,
-  padding: 10
+  padding: 10,
 }
 
 const stylesContainer = {
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 const stylesButton = {
   marginTop: 20,
-  marginBottom: 20
+  marginBottom: 20,
 }
 
 const stylesInput = {
   marginTop: 20,
   marginBottom: 20,
-  alignSelf: 'stretch'
+  alignSelf: 'stretch',
 }
 
 const stylesIcon = {
   marginTop: 30,
-  marginBottom: 30
+  marginBottom: 30,
 }
 
 const stylesHeader = {
-  marginTop: 45
+  marginTop: 45,
 }
 
 export default SetPublicName

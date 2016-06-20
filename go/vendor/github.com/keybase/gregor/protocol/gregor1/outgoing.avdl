@@ -1,0 +1,5 @@
+@namespace("gregor.1")
+
+protocol outgoing {
+	void broadcastMessage(Message m);
+}
