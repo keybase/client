@@ -17,7 +17,7 @@ kbfs_clone="/root/kbfs"
 serverops_clone="/root/server-ops"
 build_dir="/root/build"
 
-# Copy the s3cmd config to root's home dir, then test the credentials.
+# Copy the s3cmd config to root's home dir.
 cp /S3CMD/.s3cfg ~
 
 # Same with the GitHub token.
@@ -41,9 +41,6 @@ eval "$(gpg-agent --daemon --max-cache-ttl 315360000 --default-cache-ttl 3153600
 gpg --sign --use-agent --default-key "$code_signing_fingerprint" \
   --output /dev/null /dev/null
 
-# Test all these credentials.
-"$client_clone/packaging/linux/test_all_credentials.sh"
-
 # Clone all the repos we'll use in the build. The --reference flag makes this
 # pretty cheap. (The shared repos we're referencing were just updated by
 # docker_build.sh, so we shouldn't need any new objects.) Configure the
@@ -63,6 +60,9 @@ fi
 
 # Check out the given client commit.
 git -C "$client_clone" checkout -f "$commit"
+
+# Test all the different credentials that need to be configured.
+"$client_clone/packaging/linux/test_all_credentials.sh"
 
 # Do the build!
 "$client_clone/packaging/linux/build_and_push_packages.sh" "$mode" "$build_dir"
