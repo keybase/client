@@ -486,7 +486,7 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 				unstall: writeUnstallCh,
 			},
 		},
-		delegate: config.BlockOps(),
+		internalDelegate: config.BlockOps(),
 	})
 
 	var wg sync.WaitGroup
@@ -633,7 +633,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 				unstall: syncUnstallCh,
 			},
 		},
-		delegate: config.BlockOps(),
+		internalDelegate: config.BlockOps(),
 	})
 
 	var wg sync.WaitGroup
@@ -738,7 +738,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 				unstall: syncUnstallCh,
 			},
 		},
-		delegate: config.BlockOps(),
+		internalDelegate: config.BlockOps(),
 	})
 
 	var wg sync.WaitGroup
@@ -1245,7 +1245,7 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 				unstall: syncUnstallCh,
 			},
 		},
-		delegate: config.BlockOps(),
+		internalDelegate: config.BlockOps(),
 	})
 
 	// create and write to a file
@@ -1461,7 +1461,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 				unstall: syncUnstallCh,
 			},
 		},
-		delegate: config.BlockOps(),
+		internalDelegate: config.BlockOps(),
 	})
 
 	// create and write to a file
@@ -1569,7 +1569,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 				unstall: syncUnstallCh,
 			},
 		},
-		delegate: realBlockOps,
+		internalDelegate: realBlockOps,
 	}
 
 	config.SetBlockOps(staller)
@@ -1592,8 +1592,8 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 		t.Errorf("Couldn't write file: %v", err)
 	}
 
-	booq := &blockOpsOverQuota{BlockOps: staller.delegate}
-	staller.delegate = booq
+	booq := &blockOpsOverQuota{BlockOps: staller.delegate()}
+	staller.setDelegate(booq)
 
 	// Block the Sync
 	// Sync the initial two data blocks

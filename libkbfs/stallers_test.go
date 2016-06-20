@@ -4,6 +4,10 @@
 
 package libkbfs
 
+import (
+	"sync"
+)
+
 import "golang.org/x/net/context"
 
 // staller is a pair of channels. Whenever something is to be
@@ -41,10 +45,24 @@ type stallingBlockOps struct {
 	stallOpName string
 	stallKey    interface{}
 	stallMap    map[interface{}]staller
-	delegate    BlockOps
+	// lock protects only delegate at the moment
+	lock             sync.Mutex
+	internalDelegate BlockOps
 }
 
 var _ BlockOps = (*stallingBlockOps)(nil)
+
+func (f *stallingBlockOps) delegate() BlockOps {
+	f.lock.Lock()
+	defer f.lock.Unlock()
+	return f.internalDelegate
+}
+
+func (f *stallingBlockOps) setDelegate(bops BlockOps) {
+	f.lock.Lock()
+	defer f.lock.Unlock()
+	f.internalDelegate = bops
+}
 
 func (f *stallingBlockOps) maybeStall(ctx context.Context, opName string) {
 	maybeStall(ctx, opName, f.stallOpName, f.stallKey, f.stallMap)
@@ -54,14 +72,14 @@ func (f *stallingBlockOps) Get(
 	ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
 	block Block) error {
 	f.maybeStall(ctx, "Get")
-	return f.delegate.Get(ctx, md, blockPtr, block)
+	return f.delegate().Get(ctx, md, blockPtr, block)
 }
 
 func (f *stallingBlockOps) Ready(
 	ctx context.Context, md *RootMetadata, block Block) (
 	id BlockID, plainSize int, readyBlockData ReadyBlockData, err error) {
 	f.maybeStall(ctx, "Ready")
-	return f.delegate.Ready(ctx, md, block)
+	return f.delegate().Ready(ctx, md, block)
 }
 
 func (f *stallingBlockOps) Put(
@@ -73,7 +91,7 @@ func (f *stallingBlockOps) Put(
 		return ctx.Err()
 	default:
 	}
-	err := f.delegate.Put(ctx, md, blockPtr, readyBlockData)
+	err := f.delegate().Put(ctx, md, blockPtr, readyBlockData)
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -86,13 +104,13 @@ func (f *stallingBlockOps) Delete(
 	ctx context.Context, md *RootMetadata,
 	ptrs []BlockPointer) (map[BlockID]int, error) {
 	f.maybeStall(ctx, "Delete")
-	return f.delegate.Delete(ctx, md, ptrs)
+	return f.delegate().Delete(ctx, md, ptrs)
 }
 
 func (f *stallingBlockOps) Archive(
 	ctx context.Context, md *RootMetadata, ptrs []BlockPointer) error {
 	f.maybeStall(ctx, "Archive")
-	return f.delegate.Archive(ctx, md, ptrs)
+	return f.delegate().Archive(ctx, md, ptrs)
 }
 
 // stallingMDOps is an implementation of MDOps whose operations
