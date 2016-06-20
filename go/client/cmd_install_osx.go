@@ -104,9 +104,9 @@ func (v *CmdInstall) runInstall() keybase1.InstallResult {
 	}
 
 	if v.installer == "auto" {
-		return install.AutoInstallWithStatus(v.G(), v.binPath, v.force, v.G().Log)
+		return install.AutoInstallWithStatus(v.G(), v.binPath, v.force)
 	} else if v.installer == "" {
-		return install.Install(v.G(), v.binPath, v.components, v.force, v.G().Log)
+		return install.Install(v.G(), v.binPath, v.components, v.force)
 	}
 
 	return keybase1.InstallResult{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, fmt.Sprintf("Invalid installer: %s", v.installer))}
@@ -180,7 +180,7 @@ func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdUninstall) Run() error {
-	result := install.Uninstall(v.G(), v.components, v.G().Log)
+	result := install.Uninstall(v.G(), v.components)
 	if v.format == "json" {
 		out, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {

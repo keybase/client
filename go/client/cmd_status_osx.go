@@ -8,8 +8,8 @@ package client
 import "github.com/keybase/client/go/install"
 
 func (c *CmdStatus) osSpecific(status *fstatus) error {
-	serviceStatus := install.KeybaseServiceStatus(c.G(), "service", c.G().Log)
-	kbfsStatus := install.KeybaseServiceStatus(c.G(), "kbfs", c.G().Log)
+	serviceStatus := install.KeybaseServiceStatus(c.G(), "service")
+	kbfsStatus := install.KeybaseServiceStatus(c.G(), "kbfs")
 
 	if len(serviceStatus.Pid) > 0 {
 		status.Service.Running = true

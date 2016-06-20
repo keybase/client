@@ -9,10 +9,12 @@ import (
 	"regexp"
 	"strings"
 	"syscall"
+
+	"github.com/keybase/client/go/logger"
 )
 
 // IsMounted returns true if directory is mounted (by kbfuse)
-func IsMounted(dir string, log Log) (bool, error) {
+func IsMounted(dir string, log logger.Logger) (bool, error) {
 	mountInfo, err := getMountInfo(dir)
 	if err != nil {
 		return false, err

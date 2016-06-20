@@ -14,46 +14,27 @@ import (
 	"github.com/blang/semver"
 	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/lsof"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-// Log is the logging interface for this package
-type Log interface {
-	Debug(s string, args ...interface{})
-	Info(s string, args ...interface{})
-	Warning(s string, args ...interface{})
-	Errorf(s string, args ...interface{})
-}
-
-// Context is the enviroment for this package
 type Context interface {
-	GetConfigDir() string
 	GetCacheDir() string
 	GetRuntimeDir() string
-	GetMountDir() (string, error)
 	GetRunMode() libkb.RunMode
-	GetServiceInfoPath() string
-	GetAppStartMode() libkb.AppStartMode
 }
 
-// ComponentName defines a component name
 type ComponentName string
 
 const (
-	// ComponentNameCLI is the command line component
-	ComponentNameCLI ComponentName = "cli"
-	// ComponentNameService is the service component
+	ComponentNameCLI     ComponentName = "cli"
 	ComponentNameService ComponentName = "service"
-	// ComponentNameKBFS is the KBFS component
-	ComponentNameKBFS ComponentName = "kbfs"
-	// ComponentNameUpdater is the updater component
+	ComponentNameKBFS    ComponentName = "kbfs"
 	ComponentNameUpdater ComponentName = "updater"
-	// ComponentNameUnknown is placeholder for unknown components
 	ComponentNameUnknown ComponentName = "unknown"
 )
 
-// ComponentNames are all the valid component names
 var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater}
 
 func (c ComponentName) String() string {
@@ -70,7 +51,6 @@ func (c ComponentName) String() string {
 	return "Unknown"
 }
 
-// ComponentNameFromString returns ComponentName from a string
 func ComponentNameFromString(s string) ComponentName {
 	switch s {
 	case string(ComponentNameCLI):
@@ -85,7 +65,6 @@ func ComponentNameFromString(s string) ComponentName {
 	return ComponentNameUnknown
 }
 
-// ResolveInstallStatus will determine necessary install actions for the current environment
 func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus string) (installStatus keybase1.InstallStatus, installAction keybase1.InstallAction, status keybase1.Status) {
 	installStatus = keybase1.InstallStatus_UNKNOWN
 	installAction = keybase1.InstallAction_UNKNOWN
@@ -134,7 +113,6 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 	return
 }
 
-// KBFSBundleVersion returns the bundle (not installed) version for KBFS
 func KBFSBundleVersion(context Context, binPath string) (string, error) {
 	runMode := context.GetRunMode()
 	kbfsBinPath, err := KBFSBinPath(runMode, binPath)
@@ -238,7 +216,7 @@ func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
 
 // IsInUse returns true if the mount is in use. This may be used by the updater
 // to determine if it's safe to apply an update and restart.
-func IsInUse(mountDir string, log Log) bool {
+func IsInUse(mountDir string, log logger.Logger) bool {
 	log.Debug("Mount dir: %s", mountDir)
 	if mountDir == "" {
 		return false

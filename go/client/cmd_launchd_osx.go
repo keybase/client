@@ -190,7 +190,7 @@ func (v *CmdLaunchdList) ParseArgv(ctx *cli.Context) error {
 
 func (v *CmdLaunchdList) Run() error {
 	if v.format == "json" {
-		servicesStatus, err := install.ListServices(v.G(), v.G().Log)
+		servicesStatus, err := install.ListServices(v.G())
 		if err != nil {
 			return err
 		}
@@ -287,7 +287,7 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdLaunchdStatus) Run() error {
-	serviceStatus, err := install.ServiceStatus(v.G(), v.label, v.G().Log)
+	serviceStatus, err := install.ServiceStatus(v.G(), v.label)
 	if err != nil {
 		return err
 	}
