@@ -33,6 +33,8 @@ const (
 		TlfHandleExtensionFinalizedString
 	// TlfHandleExtensionFormat is the formate string for a TlfHandleExtension.
 	TlfHandleExtensionFormat = "(%s %s%s)"
+	// TlfHandleExtensionStaticTestDate is a static date used for tests (2016-03-14).
+	TlfHandleExtensionStaticTestDate = 1457913600
 )
 
 // TlfHandleExtensionType is the type of extension.
@@ -128,8 +130,7 @@ type staticTestTlfHandleExtensionClock struct {
 
 // Now implements the Clock interface for staticTestTlfHandleExtensionClock.
 func (c staticTestTlfHandleExtensionClock) Now() time.Time {
-	// 2016-03-14
-	return time.Unix(1457913600, 0)
+	return time.Unix(TlfHandleExtensionStaticTestDate, 0)
 }
 
 // NewTestTlfHandleExtensionStaticTime returns a new TlfHandleExtension struct populated with

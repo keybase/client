@@ -583,12 +583,12 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, TlfHandleExtension{
 		Type:   TlfHandleExtensionConflict,
-		Date:   1457913600,
+		Date:   TlfHandleExtensionStaticTestDate,
 		Number: 3,
 	}, *h.ConflictInfo())
 	assert.Equal(t, TlfHandleExtension{
 		Type:   TlfHandleExtensionFinalized,
-		Date:   1457913600,
+		Date:   TlfHandleExtensionStaticTestDate,
 		Number: 2,
 	}, *h.FinalizedInfo())
 
