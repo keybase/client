@@ -42,23 +42,23 @@ IF %DOKANVER%=="" (
 ::   http://tsa.starfieldtech.com
 ::   http://timestamp.comodoca.com/authenticode
 ::   http://timestamp.digicert.com
-SignTool.exe sign /a /tr http://timestamp.digicert.com %PathName%
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %PathName%
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+SignTool.exe sign /i digicert  /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )

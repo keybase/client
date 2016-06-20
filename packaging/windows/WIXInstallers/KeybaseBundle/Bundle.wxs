@@ -180,7 +180,7 @@
         SourceFile="$(env.DOKAN_PATH)\dokan_wix\DokanSetup_redist.exe"
           InstallCommand="/quiet"
           UninstallCommand="/quiet /uninstall"
-          DetectCondition="DokanUninstallString"
+          DetectCondition="DokanUninstallString and NOT (WixBundleAction=3 AND ( TargetDokanUninstallKey &lt;&gt; DokanProduct64 AND TargetDokanUninstallKey &lt;&gt; DokanProduct86 ))"
           PerMachine="yes"
           Permanent="yes">
       </ExePackage>
