@@ -3599,7 +3599,7 @@ export type userSearchRpc = {
 }
 
 export type rpc =
-      BTCRegisterBTCRpc
+    BTCRegisterBTCRpc
   | Kex2ProvisioneeDidCounterSignRpc
   | Kex2ProvisioneeHelloRpc
   | Kex2ProvisionerKexStartRpc
