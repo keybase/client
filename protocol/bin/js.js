@@ -44,10 +44,14 @@ function write () {
 
 `)
     Object.keys(protocols).forEach(function (p) {
-      stream.write('export const ' + p + ' = ' + JSON.stringify(protocols[p], null, 2).replace(/\"/g, '\'') + '\n\n')
+      stream.write('export const ' + p + ' = ' + JSON.stringify(protocols[p], null, 2)
+        .replace(/"/g, '\'')
+      // add trailing commas
+        .replace(/\n {2}}/g, ',\n  }')
+        .replace(/\n}/g, ',\n}') + '\n\n')
     })
 
-    stream.write('export default {\n' + Object.keys(protocols).map(function (a) { return '  ' + a }).join(',\n') + '\n}')
+    stream.write('export default {\n' + Object.keys(protocols).map(function (a) { return '  ' + a }).join(',\n') + ',\n}')
     stream.write('\n')
     stream.end()
   })
@@ -57,5 +61,5 @@ function fixCase (s) {
   function replace (s) {
     return s[1][0].toUpperCase() + s[1].substr(1)
   }
-  return s.toLowerCase().replace(/(\_\w)/g, replace)
+  return s.toLowerCase().replace(/(_\w)/g, replace)
 }

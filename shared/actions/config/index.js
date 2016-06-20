@@ -83,7 +83,7 @@ export function bootstrap (): AsyncAction {
               // } else {
                 // console.log(error)
               // }
-            // }
+            // },
           // }
 
           // engine.rpc(params)
