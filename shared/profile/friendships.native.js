@@ -75,7 +75,6 @@ class Render extends Component<void, Props, void> {
 const tabItemContainerStyle = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  backgroundColor: globalColors.lightGrey,
 }
 
 const tabItemContainerTopBorder = {
@@ -87,7 +86,6 @@ const tabItemContainerTopBorder = {
 
 const tabItemContainerUsers = {
   ...globalStyles.flexBoxRow,
-  flex: 1,
   flexWrap: 'wrap',
   justifyContent: 'space-around',
   paddingTop: 8,
