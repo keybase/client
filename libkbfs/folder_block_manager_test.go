@@ -384,7 +384,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 				unstall: writeUnstallCh,
 			},
 		},
-		delegate: config2.BlockOps(),
+		internalDelegate: config2.BlockOps(),
 	})
 
 	// Start the sync and wait for it to stall twice only.

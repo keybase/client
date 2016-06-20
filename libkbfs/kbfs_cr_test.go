@@ -1378,7 +1378,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 				unstall: syncUnstallCh,
 			},
 		},
-		delegate: config2.BlockOps(),
+		internalDelegate: config2.BlockOps(),
 	})
 
 	// User 2 writes some data
@@ -1430,7 +1430,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	// the failed sync get cleaned up.
 
 	// Now succeed with different data so CR can happen.
-	config2.SetBlockOps(config2.BlockOps().(*stallingBlockOps).delegate)
+	config2.SetBlockOps(config2.BlockOps().(*stallingBlockOps).delegate())
 	for i := int64(0); i < blockSize*fileBlocks; i++ {
 		data[i] = byte(i + 10)
 	}
