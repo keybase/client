@@ -71,8 +71,6 @@ func (n *signupUI) GetGPGUI() libkb.GPGUI {
 	return client.NewGPGUI(n.G(), n.GetTerminalUI(), false, "")
 }
 
-func (n *signupUI) GetUpdateUI() libkb.UpdateUI { return nil }
-
 func (n *signupSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
 	if p.Type == keybase1.PassphraseType_PAPER_KEY {
 		res.Passphrase = n.info.displayedPaperKey

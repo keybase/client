@@ -80,10 +80,6 @@ func (h *BaseHandler) getGPGUI(sessionID int) libkb.GPGUI {
 	return NewRemoteGPGUI(sessionID, h.rpcClient())
 }
 
-func (h *BaseHandler) getUpdateUI() libkb.UpdateUI {
-	return keybase1.UpdateUiClient{Cli: h.rpcClient()}
-}
-
 func (h *BaseHandler) getSecretUICli() *keybase1.SecretUiClient {
 	return h.secretCli
 }

@@ -3,10 +3,8 @@
 
 // +build !darwin ios
 
-package engine
+package install
 
-import "github.com/keybase/client/go/libkb"
-
-func AfterUpdateApply(g *libkb.GlobalContext, willRestart bool, force bool) error {
+func AfterUpdateApply(context Context, willRestart bool, force bool, log Log) error {
 	return nil
 }

@@ -1,8 +1,6 @@
 package service
 
 import (
-	"errors"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -25,10 +23,6 @@ func (f fakeUIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 
 func (f fakeUIRouter) GetSecretUI(int) (libkb.SecretUI, error) {
 	return f.secretUI, f.secretUIErr
-}
-
-func (f fakeUIRouter) GetUpdateUI() (libkb.UpdateUI, error) {
-	return nil, errors.New("Unexpected GetUpdateUI call")
 }
 
 func (f fakeUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) {
