@@ -185,6 +185,7 @@ export const map: DumbComponentMap<Folders> = {
     'Normal Private': {
       smallMode: false,
       onRekey: path => console.log(`open rekey page: ${path}`),
+      username: 'cecileb',
       showComingSoon: false,
       private: {tlfs, ignored, isPublic: false, parentProps},
       public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps},
@@ -193,6 +194,7 @@ export const map: DumbComponentMap<Folders> = {
     'Normal Public': {
       smallMode: false,
       onRekey: path => console.log(`open rekey page: ${path}`),
+      username: 'cecileb',
       showComingSoon: false,
       private: {tlfs, ignored, isPublic: false, parentProps},
       public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps},
@@ -201,6 +203,7 @@ export const map: DumbComponentMap<Folders> = {
     'ComingSoon': {
       smallMode: false,
       onRekey: path => console.log(`open rekey page: ${path}`),
+      username: 'cecileb',
       showComingSoon: true,
       private: {tlfs, ignored, isPublic: false, parentProps},
       public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps},

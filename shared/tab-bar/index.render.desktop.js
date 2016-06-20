@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import {Box, TabBar, Avatar, Icon} from '../common-adapters'
 import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
+import flags from '../util/feature-flags'
 
 import {profileTab, peopleTab, folderTab, devicesTab, settingsTab} from '../constants/tabs'
 
@@ -86,7 +87,8 @@ export default class Render extends Component<void, Props, void> {
   }
 
   _renderVisibleTabItems () {
-    const tabs = [peopleTab, folderTab, devicesTab, settingsTab, profileTab]
+    const tabs = [folderTab, devicesTab, settingsTab, profileTab]
+    if (flags.tabPeopleEnabled) tabs.push(peopleTab)
 
     return tabs.map(t => {
       const onClick = () => this.props.onTabClick(t)

@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import MenuList from './menu-list'
 import type {MenuListItem} from './menu-list'
-import {ComingSoon} from '../common-adapters'
+import SettingsHelp from './help.desktop'
 import type {Props} from './render'
 
 type State = {
@@ -34,7 +34,7 @@ class Render extends Component<void, Props, State> {
   }
 
   _renderComingSoon () {
-    return <ComingSoon />
+    return <SettingsHelp />
   }
 
   render () {
