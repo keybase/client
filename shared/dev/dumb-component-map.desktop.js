@@ -14,7 +14,7 @@ import ProfileMap from '../profile/dumb'
 import SearchMap from '../search/dumb'
 import SearchUserPaneMap from '../search/user-pane/dumb'
 import UnlockFoldersMap from '../unlock-folders/dumb'
-import type {DumbComponentMap} from './dumb'
+import type {DumbComponentMap} from '../constants/types/more'
 
 const map : DumbComponentMap = {
   ...CommonMap,
