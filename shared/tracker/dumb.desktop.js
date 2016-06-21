@@ -139,6 +139,7 @@ function setFollow (source: TrackerProps, filter: setFollowFilter): TrackerProps
 
 const propsFollowing: TrackerProps = setFollow({
   ...propsNewUser,
+  currentlyFollowing: true,
   reason: 'You have tracked gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
@@ -160,6 +161,7 @@ const propsWhatevz: TrackerProps = setFollow({
 
 const propsChangedProofs: TrackerProps = {
   ...propsDefault,
+  currentlyFollowing: true,
   reason: 'Some of gabrielh\'s proofs have changed since you last tracked them.',
   userInfo: {
     ...propsNewUser.userInfo,
