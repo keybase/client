@@ -1,6 +1,5 @@
 import * as Constants from '../constants/search'
 import {routeAppend, getCurrentURI} from './router'
-import {loadSummaries} from './profile'
 import engine from '../engine'
 import * as _ from 'lodash'
 
@@ -50,9 +49,6 @@ const submitSearchDebounced = _.debounce((base, term, dispatch, getState) => {
     engine.rpcUnchecked(...args, (error, results) => {
       if (badNonce()) { return }
       if (error) { throw new Error(error) }
-      if (results) {
-        dispatch(loadSummaries(results.map(r => r.uid)))
-      }
       resolve(results || [])
     })
   })

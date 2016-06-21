@@ -11,7 +11,7 @@ import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {SimpleProofState, SimpleProofMeta, NonUserActions} from '../constants/tracker'
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff,
-  TrackDiffType, ProofStatus, TrackSummary} from '../constants/types/flow-types'
+  TrackDiffType, ProofStatus} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
 export type TrackerState = {
@@ -28,7 +28,6 @@ export type TrackerState = {
   closed: boolean,
   hidden: boolean,
   trackToken: ?string,
-  lastTrack: ?TrackSummary,
   needTrackTokenDismiss: boolean
 }
 
@@ -65,7 +64,6 @@ function initialTrackerState (username: string): TrackerState {
     eldestKidChanged: false,
     hidden: false,
     lastAction: null,
-    lastTrack: null,
     needTrackTokenDismiss: false,
     proofs: [],
     reason: null,
@@ -276,7 +274,6 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       const lastTrack = action.payload && action.payload.track
       return {
         ...state,
-        lastTrack,
         currentlyFollowing: !!lastTrack,
       }
 

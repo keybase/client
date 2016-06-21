@@ -3,11 +3,9 @@ import Tracker from './render'
 import {trackerPropsToRenderProps} from './index'
 import {normal, checking, revoked, error} from '../constants/tracker'
 import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
+import {globalStyles} from '../styles/style-guide'
 import type {TrackerProps} from '../tracker'
 import type {Proof} from '../common-adapters/user-proofs'
-import type {TrackSummary} from '../constants/types/flow-types'
-import {globalStyles} from '../styles/style-guide'
-
 import type {DumbComponentMap} from '../constants/types/more'
 
 function proofGithubMaker (name): Proof {
@@ -48,9 +46,7 @@ const proofsChanged: Array<Proof> = [
 ]
 
 const propsBase = {
-  changed: false,
   closed: false,
-  lastTrack: null,
   parentProps: {},
   currentlyFollowing: false,
   onFollow: () => {},
@@ -89,12 +85,6 @@ const propsDefault: TrackerProps = {
       console.log('Close')
     },
   },
-}
-
-const lastTrackMax: TrackSummary = {
-  username: 'max',
-  time: 0,
-  isRemote: true,
 }
 
 const propsNewUser: TrackerProps = {
@@ -145,7 +135,6 @@ const propsFollowing: TrackerProps = setFollow({
     ...propsNewUser.userInfo,
     followsYou: true,
   },
-  lastTrack: lastTrackMax,
   proofs: proofsDefault,
   lastAction: 'followed',
 }, () => true)
@@ -167,7 +156,6 @@ const propsChangedProofs: TrackerProps = {
     ...propsNewUser.userInfo,
     followsYou: true,
   },
-  lastTrack: lastTrackMax,
   trackerState: error,
   proofs: proofsChanged,
 }
@@ -228,7 +216,7 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'New user': trackerPropsToRenderProps(propsNewUser),
     'New user, follows me': trackerPropsToRenderProps(propsNewUserFollowsYou),
     'Followed': trackerPropsToRenderProps(propsFollowing),
-    'Changed/Broken proofs user you dont follow': trackerPropsToRenderProps({...propsChangedProofs, lastTrack: null}),
+    'Changed/Broken proofs user you dont follow': trackerPropsToRenderProps({...propsChangedProofs}),
     'Changed/Broken proofs': trackerPropsToRenderProps(propsChangedProofs),
     'You track them': trackerPropsToRenderProps({...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}}),
     'Unfollowed': trackerPropsToRenderProps(propsUnfollowed),

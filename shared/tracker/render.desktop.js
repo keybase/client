@@ -42,7 +42,6 @@ export default class Render extends Component<void, RenderProps, void> {
           onClose={this.props.onClose}
           trackerState={this.props.trackerState}
           currentlyFollowing={this.props.currentlyFollowing}
-          changed={this.props.changed}
           lastAction={this.props.lastAction}
           loggedIn={this.props.loggedIn}
         />

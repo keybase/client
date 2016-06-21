@@ -12,10 +12,7 @@ import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {SimpleProofState} from '../constants/tracker'
 
-import type {TrackSummary} from '../constants/types/flow-types'
-
 export type TrackerProps = {
-  changed: boolean,
   currentlyFollowing: boolean,
   loggedIn: boolean,
   trackerState: SimpleProofState,
@@ -33,7 +30,6 @@ export type TrackerProps = {
   onUnfollow: () => void,
   onFollow: () => void,
   closed: boolean,
-  lastTrack: ?TrackSummary,
   startTimer: () => void,
   stopTimer: () => void,
   currentlyFollowing: boolean,
@@ -47,7 +43,6 @@ export type TrackerProps = {
 // TODO remove this
 export function trackerPropsToRenderProps (props: TrackerProps): RenderPropsUnshaped {
   return {
-    changed: props.changed,
     currentlyFollowing: props.currentlyFollowing,
     inviteLink: props.inviteLink,
     isPrivate: props.isPrivate,

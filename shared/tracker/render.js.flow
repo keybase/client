@@ -7,7 +7,6 @@ import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof} from '../common-adapters/user-proofs'
 
 export type RenderPropsUnshaped = {
-  changed: boolean,
   currentlyFollowing: boolean,
   inviteLink?: ?string,
   isPrivate?: boolean,
