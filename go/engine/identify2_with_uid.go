@@ -343,23 +343,29 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	// fingerprints and the user's UID and username.
 	e.remotesReceived = e.them.BaseProofSet()
 
+	e.G().Log.Debug("| IdentifyUI.Start(%s)", e.them.GetName())
 	ctx.IdentifyUI.Start(e.them.GetName(), e.arg.Reason)
 	for _, k := range e.identifyKeys {
 		ctx.IdentifyUI.DisplayKey(k)
 	}
+	e.G().Log.Debug("| IdentifyUI.ReportLastTrack(%s)", e.them.GetName())
 	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName()))
+	e.G().Log.Debug("| IdentifyUI.LaunchNetworkChecks(%s)", e.them.GetName())
 	ctx.IdentifyUI.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export())
 
 	waiter := displayUserCardAsync(e.G(), ctx, e.them.GetUID(), (e.me != nil))
+	e.G().Log.Debug("| IdentifyUI.Identify(%s)", e.them.GetName())
 	e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, ctx.IdentifyUI, e)
 
 	waiter()
+	e.G().Log.Debug("| IdentifyUI waited for waiter (%s)", e.them.GetName())
 
 	// use Confirm to display the IdentifyOutcome
 	ctx.IdentifyUI.Confirm(e.state.Result().Export())
 
 	e.insertTrackToken(ctx)
 	ctx.IdentifyUI.Finish()
+	e.G().Log.Debug("| IdentifyUI.Finished(%s)", e.them.GetName())
 
 	err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_OK})
 	e.maybeCacheResult()
