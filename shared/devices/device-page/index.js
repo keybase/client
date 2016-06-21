@@ -8,7 +8,7 @@ import Render from './index.render'
 import RemoveDevice from '../device-revoke'
 
 import * as devicesActions from '../../actions/devices'
-import {routeAppend} from '../../actions/router'
+import {routeAppend, navigateUp} from '../../actions/router'
 
 class DevicePage extends Component {
   static parseRoute (currentPath) {
@@ -56,6 +56,7 @@ class DevicePage extends Component {
     const timeline = this._buildTimeline(device)
 
     return <Render
+      onBack={this.props.onBack}
       name={device.name}
       type={device.type}
       deviceID={device.deviceID}
@@ -80,6 +81,7 @@ export default connect(
     return {
       ...bindActionCreators(devicesActions, dispatch),
       showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),
+      onBack: () => dispatch(navigateUp()),
     }
   }
 )(DevicePage)
