@@ -31,5 +31,6 @@ export default class QR extends Component<void, Props, void> {
 
 const cameraStyle = {
   ...globalStyles.flexBoxColumn,
+  justifyContent: 'center',
   flex: 1
 }
