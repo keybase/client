@@ -9,3 +9,7 @@ that this requires the `s3cmd` package to talk to S3.
 
 Set up docker. The build image will be created automatically, so long as
 the basics like `docker ps` are working.
+
+Run the prerelease build. (The production build is deprecated.)
+
+    ./docker_build.sh prerelease origin/master
