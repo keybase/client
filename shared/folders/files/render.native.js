@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {ScrollView} from 'react-native'
-import {Box, Text, BackButton, Avatar, Icon, Usernames} from '../../common-adapters'
+import {Box, Button, Text, BackButton, Avatar, Icon, Usernames} from '../../common-adapters'
 import File from './file/render'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import {intersperseFn} from '../../util/arrays'
@@ -42,11 +42,14 @@ export default class Render extends Component<void, Props, void> {
     return contents
   }
 
-  _renderContents (isPrivate: boolean) {
+  _renderContents (isPrivate: boolean, ignored: boolean) {
     if (!this.props.recentFilesEnabled) {
       return (
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center', padding: 8}}>
-          <Text type='BodySmall' backgroundMode={isPrivate ? 'Terminal' : 'Normal'}>File History has not been implemented yet.</Text>
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
+          {ignored
+          ? <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' />
+          : <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />}
+          <Button key='open' type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' />
         </Box>
       )
     } else {
@@ -62,15 +65,15 @@ export default class Render extends Component<void, Props, void> {
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', backgroundColor: backgroundColorThemed[this.props.theme]}}>
         {this._renderHeader()}
         <Box style={{...globalStyles.flexBoxColumn, ...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
-          <Box style={{...globalStyles.flexBoxRow, height: 0, justifyContent: 'center', position: 'relative', bottom: 16}}>
+          <Box style={{...globalStyles.flexBoxRow, position: 'relative', justifyContent: 'center'}}>
             {this.props.users.map(u => <Box key={u.username} style={{height: 32, width: 28}}><Avatar username={u.username} size={32} /></Box>)}
           </Box>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', justifyContent: 'center', marginTop: 20, marginBottom: 20}}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', justifyContent: 'center', marginTop: 20, marginBottom: 20, flex: 1}}>
             <Text type='BodySmallSemibold' style={tlfTextStyle}>{isPrivate ? 'private/' : 'public/'}</Text>
             <Usernames users={this.props.users} type='BodySemibold' style={tlfTextStyle} />
           </Box>
         </Box>
-        {this._renderContents(isPrivate)}
+        {this._renderContents(isPrivate, this.props.ignored)}
       </Box>
     )
   }

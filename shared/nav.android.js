@@ -7,6 +7,7 @@ import globalRoutes from './router/global-routes'
 import TabBar from './tab-bar/index.render.native'
 
 import Devices from './devices'
+import Folders from './folders'
 import NoTab from './no-tab'
 import Settings from './settings'
 import Profile from './profile'
@@ -30,7 +31,7 @@ import forwardLogs from './native/forward-logs'
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
   [profileTab]: {module: Profile, name: 'Profile'},
-  [folderTab]: {module: Settings, name: 'Folders'},
+  [folderTab]: {module: Folders, name: 'Folders'},
   [chatTab]: {module: Settings, name: 'Chat'},
   [peopleTab]: {module: Settings, name: 'People'},
   [devicesTab]: {module: Devices, name: 'Devices'},

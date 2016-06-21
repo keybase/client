@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Image} from 'react-native'
+import {Image, TouchableHighlight} from 'react-native'
 import type {Folder} from './list'
 import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
 import type {Props as IconProps} from '../common-adapters/icon'
@@ -76,7 +76,7 @@ const RowMeta = ({ignored, meta, styles}) => {
   return <Meta {...metaProps} />
 }
 
-const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path}: Folder & {isFirst: boolean}) => {
+const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path, onClick}: Folder & {isFirst: boolean, onClick: (path: string) => void}) => {
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   const containerStyle = {
@@ -86,20 +86,22 @@ const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path}:
   const icon: IconProps.type = styles.hasStuffIcon
 
   return (
-    <Box style={containerStyle}>
-      <Box style={{...globalStyles.flexBoxRow}}>
-        <Avatars users={users} styles={styles} isPublic={isPublic} />
-        <Box style={stylesBodyContainer}>
-          <Names users={users} styles={styles} meta={meta} modified={modified} />
-          {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
-          {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
+    <TouchableHighlight onPress={() => { console.log('hello'); onClick && onClick(path) }}>
+      <Box style={containerStyle}>
+        <Box style={{...globalStyles.flexBoxRow}}>
+          <Avatars users={users} styles={styles} isPublic={isPublic} />
+          <Box style={stylesBodyContainer}>
+            <Names users={users} styles={styles} meta={meta} modified={modified} />
+            {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
+            {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
+          </Box>
+          <Box style={stylesActionContainer}>
+            {hasData && <Icon type={icon} style={{width: 32}} />}
+          </Box>
         </Box>
-        <Box style={stylesActionContainer}>
-          {hasData && <Icon type={icon} style={{width: 32}} />}
-        </Box>
+        {!isFirst && <Box style={stylesLine} />}
       </Box>
-      {!isFirst && <Box style={stylesLine} />}
-    </Box>
+    </TouchableHighlight>
   )
 }
 
@@ -200,4 +202,3 @@ const stylesModified = {
 }
 
 export default Row
-

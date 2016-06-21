@@ -1,7 +1,7 @@
 /* @flow */
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
-
+import {favoriteList} from '../../actions/favorite'
 import {navBasedOnLoginState} from '../../actions/login'
 
 // $FlowFixMe
@@ -68,7 +68,7 @@ export function bootstrap (): AsyncAction {
       })
     } else {
       Promise.all(
-        [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(() => {
+        [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig()), dispatch(favoriteList())]).then(() => {
           dispatch({type: Constants.bootstrapped, payload: null})
           dispatch(navBasedOnLoginState())
         }).catch(error => {
