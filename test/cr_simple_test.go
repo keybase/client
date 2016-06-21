@@ -159,6 +159,38 @@ func TestCrUnmergedSetMtime(t *testing.T) {
 	)
 }
 
+// bob sets the mtime on a moved file while unstaged
+func TestCrUnmergedSetMtimeOnMovedFile(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+			mkdir("b"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			rename("a/b", "b/a"),
+		),
+		as(bob, noSync(),
+			setmtime("a/b", targetMtime),
+			reenableUpdates(),
+			lsdir("", m{"a": "DIR", "b": "DIR"}),
+			lsdir("a", m{}),
+			lsdir("b", m{"a": "FILE"}),
+			mtime("b/a", targetMtime),
+		),
+		as(alice,
+			lsdir("", m{"a": "DIR", "b": "DIR"}),
+			lsdir("a", m{}),
+			lsdir("b", m{"a": "FILE"}),
+			mtime("b/a", targetMtime),
+		),
+	)
+}
+
 // bob deletes a non-conflicting file while unstaged
 func TestCrUnmergedRmfile(t *testing.T) {
 	test(t,
