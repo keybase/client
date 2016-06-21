@@ -83,7 +83,7 @@ else
 fi
 
 echo '=== docker ==='
-docker run "${interactive_args[@]}" \
+docker run "${interactive_args[@]:+interactive_args[@]}" \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$kbfsdir:/KBFS:ro" \
