@@ -10,11 +10,12 @@ import (
 
 type TLFID string
 type TLF struct {
-	Tlfid     TLFID    `codec:"tlfid" json:"tlfid"`
-	Name      string   `codec:"name" json:"name"`
-	Writers   []string `codec:"writers" json:"writers"`
-	Readers   []string `codec:"readers" json:"readers"`
-	IsPrivate bool     `codec:"isPrivate" json:"isPrivate"`
+	Tlfid       TLFID    `codec:"tlfid" json:"tlfid"`
+	Name        string   `codec:"name" json:"name"`
+	Writers     []string `codec:"writers" json:"writers"`
+	Readers     []string `codec:"readers" json:"readers"`
+	IsPrivate   bool     `codec:"isPrivate" json:"isPrivate"`
+	FirstWriter UID      `codec:"firstWriter" json:"firstWriter"`
 }
 
 type ProblemTLF struct {
@@ -36,6 +37,17 @@ type ProblemSet struct {
 type ProblemSetDevices struct {
 	ProblemSet ProblemSet `codec:"problemSet" json:"problemSet"`
 	Devices    []Device   `codec:"devices" json:"devices"`
+}
+
+type SBSProblemSet struct {
+	User            User            `codec:"user" json:"user"`
+	SocialAssertion SocialAssertion `codec:"socialAssertion" json:"socialAssertion"`
+	Tlfs            []ProblemTLF    `codec:"tlfs" json:"tlfs"`
+}
+
+type SBSProblemSetDevices struct {
+	ProblemSet SBSProblemSet `codec:"problemSet" json:"problemSet"`
+	Devices    []Device      `codec:"devices" json:"devices"`
 }
 
 type Outcome int

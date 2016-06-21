@@ -871,6 +871,17 @@ export type RevokedProof = {
   diff: TrackDiff;
 }
 
+export type SBSProblemSet = {
+  user: User;
+  socialAssertion: SocialAssertion;
+  tlfs: Array<ProblemTLF>;
+}
+
+export type SBSProblemSetDevices = {
+  problemSet: SBSProblemSet;
+  devices: Array<Device>;
+}
+
 export type SaltpackDecryptOptions = {
   interactive: boolean;
   forceRemoteCheck: boolean;
@@ -1150,6 +1161,7 @@ export type TLF = {
   writers: Array<string>;
   readers: Array<string>;
   isPrivate: boolean;
+  firstWriter: UID;
 }
 
 export type TLFID = string

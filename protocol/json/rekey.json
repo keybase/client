@@ -42,6 +42,10 @@
         {
           "type": "boolean",
           "name": "isPrivate"
+        },
+        {
+          "type": "UID",
+          "name": "firstWriter"
         }
       ]
     },
@@ -106,6 +110,44 @@
       ]
     },
     {
+      "type": "record",
+      "name": "SBSProblemSet",
+      "fields": [
+        {
+          "type": "User",
+          "name": "user"
+        },
+        {
+          "type": "SocialAssertion",
+          "name": "socialAssertion"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ProblemTLF"
+          },
+          "name": "tlfs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SBSProblemSetDevices",
+      "fields": [
+        {
+          "type": "SBSProblemSet",
+          "name": "problemSet"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Device"
+          },
+          "name": "devices"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "Outcome",
       "symbols": [
@@ -144,7 +186,7 @@
         }
       ],
       "response": null,
-      "doc": "DebugShowRekeyStatus is used by the CLI to kick off a \"ShowRekeyStatus\" window for \n   the current user."
+      "doc": "DebugShowRekeyStatus is used by the CLI to kick off a \"ShowRekeyStatus\" window for\n   the current user."
     },
     "rekeyStatusFinish": {
       "request": [

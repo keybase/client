@@ -12,6 +12,7 @@ protocol rekey {
     array<string> writers;
     array<string> readers;
     boolean isPrivate;
+    UID firstWriter;
   }
 
   record ProblemTLF {
@@ -37,6 +38,17 @@ protocol rekey {
     array<Device> devices;
   }
 
+  record SBSProblemSet {
+    User user;
+    SocialAssertion socialAssertion;
+    array<ProblemTLF> tlfs;
+  }
+
+  record SBSProblemSetDevices {
+    SBSProblemSet problemSet;
+    array<Device> devices;
+  }
+
   enum Outcome {
     NONE_0,
     FIXED_1,
@@ -55,7 +67,7 @@ protocol rekey {
   ProblemSetDevices getPendingRekeyStatus(int sessionID);
 
   /**
-   DebugShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for 
+   DebugShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for
    the current user.
    */
   void debugShowRekeyStatus(int sessionID);
