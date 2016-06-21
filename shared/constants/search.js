@@ -37,9 +37,34 @@ export type Search = TypedAction<'search:search', {term: string}, void>
 export const results = 'search:results'
 export type Results = TypedAction<'search:results', {term: string, results: Array<SearchResult>}, void>
 
-export type SearchActions = Search | Results
-export type SearchPlatforms = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Coinbase' | 'Hackernews'
+export type SearchPlatforms = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Coinbase' | 'Hackernews' | 'Pgp'
 
-export function platformToIcon (platform: SearchPlatforms): any {
-  return 'TODO'
+export const selectPlatform = 'search:selectPlatform'
+export type SelectPlatform = TypedAction<'search:selectPlatform', {platform: SearchPlatforms}, void>
+
+export type SearchActions = Search | Results | SelectPlatform
+
+export function platformToIcon (platform: SearchPlatforms): IconType {
+  return {
+    'Keybase': 'fa-kb-iconfont-identity-devices',
+    'Twitter': 'fa-kb-iconfont-identity-twitter',
+    'Github': 'fa-kb-iconfont-identity-github',
+    'Reddit': 'fa-kb-iconfont-identity-reddit',
+    'Coinbase': 'fa-kb-iconfont-identity-bitcoin',
+    'Hackernews': 'fa-kb-iconfont-identity-hn',
+    'Pgp': 'fa-kb-iconfont-identity-pgp',
+  }[platform]
+}
+
+// TODO(mm) get Logo for Hn at 32x32
+export function platformToLogo32 (platform: SearchPlatforms): IconType {
+  return {
+    'Keybase': 'keybase-logo-mascot-only-dz-2-32',
+    'Twitter': 'icon-twitter-logo-32',
+    'Github': 'icon-github-logo-32',
+    'Reddit': 'icon-reddit-logo-32',
+    'Coinbase': 'icon-coinbase-logo-32',
+    'Hackernews': 'placeholder-avatar-32-x-32',
+    'Pgp': 'icon-pgp-key-32',
+  }[platform]
 }

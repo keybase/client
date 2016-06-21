@@ -3,12 +3,13 @@
 import * as Constants from '../constants/search'
 import * as CommonConstants from '../constants/common'
 import type {Props as IconProps} from '../common-adapters/icon'
-import type {SearchResult, SearchActions} from '../constants/search'
+import type {SearchResult, SearchActions, SearchPlatforms} from '../constants/search'
 
 type State = {
   searchHintText: string,
   searchText: string,
   searchIcon: IconProps.type,
+  searchPlatform: SearchPlatforms,
   results: Array<SearchResult>
 }
 
@@ -16,6 +17,7 @@ const initialState: State = {
   searchHintText: '',
   searchText: '',
   searchIcon: 'logo-24',
+  searchPlatform: 'Keybase',
   results: [],
 }
 
@@ -31,6 +33,14 @@ export default function (state: State = initialState, action: SearchActions): St
           ...state,
           searchText: action.payload.term,
           results: [],
+        }
+      }
+      break
+    case Constants.selectPlatform:
+      if (!action.error) {
+        return {
+          ...state,
+          searchPlatform: action.payload.platform,
         }
       }
       break

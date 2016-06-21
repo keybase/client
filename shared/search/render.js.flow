@@ -6,5 +6,4 @@ export type Props = {
   username: string
 } & UserSearchProps
 
-export default class Render extends React$Component<void, Props, void> {
-}
+export default class Render extends React$Component<void, Props, void> { }

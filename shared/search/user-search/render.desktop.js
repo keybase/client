@@ -7,7 +7,7 @@ import {globalStyles, globalColors} from '../../styles/style-guide'
 
 import {IconButton} from 'material-ui'
 
-import type {SearchResult} from '../../constants/search'
+import type {SearchResult, SearchPlatforms} from '../../constants/search'
 import type {Props, SearchResultFn, ServiceFn} from './render'
 import type {IconType} from '../../common-adapters/icon'
 import type {Props as TextProps} from '../../common-adapters/text'
@@ -100,13 +100,14 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   }
 
   const rowStyle = {
+    ...globalStyles.clickable,
     height: 48,
     paddingTop: 8,
     paddingBottom: 8,
     paddingRight: 8,
     paddingLeft: 8,
-    borderTop: 'solid 1px',
-    borderTopColor: globalColors.black_10,
+    borderBottom: 'solid 1px',
+    borderBottomColor: globalColors.black_10,
   }
 
   return (
@@ -120,7 +121,7 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   )
 }
 
-function ServiceIcon ({serviceName, tooltip, iconType, selected, onClickService}: {serviceName: string, tooltip: string, iconType: IconType, selected: boolean, onClickService: ServiceFn}) {
+function ServiceIcon ({serviceName, tooltip, iconType, selected, onClickService}: {serviceName: SearchPlatforms, tooltip: string, iconType: IconType, selected: boolean, onClickService: ServiceFn}) {
   const iconStyles = {
     borderRadius: 24,
     minWidth: 48,
@@ -134,7 +135,7 @@ function ServiceIcon ({serviceName, tooltip, iconType, selected, onClickService}
       tooltip={tooltip}
       tooltipPosition='top-center'
       style={iconStyles}
-      onMouseLeave={() => onClickService(serviceName)}>
+      onClick={() => onClickService(serviceName)}>
       <Icon type={iconType} />
     </IconButton>
   )
@@ -153,42 +154,42 @@ export default class Render extends Component<void, Props, void> {
         <Box style={styles.headerContainer}>
           <Box style={styles.servicesContainer}>
             <ServiceIcon
-              serviceName='keybase'
+              serviceName='Keybase'
               tooltip='Keybase'
               iconType='keybase-logo-mascot-only-dz-2-24'
               selected={this.props.selectedService === 'keybase'}
               onClickService={this.props.onClickService}
               />
             <ServiceIcon
-              serviceName='twitter'
+              serviceName='Twitter'
               tooltip='Twitter'
               iconType='icon-twitter-logo-24'
               selected={this.props.selectedService === 'twitter'}
               onClickService={this.props.onClickService}
               />
             <ServiceIcon
-              serviceName='github'
+              serviceName='Github'
               tooltip='Github'
               iconType='icon-github-logo-24'
               selected={this.props.selectedService === 'github'}
               onClickService={this.props.onClickService}
               />
             <ServiceIcon
-              serviceName='coinbase'
+              serviceName='Coinbase'
               tooltip='Coinbase'
               iconType='icon-coinbase-logo-24'
               selected={this.props.selectedService === 'coinbase'}
               onClickService={this.props.onClickService}
               />
             <ServiceIcon
-              serviceName='pgp'
+              serviceName='Pgp'
               tooltip='PGP Key'
               iconType='icon-pgp-key-24'
               selected={this.props.selectedService === 'pgp'}
               onClickService={this.props.onClickService}
               />
           </Box>
-          <Input type='text' value={this.props.searchText} hintText={this.props.searchHintText} style={styles.input} underlineStyle={{display: 'none'}} />
+          <Input type='text' ref='searchBox' onEnterKeyDown={e => this.props.onSearch(this.refs.searchBox ? this.refs.searchBox.getValue() : '')} value={this.props.searchText} hintText={this.props.searchHintText} style={styles.input} underlineStyle={{display: 'none'}} />
         </Box>
         {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} searchText={this.props.searchText || ''} onClickResult={this.props.onClickResult} />)}
       </Box>
@@ -198,7 +199,9 @@ export default class Render extends Component<void, Props, void> {
 
 export const styles = {
   container: {
-    ...globalStyles.flexBoxColumn,
+    paddingTop: 48,
+    overflow: 'scroll',
+    flex: 1,
   },
   headerContainer: {
   },
@@ -209,5 +212,8 @@ export const styles = {
   input: {
     textAlign: 'left',
     height: 48,
+    marginBottom: 0,
+    borderBottom: 'solid 1px',
+    borderBottomColor: globalColors.black_10,
   },
 }

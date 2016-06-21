@@ -1,5 +1,8 @@
 import * as Constants from '../constants/search'
+import {platformToIcon, platformToLogo32} from '../constants/search'
 import {filterNull} from '../util/arrays'
+
+import type {ExtraInfo, Search, Results, SelectPlatform} from '../constants/search'
 
 type RawResult = Array<{
   score: number,
@@ -19,59 +22,77 @@ type RawResult = Array<{
   }
 }>
 
+function capitalize (string) {
+  return string.charAt(0).toUpperCase() + string.slice(1)
+}
+
 function parseFullName (rr: RawResult): string {
-  if (rr.keybase) {
-    return rr.keybase.full_name || ''
-  } else if (rr.service) {
-    return rr.service.full_name || ''
+  if (rr.keybase && rr.keybase.full_name) {
+    return rr.keybase.full_name
+  } else if (rr.service && rr.service.full_name) {
+    return rr.service.full_name
   }
 
   return ''
 }
 
-// TODO(MM) fix type
-function parseExtraInfo (platform: SearchPlatforms, rr: RawResult): any /* ExtraInfo */ {
+function parseExtraInfo (platform: SearchPlatforms, rr: RawResult): ExtraInfo {
   const fullName = parseFullName(rr)
+  const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
 
   if (platform === 'Keybase') {
-    // TODO (mm) We don't currently get non keybase extra info when searching in keybase
-
-    return {
-      service: 'none',
-      fullName,
+    if (rr.service && serviceName) {
+      return {
+        service: 'external',
+        icon: platformToIcon(serviceName),
+        serviceUsername: rr.service.username,
+        serviceAvatar: rr.service.picture_url,
+        fullNameOnService: fullName,
+      }
+    } else {
+      return {
+        service: 'none',
+        fullName,
+      }
     }
-  }
-  if (rr.service) {
+  } else {
+    if (rr.keybase) {
+      return {
+        service: 'keybase',
+        username: rr.keybase.username,
+        fullName: fullName,
+        // TODO (MM) get following status
+        isFollowing: false,
+      }
+    } else {
+      return {
+        service: 'none',
+        fullName,
+      }
+    }
   }
 }
 
 function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>) : Results {
   const results: Array<SearchResult> = filterNull(rresults.map(rr => {
-    console.log('TODO (MM)', parseExtraInfo(platform, rr))
-    if (platform === 'Keybase') {
-      if (rr.keybase) {
-        return {
-          service: 'keybase',
-          username: rr.keybase.username,
-          isFollowing: rr.keybase.is_followee,
-          extraInfo: {
-            service: 'none',
-            fullName: rr.keybase.full_name,
-          },
-        }
-      } else if (rr.service) {
-        return {
-          service: 'external',
-          icon: rr.service.picture_url,
-          username: rr.service.username,
-          extraInfo: {
-            service: 'external',
-            serviceUsername: rr.service.username,
-            fullNameOnService: rr.service.full_name,
-          },
-        }
-      }
+    const extraInfo = parseExtraInfo(platform, rr)
+    const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
 
+    if (platform === 'Keybase') {
+      return {
+        service: 'keybase',
+        username: rr.keybase.username,
+        isFollowing: rr.keybase.is_followee,
+        extraInfo,
+      }
+    } else if (serviceName) {
+      return {
+        service: 'external',
+        icon: platformToLogo32(serviceName),
+        username: rr.service.username,
+        extraInfo,
+      }
+    } else {
       return null
     }
   }))
@@ -116,11 +137,18 @@ export function search (term: string, platform: SearchPlatforms = 'Keybase') : T
       'Reddit': 'reddit',
       'Coinbase': 'coinbase',
       'Hackernews': 'hackernews',
+      'Pgp': 'pgp',
     }[platform]
 
-    console.log(term, platform)
     const limit = 20
     fetch(`https://keybase.io/_/api/1.0/user/user_search.json?q=${term}&num_wanted=${limit}&service=${service}`) // eslint-disable-line no-undef
       .then(response => response.json()).then(json => dispatch(rawResults(term, platform, json.list)))
+  }
+}
+
+export function selectPlatform (platform: SearchPlatforms): SelectPlatform {
+  return {
+    type: Constants.selectPlatform,
+    payload: {platform},
   }
 }

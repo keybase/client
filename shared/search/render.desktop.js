@@ -2,6 +2,8 @@
 import React, {Component} from 'react'
 import {Box} from '../common-adapters'
 import SearchHelp from './help.desktop'
+import {globalStyles} from '../styles/style-guide'
+import UserSearch from './user-search/render'
 import type {Props} from './render'
 
 class Render extends Component<void, Props, void> {
@@ -10,15 +12,15 @@ class Render extends Component<void, Props, void> {
   }
 
   render () {
+    console.log('props are:', this.props)
     if (this.props.showComingSoon) {
       return this._renderComingSoon()
     }
+
     return (
-      <Box>
-        <Text type='Body' onClick={() => this.props.onSearch('chris')}>Search chris!</Text>
-        <Text type='Body' onClick={() => this.props.onSearch('malg', 'Twitter')}>Search malg!</Text>
-        <Text type='Body' onClick={() => this.props.onSearch('malg', 'Keybase')}>Search malg on keybase!</Text>
-        Search : TODO
+      <Box style={globalStyles.flexBoxRow}>
+        <UserSearch {...this.props} />
+        <Box style={{flex: 1}} />
       </Box>
     )
   }
