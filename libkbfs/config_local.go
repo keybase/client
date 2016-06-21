@@ -570,13 +570,13 @@ func (c *ConfigLocal) ResetCaches() {
 	c.kcache = NewKeyCacheStandard(5000)
 	// Limit the block cache to 10K entries or 1024 blocks (currently 512MiB)
 	c.bcache = NewBlockCacheStandard(c, 10000, MaxBlockSizeBytesDefault*1024)
-	// Limit the number of unsynced (or actively syncing) bytes to 5
+	// Limit the number of unsynced (or actively syncing) bytes to 50
 	// MB (aka, the number of parallel block puts times the max size
 	// of a block).
-	unsyncedDirtyBytesLimit := int64(5 << 20)
+	unsyncedDirtyBytesLimit := int64(50 << 20)
 	// Limit the number of total dirty bytes (including those blocks
 	// that have already finished syncing, but for which the overall
-	// Sync operation isn't yet done) to 10 MB.
+	// Sync operation isn't yet done) to 100 MB.
 	totalDirtyBytesLimit := 2 * unsyncedDirtyBytesLimit
 	c.dirtyBcache = NewDirtyBlockCacheStandard(c.clock, unsyncedDirtyBytesLimit,
 		totalDirtyBytesLimit, MaxBlockSizeBytesDefault*2)
