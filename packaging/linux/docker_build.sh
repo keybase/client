@@ -69,8 +69,21 @@ if [ -z "$(docker images -q "$image")" ] ; then
   docker build -t "$image" "$clientdir/packaging/linux"
 fi
 
+# Run the docker job in interactive mode if we're actually talking to a
+# terminal. Interactive mode is required when the code signing key is password
+# protected, because gpg has to prompt you for the password. But docker will
+# refuse to start in interactive mode if it doesn't actually have a terminal to
+# talk to, like in a buildbot job. This check lets us have our stdin cake and
+# eat it too.
+if [ -t 0 ] ; then
+  # Stdin is a terminal.
+  interactive_args=("--tty" "--interactive")
+else
+  interactive_args=()
+fi
+
 echo '=== docker ==='
-docker run \
+docker run "${interactive_args[@]}" \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$kbfsdir:/KBFS:ro" \
