@@ -16,6 +16,9 @@ client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 serverops_dir="$client_dir/../server-ops"
 kbfs_dir="$client_dir/../kbfs"
 
+# Test all the different credentials that need to be configured.
+"$here/test_all_credentials.sh"
+
 export BUCKET_NAME="${BUCKET_NAME:-prerelease.keybase.io}"
 echo "Using BUCKET_NAME $BUCKET_NAME"
 
