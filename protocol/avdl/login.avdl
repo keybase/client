@@ -57,4 +57,9 @@ protocol login {
   void unlock(int sessionID);
   void unlockWithPassphrase(int sessionID, string passphrase);
 
+  /**
+    pgpProvision is for devel/testing to provision a device via pgp using CLI
+    with no user interaction.
+    */
+  void pgpProvision(int sessionID, string username, string deviceName, string pgpFingerprint);
 }

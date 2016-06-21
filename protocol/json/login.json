@@ -153,6 +153,28 @@
         }
       ],
       "response": null
+    },
+    "pgpProvision": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "deviceName",
+          "type": "string"
+        },
+        {
+          "name": "pgpFingerprint",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "pgpProvision is for devel/testing to provision a device via pgp using CLI\n    with no user interaction."
     }
   },
   "namespace": "keybase.1"

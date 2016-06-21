@@ -117,3 +117,7 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.UsernameOrEmail, arg.ClientType)
 	return engine.RunEngine(eng, ectx)
 }
+
+func (h *LoginHandler) PGPProvision(ctx context.Context, arg keybase1.PGPProvisionArg) error {
+	return nil
+}

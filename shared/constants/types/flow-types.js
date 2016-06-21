@@ -2195,6 +2195,19 @@ export type loginPaperKeySubmitRpc = {
   callback: (null | (err: ?any) => void)
 }
 
+export type loginPgpProvisionResult = void
+
+export type loginPgpProvisionRpc = {
+  method: 'login.pgpProvision',
+  param: {
+    username: string,
+    deviceName: string,
+    pgpFingerprint: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type loginRecoverAccountFromEmailAddressResult = void
 
 export type loginRecoverAccountFromEmailAddressRpc = {
@@ -3167,7 +3180,8 @@ export type signupSignupRpc = {
     username: string,
     deviceName: string,
     storeSecret: boolean,
-    skipMail: boolean
+    skipMail: boolean,
+    genPGPBatch: boolean
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: signupSignupResult) => void)
@@ -3621,6 +3635,7 @@ export type rpc =
   | loginLogoutRpc
   | loginPaperKeyRpc
   | loginPaperKeySubmitRpc
+  | loginPgpProvisionRpc
   | loginRecoverAccountFromEmailAddressRpc
   | loginUiDisplayPaperKeyPhraseRpc
   | loginUiDisplayPrimaryPaperKeyRpc
@@ -4580,6 +4595,18 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
+  'keybase.1.login.pgpProvision'?: (
+    params: {
+      sessionID: int,
+      username: string,
+      deviceName: string,
+      pgpFingerprint: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.loginUi.getEmailOrUsername'?: (
     params: {
       sessionID: int
@@ -5486,7 +5513,8 @@ export type incomingCallMapType = {
       username: string,
       deviceName: string,
       storeSecret: boolean,
-      skipMail: boolean
+      skipMail: boolean,
+      genPGPBatch: boolean
     },
     response: {
       error: (err: RPCError) => void,

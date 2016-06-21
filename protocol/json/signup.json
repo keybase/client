@@ -73,6 +73,10 @@
         {
           "name": "skipMail",
           "type": "boolean"
+        },
+        {
+          "name": "genPGPBatch",
+          "type": "boolean"
         }
       ],
       "response": "SignupRes"
