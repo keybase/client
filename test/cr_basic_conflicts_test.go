@@ -1197,6 +1197,7 @@ func TestCrBothSetMtimeDir(t *testing.T) {
 	targetMtime1 := time.Now().Add(1 * time.Minute)
 	targetMtime2 := targetMtime1.Add(1 * time.Minute)
 	test(t,
+		skip("dokan", "Dokan can't read mtimes on symlinks."),
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
