@@ -24,6 +24,7 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		NewCmdTestPassphrase(cl, g),
 		NewCmdTestFSNotify(cl, g),
 		NewCmdPaperProvision(cl, g),
+		NewCmdPGPProvision(cl, g),
 	}
 }
 
@@ -41,8 +42,8 @@ var restrictedSignupFlags = []cli.Flag{
 		Usage: "Batch mode (don't prompt, use all defaults)",
 	},
 	cli.BoolFlag{
-		Name:  "devel",
-		Usage: "Run the client in development mode",
+		Name:  "pgp",
+		Usage: "Add a server-synced pgp key",
 	},
 }
 

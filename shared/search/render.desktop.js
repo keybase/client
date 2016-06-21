@@ -1,11 +1,12 @@
 /* @flow */
 import React, {Component} from 'react'
-import {Box, ComingSoon} from '../common-adapters'
+import {Box} from '../common-adapters'
+import SearchHelp from './help.desktop'
 import type {Props} from './render'
 
 class Render extends Component<void, Props, void> {
   _renderComingSoon () {
-    return <ComingSoon />
+    return <SearchHelp username={this.props.username} />
   }
 
   render () {

@@ -2,6 +2,8 @@
 // @flow
 
 export const fontIcons = {
+  'fa-kb-iconfont-edit': String.fromCharCode(0xe91e),
+  'fa-kb-iconfont-ellipsis': String.fromCharCode(0xe91f),
   'fa-kb-iconfont-back': String.fromCharCode(0xe902),
   'fa-kb-iconfont-close': String.fromCharCode(0xe904),
   'fa-kb-iconfont-coinbase': String.fromCharCode(0xe905),

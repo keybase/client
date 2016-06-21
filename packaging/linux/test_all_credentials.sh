@@ -30,4 +30,6 @@ curl --fail --silent --show-error "$github_url" > /dev/null
 
 echo 'Checking the GPG code signing key...'
 fingerprint="$(cat "$here/code_signing_fingerprint")"
-gpg --sign --default-key="$fingerprint" <<< "junk" > /dev/null
+gpg --sign --use-agent --default-key="$fingerprint" <<< "junk" > /dev/null
+
+echo "SUCCESS!"

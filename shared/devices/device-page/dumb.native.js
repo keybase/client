@@ -13,6 +13,7 @@ const common = {
   provisionedAt: null,
   lastUsed: 1444423192001,
   showRemoveDevicePage: () => {},
+  onBack: () => { console.log('onBack') },
 }
 
 const map: DumbComponentMap<Render> = {

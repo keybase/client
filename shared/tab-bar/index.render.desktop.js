@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import {Box, TabBar, Avatar, Icon} from '../common-adapters'
 import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
+import flags from '../util/feature-flags'
 
 import {profileTab, peopleTab, folderTab, devicesTab, settingsTab} from '../constants/tabs'
 
@@ -49,9 +50,12 @@ export default class Render extends Component<void, Props, void> {
 
     return (
       <TabBarItem
-        key='search' tabBarButton={button}
+        key='search'
+        tabBarButton={button}
         selected={searchActive}
-        onClick={onClick} containerStyle={{...stylesTabBarItem}}>
+        onClick={onClick}
+        style={{...stylesTabBarItem}}
+      >
         {this.props.searchContent || <Box />}
       </TabBarItem>
     )
@@ -64,7 +68,6 @@ export default class Render extends Component<void, Props, void> {
     const label = this.props.username
     return (
       <TabBarButton
-        style={{flex: 0}}
         label={label}
         selected={this.props.selectedTab === tab}
         badgeNumber={this.props.badgeNumbers[tab]}
@@ -86,7 +89,8 @@ export default class Render extends Component<void, Props, void> {
   }
 
   _renderVisibleTabItems () {
-    const tabs = [peopleTab, folderTab, devicesTab, settingsTab, profileTab]
+    const tabs = [folderTab, devicesTab, settingsTab, profileTab]
+    if (flags.tabPeopleEnabled) tabs.push(peopleTab)
 
     return tabs.map(t => {
       const onClick = () => this.props.onTabClick(t)
@@ -96,8 +100,13 @@ export default class Render extends Component<void, Props, void> {
 
       return (
         <TabBarItem
-          key={t} tabBarButton={button}
-          selected={this.props.selectedTab === t} onClick={onClick} containerStyle={{...stylesTabBarItem, ...(isProfile && {flex: 1, justifyContent: 'flex-end'})}}>
+          key={t}
+          tabBarButton={button}
+          selected={this.props.selectedTab === t}
+          onClick={onClick}
+          style={{...stylesTabBarItem}}
+          styleContainer={{...(isProfile ? {flex: 1, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'} : {})}}
+        >
           <Box style={{flex: 1, ...globalStyles.flexBoxColumn}}>{this.props.tabContent[t]}</Box>
         </TabBarItem>
       )
@@ -116,7 +125,7 @@ export default class Render extends Component<void, Props, void> {
 
     return (
       <TabBar style={stylesTabBarContainer}
-        tabBarStyle={{...stylesTabBar, backgroundColor}}>
+        styleTabBar={{...stylesTabBar, backgroundColor}}>
         {tabItems}
       </TabBar>
     )

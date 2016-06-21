@@ -34,7 +34,7 @@ const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
     color: globalColors.white,
-    backgroundColor: globalColors.darkBlue3,
+    backgroundColor: globalColors.midnightBlue,
     padding: 10,
     justifyContent: 'stretch',
     alignItems: 'flex-start',

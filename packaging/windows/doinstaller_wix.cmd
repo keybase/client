@@ -11,11 +11,14 @@ set GOARCH=386
 set Folder=%GOPATH%\src\github.com\keybase\client\go\keybase\
 set PathName=%Folder%keybase.exe
 
+if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
+echo DOKAN_PATH %DOKAN_PATH%
+
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
 
 :: Capture the windows style version
 for /f %%i in ('%Folder%winresource.exe -w') do set KEYBASE_WINVER=%%i
-echo %KEYBASE_WINVER%
+echo KEYBASE_WINVER %KEYBASE_WINVER%
 
 :: Capture keybase's semantic version
 for /f "tokens=3" %%i in ('%PathName% -version') do set SEMVER=%%i
@@ -23,10 +26,12 @@ echo %SEMVER%
 ::Set this again for Jenkins
 set KEYBASE_VERSION=%SEMVER%
 
+echo KEYBASE_VERSION %KEYBASE_VERSION%
+
 :: dokan source binaries.
 :: There are 8 (4 windows versions times 32/64 bit) but they all seem to have the same version.
-for /f %%i in ('PowerShell "(Get-Item %GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4\Win32\Win10Release\dokan1.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
-echo %DOKANVER%
+for /f %%i in ('PowerShell "(Get-Item %DOKAN_PATH%\Win32\Win10Release\dokan1.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
+echo DOKANVER %DOKANVER%
 IF %DOKANVER%=="" (
   EXIT /B 1
 )
@@ -37,23 +42,23 @@ IF %DOKANVER%=="" (
 ::   http://tsa.starfieldtech.com
 ::   http://timestamp.comodoca.com/authenticode
 ::   http://timestamp.digicert.com
-SignTool.exe sign /a /tr http://timestamp.digicert.com %PathName%
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %PathName%
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+SignTool.exe sign /i digicert  /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )

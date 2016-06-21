@@ -29,7 +29,7 @@ export default class Render extends Component<void, Props, void> {
     return (
       <TabBar style={{flex: 1}}
         tabBarOnBottom
-        tabBarStyle={stylesTabBar}>
+        styleTabBar={stylesTabBar}>
 
         {tabs.map(t => {
           const onPress = () => this.props.onTabClick(t)
@@ -47,7 +47,7 @@ export default class Render extends Component<void, Props, void> {
 
           return (
             <TabBarItem
-              key={t} tabBarButton={button} selected={this.props.selectedTab === t} onClick={onPress} containerStyle={{flex: 1}}>
+              key={t} tabBarButton={button} selected={this.props.selectedTab === t} onClick={onPress} styleContainer={{flex: 1}}>
               {this.props.tabContent[t]}
             </TabBarItem>
           )

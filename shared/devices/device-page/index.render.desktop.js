@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import type {Props, BannerItem} from './index.render'
-import {Box, Text, Icon, Button} from '../../common-adapters'
+import {Box, Text, Icon, Button, BackButton} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import type {Props as IconProps} from '../../common-adapters/icon'
 
@@ -59,7 +59,8 @@ const Timeline = ({timeline}) => (
   </Box>
 )
 
-const Render = ({banner, name, type, deviceID, currentDevice, timeline, revokedAt, showRemoveDevicePage, device}: Props) => {
+const Render = ({banner, name, type, deviceID, currentDevice,
+  timeline, revokedAt, showRemoveDevicePage, device, onBack}: Props) => {
   const icon: IconProps.type = {
     'mobile': 'phone-big',
     'desktop': 'computer-big',
@@ -74,6 +75,7 @@ const Render = ({banner, name, type, deviceID, currentDevice, timeline, revokedA
 
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
+      <BackButton style={{marginLeft: 13, marginTop: 13}} onClick={onBack} />
       {(banner != null) && <Banner type={banner.type} desc={banner.desc} />}
       <Box style={{...globalStyles.flexBoxRow, padding: 30}}>
         <Box style={{...globalStyles.flexBoxRow, width: 180, justifyContent: 'center', alignItems: 'flex-start'}}>

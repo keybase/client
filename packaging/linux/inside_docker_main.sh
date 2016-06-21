@@ -61,8 +61,5 @@ fi
 # Check out the given client commit.
 git -C "$client_clone" checkout -f "$commit"
 
-# Test all the different credentials that need to be configured.
-"$client_clone/packaging/linux/test_all_credentials.sh"
-
 # Do the build!
 "$client_clone/packaging/linux/build_and_push_packages.sh" "$mode" "$build_dir"

@@ -8,8 +8,9 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 
 class Render extends Component<void, Props, void> {
   _makeItem (isPublic: boolean, isSelected: boolean) {
+    const icon = isPublic ? 'subnav-folders-public' : 'subnav-folders-private'
     return <TabBarButton
-      source={{type: 'icon', icon: `subnav-folders-${isPublic ? 'public' : 'private'}`}}
+      source={{type: 'icon', icon}}
       style={{
         ...styleItem,
         borderBottomWidth: 2,
@@ -34,10 +35,10 @@ class Render extends Component<void, Props, void> {
   render () {
     return (
       <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
-        <TabBar tabBarStyle={tabBarStyle}>
+        <TabBar styleTabBar={tabBarStyle}>
           <TabBarItem
             selected={this.props.showingPrivate}
-            containerStyle={itemContainerStyle}
+            styleContainer={itemContainerStyle}
             tabBarButton={this._makeItem(false, this.props.showingPrivate === true)}
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(true) }}>
             <List
@@ -48,7 +49,7 @@ class Render extends Component<void, Props, void> {
           </TabBarItem>
           <TabBarItem
             selected={!this.props.showingPrivate}
-            containerStyle={itemContainerStyle}
+            styleContainer={itemContainerStyle}
             tabBarButton={this._makeItem(true, this.props.showingPrivate === false)}
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(false) }}>
             <List
