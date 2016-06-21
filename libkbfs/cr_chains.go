@@ -153,14 +153,16 @@ func (cc *crChain) isFile() bool {
 // state, but setAttr(mtime) can apply to either type; in that case,
 // we need to fetch the block to figure out the type.
 func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
-	md *RootMetadata) error {
+	md *RootMetadata, chains *crChains) error {
 	if len(cc.ops) == 0 {
 		return nil
 	}
 
 	// If any op is setAttr (ex or size) or sync, this is a file
 	// chain.  If it only has a setAttr/mtime, we don't know what it
-	// is, just return false.
+	// is, so fall through and fetch the block unless we come across
+	// another op that can determine the type.
+	var parentDir BlockPointer
 	for _, op := range cc.ops {
 		switch realOp := op.(type) {
 		case *syncOp:
@@ -173,24 +175,50 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 			}
 			// We can't tell the file type from an mtimeAttr, so we
 			// may have to actually fetch the block to figure it out.
+			parentDir = realOp.Dir.Ref
 		default:
 			return nil
 		}
 	}
 
-	// If we get down here, we have an ambiguity, and need to fetch
-	// the block to figure out the file type.
-	_, err := fbo.GetDirBlockForReading(ctx, makeFBOLockState(), md,
-		cc.mostRecent, fbo.folderBranch.Branch, path{})
-	_, blockDecodeErr := err.(BlockDecodeError) // if we fetched remote block
-	_, notDirErr := err.(NotDirBlockError)      // block was already cached
-	if blockDecodeErr || notDirErr {
-		cc.file = true
-		return nil
-	} else if err != nil {
+	parentOriginal, ok := chains.originals[parentDir]
+	if !ok {
+		return NoChainFoundError{parentDir}
+	}
+
+	// We have to find the current parent directory block.  If the
+	// file has been renamed, that might be different from parentDir
+	// above.
+	if newParent, _, ok := chains.renamedParentAndName(cc.original); ok {
+		parentOriginal = newParent
+	}
+
+	parentMostRecent, err := chains.mostRecentFromOriginalOrSame(parentOriginal)
+	if err != nil {
 		return err
 	}
-	// Directory!
+
+	// If we get down here, we have an ambiguity, and need to fetch
+	// the block to figure out the file type.
+	dblock, err := fbo.GetDirBlockForReading(ctx, makeFBOLockState(), md,
+		parentMostRecent, fbo.folderBranch.Branch, path{})
+	if err != nil {
+		return err
+	}
+	// We don't have the file name handy, so search for the pointer.
+	found := false
+	for _, entry := range dblock.Children {
+		if entry.BlockPointer != cc.mostRecent {
+			continue
+		}
+		cc.file = entry.Type != Dir
+		found = true
+		break
+	}
+
+	if !found {
+		return fmt.Errorf("Couldn't find directory entry for %v", cc.mostRecent)
+	}
 	return nil
 }
 
@@ -547,7 +575,7 @@ func newCRChainsEmpty() *crChains {
 }
 
 func newCRChains(ctx context.Context, cfg Config, rmds []*RootMetadata,
-	fbo *folderBlockOps) (
+	fbo *folderBlockOps, identifyTypes bool) (
 	ccs *crChains, err error) {
 	ccs = newCRChainsEmpty()
 
@@ -592,9 +620,12 @@ func newCRChains(ctx context.Context, cfg Config, rmds []*RootMetadata,
 		// chain around so we can see the mapping between the original
 		// and most recent pointers.
 
-		// Figure out if this chain is a file or directory.
-		if len(rmds) > 0 {
-			err := chain.identifyType(ctx, fbo, rmds[len(rmds)-1])
+		// Figure out if this chain is a file or directory.  We don't
+		// need to do this for chains that represent a resolution in
+		// progress, since in that case all actions are already
+		// completed.
+		if len(rmds) > 0 && identifyTypes {
+			err := chain.identifyType(ctx, fbo, rmds[len(rmds)-1], ccs)
 			if err != nil {
 				return nil, err
 			}

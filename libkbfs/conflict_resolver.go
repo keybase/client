@@ -299,12 +299,14 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 func (cr *ConflictResolver) makeChains(ctx context.Context,
 	unmerged []*RootMetadata, merged []*RootMetadata) (
 	unmergedChains *crChains, mergedChains *crChains, err error) {
-	unmergedChains, err = newCRChains(ctx, cr.config, unmerged, &cr.fbo.blocks)
+	unmergedChains, err =
+		newCRChains(ctx, cr.config, unmerged, &cr.fbo.blocks, true)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	mergedChains, err = newCRChains(ctx, cr.config, merged, &cr.fbo.blocks)
+	mergedChains, err =
+		newCRChains(ctx, cr.config, merged, &cr.fbo.blocks, true)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1695,15 +1697,23 @@ func collapseActions(unmergedChains *crChains, unmergedPaths []path,
 			var parentActions crActionList
 			var otherDirActions crActionList
 			for _, action := range fileActions {
-				if cAttr, ok := action.(*copyUnmergedAttrAction); ok &&
-					cAttr.attr[0] == mtimeAttr && !cAttr.moved {
-					cAttr.moved = true
-					parentActions = append(parentActions, cAttr)
-				} else if rua, ok := action.(*renameUnmergedAction); ok &&
-					rua.causedByAttr == mtimeAttr && !rua.moved {
-					rua.moved = true
-					parentActions = append(parentActions, rua)
-				} else {
+				moved := false
+				switch realAction := action.(type) {
+				case *copyUnmergedAttrAction:
+					if realAction.attr[0] == mtimeAttr && !realAction.moved {
+						realAction.moved = true
+						parentActions = append(parentActions, realAction)
+						moved = true
+					}
+				case *renameUnmergedAction:
+					if realAction.causedByAttr == mtimeAttr &&
+						!realAction.moved {
+						realAction.moved = true
+						parentActions = append(parentActions, realAction)
+						moved = true
+					}
+				}
+				if !moved {
 					otherDirActions = append(otherDirActions, action)
 				}
 			}
@@ -2458,8 +2468,10 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 	md *RootMetadata, unmergedChains *crChains, mergedChains *crChains,
 	mergedPaths map[BlockPointer]path) (map[BlockPointer]path, error) {
+	// No need to run any identifies on these chains, since we have
+	// already finished all actions.
 	resolvedChains, err := newCRChains(ctx, cr.config,
-		[]*RootMetadata{md}, &cr.fbo.blocks)
+		[]*RootMetadata{md}, &cr.fbo.blocks, false)
 	if err != nil {
 		return nil, err
 	}

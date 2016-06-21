@@ -191,6 +191,38 @@ func TestCrUnmergedSetMtimeOnMovedFile(t *testing.T) {
 	)
 }
 
+// bob sets the mtime on an empty file while unstaged.  We want to
+// test this separately from a file with contents, to make sure we can
+// properly identify a file node that is empty (and hence can be
+// decoded as a DirBlock).
+func TestCrUnmergedSetMtimeEmptyFile(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", ""),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/c", "hello"),
+		),
+		as(bob, noSync(),
+			setmtime("a/b", targetMtime),
+			reenableUpdates(),
+			lsdir("a/", m{"b": "FILE", "c": "FILE"}),
+			read("a/c", "hello"),
+			mtime("a/b", targetMtime),
+		),
+		as(alice,
+			lsdir("a/", m{"b": "FILE", "c": "FILE"}),
+			read("a/c", "hello"),
+			mtime("a/b", targetMtime),
+		),
+	)
+}
+
 // bob sets the mtime on a dir while unstaged
 func TestCrUnmergedSetMtimeOnDir(t *testing.T) {
 	targetMtime := time.Now().Add(1 * time.Minute)
