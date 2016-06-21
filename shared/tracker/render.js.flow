@@ -22,7 +22,6 @@ export type RenderPropsUnshaped = {
   proofs: Array<Proof>,
   reason: string,
   serviceName?: string,
-  shouldFollow: ?boolean,
   trackerState: SimpleProofState,
   userInfo: ?UserInfo,
   username: string,

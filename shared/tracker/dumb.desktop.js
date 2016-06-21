@@ -75,7 +75,6 @@ const propsDefault: TrackerProps = {
     avatar: 'https://keybase.io/darksim905/picture',
     followsYou: false,
   },
-  shouldFollow: true,
   trackerState: normal,
   proofs: proofsDefault,
 
@@ -184,7 +183,6 @@ const propsLessData: TrackerProps = {
     avatar: 'http://placehold.it/140x140/ffffff/000000',
     location: '',
   },
-  shouldFollow: true,
   currentlyFollowing: false,
   trackerState: normal,
   proofs: [

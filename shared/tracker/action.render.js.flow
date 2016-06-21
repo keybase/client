@@ -8,7 +8,6 @@ export type ActionProps = {
   state: SimpleProofState,
   currentlyFollowing: boolean,
   username: string,
-  shouldFollow: ?boolean,
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   onClose: () => void,
   onIgnore: () => void,
