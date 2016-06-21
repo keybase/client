@@ -16,6 +16,7 @@ export type Props = $Shape<{
   rows?: number,
   rowsMax?: number,
   style?: Object,
+  textStyle?: Object,
   inputStyle?: Object,
   iosOmitUnderline?: boolean,
   underlineStyle?: Object,

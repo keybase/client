@@ -87,7 +87,7 @@ export default class Input extends Component {
           inputStyle={{...(this.props.small ? {} : {marginTop: 6}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}
           underlineStyle={{...styles.underlineStyle, ...this.props.underlineStyle}}
           errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
-          style={{...textStyle, ...globalStyles.flexBoxColumn}}
+          style={{...textStyle, ...globalStyles.flexBoxColumn, ...this.props.textStyle}}
           autoFocus={this.props.autoFocus}
           errorText={this.props.errorText}
           floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}

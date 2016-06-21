@@ -189,7 +189,7 @@ export default class Render extends Component<void, Props, void> {
               onClickService={this.props.onClickService}
               />
           </Box>
-          <Input type='text' ref='searchBox' onEnterKeyDown={e => this.props.onSearch(this.refs.searchBox ? this.refs.searchBox.getValue() : '')} value={this.props.searchText} hintText={this.props.searchHintText} style={styles.input} underlineStyle={{display: 'none'}} />
+          <Input type='text' ref='searchBox' onEnterKeyDown={e => this.props.onSearch(this.refs.searchBox ? this.refs.searchBox.getValue() : '')} value={this.props.searchText} hintText={this.props.searchHintText} style={styles.input} underlineStyle={{display: 'none'}} textStyle={{height: 40}} />
         </Box>
         {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} searchText={this.props.searchText || ''} onClickResult={this.props.onClickResult} />)}
       </Box>

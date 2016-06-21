@@ -10,7 +10,8 @@ export type State = {
   searchText: string,
   searchIcon: IconProps.type,
   searchPlatform: SearchPlatforms,
-  results: Array<SearchResult>
+  results: Array<SearchResult>,
+  selectedUsers: Array<SearchResult>,
 }
 
 const initialState: State = {
@@ -18,6 +19,7 @@ const initialState: State = {
   searchText: '',
   searchIcon: 'logo-24',
   searchPlatform: 'Keybase',
+  selectedUsers: [],
   results: [],
 }
 
