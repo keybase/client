@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"math"
 	"os"
-	"reflect"
 	"sync"
 	"syscall"
 	"time"
@@ -739,7 +738,11 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 	if err != nil {
 		return nil, false, err
 	}
-	if !reflect.DeepEqual(tlf.folder.h, handle) {
+	eq, err := tlf.folder.h.Equals(tlf.folder.fs.config.Codec(), *handle)
+	if err != nil {
+		return nil, false, err
+	}
+	if !eq {
 		// Make sure the name changes in the folder and the folder list
 		tlf.folder.TlfHandleChange(ctx, handle)
 	}

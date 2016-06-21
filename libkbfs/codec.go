@@ -175,7 +175,7 @@ func (c *CodecMsgpack) RegisterIfaceSliceType(rt reflect.Type, code extCode,
 }
 
 // CodecEqual returns whether or not the given objects serialize to
-// the same byte string.
+// the same byte string. x or y (or both) can be nil.
 func CodecEqual(c Codec, x, y interface{}) (bool, error) {
 	xBuf, err := c.Encode(x)
 	if err != nil {

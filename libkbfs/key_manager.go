@@ -6,7 +6,6 @@ package libkbfs
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -438,7 +437,11 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		}
 	}
 
-	handleChanged := !reflect.DeepEqual(handle, resolvedHandle)
+	eq, err := handle.Equals(km.config.Codec(), *resolvedHandle)
+	if err != nil {
+		return false, nil, err
+	}
+	handleChanged := !eq
 	if handleChanged {
 		km.log.CDebugf(ctx, "handle for %s resolved to %s",
 			handle.GetCanonicalPath(),

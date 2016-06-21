@@ -131,7 +131,7 @@ func kbfsTestShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 // kbfsOpsInitNoMocks returns a config that doesn't use any mocks. The
 // shutdown call is just config.Shutdown().
 func kbfsOpsInitNoMocks(t *testing.T, users ...libkb.NormalizedUsername) (
-	Config, keybase1.UID, context.Context) {
+	*ConfigLocal, keybase1.UID, context.Context) {
 	config := MakeTestConfigOrBust(t, users...)
 
 	_, currentUID, err := config.KBPKI().GetCurrentUserInfo(context.Background())
@@ -5113,7 +5113,7 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	}
 
 	// Read using a different "device"
-	config2 := ConfigAsUser(config.(*ConfigLocal), "test_user")
+	config2 := ConfigAsUser(config, "test_user")
 	defer CheckConfigAndShutdown(t, config2)
 	// Shutdown the mdserver explicitly before the state checker tries to run
 	defer config2.MDServer().Shutdown()
@@ -5144,4 +5144,60 @@ func TestKBFSOpsEmptyTlfSize(t *testing.T) {
 		t.Fatalf("Disk usage of an empty TLF is no longer 313.  " +
 			"Talk to max or strib about why this matters.")
 	}
+}
+
+type cryptoFixedTlf struct {
+	Crypto
+	tlf TlfID
+}
+
+func (c cryptoFixedTlf) MakeRandomTlfID(isPublic bool) (TlfID, error) {
+	return c.tlf, nil
+}
+
+// TestKBFSOpsMaliciousMDServerRange tries to trick KBFSOps into
+// accepting bad MDs.
+func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
+	config1, _, ctx := kbfsOpsInitNoMocks(t, "alice", "mallory")
+	defer config1.Shutdown()
+
+	// Create alice's TLF.
+	rootNode1 := GetRootNodeOrBust(t, config1, "alice", false)
+	fb1 := rootNode1.GetFolderBranch()
+
+	kbfsOps1 := config1.KBFSOps()
+
+	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "dummy.txt", false)
+	require.NoError(t, err)
+
+	// Create mallory's fake TLF using the same TLF ID as alice's.
+	config2 := ConfigAsUser(config1, "mallory")
+	crypto2 := cryptoFixedTlf{config2.Crypto(), fb1.Tlf}
+	config2.SetCrypto(crypto2)
+	mdserver2, err := NewMDServerMemory(config2)
+	require.NoError(t, err)
+	config2.SetMDServer(mdserver2)
+	config2.SetMDCache(NewMDCacheStandard(1))
+
+	rootNode2 := GetRootNodeOrBust(t, config2, "alice,mallory", false)
+	require.Equal(t, fb1.Tlf, rootNode2.GetFolderBranch().Tlf)
+
+	kbfsOps2 := config2.KBFSOps()
+
+	// Add some operations to get mallory's TLF to have a higher
+	// MetadataVersion.
+	_, _, err = kbfsOps2.CreateFile(
+		ctx, rootNode2, "dummy.txt", false)
+	require.NoError(t, err)
+	err = kbfsOps2.RemoveEntry(ctx, rootNode2, "dummy.txt")
+	require.NoError(t, err)
+
+	// Now route alice's TLF to mallory's MD server.
+	config1.SetMDServer(mdserver2.copy(config1))
+
+	// Simulate the server triggering alice to update.
+	config1.SetKeyCache(NewKeyCacheStandard(1))
+	err = kbfsOps1.SyncFromServerForTesting(ctx, fb1)
+	require.EqualError(t, err,
+		"old head \"alice\" resolves to \"alice\" instead of new head \"alice,mallory\"")
 }

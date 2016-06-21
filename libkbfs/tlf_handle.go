@@ -154,12 +154,6 @@ func (h *TlfHandle) UpdateConflictInfo(
 	}
 	// Make sure conflict info is the same; the conflict info for
 	// a TLF, once set, is immutable and should never change.
-	if info == nil {
-		return TlfHandleExtensionMismatchError{
-			Expected: *h.ConflictInfo(),
-			Actual:   nil,
-		}
-	}
 	equal, err := CodecEqual(codec, h.conflictInfo, info)
 	if err != nil {
 		return err
@@ -202,6 +196,61 @@ func (h TlfHandle) Extensions() (extensions []TlfHandleExtension) {
 		extensions = append(extensions, *h.FinalizedInfo())
 	}
 	return extensions
+}
+
+func init() {
+	if reflect.ValueOf(TlfHandle{}).NumField() != 8 {
+		panic(errors.New(
+			"Unexpected number of fields in TlfHandle; " +
+				"please update TlfHandle.Equals() for your " +
+				"new or removed field"))
+	}
+}
+
+// Equals returns whether h and other contain the same info.
+func (h TlfHandle) Equals(codec Codec, other TlfHandle) (bool, error) {
+	if h.public != other.public {
+		return false, nil
+	}
+
+	if !reflect.DeepEqual(h.resolvedWriters, other.resolvedWriters) {
+		return false, nil
+	}
+
+	if !reflect.DeepEqual(h.resolvedReaders, other.resolvedReaders) {
+		return false, nil
+	}
+
+	if !reflect.DeepEqual(h.unresolvedWriters, other.unresolvedWriters) {
+		return false, nil
+	}
+
+	if !reflect.DeepEqual(h.unresolvedReaders, other.unresolvedReaders) {
+		return false, nil
+	}
+
+	eq, err := CodecEqual(codec, h.conflictInfo, other.conflictInfo)
+	if err != nil {
+		return false, err
+	}
+	if !eq {
+		return false, nil
+	}
+
+	eq, err = CodecEqual(codec, h.finalizedInfo, other.finalizedInfo)
+	if err != nil {
+		return false, err
+	}
+	if !eq {
+		return false, nil
+	}
+
+	if h.name != other.name {
+		panic(fmt.Errorf(
+			"%+v equals %+v in everything but name", h, other))
+	}
+
+	return true, nil
 }
 
 // ToBareHandle returns a BareTlfHandle corresponding to this handle.
@@ -550,6 +599,57 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 func (h *TlfHandle) ResolveAgain(ctx context.Context, resolver resolver) (
 	*TlfHandle, error) {
 	return h.ResolveAgainForUser(ctx, resolver, keybase1.UID(""))
+}
+
+type partialResolver struct {
+	unresolvedAssertions map[string]bool
+	delegate             resolver
+}
+
+func (pr partialResolver) Resolve(ctx context.Context, assertion string) (
+	libkb.NormalizedUsername, keybase1.UID, error) {
+	if pr.unresolvedAssertions[assertion] {
+		// Force an unresolved assertion.
+		return libkb.NormalizedUsername(""),
+			keybase1.UID(""), NoSuchUserError{assertion}
+	}
+	return pr.delegate.Resolve(ctx, assertion)
+}
+
+// ResolvesTo returns whether this handle resolves to the given one.
+// It also returns the partially-resolved version of h, i.e. h
+// resolved except for unresolved assertions in other; this should
+// equal other if and only if true is returned.
+func (h TlfHandle) ResolvesTo(
+	ctx context.Context, codec Codec, resolver resolver, other *TlfHandle) (
+	resolvesTo bool, partialResolvedH *TlfHandle, err error) {
+	unresolvedAssertions := make(map[string]bool)
+	for _, uw := range other.unresolvedWriters {
+		unresolvedAssertions[uw.String()] = true
+	}
+	for _, ur := range other.unresolvedReaders {
+		unresolvedAssertions[ur.String()] = true
+	}
+
+	// TODO: Once we keep track of the original assertions in
+	// TlfHandle, restrict the resolver to use other's assertions
+	// only, so that we don't hit the network at all.
+	partialResolvedH, err = h.ResolveAgain(
+		ctx, partialResolver{unresolvedAssertions, resolver})
+	if err != nil {
+		return false, nil, err
+	}
+
+	// TODO: If h doesn't have conflict info and other does, and
+	// everything else is equal, we should still return true.
+	//
+	// TODO: The same for finalized info?
+	resolvesTo, err = partialResolvedH.Equals(codec, *other)
+	if err != nil {
+		return false, nil, err
+	}
+
+	return resolvesTo, partialResolvedH, nil
 }
 
 func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase1.SocialAssertion {

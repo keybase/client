@@ -346,6 +346,89 @@ func TestTlfHandleFinalizedInfo(t *testing.T) {
 	require.Nil(t, h.FinalizedInfo())
 }
 
+func TestTlfHandlEqual(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{
+		"u1", "u2", "u3", "u4", "u5",
+	})
+	currentUID := localUsers[0].UID
+	codec := NewCodecMsgpack()
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, codec)
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name1 := "u1,u2@twitter,u3,u4@twitter"
+	h1, err := ParseTlfHandle(ctx, kbpki, name1, true)
+	require.NoError(t, err)
+
+	eq, err := h1.Equals(codec, *h1)
+	require.NoError(t, err)
+	require.True(t, eq)
+
+	// Test public bit.
+
+	h2, err := ParseTlfHandle(ctx, kbpki, name1, false)
+	require.NoError(t, err)
+	eq, err = h1.Equals(codec, *h2)
+	require.NoError(t, err)
+	require.False(t, eq)
+
+	// Test resolved and unresolved readers and writers.
+
+	name1 = "u1,u2@twitter#u3,u4@twitter"
+	h1, err = ParseTlfHandle(ctx, kbpki, name1, false)
+	require.NoError(t, err)
+
+	for _, name2 := range []string{
+		"u1,u2@twitter,u5#u3,u4@twitter",
+		"u1,u5@twitter#u3,u4@twitter",
+		"u1,u2@twitter#u4@twitter,u5",
+		"u1,u2@twitter#u3,u5@twitter",
+	} {
+		h2, err := ParseTlfHandle(ctx, kbpki, name2, false)
+		require.NoError(t, err)
+		eq, err := h1.Equals(codec, *h2)
+		require.NoError(t, err)
+		require.False(t, eq)
+	}
+
+	// Test conflict info and finalized info.
+
+	h2, err = ParseTlfHandle(ctx, kbpki, name1, false)
+	require.NoError(t, err)
+	info := TlfHandleExtension{
+		Date:   100,
+		Number: 50,
+		Type:   TlfHandleExtensionConflict,
+	}
+	err = h2.UpdateConflictInfo(codec, &info)
+	require.NoError(t, err)
+
+	eq, err = h1.Equals(codec, *h2)
+	require.NoError(t, err)
+	require.False(t, eq)
+
+	h2, err = ParseTlfHandle(ctx, kbpki, name1, false)
+	require.NoError(t, err)
+	h2.SetFinalizedInfo(&info)
+
+	eq, err = h1.Equals(codec, *h2)
+	require.NoError(t, err)
+	require.False(t, eq)
+
+	// Test panic on name difference.
+	h2, err = ParseTlfHandle(ctx, kbpki, name1, false)
+	require.NoError(t, err)
+	h2.name += "x"
+
+	require.Panics(t, func() {
+		h1.Equals(codec, *h2)
+	}, "in everything but name")
+}
+
 func TestParseTlfHandleSocialAssertion(t *testing.T) {
 	ctx := context.Background()
 
@@ -555,7 +638,7 @@ func TestResolveAgainConflict(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
-	daemon.addNewAssertionForTest("u3", "u3@twitter")
+	daemon.addNewAssertionForTestOrBust("u3", "u3@twitter")
 	ext, err := NewTlfHandleExtension(TlfHandleExtensionConflict, 1)
 	if err != nil {
 		t.Fatal(err)
@@ -565,6 +648,125 @@ func TestResolveAgainConflict(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName("u1,u2#u3"+
 		TlfHandleExtensionSep+ext.String()), newH.GetCanonicalName())
+}
+
+func TestTlfHandleResolvesTo(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{
+		"u1", "u2", "u3", "u4", "u5",
+	})
+	currentUID := localUsers[0].UID
+	codec := NewCodecMsgpack()
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, codec)
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name1 := "u1,u2@twitter,u3,u4@twitter"
+	h1, err := ParseTlfHandle(ctx, kbpki, name1, true)
+	require.NoError(t, err)
+
+	resolvesTo, partialResolvedH1, err :=
+		h1.ResolvesTo(ctx, codec, kbpki, h1)
+	require.NoError(t, err)
+	require.True(t, resolvesTo)
+	require.Equal(t, h1, partialResolvedH1)
+
+	// Test different public bit.
+
+	h2, err := ParseTlfHandle(ctx, kbpki, name1, false)
+	require.NoError(t, err)
+
+	resolvesTo, partialResolvedH1, err =
+		h1.ResolvesTo(ctx, codec, kbpki, h2)
+	require.NoError(t, err)
+	require.False(t, resolvesTo)
+	require.Equal(t, h1, partialResolvedH1)
+
+	// Test differing conflict info or finalized info.
+
+	h2, err = ParseTlfHandle(ctx, kbpki, name1, false)
+	require.NoError(t, err)
+	info := TlfHandleExtension{
+		Date:   100,
+		Number: 50,
+		Type:   TlfHandleExtensionConflict,
+	}
+	err = h2.UpdateConflictInfo(codec, &info)
+	require.NoError(t, err)
+
+	resolvesTo, partialResolvedH1, err =
+		h1.ResolvesTo(ctx, codec, kbpki, h2)
+	require.NoError(t, err)
+	require.False(t, resolvesTo)
+	require.Equal(t, h1, partialResolvedH1)
+
+	h2, err = ParseTlfHandle(ctx, kbpki, name1, false)
+	require.NoError(t, err)
+	h2.SetFinalizedInfo(&info)
+
+	resolvesTo, partialResolvedH1, err =
+		h1.ResolvesTo(ctx, codec, kbpki, h2)
+	require.NoError(t, err)
+	require.False(t, resolvesTo)
+	require.Equal(t, h1, partialResolvedH1)
+
+	// Test positive resolution cases.
+
+	name1 = "u1,u2@twitter,u5#u3,u4@twitter"
+	h1, err = ParseTlfHandle(ctx, kbpki, name1, false)
+	require.NoError(t, err)
+
+	type testCase struct {
+		name2     string
+		resolveTo string
+	}
+
+	for _, tc := range []testCase{
+		// Resolve to new user.
+		{"u1,u2,u5#u3,u4@twitter", "u2"},
+		// Resolve to existing writer.
+		{"u1,u5#u3,u4@twitter", "u1"},
+		// Resolve to existing reader.
+		{"u1,u3,u5#u4@twitter", "u3"},
+	} {
+		h2, err = ParseTlfHandle(ctx, kbpki, tc.name2, false)
+		require.NoError(t, err)
+
+		daemon.addNewAssertionForTestOrBust(tc.resolveTo, "u2@twitter")
+
+		resolvesTo, partialResolvedH1, err =
+			h1.ResolvesTo(ctx, codec, kbpki, h2)
+		require.NoError(t, err)
+		assert.True(t, resolvesTo, tc.name2)
+		require.Equal(t, h2, partialResolvedH1, tc.name2)
+
+		daemon.removeAssertionForTest("u2@twitter")
+	}
+
+	// Test negative resolution cases.
+
+	name1 = "u1,u2@twitter,u5#u3,u4@twitter"
+
+	for _, tc := range []testCase{
+		{"u1,u5#u3,u4@twitter", "u2"},
+		{"u1,u2,u5#u3,u4@twitter", "u1"},
+		{"u1,u2,u5#u3,u4@twitter", "u3"},
+	} {
+		h2, err = ParseTlfHandle(ctx, kbpki, tc.name2, false)
+		require.NoError(t, err)
+
+		daemon.addNewAssertionForTestOrBust(tc.resolveTo, "u2@twitter")
+
+		resolvesTo, partialResolvedH1, err =
+			h1.ResolvesTo(ctx, codec, kbpki, h2)
+		require.NoError(t, err)
+		assert.False(t, resolvesTo, tc.name2)
+
+		daemon.removeAssertionForTest("u2@twitter")
+	}
 }
 
 func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {

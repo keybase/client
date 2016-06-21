@@ -267,6 +267,12 @@ func (k *KeybaseDaemonLocal) addNewAssertionForTestOrBust(
 	return uid
 }
 
+func (k *KeybaseDaemonLocal) removeAssertionForTest(assertion string) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	delete(k.asserts, assertion)
+}
+
 type makeKeysFunc func(libkb.NormalizedUsername, int) (
 	CryptPublicKey, VerifyingKey)
 

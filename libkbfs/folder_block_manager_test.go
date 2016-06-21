@@ -120,8 +120,7 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
 	defer CheckConfigAndShutdown(t, config)
 
-	config.(*ConfigLocal).bsplit.(*BlockSplitterSimple).
-		blockChangeEmbedMaxSize = 32
+	config.bsplit.(*BlockSplitterSimple).blockChangeEmbedMaxSize = 32
 
 	testQuotaReclamation(t, ctx, config, userName)
 
@@ -219,7 +218,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	config1.SetClock(clock)
 
 	// Initialize the MD using a different config
-	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	config2 := ConfigAsUser(config1, u2)
 	defer CheckConfigAndShutdown(t, config2)
 	config2.SetClock(clock)
 

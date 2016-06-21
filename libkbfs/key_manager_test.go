@@ -24,6 +24,7 @@ func keyManagerInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config.SetKeyManager(keyman)
 	interposeDaemonKBPKI(config, "alice", "bob", "charlie", "dave")
 	ctx = context.Background()
+	config.SetCodec(NewCodecMsgpack())
 	return
 }
 
@@ -298,7 +299,6 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
-	config.SetCodec(NewCodecMsgpack())
 
 	id := FakeTlfID(1, true)
 	h, err := ParseTlfHandle(
@@ -457,7 +457,7 @@ func TestKeyManagerPromoteReaderSuccessPrivate(t *testing.T) {
 
 	// Pretend that bob@twitter now resolves to bob.
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
-	daemon.addNewAssertionForTest("bob", "bob@twitter")
+	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	// Make the first key generation
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {

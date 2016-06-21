@@ -22,7 +22,7 @@ func mdOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config = NewConfigMock(mockCtrl, ctr)
 	mdops := NewMDOpsStandard(config)
 	config.SetMDOps(mdops)
-	interposeDaemonKBPKI(config, "alice", "bob")
+	interposeDaemonKBPKI(config, "alice", "bob", "charlie")
 	ctx = context.Background()
 	return
 }
@@ -70,12 +70,12 @@ func newRMDS(t *testing.T, config Config, public bool) *RootMetadataSigned {
 func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	hasVerifyingKeyErr error, verifyErr error) {
 	packedData := []byte{4, 3, 2, 1}
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).AnyTimes()
+
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
 	if hasVerifyingKeyErr == nil {
-		config.mockCodec.EXPECT().Encode(rmds.MD.WriterMetadata).Return(packedData, nil)
 		config.mockCrypto.EXPECT().Verify(packedData, rmds.MD.WriterMetadataSigInfo).Return(nil)
-		config.mockCodec.EXPECT().Encode(rmds.MD).AnyTimes().Return(packedData, nil)
 		config.mockCrypto.EXPECT().Verify(packedData, rmds.SigInfo).Return(verifyErr)
 		if verifyErr == nil {
 			config.mockCodec.EXPECT().Decode(
@@ -86,15 +86,15 @@ func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 }
 
 func verifyMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned) {
+	packedData := []byte{4, 3, 2, 1}
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).AnyTimes()
+
 	config.mockCodec.EXPECT().Decode(rmds.MD.SerializedPrivateMetadata, gomock.Any()).
 		Return(nil)
 	expectGetTLFCryptKeyForMDDecryption(config, &rmds.MD)
 	config.mockCrypto.EXPECT().DecryptPrivateMetadata(
 		gomock.Any(), TLFCryptKey{}).Return(&rmds.MD.data, nil)
 
-	packedData := []byte{4, 3, 2, 1}
-	config.mockCodec.EXPECT().Encode(rmds.MD).Return(packedData, nil)
-	config.mockCodec.EXPECT().Encode(rmds.MD.WriterMetadata).Return(packedData, nil)
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 	config.mockCrypto.EXPECT().Verify(packedData, rmds.SigInfo).Return(nil)
@@ -215,46 +215,71 @@ func TestMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T) {
 
 	id := FakeTlfID(1, true)
 
-	h, err := ParseTlfHandle(ctx, config.KBPKI(),
-		"alice,bob@twitter", true)
-	if err != nil {
-		t.Fatal(err)
-	}
+	mdHandle1, err := ParseTlfHandle(ctx, config.KBPKI(),
+		"alice,dave@twitter", true)
+	require.NoError(t, err)
 
-	rmds := &RootMetadataSigned{}
-	err = updateNewRootMetadata(&rmds.MD, id, h.ToBareHandleOrBust())
-	if err != nil {
-		t.Fatal(err)
-	}
+	mdHandle2, err := ParseTlfHandle(ctx, config.KBPKI(),
+		"alice,bob,charlie", true)
+	require.NoError(t, err)
 
-	addFakeRMDSData(rmds, h)
+	mdHandle3, err := ParseTlfHandle(ctx, config.KBPKI(),
+		"alice,bob@twitter,charlie@twitter", true)
+	require.NoError(t, err)
 
-	// Do this before setting tlfHandle to nil.
-	verifyMDForPublic(config, rmds, nil, nil)
+	rmds1 := &RootMetadataSigned{}
+	err = updateNewRootMetadata(&rmds1.MD, id, mdHandle1.ToBareHandleOrBust())
+	require.NoError(t, err)
+	addFakeRMDSData(rmds1, mdHandle1)
+
+	rmds2 := &RootMetadataSigned{}
+	err = updateNewRootMetadata(&rmds2.MD, id, mdHandle2.ToBareHandleOrBust())
+	require.NoError(t, err)
+	addFakeRMDSData(rmds2, mdHandle2)
+
+	rmds3 := &RootMetadataSigned{}
+	err = updateNewRootMetadata(&rmds3.MD, id, mdHandle3.ToBareHandleOrBust())
+	require.NoError(t, err)
+	addFakeRMDSData(rmds3, mdHandle3)
+
+	// Do this before setting tlfHandles to nil.
+	verifyMDForPublic(config, rmds2, nil, nil)
+	verifyMDForPublic(config, rmds3, nil, nil)
 
 	// Set tlfHandle to nil so that the md server returns a
 	// 'deserialized' RMDS.
-	rmds.MD.tlfHandle = nil
+	rmds1.MD.tlfHandle = nil
+	rmds2.MD.tlfHandle = nil
+	rmds3.MD.tlfHandle = nil
 
-	hResolved, err := ParseTlfHandle(ctx, config.KBPKI(),
-		"alice,bob", true)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), "alice,bob,charlie@twitter", true)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	config.mockMdserv.EXPECT().GetForHandle(ctx, hResolved.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil).Times(2)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds1, nil)
 
 	// First time should fail.
-	_, err = config.MDOps().GetForHandle(ctx, hResolved)
+	_, err = config.MDOps().GetForHandle(ctx, h)
 	if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
 
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
+	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
 
-	// Second time should succeed.
-	if _, err := config.MDOps().GetForHandle(ctx, hResolved); err != nil {
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds2, nil)
+
+	// Second and time should succeed.
+	if _, err := config.MDOps().GetForHandle(ctx, h); err != nil {
+		t.Errorf("Got error on get: %v", err)
+	}
+
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds3, nil)
+
+	if _, err := config.MDOps().GetForHandle(ctx, h); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	}
 }
