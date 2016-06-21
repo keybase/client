@@ -157,35 +157,35 @@ export default class Render extends Component<void, Props, void> {
               serviceName='Keybase'
               tooltip='Keybase'
               iconType='keybase-logo-mascot-only-dz-2-24'
-              selected={this.props.selectedService === 'keybase'}
+              selected={this.props.selectedService === 'Keybase'}
               onClickService={this.props.onClickService}
               />
             <ServiceIcon
               serviceName='Twitter'
               tooltip='Twitter'
               iconType='icon-twitter-logo-24'
-              selected={this.props.selectedService === 'twitter'}
+              selected={this.props.selectedService === 'Twitter'}
               onClickService={this.props.onClickService}
               />
             <ServiceIcon
               serviceName='Github'
               tooltip='Github'
               iconType='icon-github-logo-24'
-              selected={this.props.selectedService === 'github'}
+              selected={this.props.selectedService === 'Github'}
               onClickService={this.props.onClickService}
               />
             <ServiceIcon
               serviceName='Coinbase'
               tooltip='Coinbase'
               iconType='icon-coinbase-logo-24'
-              selected={this.props.selectedService === 'coinbase'}
+              selected={this.props.selectedService === 'Coinbase'}
               onClickService={this.props.onClickService}
               />
             <ServiceIcon
-              serviceName='Pgp'
-              tooltip='PGP Key'
-              iconType='icon-pgp-key-24'
-              selected={this.props.selectedService === 'pgp'}
+              serviceName='Reddit'
+              tooltip='Reddit'
+              iconType='icon-reddit-logo-24'
+              selected={this.props.selectedService === 'Reddit'}
               onClickService={this.props.onClickService}
               />
           </Box>

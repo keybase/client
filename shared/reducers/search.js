@@ -5,7 +5,7 @@ import * as CommonConstants from '../constants/common'
 import type {Props as IconProps} from '../common-adapters/icon'
 import type {SearchResult, SearchActions, SearchPlatforms} from '../constants/search'
 
-type State = {
+export type State = {
   searchHintText: string,
   searchText: string,
   searchIcon: IconProps.type,

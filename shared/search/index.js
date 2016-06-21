@@ -1,16 +1,19 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
 import {search, selectPlatform} from '../actions/search'
 import Render from './render'
+import {TypedConnector} from '../util/typed-connect'
 
+import type {TypedState} from '../constants/reducer'
 import type {Props} from './render'
-import type {SearchPlatforms} from '../constants/search'
+import type {SearchActions} from '../constants/search'
+import type {TypedDispatch} from '../constants/types/flux'
 
 import flags from '../util/feature-flags'
 
-class Search extends Component<void, Props & {searchPlatform: SearchPlatforms}, void> {
+type OwnProps = {}
+
+class Search extends Component<void, Props, void> {
   render () {
     return (
       <Render
@@ -18,7 +21,7 @@ class Search extends Component<void, Props & {searchPlatform: SearchPlatforms}, 
         username={this.props.username}
         showComingSoon={/* !flags.searchEnabled */false}
         searchHintText={this.props.searchHintText}
-        onSearch={term => this.props.onSearch(term, this.props.searchPlatform)}
+        onSearch={term => this.props.onSearch(term, this.props.selectedService)}
         searchText={this.props.searchText}
         searchIcon={this.props.searchIcon}
         results={this.props.results}
@@ -35,16 +38,17 @@ class Search extends Component<void, Props & {searchPlatform: SearchPlatforms}, 
   }
 }
 
-export default connect(
-  state => ({
-    username: state.config.username,
-    searchHintText: state.search.searchHintText,
-    searchPlatform: state.search.searchPlatform,
-    searchText: state.search.searchText,
-    searchIcon: state.search.searchIcon,
-    results: state.search.results,
-  }),
-  dispatch => (bindActionCreators({
-    onSearch: search,
-    onClickService: selectPlatform,
-  }, dispatch)))(Search)
+const connector: TypedConnector<TypedState, TypedDispatch<SearchActions>, OwnProps, Props> = new TypedConnector()
+
+export default connector.connect(
+  ({search: {searchHintText, searchPlatform, searchText, searchIcon, results}, config: {username}}, dispatch, ownProps) => ({
+    username,
+    searchHintText,
+    searchText,
+    searchIcon,
+    results,
+    onClickResult: () => console.log('TODO'),
+    selectedService: searchPlatform,
+    onSearch: (term, platform) => { dispatch(search(term, platform)) },
+    onClickService: platform => { dispatch(selectPlatform(platform)) },
+  }))(Search)

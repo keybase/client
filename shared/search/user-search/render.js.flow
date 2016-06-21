@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 
 import type {IconType} from '../../common-adapters/icon'
-import type {SearchResult} from '../../constants/search'
+import type {SearchResult, SearchPlatforms} from '../../constants/search'
 
 export type SearchResultFn = (searchResult: SearchResult) => void
 export type ServiceFn = (serviceName: string) => void
@@ -12,7 +12,7 @@ export type Props = {
   searchHintText: string,
   searchText: ?string,
   searchIcon: IconType,
-  selectedService: string,
+  selectedService: SearchPlatforms,
   results: Array<SearchResult>,
   onClickService: ServiceFn,
   onClickResult: SearchResultFn,
