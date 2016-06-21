@@ -40,31 +40,14 @@ export type TrackerProps = {
   isPrivate?: boolean
 }
 
-// TODO remove this
-export function trackerPropsToRenderProps (props: TrackerProps): RenderPropsUnshaped {
+export function trackerPropsToRenderProps ({currentlyFollowing, inviteLink, isPrivate, lastAction,
+    loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
+    proofs, reason, serviceName, shouldFollow, trackerState, userInfo, username, waiting}:
+TrackerProps): RenderPropsUnshaped {
   return {
-    currentlyFollowing: props.currentlyFollowing,
-    inviteLink: props.inviteLink,
-    isPrivate: props.isPrivate,
-    lastAction: props.lastAction,
-    loggedIn: props.loggedIn,
-    name: props.name,
-    nonUser: props.nonUser,
-    onClose: props.onClose,
-    onFollow: props.onFollow,
-    onIgnore: props.onIgnore,
-    onRefollow: props.onRefollow,
-    onUnfollow: props.onUnfollow,
-    parentProps: props.parentProps,
-    proofs: props.proofs,
-    reason: props.reason,
-    serviceName: props.serviceName,
-    shouldFollow: props.shouldFollow,
-    state: props.trackerState,
-    trackerState: props.trackerState,
-    userInfo: props.userInfo,
-    username: props.username,
-    waiting: props.waiting,
+    currentlyFollowing, inviteLink, isPrivate, lastAction,
+    loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
+    proofs, reason, serviceName, shouldFollow, trackerState, userInfo, username, waiting,
   }
 }
 

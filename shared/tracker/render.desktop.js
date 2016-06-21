@@ -65,7 +65,7 @@ export default class Render extends Component<void, RenderProps, void> {
           <Action
             loggedIn={this.props.loggedIn}
             waiting={this.props.waiting}
-            state={this.props.state}
+            state={this.props.trackerState}
             currentlyFollowing={this.props.currentlyFollowing}
             username={this.props.username}
             shouldFollow={this.props.shouldFollow}

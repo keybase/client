@@ -23,7 +23,6 @@ export type RenderPropsUnshaped = {
   reason: string,
   serviceName?: string,
   shouldFollow: ?boolean,
-  state: SimpleProofState,
   trackerState: SimpleProofState,
   userInfo: ?UserInfo,
   username: string,
