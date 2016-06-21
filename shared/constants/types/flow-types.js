@@ -654,6 +654,12 @@ export type NotifyUsersUserChangedRpc = {
   callback: (null | (err: ?any) => void)
 }
 
+export type OutOfDateInfo = {
+  upgradeTo: string;
+  upgradeURI: string;
+  customMessage: string;
+}
+
 export type Outcome =
     0 // NONE_0
   | 1 // FIXED_1
@@ -1494,6 +1500,14 @@ export type blockPutBlockRpc = {
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
+}
+
+export type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
+
+export type configCheckAPIServerOutOfDateWarningRpc = {
+  method: 'config.checkAPIServerOutOfDateWarning',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void)
 }
 
 export type configClearValueResult = void
@@ -3569,6 +3583,7 @@ export type rpc =
   | blockGetSessionChallengeRpc
   | blockGetUserQuotaInfoRpc
   | blockPutBlockRpc
+  | configCheckAPIServerOutOfDateWarningRpc
   | configClearValueRpc
   | configGetConfigRpc
   | configGetCurrentStatusRpc
@@ -3967,6 +3982,13 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: configGetValueResult) => void
+    }
+  ) => void,
+  'keybase.1.config.checkAPIServerOutOfDateWarning'?: (
+    params: {},
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: configCheckAPIServerOutOfDateWarningResult) => void
     }
   ) => void,
   'keybase.1.crypto.signED25519'?: (

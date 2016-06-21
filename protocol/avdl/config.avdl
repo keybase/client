@@ -107,4 +107,14 @@ protocol config {
   void clearValue(string path);
   ConfigValue getValue(string path);
 
+  record OutOfDateInfo {
+    string upgradeTo;
+    string upgradeURI;
+    string customMessage;
+  }
+
+  /**
+    Check whether the API server has told us we're out of date.
+    */
+  OutOfDateInfo checkAPIServerOutOfDateWarning();
 }

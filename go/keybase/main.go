@@ -123,7 +123,12 @@ func mainInner(g *libkb.GlobalContext) error {
 		return err
 	}
 
-	return cmd.Run()
+	err = cmd.Run()
+	if !cl.IsService() {
+		// Errors that come up in printing this warning are logged but ignored.
+		printOutOfDateWarnings(g)
+	}
+	return err
 }
 
 // AutoFork? Standalone? ClientServer? Brew service?  This function deals with the
@@ -303,5 +308,34 @@ func HandleSignals() {
 			G.Log.Error("interrupted")
 			os.Exit(3)
 		}
+	}
+}
+
+func printOutOfDateWarnings(g *libkb.GlobalContext) {
+	g.Log.Debug("+ printOutOfDateWarnings")
+	defer g.Log.Debug("- printOutOfDateWarnings")
+
+	cli, err := client.GetConfigClient(g)
+	if err != nil {
+		g.Log.Debug("Ignoring error in printOutOfDateWarnings: %s", err)
+		return
+	}
+
+	info, err := cli.CheckAPIServerOutOfDateWarning(context.TODO())
+	if err != nil {
+		g.Log.Debug("Ignoring error in printOutOfDateWarnings: %s", err)
+		return
+	}
+	g.Log.Debug("Got OutOfDateInfo: %#v", info)
+
+	if info.CustomMessage != "" {
+		g.Log.Warning("%s", info.CustomMessage)
+	}
+	if info.UpgradeTo != "" {
+		g.Log.Warning("Upgrade recommended to client version %s or above (you have v%s)",
+			info.UpgradeTo, libkb.VersionString())
+	}
+	if info.UpgradeURI != "" {
+		libkb.PlatformSpecificUpgradeInstructions(g, info.UpgradeURI)
 	}
 }
