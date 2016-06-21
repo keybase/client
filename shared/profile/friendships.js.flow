@@ -10,6 +10,7 @@ export type UserInfo = { // TODO (AW): replace with reference to bio's/profile's
 export type Tab = 'Followers' | 'Following'
 
 export type Props = {
+  style?: Object,
   currentTab: Tab,
   onSwitchTab?: (selected: Tab) => void,
   onUserClick?: (username: string) => void,

@@ -37,7 +37,7 @@ const userEntryUsernameStyle = followsYou => ({
 class Render extends Component<void, Props, void> {
   render () {
     return (
-      <TabBar>
+      <TabBar style={this.props.style}>
         <TabBarItem
           selected={this.props.currentTab === 'Followers'}
           label={`FOLLOWERS (${this.props.followers.length})`}
