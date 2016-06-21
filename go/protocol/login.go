@@ -62,10 +62,10 @@ type UnlockWithPassphraseArg struct {
 }
 
 type PGPProvisionArg struct {
-	SessionID      int    `codec:"sessionID" json:"sessionID"`
-	Username       string `codec:"username" json:"username"`
-	DeviceName     string `codec:"deviceName" json:"deviceName"`
-	PGPFingerprint string `codec:"pgpFingerprint" json:"pgpFingerprint"`
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Username   string `codec:"username" json:"username"`
+	Passphrase string `codec:"passphrase" json:"passphrase"`
+	DeviceName string `codec:"deviceName" json:"deviceName"`
 }
 
 type LoginInterface interface {

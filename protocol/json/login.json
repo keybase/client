@@ -165,11 +165,11 @@
           "type": "string"
         },
         {
-          "name": "deviceName",
+          "name": "passphrase",
           "type": "string"
         },
         {
-          "name": "pgpFingerprint",
+          "name": "deviceName",
           "type": "string"
         }
       ],

@@ -2201,8 +2201,8 @@ export type loginPgpProvisionRpc = {
   method: 'login.pgpProvision',
   param: {
     username: string,
-    deviceName: string,
-    pgpFingerprint: string
+    passphrase: string,
+    deviceName: string
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -4599,8 +4599,8 @@ export type incomingCallMapType = {
     params: {
       sessionID: int,
       username: string,
-      deviceName: string,
-      pgpFingerprint: string
+      passphrase: string,
+      deviceName: string
     },
     response: {
       error: (err: RPCError) => void,
