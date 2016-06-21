@@ -25,7 +25,7 @@ mkdir -p "$build_dir"
 
 echo "Loading release tool"
 release_gopath="$HOME/release_gopath"
-export GOPATH="$release_gopath" "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+GOPATH="$release_gopath" "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$release_gopath/bin/release"
 
 # The release tool wants GITHUB_TOKEN in the environment. Load it in. The
@@ -134,7 +134,7 @@ release_prerelease() {
   # Generate and push the index.html file. S3 pushes in this script can be
   # flakey, and on the Linux side of things all this does is update our
   # internal pages, so we suppress errors here.
-  PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
+  GOPATH="$release_gopath" PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
     echo "ERROR in s3_index.sh. Internal pages might not be updated. Build continuing..."
 
   bump_arch_linux_aur
