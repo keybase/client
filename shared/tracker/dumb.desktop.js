@@ -214,7 +214,7 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'New user': trackerPropsToRenderProps(propsNewUser),
     'New user, follows me': trackerPropsToRenderProps(propsNewUserFollowsYou),
     'Followed': trackerPropsToRenderProps(propsFollowing),
-    'Changed/Broken proofs user you dont follow': trackerPropsToRenderProps({...propsChangedProofs, currentlyFollowing: false}),
+    'Changed/Broken proofs user you don\'t follow': trackerPropsToRenderProps({...propsChangedProofs, currentlyFollowing: false}),
     'Changed/Broken proofs': trackerPropsToRenderProps(propsChangedProofs),
     'You track them': trackerPropsToRenderProps({...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}}),
     'Unfollowed': trackerPropsToRenderProps(propsUnfollowed),
