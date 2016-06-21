@@ -13,7 +13,6 @@ import FoldersConfirmMap from '../folders/confirm/dumb'
 import ProfileMap from '../profile/dumb'
 import SearchMap from '../search/dumb'
 import SearchUserPaneMap from '../search/user-pane/dumb'
-import FriendshipsMap from '../profile/friendships.dumb' // TODO (AW): remove once chromakode is done working on profile stuff
 import UnlockFoldersMap from '../unlock-folders/dumb'
 import type {DumbComponentMap} from './dumb'
 
@@ -33,7 +32,6 @@ const map : DumbComponentMap = {
   ...ProfileMap,
   ...SearchMap,
   ...SearchUserPaneMap,
-  ...FriendshipsMap,
   ...UnlockFoldersMap,
 }
 
