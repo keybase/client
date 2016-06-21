@@ -49,7 +49,7 @@ func (m *DefaultMounter) Mount(fs dokan.FileSystem, log logger.Logger) error {
 	for i := 1; true; i *= 2 {
 		h, err = m.mountHelper(fs)
 		// break if success, no force or too many tries.
-		if err == nil || i > 20 {
+		if err == nil || i > 128 {
 			break
 		}
 		log.Errorf("Failed to mount dokan filesystem (i=%d): %v", i, err)
@@ -64,6 +64,7 @@ func (m *DefaultMounter) Mount(fs dokan.FileSystem, log logger.Logger) error {
 	if err != nil {
 		return err
 	}
+	log.Info("Mounting the filesystem was a success!")
 	return h.BlockTillDone()
 }
 

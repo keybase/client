@@ -1,9 +1,10 @@
 /*
   Dokan : user-mode file system library for Windows
 
-  Copyright (C) 2008 Hiroki Asakawa info@dokan-dev.net
+  Copyright (C) 2015 - 2016 Adrien J. <liryna.stark@gmail.com> and Maxime C. <maxime@islog.com>
+  Copyright (C) 2007 - 2011 Hiroki Asakawa <info@dokan-dev.net>
 
-  http://dokan-dev.net/en
+  http://dokan-dev.github.io
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU Lesser General Public License as published by the Free
@@ -18,8 +19,8 @@ You should have received a copy of the GNU Lesser General Public License along
 with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _FILEINFO_H_
-#define _FILEINFO_H_
+#ifndef FILEINFO_H_
+#define FILEINFO_H_
 
 #define IRP_MJ_CREATE 0x00
 #define IRP_MJ_CREATE_NAMED_PIPE 0x01
@@ -107,6 +108,29 @@ typedef enum _FILE_INFORMATION_CLASS {
   FileProcessIdsUsingFileInformation,      // 47
   FileNormalizedNameInformation,           // 48
   FileNetworkPhysicalNameInformation,      // 49
+  FileIdGlobalTxDirectoryInformation,      // 50
+  FileIsRemoteDeviceInformation,           // 51
+  FileUnusedInformation,                   // 52
+  FileNumaNodeInformation,                 // 53
+  FileStandardLinkInformation,             // 54
+  FileRemoteProtocolInformation,           // 55
+
+  //
+  //  These are special versions of these operations (defined earlier)
+  //  which can be used by kernel mode drivers only to bypass security
+  //  access checks for Rename and HardLink operations.  These operations
+  //  are only recognized by the IOManager, a file system should never
+  //  receive these.
+  //
+  FileRenameInformationBypassAccessCheck, // 56
+  FileLinkInformationBypassAccessCheck,   // 57
+  FileVolumeNameInformation,              // 58
+  FileIdInformation,                      // 59
+  FileIdExtdDirectoryInformation,         // 60
+  FileReplaceCompletionInformation,       // 61
+  FileHardLinkFullIdInformation,          // 62
+  FileIdExtdBothDirectoryInformation,     // 63
+
   FileMaximumInformation
 } FILE_INFORMATION_CLASS,
     *PFILE_INFORMATION_CLASS;
@@ -380,6 +404,12 @@ typedef struct _FILE_NETWORK_OPEN_INFORMATION {
   ULONG FileAttributes;
 } FILE_NETWORK_OPEN_INFORMATION, *PFILE_NETWORK_OPEN_INFORMATION;
 
+typedef struct _FILE_NETWORK_PHYSICAL_NAME_INFORMATION {
+  ULONG FileNameLength;
+  WCHAR FileName[1];
+} FILE_NETWORK_PHYSICAL_NAME_INFORMATION,
+    *PFILE_NETWORK_PHYSICAL_NAME_INFORMATION;
+
 #define SL_RESTART_SCAN 0x01
 #define SL_RETURN_SINGLE_ENTRY 0x02
 #define SL_INDEX_SPECIFIED 0x04
@@ -479,4 +509,4 @@ typedef struct _UNICODE_STRING {
 } UNICODE_STRING, *PUNICODE_STRING;
 */
 
-#endif // _FILEINFO_H_
+#endif // FILEINFO_H_
