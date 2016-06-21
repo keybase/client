@@ -5,6 +5,8 @@ import {Component} from 'react' // eslint-disable-line
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 import type {Device as _Device, DeviceID, Time} from './flow-types'
 
+export type $Exact<X> = $Shape<X> & X
+
 export type Device = {
   name: string;
   deviceID: DeviceID;

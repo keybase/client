@@ -652,6 +652,18 @@ func ExportPGPIdentity(identity *openpgp.Identity) keybase1.PGPIdentity {
 	}
 }
 
+func (kf KeyFamily) Export() []keybase1.PublicKey {
+	var res []keybase1.PublicKey
+	for kid := range kf.AllKIDs {
+		if pgpKeySet, isPGP := kf.PGPKeySets[kid]; isPGP {
+			res = append(res, pgpKeySet.PermissivelyMergedKey.Export())
+		} else {
+			res = append(res, keybase1.PublicKey{KID: kid})
+		}
+	}
+	return res
+}
+
 func (bundle *PGPKeyBundle) Export() keybase1.PublicKey {
 	kid := bundle.GetKID()
 	fingerprintStr := ""

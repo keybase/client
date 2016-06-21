@@ -16,9 +16,9 @@ const common = {
   onCancel: () => { console.log('device revoke on cancel') },
   parentProps: {
     style: {
-      height: 667
-    }
-  }
+      height: 667,
+    },
+  },
 }
 
 const map: DumbComponentMap<Render> = {
@@ -27,16 +27,16 @@ const map: DumbComponentMap<Render> = {
     'Normal': {
       ...common,
       type: 'mobile',
-      device: common
+      device: common,
     },
     'Current': {
       ...common,
       currentDevice: true,
-      device: common
-    }
-  }
+      device: common,
+    },
+  },
 }
 
 export default {
-  'Device Revoke': map
+  'Device Revoke': map,
 }

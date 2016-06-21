@@ -42,7 +42,7 @@ const initialState: SignupState = {
   signupError: null,
   deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
   waiting: false,
-  phase: 'inviteCode'
+  phase: 'inviteCode',
 }
 
 /* eslint-disable no-fallthrough */
@@ -61,14 +61,14 @@ export default function (state: SignupState = initialState, action: SignupAction
       if (action.error) {
         return {
           ...state,
-          inviteCodeError: action.payload.errorText
+          inviteCodeError: action.payload.errorText,
         }
       } else {
         return {
           ...state,
           inviteCode: action.payload.inviteCode,
           inviteCodeError: null,
-          phase: 'usernameAndEmail'
+          phase: 'usernameAndEmail',
         }
       }
 
@@ -81,7 +81,7 @@ export default function (state: SignupState = initialState, action: SignupAction
           emailError,
           usernameError,
           username,
-          email
+          email,
         }
       } else {
         return {
@@ -90,14 +90,14 @@ export default function (state: SignupState = initialState, action: SignupAction
           emailError: null,
           usernameError: null,
           username,
-          email
+          email,
         }
       }
 
     case Constants.startRequestInvite:
       return {
         ...state,
-        phase: 'requestInvite'
+        phase: 'requestInvite',
       }
 
     case Constants.requestInvite:
@@ -108,7 +108,7 @@ export default function (state: SignupState = initialState, action: SignupAction
           emailError,
           nameError,
           email,
-          name
+          name,
         }
       } else {
         const {email, name} = action.payload
@@ -116,7 +116,7 @@ export default function (state: SignupState = initialState, action: SignupAction
           ...state,
           phase: 'requestInviteSuccess',
           email,
-          name
+          name,
         }
       }
 
@@ -125,7 +125,7 @@ export default function (state: SignupState = initialState, action: SignupAction
         const {passphraseError} = action.payload
         return {
           ...state,
-          passphraseError
+          passphraseError,
         }
       } else {
         const {passphrase} = action.payload
@@ -133,7 +133,7 @@ export default function (state: SignupState = initialState, action: SignupAction
           ...state,
           phase: 'deviceName',
           passphrase,
-          passphraseError: null
+          passphraseError: null,
         }
       }
 
@@ -142,7 +142,7 @@ export default function (state: SignupState = initialState, action: SignupAction
         const {deviceNameError} = action.payload
         return {
           ...state,
-          deviceNameError
+          deviceNameError,
         }
       } else {
         const {deviceName} = action.payload
@@ -150,7 +150,7 @@ export default function (state: SignupState = initialState, action: SignupAction
           ...state,
           phase: 'signupLoading',
           deviceName,
-          deviceNameError: null
+          deviceNameError: null,
         }
       }
 
@@ -163,7 +163,7 @@ export default function (state: SignupState = initialState, action: SignupAction
         return {
           ...state,
           paperkey,
-          phase: 'paperkey'
+          phase: 'paperkey',
         }
       }
 
@@ -174,7 +174,7 @@ export default function (state: SignupState = initialState, action: SignupAction
       } else {
         return {
           ...state,
-          phase: 'success'
+          phase: 'success',
         }
       }
 
@@ -183,7 +183,7 @@ export default function (state: SignupState = initialState, action: SignupAction
         return {
           ...state,
           signupError: action.payload.signupError,
-          phase: 'signupError'
+          phase: 'signupError',
         }
       } else {
         return state
@@ -192,7 +192,7 @@ export default function (state: SignupState = initialState, action: SignupAction
     case Constants.resetSignup:
       return {
         ...state,
-        phase: 'inviteCode'
+        phase: 'inviteCode',
       }
 
     default:

@@ -34,6 +34,7 @@ protocol saltpack {
     array<Device> devices;
     int numAnonReceivers;
     boolean receiverIsAnon;
+    SaltpackSender sender;
   }
 
   SaltpackEncryptedMessageInfo saltpackDecrypt(int sessionID, Stream source, Stream sink, SaltpackDecryptOptions opts);

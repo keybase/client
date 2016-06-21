@@ -198,6 +198,7 @@ func getMatchingSecretKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg k
 	if key != nil {
 		return key, index, nil
 	}
+	g.Log.Debug("getMatchingSecretKey: no matching cached device key found")
 
 	// load the user
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
@@ -213,6 +214,7 @@ func getMatchingSecretKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg k
 	if key != nil {
 		return key, index, nil
 	}
+	g.Log.Debug("getMatchingSecretKey: no matching device key found")
 
 	if !arg.PromptPaper {
 		g.Log.Debug("UnboxBytes32Any/getMatchingSecretKey: not checking paper keys (promptPaper == false)")
@@ -283,6 +285,11 @@ func matchingDeviceKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keyb
 			}
 			return key, n, nil
 		}
+
+		g.Log.Debug("matchingDeviceKey: no match found for ekey in arg.Bundles")
+		logNoMatch(g, ekey, arg.Bundles)
+	} else {
+		g.Log.Debug("matchingDeviceKey: ignoring error getting device subkey: %s", err)
 	}
 
 	return nil, 0, nil
@@ -355,4 +362,16 @@ func kidMatch(key libkb.GenericKey, bundles []keybase1.CiphertextBundle) (int, b
 		}
 	}
 	return -1, false
+}
+
+func logNoMatch(g *libkb.GlobalContext, key libkb.GenericKey, bundles []keybase1.CiphertextBundle) {
+	if key == nil {
+		g.Log.Debug("logNoMatch: key is nil")
+		return
+	}
+	kid := key.GetKID()
+	g.Log.Debug("logNoMatch: desired kid: %s", kid)
+	for i, bundle := range bundles {
+		g.Log.Debug("logNoMatch: kid %d: %s (%v)", i, bundle.Kid, kid.Equal(bundle.Kid))
+	}
 }

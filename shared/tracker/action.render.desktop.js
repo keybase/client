@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import {Button, Text, Icon} from '../common-adapters'
 import commonStyles from '../styles/common'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {normal} from '../constants/tracker'
 
 import type {ActionProps} from './action.render'
@@ -37,7 +37,7 @@ export default class ActionRender extends Component {
 
   renderLoggedOut () {
     return (
-      <div style={{...styleLoggedOutContainer}}>
+      <div style={styleLoggedOutContainer}>
         <div style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'space-between', alignItems: 'center'}}>
           <Icon type='terminal' style={{width: 29}} />
           <div style={{textAlign: 'center'}}>
@@ -56,7 +56,7 @@ export default class ActionRender extends Component {
 
   renderClose () {
     return (
-      <div style={{...styleContainer}}>
+      <div style={styleContainer}>
         <Button style={styleActionButton} type='Secondary' label='Close' onClick={() => this.props.onClose()} />
       </div>
     )
@@ -64,7 +64,7 @@ export default class ActionRender extends Component {
 
   renderNormal () {
     return (
-      <div style={{...styleContainer}}>
+      <div style={styleContainer}>
         {!this.props.currentlyFollowing &&
           <Button waiting={this.props.waiting} style={styleActionButton} type='Follow' label='Track' onClick={() => this.props.onFollow()} />}
         {this.props.currentlyFollowing &&
@@ -75,7 +75,7 @@ export default class ActionRender extends Component {
 
   renderChanged () {
     return (
-      <div style={{...styleContainer}}>
+      <div style={styleContainer}>
         <Button waiting={this.props.waiting} type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onIgnore()} />
         <Button waiting={this.props.waiting} style={styleActionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow()} />
       </div>
@@ -96,11 +96,11 @@ const styleContainer = {
   boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
   alignItems: 'center',
   justifyContent: 'flex-end',
-  paddingTop: 15,
-  paddingBottom: 15,
-  paddingRight: 15,
+  paddingTop: globalMargins.small,
+  paddingBottom: globalMargins.small,
+  paddingRight: globalMargins.small,
   position: 'relative',
-  zIndex: 1
+  zIndex: 1,
 }
 
 const styleCloseContainer = {
@@ -109,14 +109,14 @@ const styleCloseContainer = {
   backgroundColor: globalColors.white_90,
   width: '100%',
   alignItems: 'center',
-  marginTop: 15,
-  justifyContent: 'flex-end'
+  marginTop: globalMargins.small,
+  justifyContent: 'flex-end',
 }
 
 const styleActionButton = {
   width: 102,
   minWidth: 102,
-  marginRight: 0
+  marginRight: 0,
 }
 
 const styleLoggedOutContainer = {
@@ -127,7 +127,7 @@ const styleLoggedOutContainer = {
   boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
   alignItems: 'center',
   justifyContent: 'flex-end',
-  padding: 15,
+  padding: globalMargins.small,
   position: 'relative',
-  zIndex: 1
+  zIndex: 1,
 }

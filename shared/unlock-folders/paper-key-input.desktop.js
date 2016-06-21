@@ -8,7 +8,7 @@ import HiddenString from '../util/hidden-string'
 export type Props = {
   onBack: () => void,
   onContinue: (paperkey: HiddenString) => void,
-  paperkeyError: ?HiddenString,
+  paperkeyError: ?string,
   waiting: ?boolean
 }
 
@@ -25,7 +25,7 @@ export default class PaperKeyInput extends Component<void, Props, State> {
   }
 
   render () {
-    const errorText = this.props.paperkeyError && this.props.paperkeyError.stringValue()
+    const errorText = this.props.paperkeyError
 
     return (
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
@@ -38,29 +38,29 @@ export default class PaperKeyInput extends Component<void, Props, State> {
           hintText='elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose' />
         <Button type='Primary' label='Continue' style={continueStyle}
           waiting={this.props.waiting}
-          onClick={this.props.onContinue} />
+          onClick={() => this.props.onContinue(new HiddenString(this.state.paperkey))} />
       </div>
     )
   }
 }
 
 const headerTextStyle = {
-  marginTop: 30
+  marginTop: 30,
 }
 
 const paperKeyIconStyle = {
-  marginTop: 17
+  marginTop: 17,
 }
 
 const paperKeyInputStyle = {
   marginTop: 18,
-  width: 440
+  width: 440,
 }
 
 const backStyle = {
   position: 'absolute',
   top: 30,
-  left: 30
+  left: 30,
 }
 
 const continueStyle = {
@@ -68,5 +68,5 @@ const continueStyle = {
   marginTop: 38,
   height: 32,
   width: 116,
-  alignSelf: 'flex-end'
+  alignSelf: 'flex-end',
 }

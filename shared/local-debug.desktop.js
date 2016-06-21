@@ -23,7 +23,8 @@ let config = {
   overrideLoggedInTab: null,
   focusOnShow: true,
   dumbFilter: '',
-  printRoutes: false
+  printRoutes: false,
+  skipLauncherDevtools: true,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -74,7 +75,8 @@ export const {
   overrideLoggedInTab,
   focusOnShow,
   dumbFilter,
-  printRoutes
+  printRoutes,
+  skipLauncherDevtools,
 } = config
 
 export function initTabbedRouterState (state) {
@@ -87,7 +89,7 @@ export function initTabbedRouterState (state) {
     tabs: {
       ...state.tabs,
       [Tabs.loginTab]: createRouterState([], []),
-      [Tabs.settingsTab]: createRouterState(['devMenu', 'dumbSheet'], [])
-    }
+      [Tabs.settingsTab]: createRouterState(['devMenu', 'dumbSheet'], []),
+    },
   }
 }

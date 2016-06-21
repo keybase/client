@@ -22,9 +22,9 @@ class Account extends Component {
         // Dummy data
         props: {
           email: 'kb-dawg@keybase.io',
-          emailVerified: true
-        }
-      }
+          emailVerified: true,
+        },
+      },
     }
   }
 }
@@ -34,7 +34,7 @@ Account.propTypes = {
   emailVerified: React.PropTypes.bool.isRequired,
   onSave: React.PropTypes.func.isRequired,
   passphraseError: React.PropTypes.string,
-  emailError: React.PropTypes.string
+  emailError: React.PropTypes.string,
 }
 
 export default connect(
@@ -42,7 +42,7 @@ export default connect(
   dispatch => {
     // dummy action
     return {
-      onSave: (email, oldPassphrase, newPassphrase, newPassphraseRepeat) => { console.log('saved! email:', email) }
+      onSave: (email, oldPassphrase, newPassphrase, newPassphraseRepeat) => { console.log('saved! email:', email) },
     }
   }
 )(Account)

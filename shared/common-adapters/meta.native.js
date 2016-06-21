@@ -15,7 +15,7 @@ const Meta = ({title, style}: Props) => (
     paddingRight: 2,
     paddingTop: 1,
     alignSelf: 'flex-start',
-    ...style
+    ...style,
   }}>{title && title.toUpperCase()}</Text>
 )
 

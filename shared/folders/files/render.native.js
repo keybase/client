@@ -78,61 +78,61 @@ export default class Render extends Component<void, Props, void> {
 
 const styleHeaderThemed = {
   'private': {
-    backgroundColor: globalColors.darkBlue3
+    backgroundColor: globalColors.darkBlue3,
   },
 
   'public': {
-    backgroundColor: globalColors.yellowGreen
-  }
+    backgroundColor: globalColors.yellowGreen,
+  },
 }
 
 const styleTLFHeader = {
-  height: 64
+  height: 64,
 }
 
 const styleTLFHeaderThemed = {
   'private': {
-    backgroundColor: globalColors.darkBlue
+    backgroundColor: globalColors.darkBlue,
   },
 
   'public': {
-    backgroundColor: globalColors.white
-  }
+    backgroundColor: globalColors.white,
+  },
 }
 
 const styleTLFTextThemed = {
   'private': {
-    color: globalColors.white
+    color: globalColors.white,
   },
 
   'public': {
-    color: globalColors.yellowGreen
-  }
+    color: globalColors.yellowGreen,
+  },
 }
 
 const styleSectionTextThemed = {
   'public': {
-    color: globalColors.black_60
+    color: globalColors.black_60,
   },
   'private': {
-    color: globalColors.blue3_40
-  }
+    color: globalColors.blue3_40,
+  },
 }
 
 const backgroundColorThemed = {
   'public': globalColors.lightGrey,
-  'private': globalColors.darkBlue3
+  'private': globalColors.darkBlue3,
 }
 
 const styleMenu = {
   ...globalStyles.clickable,
   alignSelf: 'center',
-  fontSize: 12
+  fontSize: 12,
 }
 
 const backButtonColorThemed = {
   'private': globalColors.white,
-  'public': globalColors.white
+  'public': globalColors.white,
 }
 
 function styleMenuColorThemed (theme, showingMenu): string {

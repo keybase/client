@@ -52,25 +52,25 @@ const styles = {
     ...globalStyles.windowDragging,
     ...globalStyles.noSelect,
     paddingLeft: 10,
-    paddingRight: 10
+    paddingRight: 10,
   },
   logo: {
     width: 22,
     height: 22,
-    marginRight: 8
+    marginRight: 8,
   },
   defaultContainer: {
     paddingTop: 6,
-    paddingBottom: 6
+    paddingBottom: 6,
   },
   strongContainer: {
     backgroundColor: globalColors.blue,
     paddingTop: 6,
-    paddingBottom: 12
+    paddingBottom: 12,
   },
 
   closeIcon: {
     ...globalStyles.windowDraggingClickable,
-    ...globalStyles.clickable
-  }
+    ...globalStyles.clickable,
+  },
 }

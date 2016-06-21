@@ -185,17 +185,25 @@ func (p *PaperChecker) Check(g *GlobalContext, s string) error {
 	// check for empty
 	if len(phrase.String()) == 0 {
 		g.Log.Debug("paper phrase is empty")
-		return errors.New("Empty paper key. Please try again.")
+		return PassphraseError{Msg: "Empty paper key. Please try again."}
+	}
+
+	// check for at least PaperKeyWordCountMin words
+	if phrase.NumWords() < PaperKeyWordCountMin {
+		return PassphraseError{Msg: "Not enough words entered for a paper key.  Please try again."}
 	}
 
 	// check for invalid words
 	invalids := phrase.InvalidWords()
 	if len(invalids) > 0 {
 		g.Log.Debug("paper phrase has invalid word(s) in it")
+		var perr PassphraseError
 		if len(invalids) > 1 {
-			return fmt.Errorf("Please try again. These words are invalid: %s", strings.Join(invalids, ", "))
+			perr.Msg = fmt.Sprintf("Please try again. These words are invalid: %s", strings.Join(invalids, ", "))
+		} else {
+			perr.Msg = fmt.Sprintf("Please try again. This word is invalid: %s", invalids[0])
 		}
-		return fmt.Errorf("Please try again. This word is invalid: %s", invalids[0])
+		return perr
 	}
 
 	// check version
@@ -203,11 +211,11 @@ func (p *PaperChecker) Check(g *GlobalContext, s string) error {
 	if err != nil {
 		g.Log.Debug("error getting paper key version: %s", err)
 		// despite the error, just tell the user there was a typo:
-		return errors.New("It looks like there was a typo in the paper key. Please try again.")
+		return PassphraseError{Msg: "It looks like there was a typo in the paper key. Please try again."}
 	}
 	if version != PaperKeyVersion {
 		g.Log.Debug("paper key version mismatch: generated version = %d, libkb version = %d", version, PaperKeyVersion)
-		return fmt.Errorf("It looks like there was a typo. The paper key you entered had an invalid version. Please try again.")
+		return PassphraseError{Msg: "It looks like there was a typo. The paper key you entered had an invalid version. Please try again."}
 	}
 
 	return nil

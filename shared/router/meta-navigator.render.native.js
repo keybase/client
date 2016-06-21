@@ -36,9 +36,9 @@ MetaNavigatorRender.propTypes = {
   rootComponent: React.PropTypes.oneOfType([
     React.PropTypes.func,
     React.PropTypes.shape({
-      parseRoute: React.PropTypes.func.isRequired
-    })
+      parseRoute: React.PropTypes.func.isRequired,
+    }),
   ]).isRequired,
   setNavigator: React.PropTypes.func.isRequired,
-  uri: React.PropTypes.object.isRequired
+  uri: React.PropTypes.object.isRequired,
 }

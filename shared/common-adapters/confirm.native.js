@@ -28,14 +28,14 @@ class Confirm extends Component<void, Props, void> {
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
   padding: 16,
-  flex: 1
+  flex: 1,
 }
 
 const styleInnerContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',
-  flex: 1
+  flex: 1,
 }
 
 const styleIconContainer = {
@@ -43,7 +43,7 @@ const styleIconContainer = {
   height: 112,
   marginBottom: 16,
   alignItems: 'center',
-  justifyContent: 'center'
+  justifyContent: 'center',
 }
 
 const styleBodyContainer = {
@@ -51,49 +51,49 @@ const styleBodyContainer = {
   alignItems: 'center',
   marginLeft: 16,
   marginRight: 16,
-  marginBottom: 16
+  marginBottom: 16,
 }
 
 const backgroundColorThemed = {
   'public': {
-    backgroundColor: globalColors.white
+    backgroundColor: globalColors.white,
   },
   'private': {
-    backgroundColor: globalColors.darkBlue3
-  }
+    backgroundColor: globalColors.darkBlue3,
+  },
 }
 
 const styleButton = {
-  alignSelf: 'stretch'
+  alignSelf: 'stretch',
 }
 
 const cancelButtonThemed = {
   'public': {},
   'private': {
-    backgroundColor: globalColors.blue_30
-  }
+    backgroundColor: globalColors.blue_30,
+  },
 }
 
 const cancelButtonLabelThemed = {
   'public': {},
   'private': {
-    color: globalColors.white
-  }
+    color: globalColors.white,
+  },
 }
 
 const styleClose = {
   alignSelf: 'flex-start',
   marginTop: 7,
-  marginBottom: 12
+  marginBottom: 12,
 }
 
 const styleCloseThemed = {
   'public': {
-    color: globalColors.blue
+    color: globalColors.blue,
   },
   'private': {
-    color: globalColors.white
-  }
+    color: globalColors.white,
+  },
 }
 
 export default Confirm

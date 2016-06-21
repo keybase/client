@@ -30,7 +30,7 @@ class Checkbox extends Component {
     if (this.props.checked !== nextProps.checked) {
       Animated.timing(this.state.left, {
         toValue: this._getOffset(nextProps),
-        easing: Easing.linear
+        easing: Easing.linear,
       }).start()
     }
   }
@@ -46,22 +46,22 @@ class Checkbox extends Component {
   render () {
     const containerStyle = {
       ...(this.props.disabled ? {} : globalStyles.clickable),
-      opacity: this.props.disabled ? 0.4 : 1
+      opacity: this.props.disabled ? 0.4 : 1,
     }
     const onClick = this.props.disabled ? undefined : () => this.props.onCheck(!this.props.checked)
 
     const animatedColor = this.state.left.interpolate({
       inputRange: [0, checkedOffset],
-      outputRange: [globalColors.white, globalColors.blue]
+      outputRange: [globalColors.white, globalColors.blue],
     })
 
     const outerOverride = {
       ...(!this.props.checked && this.props.disabled) ? {borderColor: globalColors.black_10} : {},
-      backgroundColor: animatedColor
+      backgroundColor: animatedColor,
     }
 
     const innerOverride = {
-      ...(!this.props.checked && this.props.disabled) ? {borderColor: globalColors.black_10} : {}
+      ...(!this.props.checked && this.props.disabled) ? {borderColor: globalColors.black_10} : {},
     }
 
     return (
@@ -79,7 +79,7 @@ class Checkbox extends Component {
 
 const styleContainer = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 const styleOuter = {
@@ -88,7 +88,7 @@ const styleOuter = {
   borderWidth: 1,
   borderColor: globalColors.blue,
   borderRadius: 55,
-  padding: 1
+  padding: 1,
 }
 
 const styleInner = {
@@ -97,13 +97,13 @@ const styleInner = {
   backgroundColor: globalColors.white,
   borderWidth: 1,
   borderColor: globalColors.blue,
-  borderRadius: 16
+  borderRadius: 16,
 }
 
 const styleText = {
   marginLeft: 8,
   marginBottom: 3,
-  color: globalColors.black_75
+  color: globalColors.black_75,
 }
 
 export default Checkbox

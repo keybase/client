@@ -8,7 +8,7 @@ export default class ComponentSheet extends Component {
 
   static parseRoute () {
     return {
-      componentAtTop: {title: 'Components'}
+      componentAtTop: {title: 'Components'},
     }
   }
 }

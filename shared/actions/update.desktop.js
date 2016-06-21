@@ -4,7 +4,7 @@ import * as Constants from '../constants/update'
 import engine from '../engine'
 import moment from 'moment'
 
-import {updateUi} from '../constants/types/keybase-v1'
+import {updateUi, updateCommon} from '../constants/types/keybase-v1'
 import type {delegateUiCtlRegisterUpdateUIRpc, incomingCallMapType} from '../constants/types/flow-types'
 import type {ShowUpdateConfirmAction, RegisterUpdateListenerAction, OnCancelAction, OnSkipAction,
   OnSnoozeAction, OnConfirmUpdateAction, SetAlwaysUpdateAction, ShowUpdatePausedAction, OnForceAction} from '../constants/update'
@@ -35,14 +35,14 @@ export function registerUpdateListener (): (dispatch: Dispatch, getState: () => 
           } else {
             console.log('Registered update ui')
           }
-        }
+        },
       }
       engine.rpc(params)
     })
 
     dispatch(({
       type: Constants.registerUpdateListener,
-      payload: {started: true}
+      payload: {started: true},
     }: RegisterUpdateListenerAction))
 
     const listeners = updateListenersCreator(dispatch, getState)
@@ -60,9 +60,9 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
       const {alwaysAutoInstall} = payload.options
 
       const windowTitle = {
-        [updateUi.UpdateType.normal]: 'Update: Version ' + version,
-        [updateUi.UpdateType.bugfix]: 'Update: Version ' + version,
-        [updateUi.UpdateType.critical]: 'Critical Update: Version ' + version
+        [updateCommon.UpdateType.normal]: 'Update: Version ' + version,
+        [updateCommon.UpdateType.bugfix]: 'Update: Version ' + version,
+        [updateCommon.UpdateType.critical]: 'Critical Update: Version ' + version,
       }[type]
 
       let oldVersion = ''
@@ -79,13 +79,13 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
       // Cancel any existing update prompts; this will trigger a new focused window
       dispatch({
         type: Constants.onCancel,
-        payload: null
+        payload: null,
       })
 
       dispatch(({
         type: Constants.showUpdateConfirm,
         payload: {
-          isCritical: type === updateUi.UpdateType.critical,
+          isCritical: type === updateCommon.UpdateType.critical,
           newVersion: version,
           description,
           type,
@@ -95,8 +95,8 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
           oldVersion,
           alwaysUpdate: alwaysAutoInstall,
           updateCommand,
-          canUpdate: !updateCommand
-        }
+          canUpdate: !updateCommand,
+        },
       }: ShowUpdateConfirmAction))
     },
 
@@ -108,13 +108,13 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
       // Cancel any existing update prompts
       dispatch({
         type: Constants.onCancel,
-        payload: null
+        payload: null,
       })
 
       dispatch(({
         type: Constants.showUpdatePaused,
         payload: {
-        }
+        },
       }: ShowUpdatePausedAction))
     },
 
@@ -146,9 +146,9 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
       response.result({
         quit,
         pid: remote.process.pid,
-        applicationPath: applicationPath
+        applicationPath: applicationPath,
       })
-    }
+    },
   }
 }
 
@@ -181,7 +181,7 @@ export function onSnooze (): (dispatch: Dispatch) => void {
     dispatch(({type: Constants.onSnooze, payload: null}: OnSnoozeAction))
     sendUpdateConfirmResponse({
       action: updateUi.UpdateAction.snooze,
-      snoozeUntil: Date.now() + Constants.snoozeTimeSecs * 1000
+      snoozeUntil: Date.now() + Constants.snoozeTimeSecs * 1000,
     })
   }
 }
@@ -191,7 +191,7 @@ export function onUpdate (): (dispatch: Dispatch, getState: () => {updateConfirm
     dispatch(({type: Constants.onConfirmUpdate, payload: null}: OnConfirmUpdateAction))
     sendUpdateConfirmResponse({
       action: updateUi.UpdateAction.update,
-      alwaysAutoInstall: getState().updateConfirm.alwaysUpdate
+      alwaysAutoInstall: getState().updateConfirm.alwaysUpdate,
     })
   }
 }
@@ -201,8 +201,8 @@ export function setAlwaysUpdate (alwaysUpdate: bool): (dispatch: Dispatch) => vo
     dispatch(({
       type: Constants.setAlwaysUpdate,
       payload: {
-        alwaysUpdate
-      }
+        alwaysUpdate,
+      },
     }: SetAlwaysUpdateAction))
   }
 }
@@ -211,7 +211,7 @@ export function onForce (): (dispatch: Dispatch, getState: () => {updatePaused: 
   return (dispatch, getState) => {
     dispatch(({type: Constants.onForce, payload: null}: OnForceAction))
     sendUpdatePausedResponse({
-      action: updateUi.UpdateAppInUseAction.force
+      action: updateUi.UpdateAppInUseAction.force,
     })
   }
 }

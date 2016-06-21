@@ -14,7 +14,7 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
   constructor (props: Props) {
     super(props)
     this.state = {
-      expanded: false
+      expanded: false,
     }
   }
 
@@ -40,7 +40,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
   const icon: IconProps.type = {
     'mobile': 'phone-bw-m',
     'desktop': 'computer-bw-s-2',
-    'backup': 'paper-key-m'
+    'backup': 'paper-key-m',
   }[device.type]
 
   let textStyle = {fontStyle: 'italic'}
@@ -48,7 +48,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
     textStyle = {
       ...textStyle,
       color: globalColors.black_40,
-      textDecoration: 'line-through'
+      textDecoration: 'line-through',
     }
   }
 
@@ -109,7 +109,7 @@ class Render extends Component<void, Props, State> {
     super(props)
 
     this.state = {
-      showingMenu: false
+      showingMenu: false,
     }
   }
 
@@ -117,7 +117,7 @@ class Render extends Component<void, Props, State> {
     return [
       {title: 'New Phone', onClick: () => this.props.addNewPhone()},
       {title: 'New Computer', onClick: () => this.props.addNewComputer()},
-      {title: 'New Paper Key', onClick: () => this.props.addNewPaperKey()}
+      {title: 'New Paper Key', onClick: () => this.props.addNewPaperKey()},
     ]
   }
 
@@ -148,7 +148,7 @@ class Render extends Component<void, Props, State> {
 }
 
 const stylesContainer = {
-  ...globalStyles.scrollable
+  ...globalStyles.scrollable,
 }
 
 const stylesCommonRow = {
@@ -157,23 +157,23 @@ const stylesCommonRow = {
   borderTop: 'solid 1px rgba(0, 0, 0, .1)',
   height: 60,
   justifyContent: 'center',
-  padding: 8
+  padding: 8,
 }
 
 const stylesRevokedRow = {
   ...stylesCommonRow,
   height: 30,
   justifyContent: 'flex-start',
-  backgroundColor: globalColors.lightGrey
+  backgroundColor: globalColors.lightGrey,
 }
 
 const stylesRevokedDescription = {
   ...stylesCommonRow,
-  backgroundColor: globalColors.lightGrey
+  backgroundColor: globalColors.lightGrey,
 }
 
 const stylesCommonColumn = {
-  padding: 20
+  padding: 20,
 }
 
 const stylesRevokedColumn = {
@@ -181,23 +181,23 @@ const stylesRevokedColumn = {
   alignSelf: 'center',
   flex: 1,
   textAlign: 'right',
-  paddingRight: 20
+  paddingRight: 20,
 }
 
 const stylesIconColumn = {
   ...stylesCommonColumn,
-  width: 65
+  width: 65,
 }
 
 const stylesRevokedIconColumn = {
   ...stylesIconColumn,
-  opacity: 0.2
+  opacity: 0.2,
 }
 
 const stylesPopup = {
   marginLeft: 'auto',
   marginRight: 'auto',
-  marginTop: 50
+  marginTop: 50,
 }
 
 export default Render

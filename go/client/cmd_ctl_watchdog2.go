@@ -6,6 +6,7 @@ package client
 import (
 	"fmt"
 	"path/filepath"
+	"runtime"
 	"time"
 
 	"github.com/keybase/cli"
@@ -33,6 +34,10 @@ func (c *CmdWatchdog2) Run() error {
 	if runMode != libkb.ProductionRunMode {
 		return fmt.Errorf("Watchdog is only supported in production")
 	}
+	// Don't run updater on linux
+	excludeUpdater := runtime.GOOS == "linux"
+
+	programs := []watchdog.Program{}
 
 	// Service
 	keybasePath, err := install.BinPath()
@@ -50,6 +55,7 @@ func (c *CmdWatchdog2) Run() error {
 		},
 		ExitOn: watchdog.ExitOnSuccess,
 	}
+	programs = append(programs, serviceProgram)
 
 	// KBFS
 	kbfsPath, err := install.KBFSBinPath(runMode, "")
@@ -68,26 +74,25 @@ func (c *CmdWatchdog2) Run() error {
 			mountDir,
 		},
 	}
+	programs = append(programs, kbfsProgram)
 
 	// Updater
-	updaterPath, err := install.UpdaterBinPath()
-	if err != nil {
-		return err
-	}
-	updaterProgram := watchdog.Program{
-		Path: updaterPath,
-		Args: []string{
-			"-log-to-file",
-			"-path-to-keybase=" + keybasePath,
-		},
+	if !excludeUpdater {
+		updaterPath, err := install.UpdaterBinPath()
+		if err != nil {
+			return err
+		}
+		updaterProgram := watchdog.Program{
+			Path: updaterPath,
+			Args: []string{
+				"-log-to-file",
+				"-path-to-keybase=" + keybasePath,
+			},
+		}
+		programs = append(programs, updaterProgram)
 	}
 
 	// Start and monitor all the programs
-	programs := []watchdog.Program{
-		serviceProgram,
-		kbfsProgram,
-		updaterProgram,
-	}
 	if err := watchdog.Watch(programs, 10*time.Second, c); err != nil {
 		return err
 	}

@@ -29,11 +29,11 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
 
 const textColorThemed = {
   'public': {
-    color: globalColors.black_75
+    color: globalColors.black_75,
   },
   'private': {
-    color: globalColors.white
-  }
+    color: globalColors.white,
+  },
 }
 
 export default Render

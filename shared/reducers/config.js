@@ -27,7 +27,7 @@ const initialState: ConfigState = {
   kbfsPath: Constants.defaultKBFSPath,
   error: null,
   devConfig: null,
-  bootstrapped: 0
+  bootstrapped: 0,
 }
 
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
@@ -39,7 +39,7 @@ export default function (state: ConfigState = initialState, action: Action): Con
       if (action.payload && action.payload.config) {
         return {
           ...state,
-          config: action.payload.config
+          config: action.payload.config,
         }
       }
       return state
@@ -48,7 +48,7 @@ export default function (state: ConfigState = initialState, action: Action): Con
       if (action.payload && action.payload.extendedConfig) {
         return {
           ...state,
-          extendedConfig: action.payload.extendedConfig
+          extendedConfig: action.payload.extendedConfig,
         }
       }
       return state
@@ -57,7 +57,7 @@ export default function (state: ConfigState = initialState, action: Action): Con
       if (action.payload && action.payload.path) {
         return {
           ...state,
-          kbfsPath: action.payload.path
+          kbfsPath: action.payload.path,
         }
       }
       return state
@@ -69,24 +69,24 @@ export default function (state: ConfigState = initialState, action: Action): Con
           ...state,
           status,
           username: status.user && status.user.username,
-          loggedIn: status.loggedIn
+          loggedIn: status.loggedIn,
         }
       }
       return state
     case Constants.devConfigLoading:
       return {
         ...state,
-        devConfig: null
+        devConfig: null,
       }
     case Constants.devConfigLoaded:
       return {
         ...state,
-        devConfig: action.payload.devConfig
+        devConfig: action.payload.devConfig,
       }
     case Constants.devConfigSaved:
       return {
         ...state,
-        devConfig: null
+        devConfig: null,
       }
     case Constants.devConfigUpdate:
       const devConfigured = state.devConfig && state.devConfig.configured || {}
@@ -96,15 +96,15 @@ export default function (state: ConfigState = initialState, action: Action): Con
           ...state.devConfig,
           configured: {
             ...devConfigured,
-            ...action.payload.updates
-          }
-        }
+            ...action.payload.updates,
+          },
+        },
       }
 
     case Constants.bootstrapped: {
       return {
         ...state,
-        bootstrapped: state.bootstrapped + 1
+        bootstrapped: state.bootstrapped + 1,
       }
     }
     default:

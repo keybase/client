@@ -8,14 +8,14 @@ const baseMock = {
   onSubmit: () => console.log('onBack'),
   onChangePaperKey: () => console.log('onBack'),
   paperKey: '',
-  waitingForResponse: false
+  waitingForResponse: false,
 }
 
 const dumbComponentMap: DumbComponentMap<Render> = {
   component: Render,
   mocks: {
-    'Normal': baseMock
-  }
+    'Normal': baseMock,
+  },
 }
 
 export default dumbComponentMap

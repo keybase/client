@@ -69,13 +69,13 @@ export default class CodePageRender extends Component<void, Props, void> {
     const modeTextMap: {[key: Mode]: string} = {
       codePageModeScanCode: 'Scan QR code instead',
       codePageModeShowCode: 'Display QR Code here instead',
-      codePageModeShowText: 'Type text code instead'
+      codePageModeShowText: 'Type text code instead',
     }
 
     const iconTypeMap: {[key: Mode]: IconProps.type} = {
       codePageModeScanCode: 'phone-q-r-code',
       codePageModeShowCode: 'phone-q-r-code',
-      codePageModeShowText: 'phone-text-code'
+      codePageModeShowText: 'phone-text-code',
     }
 
     const iconTypeFn = (m: Mode) => iconTypeMap[m] || 'phone-text-code' // eslint-disable-line
@@ -144,7 +144,7 @@ export default class CodePageRender extends Component<void, Props, void> {
     const headerTextMap: {[key: Mode]: React$Element} = {
       codePageModeScanCode: this.renderIntroScanQR(),
       codePageModeShowCode: this.renderIntroShowQR(),
-      codePageModeShowText: this.renderIntroTextCode()
+      codePageModeShowText: this.renderIntroTextCode(),
     }
 
     return headerTextMap[this.props.mode] || <Text type='BodySmall'>Good luck</Text>
@@ -217,53 +217,53 @@ CodePageRender.propTypes = {
   setCameraBrokenMode: React.PropTypes.func.isRequired,
   textEntered: React.PropTypes.func.isRequired,
   onChangeText: React.PropTypes.func.isRequired,
-  enterText: React.PropTypes.string
+  enterText: React.PropTypes.string,
 }
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   alignItems: 'stretch',
-  justifyContent: 'flex-start'
+  justifyContent: 'flex-start',
 }
 
 const stylesHeader = {
   flex: 1,
-  marginTop: 46
+  marginTop: 46,
 }
 
 const stylesIntro = {
   marginTop: 55,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 const stylesSwitch = {
   justifyContent: 'center',
-  marginTop: 50
+  marginTop: 50,
 }
 
 const stylesControl = {
   marginTop: 46,
-  height: 100
+  height: 100,
 }
 
 const stylesSpinner = {
   marginTop: 30,
-  alignSelf: 'center'
+  alignSelf: 'center',
 }
 
 const styles = StyleSheet.create({
   box: {
     backgroundColor: 'red',
-    position: 'absolute'
+    position: 'absolute',
   },
   boxCorner: {
     height: 1,
-    width: 20
+    width: 20,
   },
   boxEdge: {
     top: 0,
     bottom: 0,
-    width: 1
-  }
+    width: 1,
+  },
 })

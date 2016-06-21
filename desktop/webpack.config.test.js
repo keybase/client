@@ -7,11 +7,11 @@ const defines = {
   '__TEST__': true,
   '__SCREENSHOT__': false,
   'process.env.NODE_ENV': JSON.stringify('development'),
-  '__VERSION__': JSON.stringify('Development')
+  '__VERSION__': JSON.stringify('Development'),
 }
 
 config.entry = {
-  test: ['./shared/test/index.js']
+  test: ['./shared/test/index.js'],
 }
 config.devtool = 'source-map'
 

@@ -47,6 +47,11 @@ type PaperKeyArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type PaperKeySubmitArg struct {
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	PaperPhrase string `codec:"paperPhrase" json:"paperPhrase"`
+}
+
 type UnlockArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -54,6 +59,13 @@ type UnlockArg struct {
 type UnlockWithPassphraseArg struct {
 	SessionID  int    `codec:"sessionID" json:"sessionID"`
 	Passphrase string `codec:"passphrase" json:"passphrase"`
+}
+
+type PGPProvisionArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Username   string `codec:"username" json:"username"`
+	Passphrase string `codec:"passphrase" json:"passphrase"`
+	DeviceName string `codec:"deviceName" json:"deviceName"`
 }
 
 type LoginInterface interface {
@@ -79,9 +91,15 @@ type LoginInterface interface {
 	// PaperKey generates paper backup keys for restoring an account.
 	// It calls login_ui.displayPaperKeyPhrase with the phrase.
 	PaperKey(context.Context, int) error
+	// paperKeySubmit checks that paperPhrase is a valid paper key
+	// for the logged in user, caches the keys, and sends a notification.
+	PaperKeySubmit(context.Context, PaperKeySubmitArg) error
 	// Unlock restores access to local key store by priming passphrase stream cache.
 	Unlock(context.Context, int) error
 	UnlockWithPassphrase(context.Context, UnlockWithPassphraseArg) error
+	// pgpProvision is for devel/testing to provision a device via pgp using CLI
+	// with no user interaction.
+	PGPProvision(context.Context, PGPProvisionArg) error
 }
 
 func LoginProtocol(i LoginInterface) rpc.Protocol {
@@ -200,6 +218,22 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"paperKeySubmit": {
+				MakeArg: func() interface{} {
+					ret := make([]PaperKeySubmitArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PaperKeySubmitArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PaperKeySubmitArg)(nil), args)
+						return
+					}
+					err = i.PaperKeySubmit(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"unlock": {
 				MakeArg: func() interface{} {
 					ret := make([]UnlockArg, 1)
@@ -228,6 +262,22 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						return
 					}
 					err = i.UnlockWithPassphrase(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"pgpProvision": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPProvisionArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPProvisionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPProvisionArg)(nil), args)
+						return
+					}
+					err = i.PGPProvision(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -294,6 +344,13 @@ func (c LoginClient) PaperKey(ctx context.Context, sessionID int) (err error) {
 	return
 }
 
+// paperKeySubmit checks that paperPhrase is a valid paper key
+// for the logged in user, caches the keys, and sends a notification.
+func (c LoginClient) PaperKeySubmit(ctx context.Context, __arg PaperKeySubmitArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.paperKeySubmit", []interface{}{__arg}, nil)
+	return
+}
+
 // Unlock restores access to local key store by priming passphrase stream cache.
 func (c LoginClient) Unlock(ctx context.Context, sessionID int) (err error) {
 	__arg := UnlockArg{SessionID: sessionID}
@@ -303,5 +360,12 @@ func (c LoginClient) Unlock(ctx context.Context, sessionID int) (err error) {
 
 func (c LoginClient) UnlockWithPassphrase(ctx context.Context, __arg UnlockWithPassphraseArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.unlockWithPassphrase", []interface{}{__arg}, nil)
+	return
+}
+
+// pgpProvision is for devel/testing to provision a device via pgp using CLI
+// with no user interaction.
+func (c LoginClient) PGPProvision(ctx context.Context, __arg PGPProvisionArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.pgpProvision", []interface{}{__arg}, nil)
 	return
 }

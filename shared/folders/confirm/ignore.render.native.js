@@ -36,26 +36,26 @@ const styleAvatar = {
   borderRadius: 35,
   position: 'absolute',
   right: 0,
-  bottom: 0
+  bottom: 0,
 }
 
 const textColorThemed = {
   'public': {
-    color: globalColors.black_75
+    color: globalColors.black_75,
   },
   'private': {
-    color: globalColors.white
-  }
+    color: globalColors.white,
+  },
 }
 
 const borderColorThemed = {
   'public': globalColors.white,
-  'private': globalColors.darkBlue3
+  'private': globalColors.darkBlue3,
 }
 
 const iconThemed = {
   'public': 'icon-folder-public-64',
-  'private': 'icon-folder-private-64'
+  'private': 'icon-folder-private-64',
 }
 
 export default Render

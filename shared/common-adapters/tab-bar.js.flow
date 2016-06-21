@@ -2,41 +2,43 @@
 
 import React, {Component} from 'react'
 import Avatar from './avatar'
-import type {Props as IconProps} from './icon'
+import type {$Exact} from '../constants/types/more'
+import type {IconType} from './icon'
 
-export type ItemProps = {
-  tabBarButton?: React$Element,
-  label?: string,
+export type Props = $Exact<{
   style?: Object,
-  selected?: boolean,
-  onClick?: () => void,
-  containerStyle?: Object,
-  children?: React$Element
-}
-
-export class TabBarItem extends Component<void, ItemProps, void> {
-}
-
-export type Props = {
-  style?: Object,
-  tabBarStyle?: Object,
+  styleTabBar?: Object,
   children?: Array<React$Element<ItemProps>>,
   tabBarOnBottom?: boolean,
-  tabWidth?: number,
-  underlined?: boolean
-}
-
-export type TabBarButtonProps = {
-  selected?: boolean,
-  source: {type: 'icon', icon: IconProps.type, label?: string} | {type: 'avatar', avatar: Avatar},
-  badgeNumber?: ?number,
-  style?: Object,
-  styleBadge?: Object,
-  styleIcon?: Object,
-  styleLabel?: Object,
-  styleBadgeNumber?: Object
-}
-
-export class TabBarButton extends Component<void, TabBarButtonProps, void> { }
+  underlined?: boolean,
+}>
 
 export default class TabBar extends Component<void, Props, void> { }
+
+export type ItemProps = $Exact<{
+  tabBarButton?: React$Element,
+  label?: string,
+  selected: boolean,
+  selectedColor?: string,
+  onClick?: () => void,
+  style?: Object,
+  styleContainer?: Object,
+  children?: React$Element,
+}>
+
+export class TabBarItem extends Component<void, ItemProps, void> { }
+
+export type TabBarButtonProps = $Exact<{
+  selected?: boolean,
+  source: {type: 'icon', icon: IconType} | {type: 'avatar', avatar: Avatar},
+  label?: string,
+  badgeNumber?: ?number,
+  style?: Object,
+  styleContainer?: Object,
+  styleBadge?: Object,
+  styleIcon?: Object,
+  styleBadgeNumber?: Object,
+  styleLabel?: Object,
+}>
+
+export class TabBarButton extends Component<void, TabBarButtonProps, void> { }

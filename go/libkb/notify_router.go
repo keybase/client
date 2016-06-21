@@ -30,6 +30,7 @@ type NotifyListener interface {
 	TrackingChanged(uid keybase1.UID, username string)
 	FSActivity(activity keybase1.FSNotification)
 	FavoritesChanged(uid keybase1.UID)
+	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 }
 
 // NotifyRouter routes notifications to the various active RPC
@@ -302,4 +303,36 @@ func (n *NotifyRouter) HandleFavoritesChanged(uid keybase1.UID) {
 		n.listener.FavoritesChanged(uid)
 	}
 	n.G().Log.Debug("- Sent favorites changed notfication")
+}
+
+// HandlePaperKeyCached is called whenever a paper key is cached
+// in response to a rekey harassment.
+func (n *NotifyRouter) HandlePaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending paperkey cached notfication")
+	arg := keybase1.PaperKeyCachedArg{
+		Uid:    uid,
+		EncKID: encKID,
+		SigKID: sigKID,
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Favorites` notification type
+		if n.getNotificationChannels(id).Paperkeys {
+			// In the background do...
+			go func() {
+				(keybase1.NotifyPaperKeyClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).PaperKeyCached(context.TODO(), arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.PaperKeyCached(uid, encKID, sigKID)
+	}
+	n.G().Log.Debug("- Sent paperkey cached notfication")
 }

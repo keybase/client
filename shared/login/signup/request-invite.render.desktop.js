@@ -42,22 +42,22 @@ const stylesButton = {
   marginTop: 50,
   marginBottom: 30,
   marginRight: 0,
-  alignSelf: 'flex-end'
+  alignSelf: 'flex-end',
 }
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 const stylesHeader = {
-  marginTop: 30
+  marginTop: 30,
 }
 const stylesIcon = {
-  marginTop: 55
+  marginTop: 55,
 }
 const stylesInput = {
   height: 45,
   marginTop: 25,
-  width: 450
+  width: 450,
 }
 
 export default Render

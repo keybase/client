@@ -19,5 +19,5 @@ export default class Container extends Component {
 Container.propTypes = {
   title: React.PropTypes.string,
   style: React.PropTypes.object,
-  children: React.PropTypes.node.isRequired
+  children: React.PropTypes.node.isRequired,
 }

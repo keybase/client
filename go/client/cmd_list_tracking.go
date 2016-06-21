@@ -16,6 +16,7 @@ import (
 )
 
 type CmdListTracking struct {
+	libkb.Contextified
 	filter  string
 	json    bool
 	verbose bool
@@ -105,7 +106,7 @@ func DisplayJSON(jsonStr string) error {
 }
 
 func (s *CmdListTracking) Run() error {
-	cli, err := GetUserClient()
+	cli, err := GetUserClient(s.G())
 	if err != nil {
 		return err
 	}
@@ -128,12 +129,12 @@ func (s *CmdListTracking) Run() error {
 	return displayTable(table, s.verbose, s.headers)
 }
 
-func NewCmdListTracking(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdListTracking(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "list-tracking",
 		Usage: "List who you're tracking",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdListTracking{}, "tracking", c)
+			cl.ChooseCommand(&CmdListTracking{Contextified: libkb.NewContextified(g)}, "tracking", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{

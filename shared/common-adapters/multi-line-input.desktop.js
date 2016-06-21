@@ -62,14 +62,14 @@ export default class MultiLineInput extends Component<void, Props, State> {
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
   position: 'relative',
-  justifyContent: 'flex-end'
+  justifyContent: 'flex-end',
 }
 
 const hintTextStyle = {
   ...transition('opacity'),
   cursor: 'text',
   color: globalColors.black_10,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 const inputStyle = {
@@ -78,13 +78,13 @@ const inputStyle = {
   left: 0,
   right: 0,
   outline: 'none',
-  textAlign: 'center'
+  textAlign: 'center',
 }
 
 const underlineStyle = {
   border: 'solid',
   borderWidth: 1,
-  borderColor: 'rgba(0, 0, 0, 0.08)'
+  borderColor: 'rgba(0, 0, 0, 0.08)',
 }
 
 const errorTextStyle = {
@@ -93,5 +93,5 @@ const errorTextStyle = {
   left: 0,
   right: 0,
   outline: 'none',
-  textAlign: 'center'
+  textAlign: 'center',
 }

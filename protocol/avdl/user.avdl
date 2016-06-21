@@ -52,6 +52,7 @@ protocol user {
     Load a user from the server.
     */
   User loadUser(int sessionID, UID uid);
+  User loadUserByName(int sessionID, string username);
 
   /**
     Load a user + device keys from the server.
@@ -88,4 +89,10 @@ protocol user {
     Search for users who match a given query.
     */
   array<SearchResult> search(int sessionID, string query);
+
+  /**
+    Load all the user's public keys (even those in reset key families)
+    from the server with no verification
+    */
+  array<PublicKey> loadAllPublicKeysUnverified(int sessionID, UID uid);
 }

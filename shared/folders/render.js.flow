@@ -5,6 +5,7 @@ import type {Props as ListProps} from './list'
 
 export type Props = {
   showComingSoon: boolean,
+  username: string,
   privateBadge?: number,
   private: ListProps,
   publicBadge?: number,
@@ -14,6 +15,7 @@ export type Props = {
   listStyle?: any,
   smallMode?: boolean,
   onClick?: (path: string) => void,
+  onOpen?: (path: string) => void,
   onRekey: (path: string) => void
 }
 

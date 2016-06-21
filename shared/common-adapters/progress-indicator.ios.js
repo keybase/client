@@ -19,5 +19,5 @@ export default class ProgressIndicator extends Component {
 
 const style = {
   alignItems: 'center',
-  justifyContent: 'center'
+  justifyContent: 'center',
 }

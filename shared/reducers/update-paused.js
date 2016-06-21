@@ -10,7 +10,7 @@ export type UpdatePausedState = {
 }
 
 const initialState: UpdatePausedState = {
-  closed: true
+  closed: true,
 }
 
 export default function (state: UpdatePausedState = initialState, action: UpdatePausedActions): UpdatePausedState {
@@ -20,7 +20,7 @@ export default function (state: UpdatePausedState = initialState, action: Update
     case Constants.showUpdatePaused:
       return {
         ...state,
-        closed: false
+        closed: false,
       }
     case Constants.onForce:
       return {...state, closed: true}

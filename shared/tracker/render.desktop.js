@@ -39,8 +39,8 @@ export default class Render extends Component<void, RenderProps, void> {
       <div style={styles.container}>
         <Header {...this.props.headerProps} />
         <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar'>
-          <UserBio {...this.props.bioProps} />
-          <UserProofs {...this.props.proofsProps} />
+          <UserBio type='Tracker' {...this.props.bioProps} style={{marginTop: 50}} avatarSize={80} />
+          <UserProofs {...this.props.proofsProps} style={{paddingTop: 8, paddingLeft: 30, paddingRight: 30}} />
         </div>
         <div style={styles.footer}>
           <Action {...this.props.actionProps} />
@@ -54,7 +54,7 @@ Render.propTypes = {
   headerProps: React.PropTypes.any,
   bioProps: React.PropTypes.any,
   proofsProps: React.PropTypes.any,
-  actionProps: React.PropTypes.any
+  actionProps: React.PropTypes.any,
 }
 
 const styles = {
@@ -62,19 +62,19 @@ const styles = {
     ...commonStyles.flexBoxColumn,
     width: 320,
     height: 470,
-    position: 'relative'
+    position: 'relative',
   },
   content: {
     overflowY: 'auto',
     overflowX: 'hidden',
     // This value is added to the footer height to set the actual paddingBottom
     paddingBottom: 12,
-    zIndex: 1
+    zIndex: 1,
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
-    right: 0
-  }
+    right: 0,
+  },
 }

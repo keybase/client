@@ -32,6 +32,6 @@ const styles = {
     ...globalStyles.flexBoxRow,
     justifyContent: 'center',
     position: 'relative',
-    bottom: 7
-  }
+    bottom: 7,
+  },
 }

@@ -109,7 +109,7 @@ export default function UserGroup ({users, onAddUser, onRemoveUser, onClickUser,
 
 const avatarStyle = {
   marginLeft: 8,
-  marginRight: 16
+  marginRight: 16,
 }
 
 const rowButtonStyle = {
@@ -117,5 +117,5 @@ const rowButtonStyle = {
   backgroundColor: globalColors.white,
   height: 48,
   alignItems: 'center',
-  justifyContent: 'center'
+  justifyContent: 'center',
 }

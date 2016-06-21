@@ -43,7 +43,7 @@ ipcRenderer.on('display', (ev, msg) => {
         x: box.left - PADDING,
         y: box.top - PADDING,
         width: Math.floor(box.width) + 2 * PADDING,
-        height: Math.floor(box.height + 2 * PADDING)
+        height: Math.floor(box.height + 2 * PADDING),
       }
 
       ev.sender.send('display-done', {rect, ...msg})

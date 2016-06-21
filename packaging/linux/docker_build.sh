@@ -41,6 +41,10 @@ done
 s3cmd_temp="$(mktemp -d)"
 cp ~/.s3cfg "$s3cmd_temp"
 
+# Same with the GitHub token.
+github_token_temp="$(mktemp -d)"
+cp ~/.github_token "$github_token_temp"
+
 # Prepare a folder that we'll share with the container, as the container's
 # /root directory, where all the build work gets done. Docker recommends that
 # write-heavy work happen in shared folders, for better performance.
@@ -65,8 +69,21 @@ if [ -z "$(docker images -q "$image")" ] ; then
   docker build -t "$image" "$clientdir/packaging/linux"
 fi
 
+# Run the docker job in interactive mode if we're actually talking to a
+# terminal. Interactive mode is required when the code signing key is password
+# protected, because gpg has to prompt you for the password. But docker will
+# refuse to start in interactive mode if it doesn't actually have a terminal to
+# talk to, like in a buildbot job. This check lets us have our stdin cake and
+# eat it too.
+if [ -t 0 ] ; then
+  # Stdin is a terminal.
+  interactive_args=("--tty" "--interactive")
+else
+  interactive_args=()
+fi
+
 echo '=== docker ==='
-docker run \
+docker run "${interactive_args[@]:+${interactive_args[@]}}" \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$kbfsdir:/KBFS:ro" \
@@ -74,8 +91,8 @@ docker run \
   -v "$gpg_tempdir:/GPG" \
   -v "$HOME/.ssh:/SSH:ro" \
   -v "$s3cmd_temp:/S3CMD:ro" \
+  -v "$github_token_temp:/GITHUB_TOKEN:ro" \
   -e BUCKET_NAME \
-  -e GITHUB_TOKEN \
   -e NOWAIT \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

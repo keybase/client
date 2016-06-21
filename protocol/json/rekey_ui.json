@@ -1,5 +1,6 @@
 {
   "protocol": "rekeyUI",
+  "imports": [],
   "types": [],
   "messages": {
     "delegateRekeyUI": {
@@ -17,7 +18,7 @@
           "type": "ProblemSetDevices"
         }
       ],
-      "response": "null",
+      "response": null,
       "doc": "refresh is called whenever Electron should refresh the UI, either\n   * because a change came in, or because there was a timeout poll."
     }
   },

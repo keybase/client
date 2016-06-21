@@ -21,6 +21,6 @@ MenuList.propTypes = {
   items: React.PropTypes.arrayOf(React.PropTypes.shape({
     name: React.PropTypes.string.isRequired,
     hasChildren: React.PropTypes.bool,
-    onClick: React.PropTypes.func.isRequired
-  }))
+    onClick: React.PropTypes.func.isRequired,
+  })),
 }

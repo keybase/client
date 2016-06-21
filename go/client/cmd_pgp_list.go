@@ -50,7 +50,7 @@ func (s *CmdPGPList) Run() error {
 		return libkb.LoginRequiredError{}
 	}
 
-	userCli, err := GetUserClient()
+	userCli, err := GetUserClient(s.G())
 	if err != nil {
 		return err
 	}

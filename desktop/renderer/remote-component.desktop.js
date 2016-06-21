@@ -3,9 +3,8 @@ import {remote, ipcRenderer} from 'electron'
 import {resolveRootAsURL} from '../resolve-root'
 import menuHelper from '../app/menu-helper'
 import hotPath from '../hot-path'
-
+import {screen as electronScreen} from 'electron'
 const {BrowserWindow} = remote
-
 const remoteIdsToComponents = {}
 
 // Remember if we close, it's an error to try to close an already closed window
@@ -18,7 +17,7 @@ ipcRenderer.on('remoteWindowClosed', (event, remoteWindowId) => {
   remoteIdsToComponents[remoteWindowId] = null
 })
 
-export default class RemoteComponent extends Component {
+class RemoteComponent extends Component {
   onClosed () {
     if (!this.closed) {
       this.closed = true
@@ -37,6 +36,12 @@ export default class RemoteComponent extends Component {
       ...this.props.windowsOpts}
 
     this.remoteWindow = new BrowserWindow(windowsOpts)
+
+    if (this.props.positionBottomRight && electronScreen.getPrimaryDisplay()) {
+      const {width, height} = electronScreen.getPrimaryDisplay().workAreaSize
+      this.remoteWindow.setPosition(width - windowsOpts.width - 100, height - windowsOpts.height - 100, false)
+    }
+
     // Keep remoteWindowId since remoteWindow properties are not accessible if destroyed
     this.remoteWindowId = this.remoteWindow.id
     remoteIdsToComponents[this.remoteWindowId] = this
@@ -97,5 +102,7 @@ RemoteComponent.propTypes = {
   onRemoteClose: React.PropTypes.func,
   hidden: React.PropTypes.bool, // Hide the remote window (Does not close the window)
   selectorParams: React.PropTypes.string, // To get a substore
-  ignoreNewProps: React.PropTypes.bool // Do not send the remote window new props. Sometimes the remote component will have it's own store and can get it's own data. It doesn't need us to send it.
+  ignoreNewProps: React.PropTypes.bool, // Do not send the remote window new props. Sometimes the remote component will have it's own store and can get it's own data. It doesn't need us to send it.
 }
+
+export default RemoteComponent

@@ -24,7 +24,7 @@ class RemoveDevice extends Component {
 RemoveDevice.propTypes = {
   device: React.PropTypes.object.isRequired,
   navigateUp: React.PropTypes.func.isRequired,
-  removeDevice: React.PropTypes.func.isRequired
+  removeDevice: React.PropTypes.func.isRequired,
 }
 
 export default connect(
@@ -32,6 +32,6 @@ export default connect(
   (dispatch, ownProps) => {
     return {
       navigateUp: () => dispatch(navigateUp()),
-      removeDevice: () => dispatch(removeDevice(ownProps.device.deviceID))
+      removeDevice: () => dispatch(removeDevice(ownProps.device.deviceID)),
     }
   })(RemoveDevice)

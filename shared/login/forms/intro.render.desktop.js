@@ -30,21 +30,21 @@ const stylesLoginForm = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   marginTop: 95,
-  flex: 1
+  flex: 1,
 }
 const stylesHeader = {
   marginTop: 27,
-  color: globalColors.orange
+  color: globalColors.orange,
 }
 const stylesHeaderSub = {
-  marginTop: 3
+  marginTop: 3,
 }
 const stylesLoginHeader = {
   marginTop: 91,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 const stylesButton = {
-  marginTop: 15
+  marginTop: 15,
 }
 
 const stylesRevoked = {
@@ -55,5 +55,5 @@ const stylesRevoked = {
   justifyContent: 'center',
   alignItems: 'center',
   alignSelf: 'stretch',
-  backgroundColor: globalColors.green
+  backgroundColor: globalColors.green,
 }

@@ -21,7 +21,7 @@ class UsernameEmailForm extends Component {
 
     this.state = {
       username: this.props.username || '',
-      email: this.props.email || ''
+      email: this.props.email || '',
     }
   }
 
@@ -47,7 +47,7 @@ export default connect(
     emailErrorText: state.signup.emailError,
     username: state.signup.username,
     email: state.signup.email,
-    waiting: state.signup.waiting
+    waiting: state.signup.waiting,
   }),
   dispatch => bindActionCreators(signupActions, dispatch)
 )(UsernameEmailForm)

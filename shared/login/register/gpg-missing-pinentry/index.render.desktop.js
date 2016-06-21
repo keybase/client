@@ -25,20 +25,20 @@ class Render extends Component<void, Props, void> {
 const styles = {
   container: {
     flex: 1,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   header: {
-    marginTop: 44
+    marginTop: 44,
   },
   icon: {
     fontSize: 30,
-    marginTop: 90
+    marginTop: 90,
   },
   paragraph: {
     textAlign: 'center',
     marginTop: 5,
-    width: 523
-  }
+    width: 523,
+  },
 }
 
 export default Render

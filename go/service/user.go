@@ -90,7 +90,17 @@ func (h *UserHandler) ListTrackingJSON(_ context.Context, arg keybase1.ListTrack
 }
 
 func (h *UserHandler) LoadUser(_ context.Context, arg keybase1.LoadUserArg) (user keybase1.User, err error) {
-	u, err := libkb.LoadUser(libkb.LoadUserArg{UID: arg.Uid, Contextified: libkb.NewContextified(h.G())})
+	u, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(h.G(), arg.Uid))
+	if err != nil {
+		return
+	}
+	exportedUser := u.Export()
+	user = *exportedUser
+	return
+}
+
+func (h *UserHandler) LoadUserByName(_ context.Context, arg keybase1.LoadUserByNameArg) (user keybase1.User, err error) {
+	u, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(h.G(), arg.Username))
 	if err != nil {
 		return
 	}
@@ -126,6 +136,20 @@ func (h *UserHandler) LoadPublicKeys(_ context.Context, arg keybase1.LoadPublicK
 	var publicKeys []keybase1.PublicKey
 	if u.GetComputedKeyFamily() != nil {
 		publicKeys = u.GetComputedKeyFamily().Export()
+	}
+	return publicKeys, nil
+}
+
+func (h *UserHandler) LoadAllPublicKeysUnverified(_ context.Context,
+	arg keybase1.LoadAllPublicKeysUnverifiedArg) (keys []keybase1.PublicKey, err error) {
+
+	u, err := libkb.LoadUserFromServer(h.G(), arg.Uid, nil)
+	if err != nil {
+		return
+	}
+	var publicKeys []keybase1.PublicKey
+	if u.GetKeyFamily() != nil {
+		publicKeys = u.GetKeyFamily().Export()
 	}
 	return publicKeys, nil
 }

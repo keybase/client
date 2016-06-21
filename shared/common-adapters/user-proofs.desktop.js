@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import commonStyles from '../styles/common'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {Icon, Text, Meta} from '../common-adapters/index'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
@@ -45,7 +45,7 @@ class ProofsRender extends Component {
       'rooter': 'fa-shopping-basket',
       'http': 'fa-globe',
       'https': 'fa-globe',
-      'dns': 'fa-globe'
+      'dns': 'fa-globe',
     }[proof.type]
   }
 
@@ -101,7 +101,7 @@ class ProofsRender extends Component {
     }
   }
 
-  _renderProofRow (proof: Proof) {
+  _renderProofRow (proof: Proof, idx: number) {
     const metaColor = this._metaColor(proof)
     const proofNameColor = this._proofColor(proof)
     const proofStatusIcon = this._proofStatusIcon(proof)
@@ -112,12 +112,12 @@ class ProofsRender extends Component {
       width: 208,
       display: 'inline-block',
       wordBreak: 'break-all',
-      ...styleProofName
+      ...styleProofName,
     }
 
     const proofNameStyle = {
       color: proofNameColor,
-      ...(proof.meta === metaDeleted ? {textDecoration: 'line-through'} : {})
+      ...(proof.meta === metaDeleted ? {textDecoration: 'line-through'} : {}),
     }
 
     const meta = proof.meta &&
@@ -126,7 +126,7 @@ class ProofsRender extends Component {
     const proofIcon = proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this._onClickProof(proof)} />
 
     return (
-      <p style={styleRow} key={`${proof.id}${proof.type}`}>
+      <p style={{...styleRow, paddingTop: idx > 0 ? 8 : 0}} key={`${proof.id}${proof.type}`}>
         <Icon style={styleService} type={this._iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
         <span style={styleProofNameSection}>
           <span style={styleProofNameLabelContainer}>
@@ -144,8 +144,8 @@ class ProofsRender extends Component {
 
   render () {
     return (
-      <div style={styleContainer}>
-        {this.props.proofs.map(p => this._renderProofRow(p))}
+      <div style={{...styleContainer, ...this.props.style}}>
+        {this.props.proofs.map((p, idx) => this._renderProofRow(p, idx))}
       </div>
     )
   }
@@ -153,16 +153,13 @@ class ProofsRender extends Component {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white
+  backgroundColor: globalColors.white,
 }
 
 const styleRow = {
   ...globalStyles.flexBoxRow,
-  paddingTop: 8,
-  paddingLeft: 30,
-  paddingRight: 30,
   alignItems: 'flex-start',
-  justifyContent: 'flex-start'
+  justifyContent: 'flex-start',
 }
 
 const styleService = {
@@ -173,36 +170,36 @@ const styleService = {
   textAlign: 'center',
   color: globalColors.black_75,
   hoverColor: globalColors.black_75,
-  marginRight: 9,
-  marginTop: 5
+  marginRight: globalMargins.tiny,
+  marginTop: 5,
 }
 
 const styleStatusIcon = {
   ...globalStyles.clickable,
   fontSize: 20,
   marginLeft: 10,
-  marginTop: 1
+  marginTop: 1,
 }
 
 const styleProofNameSection = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  flex: 1
+  flex: 1,
 }
 
 const styleProofNameLabelContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1
+  flex: 1,
 }
 
 const styleProofName = {
   ...commonStyles.clickable,
-  flex: 1
+  flex: 1,
 }
 
 const styleProofType = {
   color: globalColors.black_10,
-  wordBreak: 'normal'
+  wordBreak: 'normal',
 }
 
 export default ProofsRender

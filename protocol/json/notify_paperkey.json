@@ -1,0 +1,31 @@
+{
+  "protocol": "NotifyPaperKey",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "paperKeyCached": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "encKID",
+          "type": "KID"
+        },
+        {
+          "name": "sigKID",
+          "type": "KID"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

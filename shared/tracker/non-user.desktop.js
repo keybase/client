@@ -43,7 +43,7 @@ const Bottom = ({onClose, name, serviceName}) => (
 
 const Render = ({name, reason, inviteLink, onClose, isPrivate, serviceName}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-    <Top reason={reason} isPrivate={isPrivate} inviteLink={inviteLink} name={name} />
+    <Top onClose={onClose} reason={reason} isPrivate={isPrivate} inviteLink={inviteLink} name={name} />
     <Bottom onClose={onClose} name={name} serviceName={serviceName} />
   </Box>
 )
@@ -52,7 +52,7 @@ const stylesMessage = {
   textAlign: 'center',
   color: globalColors.white,
   marginLeft: 24,
-  marginRight: 24
+  marginRight: 24,
 }
 
 const stylesContainer = {
@@ -62,13 +62,13 @@ const stylesContainer = {
   alignItems: 'center',
   position: 'relative',
   backgroundColor: globalColors.blue,
-  padding: 16
+  padding: 16,
 }
 
 const stylesClose = {
   position: 'absolute',
   right: 8,
-  top: 8
+  top: 8,
 }
 
 const stylesLinkBox = {
@@ -79,13 +79,14 @@ const stylesLinkBox = {
   marginTop: 8,
   borderRadius: 48,
   height: 32,
-  backgroundColor: globalColors.white
+  backgroundColor: globalColors.white,
 }
 
 const stylesLink = {
   ...globalStyles.selectable,
+  ...globalStyles.windowDraggingClickable,
   marginLeft: 7,
-  color: globalColors.green2
+  color: globalColors.green2,
 }
 
 const stylesNext = {
@@ -94,14 +95,14 @@ const stylesNext = {
   backgroundColor: globalColors.white,
   alignItems: 'center',
   paddingTop: 24,
-  paddingBottom: 16
+  paddingBottom: 16,
 }
 
 const stylesBullet = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   marginLeft: 32,
-  marginRight: 32
+  marginRight: 32,
 
 }
 

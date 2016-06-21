@@ -13,7 +13,7 @@ const initialState: RouterState = createRouterState(['nav'], [])
 export function createRouterState (uri: Array<string>, history: Array<Array<string>>): RouterState {
   return new RouterStateRecord({
     uri: parseUri(uri),
-    history: List(history.map(parseUri))
+    history: List(history.map(parseUri)),
   })
 }
 

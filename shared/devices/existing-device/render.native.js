@@ -30,13 +30,13 @@ export default class ExistingDeviceRender extends Component {
 
 ExistingDeviceRender.propTypes = {
   onSubmitComputer: React.PropTypes.func.isRequired,
-  onSubmitPhone: React.PropTypes.func.isRequired
+  onSubmitPhone: React.PropTypes.func.isRequired,
 
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'flex-start'
-  }
+    alignItems: 'flex-start',
+  },
 })

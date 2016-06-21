@@ -19,7 +19,7 @@ class SignupError extends Component {
 
 SignupError.propTypes = {
   errorText: React.PropTypes.instanceOf(HiddenString).isRequired,
-  resetSignup: React.PropTypes.func.isRequired
+  resetSignup: React.PropTypes.func.isRequired,
 }
 
 export default connect(

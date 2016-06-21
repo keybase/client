@@ -18,8 +18,8 @@ const styles = {
   header: {
     alignSelf: 'center',
     marginTop: 46,
-    marginBottom: 20
-  }
+    marginBottom: 20,
+  },
 }
 
 const renderError = error => {

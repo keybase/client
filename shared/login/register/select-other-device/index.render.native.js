@@ -12,7 +12,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconProps.type = ({
     'mobile': 'phone-bw-m',
     'desktop': 'computer-bw-m',
-    'backup': 'paper-key-m'
+    'backup': 'paper-key-m',
   }: {[key: DeviceType]: IconProps.type})[type]
 
   const onPress = e => {
@@ -44,19 +44,19 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
 )
 
 const stylesContainer = {
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 const stylesHeader = {
   textAlign: 'center',
   marginTop: 46,
-  marginBottom: 20
+  marginBottom: 20,
 }
 const stylesDevicesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   width: 375,
-  alignSelf: 'center'
+  alignSelf: 'center',
 }
 const stylesRow = {
   ...globalStyles.flexBoxColumn,
@@ -64,25 +64,25 @@ const stylesRow = {
   justifyContent: 'center',
   padding: 10,
   borderBottomWidth: 1,
-  borderBottomColor: globalColors.black_10
+  borderBottomColor: globalColors.black_10,
 }
 const stylesIconName = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 const stylesIconContainer = {
   ...globalStyles.flexBoxRow,
   justifyContent: 'center',
-  alignItems: 'center'
+  alignItems: 'center',
 }
 const stylesIcon = {
   color: globalColors.black,
   marginLeft: 32,
-  marginRight: 22
+  marginRight: 22,
 }
 const stylesWont = {
   marginTop: 10,
-  alignSelf: 'center'
+  alignSelf: 'center',
 }
 
 export default Render

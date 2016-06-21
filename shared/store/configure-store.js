@@ -26,7 +26,7 @@ const loggerMiddleware = enableStoreLogging ? createLogger({
   duration: true,
   stateTransformer: objToJS,
   actionTransformer: objToJS,
-  collapsed: true
+  collapsed: true,
 }) : null
 
 const createStoreWithMiddleware = enableStoreLogging

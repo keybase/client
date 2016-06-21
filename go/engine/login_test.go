@@ -52,6 +52,19 @@ func TestLoginAndSwitch(t *testing.T) {
 	return
 }
 
+// Login should now unlock device keys at the end, no matter what.
+func TestLoginUnlocksDeviceKeys(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "login")
+	Logout(tc)
+	u1.LoginOrBust(tc)
+
+	assertPassphraseStreamCache(tc)
+	assertDeviceKeysCached(tc)
+}
+
 func TestCreateFakeUserNoKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -195,6 +208,13 @@ func TestProvisionDesktop(t *testing.T) {
 	if err := AssertProvisioned(tcY); err != nil {
 		t.Fatal(err)
 	}
+
+	// after provisioning, the passphrase stream should be cached
+	// (note that this just checks the passphrase stream, not 3sec)
+	assertPassphraseStreamCache(tcY)
+
+	// after provisioning, the device keys should be cached
+	assertDeviceKeysCached(tcY)
 
 	// make sure that the provisioned device can use
 	// the passphrase stream cache (use an empty secret ui)
@@ -1298,8 +1318,6 @@ func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
 
 // We have obviated the unlock command by combining it with login.
 func TestLoginStreamCache(t *testing.T) {
-	t.Skip()
-
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -1311,6 +1329,7 @@ func TestLoginStreamCache(t *testing.T) {
 
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
+		a.ClearCachedSecretKeys()
 	}, "clear stream cache")
 
 	if !assertStreamCache(tc, false) {
@@ -1323,6 +1342,7 @@ func TestLoginStreamCache(t *testing.T) {
 	if !assertStreamCache(tc, true) {
 		t.Fatal("expected valid stream cache after login")
 	}
+	assertDeviceKeysCached(tc)
 }
 
 // Check the device type
@@ -2342,5 +2362,41 @@ func (g *gpgImportFailer) Index(secret bool, query string) (ki *libkb.GpgKeyInde
 func skipWindows(t *testing.T) {
 	if runtime.GOOS == "windows" {
 		t.Skip("skipping test on windows")
+	}
+}
+
+func assertDeviceKeysCached(tc libkb.TestContext) {
+	var sk, ek libkb.GenericKey
+	var skerr, ekerr error
+
+	aerr := tc.G.LoginState().Account(func(a *libkb.Account) {
+		sk, skerr = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType})
+		ek, ekerr = a.CachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType})
+	}, "assertDeviceKeysCached")
+	if aerr != nil {
+		tc.T.Fatal(aerr)
+	}
+	if skerr != nil {
+		tc.T.Fatalf("error getting cached signing key: %s", skerr)
+	}
+	if sk == nil {
+		tc.T.Error("cached signing key nil")
+	}
+	if ekerr != nil {
+		tc.T.Fatalf("error getting cached encryption key: %s", ekerr)
+	}
+	if ek == nil {
+		tc.T.Error("cached encryption key nil")
+	}
+}
+
+func assertPassphraseStreamCache(tc libkb.TestContext) {
+	var ppsValid bool
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		ppsValid = a.PassphraseStreamCache().ValidPassphraseStream()
+	}, "assertPassphraseStreamCache")
+
+	if !ppsValid {
+		tc.T.Fatal("passphrase stream not cached")
 	}
 }

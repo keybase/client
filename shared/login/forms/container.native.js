@@ -19,16 +19,16 @@ const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
     padding: 16,
-    flex: 1
+    flex: 1,
   },
   innerContainer: {
     ...globalStyles.flexBoxColumn,
     marginTop: 30,
-    flex: 1
+    flex: 1,
   },
   button: {
     position: 'absolute',
     top: 22,
-    left: 22
-  }
+    left: 22,
+  },
 }

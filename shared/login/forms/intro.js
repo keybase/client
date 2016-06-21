@@ -17,7 +17,7 @@ class Intro extends Component {
 
 Intro.propTypes = {
   onLogin: React.PropTypes.func.isRequired,
-  onSignup: React.PropTypes.func.isRequired
+  onSignup: React.PropTypes.func.isRequired,
 }
 
 export default connect(
@@ -30,6 +30,6 @@ export default connect(
     onLogin: () => {
       dispatch(setRevokedSelf(''))
       dispatch(login())
-    }
+    },
   })
 )(Intro)

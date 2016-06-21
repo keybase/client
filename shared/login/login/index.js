@@ -23,7 +23,7 @@ class Login extends Component {
       selectedUser: props.lastUser,
       saveInKeychain: true,
       showTyping: false,
-      passphrase: ''
+      passphrase: '',
     }
   }
 
@@ -72,7 +72,7 @@ export default connect(
       serverURI: 'https://keybase.io',
       users, lastUser,
       error: store.login.loginError,
-      waitingForResponse: store.login.waitingForResponse
+      waitingForResponse: store.login.waitingForResponse,
     }
   },
   dispatch => {
@@ -81,7 +81,7 @@ export default connect(
       onLogin: (user, passphrase, store) => dispatch(relogin(user, passphrase, store)),
       onSignup: () => dispatch(routeAppend(['signup'])),
       onSomeoneElse: () => { dispatch(login()) },
-      onSaveInKeychainChange: (user, saveInKeychain) => { dispatch(saveInKeychainChanged(user, saveInKeychain)) }
+      onSaveInKeychainChange: (user, saveInKeychain) => { dispatch(saveInKeychainChanged(user, saveInKeychain)) },
     }
   }
 )(Login)

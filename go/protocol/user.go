@@ -80,6 +80,11 @@ type LoadUserArg struct {
 	Uid       UID `codec:"uid" json:"uid"`
 }
 
+type LoadUserByNameArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Username  string `codec:"username" json:"username"`
+}
+
 type LoadUserPlusKeysArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -106,6 +111,11 @@ type SearchArg struct {
 	Query     string `codec:"query" json:"query"`
 }
 
+type LoadAllPublicKeysUnverifiedArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+	Uid       UID `codec:"uid" json:"uid"`
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -116,6 +126,7 @@ type UserInterface interface {
 	LoadUncheckedUserSummaries(context.Context, LoadUncheckedUserSummariesArg) ([]UserSummary, error)
 	// Load a user from the server.
 	LoadUser(context.Context, LoadUserArg) (User, error)
+	LoadUserByName(context.Context, LoadUserByNameArg) (User, error)
 	// Load a user + device keys from the server.
 	LoadUserPlusKeys(context.Context, LoadUserPlusKeysArg) (UserPlusKeys, error)
 	// Load public keys for a user.
@@ -126,6 +137,9 @@ type UserInterface interface {
 	ListTrackingJSON(context.Context, ListTrackingJSONArg) (string, error)
 	// Search for users who match a given query.
 	Search(context.Context, SearchArg) ([]SearchResult, error)
+	// Load all the user's public keys (even those in reset key families)
+	// from the server with no verification
+	LoadAllPublicKeysUnverified(context.Context, LoadAllPublicKeysUnverifiedArg) ([]PublicKey, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -212,6 +226,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"loadUserByName": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadUserByNameArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoadUserByNameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoadUserByNameArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadUserByName(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"loadUserPlusKeys": {
 				MakeArg: func() interface{} {
 					ret := make([]LoadUserPlusKeysArg, 1)
@@ -292,6 +322,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"loadAllPublicKeysUnverified": {
+				MakeArg: func() interface{} {
+					ret := make([]LoadAllPublicKeysUnverifiedArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]LoadAllPublicKeysUnverifiedArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]LoadAllPublicKeysUnverifiedArg)(nil), args)
+						return
+					}
+					ret, err = i.LoadAllPublicKeysUnverified(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -330,6 +376,11 @@ func (c UserClient) LoadUser(ctx context.Context, __arg LoadUserArg) (res User, 
 	return
 }
 
+func (c UserClient) LoadUserByName(ctx context.Context, __arg LoadUserByNameArg) (res User, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.loadUserByName", []interface{}{__arg}, &res)
+	return
+}
+
 // Load a user + device keys from the server.
 func (c UserClient) LoadUserPlusKeys(ctx context.Context, __arg LoadUserPlusKeysArg) (res UserPlusKeys, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.loadUserPlusKeys", []interface{}{__arg}, &res)
@@ -357,5 +408,12 @@ func (c UserClient) ListTrackingJSON(ctx context.Context, __arg ListTrackingJSON
 // Search for users who match a given query.
 func (c UserClient) Search(ctx context.Context, __arg SearchArg) (res []SearchResult, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.search", []interface{}{__arg}, &res)
+	return
+}
+
+// Load all the user's public keys (even those in reset key families)
+// from the server with no verification
+func (c UserClient) LoadAllPublicKeysUnverified(ctx context.Context, __arg LoadAllPublicKeysUnverifiedArg) (res []PublicKey, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.loadAllPublicKeysUnverified", []interface{}{__arg}, &res)
 	return
 }

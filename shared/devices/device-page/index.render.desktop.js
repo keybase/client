@@ -1,19 +1,19 @@
 // @flow
 import React from 'react'
 import type {Props, BannerItem} from './index.render'
-import {Box, Text, Icon, Button} from '../../common-adapters'
+import {Box, Text, Icon, Button, BackButton} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import type {Props as IconProps} from '../../common-adapters/icon'
 
 const Banner = ({type, desc}: BannerItem) => { // eslint-disabled-line arrow-parens
   const backgroundColor = {
     'OutOfDate': globalColors.yellow,
-    'WillUnlock': globalColors.blue
+    'WillUnlock': globalColors.blue,
   }[type]
 
   const color = {
     'OutOfDate': globalColors.brown_60,
-    'WillUnlock': globalColors.white
+    'WillUnlock': globalColors.white,
   }[type]
 
   return <Box style={{...stylesBanner, backgroundColor}}><Text type='BodySmall' style={{color}}>{desc}</Text></Box>
@@ -59,21 +59,23 @@ const Timeline = ({timeline}) => (
   </Box>
 )
 
-const Render = ({banner, name, type, deviceID, currentDevice, timeline, revokedAt, showRemoveDevicePage, device}: Props) => {
+const Render = ({banner, name, type, deviceID, currentDevice,
+  timeline, revokedAt, showRemoveDevicePage, device, onBack}: Props) => {
   const icon: IconProps.type = {
     'mobile': 'phone-big',
     'desktop': 'computer-big',
-    'backup': 'paper-key-l'
+    'backup': 'paper-key-l',
   }[type]
 
   const revokeName = {
     'mobile': 'device',
     'desktop': 'device',
-    'backup': 'paper key'
+    'backup': 'paper key',
   }[type]
 
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
+      <BackButton style={{marginLeft: 13, marginTop: 13}} onClick={onBack} />
       {(banner != null) && <Banner type={banner.type} desc={banner.desc} />}
       <Box style={{...globalStyles.flexBoxRow, padding: 30}}>
         <Box style={{...globalStyles.flexBoxRow, width: 180, justifyContent: 'center', alignItems: 'flex-start'}}>
@@ -93,7 +95,7 @@ const stylesBanner = {
   flex: 1,
   height: 45,
   justifyContent: 'center',
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 const circleSize = 8
@@ -102,12 +104,12 @@ const stylesCircle = {
   border: `solid 2px ${globalColors.lightGrey2}`,
   borderRadius: circleSize / 2,
   width: circleSize,
-  height: circleSize
+  height: circleSize,
 }
 
 const stylesLine = {
   width: 2,
-  backgroundColor: globalColors.lightGrey2
+  backgroundColor: globalColors.lightGrey2,
 }
 
 const stylesMeta = {
@@ -119,7 +121,7 @@ const stylesMeta = {
   lineHeight: '11px',
   paddingLeft: 2,
   paddingRight: 2,
-  textTransform: 'uppercase'
+  textTransform: 'uppercase',
 }
 
 export default Render

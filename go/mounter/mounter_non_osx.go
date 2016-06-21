@@ -5,13 +5,9 @@
 
 package mounter
 
-import (
-	"fmt"
-
-	"github.com/keybase/client/go/logger"
-)
+import "fmt"
 
 // IsMounted returns true if directory is mounted (by kbfuse)
-func IsMounted(dir string, log logger.Logger) (bool, error) {
+func IsMounted(dir string, log Log) (bool, error) {
 	return false, fmt.Errorf("IsMounted unsupported on this platform")
 }

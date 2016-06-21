@@ -24,7 +24,7 @@ export default class Checkbox extends Component {
       position: 'relative',
       border: `solid 1px ${borderColor}`,
       backgroundColor: this.props.checked ? globalColors.blue : 'inherit',
-      opacity: (this.props.disabled && this.props.checked) ? 0.4 : 1
+      opacity: (this.props.disabled && this.props.checked) ? 0.4 : 1,
     }
 
     const clickableStyle = this.props.disabled ? {} : globalStyles.clickable
@@ -45,13 +45,13 @@ Checkbox.propTypes = {
   onCheck: React.PropTypes.func.isRequired,
   checked: React.PropTypes.bool.isRequired,
   style: React.PropTypes.object,
-  disabled: React.PropTypes.bool
+  disabled: React.PropTypes.bool,
 }
 
 const styles = {
   container: {
     ...globalStyles.flexBoxRow,
-    alignItems: 'center'
+    alignItems: 'center',
   },
   icon: {
     ...transition('opacity'),
@@ -60,6 +60,6 @@ const styles = {
     position: 'absolute',
     top: 1,
     left: 0,
-    fontSize: 11
-  }
+    fontSize: 11,
+  },
 }

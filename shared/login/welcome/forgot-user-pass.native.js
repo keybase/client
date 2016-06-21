@@ -60,15 +60,15 @@ ForgotUserPass.propTypes = {
   email: React.PropTypes.string.isRequired,
   submitting: React.PropTypes.bool.isRequired,
   success: React.PropTypes.bool.isRequired,
-  error: React.PropTypes.object
+  error: React.PropTypes.object,
 }
 
 const styles = StyleSheet.create({
   submitButton: {
     width: 100,
     marginRight: 10,
-    alignSelf: 'flex-end'
-  }
+    alignSelf: 'flex-end',
+  },
 })
 
 export default connect(
@@ -77,14 +77,14 @@ export default connect(
       forgotPasswordEmailAddress: email,
       forgotPasswordSubmitting: submitting,
       forgotPasswordSuccess: success,
-      forgotPasswordError: error
+      forgotPasswordError: error,
     } = state.login
     return {email, submitting, success, error}
   },
   dispatch => {
     return {
       updateEmail: email => dispatch(updateForgotPasswordEmail(email)),
-      submit: () => dispatch(submitForgotPassword())
+      submit: () => dispatch(submitForgotPassword()),
     }
   }
 )(ForgotUserPass)

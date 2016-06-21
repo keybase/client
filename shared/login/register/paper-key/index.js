@@ -12,7 +12,7 @@ class PaperKey extends Component<void, Props, State> {
     super(props)
 
     this.state = {
-      paperKey: ''
+      paperKey: '',
     }
   }
 
@@ -31,7 +31,7 @@ class PaperKey extends Component<void, Props, State> {
 
 PaperKey.propTypes = {
   onSubmit: React.PropTypes.func.isRequired,
-  onBack: React.PropTypes.func.isRequired
+  onBack: React.PropTypes.func.isRequired,
 }
 
 export default connect(

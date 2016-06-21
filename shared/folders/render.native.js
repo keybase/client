@@ -8,21 +8,22 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 
 class Render extends Component<void, Props, void> {
   _makeItem (isPublic: boolean, isSelected: boolean) {
+    const icon = isPublic ? 'subnav-folders-public' : 'subnav-folders-private'
     return <TabBarButton
-      source={{type: 'icon', icon: `subnav-folders-${isPublic ? 'public' : 'private'}`}}
+      source={{type: 'icon', icon}}
       style={{
         ...styleItem,
         borderBottomWidth: 2,
         borderBottomColor: isSelected
           ? (isPublic ? globalColors.yellowGreen : globalColors.darkBlue2)
-          : globalColors.transparent
+          : globalColors.transparent,
       }}
       styleBadge={styleBadge}
       styleIcon={styleIcon}
       styleLabel={{
         color: isPublic
           ? (isSelected ? globalColors.black : globalColors.white_75)
-          : (isSelected ? globalColors.white : globalColors.black_75)
+          : (isSelected ? globalColors.white : globalColors.black_75),
       }}
       styleBadgeNumber={styleBadgeNumber}
       selected={isSelected}
@@ -34,10 +35,10 @@ class Render extends Component<void, Props, void> {
   render () {
     return (
       <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
-        <TabBar tabBarStyle={tabBarStyle}>
+        <TabBar styleTabBar={tabBarStyle}>
           <TabBarItem
             selected={this.props.showingPrivate}
-            containerStyle={itemContainerStyle}
+            styleContainer={itemContainerStyle}
             tabBarButton={this._makeItem(false, this.props.showingPrivate === true)}
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(true) }}>
             <List
@@ -48,7 +49,7 @@ class Render extends Component<void, Props, void> {
           </TabBarItem>
           <TabBarItem
             selected={!this.props.showingPrivate}
-            containerStyle={itemContainerStyle}
+            styleContainer={itemContainerStyle}
             tabBarButton={this._makeItem(true, this.props.showingPrivate === false)}
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(false) }}>
             <List
@@ -65,7 +66,7 @@ class Render extends Component<void, Props, void> {
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1
+  flex: 1,
 }
 
 const styleBadge = {
@@ -77,31 +78,31 @@ const styleBadge = {
   justifyContent: 'center',
   alignItems: 'center',
   marginRight: 15,
-  marginLeft: 2
+  marginLeft: 2,
 }
 
 const styleIcon = {
-  marginRight: 8
+  marginRight: 8,
 }
 
 const styleItem = {
   ...globalStyles.flexBoxRow,
   paddingTop: 8,
   paddingBottom: 8,
-  backgroundColor: globalColors.transparent
+  backgroundColor: globalColors.transparent,
 }
 
 const styleBadgeNumber = {
   lineHeight: '12px',
-  fontSize: 10
+  fontSize: 10,
 }
 
 const itemContainerStyle = {
-  ...globalStyles.flexBoxColumn
+  ...globalStyles.flexBoxColumn,
 }
 
 const tabBarStyle = {
-  ...globalStyles.flexBoxRow
+  ...globalStyles.flexBoxRow,
 }
 
 export default Render

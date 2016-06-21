@@ -207,6 +207,7 @@ export type ExitCode =
 export type ExtendedStatus = {
   standalone: boolean;
   passphraseStreamCached: boolean;
+  tsecCached: boolean;
   deviceSigKeyCached: boolean;
   deviceEncKeyCached: boolean;
   paperSigKeyCached: boolean;
@@ -560,6 +561,7 @@ export type NotificationChannels = {
   kbfs: boolean;
   tracking: boolean;
   favorites: boolean;
+  paperkeys: boolean;
 }
 
 export type NotifyFSFSActivityResult = void
@@ -579,6 +581,19 @@ export type NotifyFavoritesFavoritesChangedRpc = {
   method: 'NotifyFavorites.favoritesChanged',
   param: {
     uid: UID
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type NotifyPaperKeyPaperKeyCachedResult = void
+
+export type NotifyPaperKeyPaperKeyCachedRpc = {
+  method: 'NotifyPaperKey.paperKeyCached',
+  param: {
+    uid: UID,
+    encKID: KID,
+    sigKID: KID
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -874,6 +889,7 @@ export type SaltpackEncryptedMessageInfo = {
   devices: Array<Device>;
   numAnonReceivers: int;
   receiverIsAnon: boolean;
+  sender: SaltpackSender;
 }
 
 export type SaltpackSender = {
@@ -921,6 +937,7 @@ export type SecretEntryArg = {
   ok: string;
   reason: string;
   useSecretStore: boolean;
+  showTyping: boolean;
 }
 
 export type SecretEntryRes = {
@@ -1691,6 +1708,14 @@ export type debuggingSecondStepRpc = {
   callback: (null | (err: ?any, response: debuggingSecondStepResult) => void)
 }
 
+export type delegateUiCtlRegisterGregorFirehoseResult = void
+
+export type delegateUiCtlRegisterGregorFirehoseRpc = {
+  method: 'delegateUiCtl.registerGregorFirehose',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type delegateUiCtlRegisterIdentifyUIResult = void
 
 export type delegateUiCtlRegisterIdentifyUIRpc = {
@@ -2155,6 +2180,30 @@ export type loginPaperKeyResult = void
 
 export type loginPaperKeyRpc = {
   method: 'login.paperKey',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type loginPaperKeySubmitResult = void
+
+export type loginPaperKeySubmitRpc = {
+  method: 'login.paperKeySubmit',
+  param: {
+    paperPhrase: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type loginPgpProvisionResult = void
+
+export type loginPgpProvisionRpc = {
+  method: 'login.pgpProvision',
+  param: {
+    username: string,
+    passphrase: string,
+    deviceName: string
+  },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
@@ -3046,7 +3095,8 @@ export type saltpackUiSaltpackPromptForDecryptResult = void
 export type saltpackUiSaltpackPromptForDecryptRpc = {
   method: 'saltpackUi.saltpackPromptForDecrypt',
   param: {
-    sender: SaltpackSender
+    sender: SaltpackSender,
+    usedDelegateUI: bool
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -3130,7 +3180,8 @@ export type signupSignupRpc = {
     username: string,
     deviceName: string,
     storeSecret: boolean,
-    skipMail: boolean
+    skipMail: boolean,
+    genPGPBatch: boolean
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: signupSignupResult) => void)
@@ -3415,6 +3466,17 @@ export type userListTrackingRpc = {
   callback: (null | (err: ?any, response: userListTrackingResult) => void)
 }
 
+export type userLoadAllPublicKeysUnverifiedResult = Array<PublicKey>
+
+export type userLoadAllPublicKeysUnverifiedRpc = {
+  method: 'user.loadAllPublicKeysUnverified',
+  param: {
+    uid: UID
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void)
+}
+
 export type userLoadPublicKeysResult = Array<PublicKey>
 
 export type userLoadPublicKeysRpc = {
@@ -3435,6 +3497,17 @@ export type userLoadUncheckedUserSummariesRpc = {
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userLoadUncheckedUserSummariesResult) => void)
+}
+
+export type userLoadUserByNameResult = User
+
+export type userLoadUserByNameRpc = {
+  method: 'user.loadUserByName',
+  param: {
+    username: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userLoadUserByNameResult) => void)
 }
 
 export type userLoadUserPlusKeysResult = UserPlusKeys
@@ -3477,6 +3550,7 @@ export type rpc =
   | Kex2ProvisionerKexStartRpc
   | NotifyFSFSActivityRpc
   | NotifyFavoritesFavoritesChangedRpc
+  | NotifyPaperKeyPaperKeyCachedRpc
   | NotifySessionClientOutOfDateRpc
   | NotifySessionLoggedInRpc
   | NotifySessionLoggedOutRpc
@@ -3515,6 +3589,7 @@ export type rpc =
   | debuggingFirstStepRpc
   | debuggingIncrementRpc
   | debuggingSecondStepRpc
+  | delegateUiCtlRegisterGregorFirehoseRpc
   | delegateUiCtlRegisterIdentifyUIRpc
   | delegateUiCtlRegisterRekeyUIRpc
   | delegateUiCtlRegisterSecretUIRpc
@@ -3559,6 +3634,8 @@ export type rpc =
   | loginLoginRpc
   | loginLogoutRpc
   | loginPaperKeyRpc
+  | loginPaperKeySubmitRpc
+  | loginPgpProvisionRpc
   | loginRecoverAccountFromEmailAddressRpc
   | loginUiDisplayPaperKeyPhraseRpc
   | loginUiDisplayPrimaryPaperKeyRpc
@@ -3669,8 +3746,10 @@ export type rpc =
   | userListTrackersSelfRpc
   | userListTrackingJSONRpc
   | userListTrackingRpc
+  | userLoadAllPublicKeysUnverifiedRpc
   | userLoadPublicKeysRpc
   | userLoadUncheckedUserSummariesRpc
+  | userLoadUserByNameRpc
   | userLoadUserPlusKeysRpc
   | userLoadUserRpc
   | userSearchRpc
@@ -4026,6 +4105,13 @@ export type incomingCallMapType = {
     }
   ) => void,
   'keybase.1.delegateUiCtl.registerRekeyUI'?: (
+    params: {},
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.delegateUiCtl.registerGregorFirehose'?: (
     params: {},
     response: {
       error: (err: RPCError) => void,
@@ -4480,6 +4566,16 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
+  'keybase.1.login.paperKeySubmit'?: (
+    params: {
+      sessionID: int,
+      paperPhrase: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.login.unlock'?: (
     params: {
       sessionID: int
@@ -4493,6 +4589,18 @@ export type incomingCallMapType = {
     params: {
       sessionID: int,
       passphrase: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.login.pgpProvision'?: (
+    params: {
+      sessionID: int,
+      username: string,
+      passphrase: string,
+      deviceName: string
     },
     response: {
       error: (err: RPCError) => void,
@@ -4769,6 +4877,17 @@ export type incomingCallMapType = {
     } /* ,
     response: {} // Notify call
     */
+  ) => void,
+  'keybase.1.NotifyPaperKey.paperKeyCached'?: (
+    params: {
+      uid: UID,
+      encKID: KID,
+      sigKID: KID
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
   ) => void,
   'keybase.1.NotifySession.loggedOut'?: (
     params: {} /* ,
@@ -5327,7 +5446,8 @@ export type incomingCallMapType = {
   'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (
     params: {
       sessionID: int,
-      sender: SaltpackSender
+      sender: SaltpackSender,
+      usedDelegateUI: bool
     },
     response: {
       error: (err: RPCError) => void,
@@ -5393,7 +5513,8 @@ export type incomingCallMapType = {
       username: string,
       deviceName: string,
       storeSecret: boolean,
-      skipMail: boolean
+      skipMail: boolean,
+      genPGPBatch: boolean
     },
     response: {
       error: (err: RPCError) => void,
@@ -5676,6 +5797,16 @@ export type incomingCallMapType = {
       result: (result: userLoadUserResult) => void
     }
   ) => void,
+  'keybase.1.user.loadUserByName'?: (
+    params: {
+      sessionID: int,
+      username: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: userLoadUserByNameResult) => void
+    }
+  ) => void,
   'keybase.1.user.loadUserPlusKeys'?: (
     params: {
       sessionID: int,
@@ -5725,6 +5856,16 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: userSearchResult) => void
+    }
+  ) => void,
+  'keybase.1.user.loadAllPublicKeysUnverified'?: (
+    params: {
+      sessionID: int,
+      uid: UID
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: userLoadAllPublicKeysUnverifiedResult) => void
     }
   ) => void
 }

@@ -25,7 +25,8 @@ Follow the [React Native Getting Started guide](https://facebook.github.io/react
 
 ```sh
 # Setup golang mobile
-go get golang.org/x/mobile/cmd/gomobile
+rm $GOPATH/bin/gomobile
+go get -u golang.org/x/mobile/cmd/gomobile
 gomobile init
 
 # Setup npm
@@ -47,7 +48,7 @@ npm run watch
 Install cocoapods:
 
 ```sh
-sudo gem install cocoapods --pre -v 1.0.0.beta.6
+sudo gem install cocoapods
 ```
 
 Build and install dependencies:
@@ -65,6 +66,10 @@ open ios/Keybase.xcworkspace
 Then select the target `Keybase` and run.
 
 #### Android Specific
+
+Follow instructions at https://facebook.github.io/react-native/docs/getting-started.html
+to install and configure Android.
+
 ```sh
 # inside react-native/
 
@@ -86,6 +91,7 @@ On mac with brew you can simply do:
 brew upgrade --HEAD go
 
 # Latest Go Mobile
+rm $GOPATH/bin/gomobile
 go get -u golang.org/x/mobile/cmd/gomobile && gomobile init
 
 ```

@@ -16,8 +16,8 @@ export default function makeMenu (window) {
         {label: 'Hide Others', accelerator: 'CmdOrCtrl+Shift+H', role: 'hideothers'},
         {label: 'Show All', role: 'unhide'},
         {type: 'separator'},
-        {label: 'Quit', accelerator: 'CmdOrCtrl+Q', click () { app.emit('close-windows') }}
-      ]
+        {label: 'Quit', accelerator: 'CmdOrCtrl+Q', click () { app.emit('close-windows') }},
+      ],
     }, {
       label: 'Edit',
       submenu: [
@@ -27,8 +27,8 @@ export default function makeMenu (window) {
         {label: 'Cut', accelerator: 'CmdOrCtrl+X', role: 'cut'},
         {label: 'Copy', accelerator: 'CmdOrCtrl+C', role: 'copy'},
         {label: 'Paste', accelerator: 'CmdOrCtrl+V', role: 'paste'},
-        {label: 'Select All', accelerator: 'CmdOrCtrl+A', role: 'selectall'}
-      ]
+        {label: 'Select All', accelerator: 'CmdOrCtrl+A', role: 'selectall'},
+      ],
     }, {
       label: 'Window',
       submenu: [
@@ -38,31 +38,29 @@ export default function makeMenu (window) {
         {label: 'Bring All to Front', role: 'front'},
         {label: 'Reload',
           accelerator: 'CmdOrCtrl+R',
-          click: (item, focusedWindow) => focusedWindow && focusedWindow.reload()
-        }
+          click: (item, focusedWindow) => focusedWindow && focusedWindow.reload(),
+        },
       ].concat(__DEV__ ? ([ // eslint-disable-line no-undef
         {label: 'Toggle Developer Tools',
           accelerator: (() => (process.platform === 'darwin') ? 'Alt+Command+I' : 'Ctrl+Shift+I')(),
-          click: (item, focusedWindow) => focusedWindow && focusedWindow.toggleDevTools()
-        }
-      ]) : [])
+          click: (item, focusedWindow) => focusedWindow && focusedWindow.toggleDevTools(),
+        },
+      ]) : []),
     }, {
       label: 'Help',
       submenu: [
-        {label: 'Learn More', click () { shell.openExternal('https://keybase.io') }}
-      ]
+        {label: 'Learn More', click () { shell.openExternal('https://keybase.io') }},
+      ],
     }]
     const menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(menu)
   } else {
     const template = [{
       label: '&File',
-      submenu: [
-        {label: '&Close', accelerator: 'CmdOrCtrl+W', click () { this.remoteWindow.close() }}
-      ]
+      submenu: [{label: '&Close', accelerator: 'CmdOrCtrl+W', role: 'close'}],
     }, {
       label: 'Help',
-      submenu: [{label: 'Learn More', click () { shell.openExternal('https://keybase.io') }}]
+      submenu: [{label: 'Learn More', click () { shell.openExternal('https://keybase.io') }}],
     }]
     const menu = Menu.buildFromTemplate(template)
     window.setMenu(menu)
@@ -78,7 +76,7 @@ export function setupContextMenu (window) {
     {label: 'Copy', role: 'copy'},
     {label: 'Paste', role: 'paste'},
     {type: 'separator'},
-    {label: 'Select all', role: 'selectall'}
+    {label: 'Select all', role: 'selectall'},
   ])
 
   document.body.addEventListener('contextmenu', e => {

@@ -3,7 +3,7 @@ import rpc from 'framed-msgpack-rpc'
 import windowsHack from './windows-hack'
 
 const {
-  transport: {RobustTransport}
+  transport: {RobustTransport},
 } = rpc
 
 class BaseTransport extends RobustTransport {

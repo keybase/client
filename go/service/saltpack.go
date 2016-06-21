@@ -28,8 +28,9 @@ func NewRemoteSaltpackUI(sessionID int, c *rpc.Client) *RemoteSaltpackUI {
 	}
 }
 
-func (r *RemoteSaltpackUI) SaltpackPromptForDecrypt(ctx context.Context, arg keybase1.SaltpackPromptForDecryptArg) (err error) {
+func (r *RemoteSaltpackUI) SaltpackPromptForDecrypt(ctx context.Context, arg keybase1.SaltpackPromptForDecryptArg, usedDelegateUI bool) (err error) {
 	arg.SessionID = r.sessionID
+	arg.UsedDelegateUI = usedDelegateUI
 	return r.cli.SaltpackPromptForDecrypt(ctx, arg)
 }
 

@@ -39,8 +39,8 @@ if (NO_SERVER) {
     stats: {
       colors: true,
       quiet: false,
-      noInfo: false
-    }
+      noInfo: false,
+    },
   }))
 
   app.use(require('webpack-hot-middleware')(compiler))

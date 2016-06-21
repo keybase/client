@@ -242,6 +242,11 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 		return err
 	}
 
+	// cache the device keys in memory
+	if err = e.cacheKeys(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -514,6 +519,26 @@ func (e *Kex2Provisionee) saveKeys() error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+// cacheKeys caches the device keys in the Account object.
+func (e *Kex2Provisionee) cacheKeys() error {
+	if e.eddsa == nil {
+		return errors.New("cacheKeys called, but eddsa key is nil")
+	}
+	if e.dh == nil {
+		return errors.New("cacheKeys called, but dh key is nil")
+	}
+
+	if err := e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, e.eddsa); err != nil {
+		return err
+	}
+
+	if err := e.ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.dh); err != nil {
+		return err
+	}
+
 	return nil
 }
 

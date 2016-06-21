@@ -57,6 +57,6 @@ const imgPath = (type, ext) => [1, 2, 3].map(mult => imgName(type, ext, mult)).j
 
 export const styles = {
   icon: {
-    fontSize: 16
-  }
+    fontSize: 16,
+  },
 }

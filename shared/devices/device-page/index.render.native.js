@@ -2,19 +2,19 @@
 
 import React from 'react'
 import type {Props, BannerItem} from './index.render'
-import {Box, Text, Icon, Button} from '../../common-adapters'
+import {Box, Text, Icon, Button, BackButton} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import type {Props as IconProps} from '../../common-adapters/icon'
 
 const Banner = ({type, desc}: BannerItem) => { // eslint-disabled-line arrow-parens
   const backgroundColor = {
     'OutOfDate': globalColors.yellow,
-    'WillUnlock': globalColors.blue
+    'WillUnlock': globalColors.blue,
   }[type]
 
   const color = {
     'OutOfDate': globalColors.brown_60,
-    'WillUnlock': globalColors.white
+    'WillUnlock': globalColors.white,
   }[type]
 
   return <Text inline type='BodySmall' style={{...stylesBanner, color, backgroundColor}}>{desc}</Text>
@@ -60,21 +60,23 @@ const Timeline = ({timeline}) => (
   </Box>
 )
 
-const Render = ({banner, name, type, deviceID, currentDevice, timeline, revokedAt, showRemoveDevicePage, device}: Props) => {
+const Render = ({banner, name, type, deviceID, currentDevice, timeline,
+  revokedAt, showRemoveDevicePage, device, onBack}: Props) => {
   const icon: IconProps.type = {
     'mobile': 'phone-big',
     'desktop': 'computer-big',
-    'backup': 'paper-key-l'
+    'backup': 'paper-key-l',
   }[type]
 
   const revokeName = {
     'mobile': 'device',
     'desktop': 'device',
-    'backup': 'paper key'
+    'backup': 'paper key',
   }[type]
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
+      <BackButton style={{marginLeft: 13, marginTop: 13}} onClick={onBack} />
       {(banner != null) && <Banner type={banner.type} desc={banner.desc} />}
       <Icon type={icon} style={{opacity: revokedAt ? 0.4 : 1, marginTop: 32}} />
       <Header name={name} isCurrent={currentDevice} isRevoked={revokedAt} />
@@ -86,7 +88,7 @@ const Render = ({banner, name, type, deviceID, currentDevice, timeline, revokedA
 const stylesBanner = {
   textAlign: 'center',
   alignSelf: 'stretch',
-  padding: 15
+  padding: 15,
 }
 
 const circleSize = 8
@@ -96,12 +98,12 @@ const stylesCircle = {
   borderWidth: 2,
   borderRadius: circleSize / 2,
   width: circleSize,
-  height: circleSize
+  height: circleSize,
 }
 
 const stylesLine = {
   width: 2,
-  backgroundColor: globalColors.lightGrey2
+  backgroundColor: globalColors.lightGrey2,
 }
 
 const stylesMeta = {
@@ -112,7 +114,7 @@ const stylesMeta = {
   height: 11,
   lineHeight: 11,
   paddingLeft: 2,
-  paddingRight: 2
+  paddingRight: 2,
 }
 
 export default Render

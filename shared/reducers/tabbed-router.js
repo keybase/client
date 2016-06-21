@@ -29,9 +29,9 @@ function initialStateFn (): TabbedRouterState {
       [peopleTab]: emptyRouterState,
       [devicesTab]: emptyRouterState,
       [settingsTab]: emptyRouterState,
-      [loginTab]: emptyRouterState
+      [loginTab]: emptyRouterState,
     },
-    activeTab: loginTab
+    activeTab: loginTab,
   }))
 }
 

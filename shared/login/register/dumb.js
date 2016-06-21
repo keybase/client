@@ -6,5 +6,5 @@ import CodePage from './code-page/dumb'
 export default {
   Passphrase,
   PaperKey,
-  CodePage
+  CodePage,
 }

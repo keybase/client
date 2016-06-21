@@ -8,8 +8,8 @@ export function initSearch (base) {
   return {
     type: Constants.initSearch,
     payload: {
-      base
-    }
+      base,
+    },
   }
 }
 
@@ -25,8 +25,8 @@ export function selectService (base, service) {
     type: Constants.searchService,
     payload: {
       base,
-      service
-    }
+      service,
+    },
   }
 }
 
@@ -39,8 +39,8 @@ const submitSearchDebounced = _.debounce((base, term, dispatch, getState) => {
     type: Constants.searchRunning,
     payload: {
       base,
-      nonce
-    }
+      nonce,
+    },
   })
 
   const badNonce = () => (getState().search.getIn([base, 'nonce']) !== nonce)
@@ -63,7 +63,7 @@ const submitSearchDebounced = _.debounce((base, term, dispatch, getState) => {
     }),
     doRPC('user.search', {query: term}, {}).then(results => {
       return results.map(r => ({uid: r.uid, username: r.username}))
-    })
+    }),
   ])
     .then(results => {
       const trackingUsernames = new Set(results[0].map(u => u.uid))
@@ -71,16 +71,16 @@ const submitSearchDebounced = _.debounce((base, term, dispatch, getState) => {
         type: Constants.searchResults,
         payload: {
           base,
-          results: results[0].concat(results[1].filter(r => !trackingUsernames.has(r.uid)))
-        }
+          results: results[0].concat(results[1].filter(r => !trackingUsernames.has(r.uid))),
+        },
       })
     })
     .catch(err => dispatch({
       type: Constants.searchResults,
       payload: {
         base,
-        error: err
-      }
+        error: err,
+      },
     }))
 }, 150)
 
@@ -94,8 +94,8 @@ export function submitSearch (base, term) {
       type: Constants.searchTerm,
       payload: {
         base,
-        term
-      }
+        term,
+      },
     })
     submitSearchDebounced(base, term, dispatch, getState)
   }

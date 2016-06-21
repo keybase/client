@@ -41,18 +41,18 @@ export default class Render extends Component {
 }
 
 const stylesButton = {
-  marginTop: 50
+  marginTop: 50,
 }
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   justifyContent: 'flex-start',
-  alignItems: 'stretch'
+  alignItems: 'stretch',
 }
 const stylesHeader = {
   marginTop: 30,
-  alignSelf: 'center'
+  alignSelf: 'center',
 }
 const stylesIcon = {
   marginTop: 40,
-  alignSelf: 'center'
+  alignSelf: 'center',
 }

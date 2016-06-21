@@ -1,6 +1,7 @@
 import {ipcMain} from 'electron'
 import {selector as trackerSelector} from '../shared/tracker'
 import {selector as menubarSelector} from '../shared/menubar'
+import {selector as unlockFoldersSelector} from '../shared/unlock-folders'
 
 export default function (mainWindow) {
   const subscribeStoreSubscribers = []
@@ -9,7 +10,8 @@ export default function (mainWindow) {
   ipcMain.on('subscribeStore', (event, component, selectorParams) => {
     let selector = {
       'tracker': trackerSelector,
-      'menubar': menubarSelector
+      'menubar': menubarSelector,
+      'unlockFolders': unlockFoldersSelector,
     }[component]
 
     if (selector) {

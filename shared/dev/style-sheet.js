@@ -12,7 +12,7 @@ export default class StyleSheet extends Component {
 
   static parseRoute () {
     return {
-      componentAtTop: {title: 'Stylesheet'}
+      componentAtTop: {title: 'Stylesheet'},
     }
   }
 }

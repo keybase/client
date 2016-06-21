@@ -252,10 +252,14 @@ func TestCachedSecretKey(t *testing.T) {
 	assertCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
 
 	Logout(tc)
-	u.LoginOrBust(tc)
 
 	assertNotCachedSecretKey(tc, libkb.DeviceSigningKeyType)
 	assertNotCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
+
+	u.LoginOrBust(tc)
+
+	assertCachedSecretKey(tc, libkb.DeviceSigningKeyType)
+	assertCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
 
 	msg := []byte("test message")
 	_, err := SignED25519(tc.G, u.NewSecretUI(), keybase1.SignED25519Arg{
@@ -266,13 +270,17 @@ func TestCachedSecretKey(t *testing.T) {
 	}
 
 	assertCachedSecretKey(tc, libkb.DeviceSigningKeyType)
-	assertNotCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
+	assertCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
 
 	Logout(tc)
-	u.LoginOrBust(tc)
 
 	assertNotCachedSecretKey(tc, libkb.DeviceSigningKeyType)
 	assertNotCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
+
+	u.LoginOrBust(tc)
+
+	assertCachedSecretKey(tc, libkb.DeviceSigningKeyType)
+	assertCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
 }
 
 func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {

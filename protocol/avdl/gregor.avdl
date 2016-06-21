@@ -1,0 +1,6 @@
+
+@namespace("keybase.1")
+protocol gregor {
+  import idl "github.com/keybase/gregor/protocol/gregor1" as gregor1;
+  gregor1.State getState();
+}

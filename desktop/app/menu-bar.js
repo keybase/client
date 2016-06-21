@@ -24,7 +24,7 @@ export default function () {
     resizable: false,
     preloadWindow: true,
     icon: icon,
-    showDockIcon: true // This causes menubar to not touch dock icon, yeah it's weird
+    showDockIcon: true, // This causes menubar to not touch dock icon, yeah it's weird
   })
 
   ipcMain.on('showTrayLoading', () => {
@@ -68,7 +68,7 @@ export default function () {
     })
 
     if (process.platform === 'linux') {
-      mb.tray.setToolTip('View Folders')
+      mb.tray.setToolTip('Show Keybase')
     }
 
     mb.on('show', () => {

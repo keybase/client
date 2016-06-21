@@ -22,7 +22,7 @@ class Dropdown extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     this.state = {
-      popoverOpen: false
+      popoverOpen: false,
     }
   }
 
@@ -157,7 +157,7 @@ const styles = {
     borderRadius: 100,
     position: 'relative',
     height: 36,
-    ...transition('color')
+    ...transition('color'),
   },
 
   labelStyle: {
@@ -166,14 +166,14 @@ const styles = {
     paddingRight: 30,
     minWidth: 268,
     textAlign: 'center',
-    alignItems: 'initial'
+    alignItems: 'initial',
   },
 
   iconStyle: {
     ...globalStyles.clickable,
     position: 'absolute',
     top: 5,
-    right: 8
+    right: 8,
   },
 
   menuStyle: {
@@ -181,12 +181,12 @@ const styles = {
     borderColor: globalColors.blue,
     transformOrigin: 'center top',
     borderStyle: 'solid',
-    borderWidth: 1
+    borderWidth: 1,
   },
 
   popover: {
     ...globalStyles.flexBoxColumn,
-    width: 290
+    width: 290,
   },
 
   menuItem: {
@@ -195,8 +195,8 @@ const styles = {
     textAlign: 'center',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center'
-  }
+    justifyContent: 'center',
+  },
 }
 
 export default Dropdown

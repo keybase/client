@@ -4,25 +4,26 @@ set GO15VENDOREXPERIMENT=1
 
 :: for Jenkins
 if DEFINED WORKSPACE set GOPATH=%WORKSPACE%
+if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
+echo DOKAN_PATH %DOKAN_PATH%
 
-echo %GOPATH%
+echo GOPATH %GOPATH%
 
-echo %GOROOT%
+echo GOROOT %GOROOT%
 pushd %GOPATH%\src\github.com\keybase\client\go\keybase
 go version
 go generate
 
 for /f %%i in ('winresource.exe -cv') do set KEYBASE_VERSION=%%i
-echo %KEYBASE_VERSION%
+echo KEYBASE_VERSION %KEYBASE_VERSION%
 for /f %%i in ('winresource.exe -cb') do set KEYBASE_BUILD=%%i
-echo %KEYBASE_BUILD%
+echo KEYBASE_BUILD %KEYBASE_BUILD%
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=%KEYBASE_BUILD%"
 
 
 :: Then build kbfsdokan.
 :: First, sanity-check the hashes
-if NOT EXIST %GOPATH%\src\github.com\keybase\kbfs\dokan\dokan.lib copy %GOPATH%\bin\dokan-dev\dokan-v0.8.0\Win32\Release\dokan.lib %GOPATH%\src\github.com\keybase\kbfs\dokan
-if NOT EXIST %GOPATH%\src\github.com\keybase\kbfs\dokan\dokan1.lib copy %GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4\Win32\Release\dokan1.lib %GOPATH%\src\github.com\keybase\kbfs\dokan
+copy %DOKAN_PATH%\Win32\Release\dokan1.lib %GOPATH%\src\github.com\keybase\kbfs\dokan
 
 ::for /f "usebackq tokens=2*" %%i in (`powershell Get-FileHash -Algorithm sha1 %GOPATH%\src\github.com\keybase\kbfs\dokan\dokan.lib`) do set DOKANLIBHASH=%%i
 ::if NOT %DOKANLIBHASH%==1C9316A567B805C4A6ADAF0ABE1424FFFB36A3BD exit /B 1
@@ -33,7 +34,7 @@ pushd %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan
 :: winresource invokes git to get the current revision
 for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short HEAD') do set KBFS_HASH=%%i
 for /f "tokens=1 delims=+" %%i in ("%KEYBASE_BUILD%") do set KBFS_BUILD=%%i+%KBFS_HASH%
-echo %KBFS_BUILD%
+echo KBFS_BUILD %KBFS_BUILD%
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=%KBFS_BUILD%"
 popd
 

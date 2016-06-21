@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import MenuList from './menu-list'
 import type {MenuListItem} from './menu-list'
-import {ComingSoon} from '../common-adapters'
+import SettingsHelp from './help.desktop'
 import type {Props} from './render'
 
 type State = {
@@ -24,8 +24,8 @@ class Render extends Component<void, Props, State> {
         {name: 'Notifications', hasChildren: true, onClick: this.props.onNotifications},
         {name: 'Delete me', hasChildren: true, onClick: this.props.onDeleteMe},
         {name: 'Log Send', hasChildren: false, onClick: this.props.onLogSend},
-        {name: 'About', hasChildren: true, onClick: this.props.onAbout}
-      ]
+        {name: 'About', hasChildren: true, onClick: this.props.onAbout},
+      ],
     }
 
     if (__DEV__) {
@@ -34,7 +34,7 @@ class Render extends Component<void, Props, State> {
   }
 
   _renderComingSoon () {
-    return <ComingSoon />
+    return <SettingsHelp />
   }
 
   render () {

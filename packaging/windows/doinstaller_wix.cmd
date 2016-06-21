@@ -11,11 +11,14 @@ set GOARCH=386
 set Folder=%GOPATH%\src\github.com\keybase\client\go\keybase\
 set PathName=%Folder%keybase.exe
 
+if NOT DEFINED DOKAN_PATH set DOKAN_PATH=%GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4.2
+echo DOKAN_PATH %DOKAN_PATH%
+
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
 
 :: Capture the windows style version
 for /f %%i in ('%Folder%winresource.exe -w') do set KEYBASE_WINVER=%%i
-echo %KEYBASE_WINVER%
+echo KEYBASE_WINVER %KEYBASE_WINVER%
 
 :: Capture keybase's semantic version
 for /f "tokens=3" %%i in ('%PathName% -version') do set SEMVER=%%i
@@ -23,10 +26,12 @@ echo %SEMVER%
 ::Set this again for Jenkins
 set KEYBASE_VERSION=%SEMVER%
 
+echo KEYBASE_VERSION %KEYBASE_VERSION%
+
 :: dokan source binaries.
 :: There are 8 (4 windows versions times 32/64 bit) but they all seem to have the same version.
-for /f %%i in ('PowerShell "(Get-Item %GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC4\Win32\Win10Release\dokan1.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
-echo %DOKANVER%
+for /f %%i in ('PowerShell "(Get-Item %DOKAN_PATH%\Win32\Win10Release\dokan1.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
+echo DOKANVER %DOKANVER%
 IF %DOKANVER%=="" (
   EXIT /B 1
 )
@@ -37,23 +42,23 @@ IF %DOKANVER%=="" (
 ::   http://tsa.starfieldtech.com
 ::   http://timestamp.comodoca.com/authenticode
 ::   http://timestamp.digicert.com
-SignTool.exe sign /a /tr http://timestamp.digicert.com %PathName%
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %PathName%
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+SignTool.exe sign /i digicert  /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
+SignTool.exe sign /i digicert /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -98,12 +103,8 @@ set ReleaseBin=%GOPATH%\bin\windows_386\release.exe
 if not EXIST %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG% mkdir %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 
-move %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseApps\bin\Release\*.msi %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 move %GOPATH%\src\github.com\keybase\client\packaging\windows\WIXInstallers\KeybaseBundle\bin\Release\*.exe %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 for /f %%i in ('dir /od /b *.exe') do set KEYBASE_INSTALLER_NAME=%%i
-for /f %%i in ('dir /od /b *.msi') do set KEYBASE_UPDATE_NAME=%%i
-
-:: echo %KEYBASE_INSTALLER_NAME%
 
 :: Double check that the installer is codesigned
 signtool verify /pa %KEYBASE_INSTALLER_NAME%
@@ -111,31 +112,14 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-:: Double check that the installer is codesigned
-signtool verify /pa %KEYBASE_UPDATE_NAME%
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-
-if NOT DEFINED JSON_UPDATE_FILENAME set JSON_UPDATE_FILENAME=update-windows-prod.json
-
-if NOT DEFINED JSON_PACKAGE_FILENAME set JSON_PACKAGE_FILENAME=package-windows-prod.json
+if NOT DEFINED JSON_UPDATE_FILENAME set JSON_UPDATE_FILENAME=update-windows-prod-v2.json
 
 :: Run keybase sign to get signature of update
 set KeybaseBin="%ProgramFiles(x86)%\Keybase\keybase.exe"
 set SigFile=sig.txt
-%KeybaseBin% sign -d -i %KEYBASE_UPDATE_NAME% -o %SigFile%
-IF %ERRORLEVEL% NEQ 0 (
-  EXIT /B 1
-)
-
-%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_UPDATE_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_UPDATE_FILENAME%
-
-:: Run keybase sign to get signature of package
-set SigFile=package_sig.txt
 %KeybaseBin% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_PACKAGE_FILENAME%
+%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_UPDATE_FILENAME%

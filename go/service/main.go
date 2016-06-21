@@ -4,6 +4,7 @@
 package service
 
 import (
+	"errors"
 	"io"
 	"net"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/gregor"
 )
 
 type Service struct {
@@ -72,6 +74,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.UserProtocol(NewUserHandler(xp, g)),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
 		keybase1.RekeyProtocol(NewRekeyHandler(xp, g, d.gregor)),
+		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
 	}
 	for _, proto := range protocols {
 		if err := srv.Register(proto); err != nil {
@@ -450,5 +453,38 @@ func (d *Service) GetUsage() libkb.Usage {
 func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		NewCmdService(cl, g),
+	}
+}
+
+func (d *Service) GregorDismiss(id gregor.MsgID) error {
+	if d.gregor == nil {
+		return errors.New("can't gregor dismiss without a gregor")
+	}
+	return d.gregor.DismissItem(id)
+}
+
+func (d *Service) GregorInject(cat string, body []byte) (gregor.MsgID, error) {
+	if d.gregor == nil {
+		return nil, errors.New("can't gregor inject without a gregor")
+	}
+	return d.gregor.InjectItem(cat, body)
+}
+
+func (d *Service) GregorInjectOutOfBandMessage(sys string, body []byte) error {
+	if d.gregor == nil {
+		return errors.New("can't gregor inject without a gregor")
+	}
+	return d.gregor.InjectOutOfBandMessage(sys, body)
+}
+
+func (d *Service) HasGregor() bool {
+	return d.gregor != nil && d.gregor.IsConnected()
+}
+
+func (d *Service) SimulateGregorCrashForTesting() {
+	if d.HasGregor() {
+		d.gregor.simulateCrashForTesting()
+	} else {
+		d.G().Log.Warning("Can't simulate a gregor crash without a gregor")
 	}
 }

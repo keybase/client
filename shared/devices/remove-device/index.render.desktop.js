@@ -19,5 +19,5 @@ export default class RemoveDeviceRender extends Component {
 RemoveDeviceRender.propTypes = {
   deviceName: React.PropTypes.string.isRequired,
   onCancel: React.PropTypes.func.isRequired,
-  onSubmit: React.PropTypes.func.isRequired
+  onSubmit: React.PropTypes.func.isRequired,
 }

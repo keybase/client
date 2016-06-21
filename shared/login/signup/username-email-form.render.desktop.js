@@ -25,16 +25,16 @@ class Render extends Component {
 }
 
 const stylesOuter = {
-  backgroundColor: globalColors.black_10
+  backgroundColor: globalColors.black_10,
 }
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   justifyContent: 'center',
   alignItems: 'center',
-  marginTop: 15
+  marginTop: 15,
 }
 const stylesCard = {
-  alignItems: 'stretch'
+  alignItems: 'stretch',
 }
 
 export default Render

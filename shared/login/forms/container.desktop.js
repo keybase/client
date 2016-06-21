@@ -20,17 +20,17 @@ const stylesContainer = {
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
   padding: 60,
-  flex: 1
+  flex: 1,
 }
 
 const stylesInnerContainer = {
   ...globalStyles.flexBoxColumn,
   alignSelf: 'stretch',
   width: '100%',
-  height: '100%'
+  height: '100%',
 }
 
 const stylesButton = {
   zIndex: 9999,
-  position: 'absolute'
+  position: 'absolute',
 }

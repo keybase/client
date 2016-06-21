@@ -26,7 +26,7 @@ const prettyNames = {
   [devicesTab]: 'Devices',
   [settingsTab]: 'Settings',
   [loginTab]: 'Login',
-  [profileTab]: 'Profile'
+  [profileTab]: 'Profile',
 }
 
 export type VisibleTab = ProfileTab | PeopleTab | FolderTab | DevicesTab | SettingsTab

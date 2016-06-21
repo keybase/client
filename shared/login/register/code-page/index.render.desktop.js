@@ -46,7 +46,7 @@ export default class CodePageRender extends Component<void, Props, void> {
 
   _renderCode () {
     const qr = {
-      background: `url("${this.props.qrCode}")`
+      background: `url("${this.props.qrCode}")`,
     }
 
     return (
@@ -120,19 +120,19 @@ CodePageRender.propTypes = {
   textEntered: React.PropTypes.func.isRequired,
   onChangeText: React.PropTypes.func.isRequired,
   onBack: React.PropTypes.func.isRequired,
-  enterText: React.PropTypes.string
+  enterText: React.PropTypes.string,
 }
 
 const stylesContainer = {
   flex: 1,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 const stylesPaperkey = {
   ...textStyles.paperKey,
   ...globalStyles.selectable,
   textAlign: 'center',
   marginTop: 30,
-  display: 'inline-block'
+  display: 'inline-block',
 }
 const stylesQrContainer = {
   ...globalStyles.flexBoxColumn,
@@ -143,7 +143,7 @@ const stylesQrContainer = {
   alignSelf: 'stretch',
   marginLeft: -65,
   marginRight: -65,
-  backgroundColor: globalColors.blue2
+  backgroundColor: globalColors.blue2,
 }
 const stylesQr = {
   width: 190,
@@ -151,10 +151,10 @@ const stylesQr = {
   backgroundPosition: '-22px -22px',
   backgroundRepeat: 'no-repeat',
   backgroundSize: '234px 234px',
-  imageRendering: 'pixelated'
+  imageRendering: 'pixelated',
 }
 const stylesPhoneIcon = {
   fontSize: 30,
   marginRight: 25,
-  transform: 'rotate(-325deg) translateX(18px)'
+  transform: 'rotate(-325deg) translateX(18px)',
 }

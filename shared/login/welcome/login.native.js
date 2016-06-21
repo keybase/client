@@ -13,7 +13,7 @@ class Login extends Component {
 
     this.state = {
       username: this.props.username || '',
-      passphrase: this.props.passphrase || ''
+      passphrase: this.props.passphrase || '',
     }
   }
 
@@ -64,8 +64,8 @@ class Login extends Component {
     return {
       componentAtTop: {},
       subRoutes: {
-        forgotUserPass: ForgotUserPass
-      }
+        forgotUserPass: ForgotUserPass,
+      },
     }
   }
 }
@@ -74,7 +74,7 @@ Login.propTypes = {
   showForgotUserPassPage: React.PropTypes.func.isRequired,
   login: React.PropTypes.func.isRequired,
   username: React.PropTypes.string,
-  passphrase: React.PropTypes.string
+  passphrase: React.PropTypes.string,
 }
 
 export default connect(
@@ -85,7 +85,7 @@ export default connect(
   dispatch => {
     return {
       showForgotUserPassPage: () => dispatch(routeAppend('forgotUserPass')),
-      login: (username, passphrase) => dispatch(login(username, passphrase))
+      login: (username, passphrase) => dispatch(login(username, passphrase)),
     }
   }
 )(Login)

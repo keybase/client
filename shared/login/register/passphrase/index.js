@@ -42,6 +42,6 @@ class Passphrase extends Component<void, Props, State> {
 export default connect(
   state => ({waitingForResponse: state.login.waitingForResponse}),
   dispatch => ({
-    onForgotPassphrase: () => { dispatch(openAccountResetPage()) }
+    onForgotPassphrase: () => { dispatch(openAccountResetPage()) },
   })
 )(Passphrase)

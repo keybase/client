@@ -6,7 +6,7 @@ const initialState = {
   response: null,
   devices: null,
   error: null,
-  paperKey: null
+  paperKey: null,
 }
 
 export default function (state = initialState, action) {
@@ -18,7 +18,7 @@ export default function (state = initialState, action) {
       return {
         ...state,
         error: null,
-        waitingForServer: true
+        waitingForServer: true,
       }
     case Constants.showDevices:
       return {
@@ -33,26 +33,26 @@ export default function (state = initialState, action) {
           provisioner: dev.provisioner,
           provisionedAt: dev.provisionedAt,
           revokedAt: dev.revokedAt,
-          lastUsed: dev.device.lastUsedTime
+          lastUsed: dev.device.lastUsedTime,
         })),
-        waitingForServer: false
+        waitingForServer: false,
       }
     case Constants.deviceRemoved:
       return {
         ...state,
-        waitingForServer: false
+        waitingForServer: false,
       }
     case Constants.paperKeyLoading:
       return {
         ...state,
         error: null,
-        paperKey: null
+        paperKey: null,
       }
     case Constants.paperKeyLoaded:
       return {
         ...state,
         error: action.error && action.payload,
-        paperKey: action.error ? null : action.payload
+        paperKey: action.error ? null : action.payload,
       }
     default:
       return state

@@ -40,6 +40,7 @@ func TestRPCs(t *testing.T) {
 	// Add test RPC methods here.
 	testIdentifyResolve2(t, tc2.G)
 	testCheckInvitationCode(t, tc2.G)
+	testLoadAllPublicKeysUnverified(t, tc2.G)
 
 	if err := stopper.Run(); err != nil {
 		t.Fatal(err)
@@ -99,5 +100,36 @@ func testCheckInvitationCode(t *testing.T, g *libkb.GlobalContext) {
 	err = cli.CheckInvitationCode(context.TODO(), keybase1.CheckInvitationCodeArg{InvitationCode: "eeoeoeoe333o3"})
 	if _, ok := err.(libkb.BadInvitationCodeError); !ok {
 		t.Fatalf("Expected an error code, but got %T %v", err, err)
+	}
+}
+
+func testLoadAllPublicKeysUnverified(t *testing.T, g *libkb.GlobalContext) {
+
+	cli, err := client.GetUserClient(g)
+	if err != nil {
+		t.Fatalf("failed to get user client: %s", err)
+	}
+
+	// t_rosetta
+	arg := keybase1.LoadAllPublicKeysUnverifiedArg{Uid: keybase1.UID("b8939251cb3d367e68587acb33a64d19")}
+	res, err := cli.LoadAllPublicKeysUnverified(context.TODO(), arg)
+	if err != nil {
+		t.Fatalf("failed to make load keys call: %s", err)
+	}
+
+	if len(res) != 3 {
+		t.Fatalf("wrong amount of keys loaded: %d != %d", len(res), 3)
+	}
+
+	keys := map[keybase1.KID]bool{
+		keybase1.KID("0101fe1183765f256289427d6943cd8bab3b5fe095bcdd27f031ed298da523efd3120a"): true,
+		keybase1.KID("0101b5839c4ccaa9d03b3016b9aa73a7e3eafb067f9c86c07a6f2f79cb8558b1c97f0a"): true,
+		keybase1.KID("0101188ee7e63ccbd05af498772ab2975ee29df773240d17dde09aecf6c132a5a9a60a"): true,
+	}
+
+	for _, key := range res {
+		if _, ok := keys[key.KID]; !ok {
+			t.Fatalf("unknown key in response: %s", key.KID)
+		}
 	}
 }

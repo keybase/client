@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
-import {Box, Text, Input} from '../common-adapters'
+import {Box, Text, Input, BackButton} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 import dumbComponentMap from './dumb-component-map.desktop'
 import {dumbFilter} from '../local-debug'
@@ -15,7 +15,7 @@ class Render extends Component<void, any, any> {
     super(props)
 
     this.state = {
-      filter: (dumbFilter && dumbFilter.toLowerCase()) || ''
+      filter: (dumbFilter && dumbFilter.toLowerCase()) || '',
     }
 
     this._onFilterChange = debounce(filter => {
@@ -32,6 +32,7 @@ class Render extends Component<void, any, any> {
   render () {
     return (
       <Box style={{...globalStyles.scrollable, padding: 20}}>
+        <BackButton onClick={this.props.onBack} />
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text type='Header'>Filter:</Text>
           <Input
@@ -77,7 +78,7 @@ export const styleBox = {
   padding: 20,
   marginTop: 10,
   border: 'solid 1px lightgray',
-  boxShadow: '5px 5px lightgray'
+  boxShadow: '5px 5px lightgray',
 }
 
 export default Render

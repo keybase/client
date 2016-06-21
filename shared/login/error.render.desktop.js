@@ -7,5 +7,5 @@ export default props => <Text type='Body'>Error loading component {JSON.stringif
 
 export const Mocks = {
   'Error': {currentPath: Immutable.Map({a: 1, b: 2, c: 3})},
-  'Error2': {currentPath: Immutable.Map({a: 3, b: 2, c: 1})}
+  'Error2': {currentPath: Immutable.Map({a: 3, b: 2, c: 1})},
 }

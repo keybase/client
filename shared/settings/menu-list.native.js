@@ -7,7 +7,7 @@ export default class MenuList extends Component {
   componentWillMount () {
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2})
     this.state = {
-      dataSource: ds.cloneWithRows(this.props.items)
+      dataSource: ds.cloneWithRows(this.props.items),
     }
   }
 
@@ -38,6 +38,6 @@ const styles = {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'stretch',
-    backgroundColor: '#F5FCFF'
-  }
+    backgroundColor: '#F5FCFF',
+  },
 }

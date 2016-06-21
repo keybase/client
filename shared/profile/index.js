@@ -9,7 +9,7 @@ class Profile extends Component<void, Props, void> {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Profile'},
-      subRoutes: {}
+      subRoutes: {},
     }
   }
 
@@ -24,5 +24,8 @@ class Profile extends Component<void, Props, void> {
 }
 
 export default connect(
-  state => ({}),
-  dispatch => ({}))(Profile)
+  state => ({
+    username: state.config.username,
+  }),
+  dispatch => ({})
+)(Profile)

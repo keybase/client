@@ -61,12 +61,12 @@ const Modified = ({styles, modified}) => {
 const RowMeta = ({ignored, meta, styles}) => {
   const metaColors = {
     'new': globalColors.white,
-    'rekey': globalColors.white
+    'rekey': globalColors.white,
   }
 
   const metaBGColors = {
     'new': globalColors.blue2,
-    'rekey': globalColors.red
+    'rekey': globalColors.red,
   }
 
   const metaProps = ignored
@@ -80,7 +80,7 @@ const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path}:
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   const containerStyle = {
-    ...styles.rowContainer
+    ...styles.rowContainer,
   }
 
   const icon: IconProps.type = styles.hasStuffIcon
@@ -109,13 +109,13 @@ const stylesLine = {
   position: 'absolute',
   top: 0,
   left: 0,
-  right: 0
+  right: 0,
 }
 
 const rowContainer = {
   ...globalStyles.flexBoxColumn,
   position: 'relative',
-  overflow: 'hidden'
+  overflow: 'hidden',
 }
 
 const stylesAvatarContainer = {
@@ -124,7 +124,7 @@ const stylesAvatarContainer = {
   paddingLeft: 8,
   paddingRight: 8,
   paddingTop: 16,
-  paddingBottom: 16
+  paddingBottom: 16,
 }
 
 const stylesAvatarContainerPrivate = {
@@ -133,45 +133,45 @@ const stylesAvatarContainerPrivate = {
   paddingLeft: 8,
   paddingRight: 8,
   paddingTop: 16,
-  paddingBottom: 16
+  paddingBottom: 16,
 }
 
 const stylesPrivate = {
   rowContainer: {
     ...rowContainer,
-    backgroundColor: globalColors.darkBlue
+    backgroundColor: globalColors.darkBlue,
   },
   hasStuffIcon: 'folder-private-has-stuff-32',
   ignored: {
     color: globalColors.white_40,
-    backgroundColor: 'rgba(0, 26, 51, 0.4)'
+    backgroundColor: 'rgba(0, 26, 51, 0.4)',
   },
   groupIcon: 'folder-private-group-32',
   avatarContainer: {
     ...stylesAvatarContainer,
-    backgroundColor: globalColors.darkBlue3
+    backgroundColor: globalColors.darkBlue3,
   },
   nameColor: globalColors.white,
-  modifiedMode: 'Terminal'
+  modifiedMode: 'Terminal',
 }
 
 const stylesPublic = {
   rowContainer: {
     ...rowContainer,
-    backgroundColor: globalColors.white
+    backgroundColor: globalColors.white,
   },
   hasStuffIcon: 'icon-folder-public-has-stuff-32',
   ignored: {
     color: globalColors.white_75,
-    backgroundColor: globalColors.yellowGreen
+    backgroundColor: globalColors.yellowGreen,
   },
   groupIcon: 'icon-folder-public-group-32',
   avatarContainer: {
     ...stylesAvatarContainer,
-    backgroundColor: globalColors.yellowGreen
+    backgroundColor: globalColors.yellowGreen,
   },
   nameColor: globalColors.yellowGreen,
-  modifiedMode: 'Normal'
+  modifiedMode: 'Normal',
 }
 
 const stylesBodyContainer = {
@@ -179,24 +179,24 @@ const stylesBodyContainer = {
   flex: 1,
   justifyContent: 'center',
   padding: 8,
-  marginRight: 16
+  marginRight: 16,
 }
 
 const stylesBodyNameContainer = {
   ...globalStyles.flexBoxRow,
-  flexWrap: 'wrap'
+  flexWrap: 'wrap',
 }
 
 const stylesActionContainer = {
   ...globalStyles.flexBoxRow,
   height: 64,
   alignItems: 'flex-start',
-  justifyContent: 'flex-end'
+  justifyContent: 'flex-end',
 }
 
 const stylesModified = {
   ...globalStyles.flexBoxRow,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 export default Row

@@ -1,0 +1,21 @@
+/* @flow */
+
+export type UserInfo = { // TODO (AW): replace with reference to bio's/profile's UserInfo
+  username: string,
+  fullname: string,
+  followsYou: boolean,
+  following: boolean
+}
+
+export type Tab = 'FOLLOWERS' | 'FOLLOWING'
+
+export type Props = {
+  currentTab: Tab,
+  onSwitchTab?: (selected: Tab) => void,
+  onUserClick?: (username: string) => void,
+  followers: Array<any>,
+  following: Array<any>
+}
+
+export default class Render extends React$Component<void, Props, void> {
+}

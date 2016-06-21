@@ -19,7 +19,7 @@ export default class Text extends Component {
     return ({
       'TerminalEmpty': <RNText>&nbsp;</RNText>,
       'TerminalCommand': <RNText>> </RNText>,
-      'TerminalComment': <RNText># </RNText>
+      'TerminalComment': <RNText># </RNText>,
     }: {[key: string]: React$Element})[type]
   }
 
@@ -109,7 +109,7 @@ export default class Text extends Component {
       'TerminalPrivate': styles.textTerminalPrivate,
       'TerminalPublic': styles.textTerminalPublic,
       'TerminalSmall': styles.textTerminalSmall,
-      'TerminalUsername': styles.textTerminalUsername
+      'TerminalUsername': styles.textTerminalUsername,
     }[props.type]
 
     let inline = true
@@ -122,7 +122,7 @@ export default class Text extends Component {
       ...Text._colorStyleBackgroundMode(props.backgroundMode || 'Normal', props.type, !!context.inTerminal),
       ...(props.onClick ? globalStyles.clickable : {}),
       ...(inline ? {...Text._inlineStyle(props.type, context)} : {}),
-      ...props.style
+      ...props.style,
     }
 
     return style
@@ -155,47 +155,47 @@ export default class Text extends Component {
 }
 
 Text.contextTypes = {
-  inTerminal: React.PropTypes.bool
+  inTerminal: React.PropTypes.bool,
 }
 
 const sizeGroups: { [key: '40' | '30' | '22' | '18' | '15' | '13']: Object } = {
   '40': {
     fontSize: 40,
-    lineHeight: 46
+    lineHeight: 46,
   },
   '30': {
     fontSize: 30,
-    lineHeight: 36
+    lineHeight: 36,
   },
   '22': {
     fontSize: 22,
-    lineHeight: 28
+    lineHeight: 28,
   },
   '18': {
     fontSize: 18,
-    lineHeight: 24
+    lineHeight: 24,
   },
   '15': {
     fontSize: 15,
-    lineHeight: 20
+    lineHeight: 20,
   },
   '13': {
     fontSize: 13,
-    lineHeight: 18
-  }
+    lineHeight: 18,
+  },
 }
 
 const textCommon = {
   ...globalStyles.fontRegular,
   textAlignVertical: 'center',
-  letterSpacing: 0.3
+  letterSpacing: 0.3,
 }
 
 const textTerminal = {
   ...textCommon,
   ...globalStyles.fontTerminalSemibold,
   fontSize: 14,
-  lineHeight: 21
+  lineHeight: 21,
 }
 
 export const specialStyles = {
@@ -203,59 +203,59 @@ export const specialStyles = {
     ...textCommon,
     ...globalStyles.fontSemibold,
     fontSize: 24,
-    lineHeight: 29
+    lineHeight: 29,
   },
   paperKey: {
     ...textCommon,
     ...globalStyles.fontTerminalSemibold,
     ...sizeGroups['15'],
-    color: globalColors.darkBlue
+    color: globalColors.darkBlue,
   },
   username: {
     ...textCommon,
     ...globalStyles.fontBold,
     fontSize: 24,
     lineHeight: 31,
-    color: globalColors.orange
-  }
+    color: globalColors.orange,
+  },
 }
 
 export const styles = {
   textHeaderJumbo: {
     ...textCommon,
     ...globalStyles.fontBold,
-    ...sizeGroups['40']
+    ...sizeGroups['40'],
   },
   textHeaderBig: {
     ...textCommon,
     ...globalStyles.fontBold,
-    ...sizeGroups['30']
+    ...sizeGroups['30'],
   },
   textHeader: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups['22']
+    ...sizeGroups['22'],
   },
   textHeaderLink: {
     ...textCommon,
     ...globalStyles.fontSemibold,
     ...sizeGroups['22'],
-    color: globalColors.blue
+    color: globalColors.blue,
   },
   textInputHeader: {
     ...textCommon,
     ...globalStyles.fontSemibold,
     ...sizeGroups['15'],
-    color: globalColors.blue
+    color: globalColors.blue,
   },
   textBody: {
     ...textCommon,
-    ...sizeGroups['18']
+    ...sizeGroups['18'],
   },
   textBodySemibold: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups['18']
+    ...sizeGroups['18'],
   },
   textBadge: {
     ...textCommon,
@@ -268,80 +268,80 @@ export const styles = {
       bottom: 3,
       marginBottom: -3,
       paddingBottom: 0,
-      lineHeight: 13
-    } : {})
+      lineHeight: 13,
+    } : {}),
   },
   textBodySmall: {
     ...textCommon,
-    ...sizeGroups['15']
+    ...sizeGroups['15'],
   },
   textBodySmallError: {
     ...textCommon,
     ...sizeGroups['15'],
-    color: globalColors.red
+    color: globalColors.red,
   },
   textBodySmallLink: {
     ...textCommon,
-    ...sizeGroups['15']
+    ...sizeGroups['15'],
   },
   textBodySmallPrimaryLink: {
     ...textCommon,
     ...sizeGroups['15'],
-    color: globalColors.blue
+    color: globalColors.blue,
   },
   textBodySmallSecondaryLink: {
     ...textCommon,
     ...sizeGroups['15'],
-    color: globalColors.black_60
+    color: globalColors.black_60,
   },
   textBodySmallSemibold: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups['15']
+    ...sizeGroups['15'],
   },
   textBodyXSmall: {
     ...textCommon,
-    ...sizeGroups['13']
+    ...sizeGroups['13'],
   },
   textBodyXSmallLink: {
     ...textCommon,
-    ...sizeGroups['13']
+    ...sizeGroups['13'],
   },
   textError: {
     ...textCommon,
     color: globalColors.red,
-    ...sizeGroups['15']
+    ...sizeGroups['15'],
   },
   textTerminal,
   textTerminalCommand: {
-    ...textTerminal
+    ...textTerminal,
   },
   textTerminalComment: {
     ...textTerminal,
-    color: globalColors.white_40
+    color: globalColors.white_40,
   },
   textTerminalUsername: {
     ...textTerminal,
-    color: globalColors.orange
+    color: globalColors.orange,
   },
   textTerminalPublic: {
     ...textTerminal,
-    color: globalColors.yellowGreen2
+    color: globalColors.yellowGreen2,
   },
   textTerminalPrivate: {
     ...textTerminal,
-    color: globalColors.darkBlue2
+    color: globalColors.darkBlue2,
   },
   textTerminalEmpty: {
-    ...textTerminal
+    ...textTerminal,
   },
   textTerminalSmall: {
     ...textTerminal,
     fontSize: 15,
-    lineHeight: 21
+    lineHeight: 21,
   },
   textTerminalInline: {
     backgroundColor: globalColors.blue4,
-    padding: 2
-  }
+    padding: 2,
+  },
 }

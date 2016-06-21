@@ -44,6 +44,6 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
       if (model.type === 'RefreshFavorites') {
         dispatch(favoriteList())
       }
-    }
+    },
   }
 }

@@ -1,6 +1,8 @@
 /* @flow */
 
 export type Props = {
+  showComingSoon: boolean,
+  username: string
 }
 
 export default class Render extends React$Component<void, Props, void> {

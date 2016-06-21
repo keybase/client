@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
 import {openInKBFS} from '../../actions/kbfs'
-import {ignoreFolder} from '../../actions/favorite'
+import {favoriteFolder, ignoreFolder} from '../../actions/favorite'
 import {navigateBack} from '../../actions/router'
 import flags from '../../util/feature-flags'
 import Render from './render'
@@ -17,6 +17,7 @@ type Props = $Shape<{
   username: string,
   navigateBack: () => void,
   ignoreFolder: (path: string) => void,
+  favoriteFolder: (path: string) => void,
   openInKBFS: (path: string) => void
 }>
 
@@ -37,7 +38,7 @@ class Files extends Component<void, Props, State> {
   constructor (props) {
     super(props)
     this.state = {
-      visiblePopupMenu: false
+      visiblePopupMenu: false,
     }
     this._checkFolderExistence(props)
   }
@@ -51,12 +52,14 @@ class Files extends Component<void, Props, State> {
     if (!folder) return null // Protect from state where the folder to be displayed was removed
     const openCurrentFolder = () => { this.props.openInKBFS(this.props.path) }
     const ignoreCurrentFolder = () => { this.props.ignoreFolder(this.props.path) }
+    const unIgnoreCurrentFolder = () => { this.props.favoriteFolder(this.props.path) }
     return (
       <Render
+        ignored={folder.ignored}
         theme={folder.isPublic ? 'public' : 'private'}
         popupMenuItems={[
           {onClick: openCurrentFolder, title: 'Open folder'},
-          {onClick: ignoreCurrentFolder, title: 'Ignore'}
+          {onClick: ignoreCurrentFolder, title: 'Ignore'},
         ]}
         visiblePopupMenu={this.state.visiblePopupMenu}
         onTogglePopupMenu={() => this.setState({visiblePopupMenu: !this.state.visiblePopupMenu})}
@@ -67,6 +70,7 @@ class Files extends Component<void, Props, State> {
         onBack={() => this.props.navigateBack()}
         openCurrentFolder={openCurrentFolder}
         ignoreCurrentFolder={ignoreCurrentFolder}
+        unIgnoreCurrentFolder={unIgnoreCurrentFolder}
         recentFilesSection={folder.recentFiles} // TODO (AW): integrate recent files once the service provides this data
         recentFilesEnabled={flags.recentFilesEnabled}
       />
@@ -77,22 +81,27 @@ class Files extends Component<void, Props, State> {
     return {
       componentAtTop: {
         title: 'Files',
-        element: <ConnectedFiles path={currentPath.get('path')} />
-      }
+        element: <ConnectedFiles path={currentPath.get('path')} />,
+      },
     }
   }
 }
 
 const ConnectedFiles = connect(
   (state, ownProps) => {
-    const folders: Array<Folder> = [].concat(_.get(state, 'favorite.folders.private.tlfs'), _.get(state, 'favorite.folders.public.tlfs'))
+    const folders: Array<Folder> = [].concat(
+      _.get(state, 'favorite.folders.private.tlfs'),
+      _.get(state, 'favorite.folders.public.tlfs'),
+      _.get(state, 'favorite.folders.private.ignored'),
+      _.get(state, 'favorite.folders.public.ignored')
+    )
     const folder = folders.find(f => f.path === ownProps.path)
     return {
       folder,
-      username: state.config && state.config.username
+      username: state.config && state.config.username,
     }
   },
-  dispatch => bindActionCreators({openInKBFS, ignoreFolder, navigateBack}, dispatch)
+  dispatch => bindActionCreators({favoriteFolder, ignoreFolder, navigateBack, openInKBFS}, dispatch)
 )(Files)
 
 export default ConnectedFiles

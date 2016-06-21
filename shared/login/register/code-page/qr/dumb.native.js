@@ -9,11 +9,11 @@ const map: DumbComponentMap<QR> = {
     'Normal': {
       scanning: true,
       onBarCodeRead: data => console.log('scanned data:', data),
-      qrCode: ''
-    }
-  }
+      qrCode: '',
+    },
+  },
 }
 
 export default {
-  'QR': map
+  'QR': map,
 }

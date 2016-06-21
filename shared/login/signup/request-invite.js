@@ -19,7 +19,7 @@ class RequestInvite extends Component {
 
     this.state = {
       email: this.props.email || '',
-      name: this.props.name || ''
+      name: this.props.name || '',
     }
   }
 
@@ -43,7 +43,7 @@ export default connect(
   state => ({
     emailErrorText: state.signup.emailError,
     nameErrorText: state.signup.nameError,
-    waiting: state.signup.waiting
+    waiting: state.signup.waiting,
   }),
   dispatch => bindActionCreators(signupActions, dispatch)
 )(RequestInvite)

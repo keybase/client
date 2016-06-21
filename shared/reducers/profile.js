@@ -18,31 +18,31 @@ export default function (state = initialState, action) {
         proofs: {},
         summary: {
           bio: null,
-          fullName: null
-        }
+          fullName: null,
+        },
       }
       break
     case Constants.profileReceivedDisplayKey:
       update = {
         proofs: {
-          pgp: action.payload.key
-        }
+          pgp: action.payload.key,
+        },
       }
       break
     case Constants.profileCheckingNetworks:
       update = {
         proofs: {
-          ...action.payload.networks.reduce((a, b) => { a[b] = {}; return a }, {})
-        }
+          ...action.payload.networks.reduce((a, b) => { a[b] = {}; return a }, {}),
+        },
       }
       break
     case Constants.profileNetworkUpdate:
       update = {
         proofs: {
           ...{
-            [action.payload.network]: action.payload.update
-          }
-        }
+            [action.payload.network]: action.payload.update,
+          },
+        },
       }
       break
     case Constants.profileSummaryLoaded:

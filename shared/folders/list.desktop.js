@@ -11,7 +11,7 @@ type State = {
 
 const rowKey = users => users && users.map(u => u.username).join('-')
 
-const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onClick, onRekey}) => {
+const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onOpen, onClick, onRekey}) => {
   return (
     <Box style={stylesIgnoreContainer}>
       <Box style={styles.topBox} onClick={onToggle}>
@@ -30,6 +30,7 @@ const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onClick, onR
           ignored={true} // eslint-disable-line
           onClick={onClick}
           onRekey={onRekey}
+          onOpen={onOpen}
           isFirst={!idx} />
         ))}
     </Box>
@@ -43,7 +44,7 @@ class Render extends Component<void, Props, State> {
     super(props)
 
     this.state = {
-      showIgnored: false
+      showIgnored: false,
     }
   }
 
@@ -71,7 +72,7 @@ class Render extends Component<void, Props, State> {
             isFirst={!idx} />
           ))}
           {this.props.ignored && this.props.ignored.length > 0 && <Ignored
-            ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles} onRekey={this.props.onRekey}
+            ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles} onOpen={this.props.onOpen} onClick={this.props.onClick} onRekey={this.props.onRekey}
             isPublic={this.props.isPublic} onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />}
       </Box>
     )
@@ -80,40 +81,40 @@ class Render extends Component<void, Props, State> {
 
 const stylesContainer = {
   ...globalStyles.scrollable,
-  overflowX: 'hidden'
+  overflowX: 'hidden',
 }
 
 const stylesIgnoreContainer = {
-  ...globalStyles.flexBoxColumn
+  ...globalStyles.flexBoxColumn,
 }
 
 const stylesIgnoreDesc = {
   ...globalStyles.flexBoxColumn,
-  alignItems: 'center'
+  alignItems: 'center',
 }
 
 const stylesIgnoreDivider = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   padding: 7,
-  height: 32
+  height: 32,
 }
 
 const stylesDividerText = {
   ...globalStyles.clickable,
   color: 'inherit',
-  marginRight: 7
+  marginRight: 7,
 }
 
 const stylesDividerBodyText = {
   width: 360,
   padding: 7,
   textAlign: 'center',
-  color: 'inherit'
+  color: 'inherit',
 }
 
 const stylesIgnoreCaret = {
-  color: globalColors.white_75
+  color: globalColors.white_75,
 }
 
 const stylesPrivate = {
@@ -121,15 +122,15 @@ const stylesPrivate = {
     ...stylesIgnoreDivider,
     backgroundColor: globalColors.darkBlue3,
     color: globalColors.white_75,
-    borderTop: 'solid 1px rgba(255, 255, 255, 0.05)'
+    borderTop: 'solid 1px rgba(255, 255, 255, 0.05)',
   },
   bottomBox: {
     ...stylesIgnoreDesc,
     backgroundColor: globalColors.darkBlue3,
-    color: globalColors.white_40
+    color: globalColors.white_40,
   },
   iconCaretRight: 'caret-right-white',
-  iconCaretDown: 'caret-down-white'
+  iconCaretDown: 'caret-down-white',
 }
 
 const stylesPublic = {
@@ -137,14 +138,14 @@ const stylesPublic = {
     ...stylesIgnoreDivider,
     backgroundColor: globalColors.lightGrey,
     color: globalColors.black_40,
-    borderTop: 'solid 1px rgba(0, 0, 0, 0.05)'
+    borderTop: 'solid 1px rgba(0, 0, 0, 0.05)',
   },
   bottomBox: {
     ...stylesIgnoreDesc,
     backgroundColor: globalColors.lightGrey,
-    color: globalColors.black_40
+    color: globalColors.black_40,
   },
   iconCaretRight: 'caret-right-black',
-  iconCaretDown: 'caret-down-black'
+  iconCaretDown: 'caret-down-black',
 }
 export default Render

@@ -26,7 +26,7 @@ const styles = {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
     width: 410,
-    height: 430
+    height: 430,
   },
   inside: {
     ...globalStyles.flexBoxColumn,
@@ -35,6 +35,6 @@ const styles = {
     alignSelf: 'stretch',
     marginTop: -avatarSize / 2,
     padding: 30,
-    paddingTop: 30 + avatarSize / 2
-  }
+    paddingTop: 30 + avatarSize / 2,
+  },
 }

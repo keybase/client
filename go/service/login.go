@@ -4,6 +4,8 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -75,6 +77,15 @@ func (h *LoginHandler) PaperKey(_ context.Context, sessionID int) error {
 	return engine.RunEngine(eng, ctx)
 }
 
+func (h *LoginHandler) PaperKeySubmit(_ context.Context, arg keybase1.PaperKeySubmitArg) error {
+	ctx := &engine.Context{
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+	eng := engine.NewPaperKeySubmit(h.G(), arg.PaperPhrase)
+	return engine.RunEngine(eng, ctx)
+}
+
 func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
 	ctx := &engine.Context{
 		LogUI:     h.getLogUI(sessionID),
@@ -106,5 +117,20 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 		SessionID:   arg.SessionID,
 	}
 	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.UsernameOrEmail, arg.ClientType)
+	return engine.RunEngine(eng, ectx)
+}
+
+func (h *LoginHandler) PGPProvision(ctx context.Context, arg keybase1.PGPProvisionArg) error {
+	if h.G().Env.GetRunMode() == libkb.ProductionRunMode {
+		return errors.New("PGPProvision is a devel-only RPC")
+	}
+	ectx := &engine.Context{
+		LogUI:      h.getLogUI(arg.SessionID),
+		LoginUI:    h.getLoginUI(arg.SessionID),
+		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
+		NetContext: ctx,
+		SessionID:  arg.SessionID,
+	}
+	eng := engine.NewPGPProvision(h.G(), arg.Username, arg.DeviceName, arg.Passphrase)
 	return engine.RunEngine(eng, ectx)
 }

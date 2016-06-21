@@ -14,19 +14,19 @@ if (__DEV__) {
 const envedPathLinux = {
   staging: 'keybase.staging',
   devel: 'keybase.devel',
-  prod: 'keybase'
+  prod: 'keybase',
 }
 
 const envedPathOSX = {
   staging: 'KeybaseStaging',
   devel: 'KeybaseDevel',
-  prod: 'Keybase'
+  prod: 'Keybase',
 }
 
 const envedPathWin32 = {
   staging: 'KeybaseStaging',
   devel: 'KeybaseDevel',
-  prod: 'Keybase'
+  prod: 'Keybase',
 }
 
 function buildWin32SocketRoot () {
@@ -48,7 +48,7 @@ function findSocketRoot () {
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Caches/${envedPathOSX[runMode]}/`,
     'linux': runMode === 'prod' ? `${getenv('XDG_RUNTIME_DIR', '')}/keybase/` : `${getenv('XDG_RUNTIME_DIR', '')}/keybase.${runMode}/`,
-    'win32': buildWin32SocketRoot()
+    'win32': buildWin32SocketRoot(),
   }
 
   return paths[process.platform]
@@ -59,7 +59,7 @@ function findDataRoot () {
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Application Support/${envedPathOSX[runMode]}/`,
     'linux': `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/`,
-    'win32': `${getenv('APPDATA', '')}\\Keybase\\`
+    'win32': `${getenv('APPDATA', '')}\\Keybase\\`,
   }
 
   return paths[process.platform]
@@ -69,7 +69,7 @@ export function logFileName () {
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.log`,
     'linux': null, // linux is null because we can redirect stdout
-    'win32': `${getenv('APPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.log`
+    'win32': `${getenv('APPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.log`,
   }
 
   return paths[process.platform]

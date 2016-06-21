@@ -1,5 +1,6 @@
 {
   "protocol": "test",
+  "imports": [],
   "types": [
     {
       "type": "record",
@@ -49,7 +50,7 @@
           "type": "string"
         }
       ],
-      "response": "null",
+      "response": null,
       "doc": "For testing crashes."
     }
   },

@@ -37,17 +37,17 @@ class Render extends Component<void, Props, State> {
 }
 
 const stylesContainer = {
-  alignItems: 'center'
+  alignItems: 'center',
 }
 const stylesHeader = {
   marginTop: 60,
-  marginBottom: 5
+  marginBottom: 5,
 }
 const stylesBody = {
   paddingLeft: 15,
   paddingRight: 15,
   marginBottom: 35,
-  textAlign: 'center'
+  textAlign: 'center',
 }
 const stylesPaperKeyContainer = {
   position: 'relative',
@@ -59,24 +59,24 @@ const stylesPaperKeyContainer = {
   paddingBottom: 15,
   borderRadius: 1,
   backgroundColor: globalColors.white,
-  border: `solid 4px ${globalColors.darkBlue}`
+  border: `solid 4px ${globalColors.darkBlue}`,
 }
 const stylesPaperCorner = {
   position: 'absolute',
   top: -4,
-  right: -4
+  right: -4,
 }
 const stylesCheck = {
-  marginBottom: 60
+  marginBottom: 60,
 }
 const stylesButton = {
-  alignSelf: 'flex-end'
+  alignSelf: 'flex-end',
 }
 const stylesPaperkey = {
   ...textStyles.paperKey,
   ...globalStyles.selectable,
   marginBottom: 15,
-  display: 'inline-block'
+  display: 'inline-block',
 }
 
 export default Render

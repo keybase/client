@@ -6,7 +6,7 @@ import * as CommonConstants from '../constants/common'
 import {normal, warning, error, checking} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored} from '../constants/tracker'
 
-import {identify} from '../constants/types/keybase-v1'
+import {identifyCommon, proveCommon} from '../constants/types/keybase-v1'
 
 import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof} from '../common-adapters/user-proofs'
@@ -57,7 +57,7 @@ const initialProofState = checking
 const initialState: State = {
   serverStarted: false,
   timerActive: 0,
-  trackers: {}
+  trackers: {},
 }
 
 function initialTrackerState (username: string): TrackerState {
@@ -85,8 +85,8 @@ function initialTrackerState (username: string): TrackerState {
       followsYou: false,
       bio: '',
       avatar: null,
-      location: '' // TODO: get this information
-    }
+      location: '', // TODO: get this information
+    },
   }
 }
 
@@ -98,7 +98,7 @@ function initialNonUserState (assertion: string): NonUserState {
     name: assertion,
     reason: '',
     isPrivate: false,
-    inviteLink: null
+    inviteLink: null,
   }
 }
 
@@ -115,15 +115,15 @@ function updateNonUserState (state: NonUserState, action: NonUserActions): NonUs
         hidden: false,
         name: action.payload.assertion,
         serviceName: action.payload.socialAssertion.service,
-        reason: `You tried to access ${action.payload.folderName}`,
+        reason: `You opened ${action.payload.folderName}`,
         isPrivate: action.payload.isPrivate,
-        inviteLink: action.payload.throttled ? null : action.payload.inviteLink
+        inviteLink: action.payload.throttled ? null : action.payload.inviteLink,
       }
     case Constants.onClose:
       return {
         ...state,
         closed: true,
-        hidden: true
+        hidden: true,
       }
     default:
       return state
@@ -136,12 +136,12 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       // In case the reason is null, let's use our existing reason
       return {
         ...state,
-        reason: action.payload && action.payload.reason || state.reason
+        reason: action.payload && action.payload.reason || state.reason,
       }
     case Constants.updateTrackToken:
       return {
         ...state,
-        trackToken: action.payload && action.payload.trackToken
+        trackToken: action.payload && action.payload.trackToken,
       }
     case Constants.userUpdated:
       if (state.lastAction) {
@@ -150,7 +150,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         return {
           ...state,
           closed: true,
-          hidden: false
+          hidden: false,
         }
       }
     case Constants.onClose:
@@ -160,46 +160,46 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         hidden: false,
         lastAction: null,
         shouldFollow: false, // don't follow if they close x out the window
-        needTrackTokenDismiss: !state.trackToken // did we have a track token at this time?
+        needTrackTokenDismiss: !state.trackToken, // did we have a track token at this time?
       }
     case Constants.setNeedTrackTokenDismiss:
       return {
         ...state,
-        needTrackTokenDismiss: action.payload.needTrackTokenDismiss
+        needTrackTokenDismiss: action.payload.needTrackTokenDismiss,
       }
     case Constants.onWaiting:
       return {
         ...state,
-        waiting: action.payload.waiting
+        waiting: action.payload.waiting,
       }
     case Constants.onFollow:
       return {
         ...state,
         lastAction: 'followed',
-        reason: `You have followed ${state.username}.`
+        reason: `You have followed ${state.username}.`,
       }
     case Constants.onRefollow:
       return {
         ...state,
         lastAction: 'refollowed',
-        reason: `You have re-followed ${state.username}.`
+        reason: `You have re-followed ${state.username}.`,
       }
     case Constants.onUnfollow:
       return {
         ...state,
         lastAction: 'unfollowed',
-        reason: `You have unfollowed ${state.username}.`
+        reason: `You have unfollowed ${state.username}.`,
       }
     case Constants.onError:
       return {
         ...state,
         lastAction: 'error',
-        reason: 'There was an error updating your follow status.'
+        reason: 'There was an error updating your follow status.',
       }
     case Constants.updateEldestKidChanged: {
       return {
         ...state,
-        eldestKidChanged: true
+        eldestKidChanged: true,
       }
     }
     case Constants.updateProofState:
@@ -221,7 +221,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         ...state,
         shouldFollow: deriveShouldFollow(allOk),
         trackerState: deriveTrackerState(allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs, state.eldestKidChanged),
-        trackerMessage: deriveTrackerMessage(state.username, allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs)
+        trackerMessage: deriveTrackerMessage(state.username, allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs),
       }
 
     case Constants.setProofs:
@@ -234,8 +234,8 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         ...state,
         proofs: [
           ...(identity.revokedDetails || []).map(rv => revokedProofToProof(rv)),
-          ...identity.proofs.map(rp => remoteProofToProof(rp.proof))
-        ]
+          ...identity.proofs.map(rp => remoteProofToProof(rp.proof)),
+        ],
       }
 
     case Constants.updateProof:
@@ -247,7 +247,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       const lcr: LinkCheckResult = action.payload.linkCheckResult
       return {
         ...state,
-        proofs: updateProof(state.proofs, rp, lcr)
+        proofs: updateProof(state.proofs, rp, lcr),
       }
 
     case Constants.updateUserInfo:
@@ -256,33 +256,33 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       }
       return {
         ...state,
-        userInfo: action.payload.userInfo
+        userInfo: action.payload.userInfo,
       }
 
     case Constants.markActiveIdentifyUi:
       const serverActive = action.payload && !!action.payload.active || false
       return {
         ...state,
-        serverActive
+        serverActive,
       }
 
     case Constants.reportLastTrack:
       return {
         ...state,
-        lastTrack: action.payload && action.payload.track
+        lastTrack: action.payload && action.payload.track,
       }
 
     case Constants.showTracker:
       return {
         ...state,
         closed: false,
-        hidden: false
+        hidden: false,
       }
 
     case Constants.remoteDismiss:
       return {
         ...state,
-        closed: true
+        closed: true,
       }
 
     default:
@@ -301,17 +301,17 @@ export default function (state: State = initialState, action: Action): State {
     case CommonConstants.resetStore:
       return {
         ...state,
-        trackers: {}
+        trackers: {},
       }
     case Constants.startTimer:
       return {
         ...state,
-        timerActive: state.timerActive + 1
+        timerActive: state.timerActive + 1,
       }
     case Constants.stopTimer:
       return {
         ...state,
-        timerActive: state.timerActive - 1
+        timerActive: state.timerActive - 1,
       }
   }
 
@@ -325,8 +325,8 @@ export default function (state: State = initialState, action: Action): State {
       ...state,
       trackers: {
         ...state.trackers,
-        [userKey]: newTrackerState
-      }
+        [userKey]: newTrackerState,
+      },
     }
   } else if (userKey && trackerOrNonUserState && trackerOrNonUserState.type === 'nonUser') {
     const newNonUserState = updateNonUserState(trackerOrNonUserState, action)
@@ -338,8 +338,8 @@ export default function (state: State = initialState, action: Action): State {
       ...state,
       trackers: {
         ...state.trackers,
-        [userKey]: newNonUserState
-      }
+        [userKey]: newNonUserState,
+      },
     }
   } else {
     switch (action.type) {
@@ -347,7 +347,7 @@ export default function (state: State = initialState, action: Action): State {
         const serverStarted = action.payload && !!action.payload.started || false
         return {
           ...state,
-          serverStarted
+          serverStarted,
         }
       case Constants.updateUsername:
         if (!action.payload || !userKey) {
@@ -358,8 +358,8 @@ export default function (state: State = initialState, action: Action): State {
           ...state,
           trackers: {
             ...state.trackers,
-            [userKey]: initialTrackerState(userKey)
-          }
+            [userKey]: initialTrackerState(userKey),
+          },
         }
       case Constants.showNonUser:
         if (!userKey) return state
@@ -368,8 +368,8 @@ export default function (state: State = initialState, action: Action): State {
           ...state,
           trackers: {
             ...state.trackers,
-            [userKey]: updateNonUserState(initialNonUserState(userKey), action)
-          }
+            [userKey]: updateNonUserState(initialNonUserState(userKey), action),
+          },
         }
       default:
         return state
@@ -395,11 +395,11 @@ function stateToColor (state: SimpleProofState): string {
 
 function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff, remoteDiff: ?TrackDiff): SimpleProofState {
   // If there is no difference in what we've tracked from the server or remote resource it's good.
-  if (diff && remoteDiff && diff.type === identify.TrackDiffType.none && remoteDiff.type === identify.TrackDiffType.none) {
+  if (diff && remoteDiff && diff.type === identifyCommon.TrackDiffType.none && remoteDiff.type === identifyCommon.TrackDiffType.none) {
     return normal
   }
 
-  const statusName: ?string = mapTagToName(identify.ProofState, proofState)
+  const statusName: ?string = mapTagToName(proveCommon.ProofState, proofState)
   switch (statusName) {
     case 'ok':
       return normal
@@ -418,80 +418,80 @@ function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff,
 }
 
 function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracked: bool) : {diffMeta: ?SimpleProofMeta, statusMeta: ?SimpleProofMeta} {
-  if (status && status !== identify.ProofStatus.ok && isTracked) {
+  if (status && status !== proveCommon.ProofStatus.ok && isTracked) {
     return {
       diffMeta: metaIgnored,
-      statusMeta: null
+      statusMeta: null,
     }
   }
 
   return {
     diffMeta: trackDiffToSimpleProofMeta(diff),
-    statusMeta: proofStatusToSimpleProofMeta(status)
+    statusMeta: proofStatusToSimpleProofMeta(status),
   }
 
-  function trackDiffToSimpleProofMeta (diff: TrackDiffType): ?SimpleProofMeta {
+  function trackDiffToSimpleProofMeta (diff: ?TrackDiffType): ?SimpleProofMeta {
     if (!diff) {
       return null
     }
 
     return {
-      [identify.TrackDiffType.none]: null,
-      [identify.TrackDiffType.error]: null,
-      [identify.TrackDiffType.clash]: null,
-      [identify.TrackDiffType.revoked]: metaDeleted,
-      [identify.TrackDiffType.upgraded]: metaUpgraded,
-      [identify.TrackDiffType.new]: metaNew,
-      [identify.TrackDiffType.remotefail]: null,
-      [identify.TrackDiffType.remoteworking]: null,
-      [identify.TrackDiffType.remotechanged]: null,
-      [identify.TrackDiffType.neweldest]: null
+      [identifyCommon.TrackDiffType.none]: null,
+      [identifyCommon.TrackDiffType.error]: null,
+      [identifyCommon.TrackDiffType.clash]: null,
+      [identifyCommon.TrackDiffType.revoked]: metaDeleted,
+      [identifyCommon.TrackDiffType.upgraded]: metaUpgraded,
+      [identifyCommon.TrackDiffType.new]: metaNew,
+      [identifyCommon.TrackDiffType.remoteFail]: null,
+      [identifyCommon.TrackDiffType.remoteWorking]: null,
+      [identifyCommon.TrackDiffType.remoteChanged]: null,
+      [identifyCommon.TrackDiffType.newEldest]: null,
     }[diff]
   }
 
-  function proofStatusToSimpleProofMeta (status: ProofStatus): ?SimpleProofMeta {
+  function proofStatusToSimpleProofMeta (status: ?ProofStatus): ?SimpleProofMeta {
     if (!status) {
       return null
     }
     // The full mapping between the proof status we get back from the server
     // and a simplified representation that we show the users.
     return {
-      [identify.ProofStatus.none]: null,
-      [identify.ProofStatus.ok]: null,
-      [identify.ProofStatus.local]: null,
-      [identify.ProofStatus.found]: null,
-      [identify.ProofStatus.baseError]: null,
-      [identify.ProofStatus.hostUnreachable]: metaUnreachable,
-      [identify.ProofStatus.permissionDenied]: metaUnreachable,
-      [identify.ProofStatus.failedParse]: metaUnreachable,
-      [identify.ProofStatus.dnsError]: metaUnreachable,
-      [identify.ProofStatus.authFailed]: metaUnreachable,
-      [identify.ProofStatus.http500]: metaUnreachable,
-      [identify.ProofStatus.timeout]: metaUnreachable,
-      [identify.ProofStatus.internalError]: metaUnreachable,
-      [identify.ProofStatus.baseHardError]: metaUnreachable,
-      [identify.ProofStatus.notFound]: metaUnreachable,
-      [identify.ProofStatus.contentFailure]: metaUnreachable,
-      [identify.ProofStatus.badUsername]: metaUnreachable,
-      [identify.ProofStatus.badRemoteId]: metaUnreachable,
-      [identify.ProofStatus.textNotFound]: metaUnreachable,
-      [identify.ProofStatus.badArgs]: metaUnreachable,
-      [identify.ProofStatus.contentMissing]: metaUnreachable,
-      [identify.ProofStatus.titleNotFound]: metaUnreachable,
-      [identify.ProofStatus.serviceError]: metaUnreachable,
-      [identify.ProofStatus.torSkipped]: null,
-      [identify.ProofStatus.torIncompatible]: null,
-      [identify.ProofStatus.http300]: metaUnreachable,
-      [identify.ProofStatus.http400]: metaUnreachable,
-      [identify.ProofStatus.httpOther]: metaUnreachable,
-      [identify.ProofStatus.emptyJson]: metaUnreachable,
-      [identify.ProofStatus.deleted]: metaDeleted,
-      [identify.ProofStatus.serviceDead]: metaUnreachable,
-      [identify.ProofStatus.badSignature]: metaUnreachable,
-      [identify.ProofStatus.badApiUrl]: metaUnreachable,
-      [identify.ProofStatus.unknownType]: metaUnreachable,
-      [identify.ProofStatus.noHint]: metaUnreachable,
-      [identify.ProofStatus.badHintText]: metaUnreachable
+      [proveCommon.ProofStatus.none]: null,
+      [proveCommon.ProofStatus.ok]: null,
+      [proveCommon.ProofStatus.local]: null,
+      [proveCommon.ProofStatus.found]: null,
+      [proveCommon.ProofStatus.baseError]: null,
+      [proveCommon.ProofStatus.hostUnreachable]: metaUnreachable,
+      [proveCommon.ProofStatus.permissionDenied]: metaUnreachable,
+      [proveCommon.ProofStatus.failedParse]: metaUnreachable,
+      [proveCommon.ProofStatus.dnsError]: metaUnreachable,
+      [proveCommon.ProofStatus.authFailed]: metaUnreachable,
+      [proveCommon.ProofStatus.http500]: metaUnreachable,
+      [proveCommon.ProofStatus.timeout]: metaUnreachable,
+      [proveCommon.ProofStatus.internalError]: metaUnreachable,
+      [proveCommon.ProofStatus.baseHardError]: metaUnreachable,
+      [proveCommon.ProofStatus.notFound]: metaUnreachable,
+      [proveCommon.ProofStatus.contentFailure]: metaUnreachable,
+      [proveCommon.ProofStatus.badUsername]: metaUnreachable,
+      [proveCommon.ProofStatus.badRemoteId]: metaUnreachable,
+      [proveCommon.ProofStatus.textNotFound]: metaUnreachable,
+      [proveCommon.ProofStatus.badArgs]: metaUnreachable,
+      [proveCommon.ProofStatus.contentMissing]: metaUnreachable,
+      [proveCommon.ProofStatus.titleNotFound]: metaUnreachable,
+      [proveCommon.ProofStatus.serviceError]: metaUnreachable,
+      [proveCommon.ProofStatus.torSkipped]: null,
+      [proveCommon.ProofStatus.torIncompatible]: null,
+      [proveCommon.ProofStatus.http300]: metaUnreachable,
+      [proveCommon.ProofStatus.http400]: metaUnreachable,
+      [proveCommon.ProofStatus.httpOther]: metaUnreachable,
+      [proveCommon.ProofStatus.emptyJson]: metaUnreachable,
+      [proveCommon.ProofStatus.deleted]: metaDeleted,
+      [proveCommon.ProofStatus.serviceDead]: metaUnreachable,
+      [proveCommon.ProofStatus.badSignature]: metaUnreachable,
+      [proveCommon.ProofStatus.badApiUrl]: metaUnreachable,
+      [proveCommon.ProofStatus.unknownType]: metaUnreachable,
+      [proveCommon.ProofStatus.noHint]: metaUnreachable,
+      [proveCommon.ProofStatus.badHintText]: metaUnreachable,
     }[status]
   }
 }
@@ -501,13 +501,13 @@ function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracke
 /* eslint-disable no-multi-spaces */
 function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, humanUrl: ?string): string {
   switch (proofType) {
-    case identify.ProofType.dns            : return `http://${name}`
-    case identify.ProofType.genericWebSite : return `${key}://${name}`
-    case identify.ProofType.twitter        : return `https://twitter.com/${name}`
-    case identify.ProofType.github         : return `https://github.com/${name}`
-    case identify.ProofType.reddit         : return `https://reddit.com/user/${name}`
-    case identify.ProofType.coinbase       : return `https://coinbase.com/${name}`
-    case identify.ProofType.hackernews     : return `https://news.ycombinator.com/user?id=${name}`
+    case proveCommon.ProofType.dns            : return `http://${name}`
+    case proveCommon.ProofType.genericWebSite : return `${key}://${name}`
+    case proveCommon.ProofType.twitter        : return `https://twitter.com/${name}`
+    case proveCommon.ProofType.github         : return `https://github.com/${name}`
+    case proveCommon.ProofType.reddit         : return `https://reddit.com/user/${name}`
+    case proveCommon.ProofType.coinbase       : return `https://coinbase.com/${name}`
+    case proveCommon.ProofType.hackernews     : return `https://news.ycombinator.com/user?id=${name}`
     default: return humanUrl || ''
   }
 }
@@ -515,10 +515,10 @@ function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, hu
 
 function remoteProofToProofType (rp: RemoteProof): string {
   let proofType: string = ''
-  if (rp.proofType === identify.ProofType.genericWebSite) {
+  if (rp.proofType === proveCommon.ProofType.genericWebSite) {
     proofType = rp.key
   } else {
-    proofType = mapTagToName(identify.ProofType, rp.proofType) || ''
+    proofType = mapTagToName(proveCommon.ProofType, rp.proofType) || ''
   }
   return proofType
 }
@@ -533,13 +533,13 @@ function revokedProofToProof (rv: RevokedProof): Proof {
     name: rv.proof.displayMarkup,
     humanUrl: '',
     profileUrl: '',
-    isTracked: false
+    isTracked: false,
   }
 }
 
 function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
   const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || checking
-  const isTracked = !!(lcr && lcr.diff && lcr.diff.type === identify.TrackDiffType.none && !lcr.breaksTracking)
+  const isTracked = !!(lcr && lcr.diff && lcr.diff.type === identifyCommon.TrackDiffType.none && !lcr.breaksTracking)
   const {diffMeta, statusMeta} = diffAndStatusMeta(lcr && lcr.diff && lcr.diff.type, lcr && lcr.proofResult && lcr.proofResult.status, isTracked)
   const humanUrl = (lcr && lcr.hint && lcr.hint.humanUrl)
 
@@ -552,7 +552,7 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     name: rp.displayMarkup,
     humanUrl: humanUrl,
     profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl),
-    isTracked
+    isTracked,
   }
 }
 
