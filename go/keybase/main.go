@@ -119,7 +119,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	}
 
 	// Install hook for after startup
-	if err = install.RunAfterStartup(g, cl.IsService()); err != nil {
+	if err = install.RunAfterStartup(g, cl.IsService(), g.Log); err != nil {
 		return err
 	}
 
@@ -141,7 +141,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		g.Log.Debug("| in configureProcesses, is service")
 		if runtime.GOOS == "linux" {
 			g.Log.Debug("| calling AutoInstall")
-			_, err := install.AutoInstall(g, "", false)
+			_, err := install.AutoInstall(g, "", false, g.Log)
 			if err != nil {
 				return err
 			}
@@ -190,7 +190,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	} else if libkb.IsBrewBuild {
 		// If we're running in Brew mode, we might need to install ourselves as a persistent
 		// service for future invocations of the command.
-		newProc, err = install.AutoInstall(g, "", false)
+		newProc, err = install.AutoInstall(g, "", false, g.Log)
 		if err != nil {
 			return err
 		}

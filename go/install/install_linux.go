@@ -34,26 +34,26 @@ NoDisplay=true
 Exec=run_keybase
 `
 
-func autostartDir(g *libkb.GlobalContext) string {
+func autostartDir(context Context) string {
 	// strip off the "keybase" folder on the end of the config dir
-	return path.Join(g.Env.GetConfigDir(), "..", "autostart")
+	return path.Join(context.GetConfigDir(), "..", "autostart")
 }
 
-func autostartFilePath(g *libkb.GlobalContext) string {
-	return path.Join(autostartDir(g), "keybase_autostart.desktop")
+func autostartFilePath(context Context) string {
+	return path.Join(autostartDir(context), "keybase_autostart.desktop")
 }
 
 // AutoInstall installs auto start on linux
-func AutoInstall(g *libkb.GlobalContext, _ string, _ bool) ( /* newProc */ bool, error) {
+func AutoInstall(context Context, _ string, _ bool, log Log) ( /* newProc */ bool, error) {
 	// If the desktop file already exists, short circuit.
-	if _, err := os.Stat(autostartFilePath(g)); err == nil {
+	if _, err := os.Stat(autostartFilePath(context)); err == nil {
 		return false, nil
 	}
-	err := os.MkdirAll(autostartDir(g), 0755)
+	err := os.MkdirAll(autostartDir(context), 0755)
 	if err != nil {
 		return false, err
 	}
-	return false, ioutil.WriteFile(autostartFilePath(g), []byte(autostartFileText), 0644)
+	return false, ioutil.WriteFile(autostartFilePath(context), []byte(autostartFileText), 0644)
 }
 
 // CheckIfValidLocation is not used on linux
@@ -67,7 +67,7 @@ func KBFSBinPath(runMode libkb.RunMode, binPath string) (string, error) {
 }
 
 // RunAfterStartup is not used on linux
-func RunAfterStartup(g *libkb.GlobalContext, isService bool) error {
+func RunAfterStartup(context Context, isService bool, log Log) error {
 	return nil
 }
 

@@ -15,12 +15,12 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-kext"
 )
 
-func KeybaseFuseStatus(bundleVersion string, log logger.Logger) keybase1.FuseStatus {
+// KeybaseFuseStatus returns Fuse status
+func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	st := keybase1.FuseStatus{
 		BundleVersion: bundleVersion,
 		InstallStatus: keybase1.InstallStatus_UNKNOWN,
@@ -106,7 +106,8 @@ func mountInfo(fstype string) ([]keybase1.FuseMountInfo, error) {
 	return mountInfos, nil
 }
 
-func KeybaseFuseStatusForAppBundle(appPath string, log logger.Logger) (keybase1.FuseStatus, error) {
+// KeybaseFuseStatusForAppBundle returns Fuse status for application at appPath
+func KeybaseFuseStatusForAppBundle(appPath string, log Log) (keybase1.FuseStatus, error) {
 	bundleVersion, err := fuseBundleVersion(appPath)
 	if err != nil {
 		return keybase1.FuseStatus{}, err
