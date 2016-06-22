@@ -157,7 +157,7 @@ const backpressureSlack = 1 * time.Second
 
 // calcBackpressure returns how much longer a given request should be
 // kept in the queue, as a function of its deadline and how full the
-// unsynced buffer is.  In its lifetime, the request should be blocked
+// syncing buffer is.  In its lifetime, the request should be blocked
 // by roughly the same fraction of its total deadline as how full the
 // unsynced buffer queue is.  This will let KBFS slow down Writes
 // according to how slow the background Syncs are, so we don't
@@ -166,18 +166,14 @@ func (d *DirtyBlockCacheStandard) calcBackpressure(start time.Time,
 	deadline time.Time) time.Duration {
 	d.lock.RLock()
 	defer d.lock.RUnlock()
-	if d.unsyncedDirtyBytes <= d.backpressureBeginsAt {
-		return 0
-	}
-
 	// We don't want to use the whole deadline, so cut it some slack.
 	totalReqTime := deadline.Sub(start) - backpressureSlack
 	if totalReqTime <= 0 {
 		return 0
 	}
 
-	backpressureFrac := float64(d.unsyncedDirtyBytes-d.backpressureBeginsAt) /
-		float64(d.maxSyncBufferSize-d.backpressureBeginsAt)
+	backpressureFrac := float64(d.syncingDirtyBytes) /
+		float64(d.maxSyncBufferSize)
 	totalBackpressure := time.Duration(
 		float64(totalReqTime) * backpressureFrac)
 
