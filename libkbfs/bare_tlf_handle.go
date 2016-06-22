@@ -236,7 +236,7 @@ func assertionSetToSlice(m map[keybase1.SocialAssertion]bool) (s []keybase1.Soci
 // while resolving the passed assertions.
 func (h BareTlfHandle) ResolveAssertions(
 	assertions map[keybase1.SocialAssertion]keybase1.UID) BareTlfHandle {
-	if len(assertions) == 0 || (len(h.UnresolvedWriters) == 0 && len(h.UnresolvedReaders) == 0) {
+	if len(assertions) == 0 || (len(h.UnresolvedWriters) == 0 && len(h.UnresolvedReaders) == 0) || h.IsFinal() {
 		return h
 	}
 	var resolvedWriters, resolvedReaders map[keybase1.UID]bool
@@ -263,4 +263,9 @@ func (h BareTlfHandle) Extensions() (extensions []TlfHandleExtension) {
 		extensions = append(extensions, *h.FinalizedInfo)
 	}
 	return extensions
+}
+
+// IsFinal returns true if the handle has been finalized.
+func (h BareTlfHandle) IsFinal() bool {
+	return h.FinalizedInfo != nil
 }

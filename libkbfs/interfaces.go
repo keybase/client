@@ -283,6 +283,12 @@ type KeybaseDaemon interface {
 	// get UserInfo structs as it is much cheaper than Identify.
 	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (UserInfo, error)
 
+	// LoadUnverifiedKeys returns a list of unverified public keys.  They are the union
+	// of all known public keys associated with the account and the currently verified
+	// keys currently part of the user's sigchain.
+	LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
+		[]VerifyingKey, []CryptPublicKey, error)
+
 	// CurrentSession returns a SessionInfo struct with all the
 	// information for the current session, or an error otherwise.
 	CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error)
@@ -365,7 +371,9 @@ type KBPKI interface {
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.
 	HasVerifyingKey(ctx context.Context, uid keybase1.UID,
-		verifyingKey VerifyingKey, atServerTime time.Time) error
+		verifyingKey VerifyingKey, atServerTime time.Time,
+	        checkUnverified bool) error
+
 	// GetCryptPublicKeys gets all of a user's crypt public keys (including
 	// paper keys).
 	GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (

@@ -94,7 +94,7 @@ func (k *KBPKIClient) GetNormalizedUsername(ctx context.Context, uid keybase1.UI
 }
 
 func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey VerifyingKey, atServerTime time.Time) (bool, error) {
+	verifyingKey VerifyingKey, atServerTime time.Time, checkUnverified bool) (bool, error) {
 	userInfo, err := k.loadUserPlusKeys(ctx, uid)
 	if err != nil {
 		return false, err
@@ -126,13 +126,31 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		return false, nil
 	}
 
+	if !checkUnverified {
+		return false, nil
+	}
+
+	verifyingKeys, _, err := k.loadUnverifiedKeys(ctx, uid)
+	if err != nil {
+		return false, err
+	}
+
+	for _, key := range verifyingKeys {
+		if !verifyingKey.kid.Equal(key.kid) {
+			continue
+		}
+		k.log.CDebugf(ctx, "Trusting potentially unverified key %s for user %s",
+			verifyingKey.kid, uid)
+		return true, nil
+	}
+
 	return false, nil
 }
 
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey VerifyingKey, atServerTime time.Time) error {
-	ok, err := k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
+	verifyingKey VerifyingKey, atServerTime time.Time, checkUnverified bool) error {
+	ok, err := k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime, checkUnverified)
 	if err != nil {
 		return err
 	}
@@ -145,7 +163,7 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	// service hasn't learned of the users' new key yet.
 	k.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, uid)
 
-	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
+	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime, checkUnverified)
 	if err != nil {
 		return err
 	}
@@ -194,4 +212,9 @@ func (k *KBPKIClient) FavoriteList(ctx context.Context) ([]keybase1.Folder, erro
 // Notify implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	return k.config.KeybaseDaemon().Notify(ctx, notification)
+}
+
+func (k *KBPKIClient) loadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
+	[]VerifyingKey, []CryptPublicKey, error) {
+	return k.config.KeybaseDaemon().LoadUnverifiedKeys(ctx, uid)
 }

@@ -45,6 +45,12 @@ type UserInfo struct {
 	// Revoked keys, and the time at which they were revoked.
 	RevokedVerifyingKeys   map[VerifyingKey]keybase1.KeybaseTime
 	RevokedCryptPublicKeys map[CryptPublicKey]keybase1.KeybaseTime
+
+	// Unnverified set of all keys which have ever ostensibly belonged
+	// to the user including those which existed prior to any account
+	// reset.
+	UnverifiedVerifyingKeys   []VerifyingKey
+	UnverifiedCryptPublicKeys []CryptPublicKey
 }
 
 // SessionInfo contains all the info about the keybase session that

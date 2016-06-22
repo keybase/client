@@ -1,0 +1,6 @@
+@namespace("gregor.1")
+
+// calls from authd -> gregor
+protocol authUpdate {
+	void revokeSessionIDs(array<SessionID> sessionIDs);
+}

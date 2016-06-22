@@ -1,0 +1,12 @@
+{
+  "protocol": "authInternal",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "createGregorSuperUserSessionToken": {
+      "request": [],
+      "response": "SessionToken"
+    }
+  },
+  "namespace": "gregor.1"
+}

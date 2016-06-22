@@ -46,12 +46,13 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 }
 
 func (md *MDOpsStandard) verifyWriterKey(
-	ctx context.Context, rmds *RootMetadataSigned) error {
+	ctx context.Context, rmds *RootMetadataSigned, isTlfFinal bool) error {
 	if !rmds.MD.IsWriterMetadataCopiedSet() {
 		err := md.config.KBPKI().HasVerifyingKey(ctx,
 			rmds.MD.LastModifyingWriter,
 			rmds.MD.WriterMetadataSigInfo.VerifyingKey,
-			rmds.untrustedServerTimestamp)
+			rmds.untrustedServerTimestamp,
+			isTlfFinal)
 		if err != nil {
 			return md.convertVerifyingKeyError(ctx, rmds, err)
 		}
@@ -143,7 +144,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		}
 	}
 
-	if err := md.verifyWriterKey(ctx, rmds); err != nil {
+	if err := md.verifyWriterKey(ctx, rmds, handle.IsFinal()); err != nil {
 		return err
 	}
 
@@ -155,9 +156,9 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		return err
 	}
 
-	// TODO: what do we do if the signature is from a revoked key?
 	err = md.config.KBPKI().HasVerifyingKey(ctx, user,
-		rmds.SigInfo.VerifyingKey, rmds.untrustedServerTimestamp)
+		rmds.SigInfo.VerifyingKey, rmds.untrustedServerTimestamp,
+		handle.IsFinal())
 	if err != nil {
 		return md.convertVerifyingKeyError(ctx, rmds, err)
 	}

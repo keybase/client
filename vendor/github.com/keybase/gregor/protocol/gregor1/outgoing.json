@@ -1,0 +1,17 @@
+{
+  "protocol": "outgoing",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "broadcastMessage": {
+      "request": [
+        {
+          "name": "m",
+          "type": "Message"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "gregor.1"
+}

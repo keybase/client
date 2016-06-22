@@ -73,7 +73,7 @@ func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).AnyTimes()
 
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
-		gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
+		gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
 	if hasVerifyingKeyErr == nil {
 		config.mockCrypto.EXPECT().Verify(packedData, rmds.MD.WriterMetadataSigInfo).Return(nil)
 		config.mockCrypto.EXPECT().Verify(packedData, rmds.SigInfo).Return(verifyErr)
@@ -96,7 +96,13 @@ func verifyMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned) {
 		gomock.Any(), TLFCryptKey{}).Return(&rmds.MD.data, nil)
 
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
-		gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
+		gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
+
+	if rmds.MD.IsFinal() {
+		config.mockCodec.EXPECT().Decode(gomock.Any(), gomock.Any()).Return(nil)
+		config.mockCodec.EXPECT().Decode(gomock.Any(), gomock.Any()).Return(nil)
+	}
+
 	config.mockCrypto.EXPECT().Verify(packedData, rmds.SigInfo).Return(nil)
 	config.mockCrypto.EXPECT().Verify(packedData, rmds.MD.WriterMetadataSigInfo).Return(nil)
 }

@@ -201,6 +201,17 @@ func (k *KeybaseDaemonRPC) setCachedUserInfo(uid keybase1.UID, info UserInfo) {
 	}
 }
 
+func (k *KeybaseDaemonRPC) setCachedUnverifiedKeys(uid keybase1.UID, vk []VerifyingKey,
+	cpk []CryptPublicKey) {
+	k.userCacheLock.Lock()
+	defer k.userCacheLock.Unlock()
+	if info, ok := k.userCache[uid]; ok {
+		info.UnverifiedVerifyingKeys = vk
+		info.UnverifiedCryptPublicKeys = cpk
+		k.userCache[uid] = info
+	}
+}
+
 func (k *KeybaseDaemonRPC) clearCaches() {
 	k.setCachedCurrentSession(SessionInfo{})
 	k.userCacheLock.Lock()
@@ -558,6 +569,36 @@ func (k *KeybaseDaemonRPC) processUserPlusKeys(upk keybase1.UserPlusKeys) (
 
 	k.setCachedUserInfo(upk.Uid, u)
 	return u, nil
+}
+
+// LoadUnverifiedKeys implements the KeybaseDaemon interface for KeybaseDaemonRPC.
+func (k *KeybaseDaemonRPC) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
+	[]VerifyingKey, []CryptPublicKey, error) {
+	cachedUserInfo := k.getCachedUserInfo(uid)
+	keys := len(cachedUserInfo.UnverifiedVerifyingKeys) +
+		len(cachedUserInfo.UnverifiedCryptPublicKeys)
+	if keys != 0 {
+		return cachedUserInfo.UnverifiedVerifyingKeys,
+			cachedUserInfo.UnverifiedCryptPublicKeys, nil
+	}
+
+	arg := keybase1.LoadAllPublicKeysUnverifiedArg{Uid: uid}
+	res, err := k.userClient.LoadAllPublicKeysUnverified(ctx, arg)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return k.processUnverifiedKeys(uid, res)
+}
+
+func (k *KeybaseDaemonRPC) processUnverifiedKeys(uid keybase1.UID, keys []keybase1.PublicKey) (
+	[]VerifyingKey, []CryptPublicKey, error) {
+	verifyingKeys, cryptPublicKeys, _, err := filterKeys(keys)
+	if err != nil {
+		return nil, nil, err
+	}
+	k.setCachedUnverifiedKeys(uid, verifyingKeys, cryptPublicKeys)
+	return verifyingKeys, cryptPublicKeys, nil
 }
 
 // CurrentSession implements the KeybaseDaemon interface for KeybaseDaemonRPC.
