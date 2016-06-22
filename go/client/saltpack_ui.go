@@ -62,7 +62,8 @@ func (s *SaltpackUI) doInteractive(arg keybase1.SaltpackPromptForDecryptArg) err
 
 func (s *SaltpackUI) SaltpackPromptForDecrypt(_ context.Context, arg keybase1.SaltpackPromptForDecryptArg) (err error) {
 	if arg.UsedDelegateUI {
-		s.terminal.Printf("Message authored by " + ColorString("bold", arg.Sender.Username) + "\n")
+		w := s.terminal.ErrorWriter()
+		fmt.Fprintf(w, "Message authored by "+ColorString("bold", arg.Sender.Username)+"\n")
 	}
 	if !s.interactive {
 		return s.doNonInteractive(arg)
