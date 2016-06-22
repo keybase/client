@@ -79,7 +79,7 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	// end of the test.
 	config.SetBlockCache(NewBlockCacheStandard(config, 100, 1<<30))
 	config.SetDirtyBlockCache(NewDirtyBlockCacheStandard(wallClock{},
-		5<<20, 10<<20, 10<<10))
+		testLoggerMaker(t), 5<<20, 10<<20))
 	config.mockBcache = nil
 	config.mockDirtyBcache = nil
 

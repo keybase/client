@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
 
@@ -30,8 +31,27 @@ type dirtyReq struct {
 // by their block ID, branch name, and reference nonce, since the same
 // block may be forked and modified on different branches and under
 // different references simultaneously.
+//
+// DirtyBlockCacheStandard controls how fast uses can write into KBFS,
+// and does so with a TCP-like slow-start algorithm that adjusts
+// itself according to how fast bytes are synced to the server.  It
+// keeps track of a "sync buffer" that holds all of the bytes that
+// have been written but not yet synced to the server.  When the
+// buffer is full, write requests get blocked by a fraction of the
+// write timeout, according to how close the user is to filling up
+// their "dirty buffer" -- i.e., the total number of bytes for which
+// an overall Sync operation has not yet completed (even if their
+// individual block Puts to the server have completed).
+//
+// The size of the sync buffer can vary between a minimum and maximum.
+// It starts out at the minimum, and grows exponentially as Puts
+// succeed.  However, if a write request is blocked for too long by
+// the backpressure and buffer-fullness checks, the sync buffer size
+// is cut in half.
 type DirtyBlockCacheStandard struct {
-	clock Clock
+	clock   Clock
+	makeLog func(string) logger.Logger
+	log     logger.Logger
 
 	// requestsChan is a queue for channels that should be closed when
 	// permission is granted to dirty new data.
@@ -46,39 +66,41 @@ type DirtyBlockCacheStandard struct {
 	// accepted. Used only for testing.
 	blockedChanForTesting chan<- int64
 
-	// When the number of un-synced dirty bytes exceeds this level,
-	// block new writes.
+	// The minimum (and initial) size of the sync buffer.
+	minSyncBufferSize int64
+	// The maximum size of the sync buffer.  Also used as the
+	// denominator when calculating backpressure, such that the closer
+	// we are to reaching the maximum size (over and above the current
+	// sync buffer), the more write requests will be delayed.
 	maxSyncBufferSize int64
-	// When the number of total dirty bytes exceeds this level, block
-	// new writes.
-	maxDirtyBufferSize int64
-	// When the number of un-synced dirty bytes is bigger than this
-	// number, slow down writes intentionally based on the size of the
-	// buffer, to attempt to avoid timeouts on low bandwidth
-	// connections.
-	backpressureBeginsAt int64
 
 	lock               sync.RWMutex
 	cache              map[dirtyBlockID]Block
 	unsyncedDirtyBytes int64
-	syncingDirtyBytes  int64
+	syncingDirtyBytes  int64 // just for bookkeeping, not actually used
 	totalDirtyBytes    int64
+	syncBufferSize     int64
 }
 
 // NewDirtyBlockCacheStandard constructs a new BlockCacheStandard
-// instance.
-func NewDirtyBlockCacheStandard(clock Clock, maxSyncBufferSize int64,
-	maxDirtyBufferSize int64,
-	backpressureBeginsAt int64) *DirtyBlockCacheStandard {
+// instance.  makeLog is a function that will be called later to make
+// a log (we don't take an actual log, to allow the DirtyBlockCache to
+// be created before logging is initialized).  The min and max buffer
+// sizes define the possible range of how many bytes we'll try to sync
+// in any one sync.
+func NewDirtyBlockCacheStandard(clock Clock,
+	makeLog func(string) logger.Logger, minSyncBufferSize int64,
+	maxSyncBufferSize int64) *DirtyBlockCacheStandard {
 	d := &DirtyBlockCacheStandard{
-		clock:                clock,
-		requestsChan:         make(chan dirtyReq, 1000),
-		bytesDecreasedChan:   make(chan struct{}, 1),
-		shutdownChan:         make(chan struct{}),
-		cache:                make(map[dirtyBlockID]Block),
-		maxSyncBufferSize:    maxSyncBufferSize,
-		maxDirtyBufferSize:   maxDirtyBufferSize,
-		backpressureBeginsAt: backpressureBeginsAt,
+		clock:              clock,
+		makeLog:            makeLog,
+		requestsChan:       make(chan dirtyReq, 1000),
+		bytesDecreasedChan: make(chan struct{}, 1),
+		shutdownChan:       make(chan struct{}),
+		cache:              make(map[dirtyBlockID]Block),
+		minSyncBufferSize:  minSyncBufferSize,
+		maxSyncBufferSize:  maxSyncBufferSize,
+		syncBufferSize:     minSyncBufferSize,
 	}
 	go d.processPermission()
 	return d
@@ -156,12 +178,12 @@ func (d *DirtyBlockCacheStandard) IsDirty(
 const backpressureSlack = 1 * time.Second
 
 // calcBackpressure returns how much longer a given request should be
-// kept in the queue, as a function of its deadline and how full the
+// blocked, as a function of its deadline and how past full the
 // syncing buffer is.  In its lifetime, the request should be blocked
-// by roughly the same fraction of its total deadline as how full the
-// unsynced buffer queue is.  This will let KBFS slow down Writes
-// according to how slow the background Syncs are, so we don't
-// accumulate more bytes to Sync than we can handle.  See KBFS-731.
+// by roughly the same fraction of its total deadline as how past full
+// the buffer is.  This will let KBFS slow down writes according to
+// how slow the background Syncs are, so we don't accumulate more
+// bytes to Sync than we can handle.  See KBFS-731.
 func (d *DirtyBlockCacheStandard) calcBackpressure(start time.Time,
 	deadline time.Time) time.Duration {
 	d.lock.RLock()
@@ -172,8 +194,19 @@ func (d *DirtyBlockCacheStandard) calcBackpressure(start time.Time,
 		return 0
 	}
 
-	backpressureFrac := float64(d.syncingDirtyBytes) /
-		float64(d.maxSyncBufferSize)
+	// Keep the window full in preparation for the next sync, after
+	// it's full start applying backpressure.
+	if d.unsyncedDirtyBytes < d.syncBufferSize {
+		return 0
+	}
+
+	// The backpressure is proportional to how far our overage is
+	// towards the max sync buffer size.
+	backpressureFrac := float64(d.unsyncedDirtyBytes-d.syncBufferSize) /
+		float64(d.maxSyncBufferSize-d.syncBufferSize)
+	if backpressureFrac > 1.0 {
+		backpressureFrac = 1.0
+	}
 	totalBackpressure := time.Duration(
 		float64(totalReqTime) * backpressureFrac)
 
@@ -186,19 +219,45 @@ func (d *DirtyBlockCacheStandard) calcBackpressure(start time.Time,
 	return backpressureLeft
 }
 
-func (d *DirtyBlockCacheStandard) acceptNewWrite(newBytes int64) bool {
+func (d *DirtyBlockCacheStandard) logLocked(fmt string, arg ...interface{}) {
+	if d.log == nil {
+		log := d.makeLog("")
+		if log != nil {
+			d.log = log.CloneWithAddedDepth(1)
+		}
+	}
+	if d.log != nil {
+		// TODO: pass contexts all the way here just for logging? It's
+		// extremely inconvenient to do that for the permission check
+		// messages which happen in the background.
+		d.log.CDebugf(nil, fmt, arg...)
+	}
+}
+
+func (d *DirtyBlockCacheStandard) acceptNewWrite(newBytes int64,
+	start time.Time, deadline time.Time) bool {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	// Accept any write, as long as we're not already over the limits.
-	//
-	// TODO: Only accept the write if the percentage of unsynced
-	// buffer fullness is less than how close we are to the deadline
-	// (figure out the exact formula).
-	canAccept := d.unsyncedDirtyBytes < d.maxSyncBufferSize &&
-		d.totalDirtyBytes < d.maxDirtyBufferSize
+	canAccept := d.totalDirtyBytes < d.syncBufferSize
 	if canAccept {
 		d.unsyncedDirtyBytes += newBytes
 		d.totalDirtyBytes += newBytes
+
+		// Update syncBufferSize if the write has been blocked for more than
+		// half of its deadline.
+		allowedDeadline := float64(deadline.Sub(start))
+		deadlineUsed := d.clock.Now().Sub(start)
+		fracDeadlineUsed := float64(deadlineUsed) / allowedDeadline
+		if fracDeadlineUsed > 0.5 {
+			d.syncBufferSize /= 2
+			if d.syncBufferSize < d.minSyncBufferSize {
+				d.syncBufferSize = d.minSyncBufferSize
+			}
+			d.logLocked("Write blocked for %s (%f%% of deadline), "+
+				"syncBufferSize=%d", deadlineUsed, fracDeadlineUsed*100,
+				d.syncBufferSize)
+		}
 	}
 	return canAccept
 }
@@ -238,7 +297,8 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 			// Apply any backpressure?
 			backpressure = d.calcBackpressure(currentReq.start,
 				currentReq.deadline)
-			if backpressure == 0 && d.acceptNewWrite(currentReq.bytes) {
+			if backpressure == 0 && d.acceptNewWrite(currentReq.bytes,
+				currentReq.start, currentReq.deadline) {
 				// If we have an active request, and we have room in
 				// our buffers to deal with it, grant permission to
 				// the requestor by closing the response channel.
@@ -332,7 +392,13 @@ func (d *DirtyBlockCacheStandard) SyncFinished(size int64) {
 		return
 	}
 	d.totalDirtyBytes -= size
+	d.syncBufferSize += size
+	if d.syncBufferSize > d.maxSyncBufferSize {
+		d.syncBufferSize = d.maxSyncBufferSize
+	}
 	d.signalDecreasedBytes()
+	d.logLocked("Finished syncing %d bytes, syncBufferSize=%d, "+
+		"totalDirty=%d", size, d.syncBufferSize, d.totalDirtyBytes)
 }
 
 // ShouldForceSync implements the DirtyBlockCache interface for
@@ -340,9 +406,7 @@ func (d *DirtyBlockCacheStandard) SyncFinished(size int64) {
 func (d *DirtyBlockCacheStandard) ShouldForceSync() bool {
 	d.lock.Lock()
 	defer d.lock.Unlock()
-	return d.unsyncedDirtyBytes > d.backpressureBeginsAt ||
-		d.unsyncedDirtyBytes > d.maxSyncBufferSize ||
-		d.totalDirtyBytes > d.maxDirtyBufferSize
+	return d.unsyncedDirtyBytes > d.syncBufferSize
 }
 
 // Shutdown implements the DirtyBlockCache interface for

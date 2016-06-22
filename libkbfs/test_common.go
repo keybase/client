@@ -57,10 +57,14 @@ func fakeMdID(b byte) MdID {
 	return MdID{h}
 }
 
-func setTestLogger(config Config, t logger.TestLogBackend) {
-	config.SetLoggerMaker(func(m string) logger.Logger {
+func testLoggerMaker(t logger.TestLogBackend) func(m string) logger.Logger {
+	return func(m string) logger.Logger {
 		return logger.NewTestLogger(t)
-	})
+	}
+}
+
+func setTestLogger(config Config, t logger.TestLogBackend) {
+	config.SetLoggerMaker(testLoggerMaker(t))
 }
 
 // MakeTestConfigOrBust creates and returns a config suitable for

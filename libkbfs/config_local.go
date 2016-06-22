@@ -570,22 +570,22 @@ func (c *ConfigLocal) ResetCaches() {
 	c.kcache = NewKeyCacheStandard(5000)
 	// Limit the block cache to 10K entries or 1024 blocks (currently 512MiB)
 	c.bcache = NewBlockCacheStandard(c, 10000, MaxBlockSizeBytesDefault*1024)
-	// Limit the number of unsynced (or actively syncing) bytes to 50
-	// MB (aka, the number of parallel block puts times the max size
-	// of a block).
-	unsyncedDirtyBytesLimit := int64(50 << 20)
-	// Limit the number of total dirty bytes (including those blocks
-	// that have already finished syncing, but for which the overall
-	// Sync operation isn't yet done) to 100 MB.
-	totalDirtyBytesLimit := 2 * unsyncedDirtyBytesLimit
-	c.dirtyBcache = NewDirtyBlockCacheStandard(c.clock, unsyncedDirtyBytesLimit,
-		totalDirtyBytesLimit, MaxBlockSizeBytesDefault*2)
+	minSyncBufferSize := int64(MaxBlockSizeBytesDefault * 10)
+	// The maximum number of bytes we can try to sync at once (also
+	// limits the amount of memory used by dirty blocks).
+	maxSyncBufferSize :=
+		int64(MaxBlockSizeBytesDefault * maxParallelBlockPuts * 2)
+	c.dirtyBcache = NewDirtyBlockCacheStandard(c.clock, c.MakeLogger,
+		minSyncBufferSize, maxSyncBufferSize)
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) MakeLogger(module string) logger.Logger {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
+	if c.loggerFn == nil {
+		return nil
+	}
 	return c.loggerFn(module)
 }
 

@@ -1586,7 +1586,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	// Write over the dirty amount of data.  TODO: make this
 	// configurable for a speedier test.
 	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
-	data := make([]byte, dbcs.maxSyncBufferSize+1)
+	data := make([]byte, dbcs.minSyncBufferSize+1)
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	if err != nil {
 		t.Errorf("Couldn't write file: %v", err)
