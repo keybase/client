@@ -56,7 +56,7 @@ type Engine interface {
 	// the given user.
 	CreateLink(u User, parentDir Node, fromName string, toPath string) (err error)
 	// WriteFile is called by the test harness to write to the given file as the given user.
-	WriteFile(u User, file Node, data string, off int64, sync bool) (err error)
+	WriteFile(u User, file Node, data []byte, off int64, sync bool) (err error)
 	// TruncateFile is called by the test harness to truncate the given file as the given user, to the given size.
 	TruncateFile(u User, file Node, size uint64, sync bool) (err error)
 	// RemoveDir is called by the test harness as the given user to remove a subdirectory.

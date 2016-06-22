@@ -224,9 +224,9 @@ func (k *LibKBFS) Rename(u User, srcDir Node, srcName string,
 }
 
 // WriteFile implements the Engine interface.
-func (k *LibKBFS) WriteFile(u User, file Node, data string, off int64, sync bool) (err error) {
+func (k *LibKBFS) WriteFile(u User, file Node, data []byte, off int64, sync bool) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	err = kbfsOps.Write(context.Background(), file.(libkbfs.Node), []byte(data), off)
+	err = kbfsOps.Write(context.Background(), file.(libkbfs.Node), data, off)
 	if err != nil {
 		return err
 	}

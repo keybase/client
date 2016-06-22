@@ -295,6 +295,10 @@ func mkdir(name string) fileOp {
 }
 
 func write(name string, contents string) fileOp {
+	return writeBS(name, []byte(contents))
+}
+
+func writeBS(name string, contents []byte) fileOp {
 	return fileOp{func(c *ctx) error {
 		f, _, err := c.getNode(name, createFile, resolveAllSyms)
 		if err != nil {
@@ -361,7 +365,7 @@ func mkfile(name string, contents string) fileOp {
 		if len(contents) == 0 {
 			return nil
 		}
-		return c.engine.WriteFile(c.user, f, contents, 0, true)
+		return c.engine.WriteFile(c.user, f, []byte(contents), 0, true)
 	}, Defaults}
 }
 

@@ -145,14 +145,14 @@ func (*fsEngine) CreateFile(u User, parentDir Node, name string) (file Node, err
 }
 
 // WriteFile is called by the test harness to write to the given file as the given user.
-func (*fsEngine) WriteFile(u User, file Node, data string, off int64, sync bool) (err error) {
+func (*fsEngine) WriteFile(u User, file Node, data []byte, off int64, sync bool) (err error) {
 	n := file.(fsNode)
 	f, err := os.OpenFile(n.path, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	_, err = f.Write([]byte(data))
+	_, err = f.Write(data)
 	if err != nil {
 		return err
 	}
