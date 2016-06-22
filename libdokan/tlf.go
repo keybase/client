@@ -201,8 +201,10 @@ func (tlf *TLF) Cleanup(fi *dokan.FileInfo) {
 	if fi != nil && fi.DeleteOnClose() {
 		ctx, cancel := NewContextWithOpID(tlf.folder.fs, "TLF Cleanup")
 		defer tlf.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel)
-		err = tlf.folder.fs.config.KBFSOps().DeleteFavorite(ctx,
-			string(tlf.folder.name()), tlf.isPublic())
+		err = tlf.folder.fs.config.KBFSOps().DeleteFavorite(ctx, libkbfs.Favorite{
+			Name:   string(tlf.folder.name()),
+			Public: tlf.isPublic(),
+		})
 	}
 
 	if tlf.refcount.Decrease() {

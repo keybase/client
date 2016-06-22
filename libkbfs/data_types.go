@@ -367,9 +367,8 @@ func (r ReadyBlockData) GetEncodedSize() int {
 
 // Favorite is a top-level favorited folder name.
 type Favorite struct {
-	Name    string
-	Public  bool
-	created bool
+	Name   string
+	Public bool
 }
 
 // NewFavoriteFromFolder creates a Favorite from a
@@ -390,11 +389,11 @@ func NewFavoriteFromFolder(folder keybase1.Folder) *Favorite {
 	}
 }
 
-func (f Favorite) toKBFolder() keybase1.Folder {
+func (f Favorite) toKBFolder(created bool) keybase1.Folder {
 	return keybase1.Folder{
 		Name:    f.Name,
 		Private: !f.Public,
-		Created: f.created,
+		Created: created,
 	}
 }
 

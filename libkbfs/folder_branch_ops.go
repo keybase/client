@@ -421,8 +421,13 @@ func (fbo *folderBranchOps) RefreshCachedFavorites(ctx context.Context) {
 }
 
 func (fbo *folderBranchOps) DeleteFavorite(ctx context.Context,
-	name string, public bool) error {
+	fav Favorite) error {
 	return errors.New("DeleteFavorite is not supported by folderBranchOps")
+}
+
+func (fbo *folderBranchOps) AddFavorite(ctx context.Context,
+	fav Favorite) error {
+	return errors.New("AddFavorite is not supported by folderBranchOps")
 }
 
 func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
@@ -439,8 +444,7 @@ func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 	}
 
 	h := head.GetTlfHandle()
-	fav := h.toFavorite(created)
-	favorites.AddAsync(ctx, fav)
+	favorites.AddAsync(ctx, h.toFavToAdd(created))
 	return nil
 }
 

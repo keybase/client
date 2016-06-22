@@ -30,6 +30,10 @@ type FS struct {
 
 	// remoteStatus is the current status of remote connections.
 	remoteStatus libfs.RemoteStatus
+
+	// this is like time.AfterFunc, except that in some tests this can be
+	// overridden to execute f without any delay.
+	execAfterDelay func(d time.Duration, f func())
 }
 
 // NewFS creates an FS
@@ -50,6 +54,9 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool) *FS {
 		log:           log,
 		errLog:        errLog,
 		notifications: libfs.NewFSNotifications(log),
+	}
+	fs.execAfterDelay = func(d time.Duration, f func()) {
+		time.AfterFunc(d, f)
 	}
 	return fs
 }

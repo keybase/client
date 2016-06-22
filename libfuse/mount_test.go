@@ -44,6 +44,9 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 		errLog:        log,
 		notifications: libfs.NewFSNotifications(log),
 	}
+	filesys.execAfterDelay = func(d time.Duration, f func()) {
+		time.AfterFunc(d, f)
+	}
 	fn := func(mnt *fstestutil.Mount) fs.FS {
 		filesys.fuse = mnt.Server
 		filesys.conn = mnt.Conn
@@ -333,7 +336,13 @@ func TestReaddirPrivate(t *testing.T) {
 func TestReaddirPrivateDeleteAndReaddFavorite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "janedoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)
-	mnt, _, cancelFn := makeFS(t, config)
+	mnt, fs, cancelFn := makeFS(t, config)
+	fs.execAfterDelay = func(d time.Duration, f func()) {
+		// this causes the entry added to fl.recentlyRemoved (in
+		// addToRecentlyRemove) to be removed instantly. this way we can avoid
+		// adding delays in tests.
+		f()
+	}
 	defer mnt.Close()
 	defer cancelFn()
 
@@ -601,6 +610,47 @@ func TestCreateExecutable(t *testing.T) {
 	if g, e := fi.Mode().String(), `-rwxr-xr-x`; g != e {
 		t.Errorf("wrong mode for executable: %q != %q", g, e)
 	}
+}
+
+func TestMkdirTLF(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "janedoe")
+	defer libkbfs.CheckConfigAndShutdown(t, config)
+	mnt, fs, cancelFn := makeFS(t, config)
+	defer mnt.Close()
+	defer cancelFn()
+	fs.execAfterDelay = func(d time.Duration, f func()) {
+		// this causes the entry added to fl.recentlyRemoved (in
+		// addToRecentlyRemove) to be removed instantly. this way we can avoid
+		// adding delays in tests.
+		f()
+	}
+	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
+		"jdoe": nil,
+	})
+	p := path.Join(mnt.Dir, PrivateName, "janedoe,jdoe")
+
+	if err := os.MkdirAll(p, 0755); err != nil {
+		t.Fatalf("error creating directory %s: %s", p, err.Error())
+	}
+	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
+		"jdoe":         nil,
+		"janedoe,jdoe": nil,
+	})
+
+	if err := os.Remove(p); err != nil {
+		t.Fatalf("error removing directory %s: %s", p, err.Error())
+	}
+	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
+		"jdoe": nil,
+	})
+
+	if err := os.MkdirAll(p, 0755); err != nil {
+		t.Fatalf("error creating directory %s: %s", p, err.Error())
+	}
+	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
+		"jdoe":         nil,
+		"janedoe,jdoe": nil,
+	})
 }
 
 func TestMkdir(t *testing.T) {

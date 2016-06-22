@@ -540,10 +540,11 @@ func (h *TlfHandle) ToFavorite() Favorite {
 // ToFavorite converts a TlfHandle into a Favorite, and sets internal
 // state about whether the corresponding folder was just created or
 // not.
-func (h *TlfHandle) toFavorite(created bool) Favorite {
-	f := h.ToFavorite()
-	f.created = created
-	return f
+func (h *TlfHandle) toFavToAdd(created bool) favToAdd {
+	return favToAdd{
+		Favorite: h.ToFavorite(),
+		created:  created,
+	}
 }
 
 type resolvableNameUIDPair nameUIDPair

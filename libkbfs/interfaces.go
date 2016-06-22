@@ -99,10 +99,13 @@ type KBFSOps interface {
 	// effects are asychronous; if there's an error refreshing the
 	// favorites, the cached favorites will become empty.
 	RefreshCachedFavorites(ctx context.Context)
+	// AddFavorite adds the favorite to both the server and
+	// the local cache.
+	AddFavorite(ctx context.Context, fav Favorite) error
 	// DeleteFavorite deletes the favorite from both the server and
 	// the local cache.  Idempotent, so it succeeds even if the folder
 	// isn't favorited.
-	DeleteFavorite(ctx context.Context, name string, public bool) error
+	DeleteFavorite(ctx context.Context, fav Favorite) error
 
 	// GetOrCreateRootNode returns the root node and root entry
 	// info associated with the given TLF handle and branch, if

@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -24,6 +25,9 @@ type FolderList struct {
 
 	mu      sync.Mutex
 	folders map[string]*TLF
+
+	muRecentlyRemoved sync.RWMutex
+	recentlyRemoved   map[libkbfs.CanonicalTlfName]bool
 }
 
 var _ fs.Node = (*FolderList)(nil)
@@ -52,6 +56,45 @@ func (fl *FolderList) reportErr(ctx context.Context,
 	fl.fs.errLog.CDebugf(ctx, err.Error())
 }
 
+func (fl *FolderList) addToRecentlyRemoved(name libkbfs.CanonicalTlfName) {
+	func() {
+		fl.muRecentlyRemoved.Lock()
+		defer fl.muRecentlyRemoved.Unlock()
+		if fl.recentlyRemoved == nil {
+			fl.recentlyRemoved = make(map[libkbfs.CanonicalTlfName]bool)
+		}
+		fl.recentlyRemoved[name] = true
+	}()
+	fl.fs.execAfterDelay(time.Second, func() {
+		fl.muRecentlyRemoved.Lock()
+		defer fl.muRecentlyRemoved.Unlock()
+		delete(fl.recentlyRemoved, name)
+	})
+}
+
+func (fl *FolderList) isRecentlyRemoved(name libkbfs.CanonicalTlfName) bool {
+	fl.muRecentlyRemoved.RLock()
+	defer fl.muRecentlyRemoved.RUnlock()
+	return fl.recentlyRemoved != nil && fl.recentlyRemoved[name]
+}
+
+func (fl *FolderList) addToFavorite(ctx context.Context, h *libkbfs.TlfHandle) (err error) {
+	cName := h.GetCanonicalName()
+
+	// `rmdir` command on macOS does a lookup after removing the dir. if the
+	// TLF is recently removed, it's likely that this lookup is issued by the
+	// `rmdir` command, and the lookup should indicate the dir does not exist
+	// and not add the dir to favorites.
+	if !fl.isRecentlyRemoved(cName) {
+		fl.fs.log.CDebugf(ctx, "adding %s to favorites", cName)
+		fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite())
+	} else {
+		fl.fs.log.CDebugf(ctx, "recently removed; will skip adding %s to favorites and return ENOENT", cName)
+		return fuse.ENOENT
+	}
+	return nil
+}
+
 // Lookup implements the fs.NodeRequestLookuper interface.
 func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
 	fl.fs.log.CDebugf(ctx, "FL Lookup %s", req.Name)
@@ -67,21 +110,36 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return specialNode, nil
 	}
 
-	if child, ok := fl.folders[req.Name]; ok {
-		return child, nil
-	}
-
 	// Shortcut for dreaded extraneous OSX finder lookups
 	if strings.HasPrefix(req.Name, "._") {
 		return nil, fuse.ENOENT
 	}
 
-	h, err := libkbfs.ParseTlfHandle(
+	h, errParseTlfHandle := libkbfs.ParseTlfHandle(
 		ctx, fl.fs.config.KBPKI(), req.Name, fl.public)
-	switch err := err.(type) {
+
+	if child, ok := fl.folders[req.Name]; ok {
+		if errParseTlfHandle == nil {
+			// If a TLF is accessed (i.e. added to favorites), then removed (i.e.
+			// removed from favorites), then accessed again, it would still be cached
+			// in fl.folders. This `addToFavorite` call makes sure that in this case
+			// the TLF is re-added to favorites before returning it from
+			// `fl.folders`.
+			if err = fl.addToFavorite(ctx, h); err != nil {
+				return nil, err
+			}
+		}
+		return child, nil
+	}
+
+	switch err := errParseTlfHandle.(type) {
 	case nil:
-		// No error.
-		break
+		// when a lookup happens (e.g. `mkdir` does a lookup before trying to
+		// make the directory), if the lookup is the canonical name of a TLF, the
+		// corresponding TLF is added to favorites.
+		if err = fl.addToFavorite(ctx, h); err != nil {
+			return nil, err
+		}
 
 	case libkbfs.TlfNameNotCanonical:
 
@@ -161,26 +219,38 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 	fl.fs.log.CDebugf(ctx, "FolderList Remove %s", req.Name)
 	defer func() { fl.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
 
-	func() {
-		fl.mu.Lock()
-		defer fl.mu.Unlock()
-		if tlf, ok := fl.folders[req.Name]; ok {
-			// Fake future attr calls for this TLF until the user
-			// actually opens the TLF again, because some OSes (*cough
-			// OS X cough*) like to do immediate lookup/attr calls
-			// right after doing a remove, which would otherwise end
-			// up re-adding the favorite.
-			tlf.clearStoredDir()
-		}
-	}()
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, fl.fs.config.KBPKI(), req.Name, fl.public)
 
-	// TODO trying to delete non-canonical folder handles
-	// could be skipped.
-	//
-	// TODO how to handle closing down the folderbranchops
-	// object? Open files may still exist long after removing
-	// the favorite.
-	return fl.fs.config.KBFSOps().DeleteFavorite(ctx, req.Name, fl.public)
+	switch err := err.(type) {
+	case nil:
+		func() {
+			fl.mu.Lock()
+			defer fl.mu.Unlock()
+			if tlf, ok := fl.folders[req.Name]; ok {
+				// Fake future attr calls for this TLF until the user
+				// actually opens the TLF again, because some OSes (*cough
+				// OS X cough*) like to do immediate lookup/attr calls
+				// right after doing a remove, which would otherwise end
+				// up re-adding the favorite.
+				tlf.clearStoredDir()
+			}
+		}()
+
+		cName := h.GetCanonicalName()
+		fl.addToRecentlyRemoved(cName)
+
+		// TODO how to handle closing down the folderbranchops
+		// object? Open files may still exist long after removing
+		// the favorite.
+		return fl.fs.config.KBFSOps().DeleteFavorite(ctx, h.ToFavorite())
+
+	case libkbfs.TlfNameNotCanonical:
+		return nil
+
+	default:
+		return err
+	}
 }
 
 func isTlfNameNotCanonical(err error) bool {

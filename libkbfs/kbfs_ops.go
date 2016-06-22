@@ -128,16 +128,32 @@ func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) {
 	fs.favs.RefreshCache(ctx)
 }
 
+// AddFavorite implements the KBFSOps interface for KBFSOpsStandard.
+func (fs *KBFSOpsStandard) AddFavorite(ctx context.Context,
+	fav Favorite) error {
+	kbpki := fs.config.KBPKI()
+	_, _, err := kbpki.GetCurrentUserInfo(ctx)
+	isLoggedIn := err == nil
+
+	if isLoggedIn {
+		err := fs.favs.Add(ctx, favToAdd{Favorite: fav, created: false})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // DeleteFavorite implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
-	name string, public bool) error {
+	fav Favorite) error {
 	kbpki := fs.config.KBPKI()
 	_, _, err := kbpki.GetCurrentUserInfo(ctx)
 	isLoggedIn := err == nil
 
 	// Let this ops remove itself, if we have one available.
-	fav := Favorite{name, public, false}
 	ops := func() *folderBranchOps {
 		fs.opsLock.Lock()
 		defer fs.opsLock.Unlock()

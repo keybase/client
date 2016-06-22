@@ -7,8 +7,22 @@ package libkbfs
 import (
 	"sync"
 
+	"github.com/keybase/client/go/protocol"
+
 	"golang.org/x/net/context"
 )
+
+type favToAdd struct {
+	Favorite
+
+	// created, if set to true, indicates that this is the first time the TLF has
+	// ever existed. It is only used when adding the TLF to favorites
+	created bool
+}
+
+func (f favToAdd) toKBFolder() keybase1.Folder {
+	return f.Favorite.toKBFolder(f.created)
+}
 
 // favReq represents a request to access the logged-in user's
 // favorites list.  A single request can do one or more of the
@@ -19,7 +33,7 @@ import (
 type favReq struct {
 	// Request types
 	refresh bool
-	toAdd   []Favorite
+	toAdd   []favToAdd
 	toDel   []Favorite
 	favs    chan<- []Favorite
 
@@ -46,14 +60,17 @@ type Favorites struct {
 	cache map[Favorite]bool
 
 	inFlightLock sync.Mutex
-	inFlightAdds map[Favorite]*favReq
+	inFlightAdds map[favToAdd]*favReq
+
+	muShutdown sync.RWMutex
+	shutdown   bool
 }
 
 func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
 	f := &Favorites{
 		config:       config,
 		reqChan:      reqChan,
-		inFlightAdds: make(map[Favorite]*favReq),
+		inFlightAdds: make(map[favToAdd]*favReq),
 	}
 	go f.loop()
 	return f
@@ -94,13 +111,13 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		username, _, err := f.config.KBPKI().GetCurrentUserInfo(req.ctx)
 		if err == nil {
 			// Add favorites for the current user, that cannot be deleted.
-			f.cache[Favorite{string(username), true, false}] = true
-			f.cache[Favorite{string(username), false, false}] = true
+			f.cache[Favorite{string(username), true}] = true
+			f.cache[Favorite{string(username), false}] = true
 		}
 	}
 
 	for _, fav := range req.toAdd {
-		if f.cache[fav] {
+		if !fav.created && f.cache[fav.Favorite] {
 			continue
 		}
 		err := kbpki.FavoriteAdd(req.ctx, fav.toKBFolder())
@@ -109,13 +126,13 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				"Failure adding favorite %v: %v", fav, err)
 			return err
 		}
-		f.cache[fav] = true
+		f.cache[fav.Favorite] = true
 	}
 
 	for _, fav := range req.toDel {
 		// Since our cache isn't necessarily up-to-date, always delete
 		// the favorite.
-		folder := fav.toKBFolder()
+		folder := fav.toKBFolder(false)
 		err := kbpki.FavoriteDelete(req.ctx, folder)
 		if err != nil {
 			return err
@@ -142,7 +159,16 @@ func (f *Favorites) loop() {
 
 // Shutdown shuts down this Favorites instance.
 func (f *Favorites) Shutdown() {
+	f.muShutdown.Lock()
+	defer f.muShutdown.Unlock()
+	f.shutdown = true
 	close(f.reqChan)
+}
+
+func (f *Favorites) hasShutdown() bool {
+	f.muShutdown.RLock()
+	defer f.muShutdown.RUnlock()
+	return f.shutdown
 }
 
 func (f *Favorites) waitOnReq(ctx context.Context,
@@ -179,14 +205,14 @@ func (f *Favorites) sendReq(ctx context.Context, req *favReq) error {
 }
 
 func (f *Favorites) startOrJoinAddReq(
-	ctx context.Context, fav Favorite) (req *favReq, doSend bool) {
+	ctx context.Context, fav favToAdd) (req *favReq, doSend bool) {
 	f.inFlightLock.Lock()
 	defer f.inFlightLock.Unlock()
 	req, ok := f.inFlightAdds[fav]
 	if !ok {
 		req = &favReq{
 			ctx:   ctx,
-			toAdd: []Favorite{fav},
+			toAdd: []favToAdd{fav},
 			done:  make(chan struct{}),
 		}
 		f.inFlightAdds[fav] = req
@@ -196,7 +222,10 @@ func (f *Favorites) startOrJoinAddReq(
 }
 
 // Add adds a favorite to your favorites list.
-func (f *Favorites) Add(ctx context.Context, fav Favorite) error {
+func (f *Favorites) Add(ctx context.Context, fav favToAdd) error {
+	if f.hasShutdown() {
+		return errShutdownHappened
+	}
 	doAdd := true
 	var err error
 	// Retry until we get an error that wasn't related to someone
@@ -217,7 +246,10 @@ func (f *Favorites) Add(ctx context.Context, fav Favorite) error {
 // different favorite operations are in flight.)  The given context is
 // used only for enqueuing the request on an internal queue, not for
 // any resulting I/O.
-func (f *Favorites) AddAsync(ctx context.Context, fav Favorite) {
+func (f *Favorites) AddAsync(ctx context.Context, fav favToAdd) {
+	if f.hasShutdown() {
+		return
+	}
 	// Use a fresh context, since we want the request to succeed even
 	// if the original context is canceled.
 	req, doSend := f.startOrJoinAddReq(context.Background(), fav)
@@ -233,6 +265,9 @@ func (f *Favorites) AddAsync(ctx context.Context, fav Favorite) {
 // Delete deletes a favorite from the favorites list.  It is
 // idempotent.
 func (f *Favorites) Delete(ctx context.Context, fav Favorite) error {
+	if f.hasShutdown() {
+		return errShutdownHappened
+	}
 	return f.sendReq(ctx, &favReq{
 		ctx:   ctx,
 		toDel: []Favorite{fav},
@@ -242,6 +277,9 @@ func (f *Favorites) Delete(ctx context.Context, fav Favorite) error {
 
 // RefreshCache refreshes the cached list of favorites.
 func (f *Favorites) RefreshCache(ctx context.Context) {
+	if f.hasShutdown() {
+		return
+	}
 	// This request is non-blocking, so use a throw-away done channel
 	// and context.
 	req := &favReq{
@@ -259,6 +297,9 @@ func (f *Favorites) RefreshCache(ctx context.Context) {
 // Get returns the logged-in users list of favorites. It
 // doesn't use the cache.
 func (f *Favorites) Get(ctx context.Context) ([]Favorite, error) {
+	if f.hasShutdown() {
+		return nil, errShutdownHappened
+	}
 	favChan := make(chan []Favorite, 1)
 	req := &favReq{
 		ctx:  ctx,
