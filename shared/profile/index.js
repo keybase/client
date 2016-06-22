@@ -4,13 +4,14 @@ import {connect} from 'react-redux'
 import Render from './render'
 import type {Props} from './render'
 import flags from '../util/feature-flags'
-import {getProfile} from '../actions/tracker'
+import {getProfile, updateTrackers} from '../actions/tracker'
 
 // TEMP
 const usernames = ['chromakode', 'max', 'jzila', 'mikem', 'strib', 'zanderz', 'gabrielh', 'chris',
   'songgao', 'patrick', 'awendland', 'marcopolo', 'akalin', 'cjb', 'oconnor663', 'cbostrander',
   'alness', 'chrisnojima', 'jinyang', 'cecileb']
-const username = usernames[Math.floor(Math.random() * usernames.length)]
+// const username = usernames[Math.floor(Math.random() * usernames.length)]
+const username = 'gabrielh'
 // TEMP
 
 class Profile extends Component<void, Props, void> {
@@ -42,7 +43,10 @@ export default connect(
     trackers: state.tracker.trackers,
   }),
   dispatch => ({
-    refresh: username => dispatch(getProfile(username)),
+    refresh: username => {
+      dispatch(getProfile(username))
+      dispatch(updateTrackers(username))
+    },
   }),
   (stateProps, dispatchProps, ownProps) => {
     // const username = ownProps.username || stateProps.username

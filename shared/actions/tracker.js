@@ -15,11 +15,12 @@ import type {State as RootTrackerState} from '../reducers/tracker'
 import type {ConfigState} from '../reducers/config'
 import type {Action, Dispatch} from '../constants/types/flux'
 
-import type {ShowNonUser} from '../constants/tracker'
+import type {ShowNonUser, TrackingInfo} from '../constants/tracker'
 
 import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtlRegisterIdentifyUIRpc,
   trackCheckTrackingRpc, trackUntrackRpc, trackTrackWithTokenRpc, incomingCallMapType,
-  identifyIdentify2Rpc, trackDismissWithTokenRpc} from '../constants/types/flow-types'
+  identifyIdentify2Rpc, trackDismissWithTokenRpc, userListTrackersByNameRpc, UID,
+  userLoadUncheckedUserSummariesRpc, UserSummary, userListTrackingRpc} from '../constants/types/flow-types'
 
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState, config: ConfigState}) => ?Promise
 
@@ -95,7 +96,7 @@ export function registerTrackerIncomingRpcs (): TrackerActionCreator {
 
 export function getProfile (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    dispatch(triggerIdentify('', username, true, serverCallMap(dispatch, getState, true), false, true, true))
+    dispatch(triggerIdentify('', username, true, serverCallMap(dispatch, getState, true)))
   }
 }
 
@@ -104,13 +105,35 @@ export function getMyProfile (): TrackerActionCreator {
     const status = getState().config.status
     const myUID = status && status.user && status.user.uid
     if (myUID) {
-      dispatch(triggerIdentify(myUID, '', true, serverCallMap(dispatch, getState, true), false, true, true))
+      dispatch(triggerIdentify(myUID, '', true, serverCallMap(dispatch, getState, true)))
     }
   }
 }
 
-export function triggerIdentify (uid: string = '', userAssertion: string = '', allowSelf: boolean = false, incomingCallMap: Object = {},
-  useDelegateUI: boolean = true, allowEmptySelfID: boolean = false, noSkipSelf: boolean = true): TrackerActionCreator {
+const profileReason = 'Profile'
+
+export function triggerIdentify (uid: string = '', userAssertion: string = ''
+  , skipPopup: boolean = false, incomingCallMap: Object = {}): TrackerActionCreator {
+  let allowSelf
+  let useDelegateUI
+  let allowEmptySelfID
+  let noSkipSelf
+  let reason
+
+  if (skipPopup) {
+    allowSelf = true
+    useDelegateUI = false
+    allowEmptySelfID = true
+    noSkipSelf = true
+    reason = profileReason
+  } else {
+    allowSelf = false
+    useDelegateUI = true
+    allowEmptySelfID = false
+    noSkipSelf = false
+    reason = ''
+  }
+
   return (dispatch, getState) => new Promise((resolve, reject) => {
     const params: identifyIdentify2Rpc = {
       method: 'identify.identify2',
@@ -124,7 +147,7 @@ export function triggerIdentify (uid: string = '', userAssertion: string = '', a
         needProofSet: true,
         reason: {
           type: identifyCommon.IdentifyReasonType.id,
-          reason: '',
+          reason,
           resource: '',
         },
         source: Common.ClientType.gui,
@@ -377,6 +400,10 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
     start: ({username, sessionID, reason}) => {
       sessionIDToUsername[sessionID] = username
 
+      if (reason && (reason.reason === profileReason)) {
+        skipPopups = true
+      }
+
       dispatch({
         type: Constants.updateUsername,
         payload: {username},
@@ -523,3 +550,87 @@ function updateProof (remoteProof: RemoteProof, linkCheckResult: LinkCheckResult
     payload: {remoteProof, linkCheckResult, username},
   }
 }
+
+function summaryToTrackingInfo(summaries: Array<UserSummary>): Array<TrackingInfo> {
+  return summaries.map(s => ({
+    username: s.username,
+    fullname: s.fullName,
+    following: false, // TODO need to merge in this from a different call
+    followsYou: false
+  }))
+}
+
+function listTrackers (username: string): Promise {
+  return new Promise((resolve, reject) => {
+    const params : userListTrackersByNameRpc = {
+      method: 'user.listTrackersByName',
+      param: {username},
+      incomingCallMap: {},
+      callback: (err, trackers) => {
+        if (err) {
+          console.log('err getting trackers', err)
+          reject()
+        } else {
+          resolve(trackers.map(t => t.tracker))
+        }
+      },
+    }
+
+    engine.rpc(params)
+  })
+}
+
+function loadSummaries (uids: Array<UID>): Promise {
+  return new Promise((resolve, reject) => {
+    const params : userLoadUncheckedUserSummariesRpc = {
+      method: 'user.loadUncheckedUserSummaries',
+      param: {uids},
+      incomingCallMap: {},
+      callback: (err, summaries) => {
+        if (err) {
+          console.log('err getting tracker summaries', err)
+          reject()
+        } else {
+          resolve(summaryToTrackingInfo(summaries))
+        }
+      }
+    }
+
+    engine.rpc(params)
+  })
+}
+
+function getTracking (username: string): Promise {
+  return new Promise((resolve, reject) => {
+    const params : userListTrackingRpc = {
+      method: 'user.listTracking',
+      param: {username},
+      incomingCallMap: {},
+      callback: (err, summaries) => { // turns out this ISN'T a full usersummary, just a subset so we have to call loadSummaries
+        if (err) {
+          console.log('err getting tracker summaries', err)
+          reject()
+        } else {
+          resolve(summaries.map(s => s.uid))
+        }
+      }
+    }
+
+    engine.rpc(params)
+  })
+}
+
+export function updateTrackers (username: string) : TrackerActionCreator {
+  return (dispatch, getState) => {
+    const figureTrackers = listTrackers(username).then(loadSummaries)
+    const figureTracking = getTracking(username).then(loadSummaries)
+
+    Promise.all([figureTrackers, figureTracking]).then(([trackers, tracking]) => {
+      dispatch({
+        type: Constants.updateTrackers,
+        payload: {username, trackers, tracking},
+      })
+    })
+  }
+}
+

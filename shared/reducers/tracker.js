@@ -290,6 +290,17 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         closed: true,
       }
 
+    case Constants.updateTrackers:
+      if (action.error) {
+        return state
+      }
+
+      return {
+        ...state,
+        trackers: action.payload.trackers,
+        tracking: action.payload.tracking,
+      }
+
     default:
       return state
   }
