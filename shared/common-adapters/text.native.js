@@ -2,8 +2,7 @@
 /* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
-import {Text as RNText, TouchableHighlight as RNTouchableWithoutFeedback} from 'react-native'
-import * as _ from 'lodash'
+import {Text as RNText} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Platform, {OS} from '../constants/platform'
 
@@ -143,27 +142,6 @@ export default class Text extends Component {
           onKeyUp={this.props.onKeyUp}
           onKeyDown={this.props.onKeyDown}
           onPress={this.props.onClick} />)
-    }
-
-    // RN-BUG: Handle React-Native incompatibility in which Android doesn't properly
-    // pad text inputs.
-    const isPaddingProp = key => key.indexOf('padding') === 0
-    if (Object.keys(style).some(isPaddingProp)) {
-      const isWrapperStyle = (val, key) =>
-        !['font', 'letter', 'lineHeight', 'text', 'color', 'writingDirection', 'padding']
-          .some(start => key.indexOf(start) === 0)
-      const styleWrapper = _.pickBy(style, isWrapperStyle)
-      const styleChild = _.mapKeys(
-        _.omitBy(style, isWrapperStyle),
-        (val, key) => isPaddingProp(key) ? key.replace('padding', 'margin') : key
-      )
-      return (
-        <RNTouchableWithoutFeedback
-          style={styleWrapper}
-          onPress={this.props.onClick}>
-          <RNText style={styleChild}>{terminalPrefix}{this.props.children}</RNText>
-        </RNTouchableWithoutFeedback>
-      )
     }
 
     return (
