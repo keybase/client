@@ -256,16 +256,14 @@ func (k *LibKBFS) Sync(u User, file Node) (err error) {
 }
 
 // ReadFile implements the Engine interface.
-func (k *LibKBFS) ReadFile(u User, file Node, off, len int64) (data string, err error) {
+func (k *LibKBFS) ReadFile(u User, file Node, off int64, buf []byte) (length int, err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	buf := make([]byte, len)
 	var numRead int64
 	numRead, err = kbfsOps.Read(context.Background(), file.(libkbfs.Node), buf, off)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	data = string(buf[:numRead])
-	return data, nil
+	return int(numRead), nil
 }
 
 type libkbfsSymNode struct {

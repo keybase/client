@@ -319,17 +319,22 @@ func truncate(name string, size uint64) fileOp {
 }
 
 func read(name string, contents string) fileOp {
+	return preadBS(name, []byte(contents), 0)
+}
+func preadBS(name string, contents []byte, at int64) fileOp {
 	return fileOp{func(c *ctx) error {
 		file, _, err := c.getNode(name, noCreate, resolveAllSyms)
 		if err != nil {
 			return err
 		}
-		res, err := c.engine.ReadFile(c.user, file, 0, int64(len(contents)))
+		bs := make([]byte, len(contents))
+		l, err := c.engine.ReadFile(c.user, file, at, bs)
 		if err != nil {
 			return err
 		}
-		if res != contents {
-			return fmt.Errorf("Read (name=%s) got=%d, expected=%d bytes: contents=%s differ from expected=%s", name, len(res), len(contents), res, contents)
+		bs = bs[:l]
+		if !bytes.Equal(bs, contents) {
+			return fmt.Errorf("Read (name=%s) got=%d, expected=%d bytes: contents=%s differ from expected=%s", name, len(bs), len(contents), bs, contents)
 		}
 		return nil
 	}, Defaults}

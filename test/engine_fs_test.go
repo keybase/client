@@ -12,6 +12,7 @@ package test
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -202,13 +203,14 @@ func (*fsEngine) Rename(u User, srcDir Node, srcName string, dstDir Node, dstNam
 }
 
 // ReadFile is called by the test harness to read from the given file as the given user.
-func (e *fsEngine) ReadFile(u User, file Node, off, len int64) (data string, err error) {
+func (e *fsEngine) ReadFile(u User, file Node, off int64, bs []byte) (int, error) {
 	n := file.(fsNode)
-	bs, err := ioutil.ReadFile(n.path)
+	f, err := os.Open(n.path)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	return string(bs), nil
+	defer f.Close()
+	return io.ReadFull(io.NewSectionReader(f, off, int64(len(bs))), bs)
 }
 
 // GetDirChildrenTypes is called by the test harness as the given user to return a map of child nodes

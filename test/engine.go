@@ -66,7 +66,7 @@ type Engine interface {
 	// Rename is called by the test harness as the given user to rename a node.
 	Rename(u User, srcDir Node, srcName string, dstDir Node, dstName string) (err error)
 	// ReadFile is called by the test harness to read from the given file as the given user.
-	ReadFile(u User, file Node, off, len int64) (data string, err error)
+	ReadFile(u User, file Node, off int64, bs []byte) (length int, err error)
 	// Lookup is called by the test harness to return a node in the given directory by
 	// its name for the given user. In the case of a symlink the symPath will be set and
 	// the node will be nil.
