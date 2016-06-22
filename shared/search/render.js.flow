@@ -3,7 +3,7 @@
 import type {Props as UserSearchProps} from './user-search/render'
 export type Props = {
   showComingSoon: boolean,
-  username: string
+  username: string,
 } & UserSearchProps
 
 export default class Render extends React$Component<void, Props, void> { }
