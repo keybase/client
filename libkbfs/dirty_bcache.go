@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 )
@@ -20,6 +21,8 @@ type dirtyBlockID struct {
 type dirtyReq struct {
 	respChan chan<- struct{}
 	bytes    int64
+	start    time.Time
+	deadline time.Time
 }
 
 // DirtyBlockCacheStandard implements the DirtyBlockCache interface by
@@ -28,6 +31,8 @@ type dirtyReq struct {
 // block may be forked and modified on different branches and under
 // different references simultaneously.
 type DirtyBlockCacheStandard struct {
+	clock Clock
+
 	// requestsChan is a queue for channels that should be closed when
 	// permission is granted to dirty new data.
 	requestsChan chan dirtyReq
@@ -47,6 +52,11 @@ type DirtyBlockCacheStandard struct {
 	// When the number of total dirty bytes exceeds this level, block
 	// new writes.
 	maxDirtyBufferSize int64
+	// When the number of un-synced dirty bytes is bigger than this
+	// number, slow down writes intentionally based on the size of the
+	// buffer, to attempt to avoid timeouts on low bandwidth
+	// connections.
+	backpressureBeginsAt int64
 
 	lock               sync.RWMutex
 	cache              map[dirtyBlockID]Block
@@ -56,15 +66,18 @@ type DirtyBlockCacheStandard struct {
 
 // NewDirtyBlockCacheStandard constructs a new BlockCacheStandard
 // instance.
-func NewDirtyBlockCacheStandard(maxSyncBufferSize int64,
-	maxDirtyBufferSize int64) *DirtyBlockCacheStandard {
+func NewDirtyBlockCacheStandard(clock Clock, maxSyncBufferSize int64,
+	maxDirtyBufferSize int64,
+	backpressureBeginsAt int64) *DirtyBlockCacheStandard {
 	d := &DirtyBlockCacheStandard{
-		requestsChan:       make(chan dirtyReq, 1000),
-		bytesDecreasedChan: make(chan struct{}, 1),
-		shutdownChan:       make(chan struct{}),
-		cache:              make(map[dirtyBlockID]Block),
-		maxSyncBufferSize:  maxSyncBufferSize,
-		maxDirtyBufferSize: maxDirtyBufferSize,
+		clock:                clock,
+		requestsChan:         make(chan dirtyReq, 1000),
+		bytesDecreasedChan:   make(chan struct{}, 1),
+		shutdownChan:         make(chan struct{}),
+		cache:                make(map[dirtyBlockID]Block),
+		maxSyncBufferSize:    maxSyncBufferSize,
+		maxDirtyBufferSize:   maxDirtyBufferSize,
+		backpressureBeginsAt: backpressureBeginsAt,
 	}
 	go d.processPermission()
 	return d
@@ -139,10 +152,56 @@ func (d *DirtyBlockCacheStandard) IsDirty(
 	return
 }
 
+const backpressureSlack = 1 * time.Second
+
+func (d *DirtyBlockCacheStandard) calcBackpressureLocked(start time.Time,
+	deadline time.Time) time.Duration {
+	if d.unsyncedDirtyBytes <= d.backpressureBeginsAt {
+		return 0
+	}
+
+	// We don't want to use the whole deadline, so cut it some slack.
+	totalReqTime := deadline.Sub(start) - backpressureSlack
+	if totalReqTime <= 0 {
+		return 0
+	}
+
+	backpressureFrac := float64(d.unsyncedDirtyBytes-d.backpressureBeginsAt) /
+		float64(d.maxSyncBufferSize-d.backpressureBeginsAt)
+	totalBackpressure := time.Duration(
+		float64(totalReqTime) * backpressureFrac)
+
+	// How much time do we have left, given how much time this request
+	// has waited so far?
+	backpressureLeft := totalBackpressure - d.clock.Now().Sub(start)
+	if backpressureLeft < 0 {
+		return 0
+	}
+	return backpressureLeft
+}
+
+// calcBackpressure returns how much longer a given request should be
+// kept in the queue, as a function of its deadline and how full the
+// unsynced buffer is.  In its lifetime, the request should be blocked
+// by roughly the same fraction of its total deadline as how full the
+// unsynced buffer queue is.  This will let KBFS slow down Writes
+// according to how slow the background Syncs are, so we don't
+// accumulate more bytes to Sync than we can handle.  See KBFS-731.
+func (d *DirtyBlockCacheStandard) calcBackpressure(start time.Time,
+	deadline time.Time) time.Duration {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	return d.calcBackpressureLocked(start, deadline)
+}
+
 func (d *DirtyBlockCacheStandard) acceptNewWrite(newBytes int64) bool {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	// Accept any write, as long as we're not already over the limits.
+	//
+	// TODO: Only accept the write if the percentage of unsynced
+	// buffer fullness is less than how close we are to the deadline
+	// (figure out the exact formula).
 	canAccept := d.unsyncedDirtyBytes < d.maxSyncBufferSize &&
 		d.totalDirtyBytes < d.maxDirtyBufferSize
 	if canAccept {
@@ -204,8 +263,14 @@ func (d *DirtyBlockCacheStandard) RequestPermissionToDirty(
 		panic("Must request permission for a non-negative number of bytes.")
 	}
 	c := make(chan struct{})
+	deadline, ok := ctx.Deadline()
+	now := d.clock.Now()
+	if !ok {
+		deadline = now.Add(backgroundTaskTimeout)
+	}
+	req := dirtyReq{c, estimatedDirtyBytes, now, deadline}
 	select {
-	case d.requestsChan <- dirtyReq{c, estimatedDirtyBytes}:
+	case d.requestsChan <- req:
 		return c, nil
 	case <-ctx.Done():
 		return nil, ctx.Err()

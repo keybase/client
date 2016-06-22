@@ -578,8 +578,8 @@ func (c *ConfigLocal) ResetCaches() {
 	// that have already finished syncing, but for which the overall
 	// Sync operation isn't yet done) to 10 MB.
 	totalDirtyBytesLimit := 2 * unsyncedDirtyBytesLimit
-	c.dirtyBcache = NewDirtyBlockCacheStandard(unsyncedDirtyBytesLimit,
-		totalDirtyBytesLimit)
+	c.dirtyBcache = NewDirtyBlockCacheStandard(c.clock, unsyncedDirtyBytesLimit,
+		totalDirtyBytesLimit, MaxBlockSizeBytesDefault*2)
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.
