@@ -10,8 +10,7 @@ import {getProfile, updateTrackers} from '../actions/tracker'
 const usernames = ['chromakode', 'max', 'jzila', 'mikem', 'strib', 'zanderz', 'gabrielh', 'chris',
   'songgao', 'patrick', 'awendland', 'marcopolo', 'akalin', 'cjb', 'oconnor663', 'cbostrander',
   'alness', 'chrisnojima', 'jinyang', 'cecileb']
-// const username = usernames[Math.floor(Math.random() * usernames.length)]
-const username = 'gabrielh'
+const username = usernames[Math.floor(Math.random() * usernames.length)]
 // TEMP
 
 class Profile extends Component<void, Props, void> {

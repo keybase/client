@@ -74,23 +74,9 @@ export function registerTrackerChangeListener (): TrackerActionCreator {
   }
 }
 
-export function registerUserChangeListener (): TrackerActionCreator {
-  return dispatch => {
-    const params: incomingCallMapType = {
-      'keybase.1.NotifyUsers.userChanged': ({uid}) => {
-        dispatch(triggerIdentify(uid))
-      },
-    }
-
-    engine.listenGeneralIncomingRpc(params)
-    setNotifications({users: true})
-  }
-}
-
 export function registerTrackerIncomingRpcs (): TrackerActionCreator {
   return dispatch => {
     dispatch(registerTrackerChangeListener())
-    dispatch(registerUserChangeListener())
   }
 }
 
@@ -551,12 +537,12 @@ function updateProof (remoteProof: RemoteProof, linkCheckResult: LinkCheckResult
   }
 }
 
-function summaryToTrackingInfo(summaries: Array<UserSummary>): Array<TrackingInfo> {
+function summaryToTrackingInfo (summaries: Array<UserSummary>): Array<TrackingInfo> {
   return summaries.map(s => ({
     username: s.username,
     fullname: s.fullName,
     following: false, // TODO need to merge in this from a different call
-    followsYou: false
+    followsYou: false,
   }))
 }
 
@@ -593,7 +579,7 @@ function loadSummaries (uids: Array<UID>): Promise {
         } else {
           resolve(summaryToTrackingInfo(summaries))
         }
-      }
+      },
     }
 
     engine.rpc(params)
@@ -604,7 +590,7 @@ function getTracking (username: string): Promise {
   return new Promise((resolve, reject) => {
     const params : userListTrackingRpc = {
       method: 'user.listTracking',
-      param: {username},
+      param: {username, filter: ''},
       incomingCallMap: {},
       callback: (err, summaries) => { // turns out this ISN'T a full usersummary, just a subset so we have to call loadSummaries
         if (err) {
@@ -613,7 +599,7 @@ function getTracking (username: string): Promise {
         } else {
           resolve(summaries.map(s => s.uid))
         }
-      }
+      },
     }
 
     engine.rpc(params)
