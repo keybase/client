@@ -154,8 +154,17 @@ func (d *DirtyBlockCacheStandard) IsDirty(
 
 const backpressureSlack = 1 * time.Second
 
-func (d *DirtyBlockCacheStandard) calcBackpressureLocked(start time.Time,
+// calcBackpressure returns how much longer a given request should be
+// kept in the queue, as a function of its deadline and how full the
+// unsynced buffer is.  In its lifetime, the request should be blocked
+// by roughly the same fraction of its total deadline as how full the
+// unsynced buffer queue is.  This will let KBFS slow down Writes
+// according to how slow the background Syncs are, so we don't
+// accumulate more bytes to Sync than we can handle.  See KBFS-731.
+func (d *DirtyBlockCacheStandard) calcBackpressure(start time.Time,
 	deadline time.Time) time.Duration {
+	d.lock.Lock()
+	defer d.lock.Unlock()
 	if d.unsyncedDirtyBytes <= d.backpressureBeginsAt {
 		return 0
 	}
@@ -177,21 +186,8 @@ func (d *DirtyBlockCacheStandard) calcBackpressureLocked(start time.Time,
 	if backpressureLeft < 0 {
 		return 0
 	}
+	fmt.Printf("Applying backpressure: %s\n", backpressureLeft)
 	return backpressureLeft
-}
-
-// calcBackpressure returns how much longer a given request should be
-// kept in the queue, as a function of its deadline and how full the
-// unsynced buffer is.  In its lifetime, the request should be blocked
-// by roughly the same fraction of its total deadline as how full the
-// unsynced buffer queue is.  This will let KBFS slow down Writes
-// according to how slow the background Syncs are, so we don't
-// accumulate more bytes to Sync than we can handle.  See KBFS-731.
-func (d *DirtyBlockCacheStandard) calcBackpressure(start time.Time,
-	deadline time.Time) time.Duration {
-	d.lock.Lock()
-	defer d.lock.Unlock()
-	return d.calcBackpressureLocked(start, deadline)
 }
 
 func (d *DirtyBlockCacheStandard) acceptNewWrite(newBytes int64) bool {
@@ -217,6 +213,7 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 	// deal with it as soon as we see it (since we might be past our
 	// limits already).
 	var currentReq dirtyReq
+	var backpressure time.Duration
 	for {
 		reqChan := d.requestsChan
 		if currentReq.respChan != nil {
@@ -225,18 +222,27 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 			reqChan = nil
 		}
 
+		var bpTimer <-chan time.Time
+		if backpressure > 0 {
+			bpTimer = time.After(backpressure)
+		}
+
 		newReq := false
 		select {
 		case <-d.shutdownChan:
 			return
 		case <-d.bytesDecreasedChan:
+		case <-bpTimer:
 		case r := <-reqChan:
 			currentReq = r
 			newReq = true
 		}
 
 		if currentReq.respChan != nil {
-			if d.acceptNewWrite(currentReq.bytes) {
+			// Apply any backpressure?
+			backpressure = d.calcBackpressure(currentReq.start,
+				currentReq.deadline)
+			if backpressure == 0 && d.acceptNewWrite(currentReq.bytes) {
 				// If we have an active request, and we have room in
 				// our buffers to deal with it, grant permission to
 				// the requestor by closing the response channel.
@@ -323,7 +329,11 @@ func (d *DirtyBlockCacheStandard) SyncFinished(size int64) {
 // ShouldForceSync implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) ShouldForceSync() bool {
-	return !d.acceptNewWrite(0)
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	return d.unsyncedDirtyBytes > d.backpressureBeginsAt ||
+		d.unsyncedDirtyBytes > d.maxSyncBufferSize ||
+		d.totalDirtyBytes > d.maxDirtyBufferSize
 }
 
 // Shutdown implements the DirtyBlockCache interface for

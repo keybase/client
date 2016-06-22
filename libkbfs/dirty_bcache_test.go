@@ -47,14 +47,14 @@ func testExpectedMissingDirty(t *testing.T, id BlockID,
 
 func TestDirtyBcachePut(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{},
-		5<<20, 10<<20, 10<<10)
+		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 	testDirtyBcachePut(t, fakeBlockID(1), dirtyBcache)
 }
 
 func TestDirtyBcachePutDuplicate(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{},
-		5<<20, 10<<20, 10<<10)
+		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 	id1 := fakeBlockID(1)
 
@@ -99,7 +99,7 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 
 func TestDirtyBcacheDelete(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{},
-		5<<20, 10<<20, 10<<10)
+		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 
 	id1 := fakeBlockID(1)
@@ -121,14 +121,14 @@ func TestDirtyBcacheDelete(t *testing.T) {
 func TestDirtyBcacheRequestPermission(t *testing.T) {
 	bufSize := int64(5)
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{},
-		bufSize, bufSize*2, 10<<10)
+		bufSize, bufSize*2, 5<<20)
 	defer dirtyBcache.Shutdown()
 	blockedChan := make(chan int64)
 	dirtyBcache.blockedChanForTesting = blockedChan
 	ctx := context.Background()
 
 	// The first write should get immediate permission.
-	c1, err := dirtyBcache.RequestPermissionToDirty(ctx, bufSize)
+	c1, err := dirtyBcache.RequestPermissionToDirty(ctx, bufSize+1)
 	if err != nil {
 		t.Fatalf("Request permission error: %v", err)
 	}
