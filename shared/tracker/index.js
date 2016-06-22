@@ -91,19 +91,17 @@ export default connect(
     ...state.tracker.trackers[ownProps.username],
     ...ownProps,
   }),
-  dispatch => {
-    return bindActionCreators(trackerActions, dispatch)
-  },
-  (stateProps, dispatchProps, ownProps) => ({
-    ...ownProps,
-    ...stateProps,
-    ...dispatchProps,
-    onClose: () => dispatchProps.onClose(ownProps.username),
-    onFollow: () => dispatchProps.onFollow(ownProps.username),
-    onIgnore: () => dispatchProps.onIgnore(ownProps.username),
-    onRefollow: () => dispatchProps.onRefollow(ownProps.username),
-    onUnfollow: () => dispatchProps.onUnfollow(ownProps.username),
-  })
+  (dispatch, ownProps) => {
+    const actions = bindActionCreators(trackerActions, dispatch)
+    return {
+      ...actions,
+      onClose: () => actions.onClose(ownProps.username),
+      onFollow: () => actions.onFollow(ownProps.username),
+      onIgnore: () => actions.onIgnore(ownProps.username),
+      onRefollow: () => actions.onRefollow(ownProps.username),
+      onUnfollow: () => actions.onUnfollow(ownProps.username),
+    }
+  }
 )(Tracker)
 
 export function selector (username: string): (store: Object) => ?Object {
