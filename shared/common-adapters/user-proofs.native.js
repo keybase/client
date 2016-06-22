@@ -15,16 +15,19 @@ import type {Props, Proof} from './user-proofs'
 export default class ProofsRender extends Component {
   props: Props;
 
+  _ensureUrlProtocal (url: string): string {
+    return url && (url.indexOf('://') === -1 ? 'http://' : '') + url
+  }
+
   _onClickProof (proof: Proof): void {
-    if (proof.state !== proofChecking) {
-      proof.humanUrl && openUrl(proof.humanUrl)
+    if (proof.state !== proofChecking && proof.humanUrl) {
+      openUrl(this._ensureUrlProtocal(proof.humanUrl))
     }
   }
 
   _onClickProfile (proof: Proof): void {
-    console.log('Opening profile link:', proof)
-    if (proof.state !== proofChecking) {
-      proof.profileUrl && openUrl(proof.profileUrl)
+    if (proof.state !== proofChecking && proof.profileUrl) {
+      openUrl(this._ensureUrlProtocal(proof.profileUrl))
     }
   }
 
@@ -33,12 +36,6 @@ export default class ProofsRender extends Component {
     const proofStatusIconType = shared.proofStatusIcon(proof)
     const proofNameStyle = shared.proofNameStyle(proof)
     const onClickProfile = () => { this._onClickProfile(proof) }
-
-    const proofStyle = {
-      ...globalStyles.selectable,
-      width: 208,
-      ...styles.proofName,
-    }
 
     const meta = proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: metaBackgroundColor}} />
 
@@ -49,7 +46,7 @@ export default class ProofsRender extends Component {
         <Icon style={styles.service} type={shared.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
         <View style={styles.proofNameSection}>
           <View style={styles.proofNameLabelContainer}>
-            <Text inline className='hover-underline-container' type='Body' onClick={onClickProfile} style={proofStyle}>
+            <Text inline className='hover-underline-container' type='Body' onPress={onClickProfile} style={styles.proofName}>
               <Text inline type='Body' className='underline' style={proofNameStyle}>{proof.name}</Text>
               <Text className='no-underline' inline type='Body' style={styles.proofType}>@{proof.type}</Text>
             </Text>
@@ -76,27 +73,28 @@ const styles = {
     backgroundColor: globalColors.white,
     paddingTop: 16,
     paddingBottom: 16,
-    alignItems: 'center',
+    alignItems: 'stretch',
+    paddingLeft: globalMargins.medium,
+    paddingRight: globalMargins.medium,
   },
   row: {
     ...globalStyles.flexBoxRow,
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
+    // RN-BUG: set maxWidth once that prop is supported
   },
   service: {
     ...globalStyles.clickable,
-    fontSize: 15,
-    marginTop: 2,
-    width: 15,
+    fontSize: 20,
+    width: 22,
     textAlign: 'center',
     color: globalColors.black_75,
-    marginRight: globalMargins.tiny,
+    marginRight: globalMargins.small,
   },
   statusIcon: {
     ...globalStyles.clickable,
-    fontSize: 20,
-    marginLeft: 10,
-    marginTop: 1,
+    fontSize: 24,
+    marginLeft: globalMargins.small,
   },
   proofNameSection: {
     ...globalStyles.flexBoxRow,
