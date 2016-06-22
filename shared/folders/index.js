@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './render'
+import {favoriteList} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {bindActionCreators} from 'redux'
 import {routeAppend} from '../actions/router'
@@ -10,6 +11,7 @@ import flags from '../util/feature-flags'
 import type {Props as RenderProps} from './render'
 
 export type Props = {
+  favoriteList: () => void,
   folderProps: ?RenderProps,
   openInKBFS: (path: string) => void,
   username: string,
@@ -28,6 +30,10 @@ class Folders extends Component<void, Props, State> {
     this.state = {
       showingPrivate: true,
     }
+  }
+
+  componentDidMount () {
+    this.props.favoriteList()
   }
 
   render () {
@@ -57,5 +63,5 @@ export default connect(
     username: state.config.username,
     folderProps: state.favorite && state.favorite.folders,
   }),
-  dispatch => bindActionCreators({routeAppend, openInKBFS}, dispatch)
+  dispatch => bindActionCreators({favoriteList, routeAppend, openInKBFS}, dispatch)
 )(Folders)
