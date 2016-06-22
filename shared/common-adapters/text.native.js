@@ -2,7 +2,8 @@
 /* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
-import {Text as RNText} from 'react-native'
+import {Text as RNText, TouchableHighlight as RNTouchableWithoutFeedback} from 'react-native'
+import * as _ from 'lodash'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Platform, {OS} from '../constants/platform'
 
@@ -132,13 +133,11 @@ export default class Text extends Component {
     const style = Text.textStyle(this.props, this.context)
 
     const terminalPrefix = this._terminalPrefix(this.props.type)
-    const className = this.props.className
 
     if (this.props.contentEditable) {
       return (
         <RNText
           ref='text'
-          className={className}
           style={style}
           contentEditable
           onKeyUp={this.props.onKeyUp}
@@ -146,9 +145,29 @@ export default class Text extends Component {
           onPress={this.props.onClick} />)
     }
 
+    // RN-BUG: Handle React-Native incompatibility in which Android doesn't properly
+    // pad text inputs.
+    const isPaddingProp = key => key.indexOf('padding') === 0
+    if (Object.keys(style).some(isPaddingProp)) {
+      const isWrapperStyle = (val, key) =>
+        !['font', 'letter', 'lineHeight', 'text', 'color', 'writingDirection', 'padding']
+          .some(start => key.indexOf(start) === 0)
+      const styleWrapper = _.pickBy(style, isWrapperStyle)
+      const styleChild = _.mapKeys(
+        _.omitBy(style, isWrapperStyle),
+        (val, key) => isPaddingProp(key) ? key.replace('padding', 'margin') : key
+      )
+      return (
+        <RNTouchableWithoutFeedback
+          style={styleWrapper}
+          onPress={this.props.onClick}>
+          <RNText style={styleChild}>{terminalPrefix}{this.props.children}</RNText>
+        </RNTouchableWithoutFeedback>
+      )
+    }
+
     return (
       <RNText
-        className={className}
         style={style}
         onPress={this.props.onClick}>{terminalPrefix}{this.props.children}</RNText>)
   }

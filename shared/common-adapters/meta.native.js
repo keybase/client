@@ -9,7 +9,7 @@ const Meta = ({title, style}: Props) => (
     color: globalColors.white,
     borderRadius: 1,
     fontSize: 10,
-    height: 11,
+    height: 12,
     lineHeight: 11,
     paddingLeft: 2,
     paddingRight: 2,
