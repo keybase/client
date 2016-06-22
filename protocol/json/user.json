@@ -311,7 +311,7 @@
         "type": "array",
         "items": "UserSummary"
       },
-      "doc": "The list-tracking function get verified data from the tracking statements\n    in the user's own sigchain."
+      "doc": "The list-tracking function get verified data from the tracking statements\n    in the user's own sigchain.\n\n    The *JSON functions are unfortunate, but the current implementation includes\n    a lot more than the non-JSON option, so leaving it like this..."
     },
     "listTrackingJSON": {
       "request": [
@@ -321,6 +321,88 @@
         },
         {
           "name": "filter",
+          "type": "string"
+        },
+        {
+          "name": "verbose",
+          "type": "boolean"
+        }
+      ],
+      "response": "string"
+    },
+    "listTrackingForUID": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "filter",
+          "type": "string"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "UserSummary"
+      }
+    },
+    "listTrackingForUIDJSON": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "filter",
+          "type": "string"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "verbose",
+          "type": "boolean"
+        }
+      ],
+      "response": "string"
+    },
+    "listTrackingForUsername": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "filter",
+          "type": "string"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "UserSummary"
+      }
+    },
+    "listTrackingForUsernameJSON": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "filter",
+          "type": "string"
+        },
+        {
+          "name": "username",
           "type": "string"
         },
         {

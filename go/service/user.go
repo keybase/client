@@ -89,6 +89,50 @@ func (h *UserHandler) ListTrackingJSON(_ context.Context, arg keybase1.ListTrack
 	return
 }
 
+func (h *UserHandler) ListTrackingForUID(_ context.Context, arg keybase1.ListTrackingForUIDArg) (res []keybase1.UserSummary, err error) {
+	eng := engine.NewListTrackingEngine(&engine.ListTrackingEngineArg{
+		Filter: arg.Filter,
+		ForUID: arg.Uid,
+	}, h.G())
+	err = engine.RunEngine(eng, &engine.Context{})
+	res = eng.TableResult()
+	return
+}
+
+func (h *UserHandler) ListTrackingForUIDJSON(_ context.Context, arg keybase1.ListTrackingForUIDJSONArg) (res string, err error) {
+	eng := engine.NewListTrackingEngine(&engine.ListTrackingEngineArg{
+		Filter:  arg.Filter,
+		ForUID:  arg.Uid,
+		JSON:    true,
+		Verbose: arg.Verbose,
+	}, h.G())
+	err = engine.RunEngine(eng, &engine.Context{})
+	res = eng.JSONResult()
+	return
+}
+
+func (h *UserHandler) ListTrackingForUsername(_ context.Context, arg keybase1.ListTrackingForUsernameArg) (res []keybase1.UserSummary, err error) {
+	eng := engine.NewListTrackingEngine(&engine.ListTrackingEngineArg{
+		Filter:      arg.Filter,
+		ForUsername: arg.Username,
+	}, h.G())
+	err = engine.RunEngine(eng, &engine.Context{})
+	res = eng.TableResult()
+	return
+}
+
+func (h *UserHandler) ListTrackingForUsernameJSON(_ context.Context, arg keybase1.ListTrackingForUsernameJSONArg) (res string, err error) {
+	eng := engine.NewListTrackingEngine(&engine.ListTrackingEngineArg{
+		Filter:      arg.Filter,
+		ForUsername: arg.Username,
+		JSON:        true,
+		Verbose:     arg.Verbose,
+	}, h.G())
+	err = engine.RunEngine(eng, &engine.Context{})
+	res = eng.JSONResult()
+	return
+}
+
 func (h *UserHandler) LoadUser(_ context.Context, arg keybase1.LoadUserArg) (user keybase1.User, err error) {
 	u, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(h.G(), arg.Uid))
 	if err != nil {

@@ -67,10 +67,16 @@ protocol user {
   /**
     The list-tracking function get verified data from the tracking statements
     in the user's own sigchain.
+
+    The *JSON functions are unfortunate, but the current implementation includes
+    a lot more than the non-JSON option, so leaving it like this...
     */
   array<UserSummary> listTracking(int sessionID, string filter);
   string listTrackingJSON(int sessionID, string filter, boolean verbose);
-
+  array<UserSummary> listTrackingForUID(int sessionID, string filter, UID uid);
+  string listTrackingForUIDJSON(int sessionID, string filter, UID uid, boolean verbose);
+  array<UserSummary> listTrackingForUsername(int sessionID, string filter, string username);
+  string listTrackingForUsernameJSON(int sessionID, string filter, string username, boolean verbose);
 
   record SearchComponent {
     string key;

@@ -106,6 +106,32 @@ type ListTrackingJSONArg struct {
 	Verbose   bool   `codec:"verbose" json:"verbose"`
 }
 
+type ListTrackingForUIDArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Filter    string `codec:"filter" json:"filter"`
+	Uid       UID    `codec:"uid" json:"uid"`
+}
+
+type ListTrackingForUIDJSONArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Filter    string `codec:"filter" json:"filter"`
+	Uid       UID    `codec:"uid" json:"uid"`
+	Verbose   bool   `codec:"verbose" json:"verbose"`
+}
+
+type ListTrackingForUsernameArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Filter    string `codec:"filter" json:"filter"`
+	Username  string `codec:"username" json:"username"`
+}
+
+type ListTrackingForUsernameJSONArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Filter    string `codec:"filter" json:"filter"`
+	Username  string `codec:"username" json:"username"`
+	Verbose   bool   `codec:"verbose" json:"verbose"`
+}
+
 type SearchArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Query     string `codec:"query" json:"query"`
@@ -133,8 +159,15 @@ type UserInterface interface {
 	LoadPublicKeys(context.Context, LoadPublicKeysArg) ([]PublicKey, error)
 	// The list-tracking function get verified data from the tracking statements
 	// in the user's own sigchain.
+	//
+	// The *JSON functions are unfortunate, but the current implementation includes
+	// a lot more than the non-JSON option, so leaving it like this...
 	ListTracking(context.Context, ListTrackingArg) ([]UserSummary, error)
 	ListTrackingJSON(context.Context, ListTrackingJSONArg) (string, error)
+	ListTrackingForUID(context.Context, ListTrackingForUIDArg) ([]UserSummary, error)
+	ListTrackingForUIDJSON(context.Context, ListTrackingForUIDJSONArg) (string, error)
+	ListTrackingForUsername(context.Context, ListTrackingForUsernameArg) ([]UserSummary, error)
+	ListTrackingForUsernameJSON(context.Context, ListTrackingForUsernameJSONArg) (string, error)
 	// Search for users who match a given query.
 	Search(context.Context, SearchArg) ([]SearchResult, error)
 	// Load all the user's public keys (even those in reset key families)
@@ -306,6 +339,70 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"listTrackingForUID": {
+				MakeArg: func() interface{} {
+					ret := make([]ListTrackingForUIDArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ListTrackingForUIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ListTrackingForUIDArg)(nil), args)
+						return
+					}
+					ret, err = i.ListTrackingForUID(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"listTrackingForUIDJSON": {
+				MakeArg: func() interface{} {
+					ret := make([]ListTrackingForUIDJSONArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ListTrackingForUIDJSONArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ListTrackingForUIDJSONArg)(nil), args)
+						return
+					}
+					ret, err = i.ListTrackingForUIDJSON(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"listTrackingForUsername": {
+				MakeArg: func() interface{} {
+					ret := make([]ListTrackingForUsernameArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ListTrackingForUsernameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ListTrackingForUsernameArg)(nil), args)
+						return
+					}
+					ret, err = i.ListTrackingForUsername(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"listTrackingForUsernameJSON": {
+				MakeArg: func() interface{} {
+					ret := make([]ListTrackingForUsernameJSONArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ListTrackingForUsernameJSONArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ListTrackingForUsernameJSONArg)(nil), args)
+						return
+					}
+					ret, err = i.ListTrackingForUsernameJSON(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"search": {
 				MakeArg: func() interface{} {
 					ret := make([]SearchArg, 1)
@@ -395,6 +492,9 @@ func (c UserClient) LoadPublicKeys(ctx context.Context, __arg LoadPublicKeysArg)
 
 // The list-tracking function get verified data from the tracking statements
 // in the user's own sigchain.
+//
+// The *JSON functions are unfortunate, but the current implementation includes
+// a lot more than the non-JSON option, so leaving it like this...
 func (c UserClient) ListTracking(ctx context.Context, __arg ListTrackingArg) (res []UserSummary, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.listTracking", []interface{}{__arg}, &res)
 	return
@@ -402,6 +502,26 @@ func (c UserClient) ListTracking(ctx context.Context, __arg ListTrackingArg) (re
 
 func (c UserClient) ListTrackingJSON(ctx context.Context, __arg ListTrackingJSONArg) (res string, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingJSON", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) ListTrackingForUID(ctx context.Context, __arg ListTrackingForUIDArg) (res []UserSummary, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingForUID", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) ListTrackingForUIDJSON(ctx context.Context, __arg ListTrackingForUIDJSONArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingForUIDJSON", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) ListTrackingForUsername(ctx context.Context, __arg ListTrackingForUsernameArg) (res []UserSummary, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingForUsername", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) ListTrackingForUsernameJSON(ctx context.Context, __arg ListTrackingForUsernameJSONArg) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackingForUsernameJSON", []interface{}{__arg}, &res)
 	return
 }
 

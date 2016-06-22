@@ -36,20 +36,20 @@ func NewCmdListTrackers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Usage:        "List trackers",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "i, uid",
-				Usage: "Load user by UID.",
+				Name:  "H, headers",
+				Usage: "Show column headers.",
 			},
 			cli.BoolFlag{
-				Name:  "v, verbose",
-				Usage: "A full dump, with more gory details.",
+				Name:  "i, uid",
+				Usage: "Load user by UID.",
 			},
 			cli.BoolFlag{
 				Name:  "j, json",
 				Usage: "Output as JSON (default is text).",
 			},
 			cli.BoolFlag{
-				Name:  "H, headers",
-				Usage: "Show column headers.",
+				Name:  "v, verbose",
+				Usage: "A full dump, with more gory details.",
 			},
 		},
 		Action: func(c *cli.Context) {

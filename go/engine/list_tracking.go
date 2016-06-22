@@ -28,9 +28,11 @@ func (tl TrackList) Less(i, j int) bool {
 }
 
 type ListTrackingEngineArg struct {
-	JSON    bool
-	Verbose bool
-	Filter  string
+	JSON        bool
+	Verbose     bool
+	Filter      string
+	ForUID      keybase1.UID
+	ForUsername string
 }
 
 type ListTrackingEngine struct {
@@ -58,8 +60,14 @@ func (e *ListTrackingEngine) RequiredUIs() []libkb.UIKind { return []libkb.UIKin
 func (e *ListTrackingEngine) SubConsumers() []libkb.UIConsumer { return nil }
 
 func (e *ListTrackingEngine) Run(ctx *Context) (err error) {
-	user, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-
+	var user *libkb.User
+	if e.arg.ForUID.Exists() {
+		user, err = libkb.LoadUser(libkb.NewLoadUserByUIDArg(e.G(), e.arg.ForUID))
+	} else if len(e.arg.ForUsername) > 0 {
+		user, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), e.arg.ForUsername))
+	} else {
+		user, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	}
 	if err != nil {
 		return
 	}
