@@ -24,15 +24,17 @@ type Transporter interface {
 
 	// receiveFrames starts processing incoming frames in a
 	// background goroutine, if it's not already happening.
-	//
+	// Returns the result of done(), for convenience.
+	receiveFrames() <-chan struct{}
+
 	// Returns a channel that's closed when incoming frames have
 	// finished processing, either due to an error or the
 	// underlying connection being closed. Successive calls to
-	// receiveFrames return the same value.
-	receiveFrames() <-chan struct{}
+	// done() return the same value.
+	done() <-chan struct{}
 
-	// err returns a non-nil error value after done is closed.
-	// After done is closed, successive calls to err return the
+	// err returns a non-nil error value after done() is closed.
+	// After done() is closed, successive calls to err return the
 	// same value.
 	err() error
 }
@@ -119,6 +121,10 @@ func (t *transport) receiveFrames() <-chan struct{} {
 		// Subsequent times -- do nothing.
 	}
 
+	return t.stopCh
+}
+
+func (t *transport) done() <-chan struct{} {
 	return t.stopCh
 }
 

@@ -132,6 +132,7 @@ type ConnectionHandler interface {
 type ConnectionTransportTLS struct {
 	rootCerts []byte
 	srvAddr   string
+	tlsConfig *tls.Config
 
 	// Protects everything below.
 	mutex           sync.Mutex
@@ -150,17 +151,24 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 	Transporter, error) {
 	var conn net.Conn
 	err := runUnlessCanceled(ctx, func() error {
-		// load CA certificate
-		certs := x509.NewCertPool()
-		if !certs.AppendCertsFromPEM(ct.rootCerts) {
-			return errors.New("Unable to load root certificates")
+		config := ct.tlsConfig
+
+		// If we didn't specify a tls.Config, but we did specify
+		// explicit rootCerts, then populate a new tls.Config here.
+		// Otherwise, we're using the defaults via `nil` tls.Config.
+		if config == nil && ct.rootCerts != nil {
+			// load CA certificate
+			certs := x509.NewCertPool()
+			if !certs.AppendCertsFromPEM(ct.rootCerts) {
+				return errors.New("Unable to load root certificates")
+			}
+			config = &tls.Config{RootCAs: certs}
 		}
 		// connect
-		config := tls.Config{RootCAs: certs}
 		var err error
 		conn, err = tls.DialWithDialer(&net.Dialer{
 			KeepAlive: 10 * time.Second,
-		}, "tcp", ct.srvAddr, &config)
+		}, "tcp", ct.srvAddr, config)
 		return err
 	})
 	if err != nil {
@@ -253,6 +261,30 @@ func NewTLSConnection(srvAddr string, rootCerts []byte,
 		connectNow, wef, log, tagsFunc)
 }
 
+func copyTLSConfig(c *tls.Config) *tls.Config {
+	if c == nil {
+		return nil
+	}
+	tmp := *c
+	return &tmp
+}
+
+// NewTLSConnectionWithTLSConfig allows you to specify a RootCA pool and also
+// a serverName (if wanted) via the full Go TLS config object.
+func NewTLSConnectionWithTLSConfig(srvAddr string, tlsConfig *tls.Config,
+	errorUnwrapper ErrorUnwrapper, handler ConnectionHandler,
+	connectNow bool, l LogFactory, wef WrapErrorFunc, log LogOutput,
+	tagsFunc LogTagsFromContext) *Connection {
+	transport := &ConnectionTransportTLS{
+		srvAddr:    srvAddr,
+		tlsConfig:  copyTLSConfig(tlsConfig),
+		logFactory: l,
+		wef:        wef,
+	}
+	return NewConnectionWithTransport(handler, transport, errorUnwrapper,
+		connectNow, wef, log, tagsFunc)
+}
+
 // NewTLSConnectionWithProtocols returns a connection that tries to connect to
 // the given server address with TLS and registers custom protocols.
 func NewTLSConnectionWithProtocols(srvAddr string, rootCerts []byte,
@@ -318,7 +350,7 @@ func (c *Connection) connect(ctx context.Context) error {
 	// connect
 	transport, err := c.transport.Dial(ctx)
 	if err != nil {
-		c.log.Warning("Connection: error dialing transport: %#v", err)
+		c.log.Warning("Connection: error dialing transport: %s", err)
 		return err
 	}
 
@@ -332,7 +364,7 @@ func (c *Connection) connect(ctx context.Context) error {
 	// call the connect handler
 	err = c.handler.OnConnect(ctx, c, client, server)
 	if err != nil {
-		c.log.Warning("Connection: error calling OnConnect handler: %#v", err)
+		c.log.Warning("Connection: error calling OnConnect handler: %s", err)
 		return err
 	}
 
