@@ -7,10 +7,11 @@ package minterm
 import (
 	"errors"
 	"fmt"
-	"github.com/keybase/go-crypto/ssh/terminal"
 	"io"
 	"os"
 	"strings"
+
+	"github.com/keybase/go-crypto/ssh/terminal"
 )
 
 // MinTerm is a minimal terminal interface.
@@ -20,6 +21,8 @@ type MinTerm struct {
 	closeTermOut bool
 	width        int
 	height       int
+	raw          bool
+	oldState     *terminal.State
 }
 
 var ErrPromptInterrupted = errors.New("prompt interrupted")
@@ -37,6 +40,7 @@ func New() (*MinTerm, error) {
 
 // Shutdown closes the terminal.
 func (m *MinTerm) Shutdown() error {
+	m.restore()
 	// this can hang waiting for newline, so do it in a goroutine.
 	// application shutting down, so will get closed by os anyway...
 	if m.termIn != nil {
@@ -79,27 +83,38 @@ func (m *MinTerm) PromptPassword(prompt string) (string, error) {
 func (m *MinTerm) fdIn() int { return int(m.termIn.Fd()) }
 
 func (m *MinTerm) readLine() (string, error) {
-	fd := int(m.fdIn())
-	oldState, err := terminal.MakeRaw(fd)
-	if err != nil {
-		return "", err
-	}
-	defer terminal.Restore(fd, oldState)
-	var ret string
-	ret, err = terminal.NewTerminal(m.getReadWriter(), "").ReadLine()
+	m.makeRaw()
+	defer m.restore()
+	ret, err := terminal.NewTerminal(m.getReadWriter(), "").ReadLine()
 	return ret, convertErr(err)
 }
 
 func (m *MinTerm) readSecret() (string, error) {
+	m.makeRaw()
+	defer m.restore()
+	ret, err := terminal.NewTerminal(m.getReadWriter(), "").ReadPassword("")
+	return ret, convertErr(err)
+}
+
+func (m *MinTerm) makeRaw() error {
 	fd := int(m.fdIn())
 	oldState, err := terminal.MakeRaw(fd)
 	if err != nil {
-		return "", err
+		return err
 	}
-	defer terminal.Restore(fd, oldState)
-	var ret string
-	ret, err = terminal.NewTerminal(m.getReadWriter(), "").ReadPassword("")
-	return ret, convertErr(err)
+	m.raw = true
+	m.oldState = oldState
+	return nil
+}
+
+func (m *MinTerm) restore() {
+	if !m.raw {
+		return
+	}
+	fd := int(m.fdIn())
+	terminal.Restore(fd, m.oldState)
+	m.raw = false
+	m.oldState = nil
 }
 
 func convertErr(e error) error {
