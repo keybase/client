@@ -45,7 +45,8 @@ app.on('ready', () => {
     })
   })
 
+  ipcMain.on('visdiff-ready', renderNext)
+
   const scriptPath = resolveRoot('dist', 'visdiff.bundle.js')
   win.loadURL(resolveRootAsURL('renderer', `index.html?src=${scriptPath}`))
-  win.webContents.on('did-finish-load', renderNext)
 })

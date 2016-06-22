@@ -32,10 +32,9 @@ ipcRenderer.on('display', (ev, msg) => {
 
   const appEl = document.getElementById('app')
   ReactDOM.render(displayTree, appEl, () => {
-    // Unfortunately some resources like fonts lazy load after they're
-    // rendered.  We need to give the renderer time to load.  After trying
-    // process.nextTick, requestAnimationFrame, etc., simply putting in a time
-    // delay worked the best.
+    // Unfortunately some resources lazy load after they're rendered.  We need
+    // to give the renderer time to load.  After trying process.nextTick,
+    // requestAnimationFrame, etc., simply putting in a time delay worked best.
     setTimeout(() => {
       const renderedEl = document.getElementById('rendered')
       const box = renderedEl.getBoundingClientRect()
@@ -50,3 +49,9 @@ ipcRenderer.on('display', (ev, msg) => {
     }, 250)
   })
 })
+
+window.addEventListener('load', () =>
+  document.fonts.ready.then(() =>
+    ipcRenderer.send('visdiff-ready')
+  )
+)
