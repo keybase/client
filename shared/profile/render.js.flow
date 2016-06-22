@@ -12,6 +12,7 @@ export type Props = {
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
   refresh: () => void,
+  onBack: ?() => void,
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,

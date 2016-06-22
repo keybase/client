@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import {normal as proofNormal} from '../constants/tracker'
-import {Box, Icon, Text, UserBio, UserProofs, Usernames} from '../common-adapters'
+import {Box, Icon, Text, UserBio, UserProofs, Usernames, BackButton} from '../common-adapters'
 import {userHeaderColor, UserActions} from './common.desktop'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import ProfileHelp from './help.desktop'
@@ -56,6 +56,8 @@ class Render extends Component<void, Props, State> {
     return (
       <Box style={styleContainer}>
         <Box style={{...styleHeader, backgroundColor: headerColor}} />
+        {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 10, top: 10}}
+          textStyle={{color: globalColors.white}} iconStyle={{color: globalColors.white}} />}
         <Box style={{...globalStyles.flexBoxRow, flexShrink: 0}}>
           <Box style={styleBioColumn}>
             <UserBio
