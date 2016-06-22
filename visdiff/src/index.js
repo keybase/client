@@ -1,13 +1,18 @@
+#!/usr/bin/env node
+
 import process from 'process'
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import {execSync} from 'child_process'
 import _ from 'lodash'
+import mkdirp from 'mkdirp'
+import del from 'del'
 import gm from 'gm'
 import github from 'octonode'
+import s3 from 's3'
 
-const BUCKET_S3 = 's3://keybase-app-visdiff'
+const BUCKET_S3 = 'keybase-app-visdiff'
 const BUCKET_HTTP = 'http://keybase-app-visdiff.s3.amazonaws.com'
 const MAX_INLINE_IMAGES = 6
 
@@ -24,7 +29,9 @@ function packageHash () {
 
 function checkout (commit) {
   const origPackageHash = packageHash()
-  execSync(`rm -rf node_modules.${origPackageHash} && mv node_modules node_modules.${origPackageHash}`)
+
+  del.sync([`node_modules.${origPackageHash}`])
+  fs.renameSync('node_modules', `node_modules.${origPackageHash}`)
   console.log(`Shelved node_modules to node_modules.${origPackageHash}.`)
 
   execSync(`git checkout -f ${commit}`)
@@ -33,10 +40,10 @@ function checkout (commit) {
   const newPackageHash = packageHash()
   if (fs.existsSync(`node_modules.${newPackageHash}`)) {
     console.log(`Reusing existing node_modules.${newPackageHash} directory.`)
-    execSync(`mv node_modules.${newPackageHash} node_modules`)
+    fs.renameSync(`node_modules.${newPackageHash}`, 'node_modules')
   } else {
     console.log(`Installing dependencies for package.json:${newPackageHash}...`)
-    execSync('../packaging/npm_mess.sh', {stdio: 'inherit'})
+    execSync('npm install', {stdio: 'inherit'})
   }
 }
 
@@ -44,14 +51,15 @@ function renderScreenshots (commitRange) {
   for (const commit of commitRange) {
     checkout(commit)
     console.log(`Rendering screenshots of ${commit}`)
-    execSync(`mkdir -p screenshots/${commit} && npm run render-screenshots -- screenshots/${commit}`, {stdio: 'inherit'})
+    mkdirp.sync(`screenshots/${commit}`)
+    execSync(`npm run render-screenshots -- screenshots/${commit}`, {stdio: 'inherit'})
   }
 }
 
 function compareScreenshots (commitRange, diffDir, callback) {
   const results = {}
 
-  execSync(`mkdir -p screenshots/${diffDir}`)
+  mkdirp.sync(`screenshots/${diffDir}`)
 
   const files0 = fs.readdirSync(`screenshots/${commitRange[0]}`)
   const files1 = fs.readdirSync(`screenshots/${commitRange[1]}`)
@@ -114,7 +122,7 @@ function processDiff (commitRange, results) {
       for (const commit of commitRange) {
         const fromFile = `screenshots/${commit}/${filenameParts.base}`
         if (fs.existsSync(fromFile)) {
-          execSync(`cp ${fromFile} ${filenameParts.dir}/${filenameParts.name}-${commit}${filenameParts.ext}`)
+          fs.renameSync(fromFile, `${filenameParts.dir}/${filenameParts.name}-${commit}${filenameParts.ext}`)
         }
       }
 
@@ -167,23 +175,40 @@ function processDiff (commitRange, results) {
     const commentBody = commentLines.join('\n')
 
     if (!DRY_RUN) {
-      const s3Env = {
-        ...process.env,
-        AWS_ACCESS_KEY_ID: process.env['VISDIFF_AWS_ACCESS_KEY_ID'],
-        AWS_SECRET_ACCESS_KEY: process.env['VISDIFF_AWS_SECRET_ACCESS_KEY'],
-      }
-      console.log(`Uploading ${diffDir} to ${BUCKET_S3}...`)
-      execSync(`s3cmd put --acl-public -r screenshots/${diffDir} ${BUCKET_S3}`, {env: s3Env})
-      console.log('Screenshots uploaded.')
+      console.log(`Uploading ${diffDir} to s3://${BUCKET_S3}...`)
 
-      var ghClient = github.client(process.env['VISDIFF_GH_TOKEN'])
-      var ghIssue = ghClient.issue('keybase/client', process.env['VISDIFF_PR_ID'])
-      ghIssue.createComment({body: commentBody}, (err, res) => {
-        if (err) {
-          console.log('Failed to post visual diff on GitHub:', err.toString(), err.body)
-          process.exit(1)
-        }
-        console.log('Posted visual diff on GitHub:', res.html_url)
+      const s3client = s3.createClient({
+        s3Options: {
+          accessKeyId: process.env['VISDIFF_AWS_ACCESS_KEY_ID'],
+          secretAccessKey: process.env['VISDIFF_AWS_SECRET_ACCESS_KEY'],
+        },
+      })
+      const uploader = s3client.uploadDir({
+        localDir: `screenshots/${diffDir}`,
+        s3Params: {
+          Bucket: BUCKET_S3,
+          Prefix: diffDir,
+          ACL: 'public-read',
+        },
+      })
+
+      uploader.on('error', err => {
+        console.error('Upload failed', err)
+        process.exit(1)
+      })
+
+      uploader.on('end', () => {
+        console.log('Screenshots uploaded.')
+
+        var ghClient = github.client(process.env['VISDIFF_GH_TOKEN'])
+        var ghIssue = ghClient.issue('keybase/client', process.env['VISDIFF_PR_ID'])
+        ghIssue.createComment({body: commentBody}, (err, res) => {
+          if (err) {
+            console.log('Failed to post visual diff on GitHub:', err.toString(), err.body)
+            process.exit(1)
+          }
+          console.log('Posted visual diff on GitHub:', res.html_url)
+        })
       })
     } else {
       console.log(commentBody)
