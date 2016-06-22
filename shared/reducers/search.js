@@ -12,6 +12,7 @@ export type State = {
   searchPlatform: SearchPlatforms,
   results: Array<SearchResult>,
   selectedUsers: Array<SearchResult>,
+  userForInfoPane: ?SearchResult,
 }
 
 const initialState: State = {
@@ -21,6 +22,7 @@ const initialState: State = {
   searchPlatform: 'Keybase',
   selectedUsers: [],
   results: [],
+  userForInfoPane: null,
 }
 
 export default function (state: State = initialState, action: SearchActions): State {
@@ -43,6 +45,14 @@ export default function (state: State = initialState, action: SearchActions): St
         return {
           ...state,
           searchPlatform: action.payload.platform,
+        }
+      }
+      break
+    case Constants.selectUserForInfo:
+      if (!action.error) {
+        return {
+          ...state,
+          userForInfoPane: action.payload.user,
         }
       }
       break

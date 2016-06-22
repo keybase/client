@@ -3,7 +3,7 @@ import {platformToIcon, platformToLogo32} from '../constants/search'
 import {capitalize} from 'lodash'
 import {filterNull} from '../util/arrays'
 
-import type {ExtraInfo, Search, Results, SelectPlatform} from '../constants/search'
+import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo} from '../constants/search'
 
 type RawResult = Array<{
   score: number,
@@ -147,5 +147,12 @@ export function selectPlatform (platform: SearchPlatforms): SelectPlatform {
   return {
     type: Constants.selectPlatform,
     payload: {platform},
+  }
+}
+
+export function selectUserForInfo (user: SearchResult): SelectUserForInfo {
+  return {
+    type: Constants.selectUserForInfo,
+    payload: {user},
   }
 }

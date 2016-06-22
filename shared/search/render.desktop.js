@@ -11,6 +11,12 @@ class Render extends Component<void, Props, void> {
     return <SearchHelp username={this.props.username} />
   }
 
+  _renderInfoPane () {
+    // TODO(mm) maybe shell out to a smart component here?
+    // One that only takes a username and can figure out the rest
+    return <Box style={{flex: 1}} />
+  }
+
   render () {
     if (this.props.showComingSoon) {
       return this._renderComingSoon()
@@ -27,7 +33,7 @@ class Render extends Component<void, Props, void> {
           onClickService={this.props.onClickService}
           onClickResult={this.props.onClickResult}
           onSearch={this.props.onSearch} />
-        <Box style={{flex: 1}} />
+        {this._renderInfoPane()}
       </Box>
     )
   }

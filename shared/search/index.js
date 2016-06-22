@@ -25,6 +25,7 @@ class Search extends Component<void, Props, void> {
         searchIcon={this.props.searchIcon}
         results={this.props.results}
         selectedService={this.props.selectedService}
+        userForInfoPane={this.props.userForInfoPane}
         onClickService={this.props.onClickService}
         onClickResult={this.props.onClickResult} />
     )
@@ -40,11 +41,12 @@ class Search extends Component<void, Props, void> {
 const connector: TypedConnector<TypedState, TypedDispatch<SearchActions>, OwnProps, Props> = new TypedConnector()
 
 export default connector.connect(
-  ({search: {searchHintText, searchPlatform, searchText, searchIcon, results}, config: {username}}, dispatch, ownProps) => ({
+  ({search: {searchHintText, searchPlatform, searchText, searchIcon, results, userForInfoPane}, config: {username}}, dispatch, ownProps) => ({
     username: username || '',
     searchHintText,
     searchText,
     searchIcon,
+    userForInfoPane,
     results,
     showComingSoon: !flags.searchEnabled,
     onClickResult: () => console.log('TODO'),

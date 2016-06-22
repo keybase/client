@@ -42,7 +42,10 @@ export type SearchPlatforms = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Coi
 export const selectPlatform = 'search:selectPlatform'
 export type SelectPlatform = TypedAction<'search:selectPlatform', {platform: SearchPlatforms}, void>
 
-export type SearchActions = Search | Results | SelectPlatform
+export const selectUserForInfo = 'search:selectUserForInfo'
+export type SelectUserForInfo = TypedAction<'search:selectUserForInfo', {user: SearchResult}, void>
+
+export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
   return {
