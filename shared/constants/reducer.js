@@ -2,7 +2,7 @@
 
 import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
 import type {State as SearchState} from '../reducers/search'
-import type {ConfigState} from '../reducers/search'
+import type {ConfigState} from '../reducers/config'
 
 export type TypedState = {
   unlockFolders: UnlockFoldersState,

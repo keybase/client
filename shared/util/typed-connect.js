@@ -8,7 +8,7 @@ type TypedMergeProps<State, Dispatch, OwnProps, Props> = (state: State, dispatch
 export class ConnectedComponent<OwnProps> extends Component<void, OwnProps, void> {}
 
 export class TypedConnector<State, Dispatch, OwnProps, Props> {
-  connect (mergeProps: TypedMergeProps<State, Dispatch, OwnProps, Props>): (smartComponent: ReactClass<Props>) => Class<ConnectedComponent<OwnProps>> {
+  connect (mergeProps: TypedMergeProps<State, Dispatch, OwnProps, Props>): (smartComponent: ReactClass<*>) => Class<ConnectedComponent<OwnProps>> {
     return connect(
       state => ({state}),
       dispatch => ({dispatch}),

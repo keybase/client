@@ -58,7 +58,7 @@ const dumbMapNonUser: DumbComponentMap<NonUserPane> = {
       avatar: 'https://pbs.twimg.com/profile_images/648888480974508032/66_cUYfj_400x400.jpg',
       username: 'Snowden',
       fullname: 'Edward Snowden',
-      serviceName: 'twitter',
+      serviceName: 'Twitter',
       profileURL: 'https://twitter.com/Snowden',
       onSendInvite: () => console.log('onSendInvite'),
       parentProps: defaultParentProps,
@@ -66,7 +66,7 @@ const dumbMapNonUser: DumbComponentMap<NonUserPane> = {
     'No Avatar': {
       avatar: null,
       username: 'spez',
-      serviceName: 'reddit',
+      serviceName: 'Reddit',
       profileURL: 'https://www.reddit.com/user/spez',
       onSendInvite: () => console.log('onSendInvite'),
       parentProps: defaultParentProps,

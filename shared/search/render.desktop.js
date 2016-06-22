@@ -19,7 +19,15 @@ class Render extends Component<void, Props, void> {
 
     return (
       <Box style={globalStyles.flexBoxRow}>
-        <UserSearch {...this.props} />
+        <UserSearch
+          searchHintText={this.props.searchHintText}
+          searchText={this.props.searchText}
+          searchIcon={this.props.searchIcon}
+          selectedService={this.props.selectedService}
+          results={this.props.results}
+          onClickService={this.props.onClickService}
+          onClickResult={this.props.onClickResult}
+          onSearch={this.props.onSearch} />
         <Box style={{flex: 1}} />
       </Box>
     )

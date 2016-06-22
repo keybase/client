@@ -56,7 +56,6 @@ export default class Render extends Component<void, Props, void> {
         onClick={onClick}
         style={{...stylesTabBarItem}}
       >
-        {this.props.searchContent || <Box />}
         <Box style={{flex: 1, ...globalStyles.flexBoxColumn}}>{this.props.searchContent || <Box />}</Box>
       </TabBarItem>
     )

@@ -17,9 +17,8 @@ class Search extends Component<void, Props, void> {
   render () {
     return (
       <Render
-        showComingSoon={!flags.searchEnabled}
+        showComingSoon={this.props.showComingSoon}
         username={this.props.username}
-        showComingSoon={/* !flags.searchEnabled */false}
         searchHintText={this.props.searchHintText}
         onSearch={term => this.props.onSearch(term, this.props.selectedService)}
         searchText={this.props.searchText}
@@ -42,11 +41,12 @@ const connector: TypedConnector<TypedState, TypedDispatch<SearchActions>, OwnPro
 
 export default connector.connect(
   ({search: {searchHintText, searchPlatform, searchText, searchIcon, results}, config: {username}}, dispatch, ownProps) => ({
-    username,
+    username: username || '',
     searchHintText,
     searchText,
     searchIcon,
     results,
+    showComingSoon: !flags.searchEnabled,
     onClickResult: () => console.log('TODO'),
     selectedService: searchPlatform,
     onSearch: (term, platform) => { dispatch(search(term, platform)) },

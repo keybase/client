@@ -1,12 +1,13 @@
 /* @flow */
 
 import {Component} from 'react'
+import type {SearchPlatforms} from '../../constants/search'
 
 export type Props = {
   avatar: ?string,
   username: string,
   fullname?: string,
-  serviceName: string,  // FIXME (MBG): do we have a type for this?
+  serviceName: SearchPlatforms,
   profileURL: string,
   onSendInvite: () => {}
 }
