@@ -3443,63 +3443,14 @@ export type userListTrackersSelfRpc = {
   callback: (null | (err: ?any, response: userListTrackersSelfResult) => void)
 }
 
-export type userListTrackingForUIDJSONResult = string
-
-export type userListTrackingForUIDJSONRpc = {
-  method: 'user.listTrackingForUIDJSON',
-  param: {
-    filter: string,
-    uid: UID,
-    verbose: boolean
-  },
-  incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any, response: userListTrackingForUIDJSONResult) => void)
-}
-
-export type userListTrackingForUIDResult = Array<UserSummary>
-
-export type userListTrackingForUIDRpc = {
-  method: 'user.listTrackingForUID',
-  param: {
-    filter: string,
-    uid: UID
-  },
-  incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any, response: userListTrackingForUIDResult) => void)
-}
-
-export type userListTrackingForUsernameJSONResult = string
-
-export type userListTrackingForUsernameJSONRpc = {
-  method: 'user.listTrackingForUsernameJSON',
-  param: {
-    filter: string,
-    username: string,
-    verbose: boolean
-  },
-  incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any, response: userListTrackingForUsernameJSONResult) => void)
-}
-
-export type userListTrackingForUsernameResult = Array<UserSummary>
-
-export type userListTrackingForUsernameRpc = {
-  method: 'user.listTrackingForUsername',
-  param: {
-    filter: string,
-    username: string
-  },
-  incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any, response: userListTrackingForUsernameResult) => void)
-}
-
 export type userListTrackingJSONResult = string
 
 export type userListTrackingJSONRpc = {
   method: 'user.listTrackingJSON',
   param: {
     filter: string,
-    verbose: boolean
+    verbose: boolean,
+    assertion: string
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userListTrackingJSONResult) => void)
@@ -3510,7 +3461,8 @@ export type userListTrackingResult = Array<UserSummary>
 export type userListTrackingRpc = {
   method: 'user.listTracking',
   param: {
-    filter: string
+    filter: string,
+    assertion: string
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userListTrackingResult) => void)
@@ -3794,10 +3746,6 @@ export type rpc =
   | userListTrackersByNameRpc
   | userListTrackersRpc
   | userListTrackersSelfRpc
-  | userListTrackingForUIDJSONRpc
-  | userListTrackingForUIDRpc
-  | userListTrackingForUsernameJSONRpc
-  | userListTrackingForUsernameRpc
   | userListTrackingJSONRpc
   | userListTrackingRpc
   | userLoadAllPublicKeysUnverifiedRpc
@@ -5884,7 +5832,8 @@ export type incomingCallMapType = {
   'keybase.1.user.listTracking'?: (
     params: {
       sessionID: int,
-      filter: string
+      filter: string,
+      assertion: string
     },
     response: {
       error: (err: RPCError) => void,
@@ -5895,57 +5844,12 @@ export type incomingCallMapType = {
     params: {
       sessionID: int,
       filter: string,
-      verbose: boolean
+      verbose: boolean,
+      assertion: string
     },
     response: {
       error: (err: RPCError) => void,
       result: (result: userListTrackingJSONResult) => void
-    }
-  ) => void,
-  'keybase.1.user.listTrackingForUID'?: (
-    params: {
-      sessionID: int,
-      filter: string,
-      uid: UID
-    },
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userListTrackingForUIDResult) => void
-    }
-  ) => void,
-  'keybase.1.user.listTrackingForUIDJSON'?: (
-    params: {
-      sessionID: int,
-      filter: string,
-      uid: UID,
-      verbose: boolean
-    },
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userListTrackingForUIDJSONResult) => void
-    }
-  ) => void,
-  'keybase.1.user.listTrackingForUsername'?: (
-    params: {
-      sessionID: int,
-      filter: string,
-      username: string
-    },
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userListTrackingForUsernameResult) => void
-    }
-  ) => void,
-  'keybase.1.user.listTrackingForUsernameJSON'?: (
-    params: {
-      sessionID: int,
-      filter: string,
-      username: string,
-      verbose: boolean
-    },
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userListTrackingForUsernameJSONResult) => void
     }
   ) => void,
   'keybase.1.user.search'?: (

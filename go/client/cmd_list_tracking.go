@@ -120,40 +120,26 @@ func (s *CmdListTracking) Run() error {
 		return err
 	}
 
+	var assertion string
+	if s.uid.Exists() {
+		assertion = fmt.Sprintf("uid:%s", s.uid)
+	} else {
+		assertion = s.username
+	}
+
 	if s.json {
-		var jsonStr string
-		if s.uid.Exists() {
-			jsonStr, err = cli.ListTrackingForUIDJSON(context.TODO(), keybase1.ListTrackingForUIDJSONArg{
-				Uid:     s.uid,
-				Filter:  s.filter,
-				Verbose: s.verbose,
-			})
-		} else if len(s.username) > 0 {
-			jsonStr, err = cli.ListTrackingForUsernameJSON(context.TODO(), keybase1.ListTrackingForUsernameJSONArg{
-				Username: s.username,
-				Filter:   s.filter,
-				Verbose:  s.verbose,
-			})
-		} else {
-			jsonStr, err = cli.ListTrackingJSON(context.TODO(), keybase1.ListTrackingJSONArg{
-				Filter:  s.filter,
-				Verbose: s.verbose,
-			})
-		}
+		jsonStr, err := cli.ListTrackingJSON(context.TODO(), keybase1.ListTrackingJSONArg{
+			Assertion: assertion,
+			Filter:    s.filter,
+			Verbose:   s.verbose,
+		})
 		if err != nil {
 			return err
 		}
 		return DisplayJSON(jsonStr)
 	}
 
-	var table []keybase1.UserSummary
-	if s.uid.Exists() {
-		table, err = cli.ListTrackingForUID(context.TODO(), keybase1.ListTrackingForUIDArg{Filter: s.filter, Uid: s.uid})
-	} else if len(s.username) > 0 {
-		table, err = cli.ListTrackingForUsername(context.TODO(), keybase1.ListTrackingForUsernameArg{Filter: s.filter, Username: s.username})
-	} else {
-		table, err = cli.ListTracking(context.TODO(), keybase1.ListTrackingArg{Filter: s.filter})
-	}
+	table, err := cli.ListTracking(context.TODO(), keybase1.ListTrackingArg{Filter: s.filter, Assertion: assertion})
 	if err != nil {
 		return err
 	}
