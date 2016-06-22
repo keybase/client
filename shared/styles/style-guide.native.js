@@ -92,3 +92,12 @@ export const globalStyles = {
   ...font,
   ...util,
 }
+
+export const globalMargins = {
+  xtiny: 4,
+  tiny: 8,
+  small: 16,
+  medium: 32,
+  large: 48,
+  xlarge: 64,
+}
