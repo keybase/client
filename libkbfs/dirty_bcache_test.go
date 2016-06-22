@@ -157,9 +157,9 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	}
 
 	// Let's say the actual number of unsynced bytes for c1 was double
-	dirtyBcache.UpdateUnsyncedBytes(2 * bufSize)
+	dirtyBcache.UpdateUnsyncedBytes(2*bufSize, false)
 	// Now release the previous bytes
-	dirtyBcache.UpdateUnsyncedBytes(-bufSize)
+	dirtyBcache.UpdateUnsyncedBytes(-bufSize, false)
 
 	// Request 2 should still be blocked.  (This check isn't
 	// fool-proof, since it doesn't necessarily give time for the
@@ -209,21 +209,21 @@ func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 	}
 
 	// still less
-	dirtyBcache.UpdateUnsyncedBytes(9)
+	dirtyBcache.UpdateUnsyncedBytes(9, false)
 	bp = dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
 	if bp != 0 {
 		t.Fatalf("Unexpected backpressure before unsyned bytes: %d", bp)
 	}
 
 	// Now make 20 unsynced bytes, or 10% of the overage
-	dirtyBcache.UpdateUnsyncedBytes(11)
+	dirtyBcache.UpdateUnsyncedBytes(11, false)
 	bp = dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
 	if g, e := bp, 1*time.Second; g != e {
 		t.Fatalf("Got backpressure %s, expected %s", g, e)
 	}
 
 	// Now completely fill the buffer
-	dirtyBcache.UpdateUnsyncedBytes(90)
+	dirtyBcache.UpdateUnsyncedBytes(90, false)
 	bp = dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
 	if g, e := bp, 10*time.Second; g != e {
 		t.Fatalf("Got backpressure %s, expected %s", g, e)

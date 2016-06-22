@@ -4331,6 +4331,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	config.SetBlockCache(config.mockBcache)
 	config.mockDirtyBcache = NewMockDirtyBlockCache(mockCtrl)
 	config.SetDirtyBlockCache(config.mockDirtyBcache)
+	config.mockDirtyBcache.EXPECT().UpdateSyncingBytes(gomock.Any()).AnyTimes()
 	config.mockDirtyBcache.EXPECT().BlockSyncFinished(gomock.Any()).AnyTimes()
 	config.mockDirtyBcache.EXPECT().SyncFinished(gomock.Any())
 
@@ -4528,6 +4529,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	config.SetBlockCache(config.mockBcache)
 	config.mockDirtyBcache = NewMockDirtyBlockCache(mockCtrl)
 	config.SetDirtyBlockCache(config.mockDirtyBcache)
+	config.mockDirtyBcache.EXPECT().UpdateSyncingBytes(gomock.Any()).AnyTimes()
 	config.mockDirtyBcache.EXPECT().BlockSyncFinished(gomock.Any()).AnyTimes()
 	config.mockDirtyBcache.EXPECT().SyncFinished(gomock.Any())
 

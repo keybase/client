@@ -4,15 +4,14 @@
 package libkbfs
 
 import (
-	reflect "reflect"
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	protocol "github.com/keybase/client/go/protocol"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
+	reflect "reflect"
+	time "time"
 )
 
 // Mock of AuthTokenRefreshHandler interface
@@ -215,24 +214,24 @@ func (_mr *_MockKBFSOpsRecorder) RefreshCachedFavorites(arg0 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshCachedFavorites", arg0)
 }
 
-func (_m *MockKBFSOps) DeleteFavorite(ctx context.Context, fav Favorite) error {
-	ret := _m.ctrl.Call(_m, "DeleteFavorite", ctx, fav)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
 func (_m *MockKBFSOps) AddFavorite(ctx context.Context, fav Favorite) error {
 	ret := _m.ctrl.Call(_m, "AddFavorite", ctx, fav)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKBFSOpsRecorder) DeleteFavorite(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteFavorite", arg0, arg1)
-}
-
 func (_mr *_MockKBFSOpsRecorder) AddFavorite(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddFavorite", arg0, arg1)
+}
+
+func (_m *MockKBFSOps) DeleteFavorite(ctx context.Context, fav Favorite) error {
+	ret := _m.ctrl.Call(_m, "DeleteFavorite", ctx, fav)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKBFSOpsRecorder) DeleteFavorite(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteFavorite", arg0, arg1)
 }
 
 func (_m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, h *TlfHandle, branch BranchName) (Node, EntryInfo, error) {
@@ -1233,12 +1232,20 @@ func (_mr *_MockDirtyBlockCacheRecorder) RequestPermissionToDirty(arg0, arg1 int
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RequestPermissionToDirty", arg0, arg1)
 }
 
-func (_m *MockDirtyBlockCache) UpdateUnsyncedBytes(newUnsyncedBytes int64) {
-	_m.ctrl.Call(_m, "UpdateUnsyncedBytes", newUnsyncedBytes)
+func (_m *MockDirtyBlockCache) UpdateUnsyncedBytes(newUnsyncedBytes int64, wasSyncing bool) {
+	_m.ctrl.Call(_m, "UpdateUnsyncedBytes", newUnsyncedBytes, wasSyncing)
 }
 
-func (_mr *_MockDirtyBlockCacheRecorder) UpdateUnsyncedBytes(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateUnsyncedBytes", arg0)
+func (_mr *_MockDirtyBlockCacheRecorder) UpdateUnsyncedBytes(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateUnsyncedBytes", arg0, arg1)
+}
+
+func (_m *MockDirtyBlockCache) UpdateSyncingBytes(size int64) {
+	_m.ctrl.Call(_m, "UpdateSyncingBytes", size)
+}
+
+func (_mr *_MockDirtyBlockCacheRecorder) UpdateSyncingBytes(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdateSyncingBytes", arg0)
 }
 
 func (_m *MockDirtyBlockCache) BlockSyncFinished(size int64) {

@@ -61,6 +61,7 @@ type DirtyBlockCacheStandard struct {
 	lock               sync.RWMutex
 	cache              map[dirtyBlockID]Block
 	unsyncedDirtyBytes int64
+	syncingDirtyBytes  int64
 	totalDirtyBytes    int64
 }
 
@@ -163,8 +164,8 @@ const backpressureSlack = 1 * time.Second
 // accumulate more bytes to Sync than we can handle.  See KBFS-731.
 func (d *DirtyBlockCacheStandard) calcBackpressure(start time.Time,
 	deadline time.Time) time.Duration {
-	d.lock.Lock()
-	defer d.lock.Unlock()
+	d.lock.RLock()
+	defer d.lock.RUnlock()
 	if d.unsyncedDirtyBytes <= d.backpressureBeginsAt {
 		return 0
 	}
@@ -186,7 +187,6 @@ func (d *DirtyBlockCacheStandard) calcBackpressure(start time.Time,
 	if backpressureLeft < 0 {
 		return 0
 	}
-	fmt.Printf("Applying backpressure: %s\n", backpressureLeft)
 	return backpressureLeft
 }
 
@@ -293,14 +293,26 @@ func (d *DirtyBlockCacheStandard) signalDecreasedBytes() {
 
 // UpdateUnsyncedBytes implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
-func (d *DirtyBlockCacheStandard) UpdateUnsyncedBytes(newUnsyncedBytes int64) {
+func (d *DirtyBlockCacheStandard) UpdateUnsyncedBytes(newUnsyncedBytes int64,
+	wasSyncing bool) {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	d.unsyncedDirtyBytes += newUnsyncedBytes
 	d.totalDirtyBytes += newUnsyncedBytes
+	if wasSyncing {
+		d.syncingDirtyBytes += newUnsyncedBytes
+	}
 	if d.unsyncedDirtyBytes < 0 {
 		d.signalDecreasedBytes()
 	}
+}
+
+// UpdateSyncingBytes implements the DirtyBlockCache interface for
+// DirtyBlockCacheStandard.
+func (d *DirtyBlockCacheStandard) UpdateSyncingBytes(size int64) {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	d.syncingDirtyBytes += size
 }
 
 // BlockSyncFinished implements the DirtyBlockCache interface for
@@ -310,6 +322,7 @@ func (d *DirtyBlockCacheStandard) BlockSyncFinished(size int64) {
 	defer d.lock.Unlock()
 	d.unsyncedDirtyBytes -= size
 	if size > 0 {
+		d.syncingDirtyBytes -= size
 		d.signalDecreasedBytes()
 	}
 }
@@ -342,9 +355,11 @@ func (d *DirtyBlockCacheStandard) Shutdown() error {
 	d.lock.Lock()
 	defer d.lock.Unlock()
 	close(d.shutdownChan)
-	if d.unsyncedDirtyBytes != 0 || d.totalDirtyBytes != 0 {
+	if d.unsyncedDirtyBytes != 0 || d.totalDirtyBytes != 0 ||
+		d.syncingDirtyBytes != 0 {
 		return fmt.Errorf("Unexpected dirty bytes leftover on shutdown: "+
-			"unsynced=%d, total=%d", d.unsyncedDirtyBytes, d.totalDirtyBytes)
+			"unsynced=%d, syncing=%d, total=%d", d.unsyncedDirtyBytes,
+			d.syncingDirtyBytes, d.totalDirtyBytes)
 	}
 	return nil
 }
