@@ -86,7 +86,7 @@ const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path, 
   const icon: IconProps.type = styles.hasStuffIcon
 
   return (
-    <TouchableHighlight onPress={() => { console.log('hello'); onClick && onClick(path) }}>
+    <TouchableHighlight onPress={() => { onClick && onClick(path) }}>
       <Box style={containerStyle}>
         <Box style={{...globalStyles.flexBoxRow}}>
           <Avatars users={users} styles={styles} isPublic={isPublic} />
