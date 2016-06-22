@@ -32,6 +32,11 @@ ipcRenderer.on('display', (ev, msg) => {
 
   const appEl = document.getElementById('app')
   ReactDOM.render(displayTree, appEl, () => {
+    // Remove pesky blinking cursors
+    if (document.activeElement.tagName === 'INPUT') {
+      window.blur()
+    }
+
     // Unfortunately some resources lazy load after they're rendered.  We need
     // to give the renderer time to load.  After trying process.nextTick,
     // requestAnimationFrame, etc., simply putting in a time delay worked best.
