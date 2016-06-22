@@ -43,7 +43,7 @@ const userEntryFullnameStyle = {
 class Render extends Component<void, Props, void> {
   render () {
     return (
-      <TabBar>
+      <TabBar style={this.props.style} >
         <TabBarItem
           selected={this.props.currentTab === 'FOLLOWERS'}
           label={`FOLLOWERS (${this.props.followers.length})`}
@@ -70,6 +70,7 @@ const tabItemContainerStyle = {
   flex: 1,
   flexWrap: 'wrap',
   borderTop: `solid 1px ${globalColors.black_10}`,
+  overflowY: 'auto',
 }
 
 export default Render

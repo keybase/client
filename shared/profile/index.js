@@ -5,6 +5,7 @@ import Render from './render'
 import type {Props} from './render'
 import flags from '../util/feature-flags'
 import {getProfile, updateTrackers} from '../actions/tracker'
+import {routeAppend} from '../actions/router'
 
 // TEMP
 const usernames = ['chromakode', 'max', 'jzila', 'mikem', 'strib', 'zanderz', 'gabrielh', 'chris',
@@ -45,6 +46,9 @@ export default connect(
     refresh: username => {
       dispatch(getProfile(username))
       dispatch(updateTrackers(username))
+    },
+    onPushProfile: username => {
+      dispatch(routeAppend({path: 'profile', username}))
     },
   }),
   (stateProps, dispatchProps, ownProps) => {
