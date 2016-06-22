@@ -200,7 +200,7 @@ export default class Render extends Component<void, Props, void> {
 export const styles = {
   container: {
     paddingTop: 48,
-    overflow: 'scroll',
+    overflow: 'auto',
     flex: 1,
   },
   headerContainer: {

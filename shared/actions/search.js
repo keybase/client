@@ -1,5 +1,6 @@
 import * as Constants from '../constants/search'
 import {platformToIcon, platformToLogo32} from '../constants/search'
+import {capitalize} from 'lodash'
 import {filterNull} from '../util/arrays'
 
 import type {ExtraInfo, Search, Results, SelectPlatform} from '../constants/search'
@@ -21,10 +22,6 @@ type RawResult = Array<{
     full_name: ?string
   }
 }>
-
-function capitalize (string) {
-  return string.charAt(0).toUpperCase() + string.slice(1)
-}
 
 function parseFullName (rr: RawResult): string {
   if (rr.keybase && rr.keybase.full_name) {

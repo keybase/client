@@ -68,3 +68,16 @@ export function platformToLogo32 (platform: SearchPlatforms): IconType {
     'Pgp': 'icon-pgp-key-32',
   }[platform]
 }
+
+// TODO(mm) get Logo for Hn
+export function platformToLogo24 (platform: SearchPlatforms): IconType {
+  return {
+    'Keybase': 'keybase-logo-mascot-only-dz-2-24',
+    'Twitter': 'icon-twitter-logo-24',
+    'Github': 'icon-github-logo-24',
+    'Reddit': 'icon-reddit-logo-24',
+    'Coinbase': 'icon-coinbase-logo-24',
+    'Hackernews': 'placeholder-avatar-24-x-24',
+    'Pgp': 'icon-pgp-key-24',
+  }[platform]
+}
