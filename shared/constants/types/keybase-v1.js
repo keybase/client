@@ -93,6 +93,7 @@ export const constants = {
     'scstreamnotfound': 1502,
     'scstreamwrongkind': 1503,
     'scstreameof': 1504,
+    'scgenericapierror': 1600,
     'scapinetworkerror': 1601,
     'sctimeout': 1602,
     'scprooferror': 1701,

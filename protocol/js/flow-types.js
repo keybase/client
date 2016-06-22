@@ -1126,6 +1126,7 @@ export type StatusCode =
   | 1502 // SCStreamNotFound_1502
   | 1503 // SCStreamWrongKind_1503
   | 1504 // SCStreamEOF_1504
+  | 1600 // SCGenericAPIError_1600
   | 1601 // SCAPINetworkError_1601
   | 1602 // SCTimeout_1602
   | 1701 // SCProofError_1701
