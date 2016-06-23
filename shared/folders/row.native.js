@@ -79,8 +79,14 @@ const RowMeta = ({ignored, meta, styles}) => {
 const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path, onClick}: Folder & {isFirst: boolean, onClick: (path: string) => void}) => {
   const styles = isPublic ? stylesPublic : stylesPrivate
 
+  let backgroundColor = styles.rowContainer.backgroundColor
+  if (isPublic && ignored) {
+    backgroundColor = globalColors.white_40
+  }
+
   const containerStyle = {
     ...styles.rowContainer,
+    backgroundColor,
   }
 
   const icon: IconProps.type = styles.hasStuffIcon
