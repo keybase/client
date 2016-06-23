@@ -17,26 +17,16 @@ import (
 
 type CmdListTracking struct {
 	libkb.Contextified
-	uid      keybase1.UID
-	username string
-	filter   string
-	json     bool
-	verbose  bool
-	headers  bool
+	assertion string
+	filter    string
+	json      bool
+	verbose   bool
+	headers   bool
 }
 
 func (s *CmdListTracking) ParseArgv(ctx *cli.Context) error {
-	byUID := ctx.Bool("uid")
 	if len(ctx.Args()) == 1 {
-		if byUID {
-			var err error
-			s.uid, err = libkb.UIDFromHex(ctx.Args()[0])
-			if err != nil {
-				return fmt.Errorf("UID must be a 32-character hex string")
-			}
-		} else {
-			s.username = ctx.Args()[0]
-		}
+		s.assertion = ctx.Args()[0]
 	} else if len(ctx.Args()) > 1 {
 		return fmt.Errorf("list-tracking takes at most one argument")
 	}
@@ -120,16 +110,9 @@ func (s *CmdListTracking) Run() error {
 		return err
 	}
 
-	var assertion string
-	if s.uid.Exists() {
-		assertion = fmt.Sprintf("uid:%s", s.uid)
-	} else {
-		assertion = s.username
-	}
-
 	if s.json {
 		jsonStr, err := cli.ListTrackingJSON(context.TODO(), keybase1.ListTrackingJSONArg{
-			Assertion: assertion,
+			Assertion: s.assertion,
 			Filter:    s.filter,
 			Verbose:   s.verbose,
 		})
@@ -139,7 +122,7 @@ func (s *CmdListTracking) Run() error {
 		return DisplayJSON(jsonStr)
 	}
 
-	table, err := cli.ListTracking(context.TODO(), keybase1.ListTrackingArg{Filter: s.filter, Assertion: assertion})
+	table, err := cli.ListTracking(context.TODO(), keybase1.ListTrackingArg{Filter: s.filter, Assertion: s.assertion})
 	if err != nil {
 		return err
 	}
@@ -162,10 +145,6 @@ func NewCmdListTracking(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cli.BoolFlag{
 				Name:  "H, headers",
 				Usage: "Show column headers.",
-			},
-			cli.BoolFlag{
-				Name:  "i, uid",
-				Usage: "Load user by UID.",
 			},
 			cli.BoolFlag{
 				Name:  "j, json",

@@ -21,11 +21,10 @@ import (
 // all the trackers for a user.
 type CmdListTrackers struct {
 	libkb.Contextified
-	uid      keybase1.UID
-	username string
-	verbose  bool
-	json     bool
-	headers  bool
+	assertion string
+	verbose   bool
+	json      bool
+	headers   bool
 }
 
 // NewCmdListTrackers creates a new cli.Command.
@@ -38,10 +37,6 @@ func NewCmdListTrackers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cli.BoolFlag{
 				Name:  "H, headers",
 				Usage: "Show column headers.",
-			},
-			cli.BoolFlag{
-				Name:  "i, uid",
-				Usage: "Load user by UID.",
 			},
 			cli.BoolFlag{
 				Name:  "j, json",
@@ -92,10 +87,8 @@ func (c *CmdListTrackers) Run() error {
 	}
 
 	var trs []keybase1.Tracker
-	if c.uid.Exists() {
-		trs, err = cli.ListTrackers(context.TODO(), keybase1.ListTrackersArg{Uid: c.uid})
-	} else if len(c.username) > 0 {
-		trs, err = cli.ListTrackersByName(context.TODO(), keybase1.ListTrackersByNameArg{Username: c.username})
+	if len(c.assertion) > 0 {
+		trs, err = cli.ListTrackersByName(context.TODO(), keybase1.ListTrackersByNameArg{Username: c.assertion})
 	} else {
 		trs, err = cli.ListTrackersSelf(context.TODO(), 0)
 	}
@@ -211,17 +204,8 @@ func (c *CmdListTrackers) proofSummary(p keybase1.Proofs) string {
 
 // ParseArgv parses the command args.
 func (c *CmdListTrackers) ParseArgv(ctx *cli.Context) error {
-	byUID := ctx.Bool("uid")
 	if len(ctx.Args()) == 1 {
-		if byUID {
-			var err error
-			c.uid, err = libkb.UIDFromHex(ctx.Args()[0])
-			if err != nil {
-				return fmt.Errorf("UID must be a 32-character hex string")
-			}
-		} else {
-			c.username = ctx.Args()[0]
-		}
+		c.assertion = ctx.Args()[0]
 	}
 
 	c.verbose = ctx.Bool("verbose")
