@@ -12,36 +12,36 @@ type File struct {
 	Name string `codec:"name" json:"name"`
 }
 
-type FsListResult struct {
+type ListResult struct {
 	Files []File `codec:"files" json:"files"`
 }
 
-type FsListArg struct {
+type ListArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Path      string `codec:"path" json:"path"`
 }
 
 type FsInterface interface {
 	// List files in a path. Implemented by KBFS service.
-	FsList(context.Context, FsListArg) (FsListResult, error)
+	List(context.Context, ListArg) (ListResult, error)
 }
 
 func FsProtocol(i FsInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.fs",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"fsList": {
+			"List": {
 				MakeArg: func() interface{} {
-					ret := make([]FsListArg, 1)
+					ret := make([]ListArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]FsListArg)
+					typedArgs, ok := args.(*[]ListArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]FsListArg)(nil), args)
+						err = rpc.NewTypeError((*[]ListArg)(nil), args)
 						return
 					}
-					ret, err = i.FsList(ctx, (*typedArgs)[0])
+					ret, err = i.List(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -55,7 +55,7 @@ type FsClient struct {
 }
 
 // List files in a path. Implemented by KBFS service.
-func (c FsClient) FsList(ctx context.Context, __arg FsListArg) (res FsListResult, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.fs.fsList", []interface{}{__arg}, &res)
+func (c FsClient) List(ctx context.Context, __arg ListArg) (res ListResult, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.fs.List", []interface{}{__arg}, &res)
 	return
 }

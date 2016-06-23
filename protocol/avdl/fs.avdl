@@ -6,13 +6,13 @@ protocol fs {
     string name;
   }
 
-  record FsListResult {
+  record ListResult {
     array<File> files;
   }
 
   /**
    List files in a path. Implemented by KBFS service.
    */
-  FsListResult fsList(int sessionID, string path);
+  ListResult List(int sessionID, string path);
 
 }

@@ -302,10 +302,6 @@ export type ForkType =
   | 2 // WATCHDOG_2
   | 3 // LAUNCHD_3
 
-export type FsListResult = {
-  files: Array<File>;
-}
-
 export type FuseMountInfo = {
   path: string;
   fstype: string;
@@ -522,6 +518,10 @@ export type LinkCheckResult = {
   remoteDiff?: ?TrackDiff;
   hint?: ?SigHint;
   breaksTracking: boolean;
+}
+
+export type ListResult = {
+  files: Array<File>;
 }
 
 export type LogLevel =
@@ -1836,15 +1836,15 @@ export type favoriteGetFavoritesRpc = {
   callback: (null | (err: ?any, response: favoriteGetFavoritesResult) => void)
 }
 
-export type fsFsListResult = FsListResult
+export type fsListResult = ListResult
 
-export type fsFsListRpc = {
-  method: 'fs.fsList',
+export type fsListRpc = {
+  method: 'fs.List',
   param: {
     path: string
   },
   incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any, response: fsFsListResult) => void)
+  callback: (null | (err: ?any, response: fsListResult) => void)
 }
 
 export type gpgUiConfirmDuplicateKeyChosenResult = boolean
@@ -3638,7 +3638,7 @@ export type rpc =
   | favoriteFavoriteAddRpc
   | favoriteFavoriteIgnoreRpc
   | favoriteGetFavoritesRpc
-  | fsFsListRpc
+  | fsListRpc
   | gpgUiConfirmDuplicateKeyChosenRpc
   | gpgUiSelectKeyAndPushOptionRpc
   | gpgUiSelectKeyRpc
@@ -4229,14 +4229,14 @@ export type incomingCallMapType = {
       result: (result: favoriteGetFavoritesResult) => void
     }
   ) => void,
-  'keybase.1.fs.fsList'?: (
+  'keybase.1.fs.List'?: (
     params: {
       sessionID: int,
       path: string
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: fsFsListResult) => void
+      result: (result: fsListResult) => void
     }
   ) => void,
   'keybase.1.gpgUi.wantToAddGPGKey'?: (
