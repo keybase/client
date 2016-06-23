@@ -77,9 +77,6 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onOp
     backgroundColor,
   }
 
-  console.log('CONTAINERSTYLE')
-  console.log(containerStyle)
-  console.table(containerStyle)
   const icon: IconProps.type = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
 
   return (

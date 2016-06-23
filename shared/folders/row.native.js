@@ -89,10 +89,6 @@ const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path, 
     backgroundColor,
   }
 
-  console.log('CONTAINERSTYLE')
-  console.log(containerStyle)
-  console.log(backgroundColor)
-
   const icon: IconProps.type = styles.hasStuffIcon
 
   return (
