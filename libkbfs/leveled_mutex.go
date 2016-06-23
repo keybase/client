@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 	"sync"
+	"sync/atomic"
 )
 
 // The leveledMutex, leveledRWMutex, and lockState types enables a
@@ -24,27 +25,25 @@ import (
 // accessed exclusively. It immediately panics upon any lock
 // contention.
 type exclusiveLock struct {
-	// TODO: This can be replaced with an atomic value and
-	// compare-and-swap.
-	ch chan struct{}
+	v *int32
 }
 
 func makeExclusiveLock() exclusiveLock {
 	return exclusiveLock{
-		ch: make(chan struct{}, 1),
+		v: new(int32),
 	}
 }
 
 func (l exclusiveLock) lock() {
-	select {
-	case l.ch <- struct{}{}:
-	default:
+	if !atomic.CompareAndSwapInt32(l.v, 0, 1) {
 		panic("unexpected concurrent access")
 	}
 }
 
 func (l exclusiveLock) unlock() {
-	<-l.ch
+	if !atomic.CompareAndSwapInt32(l.v, 1, 0) {
+		panic("unexpected concurrent access")
+	}
 }
 
 // mutexLevel is the level for a mutex, which must be unique to that
