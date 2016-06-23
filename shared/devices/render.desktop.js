@@ -133,7 +133,7 @@ class Render extends Component<void, Props, State> {
     }
     `
     return (
-      <Box style={{stylesContainer, backgroundColor: globalColors.lightGrey}}>
+      <Box style={stylesContainer}>
         <DeviceHeader
           menuItems={this._items()}
           addNewDevice={() => this.setState({showingMenu: true})}
@@ -149,6 +149,8 @@ class Render extends Component<void, Props, State> {
 
 const stylesContainer = {
   ...globalStyles.scrollable,
+  backgroundColor: globalColors.lightGrey,
+  flexGrow: 1,
 }
 
 const stylesCommonRow = {
