@@ -457,9 +457,10 @@ func RestartCRForTesting(baseCtx context.Context, config Config,
 
 	ops := kbfsOps.getOpsNoAdd(folderBranch)
 	ops.cr.Restart(baseCtx)
+
 	// Start a resolution for anything we've missed.
-	if ops.staged {
-		lState := makeFBOLockState()
+	lState := makeFBOLockState()
+	if !ops.isMasterBranch(lState) {
 		ops.cr.Resolve(ops.getCurrMDRevision(lState),
 			MetadataRevisionUninitialized)
 	}

@@ -243,11 +243,6 @@ type folderBranchOps struct {
 	//     finished.
 	nodeCache NodeCache
 
-	// Set to true when we have staged, unmerged commits for this
-	// device.  This means the device has forked from the main branch
-	// seen by other devices.  Protected by mdWriterLock.
-	staged bool
-
 	// Whether we've identified this TLF or not.
 	identifyLock sync.Mutex
 	identifyDone bool
@@ -376,7 +371,7 @@ func (fbo *folderBranchOps) Shutdown() error {
 
 		if fbo.blocks.GetState(lState) == dirtyState {
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to dirty state")
-		} else if fbo.getStaged(lState) {
+		} else if !fbo.isMasterBranch(lState) {
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to being staged")
 		} else {
 			// Make sure we're up to date first
@@ -465,26 +460,30 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	return favorites.Delete(ctx, h.ToFavorite())
 }
 
-// getStaged should not be called if mdWriterLock is already taken.
-func (fbo *folderBranchOps) getStaged(lState *lockState) bool {
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-	return fbo.staged
-}
-
 func (fbo *folderBranchOps) getHead(lState *lockState) *RootMetadata {
 	fbo.headLock.RLock(lState)
 	defer fbo.headLock.RUnlock(lState)
 	return fbo.head
 }
 
-func (fbo *folderBranchOps) setStagedLocked(
-	lState *lockState, staged bool, bid BranchID) {
+// isMasterBranch should not be called if mdWriterLock is already taken.
+func (fbo *folderBranchOps) isMasterBranch(lState *lockState) bool {
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	return fbo.bid == NullBranchID
+}
+
+func (fbo *folderBranchOps) isMasterBranchLocked(lState *lockState) bool {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	fbo.staged = staged
+	return fbo.bid == NullBranchID
+}
+
+func (fbo *folderBranchOps) setBranchIDLocked(lState *lockState, bid BranchID) {
+	fbo.mdWriterLock.AssertLocked(lState)
+
 	fbo.bid = bid
-	if !staged {
+	if bid == NullBranchID {
 		fbo.status.setCRChains(nil, nil)
 	}
 }
@@ -566,7 +565,7 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 	// operating on unmerged data, initialize the state properly and
 	// kick off conflict resolution.
 	if isFirstHead && md.MergedStatus() == Unmerged {
-		fbo.setStagedLocked(lState, true, md.BID)
+		fbo.setBranchIDLocked(lState, md.BID)
 		// Use uninitialized for the merged branch; the unmerged
 		// revision is enough to trigger conflict resolution.
 		fbo.cr.Resolve(md.Revision, MetadataRevisionUninitialized)
@@ -1656,10 +1655,10 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	// finally, write out the new metadata
 	mdops := fbo.config.MDOps()
 
-	doUnmergedPut, wasStaged := true, fbo.staged
+	doUnmergedPut, wasMasterBranch := true, fbo.isMasterBranchLocked(lState)
 	mergedRev := MetadataRevisionUninitialized
 
-	if !fbo.staged {
+	if fbo.isMasterBranchLocked(lState) {
 		// only do a normal Put if we're not already staged.
 		err = mdops.Put(ctx, md)
 		doUnmergedPut = fbo.isRevisionConflict(err)
@@ -1679,7 +1678,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	if doUnmergedPut {
 		// We're out of date, so put it as an unmerged MD.
 		var bid BranchID
-		if !wasStaged {
+		if wasMasterBranch {
 			// new branch ID
 			crypto := fbo.config.Crypto()
 			if bid, err = crypto.MakeRandomBranchID(); err != nil {
@@ -1695,10 +1694,10 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 			// returning this error.
 			return err
 		}
-		fbo.setStagedLocked(lState, true, bid)
+		fbo.setBranchIDLocked(lState, bid)
 		fbo.cr.Resolve(md.Revision, mergedRev)
 	} else {
-		if fbo.staged {
+		if !fbo.isMasterBranchLocked(lState) {
 			// If we were staged, prune all unmerged history now
 			err = fbo.config.MDServer().PruneBranch(ctx, fbo.id(), fbo.bid)
 			if err != nil {
@@ -1706,7 +1705,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 			}
 		}
 
-		fbo.setStagedLocked(lState, false, NullBranchID)
+		fbo.setBranchIDLocked(lState, NullBranchID)
 
 		if md.IsRekeySet() && !md.IsWriterMetadataCopiedSet() {
 			// Queue this folder for rekey if the bit was set and it's not a copy.
@@ -1763,7 +1762,7 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 		return err
 	}
 
-	fbo.setStagedLocked(lState, false, NullBranchID)
+	fbo.setBranchIDLocked(lState, NullBranchID)
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
@@ -1826,7 +1825,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 		return err
 	}
 
-	fbo.setStagedLocked(lState, false, NullBranchID)
+	fbo.setBranchIDLocked(lState, NullBranchID)
 	md.swapCachedBlockChanges()
 
 	fbo.headLock.Lock(lState)
@@ -3152,7 +3151,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 
 	// if we have staged changes, ignore all updates until conflict
 	// resolution kicks in.  TODO: cache these for future use.
-	if fbo.staged {
+	if !fbo.isMasterBranchLocked(lState) {
 		if len(rmds) > 0 {
 			unmergedRev := MetadataRevisionUninitialized
 			if fbo.head != nil {
@@ -3321,7 +3320,7 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	// being currHead-1, so that future calls to
 	// applyMDUpdates will fetch this along with the rest of
 	// the updates.
-	fbo.setStagedLocked(lState, false, NullBranchID)
+	fbo.setBranchIDLocked(lState, NullBranchID)
 
 	rmds, err := getMDRange(ctx, fbo.config, fbo.id(), NullBranchID,
 		currHead, currHead, Merged)
@@ -3365,14 +3364,14 @@ func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// fetch all of my unstaged updates, and undo them one at a time
-	bid, wasStaged := fbo.bid, fbo.staged
+	bid, wasMasterBranch := fbo.bid, fbo.isMasterBranchLocked(lState)
 	unmergedPtrs, err := fbo.undoUnmergedMDUpdatesLocked(ctx, lState)
 	if err != nil {
 		return err
 	}
 
 	// let the server know we no longer have need
-	if wasStaged {
+	if !wasMasterBranch {
 		err = fbo.config.MDServer().PruneBranch(ctx, fbo.id(), bid)
 		if err != nil {
 			return err
@@ -3413,7 +3412,7 @@ func (fbo *folderBranchOps) UnstageForTesting(
 	return runUnlessCanceled(ctx, func() error {
 		lState := makeFBOLockState()
 
-		if !fbo.getStaged(lState) {
+		if fbo.isMasterBranch(lState) {
 			// no-op
 			return nil
 		}
@@ -3453,7 +3452,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 	lState *lockState, promptPaper bool) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
-	if fbo.staged {
+	if !fbo.isMasterBranchLocked(lState) {
 		return errors.New("Can't rekey while staged.")
 	}
 
@@ -3647,12 +3646,12 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 
 	lState := makeFBOLockState()
 
-	if fbo.getStaged(lState) {
+	if !fbo.isMasterBranch(lState) {
 		if err := fbo.cr.Wait(ctx); err != nil {
 			return err
 		}
 		// If we are still staged after the wait, then we have a problem.
-		if fbo.getStaged(lState) {
+		if !fbo.isMasterBranch(lState) {
 			return fmt.Errorf("Conflict resolution didn't take us out of " +
 				"staging.")
 		}
@@ -3950,7 +3949,7 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 			"successful put: %v", err)
 		return err
 	}
-	fbo.setStagedLocked(lState, false, NullBranchID)
+	fbo.setBranchIDLocked(lState, NullBranchID)
 
 	// Archive the old, unref'd blocks
 	fbo.fbm.archiveUnrefBlocks(md)
