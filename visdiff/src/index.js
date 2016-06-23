@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import os from 'os'
 import process from 'process'
 import fs from 'fs'
 import path from 'path'
@@ -176,7 +177,7 @@ function processDiff (commitRange, results) {
   })
 
   if (commentLines.length > 0) {
-    commentLines.unshift(`:mag_right: The commits ${commitRange[0]}...${commitRange[1]} introduced some visual changes:`)
+    commentLines.unshift(`:mag_right: The commits ${commitRange[0]}...${commitRange[1]} introduced some visual changes on ${os.platform()}:`)
     const commentBody = commentLines.join('\n')
 
     if (!DRY_RUN) {
@@ -233,6 +234,6 @@ const commitRange = process.argv[2]
   .map(s => s.substr(0, 12))  // trim the hashes a bit for shorter paths
 
 console.log(`Performing visual diff of ${commitRange[0]}...${commitRange[1]}:`)
-const diffDir = `${Date.now()}-${commitRange[0]}-${commitRange[1]}`
+const diffDir = `${Date.now()}-${commitRange[0]}-${commitRange[1]}-${os.platform()}`
 renderScreenshots(commitRange)
 compareScreenshots(commitRange, diffDir, processDiff)
