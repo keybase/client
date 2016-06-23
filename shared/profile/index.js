@@ -14,7 +14,7 @@ class Profile extends Component<void, Props, void> {
         title: 'Profile',
         props: {
           username: currentPath.get('username'),
-          profileIsRoot: uri.count() && uri.last().get('path') === 'root',
+          profileIsRoot: !!uri.count() && uri.last().get('path') === 'root',
         },
       },
       subRoutes: {},
