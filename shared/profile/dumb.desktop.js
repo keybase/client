@@ -2,6 +2,8 @@
 import Profile from './render'
 import {normal, checking, revoked, error, metaNone} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
+import {fakeFollowers, fakeFollowing} from './friendships.dumb'
+import {globalStyles} from '../styles/style-guide'
 import type {Props as RenderProps} from './render'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {UserInfo} from '../common-adapters/user-bio'
@@ -84,8 +86,8 @@ const propsBase: RenderProps = {
   tlfs: folders,
   trackerState: normal,
   currentlyFollowing: false,
-  trackers: [],
-  tracking: [],
+  trackers: fakeFollowers,
+  tracking: fakeFollowing,
   onPushProfile: username => console.log('onpush', username),
   onBack: () => console.log('onBack'),
   refresh: () => console.log('refresh'),
@@ -94,6 +96,7 @@ const propsBase: RenderProps = {
   onAcceptProofs: () => console.log('onAcceptProofs'),
   parentProps: {
     style: {
+      ...globalStyles.flexBoxColumn,
       width: 640,
       height: 578,
     },
