@@ -39,16 +39,16 @@ export default class ProofsRender extends Component {
 
     const meta = proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: metaBackgroundColor}} />
 
-    const proofIcon = proofStatusIconType && <Icon type={proofStatusIconType} style={styles.statusIcon} onClick={() => this._onClickProof(proof)} />
+    const proofIcon = proofStatusIconType && <Icon type={proofStatusIconType} style={stylesStatusIcon} onClick={() => this._onClickProof(proof)} />
 
     return (
-      <View style={{...styles.row, paddingTop: idx > 0 ? 8 : 0}} key={`${proof.id}${proof.type}`}>
-        <Icon style={styles.service} type={shared.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
-        <View style={styles.proofNameSection}>
-          <View style={styles.proofNameLabelContainer}>
-            <Text inline className='hover-underline-container' type='Body' onPress={onClickProfile} style={styles.proofName}>
+      <View style={{...stylesRow, paddingTop: idx > 0 ? 8 : 0}} key={`${proof.id}${proof.type}`}>
+        <Icon style={stylesService} type={shared.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
+        <View style={stylesProofNameSection}>
+          <View style={stylesProofNameLabelContainer}>
+            <Text inline className='hover-underline-container' type='Body' onPress={onClickProfile} style={stylesProofName}>
               <Text inline type='Body' className='underline' style={proofNameStyle}>{proof.name}</Text>
-              <Text className='no-underline' inline type='Body' style={styles.proofType}>@{proof.type}</Text>
+              <Text className='no-underline' inline type='Body' style={stylesProofType}>@{proof.type}</Text>
             </Text>
             {meta}
           </View>
@@ -60,56 +60,54 @@ export default class ProofsRender extends Component {
 
   render () {
     return (
-      <View style={styles.container}>
+      <View style={stylesContainer}>
         {this.props.proofs.map((p, idx) => this._renderProofRow(p, idx))}
       </View>
     )
   }
 }
 
-const styles = {
-  container: {
-    ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColors.white,
-    paddingTop: 16,
-    paddingBottom: 16,
-    alignItems: 'stretch',
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.medium,
-  },
-  row: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start',
-    // RN-BUG: set maxWidth once that prop is supported
-  },
-  service: {
-    ...globalStyles.clickable,
-    fontSize: 20,
-    width: 22,
-    textAlign: 'center',
-    color: globalColors.black_75,
-    marginRight: globalMargins.small,
-  },
-  statusIcon: {
-    ...globalStyles.clickable,
-    fontSize: 24,
-    marginLeft: globalMargins.small,
-  },
-  proofNameSection: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
-    flex: 1,
-  },
-  proofNameLabelContainer: {
-    ...globalStyles.flexBoxColumn,
-    flex: 1,
-  },
-  proofName: {
-    ...globalStyles.clickable,
-    flex: 1,
-  },
-  proofType: {
-    color: globalColors.black_10,
-  },
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.white,
+  paddingTop: 16,
+  paddingBottom: 16,
+  alignItems: 'stretch',
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+}
+const stylesRow = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start',
+  // RN-BUG: set maxWidth once that prop is supported
+}
+const stylesService = {
+  ...globalStyles.clickable,
+  fontSize: 20,
+  width: 22,
+  textAlign: 'center',
+  color: globalColors.black_75,
+  marginRight: globalMargins.small,
+}
+const stylesStatusIcon = {
+  ...globalStyles.clickable,
+  fontSize: 24,
+  marginLeft: globalMargins.small,
+}
+const stylesProofNameSection = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
+  flex: 1,
+}
+const stylesProofNameLabelContainer = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+}
+const stylesProofName = {
+  ...globalStyles.clickable,
+  flex: 1,
+}
+const stylesProofType = {
+  color: globalColors.black_10,
 }
