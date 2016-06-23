@@ -89,7 +89,7 @@ const RevokedDevices = ({revokedDevices, showExistingDevicePage}) => (
 )
 
 const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
-  <Box style={{...stylesCommonRow, ...globalStyles.clickable}} onClick={addNewDevice}>
+  <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white}} onClick={addNewDevice}>
     <Box style={stylesCommonColumn}>
       <Icon type='devices-add-s' />
     </Box>
@@ -133,7 +133,7 @@ class Render extends Component<void, Props, State> {
     }
     `
     return (
-      <Box style={stylesContainer}>
+      <Box style={{stylesContainer, backgroundColor: globalColors.lightGrey}}>
         <DeviceHeader
           menuItems={this._items()}
           addNewDevice={() => this.setState({showingMenu: true})}
