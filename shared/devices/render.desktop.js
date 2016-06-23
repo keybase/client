@@ -56,7 +56,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
     <Box
       className='existing-device-container'
       key={device.name}
-      style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.lightGrey : globalColors.white}}>
+      style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.white_40 : globalColors.white}}>
       <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
         <Icon type={icon} />
       </Box>
@@ -89,7 +89,7 @@ const RevokedDevices = ({revokedDevices, showExistingDevicePage}) => (
 )
 
 const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
-  <Box style={{...stylesCommonRow, ...globalStyles.clickable}} onClick={addNewDevice}>
+  <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white}} onClick={addNewDevice}>
     <Box style={stylesCommonColumn}>
       <Icon type='devices-add-s' />
     </Box>
@@ -149,6 +149,8 @@ class Render extends Component<void, Props, State> {
 
 const stylesContainer = {
   ...globalStyles.scrollable,
+  backgroundColor: globalColors.lightGrey,
+  flexGrow: 1,
 }
 
 const stylesCommonRow = {

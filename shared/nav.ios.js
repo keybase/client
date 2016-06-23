@@ -11,6 +11,7 @@ import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
 
 import Devices from './devices'
+import Folders from './folders'
 import NoTab from './no-tab'
 import Settings from './settings'
 import Profile from './profile'
@@ -34,7 +35,7 @@ import hello from './util/hello'
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
   [profileTab]: {module: Profile, name: 'Profile'},
-  [folderTab]: {module: Settings, name: 'Folders'},
+  [folderTab]: {module: Folders, name: 'Folders'},
   [chatTab]: {module: Settings, name: 'Chat'},
   [peopleTab]: {module: Settings, name: 'People'},
   [devicesTab]: {module: Devices, name: 'Devices'},

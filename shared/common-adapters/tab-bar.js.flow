@@ -6,7 +6,7 @@ import type {$Exact} from '../constants/types/more'
 import type {IconType} from './icon'
 
 export type Props = $Exact<{
-  style?: Object,
+  style?: ?Object,
   styleTabBar?: Object,
   children?: Array<React$Element<ItemProps>>,
   tabBarOnBottom?: boolean,

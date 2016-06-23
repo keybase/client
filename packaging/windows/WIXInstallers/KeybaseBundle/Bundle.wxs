@@ -3,8 +3,8 @@
      xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Bundle Name="Keybase" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="418432ab-0366-40fd-a396-8cc0c4200252">
-    <Variable Name="DokanProduct64" Type="string" Value="{65A3A964-3DC3-0100-0000-160616123622}" />
-    <Variable Name="DokanProduct86" Type="string" Value="{65A3A986-3DC3-0100-0000-160616123622}" />
+    <Variable Name="DokanProduct64" Type="string" Value="{65A3A964-3DC3-0100-0000-160621082245}" />
+    <Variable Name="DokanProduct86" Type="string" Value="{65A3A986-3DC3-0100-0000-160621082245}" />
     <Log PathVariable="LOGPATH_PROP"/>
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication

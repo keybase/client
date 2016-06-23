@@ -65,12 +65,13 @@ protocol user {
   array<PublicKey> loadPublicKeys(int sessionID, UID uid);
 
   /**
-    The list-tracking function get verified data from the tracking statements
-    in the user's own sigchain.
-    */
-  array<UserSummary> listTracking(int sessionID, string filter);
-  string listTrackingJSON(int sessionID, string filter, boolean verbose);
+    The list-tracking functions get verified data from the tracking statements
+    in the user's sigchain.
 
+    If assertion is empty, it will use the current logged in user.
+    */
+  array<UserSummary> listTracking(int sessionID, string filter, string assertion);
+  string listTrackingJSON(int sessionID, string filter, boolean verbose, string assertion);
 
   record SearchComponent {
     string key;

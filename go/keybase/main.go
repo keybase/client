@@ -123,7 +123,12 @@ func mainInner(g *libkb.GlobalContext) error {
 		return err
 	}
 
-	return cmd.Run()
+	err = cmd.Run()
+	if !cl.IsService() {
+		// Errors that come up in printing this warning are logged but ignored.
+		client.PrintOutOfDateWarnings(g)
+	}
+	return err
 }
 
 // AutoFork? Standalone? ClientServer? Brew service?  This function deals with the

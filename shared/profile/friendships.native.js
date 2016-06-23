@@ -4,9 +4,9 @@ import {TouchableHighlight} from 'react-native'
 import {Box, Avatar, Text} from '../common-adapters'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import type {Props, UserInfo} from './friendships'
+import type {Props, FriendshipUserInfo} from './friendships'
 
-type UserEntryProps = UserInfo & {
+type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void
 }
 
@@ -44,10 +44,10 @@ class Render extends Component<void, Props, void> {
     return (
       <TabBar>
         <TabBarItem
-          selected={this.props.currentTab === 'FOLLOWERS'}
+          selected={this.props.currentTab === 'Followers'}
           label={'FOLLOWERS'}
           styleContainer={{flex: 1}}
-          onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('FOLLOWERS') }}>
+          onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Followers') }}>
           <Box style={tabItemContainerStyle}>
             <Box style={tabItemContainerTopBorder} />
             <Box style={tabItemContainerUsers}>
@@ -56,10 +56,10 @@ class Render extends Component<void, Props, void> {
           </Box>
         </TabBarItem>
         <TabBarItem
-          selected={this.props.currentTab === 'FOLLOWING'}
+          selected={this.props.currentTab === 'Following'}
           label={'FOLLOWING'}
           styleContainer={{flex: 1}}
-          onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('FOLLOWING') }}>
+          onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Following') }}>
           <Box style={tabItemContainerStyle}>
             <Box style={tabItemContainerTopBorder} />
             <Box style={tabItemContainerUsers}>

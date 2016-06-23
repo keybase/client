@@ -33,7 +33,7 @@ const dumbMapUser: DumbComponentMap<UserPane> = {
       parentProps: {
         style: {
           width: 320,
-          height: 400,
+          height: 420,
         },
       },
     },

@@ -70,18 +70,19 @@ type GlobalContext struct {
 	NotifyRouter      *NotifyRouter      // How to route notifications
 	// How to route UIs. Nil if we're in standalone mode or in
 	// tests, and non-nil in service mode.
-	UIRouter            UIRouter            // How to route UIs
-	ProofCheckerFactory ProofCheckerFactory // Makes new ProofCheckers
-	ExitCode            keybase1.ExitCode   // Value to return to OS on Exit()
-	RateLimits          *RateLimits         // tracks the last time certain actions were taken
-	clockMu             sync.Mutex          // protects Clock
-	clock               clockwork.Clock     // RealClock unless we're testing
-	SecretStoreAll      SecretStoreAll      // nil except for tests and supported platforms
-	hookMu              sync.RWMutex        // protects loginHooks, logoutHooks
-	loginHooks          []LoginHook         // call these on login
-	logoutHooks         []LogoutHook        // call these on logout
-	GregorDismisser     GregorDismisser     // for dismissing gregor items that we've handled
-	GregorListener      GregorListener      // for alerting about clients connecting and registering UI protocols
+	UIRouter            UIRouter               // How to route UIs
+	ProofCheckerFactory ProofCheckerFactory    // Makes new ProofCheckers
+	ExitCode            keybase1.ExitCode      // Value to return to OS on Exit()
+	RateLimits          *RateLimits            // tracks the last time certain actions were taken
+	clockMu             sync.Mutex             // protects Clock
+	clock               clockwork.Clock        // RealClock unless we're testing
+	SecretStoreAll      SecretStoreAll         // nil except for tests and supported platforms
+	hookMu              sync.RWMutex           // protects loginHooks, logoutHooks
+	loginHooks          []LoginHook            // call these on login
+	logoutHooks         []LogoutHook           // call these on logout
+	GregorDismisser     GregorDismisser        // for dismissing gregor items that we've handled
+	GregorListener      GregorListener         // for alerting about clients connecting and registering UI protocols
+	OutOfDateInfo       keybase1.OutOfDateInfo // Stores out of date messages we got from API server headers.
 }
 
 func NewGlobalContext() *GlobalContext {

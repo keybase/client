@@ -34,8 +34,8 @@ class Render extends Component<void, Props, void> {
 
   render () {
     return (
-      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
-        <TabBar styleTabBar={tabBarStyle}>
+      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.lightGrey}}>
+        <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
           <TabBarItem
             selected={this.props.showingPrivate}
             styleContainer={itemContainerStyle}

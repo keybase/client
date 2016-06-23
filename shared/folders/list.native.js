@@ -59,6 +59,7 @@ class Render extends Component<void, Props, State> {
             {...t}
             isPublic={this.props.isPublic}
             ignored={false}
+            onClick={this.props.onClick}
             isFirst={!idx} />
           ))}
         <Ignored ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles}

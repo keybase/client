@@ -12,7 +12,6 @@ import favorite from './favorite'
 import login from './login'
 import pinentry from './pinentry'
 import notifications from './notifications'
-import profile from './profile'
 import search from './search'
 import serialize from './serialize'
 import signup from './signup'
@@ -46,7 +45,6 @@ const combinedReducer = combineReducers({
   devices,
   tabbedRouter,
   search,
-  profile,
   config,
   tracker,
   pinentry,

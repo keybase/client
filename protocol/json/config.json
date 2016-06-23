@@ -296,6 +296,24 @@
           "name": "o"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "OutOfDateInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "upgradeTo"
+        },
+        {
+          "type": "string",
+          "name": "upgradeURI"
+        },
+        {
+          "type": "string",
+          "name": "customMessage"
+        }
+      ]
     }
   ],
   "messages": {
@@ -400,6 +418,11 @@
         }
       ],
       "response": "ConfigValue"
+    },
+    "checkAPIServerOutOfDateWarning": {
+      "request": [],
+      "response": "OutOfDateInfo",
+      "doc": "Check whether the API server has told us we're out of date."
     }
   },
   "namespace": "keybase.1"

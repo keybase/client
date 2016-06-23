@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import {Box, UserProofs, UserBio} from '../../common-adapters'
 import {userHeaderColor, UserActions} from '../../profile/common.desktop'
 import {globalColors, globalStyles, globalMargins} from '../../styles/style-guide'
+import {AVATAR_SIZE, HEADER_TOP_SPACE, HEADER_SIZE} from '../../profile/render.desktop'
 import type {Props} from './user.render'
 
 export default class Render extends Component<void, Props, void> {
@@ -16,8 +17,8 @@ export default class Render extends Component<void, Props, void> {
           <Box style={{...styleHeader, backgroundColor: headerColor}} />
           <UserBio
             type='Tracker'
-            avatarSize={112}
-            style={{marginTop: 39}}
+            avatarSize={AVATAR_SIZE}
+            style={{marginTop: HEADER_TOP_SPACE}}
             username={this.props.username}
             userInfo={this.props.userInfo}
             trackerState={this.props.trackerState}
@@ -60,7 +61,7 @@ const styleScroller = {
 const styleHeader = {
   position: 'absolute',
   width: '100%',
-  height: 96,
+  height: HEADER_SIZE,
 }
 
 const styleActionBox = {

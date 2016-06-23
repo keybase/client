@@ -223,7 +223,8 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 
 	g.ibmHandlers = append(g.ibmHandlers, handler)
 
-	if _, err := g.replayInBandMessages(context.TODO(), time.Time{}, handler); err != nil {
+	if _, err := g.replayInBandMessages(context.TODO(), gregor1.IncomingClient{Cli: g.cli},
+		time.Time{}, handler); err != nil {
 		g.Errorf("replayInBandMessages on PushHandler failed: %s", err)
 	}
 }
@@ -276,8 +277,9 @@ func (g *gregorHandler) pushOutOfBandMessages(m []gregor1.OutOfBandMessage) {
 // the given time. If a handler is specified, it will only replay using it,
 // otherwise it will try all of them. gregorHandler needs to be locked when calling
 // this function.
-func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
-	handler libkb.GregorInBandMessageHandler) ([]gregor.InBandMessage, error) {
+func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.IncomingInterface,
+	t time.Time, handler libkb.GregorInBandMessageHandler) ([]gregor.InBandMessage, error) {
+
 	var msgs []gregor.InBandMessage
 	var err error
 	if msgs, err = g.gregorCli.StateMachineInBandMessagesSince(t); err != nil {
@@ -290,9 +292,9 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
 		// If we have a handler, just run it on that, otherwise run it against
 		// all of the handlers we know about
 		if handler == nil {
-			err = g.handleInBandMessage(ctx, msg)
+			err = g.handleInBandMessage(ctx, cli, msg)
 		} else {
-			_, err = g.handleInBandMessageWithHandler(ctx, msg, handler)
+			_, err = g.handleInBandMessageWithHandler(ctx, cli, msg, handler)
 		}
 		if err != nil {
 			return nil, err
@@ -332,7 +334,7 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	}
 
 	// Replay in-band messages
-	replayedMsgs, err := g.replayInBandMessages(ctx, t, nil)
+	replayedMsgs, err := g.replayInBandMessages(ctx, cli, t, nil)
 	if err != nil {
 		g.Errorf("replay messages failed: %s", err)
 		return nil, nil, err
@@ -427,7 +429,7 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 
 		g.Debug("broadcast: in-band message: msgID: %s Ctime: %s",
 			m.ToInBandMessage().Metadata().MsgID(), m.ToInBandMessage().Metadata().CTime())
-		return g.handleInBandMessage(ctx, ibm)
+		return g.handleInBandMessage(ctx, gregor1.IncomingClient{Cli: g.cli}, ibm)
 	}
 
 	obm := m.ToOutOfBandMessage()
@@ -443,14 +445,16 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 
 // handleInBandMessage runs a message on all the alive handlers. gregorHandler
 // must be locked when calling this function.
-func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBandMessage) error {
+func (g *gregorHandler) handleInBandMessage(ctx context.Context, cli gregor1.IncomingInterface,
+	ibm gregor.InBandMessage) error {
+
 	var freshHandlers []libkb.GregorInBandMessageHandler
 
 	// Loop over all handlers and run the messages against any that are alive
 	// If the handler is not alive, we prune it from our list
 	for _, handler := range g.ibmHandlers {
 		if handler.IsAlive() {
-			if handled, err := g.handleInBandMessageWithHandler(ctx, ibm, handler); err != nil {
+			if handled, err := g.handleInBandMessageWithHandler(ctx, cli, ibm, handler); err != nil {
 				if handled {
 					// only bail out of this loop if the handler was supposed to handle this message and failed
 					g.Errorf("failed to run %s handler: %s", handler.Name(), err)
@@ -468,7 +472,7 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 }
 
 // handleInBandMessageWithHandler runs a message against the specified handler
-func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
+func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context, cli gregor1.IncomingInterface,
 	ibm gregor.InBandMessage, handler libkb.GregorInBandMessageHandler) (bool, error) {
 	g.Debug("handleInBand: %+v", ibm)
 
@@ -498,7 +502,7 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 				g.Debug("item %s has category %s", id, category)
 			}
 
-			if handled, err := handler.Create(ctx, category, item); err != nil {
+			if handled, err := handler.Create(ctx, cli, category, item); err != nil {
 				return handled, err
 			}
 		}
@@ -520,7 +524,7 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 					g.Debug("dismissal %s has category %s", id, category)
 				}
 
-				if handled, err := handler.Dismiss(ctx, category, item); handled && err != nil {
+				if handled, err := handler.Dismiss(ctx, cli, category, item); handled && err != nil {
 					return handled, err
 				}
 
@@ -538,25 +542,31 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 	return false, nil
 }
 
-func (h IdentifyUIHandler) Create(ctx context.Context, category string, item gregor.Item) (bool, error) {
+func (h IdentifyUIHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string,
+	item gregor.Item) (bool, error) {
+
 	switch category {
 	case "show_tracker_popup":
-		return true, h.handleShowTrackerPopupCreate(ctx, item)
+		return true, h.handleShowTrackerPopupCreate(ctx, cli, item)
 	}
 
 	return false, nil
 }
 
-func (h IdentifyUIHandler) Dismiss(ctx context.Context, category string, item gregor.Item) (bool, error) {
+func (h IdentifyUIHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string,
+	item gregor.Item) (bool, error) {
+
 	switch category {
 	case "show_tracker_popup":
-		return true, h.handleShowTrackerPopupDismiss(ctx, item)
+		return true, h.handleShowTrackerPopupDismiss(ctx, cli, item)
 	}
 
 	return false, nil
 }
 
-func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, item gregor.Item) error {
+func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, cli gregor1.IncomingInterface,
+	item gregor.Item) error {
+
 	h.G().Log.Debug("handleShowTrackerPopupCreate: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor handler for show_tracker_popup: nil message body")
@@ -610,7 +620,9 @@ func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, ite
 	return identifyEng.Run(&engineContext)
 }
 
-func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, item gregor.Item) error {
+func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, cli gregor1.IncomingInterface,
+	item gregor.Item) error {
+
 	h.G().Log.Debug("handleShowTrackerPopupDismiss: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor dismissal for show_tracker_popup: nil message body")
