@@ -3464,7 +3464,8 @@ export type userListTrackingJSONRpc = {
   method: 'user.listTrackingJSON',
   param: {
     filter: string,
-    verbose: boolean
+    verbose: boolean,
+    assertion: string
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userListTrackingJSONResult) => void)
@@ -3475,7 +3476,8 @@ export type userListTrackingResult = Array<UserSummary>
 export type userListTrackingRpc = {
   method: 'user.listTracking',
   param: {
-    filter: string
+    filter: string,
+    assertion: string
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userListTrackingResult) => void)
@@ -5853,7 +5855,8 @@ export type incomingCallMapType = {
   'keybase.1.user.listTracking'?: (
     params: {
       sessionID: int,
-      filter: string
+      filter: string,
+      assertion: string
     },
     response: {
       error: (err: RPCError) => void,
@@ -5864,7 +5867,8 @@ export type incomingCallMapType = {
     params: {
       sessionID: int,
       filter: string,
-      verbose: boolean
+      verbose: boolean,
+      assertion: string
     },
     response: {
       error: (err: RPCError) => void,

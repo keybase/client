@@ -98,12 +98,14 @@ type LoadPublicKeysArg struct {
 type ListTrackingArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Filter    string `codec:"filter" json:"filter"`
+	Assertion string `codec:"assertion" json:"assertion"`
 }
 
 type ListTrackingJSONArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Filter    string `codec:"filter" json:"filter"`
 	Verbose   bool   `codec:"verbose" json:"verbose"`
+	Assertion string `codec:"assertion" json:"assertion"`
 }
 
 type SearchArg struct {
@@ -131,8 +133,10 @@ type UserInterface interface {
 	LoadUserPlusKeys(context.Context, LoadUserPlusKeysArg) (UserPlusKeys, error)
 	// Load public keys for a user.
 	LoadPublicKeys(context.Context, LoadPublicKeysArg) ([]PublicKey, error)
-	// The list-tracking function get verified data from the tracking statements
-	// in the user's own sigchain.
+	// The list-tracking functions get verified data from the tracking statements
+	// in the user's sigchain.
+	//
+	// If assertion is empty, it will use the current logged in user.
 	ListTracking(context.Context, ListTrackingArg) ([]UserSummary, error)
 	ListTrackingJSON(context.Context, ListTrackingJSONArg) (string, error)
 	// Search for users who match a given query.
@@ -393,8 +397,10 @@ func (c UserClient) LoadPublicKeys(ctx context.Context, __arg LoadPublicKeysArg)
 	return
 }
 
-// The list-tracking function get verified data from the tracking statements
-// in the user's own sigchain.
+// The list-tracking functions get verified data from the tracking statements
+// in the user's sigchain.
+//
+// If assertion is empty, it will use the current logged in user.
 func (c UserClient) ListTracking(ctx context.Context, __arg ListTrackingArg) (res []UserSummary, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.listTracking", []interface{}{__arg}, &res)
 	return
