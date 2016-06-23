@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 	"strings"
+	"sync"
 
 	"github.com/keybase/go-crypto/ssh/terminal"
 )
@@ -21,6 +22,7 @@ type MinTerm struct {
 	closeTermOut bool
 	width        int
 	height       int
+	stateMu      sync.Mutex // protects raw, oldState
 	raw          bool
 	oldState     *terminal.State
 }
@@ -97,6 +99,8 @@ func (m *MinTerm) readSecret() (string, error) {
 }
 
 func (m *MinTerm) makeRaw() error {
+	m.stateMu.Lock()
+	defer m.stateMu.Unlock()
 	fd := int(m.fdIn())
 	oldState, err := terminal.MakeRaw(fd)
 	if err != nil {
@@ -108,6 +112,8 @@ func (m *MinTerm) makeRaw() error {
 }
 
 func (m *MinTerm) restore() {
+	m.stateMu.Lock()
+	defer m.stateMu.Unlock()
 	if !m.raw {
 		return
 	}
