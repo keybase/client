@@ -516,6 +516,10 @@ export type LinkCheckResult = {
   breaksTracking: boolean;
 }
 
+export type ListResult = {
+  paths: Array<Path>;
+}
+
 export type LogLevel =
     0 // NONE_0
   | 1 // DEBUG_1
@@ -724,6 +728,10 @@ export type PassphraseType =
   | 1 // PAPER_KEY_1
   | 2 // PASS_PHRASE_2
   | 3 // VERIFY_PASS_PHRASE_3
+
+export type Path = {
+  name: string;
+}
 
 export type PlatformInfo = {
   os: string;
@@ -1826,6 +1834,17 @@ export type favoriteGetFavoritesRpc = {
   method: 'favorite.getFavorites',
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: favoriteGetFavoritesResult) => void)
+}
+
+export type fsListResult = ListResult
+
+export type fsListRpc = {
+  method: 'fs.list',
+  param: {
+    path: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: fsListResult) => void)
 }
 
 export type gpgUiConfirmDuplicateKeyChosenResult = boolean
@@ -3619,6 +3638,7 @@ export type rpc =
   | favoriteFavoriteAddRpc
   | favoriteFavoriteIgnoreRpc
   | favoriteGetFavoritesRpc
+  | fsListRpc
   | gpgUiConfirmDuplicateKeyChosenRpc
   | gpgUiSelectKeyAndPushOptionRpc
   | gpgUiSelectKeyRpc
@@ -4207,6 +4227,16 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: favoriteGetFavoritesResult) => void
+    }
+  ) => void,
+  'keybase.1.fs.list'?: (
+    params: {
+      sessionID: int,
+      path: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: fsListResult) => void
     }
   ) => void,
   'keybase.1.gpgUi.wantToAddGPGKey'?: (

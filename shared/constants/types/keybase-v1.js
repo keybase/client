@@ -129,6 +129,8 @@ export const device = {}
 
 export const favorite = {}
 
+export const fs = {}
+
 export const gpgCommon = {}
 
 export const gpgUi = {}
@@ -485,6 +487,7 @@ export default {
   delegateUiCtl,
   device,
   favorite,
+  fs,
   gpgCommon,
   gpgUi,
   gregor,

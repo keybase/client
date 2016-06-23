@@ -5,23 +5,28 @@ package keybase
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"net"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/kbfs/libkbfs"
 )
 
-var con net.Conn
+var conn net.Conn
 var startOnce sync.Once
 var logSendContext libkb.LogSendContext
+var kbfsConfig libkbfs.Config
 
 // Init ServerURI should match run mode environment.
 func Init(homeDir string, logFile string, runModeStr string, serverURI string, accessGroupOverride bool) {
 	startOnce.Do(func() {
-		g := libkb.G
-		g.Init()
+		fmt.Println("Go: Initializing")
+		fmt.Printf("Go: Using log: %s\n", logFile)
+		kbCtx := libkb.G
+		kbCtx.Init()
 		usage := libkb.Usage{
 			Config:    true,
 			API:       true,
@@ -32,14 +37,15 @@ func Init(homeDir string, logFile string, runModeStr string, serverURI string, a
 			fmt.Println("Error decoding run mode", err, runModeStr)
 		}
 		config := libkb.AppConfig{HomeDir: homeDir, LogFile: logFile, RunMode: runMode, Debug: true, LocalRPCDebug: "Acsvip", ServerURI: serverURI, SecurityAccessGroupOverride: accessGroupOverride}
-		err = libkb.G.Configure(config, usage)
+		err = kbCtx.Configure(config, usage)
 		if err != nil {
 			panic(err)
 		}
 
-		service := (service.NewService(g, false))
-		service.StartLoopbackServer()
-		service.G().SetService()
+		svc := service.NewService(kbCtx, false)
+		svc.StartLoopbackServer()
+		kbCtx.SetService()
+		kbCtx.SetUIRouter(service.NewUIRouter(kbCtx))
 
 		serviceLog := config.GetLogFile()
 		logs := libkb.Logs{
@@ -47,11 +53,19 @@ func Init(homeDir string, logFile string, runModeStr string, serverURI string, a
 		}
 
 		logSendContext = libkb.LogSendContext{
-			Contextified: libkb.NewContextified(service.G()),
+			Contextified: libkb.NewContextified(kbCtx),
 			Logs:         logs,
 		}
 
+		kbfsParams := libkbfs.DefaultInitParams(kbCtx)
+		onInterruptFn := func() {}
+		kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, onInterruptFn, kbCtx.Log)
+		if err != nil {
+			panic(err)
+		}
+
 		Reset()
+		fmt.Println("Go: Done")
 	})
 }
 
@@ -62,19 +76,23 @@ func LogSend(uiLogPath string) (string, error) {
 	return logSendContext.LogSend("", 10000)
 }
 
+func reportError(err error) {
+	libkb.G.Log.Errorf("Error in loopback: %s", err)
+}
+
 // WriteB64 Takes base64 encoded msgpack rpc payload
 func WriteB64(str string) bool {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
-		fmt.Println("Base64 decode error:", err, str)
+		reportError(fmt.Errorf("Base64 decode error: %s; %s", err, str))
 	}
-	n, err := con.Write(data)
+	n, err := conn.Write(data)
 	if err != nil {
-		fmt.Println("Write error: ", err)
+		reportError(fmt.Errorf("Write error: %s", err))
 		return false
 	}
 	if n != len(data) {
-		fmt.Println("Did not write all the data")
+		reportError(errors.New("Did not write all the data"))
 		return false
 	}
 	return true
@@ -91,14 +109,14 @@ const bufferSize = targetBufferSize - (targetBufferSize % 3)
 func ReadB64() string {
 	data := make([]byte, bufferSize)
 
-	n, err := con.Read(data)
+	n, err := conn.Read(data)
 	if n > 0 && err == nil {
 		str := base64.StdEncoding.EncodeToString(data[0:n])
 		return str
 	}
 
 	if err != nil {
-		fmt.Println("read error:", err)
+		reportError(fmt.Errorf("Read error: %s", err))
 		// attempt to fix the connection
 		Reset()
 	}
@@ -106,17 +124,17 @@ func ReadB64() string {
 	return ""
 }
 
-// Reset Resets the connection
+// Reset resets the socket connection
 func Reset() {
-	if con != nil {
-		con.Close()
+	if conn != nil {
+		conn.Close()
 	}
 
 	var err error
 	libkb.G.SocketWrapper = nil
-	con, _, _, err = libkb.G.GetSocket(false)
+	conn, _, _, err = libkb.G.GetSocket(false)
 
 	if err != nil {
-		fmt.Println("loopback socker error:", err)
+		reportError(fmt.Errorf("Socket error: %s", err))
 	}
 }
