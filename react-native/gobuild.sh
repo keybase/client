@@ -5,14 +5,6 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
-build_ios="0"
-build_android="0"
-if [ "$1" = "ios" ]; then
-  build_ios="1"
-elif [ "$1" = "android" ]; then
-  build_android="1"
-fi
-
 # Original sources
 client_go_dir="$GOPATH/src/github.com/keybase/client/go"
 kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
@@ -56,14 +48,14 @@ fi
 
 package="github.com/keybase/client/go/loopback"
 
-if [ "$build_ios" = "1" ]; then
+if [ "$1" = "ios" ]; then
   ios_dest="$dir/ios/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
   "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -o "$ios_dest" "$package"
-fi
-
-if [ "$build_android" = "1" ]; then
+elif [ "$1" = "android" ]; then
   android_dest="$dir/android/keybaselib/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
   "$GOPATH/bin/gomobile" bind -target=android -tags="android" -o "$android_dest" "$package"
+else
+  echo "Nothing to build, you need to specify 'ios' or 'android'"
 fi
