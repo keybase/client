@@ -2,7 +2,6 @@
 import Profile from './render'
 import {normal, checking, revoked, error, metaNone} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
-import {globalStyles} from '../styles/style-guide'
 import type {Props as RenderProps} from './render'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {UserInfo} from '../common-adapters/user-bio'
@@ -139,7 +138,6 @@ const propsBase: RenderProps = {
   onUserClick: username => { console.log('onUserClick', username) },
   parentProps: {
     style: {
-      ...globalStyles.flexBoxColumn,
       width: 640,
       height: 578,
     },
