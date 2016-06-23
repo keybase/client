@@ -34,6 +34,7 @@ export const mockUserInfo: {username: string, userInfo: UserInfo} = {
 
 const baseFolder = {
   ignored: false,
+  isPublic: true,
   hasData: true,
   groupAvatar: true,
   userAvatar: null,
@@ -48,16 +49,17 @@ const folders = [
       {username: 'cecileb', you: true},
       {username: 'chris'},
     ],
-    isPublic: true,
     ...baseFolder,
+    hasData: false,
   }),
   createFolder({
     users: [
       {username: 'cecileb', you: true},
       {username: 'chris'},
     ],
-    isPublic: false,
     ...baseFolder,
+    isPublic: false,
+    hasData: false,
   }),
   createFolder({
     users: [
@@ -65,7 +67,6 @@ const folders = [
       {username: 'chris'},
       {username: 'max'},
     ],
-    isPublic: false,
     ...baseFolder,
   }),
   createFolder({
@@ -73,20 +74,65 @@ const folders = [
       {username: 'cecileb', you: true},
       {username: 'max'},
     ],
-    isPublic: true,
     ...baseFolder,
   }),
+  createFolder({
+    users: [
+      {username: 'cecileb', you: true},
+      {username: 'cjb'},
+    ],
+    ...baseFolder,
+  }),
+  createFolder({
+    users: [
+      {username: 'cecileb', you: true},
+      {username: 'chrisnojima'},
+      {username: 'marcopolo'},
+      {username: 'zanderz'},
+    ],
+    ...baseFolder,
+    isPublic: false,
+  }),
+  createFolder({
+    users: [
+      {username: 'cecileb', you: true},
+      {username: 'chrisnojima'},
+      {username: 'marcopolo'},
+    ],
+    ...baseFolder,
+  }),
+]
+
+const followers = [
+  {username: 'awendland', fullname: 'Alex Wendland', followsYou: true, following: false},
+  {username: 'marcopolo', fullname: 'Marco Munizaga', followsYou: false, following: false},
+  {username: 'chromakode', fullname: 'Max Goodman', followsYou: true, following: true},
+  {username: 'strib', fullname: 'Jeremy Stribling', followsYou: false, following: true},
+  {username: 'chris', fullname: 'Chris Vendle', followsYou: false, following: false},
+  {username: 'thor', fullname: 'Thor Asgard', followsYou: false, following: true},
+  {username: 'alex', fullname: 'Alexander The-Gret', followsYou: true, following: false},
+  {username: 'daniel', fullname: 'Daniel Steven', followsYou: true, following: true},
+]
+
+const following = [
+  {username: 'zanderz', fullname: 'Steve Sanders', followsYou: false, following: false},
+  {username: 'awendland', fullname: 'Alex Wendland', followsYou: true, following: false},
+  {username: 'strib', fullname: 'Jeremy Stribling', followsYou: false, following: true},
 ]
 
 const propsBase: RenderProps = {
   ...mockUserInfo,
   proofs: proofsDefault,
   tlfs: folders,
+  followers,
+  following,
   trackerState: normal,
   currentlyFollowing: false,
   onFollow: () => console.log('onFollow'),
   onUnfollow: () => console.log('onUnfollow'),
   onAcceptProofs: () => console.log('onAcceptProofs'),
+  onFolderClick: folder => { console.log('onFolderClick', folder) },
+  onUserClick: username => { console.log('onUserClick', username) },
   parentProps: {
     style: {
       width: 640,
@@ -99,6 +145,18 @@ const dumbMap: DumbComponentMap<Profile> = {
   component: Profile,
   mocks: {
     'Unfollowed': propsBase,
+    'Unfollowed - Few Folders': {
+      ...propsBase,
+      tlfs: folders.slice(0, 3),
+    },
+    'Unfollowed - Scrolled': {
+      ...propsBase,
+      afterMount: (c, node) => { node.querySelector('.scroll-container').scrollTop = 400 },
+    },
+    'Unfollowed - Folders Expanded': {
+      ...propsBase,
+      afterMount: c => c.setState({foldersExpanded: true}),
+    },
     'Followed': {
       ...propsBase,
       proofs: proofsTracked,
@@ -109,6 +167,13 @@ const dumbMap: DumbComponentMap<Profile> = {
       proofs: proofsChanged,
       trackerState: error,
       currentlyFollowing: true,
+    },
+    'Changed - Scrolled': {
+      ...propsBase,
+      proofs: proofsChanged,
+      trackerState: error,
+      currentlyFollowing: true,
+      afterMount: (c, node) => { node.querySelector('.scroll-container').scrollTop = 50 },
     },
   },
 }

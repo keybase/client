@@ -9,7 +9,7 @@ import FoldersMap from '../folders/dumb'
 import FoldersConfirmMap from '../folders/confirm/dumb'
 import SearchMap from '../search/dumb'
 import Friendships from '../profile/friendships.dumb'
-import type {DumbComponentMap} from './dumb'
+import type {DumbComponentMap} from '../constants/types/more'
 
 const map: DumbComponentMap = {
   ...CommonMap,

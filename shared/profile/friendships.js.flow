@@ -7,14 +7,15 @@ export type UserInfo = { // TODO (AW): replace with reference to bio's/profile's
   following: boolean
 }
 
-export type Tab = 'FOLLOWERS' | 'FOLLOWING'
+export type Tab = 'Followers' | 'Following'
 
 export type Props = {
+  style?: Object,
   currentTab: Tab,
   onSwitchTab?: (selected: Tab) => void,
   onUserClick?: (username: string) => void,
-  followers: Array<any>,
-  following: Array<any>
+  followers: Array<UserInfo>,
+  following: Array<UserInfo>
 }
 
 export default class Render extends React$Component<void, Props, void> {
