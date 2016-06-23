@@ -8,7 +8,7 @@ import {navBasedOnLoginState} from '../../actions/login'
 import * as native from './index.native'
 
 import type {AsyncAction} from '../../constants/types/flux'
-import type {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc} from '../../constants/types/flow-types' // eslint-disable-line
+import type {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, gregorGetStateRpc} from '../../constants/types/flow-types' // eslint-disable-line
 
 function getConfig (): AsyncAction {
   return (dispatch, getState) => {

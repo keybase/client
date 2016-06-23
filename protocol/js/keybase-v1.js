@@ -19,19 +19,19 @@ export const Common = {
     'warn': 4,
     'error': 5,
     'critical': 6,
-    'fatal': 7
+    'fatal': 7,
   },
   'ClientType': {
     'none': 0,
     'cli': 1,
     'gui': 2,
-    'kbfs': 3
+    'kbfs': 3,
   },
   'MerkleTreeID': {
     'master': 0,
     'kbfsPublic': 1,
-    'kbfsPrivate': 2
-  }
+    'kbfsPrivate': 2,
+  },
 }
 
 export const config = {
@@ -39,8 +39,8 @@ export const config = {
     'none': 0,
     'auto': 1,
     'watchdog': 2,
-    'launchd': 3
-  }
+    'launchd': 3,
+  },
 }
 
 export const constants = {
@@ -107,8 +107,8 @@ export const constants = {
     'scoldversionerror': 1801,
     'scinvalidlocationerror': 1802,
     'scservicestatuserror': 1803,
-    'scinstallerror': 1804
-  }
+    'scinstallerror': 1804,
+  },
 }
 
 export const crypto = {}
@@ -117,8 +117,8 @@ export const ctl = {
   'ExitCode': {
     'ok': 0,
     'notok': 2,
-    'restart': 4
-  }
+    'restart': 4,
+  },
 }
 
 export const debugging = {}
@@ -139,8 +139,8 @@ export const gregorUI = {
   'PushReason': {
     'none': 0,
     'reconnected': 1,
-    'newData': 2
-  }
+    'newData': 2,
+  },
 }
 
 export const identify = {}
@@ -157,7 +157,7 @@ export const identifyCommon = {
     'remoteWorking': 7,
     'remoteChanged': 8,
     'newEldest': 9,
-    'noneViaTemporary': 10
+    'noneViaTemporary': 10,
   },
   'TrackStatus': {
     'newOk': 1,
@@ -166,7 +166,7 @@ export const identifyCommon = {
     'updateBrokenFailedProofs': 4,
     'updateNewProofs': 5,
     'updateOk': 6,
-    'updateBrokenRevoked': 7
+    'updateBrokenRevoked': 7,
   },
   'IdentifyReasonType': {
     'none': 0,
@@ -175,20 +175,20 @@ export const identifyCommon = {
     'encrypt': 3,
     'decrypt': 4,
     'verify': 5,
-    'resource': 6
-  }
+    'resource': 6,
+  },
 }
 
 export const identifyUi = {
   'CheckResultFreshness': {
     'fresh': 0,
     'aged': 1,
-    'rancid': 2
+    'rancid': 2,
   },
   'DismissReasonType': {
     'none': 0,
-    'handledElsewhere': 1
-  }
+    'handledElsewhere': 1,
+  },
 }
 
 export const install = {
@@ -196,15 +196,15 @@ export const install = {
     'unknown': 0,
     'error': 1,
     'notInstalled': 2,
-    'installed': 4
+    'installed': 4,
   },
   'InstallAction': {
     'unknown': 0,
     'none': 1,
     'upgrade': 2,
     'reinstall': 3,
-    'install': 4
-  }
+    'install': 4,
+  },
 }
 
 export const kbfs = {}
@@ -213,7 +213,7 @@ export const kbfsCommon = {
   'FSStatusCode': {
     'start': 0,
     'finish': 1,
-    'error': 2
+    'error': 2,
   },
   'FSNotificationType': {
     'encrypting': 0,
@@ -222,7 +222,7 @@ export const kbfsCommon = {
     'verifying': 3,
     'rekeying': 4,
     'connection': 5,
-    'mdReadSuccess': 6
+    'mdReadSuccess': 6,
   },
   'FSErrorType': {
     'accessDenied': 0,
@@ -233,8 +233,8 @@ export const kbfsCommon = {
     'rekeyNeeded': 5,
     'badFolder': 6,
     'notImplemented': 7,
-    'oldVersion': 8
-  }
+    'oldVersion': 8,
+  },
 }
 
 export const Kex2Provisionee = {}
@@ -274,16 +274,16 @@ export const passphraseCommon = {
     'none': 0,
     'paperKey': 1,
     'passPhrase': 2,
-    'verifyPassPhrase': 3
-  }
+    'verifyPassPhrase': 3,
+  },
 }
 
 export const pgp = {
   'SignMode': {
     'attached': 0,
     'detached': 1,
-    'clear': 2
-  }
+    'clear': 2,
+  },
 }
 
 export const pgpUi = {}
@@ -292,8 +292,8 @@ export const process = {
   'FileType': {
     'unknown': 0,
     'directory': 1,
-    'file': 2
-  }
+    'file': 2,
+  },
 }
 
 export const prove = {}
@@ -307,7 +307,7 @@ export const proveCommon = {
     'looking': 4,
     'superseded': 5,
     'posted': 6,
-    'revoked': 7
+    'revoked': 7,
   },
   'ProofStatus': {
     'none': 0,
@@ -346,7 +346,7 @@ export const proveCommon = {
     'badApiUrl': 304,
     'unknownType': 305,
     'noHint': 306,
-    'badHintText': 307
+    'badHintText': 307,
   },
   'ProofType': {
     'none': 0,
@@ -359,15 +359,15 @@ export const proveCommon = {
     'genericWebSite': 1000,
     'dns': 1001,
     'pgp': 1002,
-    'rooter': 100001
-  }
+    'rooter': 100001,
+  },
 }
 
 export const proveUi = {
   'PromptOverwriteType': {
     'social': 0,
-    'site': 1
-  }
+    'site': 1,
+  },
 }
 
 export const provisionUi = {
@@ -376,21 +376,21 @@ export const provisionUi = {
     'paperKey': 1,
     'passphrase': 2,
     'gpgImport': 3,
-    'gpgSign': 4
+    'gpgSign': 4,
   },
   'GPGMethod': {
     'gpgNone': 0,
     'gpgImport': 1,
-    'gpgSign': 2
+    'gpgSign': 2,
   },
   'DeviceType': {
     'desktop': 0,
-    'mobile': 1
+    'mobile': 1,
   },
   'ChooseType': {
     'existingDevice': 0,
-    'newDevice': 1
-  }
+    'newDevice': 1,
+  },
 }
 
 export const quota = {}
@@ -399,8 +399,8 @@ export const rekey = {
   'Outcome': {
     'none': 0,
     'fixed': 1,
-    'ignored': 2
-  }
+    'ignored': 2,
+  },
 }
 
 export const rekeyUI = {}
@@ -416,8 +416,8 @@ export const saltpackUi = {
     'anonymous': 2,
     'trackingBroke': 3,
     'trackingOk': 4,
-    'self': 5
-  }
+    'self': 5,
+  },
 }
 
 export const secretUi = {}
@@ -440,8 +440,8 @@ export const ui = {
   'PromptDefault': {
     'none': 0,
     'yes': 1,
-    'no': 2
-  }
+    'no': 2,
+  },
 }
 
 export const update = {}
@@ -450,8 +450,8 @@ export const updateCommon = {
   'UpdateType': {
     'normal': 0,
     'bugfix': 1,
-    'critical': 2
-  }
+    'critical': 2,
+  },
 }
 
 export const updateUi = {
@@ -459,14 +459,14 @@ export const updateUi = {
     'update': 0,
     'skip': 1,
     'snooze': 2,
-    'cancel': 3
+    'cancel': 3,
   },
   'UpdateAppInUseAction': {
     'cancel': 0,
     'force': 1,
     'snooze': 2,
-    'killProcesses': 3
-  }
+    'killProcesses': 3,
+  },
 }
 
 export const user = {}
@@ -537,5 +537,5 @@ export default {
   update,
   updateCommon,
   updateUi,
-  user
+  user,
 }
