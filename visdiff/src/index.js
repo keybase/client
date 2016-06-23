@@ -35,6 +35,11 @@ function checkout (commit) {
   console.log(`Shelved node_modules to node_modules.${origPackageHash}.`)
 
   execSync(`git checkout -f ${commit}`)
+
+  // The way shared is linked in Windows can confuse git into deleting files
+  // and leaving the directory in an unclean state.
+  execSync('git reset --hard')
+
   console.log(`Checked out ${commit}.`)
 
   const newPackageHash = packageHash()
