@@ -43,8 +43,8 @@ function checkout (commit) {
     fs.renameSync(`node_modules.${newPackageHash}`, 'node_modules')
   } else {
     console.log(`Installing dependencies for package.json:${newPackageHash}...`)
-    execSync('npm install', {stdio: 'inherit'})
   }
+  execSync('npm install', {stdio: 'inherit'})
 }
 
 function renderScreenshots (commitRange) {
