@@ -3,9 +3,9 @@ import React, {Component} from 'react'
 import {Box, Avatar, Text} from '../common-adapters'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import type {Props, UserInfo} from './friendships'
+import type {Props, FriendshipUserInfo} from './friendships'
 
-type UserEntryProps = UserInfo & {
+type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void
 };
 
@@ -68,6 +68,7 @@ const tabItemContainerStyle = {
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   borderTop: `solid 1px ${globalColors.black_10}`,
+  overflowY: 'auto',
 }
 
 export default Render

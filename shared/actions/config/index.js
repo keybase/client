@@ -8,7 +8,8 @@ import {navBasedOnLoginState} from '../../actions/login'
 import * as native from './index.native'
 
 import type {AsyncAction} from '../../constants/types/flux'
-import type {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc, gregorGetStateRpc} from '../../constants/types/flow-types' // eslint-disable-line
+import type {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc,
+  userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
 
 function getConfig (): AsyncAction {
   return (dispatch, getState) => {
@@ -30,6 +31,76 @@ function getConfig (): AsyncAction {
 
       engine.rpc(params)
     })
+  }
+}
+
+export function isFollower (getState: any, username: string) : boolean {
+  return !!getState().config.followers[username]
+}
+
+function getMyFollowers (username: string): AsyncAction {
+  return dispatch => {
+    const params : userListTrackersByNameRpc = {
+      method: 'user.listTrackersByName',
+      param: {username},
+      incomingCallMap: {},
+      callback: (error, trackers) => {
+        if (error) {
+          return
+        }
+
+        const uids = trackers.map(t => t.tracker)
+        const params : userLoadUncheckedUserSummariesRpc = {
+          method: 'user.loadUncheckedUserSummaries',
+          param: {uids},
+          incomingCallMap: {},
+          callback: (error, summaries) => {
+            if (error) {
+              return
+            }
+
+            const followers = {}
+            summaries.forEach(s => { followers[s.username] = true })
+            dispatch({
+              type: Constants.updateFollowers,
+              payload: {followers},
+            })
+          },
+        }
+
+        engine.rpc(params)
+      },
+    }
+
+    engine.rpc(params)
+  }
+}
+
+export function isFollowing (getState: () => any, username: string) : boolean {
+  return !!getState().config.following[username]
+}
+
+function getMyFollowing (username: string): AsyncAction {
+  return dispatch => {
+    const params : userListTrackingRpc = {
+      method: 'user.listTracking',
+      param: {assertion: username, filter: ''},
+      incomingCallMap: {},
+      callback: (error, summaries) => {
+        if (error) {
+          return
+        }
+
+        const following = {}
+        summaries.forEach(s => { following[s.username] = true })
+        dispatch({
+          type: Constants.updateFollowing,
+          payload: {following},
+        })
+      },
+    }
+
+    engine.rpc(params)
   }
 }
 
@@ -68,7 +139,11 @@ export function bootstrap (): AsyncAction {
       })
     } else {
       Promise.all(
-        [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(() => {
+        [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(([username]) => {
+          if (username) {
+            dispatch(getMyFollowers(username))
+            dispatch(getMyFollowing(username))
+          }
           dispatch({type: Constants.bootstrapped, payload: null})
           dispatch(navBasedOnLoginState())
         }).catch(error => {
@@ -96,7 +171,7 @@ function getCurrentStatus (): AsyncAction {
             payload: {status},
           })
 
-          resolve()
+          resolve(status && status.user && status.user.username)
         },
       }
 

@@ -4,9 +4,9 @@ import {TouchableHighlight} from 'react-native'
 import {Box, Avatar, Text} from '../common-adapters'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import type {Props, UserInfo} from './friendships'
+import type {Props, FriendshipUserInfo} from './friendships'
 
-type UserEntryProps = UserInfo & {
+type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void
 }
 

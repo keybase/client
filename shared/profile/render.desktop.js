@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import {normal as proofNormal} from '../constants/tracker'
-import {Box, Icon, Text, UserBio, UserProofs, Usernames} from '../common-adapters'
+import {Box, Icon, Text, UserBio, UserProofs, Usernames, BackButton} from '../common-adapters'
 import {userHeaderColor, UserActions} from './common.desktop'
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
@@ -88,9 +88,11 @@ class Render extends Component<void, Props, State> {
       <Box style={styleOuterContainer}>
         <Box style={{...styleScrollHeaderBg, backgroundColor: headerColor}} />
         <Box style={{...styleScrollHeaderCover, backgroundColor: headerColor}} />
+        {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 10, top: 10, zIndex: 12}}
+          textStyle={{color: globalColors.white}} iconStyle={{color: globalColors.white}} />}
         <Box className='scroll-container' style={styleContainer}>
           <Box style={{...styleHeader, backgroundColor: headerColor}} />
-          <Box style={globalStyles.flexBoxRow}>
+          <Box style={{...globalStyles.flexBoxRow, minHeight: 300}}>
             <Box style={styleBioColumn}>
               <UserBio
                 type='Profile'

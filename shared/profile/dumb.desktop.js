@@ -128,6 +128,9 @@ const propsBase: RenderProps = {
   following,
   trackerState: normal,
   currentlyFollowing: false,
+  onPushProfile: username => console.log('onpush', username),
+  onBack: () => console.log('onBack'),
+  refresh: () => console.log('refresh'),
   onFollow: () => console.log('onFollow'),
   onUnfollow: () => console.log('onUnfollow'),
   onAcceptProofs: () => console.log('onAcceptProofs'),
@@ -145,6 +148,10 @@ const dumbMap: DumbComponentMap<Profile> = {
   component: Profile,
   mocks: {
     'Unfollowed': propsBase,
+    'Unfollowed - Profile page': {
+      ...propsBase,
+      onBack: undefined,
+    },
     'Unfollowed - Few Folders': {
       ...propsBase,
       tlfs: folders.slice(0, 3),
