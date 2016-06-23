@@ -1,0 +1,6 @@
+@namespace("keybase.1")
+protocol NotifyKeyfamily {
+  import idl "common.avdl";
+
+  void keyfamilyChanged(UID uid) oneway;
+}

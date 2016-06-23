@@ -259,6 +259,8 @@ export const NotifyFavorites = {}
 
 export const NotifyFS = {}
 
+export const NotifyKeyfamily = {}
+
 export const NotifyPaperKey = {}
 
 export const NotifySession = {}
@@ -506,6 +508,7 @@ export default {
   notifyCtl,
   NotifyFavorites,
   NotifyFS,
+  NotifyKeyfamily,
   NotifyPaperKey,
   NotifySession,
   NotifyTracking,
