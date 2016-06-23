@@ -148,6 +148,10 @@ const dumbMap: DumbComponentMap<Profile> = {
   component: Profile,
   mocks: {
     'Unfollowed': propsBase,
+    'Unfollowed - Profile page': {
+      ...propsBase,
+      onBack: undefined,
+    },
     'Unfollowed - Few Folders': {
       ...propsBase,
       tlfs: folders.slice(0, 3),
