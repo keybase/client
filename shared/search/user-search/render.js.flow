@@ -12,7 +12,7 @@ export type Props = {
   searchHintText: string,
   searchText: ?string,
   searchIcon: IconType,
-  selectedService: SearchPlatforms,
+  selectedService: ?SearchPlatforms,
   results: Array<SearchResult>,
   onClickService: ServiceFn,
   onClickResult: SearchResultFn,

@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {search, selectPlatform} from '../actions/search'
+import {search, selectPlatform, addUserToGroup, removeUserFromGroup, selectUserForInfo, hideUserGroup} from '../actions/search'
 import Render from './render'
 import {TypedConnector} from '../util/typed-connect'
 
@@ -16,18 +16,7 @@ type OwnProps = {}
 class Search extends Component<void, Props, void> {
   render () {
     return (
-      <Render
-        showComingSoon={this.props.showComingSoon}
-        username={this.props.username}
-        searchHintText={this.props.searchHintText}
-        onSearch={term => this.props.onSearch(term, this.props.selectedService)}
-        searchText={this.props.searchText}
-        searchIcon={this.props.searchIcon}
-        results={this.props.results}
-        selectedService={this.props.selectedService}
-        userForInfoPane={this.props.userForInfoPane}
-        onClickService={this.props.onClickService}
-        onClickResult={this.props.onClickResult} />
+      <Render {...this.props} />
     )
   }
 
@@ -41,16 +30,27 @@ class Search extends Component<void, Props, void> {
 const connector: TypedConnector<TypedState, TypedDispatch<SearchActions>, OwnProps, Props> = new TypedConnector()
 
 export default connector.connect(
-  ({search: {searchHintText, searchPlatform, searchText, searchIcon, results, userForInfoPane}, config: {username}}, dispatch, ownProps) => ({
-    username: username || '',
-    searchHintText,
-    searchText,
-    searchIcon,
-    userForInfoPane,
-    results,
-    showComingSoon: !flags.searchEnabled,
-    onClickResult: () => console.log('TODO'),
-    selectedService: searchPlatform,
-    onSearch: (term, platform) => { dispatch(search(term, platform)) },
-    onClickService: platform => { dispatch(selectPlatform(platform)) },
-  }))(Search)
+  ({search:
+     {searchHintText, searchPlatform, searchText, searchIcon, results, userForInfoPane, showUserGroup, selectedUsers},
+   config: {username}}, dispatch, ownProps) => ({
+     username: username || '',
+     searchHintText,
+     searchText,
+     searchIcon,
+     userForInfoPane,
+     results,
+     showComingSoon: !flags.searchEnabled,
+     onClickResult: user => { dispatch(addUserToGroup(user)) },
+     selectedService: searchPlatform,
+     onSearch: term => { dispatch(search(term, searchPlatform)); dispatch(hideUserGroup()) },
+     onClickService: platform => { dispatch(selectPlatform(platform)) },
+     showUserGroup,
+     selectedUsers,
+     onRemoveUserFromGroup: user => { dispatch(removeUserFromGroup(user)) },
+     onClickUserInGroup: user => { dispatch(selectUserForInfo(user)) },
+     onAddAnotherUserToGroup: () => { dispatch(hideUserGroup()) },
+     onOpenPrivateGroupFolder: () => { console.log('TODO open private group') },
+     onOpenPublicGroupFolder: () => { console.log('TODO open public group') },
+     onGroupChat: () => { console.log('TODO open group chat') },
+     chatEnabled: false,
+   }))(Search)

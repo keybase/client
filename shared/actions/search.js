@@ -1,9 +1,9 @@
 import * as Constants from '../constants/search'
 import {platformToIcon, platformToLogo32} from '../constants/search'
-import {capitalize} from 'lodash'
+import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
 
-import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo} from '../constants/search'
+import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo, AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup} from '../constants/search'
 
 type RawResult = Array<{
   score: number,
@@ -102,6 +102,10 @@ function rawResults (term: string, platform: SearchPlatforms, rresults: Array<Ra
 
 export function search (term: string, platform: SearchPlatforms = 'Keybase') : TypedAsyncAction<Search | Results> {
   return dispatch => {
+    if (trim(term) === '') {
+      return
+    }
+
     dispatch({
       type: Constants.search,
       payload: {
@@ -154,5 +158,26 @@ export function selectUserForInfo (user: SearchResult): SelectUserForInfo {
   return {
     type: Constants.selectUserForInfo,
     payload: {user},
+  }
+}
+
+export function addUserToGroup (user: SearchResult): AddUserToGroup {
+  return {
+    type: Constants.addUserToGroup,
+    payload: {user},
+  }
+}
+
+export function removeUserFromGroup (user: SearchResult): RemoveUserFromGroup {
+  return {
+    type: Constants.removeUserFromGroup,
+    payload: {user},
+  }
+}
+
+export function hideUserGroup (): ToggleUserGroup {
+  return {
+    type: Constants.toggleUserGroup,
+    payload: {show: false},
   }
 }

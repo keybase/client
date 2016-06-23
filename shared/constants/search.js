@@ -45,7 +45,16 @@ export type SelectPlatform = TypedAction<'search:selectPlatform', {platform: Sea
 export const selectUserForInfo = 'search:selectUserForInfo'
 export type SelectUserForInfo = TypedAction<'search:selectUserForInfo', {user: SearchResult}, void>
 
-export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo
+export const addUserToGroup = 'search:addUserToGroup'
+export type AddUserToGroup = TypedAction<'search:addUserToGroup', {user: SearchResult}, void>
+
+export const removeUserFromGroup = 'search:removeUserFromGroup'
+export type RemoveUserFromGroup = TypedAction<'search:removeUserFromGroup', {user: SearchResult}, void>
+
+export const toggleUserGroup = 'search:toggleUserGroup'
+export type ToggleUserGroup = TypedAction<'search:toggleUserGroup', {show: boolean}, void>
+
+export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUserToGroup | RemoveUserFromGroup | ToggleUserGroup
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
   return {
@@ -83,4 +92,8 @@ export function platformToLogo24 (platform: SearchPlatforms): IconType {
     'Hackernews': 'placeholder-avatar-24-x-24',
     'Pgp': 'icon-pgp-key-24',
   }[platform]
+}
+
+export function equalSearchResult (a: SearchResult, b: SearchResult): boolean {
+  return a.service === b.service && a.username === b.username
 }

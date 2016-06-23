@@ -142,7 +142,7 @@ function ServiceIcon ({serviceName, tooltip, iconType, selected, onClickService}
 }
 
 export type SearchBarProps = {
-  selectedService: SearchPlatforms,
+  selectedService: ?SearchPlatforms,
   onSearch: (term: string) => void,
   searchText: ?string,
   searchHintText: string,
@@ -150,6 +150,12 @@ export type SearchBarProps = {
 }
 
 export class SearchBar extends Component<void, SearchBarProps, void> {
+  componentWillReceiveProps (nextProps: SearchBarProps) {
+    if (nextProps.searchText === null && nextProps.searchText !== this.props.searchText) {
+      this.refs && this.refs.searchBox && this.refs.searchBox.clearValue()
+    }
+  }
+
   render () {
     return (
       <Box style={styles.headerContainer}>
@@ -204,13 +210,13 @@ export class SearchBar extends Component<void, SearchBarProps, void> {
   }
 }
 
-function searchResultsList ({results, searchText, onClickResult}: {results: Array<SearchResult>, searchText: ?string, onClickResult: SearchResultFn}) {
+export function searchResultsList ({results, searchText, onClickResult}: {results: Array<SearchResult>, searchText: ?string, onClickResult: SearchResultFn}) {
   return results.map(r => (
     <Result key={r.service + (r.icon ? r.icon : '') + r.username} result={r} searchText={searchText || ''} onClickResult={onClickResult} />
   ))
 }
 
-export default class Render extends Component<void, Props, void> {
+export class SearchContainer extends Component {
   render () {
     const realCSS = `
       .highlight-row { background-color: ${globalColors.white}; }
@@ -220,9 +226,19 @@ export default class Render extends Component<void, Props, void> {
     return (
       <Box style={styles.container}>
         <style>{realCSS}</style>
+        {this.props.children}
+      </Box>
+    )
+  }
+}
+
+export default class Render extends Component<void, Props, void> {
+  render () {
+    return (
+      <SearchContainer>
         <SearchBar {...this.props} />
         {searchResultsList(this.props)}
-      </Box>
+      </SearchContainer>
     )
   }
 }

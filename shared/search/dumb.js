@@ -72,6 +72,7 @@ const userSearchMap: DumbComponentMap<UserSearch> = {
       onClickService: () => console.log('onClickService'),
       onClickResult: () => console.log('onClickResult'),
       results,
+      showUserGroup: false,
     },
   },
 }
