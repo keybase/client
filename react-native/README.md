@@ -24,12 +24,6 @@ We are iterating quickly and a lot of the code is changing every day.
 Follow the [React Native Getting Started guide](https://facebook.github.io/react-native/docs/getting-started.html) for the platforms you intend to develop on.
 
 ```sh
-# Setup golang mobile
-rm $GOPATH/bin/gomobile
-go get -u golang.org/x/mobile/cmd/gomobile
-gomobile init
-
-# Setup npm
 npm install
 ```
 
