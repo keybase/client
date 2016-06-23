@@ -86,6 +86,9 @@ const util = {
   rounded: {
     borderRadius: 3,
   },
+  textDecoration: (type: string) => ({ // eslint-disable-line arrow-parens
+    textDecorationLine: type,
+  }),
 }
 
 export const globalStyles = {

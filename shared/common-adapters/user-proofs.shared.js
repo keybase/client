@@ -1,6 +1,6 @@
 /* @flow */
 
-import {globalColors} from '../styles/style-guide'
+import {globalColors, globalStyles} from '../styles/style-guide'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaIgnored} from '../constants/tracker'
 
@@ -76,6 +76,6 @@ export function proofStatusIcon (proof: Proof): ?IconProps.type {
 export function proofNameStyle (proof: Proof) {
   return {
     color: proofColor(proof),
-    ...(proof.meta === metaDeleted ? {textDecorationLine: 'line-through'} : {}),
+    ...(proof.meta === metaDeleted ? globalStyles.textDecoration('line-through') : {}),
   }
 }
