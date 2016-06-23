@@ -71,23 +71,6 @@ export function bootstrap (): AsyncAction {
         [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(() => {
           dispatch({type: Constants.bootstrapped, payload: null})
           dispatch(navBasedOnLoginState())
-
-          // TEMP to test flow, delete when we get thumbs
-          // const params : gregorGetStateRpc = {
-            // method: 'gregor.getState',
-            // param: {},
-            // incomingCallMap: {},
-            // callback: (error, state) => {
-              // if (!error) {
-                // console.log(state.items.map(item => item.md))
-              // } else {
-                // console.log(error)
-              // }
-            // },
-          // }
-
-          // engine.rpc(params)
-          // TEMP to test flow
         }).catch(error => {
           console.warn('Error bootstrapping: ', error)
         })
