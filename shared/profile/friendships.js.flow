@@ -1,6 +1,6 @@
 /* @flow */
 
-export type UserInfo = {
+export type FriendshipUserInfo = {
   username: string,
   fullname: string,
   followsYou: boolean,
@@ -14,8 +14,8 @@ export type Props = {
   currentTab: Tab,
   onSwitchTab?: (selected: Tab) => void,
   onUserClick?: (username: string) => void,
-  followers: Array<UserInfo>,
-  following: Array<UserInfo>
+  followers: Array<FriendshipUserInfo>,
+  following: Array<FriendshipUserInfo>
 }
 
 export default class Render extends React$Component<void, Props, void> {

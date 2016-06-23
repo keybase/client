@@ -14,7 +14,7 @@ class Profile extends Component<void, Props, void> {
         title: 'Profile',
         props: {
           username: currentPath.get('username'),
-          profileRoot: uri.count() && uri.last().get('path') === 'root',
+          profileIsRoot: uri.count() && uri.last().get('path') === 'root',
         },
       },
       subRoutes: {},
@@ -25,11 +25,10 @@ class Profile extends Component<void, Props, void> {
     this.props.refresh(this.props.username)
   }
 
-  shouldComponentUpdate (nextProps, nextState) {
+  componentWillReceiveProps (nextProps) {
     if (nextProps.username !== this.props.username) {
       this.props.refresh(nextProps.username)
     }
-    return true
   }
 
   render () {
@@ -38,7 +37,7 @@ class Profile extends Component<void, Props, void> {
         showComingSoon={!flags.tabProfileEnabled}
         {...this.props}
         proofs={this.props.proofs || []}
-        onBack={!this.props.profileRoot ? this.props.onBack : undefined}
+        onBack={!this.props.profileIsRoot ? this.props.onBack : undefined}
         followers={this.props.trackers || []}
         following={this.props.tracking || []}
       />
