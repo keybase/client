@@ -27,6 +27,7 @@ let config = {
   skipLauncherDevtools: true,
   initialTabState: {},
   forceMainWindowPosition: null,
+  closureStoreCheck: false,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -84,6 +85,7 @@ export const {
   printRoutes,
   skipLauncherDevtools,
   forceMainWindowPosition,
+  closureStoreCheck,
 } = config
 
 export function initTabbedRouterState (state) {

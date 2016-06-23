@@ -11,7 +11,7 @@ type State = {
 
 const rowKey = users => users && users.map(u => u.username).join('-')
 
-const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onOpen, onClick, onRekey}) => {
+const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onOpen, onClick, onRekey, smallMode}) => {
   return (
     <Box style={stylesIgnoreContainer}>
       <Box style={styles.topBox} onClick={onToggle}>
@@ -21,21 +21,27 @@ const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onOpen, onCl
       {showIgnored && <Box style={styles.bottomBox}>
         <Text type='BodySmallSemibold' style={stylesDividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
       </Box>}
-      {showIgnored && (ignored || []).map((i, idx) => (
-        <Row
-          key={rowKey(i.users)}
-          {...i}
-          users={i.users}
-          isPublic={isPublic}
-          ignored={true} // eslint-disable-line
-          onClick={onClick}
-          onRekey={onRekey}
-          onOpen={onOpen}
-          isFirst={!idx} />
-        ))}
+      {showIgnored && ignored && <Rows
+        rows={ignored}
+        onOpen={onOpen}
+        onClick={onClick}
+        onRekey={onRekey}
+        isPublic={isPublic}
+        smallMode={smallMode}
+        ignored={true} // eslint-disable-line
+      />}
     </Box>
   )
 }
+
+const Rows = ({rows, ignored, isPublic, onOpen, onClick, onRekey, smallMode}) => (
+  <Box>
+    {!!rows && rows.map((row, idx) => (
+      <Row {...row} key={rowKey(row.users)} isPublic={isPublic} ignored={ignored} onClick={onClick}
+        onRekey={onRekey} onOpen={onOpen} isFirst={!idx} smallMode={smallMode} />
+    ))}
+  </Box>
+)
 
 class Render extends Component<void, Props, State> {
   state: State;
@@ -60,20 +66,25 @@ class Render extends Component<void, Props, State> {
       <Box style={{...stylesContainer, ...this.props.style}}>
         <style>{realCSS}</style>
         {this.props.extraRows}
-        {this.props.tlfs && this.props.tlfs.map((t, idx) => (
-          <Row
-            key={rowKey(t.users)}
-            {...t}
-            isPublic={this.props.isPublic}
-            ignored={false}
+        <Rows
+          rows={this.props.tlfs}
+          onOpen={this.props.onOpen}
+          onClick={this.props.onClick}
+          onRekey={this.props.onRekey}
+          isPublic={this.props.isPublic}
+          smallMode={this.props.smallMode}
+          ignored={false}
+        />
+          {this.props.ignored && this.props.ignored.length > 0 && <Ignored
+            ignored={this.props.ignored}
+            showIgnored={this.state.showIgnored}
+            styles={styles}
+            onOpen={this.props.onOpen}
             onClick={this.props.onClick}
             onRekey={this.props.onRekey}
+            isPublic={this.props.isPublic}
             smallMode={this.props.smallMode}
-            isFirst={!idx} />
-          ))}
-          {this.props.ignored && this.props.ignored.length > 0 && <Ignored
-            ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles} onOpen={this.props.onOpen} onClick={this.props.onClick} onRekey={this.props.onRekey}
-            isPublic={this.props.isPublic} onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />}
+            onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />}
       </Box>
     )
   }

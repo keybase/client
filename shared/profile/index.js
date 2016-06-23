@@ -6,6 +6,7 @@ import type {Props} from './render'
 import flags from '../util/feature-flags'
 import {getProfile, updateTrackers} from '../actions/tracker'
 import {routeAppend, navigateUp} from '../actions/router'
+import {openInKBFS} from '../actions/kbfs'
 
 class Profile extends Component<void, Props, void> {
   static parseRoute (currentPath, uri) {
@@ -55,10 +56,9 @@ export default connect(
       dispatch(getProfile(username))
       dispatch(updateTrackers(username))
     },
-    onUserClick: username => {
-      dispatch(routeAppend({path: 'profile', username}))
-    },
+    onUserClick: username => { dispatch(routeAppend({path: 'profile', username})) },
     onBack: () => dispatch(navigateUp()),
+    onFolderClick: folder => dispatch(openInKBFS(folder.path)),
   }),
   (stateProps, dispatchProps, ownProps) => {
     const username = ownProps.username || stateProps.myUsername

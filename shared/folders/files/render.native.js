@@ -5,7 +5,8 @@ import {Box, Button, Text, BackButton, Avatar, Icon, Usernames} from '../../comm
 import File from './file/render'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import {intersperseFn} from '../../util/arrays'
-import type {Props, FileSection} from './render'
+import type {Props} from './render'
+import type {FileSection} from '../../constants/folders'
 
 export default class Render extends Component<void, Props, void> {
   _renderSection (section: FileSection) {
