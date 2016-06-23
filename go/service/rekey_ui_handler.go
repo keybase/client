@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/gregor"
+	gregor1 "github.com/keybase/gregor/protocol/gregor1"
 )
 
 const rekeyHandlerName = "RekeyUIHandler"
@@ -39,7 +40,9 @@ func NewRekeyUIHandler(g *libkb.GlobalContext, connID libkb.ConnectionID) *Rekey
 	}
 }
 
-func (r *RekeyUIHandler) Create(ctx context.Context, category string, item gregor.Item) (bool, error) {
+func (r *RekeyUIHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string,
+	item gregor.Item) (bool, error) {
+
 	switch category {
 	case "kbfs_tlf_rekey_needed":
 		return true, r.rekeyNeeded(ctx, item)
@@ -48,7 +51,8 @@ func (r *RekeyUIHandler) Create(ctx context.Context, category string, item grego
 	}
 }
 
-func (r *RekeyUIHandler) Dismiss(ctx context.Context, category string, item gregor.Item) (bool, error) {
+func (r *RekeyUIHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string,
+	item gregor.Item) (bool, error) {
 	return false, nil
 }
 
