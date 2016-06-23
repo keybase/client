@@ -60,7 +60,7 @@ func NewDirtyBlockCacheStandard(maxSyncBufferSize int64,
 	maxDirtyBufferSize int64) *DirtyBlockCacheStandard {
 	d := &DirtyBlockCacheStandard{
 		requestsChan:       make(chan dirtyReq, 1000),
-		bytesDecreasedChan: make(chan struct{}, 10),
+		bytesDecreasedChan: make(chan struct{}, 1),
 		shutdownChan:       make(chan struct{}),
 		cache:              make(map[dirtyBlockID]Block),
 		maxSyncBufferSize:  maxSyncBufferSize,
@@ -212,6 +212,14 @@ func (d *DirtyBlockCacheStandard) RequestPermissionToDirty(
 	}
 }
 
+func (d *DirtyBlockCacheStandard) signalDecreasedBytes() {
+	select {
+	case d.bytesDecreasedChan <- struct{}{}:
+	default:
+		// Already something queued there, and one is enough.
+	}
+}
+
 // UpdateUnsyncedBytes implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) UpdateUnsyncedBytes(newUnsyncedBytes int64) {
@@ -220,7 +228,7 @@ func (d *DirtyBlockCacheStandard) UpdateUnsyncedBytes(newUnsyncedBytes int64) {
 	d.unsyncedDirtyBytes += newUnsyncedBytes
 	d.totalDirtyBytes += newUnsyncedBytes
 	if d.unsyncedDirtyBytes < 0 {
-		d.bytesDecreasedChan <- struct{}{}
+		d.signalDecreasedBytes()
 	}
 }
 
@@ -231,7 +239,7 @@ func (d *DirtyBlockCacheStandard) BlockSyncFinished(size int64) {
 	defer d.lock.Unlock()
 	d.unsyncedDirtyBytes -= size
 	if size > 0 {
-		d.bytesDecreasedChan <- struct{}{}
+		d.signalDecreasedBytes()
 	}
 }
 
@@ -244,7 +252,7 @@ func (d *DirtyBlockCacheStandard) SyncFinished(size int64) {
 		return
 	}
 	d.totalDirtyBytes -= size
-	d.bytesDecreasedChan <- struct{}{}
+	d.signalDecreasedBytes()
 }
 
 // ShouldForceSync implements the DirtyBlockCache interface for
