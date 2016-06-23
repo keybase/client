@@ -9,10 +9,6 @@ set -e -u -o pipefail
 build_root="$1"
 here="$(dirname "$BASH_SOURCE")"
 
-# Arch doesn't allow dashes in its version numbers.
-pkgver="$(cat "$build_root/VERSION" | sed s/-/_/)"
-echo PKGVER $pkgver
-
 mkdir -p "$build_root/arch"
 
 clone_maybe() {
@@ -35,6 +31,8 @@ clone_maybe "aur@aur.archlinux.org:keybase-bin" "$keybase_bin_repo"
 
 cp "$here/keybase.install" "$keybase_bin_repo"
 
+# Arch doesn't allow dashes in its version numbers.
+pkgver="$(cat "$build_root/VERSION" | sed s/-/_/)"
 sed "s/@@PKGVER@@/$pkgver/" < "$here/PKGBUILD.bin.in" > "$keybase_bin_repo/PKGBUILD"
 
 deb_i386="$(ls "$build_root"/deb/i386/*.deb)"
@@ -59,7 +57,8 @@ clone_maybe "aur@aur.archlinux.org:keybase-git" "$keybase_git_repo"
 
 cp "$here/keybase.install" "$keybase_git_repo"
 
-sed "s/@@PKGVER@@/$pkgver/" < "$here/PKGBUILD.git.in" > "$keybase_git_repo/PKGBUILD"
+git_pkgver="$("$here/keybase_git_version.sh")"
+sed "s/@@PKGVER@@/$git_pkgver/" < "$here/PKGBUILD.git.in" > "$keybase_git_repo/PKGBUILD"
 
 (cd "$keybase_git_repo" &&
   "$introspection_repo/mksrcinfo" &&

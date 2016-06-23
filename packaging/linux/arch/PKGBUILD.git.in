@@ -10,7 +10,7 @@ license=('BSD')
 url='https://keybase.io'
 pkgver=@@PKGVER@@
 pkgver() {
-  "$srcdir/client/packaging/linux/arch/version.sh"
+  "$srcdir/client/packaging/linux/arch/keybase_git_version.sh"
 }
 pkgrel=1
 arch=('i686' 'x86_64')
