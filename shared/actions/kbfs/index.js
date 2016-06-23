@@ -4,6 +4,7 @@ import * as Constants from '../../constants/kbfs'
 import type {AsyncAction} from '../../constants/types/flux'
 import type {fsListRpc} from '../../constants/types/flow-types'
 import engine from '../../engine'
+import {openInKBFS as platformOpenInKBFS} from './index'
 
 export function fsList (path: string) : AsyncAction {
   return function (dispatch) {
@@ -36,5 +37,5 @@ export function fsList (path: string) : AsyncAction {
 }
 
 export function openInKBFS (path: string = ''): AsyncAction {
-  return (dispatch, getState) => {}
+  return platformOpenInKBFS(path)
 }
