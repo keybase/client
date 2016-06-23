@@ -8,13 +8,13 @@ import engine from '../../engine'
 export function fsList (path: string) : AsyncAction {
   return function (dispatch) {
     const params : fsListRpc = {
-      method: 'fs.list',
+      method: 'fs.List',
       param: {
         path,
       },
       incomingCallMap: {},
       callback: (error, result) => {
-        console.log('fs.list: ', error, result)
+        console.log('fs.List: ', error, result)
         if (error) {
           dispatch({
             type: Constants.fsList,
