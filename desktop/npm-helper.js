@@ -126,10 +126,6 @@ const commands = {
     shell: '/Applications/Keybase.app/Contents/MacOS/Electron',
     help: 'Launch installed Keybase app with console output',
   },
-  'electron-rebuild': {
-    shell: './node_modules/.bin/electron-rebuild',
-    help: 'Rebuild electron native code',
-  },
   'postinstall': {
     help: 'Window: fixup symlinks, all: install global eslint. dummy msgpack',
     code: postInstall,
