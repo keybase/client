@@ -41,8 +41,8 @@ class Render extends Component<void, Props, void> {
     }
 
     return (
-      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, paddingTop: this.props.smallMode ? 0 : 45}}>
-        <TabBar styleTabBar={tabBarStyle}>
+      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.lightGrey, paddingTop: 0, minHeight: 32}}>
+        <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
           <TabBarItem
             selected={this.props.showingPrivate}
             styleContainer={itemContainerStyle}
@@ -118,7 +118,8 @@ const itemContainerStyle = {
 
 const tabBarStyle = {
   ...globalStyles.flexBoxRow,
-  minHeight: 32,
+  minHeight: 64,
+  paddingTop: 32,
 }
 
 export default Render

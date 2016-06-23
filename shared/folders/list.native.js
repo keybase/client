@@ -76,6 +76,7 @@ const stylesContainer = {
 
 const stylesIgnoreContainer = {
   ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.white_40
 }
 
 const stylesIgnoreDesc = {

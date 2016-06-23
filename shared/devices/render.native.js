@@ -59,7 +59,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
   }
 
   return (
-    <Box key={device.name} style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.lightGrey : globalColors.white}}>
+    <Box key={device.name} style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.white_40 : globalColors.white}}>
       <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
         <Icon type={icon} />
       </Box>
