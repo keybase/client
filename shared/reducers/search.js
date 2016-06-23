@@ -64,14 +64,17 @@ export default function (state: State = initialState, action: SearchActions): St
       break
     case Constants.addUserToGroup:
       if (!action.error) {
-        const userToAdd = action.payload.user
-        const alreadySelected = state.selectedUsers.find(u => equalSearchResult(u, userToAdd)) !== undefined
+        const user = action.payload.user
+        // Try to upgrade an external search result into a keybase search result, won't work
+        // if it's already a keybase search result or the user doesn't have a keybase account.
+        const maybeUpgradedUser = user.service === 'external' && user.keybaseSearchResult ? user.keybaseSearchResult : user
+        const alreadySelected = state.selectedUsers.find(u => equalSearchResult(u, maybeUpgradedUser)) !== undefined
 
         return {
           ...state,
           selectedUsers: alreadySelected
             ? state.selectedUsers
-            : state.selectedUsers.concat(userToAdd),
+            : state.selectedUsers.concat(maybeUpgradedUser),
           showUserGroup: true,
           searchHintText: 'Search for another user',
           searchText: null,

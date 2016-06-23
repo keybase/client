@@ -33,7 +33,7 @@ function parseFullName (rr: RawResult): string {
   return ''
 }
 
-function parseExtraInfo (platform: SearchPlatforms, rr: RawResult): ExtraInfo {
+function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult): ExtraInfo {
   const fullName = parseFullName(rr)
   const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
 
@@ -70,29 +70,32 @@ function parseExtraInfo (platform: SearchPlatforms, rr: RawResult): ExtraInfo {
   }
 }
 
-function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>) : Results {
-  const results: Array<SearchResult> = filterNull(rresults.map(rr => {
-    const extraInfo = parseExtraInfo(platform, rr)
-    const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
+function parseRawResult (platform: SearchPlatforms, rr: RawResult): ?SearchResult {
+  const extraInfo = parseExtraInfo(platform, rr)
+  const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
 
-    if (platform === 'Keybase') {
-      return {
-        service: 'keybase',
-        username: rr.keybase.username,
-        isFollowing: rr.keybase.is_followee,
-        extraInfo,
-      }
-    } else if (serviceName) {
-      return {
-        service: 'external',
-        icon: platformToLogo32(serviceName),
-        username: rr.service.username,
-        extraInfo,
-      }
-    } else {
-      return null
+  if (platform === 'Keybase') {
+    return {
+      service: 'keybase',
+      username: rr.keybase.username,
+      isFollowing: rr.keybase.is_followee,
+      extraInfo,
     }
-  }))
+  } else if (serviceName) {
+    return {
+      service: 'external',
+      icon: platformToLogo32(serviceName),
+      username: rr.service.username,
+      extraInfo,
+      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', rr) : null,
+    }
+  } else {
+    return null
+  }
+}
+
+function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>): Results {
+  const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr)))
 
   return {
     type: Constants.results,
@@ -106,6 +109,9 @@ export function search (term: string, platform: SearchPlatforms = 'Keybase') : T
       return
     }
 
+    // In case platform is passed in as null
+    platform = platform || 'Keybase'
+
     dispatch({
       type: Constants.search,
       payload: {
@@ -114,23 +120,6 @@ export function search (term: string, platform: SearchPlatforms = 'Keybase') : T
       },
     })
 
-    // TODO daemon rpc, for now api hit
-    // const params: UserSearchRpc = {
-      // method: 'user.search',
-      // param: {
-        // query: term
-      // },
-      // incomingCallMap: {},
-      // callback: (error: ?any, uresults: UserSearchResult) => {
-        // if (error) {
-          // console.log('Error searching. Not handling this error')
-        // } else {
-          // dispatch(results(term, uresults))
-        // }
-      // }
-    // }
-
-    // engine.rpc(params)
     const service = {
       'Keybase': '',
       'Twitter': 'twitter',

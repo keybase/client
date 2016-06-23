@@ -10,6 +10,7 @@ const results = [
     serviceAvatar: null,
     icon: 'icon-twitter-logo-32',
     username: 'malgorithms',
+    keybaseSearchResult: null,
     extraInfo: {
       service: 'keybase',
       username: 'chris',
@@ -106,6 +107,7 @@ const userGroupMap: DumbComponentMap<UserGroup> = {
           serviceAvatar: null,
           icon: 'fa-twitter',
           username: 'malgorithms',
+          keybaseSearchResult: null,
           extraInfo: {
             service: 'external',
             icon: 'fa-twitter',

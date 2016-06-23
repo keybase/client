@@ -28,7 +28,8 @@ export type SearchResult = {
   service: 'external',
   icon: IconType,
   username: string,
-  extraInfo: ExtraInfo
+  extraInfo: ExtraInfo,
+  keybaseSearchResult: ?SearchResult, // If we want to grab the keybase version of a search result
 }
 
 export const search = 'search:search'
