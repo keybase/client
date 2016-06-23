@@ -43,7 +43,7 @@ export default connector.connect(
      onClickResult: user => { dispatch(addUserToGroup(user)) },
      selectedService: searchPlatform,
      onSearch: term => { dispatch(search(term, searchPlatform)); dispatch(hideUserGroup()) },
-     onClickService: platform => { dispatch(selectPlatform(platform)) },
+     onClickService: platform => { searchPlatform !== platform && dispatch(selectPlatform(platform)) },
      showUserGroup,
      selectedUsers,
      onRemoveUserFromGroup: user => { dispatch(removeUserFromGroup(user)) },
