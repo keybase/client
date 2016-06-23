@@ -552,12 +552,12 @@ function updateProof (remoteProof: RemoteProof, linkCheckResult: LinkCheckResult
   }
 }
 
-function summaryToTrackingInfo (summaries: Array<UserSummary>): Array<TrackingInfo> {
+function summaryToTrackingInfo (getState: any, summaries: Array<UserSummary>): Array<TrackingInfo> {
   return summaries.map(s => ({
     username: s.username,
     fullname: s.fullName,
-    following: isFollowing(s.username),
-    followsYou: isFollower(s.username),
+    following: isFollowing(getState, s.username),
+    followsYou: isFollower(getState, s.username),
   }))
 }
 
@@ -581,7 +581,7 @@ function listTrackers (username: string): Promise {
   })
 }
 
-function loadSummaries (uids: Array<UID>): Promise {
+function loadSummaries (getState: any, uids: Array<UID>): Promise {
   return new Promise((resolve, reject) => {
     const params : userLoadUncheckedUserSummariesRpc = {
       method: 'user.loadUncheckedUserSummaries',
@@ -592,7 +592,7 @@ function loadSummaries (uids: Array<UID>): Promise {
           console.log('err getting tracker summaries', err)
           reject()
         } else {
-          resolve(summaryToTrackingInfo(summaries))
+          resolve(summaryToTrackingInfo(getState, summaries))
         }
       },
     }
@@ -623,8 +623,8 @@ function getTracking (username: string): Promise {
 
 export function updateTrackers (username: string) : TrackerActionCreator {
   return (dispatch, getState) => {
-    const figureTrackers = listTrackers(username).then(loadSummaries)
-    const figureTracking = getTracking(username).then(loadSummaries)
+    const figureTrackers = listTrackers(username).then(uids => loadSummaries(getState, uids))
+    const figureTracking = getTracking(username).then(uids => loadSummaries(getState, uids))
 
     Promise.all([figureTrackers, figureTracking]).then(([trackers, tracking]) => {
       dispatch({

@@ -34,10 +34,8 @@ function getConfig (): AsyncAction {
   }
 }
 
-let followers = {}
-
-export function isFollower (username: string) : boolean {
-  return !!followers[username]
+export function isFollower (getState: any, username: string) : boolean {
+  return !!getState().config.followers[username]
 }
 
 function getMyFollowers (username: string): AsyncAction {
@@ -61,7 +59,7 @@ function getMyFollowers (username: string): AsyncAction {
               return
             }
 
-            followers = {}
+            const followers = {}
             summaries.forEach(s => { followers[s.username] = true })
             dispatch({
               type: Constants.updateFollowers,
@@ -78,9 +76,8 @@ function getMyFollowers (username: string): AsyncAction {
   }
 }
 
-let following = {}
-export function isFollowing (username: string) : boolean {
-  return !!following[username]
+export function isFollowing (getState: () => any, username: string) : boolean {
+  return !!getState().config.following[username]
 }
 
 function getMyFollowing (username: string): AsyncAction {
@@ -94,7 +91,7 @@ function getMyFollowing (username: string): AsyncAction {
           return
         }
 
-        following = {}
+        const following = {}
         summaries.forEach(s => { following[s.username] = true })
         dispatch({
           type: Constants.updateFollowing,
