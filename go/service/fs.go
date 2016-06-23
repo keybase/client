@@ -35,10 +35,10 @@ func (h *fsHandler) fsClient() (*keybase1.FsClient, error) {
 	}, nil
 }
 
-func (h *fsHandler) List(_ context.Context, arg keybase1.ListArg) (keybase1.ListResult, error) {
+func (h *fsHandler) FsList(_ context.Context, arg keybase1.FsListArg) (keybase1.FsListResult, error) {
 	fsClient, err := h.fsClient()
 	if err != nil {
-		return keybase1.ListResult{}, err
+		return keybase1.FsListResult{}, err
 	}
-	return fsClient.List(context.TODO(), arg)
+	return fsClient.FsList(context.TODO(), arg)
 }

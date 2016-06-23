@@ -2,17 +2,17 @@
 
 protocol fs {
 
-  record Path {
+  record File {
     string name;
   }
 
-  record ListResult {
-    array<Path> paths;
+  record FsListResult {
+    array<File> files;
   }
 
   /**
    List files in a path. Implemented by KBFS service.
    */
-  ListResult list(int sessionID, string path);
+  FsListResult fsList(int sessionID, string path);
 
 }

@@ -271,6 +271,10 @@ export type Feature = {
   label: string;
 }
 
+export type File = {
+  name: string;
+}
+
 export type FileDescriptor = {
   name: string;
   type: FileType;
@@ -297,6 +301,10 @@ export type ForkType =
   | 1 // AUTO_1
   | 2 // WATCHDOG_2
   | 3 // LAUNCHD_3
+
+export type FsListResult = {
+  files: Array<File>;
+}
 
 export type FuseMountInfo = {
   path: string;
@@ -516,10 +524,6 @@ export type LinkCheckResult = {
   breaksTracking: boolean;
 }
 
-export type ListResult = {
-  paths: Array<Path>;
-}
-
 export type LogLevel =
     0 // NONE_0
   | 1 // DEBUG_1
@@ -728,10 +732,6 @@ export type PassphraseType =
   | 1 // PAPER_KEY_1
   | 2 // PASS_PHRASE_2
   | 3 // VERIFY_PASS_PHRASE_3
-
-export type Path = {
-  name: string;
-}
 
 export type PlatformInfo = {
   os: string;
@@ -1836,15 +1836,15 @@ export type favoriteGetFavoritesRpc = {
   callback: (null | (err: ?any, response: favoriteGetFavoritesResult) => void)
 }
 
-export type fsListResult = ListResult
+export type fsFsListResult = FsListResult
 
-export type fsListRpc = {
-  method: 'fs.list',
+export type fsFsListRpc = {
+  method: 'fs.fsList',
   param: {
     path: string
   },
   incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any, response: fsListResult) => void)
+  callback: (null | (err: ?any, response: fsFsListResult) => void)
 }
 
 export type gpgUiConfirmDuplicateKeyChosenResult = boolean
@@ -3638,7 +3638,7 @@ export type rpc =
   | favoriteFavoriteAddRpc
   | favoriteFavoriteIgnoreRpc
   | favoriteGetFavoritesRpc
-  | fsListRpc
+  | fsFsListRpc
   | gpgUiConfirmDuplicateKeyChosenRpc
   | gpgUiSelectKeyAndPushOptionRpc
   | gpgUiSelectKeyRpc
@@ -4229,14 +4229,14 @@ export type incomingCallMapType = {
       result: (result: favoriteGetFavoritesResult) => void
     }
   ) => void,
-  'keybase.1.fs.list'?: (
+  'keybase.1.fs.fsList'?: (
     params: {
       sessionID: int,
       path: string
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: fsListResult) => void
+      result: (result: fsFsListResult) => void
     }
   ) => void,
   'keybase.1.gpgUi.wantToAddGPGKey'?: (

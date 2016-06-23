@@ -4,7 +4,7 @@
   "types": [
     {
       "type": "record",
-      "name": "Path",
+      "name": "File",
       "fields": [
         {
           "type": "string",
@@ -14,20 +14,20 @@
     },
     {
       "type": "record",
-      "name": "ListResult",
+      "name": "FsListResult",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "Path"
+            "items": "File"
           },
-          "name": "paths"
+          "name": "files"
         }
       ]
     }
   ],
   "messages": {
-    "list": {
+    "fsList": {
       "request": [
         {
           "name": "sessionID",
@@ -38,7 +38,7 @@
           "type": "string"
         }
       ],
-      "response": "ListResult",
+      "response": "FsListResult",
       "doc": "List files in a path. Implemented by KBFS service."
     }
   },

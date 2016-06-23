@@ -37,14 +37,12 @@ cp -R "$kbfs_dir"/* "$go_kbfs_dir"
 
 # Move all vendoring up a directory to github.com/keybase/vendor
 echo "Re-vendoring..."
-vendor_dir="$GOPATH/src/github.com/keybase/go-vendor"
-rm -rf "$vendor_dir"
-mkdir -p "$vendor_dir"
+mkdir -p "$GOPATH/src/github.com/keybase/vendor"
 # Remove client vendored in kbfs
 rm -rf "$go_kbfs_dir/vendor/github.com/keybase/client/go"
 # Vendoring client over kbfs (ignore time)
-rsync -pr --ignore-times "$go_kbfs_dir/vendor" "$GOPATH/src/github.com/keybase/"
-rsync -pr --ignore-times "$go_client_dir/vendor" "$GOPATH/src/github.com/keybase/"
+rsync -pr --ignore-times "$go_kbfs_dir/vendor" "$GOPATH/src/github.com/keybase"
+rsync -pr --ignore-times "$go_client_dir/vendor" "$GOPATH/src/github.com/keybase"
 # Remove their vendoring
 rm -rf "$go_kbfs_dir/vendor"
 rm -rf "$go_client_dir/vendor"
