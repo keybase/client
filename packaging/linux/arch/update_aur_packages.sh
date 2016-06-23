@@ -17,11 +17,6 @@ clone_maybe() {
   fi
 }
 
-# Clone the repo for Arch's mksrcinfo tool. Thankfully no dependencies here.
-introspection_repo="$build_root/arch/pkgbuild-introspection"
-clone_maybe "https://github.com/falconindy/pkgbuild-introspection" "$introspection_repo"
-make -C "$introspection_repo"
-
 ###
 ### keybase-bin
 ###
@@ -33,20 +28,32 @@ cp "$here/keybase.install" "$keybase_bin_repo"
 
 # Arch doesn't allow dashes in its version numbers.
 pkgver="$(cat "$build_root/VERSION" | sed s/-/_/)"
-sed "s/@@PKGVER@@/$pkgver/" < "$here/PKGBUILD.bin.in" > "$keybase_bin_repo/PKGBUILD"
+
+# Debian replaces the + with a . to avoid URL mangling.
+debver="$(cat "$build_root/VERSION" | sed s/+/./)"
 
 deb_i386="$(ls "$build_root"/deb/i386/*.deb)"
-i386_sum="$(sha256sum "$deb_i386" | awk '{print $1}')"
-echo "sha256sums_i686=($i386_sum)" >> "$keybase_bin_repo/PKGBUILD"
+sum_i386="$(sha256sum "$deb_i386" | awk '{print $1}')"
 
 deb_amd64="$(ls "$build_root"/deb/amd64/*.deb)"
-amd64_sum="$(sha256sum "$deb_amd64" | awk '{print $1}')"
-echo "sha256sums_x86_64=($amd64_sum)" >> "$keybase_bin_repo/PKGBUILD"
+sum_amd64="$(sha256sum "$deb_amd64" | awk '{print $1}')"
 
-(cd "$keybase_bin_repo" &&
-  "$introspection_repo/mksrcinfo" &&
-  git commit -am "version bump" &&
-  git push)
+cat "$here/PKGBUILD.bin.in" \
+  | sed "s/@@PKGVER@@/$pkgver/g" \
+  | sed "s/@@DEBVER@@/$debver/g" \
+  | sed "s/@@SUM_i686@@/$sum_i386/g" \
+  | sed "s/@@SUM_x86_64@@/$sum_amd64/g" \
+  > "$keybase_bin_repo/PKGBUILD"
+
+cat "$here/DOT_SRCINFO.bin.in" \
+  | sed "s/@@PKGVER@@/$pkgver/g" \
+  | sed "s/@@DEBVER@@/$debver/g" \
+  | sed "s/@@SUM_i686@@/$sum_i386/g" \
+  | sed "s/@@SUM_x86_64@@/$sum_amd64/g" \
+  > "$keybase_bin_repo/.SRCINFO"
+
+git -C "$keybase_bin_repo" commit -am "version bump"
+git -C "$keybase_bin_repo" push origin master
 
 ###
 ### keybase-git
@@ -57,10 +64,17 @@ clone_maybe "aur@aur.archlinux.org:keybase-git" "$keybase_git_repo"
 
 cp "$here/keybase.install" "$keybase_git_repo"
 
+# The git package avoids putting a timestamp in the version. See the comments
+# in keybase_git_version.sh.
 git_pkgver="$("$here/keybase_git_version.sh")"
-sed "s/@@PKGVER@@/$git_pkgver/" < "$here/PKGBUILD.git.in" > "$keybase_git_repo/PKGBUILD"
 
-(cd "$keybase_git_repo" &&
-  "$introspection_repo/mksrcinfo" &&
-  git commit -am "version bump" &&
-  git push)
+cat "$here/PKGBUILD.git.in" \
+  | sed "s/@@PKGVER@@/$git_pkgver/g" \
+  > "$keybase_git_repo/PKGBUILD"
+
+cat "$here/DOT_SRCINFO.git.in" \
+  | sed "s/@@PKGVER@@/$git_pkgver/g" \
+  > "$keybase_git_repo/.SRCINFO"
+
+git -C "$keybase_git_repo" commit -am "version bump"
+git -C "$keybase_git_repo" push origin master
