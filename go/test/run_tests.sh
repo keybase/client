@@ -8,6 +8,7 @@ export KEYBASE_LOG_SETUPTEST_FUNCS=1
 for i in $DIRS; do
 	if [ "$i" = "loopback" ]; then
 		echo "Skipping loopback"
+		continue
 	fi
 
 	echo -n "$i......."
