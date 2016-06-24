@@ -2557,9 +2557,8 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 			if update.Unref != update.Ref {
 				unrefs[update.Unref] = true
 				delete(refs, update.Unref)
+				refs[update.Ref] = true
 			}
-
-			refs[update.Ref] = true
 		}
 	}
 
@@ -2774,6 +2773,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 
 	// Create an update map, and fix up the gc ops.
 	for i, update := range resOp.Updates {
+		cr.log.CDebugf(ctx, "resOp update: %v -> %v", update.Unref, update.Ref)
 		// The unref should represent the most recent merged pointer
 		// for the block.  However, the other ops will be using the
 		// original pointer as the unref, so use that as the key.
@@ -2815,6 +2815,23 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		}
 		if _, ok := updates[chain.original]; !ok {
 			updates[chain.original] = chain.mostRecent
+		}
+	}
+
+	// For all chains that were updated in both branches, make sure
+	// the most recent unmerged pointer updates to the most recent
+	// merged pointer.  Normally this would get fixed up in the resOp
+	// loop above, but that will miss directories that were not
+	// updated as part of the resolution.  (For example, if a file was
+	// moved out of a directory in the merged branch, but an attr was
+	// set on that file in the unmerged branch.)
+	for unmergedOriginal := range unmergedChains.byOriginal {
+		mergedChain, ok := mergedChains.byOriginal[unmergedOriginal]
+		if !ok {
+			continue
+		}
+		if _, ok := updates[unmergedOriginal]; !ok {
+			updates[unmergedOriginal] = mergedChain.mostRecent
 		}
 	}
 
