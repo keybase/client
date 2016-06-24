@@ -163,18 +163,25 @@ func TestTrackingNotifications(t *testing.T) {
 	// in such a way that the fetch done by CheckTracking above doesn't find
 	// any "isOwnNewLinkFromServer" links. If so, one way to fix this test
 	// would be to blow away the local db before calling CheckTracking.
-	tc.G.Log.Debug("Waiting for tracking notification.")
-	select {
-	case err := <-nh.errCh:
-		t.Fatalf("Error before notify: %v", err)
-	case arg := <-nh.trackingCh:
-		tAliceUID := keybase1.UID("295a7eea607af32040647123732bc819")
-		tc.G.Log.Debug("Got tracking changed notification (%#v)", arg)
-		if "t_alice" != arg.Username {
-			t.Fatalf("Bad username back: %s != %s", "t_alice", arg.Username)
-		}
-		if !tAliceUID.Equal(arg.Uid) {
-			t.Fatalf("Bad UID back: %s != %s", tAliceUID, arg.Uid)
+	tc.G.Log.Debug("Waiting for two tracking notifications.")
+	for i := 0; i < 2; i++ {
+		select {
+		case err := <-nh.errCh:
+			t.Fatalf("Error before notify: %v", err)
+		case arg := <-nh.trackingCh:
+			tAliceUID := keybase1.UID("295a7eea607af32040647123732bc819")
+			tc.G.Log.Debug("Got tracking changed notification (%#v)", arg)
+			if "t_alice" == arg.Username {
+				if !tAliceUID.Equal(arg.Uid) {
+					t.Fatalf("Bad UID back: %s != %s", tAliceUID, arg.Uid)
+				}
+			} else if userInfo.username == arg.Username {
+				if !tc.G.Env.GetUID().Equal(arg.Uid) {
+					t.Fatalf("Bad UID back: %s != %s", tc.G.Env.GetUID(), arg.Uid)
+				}
+			} else {
+				t.Fatalf("Bad username back: %s != %s || %s", arg.Username, "t_alice", userInfo.username)
+			}
 		}
 	}
 
