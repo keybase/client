@@ -107,7 +107,7 @@ func TestFavoriteIgnore(t *testing.T) {
 	idUI := &FakeIdentifyUI{}
 	addfav("t_alice,t_bob", true, true, idUI, tc)
 	addfav("t_alice,t_charlie", true, true, idUI, tc)
-	if len(listfav(tc)) != 4 {
+	if len(listfav(tc)) != 2 {
 		t.Errorf("favorites len: %d, expected 2", len(listfav(tc)))
 	}
 	rmfav("t_alice,t_bob", true, tc)
@@ -134,8 +134,8 @@ func TestFavoriteList(t *testing.T) {
 		t.Fatal(err)
 	}
 	favs := eng.Result().FavoriteFolders
-	if len(favs) != 2 {
-		t.Fatalf("num favs: %d, expected 2", len(favs))
+	if len(favs) != 4 {
+		t.Fatalf("num favs: %d, expected 4", len(favs))
 	}
 	if favs[0].Name != "t_alice,t_bob" {
 		t.Errorf("fav 0: %q, expected t_alice,t_bob", favs[0].Name)
