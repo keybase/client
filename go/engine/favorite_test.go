@@ -107,7 +107,7 @@ func TestFavoriteIgnore(t *testing.T) {
 	idUI := &FakeIdentifyUI{}
 	addfav("t_alice,t_bob", true, true, idUI, tc)
 	addfav("t_alice,t_charlie", true, true, idUI, tc)
-	if len(listfav(tc)) != 2 {
+	if len(listfav(tc)) != 4 {
 		t.Errorf("favorites len: %d, expected 2", len(listfav(tc)))
 	}
 	rmfav("t_alice,t_bob", true, tc)
