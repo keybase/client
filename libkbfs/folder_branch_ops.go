@@ -542,6 +542,10 @@ func (fbo *folderBranchOps) setHeadLocked(
 		// Use uninitialized for the merged branch; the unmerged
 		// revision is enough to trigger conflict resolution.
 		fbo.cr.Resolve(md.Revision, MetadataRevisionUninitialized)
+	} else if md.MergedStatus() == Merged {
+		// if we are already merged through this write, the revision would be the
+		// latestMergedRevision on server
+		fbo.setLatestMergedRevisionLocked(ctx, lState, md.Revision)
 	}
 
 	fbo.head = md
