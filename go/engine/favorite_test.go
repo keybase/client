@@ -18,20 +18,20 @@ func TestFavoriteAdd(t *testing.T) {
 
 	idUI := &FakeIdentifyUI{}
 	addfav("t_alice,t_bob", true, true, idUI, tc)
-	if len(listfav(tc)) != 1 {
-		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
+	if len(listfav(tc)) != 3 {
+		t.Errorf("favorites len: %d, expected 3", len(listfav(tc)))
 	}
 
 	// Add the same share again. The number shouldn't change.
 	addfav("t_alice,t_bob", true, true, idUI, tc)
-	if len(listfav(tc)) != 1 {
-		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
+	if len(listfav(tc)) != 3 {
+		t.Errorf("favorites len: %d, expected 3", len(listfav(tc)))
 	}
 
 	// Add a public share of the same name, make sure both are represented.
 	addfav("t_alice,t_bob", false, true, idUI, tc)
-	if len(listfav(tc)) != 2 {
-		t.Errorf("favorites len: %d, expected 2", len(listfav(tc)))
+	if len(listfav(tc)) != 4 {
+		t.Errorf("favorites len: %d, expected 4", len(listfav(tc)))
 	}
 }
 
@@ -45,8 +45,8 @@ func TestFavoriteAddSocial(t *testing.T) {
 
 	idUI := &FakeIdentifyUI{}
 	addfav(fmt.Sprintf("%s,bob@twitter", u.Username), true, true, idUI, tc)
-	if len(listfav(tc)) != 1 {
-		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
+	if len(listfav(tc)) != 3 {
+		t.Errorf("favorites len: %d, expected 3", len(listfav(tc)))
 	}
 
 	if idUI.DisplayTLFCount != 1 {
@@ -67,8 +67,8 @@ func TestFavoriteAddSocial(t *testing.T) {
 	// displaying tlf + invite.
 	// created flag == false
 	addfav(fmt.Sprintf("%s,bobdog@twitter", u.Username), true, false, idUI, tc)
-	if len(listfav(tc)) != 2 {
-		t.Errorf("favorites len: %d, expected 2", len(listfav(tc)))
+	if len(listfav(tc)) != 4 {
+		t.Errorf("favorites len: %d, expected 4", len(listfav(tc)))
 	}
 	if idUI.DisplayTLFCount != 0 {
 		t.Errorf("DisplayTLFCount: %d, expected 0", idUI.DisplayTLFCount)
@@ -78,8 +78,8 @@ func TestFavoriteAddSocial(t *testing.T) {
 	// Make sure ui for displaying tlf + invite not called for non-social
 	// assertion TLF.
 	addfav(fmt.Sprintf("%s,t_alice", u.Username), true, true, idUI, tc)
-	if len(listfav(tc)) != 3 {
-		t.Errorf("favorites len: %d, expected 3", len(listfav(tc)))
+	if len(listfav(tc)) != 5 {
+		t.Errorf("favorites len: %d, expected 5", len(listfav(tc)))
 	}
 	if idUI.DisplayTLFCount != 0 {
 		t.Errorf("DisplayTLFCount: %d, expected 0", idUI.DisplayTLFCount)
@@ -88,8 +88,8 @@ func TestFavoriteAddSocial(t *testing.T) {
 	idUI = &FakeIdentifyUI{}
 	// Test adding a public favorite with SBS social assertion
 	addfav(fmt.Sprintf("%s,bobdog@twitter", u.Username), false, true, idUI, tc)
-	if len(listfav(tc)) != 4 {
-		t.Errorf("favorites len: %d, expected 4", len(listfav(tc)))
+	if len(listfav(tc)) != 6 {
+		t.Errorf("favorites len: %d, expected 6", len(listfav(tc)))
 	}
 	if idUI.DisplayTLFCount != 1 {
 		t.Errorf("DisplayTLFCount: %d, expected 1", idUI.DisplayTLFCount)
@@ -181,3 +181,21 @@ func listfav(tc libkb.TestContext) []keybase1.Folder {
 	}
 	return eng.Result().FavoriteFolders
 }
+
+// func defaultFaves(un string) []keybase1.Folder {
+// 	return []keybase1.Folder{
+// 		keybase1.Folder{ name : un, private : false },
+// 		keybase1.Folder{ name : un, private : true },
+// 	}
+// }
+//
+// func hasDupes(folders []keybase1.Folder) {
+// 	tab := make(map[string]bool)
+// 	for folder := range folders {
+//
+// 	}
+// }
+//
+// func compareFaves(a []keybase1.Folder, b.keybase1.Folder[]) {
+//
+// }
