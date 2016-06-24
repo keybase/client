@@ -89,6 +89,9 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult): ?SearchResul
       service: 'external',
       icon: platformToLogo32(serviceName),
       username: rr.service && rr.service.username || '',
+      serviceName,
+      profileUrl: 'TODO',
+      serviceAvatar: rr.service && rr.service.picture_url,
       extraInfo,
       keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', rr) : null,
     }

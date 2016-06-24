@@ -16,7 +16,7 @@ import type {State as RootTrackerState} from '../reducers/tracker'
 import type {ConfigState} from '../reducers/config'
 import type {Action, Dispatch} from '../constants/types/flux'
 
-import type {ShowNonUser, TrackingInfo} from '../constants/tracker'
+import type {ShowNonUser, TrackingInfo, PendingIdentify} from '../constants/tracker'
 
 import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtlRegisterIdentifyUIRpc,
   trackCheckTrackingRpc, trackUntrackRpc, trackTrackWithTokenRpc, incomingCallMapType,
@@ -97,6 +97,11 @@ export function registerTrackerIncomingRpcs (): TrackerActionCreator {
 
 export function getProfile (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
+    // If we have a pending identify no point in firing off another one
+    if (getState().tracker.pendingIdentifies[username]) {
+      return
+    }
+
     dispatch(triggerIdentify('', username, true, serverCallMap(dispatch, getState, true)))
   }
 }
@@ -136,6 +141,8 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
   }
 
   return (dispatch, getState) => new Promise((resolve, reject) => {
+    dispatch(pendingIdentify(userAssertion || uid, true))
+
     const params: identifyIdentify2Rpc = {
       method: 'identify.identify2',
       param: {
@@ -158,6 +165,7 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
       incomingCallMap,
       callback: (error, response) => {
         console.log('called identify and got back', error, response)
+        dispatch(pendingIdentify(userAssertion || uid, false))
         resolve()
       },
     }
@@ -635,3 +643,9 @@ export function updateTrackers (username: string) : TrackerActionCreator {
   }
 }
 
+export function pendingIdentify (username: string, pending: boolean): PendingIdentify {
+  return {
+    type: Constants.pendingIdentify,
+    payload: {username, pending},
+  }
+}

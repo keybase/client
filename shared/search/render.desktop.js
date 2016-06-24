@@ -5,6 +5,8 @@ import SearchHelp from './help.desktop'
 import {globalStyles} from '../styles/style-guide'
 import {SearchContainer, SearchBar, searchResultsList} from './user-search/render.desktop'
 import UserGroup from './user-search/user-group'
+import UserPane from './user-pane'
+
 import type {Props} from './render'
 
 class Render extends Component<void, Props, void> {
@@ -15,7 +17,11 @@ class Render extends Component<void, Props, void> {
   _renderInfoPane () {
     // TODO(mm) maybe shell out to a smart component here?
     // One that only takes a username and can figure out the rest
-    return <Box style={{flex: 1}} />
+    return (
+      <Box style={{flex: 1}}>
+        <UserPane />
+      </Box>
+    )
   }
 
   _renderSearchResultsOrGroupAdd () {
