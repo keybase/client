@@ -1,6 +1,8 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+// +build !darwin
+
 package client
 
 import (
@@ -11,44 +13,31 @@ import (
 	"golang.org/x/net/context"
 )
 
-func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "stop",
 		Usage: "Stop the background keybase service",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdCtlStopRunner(g), "stop", c)
+			cl.ChooseCommand(newcmdCtlStopRunner(g), "stop", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetNoStandalone()
 		},
 	}
 }
 
-type CmdCtlStop struct {
+type cmdCtlStop struct {
 	libkb.Contextified
 }
 
-func NewCmdCtlStopRunner(g *libkb.GlobalContext) *CmdCtlStop {
-	return &CmdCtlStop{libkb.NewContextified(g)}
+func newcmdCtlStopRunner(g *libkb.GlobalContext) *cmdCtlStop {
+	return &cmdCtlStop{libkb.NewContextified(g)}
 }
 
-func (s *CmdCtlStop) ParseArgv(ctx *cli.Context) error {
+func (s *cmdCtlStop) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (s *CmdCtlStop) Run() (err error) {
-	configCli, err := GetConfigClient(s.G())
-	if err != nil {
-		return err
-	}
-	config, err := configCli.GetConfig(context.TODO(), 0)
-	if err != nil {
-		return err
-	}
-
-	if config.ForkType == keybase1.ForkType_LAUNCHD {
-		return StopLaunchdService(s.G(), config.Label, true)
-	}
-
+func (s *cmdCtlStop) Run() (err error) {
 	cli, err := GetCtlClient(s.G())
 	if err != nil {
 		return err
@@ -56,6 +45,6 @@ func (s *CmdCtlStop) Run() (err error) {
 	return cli.Stop(context.TODO(), keybase1.StopArg{ExitCode: keybase1.ExitCode_OK})
 }
 
-func (s *CmdCtlStop) GetUsage() libkb.Usage {
+func (s *cmdCtlStop) GetUsage() libkb.Usage {
 	return libkb.Usage{}
 }

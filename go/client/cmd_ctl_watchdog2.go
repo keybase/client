@@ -28,14 +28,13 @@ func (c *CmdWatchdog2) ParseArgv(ctx *cli.Context) error {
 
 // Run watchdog
 func (c *CmdWatchdog2) Run() error {
-	env, log := c.G().Env, c.G().Log
-	log.Info("Starting watchdog")
+	env := c.G().Env
 	runMode := env.GetRunMode()
 	if runMode != libkb.ProductionRunMode {
 		return fmt.Errorf("Watchdog is only supported in production")
 	}
-	// Don't run updater on linux
-	excludeUpdater := runtime.GOOS == "linux"
+
+	excludeUpdater := runtime.GOOS == "linux" // Don't run updater on linux
 
 	programs := []watchdog.Program{}
 
@@ -93,7 +92,7 @@ func (c *CmdWatchdog2) Run() error {
 	}
 
 	// Start and monitor all the programs
-	if err := watchdog.Watch(programs, 10*time.Second, c); err != nil {
+	if err := watchdog.Watch(programs, 10*time.Second, c.G().GetLogf()); err != nil {
 		return err
 	}
 

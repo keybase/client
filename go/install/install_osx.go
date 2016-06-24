@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -17,14 +16,15 @@ import (
 	"time"
 
 	"github.com/blang/semver"
+	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/mounter"
 	"github.com/keybase/client/go/protocol"
 )
 
-// defaultWait is how long we should wait after install, start, etc
-const defaultWait = 5 * time.Second
+// defaultLaunchdWait is how long we should wait after install, start, etc
+const defaultLaunchdWait = 5 * time.Second
 
 // ServiceLabel is an identifier string for a service
 type ServiceLabel string
@@ -52,7 +52,7 @@ func KeybaseServiceStatus(context Context, label string, log Log) (status keybas
 	}
 	kbService := launchd.NewService(label)
 
-	status, err := serviceStatusFromLaunchd(kbService, path.Join(context.GetRuntimeDir(), "keybased.info"), log)
+	status, err := serviceStatusFromLaunchd(kbService, context.GetServiceInfoPath(), log)
 	status.BundleVersion = libkb.VersionString()
 	if err != nil {
 		return
@@ -76,7 +76,7 @@ func KBFSServiceStatus(context Context, label string, log Log) (status keybase1.
 	}
 	kbfsService := launchd.NewService(label)
 
-	status, err := serviceStatusFromLaunchd(kbfsService, path.Join(context.GetRuntimeDir(), "kbfs.info"), log)
+	status, err := serviceStatusFromLaunchd(kbfsService, context.GetKBFSInfoPath(), log)
 	if err != nil {
 		return
 	}
@@ -151,7 +151,7 @@ func serviceStatusFromLaunchd(ls launchd.Service, infoPath string, log Log) (sta
 	var serviceInfo *libkb.ServiceInfo
 	if infoPath != "" {
 		if status.Pid != "" {
-			serviceInfo, err = libkb.WaitForServiceInfoFile(infoPath, status.Label, status.Pid, 40, 500*time.Millisecond, "service status", log)
+			serviceInfo, err = libkb.WaitForServiceInfoFile(infoPath, status.Label, status.Pid, 40, 500*time.Millisecond, log)
 			if err != nil {
 				status.InstallStatus = keybase1.InstallStatus_ERROR
 				status.InstallAction = keybase1.InstallAction_REINSTALL
@@ -231,6 +231,11 @@ func DefaultKBFSLabel() string {
 	return AppKBFSLabel.String()
 }
 
+// DefaultUpdaterLabel returns the default label for the update service in launchd
+func DefaultUpdaterLabel() string {
+	return AppUpdaterLabel.String()
+}
+
 const defaultPlistComment = "It's not advisable to edit this plist, it may be overwritten"
 
 func keybasePlist(context Context, binPath string, label string, log Log) launchd.Plist {
@@ -243,7 +248,7 @@ func keybasePlist(context Context, binPath string, label string, log Log) launch
 }
 
 func installKeybaseService(context Context, service launchd.Service, plist launchd.Plist, log Log) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, defaultWait, log)
+	err := launchd.Install(plist, defaultLaunchdWait, log)
 	if err != nil {
 		return nil, err
 	}
@@ -254,8 +259,8 @@ func installKeybaseService(context Context, service launchd.Service, plist launc
 
 // Uninstall keybase all services for this run mode.
 func uninstallKeybaseServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppServiceLabel.String(), defaultWait, nil)
-	err2 := launchd.Uninstall(BrewServiceLabel.String(), defaultWait, nil)
+	err1 := launchd.Uninstall(AppServiceLabel.String(), defaultLaunchdWait, nil)
+	err2 := launchd.Uninstall(BrewServiceLabel.String(), defaultLaunchdWait, nil)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -287,7 +292,7 @@ func kbfsPlist(context Context, kbfsBinPath string, label string) (plist launchd
 }
 
 func installKBFSService(context Context, service launchd.Service, plist launchd.Plist, log Log) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, defaultWait, log)
+	err := launchd.Install(plist, defaultLaunchdWait, log)
 	if err != nil {
 		return nil, err
 	}
@@ -297,8 +302,8 @@ func installKBFSService(context Context, service launchd.Service, plist launchd.
 }
 
 func uninstallKBFSServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppKBFSLabel.String(), defaultWait, nil)
-	err2 := launchd.Uninstall(BrewKBFSLabel.String(), defaultWait, nil)
+	err1 := launchd.Uninstall(AppKBFSLabel.String(), defaultLaunchdWait, nil)
+	err2 := launchd.Uninstall(BrewKBFSLabel.String(), defaultLaunchdWait, nil)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -776,47 +781,27 @@ func OSVersion() (semver.Version, error) {
 }
 
 // RunAfterStartup runs after service startup
-func RunAfterStartup(context Context, isService bool, log Log) error {
+func RunAfterStartup(context Context, isService bool, log Log) {
 	// Ensure the app is running (if it exists and is supported on the platform)
 	if libkb.IsBrewBuild {
-		return nil
+		return
 	}
 	if context.GetRunMode() != libkb.ProductionRunMode {
-		return nil
+		return
 	}
 	log.Debug("App start mode: %s", context.GetAppStartMode())
 	switch context.GetAppStartMode() {
 	case libkb.AppStartModeService:
 		if !isService {
-			return nil
+			return
 		}
 	case libkb.AppStartModeDisabled:
-		return nil
+		return
 	}
 
-	appPath := "/Applications/Keybase.app"
-	if exists, _ := libkb.FileExists(appPath); !exists {
-		log.Debug("App start is unavailable (App not found at %s)", appPath)
-		return nil
+	if err := RunApp(context, log); err != nil {
+		log.Errorf("Error starting the app: %s", err)
 	}
-	ver, err := OSVersion()
-	if err != nil {
-		log.Errorf("Error trying to determine OS version: %s", err)
-		return nil
-	}
-	if ver.LT(semver.MustParse("10.0.0")) {
-		log.Debug("App isn't supported on this OS version: %s", ver)
-		return nil
-	}
-
-	log.Debug("Ensuring app is open: %s", appPath)
-	// If app is already open this is a no-op, the -g option will cause to open
-	// in background.
-	out, err := exec.Command("/usr/bin/open", "-g", appPath).Output()
-	if err != nil {
-		log.Errorf("Error trying to open Keybase.app; %s; %s", err, out)
-	}
-	return nil
 }
 
 func installUpdater(keybaseBinPath string, force bool, log Log) error {
@@ -877,7 +862,7 @@ func keybaseUpdaterPlist(label string, serviceBinPath string, keybaseBinPath str
 }
 
 func installUpdaterService(service launchd.Service, plist launchd.Plist, log Log) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, defaultWait, log)
+	err := launchd.Install(plist, defaultLaunchdWait, log)
 	if err != nil {
 		return nil, err
 	}
@@ -887,7 +872,7 @@ func installUpdaterService(service launchd.Service, plist launchd.Plist, log Log
 }
 
 func uninstallUpdater() error {
-	return launchd.Uninstall(string(AppUpdaterLabel), defaultWait, nil)
+	return launchd.Uninstall(string(AppUpdaterLabel), defaultLaunchdWait, nil)
 }
 
 // kbfsBinName returns the name for the KBFS executable
@@ -900,4 +885,52 @@ func kbfsBinName(runMode libkb.RunMode) (string, error) {
 
 func updaterBinName() (string, error) {
 	return "updater", nil
+}
+
+// AppBundleForPath returns path to app bundle
+func AppBundleForPath() (string, error) {
+	path, err := osext.Executable()
+	if err != nil {
+		return "", err
+	}
+	if path == "" {
+		return "", err
+	}
+	paths := strings.SplitN(path, ".app", 2)
+	// If no match, return ""
+	if len(paths) <= 1 {
+		return "", fmt.Errorf("Unable to resolve bundle for valid path: %s; %s", path, err)
+	}
+
+	appPath := paths[0] + ".app"
+	if exists, _ := libkb.FileExists(appPath); !exists {
+		return "", fmt.Errorf("App not found: %s", appPath)
+	}
+
+	return appPath, nil
+}
+
+// RunApp starts the app
+func RunApp(context Context, log Log) error {
+	appPath, err := AppBundleForPath()
+	if err != nil {
+		return err
+	}
+	ver, err := OSVersion()
+	if err != nil {
+		log.Errorf("Error trying to determine OS version: %s", err)
+		return nil
+	}
+	if ver.LT(semver.MustParse("10.0.0")) {
+		return fmt.Errorf("App isn't supported on this OS version: %s", ver)
+	}
+
+	log.Info("Opening %s", appPath)
+	// If app is already open this is a no-op, the -g option will cause to open
+	// in background.
+	out, err := exec.Command("/usr/bin/open", "-g", appPath).Output()
+	if err != nil {
+		return fmt.Errorf("Error trying to open %s: %s; %s", appPath, err, out)
+	}
+	return nil
 }

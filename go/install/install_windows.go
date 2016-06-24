@@ -43,3 +43,8 @@ func updaterBinName() (string, error) {
 func RunAfterStartup(context Context, isService bool, log Log) error {
 	return nil
 }
+
+// RunApp starts the app
+func RunApp(context Context, log Log) error {
+	return nil
+}

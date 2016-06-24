@@ -13,6 +13,7 @@ import "C"
 
 import (
 	"fmt"
+	"path/filepath"
 	"sync"
 )
 
@@ -26,7 +27,6 @@ var darwinProcsByPID map[int]*DarwinProcess
 type DarwinProcess struct {
 	pid  int
 	ppid int
-	name string
 	path string
 }
 
@@ -42,7 +42,8 @@ func (p *DarwinProcess) PPid() int {
 
 // Executable returns process executable name
 func (p *DarwinProcess) Executable() string {
-	return p.name
+	path, _ := p.Path()
+	return filepath.Base(path)
 }
 
 // Path returns path to process executable
@@ -55,7 +56,6 @@ func goDarwinAppendProc(pid C.pid_t, ppid C.pid_t, comm *C.char) {
 	proc := &DarwinProcess{
 		pid:  int(pid),
 		ppid: int(ppid),
-		name: C.GoString(comm),
 	}
 	darwinProcs = append(darwinProcs, proc)
 	darwinProcsByPID[proc.pid] = proc

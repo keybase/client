@@ -10,12 +10,15 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/blang/semver"
 	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/lsof"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/go-updater/process"
 )
 
 // Log is the logging interface for this package
@@ -34,6 +37,7 @@ type Context interface {
 	GetMountDir() (string, error)
 	GetRunMode() libkb.RunMode
 	GetServiceInfoPath() string
+	GetKBFSInfoPath() string
 	GetAppStartMode() libkb.AppStartMode
 }
 
@@ -258,4 +262,15 @@ func IsInUse(mountDir string, log Log) bool {
 		return true
 	}
 	return false
+}
+
+// TerminateApp will stop the Keybase (UI) app
+func TerminateApp(context Context, log Log) error {
+	appExecName := "Keybase"
+	logf := logger.NewLoggerf(log)
+	appPIDs := process.TerminateAll(process.NewMatcher(appExecName, process.ExecutableEqual, logf), 5*time.Second, logf)
+	if len(appPIDs) > 0 {
+		log.Info("Terminated %s %v", appExecName, appPIDs)
+	}
+	return nil
 }

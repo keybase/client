@@ -1044,8 +1044,14 @@ func (e *Env) GetAppStartMode() AppStartMode {
 	return e.config.GetAppStartMode()
 }
 
+// GetServiceInfoPath returns path to info file written by the Keybase service after startup
 func (e *Env) GetServiceInfoPath() string {
 	return filepath.Join(e.GetRuntimeDir(), "keybased.info")
+}
+
+// GetKBFSInfoPath returns path to info file written by the KBFS service after startup
+func (e *Env) GetKBFSInfoPath() string {
+	return filepath.Join(e.GetRuntimeDir(), "kbfs.info")
 }
 
 func (e *Env) GetUpdateDefaultInstructions() (string, error) {

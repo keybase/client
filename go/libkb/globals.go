@@ -18,13 +18,14 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/jonboulle/clockwork"
-	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"io"
 	"os"
 	"runtime"
 	"sync"
+
+	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type ShutdownHook func() error
@@ -560,6 +561,11 @@ func (g *GlobalContext) GetLog() logger.Logger {
 	return g.Log
 }
 
+// GetLogf returns a logger with a minimal formatter style interface
+func (g *GlobalContext) GetLogf() logger.Loggerf {
+	return logger.NewLoggerf(g.Log)
+}
+
 func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 	g.hookMu.Lock()
 	defer g.hookMu.Unlock()
@@ -604,8 +610,14 @@ func (g *GlobalContext) GetMountDir() (string, error) {
 	return g.Env.GetMountDir()
 }
 
+// GetServiceInfoPath returns path to info file written by the Keybase service after startup
 func (g *GlobalContext) GetServiceInfoPath() string {
 	return g.Env.GetServiceInfoPath()
+}
+
+// GetKBFSInfoPath returns path to info file written by the KBFS service after startup
+func (g *GlobalContext) GetKBFSInfoPath() string {
+	return g.Env.GetKBFSInfoPath()
 }
 
 func (g *GlobalContext) GetLogDir() string {

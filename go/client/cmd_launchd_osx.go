@@ -35,8 +35,8 @@ func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 	}
 }
 
-// defaultWait is how long we should wait after install, start, etc
-const defaultWait = 5 * time.Second
+// defaultLaunchdWait is how long we should wait after install, start, etc
+const defaultLaunchdWait = 5 * time.Second
 
 func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
@@ -63,7 +63,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			envVars := install.DefaultLaunchdEnvVars(label)
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars, logFileName, "")
-			err := launchd.Install(plist, defaultWait, g.Log)
+			err := launchd.Install(plist, defaultLaunchdWait, g.Log)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -329,55 +329,49 @@ func (v *CmdLaunchdAction) ParseArgv(ctx *cli.Context) error {
 func (v *CmdLaunchdAction) Run() error {
 	switch v.action {
 	case "start":
-		return launchd.Start(v.label, defaultWait, v.G().Log)
+		return launchd.Start(v.label, defaultLaunchdWait, v.G().Log)
 	case "restart":
-		return launchd.Restart(v.label, defaultWait, v.G().Log)
+		return launchd.Restart(v.label, defaultLaunchdWait, v.G().Log)
 	case "stop":
-		return launchd.Stop(v.label, defaultWait, v.G().Log)
+		return launchd.Stop(v.label, defaultLaunchdWait, v.G().Log)
 	case "uninstall":
-		return launchd.Uninstall(v.label, defaultWait, v.G().Log)
+		return launchd.Uninstall(v.label, defaultLaunchdWait, v.G().Log)
 	}
 
 	return nil
 }
 
-func StartLaunchdService(g *libkb.GlobalContext, label string, wait bool) error {
+func StartLaunchdService(g *libkb.GlobalContext, label string, servceInfoPath string, wait bool) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
-	err := launchService.Start(defaultWait)
+	err := launchService.Start(defaultLaunchdWait)
 	if err != nil {
 		return err
 	}
 	if wait {
-		return WaitForService(g, launchService)
+		return WaitForService(g, launchService, servceInfoPath)
 	}
 	return nil
 }
 
-func StopLaunchdService(g *libkb.GlobalContext, label string, wait bool) error {
+func RestartLaunchdService(g *libkb.GlobalContext, label string, servceInfoPath string) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
-	return launchService.Stop(defaultWait)
-}
-
-func RestartLaunchdService(g *libkb.GlobalContext, label string) error {
-	launchService := launchd.NewService(label)
-	launchService.SetLogger(g.Log)
-	err := launchService.Restart(defaultWait)
+	err := launchService.Restart(defaultLaunchdWait)
 	if err != nil {
 		return err
 	}
-	return WaitForService(g, launchService)
+	return WaitForService(g, launchService, servceInfoPath)
 }
 
-func WaitForService(g *libkb.GlobalContext, launchService launchd.Service) error {
-	launchdStatus, err := launchService.WaitForStatus(defaultWait, 500*time.Millisecond)
+func WaitForService(g *libkb.GlobalContext, launchService launchd.Service, servceInfoPath string) error {
+	launchdStatus, err := launchService.WaitForStatus(defaultLaunchdWait, 500*time.Millisecond)
 	if err != nil {
 		return err
 	}
 	if launchdStatus == nil {
 		return fmt.Errorf("%s was not found", launchService.Label())
 	}
-	_, err = libkb.WaitForServiceInfoFile(g.Env.GetServiceInfoPath(), launchdStatus.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, "restart", g.Log)
+	_, err = libkb.WaitForServiceInfoFile(servceInfoPath, launchdStatus.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, g.Log)
 	return err
 }
