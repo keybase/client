@@ -564,6 +564,7 @@ export type NotificationChannels = {
   tracking: boolean;
   favorites: boolean;
   paperkeys: boolean;
+  keyfamily: boolean;
 }
 
 export type NotifyFSFSActivityResult = void
@@ -581,6 +582,17 @@ export type NotifyFavoritesFavoritesChangedResult = void
 
 export type NotifyFavoritesFavoritesChangedRpc = {
   method: 'NotifyFavorites.favoritesChanged',
+  param: {
+    uid: UID
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type NotifyKeyfamilyKeyfamilyChangedResult = void
+
+export type NotifyKeyfamilyKeyfamilyChangedRpc = {
+  method: 'NotifyKeyfamily.keyfamilyChanged',
   param: {
     uid: UID
   },
@@ -3605,6 +3617,7 @@ export type rpc =
   | Kex2ProvisionerKexStartRpc
   | NotifyFSFSActivityRpc
   | NotifyFavoritesFavoritesChangedRpc
+  | NotifyKeyfamilyKeyfamilyChangedRpc
   | NotifyPaperKeyPaperKeyCachedRpc
   | NotifySessionClientOutOfDateRpc
   | NotifySessionLoggedInRpc
@@ -4969,6 +4982,15 @@ export type incomingCallMapType = {
     } /* ,
     response: {} // Notify call
     */
+  ) => void,
+  'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (
+    params: {
+      uid: UID
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
   ) => void,
   'keybase.1.NotifyPaperKey.paperKeyCached'?: (
     params: {
