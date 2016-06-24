@@ -14,7 +14,7 @@ import github from 'octonode'
 import s3 from 's3'
 
 const BUCKET_S3 = 'keybase-app-visdiff'
-const BUCKET_HTTP = 'http://keybase-app-visdiff.s3.amazonaws.com'
+const BUCKET_HTTP = 'https://keybase-app-visdiff.s3.amazonaws.com'
 const MAX_INLINE_IMAGES = 6
 
 const DIFF_NEW = 'new'
