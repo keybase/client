@@ -10,7 +10,7 @@ client_go_dir="$GOPATH/src/github.com/keybase/client/go"
 kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
 
 # Our custom gopath for iOS build
-GOPATH="/tmp/goios"
+GOPATH="/tmp/go"
 echo "Using temp GOPATH: $GOPATH"
 
 # Clear source
@@ -48,11 +48,13 @@ fi
 
 package="github.com/keybase/client/go/loopback"
 
-if [ "$1" = "ios" ]; then
+arg=${1:-}
+
+if [ "$arg" = "ios" ]; then
   ios_dest="$dir/ios/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
   "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -o "$ios_dest" "$package"
-elif [ "$1" = "android" ]; then
+elif [ "$arg" = "android" ]; then
   android_dest="$dir/android/keybaselib/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
   "$GOPATH/bin/gomobile" bind -target=android -tags="android" -o "$android_dest" "$package"

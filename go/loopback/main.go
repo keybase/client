@@ -11,8 +11,12 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/go-framed-msgpack-rpc"
 	"github.com/keybase/kbfs/libkbfs"
+	kbfsrpc "github.com/keybase/kbfs/rpc"
 )
 
 var conn net.Conn
@@ -59,7 +63,7 @@ func Init(homeDir string, logFile string, runModeStr string, serverURI string, a
 
 		kbfsParams := libkbfs.DefaultInitParams(kbCtx)
 		onInterruptFn := func() {}
-		kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, onInterruptFn, kbCtx.Log)
+		kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, newKeybaseDaemon, onInterruptFn, kbCtx.Log)
 		if err != nil {
 			panic(err)
 		}
@@ -67,6 +71,14 @@ func Init(homeDir string, logFile string, runModeStr string, serverURI string, a
 		Reset()
 		fmt.Println("Go: Done")
 	})
+}
+
+func newKeybaseDaemon(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseDaemon, error) {
+	keybaseDaemon := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true)
+	keybaseDaemon.AddProtocols([]rpc.Protocol{
+		keybase1.FsProtocol(kbfsrpc.NewFS(config, log)),
+	})
+	return keybaseDaemon, nil
 }
 
 // LogSend sends a log to kb
