@@ -211,7 +211,16 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 		if entry.BlockPointer != cc.mostRecent {
 			continue
 		}
-		cc.file = entry.Type != Dir
+		switch entry.Type {
+		case Dir:
+			cc.file = false
+		case File:
+			cc.file = true
+		case Exec:
+			cc.file = true
+		default:
+			return fmt.Errorf("Unexpected chain type: %s", entry.Type)
+		}
 		found = true
 		break
 	}

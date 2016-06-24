@@ -1675,7 +1675,8 @@ func (cr *ConflictResolver) getActionsToMerge(unmergedChains *crChains,
 // updates, because conflict resolution only happens within a
 // directory (i.e., files are merged directly, they are just
 // renamed/copied).  It also collapses each action list to get rid of
-// redundant actions.
+// redundant actions.  It returns a slice of additional unmerged paths
+// that should be included in the overall list of unmergedPaths.
 func collapseActions(unmergedChains *crChains, unmergedPaths []path,
 	mergedPaths map[BlockPointer]path,
 	actionMap map[BlockPointer]crActionList) (newUnmergedPaths []path) {
