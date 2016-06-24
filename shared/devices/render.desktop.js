@@ -1,7 +1,7 @@
 /* @flow */
 import React, {Component} from 'react'
 import {Box, Text, Icon, PopupMenu} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
 import type {Props} from './render'
@@ -38,9 +38,9 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
   const icon: IconProps.type = {
-    'mobile': 'phone-bw-m',
-    'desktop': 'computer-bw-s-2',
-    'backup': 'paper-key-m',
+    'mobile': 'icon-phone-bw-48',
+    'desktop': 'icon-computer-bw-48',
+    'backup': 'icon-paper-key-48',
   }[device.type]
 
   let textStyle = {fontStyle: 'italic'}
@@ -58,12 +58,12 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
       key={device.name}
       onClick={() => showExistingDevicePage(device)}
       style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.white_40 : globalColors.white}}>
-      <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
+      <Box style={revoked ? {opacity: 0.2} : {}}>
         <Icon type={icon} />
       </Box>
-      <Box style={{...stylesCommonColumn, flex: 1}}>
+      <Box style={{flex: 1, marginLeft: 16}}>
         <Box style={{...globalStyles.flexBoxRow}}>
-          <Text style={textStyle} type='Header'>{device.name}</Text>
+          <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
         </Box>
         <Box style={{...globalStyles.flexBoxRow}}>
           {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
@@ -94,7 +94,7 @@ const RevokedDevices = ({revokedDevices, showExistingDevicePage}) => (
 )
 
 const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
-  <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white}} onClick={addNewDevice}>
+  <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white, height: globalMargins.xlarge}} onClick={addNewDevice}>
     <Box style={stylesCommonColumn}>
       <Icon type='devices-add-s' />
     </Box>
@@ -189,16 +189,6 @@ const stylesRevokedColumn = {
   alignSelf: 'center',
   textAlign: 'right',
   paddingRight: 20,
-}
-
-const stylesIconColumn = {
-  ...stylesCommonColumn,
-  width: 65,
-}
-
-const stylesRevokedIconColumn = {
-  ...stylesIconColumn,
-  opacity: 0.2,
 }
 
 const stylesPopup = {

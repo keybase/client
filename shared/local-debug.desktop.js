@@ -26,6 +26,7 @@ let config = {
   printRoutes: false,
   skipLauncherDevtools: true,
   initialTabState: {},
+  forceMainWindowPosition: null,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -82,6 +83,7 @@ export const {
   dumbFilter,
   printRoutes,
   skipLauncherDevtools,
+  forceMainWindowPosition,
 } = config
 
 export function initTabbedRouterState (state) {
