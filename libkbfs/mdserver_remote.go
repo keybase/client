@@ -331,7 +331,7 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID,
 		StopRevision:  stop.Number(),
 		BranchID:      bid.String(),
 		Unmerged:      mStatus == Unmerged,
-		LogTags:       LogTagsFromContextToMap(ctx),
+		LogTags:       nil,
 	}
 
 	var err error
@@ -429,7 +429,7 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned) err
 			Version: int(rmds.Version()),
 			Block:   rmdsBytes,
 		},
-		LogTags: LogTagsFromContextToMap(ctx),
+		LogTags: nil,
 	}
 	return md.client.PutMetadata(ctx, arg)
 }
@@ -439,7 +439,7 @@ func (md *MDServerRemote) PruneBranch(ctx context.Context, id TlfID, bid BranchI
 	arg := keybase1.PruneBranchArg{
 		FolderID: id.String(),
 		BranchID: bid.String(),
-		LogTags:  LogTagsFromContextToMap(ctx),
+		LogTags:  nil,
 	}
 	return md.client.PruneBranch(ctx, arg)
 }
@@ -494,7 +494,7 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 	arg := keybase1.RegisterForUpdatesArg{
 		FolderID:     id.String(),
 		CurrRevision: currHead.Number(),
-		LogTags:      LogTagsFromContextToMap(ctx),
+		LogTags:      nil,
 	}
 
 	// register
@@ -656,7 +656,7 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 	arg := keybase1.GetKeyArg{
 		KeyHalfID: idBytes,
 		DeviceKID: cryptKey.kid.String(),
-		LogTags:   LogTagsFromContextToMap(ctx),
+		LogTags:   nil,
 	}
 	keyBytes, err := md.client.GetKey(ctx, arg)
 	if err != nil {
@@ -694,7 +694,7 @@ func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 	// put the keys
 	arg := keybase1.PutKeysArg{
 		KeyHalves: keyHalves,
-		LogTags:   LogTagsFromContextToMap(ctx),
+		LogTags:   nil,
 	}
 	return md.client.PutKeys(ctx, arg)
 }
@@ -714,7 +714,7 @@ func (md *MDServerRemote) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 		Uid:       uid,
 		DeviceKID: kid,
 		KeyHalfID: idBytes,
-		LogTags:   LogTagsFromContextToMap(ctx),
+		LogTags:   nil,
 	}
 	err = md.client.DeleteKey(ctx, arg)
 	if err != nil {
