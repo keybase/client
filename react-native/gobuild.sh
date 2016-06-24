@@ -42,8 +42,8 @@ rm -rf "$go_client_dir/vendor"
 
 if [ ! -f "$GOPATH/bin/gomobile" ]; then
   echo "Build gomobile..."
-  go get -u golang.org/x/mobile/cmd/gomobile
-  gomobile init
+  go get golang.org/x/mobile/cmd/gomobile
+  "$GOPATH/bin/gomobile" init
 fi
 
 package="github.com/keybase/client/go/loopback"
