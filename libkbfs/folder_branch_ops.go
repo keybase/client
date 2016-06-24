@@ -3271,6 +3271,8 @@ func (fbo *folderBranchOps) reembedForFBM(ctx context.Context,
 
 type applyMDUpdatesFunc func(context.Context, *lockState, []*RootMetadata) error
 
+var errUnmerged = errors.New("fbo is on an unmerged local revision")
+
 func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	lState *lockState, rmds []*RootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -3292,7 +3294,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			}
 			fbo.cr.Resolve(unmergedRev, rmds[len(rmds)-1].Revision)
 		}
-		return errors.New("Ignoring MD updates while local updates are staged")
+		return errUnmerged
 	}
 
 	// Don't allow updates while we're in the dirty state; the next
@@ -3898,6 +3900,11 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 					}
 				}
 				err = fbo.waitForAndProcessUpdates(newCtx, updateChan)
+				if err == errUnmerged {
+					// skip the back-off timer and continue directly to next
+					// registerForUpdates
+					return nil
+				}
 				select {
 				case <-ctx.Done():
 					// Shortcut the retry, we're done.
