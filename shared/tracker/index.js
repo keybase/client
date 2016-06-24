@@ -21,7 +21,7 @@ export type TrackerProps = {
   waiting: boolean,
   userInfo: ?UserInfo,
   nonUser: ?boolean,
-  parentProps: ?Object,
+  parentProps?: Object,
   proofs: Array<Proof>,
   onClose: () => void,
   onRefollow: () => void,

@@ -26,7 +26,6 @@ export default class Icon extends Component {
 
     const fontSize = this.props.style && (this.props.style.fontSize || this.props.style.width)
     const textAlign = this.props.style && this.props.style.textAlign
-    const fontWidth = this.props.style && this.props.style.fontWidth
 
     // Color is for our fontIcon and not the container
     let containerProps = {...this.props.style}
@@ -34,11 +33,10 @@ export default class Icon extends Component {
     delete containerProps.width
     delete containerProps.height
     delete containerProps.textAlign
-    delete containerProps.fontWidth
     delete containerProps.fontSize
 
     const icon = fontIcons[iconType]
-      ? <Text style={{color, textAlign, fontFamily: 'kb', fontSize: fontSize, width: fontWidth}}>{fontIcons[iconType]}</Text>
+      ? <Text style={{color, textAlign, fontFamily: 'kb', fontSize: fontSize, ...width}}>{fontIcons[iconType]}</Text>
       : <Image source={images[this.props.type]} style={{resizeMode: 'contain', ...width, ...height}} />
 
     return (
