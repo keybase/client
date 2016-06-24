@@ -392,9 +392,15 @@ func (d *DirtyBlockCacheStandard) SyncFinished(size int64) {
 		return
 	}
 	d.totalDirtyBytes -= size
-	d.syncBufferSize += size
-	if d.syncBufferSize > d.maxSyncBufferSize {
-		d.syncBufferSize = d.maxSyncBufferSize
+	// Only increase the buffer size if we sent over a lot of bytes.
+	// We don't want a series of small writes to increase the buffer
+	// size, since that doesn't give us any real information about the
+	// throughput of the connection.
+	if size >= d.minSyncBufferSize {
+		d.syncBufferSize += size
+		if d.syncBufferSize > d.maxSyncBufferSize {
+			d.syncBufferSize = d.maxSyncBufferSize
+		}
 	}
 	d.signalDecreasedBytes()
 	d.logLocked("Finished syncing %d bytes, syncBufferSize=%d, "+
