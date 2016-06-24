@@ -426,6 +426,13 @@ type UIConsumer interface {
 	SubConsumers() []UIConsumer
 }
 
+type Triplesec interface {
+	DeriveKey(l int) ([]byte, []byte, error)
+	Decrypt([]byte) ([]byte, error)
+	Encrypt([]byte) ([]byte, error)
+	Scrub()
+}
+
 type Clock interface {
 	Now() time.Time
 }

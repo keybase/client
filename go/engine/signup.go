@@ -14,7 +14,7 @@ import (
 type SignupEngine struct {
 	pwsalt        []byte
 	ppStream      *libkb.PassphraseStream
-	tsec          *triplesec.Cipher
+	tsec          libkb.Triplesec
 	uid           keybase1.UID
 	me            *libkb.User
 	signingKey    libkb.GenericKey
@@ -137,7 +137,7 @@ func (s *SignupEngine) genPassphraseStream(a libkb.LoginContext, passphrase stri
 		return err
 	}
 	s.pwsalt = salt
-	s.tsec, s.ppStream, err = libkb.StretchPassphrase(passphrase, salt)
+	s.tsec, s.ppStream, err = libkb.StretchPassphrase(s.G(), passphrase, salt)
 	if err != nil {
 		return err
 	}

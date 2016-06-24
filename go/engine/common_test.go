@@ -12,10 +12,20 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
 func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
 	tc := libkb.SetupTest(tb, name, 2)
+	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
+		return insecureTriplesec.NewCipher(passphrase, salt)
+	}
+	return tc
+}
+
+func SetupEngineTestRealTriplesec(tb testing.TB, name string) libkb.TestContext {
+	tc := libkb.SetupTest(tb, name, 2)
+	tc.G.NewTriplesec = libkb.NewSecureTriplesec
 	return tc
 }
 

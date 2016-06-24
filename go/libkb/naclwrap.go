@@ -12,7 +12,6 @@ import (
 
 	"github.com/agl/ed25519"
 	keybase1 "github.com/keybase/client/go/protocol"
-	triplesec "github.com/keybase/go-triplesec"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -429,10 +428,10 @@ func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
 }
 
 // NaCl keys are never wrapped for the server.
-func (k NaclSigningKeyPair) ToServerSKB(gc *GlobalContext, t *triplesec.Cipher, gen PassphraseGeneration) (*SKB, error) {
+func (k NaclSigningKeyPair) ToServerSKB(gc *GlobalContext, t Triplesec, gen PassphraseGeneration) (*SKB, error) {
 	return nil, fmt.Errorf("NaCl keys should never be encrypted for the server.")
 }
-func (k NaclDHKeyPair) ToServerSKB(gc *GlobalContext, t *triplesec.Cipher, gen PassphraseGeneration) (*SKB, error) {
+func (k NaclDHKeyPair) ToServerSKB(gc *GlobalContext, t Triplesec, gen PassphraseGeneration) (*SKB, error) {
 	return nil, fmt.Errorf("NaCl keys should never be encrypted for the server.")
 }
 

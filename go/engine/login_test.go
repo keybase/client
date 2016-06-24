@@ -1527,11 +1527,11 @@ func TestProvisionPaperFailures(t *testing.T) {
 // something.
 func TestProvisionKexUseSyncPGP(t *testing.T) {
 	// device X (provisioner) context:
-	tcX := SetupEngineTest(t, "kex2provision")
+	tcX := SetupEngineTestRealTriplesec(t, "kex2provision")
 	defer tcX.Cleanup()
 
 	// device Y (provisionee) context:
-	tcY := SetupEngineTest(t, "template")
+	tcY := SetupEngineTestRealTriplesec(t, "template")
 	defer tcY.Cleanup()
 
 	// create provisioner with synced pgp key
