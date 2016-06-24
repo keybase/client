@@ -94,7 +94,7 @@ const RevokedDevices = ({revokedDevices, showExistingDevicePage}) => (
 
 const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
   <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white, height: globalMargins.xlarge}} onClick={addNewDevice}>
-    <Icon type='devices-add-s' />
+    <Icon type='icon-devices-add-64-x-48' />
     <Text type='BodyPrimaryLink' onClick={addNewDevice} style={{marginLeft: 8}}>Add new...</Text>
     <PopupMenu style={stylesPopup} visible={showingMenu} items={menuItems} onHidden={onHidden} />
   </Box>
