@@ -279,6 +279,9 @@ type folderBranchOps struct {
 	// rekey with a paper key prompt, if enough time has passed.
 	// Protected by mdWriterLock
 	rekeyWithPromptTimer *time.Timer
+
+	// latestMergedRevision tracks the latest heard merged revision on server
+	latestMergedRevision MetadataRevision
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -3275,6 +3278,10 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
 
+	if len(rmds) > 0 {
+		fbo.setLatestMergedRevisionLocked(ctx, lState, rmds[len(rmds)-1].Revision)
+	}
+
 	// if we have staged changes, ignore all updates until conflict
 	// resolution kicks in.  TODO: cache these for future use.
 	if !fbo.isMasterBranchLocked(lState) {
@@ -3380,6 +3387,20 @@ func (fbo *folderBranchOps) applyMDUpdates(ctx context.Context,
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
 	return fbo.applyMDUpdatesLocked(ctx, lState, rmds)
+}
+
+func (fbo *folderBranchOps) getLatestMergedRevision(lState *lockState) MetadataRevision {
+	fbo.headLock.RLock(lState)
+	defer fbo.headLock.RUnlock(lState)
+	return fbo.latestMergedRevision
+}
+
+// caller should have held fbo.headLock
+func (fbo *folderBranchOps) setLatestMergedRevisionLocked(ctx context.Context, lState *lockState, rev MetadataRevision) {
+	fbo.headLock.AssertLocked(lState)
+
+	fbo.latestMergedRevision = rev
+	fbo.log.CDebugf(ctx, "updated latestMergedRevision to %d", rev)
 }
 
 // Assumes all necessary locking is either already done by caller, or
@@ -3913,7 +3934,7 @@ func (fbo *folderBranchOps) registerForUpdates(ctx context.Context) (
 	defer func() { fbo.deferLog.CDebugf(ctx, "Done: %v", err) }()
 	// RegisterForUpdate will itself retry on connectivity issues
 	return fbo.config.MDServer().RegisterForUpdate(ctx, fbo.id(),
-		currRev)
+		fbo.getLatestMergedRevision(lState))
 }
 
 func (fbo *folderBranchOps) waitForAndProcessUpdates(

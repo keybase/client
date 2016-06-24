@@ -517,6 +517,142 @@ func TestBasicCRNoConflict(t *testing.T) {
 	}
 }
 
+type registerForUpdateRecord struct {
+	id       TlfID
+	currHead MetadataRevision
+}
+
+type mdServerLocalRecordingRegisterForUpdate struct {
+	*MDServerLocal
+	ch chan<- registerForUpdateRecord
+}
+
+// newMDServerLocalRecordingRegisterForUpdate returns a wrapper of
+// MDServerLocal that records RegisterforUpdate calls.
+func newMDServerLocalRecordingRegisterForUpdate(mdServerRaw *MDServerLocal) (
+	mdServer mdServerLocalRecordingRegisterForUpdate,
+	records <-chan registerForUpdateRecord) {
+	ch := make(chan registerForUpdateRecord, 8)
+	ret := mdServerLocalRecordingRegisterForUpdate{mdServerRaw, ch}
+	return ret, ch
+}
+
+func (md mdServerLocalRecordingRegisterForUpdate) RegisterForUpdate(
+	ctx context.Context,
+	id TlfID, currHead MetadataRevision) (<-chan error, error) {
+	md.ch <- registerForUpdateRecord{id: id, currHead: currHead}
+	return md.MDServerLocal.RegisterForUpdate(ctx, id, currHead)
+}
+
+func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
+	// simulate two users
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CheckConfigAndShutdown(t, config1)
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	mdServ, chForMdServer2 := newMDServerLocalRecordingRegisterForUpdate(
+		config2.MDServer().(*MDServerLocal))
+	config2.SetMDServer(mdServ)
+	defer CheckConfigAndShutdown(t, config2)
+
+	name := userName1.String() + "," + userName2.String()
+
+	// user1 creates a file in a shared dir
+	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+
+	kbfsOps1 := config1.KBFSOps()
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	if err != nil {
+		t.Fatalf("Couldn't create dir: %v", err)
+	}
+	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// look it up on user2
+	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+
+	kbfsOps2 := config2.KBFSOps()
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	if err != nil {
+		t.Fatalf("Couldn't lookup dir: %v", err)
+	}
+	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, "b")
+	if err != nil {
+		t.Fatalf("Couldn't lookup file: %v", err)
+	}
+
+	// disable updates on user 2
+	chForEnablingUpdates, err := DisableUpdatesForTesting(
+		config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+	err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable CR: %v", err)
+	}
+
+	// User 1 writes the file
+	data1 := []byte{1, 2, 3, 4, 5}
+	err = kbfsOps1.Write(ctx, fileB1, data1, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	err = kbfsOps1.Sync(ctx, fileB1)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// User 2 makes a new different file
+	data2 := []byte{5, 4, 3, 2, 1}
+	err = kbfsOps2.Write(ctx, fileB2, data2, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+
+	// User 1 makes another change in the file
+	data1 = []byte{1, 2, 3, 4, 6}
+	err = kbfsOps1.Write(ctx, fileB1, data1, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	err = kbfsOps1.Sync(ctx, fileB1)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	chForEnablingUpdates <- struct{}{}
+
+	equal := false
+
+	// check for at most 8 times. This should be sufficiently long for client get
+	// latest merged revision and register with that
+	for i := 0; i < 8; i++ {
+		record := <-chForMdServer2
+		mergedRev, err := mdServ.getCurrentMergedHeadRevision(
+			ctx, rootNode2.GetFolderBranch().Tlf)
+		if err != nil {
+			t.Fatalf("getting current merged head revision error: %v", err)
+		}
+		if record.currHead == mergedRev {
+			equal = true
+			break
+		}
+	}
+
+	if !equal {
+		t.Fatalf("client does not track latest remote revision")
+	}
+
+	err = kbfsOps2.Sync(ctx, fileB2)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+}
+
 // Tests that two users can make independent writes while forked, and
 // conflict resolution will merge them correctly.
 func TestBasicCRFileConflict(t *testing.T) {
