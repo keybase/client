@@ -8,7 +8,7 @@
       "fields": [
         {
           "type": "string",
-          "name": "name"
+          "name": "path"
         }
       ]
     },

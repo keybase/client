@@ -3,7 +3,7 @@
 protocol fs {
 
   record File {
-    string name;
+    string path;
   }
 
   record ListResult {

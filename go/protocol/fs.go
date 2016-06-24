@@ -9,7 +9,7 @@ import (
 )
 
 type File struct {
-	Name string `codec:"name" json:"name"`
+	Path string `codec:"path" json:"path"`
 }
 
 type ListResult struct {

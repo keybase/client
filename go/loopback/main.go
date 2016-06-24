@@ -16,7 +16,7 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/go-framed-msgpack-rpc"
 	"github.com/keybase/kbfs/libkbfs"
-	kbfsrpc "github.com/keybase/kbfs/rpc"
+	fsRpc "github.com/keybase/kbfs/rpc"
 )
 
 var conn net.Conn
@@ -76,7 +76,7 @@ func Init(homeDir string, logFile string, runModeStr string, serverURI string, a
 func newKeybaseDaemon(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseDaemon, error) {
 	keybaseDaemon := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true)
 	keybaseDaemon.AddProtocols([]rpc.Protocol{
-		keybase1.FsProtocol(kbfsrpc.NewFS(config, log)),
+		keybase1.FsProtocol(fsRpc.NewFS(config, log)),
 	})
 	return keybaseDaemon, nil
 }
