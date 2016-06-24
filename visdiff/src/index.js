@@ -231,7 +231,10 @@ if (process.argv.length !== 3) {
 
 const commitRange = process.argv[2]
   .split(/\.{2,3}/)  // Travis gives us ranges like START...END
-  .map(s => s.substr(0, 12))  // trim the hashes a bit for shorter paths
+  .map(s => {
+    const resolved = execSync(`git rev-parse ${s}`, {encoding: 'utf-8'})
+    return resolved.trim().substr(0, 12)  // remove whitespace and clip for shorter paths
+  })
 
 console.log(`Performing visual diff of ${commitRange[0]}...${commitRange[1]}:`)
 const diffDir = `${Date.now()}-${commitRange[0]}-${commitRange[1]}-${os.platform()}`
