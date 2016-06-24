@@ -66,7 +66,7 @@ func NewCmdPGPSelect(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:         "select",
 		ArgumentHelp: "[key query]",
-		Usage:        "Select a key as your own and register the public half with the server",
+		Usage:        "Select a key from GPG and add it to your Keybase profile",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPSelect{}, "select", c)
 		},
