@@ -21,7 +21,7 @@ func TestCrUnmergedWriteMultiblockFile(t *testing.T) {
 		as(alice,
 			write("a/foo", "hello"),
 		),
-		as(bob,
+		as(bob, noSync(),
 			write("a/b", ntimesString(15, "0123456789")),
 			reenableUpdates(),
 			lsdir("a/", m{"b": "FILE", "foo": "FILE"}),
@@ -174,4 +174,31 @@ func TestCrConflictMoveRemovedMultiblockFile(t *testing.T) {
 	)
 }
 
-// TODO: test md.RefBytes, md.UnrefBytes, and md.DiskUsage as well!
+// bob writes a multi-block file while unmerged and the block change
+// size is small, no conflicts
+func TestCrUnmergedWriteMultiblockFileWithSmallBlockChangeSize(t *testing.T) {
+	test(t,
+		blockSize(20), blockChangeSize(5), users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/foo", "hello"),
+		),
+		as(bob,
+			write("a/b", ntimesString(15, "0123456789")),
+			reenableUpdates(),
+			lsdir("a/", m{"b": "FILE", "foo": "FILE"}),
+			read("a/b", ntimesString(15, "0123456789")),
+			read("a/foo", "hello"),
+		),
+		as(alice,
+			lsdir("a/", m{"b": "FILE", "foo": "FILE"}),
+			read("a/b", ntimesString(15, "0123456789")),
+			read("a/foo", "hello"),
+		),
+	)
+}
