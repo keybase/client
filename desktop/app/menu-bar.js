@@ -4,16 +4,20 @@ import hotPath from '../hot-path'
 import menubar from 'menubar'
 
 let color = 'white'
+let platform = ''
 
 if (process.platform === 'darwin') {
   color = (systemPreferences && systemPreferences.isDarkMode()) ? 'white' : 'black'
+} else if (process.platform === 'win32') {
+  color = 'black'
+  platform = 'windows-'
 }
 
 const devMode = __DEV__ ? '-dev' : ''
 
-const icon = resolveImage('menubarIcon', `icon-keybase-dog-regular-${color}-22${devMode}@2x.png`)
-const loadingIcon = resolveImage('menubarIcon', `icon-keybase-dog-update-${color}-22${devMode}@2x.png`)
-const badgedIcon = resolveImage('menubarIcon', `icon-keybase-dog-badged-${color}-22${devMode}@2x.png`)
+const icon = resolveImage('menubarIcon', `icon-${platform}keybase-dog-regular-${color}-22${devMode}@2x.png`)
+const loadingIcon = resolveImage('menubarIcon', `icon-${platform}keybase-dog-update-${color}-22${devMode}@2x.png`)
+const badgedIcon = resolveImage('menubarIcon', `icon-${platform}keybase-dog-badged-${color}-22${devMode}@2x.png`)
 
 export default function () {
   const mb = menubar({
