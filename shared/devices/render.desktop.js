@@ -23,7 +23,7 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
   }
 
   render () {
-    const iconType = this.state.expanded ? 'fa-caret-down' : 'fa-caret-up'
+    const iconType = this.state.expanded ? 'fa-caret-down' : 'fa-caret-right'
     return (
       <Box>
         <Box style={stylesRevokedRow} onClick={e => this._toggleHeader(e)}>
@@ -56,11 +56,12 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
     <Box
       className='existing-device-container'
       key={device.name}
+      onClick={() => showExistingDevicePage(device)}
       style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.white_40 : globalColors.white}}>
       <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
         <Icon type={icon} />
       </Box>
-      <Box style={stylesCommonColumn} onClick={() => showExistingDevicePage(device)}>
+      <Box style={{...stylesCommonColumn, flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text style={textStyle} type='Header'>{device.name}</Text>
         </Box>
@@ -69,7 +70,11 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
         </Box>
       </Box>
       <Box style={{...stylesRevokedColumn}}>
-        {!revoked && <Text className='existing-device-item' style={{color: globalColors.red}} onClick={() => showRemoveDevicePage(device)} type='BodyPrimaryLink'>Revoke</Text>}
+        {!revoked && <Text className='existing-device-item' style={{color: globalColors.red}} onClick={e => {
+          e.stopPropagation()
+          showRemoveDevicePage(device)
+        }}
+          type='BodyPrimaryLink'>Revoke</Text>}
       </Box>
     </Box>
   )
@@ -155,6 +160,7 @@ const stylesContainer = {
 
 const stylesCommonRow = {
   ...globalStyles.flexBoxRow,
+  ...globalStyles.clickable,
   alignItems: 'center',
   borderTop: 'solid 1px rgba(0, 0, 0, .1)',
   height: 60,
@@ -181,7 +187,6 @@ const stylesCommonColumn = {
 const stylesRevokedColumn = {
   ...stylesCommonColumn,
   alignSelf: 'center',
-  flex: 1,
   textAlign: 'right',
   paddingRight: 20,
 }

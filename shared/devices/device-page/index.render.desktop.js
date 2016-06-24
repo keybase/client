@@ -75,7 +75,9 @@ const Render = ({banner, name, type, deviceID, currentDevice,
 
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
-      <BackButton style={{marginLeft: 13, marginTop: 13}} onClick={onBack} />
+      <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', paddingLeft: 16, height: 48}}>
+        <BackButton onClick={onBack} />
+      </Box>
       {(banner != null) && <Banner type={banner.type} desc={banner.desc} />}
       <Box style={{...globalStyles.flexBoxRow, padding: 30}}>
         <Box style={{...globalStyles.flexBoxRow, width: 180, justifyContent: 'center', alignItems: 'flex-start'}}>
