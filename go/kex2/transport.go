@@ -435,6 +435,9 @@ func (c *Conn) Read(out []byte) (n int, err error) {
 	}
 
 	if n == 0 {
+		if c.getClosed() {
+			return 0, io.EOF
+		}
 		if poll > 0 {
 			err = ErrTimedOut
 		} else {
