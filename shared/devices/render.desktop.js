@@ -27,7 +27,7 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
     return (
       <Box>
         <Box style={stylesRevokedRow} onClick={e => this._toggleHeader(e)}>
-          <Text type='BodySemibold'>Revoked devices</Text>
+          <Text type='BodySmallSemibold' style={{color: globalColors.black_60}}>Revoked devices</Text>
           <Icon type={iconType} style={{padding: 5}} />
         </Box>
         {this.state.expanded && this.props.children}
@@ -70,11 +70,10 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
         </Box>
       </Box>
       <Box style={{...stylesRevokedColumn}}>
-        {!revoked && <Text className='existing-device-item' style={{color: globalColors.red}} onClick={e => {
+        {!revoked && <Text type='BodySmallError' className='existing-device-item' onClick={e => {
           e.stopPropagation()
           showRemoveDevicePage(device)
-        }}
-          type='BodyPrimaryLink'>Revoke</Text>}
+        }}>Revoke</Text>}
       </Box>
     </Box>
   )
@@ -82,7 +81,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
 
 const RevokedDescription = () => (
   <Box style={stylesRevokedDescription}>
-    <Text type='BodySemibold' style={{color: globalColors.black_40}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+    <Text type='BodySmall' style={{color: globalColors.black_40}}>Revoked devices will no longer be able to access your Keybase account.</Text>
   </Box>
 )
 
@@ -95,12 +94,8 @@ const RevokedDevices = ({revokedDevices, showExistingDevicePage}) => (
 
 const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
   <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white, height: globalMargins.xlarge}} onClick={addNewDevice}>
-    <Box style={stylesCommonColumn}>
-      <Icon type='devices-add-s' />
-    </Box>
-    <Box style={stylesCommonColumn}>
-      <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
-    </Box>
+    <Icon type='devices-add-s' />
+    <Text type='BodyPrimaryLink' onClick={addNewDevice} style={{marginLeft: 8}}>Add new...</Text>
     <PopupMenu style={stylesPopup} visible={showingMenu} items={menuItems} onHidden={onHidden} />
   </Box>
 )
