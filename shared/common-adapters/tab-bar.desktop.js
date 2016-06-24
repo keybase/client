@@ -60,7 +60,7 @@ export class TabBarButton extends Component<void, TabBarButtonProps, void> {
               </Box>
             </Box>}
         </Box>
-        {!!this.props.label && <Text type='BodySemiboldItalic' style={{color, textAlign: 'center'}}>{this.props.label}</Text>}
+        {!!this.props.label && <Text type='BodySemiboldItalic' style={{color, textAlign: 'center', ...this.props.styleLabel}}>{this.props.label}</Text>}
       </Box>
     )
   }
@@ -70,7 +70,7 @@ export class TabBarButton extends Component<void, TabBarButtonProps, void> {
     return (
       <Box style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}>
         <Icon type={this.props.source.icon} style={{...stylesIcon, color, ...this.props.styleIcon}} />
-        {!!this.props.label && <Text type='Body' style={{color, ...this.props.styleLabel}}>{this.props.label}</Text>}
+        {!!this.props.label && <Text type={this.props.styleLabelType || 'Body'} style={{color, ...this.props.styleLabel}}>{this.props.label}</Text>}
         {badgeNumber > 0 &&
           <Box style={{...styleBadge, ...this.props.styleBadge}}>
             <Text style={{flex: 0, ...this.props.styleBadgeNumber}} type='BadgeNumber'>{badgeNumber}</Text>
@@ -81,7 +81,7 @@ export class TabBarButton extends Component<void, TabBarButtonProps, void> {
 
   render () {
     const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
-    const color = this.props.selected ? globalColors.blue3 : globalColors.blue3_40
+    const color = this.props.selected ? globalColors.white : globalColors.blue3_40
     const badgeNumber = this.props.badgeNumber || 0
 
     switch (this.props.source.type) {

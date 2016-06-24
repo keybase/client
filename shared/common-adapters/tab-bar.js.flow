@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import Avatar from './avatar'
 import type {$Exact} from '../constants/types/more'
 import type {IconType} from './icon'
+import type {TextType} from './text'
 
 export type Props = $Exact<{
   style?: ?Object,
@@ -39,6 +40,7 @@ export type TabBarButtonProps = $Exact<{
   styleIcon?: Object,
   styleBadgeNumber?: Object,
   styleLabel?: Object,
+  styleLabelType?: ?TextType
 }>
 
 export class TabBarButton extends Component<void, TabBarButtonProps, void> { }
