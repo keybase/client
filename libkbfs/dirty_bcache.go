@@ -209,14 +209,14 @@ func (d *DirtyBlockCacheStandard) calcBackpressure(start time.Time,
 	}
 	totalBackpressure := time.Duration(
 		float64(totalReqTime) * backpressureFrac)
+	timeSpentSoFar := d.clock.Now().Sub(start)
+	if totalBackpressure <= timeSpentSoFar {
+		return 0
+	}
 
 	// How much time do we have left, given how much time this request
 	// has waited so far?
-	backpressureLeft := totalBackpressure - d.clock.Now().Sub(start)
-	if backpressureLeft < 0 {
-		return 0
-	}
-	return backpressureLeft
+	return totalBackpressure - timeSpentSoFar
 }
 
 func (d *DirtyBlockCacheStandard) logLocked(fmt string, arg ...interface{}) {
@@ -312,6 +312,8 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 				// considered this request, inform any tests that the
 				// request is blocked.
 				d.blockedChanForTesting <- currentReq.bytes
+			} else if backpressure != 0 {
+				d.logLocked("Applying backpressure %s", backpressure)
 			}
 		}
 	}
