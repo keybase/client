@@ -115,6 +115,24 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
       return
     }
 
+    // TODO daemon rpc, for now api hit
+    // const params: UserSearchRpc = {
+    //   method: 'user.search',
+    //   param: {
+    //     query: term
+    //   },
+    //   incomingCallMap: {},
+    //   callback: (error: ?any, uresults: UserSearchResult) => {
+    //     if (error) {
+    //       console.log('Error searching. Not handling this error')
+    //     } else {
+    //       dispatch(results(term, uresults))
+    //     }
+    //   }
+    // }
+
+    // engine.rpc(params)
+
     // In case platform is passed in as null
     const platform: SearchPlatforms = maybePlatform || 'Keybase'
 
