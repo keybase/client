@@ -5,7 +5,6 @@ import {normal, checking, revoked, error} from '../constants/tracker'
 import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
 import type {TrackerProps} from '../tracker'
 import type {Proof} from '../common-adapters/user-proofs'
-import type {TrackSummary} from '../constants/types/flow-types'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -41,7 +40,6 @@ const proofsChanged: Array<Proof> = [
 
 const propsBase = {
   closed: false,
-  lastTrack: null,
   currentlyFollowing: false,
   onFollow: () => {},
   onRefollow: () => {},
@@ -52,7 +50,6 @@ const propsBase = {
   onIgnore: () => {},
   waiting: false,
   loggedIn: true,
-  trackerMessage: null,
   lastAction: null,
 }
 
@@ -70,7 +67,6 @@ const propsDefault: TrackerProps = {
     avatar: 'https://keybase.io/darksim905/picture',
     followsYou: false,
   },
-  shouldFollow: true,
   trackerState: normal,
   proofs: proofsDefault,
 
@@ -80,12 +76,6 @@ const propsDefault: TrackerProps = {
       console.log('Close')
     },
   },
-}
-
-const lastTrackMax: TrackSummary = {
-  username: 'max',
-  time: 0,
-  isRemote: true,
 }
 
 const propsNewUser: TrackerProps = {
@@ -123,12 +113,12 @@ function setFollow (source: TrackerProps, filter: setFollowFilter): TrackerProps
 
 const propsFollowing: TrackerProps = setFollow({
   ...propsNewUser,
+  currentlyFollowing: true,
   reason: 'You have tracked gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true,
   },
-  lastTrack: lastTrackMax,
   proofs: proofsDefault,
   lastAction: 'followed',
 }, () => true)
@@ -144,12 +134,12 @@ const propsWhatevz: TrackerProps = setFollow({
 
 const propsChangedProofs: TrackerProps = {
   ...propsDefault,
+  currentlyFollowing: true,
   reason: 'Some of gabrielh\'s proofs have changed since you last tracked them.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true,
   },
-  lastTrack: lastTrackMax,
   trackerState: error,
   proofs: proofsChanged,
 }
@@ -178,7 +168,6 @@ const propsLessData: TrackerProps = {
     avatar: 'http://placehold.it/140x140/ffffff/000000',
     location: '',
   },
-  shouldFollow: true,
   currentlyFollowing: false,
   trackerState: normal,
   proofs: [
@@ -206,7 +195,7 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'Only one proof': trackerPropsToRenderProps(propsOneProof),
     '5 proofs': trackerPropsToRenderProps(propsFiveProof),
     'Followed': trackerPropsToRenderProps(propsFollowing),
-    'Changed/Broken proofs user you dont follow': trackerPropsToRenderProps({...propsChangedProofs, lastTrack: null}),
+    'Changed/Broken proofs user you dont follow': trackerPropsToRenderProps({...propsChangedProofs, currentlyFollowing: false}),
     'Changed/Broken proofs': trackerPropsToRenderProps(propsChangedProofs),
     'You track them': trackerPropsToRenderProps({...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}}),
     'Unfollowed': trackerPropsToRenderProps(propsUnfollowed),

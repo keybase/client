@@ -13,24 +13,51 @@ export default class Render extends Component<void, RenderProps, void> {
 
   render () {
     return (
-      <View style={styles.container}>
-        <Header {...this.props.headerProps} />
-        <View style={styles.content}>
-          <UserBio type='Tracker' {...this.props.bioProps} avatarSize={80} />
-          <UserProofs {...this.props.proofsProps} />
+      <View style={stylesContainer}>
+        <Header
+          reason={this.props.reason}
+          onClose={this.props.onClose}
+          trackerState={this.props.trackerState}
+          currentlyFollowing={this.props.currentlyFollowing}
+          lastAction={this.props.lastAction}
+          loggedIn={this.props.loggedIn}
+        />
+        <View style={stylesContent}>
+          <UserBio type='Tracker'
+            avatarSize={80}
+            username={this.props.username}
+            userInfo={this.props.userInfo}
+            currentlyFollowing={this.props.currentlyFollowing}
+            trackerState={this.props.trackerState}
+          />
+          <UserProofs
+            username={this.props.username}
+            proofs={this.props.proofs}
+            currentlyFollowing={this.props.currentlyFollowing}
+          />
         </View>
-        <Action {...this.props.actionProps} />
+        <Action
+          loggedIn={this.props.loggedIn}
+          waiting={this.props.waiting}
+          state={this.props.trackerState}
+          currentlyFollowing={this.props.currentlyFollowing}
+          username={this.props.username}
+          lastAction={this.props.lastAction}
+          onClose={this.props.onClose}
+          onIgnore={this.props.onIgnore}
+          onFollow={this.props.onFollow}
+          onRefollow={this.props.onRefollow}
+          onUnfollow={this.props.onUnfollow}
+        />
       </View>
     )
   }
 }
 
-const styles = {
-  container: {
-    backgroundColor: 'red',
-    flexDirection: 'column',
-  },
-  content: {
-    backgroundColor: 'green',
-  },
+const stylesContainer = {
+  backgroundColor: 'red',
+  flexDirection: 'column',
+}
+const stylesContent = {
+  backgroundColor: 'green',
 }
