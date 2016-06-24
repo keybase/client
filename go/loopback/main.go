@@ -11,18 +11,14 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
-	"github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
-	"github.com/keybase/go-framed-msgpack-rpc"
-	"github.com/keybase/kbfs/libkbfs"
-	fsRpc "github.com/keybase/kbfs/rpc"
 )
 
 var conn net.Conn
 var startOnce sync.Once
 var logSendContext libkb.LogSendContext
-var kbfsConfig libkbfs.Config
+
+//var kbfsConfig libkbfs.Config
 
 // Init ServerURI should match run mode environment.
 func Init(homeDir string, logFile string, runModeStr string, serverURI string, accessGroupOverride bool) {
@@ -61,25 +57,27 @@ func Init(homeDir string, logFile string, runModeStr string, serverURI string, a
 			Logs:         logs,
 		}
 
-		kbfsParams := libkbfs.DefaultInitParams(kbCtx)
-		onInterruptFn := func() {}
-		kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, newKeybaseDaemon, onInterruptFn, kbCtx.Log)
-		if err != nil {
-			panic(err)
-		}
+		// Uncomment after we KBFS is ready
+		// kbfsParams := libkbfs.DefaultInitParams(kbCtx)
+		// onInterruptFn := func() {}
+		// kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, newKeybaseDaemon, onInterruptFn, kbCtx.Log)
+		// if err != nil {
+		// 	panic(err)
+		// }
 
 		Reset()
 		fmt.Println("Go: Done")
 	})
 }
 
-func newKeybaseDaemon(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseDaemon, error) {
-	keybaseDaemon := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true)
-	keybaseDaemon.AddProtocols([]rpc.Protocol{
-		keybase1.FsProtocol(fsRpc.NewFS(config, log)),
-	})
-	return keybaseDaemon, nil
-}
+// Uncomment after we KBFS is ready
+// func newKeybaseDaemon(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseDaemon, error) {
+// 	keybaseDaemon := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true)
+// 	keybaseDaemon.AddProtocols([]rpc.Protocol{
+// 		keybase1.FsProtocol(fsRpc.NewFS(config, log)),
+// 	})
+// 	return keybaseDaemon, nil
+// }
 
 // LogSend sends a log to kb
 func LogSend(uiLogPath string) (string, error) {
