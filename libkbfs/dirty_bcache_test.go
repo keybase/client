@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 )
@@ -45,13 +46,15 @@ func testExpectedMissingDirty(t *testing.T, id BlockID,
 }
 
 func TestDirtyBcachePut(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard(5<<20, 10<<20)
+	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
+		5<<20, 10<<20)
 	defer dirtyBcache.Shutdown()
 	testDirtyBcachePut(t, fakeBlockID(1), dirtyBcache)
 }
 
 func TestDirtyBcachePutDuplicate(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard(5<<20, 10<<20)
+	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
+		5<<20, 10<<20)
 	defer dirtyBcache.Shutdown()
 	id1 := fakeBlockID(1)
 
@@ -95,7 +98,8 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 }
 
 func TestDirtyBcacheDelete(t *testing.T) {
-	dirtyBcache := NewDirtyBlockCacheStandard(5<<20, 10<<20)
+	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
+		5<<20, 10<<20)
 	defer dirtyBcache.Shutdown()
 
 	id1 := fakeBlockID(1)
@@ -116,14 +120,15 @@ func TestDirtyBcacheDelete(t *testing.T) {
 
 func TestDirtyBcacheRequestPermission(t *testing.T) {
 	bufSize := int64(5)
-	dirtyBcache := NewDirtyBlockCacheStandard(bufSize, bufSize*2)
+	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
+		bufSize, bufSize*2)
 	defer dirtyBcache.Shutdown()
 	blockedChan := make(chan int64)
 	dirtyBcache.blockedChanForTesting = blockedChan
 	ctx := context.Background()
 
 	// The first write should get immediate permission.
-	c1, err := dirtyBcache.RequestPermissionToDirty(ctx, bufSize)
+	c1, err := dirtyBcache.RequestPermissionToDirty(ctx, bufSize*2+1)
 	if err != nil {
 		t.Fatalf("Request permission error: %v", err)
 	}
@@ -152,9 +157,9 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	}
 
 	// Let's say the actual number of unsynced bytes for c1 was double
-	dirtyBcache.UpdateUnsyncedBytes(2 * bufSize)
+	dirtyBcache.UpdateUnsyncedBytes(4*bufSize+2, false)
 	// Now release the previous bytes
-	dirtyBcache.UpdateUnsyncedBytes(-bufSize)
+	dirtyBcache.UpdateUnsyncedBytes(-(2*bufSize + 1), false)
 
 	// Request 2 should still be blocked.  (This check isn't
 	// fool-proof, since it doesn't necessarily give time for the
@@ -165,9 +170,10 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	default:
 	}
 
-	// Finish syncing full size, but c2 is still blocked because we
-	// haven't finished the sync yet.
-	dirtyBcache.BlockSyncFinished(bufSize)
+	// Finish syncing most of the blocks, but c2 is still blocked
+	// because we haven't finished the sync yet (hence the sync buffer
+	// size hasn't increased yet).
+	dirtyBcache.BlockSyncFinished(2*bufSize + 1)
 	dirtyBcache.BlockSyncFinished(bufSize)
 	if !dirtyBcache.ShouldForceSync() {
 		t.Fatalf("Total not full before sync finishes")
@@ -179,7 +185,8 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	}
 
 	// Finally, finish off the sync, which should unblock c2
-	dirtyBcache.SyncFinished(2 * bufSize)
+	dirtyBcache.BlockSyncFinished(bufSize + 1)
+	dirtyBcache.SyncFinished(4*bufSize + 2)
 	if dirtyBcache.ShouldForceSync() {
 		t.Fatalf("Buffers still full after sync finished")
 	}
@@ -188,4 +195,45 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 		t.Fatalf("Wrong blocked size: %d", blockedSize)
 	}
 	<-c2
+}
+
+func TestDirtyBcacheCalcBackpressure(t *testing.T) {
+	bufSize := int64(10)
+	clock, now := newTestClockAndTimeNow()
+	dirtyBcache := NewDirtyBlockCacheStandard(clock, testLoggerMaker(t),
+		bufSize, bufSize*2)
+	defer dirtyBcache.Shutdown()
+	// no backpressure yet
+	bp := dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
+	if bp != 0 {
+		t.Fatalf("Unexpected backpressure before unsyned bytes: %d", bp)
+	}
+
+	// still less
+	dirtyBcache.UpdateUnsyncedBytes(9, false)
+	bp = dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
+	if bp != 0 {
+		t.Fatalf("Unexpected backpressure before unsyned bytes: %d", bp)
+	}
+
+	// Now make 11 unsynced bytes, or 10% of the overage
+	dirtyBcache.UpdateUnsyncedBytes(2, false)
+	bp = dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
+	if g, e := bp, 1*time.Second; g != e {
+		t.Fatalf("Got backpressure %s, expected %s", g, e)
+	}
+
+	// Now completely fill the buffer
+	dirtyBcache.UpdateUnsyncedBytes(9, false)
+	bp = dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
+	if g, e := bp, 10*time.Second; g != e {
+		t.Fatalf("Got backpressure %s, expected %s", g, e)
+	}
+
+	// Now advance the clock, we should see the same bp deadline
+	clock.Add(5 * time.Second)
+	bp = dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
+	if g, e := bp, 5*time.Second; g != e {
+		t.Fatalf("Got backpressure %s, expected %s", g, e)
+	}
 }

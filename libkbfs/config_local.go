@@ -570,22 +570,39 @@ func (c *ConfigLocal) ResetCaches() {
 	c.kcache = NewKeyCacheStandard(5000)
 	// Limit the block cache to 10K entries or 1024 blocks (currently 512MiB)
 	c.bcache = NewBlockCacheStandard(c, 10000, MaxBlockSizeBytesDefault*1024)
-	// Limit the number of unsynced (or actively syncing) bytes to 5
-	// MB (aka, the number of parallel block puts times the max size
-	// of a block).
-	unsyncedDirtyBytesLimit := int64(5 << 20)
-	// Limit the number of total dirty bytes (including those blocks
-	// that have already finished syncing, but for which the overall
-	// Sync operation isn't yet done) to 10 MB.
-	totalDirtyBytesLimit := 2 * unsyncedDirtyBytesLimit
-	c.dirtyBcache = NewDirtyBlockCacheStandard(unsyncedDirtyBytesLimit,
-		totalDirtyBytesLimit)
+	minFactor := 1
+	if maxParallelBlockPuts > 10 {
+		minFactor = maxParallelBlockPuts / 10
+	}
+	// The minimum number of bytes we'll try to sync in parallel.
+	// This should be roughly the minimum amount of bytes we expect
+	// our worst supported connection to send within the timeout
+	// forced on us by the upper layer (19 seconds on OS X).  With the
+	// current defaults, this minimum works out to ~5MB, so we can
+	// support a connection of ~270 KB/s.  The buffer size will
+	// increase as more data gets pushed over the connection without
+	// risking timeouts.
+	minSyncBufferSize := int64(MaxBlockSizeBytesDefault * minFactor)
+	// The maximum number of bytes we can try to sync at once (also
+	// limits the amount of memory used by dirty blocks).  We make it
+	// slightly bigger than the max number of parallel bytes in order
+	// to reserve reuse put "slots" while waiting for earlier puts to
+	// finish.  This also limits the maxinim amount of memory used by
+	// the dirty block cache (to around 100MB with the current
+	// defaults).
+	maxSyncBufferSize :=
+		int64(MaxBlockSizeBytesDefault * maxParallelBlockPuts * 2)
+	c.dirtyBcache = NewDirtyBlockCacheStandard(c.clock, c.MakeLogger,
+		minSyncBufferSize, maxSyncBufferSize)
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) MakeLogger(module string) logger.Logger {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
+	if c.loggerFn == nil {
+		return nil
+	}
 	return c.loggerFn(module)
 }
 

@@ -564,8 +564,15 @@ type DirtyBlockCache interface {
 	// over the channel because there were no new bytes.  If an
 	// already-dirtied block is truncated, or if previously requested
 	// bytes have now been updated more accurately in previous
-	// requests, newUnsyncedBytes may be negative.
-	UpdateUnsyncedBytes(newUnsyncedBytes int64)
+	// requests, newUnsyncedBytes may be negative.  wasSyncing should
+	// be true if `BlockSyncStarted` has already been called for this
+	// block.
+	UpdateUnsyncedBytes(newUnsyncedBytes int64, wasSyncing bool)
+	// UpdateSyncingBytes is called when a particular block has
+	// started syncing, or with a negative number when a block is no
+	// longer syncing due to an error (and BlockSyncFinished will
+	// never be called).
+	UpdateSyncingBytes(size int64)
 	// BlockSyncFinished is called when a particular block has
 	// finished syncing, though the overall sync might not yet be
 	// complete.  This lets the cache know it might be able to grant

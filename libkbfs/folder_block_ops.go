@@ -1359,7 +1359,8 @@ func (fbo *folderBlockOps) Write(
 	if err != nil {
 		return err
 	}
-	defer fbo.config.DirtyBlockCache().UpdateUnsyncedBytes(-int64(len(data)))
+	defer fbo.config.DirtyBlockCache().UpdateUnsyncedBytes(-int64(len(data)),
+		false)
 	err = fbo.maybeWaitOnDeferredWrites(ctx, lState, file, c)
 	if err != nil {
 		return err
@@ -1643,7 +1644,7 @@ func (fbo *folderBlockOps) Truncate(
 	if err != nil {
 		return err
 	}
-	defer fbo.config.DirtyBlockCache().UpdateUnsyncedBytes(-int64(size))
+	defer fbo.config.DirtyBlockCache().UpdateUnsyncedBytes(-int64(size), false)
 	err = fbo.maybeWaitOnDeferredWrites(ctx, lState, file, c)
 	if err != nil {
 		return err

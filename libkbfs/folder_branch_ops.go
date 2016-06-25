@@ -62,7 +62,7 @@ const (
 	// Total history size for 4194304-byte blocks: 2216672886784 bytes
 	MaxBlockSizeBytesDefault = 512 << 10
 	// Maximum number of blocks that can be sent in parallel
-	maxParallelBlockPuts = 10
+	maxParallelBlockPuts = 100
 	// Max response size for a single DynamoDB query is 1MB.
 	maxMDsAtATime = 10
 	// Time between checks for dirty files to flush, in case Sync is
