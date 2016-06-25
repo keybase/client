@@ -488,6 +488,40 @@ func rekey() fileOp {
 	}, IsInit}
 }
 
+func lsfavoritesOp(c *ctx, expected []string, public bool) error {
+	favorites, err := c.engine.GetFavorites(c.user, public)
+	if err != nil {
+		return err
+	}
+	c.t.Log("lsfavorites", public, "=>", favorites)
+	expectedMap := make(map[string]bool)
+	for _, f := range expected {
+		if !favorites[f] {
+			return fmt.Errorf("Missing favorite %s", f)
+		}
+		expectedMap[f] = true
+	}
+
+	for f := range favorites {
+		if !expectedMap[f] {
+			return fmt.Errorf("Unexpected favorite %s", f)
+		}
+	}
+	return nil
+}
+
+func lspublicfavorites(contents []string) fileOp {
+	return fileOp{func(c *ctx) error {
+		return lsfavoritesOp(c, contents, true)
+	}, Defaults}
+}
+
+func lsprivatefavorites(contents []string) fileOp {
+	return fileOp{func(c *ctx) error {
+		return lsfavoritesOp(c, contents, false)
+	}, Defaults}
+}
+
 func lsdir(name string, contents m) fileOp {
 	return fileOp{func(c *ctx) error {
 		folder, _, err := c.getNode(name, false, false)

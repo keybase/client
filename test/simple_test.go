@@ -54,3 +54,21 @@ func TestSetMtime(t *testing.T) {
 		),
 	)
 }
+
+func TestFavoritesBasic(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+
+		inPrivateTlf("alice,bob"),
+		as(alice,
+			lspublicfavorites([]string{"alice"}),
+			lsprivatefavorites([]string{"alice", "alice,bob"}),
+		),
+
+		inPublicTlf("alice,bob"),
+		as(alice,
+			lspublicfavorites([]string{"alice", "alice,bob"}),
+			lsprivatefavorites([]string{"alice", "alice,bob"}),
+		),
+	)
+}

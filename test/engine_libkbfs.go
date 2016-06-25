@@ -129,6 +129,24 @@ outer:
 	return h, nil
 }
 
+// GetFavorites implements the Engine interface.
+func (k *LibKBFS) GetFavorites(u User, public bool) (map[string]bool, error) {
+	config := u.(*libkbfs.ConfigLocal)
+	ctx := context.Background()
+	favorites, err := config.KBFSOps().GetFavorites(ctx)
+	if err != nil {
+		return nil, err
+	}
+	favoritesMap := make(map[string]bool)
+	for _, f := range favorites {
+		if f.Public != public {
+			continue
+		}
+		favoritesMap[f.Name] = true
+	}
+	return favoritesMap, nil
+}
+
 // GetRootDir implements the Engine interface.
 func (k *LibKBFS) GetRootDir(u User, tlfName string, isPublic bool, expectedCanonicalTlfName string) (
 	dir Node, err error) {

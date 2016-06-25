@@ -59,20 +59,45 @@ func (e *fsEngine) GetUID(user User) keybase1.UID {
 	return uid
 }
 
-func buildRootPath(u *fsUser, tlfName string, isPublic bool) string {
+func buildRootPath(u *fsUser, isPublic bool) string {
 	var path string
 	if isPublic {
-		path = filepath.Join(u.mntDir, "public", tlfName)
+		// TODO: Consolidate all "public" and "private"
+		// constants in libkbfs.
+		path = filepath.Join(u.mntDir, "public")
 	} else {
-		path = filepath.Join(u.mntDir, "private", tlfName)
+		path = filepath.Join(u.mntDir, "private")
 	}
 	return path
+}
+
+func buildTlfPath(u *fsUser, tlfName string, isPublic bool) string {
+	return filepath.Join(buildRootPath(u, isPublic), tlfName)
+}
+
+func (e *fsEngine) GetFavorites(user User, public bool) (map[string]bool, error) {
+	u := user.(*fsUser)
+	path := buildRootPath(u, public)
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	fis, err := f.Readdir(-1)
+	if err != nil {
+		return nil, fmt.Errorf("Readdir on %v failed: %q", f, err.Error())
+	}
+	favorites := make(map[string]bool)
+	for _, fi := range fis {
+		favorites[fi.Name()] = true
+	}
+	return favorites, nil
 }
 
 // GetRootDir implements the Engine interface.
 func (e *fsEngine) GetRootDir(user User, tlfName string, isPublic bool, expectedCanonicalTlfName string) (dir Node, err error) {
 	u := user.(*fsUser)
-	path := buildRootPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, isPublic)
 	var realPath string
 	// TODO currently we pretend that Dokan has no symbolic links
 	// here and end up deferencing them. This works but is not
@@ -208,7 +233,7 @@ func (*fsEngine) GetDirChildrenTypes(u User, parentDir Node) (children map[strin
 
 func (*fsEngine) DisableUpdatesForTesting(user User, tlfName string, isPublic bool) (err error) {
 	u := user.(*fsUser)
-	path := buildRootPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, isPublic)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.DisableUpdatesFileName),
 		[]byte("off"), 0644)
@@ -218,7 +243,7 @@ func (*fsEngine) DisableUpdatesForTesting(user User, tlfName string, isPublic bo
 // if previously disabled for testing.
 func (*fsEngine) ReenableUpdates(user User, tlfName string, isPublic bool) (err error) {
 	u := user.(*fsUser)
-	path := buildRootPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, isPublic)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.EnableUpdatesFileName),
 		[]byte("on"), 0644)
@@ -228,7 +253,7 @@ func (*fsEngine) ReenableUpdates(user User, tlfName string, isPublic bool) (err 
 // user to actively retrieve new metadata for a folder.
 func (e *fsEngine) SyncFromServerForTesting(user User, tlfName string, isPublic bool) (err error) {
 	u := user.(*fsUser)
-	path := buildRootPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, isPublic)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.SyncFromServerFileName),
 		[]byte("x"), 0644)
@@ -237,7 +262,7 @@ func (e *fsEngine) SyncFromServerForTesting(user User, tlfName string, isPublic 
 // ForceQuotaReclamation implements the Engine interface.
 func (*fsEngine) ForceQuotaReclamation(user User, tlfName string, isPublic bool) (err error) {
 	u := user.(*fsUser)
-	path := buildRootPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, isPublic)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.ReclaimQuotaFileName),
 		[]byte("x"), 0644)
@@ -252,7 +277,7 @@ func (e *fsEngine) AddNewAssertion(user User, oldAssertion, newAssertion string)
 // Rekey implements the Engine interface.
 func (*fsEngine) Rekey(user User, tlfName string, isPublic bool) error {
 	u := user.(*fsUser)
-	path := buildRootPath(u, tlfName, isPublic)
+	path := buildTlfPath(u, tlfName, isPublic)
 	return ioutil.WriteFile(
 		filepath.Join(path, libfs.RekeyFileName),
 		[]byte("x"), 0644)
