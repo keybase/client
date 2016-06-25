@@ -2101,6 +2101,14 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 				}
 			} else {
 				op = chains.copyOpAndRevertUnrefsToOriginals(op)
+				// The dir of renamed setAttrOps must be reverted to
+				// the new parent's original pointer.
+				if sao, ok := op.(*setAttrOp); ok {
+					if newDir, _, ok :=
+						otherChains.renamedParentAndName(sao.File); ok {
+						sao.Dir.Unref = newDir
+					}
+				}
 			}
 
 			ops = append(ops, op)
