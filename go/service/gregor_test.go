@@ -456,3 +456,57 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
 	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
 }
+
+func TestBroadcastRepeat(t *testing.T) {
+
+	tc := libkb.SetupTest(t, "gregor", 2)
+	defer tc.Cleanup()
+
+	tc.G.SetService()
+
+	_, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var h *gregorHandler
+	if h, err = newGregorHandler(tc.G); err != nil {
+		t.Fatal(err)
+	}
+
+	m, err := h.templateMessage()
+	if err != nil {
+		t.Fatal(err)
+	}
+	m.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
+		Category_: gregor1.Category("mike"),
+		Body_:     gregor1.Body([]byte("mike")),
+	}
+
+	m2, err := h.templateMessage()
+	if err != nil {
+		t.Fatal(err)
+	}
+	m2.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
+		Category_: gregor1.Category("mike!!"),
+		Body_:     gregor1.Body([]byte("mike!!")),
+	}
+
+	if err := h.BroadcastMessage(context.Background(), *m); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := h.BroadcastMessage(context.Background(), *m2); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := h.BroadcastMessage(context.Background(), *m); err == nil {
+		t.Fatal(err)
+	} else {
+		errMsg := "ignored repeat message"
+		if err.Error() != errMsg {
+			t.Fatal("wrong error message %s != %s", err, errMsg)
+		}
+	}
+
+}

@@ -255,6 +255,15 @@ func (s State) Items() ([]gregor.Item, error) {
 	return ret, nil
 }
 
+func (s State) GetItem(msgID gregor.MsgID) (gregor.Item, bool) {
+	for _, i := range s.Items_ {
+		if i.Metadata().MsgID().String() == msgID.String() {
+			return i, true
+		}
+	}
+	return nil, false
+}
+
 func (s State) Marshal() ([]byte, error) {
 	var b []byte
 	err := codec.NewEncoderBytes(&b, &codec.MsgpackHandle{WriteExt: true}).Encode(s)

@@ -155,6 +155,12 @@ func (s *SQLEngine) consumeCreation(tx *sql.Tx, i gregor.Item) error {
 }
 
 func (s *SQLEngine) consumeMsgIDsToDismiss(tx *sql.Tx, u gregor.UID, mid gregor.MsgID, dmids []gregor.MsgID, ctime time.Time) error {
+
+	// early out if no msg IDs to dismiss were specified
+	if len(dmids) == 0 {
+		return nil
+	}
+
 	ins, err := tx.Prepare("INSERT INTO gregor_dismissals_by_id(uid, msgid, dmsgid) VALUES(?, ?, ?)")
 	if err != nil {
 		return err
@@ -193,6 +199,12 @@ func (s *SQLEngine) ctimeFromMessage(tx *sql.Tx, u gregor.UID, mid gregor.MsgID)
 }
 
 func (s *SQLEngine) consumeRangesToDismiss(tx *sql.Tx, u gregor.UID, mid gregor.MsgID, mrs []gregor.MsgRange, ctime time.Time) error {
+
+	// early out if no msg ranges to dismiss were specified
+	if len(mrs) == 0 {
+		return nil
+	}
+
 	for _, mr := range mrs {
 		qb := s.newQueryBuilder()
 		qb.Build("INSERT INTO gregor_dismissals_by_time(uid, msgid, category, dtime) VALUES (?,?,?,", hexEnc(u), hexEnc(mid), mr.Category().String())

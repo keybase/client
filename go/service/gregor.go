@@ -90,13 +90,13 @@ type gregorHandler struct {
 	sync.Mutex
 	ibmHandlers      []libkb.GregorInBandMessageHandler
 	gregorCli        *grclient.Client
+	objFactory       gregor.ObjFactory
 	firehoseHandlers []libkb.GregorFirehoseHandler
 
 	conn                *rpc.Connection
 	cli                 rpc.GenericClient
 	sessionID           gregor1.SessionID
 	skipRetryConnect    bool
-	itemsByID           map[string]gregor.Item
 	freshSync           bool
 	transportForTesting *connTransport
 
@@ -130,9 +130,9 @@ func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
 func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 	gh = &gregorHandler{
 		Contextified: libkb.NewContextified(g),
-		itemsByID:    make(map[string]gregor.Item),
 		freshSync:    true,
 		shutdownCh:   make(chan struct{}),
+		objFactory:   gregor.FastLookupObjFactory{ObjFactory: gregor1.ObjFactory{}},
 	}
 
 	// Create client interface to gregord
@@ -144,8 +144,7 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 }
 
 func newGregorClient(g *libkb.GlobalContext, gh *gregorHandler) (*grclient.Client, error) {
-	objFactory := gregor1.ObjFactory{}
-	sm := grstorage.NewMemEngine(objFactory, clockwork.NewRealClock())
+	sm := grstorage.NewMemEngine(gh.objFactory, clockwork.NewRealClock())
 
 	var guid gregor.UID
 	var gdid gregor.DeviceID
@@ -159,7 +158,7 @@ func newGregorClient(g *libkb.GlobalContext, gh *gregorHandler) (*grclient.Clien
 	if b = uid.ToBytes(); b == nil {
 		return nil, errors.New("Can't convert UID to byte array")
 	}
-	if guid, err = objFactory.MakeUID(b); err != nil {
+	if guid, err = gh.objFactory.MakeUID(b); err != nil {
 		return nil, err
 	}
 
@@ -170,7 +169,7 @@ func newGregorClient(g *libkb.GlobalContext, gh *gregorHandler) (*grclient.Clien
 	if b, err = hex.DecodeString(did.String()); err != nil {
 		return nil, err
 	}
-	if gdid, err = objFactory.MakeDeviceID(b); err != nil {
+	if gdid, err = gh.objFactory.MakeDeviceID(b); err != nil {
 		return nil, err
 	}
 
@@ -417,19 +416,31 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	g.Lock()
 	defer g.Unlock()
 
-	// Send message to local state machine
-	g.gregorCli.StateMachineConsumeMessage(m)
-
 	// Handle the message
 	ibm := m.ToInBandMessage()
 	if ibm != nil {
 
+		// Check to see if this is already in our state
+		msgID := ibm.Metadata().MsgID()
+		state, err := g.gregorCli.StateMachineState(nil)
+		if err != nil {
+			return err
+		}
+		if _, ok := state.GetItem(msgID); ok {
+			g.Debug("msgID: %s already in state, ignoring", msgID)
+			return errors.New("ignored repeat message")
+		}
+
+		g.Debug("broadcast: in-band message: msgID: %s Ctime: %s", msgID, ibm.Metadata().CTime())
+		err = g.handleInBandMessage(ctx, gregor1.IncomingClient{Cli: g.cli}, ibm)
+
+		// Send message to local state machine
+		g.gregorCli.StateMachineConsumeMessage(m)
+
 		// Forward to electron or whichever UI is listening for the new gregor state
 		g.pushState(keybase1.PushReason_NEW_DATA)
 
-		g.Debug("broadcast: in-band message: msgID: %s Ctime: %s",
-			m.ToInBandMessage().Metadata().MsgID(), m.ToInBandMessage().Metadata().CTime())
-		return g.handleInBandMessage(ctx, gregor1.IncomingClient{Cli: g.cli}, ibm)
+		return err
 	}
 
 	obm := m.ToOutOfBandMessage()
@@ -476,6 +487,11 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context, cli 
 	ibm gregor.InBandMessage, handler libkb.GregorInBandMessageHandler) (bool, error) {
 	g.Debug("handleInBand: %+v", ibm)
 
+	state, err := g.gregorCli.StateMachineState(nil)
+	if err != nil {
+		return false, err
+	}
+
 	sync := ibm.ToStateSyncMessage()
 	if sync != nil {
 		g.Debug("state sync message")
@@ -492,10 +508,6 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context, cli 
 			g.Debug("msg ID %s created ctime: %s", id,
 				item.Metadata().CTime())
 
-			// Store the item in a map according to its ID. We use this when
-			// items are dismissed, to remember what the item was.
-			g.itemsByID[item.Metadata().MsgID().String()] = item
-
 			category := ""
 			if item.Category() != nil {
 				category = item.Category().String()
@@ -511,9 +523,9 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context, cli 
 		if dismissal != nil {
 			g.Debug("received dismissal")
 			for _, id := range dismissal.MsgIDsToDismiss() {
-				item, present := g.itemsByID[id.String()]
+				item, present := state.GetItem(id)
 				if !present {
-					g.Warning("tried to dismiss item %s, not present", id.String())
+					g.Debug("tried to dismiss item %s, not present", id.String())
 					continue
 				}
 				g.Debug("dismissing item %s", id.String())
@@ -527,9 +539,6 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context, cli 
 				if handled, err := handler.Dismiss(ctx, cli, category, item); handled && err != nil {
 					return handled, err
 				}
-
-				// Clear the item out of items map.
-				delete(g.itemsByID, id.String())
 			}
 			if len(dismissal.RangesToDismiss()) > 0 {
 				g.Debug("message range dismissing not implemented")
@@ -946,14 +955,21 @@ func newGregorRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 
 func (g *gregorHandler) getState() (res gregor1.State, err error) {
 	var s gregor.State
-	var ok bool
 	s, err = g.gregorCli.StateMachineState(nil)
 	if err != nil {
 		return res, err
 	}
+
+	s, err = g.objFactory.ExportState(s)
+	if err != nil {
+		return res, err
+	}
+
+	var ok bool
 	if res, ok = s.(gregor1.State); !ok {
 		return res, errors.New("failed to convert state to exportable format")
 	}
+
 	return res, nil
 }
 

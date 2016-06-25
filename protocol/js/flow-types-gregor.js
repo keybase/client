@@ -12,6 +12,11 @@ export type RPCError = {
   desc: string
 }
 
+export type AuthResult = {
+  uid: UID;
+  sid: SessionID;
+}
+
 export type Body = bytes
 
 export type Category = string
@@ -103,6 +108,11 @@ export type StateUpdateMessage = {
   dismissal?: ?Dismissal;
 }
 
+export type SyncResult = {
+  msgs: Array<InBandMessage>;
+  hash: bytes;
+}
+
 export type System = string
 
 export type Time = long
@@ -114,7 +124,235 @@ export type TimeOrOffset = {
 
 export type UID = bytes
 
-export type incomingCallMapType = {
+export type authAuthenticateSessionTokenResult = AuthResult
 
+export type authAuthenticateSessionTokenRpc = {
+  method: 'auth.authenticateSessionToken',
+  param: {
+    session: SessionToken
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: authAuthenticateSessionTokenResult) => void)
+}
+
+export type authInternalCreateGregorSuperUserSessionTokenResult = SessionToken
+
+export type authInternalCreateGregorSuperUserSessionTokenRpc = {
+  method: 'authInternal.createGregorSuperUserSessionToken',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void)
+}
+
+export type authUpdateRevokeSessionIDsResult = void
+
+export type authUpdateRevokeSessionIDsRpc = {
+  method: 'authUpdate.revokeSessionIDs',
+  param: {
+    sessionIDs: Array<SessionID>
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type incomingConsumeMessageResult = void
+
+export type incomingConsumeMessageRpc = {
+  method: 'incoming.consumeMessage',
+  param: {
+    m: Message
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type incomingConsumePublishMessageResult = void
+
+export type incomingConsumePublishMessageRpc = {
+  method: 'incoming.consumePublishMessage',
+  param: {
+    m: Message
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type incomingPingResult = string
+
+export type incomingPingRpc = {
+  method: 'incoming.ping',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: incomingPingResult) => void)
+}
+
+export type incomingStateByCategoryPrefixResult = State
+
+export type incomingStateByCategoryPrefixRpc = {
+  method: 'incoming.stateByCategoryPrefix',
+  param: {
+    uid: UID,
+    categoryPrefix: Category
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: incomingStateByCategoryPrefixResult) => void)
+}
+
+export type incomingSyncResult = SyncResult
+
+export type incomingSyncRpc = {
+  method: 'incoming.sync',
+  param: {
+    uid: UID,
+    deviceid: DeviceID,
+    ctime: Time
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: incomingSyncResult) => void)
+}
+
+export type outgoingBroadcastMessageResult = void
+
+export type outgoingBroadcastMessageRpc = {
+  method: 'outgoing.broadcastMessage',
+  param: {
+    m: Message
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type remindDeleteRemindersResult = void
+
+export type remindDeleteRemindersRpc = {
+  method: 'remind.deleteReminders',
+  param: {
+    reminderIDs: Array<ReminderID>
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type remindGetRemindersResult = ReminderSet
+
+export type remindGetRemindersRpc = {
+  method: 'remind.getReminders',
+  param: {
+    maxReminders: int
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: remindGetRemindersResult) => void)
+}
+
+export type rpc =
+    authAuthenticateSessionTokenRpc
+  | authInternalCreateGregorSuperUserSessionTokenRpc
+  | authUpdateRevokeSessionIDsRpc
+  | incomingConsumeMessageRpc
+  | incomingConsumePublishMessageRpc
+  | incomingPingRpc
+  | incomingStateByCategoryPrefixRpc
+  | incomingSyncRpc
+  | outgoingBroadcastMessageRpc
+  | remindDeleteRemindersRpc
+  | remindGetRemindersRpc
+
+export type incomingCallMapType = {
+  'keybase.1.auth.authenticateSessionToken'?: (
+    params: {
+      session: SessionToken
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: authAuthenticateSessionTokenResult) => void
+    }
+  ) => void,
+  'keybase.1.authInternal.createGregorSuperUserSessionToken'?: (
+    params: {},
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: authInternalCreateGregorSuperUserSessionTokenResult) => void
+    }
+  ) => void,
+  'keybase.1.authUpdate.revokeSessionIDs'?: (
+    params: {
+      sessionIDs: Array<SessionID>
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.incoming.sync'?: (
+    params: {
+      uid: UID,
+      deviceid: DeviceID,
+      ctime: Time
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: incomingSyncResult) => void
+    }
+  ) => void,
+  'keybase.1.incoming.consumeMessage'?: (
+    params: {
+      m: Message
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.incoming.consumePublishMessage'?: (
+    params: {
+      m: Message
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.incoming.ping'?: (
+    params: {},
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: incomingPingResult) => void
+    }
+  ) => void,
+  'keybase.1.incoming.stateByCategoryPrefix'?: (
+    params: {
+      uid: UID,
+      categoryPrefix: Category
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: incomingStateByCategoryPrefixResult) => void
+    }
+  ) => void,
+  'keybase.1.outgoing.broadcastMessage'?: (
+    params: {
+      m: Message
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.remind.getReminders'?: (
+    params: {
+      maxReminders: int
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: remindGetRemindersResult) => void
+    }
+  ) => void,
+  'keybase.1.remind.deleteReminders'?: (
+    params: {
+      reminderIDs: Array<ReminderID>
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void
 }
 

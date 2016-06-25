@@ -197,6 +197,10 @@ func (o ObjFactory) MakeState(items []gregor.Item) (gregor.State, error) {
 	return State{Items_: ourItems}, nil
 }
 
+func (o ObjFactory) MakeStateWithLookupTable(items []gregor.Item, table map[string]gregor.Item) (gregor.State, error) {
+	return o.MakeState(items)
+}
+
 func (o ObjFactory) MakeMetadata(uid gregor.UID, msgid gregor.MsgID, devid gregor.DeviceID, ctime time.Time, i gregor.InBandMsgType) (gregor.Metadata, error) {
 	return o.makeMetadata(uid, msgid, devid, ctime, gregor.InBandMsgTypeUpdate)
 }
@@ -257,6 +261,24 @@ func (o ObjFactory) MakeReminderSetFromReminders(reminders []gregor.Reminder, mo
 		}
 	}
 	return ret, nil
+}
+
+func (o ObjFactory) ExportState(s gregor.State) (gregor.State, error) {
+
+	if gs, ok := s.(State); ok {
+		return gs, nil
+	}
+
+	items, err := s.Items()
+	if err != nil {
+		return State{}, err
+	}
+	gs, err := o.MakeState(items)
+	if err != nil {
+		return State{}, err
+	}
+
+	return gs.(State), nil
 }
 
 var _ gregor.ObjFactory = ObjFactory{}
