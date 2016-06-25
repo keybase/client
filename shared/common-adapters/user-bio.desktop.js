@@ -2,65 +2,28 @@
 
 import React, {Component} from 'react'
 import {Text, Avatar} from '../common-adapters'
-import {error as proofError} from '../constants/tracker'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import electron from 'electron'
-
-const shell = electron.shell || electron.remote.shell
+import * as shared from './user-bio.shared'
 
 import type {Props} from './user-bio'
 
 export default class BioRender extends Component {
   props: Props;
 
-  _onClickAvatar () {
-    shell.openExternal(`https://keybase.io/${this.props.username}`)
-  }
-
-  _onClickFollowers () {
-    shell.openExternal(`https://keybase.io/${this.props.username}#profile-tracking-section`)
-  }
-
-  _onClickFollowing () {
-    shell.openExternal(`https://keybase.io/${this.props.username}#profile-tracking-section`)
-  }
-
-  _followLabel (): ?string {
-    const {userInfo, currentlyFollowing} = this.props
-    if (!userInfo) {
-      return null
-    }
-
-    if (userInfo.followsYou && currentlyFollowing) {
-      return 'You track each other'
-    } else if (userInfo.followsYou) {
-      return 'Tracks you'
-    }
-
-    return null
-  }
-
   render () {
-    const {avatarSize, username, userInfo, currentlyFollowing, trackerState} = this.props
+    const {avatarSize, username, userInfo, currentlyFollowing} = this.props
     if (!userInfo) {
       return null
     }
 
-    const followsYou = userInfo.followsYou
-    const followLabel = this._followLabel()
-
-    let stylesUsernameState
-    if (trackerState === proofError) {
-      stylesUsernameState = stylesUsernameError
-    } else {
-      stylesUsernameState = currentlyFollowing ? stylesUsernameFollowing : stylesUsernameNotFollowing
-    }
+    const {followsYou} = userInfo
+    const followLabel = shared.followLabel(userInfo, currentlyFollowing)
 
     return (
       <div style={this.props.style}>
         <div style={stylesContainer}>
           <Avatar
-            onClick={() => this._onClickAvatar()}
+            onClick={() => shared.onClickAvatar(username)}
             style={{...globalStyles.clickable, zIndex: 2}}
             url={userInfo.avatar}
             size={avatarSize}
@@ -69,8 +32,8 @@ export default class BioRender extends Component {
           <div style={stylesContent}>
             <Text
               type='HeaderBig'
-              style={{...stylesUsername, ...stylesUsernameState}}
-              onClick={() => this._onClickAvatar()}>
+              style={{...stylesUsername, ...shared.usernameStyle(this.props)}}
+              onClick={() => shared.onClickAvatar(username)}>
               {username}
             </Text>
             <Text type='BodySemibold' style={stylesFullname}>{userInfo.fullname}</Text>
@@ -78,13 +41,13 @@ export default class BioRender extends Component {
               <Text type='BodySmall' style={stylesFollowLabel}>{followLabel}</Text>
             }
             <Text type='BodySmall' style={stylesFollowing}>
-              <span className='hover-underline' onClick={() => this._onClickFollowers()}>
+              <span className='hover-underline' onClick={() => shared.onClickFollowers(username)}>
                 <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followersCount}</Text> {userInfo.followersCount === 1 ? 'Tracker' : 'Trackers'}
               </span>
               &nbsp;
               &middot;
               &nbsp;
-              <span className='hover-underline' onClick={() => this._onClickFollowing()}>
+              <span className='hover-underline' onClick={() => shared.onClickFollowing(username)}>
                 Tracking <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
               </span>
             </Text>
@@ -122,15 +85,6 @@ const stylesContent = {
 const stylesUsername = {
   ...globalStyles.selectable,
   marginTop: 7,
-}
-const stylesUsernameFollowing = {
-  color: globalColors.green2,
-}
-const stylesUsernameNotFollowing = {
-  color: globalColors.orange,
-}
-const stylesUsernameError = {
-  color: globalColors.red,
 }
 const stylesFullname = {
   ...globalStyles.selectable,
