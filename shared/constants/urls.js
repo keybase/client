@@ -1,6 +1,4 @@
-import getenv from 'getenv'
-
-const runMode = getenv('KEYBASE_RUN_MODE', 'prod')
+import runMode from './platform.native'
 
 const keybaseUrl = runMode !== 'prod' ? 'https://stage0.keybase.io' : 'https://keybase.io'
 export default keybaseUrl
