@@ -499,13 +499,12 @@ func (fbo *folderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
 	return nil
 }
 
-func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata) error {
+func (fbo *folderBranchOps) setHeadLocked(
+	ctx context.Context, lState *lockState, md *RootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 	fbo.headLock.AssertLocked(lState)
 
 	isFirstHead := fbo.head == nil
-	handleNameChanged := false
 	wasReadable := false
 	if !isFirstHead {
 		wasReadable = fbo.head.IsReadable()
@@ -523,35 +522,6 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 		if headID == mdID {
 			// only save this new MD if the MDID has changed
 			return nil
-		}
-
-		oldHandle := fbo.head.GetTlfHandle()
-		newHandle := md.GetTlfHandle()
-
-		// Newer handles should be equal or more resolved over
-		// time.
-		resolvesTo, partialResolvedOldHandle, err :=
-			oldHandle.ResolvesTo(
-				ctx, fbo.config.Codec(), fbo.config.KBPKI(),
-				newHandle)
-		if err != nil {
-			return err
-		}
-
-		oldName := oldHandle.GetCanonicalName()
-		newName := newHandle.GetCanonicalName()
-
-		if !resolvesTo {
-			return IncompatibleHandleError{
-				oldName,
-				partialResolvedOldHandle.GetCanonicalName(),
-				newName,
-			}
-		}
-		if oldName != newName {
-			fbo.log.CDebugf(ctx, "Handle changed (%s -> %s)",
-				oldName, newName)
-			handleNameChanged = true
 		}
 	}
 
@@ -581,7 +551,107 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 			fbo.updateDoneChan = make(chan struct{})
 			go fbo.registerAndWaitForUpdates()
 		}
-	} else if handleNameChanged {
+	}
+	if !wasReadable && md.IsReadable() {
+		// Let any listeners know that this folder is now readable,
+		// which may indicate that a rekey successfully took place.
+		fbo.config.Reporter().Notify(ctx, mdReadSuccessNotification(
+			md.GetTlfHandle().GetCanonicalName(), md.ID.IsPublic()))
+	}
+	return nil
+}
+
+// setInitialHeadUntrustedLocked is for when the given RootMetadata
+// was fetched not due to a user action, i.e. via a Rekey
+// notification, and we don't have a TLF name to check against.
+func (fbo *folderBranchOps) setInitialHeadUntrustedLocked(ctx context.Context,
+	lState *lockState, md *RootMetadata) error {
+	fbo.mdWriterLock.AssertLocked(lState)
+	fbo.headLock.AssertLocked(lState)
+	if fbo.head != nil {
+		return errors.New("Unexpected non-nil head in setInitialHeadUntrustedLocked")
+	}
+	return fbo.setHeadLocked(ctx, lState, md)
+}
+
+// setNewInitialHeadLocked is for when we're creating a brand-new TLF.
+func (fbo *folderBranchOps) setNewInitialHeadLocked(ctx context.Context,
+	lState *lockState, md *RootMetadata) error {
+	fbo.mdWriterLock.AssertLocked(lState)
+	fbo.headLock.AssertLocked(lState)
+	if fbo.head != nil {
+		return errors.New("Unexpected non-nil head in setNewInitialHeadLocked")
+	}
+	if md.Revision != MetadataRevisionInitial {
+		return fmt.Errorf("setNewInitialHeadLocked unexpectedly called with revision %d", md.Revision)
+	}
+	return fbo.setHeadLocked(ctx, lState, md)
+}
+
+// setInitialHeadUntrustedLocked is for when the given RootMetadata
+// was fetched due to a user action, and will be checked against the
+// TLF name.
+func (fbo *folderBranchOps) setInitialHeadTrustedLocked(ctx context.Context,
+	lState *lockState, md *RootMetadata) error {
+	fbo.mdWriterLock.AssertLocked(lState)
+	fbo.headLock.AssertLocked(lState)
+	if fbo.head != nil {
+		return errors.New("Unexpected non-nil head in setInitialHeadUntrustedLocked")
+	}
+	return fbo.setHeadLocked(ctx, lState, md)
+}
+
+// setHeadSuccessorLocked is for when we're applying updates from the
+// server or when we're applying new updates we created ourselves.
+func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
+	lState *lockState, md *RootMetadata) error {
+	fbo.mdWriterLock.AssertLocked(lState)
+	fbo.headLock.AssertLocked(lState)
+	if fbo.head == nil {
+		// This can happen in tests via SyncFromServerForTesting().
+		return fbo.setInitialHeadTrustedLocked(ctx, lState, md)
+	}
+
+	err := fbo.head.CheckValidSuccessor(fbo.config, md)
+	if err != nil {
+		return err
+	}
+
+	oldHandle := fbo.head.GetTlfHandle()
+	newHandle := md.GetTlfHandle()
+
+	// Newer handles should be equal or more resolved over time.
+	//
+	// TODO: In some cases, they shouldn't, e.g. if we're on an
+	// unmerged branch. Add checks for this.
+	resolvesTo, partialResolvedOldHandle, err :=
+		oldHandle.ResolvesTo(
+			ctx, fbo.config.Codec(), fbo.config.KBPKI(),
+			newHandle)
+	if err != nil {
+		return err
+	}
+
+	oldName := oldHandle.GetCanonicalName()
+	newName := newHandle.GetCanonicalName()
+
+	if !resolvesTo {
+		return IncompatibleHandleError{
+			oldName,
+			partialResolvedOldHandle.GetCanonicalName(),
+			newName,
+		}
+	}
+
+	err = fbo.setHeadLocked(ctx, lState, md)
+	if err != nil {
+		return err
+	}
+
+	if oldName != newName {
+		fbo.log.CDebugf(ctx, "Handle changed (%s -> %s)",
+			oldName, newName)
+
 		// If the handle has changed, send out a notification.
 		fbo.observers.tlfHandleChange(ctx, fbo.head.GetTlfHandle())
 		// Also the folder should be re-identified given the
@@ -592,13 +662,63 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 			fbo.identifyDone = false
 		}()
 	}
-	if !wasReadable && md.IsReadable() {
-		// Let any listeners know that this folder is now readable,
-		// which may indicate that a rekey successfully took place.
-		fbo.config.Reporter().Notify(ctx, mdReadSuccessNotification(
-			md.GetTlfHandle().GetCanonicalName(), md.ID.IsPublic()))
-	}
+
 	return nil
+}
+
+// setHeadPredecessorLocked is for when we're unstaging updates.
+func (fbo *folderBranchOps) setHeadPredecessorLocked(ctx context.Context,
+	lState *lockState, md *RootMetadata) error {
+	fbo.mdWriterLock.AssertLocked(lState)
+	fbo.headLock.AssertLocked(lState)
+	if fbo.head == nil {
+		return errors.New("Unexpected nil head in setHeadPredecessorLocked")
+	}
+	if fbo.head.Revision <= MetadataRevisionInitial {
+		return fmt.Errorf("setHeadPredecessorLocked unexpectedly called with revision %d", fbo.head.Revision)
+	}
+
+	if fbo.head.MergedStatus() != Unmerged {
+		return errors.New("Unexpected merged head in setHeadPredecessorLocked")
+	}
+
+	err := md.CheckValidSuccessor(fbo.config, fbo.head)
+	if err != nil {
+		return err
+	}
+
+	oldHandle := fbo.head.GetTlfHandle()
+	newHandle := md.GetTlfHandle()
+
+	// The two handles must be the same, since no rekeying is done
+	// while unmerged.
+
+	eq, err := oldHandle.Equals(fbo.config.Codec(), *newHandle)
+	if err != nil {
+		return err
+	}
+	if !eq {
+		return fmt.Errorf(
+			"head handle %v unexpectedly not equal to new handle = %v",
+			oldHandle, newHandle)
+	}
+
+	return fbo.setHeadLocked(ctx, lState, md)
+}
+
+// setHeadConflictResolvedLocked is for when we're setting the merged
+// update with resolved conflicts.
+func (fbo *folderBranchOps) setHeadConflictResolvedLocked(ctx context.Context,
+	lState *lockState, md *RootMetadata) error {
+	fbo.mdWriterLock.AssertLocked(lState)
+	fbo.headLock.AssertLocked(lState)
+	if fbo.head.MergedStatus() != Unmerged {
+		return errors.New("Unexpected merged head in setHeadConflictResolvedLocked")
+	}
+	if md.MergedStatus() != Merged {
+		return errors.New("Unexpected unmerged update in setHeadConflictResolvedLocked")
+	}
+	return fbo.setHeadLocked(ctx, lState, md)
 }
 
 func (fbo *folderBranchOps) identifyOnce(
@@ -673,9 +793,15 @@ func (fbo *folderBranchOps) getMDLocked(
 			return nil, err
 		}
 	} else {
+		// We go down this code path either due to a rekey
+		// notification for an unseen TLF, or in some tests.
+		//
+		// TODO: Make tests not take this code path, and keep
+		// track of the fact that MDs coming from rekey
+		// notifications are untrusted.
 		fbo.headLock.Lock(lState)
 		defer fbo.headLock.Unlock(lState)
-		err = fbo.setHeadLocked(ctx, lState, md)
+		err = fbo.setInitialHeadUntrustedLocked(ctx, lState, md)
 		if err != nil {
 			return nil, err
 		}
@@ -871,7 +997,7 @@ func (fbo *folderBranchOps) initMDLocked(
 			"%v: Unexpected MD ID during new MD initialization: %v",
 			md.ID, headID)
 	}
-	fbo.setHeadLocked(ctx, lState, md)
+	fbo.setNewInitialHeadLocked(ctx, lState, md)
 	if err != nil {
 		return err
 	}
@@ -944,7 +1070,7 @@ func (fbo *folderBranchOps) CheckForNewMDAndInit(
 			// updated either directly via writes or through the
 			// background update processor.
 			if fbo.head == nil {
-				err := fbo.setHeadLocked(ctx, lState, md)
+				err := fbo.setInitialHeadTrustedLocked(ctx, lState, md)
 				if err != nil {
 					return err
 				}
@@ -1729,7 +1855,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	err = fbo.setHeadLocked(ctx, lState, md)
+	err = fbo.setHeadSuccessorLocked(ctx, lState, md)
 	if err != nil {
 		return err
 	}
@@ -1766,7 +1892,7 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	return fbo.setHeadLocked(ctx, lState, md)
+	return fbo.setHeadSuccessorLocked(ctx, lState, md)
 }
 
 func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
@@ -1830,7 +1956,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	err = fbo.setHeadLocked(ctx, lState, md)
+	err = fbo.setHeadSuccessorLocked(ctx, lState, md)
 	if err != nil {
 		return err
 	}
@@ -3179,16 +3305,11 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			// Already caught up!
 			continue
 		}
-		if rmd.Revision != fbo.getCurrMDRevisionLocked(lState)+1 {
-			return MDUpdateApplyError{rmd.Revision,
-				fbo.getCurrMDRevisionLocked(lState)}
-		}
-
 		if err := rmd.isReadableOrError(ctx, fbo.config); err != nil {
 			return err
 		}
 
-		err := fbo.setHeadLocked(ctx, lState, rmd)
+		err := fbo.setHeadSuccessorLocked(ctx, lState, rmd)
 		if err != nil {
 			return err
 		}
@@ -3226,15 +3347,23 @@ func (fbo *folderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 		rmd := rmds[i]
 		// on undo, it's ok to re-apply the current revision since you
 		// need to invert all of its ops.
+		//
+		// This duplicates a check in
+		// fbo.setHeadPredecessorLocked. TODO: Remove this
+		// duplication.
 		if rmd.Revision != fbo.getCurrMDRevisionLocked(lState) &&
 			rmd.Revision != fbo.getCurrMDRevisionLocked(lState)-1 {
 			return MDUpdateInvertError{rmd.Revision,
 				fbo.getCurrMDRevisionLocked(lState)}
 		}
 
-		err := fbo.setHeadLocked(ctx, lState, rmd)
-		if err != nil {
-			return err
+		// TODO: Check that the revisions are equal only for
+		// the first iteration.
+		if rmd.Revision < fbo.getCurrMDRevisionLocked(lState) {
+			err := fbo.setHeadPredecessorLocked(ctx, lState, rmd)
+			if err != nil {
+				return err
+			}
 		}
 
 		// iterate the ops in reverse and invert each one
@@ -3333,7 +3462,7 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	err = func() error {
 		fbo.headLock.Lock(lState)
 		defer fbo.headLock.Unlock(lState)
-		return fbo.setHeadLocked(ctx, lState, rmds[0])
+		return fbo.setHeadPredecessorLocked(ctx, lState, rmds[0])
 	}()
 	if err != nil {
 		return nil, err
@@ -3465,7 +3594,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		// rekey bit is set, just a "folder needs rekey" update.
 		if err := fbo.getAndApplyMDUpdates(
 			ctx, lState, fbo.applyMDUpdatesLocked); err != nil {
-			if applyErr, ok := err.(MDUpdateApplyError); !ok ||
+			if applyErr, ok := err.(MDRevisionMismatch); !ok ||
 				applyErr.rev != applyErr.curr {
 				return err
 			}
@@ -3666,7 +3795,7 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 	}
 
 	if err := fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdates); err != nil {
-		if applyErr, ok := err.(MDUpdateApplyError); ok {
+		if applyErr, ok := err.(MDRevisionMismatch); ok {
 			if applyErr.rev == applyErr.curr {
 				fbo.log.CDebugf(ctx, "Already up-to-date with server")
 				return nil
@@ -3943,7 +4072,7 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 	// Set the head to the new MD.
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	err = fbo.setHeadLocked(ctx, lState, md)
+	err = fbo.setHeadConflictResolvedLocked(ctx, lState, md)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't set local MD head after a "+
 			"successful put: %v", err)

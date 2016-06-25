@@ -5201,6 +5201,8 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	// Simulate the server triggering alice to update.
 	config1.SetKeyCache(NewKeyCacheStandard(1))
 	err = kbfsOps1.SyncFromServerForTesting(ctx, fb1)
-	require.EqualError(t, err,
-		"old head \"alice\" resolves to \"alice\" instead of new head \"alice,mallory\"")
+	// TODO: We can actually fake out the PrevRoot pointer, too
+	// and then we'll be caught by the handle check. But when we
+	// have MDOps do the handle check, that'll trigger first.
+	require.IsType(t, MDPrevRootMismatch{}, err)
 }

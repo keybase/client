@@ -330,23 +330,6 @@ func (md *RootMetadata) IsReadable() bool {
 	return md.ID.IsPublic() || md.data.Dir.IsInitialized()
 }
 
-// increment makes this MD the immediate follower of the given
-// currMD.  It assumes md was deep-copied from currMD.
-func (md *RootMetadata) increment(config Config, currMD *RootMetadata) error {
-	var err error
-	md.PrevRoot, err = currMD.MetadataID(config)
-	if err != nil {
-		return err
-	}
-	// bump revision
-	if md.Revision < MetadataRevisionInitial {
-		md.Revision = MetadataRevisionInitial
-	} else {
-		md.Revision = currMD.Revision + 1
-	}
-	return nil
-}
-
 func (md *RootMetadata) clearLastRevision() {
 	md.ClearBlockChanges()
 	// remove the copied flag (if any.)
@@ -409,10 +392,71 @@ func (md *RootMetadata) MakeSuccessor(config Config, isWriter bool) (*RootMetada
 		newMd.Flags |= MetadataFlagRekey
 		newMd.Flags |= MetadataFlagWriterMetadataCopied
 	}
-	if err := newMd.increment(config, md); err != nil {
+
+	newMd.PrevRoot, err = md.MetadataID(config)
+	if err != nil {
 		return nil, err
 	}
+	// bump revision
+	if md.Revision < MetadataRevisionInitial {
+		return nil, errors.New("MD with invalid revision")
+	}
+	newMd.Revision = md.Revision + 1
 	return newMd, nil
+}
+
+// CheckValidSuccessor makes sure the given RootMetadata is a valid
+// successor to the current one, and returns an error otherwise.
+func (md *RootMetadata) CheckValidSuccessor(
+	config Config, nextMd *RootMetadata) error {
+	// (1) Verify current metadata is non-final.
+	if md.IsFinal() {
+		return MetadataIsFinalError{}
+	}
+
+	// (2) Check TLF ID.
+	if nextMd.ID != md.ID {
+		return MDTlfIDMismatch{
+			currID: md.ID,
+			nextID: nextMd.ID,
+		}
+	}
+
+	// (2) Check revision.
+	if nextMd.Revision != md.Revision+1 {
+		return MDRevisionMismatch{
+			rev:  nextMd.Revision,
+			curr: md.Revision,
+		}
+	}
+
+	// (3) Check PrevRoot pointer.
+	currRoot, err := md.MetadataID(config)
+	if err != nil {
+		return err
+	}
+	if nextMd.PrevRoot != currRoot {
+		return MDPrevRootMismatch{
+			prevRoot: nextMd.PrevRoot,
+			currRoot: currRoot,
+		}
+	}
+
+	expectedUsage := md.DiskUsage
+	if !nextMd.IsWriterMetadataCopiedSet() {
+		expectedUsage += nextMd.RefBytes - nextMd.UnrefBytes
+	}
+	if nextMd.DiskUsage != expectedUsage {
+		return MDDiskUsageMismatch{
+			expectedDiskUsage: expectedUsage,
+			actualDiskUsage:   nextMd.DiskUsage,
+		}
+	}
+
+	// TODO: Check that the successor (bare) TLF handle is the
+	// same or more resolved.
+
+	return nil
 }
 
 func (md *RootMetadata) getTLFKeyBundles(keyGen KeyGen) (*TLFWriterKeyBundle, *TLFReaderKeyBundle, error) {

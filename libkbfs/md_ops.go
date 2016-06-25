@@ -129,7 +129,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	if !handle.IsWriter(writer) {
 		return MDMismatchError{
 			handle.GetCanonicalPath(),
-			fmt.Sprintf("Writer MD (id=%s) was written by a non-writer %s",
+			fmt.Errorf("Writer MD (id=%s) was written by a non-writer %s",
 				rmds.MD.ID, writer)}
 	}
 
@@ -138,7 +138,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	if !handle.IsReader(user) {
 		return MDMismatchError{
 			handle.GetCanonicalPath(),
-			fmt.Sprintf("MD (id=%s) was changed by a non-reader %s",
+			fmt.Errorf("MD (id=%s) was changed by a non-reader %s",
 				rmds.MD.ID, user),
 		}
 	}
@@ -238,7 +238,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 	if !handleResolvesToMdHandle && !mdHandleResolvesToHandle {
 		return nil, MDMismatchError{
 			handle.GetCanonicalPath(),
-			fmt.Sprintf(
+			fmt.Errorf(
 				"MD (id=%s) contained unexpected handle path %s (%s -> %s) (%s -> %s)",
 				rmds.MD.ID, mdHandlePath,
 				handle.GetCanonicalPath(),
@@ -282,7 +282,7 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	if id != rmds.MD.ID {
 		return MDMismatchError{
 			id.String(),
-			fmt.Sprintf("MD contained unexpected folder id %s, expected %s",
+			fmt.Errorf("MD contained unexpected folder id %s, expected %s",
 				rmds.MD.ID.String(), id.String()),
 		}
 	}
@@ -290,7 +290,7 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	if bid != rmds.MD.BID {
 		return MDMismatchError{
 			id.String(),
-			fmt.Sprintf("MD contained unexpected branch id %s, expected %s, "+
+			fmt.Errorf("MD contained unexpected branch id %s, expected %s, "+
 				"folder id %s", rmds.MD.BID.String(), bid.String(), id.String()),
 		}
 	}
@@ -341,17 +341,10 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 		return nil, nil
 	}
 
-	// verify each of the MD objects, and verify the PrevRoot pointers
-	// are correct
+	// Verify that the given MD objects form a valid sequence.
 	var prevMD *RootMetadata
-	var prevRoot MdID
 	rmd := make([]*RootMetadata, 0, len(rmds))
 	for _, r := range rmds {
-		currRoot, err := r.MD.MetadataID(md.config)
-		if err != nil {
-			return nil, err
-		}
-
 		bareHandle, err := r.MD.MakeBareTlfHandle()
 		if err != nil {
 			return nil, err
@@ -362,32 +355,11 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 		}
 
 		if prevMD != nil {
-			//
-			// make sure the chain is correct
-			//
-			// (1) check revision
-			if r.MD.Revision != prevMD.Revision+1 {
+			err := prevMD.CheckValidSuccessor(md.config, &r.MD)
+			if err != nil {
 				return nil, MDMismatchError{
 					handle.GetCanonicalPath(),
-					fmt.Sprintf("MD (id=%v) is at an unexpected revision (%d) "+
-						"instead of %d", currRoot, r.MD.Revision.Number(),
-						prevMD.Revision.Number()+1),
-				}
-			}
-			// (2) check PrevRoot pointer
-			if r.MD.PrevRoot != prevRoot {
-				return nil, MDMismatchError{
-					handle.GetCanonicalPath(),
-					fmt.Sprintf("MD (id=%v) points to an unexpected root (%v) "+
-						"instead of %v", currRoot, r.MD.PrevRoot, prevRoot),
-				}
-			}
-			// (3) verify previous metadata is non-final
-			if prevMD.IsFinal() {
-				return nil, MDMismatchError{
-					handle.GetCanonicalPath(),
-					fmt.Sprintf("MD (id=%v) points to final root (%v) ",
-						currRoot, r.MD.PrevRoot),
+					err,
 				}
 			}
 		}
@@ -396,7 +368,7 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 		if err != nil {
 			return nil, err
 		}
-		prevRoot, prevMD = currRoot, &r.MD
+		prevMD = &r.MD
 		rmd = append(rmd, &r.MD)
 	}
 

@@ -320,7 +320,7 @@ func (e MDMissingDataError) Error() string {
 // for the given top-level folder.
 type MDMismatchError struct {
 	Dir string
-	Err string
+	Err error
 }
 
 // Error implements the error interface for MDMismatchError
@@ -741,17 +741,53 @@ func (e MDServerDisconnected) Error() string {
 	return "MDServer is disconnected"
 }
 
-// MDUpdateApplyError indicates that we tried to apply a revision that
+// MDRevisionMismatch indicates that we tried to apply a revision that
 // was not the next in line.
-type MDUpdateApplyError struct {
+type MDRevisionMismatch struct {
 	rev  MetadataRevision
 	curr MetadataRevision
 }
 
-// Error implements the error interface for MDUpdateApplyError.
-func (e MDUpdateApplyError) Error() string {
+// Error implements the error interface for MDRevisionMismatch.
+func (e MDRevisionMismatch) Error() string {
 	return fmt.Sprintf("MD revision %d isn't next in line for our "+
 		"current revision %d", e.rev, e.curr)
+}
+
+// MDTlfIDMismatch indicates that the ID field of a successor MD
+// doesn't match the ID field of its predecessor.
+type MDTlfIDMismatch struct {
+	currID TlfID
+	nextID TlfID
+}
+
+func (e MDTlfIDMismatch) Error() string {
+	return fmt.Sprintf("TLF ID %s doesn't match successor TLF ID %s",
+		e.currID, e.nextID)
+}
+
+// MDPrevRootMismatch indicates that the PrevRoot field of a successor
+// MD doesn't match the metadata ID of its predecessor.
+type MDPrevRootMismatch struct {
+	prevRoot MdID
+	currRoot MdID
+}
+
+func (e MDPrevRootMismatch) Error() string {
+	return fmt.Sprintf("PrevRoot %s doesn't match current root %s",
+		e.prevRoot, e.currRoot)
+}
+
+// MDDiskUsageMismatch indicates an inconsistency in the DiskUsage
+// field of a RootMetadata object.
+type MDDiskUsageMismatch struct {
+	expectedDiskUsage uint64
+	actualDiskUsage   uint64
+}
+
+func (e MDDiskUsageMismatch) Error() string {
+	return fmt.Sprintf("Disk usage %d doesn't match expected %d",
+		e.actualDiskUsage, e.expectedDiskUsage)
 }
 
 // MDUpdateInvertError indicates that we tried to apply a revision that
@@ -998,8 +1034,8 @@ func (e TlfHandleExtensionMismatchError) Error() string {
 		"expected: %s, actual: %s", e.Expected, e.Actual)
 }
 
-// MetadataIsFinalError indicates that we tried to make a successor to a
-// finalized folder.
+// MetadataIsFinalError indicates that we tried to make or set a
+// successor to a finalized folder.
 type MetadataIsFinalError struct {
 }
 
