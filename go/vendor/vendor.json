@@ -4,8 +4,8 @@
 	"package": [
 		{
 			"path": "bazil.org/fuse",
-			"revision": "70f2bea820ccbf0b4e72e44dbcb28fe333635085",
-			"revisionTime": "2015-09-10T16:50:43-07:00"
+			"revision": "a8bc3b86317dc95ed28fdefcebc1dbce8baa88e9",
+			"revisionTime": "2015-12-02T10:18:56-08:00"
 		},
 		{
 			"path": "code.google.com/p/rsc/gf256",
