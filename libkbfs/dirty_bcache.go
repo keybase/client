@@ -332,7 +332,7 @@ func (d *DirtyBlockCacheStandard) RequestPermissionToDirty(
 	d.shutdownLock.RLock()
 	defer d.shutdownLock.RUnlock()
 	if d.isShutdown {
-		return nil, errShutdownHappened
+		return nil, ShutdownHappenedError{}
 	}
 
 	if estimatedDirtyBytes < 0 {

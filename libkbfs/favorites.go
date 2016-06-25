@@ -224,7 +224,7 @@ func (f *Favorites) startOrJoinAddReq(
 // Add adds a favorite to your favorites list.
 func (f *Favorites) Add(ctx context.Context, fav favToAdd) error {
 	if f.hasShutdown() {
-		return errShutdownHappened
+		return ShutdownHappenedError{}
 	}
 	doAdd := true
 	var err error
@@ -266,7 +266,7 @@ func (f *Favorites) AddAsync(ctx context.Context, fav favToAdd) {
 // idempotent.
 func (f *Favorites) Delete(ctx context.Context, fav Favorite) error {
 	if f.hasShutdown() {
-		return errShutdownHappened
+		return ShutdownHappenedError{}
 	}
 	return f.sendReq(ctx, &favReq{
 		ctx:   ctx,
@@ -298,7 +298,7 @@ func (f *Favorites) RefreshCache(ctx context.Context) {
 // doesn't use the cache.
 func (f *Favorites) Get(ctx context.Context) ([]Favorite, error) {
 	if f.hasShutdown() {
-		return nil, errShutdownHappened
+		return nil, ShutdownHappenedError{}
 	}
 	favChan := make(chan []Favorite, 1)
 	req := &favReq{

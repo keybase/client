@@ -1068,3 +1068,21 @@ func (e IncompatibleHandleError) Error() string {
 		"old head %q resolves to %q instead of new head %q",
 		e.oldName, e.partiallyResolvedOldName, e.newName)
 }
+
+// ShutdownHappenedError indicates that shutdown has happened.
+type ShutdownHappenedError struct {
+}
+
+// Error implements the error interface for ShutdownHappenedError.
+func (e ShutdownHappenedError) Error() string {
+	return "Shutdown happened"
+}
+
+// UnmergedError indicates that fbo is on an unmerged local revision
+type UnmergedError struct {
+}
+
+// Error implements the error interface for UnmergedError.
+func (e UnmergedError) Error() string {
+	return "fbo is on an unmerged local revision"
+}
