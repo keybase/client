@@ -680,3 +680,8 @@ func crname(path string, user username) string {
 func crnameEsc(path string, user username) string {
 	return crnameAtTimeEsc(path, user, 0)
 }
+
+type silentBenchmark struct{ testing.TB }
+
+func (silentBenchmark) Log(args ...interface{})                 {}
+func (silentBenchmark) Logf(format string, args ...interface{}) {}
