@@ -739,3 +739,34 @@ func TestCrUnmergedSetMtimeOfRemovedDir(t *testing.T) {
 		),
 	)
 }
+
+// bob moves and sets the mtime of a file that was written by alice
+func TestCrConflictMoveAndSetMtimeWrittenFile(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			write("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/b", "world"),
+		),
+		as(bob, noSync(),
+			rename("a/b", "a/c"),
+			setmtime("a/c", targetMtime),
+			reenableUpdates(),
+			lsdir("a/", m{"c$": "FILE"}),
+			read("a/c", "world"),
+			mtime("a/c", targetMtime),
+		),
+		as(alice,
+			lsdir("a/", m{"c$": "FILE"}),
+			read("a/c", "world"),
+			mtime("a/c", targetMtime),
+		),
+	)
+}
