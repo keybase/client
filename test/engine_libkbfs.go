@@ -268,6 +268,11 @@ func (k *LibKBFS) ReadFile(u User, file Node, off, len int64) (data string, err 
 	return data, nil
 }
 
+type libkbfsSymNode struct {
+	parentDir Node
+	name      string
+}
+
 // Lookup implements the Engine interface.
 func (k *LibKBFS) Lookup(u User, parentDir Node, name string) (file Node, symPath string, err error) {
 	config := u.(*libkbfs.ConfigLocal)
@@ -281,6 +286,11 @@ func (k *LibKBFS) Lookup(u User, parentDir Node, name string) (file Node, symPat
 	}
 	if ei.Type == libkbfs.Sym {
 		symPath = ei.SymPath
+	}
+	if file == nil {
+		// For symlnks, return a special kind of node that can be used
+		// to look up stats about the symlink.
+		return libkbfsSymNode{parentDir, name}, symPath, nil
 	}
 	return file, symPath, nil
 }
@@ -318,7 +328,14 @@ func (k *LibKBFS) SetMtime(u User, file Node, mtime time.Time) (err error) {
 func (k *LibKBFS) GetMtime(u User, file Node) (mtime time.Time, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	info, err := kbfsOps.Stat(context.Background(), file.(libkbfs.Node))
+	var info libkbfs.EntryInfo
+	if node, ok := file.(libkbfs.Node); ok {
+		info, err = kbfsOps.Stat(context.Background(), node)
+	} else if node, ok := file.(libkbfsSymNode); ok {
+		// Stat doesn't work for symlinks, so use lookup
+		_, info, err = kbfsOps.Lookup(context.Background(),
+			node.parentDir.(libkbfs.Node), node.name)
+	}
 	if err != nil {
 		return time.Time{}, err
 	}

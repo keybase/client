@@ -6,7 +6,10 @@
 
 package test
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 // bob renames a non-conflicting file into a new directory while unstaged
 func TestCrUnmergedRenameIntoNewDir(t *testing.T) {
@@ -692,6 +695,78 @@ func TestCrUnmergedMoveOfRemovedFile(t *testing.T) {
 		as(alice,
 			lsdir("a/", m{"c$": "FILE"}),
 			read("a/c", "hello"),
+		),
+	)
+}
+
+// bob makes, sets the mtime, and remove a file.  Regression test for
+// KBFS-1163.
+func TestCrUnmergedSetMtimeOfRemovedDir(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a/b/c"),
+			mkfile("a/b/c/d", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			rm("a/b/c/d"),
+			rm("a/b/c"),
+			rm("a/b"),
+			rm("a"),
+		),
+		as(bob, noSync(),
+			setmtime("a/b/c", targetMtime),
+			mkfile("e", "world"),
+			reenableUpdates(),
+			lsdir("", m{"a$": "DIR", "e$": "FILE"}),
+			lsdir("a", m{"b$": "DIR"}),
+			lsdir("a/b", m{"c$": "DIR"}),
+			lsdir("a/b/c", m{}),
+			mtime("a/b/c", targetMtime),
+			read("e", "world"),
+		),
+		as(alice,
+			lsdir("", m{"a$": "DIR", "e$": "FILE"}),
+			lsdir("a", m{"b$": "DIR"}),
+			lsdir("a/b", m{"c$": "DIR"}),
+			lsdir("a/b/c", m{}),
+			mtime("a/b/c", targetMtime),
+			read("e", "world"),
+		),
+	)
+}
+
+// bob moves and sets the mtime of a file that was written by alice
+func TestCrConflictMoveAndSetMtimeWrittenFile(t *testing.T) {
+	targetMtime := time.Now().Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			write("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/b", "world"),
+		),
+		as(bob, noSync(),
+			rename("a/b", "a/c"),
+			setmtime("a/c", targetMtime),
+			reenableUpdates(),
+			lsdir("a/", m{"c$": "FILE"}),
+			read("a/c", "world"),
+			mtime("a/c", targetMtime),
+		),
+		as(alice,
+			lsdir("a/", m{"c$": "FILE"}),
+			read("a/c", "world"),
+			mtime("a/c", targetMtime),
 		),
 	)
 }

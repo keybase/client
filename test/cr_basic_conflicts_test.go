@@ -1161,3 +1161,64 @@ func TestCrBothTruncateFileDifferentSizesAfterSameSize(t *testing.T) {
 		),
 	)
 }
+
+// alice and bob both set the mtime on a file
+func TestCrBothSetMtimeFile(t *testing.T) {
+	targetMtime1 := time.Now().Add(1 * time.Minute)
+	targetMtime2 := targetMtime1.Add(1 * time.Minute)
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			setmtime("a/b", targetMtime1),
+		),
+		as(bob, noSync(),
+			setmtime("a/b", targetMtime2),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
+			mtime("a/b", targetMtime1),
+			mtime(crname("a/b", bob), targetMtime2),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
+			mtime("a/b", targetMtime1),
+			mtime(crname("a/b", bob), targetMtime2),
+		),
+	)
+}
+
+// alice and bob both set the mtime on a dir
+func TestCrBothSetMtimeDir(t *testing.T) {
+	targetMtime1 := time.Now().Add(1 * time.Minute)
+	targetMtime2 := targetMtime1.Add(1 * time.Minute)
+	test(t,
+		skip("dokan", "Dokan can't read mtimes on symlinks."),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			setmtime("a", targetMtime1),
+		),
+		as(bob, noSync(),
+			setmtime("a", targetMtime2),
+			reenableUpdates(),
+			lsdir("", m{"a$": "DIR", crnameEsc("a", bob): "SYM"}),
+			mtime("a", targetMtime1),
+			mtime(crname("a", bob), targetMtime2),
+		),
+		as(alice,
+			lsdir("", m{"a$": "DIR", crnameEsc("a", bob): "SYM"}),
+			mtime("a", targetMtime1),
+			mtime(crname("a", bob), targetMtime2),
+		),
+	)
+}
