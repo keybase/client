@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 set -f -u -e
-DIRS=$(go list ./... | grep -v /vendor/ | sed -e 's/^github.com\/keybase\/client\/go\///')
+
+DIRS=$(go list ./... | grep -v /vendor/ | sed -e 's/^github.com\/keybase\/client\/go\///' | sed -e 's/^keybase\/client\/go\///')
 
 export KEYBASE_LOG_SETUPTEST_FUNCS=1
 
