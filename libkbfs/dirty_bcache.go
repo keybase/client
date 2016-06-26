@@ -52,6 +52,7 @@ type DirtyBlockCacheStandard struct {
 	clock   Clock
 	makeLog func(string) logger.Logger
 	log     logger.Logger
+	reqWg   sync.WaitGroup
 
 	// requestsChan is a queue for channels that should be closed when
 	// permission is granted to dirty new data.
@@ -73,6 +74,9 @@ type DirtyBlockCacheStandard struct {
 	// we are to reaching the maximum size (over and above the current
 	// sync buffer), the more write requests will be delayed.
 	maxSyncBufferSize int64
+
+	shutdownLock sync.RWMutex
+	isShutdown   bool
 
 	lock               sync.RWMutex
 	cache              map[dirtyBlockID]Block
@@ -102,6 +106,7 @@ func NewDirtyBlockCacheStandard(clock Clock,
 		maxSyncBufferSize:  maxSyncBufferSize,
 		syncBufferSize:     minSyncBufferSize,
 	}
+	d.reqWg.Add(1)
 	go d.processPermission()
 	return d
 }
@@ -263,6 +268,7 @@ func (d *DirtyBlockCacheStandard) acceptNewWrite(newBytes int64,
 }
 
 func (d *DirtyBlockCacheStandard) processPermission() {
+	defer d.reqWg.Done()
 	// Keep track of the most-recently seen request across loop
 	// iterations, because we aren't necessarily going to be able to
 	// deal with it as soon as we see it (since we might be past our
@@ -323,6 +329,12 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 // for DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) RequestPermissionToDirty(
 	ctx context.Context, estimatedDirtyBytes int64) (DirtyPermChan, error) {
+	d.shutdownLock.RLock()
+	defer d.shutdownLock.RUnlock()
+	if d.isShutdown {
+		return nil, errShutdownHappened
+	}
+
 	if estimatedDirtyBytes < 0 {
 		panic("Must request permission for a non-negative number of bytes.")
 	}
@@ -420,9 +432,22 @@ func (d *DirtyBlockCacheStandard) ShouldForceSync() bool {
 // Shutdown implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) Shutdown() error {
+	func() {
+		d.shutdownLock.Lock()
+		defer d.shutdownLock.Unlock()
+		d.isShutdown = true
+		close(d.shutdownChan)
+	}()
+
+	d.reqWg.Wait()
+	close(d.requestsChan)
 	d.lock.Lock()
 	defer d.lock.Unlock()
-	close(d.shutdownChan)
+	// Clear out the remaining requests
+	for req := range d.requestsChan {
+		d.unsyncedDirtyBytes += req.bytes
+		d.totalDirtyBytes += req.bytes
+	}
 	if d.unsyncedDirtyBytes != 0 || d.totalDirtyBytes != 0 ||
 		d.syncingDirtyBytes != 0 {
 		return fmt.Errorf("Unexpected dirty bytes leftover on shutdown: "+
