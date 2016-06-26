@@ -1729,6 +1729,14 @@ func collapseActions(unmergedChains *crChains, unmergedPaths []path,
 			} else {
 				delete(actionMap, p.tailPointer())
 			}
+		} else {
+			// Mark the copyUnmergedAttrActions as moved, so they
+			// don't get moved again by the parent.
+			for _, action := range fileActions {
+				if realAction, ok := action.(*copyUnmergedAttrAction); ok {
+					realAction.moved = true
+				}
+			}
 		}
 
 		parentPath := *p.parentPath()

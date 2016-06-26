@@ -740,7 +740,6 @@ func TestCrUnmergedSetMtimeOfRemovedDir(t *testing.T) {
 	)
 }
 
-/* TODO: Investigate and enable this.
 // bob moves and sets the mtime of a file that was written by alice
 func TestCrConflictMoveAndSetMtimeWrittenFile(t *testing.T) {
 	targetMtime := time.Now().Add(1 * time.Minute)
@@ -771,4 +770,3 @@ func TestCrConflictMoveAndSetMtimeWrittenFile(t *testing.T) {
 		),
 	)
 }
-*/
