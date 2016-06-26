@@ -160,6 +160,8 @@ const (
 	ErrDirectoryNotEmpty = NtError(0xC0000101)
 	// ErrFileAlreadyExists - file already exists - fatal.
 	ErrFileAlreadyExists = NtError(0xC0000035)
+	// ErrNotSameDevice - MoveFile is denied, please use copy+delete.
+	ErrNotSameDevice = NtError(0xC00000D4)
 	// StatusObjectNameExists - already exists, may be non-fatal...
 	StatusObjectNameExists = NtError(0x40000000)
 )
