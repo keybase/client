@@ -28,8 +28,8 @@ import (
 
 type fsEngine struct {
 	name       string
-	t          *testing.T
-	createUser func(t *testing.T, ith int, config *libkbfs.ConfigLocal) User
+	t          testing.TB
+	createUser func(t testing.TB, ith int, config *libkbfs.ConfigLocal) User
 }
 type fsNode struct {
 	path string
@@ -370,7 +370,7 @@ func fiTypeString(fi os.FileInfo) string {
 	return "OTHER"
 }
 
-func (e *fsEngine) InitTest(t *testing.T, blockSize int64,
+func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 	blockChangeSize int64, users []libkb.NormalizedUsername,
 	clock libkbfs.Clock) map[libkb.NormalizedUsername]User {
 	e.t = t
@@ -399,7 +399,7 @@ func (e *fsEngine) InitTest(t *testing.T, blockSize int64,
 	return res
 }
 
-func nameToUID(t *testing.T, config libkbfs.Config) keybase1.UID {
+func nameToUID(t testing.TB, config libkbfs.Config) keybase1.UID {
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)

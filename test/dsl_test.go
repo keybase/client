@@ -34,7 +34,7 @@ type opt struct {
 	expectedCanonicalTlfName string
 	tlfIsPublic              bool
 	users                    map[libkb.NormalizedUsername]User
-	t                        *testing.T
+	t                        testing.TB
 	initDone                 bool
 	engine                   Engine
 	blockSize                int64
@@ -42,7 +42,7 @@ type opt struct {
 	clock                    *libkbfs.TestClock
 }
 
-func test(t *testing.T, actions ...optionOp) {
+func test(t testing.TB, actions ...optionOp) {
 	o := &opt{}
 	o.engine = createEngine()
 	o.engine.Init()
@@ -78,7 +78,7 @@ func ntimesString(n int, s string) string {
 	return bs.String()
 }
 
-func setBlockSizes(t *testing.T, config libkbfs.Config, blockSize, blockChangeSize int64) {
+func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSize int64) {
 	// Set the block sizes, if any
 	if blockSize > 0 || blockChangeSize > 0 {
 		if blockSize == 0 {

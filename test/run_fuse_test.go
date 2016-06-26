@@ -29,7 +29,7 @@ func createEngine() Engine {
 	return e
 }
 
-func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal) User {
+func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal) User {
 	log := logger.NewTestLogger(t)
 	debugLog := log.CloneWithAddedDepth(1)
 	fuse.Debug = func(msg interface{}) {

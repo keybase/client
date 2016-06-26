@@ -35,7 +35,7 @@ type Engine interface {
 	// changes can be in each MD update, before it is written to a
 	// dedicated data block instead. If blockSize or blockChangeSize
 	// are zero, the engine defaults are used.
-	InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
+	InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 		users []libkb.NormalizedUsername,
 		clock libkbfs.Clock) map[libkb.NormalizedUsername]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.

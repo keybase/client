@@ -22,7 +22,7 @@ type LibKBFS struct {
 	// channels used to re-enable updates if disabled
 	updateChannels map[libkbfs.Config]map[libkbfs.FolderBranch]chan<- struct{}
 	// test object, mostly for logging
-	t *testing.T
+	t testing.TB
 }
 
 // Check that LibKBFS fully implements the Engine interface.
@@ -42,7 +42,7 @@ func (k *LibKBFS) Init() {
 }
 
 // InitTest implements the Engine interface.
-func (k *LibKBFS) InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
+func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 	users []libkb.NormalizedUsername,
 	clock libkbfs.Clock) map[libkb.NormalizedUsername]User {
 	// Start a new log for this test.
