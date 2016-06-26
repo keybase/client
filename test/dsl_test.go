@@ -287,6 +287,12 @@ func initRoot() fileOp {
 	}, IsInit}
 }
 
+func custom(f func(func(fileOp) error) error) fileOp {
+	return fileOp{func(c *ctx) error {
+		return f(func(fop fileOp) error { return fop.operation(c) })
+	}, Defaults}
+}
+
 func mkdir(name string) fileOp {
 	return fileOp{func(c *ctx) error {
 		_, _, err := c.getNode(name, createDir, resolveAllSyms)
@@ -299,12 +305,16 @@ func write(name string, contents string) fileOp {
 }
 
 func writeBS(name string, contents []byte) fileOp {
+	return pwriteBS(name, contents, 0)
+}
+
+func pwriteBS(name string, contents []byte, off int64) fileOp {
 	return fileOp{func(c *ctx) error {
 		f, _, err := c.getNode(name, createFile, resolveAllSyms)
 		if err != nil {
 			return err
 		}
-		return c.engine.WriteFile(c.user, f, contents, 0, true)
+		return c.engine.WriteFile(c.user, f, contents, off, true)
 	}, Defaults}
 }
 
