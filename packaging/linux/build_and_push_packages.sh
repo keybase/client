@@ -38,7 +38,7 @@ export GITHUB_TOKEN="$(cat ~/.github_token)"
 # NB: This is duplicated in packaging/prerelease/build_app.sh.
 if [ ! "${NOWAIT:-}" = "1" ]; then
   echo "Checking client CI"
-  "$release_bin" wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="client-windows-master-only/label=windows" --context="client-linux-master-only/label=master" --context="client-osx-master-only/label=osx" --context="ci/circleci"
+  "$release_bin" wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="client-windows-master-only" --context="client-linux-master-only" --context="client-osx-master-only" --context="ci/circleci"
   if [ "$mode" != "production" ] ; then
     echo "Checking kbfs CI"
     "$release_bin" wait-ci --repo="kbfs" --commit="$(git -C $kbfs_dir rev-parse HEAD)" --context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch"
