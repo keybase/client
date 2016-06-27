@@ -10,7 +10,10 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
+
+	"github.com/blang/semver"
 )
 
 type GpgCLI struct {
@@ -219,6 +222,34 @@ func (g *GpgCLI) outputVersion() {
 		return
 	}
 	g.logUI.Debug("GPG version:\n%s", v)
+}
+
+func (g *GpgCLI) SemanticVersion() (*semver.Version, error) {
+	out, err := g.Version()
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(out, "\n")
+	if len(lines) == 0 {
+		return nil, errors.New("empty gpg version")
+	}
+	parts := strings.Fields(lines[0])
+	if len(parts) != 3 {
+		return nil, errors.New("unhandled gpg version output")
+	}
+	return semver.New(parts[2])
+}
+
+func (g *GpgCLI) VersionAtLeast(s string) (bool, error) {
+	min, err := semver.New(s)
+	if err != nil {
+		return false, err
+	}
+	cur, err := g.SemanticVersion()
+	if err != nil {
+		return false, err
+	}
+	return cur.GTE(*min), nil
 }
 
 type RunGpg2Arg struct {

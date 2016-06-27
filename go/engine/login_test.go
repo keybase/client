@@ -11,7 +11,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -817,9 +816,9 @@ func TestProvisionGPGImportMultiple(t *testing.T) {
 // Provision device using a private GPG key (not synced to keybase
 // server), use gpg to sign (no private key import).
 func TestProvisionGPGSign(t *testing.T) {
-	skipWindows(t)
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
+	skipOldGPG(tc)
 
 	u1 := createFakeUserWithPGPPubOnly(t, tc)
 	Logout(tc)
@@ -912,9 +911,9 @@ func TestProvisionGPGSignFailedSign(t *testing.T) {
 // server), use gpg to sign (no private key import).
 // Enable secret storage.  keybase-issues#1822
 func TestProvisionGPGSignSecretStore(t *testing.T) {
-	skipWindows(t)
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
+	skipOldGPG(tc)
 
 	u1 := createFakeUserWithPGPPubOnly(t, tc)
 	Logout(tc)
@@ -962,9 +961,9 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 // server). Import private key to lksec fails, switches to gpg
 // sign, which works.
 func TestProvisionGPGSwitchToSign(t *testing.T) {
-	skipWindows(t)
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
+	skipOldGPG(tc)
 
 	u1 := createFakeUserWithPGPPubOnly(t, tc)
 	Logout(tc)
@@ -2359,10 +2358,21 @@ func (g *gpgImportFailer) Index(secret bool, query string) (ki *libkb.GpgKeyInde
 	return gpg.Index(secret, query)
 }
 
-func skipWindows(t *testing.T) {
-	if runtime.GOOS == "windows" {
-		t.Skip("skipping test on windows")
+func skipOldGPG(tc libkb.TestContext) {
+	gpg := tc.G.GetGpgClient()
+	ok, err := gpg.VersionAtLeast("2.0.29")
+	if err != nil {
+		tc.T.Fatal(err)
 	}
+	if ok {
+		return
+	}
+
+	v, err := gpg.SemanticVersion()
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	tc.T.Skip(fmt.Sprintf("skipping test due to gpg version < 2.0.29 (%s)", v))
 }
 
 func assertDeviceKeysCached(tc libkb.TestContext) {
