@@ -367,7 +367,7 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	}
 
 	if srcFolder != ddst.folder {
-		return dokan.ErrAccessDenied
+		return dokan.ErrNotSameDevice
 	}
 
 	// overwritten node, if any, will be removed from Folder.nodes, if
