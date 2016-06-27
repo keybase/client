@@ -58,7 +58,7 @@ function figureType (type) {
   } else if (typeof type === 'object') {
     switch (type.type) {
       case 'array':
-        return `Array<${type.items}>`
+        return `?Array<${type.items}>`
       case 'map':
         return `{[key: string]: ${type.values}}`
       default:
@@ -118,11 +118,12 @@ function analyzeMessages (json, project) {
     p = params(false, '    ')
     if (p) { p = `\n${p}\n  ` }
 
-    const rpc = `export type ${name}Rpc = {
+    const rpc = `export type ${name}Rpc = $Shape<{
   method: '${json.protocol}.${m}',${p ? `\n  param: {${p}},` : ''}
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any${r}) => void)
-}`
+}>`
 
     return [response, rpc, ''].join('\n\n')
   })

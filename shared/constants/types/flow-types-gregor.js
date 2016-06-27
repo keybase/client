@@ -19,8 +19,8 @@ export type Category = string
 export type DeviceID = bytes
 
 export type Dismissal = {
-  msgIDs: Array<MsgID>;
-  ranges: Array<MsgRange>;
+  msgIDs?: ?Array<MsgID>;
+  ranges?: ?Array<MsgRange>;
 }
 
 export type DurationMsec = int64
@@ -33,7 +33,7 @@ export type InBandMessage = {
 export type Item = {
   category: Category;
   dtime: TimeOrOffset;
-  remindTimes: Array<TimeOrOffset>;
+  remindTimes?: ?Array<TimeOrOffset>;
   body: Body;
 }
 
@@ -81,7 +81,7 @@ export type ReminderID = {
 }
 
 export type ReminderSet = {
-  reminders: Array<Reminder>;
+  reminders?: ?Array<Reminder>;
   moreRemindersReady: bool;
 }
 
@@ -90,7 +90,7 @@ export type SessionID = string
 export type SessionToken = string
 
 export type State = {
-  items: Array<ItemAndMetadata>;
+  items?: ?Array<ItemAndMetadata>;
 }
 
 export type StateSyncMessage = {

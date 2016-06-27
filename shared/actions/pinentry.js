@@ -16,8 +16,6 @@ export function registerPinentryListener (): AsyncAction {
     engine.listenOnConnect('registerSecretUI', () => {
       const params: delegateUiCtlRegisterSecretUIRpc = {
         method: 'delegateUiCtl.registerSecretUI',
-        param: {},
-        incomingCallMap: {},
         callback: (error, response) => {
           if (error != null) {
             console.warn('error in registering secret ui: ', error)

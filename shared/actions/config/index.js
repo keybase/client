@@ -16,8 +16,6 @@ function getConfig (): AsyncAction {
     return new Promise((resolve, reject) => {
       const params : configGetConfigRpc = {
         method: 'config.getConfig',
-        param: {},
-        incomingCallMap: {},
         callback: (error, config) => {
           if (error) {
             reject(error)
@@ -43,32 +41,32 @@ function getMyFollowers (username: string): AsyncAction {
     const params : userListTrackersByNameRpc = {
       method: 'user.listTrackersByName',
       param: {username},
-      incomingCallMap: {},
       callback: (error, trackers) => {
         if (error) {
           return
         }
 
-        const uids = trackers.map(t => t.tracker)
-        const params : userLoadUncheckedUserSummariesRpc = {
-          method: 'user.loadUncheckedUserSummaries',
-          param: {uids},
-          incomingCallMap: {},
-          callback: (error, summaries) => {
-            if (error) {
-              return
-            }
+        if (trackers && trackers.length) {
+          const uids = trackers.map(t => t.tracker)
+          const params : userLoadUncheckedUserSummariesRpc = {
+            method: 'user.loadUncheckedUserSummaries',
+            param: {uids},
+            callback: (error, summaries) => {
+              if (error) {
+                return
+              }
 
-            const followers = {}
-            summaries.forEach(s => { followers[s.username] = true })
-            dispatch({
-              type: Constants.updateFollowers,
-              payload: {followers},
-            })
-          },
+              const followers = {}
+              summaries && summaries.forEach(s => { followers[s.username] = true })
+              dispatch({
+                type: Constants.updateFollowers,
+                payload: {followers},
+              })
+            },
+          }
+
+          engine.rpc(params)
         }
-
-        engine.rpc(params)
       },
     }
 
@@ -85,14 +83,13 @@ function getMyFollowing (username: string): AsyncAction {
     const params : userListTrackingRpc = {
       method: 'user.listTracking',
       param: {assertion: username, filter: ''},
-      incomingCallMap: {},
       callback: (error, summaries) => {
         if (error) {
           return
         }
 
         const following = {}
-        summaries.forEach(s => { following[s.username] = true })
+        summaries && summaries.forEach(s => { following[s.username] = true })
         dispatch({
           type: Constants.updateFollowing,
           payload: {following},
@@ -109,8 +106,6 @@ function getExtendedStatus (): AsyncAction {
     return new Promise((resolve, reject) => {
       const params : configGetExtendedStatusRpc = {
         method: 'config.getExtendedStatus',
-        param: {},
-        incomingCallMap: {},
         callback: (error, extendedConfig) => {
           if (error) {
             reject(error)
@@ -158,8 +153,6 @@ function getCurrentStatus (): AsyncAction {
     return new Promise((resolve, reject) => {
       const params : configGetCurrentStatusRpc = {
         method: 'config.getCurrentStatus',
-        param: {},
-        incomingCallMap: {},
         callback: (error, status) => {
           if (error) {
             reject(error)

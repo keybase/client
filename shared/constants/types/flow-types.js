@@ -15,15 +15,16 @@ export type RPCError = {
 
 export type BTCRegisterBTCResult = void
 
-export type BTCRegisterBTCRpc = {
+export type BTCRegisterBTCRpc = $Shape<{
   method: 'BTC.registerBTC',
   param: {
     address: string,
     force: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type BlockIdCombo = {
   blockHash: string;
@@ -85,7 +86,7 @@ export type CiphertextBundle = {
 export type ClientDetails = {
   pid: int;
   clientType: ClientType;
-  argv: Array<string>;
+  argv?: ?Array<string>;
   desc: string;
   version: string;
 }
@@ -178,7 +179,7 @@ export type DismissReasonType =
   | 1 // HANDLED_ELSEWHERE_1
 
 export type DowngradeReferenceRes = {
-  completed: Array<BlockReferenceCount>;
+  completed?: ?Array<BlockReferenceCount>;
   failed: BlockReference;
 }
 
@@ -212,8 +213,8 @@ export type ExtendedStatus = {
   logDir: string;
   session?: ?SessionStatus;
   defaultUsername: string;
-  provisionedUsernames: Array<string>;
-  Clients: Array<ClientDetails>;
+  provisionedUsernames?: ?Array<string>;
+  Clients?: ?Array<ClientDetails>;
   platformInfo: PlatformInfo;
 }
 
@@ -253,9 +254,9 @@ export type FSStatusCode =
   | 2 // ERROR_2
 
 export type FavoritesResult = {
-  favoriteFolders: Array<Folder>;
-  ignoredFolders: Array<Folder>;
-  newFolders: Array<Folder>;
+  favoriteFolders?: ?Array<Folder>;
+  ignoredFolders?: ?Array<Folder>;
+  newFolders?: ?Array<Folder>;
 }
 
 export type Feature = {
@@ -310,7 +311,7 @@ export type FuseStatus = {
   kextStarted: boolean;
   installStatus: InstallStatus;
   installAction: InstallAction;
-  mountInfos: Array<FuseMountInfo>;
+  mountInfos?: ?Array<FuseMountInfo>;
   status: Status;
 }
 
@@ -319,7 +320,7 @@ export type GPGKey = {
   keyID: string;
   creation: string;
   expiration: string;
-  identities: Array<PGPIdentity>;
+  identities?: ?Array<PGPIdentity>;
 }
 
 export type GPGMethod =
@@ -377,7 +378,7 @@ export type IdentifyKey = {
 export type IdentifyOutcome = {
   username: string;
   status?: ?Status;
-  warnings: Array<string>;
+  warnings?: ?Array<string>;
   trackUsed?: ?TrackSummary;
   trackStatus: TrackStatus;
   numTrackFailures: int;
@@ -385,7 +386,7 @@ export type IdentifyOutcome = {
   numProofFailures: int;
   numRevoked: int;
   numProofSuccesses: int;
-  revoked: Array<TrackDiff>;
+  revoked?: ?Array<TrackDiff>;
   trackOptions: TrackOptions;
   forPGPPull: boolean;
   reason: IdentifyReason;
@@ -408,7 +409,7 @@ export type IdentifyReasonType =
 
 export type IdentifyRes = {
   user?: ?User;
-  publicKeys: Array<PublicKey>;
+  publicKeys?: ?Array<PublicKey>;
   outcome: IdentifyOutcome;
   trackToken: TrackToken;
 }
@@ -422,10 +423,10 @@ export type IdentifyRow = {
 export type Identity = {
   status?: ?Status;
   whenLastTracked: Time;
-  proofs: Array<IdentifyRow>;
-  cryptocurrency: Array<Cryptocurrency>;
-  revoked: Array<TrackDiff>;
-  revokedDetails: Array<RevokedProof>;
+  proofs?: ?Array<IdentifyRow>;
+  cryptocurrency?: ?Array<Cryptocurrency>;
+  revoked?: ?Array<TrackDiff>;
+  revokedDetails?: ?Array<RevokedProof>;
   breaksTracking: boolean;
 }
 
@@ -437,7 +438,7 @@ export type InstallAction =
   | 4 // INSTALL_4
 
 export type InstallResult = {
-  componentResults: Array<ComponentResult>;
+  componentResults?: ?Array<ComponentResult>;
   status: Status;
   fatal: boolean;
 }
@@ -452,18 +453,19 @@ export type KID = string
 
 export type Kex2ProvisioneeDidCounterSignResult = void
 
-export type Kex2ProvisioneeDidCounterSignRpc = {
+export type Kex2ProvisioneeDidCounterSignRpc = $Shape<{
   method: 'Kex2Provisionee.didCounterSign',
   param: {
     sig: bytes
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type Kex2ProvisioneeHelloResult = HelloRes
 
-export type Kex2ProvisioneeHelloRpc = {
+export type Kex2ProvisioneeHelloRpc = $Shape<{
   method: 'Kex2Provisionee.hello',
   param: {
     uid: UID,
@@ -472,17 +474,19 @@ export type Kex2ProvisioneeHelloRpc = {
     pps: PassphraseStream,
     sigBody: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: Kex2ProvisioneeHelloResult) => void)
-}
+}>
 
 export type Kex2ProvisionerKexStartResult = void
 
-export type Kex2ProvisionerKexStartRpc = {
+export type Kex2ProvisionerKexStartRpc = $Shape<{
   method: 'Kex2Provisioner.kexStart',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type KeyHalf = {
   user: UID;
@@ -515,7 +519,7 @@ export type LinkCheckResult = {
 }
 
 export type ListResult = {
-  files: Array<File>;
+  files?: ?Array<File>;
 }
 
 export type LogLevel =
@@ -546,7 +550,7 @@ export type MerkleTreeID =
 
 export type MetadataResponse = {
   folderID: string;
-  mdBlocks: Array<MDBlock>;
+  mdBlocks?: ?Array<MDBlock>;
 }
 
 export type NaclDHKeyPrivate = any
@@ -569,104 +573,113 @@ export type NotificationChannels = {
 
 export type NotifyFSFSActivityResult = void
 
-export type NotifyFSFSActivityRpc = {
+export type NotifyFSFSActivityRpc = $Shape<{
   method: 'NotifyFS.FSActivity',
   param: {
     notification: FSNotification
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type NotifyFavoritesFavoritesChangedResult = void
 
-export type NotifyFavoritesFavoritesChangedRpc = {
+export type NotifyFavoritesFavoritesChangedRpc = $Shape<{
   method: 'NotifyFavorites.favoritesChanged',
   param: {
     uid: UID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type NotifyKeyfamilyKeyfamilyChangedResult = void
 
-export type NotifyKeyfamilyKeyfamilyChangedRpc = {
+export type NotifyKeyfamilyKeyfamilyChangedRpc = $Shape<{
   method: 'NotifyKeyfamily.keyfamilyChanged',
   param: {
     uid: UID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type NotifyPaperKeyPaperKeyCachedResult = void
 
-export type NotifyPaperKeyPaperKeyCachedRpc = {
+export type NotifyPaperKeyPaperKeyCachedRpc = $Shape<{
   method: 'NotifyPaperKey.paperKeyCached',
   param: {
     uid: UID,
     encKID: KID,
     sigKID: KID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type NotifySessionClientOutOfDateResult = void
 
-export type NotifySessionClientOutOfDateRpc = {
+export type NotifySessionClientOutOfDateRpc = $Shape<{
   method: 'NotifySession.clientOutOfDate',
   param: {
     upgradeTo: string,
     upgradeURI: string,
     upgradeMsg: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type NotifySessionLoggedInResult = void
 
-export type NotifySessionLoggedInRpc = {
+export type NotifySessionLoggedInRpc = $Shape<{
   method: 'NotifySession.loggedIn',
   param: {
     username: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type NotifySessionLoggedOutResult = void
 
-export type NotifySessionLoggedOutRpc = {
+export type NotifySessionLoggedOutRpc = $Shape<{
   method: 'NotifySession.loggedOut',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type NotifyTrackingTrackingChangedResult = void
 
-export type NotifyTrackingTrackingChangedRpc = {
+export type NotifyTrackingTrackingChangedRpc = $Shape<{
   method: 'NotifyTracking.trackingChanged',
   param: {
     uid: UID,
     username: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type NotifyUsersUserChangedResult = void
 
-export type NotifyUsersUserChangedRpc = {
+export type NotifyUsersUserChangedRpc = $Shape<{
   method: 'NotifyUsers.userChanged',
   param: {
     uid: UID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type OutOfDateInfo = {
   upgradeTo: string;
@@ -681,7 +694,7 @@ export type Outcome =
 
 export type PGPCreateUids = {
   useDefault: boolean;
-  ids: Array<PGPIdentity>;
+  ids?: ?Array<PGPIdentity>;
 }
 
 export type PGPDecryptOptions = {
@@ -690,7 +703,7 @@ export type PGPDecryptOptions = {
 }
 
 export type PGPEncryptOptions = {
-  recipients: Array<string>;
+  recipients?: ?Array<string>;
   noSign: boolean;
   noSelf: boolean;
   binaryOut: boolean;
@@ -748,24 +761,24 @@ export type PlatformInfo = {
 export type ProblemSet = {
   user: User;
   kid: KID;
-  tlfs: Array<ProblemTLF>;
+  tlfs?: ?Array<ProblemTLF>;
 }
 
 export type ProblemSetDevices = {
   problemSet: ProblemSet;
-  devices: Array<Device>;
+  devices?: ?Array<Device>;
 }
 
 export type ProblemTLF = {
   tlf: TLF;
   score: int;
-  solutions: Array<KID>;
+  solutions?: ?Array<KID>;
 }
 
 export type Process = {
   pid: string;
   command: string;
-  fileDescriptors: Array<FileDescriptor>;
+  fileDescriptors?: ?Array<FileDescriptor>;
 }
 
 export type PromptDefault =
@@ -846,9 +859,9 @@ export type ProofType =
   | 100001 // ROOTER_100001
 
 export type Proofs = {
-  social: Array<TrackProof>;
-  web: Array<WebProof>;
-  publicKeys: Array<PublicKey>;
+  social?: ?Array<TrackProof>;
+  web?: ?Array<WebProof>;
+  publicKeys?: ?Array<PublicKey>;
 }
 
 export type ProvisionMethod =
@@ -861,7 +874,7 @@ export type ProvisionMethod =
 export type PublicKey = {
   KID: KID;
   PGPFingerprint: string;
-  PGPIdentities: Array<PGPIdentity>;
+  PGPIdentities?: ?Array<PGPIdentity>;
   isSibkey: boolean;
   isEldest: boolean;
   parentID: string;
@@ -903,7 +916,7 @@ export type SaltpackDecryptOptions = {
 }
 
 export type SaltpackEncryptOptions = {
-  recipients: Array<string>;
+  recipients?: ?Array<string>;
   hideSelf: boolean;
   noSelfEncrypt: boolean;
   binary: boolean;
@@ -911,7 +924,7 @@ export type SaltpackEncryptOptions = {
 }
 
 export type SaltpackEncryptedMessageInfo = {
-  devices: Array<Device>;
+  devices?: ?Array<Device>;
   numAnonReceivers: int;
   receiverIsAnon: boolean;
   sender: SaltpackSender;
@@ -950,7 +963,7 @@ export type SearchComponent = {
 export type SearchResult = {
   uid: UID;
   username: string;
-  components: Array<SearchComponent>;
+  components?: ?Array<SearchComponent>;
   score: double;
 }
 
@@ -978,11 +991,12 @@ export type SecretKeys = {
 
 export type SecretKeysGetSecretKeysResult = SecretKeys
 
-export type SecretKeysGetSecretKeysRpc = {
+export type SecretKeysGetSecretKeysRpc = $Shape<{
   method: 'SecretKeys.getSecretKeys',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: SecretKeysGetSecretKeysResult) => void)
-}
+}>
 
 export type SecretResponse = {
   secret: bytes;
@@ -1006,9 +1020,9 @@ export type ServiceStatus = {
 }
 
 export type ServicesStatus = {
-  service: Array<ServiceStatus>;
-  kbfs: Array<ServiceStatus>;
-  updater: Array<ServiceStatus>;
+  service?: ?Array<ServiceStatus>;
+  kbfs?: ?Array<ServiceStatus>;
+  updater?: ?Array<ServiceStatus>;
 }
 
 export type Session = {
@@ -1093,7 +1107,7 @@ export type Status = {
   code: int;
   name: string;
   desc: string;
-  fields: Array<StringKVPair>;
+  fields?: ?Array<StringKVPair>;
 }
 
 export type StatusCode =
@@ -1173,8 +1187,8 @@ export type StringKVPair = {
 export type TLF = {
   tlfid: TLFID;
   name: string;
-  writers: Array<string>;
-  readers: Array<string>;
+  writers?: ?Array<string>;
+  readers?: ?Array<string>;
   isPrivate: boolean;
 }
 
@@ -1254,7 +1268,7 @@ export type UnboxAnyRes = {
 }
 
 export type UninstallResult = {
-  componentResults: Array<ComponentResult>;
+  componentResults?: ?Array<ComponentResult>;
   status: Status;
 }
 
@@ -1279,8 +1293,8 @@ export type UserCard = {
 export type UserPlusKeys = {
   uid: UID;
   username: string;
-  deviceKeys: Array<PublicKey>;
-  revokedDeviceKeys: Array<RevokedKey>;
+  deviceKeys?: ?Array<PublicKey>;
+  revokedDeviceKeys?: ?Array<RevokedKey>;
   pgpKeyCount: int;
   uvv: UserVersionVector;
 }
@@ -1319,135 +1333,146 @@ export type VerifySessionRes = {
 
 export type WebProof = {
   hostname: string;
-  protocols: Array<string>;
+  protocols?: ?Array<string>;
 }
 
 export type accountPassphraseChangeResult = void
 
-export type accountPassphraseChangeRpc = {
+export type accountPassphraseChangeRpc = $Shape<{
   method: 'account.passphraseChange',
   param: {
     oldPassphrase: string,
     passphrase: string,
     force: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type accountPassphrasePromptResult = GetPassphraseRes
 
-export type accountPassphrasePromptRpc = {
+export type accountPassphrasePromptRpc = $Shape<{
   method: 'account.passphrasePrompt',
   param: {
     guiArg: GUIEntryArg
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: accountPassphrasePromptResult) => void)
-}
+}>
 
 export type blockAddReferenceResult = void
 
-export type blockAddReferenceRpc = {
+export type blockAddReferenceRpc = $Shape<{
   method: 'block.addReference',
   param: {
     folder: string,
     ref: BlockReference
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
-export type blockArchiveReferenceResult = Array<BlockReference>
+export type blockArchiveReferenceResult = ?Array<BlockReference>
 
-export type blockArchiveReferenceRpc = {
+export type blockArchiveReferenceRpc = $Shape<{
   method: 'block.archiveReference',
   param: {
     folder: string,
-    refs: Array<BlockReference>
+    refs: ?Array<BlockReference>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: blockArchiveReferenceResult) => void)
-}
+}>
 
 export type blockArchiveReferenceWithCountResult = DowngradeReferenceRes
 
-export type blockArchiveReferenceWithCountRpc = {
+export type blockArchiveReferenceWithCountRpc = $Shape<{
   method: 'block.archiveReferenceWithCount',
   param: {
     folder: string,
-    refs: Array<BlockReference>
+    refs: ?Array<BlockReference>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: blockArchiveReferenceWithCountResult) => void)
-}
+}>
 
 export type blockAuthenticateSessionResult = void
 
-export type blockAuthenticateSessionRpc = {
+export type blockAuthenticateSessionRpc = $Shape<{
   method: 'block.authenticateSession',
   param: {
     signature: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type blockDelReferenceResult = void
 
-export type blockDelReferenceRpc = {
+export type blockDelReferenceRpc = $Shape<{
   method: 'block.delReference',
   param: {
     folder: string,
     ref: BlockReference
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type blockDelReferenceWithCountResult = DowngradeReferenceRes
 
-export type blockDelReferenceWithCountRpc = {
+export type blockDelReferenceWithCountRpc = $Shape<{
   method: 'block.delReferenceWithCount',
   param: {
     folder: string,
-    refs: Array<BlockReference>
+    refs: ?Array<BlockReference>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: blockDelReferenceWithCountResult) => void)
-}
+}>
 
 export type blockGetBlockResult = GetBlockRes
 
-export type blockGetBlockRpc = {
+export type blockGetBlockRpc = $Shape<{
   method: 'block.getBlock',
   param: {
     bid: BlockIdCombo,
     folder: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: blockGetBlockResult) => void)
-}
+}>
 
 export type blockGetSessionChallengeResult = ChallengeInfo
 
-export type blockGetSessionChallengeRpc = {
+export type blockGetSessionChallengeRpc = $Shape<{
   method: 'block.getSessionChallenge',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: blockGetSessionChallengeResult) => void)
-}
+}>
 
 export type blockGetUserQuotaInfoResult = bytes
 
-export type blockGetUserQuotaInfoRpc = {
+export type blockGetUserQuotaInfoRpc = $Shape<{
   method: 'block.getUserQuotaInfo',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: blockGetUserQuotaInfoResult) => void)
-}
+}>
 
 export type blockPutBlockResult = void
 
-export type blockPutBlockRpc = {
+export type blockPutBlockRpc = $Shape<{
   method: 'block.putBlock',
   param: {
     bid: BlockIdCombo,
@@ -1455,151 +1480,165 @@ export type blockPutBlockRpc = {
     blockKey: string,
     buf: bytes
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
 
-export type configCheckAPIServerOutOfDateWarningRpc = {
+export type configCheckAPIServerOutOfDateWarningRpc = $Shape<{
   method: 'config.checkAPIServerOutOfDateWarning',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void)
-}
+}>
 
 export type configClearValueResult = void
 
-export type configClearValueRpc = {
+export type configClearValueRpc = $Shape<{
   method: 'config.clearValue',
   param: {
     path: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type configGetConfigResult = Config
 
-export type configGetConfigRpc = {
+export type configGetConfigRpc = $Shape<{
   method: 'config.getConfig',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: configGetConfigResult) => void)
-}
+}>
 
 export type configGetCurrentStatusResult = GetCurrentStatusRes
 
-export type configGetCurrentStatusRpc = {
+export type configGetCurrentStatusRpc = $Shape<{
   method: 'config.getCurrentStatus',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: configGetCurrentStatusResult) => void)
-}
+}>
 
 export type configGetExtendedStatusResult = ExtendedStatus
 
-export type configGetExtendedStatusRpc = {
+export type configGetExtendedStatusRpc = $Shape<{
   method: 'config.getExtendedStatus',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: configGetExtendedStatusResult) => void)
-}
+}>
 
 export type configGetValueResult = ConfigValue
 
-export type configGetValueRpc = {
+export type configGetValueRpc = $Shape<{
   method: 'config.getValue',
   param: {
     path: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: configGetValueResult) => void)
-}
+}>
 
 export type configHelloIAmResult = void
 
-export type configHelloIAmRpc = {
+export type configHelloIAmRpc = $Shape<{
   method: 'config.helloIAm',
   param: {
     details: ClientDetails
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type configSetPathResult = void
 
-export type configSetPathRpc = {
+export type configSetPathRpc = $Shape<{
   method: 'config.setPath',
   param: {
     path: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type configSetUserConfigResult = void
 
-export type configSetUserConfigRpc = {
+export type configSetUserConfigRpc = $Shape<{
   method: 'config.setUserConfig',
   param: {
     username: string,
     key: string,
     value: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type configSetValueResult = void
 
-export type configSetValueRpc = {
+export type configSetValueRpc = $Shape<{
   method: 'config.setValue',
   param: {
     path: string,
     value: ConfigValue
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type cryptoSignED25519Result = ED25519SignatureInfo
 
-export type cryptoSignED25519Rpc = {
+export type cryptoSignED25519Rpc = $Shape<{
   method: 'crypto.signED25519',
   param: {
     msg: bytes,
     reason: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: cryptoSignED25519Result) => void)
-}
+}>
 
 export type cryptoSignToStringResult = string
 
-export type cryptoSignToStringRpc = {
+export type cryptoSignToStringRpc = $Shape<{
   method: 'crypto.signToString',
   param: {
     msg: bytes,
     reason: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: cryptoSignToStringResult) => void)
-}
+}>
 
 export type cryptoUnboxBytes32AnyResult = UnboxAnyRes
 
-export type cryptoUnboxBytes32AnyRpc = {
+export type cryptoUnboxBytes32AnyRpc = $Shape<{
   method: 'crypto.unboxBytes32Any',
   param: {
-    bundles: Array<CiphertextBundle>,
+    bundles: ?Array<CiphertextBundle>,
     reason: string,
     promptPaper: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: cryptoUnboxBytes32AnyResult) => void)
-}
+}>
 
 export type cryptoUnboxBytes32Result = Bytes32
 
-export type cryptoUnboxBytes32Rpc = {
+export type cryptoUnboxBytes32Rpc = $Shape<{
   method: 'crypto.unboxBytes32',
   param: {
     encryptedBytes32: EncryptedBytes32,
@@ -1607,278 +1646,307 @@ export type cryptoUnboxBytes32Rpc = {
     peersPublicKey: BoxPublicKey,
     reason: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: cryptoUnboxBytes32Result) => void)
-}
+}>
 
 export type ctlDbNukeResult = void
 
-export type ctlDbNukeRpc = {
+export type ctlDbNukeRpc = $Shape<{
   method: 'ctl.dbNuke',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type ctlLogRotateResult = void
 
-export type ctlLogRotateRpc = {
+export type ctlLogRotateRpc = $Shape<{
   method: 'ctl.logRotate',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type ctlReloadResult = void
 
-export type ctlReloadRpc = {
+export type ctlReloadRpc = $Shape<{
   method: 'ctl.reload',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type ctlStopResult = void
 
-export type ctlStopRpc = {
+export type ctlStopRpc = $Shape<{
   method: 'ctl.stop',
   param: {
     exitCode: ExitCode
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type debuggingFirstStepResult = FirstStepResult
 
-export type debuggingFirstStepRpc = {
+export type debuggingFirstStepRpc = $Shape<{
   method: 'debugging.firstStep',
   param: {
     val: int
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: debuggingFirstStepResult) => void)
-}
+}>
 
 export type debuggingIncrementResult = int
 
-export type debuggingIncrementRpc = {
+export type debuggingIncrementRpc = $Shape<{
   method: 'debugging.increment',
   param: {
     val: int
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: debuggingIncrementResult) => void)
-}
+}>
 
 export type debuggingSecondStepResult = int
 
-export type debuggingSecondStepRpc = {
+export type debuggingSecondStepRpc = $Shape<{
   method: 'debugging.secondStep',
   param: {
     val: int
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: debuggingSecondStepResult) => void)
-}
+}>
 
 export type delegateUiCtlRegisterGregorFirehoseResult = void
 
-export type delegateUiCtlRegisterGregorFirehoseRpc = {
+export type delegateUiCtlRegisterGregorFirehoseRpc = $Shape<{
   method: 'delegateUiCtl.registerGregorFirehose',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type delegateUiCtlRegisterIdentifyUIResult = void
 
-export type delegateUiCtlRegisterIdentifyUIRpc = {
+export type delegateUiCtlRegisterIdentifyUIRpc = $Shape<{
   method: 'delegateUiCtl.registerIdentifyUI',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type delegateUiCtlRegisterRekeyUIResult = void
 
-export type delegateUiCtlRegisterRekeyUIRpc = {
+export type delegateUiCtlRegisterRekeyUIRpc = $Shape<{
   method: 'delegateUiCtl.registerRekeyUI',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type delegateUiCtlRegisterSecretUIResult = void
 
-export type delegateUiCtlRegisterSecretUIRpc = {
+export type delegateUiCtlRegisterSecretUIRpc = $Shape<{
   method: 'delegateUiCtl.registerSecretUI',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type delegateUiCtlRegisterUpdateUIResult = void
 
-export type delegateUiCtlRegisterUpdateUIRpc = {
+export type delegateUiCtlRegisterUpdateUIRpc = $Shape<{
   method: 'delegateUiCtl.registerUpdateUI',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type deviceCheckDeviceNameFormatResult = boolean
 
-export type deviceCheckDeviceNameFormatRpc = {
+export type deviceCheckDeviceNameFormatRpc = $Shape<{
   method: 'device.checkDeviceNameFormat',
   param: {
     name: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: deviceCheckDeviceNameFormatResult) => void)
-}
+}>
 
 export type deviceDeviceAddResult = void
 
-export type deviceDeviceAddRpc = {
+export type deviceDeviceAddRpc = $Shape<{
   method: 'device.deviceAdd',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
-export type deviceDeviceHistoryListResult = Array<DeviceDetail>
+export type deviceDeviceHistoryListResult = ?Array<DeviceDetail>
 
-export type deviceDeviceHistoryListRpc = {
+export type deviceDeviceHistoryListRpc = $Shape<{
   method: 'device.deviceHistoryList',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: deviceDeviceHistoryListResult) => void)
-}
+}>
 
-export type deviceDeviceListResult = Array<Device>
+export type deviceDeviceListResult = ?Array<Device>
 
-export type deviceDeviceListRpc = {
+export type deviceDeviceListRpc = $Shape<{
   method: 'device.deviceList',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: deviceDeviceListResult) => void)
-}
+}>
 
 export type favoriteFavoriteAddResult = void
 
-export type favoriteFavoriteAddRpc = {
+export type favoriteFavoriteAddRpc = $Shape<{
   method: 'favorite.favoriteAdd',
   param: {
     folder: Folder
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type favoriteFavoriteIgnoreResult = void
 
-export type favoriteFavoriteIgnoreRpc = {
+export type favoriteFavoriteIgnoreRpc = $Shape<{
   method: 'favorite.favoriteIgnore',
   param: {
     folder: Folder
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type favoriteGetFavoritesResult = FavoritesResult
 
-export type favoriteGetFavoritesRpc = {
+export type favoriteGetFavoritesRpc = $Shape<{
   method: 'favorite.getFavorites',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: favoriteGetFavoritesResult) => void)
-}
+}>
 
 export type fsListResult = ListResult
 
-export type fsListRpc = {
+export type fsListRpc = $Shape<{
   method: 'fs.List',
   param: {
     path: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: fsListResult) => void)
-}
+}>
 
 export type gpgUiConfirmDuplicateKeyChosenResult = boolean
 
-export type gpgUiConfirmDuplicateKeyChosenRpc = {
+export type gpgUiConfirmDuplicateKeyChosenRpc = $Shape<{
   method: 'gpgUi.confirmDuplicateKeyChosen',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: gpgUiConfirmDuplicateKeyChosenResult) => void)
-}
+}>
 
 export type gpgUiSelectKeyAndPushOptionResult = SelectKeyRes
 
-export type gpgUiSelectKeyAndPushOptionRpc = {
+export type gpgUiSelectKeyAndPushOptionRpc = $Shape<{
   method: 'gpgUi.selectKeyAndPushOption',
   param: {
-    keys: Array<GPGKey>
+    keys: ?Array<GPGKey>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: gpgUiSelectKeyAndPushOptionResult) => void)
-}
+}>
 
 export type gpgUiSelectKeyResult = string
 
-export type gpgUiSelectKeyRpc = {
+export type gpgUiSelectKeyRpc = $Shape<{
   method: 'gpgUi.selectKey',
   param: {
-    keys: Array<GPGKey>
+    keys: ?Array<GPGKey>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: gpgUiSelectKeyResult) => void)
-}
+}>
 
 export type gpgUiSignResult = string
 
-export type gpgUiSignRpc = {
+export type gpgUiSignRpc = $Shape<{
   method: 'gpgUi.sign',
   param: {
     msg: bytes,
     fingerprint: bytes
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: gpgUiSignResult) => void)
-}
+}>
 
 export type gpgUiWantToAddGPGKeyResult = boolean
 
-export type gpgUiWantToAddGPGKeyRpc = {
+export type gpgUiWantToAddGPGKeyRpc = $Shape<{
   method: 'gpgUi.wantToAddGPGKey',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: gpgUiWantToAddGPGKeyResult) => void)
-}
+}>
 
 export type gregorGetStateResult = gregor1.State
 
-export type gregorGetStateRpc = {
+export type gregorGetStateRpc = $Shape<{
   method: 'gregor.getState',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: gregorGetStateResult) => void)
-}
+}>
 
 export type gregorUIPushOutOfBandMessagesResult = void
 
-export type gregorUIPushOutOfBandMessagesRpc = {
+export type gregorUIPushOutOfBandMessagesRpc = $Shape<{
   method: 'gregorUI.pushOutOfBandMessages',
   param: {
-    oobm: Array<gregor1.OutOfBandMessage>
+    oobm: ?Array<gregor1.OutOfBandMessage>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type gregorUIPushStateResult = void
 
-export type gregorUIPushStateRpc = {
+export type gregorUIPushStateRpc = $Shape<{
   method: 'gregorUI.pushState',
   param: {
     state: gregor1.State,
     reason: PushReason
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyIdentify2Result = Identify2Res
 
-export type identifyIdentify2Rpc = {
+export type identifyIdentify2Rpc = $Shape<{
   method: 'identify.identify2',
   param: {
     uid: UID,
@@ -1892,13 +1960,14 @@ export type identifyIdentify2Rpc = {
     allowEmptySelfID?: boolean,
     noSkipSelf?: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: identifyIdentify2Result) => void)
-}
+}>
 
 export type identifyIdentifyResult = IdentifyRes
 
-export type identifyIdentifyRpc = {
+export type identifyIdentifyRpc = $Shape<{
   method: 'identify.identify',
   param: {
     userAssertion: string,
@@ -1907,88 +1976,96 @@ export type identifyIdentifyRpc = {
     reason: IdentifyReason,
     source: ClientType
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: identifyIdentifyResult) => void)
-}
+}>
 
 export type identifyResolve2Result = User
 
-export type identifyResolve2Rpc = {
+export type identifyResolve2Rpc = $Shape<{
   method: 'identify.Resolve2',
   param: {
     assertion: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: identifyResolve2Result) => void)
-}
+}>
 
 export type identifyResolveResult = UID
 
-export type identifyResolveRpc = {
+export type identifyResolveRpc = $Shape<{
   method: 'identify.Resolve',
   param: {
     assertion: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: identifyResolveResult) => void)
-}
+}>
 
 export type identifyUiConfirmResult = ConfirmResult
 
-export type identifyUiConfirmRpc = {
+export type identifyUiConfirmRpc = $Shape<{
   method: 'identifyUi.confirm',
   param: {
     outcome: IdentifyOutcome
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: identifyUiConfirmResult) => void)
-}
+}>
 
 export type identifyUiDelegateIdentifyUIResult = int
 
-export type identifyUiDelegateIdentifyUIRpc = {
+export type identifyUiDelegateIdentifyUIRpc = $Shape<{
   method: 'identifyUi.delegateIdentifyUI',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: identifyUiDelegateIdentifyUIResult) => void)
-}
+}>
 
 export type identifyUiDismissResult = void
 
-export type identifyUiDismissRpc = {
+export type identifyUiDismissRpc = $Shape<{
   method: 'identifyUi.dismiss',
   param: {
     username: string,
     reason: DismissReason
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyUiDisplayCryptocurrencyResult = void
 
-export type identifyUiDisplayCryptocurrencyRpc = {
+export type identifyUiDisplayCryptocurrencyRpc = $Shape<{
   method: 'identifyUi.displayCryptocurrency',
   param: {
     c: Cryptocurrency
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyUiDisplayKeyResult = void
 
-export type identifyUiDisplayKeyRpc = {
+export type identifyUiDisplayKeyRpc = $Shape<{
   method: 'identifyUi.displayKey',
   param: {
     key: IdentifyKey
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyUiDisplayTLFCreateWithInviteResult = void
 
-export type identifyUiDisplayTLFCreateWithInviteRpc = {
+export type identifyUiDisplayTLFCreateWithInviteRpc = $Shape<{
   method: 'identifyUi.displayTLFCreateWithInvite',
   param: {
     folderName: string,
@@ -1998,315 +2075,344 @@ export type identifyUiDisplayTLFCreateWithInviteRpc = {
     inviteLink: string,
     throttled: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyUiDisplayTrackStatementResult = void
 
-export type identifyUiDisplayTrackStatementRpc = {
+export type identifyUiDisplayTrackStatementRpc = $Shape<{
   method: 'identifyUi.displayTrackStatement',
   param: {
     stmt: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyUiDisplayUserCardResult = void
 
-export type identifyUiDisplayUserCardRpc = {
+export type identifyUiDisplayUserCardRpc = $Shape<{
   method: 'identifyUi.displayUserCard',
   param: {
     card: UserCard
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyUiFinishResult = void
 
-export type identifyUiFinishRpc = {
+export type identifyUiFinishRpc = $Shape<{
   method: 'identifyUi.finish',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyUiFinishSocialProofCheckResult = void
 
-export type identifyUiFinishSocialProofCheckRpc = {
+export type identifyUiFinishSocialProofCheckRpc = $Shape<{
   method: 'identifyUi.finishSocialProofCheck',
   param: {
     rp: RemoteProof,
     lcr: LinkCheckResult
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyUiFinishWebProofCheckResult = void
 
-export type identifyUiFinishWebProofCheckRpc = {
+export type identifyUiFinishWebProofCheckRpc = $Shape<{
   method: 'identifyUi.finishWebProofCheck',
   param: {
     rp: RemoteProof,
     lcr: LinkCheckResult
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyUiLaunchNetworkChecksResult = void
 
-export type identifyUiLaunchNetworkChecksRpc = {
+export type identifyUiLaunchNetworkChecksRpc = $Shape<{
   method: 'identifyUi.launchNetworkChecks',
   param: {
     identity: Identity,
     user: User
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyUiReportLastTrackResult = void
 
-export type identifyUiReportLastTrackRpc = {
+export type identifyUiReportLastTrackRpc = $Shape<{
   method: 'identifyUi.reportLastTrack',
   param: {
     track: (null | TrackSummary)
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyUiReportTrackTokenResult = void
 
-export type identifyUiReportTrackTokenRpc = {
+export type identifyUiReportTrackTokenRpc = $Shape<{
   method: 'identifyUi.reportTrackToken',
   param: {
     trackToken: TrackToken
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type identifyUiStartResult = void
 
-export type identifyUiStartRpc = {
+export type identifyUiStartRpc = $Shape<{
   method: 'identifyUi.start',
   param: {
     username: string,
     reason: IdentifyReason
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type kbfsFSEventResult = void
 
-export type kbfsFSEventRpc = {
+export type kbfsFSEventRpc = $Shape<{
   method: 'kbfs.FSEvent',
   param: {
     event: FSNotification
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type logRegisterLoggerResult = void
 
-export type logRegisterLoggerRpc = {
+export type logRegisterLoggerRpc = $Shape<{
   method: 'log.registerLogger',
   param: {
     name: string,
     level: LogLevel
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type logUiLogResult = void
 
-export type logUiLogRpc = {
+export type logUiLogRpc = $Shape<{
   method: 'logUi.log',
   param: {
     level: LogLevel,
     text: Text
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type loginClearStoredSecretResult = void
 
-export type loginClearStoredSecretRpc = {
+export type loginClearStoredSecretRpc = $Shape<{
   method: 'login.clearStoredSecret',
   param: {
     username: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type loginDeprovisionResult = void
 
-export type loginDeprovisionRpc = {
+export type loginDeprovisionRpc = $Shape<{
   method: 'login.deprovision',
   param: {
     username: string,
     doRevoke: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
-export type loginGetConfiguredAccountsResult = Array<ConfiguredAccount>
+export type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
 
-export type loginGetConfiguredAccountsRpc = {
+export type loginGetConfiguredAccountsRpc = $Shape<{
   method: 'login.getConfiguredAccounts',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: loginGetConfiguredAccountsResult) => void)
-}
+}>
 
 export type loginLoginResult = void
 
-export type loginLoginRpc = {
+export type loginLoginRpc = $Shape<{
   method: 'login.login',
   param: {
     deviceType: string,
     usernameOrEmail: string,
     clientType: ClientType
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type loginLogoutResult = void
 
-export type loginLogoutRpc = {
+export type loginLogoutRpc = $Shape<{
   method: 'login.logout',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type loginPaperKeyResult = void
 
-export type loginPaperKeyRpc = {
+export type loginPaperKeyRpc = $Shape<{
   method: 'login.paperKey',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type loginPaperKeySubmitResult = void
 
-export type loginPaperKeySubmitRpc = {
+export type loginPaperKeySubmitRpc = $Shape<{
   method: 'login.paperKeySubmit',
   param: {
     paperPhrase: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type loginPgpProvisionResult = void
 
-export type loginPgpProvisionRpc = {
+export type loginPgpProvisionRpc = $Shape<{
   method: 'login.pgpProvision',
   param: {
     username: string,
     passphrase: string,
     deviceName: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type loginRecoverAccountFromEmailAddressResult = void
 
-export type loginRecoverAccountFromEmailAddressRpc = {
+export type loginRecoverAccountFromEmailAddressRpc = $Shape<{
   method: 'login.recoverAccountFromEmailAddress',
   param: {
     email: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type loginUiDisplayPaperKeyPhraseResult = void
 
-export type loginUiDisplayPaperKeyPhraseRpc = {
+export type loginUiDisplayPaperKeyPhraseRpc = $Shape<{
   method: 'loginUi.displayPaperKeyPhrase',
   param: {
     phrase: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type loginUiDisplayPrimaryPaperKeyResult = void
 
-export type loginUiDisplayPrimaryPaperKeyRpc = {
+export type loginUiDisplayPrimaryPaperKeyRpc = $Shape<{
   method: 'loginUi.displayPrimaryPaperKey',
   param: {
     phrase: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type loginUiGetEmailOrUsernameResult = string
 
-export type loginUiGetEmailOrUsernameRpc = {
+export type loginUiGetEmailOrUsernameRpc = $Shape<{
   method: 'loginUi.getEmailOrUsername',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: loginUiGetEmailOrUsernameResult) => void)
-}
+}>
 
 export type loginUiPromptRevokePaperKeysResult = boolean
 
-export type loginUiPromptRevokePaperKeysRpc = {
+export type loginUiPromptRevokePaperKeysRpc = $Shape<{
   method: 'loginUi.promptRevokePaperKeys',
   param: {
     device: Device,
     index: int
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: loginUiPromptRevokePaperKeysResult) => void)
-}
+}>
 
 export type loginUnlockResult = void
 
-export type loginUnlockRpc = {
+export type loginUnlockRpc = $Shape<{
   method: 'login.unlock',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type loginUnlockWithPassphraseResult = void
 
-export type loginUnlockWithPassphraseRpc = {
+export type loginUnlockWithPassphraseRpc = $Shape<{
   method: 'login.unlockWithPassphrase',
   param: {
     passphrase: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type metadataAuthenticateResult = int
 
-export type metadataAuthenticateRpc = {
+export type metadataAuthenticateRpc = $Shape<{
   method: 'metadata.authenticate',
   param: {
     signature: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: metadataAuthenticateResult) => void)
-}
+}>
 
 export type metadataDeleteKeyResult = void
 
-export type metadataDeleteKeyRpc = {
+export type metadataDeleteKeyRpc = $Shape<{
   method: 'metadata.deleteKey',
   param: {
     uid: UID,
@@ -2314,115 +2420,125 @@ export type metadataDeleteKeyRpc = {
     keyHalfID: bytes,
     logTags: {[key: string]: string}
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type metadataGetChallengeResult = ChallengeInfo
 
-export type metadataGetChallengeRpc = {
+export type metadataGetChallengeRpc = $Shape<{
   method: 'metadata.getChallenge',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: metadataGetChallengeResult) => void)
-}
+}>
 
 export type metadataGetFolderHandleResult = bytes
 
-export type metadataGetFolderHandleRpc = {
+export type metadataGetFolderHandleRpc = $Shape<{
   method: 'metadata.getFolderHandle',
   param: {
     folderID: string,
     signature: string,
     challenge: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: metadataGetFolderHandleResult) => void)
-}
+}>
 
 export type metadataGetFoldersForRekeyResult = void
 
-export type metadataGetFoldersForRekeyRpc = {
+export type metadataGetFoldersForRekeyRpc = $Shape<{
   method: 'metadata.getFoldersForRekey',
   param: {
     deviceKID: KID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type metadataGetKeyResult = bytes
 
-export type metadataGetKeyRpc = {
+export type metadataGetKeyRpc = $Shape<{
   method: 'metadata.getKey',
   param: {
     keyHalfID: bytes,
     deviceKID: string,
     logTags: {[key: string]: string}
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: metadataGetKeyResult) => void)
-}
+}>
 
 export type metadataGetLatestFolderHandleResult = bytes
 
-export type metadataGetLatestFolderHandleRpc = {
+export type metadataGetLatestFolderHandleRpc = $Shape<{
   method: 'metadata.getLatestFolderHandle',
   param: {
     folderID: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: metadataGetLatestFolderHandleResult) => void)
-}
+}>
 
 export type metadataGetMerkleNodeResult = bytes
 
-export type metadataGetMerkleNodeRpc = {
+export type metadataGetMerkleNodeRpc = $Shape<{
   method: 'metadata.getMerkleNode',
   param: {
     hash: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: metadataGetMerkleNodeResult) => void)
-}
+}>
 
 export type metadataGetMerkleRootLatestResult = MerkleRoot
 
-export type metadataGetMerkleRootLatestRpc = {
+export type metadataGetMerkleRootLatestRpc = $Shape<{
   method: 'metadata.getMerkleRootLatest',
   param: {
     treeID: MerkleTreeID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: metadataGetMerkleRootLatestResult) => void)
-}
+}>
 
 export type metadataGetMerkleRootResult = MerkleRoot
 
-export type metadataGetMerkleRootRpc = {
+export type metadataGetMerkleRootRpc = $Shape<{
   method: 'metadata.getMerkleRoot',
   param: {
     treeID: MerkleTreeID,
     seqNo: long
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: metadataGetMerkleRootResult) => void)
-}
+}>
 
 export type metadataGetMerkleRootSinceResult = MerkleRoot
 
-export type metadataGetMerkleRootSinceRpc = {
+export type metadataGetMerkleRootSinceRpc = $Shape<{
   method: 'metadata.getMerkleRootSince',
   param: {
     treeID: MerkleTreeID,
     when: Time
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: metadataGetMerkleRootSinceResult) => void)
-}
+}>
 
 export type metadataGetMetadataResult = MetadataResponse
 
-export type metadataGetMetadataRpc = {
+export type metadataGetMetadataRpc = $Shape<{
   method: 'metadata.getMetadata',
   param: {
     folderID: string,
@@ -2433,220 +2549,239 @@ export type metadataGetMetadataRpc = {
     stopRevision: long,
     logTags: {[key: string]: string}
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: metadataGetMetadataResult) => void)
-}
+}>
 
 export type metadataPingResult = void
 
-export type metadataPingRpc = {
+export type metadataPingRpc = $Shape<{
   method: 'metadata.ping',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type metadataPruneBranchResult = void
 
-export type metadataPruneBranchRpc = {
+export type metadataPruneBranchRpc = $Shape<{
   method: 'metadata.pruneBranch',
   param: {
     folderID: string,
     branchID: string,
     logTags: {[key: string]: string}
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type metadataPutKeysResult = void
 
-export type metadataPutKeysRpc = {
+export type metadataPutKeysRpc = $Shape<{
   method: 'metadata.putKeys',
   param: {
-    keyHalves: Array<KeyHalf>,
+    keyHalves: ?Array<KeyHalf>,
     logTags: {[key: string]: string}
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type metadataPutMetadataResult = void
 
-export type metadataPutMetadataRpc = {
+export type metadataPutMetadataRpc = $Shape<{
   method: 'metadata.putMetadata',
   param: {
     mdBlock: MDBlock,
     logTags: {[key: string]: string}
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type metadataRegisterForUpdatesResult = void
 
-export type metadataRegisterForUpdatesRpc = {
+export type metadataRegisterForUpdatesRpc = $Shape<{
   method: 'metadata.registerForUpdates',
   param: {
     folderID: string,
     currRevision: long,
     logTags: {[key: string]: string}
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type metadataTruncateLockResult = boolean
 
-export type metadataTruncateLockRpc = {
+export type metadataTruncateLockRpc = $Shape<{
   method: 'metadata.truncateLock',
   param: {
     folderID: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: metadataTruncateLockResult) => void)
-}
+}>
 
 export type metadataTruncateUnlockResult = boolean
 
-export type metadataTruncateUnlockRpc = {
+export type metadataTruncateUnlockRpc = $Shape<{
   method: 'metadata.truncateUnlock',
   param: {
     folderID: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: metadataTruncateUnlockResult) => void)
-}
+}>
 
 export type metadataUpdateFolderNeedsRekeyResult = void
 
-export type metadataUpdateFolderNeedsRekeyRpc = {
+export type metadataUpdateFolderNeedsRekeyRpc = $Shape<{
   method: 'metadataUpdate.folderNeedsRekey',
   param: {
     folderID: string,
     revision: long
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type metadataUpdateMetadataUpdateResult = void
 
-export type metadataUpdateMetadataUpdateRpc = {
+export type metadataUpdateMetadataUpdateRpc = $Shape<{
   method: 'metadataUpdate.metadataUpdate',
   param: {
     folderID: string,
     revision: long
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type notifyCtlSetNotificationsResult = void
 
-export type notifyCtlSetNotificationsRpc = {
+export type notifyCtlSetNotificationsRpc = $Shape<{
   method: 'notifyCtl.setNotifications',
   param: {
     channels: NotificationChannels
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type paperprovisionPaperProvisionResult = void
 
-export type paperprovisionPaperProvisionRpc = {
+export type paperprovisionPaperProvisionRpc = $Shape<{
   method: 'paperprovision.paperProvision',
   param: {
     username: string,
     deviceName: string,
     paperKey: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type pgpPgpDecryptResult = PGPSigVerification
 
-export type pgpPgpDecryptRpc = {
+export type pgpPgpDecryptRpc = $Shape<{
   method: 'pgp.pgpDecrypt',
   param: {
     source: Stream,
     sink: Stream,
     opts: PGPDecryptOptions
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: pgpPgpDecryptResult) => void)
-}
+}>
 
 export type pgpPgpDeletePrimaryResult = void
 
-export type pgpPgpDeletePrimaryRpc = {
+export type pgpPgpDeletePrimaryRpc = $Shape<{
   method: 'pgp.pgpDeletePrimary',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type pgpPgpEncryptResult = void
 
-export type pgpPgpEncryptRpc = {
+export type pgpPgpEncryptRpc = $Shape<{
   method: 'pgp.pgpEncrypt',
   param: {
     source: Stream,
     sink: Stream,
     opts: PGPEncryptOptions
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
-export type pgpPgpExportByFingerprintResult = Array<KeyInfo>
+export type pgpPgpExportByFingerprintResult = ?Array<KeyInfo>
 
-export type pgpPgpExportByFingerprintRpc = {
+export type pgpPgpExportByFingerprintRpc = $Shape<{
   method: 'pgp.pgpExportByFingerprint',
   param: {
     options: PGPQuery
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: pgpPgpExportByFingerprintResult) => void)
-}
+}>
 
-export type pgpPgpExportByKIDResult = Array<KeyInfo>
+export type pgpPgpExportByKIDResult = ?Array<KeyInfo>
 
-export type pgpPgpExportByKIDRpc = {
+export type pgpPgpExportByKIDRpc = $Shape<{
   method: 'pgp.pgpExportByKID',
   param: {
     options: PGPQuery
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: pgpPgpExportByKIDResult) => void)
-}
+}>
 
-export type pgpPgpExportResult = Array<KeyInfo>
+export type pgpPgpExportResult = ?Array<KeyInfo>
 
-export type pgpPgpExportRpc = {
+export type pgpPgpExportRpc = $Shape<{
   method: 'pgp.pgpExport',
   param: {
     options: PGPQuery
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: pgpPgpExportResult) => void)
-}
+}>
 
 export type pgpPgpImportResult = void
 
-export type pgpPgpImportRpc = {
+export type pgpPgpImportRpc = $Shape<{
   method: 'pgp.pgpImport',
   param: {
     key: bytes,
     pushSecret: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type pgpPgpKeyGenResult = void
 
-export type pgpPgpKeyGenRpc = {
+export type pgpPgpKeyGenRpc = $Shape<{
   method: 'pgp.pgpKeyGen',
   param: {
     primaryBits: int,
@@ -2656,24 +2791,26 @@ export type pgpPgpKeyGenRpc = {
     doExport: boolean,
     pushSecret: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type pgpPgpPullResult = void
 
-export type pgpPgpPullRpc = {
+export type pgpPgpPullRpc = $Shape<{
   method: 'pgp.pgpPull',
   param: {
-    userAsserts: Array<string>
+    userAsserts: ?Array<string>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type pgpPgpSelectResult = void
 
-export type pgpPgpSelectRpc = {
+export type pgpPgpSelectRpc = $Shape<{
   method: 'pgp.pgpSelect',
   param: {
     fingerprintQuery: string,
@@ -2681,74 +2818,80 @@ export type pgpPgpSelectRpc = {
     skipImport: boolean,
     onlyImport: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type pgpPgpSignResult = void
 
-export type pgpPgpSignRpc = {
+export type pgpPgpSignRpc = $Shape<{
   method: 'pgp.pgpSign',
   param: {
     source: Stream,
     sink: Stream,
     opts: PGPSignOptions
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type pgpPgpUpdateResult = void
 
-export type pgpPgpUpdateRpc = {
+export type pgpPgpUpdateRpc = $Shape<{
   method: 'pgp.pgpUpdate',
   param: {
     all: boolean,
-    fingerprints: Array<string>
+    fingerprints: ?Array<string>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type pgpPgpVerifyResult = PGPSigVerification
 
-export type pgpPgpVerifyRpc = {
+export type pgpPgpVerifyRpc = $Shape<{
   method: 'pgp.pgpVerify',
   param: {
     source: Stream,
     opts: PGPVerifyOptions
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: pgpPgpVerifyResult) => void)
-}
+}>
 
 export type pgpUiOutputSignatureSuccessResult = void
 
-export type pgpUiOutputSignatureSuccessRpc = {
+export type pgpUiOutputSignatureSuccessRpc = $Shape<{
   method: 'pgpUi.outputSignatureSuccess',
   param: {
     fingerprint: string,
     username: string,
     signedAt: Time
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type proveCheckProofResult = CheckProofStatus
 
-export type proveCheckProofRpc = {
+export type proveCheckProofRpc = $Shape<{
   method: 'prove.checkProof',
   param: {
     sigID: SigID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: proveCheckProofResult) => void)
-}
+}>
 
 export type proveStartProofResult = StartProofResult
 
-export type proveStartProofRpc = {
+export type proveStartProofRpc = $Shape<{
   method: 'prove.startProof',
   param: {
     service: string,
@@ -2757,434 +2900,473 @@ export type proveStartProofRpc = {
     promptPosted: boolean,
     auto: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: proveStartProofResult) => void)
-}
+}>
 
 export type proveUiDisplayRecheckWarningResult = void
 
-export type proveUiDisplayRecheckWarningRpc = {
+export type proveUiDisplayRecheckWarningRpc = $Shape<{
   method: 'proveUi.displayRecheckWarning',
   param: {
     text: Text
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type proveUiOkToCheckResult = boolean
 
-export type proveUiOkToCheckRpc = {
+export type proveUiOkToCheckRpc = $Shape<{
   method: 'proveUi.okToCheck',
   param: {
     name: string,
     attempt: int
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: proveUiOkToCheckResult) => void)
-}
+}>
 
 export type proveUiOutputInstructionsResult = void
 
-export type proveUiOutputInstructionsRpc = {
+export type proveUiOutputInstructionsRpc = $Shape<{
   method: 'proveUi.outputInstructions',
   param: {
     instructions: Text,
     proof: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type proveUiOutputPrechecksResult = void
 
-export type proveUiOutputPrechecksRpc = {
+export type proveUiOutputPrechecksRpc = $Shape<{
   method: 'proveUi.outputPrechecks',
   param: {
     text: Text
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type proveUiPreProofWarningResult = boolean
 
-export type proveUiPreProofWarningRpc = {
+export type proveUiPreProofWarningRpc = $Shape<{
   method: 'proveUi.preProofWarning',
   param: {
     text: Text
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: proveUiPreProofWarningResult) => void)
-}
+}>
 
 export type proveUiPromptOverwriteResult = boolean
 
-export type proveUiPromptOverwriteRpc = {
+export type proveUiPromptOverwriteRpc = $Shape<{
   method: 'proveUi.promptOverwrite',
   param: {
     account: string,
     typ: PromptOverwriteType
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: proveUiPromptOverwriteResult) => void)
-}
+}>
 
 export type proveUiPromptUsernameResult = string
 
-export type proveUiPromptUsernameRpc = {
+export type proveUiPromptUsernameRpc = $Shape<{
   method: 'proveUi.promptUsername',
   param: {
     prompt: string,
     prevError: (null | Status)
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: proveUiPromptUsernameResult) => void)
-}
+}>
 
 export type provisionUiChooseDeviceResult = DeviceID
 
-export type provisionUiChooseDeviceRpc = {
+export type provisionUiChooseDeviceRpc = $Shape<{
   method: 'provisionUi.chooseDevice',
   param: {
-    devices: Array<Device>
+    devices: ?Array<Device>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: provisionUiChooseDeviceResult) => void)
-}
+}>
 
 export type provisionUiChooseDeviceTypeResult = DeviceType
 
-export type provisionUiChooseDeviceTypeRpc = {
+export type provisionUiChooseDeviceTypeRpc = $Shape<{
   method: 'provisionUi.chooseDeviceType',
   param: {
     kind: ChooseType
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: provisionUiChooseDeviceTypeResult) => void)
-}
+}>
 
 export type provisionUiChooseGPGMethodResult = GPGMethod
 
-export type provisionUiChooseGPGMethodRpc = {
+export type provisionUiChooseGPGMethodRpc = $Shape<{
   method: 'provisionUi.chooseGPGMethod',
   param: {
-    keys: Array<GPGKey>
+    keys: ?Array<GPGKey>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: provisionUiChooseGPGMethodResult) => void)
-}
+}>
 
 export type provisionUiChooseProvisioningMethodResult = ProvisionMethod
 
-export type provisionUiChooseProvisioningMethodRpc = {
+export type provisionUiChooseProvisioningMethodRpc = $Shape<{
   method: 'provisionUi.chooseProvisioningMethod',
   param: {
     gpgOption: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: provisionUiChooseProvisioningMethodResult) => void)
-}
+}>
 
 export type provisionUiDisplayAndPromptSecretResult = SecretResponse
 
-export type provisionUiDisplayAndPromptSecretRpc = {
+export type provisionUiDisplayAndPromptSecretRpc = $Shape<{
   method: 'provisionUi.DisplayAndPromptSecret',
   param: {
     secret: bytes,
     phrase: string,
     otherDeviceType: DeviceType
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: provisionUiDisplayAndPromptSecretResult) => void)
-}
+}>
 
 export type provisionUiDisplaySecretExchangedResult = void
 
-export type provisionUiDisplaySecretExchangedRpc = {
+export type provisionUiDisplaySecretExchangedRpc = $Shape<{
   method: 'provisionUi.DisplaySecretExchanged',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type provisionUiPromptNewDeviceNameResult = string
 
-export type provisionUiPromptNewDeviceNameRpc = {
+export type provisionUiPromptNewDeviceNameRpc = $Shape<{
   method: 'provisionUi.PromptNewDeviceName',
   param: {
-    existingDevices: Array<string>,
+    existingDevices: ?Array<string>,
     errorMessage: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: provisionUiPromptNewDeviceNameResult) => void)
-}
+}>
 
 export type provisionUiProvisioneeSuccessResult = void
 
-export type provisionUiProvisioneeSuccessRpc = {
+export type provisionUiProvisioneeSuccessRpc = $Shape<{
   method: 'provisionUi.ProvisioneeSuccess',
   param: {
     username: string,
     deviceName: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type provisionUiProvisionerSuccessResult = void
 
-export type provisionUiProvisionerSuccessRpc = {
+export type provisionUiProvisionerSuccessRpc = $Shape<{
   method: 'provisionUi.ProvisionerSuccess',
   param: {
     deviceName: string,
     deviceType: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type provisionUiSwitchToGPGSignOKResult = boolean
 
-export type provisionUiSwitchToGPGSignOKRpc = {
+export type provisionUiSwitchToGPGSignOKRpc = $Shape<{
   method: 'provisionUi.switchToGPGSignOK',
   param: {
     key: GPGKey,
     importError: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: provisionUiSwitchToGPGSignOKResult) => void)
-}
+}>
 
 export type quotaVerifySessionResult = VerifySessionRes
 
-export type quotaVerifySessionRpc = {
+export type quotaVerifySessionRpc = $Shape<{
   method: 'quota.verifySession',
   param: {
     session: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: quotaVerifySessionResult) => void)
-}
+}>
 
 export type rekeyDebugShowRekeyStatusResult = void
 
-export type rekeyDebugShowRekeyStatusRpc = {
+export type rekeyDebugShowRekeyStatusRpc = $Shape<{
   method: 'rekey.debugShowRekeyStatus',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type rekeyGetPendingRekeyStatusResult = ProblemSetDevices
 
-export type rekeyGetPendingRekeyStatusRpc = {
+export type rekeyGetPendingRekeyStatusRpc = $Shape<{
   method: 'rekey.getPendingRekeyStatus',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: rekeyGetPendingRekeyStatusResult) => void)
-}
+}>
 
 export type rekeyRekeyStatusFinishResult = Outcome
 
-export type rekeyRekeyStatusFinishRpc = {
+export type rekeyRekeyStatusFinishRpc = $Shape<{
   method: 'rekey.rekeyStatusFinish',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: rekeyRekeyStatusFinishResult) => void)
-}
+}>
 
 export type rekeyShowPendingRekeyStatusResult = void
 
-export type rekeyShowPendingRekeyStatusRpc = {
+export type rekeyShowPendingRekeyStatusRpc = $Shape<{
   method: 'rekey.showPendingRekeyStatus',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type rekeyUIDelegateRekeyUIResult = int
 
-export type rekeyUIDelegateRekeyUIRpc = {
+export type rekeyUIDelegateRekeyUIRpc = $Shape<{
   method: 'rekeyUI.delegateRekeyUI',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: rekeyUIDelegateRekeyUIResult) => void)
-}
+}>
 
 export type rekeyUIRefreshResult = void
 
-export type rekeyUIRefreshRpc = {
+export type rekeyUIRefreshRpc = $Shape<{
   method: 'rekeyUI.refresh',
   param: {
     problemSetDevices: ProblemSetDevices
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type revokeRevokeDeviceResult = void
 
-export type revokeRevokeDeviceRpc = {
+export type revokeRevokeDeviceRpc = $Shape<{
   method: 'revoke.revokeDevice',
   param: {
     deviceID: DeviceID,
     force: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type revokeRevokeKeyResult = void
 
-export type revokeRevokeKeyRpc = {
+export type revokeRevokeKeyRpc = $Shape<{
   method: 'revoke.revokeKey',
   param: {
     keyID: KID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type revokeRevokeSigsResult = void
 
-export type revokeRevokeSigsRpc = {
+export type revokeRevokeSigsRpc = $Shape<{
   method: 'revoke.revokeSigs',
   param: {
-    sigIDQueries: Array<string>
+    sigIDQueries: ?Array<string>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type saltpackSaltpackDecryptResult = SaltpackEncryptedMessageInfo
 
-export type saltpackSaltpackDecryptRpc = {
+export type saltpackSaltpackDecryptRpc = $Shape<{
   method: 'saltpack.saltpackDecrypt',
   param: {
     source: Stream,
     sink: Stream,
     opts: SaltpackDecryptOptions
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: saltpackSaltpackDecryptResult) => void)
-}
+}>
 
 export type saltpackSaltpackEncryptResult = void
 
-export type saltpackSaltpackEncryptRpc = {
+export type saltpackSaltpackEncryptRpc = $Shape<{
   method: 'saltpack.saltpackEncrypt',
   param: {
     source: Stream,
     sink: Stream,
     opts: SaltpackEncryptOptions
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type saltpackSaltpackSignResult = void
 
-export type saltpackSaltpackSignRpc = {
+export type saltpackSaltpackSignRpc = $Shape<{
   method: 'saltpack.saltpackSign',
   param: {
     source: Stream,
     sink: Stream,
     opts: SaltpackSignOptions
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type saltpackSaltpackVerifyResult = void
 
-export type saltpackSaltpackVerifyRpc = {
+export type saltpackSaltpackVerifyRpc = $Shape<{
   method: 'saltpack.saltpackVerify',
   param: {
     source: Stream,
     sink: Stream,
     opts: SaltpackVerifyOptions
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type saltpackUiSaltpackPromptForDecryptResult = void
 
-export type saltpackUiSaltpackPromptForDecryptRpc = {
+export type saltpackUiSaltpackPromptForDecryptRpc = $Shape<{
   method: 'saltpackUi.saltpackPromptForDecrypt',
   param: {
     sender: SaltpackSender,
     usedDelegateUI: bool
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type saltpackUiSaltpackVerifySuccessResult = void
 
-export type saltpackUiSaltpackVerifySuccessRpc = {
+export type saltpackUiSaltpackVerifySuccessRpc = $Shape<{
   method: 'saltpackUi.saltpackVerifySuccess',
   param: {
     signingKID: KID,
     sender: SaltpackSender
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type secretUiGetPassphraseResult = GetPassphraseRes
 
-export type secretUiGetPassphraseRpc = {
+export type secretUiGetPassphraseRpc = $Shape<{
   method: 'secretUi.getPassphrase',
   param: {
     pinentry: GUIEntryArg,
     terminal: (null | SecretEntryArg)
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: secretUiGetPassphraseResult) => void)
-}
+}>
 
 export type sessionCurrentSessionResult = Session
 
-export type sessionCurrentSessionRpc = {
+export type sessionCurrentSessionRpc = $Shape<{
   method: 'session.currentSession',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: sessionCurrentSessionResult) => void)
-}
+}>
 
 export type signupCheckInvitationCodeResult = void
 
-export type signupCheckInvitationCodeRpc = {
+export type signupCheckInvitationCodeRpc = $Shape<{
   method: 'signup.checkInvitationCode',
   param: {
     invitationCode: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type signupCheckUsernameAvailableResult = void
 
-export type signupCheckUsernameAvailableRpc = {
+export type signupCheckUsernameAvailableRpc = $Shape<{
   method: 'signup.checkUsernameAvailable',
   param: {
     username: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type signupInviteRequestResult = void
 
-export type signupInviteRequestRpc = {
+export type signupInviteRequestRpc = $Shape<{
   method: 'signup.inviteRequest',
   param: {
     email: string,
     fullname: string,
     notes: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type signupSignupResult = SignupRes
 
-export type signupSignupRpc = {
+export type signupSignupRpc = $Shape<{
   method: 'signup.signup',
   param: {
     email: string,
@@ -3196,309 +3378,337 @@ export type signupSignupRpc = {
     skipMail: boolean,
     genPGPBatch: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: signupSignupResult) => void)
-}
+}>
 
 export type sigsSigListJSONResult = string
 
-export type sigsSigListJSONRpc = {
+export type sigsSigListJSONRpc = $Shape<{
   method: 'sigs.sigListJSON',
   param: {
     arg: SigListArgs
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: sigsSigListJSONResult) => void)
-}
+}>
 
-export type sigsSigListResult = Array<Sig>
+export type sigsSigListResult = ?Array<Sig>
 
-export type sigsSigListRpc = {
+export type sigsSigListRpc = $Shape<{
   method: 'sigs.sigList',
   param: {
     arg: SigListArgs
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: sigsSigListResult) => void)
-}
+}>
 
 export type streamUiCloseResult = void
 
-export type streamUiCloseRpc = {
+export type streamUiCloseRpc = $Shape<{
   method: 'streamUi.close',
   param: {
     s: Stream
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type streamUiReadResult = bytes
 
-export type streamUiReadRpc = {
+export type streamUiReadRpc = $Shape<{
   method: 'streamUi.read',
   param: {
     s: Stream,
     sz: int
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: streamUiReadResult) => void)
-}
+}>
 
 export type streamUiWriteResult = int
 
-export type streamUiWriteRpc = {
+export type streamUiWriteRpc = $Shape<{
   method: 'streamUi.write',
   param: {
     s: Stream,
     buf: bytes
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: streamUiWriteResult) => void)
-}
+}>
 
 export type testPanicResult = void
 
-export type testPanicRpc = {
+export type testPanicRpc = $Shape<{
   method: 'test.panic',
   param: {
     message: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type testTestCallbackResult = string
 
-export type testTestCallbackRpc = {
+export type testTestCallbackRpc = $Shape<{
   method: 'test.testCallback',
   param: {
     name: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: testTestCallbackResult) => void)
-}
+}>
 
 export type testTestResult = Test
 
-export type testTestRpc = {
+export type testTestRpc = $Shape<{
   method: 'test.test',
   param: {
     name: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: testTestResult) => void)
-}
+}>
 
 export type trackCheckTrackingResult = void
 
-export type trackCheckTrackingRpc = {
+export type trackCheckTrackingRpc = $Shape<{
   method: 'track.checkTracking',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type trackDismissWithTokenResult = void
 
-export type trackDismissWithTokenRpc = {
+export type trackDismissWithTokenRpc = $Shape<{
   method: 'track.dismissWithToken',
   param: {
     trackToken: TrackToken
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type trackFakeTrackingChangedResult = void
 
-export type trackFakeTrackingChangedRpc = {
+export type trackFakeTrackingChangedRpc = $Shape<{
   method: 'track.fakeTrackingChanged',
   param: {
     username: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type trackTrackResult = void
 
-export type trackTrackRpc = {
+export type trackTrackRpc = $Shape<{
   method: 'track.track',
   param: {
     userAssertion: string,
     options: TrackOptions,
     forceRemoteCheck: boolean
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type trackTrackWithTokenResult = void
 
-export type trackTrackWithTokenRpc = {
+export type trackTrackWithTokenRpc = $Shape<{
   method: 'track.trackWithToken',
   param: {
     trackToken: TrackToken,
     options: TrackOptions
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type trackUntrackResult = void
 
-export type trackUntrackRpc = {
+export type trackUntrackRpc = $Shape<{
   method: 'track.untrack',
   param: {
     username: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type uiPromptYesNoResult = boolean
 
-export type uiPromptYesNoRpc = {
+export type uiPromptYesNoRpc = $Shape<{
   method: 'ui.promptYesNo',
   param: {
     text: Text,
     promptDefault: PromptDefault
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: uiPromptYesNoResult) => void)
-}
+}>
 
-export type userListTrackersByNameResult = Array<Tracker>
+export type userListTrackersByNameResult = ?Array<Tracker>
 
-export type userListTrackersByNameRpc = {
+export type userListTrackersByNameRpc = $Shape<{
   method: 'user.listTrackersByName',
   param: {
     username: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userListTrackersByNameResult) => void)
-}
+}>
 
-export type userListTrackersResult = Array<Tracker>
+export type userListTrackersResult = ?Array<Tracker>
 
-export type userListTrackersRpc = {
+export type userListTrackersRpc = $Shape<{
   method: 'user.listTrackers',
   param: {
     uid: UID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userListTrackersResult) => void)
-}
+}>
 
-export type userListTrackersSelfResult = Array<Tracker>
+export type userListTrackersSelfResult = ?Array<Tracker>
 
-export type userListTrackersSelfRpc = {
+export type userListTrackersSelfRpc = $Shape<{
   method: 'user.listTrackersSelf',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userListTrackersSelfResult) => void)
-}
+}>
 
 export type userListTrackingJSONResult = string
 
-export type userListTrackingJSONRpc = {
+export type userListTrackingJSONRpc = $Shape<{
   method: 'user.listTrackingJSON',
   param: {
     filter: string,
     verbose: boolean,
     assertion: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userListTrackingJSONResult) => void)
-}
+}>
 
-export type userListTrackingResult = Array<UserSummary>
+export type userListTrackingResult = ?Array<UserSummary>
 
-export type userListTrackingRpc = {
+export type userListTrackingRpc = $Shape<{
   method: 'user.listTracking',
   param: {
     filter: string,
     assertion: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userListTrackingResult) => void)
-}
+}>
 
-export type userLoadAllPublicKeysUnverifiedResult = Array<PublicKey>
+export type userLoadAllPublicKeysUnverifiedResult = ?Array<PublicKey>
 
-export type userLoadAllPublicKeysUnverifiedRpc = {
+export type userLoadAllPublicKeysUnverifiedRpc = $Shape<{
   method: 'user.loadAllPublicKeysUnverified',
   param: {
     uid: UID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void)
-}
+}>
 
-export type userLoadPublicKeysResult = Array<PublicKey>
+export type userLoadPublicKeysResult = ?Array<PublicKey>
 
-export type userLoadPublicKeysRpc = {
+export type userLoadPublicKeysRpc = $Shape<{
   method: 'user.loadPublicKeys',
   param: {
     uid: UID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userLoadPublicKeysResult) => void)
-}
+}>
 
-export type userLoadUncheckedUserSummariesResult = Array<UserSummary>
+export type userLoadUncheckedUserSummariesResult = ?Array<UserSummary>
 
-export type userLoadUncheckedUserSummariesRpc = {
+export type userLoadUncheckedUserSummariesRpc = $Shape<{
   method: 'user.loadUncheckedUserSummaries',
   param: {
-    uids: Array<UID>
+    uids: ?Array<UID>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userLoadUncheckedUserSummariesResult) => void)
-}
+}>
 
 export type userLoadUserByNameResult = User
 
-export type userLoadUserByNameRpc = {
+export type userLoadUserByNameRpc = $Shape<{
   method: 'user.loadUserByName',
   param: {
     username: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userLoadUserByNameResult) => void)
-}
+}>
 
 export type userLoadUserPlusKeysResult = UserPlusKeys
 
-export type userLoadUserPlusKeysRpc = {
+export type userLoadUserPlusKeysRpc = $Shape<{
   method: 'user.loadUserPlusKeys',
   param: {
     uid: UID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userLoadUserPlusKeysResult) => void)
-}
+}>
 
 export type userLoadUserResult = User
 
-export type userLoadUserRpc = {
+export type userLoadUserRpc = $Shape<{
   method: 'user.loadUser',
   param: {
     uid: UID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userLoadUserResult) => void)
-}
+}>
 
-export type userSearchResult = Array<SearchResult>
+export type userSearchResult = ?Array<SearchResult>
 
-export type userSearchRpc = {
+export type userSearchRpc = $Shape<{
   method: 'user.search',
   param: {
     query: string
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: userSearchResult) => void)
-}
+}>
 
 export type rpc =
     BTCRegisterBTCRpc
@@ -3796,7 +4006,7 @@ export type incomingCallMapType = {
   'keybase.1.block.archiveReference'?: (
     params: {
       folder: string,
-      refs: Array<BlockReference>
+      refs: ?Array<BlockReference>
     },
     response: {
       error: (err: RPCError) => void,
@@ -3806,7 +4016,7 @@ export type incomingCallMapType = {
   'keybase.1.block.delReferenceWithCount'?: (
     params: {
       folder: string,
-      refs: Array<BlockReference>
+      refs: ?Array<BlockReference>
     },
     response: {
       error: (err: RPCError) => void,
@@ -3816,7 +4026,7 @@ export type incomingCallMapType = {
   'keybase.1.block.archiveReferenceWithCount'?: (
     params: {
       folder: string,
-      refs: Array<BlockReference>
+      refs: ?Array<BlockReference>
     },
     response: {
       error: (err: RPCError) => void,
@@ -3972,7 +4182,7 @@ export type incomingCallMapType = {
   'keybase.1.crypto.unboxBytes32Any'?: (
     params: {
       sessionID: int,
-      bundles: Array<CiphertextBundle>,
+      bundles: ?Array<CiphertextBundle>,
       reason: string,
       promptPaper: boolean
     },
@@ -4180,7 +4390,7 @@ export type incomingCallMapType = {
   'keybase.1.gpgUi.selectKeyAndPushOption'?: (
     params: {
       sessionID: int,
-      keys: Array<GPGKey>
+      keys: ?Array<GPGKey>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4190,7 +4400,7 @@ export type incomingCallMapType = {
   'keybase.1.gpgUi.selectKey'?: (
     params: {
       sessionID: int,
-      keys: Array<GPGKey>
+      keys: ?Array<GPGKey>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4226,7 +4436,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.gregorUI.pushOutOfBandMessages'?: (
     params: {
-      oobm: Array<gregor1.OutOfBandMessage>
+      oobm: ?Array<gregor1.OutOfBandMessage>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4713,7 +4923,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.metadata.putKeys'?: (
     params: {
-      keyHalves: Array<KeyHalf>,
+      keyHalves: ?Array<KeyHalf>,
       logTags: {[key: string]: string}
     },
     response: {
@@ -4966,7 +5176,7 @@ export type incomingCallMapType = {
   'keybase.1.pgp.pgpPull'?: (
     params: {
       sessionID: int,
-      userAsserts: Array<string>
+      userAsserts: ?Array<string>
     },
     response: {
       error: (err: RPCError) => void,
@@ -5090,7 +5300,7 @@ export type incomingCallMapType = {
     params: {
       sessionID: int,
       all: boolean,
-      fingerprints: Array<string>
+      fingerprints: ?Array<string>
     },
     response: {
       error: (err: RPCError) => void,
@@ -5220,7 +5430,7 @@ export type incomingCallMapType = {
   'keybase.1.provisionUi.chooseGPGMethod'?: (
     params: {
       sessionID: int,
-      keys: Array<GPGKey>
+      keys: ?Array<GPGKey>
     },
     response: {
       error: (err: RPCError) => void,
@@ -5241,7 +5451,7 @@ export type incomingCallMapType = {
   'keybase.1.provisionUi.chooseDevice'?: (
     params: {
       sessionID: int,
-      devices: Array<Device>
+      devices: ?Array<Device>
     },
     response: {
       error: (err: RPCError) => void,
@@ -5282,7 +5492,7 @@ export type incomingCallMapType = {
   'keybase.1.provisionUi.PromptNewDeviceName'?: (
     params: {
       sessionID: int,
-      existingDevices: Array<string>,
+      existingDevices: ?Array<string>,
       errorMessage: string
     },
     response: {
@@ -5398,7 +5608,7 @@ export type incomingCallMapType = {
   'keybase.1.revoke.revokeSigs'?: (
     params: {
       sessionID: int,
-      sigIDQueries: Array<string>
+      sigIDQueries: ?Array<string>
     },
     response: {
       error: (err: RPCError) => void,
@@ -5739,7 +5949,7 @@ export type incomingCallMapType = {
   'keybase.1.user.loadUncheckedUserSummaries'?: (
     params: {
       sessionID: int,
-      uids: Array<UID>
+      uids: ?Array<UID>
     },
     response: {
       error: (err: RPCError) => void,

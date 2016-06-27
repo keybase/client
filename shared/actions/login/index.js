@@ -28,15 +28,8 @@ import {Map} from 'immutable'
 
 import type {DeviceType} from '../../constants/types/more'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
-import type {
-  incomingCallMapType,
-  loginRecoverAccountFromEmailAddressRpc,
-  loginLoginRpc,
-  loginLogoutRpc,
-  deviceDeviceAddRpc,
-  loginGetConfiguredAccountsRpc,
-  loginClearStoredSecretRpc,
-} from '../../constants/types/flow-types'
+import type {incomingCallMapType, loginRecoverAccountFromEmailAddressRpc, loginLoginRpc,
+  loginLogoutRpc, deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, loginClearStoredSecretRpc} from '../../constants/types/flow-types'
 import {overrideLoggedInTab} from '../../local-debug'
 import type {DeviceRole} from '../../constants/login'
 import HiddenString from '../../util/hidden-string'
@@ -91,8 +84,6 @@ function getAccounts (): AsyncAction {
     const params: loginGetConfiguredAccountsRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'login.getConfiguredAccounts',
-      param: {},
-      incomingCallMap: {},
       callback: (error, accounts) => {
         if (error) {
           dispatch({type: Constants.configuredAccounts, error: true, payload: error})
@@ -229,7 +220,6 @@ export function submitForgotPassword () : AsyncAction {
       ...makeWaitingHandler(dispatch),
       method: 'login.recoverAccountFromEmailAddress',
       param: {email: getState().login.forgotPasswordEmailAddress},
-      incomingCallMap: {},
       callback: (error, response) => {
         if (error) {
           dispatch({
@@ -322,8 +312,6 @@ export function logout () : AsyncAction {
     const params : loginLogoutRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'login.logout',
-      param: {},
-      incomingCallMap: {},
       callback: (error, response) => {
         if (error) {
           console.log(error)
@@ -356,10 +344,7 @@ export function saveInKeychainChanged (username: string, saveInKeychain: bool) :
 
     const params: loginClearStoredSecretRpc = {
       method: 'login.clearStoredSecret',
-      param: {
-        username,
-      },
-      incomingCallMap: {},
+      param: {username},
       callback: error => { error && console.log(error) },
     }
     engine.rpc(params)
@@ -456,7 +441,6 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
     const params : deviceDeviceAddRpc = {
       ...makeWaitingHandler(dispatch),
       method: 'device.deviceAdd',
-      param: {},
       incomingCallMap: incomingMap,
       callback: (ignoredError, response) => {
         onBack()
@@ -491,11 +475,12 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
           onBack={() => onBack(response)} />))
     },
     'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
+      const d = devices || []
       appendRouteElement((
         <SelectOtherDevice
           devices={devices}
           onSelect={deviceID => {
-            const type: DeviceRole = devices[devices.findIndex(d => d.deviceID === deviceID)].type
+            const type: DeviceRole = d[d.findIndex(d => d.deviceID === deviceID)].type
             const role = ({
               mobile: Constants.codePageDeviceRoleExistingPhone,
               desktop: Constants.codePageDeviceRoleExistingComputer,
