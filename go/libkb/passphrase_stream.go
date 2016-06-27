@@ -10,20 +10,34 @@ import (
 	triplesec "github.com/keybase/go-triplesec"
 )
 
-func StretchPassphrase(passphrase string, salt []byte) (tsec *triplesec.Cipher, pps *PassphraseStream, err error) {
+func NewSecureTriplesec(passphrase []byte, salt []byte) (Triplesec, error) {
+	return triplesec.NewCipher(passphrase, salt)
+}
+
+func StretchPassphrase(g *GlobalContext, passphrase string, salt []byte) (tsec Triplesec, pps *PassphraseStream, err error) {
 	if salt == nil {
 		err = fmt.Errorf("no salt provided to StretchPassphrase")
-		return
+		return nil, nil, err
 	}
 	var tmp []byte
-	if tsec, err = triplesec.NewCipher([]byte(passphrase), salt); err != nil {
-		return
+	var fn func(pw []byte, salt []byte) (Triplesec, error)
+
+	if g == nil {
+		fn = NewSecureTriplesec
+	} else {
+		fn = g.NewTriplesec
 	}
-	if _, tmp, err = tsec.DeriveKey(extraLen); err != nil {
-		return
+
+	tsec, err = fn([]byte(passphrase), salt)
+	if err != nil {
+		return nil, nil, err
+	}
+	_, tmp, err = tsec.DeriveKey(extraLen)
+	if err != nil {
+		return nil, nil, err
 	}
 	pps = NewPassphraseStream(tmp)
-	return
+	return tsec, pps, nil
 }
 
 const (

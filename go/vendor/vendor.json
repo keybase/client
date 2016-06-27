@@ -214,6 +214,11 @@
 			"revisionTime": "2015-06-12T09:33:55-07:00"
 		},
 		{
+			"path": "github.com/keybase/go-triplesec-insecure",
+			"revision": "41f0316cb8dd9d90b53b9f72caa49dac55577571",
+			"revisionTime": "2016-06-27T11:11:58-04:00"
+		},
+		{
 			"path": "github.com/keybase/go-triplesec/sha3",
 			"revision": "b360b8252869a5ac88df3ed7897bc3b6d1e55dd2",
 			"revisionTime": "2015-06-12T09:33:55-07:00"
