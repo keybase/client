@@ -6,6 +6,7 @@
     <Variable Name="DokanProduct64" Type="string" Value="{65A3A964-3DC3-0100-0000-160621082245}" />
     <Variable Name="DokanProduct86" Type="string" Value="{65A3A986-3DC3-0100-0000-160621082245}" />
     <Log PathVariable="LOGPATH_PROP"/>
+    <util:FileSearchRef Id='WINTRUST_FileSearch' />
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication
             LicenseUrl="https://keybase.io/docs/terms"
