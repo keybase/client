@@ -4,26 +4,16 @@ import React, {Component} from 'react'
 import {Avatar, Box, Icon, Text} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles/style-guide'
 import {capitalize} from 'lodash'
+import {platformToLogo24} from '../../constants/search'
 import {AVATAR_SIZE, HEADER_TOP_SPACE, HEADER_SIZE} from '../../profile/render.desktop'
 import type {Props} from './non-user.render'
-import type {Props as IconProps} from '../../common-adapters/icon'
 
 import electron from 'electron'
 const shell = electron.shell || electron.remote.shell
 
 export default class Render extends Component<void, Props, void> {
   _onClickAvatar () {
-    shell.openExternal(this.props.profileURL)
-  }
-
-  _iconNameForService (serviceName: string): IconProps.type {
-    return {
-      'twitter': 'twitter-logo-24',
-      'github': 'github-logo-24',
-      'reddit': 'reddit-logo-24',
-      'pgp': 'icon-pgp-key-24',
-      'coinbase': 'coinbase-logo-24',
-    }[serviceName]
+    shell.openExternal(this.props.profileUrl)
   }
 
   render () {
@@ -38,7 +28,7 @@ export default class Render extends Component<void, Props, void> {
             size={AVATAR_SIZE}
           />
           <Box style={styleUsernameRow} onClick={() => this._onClickAvatar()}>
-            <Icon type={this._iconNameForService(this.props.serviceName)} />
+            <Icon type={platformToLogo24(this.props.serviceName)} />
             <Text
               type='HeaderBig'
               style={styleUsername}

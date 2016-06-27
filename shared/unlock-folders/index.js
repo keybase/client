@@ -1,7 +1,7 @@
 // @flow
 
 import React, {Component} from 'react'
-import typedConnect, {ConnectedComponent} from '../util/typed-connect'
+import {TypedConnector} from '../util/typed-connect'
 import HiddenString from '../util/hidden-string'
 
 import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
@@ -46,12 +46,10 @@ class UnlockFolders extends Component<void, Props, void> {
   }
 }
 
-type Dispatch = TypedDispatch<UnlockFolderActions>
-// Annoyingly you have to assign this to a const and type it,
-// otherwise flow doesn't type it quite correctly and you loose OwnProps checking
-// Luckily if this declared type is wrong, flow will tell us.
-const Connected: Class<ConnectedComponent<OwnProps>> = typedConnect(
-  ({unlockFolders: {devices, phase, paperkeyError, waiting}}: TypedState, dispatch: Dispatch, ownProps: OwnProps): Props => ({
+const connector: TypedConnector<TypedState, TypedDispatch<UnlockFolderActions>, OwnProps, Props> = new TypedConnector()
+
+export default connector.connect(
+  ({unlockFolders: {devices, phase, paperkeyError, waiting}}, dispatch, ownProps) => ({
     close: () => { ownProps.onCancel() },
     toPaperKeyInput: () => { dispatch(actions.toPaperKeyInput()) },
     onBackFromPaperKey: () => { dispatch(actions.onBackFromPaperKey()) },
@@ -61,11 +59,8 @@ const Connected: Class<ConnectedComponent<OwnProps>> = typedConnect(
     waiting,
     devices,
     phase,
-  })
-)(UnlockFolders)
+  }))(UnlockFolders)
 
 export function selector (): (store: Object) => ?Object {
   return store => ({unlockFolders: store.unlockFolders})
 }
-
-export default Connected

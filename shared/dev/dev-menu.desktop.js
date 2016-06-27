@@ -3,7 +3,6 @@ import {connect} from 'react-redux'
 import {BackButton, Box} from '../common-adapters'
 import {routeAppend, navigateUp} from '../actions/router'
 import {switchTab} from '../actions/tabbed-router'
-import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
 import MenuList from '../settings/menu-list'
@@ -59,9 +58,6 @@ class DevMenu extends Component {
       {name: 'Developer', hasChildren: true, onClick: () => {
         this.props.routeAppend('developer')
       }},
-      {name: 'Search', hasChildren: true, onClick: () => {
-        this.props.pushNewSearch()
-      }},
       {name: 'Tracker Listener', hasChildren: true, onClick: () => {
         this.props.showTrackerListener('max')
       }},
@@ -99,7 +95,6 @@ export default connect(
       routeAppend: uri => dispatch(routeAppend(uri)),
       switchTab: tabName => dispatch(switchTab(tabName)),
       logout: () => dispatch(logout()),
-      pushNewSearch: () => dispatch(pushNewSearch()),
       showTrackerListener: username => dispatch(pushDebugTracker(username)),
     }
   }

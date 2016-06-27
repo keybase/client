@@ -1,98 +1,196 @@
+// @flow
+
 import * as Constants from '../constants/search'
-import {routeAppend, getCurrentURI} from './router'
-import engine from '../engine'
-import * as _ from 'lodash'
+import {platformToIcon, platformToLogo32} from '../constants/search'
+import {capitalize, trim} from 'lodash'
+import {filterNull} from '../util/arrays'
 
-export function initSearch (base) {
-  return {
-    type: Constants.initSearch,
-    payload: {
-      base,
-    },
+import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo, AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult, SearchPlatforms} from '../constants/search'
+import type {TypedAsyncAction} from '../constants/types/flux'
+
+type RawResult = {
+  score: number,
+  keybase: ?{
+    username: string,
+    uid: string,
+    picture_url: ?string,
+    full_name: ?string,
+    is_followee: boolean
+  },
+  service: ?{
+    username: string,
+    picture_url: ?string,
+    bio: ?string,
+    location: ?string,
+    full_name: ?string
   }
 }
 
-export function pushNewSearch () {
-  return function (dispatch, getState) {
-    dispatch(initSearch(getCurrentURI(getState())))
-    dispatch(routeAppend('search'))
+function parseFullName (rr: RawResult): string {
+  if (rr.keybase && rr.keybase.full_name) {
+    return rr.keybase.full_name
+  } else if (rr.service && rr.service.full_name) {
+    return rr.service.full_name
   }
+
+  return ''
 }
 
-export function selectService (base, service) {
-  return {
-    type: Constants.searchService,
-    payload: {
-      base,
-      service,
-    },
-  }
-}
+function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult): ExtraInfo {
+  const fullName = parseFullName(rr)
+  const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
 
-let nextNonce = 0
-
-const submitSearchDebounced = _.debounce((base, term, dispatch, getState) => {
-  const nonce = nextNonce++
-
-  dispatch({
-    type: Constants.searchRunning,
-    payload: {
-      base,
-      nonce,
-    },
-  })
-
-  const badNonce = () => (getState().search.getIn([base, 'nonce']) !== nonce)
-
-  const doRPC = (...args) => new Promise((resolve, reject) => {
-    // TODO think about using rpc
-    engine.rpcUnchecked(...args, (error, results) => {
-      if (badNonce()) { return }
-      if (error) { throw new Error(error) }
-      resolve(results || [])
-    })
-  })
-
-  Promise.all([
-    doRPC('user.listTracking', {filter: term}, {}).then(results => {
-      return results.map(r => ({uid: r.uid, username: r.username, tracking: true}))
-    }),
-    doRPC('user.search', {query: term}, {}).then(results => {
-      return results.map(r => ({uid: r.uid, username: r.username}))
-    }),
-  ])
-    .then(results => {
-      const trackingUsernames = new Set(results[0].map(u => u.uid))
-      dispatch({
-        type: Constants.searchResults,
-        payload: {
-          base,
-          results: results[0].concat(results[1].filter(r => !trackingUsernames.has(r.uid))),
-        },
-      })
-    })
-    .catch(err => dispatch({
-      type: Constants.searchResults,
-      payload: {
-        base,
-        error: err,
-      },
-    }))
-}, 150)
-
-export function submitSearch (base, term) {
-  return (dispatch, getState) => {
-    if (term === '') {
-      // Clears any existing search results
-      return dispatch(initSearch(base))
+  if (platform === 'Keybase') {
+    if (serviceName) {
+      return {
+        service: 'external',
+        icon: platformToIcon(serviceName),
+        serviceUsername: rr.service && rr.service.username || '',
+        serviceAvatar: rr.service && rr.service.picture_url,
+        fullNameOnService: fullName,
+      }
+    } else {
+      return {
+        service: 'none',
+        fullName,
+      }
     }
+  } else {
+    if (rr.keybase) {
+      return {
+        service: 'keybase',
+        username: rr.keybase.username,
+        fullName: fullName,
+        // TODO (MM) get following status
+        isFollowing: false,
+      }
+    } else {
+      return {
+        service: 'none',
+        fullName,
+      }
+    }
+  }
+}
+
+function parseRawResult (platform: SearchPlatforms, rr: RawResult): ?SearchResult {
+  const extraInfo = parseExtraInfo(platform, rr)
+  const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
+
+  if (platform === 'Keybase' && rr.keybase) {
+    return {
+      service: 'keybase',
+      username: rr.keybase.username,
+      isFollowing: rr.keybase.is_followee,
+      extraInfo,
+    }
+  } else if (serviceName) {
+    return {
+      service: 'external',
+      icon: platformToLogo32(serviceName),
+      username: rr.service && rr.service.username || '',
+      serviceName,
+      profileUrl: 'TODO',
+      serviceAvatar: rr.service && rr.service.picture_url,
+      extraInfo,
+      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', rr) : null,
+    }
+  } else {
+    return null
+  }
+}
+
+function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>): Results {
+  const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr)))
+
+  return {
+    type: Constants.results,
+    payload: {term, results},
+  }
+}
+
+export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results> {
+  return dispatch => {
+    if (trim(term) === '') {
+      return
+    }
+
+    // TODO daemon rpc, for now api hit
+    // const params: UserSearchRpc = {
+    //   method: 'user.search',
+    //   param: {
+    //     query: term
+    //   },
+    //   incomingCallMap: {},
+    //   callback: (error: ?any, uresults: UserSearchResult) => {
+    //     if (error) {
+    //       console.log('Error searching. Not handling this error')
+    //     } else {
+    //       dispatch(results(term, uresults))
+    //     }
+    //   }
+    // }
+
+    // engine.rpc(params)
+
+    // In case platform is passed in as null
+    const platform: SearchPlatforms = maybePlatform || 'Keybase'
+
     dispatch({
-      type: Constants.searchTerm,
+      type: Constants.search,
       payload: {
-        base,
         term,
+        error: false,
       },
     })
-    submitSearchDebounced(base, term, dispatch, getState)
+
+    const service = {
+      'Keybase': '',
+      'Twitter': 'twitter',
+      'Reddit': 'reddit',
+      'Hackernews': 'hackernews',
+      'Coinbase': 'coinbase',
+      'Github': 'github',
+      'Pgp': 'pgp',
+    }[platform]
+
+    const limit = 20
+    fetch(`https://keybase.io/_/api/1.0/user/user_search.json?q=${term}&num_wanted=${limit}&service=${service}`) // eslint-disable-line no-undef
+      .then(response => response.json()).then(json => dispatch(rawResults(term, platform, json.list || [])))
+  }
+}
+
+export function selectPlatform (platform: SearchPlatforms): SelectPlatform {
+  return {
+    type: Constants.selectPlatform,
+    payload: {platform},
+  }
+}
+
+export function selectUserForInfo (user: SearchResult): SelectUserForInfo {
+  return {
+    type: Constants.selectUserForInfo,
+    payload: {user},
+  }
+}
+
+export function addUserToGroup (user: SearchResult): AddUserToGroup {
+  return {
+    type: Constants.addUserToGroup,
+    payload: {user},
+  }
+}
+
+export function removeUserFromGroup (user: SearchResult): RemoveUserFromGroup {
+  return {
+    type: Constants.removeUserFromGroup,
+    payload: {user},
+  }
+}
+
+export function hideUserGroup (): ToggleUserGroup {
+  return {
+    type: Constants.toggleUserGroup,
+    payload: {show: false},
   }
 }

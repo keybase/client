@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 
-import type {SearchResult} from './render'
+import type {SearchResult} from '../../constants/search'
 import type {IconType} from '../../common-adapters/icon'
 
 export type UserFn = (user: SearchResult) => void

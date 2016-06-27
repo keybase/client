@@ -1,9 +1,22 @@
 /* @flow */
 
+import type {Props as UserSearchProps} from './user-search/render'
+import type {UserFn} from './user-search/user-group'
+import type {SearchResult} from '../constants/search'
+
 export type Props = {
   showComingSoon: boolean,
-  username: string
-}
+  username: string,
+  userForInfoPane: ?SearchResult,
+  showUserGroup: boolean,
+  selectedUsers: Array<SearchResult>,
+  onRemoveUserFromGroup: UserFn,
+  onClickUserInGroup: UserFn,
+  onAddAnotherUserToGroup?: () => void,
+  onOpenPrivateGroupFolder: () => void,
+  onOpenPublicGroupFolder: () => void,
+  onGroupChat: () => void,
+  chatEnabled: boolean
+} & UserSearchProps
 
-export default class Render extends React$Component<void, Props, void> {
-}
+export default class Render extends React$Component<void, Props, void> { }

@@ -10,6 +10,9 @@ const results = [
     serviceAvatar: null,
     icon: 'icon-twitter-logo-32',
     username: 'malgorithms',
+    serviceName: 'Twitter',
+    profileUrl: 'https://twitter.com/malgorithms',
+    keybaseSearchResult: null,
     extraInfo: {
       service: 'keybase',
       username: 'chris',
@@ -64,13 +67,15 @@ const userSearchMap: DumbComponentMap<UserSearch> = {
   component: UserSearch,
   mocks: {
     'Normal': {
+      onSearch: text => console.log('OnSearch: ', text),
       searchHintText: 'Search Keybase',
       searchText: 'malg',
       searchIcon: 'logo-32',
-      selectedService: 'keybase',
+      selectedService: 'Keybase',
       onClickService: () => console.log('onClickService'),
       onClickResult: () => console.log('onClickResult'),
       results,
+      showUserGroup: false,
     },
   },
 }
@@ -102,8 +107,11 @@ const userGroupMap: DumbComponentMap<UserGroup> = {
         {
           service: 'external',
           serviceAvatar: null,
+          serviceName: 'Twitter',
           icon: 'fa-twitter',
           username: 'malgorithms',
+          profileUrl: 'https://twitter.com/malgorithms',
+          keybaseSearchResult: null,
           extraInfo: {
             service: 'external',
             icon: 'fa-twitter',

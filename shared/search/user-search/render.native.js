@@ -3,7 +3,8 @@ import React, {Component} from 'react'
 import {Avatar, Box, Icon, Input, Text, ListItem} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
-import type {Props, SearchResult} from './render'
+import type {Props} from './render'
+import type {SearchResult} from '../../constants/search'
 import type {Props as TextProps} from '../../common-adapters/text'
 
 function EmboldenTextMatch ({text, match, style, textType, emboldenStyle}: {text: string, match: string, emboldenStyle?: Object, style?: Object, textType: TextProps.type}) {
@@ -113,7 +114,7 @@ export default class Render extends Component<void, Props, void> {
           containerStyle={{backgroundColor: globalColors.blue4}}
           icon={<Icon type={this.props.searchIcon} style={{width: 32, height: 32}} />}
           body={<Box style={{flex: 2, height: 32}}>
-            <Input type='text' autoCapitalize='none' value={this.props.searchText} hintText={this.props.searchHintText} iosOmitUnderline style={{marginTop: 0, height: 32}} />
+            <Input type='text' autoCapitalize='none' value={this.props.searchText} hintText={this.props.searchHintText} iosOmitUnderline style={{marginTop: 0, height: 32}} onChangeText={text => this.props.onSearch(text)} /> />
           </Box>}
           action={<Box />} />
         {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} searchText={this.props.searchText || ''} />)}

@@ -17,6 +17,7 @@ import type {Action} from '../constants/types/flux'
 export type TrackerState = {
   type: 'tracker',
   eldestKidChanged: boolean,
+  currentlyFollowing: boolean,
   serverActive: boolean,
   trackerState: SimpleProofState,
   username: string,
@@ -46,7 +47,8 @@ type TrackerOrNonUserState = TrackerState | NonUserState
 export type State = {
   serverStarted: boolean,
   trackers: {[key: string]: TrackerOrNonUserState},
-  timerActive: number
+  pendingIdentifies: {[key: string]: boolean},
+  timerActive: number,
 }
 
 const initialProofState = checking
@@ -55,6 +57,7 @@ const initialState: State = {
   serverStarted: false,
   timerActive: 0,
   trackers: {},
+  pendingIdentifies: {},
 }
 
 function initialTrackerState (username: string): TrackerState {
@@ -328,6 +331,16 @@ export default function (state: State = initialState, action: Action): State {
       return {
         ...state,
         timerActive: state.timerActive - 1,
+      }
+    case Constants.pendingIdentify:
+      if (!action.error) {
+        return {
+          ...state,
+          pendingIdentifies: {
+            ...state.pendingIdentifies,
+            [action.payload.username]: action.payload.pending,
+          },
+        }
       }
   }
 
