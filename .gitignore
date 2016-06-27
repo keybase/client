@@ -40,3 +40,6 @@ npm-debug.log
 node_modules
 
 Keybase.app.dSYM.zip
+
+js-vendor-desktop
+node_shrinkwrap
