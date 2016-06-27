@@ -26,7 +26,7 @@ import java.util.List;
 
 import go.keybase.Keybase;
 
-import static go.keybase.Keybase.Init;
+import static go.keybase.Keybase.InitOnce;
 import static go.keybase.Keybase.LogSend;
 
 public class MainActivity extends ReactActivity {
@@ -66,7 +66,7 @@ public class MainActivity extends ReactActivity {
             startActivityForResult(intent, -1);
         }
 
-        Init(this.getFilesDir().getPath(), logFile.getAbsolutePath(), "staging", "", false);
+        InitOnce(this.getFilesDir().getPath(), logFile.getAbsolutePath(), "staging", false);
 
         try {
             Keybase.SetGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));

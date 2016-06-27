@@ -46,7 +46,7 @@ if [ ! -f "$GOPATH/bin/gomobile" ]; then
   "$GOPATH/bin/gomobile" init
 fi
 
-package="github.com/keybase/client/go/loopback"
+package="github.com/keybase/client/go/bind"
 
 arg=${1:-}
 
