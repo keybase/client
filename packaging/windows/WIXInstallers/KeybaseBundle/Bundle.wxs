@@ -207,8 +207,8 @@
                      Result="version"
                      />
     <bal:Condition
-      Message="Installation failed because Microsoft patch KB3033929 is not installed. A reboot is needed between the installation of said patch and the installation of Keybase. https://support.microsoft.com/en-us/kb/3033929">
-      <![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND WINTRUSTVERSION >= 6.1.7601.18741)]]>
+      Message="Microsoft patch KB3033929 is not installed. A reboot is needed between the installation of said patch and the installation of Keybase. https://support.microsoft.com/en-us/kb/3033929">
+      <![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND WINTRUSTVERSION >= v6.1.7601.18741)]]>
     </bal:Condition>
   </Fragment>
 </Wix>
