@@ -562,14 +562,14 @@ func (c *ConfigLocal) MaxDirBytes() uint64 {
 	return c.maxDirBytes
 }
 
-// ResetCaches implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) ResetCaches() {
+func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.mdcache = NewMDCacheStandard(5000)
 	c.kcache = NewKeyCacheStandard(5000)
 	// Limit the block cache to 10K entries or 1024 blocks (currently 512MiB)
 	c.bcache = NewBlockCacheStandard(c, 10000, MaxBlockSizeBytesDefault*1024)
+	oldDirtyBcache := c.dirtyBcache
 	minFactor := 1
 	if maxParallelBlockPuts > 10 {
 		minFactor = maxParallelBlockPuts / 10
@@ -594,6 +594,22 @@ func (c *ConfigLocal) ResetCaches() {
 		int64(MaxBlockSizeBytesDefault * maxParallelBlockPuts * 2)
 	c.dirtyBcache = NewDirtyBlockCacheStandard(c.clock, c.MakeLogger,
 		minSyncBufferSize, maxSyncBufferSize)
+	return oldDirtyBcache
+}
+
+// ResetCaches implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) ResetCaches() {
+	oldDirtyBcache := c.resetCachesWithoutShutdown()
+	if oldDirtyBcache != nil {
+		// Shutdown outside of the lock so it doesn't block other
+		// access to this config.
+		if err := oldDirtyBcache.Shutdown(); err != nil {
+			if log := c.MakeLogger(""); log != nil {
+				log.CWarningf(nil,
+					"Error shutting down old dirty block cache: %v", err)
+			}
+		}
+	}
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.
