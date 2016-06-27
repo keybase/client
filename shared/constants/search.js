@@ -48,6 +48,14 @@ export function fullName (extraInfo: ExtraInfo): string {
   return ''
 }
 
+export function searchResultToAssertion (r: SearchResult): string {
+  if (r.service === 'external') {
+    return `${r.username}@${r.serviceName}`
+  }
+
+  return r.username
+}
+
 export const search = 'search:search'
 export type Search = TypedAction<'search:search', {term: string}, void>
 

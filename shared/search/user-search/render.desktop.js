@@ -156,6 +156,15 @@ export class SearchBar extends Component<void, SearchBarProps, void> {
     }
   }
 
+  _onSearch (overridePlatform?: SearchPlatforms) {
+    this.props.onSearch(this.refs.searchBox ? this.refs.searchBox.getValue() : '', overridePlatform || null)
+  }
+
+  _onClickService (platform: SearchPlatforms) {
+    this.props.onClickService(platform)
+    this.refs.searchBox && !!this.refs.searchBox.getValue() && this._onSearch(platform)
+  }
+
   render () {
     return (
       <Box style={styles.headerContainer}>
@@ -165,41 +174,41 @@ export class SearchBar extends Component<void, SearchBarProps, void> {
             tooltip='Keybase'
             iconType='keybase-logo-mascot-only-dz-2-24'
             selected={this.props.selectedService === 'Keybase'}
-            onClickService={this.props.onClickService}
+            onClickService={p => this._onClickService(p)}
             />
           <ServiceIcon
             serviceName='Twitter'
             tooltip='Twitter'
             iconType='icon-twitter-logo-24'
             selected={this.props.selectedService === 'Twitter'}
-            onClickService={this.props.onClickService}
+            onClickService={p => this._onClickService(p)}
             />
           <ServiceIcon
             serviceName='Github'
             tooltip='Github'
             iconType='icon-github-logo-24'
             selected={this.props.selectedService === 'Github'}
-            onClickService={this.props.onClickService}
+            onClickService={p => this._onClickService(p)}
             />
           <ServiceIcon
             serviceName='Coinbase'
             tooltip='Coinbase'
             iconType='icon-coinbase-logo-24'
             selected={this.props.selectedService === 'Coinbase'}
-            onClickService={this.props.onClickService}
+            onClickService={p => this._onClickService(p)}
             />
           <ServiceIcon
             serviceName='Reddit'
             tooltip='Reddit'
             iconType='icon-reddit-logo-24'
             selected={this.props.selectedService === 'Reddit'}
-            onClickService={this.props.onClickService}
+            onClickService={p => this._onClickService(p)}
             />
         </Box>
         <Input
           type='text'
           ref='searchBox'
-          onEnterKeyDown={e => this.props.onSearch(this.refs.searchBox ? this.refs.searchBox.getValue() : '')}
+          onEnterKeyDown={() => this._onSearch()}
           value={this.props.searchText}
           hintText={this.props.searchHintText}
           style={styles.input}

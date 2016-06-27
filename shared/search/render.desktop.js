@@ -15,8 +15,6 @@ class Render extends Component<void, Props, void> {
   }
 
   _renderInfoPane () {
-    // TODO(mm) maybe shell out to a smart component here?
-    // One that only takes a username and can figure out the rest
     return (
       <Box style={{flex: 1}}>
         <UserPane />

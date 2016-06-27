@@ -19,3 +19,11 @@ export const devConfigLoading = 'config:devConfigLoading'
 export const devConfigLoaded = 'config:devConfigLoaded'
 export const devConfigUpdate = 'config:devConfigUpdate'
 export const devConfigSaved = 'config:devConfigSaved'
+
+export function privateFolderWithUsers (users: Array<string>): string {
+  return `${defaultKBFSPath}${defaultPrivatePrefix}${users.join(',')}`
+}
+
+export function publicFolderWithUsers (users: Array<string>): string {
+  return `${defaultKBFSPath}${defaultPublicPrefix}${users.join(',')}`
+}
