@@ -18,8 +18,12 @@ import (
 func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
 	tc := libkb.SetupTest(tb, name, 2)
 	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
-		tc.G.Log.Warning("Installing insecure Triplesec with weak stretch parameters")
-		return insecureTriplesec.NewCipher(passphrase, salt)
+		warner := func() { tc.G.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
+		isProduction := func() bool {
+			runMode, err := tc.G.Env.GetRunMode()
+			return err != nil || runMode == libkb.ProductionRunMode
+		}
+		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
 	}
 	return tc
 }
