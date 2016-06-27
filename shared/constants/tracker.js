@@ -63,7 +63,10 @@ export const rpcUpdateTimerSeconds = 60 * 1000
 export const showNonUser = 'tracker:showNonUser'
 export type ShowNonUser = TypedAction<'tracker:showNonUser', identifyUiDisplayTLFCreateWithInviteRpc.param, void>
 
-export type NonUserActions = ShowNonUser | OnClose
+export const pendingIdentify = 'tracker:pendingIdentify'
+export type PendingIdentify = TypedAction<'tracker:pendingIdentify', {username: string, pending: boolean}, void>
+
+export type NonUserActions = ShowNonUser | OnClose | PendingIdentify
 
 export type TrackingInfo = {
   username: string,

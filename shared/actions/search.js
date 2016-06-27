@@ -89,6 +89,9 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult): ?SearchResul
       service: 'external',
       icon: platformToLogo32(serviceName),
       username: rr.service && rr.service.username || '',
+      serviceName,
+      profileUrl: 'TODO',
+      serviceAvatar: rr.service && rr.service.picture_url,
       extraInfo,
       keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', rr) : null,
     }
@@ -111,6 +114,24 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
     if (trim(term) === '') {
       return
     }
+
+    // TODO daemon rpc, for now api hit
+    // const params: UserSearchRpc = {
+    //   method: 'user.search',
+    //   param: {
+    //     query: term
+    //   },
+    //   incomingCallMap: {},
+    //   callback: (error: ?any, uresults: UserSearchResult) => {
+    //     if (error) {
+    //       console.log('Error searching. Not handling this error')
+    //     } else {
+    //       dispatch(results(term, uresults))
+    //     }
+    //   }
+    // }
+
+    // engine.rpc(params)
 
     // In case platform is passed in as null
     const platform: SearchPlatforms = maybePlatform || 'Keybase'

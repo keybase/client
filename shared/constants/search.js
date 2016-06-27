@@ -3,6 +3,8 @@
 import type {IconType} from '../common-adapters/icon'
 import type {TypedAction} from '../constants/types/flux'
 
+export type SearchPlatforms = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Coinbase' | 'Hackernews' | 'Pgp'
+
 export type ExtraInfo = {
   service: 'external',
   icon: IconType,
@@ -27,9 +29,23 @@ export type SearchResult = {
 } | {
   service: 'external',
   icon: IconType,
+  serviceAvatar: ?string, // i.e. with twitter it would be their twitter avatar url
   username: string,
+  serviceName: SearchPlatforms,
+  profileUrl: string,
   extraInfo: ExtraInfo,
   keybaseSearchResult: ?SearchResult, // If we want to grab the keybase version of a search result
+}
+
+export function fullName (extraInfo: ExtraInfo): string {
+  switch (extraInfo.service) {
+    case 'keybase':
+    case 'none':
+      return extraInfo.fullName
+    case 'external':
+      return extraInfo.fullNameOnService || ''
+  }
+  return ''
 }
 
 export const search = 'search:search'
@@ -37,8 +53,6 @@ export type Search = TypedAction<'search:search', {term: string}, void>
 
 export const results = 'search:results'
 export type Results = TypedAction<'search:results', {term: string, results: Array<SearchResult>}, void>
-
-export type SearchPlatforms = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Coinbase' | 'Hackernews' | 'Pgp'
 
 export const selectPlatform = 'search:selectPlatform'
 export type SelectPlatform = TypedAction<'search:selectPlatform', {platform: SearchPlatforms}, void>
@@ -84,6 +98,19 @@ export function platformToLogo32 (platform: SearchPlatforms): IconType {
 
 // TODO(mm) get Logo for Hn
 export function platformToLogo24 (platform: SearchPlatforms): IconType {
+  return {
+    'Keybase': 'keybase-logo-mascot-only-dz-2-24',
+    'Twitter': 'icon-twitter-logo-24',
+    'Github': 'icon-github-logo-24',
+    'Reddit': 'icon-reddit-logo-24',
+    'Coinbase': 'icon-coinbase-logo-24',
+    'Hackernews': 'placeholder-avatar-24-x-24',
+    'Pgp': 'icon-pgp-key-24',
+  }[platform]
+}
+
+// TODO(mm) fill this out correctly
+export function platformToLogo16 (platform: SearchPlatforms): IconType {
   return {
     'Keybase': 'keybase-logo-mascot-only-dz-2-24',
     'Twitter': 'icon-twitter-logo-24',
