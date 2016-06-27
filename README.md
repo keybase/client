@@ -1,12 +1,12 @@
 ## Keybase [![Build Status](https://travis-ci.org/keybase/client.svg?branch=master)](https://travis-ci.org/keybase/client) [![Build status](https://ci.appveyor.com/api/projects/status/90mxorxtj6vixnum/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/client-x5qrt/branch/master)
 
-Hi, and welcome to the Keybase client repo.  All our client apps (OSX, Windows, Linux, iOS, and Android) are being actively developed in this repository. Please, dig around.
+Hi, and welcome to the Keybase client repo.  All our client apps (macOS, Windows, Linux, iOS, and Android) are being actively developed in this repository. Please, dig around.
 
 ### Warnings
 
 We'd love you to read our source code.
 
-But - some of the things in this repo are explorations, and the app you build from source just *might not do what it says it's doing*. So, if you just want to install Keybase on your computer, you should **[monitor our releases](https://keybase.io/download)** for OSX, Linux, or Windows.
+But - some of the things in this repo are explorations, and the app you build from source just *might not do what it says it's doing*. So, if you just want to install Keybase on your computer, you should **[monitor our releases](https://keybase.io/download)** for macOS, Linux, or Windows.
 
 ![Sharing](https://keybase.io/images/github/repo_share.png?)
 
@@ -15,11 +15,11 @@ But - some of the things in this repo are explorations, and the app you build fr
 
 * **go**: Core crypto libraries; the Keybase service; the command line client. [Learn More](go/README.md)
 * **react-native**: Android and iOS apps developed with [React Native](https://facebook.github.io/react-native/).
-* **desktop**: Desktop application for OSX, Linux and Windows, made with the [Electron](https://github.com/atom/electron) framework, sharing React code with react-native.
+* **desktop**: Desktop application for macOS, Linux, and Windows, made with the [Electron](https://github.com/atom/electron) framework, sharing React code with react-native.
 * **packaging**: Scripts for releasing packages across the various platforms.
 * **protocol**: Defines the protocol for communication for clients to the Keybase services. Uses [Avro](http://avro.apache.org/docs/1.7.7/). [Learn More](protocol/README.md)
 * **media**: Icons, graphics, media for Keybase apps.
-* **osx**: The Mac OS X Keybase.app, development parallel to an Electron-based application above. [Learn More](osx/README.md)
+* **osx**: The macOS Keybase.app, development parallel to an Electron-based application above. [Learn More](osx/README.md)
 
 
 ### Problems?

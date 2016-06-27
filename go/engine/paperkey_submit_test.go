@@ -92,3 +92,4 @@ func (n *nlistener) FavoritesChanged(uid keybase1.UID)                 {}
 func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID) {
 	n.paperEncKIDs = append(n.paperEncKIDs, encKID)
 }
+func (n *nlistener) KeyfamilyChanged(uid keybase1.UID) {}

@@ -317,7 +317,7 @@ func (c *PassphraseChange) commonArgs(a *libkb.Account, oldClientHalf []byte, pg
 		return nil, err
 	}
 
-	tsec, newPPStream, err := libkb.StretchPassphrase(c.arg.Passphrase, salt)
+	tsec, newPPStream, err := libkb.StretchPassphrase(c.G(), c.arg.Passphrase, salt)
 	if err != nil {
 		return nil, err
 	}
@@ -412,7 +412,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 
 // encodePrivatePGPKey encrypts key with tsec and armor-encodes it.
 // It includes the passphrase generation in the data.
-func (c *PassphraseChange) encodePrivatePGPKey(key libkb.GenericKey, tsec *triplesec.Cipher, gen libkb.PassphraseGeneration) (string, error) {
+func (c *PassphraseChange) encodePrivatePGPKey(key libkb.GenericKey, tsec libkb.Triplesec, gen libkb.PassphraseGeneration) (string, error) {
 	skb, err := key.ToServerSKB(c.G(), tsec, gen)
 	if err != nil {
 		return "", err

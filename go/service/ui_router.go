@@ -124,16 +124,6 @@ func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
 	return ret, nil
 }
 
-func (u *UIRouter) GetUpdateUI() (libkb.UpdateUI, error) {
-	x := u.getUI(libkb.UpdateUIKind)
-	if x == nil {
-		return nil, nil
-	}
-	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
-	scli := keybase1.UpdateUiClient{Cli: cli}
-	return &UpdateUI{cli: &scli}, nil
-}
-
 func (u *UIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) {
 	var err error
 	defer u.G().Trace("UIRouter.GetRekeyUI", func() error { return err })()

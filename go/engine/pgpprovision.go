@@ -156,7 +156,7 @@ func (e *PGPProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, error)
 	if err != nil {
 		return nil, err
 	}
-	_, pps, err := libkb.StretchPassphrase(e.passphrase, salt)
+	_, pps, err := libkb.StretchPassphrase(e.G(), e.passphrase, salt)
 	if err != nil {
 		return nil, err
 	}

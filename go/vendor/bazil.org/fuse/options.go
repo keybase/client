@@ -181,6 +181,9 @@ type OSXFUSEPaths struct {
 	Load string
 	// Path of the mount helper, used for the actual mount operation.
 	Mount string
+	// Environment variable used to pass the path to the executable
+	// calling the mount helper.
+	DaemonVar string
 }
 
 // Default paths for OSXFUSE. See OSXFUSELocations.
@@ -189,11 +192,13 @@ var (
 		DevicePrefix: "/dev/osxfuse",
 		Load:         "/Library/Filesystems/osxfuse.fs/Contents/Resources/load_osxfuse",
 		Mount:        "/Library/Filesystems/osxfuse.fs/Contents/Resources/mount_osxfuse",
+		DaemonVar:    "MOUNT_OSXFUSE_DAEMON_PATH",
 	}
 	OSXFUSELocationV2 = OSXFUSEPaths{
 		DevicePrefix: "/dev/osxfuse",
 		Load:         "/Library/Filesystems/osxfusefs.fs/Support/load_osxfusefs",
 		Mount:        "/Library/Filesystems/osxfusefs.fs/Support/mount_osxfusefs",
+		DaemonVar:    "MOUNT_FUSEFS_DAEMON_PATH",
 	}
 )
 

@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/keybase/go-crypto/openpgp"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 type KeyringFile struct {
@@ -414,7 +413,7 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(lctx LoginContext, me *User, passp
 		return
 	}
 	skb.SetUID(me.GetUID())
-	var tsec *triplesec.Cipher
+	var tsec Triplesec
 	var pps *PassphraseStream
 	if lctx != nil {
 		tsec = lctx.PassphraseStreamCache().Triplesec()

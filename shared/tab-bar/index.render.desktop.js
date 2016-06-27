@@ -69,6 +69,7 @@ export default class Render extends Component<void, Props, void> {
     return (
       <TabBarButton
         label={label}
+        styleLabel={{fontSize: 14, marginTop: 4}}
         selected={this.props.selectedTab === tab}
         badgeNumber={this.props.badgeNumbers[tab]}
         source={source} />
@@ -81,6 +82,8 @@ export default class Render extends Component<void, Props, void> {
     return (
       <TabBarButton
         style={stylesTabButton}
+        styleLabel={{fontSize: 13}}
+        styleLabelType='BodySemibold'
         label={label}
         selected={this.props.selectedTab === tab}
         badgeNumber={this.props.badgeNumbers[tab]}

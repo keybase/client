@@ -9,7 +9,6 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 type timedGenericKey struct {
@@ -164,7 +163,7 @@ func (a *Account) Logout() error {
 	return nil
 }
 
-func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps *PassphraseStream) {
+func (a *Account) CreateStreamCache(tsec Triplesec, pps *PassphraseStream) {
 	if a.streamCache != nil {
 		a.G().Log.Warning("Account.CreateStreamCache overwriting existing StreamCache")
 	}
@@ -204,7 +203,7 @@ func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
 		return err
 	}
 
-	tsec, pps, err := StretchPassphrase(passphrase, salt)
+	tsec, pps, err := StretchPassphrase(a.G(), passphrase, salt)
 	if err != nil {
 		return err
 	}

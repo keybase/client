@@ -15,7 +15,6 @@ import (
 	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 // PassphraseGeneration represents which generation of the passphrase is
@@ -43,7 +42,7 @@ type LoginContext interface {
 	LoggedInProvisionedLoad() (bool, error)
 	Logout() error
 
-	CreateStreamCache(tsec *triplesec.Cipher, pps *PassphraseStream)
+	CreateStreamCache(tsec Triplesec, pps *PassphraseStream)
 	CreateStreamCacheViaStretch(passphrase string) error
 	PassphraseStreamCache() *PassphraseStreamCache
 	ClearStreamCache()
@@ -283,7 +282,7 @@ func (s *LoginState) GetPassphraseStreamWithPassphrase(passphrase string) (pps *
 
 // GetVerifiedTripleSec either returns a cached, verified Triplesec
 // or generates a new one that's verified via Login.
-func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, gen PassphraseGeneration, err error) {
+func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret Triplesec, gen PassphraseGeneration, err error) {
 	err = s.Account(func(a *Account) {
 		ret = a.PassphraseStreamCache().Triplesec()
 		gen = a.GetStreamGeneration()

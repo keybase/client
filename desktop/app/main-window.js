@@ -4,6 +4,7 @@ import {resolveRoot} from '../resolve-root'
 import hotPath from '../hot-path'
 import {globalResizing} from '../shared/styles/style-guide'
 import isFirstTime from './first-time'
+import {forceMainWindowPosition} from '../shared/local-debug.desktop'
 
 export default function () {
   const mainWindow = new Window(
@@ -14,6 +15,10 @@ export default function () {
       show: false,
     }
   )
+
+  if (__DEV__ && forceMainWindowPosition) {
+    mainWindow.window.setPosition(forceMainWindowPosition.x, forceMainWindowPosition.y)
+  }
 
   isFirstTime.then(firstTime => {
     if (firstTime) {

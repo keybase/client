@@ -435,9 +435,12 @@ func (c *Conn) Read(out []byte) (n int, err error) {
 	}
 
 	if n == 0 {
-		if poll > 0 {
+		switch {
+		case c.getClosed():
+			err = io.EOF
+		case poll > 0:
 			err = ErrTimedOut
-		} else {
+		default:
 			err = ErrAgain
 		}
 	}

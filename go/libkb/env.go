@@ -75,6 +75,7 @@ func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)  { retu
 func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)  { return 0, false }
 func (n NullConfiguration) IsAdmin() (bool, bool)                         { return false, false }
 func (n NullConfiguration) GetGregorDisabled() (bool, bool)               { return false, false }
+func (n NullConfiguration) GetMountDir() string                           { return "" }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
@@ -1016,7 +1017,12 @@ func (e *Env) GetMountDir() (string, error) {
 		if runMode != ProductionRunMode {
 			return "", fmt.Errorf("KBFS is currently only supported in production mode on Windows")
 		}
-		return "k:", nil
+		return e.GetString(
+			func() string { return e.cmd.GetMountDir() },
+			func() string { return os.Getenv("KEYBASE_DRIVE_LETTER") },
+			func() string { return e.config.GetMountDir() },
+			func() string { return "k:" },
+		), nil
 	}
 
 	switch runMode {

@@ -75,23 +75,9 @@ export function registerTrackerChangeListener (): TrackerActionCreator {
   }
 }
 
-export function registerUserChangeListener (): TrackerActionCreator {
-  return dispatch => {
-    const params: incomingCallMapType = {
-      'keybase.1.NotifyUsers.userChanged': ({uid}) => {
-        dispatch(triggerIdentify(uid))
-      },
-    }
-
-    engine.listenGeneralIncomingRpc(params)
-    setNotifications({users: true})
-  }
-}
-
 export function registerTrackerIncomingRpcs (): TrackerActionCreator {
   return dispatch => {
     dispatch(registerTrackerChangeListener())
-    dispatch(registerUserChangeListener())
   }
 }
 

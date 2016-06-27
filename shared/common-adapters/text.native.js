@@ -132,13 +132,11 @@ export default class Text extends Component {
     const style = Text.textStyle(this.props, this.context)
 
     const terminalPrefix = this._terminalPrefix(this.props.type)
-    const className = this.props.className
 
     if (this.props.contentEditable) {
       return (
         <RNText
           ref='text'
-          className={className}
           style={style}
           contentEditable
           onKeyUp={this.props.onKeyUp}
@@ -148,7 +146,6 @@ export default class Text extends Component {
 
     return (
       <RNText
-        className={className}
         style={style}
         onPress={this.props.onClick}>{terminalPrefix}{this.props.children}</RNText>)
   }

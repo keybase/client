@@ -1,7 +1,6 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {routeAppend} from '../actions/router'
-import {pushNewProfile} from '../actions/profile'
 import {switchTab} from '../actions/tabbed-router'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
@@ -39,9 +38,6 @@ class DevMenu extends Component {
       {name: 'Search', hasChildren: true, onClick: () => {
         this.props.routeAppend('search')
       }},
-      {name: 'Profile', hasChildren: true, onClick: () => {
-        this.props.pushNewProfile('test12')
-      }},
       {name: 'Components', hasChildren: true, onClick: () => {
         this.props.routeAppend('components')
       }},
@@ -68,7 +64,6 @@ class DevMenu extends Component {
 DevMenu.propTypes = {
   routeAppend: React.PropTypes.func.isRequired,
   logout: React.PropTypes.func.isRequired,
-  pushNewProfile: React.PropTypes.func.isRequired,
   showTrackerListener: React.PropTypes.func.isRequired,
   switchTab: React.PropTypes.func.isRequired,
 }
@@ -80,7 +75,6 @@ export default connect(
       routeAppend: uri => dispatch(routeAppend(uri)),
       switchTab: tabName => dispatch(switchTab(tabName)),
       logout: () => dispatch(logout()),
-      pushNewProfile: username => dispatch(pushNewProfile(username)),
       showTrackerListener: username => dispatch(pushDebugTracker(username)),
     }
   }

@@ -14,7 +14,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 type PGPKeyImportEngine struct {
@@ -40,7 +39,7 @@ type PGPKeyImportEngineArg struct {
 	DoExport         bool
 	DoUnlock         bool
 	GPGFallback      bool
-	PreloadTsec      *triplesec.Cipher
+	PreloadTsec      libkb.Triplesec
 	PreloadStreamGen libkb.PassphraseGeneration
 }
 
@@ -308,7 +307,7 @@ func (e *PGPKeyImportEngine) generate(ctx *Context) (err error) {
 }
 
 func (e *PGPKeyImportEngine) prepareSecretPush(ctx *Context) error {
-	var tsec *triplesec.Cipher
+	var tsec libkb.Triplesec
 	var gen libkb.PassphraseGeneration
 	if e.arg.PreloadTsec != nil && e.arg.PreloadStreamGen > 0 {
 		tsec = e.arg.PreloadTsec

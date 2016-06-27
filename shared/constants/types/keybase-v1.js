@@ -129,6 +129,8 @@ export const device = {}
 
 export const favorite = {}
 
+export const fs = {}
+
 export const gpgCommon = {}
 
 export const gpgUi = {}
@@ -258,6 +260,8 @@ export const notifyCtl = {}
 export const NotifyFavorites = {}
 
 export const NotifyFS = {}
+
+export const NotifyKeyfamily = {}
 
 export const NotifyPaperKey = {}
 
@@ -444,31 +448,6 @@ export const ui = {
   },
 }
 
-export const update = {}
-
-export const updateCommon = {
-  'UpdateType': {
-    'normal': 0,
-    'bugfix': 1,
-    'critical': 2,
-  },
-}
-
-export const updateUi = {
-  'UpdateAction': {
-    'update': 0,
-    'skip': 1,
-    'snooze': 2,
-    'cancel': 3,
-  },
-  'UpdateAppInUseAction': {
-    'cancel': 0,
-    'force': 1,
-    'snooze': 2,
-    'killProcesses': 3,
-  },
-}
-
 export const user = {}
 
 export default {
@@ -485,6 +464,7 @@ export default {
   delegateUiCtl,
   device,
   favorite,
+  fs,
   gpgCommon,
   gpgUi,
   gregor,
@@ -506,6 +486,7 @@ export default {
   notifyCtl,
   NotifyFavorites,
   NotifyFS,
+  NotifyKeyfamily,
   NotifyPaperKey,
   NotifySession,
   NotifyTracking,
@@ -534,8 +515,5 @@ export default {
   test,
   track,
   ui,
-  update,
-  updateCommon,
-  updateUi,
   user,
 }

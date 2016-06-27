@@ -52,8 +52,13 @@ cat "$here/DOT_SRCINFO.bin.in" \
   | sed "s/@@SUM_x86_64@@/$sum_amd64/g" \
   > "$keybase_bin_repo/.SRCINFO"
 
-git -C "$keybase_bin_repo" commit -am "version bump"
-git -C "$keybase_bin_repo" push origin master
+if git -C "$keybase_bin_repo" commit -am "version bump" ; then
+  echo Pushing keybase-bin...
+  git -C "$keybase_bin_repo" push origin master
+else
+  echo No changes in keybase-bin. Skipping push.
+fi
+
 
 ###
 ### keybase-git
@@ -76,5 +81,9 @@ cat "$here/DOT_SRCINFO.git.in" \
   | sed "s/@@PKGVER@@/$git_pkgver/g" \
   > "$keybase_git_repo/.SRCINFO"
 
-git -C "$keybase_git_repo" commit -am "version bump"
-git -C "$keybase_git_repo" push origin master
+if git -C "$keybase_git_repo" commit -am "version bump" ; then
+  echo Pushing keybase-git...
+  git -C "$keybase_git_repo" push origin master
+else
+  echo No changes in keybase-git. Skipping push.
+fi

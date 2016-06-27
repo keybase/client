@@ -1,11 +1,12 @@
 import React, {Component} from 'react'
 import {View, Text} from 'react-native'
+import {Avatar} from './'
 
 export default class BioRender extends Component {
   render () {
     return (
-      <View style={{display: 'flex', flexDirection: 'column', alignItems: 'center', marginRight: 40}}>
-        <Text style={{backgroundColor: 'blue', width: 100, height: 100}}>Image</Text>
+      <View style={styles.container}>
+        <Avatar size={this.props.avatarSize} />
         <Text>Username</Text>
         <Text>Full Name</Text>
         <Text>Followers stuff</Text>
@@ -14,4 +15,11 @@ export default class BioRender extends Component {
       </View>
     )
   }
+}
+
+const styles = {
+  container: {
+    flexDirection: 'column',
+    alignItems: 'center',
+  },
 }

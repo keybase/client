@@ -69,7 +69,7 @@ func TestDecodeSKBSequence(t *testing.T) {
 }
 
 func makeTestLKSec(t *testing.T, gc *GlobalContext) *LKSec {
-	_, pps, err := StretchPassphrase("makeTestLKSec", []byte("saltsaltsaltsalt"))
+	_, pps, err := StretchPassphrase(gc, "makeTestLKSec", []byte("saltsaltsaltsalt"))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -18,14 +18,13 @@ package libkb
 
 import (
 	"fmt"
+	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"io"
 	"os"
 	"runtime"
 	"sync"
-
-	"github.com/jonboulle/clockwork"
-	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type ShutdownHook func() error
@@ -83,6 +82,9 @@ type GlobalContext struct {
 	GregorDismisser     GregorDismisser        // for dismissing gregor items that we've handled
 	GregorListener      GregorListener         // for alerting about clients connecting and registering UI protocols
 	OutOfDateInfo       keybase1.OutOfDateInfo // Stores out of date messages we got from API server headers.
+
+	// Can be overloaded by tests to get an improvement in performance
+	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -92,6 +94,7 @@ func NewGlobalContext() *GlobalContext {
 		VDL:                 NewVDebugLog(log),
 		ProofCheckerFactory: defaultProofCheckerFactory,
 		clock:               clockwork.NewRealClock(),
+		NewTriplesec:        NewSecureTriplesec,
 	}
 }
 
@@ -603,4 +606,12 @@ func (g *GlobalContext) GetMountDir() (string, error) {
 
 func (g *GlobalContext) GetServiceInfoPath() string {
 	return g.Env.GetServiceInfoPath()
+}
+
+func (g *GlobalContext) GetLogDir() string {
+	return g.Env.GetLogDir()
+}
+
+func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {
+	return &RPCLogFactory{Contextified: NewContextified(g)}
 }

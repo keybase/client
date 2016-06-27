@@ -1,0 +1,46 @@
+{
+  "protocol": "fs",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "File",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ListResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "File"
+          },
+          "name": "files"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "List": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ],
+      "response": "ListResult",
+      "doc": "List files in a path. Implemented by KBFS service."
+    }
+  },
+  "namespace": "keybase.1"
+}

@@ -8,8 +8,8 @@ import DevicePageMap from '../devices/device-page/dumb.native'
 import FoldersMap from '../folders/dumb'
 import FoldersConfirmMap from '../folders/confirm/dumb'
 import SearchMap from '../search/dumb'
-import Friendships from '../profile/friendships.dumb'
 import type {DumbComponentMap} from '../constants/types/more'
+import Tracker from '../tracker/dumb.native'
 
 const map: DumbComponentMap = {
   ...CommonMap,
@@ -22,7 +22,7 @@ const map: DumbComponentMap = {
   ...FoldersMap,
   ...FoldersConfirmMap,
   ...SearchMap,
-  ...Friendships,
+  ...Tracker,
 }
 
 export default map
