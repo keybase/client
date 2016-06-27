@@ -72,6 +72,8 @@ type CommandLine interface {
 	GetTorProxy() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
 
+	GetMountDir() string
+
 	// Lower-level functions
 	GetGString(string) string
 	GetString(string) string
@@ -154,6 +156,7 @@ type ConfigReader interface {
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorDisabled() (bool, bool)
 	GetGregorPingInterval() (time.Duration, bool)
+	GetMountDir() string
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
