@@ -51,6 +51,8 @@ type UserInfo struct {
 	// reset.
 	UnverifiedVerifyingKeys   []VerifyingKey
 	UnverifiedCryptPublicKeys []CryptPublicKey
+
+	CachedUnverifiedKeys bool
 }
 
 // SessionInfo contains all the info about the keybase session that

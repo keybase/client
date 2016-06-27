@@ -94,7 +94,7 @@ func (k *KBPKIClient) GetNormalizedUsername(ctx context.Context, uid keybase1.UI
 }
 
 func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey VerifyingKey, atServerTime time.Time, checkUnverified bool) (bool, error) {
+	verifyingKey VerifyingKey, atServerTime time.Time) (bool, error) {
 	userInfo, err := k.loadUserPlusKeys(ctx, uid)
 	if err != nil {
 		return false, err
@@ -126,8 +126,14 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		return false, nil
 	}
 
-	if !checkUnverified {
-		return false, nil
+	return false, nil
+}
+
+func (k *KBPKIClient) hasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID,
+	verifyingKey VerifyingKey) (bool, error) {
+	_, err := k.loadUserPlusKeys(ctx, uid)
+	if err != nil {
+		return false, err
 	}
 
 	verifyingKeys, _, err := k.loadUnverifiedKeys(ctx, uid)
@@ -149,8 +155,8 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey VerifyingKey, atServerTime time.Time, checkUnverified bool) error {
-	ok, err := k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime, checkUnverified)
+	verifyingKey VerifyingKey, atServerTime time.Time) error {
+	ok, err := k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
 	if err != nil {
 		return err
 	}
@@ -163,7 +169,28 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	// service hasn't learned of the users' new key yet.
 	k.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, uid)
 
-	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime, checkUnverified)
+	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return KeyNotFoundError{verifyingKey.kid}
+	}
+	return nil
+}
+
+// HasUnverifiedVerifyingKey implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) HasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID,
+	verifyingKey VerifyingKey) error {
+	ok, err := k.hasUnverifiedVerifyingKey(ctx, uid, verifyingKey)
+	if err != nil {
+		return err
+	}
+	if ok {
+		return nil
+	}
+	k.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, uid)
+	ok, err = k.hasUnverifiedVerifyingKey(ctx, uid, verifyingKey)
 	if err != nil {
 		return err
 	}

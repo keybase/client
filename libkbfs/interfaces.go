@@ -371,8 +371,15 @@ type KBPKI interface {
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.
 	HasVerifyingKey(ctx context.Context, uid keybase1.UID,
-		verifyingKey VerifyingKey, atServerTime time.Time,
-	        checkUnverified bool) error
+		verifyingKey VerifyingKey, atServerTime time.Time) error
+
+	// HasUnverifiedVerifyingKey returns nil if the given user has the given
+	// unverified VerifyingKey, and an error otherwise.  Note that any match
+	// is with a key not verified to be currently connected to the user via
+	// their sigchain.  This is currently only used to verify finalized or
+	// reset TLFs.
+	HasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID,
+		verifyingKey VerifyingKey) error
 
 	// GetCryptPublicKeys gets all of a user's crypt public keys (including
 	// paper keys).

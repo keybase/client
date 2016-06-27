@@ -208,6 +208,7 @@ func (k *KeybaseDaemonRPC) setCachedUnverifiedKeys(uid keybase1.UID, vk []Verify
 	if info, ok := k.userCache[uid]; ok {
 		info.UnverifiedVerifyingKeys = vk
 		info.UnverifiedCryptPublicKeys = cpk
+		info.CachedUnverifiedKeys = true
 		k.userCache[uid] = info
 	}
 }
@@ -575,9 +576,7 @@ func (k *KeybaseDaemonRPC) processUserPlusKeys(upk keybase1.UserPlusKeys) (
 func (k *KeybaseDaemonRPC) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
 	[]VerifyingKey, []CryptPublicKey, error) {
 	cachedUserInfo := k.getCachedUserInfo(uid)
-	keys := len(cachedUserInfo.UnverifiedVerifyingKeys) +
-		len(cachedUserInfo.UnverifiedCryptPublicKeys)
-	if keys != 0 {
+	if cachedUserInfo.CachedUnverifiedKeys {
 		return cachedUserInfo.UnverifiedVerifyingKeys,
 			cachedUserInfo.UnverifiedCryptPublicKeys, nil
 	}

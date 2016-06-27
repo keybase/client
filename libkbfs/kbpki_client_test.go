@@ -76,13 +76,13 @@ func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 	c, _, localUsers := makeTestKBPKIClient(t)
 
 	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		localUsers[0].VerifyingKeys[0], time.Now(), false)
+		localUsers[0].VerifyingKeys[0], time.Now())
 	if err != nil {
 		t.Error(err)
 	}
 
 	err = c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		VerifyingKey{}, time.Now(), false)
+		VerifyingKey{}, time.Now())
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
@@ -100,14 +100,14 @@ func TestKBPKIClientHasRevokedVerifyingKey(t *testing.T) {
 
 	// Something verified before the key was revoked
 	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		revokedKey, revokeTime.Add(-10*time.Second), false)
+		revokedKey, revokeTime.Add(-10*time.Second))
 	if err != nil {
 		t.Error(err)
 	}
 
 	// Something verified after the key was revoked
 	err = c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		revokedKey, revokeTime.Add(10*time.Second), false)
+		revokedKey, revokeTime.Add(10*time.Second))
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
@@ -142,7 +142,7 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 	config.mockKbd.EXPECT().LoadUserPlusKeys(gomock.Any(), u).
 		Return(info2, nil)
 
-	err := c.HasVerifyingKey(context.Background(), u, key2, time.Now(), false)
+	err := c.HasVerifyingKey(context.Background(), u, key2, time.Now())
 	if err != nil {
 		t.Error(err)
 	}
@@ -212,16 +212,14 @@ func TestKBPKIClientHasUnverifiedVerifyingKey(t *testing.T) {
 		break
 	}
 
-	checkUnverified := false
 	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		unverifiedKey, time.Time{}, checkUnverified)
+		unverifiedKey, time.Time{})
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
 
-	checkUnverified = true
-	err = c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		unverifiedKey, time.Time{}, checkUnverified)
+	err = c.HasUnverifiedVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
+		unverifiedKey)
 	if err != nil {
 		t.Fatal(err)
 	}

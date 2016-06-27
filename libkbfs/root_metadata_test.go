@@ -700,4 +700,12 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	// touch something the server shouldn't be allowed to edit for finalized metadata
+	// and verify verification failure.
+	rmds2.MD.Flags |= MetadataFlagRekey
+	err = rmds2.VerifyRootMetadata(config.Codec(), config.Crypto())
+	if err == nil {
+		t.Fatalf("expected error")
+	}
 }
