@@ -443,31 +443,6 @@ export const ui = {
   }
 }
 
-export const update = {}
-
-export const updateCommon = {
-  'UpdateType': {
-    'normal': 0,
-    'bugfix': 1,
-    'critical': 2
-  }
-}
-
-export const updateUi = {
-  'UpdateAction': {
-    'update': 0,
-    'skip': 1,
-    'snooze': 2,
-    'cancel': 3
-  },
-  'UpdateAppInUseAction': {
-    'cancel': 0,
-    'force': 1,
-    'snooze': 2,
-    'killProcesses': 3
-  }
-}
-
 export const user = {}
 
 export default {
@@ -533,8 +508,5 @@ export default {
   test,
   track,
   ui,
-  update,
-  updateCommon,
-  updateUi,
   user
 }

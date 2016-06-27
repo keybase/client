@@ -19,8 +19,6 @@ import signup from './signup'
 import tabbedRouter from './tabbed-router'
 import tracker from './tracker'
 import unlockFolders from './unlock-folders'
-import updateConfirm from './update-confirm'
-import updatePaused from './update-paused'
 import devEdit from './dev-edit'
 
 let history = List()
@@ -51,8 +49,6 @@ const combinedReducer = combineReducers({
   tracker,
   pinentry,
   favorite,
-  updateConfirm,
-  updatePaused,
   signup,
   unlockFolders,
   notifications,
