@@ -16,7 +16,6 @@ import developer from './developer'
 import login from '../login'
 import pinentry from '../pinentry'
 import tracker from '../tracker'
-import componentsUpdate from './components-update'
 import styleSheet from './style-sheet'
 import dumbSheet from './dumb-sheet'
 
@@ -69,9 +68,6 @@ class DevMenu extends Component {
       {name: 'Remote Window', hasChildren: true, onClick: () => {
         this.props.routeAppend([{parseRoute: {componentAtTop: {component: Foo}}}])
       }},
-      {name: 'Components (Update)', hasChildren: true, onClick: () => {
-        this.props.routeAppend(['componentsUpdate'])
-      }},
       {name: 'Dumb components', hasChildren: true, onClick: () => {
         this.props.routeAppend(['dumbSheet'])
       }},
@@ -90,7 +86,7 @@ class DevMenu extends Component {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Dev Menu'},
-      subRoutes: {developer, login, pinentry, tracker, componentsUpdate, styleSheet, dumbSheet},
+      subRoutes: {developer, login, pinentry, tracker, styleSheet, dumbSheet},
     }
   }
 }

@@ -9,7 +9,6 @@ import {globalColors} from '../shared/styles/style-guide'
 
 import tracker from '../shared/tracker'
 import pinentry from '../shared/pinentry'
-import update from '../shared/update'
 import unlockFolders from '../shared/unlock-folders'
 
 import {setupContextMenu} from '../app/menu-helper'
@@ -76,7 +75,7 @@ class RemoteComponentLoader extends Component {
 
     hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__) // eslint-disable-line no-undef
 
-    const component = {tracker, pinentry, update, unlockFolders}
+    const component = {tracker, pinentry, unlockFolders}
 
     if (!componentToLoad || !component[componentToLoad]) {
       throw new TypeError('Invalid Remote Component passed through')
