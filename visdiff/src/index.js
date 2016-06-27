@@ -53,7 +53,13 @@ function checkout (commit) {
   } else {
     console.log(`Installing dependencies for package.json:${newPackageHash}...`)
   }
-  spawnSync(NPM_CMD, ['install'], {stdio: 'inherit'})
+
+  if (JSON.parse(fs.readFileSync('package.json')).keybaseVendoredDependencies) {
+    spawnSync(NPM_CMD, ['run', 'vendor-install'], {stdio: 'inherit'})
+  } else {
+    console.log('Warning: not using vendored dependencies')
+    spawnSync(NPM_CMD, ['install'], {stdio: 'inherit'})
+  }
 }
 
 function renderScreenshots (commitRange) {
