@@ -3,7 +3,8 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 import {normal as proofNormal} from '../constants/tracker'
 import {Box, Icon, Text, UserBio, UserProofs, Usernames, BackButton} from '../common-adapters'
-import {userHeaderColor, UserActions} from './common.desktop'
+import {headerColor as whichHeaderColor} from '../common-adapters/user-bio.shared'
+import {UserActions} from './common.desktop'
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import ProfileHelp from './help.desktop'
@@ -54,7 +55,7 @@ class Render extends Component<void, Props, State> {
       return this._renderComingSoon()
     }
 
-    const headerColor = userHeaderColor(this.props.trackerState, this.props.currentlyFollowing)
+    const headerColor = whichHeaderColor(this.props)
 
     let proofNotice
     if (this.props.trackerState !== proofNormal) {

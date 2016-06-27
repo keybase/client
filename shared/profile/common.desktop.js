@@ -2,16 +2,8 @@
 import React from 'react'
 import {normal as proofNormal} from '../constants/tracker'
 import {Box, Button, FollowButton} from '../common-adapters'
-import {globalColors, globalMargins} from '../styles/style-guide'
+import {globalMargins} from '../styles/style-guide'
 import type {SimpleProofState} from '../constants/tracker'
-
-export function userHeaderColor (trackerState: SimpleProofState, currentlyFollowing: boolean) {
-  if (trackerState === proofNormal) {
-    return currentlyFollowing ? globalColors.green : globalColors.blue
-  } else {
-    return globalColors.red
-  }
-}
 
 export function UserActions ({trackerState, currentlyFollowing, style, onFollow, onUnfollow, onAcceptProofs}: {
   trackerState: SimpleProofState,

@@ -41,6 +41,6 @@ export function usernameStyle ({currentlyFollowing, trackerState}: {currentlyFol
 
 export function headerColor ({currentlyFollowing, trackerState}: {currentlyFollowing: boolean, trackerState: SimpleProofState}): string {
   if (trackerState === proofError) return globalColors.red
-  if (currentlyFollowing) return globalColors.green2
+  if (currentlyFollowing) return globalColors.green
   return globalColors.blue
 }
