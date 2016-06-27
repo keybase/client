@@ -23,12 +23,12 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
   }
 
   render () {
-    const iconType = this.state.expanded ? 'fa-caret-down' : 'fa-caret-right'
+    const iconType = this.state.expanded ? 'fa-kb-iconfont-caret-down' : 'fa-kb-iconfont-caret-right'
     return (
       <Box>
         <Box style={stylesRevokedRow} onClick={e => this._toggleHeader(e)}>
           <Text type='BodySmallSemibold' style={{color: globalColors.black_60}}>Revoked devices</Text>
-          <Icon type={iconType} style={{padding: 5}} />
+          <Icon type={iconType} style={{padding: 5, fontSize: 8}} />
         </Box>
         {this.state.expanded && this.props.children}
       </Box>
@@ -61,7 +61,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
       <Box style={revoked ? {opacity: 0.2} : {}}>
         <Icon type={icon} />
       </Box>
-      <Box style={{flex: 1, marginLeft: 16}}>
+      <Box style={{flex: 1, marginLeft: globalMargins.small}}>
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
         </Box>
@@ -95,7 +95,7 @@ const RevokedDevices = ({revokedDevices, showExistingDevicePage}) => (
 const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
   <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white, height: globalMargins.xlarge}} onClick={addNewDevice}>
     <Icon type='icon-devices-add-64-x-48' />
-    <Text type='BodyPrimaryLink' onClick={addNewDevice} style={{marginLeft: 8}}>Add new...</Text>
+    <Text type='BodyPrimaryLink' onClick={addNewDevice} style={{marginLeft: globalMargins.tiny}}>Add new...</Text>
     <PopupMenu style={stylesPopup} visible={showingMenu} items={menuItems} onHidden={onHidden} />
   </Box>
 )
