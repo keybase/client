@@ -21,6 +21,12 @@ export default class BioRender extends Component {
     const followLabel = shared.followLabel(userInfo, currentlyFollowing)
     const headerColor = shared.headerColor(this.props)
 
+    let [bioLineClamp, locationLineClamp] = [{}, {}]
+    if (this.props.type === 'Tracker') {
+      bioLineClamp = {lineClamp: userInfo.location ? 2 : 3}
+      locationLineClamp = {lineClamp: 1}
+    }
+
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
         <Box style={stylesHeaderBar(avatarSize, headerColor)} />
@@ -41,9 +47,8 @@ export default class BioRender extends Component {
             {username}
           </Text>
           <Text type='BodySemibold' style={stylesFullname}>{userInfo.fullname}</Text>
-          {followLabel &&
-            <Text type='BodySmall' style={stylesFollowLabel}>{followLabel.toUpperCase()}</Text>
-          }
+          {!!followLabel &&
+            <Text type='BodySmall' style={stylesFollowLabel}>{followLabel.toUpperCase()}</Text>}
           <Text type='BodySmall' style={stylesFollowing}>
             <Text type='BodySmallLink' onClick={() => shared.onClickFollowers(username)} style={stylesFollowingLabel}>
               <Text type='BodySmall' style={stylesFollowingCount}>{userInfo.followersCount}</Text> {userInfo.followersCount === 1 ? 'Tracker' : 'Trackers'}
@@ -55,14 +60,12 @@ export default class BioRender extends Component {
               Tracking <Text type='BodySmall' style={stylesFollowingCount}>{userInfo.followingCount}</Text>
             </Text>
           </Text>
-          {userInfo.bio &&
-            <Text type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'} style={{...stylesBio}} lineClamp={userInfo.location ? 2 : 3}>
+          {!!userInfo.bio &&
+            <Text type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'} style={{...stylesBio}} {...bioLineClamp}>
               {userInfo.bio}
-            </Text>
-          }
-          {userInfo.location &&
-            <Text type='BodySmall' style={stylesLocation} lineClamp={1}>{userInfo.location}</Text>
-          }
+            </Text>}
+          {!!userInfo.location &&
+            <Text type='BodySmall' style={stylesLocation} {...locationLineClamp}>{userInfo.location}</Text>}
         </Box>
       </Box>
     )

@@ -19,6 +19,12 @@ export default class BioRender extends Component {
     const {followsYou} = userInfo
     const followLabel = shared.followLabel(userInfo, currentlyFollowing)
 
+    let [bioLineClamp, locationLineClamp] = [{}, {}]
+    if (this.props.type === 'Tracker') {
+      bioLineClamp = {lineClamp: userInfo.location ? 2 : 3}
+      locationLineClamp = {lineClamp: 1}
+    }
+
     return (
       <div style={this.props.style}>
         <div style={stylesContainer}>
@@ -52,12 +58,12 @@ export default class BioRender extends Component {
               </span>
             </Text>
             {userInfo.bio &&
-              <Text type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'} style={{...stylesBio, ...stylesBioType[this.props.type]}} lineClamp={userInfo.location ? 2 : 3}>
+              <Text type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'} style={{...stylesBio, ...stylesBioType[this.props.type]}} {...bioLineClamp}>
                 {userInfo.bio}
               </Text>
             }
             {userInfo.location &&
-              <Text type='BodySmall' style={stylesLocation} lineClamp={1}>{userInfo.location}</Text>
+              <Text type='BodySmall' style={stylesLocation} {...locationLineClamp}>{userInfo.location}</Text>
             }
           </div>
         </div>
