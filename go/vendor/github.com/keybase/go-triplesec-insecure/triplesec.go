@@ -76,7 +76,19 @@ func (c *Cipher) DeriveKey(extra int) ([]byte, []byte, error) {
 	dkLen := DkLen + extra
 
 	if c.derivedKey == nil || len(c.derivedKey) < dkLen {
-		dk, err := scrypt.Key(c.passphrase, c.salt, 2, 8, 1, dkLen)
+
+		// XXX XXX XX XXX XX XX XX XXX
+		//
+		//    NOW SEE THIS
+		//
+		// We're giving a very insecure and degraded value of N here
+		// at N=1; we typically run with N=2^15, but we want to make this
+		// fork of Triplesec intentionally weak so our tests run faster.
+		// So the second paramenter of scrypt.Key() is set to N=1
+		//
+		// XXX XXX XXX XXXX XXXX XXXXX
+		insecureNValue := 2
+		dk, err := scrypt.Key(c.passphrase, c.salt, insecureNValue, 8, 1, dkLen)
 		if err != nil {
 			return nil, nil, err
 		}

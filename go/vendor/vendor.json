@@ -215,8 +215,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-triplesec-insecure",
-			"revision": "e4cfc826b9bca8afbd1e465a3e326f60ae232366",
-			"revisionTime": "2016-06-24T16:15:57-04:00"
+			"revision": "05562b187132769fcafd1773bf77efdc90720be2",
+			"revisionTime": "2016-06-27T11:00:05-04:00"
 		},
 		{
 			"path": "github.com/keybase/go-triplesec/sha3",
