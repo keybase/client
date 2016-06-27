@@ -18,6 +18,7 @@ import (
 func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
 	tc := libkb.SetupTest(tb, name, 2)
 	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
+		tc.G.Log.Warning("Installing insecure Triplesec with weak stretch parameters")
 		return insecureTriplesec.NewCipher(passphrase, salt)
 	}
 	return tc
