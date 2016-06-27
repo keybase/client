@@ -1075,8 +1075,8 @@
     },
     "electron-download": {
       "version": "2.1.2",
-      "from": "electron-download@>=2.0.0 <3.0.0",
-      "resolved": "https://registry.npmjs.org/electron-download/-/electron-download-2.1.2.tgz"
+      "from": "git://github.com/keybase/electron-download.git#5350b5a1bad8ba7bb8c7201abe59ae3a03c3d75d",
+      "resolved": "git://github.com/keybase/electron-download.git#5350b5a1bad8ba7bb8c7201abe59ae3a03c3d75d"
     },
     "electron-osx-sign": {
       "version": "0.3.1",
