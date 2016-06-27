@@ -20,7 +20,6 @@ type Context struct {
 	PgpUI       libkb.PgpUI
 	ProveUI     libkb.ProveUI
 	ProvisionUI libkb.ProvisionUI
-	UpdateUI    libkb.UpdateUI
 
 	LoginContext libkb.LoginContext
 	NetContext   context.Context
@@ -47,8 +46,6 @@ func (c *Context) HasUI(kind libkb.UIKind) bool {
 		return c.ProveUI != nil
 	case libkb.ProvisionUIKind:
 		return c.ProvisionUI != nil
-	case libkb.UpdateUIKind:
-		return c.UpdateUI != nil
 	case libkb.SaltpackUIKind:
 		return c.SaltpackUI != nil
 	}
@@ -60,10 +57,6 @@ func (c *Context) GetNetContext() context.Context {
 		return context.TODO()
 	}
 	return c.NetContext
-}
-
-func (c *Context) GetUpdateUI() (libkb.UpdateUI, error) {
-	return c.UpdateUI, nil
 }
 
 func (c *Context) SecretKeyPromptArg(ska libkb.SecretKeyArg, reason string) libkb.SecretKeyPromptArg {

@@ -13,14 +13,6 @@ export type RPCError = {
   desc: string
 }
 
-export type Asset = {
-  name: string;
-  url: string;
-  digest: string;
-  signature: string;
-  localPath: string;
-}
-
 export type BTCRegisterBTCResult = void
 
 export type BTCRegisterBTCRpc = {
@@ -1257,69 +1249,6 @@ export type UninstallResult = {
   componentResults: Array<ComponentResult>;
   status: Status;
 }
-
-export type Update = {
-  version: string;
-  name: string;
-  description: string;
-  instructions?: ?string;
-  type: UpdateType;
-  publishedAt?: ?Time;
-  asset?: ?Asset;
-}
-
-export type UpdateAction =
-    0 // UPDATE_0
-  | 1 // SKIP_1
-  | 2 // SNOOZE_2
-  | 3 // CANCEL_3
-
-export type UpdateAppInUseAction =
-    0 // CANCEL_0
-  | 1 // FORCE_1
-  | 2 // SNOOZE_2
-  | 3 // KILL_PROCESSES_3
-
-export type UpdateAppInUseRes = {
-  action: UpdateAppInUseAction;
-}
-
-export type UpdateOptions = {
-  version: string;
-  platform: string;
-  destinationPath: string;
-  source: string;
-  URL: string;
-  channel: string;
-  force: boolean;
-  defaultInstructions: string;
-  signaturePath: string;
-}
-
-export type UpdatePromptOptions = {
-  alwaysAutoInstall: boolean;
-}
-
-export type UpdatePromptRes = {
-  action: UpdateAction;
-  alwaysAutoInstall: boolean;
-  snoozeUntil: Time;
-}
-
-export type UpdateQuitRes = {
-  quit: boolean;
-  pid: int;
-  applicationPath: string;
-}
-
-export type UpdateResult = {
-  update?: ?Update;
-}
-
-export type UpdateType =
-    0 // NORMAL_0
-  | 1 // BUGFIX_1
-  | 2 // CRITICAL_2
 
 export type User = {
   uid: UID;
@@ -3420,64 +3349,6 @@ export type uiPromptYesNoRpc = {
   callback: (null | (err: ?any, response: uiPromptYesNoResult) => void)
 }
 
-export type updateUiUpdateAppInUseResult = UpdateAppInUseRes
-
-export type updateUiUpdateAppInUseRpc = {
-  method: 'updateUi.updateAppInUse',
-  param: {
-    update: Update,
-    processes: Array<Process>
-  },
-  incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any, response: updateUiUpdateAppInUseResult) => void)
-}
-
-export type updateUiUpdatePromptResult = UpdatePromptRes
-
-export type updateUiUpdatePromptRpc = {
-  method: 'updateUi.updatePrompt',
-  param: {
-    update: Update,
-    options: UpdatePromptOptions
-  },
-  incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any, response: updateUiUpdatePromptResult) => void)
-}
-
-export type updateUiUpdateQuitResult = UpdateQuitRes
-
-export type updateUiUpdateQuitRpc = {
-  method: 'updateUi.updateQuit',
-  param: {
-    update: Update,
-    status: Status
-  },
-  incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any, response: updateUiUpdateQuitResult) => void)
-}
-
-export type updateUpdateCheckResult = void
-
-export type updateUpdateCheckRpc = {
-  method: 'update.updateCheck',
-  param: {
-    force: boolean
-  },
-  incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type updateUpdateResult = UpdateResult
-
-export type updateUpdateRpc = {
-  method: 'update.update',
-  param: {
-    options: UpdateOptions
-  },
-  incomingCallMap?: incomingCallMapType,
-  callback: (null | (err: ?any, response: updateUpdateResult) => void)
-}
-
 export type userListTrackersByNameResult = Array<Tracker>
 
 export type userListTrackersByNameRpc = {
@@ -3808,11 +3679,6 @@ export type rpc =
   | trackTrackWithTokenRpc
   | trackUntrackRpc
   | uiPromptYesNoRpc
-  | updateUiUpdateAppInUseRpc
-  | updateUiUpdatePromptRpc
-  | updateUiUpdateQuitRpc
-  | updateUpdateCheckRpc
-  | updateUpdateRpc
   | userListTrackersByNameRpc
   | userListTrackersRpc
   | userListTrackersSelfRpc
@@ -5809,57 +5675,6 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: uiPromptYesNoResult) => void
-    }
-  ) => void,
-  'keybase.1.update.update'?: (
-    params: {
-      options: UpdateOptions
-    },
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: updateUpdateResult) => void
-    }
-  ) => void,
-  'keybase.1.update.updateCheck'?: (
-    params: {
-      force: boolean
-    },
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.updateUi.updatePrompt'?: (
-    params: {
-      sessionID: int,
-      update: Update,
-      options: UpdatePromptOptions
-    },
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: updateUiUpdatePromptResult) => void
-    }
-  ) => void,
-  'keybase.1.updateUi.updateAppInUse'?: (
-    params: {
-      sessionID: int,
-      update: Update,
-      processes: Array<Process>
-    },
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: updateUiUpdateAppInUseResult) => void
-    }
-  ) => void,
-  'keybase.1.updateUi.updateQuit'?: (
-    params: {
-      sessionID: int,
-      update: Update,
-      status: Status
-    },
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: updateUiUpdateQuitResult) => void
     }
   ) => void,
   'keybase.1.user.listTrackers'?: (

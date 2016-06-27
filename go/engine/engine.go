@@ -96,15 +96,6 @@ func delegateUIs(e Engine, ctx *Context) error {
 		}
 	}
 
-	if requiresUI(e, libkb.UpdateUIKind) {
-		if ui, err := e.G().UIRouter.GetUpdateUI(); err != nil {
-			return err
-		} else if ui != nil {
-			e.G().Log.Debug("using delegated update UI for engine %q", e.Name())
-			ctx.UpdateUI = ui
-		}
-	}
-
 	if wantsDelegateUI(e, libkb.IdentifyUIKind) {
 		e.G().Log.Debug("IdentifyUI wanted for engine %q", e.Name())
 		if ui, err := e.G().UIRouter.GetIdentifyUI(); err != nil {

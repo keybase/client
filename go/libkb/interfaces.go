@@ -360,10 +360,6 @@ type ProvisionUI interface {
 	keybase1.ProvisionUiInterface
 }
 
-type UpdateUI interface {
-	keybase1.UpdateUiInterface
-}
-
 type PromptDefault int
 
 const (
@@ -404,7 +400,6 @@ type UI interface {
 	GetGPGUI() GPGUI
 	GetProvisionUI(role KexRole) ProvisionUI
 	GetPgpUI() PgpUI
-	GetUpdateUI() UpdateUI
 	Configure() error
 	Shutdown() error
 }
@@ -416,7 +411,6 @@ type UIRouter interface {
 	// error is nil.
 	GetIdentifyUI() (IdentifyUI, error)
 	GetSecretUI(sessionID int) (SecretUI, error)
-	GetUpdateUI() (UpdateUI, error)
 	GetRekeyUI() (keybase1.RekeyUIInterface, int, error)
 	GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error)
 

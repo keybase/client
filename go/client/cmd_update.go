@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -161,7 +160,7 @@ func (v *cmdUpdateNotify) Run() error {
 	v.G().Log.Debug("Received event: %s", v.event)
 	switch v.event {
 	case "after-apply":
-		return engine.AfterUpdateApply(v.G(), true, v.force)
+		return install.AfterUpdateApply(v.G(), true, v.force, v.G().Log)
 	default:
 		return fmt.Errorf("Unrecognized event: %s", v.event)
 	}
