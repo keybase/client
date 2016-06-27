@@ -4,31 +4,31 @@ import {Component} from 'react'
 
 import type {SimpleProofState} from '../constants/tracker'
 import type {UserInfo} from '../common-adapters/user-bio'
-import type {Props as ProofsProps} from '../common-adapters/user-proofs'
-import type {ActionProps} from './action.render'
-import type {HeaderProps} from './header.render'
+import type {Proof} from '../common-adapters/user-proofs'
+import type {$Exact} from '../constants/types/more'
 
 export type RenderPropsUnshaped = {
-  bioProps: {
-    // FIXME: this is the UserBio props minus the avatar, which doesn't make
-    // sense to pass from the smart component. We should remove this after a
-    // refactor of the tracker UI.
-    username: ?string,
-    userInfo: ?UserInfo,
-    trackerState: SimpleProofState,
-    currentlyFollowing: boolean
-  },
-  actionProps: ActionProps,
-  headerProps: HeaderProps,
-  proofsProps: ProofsProps,
+  currentlyFollowing: boolean,
+  inviteLink?: ?string,
+  isPrivate?: boolean,
+  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
+  loggedIn: boolean,
   name?: string,
   nonUser?: ?boolean,
+  onClose: () => void,
+  onFollow: () => void,
+  onIgnore: () => void,
+  onRefollow: () => void,
+  onUnfollow: () => void,
+  proofs: Array<Proof>,
+  reason: string,
   serviceName?: string,
-  reason?: string,
-  inviteLink?: ?string,
-  isPrivate?: boolean
+  trackerState: SimpleProofState,
+  userInfo: ?UserInfo,
+  username: string,
+  waiting: boolean,
 }
 
-export type RenderProps = $Shape<RenderPropsUnshaped>
+export type RenderProps = $Exact<RenderPropsUnshaped>
 
 export default class Render extends Component<void, RenderProps, void> { }

@@ -17,27 +17,26 @@ import (
 
 type CmdListTracking struct {
 	libkb.Contextified
-	filter  string
-	json    bool
-	verbose bool
-	headers bool
-	user    *libkb.User
+	assertion string
+	filter    string
+	json      bool
+	verbose   bool
+	headers   bool
 }
 
 func (s *CmdListTracking) ParseArgv(ctx *cli.Context) error {
-	nargs := len(ctx.Args())
-	var err error
+	if len(ctx.Args()) == 1 {
+		s.assertion = ctx.Args()[0]
+	} else if len(ctx.Args()) > 1 {
+		return fmt.Errorf("list-tracking takes at most one argument")
+	}
 
 	s.json = ctx.Bool("json")
 	s.verbose = ctx.Bool("verbose")
 	s.headers = ctx.Bool("headers")
 	s.filter = ctx.String("filter")
 
-	if nargs > 0 {
-		err = fmt.Errorf("List tracking doesn't take any arguments.")
-	}
-
-	return err
+	return nil
 }
 
 func displayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (err error) {
@@ -113,8 +112,9 @@ func (s *CmdListTracking) Run() error {
 
 	if s.json {
 		jsonStr, err := cli.ListTrackingJSON(context.TODO(), keybase1.ListTrackingJSONArg{
-			Filter:  s.filter,
-			Verbose: s.verbose,
+			Assertion: s.assertion,
+			Filter:    s.filter,
+			Verbose:   s.verbose,
 		})
 		if err != nil {
 			return err
@@ -122,7 +122,7 @@ func (s *CmdListTracking) Run() error {
 		return DisplayJSON(jsonStr)
 	}
 
-	table, err := cli.ListTracking(context.TODO(), keybase1.ListTrackingArg{Filter: s.filter})
+	table, err := cli.ListTracking(context.TODO(), keybase1.ListTrackingArg{Filter: s.filter, Assertion: s.assertion})
 	if err != nil {
 		return err
 	}
@@ -131,12 +131,21 @@ func (s *CmdListTracking) Run() error {
 
 func NewCmdListTracking(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "list-tracking",
-		Usage: "List who you're tracking",
+		Name:         "list-tracking",
+		ArgumentHelp: "<username>",
+		Usage:        "List who username is tracking",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdListTracking{Contextified: libkb.NewContextified(g)}, "tracking", c)
 		},
 		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:  "f, filter",
+				Usage: "Provide a regex filter.",
+			},
+			cli.BoolFlag{
+				Name:  "H, headers",
+				Usage: "Show column headers.",
+			},
 			cli.BoolFlag{
 				Name:  "j, json",
 				Usage: "Output as JSON (default is text).",
@@ -144,14 +153,6 @@ func NewCmdListTracking(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cli.BoolFlag{
 				Name:  "v, verbose",
 				Usage: "A full dump, with more gory details.",
-			},
-			cli.BoolFlag{
-				Name:  "H, headers",
-				Usage: "Show column headers.",
-			},
-			cli.StringFlag{
-				Name:  "f, filter",
-				Usage: "Provide a regex filter.",
 			},
 		},
 	}

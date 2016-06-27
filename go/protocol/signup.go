@@ -28,6 +28,7 @@ type SignupArg struct {
 	DeviceName  string `codec:"deviceName" json:"deviceName"`
 	StoreSecret bool   `codec:"storeSecret" json:"storeSecret"`
 	SkipMail    bool   `codec:"skipMail" json:"skipMail"`
+	GenPGPBatch bool   `codec:"genPGPBatch" json:"genPGPBatch"`
 }
 
 type InviteRequestArg struct {

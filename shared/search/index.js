@@ -8,11 +8,17 @@ import flags from '../util/feature-flags'
 class Search extends Component<void, Props, void> {
   render () {
     return (
-      <Render showComingSoon={!flags.searchEnabled} />
+      <Render
+        showComingSoon={!flags.searchEnabled}
+        username={this.props.username}
+      />
     )
   }
 }
 
 export default connect(
-  state => ({}),
-  dispatch => ({}))(Search)
+  state => ({
+    username: state.config.username,
+  }),
+  dispatch => ({})
+)(Search)

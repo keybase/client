@@ -31,6 +31,7 @@ type NotifyListener interface {
 	FSActivity(activity keybase1.FSNotification)
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
+	KeyfamilyChanged(uid keybase1.UID)
 }
 
 // NotifyRouter routes notifications to the various active RPC
@@ -335,4 +336,30 @@ func (n *NotifyRouter) HandlePaperKeyCached(uid keybase1.UID, encKID keybase1.KI
 		n.listener.PaperKeyCached(uid, encKID, sigKID)
 	}
 	n.G().Log.Debug("- Sent paperkey cached notfication")
+}
+
+// HandleKeyfamilyChanged is called whenever a user's keyfamily changes.
+func (n *NotifyRouter) HandleKeyfamilyChanged(uid keybase1.UID) {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending keyfamily changed notfication")
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Favorites` notification type
+		if n.getNotificationChannels(id).Keyfamily {
+			// In the background do...
+			go func() {
+				(keybase1.NotifyKeyfamilyClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).KeyfamilyChanged(context.TODO(), uid)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.KeyfamilyChanged(uid)
+	}
+	n.G().Log.Debug("- Sent keyfamily changed notfication")
 }

@@ -306,13 +306,14 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
         method: 'signup.signup',
         waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
         param: {
-          email,
-          inviteCode,
-          username,
           deviceName,
+          email,
+          genPGPBatch: false,
+          inviteCode,
           passphrase: passphrase.stringValue(),
-          storeSecret: false,
           skipMail,
+          storeSecret: false,
+          username,
         },
         incomingCallMap: {
           'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {

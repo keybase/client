@@ -1,24 +1,25 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './render'
-import {Box, TabBar, ComingSoon} from '../common-adapters'
+import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import List from './list'
+import FoldersHelp from './help.desktop'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 class Render extends Component<void, Props, void> {
   _renderComingSoon () {
-    return <ComingSoon />
+    return <FoldersHelp username={this.props.username} />
   }
 
   _makeItem (isPublic: boolean, isSelected: boolean) {
+    const icon = isPublic ? 'subnav-folders-public' : 'subnav-folders-private'
+    const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
     return <TabBarButton
-      source={{type: 'icon', icon: `subnav-folders-${isPublic ? 'public' : 'private'}`}}
+      source={{type: 'icon', icon}}
       style={{
         ...styleItem,
-        borderBottom: isSelected
-          ? `solid 2px ${isPublic ? globalColors.yellowGreen : globalColors.darkBlue2}`
-          : 'none',
+        borderBottom: `solid 2px ${isSelected ? selectedColor : 'transparent'}`,
       }}
       styleBadge={styleBadge}
       styleIcon={styleIcon}
@@ -40,11 +41,11 @@ class Render extends Component<void, Props, void> {
     }
 
     return (
-      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, paddingTop: this.props.smallMode ? 0 : 45}}>
-        <TabBar tabBarStyle={tabBarStyle}>
+      <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.lightGrey, paddingTop: 0, minHeight: 32}}>
+        <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, minHeight: this.props.smallMode ? 32 : 64, paddingTop: this.props.smallMode ? 0 : 32}}>
           <TabBarItem
             selected={this.props.showingPrivate}
-            containerStyle={itemContainerStyle}
+            styleContainer={itemContainerStyle}
             tabBarButton={this._makeItem(false, this.props.showingPrivate === true)}
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(true) }}>
             <List
@@ -57,7 +58,7 @@ class Render extends Component<void, Props, void> {
           </TabBarItem>
           <TabBarItem
             selected={!this.props.showingPrivate}
-            containerStyle={itemContainerStyle}
+            styleContainer={itemContainerStyle}
             tabBarButton={this._makeItem(true, this.props.showingPrivate === false)}
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(false) }}>
             <List
@@ -118,6 +119,7 @@ const itemContainerStyle = {
 const tabBarStyle = {
   ...globalStyles.flexBoxRow,
   minHeight: 32,
+  flexShrink: 1,
 }
 
 export default Render

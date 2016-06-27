@@ -14,7 +14,7 @@ import (
 type SignupEngine struct {
 	pwsalt        []byte
 	ppStream      *libkb.PassphraseStream
-	tsec          *triplesec.Cipher
+	tsec          libkb.Triplesec
 	uid           keybase1.UID
 	me            *libkb.User
 	signingKey    libkb.GenericKey
@@ -34,6 +34,7 @@ type SignupEngineRunArg struct {
 	SkipGPG     bool
 	SkipMail    bool
 	SkipPaper   bool
+	GenPGPBatch bool // if true, generate and push a pgp key to the server (no interaction)
 }
 
 func NewSignupEngine(arg *SignupEngineRunArg, g *libkb.GlobalContext) *SignupEngine {
@@ -90,6 +91,15 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			}
 		}
 
+		// GenPGPBatch can be set in devel CLI to generate
+		// a pgp key and push it to the server without any
+		// user interaction to make testing easier.
+		if s.arg.GenPGPBatch {
+			if err := s.genPGPBatch(ctx); err != nil {
+				return err
+			}
+		}
+
 		if s.arg.SkipGPG {
 			return nil
 		}
@@ -127,7 +137,7 @@ func (s *SignupEngine) genPassphraseStream(a libkb.LoginContext, passphrase stri
 		return err
 	}
 	s.pwsalt = salt
-	s.tsec, s.ppStream, err = libkb.StretchPassphrase(passphrase, salt)
+	s.tsec, s.ppStream, err = libkb.StretchPassphrase(s.G(), passphrase, salt)
 	if err != nil {
 		return err
 	}
@@ -235,4 +245,26 @@ func (s *SignupEngine) addGPG(lctx libkb.LoginContext, ctx *Context, allowMulti 
 		s.signingKey = eng.LastKey()
 	}
 	return nil
+}
+
+func (s *SignupEngine) genPGPBatch(ctx *Context) error {
+	gen := libkb.PGPGenArg{
+		PrimaryBits: 1024,
+		SubkeyBits:  1024,
+	}
+	gen.AddDefaultUID()
+
+	tsec := ctx.LoginContext.PassphraseStreamCache().Triplesec()
+	sgen := ctx.LoginContext.GetStreamGeneration()
+
+	eng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
+		Gen:              &gen,
+		PushSecret:       true,
+		Lks:              s.lks,
+		NoSave:           true,
+		PreloadTsec:      tsec,
+		PreloadStreamGen: sgen,
+	})
+
+	return RunEngine(eng, ctx)
 }

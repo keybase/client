@@ -4,8 +4,8 @@
 	"package": [
 		{
 			"path": "bazil.org/fuse",
-			"revision": "70f2bea820ccbf0b4e72e44dbcb28fe333635085",
-			"revisionTime": "2015-09-10T16:50:43-07:00"
+			"revision": "a8bc3b86317dc95ed28fdefcebc1dbce8baa88e9",
+			"revisionTime": "2015-12-02T10:18:56-08:00"
 		},
 		{
 			"path": "code.google.com/p/rsc/gf256",
@@ -119,8 +119,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",
-			"revision": "c062049c1793b01a3cc3fe786108edabbaf7756b",
-			"revisionTime": "2016-03-14T13:21:18-04:00"
+			"revision": "8a39c1d1f00af239dd650a292922fa4f46a39fa2",
+			"revisionTime": "2016-04-04T17:08:33-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/brainpool",
@@ -212,6 +212,11 @@
 			"path": "github.com/keybase/go-triplesec",
 			"revision": "b360b8252869a5ac88df3ed7897bc3b6d1e55dd2",
 			"revisionTime": "2015-06-12T09:33:55-07:00"
+		},
+		{
+			"path": "github.com/keybase/go-triplesec-insecure",
+			"revision": "41f0316cb8dd9d90b53b9f72caa49dac55577571",
+			"revisionTime": "2016-06-27T11:11:58-04:00"
 		},
 		{
 			"path": "github.com/keybase/go-triplesec/sha3",

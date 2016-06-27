@@ -8,7 +8,6 @@ import (
 	"errors"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	triplesec "github.com/keybase/go-triplesec"
 	"golang.org/x/net/context"
 )
 
@@ -86,7 +85,7 @@ func (g *GPGKey) DecryptFromString(ciphertext string) (msg []byte, sender keybas
 	return msg, sender, errors.New("DecryptFromString not implemented")
 }
 
-func (g *GPGKey) ToServerSKB(gc *GlobalContext, ts *triplesec.Cipher, gen PassphraseGeneration) (*SKB, error) {
+func (g *GPGKey) ToServerSKB(gc *GlobalContext, ts Triplesec, gen PassphraseGeneration) (*SKB, error) {
 	return nil, errors.New("ToServerSKB not implemented")
 }
 

@@ -44,7 +44,7 @@ func autostartFilePath(context Context) string {
 }
 
 // AutoInstall installs auto start on linux
-func AutoInstall(context Context, _ string, _ bool) ( /* newProc */ bool, error) {
+func AutoInstall(context Context, _ string, _ bool, log Log) ( /* newProc */ bool, error) {
 	// If the desktop file already exists, short circuit.
 	if _, err := os.Stat(autostartFilePath(context)); err == nil {
 		return false, nil
@@ -53,7 +53,7 @@ func AutoInstall(context Context, _ string, _ bool) ( /* newProc */ bool, error)
 	if err != nil {
 		return false, err
 	}
-	return false, ioutil.WriteFile(autostartFilePath(g), []byte(autostartFileText), 0644)
+	return false, ioutil.WriteFile(autostartFilePath(context), []byte(autostartFileText), 0644)
 }
 
 // CheckIfValidLocation is not used on linux
@@ -67,7 +67,7 @@ func KBFSBinPath(runMode libkb.RunMode, binPath string) (string, error) {
 }
 
 // RunAfterStartup is not used on linux
-func RunAfterStartup(context Context, isService bool) error {
+func RunAfterStartup(context Context, isService bool, log Log) error {
 	return nil
 }
 

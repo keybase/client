@@ -1,9 +1,10 @@
 // @flow
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
-import {Box, Text, Input} from '../common-adapters'
+import {Box, Text, Input, BackButton} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 import dumbComponentMap from './dumb-component-map.desktop'
+import DumbSheetItem from './dumb-sheet-item'
 import {dumbFilter} from '../local-debug'
 import debounce from 'lodash/debounce'
 
@@ -32,6 +33,7 @@ class Render extends Component<void, any, any> {
   render () {
     return (
       <Box style={{...globalStyles.scrollable, padding: 20}}>
+        <BackButton onClick={this.props.onBack} />
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text type='Header'>Filter:</Text>
           <Input
@@ -46,26 +48,21 @@ class Render extends Component<void, any, any> {
           }
 
           const map = dumbComponentMap[key]
-          const Component = map.component
           return (
             <Box key={key} style={styleBox}>
               <Text type='Header' style={{marginBottom: 5}}>{key}</Text>
               {Object.keys(map.mocks).map((mockKey, idx) => {
-                const mock = {...map.mocks[mockKey]}
-                const parentProps = mock.parentProps
-                mock.parentProps = undefined
-
                 return (
-                  <Box key={mockKey} style={styleBox}>
-                    <Text type='Body' style={{marginBottom: 5}}>{mockKey}</Text>
-                    <Box {...parentProps}>
-                      <Component key={mockKey} {...mock} />
-                    </Box>
-                  </Box>
+                  <DumbSheetItem
+                    key={mockKey}
+                    component={map.component}
+                    mockKey={mockKey}
+                    mock={map.mocks[mockKey]}
+                  />
                 )
               })}
             </Box>
-            )
+          )
         })}
       </Box>
     )

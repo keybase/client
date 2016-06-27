@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 type AlgoType int
@@ -39,7 +38,7 @@ type GenericKey interface {
 	// the KID of the key that sent the message (if applicable).
 	DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error)
 
-	ToServerSKB(gc *GlobalContext, ts *triplesec.Cipher, gen PassphraseGeneration) (*SKB, error)
+	ToServerSKB(gc *GlobalContext, tsec Triplesec, gen PassphraseGeneration) (*SKB, error)
 	ToLksSKB(lks *LKSec) (*SKB, error)
 	VerboseDescription() string
 	CheckSecretKey() error

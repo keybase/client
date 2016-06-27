@@ -58,6 +58,7 @@ const (
 	StatusCode_SCStreamNotFound         StatusCode = 1502
 	StatusCode_SCStreamWrongKind        StatusCode = 1503
 	StatusCode_SCStreamEOF              StatusCode = 1504
+	StatusCode_SCGenericAPIError        StatusCode = 1600
 	StatusCode_SCAPINetworkError        StatusCode = 1601
 	StatusCode_SCTimeout                StatusCode = 1602
 	StatusCode_SCProofError             StatusCode = 1701

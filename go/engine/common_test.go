@@ -12,10 +12,24 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
 func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
 	tc := libkb.SetupTest(tb, name, 2)
+	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
+		warner := func() { tc.G.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
+		isProduction := func() bool {
+			return tc.G.Env.GetRunMode() == libkb.ProductionRunMode
+		}
+		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+	}
+	return tc
+}
+
+func SetupEngineTestRealTriplesec(tb testing.TB, name string) libkb.TestContext {
+	tc := libkb.SetupTest(tb, name, 2)
+	tc.G.NewTriplesec = libkb.NewSecureTriplesec
 	return tc
 }
 

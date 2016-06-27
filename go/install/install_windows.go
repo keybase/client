@@ -11,7 +11,7 @@ import (
 )
 
 // AutoInstall is not supported on Windows
-func AutoInstall(context Context, binPath string, force bool) (newProc bool, err error) {
+func AutoInstall(context Context, binPath string, force bool, log Log) (newProc bool, err error) {
 	return false, fmt.Errorf("Auto install not supported for this build or platform")
 }
 
@@ -40,6 +40,6 @@ func updaterBinName() (string, error) {
 }
 
 // RunAfterStartup is not supported on Windows
-func RunAfterStartup(context Context, isService bool) error {
+func RunAfterStartup(context Context, isService bool, log Log) error {
 	return nil
 }

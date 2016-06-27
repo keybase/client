@@ -342,7 +342,7 @@ export const styles = {
   },
   textTerminalComment: {
     ...textTerminal,
-    color: globalColors.white_40,
+    color: globalColors.blue3_40,
   },
   textTerminalUsername: {
     ...textTerminal,

@@ -23,7 +23,8 @@ export type Props = {
   timeline?: Array<TimelineItem>,
   banner?: BannerItem,
   showRemoveDevicePage: () => void,
-  device: Device
+  device: Device,
+  onBack: () => void
 }
 
 export default class Render extends React$Component<void, Props, void> {

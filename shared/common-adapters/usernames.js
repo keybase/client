@@ -7,7 +7,10 @@ import type {Props} from './usernames'
 
 export function usernameText ({type, users, style, inline}: Props) {
   return users.map((u, i) => {
-    const userStyle = {...style}
+    const userStyle = {
+      textDecoration: 'inherit',
+      ...style,
+    }
 
     if (u.broken) {
       userStyle.color = globalColors.red
@@ -39,7 +42,7 @@ export default class Usernames extends Component<void, Props, void> {
     const containerStyle = this.props.inline ? {display: 'inline'} : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
 
     return (
-      <Box style={containerStyle}>
+      <Box style={{...containerStyle, textDecoration: 'inherit'}}>
         {usernameText(this.props)}
       </Box>
     )

@@ -21,6 +21,7 @@ const (
 var (
 	onlyMapOrArrayCanDecodeIntoStructErr = errors.New("only encoded map or array can be decoded into a struct")
 	cannotDecodeIntoNilErr               = errors.New("cannot decode into nil")
+	unknownFieldHandlerOnlyWithMapErr    = errors.New("can use UnknownFieldHandler only when decoding into a map")
 )
 
 // decReader abstracts the reading source, allowing implementations that can
@@ -113,8 +114,17 @@ type DecodeOptions struct {
 	// Instead, we provision up to MaxInitLen, fill that up, and start appending after that.
 	MaxInitLen int
 
-	// If ErrorIfNoField, return an error when decoding a map
-	// from a codec stream into a struct, and no matching struct field is found.
+	// If DecodeUnknownFields, then when decoding a map from a
+	// codec stream into a struct implementing
+	// UnknownFieldHandler, and no matching struct field is found,
+	// keep track of the unknown fields and pass them into
+	// CodecSetUnknownFields().
+	DecodeUnknownFields bool
+
+	// If ErrorIfNoField, return an error when decoding a map from
+	// a codec stream into a struct, no matching struct field is
+	// found, and either DecodeUnknownFields is not set or the
+	// struct doesn't implement UnknownFieldHandler.
 	ErrorIfNoField bool
 
 	// If ErrorIfNoArrayExpand, return an error when decoding a slice/array that cannot be expanded.
@@ -706,6 +716,16 @@ func (f *decFnInfo) kStruct(rv reflect.Value) {
 	dd := d.d
 	cr := d.cr
 	ctyp := dd.ContainerType()
+
+	var ufh UnknownFieldHandler
+	var ufs UnknownFieldSet
+	if d.h.DecodeUnknownFields && fti.ufh {
+		ufh = f.getValueForUnmarshalInterface(rv, fti.ufhIndir).(UnknownFieldHandler)
+		if ctyp != valueTypeMap {
+			f.d.error(unknownFieldHandlerOnlyWithMapErr)
+		}
+	}
+
 	if ctyp == valueTypeMap {
 		containerLen := dd.ReadMapStart()
 		if containerLen == 0 {
@@ -722,7 +742,8 @@ func (f *decFnInfo) kStruct(rv reflect.Value) {
 				if cr != nil {
 					cr.sendContainerState(containerMapKey)
 				}
-				rvkencname := stringView(dd.DecodeBytes(f.d.b[:], true, true))
+				nameBytes := dd.DecodeBytes(f.d.b[:], true, true)
+				rvkencname := stringView(nameBytes)
 				// rvksi := ti.getForEncName(rvkencname)
 				if cr != nil {
 					cr.sendContainerState(containerMapValue)
@@ -734,6 +755,11 @@ func (f *decFnInfo) kStruct(rv reflect.Value) {
 					} else {
 						d.decodeValue(si.field(rv, true), nil)
 					}
+				} else if ufh != nil {
+					// Need to do this before calling
+					// d.nextValueBytes().
+					nameCopy := string(nameBytes)
+					ufs.add(nameCopy, d.nextValueBytes())
 				} else {
 					d.structFieldNotFound(-1, rvkencname)
 				}
@@ -744,7 +770,8 @@ func (f *decFnInfo) kStruct(rv reflect.Value) {
 				if cr != nil {
 					cr.sendContainerState(containerMapKey)
 				}
-				rvkencname := stringView(dd.DecodeBytes(f.d.b[:], true, true))
+				nameBytes := dd.DecodeBytes(f.d.b[:], true, true)
+				rvkencname := stringView(nameBytes)
 				// rvksi := ti.getForEncName(rvkencname)
 				if cr != nil {
 					cr.sendContainerState(containerMapValue)
@@ -756,6 +783,11 @@ func (f *decFnInfo) kStruct(rv reflect.Value) {
 					} else {
 						d.decodeValue(si.field(rv, true), nil)
 					}
+				} else if ufh != nil {
+					// Need to do this before calling
+					// d.nextValueBytes().
+					nameCopy := string(nameBytes)
+					ufs.add(nameCopy, d.nextValueBytes())
 				} else {
 					d.structFieldNotFound(-1, rvkencname)
 				}
@@ -763,6 +795,9 @@ func (f *decFnInfo) kStruct(rv reflect.Value) {
 		}
 		if cr != nil {
 			cr.sendContainerState(containerMapEnd)
+		}
+		if ufh != nil {
+			ufh.CodecSetUnknownFields(ufs)
 		}
 	} else if ctyp == valueTypeArray {
 		containerLen := dd.ReadArrayStart()

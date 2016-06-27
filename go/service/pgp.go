@@ -162,7 +162,7 @@ func (h *PGPHandler) PGPImport(_ context.Context, arg keybase1.PGPImportArg) err
 		LogUI:     h.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
-	eng, err := engine.NewPGPKeyImportEngineFromBytes(arg.Key, arg.PushSecret, nil)
+	eng, err := engine.NewPGPKeyImportEngineFromBytes(arg.Key, arg.PushSecret, h.G())
 	if err != nil {
 		return err
 	}

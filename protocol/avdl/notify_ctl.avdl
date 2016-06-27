@@ -11,6 +11,7 @@ protocol notifyCtl {
     boolean tracking;
     boolean favorites;
     boolean paperkeys;
+    boolean keyfamily;
   }
 
   void setNotifications(NotificationChannels channels);

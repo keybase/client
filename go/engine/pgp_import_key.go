@@ -26,19 +26,21 @@ type PGPKeyImportEngine struct {
 }
 
 type PGPKeyImportEngineArg struct {
-	Gen         *libkb.PGPGenArg
-	Pregen      *libkb.PGPKeyBundle
-	SigningKey  libkb.GenericKey
-	Me          *libkb.User
-	Ctx         *libkb.GlobalContext
-	Lks         *libkb.LKSec
-	NoSave      bool
-	PushSecret  bool
-	OnlySave    bool
-	AllowMulti  bool
-	DoExport    bool
-	DoUnlock    bool
-	GPGFallback bool
+	Gen              *libkb.PGPGenArg
+	Pregen           *libkb.PGPKeyBundle
+	SigningKey       libkb.GenericKey
+	Me               *libkb.User
+	Ctx              *libkb.GlobalContext
+	Lks              *libkb.LKSec
+	NoSave           bool
+	PushSecret       bool
+	OnlySave         bool
+	AllowMulti       bool
+	DoExport         bool
+	DoUnlock         bool
+	GPGFallback      bool
+	PreloadTsec      libkb.Triplesec
+	PreloadStreamGen libkb.PassphraseGeneration
 }
 
 func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool, gc *libkb.GlobalContext) (eng *PGPKeyImportEngine, err error) {
@@ -305,10 +307,19 @@ func (e *PGPKeyImportEngine) generate(ctx *Context) (err error) {
 }
 
 func (e *PGPKeyImportEngine) prepareSecretPush(ctx *Context) error {
-	tsec, gen, err := e.G().LoginState().GetVerifiedTriplesec(ctx.SecretUI)
-	if err != nil {
-		return err
+	var tsec libkb.Triplesec
+	var gen libkb.PassphraseGeneration
+	if e.arg.PreloadTsec != nil && e.arg.PreloadStreamGen > 0 {
+		tsec = e.arg.PreloadTsec
+		gen = e.arg.PreloadStreamGen
+	} else {
+		var err error
+		tsec, gen, err = e.G().LoginState().GetVerifiedTriplesec(ctx.SecretUI)
+		if err != nil {
+			return err
+		}
 	}
+
 	skb, err := e.bundle.ToServerSKB(e.G(), tsec, gen)
 	if err != nil {
 		return err

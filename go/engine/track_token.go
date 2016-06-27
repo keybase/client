@@ -134,8 +134,13 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 	}
 
 	if err == nil {
+		// Remove these after desktop notification change complete:
 		e.G().NotifyRouter.HandleUserChanged(e.arg.Me.GetUID())
 		e.G().NotifyRouter.HandleUserChanged(e.them.GetUID())
+
+		// Keep these:
+		e.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetName())
+		e.G().NotifyRouter.HandleTrackingChanged(e.them.GetUID(), e.them.GetName())
 
 		// Dismiss any associated gregor item.
 		if outcome.ResponsibleGregorItem != nil {

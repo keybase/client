@@ -69,7 +69,8 @@ func (h *UserHandler) LoadUncheckedUserSummaries(_ context.Context, arg keybase1
 
 func (h *UserHandler) ListTracking(_ context.Context, arg keybase1.ListTrackingArg) (res []keybase1.UserSummary, err error) {
 	eng := engine.NewListTrackingEngine(&engine.ListTrackingEngineArg{
-		Filter: arg.Filter,
+		Filter:       arg.Filter,
+		ForAssertion: arg.Assertion,
 		// Verbose has no effect on this call. At the engine level, it only
 		// affects JSON output.
 	}, h.G())
@@ -80,9 +81,10 @@ func (h *UserHandler) ListTracking(_ context.Context, arg keybase1.ListTrackingA
 
 func (h *UserHandler) ListTrackingJSON(_ context.Context, arg keybase1.ListTrackingJSONArg) (res string, err error) {
 	eng := engine.NewListTrackingEngine(&engine.ListTrackingEngineArg{
-		JSON:    true,
-		Filter:  arg.Filter,
-		Verbose: arg.Verbose,
+		JSON:         true,
+		Filter:       arg.Filter,
+		Verbose:      arg.Verbose,
+		ForAssertion: arg.Assertion,
 	}, h.G())
 	err = engine.RunEngine(eng, &engine.Context{})
 	res = eng.JSONResult()

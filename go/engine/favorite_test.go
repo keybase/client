@@ -5,6 +5,8 @@ package engine
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -14,24 +16,25 @@ import (
 func TestFavoriteAdd(t *testing.T) {
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
-	CreateAndSignupFakeUser(tc, "fav")
+	u := CreateAndSignupFakeUser(tc, "fav")
+	expectedFaves := newFavorites(u.Username)
 
 	idUI := &FakeIdentifyUI{}
-	addfav("t_alice,t_bob", true, true, idUI, tc)
-	if len(listfav(tc)) != 1 {
-		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
+	addfav("t_alice,t_bob", true, true, idUI, tc, expectedFaves)
+	if !listfav(tc).Equal(*expectedFaves) {
+		t.Errorf("bad favorites")
 	}
 
 	// Add the same share again. The number shouldn't change.
-	addfav("t_alice,t_bob", true, true, idUI, tc)
-	if len(listfav(tc)) != 1 {
-		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
+	addfav("t_alice,t_bob", true, true, idUI, tc, nil)
+	if !listfav(tc).Equal(*expectedFaves) {
+		t.Errorf("bad favorites")
 	}
 
 	// Add a public share of the same name, make sure both are represented.
-	addfav("t_alice,t_bob", false, true, idUI, tc)
-	if len(listfav(tc)) != 2 {
-		t.Errorf("favorites len: %d, expected 2", len(listfav(tc)))
+	addfav("t_alice,t_bob", false, true, idUI, tc, expectedFaves)
+	if !listfav(tc).Equal(*expectedFaves) {
+		t.Errorf("bad favorites")
 	}
 }
 
@@ -42,11 +45,12 @@ func TestFavoriteAddSocial(t *testing.T) {
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
 	u := CreateAndSignupFakeUser(tc, "fav")
+	expectedFaves := newFavorites(u.Username)
 
 	idUI := &FakeIdentifyUI{}
-	addfav(fmt.Sprintf("%s,bob@twitter", u.Username), true, true, idUI, tc)
-	if len(listfav(tc)) != 1 {
-		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
+	addfav(fmt.Sprintf("bob@twitter,%s", u.Username), true, true, idUI, tc, expectedFaves)
+	if !listfav(tc).Equal(*expectedFaves) {
+		t.Errorf("bad favorites")
 	}
 
 	if idUI.DisplayTLFCount != 1 {
@@ -66,9 +70,9 @@ func TestFavoriteAddSocial(t *testing.T) {
 	// Test adding a favorite when not the creator.  Should not call ui for
 	// displaying tlf + invite.
 	// created flag == false
-	addfav(fmt.Sprintf("%s,bobdog@twitter", u.Username), true, false, idUI, tc)
-	if len(listfav(tc)) != 2 {
-		t.Errorf("favorites len: %d, expected 2", len(listfav(tc)))
+	addfav(fmt.Sprintf("bobdog@twitter,%s", u.Username), true, false, idUI, tc, expectedFaves)
+	if newFaves := listfav(tc); !newFaves.Equal(*expectedFaves) {
+		t.Errorf("bad favorites: %s != %s", newFaves, expectedFaves)
 	}
 	if idUI.DisplayTLFCount != 0 {
 		t.Errorf("DisplayTLFCount: %d, expected 0", idUI.DisplayTLFCount)
@@ -77,9 +81,9 @@ func TestFavoriteAddSocial(t *testing.T) {
 	idUI = &FakeIdentifyUI{}
 	// Make sure ui for displaying tlf + invite not called for non-social
 	// assertion TLF.
-	addfav(fmt.Sprintf("%s,t_alice", u.Username), true, true, idUI, tc)
-	if len(listfav(tc)) != 3 {
-		t.Errorf("favorites len: %d, expected 3", len(listfav(tc)))
+	addfav(fmt.Sprintf("%s,t_alice", u.Username), true, true, idUI, tc, expectedFaves)
+	if newFaves := listfav(tc); !newFaves.Equal(*expectedFaves) {
+		t.Errorf("bad favorites: %s != %s", newFaves, expectedFaves)
 	}
 	if idUI.DisplayTLFCount != 0 {
 		t.Errorf("DisplayTLFCount: %d, expected 0", idUI.DisplayTLFCount)
@@ -87,9 +91,9 @@ func TestFavoriteAddSocial(t *testing.T) {
 
 	idUI = &FakeIdentifyUI{}
 	// Test adding a public favorite with SBS social assertion
-	addfav(fmt.Sprintf("%s,bobdog@twitter", u.Username), false, true, idUI, tc)
-	if len(listfav(tc)) != 4 {
-		t.Errorf("favorites len: %d, expected 4", len(listfav(tc)))
+	addfav(fmt.Sprintf("bobdog@twitter,%s", u.Username), false, true, idUI, tc, expectedFaves)
+	if newFaves := listfav(tc); !newFaves.Equal(*expectedFaves) {
+		t.Errorf("bad favorites: %s != %s", newFaves, expectedFaves)
 	}
 	if idUI.DisplayTLFCount != 1 {
 		t.Errorf("DisplayTLFCount: %d, expected 1", idUI.DisplayTLFCount)
@@ -102,31 +106,31 @@ func TestFavoriteAddSocial(t *testing.T) {
 func TestFavoriteIgnore(t *testing.T) {
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
-	CreateAndSignupFakeUser(tc, "fav")
+	u := CreateAndSignupFakeUser(tc, "fav")
+
+	expectedFaves := newFavorites(u.Username)
 
 	idUI := &FakeIdentifyUI{}
-	addfav("t_alice,t_bob", true, true, idUI, tc)
-	addfav("t_alice,t_charlie", true, true, idUI, tc)
-	if len(listfav(tc)) != 2 {
-		t.Errorf("favorites len: %d, expected 2", len(listfav(tc)))
+	addfav("t_alice,t_bob", true, true, idUI, tc, expectedFaves)
+	addfav("t_alice,t_charlie", true, true, idUI, tc, expectedFaves)
+	if !listfav(tc).Equal(*expectedFaves) {
+		t.Errorf("bad favorites")
 	}
-	rmfav("t_alice,t_bob", true, tc)
-	if len(listfav(tc)) != 1 {
-		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
-	}
-	if listfav(tc)[0].Name != "t_alice,t_charlie" {
-		t.Errorf("favorites entry: %q, expected %q", listfav(tc)[0].Name, "t_alice,t_charlie")
+	rmfav("t_alice,t_bob", true, tc, expectedFaves)
+	if !listfav(tc).Equal(*expectedFaves) {
+		t.Errorf("bad favorites")
 	}
 }
 
 func TestFavoriteList(t *testing.T) {
 	tc := SetupEngineTest(t, "template")
 	defer tc.Cleanup()
-	CreateAndSignupFakeUser(tc, "fav")
+	u := CreateAndSignupFakeUser(tc, "fav")
+	expectedFaves := newFavorites(u.Username)
 
 	idUI := &FakeIdentifyUI{}
-	addfav("t_alice,t_charlie", true, true, idUI, tc)
-	addfav("t_alice,t_bob", true, true, idUI, tc)
+	addfav("t_alice,t_charlie", true, true, idUI, tc, expectedFaves)
+	addfav("t_alice,t_bob", true, true, idUI, tc, expectedFaves)
 
 	ctx := &Context{}
 	eng := NewFavoriteList(tc.G)
@@ -134,18 +138,12 @@ func TestFavoriteList(t *testing.T) {
 		t.Fatal(err)
 	}
 	favs := eng.Result().FavoriteFolders
-	if len(favs) != 2 {
-		t.Fatalf("num favs: %d, expected 2", len(favs))
-	}
-	if favs[0].Name != "t_alice,t_bob" {
-		t.Errorf("fav 0: %q, expected t_alice,t_bob", favs[0].Name)
-	}
-	if favs[1].Name != "t_alice,t_charlie" {
-		t.Errorf("fav 1: %q, expected t_alice,t_charlie", favs[1].Name)
+	if !newFavoritesFromServer(favs).Equal(*expectedFaves) {
+		t.Errorf("bad favorites")
 	}
 }
 
-func addfav(name string, private, created bool, idUI libkb.IdentifyUI, tc libkb.TestContext) {
+func addfav(name string, private, created bool, idUI libkb.IdentifyUI, tc libkb.TestContext, expectedFaves *favorites) {
 	ctx := &Context{
 		IdentifyUI: idUI,
 	}
@@ -158,9 +156,12 @@ func addfav(name string, private, created bool, idUI libkb.IdentifyUI, tc libkb.
 		tc.T.Fatal(err)
 	}
 	eng.Wait()
+	if expectedFaves != nil {
+		expectedFaves.Push(keybase1.Folder{Name: name, Private: private})
+	}
 }
 
-func rmfav(name string, private bool, tc libkb.TestContext) {
+func rmfav(name string, private bool, tc libkb.TestContext, expectedFaves *favorites) {
 	ctx := &Context{}
 	arg := keybase1.FavoriteIgnoreArg{
 		Folder: keybase1.Folder{Name: name, Private: private},
@@ -170,14 +171,86 @@ func rmfav(name string, private bool, tc libkb.TestContext) {
 	if err != nil {
 		tc.T.Fatal(err)
 	}
+	if expectedFaves != nil {
+		expectedFaves.Remove(keybase1.Folder{Name: name, Private: private})
+	}
 }
 
-func listfav(tc libkb.TestContext) []keybase1.Folder {
+func listfav(tc libkb.TestContext) *favorites {
 	ctx := &Context{}
 	eng := NewFavoriteList(tc.G)
 	err := RunEngine(eng, ctx)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
-	return eng.Result().FavoriteFolders
+	return newFavoritesFromServer(eng.Result().FavoriteFolders)
+}
+
+type favorites struct {
+	m map[string]bool
+}
+
+func newFavorites(un string) *favorites {
+	ret := &favorites{
+		m: make(map[string]bool),
+	}
+	for _, f := range defaultFaves(un) {
+		ret.Push(f)
+	}
+	return ret
+}
+
+func newFavoritesFromServer(v []keybase1.Folder) *favorites {
+	ret := &favorites{
+		m: make(map[string]bool),
+	}
+	for _, f := range v {
+		ret.Push(f)
+	}
+	return ret
+}
+
+func (v *favorites) Push(f keybase1.Folder) {
+	k := makeKey(f)
+	if !v.m[k] {
+		v.m[k] = true
+	}
+}
+
+func (v *favorites) Remove(f keybase1.Folder) {
+	delete(v.m, makeKey(f))
+}
+
+func (v favorites) Equal(b favorites) bool {
+	for k := range v.m {
+		if !b.m[k] {
+			return false
+		}
+	}
+	for k := range b.m {
+		if !v.m[k] {
+			return false
+		}
+	}
+	return true
+}
+
+func makeKey(f keybase1.Folder) string {
+	return fmt.Sprintf("%s:%v", f.Name, f.Private)
+}
+
+func defaultFaves(un string) []keybase1.Folder {
+	return []keybase1.Folder{
+		keybase1.Folder{Name: un, Private: false},
+		keybase1.Folder{Name: un, Private: true},
+	}
+}
+
+func (v *favorites) String() string {
+	var s []string
+	for f := range v.m {
+		s = append(s, f)
+	}
+	sort.Strings(s)
+	return strings.Join(s, ";")
 }

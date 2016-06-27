@@ -74,19 +74,19 @@ class KeyListener: UIViewController {
   }
 
   func goBackInTime(sender: UIKeyCommand){
-    bridge.eventDispatcher.sendDeviceEventWithName("backInTime", body: true)
+    bridge.eventDispatcher().sendDeviceEventWithName("backInTime", body: true)
   }
 
   func goForwardInTime(sender: UIKeyCommand){
-    bridge.eventDispatcher.sendDeviceEventWithName("forwardInTime", body: true)
+    bridge.eventDispatcher().sendDeviceEventWithName("forwardInTime", body: true)
   }
 
   func saveState(sender: UIKeyCommand){
-    bridge.eventDispatcher.sendDeviceEventWithName("saveState", body: true)
+    bridge.eventDispatcher().sendDeviceEventWithName("saveState", body: true)
   }
 
   func clearState(sender: UIKeyCommand){
-    bridge.eventDispatcher.sendDeviceEventWithName("clearState", body: true)
+    bridge.eventDispatcher().sendDeviceEventWithName("clearState", body: true)
   }
 
 }

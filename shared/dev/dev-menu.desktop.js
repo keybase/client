@@ -1,13 +1,14 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {routeAppend} from '../actions/router'
+import {BackButton, Box} from '../common-adapters'
+import {routeAppend, navigateUp} from '../actions/router'
 import {switchTab} from '../actions/tabbed-router'
-import {pushNewProfile} from '../actions/profile'
 import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
 import MenuList from '../settings/menu-list'
 import RemoteComponent from '../../desktop/renderer/remote-component'
+import {globalStyles} from '../styles/style-guide'
 
 import {loginTab} from '../constants/tabs'
 import engine from '../engine'
@@ -62,9 +63,6 @@ class DevMenu extends Component {
       {name: 'Search', hasChildren: true, onClick: () => {
         this.props.pushNewSearch()
       }},
-      {name: 'Profile', hasChildren: true, onClick: () => {
-        this.props.pushNewProfile('test12')
-      }},
       {name: 'Tracker Listener', hasChildren: true, onClick: () => {
         this.props.showTrackerListener('max')
       }},
@@ -82,7 +80,10 @@ class DevMenu extends Component {
       }},
     ]
     return (
-      <MenuList items={menuItems} />
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <BackButton onClick={() => this.props.navigateUp()} />
+        <MenuList items={menuItems} />
+      </Box>
     )
   }
 
@@ -98,11 +99,11 @@ export default connect(
   null,
   dispatch => {
     return {
+      navigateUp: () => dispatch(navigateUp()),
       routeAppend: uri => dispatch(routeAppend(uri)),
       switchTab: tabName => dispatch(switchTab(tabName)),
       logout: () => dispatch(logout()),
       pushNewSearch: () => dispatch(pushNewSearch()),
-      pushNewProfile: username => dispatch(pushNewProfile(username)),
       showTrackerListener: username => dispatch(pushDebugTracker(username)),
     }
   }

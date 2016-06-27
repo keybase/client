@@ -43,7 +43,7 @@ func (s *CmdCtlStart) Run() error {
 		return err
 	}
 
-	return StartLaunchdService(s.G(), string(install.AppServiceLabel), true)
+	return StartLaunchdService(s.G(), install.DefaultServiceLabel(), true)
 }
 
 func (s *CmdCtlStart) GetUsage() libkb.Usage {

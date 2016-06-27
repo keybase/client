@@ -22,7 +22,8 @@ const tabBarButtonMap: DumbComponentMap<TabBarButton> = {
 const tabBarBaseMock = {
   style: {flex: 1},
   children: [
-    (<TabBarItem label='One' selected onClick={() => {}}>
+    // eslint-disable-next-line react/jsx-boolean-value
+    (<TabBarItem label='One' selected={true} onClick={() => {}}>
       <Text type='Header' style={{flex: 2}}>One</Text>
     </TabBarItem>),
     (<TabBarItem label='Two' selected={false} onClick={() => {}}>
@@ -39,7 +40,7 @@ const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton sou
 
 const tabBarCustomButtons = selectedIndex => ({
   style: {flex: 1},
-  tabBarStyle: {justifyContent: 'space-between', height: 56},
+  styleTabBar: {justifyContent: 'space-between', height: 56},
   children: [
     {avatar: <Avatar size={32} onClick={null} username='max' />},
     {icon: 'fa-users', badgeNumber: 3},
@@ -47,11 +48,12 @@ const tabBarCustomButtons = selectedIndex => ({
     {icon: 'phone-bw-m', badgeNumber: 12},
     {icon: 'fa-cog'},
   ].map((buttonInfo: any, i) => {
-    const button = buttonInfo.avatar ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar} />
+    const button = buttonInfo.avatar
+      ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar} />
       : <IconButton icon={buttonInfo.icon} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
 
     return (
-      <TabBarItem tabBarButton={button} styleContainer={{flex: 1}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
+      <TabBarItem tabBarButton={button} style={{flex: 1}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
         <Text type='Header' style={{flex: 2}}>Content here at: {i}</Text>
       </TabBarItem>
     )

@@ -21,12 +21,12 @@ type PaperProvisionEngine struct {
 	User       *libkb.User
 }
 
-func NewPaperProvisionEngine(g *libkb.GlobalContext, Username string, DeviceName string, PaperKey string) *PaperProvisionEngine {
+func NewPaperProvisionEngine(g *libkb.GlobalContext, username, deviceName, paperKey string) *PaperProvisionEngine {
 	return &PaperProvisionEngine{
 		Contextified: libkb.NewContextified(g),
-		Username:     Username,
-		DeviceName:   DeviceName,
-		PaperKey:     PaperKey,
+		Username:     username,
+		DeviceName:   deviceName,
+		PaperKey:     paperKey,
 	}
 }
 
@@ -178,7 +178,9 @@ func (e *PaperProvisionEngine) sendNotification() {
 }
 
 func (e *PaperProvisionEngine) SubConsumers() []libkb.UIConsumer {
-	return []libkb.UIConsumer{}
+	return []libkb.UIConsumer{
+		&loginLoadUser{},
+	}
 }
 
 func (e *PaperProvisionEngine) Result() error {

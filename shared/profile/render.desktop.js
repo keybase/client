@@ -2,16 +2,51 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import {normal as proofNormal} from '../constants/tracker'
-import {Box, Icon, Text, ComingSoon, UserBio, UserProofs, Usernames} from '../common-adapters'
+import {Box, Icon, Text, UserBio, UserProofs, Usernames, BackButton} from '../common-adapters'
 import {userHeaderColor, UserActions} from './common.desktop'
+import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import ProfileHelp from './help.desktop'
+import type {Tab as FriendshipsTab} from './friendships'
 import type {Props} from './render'
 
-const HEADER_SIZE = 96
+export const AVATAR_SIZE = 112
+export const HEADER_TOP_SPACE = 48
+export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 
-class Render extends Component<void, Props, void> {
+type State = {
+  currentFriendshipsTab: FriendshipsTab,
+  foldersExpanded: boolean
+}
+
+function folderIconProps (folder, style) {
+  const type = folder.isPublic
+    ? (folder.hasData ? 'fa-kb-iconfont-folder-public-has-files' : 'fa-kb-iconfont-folder-public')
+    : (folder.hasData ? 'fa-kb-iconfont-folder-private-has-files' : 'fa-kb-iconfont-folder-private')
+
+  const color = folder.isPublic
+    ? globalColors.yellowGreen
+    : globalColors.darkBlue2
+
+  return {
+    type,
+    style: {...style, color},
+  }
+}
+
+class Render extends Component<void, Props, State> {
+  state: State;
+
+  constructor (props: Props) {
+    super(props)
+    this.state = {
+      currentFriendshipsTab: 'Followers',
+      foldersExpanded: false,
+    }
+  }
+
   _renderComingSoon () {
-    return <ComingSoon />
+    return <ProfileHelp username={this.props.username} />
   }
 
   render () {
@@ -26,66 +61,118 @@ class Render extends Component<void, Props, void> {
       proofNotice = `Some of ${this.props.username}'s proofs have changed since you last tracked them.`
     }
 
-    const folders = _.chain(this.props.tlfs)
-      .sortBy('isPublic')
+    let folders = _.chain(this.props.tlfs)
+      .orderBy('isPublic', 'asc')
       .map(folder => (
-        <Box style={styleFolderLine}>
-          <Icon type={folder.isPublic ? 'icon-folder-public-32' : 'icon-folder-private-32'} style={styleFolderIcon} />
-          <Usernames users={folder.users} type={'Body'} />
+        <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
+          <Icon {...folderIconProps(folder, styleFolderIcon)} />
+          <Box className='hover-underline'>
+            <Text type='Body'>{folder.isPublic ? 'public/' : 'private/'}</Text>
+            <Usernames inline users={folder.users} type='Body' />
+          </Box>
         </Box>
       ))
       .value()
 
+    if (!this.state.foldersExpanded && folders.length > 4) {
+      folders = folders.slice(0, 4)
+      folders.push(
+        <Box key='more' style={styleFolderLine} onClick={() => this.setState({foldersExpanded: true})}>
+          <Icon type='fa-kb-iconfont-ellipsis' style={styleFolderIcon} />
+          <Text type='BodySmall' style={{color: globalColors.black_60}}>+ {this.props.tlfs.length - folders.length} more</Text>
+        </Box>
+      )
+    }
+
     return (
-      <Box style={styleContainer}>
-        <Box style={{...styleHeader, backgroundColor: headerColor}} />
-        <Box style={globalStyles.flexBoxRow}>
-          <Box style={styleBioColumn}>
-            <UserBio
-              type='Profile'
-              avatarSize={112}
-              style={{marginTop: 39}}
-              username={this.props.username}
-              userInfo={this.props.userInfo}
-              currentlyFollowing={this.props.currentlyFollowing}
-              trackerState={this.props.trackerState}
-            />
-            <UserActions
-              style={styleActions}
-              trackerState={this.props.trackerState}
-              currentlyFollowing={this.props.currentlyFollowing}
-              onFollow={this.props.onFollow}
-              onUnfollow={this.props.onUnfollow}
-              onAcceptProofs={this.props.onAcceptProofs}
-            />
-          </Box>
-          <Box style={styleProofColumn}>
-            <Box style={styleProofNoticeBox}>
-              {proofNotice && <Text type='BodySmallSemibold' style={{color: globalColors.white}}>{proofNotice}</Text>}
+      <Box style={styleOuterContainer}>
+        <Box style={{...styleScrollHeaderBg, backgroundColor: headerColor}} />
+        <Box style={{...styleScrollHeaderCover, backgroundColor: headerColor}} />
+        {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 10, top: 10, zIndex: 12}}
+          textStyle={{color: globalColors.white}} iconStyle={{color: globalColors.white}} />}
+        <Box className='scroll-container' style={styleContainer}>
+          <Box style={{...styleHeader, backgroundColor: headerColor}} />
+          <Box style={{...globalStyles.flexBoxRow, minHeight: 300}}>
+            <Box style={styleBioColumn}>
+              <UserBio
+                type='Profile'
+                avatarSize={AVATAR_SIZE}
+                style={{marginTop: HEADER_TOP_SPACE}}
+                username={this.props.username}
+                userInfo={this.props.userInfo}
+                currentlyFollowing={this.props.currentlyFollowing}
+                trackerState={this.props.trackerState}
+              />
+              <UserActions
+                style={styleActions}
+                trackerState={this.props.trackerState}
+                currentlyFollowing={this.props.currentlyFollowing}
+                onFollow={this.props.onFollow}
+                onUnfollow={this.props.onUnfollow}
+                onAcceptProofs={this.props.onAcceptProofs}
+              />
             </Box>
-            <UserProofs
-              style={styleProofs}
-              username={this.props.username}
-              proofs={this.props.proofs}
-              currentlyFollowing={this.props.currentlyFollowing}
-            />
-            {folders}
+            <Box style={styleProofColumn}>
+              <Box style={styleProofNoticeBox}>
+                {proofNotice && <Text type='BodySmallSemibold' style={{color: globalColors.white}}>{proofNotice}</Text>}
+              </Box>
+              <UserProofs
+                style={styleProofs}
+                username={this.props.username}
+                proofs={this.props.proofs}
+                currentlyFollowing={this.props.currentlyFollowing}
+              />
+              {folders}
+            </Box>
           </Box>
+          <Friendships
+            style={styleFriendships}
+            currentTab={this.state.currentFriendshipsTab}
+            onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
+            onUserClick={this.props.onUserClick}
+            followers={this.props.followers}
+            following={this.props.following}
+          />
         </Box>
       </Box>
     )
   }
 }
 
-const styleContainer = {
-  ...globalStyles.flexBoxColumn,
+const styleOuterContainer = {
   position: 'relative',
+  height: '100%',
+}
+
+const styleContainer = {
+  position: 'relative',
+  height: '100%',
+  overflowY: 'auto',
 }
 
 const styleHeader = {
   position: 'absolute',
   width: '100%',
   height: HEADER_SIZE,
+}
+
+// Two sticky header elements to accomodate overlay and space-consuming scrollbars:
+
+// styleScrollHeaderBg sits beneath the content and colors the background under the overlay scrollbar.
+const styleScrollHeaderBg = {
+  position: 'absolute',
+  left: 0,
+  right: 0,
+  height: 48,
+  zIndex: -1,
+}
+
+// styleScrollHeaderCover covers all scrolling content and has extra space on the right so it doesn't cover a space-consuming scrollbar.
+const styleScrollHeaderCover = {
+  ...styleScrollHeaderBg,
+  left: 0,
+  right: 20,
+  zIndex: 10,
 }
 
 const styleBioColumn = {
@@ -103,7 +190,6 @@ const styleProofColumn = {
   width: 320,
   marginLeft: globalMargins.medium,
   marginRight: globalMargins.medium,
-  zIndex: 2,
 }
 
 const styleProofNoticeBox = {
@@ -112,6 +198,7 @@ const styleProofNoticeBox = {
   alignItems: 'center',
   justifyContent: 'center',
   textAlign: 'center',
+  zIndex: 11,
 }
 
 const styleProofs = {
@@ -122,15 +209,20 @@ const styleProofs = {
 const styleFolderLine = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
-  alignItems: 'center',
+  alignItems: 'flex-start',
   marginTop: globalMargins.tiny,
   color: globalColors.black_60,
 }
 
 const styleFolderIcon = {
   width: 16,
-  height: 16,
+  marginTop: 5,
   marginRight: globalMargins.tiny,
+  textAlign: 'center',
+}
+
+const styleFriendships = {
+  marginTop: globalMargins.medium,
 }
 
 export default Render

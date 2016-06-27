@@ -72,6 +72,8 @@ type CommandLine interface {
 	GetTorProxy() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
 
+	GetMountDir() string
+
 	// Lower-level functions
 	GetGString(string) string
 	GetString(string) string
@@ -154,6 +156,7 @@ type ConfigReader interface {
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorDisabled() (bool, bool)
 	GetGregorPingInterval() (time.Duration, bool)
+	GetMountDir() string
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
@@ -420,6 +423,13 @@ type UIConsumer interface {
 	SubConsumers() []UIConsumer
 }
 
+type Triplesec interface {
+	DeriveKey(l int) ([]byte, []byte, error)
+	Decrypt([]byte) ([]byte, error)
+	Encrypt([]byte) ([]byte, error)
+	Scrub()
+}
+
 type Clock interface {
 	Now() time.Time
 }
@@ -431,8 +441,8 @@ type GregorDismisser interface {
 type GregorInBandMessageHandler interface {
 	IsAlive() bool
 	Name() string
-	Create(ctx context.Context, category string, ibm gregor.Item) (bool, error)
-	Dismiss(ctx context.Context, category string, ibm gregor.Item) (bool, error)
+	Create(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error)
+	Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error)
 }
 
 type GregorFirehoseHandler interface {

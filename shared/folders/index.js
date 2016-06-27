@@ -2,15 +2,19 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './render'
+import {favoriteList} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {bindActionCreators} from 'redux'
 import {routeAppend} from '../actions/router'
 import Files from './files'
+import flags from '../util/feature-flags'
 import type {Props as RenderProps} from './render'
 
 export type Props = {
+  favoriteList: () => void,
   folderProps: ?RenderProps,
   openInKBFS: (path: string) => void,
+  username: string,
   routeAppend: (path: any) => void
 }
 
@@ -28,6 +32,10 @@ class Folders extends Component<void, Props, State> {
     }
   }
 
+  componentDidMount () {
+    this.props.favoriteList()
+  }
+
   render () {
     return (
       <Render
@@ -36,6 +44,8 @@ class Folders extends Component<void, Props, State> {
         onOpen={path => this.props.openInKBFS(path)}
         onSwitchTab={showingPrivate => this.setState({showingPrivate})}
         showingPrivate={this.state.showingPrivate}
+        showComingSoon={!flags.tabFoldersEnabled}
+        username={this.props.username}
       />
     )
   }
@@ -50,7 +60,8 @@ class Folders extends Component<void, Props, State> {
 
 export default connect(
   state => ({
+    username: state.config.username,
     folderProps: state.favorite && state.favorite.folders,
   }),
-  dispatch => bindActionCreators({routeAppend, openInKBFS}, dispatch)
+  dispatch => bindActionCreators({favoriteList, routeAppend, openInKBFS}, dispatch)
 )(Folders)

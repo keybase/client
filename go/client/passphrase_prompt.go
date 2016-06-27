@@ -39,8 +39,8 @@ func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
 // Used in `rekey paper` command.
 func PromptPaperPhrase(g *libkb.GlobalContext) (string, error) {
 	arg := libkb.DefaultPassphraseArg(g, false)
-	arg.WindowTitle = "Enter a paper key phrase"
-	arg.Prompt = "Enter a paper key phrase"
+	arg.WindowTitle = "Enter a paper key"
+	arg.Prompt = "Enter a paper key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	arg.Features.StoreSecret.Allow = false
 	arg.Features.ShowTyping.Allow = true

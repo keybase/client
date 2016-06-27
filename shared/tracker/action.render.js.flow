@@ -1,4 +1,5 @@
 /* @flow */
+import {Component} from 'react'
 
 import type {SimpleProofState} from '../constants/tracker'
 
@@ -8,13 +9,12 @@ export type ActionProps = {
   state: SimpleProofState,
   currentlyFollowing: boolean,
   username: string,
-  shouldFollow: ?boolean,
-  renderChangedTitle: ?string,
-  failedProofsNotFollowingText: string,
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   onClose: () => void,
   onIgnore: () => void,
   onFollow: () => void,
   onRefollow: () => void,
-  onUnfollow: () => void
+  onUnfollow: () => void,
 }
+
+export default class ActionRender extends Component<void, ActionProps, void> { }

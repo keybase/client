@@ -489,6 +489,7 @@ type exchangeIn struct {
 	Olddir  uint64
 	Newdir  uint64
 	Options uint64
+	// "oldname\x00newname\x00" follows
 }
 
 type linkIn struct {
