@@ -94,7 +94,7 @@ func (n *NotifyRouter) run() {
 
 // AddConnection should be called every time there's a new RPC connection
 // established for this server.  The caller should pass in the Transporter
-// and also the channel that will get messages when the chanel closes.
+// and also the channel that will get messages when the channel closes.
 func (n *NotifyRouter) AddConnection(xp rpc.Transporter, ch chan error) ConnectionID {
 	if n == nil {
 		return 0
@@ -116,7 +116,7 @@ func (n *NotifyRouter) HandleLogout() {
 	if n == nil {
 		return
 	}
-	n.G().Log.Debug("+ Sending logout notfication")
+	n.G().Log.Debug("+ Sending logout notification")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Session` notification type

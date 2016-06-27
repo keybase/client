@@ -24,19 +24,14 @@ We are iterating quickly and a lot of the code is changing every day.
 Follow the [React Native Getting Started guide](https://facebook.github.io/react-native/docs/getting-started.html) for the platforms you intend to develop on.
 
 ```sh
-# Setup golang mobile
-rm $GOPATH/bin/gomobile
-go get -u golang.org/x/mobile/cmd/gomobile
-gomobile init
-
-# Setup npm
 npm install
 ```
 
 Due to the react-native packager not handling symlinks (https://github.com/facebook/react-native/issues/637) we're watching our shared folder and copying the files over as they change. We use watchman to watch the folder and rsync to copy over the changes
 
-```
+```sh
 # Install watchman (the npm version has issues)
+brew update
 brew install watchman
 
 # Start watching changes

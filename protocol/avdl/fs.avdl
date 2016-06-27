@@ -1,0 +1,18 @@
+@namespace("keybase.1")
+
+protocol fs {
+
+  record File {
+    string path;
+  }
+
+  record ListResult {
+    array<File> files;
+  }
+
+  /**
+   List files in a path. Implemented by KBFS service.
+   */
+  ListResult List(int sessionID, string path);
+
+}

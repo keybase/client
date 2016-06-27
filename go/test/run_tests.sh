@@ -5,8 +5,12 @@ DIRS=$(go list ./... | grep -v /vendor/ | sed -e 's/^github.com\/keybase\/client
 
 export KEYBASE_LOG_SETUPTEST_FUNCS=1
 
-for i in $DIRS
-do
+for i in $DIRS; do
+	if [ "$i" = "loopback" ]; then
+		echo "Skipping loopback"
+		continue
+	fi
+
 	echo -n "$i......."
 	(cd $i && go test -timeout 50m)
 done

@@ -265,6 +265,10 @@ export type Feature = {
   label: string;
 }
 
+export type File = {
+  path: string;
+}
+
 export type FileDescriptor = {
   name: string;
   type: FileType;
@@ -508,6 +512,10 @@ export type LinkCheckResult = {
   remoteDiff?: ?TrackDiff;
   hint?: ?SigHint;
   breaksTracking: boolean;
+}
+
+export type ListResult = {
+  files: Array<File>;
 }
 
 export type LogLevel =
@@ -1774,6 +1782,17 @@ export type favoriteGetFavoritesRpc = {
   method: 'favorite.getFavorites',
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: favoriteGetFavoritesResult) => void)
+}
+
+export type fsListResult = ListResult
+
+export type fsListRpc = {
+  method: 'fs.List',
+  param: {
+    path: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: fsListResult) => void)
 }
 
 export type gpgUiConfirmDuplicateKeyChosenResult = boolean
@@ -3541,6 +3560,7 @@ export type rpc =
   | favoriteFavoriteAddRpc
   | favoriteFavoriteIgnoreRpc
   | favoriteGetFavoritesRpc
+  | fsListRpc
   | gpgUiConfirmDuplicateKeyChosenRpc
   | gpgUiSelectKeyAndPushOptionRpc
   | gpgUiSelectKeyRpc
@@ -4127,6 +4147,16 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: favoriteGetFavoritesResult) => void
+    }
+  ) => void,
+  'keybase.1.fs.List'?: (
+    params: {
+      sessionID: int,
+      path: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: fsListResult) => void
     }
   ) => void,
   'keybase.1.gpgUi.wantToAddGPGKey'?: (
