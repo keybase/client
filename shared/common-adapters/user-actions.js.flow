@@ -1,0 +1,14 @@
+/* @flow */
+
+import type {SimpleProofState} from '../constants/tracker'
+
+export type Props = {
+  trackerState: SimpleProofState,
+  currentlyFollowing: boolean,
+  style: Object,
+  onFollow: () => void,
+  onUnfollow: () => void,
+  onAcceptProofs: () => void,
+}
+
+export default class UserAction extends React$Component<void, Props, void> {}

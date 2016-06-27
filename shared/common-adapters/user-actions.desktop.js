@@ -3,16 +3,9 @@ import React from 'react'
 import {normal as proofNormal} from '../constants/tracker'
 import {Box, Button, FollowButton} from '../common-adapters'
 import {globalMargins} from '../styles/style-guide'
-import type {SimpleProofState} from '../constants/tracker'
+import type {Props} from './user-actions'
 
-export function UserActions ({trackerState, currentlyFollowing, style, onFollow, onUnfollow, onAcceptProofs}: {
-  trackerState: SimpleProofState,
-  currentlyFollowing: boolean,
-  style: Object,
-  onFollow: () => void,
-  onUnfollow: () => void,
-  onAcceptProofs: () => void
-}) {
+export default function UserActions ({trackerState, currentlyFollowing, style, onFollow, onUnfollow, onAcceptProofs}: Props) {
   if (trackerState === proofNormal) {
     if (currentlyFollowing) {
       return (

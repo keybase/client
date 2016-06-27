@@ -1,9 +1,8 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {Box, UserProofs, UserBio} from '../../common-adapters'
+import {Box, UserProofs, UserBio, UserActions} from '../../common-adapters'
 import {headerColor as whichHeaderColor} from '../../common-adapters/user-bio.shared'
-import {UserActions} from '../../profile/common.desktop'
 import {globalColors, globalStyles, globalMargins} from '../../styles/style-guide'
 import {AVATAR_SIZE, HEADER_TOP_SPACE, HEADER_SIZE} from '../../profile/render.desktop'
 import type {Props} from './user.render'
