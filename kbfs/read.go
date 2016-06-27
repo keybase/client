@@ -10,6 +10,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -55,12 +56,12 @@ func readHelper(ctx context.Context, config libkbfs.Config, args []string) error
 	}
 
 	filePathStr := flags.Arg(0)
-	p, err := makeKbfsPath(filePathStr)
+	p, err := fsrpc.NewPath(filePathStr)
 	if err != nil {
 		return err
 	}
 
-	if p.pathType != tlfPath {
+	if p.PathType != fsrpc.TLFPathType {
 		return fmt.Errorf("Cannot read %s", p)
 	}
 
@@ -68,7 +69,7 @@ func readHelper(ctx context.Context, config libkbfs.Config, args []string) error
 		fmt.Fprintf(os.Stderr, "Looking up %s\n", p)
 	}
 
-	fileNode, err := p.getFileNode(ctx, config)
+	fileNode, err := p.GetFileNode(ctx, config)
 	if err != nil {
 		return err
 	}

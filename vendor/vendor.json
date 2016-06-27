@@ -152,8 +152,8 @@
 		{
 			"checksumSHA1": "0cPVgVKRTR4hWBIaJ/aiCo58WIs=",
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "9ac76dd2b2280d7f90e953ded53ef55c6a92b556",
-			"revisionTime": "2016-06-10T22:58:26Z"
+			"revision": "4767426f8af8806b9eb9e3e8b7eed61431748846",
+			"revisionTime": "2016-06-27T14:17:11-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",

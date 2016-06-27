@@ -70,7 +70,7 @@ func realMain() (exitStatus int) {
 
 	log := logger.NewWithCallDepth("", 1)
 
-	config, err := libkbfs.Init(kbCtx, *kbfsParams, nil, log)
+	config, err := libkbfs.Init(kbCtx, *kbfsParams, nil, nil, log)
 	if err != nil {
 		printError("kbfs", err)
 		return 1

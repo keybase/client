@@ -61,7 +61,7 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 
 	log.Debug("Initializing")
 
-	config, err := libkbfs.Init(kbCtx, options.KbfsParams, onInterruptFn, log)
+	config, err := libkbfs.Init(kbCtx, options.KbfsParams, nil, onInterruptFn, log)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}

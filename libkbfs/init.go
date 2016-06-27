@@ -79,31 +79,47 @@ func GetDefaultMDServer(ctx Context) string {
 }
 
 func defaultLogPath(ctx Context) string {
-	// TODO is there a better way to get G here?
 	return filepath.Join(ctx.GetLogDir(), libkb.KBFSLogFileName)
+}
+
+// DefaultInitParams returns default init params
+func DefaultInitParams(ctx Context) InitParams {
+	return InitParams{
+		Debug:            BoolForString(os.Getenv("KBFS_DEBUG")),
+		BServerAddr:      GetDefaultBServer(ctx),
+		MDServerAddr:     GetDefaultMDServer(ctx),
+		TLFValidDuration: tlfValidDurationDefault,
+		LogFileConfig: logger.LogFileConfig{
+			MaxAge:       30 * 24 * time.Hour,
+			MaxSize:      128 * 1024 * 1024,
+			MaxKeepFiles: 3,
+		},
+	}
 }
 
 // AddFlags adds libkbfs flags to the given FlagSet. Returns an
 // InitParams that will be filled in once the given FlagSet is parsed.
 func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
+	defaultParams := DefaultInitParams(ctx)
+
 	var params InitParams
-	flags.BoolVar(&params.Debug, "debug", BoolForString(os.Getenv("KBFS_DEBUG")), "Print debug messages")
+	flags.BoolVar(&params.Debug, "debug", defaultParams.Debug, "Print debug messages")
 	flags.StringVar(&params.CPUProfile, "cpuprofile", "", "write cpu profile to file")
 
-	flags.StringVar(&params.BServerAddr, "bserver", GetDefaultBServer(ctx), "host:port of the block server")
-	flags.StringVar(&params.MDServerAddr, "mdserver", GetDefaultMDServer(ctx), "host:port of the metadata server")
+	flags.StringVar(&params.BServerAddr, "bserver", defaultParams.BServerAddr, "host:port of the block server")
+	flags.StringVar(&params.MDServerAddr, "mdserver", defaultParams.MDServerAddr, "host:port of the metadata server")
 
 	flags.BoolVar(&params.ServerInMemory, "server-in-memory", false, "use in-memory server (and ignore -bserver, -mdserver, and -server-root)")
 	flags.StringVar(&params.ServerRootDir, "server-root", "", "directory to put local server files (and ignore -bserver and -mdserver)")
 	flags.StringVar(&params.LocalUser, "localuser", "", "fake local user (used only with -server-in-memory or -server-root)")
-	flags.DurationVar(&params.TLFValidDuration, "tlf-valid", tlfValidDurationDefault, "time tlfs are valid before redoing identification")
+	flags.DurationVar(&params.TLFValidDuration, "tlf-valid", defaultParams.TLFValidDuration, "time tlfs are valid before redoing identification")
 	flags.BoolVar(&params.LogToFile, "log-to-file", false, fmt.Sprintf("Log to default file: %s", defaultLogPath(ctx)))
 	flags.StringVar(&params.LogFileConfig.Path, "log-file", "", "Path to log file")
-	flags.DurationVar(&params.LogFileConfig.MaxAge, "log-file-max-age", 30*24*time.Hour, "Maximum age of a log file before rotation")
-	params.LogFileConfig.MaxSize = 128 * 1024 * 1024
+	flags.DurationVar(&params.LogFileConfig.MaxAge, "log-file-max-age", defaultParams.LogFileConfig.MaxAge, "Maximum age of a log file before rotation")
+	params.LogFileConfig.MaxSize = defaultParams.LogFileConfig.MaxSize
 	flag.Var(SizeFlag{&params.LogFileConfig.MaxSize}, "log-file-max-size", "Maximum size of a log file before rotation")
 	// The default is to *DELETE* old log files for kbfs.
-	flag.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files", 3, "Maximum number of log files for this service, older ones are deleted. 0 for infinite.")
+	flag.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files", defaultParams.LogFileConfig.MaxKeepFiles, "Maximum number of log files for this service, older ones are deleted. 0 for infinite.")
 	return &params
 }
 
@@ -179,46 +195,6 @@ func makeBlockServer(config Config, serverInMemory bool, serverRootDir, bserverA
 	return NewBlockServerRemote(config, bserverAddr, ctx), nil
 }
 
-func makeKeybaseDaemon(config Config, serverInMemory bool, serverRootDir string, localUser libkb.NormalizedUsername, codec Codec, ctx Context, log logger.Logger, debug bool) (KeybaseDaemon, error) {
-	if len(localUser) == 0 {
-		ctx.ConfigureSocketInfo()
-		return NewKeybaseDaemonRPC(config, ctx, log, debug), nil
-	}
-
-	users := []libkb.NormalizedUsername{"strib", "max", "chris", "fred"}
-	userIndex := -1
-	for i := range users {
-		if localUser == users[i] {
-			userIndex = i
-			break
-		}
-	}
-	if userIndex < 0 {
-		return nil, fmt.Errorf("user %s not in list %v", localUser, users)
-	}
-
-	localUsers := MakeLocalUsers(users)
-
-	// TODO: Auto-generate these, too?
-	localUsers[0].Asserts = []string{"github:strib"}
-	localUsers[1].Asserts = []string{"twitter:maxtaco"}
-	localUsers[2].Asserts = []string{"twitter:malgorithms"}
-	localUsers[3].Asserts = []string{"twitter:fakalin"}
-
-	localUID := localUsers[userIndex].UID
-
-	if serverInMemory {
-		return NewKeybaseDaemonMemory(localUID, localUsers, codec), nil
-	}
-
-	if len(serverRootDir) > 0 {
-		favPath := filepath.Join(serverRootDir, "kbfs_favs")
-		return NewKeybaseDaemonDisk(localUID, localUsers, favPath, codec)
-	}
-
-	return nil, errors.New("Can't user localuser without a local server")
-}
-
 // InitLog sets up logging switching to a log file if necessary.
 // Returns a valid logger even on error, which are non-fatal, thus
 // errors from this function may be ignored.
@@ -257,8 +233,11 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 // Init should be called at the beginning of main. Shutdown (see
 // below) should then be called at the end of main (usually via
 // defer).
-func Init(ctx Context, params InitParams, onInterruptFn func(), log logger.Logger) (Config, error) {
-	localUser := libkb.NewNormalizedUsername(params.LocalUser)
+//
+// The keybaseDaemonFn argument is to temporarily support KBFS on
+// mobile (for using a custom KeybaseDaemon implementation) and will
+// be removed in the future, when we use a non-RPC implementation.
+func Init(ctx Context, params InitParams, keybaseDaemonFn KeybaseDaemonFn, onInterruptFn func(), log logger.Logger) (Config, error) {
 
 	if params.CPUProfile != "" {
 		// Let the GC/OS clean up the file handle.
@@ -341,7 +320,10 @@ func Init(ctx Context, params InitParams, onInterruptFn func(), log logger.Logge
 
 	config.SetKeyServer(keyServer)
 
-	daemon, err := makeKeybaseDaemon(config, params.ServerInMemory, params.ServerRootDir, localUser, config.Codec(), ctx, config.MakeLogger(""), params.Debug)
+	if keybaseDaemonFn == nil {
+		keybaseDaemonFn = makeKeybaseDaemon
+	}
+	daemon, err := keybaseDaemonFn(config, params, ctx, config.MakeLogger(""))
 	if err != nil {
 		return nil, fmt.Errorf("problem creating daemon: %s", err)
 	}
@@ -357,6 +339,7 @@ func Init(ctx Context, params InitParams, onInterruptFn func(), log logger.Logge
 
 	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
 
+	localUser := libkb.NewNormalizedUsername(params.LocalUser)
 	if localUser == "" {
 		c := NewCryptoClient(config, ctx)
 		config.SetCrypto(c)

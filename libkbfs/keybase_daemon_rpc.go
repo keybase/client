@@ -44,6 +44,9 @@ type KeybaseDaemonRPC struct {
 
 	lastNotificationFilenameLock sync.Mutex
 	lastNotificationFilename     string
+
+	// protocols (additional to required protocols) to register on server connect
+	protocols []rpc.Protocol
 }
 
 var _ keybase1.NotifySessionInterface = (*KeybaseDaemonRPC)(nil)
@@ -369,16 +372,35 @@ func (*KeybaseDaemonRPC) HandlerName() string {
 	return "KeybaseDaemonRPC"
 }
 
+// AddProtocols adds protocols that are registered on server connect
+func (k *KeybaseDaemonRPC) AddProtocols(protocols []rpc.Protocol) {
+	if protocols == nil {
+		return
+	}
+	if k.protocols != nil {
+		k.protocols = append(k.protocols, protocols...)
+	} else {
+		k.protocols = protocols
+	}
+}
+
 // OnConnect implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	conn *rpc.Connection, rawClient rpc.GenericClient,
 	server *rpc.Server) error {
+
+	// Protocols that KBFS requires
 	protocols := []rpc.Protocol{
 		keybase1.LogUiProtocol(daemonLogUI{k.daemonLog}),
 		keybase1.IdentifyUiProtocol(daemonIdentifyUI{k.daemonLog}),
 		keybase1.NotifySessionProtocol(k),
 		keybase1.NotifyUsersProtocol(k),
 	}
+
+	if k.protocols != nil {
+		protocols = append(protocols, k.protocols...)
+	}
+
 	for _, p := range protocols {
 		err := server.Register(p)
 		if err != nil {

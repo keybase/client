@@ -16,6 +16,7 @@ type SecretEntryArg struct {
 	Ok             string `codec:"ok" json:"ok"`
 	Reason         string `codec:"reason" json:"reason"`
 	UseSecretStore bool   `codec:"useSecretStore" json:"useSecretStore"`
+	ShowTyping     bool   `codec:"showTyping" json:"showTyping"`
 }
 
 type SecretEntryRes struct {

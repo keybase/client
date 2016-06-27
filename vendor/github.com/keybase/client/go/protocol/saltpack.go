@@ -33,9 +33,10 @@ type SaltpackVerifyOptions struct {
 }
 
 type SaltpackEncryptedMessageInfo struct {
-	Devices          []Device `codec:"devices" json:"devices"`
-	NumAnonReceivers int      `codec:"numAnonReceivers" json:"numAnonReceivers"`
-	ReceiverIsAnon   bool     `codec:"receiverIsAnon" json:"receiverIsAnon"`
+	Devices          []Device       `codec:"devices" json:"devices"`
+	NumAnonReceivers int            `codec:"numAnonReceivers" json:"numAnonReceivers"`
+	ReceiverIsAnon   bool           `codec:"receiverIsAnon" json:"receiverIsAnon"`
+	Sender           SaltpackSender `codec:"sender" json:"sender"`
 }
 
 type SaltpackEncryptArg struct {
