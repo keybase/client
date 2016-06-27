@@ -41,6 +41,7 @@ export function startTimer (): TrackerActionCreator {
 
         const params : trackCheckTrackingRpc = {
           method: 'track.checkTracking',
+          callback: () => {},
         }
 
         engine.rpc(params)
