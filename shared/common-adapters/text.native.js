@@ -139,6 +139,7 @@ export default class Text extends Component {
           ref='text'
           style={style}
           contentEditable
+          {...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {})}
           onKeyUp={this.props.onKeyUp}
           onKeyDown={this.props.onKeyDown}
           onPress={this.props.onClick} />)
@@ -147,6 +148,7 @@ export default class Text extends Component {
     return (
       <RNText
         style={style}
+        {...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {})}
         onPress={this.props.onClick}>{terminalPrefix}{this.props.children}</RNText>)
   }
 }
@@ -341,4 +343,10 @@ export const styles = {
     backgroundColor: globalColors.blue4,
     padding: 2,
   },
+}
+
+export function lineClamp (lines: number): Object {
+  return {
+    numberOfLines: lines,
+  }
 }
