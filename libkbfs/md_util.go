@@ -145,11 +145,20 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 		if err := rmd.isReadableOrError(ctx, config); err != nil {
 			// The right secret key for the given rmd's key generation
 			// may only be present in the most recent rmd.
-			latestRmd := mergedRmds[len(mergedRmds)-1]
+			latestRmd, err := mergedRmds[len(mergedRmds)-1].
+				deepCopy(config.Codec(), true)
+			if err != nil {
+				return nil, err
+			}
 			if err := decryptMDPrivateData(ctx, config,
 				rmd, latestRmd); err != nil {
 				return nil, err
 			}
+			// Overwrite the cached copy with the new copy
+			if err := config.MDCache().Put(latestRmd); err != nil {
+				return nil, err
+			}
+			mergedRmds[len(mergedRmds)-1] = latestRmd
 		}
 	}
 	return mergedRmds, nil
