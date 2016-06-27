@@ -71,6 +71,7 @@
     "devtron": "1.2.1",
     "electron-packager": "7.3.0",
     "electron-prebuilt": "1.2.6",
+    "electron-download": "git://github.com/keybase/electron-download#5350b5a1bad8ba7bb8c7201abe59ae3a03c3d75d",
     "eslint": "2.13.1",
     "eslint-config-standard": "5.3.1",
     "eslint-config-standard-jsx": "1.2.1",
