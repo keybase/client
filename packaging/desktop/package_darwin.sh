@@ -240,7 +240,7 @@ update_json() {(
   cd "$out_dir"
   if [ -n "$s3host" ]; then
     "$release_bin" update-json --version="$app_version" --src="$zip_name" \
-      --uri="$s3host/$platform-updates" --signature="$out_dir/$sig_name" > "$update_json_name"
+      --uri="$s3host/$platform-updates" --signature="$out_dir/$sig_name" --description="$client_dir/desktop/CHANGELOG.txt" > "$update_json_name"
   fi
 )}
 
