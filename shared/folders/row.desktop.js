@@ -66,9 +66,15 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onOp
 
   const styles = isPublic ? stylesPublic : stylesPrivate
 
+  let backgroundColor = styles.rowContainer.backgroundColor
+  if (isPublic && ignored) {
+    backgroundColor = globalColors.white_40
+  }
+
   const containerStyle = {
     ...styles.rowContainer,
     minHeight: smallMode ? 40 : 48,
+    backgroundColor,
   }
 
   const icon: IconProps.type = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal

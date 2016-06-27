@@ -24,14 +24,17 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
     return (
       <Box
         style={{
+          ...globalStyles.clickable,
           [borderLocation]: `solid 2px ${this.props.selected ? selectedColor : 'transparent'}`,
           padding: '4px 12px',
           ...this.props.style,
         }}>
         <Text
-          type='BodySmall'
+          type='BodySmallSemibold'
           style={{
+            ...globalStyles.clickable,
             color: this.props.selected ? globalColors.black_75 : globalColors.black_60,
+            fontSize: 13,
             ...underlineStyle,
           }}>
           {this.props.label}
@@ -135,7 +138,7 @@ class TabBar extends Component {
 
   render () {
     const tabBarButtons = (
-      <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
+      <Box style={{...globalStyles.flexBoxRow, flexShrink: 0, ...this.props.styleTabBar}}>
         {this._labels()}
       </Box>
     )

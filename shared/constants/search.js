@@ -3,6 +3,8 @@
 import type {IconType} from '../common-adapters/icon'
 import type {TypedAction} from '../constants/types/flux'
 
+export type SearchPlatforms = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Coinbase' | 'Hackernews' | 'Pgp'
+
 export type ExtraInfo = {
   service: 'external',
   icon: IconType,
@@ -27,8 +29,23 @@ export type SearchResult = {
 } | {
   service: 'external',
   icon: IconType,
+  serviceAvatar: ?string, // i.e. with twitter it would be their twitter avatar url
   username: string,
-  extraInfo: ExtraInfo
+  serviceName: SearchPlatforms,
+  profileUrl: string,
+  extraInfo: ExtraInfo,
+  keybaseSearchResult: ?SearchResult, // If we want to grab the keybase version of a search result
+}
+
+export function fullName (extraInfo: ExtraInfo): string {
+  switch (extraInfo.service) {
+    case 'keybase':
+    case 'none':
+      return extraInfo.fullName
+    case 'external':
+      return extraInfo.fullNameOnService || ''
+  }
+  return ''
 }
 
 export const search = 'search:search'
@@ -37,12 +54,22 @@ export type Search = TypedAction<'search:search', {term: string}, void>
 export const results = 'search:results'
 export type Results = TypedAction<'search:results', {term: string, results: Array<SearchResult>}, void>
 
-export type SearchPlatforms = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Coinbase' | 'Hackernews' | 'Pgp'
-
 export const selectPlatform = 'search:selectPlatform'
 export type SelectPlatform = TypedAction<'search:selectPlatform', {platform: SearchPlatforms}, void>
 
-export type SearchActions = Search | Results | SelectPlatform
+export const selectUserForInfo = 'search:selectUserForInfo'
+export type SelectUserForInfo = TypedAction<'search:selectUserForInfo', {user: SearchResult}, void>
+
+export const addUserToGroup = 'search:addUserToGroup'
+export type AddUserToGroup = TypedAction<'search:addUserToGroup', {user: SearchResult}, void>
+
+export const removeUserFromGroup = 'search:removeUserFromGroup'
+export type RemoveUserFromGroup = TypedAction<'search:removeUserFromGroup', {user: SearchResult}, void>
+
+export const toggleUserGroup = 'search:toggleUserGroup'
+export type ToggleUserGroup = TypedAction<'search:toggleUserGroup', {show: boolean}, void>
+
+export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUserToGroup | RemoveUserFromGroup | ToggleUserGroup
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
   return {
@@ -80,4 +107,21 @@ export function platformToLogo24 (platform: SearchPlatforms): IconType {
     'Hackernews': 'placeholder-avatar-24-x-24',
     'Pgp': 'icon-pgp-key-24',
   }[platform]
+}
+
+// TODO(mm) fill this out correctly
+export function platformToLogo16 (platform: SearchPlatforms): IconType {
+  return {
+    'Keybase': 'keybase-logo-mascot-only-dz-2-24',
+    'Twitter': 'icon-twitter-logo-24',
+    'Github': 'icon-github-logo-24',
+    'Reddit': 'icon-reddit-logo-24',
+    'Coinbase': 'icon-coinbase-logo-24',
+    'Hackernews': 'placeholder-avatar-24-x-24',
+    'Pgp': 'icon-pgp-key-24',
+  }[platform]
+}
+
+export function equalSearchResult (a: SearchResult, b: SearchResult): boolean {
+  return a.service === b.service && a.username === b.username
 }

@@ -50,6 +50,7 @@ protocol constants {
     SCStreamNotFound_1502,
     SCStreamWrongKind_1503,
     SCStreamEOF_1504,
+    SCGenericAPIError_1600,
     SCAPINetworkError_1601,
     SCTimeout_1602,
     SCProofError_1701,

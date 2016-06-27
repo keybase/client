@@ -6,13 +6,13 @@ import type {IconType} from '../../common-adapters/icon'
 import type {SearchResult, SearchPlatforms} from '../../constants/search'
 
 export type SearchResultFn = (searchResult: SearchResult) => void
-export type ServiceFn = (serviceName: string) => void
+export type ServiceFn = (serviceName: SearchPlatforms) => void
 
 export type Props = {
   searchHintText: string,
   searchText: ?string,
   searchIcon: IconType,
-  selectedService: SearchPlatforms,
+  selectedService: ?SearchPlatforms,
   results: Array<SearchResult>,
   onClickService: ServiceFn,
   onClickResult: SearchResultFn,

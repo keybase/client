@@ -10,6 +10,8 @@ export const statusLoaded = 'config:statusLoaded'
 export const configLoaded = 'config:configLoaded'
 export const extendedConfigLoaded = 'config:extendedConfigLoaded'
 export const bootstrapped = 'config:bootstrapped'
+export const updateFollowing = 'config:updateFollowing'
+export const updateFollowers = 'config:updateFollowers'
 
 export const changeKBFSPath = 'config:changeKBFSPath'
 

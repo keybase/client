@@ -33,7 +33,7 @@ const dumbMapUser: DumbComponentMap<UserPane> = {
       parentProps: {
         style: {
           width: 320,
-          height: 400,
+          height: 420,
         },
       },
     },
@@ -59,7 +59,7 @@ const dumbMapNonUser: DumbComponentMap<NonUserPane> = {
       username: 'Snowden',
       fullname: 'Edward Snowden',
       serviceName: 'Twitter',
-      profileURL: 'https://twitter.com/Snowden',
+      profileUrl: 'https://twitter.com/Snowden',
       onSendInvite: () => console.log('onSendInvite'),
       parentProps: defaultParentProps,
     },
@@ -67,7 +67,7 @@ const dumbMapNonUser: DumbComponentMap<NonUserPane> = {
       avatar: null,
       username: 'spez',
       serviceName: 'Reddit',
-      profileURL: 'https://www.reddit.com/user/spez',
+      profileUrl: 'https://www.reddit.com/user/spez',
       onSendInvite: () => console.log('onSendInvite'),
       parentProps: defaultParentProps,
     },

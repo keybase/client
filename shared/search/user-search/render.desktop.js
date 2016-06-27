@@ -141,58 +141,104 @@ function ServiceIcon ({serviceName, tooltip, iconType, selected, onClickService}
   )
 }
 
-export default class Render extends Component<void, Props, void> {
+export type SearchBarProps = {
+  selectedService: ?SearchPlatforms,
+  onSearch: (term: string) => void,
+  searchText: ?string,
+  searchHintText: string,
+  onClickService: (service: SearchPlatforms) => void,
+}
 
+export class SearchBar extends Component<void, SearchBarProps, void> {
+  componentWillReceiveProps (nextProps: SearchBarProps) {
+    if (nextProps.searchText === null && nextProps.searchText !== this.props.searchText) {
+      this.refs && this.refs.searchBox && this.refs.searchBox.clearValue()
+    }
+  }
+
+  render () {
+    return (
+      <Box style={styles.headerContainer}>
+        <Box style={styles.servicesContainer}>
+          <ServiceIcon
+            serviceName='Keybase'
+            tooltip='Keybase'
+            iconType='keybase-logo-mascot-only-dz-2-24'
+            selected={this.props.selectedService === 'Keybase'}
+            onClickService={this.props.onClickService}
+            />
+          <ServiceIcon
+            serviceName='Twitter'
+            tooltip='Twitter'
+            iconType='icon-twitter-logo-24'
+            selected={this.props.selectedService === 'Twitter'}
+            onClickService={this.props.onClickService}
+            />
+          <ServiceIcon
+            serviceName='Github'
+            tooltip='Github'
+            iconType='icon-github-logo-24'
+            selected={this.props.selectedService === 'Github'}
+            onClickService={this.props.onClickService}
+            />
+          <ServiceIcon
+            serviceName='Coinbase'
+            tooltip='Coinbase'
+            iconType='icon-coinbase-logo-24'
+            selected={this.props.selectedService === 'Coinbase'}
+            onClickService={this.props.onClickService}
+            />
+          <ServiceIcon
+            serviceName='Reddit'
+            tooltip='Reddit'
+            iconType='icon-reddit-logo-24'
+            selected={this.props.selectedService === 'Reddit'}
+            onClickService={this.props.onClickService}
+            />
+        </Box>
+        <Input
+          type='text'
+          ref='searchBox'
+          onEnterKeyDown={e => this.props.onSearch(this.refs.searchBox ? this.refs.searchBox.getValue() : '')}
+          value={this.props.searchText}
+          hintText={this.props.searchHintText}
+          style={styles.input}
+          underlineStyle={{display: 'none'}}
+          textStyle={{height: 40}} />
+      </Box>
+    )
+  }
+}
+
+export function searchResultsList ({results, searchText, onClickResult}: {results: Array<SearchResult>, searchText: ?string, onClickResult: SearchResultFn}) {
+  return results.map(r => (
+    <Result key={r.service + (r.icon ? r.icon : '') + r.username} result={r} searchText={searchText || ''} onClickResult={onClickResult} />
+  ))
+}
+
+export class SearchContainer extends Component {
   render () {
     const realCSS = `
       .highlight-row { background-color: ${globalColors.white}; }
       .highlight-row:hover { background-color: ${globalColors.blue4}; }
     `
+
     return (
       <Box style={styles.container}>
         <style>{realCSS}</style>
-        <Box style={styles.headerContainer}>
-          <Box style={styles.servicesContainer}>
-            <ServiceIcon
-              serviceName='Keybase'
-              tooltip='Keybase'
-              iconType='keybase-logo-mascot-only-dz-2-24'
-              selected={this.props.selectedService === 'Keybase'}
-              onClickService={this.props.onClickService}
-              />
-            <ServiceIcon
-              serviceName='Twitter'
-              tooltip='Twitter'
-              iconType='icon-twitter-logo-24'
-              selected={this.props.selectedService === 'Twitter'}
-              onClickService={this.props.onClickService}
-              />
-            <ServiceIcon
-              serviceName='Github'
-              tooltip='Github'
-              iconType='icon-github-logo-24'
-              selected={this.props.selectedService === 'Github'}
-              onClickService={this.props.onClickService}
-              />
-            <ServiceIcon
-              serviceName='Coinbase'
-              tooltip='Coinbase'
-              iconType='icon-coinbase-logo-24'
-              selected={this.props.selectedService === 'Coinbase'}
-              onClickService={this.props.onClickService}
-              />
-            <ServiceIcon
-              serviceName='Reddit'
-              tooltip='Reddit'
-              iconType='icon-reddit-logo-24'
-              selected={this.props.selectedService === 'Reddit'}
-              onClickService={this.props.onClickService}
-              />
-          </Box>
-          <Input type='text' ref='searchBox' onEnterKeyDown={e => this.props.onSearch(this.refs.searchBox ? this.refs.searchBox.getValue() : '')} value={this.props.searchText} hintText={this.props.searchHintText} style={styles.input} underlineStyle={{display: 'none'}} textStyle={{height: 40}} />
-        </Box>
-        {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} searchText={this.props.searchText || ''} onClickResult={this.props.onClickResult} />)}
+        {this.props.children}
       </Box>
+    )
+  }
+}
+
+export default class Render extends Component<void, Props, void> {
+  render () {
+    return (
+      <SearchContainer>
+        <SearchBar {...this.props} />
+        {searchResultsList(this.props)}
+      </SearchContainer>
     )
   }
 }

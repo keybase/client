@@ -305,13 +305,17 @@
         {
           "name": "filter",
           "type": "string"
+        },
+        {
+          "name": "assertion",
+          "type": "string"
         }
       ],
       "response": {
         "type": "array",
         "items": "UserSummary"
       },
-      "doc": "The list-tracking function get verified data from the tracking statements\n    in the user's own sigchain."
+      "doc": "The list-tracking functions get verified data from the tracking statements\n    in the user's sigchain.\n\n    If assertion is empty, it will use the current logged in user."
     },
     "listTrackingJSON": {
       "request": [
@@ -326,6 +330,10 @@
         {
           "name": "verbose",
           "type": "boolean"
+        },
+        {
+          "name": "assertion",
+          "type": "string"
         }
       ],
       "response": "string"

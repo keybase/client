@@ -20,7 +20,7 @@ export const settingsTab = 'tabs:settingsTab'
 
 const prettyNames = {
   [startupTab]: null,
-  [folderTab]: 'Folder',
+  [folderTab]: 'Folders',
   [chatTab]: 'Chat',
   [peopleTab]: 'People',
   [devicesTab]: 'Devices',

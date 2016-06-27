@@ -1,41 +1,42 @@
 /* @flow */
 
 import {ipcRenderer} from 'electron'
-import React, {Component} from 'react'
+import React from 'react'
 import ReactDOM from 'react-dom'
 import {MuiThemeProvider} from 'material-ui/styles'
 import materialTheme from '../styles/material-theme.desktop'
-import {styleBox} from '../dev/dumb-sheet.render.desktop'
-import {Box, Text} from '../common-adapters'
 import dumbComponentMap from '../dev/dumb-component-map.desktop'
+import DumbSheetItem from '../dev/dumb-sheet-item'
 
 const PADDING = 25
 
 ipcRenderer.on('display', (ev, msg) => {
   const map = dumbComponentMap[msg.key]
-  const Component = map.component
   const mockKey = msg.mockKey
-  const mock = map.mocks[mockKey]
-  const parentProps = mock.parentProps
-  mock.parentProps = undefined
 
   const displayTree = (
     <MuiThemeProvider muiTheme={materialTheme}>
-      <Box key={mockKey} id='rendered' style={{alignSelf: 'flex-start', ...styleBox, margin: PADDING}}>
-        <Text type='Body' style={{marginBottom: 5}}>{mockKey}</Text>
-        <Box {...parentProps}>
-          <Component key={mockKey} {...mock} />
-        </Box>
-      </Box>
+      <DumbSheetItem
+        key={mockKey}
+        id='rendered'
+        style={{alignSelf: 'flex-start', margin: PADDING}}
+        component={map.component}
+        mockKey={mockKey}
+        mock={map.mocks[mockKey]}
+      />
     </MuiThemeProvider>
   )
 
   const appEl = document.getElementById('app')
   ReactDOM.render(displayTree, appEl, () => {
-    // Unfortunately some resources like fonts lazy load after they're
-    // rendered.  We need to give the renderer time to load.  After trying
-    // process.nextTick, requestAnimationFrame, etc., simply putting in a time
-    // delay worked the best.
+    // Remove pesky blinking cursors
+    if (document.activeElement.tagName === 'INPUT') {
+      window.blur()
+    }
+
+    // Unfortunately some resources lazy load after they're rendered.  We need
+    // to give the renderer time to load.  After trying process.nextTick,
+    // requestAnimationFrame, etc., simply putting in a time delay worked best.
     setTimeout(() => {
       const renderedEl = document.getElementById('rendered')
       const box = renderedEl.getBoundingClientRect()
@@ -50,3 +51,16 @@ ipcRenderer.on('display', (ev, msg) => {
     }, 250)
   })
 })
+
+declare class ExtendedDocument extends Document {
+  fonts: {
+    ready: Promise
+  }
+}
+declare var document: ExtendedDocument
+
+window.addEventListener('load', () =>
+  document.fonts.ready.then(() =>
+    ipcRenderer.send('visdiff-ready')
+  )
+)

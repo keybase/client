@@ -27,6 +27,8 @@ type ConfigHandler struct {
 	connID libkb.ConnectionID
 }
 
+var _ keybase1.ConfigInterface = (*ConfigHandler)(nil)
+
 func NewConfigHandler(xp rpc.Transporter, i libkb.ConnectionID, g *libkb.GlobalContext, svc *Service) *ConfigHandler {
 	return &ConfigHandler{
 		Contextified: libkb.NewContextified(g),
@@ -284,4 +286,8 @@ func (h ConfigHandler) SetPath(_ context.Context, arg keybase1.SetPathArg) error
 
 func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
 	return h.G().ConnectionManager.Label(h.connID, arg)
+}
+
+func (h ConfigHandler) CheckAPIServerOutOfDateWarning(_ context.Context) (keybase1.OutOfDateInfo, error) {
+	return h.G().OutOfDateInfo, nil
 }

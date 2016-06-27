@@ -2,21 +2,11 @@
 import React from 'react'
 import {Avatar, Box, Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
+import {fullName, platformToLogo16} from '../../constants/search'
 
 import type {IconType} from '../../common-adapters/icon'
 import type {Props, UserFn} from './user-group'
-import type {SearchResult, ExtraInfo} from '../../constants/search'
-
-function fullName (extraInfo: ExtraInfo): string {
-  switch (extraInfo.service) {
-    case 'keybase':
-    case 'none':
-      return extraInfo.fullName
-    case 'external':
-      return extraInfo.fullNameOnService || ''
-  }
-  return ''
-}
+import type {SearchResult} from '../../constants/search'
 
 function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult, insertSpacing: boolean, onRemove: UserFn, onClickUser: UserFn}) {
   let avatar: React$Element
@@ -42,7 +32,7 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
     name = (
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Icon style={{marginRight: 5}} type={user.icon} />
+          <Icon style={{marginRight: 5}} type={platformToLogo16(user.serviceName)} />
           <Text type={'Body'}>{user.username}</Text>
         </Box>
         <Text type={'BodySmall'}>{fullName(user.extraInfo)}</Text>

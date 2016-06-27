@@ -9,6 +9,7 @@
 /shared/libs/flow-interface.js
 /shared/constants/types/keybase-v1.js
 /shared/constants/types/flow-types.js
+/shared/constants/types/flow-types-gregor.js
 /git-hooks
 /go
 /media

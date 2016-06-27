@@ -1,7 +1,9 @@
 // @flow
 import * as Constants from '../constants/tabbed-router'
 
-export function switchTab (tabName: string) {
+import type {Tabs} from '../constants/tabs'
+
+export function switchTab (tabName: Tabs) {
   return {
     type: Constants.switchTab,
     payload: tabName,

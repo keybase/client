@@ -7,8 +7,10 @@ package libkb
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"sort"
+	"strconv"
 	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -333,6 +335,22 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return NotFoundError{Msg: s.Desc}
 	case SCDecryptionError:
 		return DecryptionError{}
+	case SCGenericAPIError:
+		var code int
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "code":
+				var err error
+				code, err = strconv.Atoi(field.Value)
+				if err != nil {
+					G.Log.Warning("error parsing generic API error code: %s", err)
+				}
+			}
+		}
+		return &APIError{
+			Msg:  s.Desc,
+			Code: code,
+		}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1150,4 +1168,14 @@ func (e DecryptionError) ToStatus() keybase1.Status {
 		Name: "SC_DECRYPTION_ERROR",
 		Desc: e.Error(),
 	}
+}
+
+func (a *APIError) ToStatus() (s keybase1.Status) {
+	s.Code = SCGenericAPIError
+	s.Name = "GENERIC_API_ERROR"
+	s.Desc = a.Msg
+	s.Fields = []keybase1.StringKVPair{
+		{"code", fmt.Sprintf("%d", a.Code)},
+	}
+	return
 }

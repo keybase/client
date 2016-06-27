@@ -8,8 +8,8 @@ export type Props = {
   username: string,
   fullname?: string,
   serviceName: SearchPlatforms,
-  profileURL: string,
-  onSendInvite: () => {}
+  profileUrl: string,
+  onSendInvite: () => void,
 }
 
 export default class Render extends Component<void, Props, void> {}

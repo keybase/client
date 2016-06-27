@@ -344,19 +344,12 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 	if len(upgradeTo) > 0 || len(customMessage) > 0 {
 		now := time.Now()
 		lastUpgradeWarningMu.Lock()
+		a.G().OutOfDateInfo.UpgradeTo = upgradeTo
+		a.G().OutOfDateInfo.UpgradeURI = upgradeURI
+		a.G().OutOfDateInfo.CustomMessage = customMessage
 		if lastUpgradeWarning == nil || now.Sub(*lastUpgradeWarning) > 3*time.Minute {
 			// Send the notification after we unlock
 			defer a.G().NotifyRouter.HandleClientOutOfDate(upgradeTo, upgradeURI, customMessage)
-			if customMessage != "" {
-				a.G().Log.Warning("%s", customMessage)
-			}
-			if upgradeTo != "" {
-				a.G().Log.Warning("Upgrade recommended to client version %s or above (you have v%s)",
-					upgradeTo, VersionString())
-			}
-			if upgradeURI != "" {
-				platformSpecificUpgradeInstructions(a.G(), upgradeURI)
-			}
 			lastUpgradeWarning = &now
 		}
 		lastUpgradeWarningMu.Unlock()

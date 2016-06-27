@@ -90,6 +90,12 @@ type ConfigValue struct {
 	O      *string `codec:"o,omitempty" json:"o,omitempty"`
 }
 
+type OutOfDateInfo struct {
+	UpgradeTo     string `codec:"upgradeTo" json:"upgradeTo"`
+	UpgradeURI    string `codec:"upgradeURI" json:"upgradeURI"`
+	CustomMessage string `codec:"customMessage" json:"customMessage"`
+}
+
 type GetCurrentStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -131,6 +137,9 @@ type GetValueArg struct {
 	Path string `codec:"path" json:"path"`
 }
 
+type CheckAPIServerOutOfDateWarningArg struct {
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
@@ -144,6 +153,8 @@ type ConfigInterface interface {
 	SetValue(context.Context, SetValueArg) error
 	ClearValue(context.Context, string) error
 	GetValue(context.Context, string) (ConfigValue, error)
+	// Check whether the API server has told us we're out of date.
+	CheckAPIServerOutOfDateWarning(context.Context) (OutOfDateInfo, error)
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -294,6 +305,17 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"checkAPIServerOutOfDateWarning": {
+				MakeArg: func() interface{} {
+					ret := make([]CheckAPIServerOutOfDateWarningArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.CheckAPIServerOutOfDateWarning(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -353,5 +375,11 @@ func (c ConfigClient) ClearValue(ctx context.Context, path string) (err error) {
 func (c ConfigClient) GetValue(ctx context.Context, path string) (res ConfigValue, err error) {
 	__arg := GetValueArg{Path: path}
 	err = c.Cli.Call(ctx, "keybase.1.config.getValue", []interface{}{__arg}, &res)
+	return
+}
+
+// Check whether the API server has told us we're out of date.
+func (c ConfigClient) CheckAPIServerOutOfDateWarning(ctx context.Context) (res OutOfDateInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.checkAPIServerOutOfDateWarning", []interface{}{CheckAPIServerOutOfDateWarningArg{}}, &res)
 	return
 }

@@ -5,6 +5,7 @@ import {Avatar, Box, Icon, Text} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles/style-guide'
 import {capitalize} from 'lodash'
 import {platformToLogo24} from '../../constants/search'
+import {AVATAR_SIZE, HEADER_TOP_SPACE, HEADER_SIZE} from '../../profile/render.desktop'
 import type {Props} from './non-user.render'
 
 import electron from 'electron'
@@ -12,7 +13,7 @@ const shell = electron.shell || electron.remote.shell
 
 export default class Render extends Component<void, Props, void> {
   _onClickAvatar () {
-    shell.openExternal(this.props.profileURL)
+    shell.openExternal(this.props.profileUrl)
   }
 
   render () {
@@ -24,7 +25,7 @@ export default class Render extends Component<void, Props, void> {
             style={globalStyles.clickable}
             onClick={() => this._onClickAvatar()}
             url={this.props.avatar}
-            size={112}
+            size={AVATAR_SIZE}
           />
           <Box style={styleUsernameRow} onClick={() => this._onClickAvatar()}>
             <Icon type={platformToLogo24(this.props.serviceName)} />
@@ -58,7 +59,7 @@ const styleContainer = {
 const styleHeader = {
   position: 'absolute',
   width: '100%',
-  height: 96,
+  height: HEADER_SIZE,
 }
 
 const styleBioBlurb = {
@@ -66,7 +67,7 @@ const styleBioBlurb = {
   flex: 1,
   alignItems: 'center',
   justifyContent: 'flex-start',
-  marginTop: 39,
+  marginTop: HEADER_TOP_SPACE,
 }
 
 const styleUsernameRow = {
