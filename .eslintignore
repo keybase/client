@@ -10,6 +10,8 @@
 /shared/constants/types/keybase-v1.js
 /shared/constants/types/flow-types.js
 /shared/constants/types/flow-types-gregor.js
+/visdiff/node_modules
+/visdiff/dist
 /git-hooks
 /go
 /media
