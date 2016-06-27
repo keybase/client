@@ -25,6 +25,7 @@ class Confirm extends Component<void, Props, void> {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
+  flex: 1,
   padding: 64,
   alignItems: 'center',
   justifyContent: 'center',

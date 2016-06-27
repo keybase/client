@@ -1,7 +1,7 @@
 /* @flow */
 import React, {Component} from 'react'
 import {Box, Text, Icon, PopupMenu} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
 import type {Props} from './render'
@@ -23,12 +23,12 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
   }
 
   render () {
-    const iconType = this.state.expanded ? 'fa-caret-down' : 'fa-caret-up'
+    const iconType = this.state.expanded ? 'fa-kb-iconfont-caret-down' : 'fa-kb-iconfont-caret-right'
     return (
       <Box>
         <Box style={stylesRevokedRow} onClick={e => this._toggleHeader(e)}>
-          <Text type='BodySemibold'>Revoked devices</Text>
-          <Icon type={iconType} style={{padding: 5}} />
+          <Text type='BodySmallSemibold' style={{color: globalColors.black_60}}>Revoked devices</Text>
+          <Icon type={iconType} style={{padding: 5, fontSize: 8}} />
         </Box>
         {this.state.expanded && this.props.children}
       </Box>
@@ -38,9 +38,9 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
   const icon: IconProps.type = {
-    'mobile': 'phone-bw-m',
-    'desktop': 'computer-bw-s-2',
-    'backup': 'paper-key-m',
+    'mobile': 'icon-phone-bw-48',
+    'desktop': 'icon-computer-bw-48',
+    'backup': 'icon-paper-key-48',
   }[device.type]
 
   let textStyle = {fontStyle: 'italic'}
@@ -56,20 +56,24 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
     <Box
       className='existing-device-container'
       key={device.name}
+      onClick={() => showExistingDevicePage(device)}
       style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.white_40 : globalColors.white}}>
-      <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
+      <Box style={revoked ? {opacity: 0.2} : {}}>
         <Icon type={icon} />
       </Box>
-      <Box style={stylesCommonColumn} onClick={() => showExistingDevicePage(device)}>
+      <Box style={{flex: 1, marginLeft: globalMargins.small}}>
         <Box style={{...globalStyles.flexBoxRow}}>
-          <Text style={textStyle} type='Header'>{device.name}</Text>
+          <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
         </Box>
         <Box style={{...globalStyles.flexBoxRow}}>
           {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
         </Box>
       </Box>
       <Box style={{...stylesRevokedColumn}}>
-        {!revoked && <Text className='existing-device-item' style={{color: globalColors.red}} onClick={() => showRemoveDevicePage(device)} type='BodyPrimaryLink'>Revoke</Text>}
+        {!revoked && <Text type='BodySmallError' className='existing-device-item' onClick={e => {
+          e.stopPropagation()
+          showRemoveDevicePage(device)
+        }}>Revoke</Text>}
       </Box>
     </Box>
   )
@@ -77,7 +81,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
 
 const RevokedDescription = () => (
   <Box style={stylesRevokedDescription}>
-    <Text type='BodySemibold' style={{color: globalColors.black_40}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+    <Text type='BodySmall' style={{color: globalColors.black_40}}>Revoked devices will no longer be able to access your Keybase account.</Text>
   </Box>
 )
 
@@ -89,13 +93,9 @@ const RevokedDevices = ({revokedDevices, showExistingDevicePage}) => (
 )
 
 const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
-  <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white}} onClick={addNewDevice}>
-    <Box style={stylesCommonColumn}>
-      <Icon type='devices-add-s' />
-    </Box>
-    <Box style={stylesCommonColumn}>
-      <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
-    </Box>
+  <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white, height: globalMargins.xlarge}} onClick={addNewDevice}>
+    <Icon type='icon-devices-add-64-x-48' />
+    <Text type='BodyPrimaryLink' onClick={addNewDevice} style={{marginLeft: globalMargins.tiny}}>Add new...</Text>
     <PopupMenu style={stylesPopup} visible={showingMenu} items={menuItems} onHidden={onHidden} />
   </Box>
 )
@@ -155,6 +155,7 @@ const stylesContainer = {
 
 const stylesCommonRow = {
   ...globalStyles.flexBoxRow,
+  ...globalStyles.clickable,
   alignItems: 'center',
   borderTop: 'solid 1px rgba(0, 0, 0, .1)',
   height: 60,
@@ -181,19 +182,8 @@ const stylesCommonColumn = {
 const stylesRevokedColumn = {
   ...stylesCommonColumn,
   alignSelf: 'center',
-  flex: 1,
   textAlign: 'right',
   paddingRight: 20,
-}
-
-const stylesIconColumn = {
-  ...stylesCommonColumn,
-  width: 65,
-}
-
-const stylesRevokedIconColumn = {
-  ...stylesIconColumn,
-  opacity: 0.2,
 }
 
 const stylesPopup = {

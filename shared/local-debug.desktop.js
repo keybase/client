@@ -25,6 +25,8 @@ let config = {
   dumbFilter: '',
   printRoutes: false,
   skipLauncherDevtools: true,
+  initialTabState: {},
+  forceMainWindowPosition: null,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -45,6 +47,10 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.focusOnShow = false
   config.dumbFilter = ''
   config.printRoutes = true
+  config.initialTabState = {
+    [Tabs.loginTab]: [],
+    [Tabs.settingsTab]: ['devMenu', 'dumbSheet'],
+  }
 
   let envJson = null
   if (process.env.KEYBASE_LOCAL_DEBUG_JSON) {
@@ -77,6 +83,7 @@ export const {
   dumbFilter,
   printRoutes,
   skipLauncherDevtools,
+  forceMainWindowPosition,
 } = config
 
 export function initTabbedRouterState (state) {
@@ -84,12 +91,15 @@ export function initTabbedRouterState (state) {
     return state
   }
 
+  const ts = config.initialTabState
+  const tabState = {}
+  Object.keys(ts).forEach(tab => { tabState[tab] = createRouterState(ts[tab], []) })
+
   return {
     ...state,
     tabs: {
       ...state.tabs,
-      [Tabs.loginTab]: createRouterState([], []),
-      [Tabs.settingsTab]: createRouterState(['devMenu', 'dumbSheet'], []),
+      ...tabState,
     },
   }
 }
