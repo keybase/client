@@ -42,7 +42,7 @@ export default class BioRender extends Component {
           </Text>
           <Text type='BodySemibold' style={stylesFullname}>{userInfo.fullname}</Text>
           {followLabel &&
-            <Text type='BodySmall' style={stylesFollowLabel}>{followLabel}</Text>
+            <Text type='BodySmall' style={stylesFollowLabel}>{followLabel.toUpperCase()}</Text>
           }
           <Text type='BodySmall' style={stylesFollowing}>
             <Text type='BodySmallLink' onClick={() => shared.onClickFollowers(username)} style={stylesFollowingLabel}>
@@ -105,7 +105,6 @@ const stylesFullname = {
 }
 const stylesFollowLabel = {
   fontSize: 12,
-  textTransform: 'uppercase',
   color: globalColors.black_40,
   marginTop: globalMargins.xtiny,
 }
