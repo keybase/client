@@ -45,8 +45,8 @@ script:
   - env KEYBASE_TEST_BSERVER_ADDR=tempdir ./libkbfs.test -test.timeout 2m
   - cd ../libfuse && go test -i && go test -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./libfuse.test -test.timeout 2m
   - cd ../test
-  - go test -i -tags fuse && go test -race -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./test.test -test.timeout 5m
-  - go test -c -tags fuse && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./test.test -test.timeout 5m
+  - go test -i -tags fuse && go test -race -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./test.test -test.timeout 7m
+  - go test -c -tags fuse && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./test.test -test.timeout 7m
 after_success:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ] && [ "$TRAVIS_PULL_REQUEST" == 'false' ]; then
       cp $GOPATH/bin/kbfsfuse $GOPATH/src/github.com/keybase/kbfs/kbfsfuse/kbfsfuse &&
