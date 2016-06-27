@@ -512,5 +512,5 @@ export default {
   test,
   track,
   ui,
-  user
+  user,
 }
