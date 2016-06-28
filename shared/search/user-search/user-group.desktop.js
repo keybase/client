@@ -68,12 +68,15 @@ export default function UserGroup ({users, onClickUser, onRemoveUser, onOpenPubl
     .highlight-row { background-color: ${globalColors.white}; }
     .highlight-row:hover { background-color: ${globalColors.blue4}; }
   `
+
+  const privateFolderText = users.length > 1 ? 'Open a private group folder' : 'Open a shared private folder'
+
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, backgroundColor: globalColors.lightGrey}}>
       <style>{realCSS}</style>
       {users.map(u => <User key={u.service + u.username} user={u} onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
-      <RowButton icon='icon-folder-private-open-24' text='Open private folder' onClick={onOpenPrivateGroupFolder} />
-      <RowButton icon='icon-folder-public-open-24' text='Open public folder' onClick={onOpenPublicGroupFolder} />
+      <RowButton icon='icon-folder-private-open-24' text={privateFolderText} onClick={onOpenPrivateGroupFolder} />
+      {users.length === 1 && <RowButton icon='icon-folder-public-open-24' text='Open public folder' onClick={onOpenPublicGroupFolder} />}
       {chatEnabled && <RowButton icon='icon-chat-24' text='Start a chat' onClick={onGroupChat} />}
     </Box>
   )
