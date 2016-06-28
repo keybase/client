@@ -16,7 +16,7 @@ export default function makeMenu (window) {
         {label: 'Hide Others', accelerator: 'CmdOrCtrl+Shift+H', role: 'hideothers'},
         {label: 'Show All', role: 'unhide'},
         {type: 'separator'},
-        {label: 'Quit', accelerator: 'CmdOrCtrl+Q', role: 'quit'},
+        {label: 'Quit', accelerator: 'CmdOrCtrl+Q', click () { app.quit() }},
       ],
     }, {
       label: 'Edit',
