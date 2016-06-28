@@ -31,9 +31,10 @@ var initLoggingSetLevelMutex sync.Mutex
 type CtxStandardLoggerKey int
 
 const (
-	// CtxLogTags defines a context key that can hold a slice of context
-	// keys, the value of which should be logged by a Standard logger if
-	// one of those keys is seen in a context during a log call.
+	// CtxLogTagsKey defines a context key that can associate with a map of
+	// context keys (key -> descriptive-name), the mapped values of which should
+	// be logged by a Standard logger if one of those keys is seen in a context
+	// during a log call.
 	CtxLogTagsKey CtxStandardLoggerKey = iota
 )
 
