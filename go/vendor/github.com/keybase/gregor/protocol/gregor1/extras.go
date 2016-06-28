@@ -280,6 +280,14 @@ func (s State) Hash() ([]byte, error) {
 	return sum[:], nil
 }
 
+func (s State) Export() (gregor.ProtocolState, error) {
+	return s, nil
+}
+
+func (s State) ProtocolName() string {
+	return "gregor.1"
+}
+
 func (i ItemAndMetadata) InCategory(c Category) bool {
 	return i.Item_.Category_.Eq(c)
 }

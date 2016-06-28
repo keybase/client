@@ -505,7 +505,7 @@ func TestBroadcastRepeat(t *testing.T) {
 	} else {
 		errMsg := "ignored repeat message"
 		if err.Error() != errMsg {
-			t.Fatal("wrong error message %s != %s", err, errMsg)
+			t.Fatalf("wrong error message %s != %s", err, errMsg)
 		}
 	}
 

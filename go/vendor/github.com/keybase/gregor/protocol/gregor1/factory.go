@@ -263,22 +263,4 @@ func (o ObjFactory) MakeReminderSetFromReminders(reminders []gregor.Reminder, mo
 	return ret, nil
 }
 
-func (o ObjFactory) ExportState(s gregor.State) (gregor.State, error) {
-
-	if gs, ok := s.(State); ok {
-		return gs, nil
-	}
-
-	items, err := s.Items()
-	if err != nil {
-		return State{}, err
-	}
-	gs, err := o.MakeState(items)
-	if err != nil {
-		return State{}, err
-	}
-
-	return gs.(State), nil
-}
-
 var _ gregor.ObjFactory = ObjFactory{}

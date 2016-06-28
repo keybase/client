@@ -113,6 +113,12 @@ type State interface {
 	ItemsWithCategoryPrefix(c Category) ([]Item, error)
 	Marshal() ([]byte, error)
 	Hash() ([]byte, error)
+	Export() (ProtocolState, error)
+}
+
+type ProtocolState interface {
+	State
+	ProtocolName() string
 }
 
 type Message interface {
@@ -217,7 +223,6 @@ type ObjFactory interface {
 	MakeTimeOrOffsetFromOffset(d time.Duration) (TimeOrOffset, error)
 	MakeReminderSetFromReminders([]Reminder, bool) (ReminderSet, error)
 	UnmarshalState([]byte) (State, error)
-	ExportState(s State) (State, error)
 }
 
 type MainLoopServer interface {

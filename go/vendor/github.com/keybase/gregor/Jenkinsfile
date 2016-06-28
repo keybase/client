@@ -1,14 +1,14 @@
 #!groovy
 
-node("linux") {
+node("ec2-fleet") {
     properties([
-            [$class: "BuildDiscarderProperty",
-                strategy: [$class: "LogRotator",
-                    numToKeepStr: "30",
-                    daysToKeepStr: "10",
-                    artifactNumToKeepStr: "1",
-                ]
-            ],
+        [$class: "BuildDiscarderProperty",
+            strategy: [$class: "LogRotator",
+                numToKeepStr: "30",
+                daysToKeepStr: "10",
+                artifactNumToKeepStr: "1",
+            ]
+        ],
     ])
     def GOPATH=pwd()
     dir("${GOPATH}/bin") {
@@ -22,50 +22,67 @@ node("linux") {
         env.GOPATH="${GOPATH}"
         env.GO15VENDOREXPERIMENT=1
 
-        stage "Setup"
-        println "Setting up build: ${env.BUILD_TAG}"
-        def cause = getCauseString()
-        println "Cause: ${cause}"
-        parallel (
-            checkout: { checkout scm },
-            pull_mysql: {
-                docker.withRegistry("https://docker.io", "docker-hub-creds") {
-                    mysqlImage.pull()
-                }
-            }
-        )
 
-        mysqlImage.withRun("-p 3306:3306 -e DATABASES=test,gregor") {mysql ->
+        stage "Setup"
+
+            println "Setting up build: ${env.BUILD_TAG}"
+            def cause = getCauseString()
+            println "Cause: ${cause}"
             parallel (
-                wait_mysql: {
-                    sh "docker exec ${mysql.id} sh -c \"until mysqladmin -uroot -psecret status 2>/dev/null; do sleep .1; done\""
-                },
-                go_deps: {
-                    sh "go get -t ./bin/... ./protocol/..."
+                checkout: { checkout scm },
+                pull_mysql: {
+                    docker.withRegistry("https://docker.io", "docker-hub-creds") {
+                        mysqlImage.pull()
+                    }
                 }
             )
 
-            stage "Validate"
-            dir("protocol") {
-                sh "npm i && git diff --quiet --exit-code"
+            mysqlImage.withRun("-p 3306:3306 -e DATABASES=test,gregor") {mysql ->
+                parallel (
+                    wait_mysql: {
+                        sh "docker exec ${mysql.id} sh -c \"until mysqladmin -uroot -psecret status 2>/dev/null; do sleep .1; done\""
+                    },
+                    go_deps: {
+                        sh "go get -t ./bin/... ./protocol/..."
+                    }
+                )
+
+
+                stage "Validate"
+
+                    dir("protocol") {
+                        sh "npm i && git diff --quiet --exit-code"
+                    }
+                    sh "$GOPATH/bin/dbinit -y"
+
+
+                stage "Test"
+
+                    sh "go test ./..."
+
             }
-            sh "$GOPATH/bin/dbinit -y"
 
-            stage "Test"
-            sh "go test ./..."
-
-        }
 
         stage "Dockerize"
-        sh "cp $GOPATH/bin/gregord bin/gregord/gregord"
-        sh "cp $GOPATH/bin/dbinit bin/dbinit/dbinit"
-        def gregorImage = docker.build("keybaseprivate/kbgregor", "bin")
-        def kbgregor = "kbgregor_${env.BUILD_TAG}.tar"
-        sh "docker save -o $kbgregor keybaseprivate/kbgregor"
-        stash(name: kbgregor, includes: kbgregor)
+
+            sh "cp $GOPATH/bin/gregord bin/gregord/gregord"
+            sh "cp $GOPATH/bin/dbinit bin/dbinit/dbinit"
+            def gregorImage = docker.build("keybaseprivate/kbgregor", "bin")
+            sh "docker save -o kbgregor.tar keybaseprivate/kbgregor"
+            step([$class: 'ArtifactArchiver', artifacts: 'kbgregor.tar', excludes: null])
+
 
         stage "Integrate"
-        // build "/keybase-api-server"
+
+            build([
+                job: "/kbweb/master",
+                parameters: [
+                    [$class: 'StringParameterValue',
+                        name: 'gregorProjectName',
+                        value: env.JOB_NAME,
+                    ],
+                ]
+            ])
 
         stage "Push"
         if (env.BRANCH_NAME == "master" && cause != "upstream") {

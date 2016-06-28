@@ -1,13 +1,13 @@
 package gregor
 
 type FastLookupState struct {
-	state State
+	State
 	table map[string]Item
 }
 
 func NewFastLookupState(state State, table map[string]Item) FastLookupState {
 	return FastLookupState{
-		state: state,
+		State: state,
 		table: table,
 	}
 }
@@ -19,51 +19,26 @@ func (fs FastLookupState) GetItem(msgID MsgID) (Item, bool) {
 	return nil, false
 }
 
-func (fs FastLookupState) Items() ([]Item, error) {
-	return fs.state.Items()
+func (fs FastLookupState) Export() (ProtocolState, error) {
+	return fs.State.Export()
+}
+
+func (fs FastLookupState) Items() (Item, bool) {
+	return fs.Items()
 }
 
 func (fs FastLookupState) ItemsInCategory(c Category) ([]Item, error) {
-	return fs.state.ItemsInCategory(c)
+	return fs.ItemsInCategory(c)
 }
 
 func (fs FastLookupState) ItemsWithCategoryPrefix(c Category) ([]Item, error) {
-	return fs.state.ItemsWithCategoryPrefix(c)
+	return fs.ItemsWithCategoryPrefix(c)
 }
 
 func (fs FastLookupState) Marshal() ([]byte, error) {
-	return fs.state.Marshal()
+	return fs.Marshal()
 }
 
 func (fs FastLookupState) Hash() ([]byte, error) {
-	return fs.state.Hash()
-}
-
-func (fs FastLookupState) GetUnderlyingState() State {
-	return fs.state
-}
-
-type FastLookupObjFactory struct {
-	ObjFactory
-}
-
-var _ ObjFactory = FastLookupObjFactory{}
-
-func (fo FastLookupObjFactory) MakeStateWithLookupTable(items []Item,
-	table map[string]Item) (State, error) {
-
-	state, err := fo.MakeState(items)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewFastLookupState(state, table), nil
-}
-
-func (fo FastLookupObjFactory) ExportState(s State) (State, error) {
-	if fs, ok := s.(FastLookupState); ok {
-		return fo.ObjFactory.ExportState(fs.GetUnderlyingState())
-	} else {
-		return fo.ObjFactory.ExportState(s)
-	}
+	return fs.Hash()
 }

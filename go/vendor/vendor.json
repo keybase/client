@@ -239,16 +239,16 @@
 			"revisionTime": "2016-05-31T22:04:18-07:00"
 		},
 		{
-			"checksumSHA1": "YVr4O+jJoEFQammdgVOjXIoWkgw=",
+			"checksumSHA1": "Q4aCGK3ZarPJEwLcnyzfCCmEOIU=",
 			"path": "github.com/keybase/gregor",
-			"revision": "607a1ed39ea3b62b4df3661e8a69c93ced0da344",
-			"revisionTime": "2016-06-26T02:54:52Z"
+			"revision": "1630fbba92e5e4e43dc87cee82fbecd3756de9e4",
+			"revisionTime": "2016-06-28T14:04:21Z"
 		},
 		{
-			"checksumSHA1": "psobT0vtN5oYMtE6cRVft7XZ8fA=",
+			"checksumSHA1": "VM9ylSK0tJx9bZtIq4l26ggd7lc=",
 			"path": "github.com/keybase/gregor/protocol/gregor1",
-			"revision": "607a1ed39ea3b62b4df3661e8a69c93ced0da344",
-			"revisionTime": "2016-06-26T02:54:52Z"
+			"revision": "1630fbba92e5e4e43dc87cee82fbecd3756de9e4",
+			"revisionTime": "2016-06-28T14:04:21Z"
 		},
 		{
 			"checksumSHA1": "Q4pK+kqEWiQ0s5MzyjV60snUeeQ=",

@@ -68,7 +68,7 @@ func (h *TrackHandler) DismissWithToken(_ context.Context, arg keybase1.DismissW
 		return err
 	}
 	if outcome.ResponsibleGregorItem == nil {
-		h.G().Log.Info("No responsible gregor item found for track token %s", arg.TrackToken)
+		h.G().Log.Debug("No responsible gregor item found for track token %s", arg.TrackToken)
 		return nil
 	}
 

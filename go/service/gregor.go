@@ -90,7 +90,6 @@ type gregorHandler struct {
 	sync.Mutex
 	ibmHandlers      []libkb.GregorInBandMessageHandler
 	gregorCli        *grclient.Client
-	objFactory       gregor.ObjFactory
 	firehoseHandlers []libkb.GregorFirehoseHandler
 
 	conn                *rpc.Connection
@@ -132,7 +131,6 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 		Contextified: libkb.NewContextified(g),
 		freshSync:    true,
 		shutdownCh:   make(chan struct{}),
-		objFactory:   gregor.FastLookupObjFactory{ObjFactory: gregor1.ObjFactory{}},
 	}
 
 	// Create client interface to gregord
@@ -144,7 +142,8 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 }
 
 func newGregorClient(g *libkb.GlobalContext, gh *gregorHandler) (*grclient.Client, error) {
-	sm := grstorage.NewMemEngine(gh.objFactory, clockwork.NewRealClock())
+	of := gregor1.ObjFactory{}
+	sm := grstorage.NewMemEngine(of, clockwork.NewRealClock())
 
 	var guid gregor.UID
 	var gdid gregor.DeviceID
@@ -158,7 +157,7 @@ func newGregorClient(g *libkb.GlobalContext, gh *gregorHandler) (*grclient.Clien
 	if b = uid.ToBytes(); b == nil {
 		return nil, errors.New("Can't convert UID to byte array")
 	}
-	if guid, err = gh.objFactory.MakeUID(b); err != nil {
+	if guid, err = of.MakeUID(b); err != nil {
 		return nil, err
 	}
 
@@ -169,7 +168,7 @@ func newGregorClient(g *libkb.GlobalContext, gh *gregorHandler) (*grclient.Clien
 	if b, err = hex.DecodeString(did.String()); err != nil {
 		return nil, err
 	}
-	if gdid, err = gh.objFactory.MakeDeviceID(b); err != nil {
+	if gdid, err = of.MakeDeviceID(b); err != nil {
 		return nil, err
 	}
 
@@ -960,13 +959,13 @@ func (g *gregorHandler) getState() (res gregor1.State, err error) {
 		return res, err
 	}
 
-	s, err = g.objFactory.ExportState(s)
+	ps, err := s.Export()
 	if err != nil {
 		return res, err
 	}
 
 	var ok bool
-	if res, ok = s.(gregor1.State); !ok {
+	if res, ok = ps.(gregor1.State); !ok {
 		return res, errors.New("failed to convert state to exportable format")
 	}
 
