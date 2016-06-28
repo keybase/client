@@ -1,31 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" Name="Keybase Update" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="c118f7ec-9a1d-4ff1-91f5-15d208499d7b">
+	<Product Id="*" Name="Keybase Apps" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="c118f7ec-9a1d-4ff1-91f5-15d208499d7b">
 		<Package InstallerVersion="500" Compressed="yes" InstallPrivileges="limited" InstallScope="perUser" />
     <MediaTemplate EmbedCab="yes"/>
     <Icon Id="ProductIcon" SourceFile="$(env.GOPATH)\src\github.com\keybase\client\packaging\windows\keybase.ico"/>
     <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
     <Property Id="ARPHELPLINK" Value="https://www.keybase.io"/>
     <Property Id="ARPURLINFOABOUT" Value="https://www.keybase.io"/>
-    <Property Id="INNOCLIUNINSTALL">
-      <RegistrySearch Id="InnoCLIUninstall"
-                      Root="HKLM"
-                      Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
-                      Name="UninstallString"
-                      Type="raw" />
-    </Property>
-    <Property Id="DOKANUNINSTALL">
-      <RegistrySearch Id="DokanUninstall86"
-                      Root="HKLM"
-                      Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A986-3DC3-0100-0000-160310102248}"
-                      Name="UninstallString"
-                      Type="raw" />
-      <RegistrySearch Id="DokanUninstall64"
-                      Root="HKLM"
-                      Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160310102248}"
-                      Name="UninstallString"
-                      Type="raw" />
-    </Property>
+
     
     <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />		
 
@@ -48,29 +30,6 @@
       <Custom Action="RunGUI" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
     </InstallExecuteSequence>
 
-    <UI>
-      <Property Id="DefaultUIFont">DlgFont8</Property>
-      
-      <Dialog Id="MyCancelDlg" Width="260" Height="85" Title="[ProductName] [Setup]" NoMinimize="yes">
-        <Control Id="No" Type="PushButton" X="132" Y="57" Width="56" Height="17" Default="yes" Cancel="yes" Text="[ButtonText_No]">
-          <Publish Event="EndDialog" Value="Exit">1</Publish>
-        </Control>
-        <Control Id="Yes" Type="PushButton" X="72" Y="57" Width="56" Height="17" Text="[ButtonText_Yes]">
-          <Publish Event="EndDialog" Value="Return">1</Publish>
-        </Control>
-        <Control Id="Text" Type="Text" X="48" Y="15" Width="194" Height="30">
-          <Text>Previous [ProductName] components need to be uninstalled before proceeding. Continue?</Text>
-        </Control>
-        <Control Id="Icon" Type="Icon" X="15" Y="15" Width="24" Height="24" ToolTip="Information icon" FixedSize="yes" IconSize="32" Text="[InfoIcon]" />
-      </Dialog>
-
-      <TextStyle Id="DlgFont8" FaceName="Tahoma" Size="8" />
-      <TextStyle Id="DlgTitleFont" FaceName="Tahoma" Size="8" Bold="yes" />
-
-      <InstallUISequence>
-        <Show Dialog="MyCancelDlg" After="CostFinalize">(NOT Installed) AND INNOCLIUNINSTALL</Show>
-      </InstallUISequence>
-    </UI>
 
     <Property Id="Setup">Setup</Property>
     <Property Id="ButtonText_No">&amp;No</Property>
