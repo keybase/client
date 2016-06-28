@@ -9,7 +9,7 @@ func TestDeviceList(t *testing.T) {
 	tc := SetupEngineTest(t, "devicelist")
 	defer tc.Cleanup()
 
-	CreateAndSignupFakeUser(tc, "login")
+	CreateAndSignupFakeUserPaper(tc, "login")
 
 	ctx := &Context{LogUI: tc.G.UI.GetLogUI()}
 	eng := NewDevList(tc.G)

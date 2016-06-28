@@ -240,6 +240,6 @@ func TestSignupGeneratesPaperKey(t *testing.T) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(tc, "se")
+	fu := CreateAndSignupFakeUserPaper(tc, "se")
 	hasOnePaperDev(tc, fu)
 }

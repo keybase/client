@@ -83,6 +83,7 @@ func MakeTestSignupEngineRunArg(fu *FakeUser) SignupEngineRunArg {
 		DeviceName:  defaultDeviceName,
 		SkipGPG:     true,
 		SkipMail:    true,
+		SkipPaper:   true,
 	}
 }
 
@@ -106,6 +107,15 @@ func CreateAndSignupFakeUser(tc libkb.TestContext, prefix string) *FakeUser {
 	fu := NewFakeUserOrBust(tc.T, prefix)
 	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
 	arg := MakeTestSignupEngineRunArg(fu)
+	_ = SignupFakeUserWithArg(tc, fu, arg)
+	return fu
+}
+
+func CreateAndSignupFakeUserPaper(tc libkb.TestContext, prefix string) *FakeUser {
+	fu := NewFakeUserOrBust(tc.T, prefix)
+	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
 	_ = SignupFakeUserWithArg(tc, fu, arg)
 	return fu
 }
@@ -294,6 +304,7 @@ func SetupTwoDevices(t *testing.T, nm string) (user *FakeUser, dev1 libkb.TestCo
 
 	user = NewFakeUserOrBust(t, nm)
 	arg := MakeTestSignupEngineRunArg(user)
+	arg.SkipPaper = false
 	loginUI := &paperLoginUI{Username: user.Username}
 	ctx := &Context{
 		LogUI:    dev1.G.UI.GetLogUI(),

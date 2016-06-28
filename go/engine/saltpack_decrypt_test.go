@@ -275,7 +275,7 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 	defer tcZ.Cleanup()
 
 	// provisioner needs to be logged in
-	userX := CreateAndSignupFakeUser(tcX, "naclp")
+	userX := CreateAndSignupFakeUserPaper(tcX, "naclp")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
 		t.Fatal(err)
