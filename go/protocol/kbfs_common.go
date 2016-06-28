@@ -39,6 +39,7 @@ const (
 	FSErrorType_BAD_FOLDER            FSErrorType = 6
 	FSErrorType_NOT_IMPLEMENTED       FSErrorType = 7
 	FSErrorType_OLD_VERSION           FSErrorType = 8
+	FSErrorType_OVER_QUOTA            FSErrorType = 9
 )
 
 type FSNotification struct {

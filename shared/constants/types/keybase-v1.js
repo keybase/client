@@ -236,6 +236,7 @@ export const kbfsCommon = {
     'badFolder': 6,
     'notImplemented': 7,
     'oldVersion': 8,
+    'overQuota': 9,
   },
 }
 

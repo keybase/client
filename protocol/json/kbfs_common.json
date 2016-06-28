@@ -36,7 +36,8 @@
         "REKEY_NEEDED_5",
         "BAD_FOLDER_6",
         "NOT_IMPLEMENTED_7",
-        "OLD_VERSION_8"
+        "OLD_VERSION_8",
+        "OVER_QUOTA_9"
       ]
     },
     {
