@@ -10,6 +10,8 @@ export type Props = {
   serviceName: SearchPlatforms,
   profileUrl: string,
   onSendInvite: () => void,
+  inviteLink: ?string,
+  outOfInvites: ?boolean,
 }
 
 export default class Render extends Component<void, Props, void> {}

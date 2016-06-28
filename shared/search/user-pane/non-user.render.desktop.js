@@ -11,6 +11,37 @@ import type {Props} from './non-user.render'
 import electron from 'electron'
 const shell = electron.shell || electron.remote.shell
 
+function InviteSection ({inviteLink, outOfInvites, onSendInvite, username, serviceName}: {inviteLink: ?string, outOfInvites: ?boolean, onSendInvite: () => void, username: string, serviceName: string}) {
+  let textRef
+
+  if (outOfInvites) {
+    return (
+      <Box style={stylesLinkContainer}>
+        <Text type='Body' style={{textAlign: 'center'}}>Since you’re out of invites, {`${username}@${serviceName}`} will need to request a signup on Keybase.io. Encourage them to join.</Text>
+      </Box>
+    )
+  }
+
+  if (inviteLink) {
+    return (
+      <Box style={stylesLinkContainer}>
+        <Text type='Body' style={{textAlign: 'center'}}>You can send {`${username}@${serviceName}`} this link to skip the invitation queue:</Text>
+        <Box style={stylesLinkBox}>
+          <Icon type='link-xs' onClick={() => textRef && textRef.highlightText()} />
+          <Text ref={r => { textRef = r }} style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
+        </Box>
+      </Box>
+    )
+  }
+
+  return (
+    <Box style={styleInviteLink} onClick={onSendInvite}>
+      <Icon type='icon-invite-link-24' />
+      <Text type='Body' style={styleInviteLinkText}>Send invite link</Text>
+    </Box>
+  )
+}
+
 export default class Render extends Component<void, Props, void> {
   _onClickAvatar () {
     shell.openExternal(this.props.profileUrl)
@@ -40,10 +71,7 @@ export default class Render extends Component<void, Props, void> {
           <Text type='BodySmall' style={styleServiceLabel}>{this.props.serviceName} user</Text>
         </Box>
         <Text type='BodySmall' style={styleDetails}>When {this.props.username} connects Keybase and their {capitalize(this.props.serviceName)} account, your computer will verify them and rekey the folder or conversation.</Text>
-        <Box style={styleInviteLink} onClick={this.props.onSendInvite}>
-          <Icon type='icon-invite-link-24' />
-          <Text type='Body' style={styleInviteLinkText}>Send invite link</Text>
-        </Box>
+        <InviteSection {...this.props} />
       </Box>
     )
   }
@@ -112,4 +140,32 @@ const styleInviteLink = {
 const styleInviteLinkText = {
   color: globalColors.blue,
   marginLeft: globalMargins.tiny,
+}
+
+const stylesLinkBox = {
+  ...globalStyles.flexBoxRow,
+  justifyContent: 'center',
+  alignItems: 'center',
+  alignSelf: 'stretch',
+  marginTop: 8,
+  borderRadius: 48,
+  borderStyle: 'solid',
+  height: 32,
+  backgroundColor: globalColors.white,
+  borderColor: globalColors.black_10,
+  borderWidth: 1,
+}
+
+const stylesLink = {
+  ...globalStyles.selectable,
+  marginLeft: 7,
+  color: globalColors.green2,
+}
+
+const stylesLinkContainer = {
+  ...globalStyles.flexBoxColumn,
+  cursor: 'default',
+  alignItems: 'center',
+  position: 'relative',
+  padding: 16,
 }

@@ -93,6 +93,8 @@ export default connector.connect(
           serviceName: userForInfoPane.serviceName,
           profileUrl: userForInfoPane.profileUrl,
           onSendInvite: () => { console.log('TODO something for sending invite') },
+          outOfInvites: null,
+          inviteLink: null,
         },
       }
     } else {
