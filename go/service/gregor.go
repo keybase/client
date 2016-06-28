@@ -738,6 +738,17 @@ func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.U
 func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) error {
 	var token string
 	var uid keybase1.UID
+
+	// Check to see if we have been shutdown,
+	select {
+	case <-g.shutdownCh:
+		g.Debug("server is dead, not authenticating")
+		return errors.New("server is dead, not authenticating")
+	default:
+		// if we were going to block, then that means we are still alive
+	}
+
+	// Continue on and authenticate
 	aerr := g.G().LoginState().LocalSession(func(s *libkb.Session) {
 		token = s.GetToken()
 		uid = s.GetUID()
