@@ -140,7 +140,7 @@ export default class Render extends Component<void, Props, void> {
 const styleHeaderThemed = {
   'private': {
     backgroundColor: globalColors.darkBlue3,
-    backgroundImage: `url(${resolveImageAsURL('icons', 'damier-pattern-good-open.png')})`,
+    backgroundImage: `url(${resolveImageAsURL('icons', 'icon-damier-pattern-good-open.png')})`,
     backgroundRepeat: 'repeat',
   },
 

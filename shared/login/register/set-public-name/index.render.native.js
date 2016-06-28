@@ -11,7 +11,7 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
       style={stylesContainer}
       onBack={onBack}>
       <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
-      <Icon type='phone-color-m' style={stylesIcon} />
+      <Icon type='icon-phone-colors-64' style={stylesIcon} />
       <Input
         autoFocus
         style={stylesInput}

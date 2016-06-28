@@ -64,7 +64,7 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
       autoFocus: true,
     }
 
-    const checkboxProps = Object.keys(this.props.features).map(feature => {
+    const checkboxProps = (Object.keys(this.props.features) || []).map(feature => {
       return ({
         label: this.props.features[feature].label,
         checked: this.state.features[feature],

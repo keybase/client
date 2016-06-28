@@ -4,7 +4,7 @@ import {globalColors, globalStyles} from '../styles/style-guide'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaIgnored} from '../constants/tracker'
 
-import type {Props as IconProps} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters/icon'
 import type {Proof} from './user-proofs'
 
 export function metaColor (proof: Proof): string {
@@ -40,7 +40,7 @@ export function proofColor (proof: Proof): string {
   return color
 }
 
-export function iconNameForProof (proof: Proof): IconProps.type {
+export function iconNameForProof (proof: Proof): IconType {
   return {
     'twitter': 'fa-twitter',
     'github': 'fa-github',
@@ -55,7 +55,7 @@ export function iconNameForProof (proof: Proof): IconProps.type {
   }[proof.type]
 }
 
-export function proofStatusIcon (proof: Proof): ?IconProps.type {
+export function proofStatusIcon (proof: Proof): ? IconType {
   switch (proof.state) {
     case proofChecking:
       return 'fa-kb-iconfont-proof-pending'

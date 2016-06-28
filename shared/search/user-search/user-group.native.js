@@ -102,7 +102,7 @@ export default function UserGroup ({users, onAddUser, onRemoveUser, onClickUser,
       {users.map(u => <User key={u.service + u.username} user={u} onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
       <RowButton icon='icon-folder-private-open-32' text='Open private folder' onClick={onOpenPrivateGroupFolder} />
       <RowButton icon='icon-folder-public-open-32' text='Open public folder' onClick={onOpenPublicGroupFolder} />
-      {chatEnabled && <RowButton icon='icon-chat-32' text='Start a chat' onClick={onGroupChat} />}
+      {chatEnabled && <RowButton style={{fontSize: 24, color: globalColors.blue}} icon='fa-kb-iconfont-chat' text='Start a chat' onClick={onGroupChat} />}
     </Box>
   )
 }

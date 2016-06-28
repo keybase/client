@@ -2,6 +2,7 @@
 
 import React from 'react'
 import type {Props} from './delete.render'
+import type {IconType} from '../../common-adapters/icon'
 import {Confirm, Box, Text, Icon} from '../../common-adapters'
 import {usernameText} from '../../common-adapters/usernames'
 import {globalColors} from '../../styles/style-guide'
@@ -9,7 +10,8 @@ import {globalColors} from '../../styles/style-guide'
 const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
   const theme = isPrivate ? 'private' : 'public'
 
-  const header = <Icon type={iconThemed[theme]} />
+  const icon: IconType = isPrivate ? 'icon-files-private-delete-64' : 'icon-files-public-delete-64'
+  const header = <Icon type={icon} />
 
   const body = (
     <Box>
@@ -31,11 +33,6 @@ const textColorThemed = {
   'private': {
     color: globalColors.white,
   },
-}
-
-const iconThemed = {
-  'public': 'files-public-delete-64',
-  'private': 'files-private-delete-64',
 }
 
 export default Render

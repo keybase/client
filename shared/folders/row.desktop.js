@@ -2,13 +2,15 @@
 import React from 'react'
 import type {Folder} from './list'
 import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
-import type {Props as IconProps} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
 const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar}) => {
   const paddingLR = smallMode ? 4 : 8
   const paddingTB = smallMode ? 8 : 12
+
+  const groupIcon: IconType = smallMode ? styles.groupIcon.small : styles.groupIcon.normal
   return (
     <Box style={{
       ...styles.avatarContainer,
@@ -17,7 +19,7 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar}) => {
       paddingTop: paddingTB, paddingBottom: paddingTB,
       paddingLeft: paddingLR, paddingRight: paddingLR}}>
       {groupAvatar
-        ? <Icon type={smallMode ? styles.groupIcon.small : styles.groupIcon.normal} />
+        ? <Icon type={groupIcon} />
         : <Avatar size={smallMode ? 24 : 32} username={userAvatar} />}
     </Box>
   )
@@ -77,7 +79,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onOp
     backgroundColor,
   }
 
-  const icon: IconProps.type = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
+  const icon: IconType = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
 
   return (
     <Box style={containerStyle} className='folder-row' onClick={() => onClick && onClick(path)}>
@@ -125,8 +127,8 @@ const stylesPrivate = {
     color: globalColors.white,
   },
   hasStuffIcon: {
-    small: 'folder-private-has-stuff-24',
-    normal: 'folder-private-has-stuff-32',
+    small: 'icon-folder-private-has-stuff-24',
+    normal: 'icon-folder-private-has-stuff-32',
   },
   ignored: {
     color: globalColors.white_40,
@@ -138,7 +140,7 @@ const stylesPrivate = {
   },
   avatarContainer: {
     backgroundColor: globalColors.darkBlue3,
-    backgroundImage: `url(${resolveImageAsURL('icons', 'damier-pattern-good-open.png')})`,
+    backgroundImage: `url(${resolveImageAsURL('icons', 'icon-damier-pattern-good-open.png')})`,
     backgroundRepeat: 'repeat',
   },
   nameColor: globalColors.white,

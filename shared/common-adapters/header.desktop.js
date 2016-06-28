@@ -13,7 +13,7 @@ export default class Header extends Component<DefaultProps, Props, void> {
     return (
       <div style={{...this.props.style, ...styles.container, ...styles.defaultContainer}}>
         {this.props.children}
-        {this.props.icon && <Icon type='logo-24' />}
+        {this.props.icon && <Icon type='icon-keybase-logo-24' />}
         <Text type='Body' style={{flex: 1, paddingLeft: 6}}>{this.props.title}</Text>
         {this.props.onClose && (
           <Icon style={styles.closeIcon} type='fa-close' onClick={() => this.props.onClose()} />

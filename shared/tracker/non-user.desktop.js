@@ -7,20 +7,24 @@ import type {Props} from './non-user'
 
 const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
   const message = inviteLink ? `You can send ${name} this link to skip the invitation queue:` : `Since you're out of invites, ${name} will need to request a signup on Keybase.io. Encourage them to join.`
-  const icon = inviteLink ? 'invite-link-m' : isPrivate ? 'folder-private-success-m' : 'folder-public-success-m'
-  const iconStyle = inviteLink ? {marginTop: 33, marginBottom: 16} : {marginTop: 24, marginBottom: 22}
+  const icon = inviteLink
+    ? 'icon-invite-link-negative-48' : isPrivate
+    ? 'icon-folder-private-success-negative-48'
+    : 'icon-folder-public-success-negative-48'
 
   let textRef
   return (
     <Box style={stylesContainer}>
       <Icon style={stylesClose} type='fa-close' onClick={onClose} />
       <Text type='BodySmallSemibold' style={stylesMessage}>{reason}</Text>
-      <Icon style={iconStyle} type={icon} />
-      <Text type='BodySmallSemibold' style={stylesMessage}>{message}</Text>
-      {inviteLink ? <Box style={stylesLinkBox}>
-        <Icon type='link-xs' onClick={() => textRef && textRef.highlightText()} />
-        <Text ref={r => { textRef = r }} style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
-      </Box> : <Box style={{height: 16}} />}
+      <Icon type={icon} />
+      <Box style={globalStyles.flexBoxColumn}>
+        <Text type='BodySmallSemibold' style={{...stylesMessage, ...(inviteLink ? {} : {marginBottom: 16})}}>{message}</Text>
+        {inviteLink && <Box style={stylesLinkBox}>
+          <Icon style={{color: globalColors.black_10}} type='fa-kb-iconfont-link' onClick={() => textRef && textRef.highlightText()} />
+          <Text ref={r => { textRef = r }} style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
+        </Box>}
+      </Box>
     </Box>
   )
 }
@@ -51,17 +55,19 @@ const Render = ({name, reason, inviteLink, onClose, isPrivate, serviceName}: Pro
 const stylesMessage = {
   textAlign: 'center',
   color: globalColors.white,
-  marginLeft: 24,
-  marginRight: 24,
+  marginLeft: -5, // give a little breathing room
+  marginRight: -5,
 }
 
 const stylesContainer = {
   ...globalStyles.windowDragging,
   ...globalStyles.flexBoxColumn,
+  justifyContent: 'space-between',
   cursor: 'default',
   alignItems: 'center',
   position: 'relative',
   backgroundColor: globalColors.blue,
+  height: 235,
   padding: 16,
 }
 
@@ -101,8 +107,8 @@ const stylesNext = {
 const stylesBullet = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  marginLeft: 32,
-  marginRight: 32,
+  marginLeft: 16,
+  marginRight: 16,
 
 }
 
