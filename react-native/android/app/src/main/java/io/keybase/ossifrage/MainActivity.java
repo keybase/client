@@ -47,6 +47,14 @@ public class MainActivity extends ReactActivity {
     }
 
     /**
+     * Returns the location of the JavaScript entry file.
+     */
+    @Override
+    protected String getJSMainModuleName() {
+        return "shared/index.native";
+    }
+
+    /**
      * Returns whether dev mode should be enabled.
      * This enables e.g. the dev menu.
      */

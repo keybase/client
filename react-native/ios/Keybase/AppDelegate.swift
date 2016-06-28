@@ -17,7 +17,7 @@ class AppDelegate: UIResponder {
 
       #if DEBUG
         if let reactHost = AppDefault.ReactHost.stringValue {
-          return NSURL(string: "http://\(reactHost)/shared/index.bundle?platform=ios&dev=true")
+          return NSURL(string: "http://\(reactHost)/shared/index.native.bundle?platform=ios&dev=true")
         } else {
           return NSBundle.mainBundle().URLForResource("main", withExtension: "jsbundle")
         }
