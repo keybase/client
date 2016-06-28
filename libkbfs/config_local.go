@@ -728,7 +728,7 @@ func (c *ConfigLocal) Shutdown() error {
 
 // CheckStateOnShutdown implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) CheckStateOnShutdown() bool {
-	if md, ok := c.MDServer().(*MDServerLocal); ok {
+	if md, ok := c.MDServer().(mdServerLocal); ok {
 		return !md.isShutdown()
 	}
 	return false

@@ -36,6 +36,7 @@ type MDServerRemote struct {
 	conn         *rpc.Connection
 	client       keybase1.MetadataClient
 	log          logger.Logger
+	mdSrvAddr    string
 	authToken    *AuthToken
 	squelchRekey bool
 
@@ -70,6 +71,7 @@ func NewMDServerRemote(config Config, srvAddr string, ctx Context) *MDServerRemo
 		config:     config,
 		observers:  make(map[TlfID]chan<- error),
 		log:        config.MakeLogger(""),
+		mdSrvAddr:  srvAddr,
 		rekeyTimer: time.NewTimer(MdServerBackgroundRekeyPeriod),
 	}
 	mdServer.authToken = NewAuthToken(config,
@@ -88,6 +90,11 @@ func NewMDServerRemote(config Config, srvAddr string, ctx Context) *MDServerRemo
 	go mdServer.backgroundRekeyChecker(rekeyCtx)
 
 	return mdServer
+}
+
+// RemoteAddress returns the remote mdserver this client is talking to
+func (md *MDServerRemote) RemoteAddress() string {
+	return md.mdSrvAddr
 }
 
 // HandlerName implements the ConnectionHandler interface.

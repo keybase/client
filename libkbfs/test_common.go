@@ -27,11 +27,11 @@ const (
 	// EnvTestBServerAddr is the environment variable name for a block
 	// server address.
 	EnvTestBServerAddr = "KEYBASE_TEST_BSERVER_ADDR"
-	// TempdirBServerAddr is the special value of the
-	// EnvTestBServerAddr environment value to signify that an
-	// on-disk implementation of the bserver should be used with a
-	// temporary directory.
-	TempdirBServerAddr = "tempdir"
+	// TempdirServerAddr is the special value of the
+	// EnvTest{B,MD}ServerAddr environment value to signify that
+	// an on-disk implementation of the {b,md}server should be
+	// used with a temporary directory.
+	TempdirServerAddr = "tempdir"
 )
 
 // RandomBlockID returns a randomly-generated BlockID for testing.
@@ -101,7 +101,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	bserverAddr := os.Getenv(EnvTestBServerAddr)
 	var blockServer BlockServer
 	switch {
-	case bserverAddr == TempdirBServerAddr:
+	case bserverAddr == TempdirServerAddr:
 		var err error
 		blockServer, err = NewBlockServerTempDir(config)
 		if err != nil {
@@ -118,11 +118,22 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 
 	// see if a local remote server is specified
 	mdServerAddr := os.Getenv(EnvTestMDServerAddr)
-
-	var err error
 	var mdServer MDServer
 	var keyServer KeyServer
-	if len(mdServerAddr) != 0 {
+	switch {
+	case mdServerAddr == TempdirServerAddr:
+		var err error
+		mdServer, err = NewMDServerTempDir(config)
+		if err != nil {
+			t.Fatal(err)
+		}
+		keyServer, err = NewKeyServerTempDir(config)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+	case len(mdServerAddr) != 0:
+		var err error
 		// start/restart local in-memory DynamoDB
 		runner, err := NewTestDynamoDBRunner()
 		if err != nil {
@@ -140,7 +151,9 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 		mdServer = NewMDServerRemote(config, mdServerAddr, env.NewContext())
 		// for now the MD server acts as the key server in production
 		keyServer = mdServer.(*MDServerRemote)
-	} else {
+
+	default:
+		var err error
 		// create in-memory server shim
 		mdServer, err = NewMDServerMemory(config)
 		if err != nil {
@@ -208,21 +221,18 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 		c.SetBlockServer(config.BlockServer())
 	}
 
-	// see if a local remote server is specified
-	mdServerAddr := os.Getenv(EnvTestMDServerAddr)
-
 	var mdServer MDServer
 	var keyServer KeyServer
-	if len(mdServerAddr) != 0 {
+	if s, ok := config.MDServer().(*MDServerRemote); ok {
 		// connect to server
-		mdServer = NewMDServerRemote(c, mdServerAddr, env.NewContext())
+		mdServer = NewMDServerRemote(c, s.RemoteAddress(), env.NewContext())
 		// for now the MD server also acts as the key server.
 		keyServer = mdServer.(*MDServerRemote)
 	} else {
 		// copy the existing mdServer but update the config
 		// this way the current device KID is paired with
 		// the proper user yet the DB state is all shared.
-		mdServerToCopy := config.MDServer().(*MDServerLocal)
+		mdServerToCopy := config.MDServer().(mdServerLocal)
 		mdServer = mdServerToCopy.copy(c)
 
 		// use the same db but swap configs
@@ -376,7 +386,7 @@ func AddNewAssertionForTest(
 	}
 
 	// Let the mdserver know about the name change
-	md, ok := config.MDServer().(*MDServerLocal)
+	md, ok := config.MDServer().(mdServerLocal)
 	if !ok {
 		return errors.New("Bad md server")
 	}

@@ -475,7 +475,8 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 
 	// Copy bit unset.
 	newRmd := newRootMetadataOrBust(t, id, h)
-	ok, err := newRmd.IsValidRekeyRequest(config, rmd, newRmd.LastModifyingWriter)
+	ok, err := newRmd.IsValidRekeyRequest(
+		config.Codec(), rmd, newRmd.LastModifyingWriter)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -499,7 +500,8 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 		t.Fatal(err)
 	}
 	newRmd.WriterMetadataSigInfo = sigInfo2
-	ok, err = newRmd.IsValidRekeyRequest(config, rmd, newRmd.LastModifyingWriter)
+	ok, err = newRmd.IsValidRekeyRequest(
+		config.Codec(), rmd, newRmd.LastModifyingWriter)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -509,7 +511,8 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 
 	// Replace with copied signature.
 	newRmd.WriterMetadataSigInfo = sigInfo
-	ok, err = newRmd.IsValidRekeyRequest(config, rmd, newRmd.LastModifyingWriter)
+	ok, err = newRmd.IsValidRekeyRequest(
+		config.Codec(), rmd, newRmd.LastModifyingWriter)
 	if err != nil {
 		t.Fatal(err)
 	}

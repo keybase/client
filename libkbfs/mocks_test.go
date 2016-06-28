@@ -2375,6 +2375,210 @@ func (_mr *_MockMDServerRecorder) GetLatestHandleForTLF(arg0, arg1 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLatestHandleForTLF", arg0, arg1)
 }
 
+// Mock of mdServerLocal interface
+type MockmdServerLocal struct {
+	ctrl     *gomock.Controller
+	recorder *_MockmdServerLocalRecorder
+}
+
+// Recorder for MockmdServerLocal (not exported)
+type _MockmdServerLocalRecorder struct {
+	mock *MockmdServerLocal
+}
+
+func NewMockmdServerLocal(ctrl *gomock.Controller) *MockmdServerLocal {
+	mock := &MockmdServerLocal{ctrl: ctrl}
+	mock.recorder = &_MockmdServerLocalRecorder{mock}
+	return mock
+}
+
+func (_m *MockmdServerLocal) EXPECT() *_MockmdServerLocalRecorder {
+	return _m.recorder
+}
+
+func (_m *MockmdServerLocal) RefreshAuthToken(_param0 context.Context) {
+	_m.ctrl.Call(_m, "RefreshAuthToken", _param0)
+}
+
+func (_mr *_MockmdServerLocalRecorder) RefreshAuthToken(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
+}
+
+func (_m *MockmdServerLocal) GetForHandle(ctx context.Context, handle BareTlfHandle, mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, mStatus)
+	ret0, _ := ret[0].(TlfID)
+	ret1, _ := ret[1].(*RootMetadataSigned)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockmdServerLocalRecorder) GetForHandle(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForHandle", arg0, arg1, arg2)
+}
+
+func (_m *MockmdServerLocal) GetForTLF(ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetForTLF", ctx, id, bid, mStatus)
+	ret0, _ := ret[0].(*RootMetadataSigned)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockmdServerLocalRecorder) GetForTLF(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetForTLF", arg0, arg1, arg2, arg3)
+}
+
+func (_m *MockmdServerLocal) GetRange(ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus, start MetadataRevision, stop MetadataRevision) ([]*RootMetadataSigned, error) {
+	ret := _m.ctrl.Call(_m, "GetRange", ctx, id, bid, mStatus, start, stop)
+	ret0, _ := ret[0].([]*RootMetadataSigned)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockmdServerLocalRecorder) GetRange(arg0, arg1, arg2, arg3, arg4, arg5 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRange", arg0, arg1, arg2, arg3, arg4, arg5)
+}
+
+func (_m *MockmdServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) error {
+	ret := _m.ctrl.Call(_m, "Put", ctx, rmds)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockmdServerLocalRecorder) Put(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1)
+}
+
+func (_m *MockmdServerLocal) PruneBranch(ctx context.Context, id TlfID, bid BranchID) error {
+	ret := _m.ctrl.Call(_m, "PruneBranch", ctx, id, bid)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockmdServerLocalRecorder) PruneBranch(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PruneBranch", arg0, arg1, arg2)
+}
+
+func (_m *MockmdServerLocal) RegisterForUpdate(ctx context.Context, id TlfID, currHead MetadataRevision) (<-chan error, error) {
+	ret := _m.ctrl.Call(_m, "RegisterForUpdate", ctx, id, currHead)
+	ret0, _ := ret[0].(<-chan error)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockmdServerLocalRecorder) RegisterForUpdate(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForUpdate", arg0, arg1, arg2)
+}
+
+func (_m *MockmdServerLocal) CheckForRekeys(ctx context.Context) <-chan error {
+	ret := _m.ctrl.Call(_m, "CheckForRekeys", ctx)
+	ret0, _ := ret[0].(<-chan error)
+	return ret0
+}
+
+func (_mr *_MockmdServerLocalRecorder) CheckForRekeys(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckForRekeys", arg0)
+}
+
+func (_m *MockmdServerLocal) TruncateLock(ctx context.Context, id TlfID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "TruncateLock", ctx, id)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockmdServerLocalRecorder) TruncateLock(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TruncateLock", arg0, arg1)
+}
+
+func (_m *MockmdServerLocal) TruncateUnlock(ctx context.Context, id TlfID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "TruncateUnlock", ctx, id)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockmdServerLocalRecorder) TruncateUnlock(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TruncateUnlock", arg0, arg1)
+}
+
+func (_m *MockmdServerLocal) DisableRekeyUpdatesForTesting() {
+	_m.ctrl.Call(_m, "DisableRekeyUpdatesForTesting")
+}
+
+func (_mr *_MockmdServerLocalRecorder) DisableRekeyUpdatesForTesting() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DisableRekeyUpdatesForTesting")
+}
+
+func (_m *MockmdServerLocal) Shutdown() {
+	_m.ctrl.Call(_m, "Shutdown")
+}
+
+func (_mr *_MockmdServerLocalRecorder) Shutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+}
+
+func (_m *MockmdServerLocal) IsConnected() bool {
+	ret := _m.ctrl.Call(_m, "IsConnected")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockmdServerLocalRecorder) IsConnected() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsConnected")
+}
+
+func (_m *MockmdServerLocal) GetLatestHandleForTLF(ctx context.Context, id TlfID) (BareTlfHandle, error) {
+	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
+	ret0, _ := ret[0].(BareTlfHandle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockmdServerLocalRecorder) GetLatestHandleForTLF(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLatestHandleForTLF", arg0, arg1)
+}
+
+func (_m *MockmdServerLocal) addNewAssertionForTest(uid protocol.UID, newAssertion protocol.SocialAssertion) error {
+	ret := _m.ctrl.Call(_m, "addNewAssertionForTest", uid, newAssertion)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockmdServerLocalRecorder) addNewAssertionForTest(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "addNewAssertionForTest", arg0, arg1)
+}
+
+func (_m *MockmdServerLocal) getCurrentMergedHeadRevision(ctx context.Context, id TlfID) (MetadataRevision, error) {
+	ret := _m.ctrl.Call(_m, "getCurrentMergedHeadRevision", ctx, id)
+	ret0, _ := ret[0].(MetadataRevision)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockmdServerLocalRecorder) getCurrentMergedHeadRevision(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "getCurrentMergedHeadRevision", arg0, arg1)
+}
+
+func (_m *MockmdServerLocal) isShutdown() bool {
+	ret := _m.ctrl.Call(_m, "isShutdown")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockmdServerLocalRecorder) isShutdown() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "isShutdown")
+}
+
+func (_m *MockmdServerLocal) copy(config Config) mdServerLocal {
+	ret := _m.ctrl.Call(_m, "copy", config)
+	ret0, _ := ret[0].(mdServerLocal)
+	return ret0
+}
+
+func (_mr *_MockmdServerLocalRecorder) copy(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "copy", arg0)
+}
+
 // Mock of BlockServer interface
 type MockBlockServer struct {
 	ctrl     *gomock.Controller

@@ -6,6 +6,9 @@ package libkbfs
 
 import (
 	"errors"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
@@ -21,38 +24,61 @@ type KeyServerLocal struct {
 	db     *leveldb.DB // TLFCryptKeyServerHalfID -> TLFCryptKeyServerHalf
 	log    logger.Logger
 
-	shutdown     *bool
 	shutdownLock *sync.RWMutex
+	shutdown     *bool
+	shutdownFunc func(logger.Logger)
 }
 
 // Test that KeyServerLocal fully implements the KeyServer interface.
 var _ KeyServer = (*KeyServerLocal)(nil)
 
-func newKeyServerLocalWithStorage(config Config, storage storage.Storage) (
-	*KeyServerLocal, error) {
+func newKeyServerLocal(config Config, storage storage.Storage,
+	shutdownFunc func(logger.Logger)) (*KeyServerLocal, error) {
 	db, err := leveldb.Open(storage, leveldbOptions)
 	if err != nil {
 		return nil, err
 	}
-	kops := &KeyServerLocal{config, db, config.MakeLogger(""), new(bool),
-		&sync.RWMutex{}}
+	kops := &KeyServerLocal{config, db, config.MakeLogger(""),
+		&sync.RWMutex{}, new(bool), shutdownFunc}
 	return kops, nil
-}
-
-// NewKeyServerLocal returns a KeyServerLocal with a leveldb instance at the
-// given file.
-func NewKeyServerLocal(config Config, dbfile string) (*KeyServerLocal, error) {
-	storage, err := storage.OpenFile(dbfile)
-	if err != nil {
-		return nil, err
-	}
-	return newKeyServerLocalWithStorage(config, storage)
 }
 
 // NewKeyServerMemory returns a KeyServerLocal with an in-memory leveldb
 // instance.
 func NewKeyServerMemory(config Config) (*KeyServerLocal, error) {
-	return newKeyServerLocalWithStorage(config, storage.NewMemStorage())
+	return newKeyServerLocal(config, storage.NewMemStorage(), nil)
+}
+
+func newKeyServerDisk(
+	config Config, dirPath string, shutdownFunc func(logger.Logger)) (
+	*KeyServerLocal, error) {
+	keyPath := filepath.Join(dirPath, "keys")
+	storage, err := storage.OpenFile(keyPath)
+	if err != nil {
+		return nil, err
+	}
+	return newKeyServerLocal(config, storage, shutdownFunc)
+}
+
+// NewKeyServerDir constructs a new KeyServerLocal that stores its
+// data in the given directory.
+func NewKeyServerDir(config Config, dirPath string) (*KeyServerLocal, error) {
+	return newKeyServerDisk(config, dirPath, nil)
+}
+
+// NewKeyServerTempDir constructs a new KeyServerLocal that stores its
+// data in a temp directory which is cleaned up on shutdown.
+func NewKeyServerTempDir(config Config) (*KeyServerLocal, error) {
+	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_keyserver_tmp")
+	if err != nil {
+		return nil, err
+	}
+	return newKeyServerDisk(config, tempdir, func(log logger.Logger) {
+		err := os.RemoveAll(tempdir)
+		if err != nil {
+			log.Warning("error removing %s: %s", tempdir, err)
+		}
+	})
 }
 
 // GetTLFCryptKeyServerHalf implements the KeyServer interface for
@@ -138,8 +164,8 @@ func (ks *KeyServerLocal) DeleteTLFCryptKeyServerHalf(ctx context.Context,
 
 // Copies a key server but swaps the config.
 func (ks *KeyServerLocal) copy(config Config) *KeyServerLocal {
-	return &KeyServerLocal{config, ks.db, config.MakeLogger(""), ks.shutdown,
-		ks.shutdownLock}
+	return &KeyServerLocal{config, ks.db, config.MakeLogger(""),
+		ks.shutdownLock, ks.shutdown, ks.shutdownFunc}
 }
 
 // Shutdown implements the KeyServer interface for KeyServerLocal.
@@ -153,5 +179,9 @@ func (ks *KeyServerLocal) Shutdown() {
 
 	if ks.db != nil {
 		ks.db.Close()
+	}
+
+	if ks.shutdownFunc != nil {
+		ks.shutdownFunc(ks.log)
 	}
 }

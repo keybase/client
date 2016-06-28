@@ -39,14 +39,14 @@ script:
     [ -z "$lint" -o "$lint" = "Lint-free!" ]
   - go vet $(go list ./... 2>/dev/null | grep -v /vendor/)
   - go install github.com/keybase/kbfs/...
-  # Run libkbfs tests with an in-memory bserver, and run all other
-  # tests with the tempdir bserver.
+  # Run libkbfs tests with an in-memory bserver and mdserver, and run all other
+  # tests with the tempdir bserver and mdserver.
   - cd libkbfs && go test -i && go test -race -c && ./libkbfs.test -test.timeout 2m
   - env KEYBASE_TEST_BSERVER_ADDR=tempdir ./libkbfs.test -test.timeout 2m
-  - cd ../libfuse && go test -i && go test -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./libfuse.test -test.timeout 2m
+  - cd ../libfuse && go test -i && go test -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir KEYBASE_TEST_MDSERVER_ADDR=tempdir ./libfuse.test -test.timeout 2m
   - cd ../test
-  - go test -i -tags fuse && go test -race -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./test.test -test.timeout 7m
-  - go test -c -tags fuse && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./test.test -test.timeout 7m
+  - go test -i -tags fuse && go test -race -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir KEYBASE_TEST_MDSERVER_ADDR=tempdir ./test.test -test.timeout 7m
+  - go test -c -tags fuse && env KEYBASE_TEST_BSERVER_ADDR=tempdir KEYBASE_TEST_MDSERVER_ADDR=tempdir ./test.test -test.timeout 7m
 after_success:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ] && [ "$TRAVIS_PULL_REQUEST" == 'false' ]; then
       cp $GOPATH/bin/kbfsfuse $GOPATH/src/github.com/keybase/kbfs/kbfsfuse/kbfsfuse &&

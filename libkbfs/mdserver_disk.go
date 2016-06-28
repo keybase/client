@@ -9,6 +9,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"reflect"
 	"sync"
 	"time"
@@ -21,13 +24,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-type mdBlockLocal struct {
-	MD        *RootMetadataSigned
-	Timestamp time.Time
-}
+// TODO: Convert this to use flat files and a journal.
 
-// MDServerLocal just stores blocks in local leveldb instances.
-type MDServerLocal struct {
+// MDServerDisk just stores blocks in local leveldb instances.
+type MDServerDisk struct {
 	config   Config
 	handleDb *leveldb.DB // folder handle                  -> folderId
 	mdDb     *leveldb.DB // folderId+[branchId]+[revision] -> mdBlockLocal
@@ -37,21 +37,45 @@ type MDServerLocal struct {
 	locksMutex *sync.Mutex
 	locksDb    *leveldb.DB // folderId -> deviceKID
 
-	// mutex protects observers and sessionHeads
-	mutex *sync.Mutex
-	// Multiple instances of MDServerLocal could share a reference to
-	// this map and sessionHead, and we use that to ensure that all
-	// observers are fired correctly no matter which MDServerLocal
-	// instance gets the Put() call.
-	observers    map[TlfID]map[*MDServerLocal]chan<- error
-	sessionHeads map[TlfID]*MDServerLocal
+	updateManager *mdServerLocalUpdateManager
 
-	shutdown     *bool
 	shutdownLock *sync.RWMutex
+	shutdown     *bool
+	shutdownFunc func(logger.Logger)
 }
 
-func newMDServerLocalWithStorage(config Config, handleStorage, mdStorage,
-	branchStorage, lockStorage storage.Storage) (*MDServerLocal, error) {
+var _ mdServerLocal = (*MDServerDisk)(nil)
+
+type mdBlockLocal struct {
+	MD        *RootMetadataSigned
+	Timestamp time.Time
+}
+
+func newMDServerDisk(config Config, dirPath string,
+	shutdownFunc func(logger.Logger)) (*MDServerDisk, error) {
+	handlePath := filepath.Join(dirPath, "handles")
+	mdPath := filepath.Join(dirPath, "md")
+	branchPath := filepath.Join(dirPath, "branches")
+
+	handleStorage, err := storage.OpenFile(handlePath)
+	if err != nil {
+		return nil, err
+	}
+
+	mdStorage, err := storage.OpenFile(mdPath)
+	if err != nil {
+		return nil, err
+	}
+
+	branchStorage, err := storage.OpenFile(branchPath)
+	if err != nil {
+		return nil, err
+	}
+
+	// Always use memory for the lock storage, so it gets wiped after
+	// a restart.
+	lockStorage := storage.NewMemStorage()
+
 	handleDb, err := leveldb.Open(handleStorage, leveldbOptions)
 	if err != nil {
 		return nil, err
@@ -69,96 +93,35 @@ func newMDServerLocalWithStorage(config Config, handleStorage, mdStorage,
 		return nil, err
 	}
 	log := config.MakeLogger("")
-	mdserv := &MDServerLocal{config, handleDb, mdDb, branchDb, log,
-		&sync.Mutex{}, locksDb, &sync.Mutex{},
-		make(map[TlfID]map[*MDServerLocal]chan<- error),
-		make(map[TlfID]*MDServerLocal), new(bool), &sync.RWMutex{}}
+	mdserv := &MDServerDisk{config, handleDb, mdDb, branchDb, log,
+		&sync.Mutex{}, locksDb, newMDServerLocalUpdateManager(),
+		&sync.RWMutex{}, new(bool), shutdownFunc}
 	return mdserv, nil
 }
 
-// NewMDServerLocal constructs a new MDServerLocal object that stores
-// data in the directories specified as parameters to this function.
-func NewMDServerLocal(config Config, handleDbfile string, mdDbfile string,
-	branchDbfile string) (*MDServerLocal, error) {
-
-	handleStorage, err := storage.OpenFile(handleDbfile)
-	if err != nil {
-		return nil, err
-	}
-
-	mdStorage, err := storage.OpenFile(mdDbfile)
-	if err != nil {
-		return nil, err
-	}
-
-	branchStorage, err := storage.OpenFile(branchDbfile)
-	if err != nil {
-		return nil, err
-	}
-
-	// Always use memory for the lock storage, so it gets wiped after
-	// a restart.
-	lockStorage := storage.NewMemStorage()
-
-	return newMDServerLocalWithStorage(config, handleStorage, mdStorage,
-		branchStorage, lockStorage)
+// NewMDServerDir constructs a new MDServerDisk that stores its data
+// in the given directory.
+func NewMDServerDir(config Config, dirPath string) (*MDServerDisk, error) {
+	return newMDServerDisk(config, dirPath, nil)
 }
 
-// NewMDServerMemory constructs a new MDServerLocal object that stores
-// all data in-memory.
-func NewMDServerMemory(config Config) (*MDServerLocal, error) {
-	return newMDServerLocalWithStorage(config,
-		storage.NewMemStorage(), storage.NewMemStorage(),
-		storage.NewMemStorage(), storage.NewMemStorage())
-}
-
-// Helper to aid in enforcement that only specified public keys can access TLF metdata.
-func (md *MDServerLocal) checkPerms(ctx context.Context, id TlfID,
-	checkWrite bool, newMd *RootMetadataSigned) (bool, error) {
-	rmds, err := md.getHeadForTLF(ctx, id, NullBranchID, Merged)
-	if rmds == nil {
-		// TODO: the real mdserver will actually reverse lookup the folder handle
-		// and check that the UID is listed.
-		return true, nil
-	}
-	_, user, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
+// NewMDServerTempDir constructs a new MDServerDisk that stores its
+// data in a temp directory which is cleaned up on shutdown.
+func NewMDServerTempDir(config Config) (*MDServerDisk, error) {
+	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_mdserver_tmp")
 	if err != nil {
-		return false, err
+		return nil, err
 	}
-	h, err := rmds.MD.MakeBareTlfHandle()
-	if err != nil {
-		return false, err
-	}
-	isWriter := h.IsWriter(user)
-	isReader := h.IsReader(user)
-	if checkWrite {
-		// if this is a reader, are they acting within their restrictions?
-		if !isWriter && isReader && newMd != nil {
-			return newMd.MD.IsValidRekeyRequest(md.config, &rmds.MD, user)
+	return newMDServerDisk(config, tempdir, func(log logger.Logger) {
+		err := os.RemoveAll(tempdir)
+		if err != nil {
+			log.Warning("error removing %s: %s", tempdir, err)
 		}
-		return isWriter, nil
-	}
-	return isWriter || isReader, nil
+	})
 }
 
-// Helper to aid in enforcement that only specified public keys can access TLF metdata.
-func (md *MDServerLocal) isReader(ctx context.Context, id TlfID) (bool, error) {
-	return md.checkPerms(ctx, id, false, nil)
-}
-
-// Helper to aid in enforcement that only specified public keys can access TLF metdata.
-func (md *MDServerLocal) isWriter(ctx context.Context, id TlfID) (bool, error) {
-	return md.checkPerms(ctx, id, true, nil)
-}
-
-// Helper to aid in enforcement that only specified public keys can access TLF metdata.
-func (md *MDServerLocal) isWriterOrValidRekey(ctx context.Context, id TlfID, newMd *RootMetadataSigned) (
-	bool, error) {
-	return md.checkPerms(ctx, id, true, newMd)
-}
-
-// GetForHandle implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetForHandle(ctx context.Context, handle BareTlfHandle,
+// GetForHandle implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) GetForHandle(ctx context.Context, handle BareTlfHandle,
 	mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
 	id := NullTlfID
 	md.shutdownLock.RLock()
@@ -208,8 +171,8 @@ func (md *MDServerLocal) GetForHandle(ctx context.Context, handle BareTlfHandle,
 	return id, nil, nil
 }
 
-// GetForTLF implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetForTLF(ctx context.Context, id TlfID,
+// GetForTLF implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) GetForTLF(ctx context.Context, id TlfID,
 	bid BranchID, mStatus MergeStatus) (*RootMetadataSigned, error) {
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
@@ -221,8 +184,15 @@ func (md *MDServerLocal) GetForTLF(ctx context.Context, id TlfID,
 		return nil, MDServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
 
+	mergedMasterHead, err :=
+		md.getHeadForTLF(ctx, id, NullBranchID, Merged)
+	if err != nil {
+		return nil, MDServerError{err}
+	}
+
 	// Check permissions
-	ok, err := md.isReader(ctx, id)
+	ok, err := isReader(
+		ctx, md.config.Codec(), md.config.KBPKI(), mergedMasterHead)
 	if err != nil {
 		return nil, MDServerError{err}
 	}
@@ -248,7 +218,7 @@ func (md *MDServerLocal) GetForTLF(ctx context.Context, id TlfID,
 	return rmds, nil
 }
 
-func (md *MDServerLocal) rmdsFromBlockBytes(buf []byte) (
+func (md *MDServerDisk) rmdsFromBlockBytes(buf []byte) (
 	*RootMetadataSigned, error) {
 	block := new(mdBlockLocal)
 	err := md.config.Codec().Decode(buf, block)
@@ -259,7 +229,7 @@ func (md *MDServerLocal) rmdsFromBlockBytes(buf []byte) (
 	return block.MD, nil
 }
 
-func (md *MDServerLocal) getHeadForTLF(ctx context.Context, id TlfID,
+func (md *MDServerDisk) getHeadForTLF(ctx context.Context, id TlfID,
 	bid BranchID, mStatus MergeStatus) (rmds *RootMetadataSigned, err error) {
 	key, err := md.getMDKey(id, 0, bid, mStatus)
 	if err != nil {
@@ -276,7 +246,7 @@ func (md *MDServerLocal) getHeadForTLF(ctx context.Context, id TlfID,
 	return md.rmdsFromBlockBytes(buf)
 }
 
-func (md *MDServerLocal) getMDKey(id TlfID, revision MetadataRevision,
+func (md *MDServerDisk) getMDKey(id TlfID, revision MetadataRevision,
 	bid BranchID, mStatus MergeStatus) ([]byte, error) {
 	// short-cut
 	if revision == MetadataRevisionUninitialized && mStatus == Merged {
@@ -311,7 +281,7 @@ func (md *MDServerLocal) getMDKey(id TlfID, revision MetadataRevision,
 	return buf.Bytes(), nil
 }
 
-func (md *MDServerLocal) getBranchKey(ctx context.Context, id TlfID) ([]byte, error) {
+func (md *MDServerDisk) getBranchKey(ctx context.Context, id TlfID) ([]byte, error) {
 	buf := &bytes.Buffer{}
 	// add folder id
 	_, err := buf.Write(id.Bytes())
@@ -330,7 +300,7 @@ func (md *MDServerLocal) getBranchKey(ctx context.Context, id TlfID) ([]byte, er
 	return buf.Bytes(), nil
 }
 
-func (md *MDServerLocal) getCurrentDeviceKID(ctx context.Context) (keybase1.KID, error) {
+func (md *MDServerDisk) getCurrentDeviceKID(ctx context.Context) (keybase1.KID, error) {
 	key, err := md.config.KBPKI().GetCurrentCryptPublicKey(ctx)
 	if err != nil {
 		return keybase1.KID(""), err
@@ -338,8 +308,8 @@ func (md *MDServerLocal) getCurrentDeviceKID(ctx context.Context) (keybase1.KID,
 	return key.kid, nil
 }
 
-// GetRange implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID,
+// GetRange implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) GetRange(ctx context.Context, id TlfID,
 	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
 	[]*RootMetadataSigned, error) {
 	md.log.CDebugf(ctx, "GetRange %d %d (%s)", start, stop, mStatus)
@@ -353,8 +323,15 @@ func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID,
 		return nil, MDServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
 
+	mergedMasterHead, err :=
+		md.getHeadForTLF(ctx, id, NullBranchID, Merged)
+	if err != nil {
+		return nil, MDServerError{err}
+	}
+
 	// Check permissions
-	ok, err := md.isReader(ctx, id)
+	ok, err := isReader(
+		ctx, md.config.Codec(), md.config.KBPKI(), mergedMasterHead)
 	if err != nil {
 		return nil, MDServerError{err}
 	}
@@ -400,8 +377,8 @@ func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID,
 	return rmdses, nil
 }
 
-// Put implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) error {
+// Put implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned) error {
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
 	if *md.shutdown {
@@ -415,20 +392,22 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 		if bid != NullBranchID {
 			return MDServerErrorBadRequest{Reason: "Invalid branch ID"}
 		}
-	} else {
-		if bid == NullBranchID {
-			return MDServerErrorBadRequest{Reason: "Invalid branch ID"}
-		}
+	} else if bid == NullBranchID {
+		return MDServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
-
-	// Consistency checks and the actual write need to be synchronized.
-	md.mutex.Lock()
-	defer md.mutex.Unlock()
 
 	id := rmds.MD.ID
 
+	mergedMasterHead, err :=
+		md.getHeadForTLF(ctx, id, NullBranchID, Merged)
+	if err != nil {
+		return MDServerError{err}
+	}
+
 	// Check permissions
-	ok, err := md.isWriterOrValidRekey(ctx, id, rmds)
+	ok, err := isWriterOrValidRekey(
+		ctx, md.config.Codec(), md.config.KBPKI(),
+		mergedMasterHead, rmds)
 	if err != nil {
 		return MDServerError{err}
 	}
@@ -436,7 +415,7 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 		return MDServerErrorUnauthorized{}
 	}
 
-	head, err := md.getHeadForTLF(ctx, id, rmds.MD.BID, mStatus)
+	head, err := md.getHeadForTLF(ctx, id, bid, mStatus)
 	if err != nil {
 		return MDServerError{err}
 	}
@@ -461,31 +440,9 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 
 	// Consistency checks
 	if head != nil {
-		err := head.MD.CheckValidSuccessor(md.config, &rmds.MD)
-		switch err := err.(type) {
-		case nil:
-			break
-
-		case MDRevisionMismatch:
-			return MDServerErrorConflictRevision{
-				Expected: err.curr + 1,
-				Actual:   err.rev,
-			}
-
-		case MDPrevRootMismatch:
-			return MDServerErrorConflictPrevRoot{
-				Expected: err.currRoot,
-				Actual:   err.prevRoot,
-			}
-
-		case MDDiskUsageMismatch:
-			return MDServerErrorConflictDiskUsage{
-				Expected: err.expectedDiskUsage,
-				Actual:   err.actualDiskUsage,
-			}
-
-		default:
-			return MDServerError{Err: err}
+		err := head.MD.CheckValidSuccessorForServer(md.config, &rmds.MD)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -515,7 +472,7 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 	batch := new(leveldb.Batch)
 
 	// Add an entry with the revision key.
-	revKey, err := md.getMDKey(id, rmds.MD.Revision, rmds.MD.BID, mStatus)
+	revKey, err := md.getMDKey(id, rmds.MD.Revision, bid, mStatus)
 	if err != nil {
 		return MDServerError{err}
 	}
@@ -523,7 +480,7 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 
 	// Add an entry with the head key.
 	headKey, err := md.getMDKey(id, MetadataRevisionUninitialized,
-		rmds.MD.BID, mStatus)
+		bid, mStatus)
 	if err != nil {
 		return MDServerError{err}
 	}
@@ -539,26 +496,14 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 		// Don't send notifies if it's just a rekey (the real mdserver
 		// sends a "folder needs rekey" notification in this case).
 		!(rmds.MD.IsRekeySet() && rmds.MD.IsWriterMetadataCopiedSet()) {
-		md.sessionHeads[id] = md
-
-		// now fire all the observers that aren't from this session
-		for k, v := range md.observers[id] {
-			if k != md {
-				v <- nil
-				close(v)
-				delete(md.observers[id], k)
-			}
-		}
-		if len(md.observers[id]) == 0 {
-			delete(md.observers, id)
-		}
+		md.updateManager.setHead(id, md)
 	}
 
 	return nil
 }
 
-// PruneBranch implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) PruneBranch(ctx context.Context, id TlfID, bid BranchID) error {
+// PruneBranch implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) PruneBranch(ctx context.Context, id TlfID, bid BranchID) error {
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
 	if *md.shutdown {
@@ -591,7 +536,7 @@ func (md *MDServerLocal) PruneBranch(ctx context.Context, id TlfID, bid BranchID
 	return nil
 }
 
-func (md *MDServerLocal) getBranchID(ctx context.Context, id TlfID) (BranchID, error) {
+func (md *MDServerDisk) getBranchID(ctx context.Context, id TlfID) (BranchID, error) {
 	branchKey, err := md.getBranchKey(ctx, id)
 	if err != nil {
 		return NullBranchID, MDServerError{err}
@@ -611,15 +556,7 @@ func (md *MDServerLocal) getBranchID(ctx context.Context, id TlfID) (BranchID, e
 	return bid, nil
 }
 
-func (md *MDServerLocal) getCurrentMergedHeadRevision(
-	ctx context.Context, id TlfID) (rev MetadataRevision, err error) {
-	md.mutex.Lock()
-	defer md.mutex.Unlock()
-
-	return md.getCurrentMergedHeadRevisionLocked(ctx, id)
-}
-
-func (md *MDServerLocal) getCurrentMergedHeadRevisionLocked(
+func (md *MDServerDisk) getCurrentMergedHeadRevision(
 	ctx context.Context, id TlfID) (rev MetadataRevision, err error) {
 	head, err := md.getHeadForTLF(ctx, id, NullBranchID, Merged)
 	if err != nil {
@@ -631,8 +568,8 @@ func (md *MDServerLocal) getCurrentMergedHeadRevisionLocked(
 	return
 }
 
-// RegisterForUpdate implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) RegisterForUpdate(ctx context.Context, id TlfID,
+// RegisterForUpdate implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) RegisterForUpdate(ctx context.Context, id TlfID,
 	currHead MetadataRevision) (<-chan error, error) {
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
@@ -640,52 +577,18 @@ func (md *MDServerLocal) RegisterForUpdate(ctx context.Context, id TlfID,
 		return nil, errors.New("MD server already shut down")
 	}
 
-	md.mutex.Lock()
-	defer md.mutex.Unlock()
-
 	// are we already past this revision?  If so, fire observer
 	// immediately
-	currMergedHeadRev, err := md.getCurrentMergedHeadRevisionLocked(ctx, id)
+	currMergedHeadRev, err := md.getCurrentMergedHeadRevision(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 
-	c := make(chan error, 1)
-	if currMergedHeadRev > currHead && md != md.sessionHeads[id] {
-		c <- nil
-		close(c)
-		return c, nil
-	}
-
-	if _, ok := md.observers[id]; !ok {
-		md.observers[id] = make(map[*MDServerLocal]chan<- error)
-	}
-
-	// Otherwise, this is a legit observer.  This assumes that each
-	// client will be using a unique instance of MDServerLocal.
-	if _, ok := md.observers[id][md]; ok {
-		// If the local node registers something twice, it indicates a
-		// fatal bug.  Note that in the real MDServer implementation,
-		// we should allow this, in order to make the RPC properly
-		// idempotent.
-		panic(fmt.Sprintf("Attempted double-registration for MDServerLocal %p",
-			md))
-	}
-	md.observers[id][md] = c
+	c := md.updateManager.registerForUpdate(id, currHead, currMergedHeadRev, md)
 	return c, nil
 }
 
-func getTruncateLockKey(id TlfID) ([]byte, error) {
-	buf := &bytes.Buffer{}
-	// add folder id
-	_, err := buf.Write(id.Bytes())
-	if err != nil {
-		return []byte{}, err
-	}
-	return buf.Bytes(), nil
-}
-
-func (md *MDServerLocal) getCurrentDeviceKIDBytes(ctx context.Context) (
+func (md *MDServerDisk) getCurrentDeviceKIDBytes(ctx context.Context) (
 	[]byte, error) {
 	buf := &bytes.Buffer{}
 	deviceKID, err := md.getCurrentDeviceKID(ctx)
@@ -699,8 +602,18 @@ func (md *MDServerLocal) getCurrentDeviceKIDBytes(ctx context.Context) (
 	return buf.Bytes(), nil
 }
 
-// TruncateLock implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) TruncateLock(ctx context.Context, id TlfID) (
+func getTruncateLockKey(id TlfID) ([]byte, error) {
+	buf := &bytes.Buffer{}
+	// add folder id
+	_, err := buf.Write(id.Bytes())
+	if err != nil {
+		return []byte{}, err
+	}
+	return buf.Bytes(), nil
+}
+
+// TruncateLock implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) TruncateLock(ctx context.Context, id TlfID) (
 	bool, error) {
 	md.locksMutex.Lock()
 	defer md.locksMutex.Unlock()
@@ -732,8 +645,8 @@ func (md *MDServerLocal) TruncateLock(ctx context.Context, id TlfID) (
 	return false, MDServerErrorLocked{}
 }
 
-// TruncateUnlock implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) TruncateUnlock(ctx context.Context, id TlfID) (
+// TruncateUnlock implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) TruncateUnlock(ctx context.Context, id TlfID) (
 	bool, error) {
 	md.locksMutex.Lock()
 	defer md.locksMutex.Unlock()
@@ -765,8 +678,8 @@ func (md *MDServerLocal) TruncateUnlock(ctx context.Context, id TlfID) (
 	return false, MDServerErrorLocked{}
 }
 
-// Shutdown implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) Shutdown() {
+// Shutdown implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) Shutdown() {
 	md.shutdownLock.Lock()
 	defer md.shutdownLock.Unlock()
 	if *md.shutdown {
@@ -786,49 +699,53 @@ func (md *MDServerLocal) Shutdown() {
 	if md.locksDb != nil {
 		md.locksDb.Close()
 	}
+
+	if md.shutdownFunc != nil {
+		md.shutdownFunc(md.log)
+	}
 }
 
-// IsConnected implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) IsConnected() bool {
+// IsConnected implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) IsConnected() bool {
 	return !md.isShutdown()
 }
 
-// RefreshAuthToken implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) RefreshAuthToken(ctx context.Context) {}
+// RefreshAuthToken implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) RefreshAuthToken(ctx context.Context) {}
 
 // This should only be used for testing with an in-memory server.
-func (md *MDServerLocal) copy(config Config) *MDServerLocal {
+func (md *MDServerDisk) copy(config Config) mdServerLocal {
 	// NOTE: observers and sessionHeads are copied shallowly on
 	// purpose, so that the MD server that gets a Put will notify all
 	// observers correctly no matter where they got on the list.
 	log := config.MakeLogger("")
-	return &MDServerLocal{config, md.handleDb, md.mdDb, md.branchDb, log,
-		md.locksMutex, md.locksDb, md.mutex, md.observers, md.sessionHeads,
-		md.shutdown, md.shutdownLock}
+	return &MDServerDisk{config, md.handleDb, md.mdDb, md.branchDb, log,
+		md.locksMutex, md.locksDb, md.updateManager,
+		md.shutdownLock, md.shutdown, md.shutdownFunc}
 }
 
 // isShutdown returns whether the logical, shared MDServer instance
 // has been shut down.
-func (md *MDServerLocal) isShutdown() bool {
+func (md *MDServerDisk) isShutdown() bool {
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
 	return *md.shutdown
 }
 
 // DisableRekeyUpdatesForTesting implements the MDServer interface.
-func (md *MDServerLocal) DisableRekeyUpdatesForTesting() {
+func (md *MDServerDisk) DisableRekeyUpdatesForTesting() {
 	// Nothing to do.
 }
 
 // CheckForRekeys implements the MDServer interface.
-func (md *MDServerLocal) CheckForRekeys(ctx context.Context) <-chan error {
+func (md *MDServerDisk) CheckForRekeys(ctx context.Context) <-chan error {
 	// Nothing to do
 	c := make(chan error, 1)
 	c <- nil
 	return c
 }
 
-func (md *MDServerLocal) addNewAssertionForTest(uid keybase1.UID,
+func (md *MDServerDisk) addNewAssertionForTest(uid keybase1.UID,
 	newAssertion keybase1.SocialAssertion) error {
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
@@ -866,8 +783,8 @@ func (md *MDServerLocal) addNewAssertionForTest(uid keybase1.UID,
 	return iter.Error()
 }
 
-// GetLatestHandleForTLF implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetLatestHandleForTLF(_ context.Context, id TlfID) (
+// GetLatestHandleForTLF implements the MDServer interface for MDServerDisk.
+func (md *MDServerDisk) GetLatestHandleForTLF(_ context.Context, id TlfID) (
 	BareTlfHandle, error) {
 	var handle BareTlfHandle
 	iter := md.handleDb.NewIterator(nil, nil)

@@ -944,6 +944,16 @@ type MDServer interface {
 		BareTlfHandle, error)
 }
 
+type mdServerLocal interface {
+	MDServer
+	addNewAssertionForTest(
+		uid keybase1.UID, newAssertion keybase1.SocialAssertion) error
+	getCurrentMergedHeadRevision(ctx context.Context, id TlfID) (
+		rev MetadataRevision, err error)
+	isShutdown() bool
+	copy(config Config) mdServerLocal
+}
+
 // BlockServer gets and puts opaque data blocks.  The instantiation
 // should be able to fetch session/user details via KBPKI.  On a
 // put/delete, the server is reponsible for: 1) checking that the ID

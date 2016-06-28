@@ -173,7 +173,7 @@ type RootMetadata struct {
 	mdID     MdID
 }
 
-func (md *RootMetadata) haveOnlyUserRKeysChanged(config Config, prevMD *RootMetadata, user keybase1.UID) (bool, error) {
+func (md *RootMetadata) haveOnlyUserRKeysChanged(codec Codec, prevMD *RootMetadata, user keybase1.UID) (bool, error) {
 	// Require the same number of generations
 	if len(md.RKeys) != len(prevMD.RKeys) {
 		return false, nil
@@ -186,7 +186,7 @@ func (md *RootMetadata) haveOnlyUserRKeysChanged(config Config, prevMD *RootMeta
 		for u, keys := range gen.RKeys {
 			if u != user {
 				prevKeys := prevMDGen.RKeys[u]
-				keysEqual, err := CodecEqual(config.Codec(), keys, prevKeys)
+				keysEqual, err := CodecEqual(codec, keys, prevKeys)
 				if err != nil {
 					return false, err
 				}
@@ -201,13 +201,13 @@ func (md *RootMetadata) haveOnlyUserRKeysChanged(config Config, prevMD *RootMeta
 
 // IsValidRekeyRequest returns true if the current block is a simple rekey wrt
 // the passed block.
-func (md *RootMetadata) IsValidRekeyRequest(config Config, prevMd *RootMetadata, user keybase1.UID) (bool, error) {
+func (md *RootMetadata) IsValidRekeyRequest(codec Codec, prevMd *RootMetadata, user keybase1.UID) (bool, error) {
 	if !md.IsWriterMetadataCopiedSet() {
 		// Not a copy.
 		return false, nil
 	}
-	writerEqual, err := CodecEqual(config.Codec(),
-		md.WriterMetadata, prevMd.WriterMetadata)
+	writerEqual, err := CodecEqual(
+		codec, md.WriterMetadata, prevMd.WriterMetadata)
 	if err != nil {
 		return false, err
 	}
@@ -215,7 +215,7 @@ func (md *RootMetadata) IsValidRekeyRequest(config Config, prevMd *RootMetadata,
 		// Copy mismatch.
 		return false, nil
 	}
-	writerSigInfoEqual, err := CodecEqual(config.Codec(),
+	writerSigInfoEqual, err := CodecEqual(codec,
 		md.WriterMetadataSigInfo, prevMd.WriterMetadataSigInfo)
 	if err != nil {
 		return false, err
@@ -224,7 +224,8 @@ func (md *RootMetadata) IsValidRekeyRequest(config Config, prevMd *RootMetadata,
 		// Signature/public key mismatch.
 		return false, nil
 	}
-	onlyUserRKeysChanged, err := md.haveOnlyUserRKeysChanged(config, prevMd, user)
+	onlyUserRKeysChanged, err := md.haveOnlyUserRKeysChanged(
+		codec, prevMd, user)
 	if err != nil {
 		return false, err
 	}
@@ -455,6 +456,40 @@ func (md *RootMetadata) CheckValidSuccessor(
 
 	// TODO: Check that the successor (bare) TLF handle is the
 	// same or more resolved.
+
+	return nil
+}
+
+// CheckValidSuccessorForServer is like CheckValidSuccessor but with
+// server-specific error messages.
+func (md *RootMetadata) CheckValidSuccessorForServer(
+	config Config, nextMd *RootMetadata) error {
+	err := md.CheckValidSuccessor(config, nextMd)
+	switch err := err.(type) {
+	case nil:
+		break
+
+	case MDRevisionMismatch:
+		return MDServerErrorConflictRevision{
+			Expected: err.curr + 1,
+			Actual:   err.rev,
+		}
+
+	case MDPrevRootMismatch:
+		return MDServerErrorConflictPrevRoot{
+			Expected: err.currRoot,
+			Actual:   err.prevRoot,
+		}
+
+	case MDDiskUsageMismatch:
+		return MDServerErrorConflictDiskUsage{
+			Expected: err.expectedDiskUsage,
+			Actual:   err.actualDiskUsage,
+		}
+
+	default:
+		return MDServerError{Err: err}
+	}
 
 	return nil
 }

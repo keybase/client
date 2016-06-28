@@ -132,11 +132,8 @@ func makeMDServer(config Config, serverInMemory bool, serverRootDir, mdserverAdd
 
 	if len(serverRootDir) > 0 {
 		// local persistent MD server
-		handlePath := filepath.Join(serverRootDir, "kbfs_handles")
 		mdPath := filepath.Join(serverRootDir, "kbfs_md")
-		branchPath := filepath.Join(serverRootDir, "kbfs_branches")
-		return NewMDServerLocal(
-			config, handlePath, mdPath, branchPath)
+		return NewMDServerDir(config, mdPath)
 	}
 
 	if len(mdserverAddr) == 0 {
@@ -159,7 +156,7 @@ func makeKeyServer(config Config, serverInMemory bool, serverRootDir, keyserverA
 	if len(serverRootDir) > 0 {
 		// local persistent key server
 		keyPath := filepath.Join(serverRootDir, "kbfs_key")
-		return NewKeyServerLocal(config, keyPath)
+		return NewKeyServerDir(config, keyPath)
 	}
 
 	if len(keyserverAddr) == 0 {

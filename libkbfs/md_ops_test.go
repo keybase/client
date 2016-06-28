@@ -643,6 +643,7 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob")
 	defer CheckConfigAndShutdown(t, config)
 
+	config.MDServer().Shutdown()
 	var mdServer fakeMDServerPut
 	config.SetMDServer(&mdServer)
 

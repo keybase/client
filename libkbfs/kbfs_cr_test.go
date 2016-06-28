@@ -523,13 +523,13 @@ type registerForUpdateRecord struct {
 }
 
 type mdServerLocalRecordingRegisterForUpdate struct {
-	*MDServerLocal
+	mdServerLocal
 	ch chan<- registerForUpdateRecord
 }
 
 // newMDServerLocalRecordingRegisterForUpdate returns a wrapper of
 // MDServerLocal that records RegisterforUpdate calls.
-func newMDServerLocalRecordingRegisterForUpdate(mdServerRaw *MDServerLocal) (
+func newMDServerLocalRecordingRegisterForUpdate(mdServerRaw mdServerLocal) (
 	mdServer mdServerLocalRecordingRegisterForUpdate,
 	records <-chan registerForUpdateRecord) {
 	ch := make(chan registerForUpdateRecord, 8)
@@ -541,7 +541,7 @@ func (md mdServerLocalRecordingRegisterForUpdate) RegisterForUpdate(
 	ctx context.Context,
 	id TlfID, currHead MetadataRevision) (<-chan error, error) {
 	md.ch <- registerForUpdateRecord{id: id, currHead: currHead}
-	return md.MDServerLocal.RegisterForUpdate(ctx, id, currHead)
+	return md.mdServerLocal.RegisterForUpdate(ctx, id, currHead)
 }
 
 func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
@@ -552,7 +552,7 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	mdServ, chForMdServer2 := newMDServerLocalRecordingRegisterForUpdate(
-		config2.MDServer().(*MDServerLocal))
+		config2.MDServer().(mdServerLocal))
 	config2.SetMDServer(mdServ)
 	defer CheckConfigAndShutdown(t, config2)
 

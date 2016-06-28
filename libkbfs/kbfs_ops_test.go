@@ -5179,6 +5179,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	config2.SetCrypto(crypto2)
 	mdserver2, err := NewMDServerMemory(config2)
 	require.NoError(t, err)
+	config2.MDServer().Shutdown()
 	config2.SetMDServer(mdserver2)
 	config2.SetMDCache(NewMDCacheStandard(1))
 
