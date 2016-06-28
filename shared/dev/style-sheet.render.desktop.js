@@ -3,6 +3,7 @@ import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.desktop.js'
 import {Icon, Box, Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
+import type {IconType} from '../common-adapters/icon'
 
 import DropdownDemo from './components/dropdown.desktop'
 
@@ -215,18 +216,17 @@ const Dropdowns = () => (
 const Icons = () => (
   <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap', flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start'}}>
     {[
-      'computer-big',
-      'computer-bw-m',
+      'icon-computer-bw-64',
       'fa-copy',
       'fa-eye',
       'fa-key',
-      'logo-128',
+      'icon-keybase-logo-160',
       'fa-kb-iconfont-proof-broken',
       'fa-kb-iconfont-proof-good',
       'fa-kb-iconfont-proof-pending',
       'fa-close',
       'fa-mobile',
-    ].map(i => [
+    ].map((i: IconType) => [ // eslint-disable-line arrow-parens
       <Icon onClick={() => console.log('clicked')} type={i} />,
       <Space />,
       <Icon style={{width: 100, height: 100}} onClick={() => console.log('clicked')} type={i} />,

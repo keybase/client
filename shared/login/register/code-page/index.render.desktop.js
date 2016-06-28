@@ -33,7 +33,7 @@ export default class CodePageRender extends Component<void, Props, void> {
         <p style={{marginTop: 10}}>
           <Text type='BodySmall' inline>Run&nbsp;</Text><Text type='TerminalSmall' inline>keybase device add</Text><Text type='BodySmall' inline>&nbsp;on your other device and type this code there: </Text>
         </p>
-        <Icon type='computer-bw-m' style={{marginTop: 28}} />
+        <Icon type='icon-computer-bw-48' style={{marginTop: 28}} />
 
         <Text type='Body' style={stylesPaperkey}>{this.props.textCode}</Text>
       </Container>
@@ -59,7 +59,7 @@ export default class CodePageRender extends Component<void, Props, void> {
           <div style={{...qr, ...stylesQr}} />
         </div>
         <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => this.props.setCodePageMode(codePageModeEnterText)}>
-          <Icon style={{marginRight: 15}} type='phone-text-code-small' />
+          <Icon style={{marginRight: 15}} type='icon-phone-text-code-32' />
           <Text type='BodyPrimaryLink' onClick={() => this.props.setCodePageMode(codePageModeEnterText)}>Type text code instead</Text>
         </p>
       </Container>
@@ -73,7 +73,7 @@ export default class CodePageRender extends Component<void, Props, void> {
         onBack={this.props.onBack}>
         <Text style={{marginTop: 38, marginBottom: 11}} type='Header'>Type in text code</Text>
         <SubTitle usePhone={this._otherIsPhone()} />
-        <Icon style={{marginTop: 30, marginBottom: 40}} type='phone-text-code' />
+        <Icon style={{marginTop: 30, marginBottom: 40}} type='icon-phone-text-code-32' />
         <Input
           style={{alignSelf: 'stretch'}}
           hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
@@ -84,7 +84,7 @@ export default class CodePageRender extends Component<void, Props, void> {
         />
         <Button type='Primary' style={{alignSelf: 'flex-end', marginTop: 35, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
         <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => this.props.setCodePageMode(codePageModeShowCode)}>
-          <Icon style={{marginRight: 15}} type='phone-q-r-code' />
+          <Icon style={{marginRight: 15}} type='icon-phone-qr-code-48' />
           <Text type='BodyPrimaryLink' onClick={() => this.props.setCodePageMode(codePageModeShowCode)}>Scan QR code instead</Text>
         </p>
       </Container>

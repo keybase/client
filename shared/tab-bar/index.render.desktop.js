@@ -9,17 +9,17 @@ import flags from '../util/feature-flags'
 import {profileTab, peopleTab, folderTab, devicesTab, settingsTab} from '../constants/tabs'
 
 import type {VisibleTab} from '../constants/tabs'
-import type {Props as IconProps} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters/icon'
 import type {Props} from './index.render'
 
-const icons: {[key: VisibleTab]: IconProps.type} = {
+const icons: {[key: VisibleTab]: IconType} = {
   [peopleTab]: 'fa-kb-iconfont-people',
   [folderTab]: 'fa-kb-iconfont-folder',
   [devicesTab]: 'fa-kb-iconfont-device',
   [settingsTab]: 'fa-kb-iconfont-settings',
 }
 
-const labels: {[key: VisibleTab]: IconProps.type} = {
+const labels: {[key: VisibleTab]: IconType} = {
   [peopleTab]: 'PEOPLE',
   [folderTab]: 'FOLDERS',
   [devicesTab]: 'DEVICES',
@@ -29,7 +29,7 @@ const labels: {[key: VisibleTab]: IconProps.type} = {
 export type SearchButton = 'TabBar:searchButton'
 export const searchButton = 'TabBar:searchButton'
 
-function tabToIcon (t: VisibleTab): IconProps.type {
+function tabToIcon (t: VisibleTab): IconType {
   return icons[t]
 }
 

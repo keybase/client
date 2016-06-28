@@ -4,7 +4,7 @@ import {globalColors, globalStyles} from '../styles/style-guide'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaIgnored} from '../constants/tracker'
 
-import type {Props as IconProps} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters/icon'
 import type {Proof} from './user-proofs'
 
 export function metaColor (proof: Proof): string {
@@ -40,22 +40,24 @@ export function proofColor (proof: Proof): string {
   return color
 }
 
-export function iconNameForProof (proof: Proof): IconProps.type {
-  return {
-    'twitter': 'fa-twitter',
-    'github': 'fa-github',
-    'reddit': 'fa-reddit',
-    'pgp': 'fa-key',
+export function iconNameForProof (proof: Proof): IconType {
+  const types : {[key: string]: IconType} = {
+    'twitter': 'fa-kb-iconfont-identity-twitter',
+    'github': 'fa-kb-iconfont-identity-github',
+    'reddit': 'fa-kb-iconfont-identity-reddit',
+    'pgp': 'fa-kb-iconfont-identity-pgp',
     'coinbase': 'fa-kb-iconfont-coinbase',
-    'hackernews': 'fa-hacker-news',
+    'hackernews': 'fa-kb-iconfont-identity-hn',
     'rooter': 'fa-shopping-basket',
     'http': 'fa-globe',
     'https': 'fa-globe',
     'dns': 'fa-globe',
-  }[proof.type]
+  }
+
+  return types[proof.type]
 }
 
-export function proofStatusIcon (proof: Proof): ?IconProps.type {
+export function proofStatusIcon (proof: Proof): ?IconType {
   switch (proof.state) {
     case proofChecking:
       return 'fa-kb-iconfont-proof-pending'

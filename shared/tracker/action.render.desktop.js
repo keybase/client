@@ -37,18 +37,14 @@ export default class ActionRender extends Component {
   renderLoggedOut () {
     return (
       <div style={styleLoggedOutContainer}>
-        <div style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'space-between', alignItems: 'center'}}>
-          <Icon type='terminal' style={{width: 29}} />
-          <div style={{textAlign: 'center'}}>
-            <Text type='Terminal' inline>keybase login</Text>
-            <Text type='BodySmall' inline> or </Text>
-            <Text type='Terminal' inline>keybase signup</Text>
-            <Text type='BodySmall' inline> from the terminal for more options.</Text>
-          </div>
+        <Icon type='icon-terminal-32' style={{marginBottom: -5, marginTop: -5}} />
+        <div style={{textAlign: 'center'}}>
+          <Text type='Terminal' inline>keybase login</Text>
+          <Text type='BodySmall' inline> or </Text>
+          <Text type='Terminal' inline>keybase signup</Text>
+          <Text type='BodySmall' inline> from the terminal for more options.</Text>
         </div>
-        <div style={styleCloseContainer}>
-          <Button style={styleActionButton} type='Secondary' label='Close' onClick={() => this.props.onClose()} />
-        </div>
+        <Button style={{...styleActionButton, alignSelf: 'flex-end'}} type='Secondary' label='Close' onClick={() => this.props.onClose()} />
       </div>
     )
   }
@@ -102,16 +98,6 @@ const styleContainer = {
   zIndex: 1,
 }
 
-const styleCloseContainer = {
-  ...globalStyles.flexBoxRow,
-  ...globalStyles.noSelect,
-  backgroundColor: globalColors.white_90,
-  width: '100%',
-  alignItems: 'center',
-  marginTop: globalMargins.small,
-  justifyContent: 'flex-end',
-}
-
 const styleActionButton = {
   width: 102,
   minWidth: 102,
@@ -125,7 +111,7 @@ const styleLoggedOutContainer = {
   height: calcFooterHeight(false),
   boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
   alignItems: 'center',
-  justifyContent: 'flex-end',
+  justifyContent: 'space-between',
   padding: globalMargins.small,
   position: 'relative',
   zIndex: 1,
