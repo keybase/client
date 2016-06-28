@@ -272,3 +272,11 @@ func GetRekeyClient() (keybase1.RekeyClient, error) {
 	}
 	return keybase1.RekeyClient{Cli: rcli}, nil
 }
+
+func GetGregorClient(g *libkb.GlobalContext) (keybase1.GregorClient, error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return keybase1.GregorClient{}, err
+	}
+	return keybase1.GregorClient{Cli: rcli}, nil
+}
