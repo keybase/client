@@ -10,8 +10,11 @@ import (
 	"golang.org/x/net/context"
 )
 
+// TlfDoesNotExist is a shortcut error for the cases a TLF does not exist and
+// an early successfull exit via FilterTLFEarlyExitError is wished.
 type TlfDoesNotExist struct{}
 
+// Error - implement error interface.
 func (TlfDoesNotExist) Error() string { return "TLF does not exist" }
 
 // FilterTLFEarlyExitError decides whether an error received while
