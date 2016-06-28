@@ -14,6 +14,13 @@ export type RPCError = {
   desc: string
 }
 
+export type APIRes = {
+  status: string;
+  body: string;
+  httpStatus: int;
+  appStatus: string;
+}
+
 export type BTCRegisterBTCResult = void
 
 export type BTCRegisterBTCRpc = $Exact<{
@@ -1363,6 +1370,49 @@ export type accountPassphrasePromptRpc = $Exact<{
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: accountPassphrasePromptResult) => void)
 }>
+
+export type apiserverGetResult = APIRes
+
+export type apiserverGetRpc = {
+  method: 'apiserver.Get',
+  param: {
+    endpoint: string,
+    args: Array<StringKVPair>,
+    httpStatus: Array<int>,
+    appStatusCode: Array<int>
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: apiserverGetResult) => void)
+}
+
+export type apiserverPostJSONResult = APIRes
+
+export type apiserverPostJSONRpc = {
+  method: 'apiserver.PostJSON',
+  param: {
+    endpoint: string,
+    args: Array<StringKVPair>,
+    JSONPayload: Array<StringKVPair>,
+    httpStatus: Array<int>,
+    appStatusCode: Array<int>
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: apiserverPostJSONResult) => void)
+}
+
+export type apiserverPostResult = APIRes
+
+export type apiserverPostRpc = {
+  method: 'apiserver.Post',
+  param: {
+    endpoint: string,
+    args: Array<StringKVPair>,
+    httpStatus: Array<int>,
+    appStatusCode: Array<int>
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: apiserverPostResult) => void)
+}
 
 export type blockAddReferenceResult = void
 
@@ -3729,6 +3779,9 @@ export type rpc =
   | SecretKeysGetSecretKeysRpc
   | accountPassphraseChangeRpc
   | accountPassphrasePromptRpc
+  | apiserverGetRpc
+  | apiserverPostJSONRpc
+  | apiserverPostRpc
   | blockAddReferenceRpc
   | blockArchiveReferenceRpc
   | blockArchiveReferenceWithCountRpc
@@ -3945,6 +3998,43 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: accountPassphrasePromptResult) => void
+    }
+  ) => void,
+  'keybase.1.apiserver.Get'?: (
+    params: {
+      endpoint: string,
+      args: Array<StringKVPair>,
+      httpStatus: Array<int>,
+      appStatusCode: Array<int>
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: apiserverGetResult) => void
+    }
+  ) => void,
+  'keybase.1.apiserver.Post'?: (
+    params: {
+      endpoint: string,
+      args: Array<StringKVPair>,
+      httpStatus: Array<int>,
+      appStatusCode: Array<int>
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: apiserverPostResult) => void
+    }
+  ) => void,
+  'keybase.1.apiserver.PostJSON'?: (
+    params: {
+      endpoint: string,
+      args: Array<StringKVPair>,
+      JSONPayload: Array<StringKVPair>,
+      httpStatus: Array<int>,
+      appStatusCode: Array<int>
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: apiserverPostJSONResult) => void
     }
   ) => void,
   'keybase.1.block.getSessionChallenge'?: (

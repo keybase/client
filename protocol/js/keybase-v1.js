@@ -4,6 +4,8 @@
 
 export const account = {}
 
+export const apiserver = {}
+
 export const backendCommon = {}
 
 export const block = {}
@@ -453,6 +455,7 @@ export const user = {}
 
 export default {
   account,
+  apiserver,
   backendCommon,
   block,
   BTC,
