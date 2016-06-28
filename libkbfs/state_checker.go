@@ -145,10 +145,6 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 
 	fb := FolderBranch{tlf, MasterBranch}
 	ops := kbfsOps.getOpsNoAdd(fb)
-	if err := ops.reembedBlockChanges(ctx, lState, rmds); err != nil {
-		return err
-	}
-
 	lastGCRevisionTime := sc.getLastGCRevisionTime(ctx, tlf)
 
 	// Build the expected block list.

@@ -16,7 +16,6 @@ import (
 
 type fbmHelper interface {
 	getMDForFBM(ctx context.Context) (*RootMetadata, error)
-	reembedForFBM(ctx context.Context, rmds []*RootMetadata) error
 	finalizeGCOp(ctx context.Context, gco *gcOp) error
 }
 
@@ -545,11 +544,6 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 				MetadataRevisionUninitialized, err
 		}
 
-		if err := fbm.helper.reembedForFBM(ctx, rmds); err != nil {
-			return MetadataRevisionUninitialized,
-				MetadataRevisionUninitialized, err
-		}
-
 		numNew := len(rmds)
 		for i := len(rmds) - 1; i >= 0; i-- {
 			rmd := rmds[i]
@@ -631,10 +625,6 @@ outer:
 		rmds, err := getMDRange(ctx, fbm.config, fbm.id, NullBranchID, startRev,
 			currHead, Merged)
 		if err != nil {
-			return nil, MetadataRevisionUninitialized, false, err
-		}
-
-		if err := fbm.helper.reembedForFBM(ctx, rmds); err != nil {
 			return nil, MetadataRevisionUninitialized, false, err
 		}
 

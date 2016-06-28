@@ -130,7 +130,7 @@ func TestQuotaReclamationUnembedded(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't get MD: %v", err)
 	}
-	if md.data.Changes.Info.BlockPointer == zeroPtr {
+	if md.data.cachedChanges.Info.BlockPointer == zeroPtr {
 		t.Fatalf("No unembedded changes for ops %v", md.data.Changes.Ops)
 	}
 }

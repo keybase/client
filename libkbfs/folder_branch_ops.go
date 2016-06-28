@@ -3255,40 +3255,6 @@ func (fbo *folderBranchOps) getCurrMDRevision(
 	return fbo.getCurrMDRevisionLocked(lState)
 }
 
-func (fbo *folderBranchOps) reembedBlockChanges(ctx context.Context,
-	lState *lockState, rmds []*RootMetadata) error {
-	// if any of the operations have unembedded block ops, fetch those
-	// now and fix them up.  TODO: parallelize me.
-	for _, rmd := range rmds {
-		info := rmd.data.Changes.Info
-		if info.BlockPointer == zeroPtr {
-			continue
-		}
-
-		fblock, err := fbo.blocks.GetFileBlockForReading(ctx, lState, rmd,
-			info.BlockPointer, fbo.folderBranch.Branch, path{})
-		if err != nil {
-			return err
-		}
-
-		err = fbo.config.Codec().Decode(fblock.Contents, &rmd.data.Changes)
-		if err != nil {
-			return err
-		}
-		// The changes block pointer is an implicit ref block
-		rmd.data.Changes.Ops[0].AddRefBlock(info.BlockPointer)
-		rmd.data.cachedChanges.Info = info
-	}
-	return nil
-}
-
-// reembedForFBM is a helper method for the folderBlockManager only.
-func (fbo *folderBranchOps) reembedForFBM(ctx context.Context,
-	rmds []*RootMetadata) error {
-	lState := makeFBOLockState()
-	return fbo.reembedBlockChanges(ctx, lState, rmds)
-}
-
 type applyMDUpdatesFunc func(context.Context, *lockState, []*RootMetadata) error
 
 func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
@@ -3320,10 +3286,6 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	// require conflict resolution.
 	if fbo.blocks.GetState(lState) != cleanState {
 		return errors.New("Ignoring MD updates while writes are dirty")
-	}
-
-	if err := fbo.reembedBlockChanges(ctx, lState, rmds); err != nil {
-		return err
 	}
 
 	for _, rmd := range rmds {
@@ -3363,10 +3325,6 @@ func (fbo *folderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 	// require conflict resolution.
 	if fbo.blocks.GetState(lState) != cleanState {
 		return NotPermittedWhileDirtyError{}
-	}
-
-	if err := fbo.reembedBlockChanges(ctx, lState, rmds); err != nil {
-		return err
 	}
 
 	// go backwards through the updates
@@ -4162,14 +4120,8 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 		return TLFUpdateHistory{}, WrongOpsError{fbo.folderBranch, folderBranch}
 	}
 
-	lState := makeFBOLockState()
-
 	rmds, err := getMergedMDUpdates(ctx, fbo.config, fbo.id(),
 		MetadataRevisionInitial)
-	if err != nil {
-		return TLFUpdateHistory{}, err
-	}
-	err = fbo.reembedBlockChanges(ctx, lState, rmds)
 	if err != nil {
 		return TLFUpdateHistory{}, err
 	}

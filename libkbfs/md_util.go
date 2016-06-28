@@ -264,5 +264,39 @@ func decryptMDPrivateData(ctx context.Context, config Config,
 		}
 		rmdToDecrypt.data = *privateMetadata
 	}
+
+	// Re-embed the block changes if it's needed.
+	if info := rmdToDecrypt.data.Changes.Info; info.BlockPointer != zeroPtr {
+		// We don't have a convenient way to fetch the block from here
+		// via folderBlockOps, so just go directly via the
+		// BlockCache/BlockOps.  No locking around the blocks is
+		// needed since these change blocks are read-only.
+		block, err := config.BlockCache().Get(info.BlockPointer)
+		if err != nil {
+			block = NewFileBlock()
+			if err := config.BlockOps().Get(ctx, rmdWithKeys,
+				info.BlockPointer, block); err != nil {
+				return err
+			}
+			if err := config.BlockCache().Put(info.BlockPointer,
+				rmdToDecrypt.ID, block, TransientEntry); err != nil {
+				return err
+			}
+		}
+
+		fblock, ok := block.(*FileBlock)
+		if !ok {
+			return NotFileBlockError{info.BlockPointer, MasterBranch, path{}}
+		}
+
+		err = config.Codec().Decode(fblock.Contents, &rmdToDecrypt.data.Changes)
+		if err != nil {
+			return err
+		}
+		// The changes block pointer is an implicit ref block
+		rmdToDecrypt.data.Changes.Ops[0].AddRefBlock(info.BlockPointer)
+		rmdToDecrypt.data.cachedChanges.Info = info
+	}
+
 	return nil
 }

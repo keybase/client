@@ -245,16 +245,6 @@ func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState) (
 		merged[i] = mdCopy
 	}
 
-	// re-embed all the block changes
-	err = cr.fbo.reembedBlockChanges(ctx, lState, unmerged)
-	if err != nil {
-		return nil, nil, err
-	}
-	err = cr.fbo.reembedBlockChanges(ctx, lState, merged)
-	if err != nil {
-		return nil, nil, err
-	}
-
 	return unmerged, merged, nil
 }
 
