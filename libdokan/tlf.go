@@ -72,21 +72,21 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string, filterErr bool) 
 		tlf.folder.reportErr(ctx, libkbfs.ReadMode, err)
 	}()
 
-	// In case there were any unresolved assertions, try them again on
-	// the first load.  Otherwise, since we haven't subscribed to
-	// updates yet for this folder, we might have missed a name
-	// change.
-	handle, err := tlf.folder.h.ResolveAgain(ctx, tlf.folder.fs.config.KBPKI())
+	handle, err := tlf.folder.resolve(ctx)
 	if err != nil {
 		return nil, false, err
 	}
-	eq, err := tlf.folder.h.Equals(tlf.folder.fs.config.Codec(), *handle)
-	if err != nil {
-		return nil, false, err
-	}
-	if !eq {
-		// Make sure the name changes in the folder and the folder list
-		tlf.folder.TlfHandleChange(ctx, handle)
+
+	if filterErr {
+		// Does it already exist?
+		md, err := tlf.folder.fs.config.MDOps().GetUnmergedForHandle(ctx, handle)
+		if err != nil {
+			return nil, false, err
+		}
+		// If not fake an empty directory.
+		if md == nil {
+			return nil, false, libfs.TlfDoesNotExist{}
+		}
 	}
 
 	rootNode, _, err :=
@@ -160,7 +160,7 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (dokan
 		return tlf, true, nil
 	}
 	// If it is a creation then we need the dir for real.
-	dir, exitEarly, err := tlf.loadDirHelper(ctx, "open", !oc.Creation())
+	dir, exitEarly, err := tlf.loadDirHelper(ctx, "open", !oc.isCreation())
 	if err != nil {
 		return nil, false, err
 	}

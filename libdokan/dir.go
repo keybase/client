@@ -167,6 +167,26 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 	})
 }
 
+func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {
+	// In case there were any unresolved assertions, try them again on
+	// the first load.  Otherwise, since we haven't subscribed to
+	// updates yet for this folder, we might have missed a name
+	// change.
+	handle, err := f.h.ResolveAgain(ctx, f.fs.config.KBPKI())
+	if err != nil {
+		return nil, err
+	}
+	eq, err := f.h.Equals(f.fs.config.Codec(), *handle)
+	if err != nil {
+		return nil, err
+	}
+	if !eq {
+		// Make sure the name changes in the folder and the folder list
+		f.TlfHandleChange(ctx, handle)
+	}
+	return handle, nil
+}
+
 // Dir represents KBFS subdirectories.
 type Dir struct {
 	FSO
