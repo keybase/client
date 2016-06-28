@@ -10,6 +10,10 @@ import (
 	"golang.org/x/net/context"
 )
 
+type TlfDoesNotExist struct{}
+
+func (TlfDoesNotExist) Error() string { return "TLF does not exist" }
+
 // FilterTLFEarlyExitError decides whether an error received while
 // trying to create a TLF should result in showing the user an empty
 // folder (exitEarly == true), or not.
@@ -19,6 +23,12 @@ func FilterTLFEarlyExitError(ctx context.Context, err error, log logger.Logger, 
 	case nil:
 		// No error.
 		return false, nil
+
+	case TlfDoesNotExist:
+		log.CDebugf(ctx,
+			"TLF %s does not exist, so pretending it's empty",
+			name)
+		return true, nil
 
 	case libkbfs.WriteAccessError:
 		// No permission to create TLF, so pretend it's still
