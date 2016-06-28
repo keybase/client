@@ -18,8 +18,6 @@ export function loadDevices () : AsyncAction {
 
     const params : deviceDeviceHistoryListRpc = {
       method: 'device.deviceHistoryList',
-      param: {},
-      incomingCallMap: {},
       callback: (error, devices) => {
         // Flow is weird here, we have to give it true or false directly instead of just giving it !!error
         if (error) {
@@ -68,7 +66,6 @@ export function generatePaperKey () : AsyncAction {
 
     const params : loginPaperKeyRpc = {
       method: 'login.paperKey',
-      param: {},
       incomingCallMap: incomingMap,
       callback: (error, paperKey) => {
         if (error) {
@@ -97,7 +94,6 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
       const params: loginDeprovisionRpc = {
         method: 'login.deprovision',
         param: {username, doRevoke: true},
-        incomingCallMap: {},
         callback: error => {
           dispatch({
             type: Constants.deviceRemoved,
@@ -117,7 +113,6 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
       const params: revokeRevokeDeviceRpc = {
         method: 'revoke.revokeDevice',
         param: {deviceID, force: false},
-        incomingCallMap: {},
         callback: error => {
           dispatch({
             type: Constants.deviceRemoved,

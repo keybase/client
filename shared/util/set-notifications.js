@@ -33,7 +33,6 @@ export default function (channels: NotificationChannels): Promise<void> {
       const params : notifyCtlSetNotificationsRpc = {
         method: 'notifyCtl.setNotifications',
         param: {channels: toSend},
-        incomingCallMap: {},
         callback: (error, response) => {
           if (error != null) {
             console.warn('error in toggling notifications: ', error)

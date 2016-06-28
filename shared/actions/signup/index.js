@@ -39,8 +39,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
       param: {
         invitationCode: inviteCode,
       },
-      incomingCallMap: {},
-      waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
+      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: err => {
         if (err) {
           console.warn('error in inviteCode:', err)
@@ -80,8 +79,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
         fullname: name,
         notes: 'Requested through GUI app',
       },
-      waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
-      incomingCallMap: {},
+      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: err => {
         if (err) {
           dispatch({
@@ -175,8 +173,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
     const params: signupCheckUsernameAvailableRpc = {
       method: 'signup.checkUsernameAvailable',
       param: {username},
-      waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
-      incomingCallMap: {},
+      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: err => {
         if (err) {
           console.warn("username isn't available:", err)
@@ -253,8 +250,7 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
       const params: deviceCheckDeviceNameFormatRpc = {
         method: 'device.checkDeviceNameFormat',
         param: {name: deviceName},
-        waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
-        incomingCallMap: {},
+        waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
         callback: err => {
           if (err) {
             console.warn('device name is invalid: ', err)
@@ -304,7 +300,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
     if (email && username && inviteCode && passphrase && deviceName) {
       const params: signupSignupRpc = {
         method: 'signup.signup',
-        waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
+        waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
         param: {
           deviceName,
           email,

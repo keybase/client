@@ -8,6 +8,7 @@ import devTools from './dev-tools'
 import menuBar from './menu-bar'
 import storeHelper from './store-helper'
 import MainWindow from './main-window'
+import windowHelper from './window-helper'
 import urlHelper from './url-helper'
 import hello from '../shared/util/hello'
 import semver from 'semver'
@@ -38,6 +39,10 @@ if (shouldQuit) {
     }
   }
 
+  process.on('uncaughtException', e => {
+    console.log('Uncaught exception on main thread:', e)
+  })
+
   // MUST do this else we get limited by simultaneous hot reload event streams
   app.commandLine.appendSwitch('ignore-connections-limit', 'localhost')
 
@@ -54,6 +59,7 @@ if (shouldQuit) {
   menuBar()
   urlHelper()
   ListenLogUi()
+  windowHelper(app)
 
   if (process.platform === 'darwin') {
     menuHelper()

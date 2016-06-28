@@ -241,7 +241,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         ...state,
         proofs: [
           ...(identity.revokedDetails || []).map(rv => revokedProofToProof(rv)),
-          ...identity.proofs.map(rp => remoteProofToProof(rp.proof)),
+          ...(identity.proofs || []).map(rp => remoteProofToProof(rp.proof)),
         ],
       }
 

@@ -127,8 +127,6 @@ let previousNotify = null
 export function favoriteList (): (dispatch: Dispatch) => void {
   return (dispatch, getState) => {
     const params : favoriteGetFavoritesRpc = {
-      param: {},
-      incomingCallMap: {},
       method: 'favorite.getFavorites',
       callback: (error, favorites: FavoritesResult) => {
         if (error) {
@@ -137,15 +135,26 @@ export function favoriteList (): (dispatch: Dispatch) => void {
         }
 
         let folders = []
-        favorites.favoriteFolders.forEach(f => {
-          folders.push({folder: f, meta: null})
-        })
-        favorites.newFolders.forEach(f => {
-          folders.push({folder: f, meta: 'new'})
-        })
-        favorites.ignoredFolders.forEach(f => {
-          folders.push({folder: f, meta: 'ignored'})
-        })
+
+        if (favorites) {
+          if (favorites.favoriteFolders) {
+            favorites.favoriteFolders.forEach(f => {
+              folders.push({folder: f, meta: null})
+            })
+          }
+
+          if (favorites.newFolders) {
+            favorites.newFolders.forEach(f => {
+              folders.push({folder: f, meta: 'new'})
+            })
+          }
+
+          if (favorites.ignoredFolders) {
+            favorites.ignoredFolders.forEach(f => {
+              folders.push({folder: f, meta: 'ignored'})
+            })
+          }
+        }
 
         const config = getState && getState().config
         const currentUser = config && config.username
@@ -206,7 +215,6 @@ export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
 
     const params : favoriteFavoriteIgnoreRpc = {
       param: {folder},
-      incomingCallMap: {},
       method: 'favorite.favoriteIgnore',
       callback: error => {
         if (error) {
@@ -234,7 +242,6 @@ export function favoriteFolder (path: string): (dispatch: Dispatch) => void {
 
     const params : favoriteFavoriteAddRpc = {
       param: {folder},
-      incomingCallMap: {},
       method: 'favorite.favoriteAdd',
       callback: error => {
         if (error) {

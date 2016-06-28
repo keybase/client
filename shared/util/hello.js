@@ -20,7 +20,6 @@ export default function (pid: number, desc: string, argv: Array<string>, version
       const params : configHelloIAmRpc = {
         method: 'config.helloIAm',
         param: {details},
-        incomingCallMap: {},
         callback: (err, resp) => {
           if (err != null) {
             console.warn('error in helloIAm', err)

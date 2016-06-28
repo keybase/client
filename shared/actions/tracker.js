@@ -41,9 +41,7 @@ export function startTimer (): TrackerActionCreator {
 
         const params : trackCheckTrackingRpc = {
           method: 'track.checkTracking',
-          param: {},
-          incomingCallMap: {},
-          callback: null,
+          callback: () => {},
         }
 
         engine.rpc(params)
@@ -171,8 +169,6 @@ export function registerIdentifyUi (): TrackerActionCreator {
     engine.listenOnConnect('registerIdentifyUi', () => {
       const params : delegateUiCtlRegisterIdentifyUIRpc = {
         method: 'delegateUiCtl.registerIdentifyUI',
-        param: {},
-        incomingCallMap: {},
         callback: (error, response) => {
           if (error != null) {
             console.warn('error in registering identify ui: ', error)
@@ -242,7 +238,6 @@ export function onUnfollow (username: string): TrackerActionCreator {
     const params : trackUntrackRpc = {
       method: 'track.untrack',
       param: {username},
-      incomingCallMap: {},
       callback: (err, response) => {
         if (err) {
           console.log('err untracking', err)
@@ -278,7 +273,6 @@ function trackUser (trackToken: ?string, localIgnore: bool): Promise<boolean> {
       const params : trackTrackWithTokenRpc = {
         method: 'track.trackWithToken',
         param: {trackToken, options},
-        incomingCallMap: {},
         callback: (err, response) => {
           if (err) {
             console.log('error: Track with token: ', err)
@@ -342,7 +336,6 @@ function _dismissWithToken (trackToken) {
   const params : trackDismissWithTokenRpc = {
     method: 'track.dismissWithToken',
     param: {trackToken},
-    incomingCallMap: {},
     callback: err => {
       if (err) {
         console.log('err dismissWithToken', err)
@@ -566,7 +559,7 @@ function listTrackers (username: string): Promise {
           console.log('err getting trackers', err)
           reject()
         } else {
-          resolve(trackers.map(t => t.tracker))
+          resolve((trackers || []).map(t => t.tracker))
         }
       },
     }
@@ -577,21 +570,25 @@ function listTrackers (username: string): Promise {
 
 function loadSummaries (getState: any, uids: Array<UID>): Promise {
   return new Promise((resolve, reject) => {
-    const params : userLoadUncheckedUserSummariesRpc = {
-      method: 'user.loadUncheckedUserSummaries',
-      param: {uids},
-      incomingCallMap: {},
-      callback: (err, summaries) => {
-        if (err) {
-          console.log('err getting tracker summaries', err)
-          reject()
-        } else {
-          resolve(summaryToTrackingInfo(getState, summaries))
-        }
-      },
-    }
+    if (!uids.length) {
+      resolve([])
+    } else {
+      const params : userLoadUncheckedUserSummariesRpc = {
+        method: 'user.loadUncheckedUserSummaries',
+        param: {uids},
+        incomingCallMap: {},
+        callback: (err, summaries) => {
+          if (err) {
+            console.log('err getting tracker summaries', err)
+            reject()
+          } else {
+            resolve(summaryToTrackingInfo(getState, summaries || []))
+          }
+        },
+      }
 
-    engine.rpc(params)
+      engine.rpc(params)
+    }
   })
 }
 
@@ -606,7 +603,7 @@ function getTracking (username: string): Promise {
           console.log('err getting tracker summaries', err)
           reject()
         } else {
-          resolve(summaries.map(s => s.uid))
+          resolve((summaries || []).map(s => s.uid))
         }
       },
     }

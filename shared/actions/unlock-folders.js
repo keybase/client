@@ -31,8 +31,7 @@ export function checkPaperKey (paperKey: HiddenString): TypedAsyncAction<CheckPa
       param: {
         paperPhrase: paperKey.stringValue(),
       },
-      incomingCallMap: {},
-      waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
+      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: error => {
         if (error) {
           dispatch({type: Constants.checkPaperKey, error: true, payload: {error: error.message}})
@@ -62,8 +61,6 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
     engine.listenOnConnect('registerRekeyUI', () => {
       const params: delegateUiCtlRegisterRekeyUIRpc = {
         method: 'delegateUiCtl.registerRekeyUI',
-        param: {},
-        incomingCallMap: {},
         callback: (error, response) => {
           if (error != null) {
             console.warn('error in registering rekey ui: ', error)
@@ -105,9 +102,8 @@ function rekeyListenersCreator (dispatch: Dispatch): incomingCallMapType {
   return {
     'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
       console.log('Asked for rekey')
-      dispatch(({type: Constants.newRekeyPopup, payload: {devices: problemSetDevices.devices, sessionID}}: NewRekeyPopupAction))
+      dispatch(({type: Constants.newRekeyPopup, payload: {devices: problemSetDevices.devices || [], sessionID}}: NewRekeyPopupAction))
       uglySessionIDResponseMapper['refresh'] = response
     },
   }
 }
-
