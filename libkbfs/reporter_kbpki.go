@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/keybase/client/go/logger"
@@ -15,12 +16,14 @@ import (
 
 const (
 	// error param keys
-	errorParamTlf       = "tlf"
-	errorParamMode      = "mode"
-	errorParamFeature   = "feature"
-	errorParamUsername  = "username"
-	errorParamExternal  = "external"
-	errorParamRekeySelf = "rekeyself"
+	errorParamTlf        = "tlf"
+	errorParamMode       = "mode"
+	errorParamFeature    = "feature"
+	errorParamUsername   = "username"
+	errorParamExternal   = "external"
+	errorParamRekeySelf  = "rekeyself"
+	errorParamUsageBytes = "usageBytes"
+	errorParamLimitBytes = "usageBytes"
 
 	// error operation modes
 	errorModeRead  = "read"
@@ -127,6 +130,10 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	case NewDataVersionError:
 		code = keybase1.FSErrorType_OLD_VERSION
 		err = OutdatedVersionError{}
+	case OverQuotaWarning:
+		code = keybase1.FSErrorType_OVER_QUOTA
+		params[errorParamUsageBytes] = strconv.FormatInt(e.UsageBytes, 10)
+		params[errorParamLimitBytes] = strconv.FormatInt(e.LimitBytes, 10)
 	}
 
 	if code < 0 && err == context.DeadlineExceeded {
