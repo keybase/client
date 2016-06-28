@@ -19,7 +19,7 @@ const open = (kbfsPath: string, path: string = '') => { // eslint-disable-line s
 }
 
 // Paths MUST start with /keybase/
-export function platformOpenInKBFS (path: string = Constants.defaultKBFSPath): AsyncAction {
+export function openInKBFS (path: string = Constants.defaultKBFSPath): AsyncAction {
   if (!path.startsWith(Constants.defaultKBFSPath)) {
     console.warn(`ERROR: openInKBFS requires ${Constants.defaultKBFSPath} prefix`)
     return () => {}
