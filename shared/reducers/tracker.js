@@ -13,6 +13,7 @@ import type {SimpleProofState, SimpleProofMeta, NonUserActions} from '../constan
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff,
   TrackDiffType, ProofStatus} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
+import type {Folder} from '../constants/folders'
 
 export type TrackerState = {
   type: 'tracker',
@@ -29,7 +30,8 @@ export type TrackerState = {
   closed: boolean,
   hidden: boolean,
   trackToken: ?string,
-  needTrackTokenDismiss: boolean
+  needTrackTokenDismiss: boolean,
+  tlfs: Array<Folder>,
 }
 
 export type NonUserState = {
@@ -49,6 +51,12 @@ export type State = {
   trackers: {[key: string]: TrackerOrNonUserState},
   pendingIdentifies: {[key: string]: boolean},
   timerActive: number,
+  tracking: Array<{
+    username: string,
+    fullname: string,
+    followsYou: boolean,
+    following: boolean,
+  }>
 }
 
 const initialProofState = checking
@@ -58,6 +66,7 @@ const initialState: State = {
   timerActive: 0,
   trackers: {},
   pendingIdentifies: {},
+  tracking: [],
 }
 
 function initialTrackerState (username: string): TrackerState {
@@ -86,6 +95,7 @@ function initialTrackerState (username: string): TrackerState {
     },
     username,
     waiting: false,
+    tlfs: [],
   }
 }
 
@@ -303,7 +313,15 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         trackers: action.payload.trackers,
         tracking: action.payload.tracking,
       }
+    case Constants.updateFolders:
+      if (action.error) {
+        return state
+      }
 
+      return {
+        ...state,
+        tlfs: action.payload.tlfs,
+      }
     default:
       return state
   }

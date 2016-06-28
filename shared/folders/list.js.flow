@@ -1,25 +1,8 @@
 /* @flow */
 
-import type {UserList} from '../common-adapters/usernames'
-import type {FileSection, ParticipantUnlock, UnlockDevice} from './files/render'
+import type {FileSection, ParticipantUnlock, UnlockDevice, Folder as ConstantsFolder} from '../constants/folders'
 
-export type Folder = {
-  users: UserList,
-  path: string,
-  meta?: 'new' | 'rekey' | null,
-  modified?: {
-    when: string,
-    username: string
-  },
-  isPublic: boolean,
-  ignored: boolean,
-  hasData: boolean,
-  groupAvatar: boolean,
-  userAvatar: ?string,
-  recentFiles: Array<FileSection>, // TODO make pure
-  waitingForParticipantUnlock: Array<ParticipantUnlock>, // TODO make pure
-  youCanUnlock: Array<UnlockDevice> // TODO make pure
-}
+export type Folder = ConstantsFolder
 
 export type Props = {
   tlfs?: Array<Folder>,

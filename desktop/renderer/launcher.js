@@ -18,7 +18,7 @@ if (module.hot) {
   module.hot.accept()
 }
 
-const store = new RemoteStore({})
+const store = new RemoteStore({component: 'menubar'})
 
 class RemoteMenubar extends Component {
   constructor () {

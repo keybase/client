@@ -8,10 +8,8 @@ import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
 import _ from 'lodash'
 import type {Folder, favoriteGetFavoritesRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc, FavoritesResult} from '../constants/types/flow-types'
 import type {Dispatch} from '../constants/types/flux'
-import type {FavoriteAdd, FavoriteList, FavoriteIgnore} from '../constants/favorite'
-import type {Props as FolderProps} from '../folders/render'
+import type {FavoriteAdd, FavoriteList, FavoriteIgnore, State} from '../constants/favorite'
 import type {UserList} from '../common-adapters/usernames'
-import flags from '../util/feature-flags'
 import {NotifyPopup} from '../native/notifications'
 
 export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
@@ -45,7 +43,7 @@ type FolderWithMeta = {
   meta: ?string
 }
 
-const folderToProps = (folders: Array<FolderWithMeta>, username: string = ''): FolderProps => { // eslint-disable-line space-infix-ops
+const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): State => { // eslint-disable-line space-infix-ops
   let privateBadge = 0
   let publicBadge = 0
 
@@ -78,7 +76,6 @@ const folderToProps = (folders: Array<FolderWithMeta>, username: string = ''): F
       userAvatar,
       ignored,
       meta,
-      onRekey: null,
       recentFiles: [],
       waitingForParticipationUnlock: [],
       youCanUnlock: [],
@@ -101,11 +98,6 @@ const folderToProps = (folders: Array<FolderWithMeta>, username: string = ''): F
   const [privIgnored, priv] = _.partition(priFolders, {ignored: true})
   const [pubIgnored, pub] = _.partition(pubFolders, {ignored: true})
   return {
-    onRekey: () => {},
-    showingPrivate: true,
-    smallMode: false,
-    showComingSoon: !flags.tabFoldersEnabled,
-    username,
     privateBadge,
     publicBadge,
     private: {
@@ -175,13 +167,13 @@ export function favoriteList (): (dispatch: Dispatch) => void {
           })
         }
 
-        const folderProps = folderToProps(folders, currentUser)
-        const action: FavoriteList = {type: Constants.favoriteList, payload: {folders: folderProps}}
+        const state = folderToState(folders, currentUser)
+        const action: FavoriteList = {type: Constants.favoriteList, payload: {folders: state}}
         dispatch(action)
-        dispatch(badgeApp('newTLFs', !!(folderProps.publicBadge || folderProps.privateBadge)))
+        dispatch(badgeApp('newTLFs', !!(state.publicBadge || state.privateBadge)))
 
-        const newNotify = {public: folderProps.publicBadge, private: folderProps.privateBadge}
-        const total = folderProps.publicBadge + folderProps.privateBadge
+        const newNotify = {public: state.publicBadge, private: state.privateBadge}
+        const total = state.publicBadge + state.privateBadge
 
         if (total && !_.isEqual(newNotify, previousNotify)) {
           previousNotify = newNotify
@@ -189,7 +181,7 @@ export function favoriteList (): (dispatch: Dispatch) => void {
           let body
 
           if (total <= 3) {
-            body = [].concat(folderProps.private.tlfs || [], folderProps.public.tlfs || [])
+            body = [].concat(state.private.tlfs || [], state.public.tlfs || [])
               .filter(t => t.meta === 'new')
               .map(t => t.path).join('\n')
           } else {

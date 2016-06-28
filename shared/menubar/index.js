@@ -172,8 +172,8 @@ class Menubar extends Component<void, Props, void> {
 export default connect(
   state => ({
     username: state.config && state.config.username,
-    loggedIn: state.config && state.config.status && state.config.status.loggedIn,
-    folderProps: state.favorite && state.favorite.folders,
+    loggedIn: state.config && state.config.loggedIn,
+    folderProps: state.favorite,
   }),
   dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab}, dispatch)
 )(Menubar)
@@ -181,7 +181,10 @@ export default connect(
 export function selector (): (store: Object) => Object {
   return store => {
     return {
-      config: store.config,
+      config: {
+        username: store.config.username,
+        loggedIn: store.config.loggedIn,
+      },
       favorite: store.favorite,
     }
   }

@@ -61,7 +61,7 @@ class Folders extends Component<void, Props, State> {
 export default connect(
   state => ({
     username: state.config.username,
-    folderProps: state.favorite && state.favorite.folders,
+    folderProps: state.favorite,
   }),
   dispatch => bindActionCreators({favoriteList, routeAppend, openInKBFS}, dispatch)
 )(Folders)
