@@ -3,7 +3,7 @@
 
 
 <Theme xmlns="http://wixtoolset.org/schemas/thmutil/2010">
-    <Window Width="400" Height="250" HexStyle="100a0000" FontId="0">#(loc.Caption)</Window>
+    <Window Width="420" Height="250" HexStyle="100a0000" FontId="0">#(loc.Caption)</Window>
     <Font Id="0" Height="-12" Weight="500" Foreground="000000" Background="FFFFFF">Segoe UI</Font>
     <Font Id="1" Height="-24" Weight="500" Foreground="000000">Segoe UI</Font>
     <Font Id="2" Height="-22" Weight="500" Foreground="666666">Segoe UI</Font>
@@ -63,7 +63,7 @@
         <Text Name="SuccessRepairHeader" X="11" Y="80" Width="-11" Height="30" FontId="2" HideWhenDisabled="yes" DisablePrefix="yes">#(loc.SuccessRepairHeader)</Text> 	
         <Text Name="SuccessUninstallHeader" X="11" Y="80" Width="-11" Height="30" FontId="2" HideWhenDisabled="yes" DisablePrefix="yes">#(loc.SuccessUninstallHeader)</Text> 
         <Button Name="LaunchButton" X="-91" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0" HideWhenDisabled="yes">#(loc.SuccessLaunchButton)</Button>
-        <Text Name="SuccessRestartText" X="-11" Y="-51" Width="400" Height="34" FontId="3" HideWhenDisabled="yes" DisablePrefix="yes">#(loc.SuccessRestartText)</Text>
+        <Text Name="SuccessRestartText" X="11" Y="-51" Width="400" Height="34" FontId="3" HideWhenDisabled="yes" DisablePrefix="yes">#(loc.SuccessRestartText)</Text>
         <Button Name="SuccessRestartButton" X="-91" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0" HideWhenDisabled="yes">#(loc.SuccessRestartButton)</Button>
         <Button Name="SuccessCancelButton" X="-11" Y="-11" Width="75" Height="23" TabStop="yes" FontId="0">#(loc.SuccessCloseButton)</Button>
     </Page>

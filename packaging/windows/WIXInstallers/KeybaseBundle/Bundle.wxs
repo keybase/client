@@ -6,6 +6,7 @@
     <Variable Name="DokanProduct64" Type="string" Value="{65A3A964-3DC3-0100-0000-160621082245}" />
     <Variable Name="DokanProduct86" Type="string" Value="{65A3A986-3DC3-0100-0000-160621082245}" />
     <Log PathVariable="LOGPATH_PROP"/>
+    <util:FileSearchRef Id='WINTRUST_FileSearch' />
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication
             LicenseUrl="https://keybase.io/docs/terms"
@@ -192,4 +193,22 @@
       </MsiPackage>
 		</Chain>
 	</Bundle>
+  <Fragment>
+    <util:RegistrySearch
+          Id='SearchForThirdParty'
+          Variable="ThirdPartyCOMLibraryInstalled"
+          Result="exists"
+          Root="HKLM"
+          Key="SOFTWARE\Classes\ThirdPartyId.Server\CLSID" />
+    
+    <util:FileSearch Id="WINTRUST_FileSearch"
+                     Path="[SystemFolder]Wintrust.dll"
+                     Variable="WINTRUSTVERSION"
+                     Result="version"
+                     />
+    <bal:Condition
+      Message="Microsoft patch KB3033929 is not installed. A reboot is needed between the installation of said patch and the installation of Keybase. https://support.microsoft.com/en-us/kb/3033929">
+      <![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND WINTRUSTVERSION >= v6.1.7601.18741)]]>
+    </bal:Condition>
+  </Fragment>
 </Wix>
