@@ -1,7 +1,7 @@
 // @flow
 
 import React, {Component} from 'react'
-import {Image, TouchableWithoutFeedback} from 'react-native'
+import {Image, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import type {Props} from './avatar'
 import {Box} from '../common-adapters'
 import {images} from './icon.paths.native'
@@ -13,7 +13,6 @@ type State = {
 }
 
 export default class Avatar extends Component<void, Props, State> {
-  props: Props;
   state: State;
 
   constructor (props: Props) {
@@ -24,30 +23,22 @@ export default class Avatar extends Component<void, Props, State> {
   render () {
     const {size} = this.props
     const uri = {uri: shared.createAvatarUrl(this.props)}
-    console.log('uri & state & props', uri, this.state, this.props)
 
-    const avatarImage =
-      <Box style={stylesContainer(size)}>
-        <Image
-          style={{...stylesImage(size), opacity: this.state.avatarLoaded ? 1 : 0}}
-          onLoad={() => this.setState({avatarLoaded: true})}
-          source={uri} />
-        {!this.state.avatarLoaded &&
+    const TouchWrapper = this.props.onClick ? TouchableOpacity : TouchableWithoutFeedback
+    return (
+      <TouchWrapper style={{...stylesContainer(size), ...this.props.style}} disabled={!this.props.onClick} onPress={this.props.onClick} {...(this.props.onClick ? {activeOpacity: 0.8} : {})}>
+        <Box style={stylesContainer(size)}>
           <Image
-            style={stylesPlaceholderImage(size)}
-            source={images['placeholder-avatar']} />}
-      </Box>
-
-    if (this.props.onClick) {
-      return (
-        <TouchableWithoutFeedback style={{...stylesContainer(size), ...this.props.style}} onPress={this.props.onClick}>
-          {avatarImage}
-        </TouchableWithoutFeedback>
-      )
-    } else {
-      Object.assign(avatarImage.props.style, this.props.style)
-      return avatarImage
-    }
+            style={{...stylesImage(size), opacity: this.state.avatarLoaded ? 1 : 0}}
+            onLoad={() => this.setState({avatarLoaded: true})}
+            source={uri} />
+          {!this.state.avatarLoaded &&
+            <Image
+              style={stylesPlaceholderImage(size)}
+              source={images['placeholder-avatar']} />}
+        </Box>
+      </TouchWrapper>
+    )
   }
 }
 

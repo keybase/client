@@ -24,7 +24,7 @@ export default class Avatar extends Component {
     const {size} = this.props
     const width = size
     const height = size
-    const url = __SCREENSHOT__ ? noAvatar : shared.createAvatarUrl(this.props)
+    const url = shared.createAvatarUrl(this.props) || noAvatar
     const avatarStyle = {width, height, borderRadius: size / 2, position: 'absolute'}
 
     return (
