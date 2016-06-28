@@ -255,6 +255,15 @@ func (s State) Items() ([]gregor.Item, error) {
 	return ret, nil
 }
 
+func (s State) GetItem(msgID gregor.MsgID) (gregor.Item, bool) {
+	for _, i := range s.Items_ {
+		if i.Metadata().MsgID().String() == msgID.String() {
+			return i, true
+		}
+	}
+	return nil, false
+}
+
 func (s State) Marshal() ([]byte, error) {
 	var b []byte
 	err := codec.NewEncoderBytes(&b, &codec.MsgpackHandle{WriteExt: true}).Encode(s)
@@ -269,6 +278,14 @@ func (s State) Hash() ([]byte, error) {
 
 	sum := sha256.Sum256(b)
 	return sum[:], nil
+}
+
+func (s State) Export() (gregor.ProtocolState, error) {
+	return s, nil
+}
+
+func (s State) ProtocolName() string {
+	return "gregor.1"
 }
 
 func (i ItemAndMetadata) InCategory(c Category) bool {

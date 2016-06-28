@@ -108,10 +108,17 @@ type Dismissal interface {
 
 type State interface {
 	Items() ([]Item, error)
+	GetItem(msgID MsgID) (Item, bool)
 	ItemsInCategory(c Category) ([]Item, error)
 	ItemsWithCategoryPrefix(c Category) ([]Item, error)
 	Marshal() ([]byte, error)
 	Hash() ([]byte, error)
+	Export() (ProtocolState, error)
+}
+
+type ProtocolState interface {
+	State
+	ProtocolName() string
 }
 
 type Message interface {
@@ -208,6 +215,7 @@ type ObjFactory interface {
 	MakeDismissalByIDs(uid UID, msgid MsgID, devid DeviceID, ctime time.Time, d []MsgID) (InBandMessage, error)
 	MakeStateSyncMessage(uid UID, msgid MsgID, devid DeviceID, ctime time.Time) (InBandMessage, error)
 	MakeState(i []Item) (State, error)
+	MakeStateWithLookupTable(i []Item, table map[string]Item) (State, error)
 	MakeMetadata(uid UID, msgid MsgID, devid DeviceID, ctime time.Time, i InBandMsgType) (Metadata, error)
 	MakeInBandMessageFromItem(i Item) (InBandMessage, error)
 	MakeMessageFromInBandMessage(i InBandMessage) (Message, error)

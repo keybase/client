@@ -181,6 +181,7 @@ func isBeforeOrSame(a, b time.Time) bool {
 
 func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
 	var items []gregor.Item
+	table := make(map[string]gregor.Item)
 	for _, i := range u.items {
 		md := i.item.Metadata()
 		did := md.DeviceID()
@@ -198,8 +199,9 @@ func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gr
 			return nil, err
 		}
 		items = append(items, exported)
+		table[exported.Metadata().MsgID().String()] = exported
 	}
-	return f.MakeState(items)
+	return f.MakeStateWithLookupTable(items, table)
 }
 
 func isMessageForDevice(m gregor.InBandMessage, d gregor.DeviceID) bool {
