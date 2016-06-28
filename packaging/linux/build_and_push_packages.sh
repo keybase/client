@@ -130,7 +130,7 @@ release_prerelease() {
   json_tmp=`mktemp`
   echo "Writing version into JSON to $json_tmp"
 
-  "$release_bin" update-json --version="$version" --description="Latest Linux release" > "$json_tmp"
+  "$release_bin" update-json --version="$version" > "$json_tmp"
 
   s3cmd put --mime-type application/json "$json_tmp" "s3://$BUCKET_NAME/update-linux-prod.json"
 
