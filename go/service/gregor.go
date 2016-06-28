@@ -954,6 +954,11 @@ func newGregorRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 
 func (g *gregorHandler) getState() (res gregor1.State, err error) {
 	var s gregor.State
+
+	if g == nil || g.gregorCli == nil {
+		return res, errors.New("gregor service not available (are you in standalone?)")
+	}
+
 	s, err = g.gregorCli.StateMachineState(nil)
 	if err != nil {
 		return res, err
