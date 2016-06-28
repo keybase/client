@@ -2258,9 +2258,17 @@ func (fbo *folderBlockOps) FinishSync(
 }
 
 // notifyErrListeners notifies any write operations that are blocked
-// on a file so that they can learn about a sync error.
+// on a file so that they can learn about unrecoverable sync errors.
 func (fbo *folderBlockOps) notifyErrListeners(lState *lockState,
 	ptr BlockPointer, err error) {
+	if isRecoverableBlockError(err) {
+		// Don't bother any listeners with this error, since the sync
+		// will be retried.  Unless the sync has reached its retry
+		// limit, but in that case the listeners will just proceed as
+		// normal once the dirty block cache bytes are freed, and
+		// that's ok since this error isn't fatal.
+		return
+	}
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 	df := fbo.dirtyFiles[ptr]
