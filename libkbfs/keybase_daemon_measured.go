@@ -143,6 +143,13 @@ func (k KeybaseDaemonMeasured) FlushUserFromLocalCache(
 	k.delegate.FlushUserFromLocalCache(ctx, uid)
 }
 
+// FlushUserUnverifiedKeysFromLocalCache implements the KeybaseDaemon interface for
+// KeybaseDaemonMeasured.
+func (k KeybaseDaemonMeasured) FlushUserUnverifiedKeysFromLocalCache(
+	ctx context.Context, uid keybase1.UID) {
+	k.delegate.FlushUserUnverifiedKeysFromLocalCache(ctx, uid)
+}
+
 // Shutdown implements the KeybaseDaemon interface for
 // KeybaseDaemonMeasured.
 func (k KeybaseDaemonMeasured) Shutdown() {

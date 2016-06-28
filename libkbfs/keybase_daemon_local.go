@@ -223,7 +223,7 @@ func (k *KeybaseDaemonLocal) LoadUnverifiedKeys(ctx context.Context, uid keybase
 	if err != nil {
 		return nil, nil, err
 	}
-	return u.UserInfo.UnverifiedVerifyingKeys, u.UserInfo.UnverifiedCryptPublicKeys, nil
+	return u.UnverifiedVerifyingKeys, u.UnverifiedCryptPublicKeys, nil
 }
 
 // CurrentSession implements KeybaseDaemon for KeybaseDaemonLocal.
@@ -402,6 +402,13 @@ func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.
 // FlushUserFromLocalCache implements the KeybaseDaemon interface for
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FlushUserFromLocalCache(ctx context.Context,
+	uid keybase1.UID) {
+	// Do nothing.
+}
+
+// FlushUserUnverifiedKeysFromLocalCache implements the KeybaseDaemon interface for
+// KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context,
 	uid keybase1.UID) {
 	// Do nothing.
 }

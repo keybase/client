@@ -313,6 +313,10 @@ type KeybaseDaemon interface {
 	// the daemon itself, rather than being served from the cache.
 	FlushUserFromLocalCache(ctx context.Context, uid keybase1.UID)
 
+	// FlushUserUnverifiedKeysFromLocalCache nstructs this layer to clear any
+	// KBFS-side, locally-cached unverified keys for the given user.
+	FlushUserUnverifiedKeysFromLocalCache(ctx context.Context, uid keybase1.UID)
+
 	// TODO: Add CryptoClient methods, too.
 
 	// Shutdown frees any resources associated with this

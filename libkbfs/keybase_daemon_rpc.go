@@ -16,6 +16,14 @@ import (
 	"golang.org/x/net/context"
 )
 
+type unverifiedKeys struct {
+	// Unnverified set of all keys which have ever ostensibly belonged
+	// to the user including those which existed prior to any account
+	// reset.
+	VerifyingKeys   []VerifyingKey
+	CryptPublicKeys []CryptPublicKey
+}
+
 // KeybaseDaemonRPC implements the KeybaseDaemon interface using RPC
 // calls.
 type KeybaseDaemonRPC struct {
@@ -40,7 +48,8 @@ type KeybaseDaemonRPC struct {
 
 	userCacheLock sync.RWMutex
 	// Map entries are removed when invalidated.
-	userCache map[keybase1.UID]UserInfo
+	userCache               map[keybase1.UID]UserInfo
+	userCacheUnverifiedKeys map[keybase1.UID]unverifiedKeys
 
 	lastNotificationFilenameLock sync.Mutex
 	lastNotificationFilename     string
@@ -82,9 +91,10 @@ func newKeybaseDaemonRPCWithClient(kbCtx Context, client rpc.GenericClient,
 
 func newKeybaseDaemonRPC(kbCtx Context, log logger.Logger) *KeybaseDaemonRPC {
 	k := KeybaseDaemonRPC{
-		context:   kbCtx,
-		log:       log,
-		userCache: make(map[keybase1.UID]UserInfo),
+		context:                 kbCtx,
+		log:                     log,
+		userCache:               make(map[keybase1.UID]UserInfo),
+		userCacheUnverifiedKeys: make(map[keybase1.UID]unverifiedKeys),
 	}
 	return &k
 }
@@ -201,16 +211,30 @@ func (k *KeybaseDaemonRPC) setCachedUserInfo(uid keybase1.UID, info UserInfo) {
 	}
 }
 
+func (k *KeybaseDaemonRPC) getCachedUnverifiedKeys(uid keybase1.UID) (
+	[]VerifyingKey, []CryptPublicKey, bool) {
+	k.userCacheLock.RLock()
+	defer k.userCacheLock.RUnlock()
+	if unverifiedKeys, ok := k.userCacheUnverifiedKeys[uid]; ok {
+		return unverifiedKeys.VerifyingKeys, unverifiedKeys.CryptPublicKeys, true
+	}
+	return nil, nil, false
+}
+
 func (k *KeybaseDaemonRPC) setCachedUnverifiedKeys(uid keybase1.UID, vk []VerifyingKey,
 	cpk []CryptPublicKey) {
 	k.userCacheLock.Lock()
 	defer k.userCacheLock.Unlock()
-	if info, ok := k.userCache[uid]; ok {
-		info.UnverifiedVerifyingKeys = vk
-		info.UnverifiedCryptPublicKeys = cpk
-		info.CachedUnverifiedKeys = true
-		k.userCache[uid] = info
+	k.userCacheUnverifiedKeys[uid] = unverifiedKeys{
+		VerifyingKeys:   vk,
+		CryptPublicKeys: cpk,
 	}
+}
+
+func (k *KeybaseDaemonRPC) clearCachedUnverifiedKeys(uid keybase1.UID) {
+	k.userCacheLock.Lock()
+	defer k.userCacheLock.Unlock()
+	delete(k.userCacheUnverifiedKeys, uid)
 }
 
 func (k *KeybaseDaemonRPC) clearCaches() {
@@ -218,6 +242,7 @@ func (k *KeybaseDaemonRPC) clearCaches() {
 	k.userCacheLock.Lock()
 	defer k.userCacheLock.Unlock()
 	k.userCache = make(map[keybase1.UID]UserInfo)
+	k.userCacheUnverifiedKeys = make(map[keybase1.UID]unverifiedKeys)
 }
 
 // LoggedIn implements keybase1.NotifySessionInterface.
@@ -249,6 +274,7 @@ func (k *KeybaseDaemonRPC) LoggedOut(ctx context.Context) error {
 func (k *KeybaseDaemonRPC) UserChanged(ctx context.Context, uid keybase1.UID) error {
 	k.log.CDebugf(ctx, "User %s changed", uid)
 	k.setCachedUserInfo(uid, UserInfo{})
+	k.clearCachedUnverifiedKeys(uid)
 
 	if k.getCachedCurrentSession().UID == uid {
 		// Ignore any errors for now, we don't want to block this
@@ -575,10 +601,8 @@ func (k *KeybaseDaemonRPC) processUserPlusKeys(upk keybase1.UserPlusKeys) (
 // LoadUnverifiedKeys implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
 	[]VerifyingKey, []CryptPublicKey, error) {
-	cachedUserInfo := k.getCachedUserInfo(uid)
-	if cachedUserInfo.CachedUnverifiedKeys {
-		return cachedUserInfo.UnverifiedVerifyingKeys,
-			cachedUserInfo.UnverifiedCryptPublicKeys, nil
+	if vk, cpk, ok := k.getCachedUnverifiedKeys(uid); ok {
+		return vk, cpk, nil
 	}
 
 	arg := keybase1.LoadAllPublicKeysUnverifiedArg{Uid: uid}
@@ -691,6 +715,14 @@ func (k *KeybaseDaemonRPC) FlushUserFromLocalCache(ctx context.Context,
 	uid keybase1.UID) {
 	k.log.CDebugf(ctx, "Flushing cache for user %s", uid)
 	k.setCachedUserInfo(uid, UserInfo{})
+}
+
+// FlushUserUnverifiedKeysFromLocalCache implements the KeybaseDaemon interface for
+// KeybaseDaemonRPC.
+func (k *KeybaseDaemonRPC) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context,
+	uid keybase1.UID) {
+	k.log.CDebugf(ctx, "Flushing cache of unverified keys for user %s", uid)
+	k.clearCachedUnverifiedKeys(uid)
 }
 
 // Shutdown implements the KeybaseDaemon interface for KeybaseDaemonRPC.

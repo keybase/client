@@ -117,13 +117,6 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 		return nil
 
 	case "keybase.1.user.loadAllPublicKeysUnverified":
-		arg := args.([]interface{})[0].(keybase1.LoadAllPublicKeysUnverifiedArg)
-
-		_, ok := c.users[arg.Uid]
-		if !ok {
-			return fmt.Errorf("Could not find user info for UID %s", arg.Uid)
-		}
-
 		pk := keybase1.PublicKey{
 			KID:      MakeFakeVerifyingKeyOrBust("foo").KID(),
 			IsSibkey: true,

@@ -616,6 +616,14 @@ func (_mr *_MockKeybaseDaemonRecorder) FlushUserFromLocalCache(arg0, arg1 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FlushUserFromLocalCache", arg0, arg1)
 }
 
+func (_m *MockKeybaseDaemon) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context, uid protocol.UID) {
+	_m.ctrl.Call(_m, "FlushUserUnverifiedKeysFromLocalCache", ctx, uid)
+}
+
+func (_mr *_MockKeybaseDaemonRecorder) FlushUserUnverifiedKeysFromLocalCache(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "FlushUserUnverifiedKeysFromLocalCache", arg0, arg1)
+}
+
 func (_m *MockKeybaseDaemon) Shutdown() {
 	_m.ctrl.Call(_m, "Shutdown")
 }

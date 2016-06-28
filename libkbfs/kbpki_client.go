@@ -131,11 +131,6 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 
 func (k *KBPKIClient) hasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID,
 	verifyingKey VerifyingKey) (bool, error) {
-	_, err := k.loadUserPlusKeys(ctx, uid)
-	if err != nil {
-		return false, err
-	}
-
 	verifyingKeys, _, err := k.loadUnverifiedKeys(ctx, uid)
 	if err != nil {
 		return false, err
@@ -189,7 +184,7 @@ func (k *KBPKIClient) HasUnverifiedVerifyingKey(ctx context.Context, uid keybase
 	if ok {
 		return nil
 	}
-	k.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, uid)
+	k.config.KeybaseDaemon().FlushUserUnverifiedKeysFromLocalCache(ctx, uid)
 	ok, err = k.hasUnverifiedVerifyingKey(ctx, uid, verifyingKey)
 	if err != nil {
 		return err
