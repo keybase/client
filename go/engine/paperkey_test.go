@@ -154,7 +154,7 @@ func TestPaperKeyNoRevoke(t *testing.T) {
 	tc := SetupEngineTest(t, "backup")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(tc, "login")
+	fu := CreateAndSignupFakeUserPaper(tc, "login")
 
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),

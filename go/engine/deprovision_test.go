@@ -46,7 +46,7 @@ func assertDeprovisionWithSetup(tc libkb.TestContext) {
 	// secret store (if possible).
 	fu := NewFakeUserOrBust(tc.T, "dpr")
 	arg := MakeTestSignupEngineRunArg(fu)
-
+	arg.SkipPaper = false
 	arg.StoreSecret = tc.G.SecretStoreAll != nil
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -245,6 +245,7 @@ func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 	// secret store (if possible).
 	fu := NewFakeUserOrBust(tc.T, "dpr")
 	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
 	arg.StoreSecret = tc.G.SecretStoreAll != nil
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),

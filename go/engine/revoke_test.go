@@ -69,7 +69,7 @@ func TestRevokeDevice(t *testing.T) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(tc, "rev")
+	u := CreateAndSignupFakeUserPaper(tc, "rev")
 
 	assertNumDevicesAndKeys(tc, u, 2, 4)
 
@@ -102,7 +102,7 @@ func TestRevokeKey(t *testing.T) {
 	tc := SetupEngineTest(t, "rev")
 	defer tc.Cleanup()
 
-	u := createFakeUserWithPGPSibkey(tc)
+	u := createFakeUserWithPGPSibkeyPaper(tc)
 
 	assertNumDevicesAndKeys(tc, u, 2, 5)
 

@@ -21,6 +21,7 @@ func TestPaperKeySubmit(t *testing.T) {
 	// signup and get the paper key
 	fu := NewFakeUserOrBust(t, "paper")
 	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
 	loginUI := &paperLoginUI{Username: fu.Username}
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),

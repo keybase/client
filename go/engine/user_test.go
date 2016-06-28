@@ -13,7 +13,7 @@ func TestLoadUserPlusKeysHasKeys(t *testing.T) {
 	tc := SetupEngineTest(t, "user")
 	defer tc.Cleanup()
 
-	CreateAndSignupFakeUser(tc, "login")
+	CreateAndSignupFakeUserPaper(tc, "login")
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
 		t.Fatal(err)
@@ -31,7 +31,7 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	fu := CreateAndSignupFakeUser(tc, "login")
+	fu := CreateAndSignupFakeUserPaper(tc, "login")
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
 		t.Fatal(err)

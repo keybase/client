@@ -155,7 +155,7 @@ func TestProvisionDesktop(t *testing.T) {
 	defer tcY.Cleanup()
 
 	// provisioner needs to be logged in
-	userX := CreateAndSignupFakeUser(tcX, "login")
+	userX := CreateAndSignupFakeUserPaper(tcX, "login")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
 		t.Fatal(err)
@@ -244,7 +244,7 @@ func TestProvisionMobile(t *testing.T) {
 	defer tcY.Cleanup()
 
 	// provisioner needs to be logged in
-	userX := CreateAndSignupFakeUser(tcX, "login")
+	userX := CreateAndSignupFakeUserPaper(tcX, "login")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
 		t.Fatal(err)
@@ -546,6 +546,7 @@ func TestProvisionPaper(t *testing.T) {
 	defer tc.Cleanup()
 	fu := NewFakeUserOrBust(t, "paper")
 	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
 	loginUI := &paperLoginUI{Username: fu.Username}
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -655,6 +656,7 @@ func TestProvisionPaperCommandLine(t *testing.T) {
 	defer tc.Cleanup()
 	fu := NewFakeUserOrBust(t, "paper")
 	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
 	loginUI := &paperLoginUI{Username: fu.Username}
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -1402,6 +1404,7 @@ func userPlusPaper(t *testing.T) (*FakeUser, string) {
 	defer tc.Cleanup()
 	fu := NewFakeUserOrBust(t, "fake")
 	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
 	loginUI := &paperLoginUI{Username: fu.Username}
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
@@ -1535,7 +1538,7 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 	defer tcY.Cleanup()
 
 	// create provisioner with synced pgp key
-	userX := createFakeUserWithPGPSibkeyPushed(tcX)
+	userX := createFakeUserWithPGPSibkeyPushedPaper(tcX)
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
 		t.Fatal(err)
@@ -2037,7 +2040,7 @@ func TestProvisionWithBadConfig(t *testing.T) {
 	defer tcY.Cleanup()
 
 	// provisioner needs to be logged in
-	userX := CreateAndSignupFakeUser(tcX, "login")
+	userX := CreateAndSignupFakeUserPaper(tcX, "login")
 	var secretX kex2.Secret
 	if _, err := rand.Read(secretX[:]); err != nil {
 		t.Fatal(err)

@@ -14,7 +14,7 @@ func TestDeviceHistoryBasic(t *testing.T) {
 	tc := SetupEngineTest(t, "devhist")
 	defer tc.Cleanup()
 
-	CreateAndSignupFakeUser(tc, "dhst")
+	CreateAndSignupFakeUserPaper(tc, "dhst")
 
 	ctx := &Context{}
 	eng := NewDeviceHistorySelf(tc.G)
@@ -62,7 +62,7 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 	tc := SetupEngineTest(t, "devhist")
 	defer tc.Cleanup()
 
-	u := CreateAndSignupFakeUser(tc, "dhst")
+	u := CreateAndSignupFakeUserPaper(tc, "dhst")
 
 	ctx := &Context{}
 	eng := NewDeviceHistorySelf(tc.G)

@@ -256,8 +256,55 @@ func createFakeUserWithPGPSibkey(tc libkb.TestContext) *FakeUser {
 	return fu
 }
 
+func createFakeUserWithPGPSibkeyPaper(tc libkb.TestContext) *FakeUser {
+	fu := CreateAndSignupFakeUserPaper(tc, "pgp")
+
+	arg := PGPKeyImportEngineArg{
+		Gen: &libkb.PGPGenArg{
+			PrimaryBits: 768,
+			SubkeyBits:  768,
+		},
+	}
+	arg.Gen.MakeAllIds()
+	ctx := Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: fu.NewSecretUI(),
+	}
+	eng := NewPGPKeyImportEngine(arg)
+	err := RunEngine(eng, &ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	return fu
+}
+
 func createFakeUserWithPGPSibkeyPushed(tc libkb.TestContext) *FakeUser {
 	fu := CreateAndSignupFakeUser(tc, "pgp")
+
+	arg := PGPKeyImportEngineArg{
+		Gen: &libkb.PGPGenArg{
+			PrimaryBits: 768,
+			SubkeyBits:  768,
+		},
+		PushSecret: true,
+		NoSave:     true,
+		Ctx:        tc.G,
+	}
+	arg.Gen.MakeAllIds()
+	ctx := Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		SecretUI: fu.NewSecretUI(),
+	}
+	eng := NewPGPKeyImportEngine(arg)
+	err := RunEngine(eng, &ctx)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	return fu
+}
+
+func createFakeUserWithPGPSibkeyPushedPaper(tc libkb.TestContext) *FakeUser {
+	fu := CreateAndSignupFakeUserPaper(tc, "pgp")
 
 	arg := PGPKeyImportEngineArg{
 		Gen: &libkb.PGPGenArg{
