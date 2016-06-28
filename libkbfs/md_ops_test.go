@@ -99,7 +99,7 @@ func verifyMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned) {
 		config.mockKbpki.EXPECT().HasUnverifiedVerifyingKey(gomock.Any(), gomock.Any(),
 			gomock.Any()).AnyTimes().Return(nil)
 
-		// These are for the deepCopy done VerifyRootMetadata when the metadata is final.
+		// These are for the deepCopy done in VerifyRootMetadata when metadata is final.
 		config.mockCodec.EXPECT().Decode(gomock.Any(), gomock.Any()).Return(nil)
 		config.mockCodec.EXPECT().Decode(gomock.Any(), gomock.Any()).Return(nil)
 	} else {
