@@ -1,7 +1,9 @@
 import React, {Component} from 'react'
 import {Text, View} from 'react-native'
 import {connect} from 'react-redux'
-import commonStyles from '../../styles/common'
+
+// TODO redo this screen with style guide
+const commonStyles = {}
 
 class Signup extends Component {
   render () {

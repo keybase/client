@@ -3,6 +3,7 @@
 
 import {OS} from '../constants/platform'
 import {OS_IOS, OS_ANDROID} from '../constants/platform.shared'
+import NavigatorNavigationBarStyles from 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS'
 
 export {default as globalColors} from './style-guide-colors'
 
@@ -104,3 +105,6 @@ export const globalMargins = {
   large: 48,
   xlarge: 64,
 }
+
+export const navBarHeight = OS === OS_ANDROID ? 60 : NavigatorNavigationBarStyles.General.TotalNavHeight
+export const tabBarHeight = 48

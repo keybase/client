@@ -3,6 +3,7 @@ import {remote, ipcRenderer} from 'electron'
 
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
+import {globalStyles} from './styles/style-guide'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
 import Folders from './folders'
@@ -14,7 +15,6 @@ import Profile from './profile'
 import Search from './search'
 import Settings from './settings'
 import Login from './login'
-import commonStyles from './styles/common'
 import flags from './util/feature-flags'
 import {mapValues} from 'lodash'
 import type {Tabs} from './constants/tabs'
@@ -230,7 +230,7 @@ class Nav extends Component<void, Props, State> {
 }
 
 const stylesTabsContainer = {
-  ...commonStyles.flexBoxColumn,
+  ...globalStyles.flexBoxColumn,
   flex: 1,
 }
 

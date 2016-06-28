@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import Header from './header.render.desktop'
 import Action, {calcFooterHeight} from './action.render.desktop'
 import {UserProofs, UserBio} from '../common-adapters'
-import commonStyles from '../styles/common'
+import {globalStyles} from '../styles/style-guide'
 import NonUser from './non-user'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
 
@@ -83,7 +83,7 @@ export default class Render extends Component<void, RenderProps, void> {
 
 const styles = {
   container: {
-    ...commonStyles.flexBoxColumn,
+    ...globalStyles.flexBoxColumn,
     width: 320,
     height: 470,
     position: 'relative',

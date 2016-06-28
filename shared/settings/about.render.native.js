@@ -1,6 +1,8 @@
 import React, {Component} from 'react'
 import {Text, View, StyleSheet} from 'react-native'
-import commonStyles from '../styles/common'
+
+// TODO redo this screen with style guide
+const commonStyles = {}
 
 export default class Render extends Component {
   render () {
