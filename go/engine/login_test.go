@@ -819,7 +819,7 @@ func TestProvisionGPGImportMultiple(t *testing.T) {
 // Provision device using a private GPG key (not synced to keybase
 // server), use gpg to sign (no private key import).
 func TestProvisionGPGSign(t *testing.T) {
-	skipWindows(t)
+	t.Skip("skip flaky gpg tests")
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -914,7 +914,7 @@ func TestProvisionGPGSignFailedSign(t *testing.T) {
 // server), use gpg to sign (no private key import).
 // Enable secret storage.  keybase-issues#1822
 func TestProvisionGPGSignSecretStore(t *testing.T) {
-	skipWindows(t)
+	t.Skip("skip flaky gpg tests")
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -964,7 +964,7 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 // server). Import private key to lksec fails, switches to gpg
 // sign, which works.
 func TestProvisionGPGSwitchToSign(t *testing.T) {
-	skipWindows(t)
+	t.Skip("skip flaky gpg tests")
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
