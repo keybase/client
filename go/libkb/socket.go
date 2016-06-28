@@ -48,6 +48,12 @@ func NewTransportFromSocket(g *GlobalContext, s net.Conn) rpc.Transporter {
 	return rpc.NewTransport(s, NewRPCLogFactory(g), WrapError)
 }
 
+// ResetSocket clears and returns a new socket
+func (g *GlobalContext) ResetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error) {
+	g.SocketWrapper = nil
+	return g.GetSocket(clearError)
+}
+
 func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error) {
 
 	// Protect all global socket wrapper manipulation with a

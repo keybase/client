@@ -29,31 +29,34 @@
 
 static NSString *const eventName = @"objc-engine-event";
 
-- (instancetype)initWithSettings:(NSDictionary *)settings {
+- (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error {
   if ((self = [super init])) {
-    [self setupKeybaseWithSettings:settings];
+    [self setupKeybaseWithSettings:settings error:error];
     [self setupQueues];
     [self startReadLoop];
   }
   return self;
 }
 
-- (void)setupKeybaseWithSettings:(NSDictionary *) settings {
-  GoKeybaseInit(settings[@"homedir"], settings[@"logFile"], settings[@"runmode"], settings[@"serverURI"], settings[@"SecurityAccessGroupOverride"]);
+- (void)setupKeybaseWithSettings:(NSDictionary *)settings error:(NSError **)error {
+  GoKeybaseInit(settings[@"homedir"], settings[@"logFile"], settings[@"runmode"], settings[@"SecurityAccessGroupOverride"], error);
 }
 
 - (void)setupQueues {
-  self.readQueue = dispatch_queue_create ("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
-  self.writeQueue = dispatch_queue_create ("go_bridge_queue_write", DISPATCH_QUEUE_SERIAL);
+  self.readQueue = dispatch_queue_create("go_bridge_queue_read", DISPATCH_QUEUE_SERIAL);
+  self.writeQueue = dispatch_queue_create("go_bridge_queue_write", DISPATCH_QUEUE_SERIAL);
 }
 
-// This just starts an infinite loop in the read queue. TODO talk to gabriel how we'd like to model this. Could do a nsoperation queue or
-// something. previously i was bouncing this into another async call after each run but it's not strickly necessary
 - (void)startReadLoop {
   dispatch_async(self.readQueue, ^{
-    for(;;) {
-      NSString * data = GoKeybaseReadB64();
-      if(data) {
+    while (true) {
+      NSError *error = nil;
+      NSString *data = nil;
+      GoKeybaseReadB64(&data, &error);
+      if (error) {
+        NSLog(@"Error reading data: %@", error);
+      }
+      if (data) {
         [self.bridge.eventDispatcher sendAppEventWithName:eventName body:data];
       }
     }
@@ -62,12 +65,20 @@ static NSString *const eventName = @"objc-engine-event";
 
 - (void)runWithData:(NSString *)data {
   dispatch_async(self.writeQueue, ^{
-    GoKeybaseWriteB64(data);
+    NSError *error = nil;
+    GoKeybaseWriteB64(data, &error);
+    if (error) {
+      NSLog(@"Error writing data: %@", error);
+    }
   });
 }
 
 - (void)reset {
-  GoKeybaseReset();
+  NSError *error = nil;
+  GoKeybaseReset(&error);
+  if (error) {
+    NSLog(@"Error in reset: %@", error);
+  }
 }
 
 @end

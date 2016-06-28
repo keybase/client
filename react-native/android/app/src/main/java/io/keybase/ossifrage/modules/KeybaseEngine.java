@@ -33,17 +33,21 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
         @Override
         public void run() {
-            do {
-                final String data = ReadB64();
+          do {
+              try {
+                  final String data = ReadB64();
 
-                if (!reactContext.hasActiveCatalystInstance()) {
-                    Log.e(NAME, "JS Bridge is dead, dropping engine message: " + data);
-                }
+                  if (!reactContext.hasActiveCatalystInstance()) {
+                      Log.e(NAME, "JS Bridge is dead, dropping engine message: " + data);
+                  }
 
-                reactContext
-                  .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
-                  .emit(KeybaseEngine.RPC_EVENT_NAME, data);
-            } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance());
+                  reactContext
+                          .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
+                          .emit(KeybaseEngine.RPC_EVENT_NAME, data);
+              } catch (Exception e) {
+                      e.printStackTrace();
+              }
+          } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance());
         }
     }
 
@@ -74,7 +78,7 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
             executor.shutdownNow();
             Reset();
             executor.awaitTermination(30, TimeUnit.SECONDS);
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -92,11 +96,19 @@ public class KeybaseEngine extends ReactContextBaseJavaModule implements Killabl
 
     @ReactMethod
     public void runWithData(String data) {
-        WriteB64(data);
+      try {
+          WriteB64(data);
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
     }
 
     @ReactMethod
     public void reset() {
-        Reset();
+      try {
+          Reset();
+      } catch (Exception e) {
+          e.printStackTrace();
+      }
     }
 }

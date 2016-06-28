@@ -6,8 +6,8 @@ DIRS=$(go list ./... | grep -v /vendor/ | sed -e 's/^github.com\/keybase\/client
 export KEYBASE_LOG_SETUPTEST_FUNCS=1
 
 for i in $DIRS; do
-	if [ "$i" = "loopback" ]; then
-		echo "Skipping loopback"
+	if [ "$i" = "bind" ]; then
+		echo "Skipping bind"
 		continue
 	fi
 

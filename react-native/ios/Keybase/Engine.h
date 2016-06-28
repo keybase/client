@@ -9,5 +9,5 @@
 #import <Foundation/Foundation.h>
 
 @interface Engine : NSObject
-- (instancetype)initWithSettings:(NSDictionary *)settings;
+- (instancetype)initWithSettings:(NSDictionary *)settings error:(NSError **)error;
 @end
