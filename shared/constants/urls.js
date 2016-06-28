@@ -1,3 +1,6 @@
-export const help = () => 'https://keybase.io/getting-started'
-export const root = () => 'https://keybase.io'
-export const user = params => `https://keybase.io/${params && params.username ? params.username : ''}`
+import runMode from './platform.native'
+
+const keybaseUrl = runMode !== 'prod' ? 'https://stage0.keybase.io' : 'https://keybase.io'
+export default keybaseUrl
+
+export const apiUrl = `${keybaseUrl}/_/api/1.0`

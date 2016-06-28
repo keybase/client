@@ -1,5 +1,12 @@
-import {ipcMain, shell} from 'electron'
-import * as linkFuncs from '../shared/constants/urls'
+import {ipcMain} from 'electron'
+import keybaseUrl from '../shared/constants/urls'
+import openUrl from '../shared/util/open-url'
+
+const linkFuncs = {
+  home: () => keybaseUrl,
+  help: () => `${keybaseUrl}/getting-started`,
+  user: ({username}) => `${keybaseUrl}/${username || ''}`,
+}
 
 export default function () {
   ipcMain.on('openURL', (event, type, params) => {
@@ -7,8 +14,10 @@ export default function () {
     if (linkFunc) {
       const link = linkFunc(params)
       if (link) {
-        shell.openExternal(link)
+        openUrl(link)
       }
+    } else {
+      console.warn(`No openURL handler for ${type}`, params)
     }
   })
 }

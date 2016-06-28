@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
 import {View} from 'react-native'
+import _ from 'lodash'
 import Text from './text'
 import type {Props} from './meta'
 import {globalColors} from '../styles/style-guide'
@@ -16,10 +17,10 @@ const Meta = ({title, style}: Props) => (
     paddingTop: isAndroid ? 1 : 2,
     paddingBottom: 1,
     alignSelf: 'flex-start',
-    ...style,
+    ..._.omit(style, ['color']),
   }}>
     <Text type='Header' style={{
-      color: globalColors.white,
+      color: style && style.color || globalColors.white,
       fontSize: 10,
       height: 11,
       lineHeight: 11,
