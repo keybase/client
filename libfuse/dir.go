@@ -134,6 +134,26 @@ func (f *Folder) forgetNode(node libkbfs.Node) {
 
 var _ libkbfs.Observer = (*Folder)(nil)
 
+func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {
+	// In case there were any unresolved assertions, try them again on
+	// the first load.  Otherwise, since we haven't subscribed to
+	// updates yet for this folder, we might have missed a name
+	// change.
+	handle, err := f.h.ResolveAgain(ctx, f.fs.config.KBPKI())
+	if err != nil {
+		return nil, err
+	}
+	eq, err := f.h.Equals(f.fs.config.Codec(), *handle)
+	if err != nil {
+		return nil, err
+	}
+	if !eq {
+		// Make sure the name changes in the folder and the folder list
+		f.TlfHandleChange(ctx, handle)
+	}
+	return handle, nil
+}
+
 // invalidateNodeDataRange notifies the kernel to invalidate cached data for node.
 //
 // The arguments follow KBFS semantics:
@@ -760,21 +780,21 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 		tlf.folder.reportErr(ctx, libkbfs.ReadMode, err)
 	}()
 
-	// In case there were any unresolved assertions, try them again on
-	// the first load.  Otherwise, since we haven't subscribed to
-	// updates yet for this folder, we might have missed a name
-	// change.
-	handle, err := tlf.folder.h.ResolveAgain(ctx, tlf.folder.fs.config.KBPKI())
+	handle, err := tlf.folder.resolve(ctx)
 	if err != nil {
 		return nil, false, err
 	}
-	eq, err := tlf.folder.h.Equals(tlf.folder.fs.config.Codec(), *handle)
-	if err != nil {
-		return nil, false, err
-	}
-	if !eq {
-		// Make sure the name changes in the folder and the folder list
-		tlf.folder.TlfHandleChange(ctx, handle)
+
+	if filterErr {
+		// Does it already exist?
+		md, err := tlf.folder.fs.config.MDOps().GetUnmergedForHandle(ctx, handle)
+		if err != nil {
+			return nil, false, err
+		}
+		// If not fake an empty directory.
+		if md == nil {
+			return nil, false, libfs.TlfDoesNotExist{}
+		}
 	}
 
 	rootNode, _, err :=
@@ -893,11 +913,8 @@ func (tlf *TLF) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 // ReadDirAll implements the fs.NodeReadDirAller interface for TLF.
 func (tlf *TLF) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	dir, exitEarly, err := tlf.loadDirAllowNonexistent(ctx)
-	if err != nil {
+	if err != nil || exitEarly {
 		return nil, err
-	}
-	if exitEarly {
-		return nil, nil
 	}
 	return dir.ReadDirAll(ctx)
 }
