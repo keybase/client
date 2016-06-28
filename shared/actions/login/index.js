@@ -475,12 +475,11 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
           onBack={() => onBack(response)} />))
     },
     'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
-      const d = devices || []
       appendRouteElement((
         <SelectOtherDevice
           devices={devices}
           onSelect={deviceID => {
-            const type: DeviceRole = d[d.findIndex(d => d.deviceID === deviceID)].type
+            const type: DeviceRole = (devices || []).find(d => d.deviceID === deviceID).type
             const role = ({
               mobile: Constants.codePageDeviceRoleExistingPhone,
               desktop: Constants.codePageDeviceRoleExistingComputer,
