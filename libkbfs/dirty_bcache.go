@@ -319,7 +319,11 @@ func (d *DirtyBlockCacheStandard) processPermission() {
 				// request is blocked.
 				d.blockedChanForTesting <- currentReq.bytes
 			} else if backpressure != 0 {
-				d.logLocked("Applying backpressure %s", backpressure)
+				func() {
+					d.lock.Lock()
+					defer d.lock.Unlock()
+					d.logLocked("Applying backpressure %s", backpressure)
+				}()
 			}
 		}
 	}
