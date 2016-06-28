@@ -1,34 +1,77 @@
 // @flow
 
 import React, {Component} from 'react'
-import {Image, PixelRatio, Platform} from 'react-native'
+import {Image, TouchableWithoutFeedback} from 'react-native'
 import type {Props} from './avatar'
-import {Box, Icon} from '../common-adapters'
+import {Box} from '../common-adapters'
 import {images} from './icon.paths.native'
+import {globalStyles} from '../styles/style-guide'
 import * as shared from './avatar.shared'
 
-export default class Avatar extends Component {
+type State = {
+  avatarLoaded: boolean,
+}
+
+export default class Avatar extends Component<void, Props, State> {
   props: Props;
+  state: State;
 
   constructor (props: Props) {
     super(props)
+    this.state = {avatarLoaded: false}
   }
 
   render () {
-    const width = this.props.size
-    const height = this.props.size
-    const uri = shared.createAvatarUrl(this.props)
+    const {size} = this.props
+    const uri = {uri: shared.createAvatarUrl(this.props)}
+    console.log('uri & state & props', uri, this.state, this.props)
 
-    // Hack AW: As of react-native 0.24.1, it appears that iOS takes in dp
-    //  for the borderRadius, while Android (incorrectly) takes in pixels. This
-    //  hack handles the conversion between pixels and dp on Android.
-    const borderRadius = width / 2 * (Platform.OS === 'android' ? PixelRatio.get() : 1);
+    const avatarImage =
+      <Box style={stylesContainer(size)}>
+        <Image
+          style={{...stylesImage(size), opacity: this.state.avatarLoaded ? 1 : 0}}
+          onLoad={() => this.setState({avatarLoaded: true})}
+          source={uri} />
+        {!this.state.avatarLoaded &&
+          <Image
+            style={stylesPlaceholderImage(size)}
+            source={images['placeholder-avatar']} />}
+      </Box>
 
-    return (
-      <Image
-        style={{resizeMode: 'contain', width, height, borderRadius}}
-        defaultSource={images['placeholder-avatar']}
-        source={{uri}} />
-    )
+    if (this.props.onClick) {
+      return (
+        <TouchableWithoutFeedback style={{...stylesContainer(size), ...this.props.style}} onPress={this.props.onClick}>
+          {avatarImage}
+        </TouchableWithoutFeedback>
+      )
+    } else {
+      Object.assign(avatarImage.props.style, this.props.style)
+      return avatarImage
+    }
   }
 }
+
+const stylesCommon = (size: number) => ({ // eslint-disable-line arrow-parens
+  width: size,
+  height: size,
+})
+
+const stylesContainer = (size: number) => ({ // eslint-disable-line arrow-parens
+  ...stylesCommon(size),
+  ...globalStyles.flexBoxColumn,
+  justifyContent: 'center',
+  alignItems: 'center',
+})
+
+const stylesImage = (size: number) => ({ // eslint-disable-line arrow-parens
+  ...stylesCommon(size),
+  resizeMode: 'cover',
+  borderRadius: size / 2,
+})
+
+const stylesPlaceholderImage = (size: number) => ({ // eslint-disable-line arrow-parens
+  ...stylesImage(size),
+  position: 'absolute',
+  top: 0,
+  left: 0,
+})
