@@ -381,7 +381,8 @@ type KBPKI interface {
 	// unverified VerifyingKey, and an error otherwise.  Note that any match
 	// is with a key not verified to be currently connected to the user via
 	// their sigchain.  This is currently only used to verify finalized or
-	// reset TLFs.
+	// reset TLFs.  Further note that unverified keys is a super set of
+	// verified keys.
 	HasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID,
 		verifyingKey VerifyingKey) error
 
