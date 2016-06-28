@@ -110,7 +110,7 @@ export type StateUpdateMessage = {
 }
 
 export type SyncResult = {
-  msgs: Array<InBandMessage>;
+  msgs?: ?Array<InBandMessage>;
   hash: bytes;
 }
 
@@ -127,121 +127,132 @@ export type UID = bytes
 
 export type authAuthenticateSessionTokenResult = AuthResult
 
-export type authAuthenticateSessionTokenRpc = {
+export type authAuthenticateSessionTokenRpc = $Exact<{
   method: 'auth.authenticateSessionToken',
   param: {
     session: SessionToken
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: authAuthenticateSessionTokenResult) => void)
-}
+}>
 
 export type authInternalCreateGregorSuperUserSessionTokenResult = SessionToken
 
-export type authInternalCreateGregorSuperUserSessionTokenRpc = {
+export type authInternalCreateGregorSuperUserSessionTokenRpc = $Exact<{
   method: 'authInternal.createGregorSuperUserSessionToken',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void)
-}
+}>
 
 export type authUpdateRevokeSessionIDsResult = void
 
-export type authUpdateRevokeSessionIDsRpc = {
+export type authUpdateRevokeSessionIDsRpc = $Exact<{
   method: 'authUpdate.revokeSessionIDs',
   param: {
-    sessionIDs: Array<SessionID>
+    sessionIDs: ?Array<SessionID>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type incomingConsumeMessageResult = void
 
-export type incomingConsumeMessageRpc = {
+export type incomingConsumeMessageRpc = $Exact<{
   method: 'incoming.consumeMessage',
   param: {
     m: Message
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type incomingConsumePublishMessageResult = void
 
-export type incomingConsumePublishMessageRpc = {
+export type incomingConsumePublishMessageRpc = $Exact<{
   method: 'incoming.consumePublishMessage',
   param: {
     m: Message
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type incomingPingResult = string
 
-export type incomingPingRpc = {
+export type incomingPingRpc = $Exact<{
   method: 'incoming.ping',
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: incomingPingResult) => void)
-}
+}>
 
 export type incomingStateByCategoryPrefixResult = State
 
-export type incomingStateByCategoryPrefixRpc = {
+export type incomingStateByCategoryPrefixRpc = $Exact<{
   method: 'incoming.stateByCategoryPrefix',
   param: {
     uid: UID,
     categoryPrefix: Category
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: incomingStateByCategoryPrefixResult) => void)
-}
+}>
 
 export type incomingSyncResult = SyncResult
 
-export type incomingSyncRpc = {
+export type incomingSyncRpc = $Exact<{
   method: 'incoming.sync',
   param: {
     uid: UID,
     deviceid: DeviceID,
     ctime: Time
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: incomingSyncResult) => void)
-}
+}>
 
 export type outgoingBroadcastMessageResult = void
 
-export type outgoingBroadcastMessageRpc = {
+export type outgoingBroadcastMessageRpc = $Exact<{
   method: 'outgoing.broadcastMessage',
   param: {
     m: Message
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type remindDeleteRemindersResult = void
 
-export type remindDeleteRemindersRpc = {
+export type remindDeleteRemindersRpc = $Exact<{
   method: 'remind.deleteReminders',
   param: {
-    reminderIDs: Array<ReminderID>
+    reminderIDs: ?Array<ReminderID>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
-}
+}>
 
 export type remindGetRemindersResult = ReminderSet
 
-export type remindGetRemindersRpc = {
+export type remindGetRemindersRpc = $Exact<{
   method: 'remind.getReminders',
   param: {
     maxReminders: int
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: remindGetRemindersResult) => void)
-}
+}>
 
 export type rpc =
     authAuthenticateSessionTokenRpc
@@ -275,7 +286,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.authUpdate.revokeSessionIDs'?: (
     params: {
-      sessionIDs: Array<SessionID>
+      sessionIDs: ?Array<SessionID>
     },
     response: {
       error: (err: RPCError) => void,
@@ -348,7 +359,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.remind.deleteReminders'?: (
     params: {
-      reminderIDs: Array<ReminderID>
+      reminderIDs: ?Array<ReminderID>
     },
     response: {
       error: (err: RPCError) => void,
