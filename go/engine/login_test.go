@@ -2360,6 +2360,9 @@ func (g *gpgImportFailer) Index(secret bool, query string) (ki *libkb.GpgKeyInde
 
 func skipOldGPG(tc libkb.TestContext) {
 	gpg := tc.G.GetGpgClient()
+	if err := gpg.Configure(); err != nil {
+		tc.T.Skip(fmt.Sprintf("skipping test due to gpg configure error: %s", err))
+	}
 	ok, err := gpg.VersionAtLeast("2.0.29")
 	if err != nil {
 		tc.T.Fatal(err)
