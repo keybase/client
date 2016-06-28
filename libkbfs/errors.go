@@ -252,6 +252,17 @@ func (e NotFileError) Error() string {
 	return fmt.Sprintf("%s is not a file (folder %s)", e.path, e.path.Tlf)
 }
 
+// NotDirError indicates that the user tried to perform a
+// dir-specific operation on something that isn't a directory.
+type NotDirError struct {
+	path path
+}
+
+// Error implements the error interface for NotDirError
+func (e NotDirError) Error() string {
+	return fmt.Sprintf("%s is not a directory (folder %s)", e.path, e.path.Tlf)
+}
+
 // BlockDecodeError indicates that a block couldn't be decoded as
 // expected; probably it is the wrong type.
 type BlockDecodeError struct {

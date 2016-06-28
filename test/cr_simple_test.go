@@ -541,14 +541,13 @@ func TestCrUnmergedRenameFileOverFile(t *testing.T) {
 	)
 }
 
-// bob renames a directory over an existing file
-func TestCrUnmergedRenameDirOverFile(t *testing.T) {
+// bob renames a dir over an existing empty dir
+func TestCrUnmergedRenameDirOverEmptyDir(t *testing.T) {
 	test(t,
-		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
 		users("alice", "bob"),
 		as(alice,
-			mkfile("a/b", "hello"),
-			mkfile("a/c/d", "world"),
+			mkdir("a/b"),
+			mkfile("a/c/d", "hello"),
 		),
 		as(bob,
 			disableUpdates(),
@@ -560,12 +559,14 @@ func TestCrUnmergedRenameDirOverFile(t *testing.T) {
 			rename("a/c", "a/b"),
 			reenableUpdates(),
 			lsdir("a/", m{"b": "DIR", "e": "FILE"}),
-			read("a/b/d", "world"),
+			lsdir("a/b", m{"d": "FILE"}),
+			read("a/b/d", "hello"),
 			read("a/e", "just another file"),
 		),
 		as(alice,
 			lsdir("a/", m{"b": "DIR", "e": "FILE"}),
-			read("a/b/d", "world"),
+			lsdir("a/b", m{"d": "FILE"}),
+			read("a/b/d", "hello"),
 			read("a/e", "just another file"),
 		),
 	)

@@ -382,36 +382,6 @@ func TestCrConflictUnmergedRenameFileInNewDirOverModifiedFile(t *testing.T) {
 	)
 }
 
-// bob renames a directory over a file modified by alice.
-func TestCrConflictUnmergedRenameDirOverModifiedFile(t *testing.T) {
-	test(t,
-		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
-		users("alice", "bob"),
-		as(alice,
-			write("a/b", "hello"),
-			write("a/c/d", "world"),
-		),
-		as(bob,
-			disableUpdates(),
-		),
-		as(alice,
-			write("a/b", "uh oh"),
-		),
-		as(bob, noSync(),
-			rename("a/c", "a/b"),
-			reenableUpdates(),
-			lsdir("a/", m{"b$": "DIR", crnameEsc("b", alice): "FILE"}),
-			read("a/b/d", "world"),
-			read(crname("a/b", alice), "uh oh"),
-		),
-		as(alice,
-			lsdir("a/", m{"b$": "DIR", crnameEsc("b", alice): "FILE"}),
-			read("a/b/d", "world"),
-			read(crname("a/b", alice), "uh oh"),
-		),
-	)
-}
-
 // bob renames an existing directory over one created by alice.
 // TODO: it would be better if this weren't a conflict.
 func TestCrConflictUnmergedRenamedDir(t *testing.T) {
@@ -444,6 +414,35 @@ func TestCrConflictUnmergedRenamedDir(t *testing.T) {
 			read(crname("a/d", bob)+"/c", "hello"),
 			read("a/d/e", "world"),
 			read(crname("a/d", bob)+"/f", "uh oh"),
+		),
+	)
+}
+
+// bob renames a directory over one made non-empty by alice
+func TestCrConflictUnmergedRenameDirOverNonemptyDir(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a/b"),
+			mkfile("a/c/d", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/b/e", "uh oh"),
+		),
+		as(bob, noSync(),
+			rename("a/c", "a/b"),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "DIR", crnameEsc("b", bob): "DIR"}),
+			lsdir("a/b", m{"e": "FILE"}),
+			lsdir(crname("a/b", bob), m{"d": "FILE"}),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "DIR", crnameEsc("b", bob): "DIR"}),
+			lsdir("a/b", m{"e": "FILE"}),
+			lsdir(crname("a/b", bob), m{"d": "FILE"}),
 		),
 	)
 }
@@ -506,36 +505,6 @@ func TestCrConflictMergedRenameFileOverModifiedFile(t *testing.T) {
 		as(alice,
 			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
 			read("a/b", "world"),
-			read(crname("a/b", bob), "uh oh"),
-		),
-	)
-}
-
-// alice renames a directory over a file modified by bob.
-func TestCrConflictMergedRenameDirOverModifiedFile(t *testing.T) {
-	test(t,
-		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
-		users("alice", "bob"),
-		as(alice,
-			write("a/b", "hello"),
-			write("a/c/d", "world"),
-		),
-		as(bob,
-			disableUpdates(),
-		),
-		as(alice,
-			rename("a/c", "a/b"),
-		),
-		as(bob, noSync(),
-			write("a/b", "uh oh"),
-			reenableUpdates(),
-			lsdir("a/", m{"b$": "DIR", crnameEsc("b", bob): "FILE"}),
-			read("a/b/d", "world"),
-			read(crname("a/b", bob), "uh oh"),
-		),
-		as(alice,
-			lsdir("a/", m{"b$": "DIR", crnameEsc("b", bob): "FILE"}),
-			read("a/b/d", "world"),
 			read(crname("a/b", bob), "uh oh"),
 		),
 	)

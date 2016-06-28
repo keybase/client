@@ -14,7 +14,7 @@ import (
 // Check that renaming over a file correctly cleans up state
 func TestRenameFileOverFile(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		users("alice"),
 		as(alice,
 			mkfile("a/b", "hello"),
 			mkfile("a/c", "world"),
@@ -25,17 +25,21 @@ func TestRenameFileOverFile(t *testing.T) {
 	)
 }
 
-// Check that renaming a directory over a file correctly cleans up state
-func TestRenameDirOverFile(t *testing.T) {
+func TestRenameDirOverDir(t *testing.T) {
 	test(t,
-		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
-		users("alice", "bob"),
+		users("alice"),
 		as(alice,
-			mkfile("a/b", "hello"),
-			mkfile("a/c/d", "world"),
+			mkdir("a/b"),
+			mkfile("a/c/d", "hello"),
 			rename("a/c", "a/b"),
 			lsdir("a/", m{"b": "DIR"}),
-			read("a/b/d", "world"),
+			lsdir("a/b", m{"d": "FILE"}),
+			read("a/b/d", "hello"),
+
+			// Rename over a non-empty dir should fail
+			mkfile("a/c/e", "world"),
+			expectError(rename("a/c", "a/b"),
+				"Directory b is not empty and can't be removed"),
 		),
 	)
 }

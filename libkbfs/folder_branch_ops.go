@@ -2461,10 +2461,26 @@ func (fbo *folderBranchOps) renameLocked(
 
 	// does name exist?
 	if de, ok := newPBlock.Children[newName]; ok {
-		if de.Type == Dir {
-			fbo.log.CWarningf(ctx, "Renaming over a directory (%s/%s) is not "+
-				"allowed.", newParent, newName)
+		// Usually higher-level programs check these, but just in case.
+		if de.Type == Dir && newDe.Type != Dir {
+			return NotDirError{newParent.ChildPathNoPtr(newName)}
+		} else if de.Type != Dir && newDe.Type == Dir {
 			return NotFileError{newParent.ChildPathNoPtr(newName)}
+		}
+
+		if de.Type == Dir {
+			// The directory must be empty.
+			oldTargetDir, err := fbo.blocks.GetDirBlockForReading(ctx, lState,
+				md, de.BlockPointer, newParent.Branch,
+				newParent.ChildPathNoPtr(newName))
+			if err != nil {
+				return err
+			}
+			if len(oldTargetDir.Children) != 0 {
+				fbo.log.CWarningf(ctx, "Renaming over a non-empty directory "+
+					" (%s/%s) not allowed.", newParent, newName)
+				return DirNotEmptyError{newName}
+			}
 		}
 
 		// Delete the old block pointed to by this direntry.
