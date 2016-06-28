@@ -235,7 +235,7 @@ func (g *GpgCLI) SemanticVersion() (*semver.Version, error) {
 	}
 	parts := strings.Fields(lines[0])
 	if len(parts) != 3 {
-		return nil, errors.New("unhandled gpg version output")
+		return nil, fmt.Errorf("unhandled gpg version output %q full: %q", lines[0], lines)
 	}
 	return semver.New(parts[2])
 }
