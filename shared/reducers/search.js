@@ -77,6 +77,7 @@ export default function (state: State = initialState, action: SearchActions): St
             : state.selectedUsers.concat(maybeUpgradedUser),
           showUserGroup: true,
           searchHintText: 'Search for another user',
+          results: [],
           searchText: null,
           searchPlatform: null,
         }
@@ -93,9 +94,11 @@ export default function (state: State = initialState, action: SearchActions): St
     case Constants.removeUserFromGroup:
       if (!action.error) {
         const user = action.payload.user
+        const nextSelectedUsers = state.selectedUsers.filter(u => u !== user)
         return {
           ...state,
-          selectedUsers: state.selectedUsers.filter(u => u !== user),
+          showUserGroup: nextSelectedUsers.length === 0 ? false : state.showUserGroup,
+          selectedUsers: nextSelectedUsers,
         }
       }
       break
