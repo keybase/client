@@ -1,4 +1,5 @@
 /* @flow */
+import {uniq} from 'lodash'
 
 // Constants
 export const defaultKBFSPath = '/keybase'
@@ -21,9 +22,9 @@ export const devConfigUpdate = 'config:devConfigUpdate'
 export const devConfigSaved = 'config:devConfigSaved'
 
 export function privateFolderWithUsers (users: Array<string>): string {
-  return `${defaultKBFSPath}${defaultPrivatePrefix}${users.join(',')}`
+  return `${defaultKBFSPath}${defaultPrivatePrefix}${uniq(users).join(',')}`
 }
 
 export function publicFolderWithUsers (users: Array<string>): string {
-  return `${defaultKBFSPath}${defaultPublicPrefix}${users.join(',')}`
+  return `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 }
