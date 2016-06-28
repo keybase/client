@@ -6,6 +6,7 @@ import {Avatar, Box, Icon, Input} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
 import {IconButton} from 'material-ui'
+import {platformToLogo24} from '../../constants/search'
 
 import type {SearchResult, SearchPlatforms} from '../../constants/search'
 import type {Props, SearchResultFn, ServiceFn} from './render'
@@ -172,36 +173,43 @@ export class SearchBar extends Component<void, SearchBarProps, void> {
           <ServiceIcon
             serviceName='Keybase'
             tooltip='Keybase'
-            iconType='keybase-logo-mascot-only-dz-2-24'
+            iconType={platformToLogo24('Keybase')}
             selected={this.props.selectedService === 'Keybase'}
             onClickService={p => this._onClickService(p)}
             />
           <ServiceIcon
             serviceName='Twitter'
             tooltip='Twitter'
-            iconType='icon-twitter-logo-24'
+            iconType={platformToLogo24('Twitter')}
             selected={this.props.selectedService === 'Twitter'}
             onClickService={p => this._onClickService(p)}
             />
           <ServiceIcon
             serviceName='Github'
             tooltip='Github'
-            iconType='icon-github-logo-24'
+            iconType={platformToLogo24('Github')}
             selected={this.props.selectedService === 'Github'}
             onClickService={p => this._onClickService(p)}
             />
           <ServiceIcon
             serviceName='Coinbase'
             tooltip='Coinbase'
-            iconType='icon-coinbase-logo-24'
+            iconType={platformToLogo24('Coinbase')}
             selected={this.props.selectedService === 'Coinbase'}
             onClickService={p => this._onClickService(p)}
             />
           <ServiceIcon
             serviceName='Reddit'
             tooltip='Reddit'
-            iconType='icon-reddit-logo-24'
+            iconType={platformToLogo24('Reddit')}
             selected={this.props.selectedService === 'Reddit'}
+            onClickService={p => this._onClickService(p)}
+            />
+          <ServiceIcon
+            serviceName='Hackernews'
+            tooltip='Hacker News'
+            iconType={platformToLogo24('Hackernews')}
+            selected={this.props.selectedService === 'Hackernews'}
             onClickService={p => this._onClickService(p)}
             />
         </Box>
