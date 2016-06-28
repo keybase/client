@@ -159,7 +159,8 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (dokan
 		tlf.refcount.Increase()
 		return tlf, true, nil
 	}
-	dir, exitEarly, err := tlf.loadDirAllowNonexistent(ctx, "open")
+	// If it is a creation then we need the dir for real.
+	dir, exitEarly, err := tlf.loadDirHelper(ctx, "open", !oc.Creation())
 	if err != nil {
 		return nil, false, err
 	}
