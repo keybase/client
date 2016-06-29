@@ -1,5 +1,6 @@
 // @flow
 import React, {Component} from 'react'
+import _ from 'lodash'
 import {Text} from '../../common-adapters'
 
 import {Avatar, Box, Icon, Input} from '../../common-adapters'
@@ -143,13 +144,20 @@ function ServiceIcon ({serviceName, tooltip, iconType, selected, onClickService}
 
 export type SearchBarProps = {
   selectedService: ?SearchPlatforms,
-  onSearch: (term: string) => void,
+  onSearch: (term: string, platform?: ?SearchPlatforms) => void,
   searchText: ?string,
   searchHintText: string,
   onClickService: (service: SearchPlatforms) => void,
 }
 
 export class SearchBar extends Component<void, SearchBarProps, void> {
+  _onDebouncedSearch: (overridePlatform?: SearchPlatforms) => void;
+
+  constructor (props: SearchBarProps) {
+    super(props)
+    this._onDebouncedSearch = _.debounce(this._onSearch, 500)
+  }
+
   componentWillReceiveProps (nextProps: SearchBarProps) {
     if (nextProps.searchText === null && nextProps.searchText !== this.props.searchText) {
       this.refs && this.refs.searchBox && this.refs.searchBox.clearValue()
@@ -209,6 +217,7 @@ export class SearchBar extends Component<void, SearchBarProps, void> {
           type='text'
           ref='searchBox'
           onEnterKeyDown={() => this._onSearch()}
+          onChange={() => this._onDebouncedSearch()}
           value={this.props.searchText}
           hintText={this.props.searchHintText}
           style={styles.input}

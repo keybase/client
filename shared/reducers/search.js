@@ -13,6 +13,7 @@ export type State = {
   searchIcon: IconProps.type,
   searchPlatform: ?SearchPlatforms,
   results: Array<SearchResult>,
+  requestTimestamp: ?Date,
   selectedUsers: Array<SearchResult>,
   userForInfoPane: ?SearchResult,
   showUserGroup: boolean,
@@ -25,6 +26,7 @@ const initialState: State = {
   searchPlatform: 'Keybase',
   selectedUsers: [],
   results: [],
+  requestTimestamp: null,
   userForInfoPane: null,
   showUserGroup: false,
 }
@@ -108,9 +110,14 @@ export default function (state: State = initialState, action: SearchActions): St
           return state
         }
 
+        if (state.requestTimestamp && action.payload.requestTimestamp < state.requestTimestamp) {
+          return state
+        }
+
         return {
           ...state,
           results: action.payload.results,
+          requestTimestamp: action.payload.requestTimestamp,
         }
       }
       break
