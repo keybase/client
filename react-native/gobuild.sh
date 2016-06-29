@@ -19,13 +19,13 @@ rm -rf "$GOPATH/src/github.com/keybase"
 # Copy source
 go_client_dir="$GOPATH/src/github.com/keybase/client/go"
 mkdir -p "$go_client_dir"
-go_kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
-mkdir -p "$go_kbfs_dir"
 
 echo "Copying client..."
 cp -R "$client_go_dir"/* "$go_client_dir"
-echo "Copying KBFS..."
-cp -R "$kbfs_dir"/* "$go_kbfs_dir"
+echo "Getting KBFS..."
+go get github.com/keybase/kbfs/libkbfs
+go get github.com/keybase/kbfs/fsrpc
+go_kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
 
 # Move all vendoring up a directory to github.com/keybase/vendor
 echo "Re-vendoring..."
@@ -45,6 +45,7 @@ if [ ! -f "$GOPATH/bin/gomobile" ]; then
   go get golang.org/x/mobile/cmd/gomobile
   "$GOPATH/bin/gomobile" init
 fi
+
 
 package="github.com/keybase/client/go/bind"
 
