@@ -50,12 +50,7 @@ class RenderHelp extends Component<void, Props, State> {
           </Box>
           <Box style={styleTextHeader}>
             <Text type='Body'>
-              This tab is not <Text
-                type='BodyPrimaryLink'
-                /* TODO (AW): change set state to true once final image has been decided */
-                onClick={() => this.setState({showingSoggyCheeto: false})}>
-                fully cooked
-              </Text> yet.
+              This tab is not fully cooked yet.
             </Text>
           </Box>
           <Box style={styleBody}>
