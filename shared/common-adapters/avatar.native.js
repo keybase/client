@@ -1,7 +1,7 @@
 // @flow
 
 import React, {Component} from 'react'
-import {Image, TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
+import {Image, TouchableOpacity} from 'react-native'
 import type {Props} from './avatar'
 import {Box} from '../common-adapters'
 import {images} from './icon.paths.native'
@@ -24,9 +24,8 @@ export default class Avatar extends Component<void, Props, State> {
     const {size} = this.props
     const uri = {uri: shared.createAvatarUrl(this.props)}
 
-    const TouchWrapper = this.props.onClick ? TouchableOpacity : TouchableWithoutFeedback
     return (
-      <TouchWrapper style={{...stylesContainer(size), ...this.props.style}} disabled={!this.props.onClick} onPress={this.props.onClick} {...(this.props.onClick ? {activeOpacity: 0.8} : {})}>
+      <TouchableOpacity style={{...stylesContainer(size), ...this.props.style}} disabled={!this.props.onClick} onPress={this.props.onClick} activeOpacity={0.8}>
         <Box style={stylesContainer(size)}>
           <Image
             style={{...stylesImage(size), opacity: this.state.avatarLoaded ? 1 : 0}}
@@ -37,7 +36,7 @@ export default class Avatar extends Component<void, Props, State> {
               style={stylesPlaceholderImage(size)}
               source={images['placeholder-avatar']} />}
         </Box>
-      </TouchWrapper>
+      </TouchableOpacity>
     )
   }
 }
