@@ -122,4 +122,4 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_UPDATE_FILENAME%
+%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% --description=%GOPATH%\src\github.com\keybase\client\desktop\CHANGELOG.txt > %JSON_UPDATE_FILENAME%
