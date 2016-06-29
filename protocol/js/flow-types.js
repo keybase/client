@@ -229,6 +229,7 @@ export type FSErrorType =
   | 6 // BAD_FOLDER_6
   | 7 // NOT_IMPLEMENTED_7
   | 8 // OLD_VERSION_8
+  | 9 // OVER_QUOTA_9
 
 export type FSNotification = {
   publicTopLevelFolder: boolean;
