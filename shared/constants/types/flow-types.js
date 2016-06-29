@@ -1373,46 +1373,49 @@ export type accountPassphrasePromptRpc = $Exact<{
 
 export type apiserverGetResult = APIRes
 
-export type apiserverGetRpc = {
+export type apiserverGetRpc = $Exact<{
   method: 'apiserver.Get',
   param: {
     endpoint: string,
-    args: Array<StringKVPair>,
-    httpStatus: Array<int>,
-    appStatusCode: Array<int>
+    args: ?Array<StringKVPair>,
+    httpStatus: ?Array<int>,
+    appStatusCode: ?Array<int>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: apiserverGetResult) => void)
-}
+}>
 
 export type apiserverPostJSONResult = APIRes
 
-export type apiserverPostJSONRpc = {
+export type apiserverPostJSONRpc = $Exact<{
   method: 'apiserver.PostJSON',
   param: {
     endpoint: string,
-    args: Array<StringKVPair>,
-    JSONPayload: Array<StringKVPair>,
-    httpStatus: Array<int>,
-    appStatusCode: Array<int>
+    args: ?Array<StringKVPair>,
+    JSONPayload: ?Array<StringKVPair>,
+    httpStatus: ?Array<int>,
+    appStatusCode: ?Array<int>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: apiserverPostJSONResult) => void)
-}
+}>
 
 export type apiserverPostResult = APIRes
 
-export type apiserverPostRpc = {
+export type apiserverPostRpc = $Exact<{
   method: 'apiserver.Post',
   param: {
     endpoint: string,
-    args: Array<StringKVPair>,
-    httpStatus: Array<int>,
-    appStatusCode: Array<int>
+    args: ?Array<StringKVPair>,
+    httpStatus: ?Array<int>,
+    appStatusCode: ?Array<int>
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: apiserverPostResult) => void)
-}
+}>
 
 export type blockAddReferenceResult = void
 
@@ -4003,9 +4006,9 @@ export type incomingCallMapType = {
   'keybase.1.apiserver.Get'?: (
     params: {
       endpoint: string,
-      args: Array<StringKVPair>,
-      httpStatus: Array<int>,
-      appStatusCode: Array<int>
+      args: ?Array<StringKVPair>,
+      httpStatus: ?Array<int>,
+      appStatusCode: ?Array<int>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4015,9 +4018,9 @@ export type incomingCallMapType = {
   'keybase.1.apiserver.Post'?: (
     params: {
       endpoint: string,
-      args: Array<StringKVPair>,
-      httpStatus: Array<int>,
-      appStatusCode: Array<int>
+      args: ?Array<StringKVPair>,
+      httpStatus: ?Array<int>,
+      appStatusCode: ?Array<int>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4027,10 +4030,10 @@ export type incomingCallMapType = {
   'keybase.1.apiserver.PostJSON'?: (
     params: {
       endpoint: string,
-      args: Array<StringKVPair>,
-      JSONPayload: Array<StringKVPair>,
-      httpStatus: Array<int>,
-      appStatusCode: Array<int>
+      args: ?Array<StringKVPair>,
+      JSONPayload: ?Array<StringKVPair>,
+      httpStatus: ?Array<int>,
+      appStatusCode: ?Array<int>
     },
     response: {
       error: (err: RPCError) => void,
