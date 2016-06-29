@@ -79,8 +79,8 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
       'keybase.1.rekeyUI.delegateRekeyUI',
       'keybase.1.rekeyUI.refresh',
       () => ({
-        start: (params, response) => { },
-        finish: ({sessionID, problemSetDevices}, response) => {
+        'keybase.1.rekeyUI.delegateRekeyUI': (params, response) => { },
+        'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
           console.log('Asked for rekey')
           dispatch(({type: Constants.newRekeyPopup, payload: {devices: problemSetDevices.devices || [], sessionID}}: NewRekeyPopupAction))
           uglySessionIDResponseMapper['refresh'] = response
