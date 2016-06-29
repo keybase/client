@@ -77,23 +77,23 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string, filterErr bool) 
 		return nil, false, err
 	}
 
+	var rootNode libkbfs.Node
 	if filterErr {
-		// Does it already exist?
-		md, err := tlf.folder.fs.config.MDOps().GetUnmergedForHandle(ctx, handle)
+		rootNode, _, err = tlf.folder.fs.config.KBFSOps().GetRootNode(
+			ctx, handle, libkbfs.MasterBranch)
 		if err != nil {
 			return nil, false, err
 		}
 		// If not fake an empty directory.
-		if md == nil {
+		if rootNode == nil {
 			return nil, false, libfs.TlfDoesNotExist{}
 		}
-	}
-
-	rootNode, _, err :=
-		tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
+	} else {
+		rootNode, _, err = tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
 			ctx, handle, libkbfs.MasterBranch)
-	if err != nil {
-		return nil, false, err
+		if err != nil {
+			return nil, false, err
+		}
 	}
 
 	err = tlf.folder.setFolderBranch(rootNode.GetFolderBranch())
@@ -165,6 +165,10 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (dokan
 		return nil, false, err
 	}
 	if exitEarly {
+		if node := openSpecialFile(lastStr(path), tlf.folder); node != nil {
+			return node, false, nil
+		}
+
 		return nil, false, dokan.ErrObjectNameNotFound
 	}
 	return dir.open(ctx, oc, path)
