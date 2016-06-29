@@ -18,7 +18,7 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Name:  "stop",
 		Usage: "Stop the background keybase service",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(newcmdCtlStopRunner(g), "stop", c)
+			cl.ChooseCommand(&cmdCtlStop{libkb.NewContextified(g)}, "stop", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetNoStandalone()
 		},
@@ -27,10 +27,6 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 
 type cmdCtlStop struct {
 	libkb.Contextified
-}
-
-func newcmdCtlStopRunner(g *libkb.GlobalContext) *cmdCtlStop {
-	return &cmdCtlStop{libkb.NewContextified(g)}
 }
 
 func (s *cmdCtlStop) ParseArgv(ctx *cli.Context) error {

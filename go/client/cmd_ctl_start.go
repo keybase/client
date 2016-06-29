@@ -16,25 +16,25 @@ func newCmdCtlStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Name:  "start",
 		Usage: "Start the background keybase service",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&cmdCtlStart{libkb.NewContextified(g)}, "start", c)
+			cl.ChooseCommand(&CmdCtlStart{libkb.NewContextified(g)}, "start", c)
 			cl.SetForkCmd(libcmdline.ForceFork)
 			cl.SetNoStandalone()
 		},
 	}
 }
 
-type cmdCtlStart struct {
+type CmdCtlStart struct {
 	libkb.Contextified
 }
 
-func (s *cmdCtlStart) ParseArgv(ctx *cli.Context) error {
+func (s *CmdCtlStart) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (s *cmdCtlStart) Run() (err error) {
+func (s *CmdCtlStart) Run() (err error) {
 	return nil
 }
 
-func (s *cmdCtlStart) GetUsage() libkb.Usage {
+func (s *CmdCtlStart) GetUsage() libkb.Usage {
 	return libkb.Usage{}
 }
