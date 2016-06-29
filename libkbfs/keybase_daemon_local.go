@@ -214,6 +214,18 @@ func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context, uid keybase1.
 	return infoCopy, nil
 }
 
+// LoadUnverifiedKeys implements KeybaseDaemon for KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
+	[]VerifyingKey, []CryptPublicKey, error) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	u, err := k.localUsers.getLocalUser(uid)
+	if err != nil {
+		return nil, nil, err
+	}
+	return u.UnverifiedVerifyingKeys, u.UnverifiedCryptPublicKeys, nil
+}
+
 // CurrentSession implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) (
 	SessionInfo, error) {
@@ -390,6 +402,13 @@ func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.
 // FlushUserFromLocalCache implements the KeybaseDaemon interface for
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FlushUserFromLocalCache(ctx context.Context,
+	uid keybase1.UID) {
+	// Do nothing.
+}
+
+// FlushUserUnverifiedKeysFromLocalCache implements the KeybaseDaemon interface for
+// KeybaseDaemonLocal.
+func (k *KeybaseDaemonLocal) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context,
 	uid keybase1.UID) {
 	// Do nothing.
 }

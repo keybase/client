@@ -182,3 +182,45 @@ func TestKBPKIClientGetCurrentCryptPublicKey(t *testing.T) {
 		t.Errorf("Expected %s, got %s", expectedKID, kid)
 	}
 }
+
+func makeTestKBPKIClientWithUnverifiedKey(t *testing.T) (
+	client *KBPKIClient, currentUID keybase1.UID, users []LocalUser) {
+	currentUID = keybase1.MakeTestUID(1)
+	names := []libkb.NormalizedUsername{"test_name1", "test_name2"}
+	users = MakeLocalUsers(names)
+	// Give each user an unverified key
+	for i, user := range users {
+		index := 99
+		keySalt := keySaltForUserDevice(user.Name, index)
+		newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
+		user.UnverifiedVerifyingKeys = []VerifyingKey{newVerifyingKey}
+		users[i] = user
+	}
+	codec := NewCodecMsgpack()
+	daemon := NewKeybaseDaemonMemory(currentUID, users, codec)
+	config := &ConfigLocal{codec: codec, daemon: daemon}
+	setTestLogger(config, t)
+	return NewKBPKIClient(config), currentUID, users
+}
+
+func TestKBPKIClientHasUnverifiedVerifyingKey(t *testing.T) {
+	c, _, localUsers := makeTestKBPKIClientWithUnverifiedKey(t)
+
+	var unverifiedKey VerifyingKey
+	for _, k := range localUsers[0].UnverifiedVerifyingKeys {
+		unverifiedKey = k
+		break
+	}
+
+	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
+		unverifiedKey, time.Time{})
+	if err == nil {
+		t.Error("HasVerifyingKey unexpectedly succeeded")
+	}
+
+	err = c.HasUnverifiedVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
+		unverifiedKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+}

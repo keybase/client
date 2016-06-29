@@ -129,6 +129,25 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	return false, nil
 }
 
+func (k *KBPKIClient) hasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID,
+	verifyingKey VerifyingKey) (bool, error) {
+	verifyingKeys, _, err := k.loadUnverifiedKeys(ctx, uid)
+	if err != nil {
+		return false, err
+	}
+
+	for _, key := range verifyingKeys {
+		if !verifyingKey.kid.Equal(key.kid) {
+			continue
+		}
+		k.log.CDebugf(ctx, "Trusting potentially unverified key %s for user %s",
+			verifyingKey.kid, uid)
+		return true, nil
+	}
+
+	return false, nil
+}
+
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	verifyingKey VerifyingKey, atServerTime time.Time) error {
@@ -146,6 +165,27 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	k.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, uid)
 
 	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return KeyNotFoundError{verifyingKey.kid}
+	}
+	return nil
+}
+
+// HasUnverifiedVerifyingKey implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) HasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID,
+	verifyingKey VerifyingKey) error {
+	ok, err := k.hasUnverifiedVerifyingKey(ctx, uid, verifyingKey)
+	if err != nil {
+		return err
+	}
+	if ok {
+		return nil
+	}
+	k.config.KeybaseDaemon().FlushUserUnverifiedKeysFromLocalCache(ctx, uid)
+	ok, err = k.hasUnverifiedVerifyingKey(ctx, uid, verifyingKey)
 	if err != nil {
 		return err
 	}
@@ -194,4 +234,9 @@ func (k *KBPKIClient) FavoriteList(ctx context.Context) ([]keybase1.Folder, erro
 // Notify implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	return k.config.KeybaseDaemon().Notify(ctx, notification)
+}
+
+func (k *KBPKIClient) loadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
+	[]VerifyingKey, []CryptPublicKey, error) {
+	return k.config.KeybaseDaemon().LoadUnverifiedKeys(ctx, uid)
 }

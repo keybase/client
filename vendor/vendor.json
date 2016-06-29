@@ -150,10 +150,10 @@
 			"revisionTime": "2016-06-10T22:58:26Z"
 		},
 		{
-			"checksumSHA1": "0cPVgVKRTR4hWBIaJ/aiCo58WIs=",
+			"checksumSHA1": "/hQtx/hBBmD44SyNSvMOd2XwPo0=",
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "4767426f8af8806b9eb9e3e8b7eed61431748846",
-			"revisionTime": "2016-06-27T14:17:11-07:00"
+			"revision": "4d28183cf13221feb6d27fcfe42881903733c248",
+			"revisionTime": "2016-06-27T23:20:57Z"
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",
@@ -237,10 +237,16 @@
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		},
 		{
-			"checksumSHA1": "OvF/14pOw+eU6VJSn3m0/obYTwI=",
+			"checksumSHA1": "hHp8I8SAgS/Xm3UyYzIrfSNbjtQ=",
 			"path": "github.com/keybase/gregor",
-			"revision": "bac1936af3dd9418d7c5778ccee149cff9bac9c7",
-			"revisionTime": "2016-05-27T13:35:13Z"
+			"revision": "7ecbd47c6d7468de9c70d1211b5b08c52200d411",
+			"revisionTime": "2016-06-25T00:54:16Z"
+		},
+		{
+			"checksumSHA1": "mtq0oJV4kXuJ+xv01C7rWmJaB+M=",
+			"path": "github.com/keybase/gregor/protocol/gregor1",
+			"revision": "319a591525551c3e0690bd1e5b4b1d79aca9fd64",
+			"revisionTime": "2016-06-22T18:16:55Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",

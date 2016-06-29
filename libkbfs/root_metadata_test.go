@@ -625,7 +625,7 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 }
 
 // Test that MakeSuccessor fails when the final bit is set.
-func TestRootMetadataFinal(t *testing.T) {
+func TestRootMetadataFinalIsFinal(t *testing.T) {
 	tlfID := FakeTlfID(0, true)
 	h := makeFakeTlfHandle(t, 14, true, nil, nil)
 	rmd := newRootMetadataOrBust(t, tlfID, h)
@@ -633,4 +633,79 @@ func TestRootMetadataFinal(t *testing.T) {
 	_, err := rmd.MakeSuccessor(nil, true)
 	_, isFinalError := err.(MetadataIsFinalError)
 	require.Equal(t, isFinalError, true)
+}
+
+// Test verification of finalized metadata blocks.
+func TestRootMetadataFinalVerify(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "alice")
+	defer config.Shutdown()
+
+	// create and sign a revision
+	id := FakeTlfID(1, false)
+	handle := parseTlfHandleOrBust(t, config, "alice", false)
+	h, err := handle.ToBareHandle()
+	if err != nil {
+		t.Fatal(err)
+	}
+	rmds, err := NewRootMetadataSignedForTest(id, h)
+	if err != nil {
+		t.Fatal(err)
+	}
+	FakeInitialRekey(&rmds.MD, h)
+	buf, err := config.Codec().Encode(rmds.MD.WriterMetadata)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sigInfo, err := config.Crypto().Sign(context.Background(), buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rmds.MD.WriterMetadataSigInfo = sigInfo
+	buf, err = config.Codec().Encode(rmds.MD)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sigInfo, err = config.Crypto().Sign(context.Background(), buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rmds.SigInfo = sigInfo
+
+	// verify it
+	err = rmds.VerifyRootMetadata(config.Codec(), config.Crypto())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// make a final copy
+	rmds2, err := rmds.MakeFinalCopy(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// add the extension
+	rmds2.MD.FinalizedInfo, err = NewTestTlfHandleExtensionStaticTime(TlfHandleExtensionFinalized, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// verify the finalized copy
+	err = rmds2.VerifyRootMetadata(config.Codec(), config.Crypto())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// verify the writer metadata too for good measure
+	err = rmds2.MD.VerifyWriterMetadata(config.Codec(), config.Crypto())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// touch something the server shouldn't be allowed to edit for finalized metadata
+	// and verify verification failure.
+	rmds2.MD.Flags |= MetadataFlagRekey
+	err = rmds2.VerifyRootMetadata(config.Codec(), config.Crypto())
+	if err == nil {
+		t.Fatalf("expected error")
+	}
 }

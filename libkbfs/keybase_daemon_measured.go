@@ -14,15 +14,16 @@ import (
 // KeybaseDaemonMeasured delegates to another KeybaseDaemon instance
 // but also keeps track of stats.
 type KeybaseDaemonMeasured struct {
-	delegate              KeybaseDaemon
-	resolveTimer          metrics.Timer
-	identifyTimer         metrics.Timer
-	loadUserPlusKeysTimer metrics.Timer
-	currentSessionTimer   metrics.Timer
-	favoriteAddTimer      metrics.Timer
-	favoriteDeleteTimer   metrics.Timer
-	favoriteListTimer     metrics.Timer
-	notifyTimer           metrics.Timer
+	delegate                KeybaseDaemon
+	resolveTimer            metrics.Timer
+	identifyTimer           metrics.Timer
+	loadUserPlusKeysTimer   metrics.Timer
+	loadUnverifiedKeysTimer metrics.Timer
+	currentSessionTimer     metrics.Timer
+	favoriteAddTimer        metrics.Timer
+	favoriteDeleteTimer     metrics.Timer
+	favoriteListTimer       metrics.Timer
+	notifyTimer             metrics.Timer
 }
 
 var _ KeybaseDaemon = KeybaseDaemonMeasured{}
@@ -33,21 +34,23 @@ func NewKeybaseDaemonMeasured(delegate KeybaseDaemon, r metrics.Registry) Keybas
 	resolveTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.Resolve", r)
 	identifyTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.Identify", r)
 	loadUserPlusKeysTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.LoadUserPlusKeys", r)
+	loadUnverifiedKeysTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.LoadUnverifiedKeys", r)
 	currentSessionTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.CurrentSession", r)
 	favoriteAddTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.FavoriteAdd", r)
 	favoriteDeleteTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.FavoriteDelete", r)
 	favoriteListTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.FavoriteList", r)
 	notifyTimer := metrics.GetOrRegisterTimer("KeybaseDaemon.Notify", r)
 	return KeybaseDaemonMeasured{
-		delegate:              delegate,
-		resolveTimer:          resolveTimer,
-		identifyTimer:         identifyTimer,
-		loadUserPlusKeysTimer: loadUserPlusKeysTimer,
-		currentSessionTimer:   currentSessionTimer,
-		favoriteAddTimer:      favoriteAddTimer,
-		favoriteDeleteTimer:   favoriteDeleteTimer,
-		favoriteListTimer:     favoriteListTimer,
-		notifyTimer:           notifyTimer,
+		delegate:                delegate,
+		resolveTimer:            resolveTimer,
+		identifyTimer:           identifyTimer,
+		loadUserPlusKeysTimer:   loadUserPlusKeysTimer,
+		loadUnverifiedKeysTimer: loadUnverifiedKeysTimer,
+		currentSessionTimer:     currentSessionTimer,
+		favoriteAddTimer:        favoriteAddTimer,
+		favoriteDeleteTimer:     favoriteDeleteTimer,
+		favoriteListTimer:       favoriteListTimer,
+		notifyTimer:             notifyTimer,
 	}
 }
 
@@ -76,6 +79,15 @@ func (k KeybaseDaemonMeasured) LoadUserPlusKeys(ctx context.Context, uid keybase
 		userInfo, err = k.delegate.LoadUserPlusKeys(ctx, uid)
 	})
 	return userInfo, err
+}
+
+// LoadUnverifiedKeys implements the KeybaseDaemon interface for KeybaseDaemonMeasured.
+func (k KeybaseDaemonMeasured) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
+	verifyingKeys []VerifyingKey, cryptKeys []CryptPublicKey, err error) {
+	k.loadUnverifiedKeysTimer.Time(func() {
+		verifyingKeys, cryptKeys, err = k.delegate.LoadUnverifiedKeys(ctx, uid)
+	})
+	return verifyingKeys, cryptKeys, err
 }
 
 // CurrentSession implements the KeybaseDaemon interface for
@@ -129,6 +141,13 @@ func (k KeybaseDaemonMeasured) Notify(ctx context.Context, notification *keybase
 func (k KeybaseDaemonMeasured) FlushUserFromLocalCache(
 	ctx context.Context, uid keybase1.UID) {
 	k.delegate.FlushUserFromLocalCache(ctx, uid)
+}
+
+// FlushUserUnverifiedKeysFromLocalCache implements the KeybaseDaemon interface for
+// KeybaseDaemonMeasured.
+func (k KeybaseDaemonMeasured) FlushUserUnverifiedKeysFromLocalCache(
+	ctx context.Context, uid keybase1.UID) {
+	k.delegate.FlushUserUnverifiedKeysFromLocalCache(ctx, uid)
 }
 
 // Shutdown implements the KeybaseDaemon interface for

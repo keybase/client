@@ -283,6 +283,12 @@ type KeybaseDaemon interface {
 	// get UserInfo structs as it is much cheaper than Identify.
 	LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (UserInfo, error)
 
+	// LoadUnverifiedKeys returns a list of unverified public keys.  They are the union
+	// of all known public keys associated with the account and the currently verified
+	// keys currently part of the user's sigchain.
+	LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
+		[]VerifyingKey, []CryptPublicKey, error)
+
 	// CurrentSession returns a SessionInfo struct with all the
 	// information for the current session, or an error otherwise.
 	CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error)
@@ -306,6 +312,10 @@ type KeybaseDaemon interface {
 	// just to force future calls loading this user to fall through to
 	// the daemon itself, rather than being served from the cache.
 	FlushUserFromLocalCache(ctx context.Context, uid keybase1.UID)
+
+	// FlushUserUnverifiedKeysFromLocalCache instructs this layer to clear any
+	// KBFS-side, locally-cached unverified keys for the given user.
+	FlushUserUnverifiedKeysFromLocalCache(ctx context.Context, uid keybase1.UID)
 
 	// TODO: Add CryptoClient methods, too.
 
@@ -366,6 +376,16 @@ type KBPKI interface {
 	// VerifyingKey, and an error otherwise.
 	HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		verifyingKey VerifyingKey, atServerTime time.Time) error
+
+	// HasUnverifiedVerifyingKey returns nil if the given user has the given
+	// unverified VerifyingKey, and an error otherwise.  Note that any match
+	// is with a key not verified to be currently connected to the user via
+	// their sigchain.  This is currently only used to verify finalized or
+	// reset TLFs.  Further note that unverified keys is a super set of
+	// verified keys.
+	HasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID,
+		verifyingKey VerifyingKey) error
+
 	// GetCryptPublicKeys gets all of a user's crypt public keys (including
 	// paper keys).
 	GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (

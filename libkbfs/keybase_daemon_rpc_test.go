@@ -52,11 +52,12 @@ func TestKeybaseDaemonRPCGetCurrentSessionCanceled(t *testing.T) {
 // TODO: Add tests for Favorite* methods, too.
 
 type fakeKeybaseClient struct {
-	session                SessionInfo
-	users                  map[keybase1.UID]UserInfo
-	currentSessionCalled   bool
-	identifyCalled         bool
-	loadUserPlusKeysCalled bool
+	session                     SessionInfo
+	users                       map[keybase1.UID]UserInfo
+	currentSessionCalled        bool
+	identifyCalled              bool
+	loadUserPlusKeysCalled      bool
+	loadAllPublicKeysUnverified bool
 }
 
 var _ rpc.GenericClient = (*fakeKeybaseClient)(nil)
@@ -113,6 +114,19 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 		}
 
 		c.loadUserPlusKeysCalled = true
+		return nil
+
+	case "keybase.1.user.loadAllPublicKeysUnverified":
+		pk := keybase1.PublicKey{
+			KID:      MakeFakeVerifyingKeyOrBust("foo").KID(),
+			IsSibkey: true,
+		}
+		ck := keybase1.PublicKey{
+			KID: MakeFakeCryptPublicKeyOrBust("bar").KID(),
+		}
+		*res.(*[]keybase1.PublicKey) = []keybase1.PublicKey{pk, ck}
+
+		c.loadAllPublicKeysUnverified = true
 		return nil
 
 	default:
@@ -195,6 +209,23 @@ func testLoadUserPlusKeys(
 	assert.Equal(t, expectedCalled, client.loadUserPlusKeysCalled)
 }
 
+func testLoadUnverifiedKeys(
+	t *testing.T, client *fakeKeybaseClient, c *KeybaseDaemonRPC,
+	uid keybase1.UID, expectedName libkb.NormalizedUsername,
+	expectedCalled bool) {
+	client.loadAllPublicKeysUnverified = false
+
+	ctx := context.Background()
+	verifyingKeys, cryptKeys, err := c.LoadUnverifiedKeys(ctx, uid)
+	require.NoError(t, err)
+
+	assert.Equal(t, 1, len(verifyingKeys))
+	assert.Equal(t, verifyingKeys[0].KID(), MakeFakeVerifyingKeyOrBust("foo").KID())
+	assert.Equal(t, 1, len(cryptKeys))
+	assert.Equal(t, cryptKeys[0].KID(), MakeFakeCryptPublicKeyOrBust("bar").KID())
+	assert.Equal(t, expectedCalled, client.loadAllPublicKeysUnverified)
+}
+
 func testIdentify(
 	t *testing.T, client *fakeKeybaseClient, c *KeybaseDaemonRPC,
 	uid keybase1.UID, expectedName libkb.NormalizedUsername,
@@ -238,6 +269,18 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	// Should not be cached.
 	testIdentify(t, client, c, uid2, name2, expectCall)
 
+	// Should fill cache.
+	testLoadUnverifiedKeys(t, client, c, uid1, name1, expectCall)
+
+	// Should be cached.
+	testLoadUnverifiedKeys(t, client, c, uid1, name1, expectCached)
+
+	// Should fill cache.
+	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCall)
+
+	// Should be cached.
+	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCached)
+
 	// Should invalidate cache for uid1.
 	err := c.UserChanged(context.Background(), uid1)
 	require.NoError(t, err)
@@ -248,8 +291,17 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	// Should be cached again.
 	testLoadUserPlusKeys(t, client, c, uid1, name1, expectCached)
 
+	// Should fill cache again.
+	testLoadUnverifiedKeys(t, client, c, uid1, name1, expectCall)
+
+	// Should still be cached.
+	testLoadUnverifiedKeys(t, client, c, uid1, name1, expectCached)
+
 	// Should still be cached.
 	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCached)
+
+	// Should still be cached.
+	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCached)
 
 	// Should invalidate cache for uid2.
 	err = c.UserChanged(context.Background(), uid2)
@@ -261,12 +313,20 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	// Should be cached again.
 	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCached)
 
+	// Should fill cache again.
+	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCall)
+
+	// Should still be cached.
+	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCached)
+
 	// Should invalidate cache for all users.
 	c.OnDisconnected(context.Background(), rpc.UsingExistingConnection)
 
 	// Should fill cache again.
 	testLoadUserPlusKeys(t, client, c, uid1, name1, expectCall)
 	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCall)
+	testLoadUnverifiedKeys(t, client, c, uid1, name1, expectCall)
+	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCall)
 
 	// Test that CheckForRekey gets called only if the logged-in user
 	// changes.

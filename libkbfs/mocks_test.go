@@ -544,6 +544,18 @@ func (_mr *_MockKeybaseDaemonRecorder) LoadUserPlusKeys(arg0, arg1 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadUserPlusKeys", arg0, arg1)
 }
 
+func (_m *MockKeybaseDaemon) LoadUnverifiedKeys(ctx context.Context, uid protocol.UID) ([]VerifyingKey, []CryptPublicKey, error) {
+	ret := _m.ctrl.Call(_m, "LoadUnverifiedKeys", ctx, uid)
+	ret0, _ := ret[0].([]VerifyingKey)
+	ret1, _ := ret[1].([]CryptPublicKey)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockKeybaseDaemonRecorder) LoadUnverifiedKeys(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadUnverifiedKeys", arg0, arg1)
+}
+
 func (_m *MockKeybaseDaemon) CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error) {
 	ret := _m.ctrl.Call(_m, "CurrentSession", ctx, sessionID)
 	ret0, _ := ret[0].(SessionInfo)
@@ -602,6 +614,14 @@ func (_m *MockKeybaseDaemon) FlushUserFromLocalCache(ctx context.Context, uid pr
 
 func (_mr *_MockKeybaseDaemonRecorder) FlushUserFromLocalCache(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FlushUserFromLocalCache", arg0, arg1)
+}
+
+func (_m *MockKeybaseDaemon) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context, uid protocol.UID) {
+	_m.ctrl.Call(_m, "FlushUserUnverifiedKeysFromLocalCache", ctx, uid)
+}
+
+func (_mr *_MockKeybaseDaemonRecorder) FlushUserUnverifiedKeysFromLocalCache(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "FlushUserUnverifiedKeysFromLocalCache", arg0, arg1)
 }
 
 func (_m *MockKeybaseDaemon) Shutdown() {
@@ -817,6 +837,16 @@ func (_m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid protocol.UID, veri
 
 func (_mr *_MockKBPKIRecorder) HasVerifyingKey(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasVerifyingKey", arg0, arg1, arg2, arg3)
+}
+
+func (_m *MockKBPKI) HasUnverifiedVerifyingKey(ctx context.Context, uid protocol.UID, verifyingKey VerifyingKey) error {
+	ret := _m.ctrl.Call(_m, "HasUnverifiedVerifyingKey", ctx, uid, verifyingKey)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKBPKIRecorder) HasUnverifiedVerifyingKey(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasUnverifiedVerifyingKey", arg0, arg1, arg2)
 }
 
 func (_m *MockKBPKI) GetCryptPublicKeys(ctx context.Context, uid protocol.UID) ([]CryptPublicKey, error) {

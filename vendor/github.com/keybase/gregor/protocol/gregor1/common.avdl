@@ -1,0 +1,98 @@
+@namespace("gregor.1")
+@go_field_suffix("_")
+protocol common {
+
+	record TimeOrOffset {
+		Time time;
+		DurationMsec offset;
+	}
+
+	record Metadata {
+		UID uid;
+		MsgID msgID;
+		Time ctime;
+		DeviceID deviceID;
+		int inBandMsgType;
+	}
+
+	record InBandMessage {
+		union { null, StateUpdateMessage } stateUpdate;
+		union { null, StateSyncMessage} stateSync;
+	}
+
+	record State {
+		array<ItemAndMetadata> items;
+	}
+
+	record StateUpdateMessage {
+		Metadata md;
+		union { null, Item } creation;
+		union { null, Dismissal } dismissal;
+	}
+
+	record StateSyncMessage {
+		Metadata md;
+	}
+
+	record MsgRange {
+		TimeOrOffset endTime;
+		Category category;
+	}
+
+	record Dismissal {
+		array<MsgID> msgIDs;
+		array<MsgRange> ranges;
+	}
+
+	record Item {
+		Category category;
+		TimeOrOffset dtime;
+		array<TimeOrOffset> remindTimes;
+		Body body;
+	}
+
+	record ItemAndMetadata {
+		union { null, Metadata } md;
+		union { null, Item } item;
+	}
+
+	record Reminder {
+		ItemAndMetadata item;
+		int seqno;
+		Time remindTime;
+	}
+
+	record ReminderID {
+		UID uid;
+		MsgID msgID;
+		int seqno;
+	}
+
+	record OutOfBandMessage {
+		UID uid;
+		System system;
+		Body body;
+	}
+
+	record ReminderSet {
+		array<Reminder> reminders;
+		bool moreRemindersReady;
+	}
+
+	record Message {
+		union { null, OutOfBandMessage } oobm;
+		union { null, InBandMessage } ibm;
+	}
+
+	@typedef("int64") record DurationMsec {}
+	@typedef("string") record Category {}
+	@typedef("string") record System {}
+	@typedef("bytes") record UID {}
+	@typedef("bytes") record MsgID {}
+	@typedef("bytes") record DeviceID {}
+	@typedef("bytes") record Body {}
+	@typedef("long") record Time {}
+	@typedef("string") record SessionID {}
+	@typedef("string") record SessionToken {}
+}
+

@@ -1,0 +1,6 @@
+@namespace("gregor.1")
+
+// only calls from gregor to authd
+protocol authInternal {
+	SessionToken createGregorSuperUserSessionToken();
+}

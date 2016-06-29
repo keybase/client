@@ -1,0 +1,79 @@
+{
+  "protocol": "incoming",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "SyncResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "InBandMessage"
+          },
+          "name": "msgs"
+        },
+        {
+          "type": "bytes",
+          "name": "hash"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "sync": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "deviceid",
+          "type": "DeviceID"
+        },
+        {
+          "name": "ctime",
+          "type": "Time"
+        }
+      ],
+      "response": "SyncResult"
+    },
+    "consumeMessage": {
+      "request": [
+        {
+          "name": "m",
+          "type": "Message"
+        }
+      ],
+      "response": null
+    },
+    "consumePublishMessage": {
+      "request": [
+        {
+          "name": "m",
+          "type": "Message"
+        }
+      ],
+      "response": null
+    },
+    "ping": {
+      "request": [],
+      "response": "string"
+    },
+    "stateByCategoryPrefix": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "categoryPrefix",
+          "type": "Category"
+        }
+      ],
+      "response": "State",
+      "doc": "StateByCategoryPrefix loads the messages of the user's state whose\n\t  categories are prefixed by the given prefix"
+    }
+  },
+  "namespace": "gregor.1"
+}

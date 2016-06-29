@@ -599,6 +599,10 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 // returns itself.
 func (h *TlfHandle) ResolveAgain(ctx context.Context, resolver resolver) (
 	*TlfHandle, error) {
+	if h.IsFinal() {
+		// Don't attempt to further resolve final handles.
+		return h, nil
+	}
 	return h.ResolveAgainForUser(ctx, resolver, keybase1.UID(""))
 }
 
@@ -904,4 +908,10 @@ func CheckTlfHandleOffline(
 	ctx context.Context, name string, public bool) error {
 	_, _, _, err := splitAndNormalizeTLFName(name, public)
 	return err
+}
+
+// IsFinal returns whether or not this TlfHandle represents a finalized
+// top-level folder.
+func (h TlfHandle) IsFinal() bool {
+	return h.finalizedInfo != nil
 }
