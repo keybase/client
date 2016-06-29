@@ -100,12 +100,12 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult): ?SearchResul
   }
 }
 
-function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>): Results {
+function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>, requestTimestamp: Date): Results {
   const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr)))
 
   return {
     type: Constants.results,
-    payload: {term, results},
+    payload: {term, results, requestTimestamp},
   }
 }
 
@@ -155,8 +155,11 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
     }[platform]
 
     const limit = 20
-    fetch(`https://keybase.io/_/api/1.0/user/user_search.json?q=${term}&num_wanted=${limit}&service=${service}`) // eslint-disable-line no-undef
-      .then(response => response.json()).then(json => dispatch(rawResults(term, platform, json.list || [])))
+    Promise.all([
+      fetch(`https://keybase.io/_/api/1.0/user/user_search.json?q=${term}&num_wanted=${limit}&service=${service}`).then(r => r.json()), // eslint-disable-line no-undef
+      Promise.resolve(new Date()),
+    ])
+      .then(([json, requestTimestamp]) => dispatch(rawResults(term, platform, json.list || [], requestTimestamp)))
   }
 }
 
