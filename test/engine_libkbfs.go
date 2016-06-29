@@ -22,7 +22,7 @@ type LibKBFS struct {
 	// channels used to re-enable updates if disabled
 	updateChannels map[libkbfs.Config]map[libkbfs.FolderBranch]chan<- struct{}
 	// test object, mostly for logging
-	t *testing.T
+	t testing.TB
 }
 
 // Check that LibKBFS fully implements the Engine interface.
@@ -42,7 +42,7 @@ func (k *LibKBFS) Init() {
 }
 
 // InitTest implements the Engine interface.
-func (k *LibKBFS) InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
+func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 	users []libkb.NormalizedUsername,
 	clock libkbfs.Clock) map[libkb.NormalizedUsername]User {
 	// Start a new log for this test.
@@ -224,9 +224,9 @@ func (k *LibKBFS) Rename(u User, srcDir Node, srcName string,
 }
 
 // WriteFile implements the Engine interface.
-func (k *LibKBFS) WriteFile(u User, file Node, data string, off int64, sync bool) (err error) {
+func (k *LibKBFS) WriteFile(u User, file Node, data []byte, off int64, sync bool) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	err = kbfsOps.Write(context.Background(), file.(libkbfs.Node), []byte(data), off)
+	err = kbfsOps.Write(context.Background(), file.(libkbfs.Node), data, off)
 	if err != nil {
 		return err
 	}
@@ -256,16 +256,14 @@ func (k *LibKBFS) Sync(u User, file Node) (err error) {
 }
 
 // ReadFile implements the Engine interface.
-func (k *LibKBFS) ReadFile(u User, file Node, off, len int64) (data string, err error) {
+func (k *LibKBFS) ReadFile(u User, file Node, off int64, buf []byte) (length int, err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	buf := make([]byte, len)
 	var numRead int64
 	numRead, err = kbfsOps.Read(context.Background(), file.(libkbfs.Node), buf, off)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	data = string(buf[:numRead])
-	return data, nil
+	return int(numRead), nil
 }
 
 type libkbfsSymNode struct {

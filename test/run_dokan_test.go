@@ -28,7 +28,7 @@ func createEngine() Engine {
 	return e
 }
 
-func createUserDokan(t *testing.T, ith int, config *libkbfs.ConfigLocal) User {
+func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal) User {
 	driveLetter := 'T' + byte(ith)
 	if driveLetter > 'Z' {
 		t.Error("Too many users - out of drive letters")

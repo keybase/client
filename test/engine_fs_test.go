@@ -12,6 +12,7 @@ package test
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -27,8 +28,8 @@ import (
 
 type fsEngine struct {
 	name       string
-	t          *testing.T
-	createUser func(t *testing.T, ith int, config *libkbfs.ConfigLocal) User
+	t          testing.TB
+	createUser func(t testing.TB, ith int, config *libkbfs.ConfigLocal) User
 }
 type fsNode struct {
 	path string
@@ -145,14 +146,14 @@ func (*fsEngine) CreateFile(u User, parentDir Node, name string) (file Node, err
 }
 
 // WriteFile is called by the test harness to write to the given file as the given user.
-func (*fsEngine) WriteFile(u User, file Node, data string, off int64, sync bool) (err error) {
+func (*fsEngine) WriteFile(u User, file Node, data []byte, off int64, sync bool) (err error) {
 	n := file.(fsNode)
 	f, err := os.OpenFile(n.path, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	_, err = f.Write([]byte(data))
+	_, err = f.Write(data)
 	if err != nil {
 		return err
 	}
@@ -202,13 +203,14 @@ func (*fsEngine) Rename(u User, srcDir Node, srcName string, dstDir Node, dstNam
 }
 
 // ReadFile is called by the test harness to read from the given file as the given user.
-func (e *fsEngine) ReadFile(u User, file Node, off, len int64) (data string, err error) {
+func (e *fsEngine) ReadFile(u User, file Node, off int64, bs []byte) (int, error) {
 	n := file.(fsNode)
-	bs, err := ioutil.ReadFile(n.path)
+	f, err := os.Open(n.path)
 	if err != nil {
-		return "", err
+		return 0, err
 	}
-	return string(bs), nil
+	defer f.Close()
+	return io.ReadFull(io.NewSectionReader(f, off, int64(len(bs))), bs)
 }
 
 // GetDirChildrenTypes is called by the test harness as the given user to return a map of child nodes
@@ -368,7 +370,7 @@ func fiTypeString(fi os.FileInfo) string {
 	return "OTHER"
 }
 
-func (e *fsEngine) InitTest(t *testing.T, blockSize int64,
+func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 	blockChangeSize int64, users []libkb.NormalizedUsername,
 	clock libkbfs.Clock) map[libkb.NormalizedUsername]User {
 	e.t = t
@@ -397,7 +399,7 @@ func (e *fsEngine) InitTest(t *testing.T, blockSize int64,
 	return res
 }
 
-func nameToUID(t *testing.T, config libkbfs.Config) keybase1.UID {
+func nameToUID(t testing.TB, config libkbfs.Config) keybase1.UID {
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)

@@ -34,7 +34,7 @@ type opt struct {
 	expectedCanonicalTlfName string
 	tlfIsPublic              bool
 	users                    map[libkb.NormalizedUsername]User
-	t                        *testing.T
+	t                        testing.TB
 	initDone                 bool
 	engine                   Engine
 	blockSize                int64
@@ -42,7 +42,7 @@ type opt struct {
 	clock                    *libkbfs.TestClock
 }
 
-func test(t *testing.T, actions ...optionOp) {
+func test(t testing.TB, actions ...optionOp) {
 	o := &opt{}
 	o.engine = createEngine()
 	o.engine.Init()
@@ -78,7 +78,7 @@ func ntimesString(n int, s string) string {
 	return bs.String()
 }
 
-func setBlockSizes(t *testing.T, config libkbfs.Config, blockSize, blockChangeSize int64) {
+func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSize int64) {
 	// Set the block sizes, if any
 	if blockSize > 0 || blockChangeSize > 0 {
 		if blockSize == 0 {
@@ -287,6 +287,12 @@ func initRoot() fileOp {
 	}, IsInit}
 }
 
+func custom(f func(func(fileOp) error) error) fileOp {
+	return fileOp{func(c *ctx) error {
+		return f(func(fop fileOp) error { return fop.operation(c) })
+	}, Defaults}
+}
+
 func mkdir(name string) fileOp {
 	return fileOp{func(c *ctx) error {
 		_, _, err := c.getNode(name, createDir, resolveAllSyms)
@@ -295,12 +301,20 @@ func mkdir(name string) fileOp {
 }
 
 func write(name string, contents string) fileOp {
+	return writeBS(name, []byte(contents))
+}
+
+func writeBS(name string, contents []byte) fileOp {
+	return pwriteBS(name, contents, 0)
+}
+
+func pwriteBS(name string, contents []byte, off int64) fileOp {
 	return fileOp{func(c *ctx) error {
 		f, _, err := c.getNode(name, createFile, resolveAllSyms)
 		if err != nil {
 			return err
 		}
-		return c.engine.WriteFile(c.user, f, contents, 0, true)
+		return c.engine.WriteFile(c.user, f, contents, off, true)
 	}, Defaults}
 }
 
@@ -315,17 +329,22 @@ func truncate(name string, size uint64) fileOp {
 }
 
 func read(name string, contents string) fileOp {
+	return preadBS(name, []byte(contents), 0)
+}
+func preadBS(name string, contents []byte, at int64) fileOp {
 	return fileOp{func(c *ctx) error {
 		file, _, err := c.getNode(name, noCreate, resolveAllSyms)
 		if err != nil {
 			return err
 		}
-		res, err := c.engine.ReadFile(c.user, file, 0, int64(len(contents)))
+		bs := make([]byte, len(contents))
+		l, err := c.engine.ReadFile(c.user, file, at, bs)
 		if err != nil {
 			return err
 		}
-		if res != contents {
-			return fmt.Errorf("Read (name=%s) got=%d, expected=%d bytes: contents=%s differ from expected=%s", name, len(res), len(contents), res, contents)
+		bs = bs[:l]
+		if !bytes.Equal(bs, contents) {
+			return fmt.Errorf("Read (name=%s) got=%d, expected=%d bytes: contents=%s differ from expected=%s", name, len(bs), len(contents), bs, contents)
 		}
 		return nil
 	}, Defaults}
@@ -361,7 +380,7 @@ func mkfile(name string, contents string) fileOp {
 		if len(contents) == 0 {
 			return nil
 		}
-		return c.engine.WriteFile(c.user, f, contents, 0, true)
+		return c.engine.WriteFile(c.user, f, []byte(contents), 0, true)
 	}, Defaults}
 }
 
@@ -661,3 +680,8 @@ func crname(path string, user username) string {
 func crnameEsc(path string, user username) string {
 	return crnameAtTimeEsc(path, user, 0)
 }
+
+type silentBenchmark struct{ testing.TB }
+
+func (silentBenchmark) Log(args ...interface{})                 {}
+func (silentBenchmark) Logf(format string, args ...interface{}) {}

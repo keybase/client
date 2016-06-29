@@ -35,7 +35,7 @@ type Engine interface {
 	// changes can be in each MD update, before it is written to a
 	// dedicated data block instead. If blockSize or blockChangeSize
 	// are zero, the engine defaults are used.
-	InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
+	InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 		users []libkb.NormalizedUsername,
 		clock libkbfs.Clock) map[libkb.NormalizedUsername]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
@@ -56,7 +56,7 @@ type Engine interface {
 	// the given user.
 	CreateLink(u User, parentDir Node, fromName string, toPath string) (err error)
 	// WriteFile is called by the test harness to write to the given file as the given user.
-	WriteFile(u User, file Node, data string, off int64, sync bool) (err error)
+	WriteFile(u User, file Node, data []byte, off int64, sync bool) (err error)
 	// TruncateFile is called by the test harness to truncate the given file as the given user, to the given size.
 	TruncateFile(u User, file Node, size uint64, sync bool) (err error)
 	// RemoveDir is called by the test harness as the given user to remove a subdirectory.
@@ -66,7 +66,7 @@ type Engine interface {
 	// Rename is called by the test harness as the given user to rename a node.
 	Rename(u User, srcDir Node, srcName string, dstDir Node, dstName string) (err error)
 	// ReadFile is called by the test harness to read from the given file as the given user.
-	ReadFile(u User, file Node, off, len int64) (data string, err error)
+	ReadFile(u User, file Node, off int64, bs []byte) (length int, err error)
 	// Lookup is called by the test harness to return a node in the given directory by
 	// its name for the given user. In the case of a symlink the symPath will be set and
 	// the node will be nil.
