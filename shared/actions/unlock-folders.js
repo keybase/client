@@ -7,7 +7,8 @@ import * as Constants from '../constants/unlock-folders'
 import type {TypedAsyncAction, AsyncAction} from '../constants/types/flux'
 import type {ToPaperKeyInput, OnBackFromPaperKey, CheckPaperKey, Finish, Waiting,
   RegisterRekeyListenerAction, NewRekeyPopupAction} from '../constants/unlock-folders'
-import type {incomingCallMapType, delegateUiCtlRegisterRekeyUIRpc, loginPaperKeySubmitRpc} from '../constants/types/flow-types'
+import type {delegateUiCtlRegisterRekeyUIRpc, loginPaperKeySubmitRpc} from '../constants/types/flow-types'
+import {createServer} from '../engine/server'
 import type {Dispatch} from '../constants/types/flux'
 
 type UglyKeys = 'refresh'
@@ -58,9 +59,6 @@ export function close (): AsyncAction {
 
 export function registerRekeyListener (): (dispatch: Dispatch) => void {
   return dispatch => {
-    const rekeyListeners = rekeyListenersCreator(dispatch)
-    engine.listenGeneralIncomingRpc(rekeyListeners)
-
     engine.listenOnConnect('registerRekeyUI', () => {
       const params: delegateUiCtlRegisterRekeyUIRpc = {
         method: 'delegateUiCtl.registerRekeyUI',
@@ -75,6 +73,20 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
 
       engine.rpc(params)
     })
+
+    createServer(
+      engine,
+      'keybase.1.rekeyUI.delegateRekeyUI',
+      'keybase.1.rekeyUI.refresh',
+      () => ({
+        start: (params, response) => { },
+        finish: ({sessionID, problemSetDevices}, response) => {
+          console.log('Asked for rekey')
+          dispatch(({type: Constants.newRekeyPopup, payload: {devices: problemSetDevices.devices || [], sessionID}}: NewRekeyPopupAction))
+          uglySessionIDResponseMapper['refresh'] = response
+        },
+      })
+    )
 
     dispatch(({type: Constants.registerRekeyListener, payload: {started: true}}: RegisterRekeyListenerAction))
   }
@@ -97,16 +109,3 @@ function uglyResponse (key: UglyKeys, result: any, err: ?any): void {
 }
 
 const uglySessionIDResponseMapper: {[key: UglyKeys]: any} = {}
-
-function rekeyListenersCreator (dispatch: Dispatch): incomingCallMapType {
-  return {
-    'keybase.1.rekeyUI.delegateRekeyUI': (params, response) => {
-      response.result(engine.getSessionID())
-    },
-    'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
-      console.log('Asked for rekey')
-      dispatch(({type: Constants.newRekeyPopup, payload: {devices: problemSetDevices.devices || [], sessionID}}: NewRekeyPopupAction))
-      uglySessionIDResponseMapper['refresh'] = response
-    },
-  }
-}
