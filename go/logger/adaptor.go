@@ -3,7 +3,7 @@
 
 package logger
 
-// Loggerf is a minial log interface (using formatter style methods)
+// Loggerf is a minimal log interface (using proper formatter style methods)
 type Loggerf interface {
 	Debugf(s string, args ...interface{})
 	Infof(s string, args ...interface{})

@@ -21,7 +21,7 @@ func NewCmdCtlStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Name:  "start",
 		Usage: "Start the app and services",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(newCmdCtlStartRunner(g), "start", c)
+			cl.ChooseCommand(&cmdCtlStart{Contextified: libkb.NewContextified(g)}, "start", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetNoStandalone()
@@ -31,10 +31,6 @@ func NewCmdCtlStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 
 type cmdCtlStart struct {
 	libkb.Contextified
-}
-
-func newCmdCtlStartRunner(g *libkb.GlobalContext) *cmdCtlStart {
-	return &cmdCtlStart{Contextified: libkb.NewContextified(g)}
 }
 
 func (s *cmdCtlStart) ParseArgv(ctx *cli.Context) error {
