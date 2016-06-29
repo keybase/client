@@ -282,13 +282,12 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
 
 }
 
-// GetOrCreateRootNode implements the KBFSOps interface for
-// KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetOrCreateRootNode(
-	ctx context.Context, h *TlfHandle, branch BranchName) (
+// getMaybeCreateRootNode is called for GetOrCreateRootNode and GetRootNode.
+func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
+	ctx context.Context, h *TlfHandle, branch BranchName, create bool) (
 	node Node, ei EntryInfo, err error) {
-	fs.log.CDebugf(ctx, "GetOrCreateRootNode(%s, %v)",
-		h.GetCanonicalPath(), branch)
+	fs.log.CDebugf(ctx, "getMaybeCreateRootNode(%s, %v, %v)",
+		h.GetCanonicalPath(), branch, create)
 	defer func() { fs.deferLog.CDebugf(ctx, "Done: %#v", err) }()
 
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
@@ -326,6 +325,11 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 		}
 	}
 
+	if !create && md.data.Dir.Type != Dir {
+		kbpki := fs.config.KBPKI()
+		return nil, EntryInfo{}, identifyHandle(ctx, kbpki, kbpki, h)
+	}
+
 	fb := FolderBranch{Tlf: md.ID, Branch: branch}
 
 	// we might not be able to read the metadata if we aren't in the
@@ -361,6 +365,23 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
 	}
 	return node, ei, nil
+}
+
+// GetOrCreateRootNode implements the KBFSOps interface for
+// KBFSOpsStandard
+func (fs *KBFSOpsStandard) GetOrCreateRootNode(
+	ctx context.Context, h *TlfHandle, branch BranchName) (
+	node Node, ei EntryInfo, err error) {
+	return fs.getMaybeCreateRootNode(ctx, h, branch, true)
+}
+
+// GetRootNode implements the KBFSOps interface for
+// KBFSOpsStandard. Returns a nil Node and nil error
+// if the tlf does not exist but there is no error present.
+func (fs *KBFSOpsStandard) GetRootNode(
+	ctx context.Context, h *TlfHandle, branch BranchName) (
+	node Node, ei EntryInfo, err error) {
+	return fs.getMaybeCreateRootNode(ctx, h, branch, false)
 }
 
 // GetDirChildren implements the KBFSOps interface for KBFSOpsStandard
