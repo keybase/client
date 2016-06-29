@@ -1,3 +1,4 @@
+import './globals'
 import React, {Component} from 'react'
 import {AppRegistry, NativeAppEventEmitter, AsyncStorage} from 'react-native'
 import {Provider} from 'react-redux'

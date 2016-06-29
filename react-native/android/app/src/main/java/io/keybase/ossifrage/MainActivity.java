@@ -47,6 +47,25 @@ public class MainActivity extends ReactActivity {
     }
 
     /**
+     * Returns the location of the JavaScript entry file.
+     */
+    @Override
+    protected String getJSMainModuleName() {
+        return "shared/index.native";
+    }
+
+    /**
+     * Returns the name of the bundle in assets. If this is null, and no file path is specified for
+     * the bundle, the app will only work with {@code getUseDeveloperSupport} enabled and will
+     * always try to load the JS bundle from the packager server.
+     * e.g. "index.android.bundle"
+     */
+    @Override
+    protected String getBundleAssetName() {
+        return "index.native.bundle";
+    }
+
+    /**
      * Returns whether dev mode should be enabled.
      * This enables e.g. the dev menu.
      */
