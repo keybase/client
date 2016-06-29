@@ -13,7 +13,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func newCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "stop",
 		Usage: "Stop the background keybase service",

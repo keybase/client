@@ -15,7 +15,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func newCmdCtlStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+// NewCmdCtlStart constructs ctl start command
+func NewCmdCtlStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "start",
 		Usage: "Start the app and services",

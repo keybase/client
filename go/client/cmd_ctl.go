@@ -15,10 +15,10 @@ func NewCmdCtl(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		Name:  "ctl",
 		Usage: "Control the background keybase service",
 		Subcommands: []cli.Command{
-			newCmdCtlStart(cl, g),
-			newCmdCtlStop(cl, g),
+			NewCmdCtlStart(cl, g),
+			NewCmdCtlStop(cl, g),
 			NewCmdCtlReload(cl, g),
-			newCmdCtlRestart(cl, g),
+			NewCmdCtlRestart(cl, g),
 			NewCmdCtlLogRotate(cl, g),
 			NewCmdWatchdog(cl, g),
 			NewCmdWatchdog2(cl, g),

@@ -13,7 +13,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func newCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+// NewCmdCtlStop constructs ctl start command
+func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "stop",
 		Usage: "Stop the app and services",
