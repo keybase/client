@@ -362,23 +362,19 @@ func (d *Dir) attr(ctx context.Context, a *fuse.Attr) (err error) {
 	return nil
 }
 
-// Lookup implements the fs.NodeRequestLookuper interface for Dir.
-func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
-	d.folder.fs.log.CDebugf(ctx, "Dir Lookup %s", req.Name)
-	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
-
-	specialNode := handleSpecialFile(req.Name, d.folder.fs, resp)
+func openSpecialInFolder(name string, folder *Folder, resp *fuse.LookupResponse) fs.Node {
+	specialNode := handleSpecialFile(name, folder.fs, resp)
 	if specialNode != nil {
-		return specialNode, nil
+		return specialNode
 	}
 
-	switch req.Name {
+	switch name {
 	case libfs.StatusFileName:
-		folderBranch := d.folder.getFolderBranch()
-		return NewStatusFile(d.folder.fs, &folderBranch, resp), nil
+		folderBranch := folder.getFolderBranch()
+		return NewStatusFile(folder.fs, &folderBranch, resp)
 
 	case UpdateHistoryFileName:
-		return NewUpdateHistoryFile(d.folder, resp), nil
+		return NewUpdateHistoryFile(folder, resp)
 
 	case libfs.EditHistoryName:
 		folderBranch := d.folder.getFolderBranch()
@@ -387,66 +383,77 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	case libfs.UnstageFileName:
 		resp.EntryValid = 0
 		child := &UnstageFile{
-			folder: d.folder,
+			folder: folder,
 		}
-		return child, nil
+		return child
 
 	case libfs.DisableUpdatesFileName:
 		resp.EntryValid = 0
 		child := &UpdatesFile{
-			folder: d.folder,
+			folder: folder,
 		}
-		return child, nil
+		return child
 
 	case libfs.EnableUpdatesFileName:
 		resp.EntryValid = 0
 		child := &UpdatesFile{
-			folder: d.folder,
+			folder: folder,
 			enable: true,
 		}
-		return child, nil
+		return child
 
 	case libfs.RekeyFileName:
 		resp.EntryValid = 0
 		child := &RekeyFile{
-			folder: d.folder,
+			folder: folder,
 		}
-		return child, nil
+		return child
 
 	case libfs.ReclaimQuotaFileName:
 		resp.EntryValid = 0
 		child := &ReclaimQuotaFile{
-			folder: d.folder,
+			folder: folder,
 		}
-		return child, nil
+		return child
 
 	case libfs.SyncFromServerFileName:
 		resp.EntryValid = 0
 		child := &SyncFromServerFile{
-			folder: d.folder,
+			folder: folder,
 		}
-		return child, nil
+		return child
 
 	case libfs.EnableJournalFileName:
 		child := &JournalControlFile{
 			folder: d.folder,
 			action: libfs.JournalEnable,
 		}
-		return child, nil
+		return child
 
 	case libfs.FlushJournalFileName:
 		child := &JournalControlFile{
 			folder: d.folder,
 			action: libfs.JournalFlush,
 		}
-		return child, nil
+		return child
 
 	case libfs.DisableJournalFileName:
 		child := &JournalControlFile{
 			folder: d.folder,
 			action: libfs.JournalDisable,
 		}
-		return child, nil
+		return child
+	}
+	return nil
+}
+
+// Lookup implements the fs.NodeRequestLookuper interface for Dir.
+func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
+	d.folder.fs.log.CDebugf(ctx, "Dir Lookup %s", req.Name)
+	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+
+	if node := openSpecialInFolder(req.Name, d.folder, resp); node != nil {
+		return node, nil
 	}
 
 	newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name)
@@ -785,23 +792,23 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 		return nil, false, err
 	}
 
+	var rootNode libkbfs.Node
 	if filterErr {
-		// Does it already exist?
-		md, err := tlf.folder.fs.config.MDOps().GetUnmergedForHandle(ctx, handle)
+		rootNode, _, err = tlf.folder.fs.config.KBFSOps().GetRootNode(
+			ctx, handle, libkbfs.MasterBranch)
 		if err != nil {
 			return nil, false, err
 		}
 		// If not fake an empty directory.
-		if md == nil {
+		if rootNode == nil {
 			return nil, false, libfs.TlfDoesNotExist{}
 		}
-	}
-
-	rootNode, _, err :=
-		tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
+	} else {
+		rootNode, _, err = tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
 			ctx, handle, libkbfs.MasterBranch)
-	if err != nil {
-		return nil, false, err
+		if err != nil {
+			return nil, false, err
+		}
 	}
 
 	err = tlf.folder.setFolderBranch(rootNode.GetFolderBranch())
@@ -857,6 +864,9 @@ func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.
 		return nil, err
 	}
 	if exitEarly {
+		if node := openSpecialInFolder(req.Name, tlf.folder, resp); node != nil {
+			return node, nil
+		}
 		return nil, fuse.ENOENT
 	}
 	return dir.Lookup(ctx, req, resp)
