@@ -1,11 +1,13 @@
 import React, {Component} from 'react'
 import {Text, TextInput, View} from 'react-native'
 import {connect} from 'react-redux'
-import commonStyles from '../../styles/common'
 import {login} from '../../actions/login'
 import {routeAppend} from '../../actions/router'
 import ForgotUserPass from './forgot-user-pass'
 import Button from '../../common-adapters/button'
+
+// TODO redo this screen with style guide
+const commonStyles = {}
 
 class Login extends Component {
   constructor (props) {

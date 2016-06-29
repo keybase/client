@@ -21,7 +21,7 @@ import {switchTab} from './actions/tabbed-router'
 import {navigateTo, navigateUp} from './actions/router'
 import {bootstrap} from './actions/config'
 
-import {constants as styleConstants} from './styles/common'
+import {navBarHeight, tabBarHeight} from './styles/style-guide'
 
 import {dumbFullscreen} from './local-debug'
 import DumbSheet from './dev/dumb-sheet'
@@ -115,7 +115,7 @@ class Nav extends Component {
   _renderContent (tab, module) {
     const tabStyle = {
       flex: 1,
-      marginBottom: tab === loginTab ? 0 : styleConstants.tabBarHeight,
+      marginBottom: tab === loginTab ? 0 : tabBarHeight,
     }
 
     return (
@@ -126,7 +126,7 @@ class Nav extends Component {
           rootComponent={module || NoTab}
           Navigator={Navigator}
           NavBar={this.navBar()}
-          navBarHeight={styleConstants.navBarHeight}
+          navBarHeight={navBarHeight}
         />
       </View>
     )

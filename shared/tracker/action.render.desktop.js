@@ -2,7 +2,6 @@
 
 import React, {Component} from 'react'
 import {Button, Text, Icon} from '../common-adapters'
-import commonStyles from '../styles/common'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {normal} from '../constants/tracker'
 
@@ -88,8 +87,8 @@ export function calcFooterHeight (loggedIn: boolean): number {
 }
 
 const styleContainer = {
-  ...commonStyles.flexBoxRow,
-  ...commonStyles.noSelect,
+  ...globalStyles.flexBoxRow,
+  ...globalStyles.noSelect,
   backgroundColor: globalColors.white_90,
   width: '100%',
   height: calcFooterHeight(true),
@@ -104,8 +103,8 @@ const styleContainer = {
 }
 
 const styleCloseContainer = {
-  ...commonStyles.flexBoxRow,
-  ...commonStyles.noSelect,
+  ...globalStyles.flexBoxRow,
+  ...globalStyles.noSelect,
   backgroundColor: globalColors.white_90,
   width: '100%',
   alignItems: 'center',
@@ -120,7 +119,7 @@ const styleActionButton = {
 }
 
 const styleLoggedOutContainer = {
-  ...commonStyles.flexBoxColumn,
+  ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
   width: '100%',
   height: calcFooterHeight(false),
