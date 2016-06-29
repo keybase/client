@@ -138,6 +138,11 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
   return (dispatch, getState) => new Promise((resolve, reject) => {
     dispatch(pendingIdentify(userAssertion || uid, true))
 
+    // In case something explodes, we'll clear the pending Identify after 1 minute
+    const clearPendingTimeout = setTimeout(() => {
+      dispatch(pendingIdentify(userAssertion || uid, false))
+    }, 60e3)
+
     const params: identifyIdentify2Rpc = {
       method: 'identify.identify2',
       param: {
@@ -160,6 +165,7 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
       incomingCallMap,
       callback: (error, response) => {
         console.log('called identify and got back', error, response)
+        clearTimeout(clearPendingTimeout)
         dispatch(pendingIdentify(userAssertion || uid, false))
         resolve()
       },

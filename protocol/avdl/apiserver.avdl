@@ -1,0 +1,15 @@
+@namespace("keybase.1")
+protocol apiserver {
+    import idl "common.avdl";
+
+    record APIRes {
+        string status;
+        string body;
+        int httpStatus;
+        string appStatus;
+    }
+
+    APIRes Get(string endpoint, array<StringKVPair> args, array<int> httpStatus, array<int> appStatusCode);
+    APIRes Post(string endpoint, array<StringKVPair> args, array<int> httpStatus, array<int> appStatusCode);
+    APIRes PostJSON(string endpoint, array<StringKVPair> args, array<StringKVPair> JSONPayload, array<int> httpStatus, array<int> appStatusCode);
+}

@@ -280,3 +280,12 @@ func GetGregorClient(g *libkb.GlobalContext) (keybase1.GregorClient, error) {
 	}
 	return keybase1.GregorClient{Cli: rcli}, nil
 }
+
+func GetAPIServerClient(g *libkb.GlobalContext) (cli keybase1.ApiserverClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.ApiserverClient{Cli: rcli}
+	return cli, nil
+}

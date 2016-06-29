@@ -14,6 +14,7 @@ declare module 'material-ui/svg-icons' { declare var exports: any; }
 declare module 'moment' { declare var exports: any; }
 declare module 'qrcode-generator' { declare var exports: any; }
 declare module 'react-native' { declare var exports: any; }
+declare module 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS' { declare var exports: any; }
 declare module 'react-native-android-permissions' { declare var exports: any; }
 declare module 'react-native-barcodescanner' { declare var exports: any; }
 declare module 'react-native-camera' { declare var exports: any; }

@@ -4,6 +4,8 @@
 
 export const account = {}
 
+export const apiserver = {}
+
 export const backendCommon = {}
 
 export const block = {}
@@ -236,6 +238,7 @@ export const kbfsCommon = {
     'badFolder': 6,
     'notImplemented': 7,
     'oldVersion': 8,
+    'overQuota': 9,
   },
 }
 
@@ -452,6 +455,7 @@ export const user = {}
 
 export default {
   account,
+  apiserver,
   backendCommon,
   block,
   BTC,

@@ -13,6 +13,7 @@ export type State = {
   searchIcon: IconProps.type,
   searchPlatform: ?SearchPlatforms,
   results: Array<SearchResult>,
+  requestTimestamp: ?Date,
   selectedUsers: Array<SearchResult>,
   userForInfoPane: ?SearchResult,
   showUserGroup: boolean,
@@ -25,6 +26,7 @@ const initialState: State = {
   searchPlatform: 'Keybase',
   selectedUsers: [],
   results: [],
+  requestTimestamp: null,
   userForInfoPane: null,
   showUserGroup: false,
 }
@@ -77,6 +79,7 @@ export default function (state: State = initialState, action: SearchActions): St
             : state.selectedUsers.concat(maybeUpgradedUser),
           showUserGroup: true,
           searchHintText: 'Search for another user',
+          results: [],
           searchText: null,
           searchPlatform: null,
         }
@@ -93,9 +96,11 @@ export default function (state: State = initialState, action: SearchActions): St
     case Constants.removeUserFromGroup:
       if (!action.error) {
         const user = action.payload.user
+        const nextSelectedUsers = state.selectedUsers.filter(u => u !== user)
         return {
           ...state,
-          selectedUsers: state.selectedUsers.filter(u => u !== user),
+          showUserGroup: nextSelectedUsers.length === 0 ? false : state.showUserGroup,
+          selectedUsers: nextSelectedUsers,
         }
       }
       break
@@ -105,9 +110,14 @@ export default function (state: State = initialState, action: SearchActions): St
           return state
         }
 
+        if (state.requestTimestamp && action.payload.requestTimestamp < state.requestTimestamp) {
+          return state
+        }
+
         return {
           ...state,
           results: action.payload.results,
+          requestTimestamp: action.payload.requestTimestamp,
         }
       }
       break

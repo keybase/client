@@ -1,9 +1,11 @@
 import React, {Component} from 'react'
 import {StyleSheet, Text, TextInput, View} from 'react-native'
 import {connect} from 'react-redux'
-import commonStyles from '../../styles/common'
 import Button from '../../common-adapters/button'
 import {updateForgotPasswordEmail, submitForgotPassword} from '../../actions/login'
+
+// TODO redo this screen with style guide
+const commonStyles = {}
 
 class ForgotUserPass extends Component {
   render () {

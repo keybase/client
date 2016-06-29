@@ -60,7 +60,7 @@ export const search = 'search:search'
 export type Search = TypedAction<'search:search', {term: string}, void>
 
 export const results = 'search:results'
-export type Results = TypedAction<'search:results', {term: string, results: Array<SearchResult>}, void>
+export type Results = TypedAction<'search:results', {term: string, results: Array<SearchResult>, requestTimestamp: Date}, void>
 
 export const selectPlatform = 'search:selectPlatform'
 export type SelectPlatform = TypedAction<'search:selectPlatform', {platform: SearchPlatforms}, void>

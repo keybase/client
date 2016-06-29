@@ -2,7 +2,8 @@
 import React, {Component} from 'react'
 import {StyleSheet, Text, TouchableHighlight, View} from 'react-native'
 
-import commonStyles from '../../styles/common'
+// TODO redo this screen with style guide
+const commonStyles = {}
 
 export default class ExistingDeviceRender extends Component {
   render () {

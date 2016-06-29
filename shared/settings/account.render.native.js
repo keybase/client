@@ -1,7 +1,9 @@
 import React, {Component} from 'react'
 import {Text, TextInput, View, StyleSheet} from 'react-native'
-import commonStyles from '../styles/common'
 import Button from '../common-adapters/button'
+
+// TODO redo this screen with style guide
+const commonStyles = {}
 
 export default class AccountRender extends Component {
   constructor (props) {

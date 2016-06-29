@@ -233,6 +233,10 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			fp, _ = PGPFingerprintFromHex(s.Desc)
 		}
 		return KeyExistsError{fp}
+	case SCKeyNotFound:
+		return NoKeyError{}
+	case SCKeyNoEldest:
+		return NoSigChainError{}
 	case SCStreamExists:
 		return StreamExistsError{}
 	case SCBadInvitationCode:
@@ -1166,6 +1170,14 @@ func (e DecryptionError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDecryptionError,
 		Name: "SC_DECRYPTION_ERROR",
+		Desc: e.Error(),
+	}
+}
+
+func (e NoSigChainError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCKeyNoEldest,
+		Name: "SC_KEY_NO_ELDEST",
 		Desc: e.Error(),
 	}
 }
