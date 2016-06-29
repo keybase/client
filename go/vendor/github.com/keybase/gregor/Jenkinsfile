@@ -37,7 +37,7 @@ node("ec2-fleet") {
                 }
             )
 
-            mysqlImage.withRun("-p 3306:3306 -e DATABASES=test,gregor") {mysql ->
+            mysqlImage.withRun("-p 3306:3306 -e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASES=test,gregor") {mysql ->
                 parallel (
                     wait_mysql: {
                         sh "docker exec ${mysql.id} sh -c \"until mysqladmin -uroot -psecret status 2>/dev/null; do sleep .1; done\""
@@ -69,7 +69,7 @@ node("ec2-fleet") {
             sh "cp $GOPATH/bin/dbinit bin/dbinit/dbinit"
             def gregorImage = docker.build("keybaseprivate/kbgregor", "bin")
             sh "docker save -o kbgregor.tar keybaseprivate/kbgregor"
-            step([$class: 'ArtifactArchiver', artifacts: 'kbgregor.tar', excludes: null])
+            archive("kbgregor.tar")
 
 
         stage "Integrate"

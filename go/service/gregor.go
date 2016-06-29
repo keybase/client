@@ -99,7 +99,7 @@ type gregorHandler struct {
 	cli                 rpc.GenericClient
 	sessionID           gregor1.SessionID
 	skipRetryConnect    bool
-	freshSync           bool
+	freshReplay         bool
 	transportForTesting *connTransport
 
 	shutdownCh chan struct{}
@@ -132,7 +132,7 @@ func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
 func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 	gh = &gregorHandler{
 		Contextified: libkb.NewContextified(g),
-		freshSync:    true,
+		freshReplay:  true,
 	}
 
 	// Create client interface to gregord; we should do this everytime a
@@ -293,9 +293,24 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 
 	var msgs []gregor.InBandMessage
 	var err error
-	if msgs, err = g.gregorCli.StateMachineInBandMessagesSince(t); err != nil {
-		g.Warning("unable to fetch messages for reply: %s", err)
-		return nil, err
+
+	if t.IsZero() {
+		g.Debug("replayInBandMessages: fresh replay: using state items")
+		state, err := g.gregorCli.StateMachineState(nil)
+		if err != nil {
+			g.Warning("unable to fetch state for replay: %s", err)
+			return nil, err
+		}
+		if msgs, err = g.gregorCli.InBandMessagesFromState(state); err != nil {
+			g.Warning("unable to fetch messages from state for replay: %s", err)
+			return nil, err
+		}
+	} else {
+		g.Debug("replayInBandMessages: incremental replay: using ibms since")
+		if msgs, err = g.gregorCli.StateMachineInBandMessagesSince(t); err != nil {
+			g.Warning("unable to fetch messages for replay: %s", err)
+			return nil, err
+		}
 	}
 
 	g.Debug("replaying %d messages", len(msgs))
@@ -331,14 +346,14 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
-	if !g.freshSync {
+	if !g.freshReplay {
 		pt := g.gregorCli.StateMachineLatestCTime()
 		if pt != nil {
 			t = *pt
 		}
-		g.Debug("starting sync from: %s", t)
+		g.Debug("starting replay from: %s", t)
 	} else {
-		g.Debug("performing a fresh sync")
+		g.Debug("performing a fresh replay")
 	}
 
 	// Sync down everything from the server
@@ -355,8 +370,8 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 		return nil, nil, err
 	}
 
-	// All done with fresh syncs
-	g.freshSync = false
+	// All done with fresh replays
+	g.freshReplay = false
 
 	return replayedMsgs, consumedMsgs, nil
 }

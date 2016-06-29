@@ -60,11 +60,36 @@
       "request": [],
       "response": "string"
     },
+    "state": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "deviceid",
+          "type": "DeviceID"
+        },
+        {
+          "name": "timeOrOffset",
+          "type": "TimeOrOffset"
+        }
+      ],
+      "response": "State"
+    },
     "stateByCategoryPrefix": {
       "request": [
         {
           "name": "uid",
           "type": "UID"
+        },
+        {
+          "name": "deviceid",
+          "type": "DeviceID"
+        },
+        {
+          "name": "timeOrOffset",
+          "type": "TimeOrOffset"
         },
         {
           "name": "categoryPrefix",
