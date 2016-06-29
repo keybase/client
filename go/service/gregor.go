@@ -294,8 +294,12 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 		} else {
 			_, err = g.handleInBandMessageWithHandler(ctx, cli, msg, handler)
 		}
+
+		// If an error happens when replaying, don't kill everything else that
+		// follows, just make a warning.
 		if err != nil {
-			return nil, err
+			g.Warning("Failure in message replay: %s", err.Error())
+			err = nil
 		}
 	}
 

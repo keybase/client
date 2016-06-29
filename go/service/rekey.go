@@ -122,7 +122,7 @@ func newProblemSetDevices(u *libkb.User, pset keybase1.ProblemSet) (keybase1.Pro
 
 	dset := make(map[keybase1.DeviceID]bool)
 	for _, f := range pset.Tlfs {
-		for _, kid := range f.Solutions {
+		for _, kid := range f.Solution_kids {
 			dev, err := ckf.GetDeviceForKID(kid)
 			if err != nil {
 				return keybase1.ProblemSetDevices{}, err

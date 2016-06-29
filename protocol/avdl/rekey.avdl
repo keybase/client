@@ -17,7 +17,10 @@ protocol rekey {
   record ProblemTLF {
     TLF tlf;
     int score;
-    array<KID> solutions;
+
+    // MK Note 2016.06.29 -- Please excuse snake case here. It's too much
+    // of a pain to change it on the server, so leave it here.
+    array<KID> solution_kids;
   }
 
   /**
@@ -55,7 +58,7 @@ protocol rekey {
   ProblemSetDevices getPendingRekeyStatus(int sessionID);
 
   /**
-   DebugShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for 
+   DebugShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for
    the current user.
    */
   void debugShowRekeyStatus(int sessionID);
