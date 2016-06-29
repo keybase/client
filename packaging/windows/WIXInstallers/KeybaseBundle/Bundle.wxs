@@ -7,6 +7,8 @@
     <Variable Name="DokanProduct86" Type="string" Value="{65A3A986-3DC3-0100-0000-160621082245}" />
     <Log PathVariable="LOGPATH_PROP"/>
     <util:FileSearchRef Id='WINTRUST_FileSearch' />
+    <util:RegistrySearchRef Id='InnoCLIUninstall' />
+    <util:RegistrySearchRef Id='InnoCLIUninstall64' />
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication
             LicenseUrl="https://keybase.io/docs/terms"
@@ -76,26 +78,6 @@
                  Format="raw"
                  Win64="yes"
                  />
-    <!-- For the Inno command line client -->
-    <util:RegistrySearch Id="InnoCLIUninstall"
-                 After="InnoUninstall364"                         
-                 Variable="InnoUninstallString"
-                 Condition="NOT InnoUninstallString"
-                 Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
-                 Value="QuietUninstallString"
-                 Format="raw"
-                 />
-    <util:RegistrySearch Id="InnoCLIUninstall64"
-                 After="InnoCLIUninstall"
-                 Condition="NOT InnoUninstallString"
-                 Variable="InnoUninstallString"
-                 Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
-                 Value="QuietUninstallString"
-                 Format="raw"
-                 Win64="yes"
-                 />
 
     <!-- Dokany Product Codes: v1.0.0-RC4.2 -->
     
@@ -157,9 +139,7 @@
 
 
     <Chain>
-      <!-- Run whatever quiet uninstaller we detected. With this hack, we can't distinguish
-           between CLI and KBFS, and must reboot regardless - another, custom MSI for cleanup
-           could get around this possibly. -->
+      <!-- Run whatever quiet uninstaller we detected. -->
       <ExePackage
         SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe"
           InstallCommand="-wait [InnoUninstallString] /NORESTART"
@@ -188,19 +168,12 @@
       
       <MsiPackage Id="KeybasePrograms" 
                   SourceFile="$(var.KeybaseApps.TargetPath)" 
-                  DisplayInternalUI='yes'
+                  DisplayInternalUI='no'
                   Permanent="no">
       </MsiPackage>
 		</Chain>
 	</Bundle>
-  <Fragment>
-    <util:RegistrySearch
-          Id='SearchForThirdParty'
-          Variable="ThirdPartyCOMLibraryInstalled"
-          Result="exists"
-          Root="HKLM"
-          Key="SOFTWARE\Classes\ThirdPartyId.Server\CLSID" />
-    
+  <Fragment>    
     <util:FileSearch Id="WINTRUST_FileSearch"
                      Path="[SystemFolder]Wintrust.dll"
                      Variable="WINTRUSTVERSION"
@@ -211,4 +184,28 @@
       <![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND WINTRUSTVERSION >= v6.1.7601.18741)]]>
     </bal:Condition>
   </Fragment>
+  <Fragment>
+    <util:RegistrySearch
+          Id='InnoCLIUninstall'
+          Variable="InnoCLIInstalled"
+          Result="exists"
+          Root="HKLM"
+          Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
+          Value="UninstallString" />
+
+    <util:RegistrySearch
+          Id='InnoCLIUninstall64'
+          Variable="InnoCLIInstalled64"
+          Result="exists"
+          Root="HKLM"
+          Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
+          Value="UninstallString" 
+          Win64="yes"/>
+
+    <bal:Condition
+      Message="Please uninstall any previous Keybase versions before continuing.">
+      <![CDATA[NOT InnoCLIInstalled AND NOT InnoCLIInstalled64]]>
+    </bal:Condition>
+  </Fragment>
+
 </Wix>
