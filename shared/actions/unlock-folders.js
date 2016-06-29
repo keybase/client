@@ -58,6 +58,9 @@ export function close (): AsyncAction {
 
 export function registerRekeyListener (): (dispatch: Dispatch) => void {
   return dispatch => {
+    const rekeyListeners = rekeyListenersCreator(dispatch)
+    engine.listenGeneralIncomingRpc(rekeyListeners)
+
     engine.listenOnConnect('registerRekeyUI', () => {
       const params: delegateUiCtlRegisterRekeyUIRpc = {
         method: 'delegateUiCtl.registerRekeyUI',
@@ -74,9 +77,6 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
     })
 
     dispatch(({type: Constants.registerRekeyListener, payload: {started: true}}: RegisterRekeyListenerAction))
-
-    const rekeyListeners = rekeyListenersCreator(dispatch)
-    engine.listenGeneralIncomingRpc(rekeyListeners)
   }
 }
 
@@ -100,6 +100,9 @@ const uglySessionIDResponseMapper: {[key: UglyKeys]: any} = {}
 
 function rekeyListenersCreator (dispatch: Dispatch): incomingCallMapType {
   return {
+    'keybase.1.rekeyUI.delegateRekeyUI': (params, response) => {
+      response.result(engine.getSessionID())
+    },
     'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
       console.log('Asked for rekey')
       dispatch(({type: Constants.newRekeyPopup, payload: {devices: problemSetDevices.devices || [], sessionID}}: NewRekeyPopupAction))

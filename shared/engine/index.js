@@ -119,7 +119,7 @@ class Engine {
     this.onConnectFns[key] = f
   }
 
-  _getSessionID () {
+  getSessionID () {
     this.sessionID++
     return this.sessionID
   }
@@ -156,7 +156,7 @@ class Engine {
   }
 
   _serverInitIncomingRPC (method, param, response) {
-    const sid = this._getSessionID()
+    const sid = this.getSessionID()
     const cbs = {
       start: callMap => {
         this.sessionIDToIncomingCall[sid] = {incomingCallMap: callMap, waitingHandler: null}
@@ -334,7 +334,7 @@ class Engine {
       param = {}
     }
 
-    const sessionID = param.sessionID = this._getSessionID()
+    const sessionID = param.sessionID = this.getSessionID()
     this.sessionIDToIncomingCall[sessionID] = {incomingCallMap, waitingHandler}
     this.sessionIDToResponse[sessionID] = null
 
