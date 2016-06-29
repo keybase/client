@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, Icon, Text} from '../../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import {fullName, platformToLogo16} from '../../constants/search'
 
@@ -42,13 +42,13 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
 
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
-      <Box onClick={() => onClickUser(user)} style={userRowStyle} className={'highlight-row'}>
+      <ClickableBox hoverColor={globalColors.blue4} backgroundColor={globalColors.white} onClick={() => onClickUser(user)} style={userRowStyle}>
         {avatar}
         {name}
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'flex-end', marginRight: 16}}>
           <Icon onClick={e => { e && e.stopPropagation(); onRemove(user) }} type={'fa-times-circle'} style={{fontSize: 24, color: globalColors.black_20}} />
         </Box>
-      </Box>
+      </ClickableBox>
       {insertSpacing && <Box style={{height: 1}} />}
     </Box>
   )
@@ -56,24 +56,18 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
 
 function RowButton ({icon, text, onClick}: {icon: IconType, text: string, onClick: () => void}) {
   return (
-    <Box onClick={onClick} style={rowButtonStyle} className={'highlight-row'}>
+    <ClickableBox hoverColor={globalColors.blue4} backgroundColor={globalColors.white} onClick={onClick} style={rowButtonStyle}>
       <Icon type={icon} />
       <Text type='Body' style={{marginLeft: 8, color: globalColors.blue}}>{text}</Text>
-    </Box>
+    </ClickableBox>
   )
 }
 
 export default function UserGroup ({users, onClickUser, onRemoveUser, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, chatEnabled, onGroupChat}: Props) {
-  const realCSS = `
-    .highlight-row { background-color: ${globalColors.white}; }
-    .highlight-row:hover { background-color: ${globalColors.blue4}; }
-  `
-
   const privateFolderText = users.length > 1 ? 'Open a private group folder' : 'Open a shared private folder'
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, backgroundColor: globalColors.lightGrey}}>
-      <style>{realCSS}</style>
       {users.map(u => <User key={u.service + u.username} user={u} onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
       <RowButton icon='icon-folder-private-open-24' text={privateFolderText} onClick={onOpenPrivateGroupFolder} />
       {users.length === 1 && <RowButton icon='icon-folder-public-open-24' text='Open public folder' onClick={onOpenPublicGroupFolder} />}
