@@ -28,7 +28,10 @@ export default function () {
     resizable: false,
     preloadWindow: true,
     icon: icon,
-    showDockIcon: true, // This causes menubar to not touch dock icon, yeah it's weird
+    // Without this flag set, menubar will hide the dock icon when the app
+    // ready event fires. We manage the dock icon ourselves, so this flag
+    // prevents menubar from changing the state.
+    'show-dock-icon': true,
   })
 
   ipcMain.on('showTrayLoading', () => {
