@@ -65,6 +65,10 @@ export default function () {
   })
 
   mb.on('ready', () => {
+    // Hack: open widget when right clicked (in addition to left click;
+    // currently menubar affords one or the other).
+    mb.tray.on('right-click', (e, bounds) => mb.tray.emit('click', e, bounds))
+
     // prevent the menubar's window from dying when we quit
     mb.window.on('close', event => {
       mb.window.webContents.on('destroyed', () => {
