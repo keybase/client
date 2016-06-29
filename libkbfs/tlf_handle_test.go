@@ -639,7 +639,7 @@ func TestResolveAgainConflict(t *testing.T) {
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
 	daemon.addNewAssertionForTestOrBust("u3", "u3@twitter")
-	ext, err := NewTlfHandleExtension(TlfHandleExtensionConflict, 1)
+	ext, err := NewTlfHandleExtension(TlfHandleExtensionConflict, 1, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -780,7 +780,7 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 		daemon: daemon,
 	}
 
-	name := "u1,u2#u3 (conflicted copy 2016-03-14 #3) (finalized 2016-03-14 #2)"
+	name := "u1,u2#u3 (conflicted copy 2016-03-14 #3) (files before u2 account reset 2016-03-14 #2)"
 	h, err := ParseTlfHandle(ctx, kbpki, name, false)
 	require.Nil(t, err)
 	assert.Equal(t, TlfHandleExtension{
@@ -789,12 +789,13 @@ func TestParseTlfHandleNoncanonicalExtensions(t *testing.T) {
 		Number: 3,
 	}, *h.ConflictInfo())
 	assert.Equal(t, TlfHandleExtension{
-		Type:   TlfHandleExtensionFinalized,
-		Date:   TlfHandleExtensionStaticTestDate,
-		Number: 2,
+		Type:     TlfHandleExtensionFinalized,
+		Date:     TlfHandleExtensionStaticTestDate,
+		Number:   2,
+		Username: "u2",
 	}, *h.FinalizedInfo())
 
-	nonCanonicalName := "u1,u2#u3 (finalized 2016-03-14 #2) (conflicted copy 2016-03-14 #3)"
+	nonCanonicalName := "u1,u2#u3 (files before u2 account reset 2016-03-14 #2) (conflicted copy 2016-03-14 #3)"
 	_, err = ParseTlfHandle(ctx, kbpki, nonCanonicalName, false)
 	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
 }
