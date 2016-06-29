@@ -23,7 +23,7 @@ const (
 	errorParamExternal   = "external"
 	errorParamRekeySelf  = "rekeyself"
 	errorParamUsageBytes = "usageBytes"
-	errorParamLimitBytes = "usageBytes"
+	errorParamLimitBytes = "limitBytes"
 
 	// error operation modes
 	errorModeRead  = "read"

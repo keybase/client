@@ -268,14 +268,8 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 		Buf:      buf,
 	}
 
-	err = b.client.PutBlock(ctx, arg)
-	if err != nil {
-		if qe, ok := err.(BServerErrorOverQuota); ok && !qe.Throttled {
-			return nil
-		}
-		return err
-	}
-	return nil
+	// Handle OverQuota errors at the caller
+	return b.client.PutBlock(ctx, arg)
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
@@ -294,17 +288,11 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 		}
 	}()
 
-	err = b.client.AddReference(ctx, keybase1.AddReferenceArg{
+	// Handle OverQuota errors at the caller
+	return b.client.AddReference(ctx, keybase1.AddReferenceArg{
 		Ref:    makeBlockReference(id, context),
 		Folder: tlfID.String(),
 	})
-	if err != nil {
-		if qe, ok := err.(BServerErrorOverQuota); ok && !qe.Throttled {
-			return nil
-		}
-		return err
-	}
-	return nil
 }
 
 // RemoveBlockReference implements the BlockServer interface for

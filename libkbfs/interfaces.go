@@ -996,6 +996,10 @@ type BlockServer interface {
 	// Put should be idempotent, although it should also return an
 	// error if, for a given ID, any of the other arguments differ
 	// from previous Put calls with the same ID.
+	//
+	// If this returns a BServerErrorOverQuota, with Throttled=false,
+	// the caller can treat it as informational and otherwise ignore
+	// the error.
 	Put(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext,
 		buf []byte, serverHalf BlockCryptKeyServerHalf) error
 
@@ -1010,6 +1014,10 @@ type BlockServer interface {
 	// also return an error if, for a given ID and refnonce, any
 	// of the other fields of context differ from previous
 	// AddBlockReference calls with the same ID and refnonce.
+	//
+	// If this returns a BServerErrorOverQuota, with Throttled=false,
+	// the caller can treat it as informational and otherwise ignore
+	// the error.
 	AddBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
 		context BlockContext) error
 	// RemoveBlockReference removes the reference to the given block
