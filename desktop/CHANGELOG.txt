@@ -9,4 +9,3 @@ What we are currently working on:
 ---------------------------------
 
 - KBFS performance, including delayed writes
-
