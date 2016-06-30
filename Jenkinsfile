@@ -176,10 +176,14 @@ node("ec2-fleet") {
                         },
                         test_osx: {
                             node('osx') {
-                                println "Checkout OS X"
-                                    checkout scm
+                                env.GOPATH=pwd()
 
-                                println "Test OS X"
+                                ws("${env.GOPATH}/src/github.com/keybase/client") {
+                                    println "Checkout OS X"
+                                        checkout scm
+
+                                    println "Test OS X"
+                                }
                             }
                         },
                     )
