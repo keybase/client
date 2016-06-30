@@ -92,7 +92,10 @@ type gregorHandler struct {
 	gregorCli        *grclient.Client
 	firehoseHandlers []libkb.GregorFirehoseHandler
 
-	conn                *rpc.Connection
+	// This mutex protects the con object
+	connMutex sync.Mutex
+	conn      *rpc.Connection
+
 	cli                 rpc.GenericClient
 	sessionID           gregor1.SessionID
 	skipRetryConnect    bool
@@ -130,7 +133,6 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 	gh = &gregorHandler{
 		Contextified: libkb.NewContextified(g),
 		freshSync:    true,
-		shutdownCh:   make(chan struct{}),
 	}
 
 	// Create client interface to gregord
@@ -200,6 +202,7 @@ func (g *gregorHandler) Errorf(s string, args ...interface{}) {
 
 func (g *gregorHandler) Connect(uri *rpc.FMPURI) error {
 	var err error
+	g.shutdownCh = make(chan struct{})
 	if uri.UseTLS() {
 		err = g.connectTLS(uri)
 	} else {
@@ -218,6 +221,8 @@ func (g *gregorHandler) HandlerName() string {
 func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 	g.Lock()
 	defer g.Unlock()
+
+	g.G().Log.Debug("pushing inband handler %s to position %d", handler.Name(), len(g.ibmHandlers))
 
 	g.ibmHandlers = append(g.ibmHandlers, handler)
 
@@ -460,13 +465,16 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 // handleInBandMessage runs a message on all the alive handlers. gregorHandler
 // must be locked when calling this function.
 func (g *gregorHandler) handleInBandMessage(ctx context.Context, cli gregor1.IncomingInterface,
-	ibm gregor.InBandMessage) error {
+	ibm gregor.InBandMessage) (err error) {
+
+	defer g.G().Trace(fmt.Sprintf("gregorHandler#handleInBandMessage with %d handlers", len(g.ibmHandlers)), func() error { return err })()
 
 	var freshHandlers []libkb.GregorInBandMessageHandler
 
 	// Loop over all handlers and run the messages against any that are alive
 	// If the handler is not alive, we prune it from our list
-	for _, handler := range g.ibmHandlers {
+	for i, handler := range g.ibmHandlers {
+		g.Debug("trying handler %s at position %d", handler.Name(), i)
 		if handler.IsAlive() {
 			if handled, err := g.handleInBandMessageWithHandler(ctx, cli, ibm, handler); err != nil {
 				if handled {
@@ -478,10 +486,15 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, cli gregor1.Inc
 				g.Debug("handleInBandMessage() failed to run %s handler: %s", handler.Name(), err)
 			}
 			freshHandlers = append(freshHandlers, handler)
+		} else {
+			g.Debug("skipping handler as it's marked dead: %s", handler.Name())
 		}
 	}
 
-	g.ibmHandlers = freshHandlers
+	if len(g.ibmHandlers) != len(freshHandlers) {
+		g.Debug("Change # of live handlers from %d to %d", len(g.ibmHandlers), len(freshHandlers))
+		g.ibmHandlers = freshHandlers
+	}
 	return nil
 }
 
@@ -700,6 +713,9 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 }
 
 func (g *gregorHandler) Shutdown() {
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
+
 	if g.conn == nil {
 		return
 	}
@@ -803,7 +819,10 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
 	g.Debug("Using CA for gregor: %s", libkb.ShortCA(rawCA))
+
+	g.connMutex.Lock()
 	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), keybase1.ErrorUnwrapper{}, g, true, libkb.NewRPCLogFactory(g.G()), keybase1.WrapError, g.G().Log, nil)
+	g.connMutex.Unlock()
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not
@@ -824,7 +843,9 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 	g.Debug("connecting to gregord without TLS at %s", uri)
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.transportForTesting = t
+	g.connMutex.Lock()
 	g.conn = rpc.NewConnectionWithTransport(g, t, keybase1.ErrorUnwrapper{}, true, keybase1.WrapError, g.G().Log, nil)
+	g.connMutex.Unlock()
 	g.cli = g.conn.GetClient()
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick
