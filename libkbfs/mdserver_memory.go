@@ -36,6 +36,11 @@ type mdBlockMem struct {
 	timestamp time.Time
 }
 
+type mdBlockMemList struct {
+	initialRevision MetadataRevision
+	blocks          []mdBlockMem
+}
+
 type mdServerMemShared struct {
 	// Protects all *db variables. After Shutdown() is called, all
 	// *db variables are nil.
@@ -44,8 +49,8 @@ type mdServerMemShared struct {
 	handleDb map[mdHandleKey]TlfID
 	// TLF ID -> latest bare TLF handle
 	latestHandleDb map[TlfID]BareTlfHandle
-	// (TLF ID, branch ID) -> [revision]mdBlockMem
-	mdDb map[mdBlockKey][]mdBlockMem
+	// (TLF ID, branch ID) -> list of MDs
+	mdDb map[mdBlockKey]mdBlockMemList
 	// (TLF ID, device KID) -> branch ID
 	branchDb map[mdBranchKey]BranchID
 	locksDb  map[TlfID]keybase1.KID // TLF ID -> device KID
@@ -68,7 +73,7 @@ var _ mdServerLocal = (*MDServerMemory)(nil)
 func NewMDServerMemory(config Config) (*MDServerMemory, error) {
 	handleDb := make(map[mdHandleKey]TlfID)
 	latestHandleDb := make(map[TlfID]BareTlfHandle)
-	mdDb := make(map[mdBlockKey][]mdBlockMem)
+	mdDb := make(map[mdBlockKey]mdBlockMemList)
 	branchDb := make(map[mdBranchKey]BranchID)
 	locksDb := make(map[TlfID]keybase1.KID)
 	log := config.MakeLogger("")
@@ -210,10 +215,11 @@ func (md *MDServerMemory) getHeadForTLF(ctx context.Context, id TlfID,
 		return nil, errMDServerMemoryShutdown
 	}
 
-	blocks := md.mdDb[key]
-	if len(blocks) == 0 {
+	blockList, ok := md.mdDb[key]
+	if !ok {
 		return nil, nil
 	}
+	blocks := blockList.blocks
 	var rmds RootMetadataSigned
 	err = md.config.Codec().Decode(blocks[len(blocks)-1].encodedMd, &rmds)
 	if err != nil {
@@ -274,10 +280,17 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id TlfID,
 		return nil, errMDServerMemoryShutdown
 	}
 
-	blocks := md.mdDb[key]
+	blockList, ok := md.mdDb[key]
+	if !ok {
+		return nil, nil
+	}
 
-	startI := int(start - MetadataRevisionInitial)
-	endI := int(stop - MetadataRevisionInitial + 1)
+	startI := int(start - blockList.initialRevision)
+	if startI < 0 {
+		startI = 0
+	}
+	endI := int(stop - blockList.initialRevision + 1)
+	blocks := blockList.blocks
 	if endI > len(blocks) {
 		endI = len(blocks)
 	}
@@ -288,6 +301,11 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id TlfID,
 		err = md.config.Codec().Decode(blocks[i].encodedMd, &rmds)
 		if err != nil {
 			return nil, MDServerError{err}
+		}
+		expectedRevision := blockList.initialRevision + MetadataRevision(i)
+		if expectedRevision != rmds.MD.Revision {
+			panic(fmt.Errorf("expected revision %v, got %v",
+				expectedRevision, rmds.MD.Revision))
 		}
 		rmdses = append(rmdses, &rmds)
 	}
@@ -397,7 +415,16 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 		return errMDServerMemoryShutdown
 	}
 
-	md.mdDb[revKey] = append(md.mdDb[revKey], block)
+	blockList, ok := md.mdDb[revKey]
+	if ok {
+		blockList.blocks = append(blockList.blocks, block)
+		md.mdDb[revKey] = blockList
+	} else {
+		md.mdDb[revKey] = mdBlockMemList{
+			initialRevision: rmds.MD.Revision,
+			blocks:          []mdBlockMem{block},
+		}
+	}
 
 	if mStatus == Merged &&
 		// Don't send notifies if it's just a rekey (the real mdserver
