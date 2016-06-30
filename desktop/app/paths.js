@@ -12,7 +12,7 @@ function appPath () {
 
 // Path to bundle directory, e.g. /Applications/Keybase.app (darwin only)
 export function appBundlePath () {
-  if (os.platform() !== 'darwin') return ''
+  if (os.platform() !== 'darwin') return null
   return path.resolve(appPath(), '..', '..', '..')
 }
 
