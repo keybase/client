@@ -49,7 +49,7 @@ export default class Server {
   engine: Engine;
   endpointsFn: (params: any, end: () => void) => CallMap;
 
-  constructor (engine: Engine, startMethodName: string, endMethodName: string, endpointMapFn: (params: any) => CallMap) {
+  constructor (engine: Engine, startMethodName: string, endMethodName: ?string, endpointMapFn: (params: any) => CallMap) {
     this.engine = engine
     this.startMethodName = startMethodName
 
@@ -81,7 +81,7 @@ export default class Server {
   }
 }
 
-export function createServer (engine: Engine, startMethodName: string, endMethodName: string, endpointMapFn: (params: any) => CallMap): void {
+export function createServer (engine: Engine, startMethodName: string, endMethodName: ?string, endpointMapFn: (params: any) => CallMap): void {
   const s = new Server(engine, startMethodName, endMethodName, endpointMapFn)
   s.listen()
 }
