@@ -203,7 +203,7 @@ node("ec2-fleet") {
                                                 if (fileExists("npm-vendor.js")) {
                                                     bat "npm run vendor-install"
                                                 } else {
-                                                    bat "npm install --no-optional"
+                                                    bat "npm install"
                                                 }
                                                 withCredentials([[$class: 'UsernamePasswordMultiBinding',
                                                         credentialsId: 'visdiff-aws-creds',
