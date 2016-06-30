@@ -40,7 +40,7 @@ export default function (path, args, platformOnly, runModeOnly, killOnExit, call
     args.unshift(path)
     var cmd = args.join(' ')
     console.log('Executing:', cmd)
-    var proc = exec(cmd, function (execErr, stdout, stderr) {
+    var procExec = exec(cmd, function (execErr, stdout, stderr) {
       if (stdout) {
         console.log('Exec (stdout):', stdout)
       }
@@ -53,10 +53,10 @@ export default function (path, args, platformOnly, runModeOnly, killOnExit, call
       if (callback) callback(execErr, true)
     })
 
-    if (killOnExit && proc) {
+    if (killOnExit && procExec) {
       // Kill the process if parent process exits
-      proc.on('exit', function () {
-        proc.kill()
+      process.on('exit', function () {
+        procExec.kill()
       })
     }
   })
