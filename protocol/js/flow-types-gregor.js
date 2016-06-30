@@ -8,10 +8,10 @@ export type int64 = number
 export type long = number
 export type double = number
 export type bytes = any
-export type RPCError = {
+export type RPCError = $Exact<{
   code: number,
   desc: string
-}
+}>
 
 export type AuthResult = $Exact<{
   uid: UID;
