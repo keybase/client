@@ -2,7 +2,11 @@
 import React, {Component} from 'react'
 import UserInfo from './user.render'
 import NonUserInfo from './non-user.render'
+<<<<<<< 1828166cd535a446002d678f0057beec0db4b019
 import Help from './help'
+=======
+import Loading from './loading'
+>>>>>>> Add loading state pane
 
 import {fullName} from '../../constants/search'
 import keybaseUrl from '../../constants/urls'
@@ -30,7 +34,8 @@ type Props = {
   mode: 'external',
   nonUserInfoProps: NonUserInfoProps,
 } | {
-  mode: 'loading'
+  mode: 'loading',
+  username: string,
 } | {
   mode: 'nothingSelected'
 }
@@ -42,7 +47,7 @@ class UserPane extends Component<void, Props, void> {
     } else if (this.props.mode === 'external') {
       return <NonUserInfo {...this.props.nonUserInfoProps} />
     } else if (this.props.mode === 'loading') {
-      return <Text type='Body'>TODO: Loading state</Text>
+      return <Loading username={this.props.username} />
     }
 
     return (
@@ -85,6 +90,7 @@ export default connector.connect(
         // Enter loading mode, when the store gets updated we'll come back to here
         return {
           mode: 'loading',
+          username,
         }
       }
     } else if (userForInfoPane && userForInfoPane.service === 'external') {
