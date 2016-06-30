@@ -36,7 +36,6 @@ const paperkeyNormal: Props = {
   type: passphraseCommon.PassphraseType.paperKey,
   prompt: 'Enter your paper key to continue.',
   features: {
-    ...propsNormal.features,
     'showTyping': {
       allow: true,
       defaultValue: true,
