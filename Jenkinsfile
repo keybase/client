@@ -148,7 +148,9 @@ node("ec2-fleet") {
                                             }
                                         } else {
                                             dir("desktop") {
-                                                // TODO implement visdiff to S3
+                                                sh "echo -e '[default]\\naccess_key = ${visdiffAccessKeyId}\\nsecret_key = ${visdiffAccessSecret}' > ~/.s3cfg;"
+                                                sh "npm install octonode"
+                                                sh "npm run visdiff -- \"`git rev-parse HEAD^1`...`git rev-parse HEAD`\""
                                             }
                                         }
                                     }}
