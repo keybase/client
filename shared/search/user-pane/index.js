@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import UserInfo from './user.render'
 import NonUserInfo from './non-user.render'
+import Help from './help'
 
 import {fullName} from '../../constants/search'
 import keybaseUrl from '../../constants/urls'
@@ -45,7 +46,7 @@ class UserPane extends Component<void, Props, void> {
     }
 
     return (
-      <Text type='Body'>TODO nothing selected screen</Text>
+      <Help />
     )
   }
 
