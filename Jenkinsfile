@@ -248,7 +248,11 @@ node("ec2-fleet") {
 
         stage "Dockerize"
 
-            def clientImage = docker.image("keybaseprivate/kbclient")
+            dir('go') {
+                sh "go install github.com/keybase/client/go/keybase"
+                sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                def clientImage = docker.build("keybaseprivate/kbclient")
+            }
 
 
         stage "Integrate"
@@ -260,7 +264,7 @@ node("ec2-fleet") {
 
             if (env.BRANCH_NAME == "master" && cause != "upstream") {
                 docker.withRegistry("https://docker.io", "docker-hub-creds") {
-                    kbwebImage.push()
+                    clientImage.push()
                 }
             } else {
                 println "Not pushing docker"
