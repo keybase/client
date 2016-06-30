@@ -1097,3 +1097,16 @@ type UnmergedError struct {
 func (e UnmergedError) Error() string {
 	return "fbo is on an unmerged local revision"
 }
+
+// OverQuotaWarning indicates that the user is over their quota, and
+// is being slowed down by the server.
+type OverQuotaWarning struct {
+	UsageBytes int64
+	LimitBytes int64
+}
+
+// Error implements the error interface for OverQuotaWarning.
+func (w OverQuotaWarning) Error() string {
+	return fmt.Sprintf("You are using %d bytes, and your plan limits you "+
+		"to %d bytes.  Please delete some data.", w.UsageBytes, w.LimitBytes)
+}

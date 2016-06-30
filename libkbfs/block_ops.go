@@ -138,13 +138,23 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, md *RootMetadata,
 func (b *BlockOpsStandard) Put(ctx context.Context, md *RootMetadata,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	bserv := b.config.BlockServer()
+	var err error
 	if blockPtr.RefNonce == zeroBlockRefNonce {
-		return bserv.Put(ctx, blockPtr.ID, md.ID, blockPtr.BlockContext, readyBlockData.buf,
-			readyBlockData.serverHalf)
+		err = bserv.Put(ctx, blockPtr.ID, md.ID, blockPtr.BlockContext,
+			readyBlockData.buf, readyBlockData.serverHalf)
+	} else {
+		// non-zero block refnonce means this is a new reference to an
+		// existing block.
+		err = bserv.AddBlockReference(ctx, blockPtr.ID, md.ID,
+			blockPtr.BlockContext)
 	}
-	// non-zero block refnonce means this is a new reference to an
-	// existing block.
-	return bserv.AddBlockReference(ctx, blockPtr.ID, md.ID, blockPtr.BlockContext)
+	if qe, ok := err.(BServerErrorOverQuota); ok && !qe.Throttled {
+		name := md.GetTlfHandle().GetCanonicalName()
+		b.config.Reporter().ReportErr(ctx, name, md.ID.IsPublic(),
+			WriteMode, OverQuotaWarning{qe.Usage, qe.Limit})
+		return nil
+	}
+	return err
 }
 
 // Delete implements the BlockOps interface for BlockOpsStandard.
