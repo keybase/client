@@ -113,11 +113,11 @@ node("ec2-fleet") {
                                         }
                                     } else {
                                         dir("desktop") {
-                                            sh "./packaging/npm_mess.sh"
+                                            sh "../packaging/npm_mess.sh"
                                         }
                                         dir("shared") {
                                             sh 'npm i -g flow-bin@$(tail -n1 .flowconfig)'
-                                            sh "./flow"
+                                            sh "flow"
                                         }
                                     }
                                     sh "desktop/node_modules/.bin/eslint ."
@@ -147,15 +147,32 @@ node("ec2-fleet") {
 
                                 ws("${env.GOPATH}/src/github.com/keybase/client") {
                                     println "Checkout Windows"
-                                        checkout scm
+                                    checkout scm
 
                                     println "Test Windows"
-                                        parallel (
-                                            test_windows_go: {
-                                            },
-                                            test_windows_js: {
-                                            },
-                                        )
+                                    parallel (
+                                        test_windows_go: {
+                                            println "Test Windows Go"
+                                            bat "choco install -y golang --version 1.6"
+                                            bat "choco install -y gpg4win-vanilla --version 2.3.1"
+                                            env.PATH="%PATH%;\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\""
+                                            env.GOROOT="C:\\tools\\go"
+                                            env.GOPATH="%cd%\\work"
+                                            env.KEYBASE_SERVER_URI="http://${local}:3000"
+                                            env.KEYBASE_PUSH_SERVER_URI="fmprpc://${local}:9911"
+                                            dir("go") {
+                                                dir ("keybase") {
+                                                    bat "go build -a 2>&1 || exit /B 1"
+                                                    bat "echo %errorlevel%"
+                                                }
+                                                bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
+                                                bat "for /f %%i in (testlist.txt) do (go test -timeout 30m %%i || exit /B 1)"
+                                            }
+                                        },
+                                        test_windows_js: {
+                                            println "Test Windows JS"
+                                        },
+                                    )
                                 }
                             }
                         },
