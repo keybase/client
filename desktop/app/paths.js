@@ -16,24 +16,24 @@ export function appBundlePath () {
   return path.resolve(appPath(), '..', '..', '..')
 }
 
-// Path to resources directory (darwin only), '' if not available
+// Path to resources directory (darwin only), null if not available
 export function appResourcesPath () {
-  if (os.platform() !== 'darwin') return ''
+  if (os.platform() !== 'darwin') return null
   return path.resolve(appPath(), '..')
 }
 
-// Path to installer executable (darwin only), '' if not available
+// Path to installer executable (darwin only), null if not available
 export function appInstallerPath () {
-  if (os.platform() !== 'darwin') return ''
+  if (os.platform() !== 'darwin') return null
   const resourcesPath = appResourcesPath()
-  if (resourcesPath === '') return ''
+  if (resourcesPath === null) return null
   return path.resolve(resourcesPath, 'KeybaseInstaller.app', 'Contents', 'MacOS', 'Keybase')
 }
 
-// Path to keybase executable (darwin only), '' if not available
+// Path to keybase executable (darwin only), null if not available
 export function keybaseBinPath () {
-  if (os.platform() !== 'darwin') return ''
+  if (os.platform() !== 'darwin') return null
   const bundlePath = appBundlePath()
-  if (bundlePath === '') return ''
+  if (bundlePath === null) return null
   return path.resolve(bundlePath, 'Contents', 'SharedSupport', 'bin', 'keybase')
 }

@@ -6,17 +6,17 @@ import {runMode} from '../shared/constants/platform.native.desktop'
 
 export default function (path, args, platformOnly, runModeOnly, callback) {
   const platform = os.platform()
-  if (platformOnly !== '' && platform !== platformOnly) {
+  if (platformOnly && platform !== platformOnly) {
     console.log('Exec (%s) not available for platform: %s != %s', path, platformOnly, platform)
     callback(null)
     return
   }
-  if (path === '') {
+  if (!path) {
     console.log('Exec path not available:', path)
     callback(null)
     return
   }
-  if (runModeOnly !== '' && runMode !== runModeOnly) {
+  if (runModeOnly && runMode !== runModeOnly) {
     // Only run in prod
     console.log('Exec path not available for this run mode: %s != %s', runModeOnly, runMode)
     callback(null)
