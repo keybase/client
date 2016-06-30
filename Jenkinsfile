@@ -36,6 +36,10 @@ node("ec2-fleet") {
         def mysqlImage = docker.image("keybaseprivate/mysql")
         def gregorImage = docker.image("keybaseprivate/kbgregor")
         def kbwebImage = docker.image("keybaseprivate/kbweb")
+        def parentEnv = [:]
+        for (e in env) {
+            parentEnv[e.key] = e.value
+        }
 
 
         stage "Setup"
@@ -142,6 +146,7 @@ node("ec2-fleet") {
                         //},
                         test_windows: {
                             node('windows') {
+                                // FIXME this is pulling in the root node's `pwd`
                                 env.GOPATH=pwd()
 
                                 ws("${env.GOPATH}/src/github.com/keybase/client") {
@@ -187,6 +192,10 @@ node("ec2-fleet") {
                             }
                         },
                     )
+            }
+            env = [:]
+            for (e in parentEnv) {
+                env[e.key] = e.value
             }
 
 
