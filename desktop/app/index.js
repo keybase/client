@@ -41,6 +41,7 @@ function start () {
     if (!semver.satisfies(os.release(), '>=14.0.0')) {
       dialog.showErrorBox('Keybase Error', 'This version of OS X isn\'t currently supported.')
       app.quit()
+      return
     }
   }
 
