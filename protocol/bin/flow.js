@@ -179,7 +179,7 @@ function parseRecord (t) {
     return t.typedef
   }
 
-  var objectMapType = '{'
+  var objectMapType = '$Exact<{'
 
   if (t.fields.length) {
     objectMapType += '\n'
@@ -191,7 +191,7 @@ function parseRecord (t) {
     // If we have a maybe type, let's also make the key optional
     objectMapType += `  ${f.name}${(innerType[0] === '?') ? '?' : ''}: ${innerType};\n`
   })
-  objectMapType += '}'
+  objectMapType += '}>'
 
   return objectMapType
 }
@@ -219,10 +219,10 @@ export type int64 = number
 export type long = number
 export type double = number
 export type bytes = any
-export type RPCError = {
+export type RPCError = $Exact<{
   code: number,
   desc: string
-}
+}>
 
 `
 

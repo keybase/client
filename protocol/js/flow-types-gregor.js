@@ -13,10 +13,10 @@ export type RPCError = {
   desc: string
 }
 
-export type AuthResult = {
+export type AuthResult = $Exact<{
   uid: UID;
   sid: SessionID;
-}
+}>
 
 export type Body = bytes
 
@@ -24,104 +24,104 @@ export type Category = string
 
 export type DeviceID = bytes
 
-export type Dismissal = {
+export type Dismissal = $Exact<{
   msgIDs?: ?Array<MsgID>;
   ranges?: ?Array<MsgRange>;
-}
+}>
 
 export type DurationMsec = int64
 
-export type InBandMessage = {
+export type InBandMessage = $Exact<{
   stateUpdate?: ?StateUpdateMessage;
   stateSync?: ?StateSyncMessage;
-}
+}>
 
-export type Item = {
+export type Item = $Exact<{
   category: Category;
   dtime: TimeOrOffset;
   remindTimes?: ?Array<TimeOrOffset>;
   body: Body;
-}
+}>
 
-export type ItemAndMetadata = {
+export type ItemAndMetadata = $Exact<{
   md?: ?Metadata;
   item?: ?Item;
-}
+}>
 
-export type Message = {
+export type Message = $Exact<{
   oobm?: ?OutOfBandMessage;
   ibm?: ?InBandMessage;
-}
+}>
 
-export type Metadata = {
+export type Metadata = $Exact<{
   uid: UID;
   msgID: MsgID;
   ctime: Time;
   deviceID: DeviceID;
   inBandMsgType: int;
-}
+}>
 
 export type MsgID = bytes
 
-export type MsgRange = {
+export type MsgRange = $Exact<{
   endTime: TimeOrOffset;
   category: Category;
-}
+}>
 
-export type OutOfBandMessage = {
+export type OutOfBandMessage = $Exact<{
   uid: UID;
   system: System;
   body: Body;
-}
+}>
 
-export type Reminder = {
+export type Reminder = $Exact<{
   item: ItemAndMetadata;
   seqno: int;
   remindTime: Time;
-}
+}>
 
-export type ReminderID = {
+export type ReminderID = $Exact<{
   uid: UID;
   msgID: MsgID;
   seqno: int;
-}
+}>
 
-export type ReminderSet = {
+export type ReminderSet = $Exact<{
   reminders?: ?Array<Reminder>;
   moreRemindersReady: bool;
-}
+}>
 
 export type SessionID = string
 
 export type SessionToken = string
 
-export type State = {
+export type State = $Exact<{
   items?: ?Array<ItemAndMetadata>;
-}
+}>
 
-export type StateSyncMessage = {
+export type StateSyncMessage = $Exact<{
   md: Metadata;
-}
+}>
 
-export type StateUpdateMessage = {
+export type StateUpdateMessage = $Exact<{
   md: Metadata;
   creation?: ?Item;
   dismissal?: ?Dismissal;
-}
+}>
 
-export type SyncResult = {
+export type SyncResult = $Exact<{
   msgs?: ?Array<InBandMessage>;
   hash: bytes;
-}
+}>
 
 export type System = string
 
 export type Time = long
 
-export type TimeOrOffset = {
+export type TimeOrOffset = $Exact<{
   time: Time;
   offset: DurationMsec;
-}
+}>
 
 export type UID = bytes
 
