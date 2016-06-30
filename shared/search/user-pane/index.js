@@ -2,17 +2,12 @@
 import React, {Component} from 'react'
 import UserInfo from './user.render'
 import NonUserInfo from './non-user.render'
-<<<<<<< 1828166cd535a446002d678f0057beec0db4b019
 import Help from './help'
-=======
 import Loading from './loading'
->>>>>>> Add loading state pane
 
 import {fullName} from '../../constants/search'
 import keybaseUrl from '../../constants/urls'
 import {TypedConnector} from '../../util/typed-connect'
-
-import {Text} from '../../common-adapters'
 
 import {getProfile} from '../../actions/tracker'
 
