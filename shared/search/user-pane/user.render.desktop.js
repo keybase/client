@@ -68,6 +68,6 @@ const styleActionBox = {
   ...globalStyles.flexBoxRow,
   justifyContent: 'flex-end',
   padding: globalMargins.small,
-  boxShadow: `0 0 5px ${globalColors.black_20}`,
+  boxShadow: `0 0 5px ${globalColors.black_10}`,
   zIndex: 1,
 }

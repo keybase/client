@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {Box} from '../common-adapters'
 import SearchHelp from './help.desktop'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import {SearchContainer, SearchBar, searchResultsList} from './user-search/render.desktop'
 import UserGroup from './user-search/user-group'
 import UserPane from './user-pane'
@@ -16,7 +16,7 @@ class Render extends Component<void, Props, void> {
 
   _renderInfoPane () {
     return (
-      <Box style={{flex: 1}}>
+      <Box style={{boxShadow: `0 0 5px ${globalColors.black_20}`, overflow: 'hidden'}}>
         <UserPane />
       </Box>
     )
@@ -45,7 +45,7 @@ class Render extends Component<void, Props, void> {
     }
 
     return (
-      <Box style={globalStyles.flexBoxRow}>
+      <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         <SearchContainer>
           <SearchBar
             onClickService={this.props.onClickService}
