@@ -123,6 +123,7 @@ node("ec2-fleet") {
                                     }
                                     sh "desktop/node_modules/.bin/eslint ."
                                     dir("protocol") {
+                                        sh "gem install activesupport"
                                         sh "./diff_test.sh"
                                     }
                                     withCredentials([[$class: 'UsernamePasswordMultiBinding',
