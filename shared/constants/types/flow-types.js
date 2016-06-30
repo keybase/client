@@ -9,17 +9,17 @@ export type int64 = number
 export type long = number
 export type double = number
 export type bytes = any
-export type RPCError = {
+export type RPCError = $Exact<{
   code: number,
   desc: string
-}
+}>
 
-export type APIRes = {
+export type APIRes = $Exact<{
   status: string;
   body: string;
   httpStatus: int;
   appStatus: string;
-}
+}>
 
 export type BTCRegisterBTCResult = void
 
@@ -34,23 +34,23 @@ export type BTCRegisterBTCRpc = $Exact<{
   callback: (null | (err: ?any) => void)
 }>
 
-export type BlockIdCombo = {
+export type BlockIdCombo = $Exact<{
   blockHash: string;
   chargedTo: UID;
-}
+}>
 
 export type BlockRefNonce = any
 
-export type BlockReference = {
+export type BlockReference = $Exact<{
   bid: BlockIdCombo;
   nonce: BlockRefNonce;
   chargedTo: UID;
-}
+}>
 
-export type BlockReferenceCount = {
+export type BlockReferenceCount = $Exact<{
   ref: BlockReference;
   liveCount: int;
-}
+}>
 
 export type BoxNonce = any
 
@@ -58,22 +58,22 @@ export type BoxPublicKey = any
 
 export type Bytes32 = any
 
-export type ChallengeInfo = {
+export type ChallengeInfo = $Exact<{
   now: long;
   challenge: string;
-}
+}>
 
-export type CheckProofStatus = {
+export type CheckProofStatus = $Exact<{
   found: boolean;
   status: ProofStatus;
   proofText: string;
-}
+}>
 
-export type CheckResult = {
+export type CheckResult = $Exact<{
   proofResult: ProofResult;
   time: Time;
   freshness: CheckResultFreshness;
-}
+}>
 
 export type CheckResultFreshness =
     0 // FRESH_0
@@ -84,29 +84,29 @@ export type ChooseType =
     0 // EXISTING_DEVICE_0
   | 1 // NEW_DEVICE_1
 
-export type CiphertextBundle = {
+export type CiphertextBundle = $Exact<{
   kid: KID;
   ciphertext: EncryptedBytes32;
   nonce: BoxNonce;
   publicKey: BoxPublicKey;
-}
+}>
 
-export type ClientDetails = {
+export type ClientDetails = $Exact<{
   pid: int;
   clientType: ClientType;
   argv?: ?Array<string>;
   desc: string;
   version: string;
-}
+}>
 
 export type ClientType = 2 // FORCE GUI ONLY
 
-export type ComponentResult = {
+export type ComponentResult = $Exact<{
   name: string;
   status: Status;
-}
+}>
 
-export type Config = {
+export type Config = $Exact<{
   serverURI: string;
   socketFile: string;
   label: string;
@@ -120,36 +120,36 @@ export type Config = {
   versionFull: string;
   isAutoForked: boolean;
   forkType: ForkType;
-}
+}>
 
-export type ConfigValue = {
+export type ConfigValue = $Exact<{
   isNull: boolean;
   b?: ?boolean;
   i?: ?int;
   s?: ?string;
   o?: ?string;
-}
+}>
 
-export type ConfiguredAccount = {
+export type ConfiguredAccount = $Exact<{
   username: string;
   hasStoredSecret: boolean;
-}
+}>
 
-export type ConfirmResult = {
+export type ConfirmResult = $Exact<{
   identityConfirmed: boolean;
   remoteConfirmed: boolean;
   expiringLocal: boolean;
-}
+}>
 
-export type Cryptocurrency = {
+export type Cryptocurrency = $Exact<{
   rowId: int;
   pkhash: bytes;
   address: string;
-}
+}>
 
 export type CsrfToken = string
 
-export type Device = {
+export type Device = $Exact<{
   type: string;
   name: string;
   deviceID: DeviceID;
@@ -159,16 +159,16 @@ export type Device = {
   encryptKey: KID;
   verifyKey: KID;
   status: int;
-}
+}>
 
-export type DeviceDetail = {
+export type DeviceDetail = $Exact<{
   device: Device;
   eldest: boolean;
   provisioner?: ?Device;
   provisionedAt?: ?Time;
   revokedAt?: ?Time;
   currentDevice: boolean;
-}
+}>
 
 export type DeviceID = string
 
@@ -176,29 +176,29 @@ export type DeviceType =
     0 // DESKTOP_0
   | 1 // MOBILE_1
 
-export type DismissReason = {
+export type DismissReason = $Exact<{
   type: DismissReasonType;
   reason: string;
   resource: string;
-}
+}>
 
 export type DismissReasonType =
     0 // NONE_0
   | 1 // HANDLED_ELSEWHERE_1
 
-export type DowngradeReferenceRes = {
+export type DowngradeReferenceRes = $Exact<{
   completed?: ?Array<BlockReferenceCount>;
   failed: BlockReference;
-}
+}>
 
 export type ED25519PublicKey = any
 
 export type ED25519Signature = any
 
-export type ED25519SignatureInfo = {
+export type ED25519SignatureInfo = $Exact<{
   sig: ED25519Signature;
   publicKey: ED25519PublicKey;
-}
+}>
 
 export type EncryptedBytes32 = any
 
@@ -207,7 +207,7 @@ export type ExitCode =
   | 2 // NOTOK_2
   | 4 // RESTART_4
 
-export type ExtendedStatus = {
+export type ExtendedStatus = $Exact<{
   standalone: boolean;
   passphraseStreamCached: boolean;
   tsecCached: boolean;
@@ -224,7 +224,7 @@ export type ExtendedStatus = {
   provisionedUsernames?: ?Array<string>;
   Clients?: ?Array<ClientDetails>;
   platformInfo: PlatformInfo;
-}
+}>
 
 export type FSErrorType =
     0 // ACCESS_DENIED_0
@@ -238,7 +238,7 @@ export type FSErrorType =
   | 8 // OLD_VERSION_8
   | 9 // OVER_QUOTA_9
 
-export type FSNotification = {
+export type FSNotification = $Exact<{
   publicTopLevelFolder: boolean;
   filename: string;
   status: string;
@@ -246,7 +246,7 @@ export type FSNotification = {
   notificationType: FSNotificationType;
   errorType: FSErrorType;
   params: {[key: string]: string};
-}
+}>
 
 export type FSNotificationType =
     0 // ENCRYPTING_0
@@ -262,43 +262,43 @@ export type FSStatusCode =
   | 1 // FINISH_1
   | 2 // ERROR_2
 
-export type FavoritesResult = {
+export type FavoritesResult = $Exact<{
   favoriteFolders?: ?Array<Folder>;
   ignoredFolders?: ?Array<Folder>;
   newFolders?: ?Array<Folder>;
-}
+}>
 
-export type Feature = {
+export type Feature = $Exact<{
   allow: boolean;
   defaultValue: boolean;
   readonly: boolean;
   label: string;
-}
+}>
 
-export type File = {
+export type File = $Exact<{
   path: string;
-}
+}>
 
-export type FileDescriptor = {
+export type FileDescriptor = $Exact<{
   name: string;
   type: FileType;
-}
+}>
 
 export type FileType =
     0 // UNKNOWN_0
   | 1 // DIRECTORY_1
   | 2 // FILE_2
 
-export type FirstStepResult = {
+export type FirstStepResult = $Exact<{
   valPlusTwo: int;
-}
+}>
 
-export type Folder = {
+export type Folder = $Exact<{
   name: string;
   private: boolean;
   notificationsOn: boolean;
   created: boolean;
-}
+}>
 
 export type ForkType =
     0 // NONE_0
@@ -306,13 +306,13 @@ export type ForkType =
   | 2 // WATCHDOG_2
   | 3 // LAUNCHD_3
 
-export type FuseMountInfo = {
+export type FuseMountInfo = $Exact<{
   path: string;
   fstype: string;
   output: string;
-}
+}>
 
-export type FuseStatus = {
+export type FuseStatus = $Exact<{
   version: string;
   bundleVersion: string;
   kextID: string;
@@ -322,22 +322,22 @@ export type FuseStatus = {
   installAction: InstallAction;
   mountInfos?: ?Array<FuseMountInfo>;
   status: Status;
-}
+}>
 
-export type GPGKey = {
+export type GPGKey = $Exact<{
   algorithm: string;
   keyID: string;
   creation: string;
   expiration: string;
   identities?: ?Array<PGPIdentity>;
-}
+}>
 
 export type GPGMethod =
     0 // GPG_NONE_0
   | 1 // GPG_IMPORT_1
   | 2 // GPG_SIGN_2
 
-export type GUIEntryArg = {
+export type GUIEntryArg = $Exact<{
   windowTitle: string;
   prompt: string;
   username: string;
@@ -346,45 +346,45 @@ export type GUIEntryArg = {
   retryLabel: string;
   type: PassphraseType;
   features: GUIEntryFeatures;
-}
+}>
 
-export type GUIEntryFeatures = {
+export type GUIEntryFeatures = $Exact<{
   storeSecret: Feature;
   showTyping: Feature;
-}
+}>
 
-export type GetBlockRes = {
+export type GetBlockRes = $Exact<{
   blockKey: string;
   buf: bytes;
-}
+}>
 
-export type GetCurrentStatusRes = {
+export type GetCurrentStatusRes = $Exact<{
   configured: boolean;
   registered: boolean;
   loggedIn: boolean;
   sessionIsValid: boolean;
   user?: ?User;
-}
+}>
 
-export type GetPassphraseRes = {
+export type GetPassphraseRes = $Exact<{
   passphrase: string;
   storeSecret: boolean;
-}
+}>
 
 export type HelloRes = string
 
-export type Identify2Res = {
+export type Identify2Res = $Exact<{
   upk: UserPlusKeys;
-}
+}>
 
-export type IdentifyKey = {
+export type IdentifyKey = $Exact<{
   pgpFingerprint: bytes;
   KID: KID;
   trackDiff?: ?TrackDiff;
   breaksTracking: boolean;
-}
+}>
 
-export type IdentifyOutcome = {
+export type IdentifyOutcome = $Exact<{
   username: string;
   status?: ?Status;
   warnings?: ?Array<string>;
@@ -399,13 +399,13 @@ export type IdentifyOutcome = {
   trackOptions: TrackOptions;
   forPGPPull: boolean;
   reason: IdentifyReason;
-}
+}>
 
-export type IdentifyReason = {
+export type IdentifyReason = $Exact<{
   type: IdentifyReasonType;
   reason: string;
   resource: string;
-}
+}>
 
 export type IdentifyReasonType =
     0 // NONE_0
@@ -416,20 +416,20 @@ export type IdentifyReasonType =
   | 5 // VERIFY_5
   | 6 // RESOURCE_6
 
-export type IdentifyRes = {
+export type IdentifyRes = $Exact<{
   user?: ?User;
   publicKeys?: ?Array<PublicKey>;
   outcome: IdentifyOutcome;
   trackToken: TrackToken;
-}
+}>
 
-export type IdentifyRow = {
+export type IdentifyRow = $Exact<{
   rowId: int;
   proof: RemoteProof;
   trackDiff?: ?TrackDiff;
-}
+}>
 
-export type Identity = {
+export type Identity = $Exact<{
   status?: ?Status;
   whenLastTracked: Time;
   proofs?: ?Array<IdentifyRow>;
@@ -437,7 +437,7 @@ export type Identity = {
   revoked?: ?Array<TrackDiff>;
   revokedDetails?: ?Array<RevokedProof>;
   breaksTracking: boolean;
-}
+}>
 
 export type InstallAction =
     0 // UNKNOWN_0
@@ -446,11 +446,11 @@ export type InstallAction =
   | 3 // REINSTALL_3
   | 4 // INSTALL_4
 
-export type InstallResult = {
+export type InstallResult = $Exact<{
   componentResults?: ?Array<ComponentResult>;
   status: Status;
   fatal: boolean;
-}
+}>
 
 export type InstallStatus =
     0 // UNKNOWN_0
@@ -497,24 +497,24 @@ export type Kex2ProvisionerKexStartRpc = $Exact<{
   callback: (null | (err: ?any) => void)
 }>
 
-export type KeyHalf = {
+export type KeyHalf = $Exact<{
   user: UID;
   deviceKID: KID;
   key: bytes;
-}
+}>
 
-export type KeyInfo = {
+export type KeyInfo = $Exact<{
   fingerprint: string;
   key: string;
   desc: string;
-}
+}>
 
-export type KeybaseTime = {
+export type KeybaseTime = $Exact<{
   unix: Time;
   chain: int;
-}
+}>
 
-export type LinkCheckResult = {
+export type LinkCheckResult = $Exact<{
   proofId: int;
   proofResult: ProofResult;
   snoozedResult: ProofResult;
@@ -525,11 +525,11 @@ export type LinkCheckResult = {
   remoteDiff?: ?TrackDiff;
   hint?: ?SigHint;
   breaksTracking: boolean;
-}
+}>
 
-export type ListResult = {
+export type ListResult = $Exact<{
   files?: ?Array<File>;
-}
+}>
 
 export type LogLevel =
     0 // NONE_0
@@ -541,26 +541,26 @@ export type LogLevel =
   | 6 // CRITICAL_6
   | 7 // FATAL_7
 
-export type MDBlock = {
+export type MDBlock = $Exact<{
   version: int;
   timestamp: Time;
   block: bytes;
-}
+}>
 
-export type MerkleRoot = {
+export type MerkleRoot = $Exact<{
   version: int;
   root: bytes;
-}
+}>
 
 export type MerkleTreeID =
     0 // MASTER_0
   | 1 // KBFS_PUBLIC_1
   | 2 // KBFS_PRIVATE_2
 
-export type MetadataResponse = {
+export type MetadataResponse = $Exact<{
   folderID: string;
   mdBlocks?: ?Array<MDBlock>;
-}
+}>
 
 export type NaclDHKeyPrivate = any
 
@@ -570,7 +570,7 @@ export type NaclSigningKeyPrivate = any
 
 export type NaclSigningKeyPublic = any
 
-export type NotificationChannels = {
+export type NotificationChannels = $Exact<{
   session: boolean;
   users: boolean;
   kbfs: boolean;
@@ -578,7 +578,7 @@ export type NotificationChannels = {
   favorites: boolean;
   paperkeys: boolean;
   keyfamily: boolean;
-}
+}>
 
 export type NotifyFSFSActivityResult = void
 
@@ -690,70 +690,70 @@ export type NotifyUsersUserChangedRpc = $Exact<{
   callback: (null | (err: ?any) => void)
 }>
 
-export type OutOfDateInfo = {
+export type OutOfDateInfo = $Exact<{
   upgradeTo: string;
   upgradeURI: string;
   customMessage: string;
-}
+}>
 
 export type Outcome =
     0 // NONE_0
   | 1 // FIXED_1
   | 2 // IGNORED_2
 
-export type PGPCreateUids = {
+export type PGPCreateUids = $Exact<{
   useDefault: boolean;
   ids?: ?Array<PGPIdentity>;
-}
+}>
 
-export type PGPDecryptOptions = {
+export type PGPDecryptOptions = $Exact<{
   assertSigned: boolean;
   signedBy: string;
-}
+}>
 
-export type PGPEncryptOptions = {
+export type PGPEncryptOptions = $Exact<{
   recipients?: ?Array<string>;
   noSign: boolean;
   noSelf: boolean;
   binaryOut: boolean;
   keyQuery: string;
-}
+}>
 
-export type PGPIdentity = {
+export type PGPIdentity = $Exact<{
   username: string;
   comment: string;
   email: string;
-}
+}>
 
-export type PGPQuery = {
+export type PGPQuery = $Exact<{
   secret: boolean;
   query: string;
   exactMatch: boolean;
-}
+}>
 
-export type PGPSigVerification = {
+export type PGPSigVerification = $Exact<{
   isSigned: boolean;
   verified: boolean;
   signer: User;
   signKey: PublicKey;
-}
+}>
 
-export type PGPSignOptions = {
+export type PGPSignOptions = $Exact<{
   keyQuery: string;
   mode: SignMode;
   binaryIn: boolean;
   binaryOut: boolean;
-}
+}>
 
-export type PGPVerifyOptions = {
+export type PGPVerifyOptions = $Exact<{
   signedBy: string;
   signature: bytes;
-}
+}>
 
-export type PassphraseStream = {
+export type PassphraseStream = $Exact<{
   passphraseStream: bytes;
   generation: int;
-}
+}>
 
 export type PassphraseType =
     0 // NONE_0
@@ -761,34 +761,34 @@ export type PassphraseType =
   | 2 // PASS_PHRASE_2
   | 3 // VERIFY_PASS_PHRASE_3
 
-export type PlatformInfo = {
+export type PlatformInfo = $Exact<{
   os: string;
   arch: string;
   goVersion: string;
-}
+}>
 
-export type ProblemSet = {
+export type ProblemSet = $Exact<{
   user: User;
   kid: KID;
   tlfs?: ?Array<ProblemTLF>;
-}
+}>
 
-export type ProblemSetDevices = {
+export type ProblemSetDevices = $Exact<{
   problemSet: ProblemSet;
   devices?: ?Array<Device>;
-}
+}>
 
-export type ProblemTLF = {
+export type ProblemTLF = $Exact<{
   tlf: TLF;
   score: int;
   solutions?: ?Array<KID>;
-}
+}>
 
-export type Process = {
+export type Process = $Exact<{
   pid: string;
   command: string;
   fileDescriptors?: ?Array<FileDescriptor>;
-}
+}>
 
 export type PromptDefault =
     0 // NONE_0
@@ -799,11 +799,11 @@ export type PromptOverwriteType =
     0 // SOCIAL_0
   | 1 // SITE_1
 
-export type ProofResult = {
+export type ProofResult = $Exact<{
   state: ProofState;
   status: ProofStatus;
   desc: string;
-}
+}>
 
 export type ProofState =
     0 // NONE_0
@@ -867,11 +867,11 @@ export type ProofType =
   | 1002 // PGP_1002
   | 100001 // ROOTER_100001
 
-export type Proofs = {
+export type Proofs = $Exact<{
   social?: ?Array<TrackProof>;
   web?: ?Array<WebProof>;
   publicKeys?: ?Array<PublicKey>;
-}
+}>
 
 export type ProvisionMethod =
     0 // DEVICE_0
@@ -880,7 +880,7 @@ export type ProvisionMethod =
   | 3 // GPG_IMPORT_3
   | 4 // GPG_SIGN_4
 
-export type PublicKey = {
+export type PublicKey = $Exact<{
   KID: KID;
   PGPFingerprint: string;
   PGPIdentities?: ?Array<PGPIdentity>;
@@ -892,58 +892,58 @@ export type PublicKey = {
   deviceType: string;
   cTime: Time;
   eTime: Time;
-}
+}>
 
 export type PushReason =
     0 // NONE_0
   | 1 // RECONNECTED_1
   | 2 // NEW_DATA_2
 
-export type RemoteProof = {
+export type RemoteProof = $Exact<{
   proofType: ProofType;
   key: string;
   value: string;
   displayMarkup: string;
   sigID: SigID;
   mTime: Time;
-}
+}>
 
-export type RevokedKey = {
+export type RevokedKey = $Exact<{
   key: PublicKey;
   time: KeybaseTime;
-}
+}>
 
-export type RevokedProof = {
+export type RevokedProof = $Exact<{
   proof: RemoteProof;
   diff: TrackDiff;
-}
+}>
 
-export type SaltpackDecryptOptions = {
+export type SaltpackDecryptOptions = $Exact<{
   interactive: boolean;
   forceRemoteCheck: boolean;
   usePaperKey: boolean;
-}
+}>
 
-export type SaltpackEncryptOptions = {
+export type SaltpackEncryptOptions = $Exact<{
   recipients?: ?Array<string>;
   hideSelf: boolean;
   noSelfEncrypt: boolean;
   binary: boolean;
   hideRecipients: boolean;
-}
+}>
 
-export type SaltpackEncryptedMessageInfo = {
+export type SaltpackEncryptedMessageInfo = $Exact<{
   devices?: ?Array<Device>;
   numAnonReceivers: int;
   receiverIsAnon: boolean;
   sender: SaltpackSender;
-}
+}>
 
-export type SaltpackSender = {
+export type SaltpackSender = $Exact<{
   uid: UID;
   username: string;
   senderType: SaltpackSenderType;
-}
+}>
 
 export type SaltpackSenderType =
     0 // NOT_TRACKED_0
@@ -953,30 +953,30 @@ export type SaltpackSenderType =
   | 4 // TRACKING_OK_4
   | 5 // SELF_5
 
-export type SaltpackSignOptions = {
+export type SaltpackSignOptions = $Exact<{
   detached: boolean;
   binary: boolean;
-}
+}>
 
-export type SaltpackVerifyOptions = {
+export type SaltpackVerifyOptions = $Exact<{
   signedBy: string;
   signature: bytes;
-}
+}>
 
-export type SearchComponent = {
+export type SearchComponent = $Exact<{
   key: string;
   value: string;
   score: double;
-}
+}>
 
-export type SearchResult = {
+export type SearchResult = $Exact<{
   uid: UID;
   username: string;
   components?: ?Array<SearchComponent>;
   score: double;
-}
+}>
 
-export type SecretEntryArg = {
+export type SecretEntryArg = $Exact<{
   desc: string;
   prompt: string;
   err: string;
@@ -985,18 +985,18 @@ export type SecretEntryArg = {
   reason: string;
   useSecretStore: boolean;
   showTyping: boolean;
-}
+}>
 
-export type SecretEntryRes = {
+export type SecretEntryRes = $Exact<{
   text: string;
   canceled: boolean;
   storeSecret: boolean;
-}
+}>
 
-export type SecretKeys = {
+export type SecretKeys = $Exact<{
   signing: NaclSigningKeyPrivate;
   encryption: NaclDHKeyPrivate;
-}
+}>
 
 export type SecretKeysGetSecretKeysResult = SecretKeys
 
@@ -1007,17 +1007,17 @@ export type SecretKeysGetSecretKeysRpc = $Exact<{
   callback: (null | (err: ?any, response: SecretKeysGetSecretKeysResult) => void)
 }>
 
-export type SecretResponse = {
+export type SecretResponse = $Exact<{
   secret: bytes;
   phrase: string;
-}
+}>
 
-export type SelectKeyRes = {
+export type SelectKeyRes = $Exact<{
   keyID: string;
   doSecretPush: boolean;
-}
+}>
 
-export type ServiceStatus = {
+export type ServiceStatus = $Exact<{
   version: string;
   label: string;
   pid: string;
@@ -1026,33 +1026,33 @@ export type ServiceStatus = {
   installStatus: InstallStatus;
   installAction: InstallAction;
   status: Status;
-}
+}>
 
-export type ServicesStatus = {
+export type ServicesStatus = $Exact<{
   service?: ?Array<ServiceStatus>;
   kbfs?: ?Array<ServiceStatus>;
   updater?: ?Array<ServiceStatus>;
-}
+}>
 
-export type Session = {
+export type Session = $Exact<{
   uid: UID;
   username: string;
   token: string;
   deviceSubkeyKid: KID;
   deviceSibkeyKid: KID;
-}
+}>
 
-export type SessionStatus = {
+export type SessionStatus = $Exact<{
   SessionFor: string;
   Loaded: boolean;
   Cleared: boolean;
   SaltOnly: boolean;
   Expired: boolean;
-}
+}>
 
 export type SessionToken = string
 
-export type Sig = {
+export type Sig = $Exact<{
   seqno: int;
   sigID: SigID;
   sigIDDisplay: string;
@@ -1062,18 +1062,18 @@ export type Sig = {
   active: boolean;
   key: string;
   body: string;
-}
+}>
 
-export type SigHint = {
+export type SigHint = $Exact<{
   remoteId: string;
   humanUrl: string;
   apiUrl: string;
   checkText: string;
-}
+}>
 
 export type SigID = string
 
-export type SigListArgs = {
+export type SigListArgs = $Exact<{
   sessionID: int;
   username: string;
   allKeys: boolean;
@@ -1081,43 +1081,43 @@ export type SigListArgs = {
   filterx: string;
   verbose: boolean;
   revoked: boolean;
-}
+}>
 
-export type SigTypes = {
+export type SigTypes = $Exact<{
   track: boolean;
   proof: boolean;
   cryptocurrency: boolean;
   isSelf: boolean;
-}
+}>
 
 export type SignMode =
     0 // ATTACHED_0
   | 1 // DETACHED_1
   | 2 // CLEAR_2
 
-export type SignupRes = {
+export type SignupRes = $Exact<{
   passphraseOk: boolean;
   postOk: boolean;
   writeOk: boolean;
-}
+}>
 
-export type SocialAssertion = {
+export type SocialAssertion = $Exact<{
   user: string;
   service: SocialAssertionService;
-}
+}>
 
 export type SocialAssertionService = string
 
-export type StartProofResult = {
+export type StartProofResult = $Exact<{
   sigID: SigID;
-}
+}>
 
-export type Status = {
+export type Status = $Exact<{
   code: int;
   name: string;
   desc: string;
   fields?: ?Array<StringKVPair>;
-}
+}>
 
 export type StatusCode =
     0 // SCOk_0
@@ -1184,40 +1184,40 @@ export type StatusCode =
   | 1803 // SCServiceStatusError_1803
   | 1804 // SCInstallError_1804
 
-export type Stream = {
+export type Stream = $Exact<{
   fd: int;
-}
+}>
 
-export type StringKVPair = {
+export type StringKVPair = $Exact<{
   key: string;
   value: string;
-}
+}>
 
-export type TLF = {
+export type TLF = $Exact<{
   tlfid: TLFID;
   name: string;
   writers?: ?Array<string>;
   readers?: ?Array<string>;
   isPrivate: boolean;
-}
+}>
 
 export type TLFID = string
 
-export type Test = {
+export type Test = $Exact<{
   reply: string;
-}
+}>
 
-export type Text = {
+export type Text = $Exact<{
   data: string;
   markup: boolean;
-}
+}>
 
 export type Time = long
 
-export type TrackDiff = {
+export type TrackDiff = $Exact<{
   type: TrackDiffType;
   displayMarkup: string;
-}
+}>
 
 export type TrackDiffType =
     0 // NONE_0
@@ -1232,18 +1232,18 @@ export type TrackDiffType =
   | 9 // NEW_ELDEST_9
   | 10 // NONE_VIA_TEMPORARY_10
 
-export type TrackOptions = {
+export type TrackOptions = $Exact<{
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
   expiringLocal: boolean;
-}
+}>
 
-export type TrackProof = {
+export type TrackProof = $Exact<{
   proofType: string;
   proofName: string;
   idString: string;
-}
+}>
 
 export type TrackStatus =
     1 // NEW_OK_1
@@ -1254,39 +1254,39 @@ export type TrackStatus =
   | 6 // UPDATE_OK_6
   | 7 // UPDATE_BROKEN_REVOKED_7
 
-export type TrackSummary = {
+export type TrackSummary = $Exact<{
   username: string;
   time: Time;
   isRemote: boolean;
-}
+}>
 
 export type TrackToken = string
 
-export type Tracker = {
+export type Tracker = $Exact<{
   tracker: UID;
   status: int;
   mTime: Time;
-}
+}>
 
 export type UID = string
 
-export type UnboxAnyRes = {
+export type UnboxAnyRes = $Exact<{
   kid: KID;
   plaintext: Bytes32;
   index: int;
-}
+}>
 
-export type UninstallResult = {
+export type UninstallResult = $Exact<{
   componentResults?: ?Array<ComponentResult>;
   status: Status;
-}
+}>
 
-export type User = {
+export type User = $Exact<{
   uid: UID;
   username: string;
-}
+}>
 
-export type UserCard = {
+export type UserCard = $Exact<{
   following: int;
   followers: int;
   uid: UID;
@@ -1297,23 +1297,23 @@ export type UserCard = {
   twitter: string;
   youFollowThem: boolean;
   theyFollowYou: boolean;
-}
+}>
 
-export type UserPlusKeys = {
+export type UserPlusKeys = $Exact<{
   uid: UID;
   username: string;
   deviceKeys?: ?Array<PublicKey>;
   revokedDeviceKeys?: ?Array<RevokedKey>;
   pgpKeyCount: int;
   uvv: UserVersionVector;
-}
+}>
 
-export type UserResolution = {
+export type UserResolution = $Exact<{
   assertion: SocialAssertion;
   userID: UID;
-}
+}>
 
-export type UserSummary = {
+export type UserSummary = $Exact<{
   uid: UID;
   username: string;
   thumbnail: string;
@@ -1323,27 +1323,27 @@ export type UserSummary = {
   proofs: Proofs;
   sigIDDisplay: string;
   trackTime: Time;
-}
+}>
 
-export type UserVersionVector = {
+export type UserVersionVector = $Exact<{
   id: long;
   sigHints: int;
   sigChain: long;
   cachedAt: Time;
   lastIdentifiedAt: Time;
-}
+}>
 
-export type VerifySessionRes = {
+export type VerifySessionRes = $Exact<{
   uid: UID;
   sid: string;
   generated: int;
   lifetime: int;
-}
+}>
 
-export type WebProof = {
+export type WebProof = $Exact<{
   hostname: string;
   protocols?: ?Array<string>;
-}
+}>
 
 export type accountPassphraseChangeResult = void
 
