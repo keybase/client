@@ -63,6 +63,7 @@ type CommandLine interface {
 	GetLocalRPCDebug() string
 	GetTimers() string
 	GetRunMode() (RunMode, error)
+	GetAppStartMode() AppStartMode
 
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)

@@ -69,7 +69,7 @@ func (n NullConfiguration) GetUpdateURL() string                          { retu
 func (n NullConfiguration) GetUpdateDisabled() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
 func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
-func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
+func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDefault }
 func (n NullConfiguration) GetGregorURI() string                          { return "" }
 func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)  { return 0, false }
 func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)  { return 0, false }
@@ -1040,8 +1040,29 @@ func (e *Env) GetMountDir() (string, error) {
 	}
 }
 
+func ParseAppStartMode(s string) AppStartMode {
+	switch s {
+	case "":
+		return AppStartModeDefault
+	case "service":
+		return AppStartModeService
+	default:
+		return AppStartModeDisabled
+	}
+}
+
 func (e *Env) GetAppStartMode() AppStartMode {
-	return e.config.GetAppStartMode()
+	mode := e.cmd.GetAppStartMode()
+	if mode == AppStartModeDefault {
+		mode = ParseAppStartMode(os.Getenv("KEYBASE_APP_START_MODE"))
+		if mode == AppStartModeDefault {
+			mode = e.config.GetAppStartMode()
+		}
+	}
+	if mode == AppStartModeDefault {
+		mode = AppStartModeService
+	}
+	return mode
 }
 
 func (e *Env) GetServiceInfoPath() string {

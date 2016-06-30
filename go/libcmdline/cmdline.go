@@ -260,6 +260,10 @@ func (p CommandLine) GetMountDir() string {
 	return p.GetGString("mountdir")
 }
 
+func (p CommandLine) GetAppStartMode() libkb.AppStartMode {
+	return libkb.ParseAppStartMode(p.GetGString("app-start-mode"))
+}
+
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
 	if glbl {
@@ -341,6 +345,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "api-uri-path-prefix",
 			Usage: "Specify an alternate API URI path prefix.",
+		},
+		cli.StringFlag{
+			Name:  "app-start-mode",
+			Usage: "specify 'service' to auto-start UI app, or anything else to disable",
 		},
 		cli.StringFlag{
 			Name:  "push-server-uri",
