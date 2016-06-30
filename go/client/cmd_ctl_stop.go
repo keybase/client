@@ -25,15 +25,21 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 	}
 }
 
-type cmdCtlStop struct {
+func NewCmdCtlStopRunner(g *libkb.GlobalContext) *CmdCtlStop {
+	return &CmdCtlStop{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+type CmdCtlStop struct {
 	libkb.Contextified
 }
 
-func (s *cmdCtlStop) ParseArgv(ctx *cli.Context) error {
+func (s *CmdCtlStop) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (s *cmdCtlStop) Run() (err error) {
+func (s *CmdCtlStop) Run() (err error) {
 	cli, err := GetCtlClient(s.G())
 	if err != nil {
 		return err
@@ -41,6 +47,6 @@ func (s *cmdCtlStop) Run() (err error) {
 	return cli.Stop(context.TODO(), keybase1.StopArg{ExitCode: keybase1.ExitCode_OK})
 }
 
-func (s *cmdCtlStop) GetUsage() libkb.Usage {
+func (s *CmdCtlStop) GetUsage() libkb.Usage {
 	return libkb.Usage{}
 }

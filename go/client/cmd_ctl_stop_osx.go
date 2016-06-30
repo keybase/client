@@ -49,7 +49,7 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(newCmdCtlStop(g), "stop", c)
+			cl.ChooseCommand(NewCmdCtlStopRunner(g), "stop", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetNoStandalone()
@@ -57,20 +57,20 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 	}
 }
 
-type cmdCtlStop struct {
+type CmdCtlStop struct {
 	libkb.Contextified
 	components map[string]bool
 	noWait     bool
 }
 
-func newCmdCtlStop(g *libkb.GlobalContext) *cmdCtlStop {
-	return &cmdCtlStop{
+func NewCmdCtlStopRunner(g *libkb.GlobalContext) *CmdCtlStop {
+	return &CmdCtlStop{
 		Contextified: libkb.NewContextified(g),
 		components:   defaultCtlComponents,
 	}
 }
 
-func (s *cmdCtlStop) ParseArgv(ctx *cli.Context) error {
+func (s *CmdCtlStop) ParseArgv(ctx *cli.Context) error {
 	excluded := strings.Split(ctx.String("exclude"), ",")
 	for _, exclude := range excluded {
 		s.components[exclude] = false
@@ -112,7 +112,7 @@ func ctlStop(g *libkb.GlobalContext, components map[string]bool, wait time.Durat
 	return libkb.CombineErrors(errs...)
 }
 
-func (s *cmdCtlStop) Run() error {
+func (s *CmdCtlStop) Run() error {
 	wait := defaultLaunchdWait
 	if s.noWait {
 		wait = 0
@@ -120,6 +120,6 @@ func (s *cmdCtlStop) Run() error {
 	return ctlStop(s.G(), s.components, wait)
 }
 
-func (s *cmdCtlStop) GetUsage() libkb.Usage {
+func (s *CmdCtlStop) GetUsage() libkb.Usage {
 	return libkb.Usage{}
 }

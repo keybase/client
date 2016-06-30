@@ -5,11 +5,12 @@ package systests
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
-	"testing"
 )
 
 func TestConfigGetAndSet(t *testing.T) {
