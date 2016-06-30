@@ -84,6 +84,7 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
           console.log('Asked for rekey')
           dispatch(({type: Constants.newRekeyPopup, payload: {devices: problemSetDevices.devices || [], sessionID}}: NewRekeyPopupAction))
           uglySessionIDResponseMapper['refresh'] = response
+          response.result()
         },
       })
     )
