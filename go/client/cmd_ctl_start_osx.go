@@ -6,8 +6,11 @@
 package client
 
 import (
+	"time"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
+	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 )
@@ -37,13 +40,20 @@ func (s *CmdCtlStart) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
+func ctlBrewStart(g *libkb.GlobalContext) error {
+	return StartLaunchdService(g, install.DefaultServiceLabel(g.Env.GetRunMode()), g.Env.GetServiceInfoPath(), true)
+}
+
 func (s *CmdCtlStart) Run() error {
 	if s.G().Env.GetAutoFork() {
 		_, err := AutoForkServer(s.G(), s.G().Env.GetCommandLine())
 		return err
 	}
-
-	return StartLaunchdService(s.G(), install.DefaultServiceLabel(), true)
+	serviceStartErr := StartLaunchdService(g, install.DefaultServiceLabel(g.Env.GetRunMode()), g.Env.GetServiceInfoPath(), true)
+	kbfsStartErr := StartLaunchdService(g, install.DefaultKBFSLabel(g.Env.GetRunMode()), g.Env.GetKBFSInfoPath(), true)
+	updaterStartErr := launchd.Start(install.DefaultUpdaterLabel(g.Env.GetRunMode()), 5*time.Second, g.Log)
+	appStartErr := install.RunApp(g, g.Log)
+	return libkb.CombineErrors(serviceStartErr, kbfsStartErr, updaterStartErr, appStartErr)
 }
 
 func (s *CmdCtlStart) GetUsage() libkb.Usage {

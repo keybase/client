@@ -32,6 +32,7 @@ type Context interface {
 	GetCacheDir() string
 	GetRuntimeDir() string
 	GetMountDir() (string, error)
+	GetLogDir() string
 	GetRunMode() libkb.RunMode
 	GetServiceInfoPath() string
 	GetAppStartMode() libkb.AppStartMode
@@ -229,11 +230,7 @@ func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	kbfsBinName, err := kbfsBinName(runMode)
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(filepath.Dir(path), kbfsBinName), nil
+	return filepath.Join(filepath.Dir(path), kbfsBinName()), nil
 }
 
 // IsInUse returns true if the mount is in use. This may be used by the updater

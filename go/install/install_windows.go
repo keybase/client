@@ -25,11 +25,8 @@ func KBFSBinPath(runMode libkb.RunMode, binPath string) (string, error) {
 	return kbfsBinPathDefault(runMode, binPath)
 }
 
-func kbfsBinName(runMode libkb.RunMode) (string, error) {
-	if runMode != libkb.ProductionRunMode {
-		return "", fmt.Errorf("KBFS install is currently only supported in production")
-	}
-	return "kbfsdokan.exe", nil
+func kbfsBinName() string {
+	return "kbfsdokan.exe"
 }
 
 func updaterBinName() (string, error) {

@@ -261,19 +261,15 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 		return fmt.Errorf("No service name specified.")
 	}
 
-	if v.G().Env.GetRunMode() != libkb.ProductionRunMode {
-		return fmt.Errorf("Only supported in production")
-	}
-
 	// Resolve any label "aliases"
 	labelStr := args[0]
 	switch labelStr {
 	case "service":
-		labelStr = install.DefaultServiceLabel()
+		labelStr = install.DefaultServiceLabel(v.G().Env.GetRunMode())
 	case "kbfs":
-		labelStr = install.DefaultKBFSLabel()
+		labelStr = install.DefaultKBFSLabel(v.G().Env.GetRunMode())
 	case "updater":
-		labelStr = "keybase.updater"
+		labelStr = install.DefaultUpdaterLabel(v.G().Env.GetRunMode())
 	}
 
 	label, err := install.NewServiceLabel(labelStr)

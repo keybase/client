@@ -72,11 +72,8 @@ func RunAfterStartup(context Context, isService bool, log Log) error {
 }
 
 // kbfsBinName returns the name for the KBFS executable
-func kbfsBinName(runMode libkb.RunMode) (string, error) {
-	if runMode != libkb.ProductionRunMode {
-		return "", fmt.Errorf("KBFS install is currently only supported in production")
-	}
-	return "kbfsfuse", nil
+func kbfsBinName() string {
+	return "kbfsfuse"
 }
 
 func updaterBinName() (string, error) {
