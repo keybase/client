@@ -14,7 +14,7 @@ const featureOn = (key: FeatureKeys, includeAdmin: boolean = false) => ( // esli
 
 const ff: FeatureFlags = {
   admin: featureOn('admin'),
-  mainWindow: featureOn('mainWindow', true),
+  mainWindow: true,
   mobileAppsExist: featureOn('mobileAppsExist'),
   tabPeopleEnabled: featureOn('tabPeopleEnabled'),
   tabFoldersEnabled: featureOn('tabFoldersEnabled'),

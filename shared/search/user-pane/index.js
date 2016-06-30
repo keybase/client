@@ -2,13 +2,17 @@
 import React, {Component} from 'react'
 import UserInfo from './user.render'
 import NonUserInfo from './non-user.render'
+import Help from './help'
 
 import {fullName} from '../../constants/search'
+import keybaseUrl from '../../constants/urls'
 import {TypedConnector} from '../../util/typed-connect'
 
 import {Text} from '../../common-adapters'
 
 import {getProfile} from '../../actions/tracker'
+
+import openURL from '../../util/open-url'
 
 import type {Props as UserInfoPaneProps} from './user.render'
 import type {Props as NonUserInfoProps} from './non-user.render'
@@ -42,7 +46,7 @@ class UserPane extends Component<void, Props, void> {
     }
 
     return (
-      <Text type='Body'>TODO nothing selected screen</Text>
+      <Help />
     )
   }
 
@@ -92,7 +96,7 @@ export default connector.connect(
           fullName: fullName(userForInfoPane.extraInfo),
           serviceName: userForInfoPane.serviceName,
           profileUrl: userForInfoPane.profileUrl,
-          onSendInvite: () => { console.log('TODO something for sending invite') },
+          onSendInvite: () => { openURL(`${keybaseUrl}/account/invitations`) },
           outOfInvites: null,
           inviteLink: null,
         },

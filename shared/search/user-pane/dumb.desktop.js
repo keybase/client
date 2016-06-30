@@ -1,6 +1,7 @@
 /* @flow */
 import UserPane from './user.render'
 import NonUserPane from './non-user.render'
+import Help from './help'
 import {normal, error} from '../../constants/tracker'
 import {proofsDefault, proofsTracked, proofsChanged, mockUserInfo} from '../../profile/dumb.desktop'
 import type {Props as UserRenderProps} from './user.render'
@@ -100,7 +101,15 @@ const dumbMapNonUser: DumbComponentMap<NonUserPane> = {
   },
 }
 
+const helpUserPane: DumbComponentMap<Help> = {
+  component: Help,
+  mocks: {
+    'help': {parentProps: {style: {height: 300}}},
+  },
+}
+
 export default {
   'Search User Pane': dumbMapUser,
   'Search Non-User Pane': dumbMapNonUser,
+  'Search Help Pane': helpUserPane,
 }
