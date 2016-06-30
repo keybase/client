@@ -36,10 +36,6 @@ node("ec2-fleet") {
         def mysqlImage = docker.image("keybaseprivate/mysql")
         def gregorImage = docker.image("keybaseprivate/kbgregor")
         def kbwebImage = docker.image("keybaseprivate/kbweb")
-        def parentEnv = [:]
-        for (e in env) {
-            parentEnv[e.key] = e.value
-        }
 
 
         stage "Setup"
@@ -146,56 +142,51 @@ node("ec2-fleet") {
                         //},
                         test_windows: {
                             node('windows') {
-                                // FIXME this is pulling in the root node's `pwd`
-                                env.GOPATH=pwd()
+                            withEnv([
+                                'GOROOT=C:\\tools\\go',
+                                "GOPATH=${WORKSPACE}",
+                                'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG"',
+                                "KEYBASE_SERVER_URI=http://${local}:3000",
+                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${local}:9911",
+                            ]) {
+                            ws("${WORKSPACE}/src/github.com/keybase/client") {
+                                println "Checkout Windows"
+                                checkout scm
 
-                                ws("${env.GOPATH}/src/github.com/keybase/client") {
-                                    println "Checkout Windows"
-                                    checkout scm
-
-                                    println "Test Windows"
-                                    parallel (
-                                        test_windows_go: {
-                                            println "Test Windows Go"
-                                            bat "choco install -y golang --version 1.6"
-                                            bat "choco install -y gpg4win-vanilla --version 2.3.1"
-                                            env.PATH="${env.PATH};\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\""
-                                            env.GOROOT="C:\\tools\\go"
-                                            env.KEYBASE_SERVER_URI="http://${local}:3000"
-                                            env.KEYBASE_PUSH_SERVER_URI="fmprpc://${local}:9911"
-                                            dir("go") {
-                                                dir ("keybase") {
-                                                    bat "go build -a 2>&1 || exit /B 1"
-                                                    bat "echo %errorlevel%"
-                                                }
-                                                bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
-                                                bat "for /f %%i in (testlist.txt) do (go test -timeout 30m %%i || exit /B 1)"
+                                println "Test Windows"
+                                parallel (
+                                    test_windows_go: {
+                                        println "Test Windows Go"
+                                        bat "choco install -y golang --version 1.6"
+                                        bat "choco install -y gpg4win-vanilla --version 2.3.1"
+                                        dir("go") {
+                                            dir ("keybase") {
+                                                bat "go build -a 2>&1 || exit /B 1"
+                                                bat "echo %errorlevel%"
                                             }
-                                        },
-                                        test_windows_js: {
-                                            println "Test Windows JS"
-                                        },
-                                    )
-                                }
-                            }
+                                            bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
+                                            bat "for /f %%i in (testlist.txt) do (go test -timeout 30m %%i || exit /B 1)"
+                                        }
+                                    },
+                                    test_windows_js: {
+                                        println "Test Windows JS"
+                                    },
+                                )
+                            }}}
                         },
                         test_osx: {
                             node('osx') {
-                                env.GOPATH=pwd()
+                            withEnv([
+                                "GOPATH=${WORKSPACE}",
+                            ]) {
+                            ws("${WORKSPACE}/src/github.com/keybase/client") {
+                                println "Checkout OS X"
+                                    checkout scm
 
-                                ws("${env.GOPATH}/src/github.com/keybase/client") {
-                                    println "Checkout OS X"
-                                        checkout scm
-
-                                    println "Test OS X"
-                                }
-                            }
+                                println "Test OS X"
+                            }}}
                         },
                     )
-            }
-            env = [:]
-            for (e in parentEnv) {
-                env[e.key] = e.value
             }
 
 
@@ -234,4 +225,13 @@ def getCauseString() {
     } else {
         return "other"
     }
+}
+
+@NonCPS
+def copyEnv(env) {
+    newEnv = [:]
+    for (e in env) {
+        newEnv[e.key] = e.value
+    }
+    return newEnv
 }
