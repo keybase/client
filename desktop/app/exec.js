@@ -7,9 +7,11 @@ import {runMode} from '../shared/constants/platform.native.desktop'
 // Execute at path with args.
 // If you specify platformOnly or runModeOnly, then callback will be called
 // without error if we don't match that environment.
+// If killOnExit is true, then the executing process will be killed if the
+// parent process is killed.
 // Callback is optional and accepts (error, boolean), where boolean is if we
 // attempted to execute.
-export default function (path, args, platformOnly, runModeOnly, callback) {
+export default function (path, args, platformOnly, runModeOnly, killOnExit, callback) {
   const platform = os.platform()
   if (platformOnly && platform !== platformOnly) {
     console.log('Exec (%s) not available for platform: %s != %s', path, platformOnly, platform)
@@ -51,9 +53,11 @@ export default function (path, args, platformOnly, runModeOnly, callback) {
       if (callback) callback(execErr, true)
     })
 
-    // Kill the process if parent process exits
-    proc.on('exit', function () {
-      proc.kill()
-    })
+    if (killOnExit && proc) {
+      // Kill the process if parent process exits
+      proc.on('exit', function () {
+        proc.kill()
+      })
+    }
   })
 }

@@ -13,6 +13,8 @@ import urlHelper from './url-helper'
 import hello from '../shared/util/hello'
 import semver from 'semver'
 import os from 'os'
+import {ipcMain} from 'electron'
+import {quit} from './ctl'
 
 let mainWindow = null
 
@@ -92,3 +94,7 @@ function start () {
 }
 
 start()
+
+ipcMain.on('quit', (event, args) => {
+  quit()
+})

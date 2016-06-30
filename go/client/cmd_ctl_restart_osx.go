@@ -34,11 +34,11 @@ func (s *cmdCtlRestart) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *cmdCtlRestart) Run() error {
-	err := ctlStop(s.G())
+	err := ctlStop(s.G(), defaultCtlComponents, defaultLaunchdWait)
 	if err != nil {
 		return err
 	}
-	return ctlStart(s.G())
+	return ctlStart(s.G(), defaultCtlComponents)
 }
 
 func (s *cmdCtlRestart) GetUsage() libkb.Usage {

@@ -53,6 +53,8 @@ const (
 	ComponentNameKBFS ComponentName = "kbfs"
 	// ComponentNameUpdater is the updater component
 	ComponentNameUpdater ComponentName = "updater"
+	// ComponentNameApp is the UI app
+	ComponentNameApp ComponentName = "app"
 	// ComponentNameUnknown is placeholder for unknown components
 	ComponentNameUnknown ComponentName = "unknown"
 )
@@ -60,18 +62,9 @@ const (
 // ComponentNames are all the valid component names
 var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater}
 
+// String returns string for ComponentName
 func (c ComponentName) String() string {
-	switch c {
-	case ComponentNameCLI:
-		return "Command Line"
-	case ComponentNameService:
-		return "Service"
-	case ComponentNameKBFS:
-		return "KBFS"
-	case ComponentNameUpdater:
-		return "Updater"
-	}
-	return "Unknown"
+	return string(c)
 }
 
 // ComponentNameFromString returns ComponentName from a string
@@ -85,6 +78,8 @@ func ComponentNameFromString(s string) ComponentName {
 		return ComponentNameKBFS
 	case string(ComponentNameUpdater):
 		return ComponentNameUpdater
+	case string(ComponentNameApp):
+		return ComponentNameApp
 	}
 	return ComponentNameUnknown
 }
@@ -268,6 +263,7 @@ func IsInUse(mountDir string, log Log) bool {
 func TerminateApp(context Context, log Log) error {
 	appExecName := "Keybase"
 	logf := logger.NewLoggerf(log)
+	log.Info("Stopping Keybase app")
 	appPIDs := process.TerminateAll(process.NewMatcher(appExecName, process.ExecutableEqual, logf), 5*time.Second, logf)
 	if len(appPIDs) > 0 {
 		log.Info("Terminated %s %v", appExecName, appPIDs)
