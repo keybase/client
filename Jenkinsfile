@@ -88,62 +88,61 @@ node("ec2-fleet") {
             }
 
             kbwebImage.withRun('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh') {kbweb->
-                sh "while ! curl -I localhost:3000 2>&1 >/dev/null; do sleep 1; done"
+                sh "while ! curl -s -o /dev/null localhost:3000 2>&1; do sleep 1; done"
                 def local = new URL ("http://169.254.169.254/latest/meta-data/local-ipv4").getText()
                 println "Running on host $local"
 
                 stage "Test"
                     parallel (
-                        test_linux: {
-                            parallel (
-                                test_linux_go: {
-                                    dir("go") {
-                                        sh "test/run_tests.sh || (docker logs ${kbweb.id}; exit 1)"
-                                    }
-                                },
-                                test_linux_js: {
-                                    // TODO streamline this a bit
-                                    env.PATH="${env.HOME}/.node/bin:${env.PATH}"
-                                    env.NODE_PATH="${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}"
-                                    if (fileExists("desktop/npm-vendor.js")) {
-                                        dir("desktop") {
-                                            sh "npm run vendor-install"
-                                            sh "unzip ./js-vendor-desktop/flow/flow-linux64*.zip"
-                                            sh "./flow/flow"
-                                        }
-                                    } else {
-                                        dir("desktop") {
-                                            sh "../packaging/npm_mess.sh"
-                                        }
-                                        dir("shared") {
-                                            sh 'npm i -g flow-bin@$(tail -n1 .flowconfig)'
-                                            sh "flow"
-                                        }
-                                    }
-                                    sh "desktop/node_modules/.bin/eslint ."
-                                    dir("protocol") {
-                                        sh "./diff_test.sh"
-                                    }
-                                    if (fileExists("visdiff")) {
-                                        dir("visdiff") {
-                                            sh "npm install"
-                                        }
-                                        sh "npm install ./visdiff"
-                                        dir("desktop") {
-                                            sh "../node_modules/.bin/keybase-visdiff HEAD^...HEAD"
-                                        }
-                                    } else {
-                                        dir("desktop") {
-                                            // TODO implement visdiff to S3
-                                        }
-                                    }
-                                },
-                            )
-                        },
+                        //test_linux: {
+                        //    parallel (
+                        //        test_linux_go: {
+                        //            dir("go") {
+                        //                sh "test/run_tests.sh || (docker logs ${kbweb.id}; exit 1)"
+                        //            }
+                        //        },
+                        //        test_linux_js: {
+                        //            // TODO streamline this a bit
+                        //            env.PATH="${env.HOME}/.node/bin:${env.PATH}"
+                        //            env.NODE_PATH="${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}"
+                        //            if (fileExists("desktop/npm-vendor.js")) {
+                        //                dir("desktop") {
+                        //                    sh "npm run vendor-install"
+                        //                    sh "unzip ./js-vendor-desktop/flow/flow-linux64*.zip"
+                        //                    sh "./flow/flow"
+                        //                }
+                        //            } else {
+                        //                dir("desktop") {
+                        //                    sh "../packaging/npm_mess.sh"
+                        //                }
+                        //                dir("shared") {
+                        //                    sh 'npm i -g flow-bin@$(tail -n1 .flowconfig)'
+                        //                    sh "flow"
+                        //                }
+                        //            }
+                        //            sh "desktop/node_modules/.bin/eslint ."
+                        //            dir("protocol") {
+                        //                sh "./diff_test.sh"
+                        //            }
+                        //            if (fileExists("visdiff")) {
+                        //                dir("visdiff") {
+                        //                    sh "npm install"
+                        //                }
+                        //                sh "npm install ./visdiff"
+                        //                dir("desktop") {
+                        //                    sh "../node_modules/.bin/keybase-visdiff HEAD^...HEAD"
+                        //                }
+                        //            } else {
+                        //                dir("desktop") {
+                        //                    // TODO implement visdiff to S3
+                        //                }
+                        //            }
+                        //        },
+                        //    )
+                        //},
                         test_windows: {
                             node('windows') {
                                 env.GOPATH=pwd()
-                                env.GO15VENDOREXPERIMENT=1
 
                                 ws("${env.GOPATH}/src/github.com/keybase/client") {
                                     println "Checkout Windows"
@@ -155,9 +154,8 @@ node("ec2-fleet") {
                                             println "Test Windows Go"
                                             bat "choco install -y golang --version 1.6"
                                             bat "choco install -y gpg4win-vanilla --version 2.3.1"
-                                            env.PATH="%PATH%;\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\""
+                                            env.PATH="${env.PATH};\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\""
                                             env.GOROOT="C:\\tools\\go"
-                                            env.GOPATH="%cd%\\work"
                                             env.KEYBASE_SERVER_URI="http://${local}:3000"
                                             env.KEYBASE_PUSH_SERVER_URI="fmprpc://${local}:9911"
                                             dir("go") {
