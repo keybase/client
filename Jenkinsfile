@@ -88,7 +88,6 @@ node("ec2-fleet") {
             }
 
             kbwebImage.withRun('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh') {kbweb->
-                sh "while ! curl -s -o /dev/null localhost:3000 2>&1; do sleep 1; done"
                 def local = new URL ("http://169.254.169.254/latest/meta-data/local-ipv4").getText()
                 println "Running on host $local"
 
@@ -98,11 +97,13 @@ node("ec2-fleet") {
                         //    parallel (
                         //        test_linux_go: {
                         //            dir("go") {
+                        //                sh "while ! curl -s -o /dev/null localhost:3000 2>&1; do sleep 1; done"
                         //                sh "test/run_tests.sh || (docker logs ${kbweb.id}; exit 1)"
                         //            }
                         //        },
                         //        test_linux_js: {
                         //            // TODO streamline this a bit
+                        //            // TODO implement PR ID
                         //            env.PATH="${env.HOME}/.node/bin:${env.PATH}"
                         //            env.NODE_PATH="${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}"
                         //            if (fileExists("desktop/npm-vendor.js")) {
@@ -141,15 +142,15 @@ node("ec2-fleet") {
                         //    )
                         //},
                         test_windows: {
-                            node('windows') {
+                            node('windows-pipeline') {
                             withEnv([
                                 'GOROOT=C:\\tools\\go',
-                                "GOPATH=${WORKSPACE}",
-                                'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG"',
+                                "GOPATH=\"${pwd()}\"",
+                                'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG";"C:\\Program Files\\nodejs";"C:\\tools\\python";"C:\\Program Files\\graphicsmagick-1.3.24-q8"',
                                 "KEYBASE_SERVER_URI=http://${local}:3000",
                                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${local}:9911",
                             ]) {
-                            ws("${WORKSPACE}/src/github.com/keybase/client") {
+                            ws("${pwd()}/src/github.com/keybase/client") {
                                 println "Checkout Windows"
                                 checkout scm
 
@@ -165,11 +166,31 @@ node("ec2-fleet") {
                                                 bat "echo %errorlevel%"
                                             }
                                             bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
+                                            bat "choco install -y curl"
+                                            bat "powershell -Command \"do { curl.exe --silent --output curl.txt http://${local}:3000; \$res = \$?; sleep 1 } while (\$res -ne '0')\""
                                             bat "for /f %%i in (testlist.txt) do (go test -timeout 30m %%i || exit /B 1)"
                                         }
                                     },
                                     test_windows_js: {
                                         println "Test Windows JS"
+                                        // TODO implement visdiff PR pushing
+                                        if (fileExists("visdiff")) {
+                                            bat "choco install -y nodejs.install --allow-downgrade --version 6.1.0"
+                                            bat "choco install -y python --version 2.7.11"
+                                            bat "choco install -y graphicsmagick --version 1.3.24"
+                                            dir("visdiff") {
+                                                bat "npm install"
+                                            }
+                                            bat "npm install .\\visdiff"
+                                            dir("desktop") {
+                                                if (fileExists("npm-vendor.js")) {
+                                                    bat "npm run vendor-install"
+                                                } else {
+                                                    bat "npm install --no-optional"
+                                                }
+                                                bat '..\\node_modules\\.bin\\keybase-visdiff "HEAD^^...HEAD"'
+                                            }
+                                        }
                                     },
                                 )
                             }}}
@@ -177,9 +198,9 @@ node("ec2-fleet") {
                         test_osx: {
                             node('osx') {
                             withEnv([
-                                "GOPATH=${WORKSPACE}",
+                                "GOPATH=${pwd()}",
                             ]) {
-                            ws("${WORKSPACE}/src/github.com/keybase/client") {
+                            ws("${pwd()}/src/github.com/keybase/client") {
                                 println "Checkout OS X"
                                     checkout scm
 
