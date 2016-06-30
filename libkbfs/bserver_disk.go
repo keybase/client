@@ -25,9 +25,9 @@ type BlockServerDisk struct {
 	dirPath      string
 	shutdownFunc func(logger.Logger)
 
-	tlfStorageLock sync.RWMutex
-	// tlfStorage is nil after Shutdown() is called.
-	tlfStorage map[TlfID]*bserverTlfJournal
+	tlfJournalLock sync.RWMutex
+	// tlfJournal is nil after Shutdown() is called.
+	tlfJournal map[TlfID]*bserverTlfJournal
 }
 
 var _ BlockServer = (*BlockServerDisk)(nil)
@@ -71,14 +71,14 @@ func NewBlockServerTempDir(config Config) (*BlockServerDisk, error) {
 
 var errBlockServerDiskShutdown = errors.New("BlockServerDisk is shutdown")
 
-func (b *BlockServerDisk) getStorage(tlfID TlfID) (*bserverTlfJournal, error) {
+func (b *BlockServerDisk) getJournal(tlfID TlfID) (*bserverTlfJournal, error) {
 	storage, err := func() (*bserverTlfJournal, error) {
-		b.tlfStorageLock.RLock()
-		defer b.tlfStorageLock.RUnlock()
-		if b.tlfStorage == nil {
+		b.tlfJournalLock.RLock()
+		defer b.tlfJournalLock.RUnlock()
+		if b.tlfJournal == nil {
 			return nil, errBlockServerDiskShutdown
 		}
-		return b.tlfStorage[tlfID], nil
+		return b.tlfJournal[tlfID], nil
 	}()
 
 	if err != nil {
@@ -89,13 +89,13 @@ func (b *BlockServerDisk) getStorage(tlfID TlfID) (*bserverTlfJournal, error) {
 		return storage, nil
 	}
 
-	b.tlfStorageLock.Lock()
-	defer b.tlfStorageLock.Unlock()
-	if b.tlfStorage == nil {
+	b.tlfJournalLock.Lock()
+	defer b.tlfJournalLock.Unlock()
+	if b.tlfJournal == nil {
 		return nil, errBlockServerDiskShutdown
 	}
 
-	storage = b.tlfStorage[tlfID]
+	storage = b.tlfJournal[tlfID]
 	if storage != nil {
 		return storage, nil
 	}
@@ -106,7 +106,7 @@ func (b *BlockServerDisk) getStorage(tlfID TlfID) (*bserverTlfJournal, error) {
 		return nil, err
 	}
 
-	b.tlfStorage[tlfID] = storage
+	b.tlfJournal[tlfID] = storage
 	return storage, nil
 }
 
@@ -115,11 +115,11 @@ func (b *BlockServerDisk) Get(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	b.log.CDebugf(ctx, "BlockServerDisk.Get id=%s tlfID=%s context=%s",
 		id, tlfID, context)
-	tlfStorage, err := b.getStorage(tlfID)
+	tlfJournal, err := b.getJournal(tlfID)
 	if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
-	data, keyServerHalf, err := tlfStorage.getData(id, context)
+	data, keyServerHalf, err := tlfJournal.getData(id, context)
 	if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
@@ -137,11 +137,11 @@ func (b *BlockServerDisk) Put(ctx context.Context, id BlockID, tlfID TlfID,
 		return fmt.Errorf("Can't Put() a block with a non-zero refnonce.")
 	}
 
-	tlfStorage, err := b.getStorage(tlfID)
+	tlfJournal, err := b.getJournal(tlfID)
 	if err != nil {
 		return err
 	}
-	return tlfStorage.putData(id, context, buf, serverHalf)
+	return tlfJournal.putData(id, context, buf, serverHalf)
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerDisk.
@@ -149,11 +149,11 @@ func (b *BlockServerDisk) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	b.log.CDebugf(ctx, "BlockServerDisk.AddBlockReference id=%s "+
 		"tlfID=%s context=%s", id, tlfID, context)
-	tlfStorage, err := b.getStorage(tlfID)
+	tlfJournal, err := b.getJournal(tlfID)
 	if err != nil {
 		return err
 	}
-	return tlfStorage.addReference(id, context)
+	return tlfJournal.addReference(id, context)
 }
 
 // RemoveBlockReference implements the BlockServer interface for
@@ -163,14 +163,14 @@ func (b *BlockServerDisk) RemoveBlockReference(ctx context.Context,
 	liveCounts map[BlockID]int, err error) {
 	b.log.CDebugf(ctx, "BlockServerDisk.RemoveBlockReference "+
 		"tlfID=%s contexts=%v", tlfID, contexts)
-	tlfStorage, err := b.getStorage(tlfID)
+	tlfJournal, err := b.getJournal(tlfID)
 	if err != nil {
 		return nil, err
 	}
 
 	liveCounts = make(map[BlockID]int)
 	for id, idContexts := range contexts {
-		count, err := tlfStorage.removeReferences(id, idContexts)
+		count, err := tlfJournal.removeReferences(id, idContexts)
 		if err != nil {
 			return nil, err
 		}
@@ -185,13 +185,13 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID][]BlockContext) error {
 	b.log.CDebugf(ctx, "BlockServerDisk.ArchiveBlockReferences "+
 		"tlfID=%s contexts=%v", tlfID, contexts)
-	tlfStorage, err := b.getStorage(tlfID)
+	tlfJournal, err := b.getJournal(tlfID)
 	if err != nil {
 		return err
 	}
 
 	for id, idContexts := range contexts {
-		err := tlfStorage.archiveReferences(id, idContexts)
+		err := tlfJournal.archiveReferences(id, idContexts)
 		if err != nil {
 			return err
 		}
@@ -204,27 +204,27 @@ func (b *BlockServerDisk) ArchiveBlockReferences(ctx context.Context,
 // used during testing.
 func (b *BlockServerDisk) getAll(tlfID TlfID) (
 	map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
-	tlfStorage, err := b.getStorage(tlfID)
+	tlfJournal, err := b.getJournal(tlfID)
 	if err != nil {
 		return nil, err
 	}
 
-	return tlfStorage.getAll()
+	return tlfJournal.getAll()
 }
 
 // Shutdown implements the BlockServer interface for BlockServerDisk.
 func (b *BlockServerDisk) Shutdown() {
-	tlfStorage := func() map[TlfID]*bserverTlfJournal {
-		b.tlfStorageLock.Lock()
-		defer b.tlfStorageLock.Unlock()
+	tlfJournal := func() map[TlfID]*bserverTlfJournal {
+		b.tlfJournalLock.Lock()
+		defer b.tlfJournalLock.Unlock()
 		// Make further accesses error out.
-		tlfStorage := b.tlfStorage
-		b.tlfStorage = nil
-		return tlfStorage
+		tlfJournal := b.tlfJournal
+		b.tlfJournal = nil
+		return tlfJournal
 	}()
 
-	for _, s := range tlfStorage {
-		s.shutdown()
+	for _, j := range tlfJournal {
+		j.shutdown()
 	}
 
 	if b.shutdownFunc != nil {

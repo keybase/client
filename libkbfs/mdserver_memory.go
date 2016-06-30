@@ -42,8 +42,9 @@ type mdBlockMemList struct {
 }
 
 type mdServerMemShared struct {
-	// Protects all *db variables. After Shutdown() is called, all
-	// *db variables are nil.
+	// Protects all *db variables and truncateLockManager. After
+	// Shutdown() is called, all *db variables and
+	// truncateLockManager are nil.
 	lock sync.RWMutex
 	// Bare TLF handle -> TLF ID
 	handleDb map[mdHandleKey]TlfID
@@ -52,8 +53,8 @@ type mdServerMemShared struct {
 	// (TLF ID, branch ID) -> list of MDs
 	mdDb map[mdBlockKey]mdBlockMemList
 	// (TLF ID, device KID) -> branch ID
-	branchDb map[mdBranchKey]BranchID
-	locksDb  map[TlfID]keybase1.KID // TLF ID -> device KID
+	branchDb            map[mdBranchKey]BranchID
+	truncateLockManager *mdServerLocalTruncateLockManager
 
 	updateManager *mdServerLocalUpdateManager
 }
@@ -75,83 +76,77 @@ func NewMDServerMemory(config Config) (*MDServerMemory, error) {
 	latestHandleDb := make(map[TlfID]BareTlfHandle)
 	mdDb := make(map[mdBlockKey]mdBlockMemList)
 	branchDb := make(map[mdBranchKey]BranchID)
-	locksDb := make(map[TlfID]keybase1.KID)
 	log := config.MakeLogger("")
-	mdserv := &MDServerMemory{config, log, &mdServerMemShared{
-		sync.RWMutex{}, handleDb,
-		latestHandleDb, mdDb, branchDb, locksDb,
-		newMDServerLocalUpdateManager()}}
+	truncateLockManager := newMDServerLocalTruncatedLockManager()
+	shared := mdServerMemShared{
+		handleDb:            handleDb,
+		latestHandleDb:      latestHandleDb,
+		mdDb:                mdDb,
+		branchDb:            branchDb,
+		truncateLockManager: &truncateLockManager,
+		updateManager:       newMDServerLocalUpdateManager(),
+	}
+	mdserv := &MDServerMemory{config, log, &shared}
 	return mdserv, nil
 }
 
 var errMDServerMemoryShutdown = errors.New("MDServerMemory is shutdown")
 
-func (md *MDServerMemory) handleDbGet(h BareTlfHandle) (TlfID, bool, error) {
-	hBytes, err := md.config.Codec().Encode(h)
+func (md *MDServerMemory) getHandleID(ctx context.Context, handle BareTlfHandle,
+	mStatus MergeStatus) (tlfID TlfID, created bool, err error) {
+	handleBytes, err := md.config.Codec().Encode(handle)
 	if err != nil {
-		return NullTlfID, false, err
-	}
-
-	md.lock.RLock()
-	defer md.lock.RUnlock()
-	if md.handleDb == nil {
-		return NullTlfID, false, errMDServerMemoryShutdown
-	}
-
-	id, ok := md.handleDb[mdHandleKey(hBytes)]
-	return id, ok, nil
-}
-
-func (md *MDServerMemory) handleDbPut(h BareTlfHandle, id TlfID) error {
-	hBytes, err := md.config.Codec().Encode(h)
-	if err != nil {
-		return err
+		return NullTlfID, false, MDServerError{err}
 	}
 
 	md.lock.Lock()
 	defer md.lock.Unlock()
 	if md.handleDb == nil {
-		return errMDServerMemoryShutdown
+		return NullTlfID, false, errMDServerDiskShutdown
 	}
 
-	md.handleDb[mdHandleKey(hBytes)] = id
-	md.latestHandleDb[id] = h
-	return nil
-}
-
-// GetForHandle implements the MDServer interface for MDServerMemory.
-func (md *MDServerMemory) GetForHandle(ctx context.Context, handle BareTlfHandle,
-	mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
-	id := NullTlfID
-	id, ok, err := md.handleDbGet(handle)
-	if err != nil {
-		return id, nil, MDServerError{err}
-	}
+	id, ok := md.handleDb[mdHandleKey(handleBytes)]
 	if ok {
-		rmds, err := md.GetForTLF(ctx, id, NullBranchID, mStatus)
-		return id, rmds, err
+		return id, false, nil
 	}
 
 	// Non-readers shouldn't be able to create the dir.
 	_, uid, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
-		return id, nil, err
+		return NullTlfID, false, MDServerError{err}
 	}
 	if !handle.IsReader(uid) {
-		return id, nil, MDServerErrorUnauthorized{}
+		return NullTlfID, false, MDServerErrorUnauthorized{}
 	}
 
 	// Allocate a new random ID.
 	id, err = md.config.Crypto().MakeRandomTlfID(handle.IsPublic())
 	if err != nil {
-		return id, nil, MDServerError{err}
+		return NullTlfID, false, MDServerError{err}
 	}
 
-	err = md.handleDbPut(handle, id)
+	md.handleDb[mdHandleKey(handleBytes)] = id
+	md.latestHandleDb[id] = handle
+	return id, true, nil
+}
+
+// GetForHandle implements the MDServer interface for MDServerMemory.
+func (md *MDServerMemory) GetForHandle(ctx context.Context, handle BareTlfHandle,
+	mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
+	id, created, err := md.getHandleID(ctx, handle, mStatus)
 	if err != nil {
-		return id, nil, MDServerError{err}
+		return NullTlfID, nil, err
 	}
-	return id, nil, nil
+
+	if created {
+		return id, nil, nil
+	}
+
+	rmds, err := md.GetForTLF(ctx, id, NullBranchID, mStatus)
+	if err != nil {
+		return NullTlfID, nil, err
+	}
+	return id, rmds, nil
 }
 
 func (md *MDServerMemory) checkGetParams(
@@ -318,11 +313,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 	mStatus := rmds.MD.MergedStatus()
 	bid := rmds.MD.BID
 
-	if mStatus == Merged {
-		if bid != NullBranchID {
-			return MDServerErrorBadRequest{Reason: "Invalid branch ID"}
-		}
-	} else if bid == NullBranchID {
+	if (mStatus == Merged) != (bid == NullBranchID) {
 		return MDServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
 
@@ -370,7 +361,8 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 
 	// Consistency checks
 	if head != nil {
-		err := head.MD.CheckValidSuccessorForServer(md.config, &rmds.MD)
+		err := head.MD.CheckValidSuccessorForServer(
+			md.config.Crypto(), &rmds.MD)
 		if err != nil {
 			return err
 		}
@@ -518,7 +510,7 @@ func (md *MDServerMemory) TruncateLock(ctx context.Context, id TlfID) (
 	bool, error) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.locksDb == nil {
+	if md.truncateLockManager == nil {
 		return false, errMDServerMemoryShutdown
 	}
 
@@ -527,19 +519,7 @@ func (md *MDServerMemory) TruncateLock(ctx context.Context, id TlfID) (
 		return false, err
 	}
 
-	lockKID, ok := md.locksDb[id]
-	if !ok {
-		md.locksDb[id] = myKID
-		return true, nil
-	}
-
-	if lockKID == myKID {
-		// idempotent
-		return true, nil
-	}
-
-	// Locked by someone else.
-	return false, MDServerErrorLocked{}
+	return md.truncateLockManager.truncateLock(myKID, id)
 }
 
 // TruncateUnlock implements the MDServer interface for MDServerMemory.
@@ -547,7 +527,7 @@ func (md *MDServerMemory) TruncateUnlock(ctx context.Context, id TlfID) (
 	bool, error) {
 	md.lock.Lock()
 	defer md.lock.Unlock()
-	if md.locksDb == nil {
+	if md.truncateLockManager == nil {
 		return false, errMDServerMemoryShutdown
 	}
 
@@ -556,19 +536,7 @@ func (md *MDServerMemory) TruncateUnlock(ctx context.Context, id TlfID) (
 		return false, err
 	}
 
-	lockKID, ok := md.locksDb[id]
-	if !ok {
-		// Already unlocked.
-		return true, nil
-	}
-
-	if lockKID == myKID {
-		delete(md.locksDb, id)
-		return true, nil
-	}
-
-	// Locked by someone else.
-	return false, MDServerErrorLocked{}
+	return md.truncateLockManager.truncateUnlock(myKID, id)
 }
 
 // Shutdown implements the MDServer interface for MDServerMemory.
@@ -578,7 +546,7 @@ func (md *MDServerMemory) Shutdown() {
 	md.handleDb = nil
 	md.latestHandleDb = nil
 	md.branchDb = nil
-	md.locksDb = nil
+	md.truncateLockManager = nil
 }
 
 // IsConnected implements the MDServer interface for MDServerMemory.
@@ -653,7 +621,7 @@ func (md *MDServerMemory) addNewAssertionForTest(uid keybase1.UID,
 
 func (md *MDServerMemory) getCurrentMergedHeadRevision(
 	ctx context.Context, id TlfID) (rev MetadataRevision, err error) {
-	head, err := md.getHeadForTLF(ctx, id, NullBranchID, Merged)
+	head, err := md.GetForTLF(ctx, id, NullBranchID, Merged)
 	if err != nil {
 		return 0, err
 	}

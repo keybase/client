@@ -394,7 +394,7 @@ func (md *RootMetadata) MakeSuccessor(config Config, isWriter bool) (*RootMetada
 		newMd.Flags |= MetadataFlagWriterMetadataCopied
 	}
 
-	newMd.PrevRoot, err = md.MetadataID(config)
+	newMd.PrevRoot, err = md.MetadataID(config.Crypto())
 	if err != nil {
 		return nil, err
 	}
@@ -409,7 +409,7 @@ func (md *RootMetadata) MakeSuccessor(config Config, isWriter bool) (*RootMetada
 // CheckValidSuccessor makes sure the given RootMetadata is a valid
 // successor to the current one, and returns an error otherwise.
 func (md *RootMetadata) CheckValidSuccessor(
-	config Config, nextMd *RootMetadata) error {
+	crypto cryptoPure, nextMd *RootMetadata) error {
 	// (1) Verify current metadata is non-final.
 	if md.IsFinal() {
 		return MetadataIsFinalError{}
@@ -432,7 +432,7 @@ func (md *RootMetadata) CheckValidSuccessor(
 	}
 
 	// (3) Check PrevRoot pointer.
-	currRoot, err := md.MetadataID(config)
+	currRoot, err := md.MetadataID(crypto)
 	if err != nil {
 		return err
 	}
@@ -463,8 +463,8 @@ func (md *RootMetadata) CheckValidSuccessor(
 // CheckValidSuccessorForServer is like CheckValidSuccessor but with
 // server-specific error messages.
 func (md *RootMetadata) CheckValidSuccessorForServer(
-	config Config, nextMd *RootMetadata) error {
-	err := md.CheckValidSuccessor(config, nextMd)
+	crypto cryptoPure, nextMd *RootMetadata) error {
+	err := md.CheckValidSuccessor(crypto, nextMd)
 	switch err := err.(type) {
 	case nil:
 		break
@@ -663,7 +663,7 @@ func (md *RootMetadata) IsInitialized() bool {
 }
 
 // MetadataID computes and caches the MdID for this RootMetadata
-func (md *RootMetadata) MetadataID(config Config) (MdID, error) {
+func (md *RootMetadata) MetadataID(crypto cryptoPure) (MdID, error) {
 	mdID := func() MdID {
 		md.mdIDLock.RLock()
 		defer md.mdIDLock.RUnlock()
@@ -673,7 +673,7 @@ func (md *RootMetadata) MetadataID(config Config) (MdID, error) {
 		return mdID, nil
 	}
 
-	mdID, err := config.Crypto().MakeMdID(md)
+	mdID, err := crypto.MakeMdID(md)
 	if err != nil {
 		return MdID{}, err
 	}

@@ -42,7 +42,6 @@ script:
   # Run libkbfs tests with an in-memory bserver and mdserver, and run all other
   # tests with the tempdir bserver and mdserver.
   - cd libkbfs && go test -i && go test -race -c && ./libkbfs.test -test.timeout 2m
-  - env KEYBASE_TEST_BSERVER_ADDR=tempdir ./libkbfs.test -test.timeout 2m
   - cd ../libfuse && go test -i && go test -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir KEYBASE_TEST_MDSERVER_ADDR=tempdir ./libfuse.test -test.timeout 2m
   - cd ../test
   - go test -i -tags fuse && go test -race -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir KEYBASE_TEST_MDSERVER_ADDR=tempdir ./test.test -test.timeout 7m

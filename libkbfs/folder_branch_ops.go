@@ -512,12 +512,12 @@ func (fbo *folderBranchOps) setHeadLocked(
 	if !isFirstHead {
 		wasReadable = fbo.head.IsReadable()
 
-		mdID, err := md.MetadataID(fbo.config)
+		mdID, err := md.MetadataID(fbo.config.Crypto())
 		if err != nil {
 			return err
 		}
 
-		headID, err := fbo.head.MetadataID(fbo.config)
+		headID, err := fbo.head.MetadataID(fbo.config.Crypto())
 		if err != nil {
 			return err
 		}
@@ -619,7 +619,7 @@ func (fbo *folderBranchOps) setHeadSuccessorLocked(ctx context.Context,
 		return fbo.setInitialHeadTrustedLocked(ctx, lState, md)
 	}
 
-	err := fbo.head.CheckValidSuccessor(fbo.config, md)
+	err := fbo.head.CheckValidSuccessor(fbo.config.Crypto(), md)
 	if err != nil {
 		return err
 	}
@@ -689,7 +689,7 @@ func (fbo *folderBranchOps) setHeadPredecessorLocked(ctx context.Context,
 		return errors.New("Unexpected merged head in setHeadPredecessorLocked")
 	}
 
-	err := md.CheckValidSuccessor(fbo.config, fbo.head)
+	err := md.CheckValidSuccessor(fbo.config.Crypto(), fbo.head)
 	if err != nil {
 		return err
 	}
@@ -999,7 +999,7 @@ func (fbo *folderBranchOps) initMDLocked(
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
 	if fbo.head != nil {
-		headID, _ := fbo.head.MetadataID(fbo.config)
+		headID, _ := fbo.head.MetadataID(fbo.config.Crypto())
 		return fmt.Errorf(
 			"%v: Unexpected MD ID during new MD initialization: %v",
 			md.ID, headID)

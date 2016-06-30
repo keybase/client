@@ -366,7 +366,8 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 		}
 
 		if prevMD != nil {
-			err := prevMD.CheckValidSuccessor(md.config, &r.MD)
+			err := prevMD.CheckValidSuccessor(
+				md.config.Crypto(), &r.MD)
 			if err != nil {
 				return nil, MDMismatchError{
 					handle.GetCanonicalPath(),

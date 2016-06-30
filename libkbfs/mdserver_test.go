@@ -64,7 +64,7 @@ func TestMDServerBasics(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		prevRoot, err = rmds.MD.MetadataID(config)
+		prevRoot, err = rmds.MD.MetadataID(config.Crypto())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -112,7 +112,7 @@ func TestMDServerBasics(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		prevRoot, err = rmds.MD.MetadataID(config)
+		prevRoot, err = rmds.MD.MetadataID(config.Crypto())
 		if err != nil {
 			t.Fatal(err)
 		}

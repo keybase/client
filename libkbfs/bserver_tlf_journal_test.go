@@ -23,7 +23,7 @@ func TestBserverTlfJournalBasic(t *testing.T) {
 	codec := NewCodecMsgpack()
 	crypto := makeTestCryptoCommon(t)
 
-	tempdir, err := ioutil.TempDir(os.TempDir(), "bserver_tlf_storage")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "bserver_tlf_journal")
 	require.NoError(t, err)
 	defer func() {
 		err := os.RemoveAll(tempdir)

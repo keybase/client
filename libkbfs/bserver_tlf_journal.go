@@ -75,7 +75,7 @@ type bserverTlfJournal struct {
 // directory. Any existing journal entries are read.
 func makeBserverTlfJournal(codec Codec, crypto cryptoPure, dir string) (
 	*bserverTlfJournal, error) {
-	bserver := &bserverTlfJournal{
+	journal := &bserverTlfJournal{
 		codec:  codec,
 		crypto: crypto,
 		dir:    dir,
@@ -83,15 +83,15 @@ func makeBserverTlfJournal(codec Codec, crypto cryptoPure, dir string) (
 
 	// Locking here is not strictly necessary, but do it anyway
 	// for consistency.
-	bserver.lock.Lock()
-	defer bserver.lock.Unlock()
-	refs, err := bserver.readJournalLocked()
+	journal.lock.Lock()
+	defer journal.lock.Unlock()
+	refs, err := journal.readJournalLocked()
 	if err != nil {
 		return nil, err
 	}
 
-	bserver.refs = refs
-	return bserver, nil
+	journal.refs = refs
+	return journal, nil
 }
 
 // journalOrdinal is the ordinal used for naming journal entries.
@@ -116,43 +116,43 @@ func (o journalOrdinal) String() string {
 
 // The functions below are for building various paths for the journal.
 
-func (s *bserverTlfJournal) journalPath() string {
-	return filepath.Join(s.dir, "journal")
+func (j *bserverTlfJournal) journalPath() string {
+	return filepath.Join(j.dir, "journal")
 }
 
-func (s *bserverTlfJournal) earliestPath() string {
-	return filepath.Join(s.journalPath(), "EARLIEST")
+func (j *bserverTlfJournal) earliestPath() string {
+	return filepath.Join(j.journalPath(), "EARLIEST")
 }
 
-func (s *bserverTlfJournal) latestPath() string {
-	return filepath.Join(s.journalPath(), "LATEST")
+func (j *bserverTlfJournal) latestPath() string {
+	return filepath.Join(j.journalPath(), "LATEST")
 }
 
-func (s *bserverTlfJournal) journalEntryPath(o journalOrdinal) string {
-	return filepath.Join(s.journalPath(), o.String())
+func (j *bserverTlfJournal) journalEntryPath(o journalOrdinal) string {
+	return filepath.Join(j.journalPath(), o.String())
 }
 
-func (s *bserverTlfJournal) blocksPath() string {
-	return filepath.Join(s.dir, "blocks")
+func (j *bserverTlfJournal) blocksPath() string {
+	return filepath.Join(j.dir, "blocks")
 }
 
-func (s *bserverTlfJournal) blockPath(id BlockID) string {
+func (j *bserverTlfJournal) blockPath(id BlockID) string {
 	idStr := id.String()
-	return filepath.Join(s.blocksPath(), idStr[:4], idStr[4:])
+	return filepath.Join(j.blocksPath(), idStr[:4], idStr[4:])
 }
 
-func (s *bserverTlfJournal) blockDataPath(id BlockID) string {
-	return filepath.Join(s.blockPath(id), "data")
+func (j *bserverTlfJournal) blockDataPath(id BlockID) string {
+	return filepath.Join(j.blockPath(id), "data")
 }
 
-func (s *bserverTlfJournal) keyServerHalfPath(id BlockID) string {
-	return filepath.Join(s.blockPath(id), "key_server_half")
+func (j *bserverTlfJournal) keyServerHalfPath(id BlockID) string {
+	return filepath.Join(j.blockPath(id), "key_server_half")
 }
 
 // The functions below are for getting and setting the earliest and
 // latest ordinals.
 
-func (s *bserverTlfJournal) readOrdinalLocked(path string) (
+func (j *bserverTlfJournal) readOrdinalLocked(path string) (
 	journalOrdinal, error) {
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
@@ -161,26 +161,26 @@ func (s *bserverTlfJournal) readOrdinalLocked(path string) (
 	return makeJournalOrdinal(string(buf))
 }
 
-func (s *bserverTlfJournal) writeOrdinalLocked(
+func (j *bserverTlfJournal) writeOrdinalLocked(
 	path string, o journalOrdinal) error {
 	return ioutil.WriteFile(path, []byte(o.String()), 0600)
 }
 
-func (s *bserverTlfJournal) readEarliestOrdinalLocked() (
+func (j *bserverTlfJournal) readEarliestOrdinalLocked() (
 	journalOrdinal, error) {
-	return s.readOrdinalLocked(s.earliestPath())
+	return j.readOrdinalLocked(j.earliestPath())
 }
 
-func (s *bserverTlfJournal) writeEarliestOrdinalLocked(o journalOrdinal) error {
-	return s.writeOrdinalLocked(s.earliestPath(), o)
+func (j *bserverTlfJournal) writeEarliestOrdinalLocked(o journalOrdinal) error {
+	return j.writeOrdinalLocked(j.earliestPath(), o)
 }
 
-func (s *bserverTlfJournal) readLatestOrdinalLocked() (journalOrdinal, error) {
-	return s.readOrdinalLocked(s.latestPath())
+func (j *bserverTlfJournal) readLatestOrdinalLocked() (journalOrdinal, error) {
+	return j.readOrdinalLocked(j.latestPath())
 }
 
-func (s *bserverTlfJournal) writeLatestOrdinalLocked(o journalOrdinal) error {
-	return s.writeOrdinalLocked(s.latestPath(), o)
+func (j *bserverTlfJournal) writeLatestOrdinalLocked(o journalOrdinal) error {
+	return j.writeOrdinalLocked(j.latestPath(), o)
 }
 
 type bserverOpName string
@@ -205,16 +205,16 @@ type bserverJournalEntry struct {
 
 // The functions below are for reading and writing journal entries.
 
-func (s *bserverTlfJournal) readJournalEntryLocked(o journalOrdinal) (
+func (j *bserverTlfJournal) readJournalEntryLocked(o journalOrdinal) (
 	bserverJournalEntry, error) {
-	p := s.journalEntryPath(o)
+	p := j.journalEntryPath(o)
 	buf, err := ioutil.ReadFile(p)
 	if err != nil {
 		return bserverJournalEntry{}, err
 	}
 
 	var e bserverJournalEntry
-	err = s.codec.Decode(buf, &e)
+	err = j.codec.Decode(buf, &e)
 	if err != nil {
 		return bserverJournalEntry{}, err
 	}
@@ -224,23 +224,23 @@ func (s *bserverTlfJournal) readJournalEntryLocked(o journalOrdinal) (
 
 // readJournalLocked reads the journal and returns a map of all the
 // block references in the journal.
-func (s *bserverTlfJournal) readJournalLocked() (
+func (j *bserverTlfJournal) readJournalLocked() (
 	map[BlockID]blockRefMap, error) {
 	refs := make(map[BlockID]blockRefMap)
 
-	first, err := s.readEarliestOrdinalLocked()
+	first, err := j.readEarliestOrdinalLocked()
 	if os.IsNotExist(err) {
 		return refs, nil
 	} else if err != nil {
 		return nil, err
 	}
-	last, err := s.readLatestOrdinalLocked()
+	last, err := j.readLatestOrdinalLocked()
 	if err != nil {
 		return nil, err
 	}
 
 	for i := first; i <= last; i++ {
-		e, err := s.readJournalEntryLocked(i)
+		e, err := j.readJournalEntryLocked(i)
 		if err != nil {
 			return nil, err
 		}
@@ -278,16 +278,16 @@ func (s *bserverTlfJournal) readJournalLocked() (
 	return refs, nil
 }
 
-func (s *bserverTlfJournal) writeJournalEntryLocked(
+func (j *bserverTlfJournal) writeJournalEntryLocked(
 	o journalOrdinal, e bserverJournalEntry) error {
-	err := os.MkdirAll(s.journalPath(), 0700)
+	err := os.MkdirAll(j.journalPath(), 0700)
 	if err != nil {
 		return err
 	}
 
-	p := s.journalEntryPath(o)
+	p := j.journalEntryPath(o)
 
-	buf, err := s.codec.Encode(e)
+	buf, err := j.codec.Encode(e)
 	if err != nil {
 		return err
 	}
@@ -295,12 +295,12 @@ func (s *bserverTlfJournal) writeJournalEntryLocked(
 	return ioutil.WriteFile(p, buf, 0600)
 }
 
-func (s *bserverTlfJournal) appendJournalEntryLocked(
+func (j *bserverTlfJournal) appendJournalEntryLocked(
 	op bserverOpName, id BlockID, contexts []BlockContext) error {
 	// TODO: Consider caching the latest ordinal in memory instead
 	// of reading it from disk every time.
 	var next journalOrdinal
-	o, err := s.readLatestOrdinalLocked()
+	o, err := j.readLatestOrdinalLocked()
 	if os.IsNotExist(err) {
 		next = 0
 	} else if err != nil {
@@ -314,7 +314,7 @@ func (s *bserverTlfJournal) appendJournalEntryLocked(
 		}
 	}
 
-	err = s.writeJournalEntryLocked(next, bserverJournalEntry{
+	err = j.writeJournalEntryLocked(next, bserverJournalEntry{
 		Op:       op,
 		ID:       id,
 		Contexts: contexts,
@@ -323,34 +323,34 @@ func (s *bserverTlfJournal) appendJournalEntryLocked(
 		return err
 	}
 
-	_, err = s.readEarliestOrdinalLocked()
+	_, err = j.readEarliestOrdinalLocked()
 	if os.IsNotExist(err) {
-		s.writeEarliestOrdinalLocked(next)
+		j.writeEarliestOrdinalLocked(next)
 	} else if err != nil {
 		return err
 	}
-	return s.writeLatestOrdinalLocked(next)
+	return j.writeLatestOrdinalLocked(next)
 }
 
-func (s *bserverTlfJournal) journalLength() (uint64, error) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-	first, err := s.readEarliestOrdinalLocked()
+func (j *bserverTlfJournal) journalLength() (uint64, error) {
+	j.lock.RLock()
+	defer j.lock.RUnlock()
+	first, err := j.readEarliestOrdinalLocked()
 	if os.IsNotExist(err) {
 		return 0, nil
 	} else if err != nil {
 		return 0, err
 	}
-	last, err := s.readLatestOrdinalLocked()
+	last, err := j.readLatestOrdinalLocked()
 	if err != nil {
 		return 0, err
 	}
 	return uint64(last - first + 1), nil
 }
 
-func (s *bserverTlfJournal) getRefEntryLocked(
+func (j *bserverTlfJournal) getRefEntryLocked(
 	id BlockID, refNonce BlockRefNonce) (blockRefEntry, error) {
-	refs := s.refs[id]
+	refs := j.refs[id]
 	if refs == nil {
 		return blockRefEntry{}, BServerErrorBlockNonExistent{}
 	}
@@ -363,20 +363,13 @@ func (s *bserverTlfJournal) getRefEntryLocked(
 	return e, nil
 }
 
-var errBserverTlfJournalShutdown = errors.New("bserverTlfJournal is shutdown")
-
 // getDataLocked verifies the block data for the given ID and context
 // and returns it.
-func (s *bserverTlfJournal) getDataLocked(id BlockID, context BlockContext) (
+func (j *bserverTlfJournal) getDataLocked(id BlockID, context BlockContext) (
 	[]byte, BlockCryptKeyServerHalf, error) {
-	if s.isShutdown {
-		return nil, BlockCryptKeyServerHalf{},
-			errBserverTlfJournalShutdown
-	}
-
 	// Check arguments.
 
-	refEntry, err := s.getRefEntryLocked(id, context.GetRefNonce())
+	refEntry, err := j.getRefEntryLocked(id, context.GetRefNonce())
 	if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
@@ -388,7 +381,7 @@ func (s *bserverTlfJournal) getDataLocked(id BlockID, context BlockContext) (
 
 	// Read files.
 
-	data, err := ioutil.ReadFile(s.blockDataPath(id))
+	data, err := ioutil.ReadFile(j.blockDataPath(id))
 	if os.IsNotExist(err) {
 		return nil, BlockCryptKeyServerHalf{},
 			BServerErrorBlockNonExistent{}
@@ -396,7 +389,7 @@ func (s *bserverTlfJournal) getDataLocked(id BlockID, context BlockContext) (
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
 
-	keyServerHalfPath := s.keyServerHalfPath(id)
+	keyServerHalfPath := j.keyServerHalfPath(id)
 	buf, err := ioutil.ReadFile(keyServerHalfPath)
 	if os.IsNotExist(err) {
 		return nil, BlockCryptKeyServerHalf{},
@@ -407,7 +400,7 @@ func (s *bserverTlfJournal) getDataLocked(id BlockID, context BlockContext) (
 
 	// Check integrity.
 
-	dataID, err := s.crypto.MakePermanentBlockID(data)
+	dataID, err := j.crypto.MakePermanentBlockID(data)
 	if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
@@ -426,9 +419,9 @@ func (s *bserverTlfJournal) getDataLocked(id BlockID, context BlockContext) (
 	return data, serverHalf, nil
 }
 
-func (s *bserverTlfJournal) putRefEntryLocked(
+func (j *bserverTlfJournal) putRefEntryLocked(
 	id BlockID, refEntry blockRefEntry) error {
-	existingRefEntry, err := s.getRefEntryLocked(
+	existingRefEntry, err := j.getRefEntryLocked(
 		id, refEntry.Context.GetRefNonce())
 	var exists bool
 	switch err.(type) {
@@ -447,35 +440,43 @@ func (s *bserverTlfJournal) putRefEntryLocked(
 		}
 	}
 
-	if s.refs[id] == nil {
-		s.refs[id] = make(blockRefMap)
+	if j.refs[id] == nil {
+		j.refs[id] = make(blockRefMap)
 	}
 
-	s.refs[id].put(refEntry.Context, refEntry.Status)
+	j.refs[id].put(refEntry.Context, refEntry.Status)
 	return nil
 }
 
 // All functions below are public functions.
 
-func (s *bserverTlfJournal) getData(id BlockID, context BlockContext) (
+var errBserverTlfJournalShutdown = errors.New("bserverTlfJournal is shutdown")
+
+func (j *bserverTlfJournal) getData(id BlockID, context BlockContext) (
 	[]byte, BlockCryptKeyServerHalf, error) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-	return s.getDataLocked(id, context)
+	j.lock.RLock()
+	defer j.lock.RUnlock()
+
+	if j.isShutdown {
+		return nil, BlockCryptKeyServerHalf{},
+			errBserverTlfJournalShutdown
+	}
+
+	return j.getDataLocked(id, context)
 }
 
-func (s *bserverTlfJournal) getAll() (
+func (j *bserverTlfJournal) getAll() (
 	map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+	j.lock.RLock()
+	defer j.lock.RUnlock()
 
-	if s.isShutdown {
+	if j.isShutdown {
 		return nil, errBserverTlfJournalShutdown
 	}
 
 	res := make(map[BlockID]map[BlockRefNonce]blockRefLocalStatus)
 
-	for id, refs := range s.refs {
+	for id, refs := range j.refs {
 		if len(refs) == 0 {
 			continue
 		}
@@ -489,22 +490,22 @@ func (s *bserverTlfJournal) getAll() (
 	return res, nil
 }
 
-func (s *bserverTlfJournal) putData(
+func (j *bserverTlfJournal) putData(
 	id BlockID, context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
-	err := validateBlockServerPut(s.crypto, id, context, buf)
+	err := validateBlockServerPut(j.crypto, id, context, buf)
 	if err != nil {
 		return err
 	}
 
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	j.lock.Lock()
+	defer j.lock.Unlock()
 
-	if s.isShutdown {
+	if j.isShutdown {
 		return errBserverTlfJournalShutdown
 	}
 
-	_, existingServerHalf, err := s.getDataLocked(id, context)
+	_, existingServerHalf, err := j.getDataLocked(id, context)
 	var exists bool
 	switch err.(type) {
 	case BServerErrorBlockNonExistent:
@@ -530,12 +531,12 @@ func (s *bserverTlfJournal) putData(
 		}
 	}
 
-	err = os.MkdirAll(s.blockPath(id), 0700)
+	err = os.MkdirAll(j.blockPath(id), 0700)
 	if err != nil {
 		return err
 	}
 
-	err = ioutil.WriteFile(s.blockDataPath(id), buf, 0600)
+	err = ioutil.WriteFile(j.blockDataPath(id), buf, 0600)
 	if err != nil {
 		return err
 	}
@@ -543,12 +544,12 @@ func (s *bserverTlfJournal) putData(
 	// TODO: Add integrity-checking for key server half?
 
 	err = ioutil.WriteFile(
-		s.keyServerHalfPath(id), serverHalf.data[:], 0600)
+		j.keyServerHalfPath(id), serverHalf.data[:], 0600)
 	if err != nil {
 		return err
 	}
 
-	err = s.putRefEntryLocked(id, blockRefEntry{
+	err = j.putRefEntryLocked(id, blockRefEntry{
 		Status:  liveBlockRef,
 		Context: context,
 	})
@@ -556,19 +557,19 @@ func (s *bserverTlfJournal) putData(
 		return err
 	}
 
-	return s.appendJournalEntryLocked(
+	return j.appendJournalEntryLocked(
 		blockPutOp, id, []BlockContext{context})
 }
 
-func (s *bserverTlfJournal) addReference(id BlockID, context BlockContext) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+func (j *bserverTlfJournal) addReference(id BlockID, context BlockContext) error {
+	j.lock.Lock()
+	defer j.lock.Unlock()
 
-	if s.isShutdown {
+	if j.isShutdown {
 		return errBserverTlfJournalShutdown
 	}
 
-	refs := s.refs[id]
+	refs := j.refs[id]
 	if refs == nil {
 		return BServerErrorBlockNonExistent{fmt.Sprintf("Block ID %s "+
 			"doesn't exist and cannot be referenced.", id)}
@@ -593,7 +594,7 @@ func (s *bserverTlfJournal) addReference(id BlockID, context BlockContext) error
 	// no references at all. Also figure out what to do with an
 	// addReference without a preceding Put.
 
-	err := s.putRefEntryLocked(id, blockRefEntry{
+	err := j.putRefEntryLocked(id, blockRefEntry{
 		Status:  liveBlockRef,
 		Context: context,
 	})
@@ -601,20 +602,20 @@ func (s *bserverTlfJournal) addReference(id BlockID, context BlockContext) error
 		return err
 	}
 
-	return s.appendJournalEntryLocked(
+	return j.appendJournalEntryLocked(
 		addRefOp, id, []BlockContext{context})
 }
 
-func (s *bserverTlfJournal) removeReferences(
+func (j *bserverTlfJournal) removeReferences(
 	id BlockID, contexts []BlockContext) (int, error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	j.lock.Lock()
+	defer j.lock.Unlock()
 
-	if s.isShutdown {
+	if j.isShutdown {
 		return 0, errBserverTlfJournalShutdown
 	}
 
-	refs := s.refs[id]
+	refs := j.refs[id]
 	if refs == nil {
 		// This block is already gone; no error.
 		return 0, nil
@@ -636,7 +637,7 @@ func (s *bserverTlfJournal) removeReferences(
 
 	count := len(refs)
 	if count == 0 {
-		err := os.RemoveAll(s.blockPath(id))
+		err := os.RemoveAll(j.blockPath(id))
 		if err != nil {
 			return 0, err
 		}
@@ -645,7 +646,7 @@ func (s *bserverTlfJournal) removeReferences(
 	// TODO: Figure out what to do with live count when we have a
 	// real block server backend.
 
-	err := s.appendJournalEntryLocked(removeRefsOp, id, contexts)
+	err := j.appendJournalEntryLocked(removeRefsOp, id, contexts)
 	if err != nil {
 		return 0, err
 	}
@@ -653,18 +654,18 @@ func (s *bserverTlfJournal) removeReferences(
 	return count, nil
 }
 
-func (s *bserverTlfJournal) archiveReferences(
+func (j *bserverTlfJournal) archiveReferences(
 	id BlockID, contexts []BlockContext) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	j.lock.Lock()
+	defer j.lock.Unlock()
 
-	if s.isShutdown {
+	if j.isShutdown {
 		return errBserverTlfJournalShutdown
 	}
 
 	for _, context := range contexts {
 		refNonce := context.GetRefNonce()
-		refEntry, err := s.getRefEntryLocked(id, refNonce)
+		refEntry, err := j.getRefEntryLocked(id, refNonce)
 		switch err.(type) {
 		case BServerErrorBlockNonExistent:
 			return BServerErrorBlockNonExistent{
@@ -686,27 +687,27 @@ func (s *bserverTlfJournal) archiveReferences(
 		}
 
 		refEntry.Status = archivedBlockRef
-		err = s.putRefEntryLocked(id, refEntry)
+		err = j.putRefEntryLocked(id, refEntry)
 		if err != nil {
 			return err
 		}
 	}
 
-	return s.appendJournalEntryLocked(archiveRefsOp, id, contexts)
+	return j.appendJournalEntryLocked(archiveRefsOp, id, contexts)
 }
 
-func (s *bserverTlfJournal) shutdown() {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	s.isShutdown = true
+func (j *bserverTlfJournal) shutdown() {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	j.isShutdown = true
 
 	// Double-check the on-disk journal with the in-memory one.
-	refs, err := s.readJournalLocked()
+	refs, err := j.readJournalLocked()
 	if err != nil {
 		panic(err)
 	}
 
-	if !reflect.DeepEqual(refs, s.refs) {
-		panic(fmt.Sprintf("refs = %v != s.refs = %v", refs, s.refs))
+	if !reflect.DeepEqual(refs, j.refs) {
+		panic(fmt.Sprintf("refs = %v != j.refs = %v", refs, j.refs))
 	}
 }
