@@ -6,9 +6,10 @@ import Box from './box'
 import type {Props} from './clickable-box'
 
 export default function ClickableBox (props: Props & {children: any}) {
+  const {style, children, ...otherProps} = props
   return (
-    <FlatButton {...props} style={{textAlign: 'left', height: undefined, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch'}}>
-      <Box style={{...props.style}}>{props.children}</Box>
+    <FlatButton {...otherProps} style={{textAlign: 'left', height: undefined, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'stretch'}}>
+      <Box style={style}>{children}</Box>
     </FlatButton>
   )
 }
