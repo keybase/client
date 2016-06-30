@@ -25,7 +25,7 @@ To build and deploy the app:
 
 ### Scheduling Builds
 
-There is an example of a plist to for scheduled builds.
+There is an example of a plist for scheduled builds.
 
 ```
 launchctl load ~/Library/LaunchAgents/keybase.prerelease.plist
@@ -36,7 +36,7 @@ launchctl load ~/Library/LaunchAgents/keybase.prerelease.plist
 To build a version of the app using the local repo without uploading to S3:
 
 ```
-NOPULL=1 NOS3=1 PLATFORM=darwin ./build_app.sh
+NOWAIT=1 NOPULL=1 NOS3=1 PLATFORM=darwin ./build_app.sh
 ```
 
 For faster debugging/testing, you can build Keybase services (go binaries)
@@ -45,22 +45,4 @@ directly into an existing app install:
 ```
 BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin PLATFORM=darwin ./build_keybase.sh
 BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin PLATFORM=darwin ./build_kbfs.sh
-```
-
-To test a local build (using test bucket):
-
-```
-NOPULL=1 TEST=1 PLATFORM=darwin ./build_app.sh
-```
-
-### Updating from Test Builds
-
-```
-keybase update run --source=remote --url="https://s3.amazonaws.com/prerelease-test.keybase.io/update-darwin-prod.json"
-```
-
-### Testing S3 Index
-
-```
-NOPULL=1 BUCKET_NAME=prerelease-test.keybase.io PLATFORM=darwin ./s3_index.sh
 ```

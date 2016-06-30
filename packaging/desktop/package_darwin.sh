@@ -226,13 +226,14 @@ create_sourcemap_zip() {(
 
 create_zip() {(
   cd "$out_dir"
-  echo "Creating $zip_name"
+  echo "Creating $out_dir/$zip_name"
   #zip -r $zip_name $app_name.app
   ditto -c -k --sequesterRsrc --keepParent "$app_name.app" "$zip_name"
 )}
 
 kbsign() {(
   cd "$out_dir"
+  echo "Signing (via keybase)"
   keybase sign -d -i "$zip_name" -o "$sig_name"
 )}
 
