@@ -47,14 +47,14 @@ func testExpectedMissingDirty(t *testing.T, id BlockID,
 
 func TestDirtyBcachePut(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
-		5<<20, 10<<20)
+		5<<20, 5<<20, 10<<20)
 	defer dirtyBcache.Shutdown()
 	testDirtyBcachePut(t, fakeBlockID(1), dirtyBcache)
 }
 
 func TestDirtyBcachePutDuplicate(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
-		5<<20, 10<<20)
+		5<<20, 5<<20, 10<<20)
 	defer dirtyBcache.Shutdown()
 	id1 := fakeBlockID(1)
 
@@ -99,7 +99,7 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 
 func TestDirtyBcacheDelete(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
-		5<<20, 10<<20)
+		5<<20, 5<<20, 10<<20)
 	defer dirtyBcache.Shutdown()
 
 	id1 := fakeBlockID(1)
@@ -121,9 +121,9 @@ func TestDirtyBcacheDelete(t *testing.T) {
 func TestDirtyBcacheRequestPermission(t *testing.T) {
 	bufSize := int64(5)
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
-		bufSize, bufSize*2)
+		bufSize, bufSize, bufSize*2)
 	defer dirtyBcache.Shutdown()
-	blockedChan := make(chan int64)
+	blockedChan := make(chan int64, 1)
 	dirtyBcache.blockedChanForTesting = blockedChan
 	ctx := context.Background()
 
@@ -164,17 +164,6 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	// Request 2 should still be blocked.  (This check isn't
 	// fool-proof, since it doesn't necessarily give time for the
 	// background thread to run.)
-	select {
-	case <-c2:
-		t.Fatalf("Request should be blocked")
-	default:
-	}
-
-	// Finish syncing most of the blocks, but c2 is still blocked
-	// because we haven't finished the sync yet (hence the sync buffer
-	// size hasn't increased yet).
-	dirtyBcache.BlockSyncFinished(2*bufSize + 1)
-	dirtyBcache.BlockSyncFinished(bufSize)
 	if !dirtyBcache.ShouldForceSync() {
 		t.Fatalf("Total not full before sync finishes")
 	}
@@ -184,24 +173,29 @@ func TestDirtyBcacheRequestPermission(t *testing.T) {
 	default:
 	}
 
-	// Finally, finish off the sync, which should unblock c2
-	dirtyBcache.BlockSyncFinished(bufSize + 1)
-	dirtyBcache.SyncFinished(4*bufSize + 2)
-	if dirtyBcache.ShouldForceSync() {
-		t.Fatalf("Buffers still full after sync finished")
-	}
-
+	dirtyBcache.UpdateSyncingBytes(4*bufSize + 2)
 	if blockedSize := <-blockedChan; blockedSize != -1 {
 		t.Fatalf("Wrong blocked size: %d", blockedSize)
 	}
-	<-c2
+	<-c2 // c2 is now unblocked since the wait buffer has drained.
+	// We should still need to sync the waitBuf caused by c2.
+	if !dirtyBcache.ShouldForceSync() {
+		t.Fatalf("Buffers not full after c2 accepted")
+	}
+
+	// Finish syncing most of the blocks, but the c2 sync hasn't
+	// finished.
+	dirtyBcache.BlockSyncFinished(2*bufSize + 1)
+	dirtyBcache.BlockSyncFinished(bufSize)
+	dirtyBcache.BlockSyncFinished(bufSize + 1)
+	dirtyBcache.SyncFinished(4*bufSize + 2)
 }
 
 func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 	bufSize := int64(10)
 	clock, now := newTestClockAndTimeNow()
 	dirtyBcache := NewDirtyBlockCacheStandard(clock, testLoggerMaker(t),
-		bufSize, bufSize*2)
+		bufSize, bufSize, bufSize*2)
 	defer dirtyBcache.Shutdown()
 	// no backpressure yet
 	bp := dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))
