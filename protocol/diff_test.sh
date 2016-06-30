@@ -9,7 +9,14 @@ npm i
 make clean
 make
 
-if ! git diff --exit-code ; then
+# Protocol changes could create diffs in the following directories:
+#   protocol/
+#   go/
+#   shared/
+# This build process is idempotent. We expect there to be no changes after
+# re-running the protocol generation, because any changes should have been
+# checked in.
+if ! git diff --exit-code ./ ../go/ ../shared/; then
   echo 'ERROR: `git diff` detected changes. The generated protocol files are stale.'
   exit 1
 fi
