@@ -93,60 +93,74 @@ node("ec2-fleet") {
 
                 stage "Test"
                     parallel (
-                        //test_linux: {
-                        //    parallel (
-                        //        test_linux_go: {
-                        //            dir("go") {
-                        //                sh "while ! curl -s -o /dev/null localhost:3000 2>&1; do sleep 1; done"
-                        //                sh "test/run_tests.sh || (docker logs ${kbweb.id}; exit 1)"
-                        //            }
-                        //        },
-                        //        test_linux_js: {
-                        //            // TODO streamline this a bit
-                        //            // TODO implement PR ID
-                        //            env.PATH="${env.HOME}/.node/bin:${env.PATH}"
-                        //            env.NODE_PATH="${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}"
-                        //            if (fileExists("desktop/npm-vendor.js")) {
-                        //                dir("desktop") {
-                        //                    sh "npm run vendor-install"
-                        //                    sh "unzip ./js-vendor-desktop/flow/flow-linux64*.zip"
-                        //                    sh "./flow/flow"
-                        //                }
-                        //            } else {
-                        //                dir("desktop") {
-                        //                    sh "../packaging/npm_mess.sh"
-                        //                }
-                        //                dir("shared") {
-                        //                    sh 'npm i -g flow-bin@$(tail -n1 .flowconfig)'
-                        //                    sh "flow"
-                        //                }
-                        //            }
-                        //            sh "desktop/node_modules/.bin/eslint ."
-                        //            dir("protocol") {
-                        //                sh "./diff_test.sh"
-                        //            }
-                        //            if (fileExists("visdiff")) {
-                        //                dir("visdiff") {
-                        //                    sh "npm install"
-                        //                }
-                        //                sh "npm install ./visdiff"
-                        //                dir("desktop") {
-                        //                    sh "../node_modules/.bin/keybase-visdiff HEAD^...HEAD"
-                        //                }
-                        //            } else {
-                        //                dir("desktop") {
-                        //                    // TODO implement visdiff to S3
-                        //                }
-                        //            }
-                        //        },
-                        //    )
-                        //},
+                        test_linux: {
+                            parallel (
+                                test_linux_go: {
+                                    dir("go") {
+                                        sh "while ! curl -s -o /dev/null localhost:3000 2>&1; do sleep 1; done"
+                                        sh "test/run_tests.sh || (docker logs ${kbweb.id}; exit 1)"
+                                    }
+                                },
+                                test_linux_js: { withEnv([
+                                    "PATH+NODE=${env.HOME}/.node/bin:",
+                                    "NODE_PATH+NODE=${env.HOME}/.node/lib/node_modules:"
+                                ]) {
+                                    // TODO implement PR ID
+                                    if (fileExists("desktop/npm-vendor.js")) {
+                                        dir("desktop") {
+                                            sh "npm run vendor-install"
+                                            sh "unzip ./js-vendor-desktop/flow/flow-linux64*.zip"
+                                            sh "./flow/flow"
+                                        }
+                                    } else {
+                                        dir("desktop") {
+                                            sh "../packaging/npm_mess.sh"
+                                        }
+                                        dir("shared") {
+                                            sh 'npm i -g flow-bin@$(tail -n1 .flowconfig)'
+                                            sh "flow"
+                                        }
+                                    }
+                                    sh "desktop/node_modules/.bin/eslint ."
+                                    dir("protocol") {
+                                        sh "./diff_test.sh"
+                                    }
+                                    withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                            credentialsId: 'visdiff-aws-creds',
+                                            usernameVariable: 'visdiffAccessKeyId',
+                                            passwordVariable: 'visdiffAccessSecret',
+                                        ],[$class: 'StringBinding',
+                                            credentialsId: 'visdiff-github-token',
+                                            variable: 'visdiffGithubToken',
+                                    ]]) {
+                                    withEnv([
+                                        "VISDIFF_AWS_ACCESS_KEY_ID=${visdiffAccessKeyId}",
+                                        "VISDIFF_AWS_SECRET_ACCESS_KEY=${visdiffAccessSecret}",
+                                        "VISDIFF_GH_TOKEN=${visdiffGithubToken}",
+                                    ]) {
+                                        if (fileExists("visdiff")) {
+                                            dir("visdiff") {
+                                                sh "npm install"
+                                            }
+                                            sh "npm install ./visdiff"
+                                            dir("desktop") {
+                                                sh "../node_modules/.bin/keybase-visdiff HEAD^...HEAD"
+                                            }
+                                        } else {
+                                            dir("desktop") {
+                                                // TODO implement visdiff to S3
+                                            }
+                                        }
+                                    }}
+                                }},
+                            )
+                        },
                         test_windows: {
                             node('windows-pipeline') {
                             withEnv([
                                 'GOROOT=C:\\tools\\go',
                                 "GOPATH=\"${pwd()}\"",
-                                'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG";"C:\\Program Files\\nodejs";"C:\\tools\\python";"C:\\Program Files\\graphicsmagick-1.3.24-q8"',
+                                'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG";"C:\\Program Files\\nodejs";"C:\\tools\\python";"C:\\Program Files\\graphicsmagick-1.3.24-q8";',
                                 "KEYBASE_SERVER_URI=http://${local}:3000",
                                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${local}:9911",
                             ]) {
@@ -188,7 +202,21 @@ node("ec2-fleet") {
                                                 } else {
                                                     bat "npm install --no-optional"
                                                 }
-                                                bat '..\\node_modules\\.bin\\keybase-visdiff "HEAD^^...HEAD"'
+                                                withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                                        credentialsId: 'visdiff-aws-creds',
+                                                        usernameVariable: 'visdiffAccessKeyId',
+                                                        passwordVariable: 'visdiffAccessSecret',
+                                                    ],[$class: 'StringBinding',
+                                                        credentialsId: 'visdiff-github-token',
+                                                        variable: 'visdiffGithubToken',
+                                                ]]) {
+                                                withEnv([
+                                                    "VISDIFF_AWS_ACCESS_KEY_ID=${visdiffAccessKeyId}",
+                                                    "VISDIFF_AWS_SECRET_ACCESS_KEY=${visdiffAccessSecret}",
+                                                    "VISDIFF_GH_TOKEN=${visdiffGithubToken}",
+                                                ]) {
+                                                    bat '..\\node_modules\\.bin\\keybase-visdiff "HEAD^^...HEAD"'
+                                                }}
                                             }
                                         }
                                     },
