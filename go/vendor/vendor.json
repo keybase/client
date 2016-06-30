@@ -455,6 +455,46 @@
 			"revisionTime": "2015-10-08T13:13:40-07:00"
 		},
 		{
+			"path": "golang.org/x/text/encoding",
+			"revision": "4440cd4f4c2ea31e1872e00de675a86d0c19006c",
+			"revisionTime": "2016-06-17T13:51:20-05:00"
+		},
+		{
+			"path": "golang.org/x/text/encoding/internal",
+			"revision": "4440cd4f4c2ea31e1872e00de675a86d0c19006c",
+			"revisionTime": "2016-06-17T13:51:20-05:00"
+		},
+		{
+			"path": "golang.org/x/text/encoding/internal/identifier",
+			"revision": "4440cd4f4c2ea31e1872e00de675a86d0c19006c",
+			"revisionTime": "2016-06-17T13:51:20-05:00"
+		},
+		{
+			"path": "golang.org/x/text/encoding/unicode",
+			"revision": "4440cd4f4c2ea31e1872e00de675a86d0c19006c",
+			"revisionTime": "2016-06-17T13:51:20-05:00"
+		},
+		{
+			"path": "golang.org/x/text/internal/gen",
+			"revision": "4440cd4f4c2ea31e1872e00de675a86d0c19006c",
+			"revisionTime": "2016-06-17T13:51:20-05:00"
+		},
+		{
+			"path": "golang.org/x/text/internal/utf8internal",
+			"revision": "4440cd4f4c2ea31e1872e00de675a86d0c19006c",
+			"revisionTime": "2016-06-17T13:51:20-05:00"
+		},
+		{
+			"path": "golang.org/x/text/runes",
+			"revision": "4440cd4f4c2ea31e1872e00de675a86d0c19006c",
+			"revisionTime": "2016-06-17T13:51:20-05:00"
+		},
+		{
+			"path": "golang.org/x/text/transform",
+			"revision": "4440cd4f4c2ea31e1872e00de675a86d0c19006c",
+			"revisionTime": "2016-06-17T13:51:20-05:00"
+		},
+		{
 			"path": "h12.me/socks",
 			"revision": "c19db44edd3ca0f7992809b55412dbb57805bc8e",
 			"revisionTime": "2015-04-10T14:41:13+08:00"
