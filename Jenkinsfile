@@ -102,21 +102,61 @@ node("ec2-fleet") {
                                     }
                                 },
                                 test_linux_js: {
+                                    // TODO streamline this a bit
+                                    env.PATH="${env.HOME}/.node/bin:${env.PATH}"
+                                    env.NODE_PATH="${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}"
+                                    if (fileExists("desktop/npm-vendor.js")) {
+                                        dir("desktop") {
+                                            sh "npm run vendor-install"
+                                            sh "unzip ./js-vendor-desktop/flow/flow-linux64*.zip"
+                                            sh "./flow/flow"
+                                        }
+                                    } else {
+                                        dir("desktop") {
+                                            sh "./packaging/npm_mess.sh"
+                                        }
+                                        dir("shared") {
+                                            sh 'npm i -g flow-bin@$(tail -n1 .flowconfig)'
+                                            sh "./flow"
+                                        }
+                                    }
+                                    sh "desktop/node_modules/.bin/eslint ."
+                                    dir("protocol") {
+                                        sh "./diff_test.sh"
+                                    }
+                                    if (fileExists("visdiff")) {
+                                        dir("visdiff") {
+                                            sh "npm install"
+                                        }
+                                        sh "npm install ./visdiff"
+                                        dir("desktop") {
+                                            sh "../node_modules/.bin/keybase-visdiff HEAD^...HEAD"
+                                        }
+                                    } else {
+                                        dir("desktop") {
+                                            // TODO implement visdiff to S3
+                                        }
+                                    }
                                 },
                             )
                         },
                         test_windows: {
                             node('windows') {
-                                println "Checkout Windows"
-                                    checkout scm
+                                env.GOPATH=pwd()
+                                env.GO15VENDOREXPERIMENT=1
 
-                                println "Test Windows"
-                                    parallel (
-                                        test_windows_go: {
-                                        },
-                                        test_windows_js: {
-                                        },
-                                    )
+                                ws("${env.GOPATH}/src/github.com/keybase/client") {
+                                    println "Checkout Windows"
+                                        checkout scm
+
+                                    println "Test Windows"
+                                        parallel (
+                                            test_windows_go: {
+                                            },
+                                            test_windows_js: {
+                                            },
+                                        )
+                                }
                             }
                         },
                         test_osx: {
