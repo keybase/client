@@ -81,16 +81,18 @@ func NewFavorites(config Config) *Favorites {
 	return newFavoritesWithChan(config, make(chan *favReq, 100))
 }
 
+func (f *Favorites) closeReq(req *favReq, err error) {
+	f.inFlightLock.Lock()
+	defer f.inFlightLock.Unlock()
+	req.err = err
+	close(req.done)
+	for _, fav := range req.toAdd {
+		delete(f.inFlightAdds, fav)
+	}
+}
+
 func (f *Favorites) handleReq(req *favReq) (err error) {
-	defer func() {
-		f.inFlightLock.Lock()
-		defer f.inFlightLock.Unlock()
-		req.err = err
-		close(req.done)
-		for _, fav := range req.toAdd {
-			delete(f.inFlightAdds, fav)
-		}
-	}()
+	defer func() { f.closeReq(req, err) }()
 
 	kbpki := f.config.KBPKI()
 	// Fetch a new list if:
@@ -196,7 +198,9 @@ func (f *Favorites) sendReq(ctx context.Context, req *favReq) error {
 	select {
 	case f.reqChan <- req:
 	case <-ctx.Done():
-		return ctx.Err()
+		err := ctx.Err()
+		f.closeReq(req, err)
+		return err
 	}
 	// With a direct sendReq call, we'll never have a shared request,
 	// so no need to check the retry status.

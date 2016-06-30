@@ -438,7 +438,7 @@ func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 	lState := makeFBOLockState()
 	head := fbo.getHead(lState)
 	if head == nil {
-		return errors.New("Can't add a favorite without a handle")
+		return OpsCantHandleFavorite{"Can't add a favorite without a handle"}
 	}
 
 	h := head.GetTlfHandle()
@@ -456,7 +456,8 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	lState := makeFBOLockState()
 	head := fbo.getHead(lState)
 	if head == nil {
-		return errors.New("Can't delete a favorite without a handle")
+		// This can happen when identifies fail and the head is never set.
+		return OpsCantHandleFavorite{"Can't delete a favorite without a handle"}
 	}
 
 	h := head.GetTlfHandle()

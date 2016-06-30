@@ -1110,3 +1110,14 @@ func (w OverQuotaWarning) Error() string {
 	return fmt.Sprintf("You are using %d bytes, and your plan limits you "+
 		"to %d bytes.  Please delete some data.", w.UsageBytes, w.LimitBytes)
 }
+
+// OpsCantHandleFavorite means that folderBranchOps wasn't able to
+// deal with a favorites request.
+type OpsCantHandleFavorite struct {
+	Msg string
+}
+
+// Error implements the error interface for OpsCantHandleFavorite.
+func (e OpsCantHandleFavorite) Error() string {
+	return fmt.Sprintf("Couldn't handle the favorite operation: %s", e.Msg)
+}
