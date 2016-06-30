@@ -787,12 +787,19 @@ func (fbo *folderBranchOps) getMDLocked(
 	if err != nil {
 		return nil, err
 	}
+
+	mergedMD, err := mdops.GetForTLF(ctx, fbo.id())
+	if err != nil {
+		return nil, err
+	}
+
 	if md == nil {
-		// no unmerged MDs for this device, so just get the current head
-		md, err = mdops.GetForTLF(ctx, fbo.id())
-		if err != nil {
-			return nil, err
-		}
+		// There are no unmerged MDs for this device, so just use the current head.
+		md = mergedMD
+	} else {
+		// We don't need to do this for merged head because the setHeadLocked()
+		// already does that anyway.
+		fbo.setLatestMergedRevisionLocked(ctx, lState, mergedMD.Revision)
 	}
 
 	if md.data.Dir.Type != Dir && (!md.IsInitialized() || md.IsReadable()) {
@@ -3265,14 +3272,13 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
 
-	if len(rmds) > 0 {
-		fbo.setLatestMergedRevisionLocked(ctx, lState, rmds[len(rmds)-1].Revision)
-	}
-
 	// if we have staged changes, ignore all updates until conflict
 	// resolution kicks in.  TODO: cache these for future use.
 	if !fbo.isMasterBranchLocked(lState) {
 		if len(rmds) > 0 {
+			// setHeadLocked takes care of merged case
+			fbo.setLatestMergedRevisionLocked(ctx, lState, rmds[len(rmds)-1].Revision)
+
 			unmergedRev := MetadataRevisionUninitialized
 			if fbo.head != nil {
 				unmergedRev = fbo.head.Revision
@@ -3387,7 +3393,7 @@ func (fbo *folderBranchOps) setLatestMergedRevisionLocked(ctx context.Context, l
 func (fbo *folderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 	lState *lockState, applyFunc applyMDUpdatesFunc) error {
 	// first look up all MD revisions newer than my current head
-	start := fbo.getCurrMDRevision(lState) + 1
+	start := fbo.getLatestMergedRevision(lState) + 1
 	rmds, err := getMergedMDUpdates(ctx, fbo.config, fbo.id(), start)
 	if err != nil {
 		return err

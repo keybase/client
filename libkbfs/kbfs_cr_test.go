@@ -596,8 +596,8 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 	}
 
 	// User 1 writes the file
-	data1 := []byte{1, 2, 3, 4, 5}
-	err = kbfsOps1.Write(ctx, fileB1, data1, 0)
+	data := []byte{1, 2, 3, 4, 5}
+	err = kbfsOps1.Write(ctx, fileB1, data, 0)
 	if err != nil {
 		t.Fatalf("Couldn't write file: %v", err)
 	}
@@ -606,22 +606,18 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
 
-	// User 2 makes a new different file
-	data2 := []byte{5, 4, 3, 2, 1}
-	err = kbfsOps2.Write(ctx, fileB2, data2, 0)
-	if err != nil {
-		t.Fatalf("Couldn't write file: %v", err)
-	}
+	// User 2 makes a few changes in the file
+	for i := byte(0); i < 4; i++ {
+		// This makes sure the unmerged head of user 2 is ahead of (has large
+		// revision than) the merged master branch, so we can test that we properly
+		// fetch updates when unmerged revision number is greater than merged
+		// revision number (regression in KBFS-1206).
 
-	// User 1 makes another change in the file
-	data1 = []byte{1, 2, 3, 4, 6}
-	err = kbfsOps1.Write(ctx, fileB1, data1, 0)
-	if err != nil {
-		t.Fatalf("Couldn't write file: %v", err)
-	}
-	err = kbfsOps1.Sync(ctx, fileB1)
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %v", err)
+		data = []byte{1, 2, 3, 4, i}
+		err = kbfsOps2.Write(ctx, fileB2, data, 0)
+		if err != nil {
+			t.Fatalf("Couldn't write file: %v", err)
+		}
 	}
 
 	chForEnablingUpdates <- struct{}{}
