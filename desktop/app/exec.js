@@ -24,7 +24,6 @@ export default function (path, args, platformOnly, runModeOnly, killOnExit, call
     return
   }
   if (runModeOnly && runMode !== runModeOnly) {
-    // Only run in prod
     console.log('Exec path not available for this run mode: %s != %s', runModeOnly, runMode)
     if (callback) callback(null, false)
     return
