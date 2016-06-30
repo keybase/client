@@ -88,7 +88,7 @@ node("ec2-fleet") {
             }
 
             kbwebImage.withRun('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh') {kbweb->
-                def local = new URL ("http://169.254.169.254/latest/meta-data/local-ipv4").getText()
+                def local = new URL ("http://169.254.169.254/latest/meta-data/public-ipv4").getText()
                 println "Running on host $local"
 
                 stage "Test"
