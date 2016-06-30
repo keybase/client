@@ -97,7 +97,7 @@ node("ec2-fleet") {
                             parallel (
                                 test_linux_go: {
                                     dir("go") {
-                                        sh "while ! curl -s -o /dev/null localhost:3000 2>&1; do sleep 1; done"
+                                        sh "(while ! curl -s -o /dev/null localhost:3000 2>&1; do sleep 1; done)"
                                         sh "test/run_tests.sh || (docker logs ${kbweb.id}; exit 1)"
                                     }
                                 },
@@ -229,12 +229,17 @@ node("ec2-fleet") {
                             node('osx') {
                             withEnv([
                                 "GOPATH=${pwd()}",
+                                "KEYBASE_SERVER_URI=http://${local}:3000",
+                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${local}:9911",
                             ]) {
                             ws("${pwd()}/src/github.com/keybase/client") {
                                 println "Checkout OS X"
                                     checkout scm
 
                                 println "Test OS X"
+                                    dir('go') {
+                                        sh './test/run_tests.sh'
+                                    }
                             }}}
                         },
                     )
