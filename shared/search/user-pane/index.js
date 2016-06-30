@@ -3,12 +3,11 @@ import React, {Component} from 'react'
 import UserInfo from './user.render'
 import NonUserInfo from './non-user.render'
 import Help from './help'
+import Loading from './loading'
 
 import {fullName} from '../../constants/search'
 import keybaseUrl from '../../constants/urls'
 import {TypedConnector} from '../../util/typed-connect'
-
-import {Text} from '../../common-adapters'
 
 import {getProfile} from '../../actions/tracker'
 
@@ -30,7 +29,8 @@ type Props = {
   mode: 'external',
   nonUserInfoProps: NonUserInfoProps,
 } | {
-  mode: 'loading'
+  mode: 'loading',
+  username: string,
 } | {
   mode: 'nothingSelected'
 }
@@ -42,7 +42,7 @@ class UserPane extends Component<void, Props, void> {
     } else if (this.props.mode === 'external') {
       return <NonUserInfo {...this.props.nonUserInfoProps} />
     } else if (this.props.mode === 'loading') {
-      return <Text type='Body'>TODO: Loading state</Text>
+      return <Loading username={this.props.username} />
     }
 
     return (
@@ -85,6 +85,7 @@ export default connector.connect(
         // Enter loading mode, when the store gets updated we'll come back to here
         return {
           mode: 'loading',
+          username,
         }
       }
     } else if (userForInfoPane && userForInfoPane.service === 'external') {
