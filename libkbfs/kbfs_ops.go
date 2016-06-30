@@ -160,7 +160,12 @@ func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 		return fs.opsByFav[fav]
 	}()
 	if ops != nil {
-		return ops.deleteFromFavorites(ctx, fs.favs)
+		err := ops.deleteFromFavorites(ctx, fs.favs)
+		if _, ok := err.(OpsCantHandleFavorite); !ok {
+			return err
+		}
+		// If the ops couldn't handle the delete, fall through to
+		// going directly via Favorites.
 	}
 
 	if isLoggedIn {
