@@ -77,7 +77,7 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
     createServer(
       engine,
       'keybase.1.rekeyUI.delegateRekeyUI',
-      'keybase.1.rekeyUI.refresh',
+      null,
       () => ({
         'keybase.1.rekeyUI.delegateRekeyUI': (params, response) => { },
         'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
