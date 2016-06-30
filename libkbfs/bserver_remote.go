@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"encoding/hex"
+	"errors"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -363,6 +364,7 @@ func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 			b.log.CDebugf(ctx, "batchDowngradeReferences archive %t (tries %d) sent=%s all succeeded",
 				archive, tries, notDone)
 		}
+		madeProgress := false
 		if err != nil {
 			//if Failed reference is not a throttle error, do not retry it
 			_, tmpErr := err.(BServerErrorThrottle)
@@ -374,11 +376,18 @@ func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 						for i := range refs {
 							if refs[i].GetRefNonce() == BlockRefNonce(res.Failed.Nonce) {
 								refs = append(refs[:i], refs[i+1:]...)
-								contexts[bid] = refs
+								madeProgress = true
 								break
 							}
 						}
 					}
+				}
+				if !madeProgress {
+					// This wasn't a failure due to a particular
+					// reference, it was a complete failure (e.g., the
+					// network connection is down, or the server
+					// returned a failure for an unexpected refnonce).
+					return nil, finalError
 				}
 			}
 		}
@@ -398,7 +407,15 @@ func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 		}
 
 		//figure out the not-yet-deleted references
+		oldNotDoneLen := len(notDone)
 		notDone = b.getNotDone(contexts, doneRefs)
+		if !madeProgress {
+			madeProgress = len(notDone) < oldNotDoneLen
+		}
+		if !madeProgress {
+			return doneRefs,
+				errors.New("Made no progress after a batch downgrade call")
+		}
 
 		//if context is cancelled, return immediately
 		select {
