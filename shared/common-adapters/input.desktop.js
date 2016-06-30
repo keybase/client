@@ -53,6 +53,7 @@ export default class Input extends Component {
         <MultiLineInput
           autoFocus={this.props.autoFocus}
           errorText={this.props.errorText}
+          errorStyle={this.props.errorStyle}
           onChange={event => this.onChange(event)}
           onEnterKeyDown={this.props.onEnterKeyDown}
           hintText={this.props.hintText}

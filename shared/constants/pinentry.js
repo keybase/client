@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {GUIEntryFeatures} from '../constants/types/flow-types'
+import type {GUIEntryFeatures, PassphraseType} from '../constants/types/flow-types'
 import type {TypedAction} from '../constants/types/flux'
 
 export const registerPinentryListener = 'pinentry:registerPinentryListener'
@@ -22,6 +22,7 @@ type sessionIDSpecificPayload = {
 
 type newPinentryPayload = {
   features: GUIEntryFeatures,
+  type: PassphraseType,
   sessionID: number,
   prompt: string,
   windowTitle: string,

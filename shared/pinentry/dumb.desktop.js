@@ -1,6 +1,7 @@
 // @flow
 
 import Pinentry from './index.render'
+import {passphraseCommon} from '../constants/types/keybase-v1'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {Props} from './index.render'
 
@@ -22,15 +23,55 @@ const propsNormal: Props = {
     },
   },
   prompt: 'Enter your passphrase to unlock the secret key for home computer.',
+  type: passphraseCommon.PassphraseType.passPhrase,
+}
+
+const paperkeyNormal: Props = {
+  ...propsNormal,
+  parentProps: {
+    style: {
+      height: 300,
+    },
+  },
+  type: passphraseCommon.PassphraseType.paperKey,
+  prompt: 'Enter your paper key to continue.',
+  features: {
+    ...propsNormal.features,
+    'showTyping': {
+      allow: true,
+      defaultValue: true,
+      readonly: false,
+      label: 'Show typing',
+    },
+  },
 }
 
 const dumbComponentMap: DumbComponentMap<Pinentry> = {
   component: Pinentry,
   mocks: {
-    'Normal': propsNormal,
-    'With Error': {
+    'Passphrase Normal': propsNormal,
+    'Passphrase With Error': {
       ...propsNormal,
       retryLabel: 'That passphrase is incorrect.',
+    },
+    'Passphrase Save in keychain': {
+      ...propsNormal,
+      features: {
+        ...propsNormal.features,
+        'saveInKeychain': {
+          allow: true,
+          defaultValue: true,
+          readonly: false,
+          label: 'Save in keychain',
+        },
+      },
+    },
+    'PaperKey Normal': {
+      ...paperkeyNormal,
+    },
+    'PaperKey Error': {
+      ...paperkeyNormal,
+      retryLabel: 'That paperkey is invalid.',
     },
   },
 }

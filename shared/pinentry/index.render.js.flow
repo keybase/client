@@ -1,11 +1,12 @@
 // @flow
 import React, {Component} from 'react'
-import type {Feature} from '../constants/types/flow-types'
+import type {Feature, PassphraseType} from '../constants/types/flow-types'
 
 export type Props = {
   onSubmit: (passphrase: string, features: {[key: string]: boolean}) => void,
   onCancel: () => void,
   features: {[key: string]: Feature},
+  type: PassphraseType,
   prompt: string,
   retryLabel?: string,
   submitLabel?: string
