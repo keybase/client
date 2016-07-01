@@ -1,8 +1,9 @@
 // @flow
 import {globalColors} from '../styles/style-guide'
-import type {Props} from './icon'
+import type {IconType} from './icon'
+import _ from 'lodash'
 
-export function defaultColor (type: Props.type): ?string {
+export function defaultColor (type: IconType): ?string {
   switch (type) {
     case 'fa-kb-iconfont-proof-broken':
       return globalColors.red
@@ -17,7 +18,7 @@ export function defaultColor (type: Props.type): ?string {
   }
 }
 
-export function defaultHoverColor (type: Props.type): ?string {
+export function defaultHoverColor (type: IconType): ?string {
   switch (type) {
     case 'fa-kb-iconfont-proof-new':
     case 'fa-kb-iconfont-proof-followed':
@@ -31,7 +32,7 @@ export function defaultHoverColor (type: Props.type): ?string {
 }
 
 // Some types are the same underlying icon.
-export function typeToIconMapper (type: Props.type): Props.type {
+export function typeToIconMapper (type: IconType): IconType {
   switch (type) {
     case 'fa-kb-iconfont-proof-new':
     case 'fa-kb-iconfont-proof-followed':
@@ -41,12 +42,6 @@ export function typeToIconMapper (type: Props.type): Props.type {
   }
 }
 
-export function typeExtension (type: Props.type): string {
-  switch (type) {
-    case 'progress-white':
-    case 'progress-grey':
-      return 'gif'
-    default:
-      return 'png'
-  }
+export function typeExtension (type: IconType): string {
+  return _.endsWith(type, '-animated') ? 'gif' : 'png'
 }

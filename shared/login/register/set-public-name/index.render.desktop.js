@@ -7,7 +7,7 @@ import type {Props} from './index.render'
 const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting, submitEnabled = true}: Props) => (
   <Container style={stylesContainer} onBack={onBack}>
     <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
-    <Icon type='computer-color-m' style={stylesIcon} />
+    <Icon type='icon-computer-colors-64' style={stylesIcon} />
     <Input
       autoFocus
       errorText={deviceNameError}

@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {TouchableWithoutFeedback} from 'react-native'
 import type {Props} from './list'
+import type {IconType} from '../common-adapters/icon'
 import {Box, Text, Icon} from '../common-adapters'
 import Row from './row'
 import {globalStyles, globalColors} from '../styles/style-guide'
@@ -13,12 +14,14 @@ type State = {
 const rowKey = users => users && users.map(u => u.username).join('-')
 
 const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic}) => {
+  const caretIcon: IconType = showIgnored ? 'fa-kb-iconfont-caret-down' : 'fa-kb-iconfont-caret-down'
+
   return (
     <Box style={stylesIgnoreContainer}>
       <TouchableWithoutFeedback onPress={onToggle}>
         <Box style={styles.topBox}>
           <Text type='BodySmallSemibold' style={styles.dividerText}>Ignored folders</Text>
-          <Icon type={showIgnored ? styles.iconCaretDown : styles.iconCaretRight} style={stylesIgnoreCaret} />
+          <Icon type={caretIcon} style={stylesIgnoreCaret} />
         </Box>
       </TouchableWithoutFeedback>
       {showIgnored && <Box style={styles.bottomBox}>
@@ -124,8 +127,6 @@ const stylesPrivate = {
     ...stylesIgnoreDesc,
     backgroundColor: globalColors.darkBlue3,
   },
-  iconCaretRight: 'caret-right-white',
-  iconCaretDown: 'caret-down-white',
 }
 
 const stylesPublic = {
@@ -145,7 +146,5 @@ const stylesPublic = {
     ...stylesIgnoreDesc,
     backgroundColor: globalColors.lightGrey,
   },
-  iconCaretRight: 'caret-right-black',
-  iconCaretDown: 'caret-down-black',
 }
 export default Render

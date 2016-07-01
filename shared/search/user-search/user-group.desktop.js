@@ -54,11 +54,11 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
   )
 }
 
-function RowButton ({icon, text, onClick}: {icon: IconType, text: string, onClick: () => void}) {
+function RowButton ({icon, text, onClick, iconStyle}: {icon: IconType, text: string, onClick: () => void, iconStyle?: Object}) {
   return (
     <Box onClick={onClick} style={rowButtonStyle} className={'highlight-row'}>
-      <Icon type={icon} />
-      <Text type='Body' style={{marginLeft: 8, color: globalColors.blue}}>{text}</Text>
+      <Icon style={iconStyle} type={icon} />
+      <Text type='Body' style={{marginLeft: 4, color: globalColors.blue}}>{text}</Text>
     </Box>
   )
 }
@@ -77,7 +77,7 @@ export default function UserGroup ({users, onClickUser, onRemoveUser, onOpenPubl
       {users.map(u => <User key={u.service + u.username} user={u} onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
       <RowButton icon='icon-folder-private-open-24' text={privateFolderText} onClick={onOpenPrivateGroupFolder} />
       {users.length === 1 && <RowButton icon='icon-folder-public-open-24' text='Open public folder' onClick={onOpenPublicGroupFolder} />}
-      {chatEnabled && <RowButton icon='icon-chat-24' text='Start a chat' onClick={onGroupChat} />}
+      {chatEnabled && <RowButton iconStyle={{fontSize: 24, color: globalColors.blue}} icon='fa-kb-iconfont-chat' text='Start a chat' onClick={onGroupChat} />}
     </Box>
   )
 }

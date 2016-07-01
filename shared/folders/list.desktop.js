@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './list'
+import type {IconType} from '../common-adapters/icon'
 import {Box, Text, Icon} from '../common-adapters'
 import Row from './row'
 import {globalStyles, globalColors} from '../styles/style-guide'
@@ -12,11 +13,13 @@ type State = {
 const rowKey = users => users && users.map(u => u.username).join('-')
 
 const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onOpen, onClick, onRekey, smallMode}) => {
+  const caretIcon: IconType = showIgnored ? 'fa-kb-iconfont-caret-down' : 'fa-kb-iconfont-caret-down'
+
   return (
     <Box style={stylesIgnoreContainer}>
       <Box style={styles.topBox} onClick={onToggle}>
         <Text type='BodySmallSemibold' style={stylesDividerText}>Ignored folders</Text>
-        <Icon type={showIgnored ? styles.iconCaretDown : styles.iconCaretRight} style={stylesIgnoreCaret} />
+        <Icon type={caretIcon} style={stylesIgnoreCaret} />
       </Box>
       {showIgnored && <Box style={styles.bottomBox}>
         <Text type='BodySmallSemibold' style={stylesDividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>

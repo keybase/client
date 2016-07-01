@@ -27,7 +27,7 @@ class Render extends Component<void, Props, State> {
         <Text type='Body' style={stylesBody}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you’ll see this so be sure to write it down.</Text>
         <Box style={stylesPaperKeyContainer}>
           <Text type='Body' style={stylesPaperkey}>{this.props.paperkey.stringValue()}</Text>
-          <Icon type='paper-key-corner' style={stylesPaperCorner} />
+          <Icon type='icon-paper-key-corner' style={stylesPaperCorner} />
         </Box>
         {this.props.onFinish && <Checkbox style={stylesCheck} label='Yes, I wrote this down.' checked={this.state.inWallet} onCheck={inWallet => this.setState({inWallet})} />}
         {this.props.onFinish && <Button style={stylesButton} type='Primary' label='Done' onClick={this.props.onFinish} disabled={!this.state.inWallet} />}

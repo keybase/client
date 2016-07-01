@@ -13,7 +13,7 @@ class Render extends Component<void, Props, void> {
   }
 
   _makeItem (isPublic: boolean, isSelected: boolean) {
-    const icon = isPublic ? 'subnav-folders-public' : 'subnav-folders-private'
+    const icon = isPublic ? 'icon-folder-public-24' : 'icon-folder-private-24'
     const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
     return <TabBarButton
       source={{type: 'icon', icon}}

@@ -20,7 +20,7 @@ export default class Avatar extends Component {
     return (
       <Box style={{justifyContent: 'flex-end', ...this.props.style}} onClick={this.props.onClick}>
         <Icon style={{...avatarStyle(this.props.size - 2)}}
-          type='placeholder-avatar' />
+          type='icon-placeholder-avatar-112-x-112' />
       </Box>
     )
   }
