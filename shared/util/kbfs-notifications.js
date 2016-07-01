@@ -14,52 +14,64 @@ type DecodedKBFSError = {
 export function decodeKBFSError (user: string, notification: FSNotification): DecodedKBFSError {
   const basedir = notification.filename.split(path.sep)[0]
   const tlf = `/keybase${getTLF(notification.publicTopLevelFolder, basedir)}`
-  const errors = {
-    [kbfsCommon.FSErrorType.accessDenied]: {
-      title: 'Keybase: Access denied',
-      body: `${user} does not have ${notification.params.mode} access to ${tlf}`,
-    },
-    [kbfsCommon.FSErrorType.userNotFound]: {
-      title: 'Keybase: User not found',
-      body: `${notification.params.username} is not a Keybase user`,
-    },
-    [kbfsCommon.FSErrorType.revokedDataDetected]: {
-      title: 'Keybase: Possibly revoked data detected',
-      body: `${tlf} was modified by a revoked or bad device. Use 'keybase log send' to file an issue with the Keybase admins.`,
-    },
-    [kbfsCommon.FSErrorType.notLoggedIn]: {
-      title: `Keybase: Permission denied in ${tlf}`,
-      body: "You are not logged into Keybase. Try 'keybase login'.",
-    },
-    [kbfsCommon.FSErrorType.timeout]: {
-      title: `Keybase: ${_.capitalize(notification.params.mode)} timeout in ${tlf}`,
-      body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
-    },
-    [kbfsCommon.FSErrorType.rekeyNeeded]: notification.params.rekeyself ? {
-      title: 'Keybase: Files need to be rekeyed',
-      body: `Please open one of your other computers to unlock ${tlf}`,
-    } : {
-      title: 'Keybase: Friends needed',
-      body: `Please ask another member of ${tlf} to open Keybase on one of their computers to unlock it for you.`,
-    },
-    [kbfsCommon.FSErrorType.badFolder]: {
-      title: 'Keybase: Bad folder',
-      body: `${notification.params.tlf} is not a Keybase folder. All folders begin with /keybase/private or /keybase/public.`,
-    },
-    [kbfsCommon.FSErrorType.overQuota]: {
-      title: 'Keybase: Out of space',
-      body: `Action needed! You are using ${(parseInt(notification.params.usageBytes, 10) / 1e9).toFixed(1)}GB (${Math.round(100 * parseInt(notification.params.usageBytes, 10) / parseInt(notification.params.limitBytes, 10))}%) of your quota. Please delete some data.`,
-    },
-  }
+  switch (notification.errorType) {
+    case kbfsCommon.FSErrorType.accessDenied:
+      return {
+        title: 'Keybase: Access denied',
+        body: `${user} does not have ${notification.params.mode} access to ${tlf}`,
+      }
 
-  if (notification.errorType in errors) {
-    return errors[notification.errorType]
-  }
+    case kbfsCommon.FSErrorType.userNotFound:
+      return {
+        title: 'Keybase: User not found',
+        body: `${notification.params.username} is not a Keybase user`,
+      }
 
-  return ({
-    title: 'Keybase: KBFS error',
-    body: `${notification.status}`,
-  })
+    case kbfsCommon.FSErrorType.revokedDataDetected:
+      return {
+        title: 'Keybase: Possibly revoked data detected',
+        body: `${tlf} was modified by a revoked or bad device. Use 'keybase log send' to file an issue with the Keybase admins.`,
+      }
+
+    case kbfsCommon.FSErrorType.notLoggedIn:
+      return {
+        title: `Keybase: Permission denied in ${tlf}`,
+        body: "You are not logged into Keybase. Try 'keybase login'.",
+      }
+
+    case kbfsCommon.FSErrorType.timeout:
+      return {
+        title: `Keybase: ${_.capitalize(notification.params.mode)} timeout in ${tlf}`,
+        body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
+      }
+
+    case kbfsCommon.FSErrorType.rekeyNeeded:
+      return notification.params.rekeyself ? {
+        title: 'Keybase: Files need to be rekeyed',
+        body: `Please open one of your other computers to unlock ${tlf}`,
+      } : {
+        title: 'Keybase: Friends needed',
+        body: `Please ask another member of ${tlf} to open Keybase on one of their computers to unlock it for you.`,
+      }
+
+    case kbfsCommon.FSErrorType.badFolder:
+      return {
+        title: 'Keybase: Bad folder',
+        body: `${notification.params.tlf} is not a Keybase folder. All folders begin with /keybase/private or /keybase/public.`,
+      }
+
+    case kbfsCommon.FSErrorType.overQuota:
+      return {
+        title: 'Keybase: Out of space',
+        body: `Action needed! You are using ${(parseInt(notification.params.usageBytes, 10) / 1e9).toFixed(1)}GB (${Math.round(100 * parseInt(notification.params.usageBytes, 10) / parseInt(notification.params.limitBytes, 10))}%) of your quota. Please delete some data.`,
+      }
+
+    default:
+      return {
+        title: 'Keybase: KBFS error',
+        body: `${notification.status}`,
+      }
+  }
 
   // This code came from the kbfs team but this isn't plumbed through the protocol. Leaving this for now
   // if (notification.errorType === kbfsCommon.FSErrorType.notImplemented) {
