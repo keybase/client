@@ -592,7 +592,7 @@ func (g *GlobalContext) CallLogoutHooks() {
 	}
 }
 
-func (g *GlobalContext) GetAppStartMode() AppStartMode {
+func (g *GlobalContext) GetAppStartMode() (AppStartMode, error) {
 	return g.Env.GetAppStartMode()
 }
 
