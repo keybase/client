@@ -40,6 +40,7 @@ type opt struct {
 	blockSize                int64
 	blockChangeSize          int64
 	bwKBps                   int
+	timeout                  time.Duration
 	clock                    *libkbfs.TestClock
 }
 
@@ -67,7 +68,7 @@ func (o *opt) runInitOnce() {
 	o.clock = &libkbfs.TestClock{}
 	o.clock.Set(time.Unix(0, 0))
 	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize,
-		o.bwKBps, o.usernames, o.clock)
+		o.bwKBps, o.timeout, o.usernames, o.clock)
 	o.initDone = true
 }
 
@@ -129,6 +130,12 @@ func blockChangeSize(n int64) optionOp {
 func bandwidth(n int) optionOp {
 	return func(o *opt) {
 		o.bwKBps = n
+	}
+}
+
+func opTimeout(n time.Duration) optionOp {
+	return func(o *opt) {
+		o.timeout = n
 	}
 }
 

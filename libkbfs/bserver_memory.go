@@ -201,6 +201,11 @@ func (b *BlockServerMemory) Put(ctx context.Context, id BlockID, tlfID TlfID,
 		seconds := len(buf) * int(time.Second) / b.bwKBps
 		time.Sleep(time.Duration(seconds))
 		b.lock.Unlock()
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
 	}
 
 	b.log.CDebugf(ctx, "BlockServerMemory.Put id=%s tlfID=%s context=%s size=%d",
