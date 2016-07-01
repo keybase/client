@@ -3,7 +3,7 @@
 import * as Constants from '../constants/pinentry'
 import * as CommonConstants from '../constants/common'
 
-import type {Feature, GUIEntryFeatures} from '../constants/types/flow-types'
+import type {Feature, GUIEntryFeatures, PassphraseType} from '../constants/types/flow-types'
 import type {PinentryActions} from '../constants/pinentry'
 
 // TODO: have a root state that maps session id to pinentry popup
@@ -12,6 +12,7 @@ export type PinentryState = {
   closed: boolean,
   sessionID: number,
   features: GUIEntryFeatures,
+  type: PassphraseType,
   prompt: string,
   windowTitle: string,
   canceled: boolean,

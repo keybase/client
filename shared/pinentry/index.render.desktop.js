@@ -3,8 +3,8 @@
 import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
-import {Button, FormWithCheckbox, Header, Text} from '../common-adapters'
-
+import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapters'
+import {passphraseCommon} from '../constants/types/keybase-v1'
 import type {Props, DefaultProps} from './index.render'
 
 type State = {
@@ -54,14 +54,39 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
   render () {
     const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
 
+    const isPaperKey = this.props.type === passphraseCommon.PassphraseType.paperKey
+    const typeStyle = {
+      [passphraseCommon.PassphraseType.verifyPassPhrase]: {
+        floatingLabelText: 'Verify Passphrase',
+        style: {marginBottom: 0},
+      },
+      [passphraseCommon.PassphraseType.passPhrase]: {
+        floatingLabelText: 'Passphrase',
+        style: {marginBottom: 0},
+      },
+      [passphraseCommon.PassphraseType.paperKey]: {
+        floatingLabelText: 'Paperkey',
+        multiLine: true,
+        hintText: 'elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose',
+        checkboxContainerStyle: {bottom: 0},
+        style: {marginBottom: 0, minHeight: 100},
+        errorStyle: {bottom: -40},
+      },
+    }[this.props.type]
+
+    const checkboxContainerStyle = {
+      [passphraseCommon.PassphraseType.verifyPassPhrase]: null,
+      [passphraseCommon.PassphraseType.passPhrase]: null,
+      [passphraseCommon.PassphraseType.paperKey]: {bottom: 0},
+    }[this.props.type]
+
     const inputProps = {
-      floatingLabelText: 'Passphrase',
-      style: {marginBottom: 0},
       onChange: event => this.setState({passphrase: event.target.value}),
       onEnterKeyDown: () => submitPassphrase(),
       type: this.state.showTyping ? 'passwordVisible' : 'password',
       errorText: this.props.retryLabel,
       autoFocus: true,
+      ...typeStyle,
     }
 
     const checkboxProps = Object.keys(this.props.features).map(feature => {
@@ -76,23 +101,20 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
     })
 
     return (
-      <div>
+      <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white}}>
         <Header icon title='' onClose={() => this.props.onCancel()} />
-        <div style={{...styles.container, textAlign: 'center', paddingLeft: 30, paddingRight: 30}}>
-          <Text type='Body'>{this.props.prompt}</Text>
-        </div>
-        <div style={{...styles.container, alignItems: 'center', paddingLeft: 30, paddingRight: 30}}>
+        <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
+          <Text type='Body' style={{textAlign: 'center'}}>{this.props.prompt}</Text>
+          {isPaperKey && <Icon type='icon-paper-key-64' style={{alignSelf: 'center'}} />}
           <FormWithCheckbox
             style={{alignSelf: 'stretch'}}
             inputProps={inputProps}
-            checkboxContainerStyle={{paddingLeft: 60, paddingRight: 60}}
+            checkboxContainerStyle={{paddingLeft: 60, paddingRight: 60, ...checkboxContainerStyle}}
             checkboxesProps={checkboxProps}
           />
-        </div>
-        <div style={{...styles.container, alignItems: 'flex-end', paddingLeft: 30, paddingRight: 30, paddingBottom: 30}}>
-          <Button type='Primary' label={this.props.submitLabel} onClick={submitPassphrase} disabled={!this.state.passphrase} />
-        </div>
-      </div>
+          <Button style={{alignSelf: 'flex-end'}} type='Primary' label={this.props.submitLabel} onClick={submitPassphrase} disabled={!this.state.passphrase} />
+        </Box>
+      </Box>
     )
   }
 }
@@ -104,8 +126,6 @@ PinentryRender.defaultProps = {
 
 const styles = {
   container: {
-    ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColors.white,
   },
   checkbox: {
     ...globalStyles.topMost,
