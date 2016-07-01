@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"runtime"
 	"time"
 
 	"github.com/keybase/cli"
@@ -170,8 +171,8 @@ func (d *Service) Run() (err error) {
 	}
 
 	d.checkTrackingEveryHour()
-
 	d.startupGregor()
+	d.configurePath()
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
@@ -487,5 +488,21 @@ func (d *Service) SimulateGregorCrashForTesting() {
 		d.gregor.simulateCrashForTesting()
 	} else {
 		d.G().Log.Warning("Can't simulate a gregor crash without a gregor")
+	}
+}
+
+func (d *Service) configurePath() {
+	defer d.G().Trace("Service#configurePath", func() error { return nil })()
+
+	var newDirs string
+	switch runtime.GOOS {
+	case "linux":
+		newDirs = "/usr/local/bin"
+	case "darwin":
+		newDirs = "/usr/local/bin:/usr/local/MacGPG2/bin"
+	default:
+	}
+	if newDirs != "" {
+		mergeIntoPath(d.G(), newDirs)
 	}
 }

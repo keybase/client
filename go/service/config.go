@@ -253,9 +253,15 @@ func (h ConfigHandler) SetUserConfig(_ context.Context, arg keybase1.SetUserConf
 }
 
 func (h ConfigHandler) SetPath(_ context.Context, arg keybase1.SetPathArg) error {
+	h.G().Log.Debug("SetPath calling mergeIntoPath(%s)", arg.Path)
+	return mergeIntoPath(h.G(), arg.Path)
+}
+
+func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
+
 	svcPath := os.Getenv("PATH")
-	h.G().Log.Debug("SetPath: service path = %s", svcPath)
-	h.G().Log.Debug("SetPath: client path =  %s", arg.Path)
+	g.Log.Debug("mergeIntoPath: service path = %s", svcPath)
+	g.Log.Debug("mergeIntoPath: merge path   = %s", p2)
 
 	pathenv := filepath.SplitList(svcPath)
 	pathset := make(map[string]bool)
@@ -264,7 +270,7 @@ func (h ConfigHandler) SetPath(_ context.Context, arg keybase1.SetPathArg) error
 	}
 
 	var clientAdditions []string
-	for _, dir := range filepath.SplitList(arg.Path) {
+	for _, dir := range filepath.SplitList(p2) {
 		if _, ok := pathset[dir]; ok {
 			continue
 		}
@@ -275,12 +281,12 @@ func (h ConfigHandler) SetPath(_ context.Context, arg keybase1.SetPathArg) error
 	combined := strings.Join(pathenv, string(os.PathListSeparator))
 
 	if combined == svcPath {
+		g.Log.Debug("No path changes needed")
 		return nil
 	}
 
-	h.G().Log.Debug("SetPath: setting service path: %s", combined)
+	g.Log.Debug("mergeIntoPath: merged path = %s", combined)
 	os.Setenv("PATH", combined)
-
 	return nil
 }
 
