@@ -280,12 +280,13 @@ func (d *Service) gregordConnect() (err error) {
 		if d.gregor, err = newGregorHandler(d.G()); err != nil {
 			return err
 		}
+		d.G().GregorDismisser = d.gregor
+		d.G().GregorListener = d.gregor
 	} else {
-		d.gregor.Shutdown()
+		if d.gregor.Reset(); err != nil {
+			return err
+		}
 	}
-
-	d.G().GregorDismisser = d.gregor
-	d.G().GregorListener = d.gregor
 
 	if err = d.gregor.Connect(uri); err != nil {
 		return err

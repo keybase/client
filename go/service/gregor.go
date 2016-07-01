@@ -135,10 +135,15 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 		freshSync:    true,
 	}
 
+	// Create client interface to gregord; we should do this everytime a
+	// user logs in.
+	if err = gh.resetGregorClient(); err != nil {
+		return nil, err
+	}
 	return gh, nil
 }
 
-func (g *gregorHandler) newGregorClient() (err error) {
+func (g *gregorHandler) resetGregorClient() (err error) {
 	defer g.G().Trace("gregorHandler#newGregorClient", func() error { return err })()
 	of := gregor1.ObjFactory{}
 	sm := grstorage.NewMemEngine(of, clockwork.NewRealClock())
@@ -205,12 +210,6 @@ func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 	// In case we need to interrupt auth'ing or the ping loop,
 	// set up this channel.
 	g.shutdownCh = make(chan struct{})
-
-	// Create client interface to gregord. Do this anew every time a user logs
-	// in or out.
-	if err = g.newGregorClient(); err != nil {
-		return err
-	}
 
 	if uri.UseTLS() {
 		err = g.connectTLS(uri)
@@ -731,6 +730,11 @@ func (g *gregorHandler) Shutdown() {
 	close(g.shutdownCh)
 	g.conn.Shutdown()
 	g.conn = nil
+}
+
+func (g *gregorHandler) Reset() error {
+	g.Shutdown()
+	return g.resetGregorClient()
 }
 
 func (g *gregorHandler) kbfsFavorites(ctx context.Context, m gregor.OutOfBandMessage) error {
