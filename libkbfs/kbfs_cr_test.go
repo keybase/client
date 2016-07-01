@@ -618,14 +618,14 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Couldn't write file: %v", err)
 		}
+
+		err = kbfsOps2.Sync(ctx, fileB2)
+		if err != nil {
+			t.Fatalf("Couldn't sync file: %v", err)
+		}
 	}
 
 	chForEnablingUpdates <- struct{}{}
-
-	err = kbfsOps2.Sync(ctx, fileB2)
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %v", err)
-	}
 
 	equal := false
 
