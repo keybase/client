@@ -9,6 +9,7 @@ import TabBar from './tab-bar/index.render.native'
 import Devices from './devices'
 import Folders from './folders'
 import NoTab from './no-tab'
+import Search from './search'
 import Settings from './settings'
 import Profile from './profile'
 import Login from './login'
@@ -33,7 +34,7 @@ const tabs: {[key: VisibleTab]: {module: any}} = {
   [profileTab]: {module: Profile, name: 'Profile'},
   [folderTab]: {module: Folders, name: 'Folders'},
   [chatTab]: {module: Settings, name: 'Chat'},
-  [peopleTab]: {module: Settings, name: 'People'},
+  [peopleTab]: {module: Search, name: 'People'},
   [devicesTab]: {module: Devices, name: 'Devices'},
 }
 
