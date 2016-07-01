@@ -197,11 +197,27 @@ export type incomingStateByCategoryPrefixRpc = $Exact<{
   method: 'incoming.stateByCategoryPrefix',
   param: {
     uid: UID,
+    deviceid: DeviceID,
+    timeOrOffset: TimeOrOffset,
     categoryPrefix: Category
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any, response: incomingStateByCategoryPrefixResult) => void)
+}>
+
+export type incomingStateResult = State
+
+export type incomingStateRpc = $Exact<{
+  method: 'incoming.state',
+  param: {
+    uid: UID,
+    deviceid: DeviceID,
+    timeOrOffset: TimeOrOffset
+  },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: incomingStateResult) => void)
 }>
 
 export type incomingSyncResult = SyncResult
@@ -262,6 +278,7 @@ export type rpc =
   | incomingConsumePublishMessageRpc
   | incomingPingRpc
   | incomingStateByCategoryPrefixRpc
+  | incomingStateRpc
   | incomingSyncRpc
   | outgoingBroadcastMessageRpc
   | remindDeleteRemindersRpc
@@ -329,9 +346,22 @@ export type incomingCallMapType = {
       result: (result: incomingPingResult) => void
     }
   ) => void,
+  'keybase.1.incoming.state'?: (
+    params: {
+      uid: UID,
+      deviceid: DeviceID,
+      timeOrOffset: TimeOrOffset
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: incomingStateResult) => void
+    }
+  ) => void,
   'keybase.1.incoming.stateByCategoryPrefix'?: (
     params: {
       uid: UID,
+      deviceid: DeviceID,
+      timeOrOffset: TimeOrOffset,
       categoryPrefix: Category
     },
     response: {
