@@ -98,7 +98,7 @@ node("ec2-fleet") {
                             parallel (
                                 test_linux_go: {
                                     dir("go") {
-                                        sh "(while ! curl -s -o /dev/null localhost:3000 2>&1; do sleep 1; done)"
+                                        sh 'slept="0"; while ! curl -s localhost:3000; do if [[ "$slept" -lt 120 ]]; then ((slept++)); sleep 1; else return 1; fi done'
                                         sh "test/run_tests.sh || (docker logs ${kbweb.id}; exit 1)"
                                     }
                                 },
@@ -239,6 +239,7 @@ node("ec2-fleet") {
 
                                 println "Test OS X"
                                     dir('go') {
+                                        sh "slept=\"0\"; while ! curl -s ${pub}:3000; do if [[ \"$slept\" -lt 120 ]]; then ((slept++)); sleep 1; else return 1; fi done"
                                         sh './test/run_tests.sh'
                                     }
                             }}}
