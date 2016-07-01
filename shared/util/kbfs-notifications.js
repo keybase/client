@@ -85,8 +85,37 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
 
 // TODO: Once we have access to the Redux store from the thread running
 // notification listeners, store the sentNotifications map in it.
-var sentNotifications = {}
-var sentError = null
+let sentNotifications = {}
+let sentError = null
+function rateLimitAllowsNotify (action, state, tlf, isError) {
+  if (!(action in sentNotifications)) {
+    sentNotifications[action] = {}
+  }
+  if (!(state in sentNotifications[action])) {
+    sentNotifications[action][state] = {}
+  }
+
+  const now = new Date()
+
+  // If we haven't notified for {action,state,tlf} or it was >20s ago, do it.
+  const MSG_DELAY = 20 * 1000
+  if (tlf in sentNotifications[action][state] && now - sentNotifications[action][state][tlf] <= MSG_DELAY) {
+    return false
+  }
+
+  // If we last displayed an error, don't replace it with another notification for 5s.
+  const ERROR_DELAY = 5 * 1000
+  if (sentError !== null && now - sentError <= ERROR_DELAY) {
+    return false
+  }
+
+  sentNotifications[action][state][tlf] = now
+  if (isError) {
+    sentError = now
+  }
+
+  return true
+}
 
 export function kbfsNotification (notification: FSNotification, notify: any, getState: any) {
   const action = {
@@ -133,36 +162,6 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
   // Don't show starting or finished, but do show error.
   if (isError) {
     ({title, body} = decodeKBFSError(user, notification))
-  }
-
-  function rateLimitAllowsNotify (action, state, tlf, isError) {
-    if (!(action in sentNotifications)) {
-      sentNotifications[action] = {}
-    }
-    if (!(state in sentNotifications[action])) {
-      sentNotifications[action][state] = {}
-    }
-
-    const now = new Date()
-
-    // If we haven't notified for {action,state,tlf} or it was >20s ago, do it.
-    const MSG_DELAY = 20 * 1000
-    if (tlf in sentNotifications[action][state] && now - sentNotifications[action][state][tlf] <= MSG_DELAY) {
-      return false
-    }
-
-    // If we last displayed an error, don't replace it with another notification for 5s.
-    const ERROR_DELAY = 5 * 1000
-    if (sentError !== null && now - sentError <= ERROR_DELAY) {
-      return false
-    }
-
-    sentNotifications[action][state][tlf] = now
-    if (isError) {
-      sentError = now
-    }
-
-    return true
   }
 
   if (rateLimitAllowsNotify(action, state, tlf, isError)) {
