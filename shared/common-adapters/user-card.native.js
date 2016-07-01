@@ -40,7 +40,7 @@ const styles = {
   avatar: {
     ...globalStyles.flexBoxColumn,
     marginTop: 0,
-    alignItems: 'stretch',
+    alignItems: 'center',
     alignSelf: 'stretch',
   },
   avatarBackground: {

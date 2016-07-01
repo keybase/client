@@ -81,7 +81,7 @@ const stylesHeaderBar = (avatarSize: number, color: string) => ({
 })
 const stylesAvatarWrapper = (avatarSize: number) => ({ // eslint-disable-line arrow-parens
   ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
+  alignItems: 'center',
   flex: 1,
   height: avatarSize,
   marginTop: -avatarSize / 2,
