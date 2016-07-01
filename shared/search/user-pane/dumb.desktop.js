@@ -39,6 +39,18 @@ const dumbMapUser: DumbComponentMap<UserPane> = {
         },
       },
     },
+    'Broken tracker, not following': {
+      ...userPaneBase,
+      proofs: proofsChanged,
+      trackerState: error,
+      currentlyFollowing: false,
+      parentProps: {
+        style: {
+          width: 320,
+          height: 420,
+        },
+      },
+    },
     'Followed': {
       ...userPaneBase,
       proofs: proofsTracked,
