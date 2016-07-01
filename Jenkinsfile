@@ -18,15 +18,15 @@ node("ec2-fleet") {
             //        ]
             //    ]
             //],
-            [$class: "ParametersDefinitionProperty",
-                parameterDefinitions: [
-                    [$class: 'StringParameterDefinition',
-                        name: 'kbwebProjectName',
-                        defaultValue: '',
-                        description: 'name of upstream kbweb project',
-                    ]
-                ]
-            ],
+            //[$class: "ParametersDefinitionProperty",
+            //    parameterDefinitions: [
+            //        [$class: 'StringParameterDefinition',
+            //            name: 'kbwebProjectName',
+            //            defaultValue: '',
+            //            description: 'name of upstream kbweb project',
+            //        ]
+            //    ]
+            //],
     ])
 
     env.GOPATH=pwd()
@@ -51,38 +51,14 @@ node("ec2-fleet") {
                     //    mysqlImage.pull()
                     //},
                     //pull_gregor: {
-                    //    if (cause == "upstream" && gregorProjectName != '') {
-                    //        step([$class: 'CopyArtifact',
-                    //                projectName: "${gregorProjectName}",
-                    //                filter: 'kbgregor.tar',
-                    //                fingerprintArtifacts: true,
-                    //                selector: [$class: 'TriggeredBuildSelector',
-                    //                    allowUpstreamDependencies: false,
-                    //                    fallbackToLastSuccessful: false,
-                    //                    upstreamFilterStrategy: 'UseGlobalSetting'],
-                    //                target: '.'])
-                    //        "docker load -i kbgregor.tar"
-                    //    } else {
-                    //        gregorImage.pull()
-                    //    }
+                    //    gregorImage.pull()
                     //},
                     pull_kbweb: {
+                        kbwebImage.pull()
+                    },
+                    remove_dockers: {
                         sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
                         sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
-                        if (cause == "upstream" && kbwebProjectName != '') {
-                            step([$class: 'CopyArtifact',
-                                    projectName: "${kbwebProjectName}",
-                                    filter: 'kbweb.tar',
-                                    fingerprintArtifacts: true,
-                                    selector: [$class: 'TriggeredBuildSelector',
-                                        allowUpstreamDependencies: false,
-                                        fallbackToLastSuccessful: false,
-                                        upstreamFilterStrategy: 'UseGlobalSetting'],
-                                    target: '.'])
-                            "docker load -i kbkbweb.tar"
-                        } else {
-                            kbwebImage.pull()
-                        }
                     },
                 )
             }
@@ -168,7 +144,7 @@ node("ec2-fleet") {
                             )
                         },
                         test_windows: {
-                            node('windows-pipeline') {
+                            node('windows') {
                             withEnv([
                                 'GOROOT=C:\\tools\\go',
                                 "GOPATH=\"${pwd()}\"",
@@ -301,13 +277,4 @@ def getCauseString() {
     } else {
         return "other"
     }
-}
-
-@NonCPS
-def copyEnv(env) {
-    newEnv = [:]
-    for (e in env) {
-        newEnv[e.key] = e.value
-    }
-    return newEnv
 }
