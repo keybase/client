@@ -64,6 +64,10 @@ func NewPassphraseStream(s []byte) *PassphraseStream {
 	}
 }
 
+// NewPassphraseStreamLKSecOnly creates a PassphraseStream only with the lks bytes
+// (stream[lksIndex:]).  The rest of the stream is zeros.
+// This is used to create a passphrase stream from the information in the
+// secret store, which only contains the lksec portion of the stream.
 func NewPassphraseStreamLKSecOnly(s []byte) (*PassphraseStream, error) {
 	if len(s) != lksLen {
 		return nil, fmt.Errorf("invalid lksec stream length %d (expected %d)", len(s), lksLen)
