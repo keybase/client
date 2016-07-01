@@ -1880,13 +1880,21 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 			fbo.log.CDebugf(ctx, "Conflict: %v", err)
 			mergedRev = md.Revision
 
+			if excl == WithEXCL {
+				// If this was caused by an exclusive create, we shouldn't do an
+				// UnmergedPut, but rather wait until we are on master branch.
+				return err
+			}
 		} else if err != nil {
 			return err
 		}
+	} else if excl == WithEXCL {
+		return UnmergedError{}
 	}
 
 	if doUnmergedPut {
-		// We're out of date, so put it as an unmerged MD.
+		// We're out of date, and this is not an exclusive write, so put it as an
+		// unmerged MD.
 		var bid BranchID
 		if wasMasterBranch {
 			// new branch ID
@@ -2291,6 +2299,12 @@ func (fbo *folderBranchOps) CreateFile(
 		entryType = Exec
 	} else {
 		entryType = File
+	}
+
+	if excl == WithEXCL {
+		if err = fbo.cr.Wait(ctx); err != nil {
+			return nil, EntryInfo{}, err
+		}
 	}
 
 	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,
