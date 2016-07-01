@@ -7,7 +7,7 @@ protocol rekey {
   record TLFID {}
 
   record TLF {
-    TLFID tlfid;
+    TLFID id;
     string name;
     array<string> writers;
     array<string> readers;

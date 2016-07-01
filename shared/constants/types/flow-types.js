@@ -1194,7 +1194,7 @@ export type StringKVPair = {
 }
 
 export type TLF = {
-  tlfid: TLFID;
+  id: TLFID;
   name: string;
   writers?: ?Array<string>;
   readers?: ?Array<string>;

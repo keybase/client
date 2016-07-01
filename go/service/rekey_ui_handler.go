@@ -166,7 +166,7 @@ func (s *scoreResult) GetAppStatus() *libkb.AppStatus {
 func scoreProblemFolders(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error) {
 	tlfIDs := make([]string, len(existing.Tlfs))
 	for i, v := range existing.Tlfs {
-		tlfIDs[i] = v.Tlf.Tlfid.String()
+		tlfIDs[i] = v.Tlf.Id.String()
 	}
 	args := libkb.HTTPArgs{
 		"tlfs": libkb.S{Val: strings.Join(tlfIDs, ",")},

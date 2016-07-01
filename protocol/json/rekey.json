@@ -19,7 +19,7 @@
       "fields": [
         {
           "type": "TLFID",
-          "name": "tlfid"
+          "name": "id"
         },
         {
           "type": "string",

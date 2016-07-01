@@ -10,7 +10,7 @@ import (
 
 type TLFID string
 type TLF struct {
-	Tlfid     TLFID    `codec:"tlfid" json:"tlfid"`
+	Id        TLFID    `codec:"id" json:"id"`
 	Name      string   `codec:"name" json:"name"`
 	Writers   []string `codec:"writers" json:"writers"`
 	Readers   []string `codec:"readers" json:"readers"`
