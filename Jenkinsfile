@@ -98,7 +98,7 @@ node("ec2-fleet") {
                             parallel (
                                 test_linux_go: {
                                     dir("go") {
-                                        sh 'slept="0"; while ! curl -s localhost:3000; do if [[ "$slept" -lt 120 ]]; then ((slept++)); sleep 1; else return 1; fi done'
+                                        sh 'slept="0"; while ! curl -s localhost:3000; do if [[ "$slept" -lt 180 ]]; then ((slept++)); sleep 1; else return 1; fi done'
                                         sh "test/run_tests.sh || (docker logs ${kbweb.id}; exit 1)"
                                     }
                                 },
@@ -128,17 +128,12 @@ node("ec2-fleet") {
                                     }
                                     withCredentials([[$class: 'UsernamePasswordMultiBinding',
                                             credentialsId: 'visdiff-aws-creds',
-                                            usernameVariable: 'visdiffAccessKeyId',
-                                            passwordVariable: 'visdiffAccessSecret',
+                                            usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
+                                            passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
                                         ],[$class: 'StringBinding',
                                             credentialsId: 'visdiff-github-token',
-                                            variable: 'visdiffGithubToken',
+                                            variable: 'VISDIFF_GH_TOKEN',
                                     ]]) {
-                                    withEnv([
-                                        "VISDIFF_AWS_ACCESS_KEY_ID=${visdiffAccessKeyId}",
-                                        "VISDIFF_AWS_SECRET_ACCESS_KEY=${visdiffAccessSecret}",
-                                        "VISDIFF_GH_TOKEN=${visdiffGithubToken}",
-                                    ]) {
                                         if (fileExists("visdiff")) {
                                             dir("visdiff") {
                                                 sh "npm install"
@@ -149,12 +144,12 @@ node("ec2-fleet") {
                                             }
                                         } else {
                                             dir("desktop") {
-                                                sh "echo -e '[default]\\naccess_key = ${visdiffAccessKeyId}\\nsecret_key = ${visdiffAccessSecret}' > ~/.s3cfg;"
+                                                sh 'echo -e "[default]\\naccess_key = $VISDIFF_AWS_ACCESS_KEY_ID\\nsecret_key = $VISDIFF_AWS_SECRET_ACCESS_KEY" > ~/.s3cfg;'
                                                 sh "npm install octonode"
                                                 sh "npm run visdiff -- \"`git rev-parse HEAD^1`...`git rev-parse HEAD`\""
                                             }
                                         }
-                                    }}
+                                    }
                                 }},
                             )
                         },
@@ -207,19 +202,14 @@ node("ec2-fleet") {
                                                 }
                                                 withCredentials([[$class: 'UsernamePasswordMultiBinding',
                                                         credentialsId: 'visdiff-aws-creds',
-                                                        usernameVariable: 'visdiffAccessKeyId',
-                                                        passwordVariable: 'visdiffAccessSecret',
+                                                        usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
+                                                        passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
                                                     ],[$class: 'StringBinding',
                                                         credentialsId: 'visdiff-github-token',
-                                                        variable: 'visdiffGithubToken',
+                                                        variable: 'VISDIFF_GH_TOKEN',
                                                 ]]) {
-                                                withEnv([
-                                                    "VISDIFF_AWS_ACCESS_KEY_ID=${visdiffAccessKeyId}",
-                                                    "VISDIFF_AWS_SECRET_ACCESS_KEY=${visdiffAccessSecret}",
-                                                    "VISDIFF_GH_TOKEN=${visdiffGithubToken}",
-                                                ]) {
                                                     bat '..\\node_modules\\.bin\\keybase-visdiff "HEAD^^...HEAD"'
-                                                }}
+                                                }
                                             }
                                         }
                                     },
@@ -239,7 +229,7 @@ node("ec2-fleet") {
 
                                 println "Test OS X"
                                     dir('go') {
-                                        sh "slept=\"0\"; while ! curl -s ${pub}:3000; do if [[ \"$slept\" -lt 120 ]]; then ((slept++)); sleep 1; else return 1; fi done"
+                                        sh "slept=\"0\"; while ! curl -s ${pub}:3000; do if [[ \"$slept\" -lt 180 ]]; then ((slept++)); sleep 1; else return 1; fi done"
                                         sh './test/run_tests.sh'
                                     }
                             }}}
