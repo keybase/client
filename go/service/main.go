@@ -491,13 +491,20 @@ func (d *Service) SimulateGregorCrashForTesting() {
 	}
 }
 
+// configurePath is a somewhat unfortunate hack, but as it currently stands,
+// when the keybase service is run out of launchd, its path is minimal and
+// often can't find the GPG location. We have hacks around this for CLI operation,
+// in which the CLI forwards its path to the service, and the service enlarges
+// its path accordingly. In this way, the service can get access to path additions
+// inserted by the user's shell startup scripts. However the same mechanism doesn't
+// apply to a GUI-driven workload, since the Electron GUI, like the Go service, is
+// launched from launchd and therefore has the wrong path. This function currently
+// noops on all platforms aside from macOS, but we can expand it later as needs be.
 func (d *Service) configurePath() {
 	defer d.G().Trace("Service#configurePath", func() error { return nil })()
 
 	var newDirs string
 	switch runtime.GOOS {
-	case "linux":
-		newDirs = "/usr/local/bin"
 	case "darwin":
 		newDirs = "/usr/local/bin:/usr/local/MacGPG2/bin"
 	default:
