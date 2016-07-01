@@ -135,57 +135,55 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 		freshSync:    true,
 	}
 
-	// Create client interface to gregord
-	if gh.gregorCli, err = newGregorClient(g, gh); err != nil {
-		return nil, err
-	}
-
 	return gh, nil
 }
 
-func newGregorClient(g *libkb.GlobalContext, gh *gregorHandler) (*grclient.Client, error) {
+func (g *gregorHandler) newGregorClient() (err error) {
+	defer g.G().Trace("gregorHandler#newGregorClient", func() error { return err })()
 	of := gregor1.ObjFactory{}
 	sm := grstorage.NewMemEngine(of, clockwork.NewRealClock())
 
 	var guid gregor.UID
 	var gdid gregor.DeviceID
 	var b []byte
-	var err error
 
-	uid := g.Env.GetUID()
+	uid := g.G().Env.GetUID()
 	if !uid.Exists() {
-		return nil, errors.New("no UID; probably not logged in")
+		err = errors.New("no UID; probably not logged in")
+		return err
 	}
 	if b = uid.ToBytes(); b == nil {
-		return nil, errors.New("Can't convert UID to byte array")
+		err = errors.New("Can't convert UID to byte array")
+		return err
 	}
 	if guid, err = of.MakeUID(b); err != nil {
-		return nil, err
+		return err
 	}
 
-	did := g.Env.GetDeviceID()
+	did := g.G().Env.GetDeviceID()
 	if !did.Exists() {
-		return nil, errors.New("no device ID; probably not logged in")
+		err = errors.New("no device ID; probably not logged in")
+		return err
 	}
 	if b, err = hex.DecodeString(did.String()); err != nil {
-		return nil, err
+		return err
 	}
 	if gdid, err = of.MakeDeviceID(b); err != nil {
-		return nil, err
+		return err
 	}
 
 	// Create client object
-	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g),
-		g.Env.GetGregorSaveInterval(), g.Log)
+	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g.G()), g.G().Env.GetGregorSaveInterval(), g.G().Log)
 
 	// Bring up local state
-	gh.Debug("restoring state from leveldb")
+	g.Debug("restoring state from leveldb")
 	if err = gcli.Restore(); err != nil {
 		// If this fails, we'll keep trying since the server can bail us out
-		gh.Debug("restore local state failed: %s", err)
+		g.Debug("restore local state failed: %s", err)
 	}
 
-	return gcli, nil
+	g.gregorCli = gcli
+	return nil
 }
 
 func (g *gregorHandler) Debug(s string, args ...interface{}) {
@@ -200,9 +198,20 @@ func (g *gregorHandler) Errorf(s string, args ...interface{}) {
 	g.G().Log.Errorf("push handler: "+s, args...)
 }
 
-func (g *gregorHandler) Connect(uri *rpc.FMPURI) error {
-	var err error
+func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
+
+	defer g.G().Trace("gregorHandler#Connect", func() error { return err })()
+
+	// In case we need to interrupt auth'ing or the ping loop,
+	// set up this channel.
 	g.shutdownCh = make(chan struct{})
+
+	// Create client interface to gregord. Do this anew every time a user logs
+	// in or out.
+	if err = g.newGregorClient(); err != nil {
+		return err
+	}
+
 	if uri.UseTLS() {
 		err = g.connectTLS(uri)
 	} else {
@@ -478,12 +487,11 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, cli gregor1.Inc
 		if handler.IsAlive() {
 			if handled, err := g.handleInBandMessageWithHandler(ctx, cli, ibm, handler); err != nil {
 				if handled {
-					// only bail out of this loop if the handler was supposed to handle this message and failed
+					// Don't stop handling errors on a first failure.
 					g.Errorf("failed to run %s handler: %s", handler.Name(), err)
-					return err
+				} else {
+					g.Debug("handleInBandMessage() failed to run %s handler: %s", handler.Name(), err)
 				}
-
-				g.Debug("handleInBandMessage() failed to run %s handler: %s", handler.Name(), err)
 			}
 			freshHandlers = append(freshHandlers, handler)
 		} else {
@@ -713,6 +721,7 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 }
 
 func (g *gregorHandler) Shutdown() {
+	g.G().Log.Debug("gregor shutdown")
 	g.connMutex.Lock()
 	defer g.connMutex.Unlock()
 
@@ -755,7 +764,7 @@ func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.U
 	return nil
 }
 
-func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) error {
+func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err error) {
 	var token string
 	var uid keybase1.UID
 
