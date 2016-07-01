@@ -43,7 +43,7 @@ node("ec2-fleet") {
             println "Setting up build: ${env.BUILD_TAG}"
             def cause = getCauseString()
             println "Cause: ${cause}"
-            docker.withRegistry("https://docker.io", "docker-hub-creds") {
+            docker.withRegistry("", "docker-hub-creds") {
                 parallel (
                     checkout: { checkout scm },
                     // TODO: take gregor and mysql out of kbweb
@@ -123,7 +123,6 @@ node("ec2-fleet") {
                                     }
                                     sh "desktop/node_modules/.bin/eslint ."
                                     dir("protocol") {
-                                        sh "gem install activesupport"
                                         sh "./diff_test.sh"
                                     }
                                     withCredentials([[$class: 'UsernamePasswordMultiBinding',
