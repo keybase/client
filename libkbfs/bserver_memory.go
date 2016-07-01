@@ -198,8 +198,8 @@ func (b *BlockServerMemory) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	if b.bwKBps > 0 {
 		b.lock.Lock()
 		// Simulate a constrained bserver connection
-		seconds := len(buf) * int(time.Second) / (b.bwKBps * 1024)
-		time.Sleep(time.Duration(seconds))
+		delay := len(buf) * int(time.Second) / (b.bwKBps * 1024)
+		time.Sleep(time.Duration(delay))
 		b.lock.Unlock()
 		select {
 		case <-ctx.Done():

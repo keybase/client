@@ -10,7 +10,9 @@
 package test
 
 import (
+	"fmt"
 	"testing"
+	"time"
 )
 
 // BenchmarkWriteSeq512 writes to a large file in 512 byte writes.
@@ -121,4 +123,52 @@ func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 			}),
 		),
 	)
+}
+
+func benchmarkWriteWithBandwith(b *testing.B, fileBytes int64,
+	perWriteBytes int64, writebwKBps int) {
+	buf := make([]byte, perWriteBytes)
+	b.SetBytes(fileBytes)
+	numWritesPerFile := int(fileBytes / perWriteBytes)
+	test(silentBenchmark{b},
+		users("alice"),
+		blockSize(512<<10),
+		bandwidth(writebwKBps),
+		opTimeout(19*time.Second),
+		as(alice,
+			custom(func(cb func(fileOp) error) error {
+				b.ResetTimer()
+				for i := 0; i < b.N; i++ {
+					name := fmt.Sprintf("bench%d", i)
+					err := cb(mkfile(name, ""))
+					if err != nil {
+						return err
+					}
+					for j := 0; j < numWritesPerFile; j++ {
+						// make each block unique
+						buf[0] = byte(j + (i * numWritesPerFile))
+						// Only sync after the last write
+						sync := j+1 == numWritesPerFile
+						err = cb(pwriteBSSync(name, buf,
+							int64(j)*int64(len(buf)), sync))
+						if err != nil {
+							return err
+						}
+					}
+				}
+				b.StopTimer()
+				return nil
+			}),
+		),
+	)
+}
+
+func BenchmarkWriteMediumFileLowBandwidth(b *testing.B) {
+	b.Skip("Doesn't work yet")
+	benchmarkWriteWithBandwith(b, 1<<20 /* 1 MB */, 1<<16, 100 /* 100 KBps */)
+}
+
+func BenchmarkWriteBigFileNormalBandwidth(b *testing.B) {
+	benchmarkWriteWithBandwith(b, 1<<30 /* 1 GB */, 1<<16,
+		11*1024/8 /* 11 Mbps */)
 }
