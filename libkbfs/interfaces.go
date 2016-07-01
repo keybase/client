@@ -140,8 +140,12 @@ type KBFSOps interface {
 	// CreateFile creates a new file under the given node, if the
 	// logged-in user has write permission to the top-level folder.
 	// Returns the new Node for the created file, and its new
-	// entry info.  This is a remote-sync operation.
-	CreateFile(ctx context.Context, dir Node, name string, isEx bool) (
+	// entry info. excl (when implemented) specifies whether this is an exclusive
+	// create.  Semantically setting excl to WithEXCL is like O_CREAT|O_EXCL in a
+	// Unix open() call.
+	//
+	// This is a remote-sync operation.
+	CreateFile(ctx context.Context, dir Node, name string, isExec bool, excl EXCL) (
 		Node, EntryInfo, error)
 	// CreateLink creates a new symlink under the given node, if the
 	// logged-in user has write permission to the top-level folder.

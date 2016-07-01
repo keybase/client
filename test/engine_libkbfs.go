@@ -188,7 +188,7 @@ func (k *LibKBFS) CreateDir(u User, parentDir Node, name string) (dir Node, err 
 func (k *LibKBFS) CreateFile(u User, parentDir Node, name string) (file Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	file, _, err = kbfsOps.CreateFile(context.Background(), parentDir.(libkbfs.Node), name, false)
+	file, _, err = kbfsOps.CreateFile(context.Background(), parentDir.(libkbfs.Node), name, false, libkbfs.NoEXCL)
 	if err != nil {
 		return file, err
 	}

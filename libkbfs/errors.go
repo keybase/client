@@ -1098,6 +1098,16 @@ func (e UnmergedError) Error() string {
 	return "fbo is on an unmerged local revision"
 }
 
+// EXCLOnUnmergedError happens when an operation with O_EXCL set when fbo is on
+// an unmerged local revision
+type EXCLOnUnmergedError struct {
+}
+
+// Error implements the error interface for EXCLOnUnmergedError.
+func (e EXCLOnUnmergedError) Error() string {
+	return "an operation with O_EXCL set is called but fbo is on an unmerged local version"
+}
+
 // OverQuotaWarning indicates that the user is over their quota, and
 // is being slowed down by the server.
 type OverQuotaWarning struct {

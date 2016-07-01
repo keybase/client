@@ -640,6 +640,28 @@ func (et EntryType) String() string {
 	return "<invalid EntryType>"
 }
 
+// EXCL indicates whether O_EXCL is set on a fuse call
+type EXCL bool
+
+const (
+	// NoEXCL indicates O_EXCL is not set
+	NoEXCL EXCL = false
+
+	// WithEXCL indicates O_EXCL is set
+	WithEXCL EXCL = true
+)
+
+func (o EXCL) String() string {
+	switch o {
+	case NoEXCL:
+		return "O_EXCL unset"
+	case WithEXCL:
+		return "O_EXCL set"
+	default:
+		return "<invalid EXCL>"
+	}
+}
+
 // EntryInfo is the (non-block-related) info a directory knows about
 // its child.
 //

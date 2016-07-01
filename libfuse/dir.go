@@ -453,14 +453,19 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	}
 }
 
+func getEXCLFromCreateRequest(req *fuse.CreateRequest) libkbfs.EXCL {
+	return libkbfs.EXCL(req.Flags&fuse.OpenExclusive == fuse.OpenExclusive)
+}
+
 // Create implements the fs.NodeCreater interface for Dir.
 func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (node fs.Node, handle fs.Handle, err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", req.Name)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	isExec := (req.Mode.Perm() & 0100) != 0
+	excl := getEXCLFromCreateRequest(req)
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateFile(
-		ctx, d.node, req.Name, isExec)
+		ctx, d.node, req.Name, isExec, excl)
 	if err != nil {
 		return nil, nil, err
 	}

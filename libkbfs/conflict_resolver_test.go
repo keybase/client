@@ -391,7 +391,7 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	}
 
 	// user1 makes a file
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dir1, "file1", false)
+	_, _, err = config1.KBFSOps().CreateFile(ctx, dir1, "file1", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -401,7 +401,7 @@ func TestCRMergedChainsSimple(t *testing.T) {
 	cr2.Shutdown()
 
 	// user2 makes a file (causes a conflict, and goes unstaged)
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dir2, "file2", false)
+	_, _, err = config2.KBFSOps().CreateFile(ctx, dir2, "file2", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -453,7 +453,7 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	}
 
 	// user1 makes a file in dir A
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dirA1, "file1", false)
+	_, _, err = config1.KBFSOps().CreateFile(ctx, dirA1, "file1", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -463,7 +463,7 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 	cr2.Shutdown()
 
 	// user2 makes a file in dir B
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirB2, "file2", false)
+	_, _, err = config2.KBFSOps().CreateFile(ctx, dirB2, "file2", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -536,7 +536,7 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	}
 
 	// user2 makes a file in dir C
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirC2, "file2", false)
+	_, _, err = config2.KBFSOps().CreateFile(ctx, dirC2, "file2", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -630,7 +630,7 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 	}
 
 	// user2 makes a file in dir C
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirC2, "file2", false)
+	_, _, err = config2.KBFSOps().CreateFile(ctx, dirC2, "file2", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -717,7 +717,7 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	dirH2 := nodesH[uid2]
 	dirHPtr := cr1.fbo.nodeCache.PathFromNode(dirH1).tailPointer()
 
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dirD1, "file5", false)
+	_, _, err = config1.KBFSOps().CreateFile(ctx, dirD1, "file5", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -744,7 +744,7 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	// rm -rf /dirA/dirB/dirD
 
 	// user 1:
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dirA1, "file1", false)
+	_, _, err = config1.KBFSOps().CreateFile(ctx, dirA1, "file1", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -762,15 +762,15 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirJ2, "file2", false)
+	_, _, err = config2.KBFSOps().CreateFile(ctx, dirJ2, "file2", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirF2, "file3", false)
+	_, _, err = config2.KBFSOps().CreateFile(ctx, dirF2, "file3", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirC2, "file4", false)
+	_, _, err = config2.KBFSOps().CreateFile(ctx, dirC2, "file4", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -959,13 +959,13 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 	}
 
 	// user1 creates file1
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file1", false)
+	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file1", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't make file: %v", err)
 	}
 
 	// user2 also create file1, but makes it executable
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirRoot2, "file1", true)
+	_, _, err = config2.KBFSOps().CreateFile(ctx, dirRoot2, "file1", true, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't make dir: %v", err)
 	}
@@ -1021,7 +1021,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	cr2.Shutdown()
 
 	// user1 creates file
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file", false)
+	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't make file: %v", err)
 	}
@@ -1050,7 +1050,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't remove file: %v", err)
 	}
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file", false)
+	_, _, err = config1.KBFSOps().CreateFile(ctx, dirRoot1, "file", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't re-make file: %v", err)
 	}
@@ -1128,7 +1128,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 	}
 
 	// user1 makes a file
-	_, _, err = config1.KBFSOps().CreateFile(ctx, dir1, "file1", false)
+	_, _, err = config1.KBFSOps().CreateFile(ctx, dir1, "file1", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1138,7 +1138,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 	cr2.Shutdown()
 
 	// user2 makes a file (causes a conflict, and goes unstaged)
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dir2, "file2", false)
+	_, _, err = config2.KBFSOps().CreateFile(ctx, dir2, "file2", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1213,7 +1213,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	fb := dir1.GetFolderBranch()
 
 	// user1 makes a file
-	file1, _, err := config1.KBFSOps().CreateFile(ctx, dir1, "file", false)
+	file1, _, err := config1.KBFSOps().CreateFile(ctx, dir1, "file", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}

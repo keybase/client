@@ -91,7 +91,7 @@ func TestBasicMDUpdate(t *testing.T) {
 
 	// user 1 creates a file
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -147,7 +147,7 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 
 	kbfsOps1 := config1.KBFSOps()
 	// user 1 creates a file
-	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -160,7 +160,7 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	if err != nil {
 		t.Fatalf("Couldn't rename file: %v", err)
 	}
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "c", false)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "c", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -213,7 +213,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
-	fileNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	fileNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -368,7 +368,7 @@ func TestMultiUserWrite(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -436,7 +436,7 @@ func TestBasicCRNoConflict(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
 
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -461,13 +461,13 @@ func TestBasicCRNoConflict(t *testing.T) {
 	}
 
 	// User 1 makes a new file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "b", false)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "b", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
 	// User 2 makes a new different file
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "c", false)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "c", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -566,7 +566,7 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %v", err)
 	}
-	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false)
+	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -673,7 +673,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %v", err)
 	}
-	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false)
+	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -816,13 +816,13 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	}
 
 	// User 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, dirA1, "b", false)
+	_, _, err = kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
 	// User 2 creates the same file, and writes to it.
-	fileB2, _, err := kbfsOps2.CreateFile(ctx, dirA2, "b", false)
+	fileB2, _, err := kbfsOps2.CreateFile(ctx, dirA2, "b", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -905,7 +905,7 @@ func TestCRDouble(t *testing.T) {
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(t, config1, name, false)
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "a", false)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "a", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -929,13 +929,13 @@ func TestCRDouble(t *testing.T) {
 	}
 
 	// User 1 creates a new file to start a conflict.
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "b", false)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "b", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
 	// User 2 makes a couple revisions
-	fileNodeC, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "c", false)
+	fileNodeC, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "c", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -997,11 +997,11 @@ func TestCRDouble(t *testing.T) {
 	}
 
 	// A few merged revisions
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "e", false)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "e", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "f", false)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "f", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1025,17 +1025,17 @@ func TestCRDouble(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "g", false)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "g", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
 	// User 2 makes a couple unmerged revisions
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "h", false)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "h", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "i", false)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "i", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1094,7 +1094,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %v", err)
 	}
-	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false)
+	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1284,7 +1284,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %v", err)
 	}
-	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false)
+	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1461,7 +1461,7 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(t, config1, name, false)
 	kbfsOps1 := config1.KBFSOps()
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "a", false)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "a", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1485,13 +1485,13 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	}
 
 	// User 1 creates a new file to start a conflict.
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "b", false)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "b", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
 	// User 2 does one successful operation to create the first unmerged MD.
-	fileNodeB, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "b", false)
+	fileNodeB, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1614,7 +1614,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	// create and write to a file
 	rootNode := GetRootNodeOrBust(t, config1, name, false)
 	kbfsOps1 := config1.KBFSOps()
-	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode, "a", false)
+	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode, "a", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1706,7 +1706,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	}
 
 	// Do a second operation and complete the resolution.
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoEXCL)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}

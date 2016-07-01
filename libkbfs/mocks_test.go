@@ -4,14 +4,15 @@
 package libkbfs
 
 import (
+	reflect "reflect"
+	time "time"
+
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	protocol "github.com/keybase/client/go/protocol"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
-	reflect "reflect"
-	time "time"
 )
 
 // Mock of AuthTokenRefreshHandler interface
@@ -292,16 +293,16 @@ func (_mr *_MockKBFSOpsRecorder) CreateDir(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateDir", arg0, arg1, arg2)
 }
 
-func (_m *MockKBFSOps) CreateFile(ctx context.Context, dir Node, name string, isEx bool) (Node, EntryInfo, error) {
-	ret := _m.ctrl.Call(_m, "CreateFile", ctx, dir, name, isEx)
+func (_m *MockKBFSOps) CreateFile(ctx context.Context, dir Node, name string, isExec bool, excl EXCL) (Node, EntryInfo, error) {
+	ret := _m.ctrl.Call(_m, "CreateFile", ctx, dir, name, isExec, excl)
 	ret0, _ := ret[0].(Node)
 	ret1, _ := ret[1].(EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockKBFSOpsRecorder) CreateFile(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateFile", arg0, arg1, arg2, arg3)
+func (_mr *_MockKBFSOpsRecorder) CreateFile(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateFile", arg0, arg1, arg2, arg3, arg4)
 }
 
 func (_m *MockKBFSOps) CreateLink(ctx context.Context, dir Node, fromName string, toPath string) (EntryInfo, error) {
