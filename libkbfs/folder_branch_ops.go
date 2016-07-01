@@ -1723,7 +1723,8 @@ func isRecoverableBlockErrorForRemoval(err error) bool {
 }
 
 func isRetriableError(err error, retries int) bool {
-	recoverable := isRecoverableBlockError(err)
+	_, isEXCLOnUnmergedError := err.(EXCLOnUnmergedError)
+	recoverable := isRecoverableBlockError(err) || isEXCLOnUnmergedError
 	return recoverable && retries < maxRetriesOnRecoverableErrors
 }
 
@@ -1882,14 +1883,19 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 			if excl == WithEXCL {
 				// If this was caused by an exclusive create, we shouldn't do an
-				// UnmergedPut, but rather wait until we are on master branch.
-				return err
+				// UnmergedPut, but rather try to get newest update from server, and
+				// retry afterwards.
+				err = fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdatesLocked)
+				if err != nil {
+					return err
+				}
+				return EXCLOnUnmergedError{}
 			}
 		} else if err != nil {
 			return err
 		}
 	} else if excl == WithEXCL {
-		return UnmergedError{}
+		return EXCLOnUnmergedError{}
 	}
 
 	if doUnmergedPut {
