@@ -39,6 +39,7 @@ type opt struct {
 	engine                   Engine
 	blockSize                int64
 	blockChangeSize          int64
+	bwKBps                   int
 	clock                    *libkbfs.TestClock
 }
 
@@ -66,7 +67,7 @@ func (o *opt) runInitOnce() {
 	o.clock = &libkbfs.TestClock{}
 	o.clock.Set(time.Unix(0, 0))
 	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize,
-		o.usernames, o.clock)
+		o.bwKBps, o.usernames, o.clock)
 	o.initDone = true
 }
 
@@ -100,6 +101,17 @@ func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSi
 	}
 }
 
+func maybeSetBw(t testing.TB, config libkbfs.Config, bwKBps int) {
+	if bwKBps > 0 {
+		if _, ok := config.BlockServer().(*libkbfs.BlockServerMemory); ok {
+			config.SetBlockServer(libkbfs.NewBlockServerMemory(config, bwKBps))
+		} else {
+			t.Logf("Ignore bandwitdh setting of %d for a non-memory bserver",
+				bwKBps)
+		}
+	}
+}
+
 type optionOp func(*opt)
 
 func blockSize(n int64) optionOp {
@@ -111,6 +123,12 @@ func blockSize(n int64) optionOp {
 func blockChangeSize(n int64) optionOp {
 	return func(o *opt) {
 		o.blockChangeSize = n
+	}
+}
+
+func bandwidth(n int) optionOp {
+	return func(o *opt) {
+		o.bwKBps = n
 	}
 }
 

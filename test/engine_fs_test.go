@@ -371,7 +371,7 @@ func fiTypeString(fi os.FileInfo) string {
 }
 
 func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
-	blockChangeSize int64, users []libkb.NormalizedUsername,
+	blockChangeSize int64, bwKBps int, users []libkb.NormalizedUsername,
 	clock libkbfs.Clock) map[libkb.NormalizedUsername]User {
 	e.t = t
 	res := map[libkb.NormalizedUsername]User{}
@@ -381,6 +381,7 @@ func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 	config0.SetClock(clock)
 
 	setBlockSizes(t, config0, blockSize, blockChangeSize)
+	maybeSetBw(t, config0, bwKBps)
 	uids := make([]keybase1.UID, len(users))
 	cfgs := make([]*libkbfs.ConfigLocal, len(users))
 	cfgs[0] = config0

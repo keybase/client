@@ -112,7 +112,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 		blockServer = NewBlockServerRemote(config, bserverAddr, env.NewContext())
 
 	default:
-		blockServer = NewBlockServerMemory(config)
+		blockServer = NewBlockServerMemory(config, 0)
 	}
 	config.SetBlockServer(blockServer)
 

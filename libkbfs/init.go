@@ -175,7 +175,7 @@ func makeBlockServer(config Config, serverInMemory bool, serverRootDir, bserverA
 	BlockServer, error) {
 	if serverInMemory {
 		// local in-memory block server
-		return NewBlockServerMemory(config), nil
+		return NewBlockServerMemory(config, 0), nil
 	}
 
 	if len(serverRootDir) > 0 {

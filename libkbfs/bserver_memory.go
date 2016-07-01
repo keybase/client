@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
@@ -111,6 +112,7 @@ type blockMemEntry struct {
 type BlockServerMemory struct {
 	crypto cryptoPure
 	log    logger.Logger
+	bwKBps int
 
 	lock sync.RWMutex
 	// m is nil after Shutdown() is called.
@@ -120,11 +122,13 @@ type BlockServerMemory struct {
 var _ BlockServer = (*BlockServerMemory)(nil)
 
 // NewBlockServerMemory constructs a new BlockServerMemory that stores
-// its data in memory.
-func NewBlockServerMemory(config Config) *BlockServerMemory {
+// its data in memory. bwKBps indicates a constrained bandwidth to
+// simulate in kilobytes per second (0 means unconstrained).
+func NewBlockServerMemory(config Config, bwKBps int) *BlockServerMemory {
 	return &BlockServerMemory{
 		config.Crypto(),
 		config.MakeLogger("BSM"),
+		bwKBps,
 		sync.RWMutex{},
 		make(map[BlockID]blockMemEntry),
 	}
@@ -191,8 +195,16 @@ func validateBlockServerPut(
 func (b *BlockServerMemory) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
-	b.log.CDebugf(ctx, "BlockServerMemory.Put id=%s tlfID=%s context=%s",
-		id, tlfID, context)
+	if b.bwKBps > 0 {
+		b.lock.Lock()
+		// Simulate a constrained bserver connection
+		seconds := len(buf) * int(time.Second) / b.bwKBps
+		time.Sleep(time.Duration(seconds))
+		b.lock.Unlock()
+	}
+
+	b.log.CDebugf(ctx, "BlockServerMemory.Put id=%s tlfID=%s context=%s size=%d",
+		id, tlfID, context, len(buf))
 
 	err := validateBlockServerPut(b.crypto, id, context, buf)
 	if err != nil {

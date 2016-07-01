@@ -43,7 +43,7 @@ func (k *LibKBFS) Init() {
 
 // InitTest implements the Engine interface.
 func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
-	users []libkb.NormalizedUsername,
+	bwKBps int, users []libkb.NormalizedUsername,
 	clock libkbfs.Clock) map[libkb.NormalizedUsername]User {
 	// Start a new log for this test.
 	k.t = t
@@ -52,26 +52,8 @@ func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 	// create the first user specially
 	config := libkbfs.MakeTestConfigOrBust(t, users...)
 
-	// Set the block sizes, if any
-	if blockSize > 0 || blockChangeSize > 0 {
-		if blockSize == 0 {
-			blockSize = 512 * 1024
-		}
-		if blockChangeSize < 0 {
-			panic("Can't handle negative blockChangeSize")
-		}
-		if blockChangeSize == 0 {
-			blockChangeSize = 8 * 1024
-		}
-		// TODO: config option for max embed size.
-		bsplit, err := libkbfs.NewBlockSplitterSimple(blockSize,
-			uint64(blockChangeSize), config.Codec())
-		if err != nil {
-			panic(fmt.Sprintf("Couldn't make block splitter for block size %d,"+
-				" blockChangeSize %d: %v", blockSize, blockChangeSize, err))
-		}
-		config.SetBlockSplitter(bsplit)
-	}
+	setBlockSizes(t, config, blockSize, blockChangeSize)
+	maybeSetBw(t, config, bwKBps)
 
 	config.SetClock(clock)
 	userMap[users[0]] = config
