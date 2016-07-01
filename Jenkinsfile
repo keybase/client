@@ -99,14 +99,14 @@ node("ec2-fleet") {
                                 test_linux_go: {
                                     dir("go") {
                                         sh """
-                                            slept="0";
+                                            slept=\"0\";
                                             while ! curl -s -o /dev/null 127.0.0.1:3000 2>&1; do
-                                                if [[ "\$slept" -lt 600 ]]; then
+                                                if [[ \"\$slept\" -lt 180 ]]; then
                                                     ((slept++));
                                                     sleep 1;
-                                                    echo "Slept \$slept times";
+                                                    echo \"Slept \$slept times\";
                                                 else
-                                                    return 1;
+                                                    exit 1;
                                                 fi
                                             done
                                         """
@@ -242,13 +242,14 @@ node("ec2-fleet") {
                                 println "Test OS X"
                                     dir('go') {
                                         sh """
-                                            slept="0";
+                                            slept=\"0\";
                                             while ! curl -s -o /dev/null ${pub}:3000 2>&1; do
-                                                if [[ "\$slept" -lt 180 ]]; then
+                                                if [[ \"\$slept\" -lt 180 ]]; then
                                                     ((slept++));
                                                     sleep 1;
+                                                    echo \"Slept \$slept times\";
                                                 else
-                                                    return 1;
+                                                    exit 1;
                                                 fi
                                             done
                                         """
