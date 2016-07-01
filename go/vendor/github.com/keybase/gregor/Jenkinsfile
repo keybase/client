@@ -31,7 +31,7 @@ node("ec2-fleet") {
             parallel (
                 checkout: { checkout scm },
                 pull_mysql: {
-                    docker.withRegistry("https://docker.io", "docker-hub-creds") {
+                    docker.withRegistry("", "docker-hub-creds") {
                         mysqlImage.pull()
                     }
                 }
@@ -86,7 +86,7 @@ node("ec2-fleet") {
 
         stage "Push"
         if (env.BRANCH_NAME == "master" && cause != "upstream") {
-            docker.withRegistry("https://docker.io", "docker-hub-creds") {
+            docker.withRegistry("", "docker-hub-creds") {
                 gregorImage.push()
             }
         } else {
