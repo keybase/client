@@ -92,7 +92,10 @@ type gregorHandler struct {
 	gregorCli        *grclient.Client
 	firehoseHandlers []libkb.GregorFirehoseHandler
 
-	conn                *rpc.Connection
+	// This mutex protects the con object
+	connMutex sync.Mutex
+	conn      *rpc.Connection
+
 	cli                 rpc.GenericClient
 	sessionID           gregor1.SessionID
 	skipRetryConnect    bool
@@ -130,60 +133,62 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 	gh = &gregorHandler{
 		Contextified: libkb.NewContextified(g),
 		freshSync:    true,
-		shutdownCh:   make(chan struct{}),
 	}
 
-	// Create client interface to gregord
-	if gh.gregorCli, err = newGregorClient(g, gh); err != nil {
+	// Create client interface to gregord; we should do this everytime a
+	// user logs in.
+	if err = gh.resetGregorClient(); err != nil {
 		return nil, err
 	}
-
 	return gh, nil
 }
 
-func newGregorClient(g *libkb.GlobalContext, gh *gregorHandler) (*grclient.Client, error) {
+func (g *gregorHandler) resetGregorClient() (err error) {
+	defer g.G().Trace("gregorHandler#newGregorClient", func() error { return err })()
 	of := gregor1.ObjFactory{}
 	sm := grstorage.NewMemEngine(of, clockwork.NewRealClock())
 
 	var guid gregor.UID
 	var gdid gregor.DeviceID
 	var b []byte
-	var err error
 
-	uid := g.Env.GetUID()
+	uid := g.G().Env.GetUID()
 	if !uid.Exists() {
-		return nil, errors.New("no UID; probably not logged in")
+		err = errors.New("no UID; probably not logged in")
+		return err
 	}
 	if b = uid.ToBytes(); b == nil {
-		return nil, errors.New("Can't convert UID to byte array")
+		err = errors.New("Can't convert UID to byte array")
+		return err
 	}
 	if guid, err = of.MakeUID(b); err != nil {
-		return nil, err
+		return err
 	}
 
-	did := g.Env.GetDeviceID()
+	did := g.G().Env.GetDeviceID()
 	if !did.Exists() {
-		return nil, errors.New("no device ID; probably not logged in")
+		err = errors.New("no device ID; probably not logged in")
+		return err
 	}
 	if b, err = hex.DecodeString(did.String()); err != nil {
-		return nil, err
+		return err
 	}
 	if gdid, err = of.MakeDeviceID(b); err != nil {
-		return nil, err
+		return err
 	}
 
 	// Create client object
-	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g),
-		g.Env.GetGregorSaveInterval(), g.Log)
+	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g.G()), g.G().Env.GetGregorSaveInterval(), g.G().Log)
 
 	// Bring up local state
-	gh.Debug("restoring state from leveldb")
+	g.Debug("restoring state from leveldb")
 	if err = gcli.Restore(); err != nil {
 		// If this fails, we'll keep trying since the server can bail us out
-		gh.Debug("restore local state failed: %s", err)
+		g.Debug("restore local state failed: %s", err)
 	}
 
-	return gcli, nil
+	g.gregorCli = gcli
+	return nil
 }
 
 func (g *gregorHandler) Debug(s string, args ...interface{}) {
@@ -198,8 +203,14 @@ func (g *gregorHandler) Errorf(s string, args ...interface{}) {
 	g.G().Log.Errorf("push handler: "+s, args...)
 }
 
-func (g *gregorHandler) Connect(uri *rpc.FMPURI) error {
-	var err error
+func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
+
+	defer g.G().Trace("gregorHandler#Connect", func() error { return err })()
+
+	// In case we need to interrupt auth'ing or the ping loop,
+	// set up this channel.
+	g.shutdownCh = make(chan struct{})
+
 	if uri.UseTLS() {
 		err = g.connectTLS(uri)
 	} else {
@@ -218,6 +229,8 @@ func (g *gregorHandler) HandlerName() string {
 func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 	g.Lock()
 	defer g.Unlock()
+
+	g.G().Log.Debug("pushing inband handler %s to position %d", handler.Name(), len(g.ibmHandlers))
 
 	g.ibmHandlers = append(g.ibmHandlers, handler)
 
@@ -294,8 +307,12 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 		} else {
 			_, err = g.handleInBandMessageWithHandler(ctx, cli, msg, handler)
 		}
+
+		// If an error happens when replaying, don't kill everything else that
+		// follows, just make a warning.
 		if err != nil {
-			return nil, err
+			g.Warning("Failure in message replay: %s", err.Error())
+			err = nil
 		}
 	}
 
@@ -456,28 +473,35 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 // handleInBandMessage runs a message on all the alive handlers. gregorHandler
 // must be locked when calling this function.
 func (g *gregorHandler) handleInBandMessage(ctx context.Context, cli gregor1.IncomingInterface,
-	ibm gregor.InBandMessage) error {
+	ibm gregor.InBandMessage) (err error) {
+
+	defer g.G().Trace(fmt.Sprintf("gregorHandler#handleInBandMessage with %d handlers", len(g.ibmHandlers)), func() error { return err })()
 
 	var freshHandlers []libkb.GregorInBandMessageHandler
 
 	// Loop over all handlers and run the messages against any that are alive
 	// If the handler is not alive, we prune it from our list
-	for _, handler := range g.ibmHandlers {
+	for i, handler := range g.ibmHandlers {
+		g.Debug("trying handler %s at position %d", handler.Name(), i)
 		if handler.IsAlive() {
 			if handled, err := g.handleInBandMessageWithHandler(ctx, cli, ibm, handler); err != nil {
 				if handled {
-					// only bail out of this loop if the handler was supposed to handle this message and failed
+					// Don't stop handling errors on a first failure.
 					g.Errorf("failed to run %s handler: %s", handler.Name(), err)
-					return err
+				} else {
+					g.Debug("handleInBandMessage() failed to run %s handler: %s", handler.Name(), err)
 				}
-
-				g.Debug("handleInBandMessage() failed to run %s handler: %s", handler.Name(), err)
 			}
 			freshHandlers = append(freshHandlers, handler)
+		} else {
+			g.Debug("skipping handler as it's marked dead: %s", handler.Name())
 		}
 	}
 
-	g.ibmHandlers = freshHandlers
+	if len(g.ibmHandlers) != len(freshHandlers) {
+		g.Debug("Change # of live handlers from %d to %d", len(g.ibmHandlers), len(freshHandlers))
+		g.ibmHandlers = freshHandlers
+	}
 	return nil
 }
 
@@ -696,12 +720,21 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 }
 
 func (g *gregorHandler) Shutdown() {
+	g.G().Log.Debug("gregor shutdown")
+	g.connMutex.Lock()
+	defer g.connMutex.Unlock()
+
 	if g.conn == nil {
 		return
 	}
 	close(g.shutdownCh)
 	g.conn.Shutdown()
 	g.conn = nil
+}
+
+func (g *gregorHandler) Reset() error {
+	g.Shutdown()
+	return g.resetGregorClient()
 }
 
 func (g *gregorHandler) kbfsFavorites(ctx context.Context, m gregor.OutOfBandMessage) error {
@@ -735,7 +768,7 @@ func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.U
 	return nil
 }
 
-func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) error {
+func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) (err error) {
 	var token string
 	var uid keybase1.UID
 
@@ -799,7 +832,10 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
 	g.Debug("Using CA for gregor: %s", libkb.ShortCA(rawCA))
+
+	g.connMutex.Lock()
 	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), keybase1.ErrorUnwrapper{}, g, true, libkb.NewRPCLogFactory(g.G()), keybase1.WrapError, g.G().Log, nil)
+	g.connMutex.Unlock()
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not
@@ -820,7 +856,9 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 	g.Debug("connecting to gregord without TLS at %s", uri)
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.transportForTesting = t
+	g.connMutex.Lock()
 	g.conn = rpc.NewConnectionWithTransport(g, t, keybase1.ErrorUnwrapper{}, true, keybase1.WrapError, g.G().Log, nil)
+	g.connMutex.Unlock()
 	g.cli = g.conn.GetClient()
 
 	// Start up ping loop to keep the connection to gregord alive, and to kick

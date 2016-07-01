@@ -18,9 +18,9 @@ type TLF struct {
 }
 
 type ProblemTLF struct {
-	Tlf       TLF   `codec:"tlf" json:"tlf"`
-	Score     int   `codec:"score" json:"score"`
-	Solutions []KID `codec:"solutions" json:"solutions"`
+	Tlf           TLF   `codec:"tlf" json:"tlf"`
+	Score         int   `codec:"score" json:"score"`
+	Solution_kids []KID `codec:"solution_kids" json:"solution_kids"`
 }
 
 // ProblemSet is for a particular (user,kid) that initiated a rekey problem.

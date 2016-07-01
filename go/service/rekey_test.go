@@ -76,7 +76,7 @@ func TestRekeyNeededMessageNoScores(t *testing.T) {
 	rekeyBroadcast(tc, gUID, h, `{}`)
 }
 
-const problemSet = `{ 
+const problemSet = `{
 	"user": {
 		"uid": "9f9611a4b7920637b1c2a839b2a0e119",
 		"username": "t_frank"
@@ -85,14 +85,14 @@ const problemSet = `{
 	"tlfs": [
 		{
 			"tlf": {
-				"tlfid": "folder", 
-				"name": "folder name", 
-				"writers": ["t_frank","t_george"], 
-				"readers": ["t_alice"], 
+				"tlfid": "folder",
+				"name": "folder name",
+				"writers": ["t_frank","t_george"],
+				"readers": ["t_alice"],
 				"isPrivate": true
 			},
 			"score": 300,
-			"solutions": ["01206f31b54690a95a1a60a0d8861c8ec27c322b49a93b475a631ee6a676018bfd140a"]
+			"solution_kids": ["01206f31b54690a95a1a60a0d8861c8ec27c322b49a93b475a631ee6a676018bfd140a"]
 		}
 	]
 }`

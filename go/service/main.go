@@ -262,10 +262,7 @@ func (d *Service) OnLogout() error {
 	if d.gregor == nil {
 		return nil
 	}
-
 	d.gregor.Shutdown()
-	d.gregor = nil
-
 	return nil
 }
 
@@ -279,15 +276,17 @@ func (d *Service) gregordConnect() (err error) {
 	}
 	d.G().Log.Debug("| gregor URI: %s", uri)
 
-	if d.gregor != nil {
-		d.gregor.Shutdown()
+	if d.gregor == nil {
+		if d.gregor, err = newGregorHandler(d.G()); err != nil {
+			return err
+		}
+		d.G().GregorDismisser = d.gregor
+		d.G().GregorListener = d.gregor
+	} else {
+		if d.gregor.Reset(); err != nil {
+			return err
+		}
 	}
-
-	if d.gregor, err = newGregorHandler(d.G()); err != nil {
-		return err
-	}
-	d.G().GregorDismisser = d.gregor
-	d.G().GregorListener = d.gregor
 
 	if err = d.gregor.Connect(uri); err != nil {
 		return err
