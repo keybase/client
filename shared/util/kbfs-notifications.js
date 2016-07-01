@@ -46,6 +46,10 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
       title: 'Keybase: Bad folder',
       body: `${notification.params.tlf} is not a Keybase folder. All folders begin with /keybase/private or /keybase/public.`,
     },
+    [kbfsCommon.FSErrorType.overQuota]: {
+      title: 'Keybase: Out of space',
+      body: `Action needed! You are using ${(parseInt(notification.params.usageBytes, 10) / 1e9).toFixed(1)}GB (${Math.round(100 * parseInt(notification.params.usageBytes, 10) / parseInt(notification.params.limitBytes, 10))}%) of your quota. Please delete some data.`,
+    },
   }
 
   if (notification.errorType in errors) {
