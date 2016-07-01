@@ -88,7 +88,8 @@ node("ec2-fleet") {
             }
 
             kbwebImage.withRun('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh') {kbweb->
-                def local = new URL ("http://169.254.169.254/latest/meta-data/public-ipv4").getText()
+                def local = new URL ("http://169.254.169.254/latest/meta-data/local-ipv4").getText()
+                def pub = new URL ("http://169.254.169.254/latest/meta-data/public-ipv4").getText()
                 println "Running on host $local"
 
                 stage "Test"
@@ -229,8 +230,8 @@ node("ec2-fleet") {
                             node('osx') {
                             withEnv([
                                 "GOPATH=${pwd()}",
-                                "KEYBASE_SERVER_URI=http://${local}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${local}:9911",
+                                "KEYBASE_SERVER_URI=http://${pub}:3000",
+                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${pub}:9911",
                             ]) {
                             ws("${pwd()}/src/github.com/keybase/client") {
                                 println "Checkout OS X"
