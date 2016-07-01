@@ -99,23 +99,25 @@ node("ec2-fleet") {
                                 test_linux_go: {
                                     dir("go") {
                                         sh """
-                                        slept="0";
-                                        while ! curl -s -o /dev/null 127.0.0.1:3000 2>&1; do
-                                            if [[ "\$slept" -lt 180 ]]; then
-                                                ((slept++));
-                                                sleep 1;
-                                            else
-                                                return 1;
-                                            fi
-                                        done
+                                            slept="0";
+                                            while ! curl -s -o /dev/null 127.0.0.1:3000 2>&1; do
+                                                if [[ "\$slept" -lt 600 ]]; then
+                                                    ((slept++));
+                                                    sleep 1;
+                                                    echo "Slept \$slept times";
+                                                else
+                                                    return 1;
+                                                fi
+                                            done
                                         """
                                         sh "test/run_tests.sh || (docker logs ${kbweb.id}; exit 1)"
                                     }
                                 },
-                                test_linux_js: { withEnv([
+                                test_linux_js: { wrap([$class: 'Xvfb']) { withEnv([
                                     "PATH+NODE=${env.HOME}/.node/bin:",
                                     "NODE_PATH+NODE=${env.HOME}/.node/lib/node_modules:"
                                 ]) {
+                                
                                     // TODO implement PR ID
                                     if (fileExists("desktop/npm-vendor.js")) {
                                         dir("desktop") {
@@ -160,7 +162,7 @@ node("ec2-fleet") {
                                             }
                                         }
                                     }
-                                }},
+                                }}},
                             )
                         },
                         test_windows: {
@@ -193,7 +195,7 @@ node("ec2-fleet") {
                                             bat "for /f %%i in (testlist.txt) do (go test -timeout 30m %%i || exit /B 1)"
                                         }
                                     },
-                                    test_windows_js: {
+                                    test_windows_js: { wrap([$class: 'Xvfb']) {
                                         println "Test Windows JS"
                                         // TODO implement visdiff PR pushing
                                         if (fileExists("visdiff")) {
@@ -222,7 +224,7 @@ node("ec2-fleet") {
                                                 }
                                             }
                                         }
-                                    },
+                                    }},
                                 )
                             }}}
                         },
@@ -240,15 +242,15 @@ node("ec2-fleet") {
                                 println "Test OS X"
                                     dir('go') {
                                         sh """
-                                        slept="0";
-                                        while ! curl -s -o /dev/null ${pub}:3000 2>&1; do
-                                            if [[ "\$slept" -lt 180 ]]; then
-                                                ((slept++));
-                                                sleep 1;
-                                            else
-                                                return 1;
-                                            fi
-                                        done
+                                            slept="0";
+                                            while ! curl -s -o /dev/null ${pub}:3000 2>&1; do
+                                                if [[ "\$slept" -lt 180 ]]; then
+                                                    ((slept++));
+                                                    sleep 1;
+                                                else
+                                                    return 1;
+                                                fi
+                                            done
                                         """
                                         sh './test/run_tests.sh'
                                     }
