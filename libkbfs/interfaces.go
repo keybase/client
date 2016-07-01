@@ -1236,6 +1236,7 @@ type Config interface {
 	// flush dirty files, even without a sync from the user.  Should
 	// be true except for during some testing.
 	DoBackgroundFlushes() bool
+	SetDoBackgroundFlushes(bool)
 	// RekeyWithPromptWaitTime indicates how long to wait, after
 	// setting the rekey bit, before prompting for a paper key.
 	RekeyWithPromptWaitTime() time.Duration

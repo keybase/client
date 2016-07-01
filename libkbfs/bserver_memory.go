@@ -198,7 +198,7 @@ func (b *BlockServerMemory) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	if b.bwKBps > 0 {
 		b.lock.Lock()
 		// Simulate a constrained bserver connection
-		seconds := len(buf) * int(time.Second) / b.bwKBps
+		seconds := len(buf) * int(time.Second) / (b.bwKBps * 1024)
 		time.Sleep(time.Duration(seconds))
 		b.lock.Unlock()
 		select {

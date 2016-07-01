@@ -213,6 +213,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser)
 	crypto := NewCryptoLocal(config, signingKey, cryptPrivateKey)
 	c.SetCrypto(crypto)
+	c.noBGFlush = config.noBGFlush
 
 	if s, ok := config.BlockServer().(*BlockServerRemote); ok {
 		blockServer := NewBlockServerRemote(c, s.RemoteAddress(), env.NewContext())
