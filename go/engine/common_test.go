@@ -162,6 +162,16 @@ func CreateAndSignupFakeUserGPG(tc libkb.TestContext, prefix string) *FakeUser {
 	return fu
 }
 
+func SignupFakeUserStoreSecret(tc libkb.TestContext, prefix string) *FakeUser {
+	fu := NewFakeUserOrBust(tc.T, prefix)
+	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
+	arg := MakeTestSignupEngineRunArg(fu)
+	arg.SkipPaper = false
+	arg.StoreSecret = true
+	_ = SignupFakeUserWithArg(tc, fu, arg)
+	return fu
+}
+
 func CreateAndSignupFakeUserCustomArg(tc libkb.TestContext, prefix string, fmod func(*SignupEngineRunArg)) (*FakeUser, libkb.GenericKey) {
 	fu := NewFakeUserOrBust(tc.T, prefix)
 	arg := MakeTestSignupEngineRunArg(fu)

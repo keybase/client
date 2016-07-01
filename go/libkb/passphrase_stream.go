@@ -64,6 +64,19 @@ func NewPassphraseStream(s []byte) *PassphraseStream {
 	}
 }
 
+func NewPassphraseStreamLKSecOnly(s []byte) (*PassphraseStream, error) {
+	if len(s) != lksLen {
+		return nil, fmt.Errorf("invalid lksec stream length %d (expected %d)", len(s), lksLen)
+	}
+	stream := make([]byte, extraLen)
+	copy(stream[lksIndex:], s)
+	ps := &PassphraseStream{
+		stream: stream,
+		gen:    PassphraseGeneration(0),
+	}
+	return ps, nil
+}
+
 func (ps *PassphraseStream) SetGeneration(gen PassphraseGeneration) {
 	ps.gen = gen
 }
