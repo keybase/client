@@ -674,12 +674,9 @@ func (f JSONConfigFile) IsAdmin() (bool, bool) {
 	return f.GetBoolAtPath("is_admin")
 }
 
-func (f JSONConfigFile) GetAppStartMode() AppStartMode {
-	s, isSet := f.GetStringAtPath("app_start_mode")
-	if !isSet {
-		return AppStartModeDefault
-	}
-	return ParseAppStartMode(s)
+func (f JSONConfigFile) GetAppStartMode() string {
+	s, _ := f.GetStringAtPath("app_start_mode")
+	return s
 }
 
 func (f JSONConfigFile) GetTimeAtPath(path string) keybase1.Time {
