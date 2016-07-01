@@ -622,11 +622,16 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 
 	chForEnablingUpdates <- struct{}{}
 
+	err = kbfsOps2.Sync(ctx, fileB2)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
 	equal := false
 
-	// check for at most 8 times. This should be sufficiently long for client get
+	// check for at most 4 times. This should be sufficiently long for client get
 	// latest merged revision and register with that
-	for i := 0; i < 8; i++ {
+	for i := 0; i < 4; i++ {
 		record := <-chForMdServer2
 		mergedRev, err := mdServ.getCurrentMergedHeadRevision(
 			ctx, rootNode2.GetFolderBranch().Tlf)
@@ -641,11 +646,6 @@ func TestCRFileConflictWithMoreUpdatesFromOneUser(t *testing.T) {
 
 	if !equal {
 		t.Fatalf("client does not track latest remote revision")
-	}
-
-	err = kbfsOps2.Sync(ctx, fileB2)
-	if err != nil {
-		t.Fatalf("Couldn't sync file: %v", err)
 	}
 }
 
