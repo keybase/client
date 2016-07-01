@@ -261,7 +261,7 @@ func mergeIntoPath(g *libkb.GlobalContext, p2 string) error {
 
 	svcPath := os.Getenv("PATH")
 	g.Log.Debug("mergeIntoPath: service path = %s", svcPath)
-	g.Log.Debug("mergeIntoPath: merge path   =  %s", p2)
+	g.Log.Debug("mergeIntoPath: merge path   = %s", p2)
 
 	pathenv := filepath.SplitList(svcPath)
 	pathset := make(map[string]bool)
