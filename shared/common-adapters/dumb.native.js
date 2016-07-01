@@ -138,9 +138,40 @@ const listItemMap: DumbComponentMap<ListItem> = {
   },
 }
 
+const avatarMap: DumbComponentMap<Avatar> = {
+  component: Avatar,
+  mocks: {
+    'No Friendship': {
+      url: '',
+      size: 80,
+      following: false,
+      followsYou: false,
+    },
+    'Follows you': {
+      url: '',
+      size: 80,
+      following: false,
+      followsYou: true,
+    },
+    'You follow': {
+      url: '',
+      size: 80,
+      following: true,
+      followsYou: false,
+    },
+    'Mutual Follows': {
+      url: '',
+      size: 80,
+      following: true,
+      followsYou: true,
+    },
+  },
+}
+
 export default {
   'TabBarButton': tabBarButtonMap,
   'TabBar': tabBarMap,
   'Checkbox': checkboxMap,
-  ListItem: listItemMap,
+  'ListItem': listItemMap,
+  'Avatar': avatarMap,
 }
