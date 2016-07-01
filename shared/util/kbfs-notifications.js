@@ -61,9 +61,13 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
       }
 
     case kbfsCommon.FSErrorType.overQuota:
+      const usageBytes = parseInt(notification.params.usageBytes, 10)
+      const limitBytes = parseInt(notification.params.limitBytes, 10)
+      const usedGB = (usageBytes / 1e9).toFixed(1)
+      const usedPercent = Math.round(100 * usageBytes / limitBytes)
       return {
         title: 'Keybase: Out of space',
-        body: `Action needed! You are using ${(parseInt(notification.params.usageBytes, 10) / 1e9).toFixed(1)}GB (${Math.round(100 * parseInt(notification.params.usageBytes, 10) / parseInt(notification.params.limitBytes, 10))}%) of your quota. Please delete some data.`,
+        body: `Action needed! You are using ${usedGB}GB (${usedPercent}%) of your quota. Please delete some data.`,
       }
 
     default:
