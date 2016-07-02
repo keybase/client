@@ -238,6 +238,15 @@ func (u *rekeyStatusUpdater) Start() {
 	u.update()
 }
 
+func containsCurrentDevice(g *libkb.GlobalContext, devices []keybase1.Device) bool {
+	for _, dev := range devices {
+		if dev.DeviceID == g.Env.GetDeviceID() {
+			return true
+		}
+	}
+	return false
+}
+
 func (u *rekeyStatusUpdater) update() {
 	var err error
 	defer u.G().Trace("rekeyStatusUpdater#update", func() error { return err })()
@@ -254,6 +263,12 @@ func (u *rekeyStatusUpdater) update() {
 				u.G().Log.Errorf("rekey ui lookup devices error: %s", err)
 				return
 			}
+
+			if containsCurrentDevice(u.G(), set.Devices) {
+				u.G().Log.Info("Short-circuiting update; our device is on the list")
+				return
+			}
+
 			arg := keybase1.RefreshArg{
 				SessionID:         u.sessionID,
 				ProblemSetDevices: set,
