@@ -43,6 +43,7 @@ node("ec2-fleet") {
             println "Setting up build: ${env.BUILD_TAG}"
             def cause = getCauseString()
             println "Cause: ${cause}"
+            println "Pull Request ID: ${env.CHANGE_ID}"
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
                     checkout: { checkout scm },
