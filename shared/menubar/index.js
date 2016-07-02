@@ -10,10 +10,11 @@ import * as favoriteAction from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {switchTab} from '../actions/tabbed-router'
 
-import {remote} from 'electron'
 import {ipcRenderer} from 'electron'
 import {loginTab} from '../constants/tabs'
 import flags from '../util/feature-flags'
+
+import {executeActions, quitOnContext} from '../util/quit-helper.desktop'
 
 import type {Props as FolderProps} from '../folders/render'
 
@@ -141,7 +142,7 @@ class Menubar extends Component<void, Props, void> {
   }
 
   _quit () {
-    remote.app.quit()
+    executeActions(quitOnContext({type: 'quitButton'}))
   }
 
   _showBug () {

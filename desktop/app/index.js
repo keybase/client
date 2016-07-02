@@ -80,6 +80,16 @@ if (shouldQuit) {
     }
   })
 
+  // Don't quit the app, instead try to close all windows
+  app.on('close-windows', event => {
+    const windows = BrowserWindow.getAllWindows()
+    windows.forEach(w => {
+      // We tell it to close, we can register handlers for the 'close' event if we want to
+      // keep this window alive or hide it instead.
+      w.close()
+    })
+  })
+
   app.on('before-quit', event => {
     const windows = BrowserWindow.getAllWindows()
     windows.forEach(w => {
