@@ -64,9 +64,15 @@ node("ec2-fleet") {
                 )
             }
 
-            kbwebImage.withRun('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh') {kbweb->
+            def kbweb = null
+
+            try {
+                retry(5) {
+                    kbweb = kbwebImage.run('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh')
+                }
                 def local = new URL ("http://169.254.169.254/latest/meta-data/local-ipv4").getText()
                 def pub = new URL ("http://169.254.169.254/latest/meta-data/public-ipv4").getText()
+
                 println "Running on host $local"
 
                 stage "Test"
@@ -238,6 +244,10 @@ node("ec2-fleet") {
                             }}}
                         },
                     )
+            } finally {
+                if (kbweb != null) {
+                    kbweb.stop()
+                }
             }
 
 
