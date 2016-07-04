@@ -175,39 +175,50 @@ node("ec2-fleet") {
 }
 
 def runNixTest() {
-    sh 'go get -u github.com/golang/lint/golint'
-    sh 'go install github.com/golang/lint/golint'
-    sh '''
-        lint=$(make -s lint);
-        echo 2>&1 "$lint";
-        [ -z "$lint" -o "$lint" = "Lint-free!" ]
-    '''
-    sh 'go vet $(go list ./... 2>/dev/null | grep -v /vendor/)'
-    sh 'go install github.com/keybase/kbfs/...'
-    dir('libkbfs') {
-        sh 'go test -i'
-        sh 'go test -race -c'
-        sh './libkbfs.test -test.timeout 2m'
-    }
     withEnv([
         'KEYBASE_TEST_BSERVER_ADDR=tempdir',
         'KEYBASE_TEST_MDSERVER_ADDR=tempdir',
     ]) {
-        dir('libfuse') {
-            sh 'go test -i'
-            sh 'go test -c'
-            sh './libfuse.test -test.timeout 2m'
-        }
-        dir('test') {
-            sh 'go test -i -tags fuse'
-            println "Test Dir with Race but no Fuse"
-            sh 'go test -race -c'
-            sh './test.test -test.timeout 7m'
-            println "Test Dir with Fuse but no Race"
-            sh 'go test -c -tags fuse'
-            sh './test.test -test.timeout 7m'
-        }
-    }
+    parallel (
+        vet: {
+            sh 'go get -u github.com/golang/lint/golint'
+            sh 'go install github.com/golang/lint/golint'
+            sh '''
+                lint=$(make -s lint);
+                echo 2>&1 "$lint";
+                [ -z "$lint" -o "$lint" = "Lint-free!" ]
+            '''
+            sh 'go vet $(go list ./... 2>/dev/null | grep -v /vendor/)'
+        },
+        install: {
+            sh 'go install github.com/keybase/kbfs/...'
+        },
+        libkbfs: {
+            dir('libkbfs') {
+                sh 'go test -i'
+                sh 'go test -race -c'
+                sh './libkbfs.test -test.timeout 2m'
+            }
+        },
+        libfuse: {
+            dir('libfuse') {
+                sh 'go test -i'
+                sh 'go test -c'
+                sh './libfuse.test -test.timeout 2m'
+            }
+        },
+        test: {
+            dir('test') {
+                sh 'go test -i -tags fuse'
+                println "Test Dir with Race but no Fuse"
+                sh 'go test -race -c'
+                sh './test.test -test.timeout 7m'
+                println "Test Dir with Fuse but no Race"
+                sh 'go test -c -tags fuse'
+                sh './test.test -test.timeout 7m'
+            }
+        },
+    )}
 }
 
 // Need to separate this out because cause is not serializable and thus state
