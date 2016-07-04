@@ -34,13 +34,13 @@ func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSi
 
 func maybeSetBw(t testing.TB, config libkbfs.Config, bwKBps int) {
 	if bwKBps > 0 {
-		if _, ok := config.BlockServer().(*libkbfs.BlockServerMemory); ok {
-			config.SetBlockServer(libkbfs.NewBlockServerMemory(config, bwKBps))
+		if _, ok := config.BlockOps().(*libkbfs.BlockOpsStandard); ok {
+			config.SetBlockOps(libkbfs.NewBlockOpsStandard(config, bwKBps))
 			// Looks like we're testing big transfers, so let's do
 			// background flushes.
 			config.SetDoBackgroundFlushes(true)
 		} else {
-			t.Logf("Ignore bandwitdh setting of %d for a non-memory bserver",
+			t.Logf("Ignore bandwitdh setting of %d for a non-standard block ops",
 				bwKBps)
 		}
 	}

@@ -169,6 +169,6 @@ func BenchmarkWriteMediumFileLowBandwidth(b *testing.B) {
 }
 
 func BenchmarkWriteBigFileNormalBandwidth(b *testing.B) {
-	benchmarkWriteWithBandwith(b, 1<<30 /* 1 GB */, 1<<16,
+	benchmarkWriteWithBandwith(b, 100<<20 /* 100 MB */, 1<<16,
 		11*1024/8 /* 11 Mbps */)
 }
