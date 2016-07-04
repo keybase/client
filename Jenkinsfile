@@ -36,6 +36,7 @@ node("ec2-fleet") {
     ws("${env.GOPATH}/src/github.com/keybase/kbfs") {
         def kbwebImage = docker.image("keybaseprivate/kbweb")
         def clientImage = docker.image("keybaseprivate/kbclient")
+        def kbfsImage = null
 
 
         stage "Setup"
@@ -132,7 +133,7 @@ node("ec2-fleet") {
                     integrate: {
                         sh "go install github.com/keybase/kbfs/kbfsfuse"
                         sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
-                        def kbfsImage = docker.build("keybaseprivate/kbfsfuse", "kbfsfuse")
+                        kbfsImage = docker.build("keybaseprivate/kbfsfuse", "kbfsfuse")
                         sh "docker save -o kbfsfuse.tar keybaseprivate/kbfsfuse"
                         archive("kbfsfuse.tar")
                         // TODO Implement kbfs-server test
