@@ -7,7 +7,6 @@ package client
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	"github.com/keybase/cli"
@@ -24,8 +23,12 @@ func NewCmdCtlStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Usage: "Start the app and services",
 		Flags: []cli.Flag{
 			cli.StringFlag{
+				Name:  "include",
+				Usage: fmt.Sprintf("Stop only specified components, comma separated. Specify %v.", availableCtlComponents),
+			},
+			cli.StringFlag{
 				Name:  "exclude",
-				Usage: fmt.Sprintf("Start all except excluded components, comma separated. Specify %v.", availableCtlComponents),
+				Usage: fmt.Sprintf("Stop all except excluded components, comma separated. Specify %v.", availableCtlComponents),
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -45,15 +48,11 @@ type cmdCtlStart struct {
 func newCmdCtlStart(g *libkb.GlobalContext) *cmdCtlStart {
 	return &cmdCtlStart{
 		Contextified: libkb.NewContextified(g),
-		components:   defaultCtlComponents,
 	}
 }
 
 func (s *cmdCtlStart) ParseArgv(ctx *cli.Context) error {
-	excluded := strings.Split(ctx.String("exclude"), ",")
-	for _, exclude := range excluded {
-		s.components[exclude] = false
-	}
+	s.components = ctlParseArgv(ctx)
 	return nil
 }
 
@@ -65,6 +64,7 @@ func ctlStart(g *libkb.GlobalContext, components map[string]bool) error {
 	if libkb.IsBrewBuild {
 		return ctlBrewStart(g)
 	}
+	g.Log.Debug("Components: %v", components)
 	errs := []error{}
 	if ok := components[install.ComponentNameService.String()]; ok {
 		if err := StartLaunchdService(g, install.DefaultServiceLabel(), g.Env.GetServiceInfoPath(), true); err != nil {
