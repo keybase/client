@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"strings"
 	"sync"
-	"syscall"
 
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libfs"
@@ -385,11 +384,12 @@ func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir
 }
 
 func getEXCLFromOpenContext(oc *openContext) libkbfs.EXCL {
-	return libkbfs.EXCL(oc.CreateDisposition == syscall.CREATE_NEW)
+	return libkbfs.EXCL(oc.CreateDisposition == dokan.FileCreate)
 }
 
 func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan.File, isDir bool, err error) {
-	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", name)
+	d.folder.fs.log.CDebugf(ctx, "Dir Create %s with openContext: %#v, %#v",
+		name, oc, oc.CreateData)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err, nil) }()
 
 	isExec := false // Windows lacks executable modes.

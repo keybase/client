@@ -148,6 +148,18 @@ func (*fsEngine) CreateFile(u User, parentDir Node, name string) (file Node, err
 	return fsNode{path}, nil
 }
 
+// CreateFileEXCL is called by the test harness to exclusively create a file in
+// the given directory as the given user. The file is created with
+// O_RDWR|O_CREATE|O_EXCL.
+func (*fsEngine) CreateFileEXCL(u User, parentDir Node, name string) (err error) {
+	p := parentDir.(fsNode).path
+	f, err := os.OpenFile(filepath.Join(p, name), os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666)
+	if err != nil {
+		return err
+	}
+	return f.Close()
+}
+
 // WriteFile is called by the test harness to write to the given file as the given user.
 func (*fsEngine) WriteFile(u User, file Node, data []byte, off int64, sync bool) (err error) {
 	n := file.(fsNode)

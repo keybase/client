@@ -1865,6 +1865,8 @@ func (fbo *folderBranchOps) isRevisionConflict(err error) bool {
 
 func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState, excl EXCL) (err error) {
+	fbo.log.CDebugf(ctx, "finalizeMDWriteLocked: excl=%s", excl)
+	defer func() { fbo.deferLog.CDebugf(ctx, "Done: %v", err) }()
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// finally, write out the new metadata
@@ -2286,7 +2288,8 @@ func (fbo *folderBranchOps) CreateDir(
 func (fbo *folderBranchOps) CreateFile(
 	ctx context.Context, dir Node, path string, isExec bool, excl EXCL) (
 	n Node, ei EntryInfo, err error) {
-	fbo.log.CDebugf(ctx, "CreateFile %p %s", dir.GetID(), path)
+	fbo.log.CDebugf(ctx, "CreateFile %p %s isExec=%v EXCL=%s",
+		dir.GetID(), path, isExec, excl)
 	defer func() {
 		if err != nil {
 			fbo.deferLog.CDebugf(ctx, "Error: %v", err)

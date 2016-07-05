@@ -56,6 +56,8 @@ type Engine interface {
 	// CreateFile is called by the test harness to create a file in the given directory as
 	// the given user.
 	CreateFile(u User, parentDir Node, name string) (file Node, err error)
+	// CreateFileEXCL is called by the test harness to exclusively write to the given file as the given user.
+	CreateFileEXCL(u User, parentDir Node, file string) (err error)
 	// CreateLink is called by the test harness to create a symlink in the given directory as
 	// the given user.
 	CreateLink(u User, parentDir Node, fromName string, toPath string) (err error)

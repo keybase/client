@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"fmt"
 	"path"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -361,6 +362,19 @@ func notExists(filename string) fileOp {
 			return fmt.Errorf("File that should not exist exists: %q", filename)
 		}
 		return nil
+	}, Defaults}
+}
+
+func mkfileexcl(name string) fileOp {
+	return fileOp{func(c *ctx) error {
+		dir, file := filepath.Split(name)
+		d, _, err := c.getNode(dir, noCreate, resolveAllSyms)
+		if err != nil {
+			return err
+		}
+		err = c.engine.CreateFileEXCL(c.user, d, file)
+		c.t.Logf("mkfileexcl-CreateFileEXCL: %v", err)
+		return err
 	}, Defaults}
 }
 
