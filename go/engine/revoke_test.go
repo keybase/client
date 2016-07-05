@@ -247,3 +247,31 @@ func TestSignAfterRevoke(t *testing.T) {
 		t.Errorf("error type: %T, expected libkb.KeyRevokedError", err)
 	}
 }
+
+// Check that if not on a revoked device that LogoutIfRevoked doesn't do anything.
+func TestLogoutIfRevokedNoop(t *testing.T) {
+	tc := SetupEngineTest(t, "rev")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "rev")
+
+	AssertLoggedIn(tc)
+
+	if err := tc.G.LogoutIfRevoked(); err != nil {
+		t.Fatal(err)
+	}
+
+	AssertLoggedIn(tc)
+
+	msg := []byte("test message")
+	ret, err := SignED25519(tc.G, u.NewSecretUI(), keybase1.SignED25519Arg{
+		Msg: msg,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	publicKey := libkb.NaclSigningKeyPublic(ret.PublicKey)
+	if !publicKey.Verify(msg, (*libkb.NaclSignature)(&ret.Sig)) {
+		t.Error(libkb.VerificationError{})
+	}
+}
