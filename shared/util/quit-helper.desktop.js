@@ -8,7 +8,7 @@ const BrowserWindow = electron.BrowserWindow || electron.remote.BrowserWindow
 
 type WindowContext = {type: 'uiWindow'} | {type: 'menubar'} | {type: 'popup'} | {type: 'mainWindow'} | {type: 'mainThread'}
 
-export type Context = {type: 'mainThread'} | {type: 'quitButton'} | WindowContext
+export type Context = {type: 'mainThread'} | {type: 'quitButton'} | {type: 'unknown'} | WindowContext
 
 export type Action = {type: 'closePopups'} | {type: 'hideMainWindow'} | {type: 'quitApp'}
 
@@ -18,6 +18,7 @@ export function quitOnContext (context: Context): Array<Action> {
     case 'uiWindow':
     case 'popup':
     case 'mainWindow':
+    case 'unknown':
       return [{type: 'closePopups'}, {type: 'hideMainWindow'}]
     case 'mainThread':
     case 'quitButton':
@@ -27,7 +28,7 @@ export function quitOnContext (context: Context): Array<Action> {
   return []
 }
 
-export function getContextFromWindowId (windowId: number): Context {
+export function getContextFromWindowId (windowId: ?number): Context {
   // $FlowIssue
   if (process.type === 'browser') {
     return {type: 'mainThread'}
@@ -36,6 +37,10 @@ export function getContextFromWindowId (windowId: number): Context {
   const w = BrowserWindow.fromId(windowId)
   const url = w && w.getURL()
 
+  if (windowId == null || !url) {
+    return {type: 'unknown'}
+  }
+
   if (url && url.indexOf('renderer/index')) {
     return {type: 'mainWindow'}
   }
@@ -43,12 +48,11 @@ export function getContextFromWindowId (windowId: number): Context {
   return {type: 'popup'}
 }
 
-export function executeActions (actions: Array<Action>) {
-  if (getContextFromWindowId(-1).type !== 'mainThread') {
-    console.error('Tried to call executeActions from renderer thread')
-    return
-  }
+function isMainThread () {
+  return getContextFromWindowId(null).type === 'mainThread'
+}
 
+function _executeActions (actions: Array<Action>) {
   actions.forEach(a => {
     switch (a.type) {
       case 'hideMainWindow':
@@ -63,8 +67,16 @@ export function executeActions (actions: Array<Action>) {
 }
 
 // Takes an array of actions, but makes an ipc call to have the main thread execute the actions
-export function executeActionsFromRenderer (actions: Array<Action>) {
+function _executeActionsFromRenderer (actions: Array<Action>) {
   ipcRenderer.send('executeActions', actions)
+}
+
+export function executeActions (actions: Array<Action>) {
+  if (isMainThread()) {
+    _executeActions(actions)
+  } else {
+    _executeActionsFromRenderer(actions)
+  }
 }
 
 export function setupExecuteActionsListener () {
