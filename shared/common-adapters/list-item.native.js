@@ -31,7 +31,6 @@ export default class ListItem extends Component<void, Props, void> {
       <TouchableHighlight
         activeOpacity={0.8}
         underlayColor={globalColors.white}
-        action={<Box />}
         onPress={this.props.onClick || (() => {})}
         disabled={!(this.props.onClick)}>
         {listItem}
