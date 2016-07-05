@@ -27,6 +27,7 @@ export type RenderPropsUnshaped = {
   userInfo: ?UserInfo,
   username: string,
   waiting: boolean,
+  afterMount?: any,
 }
 
 export type RenderProps = $Exact<RenderPropsUnshaped>

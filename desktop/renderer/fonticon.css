@@ -1,9 +1,9 @@
 @font-face {
     font-family: 'kb';
     src:
-        url('fonts/kb.ttf?2gre94') format('truetype'),
-        url('fonts/kb.woff?2gre94') format('woff'),
-        url('fonts/kb.svg?2gre94#kb') format('svg');
+        url('fonts/kb.ttf?ir7oie') format('truetype'),
+        url('fonts/kb.woff?ir7oie') format('woff'),
+        url('fonts/kb.svg?ir7oie#kb') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -38,9 +38,6 @@
 .fa-kb-iconfont-coinbase:before {
     content: "\e905";
 }
-.fa-kb-iconfont-device:before {
-    content: "\e906";
-}
 .fa-kb-iconfont-folder-private:before {
     content: "\e908";
 }
@@ -55,6 +52,9 @@
 }
 .fa-kb-iconfont-identity-bitcoin:before {
     content: "\e90d";
+}
+.fa-kb-iconfont-identity-devices:before {
+    content: "\e90e";
 }
 .fa-kb-iconfont-identity-github:before {
     content: "\e90f";
@@ -92,20 +92,17 @@
 .fa-kb-iconfont-chat:before {
     content: "\e903";
 }
+.fa-kb-iconfont-device:before {
+    content: "\e906";
+}
 .fa-kb-iconfont-folder:before {
     content: "\e907";
 }
 .fa-kb-iconfont-hamburger:before {
     content: "\e90c";
 }
-.fa-kb-iconfont-identity-devices:before {
-    content: "\e90e";
-}
 .fa-kb-iconfont-people:before {
     content: "\e915";
-}
-.fa-kb-iconfont-proof-broken:before {
-    content: "\e916";
 }
 .fa-kb-iconfont-proof-good:before {
     content: "\e917";

@@ -378,7 +378,7 @@
 					],
 					"attrs": [],
 					"isMulticolor": false,
-					"grid": 16,
+					"grid": 24,
 					"tags": [
 						"kb-iconfont-device"
 					]
@@ -476,7 +476,7 @@
 					],
 					"attrs": [],
 					"isMulticolor": false,
-					"grid": 24,
+					"grid": 16,
 					"tags": [
 						"kb-iconfont-identity-devices"
 					]

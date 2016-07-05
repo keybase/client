@@ -6,7 +6,7 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './avatar'
 import * as shared from './avatar.shared'
 
-const noAvatar = resolveImageAsURL('icons', 'placeholder-avatar@2x.png')
+const noAvatar = resolveImageAsURL('icons', 'icon-placeholder-avatar-112-x-112@2x.png')
 
 export default class Avatar extends Component {
   props: Props;

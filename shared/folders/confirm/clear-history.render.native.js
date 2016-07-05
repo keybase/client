@@ -8,8 +8,7 @@ import {globalColors} from '../../styles/style-guide'
 
 const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
   const theme = isPrivate ? 'private' : 'public'
-
-  const header = <Icon type='history-clear-64' />
+  const header = <Icon type='icon-history-clear-64' />
 
   const body = (
     <Box>

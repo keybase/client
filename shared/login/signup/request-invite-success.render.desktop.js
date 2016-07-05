@@ -11,7 +11,7 @@ class Render extends Component<void, Props, void> {
   render () {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
-        <Icon style={stylesIcon} type='invite-code-m' />
+        <Icon style={stylesIcon} type='icon-invite-code-48' />
         <Text style={stylesHeader} type='Header'>Invite request sent</Text>
         <Text style={stylesBody} type='Body'>
           Thanks for requesting an invite to Keybase. When one becomes available,  we will send it to you via email.
@@ -26,10 +26,10 @@ const stylesContainer = {
   alignItems: 'center',
 }
 const stylesIcon = {
-  marginTop: 80,
+  marginTop: 80 - 11,
 }
 const stylesHeader = {
-  marginTop: 50,
+  marginTop: 50 - 11,
   marginBottom: 10,
 }
 const stylesBody = {

@@ -43,24 +43,29 @@ class Render extends Component<void, any, any> {
           />
         </Box>
         {Object.keys(dumbComponentMap).map(key => {
-          if (this.state.filter && key.toLowerCase().indexOf(this.state.filter) === -1) {
+          const map = dumbComponentMap[key]
+          const includeAllChildren = !this.state.filter || key.toLowerCase().indexOf(this.state.filter) !== -1
+          const items = Object.keys(map.mocks)
+            .filter(mockKey => !this.state.filter || includeAllChildren || mockKey.toLowerCase().indexOf(this.state.filter) !== -1)
+            .map((mockKey, idx) => {
+              return (
+                <DumbSheetItem
+                  key={mockKey}
+                  component={map.component}
+                  mockKey={mockKey}
+                  mock={map.mocks[mockKey]}
+                />
+              )
+            })
+
+          if (!items.length) {
             return null
           }
 
-          const map = dumbComponentMap[key]
           return (
             <Box key={key} style={styleBox}>
               <Text type='Header' style={{marginBottom: 5}}>{key}</Text>
-              {Object.keys(map.mocks).map((mockKey, idx) => {
-                return (
-                  <DumbSheetItem
-                    key={mockKey}
-                    component={map.component}
-                    mockKey={mockKey}
-                    mock={map.mocks[mockKey]}
-                  />
-                )
-              })}
+              {items}
             </Box>
           )
         })}

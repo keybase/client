@@ -30,12 +30,13 @@ export default class Icon extends Component {
 
     const ext = shared.typeExtension(iconType)
     const isFontIcon = iconType.startsWith('fa-')
+    const fontSizeHint = shared.fontSize(iconType)
 
     if (isFontIcon) {
       return <FontIcon
         title={this.props.hint}
-        style={{...globalStyles.noSelect, ...styles.icon, ...this.props.style}}
-        className={`fa ${iconType} ${this.props.className}`}
+        style={{...globalStyles.noSelect, ...styles.icon, ...fontSizeHint, ...this.props.style}}
+        className={`fa ${iconType} ${this.props.className || ''}`}
         color={color} // TODO (AW): this does nothing, color must be set in styles
         hoverColor={this.props.onClick ? hoverColor : null}
         onMouseEnter={this.props.onMouseEnter}
