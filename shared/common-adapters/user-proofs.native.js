@@ -1,12 +1,10 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {View, Text} from 'react-native'
-
 import openUrl from '../util/open-url'
 import * as shared from './user-proofs.shared'
 import {metaNone} from '../constants/tracker'
-import {Icon, Meta} from '../common-adapters/index'
+import {Box, Icon, Meta, Text} from '../common-adapters/index'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {checking as proofChecking} from '../constants/tracker'
 
@@ -42,27 +40,27 @@ export default class ProofsRender extends Component {
     const proofIcon = proofStatusIconType && <Icon type={proofStatusIconType} style={stylesStatusIcon} onClick={() => this._onClickProof(proof)} />
 
     return (
-      <View style={{...stylesRow, paddingTop: idx > 0 ? 8 : 0}} key={`${proof.id}${proof.type}`}>
+      <Box style={{...stylesRow, paddingTop: idx > 0 ? 8 : 0}} key={`${proof.id}${proof.type}`}>
         <Icon style={stylesService} type={shared.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
-        <View style={stylesProofNameSection}>
-          <View style={stylesProofNameLabelContainer}>
+        <Box style={stylesProofNameSection}>
+          <Box style={stylesProofNameLabelContainer}>
             <Text inline type='Body' onPress={onClickProfile} style={stylesProofName}>
               <Text inline type='Body' style={proofNameStyle}>{proof.name}</Text>
               <Text inline type='Body' style={stylesProofType}>@{proof.type}</Text>
             </Text>
             {meta}
-          </View>
-        </View>
+          </Box>
+        </Box>
         {proofIcon}
-      </View>
+      </Box>
     )
   }
 
   render () {
     return (
-      <View style={{...stylesContainer, ...this.props.style}}>
+      <Box style={{...stylesContainer, ...this.props.style}}>
         {this.props.proofs.map((p, idx) => this._renderProofRow(p, idx))}
-      </View>
+      </Box>
     )
   }
 }
