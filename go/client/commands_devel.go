@@ -15,6 +15,7 @@ import (
 
 func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
+		NewCmdAPICall(cl, g),
 		NewCmdCheckTracking(cl, g),
 		NewCmdFavorite(cl, g),
 		NewCmdFakeTrackingChanged(cl, g),
