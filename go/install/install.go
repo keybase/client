@@ -38,7 +38,7 @@ type Context interface {
 	GetRunMode() libkb.RunMode
 	GetServiceInfoPath() string
 	GetKBFSInfoPath() string
-	GetAppStartMode() libkb.AppStartMode
+	GetAppStartMode() (libkb.AppStartMode, error)
 }
 
 // ComponentName defines a component name

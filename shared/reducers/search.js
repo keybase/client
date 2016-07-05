@@ -2,7 +2,7 @@
 
 import * as Constants from '../constants/search'
 import * as CommonConstants from '../constants/common'
-import type {Props as IconProps} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters/icon'
 import {equalSearchResult} from '../constants/search'
 
 import type {SearchResult, SearchActions, SearchPlatforms} from '../constants/search'
@@ -10,7 +10,7 @@ import type {SearchResult, SearchActions, SearchPlatforms} from '../constants/se
 export type State = {
   searchHintText: string,
   searchText: ?string,
-  searchIcon: IconProps.type,
+  searchIcon: IconType,
   searchPlatform: ?SearchPlatforms,
   results: Array<SearchResult>,
   requestTimestamp: ?Date,
@@ -22,7 +22,7 @@ export type State = {
 const initialState: State = {
   searchHintText: 'Search for a user on Keybase',
   searchText: null,
-  searchIcon: 'logo-24',
+  searchIcon: 'icon-keybase-logo-24',
   searchPlatform: 'Keybase',
   selectedUsers: [],
   results: [],

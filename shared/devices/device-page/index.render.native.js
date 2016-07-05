@@ -4,7 +4,7 @@ import React from 'react'
 import type {Props, BannerItem} from './index.render'
 import {Box, Text, Icon, Button, BackButton} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
-import type {Props as IconProps} from '../../common-adapters/icon'
+import type {IconType} from '../../common-adapters/icon'
 
 const Banner = ({type, desc}: BannerItem) => { // eslint-disabled-line arrow-parens
   const backgroundColor = {
@@ -62,10 +62,10 @@ const Timeline = ({timeline}) => (
 
 const Render = ({banner, name, type, deviceID, currentDevice, timeline,
   revokedAt, showRemoveDevicePage, device, onBack}: Props) => {
-  const icon: IconProps.type = {
-    'mobile': 'phone-big',
-    'desktop': 'computer-big',
-    'backup': 'paper-key-l',
+  const icon: IconType = {
+    'mobile': 'icon-phone-bw-64',
+    'desktop': 'icon-computer-bw-64',
+    'backup': 'icon-paper-key-64',
   }[type]
 
   const revokeName = {

@@ -221,7 +221,7 @@ const commonFile = {
   lastModifiedMeta: '2 hours ago',
   lastModifiedBy: 'jenbee',
   modifiedMarker: true,
-  fileIcon: 'logo-128',
+  fileIcon: 'icon-keybase-logo-128',
   onClick: () => console.log('onClick:file'),
 }
 
@@ -274,7 +274,7 @@ function genFiles (offsetNumber: number, fileCount: number, isPrivate: boolean):
       name: wordGen(i),
       path: 'pics/',
       modifiedMarker: false,
-      fileIcon: 'logo-128',
+      fileIcon: 'icon-keybase-logo-128',
       onClick: () => console.log('onClick:file', wordGen(i)),
     })
   }

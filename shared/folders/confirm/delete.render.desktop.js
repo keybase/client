@@ -2,13 +2,14 @@
 
 import React from 'react'
 import type {Props} from './delete.render'
+import type {IconType} from '../../common-adapters/icon'
 import {Confirm, Box, Text, Icon, Usernames} from '../../common-adapters'
 import {globalColors} from '../../styles/style-guide'
 
 const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
   const theme = isPrivate ? 'private' : 'public'
-
-  const header = <Icon type={iconThemed[theme]} />
+  const icon: IconType = isPrivate ? 'icon-files-private-delete-48' : 'icon-files-public-delete-48'
+  const header = <Icon type={icon} />
 
   const body = (
     <Box style={{textAlign: 'center'}}>
@@ -34,11 +35,6 @@ const textColorThemed = {
   'private': {
     color: globalColors.white,
   },
-}
-
-const iconThemed = {
-  'public': 'files-public-delete-48',
-  'private': 'files-private-delete-48',
 }
 
 export default Render

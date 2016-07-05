@@ -104,24 +104,8 @@ func (s *LKSec) Load(lctx LoginContext) (err error) {
 		return err
 	}
 
-	if len(s.serverHalf) == 0 {
-		s.G().Log.Debug("| Fetching secret key")
-		devid := s.G().Env.GetDeviceID()
-		if devid.IsNil() {
-			err = fmt.Errorf("lksec load: no device id set, thus can't fetch secret key")
-			return err
-		}
-
-		if err = s.apiServerHalf(lctx, devid); err != nil {
-			s.G().Log.Debug("apiServerHalf(%s) error: %s", devid, err)
-			return err
-		}
-		if len(s.serverHalf) == 0 {
-			err = fmt.Errorf("after apiServerHalf(%s), serverHalf still empty", devid)
-			return err
-		}
-	} else {
-		s.G().Log.Debug("| ServerHalf already loaded")
+	if err = s.LoadServerHalf(lctx); err != nil {
+		return err
 	}
 
 	if len(s.clientHalf) != len(s.serverHalf) {
@@ -132,6 +116,33 @@ func (s *LKSec) Load(lctx LoginContext) (err error) {
 	s.secret = make([]byte, len(s.serverHalf))
 	XORBytes(s.secret, s.serverHalf, s.clientHalf)
 	s.G().Log.Debug("| Making XOR'ed secret key for Local Key Security (LKS)")
+
+	return nil
+}
+
+func (s *LKSec) LoadServerHalf(lctx LoginContext) (err error) {
+	s.G().Log.Debug("+ LKSec::LoadServerHalf()")
+	defer func() {
+		s.G().Log.Debug("- LKSec::LoadServerHalf() -> %s", ErrToOk(err))
+	}()
+
+	if len(s.serverHalf) != 0 {
+		s.G().Log.Debug("| short-circuit: already have serverHalf")
+		return nil
+	}
+	s.G().Log.Debug("| Fetching server half")
+	devid := s.G().Env.GetDeviceID()
+	if devid.IsNil() {
+		return fmt.Errorf("lksec load: no device id set, thus can't fetch server half")
+	}
+
+	if err = s.apiServerHalf(lctx, devid); err != nil {
+		s.G().Log.Debug("apiServerHalf(%s) error: %s", devid, err)
+		return err
+	}
+	if len(s.serverHalf) == 0 {
+		return fmt.Errorf("after apiServerHalf(%s), serverHalf still empty", devid)
+	}
 
 	return nil
 }

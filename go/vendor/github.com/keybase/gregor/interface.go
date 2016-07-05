@@ -80,6 +80,7 @@ type OutOfBandMessage interface {
 type TimeOrOffset interface {
 	Time() *time.Time
 	Offset() *time.Duration
+	Before(t time.Time) bool
 }
 
 type Item interface {

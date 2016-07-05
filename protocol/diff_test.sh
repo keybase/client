@@ -6,8 +6,6 @@ here="$(dirname "$BASH_SOURCE")"
 cd "$here"
 
 npm i
-gem install activesupport
-
 make clean
 make
 

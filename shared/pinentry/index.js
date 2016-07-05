@@ -1,3 +1,4 @@
+// @flow
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import PinentryRender from './index.render'
@@ -12,11 +13,6 @@ class Pinentry extends Component {
   }
 }
 
-Pinentry.propTypes = PinentryRender.propTypes
-
 export default connect(
-  (state, ownProps) => {
-    const sessionID = ownProps.sessionID
-    return state.pinentry.pinentryStates[sessionID]
-  }
+  (state, ownProps) => state.pinentry.pinentryStates[ownProps.sessionID]
 )(Pinentry)

@@ -1,9 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import _ from 'lodash'
-import {Text} from '../../common-adapters'
 
-import {Avatar, Box, Icon, Input} from '../../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, Input, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
 import {IconButton} from 'material-ui'
@@ -112,13 +111,13 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   }
 
   return (
-    <Box onClick={() => onClickResult(result)} style={rowStyle} className={'highlight-row'}>
+    <ClickableBox onClick={() => onClickResult(result)} hoverColor={globalColors.blue4} backgroundColor={globalColors.white} style={rowStyle}>
       <Box style={{...globalStyles.flexBoxRow}}>
         {icon}
         {alignedBody}
         {extraInfo}
       </Box>
-    </Box>
+    </ClickableBox>
   )
 }
 
@@ -180,7 +179,7 @@ export class SearchBar extends Component<void, SearchBarProps, void> {
           <ServiceIcon
             serviceName='Keybase'
             tooltip='Keybase'
-            iconType='keybase-logo-mascot-only-dz-2-24'
+            iconType='icon-keybase-logo-24'
             selected={this.props.selectedService === 'Keybase'}
             onClickService={p => this._onClickService(p)}
             />
@@ -236,14 +235,8 @@ export function searchResultsList ({results, searchText, onClickResult}: {result
 
 export class SearchContainer extends Component {
   render () {
-    const realCSS = `
-      .highlight-row { background-color: ${globalColors.white}; }
-      .highlight-row:hover { background-color: ${globalColors.blue4}; }
-    `
-
     return (
       <Box style={styles.container}>
-        <style>{realCSS}</style>
         {this.props.children}
       </Box>
     )

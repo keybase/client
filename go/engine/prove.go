@@ -173,18 +173,16 @@ func (p *Prove) generateProof(ctx *Context) (err error) {
 		Me:      p.me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	seckey, locked, err := p.G().Keyrings.GetSecretKeyAndSKBWithPrompt(ctx.SecretKeyPromptArg(ska, "proof signature"))
+
+	p.signingKey, err = p.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "tracking signature"))
 	if err != nil {
-		return
+		return err
 	}
 
-	if p.signingKey, err = locked.GetPubKey(); err != nil {
-		return
-	}
 	if p.proof, err = p.me.ServiceProof(p.signingKey, p.st, p.remoteNameNormalized); err != nil {
 		return
 	}
-	if p.sig, p.sigID, _, err = libkb.SignJSON(p.proof, seckey); err != nil {
+	if p.sig, p.sigID, _, err = libkb.SignJSON(p.proof, p.signingKey); err != nil {
 		return
 	}
 	return

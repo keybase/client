@@ -207,6 +207,8 @@ func (m mockGregord) Sync(_ context.Context, arg gregor1.SyncArg) (gregor1.SyncR
 	return grpc.Sync(m.sm, rpc.SimpleLogOutput{}, arg)
 }
 func (m mockGregord) ConsumeMessage(_ context.Context, msg gregor1.Message) error {
+	m.log.Debug("mockGregord: ConsumeMessage: msgID: %s Ctime: %s", msg.ToInBandMessage().Metadata().MsgID(),
+		msg.ToInBandMessage().Metadata().CTime())
 	_, err := m.sm.ConsumeMessage(msg)
 	return err
 }
@@ -216,23 +218,49 @@ func (m mockGregord) ConsumePublishMessage(_ context.Context, _ gregor1.Message)
 func (m mockGregord) Ping(_ context.Context) (string, error) {
 	return "pong", nil
 }
+func (m mockGregord) State(_ context.Context, arg gregor1.StateArg) (gregor1.State, error) {
+	state, err := m.sm.State(arg.Uid, arg.Deviceid, arg.TimeOrOffset)
+	if err != nil {
+		return gregor1.State{}, err
+	}
+	return state.(gregor1.State), nil
+}
 func (m mockGregord) StateByCategoryPrefix(_ context.Context, _ gregor1.StateByCategoryPrefixArg) (gregor1.State, error) {
 	return gregor1.State{}, errors.New("unimplemented")
 }
 
-func (m mockGregord) newIbm(uid gregor1.UID, msgid gregor1.MsgID) gregor1.Message {
+func (m mockGregord) newIbm(uid gregor1.UID) gregor1.Message {
 	m.fc.Advance(time.Minute)
 	return gregor1.Message{
 		Ibm_: &gregor1.InBandMessage{
 			StateUpdate_: &gregor1.StateUpdateMessage{
 				Md_: gregor1.Metadata{
 					Uid_:   uid,
-					MsgID_: msgid,
+					MsgID_: newMsgID(),
 					Ctime_: gregor1.ToTime(m.fc.Now()),
 				},
 				Creation_: &gregor1.Item{
 					Category_: "unknown!",
 					Body_:     gregor1.Body([]byte("HIHIHI")),
+				},
+			},
+		},
+	}
+}
+
+func (m mockGregord) newDismissal(uid gregor1.UID, msg gregor1.Message) gregor1.Message {
+	m.fc.Advance(time.Minute)
+	dismissalID := msg.ToInBandMessage().Metadata().MsgID().(gregor1.MsgID)
+	return gregor1.Message{
+		Ibm_: &gregor1.InBandMessage{
+			StateUpdate_: &gregor1.StateUpdateMessage{
+				Md_: gregor1.Metadata{
+					Uid_:   uid,
+					MsgID_: newMsgID(),
+					Ctime_: gregor1.ToTime(m.fc.Now()),
+				},
+				Dismissal_: &gregor1.Dismissal{
+					MsgIDs_: []gregor1.MsgID{dismissalID},
 				},
 			},
 		},
@@ -270,6 +298,9 @@ func checkMessages(t *testing.T, source string, msgs []gregor.InBandMessage,
 	refMsgs []gregor.InBandMessage) {
 
 	if len(msgs) != len(refMsgs) {
+		for _, m := range msgs {
+			t.Logf("msgID: %s", m.Metadata().MsgID().String())
+		}
 		t.Fatalf("messages lists unequal size, %d != %d, source: %s", len(msgs), len(refMsgs), source)
 	}
 
@@ -296,8 +327,7 @@ func TestSyncFresh(t *testing.T) {
 	const numMsgs = 20
 	var refMsgs []gregor.InBandMessage
 	for i := 0; i < numMsgs; i++ {
-		msgid := newMsgID()
-		msg := server.newIbm(uid, msgid)
+		msg := server.newIbm(uid)
 		refMsgs = append(refMsgs, msg.ToInBandMessage())
 		server.ConsumeMessage(context.TODO(), msg)
 	}
@@ -325,8 +355,7 @@ func TestSyncNonFresh(t *testing.T) {
 	const msgLimit = numMsgs / 2
 	var refMsgs []gregor.InBandMessage
 	for i := 0; i < numMsgs; i++ {
-		msgid := newMsgID()
-		msg := server.newIbm(uid, msgid)
+		msg := server.newIbm(uid)
 		server.ConsumeMessage(context.TODO(), msg)
 		if i < msgLimit {
 			h.BroadcastMessage(context.TODO(), msg)
@@ -340,8 +369,8 @@ func TestSyncNonFresh(t *testing.T) {
 		}
 	}
 
-	// Turn off fresh sync
-	h.freshSync = false
+	// Turn off fresh replay
+	h.freshReplay = false
 
 	// We should only get half of the messages on a non-fresh sync
 	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
@@ -366,8 +395,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 	const msgLimit = numMsgs / 2
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 	for i := 0; i < numMsgs; i++ {
-		msgid := newMsgID()
-		msg := server.newIbm(uid, msgid)
+		msg := server.newIbm(uid)
 		server.ConsumeMessage(context.TODO(), msg)
 		if i < msgLimit {
 			h.BroadcastMessage(context.TODO(), msg)
@@ -416,8 +444,7 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 	const msgLimit = numMsgs / 2
 	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 	for i := 0; i < numMsgs; i++ {
-		msgid := newMsgID()
-		msg := server.newIbm(uid, msgid)
+		msg := server.newIbm(uid)
 		server.ConsumeMessage(context.TODO(), msg)
 		if i < msgLimit {
 			h.BroadcastMessage(context.TODO(), msg)
@@ -444,10 +471,116 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Turn off fresh sync
-	h.freshSync = false
+	// Turn off fresh replay
+	h.freshReplay = false
 
 	// Sync from the server
+	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
+	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
+}
+
+func TestSyncDismissal(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor", 2)
+	defer tc.Cleanup()
+	tc.G.SetService()
+
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, tc)
+
+	// Consume msg
+	msg := server.newIbm(uid)
+	server.ConsumeMessage(context.TODO(), msg)
+
+	// Dismiss message
+	dismissal := server.newDismissal(uid, msg)
+	server.ConsumeMessage(context.TODO(), dismissal)
+
+	// Sync from the server
+	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
+	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
+	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
+}
+
+func TestSyncDismissalExistingState(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor", 2)
+	defer tc.Cleanup()
+	tc.G.SetService()
+
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, tc)
+
+	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
+
+	// Consume msg
+	msg := server.newIbm(uid)
+	server.ConsumeMessage(context.TODO(), msg)
+
+	// Broadcast msg
+	h.BroadcastMessage(context.TODO(), msg)
+
+	// Consume another message but don't broadcast
+	msg2 := server.newIbm(uid)
+	server.ConsumeMessage(context.TODO(), msg2)
+	refConsumeMsgs = append(refConsumeMsgs, msg2.ToInBandMessage())
+	refReplayMsgs = append(refReplayMsgs, msg2.ToInBandMessage())
+
+	// Dismiss message
+	dismissal := server.newDismissal(uid, msg)
+	server.ConsumeMessage(context.TODO(), dismissal)
+	refReplayMsgs = append(refReplayMsgs, dismissal.ToInBandMessage())
+	refConsumeMsgs = append(refConsumeMsgs, dismissal.ToInBandMessage())
+
+	// Sync from the server
+	h.freshReplay = false
+	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
+	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
+}
+
+func TestSyncFutureDismissals(t *testing.T) {
+
+	tc := libkb.SetupTest(t, "gregor", 2)
+	defer tc.Cleanup()
+	tc.G.SetService()
+
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, tc)
+
+	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
+
+	// Consume msg
+	msg := server.newIbm(uid)
+	server.ConsumeMessage(context.TODO(), msg)
+	refConsumeMsgs = append(refConsumeMsgs, msg.ToInBandMessage())
+	refReplayMsgs = append(refReplayMsgs, msg.ToInBandMessage())
+
+	// Broadcast msg
+	h.BroadcastMessage(context.TODO(), msg)
+
+	// Consume another message but don't broadcast
+	msg2 := server.newIbm(uid)
+	server.ConsumeMessage(context.TODO(), msg2)
+
+	// Dismiss message
+	dismissal := server.newDismissal(uid, msg2)
+	server.ConsumeMessage(context.TODO(), dismissal)
+
+	// Sync from the server
+	h.freshReplay = false
 	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
 	if err != nil {
 		t.Fatal(err)

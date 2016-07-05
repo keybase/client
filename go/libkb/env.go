@@ -69,7 +69,7 @@ func (n NullConfiguration) GetUpdateURL() string                          { retu
 func (n NullConfiguration) GetUpdateDisabled() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
 func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
-func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
+func (n NullConfiguration) GetAppStartMode() string                       { return "" }
 func (n NullConfiguration) GetGregorURI() string                          { return "" }
 func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)  { return 0, false }
 func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)  { return 0, false }
@@ -1040,8 +1040,38 @@ func (e *Env) GetMountDir() (string, error) {
 	}
 }
 
-func (e *Env) GetAppStartMode() AppStartMode {
-	return e.config.GetAppStartMode()
+func ParseAppStartMode(s string) (AppStartMode, error) {
+	switch s {
+	case "":
+		return AppStartModeDefault, nil
+	case "service":
+		return AppStartModeService, nil
+	case "disabled":
+		return AppStartModeDisabled, nil
+	default:
+		return AppStartModeError, fmt.Errorf("Bad app start mode: '%s'", s)
+	}
+}
+
+func (e *Env) GetAppStartMode() (AppStartMode, error) {
+
+	sources := []string{
+		e.cmd.GetAppStartMode(),
+		os.Getenv("KEYBASE_APP_START_MODE"),
+		e.config.GetAppStartMode(),
+	}
+
+	for _, source := range sources {
+		// If there was an error, or a non-default selection, then
+		// return out of here.
+		if mode, err := ParseAppStartMode(source); err != nil || mode != AppStartModeDefault {
+			return mode, err
+		}
+	}
+
+	// The default mode is Service, meaning the service should be
+	// starting the app.
+	return AppStartModeService, nil
 }
 
 // GetServiceInfoPath returns path to info file written by the Keybase service after startup

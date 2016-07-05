@@ -80,12 +80,13 @@ function pinentryListenersCreator (dispatch: Dispatch): incomingCallMapType {
     'keybase.1.secretUi.getPassphrase': (payload, response) => {
       console.log('Asked for passphrase')
 
-      const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features} = payload.pinentry
+      const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = payload.pinentry
       const sessionID = payload.sessionID
 
       dispatch(({
         type: Constants.newPinentry,
         payload: {
+          type,
           sessionID,
           features,
           prompt,

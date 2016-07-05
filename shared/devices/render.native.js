@@ -5,7 +5,7 @@ import {TouchableHighlight} from 'react-native'
 
 import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import type {Props as IconProps} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters/icon'
 
 import type {Props} from './render'
 
@@ -42,7 +42,7 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
 }
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
-  const icon: IconProps.type = {
+  const icon: IconType = {
     'mobile': 'phone-bw-m',
     'desktop': 'computer-bw-s-2',
     'backup': 'paper-key-m',
@@ -98,7 +98,7 @@ const RevokedDevices = ({revokedDevices}) => (
 const DeviceHeader = ({addNewDevice}) => (
   <Box style={stylesCommonRow}>
     <Box style={stylesCommonColumn}>
-      <Icon type='devices-add-s' />
+      <Icon type='icon-devices-add-64-x-48' />
     </Box>
     <Box style={stylesCommonColumn}>
       <Text type='BodyPrimaryLink' onPress={addNewDevice}>Add new...</Text>

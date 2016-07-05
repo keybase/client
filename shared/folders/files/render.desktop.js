@@ -11,7 +11,7 @@ const Section = ({section, theme}) => (
   <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}>
       <Box key={section.name} style={{display: 'inline', marginLeft: 8}}>
-        {section.modifiedMarker && <Icon type='fa-kb-iconfont-thunderbolt' style={{fontSize: 12, marginRight: 6, ...styleSectionTextThemed[theme]}} />}
+        {section.modifiedMarker && <Icon type='fa-kb-iconfont-thunderbolt' style={{fontSize: 14, marginTop: 2, marginRight: 6, ...styleSectionTextThemed[theme]}} />}
         <Text type='BodySmallSemibold' style={{...styleSectionTextThemed[theme]}}>{section.name}</Text>
       </Box>
     </Box>
@@ -25,7 +25,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
     <Box style={{...globalStyles.flexBoxColumn}}>
       <Text type='BodySmallSemibold' style={styleWarningBanner}>This folder is waiting for either participant to turn on a device.</Text>
       <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
-        {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
+        {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: globalColors.black_10}} />,
         waitingForParticipantUnlock.map(p => (
           <ListItem
             key={p.name}
@@ -140,7 +140,7 @@ export default class Render extends Component<void, Props, void> {
 const styleHeaderThemed = {
   'private': {
     backgroundColor: globalColors.darkBlue3,
-    backgroundImage: `url(${resolveImageAsURL('icons', 'damier-pattern-good-open.png')})`,
+    backgroundImage: `url(${resolveImageAsURL('icons', 'icon-damier-pattern-good-open.png')})`,
     backgroundRepeat: 'repeat',
   },
 

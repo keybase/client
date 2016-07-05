@@ -19,4 +19,3 @@ Install a recent version of build of nodejs:
 
     curl -sL https://deb.nodesource.com/setup_4.x | sudo -E bash -
     sudo apt-get install -y nodejs npm
-    gem install activesupport

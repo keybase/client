@@ -64,21 +64,34 @@ func (r *RekeyUIHandler) Name() string {
 	return rekeyHandlerName
 }
 
-func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) error {
-	if item.Body() == nil {
-		return errors.New("gregor handler for kbfs_tlf_rekey_needed: nil message body")
+func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) (err error) {
+
+	var msgID string
+	if item.Metadata() != nil && item.Metadata().MsgID() != nil {
+		msgID = item.Metadata().MsgID().String()
+	} else {
+		msgID = "-"
 	}
 
-	var problemSet keybase1.ProblemSet
-	if err := json.Unmarshal(item.Body().Bytes(), &problemSet); err != nil {
-		r.G().Log.Debug("error: %s", err)
+	defer r.G().Trace(fmt.Sprintf("rekeyNeeded(%s)", msgID), func() error { return err })()
+
+	if item.Body() == nil {
+		err = errors.New("gregor handler for kbfs_tlf_rekey_needed: nil message body")
 		return err
 	}
 
+	var problemSet keybase1.ProblemSet
+	if err = json.Unmarshal(item.Body().Bytes(), &problemSet); err != nil {
+		r.G().Log.Debug("recoverable problem unmarshaling gregor body: %s", err)
+		err = nil
+	}
+
 	if r.G().Clock().Now().Sub(item.Metadata().CTime()) > 10*time.Second {
+		r.G().Log.Debug("msg %s isn't fresh (born on %s)", msgID, item.Metadata().CTime())
 		// if the message isn't fresh, get:
 		var err error
 		problemSet, err = r.scorer(r.G(), problemSet)
+		r.G().Log.Debug("updated score for %s", msgID)
 		if err != nil {
 			return err
 		}
@@ -99,14 +112,16 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 	if rekeyUI == nil {
 		r.G().Log.Error("There was no RekeyUI registered, but a rekey is necessary. Here is the ProblemSet:")
 		r.G().Log.Errorf("Rekey ProblemSet: %+v", problemSet)
-		return errors.New("got nil RekeyUI")
+		err = errors.New("got nil RekeyUI")
+		return err
 	}
 
 	// make a map of sessionID -> loops
 	r.updatersMu.RLock()
 	if _, ok := r.updaters[sessionID]; ok {
 		r.updatersMu.RUnlock()
-		return fmt.Errorf("rekey status updater already exists for session id %d", sessionID)
+		err = fmt.Errorf("rekey status updater already exists for session id %d", sessionID)
+		return err
 	}
 	r.updatersMu.RUnlock()
 	args := rekeyStatusUpdaterArgs{
@@ -151,7 +166,7 @@ func (s *scoreResult) GetAppStatus() *libkb.AppStatus {
 func scoreProblemFolders(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error) {
 	tlfIDs := make([]string, len(existing.Tlfs))
 	for i, v := range existing.Tlfs {
-		tlfIDs[i] = v.Tlf.Tlfid.String()
+		tlfIDs[i] = v.Tlf.Id.String()
 	}
 	args := libkb.HTTPArgs{
 		"tlfs": libkb.S{Val: strings.Join(tlfIDs, ",")},
@@ -223,9 +238,20 @@ func (u *rekeyStatusUpdater) Start() {
 	u.update()
 }
 
+func containsCurrentDevice(g *libkb.GlobalContext, devices []keybase1.Device) bool {
+	for _, dev := range devices {
+		if dev.DeviceID == g.Env.GetDeviceID() {
+			return true
+		}
+	}
+	return false
+}
+
 func (u *rekeyStatusUpdater) update() {
 	var err error
-	for {
+	defer u.G().Trace("rekeyStatusUpdater#update", func() error { return err })()
+	for i := 0; ; i++ {
+		u.G().Log.Debug("update loop iteration %d", i)
 		// make sure not done before calling refresh:
 		select {
 		case <-u.done:
@@ -237,6 +263,12 @@ func (u *rekeyStatusUpdater) update() {
 				u.G().Log.Errorf("rekey ui lookup devices error: %s", err)
 				return
 			}
+
+			if containsCurrentDevice(u.G(), set.Devices) {
+				u.G().Log.Info("Short-circuiting update; our device is on the list")
+				return
+			}
+
 			arg := keybase1.RefreshArg{
 				SessionID:         u.sessionID,
 				ProblemSetDevices: set,

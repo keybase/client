@@ -1,6 +1,6 @@
 // @flow
 
-import type {Props as IconProps} from '../../../common-adapters/icon'
+import type {IconType} from '../../../common-adapters/icon'
 
 export type Props = {
   theme: 'public' | 'private',
@@ -11,7 +11,7 @@ export type Props = {
   lastModifiedBySelf?: ?boolean,
   lastModifiedBy?: ?string,
   modifiedMarker: boolean,
-  fileIcon: IconProps.type,
+  fileIcon: IconType,
   onClick: () => void
 }
 

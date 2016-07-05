@@ -93,9 +93,16 @@ export default function (state: State = initialState, action: UnlockFolderAction
           type: toDeviceType(type),
           name, deviceID,
         }))
-        return {
-          ...state, devices, closed: false,
-          sessionID: action.payload.sessionID,
+
+        if (devices.length) {
+          return {
+            ...state, devices, closed: false,
+            sessionID: action.payload.sessionID,
+          }
+        } else { // close as its all fixed
+          return {...state, devices, closed: true,
+            sessionID: action.payload.sessionID,
+          }
         }
       }
       return state

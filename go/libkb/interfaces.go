@@ -63,6 +63,7 @@ type CommandLine interface {
 	GetLocalRPCDebug() string
 	GetTimers() string
 	GetRunMode() (RunMode, error)
+	GetAppStartMode() string
 
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)
@@ -165,7 +166,7 @@ type ConfigReader interface {
 	GetUpdateURL() string
 	GetUpdateDisabled() (bool, bool)
 	GetLocalTrackMaxAge() (time.Duration, bool)
-	GetAppStartMode() AppStartMode
+	GetAppStartMode() string
 	IsAdmin() (bool, bool)
 
 	GetTorMode() (TorMode, error)

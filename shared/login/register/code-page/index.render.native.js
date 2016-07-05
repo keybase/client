@@ -18,7 +18,7 @@ import Platform, {OS} from '../../../constants/platform'
 
 import type {Props} from './index.render'
 import type {Mode, DeviceRole} from '../../../constants/login'
-import type {Props as IconProps} from '../../../common-adapters/icon'
+import type {IconType} from '../../../common-adapters/icon'
 
 const isIOS = Platform.OS_IOS === OS
 
@@ -72,10 +72,10 @@ export default class CodePageRender extends Component<void, Props, void> {
       codePageModeShowText: 'Type text code instead',
     }
 
-    const iconTypeMap: {[key: Mode]: IconProps.type} = {
-      codePageModeScanCode: 'phone-q-r-code',
-      codePageModeShowCode: 'phone-q-r-code',
-      codePageModeShowText: 'phone-text-code',
+    const iconTypeMap: {[key: Mode]: IconType} = {
+      codePageModeScanCode: 'icon-phone-qr-code-48',
+      codePageModeShowCode: 'icon-phone-qr-code-48',
+      codePageModeShowText: 'icon-phone-text-code-32',
     }
 
     const iconTypeFn = (m: Mode) => iconTypeMap[m] || 'phone-text-code' // eslint-disable-line

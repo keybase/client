@@ -3,13 +3,13 @@ import React from 'react'
 import type {Props} from './index.render'
 import {Confirm, Box, Text, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
-import type {Props as IconProps} from '../../common-adapters/icon'
+import type {IconType} from '../../common-adapters/icon'
 
 const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props) => {
-  const icon: IconProps.type = {
-    'mobile': 'phone-color-revoke-m',
-    'desktop': 'computer-bw-revoke-m',
-    'backup': 'paper-key-remove-m',
+  const icon: IconType = {
+    'mobile': 'icon-phone-bw-revoke-48',
+    'desktop': 'icon-computer-bw-revoke-48',
+    'backup': 'icon-paper-key-revoke-48',
   }[type]
 
   const header = (

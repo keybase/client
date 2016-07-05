@@ -44,3 +44,19 @@ func TestProveRooterWithSecretStore(t *testing.T) {
 		}
 	})
 }
+
+// When device keys are cached, proofs shouldn't require passphrase prompt.
+func TestProveRooterCachedKeys(t *testing.T) {
+	tc := SetupEngineTest(t, "prove")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "prove")
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
+	_, _, err := proveRooterWithSecretUI(tc.G, fu, &libkb.TestSecretUI{})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
