@@ -21,7 +21,7 @@ type Kex2Provisioner struct {
 	secretCh              chan kex2.Secret
 	me                    *libkb.User
 	signingKey            libkb.GenericKey
-	pps                   *libkb.PassphraseStream
+	pps                   keybase1.PassphraseStream
 	provisioneeDeviceName string
 	provisioneeDeviceType string
 	ctx                   *Context
@@ -32,12 +32,16 @@ var _ kex2.Provisioner = (*Kex2Provisioner)(nil)
 
 // NewKex2Provisioner creates a Kex2Provisioner engine.
 func NewKex2Provisioner(g *libkb.GlobalContext, secret kex2.Secret, pps *libkb.PassphraseStream) *Kex2Provisioner {
-	return &Kex2Provisioner{
+	e := &Kex2Provisioner{
 		Contextified: libkb.NewContextified(g),
 		secret:       secret,
 		secretCh:     make(chan kex2.Secret),
-		pps:          pps,
 	}
+	if pps != nil {
+		e.pps = pps.Export()
+	}
+
+	return e
 }
 
 // Name is the unique engine name.
@@ -85,8 +89,9 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 	}
 
 	// get current passphrase stream if necessary:
-	if e.pps == nil {
-		e.pps, err = e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+	if e.pps.PassphraseStream == nil {
+		e.G().Log.Debug("kex2 provisioner needs passphrase stream, getting it from LoginState")
+		e.pps, err = e.G().LoginState().GetPassphraseStreamExport(ctx.SecretUI)
 		if err != nil {
 			return err
 		}
@@ -160,7 +165,7 @@ func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
 	// return the HelloArg
 	arg = keybase1.HelloArg{
 		Uid:     e.me.GetUID(),
-		Pps:     e.pps.Export(),
+		Pps:     e.pps,
 		Token:   keybase1.SessionToken(token),
 		Csrf:    keybase1.CsrfToken(csrf),
 		SigBody: sigBody,

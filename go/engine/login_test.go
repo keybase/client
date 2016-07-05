@@ -2135,6 +2135,84 @@ func TestProvisionWithBadConfig(t *testing.T) {
 	}
 }
 
+// If the provisioner has their secret stored, they should not be
+// prompted to enter a passphrase when they provision a device.
+func TestProvisionerSecretStore(t *testing.T) {
+	// device X (provisioner) context:
+	tcX := SetupEngineTest(t, "kex2provision")
+	defer tcX.Cleanup()
+
+	// device Y (provisionee) context:
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	// create provisioner w/ stored secret
+	userX := SignupFakeUserStoreSecret(tcX, "login")
+	// userX := CreateAndSignupFakeUser(tcX, "login")
+	var secretX kex2.Secret
+	if _, err := rand.Read(secretX[:]); err != nil {
+		t.Fatal(err)
+	}
+	tcX.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+		a.ClearCachedSecretKeys()
+	}, "clear stream cache")
+
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee calls login:
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+
+	// start provisionee
+	errY := make(chan error, 1)
+	go func() {
+		errY <- RunEngine(eng, ctx)
+	}()
+
+	// start provisioner
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+	errX := make(chan error, 1)
+	go func() {
+		ctx := &Context{
+			SecretUI:    &testNoPromptSecretUI{},
+			ProvisionUI: newTestProvisionUI(),
+		}
+		errX <- RunEngine(provisioner, ctx)
+	}()
+	secretFromY := <-secretCh
+	go provisioner.AddSecret(secretFromY)
+
+	var xDone, yDone bool
+	for {
+		select {
+		case e := <-errY:
+			if e != nil {
+				t.Fatalf("provisionee error: %s", e)
+			}
+			yDone = true
+		case e := <-errX:
+			if e != nil {
+				t.Fatalf("provisioner error: %s", e)
+			}
+			xDone = true
+		}
+		if xDone && yDone {
+			break
+		}
+	}
+
+	if err := AssertProvisioned(tcY); err != nil {
+		t.Fatal(err)
+	}
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod
@@ -2338,6 +2416,14 @@ func (t *testRetrySecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keyb
 		Passphrase:  t.Passphrases[n],
 		StoreSecret: p.Features.StoreSecret.Allow && t.StoreSecret,
 	}, nil
+}
+
+type testNoPromptSecretUI struct {
+}
+
+func (t *testNoPromptSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
+	err = errors.New("GetPassphrase called on testNoPromptSecretUI")
+	return res, err
 }
 
 type gpgImportFailer struct {

@@ -503,7 +503,10 @@ func (e *Kex2Provisionee) pushLKSServerHalf() error {
 	}
 
 	// Cache the passphrase stream.  Note that we don't have the triplesec
-	// portion of the stream cache.
+	// portion of the stream cache, and that the only bytes in ppstream
+	// are the lksec portion (no pwhash, eddsa, dh).  Currently passes
+	// all tests with this situation and code that uses those portions
+	// looks to be ok.
 	e.ctx.LoginContext.CreateStreamCache(nil, ppstream)
 
 	return nil
