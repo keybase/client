@@ -178,7 +178,7 @@ node("ec2-fleet") {
                                             }
                                             bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
                                             bat "choco install -y curl"
-                                            bat "powershell -Command \"\$slept = 0; do { curl.exe --silent --output curl.txt http://${local}:3000; \$res = \$?; sleep 1; \$slept = \$slept + 1; echo \"Slept \$slept times\"; if (\$slept -gt 180) { return 1 } } while (\$res -ne '0')\""
+                                            bat 'powershell -Command "$slept = 0; do { curl.exe --silent --output curl.txt $KEYBASE_SERVER_URI; $res = $?; sleep 1; $slept = $slept + 1; echo \'Slept $slept times\'; if ($slept -gt 180) { return 1 } } while ($res -ne \'0\')"'
                                             bat "for /f %%i in (testlist.txt) do (go test -timeout 5m %%i || exit /B 1)"
                                         }
                                     },
@@ -228,17 +228,17 @@ node("ec2-fleet") {
 
                                 println "Test OS X"
                                     dir('go') {
-                                        sh """
+                                        sh '''
                                             slept="0";
-                                            while ! curl -s -o /dev/null ${pub}:3000 2>&1; do
-                                                if [[ "\$slept" -lt 180 ]]; then
+                                            while ! curl -s -o /dev/null $KEYBASE_SERVER_URI 2>&1; do
+                                                if [[ "$slept" -lt 180 ]]; then
                                                     ((slept++));
                                                     sleep 1;
                                                 else
                                                     exit 1;
                                                 fi
                                             done
-                                        """
+                                        '''
                                         sh './test/run_tests.sh'
                                     }
                             }}}
