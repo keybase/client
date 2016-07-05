@@ -46,9 +46,9 @@ export default class ProofsRender extends Component {
         <Icon style={stylesService} type={shared.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
         <View style={stylesProofNameSection}>
           <View style={stylesProofNameLabelContainer}>
-            <Text inline className='hover-underline-container' type='Body' onPress={onClickProfile} style={stylesProofName}>
-              <Text inline type='Body' className='underline' style={proofNameStyle}>{proof.name}</Text>
-              <Text className='no-underline' inline type='Body' style={stylesProofType}>@{proof.type}</Text>
+            <Text inline type='Body' onPress={onClickProfile} style={stylesProofName}>
+              <Text inline type='Body' style={proofNameStyle}>{proof.name}</Text>
+              <Text inline type='Body' style={stylesProofType}>@{proof.type}</Text>
             </Text>
             {meta}
           </View>
