@@ -341,7 +341,7 @@ func (v *CmdLaunchdAction) Run() error {
 	return nil
 }
 
-func StartLaunchdService(g *libkb.GlobalContext, label string, servceInfoPath string, wait bool) error {
+func StartLaunchdService(g *libkb.GlobalContext, label string, serviceInfoPath string, wait bool) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
 	err := launchService.Start(defaultLaunchdWait)
@@ -349,22 +349,22 @@ func StartLaunchdService(g *libkb.GlobalContext, label string, servceInfoPath st
 		return err
 	}
 	if wait {
-		return WaitForService(g, launchService, servceInfoPath)
+		return WaitForService(g, launchService, serviceInfoPath)
 	}
 	return nil
 }
 
-func RestartLaunchdService(g *libkb.GlobalContext, label string, servceInfoPath string) error {
+func RestartLaunchdService(g *libkb.GlobalContext, label string, serviceInfoPath string) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
 	err := launchService.Restart(defaultLaunchdWait)
 	if err != nil {
 		return err
 	}
-	return WaitForService(g, launchService, servceInfoPath)
+	return WaitForService(g, launchService, serviceInfoPath)
 }
 
-func WaitForService(g *libkb.GlobalContext, launchService launchd.Service, servceInfoPath string) error {
+func WaitForService(g *libkb.GlobalContext, launchService launchd.Service, serviceInfoPath string) error {
 	launchdStatus, err := launchService.WaitForStatus(defaultLaunchdWait, 500*time.Millisecond)
 	if err != nil {
 		return err
@@ -372,6 +372,6 @@ func WaitForService(g *libkb.GlobalContext, launchService launchd.Service, servc
 	if launchdStatus == nil {
 		return fmt.Errorf("%s was not found", launchService.Label())
 	}
-	_, err = libkb.WaitForServiceInfoFile(servceInfoPath, launchdStatus.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, g.Log)
+	_, err = libkb.WaitForServiceInfoFile(serviceInfoPath, launchdStatus.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, g.Log)
 	return err
 }
