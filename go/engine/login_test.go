@@ -540,7 +540,7 @@ func TestProvisionPassphraseNoKeysSwitchUser(t *testing.T) {
 	}
 }
 
-func TestProvisionPaper(t *testing.T) {
+func TestProvisionPaperOnly(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 	fu := NewFakeUserOrBust(t, "paper")
@@ -646,6 +646,22 @@ func TestProvisionPaper(t *testing.T) {
 	}
 
 	if err := RunEngine(signEng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// should be able to track someone (no passphrase prompt)
+	targ := &TrackEngineArg{
+		UserAssertion: "t_alice",
+		Options:       keybase1.TrackOptions{BypassConfirm: true},
+	}
+	ctx = &Context{
+		LogUI:      tc2.G.UI.GetLogUI(),
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   &libkb.TestSecretUI{},
+	}
+
+	teng := NewTrackEngine(targ, tc2.G)
+	if err := RunEngine(teng, ctx); err != nil {
 		t.Fatal(err)
 	}
 }
