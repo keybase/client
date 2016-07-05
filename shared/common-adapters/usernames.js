@@ -2,14 +2,16 @@
 import React, {Component} from 'react'
 import {Box, Text} from './'
 import {globalStyles, globalColors} from '../styles/style-guide'
+import {isMobile} from '../constants/platform'
 
 import type {Props} from './usernames'
 
 export function usernameText ({type, users, style, inline}: Props) {
   return users.map((u, i) => {
-    const userStyle = {
-      textDecoration: 'inherit',
-      ...style,
+    const userStyle = {...style}
+
+    if (!isMobile) {
+      userStyle.textDecoration = 'inherit'
     }
 
     if (u.broken) {
