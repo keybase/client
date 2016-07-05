@@ -41,8 +41,6 @@ func TestPassphraseChange(t *testing.T) {
 	signup := client.NewCmdSignupRunner(tc2.G)
 	signup.SetTest()
 
-	stopper := client.NewCmdCtlStopRunner(tc2.G)
-
 	if err := signup.Run(); err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +66,7 @@ func TestPassphraseChange(t *testing.T) {
 		t.Fatal("old passphrase passed verification after passphrase change")
 	}
 
-	if err := stopper.Run(); err != nil {
+	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 
@@ -108,8 +106,6 @@ func TestPassphraseRecover(t *testing.T) {
 	signup := client.NewCmdSignupRunner(tc2.G)
 	signup.SetTest()
 
-	stopper := client.NewCmdCtlStopRunner(tc2.G)
-
 	if err := signup.Run(); err != nil {
 		t.Fatal(err)
 	}
@@ -145,7 +141,7 @@ func TestPassphraseRecover(t *testing.T) {
 		t.Fatal("old passphrase passed verification after passphrase change")
 	}
 
-	if err := stopper.Run(); err != nil {
+	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 

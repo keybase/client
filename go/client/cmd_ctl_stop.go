@@ -9,8 +9,6 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
-	"golang.org/x/net/context"
 )
 
 func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -18,14 +16,14 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Name:  "stop",
 		Usage: "Stop the background keybase service",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdCtlStopRunner(g), "stop", c)
+			cl.ChooseCommand(newCmdCtlStop(g), "stop", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetNoStandalone()
 		},
 	}
 }
 
-func NewCmdCtlStopRunner(g *libkb.GlobalContext) *CmdCtlStop {
+func newCmdCtlStop(g *libkb.GlobalContext) *CmdCtlStop {
 	return &CmdCtlStop{
 		Contextified: libkb.NewContextified(g),
 	}
@@ -40,11 +38,7 @@ func (s *CmdCtlStop) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdCtlStop) Run() (err error) {
-	cli, err := GetCtlClient(s.G())
-	if err != nil {
-		return err
-	}
-	return cli.Stop(context.TODO(), keybase1.StopArg{ExitCode: keybase1.ExitCode_OK})
+	return CtlServiceStop(s.G())
 }
 
 func (s *CmdCtlStop) GetUsage() libkb.Usage {

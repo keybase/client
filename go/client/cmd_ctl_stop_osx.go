@@ -36,7 +36,7 @@ func NewCmdCtlStop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdCtlStopRunner(g), "stop", c)
+			cl.ChooseCommand(newCmdCtlStop(g), "stop", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetNoStandalone()
@@ -50,7 +50,7 @@ type CmdCtlStop struct {
 	noWait     bool
 }
 
-func NewCmdCtlStopRunner(g *libkb.GlobalContext) *CmdCtlStop {
+func newCmdCtlStop(g *libkb.GlobalContext) *CmdCtlStop {
 	return &CmdCtlStop{
 		Contextified: libkb.NewContextified(g),
 	}
