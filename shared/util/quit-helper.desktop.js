@@ -4,31 +4,11 @@ import electron from 'electron'
 const app = electron.app || electron.remote.app
 const BrowserWindow = electron.BrowserWindow || electron.remote.BrowserWindow
 
-type WindowContext = {
-  type: 'uiWindow',
-} | {
-  type: 'menubar',
-} | {
-  type: 'popup',
-} | {
-  type: 'mainWindow',
-} | {
-  type: 'mainThread',
-}
+type WindowContext = {type: 'uiWindow'} | {type: 'menubar'} | {type: 'popup'} | {type: 'mainWindow'} | {type: 'mainThread'}
 
-export type Context = {
-  type: 'mainThread',
-} | {
-  type: 'quitButton',
-} | WindowContext
+export type Context = {type: 'mainThread'} | {type: 'quitButton'} | WindowContext
 
-export type Action = {
-  type: 'closePopups',
-} | {
-  type: 'hideMainWindow',
-} | {
-  type: 'quitApp',
-}
+export type Action = {type: 'closePopups'} | {type: 'hideMainWindow'} | {type: 'quitApp'}
 
 // Logic to figure out what to do given your context
 export function quitOnContext (context: Context): Array<Action> {
