@@ -90,7 +90,7 @@ node("ec2-fleet") {
                                                         sleep 1;
                                                         echo "Slept \$slept times";
                                                     else
-                                                        return 1;
+                                                        exit 1;
                                                     fi
                                                 done
                                             '
@@ -179,7 +179,7 @@ node("ec2-fleet") {
                                             bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
                                             bat "choco install -y curl"
                                             bat "powershell -Command \"\$slept = 0; do { curl.exe --silent --output curl.txt http://${local}:3000; \$res = \$?; sleep 1; \$slept = \$slept + 1; if (\$slept -gt 180) { return 1 } } while (\$res -ne '0')\""
-                                            bat "for /f %%i in (testlist.txt) do (go test -timeout 30m %%i || exit /B 1)"
+                                            bat "for /f %%i in (testlist.txt) do (go test -timeout 5m %%i || exit /B 1)"
                                         }
                                     },
                                     test_windows_js: { wrap([$class: 'Xvfb']) {
@@ -235,7 +235,7 @@ node("ec2-fleet") {
                                                     ((slept++));
                                                     sleep 1;
                                                 else
-                                                    return 1;
+                                                    exit 1;
                                                 fi
                                             done
                                         """
