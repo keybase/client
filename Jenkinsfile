@@ -70,7 +70,7 @@ node("ec2-fleet") {
                                         fallbackToLastSuccessful: false,
                                         upstreamFilterStrategy: 'UseGlobalSetting'],
                                     target: '.'])
-                            "docker load -i kbclient.tar"
+                            sh "docker load -i kbclient.tar"
                         } else {
                             clientImage.pull()
                         }
