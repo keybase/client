@@ -60,7 +60,7 @@ export default class ProofsRender extends Component {
 
   render () {
     return (
-      <View style={stylesContainer}>
+      <View style={{...stylesContainer, ...this.props.style}}>
         {this.props.proofs.map((p, idx) => this._renderProofRow(p, idx))}
       </View>
     )
@@ -70,11 +70,7 @@ export default class ProofsRender extends Component {
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
-  paddingTop: 16,
-  paddingBottom: 16,
   alignItems: 'stretch',
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
 }
 const stylesRow = {
   ...globalStyles.flexBoxRow,
