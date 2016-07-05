@@ -257,10 +257,10 @@
 			"revisionTime": "2016-06-17T17:27:17-04:00"
 		},
 		{
-			"checksumSHA1": "FjGG8xTWWngQvhxmvdK3b+ZuAK0=",
+			"checksumSHA1": "J2MatY8cSZE7d/bMt7YUwU8Xd48=",
 			"path": "github.com/keybase/gregor/rpc/client",
-			"revision": "a3935baeb79f89a99a1834aabfce326fc5887ed5",
-			"revisionTime": "2016-07-01T19:55:25Z"
+			"revision": "edaf9a667521e4917b1b579fe6f0e1fba9306ba5",
+			"revisionTime": "2016-07-05T15:22:35Z"
 		},
 		{
 			"checksumSHA1": "VWEcKH3xzrRYdR+oOkSvUByjrJM=",

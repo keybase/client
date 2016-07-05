@@ -199,8 +199,10 @@ func (c *Client) StateMachineConsumeMessage(m gregor1.Message) error {
 	// Check to see if we should save
 	select {
 	case <-c.saveTimer:
+		c.log.Debug("StateMachineConsumeMessage(): saving local state")
 		return c.Save()
 	default:
+		c.log.Debug("StateMachineConsumeMessage(): not saving local state")
 		// Plow through if the timer isn't up
 	}
 
