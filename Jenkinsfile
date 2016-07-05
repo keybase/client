@@ -37,6 +37,10 @@ node("ec2-fleet") {
         def gregorImage = docker.image("keybaseprivate/kbgregor")
         def kbwebImage = docker.image("keybaseprivate/kbweb")
 
+        def kbwebNodePrivateIP = new URL ("http://169.254.169.254/latest/meta-data/local-ipv4").getText()
+        def kbwebNodePublicIP = new URL ("http://169.254.169.254/latest/meta-data/public-ipv4").getText()
+
+        println "Running on host $kbwebNodePrivateIP"
 
         stage "Setup"
 
@@ -70,10 +74,6 @@ node("ec2-fleet") {
                 retry(5) {
                     kbweb = kbwebImage.run('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh')
                 }
-                def local = new URL ("http://169.254.169.254/latest/meta-data/local-ipv4").getText()
-                def pub = new URL ("http://169.254.169.254/latest/meta-data/public-ipv4").getText()
-
-                println "Running on host $local"
 
                 stage "Test"
                     parallel (
@@ -150,6 +150,34 @@ node("ec2-fleet") {
                                         }
                                     }
                                 }}},
+                                test_kbfs: {
+                                    dir('go') {
+                                        sh "go install github.com/keybase/client/go/keybase"
+                                        sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
+                                        sh "git rev-parse HEAD > revision"
+                                        def clientImage = docker.build("keybaseprivate/kbclient")
+                                        sh "docker save -o kbclient.tar keybaseprivate/kbclient"
+                                        archive("kbclient.tar")
+                                        // TODO trigger downstream builds
+                                        //build([
+                                        //    job: "/kbfs/master",
+                                        //    parameters: [
+                                        //        [$class: 'StringParameterValue',
+                                        //            name: 'clientProjectName',
+                                        //            value: env.JOB_NAME,
+                                        //        ],
+                                        //        [$class: 'StringParameterValue',
+                                        //            name: 'kbwebNodePrivateIP',
+                                        //            value: kbwebNodePrivateIP,
+                                        //        ],
+                                        //        [$class: 'StringParameterValue',
+                                        //            name: 'kbwebNodePublicIP',
+                                        //            value: kbwebNodePublicIP,
+                                        //        ],
+                                        //    ]
+                                        //])
+                                    }
+                                },
                             )
                         },
                         test_windows: {
@@ -158,8 +186,8 @@ node("ec2-fleet") {
                                 'GOROOT=C:\\tools\\go',
                                 "GOPATH=\"${pwd()}\"",
                                 "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
-                                "KEYBASE_SERVER_URI=http://${local}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${local}:9911",
+                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                             ]) {
                             ws("${pwd()}/src/github.com/keybase/client") {
                                 println "Checkout Windows"
@@ -219,8 +247,8 @@ node("ec2-fleet") {
                             node('osx') {
                             withEnv([
                                 "GOPATH=${pwd()}",
-                                "KEYBASE_SERVER_URI=http://${pub}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${pub}:9911",
+                                "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
+                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
                             ]) {
                             ws("${pwd()}/src/github.com/keybase/client") {
                                 println "Checkout OS X"
@@ -249,20 +277,6 @@ node("ec2-fleet") {
                     kbweb.stop()
                 }
             }
-
-
-        stage "Dockerize"
-
-            dir('go') {
-                sh "go install github.com/keybase/client/go/keybase"
-                sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                def clientImage = docker.build("keybaseprivate/kbclient")
-            }
-
-
-        stage "Integrate"
-
-            // TODO trigger downstream builds
 
 
         stage "Push"

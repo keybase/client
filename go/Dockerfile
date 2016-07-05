@@ -22,3 +22,4 @@ ENV KEYBASE_DEBUG=0 \
     PATH=/home/keybase:$PATH
 
 ADD keybase/keybase /home/keybase/keybase
+ADD revision /home/keybase/client_revision
