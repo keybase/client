@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {Avatar, Box, Icon, Input, Text, ListItem} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
-import type {Props, SearchResultFn} from './render'
+import type {Props} from './render'
 import type {SearchResult} from '../../constants/search'
 import type {Props as TextProps} from '../../common-adapters/text'
 
