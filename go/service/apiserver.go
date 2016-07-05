@@ -4,6 +4,8 @@
 package service
 
 import (
+	"encoding/json"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -95,7 +97,12 @@ func (a *APIServerHandler) doPostJSON(rawarg keybase1.PostJSONArg) (keybase1.API
 	arg := a.setupArg(rawarg)
 	jsonPayload := make(libkb.JSONPayload)
 	for _, kvpair := range rawarg.JSONPayload {
-		jsonPayload[kvpair.Key] = kvpair.Value
+		var value interface{}
+		err := json.Unmarshal([]byte(kvpair.Value), &value)
+		if err != nil {
+			return keybase1.APIRes{}, err
+		}
+		jsonPayload[kvpair.Key] = value
 	}
 	arg.JSONPayload = jsonPayload
 
