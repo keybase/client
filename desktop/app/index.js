@@ -13,21 +13,26 @@ import urlHelper from './url-helper'
 import hello from '../shared/util/hello'
 import semver from 'semver'
 import os from 'os'
+import {ipcMain} from 'electron'
+import {quit} from './ctl'
 
 let mainWindow = null
 
-// Only one app per app in osx...
-const shouldQuit = app.makeSingleInstance(() => {
-  if (mainWindow) {
-    mainWindow.show()
-    mainWindow.window.focus()
-  }
-})
+function start () {
+  // Only one app per app in osx...
+  const shouldQuit = app.makeSingleInstance(() => {
+    if (mainWindow) {
+      mainWindow.show()
+      mainWindow.window.focus()
+    }
+  })
 
-if (shouldQuit) {
-  console.log('Only one instance of keybase GUI allowed, bailing!')
-  app.quit()
-} else {
+  if (shouldQuit) {
+    console.log('Only one instance of keybase GUI allowed, bailing!')
+    app.quit()
+    return
+  }
+
   // Check supported OS version
   if (os.platform() === 'darwin') {
     // Release numbers for OS versions can be looked up here: https://en.wikipedia.org/wiki/Darwin_%28operating_system%29#Release_history
@@ -36,6 +41,7 @@ if (shouldQuit) {
     if (!semver.satisfies(os.release(), '>=14.0.0')) {
       dialog.showErrorBox('Keybase Error', 'This version of OS X isn\'t currently supported.')
       app.quit()
+      return
     }
   }
 
@@ -85,7 +91,11 @@ if (shouldQuit) {
     windows.forEach(w => {
       w.destroy()
     })
-
-    // TODO: send some event to the service to tell it to shutdown all the things as well
   })
 }
+
+start()
+
+ipcMain.on('quit', (event, args) => {
+  quit()
+})

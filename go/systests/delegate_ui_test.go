@@ -240,8 +240,7 @@ func TestDelegateUI(t *testing.T) {
 		t.Error(err)
 	}
 
-	stopper := client.NewCmdCtlStopRunner(tc1.G)
-	if err := stopper.Run(); err != nil {
+	if err := client.CtlServiceStop(tc1.G); err != nil {
 		t.Errorf("Error in stopping service: %v", err)
 	}
 

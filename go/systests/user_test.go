@@ -235,8 +235,6 @@ func TestSignupLogout(t *testing.T) {
 
 	logout := client.NewCmdLogoutRunner(tc2.G)
 
-	stopper := client.NewCmdCtlStopRunner(tc2.G)
-
 	<-startCh
 
 	nh := newNotifyHandler()
@@ -316,7 +314,7 @@ func TestSignupLogout(t *testing.T) {
 		tc.G.Log.Debug("Got notification from logout handler")
 	}
 
-	if err := stopper.Run(); err != nil {
+	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 

@@ -56,7 +56,7 @@ type serviceLog interface {
 
 // WaitForServiceInfoFile tries to wait for a service info file, which should be
 // written on successful service startup.
-func WaitForServiceInfoFile(path string, label string, pid string, maxAttempts int, wait time.Duration, reason string, log serviceLog) (*ServiceInfo, error) {
+func WaitForServiceInfoFile(path string, label string, pid string, maxAttempts int, wait time.Duration, log serviceLog) (*ServiceInfo, error) {
 	if pid == "" {
 		return nil, fmt.Errorf("No pid to wait for")
 	}

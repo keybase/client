@@ -6,6 +6,9 @@ package systests
 import (
 	"bytes"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -13,8 +16,6 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	gregor1 "github.com/keybase/gregor/protocol/gregor1"
 	context "golang.org/x/net/context"
-	"testing"
-	"time"
 )
 
 type electronMock struct {
@@ -72,7 +73,6 @@ func TestGregorForwardToElectron(t *testing.T) {
 	tc.G.SetUI(&sui)
 	signup := client.NewCmdSignupRunner(tc.G)
 	signup.SetTest()
-	stopper := client.NewCmdCtlStopRunner(tc.G)
 
 	// Wait for the server to start up
 	<-startCh
@@ -183,7 +183,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 	check()
 	checkState(state)
 
-	if err := stopper.Run(); err != nil {
+	if err := client.CtlServiceStop(tc.G); err != nil {
 		t.Fatal(err)
 	}
 	// If the server failed, it's also an error

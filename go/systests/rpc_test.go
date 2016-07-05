@@ -6,12 +6,13 @@ package systests
 // Test various RPCs that are used mainly in other clients but not by the CLI.
 
 import (
+	"testing"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
 	context "golang.org/x/net/context"
-	"testing"
 )
 
 func TestRPCs(t *testing.T) {
@@ -33,8 +34,6 @@ func TestRPCs(t *testing.T) {
 		stopCh <- err
 	}()
 
-	stopper := client.NewCmdCtlStopRunner(tc2.G)
-
 	<-startCh
 
 	// Add test RPC methods here.
@@ -42,7 +41,7 @@ func TestRPCs(t *testing.T) {
 	testCheckInvitationCode(t, tc2.G)
 	testLoadAllPublicKeysUnverified(t, tc2.G)
 
-	if err := stopper.Run(); err != nil {
+	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 
