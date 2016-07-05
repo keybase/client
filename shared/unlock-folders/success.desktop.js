@@ -1,40 +1,36 @@
 // @flow
 
-import React, {Component} from 'react'
+import React from 'react'
 import {globalStyles} from '../styles/style-guide'
 import {Text, Button, Icon} from '../common-adapters'
 
-export type Props = {
-  onAccessFolders: () => void,
-}
+const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
+  <div style={containerStyle}>
+    <Icon type='icon-folders-private-success-48' />
+    <Text style={successStyle} type='Body'>Success!</Text>
+    <Text style={{textAlign: 'center', paddingLeft: 60, paddingRight: 60}} type='Body'>We're unlocking some folders on this computer. Check back in a bit.</Text>
+    <Button type='Primary' label='Okay' style={finishStyle} onClick={onClose} />
+  </div>
+)
 
-export default class PaperKeyInput extends Component<void, Props, void> {
-
-  render () {
-    return (
-      <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <Icon style={foldersUnlockedStyle} type='icon-folders-private-success-48' />
-        <Text style={successStyle} type='Body'>Success</Text>
-        <Text style={{textAlign: 'center'}} type='Body'>You have unlocked your folders on this computer.</Text>
-        <Button type='Primary' label='Access my folders' style={finishStyle} onClick={this.props.onAccessFolders} />
-      </div>
-    )
-  }
-}
-
-const foldersUnlockedStyle = {
-  marginTop: 72,
+const containerStyle = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  position: 'absolute',
+  top: 72,
+  left: 0,
+  right: 0,
+  bottom: 30,
+  justifyContent: 'space-between',
 }
 
 const successStyle = {
-  marginTop: 28,
   textAlign: 'center',
 }
 
 const finishStyle = {
-  marginTop: 56,
   marginRight: 30,
-  height: 32,
-  width: 181,
   alignSelf: 'flex-end',
 }
+
+export default PaperKeyInput

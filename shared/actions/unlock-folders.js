@@ -7,7 +7,7 @@ import * as Constants from '../constants/unlock-folders'
 import type {TypedAsyncAction, AsyncAction} from '../constants/types/flux'
 import type {ToPaperKeyInput, OnBackFromPaperKey, CheckPaperKey, Finish, Waiting,
   RegisterRekeyListenerAction, NewRekeyPopupAction} from '../constants/unlock-folders'
-import type {delegateUiCtlRegisterRekeyUIRpc, loginPaperKeySubmitRpc} from '../constants/types/flow-types'
+import type {delegateUiCtlRegisterRekeyUIRpc, loginPaperKeySubmitRpc, rekeyRekeyStatusFinishRpc} from '../constants/types/flow-types'
 import {createServer} from '../engine/server'
 import type {Dispatch} from '../constants/types/flux'
 
@@ -52,6 +52,11 @@ export function finish (): Finish {
 
 export function close (): AsyncAction {
   return (dispatch, getState) => {
+    const params: rekeyRekeyStatusFinishRpc = {
+      method: 'rekey.rekeyStatusFinish',
+      callback: null,
+    }
+    engine.rpc(params)
     dispatch({type: Constants.close, payload: {}})
     uglyResponse('refresh', null)
   }
