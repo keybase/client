@@ -19,7 +19,7 @@ let mainWindow = null
 // Only one app per app in osx...
 const shouldQuit = app.makeSingleInstance(() => {
   if (mainWindow) {
-    mainWindow.show()
+    mainWindow.show(true)
     mainWindow.window.focus()
   }
 })
