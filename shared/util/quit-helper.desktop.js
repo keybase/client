@@ -1,14 +1,8 @@
 // @flow
-import electron from 'electron'
-import {ipcRenderer, ipcMain} from 'electron'
+import {ipcRenderer, ipcMain, app} from 'electron'
 import {quit} from '../../desktop/app/ctl'
 
-const app = electron.app || electron.remote.app
-const BrowserWindow = electron.BrowserWindow || electron.remote.BrowserWindow
-
-type WindowContext = {type: 'uiWindow'} | {type: 'menubar'} | {type: 'popup'} | {type: 'mainWindow'} | {type: 'mainThread'}
-
-export type Context = {type: 'mainThread'} | {type: 'quitButton'} | {type: 'unknown'} | WindowContext
+export type Context = {type: 'uiWindow'} | {type: 'mainThread'} | {type: 'quitButton'}
 
 export type Action = {type: 'closePopups'} | {type: 'hideMainWindow'} | {type: 'quitApp'}
 
@@ -16,9 +10,6 @@ export type Action = {type: 'closePopups'} | {type: 'hideMainWindow'} | {type: '
 export function quitOnContext (context: Context): Array<Action> {
   switch (context.type) {
     case 'uiWindow':
-    case 'popup':
-    case 'mainWindow':
-    case 'unknown':
       return [{type: 'closePopups'}, {type: 'hideMainWindow'}]
     case 'mainThread':
     case 'quitButton':
@@ -28,28 +19,10 @@ export function quitOnContext (context: Context): Array<Action> {
   return []
 }
 
-export function getContextFromWindowId (windowId: ?number): Context {
-  // $FlowIssue
-  if (process.type === 'browser') {
-    return {type: 'mainThread'}
-  }
-
-  const w = BrowserWindow.fromId(windowId)
-  const url = w && w.getURL()
-
-  if (windowId == null || !url) {
-    return {type: 'unknown'}
-  }
-
-  if (url && url.indexOf('renderer/index')) {
-    return {type: 'mainWindow'}
-  }
-
-  return {type: 'popup'}
-}
-
 function isMainThread () {
-  return getContextFromWindowId(null).type === 'mainThread'
+  // the main thread's process.type is browser: https://github.com/electron/electron/blob/master/docs/api/process.md
+  // $FlowIssue
+  return process.type === 'browser'
 }
 
 function _executeActions (actions: Array<Action>) {
