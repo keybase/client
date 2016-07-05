@@ -21,7 +21,7 @@ func StopLaunchdService(g *libkb.GlobalContext, label string, wait bool) error {
 	return fmt.Errorf("Unsupported on this platform")
 }
 
-func RestartLaunchdService(g *libkb.GlobalContext, label string) error {
+func RestartLaunchdService(g *libkb.GlobalContext, label string, serviceInfoPath string) error {
 	return fmt.Errorf("Unsupported on this platform")
 }
 

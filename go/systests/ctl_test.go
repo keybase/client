@@ -5,11 +5,12 @@ package systests
 
 import (
 	"fmt"
+	"regexp"
+	"testing"
+
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/service"
-	"regexp"
-	"testing"
 )
 
 func (v *versionUI) GetDumbOutputUI() libkb.DumbOutputUI {
@@ -83,9 +84,7 @@ func TestVersionAndStop(t *testing.T) {
 
 	vui.checkVersionOutput(t)
 
-	stopper := client.NewCmdCtlStopRunner(tc2.G)
-
-	if err := stopper.Run(); err != nil {
+	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 

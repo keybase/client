@@ -22,9 +22,25 @@ type Log interface {
 }
 
 type processesFn func() ([]ps.Process, error)
+type breakFn func([]ps.Process) bool
 
 // FindProcesses returns processes containing string matching process path
 func FindProcesses(matcher Matcher, wait time.Duration, delay time.Duration, log Log) ([]ps.Process, error) {
+	breakFn := func(procs []ps.Process) bool {
+		return len(procs) > 0
+	}
+	return findProcesses(matcher, breakFn, wait, delay, log)
+}
+
+// WaitForExit returns processes (if any) that are still running after wait
+func WaitForExit(matcher Matcher, wait time.Duration, delay time.Duration, log Log) ([]ps.Process, error) {
+	breakFn := func(procs []ps.Process) bool {
+		return len(procs) == 0
+	}
+	return findProcesses(matcher, breakFn, wait, delay, log)
+}
+
+func findProcesses(matcher Matcher, breakFn breakFn, wait time.Duration, delay time.Duration, log Log) ([]ps.Process, error) {
 	start := time.Now()
 	for {
 		log.Debugf("Find process %s (%s < %s)", matcher.match, time.Since(start), wait)
@@ -32,7 +48,7 @@ func FindProcesses(matcher Matcher, wait time.Duration, delay time.Duration, log
 		if err != nil {
 			return nil, err
 		}
-		if len(procs) > 0 {
+		if breakFn(procs) {
 			return procs, nil
 		}
 		if time.Since(start) >= wait {
@@ -102,15 +118,18 @@ func findPIDsWithFn(fn processesFn, matchFn MatchFn, log Log) ([]int, error) {
 
 // TerminateAll stops all processes with executable names that contains the matching string.
 // It returns the pids that were terminated.
+// This method only logs errors, if you need error handling, you can should use a different implementation.
 func TerminateAll(matcher Matcher, killDelay time.Duration, log Log) []int {
-	log.Infof("Terminating %s", matcher.match)
-	return terminateAll(ps.Processes, matcher.Fn(), killDelay, log)
+	return TerminateAllWithProcessesFn(ps.Processes, matcher.Fn(), killDelay, log)
 }
 
-func terminateAll(fn processesFn, matchFn MatchFn, killDelay time.Duration, log Log) (pids []int) {
+// TerminateAllWithProcessesFn stops processes processesFn that satify the matchFn.
+// It returns the pids that were terminated.
+// This method only logs errors, if you need error handling, you can should use a different implementation.
+func TerminateAllWithProcessesFn(fn processesFn, matchFn MatchFn, killDelay time.Duration, log Log) (pids []int) {
 	pids, err := findPIDsWithFn(fn, matchFn, log)
 	if err != nil {
-		log.Warningf("Error finding process: %s", err)
+		log.Errorf("Error finding process: %s", err)
 		return
 	}
 	if len(pids) == 0 {
@@ -118,7 +137,7 @@ func terminateAll(fn processesFn, matchFn MatchFn, killDelay time.Duration, log 
 	}
 	for _, pid := range pids {
 		if err := TerminatePID(pid, killDelay, log); err != nil {
-			log.Warningf("Error terminating %d: %s", pid, err)
+			log.Errorf("Error terminating %d: %s", pid, err)
 		}
 	}
 	return

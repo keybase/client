@@ -37,7 +37,7 @@ class Render extends Component<DefaultProps, Props, State> {
   _renderLoggedOut () {
     const styles = stylesPublic
 
-    const menuColor = this.state.showingMenu ? globalColors.black : globalColors.black_40
+    const menuColor = this.state.showingMenu ? globalColors.black_60 : globalColors.black_40
     const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor, fontSize: 24}
 
     return (
@@ -49,7 +49,7 @@ class Render extends Component<DefaultProps, Props, State> {
             onClick={() => this.setState({showingMenu: !this.state.showingMenu})} />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <Icon type='logo-128' style={stylesLogo} />
+          <Icon type='icon-keybase-logo-128' style={stylesLogo} />
           <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out of Keybase!</Text>
           <Button type='Primary' label='Log In' onClick={this.props.logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12}} />
         </Box>
@@ -115,7 +115,7 @@ class Render extends Component<DefaultProps, Props, State> {
       ? (this.state.showingMenu ? globalColors.white : globalColors.blue3_40)
       : (this.state.showingMenu ? globalColors.black : globalColors.black_40)
 
-    const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor, fontSize: 24}
+    const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor}
 
     return (
       <Box style={styles.container}>

@@ -13,20 +13,25 @@ class Render extends Component<void, Props, void> {
   }
 
   _makeItem (isPublic: boolean, isSelected: boolean) {
-    const icon = isPublic ? 'subnav-folders-public' : 'subnav-folders-private'
+    const icon = isPublic ? 'fa-kb-iconfont-folder-public' : 'fa-kb-iconfont-folder-private'
     const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
+    const iconStyle = isPublic
+      ? {color: globalColors.yellowGreen, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}
+      : {color: globalColors.darkBlue2, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}
     return <TabBarButton
       source={{type: 'icon', icon}}
       style={{
         ...styleItem,
         borderBottom: `solid 2px ${isSelected ? selectedColor : 'transparent'}`,
+        paddingLeft: 0,
       }}
       styleBadge={styleBadge}
-      styleIcon={styleIcon}
+      styleIcon={{...styleIcon, ...iconStyle}}
       styleLabel={{
         color: isPublic
-          ? (isSelected ? globalColors.black : globalColors.white_75)
+          ? (isSelected ? globalColors.black_75 : globalColors.white_75)
           : (isSelected ? globalColors.white : globalColors.black_75),
+        fontSize: 14,
       }}
       styleBadgeNumber={styleBadgeNumber}
       selected={isSelected}
@@ -95,14 +100,14 @@ const styleBadge = {
 }
 
 const styleIcon = {
-  width: 'initial',
-  height: 'initial',
+  marginBottom: 2,
 }
 
 const styleItem = {
   ...globalStyles.flexBoxRow,
   paddingTop: 8,
   paddingBottom: 8,
+  justifyContent: 'center',
   backgroundColor: globalColors.transparent,
 }
 
@@ -113,7 +118,7 @@ const styleBadgeNumber = {
 
 const itemContainerStyle = {
   ...globalStyles.flexBoxColumn,
-  minWidth: 127,
+  minWidth: 110,
 }
 
 const tabBarStyle = {

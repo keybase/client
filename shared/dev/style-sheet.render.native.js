@@ -7,6 +7,7 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
 import {Dropdown, Checkbox, Button, Box, Text, Terminal, Icon, Input, FormWithCheckbox, TabBar} from '../common-adapters'
 import {TabBarItem} from '../common-adapters/tab-bar'
+import type {IconType} from '../common-adapters/icon'
 
 const Space = () => <Box style={{height: 20, width: 20}} />
 
@@ -259,18 +260,17 @@ const Dropdowns = ({selectedUser, selectUser, selectedOption, selectOption, user
 const Icons = () => (
   <Box style={{...globalStyles.flexBoxColumn}}>
     {[
-      'computer-big',
-      'computer-bw-m',
+      'icon-computer-bw-64',
       'fa-copy',
       'fa-eye',
       'fa-key',
-      'logo-128',
+      'icon-keybase-logo-160',
       'fa-kb-iconfont-proof-broken',
       'fa-kb-iconfont-proof-good',
       'fa-kb-iconfont-proof-pending',
       'fa-close',
       'fa-mobile',
-    ].map(i => [
+    ].map((i: IconType) => [ // eslint-disable-line arrow-parens
       <Row key={i}><Icon onClick={() => console.log('clicked')} type={i} /></Row>,
       <Row key={i + '100px'}><Icon style={{width: 100, height: 100}} onClick={() => console.log('clicked')} type={i} /></Row>,
     ])}

@@ -79,8 +79,7 @@ func TestSecretUI(t *testing.T) {
 		t.Errorf("delegate secret UI session ID: %d, expected %d", sui.getPassphraseSessionID, cmd.SessionID)
 	}
 
-	stopper := client.NewCmdCtlStopRunner(tc1.G)
-	if err := stopper.Run(); err != nil {
+	if err := client.CtlServiceStop(tc1.G); err != nil {
 		t.Errorf("Error in stopping service: %v", err)
 	}
 

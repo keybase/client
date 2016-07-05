@@ -30,9 +30,17 @@ type ConsumePublishMessageArg struct {
 type PingArg struct {
 }
 
+type StateArg struct {
+	Uid          UID          `codec:"uid" json:"uid"`
+	Deviceid     DeviceID     `codec:"deviceid" json:"deviceid"`
+	TimeOrOffset TimeOrOffset `codec:"timeOrOffset" json:"timeOrOffset"`
+}
+
 type StateByCategoryPrefixArg struct {
-	Uid            UID      `codec:"uid" json:"uid"`
-	CategoryPrefix Category `codec:"categoryPrefix" json:"categoryPrefix"`
+	Uid            UID          `codec:"uid" json:"uid"`
+	Deviceid       DeviceID     `codec:"deviceid" json:"deviceid"`
+	TimeOrOffset   TimeOrOffset `codec:"timeOrOffset" json:"timeOrOffset"`
+	CategoryPrefix Category     `codec:"categoryPrefix" json:"categoryPrefix"`
 }
 
 type IncomingInterface interface {
@@ -40,6 +48,7 @@ type IncomingInterface interface {
 	ConsumeMessage(context.Context, Message) error
 	ConsumePublishMessage(context.Context, Message) error
 	Ping(context.Context) (string, error)
+	State(context.Context, StateArg) (State, error)
 	// StateByCategoryPrefix loads the messages of the user's state whose
 	// categories are prefixed by the given prefix
 	StateByCategoryPrefix(context.Context, StateByCategoryPrefixArg) (State, error)
@@ -108,6 +117,22 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"state": {
+				MakeArg: func() interface{} {
+					ret := make([]StateArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]StateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]StateArg)(nil), args)
+						return
+					}
+					ret, err = i.State(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"stateByCategoryPrefix": {
 				MakeArg: func() interface{} {
 					ret := make([]StateByCategoryPrefixArg, 1)
@@ -151,6 +176,11 @@ func (c IncomingClient) ConsumePublishMessage(ctx context.Context, m Message) (e
 
 func (c IncomingClient) Ping(ctx context.Context) (res string, err error) {
 	err = c.Cli.Call(ctx, "gregor.1.incoming.ping", []interface{}{PingArg{}}, &res)
+	return
+}
+
+func (c IncomingClient) State(ctx context.Context, __arg StateArg) (res State, err error) {
+	err = c.Cli.Call(ctx, "gregor.1.incoming.state", []interface{}{__arg}, &res)
 	return
 }
 

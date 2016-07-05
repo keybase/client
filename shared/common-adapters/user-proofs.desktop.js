@@ -83,7 +83,6 @@ const styleRow = {
 
 const styleService = {
   ...globalStyles.clickable,
-  fontSize: 15,
   width: 15,
   flexShrink: 0,
   textAlign: 'center',
@@ -95,7 +94,6 @@ const styleService = {
 
 const styleStatusIcon = {
   ...globalStyles.clickable,
-  fontSize: 20,
   marginLeft: 10,
   marginTop: 1,
 }

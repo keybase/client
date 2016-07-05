@@ -1,5 +1,7 @@
 // @flow
 import electron from 'electron'
+import {ipcRenderer, ipcMain} from 'electron'
+import {quit} from '../../desktop/app/ctl'
 
 const app = electron.app || electron.remote.app
 const BrowserWindow = electron.BrowserWindow || electron.remote.BrowserWindow
@@ -31,9 +33,10 @@ export function getContextFromWindowId (windowId: number): Context {
     return {type: 'mainThread'}
   }
 
-  const url = BrowserWindow.fromId(windowId).getURL()
+  const w = BrowserWindow.fromId(windowId)
+  const url = w && w.getURL()
 
-  if (url.indexOf('renderer/index')) {
+  if (url && url.indexOf('renderer/index')) {
     return {type: 'mainWindow'}
   }
 
@@ -41,6 +44,11 @@ export function getContextFromWindowId (windowId: number): Context {
 }
 
 export function executeActions (actions: Array<Action>) {
+  if (getContextFromWindowId(-1).type !== 'mainThread') {
+    console.error('Tried to call executeActions from renderer thread')
+    return
+  }
+
   actions.forEach(a => {
     switch (a.type) {
       case 'hideMainWindow':
@@ -48,8 +56,19 @@ export function executeActions (actions: Array<Action>) {
         app.emit('close-windows')
         return
       case 'quitApp':
-        app.quit()
+        quit()
         return
     }
+  })
+}
+
+// Takes an array of actions, but makes an ipc call to have the main thread execute the actions
+export function executeActionsFromRenderer (actions: Array<Action>) {
+  ipcRenderer.send('executeActions', actions)
+}
+
+export function setupExecuteActionsListener () {
+  ipcMain.on('executeActions', (event, actions) => {
+    executeActions(actions)
   })
 }

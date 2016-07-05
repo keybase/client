@@ -21,7 +21,7 @@ type UnixProcess struct {
 	pgrp  int
 	sid   int
 
-	binary string
+	binary string // binary name might be truncated
 }
 
 // Pid returns process id
@@ -36,7 +36,12 @@ func (p *UnixProcess) PPid() int {
 
 // Executable returns process executable name
 func (p *UnixProcess) Executable() string {
-	return p.binary
+	path, err := p.Path()
+	if err != nil {
+		// Fall back to binary name which might be truncated
+		return p.binary
+	}
+	return filepath.Base(path)
 }
 
 // Path returns path to process executable
@@ -59,6 +64,7 @@ func (p *UnixProcess) Refresh() error {
 	p.binary = data[binStart : binStart+binEnd]
 
 	// Move past the image name and start parsing the rest
+	// The name here might not be the full name
 	data = data[binStart+binEnd+2:]
 	_, err = fmt.Sscanf(data,
 		"%c %d %d %d",

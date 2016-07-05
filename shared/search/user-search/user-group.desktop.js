@@ -46,7 +46,7 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
         {avatar}
         {name}
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'flex-end', marginRight: 16}}>
-          <Icon onClick={e => { e && e.stopPropagation(); onRemove(user) }} type={'fa-times-circle'} style={{fontSize: 24, color: globalColors.black_20}} />
+          <Icon onClick={e => { e && e.stopPropagation(); onRemove(user) }} type={'fa-kb-iconfont-remove'} style={{color: globalColors.black_20}} />
         </Box>
       </ClickableBox>
       {insertSpacing && <Box style={{height: 1}} />}
@@ -54,24 +54,25 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
   )
 }
 
-function RowButton ({icon, text, onClick}: {icon: IconType, text: string, onClick: () => void}) {
+function RowButton ({icon, text, onClick, iconStyle, rowStyle}:
+    {icon: IconType, text: string, onClick: () => void, iconStyle?: Object, rowStyle?: Object}) {
   return (
     <ClickableBox hoverColor={globalColors.blue4} backgroundColor={globalColors.white} onClick={onClick} style={rowButtonStyle}>
-      <Icon type={icon} />
-      <Text type='Body' style={{marginLeft: 8, color: globalColors.blue}}>{text}</Text>
+      <Icon style={iconStyle} type={icon} />
+      <Text type='Body' style={{marginLeft: 4, color: globalColors.blue}}>{text}</Text>
     </ClickableBox>
   )
 }
 
 export default function UserGroup ({users, onClickUser, onRemoveUser, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, chatEnabled, onGroupChat}: Props) {
-  const privateFolderText = users.length > 1 ? 'Open a private group folder' : 'Open a shared private folder'
+  const privateFolderText = users.length > 1 ? 'Open private group folder' : 'Open shared private folder'
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, backgroundColor: globalColors.lightGrey}}>
       {users.map(u => <User key={u.service + u.username} user={u} onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
-      <RowButton icon='icon-folder-private-open-24' text={privateFolderText} onClick={onOpenPrivateGroupFolder} />
-      {users.length === 1 && <RowButton icon='icon-folder-public-open-24' text='Open public folder' onClick={onOpenPublicGroupFolder} />}
-      {chatEnabled && <RowButton icon='icon-chat-24' text='Start a chat' onClick={onGroupChat} />}
+      <RowButton rowStyle={{height: 32}} iconStyle={{marginRight: 4}} icon='icon-folder-private-open-24' text={privateFolderText} onClick={onOpenPrivateGroupFolder} />
+      {users.length === 1 && <RowButton rowStyle={{height: 32}} iconStyle={{marginRight: 4}} icon='icon-folder-public-open-24' text='Open public folder' onClick={onOpenPublicGroupFolder} />}
+      {chatEnabled && <RowButton rowStyle={{height: 32}} iconStyle={{color: globalColors.blue}} icon='fa-kb-iconfont-chat' text='Start group chat' onClick={onGroupChat} />}
     </Box>
   )
 }

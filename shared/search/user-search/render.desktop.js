@@ -179,7 +179,7 @@ export class SearchBar extends Component<void, SearchBarProps, void> {
           <ServiceIcon
             serviceName='Keybase'
             tooltip='Keybase'
-            iconType='keybase-logo-mascot-only-dz-2-24'
+            iconType='icon-keybase-logo-24'
             selected={this.props.selectedService === 'Keybase'}
             onClickService={p => this._onClickService(p)}
             />

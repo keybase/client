@@ -37,7 +37,7 @@ export default class Render extends Component<void, Props, State> {
 
         <Box style={paperKeyContainerStyle}>
           <Text type='Body' style={paperkeyStyle}>{this.props.paperkey.stringValue()}</Text>
-          <Icon type='paper-key-corner' style={paperCornerStyle} />
+          <Icon type='icon-paper-key-corner' style={paperCornerStyle} />
         </Box>
 
         <Box style={confirmCheckboxStyle}>

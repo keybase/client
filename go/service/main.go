@@ -8,7 +8,6 @@ import (
 	"io"
 	"net"
 	"os"
-	"path"
 	"runtime"
 	"time"
 
@@ -221,14 +220,14 @@ func (d *Service) ensureRuntimeDir() (string, error) {
 // If the daemon is already running, we need to be able to check what version
 // it is, in case the client has been updated.
 func (d *Service) writeServiceInfo() error {
-	runtimeDir, err := d.ensureRuntimeDir()
+	_, err := d.ensureRuntimeDir()
 	if err != nil {
 		return err
 	}
 
 	// Write runtime info file
 	rtInfo := libkb.KeybaseServiceInfo(d.G())
-	return rtInfo.WriteFile(path.Join(runtimeDir, "keybased.info"))
+	return rtInfo.WriteFile(d.G().Env.GetServiceInfoPath())
 }
 
 func (d *Service) checkTrackingEveryHour() {

@@ -468,16 +468,17 @@ func (s *SQLEngine) rowToInBandMessage(u gregor.UID, rows *sql.Rows) (gregor.InB
 	category := categoryScanner{o: s.objFactory}
 	body := bodyScanner{o: s.objFactory}
 	dCategory := categoryScanner{o: s.objFactory}
-	var dTime timeScanner
+	var itemDTime, dTime timeScanner
 	dMsgID := msgIDScanner{o: s.objFactory}
 
-	if err := rows.Scan(&msgID, &devID, &ctime, &mtype, &category, &body, &dCategory, &dTime, &dMsgID); err != nil {
+	if err := rows.Scan(&msgID, &devID, &ctime, &mtype, &category, &body, &itemDTime, &dCategory, &dTime, &dMsgID); err != nil {
 		return nil, err
 	}
 
 	switch {
 	case category.IsSet():
-		i, err := s.objFactory.MakeItem(u, msgID.MsgID(), devID.DeviceID(), ctime.Time(), category.Category(), nil, body.Body())
+		i, err := s.objFactory.MakeItem(u, msgID.MsgID(), devID.DeviceID(), ctime.Time(), category.Category(),
+			itemDTime.TimeOrNil(), body.Body())
 		if err != nil {
 			return nil, err
 		}
@@ -525,20 +526,29 @@ func (s *SQLEngine) LatestCTime(u gregor.UID, d gregor.DeviceID) *time.Time {
 	return ctime.TimeOrNil()
 }
 
+func (s *SQLEngine) isDismissed(msg gregor.InBandMessage, c time.Time) bool {
+	if update := msg.ToStateUpdateMessage(); update != nil {
+		if creation := update.Creation(); creation != nil {
+			if dtime := creation.DTime(); dtime != nil {
+				return dtime.Before(c)
+			}
+		}
+	}
+	return false
+}
+
 func (s *SQLEngine) InBandMessagesSince(u gregor.UID, d gregor.DeviceID, t time.Time) ([]gregor.InBandMessage, error) {
 	qry := `SELECT m.msgid, m.devid, m.ctime, m.mtype,
-               i.category, i.body,
+               i.category, i.body, i.dtime,
                dt.category, dt.dtime,
                di.dmsgid
 	        FROM gregor_messages AS m
 	        LEFT JOIN gregor_items AS i ON (m.uid=i.UID AND m.msgid=i.msgid)
 	        LEFT JOIN gregor_dismissals_by_time AS dt ON (m.uid=dt.uid AND m.msgid=dt.msgid)
 	        LEFT JOIN gregor_dismissals_by_id AS di ON (m.uid=di.uid AND m.msgid=di.msgid)
-	        WHERE m.uid=? AND (i.dtime IS NULL OR i.dtime > `
+	        WHERE m.uid=? `
 	qb := s.newQueryBuilder()
 	qb.Build(qry, hexEnc(u))
-	qb.Now()
-	qb.Build(")")
 	if d != nil {
 		qb.Build("AND (m.devid=? OR m.devid IS NULL)", hexEnc(d))
 	}
@@ -557,23 +567,26 @@ func (s *SQLEngine) InBandMessagesSince(u gregor.UID, d gregor.DeviceID, t time.
 		return nil, err
 	}
 	var ret []gregor.InBandMessage
-	lookup := make(map[string]gregor.InBandMessage)
+	allmsgs := make(map[string]gregor.InBandMessage)
 	for rows.Next() {
 		ibm, err := s.rowToInBandMessage(u, rows)
 		if err != nil {
 			return nil, err
 		}
+
 		msgIDString := hexEnc(ibm.Metadata().MsgID())
-		if ibm2 := lookup[msgIDString]; ibm2 != nil {
+		if ibm2 := allmsgs[msgIDString]; ibm2 != nil {
 			if err = ibm2.Merge(ibm); err != nil {
 				return nil, err
 			}
 		} else {
-			ret = append(ret, ibm)
-			lookup[msgIDString] = ibm
+			if !s.isDismissed(ibm, s.clock.Now()) {
+				ret = append(ret, ibm)
+			}
+			allmsgs[msgIDString] = ibm
 		}
 	}
-	return ret, nil
+	return filterFutureDismissals(ret, allmsgs, t), nil
 }
 
 func (s *SQLEngine) Reminders(maxReminders int) (gregor.ReminderSet, error) {

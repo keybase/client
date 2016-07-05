@@ -28,7 +28,7 @@ stream.once('open', () => {
   })
 
   stream.write(glyphs.join(',\n'))
-  stream.write('\n}\n\n')
+  stream.write(',\n}\n\n')
 
   stream.write('export const images = {\n')
   let images = fs.readdirSync('../shared/images/icons/')
@@ -38,7 +38,7 @@ stream.once('open', () => {
   })
 
   stream.write(images.join(',\n'))
-  stream.write('\n}\n')
+  stream.write(',\n}\n')
 
   stream.end()
 })

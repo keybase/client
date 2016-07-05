@@ -14,7 +14,7 @@ export default class Render extends Component<void, Props, void> {
       <Box key={section.name} style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[this.props.theme]}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}>
           <Box key={section.name} style={{...globalStyles.flexBoxRow, marginLeft: 8}}>
-            {section.modifiedMarker && <Icon type='fa-kb-iconfont-thunderbolt' style={{fontSize: 13, marginRight: 6, ...styleSectionTextThemed[this.props.theme]}} />}
+            {section.modifiedMarker && <Icon type='fa-kb-iconfont-thunderbolt' style={{marginRight: 6, ...styleSectionTextThemed[this.props.theme]}} />}
             <Text type='BodySmallSemibold' style={{...styleSectionTextThemed[this.props.theme]}}>{section.name}</Text>
           </Box>
         </Box>
@@ -131,7 +131,6 @@ const backgroundColorThemed = {
 const styleMenu = {
   ...globalStyles.clickable,
   alignSelf: 'center',
-  fontSize: 12,
 }
 
 const backButtonColorThemed = {
