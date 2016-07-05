@@ -87,7 +87,7 @@ export default connect(
   (state, ownProps) => ({
     ...state.tracker,
     nonUser: state.tracker.trackers[ownProps.username] && state.tracker.trackers[ownProps.username].type === 'nonUser',
-    loggedIn: state.config && state.config.status && state.config.status.loggedIn,
+    loggedIn: state.config && state.config.loggedIn,
     ...state.tracker.trackers[ownProps.username],
     ...ownProps,
   }),
@@ -113,7 +113,9 @@ export function selector (username: string): (store: Object) => ?Object {
             [username]: store.tracker.trackers[username],
           },
         },
-        config: store.config,
+        config: {
+          loggedIn: store.config.loggedIn,
+        },
       }
     }
 
