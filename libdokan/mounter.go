@@ -46,14 +46,14 @@ func (m *DefaultMounter) Mount(fs dokan.FileSystem, log logger.Logger) error {
 	var err error
 	var h *dokan.MountHandle
 	// Retry loop
-	for i := 1; true; i *= 2 {
+	for i := 8; true; i *= 2 {
 		h, err = m.mountHelper(fs)
 		// break if success, no force or too many tries.
 		if err == nil || i > 128 {
 			break
 		}
 		log.Errorf("Failed to mount dokan filesystem (i=%d): %v", i, err)
-		// Sleep two times 100ms, 200ms, 400, 800...
+		// Sleep two times 800ms, 1.6s, 3.2s, ...
 		time.Sleep(time.Duration(i) * 100 * time.Millisecond)
 		if m.force {
 			dokan.Unmount(m.dir)
