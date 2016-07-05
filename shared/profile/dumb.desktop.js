@@ -46,16 +46,16 @@ const baseFolder = {
 const folders = [
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
-      {username: 'chris'},
+      {username: 'chris', you: true},
+      {username: 'cecileb'},
     ],
     ...baseFolder,
     hasData: false,
   }),
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
-      {username: 'chris'},
+      {username: 'chris', you: true},
+      {username: 'cecileb'},
     ],
     ...baseFolder,
     isPublic: false,
@@ -63,29 +63,29 @@ const folders = [
   }),
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
-      {username: 'chris'},
+      {username: 'chris', you: true},
+      {username: 'cecileb'},
       {username: 'max'},
     ],
     ...baseFolder,
   }),
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
+      {username: 'chris', you: true},
       {username: 'max'},
     ],
     ...baseFolder,
   }),
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
+      {username: 'chris', you: true},
       {username: 'cjb'},
     ],
     ...baseFolder,
   }),
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
+      {username: 'chris', you: true},
       {username: 'chrisnojima'},
       {username: 'marcopolo'},
       {username: 'zanderz'},
@@ -95,7 +95,7 @@ const folders = [
   }),
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
+      {username: 'chris', you: true},
       {username: 'chrisnojima'},
       {username: 'marcopolo'},
     ],
