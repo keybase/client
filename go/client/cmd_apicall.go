@@ -174,7 +174,6 @@ func (c *CmdAPICall) parseJSONPayload(p string) ([]keybase1.StringKVPair, error)
 
 	var res []keybase1.StringKVPair
 	for k, v := range input {
-		c.G().Log.Warning("k: %s v: %s", k, string(v[:]))
 		res = append(res, keybase1.StringKVPair{Key: k, Value: string(v[:])})
 	}
 
