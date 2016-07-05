@@ -181,6 +181,10 @@
         {
           "type": "KeybaseTime",
           "name": "time"
+        },
+        {
+          "type": "KID",
+          "name": "by"
         }
       ]
     },

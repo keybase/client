@@ -62,6 +62,7 @@ protocol Common {
   record RevokedKey {
     PublicKey key;
     KeybaseTime time;
+    KID by;
   }
 
   record User {

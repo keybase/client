@@ -167,6 +167,7 @@ export type DeviceDetail = {
   provisioner?: ?Device;
   provisionedAt?: ?Time;
   revokedAt?: ?Time;
+  revokedBy: KID;
   currentDevice: boolean;
 }
 
@@ -911,6 +912,7 @@ export type RemoteProof = {
 export type RevokedKey = {
   key: PublicKey;
   time: KeybaseTime;
+  by: KID;
 }
 
 export type RevokedProof = {
