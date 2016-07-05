@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getJournalLength(t *testing.T, s *bserverTlfJournal) int {
-	len, err := s.journalLength()
+func getBlockJournalLength(t *testing.T, j *bserverTlfJournal) int {
+	len, err := j.journalLength()
 	require.NoError(t, err)
 	return int(len)
 }
@@ -33,11 +33,11 @@ func TestBserverTlfJournalBasic(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(1)
 	uid2 := keybase1.MakeTestUID(2)
 
-	s, err := makeBserverTlfJournal(codec, crypto, tempdir)
+	j, err := makeBserverTlfJournal(codec, crypto, tempdir)
 	require.NoError(t, err)
-	defer s.shutdown()
+	defer j.shutdown()
 
-	require.Equal(t, 0, getJournalLength(t, s))
+	require.Equal(t, 0, getBlockJournalLength(t, j))
 
 	bCtx := BlockContext{uid1, "", zeroBlockRefNonce}
 
@@ -49,12 +49,12 @@ func TestBserverTlfJournalBasic(t *testing.T) {
 	require.NoError(t, err)
 
 	// Put the block.
-	err = s.putData(bID, bCtx, data, serverHalf)
+	err = j.putData(bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
-	require.Equal(t, 1, getJournalLength(t, s))
+	require.Equal(t, 1, getBlockJournalLength(t, j))
 
 	// Make sure we get the same block back.
-	buf, key, err := s.getData(bID, bCtx)
+	buf, key, err := j.getData(bID, bCtx)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
@@ -63,31 +63,31 @@ func TestBserverTlfJournalBasic(t *testing.T) {
 	nonce, err := crypto.MakeBlockRefNonce()
 	require.NoError(t, err)
 	bCtx2 := BlockContext{uid1, uid2, nonce}
-	err = s.addReference(bID, bCtx2)
+	err = j.addReference(bID, bCtx2)
 	require.NoError(t, err)
-	require.Equal(t, 2, getJournalLength(t, s))
+	require.Equal(t, 2, getBlockJournalLength(t, j))
 
 	// Make sure we get the same block via that reference.
-	buf, key, err = s.getData(bID, bCtx2)
+	buf, key, err = j.getData(bID, bCtx2)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
 	// Shutdown and restart.
-	s.shutdown()
-	s, err = makeBserverTlfJournal(codec, crypto, tempdir)
+	j.shutdown()
+	j, err = makeBserverTlfJournal(codec, crypto, tempdir)
 	require.NoError(t, err)
 
-	require.Equal(t, 2, getJournalLength(t, s))
+	require.Equal(t, 2, getBlockJournalLength(t, j))
 
 	// Make sure we get the same block for both refs.
 
-	buf, key, err = s.getData(bID, bCtx)
+	buf, key, err = j.getData(bID, bCtx)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
-	buf, key, err = s.getData(bID, bCtx2)
+	buf, key, err = j.getData(bID, bCtx2)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
@@ -107,11 +107,11 @@ func TestBserverTlfJournalRemoveReferences(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(1)
 	uid2 := keybase1.MakeTestUID(2)
 
-	s, err := makeBserverTlfJournal(codec, crypto, tempdir)
+	j, err := makeBserverTlfJournal(codec, crypto, tempdir)
 	require.NoError(t, err)
-	defer s.shutdown()
+	defer j.shutdown()
 
-	require.Equal(t, 0, getJournalLength(t, s))
+	require.Equal(t, 0, getBlockJournalLength(t, j))
 
 	bCtx := BlockContext{uid1, "", zeroBlockRefNonce}
 
@@ -123,28 +123,28 @@ func TestBserverTlfJournalRemoveReferences(t *testing.T) {
 	require.NoError(t, err)
 
 	// Put the block.
-	err = s.putData(bID, bCtx, data, serverHalf)
+	err = j.putData(bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
-	require.Equal(t, 1, getJournalLength(t, s))
+	require.Equal(t, 1, getBlockJournalLength(t, j))
 
 	// Add a reference.
 	nonce, err := crypto.MakeBlockRefNonce()
 	require.NoError(t, err)
 	bCtx2 := BlockContext{uid1, uid2, nonce}
-	err = s.addReference(bID, bCtx2)
+	err = j.addReference(bID, bCtx2)
 	require.NoError(t, err)
-	require.Equal(t, 2, getJournalLength(t, s))
+	require.Equal(t, 2, getBlockJournalLength(t, j))
 
 	// Remove references.
-	liveCount, err := s.removeReferences(bID, []BlockContext{bCtx, bCtx2})
+	liveCount, err := j.removeReferences(bID, []BlockContext{bCtx, bCtx2})
 	require.NoError(t, err)
 	require.Equal(t, 0, liveCount)
-	require.Equal(t, 3, getJournalLength(t, s))
+	require.Equal(t, 3, getBlockJournalLength(t, j))
 
 	// Add reference back, which should error.
-	err = s.addReference(bID, bCtx2)
+	err = j.addReference(bID, bCtx2)
 	require.IsType(t, BServerErrorBlockArchived{}, err)
-	require.Equal(t, 3, getJournalLength(t, s))
+	require.Equal(t, 3, getBlockJournalLength(t, j))
 }
 
 func TestBserverTlfJournalArchiveReferences(t *testing.T) {
@@ -161,11 +161,11 @@ func TestBserverTlfJournalArchiveReferences(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(1)
 	uid2 := keybase1.MakeTestUID(2)
 
-	s, err := makeBserverTlfJournal(codec, crypto, tempdir)
+	j, err := makeBserverTlfJournal(codec, crypto, tempdir)
 	require.NoError(t, err)
-	defer s.shutdown()
+	defer j.shutdown()
 
-	require.Equal(t, 0, getJournalLength(t, s))
+	require.Equal(t, 0, getBlockJournalLength(t, j))
 
 	bCtx := BlockContext{uid1, "", zeroBlockRefNonce}
 
@@ -177,25 +177,25 @@ func TestBserverTlfJournalArchiveReferences(t *testing.T) {
 	require.NoError(t, err)
 
 	// Put the block.
-	err = s.putData(bID, bCtx, data, serverHalf)
+	err = j.putData(bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
-	require.Equal(t, 1, getJournalLength(t, s))
+	require.Equal(t, 1, getBlockJournalLength(t, j))
 
 	// Add a reference.
 	nonce, err := crypto.MakeBlockRefNonce()
 	require.NoError(t, err)
 	bCtx2 := BlockContext{uid1, uid2, nonce}
-	err = s.addReference(bID, bCtx2)
+	err = j.addReference(bID, bCtx2)
 	require.NoError(t, err)
-	require.Equal(t, 2, getJournalLength(t, s))
+	require.Equal(t, 2, getBlockJournalLength(t, j))
 
 	// Archive references.
-	err = s.archiveReferences(bID, []BlockContext{bCtx, bCtx2})
+	err = j.archiveReferences(bID, []BlockContext{bCtx, bCtx2})
 	require.NoError(t, err)
-	require.Equal(t, 3, getJournalLength(t, s))
+	require.Equal(t, 3, getBlockJournalLength(t, j))
 
 	// Add reference back, which should error.
-	err = s.addReference(bID, bCtx2)
+	err = j.addReference(bID, bCtx2)
 	require.IsType(t, BServerErrorBlockArchived{}, err)
-	require.Equal(t, 3, getJournalLength(t, s))
+	require.Equal(t, 3, getBlockJournalLength(t, j))
 }

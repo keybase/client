@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"strconv"
 	"sync"
 )
 
@@ -21,21 +20,21 @@ import (
 //
 // The directory layout looks like:
 //
-// dir/journal/EARLIEST
-// dir/journal/LATEST
-// dir/journal/0...000
-// dir/journal/0...001
-// dir/journal/0...fff
+// dir/block_journal/EARLIEST
+// dir/block_journal/LATEST
+// dir/block_journal/0...000
+// dir/block_journal/0...001
+// dir/block_journal/0...fff
 // dir/blocks/0100/0...01/data
 // dir/blocks/0100/0...01/key_server_half
 // ...
 // dir/blocks/01ff/f...ff/data
 // dir/blocks/01ff/f...ff/key_server_half
 //
-// Each file in dir/journal is named with an ordinal and contains the
+// Each entry in the journal in dir/block_journal contains the
 // mutating operation and arguments for a single operation, except for
-// block data. The files EARLIEST and LATEST point to the earliest and
-// latest valid ordinal, respectively.
+// block data. (See diskJournal comments for more details about the
+// journal.)
 //
 // The block data is stored separately in dir/blocks. Each block has
 // its own subdirectory with its ID as a name.  The block
@@ -48,11 +47,6 @@ import (
 // ID, and key_server_half, which contains the raw data for the
 // associated key server half.
 //
-// TODO: Do all high-level operations atomically on the file-system
-// level.
-//
-// TODO: Make IO ops cancellable.
-//
 // TODO: Add a mode which doesn't assume that this is the only storage
 // for TLF data, i.e. that doesn't remove files when the (known)
 // refcount drops to zero, etc.
@@ -62,125 +56,14 @@ type bserverTlfJournal struct {
 	dir    string
 
 	// Protects any IO operations in dir or any of its children,
-	// as well as refs and isShutdown.
+	// as well as j, refs, and isShutdown.
 	//
 	// TODO: Consider using https://github.com/pkg/singlefile
 	// instead.
 	lock       sync.RWMutex
+	j          diskJournal
 	refs       map[BlockID]blockRefMap
 	isShutdown bool
-}
-
-// makeBserverTlfJournal returns a new bserverTlfJournal for the given
-// directory. Any existing journal entries are read.
-func makeBserverTlfJournal(codec Codec, crypto cryptoPure, dir string) (
-	*bserverTlfJournal, error) {
-	journal := &bserverTlfJournal{
-		codec:  codec,
-		crypto: crypto,
-		dir:    dir,
-	}
-
-	// Locking here is not strictly necessary, but do it anyway
-	// for consistency.
-	journal.lock.Lock()
-	defer journal.lock.Unlock()
-	refs, err := journal.readJournalLocked()
-	if err != nil {
-		return nil, err
-	}
-
-	journal.refs = refs
-	return journal, nil
-}
-
-// journalOrdinal is the ordinal used for naming journal entries.
-//
-// TODO: Incorporate metadata revision numbers.
-type journalOrdinal uint64
-
-func makeJournalOrdinal(s string) (journalOrdinal, error) {
-	if len(s) != 16 {
-		return 0, fmt.Errorf("invalid journal ordinal %q", s)
-	}
-	u, err := strconv.ParseUint(s, 16, 64)
-	if err != nil {
-		return 0, err
-	}
-	return journalOrdinal(u), nil
-}
-
-func (o journalOrdinal) String() string {
-	return fmt.Sprintf("%016x", uint64(o))
-}
-
-// The functions below are for building various paths for the journal.
-
-func (j *bserverTlfJournal) journalPath() string {
-	return filepath.Join(j.dir, "journal")
-}
-
-func (j *bserverTlfJournal) earliestPath() string {
-	return filepath.Join(j.journalPath(), "EARLIEST")
-}
-
-func (j *bserverTlfJournal) latestPath() string {
-	return filepath.Join(j.journalPath(), "LATEST")
-}
-
-func (j *bserverTlfJournal) journalEntryPath(o journalOrdinal) string {
-	return filepath.Join(j.journalPath(), o.String())
-}
-
-func (j *bserverTlfJournal) blocksPath() string {
-	return filepath.Join(j.dir, "blocks")
-}
-
-func (j *bserverTlfJournal) blockPath(id BlockID) string {
-	idStr := id.String()
-	return filepath.Join(j.blocksPath(), idStr[:4], idStr[4:])
-}
-
-func (j *bserverTlfJournal) blockDataPath(id BlockID) string {
-	return filepath.Join(j.blockPath(id), "data")
-}
-
-func (j *bserverTlfJournal) keyServerHalfPath(id BlockID) string {
-	return filepath.Join(j.blockPath(id), "key_server_half")
-}
-
-// The functions below are for getting and setting the earliest and
-// latest ordinals.
-
-func (j *bserverTlfJournal) readOrdinalLocked(path string) (
-	journalOrdinal, error) {
-	buf, err := ioutil.ReadFile(path)
-	if err != nil {
-		return 0, err
-	}
-	return makeJournalOrdinal(string(buf))
-}
-
-func (j *bserverTlfJournal) writeOrdinalLocked(
-	path string, o journalOrdinal) error {
-	return ioutil.WriteFile(path, []byte(o.String()), 0600)
-}
-
-func (j *bserverTlfJournal) readEarliestOrdinalLocked() (
-	journalOrdinal, error) {
-	return j.readOrdinalLocked(j.earliestPath())
-}
-
-func (j *bserverTlfJournal) writeEarliestOrdinalLocked(o journalOrdinal) error {
-	return j.writeOrdinalLocked(j.earliestPath(), o)
-}
-
-func (j *bserverTlfJournal) readLatestOrdinalLocked() (journalOrdinal, error) {
-	return j.readOrdinalLocked(j.latestPath())
-}
-
-func (j *bserverTlfJournal) writeLatestOrdinalLocked(o journalOrdinal) error {
-	return j.writeOrdinalLocked(j.latestPath(), o)
 }
 
 type bserverOpName string
@@ -203,23 +86,62 @@ type bserverJournalEntry struct {
 	Contexts []BlockContext
 }
 
+// makeBserverTlfJournal returns a new bserverTlfJournal for the given
+// directory. Any existing journal entries are read.
+func makeBserverTlfJournal(codec Codec, crypto cryptoPure, dir string) (
+	*bserverTlfJournal, error) {
+	journalPath := filepath.Join(dir, "block_journal")
+	j := makeDiskJournal(
+		codec, journalPath, reflect.TypeOf(bserverJournalEntry{}))
+	journal := &bserverTlfJournal{
+		codec:  codec,
+		crypto: crypto,
+		dir:    dir,
+		j:      j,
+	}
+
+	// Locking here is not strictly necessary, but do it anyway
+	// for consistency.
+	journal.lock.Lock()
+	defer journal.lock.Unlock()
+	refs, err := journal.readJournalLocked()
+	if err != nil {
+		return nil, err
+	}
+
+	journal.refs = refs
+	return journal, nil
+}
+
+// The functions below are for building various non-journal paths.
+
+func (j *bserverTlfJournal) blocksPath() string {
+	return filepath.Join(j.dir, "blocks")
+}
+
+func (j *bserverTlfJournal) blockPath(id BlockID) string {
+	idStr := id.String()
+	return filepath.Join(j.blocksPath(), idStr[:4], idStr[4:])
+}
+
+func (j *bserverTlfJournal) blockDataPath(id BlockID) string {
+	return filepath.Join(j.blockPath(id), "data")
+}
+
+func (j *bserverTlfJournal) keyServerHalfPath(id BlockID) string {
+	return filepath.Join(j.blockPath(id), "key_server_half")
+}
+
 // The functions below are for reading and writing journal entries.
 
 func (j *bserverTlfJournal) readJournalEntryLocked(o journalOrdinal) (
 	bserverJournalEntry, error) {
-	p := j.journalEntryPath(o)
-	buf, err := ioutil.ReadFile(p)
+	entry, err := j.j.readJournalEntry(o)
 	if err != nil {
 		return bserverJournalEntry{}, err
 	}
 
-	var e bserverJournalEntry
-	err = j.codec.Decode(buf, &e)
-	if err != nil {
-		return bserverJournalEntry{}, err
-	}
-
-	return e, nil
+	return entry.(bserverJournalEntry), nil
 }
 
 // readJournalLocked reads the journal and returns a map of all the
@@ -228,13 +150,13 @@ func (j *bserverTlfJournal) readJournalLocked() (
 	map[BlockID]blockRefMap, error) {
 	refs := make(map[BlockID]blockRefMap)
 
-	first, err := j.readEarliestOrdinalLocked()
+	first, err := j.j.readEarliestOrdinal()
 	if os.IsNotExist(err) {
 		return refs, nil
 	} else if err != nil {
 		return nil, err
 	}
-	last, err := j.readLatestOrdinalLocked()
+	last, err := j.j.readLatestOrdinal()
 	if err != nil {
 		return nil, err
 	}
@@ -279,73 +201,23 @@ func (j *bserverTlfJournal) readJournalLocked() (
 }
 
 func (j *bserverTlfJournal) writeJournalEntryLocked(
-	o journalOrdinal, e bserverJournalEntry) error {
-	err := os.MkdirAll(j.journalPath(), 0700)
-	if err != nil {
-		return err
-	}
-
-	p := j.journalEntryPath(o)
-
-	buf, err := j.codec.Encode(e)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(p, buf, 0600)
+	o journalOrdinal, entry bserverJournalEntry) error {
+	return j.j.writeJournalEntry(o, entry)
 }
 
 func (j *bserverTlfJournal) appendJournalEntryLocked(
 	op bserverOpName, id BlockID, contexts []BlockContext) error {
-	// TODO: Consider caching the latest ordinal in memory instead
-	// of reading it from disk every time.
-	var next journalOrdinal
-	o, err := j.readLatestOrdinalLocked()
-	if os.IsNotExist(err) {
-		next = 0
-	} else if err != nil {
-		return err
-	} else {
-		next = o + 1
-		if next == 0 {
-			// Rollover is almost certainly a bug.
-			return fmt.Errorf("Ordinal rollover for (%s, %s, %v)",
-				op, id, contexts)
-		}
-	}
-
-	err = j.writeJournalEntryLocked(next, bserverJournalEntry{
+	return j.j.appendJournalEntry(nil, bserverJournalEntry{
 		Op:       op,
 		ID:       id,
 		Contexts: contexts,
 	})
-	if err != nil {
-		return err
-	}
-
-	_, err = j.readEarliestOrdinalLocked()
-	if os.IsNotExist(err) {
-		j.writeEarliestOrdinalLocked(next)
-	} else if err != nil {
-		return err
-	}
-	return j.writeLatestOrdinalLocked(next)
 }
 
 func (j *bserverTlfJournal) journalLength() (uint64, error) {
 	j.lock.RLock()
 	defer j.lock.RUnlock()
-	first, err := j.readEarliestOrdinalLocked()
-	if os.IsNotExist(err) {
-		return 0, nil
-	} else if err != nil {
-		return 0, err
-	}
-	last, err := j.readLatestOrdinalLocked()
-	if err != nil {
-		return 0, err
-	}
-	return uint64(last - first + 1), nil
+	return j.j.journalLength()
 }
 
 func (j *bserverTlfJournal) getRefEntryLocked(

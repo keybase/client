@@ -5,8 +5,6 @@
 package libkbfs
 
 import (
-	"bytes"
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -14,43 +12,70 @@ import (
 	"path/filepath"
 	"sync"
 
-	"golang.org/x/net/context"
-
-	"github.com/syndtr/goleveldb/leveldb"
-	"github.com/syndtr/goleveldb/leveldb/util"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
+// mdServerTlfStorage stores an ordered list of metadata IDs for each
+// branch of a single TLF, along with the associated metadata objects,
+// in flat files on disk.
+//
+// The directory layout looks like:
+//
+// dir/md_branch_journals/00..00/EARLIEST
+// dir/md_branch_journals/00..00/LATEST
+// dir/md_branch_journals/00..00/0...001
+// dir/md_branch_journals/00..00/0...002
+// dir/md_branch_journals/00..00/0...fff
+// dir/md_branch_journals/5f..3d/EARLIEST
+// dir/md_branch_journals/5f..3d/LATEST
+// dir/md_branch_journals/5f..3d/0...0ff
+// dir/md_branch_journals/5f..3d/0...100
+// dir/md_branch_journals/5f..3d/0...fff
+// dir/mds/0100/0...01
+// ...
+// dir/mds/01ff/f...ff
+//
+// Each branch has its own subdirectory with a journal; the journal
+// ordinals are just MetadataRevisions, and the journal entries are
+// just MdIDs. (Branches are usually temporary, so no need to splay
+// them.)
+//
+// The Metadata objects are stored separately in dir/mds. Each block
+// has its own subdirectory with its ID as a name. The MD
+// subdirectories are splayed over (# of possible hash types) * 256
+// subdirectories -- one byte for the hash type (currently only one)
+// plus the first byte of the hash data -- using the first four
+// characters of the name to keep the number of directories in dir
+// itself to a manageable number, similar to git.
 type mdServerTlfStorage struct {
 	codec  Codec
 	crypto cryptoPure
 	dir    string
 
 	// Protects any IO operations in dir or any of its children,
-	// as well all the DBs and isShutdown.
+	// as well as branchJournals and its contents.
 	//
 	// TODO: Consider using https://github.com/pkg/singlefile
 	// instead.
-	lock sync.RWMutex
-
-	// TODO: Replace idDb below with a journal.
-	idDb *leveldb.DB // [branchId]+[revision] -> MdID
-
-	isShutdown bool
+	lock           sync.RWMutex
+	branchJournals map[BranchID]mdServerBranchJournal
 }
 
-func makeMDServerTlfStorage(codec Codec, crypto cryptoPure, dir string) (
-	*mdServerTlfStorage, error) {
-	idDb, err := leveldb.OpenFile(
-		filepath.Join(dir, "md_id"), leveldbOptions)
-	if err != nil {
-		return nil, err
+func makeMDServerTlfStorage(
+	codec Codec, crypto cryptoPure, dir string) *mdServerTlfStorage {
+	journal := &mdServerTlfStorage{
+		codec:          codec,
+		crypto:         crypto,
+		dir:            dir,
+		branchJournals: make(map[BranchID]mdServerBranchJournal),
 	}
-	return &mdServerTlfStorage{
-		codec:  codec,
-		crypto: crypto,
-		dir:    dir,
-		idDb:   idDb,
-	}, nil
+	return journal
+}
+
+// The functions below are for building various paths.
+
+func (s *mdServerTlfStorage) branchJournalsPath() string {
+	return filepath.Join(s.dir, "md_branch_journals")
 }
 
 func (s *mdServerTlfStorage) mdsPath() string {
@@ -66,7 +91,8 @@ func (s *mdServerTlfStorage) mdPath(id MdID) string {
 // given ID and returns it.
 //
 // TODO: Verify signature?
-func (s *mdServerTlfStorage) getMDLocked(id MdID) (*RootMetadataSigned, error) {
+func (s *mdServerTlfStorage) getMDReadLocked(id MdID) (
+	*RootMetadataSigned, error) {
 	// Read file.
 
 	path := s.mdPath(id)
@@ -109,7 +135,7 @@ func (s *mdServerTlfStorage) putMDLocked(rmds *RootMetadataSigned) error {
 		return err
 	}
 
-	_, err = s.getMDLocked(id)
+	_, err = s.getMDReadLocked(id)
 	if os.IsNotExist(err) {
 		// Continue on.
 	} else if err != nil {
@@ -131,74 +157,51 @@ func (s *mdServerTlfStorage) putMDLocked(rmds *RootMetadataSigned) error {
 		return err
 	}
 
-	err = ioutil.WriteFile(path, buf, 0600)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ioutil.WriteFile(path, buf, 0600)
 }
 
-func (s *mdServerTlfStorage) getMDKey(revision MetadataRevision,
-	bid BranchID) ([]byte, error) {
-	// short-cut
-	if revision == MetadataRevisionUninitialized && bid == NullBranchID {
+func (s *mdServerTlfStorage) getOrCreateBranchJournalLocked(
+	bid BranchID) (mdServerBranchJournal, error) {
+	j, ok := s.branchJournals[bid]
+	if ok {
+		return j, nil
+	}
+
+	dir := filepath.Join(s.branchJournalsPath(), bid.String())
+	err := os.MkdirAll(dir, 0700)
+	if err != nil {
+		return mdServerBranchJournal{}, err
+	}
+
+	j = makeMDServerBranchJournal(s.codec, dir)
+	s.branchJournals[bid] = j
+	return j, nil
+}
+
+func (s *mdServerTlfStorage) getHeadForTLFReadLocked(bid BranchID) (
+	rmds *RootMetadataSigned, err error) {
+	j, ok := s.branchJournals[bid]
+	if !ok {
 		return nil, nil
 	}
-	buf := &bytes.Buffer{}
-
-	// this order is significant for range fetches.  we want
-	// increments in revision number to only affect the least
-	// significant bits of the key.
-	if bid != NullBranchID {
-		// add branch ID
-		_, err := buf.Write(bid.Bytes())
-		if err != nil {
-			return nil, err
-		}
+	headID, err := j.getHead()
+	if err != nil {
+		return nil, err
 	}
-
-	if revision >= MetadataRevisionInitial {
-		// add revision
-		err := binary.Write(buf, binary.BigEndian, revision.Number())
-		if err != nil {
-			return nil, err
-		}
+	if headID == (MdID{}) {
+		return nil, nil
 	}
-	return buf.Bytes(), nil
+	return s.getMDReadLocked(headID)
 }
 
-func (s *mdServerTlfStorage) getHeadForTLFLocked(ctx context.Context,
-	bid BranchID) (rmds *RootMetadataSigned, err error) {
-	key, err := s.getMDKey(0, bid)
-	if err != nil {
-		return nil, err
-	}
-	buf, err := s.idDb.Get(key[:], nil)
-	if err != nil {
-		if err == leveldb.ErrNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-
-	id, err := MdIDFromBytes(buf)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.getMDLocked(id)
-}
-
-func (s *mdServerTlfStorage) checkGetParamsLocked(
-	ctx context.Context, kbpki KBPKI, bid BranchID) error {
-	mergedMasterHead, err := s.getHeadForTLFLocked(ctx, NullBranchID)
+func (s *mdServerTlfStorage) checkGetParamsReadLocked(
+	currentUID keybase1.UID, deviceKID keybase1.KID, bid BranchID) error {
+	mergedMasterHead, err := s.getHeadForTLFReadLocked(NullBranchID)
 	if err != nil {
 		return MDServerError{err}
 	}
 
-	// Check permissions
-	ok, err := isReader(ctx, s.codec, kbpki, mergedMasterHead)
+	ok, err := isReader(currentUID, mergedMasterHead)
 	if err != nil {
 		return MDServerError{err}
 	}
@@ -209,88 +212,108 @@ func (s *mdServerTlfStorage) checkGetParamsLocked(
 	return nil
 }
 
-func (s *mdServerTlfStorage) getRangeLocked(ctx context.Context,
-	kbpki KBPKI, bid BranchID, start, stop MetadataRevision) (
+func (s *mdServerTlfStorage) getRangeReadLocked(
+	currentUID keybase1.UID, deviceKID keybase1.KID,
+	bid BranchID, start, stop MetadataRevision) (
 	[]*RootMetadataSigned, error) {
-	err := s.checkGetParamsLocked(ctx, kbpki, bid)
+	err := s.checkGetParamsReadLocked(currentUID, deviceKID, bid)
 	if err != nil {
 		return nil, err
 	}
 
-	var rmdses []*RootMetadataSigned
-	startKey, err := s.getMDKey(start, bid)
-	if err != nil {
-		return rmdses, MDServerError{err}
-	}
-	stopKey, err := s.getMDKey(stop+1, bid)
-	if err != nil {
-		return rmdses, MDServerError{err}
+	j, ok := s.branchJournals[bid]
+	if !ok {
+		return nil, nil
 	}
 
-	iter := s.idDb.NewIterator(&util.Range{Start: startKey, Limit: stopKey}, nil)
-	defer iter.Release()
-	for iter.Next() {
-		id, err := MdIDFromBytes(iter.Value())
+	realStart, mdIDs, err := j.getRange(start, stop)
+	if err != nil {
+		return nil, err
+	}
+	var rmdses []*RootMetadataSigned
+	for i, mdID := range mdIDs {
+		expectedRevision := realStart + MetadataRevision(i)
+		rmds, err := s.getMDReadLocked(mdID)
 		if err != nil {
 			return nil, MDServerError{err}
 		}
-
-		rmds, err := s.getMDLocked(id)
-		if err != nil {
-			return rmdses, MDServerError{err}
+		if expectedRevision != rmds.MD.Revision {
+			panic(fmt.Errorf("expected revision %v, got %v",
+				expectedRevision, rmds.MD.Revision))
 		}
 		rmdses = append(rmdses, rmds)
 	}
-	if err := iter.Error(); err != nil {
-		return rmdses, MDServerError{err}
-	}
 
 	return rmdses, nil
+}
+
+func (s *mdServerTlfStorage) isShutdownReadLocked() bool {
+	return s.branchJournals == nil
 }
 
 // All functions below are public functions.
 
 var errMDServerTlfStorageShutdown = errors.New("mdServerTlfStorage is shutdown")
 
-func (s *mdServerTlfStorage) getForTLF(ctx context.Context,
-	kbpki KBPKI, bid BranchID) (*RootMetadataSigned, error) {
+func (s *mdServerTlfStorage) journalLength(bid BranchID) (uint64, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	if s.isShutdown {
+	if s.isShutdownReadLocked() {
+		return 0, errMDServerTlfStorageShutdown
+	}
+
+	j, ok := s.branchJournals[bid]
+	if !ok {
+		return 0, nil
+	}
+
+	return j.journalLength()
+}
+
+func (s *mdServerTlfStorage) getForTLF(
+	currentUID keybase1.UID, deviceKID keybase1.KID,
+	bid BranchID) (*RootMetadataSigned, error) {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	if s.isShutdownReadLocked() {
 		return nil, errMDServerTlfStorageShutdown
 	}
 
-	err := s.checkGetParamsLocked(ctx, kbpki, bid)
+	err := s.checkGetParamsReadLocked(currentUID, deviceKID, bid)
 	if err != nil {
 		return nil, err
 	}
 
-	rmds, err := s.getHeadForTLFLocked(ctx, bid)
+	rmds, err := s.getHeadForTLFReadLocked(bid)
 	if err != nil {
 		return nil, MDServerError{err}
 	}
 	return rmds, nil
 }
 
-func (s *mdServerTlfStorage) getRange(ctx context.Context,
-	kbpki KBPKI, bid BranchID, start, stop MetadataRevision) (
+func (s *mdServerTlfStorage) getRange(
+	currentUID keybase1.UID, deviceKID keybase1.KID,
+	bid BranchID, start, stop MetadataRevision) (
 	[]*RootMetadataSigned, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
-	if s.isShutdown {
+	if s.isShutdownReadLocked() {
 		return nil, errMDServerTlfStorageShutdown
 	}
 
-	return s.getRangeLocked(ctx, kbpki, bid, start, stop)
+	return s.getRangeReadLocked(currentUID, deviceKID, bid, start, stop)
 }
 
-func (s *mdServerTlfStorage) put(ctx context.Context, kbpki KBPKI, rmds *RootMetadataSigned) (recordBranchID bool, err error) {
+func (s *mdServerTlfStorage) put(
+	currentUID keybase1.UID, deviceKID keybase1.KID,
+	rmds *RootMetadataSigned) (recordBranchID bool, err error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
-	if s.isShutdown {
+	if s.isShutdownReadLocked() {
 		return false, errMDServerTlfStorageShutdown
 	}
 
@@ -301,14 +324,15 @@ func (s *mdServerTlfStorage) put(ctx context.Context, kbpki KBPKI, rmds *RootMet
 		return false, MDServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
 
-	mergedMasterHead, err := s.getHeadForTLFLocked(ctx, NullBranchID)
+	// Check permissions
+
+	mergedMasterHead, err := s.getHeadForTLFReadLocked(NullBranchID)
 	if err != nil {
 		return false, MDServerError{err}
 	}
 
-	// Check permissions
 	ok, err := isWriterOrValidRekey(
-		ctx, s.codec, kbpki, mergedMasterHead, rmds)
+		s.codec, currentUID, mergedMasterHead, rmds)
 	if err != nil {
 		return false, MDServerError{err}
 	}
@@ -316,7 +340,7 @@ func (s *mdServerTlfStorage) put(ctx context.Context, kbpki KBPKI, rmds *RootMet
 		return false, MDServerErrorUnauthorized{}
 	}
 
-	head, err := s.getHeadForTLFLocked(ctx, bid)
+	head, err := s.getHeadForTLFReadLocked(bid)
 	if err != nil {
 		return false, MDServerError{err}
 	}
@@ -324,8 +348,8 @@ func (s *mdServerTlfStorage) put(ctx context.Context, kbpki KBPKI, rmds *RootMet
 	if mStatus == Unmerged && head == nil {
 		// currHead for unmerged history might be on the main branch
 		prevRev := rmds.MD.Revision - 1
-		rmdses, err := s.getRangeLocked(
-			ctx, kbpki, NullBranchID, prevRev, prevRev)
+		rmdses, err := s.getRangeReadLocked(
+			currentUID, deviceKID, NullBranchID, prevRev, prevRev)
 		if err != nil {
 			return false, MDServerError{err}
 		}
@@ -356,25 +380,12 @@ func (s *mdServerTlfStorage) put(ctx context.Context, kbpki KBPKI, rmds *RootMet
 		return false, MDServerError{err}
 	}
 
-	// Wrap writes in a batch
-	batch := new(leveldb.Batch)
-
-	// Add an entry with the revision key.
-	revKey, err := s.getMDKey(rmds.MD.Revision, bid)
+	j, err := s.getOrCreateBranchJournalLocked(bid)
 	if err != nil {
-		return false, MDServerError{err}
+		return false, err
 	}
-	batch.Put(revKey, id.Bytes())
 
-	// Add an entry with the head key.
-	headKey, err := s.getMDKey(MetadataRevisionUninitialized, bid)
-	if err != nil {
-		return false, MDServerError{err}
-	}
-	batch.Put(headKey, id.Bytes())
-
-	// Write the batch.
-	err = s.idDb.Write(batch, nil)
+	err = j.append(rmds.MD.Revision, id)
 	if err != nil {
 		return false, MDServerError{err}
 	}
@@ -385,14 +396,5 @@ func (s *mdServerTlfStorage) put(ctx context.Context, kbpki KBPKI, rmds *RootMet
 func (s *mdServerTlfStorage) shutdown() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-
-	if s.isShutdown {
-		return
-	}
-	s.isShutdown = true
-
-	if s.idDb != nil {
-		s.idDb.Close()
-		s.idDb = nil
-	}
+	s.branchJournals = nil
 }

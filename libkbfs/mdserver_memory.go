@@ -156,15 +156,20 @@ func (md *MDServerMemory) checkGetParams(
 		return NullBranchID, MDServerErrorBadRequest{Reason: "Invalid branch ID"}
 	}
 
+	// Check permissions
+
 	mergedMasterHead, err :=
 		md.getHeadForTLF(ctx, id, NullBranchID, Merged)
 	if err != nil {
 		return NullBranchID, MDServerError{err}
 	}
 
-	// Check permissions
-	ok, err := isReader(
-		ctx, md.config.Codec(), md.config.KBPKI(), mergedMasterHead)
+	_, currentUID, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return NullBranchID, MDServerError{err}
+	}
+
+	ok, err := isReader(currentUID, mergedMasterHead)
 	if err != nil {
 		return NullBranchID, MDServerError{err}
 	}
@@ -319,16 +324,21 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 
 	id := rmds.MD.ID
 
+	// Check permissions
+
+	_, currentUID, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return MDServerError{err}
+	}
+
 	mergedMasterHead, err :=
 		md.getHeadForTLF(ctx, id, NullBranchID, Merged)
 	if err != nil {
 		return MDServerError{err}
 	}
 
-	// Check permissions
 	ok, err := isWriterOrValidRekey(
-		ctx, md.config.Codec(), md.config.KBPKI(),
-		mergedMasterHead, rmds)
+		md.config.Codec(), currentUID, mergedMasterHead, rmds)
 	if err != nil {
 		return MDServerError{err}
 	}

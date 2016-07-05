@@ -40,7 +40,8 @@ type mdServerDiskShared struct {
 	shutdownFunc func(logger.Logger)
 }
 
-// MDServerDisk stores all info on disk.
+// MDServerDisk stores all info on disk, either in levelDBs, or disk
+// journals and flat files for the actual MDs.
 type MDServerDisk struct {
 	config Config
 	log    logger.Logger
@@ -131,11 +132,8 @@ func (md *MDServerDisk) getStorage(tlfID TlfID) (*mdServerTlfStorage, error) {
 	}
 
 	path := filepath.Join(md.dirPath, tlfID.String())
-	storage, err = makeMDServerTlfStorage(
+	storage = makeMDServerTlfStorage(
 		md.config.Codec(), md.config.Crypto(), path)
-	if err != nil {
-		return nil, err
-	}
 
 	md.tlfStorage[tlfID] = storage
 	return storage, nil
@@ -314,12 +312,22 @@ func (md *MDServerDisk) GetForTLF(ctx context.Context, id TlfID,
 		}
 	}
 
+	_, currentUID, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return nil, MDServerError{err}
+	}
+
+	key, err := md.config.KBPKI().GetCurrentCryptPublicKey(ctx)
+	if err != nil {
+		return nil, MDServerError{err}
+	}
+
 	tlfStorage, err := md.getStorage(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return tlfStorage.getForTLF(ctx, md.config.KBPKI(), bid)
+	return tlfStorage.getForTLF(currentUID, key.kid, bid)
 }
 
 // GetRange implements the MDServer interface for MDServerDisk.
@@ -340,22 +348,42 @@ func (md *MDServerDisk) GetRange(ctx context.Context, id TlfID,
 		}
 	}
 
+	_, currentUID, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return nil, MDServerError{err}
+	}
+
+	key, err := md.config.KBPKI().GetCurrentCryptPublicKey(ctx)
+	if err != nil {
+		return nil, MDServerError{err}
+	}
+
 	tlfStorage, err := md.getStorage(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return tlfStorage.getRange(ctx, md.config.KBPKI(), bid, start, stop)
+	return tlfStorage.getRange(currentUID, key.kid, bid, start, stop)
 }
 
 // Put implements the MDServer interface for MDServerDisk.
 func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned) error {
+	_, currentUID, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return MDServerError{err}
+	}
+
+	key, err := md.config.KBPKI().GetCurrentCryptPublicKey(ctx)
+	if err != nil {
+		return MDServerError{err}
+	}
+
 	tlfStorage, err := md.getStorage(rmds.MD.ID)
 	if err != nil {
 		return err
 	}
 
-	recordBranchID, err := tlfStorage.put(ctx, md.config.KBPKI(), rmds)
+	recordBranchID, err := tlfStorage.put(currentUID, key.kid, rmds)
 	if err != nil {
 		return err
 	}
