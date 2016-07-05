@@ -17,14 +17,7 @@ const getIcon = () => { // eslint-disable-line arrow-parens
     platform = 'windows-'
   }
 
-  switch (iconType) {
-    case 'regular':
-      return resolveImage('menubarIcon', `icon-${platform}keybase-dog-regular-${color}-22${devMode}@2x.png`)
-    case 'update':
-      return resolveImage('menubarIcon', `icon-${platform}keybase-dog-update-${color}-22${devMode}@2x.png`)
-    case 'badged':
-      return resolveImage('menubarIcon', `icon-${platform}keybase-dog-badged-${color}-22${devMode}@2x.png`)
-  }
+  return resolveImage('menubarIcon', `icon-${platform}keybase-dog-${iconType}-${color}-22${devMode}@2x.png`)
 }
 
 export default function () {
