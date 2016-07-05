@@ -52,7 +52,7 @@ export default class MultiLineInput extends Component<void, Props, State> {
           onKeyUp={e => this._handleKeyUp(e)}
           onKeyDown={e => this._handleKeyDown(e)}
           type='HeaderBig'>type</Text>
-        {this.props.errorText && <Text style={errorTextStyle} type='Error'>{this.props.errorText}</Text>}
+        {this.props.errorText && <Text style={{...errorTextStyle, ...this.props.errorStyle}} type='Error'>{this.props.errorText}</Text>}
         <div style={underlineStyle}></div>
       </div>
     )

@@ -40,16 +40,10 @@ npm run watch
 
 #### iOS
 
-Install cocoapods:
+Build the go keybaselib
 
 ```sh
-sudo gem install cocoapods
-```
-
-Build and install dependencies:
-
-```sh
-npm run build-ios
+npm run gobuild-ios
 ```
 
 Open workspace (not xcodeproj):

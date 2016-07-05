@@ -260,6 +260,10 @@ func (p CommandLine) GetMountDir() string {
 	return p.GetGString("mountdir")
 }
 
+func (p CommandLine) GetAppStartMode() string {
+	return p.GetGString("app-start-mode")
+}
+
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
 	if glbl {
@@ -314,109 +318,37 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 	app.Usage = "Keybase command line client."
 
 	app.Flags = []cli.Flag{
-		cli.StringFlag{
-			Name:  "home, H",
-			Usage: "Specify an (alternate) home directory.",
+		cli.BoolFlag{
+			Name:  "api-dump-unsafe",
+			Usage: "Dump API call internals (may leak secrets).",
 		},
 		cli.StringFlag{
-			Name:  "server, s",
-			Usage: "Specify server API.",
-		},
-		cli.StringFlag{
-			Name:  "config-file, c",
-			Usage: "Specify an (alternate) master config file.",
-		},
-		cli.StringFlag{
-			Name:  "updater-config-file",
-			Usage: "Specify a path to the updater config file",
-		},
-		cli.StringFlag{
-			Name:  "session-file",
-			Usage: "Specify an alternate session data file.",
-		},
-		cli.StringFlag{
-			Name:  "db",
-			Usage: "Specify an alternate local DB location.",
+			Name:  "api-timeout",
+			Usage: "set the HTTP timeout for API calls to the keybase API server",
 		},
 		cli.StringFlag{
 			Name:  "api-uri-path-prefix",
 			Usage: "Specify an alternate API URI path prefix.",
 		},
 		cli.StringFlag{
-			Name:  "push-server-uri",
-			Usage: "specify a URI for contacting the Keybase push server",
-		},
-		cli.BoolFlag{
-			Name:  "push-disabled",
-			Usage: "disable push server connection (which is on by default)",
-		},
-		cli.IntFlag{
-			Name:  "push-save-interval",
-			Usage: "set the interval between saves of the push cache (in seconds)",
-		},
-		cli.StringFlag{
-			Name:  "pinentry",
-			Usage: "Specify a path to find a pinentry program.",
-		},
-		cli.StringFlag{
-			Name:  "secret-keyring",
-			Usage: "Location of the Keybase secret-keyring (P3SKB-encoded).",
-		},
-		cli.StringFlag{
-			Name:  "socket-file",
-			Usage: "Location of the keybased socket-file.",
-		},
-		cli.StringFlag{
-			Name:  "pid-file",
-			Usage: "Location of the keybased pid-file (to ensure only one running daemon).",
-		},
-		cli.StringFlag{
-			Name:  "proxy",
-			Usage: "Specify an HTTP(s) proxy to ship all Web requests over.",
-		},
-		cli.BoolFlag{
-			Name:  "debug, d",
-			Usage: "Enable debugging mode.",
-		},
-		cli.BoolFlag{
-			Name:  "no-debug",
-			Usage: "Suppress debugging mode; takes precedence over --debug.",
-		},
-		cli.StringFlag{
-			Name:  "vdebug",
-			Usage: "Verbose debugging; takes a comma-joined list of levels and tags",
-		},
-		cli.StringFlag{
-			Name:  "run-mode",
-			Usage: "Run mode (devel, staging, prod).", // These are defined in libkb/constants.go
-		},
-		cli.StringFlag{
-			Name:  "log-format",
-			Usage: "Log format (default, plain, file, fancy).",
-		},
-		cli.StringFlag{
-			Name:  "pgpdir, gpgdir",
-			Usage: "Specify a PGP directory (default is ~/.gnupg).",
-		},
-		cli.BoolFlag{
-			Name:  "api-dump-unsafe",
-			Usage: "Dump API call internals (may leak secrets).",
-		},
-		cli.StringFlag{
-			Name:  "merkle-kids",
-			Usage: "Set of admissable Merkle Tree fingerprints (colon-separated).",
+			Name:  "app-start-mode",
+			Usage: "Specify 'service' to auto-start UI app, or anything else to disable",
 		},
 		cli.StringFlag{
 			Name:  "code-signing-kids",
 			Usage: "Set of code signing key IDs (colon-separated).",
 		},
-		cli.IntFlag{
-			Name:  "user-cache-size",
-			Usage: "Number of User entries to cache.",
+		cli.StringFlag{
+			Name:  "config-file, c",
+			Usage: "Specify an (alternate) master config file.",
 		},
-		cli.IntFlag{
-			Name:  "proof-cache-size",
-			Usage: "Number of proof entries to cache.",
+		cli.StringFlag{
+			Name:  "db",
+			Usage: "Specify an alternate local DB location.",
+		},
+		cli.BoolFlag{
+			Name:  "debug, d",
+			Usage: "Enable debugging mode.",
 		},
 		cli.StringFlag{
 			Name:  "gpg",
@@ -426,9 +358,9 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "gpg-options",
 			Usage: "Options to use when calling GPG.",
 		},
-		cli.BoolFlag{
-			Name:  "standalone",
-			Usage: "Use the client without any daemon support.",
+		cli.StringFlag{
+			Name:  "home, H",
+			Usage: "Specify an (alternate) home directory.",
 		},
 		cli.StringFlag{
 			Name:  "local-rpc-debug-unsafe",
@@ -439,16 +371,84 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Specify a log file for the keybase service.",
 		},
 		cli.StringFlag{
-			Name:  "timers",
-			Usage: "Specify 'a' for API; 'r' for RPCs; and 'x' for eXternal API calls",
+			Name:  "log-format",
+			Usage: "Log format (default, plain, file, fancy).",
+		},
+		cli.StringFlag{
+			Name:  "merkle-kids",
+			Usage: "Set of admissable Merkle Tree fingerprints (colon-separated).",
+		},
+		cli.BoolFlag{
+			Name:  "no-debug",
+			Usage: "Suppress debugging mode; takes precedence over --debug.",
+		},
+		cli.StringFlag{
+			Name:  "pgpdir, gpgdir",
+			Usage: "Specify a PGP directory (default is ~/.gnupg).",
+		},
+		cli.StringFlag{
+			Name:  "pinentry",
+			Usage: "Specify a path to find a pinentry program.",
+		},
+		cli.StringFlag{
+			Name:  "pid-file",
+			Usage: "Location of the keybased pid-file (to ensure only one running daemon).",
+		},
+		cli.IntFlag{
+			Name:  "proof-cache-size",
+			Usage: "Number of proof entries to cache.",
+		},
+		cli.StringFlag{
+			Name:  "proxy",
+			Usage: "Specify an HTTP(s) proxy to ship all Web requests over.",
+		},
+		cli.BoolFlag{
+			Name:  "push-disabled",
+			Usage: "Disable push server connection (which is on by default)",
+		},
+		cli.IntFlag{
+			Name:  "push-save-interval",
+			Usage: "Set the interval between saves of the push cache (in seconds)",
+		},
+		cli.StringFlag{
+			Name:  "push-server-uri",
+			Usage: "Specify a URI for contacting the Keybase push server",
+		},
+		cli.StringFlag{
+			Name:  "run-mode",
+			Usage: "Run mode (devel, staging, prod).", // These are defined in libkb/constants.go
 		},
 		cli.StringFlag{
 			Name:  "scraper-timeout",
 			Usage: "set the HTTP timeout for external proof scrapers",
 		},
 		cli.StringFlag{
-			Name:  "api-timeout",
-			Usage: "set the HTTP timeout for API calls to the keybase API server",
+			Name:  "secret-keyring",
+			Usage: "Location of the Keybase secret-keyring (P3SKB-encoded).",
+		},
+		cli.StringFlag{
+			Name:  "server, s",
+			Usage: "Specify server API.",
+		},
+		cli.StringFlag{
+			Name:  "session-file",
+			Usage: "Specify an alternate session data file.",
+		},
+		cli.StringFlag{
+			Name:  "socket-file",
+			Usage: "Location of the keybased socket-file.",
+		},
+		cli.BoolFlag{
+			Name:  "standalone",
+			Usage: "Use the client without any daemon support.",
+		},
+		cli.StringFlag{
+			Name:  "timers",
+			Usage: "Specify 'a' for API; 'r' for RPCs; and 'x' for eXternal API calls",
+		},
+		cli.StringFlag{
+			Name:  "tor-hidden-address",
+			Usage: fmt.Sprintf("set TOR address of keybase server; defaults to %s", libkb.TorServerURI),
 		},
 		cli.StringFlag{
 			Name:  "tor-mode",
@@ -459,8 +459,16 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: fmt.Sprintf("set TOR proxy; when Tor mode is on; defaults to %s when TOR is enabled", libkb.TorProxy),
 		},
 		cli.StringFlag{
-			Name:  "tor-hidden-address",
-			Usage: fmt.Sprintf("set TOR address of keybase server; defaults to %s", libkb.TorServerURI),
+			Name:  "updater-config-file",
+			Usage: "Specify a path to the updater config file",
+		},
+		cli.IntFlag{
+			Name:  "user-cache-size",
+			Usage: "Number of User entries to cache.",
+		},
+		cli.StringFlag{
+			Name:  "vdebug",
+			Usage: "Verbose debugging; takes a comma-joined list of levels and tags",
 		},
 	}
 	if extraFlags != nil {

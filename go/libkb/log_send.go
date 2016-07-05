@@ -22,6 +22,7 @@ type Logs struct {
 	Service string
 	Updater string
 	Start   string
+	Install string
 }
 
 // LogSendContext for LogSend
@@ -50,7 +51,7 @@ func addFile(mpart *multipart.Writer, param, filename, data string) error {
 	return nil
 }
 
-func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, startLog string) (string, error) {
+func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog string) (string, error) {
 	l.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -72,6 +73,9 @@ func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, s
 		return "", err
 	}
 	if err := addFile(mpart, "start_log_gz", "start_log.gz", startLog); err != nil {
+		return "", err
+	}
+	if err := addFile(mpart, "install_log_gz", "install_log.gz", installLog); err != nil {
 		return "", err
 	}
 
@@ -147,5 +151,8 @@ func (l *LogSendContext) LogSend(statusJSON string, numLines int) (string, error
 	l.G().Log.Debug("tailing start log %q", logs.Start)
 	startLog := tail(l.G().Log, logs.Start, numLines)
 
-	return l.post(statusJSON, kbfsLog, svcLog, desktopLog, updaterLog, startLog)
+	l.G().Log.Debug("tailing install log %q", logs.Install)
+	installLog := tail(l.G().Log, logs.Install, numLines)
+
+	return l.post(statusJSON, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog)
 }

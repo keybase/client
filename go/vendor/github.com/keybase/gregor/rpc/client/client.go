@@ -123,17 +123,72 @@ func (c *Client) syncFromTime(cli gregor1.IncomingInterface, t *time.Time) (msgs
 	return msgs, nil
 }
 
-func (c *Client) Sync(cli gregor1.IncomingInterface) ([]gregor.InBandMessage, error) {
-	msgs, err := c.syncFromTime(cli, c.sm.LatestCTime(c.user, c.device))
+func (c *Client) freshSync(cli gregor1.IncomingInterface) ([]gregor.InBandMessage, error) {
+
+	var msgs []gregor.InBandMessage
+	var err error
+
+	c.sm.Clear()
+	state, err := c.State(cli)
 	if err != nil {
-		if _, ok := err.(errHashMismatch); ok {
-			c.log.Info("Sync failure: %v\nResetting StateMachine and retrying", err)
-			c.sm.Clear()
-			msgs, err = c.syncFromTime(cli, nil)
-		}
 		return msgs, err
 	}
+	if msgs, err = c.InBandMessagesFromState(state); err != nil {
+		return msgs, err
+	}
+	if err = c.sm.InitState(state); err != nil {
+		return msgs, err
+	}
+
 	return msgs, nil
+}
+
+func (c *Client) Sync(cli gregor1.IncomingInterface) ([]gregor.InBandMessage, error) {
+	latestCtime := c.sm.LatestCTime(c.user, c.device)
+	if latestCtime == nil || latestCtime.IsZero() {
+		c.log.Debug("Sync(): fresh server sync: using State()")
+		return c.freshSync(cli)
+	} else {
+		c.log.Debug("Sync(): incremental server sync: using Sync()")
+		if msgs, err := c.syncFromTime(cli, latestCtime); err != nil {
+			if _, ok := err.(errHashMismatch); ok {
+				c.log.Info("Sync failure: %v\nResetting StateMachine and retrying", err)
+				return c.freshSync(cli)
+			}
+			return msgs, err
+		} else {
+			return msgs, nil
+		}
+	}
+}
+
+func (c *Client) InBandMessagesFromState(s gregor.State) ([]gregor.InBandMessage, error) {
+	items, err := s.Items()
+	if err != nil {
+		return nil, err
+	}
+
+	var res []gregor.InBandMessage
+	for _, i := range items {
+		if ibm, err := c.sm.ObjFactory().MakeInBandMessageFromItem(i); err == nil {
+			res = append(res, ibm)
+		}
+	}
+	return res, nil
+}
+
+func (c *Client) State(cli gregor1.IncomingInterface) (gregor.State, error) {
+	ctx, _ := context.WithTimeout(context.Background(), 5*time.Second)
+	arg := gregor1.StateArg{
+		Uid:          gregor1.UID(c.user.Bytes()),
+		Deviceid:     gregor1.DeviceID(c.device.Bytes()),
+		TimeOrOffset: gregor1.TimeOrOffset{},
+	}
+	res, err := cli.State(ctx, arg)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
 }
 
 func (c *Client) StateMachineConsumeMessage(m gregor1.Message) error {
@@ -144,8 +199,10 @@ func (c *Client) StateMachineConsumeMessage(m gregor1.Message) error {
 	// Check to see if we should save
 	select {
 	case <-c.saveTimer:
+		c.log.Debug("StateMachineConsumeMessage(): saving local state")
 		return c.Save()
 	default:
+		c.log.Debug("StateMachineConsumeMessage(): not saving local state")
 		// Plow through if the timer isn't up
 	}
 

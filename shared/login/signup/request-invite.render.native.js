@@ -14,7 +14,7 @@ export default class Render extends Component {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
         <Text style={stylesHeader} type='Header'>Request an invite code</Text>
-        <Icon style={stylesIcon} type='invite-code-m' />
+        <Icon style={stylesIcon} type='icon-invite-code-48' />
         <Input
           hintText='Your email address'
           value={this.props.email}

@@ -8,33 +8,61 @@ import type {TrackerProps} from '../tracker'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {DumbComponentMap} from '../constants/types/more'
 
-function proofGithubMaker (name): Proof {
-  return {name: 'githubuser' + name, type: 'github', id: 'githubId' + name, state: normal, meta: metaNone, humanUrl: 'github.com', profileUrl: 'http://github.com', isTracked: false}
+const proofMaker = (type, id = 'id-') => ({
+  name: type + 'user', type, id: String(id), state: normal,
+  meta: metaNone, humanUrl: '', profileUrl: '', isTracked: false,
+})
+
+const proofWeb: Proof = {...proofMaker('http'),
+  name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
+  humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
 }
-
-const proofGithub = proofGithubMaker('')
-
-const proofTwitter: Proof = {name: 'twitteruser', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com', isTracked: false}
-const proofWeb: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', type: 'http', id: 'webId', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: '', isTracked: false}
-const proofWeb1: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmor.com', type: 'http', id: 'webId1', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: '', isTracked: false}
-const proofWeb2: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmo.com', type: 'http', id: 'webId2', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: '', isTracked: false}
-const proofWeb3: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandm.com', type: 'http', id: 'webId3', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: '', isTracked: false}
-const proofWeb4: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreand.com', type: 'http', id: 'webId4', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: '', isTracked: false}
-const proofWeb5: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemorean.com', type: 'http', id: 'webId5', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: '', isTracked: false}
-const proofHN: Proof = {name: 'pg', type: 'hackernews', id: 'hnId', state: normal, meta: metaNone, humanUrl: 'news.ycombinator.com', profileUrl: 'http://news.ycombinator.com', isTracked: false}
-const proofRooter: Proof = {name: 'roooooooter', type: 'rooter', state: normal, meta: metaNone, id: 'rooterId', humanUrl: '', profileUrl: '', isTracked: false}
+const proofWeb1: Proof = {...proofMaker('http', '1'),
+  name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmor.com',
+  meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
+}
+const proofWeb2: Proof = {...proofMaker('http', '2'),
+  name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmo.com',
+  humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
+}
+const proofWeb3: Proof = {...proofMaker('http', '3'),
+  name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandm.com',
+  humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
+}
+const proofWeb4: Proof = {...proofMaker('http', '4'),
+  name: 'thelongestdomainnameintheworldandthensomeandthensomemoreand.com',
+  humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
+}
+const proofWeb5: Proof = {...proofMaker('http', '5'),
+  name: 'thelongestdomainnameintheworldandthensomeandthensomemorean.com',
+  humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
+}
+const proofGithub = proofMaker('github')
+const proofTwitter: Proof = proofMaker('twitter')
+const proofHN: Proof = proofMaker('hackernews')
+const proofReddit: Proof = proofMaker('reddit')
+const proofPgp: Proof = proofMaker('pgp')
+const proofHttps: Proof = proofMaker('https')
+const proofRooter: Proof = proofMaker('rooter')
+const proofCoinbase: Proof = proofMaker('coinbase')
+const proofDNS: Proof = proofMaker('dns')
 
 const proofsDefault: Array<Proof> = [
   proofGithub,
   proofTwitter,
+  proofHN,
+  proofRooter,
+  proofReddit,
+  proofPgp,
+  proofCoinbase,
+  proofHttps,
+  proofDNS,
   proofWeb,
   proofWeb1,
   proofWeb2,
   proofWeb3,
   proofWeb4,
   proofWeb5,
-  proofHN,
-  proofRooter,
 ]
 
 const proofsChanged: Array<Proof> = [
@@ -199,7 +227,7 @@ const propsFiveProof: TrackerProps = {
     bio: 'bio',
     location: '',
   },
-  proofs: [0, 1, 2, 3, 4].map(proofGithubMaker),
+  proofs: [0, 1, 2, 3, 4].map(id => proofMaker('github', id)),
 }
 
 const dumbMap: DumbComponentMap<Tracker> = {
@@ -212,6 +240,12 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'Only one proof': trackerPropsToRenderProps(propsOneProof),
     '5 proofs': trackerPropsToRenderProps(propsFiveProof),
     'New user': trackerPropsToRenderProps(propsNewUser),
+    'New user Scroll1': {...trackerPropsToRenderProps(propsNewUser),
+      afterMount: (c, node) => { node.querySelector('.scroll-container').scrollTop = 380 },
+    },
+    'New user Scroll2': {...trackerPropsToRenderProps(propsNewUser),
+      afterMount: (c, node) => { node.querySelector('.scroll-container').scrollTop = 620 },
+    },
     'New user, follows me': trackerPropsToRenderProps(propsNewUserFollowsYou),
     'Followed': trackerPropsToRenderProps(propsFollowing),
     'Changed/Broken proofs user you don\'t follow': trackerPropsToRenderProps({...propsChangedProofs, currentlyFollowing: false}),
@@ -220,6 +254,7 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'Unfollowed': trackerPropsToRenderProps(propsUnfollowed),
     'Barely there': trackerPropsToRenderProps(propsLessData),
     'Whatevz': trackerPropsToRenderProps(propsWhatevz),
+    'Platforms': trackerPropsToRenderProps(propsWhatevz),
   },
 }
 

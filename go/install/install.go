@@ -35,7 +35,7 @@ type Context interface {
 	GetLogDir() string
 	GetRunMode() libkb.RunMode
 	GetServiceInfoPath() string
-	GetAppStartMode() libkb.AppStartMode
+	GetAppStartMode() (libkb.AppStartMode, error)
 }
 
 // ComponentName defines a component name

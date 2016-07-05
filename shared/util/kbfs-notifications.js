@@ -14,48 +14,68 @@ type DecodedKBFSError = {
 export function decodeKBFSError (user: string, notification: FSNotification): DecodedKBFSError {
   const basedir = notification.filename.split(path.sep)[0]
   const tlf = `/keybase${getTLF(notification.publicTopLevelFolder, basedir)}`
-  const errors = {
-    [kbfsCommon.FSErrorType.accessDenied]: {
-      title: 'Keybase: Access denied',
-      body: `${user} does not have ${notification.params.mode} access to ${tlf}`,
-    },
-    [kbfsCommon.FSErrorType.userNotFound]: {
-      title: 'Keybase: User not found',
-      body: `${notification.params.username} is not a Keybase user`,
-    },
-    [kbfsCommon.FSErrorType.revokedDataDetected]: {
-      title: 'Keybase: Possibly revoked data detected',
-      body: `${tlf} was modified by a revoked or bad device. Use 'keybase log send' to file an issue with the Keybase admins.`,
-    },
-    [kbfsCommon.FSErrorType.notLoggedIn]: {
-      title: `Keybase: Permission denied in ${tlf}`,
-      body: "You are not logged into Keybase. Try 'keybase login'.",
-    },
-    [kbfsCommon.FSErrorType.timeout]: {
-      title: `Keybase: ${_.capitalize(notification.params.mode)} timeout in ${tlf}`,
-      body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
-    },
-    [kbfsCommon.FSErrorType.rekeyNeeded]: notification.params.rekeyself ? {
-      title: 'Keybase: Files need to be rekeyed',
-      body: `Please open one of your other computers to unlock ${tlf}`,
-    } : {
-      title: 'Keybase: Friends needed',
-      body: `Please ask another member of ${tlf} to open Keybase on one of their computers to unlock it for you.`,
-    },
-    [kbfsCommon.FSErrorType.badFolder]: {
-      title: 'Keybase: Bad folder',
-      body: `${notification.params.tlf} is not a Keybase folder. All folders begin with /keybase/private or /keybase/public.`,
-    },
-  }
+  switch (notification.errorType) {
+    case kbfsCommon.FSErrorType.accessDenied:
+      return {
+        title: 'Keybase: Access denied',
+        body: `${user} does not have ${notification.params.mode} access to ${tlf}`,
+      }
 
-  if (notification.errorType in errors) {
-    return errors[notification.errorType]
-  }
+    case kbfsCommon.FSErrorType.userNotFound:
+      return {
+        title: 'Keybase: User not found',
+        body: `${notification.params.username} is not a Keybase user`,
+      }
 
-  return ({
-    title: 'Keybase: KBFS error',
-    body: `${notification.status}`,
-  })
+    case kbfsCommon.FSErrorType.revokedDataDetected:
+      return {
+        title: 'Keybase: Possibly revoked data detected',
+        body: `${tlf} was modified by a revoked or bad device. Use 'keybase log send' to file an issue with the Keybase admins.`,
+      }
+
+    case kbfsCommon.FSErrorType.notLoggedIn:
+      return {
+        title: `Keybase: Permission denied in ${tlf}`,
+        body: "You are not logged into Keybase. Try 'keybase login'.",
+      }
+
+    case kbfsCommon.FSErrorType.timeout:
+      return {
+        title: `Keybase: ${_.capitalize(notification.params.mode)} timeout in ${tlf}`,
+        body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
+      }
+
+    case kbfsCommon.FSErrorType.rekeyNeeded:
+      return notification.params.rekeyself ? {
+        title: 'Keybase: Files need to be rekeyed',
+        body: `Please open one of your other computers to unlock ${tlf}`,
+      } : {
+        title: 'Keybase: Friends needed',
+        body: `Please ask another member of ${tlf} to open Keybase on one of their computers to unlock it for you.`,
+      }
+
+    case kbfsCommon.FSErrorType.badFolder:
+      return {
+        title: 'Keybase: Bad folder',
+        body: `${notification.params.tlf} is not a Keybase folder. All folders begin with /keybase/private or /keybase/public.`,
+      }
+
+    case kbfsCommon.FSErrorType.overQuota:
+      const usageBytes = parseInt(notification.params.usageBytes, 10)
+      const limitBytes = parseInt(notification.params.limitBytes, 10)
+      const usedGB = (usageBytes / 1e9).toFixed(1)
+      const usedPercent = Math.round(100 * usageBytes / limitBytes)
+      return {
+        title: 'Keybase: Out of space',
+        body: `Action needed! You are using ${usedGB}GB (${usedPercent}%) of your quota. Please delete some data.`,
+      }
+
+    default:
+      return {
+        title: 'Keybase: KBFS error',
+        body: `${notification.status}`,
+      }
+  }
 
   // This code came from the kbfs team but this isn't plumbed through the protocol. Leaving this for now
   // if (notification.errorType === kbfsCommon.FSErrorType.notImplemented) {
@@ -85,7 +105,37 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
 
 // TODO: Once we have access to the Redux store from the thread running
 // notification listeners, store the sentNotifications map in it.
-var sentNotifications = {}
+let sentNotifications = {}
+let sentError = null
+function rateLimitAllowsNotify (action, state, tlf, isError) {
+  if (!(action in sentNotifications)) {
+    sentNotifications[action] = {}
+  }
+  if (!(state in sentNotifications[action])) {
+    sentNotifications[action][state] = {}
+  }
+
+  const now = new Date()
+
+  // If we haven't notified for {action,state,tlf} or it was >20s ago, do it.
+  const MSG_DELAY = 20 * 1000
+  if (tlf in sentNotifications[action][state] && now - sentNotifications[action][state][tlf] <= MSG_DELAY) {
+    return false
+  }
+
+  // If we last displayed an error, don't replace it with another notification for 5s.
+  const ERROR_DELAY = 5 * 1000
+  if (sentError !== null && now - sentError <= ERROR_DELAY) {
+    return false
+  }
+
+  sentNotifications[action][state][tlf] = now
+  if (isError) {
+    sentError = now
+  }
+
+  return true
+}
 
 export function kbfsNotification (notification: FSNotification, notify: any, getState: any) {
   const action = {
@@ -127,34 +177,14 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
   let title = `KBFS: ${action}`
   let body = `Files in ${tlf} ${notification.status}`
   let user = 'You' || getState().config.username
+
+  const isError = notification.statusCode === kbfsCommon.FSStatusCode.error
   // Don't show starting or finished, but do show error.
-  if (notification.statusCode === kbfsCommon.FSStatusCode.error) {
+  if (isError) {
     ({title, body} = decodeKBFSError(user, notification))
   }
 
-  function rateLimitAllowsNotify (action, state, tlf) {
-    if (!(action in sentNotifications)) {
-      sentNotifications[action] = {}
-    }
-    if (!(state in sentNotifications[action])) {
-      sentNotifications[action][state] = {}
-    }
-
-    // 20s in msec
-    const delay = 20000
-    const now = new Date()
-
-    // If we haven't notified for {action,state,tlf} or it was >20s ago, do it.
-    if (!(tlf in sentNotifications[action][state]) || now - sentNotifications[action][state][tlf] > delay) {
-      sentNotifications[action][state][tlf] = now
-      return true
-    }
-
-    // We've already notified recently, ignore this one.
-    return false
-  }
-
-  if (rateLimitAllowsNotify(action, state, tlf)) {
+  if (rateLimitAllowsNotify(action, state, tlf, isError)) {
     notify(title, {body})
   }
 }

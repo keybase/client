@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"runtime"
 	"time"
 
 	"github.com/keybase/cli"
@@ -170,8 +171,8 @@ func (d *Service) Run() (err error) {
 	}
 
 	d.checkTrackingEveryHour()
-
 	d.startupGregor()
+	d.configurePath()
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
@@ -262,10 +263,7 @@ func (d *Service) OnLogout() error {
 	if d.gregor == nil {
 		return nil
 	}
-
 	d.gregor.Shutdown()
-	d.gregor = nil
-
 	return nil
 }
 
@@ -279,15 +277,17 @@ func (d *Service) gregordConnect() (err error) {
 	}
 	d.G().Log.Debug("| gregor URI: %s", uri)
 
-	if d.gregor != nil {
-		d.gregor.Shutdown()
+	if d.gregor == nil {
+		if d.gregor, err = newGregorHandler(d.G()); err != nil {
+			return err
+		}
+		d.G().GregorDismisser = d.gregor
+		d.G().GregorListener = d.gregor
+	} else {
+		if d.gregor.Reset(); err != nil {
+			return err
+		}
 	}
-
-	if d.gregor, err = newGregorHandler(d.G()); err != nil {
-		return err
-	}
-	d.G().GregorDismisser = d.gregor
-	d.G().GregorListener = d.gregor
 
 	if err = d.gregor.Connect(uri); err != nil {
 		return err
@@ -488,5 +488,28 @@ func (d *Service) SimulateGregorCrashForTesting() {
 		d.gregor.simulateCrashForTesting()
 	} else {
 		d.G().Log.Warning("Can't simulate a gregor crash without a gregor")
+	}
+}
+
+// configurePath is a somewhat unfortunate hack, but as it currently stands,
+// when the keybase service is run out of launchd, its path is minimal and
+// often can't find the GPG location. We have hacks around this for CLI operation,
+// in which the CLI forwards its path to the service, and the service enlarges
+// its path accordingly. In this way, the service can get access to path additions
+// inserted by the user's shell startup scripts. However the same mechanism doesn't
+// apply to a GUI-driven workload, since the Electron GUI, like the Go service, is
+// launched from launchd and therefore has the wrong path. This function currently
+// noops on all platforms aside from macOS, but we can expand it later as needs be.
+func (d *Service) configurePath() {
+	defer d.G().Trace("Service#configurePath", func() error { return nil })()
+
+	var newDirs string
+	switch runtime.GOOS {
+	case "darwin":
+		newDirs = "/usr/local/bin:/usr/local/MacGPG2/bin"
+	default:
+	}
+	if newDirs != "" {
+		mergeIntoPath(d.G(), newDirs)
 	}
 }

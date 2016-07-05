@@ -815,8 +815,12 @@ func RunAfterStartup(context Context, isService bool, log Log) error {
 	if context.GetRunMode() != libkb.ProductionRunMode {
 		return nil
 	}
-	log.Debug("App start mode: %s", context.GetAppStartMode())
-	switch context.GetAppStartMode() {
+	mode, err := context.GetAppStartMode()
+	if err != nil {
+		log.Errorf("Error getting app start mode: %s", err)
+	}
+	log.Debug("App start mode: %s", mode)
+	switch mode {
 	case libkb.AppStartModeService:
 		if !isService {
 			return nil

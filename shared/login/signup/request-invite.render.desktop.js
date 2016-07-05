@@ -12,7 +12,7 @@ class Render extends Component<void, Props, void> {
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
         <Text style={stylesHeader} type='Header'>Request an invite code</Text>
-        <Icon style={stylesIcon} type='invite-code-m' />
+        <Icon style={stylesIcon} type='icon-invite-code-48' />
         <Input
           style={stylesInput}
           floatingLabelText='Your email address'
@@ -52,7 +52,8 @@ const stylesHeader = {
   marginTop: 30,
 }
 const stylesIcon = {
-  marginTop: 55,
+  marginTop: 55 - 11,
+  marginBottom: -11,
 }
 const stylesInput = {
   height: 45,

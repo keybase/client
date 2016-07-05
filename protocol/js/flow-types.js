@@ -781,7 +781,7 @@ export type ProblemSetDevices = {
 export type ProblemTLF = {
   tlf: TLF;
   score: int;
-  solutions?: ?Array<KID>;
+  solution_kids?: ?Array<KID>;
 }
 
 export type Process = {
@@ -1194,7 +1194,7 @@ export type StringKVPair = {
 }
 
 export type TLF = {
-  tlfid: TLFID;
+  id: TLFID;
   name: string;
   writers?: ?Array<string>;
   readers?: ?Array<string>;

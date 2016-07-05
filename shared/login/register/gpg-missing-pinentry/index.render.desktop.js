@@ -10,7 +10,7 @@ class Render extends Component<void, Props, void> {
       <Container
         style={styles.container}
         onBack={() => this.props.onBack()}>
-        <Icon type='no-gpg' style={styles.icon} />
+        <Icon type='icon-no-gpg' style={styles.icon} />
         <Text type='HeaderError' style={styles.header}>You don't have a GPG pinentry app installed.</Text>
         <p style={styles.paragraph}>
           <Text type='Body' inline>If you want to use GPG to provision this device, you’ll need to use the </Text>

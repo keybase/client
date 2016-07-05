@@ -173,6 +173,7 @@ func TestTrackRetrack(t *testing.T) {
 
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
+		a.ClearCachedSecretKeys()
 	}, "clear stream cache")
 
 	idUI := &FakeIdentifyUI{}
@@ -220,6 +221,7 @@ func TestTrackRetrack(t *testing.T) {
 	// clear out the passphrase cache
 	tc.G.LoginState().Account(func(a *libkb.Account) {
 		a.ClearStreamCache()
+		a.ClearCachedSecretKeys()
 	}, "clear stream cache")
 
 	// reset the flag

@@ -16,7 +16,7 @@ class Render extends Component<void, Props, void> {
         <Text type='Body' style={styles.subHeader}>Allow Keybase to run PGP commands?</Text>
         <Row
           onClick={() => this.props.onSubmit(true)}
-          icon='GPG-export'
+          icon='icon-GPG-export'
           title='Export your secret key from GPG'>
           <p>
             <Text type='BodySmall'>This copies your PGP pair into Keybase's local encrypted keyring. Later, you can </Text>
@@ -28,7 +28,7 @@ class Render extends Component<void, Props, void> {
         </Row>
         <Row
           onClick={() => this.props.onSubmit(false)}
-          icon='terminal'
+          icon='icon-terminal-48'
           title='One-time shell to GPG'>
           <p>
             <Text type='BodySmall'>Keybase can ask GPG to sign this install. You won't be able to use </Text>

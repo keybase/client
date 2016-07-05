@@ -3,7 +3,7 @@ import React from 'react'
 import {Image, TouchableHighlight} from 'react-native'
 import type {Folder} from './list'
 import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
-import type {Props as IconProps} from '../common-adapters/icon'
+import type {IconType} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 const Avatars = ({styles, users, isPublic}) => {
@@ -51,7 +51,7 @@ const Modified = ({styles, modified}) => {
   const iconColor = Text._colorStyleBackgroundMode(styles.modifiedMode, 'BodySmallLink')
   return (
     <Box style={stylesModified}>
-      <Icon type='fa-kb-iconfont-thunderbolt' style={{fontSize: 13, alignSelf: 'center', marginLeft: -2, marginRight: 2, ...iconColor}} title='Modified' />
+      <Icon type='fa-kb-iconfont-thunderbolt' style={{alignSelf: 'center', marginLeft: -2, marginRight: 2, ...iconColor}} title='Modified' />
       <Text type='BodySmall' backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
       <Text type='BodySmallLink' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
     </Box>
@@ -89,7 +89,7 @@ const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path, 
     backgroundColor,
   }
 
-  const icon: IconProps.type = styles.hasStuffIcon
+  const icon: IconType = styles.hasStuffIcon
 
   return (
     <TouchableHighlight onPress={() => { onClick && onClick(path) }}>
@@ -149,12 +149,12 @@ const stylesPrivate = {
     ...rowContainer,
     backgroundColor: globalColors.darkBlue,
   },
-  hasStuffIcon: 'folder-private-has-stuff-32',
+  hasStuffIcon: 'icon-folder-private-has-stuff-32',
   ignored: {
     color: globalColors.white_40,
     backgroundColor: 'rgba(0, 26, 51, 0.4)',
   },
-  groupIcon: 'folder-private-group-32',
+  groupIcon: 'icon-folder-private-group-32',
   avatarContainer: {
     ...stylesAvatarContainer,
     backgroundColor: globalColors.darkBlue3,

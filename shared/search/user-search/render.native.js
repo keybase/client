@@ -113,9 +113,11 @@ export default class Render extends Component<void, Props, void> {
           type='Small'
           containerStyle={{backgroundColor: globalColors.blue4}}
           icon={<Icon type={this.props.searchIcon} style={{width: 32, height: 32}} />}
-          body={<Box style={{flex: 2, height: 32}}>
-            <Input type='text' autoCapitalize='none' value={this.props.searchText} hintText={this.props.searchHintText} iosOmitUnderline style={{marginTop: 0, height: 32}} onChangeText={text => this.props.onSearch(text)} /> />
-          </Box>}
+          body={(
+            <Box style={{flex: 2, height: 32}}>
+              <Input type='text' autoCapitalize='none' value={this.props.searchText} hintText={this.props.searchHintText} iosOmitUnderline style={{marginTop: 0, height: 32}} onChangeText={text => this.props.onSearch(text)} />
+            </Box>
+          )}
           action={<Box />} />
         {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} searchText={this.props.searchText || ''} />)}
       </Box>

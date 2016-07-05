@@ -19,7 +19,7 @@
       "fields": [
         {
           "type": "TLFID",
-          "name": "tlfid"
+          "name": "id"
         },
         {
           "type": "string",
@@ -62,7 +62,7 @@
             "type": "array",
             "items": "KID"
           },
-          "name": "solutions"
+          "name": "solution_kids"
         }
       ]
     },
@@ -144,7 +144,7 @@
         }
       ],
       "response": null,
-      "doc": "DebugShowRekeyStatus is used by the CLI to kick off a \"ShowRekeyStatus\" window for \n   the current user."
+      "doc": "DebugShowRekeyStatus is used by the CLI to kick off a \"ShowRekeyStatus\" window for\n   the current user."
     },
     "rekeyStatusFinish": {
       "request": [

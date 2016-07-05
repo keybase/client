@@ -2,6 +2,7 @@
 import UserPane from './user.render'
 import NonUserPane from './non-user.render'
 import Help from './help'
+import Loading from './loading'
 import {normal, error} from '../../constants/tracker'
 import {proofsDefault, proofsTracked, proofsChanged, mockUserInfo} from '../../profile/dumb.desktop'
 import type {Props as UserRenderProps} from './user.render'
@@ -31,6 +32,18 @@ const dumbMapUser: DumbComponentMap<UserPane> = {
     'Unfollowed': userPaneBase,
     'Unfollowed Scrolling': {
       ...userPaneBase,
+      parentProps: {
+        style: {
+          width: 320,
+          height: 420,
+        },
+      },
+    },
+    'Broken tracker, not following': {
+      ...userPaneBase,
+      proofs: proofsChanged,
+      trackerState: error,
+      currentlyFollowing: false,
       parentProps: {
         style: {
           width: 320,
@@ -108,8 +121,18 @@ const helpUserPane: DumbComponentMap<Help> = {
   },
 }
 
+const loadingPane: DumbComponentMap<Loading> = {
+  component: Loading,
+  mocks: {
+    'Normal': {
+      username: 'marcopolo',
+    },
+  },
+}
+
 export default {
   'Search User Pane': dumbMapUser,
   'Search Non-User Pane': dumbMapNonUser,
   'Search Help Pane': helpUserPane,
+  'Loading Pane': loadingPane,
 }

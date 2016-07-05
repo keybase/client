@@ -70,5 +70,8 @@ func (e *PaperKeySubmit) Run(ctx *Context) error {
 	// for rekey purposes
 	e.G().NotifyRouter.HandlePaperKeyCached(me.GetUID(), e.pair.encKey.GetKID(), e.pair.sigKey.GetKID())
 
+	// XXX - this is temporary until KBFS handles the above notification
+	e.G().NotifyRouter.HandleUserChanged(me.GetUID())
+
 	return nil
 }

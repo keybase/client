@@ -203,6 +203,7 @@ const textTerminal = {
   ...globalStyles.fontTerminalSemibold,
   fontSize: 14,
   lineHeight: '21px',
+  height: 20,
 }
 
 const headerStyles = {
@@ -368,7 +369,7 @@ export const styles = {
     backgroundColor: globalColors.blue4,
     wordWrap: 'break-word',
     padding: 2,
-    display: 'inline',
+    display: 'inline-block',
   },
 }
 

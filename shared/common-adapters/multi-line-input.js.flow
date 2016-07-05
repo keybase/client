@@ -5,6 +5,7 @@ import React, {Component} from 'react'
 export type Props = $Shape<{
   autoFocus?: bool,
   errorText?: ?string,
+  errorStyle? : Object,
   onChange?: (event: Object) => void,
   onEnterKeyDown?: (event: Object) => void,
   hintText: ?string,

@@ -91,42 +91,39 @@ export function platformToIcon (platform: SearchPlatforms): IconType {
   }[platform]
 }
 
-// TODO(mm) get Logo for Hn at 32x32
 export function platformToLogo32 (platform: SearchPlatforms): IconType {
   return {
-    'Keybase': 'keybase-logo-mascot-only-dz-2-32',
+    'Keybase': 'icon-keybase-logo-32',
     'Twitter': 'icon-twitter-logo-32',
     'Github': 'icon-github-logo-32',
     'Reddit': 'icon-reddit-logo-32',
     'Coinbase': 'icon-coinbase-logo-32',
-    'Hackernews': 'placeholder-avatar-32-x-32',
+    'Hackernews': 'icon-hacker-news-logo-32',
     'Pgp': 'icon-pgp-key-32',
   }[platform]
 }
 
-// TODO(mm) get Logo for Hn
 export function platformToLogo24 (platform: SearchPlatforms): IconType {
   return {
-    'Keybase': 'keybase-logo-mascot-only-dz-2-24',
+    'Keybase': 'icon-keybase-logo-24',
     'Twitter': 'icon-twitter-logo-24',
     'Github': 'icon-github-logo-24',
     'Reddit': 'icon-reddit-logo-24',
     'Coinbase': 'icon-coinbase-logo-24',
-    'Hackernews': 'placeholder-avatar-24-x-24',
+    'Hackernews': 'icon-hacker-news-logo-24',
     'Pgp': 'icon-pgp-key-24',
   }[platform]
 }
 
-// TODO(mm) fill this out correctly
 export function platformToLogo16 (platform: SearchPlatforms): IconType {
   return {
-    'Keybase': 'keybase-logo-mascot-only-dz-2-24',
-    'Twitter': 'icon-twitter-logo-24',
-    'Github': 'icon-github-logo-24',
-    'Reddit': 'icon-reddit-logo-24',
-    'Coinbase': 'icon-coinbase-logo-24',
-    'Hackernews': 'placeholder-avatar-24-x-24',
-    'Pgp': 'icon-pgp-key-24',
+    'Keybase': 'icon-keybase-logo-16',
+    'Twitter': 'icon-twitter-logo-16',
+    'Github': 'icon-github-logo-16',
+    'Reddit': 'icon-reddit-logo-16',
+    'Coinbase': 'icon-coinbase-logo-16',
+    'Hackernews': 'icon-hacker-news-logo-16',
+    'Pgp': 'icon-pgp-key-16',
   }[platform]
 }
 

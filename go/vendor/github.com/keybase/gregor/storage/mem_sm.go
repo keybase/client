@@ -223,6 +223,7 @@ func isMessageForDevice(m gregor.InBandMessage, d gregor.DeviceID) bool {
 }
 
 func (u *user) replayLog(now time.Time, d gregor.DeviceID, t time.Time) (msgs []gregor.InBandMessage, latestCTime *time.Time) {
+	allmsgs := make(map[string]gregor.InBandMessage)
 	for _, msg := range u.log {
 		if latestCTime == nil || msg.ctime.After(*latestCTime) {
 			latestCTime = &msg.ctime
@@ -233,11 +234,15 @@ func (u *user) replayLog(now time.Time, d gregor.DeviceID, t time.Time) (msgs []
 		if msg.ctime.Before(t) {
 			continue
 		}
+
+		allmsgs[msg.m.Metadata().MsgID().String()] = msg.m
 		if msg.isDismissedAt(now) {
 			continue
 		}
+
 		msgs = append(msgs, msg.m)
 	}
+	msgs = filterFutureDismissals(msgs, allmsgs, t)
 	return
 }
 

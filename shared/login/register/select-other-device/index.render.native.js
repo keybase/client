@@ -5,15 +5,15 @@ import {Box, Text, Icon} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles/style-guide'
 import Container from '../../forms/container'
 import type {Props} from './index.render'
-import type {Props as IconProps} from '../../../common-adapters/icon'
+import type {IconType} from '../../../common-adapters/icon'
 import type {DeviceType} from '../../../constants/types/more'
 
 const Row = ({deviceID, name, type, onSelect}) => {
-  const iconType: IconProps.type = ({
-    'mobile': 'phone-bw-m',
-    'desktop': 'computer-bw-m',
-    'backup': 'paper-key-m',
-  }: {[key: DeviceType]: IconProps.type})[type]
+  const iconType: IconType = ({
+    'mobile': 'icon-phone-bw-48',
+    'desktop': 'icon-computer-bw-48',
+    'backup': 'icon-paper-key-48',
+  }: {[key: DeviceType]: IconType})[type]
 
   const onPress = e => {
     onSelect(deviceID)

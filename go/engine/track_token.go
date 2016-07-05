@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -16,11 +17,8 @@ type TrackToken struct {
 	libkb.Contextified
 	arg                 *TrackTokenArg
 	them                *libkb.User
-	signingKeyPub       libkb.GenericKey
-	signingKeyPriv      libkb.GenericKey
 	trackStatementBytes []byte
 	trackStatement      *jsonw.Wrapper
-	lockedKey           *libkb.SKB
 }
 
 type TrackTokenArg struct {
@@ -96,23 +94,12 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 		return err
 	}
 
-	ska := libkb.SecretKeyArg{
-		Me:      e.arg.Me,
-		KeyType: libkb.DeviceSigningKeyType,
-	}
-	e.lockedKey, err = e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, ska)
+	// need public signing key for track statement
+	signingKeyPub, err := e.arg.Me.SigningKeyPub()
 	if err != nil {
-		e.G().Log.Debug("secretkey err: %s", err)
 		return err
 	}
-	e.lockedKey.SetUID(e.arg.Me.GetUID())
-	e.signingKeyPub, err = e.lockedKey.GetPubKey()
-	if err != nil {
-		e.G().Log.Debug("getpubkey err: %s", err)
-		return err
-	}
-
-	if e.trackStatement, err = e.arg.Me.TrackingProofFor(e.signingKeyPub, e.them, outcome); err != nil {
+	if e.trackStatement, err = e.arg.Me.TrackingProofFor(signingKeyPub, e.them, outcome); err != nil {
 		e.G().Log.Debug("tracking proof err: %s", err)
 		return err
 	}
@@ -127,7 +114,7 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 		e.G().Log.Debug("| Local")
 		err = e.storeLocalTrack()
 	} else {
-		err = e.storeRemoteTrack(ctx)
+		err = e.storeRemoteTrack(ctx, signingKeyPub.GetKID())
 		if err != nil {
 			e.removeLocalTracks()
 		}
@@ -201,29 +188,31 @@ func (e *TrackToken) storeLocalTrack() error {
 	return libkb.StoreLocalTrack(e.arg.Me.GetUID(), e.them.GetUID(), e.arg.Options.ExpiringLocal, e.trackStatement, e.G())
 }
 
-func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
+func (e *TrackToken) storeRemoteTrack(ctx *Context, pubKID keybase1.KID) (err error) {
 	e.G().Log.Debug("+ StoreRemoteTrack")
-
 	defer func() {
 		e.G().Log.Debug("- StoreRemoteTrack -> %s", libkb.ErrToOk(err))
 	}()
 
-	var secretStore libkb.SecretStore
-	if e.arg.Me != nil {
-		e.lockedKey.SetUID(e.arg.Me.GetUID())
-		secretStore = libkb.NewSecretStore(e.G(), e.arg.Me.GetNormalizedName())
+	// need unlocked signing key
+	ska := libkb.SecretKeyArg{
+		Me:      e.arg.Me,
+		KeyType: libkb.DeviceSigningKeyType,
 	}
-	// need to unlock private key
-	parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "tracking signature")
-	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock(parg, secretStore, e.arg.Me)
+	arg := ctx.SecretKeyPromptArg(ska, "tracking signature")
+	signingKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(arg)
 	if err != nil {
 		return err
 	}
-	if e.signingKeyPriv == nil {
+	if signingKey == nil {
 		return libkb.NoSecretKeyError{}
 	}
+	// double-check that the KID of the unlocked key matches
+	if signingKey.GetKID().NotEqual(pubKID) {
+		return errors.New("unexpeceted KID mismatch between locked and unlocked signing key")
+	}
 
-	sig, sigid, err := e.signingKeyPriv.SignToString(e.trackStatementBytes)
+	sig, sigid, err := signingKey.SignToString(e.trackStatementBytes)
 	if err != nil {
 		return err
 	}
@@ -237,7 +226,7 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
 			"sig":          libkb.S{Val: sig},
 			"uid":          libkb.UIDArg(e.them.GetUID()),
 			"type":         libkb.S{Val: "track"},
-			"signing_kid":  e.signingKeyPub.GetKID(),
+			"signing_kid":  signingKey.GetKID(),
 		},
 	})
 

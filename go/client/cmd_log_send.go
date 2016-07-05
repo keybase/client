@@ -11,20 +11,13 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"os"
 )
 
 const (
 	defaultLines = 1e5
 	maxLines     = 1e6
 )
-
-type logs struct {
-	desktop string
-	kbfs    string
-	service string
-	updater string
-	start   string
-}
 
 func NewCmdLogSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
@@ -79,6 +72,10 @@ func (c *CmdLogSend) Run() error {
 	}
 
 	logs := c.logFiles(status)
+	// So far, install logs are Windows only
+	if logs.Install != "" {
+		defer os.Remove(logs.Install)
+	}
 
 	logSendContext := libkb.LogSendContext{
 		Contextified: libkb.NewContextified(c.G()),
@@ -138,6 +135,11 @@ func (c *CmdLogSend) GetUsage() libkb.Usage {
 
 func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 	logDir := c.G().Env.GetLogDir()
+	installLogPath, err := GetInstallLogPath()
+	if err != nil {
+		c.G().Log.Errorf("Error in GetInstallLogPath: %s", err)
+		installLogPath = ""
+	}
 	if status != nil {
 		return libkb.Logs{
 			Desktop: status.Desktop.Log,
@@ -145,6 +147,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 			Service: status.Service.Log,
 			Updater: status.Updater.Log,
 			Start:   status.Start.Log,
+			Install: installLogPath,
 		}
 	}
 
@@ -154,6 +157,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
 		Service: filepath.Join(logDir, libkb.ServiceLogFileName),
 		Updater: filepath.Join(logDir, libkb.UpdaterLogFileName),
 		Start:   filepath.Join(logDir, libkb.StartLogFileName),
+		Install: installLogPath,
 	}
 }
 

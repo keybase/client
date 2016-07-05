@@ -2,8 +2,7 @@
 import React, {Component} from 'react'
 import {Box, Text, Icon, PopupMenu} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import type {Props as IconProps} from '../common-adapters/icon'
-
+import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
 
 type RevokedHeaderProps = {children?: Array<any>}
@@ -28,7 +27,7 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
       <Box>
         <Box style={stylesRevokedRow} onClick={e => this._toggleHeader(e)}>
           <Text type='BodySmallSemibold' style={{color: globalColors.black_60}}>Revoked devices</Text>
-          <Icon type={iconType} style={{padding: 5, fontSize: 8}} />
+          <Icon type={iconType} style={{padding: 5}} />
         </Box>
         {this.state.expanded && this.props.children}
       </Box>
@@ -37,7 +36,7 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
 }
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
-  const icon: IconProps.type = {
+  const icon: IconType = {
     'mobile': 'icon-phone-bw-48',
     'desktop': 'icon-computer-bw-48',
     'backup': 'icon-paper-key-48',

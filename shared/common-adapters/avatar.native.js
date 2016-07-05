@@ -1,15 +1,19 @@
 // @flow
 
 import React, {Component} from 'react'
+import {Image, TouchableOpacity} from 'react-native'
 import type {Props} from './avatar'
-import {Box, Icon} from '../common-adapters'
+import {Box} from '../common-adapters'
+import {images} from './icon.paths.native'
+import {globalStyles} from '../styles/style-guide'
+import * as shared from './avatar.shared'
 
-export default class Avatar extends Component {
-  props: Props;
+type State = {
+  avatarLoaded: boolean,
+}
 
-  state: {
-    avatarLoaded: boolean
-  };
+export default class Avatar extends Component<void, Props, State> {
+  state: State;
 
   constructor (props: Props) {
     super(props)
@@ -17,20 +21,47 @@ export default class Avatar extends Component {
   }
 
   render () {
+    const {size} = this.props
+    const uri = {uri: shared.createAvatarUrl(this.props)}
+
     return (
-      <Box style={{justifyContent: 'flex-end', ...this.props.style}} onClick={this.props.onClick}>
-        <Icon style={{...avatarStyle(this.props.size - 2)}}
-          type='placeholder-avatar' />
-      </Box>
+      <TouchableOpacity style={{...stylesContainer(size), ...this.props.style}} disabled={!this.props.onClick} onPress={this.props.onClick} activeOpacity={0.8}>
+        <Box style={stylesContainer(size)}>
+          <Image
+            style={{...stylesImage(size), opacity: this.state.avatarLoaded ? 1 : 0}}
+            onLoad={() => this.setState({avatarLoaded: true})}
+            source={uri} />
+          {!this.state.avatarLoaded &&
+            <Image
+              style={stylesPlaceholderImage(size)}
+              source={images['placeholder-avatar']} />}
+        </Box>
+      </TouchableOpacity>
     )
   }
 }
 
-function avatarStyle (size: number): Object {
-  return {
-    width: size,
-    height: size,
-    borderRadius: size / 2,
-    alignSelf: 'center',
-  }
-}
+const stylesCommon = (size: number) => ({ // eslint-disable-line arrow-parens
+  width: size,
+  height: size,
+})
+
+const stylesContainer = (size: number) => ({ // eslint-disable-line arrow-parens
+  ...stylesCommon(size),
+  ...globalStyles.flexBoxColumn,
+  justifyContent: 'center',
+  alignItems: 'center',
+})
+
+const stylesImage = (size: number) => ({ // eslint-disable-line arrow-parens
+  ...stylesCommon(size),
+  resizeMode: 'cover',
+  borderRadius: size / 2,
+})
+
+const stylesPlaceholderImage = (size: number) => ({ // eslint-disable-line arrow-parens
+  ...stylesImage(size),
+  position: 'absolute',
+  top: 0,
+  left: 0,
+})
