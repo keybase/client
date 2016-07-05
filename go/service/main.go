@@ -171,6 +171,7 @@ func (d *Service) Run() (err error) {
 	}
 
 	d.checkTrackingEveryHour()
+	d.checkRevokedPeriodic()
 	d.startupGregor()
 	d.configurePath()
 
@@ -238,6 +239,19 @@ func (d *Service) checkTrackingEveryHour() {
 			<-ticker.C
 			d.G().Log.Debug("Checking tracks on an hour timer.")
 			libkb.CheckTracking(d.G())
+		}
+	}()
+}
+
+func (d *Service) checkRevokedPeriodic() {
+	ticker := time.NewTicker(1 * time.Hour)
+	go func() {
+		for {
+			<-ticker.C
+			d.G().Log.Debug("Checking if current device revoked")
+			if err := d.G().LogoutIfRevoked(); err != nil {
+				d.G().Log.Debug("LogoutIfRevoked error: %s", err)
+			}
 		}
 	}()
 }

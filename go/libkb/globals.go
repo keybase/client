@@ -18,13 +18,14 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/jonboulle/clockwork"
-	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"io"
 	"os"
 	"runtime"
 	"sync"
+
+	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type ShutdownHook func() error
@@ -614,4 +615,31 @@ func (g *GlobalContext) GetLogDir() string {
 
 func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {
 	return &RPCLogFactory{Contextified: NewContextified(g)}
+}
+
+// LogoutIfRevoked loads the user and checks if the current device keys
+// have been revoked.  If so, it calls Logout.
+func (g *GlobalContext) LogoutIfRevoked() error {
+	in, err := g.LoginState().LoggedInLoad()
+	if err != nil {
+		return err
+	}
+	if !in {
+		g.Log.Debug("LogoutIfRevoked: skipping check (not logged in)")
+		return nil
+	}
+
+	me, err := LoadMe(NewLoadUserForceArg(g))
+	if err != nil {
+		return err
+	}
+
+	if !me.HasCurrentDeviceInCurrentInstall() {
+		g.Log.Debug("LogoutIfRevoked: current device revoked, calling logout")
+		return g.Logout()
+	}
+
+	g.Log.Debug("LogoutIfRevoked: current device ok")
+
+	return nil
 }
