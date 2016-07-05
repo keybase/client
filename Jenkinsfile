@@ -99,8 +99,8 @@ node("ec2-fleet") {
                                     }
                                 },
                                 test_linux_js: { wrap([$class: 'Xvfb']) { withEnv([
-                                    "PATH+NODE=${env.HOME}/.node/bin:",
-                                    "NODE_PATH+NODE=${env.HOME}/.node/lib/node_modules:"
+                                    "PATH=${env.HOME}/.node/bin:${env.PATH}",
+                                    "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}"
                                 ]) {
                                 
                                     // TODO implement PR ID
@@ -157,7 +157,7 @@ node("ec2-fleet") {
                             withEnv([
                                 'GOROOT=C:\\tools\\go',
                                 "GOPATH=\"${pwd()}\"",
-                                'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG";"C:\\Program Files\\nodejs";"C:\\tools\\python";"C:\\Program Files\\graphicsmagick-1.3.24-q8";',
+                                "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
                                 "KEYBASE_SERVER_URI=http://${local}:3000",
                                 "KEYBASE_PUSH_SERVER_URI=fmprpc://${local}:9911",
                             ]) {
