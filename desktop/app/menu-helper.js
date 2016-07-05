@@ -6,8 +6,6 @@ import {executeActions, quitOnContext} from '../shared/util/quit-helper.desktop'
 const Menu = electron.Menu || electron.remote.Menu
 const shell = electron.shell || electron.remote.shell
 
-console.log('type: ', process.type)
-
 export default function makeMenu (window) {
   if (process.platform === 'darwin') {
     const template = [{
