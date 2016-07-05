@@ -55,7 +55,7 @@ function ExternalExtraInfo ({serviceUsername, fullNameOnService, icon, searchTex
   )
 }
 
-function Result ({result, searchText, onClickResult}: {result: SearchResult, searchText: string, onClickResult: SearchResultFn}) {
+function Result ({result, searchText, onClickResult}: {result: SearchResult, searchText: string, onClickResult: () => void}) {
   const iconStyle = {height: 32, width: 32}
 
   let icon
