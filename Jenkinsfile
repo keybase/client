@@ -79,25 +79,12 @@ node("ec2-fleet") {
                     parallel (
                         test_linux: {
                             parallel (
-                                test_linux_go: {
-                                    dir("go") {
-                                        sh """
-                                            bash -c '
-                                                slept="0";
-                                                while ! curl -s -o /dev/null 127.0.0.1:3000 2>&1; do
-                                                    if [[ "\$slept" -lt 180 ]]; then
-                                                        ((slept++));
-                                                        sleep 1;
-                                                        echo "Slept \$slept times";
-                                                    else
-                                                        exit 1;
-                                                    fi
-                                                done
-                                            '
-                                        """
-                                        sh "test/run_tests.sh || (docker logs ${kbweb.id}; exit 1)"
-                                    }
-                                },
+                                test_linux_go: { withEnv([
+                                    "KEYBASE_SERVER_URI=http://127.0.0.1:3000",
+                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://127.0.0.1:9911",
+                                ]) {
+                                    testNixGo("Linux")
+                                }},
                                 test_linux_js: { wrap([$class: 'Xvfb']) { withEnv([
                                     "PATH=${env.HOME}/.node/bin:${env.PATH}",
                                     "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}"
@@ -206,8 +193,8 @@ node("ec2-fleet") {
                                             }
                                             bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
                                             bat "choco install -y curl"
-                                            bat 'powershell -Command "$slept = 0; do { curl.exe --silent --output curl.txt $KEYBASE_SERVER_URI; $res = $?; sleep 1; $slept = $slept + 1; echo \'Slept $slept times\'; if ($slept -gt 180) { return 1 } } while ($res -ne \'0\')"'
-                                            bat "for /f %%i in (testlist.txt) do (go test -timeout 5m %%i || exit /B 1)"
+                                            bat 'powershell -Command "$slept = 0; do { curl.exe --silent --output curl.txt $env:KEYBASE_SERVER_URI; $res = $?; sleep 1; $slept = $slept + 1; if ($slept -gt 300) { echo \\"Windows curl timed out while connecting to $env:KEYBASE_SERVER_URI\\"; exit 1 } } while ($res -ne \'0\')"'
+                                            bat "for /f %%i in (testlist.txt) do (go test -timeout 10m %%i || exit /B 1)"
                                         }
                                     },
                                     test_windows_js: { wrap([$class: 'Xvfb']) {
@@ -255,20 +242,7 @@ node("ec2-fleet") {
                                     checkout scm
 
                                 println "Test OS X"
-                                    dir('go') {
-                                        sh '''
-                                            slept="0";
-                                            while ! curl -s -o /dev/null $KEYBASE_SERVER_URI 2>&1; do
-                                                if [[ "$slept" -lt 180 ]]; then
-                                                    ((slept++));
-                                                    sleep 1;
-                                                else
-                                                    exit 1;
-                                                fi
-                                            done
-                                        '''
-                                        sh './test/run_tests.sh'
-                                    }
+                                    testNixGo("OS X")
                             }}}
                         },
                     )
@@ -288,6 +262,26 @@ node("ec2-fleet") {
             } else {
                 println "Not pushing docker"
             }
+    }
+}
+
+testNixGo(prefix) {
+    dir('go') {
+        sh """
+            bash -c '
+                slept="0";
+                while ! curl -s -o /dev/null ${env.KEYBASE_SERVER_URI} 2>&1; do
+                    if [[ "\$slept" -lt 300 ]]; then
+                        ((slept++));
+                        sleep 1;
+                    else
+                        echo "$prefix curl timed out";
+                        exit 1;
+                    fi
+                done
+            '
+        """
+        sh './test/run_tests.sh'
     }
 }
 
