@@ -4,6 +4,7 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
 
@@ -163,29 +163,18 @@ func (c *CmdAPICall) addArgument(arg keybase1.StringKVPair) {
 	c.args = append(c.args, arg)
 }
 
+type JSONInput map[string]json.RawMessage
+
 func (c *CmdAPICall) parseJSONPayload(p string) ([]keybase1.StringKVPair, error) {
-	w, err := jsonw.Unmarshal([]byte(p))
-	if err != nil {
-		return nil, err
-	}
-
-	w, err = w.ToDictionary()
-	if err != nil {
-		return nil, err
-	}
-
-	keys, err := w.Keys()
+	var input JSONInput
+	err := json.Unmarshal([]byte(p), &input)
 	if err != nil {
 		return nil, err
 	}
 
 	var res []keybase1.StringKVPair
-	for _, k := range keys {
-		value, err := w.AtKey(k).Marshal()
-		if err != nil {
-			return nil, err
-		}
-		res = append(res, keybase1.StringKVPair{Key: k, Value: string(value[:])})
+	for k, v := range input {
+		res = append(res, keybase1.StringKVPair{Key: k, Value: string(v[:])})
 	}
 
 	return res, nil

@@ -79,3 +79,9 @@ func kbfsBinName() string {
 func updaterBinName() (string, error) {
 	return "", fmt.Errorf("Updater isn't supported on linux")
 }
+
+// RunApp starts the app
+func RunApp(context Context, log Log) error {
+	// TODO: Start app, see run_keybase: /opt/keybase/Keybase &>> "$logdir/Keybase.app.log"
+	return nil
+}

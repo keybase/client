@@ -185,8 +185,7 @@ func TestTrackingNotifications(t *testing.T) {
 		}
 	}
 
-	stopper := client.NewCmdCtlStopRunner(tc2.G)
-	if err := stopper.Run(); err != nil {
+	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
 	}
 

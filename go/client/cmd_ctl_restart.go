@@ -1,6 +1,8 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
+// +build !darwin
+
 package client
 
 import (
@@ -42,10 +44,6 @@ func (s *CmdCtlRestart) Run() error {
 	config, err := configCli.GetConfig(context.TODO(), 0)
 	if err != nil {
 		return err
-	}
-
-	if config.ForkType == keybase1.ForkType_LAUNCHD {
-		return RestartLaunchdService(s.G(), config.Label)
 	}
 
 	cli, err := GetCtlClient(s.G())

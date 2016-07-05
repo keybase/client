@@ -93,7 +93,7 @@ func (c *CmdWatchdog2) Run() error {
 	}
 
 	// Start and monitor all the programs
-	if err := watchdog.Watch(programs, 10*time.Second, c); err != nil {
+	if err := watchdog.Watch(programs, 10*time.Second, c.G().GetLogf()); err != nil {
 		return err
 	}
 

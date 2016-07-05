@@ -10,7 +10,6 @@ import * as favoriteAction from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {switchTab} from '../actions/tabbed-router'
 
-import {remote} from 'electron'
 import {ipcRenderer} from 'electron'
 import {loginTab} from '../constants/tabs'
 import flags from '../util/feature-flags'
@@ -141,7 +140,7 @@ class Menubar extends Component<void, Props, void> {
   }
 
   _quit () {
-    remote.app.quit()
+    ipcRenderer.send('quit')
   }
 
   _showBug () {

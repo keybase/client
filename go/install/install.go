@@ -10,12 +10,15 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	"github.com/blang/semver"
 	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/lsof"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/go-updater/process"
 )
 
 // Log is the logging interface for this package
@@ -35,6 +38,7 @@ type Context interface {
 	GetLogDir() string
 	GetRunMode() libkb.RunMode
 	GetServiceInfoPath() string
+	GetKBFSInfoPath() string
 	GetAppStartMode() (libkb.AppStartMode, error)
 }
 
@@ -50,6 +54,8 @@ const (
 	ComponentNameKBFS ComponentName = "kbfs"
 	// ComponentNameUpdater is the updater component
 	ComponentNameUpdater ComponentName = "updater"
+	// ComponentNameApp is the UI app
+	ComponentNameApp ComponentName = "app"
 	// ComponentNameUnknown is placeholder for unknown components
 	ComponentNameUnknown ComponentName = "unknown"
 )
@@ -57,18 +63,9 @@ const (
 // ComponentNames are all the valid component names
 var ComponentNames = []ComponentName{ComponentNameCLI, ComponentNameService, ComponentNameKBFS, ComponentNameUpdater}
 
+// String returns string for ComponentName
 func (c ComponentName) String() string {
-	switch c {
-	case ComponentNameCLI:
-		return "Command Line"
-	case ComponentNameService:
-		return "Service"
-	case ComponentNameKBFS:
-		return "KBFS"
-	case ComponentNameUpdater:
-		return "Updater"
-	}
-	return "Unknown"
+	return string(c)
 }
 
 // ComponentNameFromString returns ComponentName from a string
@@ -82,6 +79,8 @@ func ComponentNameFromString(s string) ComponentName {
 		return ComponentNameKBFS
 	case string(ComponentNameUpdater):
 		return ComponentNameUpdater
+	case string(ComponentNameApp):
+		return ComponentNameApp
 	}
 	return ComponentNameUnknown
 }
@@ -255,4 +254,16 @@ func IsInUse(mountDir string, log Log) bool {
 		return true
 	}
 	return false
+}
+
+// TerminateApp will stop the Keybase (UI) app
+func TerminateApp(context Context, log Log) error {
+	appExecName := "Keybase"
+	logf := logger.NewLoggerf(log)
+	log.Info("Stopping Keybase app")
+	appPIDs := process.TerminateAll(process.NewMatcher(appExecName, process.ExecutableEqual, logf), 5*time.Second, logf)
+	if len(appPIDs) > 0 {
+		log.Info("Terminated %s %v", appExecName, appPIDs)
+	}
+	return nil
 }

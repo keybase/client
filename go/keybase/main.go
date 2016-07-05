@@ -119,9 +119,7 @@ func mainInner(g *libkb.GlobalContext) error {
 	}
 
 	// Install hook for after startup
-	if err = install.RunAfterStartup(g, cl.IsService(), g.Log); err != nil {
-		return err
-	}
+	install.RunAfterStartup(g, cl.IsService(), g.Log)
 
 	err = cmd.Run()
 	if !cl.IsService() {
@@ -185,19 +183,21 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		return configureLogging(g, cl)
 	}
 
-	// If this command warrants an autofork, do it now.
 	var newProc bool
-	if fc == libcmdline.ForceFork || g.Env.GetAutoFork() {
-		newProc, err = client.AutoForkServer(g, cl)
-		if err != nil {
-			return err
-		}
-	} else if libkb.IsBrewBuild {
+	if libkb.IsBrewBuild {
 		// If we're running in Brew mode, we might need to install ourselves as a persistent
 		// service for future invocations of the command.
 		newProc, err = install.AutoInstall(g, "", false, g.Log)
 		if err != nil {
 			return err
+		}
+	} else {
+		// If this command warrants an autofork, do it now.
+		if fc == libcmdline.ForceFork || g.Env.GetAutoFork() {
+			newProc, err = client.AutoForkServer(g, cl)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
