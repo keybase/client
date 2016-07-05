@@ -69,7 +69,7 @@ const RowMeta = ({ignored, meta, styles}) => {
     'rekey': globalColors.red,
   }
 
-  const metaProps = ignored
+  const metaProps = meta === 'ignored'
     ? {title: 'ignored', style: styles.ignored}
     : {title: meta || '', style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {}}
 

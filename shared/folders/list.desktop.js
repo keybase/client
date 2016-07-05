@@ -65,29 +65,30 @@ class Render extends Component<void, Props, State> {
 
     const styles = this.props.isPublic ? stylesPublic : stylesPrivate
 
+    const sharedProps = {
+      onOpen: this.props.onOpen,
+      onClick: this.props.onClick,
+      onRekey: this.props.onRekey,
+      isPublic: this.props.isPublic,
+      smallMode: this.props.smallMode,
+    }
+
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
         <style>{realCSS}</style>
         {this.props.extraRows}
         <Rows
-          rows={this.props.tlfs}
-          onOpen={this.props.onOpen}
-          onClick={this.props.onClick}
-          onRekey={this.props.onRekey}
-          isPublic={this.props.isPublic}
-          smallMode={this.props.smallMode}
           ignored={false}
+          rows={this.props.tlfs}
+          {...sharedProps}
         />
           {this.props.ignored && this.props.ignored.length > 0 && <Ignored
             ignored={this.props.ignored}
             showIgnored={this.state.showIgnored}
             styles={styles}
-            onOpen={this.props.onOpen}
-            onClick={this.props.onClick}
-            onRekey={this.props.onRekey}
-            isPublic={this.props.isPublic}
-            smallMode={this.props.smallMode}
-            onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />}
+            onToggle={() => this.setState({showIgnored: !this.state.showIgnored})}
+            {...sharedProps}
+          />}
       </Box>
     )
   }

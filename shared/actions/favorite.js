@@ -6,12 +6,12 @@ import {defaultKBFSPath} from '../constants/config'
 import {badgeApp} from './notifications'
 import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
 import _ from 'lodash'
-import {favoriteGetFavoritesRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc} from '../constants/types/flow-types'
+import {apiserverGetRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc} from '../constants/types/flow-types'
 import {NotifyPopup} from '../native/notifications'
-
 import type {Folder} from '../constants/types/flow-types'
 import type {Dispatch} from '../constants/types/flux'
 import type {FavoriteAdd, FavoriteList, FavoriteIgnore, State} from '../constants/favorite'
+import type {ParticipantUnlock, Device, Folder as FoldersFolder, MetaType} from '../constants/folders'
 import type {UserList} from '../common-adapters/usernames'
 
 export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
@@ -41,28 +41,29 @@ function folderFromPath (path: string): ?Folder {
 }
 
 type FolderWithMeta = {
-  folder: Folder,
-  meta: ?string
-}
+  meta: MetaType,
+  waitingForParticipantUnlock: Array<ParticipantUnlock>,
+  youCanUnlock: Array<Device>,
+} & Folder
 
 const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): State => { // eslint-disable-line space-infix-ops
   let privateBadge = 0
   let publicBadge = 0
 
-  const converted = folders.map(f => {
-    const users = canonicalizeUsernames(username, parseFolderNameToUsers(f.folder.name))
+  const converted: Array<FoldersFolder & {sortName: string}> = folders.map(f => {
+    const users = canonicalizeUsernames(username, parseFolderNameToUsers(f.name))
       .map(u => ({
         username: u,
         you: u === username,
         broken: false,
       }))
 
-    const {sortName, path} = pathFromFolder({users, isPublic: !f.folder.private})
-    const groupAvatar = f.folder.private ? (users.length > 2) : (users.length > 1)
+    const {sortName, path} = pathFromFolder({users, isPublic: !f.private})
+    const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)
     const userAvatar = groupAvatar ? null : users[users.length - 1].username
-    const meta = f.meta
+    const meta: MetaType = f.meta
     if (meta === 'new') {
-      if (f.folder.private) {
+      if (f.private) {
         privateBadge++
       } else {
         publicBadge++
@@ -73,14 +74,15 @@ const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): S
       path,
       users,
       sortName,
-      isPublic: !f.folder.private,
+      hasData: false, // TODO don't have this info
+      isPublic: !f.private,
       groupAvatar,
       userAvatar,
       ignored,
       meta,
       recentFiles: [],
-      waitingForParticipationUnlock: [],
-      youCanUnlock: [],
+      waitingForParticipantUnlock: f.waitingForParticipantUnlock,
+      youCanUnlock: f.youCanUnlock,
     }
   }).sort((a, b) => {
     // New first
@@ -118,37 +120,67 @@ const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): S
 // If the notify data has changed, show a popup
 let previousNotifyState = null
 
-export function favoriteList (): (dispatch: Dispatch) => void {
+const injectMeta = type => f => { f.meta = type }
+
+export function favoriteList (): (dispatch: Dispatch, getState: () => Object) => void {
   return (dispatch, getState) => {
-    favoriteGetFavoritesRpc({
-      callback: (error, favorites) => {
+    apiserverGetRpc({
+      param: {
+        endpoint: 'kbfs/favorite/list',
+        args: [{key: 'problems', value: '1'}],
+      },
+      callback: (error, result) => {
         if (error) {
-          console.warn('Err in favorite.getFavorites', error)
+          console.warn('Err in getFavorites', error)
           return
         }
 
-        let folders = []
-
-        if (favorites) {
-          if (favorites.favoriteFolders) {
-            favorites.favoriteFolders.forEach(f => {
-              folders.push({folder: f, meta: null})
-            })
-          }
-
-          if (favorites.newFolders) {
-            favorites.newFolders.forEach(f => {
-              folders.push({folder: f, meta: 'new'})
-            })
-          }
-
-          if (favorites.ignoredFolders) {
-            favorites.ignoredFolders.forEach(f => {
-              folders.push({folder: f, meta: 'ignored'})
-            })
-          }
+        let json
+        try {
+          json = JSON.parse(result.body)
+        } catch (err) {
+          console.warn('Invalid json from getFavorites: ', err)
+          return
         }
 
+        const myUsername = getState().config && getState().config.username
+        const myKID = _.findKey(json.users, name => name === myUsername)
+
+        // inject our meta tag
+        json.favorites && json.favorites.forEach(injectMeta(null))
+        json.ignored && json.ignored.forEach(injectMeta('ignored'))
+        json.new && json.new.forEach(injectMeta('new'))
+
+        // figure out who can solve the rekey
+        const folderSets = [json.favorites, json.ignored, json.new]
+        folderSets.forEach(folders => {
+          folders.forEach(folder => {
+            folder.waitingForParticipantUnlock = []
+            folder.youCanUnlock = []
+
+            if (folder.problem_set) {
+              const solutions = folder.problem_set.solution_kids || {}
+              if (Object.keys(solutions).length) {
+                folder.meta = 'rekey'
+              }
+
+              if (folder.problem_set.can_self_help) {
+                const mySolutions = solutions[myKID] || []
+                folder.youCanUnlock = mySolutions.map(kid => {
+                  const device = json.devices[kid]
+                  return {...device, deviceID: kid}
+                })
+              } else {
+                folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => ({
+                  name: json.users[userID],
+                  devices: solutions[userID].map(kid => json.devices[kid].name).join(', '),
+                }))
+              }
+            }
+          })
+        })
+
+        const folders: Array<FolderWithMeta> = _.flatten(folderSets)
         const config = getState && getState().config
         const currentUser = config && config.username
         const loggedIn = config && config.loggedIn
@@ -156,8 +188,9 @@ export function favoriteList (): (dispatch: Dispatch) => void {
         // Ensure private/public folders exist for us
         if (currentUser && loggedIn) {
           [true, false].forEach(isPrivate => {
-            const idx = folders.findIndex(f => f.folder.name === currentUser && f.folder.private === isPrivate)
-            let toAdd = {meta: null, folder: {name: currentUser, private: isPrivate, notificationsOn: false, created: false}}
+            const idx = folders.findIndex(f => f.name === currentUser && f.private === isPrivate)
+            let toAdd = {meta: null, name: currentUser, private: isPrivate, notificationsOn: false, created: false,
+            waitingForParticipantUnlock: [], youCanUnlock: []}
 
             if (idx !== -1) {
               toAdd = folders[idx]

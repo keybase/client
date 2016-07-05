@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {FileSection, ParticipantUnlock, UnlockDevice, Folder as ConstantsFolder} from '../constants/folders'
+import type {FileSection, ParticipantUnlock, Folder as ConstantsFolder} from '../constants/folders'
 
 export type Folder = ConstantsFolder
 
@@ -16,5 +16,4 @@ export type Props = {
   extraRows?: Array<React$Element>
 }
 
-export default class Render extends React$Component<void, Props, void> {
-}
+export default class Render extends React$Component<void, Props, void> { }

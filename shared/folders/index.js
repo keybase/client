@@ -15,7 +15,7 @@ export type Props = {
   folderProps: ?RenderProps,
   openInKBFS: (path: string) => void,
   username: string,
-  routeAppend: (path: any) => void
+  routeAppend: (path: any) => void,
 }
 
 type State = {
@@ -41,6 +41,7 @@ class Folders extends Component<void, Props, State> {
       <Render
         {...this.props.folderProps}
         onClick={path => this.props.routeAppend(path)}
+        onRekey={path => this.props.routeAppend(path)}
         onOpen={path => this.props.openInKBFS(path)}
         onSwitchTab={showingPrivate => this.setState({showingPrivate})}
         showingPrivate={this.state.showingPrivate}

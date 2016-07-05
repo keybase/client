@@ -8,6 +8,7 @@ import {shell} from 'electron'
 
 import * as favoriteAction from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
+import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
 import {switchTab} from '../actions/tabbed-router'
 
 import {ipcRenderer} from 'electron'
@@ -19,6 +20,7 @@ import type {Props as FolderProps} from '../folders/render'
 
 export type Props = $Shape<{
   username: ?string,
+  openRekeyDialog: () => void,
   favoriteList: () => void,
   openInKBFS: (target?: any) => void,
   loggedIn: ?boolean,
@@ -111,7 +113,7 @@ class Menubar extends Component<void, Props, void> {
   }
 
   _onRekey (path: ?string) {
-    console.log(`TODO show rekey popup ${path}`)
+    this.props.openRekeyDialog()
     this._closeMenubar()
   }
 
@@ -174,7 +176,7 @@ export default connect(
     loggedIn: state.config && state.config.loggedIn,
     folderProps: state.favorite,
   }),
-  dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab}, dispatch)
+  dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab, openRekeyDialog}, dispatch)
 )(Menubar)
 
 export function selector (): (store: Object) => Object {

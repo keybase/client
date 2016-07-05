@@ -49,7 +49,7 @@ const RowMeta = ({ignored, meta, styles}) => {
     'rekey': globalColors.red,
   }
 
-  const metaProps = ignored
+  const metaProps = meta === 'ignored'
     ? {title: 'ignored', style: styles.ignored}
     : {title: meta || '', style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {}}
 
@@ -96,7 +96,11 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onOp
             type='BodySmall' className='folder-row-hover-action' onClick={onOpenClick} style={stylesAction}>Open</Text>}
           {meta === 'rekey' && <Button
             backgroundMode={styles.modifiedMode} small={smallMode} type='Secondary'
-            onClick={() => onRekey && onRekey(path)} label='Rekey' style={stylesAction} />}
+            onClick={e => {
+              if (onRekey) {
+                e.stopPropagation()
+                onRekey(path)
+              } }} label='Rekey' style={stylesAction} />}
           <Icon type={icon} style={{visibility: hasData ? 'visible' : 'hidden', ...(smallMode && !hasData ? {display: 'none'} : {})}} />
         </Box>
       </Box>

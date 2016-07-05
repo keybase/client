@@ -9,7 +9,7 @@ export type State = {
   started: boolean,
   closed: boolean,
   phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
-  devices: ?Array<Device>,
+  devices: Array<Device>,
   waiting: boolean,
   paperkeyError: ?string,
   sessionID: ?number
@@ -20,7 +20,7 @@ const initialState: State = {
   closed: true,
   phase: 'dead',
   waiting: false,
-  devices: null,
+  devices: [],
   paperkeyError: null,
   sessionID: null,
 }
@@ -52,6 +52,7 @@ export default function (state: State = initialState, action: UnlockFolderAction
       return {
         ...state,
         phase: 'promptOtherDevice',
+        paperkeyError: '',
       }
 
     case Constants.toPaperKeyInput:
@@ -94,15 +95,11 @@ export default function (state: State = initialState, action: UnlockFolderAction
           name, deviceID,
         }))
 
-        if (devices.length) {
-          return {
-            ...state, devices, closed: false,
-            sessionID: action.payload.sessionID,
-          }
-        } else { // close as its all fixed
-          return {...state, devices, closed: true,
-            sessionID: action.payload.sessionID,
-          }
+        return {
+          ...state,
+          devices,
+          closed: !devices.length,
+          sessionID: action.payload.sessionID,
         }
       }
       return state
