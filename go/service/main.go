@@ -234,6 +234,11 @@ func (d *Service) writeServiceInfo() error {
 
 func (d *Service) checkTrackingEveryHour() {
 	ticker := time.NewTicker(1 * time.Hour)
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping checkTrackingEveryHour timer")
+		ticker.Stop()
+		return nil
+	})
 	go func() {
 		for {
 			<-ticker.C
@@ -245,6 +250,11 @@ func (d *Service) checkTrackingEveryHour() {
 
 func (d *Service) checkRevokedPeriodic() {
 	ticker := time.NewTicker(1 * time.Hour)
+	d.G().PushShutdownHook(func() error {
+		d.G().Log.Debug("stopping checkRevokedPeriodic timer")
+		ticker.Stop()
+		return nil
+	})
 	go func() {
 		for {
 			<-ticker.C
