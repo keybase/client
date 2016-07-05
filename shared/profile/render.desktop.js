@@ -16,7 +16,7 @@ export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 
 type State = {
   currentFriendshipsTab: FriendshipsTab,
-  foldersExpanded: boolean
+  foldersExpanded: boolean,
 }
 
 function folderIconProps (folder, style) {
