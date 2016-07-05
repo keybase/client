@@ -13,8 +13,7 @@ import urlHelper from './url-helper'
 import hello from '../shared/util/hello'
 import semver from 'semver'
 import os from 'os'
-import {ipcMain} from 'electron'
-import {quit} from './ctl'
+import {setupExecuteActionsListener} from '../shared/util/quit-helper.desktop'
 
 let mainWindow = null
 
@@ -23,6 +22,7 @@ function start () {
   const shouldQuit = app.makeSingleInstance(() => {
     if (mainWindow) {
       mainWindow.show()
+      mainWindow.show(true)
       mainWindow.window.focus()
     }
   })
@@ -86,6 +86,16 @@ function start () {
     }
   })
 
+  // Don't quit the app, instead try to close all windows
+  app.on('close-windows', event => {
+    const windows = BrowserWindow.getAllWindows()
+    windows.forEach(w => {
+      // We tell it to close, we can register handlers for the 'close' event if we want to
+      // keep this window alive or hide it instead.
+      w.close()
+    })
+  })
+
   app.on('before-quit', event => {
     const windows = BrowserWindow.getAllWindows()
     windows.forEach(w => {
@@ -95,7 +105,4 @@ function start () {
 }
 
 start()
-
-ipcMain.on('quit', (event, args) => {
-  quit()
-})
+setupExecuteActionsListener()

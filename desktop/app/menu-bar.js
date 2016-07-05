@@ -70,12 +70,11 @@ export default function () {
     mb.tray.on('right-click', (e, bounds) => mb.tray.emit('click', e, bounds))
 
     // prevent the menubar's window from dying when we quit
+    // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
+    mb.window.removeAllListeners('close')
     mb.window.on('close', event => {
-      mb.window.webContents.on('destroyed', () => {
-      })
-      mb.hideWindow()
-      // Prevent an actual close
       event.preventDefault()
+      mb.hideWindow()
     })
 
     if (process.platform === 'linux') {

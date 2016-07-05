@@ -14,6 +14,8 @@ import {ipcRenderer} from 'electron'
 import {loginTab} from '../constants/tabs'
 import flags from '../util/feature-flags'
 
+import {executeActions, quitOnContext} from '../util/quit-helper.desktop'
+
 import type {Props as FolderProps} from '../folders/render'
 
 export type Props = $Shape<{
@@ -140,7 +142,7 @@ class Menubar extends Component<void, Props, void> {
   }
 
   _quit () {
-    ipcRenderer.send('quit')
+    executeActions(quitOnContext({type: 'quitButton'}))
   }
 
   _showBug () {
