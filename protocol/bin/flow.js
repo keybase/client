@@ -78,13 +78,14 @@ function analyzeMessages (json, project) {
   return Object.keys(json.messages).map(m => {
     const message = json.messages[m]
 
-    function params (incoming, prefix) {
-      return message.request.filter(r => {
-        return incoming || (r.name !== 'sessionID') // We have the engine handle this under the hood
-      }).map(r => {
-        return `${prefix}${r.name}${r.hasOwnProperty('default') ? '?' : ''}: ${figureType(r.type)}`
-      }).join(',\n')
-    }
+    const params = (incoming, prefix) => (
+      message.request
+        .filter(r => incoming || (r.name !== 'sessionID')) // We have the engine handle this under the hood
+        .map(r => {
+          const rtype = figureType(r.type)
+          return `${prefix}${r.name}${r.hasOwnProperty('default') || rtype.startsWith('?') ? '?' : ''}: ${rtype}`
+        }).join(',\n')
+    )
 
     const name = `${json.protocol}${capitalize(m)}`
     const responseType = figureType(message.response)
