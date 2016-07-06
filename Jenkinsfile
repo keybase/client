@@ -74,6 +74,7 @@ node("ec2-fleet") {
                         } else {
                             clientImage.pull()
                         }
+                        sh "docker tag keybaseprivate/kbclient kbclient"
                     },
                     remove_dockers: {
                         sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
