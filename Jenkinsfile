@@ -53,8 +53,8 @@ node("ec2-fleet") {
                 parallel (
                     checkout: {
                         checkout scm
-                        sh "git rev-parse HEAD | tee go/revision"
-                        sh "git add go/revision"
+                        //sh "git rev-parse HEAD | tee go/revision"
+                        //sh "git add go/revision"
                     },
                     // TODO: take gregor and mysql out of kbweb
                     //pull_mysql: {
