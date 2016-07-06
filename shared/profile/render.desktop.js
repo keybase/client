@@ -7,6 +7,7 @@ import {headerColor as whichHeaderColor} from '../common-adapters/user-bio.share
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import ProfileHelp from './help.desktop'
+import {folderIconProps} from './render.shared'
 import type {Tab as FriendshipsTab} from './friendships'
 import type {Props} from './render'
 
@@ -17,21 +18,6 @@ export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 type State = {
   currentFriendshipsTab: FriendshipsTab,
   foldersExpanded: boolean,
-}
-
-function folderIconProps (folder, style) {
-  const type = folder.isPublic
-    ? (folder.hasData ? 'fa-kb-iconfont-folder-public-has-files' : 'fa-kb-iconfont-folder-public')
-    : (folder.hasData ? 'fa-kb-iconfont-folder-private-has-files' : 'fa-kb-iconfont-folder-private')
-
-  const color = folder.isPublic
-    ? globalColors.yellowGreen
-    : globalColors.darkBlue2
-
-  return {
-    type,
-    style: {...style, color},
-  }
 }
 
 class Render extends Component<void, Props, State> {

@@ -2,6 +2,7 @@
 import Profile from './render'
 import {normal, checking, revoked, error, metaNone} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
+import {isMobile} from '../constants/platform'
 import type {Props as RenderProps} from './render'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {UserInfo} from '../common-adapters/user-bio'
@@ -136,7 +137,7 @@ const propsBase: RenderProps = {
   onAcceptProofs: () => console.log('onAcceptProofs'),
   onFolderClick: folder => { console.log('onFolderClick', folder) },
   onUserClick: username => { console.log('onUserClick', username) },
-  parentProps: {
+  parentProps: isMobile ? {} : {
     style: {
       width: 640,
       height: 578,
