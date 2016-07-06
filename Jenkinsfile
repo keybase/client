@@ -198,7 +198,7 @@ node("ec2-fleet") {
                                                 }
                                                 bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
                                                 bat "choco install -y curl"
-                                                bat 'powershell -Command "$slept = 0; do { curl.exe --silent --output curl.txt $env:KEYBASE_SERVER_URI; $res = $?; sleep 1; $slept = $slept + 1; if ($slept -gt 300) { echo \\"Windows curl timed out while connecting to $env:KEYBASE_SERVER_URI\\"; exit 1 } } while ($res -ne \'0\')"'
+                                                bat 'powershell -Command "$slept = 0; do { curl.exe --silent --output curl.txt $env:KEYBASE_SERVER_URI; $res = $?; sleep 1; $slept = $slept + 1; if ($slept -gt 300) { echo \\"Windows curl timed out while connecting to $env:KEYBASE_SERVER_URI\\"; exit 1 } } while ($res -ne \'0\'); echo \\"Windows curl slept $slept times.\\""'
                                                 bat "for /f %%i in (testlist.txt) do (go test -timeout 10m %%i || exit /B 1)"
                                             }
                                         },
@@ -288,6 +288,7 @@ def testNixGo(prefix) {
                         exit 1;
                     fi
                 done
+                echo "$prefix curl slept \$slept times";
             '
         """
         sh './test/run_tests.sh'
