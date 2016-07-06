@@ -34,18 +34,18 @@ node("ec2-fleet") {
     def gregorImage = docker.image("keybaseprivate/kbgregor")
     def kbwebImage = docker.image("keybaseprivate/kbweb")
 
+    def kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
+    def kbwebNodePublicIP = httpRequest("http://169.254.169.254/latest/meta-data/public-ipv4").content
+    def cause = getCauseString()
+
+    println "Running on host $kbwebNodePrivateIP"
+    println "Setting up build: ${env.BUILD_TAG}"
+    println "Cause: ${cause}"
+    println "Pull Request ID: ${env.CHANGE_ID}"
+
     ws("${env.GOPATH}/src/github.com/keybase/client") {
 
         stage "Setup"
-
-            def kbwebNodePrivateIP = new URL ("http://169.254.169.254/latest/meta-data/local-ipv4").getText()
-            def kbwebNodePublicIP = new URL ("http://169.254.169.254/latest/meta-data/public-ipv4").getText()
-            def cause = getCauseString()
-
-            println "Running on host $kbwebNodePrivateIP"
-            println "Setting up build: ${env.BUILD_TAG}"
-            println "Cause: ${cause}"
-            println "Pull Request ID: ${env.CHANGE_ID}"
 
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
