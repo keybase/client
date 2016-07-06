@@ -217,8 +217,12 @@ func DefaultLaunchdEnvVars(label string) []launchd.EnvVar {
 
 // DefaultServiceLabel returns the default label for Keybase service in launchd
 func DefaultServiceLabel(runMode libkb.RunMode) string {
+	return defaultServiceLabel(runMode, libkb.IsBrewBuild)
+}
+
+func defaultServiceLabel(runMode libkb.RunMode, isBrew bool) string {
 	label := AppServiceLabel.String()
-	if libkb.IsBrewBuild {
+	if isBrew {
 		label = BrewServiceLabel.String()
 	}
 	if runMode != libkb.ProductionRunMode {
@@ -229,8 +233,12 @@ func DefaultServiceLabel(runMode libkb.RunMode) string {
 
 // DefaultKBFSLabel returns the default label for KBFS service in launchd
 func DefaultKBFSLabel(runMode libkb.RunMode) string {
+	return defaultKBFSLabel(runMode, libkb.IsBrewBuild)
+}
+
+func defaultKBFSLabel(runMode libkb.RunMode, isBrew bool) string {
 	label := AppKBFSLabel.String()
-	if libkb.IsBrewBuild {
+	if isBrew {
 		label = BrewKBFSLabel.String()
 	}
 	if runMode != libkb.ProductionRunMode {
@@ -275,9 +283,9 @@ func installKeybaseService(context Context, service launchd.Service, plist launc
 }
 
 // Uninstall keybase all services for this run mode.
-func uninstallKeybaseServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppServiceLabel.String(), defaultLaunchdWait, nil)
-	err2 := launchd.Uninstall(BrewServiceLabel.String(), defaultLaunchdWait, nil)
+func uninstallKeybaseServices(runMode libkb.RunMode, log Log) error {
+	err1 := launchd.Uninstall(defaultServiceLabel(runMode, false), defaultLaunchdWait, log)
+	err2 := launchd.Uninstall(defaultServiceLabel(runMode, true), defaultLaunchdWait, log)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -327,9 +335,9 @@ func installKBFSService(context Context, service launchd.Service, plist launchd.
 	return &st, err
 }
 
-func uninstallKBFSServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppKBFSLabel.String(), defaultLaunchdWait, nil)
-	err2 := launchd.Uninstall(BrewKBFSLabel.String(), defaultLaunchdWait, nil)
+func uninstallKBFSServices(runMode libkb.RunMode, log Log) error {
+	err1 := launchd.Uninstall(defaultKBFSLabel(runMode, false), defaultLaunchdWait, log)
+	err2 := launchd.Uninstall(defaultKBFSLabel(runMode, true), defaultLaunchdWait, log)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -492,7 +500,7 @@ func installService(context Context, binPath string, force bool, log Log) error 
 	}
 
 	if needsInstall || force {
-		uninstallKeybaseServices(context.GetRunMode())
+		uninstallKeybaseServices(context.GetRunMode(), log)
 		log.Debug("Installing Keybase service")
 		_, err := installKeybaseService(context, service, plist, log)
 		if err != nil {
@@ -534,7 +542,7 @@ func KBFS(context Context, binPath string, force bool, log Log) error {
 		}
 	}
 	if needsInstall || force {
-		uninstallKBFSServices(context.GetRunMode())
+		uninstallKBFSServices(context.GetRunMode(), log)
 		log.Debug("Installing KBFS")
 		_, err := installKBFSService(context, kbfsService, plist, log)
 		if err != nil {
@@ -568,12 +576,12 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 	}
 
 	if libkb.IsIn(string(ComponentNameService), components, false) {
-		err = uninstallKeybaseServices(context.GetRunMode())
+		err = uninstallKeybaseServices(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameService), err))
 	}
 
 	if libkb.IsIn(string(ComponentNameUpdater), components, false) {
-		err = uninstallUpdater(context.GetRunMode())
+		err = uninstallUpdater(context.GetRunMode(), log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameUpdater), err))
 	}
 
@@ -582,7 +590,7 @@ func Uninstall(context Context, components []string, log Log) keybase1.Uninstall
 
 // UninstallKBFS uninstalls all KBFS services and unmounts the directory
 func UninstallKBFS(runMode libkb.RunMode, mountDir string, forceUnmount bool, log Log) error {
-	err := uninstallKBFSServices(runMode)
+	err := uninstallKBFSServices(runMode, log)
 	if err != nil {
 		return err
 	}
@@ -884,7 +892,7 @@ func installUpdater(context Context, keybaseBinPath string, force bool, log Log)
 	}
 
 	if needsInstall || force {
-		uninstallUpdater(context.GetRunMode())
+		uninstallUpdater(context.GetRunMode(), log)
 		log.Debug("Installing updater service")
 		_, err := installUpdaterService(service, plist, log)
 		if err != nil {
@@ -918,8 +926,8 @@ func installUpdaterService(service launchd.Service, plist launchd.Plist, log Log
 	return &st, err
 }
 
-func uninstallUpdater(runMode libkb.RunMode) error {
-	return launchd.Uninstall(DefaultUpdaterLabel(runMode), defaultLaunchdWait, nil)
+func uninstallUpdater(runMode libkb.RunMode, log Log) error {
+	return launchd.Uninstall(DefaultUpdaterLabel(runMode), defaultLaunchdWait, log)
 }
 
 // kbfsBinName returns the name for the KBFS executable

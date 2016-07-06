@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"os"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"os"
 )
 
 const (
@@ -43,10 +44,6 @@ type CmdLogSend struct {
 }
 
 func (c *CmdLogSend) Run() error {
-	if c.G().Env.GetRunMode() != libkb.ProductionRunMode {
-		return fmt.Errorf("This command is unsupported for this run mode")
-	}
-
 	if err := c.confirm(); err != nil {
 		return err
 	}
