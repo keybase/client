@@ -68,6 +68,23 @@ func (c ComponentName) String() string {
 	return string(c)
 }
 
+// Description returns description for component name
+func (c ComponentName) Description() string {
+	switch c {
+	case ComponentNameService:
+		return "Service"
+	case ComponentNameKBFS:
+		return "KBFS"
+	case ComponentNameApp:
+		return "App"
+	case ComponentNameCLI:
+		return "Command Line"
+	case ComponentNameUpdater:
+		return "Updater"
+	}
+	return "Unknown"
+}
+
 // ComponentNameFromString returns ComponentName from a string
 func ComponentNameFromString(s string) ComponentName {
 	switch s {

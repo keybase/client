@@ -297,8 +297,14 @@ func kbfsPlist(context Context, kbfsBinPath string, label string) (plist launchd
 		"-debug",
 		fmt.Sprintf("-log-file=%s", logFile),
 		fmt.Sprintf("-runtime-dir=%s", context.GetRuntimeDir()),
-		mountDir,
 	}
+
+	if context.GetRunMode() == libkb.DevelRunMode {
+		plistArgs = append(plistArgs, fmt.Sprintf("-server-root=%s", context.GetRuntimeDir()))
+	}
+
+	plistArgs = append(plistArgs, mountDir)
+
 	envVars := DefaultLaunchdEnvVars(label)
 	envVars = append(envVars, launchd.NewEnvVar("KEYBASE_RUN_MODE", string(context.GetRunMode())))
 	plist = launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, startLogFile, defaultPlistComment)
