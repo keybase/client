@@ -34,18 +34,28 @@ node("ec2-fleet") {
     def gregorImage = docker.image("keybaseprivate/kbgregor")
     def kbwebImage = docker.image("keybaseprivate/kbweb")
 
-    def kbwebNodePrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
-    def kbwebNodePublicIP = httpRequest("http://169.254.169.254/latest/meta-data/public-ipv4").content
-    def cause = getCauseString()
+    sh "curl http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
+    sh "curl http://169.254.169.254/latest/meta-data/local-ipv4 > private.txt"
+    def kbwebNodePublicIP = readFile('public.txt')
+    def kbwebNodePrivateIP = readFile('private.txt')
+    sh "rm public.txt"
+    sh "rm private.txt"
+    def httpRequestPrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
+    def httpRequestPublicIP = httpRequest("http://169.254.169.254/latest/meta-data/public-ipv4").content
 
-    println "Running on host $kbwebNodePrivateIP"
+    println "Running on host $kbwebNodePublicIP ($kbwebNodePrivateIP)"
+    println "httpRequest says host $httpRequestPublicIP ($httpRequestPrivateIP)"
     println "Setting up build: ${env.BUILD_TAG}"
+
+    def cause = getCauseString()
     println "Cause: ${cause}"
     println "Pull Request ID: ${env.CHANGE_ID}"
 
     ws("${env.GOPATH}/src/github.com/keybase/client") {
 
         stage "Setup"
+
+
 
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
@@ -197,7 +207,7 @@ node("ec2-fleet") {
                                                 }
                                                 bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
                                                 bat "choco install -y curl"
-                                                bat 'powershell -Command \'$slept = 0; do { curl.exe --silent --output curl.txt $env:KEYBASE_SERVER_URI; $res = $?; sleep 1; $slept = $slept + 1; if ($slept -gt 300) { echo "Windows curl timed out while connecting to $env:KEYBASE_SERVER_URI"; exit 1 } } while ($res -ne "0"); echo "Windows curl slept $slept times while connecting to $env:KEYBASE_SERVER_URI";\''
+                                                waitForURL("Windows", env.KEYBASE_SERVER_URI)
                                                 bat "for /f %%i in (testlist.txt) do (go test -timeout 10m %%i || exit /B 1)"
                                             }
                                         },
@@ -273,23 +283,22 @@ node("ec2-fleet") {
     }
 }
 
+def waitForURL(prefix, url) {
+    def slept=0
+    retry(60) {
+        sleep 3
+        slept += 3
+        response = httpRequest(url)
+        if (response.status == 200) {
+            println "$prefix waitForURL connected to $url after waiting $slept seconds."
+            return
+        }
+    }
+}
+
 def testNixGo(prefix) {
     dir('go') {
-        sh """
-            bash -c '
-                slept="0";
-                while ! curl -s -o /dev/null \$KEYBASE_SERVER_URI; do
-                    if [[ "\$slept" -lt "300" ]]; then
-                        ((slept++));
-                        sleep 1;
-                    else
-                        echo "$prefix curl timed out while connecting to \$KEYBASE_SERVER_URI";
-                        exit 1;
-                    fi
-                done
-                echo "$prefix curl slept \$slept times while connecting to \$KEYBASE_SERVER_URI";
-            '
-        """
+        waitForURL(prefix, env.KEYBASE_SERVER_URI)
         sh './test/run_tests.sh'
     }
 }
