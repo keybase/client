@@ -1,4 +1,5 @@
 import './globals'
+import {setup as setupLocalDebug} from './local-debug'
 import React, {Component} from 'react'
 import {AppRegistry, NativeAppEventEmitter, AsyncStorage} from 'react-native'
 import {Provider} from 'react-redux'
@@ -9,6 +10,8 @@ import {stateKey} from './constants/reducer'
 import {serializeRestore, serializeSave, timeTravel, timeTravelForward, timeTravelBack} from './constants/dev'
 
 const store = configureStore()
+
+setupLocalDebug(store)
 
 class Keybase extends Component {
   componentWillMount () {

@@ -19,6 +19,7 @@ import tabbedRouter from './tabbed-router'
 import tracker from './tracker'
 import unlockFolders from './unlock-folders'
 import devEdit from './dev-edit'
+import dev from './dev'
 
 let history = List()
 let index = 0
@@ -50,6 +51,7 @@ const combinedReducer = combineReducers({
   signup,
   unlockFolders,
   notifications,
+  dev,
 })
 
 let reducer

@@ -24,7 +24,6 @@ import {bootstrap} from './actions/config'
 
 import {navBarHeight, tabBarHeight} from './styles/style-guide'
 
-import {dumbFullscreen} from './local-debug'
 import DumbSheet from './dev/dumb-sheet'
 
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
@@ -138,11 +137,12 @@ class Nav extends Component {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
-    return (nextProps.tabbedRouter.get('activeTab') !== this._activeTab())
+    return (nextProps.tabbedRouter.get('activeTab') !== this._activeTab() ||
+            nextProps.dumbFullscreen !== this.props.dumbFullscreen)
   }
 
   render () {
-    if (dumbFullscreen) {
+    if (this.props.dumbFullscreen) {
       return <DumbSheet />
     }
 
@@ -192,11 +192,12 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
-  ({tabbedRouter, config: {bootstrapped, extendedConfig, username}}) => ({
+  ({tabbedRouter, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({
     tabbedRouter,
     bootstrapped,
     provisioned: extendedConfig && !!extendedConfig.device,
     username,
+    dumbFullscreen,
   }),
   dispatch => {
     return {

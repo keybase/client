@@ -15,7 +15,6 @@ import Profile from './profile'
 import Login from './login'
 import {mapValues} from 'lodash'
 
-import {dumbFullscreen} from './local-debug'
 import DumbSheet from './dev/dumb-sheet'
 
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab, prettify} from './constants/tabs'
@@ -109,7 +108,7 @@ class Nav extends Component {
   }
 
   render () {
-    if (dumbFullscreen) {
+    if (this.props.dev.debugConfig.dumbFullscreen) {
       return <DumbSheet />
     }
 
