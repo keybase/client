@@ -3,6 +3,7 @@
  */
 
 import {createRouterState} from './reducers/router'
+import {updateDebugConfig} from './actions/dev'
 import * as Tabs from './constants/tabs'
 
 let config = {
@@ -74,4 +75,21 @@ export function initTabbedRouterState (state) {
     },
     activeTab: Tabs.settingsTab,
   }
+}
+
+function updateStore (store, config) {
+  store.dispatch(updateDebugConfig({
+    dumbFilter: config.dumbFilter,
+    dumbIndex: config.dumbIndex,
+    dumbFullscreen: config.dumbFullscreen,
+  }))
+}
+
+export function setup (store) {
+  if (module.hot) {
+    module.hot.accept(() => {
+      updateStore(store, require('./local-debug.native'))
+    })
+  }
+  updateStore(store, config)
 }

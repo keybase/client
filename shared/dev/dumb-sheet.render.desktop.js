@@ -5,22 +5,18 @@ import {Box, Text, Input, BackButton} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 import dumbComponentMap from './dumb-component-map.desktop'
 import DumbSheetItem from './dumb-sheet-item'
-import {dumbFilter} from '../local-debug'
 import debounce from 'lodash/debounce'
 
 class Render extends Component<void, any, any> {
-  state: any;
   _onFilterChange: (a: any) => void;
 
   constructor (props: any) {
     super(props)
 
-    this.state = {
-      filter: (dumbFilter && dumbFilter.toLowerCase()) || '',
-    }
-
     this._onFilterChange = debounce(filter => {
-      this.setState({filter})
+      this.props.onDebugConfigChange({
+        dumbFilter: filter,
+      })
     }, 300)
   }
 
@@ -31,6 +27,8 @@ class Render extends Component<void, any, any> {
   }
 
   render () {
+    const filter = this.props.dumbFilter.toLowerCase()
+
     return (
       <Box style={{...globalStyles.scrollable, padding: 20}}>
         <BackButton onClick={this.props.onBack} />
@@ -38,15 +36,15 @@ class Render extends Component<void, any, any> {
           <Text type='Header'>Filter:</Text>
           <Input
             ref='filterInput'
-            value={this.state.filter}
+            value={filter}
             onChange={event => this._onFilterChange(event.target.value.toLowerCase())}
           />
         </Box>
         {Object.keys(dumbComponentMap).map(key => {
           const map = dumbComponentMap[key]
-          const includeAllChildren = !this.state.filter || key.toLowerCase().indexOf(this.state.filter) !== -1
+          const includeAllChildren = !filter || key.toLowerCase().indexOf(filter) !== -1
           const items = Object.keys(map.mocks)
-            .filter(mockKey => !this.state.filter || includeAllChildren || mockKey.toLowerCase().indexOf(this.state.filter) !== -1)
+            .filter(mockKey => !filter || includeAllChildren || mockKey.toLowerCase().indexOf(filter) !== -1)
             .map((mockKey, idx) => {
               return (
                 <DumbSheetItem
