@@ -46,7 +46,7 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
         {avatar}
         {name}
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'flex-end', marginRight: 16}}>
-          <Icon onClick={e => { e && e.stopPropagation(); onRemove(user) }} type={'fa-kb-iconfont-remove'} style={{color: globalColors.black_20}} />
+          <Icon onClick={e => { e && e.stopPropagation(); onRemove(user) }} type={'iconfont-remove'} style={{color: globalColors.black_20}} />
         </Box>
       </ClickableBox>
       {insertSpacing && <Box style={{height: 1}} />}
@@ -72,7 +72,7 @@ export default function UserGroup ({users, onClickUser, onRemoveUser, onOpenPubl
       {users.map(u => <User key={u.service + u.username} user={u} onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
       <RowButton rowStyle={{height: 32}} iconStyle={{marginRight: 4}} icon='icon-folder-private-open-24' text={privateFolderText} onClick={onOpenPrivateGroupFolder} />
       {users.length === 1 && <RowButton rowStyle={{height: 32}} iconStyle={{marginRight: 4}} icon='icon-folder-public-open-24' text='Open public folder' onClick={onOpenPublicGroupFolder} />}
-      {chatEnabled && <RowButton rowStyle={{height: 32}} iconStyle={{color: globalColors.blue}} icon='fa-kb-iconfont-chat' text='Start group chat' onClick={onGroupChat} />}
+      {chatEnabled && <RowButton rowStyle={{height: 32}} iconStyle={{color: globalColors.blue}} icon='iconfont-chat' text='Start group chat' onClick={onGroupChat} />}
     </Box>
   )
 }

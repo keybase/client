@@ -39,7 +39,7 @@ class Login extends Component {
   }
 
   render () {
-    return <Render { ...this.props }
+    return <Render {...this.props}
       onSubmit={() => this._onSubmit()}
       passphrase={this.state.passphrase}
       showTyping={this.state.showTyping}

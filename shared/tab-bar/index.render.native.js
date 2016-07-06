@@ -11,10 +11,10 @@ import type {IconType} from '../common-adapters/icon'
 import type {Props} from './index.render'
 
 const icons: {[key: VisibleTab]: IconType} = {
-  [peopleTab]: 'fa-kb-iconfont-people',
-  [folderTab]: 'fa-kb-iconfont-folder',
-  [devicesTab]: 'fa-kb-iconfont-device',
-  [settingsTab]: 'fa-kb-iconfont-settings',
+  [peopleTab]: 'iconfont-people',
+  [folderTab]: 'iconfont-folder',
+  [devicesTab]: 'iconfont-device',
+  [settingsTab]: 'iconfont-settings',
 }
 
 function tabToIcon (t: VisibleTab): IconType {

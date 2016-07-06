@@ -2,8 +2,7 @@
 import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.desktop.js'
-import {Icon, Box, Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
-import type {IconType} from '../common-adapters/icon'
+import {Box, Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
 
 import DropdownDemo from './components/dropdown.desktop'
 
@@ -213,31 +212,6 @@ const Dropdowns = () => (
   <DropdownDemo />
 )
 
-const Icons = () => (
-  <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap', flex: 1, justifyContent: 'flex-start', alignItems: 'flex-start'}}>
-    {[
-      'icon-computer-bw-64',
-      'fa-copy',
-      'fa-eye',
-      'fa-key',
-      'icon-keybase-logo-160',
-      'fa-kb-iconfont-proof-broken',
-      'fa-kb-iconfont-proof-good',
-      'fa-kb-iconfont-proof-pending',
-      'fa-close',
-      'fa-mobile',
-    ].map((i: IconType) => [ // eslint-disable-line arrow-parens
-      <Icon onClick={() => console.log('clicked')} type={i} />,
-      <Space />,
-      <Icon style={{width: 100, height: 100}} onClick={() => console.log('clicked')} type={i} />,
-      <Space />,
-    ])}
-    <Row key='a'><Icon type='fa-copy' style={{color: globalColors.blue}} /></Row>
-    <Row key='a1'><Icon type='fa-copy' style={{color: globalColors.green}} /></Row>
-    <Row key='a2'><Icon type='fa-copy' style={{color: globalColors.orange}} /></Row>
-  </Box>
-)
-
 const Inputs = () => (
   <Box style={{...globalStyles.flexBoxColumn, maxWidth: 250}}>
     <Input floatingLabelText='Label' />
@@ -264,7 +238,6 @@ export default class Render extends Component {
     return (
       <Box style={{flex: 1, ...globalStyles.scrollable, padding: 20}}>
         <Container title='Text'><Fonts /></Container>
-        <Container title='Icons'><Icons /></Container>
         <Container title='Buttons'><Buttons /></Container>
         <Container title='Dropdown'><Dropdowns /></Container>
         <Container title='Colors'><Colors /></Container>

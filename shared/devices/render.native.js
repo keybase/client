@@ -26,7 +26,7 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
   }
 
   render () {
-    const iconType = this.state.expanded ? 'fa-caret-down' : 'fa-caret-up'
+    const iconType = this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'
     return (
       <Box>
         <TouchableHighlight onPress={e => this._toggleHeader(e)}>
@@ -43,9 +43,9 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
   const icon: IconType = {
-    'mobile': 'phone-bw-m',
-    'desktop': 'computer-bw-s-2',
-    'backup': 'paper-key-m',
+    'mobile': 'icon-phone-bw-48',
+    'desktop': 'icon-computer-bw-48',
+    'backup': 'icon-paper-key-48',
   }[device.type]
 
   let textStyle = {fontStyle: 'italic'}

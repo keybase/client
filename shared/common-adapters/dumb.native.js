@@ -15,7 +15,7 @@ const tabBarButtonMap: DumbComponentMap<TabBarButton> = {
   // $FlowIssue
   component: props => <Box style={{height: 56}}><TabBarButton {...props} /></Box>,
   mocks: {
-    'Cog icon': {selected: false, style: {height: 56, width: 72}, source: {type: 'icon', icon: 'fa-cog'}, badgeNumber: 7},
+    'Cog icon': {selected: false, style: {height: 56, width: 72}, source: {type: 'icon', icon: 'iconfont-settings'}, badgeNumber: 7},
   },
 }
 
@@ -43,10 +43,10 @@ const tabBarCustomButtons = selectedIndex => ({
   styleTabBar: {justifyContent: 'space-between', height: 56},
   children: [
     {avatar: <Avatar size={32} onClick={null} username='max' />},
-    {icon: 'fa-users', badgeNumber: 3},
-    {icon: 'fa-folder'},
-    {icon: 'phone-bw-m', badgeNumber: 12},
-    {icon: 'fa-cog'},
+    {icon: 'iconfont-people', badgeNumber: 3},
+    {icon: 'iconfont-folder'},
+    {icon: 'iconfont-device', badgeNumber: 12},
+    {icon: 'iconfont-settings'},
   ].map((buttonInfo: any, i) => {
     const button = buttonInfo.avatar
       ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar} />

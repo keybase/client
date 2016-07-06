@@ -64,7 +64,7 @@ class Render extends Component<void, Props, State> {
       folders = folders.slice(0, 4)
       folders.push(
         <Box key='more' style={styleFolderLine} onClick={() => this.setState({foldersExpanded: true})}>
-          <Icon type='fa-kb-iconfont-ellipsis' style={styleFolderIcon} />
+          <Icon type='iconfont-ellipsis' style={styleFolderIcon} />
           <Text type='BodySmall' style={{color: globalColors.black_60}}>+ {this.props.tlfs.length - folders.length} more</Text>
         </Box>
       )

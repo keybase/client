@@ -60,7 +60,7 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
           {avatar}
           {name}
           <Box style={{flex: 1, justifyContent: 'center', alignItems: 'flex-end', marginRight: 16}}>
-            <Icon onClick={() => onRemove(user)} type={'fa-times-circle'} style={{fontSize: 24}} />
+            <Icon onClick={() => onRemove(user)} type={'iconfont-remove'} style={{fontSize: 24}} />
           </Box>
         </Box>
         {insertSpacing && <Box style={{height: 1}} />}
@@ -102,7 +102,7 @@ export default function UserGroup ({users, onAddUser, onRemoveUser, onClickUser,
       {users.map(u => <User key={u.service + u.username} user={u} onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
       <RowButton icon='icon-folder-private-open-32' text='Open private folder' onClick={onOpenPrivateGroupFolder} />
       <RowButton icon='icon-folder-public-open-32' text='Open public folder' onClick={onOpenPublicGroupFolder} />
-      {chatEnabled && <RowButton style={{color: globalColors.blue}} icon='fa-kb-iconfont-chat' text='Start a chat' onClick={onGroupChat} />}
+      {chatEnabled && <RowButton style={{color: globalColors.blue}} icon='iconfont-chat' text='Start a chat' onClick={onGroupChat} />}
     </Box>
   )
 }

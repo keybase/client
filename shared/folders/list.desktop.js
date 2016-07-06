@@ -13,7 +13,7 @@ type State = {
 const rowKey = users => users && users.map(u => u.username).join('-')
 
 const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onOpen, onClick, onRekey, smallMode}) => {
-  const caretIcon: IconType = showIgnored ? 'fa-kb-iconfont-caret-down' : 'fa-kb-iconfont-caret-right'
+  const caretIcon: IconType = showIgnored ? 'iconfont-caret-down' : 'iconfont-caret-right'
 
   return (
     <Box style={stylesIgnoreContainer}>
