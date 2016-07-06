@@ -48,9 +48,14 @@ node("ec2-fleet") {
             def cause = getCauseString()
             println "Cause: ${cause}"
             println "Pull Request ID: ${env.CHANGE_ID}"
+
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
-                    checkout: { checkout scm },
+                    checkout: {
+                        checkout scm
+                        sh "git rev-parse HEAD | tee go/revision"
+                        sh "git add go/revision"
+                    },
                     // TODO: take gregor and mysql out of kbweb
                     //pull_mysql: {
                     //    mysqlImage.pull()
@@ -141,8 +146,6 @@ node("ec2-fleet") {
                                     dir('go') {
                                         sh "go install github.com/keybase/client/go/keybase"
                                         sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                                        sh "git rev-parse HEAD > revision"
-                                        sh "git add revision"
                                         def clientImage = docker.build("keybaseprivate/kbclient")
                                         sh "docker save -o kbclient.tar keybaseprivate/kbclient"
                                         archive("kbclient.tar")
