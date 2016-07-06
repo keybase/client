@@ -85,6 +85,7 @@ node("ec2-fleet") {
                         test_linux: {
                             parallel (
                                 test_linux_go: { withEnv([
+                                    "PATH=${env.PATH}:${env.GOPATH}/bin",
                                     "KEYBASE_SERVER_URI=http://127.0.0.1:3000",
                                     "KEYBASE_PUSH_SERVER_URI=fmprpc://127.0.0.1:9911",
                                 ]) {
@@ -241,6 +242,7 @@ node("ec2-fleet") {
                                 def GOPATH=pwd()
                                 withEnv([
                                     "GOPATH=${GOPATH}",
+                                    "PATH=${env.PATH}:${GOPATH}/bin",
                                     "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
                                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
                                 ]) {
@@ -273,7 +275,7 @@ node("ec2-fleet") {
     }
 }
 
-testNixGo(prefix) {
+def testNixGo(prefix) {
     dir('go') {
         sh """
             bash -c '
