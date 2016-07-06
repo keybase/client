@@ -7,6 +7,7 @@ import QRMap from '../login/register/code-page/qr/dumb.native'
 import DevicePageMap from '../devices/device-page/dumb.native'
 import FoldersMap from '../folders/dumb'
 import FoldersConfirmMap from '../folders/confirm/dumb'
+import ProfileMap from '../profile/dumb'
 import SearchMap from '../search/dumb'
 import type {DumbComponentMap} from '../constants/types/more'
 import Tracker from '../tracker/dumb.native'
@@ -21,6 +22,7 @@ const map: DumbComponentMap = {
   ...DevicePageMap,
   ...FoldersMap,
   ...FoldersConfirmMap,
+  ...ProfileMap,
   ...SearchMap,
   ...Tracker,
 }

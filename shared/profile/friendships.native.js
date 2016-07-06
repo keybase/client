@@ -6,6 +6,8 @@ import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props, FriendshipUserInfo} from './friendships'
 
+const ITEM_WIDTH = 105
+
 type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void
 }
@@ -19,12 +21,20 @@ const UserEntry = ({onClick, username, followsYou, following}: UserEntryProps) =
   </TouchableHighlight>
 )
 
+// Pad an array of grid entries with enough placeholders to fill the final row
+function padGridEntries (entries, multiple) {
+  for (let i = 0; i < entries.length % multiple; i++) {
+    entries.push(<Box key={`pad${i}`} style={{width: ITEM_WIDTH, margin: 2}} />)
+  }
+  return entries
+}
+
 const userEntryContainerStyle = {
   ...globalStyles.clickable,
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'flex-start',
-  width: 105,
+  width: ITEM_WIDTH,
   height: 108,
   margin: 2,
 }
@@ -51,7 +61,7 @@ class Render extends Component<void, Props, void> {
           <Box style={tabItemContainerStyle}>
             <Box style={tabItemContainerTopBorder} />
             <Box style={tabItemContainerUsers}>
-              {this.props.followers.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />)}
+              {padGridEntries(this.props.followers.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />), 3)}
             </Box>
           </Box>
         </TabBarItem>
@@ -63,7 +73,7 @@ class Render extends Component<void, Props, void> {
           <Box style={tabItemContainerStyle}>
             <Box style={tabItemContainerTopBorder} />
             <Box style={tabItemContainerUsers}>
-              {this.props.following.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />)}
+              {padGridEntries(this.props.following.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />), 3)}
             </Box>
           </Box>
         </TabBarItem>
