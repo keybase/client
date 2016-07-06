@@ -1,6 +1,6 @@
 /* @flow */
 import {uniq} from 'lodash'
-import {runMode} from './platform.native'
+import {runMode} from './platform'
 
 // Constants
 export const defaultKBFSPath = `/keybase.${runMode}`
