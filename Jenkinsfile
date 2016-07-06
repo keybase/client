@@ -198,7 +198,7 @@ node("ec2-fleet") {
                                                 }
                                                 bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
                                                 bat "choco install -y curl"
-                                                bat 'powershell -Command "$slept = 0; do { curl.exe --silent --output curl.txt $env:KEYBASE_SERVER_URI; $res = $?; sleep 1; $slept = $slept + 1; if ($slept -gt 300) { echo \\"Windows curl timed out while connecting to $env:KEYBASE_SERVER_URI\\"; exit 1 } } while ($res -ne \'0\'); echo \\"Windows curl slept $slept times.\\""'
+                                                bat 'powershell -Command \'$slept = 0; do { curl.exe --silent --output curl.txt $env:KEYBASE_SERVER_URI; $res = $?; sleep 1; $slept = $slept + 1; if ($slept -gt 300) { echo "Windows curl timed out while connecting to $env:KEYBASE_SERVER_URI"; exit 1 } } while ($res -ne "0"); echo "Windows curl slept $slept times while connecting to $env:KEYBASE_SERVER_URI";\''
                                                 bat "for /f %%i in (testlist.txt) do (go test -timeout 10m %%i || exit /B 1)"
                                             }
                                         },
@@ -279,16 +279,16 @@ def testNixGo(prefix) {
         sh """
             bash -c '
                 slept="0";
-                while ! curl -s -o /dev/null ${env.KEYBASE_SERVER_URI} 2>&1; do
-                    if [[ "\$slept" -lt 300 ]]; then
+                while ! curl -s -o /dev/null \$KEYBASE_SERVER_URI; do
+                    if [[ "\$slept" -lt "300" ]]; then
                         ((slept++));
                         sleep 1;
                     else
-                        echo "$prefix curl timed out";
+                        echo "$prefix curl timed out while connecting to \$KEYBASE_SERVER_URI";
                         exit 1;
                     fi
                 done
-                echo "$prefix curl slept \$slept times";
+                echo "$prefix curl slept \$slept times while connecting to \$KEYBASE_SERVER_URI";
             '
         """
         sh './test/run_tests.sh'
