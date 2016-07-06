@@ -90,13 +90,17 @@ node("ec2-fleet") {
                         kbweb = kbwebImage.run('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh')
                     }
                     kbwebNodePrivateIP = new URL ("http://169.254.169.254/latest/meta-data/local-ipv4").getText()
-                    kbwebNodePublicID = new URL ("http://169.254.169.254/latest/meta-data/public-ipv4").getText()
+                    kbwebNodePublicIP = new URL ("http://169.254.169.254/latest/meta-data/public-ipv4").getText()
                 }
 
                 stage "Test"
                 parallel (
                     test_linux: {
-                        runNixTest('linux_')
+                        withEnv([
+                            "PATH=${env.PATH}:${env.GOPATH}/bin",
+                        ]) {
+                            runNixTest('linux_')
+                        }
                     },
                     //test_windows: {
                     //    node('windows') {
@@ -117,18 +121,22 @@ node("ec2-fleet") {
                     //},
                     test_osx: {
                         node('osx') {
-                        withEnv([
-                            "GOPATH=${pwd()}",
-                            "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
-                            "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
-                        ]) {
-                        ws("${pwd()}/src/github.com/keybase/kbfs") {
-                            println "Checkout OS X"
-                                checkout scm
+                            def GOPATH=pwd()
+                            withEnv([
+                                "PATH=${env.PATH}:${GOPATH}/bin",
+                                "GOPATH=${GOPATH}",
+                                "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
+                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
+                            ]) {
+                                ws("${GOPATH}/src/github.com/keybase/kbfs") {
+                                    println "Checkout OS X"
+                                    checkout scm
 
-                            println "Test OS X"
-                                runNixTest('osx_')
-                        }}}
+                                    println "Test OS X"
+                                    runNixTest('osx_')
+                                }
+                            }
+                        }
                     },
                     integrate: {
                         sh "go install github.com/keybase/kbfs/kbfsfuse"
