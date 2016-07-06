@@ -210,7 +210,7 @@ def runNixTest(prefix) {
         dir('libkbfs') {
             sh 'go test -i'
             sh 'go test -race -c'
-            sh './libkbfs.test -test.timeout 2m'
+            sh './libkbfs.test -test.timeout 3m'
         }
     }
     tests[prefix+'libfuse'] = {
