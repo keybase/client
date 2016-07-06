@@ -1,0 +1,7 @@
+/* @flow */
+// Styles from our designers
+
+import type {IconType} from './icon'
+
+declare export var fontIcons: {[key: IconType]: any}
+declare export var images: {[key: IconType]: any}
