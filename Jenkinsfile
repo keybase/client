@@ -181,39 +181,46 @@ node("ec2-fleet") {
 }
 
 def runNixTest(prefix) {
-    withEnv([
-        'KEYBASE_TEST_BSERVER_ADDR=tempdir',
-        'KEYBASE_TEST_MDSERVER_ADDR=tempdir',
-    ]) {
-        tests = [:]
-        tests[prefix+'vet'] = {
-            sh 'go get -u github.com/golang/lint/golint'
-            sh 'go install github.com/golang/lint/golint'
-            sh '''
-                lint=$(make -s lint);
-                echo 2>&1 "$lint";
-                [ -z "$lint" -o "$lint" = "Lint-free!" ]
-            '''
-            sh 'go vet $(go list ./... 2>/dev/null | grep -v /vendor/)'
+    tests = [:]
+    // Run libkbfs tests with an in-memory bserver and mdserver, and run
+    // all other tests with the tempdir bserver and mdserver.
+    tests[prefix+'vet'] = {
+        sh 'go get -u github.com/golang/lint/golint'
+        sh 'go install github.com/golang/lint/golint'
+        sh '''
+            lint=$(make -s lint);
+            echo 2>&1 "$lint";
+            [ -z "$lint" -o "$lint" = "Lint-free!" ]
+        '''
+        sh 'go vet $(go list ./... 2>/dev/null | grep -v /vendor/)'
+    }
+    tests[prefix+'install'] = {
+        sh 'go install github.com/keybase/kbfs/...'
+    }
+    tests[prefix+'libkbfs'] = {
+        dir('libkbfs') {
+            sh 'go test -i'
+            sh 'go test -race -c'
+            sh './libkbfs.test -test.timeout 2m'
         }
-        tests[prefix+'install'] = {
-            sh 'go install github.com/keybase/kbfs/...'
-        }
-        tests[prefix+'libkbfs'] = {
-            dir('libkbfs') {
-                sh 'go test -i'
-                sh 'go test -race -c'
-                sh './libkbfs.test -test.timeout 2m'
-            }
-        }
-        tests[prefix+'libfuse'] = {
+    }
+    tests[prefix+'libfuse'] = {
+        withEnv([
+            'KEYBASE_TEST_BSERVER_ADDR=tempdir',
+            'KEYBASE_TEST_MDSERVER_ADDR=tempdir',
+        ]) {
             dir('libfuse') {
                 sh 'go test -i'
                 sh 'go test -c'
                 sh './libfuse.test -test.timeout 2m'
             }
         }
-        tests[prefix+'test'] = {
+    }
+    tests[prefix+'test'] = {
+        withEnv([
+            'KEYBASE_TEST_BSERVER_ADDR=tempdir',
+            'KEYBASE_TEST_MDSERVER_ADDR=tempdir',
+        ]) {
             dir('test') {
                 sh 'go test -i -tags fuse'
                 println "Test Dir with Race but no Fuse"
@@ -224,8 +231,8 @@ def runNixTest(prefix) {
                 sh './test.test -test.timeout 7m'
             }
         }
-        parallel (tests)
     }
+    parallel (tests)
 }
 
 // Need to separate this out because cause is not serializable and thus state
