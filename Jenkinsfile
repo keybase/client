@@ -173,81 +173,85 @@ node("ec2-fleet") {
                         },
                         test_windows: {
                             node('windows') {
-                            withEnv([
-                                'GOROOT=C:\\tools\\go',
-                                "GOPATH=\"${pwd()}\"",
-                                "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
-                                "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
-                            ]) {
-                            ws("${pwd()}/src/github.com/keybase/client") {
-                                println "Checkout Windows"
-                                checkout scm
+                                def GOPATH=pwd()
+                                withEnv([
+                                    'GOROOT=C:\\tools\\go',
+                                    "GOPATH=\"${GOPATH}\"",
+                                    "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
+                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
+                                ]) {
+                                ws("${GOPATH}/src/github.com/keybase/client") {
+                                    println "Checkout Windows"
+                                    checkout scm
 
-                                println "Test Windows"
-                                parallel (
-                                    test_windows_go: {
-                                        println "Test Windows Go"
-                                        bat "choco install -y golang --version 1.6"
-                                        bat "choco install -y gpg4win-vanilla --version 2.3.1"
-                                        dir("go") {
-                                            dir ("keybase") {
-                                                bat "go build -a 2>&1 || exit /B 1"
-                                                bat "echo %errorlevel%"
+                                    println "Test Windows"
+                                    parallel (
+                                        test_windows_go: {
+                                            println "Test Windows Go"
+                                            bat "choco install -y golang --version 1.6"
+                                            bat "choco install -y gpg4win-vanilla --version 2.3.1"
+                                            dir("go") {
+                                                dir ("keybase") {
+                                                    bat "go build -a 2>&1 || exit /B 1"
+                                                    bat "echo %errorlevel%"
+                                                }
+                                                bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
+                                                bat "choco install -y curl"
+                                                bat 'powershell -Command "$slept = 0; do { curl.exe --silent --output curl.txt $env:KEYBASE_SERVER_URI; $res = $?; sleep 1; $slept = $slept + 1; if ($slept -gt 300) { echo \\"Windows curl timed out while connecting to $env:KEYBASE_SERVER_URI\\"; exit 1 } } while ($res -ne \'0\')"'
+                                                bat "for /f %%i in (testlist.txt) do (go test -timeout 10m %%i || exit /B 1)"
                                             }
-                                            bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
-                                            bat "choco install -y curl"
-                                            bat 'powershell -Command "$slept = 0; do { curl.exe --silent --output curl.txt $env:KEYBASE_SERVER_URI; $res = $?; sleep 1; $slept = $slept + 1; if ($slept -gt 300) { echo \\"Windows curl timed out while connecting to $env:KEYBASE_SERVER_URI\\"; exit 1 } } while ($res -ne \'0\')"'
-                                            bat "for /f %%i in (testlist.txt) do (go test -timeout 10m %%i || exit /B 1)"
-                                        }
-                                    },
-                                    test_windows_js: { wrap([$class: 'Xvfb']) {
-                                        println "Test Windows JS"
-                                        // TODO implement visdiff PR pushing
-                                        if (fileExists("visdiff")) {
-                                            bat "choco install -y nodejs.install --allow-downgrade --version 6.1.0"
-                                            bat "choco install -y python --version 2.7.11"
-                                            bat "choco install -y graphicsmagick --version 1.3.24"
-                                            dir("visdiff") {
-                                                bat "npm install"
-                                            }
-                                            bat "npm install .\\visdiff"
-                                            dir("desktop") {
-                                                if (fileExists("npm-vendor.js")) {
-                                                    bat "npm run vendor-install"
-                                                } else {
+                                        },
+                                        test_windows_js: { wrap([$class: 'Xvfb']) {
+                                            println "Test Windows JS"
+                                            // TODO implement visdiff PR pushing
+                                            if (fileExists("visdiff")) {
+                                                bat "choco install -y nodejs.install --allow-downgrade --version 6.1.0"
+                                                bat "choco install -y python --version 2.7.11"
+                                                bat "choco install -y graphicsmagick --version 1.3.24"
+                                                dir("visdiff") {
                                                     bat "npm install"
                                                 }
-                                                withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                                        credentialsId: 'visdiff-aws-creds',
-                                                        usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
-                                                        passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
-                                                    ],[$class: 'StringBinding',
-                                                        credentialsId: 'visdiff-github-token',
-                                                        variable: 'VISDIFF_GH_TOKEN',
-                                                ]]) {
-                                                    bat '..\\node_modules\\.bin\\keybase-visdiff "HEAD^^...HEAD"'
+                                                bat "npm install .\\visdiff"
+                                                dir("desktop") {
+                                                    if (fileExists("npm-vendor.js")) {
+                                                        bat "npm run vendor-install"
+                                                    } else {
+                                                        bat "npm install"
+                                                    }
+                                                    withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                                            credentialsId: 'visdiff-aws-creds',
+                                                            usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
+                                                            passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
+                                                        ],[$class: 'StringBinding',
+                                                            credentialsId: 'visdiff-github-token',
+                                                            variable: 'VISDIFF_GH_TOKEN',
+                                                    ]]) {
+                                                        bat '..\\node_modules\\.bin\\keybase-visdiff "HEAD^^...HEAD"'
+                                                    }
                                                 }
                                             }
-                                        }
-                                    }},
-                                )
-                            }}}
+                                        }},
+                                    )
+                                }}
+                            }
                         },
                         test_osx: {
                             node('osx') {
-                            withEnv([
-                                "GOPATH=${pwd()}",
-                                "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
-                                "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
-                            ]) {
-                            ws("${pwd()}/src/github.com/keybase/client") {
-                                println "Checkout OS X"
-                                    checkout scm
+                                def GOPATH=pwd()
+                                withEnv([
+                                    "GOPATH=${GOPATH}",
+                                    "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
+                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
+                                ]) {
+                                ws("${GOPATH}/src/github.com/keybase/client") {
+                                    println "Checkout OS X"
+                                        checkout scm
 
-                                println "Test OS X"
-                                    testNixGo("OS X")
-                            }}}
+                                    println "Test OS X"
+                                        testNixGo("OS X")
+                                }}
+                            }
                         },
                     )
             } finally {
