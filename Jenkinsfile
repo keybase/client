@@ -135,6 +135,7 @@ node("ec2-fleet") {
                         sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
                         withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64', variable: 'KBFS_DOCKER_CERT_B64']]) {
                             println "Building Docker"
+                            sh 'git rev-parse HEAD > kbfsfuse/revision'
                             sh '''
                                 set +x
                                 docker build -t keybaseprivate/kbfsfuse --build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64=\"$KBFS_DOCKER_CERT_B64\" kbfsfuse
