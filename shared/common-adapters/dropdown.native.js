@@ -96,7 +96,7 @@ class Dropdown extends Component {
   _renderLabelAndCaret (): Array<React$Element> {
     return [
       <Text key='text' type='Header' style={{...styleText, ...this._itemStyle()}}>{this._label(this.state.value)}</Text>,
-      <Icon key='icon' type='fa-caret-down' style={styleIcon} />,
+      <Icon key='icon' type='iconfont-caret-down' style={styleIcon} />,
     ]
   }
 

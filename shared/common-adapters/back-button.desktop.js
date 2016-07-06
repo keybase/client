@@ -19,7 +19,7 @@ export default class BackButton extends Component {
   render () {
     return (
       <div style={{...styles.container, ...this.props.style}} onClick={e => this.onClick(e)}>
-        <Icon type='fa-arrow-left' style={{...styles.icon, ...this.props.iconStyle}} />
+        <Icon type='iconfont-back' style={{...styles.icon, ...this.props.iconStyle}} />
         {this.props.title !== null && <Text type='BodyPrimaryLink' style={this.props.textStyle} onClick={e => this.onClick(e)}>{this.props.title || 'Back'}</Text>}
       </div>
     )
@@ -38,7 +38,6 @@ export const styles = {
     alignItems: 'center',
   },
   icon: {
-    fontSize: 11,
     marginRight: 8,
   },
 }

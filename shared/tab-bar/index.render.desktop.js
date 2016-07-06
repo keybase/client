@@ -13,10 +13,10 @@ import type {IconType} from '../common-adapters/icon'
 import type {Props} from './index.render'
 
 const icons: {[key: VisibleTab]: IconType} = {
-  [peopleTab]: 'fa-kb-iconfont-people',
-  [folderTab]: 'fa-kb-iconfont-folder',
-  [devicesTab]: 'fa-kb-iconfont-device',
-  [settingsTab]: 'fa-kb-iconfont-settings',
+  [peopleTab]: 'iconfont-people',
+  [folderTab]: 'iconfont-folder',
+  [devicesTab]: 'iconfont-device',
+  [settingsTab]: 'iconfont-settings',
 }
 
 const labels: {[key: VisibleTab]: IconType} = {
@@ -43,7 +43,7 @@ export default class Render extends Component<void, Props, void> {
     const button = (
       <Box style={{...globalStyles.flexBoxColumn, padding: 24}}>
         <Box style={{...stylesSearchButton, backgroundColor}}>
-          <Icon type='fa-kb-iconfont-search' style={{color: globalColors.white, fontSize: 32}} />
+          <Icon type='iconfont-search' style={{color: globalColors.white, fontSize: 32}} />
         </Box>
       </Box>
     )

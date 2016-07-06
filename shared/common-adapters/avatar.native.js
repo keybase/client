@@ -34,12 +34,23 @@ export default class Avatar extends Component<void, Props, State> {
           {!this.state.avatarLoaded &&
             <Image
               style={stylesPlaceholderImage(size)}
-              source={images['placeholder-avatar']} />}
+              source={placeholder(size)} />}
         </Box>
       </TouchableOpacity>
     )
   }
 }
+
+const placeholder = (size: number) => ({ // eslint-disable-line arrow-parens
+  '176': images['icon-placeholder-avatar-176-x-176'],
+  '112': images['icon-placeholder-avatar-112-x-112'],
+  '80': images['icon-placeholder-avatar-80-x-80'],
+  '64': images['icon-placeholder-avatar-64-x-64'],
+  '48': images['icon-placeholder-avatar-48-x-48'],
+  '32': images['icon-placeholder-avatar-32-x-32'],
+  '24': images['icon-placeholder-avatar-24-x-24'],
+  '16': images['icon-placeholder-avatar-16-x-16'],
+}[String(size)])
 
 const stylesCommon = (size: number) => ({ // eslint-disable-line arrow-parens
   width: size,

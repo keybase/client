@@ -1,10 +1,11 @@
 // @flow
 
-import React from 'react'
+import React, {Component} from 'react'
 import _ from 'lodash'
 
 import Checkbox from './checkbox'
-import {Button, Box, TabBar, Text, Avatar, ListItem, PopupMenu} from './index'
+import {Button, Box, TabBar, Text, Avatar, ListItem, PopupMenu, Icon} from './index'
+import {FontIcons, Icons} from './icon.constants'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
@@ -40,6 +41,31 @@ const checkboxMap: DumbComponentMap<Checkbox> = {
   },
 }
 
+class IconHolder extends Component<void, {iconFont: boolean}, void> {
+  render () {
+    const icons = Object.keys(this.props.iconFont ? FontIcons : Icons)
+    return (
+      <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'flex-start'}}>
+      {icons.map(i => <Box key={i}><Text type='BodyXSmall'>{i}</Text><Icon type={i} style={{margin: 10, border: 'solid 1px #777777'}} /></Box>)}
+      </Box>
+    )
+  }
+}
+
+const iconMap: DumbComponentMap<IconHolder> = {
+  component: IconHolder,
+  mocks: {
+    'Icon IconFont': {
+      label: 'Sheet',
+      iconFont: true,
+    },
+    'Icon Image': {
+      label: 'Sheet',
+      iconFont: false,
+    },
+  },
+}
+
 const IconButton = ({selected, icon, badgeNumber, label}: any) => <TabBarButton label={label} source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber} style={{height: 40}} />
 const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton source={{type: 'avatar', avatar}} selected={selected} badgeNumber={badgeNumber} style={{flex: 1}} styleContainer={{height: 40}} />
 
@@ -48,10 +74,10 @@ const tabBarCustomButtons = selectedIndex => ({
   styleTabBar: {justifyContent: 'flex-start', width: 160, backgroundColor: globalColors.midnightBlue, ...globalStyles.flexBoxColumn},
   children: [
     {avatar: <Avatar size={32} onClick={null} username='max' />},
-    {icon: 'fa-kb-iconfont-people', label: 'PEOPLE', badgeNumber: 3},
-    {icon: 'fa-kb-iconfont-folder', label: 'FOLDERS'},
-    {icon: 'fa-kb-iconfont-device', label: 'DEVICES', badgeNumber: 12},
-    {icon: 'fa-kb-iconfont-settings', label: 'SETTINGS'},
+    {icon: 'iconfont-people', label: 'PEOPLE', badgeNumber: 3},
+    {icon: 'iconfont-folder', label: 'FOLDERS'},
+    {icon: 'iconfont-device', label: 'DEVICES', badgeNumber: 12},
+    {icon: 'iconfont-settings', label: 'SETTINGS'},
   ].map((buttonInfo: any, i) => {
     const button = buttonInfo.avatar
       ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar} />
@@ -171,4 +197,5 @@ export default {
   ListItem: listItemMap,
   PopupMenu: popupMenuMap,
   Avatar: avatarMap,
+  Icon: iconMap,
 }

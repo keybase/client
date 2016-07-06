@@ -22,7 +22,7 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
   }
 
   render () {
-    const iconType = this.state.expanded ? 'fa-kb-iconfont-caret-down' : 'fa-kb-iconfont-caret-right'
+    const iconType = this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'
     return (
       <Box>
         <Box style={stylesRevokedRow} onClick={e => this._toggleHeader(e)}>
