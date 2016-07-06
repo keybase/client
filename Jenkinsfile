@@ -74,6 +74,7 @@ node("ec2-fleet") {
                         } else {
                             clientImage.pull()
                         }
+                        sh "docker tag keybaseprivate/kbclient kbclient"
                     },
                     remove_dockers: {
                         sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
@@ -210,7 +211,7 @@ def runNixTest(prefix) {
         dir('libkbfs') {
             sh 'go test -i'
             sh 'go test -race -c'
-            sh './libkbfs.test -test.timeout 2m'
+            sh './libkbfs.test -test.timeout 3m'
         }
     }
     tests[prefix+'libfuse'] = {
