@@ -57,7 +57,13 @@ func (s *IdentifyState) computeRevokedProofs() {
 	}
 
 	found := s.res.TrackSet()
+
 	tracked := s.track.set
+	// If there is a snoozed track in tmpTrack, use it instead
+	// to see if anything has changed since the snooze:
+	if s.tmpTrack != nil {
+		tracked = s.tmpTrack.set
+	}
 
 	// These are the proofs that we previously tracked that we
 	// didn't observe in the current profile
