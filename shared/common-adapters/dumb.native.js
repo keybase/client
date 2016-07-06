@@ -9,7 +9,8 @@ import {globalColors} from '../styles/style-guide'
 
 import {Avatar} from './index'
 
-import type {DumbComponentMap} from '../constants/types/more'
+import type {AvatarSize} from './avatar'
+import type {DumbComponentMap, PropsOf} from '../constants/types/more'
 
 const tabBarButtonMap: DumbComponentMap<TabBarButton> = {
   // $FlowIssue
@@ -138,34 +139,41 @@ const listItemMap: DumbComponentMap<ListItem> = {
   },
 }
 
+const avatarSizes: Array<AvatarSize> = [176, 112, 80, 64, 48, 32, 24]
+
+function avatarMocks (size): {[key: string]: PropsOf<Avatar>} {
+  return {
+    ['No Friendship - ' + size]: {
+      url: '',
+      size,
+      following: false,
+      followsYou: false,
+    },
+    ['Follows you - ' + size]: {
+      url: '',
+      size,
+      following: false,
+      followsYou: true,
+    },
+    ['You follow - ' + size]: {
+      url: '',
+      size,
+      following: true,
+      followsYou: false,
+    },
+    ['Mutual Follows - ' + size]: {
+      url: '',
+      size,
+      following: true,
+      followsYou: true,
+    },
+  }
+}
+
 const avatarMap: DumbComponentMap<Avatar> = {
   component: Avatar,
-  mocks: {
-    'No Friendship': {
-      url: '',
-      size: 80,
-      following: false,
-      followsYou: false,
-    },
-    'Follows you': {
-      url: '',
-      size: 80,
-      following: false,
-      followsYou: true,
-    },
-    'You follow': {
-      url: '',
-      size: 80,
-      following: true,
-      followsYou: false,
-    },
-    'Mutual Follows': {
-      url: '',
-      size: 80,
-      following: true,
-      followsYou: true,
-    },
-  },
+  // $FlowIssue
+  mocks: Object.assign.apply(null, avatarSizes.map(avatarMocks)),
 }
 
 export default {
