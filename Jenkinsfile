@@ -142,6 +142,7 @@ node("ec2-fleet") {
                                         sh "go install github.com/keybase/client/go/keybase"
                                         sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
                                         sh "git rev-parse HEAD > revision"
+                                        sh "git add revision"
                                         def clientImage = docker.build("keybaseprivate/kbclient")
                                         sh "docker save -o kbclient.tar keybaseprivate/kbclient"
                                         archive("kbclient.tar")
