@@ -12,3 +12,4 @@ ENTRYPOINT ["kbfsfuse.sh"]
 
 ADD kbfsfuse.sh /home/keybase/
 ADD kbfsfuse /home/keybase/
+ADD revision /home/keybase/kbfs_revision
