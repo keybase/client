@@ -104,12 +104,10 @@ const stylesFullname = {
   ...globalStyles.selectable,
   textAlign: 'center',
   color: globalColors.black_75,
-  marginTop: globalMargins.xtiny,
 }
 const stylesFollowLabel = {
   fontSize: 12,
   color: globalColors.black_40,
-  marginTop: globalMargins.xtiny,
 }
 const stylesFollowing = {
   ...globalStyles.clickable,
