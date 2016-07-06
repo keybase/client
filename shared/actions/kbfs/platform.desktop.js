@@ -4,24 +4,19 @@ import {shell} from 'electron'
 import * as Constants from '../../constants/config'
 import {Common} from '../../constants/types/keybase-v1'
 import type {AsyncAction} from '../../constants/types/flux'
-import {cleanup} from '../../util/kbfs'
+import path from 'path'
 
-const open = (kbfsPath: string, path: string = '') => { // eslint-disable-line space-infix-ops
-  if (path.startsWith(Constants.defaultPrivatePrefix)) {
-    path = Constants.defaultPrivatePrefix + cleanup(path.slice(Constants.defaultPrivatePrefix.length))
-  } else if (path.startsWith(Constants.defaultPublicPrefix)) {
-    path = Constants.defaultPublicPrefix + cleanup(path.slice(Constants.defaultPublicPrefix.length))
-  } else {
-    path = cleanup(path)
-  }
-
-  shell.openItem(`${kbfsPath}${path}`)
+const open = (kbfsPath: string, dir: string = '') => { // eslint-disable-line space-infix-ops
+  dir = path.join(kbfsPath, dir)
+  console.log('openItem:', dir)
+  shell.openItem(dir)
 }
 
-// Paths MUST start with /keybase/
+// Paths MUST start with defaultKBFSPath
 export function openInKBFS (path: string = Constants.defaultKBFSPath): AsyncAction {
+  console.log('openInKBFS:', path)
   if (!path.startsWith(Constants.defaultKBFSPath)) {
-    console.warn(`ERROR: openInKBFS requires ${Constants.defaultKBFSPath} prefix`)
+    console.error(`openInKBFS requires ${Constants.defaultKBFSPath} prefix`)
     return () => {}
   }
   path = path.slice(Constants.defaultKBFSPath.length)

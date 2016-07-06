@@ -3,6 +3,7 @@
 import engine from '../engine'
 import {navigateBack} from '../actions/router'
 import * as Constants from '../constants/favorite'
+import {defaultKBFSPath} from '../constants/config'
 import {badgeApp} from './notifications'
 import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
 import _ from 'lodash'
@@ -14,21 +15,21 @@ import {NotifyPopup} from '../native/notifications'
 
 export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
   const sortName = users.map(u => u.username).join(',')
-  const path = `/keybase/${isPublic ? 'public' : 'private'}/${sortName}`
+  const path = `${defaultKBFSPath}/${isPublic ? 'public' : 'private'}/${sortName}`
   return {sortName, path}
 }
 
 function folderFromPath (path: string): ?Folder {
-  if (path.startsWith('/keybase/private/')) {
+  if (path.startsWith('${defaultKBFSPath}/private/')) {
     return {
-      name: path.replace('/keybase/private/', ''),
+      name: path.replace('${defaultKBFSPath}/private/', ''),
       private: true,
       notificationsOn: false,
       created: false,
     }
-  } else if (path.startsWith('/keybase/public/')) {
+  } else if (path.startsWith('${defaultKBFSPath}/public/')) {
     return {
-      name: path.replace('/keybase/public/', ''),
+      name: path.replace('${defaultKBFSPath}/public/', ''),
       private: false,
       notificationsOn: false,
       created: false,
