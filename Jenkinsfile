@@ -62,7 +62,7 @@ node("ec2-fleet") {
                     pull_kbclient: {
                         sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
                         sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
-                        sh 'docker rmi keybaseprivate/kbclient || echo "no images to remove"'
+                        sh 'docker rmi --no-prune keybaseprivate/kbclient || echo "no images to remove"'
                         if (cause == "upstream" && clientProjectName != '') {
                             step([$class: 'CopyArtifact',
                                     projectName: "${clientProjectName}",
