@@ -5,7 +5,8 @@ import fs from 'fs'
 import _ from 'lodash'
 import {app, BrowserWindow, ipcMain} from 'electron'
 import {resolveRoot, resolveRootAsURL} from '../resolve-root'
-import dumbComponentMap from '../shared/dev/dumb-component-map.desktop'
+
+const CANVAS_SIZE = 1500
 
 if (process.argv.length !== 3) {
   console.log(`Usage: electron ${path.basename(process.argv[1])} DESTINATION`)
@@ -17,35 +18,47 @@ if (!fs.existsSync(outputDir)) {
   process.exit(1)
 }
 
-const toRender = []
-Object.keys(dumbComponentMap).forEach(key => {
-  Object.keys(dumbComponentMap[key].mocks).forEach(mockKey => {
-    toRender.push({key, mockKey})
-  })
-})
-
 app.on('ready', () => {
-  const win = new BrowserWindow({show: false, width: 1000, height: 1000})
+  const win = new BrowserWindow({show: false, width: CANVAS_SIZE, height: CANVAS_SIZE})
 
-  function renderNext () {
-    if (!toRender.length) {
-      app.quit()
-      return
-    }
-    win.webContents.send('display', toRender.pop())
-  }
+  ipcMain.on('display-visible', (ev, msg) => {
+    const waiting = msg.items.map(item =>
+      new Promise((resolve, reject) => {
+        win.capturePage(item.rect, img => {
+          const filenameParts = [item.key, item.mockKey].map(s => _.words(s).join('_').replace(/[^\w_]/g, ''))
+          const filename = filenameParts.join('-') + '.png'
+          fs.writeFile(path.join(outputDir, filename), img.toPng(), err => {
+            if (err) {
+              reject(err)
+            }
+            console.log('wrote', filename)
+            resolve()
+          })
+        })
+      })
+    )
 
-  ipcMain.on('display-done', (ev, msg) => {
-    win.capturePage(msg.rect, img => {
-      const filenameParts = [msg.key, msg.mockKey].map(s => _.words(s).join('_').replace(/[^\w_]/g, ''))
-      const filename = filenameParts.join('-') + '.png'
-      fs.writeFileSync(path.join(outputDir, filename), img.toPng())
-      console.log('wrote', filename)
-      renderNext()
-    })
+    Promise.all(waiting)
+      .then(() => {
+        // Not sure if screenshots are synchronous. Add a little fudge time for them to finish.
+        setTimeout(() => {
+          if (msg.done) {
+            app.quit()
+          } else {
+            win.webContents.send('display-next')
+          }
+        }, 100)
+      })
+      .catch(err => {
+        console.log('Error:', err)
+        app.exit(1)
+      })
   })
 
-  ipcMain.on('visdiff-ready', renderNext)
+  ipcMain.on('display-error', (ev, msg) => {
+    console.log('Error: ' + msg.err)
+    app.exit(1)
+  })
 
   const scriptPath = resolveRoot('dist', 'visdiff.bundle.js')
   win.loadURL(resolveRootAsURL('renderer', `index.html?src=${scriptPath}`))

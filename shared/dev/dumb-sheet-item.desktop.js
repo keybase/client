@@ -20,7 +20,7 @@ class DumbSheetItem extends Component<void, Props, void> {
     // eslint-disable-next-line no-unused-vars
     const {parentProps, afterMount, ...mock} = this.props.mock
     return (
-      <Box id={this.props.id} style={{...styleBox, ...this.props.style}}>
+      <Box style={{...styleBox, ...this.props.style}}>
         <Text type='Body' style={{marginBottom: 5}}>{this.props.mockKey}</Text>
         <Box {...parentProps}>
           <Component ref={c => { this._component = c }} {...mock} />
@@ -33,7 +33,6 @@ class DumbSheetItem extends Component<void, Props, void> {
 const styleBox = {
   ...globalStyles.flexBoxColumn,
   padding: 20,
-  marginTop: 10,
   border: 'solid 1px lightgray',
   boxShadow: '5px 5px lightgray',
 }
