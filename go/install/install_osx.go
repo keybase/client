@@ -24,7 +24,7 @@ import (
 )
 
 // defaultLaunchdWait is how long we should wait after install, start, etc
-const defaultLaunchdWait = 5 * time.Second
+const defaultLaunchdWait = 10 * time.Second
 
 // ServiceLabel is an identifier string for a service
 type ServiceLabel string
