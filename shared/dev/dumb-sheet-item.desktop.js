@@ -33,7 +33,6 @@ class DumbSheetItem extends Component<void, Props, void> {
 const styleBox = {
   ...globalStyles.flexBoxColumn,
   padding: 20,
-  marginTop: 10,
   border: 'solid 1px lightgray',
   boxShadow: '5px 5px lightgray',
 }

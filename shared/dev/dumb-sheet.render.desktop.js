@@ -48,6 +48,7 @@ class Render extends Component<void, any, any> {
             .map((mockKey, idx) => {
               return (
                 <DumbSheetItem
+                  style={{marginTop: 10}}
                   key={mockKey}
                   component={map.component}
                   mockKey={mockKey}
