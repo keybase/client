@@ -102,17 +102,18 @@ func UpdaterServiceStatus(context Context, label string) keybase1.ServiceStatus 
 	if label == "" {
 		return keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
 	}
+	serviceStatus := keybase1.ServiceStatus{Label: label}
 	updaterService := launchd.NewService(label)
-	status, err := updaterService.WaitForStatus(5*time.Second, 500*time.Millisecond)
+	status, err := updaterService.WaitForStatus(defaultLaunchdWait, 500*time.Millisecond)
 	if err != nil {
-		return keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())}
+		serviceStatus.Status = keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())
+		return serviceStatus
 	}
-	serviceStatus := keybase1.ServiceStatus{
-		Label:          label,
-		Pid:            status.Pid(),
-		LastExitStatus: status.LastExitStatus(),
+	if status != nil {
+		serviceStatus.Pid = status.Pid()
+		serviceStatus.LastExitStatus = status.LastExitStatus()
 	}
-	if status.Pid() != "" {
+	if serviceStatus.Pid != "" {
 		serviceStatus.InstallStatus = keybase1.InstallStatus_INSTALLED
 		serviceStatus.InstallAction = keybase1.InstallAction_NONE
 	} else {
@@ -448,7 +449,7 @@ func installService(context Context, binPath string, force bool, log Log) error 
 	plist := keybasePlist(context, resolvedBinPath, label, log)
 	log.Debug("Checking service: %s", label)
 	keybaseStatus := KeybaseServiceStatus(context, label, log)
-	log.Debug("Service: %s (Action: %s)", keybaseStatus.InstallStatus.String(), keybaseStatus.InstallAction.String())
+	log.Debug("Service: %s (Action: %s); %#v", keybaseStatus.InstallStatus.String(), keybaseStatus.InstallAction.String(), keybaseStatus)
 	needsInstall := keybaseStatus.NeedsInstall()
 
 	if !needsInstall {
@@ -491,7 +492,7 @@ func KBFS(context Context, binPath string, force bool, log Log) error {
 
 	log.Debug("Checking KBFS")
 	kbfsStatus := KBFSServiceStatus(context, label, log)
-	log.Debug("KBFS: %s (Action: %s)", kbfsStatus.InstallStatus.String(), kbfsStatus.InstallAction.String())
+	log.Debug("KBFS: %s (Action: %s); %#v", kbfsStatus.InstallStatus.String(), kbfsStatus.InstallAction.String(), kbfsStatus)
 	needsInstall := kbfsStatus.NeedsInstall()
 
 	if !needsInstall {

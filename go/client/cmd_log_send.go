@@ -8,10 +8,11 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"os"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"os"
 )
 
 const (
