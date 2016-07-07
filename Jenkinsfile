@@ -164,23 +164,23 @@ node("ec2-fleet") {
                                         clientImage = docker.build("keybaseprivate/kbclient")
                                         sh "docker save -o kbclient.tar keybaseprivate/kbclient"
                                         archive("kbclient.tar")
-                                        build([
-                                            job: "/kbfs/master",
-                                            parameters: [
-                                                [$class: 'StringParameterValue',
-                                                    name: 'clientProjectName',
-                                                    value: env.JOB_NAME,
-                                                ],
-                                                [$class: 'StringParameterValue',
-                                                    name: 'kbwebNodePrivateIP',
-                                                    value: kbwebNodePrivateIP,
-                                                ],
-                                                [$class: 'StringParameterValue',
-                                                    name: 'kbwebNodePublicIP',
-                                                    value: kbwebNodePublicIP,
-                                                ],
-                                            ]
-                                        ])
+                                        //build([
+                                        //    job: "/kbfs/master",
+                                        //    parameters: [
+                                        //        [$class: 'StringParameterValue',
+                                        //            name: 'clientProjectName',
+                                        //            value: env.JOB_NAME,
+                                        //        ],
+                                        //        [$class: 'StringParameterValue',
+                                        //            name: 'kbwebNodePrivateIP',
+                                        //            value: kbwebNodePrivateIP,
+                                        //        ],
+                                        //        [$class: 'StringParameterValue',
+                                        //            name: 'kbwebNodePublicIP',
+                                        //            value: kbwebNodePublicIP,
+                                        //        ],
+                                        //    ]
+                                        //])
                                     }
                                 },
                             )
