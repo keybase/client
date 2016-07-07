@@ -638,14 +638,21 @@ func (k *PGPKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigID, 
 
 func (k PGPKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
 	var ps *ParsedSig
+
 	if ps, err = PGPOpenSig(sig); err != nil {
-		return
-	} else if err = ps.Verify(k); err != nil {
-		return
+		return msg, id, err
 	}
+
+	if err = ps.Verify(k); err != nil {
+		k.G().Log.Debug("Failed to verify PGP signature")
+		k.G().Log.Debug("-> key: %s", k.ArmoredPublicKey)
+		k.G().Log.Debug("-> sig: %s", sig)
+		return msg, id, err
+	}
+
 	msg = ps.LiteralData
 	id = ps.ID()
-	return
+	return msg, id, err
 }
 
 func (k PGPKeyBundle) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
