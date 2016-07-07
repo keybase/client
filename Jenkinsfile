@@ -34,14 +34,14 @@ node("ec2-fleet") {
     def gregorImage = docker.image("keybaseprivate/kbgregor")
     def kbwebImage = docker.image("keybaseprivate/kbweb")
 
-    sh "curl http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
-    sh "curl http://169.254.169.254/latest/meta-data/local-ipv4 > private.txt"
+    sh "curl -s http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
+    sh "curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > private.txt"
     def kbwebNodePublicIP = readFile('public.txt')
     def kbwebNodePrivateIP = readFile('private.txt')
     sh "rm public.txt"
     sh "rm private.txt"
-    def httpRequestPrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
     def httpRequestPublicIP = httpRequest("http://169.254.169.254/latest/meta-data/public-ipv4").content
+    def httpRequestPrivateIP = httpRequest("http://169.254.169.254/latest/meta-data/local-ipv4").content
 
     println "Running on host $kbwebNodePublicIP ($kbwebNodePrivateIP)"
     println "httpRequest says host $httpRequestPublicIP ($httpRequestPrivateIP)"
@@ -285,15 +285,17 @@ node("ec2-fleet") {
 
 def waitForURL(prefix, url) {
     def slept=0
-    retry(60) {
+    for (slept=0; slept<180; slept+=3) {
         sleep 3
-        slept += 3
-        response = httpRequest(url)
-        if (response.status == 200) {
-            println "$prefix waitForURL connected to $url after waiting $slept seconds."
-            return
-        }
+        try {
+            response = httpRequest(url)
+            if (response.status == 200) {
+                println "$prefix waitForURL connected to $url after waiting $slept seconds."
+                return
+            }
+        } catch(ex) {}
     }
+    error "$prefix waitForURL failed to connect to $url after waiting $slept seconds."
 }
 
 def testNixGo(prefix) {
