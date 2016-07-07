@@ -83,7 +83,7 @@ function renderNextSheet () {
 
   addUntilFull(() => {
     if (onScreen.length === 0) {
-      ipcRenderer.send('display-error', {err: `Screenshot canvas size too small for "${lastItem.key} - ${lastItem.mockKey}"! Need ${lastItem.rect.width} x ${lastItem.rect.height}, have ${window.innerWidth} x ${window.innerHeight}.`})
+      ipcRenderer.send('display-error', {err: `Screenshot canvas size too small for "${lastItem.key}" - "${lastItem.mockKey}"! Need ${lastItem.rect.width} x ${lastItem.rect.height}, have ${window.innerWidth} x ${window.innerHeight}.`})
       return
     }
 
