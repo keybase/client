@@ -546,7 +546,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 	} else if md.MergedStatus() == Merged {
 		// If we are already merged through this write, the revision would be the
 		// latestMergedRevision on server.
-		fbo.setLatestMergedRevisionLocked(ctx, lState, md.Revision)
+		fbo.setLatestMergedRevisionLocked(ctx, lState, md.Revision, false)
 	}
 
 	fbo.head = md
@@ -799,7 +799,7 @@ func (fbo *folderBranchOps) getMDLocked(
 	} else {
 		// We don't need to do this for merged head because the setHeadLocked()
 		// already does that anyway.
-		fbo.setLatestMergedRevisionLocked(ctx, lState, mergedMD.Revision)
+		fbo.setLatestMergedRevisionLocked(ctx, lState, mergedMD.Revision, false)
 	}
 
 	if md.data.Dir.Type != Dir && (!md.IsInitialized() || md.IsReadable()) {
@@ -3265,7 +3265,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	if !fbo.isMasterBranchLocked(lState) {
 		if len(rmds) > 0 {
 			// setHeadLocked takes care of merged case
-			fbo.setLatestMergedRevisionLocked(ctx, lState, rmds[len(rmds)-1].Revision)
+			fbo.setLatestMergedRevisionLocked(ctx, lState, rmds[len(rmds)-1].Revision, false)
 
 			unmergedRev := MetadataRevisionUninitialized
 			if fbo.head != nil {
@@ -3369,11 +3369,16 @@ func (fbo *folderBranchOps) getLatestMergedRevision(lState *lockState) MetadataR
 }
 
 // caller should have held fbo.headLock
-func (fbo *folderBranchOps) setLatestMergedRevisionLocked(ctx context.Context, lState *lockState, rev MetadataRevision) {
+func (fbo *folderBranchOps) setLatestMergedRevisionLocked(ctx context.Context, lState *lockState, rev MetadataRevision, allowBackward bool) {
 	fbo.headLock.AssertLocked(lState)
 
-	fbo.latestMergedRevision = rev
-	fbo.log.CDebugf(ctx, "Updated latestMergedRevision to %d.", rev)
+	if fbo.latestMergedRevision < rev || allowBackward {
+		fbo.latestMergedRevision = rev
+		fbo.log.CDebugf(ctx, "Updated latestMergedRevision to %d.", rev)
+	} else {
+		fbo.log.CDebugf(ctx, "Local latestMergedRevision (%d) is higher than "+
+			"the new revision (%d); won't update.", fbo.latestMergedRevision, rev)
+	}
 }
 
 // Assumes all necessary locking is either already done by caller, or
@@ -3456,6 +3461,7 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	err = func() error {
 		fbo.headLock.Lock(lState)
 		defer fbo.headLock.Unlock(lState)
+		fbo.setLatestMergedRevisionLocked(ctx, lState, rmds[0].Revision, true)
 		return fbo.setHeadPredecessorLocked(ctx, lState, rmds[0])
 	}()
 	if err != nil {
