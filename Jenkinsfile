@@ -90,8 +90,12 @@ node("ec2-fleet") {
                     retry(5) {
                         kbweb = kbwebImage.run('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh')
                     }
-                    kbwebNodePrivateIP = new URL ("http://169.254.169.254/latest/meta-data/local-ipv4").getText()
-                    kbwebNodePublicIP = new URL ("http://169.254.169.254/latest/meta-data/public-ipv4").getText()
+                    sh "curl -s http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
+                    sh "curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > private.txt"
+                    kbwebNodePublicIP = readFile('public.txt')
+                    kbwebNodePrivateIP = readFile('private.txt')
+                    sh "rm public.txt"
+                    sh "rm private.txt"
                 }
 
                 stage "Test"
