@@ -93,9 +93,9 @@ fi
 # NB: This is duplicated in packaging/linux/build_and_push_packages.sh.
 if [ ! "$nowait" = "1" ]; then
   echo "Checking client CI"
-  "$release_bin" wait-ci --repo="client" --commit=`git -C $client_dir log -1 --pretty=format:%h` --context="client-windows-master-only" --context="client-linux-master-only" --context="client-osx-master-only" --context="ci/circleci"
+  "$release_bin" wait-ci --repo="client" --commit=`git -C $client_dir log -1 --pretty=format:%h` --context="client/master" --context="ci/circleci"
   echo "Checking kbfs CI"
-  "$release_bin" wait-ci --repo="kbfs" --commit=`git -C $kbfs_dir log -1 --pretty=format:%h` --context="continuous-integration/appveyor/branch"
+  "$release_bin" wait-ci --repo="kbfs" --commit=`git -C $kbfs_dir log -1 --pretty=format:%h` --context="kbfs/master" --context="continuous-integration/appveyor/branch"
   echo "Checking updater CI"
   "$release_bin" wait-ci --repo="go-updater" --commit=`git -C $updater_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push"
 fi
