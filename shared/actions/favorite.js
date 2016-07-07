@@ -20,16 +20,16 @@ export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: Us
 }
 
 function folderFromPath (path: string): ?Folder {
-  if (path.startsWith('${defaultKBFSPath}/private/')) {
+  if (path.startsWith(`${defaultKBFSPath}/private/`)) {
     return {
-      name: path.replace('${defaultKBFSPath}/private/', ''),
+      name: path.replace(`${defaultKBFSPath}/private/`, ''),
       private: true,
       notificationsOn: false,
       created: false,
     }
-  } else if (path.startsWith('${defaultKBFSPath}/public/')) {
+  } else if (path.startsWith(`${defaultKBFSPath}/public/`)) {
     return {
-      name: path.replace('${defaultKBFSPath}/public/', ''),
+      name: path.replace(`${defaultKBFSPath}/public/`, ''),
       private: false,
       notificationsOn: false,
       created: false,
