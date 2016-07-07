@@ -26,14 +26,14 @@ function openInDefault (openPath: string): AsyncAction {
 }
 
 function openInWindows (openPath: string = Constants.defaultKBFSPath): AsyncAction {
-  openPath = path.resolve(openPath) // Path resolve removes any ..
-  if (!openPath.startsWith(Constants.defaultKBFSPath)) {
-    console.warn(`openInKBFS requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
-    return () => {}
-  }
-  openPath = openPath.slice(Constants.defaultKBFSPath.length)
-
   return (dispatch, getState) => new Promise((resolve, reject) => {
+    openPath = path.resolve(openPath) // Path resolve removes any ..
+    if (!openPath.startsWith(Constants.defaultKBFSPath)) {
+      console.warn(`openInKBFS requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
+      return
+    }
+    openPath = openPath.slice(Constants.defaultKBFSPath.length)
+
     const state = getState()
     const kbfsPath = state.config.kbfsPath
 
