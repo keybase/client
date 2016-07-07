@@ -149,10 +149,11 @@ const FollowingLabel = {
 const Unfollow = {
   ...common,
   ...followCommon,
-  backgroundColor: globalColors.blue,
+  backgroundColor: globalColors.lightGrey2,
 }
 const UnfollowLabel = {
   ...commonLabel,
+  color: globalColors.black_75,
 }
 
 const progress = {

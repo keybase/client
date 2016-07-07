@@ -125,6 +125,9 @@ func (e *DeviceHistory) loadDevices() error {
 			rt := keybase1.TimeFromSeconds(cki.RevokedAt.Unix)
 			exp.RevokedAt = &rt
 		}
+		if !cki.RevokedBy.IsNil() {
+			exp.RevokedBy = cki.RevokedBy
+		}
 
 		if e.G().Env.GetDeviceID().Eq(d.ID) {
 			exp.CurrentDevice = true

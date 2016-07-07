@@ -1,8 +1,9 @@
 // Can't tell which thread we're in so let's try both
 import electron from 'electron'
 
+import {executeActions, quitOnContext} from '../shared/util/quit-helper.desktop'
+
 const Menu = electron.Menu || electron.remote.Menu
-const app = electron.app || electron.remote.app
 const shell = electron.shell || electron.remote.shell
 
 export default function makeMenu (window) {
@@ -16,7 +17,7 @@ export default function makeMenu (window) {
         {label: 'Hide Others', accelerator: 'CmdOrCtrl+Shift+H', role: 'hideothers'},
         {label: 'Show All', role: 'unhide'},
         {type: 'separator'},
-        {label: 'Quit', accelerator: 'CmdOrCtrl+Q', click () { app.quit() }},
+        {label: 'Quit', accelerator: 'CmdOrCtrl+Q', click () { executeActions(quitOnContext({type: 'uiWindow'})) }},
       ],
     }, {
       label: 'Edit',
@@ -36,11 +37,11 @@ export default function makeMenu (window) {
         {label: 'Close', accelerator: 'CmdOrCtrl+W', role: 'close'},
         {type: 'separator'},
         {label: 'Bring All to Front', role: 'front'},
+      ].concat(__DEV__ ? ([ // eslint-disable-line no-undef
         {label: 'Reload',
           accelerator: 'CmdOrCtrl+R',
           click: (item, focusedWindow) => focusedWindow && focusedWindow.reload(),
         },
-      ].concat(__DEV__ ? ([ // eslint-disable-line no-undef
         {label: 'Toggle Developer Tools',
           accelerator: (() => (process.platform === 'darwin') ? 'Alt+Command+I' : 'Ctrl+Shift+I')(),
           click: (item, focusedWindow) => focusedWindow && focusedWindow.toggleDevTools(),

@@ -55,7 +55,7 @@ function ExternalExtraInfo ({serviceUsername, fullNameOnService, icon, searchTex
   )
 }
 
-function Result ({result, searchText}: {result: SearchResult, searchText: string}) {
+function Result ({result, searchText, onClickResult}: {result: SearchResult, searchText: string, onClickResult: () => void}) {
   const iconStyle = {height: 32, width: 32}
 
   let icon
@@ -100,6 +100,7 @@ function Result ({result, searchText}: {result: SearchResult, searchText: string
       icon={icon}
       body={<Box style={{...globalStyles.flexBoxRow}}>{alignedBody}{extraInfo}</Box>}
       action={<Box />}
+      onClick={onClickResult}
       bodyContainerStyle={{marginBottom: 0, marginTop: 0}}
       />
   )
@@ -119,7 +120,7 @@ export default class Render extends Component<void, Props, void> {
             </Box>
           )}
           action={<Box />} />
-        {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} searchText={this.props.searchText || ''} />)}
+        {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} onClickResult={() => this.props.onClickResult(r)} searchText={this.props.searchText || ''} />)}
       </Box>
     )
   }

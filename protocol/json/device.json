@@ -41,6 +41,10 @@
           "name": "revokedAt"
         },
         {
+          "type": "KID",
+          "name": "revokedBy"
+        },
+        {
           "type": "boolean",
           "name": "currentDevice"
         }

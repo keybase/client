@@ -339,6 +339,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return NotFoundError{Msg: s.Desc}
 	case SCDecryptionError:
 		return DecryptionError{}
+	case SCKeyRevoked:
+		return KeyRevokedError{}
 	case SCGenericAPIError:
 		var code int
 		for _, field := range s.Fields {
@@ -781,6 +783,7 @@ func (ckf ComputedKeyFamily) ExportRevokedDeviceKeys() []keybase1.RevokedKey {
 				Unix:  keybase1.TimeFromSeconds(key.RevokedAt.Unix),
 				Chain: key.RevokedAt.Chain,
 			},
+			By: key.RevokedBy,
 		}
 		ex = append(ex, rkey)
 	}
@@ -1178,6 +1181,14 @@ func (e NoSigChainError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCKeyNoEldest,
 		Name: "SC_KEY_NO_ELDEST",
+		Desc: e.Error(),
+	}
+}
+
+func (e KeyRevokedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCKeyRevoked,
+		Name: "SC_KEY_REVOKED_ERROR",
 		Desc: e.Error(),
 	}
 }

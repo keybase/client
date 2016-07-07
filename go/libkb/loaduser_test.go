@@ -35,6 +35,29 @@ func TestLoadUserPlusKeys(t *testing.T) {
 	}
 }
 
+func TestRevokedKeys(t *testing.T) {
+	tc := SetupTest(t, "revoked keys", 1)
+	defer tc.Cleanup()
+
+	u, err := LoadUserPlusKeys(tc.G, "ff261e3b26543a24ba6c0693820ead19")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if u.Username != "t_mike" {
+		t.Errorf("username: %s, expected t_mike", u.Username)
+	}
+	if len(u.RevokedDeviceKeys) != 2 {
+		t.Errorf("t_mike found with %d revoked keys, expected 2", len(u.RevokedDeviceKeys))
+	}
+
+	kid := keybase1.KID("012073f26b5996912393f7d2961ca90968e4e83d6140e9771ba890ff8ba6ea97777e0a")
+	for index, k := range u.RevokedDeviceKeys {
+		if k.By != kid {
+			t.Errorf("wrong revoking KID (index: %d) %s != %s", index, k.By, kid)
+		}
+	}
+}
+
 func BenchmarkLoadSigChains(b *testing.B) {
 	tc := SetupTest(b, "benchmark load user", 1)
 	u, err := LoadUser(NewLoadUserByNameArg(tc.G, "kwejfkwef"))

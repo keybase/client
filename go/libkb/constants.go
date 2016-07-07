@@ -162,6 +162,7 @@ const (
 	SCKeyDuplicateUpdate     = int(keybase1.StatusCode_SCKeyDuplicateUpdate)
 	SCKeySyncedPGPNotFound   = int(keybase1.StatusCode_SCKeySyncedPGPNotFound)
 	SCKeyNoMatchingGPG       = int(keybase1.StatusCode_SCKeyNoMatchingGPG)
+	SCKeyRevoked             = int(keybase1.StatusCode_SCKeyRevoked)
 	SCSibkeyAlreadyExists    = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
 	SCDecryptionKeyNotFound  = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
 	SCBadTrackSession        = int(keybase1.StatusCode_SCBadTrackSession)

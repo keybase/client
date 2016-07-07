@@ -4,7 +4,6 @@ import {ScrollView} from 'react-native'
 import {Box, Text, Input, Button} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 import dumbComponentMap from './dumb-component-map.native'
-import {dumbFilter, dumbIndex, dumbFullscreen} from '../local-debug'
 import debounce from 'lodash/debounce'
 
 class Render extends Component<void, any, any> {
@@ -15,23 +14,24 @@ class Render extends Component<void, any, any> {
     super(props)
 
     this.state = {
-      filter: (dumbFilter && dumbFilter.toLowerCase()) || '',
       filterShow: false,
-      index: dumbIndex || 0,
     }
 
     this._onFilterChange = debounce(filter => {
-      this.setState({filter})
+      this.props.onDebugConfigChange({
+        dumbFilter: filter,
+      })
     }, 300)
   }
 
   render () {
+    const filter = this.props.dumbFilter.toLowerCase()
     const components = []
     const componentsOnly = []
     const parentPropsOnly = []
 
     Object.keys(dumbComponentMap).forEach(key => {
-      if (this.state.filter && key.toLowerCase().indexOf(this.state.filter) === -1) {
+      if (filter && key.toLowerCase().indexOf(filter) === -1) {
         return
       }
 
@@ -55,12 +55,12 @@ class Render extends Component<void, any, any> {
       })
     })
 
-    const ToShow = components[this.state.index % components.length]
+    const ToShow = components[this.props.dumbIndex % components.length]
 
-    if (dumbFullscreen) {
+    if (this.props.dumbFullscreen) {
       return (
-        <Box style={{flex: 1}} {...parentPropsOnly[this.state.index % components.length]}>
-          {componentsOnly[this.state.index % components.length]}
+        <Box style={{flex: 1}} {...parentPropsOnly[this.props.dumbIndex % components.length]}>
+          {componentsOnly[this.props.dumbIndex % components.length]}
         </Box>
       )
     }
@@ -71,8 +71,8 @@ class Render extends Component<void, any, any> {
           {ToShow}
         </ScrollView>
         <Box style={stylesControls}>
-          <Text type='BodySmall'>{this.state.index}</Text>
-          {this.state.filterShow && <Box style={{...globalStyles.flexBoxColumn, backgroundColor: 'red', width: 200}}><Input style={inputStyle} value={this.state.filter} onChangeText={filter => this._onFilterChange(filter.toLowerCase())} /></Box>}
+          <Text type='BodySmall'>{this.props.dumbIndex}</Text>
+          {this.state.filterShow && <Box style={{...globalStyles.flexBoxColumn, backgroundColor: 'red', width: 200}}><Input style={inputStyle} value={filter} onChangeText={filter => this._onFilterChange(filter.toLowerCase())} /></Box>}
           <Button type='Primary' style={stylesButton} label='...' onClick={() => { this.setState({filterShow: !this.state.filterShow}) }} />
           <Button type='Primary' style={stylesButton} label='<' onClick={() => { this._incremement(false) }} />
           <Button type='Primary' style={stylesButton} label='>' onClick={() => { this._incremement(true) }} />
@@ -82,8 +82,10 @@ class Render extends Component<void, any, any> {
   }
 
   _incremement (up: boolean) {
-    let next = Math.max(0, this.state.index + (up ? 1 : -1))
-    this.setState({index: next})
+    let next = Math.max(0, this.props.dumbIndex + (up ? 1 : -1))
+    this.props.onDebugConfigChange({
+      dumbIndex: next,
+    })
   }
 }
 

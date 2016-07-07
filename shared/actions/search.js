@@ -1,11 +1,13 @@
 // @flow
 
 import * as Constants from '../constants/search'
+import engine from '../engine'
 import {platformToIcon, platformToLogo32} from '../constants/search'
 import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
 
 import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo, AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult, SearchPlatforms} from '../constants/search'
+import type {apiserverGetRpc, apiserverGetResult} from '../constants/types/flow-types'
 import type {TypedAsyncAction} from '../constants/types/flux'
 
 type RawResult = {
@@ -115,24 +117,6 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
       return
     }
 
-    // TODO daemon rpc, for now api hit
-    // const params: UserSearchRpc = {
-    //   method: 'user.search',
-    //   param: {
-    //     query: term
-    //   },
-    //   incomingCallMap: {},
-    //   callback: (error: ?any, uresults: UserSearchResult) => {
-    //     if (error) {
-    //       console.log('Error searching. Not handling this error')
-    //     } else {
-    //       dispatch(results(term, uresults))
-    //     }
-    //   }
-    // }
-
-    // engine.rpc(params)
-
     // In case platform is passed in as null
     const platform: SearchPlatforms = maybePlatform || 'Keybase'
 
@@ -155,11 +139,34 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
     }[platform]
 
     const limit = 20
-    Promise.all([
-      fetch(`https://keybase.io/_/api/1.0/user/user_search.json?q=${term}&num_wanted=${limit}&service=${service}`).then(r => r.json()), // eslint-disable-line no-undef
-      Promise.resolve(new Date()),
-    ])
-      .then(([json, requestTimestamp]) => dispatch(rawResults(term, platform, json.list || [], requestTimestamp)))
+
+    const requestTimestamp = new Date()
+    const params: apiserverGetRpc = {
+      method: 'apiserver.Get',
+      param: {
+        endpoint: 'user/user_search',
+        args: [
+          {key: 'q', value: term},
+          {key: 'num_wanted', value: String(limit)},
+          {key: 'service', value: service},
+        ],
+      },
+      incomingCallMap: {},
+      callback: (error: ?any, results: apiserverGetResult) => {
+        if (error) {
+          console.log('Error searching. Not handling this error')
+        } else {
+          try {
+            const json = JSON.parse(results.body)
+            dispatch(rawResults(term, platform, json.list || [], requestTimestamp))
+          } catch (_) {
+            console.log('Error searching (json). Not handling this error')
+          }
+        }
+      },
+    }
+
+    engine.rpc(params)
   }
 }
 

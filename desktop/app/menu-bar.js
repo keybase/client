@@ -3,21 +3,22 @@ import {resolveImage, resolveRootAsURL} from '../resolve-root'
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 
-let color = 'white'
-let platform = ''
+let iconType: 'regular' | 'update' | 'badged' = 'regular'
 
-if (process.platform === 'darwin') {
-  color = (systemPreferences && systemPreferences.isDarkMode()) ? 'white' : 'black'
-} else if (process.platform === 'win32') {
-  color = 'black'
-  platform = 'windows-'
+const getIcon = () => { // eslint-disable-line arrow-parens
+  const devMode = __DEV__ ? '-dev' : ''
+  let color = 'white'
+  let platform = ''
+
+  if (process.platform === 'darwin') {
+    color = (systemPreferences && systemPreferences.isDarkMode()) ? 'white' : 'black'
+  } else if (process.platform === 'win32') {
+    color = 'black'
+    platform = 'windows-'
+  }
+
+  return resolveImage('menubarIcon', `icon-${platform}keybase-dog-${iconType}-${color}-22${devMode}@2x.png`)
 }
-
-const devMode = __DEV__ ? '-dev' : ''
-
-const icon = resolveImage('menubarIcon', `icon-${platform}keybase-dog-regular-${color}-22${devMode}@2x.png`)
-const loadingIcon = resolveImage('menubarIcon', `icon-${platform}keybase-dog-update-${color}-22${devMode}@2x.png`)
-const badgedIcon = resolveImage('menubarIcon', `icon-${platform}keybase-dog-badged-${color}-22${devMode}@2x.png`)
 
 export default function () {
   const mb = menubar({
@@ -27,23 +28,36 @@ export default function () {
     frame: false,
     resizable: false,
     preloadWindow: true,
-    icon: icon,
+    icon: getIcon(),
     // Without this flag set, menubar will hide the dock icon when the app
     // ready event fires. We manage the dock icon ourselves, so this flag
     // prevents menubar from changing the state.
     'show-dock-icon': true,
   })
 
+  const updateIcon = () => {
+    mb.tray.setImage(getIcon())
+  }
+
+  if (process.platform === 'darwin' && systemPreferences && systemPreferences.subscribeNotification) {
+    systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
+      updateIcon()
+    })
+  }
+
   ipcMain.on('showTrayLoading', () => {
-    mb.tray.setImage(loadingIcon)
+    iconType = 'update'
+    updateIcon()
   })
 
   ipcMain.on('showTrayRegular', () => {
-    mb.tray.setImage(icon)
+    iconType = 'regular'
+    updateIcon()
   })
 
   ipcMain.on('showTrayBadged', () => {
-    mb.tray.setImage(badgedIcon)
+    iconType = 'badged'
+    updateIcon()
   })
 
   // We keep the listeners so we can cleanup on hot-reload
@@ -70,12 +84,11 @@ export default function () {
     mb.tray.on('right-click', (e, bounds) => mb.tray.emit('click', e, bounds))
 
     // prevent the menubar's window from dying when we quit
+    // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
+    mb.window.removeAllListeners('close')
     mb.window.on('close', event => {
-      mb.window.webContents.on('destroyed', () => {
-      })
-      mb.hideWindow()
-      // Prevent an actual close
       event.preventDefault()
+      mb.hideWindow()
     })
 
     if (process.platform === 'linux') {

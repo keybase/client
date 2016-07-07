@@ -13,6 +13,7 @@ import globalRoutes from './router/global-routes'
 import Devices from './devices'
 import Folders from './folders'
 import NoTab from './no-tab'
+import Search from './search'
 import Settings from './settings'
 import Profile from './profile'
 import Login from './login'
@@ -23,7 +24,6 @@ import {bootstrap} from './actions/config'
 
 import {navBarHeight, tabBarHeight} from './styles/style-guide'
 
-import {dumbFullscreen} from './local-debug'
 import DumbSheet from './dev/dumb-sheet'
 
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
@@ -37,7 +37,7 @@ const tabs: {[key: VisibleTab]: {module: any}} = {
   [profileTab]: {module: Profile, name: 'Profile'},
   [folderTab]: {module: Folders, name: 'Folders'},
   [chatTab]: {module: Settings, name: 'Chat'},
-  [peopleTab]: {module: Settings, name: 'People'},
+  [peopleTab]: {module: Search, name: 'People'},
   [devicesTab]: {module: Devices, name: 'Devices'},
 }
 
@@ -137,11 +137,12 @@ class Nav extends Component {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
-    return (nextProps.tabbedRouter.get('activeTab') !== this._activeTab())
+    return (nextProps.tabbedRouter.get('activeTab') !== this._activeTab() ||
+            nextProps.dumbFullscreen !== this.props.dumbFullscreen)
   }
 
   render () {
-    if (dumbFullscreen) {
+    if (this.props.dumbFullscreen) {
       return <DumbSheet />
     }
 
@@ -191,11 +192,12 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
-  ({tabbedRouter, config: {bootstrapped, extendedConfig, username}}) => ({
+  ({tabbedRouter, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({
     tabbedRouter,
     bootstrapped,
     provisioned: extendedConfig && !!extendedConfig.device,
     username,
+    dumbFullscreen,
   }),
   dispatch => {
     return {
