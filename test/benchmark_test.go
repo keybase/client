@@ -125,7 +125,7 @@ func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 	)
 }
 
-func benchmarkWriteWithBandwithHelper(b *testing.B, fileBytes int64,
+func benchmarkWriteWithBandwidthHelper(b *testing.B, fileBytes int64,
 	perWriteBytes int64, writebwKBps int, warmUp bool) {
 	buf := make([]byte, perWriteBytes)
 	if !warmUp {
@@ -141,6 +141,7 @@ func benchmarkWriteWithBandwithHelper(b *testing.B, fileBytes int64,
 			custom(func(cb func(fileOp) error) error {
 				if !warmUp {
 					b.ResetTimer()
+					defer b.StopTimer()
 				}
 				for i := 0; i < b.N; i++ {
 					name := fmt.Sprintf("bench%d", i)
@@ -160,37 +161,34 @@ func benchmarkWriteWithBandwithHelper(b *testing.B, fileBytes int64,
 						}
 					}
 				}
-				if !warmUp {
-					b.StopTimer()
-				}
 				return nil
 			}),
 		),
 	)
 }
 
-func benchmarkWriteWithBandwithWarmup(b *testing.B, fileBytes int64,
+func benchmarkWriteWithBandwidthWarmup(b *testing.B, fileBytes int64,
 	perWriteBytes int64, writebwKBps int) {
-	benchmarkWriteWithBandwithHelper(b, fileBytes, perWriteBytes,
+	benchmarkWriteWithBandwidthHelper(b, fileBytes, perWriteBytes,
 		writebwKBps, true)
 }
 
-func benchmarkWriteWithBandwith(b *testing.B, fileBytes int64,
+func benchmarkWriteWithBandwidth(b *testing.B, fileBytes int64,
 	perWriteBytes int64, writebwKBps int) {
-	benchmarkWriteWithBandwithHelper(b, fileBytes, perWriteBytes,
+	benchmarkWriteWithBandwidthHelper(b, fileBytes, perWriteBytes,
 		writebwKBps, false)
 }
 
 func BenchmarkWriteMediumFileLowBandwidth(b *testing.B) {
 	b.Skip("Doesn't work yet")
-	benchmarkWriteWithBandwith(b, 1<<20 /* 1 MB */, 1<<16, 100 /* 100 KBps */)
+	benchmarkWriteWithBandwidth(b, 10<<20 /* 10 MB */, 1<<16, 100 /* 100 KBps */)
 }
 
 func BenchmarkWriteBigFileNormalBandwidth(b *testing.B) {
 	b.Skip("Doesn't work yet")
 	// Warm up to get the buffer as large as possible
-	benchmarkWriteWithBandwithWarmup(b, 100<<20 /* 100 MB */, 1<<16,
+	benchmarkWriteWithBandwidthWarmup(b, 100<<20 /* 100 MB */, 1<<16,
 		11*1024/8 /* 11 Mbps */)
-	benchmarkWriteWithBandwith(b, 100<<20 /* 100 MB */, 1<<16,
+	benchmarkWriteWithBandwidth(b, 100<<20 /* 100 MB */, 1<<16,
 		11*1024/8 /* 11 Mbps */)
 }

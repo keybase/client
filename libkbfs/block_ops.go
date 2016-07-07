@@ -6,8 +6,6 @@ package libkbfs
 
 import (
 	"fmt"
-	"sync"
-	"time"
 
 	"golang.org/x/net/context"
 )
@@ -16,22 +14,9 @@ import (
 // requests to the block server.
 type BlockOpsStandard struct {
 	config Config
-	bwKBps int
-
-	lock sync.Mutex
 }
 
 var _ BlockOps = (*BlockOpsStandard)(nil)
-
-// NewBlockOpsStandard constructs a new standard implementation of the
-// BlockOps interface. bwKBps indicates a constrained bandwidth to
-// simulate in kilobytes per second (0 means unconstrained).
-func NewBlockOpsStandard(config Config, bwKBps int) *BlockOpsStandard {
-	return &BlockOpsStandard{
-		config: config,
-		bwKBps: bwKBps,
-	}
-}
 
 // Get implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Get(ctx context.Context, md *RootMetadata,
@@ -152,19 +137,6 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, md *RootMetadata,
 // Put implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Put(ctx context.Context, md *RootMetadata,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	if b.bwKBps > 0 {
-		b.lock.Lock()
-		// Simulate a constrained bserver connection
-		delay := len(readyBlockData.buf) * int(time.Second) / (b.bwKBps * 1024)
-		time.Sleep(time.Duration(delay))
-		b.lock.Unlock()
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
-	}
-
 	bserv := b.config.BlockServer()
 	var err error
 	if blockPtr.RefNonce == zeroBlockRefNonce {
