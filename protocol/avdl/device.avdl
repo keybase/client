@@ -16,6 +16,7 @@ protocol device {
     // not possible to determine revoker without major code change
     // union {null, Device} revoker;
     union {null, Time} revokedAt;
+    KID revokedBy;
     boolean currentDevice;
   }
 

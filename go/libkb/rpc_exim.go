@@ -783,6 +783,7 @@ func (ckf ComputedKeyFamily) ExportRevokedDeviceKeys() []keybase1.RevokedKey {
 				Unix:  keybase1.TimeFromSeconds(key.RevokedAt.Unix),
 				Chain: key.RevokedAt.Chain,
 			},
+			By: key.RevokedBy,
 		}
 		ex = append(ex, rkey)
 	}

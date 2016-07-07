@@ -57,6 +57,7 @@ type KeybaseTime struct {
 type RevokedKey struct {
 	Key  PublicKey   `codec:"key" json:"key"`
 	Time KeybaseTime `codec:"time" json:"time"`
+	By   KID         `codec:"by" json:"by"`
 }
 
 type User struct {
