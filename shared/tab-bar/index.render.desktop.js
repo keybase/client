@@ -38,8 +38,8 @@ function tabToLabel (t: VisibleTab): string {
 }
 
 export default class Render extends Component<void, Props, void> {
-  _renderSearch (onClick: () => void, searchActive: boolean) {
-    const backgroundColor = searchActive ? globalColors.orange : globalColors.darkBlue
+  _renderSearch (onClick: () => void) {
+    const backgroundColor = this.props.searchActive ? globalColors.orange : globalColors.darkBlue
     const button = (
       <Box style={{...globalStyles.flexBoxColumn, padding: 24}}>
         <Box style={{...stylesSearchButton, backgroundColor}}>
@@ -52,7 +52,7 @@ export default class Render extends Component<void, Props, void> {
       <TabBarItem
         key='search'
         tabBarButton={button}
-        selected={searchActive}
+        selected={!!this.props.searchActive}
         onClick={onClick}
         style={{...stylesTabBarItem}}
       >
@@ -61,7 +61,7 @@ export default class Render extends Component<void, Props, void> {
     )
   }
 
-  _renderProfileButton (tab: VisibleTab, onClick: () => void) {
+  _renderProfileButton (tab: VisibleTab, selected: boolean, onClick: () => void) {
     // $FlowIssue
     const avatar: Avatar = <Avatar size={32} onClick={onClick} username={this.props.username} />
     const source = {type: 'avatar', avatar}
@@ -70,13 +70,13 @@ export default class Render extends Component<void, Props, void> {
       <TabBarButton
         label={label}
         styleLabel={{fontSize: 14, marginTop: 4}}
-        selected={this.props.selectedTab === tab}
+        selected={selected}
         badgeNumber={this.props.badgeNumbers[tab]}
         source={source} />
     )
   }
 
-  _renderNormalButton (tab: VisibleTab, onClick: () => void) {
+  _renderNormalButton (tab: VisibleTab, selected: boolean, onClick: () => void) {
     const source = {type: 'icon', icon: tabToIcon(tab)}
     const label = tabToLabel(tab)
     return (
@@ -85,7 +85,7 @@ export default class Render extends Component<void, Props, void> {
         styleLabel={{fontSize: 13}}
         styleLabelType='BodySemibold'
         label={label}
-        selected={this.props.selectedTab === tab}
+        selected={selected}
         badgeNumber={this.props.badgeNumbers[tab]}
         source={source} />
     )
@@ -99,13 +99,14 @@ export default class Render extends Component<void, Props, void> {
       const onClick = () => this.props.onTabClick(t)
       const isProfile = t === profileTab
 
-      const button = isProfile ? this._renderProfileButton(t, onClick) : this._renderNormalButton(t, onClick)
+      const selected = !this.props.searchActive && this.props.selectedTab === t
+      const button = isProfile ? this._renderProfileButton(t, selected, onClick) : this._renderNormalButton(t, selected, onClick)
 
       return (
         <TabBarItem
           key={t}
           tabBarButton={button}
-          selected={this.props.selectedTab === t}
+          selected={selected}
           onClick={onClick}
           style={{...stylesTabBarItem}}
           styleContainer={{...(isProfile ? {flex: 1, ...globalStyles.flexBoxColumn, justifyContent: 'flex-end'} : {})}}
@@ -117,18 +118,12 @@ export default class Render extends Component<void, Props, void> {
   }
 
   render () {
-    const searchActive = !!this.props.searchActive
-    const backgroundColor = searchActive ? globalColors.white : globalColors.midnightBlue
-
-    let tabItems = [this._renderSearch(this.props.onSearchClick || (() => {}), searchActive)]
-
-    if (!searchActive) {
-      tabItems = tabItems.concat(this._renderVisibleTabItems())
-    }
+    let tabItems = [this._renderSearch(this.props.onSearchClick || (() => {}))]
+    tabItems = tabItems.concat(this._renderVisibleTabItems())
 
     return (
       <TabBar style={stylesTabBarContainer}
-        styleTabBar={{...stylesTabBar, backgroundColor}}>
+        styleTabBar={{...stylesTabBar, backgroundColor: globalColors.midnightBlue}}>
         {tabItems}
       </TabBar>
     )
