@@ -60,6 +60,9 @@ node("ec2-fleet") {
                         }
                     },
                     pull_kbclient: {
+                        sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
+                        sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
+                        sh 'docker rmi keybaseprivate/kbclient || echo "no images to remove"'
                         if (cause == "upstream" && clientProjectName != '') {
                             step([$class: 'CopyArtifact',
                                     projectName: "${clientProjectName}",
@@ -76,10 +79,6 @@ node("ec2-fleet") {
                         }
                         sh "docker tag keybaseprivate/kbclient kbclient"
                     },
-                    remove_dockers: {
-                        sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
-                        sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
-                    },
                 )
             }
 
@@ -90,8 +89,12 @@ node("ec2-fleet") {
                     retry(5) {
                         kbweb = kbwebImage.run('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh')
                     }
-                    kbwebNodePrivateIP = new URL ("http://169.254.169.254/latest/meta-data/local-ipv4").getText()
-                    kbwebNodePublicIP = new URL ("http://169.254.169.254/latest/meta-data/public-ipv4").getText()
+                    sh "curl -s http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
+                    sh "curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > private.txt"
+                    kbwebNodePublicIP = readFile('public.txt')
+                    kbwebNodePrivateIP = readFile('private.txt')
+                    sh "rm public.txt"
+                    sh "rm private.txt"
                 }
 
                 stage "Test"
