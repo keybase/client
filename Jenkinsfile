@@ -94,8 +94,8 @@ node("ec2-fleet") {
                             parallel (
                                 test_linux_go: { withEnv([
                                     "PATH=${env.PATH}:${env.GOPATH}/bin",
-                                    "KEYBASE_SERVER_URI=http://127.0.0.1:3000",
-                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://127.0.0.1:9911",
+                                    "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
+                                    "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                 ]) {
                                     testNixGo("Linux")
                                 }},
