@@ -113,7 +113,7 @@ func (log *Standard) setLogLevelInfo() {
 	}
 }
 
-func (log *Standard) prepareString(
+func prepareString(
 	ctx context.Context, fmts string) string {
 	if ctx == nil {
 		return fmts
@@ -141,7 +141,7 @@ func (log *Standard) Debug(fmt string, arg ...interface{}) {
 func (log *Standard) CDebugf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.DEBUG) {
-		log.Debug(log.prepareString(ctx, fmt), arg...)
+		log.Debug(prepareString(ctx, fmt), arg...)
 	}
 }
 
@@ -155,7 +155,7 @@ func (log *Standard) Info(fmt string, arg ...interface{}) {
 func (log *Standard) CInfof(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.INFO) {
-		log.Info(log.prepareString(ctx, fmt), arg...)
+		log.Info(prepareString(ctx, fmt), arg...)
 	}
 }
 
@@ -169,7 +169,7 @@ func (log *Standard) Notice(fmt string, arg ...interface{}) {
 func (log *Standard) CNoticef(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.NOTICE) {
-		log.Notice(log.prepareString(ctx, fmt), arg...)
+		log.Notice(prepareString(ctx, fmt), arg...)
 	}
 }
 
@@ -183,7 +183,7 @@ func (log *Standard) Warning(fmt string, arg ...interface{}) {
 func (log *Standard) CWarningf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.WARNING) {
-		log.Warning(log.prepareString(ctx, fmt), arg...)
+		log.Warning(prepareString(ctx, fmt), arg...)
 	}
 }
 
@@ -201,7 +201,7 @@ func (log *Standard) Errorf(fmt string, arg ...interface{}) {
 func (log *Standard) CErrorf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.ERROR) {
-		log.Error(log.prepareString(ctx, fmt), arg...)
+		log.Error(prepareString(ctx, fmt), arg...)
 	}
 }
 
@@ -215,7 +215,7 @@ func (log *Standard) Critical(fmt string, arg ...interface{}) {
 func (log *Standard) CCriticalf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.CRITICAL) {
-		log.Critical(log.prepareString(ctx, fmt), arg...)
+		log.Critical(prepareString(ctx, fmt), arg...)
 	}
 }
 
@@ -228,7 +228,7 @@ func (log *Standard) Fatalf(fmt string, arg ...interface{}) {
 
 func (log *Standard) CFatalf(ctx context.Context, fmt string,
 	arg ...interface{}) {
-	log.Fatalf(log.prepareString(ctx, fmt), arg...)
+	log.Fatalf(prepareString(ctx, fmt), arg...)
 }
 
 func (log *Standard) Profile(fmts string, arg ...interface{}) {
