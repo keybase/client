@@ -99,13 +99,10 @@ node("ec2-fleet") {
                                 ]) {
                                     testNixGo("Linux")
                                 }},
-                                test_linux_js: { wrap([$class: 'Xvfb']) { withEnv([
+                                test_linux_js: { withEnv([
                                     "PATH=${env.HOME}/.node/bin:${env.PATH}",
                                     "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
-                                    "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                 ]) {
-                                
-                                    // TODO implement PR ID
                                     if (fileExists("desktop/npm-vendor.js")) {
                                         dir("desktop") {
                                             sh "npm run vendor-install"
@@ -127,31 +124,38 @@ node("ec2-fleet") {
                                     dir("protocol") {
                                         sh "./diff_test.sh"
                                     }
-                                    withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                            credentialsId: 'visdiff-aws-creds',
-                                            usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
-                                            passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
-                                        ],[$class: 'StringBinding',
-                                            credentialsId: 'visdiff-github-token',
-                                            variable: 'VISDIFF_GH_TOKEN',
-                                    ]]) {
-                                        if (fileExists("visdiff")) {
-                                            dir("visdiff") {
-                                                sh "npm install"
+                                    // Only run visdiff for PRs
+                                    if (env.CHANGE_ID) {
+                                        wrap([$class: 'Xvfb']) { 
+                                        withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                                credentialsId: 'visdiff-aws-creds',
+                                                usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
+                                                passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
+                                            ],[$class: 'StringBinding',
+                                                credentialsId: 'visdiff-github-token',
+                                                variable: 'VISDIFF_GH_TOKEN',
+                                        ]]) {
+                                        withEnv([
+                                            "VISDIFF_PR_ID=${env.CHANGE_ID}",
+                                        ]) {
+                                            if (fileExists("visdiff")) {
+                                                dir("visdiff") {
+                                                    sh "npm install"
+                                                }
+                                                sh "npm install ./visdiff"
+                                                dir("desktop") {
+                                                    sh "../node_modules/.bin/keybase-visdiff HEAD^...HEAD"
+                                                }
+                                            } else {
+                                                dir("desktop") {
+                                                    sh 'echo -e "[default]\\naccess_key = $VISDIFF_AWS_ACCESS_KEY_ID\\nsecret_key = $VISDIFF_AWS_SECRET_ACCESS_KEY" > ~/.s3cfg;'
+                                                    sh "npm install octonode"
+                                                    sh "npm run visdiff -- \"`git rev-parse HEAD^1`...`git rev-parse HEAD`\""
+                                                }
                                             }
-                                            sh "npm install ./visdiff"
-                                            dir("desktop") {
-                                                sh "../node_modules/.bin/keybase-visdiff HEAD^...HEAD"
-                                            }
-                                        } else {
-                                            dir("desktop") {
-                                                sh 'echo -e "[default]\\naccess_key = $VISDIFF_AWS_ACCESS_KEY_ID\\nsecret_key = $VISDIFF_AWS_SECRET_ACCESS_KEY" > ~/.s3cfg;'
-                                                sh "npm install octonode"
-                                                sh "npm run visdiff -- \"`git rev-parse HEAD^1`...`git rev-parse HEAD`\""
-                                            }
-                                        }
+                                        }}}
                                     }
-                                }}},
+                                }},
                                 test_kbfs: {
                                     dir('go') {
                                         sh "go install github.com/keybase/client/go/keybase"
@@ -211,9 +215,11 @@ node("ec2-fleet") {
                                                 bat "for /f %%i in (testlist.txt) do (go test -timeout 10m %%i || exit /B 1)"
                                             }
                                         },
-                                        test_windows_js: { wrap([$class: 'Xvfb']) {
+                                        test_windows_js: {
+                                        // Only run visdiff for PRs
+                                        if (env.CHANGE_ID) {
+                                        wrap([$class: 'Xvfb']) {
                                             println "Test Windows JS"
-                                            // TODO implement visdiff PR pushing
                                             if (fileExists("visdiff")) {
                                                 bat "choco install -y nodejs.install --allow-downgrade --version 6.1.0"
                                                 bat "choco install -y python --version 2.7.11"
@@ -243,7 +249,7 @@ node("ec2-fleet") {
                                                     }}
                                                 }
                                             }
-                                        }},
+                                        }}},
                                     )
                                 }}
                             }
