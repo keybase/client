@@ -1,8 +1,8 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import type {IconsType, FontIconsType} from './icon.constants'
-export type IconType = IconsType | FontIconsType
+import type {IconType as _IconType} from './icon.constants'
+export type IconType = _IconType
 
 export type Props = {
   type: IconType,

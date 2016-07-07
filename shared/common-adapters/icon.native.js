@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import {TouchableHighlight, Text, Image} from 'react-native'
 import {globalColors} from '../styles/style-guide'
-import {fontIcons, images} from './icon.paths.native'
+import {iconMeta} from './icon.constants'
 import type {Props} from './icon'
 import * as shared from './icon.shared'
 
@@ -35,9 +35,10 @@ export default class Icon extends Component {
     delete containerProps.textAlign
     delete containerProps.fontSize
 
-    const icon = fontIcons[iconType]
-      ? <Text style={{color, textAlign, fontFamily: 'kb', fontSize: fontSize, ...width}}>{fontIcons[iconType]}</Text>
-      : <Image source={images[this.props.type]} style={{resizeMode: 'contain', ...width, ...height}} />
+    const icon = iconMeta[iconType].isFont
+      ? <Text style={{color, textAlign, fontFamily: 'kb', fontSize: fontSize, ...width}}>{
+        String.fromCharCode(iconMeta[iconType].charCode || 0)}</Text>
+      : <Image source={iconMeta[iconType].require} style={{resizeMode: 'contain', ...width, ...height}} />
 
     return (
       <TouchableHighlight

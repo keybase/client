@@ -1,8 +1,7 @@
 // @flow
 import {globalColors} from '../styles/style-guide'
 import type {IconType} from './icon'
-import _ from 'lodash'
-import {fontSizes} from './icon.constants'
+import {iconMeta} from './icon.constants'
 
 export function defaultColor (type: IconType): ?string {
   switch (type) {
@@ -44,11 +43,11 @@ export function typeToIconMapper (type: IconType): IconType {
 }
 
 export function typeExtension (type: IconType): string {
-  return _.endsWith(type, '-animated') ? 'gif' : 'png'
+  return iconMeta[type].extension || 'png'
 }
 
 export function fontSize (type: IconType): ?Object {
-  const fontSize: ?number = fontSizes[type]
+  const fontSize: ?number = iconMeta[type].gridSize
 
   if (fontSize) {
     return {fontSize}
