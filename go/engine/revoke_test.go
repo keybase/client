@@ -176,3 +176,102 @@ func TestTrackAfterRevoke(t *testing.T) {
 		t.Errorf("expected libkb.KeyRevokedError, got %T", err)
 	}
 }
+
+func TestSignAfterRevoke(t *testing.T) {
+	tc1 := SetupEngineTest(t, "rev")
+	defer tc1.Cleanup()
+
+	// We need two devices.  Going to use GPG to sign second device.
+
+	// Sign up on tc1:
+	u := CreateAndSignupFakeUserGPG(tc1, "pgp")
+
+	// Redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// We need the gpg keyring that's in the first device homedir:
+	if err := tc1.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// Login on device tc2.  It will use gpg to sign the device.
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
+		GPGUI:       &gpgtestui{},
+	}
+	li := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(li, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// tc2 revokes tc1 device:
+	err := doRevokeDevice(tc2, u, tc1.G.Env.GetDeviceID(), false)
+	if err != nil {
+		tc2.T.Fatal(err)
+	}
+
+	// Still logged in on tc1, a revoked device.
+
+	// Test signing with (revoked) device key on tc1, which works...
+	msg := []byte("test message")
+	ret, err := SignED25519(tc1.G, u.NewSecretUI(), keybase1.SignED25519Arg{
+		Msg: msg,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	publicKey := libkb.NaclSigningKeyPublic(ret.PublicKey)
+	if !publicKey.Verify(msg, (*libkb.NaclSignature)(&ret.Sig)) {
+		t.Error(libkb.VerificationError{})
+	}
+
+	// This should log out tc1:
+	if err := tc1.G.LogoutIfRevoked(); err != nil {
+		t.Fatal(err)
+	}
+
+	AssertLoggedOut(tc1)
+
+	// And now this should fail.
+	ret, err = SignED25519(tc1.G, u.NewSecretUI(), keybase1.SignED25519Arg{
+		Msg: msg,
+	})
+	if err == nil {
+		t.Fatal("nil error signing after LogoutIfRevoked")
+	}
+	if _, ok := err.(libkb.KeyRevokedError); !ok {
+		t.Errorf("error type: %T, expected libkb.KeyRevokedError", err)
+	}
+}
+
+// Check that if not on a revoked device that LogoutIfRevoked doesn't do anything.
+func TestLogoutIfRevokedNoop(t *testing.T) {
+	tc := SetupEngineTest(t, "rev")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "rev")
+
+	AssertLoggedIn(tc)
+
+	if err := tc.G.LogoutIfRevoked(); err != nil {
+		t.Fatal(err)
+	}
+
+	AssertLoggedIn(tc)
+
+	msg := []byte("test message")
+	ret, err := SignED25519(tc.G, u.NewSecretUI(), keybase1.SignED25519Arg{
+		Msg: msg,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	publicKey := libkb.NaclSigningKeyPublic(ret.PublicKey)
+	if !publicKey.Verify(msg, (*libkb.NaclSignature)(&ret.Sig)) {
+		t.Error(libkb.VerificationError{})
+	}
+}

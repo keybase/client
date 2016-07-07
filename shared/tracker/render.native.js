@@ -5,7 +5,7 @@ import {Box} from '../common-adapters'
 import Header from './header.render'
 import {UserBio, UserProofs} from '../common-adapters'
 import Action from './action.render'
-import {globalColors} from '../styles/style-guide'
+import {globalColors, globalMargins} from '../styles/style-guide'
 
 import type {RenderProps} from './render'
 
@@ -32,6 +32,7 @@ export default class Render extends Component<void, RenderProps, void> {
             trackerState={this.props.trackerState}
           />
           <UserProofs
+            style={stylesProofs}
             username={this.props.username}
             proofs={this.props.proofs}
             currentlyFollowing={this.props.currentlyFollowing}
@@ -61,4 +62,10 @@ const stylesContainer = {
 }
 const stylesContent = {
   backgroundColor: globalColors.white,
+}
+const stylesProofs = {
+  paddingTop: globalMargins.medium,
+  paddingBottom: globalMargins.medium,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }

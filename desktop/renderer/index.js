@@ -6,6 +6,7 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import {Provider} from 'react-redux'
+import {setup as setupLocalDebug} from '../shared/local-debug.desktop'
 import configureStore from '../shared/store/configure-store'
 import Nav from '../shared/nav.desktop'
 import injectTapEventPlugin from 'react-tap-event-plugin'
@@ -33,6 +34,8 @@ if (module.hot) {
 }
 
 const store = configureStore()
+
+setupLocalDebug(store)
 
 if (devStoreChangingFunctions) {
   window.devEdit = (path, value) => store.dispatch(devEditAction(path, value))

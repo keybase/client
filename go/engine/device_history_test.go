@@ -135,6 +135,9 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 	if paper2.RevokedAt == nil {
 		t.Fatal("paper device RevokedAt is nil")
 	}
+	if paper2.RevokedBy.IsNil() {
+		t.Fatal("paper device RevokedBy is nil")
+	}
 }
 
 func TestDeviceHistoryPGP(t *testing.T) {

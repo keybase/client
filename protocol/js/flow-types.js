@@ -167,6 +167,7 @@ export type DeviceDetail = {
   provisioner?: ?Device;
   provisionedAt?: ?Time;
   revokedAt?: ?Time;
+  revokedBy: KID;
   currentDevice: boolean;
 }
 
@@ -911,6 +912,7 @@ export type RemoteProof = {
 export type RevokedKey = {
   key: PublicKey;
   time: KeybaseTime;
+  by: KID;
 }
 
 export type RevokedProof = {
@@ -1158,6 +1160,7 @@ export type StatusCode =
   | 928 // SCKeyNoNaClEncryption_928
   | 929 // SCKeySyncedPGPNotFound_929
   | 930 // SCKeyNoMatchingGPG_930
+  | 931 // SCKeyRevoked_931
   | 1301 // SCBadTrackSession_1301
   | 1409 // SCDeviceNotFound_1409
   | 1410 // SCDeviceMismatch_1410
@@ -1377,9 +1380,9 @@ export type apiserverGetRpc = $Exact<{
   method: 'apiserver.Get',
   param: {
     endpoint: string,
-    args: ?Array<StringKVPair>,
-    httpStatus: ?Array<int>,
-    appStatusCode: ?Array<int>
+    args?: ?Array<StringKVPair>,
+    httpStatus?: ?Array<int>,
+    appStatusCode?: ?Array<int>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -1392,10 +1395,10 @@ export type apiserverPostJSONRpc = $Exact<{
   method: 'apiserver.PostJSON',
   param: {
     endpoint: string,
-    args: ?Array<StringKVPair>,
-    JSONPayload: ?Array<StringKVPair>,
-    httpStatus: ?Array<int>,
-    appStatusCode: ?Array<int>
+    args?: ?Array<StringKVPair>,
+    JSONPayload?: ?Array<StringKVPair>,
+    httpStatus?: ?Array<int>,
+    appStatusCode?: ?Array<int>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -1408,9 +1411,9 @@ export type apiserverPostRpc = $Exact<{
   method: 'apiserver.Post',
   param: {
     endpoint: string,
-    args: ?Array<StringKVPair>,
-    httpStatus: ?Array<int>,
-    appStatusCode: ?Array<int>
+    args?: ?Array<StringKVPair>,
+    httpStatus?: ?Array<int>,
+    appStatusCode?: ?Array<int>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -1436,7 +1439,7 @@ export type blockArchiveReferenceRpc = $Exact<{
   method: 'block.archiveReference',
   param: {
     folder: string,
-    refs: ?Array<BlockReference>
+    refs?: ?Array<BlockReference>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -1449,7 +1452,7 @@ export type blockArchiveReferenceWithCountRpc = $Exact<{
   method: 'block.archiveReferenceWithCount',
   param: {
     folder: string,
-    refs: ?Array<BlockReference>
+    refs?: ?Array<BlockReference>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -1487,7 +1490,7 @@ export type blockDelReferenceWithCountRpc = $Exact<{
   method: 'block.delReferenceWithCount',
   param: {
     folder: string,
-    refs: ?Array<BlockReference>
+    refs?: ?Array<BlockReference>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -1682,7 +1685,7 @@ export type cryptoUnboxBytes32AnyResult = UnboxAnyRes
 export type cryptoUnboxBytes32AnyRpc = $Exact<{
   method: 'crypto.unboxBytes32Any',
   param: {
-    bundles: ?Array<CiphertextBundle>,
+    bundles?: ?Array<CiphertextBundle>,
     reason: string,
     promptPaper: boolean
   },
@@ -1924,7 +1927,7 @@ export type gpgUiSelectKeyAndPushOptionResult = SelectKeyRes
 export type gpgUiSelectKeyAndPushOptionRpc = $Exact<{
   method: 'gpgUi.selectKeyAndPushOption',
   param: {
-    keys: ?Array<GPGKey>
+    keys?: ?Array<GPGKey>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -1936,7 +1939,7 @@ export type gpgUiSelectKeyResult = string
 export type gpgUiSelectKeyRpc = $Exact<{
   method: 'gpgUi.selectKey',
   param: {
-    keys: ?Array<GPGKey>
+    keys?: ?Array<GPGKey>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -1979,7 +1982,7 @@ export type gregorUIPushOutOfBandMessagesResult = void
 export type gregorUIPushOutOfBandMessagesRpc = $Exact<{
   method: 'gregorUI.pushOutOfBandMessages',
   param: {
-    oobm: ?Array<gregor1.OutOfBandMessage>
+    oobm?: ?Array<gregor1.OutOfBandMessage>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -2637,7 +2640,7 @@ export type metadataPutKeysResult = void
 export type metadataPutKeysRpc = $Exact<{
   method: 'metadata.putKeys',
   param: {
-    keyHalves: ?Array<KeyHalf>,
+    keyHalves?: ?Array<KeyHalf>,
     logTags: {[key: string]: string}
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
@@ -2856,7 +2859,7 @@ export type pgpPgpPullResult = void
 export type pgpPgpPullRpc = $Exact<{
   method: 'pgp.pgpPull',
   param: {
-    userAsserts: ?Array<string>
+    userAsserts?: ?Array<string>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -2898,7 +2901,7 @@ export type pgpPgpUpdateRpc = $Exact<{
   method: 'pgp.pgpUpdate',
   param: {
     all: boolean,
-    fingerprints: ?Array<string>
+    fingerprints?: ?Array<string>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -3053,7 +3056,7 @@ export type provisionUiChooseDeviceResult = DeviceID
 export type provisionUiChooseDeviceRpc = $Exact<{
   method: 'provisionUi.chooseDevice',
   param: {
-    devices: ?Array<Device>
+    devices?: ?Array<Device>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -3077,7 +3080,7 @@ export type provisionUiChooseGPGMethodResult = GPGMethod
 export type provisionUiChooseGPGMethodRpc = $Exact<{
   method: 'provisionUi.chooseGPGMethod',
   param: {
-    keys: ?Array<GPGKey>
+    keys?: ?Array<GPGKey>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -3124,7 +3127,7 @@ export type provisionUiPromptNewDeviceNameResult = string
 export type provisionUiPromptNewDeviceNameRpc = $Exact<{
   method: 'provisionUi.PromptNewDeviceName',
   param: {
-    existingDevices: ?Array<string>,
+    existingDevices?: ?Array<string>,
     errorMessage: string
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
@@ -3270,7 +3273,7 @@ export type revokeRevokeSigsResult = void
 export type revokeRevokeSigsRpc = $Exact<{
   method: 'revoke.revokeSigs',
   param: {
-    sigIDQueries: ?Array<string>
+    sigIDQueries?: ?Array<string>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -3710,7 +3713,7 @@ export type userLoadUncheckedUserSummariesResult = ?Array<UserSummary>
 export type userLoadUncheckedUserSummariesRpc = $Exact<{
   method: 'user.loadUncheckedUserSummaries',
   param: {
-    uids: ?Array<UID>
+    uids?: ?Array<UID>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -4006,9 +4009,9 @@ export type incomingCallMapType = {
   'keybase.1.apiserver.Get'?: (
     params: {
       endpoint: string,
-      args: ?Array<StringKVPair>,
-      httpStatus: ?Array<int>,
-      appStatusCode: ?Array<int>
+      args?: ?Array<StringKVPair>,
+      httpStatus?: ?Array<int>,
+      appStatusCode?: ?Array<int>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4018,9 +4021,9 @@ export type incomingCallMapType = {
   'keybase.1.apiserver.Post'?: (
     params: {
       endpoint: string,
-      args: ?Array<StringKVPair>,
-      httpStatus: ?Array<int>,
-      appStatusCode: ?Array<int>
+      args?: ?Array<StringKVPair>,
+      httpStatus?: ?Array<int>,
+      appStatusCode?: ?Array<int>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4030,10 +4033,10 @@ export type incomingCallMapType = {
   'keybase.1.apiserver.PostJSON'?: (
     params: {
       endpoint: string,
-      args: ?Array<StringKVPair>,
-      JSONPayload: ?Array<StringKVPair>,
-      httpStatus: ?Array<int>,
-      appStatusCode: ?Array<int>
+      args?: ?Array<StringKVPair>,
+      JSONPayload?: ?Array<StringKVPair>,
+      httpStatus?: ?Array<int>,
+      appStatusCode?: ?Array<int>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4101,7 +4104,7 @@ export type incomingCallMapType = {
   'keybase.1.block.archiveReference'?: (
     params: {
       folder: string,
-      refs: ?Array<BlockReference>
+      refs?: ?Array<BlockReference>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4111,7 +4114,7 @@ export type incomingCallMapType = {
   'keybase.1.block.delReferenceWithCount'?: (
     params: {
       folder: string,
-      refs: ?Array<BlockReference>
+      refs?: ?Array<BlockReference>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4121,7 +4124,7 @@ export type incomingCallMapType = {
   'keybase.1.block.archiveReferenceWithCount'?: (
     params: {
       folder: string,
-      refs: ?Array<BlockReference>
+      refs?: ?Array<BlockReference>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4277,7 +4280,7 @@ export type incomingCallMapType = {
   'keybase.1.crypto.unboxBytes32Any'?: (
     params: {
       sessionID: int,
-      bundles: ?Array<CiphertextBundle>,
+      bundles?: ?Array<CiphertextBundle>,
       reason: string,
       promptPaper: boolean
     },
@@ -4485,7 +4488,7 @@ export type incomingCallMapType = {
   'keybase.1.gpgUi.selectKeyAndPushOption'?: (
     params: {
       sessionID: int,
-      keys: ?Array<GPGKey>
+      keys?: ?Array<GPGKey>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4495,7 +4498,7 @@ export type incomingCallMapType = {
   'keybase.1.gpgUi.selectKey'?: (
     params: {
       sessionID: int,
-      keys: ?Array<GPGKey>
+      keys?: ?Array<GPGKey>
     },
     response: {
       error: (err: RPCError) => void,
@@ -4531,7 +4534,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.gregorUI.pushOutOfBandMessages'?: (
     params: {
-      oobm: ?Array<gregor1.OutOfBandMessage>
+      oobm?: ?Array<gregor1.OutOfBandMessage>
     },
     response: {
       error: (err: RPCError) => void,
@@ -5018,7 +5021,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.metadata.putKeys'?: (
     params: {
-      keyHalves: ?Array<KeyHalf>,
+      keyHalves?: ?Array<KeyHalf>,
       logTags: {[key: string]: string}
     },
     response: {
@@ -5271,7 +5274,7 @@ export type incomingCallMapType = {
   'keybase.1.pgp.pgpPull'?: (
     params: {
       sessionID: int,
-      userAsserts: ?Array<string>
+      userAsserts?: ?Array<string>
     },
     response: {
       error: (err: RPCError) => void,
@@ -5395,7 +5398,7 @@ export type incomingCallMapType = {
     params: {
       sessionID: int,
       all: boolean,
-      fingerprints: ?Array<string>
+      fingerprints?: ?Array<string>
     },
     response: {
       error: (err: RPCError) => void,
@@ -5525,7 +5528,7 @@ export type incomingCallMapType = {
   'keybase.1.provisionUi.chooseGPGMethod'?: (
     params: {
       sessionID: int,
-      keys: ?Array<GPGKey>
+      keys?: ?Array<GPGKey>
     },
     response: {
       error: (err: RPCError) => void,
@@ -5546,7 +5549,7 @@ export type incomingCallMapType = {
   'keybase.1.provisionUi.chooseDevice'?: (
     params: {
       sessionID: int,
-      devices: ?Array<Device>
+      devices?: ?Array<Device>
     },
     response: {
       error: (err: RPCError) => void,
@@ -5587,7 +5590,7 @@ export type incomingCallMapType = {
   'keybase.1.provisionUi.PromptNewDeviceName'?: (
     params: {
       sessionID: int,
-      existingDevices: ?Array<string>,
+      existingDevices?: ?Array<string>,
       errorMessage: string
     },
     response: {
@@ -5703,7 +5706,7 @@ export type incomingCallMapType = {
   'keybase.1.revoke.revokeSigs'?: (
     params: {
       sessionID: int,
-      sigIDQueries: ?Array<string>
+      sigIDQueries?: ?Array<string>
     },
     response: {
       error: (err: RPCError) => void,
@@ -6044,7 +6047,7 @@ export type incomingCallMapType = {
   'keybase.1.user.loadUncheckedUserSummaries'?: (
     params: {
       sessionID: int,
-      uids: ?Array<UID>
+      uids?: ?Array<UID>
     },
     response: {
       error: (err: RPCError) => void,

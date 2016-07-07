@@ -18,7 +18,7 @@ const Avatars = ({styles, users, isPublic}) => {
   }
 
   // $FlowIssue doesn't like images
-  const source = require('../images/icons/damier-pattern-48.png')
+  const source = require('../images/icons/icon-damier-pattern-48.png')
   return (
     <Box style={{width: 48, height: 1}}>
       <Image

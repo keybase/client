@@ -2,6 +2,7 @@
 import Profile from './render'
 import {normal, checking, revoked, error, metaNone} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
+import {isMobile} from '../constants/platform'
 import type {Props as RenderProps} from './render'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {UserInfo} from '../common-adapters/user-bio'
@@ -46,16 +47,16 @@ const baseFolder = {
 const folders = [
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
-      {username: 'chris'},
+      {username: 'chris', you: true},
+      {username: 'cecileb'},
     ],
     ...baseFolder,
     hasData: false,
   }),
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
-      {username: 'chris'},
+      {username: 'chris', you: true},
+      {username: 'cecileb'},
     ],
     ...baseFolder,
     isPublic: false,
@@ -63,29 +64,29 @@ const folders = [
   }),
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
-      {username: 'chris'},
+      {username: 'chris', you: true},
+      {username: 'cecileb'},
       {username: 'max'},
     ],
     ...baseFolder,
   }),
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
+      {username: 'chris', you: true},
       {username: 'max'},
     ],
     ...baseFolder,
   }),
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
+      {username: 'chris', you: true},
       {username: 'cjb'},
     ],
     ...baseFolder,
   }),
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
+      {username: 'chris', you: true},
       {username: 'chrisnojima'},
       {username: 'marcopolo'},
       {username: 'zanderz'},
@@ -95,7 +96,7 @@ const folders = [
   }),
   createFolder({
     users: [
-      {username: 'cecileb', you: true},
+      {username: 'chris', you: true},
       {username: 'chrisnojima'},
       {username: 'marcopolo'},
     ],
@@ -136,7 +137,7 @@ const propsBase: RenderProps = {
   onAcceptProofs: () => console.log('onAcceptProofs'),
   onFolderClick: folder => { console.log('onFolderClick', folder) },
   onUserClick: username => { console.log('onUserClick', username) },
-  parentProps: {
+  parentProps: isMobile ? {} : {
     style: {
       width: 640,
       height: 578,

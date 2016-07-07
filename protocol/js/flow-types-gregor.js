@@ -151,7 +151,7 @@ export type authUpdateRevokeSessionIDsResult = void
 export type authUpdateRevokeSessionIDsRpc = $Exact<{
   method: 'authUpdate.revokeSessionIDs',
   param: {
-    sessionIDs: ?Array<SessionID>
+    sessionIDs?: ?Array<SessionID>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -251,7 +251,7 @@ export type remindDeleteRemindersResult = void
 export type remindDeleteRemindersRpc = $Exact<{
   method: 'remind.deleteReminders',
   param: {
-    reminderIDs: ?Array<ReminderID>
+    reminderIDs?: ?Array<ReminderID>
   },
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -303,7 +303,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.authUpdate.revokeSessionIDs'?: (
     params: {
-      sessionIDs: ?Array<SessionID>
+      sessionIDs?: ?Array<SessionID>
     },
     response: {
       error: (err: RPCError) => void,
@@ -389,7 +389,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.remind.deleteReminders'?: (
     params: {
-      reminderIDs: ?Array<ReminderID>
+      reminderIDs?: ?Array<ReminderID>
     },
     response: {
       error: (err: RPCError) => void,

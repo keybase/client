@@ -19,7 +19,7 @@ const ff: FeatureFlags = {
   tabPeopleEnabled: featureOn('tabPeopleEnabled'),
   tabFoldersEnabled: featureOn('tabFoldersEnabled'),
   tabSettingsEnabled: featureOn('tabSettingsEnabled'),
-  tabProfileEnabled: featureOn('tabProfileEnabled'),
+  tabProfileEnabled: featureOn('tabProfileEnabled', true),
   searchEnabled: featureOn('searchEnabled', true),
   recentFilesEnabled: featureOn('recentFilesEnabled'),
 }

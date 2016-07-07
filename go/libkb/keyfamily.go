@@ -50,16 +50,7 @@ type ComputedKeyInfo struct {
 	DelegatedAt *KeybaseTime
 
 	RevokedAt *KeybaseTime
-	// TODO:  would like to add this to support desktop's request
-	// to know who revoked a device, but changing this changes
-	// the sigchain stored on disk.  Putting off this change
-	// for now, so this is just a placeholder.  (PC)
-	//
-	// More details: adding this would work fine but would
-	// require handling the case where unmarshaling existing
-	// cki could have non-nil RevokedAt and empty RevokedBy.
-	//
-	// RevokedBy keybase1.KID
+	RevokedBy keybase1.KID
 
 	// For PGP keys, the active version of the key. If unspecified, use the
 	// legacy behavior of combining every instance of this key that we got from
@@ -599,8 +590,7 @@ func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) 
 	} else {
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
-		// see comment in ComputedKeyInfo about this field
-		// info.RevokedBy = tcl.GetKID()
+		info.RevokedBy = tcl.GetKID()
 	}
 	return
 }
@@ -609,8 +599,7 @@ func (ckf *ComputedKeyFamily) RevokeKid(kid keybase1.KID, tcl TypedChainLink) (e
 	if info, found := ckf.cki.Infos[kid]; found {
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
-		// see comment in ComputedKeyInfo about this field
-		// info.RevokedBy = tcl.GetKID()
+		info.RevokedBy = tcl.GetKID()
 	}
 	return
 }
@@ -750,6 +739,7 @@ func (ckf ComputedKeyFamily) GetActivePGPKeys(sibkey bool) (ret []*PGPKeyBundle)
 type RevokedKey struct {
 	Key       GenericKey
 	RevokedAt *KeybaseTime
+	RevokedBy keybase1.KID
 }
 
 func (ckf ComputedKeyFamily) GetRevokedKeys() []RevokedKey {
@@ -770,6 +760,9 @@ func (ckf ComputedKeyFamily) GetRevokedKeys() []RevokedKey {
 			ckf.G().Log.Errorf("KID %s: status is KeyRevoked, but RevokedAt is nil", kid)
 			continue
 		}
+		if ki.RevokedBy.IsNil() {
+			ckf.G().Log.Debug("KID %s: RevokedAt is non-nil, but RevokedBy is nil, probably just old", kid)
+		}
 
 		key, err := ckf.FindKeyWithKIDUnsafe(kid)
 		if err != nil {
@@ -777,7 +770,7 @@ func (ckf ComputedKeyFamily) GetRevokedKeys() []RevokedKey {
 			continue
 		}
 
-		revokedKeys = append(revokedKeys, RevokedKey{Key: key, RevokedAt: ki.RevokedAt})
+		revokedKeys = append(revokedKeys, RevokedKey{Key: key, RevokedAt: ki.RevokedAt, RevokedBy: ki.RevokedBy})
 	}
 
 	return revokedKeys

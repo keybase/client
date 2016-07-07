@@ -30,7 +30,7 @@ export default class Render extends Component<void, Props, void> {
         break
       case 'success':
         innerComponent = (
-          <Success onAccessFolders={this.props.onFinish} />
+          <Success onClose={this.props.onClose} />
         )
         break
     }
