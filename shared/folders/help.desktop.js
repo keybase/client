@@ -26,7 +26,7 @@ const RenderHelp = ({username}: Props) => (
       </Box>
       <Box style={styleBody}>
         <Text type='BodySmall' style={{...styleBodyText}}>
-          Here are a few terminal examples for the meantime. Note you can share with
+          Here are a few terminal examples in the meantime. Note you can share with
           people who haven't joined Keybase yet, and your computer will rekey the
           data for them the moment they establish keys.
         </Text>
@@ -38,7 +38,7 @@ const RenderHelp = ({username}: Props) => (
           <Text type='Terminal'>{`cd /keybase/private/${username}`}</Text>
           <Text type='Terminal'>{`cd /keybase/private/${username},chris`}</Text>
           <Text type='TerminalEmpty' />
-          <Text type='TerminalComment'>works even before maxtaco has joined keybase:</Text>
+          <Text type='TerminalComment'>works even before maxtaco@twitter has joined keybase:</Text>
           <Text type='Terminal'>{`cd /keybase/private/${username},maxtaco@twitter`}</Text>
           <Text type='TerminalEmpty' />
           <Text type='TerminalComment'>OSX tip: this opens Finder</Text>
