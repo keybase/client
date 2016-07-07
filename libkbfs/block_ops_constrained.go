@@ -28,20 +28,28 @@ func NewBlockOpsConstrained(delegate BlockOps, bwKBps int) *BlockOpsConstrained 
 	}
 }
 
+func (b *BlockOpsConstrained) delay(ctx context.Context, size int) error {
+	if b.bwKBps <= 0 {
+		return nil
+	}
+	b.lock.Lock()
+	defer b.lock.Unlock()
+	// Simulate a constrained bserver connection
+	delay := size * int(time.Second) / (b.bwKBps * 1024)
+	time.Sleep(time.Duration(delay))
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+	return nil
+}
+
 // Put implements the BlockOps interface for BlockOpsConstrained.
 func (b *BlockOpsConstrained) Put(ctx context.Context, md *RootMetadata,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	if b.bwKBps > 0 {
-		b.lock.Lock()
-		// Simulate a constrained bserver connection
-		delay := len(readyBlockData.buf) * int(time.Second) / (b.bwKBps * 1024)
-		time.Sleep(time.Duration(delay))
-		b.lock.Unlock()
-		select {
-		case <-ctx.Done():
-			return ctx.Err()
-		default:
-		}
+	if err := b.delay(ctx, len(readyBlockData.buf)); err != nil {
+		return err
 	}
 	return b.BlockOps.Put(ctx, md, blockPtr, readyBlockData)
 }
