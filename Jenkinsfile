@@ -288,11 +288,13 @@ def waitForURL(prefix, url) {
     for (slept=0; slept<180; slept+=3) {
         sleep 3
         try {
-            response = httpRequest(url)
-            if (response.status == 200) {
-                println "$prefix waitForURL connected to $url after waiting $slept seconds."
-                return
+            if (isUnix()) {
+                sh "curl -s -o /dev/null $url 2>&1"
+            } else {
+                bat "curl.exe --silent $url >nul 2>&1"
             }
+            println "$prefix waitForURL connected to $url after waiting $slept seconds."
+            return
         } catch(ex) {}
     }
     error "$prefix waitForURL failed to connect to $url after waiting $slept seconds."
