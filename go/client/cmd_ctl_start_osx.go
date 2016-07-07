@@ -7,7 +7,6 @@ package client
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
@@ -77,7 +76,7 @@ func ctlStart(g *libkb.GlobalContext, components map[string]bool) error {
 		}
 	}
 	if ok := components[install.ComponentNameUpdater.String()]; ok {
-		if err := launchd.Start(install.DefaultUpdaterLabel(), 5*time.Second, g.Log); err != nil {
+		if err := launchd.Start(install.DefaultUpdaterLabel(), defaultLaunchdWait, g.Log); err != nil {
 			errs = append(errs, err)
 		}
 	}

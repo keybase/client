@@ -91,8 +91,8 @@ func (s Service) Start(wait time.Duration) error {
 	plistDest := s.plistDestination()
 	s.log.Info("Starting %s", s.label)
 	// We start using load -w on plist file
-	output, err := exec.Command("/bin/launchctl", "load", "-w", plistDest).Output()
-	s.log.Debug("Output (launchctl): %s", string(output))
+	output, err := exec.Command("/bin/launchctl", "load", "-w", plistDest).CombinedOutput()
+	s.log.Debug("Output (launchctl load): %s", string(output))
 
 	if wait > 0 {
 		status, waitErr := s.WaitForStatus(wait, 500*time.Millisecond)
@@ -119,8 +119,8 @@ func (s Service) HasPlist() bool {
 func (s Service) Stop(wait time.Duration) error {
 	s.log.Info("Stopping %s", s.label)
 	// We stop by removing the job. This works for non-demand and demand jobs.
-	output, err := exec.Command("/bin/launchctl", "remove", s.label).Output()
-	s.log.Debug("Output (launchctl): %s", string(output))
+	output, err := exec.Command("/bin/launchctl", "remove", s.label).CombinedOutput()
+	s.log.Debug("Output (launchctl remove): %s", string(output))
 	if wait > 0 {
 		// The docs say launchd ExitTimeOut defaults to 20 seconds, but in practice
 		// it seems more like 5 seconds before it resorts to a SIGKILL.
@@ -148,7 +148,7 @@ func (s Service) WaitForStatus(wait time.Duration, delay time.Duration) (*Servic
 		if err != nil {
 			return nil, err
 		}
-		if status != nil {
+		if status != nil && status.HasRun() {
 			return status, nil
 		}
 		// Tell user we're waiting for status after 4 seconds, every 4 seconds
@@ -268,6 +268,11 @@ func (s ServiceStatus) Pid() string { return s.pid }
 
 // LastExitStatus will be blank if pid > 0, or a number "123"
 func (s ServiceStatus) LastExitStatus() string { return s.lastExitStatus }
+
+// HasRun returns true if service is running, or has run and failed
+func (s ServiceStatus) HasRun() bool {
+	return s.Pid() != "" || s.LastExitStatus() != "0"
+}
 
 // Description returns service status info
 func (s ServiceStatus) Description() string {
