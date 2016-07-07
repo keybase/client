@@ -59,22 +59,33 @@ func (s *IdentifyState) computeRevokedProofs() {
 	found := s.res.TrackSet()
 
 	tracked := s.track.set
-	// If there is a snoozed track in tmpTrack, use it instead
-	// to see if anything has changed since the snooze:
-	if s.tmpTrack != nil {
-		tracked = s.tmpTrack.set
-	}
 
-	// These are the proofs that we previously tracked that we
-	// didn't observe in the current profile
+	// These are the proofs that user previously tracked that
+	// are not in the current profile:
 	diff := (*tracked).Subtract(*found)
 
 	for _, e := range diff {
-		// If the proofs in the difference are for GOOD proofs,
-		// the we have a problem.  Mark the proof as "REVOKED"
-		if e.GetProofState() == keybase1.ProofState_OK {
+		if e.GetProofState() != keybase1.ProofState_OK {
+			continue
+		}
+
+		// A proof that was previously tracked as GOOD
+		// is missing, so it has been REVOKED.
+		s.res.RevokedDetails = append(s.res.RevokedDetails, ExportTrackIDComponentToRevokedProof(e))
+		if s.tmpTrack == nil {
 			s.res.Revoked = append(s.res.Revoked, TrackDiffRevoked{e})
-			s.res.RevokedDetails = append(s.res.RevokedDetails, ExportTrackIDComponentToRevokedProof(e))
+			continue
+		}
+
+		// There is a snoozed track in s.tmpTrack.
+		// The user could have snoozed the revoked proof already.
+		// Check s.tmpTrack to see if that is the case.
+		if s.tmpTrack.set.HasMember(e) {
+			// proof was in snooze, too, so mark it as revoked.
+			s.res.Revoked = append(s.res.Revoked, TrackDiffRevoked{e})
+		} else {
+			// proof wasn't in snooze, so revoked proof already snoozed.
+			s.res.Revoked = append(s.res.Revoked, TrackDiffSnoozedRevoked{e})
 		}
 	}
 }
