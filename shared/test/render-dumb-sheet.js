@@ -50,6 +50,8 @@ function renderNextSheet () {
     canvasEl.appendChild(containerEl)
 
     ReactDOM.render(displayTree, containerEl, () => {
+      // autoFocus elements can cause automatic scrolling :(
+      canvasEl.scrollTop = 0
       const box = containerEl.getBoundingClientRect()
 
       const item = lastItem = {
@@ -75,6 +77,7 @@ function renderNextSheet () {
 
   const appEl = document.getElementById('app')
   const canvasEl = document.createElement('div')
+  canvasEl.style.overflow = 'hidden'
   appEl.innerHTML = ''
   appEl.appendChild(canvasEl)
 
