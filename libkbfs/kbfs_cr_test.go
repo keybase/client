@@ -1553,6 +1553,11 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	close(syncUnstallCh)
 	wg.Wait()
 
+	if syncErr != context.Canceled {
+		t.Fatalf("wrong error returned; expected: %v; got: %v",
+			context.Canceled, syncErr)
+	}
+
 	// Get the mdWriterLock to be sure the sync has exited (since the
 	// cleanup logic happens in a background goroutine)
 	ops := getOps(config2, rootNode2.GetFolderBranch().Tlf)
