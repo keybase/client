@@ -101,7 +101,8 @@ node("ec2-fleet") {
                                 }},
                                 test_linux_js: { wrap([$class: 'Xvfb']) { withEnv([
                                     "PATH=${env.HOME}/.node/bin:${env.PATH}",
-                                    "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}"
+                                    "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                                    "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                 ]) {
                                 
                                     // TODO implement PR ID
@@ -236,8 +237,11 @@ node("ec2-fleet") {
                                                             credentialsId: 'visdiff-github-token',
                                                             variable: 'VISDIFF_GH_TOKEN',
                                                     ]]) {
+                                                    withEnv([
+                                                        "VISDIFF_PR_ID=${env.CHANGE_ID}",
+                                                    ]) {
                                                         bat '..\\node_modules\\.bin\\keybase-visdiff "HEAD^^...HEAD"'
-                                                    }
+                                                    }}
                                                 }
                                             }
                                         }},
