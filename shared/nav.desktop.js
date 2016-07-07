@@ -81,6 +81,7 @@ class Nav extends Component<void, Props, State> {
   }
 
   _handleTabsChange (e, key, payload) {
+    this.setState({searchActive: false})
     this.props.switchTab(e)
   }
 

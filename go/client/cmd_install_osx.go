@@ -74,10 +74,6 @@ func (v *CmdInstall) GetUsage() libkb.Usage {
 }
 
 func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
-	if v.G().Env.GetRunMode() != libkb.ProductionRunMode {
-		return fmt.Errorf("Only supported in production")
-	}
-
 	v.force = ctx.Bool("force")
 	v.format = ctx.String("format")
 	v.binPath = ctx.String("bin-path")
@@ -121,7 +117,7 @@ func (v *CmdInstall) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	} else {
-		outputComponentResults(v.G().UI, "Install", result.ComponentResults)
+		outputComponentResults(v.G(), "Install", result.ComponentResults)
 	}
 	return nil
 }
@@ -188,16 +184,15 @@ func (v *CmdUninstall) Run() error {
 		}
 		fmt.Fprintf(os.Stdout, "%s\n", out)
 	} else {
-		outputComponentResults(v.G().UI, "Uninstall", result.ComponentResults)
+		outputComponentResults(v.G(), "Uninstall", result.ComponentResults)
 	}
 	return nil
 }
 
-func outputComponentResults(ui libkb.UI, action string, crs []keybase1.ComponentResult) {
-	term := ui.GetTerminalUI()
+func outputComponentResults(g *libkb.GlobalContext, action string, crs []keybase1.ComponentResult) {
 	for _, cr := range crs {
 		cn := install.ComponentNameFromString(cr.Name)
-		term.Printf("%s %s: %s\n", action, cn.String(), cr.Status.Desc)
+		g.Log.Info("%s %s: %s", action, cn.Description(), cr.Status.Desc)
 	}
 }
 

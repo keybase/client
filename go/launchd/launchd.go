@@ -60,25 +60,25 @@ func NewEnvVar(key string, value string) EnvVar {
 
 // Plist defines a launchd plist
 type Plist struct {
-	label       string
-	binPath     string
-	args        []string
-	envVars     []EnvVar
-	keepAlive   bool
-	logFileName string
-	comment     string
+	label     string
+	binPath   string
+	args      []string
+	envVars   []EnvVar
+	keepAlive bool
+	logPath   string
+	comment   string
 }
 
 // NewPlist constructs a launchd service plist
-func NewPlist(label string, binPath string, args []string, envVars []EnvVar, logFileName string, comment string) Plist {
+func NewPlist(label string, binPath string, args []string, envVars []EnvVar, logPath string, comment string) Plist {
 	return Plist{
-		label:       label,
-		binPath:     binPath,
-		args:        args,
-		envVars:     envVars,
-		keepAlive:   true,
-		logFileName: logFileName,
-		comment:     comment,
+		label:     label,
+		binPath:   binPath,
+		args:      args,
+		envVars:   envVars,
+		keepAlive: true,
+		logPath:   logPath,
+		comment:   comment,
 	}
 }
 
@@ -433,11 +433,6 @@ func launchdHomeDir() string {
 	return currentUser.HomeDir
 }
 
-// LogDir is the directory for logs
-func LogDir() string {
-	return filepath.Join(launchdHomeDir(), "Library", "Logs")
-}
-
 func ensureDirectoryExists(dir string) error {
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		err = os.MkdirAll(dir, 0700)
@@ -472,8 +467,6 @@ func (p Plist) Check(path string) (bool, error) {
 
 // TODO Use go-plist library
 func (p Plist) plistXML() string {
-	logFile := filepath.Join(LogDir(), p.logFileName)
-
 	encodeTag := func(name, val string) string {
 		return fmt.Sprintf("<%s>%s</%s>", name, val, name)
 	}
@@ -519,9 +512,9 @@ func (p Plist) plistXML() string {
   </array>` +
 		"\n  " + strings.Join(options, "\n  ") + `
   <key>StandardErrorPath</key>
-  <string>` + logFile + `</string>
+  <string>` + p.logPath + `</string>
   <key>StandardOutPath</key>
-  <string>` + logFile + `</string>
+  <string>` + p.logPath + `</string>
   <key>WorkingDirectory</key>
   <string>/tmp</string>
 </dict>

@@ -33,6 +33,7 @@ node("ec2-fleet") {
     def mysqlImage = docker.image("keybaseprivate/mysql")
     def gregorImage = docker.image("keybaseprivate/kbgregor")
     def kbwebImage = docker.image("keybaseprivate/kbweb")
+    def clientImage = null
 
     sh "curl -s http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
     sh "curl -s http://169.254.169.254/latest/meta-data/local-ipv4 > private.txt"
@@ -160,7 +161,7 @@ node("ec2-fleet") {
                                     dir('go') {
                                         sh "go install github.com/keybase/client/go/keybase"
                                         sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
-                                        def clientImage = docker.build("keybaseprivate/kbclient")
+                                        clientImage = docker.build("keybaseprivate/kbclient")
                                         sh "docker save -o kbclient.tar keybaseprivate/kbclient"
                                         archive("kbclient.tar")
                                         //build([
