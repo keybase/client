@@ -10,7 +10,9 @@
 package test
 
 import (
+	"fmt"
 	"testing"
+	"time"
 )
 
 // BenchmarkWriteSeq512 writes to a large file in 512 byte writes.
@@ -121,4 +123,72 @@ func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 			}),
 		),
 	)
+}
+
+func benchmarkWriteWithBandwidthHelper(b *testing.B, fileBytes int64,
+	perWriteBytes int64, writebwKBps int, warmUp bool) {
+	buf := make([]byte, perWriteBytes)
+	if !warmUp {
+		b.SetBytes(fileBytes)
+	}
+	numWritesPerFile := int(fileBytes / perWriteBytes)
+	test(silentBenchmark{b},
+		users("alice"),
+		blockSize(512<<10),
+		bandwidth(writebwKBps),
+		opTimeout(19*time.Second),
+		as(alice,
+			custom(func(cb func(fileOp) error) error {
+				if !warmUp {
+					b.ResetTimer()
+					defer b.StopTimer()
+				}
+				for i := 0; i < b.N; i++ {
+					name := fmt.Sprintf("bench%d", i)
+					err := cb(mkfile(name, ""))
+					if err != nil {
+						return err
+					}
+					for j := 0; j < numWritesPerFile; j++ {
+						// make each block unique
+						buf[0] = byte(j + (i * numWritesPerFile))
+						// Only sync after the last write
+						sync := j+1 == numWritesPerFile
+						err = cb(pwriteBSSync(name, buf,
+							int64(j)*int64(len(buf)), sync))
+						if err != nil {
+							return err
+						}
+					}
+				}
+				return nil
+			}),
+		),
+	)
+}
+
+func benchmarkWriteWithBandwidthWarmup(b *testing.B, fileBytes int64,
+	perWriteBytes int64, writebwKBps int) {
+	benchmarkWriteWithBandwidthHelper(b, fileBytes, perWriteBytes,
+		writebwKBps, true)
+}
+
+func benchmarkWriteWithBandwidth(b *testing.B, fileBytes int64,
+	perWriteBytes int64, writebwKBps int) {
+	benchmarkWriteWithBandwidthHelper(b, fileBytes, perWriteBytes,
+		writebwKBps, false)
+}
+
+func BenchmarkWriteMediumFileLowBandwidth(b *testing.B) {
+	b.Skip("Doesn't work yet")
+	benchmarkWriteWithBandwidth(b, 10<<20 /* 10 MB */, 1<<16, 100 /* 100 KBps */)
+}
+
+func BenchmarkWriteBigFileNormalBandwidth(b *testing.B) {
+	b.Skip("Doesn't work yet")
+	// Warm up to get the buffer as large as possible
+	benchmarkWriteWithBandwidthWarmup(b, 100<<20 /* 100 MB */, 1<<16,
+		11*1024/8 /* 11 Mbps */)
+	benchmarkWriteWithBandwidth(b, 100<<20 /* 100 MB */, 1<<16,
+		11*1024/8 /* 11 Mbps */)
 }

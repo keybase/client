@@ -26,10 +26,13 @@ import (
 	"golang.org/x/net/context"
 )
 
+type createUserFn func(t testing.TB, ith int, config *libkbfs.ConfigLocal,
+	opTimeout time.Duration) User
+
 type fsEngine struct {
 	name       string
 	t          testing.TB
-	createUser func(t testing.TB, ith int, config *libkbfs.ConfigLocal) User
+	createUser createUserFn
 }
 type fsNode struct {
 	path string
@@ -371,16 +374,23 @@ func fiTypeString(fi os.FileInfo) string {
 }
 
 func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
-	blockChangeSize int64, users []libkb.NormalizedUsername,
+	blockChangeSize int64, bwKBps int, opTimeout time.Duration,
+	users []libkb.NormalizedUsername,
 	clock libkbfs.Clock) map[libkb.NormalizedUsername]User {
 	e.t = t
 	res := map[libkb.NormalizedUsername]User{}
+
+	if int(opTimeout) > 0 {
+		// TODO: wrap fs calls in our own timeout-able layer?
+		t.Logf("Ignoring op timeout for FS test")
+	}
 
 	// create the first user specially
 	config0 := libkbfs.MakeTestConfigOrBust(t, users...)
 	config0.SetClock(clock)
 
 	setBlockSizes(t, config0, blockSize, blockChangeSize)
+	maybeSetBw(t, config0, bwKBps)
 	uids := make([]keybase1.UID, len(users))
 	cfgs := make([]*libkbfs.ConfigLocal, len(users))
 	cfgs[0] = config0
@@ -393,7 +403,7 @@ func (e *fsEngine) InitTest(t testing.TB, blockSize int64,
 	}
 
 	for i, name := range users {
-		res[name] = e.createUser(t, i, cfgs[i])
+		res[name] = e.createUser(t, i, cfgs[i], opTimeout)
 	}
 
 	return res

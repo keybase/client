@@ -9,6 +9,7 @@ package test
 import (
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
@@ -28,7 +29,8 @@ func createEngine() Engine {
 	return e
 }
 
-func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal) User {
+func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal,
+	opTimeout time.Duration) User {
 	driveLetter := 'T' + byte(ith)
 	if driveLetter > 'Z' {
 		t.Error("Too many users - out of drive letters")
@@ -39,6 +41,10 @@ func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal) User {
 	fs, err := libdokan.NewFS(ctx, config, logger.NewTestLogger(t))
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	if opTimeout > 0 {
+		t.Logf("Ignoring op timeout for Dokan test")
 	}
 
 	mnt, err := dokan.Mount(fs, string([]byte{driveLetter, ':'}))

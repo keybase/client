@@ -39,6 +39,8 @@ type opt struct {
 	engine                   Engine
 	blockSize                int64
 	blockChangeSize          int64
+	bwKBps                   int
+	timeout                  time.Duration
 	clock                    *libkbfs.TestClock
 }
 
@@ -66,7 +68,7 @@ func (o *opt) runInitOnce() {
 	o.clock = &libkbfs.TestClock{}
 	o.clock.Set(time.Unix(0, 0))
 	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize,
-		o.usernames, o.clock)
+		o.bwKBps, o.timeout, o.usernames, o.clock)
 	o.initDone = true
 }
 
@@ -76,28 +78,6 @@ func ntimesString(n int, s string) string {
 		bs.WriteString(s)
 	}
 	return bs.String()
-}
-
-func setBlockSizes(t testing.TB, config libkbfs.Config, blockSize, blockChangeSize int64) {
-	// Set the block sizes, if any
-	if blockSize > 0 || blockChangeSize > 0 {
-		if blockSize == 0 {
-			blockSize = 512 * 1024
-		}
-		if blockChangeSize < 0 {
-			t.Fatal("Can't handle negative blockChangeSize")
-		}
-		if blockChangeSize == 0 {
-			blockChangeSize = 8 * 1024
-		}
-		bsplit, err := libkbfs.NewBlockSplitterSimple(blockSize,
-			uint64(blockChangeSize), config.Codec())
-		if err != nil {
-			t.Fatalf("Couldn't make block splitter for block size %d,"+
-				" blockChangeSize %d: %v", blockSize, blockChangeSize, err)
-		}
-		config.SetBlockSplitter(bsplit)
-	}
 }
 
 type optionOp func(*opt)
@@ -111,6 +91,18 @@ func blockSize(n int64) optionOp {
 func blockChangeSize(n int64) optionOp {
 	return func(o *opt) {
 		o.blockChangeSize = n
+	}
+}
+
+func bandwidth(n int) optionOp {
+	return func(o *opt) {
+		o.bwKBps = n
+	}
+}
+
+func opTimeout(n time.Duration) optionOp {
+	return func(o *opt) {
+		o.timeout = n
 	}
 }
 
@@ -309,12 +301,16 @@ func writeBS(name string, contents []byte) fileOp {
 }
 
 func pwriteBS(name string, contents []byte, off int64) fileOp {
+	return pwriteBSSync(name, contents, off, true)
+}
+
+func pwriteBSSync(name string, contents []byte, off int64, sync bool) fileOp {
 	return fileOp{func(c *ctx) error {
 		f, _, err := c.getNode(name, createFile, resolveAllSyms)
 		if err != nil {
 			return err
 		}
-		return c.engine.WriteFile(c.user, f, contents, off, true)
+		return c.engine.WriteFile(c.user, f, contents, off, sync)
 	}, Defaults}
 }
 

@@ -526,7 +526,16 @@ func (c *ConfigLocal) DataVersion() DataVer {
 
 // DoBackgroundFlushes implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DoBackgroundFlushes() bool {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
 	return !c.noBGFlush
+}
+
+// SetDoBackgroundFlushes implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetDoBackgroundFlushes(doBGFlush bool) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.noBGFlush = !doBGFlush
 }
 
 // RekeyWithPromptWaitTime implements the Config interface for

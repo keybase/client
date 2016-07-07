@@ -34,9 +34,13 @@ type Engine interface {
 	// blockChangeSize indicates the maximum size the list of block
 	// changes can be in each MD update, before it is written to a
 	// dedicated data block instead. If blockSize or blockChangeSize
-	// are zero, the engine defaults are used.
+	// are zero, the engine defaults are used. bwKBps indicates a
+	// bandwidth constraint to simulate to the server in kilobytes per
+	// second; if zero, the engine defaults are used.  opTimeout
+	// specifies a per-operation timeout; if it is more than the
+	// default engine timeout, or if it is zero, it has no effect.
 	InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
-		users []libkb.NormalizedUsername,
+		bwKBps int, opTimeout time.Duration, users []libkb.NormalizedUsername,
 		clock libkbfs.Clock) map[libkb.NormalizedUsername]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
 	GetUID(u User) keybase1.UID

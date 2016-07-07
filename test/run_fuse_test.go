@@ -8,6 +8,7 @@ package test
 
 import (
 	"testing"
+	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -29,7 +30,8 @@ func createEngine() Engine {
 	return e
 }
 
-func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal) User {
+func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal,
+	opTimeout time.Duration) User {
 	log := logger.NewTestLogger(t)
 	debugLog := log.CloneWithAddedDepth(1)
 	fuse.Debug = func(msg interface{}) {
@@ -44,7 +46,12 @@ func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal) User {
 	options := libfuse.GetPlatformSpecificMountOptionsForTest()
 	mnt, err := fstestutil.MountedFuncT(t, fn, &fs.Config{
 		WithContext: func(ctx context.Context, req fuse.Request) context.Context {
-			return filesys.WithContext(ctx)
+			ctx = filesys.WithContext(ctx)
+			if int(opTimeout) > 0 {
+				// Safe to ignore cancel since fuse should clean up the parent
+				ctx, _ = context.WithTimeout(ctx, opTimeout)
+			}
+			return ctx
 		},
 	}, options...)
 	if err != nil {

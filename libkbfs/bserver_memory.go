@@ -191,8 +191,8 @@ func validateBlockServerPut(
 func (b *BlockServerMemory) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
-	b.log.CDebugf(ctx, "BlockServerMemory.Put id=%s tlfID=%s context=%s",
-		id, tlfID, context)
+	b.log.CDebugf(ctx, "BlockServerMemory.Put id=%s tlfID=%s context=%s "+
+		"size=%d", id, tlfID, context, len(buf))
 
 	err := validateBlockServerPut(b.crypto, id, context, buf)
 	if err != nil {
