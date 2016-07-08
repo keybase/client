@@ -492,17 +492,17 @@ func (c *PipeConn) Close() error {
 	fmt.Fprintf(os.Stderr, "[%v] + Close\n", c.handle)
 	if c.closed {
 		fmt.Fprintf(os.Stderr, "[%v], early out; we've already closed", c.handle)
-		return
+		return nil
 	}
-	c.closed = true
 	var err error
-	if v, ok := decrefHandle(c.handle); v == 0 && ok {
-		err = syscall.CloseHandle(c.handle)
-	} else if !ok {
-		err = fmt.Errorf("Handle %v wasn't found in refcount table", c.handle)
+	if v, ok := decrefHandle(c.handle); ok {
+		fmt.Fprintf(os.Stderr, "[%v] Decrefed to new refcount=%d\n", c.handle, v)
 	} else {
-		fmt.Fprintf(os.Stderr, "[%v] not closed, with refcount=%d\n", c.handle, v)
+		fmt.Fprintf(os.Stderr, "[%v] no refcount known\n")
 	}
+
+	// do this either way, for now...
+	err = syscall.CloseHandle(c.handle)
 	fmt.Fprintf(os.Stderr, "[%v] - Close\n", c.handle)
 	return err
 }
