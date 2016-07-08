@@ -48,7 +48,7 @@ ipcRenderer.on('display', (ev, msg) => {
       }
 
       ev.sender.send('display-done', {rect, ...msg})
-    }, 250)
+    }, 1000)
   })
 })
 

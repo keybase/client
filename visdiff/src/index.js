@@ -61,7 +61,9 @@ function renderScreenshots (commitRange) {
     checkout(commit)
     console.log(`Rendering screenshots of ${commit}`)
     mkdirp.sync(`screenshots/${commit}`)
+    const startTime = Date.now()
     spawnSync(NPM_CMD, ['run', 'render-screenshots', '--', `screenshots/${commit}`], {stdio: 'inherit'})
+    console.log(`Rendered in ${(Date.now() - startTime) / 1000}s.`)
   }
 }
 

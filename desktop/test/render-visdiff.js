@@ -7,6 +7,9 @@ import {app, BrowserWindow, ipcMain} from 'electron'
 import {resolveRoot, resolveRootAsURL} from '../resolve-root'
 import dumbComponentMap from '../shared/dev/dumb-component-map.desktop'
 
+const WORKER_COUNT = 10
+const CANVAS_SIZE = 1000
+
 if (process.argv.length !== 3) {
   console.log(`Usage: electron ${path.basename(process.argv[1])} DESTINATION`)
   process.exit(1)
@@ -25,28 +28,43 @@ Object.keys(dumbComponentMap).forEach(key => {
 })
 
 app.on('ready', () => {
-  const win = new BrowserWindow({show: false, width: 1000, height: 1000})
+  let rendering = 0
 
-  function renderNext () {
+  function renderNext (target) {
     if (!toRender.length) {
-      app.quit()
+      if (rendering === 0) {
+        app.quit()
+      }
       return
     }
-    win.webContents.send('display', toRender.pop())
+    target.send('display', toRender.pop())
+    rendering++
   }
 
   ipcMain.on('display-done', (ev, msg) => {
-    win.capturePage(msg.rect, img => {
+    const sender = ev.sender
+    sender.getOwnerBrowserWindow().capturePage(msg.rect, img => {
       const filenameParts = [msg.key, msg.mockKey].map(s => _.words(s).join('_').replace(/[^\w_]/g, ''))
       const filename = filenameParts.join('-') + '.png'
-      fs.writeFileSync(path.join(outputDir, filename), img.toPng())
-      console.log('wrote', filename)
-      renderNext()
+      fs.writeFile(path.join(outputDir, filename), img.toPng(), err => {
+        if (err) {
+          console.log('Error writing image', err)
+          app.exit(1)
+        }
+        console.log('wrote', filename)
+        rendering--
+        renderNext(sender)
+      })
     })
   })
 
-  ipcMain.on('visdiff-ready', renderNext)
+  ipcMain.on('visdiff-ready', ev => renderNext(ev.sender))
 
   const scriptPath = resolveRoot('dist', 'visdiff.bundle.js')
-  win.loadURL(resolveRootAsURL('renderer', `index.html?src=${scriptPath}`))
+  for (let i = 0; i < WORKER_COUNT; i++) {
+    setTimeout(() => {
+      const workerWin = new BrowserWindow({show: false, width: CANVAS_SIZE, height: CANVAS_SIZE})
+      workerWin.loadURL(resolveRootAsURL('renderer', `index.html?src=${scriptPath}`))
+    }, i * 150)
+  }
 })
