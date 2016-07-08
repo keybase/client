@@ -168,13 +168,6 @@ func merkleHeadKey() DbKey {
 
 func (mc *MerkleClient) LoadRoot() error {
 	mc.G().Log.Debug("+ MerkleClient.LoadRoot()")
-	mc.RLock()
-	if mc.lastRoot != nil {
-		mc.G().Log.Debug("- MerkleClient.LoadRoot() -> %v", mc.lastRoot)
-		mc.RUnlock()
-		return nil
-	}
-	mc.RUnlock()
 	curr, err := mc.G().LocalDb.Lookup(merkleHeadKey())
 	if err != nil {
 		return err
