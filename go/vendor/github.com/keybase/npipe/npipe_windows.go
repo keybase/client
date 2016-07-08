@@ -16,7 +16,6 @@ import (
 	"syscall"
 	"time"
 	"os"
-	"sync"
 )
 
 const (
@@ -78,8 +77,10 @@ func increfHandle(h syscall.Handle) {
 	val, ok := handleTab[h]
 	if !ok {
 		handleTab[h] = 1
+		fmt.Fprintf(os.Stderr, "[%v] init handle count to %d\n", h, 1)
 	} else {
-		handleTab[h] += 1
+		handleTab[h] = val + 1
+		fmt.Fprintf(os.Stderr, "[%v] incref handle count to %d\n", h, val + 1)
 	}
 }
 
@@ -89,10 +90,10 @@ func decrefHandle(h syscall.Handle) (int, bool) {
 	val, ok := handleTab[h]
 	if ok && val > 0 {
 		handleTab[h] -= 1
+		fmt.Fprintf(os.Stderr, "[%v] decref handle count to %d\n", h, (val - 1))
 	}
 	return (val - 1), ok
 }
-
 
 var _ net.Conn = (*PipeConn)(nil)
 var _ net.Listener = (*PipeListener)(nil)
