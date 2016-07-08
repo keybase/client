@@ -67,6 +67,8 @@ app.on('ready', () => {
   for (let i = 0; i < WORKER_COUNT; i++) {
     setTimeout(() => {
       const workerWin = new BrowserWindow({show: false, width: CANVAS_SIZE, height: CANVAS_SIZE})
+      // TODO: once we're on electron v1.2.3, try ready-to-show event.
+      workerWin.webContents.once('did-finish-load', () => renderNext(workerWin.webContents))
       workerWin.loadURL(resolveRootAsURL('renderer', `index.html?src=${scriptPath}`))
     }, i * 150)
   }

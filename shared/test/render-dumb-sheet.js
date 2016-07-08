@@ -51,16 +51,3 @@ ipcRenderer.on('display', (ev, msg) => {
     }, 1000)
   })
 })
-
-declare class ExtendedDocument extends Document {
-  fonts: {
-    ready: Promise
-  }
-}
-declare var document: ExtendedDocument
-
-window.addEventListener('load', () =>
-  document.fonts.ready.then(() =>
-    ipcRenderer.send('visdiff-ready')
-  )
-)
