@@ -209,6 +209,13 @@ func (fbm *folderBlockManager) enqueueBlocksToDelete(toDelete blocksToDelete) {
 	fbm.blocksToDeleteChan <- toDelete
 }
 
+func (fbm *folderBlockManager) enqueueBlocksToDeleteAfterShortDelay(
+	toDelete blocksToDelete) {
+	fbm.blocksToDeleteWaitGroup.Add(1)
+	time.AfterFunc(10*time.Millisecond,
+		func() { fbm.blocksToDeleteChan <- toDelete })
+}
+
 // enqueueBlocksToDeleteNoWait enqueues blocks to be deleted just like
 // enqueueBlocksToDelete, except that when fbm.blocksToDeleteChan is full, it
 // doesn't block, but instead spawns a goroutine to handle the sending.
@@ -396,7 +403,10 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 	rmds, err := getMDRange(ctx, fbm.config, fbm.id, toDelete.md.BID,
 		toDelete.md.Revision, toDelete.md.Revision, toDelete.md.MergedStatus())
 	if err != nil || len(rmds) == 0 {
-		fbm.enqueueBlocksToDeleteNoWait(toDelete)
+		// Don't re-enqueue immediately, since this might mean no new
+		// revision has made it to the server yet, and we'd just get
+		// into an infinite loop.
+		fbm.enqueueBlocksToDeleteAfterShortDelay(toDelete)
 		return nil
 	}
 	dirsEqual, err := CodecEqual(fbm.config.Codec(),
@@ -428,7 +438,8 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 	_, isPermErr := err.(BServerError)
 	_, isNonceNonExistentErr := err.(BServerErrorNonceNonExistent)
 	if err != nil {
-		fbm.log.CWarningf(ctx, "Couldn't delete some ref in batch %v: %v", toDelete.blocks, err)
+		fbm.log.CWarningf(ctx, "Couldn't delete some ref in batch %v: %v",
+			toDelete.blocks, err)
 		if !isPermErr && !isNonceNonExistentErr {
 			fbm.enqueueBlocksToDeleteNoWait(toDelete)
 			return nil
