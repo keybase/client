@@ -434,8 +434,11 @@ func (c *PipeConn) Read(b []byte) (int, error) {
 	}
 	defer syscall.CloseHandle(overlapped.HEvent)
 	var n uint32
+	fmt.Fprintf(os.Stderr, "[%v] + Read\n", c.handle)
 	err = syscall.ReadFile(c.handle, b, &n, overlapped)
-	return c.completeRequest(iodata{n, err}, c.readDeadline, overlapped)
+	resFinal, errFinal := c.completeRequest(iodata{n, err}, c.readDeadline, overlapped)
+	fmt.Fprintf(os.Stderr, "[%v] - Read: %v %d %v\n", c.handle, b, resFinal, errFinal)
+	return resFinal, errFinal
 }
 
 // Write implements the net.Conn Write method.
@@ -446,13 +449,19 @@ func (c *PipeConn) Write(b []byte) (int, error) {
 	}
 	defer syscall.CloseHandle(overlapped.HEvent)
 	var n uint32
+	fmt.Fprintf(os.Stderr, "[%v] + Write: %v\n", c.handle, b)
 	err = syscall.WriteFile(c.handle, b, &n, overlapped)
-	return c.completeRequest(iodata{n, err}, c.writeDeadline, overlapped)
+	resFinal, errFinal := c.completeRequest(iodata{n, err}, c.writeDeadline, overlapped)
+	fmt.Fprintf(os.Stderr, "[%v] - Write: %d %v\n", c.handle, resFinal, errFinal)
+	return resFinal, errFinal
 }
 
 // Close closes the connection.
 func (c *PipeConn) Close() error {
-	return syscall.CloseHandle(c.handle)
+	fmt.Fprintf(os.Stderr, "[%v] + Close\n", c.handle)
+	err := syscall.CloseHandle(c.handle)
+	fmt.Fprintf(os.Stderr, "[%v] - Close\n", c.handle)
+	return err
 }
 
 // LocalAddr returns the local network address.
