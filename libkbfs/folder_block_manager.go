@@ -30,6 +30,11 @@ const (
 	numMaxRevisionsPerQR = 100
 )
 
+type blocksToDelete struct {
+	md     *RootMetadata
+	blocks []BlockPointer
+}
+
 // folderBlockManager is a helper class for managing the blocks in a
 // particular TLF.  It archives historical blocks and reclaims quota
 // usage, all in the background.
@@ -51,14 +56,17 @@ type folderBlockManager struct {
 	archiveCancelLock sync.Mutex
 	archiveCancel     context.CancelFunc
 
-	// blocksToDeleteAfterError is a list of blocks, for a given
+	// blocksToDeleteChan is a list of blocks, for a given
 	// metadata revision, that may have been Put as part of a failed
-	// MD write.  These blocks should be deleted as soon as we know
+	// MD write. These blocks should be deleted as soon as we know
 	// for sure that the MD write isn't visible to others.
-	// The lock should only be held immediately around accessing the
-	// list.  TODO: Persist these to disk?
-	blocksToDeleteLock       sync.Mutex
-	blocksToDeleteAfterError map[*RootMetadata][]BlockPointer
+	// TODO: Persist these to disk?
+	blocksToDeleteChan      chan blocksToDelete
+	blocksToDeletePauseChan chan (<-chan struct{})
+	blocksToDeleteWaitGroup RepeatedWaitGroup
+
+	blocksToDeleteCancelLock sync.Mutex
+	blocksToDeleteCancel     context.CancelFunc
 
 	// forceReclamation forces the manager to start a reclamation
 	// process.
@@ -88,24 +96,45 @@ func newFolderBlockManager(config Config, fb FolderBranch,
 	tlfStringFull := fb.Tlf.String()
 	log := config.MakeLogger(fmt.Sprintf("FBM %s", tlfStringFull[:8]))
 	fbm := &folderBlockManager{
-		config:                   config,
-		log:                      log,
-		shutdownChan:             make(chan struct{}),
-		id:                       fb.Tlf,
-		archiveChan:              make(chan *RootMetadata, 25),
-		archivePauseChan:         make(chan (<-chan struct{})),
-		blocksToDeleteAfterError: make(map[*RootMetadata][]BlockPointer),
-		forceReclamationChan:     make(chan struct{}, 1),
-		helper:                   helper,
+		config:                  config,
+		log:                     log,
+		shutdownChan:            make(chan struct{}),
+		id:                      fb.Tlf,
+		archiveChan:             make(chan *RootMetadata, 25),
+		archivePauseChan:        make(chan (<-chan struct{})),
+		blocksToDeleteChan:      make(chan blocksToDelete, 25),
+		blocksToDeletePauseChan: make(chan (<-chan struct{})),
+		forceReclamationChan:    make(chan struct{}, 1),
+		helper:                  helper,
 	}
 	// Pass in the BlockOps here so that the archive goroutine
 	// doesn't do possibly-racy-in-tests access to
 	// fbm.config.BlockOps().
 	go fbm.archiveBlocksInBackground()
+	go fbm.deleteBlocksInBackground()
 	if fb.Branch == MasterBranch {
 		go fbm.reclaimQuotaInBackground()
 	}
 	return fbm
+}
+
+func (fbm *folderBlockManager) setBlocksToDeleteCancel(cancel context.CancelFunc) {
+	fbm.blocksToDeleteCancelLock.Lock()
+	defer fbm.blocksToDeleteCancelLock.Unlock()
+	fbm.blocksToDeleteCancel = cancel
+}
+
+func (fbm *folderBlockManager) cancelBlocksToDelete() {
+	blocksToDeleteCancel := func() context.CancelFunc {
+		fbm.blocksToDeleteCancelLock.Lock()
+		defer fbm.blocksToDeleteCancelLock.Unlock()
+		blocksToDeleteCancel := fbm.blocksToDeleteCancel
+		fbm.blocksToDeleteCancel = nil
+		return blocksToDeleteCancel
+	}()
+	if blocksToDeleteCancel != nil {
+		blocksToDeleteCancel()
+	}
 }
 
 func (fbm *folderBlockManager) setArchiveCancel(cancel context.CancelFunc) {
@@ -149,6 +178,7 @@ func (fbm *folderBlockManager) cancelReclamation() {
 func (fbm *folderBlockManager) shutdown() {
 	close(fbm.shutdownChan)
 	fbm.cancelArchive()
+	fbm.cancelBlocksToDelete()
 	fbm.cancelReclamation()
 }
 
@@ -166,12 +196,40 @@ func (fbm *folderBlockManager) shutdown() {
 //  ... = ...doBlockPuts(ctx, md, *bps)
 func (fbm *folderBlockManager) cleanUpBlockState(
 	md *RootMetadata, bps *blockPutState) {
-	fbm.blocksToDeleteLock.Lock()
-	defer fbm.blocksToDeleteLock.Unlock()
 	fbm.log.CDebugf(nil, "Clean up md %d %s", md.Revision, md.MergedStatus())
+	toDelete := blocksToDelete{md: md}
 	for _, bs := range bps.blockStates {
-		fbm.blocksToDeleteAfterError[md] =
-			append(fbm.blocksToDeleteAfterError[md], bs.blockPtr)
+		toDelete.blocks = append(toDelete.blocks, bs.blockPtr)
+	}
+	fbm.enqueueBlocksToDelete(toDelete)
+}
+
+func (fbm *folderBlockManager) enqueueBlocksToDelete(toDelete blocksToDelete) {
+	fbm.blocksToDeleteWaitGroup.Add(1)
+	fbm.blocksToDeleteChan <- toDelete
+}
+
+// enqueueBlocksToDeleteNoWait enqueues blocks to be deleted just like
+// enqueueBlocksToDelete, except that when fbm.blocksToDeleteChan is full, it
+// doesn't block, but instead spawns a goroutine to handle the sending.
+//
+// This is necessary to prevent a situation like following:
+// 1. A delete fails when fbm.blocksToDeleteChan is full
+// 2. The goroutine tries to put the failed toDelete back to
+//    fbm.blocksToDeleteChan
+// 3. Step 2 becomes synchronous and is blocked because
+//    fbm.blocksToDeleteChan is already full
+// 4. fbm.blocksToDeleteChan never gets drained because the goroutine that
+//    drains it is waiting for sending on the same channel.
+// 5. Deadlock!
+func (fbm *folderBlockManager) enqueueBlocksToDeleteNoWait(toDelete blocksToDelete) {
+	fbm.blocksToDeleteWaitGroup.Add(1)
+
+	select {
+	case fbm.blocksToDeleteChan <- toDelete:
+		return
+	default:
+		go func() { fbm.blocksToDeleteChan <- toDelete }()
 	}
 }
 
@@ -212,6 +270,10 @@ func (fbm *folderBlockManager) archiveUnrefBlocksNoWait(md *RootMetadata) {
 
 func (fbm *folderBlockManager) waitForArchives(ctx context.Context) error {
 	return fbm.archiveGroup.Wait(ctx)
+}
+
+func (fbm *folderBlockManager) waitForDeletingBlocks(ctx context.Context) error {
+	return fbm.blocksToDeleteWaitGroup.Wait(ctx)
 }
 
 func (fbm *folderBlockManager) waitForQuotaReclamations(
@@ -320,80 +382,57 @@ func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
 	return fbm.doChunkedDowngrades(ctx, md, ptrs, false)
 }
 
-func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context) error {
+func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDelete blocksToDelete) error {
 	// also attempt to delete any error references
-	var toDelete map[*RootMetadata][]BlockPointer
-	func() {
-		fbm.blocksToDeleteLock.Lock()
-		defer fbm.blocksToDeleteLock.Unlock()
-		toDelete = fbm.blocksToDeleteAfterError
-		fbm.blocksToDeleteAfterError =
-			make(map[*RootMetadata][]BlockPointer)
-	}()
 
-	if len(toDelete) == 0 {
+	defer fbm.blocksToDeleteWaitGroup.Done()
+
+	fbm.log.CDebugf(ctx, "Checking deleted blocks for revision %d",
+		toDelete.md.Revision)
+	// Make sure that the MD didn't actually become
+	// part of the folder history.  (This could happen
+	// if the Sync was canceled while the MD put was
+	// outstanding.)
+	rmds, err := getMDRange(ctx, fbm.config, fbm.id, toDelete.md.BID,
+		toDelete.md.Revision, toDelete.md.Revision, toDelete.md.MergedStatus())
+	if err != nil || len(rmds) == 0 {
+		fbm.enqueueBlocksToDeleteNoWait(toDelete)
+		return nil
+	}
+	dirsEqual, err := CodecEqual(fbm.config.Codec(),
+		rmds[0].data.Dir, toDelete.md.data.Dir)
+	if err != nil {
+		fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
+	} else if dirsEqual {
+		// This md is part of the history of the folder,
+		// so we shouldn't delete the blocks.
+		fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d",
+			toDelete.md.Revision)
+		// But, since this MD put seems to have succeeded, we
+		// should archive it.
+		fbm.log.CDebugf(ctx, "Archiving successful MD revision %d",
+			rmds[0].Revision)
+		// Don't block on archiving the MD, because that could
+		// lead to deadlock.
+		fbm.archiveUnrefBlocksNoWait(rmds[0])
 		return nil
 	}
 
-	toDeleteAgain := make(map[*RootMetadata][]BlockPointer)
-	for md, ptrs := range toDelete {
-		fbm.log.CDebugf(ctx, "Checking deleted blocks for revision %d",
-			md.Revision)
-		// Make sure that the MD didn't actually become
-		// part of the folder history.  (This could happen
-		// if the Sync was canceled while the MD put was
-		// outstanding.)
-		rmds, err := getMDRange(ctx, fbm.config, fbm.id, md.BID,
-			md.Revision, md.Revision, md.MergedStatus())
-		if err != nil || len(rmds) == 0 {
-			toDeleteAgain[md] = ptrs
-			continue
-		}
-		dirsEqual, err := CodecEqual(fbm.config.Codec(),
-			rmds[0].data.Dir, md.data.Dir)
-		if err != nil {
-			fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
-		} else if dirsEqual {
-			// This md is part of the history of the folder,
-			// so we shouldn't delete the blocks.
-			fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d",
-				md.Revision)
-			// But, since this MD put seems to have succeeded, we
-			// should archive it.
-			fbm.log.CDebugf(ctx, "Archiving successful MD revision %d",
-				rmds[0].Revision)
-			// Don't block on archiving the MD, because that could
-			// lead to deadlock.
-			fbm.archiveUnrefBlocksNoWait(rmds[0])
-			continue
-		}
+	// Otherwise something else has been written over
+	// this MD, so get rid of the blocks.
+	fbm.log.CDebugf(ctx, "Cleaning up blocks for failed revision %d",
+		toDelete.md.Revision)
 
-		// Otherwise something else has been written over
-		// this MD, so get rid of the blocks.
-		fbm.log.CDebugf(ctx, "Cleaning up blocks for failed revision %d",
-			md.Revision)
-
-		_, err = fbm.deleteBlockRefs(ctx, md, ptrs)
-		// Ignore permanent errors
-		_, isPermErr := err.(BServerError)
-		_, isNonceNonExistentErr := err.(BServerErrorNonceNonExistent)
-		if err != nil {
-			fbm.log.CWarningf(ctx, "Couldn't delete some ref in batch %v: %v", ptrs, err)
-			if !isPermErr && !isNonceNonExistentErr {
-				toDeleteAgain[md] = ptrs
-			}
+	_, err = fbm.deleteBlockRefs(ctx, toDelete.md, toDelete.blocks)
+	// Ignore permanent errors
+	_, isPermErr := err.(BServerError)
+	_, isNonceNonExistentErr := err.(BServerErrorNonceNonExistent)
+	if err != nil {
+		fbm.log.CWarningf(ctx, "Couldn't delete some ref in batch %v: %v", toDelete.blocks, err)
+		if !isPermErr && !isNonceNonExistentErr {
+			fbm.enqueueBlocksToDeleteNoWait(toDelete)
+			return nil
 		}
-	}
-
-	if len(toDeleteAgain) > 0 {
-		func() {
-			fbm.blocksToDeleteLock.Lock()
-			defer fbm.blocksToDeleteLock.Unlock()
-			for md, ptrs := range toDeleteAgain {
-				fbm.blocksToDeleteAfterError[md] =
-					append(fbm.blocksToDeleteAfterError[md], ptrs...)
-			}
-		}()
 	}
 
 	return nil
@@ -478,12 +517,6 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 					return err
 				}
 
-				// Also see if we can delete any blocks.
-				if err := fbm.processBlocksToDelete(ctx); err != nil {
-					fbm.log.CDebugf(ctx, "Error deleting blocks: %v", err)
-					return err
-				}
-
 				return nil
 			})
 		case unpause := <-fbm.archivePauseChan:
@@ -493,6 +526,39 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 				select {
 				case <-unpause:
 					fbm.log.CInfof(ctx, "Archives unpaused")
+				case <-ctx.Done():
+					return ctx.Err()
+				}
+				return nil
+			})
+		case <-fbm.shutdownChan:
+			return
+		}
+	}
+}
+
+func (fbm *folderBlockManager) deleteBlocksInBackground() {
+	for {
+		select {
+		case toDelete := <-fbm.blocksToDeleteChan:
+			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
+				ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
+				fbm.setBlocksToDeleteCancel(cancel)
+				defer fbm.cancelBlocksToDelete()
+
+				if err := fbm.processBlocksToDelete(ctx, toDelete); err != nil {
+					fbm.log.CDebugf(ctx, "Error deleting blocks: %v", err)
+					return err
+				}
+
+				return nil
+			})
+		case unpause := <-fbm.blocksToDeletePauseChan:
+			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
+				fbm.log.CInfof(ctx, "deleteBlocks paused")
+				select {
+				case <-unpause:
+					fbm.log.CInfof(ctx, "deleteBlocks unpaused")
 				case <-ctx.Done():
 					return ctx.Err()
 				}

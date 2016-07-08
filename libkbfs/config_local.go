@@ -704,8 +704,7 @@ func (c *ConfigLocal) Shutdown() error {
 				continue
 			}
 			for _, fbo := range kbfsOps.ops {
-				err := fbo.fbm.waitForArchives(context.Background())
-				if err != nil {
+				if err := fbo.fbm.waitForArchives(context.Background()); err != nil {
 					return err
 				}
 			}

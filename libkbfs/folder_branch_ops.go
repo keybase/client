@@ -3809,6 +3809,9 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 	if err := fbo.fbm.waitForArchives(ctx); err != nil {
 		return err
 	}
+	if err := fbo.fbm.waitForDeletingBlocks(ctx); err != nil {
+		return err
+	}
 	return fbo.fbm.waitForQuotaReclamations(ctx)
 }
 

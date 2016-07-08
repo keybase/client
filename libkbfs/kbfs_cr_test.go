@@ -1010,6 +1010,7 @@ func TestCRDouble(t *testing.T) {
 	// Wait for the processor to try to delete the failed revision
 	// (which pulls the unmerged MD ops back into the cache).
 	ops.fbm.waitForArchives(ctx)
+	ops.fbm.waitForDeletingBlocks(ctx)
 
 	// Sync user 1, then start another round of CR.
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())

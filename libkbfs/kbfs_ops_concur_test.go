@@ -1374,8 +1374,8 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	}
 
 	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
-	unpauseArchives := make(chan struct{})
-	ops.fbm.archivePauseChan <- unpauseArchives
+	unpauseDeleting := make(chan struct{})
+	ops.fbm.blocksToDeletePauseChan <- unpauseDeleting
 
 	// start the sync
 	errChan := make(chan error)
@@ -1399,7 +1399,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	lState := makeFBOLockState()
 	ops.mdWriterLock.Lock(lState)
 	ops.mdWriterLock.Unlock(lState)
-	if len(ops.fbm.blocksToDeleteAfterError) == 0 {
+	if len(ops.fbm.blocksToDeleteChan) == 0 {
 		t.Fatalf("No blocks to delete after error")
 	}
 
@@ -1409,12 +1409,15 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 		t.Fatalf("Couldn't sync: %v", err)
 	}
 
-	unpauseArchives <- struct{}{}
+	unpauseDeleting <- struct{}{}
+
+	ops.fbm.waitForDeletingBlocks(ctx)
+	if len(ops.fbm.blocksToDeleteChan) > 0 {
+		t.Fatalf("Blocks left to delete after sync")
+	}
 
 	// The first put actually succeeded, so
-	// SyncFromServerForTesting and make sure it worked.  This
-	// should also finish removing any blocks that would be
-	// removed.
+	// SyncFromServerForTesting and make sure it worked.
 	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
@@ -1430,11 +1433,6 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	}
 	if !bytes.Equal(data, gotData) {
 		t.Errorf("Read wrong data.  Expected %v, got %v", data, gotData)
-	}
-
-	if len(ops.fbm.blocksToDeleteAfterError) > 0 {
-		t.Fatalf("Blocks left to delete after sync: %v",
-			ops.fbm.blocksToDeleteAfterError)
 	}
 }
 
