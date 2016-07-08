@@ -18,4 +18,12 @@ func TestTime(t *testing.T) {
 	if !time2.IsZero() {
 		t.Fatalf("Protocol marshaling to zero time failed")
 	}
+
+	now := time.Now()
+	kbNow := ToTime(now)
+	rev := FromTime(kbNow)
+
+	if rev.Unix() != now.Unix() {
+		t.Errorf("keybase time messed up: now = %s, rev = %s", now, rev)
+	}
 }

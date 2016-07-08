@@ -344,6 +344,9 @@ func (n *NotifyRouter) HandleKeyfamilyChanged(uid keybase1.UID) {
 		return
 	}
 
+	// clear the UserPlusKeys data
+	n.G().ClearUserPlusKeysMemo()
+
 	n.G().Log.Debug("+ Sending keyfamily changed notfication")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {

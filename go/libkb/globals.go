@@ -83,6 +83,7 @@ type GlobalContext struct {
 	GregorDismisser     GregorDismisser        // for dismissing gregor items that we've handled
 	GregorListener      GregorListener         // for alerting about clients connecting and registering UI protocols
 	OutOfDateInfo       keybase1.OutOfDateInfo // Stores out of date messages we got from API server headers.
+	upkMemo             *UserPlusKeysMemo      // caches UserPlusKeys for self
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
@@ -116,6 +117,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
 	g.SecretStoreAll = NewSecretStoreAll(g)
+	g.upkMemo = NewUserPlusKeysMemo(g)
 	return g
 }
 
@@ -177,6 +179,8 @@ func (g *GlobalContext) Logout() error {
 	}
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
+
+	g.upkMemo.Clear()
 
 	// get a clean LoginState:
 	g.createLoginStateLocked()
@@ -653,4 +657,9 @@ func (g *GlobalContext) LogoutIfRevoked() error {
 	g.Log.Debug("LogoutIfRevoked: current device ok")
 
 	return nil
+}
+
+// ClearUserPlusKeysMemo clears the memoized UserPlusKeys data.
+func (g *GlobalContext) ClearUserPlusKeysMemo() {
+	g.upkMemo.Clear()
 }

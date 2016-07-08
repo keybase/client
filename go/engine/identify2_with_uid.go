@@ -141,7 +141,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return err
 	}
 
-	if !e.useAnyAssertions() && e.checkFastCacheHit() && e.allowEarlyOuts() {
+	if !e.useRemoteAssertions() && e.checkFastCacheHit() && e.allowEarlyOuts() {
 		e.G().Log.Debug("| hit fast cache")
 		return nil
 	}
@@ -477,7 +477,10 @@ func (e *Identify2WithUID) checkFastCacheHit() bool {
 		return false
 	}
 	fn := func(u keybase1.UserPlusKeys) keybase1.Time { return u.Uvv.CachedAt }
-	u, _ := e.getCache().Get(e.arg.Uid, fn, libkb.Identify2CacheShortTimeout)
+	u, err := e.getCache().Get(e.arg.Uid, fn, libkb.Identify2CacheShortTimeout)
+	if err != nil {
+		e.G().Log.Debug("fast cache error for %s: %s", e.arg.Uid, err)
+	}
 	if u == nil {
 		return false
 	}
