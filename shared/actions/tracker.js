@@ -230,18 +230,21 @@ export function onRefollow (username: string): TrackerActionCreator {
     const trackToken = _getTrackToken(getState(), username)
 
     const dispatchRefollowAction = () => {
+      dispatch(onWaiting(username, false))
       dispatch({
         type: Constants.onRefollow,
         payload: {username},
       })
     }
     const dispatchErrorAction = () => {
+      dispatch(onWaiting(username, false))
       dispatch({
         type: Constants.onError,
         payload: {username},
       })
     }
 
+    dispatch(onWaiting(username, true))
     trackUser(trackToken, false)
       .then(dispatchRefollowAction)
       .catch(err => {
@@ -256,6 +259,7 @@ export function onUnfollow (username: string): TrackerActionCreator {
       method: 'track.untrack',
       param: {username},
       callback: (err, response) => {
+        dispatch(onWaiting(username, false))
         if (err) {
           console.log('err untracking', err)
         } else {
@@ -268,6 +272,7 @@ export function onUnfollow (username: string): TrackerActionCreator {
       },
     }
 
+    dispatch(onWaiting(username, true))
     engine.rpc(params)
 
     dispatch({
