@@ -71,8 +71,8 @@ func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
 		return err
 	}
 	e.arg.Uid = rres.GetUID()
-	if rres.WasKbUsernameAssertion() && !e.arg.NeedProofSet {
-		// the resolve assertion was a keybase username, so remove it
+	if rres.WasKBAssertion() && !e.arg.NeedProofSet {
+		// the resolve assertion was a keybase username or UID, so remove it
 		// from identify2 arg to allow cache hits on UID.
 		e.arg.UserAssertion = ""
 	}
