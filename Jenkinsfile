@@ -47,13 +47,6 @@ node("ec2-fleet") {
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
                     checkout: { checkout scm },
-                    // TODO: take gregor and mysql out of kbweb
-                    //pull_mysql: {
-                    //    mysqlImage.pull()
-                    //},
-                    //pull_gregor: {
-                    //    gregorImage.pull()
-                    //},
                     pull_kbweb: {
                         if (!binding.variables.containsKey("kbwebNodePrivateIP") || kbwebNodePrivateIP == '' || kbwebNodePublicIP == '') {
                             kbwebImage.pull()
@@ -155,16 +148,15 @@ node("ec2-fleet") {
                         }
                         sh "docker save -o kbfsfuse.tar keybaseprivate/kbfsfuse"
                         archive("kbfsfuse.tar")
-                        // TODO Implement kbfs-server test
-                        //build([
-                        //    job: "/kbfs-server/master",
-                        //    parameters: [
-                        //        [$class: 'StringParameterValue',
-                        //            name: 'kbfsProjectName',
-                        //            value: env.JOB_NAME,
-                        //        ],
-                        //    ]
-                        //])
+                        build([
+                            job: "/kbfs-server/master",
+                            parameters: [
+                                [$class: 'StringParameterValue',
+                                    name: 'kbfsProjectName',
+                                    value: env.JOB_NAME,
+                                ],
+                            ]
+                        ])
                     },
                 )
             } finally {
