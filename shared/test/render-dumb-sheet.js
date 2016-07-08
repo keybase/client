@@ -31,7 +31,7 @@ ipcRenderer.on('display', (ev, msg) => {
   ReactDOM.render(displayTree, appEl, () => {
     // Remove pesky blinking cursors
     if (document.activeElement.tagName === 'INPUT') {
-      window.blur()
+      document.activeElement.blur()
     }
 
     // Unfortunately some resources lazy load after they're rendered.  We need
