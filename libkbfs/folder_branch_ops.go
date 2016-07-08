@@ -209,13 +209,17 @@ type folderBranchOps struct {
 	folderBranch FolderBranch
 	bid          BranchID // protected by mdWriterLock
 	bType        branchType
-	head         *RootMetadata
 	observers    *observerList
 
 	// these locks, when locked concurrently by the same goroutine,
 	// should only be taken in the following order to avoid deadlock:
-	mdWriterLock leveledMutex   // taken by any method making MD modifications
-	headLock     leveledRWMutex // protects access to the MD
+	mdWriterLock leveledMutex // taken by any method making MD modifications
+
+	// protects access to head and latestMergedRevision.
+	headLock leveledRWMutex
+	head     *RootMetadata
+	// latestMergedRevision tracks the latest heard merged revision on server
+	latestMergedRevision MetadataRevision
 
 	blocks folderBlockOps
 
@@ -279,9 +283,6 @@ type folderBranchOps struct {
 	// rekey with a paper key prompt, if enough time has passed.
 	// Protected by mdWriterLock
 	rekeyWithPromptTimer *time.Timer
-
-	// latestMergedRevision tracks the latest heard merged revision on server
-	latestMergedRevision MetadataRevision
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -776,6 +777,13 @@ func (fbo *folderBranchOps) getMDLocked(
 		return nil, MDWriteNeededInRequest{}
 	}
 
+	// We go down this code path either due to a rekey
+	// notification for an unseen TLF, or in some tests.
+	//
+	// TODO: Make tests not take this code path, and keep track of
+	// the fact that MDs coming from rekey notifications are
+	// untrusted.
+
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// Not in cache, fetch from server and add to cache.  First, see
@@ -797,9 +805,14 @@ func (fbo *folderBranchOps) getMDLocked(
 		// There are no unmerged MDs for this device, so just use the current head.
 		md = mergedMD
 	} else {
-		// We don't need to do this for merged head because the setHeadLocked()
-		// already does that anyway.
-		fbo.setLatestMergedRevisionLocked(ctx, lState, mergedMD.Revision, false)
+		func() {
+			fbo.headLock.Lock(lState)
+			defer fbo.headLock.Unlock(lState)
+			// We don't need to do this for merged head
+			// because the setHeadLocked() already does
+			// that anyway.
+			fbo.setLatestMergedRevisionLocked(ctx, lState, mergedMD.Revision, false)
+		}()
 	}
 
 	if md.data.Dir.Type != Dir && (!md.IsInitialized() || md.IsReadable()) {
@@ -808,12 +821,6 @@ func (fbo *folderBranchOps) getMDLocked(
 			return nil, err
 		}
 	} else {
-		// We go down this code path either due to a rekey
-		// notification for an unseen TLF, or in some tests.
-		//
-		// TODO: Make tests not take this code path, and keep
-		// track of the fact that MDs coming from rekey
-		// notifications are untrusted.
 		fbo.headLock.Lock(lState)
 		defer fbo.headLock.Unlock(lState)
 		err = fbo.setInitialHeadUntrustedLocked(ctx, lState, md)
@@ -3461,8 +3468,12 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	err = func() error {
 		fbo.headLock.Lock(lState)
 		defer fbo.headLock.Unlock(lState)
+		err := fbo.setHeadPredecessorLocked(ctx, lState, rmds[0])
+		if err != nil {
+			return err
+		}
 		fbo.setLatestMergedRevisionLocked(ctx, lState, rmds[0].Revision, true)
-		return fbo.setHeadPredecessorLocked(ctx, lState, rmds[0])
+		return nil
 	}()
 	if err != nil {
 		return nil, err
