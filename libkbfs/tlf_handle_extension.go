@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/go-codec/codec"
 )
 
@@ -23,14 +24,13 @@ const (
 	// TlfHandleExtensionNumberRegex is the regular expression matching the TlfHandleExtension
 	// number member in string form.
 	TlfHandleExtensionNumberRegex = "[0-9]+"
+	// TlfHandleExtensionUsernameRegex is the regular expression matching the TlfHandleExtension
+	// username member in string form.
+	TlfHandleExtensionUsernameRegex = "[a-z0-9_]+"
 	// TlfHandleExtensionConflictString is the string identifying a conflict extension.
 	TlfHandleExtensionConflictString = "conflicted copy"
-	// TlfHandleExtensionFinalizedString is the string identifying a finalized extension.
-	TlfHandleExtensionFinalizedString = "finalized"
-	// TlfHandleExtensionTypeRegex is the regular expression matching the TlfHandleExtension
-	// type string.
-	TlfHandleExtensionTypeRegex = TlfHandleExtensionConflictString + "|" +
-		TlfHandleExtensionFinalizedString
+	// TlfHandleExtensionFinalizedString is the format string identifying a finalized extension.
+	TlfHandleExtensionFinalizedString = "files before %saccount reset"
 	// TlfHandleExtensionFormat is the formate string for a TlfHandleExtension.
 	TlfHandleExtensionFormat = "(%s %s%s)"
 	// TlfHandleExtensionStaticTestDate is a static date used for tests (2016-03-14).
@@ -51,26 +51,44 @@ const (
 	TlfHandleExtensionUnknown
 )
 
+// TlfHandleExtensionFinalizedStringRegex is the regex identifying a finalized extension string.
+var TlfHandleExtensionFinalizedStringRegex = fmt.Sprintf(
+	TlfHandleExtensionFinalizedString, "(?:"+TlfHandleExtensionUsernameRegex+"[\\s]+)*",
+)
+
+// TlfHandleExtensionTypeRegex is the regular expression matching the TlfHandleExtension string.
+var TlfHandleExtensionTypeRegex = TlfHandleExtensionConflictString + "|" + TlfHandleExtensionFinalizedStringRegex
+
+// TlfHandleExtensionFinalizedRegex is the compiled regular expression matching a finalized
+// handle extension.
+var TlfHandleExtensionFinalizedRegex = regexp.MustCompile(
+	fmt.Sprintf(TlfHandleExtensionFinalizedString, "(?:("+TlfHandleExtensionUsernameRegex+")[\\s]+)*"),
+)
+
 // String implements the fmt.Stringer interface for TlfHandleExtensionType
-func (et TlfHandleExtensionType) String() string {
+func (et TlfHandleExtensionType) String(username libkb.NormalizedUsername) string {
 	switch et {
 	case TlfHandleExtensionConflict:
 		return TlfHandleExtensionConflictString
 	case TlfHandleExtensionFinalized:
-		return TlfHandleExtensionFinalizedString
+		if len(username) != 0 {
+			username += " "
+		}
+		return fmt.Sprintf(TlfHandleExtensionFinalizedString, username)
 	}
 	return "<unknown extension type>"
 }
 
-// ParseTlfHandleExtensionType parses an extension type from a string.
-func ParseTlfHandleExtensionType(s string) TlfHandleExtensionType {
-	switch s {
-	case TlfHandleExtensionConflictString:
-		return TlfHandleExtensionConflict
-	case TlfHandleExtensionFinalizedString:
-		return TlfHandleExtensionFinalized
+// ParseTlfHandleExtensionString parses an extension type and optional username from a string.
+func ParseTlfHandleExtensionString(s string) (TlfHandleExtensionType, libkb.NormalizedUsername) {
+	if TlfHandleExtensionConflictString == s {
+		return TlfHandleExtensionConflict, ""
 	}
-	return TlfHandleExtensionUnknown
+	m := TlfHandleExtensionFinalizedRegex.FindStringSubmatch(s)
+	if len(m) < 2 {
+		return TlfHandleExtensionUnknown, ""
+	}
+	return TlfHandleExtensionFinalized, libkb.NewNormalizedUsername(m[1])
 }
 
 // ErrTlfHandleExtensionInvalidString is returned when a given string is not parsable as a
@@ -93,9 +111,10 @@ var TlfHandleExtensionRegex = regexp.MustCompile(
 
 // TlfHandleExtension is information which identifies a particular extension.
 type TlfHandleExtension struct {
-	Date   int64                  `codec:"date"`
-	Number uint16                 `codec:"num"`
-	Type   TlfHandleExtensionType `codec:"type"`
+	Date     int64                    `codec:"date"`
+	Number   uint16                   `codec:"num"`
+	Type     TlfHandleExtensionType   `codec:"type"`
+	Username libkb.NormalizedUsername `codec:"un,omitempty"`
 	codec.UnknownFieldSetHandler
 }
 
@@ -108,20 +127,20 @@ func (e TlfHandleExtension) String() string {
 		num = " #"
 		num += strconv.FormatUint(uint64(e.Number), 10)
 	}
-	return fmt.Sprintf(TlfHandleExtensionFormat, e.Type.String(), date, num)
+	return fmt.Sprintf(TlfHandleExtensionFormat, e.Type.String(e.Username), date, num)
 }
 
 // NewTlfHandleExtension returns a new TlfHandleExtension struct populated with the current
 // date and conflict number.
-func NewTlfHandleExtension(extType TlfHandleExtensionType, num uint16) (
+func NewTlfHandleExtension(extType TlfHandleExtensionType, num uint16, un libkb.NormalizedUsername) (
 	*TlfHandleExtension, error) {
-	return newTlfHandleExtension(extType, num, wallClock{})
+	return newTlfHandleExtension(extType, num, un, wallClock{})
 }
 
 // NewTestTlfHandleExtensionWithClock returns a new TlfHandleExtension using a passed clock.
 func NewTestTlfHandleExtensionWithClock(extType TlfHandleExtensionType,
-	num uint16, clock Clock) (*TlfHandleExtension, error) {
-	return newTlfHandleExtension(extType, num, clock)
+	num uint16, un libkb.NormalizedUsername, clock Clock) (*TlfHandleExtension, error) {
+	return newTlfHandleExtension(extType, num, un, clock)
 }
 
 // Implementation of the Clock interface to return a static time for testing.
@@ -135,13 +154,13 @@ func (c staticTestTlfHandleExtensionClock) Now() time.Time {
 
 // NewTestTlfHandleExtensionStaticTime returns a new TlfHandleExtension struct populated with
 // a static date for testing.
-func NewTestTlfHandleExtensionStaticTime(extType TlfHandleExtensionType, num uint16) (
+func NewTestTlfHandleExtensionStaticTime(extType TlfHandleExtensionType, num uint16, un libkb.NormalizedUsername) (
 	*TlfHandleExtension, error) {
-	return newTlfHandleExtension(extType, num, staticTestTlfHandleExtensionClock{})
+	return newTlfHandleExtension(extType, num, un, staticTestTlfHandleExtensionClock{})
 }
 
 // Helper to instantiate a TlfHandleExtension object.
-func newTlfHandleExtension(extType TlfHandleExtensionType, num uint16, clock Clock) (
+func newTlfHandleExtension(extType TlfHandleExtensionType, num uint16, un libkb.NormalizedUsername, clock Clock) (
 	*TlfHandleExtension, error) {
 	if num == 0 {
 		return nil, ErrTlfHandleExtensionInvalidNumber
@@ -153,9 +172,10 @@ func newTlfHandleExtension(extType TlfHandleExtensionType, num uint16, clock Clo
 		return nil, err
 	}
 	return &TlfHandleExtension{
-		Date:   now.UTC().Unix(),
-		Number: num,
-		Type:   extType,
+		Date:     now.UTC().Unix(),
+		Number:   num,
+		Type:     extType,
+		Username: un,
 	}, nil
 }
 
@@ -164,7 +184,7 @@ func parseTlfHandleExtension(fields []string) (*TlfHandleExtension, error) {
 	if len(fields) != 4 {
 		return nil, ErrTlfHandleExtensionInvalidString
 	}
-	extType := ParseTlfHandleExtensionType(fields[1])
+	extType, un := ParseTlfHandleExtensionString(fields[1])
 	if extType == TlfHandleExtensionUnknown {
 		return nil, ErrTlfHandleExtensionInvalidString
 	}
@@ -183,9 +203,10 @@ func parseTlfHandleExtension(fields []string) (*TlfHandleExtension, error) {
 		}
 	}
 	return &TlfHandleExtension{
-		Date:   date.UTC().Unix(),
-		Number: uint16(num),
-		Type:   extType,
+		Date:     date.UTC().Unix(),
+		Number:   uint16(num),
+		Type:     extType,
+		Username: un,
 	}, nil
 }
 

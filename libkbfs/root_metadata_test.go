@@ -684,7 +684,7 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 	}
 
 	// add the extension
-	rmds2.MD.FinalizedInfo, err = NewTestTlfHandleExtensionStaticTime(TlfHandleExtensionFinalized, 1)
+	rmds2.MD.FinalizedInfo, err = NewTestTlfHandleExtensionStaticTime(TlfHandleExtensionFinalized, 1, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
