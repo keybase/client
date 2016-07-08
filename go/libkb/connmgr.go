@@ -81,7 +81,7 @@ func (c *ConnectionManager) LookupConnection(i ConnectionID) rpc.Transporter {
 }
 
 func (c *ConnectionManager) Shutdown() {
-	c.shutdownCh <- struct{}{}
+	close(c.shutdownCh)
 }
 
 func (c *ConnectionManager) lookupTransporter(i ConnectionID) (ret rpc.Transporter) {
