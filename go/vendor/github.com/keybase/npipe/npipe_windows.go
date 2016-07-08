@@ -15,6 +15,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"os"
 )
 
 const (
@@ -227,6 +228,7 @@ func dial(address string, timeout uint32) (*PipeConn, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Fprintf(os.Stderr, "[%v] | dialed new handle", handle)
 	return &PipeConn{handle: handle, addr: PipeAddr(address)}, nil
 }
 

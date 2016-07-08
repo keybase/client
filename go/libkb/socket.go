@@ -54,21 +54,22 @@ func (g *GlobalContext) ResetSocket(clearError bool) (net.Conn, rpc.Transporter,
 	return g.GetSocket(clearError)
 }
 
-func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error) {
+func (g *GlobalContext) GetSocket(clearError bool) (conn net.Conn, xp rpc.Transporter, isNew bool, err error) {
+
+	g.Trace("GetSocket", func() error { return err })()
 
 	// Protect all global socket wrapper manipulation with a
 	// lock to prevent race conditions.
 	g.socketWrapperMu.Lock()
 	defer g.socketWrapperMu.Unlock()
 
-	isNew := false
-
 	needWrapper := false
 	if g.SocketWrapper == nil {
 		needWrapper = true
+		g.Log.Debug("| empty socket wrapper; need a new one")
 	} else if g.SocketWrapper.xp != nil && !g.SocketWrapper.xp.IsConnected() {
 		// need reconnect
-		G.Log.Debug("rpc transport disconnected, reconnecting...")
+		g.Log.Debug("| rpc transport isn't connected, reconnecting...")
 		needWrapper = true
 	}
 
@@ -80,6 +81,7 @@ func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, b
 			sw.err = fmt.Errorf("Cannot get socket in standalone mode")
 		} else {
 			sw.conn, sw.err = g.SocketInfo.DialSocket()
+			g.Log.Debug("| DialSocket -> %s", ErrToOk(sw.err))
 			isNew = true
 		}
 		if sw.err == nil {
@@ -92,6 +94,7 @@ func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, b
 	if sw.err != nil && clearError {
 		g.SocketWrapper = nil
 	}
+	err = sw.err
 
-	return sw.conn, sw.xp, isNew, sw.err
+	return sw.conn, sw.xp, isNew, err
 }
