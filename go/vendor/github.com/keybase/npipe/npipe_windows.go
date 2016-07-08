@@ -439,7 +439,7 @@ func (c *PipeConn) Read(b []byte) (int, error) {
 	fmt.Fprintf(os.Stderr, "[%v] + Read\n", c.handle)
 	err = syscall.ReadFile(c.handle, b, &n, overlapped)
 	resFinal, errFinal := c.completeRequest(iodata{n, err}, c.readDeadline, overlapped)
-	fmt.Fprintf(os.Stderr, "[%v] - Read: %v %d %v\n", c.handle, b, resFinal, errFinal)
+	fmt.Fprintf(os.Stderr, "[%v] - Read: %v %d %v\n", c.handle, b[0:resFinal], resFinal, errFinal)
 	return resFinal, errFinal
 }
 
