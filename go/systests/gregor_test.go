@@ -6,6 +6,7 @@ package systests
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -45,6 +46,15 @@ func newElectronMock(g *libkb.GlobalContext) *electronMock {
 		stateCh:      make(chan keybase1.PushStateArg, 10),
 		oobmCh:       make(chan gregor1.OutOfBandMessage, 10),
 	}
+}
+
+func filterPubsubdItems(items []gregor1.ItemAndMetadata) (res []gregor1.ItemAndMetadata) {
+	for _, i := range items {
+		if !strings.HasPrefix(i.Category().String(), "user.") {
+			res = append(res, i)
+		}
+	}
+	return
 }
 
 func TestGregorForwardToElectron(t *testing.T) {
@@ -116,7 +126,7 @@ func TestGregorForwardToElectron(t *testing.T) {
 		if a.Reason != keybase1.PushReason_RECONNECTED {
 			t.Fatal(fmt.Sprintf("got wrong reason: %v", a.Reason))
 		}
-		if d := len(a.State.Items_); d != 0 {
+		if d := len(filterPubsubdItems(a.State.Items_)); d != 0 {
 			t.Fatal(fmt.Sprintf("Wrong number of items in state -- should have 0, but got %d", d))
 		}
 	case <-time.After(3 * time.Second):
@@ -129,11 +139,12 @@ func TestGregorForwardToElectron(t *testing.T) {
 	check()
 
 	checkState := func(s gregor1.State) {
-		if n := len(s.Items_); n != 1 {
+		items := filterPubsubdItems(s.Items_)
+		if n := len(items); n != 1 {
 			t.Errorf("Expected one item back; got %d", n)
 			return
 		}
-		i := s.Items_[0]
+		i := items[0]
 		if !bytes.Equal(i.Md_.MsgID_.Bytes(), msgID.Bytes()) {
 			t.Error("Wrong gregor message ID received")
 		}
