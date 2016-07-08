@@ -134,13 +134,13 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "513c7f62eea5c5d22fc665eb5665f5bf554af9ff",
-			"revisionTime": "2016-06-13T10:06:51-04:00"
+			"revision": "756bce50f0a4760fc42761856360a0465a969e7d",
+			"revisionTime": "2016-07-05T09:41:51-04:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
-			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
-			"revisionTime": "2016-03-19T10:18:54-07:00"
+			"revision": "756bce50f0a4760fc42761856360a0465a969e7d",
+			"revisionTime": "2016-07-05T09:41:51-04:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/clearsign",
