@@ -109,7 +109,9 @@ func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
 	for j, d := range ir.Revoked {
 		// Should have all non-nil elements...
 		tmp.Revoked[j] = *ExportTrackDiff(d)
-		tmp.BreaksTracking = d.BreaksTracking()
+		if d.BreaksTracking() {
+			tmp.BreaksTracking = true
+		}
 	}
 	tmp.RevokedDetails = ir.RevokedDetails
 	return &tmp
