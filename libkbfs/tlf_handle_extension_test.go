@@ -28,7 +28,7 @@ func TestTlfHandleExtension(t *testing.T) {
 		if len(exts) != 1 {
 			t.Fatalf("Expected 1 extension, got: %d", len(exts))
 		}
-		// check that extensons can be encoded/decoded
+		// check that extensions can be encoded/decoded
 		buf, err := codec.Encode(exts[0])
 		if err != nil {
 			t.Fatal(err)
@@ -48,6 +48,9 @@ func TestTlfHandleExtension(t *testing.T) {
 			t.Fatalf("Expected %s, got: %s", e, e2)
 		}
 		if e.Type == TlfHandleExtensionConflict {
+			if e2.Username != "" {
+				t.Fatalf("Expected empty username got: %s", e2.Username)
+			}
 			continue
 		}
 		if e2.Username != e.Username {
