@@ -5,13 +5,12 @@
 package openpgp
 
 import (
-	"io"
-	"time"
-
 	"github.com/keybase/go-crypto/openpgp/armor"
 	"github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-crypto/openpgp/packet"
 	"github.com/keybase/go-crypto/rsa"
+	"io"
+	"time"
 )
 
 // PublicKeyType is the armor type for a PGP public key.
@@ -425,11 +424,20 @@ EachPacket:
 			// seen this in the wild (see the 'Yield' test in read_test.go).
 			// If there is a tie, and both have the same value for FlagsValid,
 			// then "last writer wins."
+			//
+			// HOWEVER! We have seen yet more keys in the wild (see the 'Spiros'
+			// test in read_test.go), in which the later self-signature is a bunch
+			// of junk, and doesn't even specify key flags. Does it really make
+			// sense to overwrite reasonable key flags with the empty set? I'm not
+			// sure what that would be trying to achieve, and plus GPG seems to be
+			// ok with this situation, and ignores the later (empty) keyflag set.
+			// So further tighten our overwrite rules, and only allow the later
+			// signature to overwrite the earlier signature if so doing won't
+			// trash the key flags.
 			if current != nil &&
 				(current.SelfSignature == nil ||
-					pkt.CreationTime.After(current.SelfSignature.CreationTime) ||
-					(pkt.CreationTime.Equal(current.SelfSignature.CreationTime) &&
-						pkt.FlagsValid && !current.SelfSignature.FlagsValid)) &&
+					(!pkt.CreationTime.Before(current.SelfSignature.CreationTime) &&
+						(pkt.FlagsValid || !current.SelfSignature.FlagsValid))) &&
 				(pkt.SigType == packet.SigTypePositiveCert || pkt.SigType == packet.SigTypeGenericCert) &&
 				pkt.IssuerKeyId != nil &&
 				*pkt.IssuerKeyId == e.PrimaryKey.KeyId {
