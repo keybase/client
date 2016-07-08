@@ -268,6 +268,26 @@ func (t TrackDiffRevoked) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_REVOKED
 }
 
+type TrackDiffSnoozedRevoked struct {
+	idc TrackIDComponent
+}
+
+func (t TrackDiffSnoozedRevoked) BreaksTracking() bool {
+	return false
+}
+func (t TrackDiffSnoozedRevoked) ToDisplayString() string {
+	return "Deleted proof: " + t.idc.ToIDString() + " (snoozed)"
+}
+func (t TrackDiffSnoozedRevoked) IsSameAsTracked() bool {
+	return true
+}
+func (t TrackDiffSnoozedRevoked) ToDisplayMarkup() *Markup {
+	return NewMarkup(t.ToDisplayString())
+}
+func (t TrackDiffSnoozedRevoked) GetTrackDiffType() keybase1.TrackDiffType {
+	return keybase1.TrackDiffType_NONE_VIA_TEMPORARY
+}
+
 type TrackDiffRemoteFail struct {
 	observed keybase1.ProofState
 }

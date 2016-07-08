@@ -17,7 +17,7 @@ type IdentifyOutcome struct {
 	Username              string
 	Error                 error
 	KeyDiffs              []TrackDiff
-	Revoked               []TrackDiffRevoked
+	Revoked               []TrackDiff
 	RevokedDetails        []keybase1.RevokedProof
 	ProofChecks           []*LinkCheckResult
 	Warnings              []Warning
