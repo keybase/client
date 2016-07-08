@@ -1,16 +1,17 @@
 // @flow
 import {ipcRenderer, ipcMain, app} from 'electron'
 import {quit} from '../../desktop/app/ctl'
+import {hideDockIcon} from '../../desktop/app/dock-icon'
 
 export type Context = {type: 'uiWindow'} | {type: 'mainThread'} | {type: 'quitButton'}
 
-export type Action = {type: 'closePopups'} | {type: 'hideMainWindow'} | {type: 'quitApp'}
+export type Action = {type: 'closePopups'} | {type: 'quitMainWindow'} | {type: 'quitApp'}
 
 // Logic to figure out what to do given your context
 export function quitOnContext (context: Context): Array<Action> {
   switch (context.type) {
     case 'uiWindow':
-      return [{type: 'closePopups'}, {type: 'hideMainWindow'}]
+      return [{type: 'closePopups'}, {type: 'quitMainWindow'}]
     case 'mainThread':
     case 'quitButton':
       return [{type: 'quitApp'}]
@@ -28,7 +29,9 @@ function isMainThread () {
 function _executeActions (actions: Array<Action>) {
   actions.forEach(a => {
     switch (a.type) {
-      case 'hideMainWindow':
+      case 'quitMainWindow':
+        hideDockIcon()
+        return
       case 'closePopups':
         app.emit('close-windows')
         return
