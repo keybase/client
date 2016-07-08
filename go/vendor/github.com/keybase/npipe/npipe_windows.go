@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 	"os"
+	"sync"
 )
 
 const (
@@ -67,6 +68,31 @@ const (
 	error_io_incomplete  syscall.Errno = 0x3e4
 	error_invalid_handle               = 0x6
 )
+
+var handleTabMutex sync.Mutex
+var handleTab = make(map[syscall.Handle]int)
+
+func increfHandle(h syscall.Handle) {
+	handleTabMutex.Lock()
+	defer handleTabMutex.Unlock()
+	val, ok := handleTab[h]
+	if !ok {
+		handleTab[h] = 1
+	} else {
+		handleTab[h] += 1
+	}
+}
+
+func decrefHandle(h syscall.Handle) (int, bool) {
+	handleTabMutex.Lock()
+	defer handleTabMutex.Unlock()
+	val, ok := handleTab[h]
+	if ok && val > 0 {
+		handleTab[h] -= 1
+	}
+	return (val - 1), ok
+}
+
 
 var _ net.Conn = (*PipeConn)(nil)
 var _ net.Listener = (*PipeListener)(nil)
@@ -229,6 +255,7 @@ func dial(address string, timeout uint32) (*PipeConn, error) {
 		return nil, err
 	}
 	fmt.Fprintf(os.Stderr, "[%v] | dialed new handle\n", handle)
+	increfHandle(handle)
 	return &PipeConn{handle: handle, addr: PipeAddr(address)}, nil
 }
 
@@ -461,7 +488,14 @@ func (c *PipeConn) Write(b []byte) (int, error) {
 // Close closes the connection.
 func (c *PipeConn) Close() error {
 	fmt.Fprintf(os.Stderr, "[%v] + Close\n", c.handle)
-	err := syscall.CloseHandle(c.handle)
+	var err error
+	if v, ok := decrefHandle(c.handle); v == 0 && ok {
+		err = syscall.CloseHandle(c.handle)
+	} else if !ok {
+		err = fmt.Errorf("Handle %v wasn't found in refcount table", c.handle)
+	} else {
+		fmt.Fprintf(os.Stderr, "[%v] not closed, with refcount=%d\n", v)
+	}
 	fmt.Fprintf(os.Stderr, "[%v] - Close\n", c.handle)
 	return err
 }
