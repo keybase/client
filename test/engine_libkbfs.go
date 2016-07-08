@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -78,6 +79,19 @@ func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 	return userMap
 }
 
+const (
+	// CtxOpID is the display name for the unique operation test ID tag.
+	CtxOpID = "TID"
+)
+
+// CtxTagKey is the type used for unique context tags
+type CtxTagKey int
+
+const (
+	// CtxIDKey is the type of the tag for unique operation IDs.
+	CtxIDKey CtxTagKey = iota
+)
+
 func (k *LibKBFS) newContext() (context.Context, context.CancelFunc) {
 	ctx := context.Background()
 	var cancel context.CancelFunc
@@ -85,6 +99,17 @@ func (k *LibKBFS) newContext() (context.Context, context.CancelFunc) {
 		ctx, cancel = context.WithTimeout(ctx, k.opTimeout)
 	} else {
 		cancel = func() {}
+	}
+
+	logTags := make(logger.CtxLogTags)
+	logTags[CtxIDKey] = CtxOpID
+	ctx = logger.NewContextWithLogTags(ctx, logTags)
+
+	// Add a unique ID to this context, identifying a particular
+	// request.
+	id, err := libkbfs.MakeRandomRequestID()
+	if err == nil {
+		ctx = context.WithValue(ctx, CtxIDKey, id)
 	}
 	return ctx, cancel
 }
