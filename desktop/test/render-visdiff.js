@@ -29,6 +29,8 @@ Object.keys(dumbComponentMap).forEach(key => {
 
 app.on('ready', () => {
   let rendering = 0
+  const total = toRender.length
+  let count = 0
 
   function renderNext (target) {
     if (!toRender.length) {
@@ -51,7 +53,8 @@ app.on('ready', () => {
           console.log('Error writing image', err)
           app.exit(1)
         }
-        console.log('wrote', filename)
+        count++
+        console.log(`[${count} / ${total}] wrote ${filename}`)
         rendering--
         renderNext(sender)
       })
