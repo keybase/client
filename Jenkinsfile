@@ -47,13 +47,6 @@ node("ec2-fleet") {
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
                     checkout: { checkout scm },
-                    // TODO: take gregor and mysql out of kbweb
-                    //pull_mysql: {
-                    //    mysqlImage.pull()
-                    //},
-                    //pull_gregor: {
-                    //    gregorImage.pull()
-                    //},
                     pull_kbweb: {
                         if (!binding.variables.containsKey("kbwebNodePrivateIP") || kbwebNodePrivateIP == '' || kbwebNodePublicIP == '') {
                             kbwebImage.pull()
@@ -62,7 +55,7 @@ node("ec2-fleet") {
                     pull_kbclient: {
                         sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
                         sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
-                        sh 'docker rmi keybaseprivate/kbclient || echo "no images to remove"'
+                        sh 'docker rmi --no-prune keybaseprivate/kbclient || echo "no images to remove"'
                         if (cause == "upstream" && clientProjectName != '') {
                             step([$class: 'CopyArtifact',
                                     projectName: "${clientProjectName}",
@@ -155,16 +148,15 @@ node("ec2-fleet") {
                         }
                         sh "docker save -o kbfsfuse.tar keybaseprivate/kbfsfuse"
                         archive("kbfsfuse.tar")
-                        // TODO Implement kbfs-server test
-                        //build([
-                        //    job: "/kbfs-server/master",
-                        //    parameters: [
-                        //        [$class: 'StringParameterValue',
-                        //            name: 'kbfsProjectName',
-                        //            value: env.JOB_NAME,
-                        //        ],
-                        //    ]
-                        //])
+                        build([
+                            job: "/kbfs-server/master",
+                            parameters: [
+                                [$class: 'StringParameterValue',
+                                    name: 'kbfsProjectName',
+                                    value: env.JOB_NAME,
+                                ],
+                            ]
+                        ])
                     },
                 )
             } finally {
