@@ -411,6 +411,7 @@ func (l *PipeListener) Addr() net.Addr { return l.addr }
 type PipeConn struct {
 	handle syscall.Handle
 	addr   PipeAddr
+	closed bool
 
 	// these aren't actually used yet
 	readDeadline  *time.Time
@@ -489,13 +490,18 @@ func (c *PipeConn) Write(b []byte) (int, error) {
 // Close closes the connection.
 func (c *PipeConn) Close() error {
 	fmt.Fprintf(os.Stderr, "[%v] + Close\n", c.handle)
+	if c.closed {
+		fmt.Fprintf(os.Stderr, "[%v], early out; we've already closed", c.handle)
+		return
+	}
+	c.closed = true
 	var err error
 	if v, ok := decrefHandle(c.handle); v == 0 && ok {
 		err = syscall.CloseHandle(c.handle)
 	} else if !ok {
 		err = fmt.Errorf("Handle %v wasn't found in refcount table", c.handle)
 	} else {
-		fmt.Fprintf(os.Stderr, "[%v] not closed, with refcount=%d\n", v)
+		fmt.Fprintf(os.Stderr, "[%v] not closed, with refcount=%d\n", c.handle, v)
 	}
 	fmt.Fprintf(os.Stderr, "[%v] - Close\n", c.handle)
 	return err
