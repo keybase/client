@@ -5,13 +5,15 @@ import process from 'process'
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
-import {execSync} from 'child_process'
+import {spawnSync} from 'child_process'
 import _ from 'lodash'
 import mkdirp from 'mkdirp'
 import del from 'del'
 import gm from 'gm'
 import github from 'octonode'
 import s3 from 's3'
+
+const NPM_CMD = os.platform() === 'win32' ? 'npm.cmd' : 'npm'
 
 const BUCKET_S3 = 'keybase-app-visdiff'
 const BUCKET_HTTP = 'https://keybase-app-visdiff.s3.amazonaws.com'
@@ -35,11 +37,11 @@ function checkout (commit) {
   fs.renameSync('node_modules', `node_modules.${origPackageHash}`)
   console.log(`Shelved node_modules to node_modules.${origPackageHash}.`)
 
-  execSync(`git checkout -f ${commit}`)
+  spawnSync('git', ['checkout', '-f', commit])
 
   // The way shared is linked in Windows can confuse git into deleting files
   // and leaving the directory in an unclean state.
-  execSync('git reset --hard')
+  spawnSync('git', ['reset', '--hard'])
 
   console.log(`Checked out ${commit}.`)
 
@@ -50,7 +52,7 @@ function checkout (commit) {
   } else {
     console.log(`Installing dependencies for package.json:${newPackageHash}...`)
   }
-  execSync('npm install', {stdio: 'inherit'})
+  spawnSync(NPM_CMD, ['install'], {stdio: 'inherit'})
 }
 
 function renderScreenshots (commitRange) {
@@ -58,7 +60,7 @@ function renderScreenshots (commitRange) {
     checkout(commit)
     console.log(`Rendering screenshots of ${commit}`)
     mkdirp.sync(`screenshots/${commit}`)
-    execSync(`npm run render-screenshots -- screenshots/${commit}`, {stdio: 'inherit'})
+    spawnSync(NPM_CMD, ['run', 'render-screenshots', '--', `screenshots/${commit}`], {stdio: 'inherit'})
   }
 }
 
@@ -232,7 +234,7 @@ if (process.argv.length !== 3) {
 const commitRange = process.argv[2]
   .split(/\.{2,3}/)  // Travis gives us ranges like START...END
   .map(s => {
-    const resolved = execSync(`git rev-parse ${s}`, {encoding: 'utf-8'})
+    const resolved = spawnSync('git', ['rev-parse', s], {encoding: 'utf-8'})
     return resolved.trim().substr(0, 12)  // remove whitespace and clip for shorter paths
   })
 
