@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+protocol NotifyService {
+  import idl "common.avdl";
+
+  // sent when the service shuts down.
+  void shutdown() oneway;
+}

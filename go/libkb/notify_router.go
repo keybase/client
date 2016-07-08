@@ -363,3 +363,26 @@ func (n *NotifyRouter) HandleKeyfamilyChanged(uid keybase1.UID) {
 	}
 	n.G().Log.Debug("- Sent keyfamily changed notfication")
 }
+
+// HandleServiceShutdown is called whenever the service shuts down.
+func (n *NotifyRouter) HandleServiceShutdown() {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending service shutdown notfication")
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Favorites` notification type
+		if n.getNotificationChannels(id).Service {
+			// In the background do...
+			go func() {
+				(keybase1.NotifyServiceClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).Shutdown(context.TODO())
+			}()
+		}
+		return true
+	})
+	n.G().Log.Debug("- Sent service shutdown notfication")
+}

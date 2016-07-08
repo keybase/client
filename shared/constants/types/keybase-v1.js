@@ -269,6 +269,8 @@ export const NotifyKeyfamily = {}
 
 export const NotifyPaperKey = {}
 
+export const NotifyService = {}
+
 export const NotifySession = {}
 
 export const NotifyTracking = {}
@@ -493,6 +495,7 @@ export default {
   NotifyFS,
   NotifyKeyfamily,
   NotifyPaperKey,
+  NotifyService,
   NotifySession,
   NotifyTracking,
   NotifyUsers,

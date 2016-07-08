@@ -126,6 +126,7 @@ func (d *Service) Run() (err error) {
 		if d.startCh != nil {
 			close(d.startCh)
 		}
+		d.G().NotifyRouter.HandleServiceShutdown()
 		d.G().Log.Debug("From Service.Run(): exit with code %d\n", d.G().ExitCode)
 	}()
 
