@@ -141,7 +141,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return err
 	}
 
-	if !e.useRemoteAssertions() && e.checkFastCacheHit() && e.allowEarlyOuts() {
+	if !e.useAnyAssertions() && e.checkFastCacheHit() && e.allowEarlyOuts() {
 		e.G().Log.Debug("| hit fast cache")
 		return nil
 	}

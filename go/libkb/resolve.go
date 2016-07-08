@@ -43,6 +43,10 @@ func (res *ResolveResult) GetNormalizedQueriedUsername() NormalizedUsername {
 	return NewNormalizedUsername(res.queriedKbUsername)
 }
 
+func (res *ResolveResult) WasKbUsernameAssertion() bool {
+	return res.queriedKbUsername != ""
+}
+
 func (res *ResolveResult) GetError() error {
 	return res.err
 }
