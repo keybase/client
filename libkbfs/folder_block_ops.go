@@ -1931,11 +1931,6 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 	bcache := fbo.config.BlockCache()
 	dirtyBcache := fbo.config.DirtyBlockCache()
 	df := fbo.getOrCreateDirtyFileLocked(lState, file)
-	// If there were any deferred writes from before we started this
-	// sync, it implies that we are retrying a previous sync, and will
-	// be assimilating those bytes into this sync.
-	// TODO: clear the deferred writes slice in that case?
-	df.assimilateDeferredNewBytes()
 
 	// Note: below we add possibly updated file blocks as "unref" and
 	// "ref" blocks.  This is fine, since conflict resolution or
@@ -2081,6 +2076,27 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 
 				fblock.IPtrs[i].BlockInfo = newInfo
 				md.AddRefBlock(newInfo)
+
+				// If this block is replacing a block from a previous,
+				// failed Sync, we need to take that block out of the
+				// refs list, and avoid unrefing it as well.
+				for i, ref := range si.op.RefBlocks {
+					if ref == localPtr {
+						fbo.log.CDebugf(ctx, "Replacing old ref %v", localPtr)
+						si.op.RefBlocks = append(si.op.RefBlocks[:i],
+							si.op.RefBlocks[i+1:]...)
+						for j, unref := range si.unrefs {
+							if unref.BlockPointer == localPtr {
+								// Don't completely remove the unref,
+								// since it contains size info that we
+								// need to incorporate into the MD
+								// usage calculations.
+								si.unrefs[j].BlockPointer = zeroPtr
+							}
+						}
+						break
+					}
+				}
 				si.bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData,
 					func() error {
 						return df.setBlockSynced(localPtr)
@@ -2192,6 +2208,9 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		result.si.op.resetUpdateState()
 	}
 	if isRecoverableBlockError(err) {
+		if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
+			df.assimilateDeferredNewBytes()
+		}
 		if result.si != nil {
 			fbo.revertSyncInfoAfterRecoverableError(
 				blocksToRemove, result.si, result.savedSi)
@@ -2202,6 +2221,12 @@ func (fbo *folderBlockOps) CleanupSyncState(
 				ctx, lState, file,
 				result.redirtyOnRecoverableError)
 		}
+	} else {
+		// On an unrecoverable error, the deferred writes aren't
+		// needed anymore since they're already part of the
+		// (still-)dirty blocks.
+		fbo.deferredDirtyDeletes = nil
+		fbo.deferredWrites = nil
 	}
 
 	// The sync is over, due to an error, so reset the map so that we
@@ -2212,8 +2237,6 @@ func (fbo *folderBlockOps) CleanupSyncState(
 	if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
 		df.resetSyncingBlocksToDirty()
 	}
-
-	// TODO: Clear deferredWrites and deferredDirtyDeletes?
 }
 
 // FinishSync finishes the sync process for a file, given the state
