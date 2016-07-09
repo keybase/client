@@ -28,7 +28,7 @@ const DIFF_SAME = 'same'
 const DRY_RUN = !!process.env['VISDIFF_DRY_RUN']
 
 function packageHash () {
-  return crypto.createHash('sha1').update(fs.readFileSync('package.json')).digest('hex')
+  return crypto.createHash('sha1').update(fs.readFileSync('package.json')).digest('hex').substr(0, 12)
 }
 
 function checkout (commit) {
