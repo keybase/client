@@ -338,6 +338,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
             reject()
           } else {
             console.log('Successful signup', passphraseOk, postOk, writeOk)
+            dispatch(waiting(true))
             resolve()
           }
         },

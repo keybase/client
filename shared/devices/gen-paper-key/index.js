@@ -43,6 +43,7 @@ class GenPaperKey extends Component<void, Props, State> {
     return (
       <Render
         paperkey={this.props.paperKey}
+        waiting={false}
         onBack={this.props.onBack}
         title='Paper key generated!'
       />
