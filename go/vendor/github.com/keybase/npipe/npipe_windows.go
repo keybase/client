@@ -15,6 +15,7 @@ import (
 	"sync"
 	"syscall"
 	"time"
+	"os"
 )
 
 const (
@@ -66,6 +67,33 @@ const (
 	error_io_incomplete  syscall.Errno = 0x3e4
 	error_invalid_handle               = 0x6
 )
+
+var handleTabMutex sync.Mutex
+var handleTab = make(map[syscall.Handle]int)
+
+func increfHandle(h syscall.Handle) {
+	handleTabMutex.Lock()
+	defer handleTabMutex.Unlock()
+	val, ok := handleTab[h]
+	if !ok {
+		handleTab[h] = 1
+		fmt.Fprintf(os.Stderr, "[%v] init handle count to %d\n", h, 1)
+	} else {
+		handleTab[h] = val + 1
+		fmt.Fprintf(os.Stderr, "[%v] incref handle count to %d\n", h, val + 1)
+	}
+}
+
+func decrefHandle(h syscall.Handle) (int, bool) {
+	handleTabMutex.Lock()
+	defer handleTabMutex.Unlock()
+	val, ok := handleTab[h]
+	if ok && val > 0 {
+		handleTab[h] -= 1
+		fmt.Fprintf(os.Stderr, "[%v] decref handle count to %d\n", h, (val - 1))
+	}
+	return (val - 1), ok
+}
 
 var _ net.Conn = (*PipeConn)(nil)
 var _ net.Listener = (*PipeListener)(nil)
@@ -227,6 +255,8 @@ func dial(address string, timeout uint32) (*PipeConn, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Fprintf(os.Stderr, "[%v] | dialed new handle\n", handle)
+	increfHandle(handle)
 	return &PipeConn{handle: handle, addr: PipeAddr(address)}, nil
 }
 
@@ -381,6 +411,7 @@ func (l *PipeListener) Addr() net.Addr { return l.addr }
 type PipeConn struct {
 	handle syscall.Handle
 	addr   PipeAddr
+	closed bool
 
 	// these aren't actually used yet
 	readDeadline  *time.Time
@@ -434,8 +465,11 @@ func (c *PipeConn) Read(b []byte) (int, error) {
 	}
 	defer syscall.CloseHandle(overlapped.HEvent)
 	var n uint32
+	fmt.Fprintf(os.Stderr, "[%v] + Read\n", c.handle)
 	err = syscall.ReadFile(c.handle, b, &n, overlapped)
-	return c.completeRequest(iodata{n, err}, c.readDeadline, overlapped)
+	resFinal, errFinal := c.completeRequest(iodata{n, err}, c.readDeadline, overlapped)
+	fmt.Fprintf(os.Stderr, "[%v] - Read: %v %d %v\n", c.handle, b[0:resFinal], resFinal, errFinal)
+	return resFinal, errFinal
 }
 
 // Write implements the net.Conn Write method.
@@ -446,13 +480,31 @@ func (c *PipeConn) Write(b []byte) (int, error) {
 	}
 	defer syscall.CloseHandle(overlapped.HEvent)
 	var n uint32
+	fmt.Fprintf(os.Stderr, "[%v] + Write: %v\n", c.handle, b)
 	err = syscall.WriteFile(c.handle, b, &n, overlapped)
-	return c.completeRequest(iodata{n, err}, c.writeDeadline, overlapped)
+	resFinal, errFinal := c.completeRequest(iodata{n, err}, c.writeDeadline, overlapped)
+	fmt.Fprintf(os.Stderr, "[%v] - Write: %d %v\n", c.handle, resFinal, errFinal)
+	return resFinal, errFinal
 }
 
 // Close closes the connection.
 func (c *PipeConn) Close() error {
-	return syscall.CloseHandle(c.handle)
+	fmt.Fprintf(os.Stderr, "[%v] + Close\n", c.handle)
+	if c.closed {
+		fmt.Fprintf(os.Stderr, "[%v], early out; we've already closed", c.handle)
+		return nil
+	}
+	var err error
+	if v, ok := decrefHandle(c.handle); ok {
+		fmt.Fprintf(os.Stderr, "[%v] Decrefed to new refcount=%d\n", c.handle, v)
+	} else {
+		fmt.Fprintf(os.Stderr, "[%v] no refcount known\n")
+	}
+
+	// do this either way, for now...
+	err = syscall.CloseHandle(c.handle)
+	fmt.Fprintf(os.Stderr, "[%v] - Close\n", c.handle)
+	return err
 }
 
 // LocalAddr returns the local network address.
