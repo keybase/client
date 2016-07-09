@@ -294,20 +294,33 @@ node("ec2-fleet") {
 }
 
 def waitForURL(prefix, url) {
-    def slept=0
-    for (slept=0; slept<180; slept+=3) {
-        sleep 3
-        try {
-            if (isUnix()) {
-                sh "curl -s -o /dev/null $url 2>&1"
-            } else {
-                bat "curl.exe --silent $url >nul 2>&1"
-            }
-            println "$prefix waitForURL connected to $url after waiting $slept seconds."
-            return
-        } catch(ex) {}
+    def waitFor = 180;
+    if (isUnix()) {
+        sh """
+            slept=0
+            while [[ "\$slept" -lt "${waitFor}" ]]; do
+                curl -s -o /dev/null ${url} && echo "Connected to \$url after waiting \$slept times" && exit 0;
+                sleep 1;
+                ((slept++));
+            done;
+            echo "Unable to connect to \$url after waiting ${waitFor} times";
+            exit 1;
+        """
+    } else {
+        bat """
+            powershell.exe -c '
+                \$slept=0;
+                \$res=1;
+                do {
+                    curl.exe --silent ${url} >nul 2>&1 && echo "Connected to \$url after waiting \$slept times" && exit 0;
+                    sleep 1;
+                    \$slept++;
+                } while (\$slept -lt ${waitFor});
+                echo "Unable to connect to \$url after waiting ${waitFor} times";
+                exit 1;
+            '
+        """
     }
-    error "$prefix waitForURL failed to connect to $url after waiting $slept seconds."
 }
 
 def testNixGo(prefix) {
