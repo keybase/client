@@ -281,8 +281,8 @@
 		},
 		{
 			"path": "github.com/keybase/npipe",
-			"revision": "5cd75f41d020ac2963df3588416573ff575341c2",
-			"revisionTime": "2016-04-28T10:21:56-07:00"
+			"revision": "1f399aeffbab7364397986a1b531b6f02b15cd3e",
+			"revisionTime": "2016-07-08T16:39:56-04:00"
 		},
 		{
 			"path": "github.com/keybase/saltpack",

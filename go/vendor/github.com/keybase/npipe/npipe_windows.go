@@ -382,6 +382,9 @@ type PipeConn struct {
 	handle syscall.Handle
 	addr   PipeAddr
 
+	closedMutex sync.Mutex
+	closed      bool
+
 	// these aren't actually used yet
 	readDeadline  *time.Time
 	writeDeadline *time.Time
@@ -452,6 +455,12 @@ func (c *PipeConn) Write(b []byte) (int, error) {
 
 // Close closes the connection.
 func (c *PipeConn) Close() error {
+	c.closedMutex.Lock()
+	defer c.closedMutex.Unlock()
+	if c.closed {
+		return PipeError{fmt.Sprintf("Attempt to close a closed socked (handle %v)", c.handle), false}
+	}
+	c.closed = true
 	return syscall.CloseHandle(c.handle)
 }
 
