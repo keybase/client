@@ -269,7 +269,7 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
 
               const signupPromise = dispatch(signup(skipMail || false, onDisplayPaperKey))
               if (signupPromise) {
-                resolve(signupPromise.then(() => dispatch(nextPhase()) || Promise.resolve()))
+                signupPromise.then(resolve, reject)
               } else {
                 throw new Error('did not get promise from signup')
               }
