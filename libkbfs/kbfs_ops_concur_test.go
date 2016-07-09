@@ -1395,18 +1395,13 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 		t.Fatalf("No expected canceled error: %v", err)
 	}
 
-	// Know that the sync finished by grabbing the lock.
-	lState := makeFBOLockState()
-	ops.mdWriterLock.Lock(lState)
-	ops.mdWriterLock.Unlock(lState)
-	if len(ops.fbm.blocksToDeleteChan) == 0 {
-		t.Fatalf("No blocks to delete after error")
-	}
-
 	// Flush the file.  This will result in conflict resolution, and
 	// an extra copy of the file, but that's ok for now.
 	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
 		t.Fatalf("Couldn't sync: %v", err)
+	}
+	if len(ops.fbm.blocksToDeleteChan) == 0 {
+		t.Fatalf("No blocks to delete after error")
 	}
 
 	unpauseDeleting <- struct{}{}

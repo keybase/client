@@ -3180,7 +3180,7 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 
 	defer func() {
 		if err != nil {
-			cr.fbo.fbm.cleanUpBlockState(md, bps)
+			cr.fbo.fbm.cleanUpBlockState(md, bps, blockDeleteOnMDFail)
 		}
 	}()
 
