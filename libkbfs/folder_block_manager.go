@@ -28,6 +28,10 @@ const (
 	numPointersPerGCThreshold = 100
 	// The most revisions to consider for each QR run.
 	numMaxRevisionsPerQR = 100
+
+	// The delay to wait for before trying a failed block deletion again. Used by
+	// enqueueBlocksToDeleteAfterShortDelay().
+	deleteBlocksRetryDelay = 10 * time.Millisecond
 )
 
 type blocksToDelete struct {
@@ -212,7 +216,7 @@ func (fbm *folderBlockManager) enqueueBlocksToDelete(toDelete blocksToDelete) {
 func (fbm *folderBlockManager) enqueueBlocksToDeleteAfterShortDelay(
 	toDelete blocksToDelete) {
 	fbm.blocksToDeleteWaitGroup.Add(1)
-	time.AfterFunc(10*time.Millisecond,
+	time.AfterFunc(deleteBlocksRetryDelay,
 		func() { fbm.blocksToDeleteChan <- toDelete })
 }
 
