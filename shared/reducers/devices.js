@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import * as Constants from '../constants/devices'
 import * as CommonConstants from '../constants/common'
 
@@ -21,20 +22,29 @@ export default function (state = initialState, action) {
         waitingForServer: true,
       }
     case Constants.showDevices:
+      let devices
+      if (action.error) {
+        devices = []
+      } else {
+        devices = _.chain(action.payload)
+          .map(dev => ({
+            name: dev.device.name,
+            deviceID: dev.device.deviceID,
+            type: dev.device.type,
+            created: dev.device.cTime,
+            currentDevice: dev.currentDevice,
+            provisioner: dev.provisioner,
+            provisionedAt: dev.provisionedAt,
+            revokedAt: dev.revokedAt,
+            lastUsed: dev.device.lastUsedTime,
+          }))
+          .orderBy(['currentDevice', 'name'], ['desc', 'asc'])
+          .value()
+      }
       return {
         ...state,
         error: action.error && action.payload,
-        devices: action.error ? [] : action.payload.map(dev => ({
-          name: dev.device.name,
-          deviceID: dev.device.deviceID,
-          type: dev.device.type,
-          created: dev.device.cTime,
-          currentDevice: dev.currentDevice,
-          provisioner: dev.provisioner,
-          provisionedAt: dev.provisionedAt,
-          revokedAt: dev.revokedAt,
-          lastUsed: dev.device.lastUsedTime,
-        })),
+        devices,
         waitingForServer: false,
       }
     case Constants.deviceRemoved:
