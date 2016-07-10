@@ -695,7 +695,10 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 		if err != nil {
 			return path{}, BlockPointer{}, nil, err
 		}
-		co := newCreateOp(name, parentOriginal, de.Type)
+		co, err := newCreateOp(name, parentOriginal, de.Type)
+		if err != nil {
+			return path{}, BlockPointer{}, nil, err
+		}
 		co.AddUpdate(parentOriginal, parentOriginal)
 		co.setFinalPath(parentPath)
 		co.AddRefBlock(currOriginal)
@@ -1182,12 +1185,24 @@ outer:
 				newInfo.oldName = info.newName
 			} else {
 				// invert the op in the merged chains
-				invertCreate := newRmOp(info.newName,
+				invertCreate, err := newRmOp(info.newName,
 					info.originalNewParent)
-				invertCreate.Dir.Ref = info.originalNewParent
-				invertRm := newCreateOp(info.oldName,
+				if err != nil {
+					return err
+				}
+				err = invertCreate.Dir.setRef(info.originalNewParent)
+				if err != nil {
+					return err
+				}
+				invertRm, err := newCreateOp(info.oldName,
 					info.originalOldParent, cop.Type)
-				invertRm.Dir.Ref = info.originalOldParent
+				if err != nil {
+					return err
+				}
+				err = invertRm.Dir.setRef(info.originalOldParent)
+				if err != nil {
+					return err
+				}
 				invertRm.renamed = true
 				invertRm.AddRefBlock(ptr)
 
@@ -1601,8 +1616,14 @@ func (cr *ConflictResolver) addMergedRecreates(ctx context.Context,
 						// is created on the unmerged branch.
 						t = File
 					}
-					co := newCreateOp(name, chain.original, t)
-					co.Dir.Ref = chain.original
+					co, err := newCreateOp(name, chain.original, t)
+					if err != nil {
+						return err
+					}
+					err = co.Dir.setRef(chain.original)
+					if err != nil {
+						return err
+					}
 					co.AddRefBlock(c.mostRecent)
 					winfo, err := newWriterInfo(ctx, cr.config,
 						mergedChains.mostRecentMD.LastModifyingWriter,
@@ -2135,9 +2156,12 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 							"for original %v", renameOriginal)
 					}
 
-					rop := newRenameOp(ri.oldName, ri.originalOldParent,
+					rop, err := newRenameOp(ri.oldName, ri.originalOldParent,
 						ri.newName, ri.originalNewParent, renameOriginal,
 						cop.Type)
+					if err != nil {
+						return nil, err
+					}
 					// Set the Dir.Ref fields to be the same as the Unref
 					// -- they will be fixed up later.
 					rop.AddUpdate(ri.originalOldParent, ri.originalOldParent)
@@ -2161,7 +2185,10 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 				if sao, ok := op.(*setAttrOp); ok {
 					if newDir, _, ok :=
 						otherChains.renamedParentAndName(sao.File); ok {
-						sao.Dir.Unref = newDir
+						err := sao.Dir.setUnref(newDir)
+						if err != nil {
+							return nil, err
+						}
 					}
 				}
 			}
@@ -2207,8 +2234,11 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 				// skips chains which are newly-created within this
 				// branch.
 				newCreateOp := *cop
-				newCreateOp.Dir.Unref = chain.mostRecent
-				newCreateOp.Dir.Ref = chain.mostRecent
+				newCreateOp.Dir, err = makeBlockUpdate(
+					chain.mostRecent, chain.mostRecent)
+				if err != nil {
+					return nil, err
+				}
 				chain.ops[i] = &newCreateOp
 				if !added {
 					newPaths = append(newPaths, path{
@@ -2348,8 +2378,11 @@ func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer,
 			// Since the first op does all the heavy lifting of
 			// updating pointers, we can set these to both just be the
 			// new pointer
-			update.Unref = newPtr
-			update.Ref = newPtr
+			var err error
+			*update, err = makeBlockUpdate(newPtr, newPtr)
+			if err != nil {
+				return nil, err
+			}
 		}
 		for _, ptr := range ptrsToFix {
 			newPtr, ok := updates[*ptr]
@@ -2865,7 +2898,10 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 			cr.log.CDebugf(ctx, "Fixing resOp update from unmerged most "+
 				"recent %v to merged most recent %v",
 				update.Unref, mergedMostRecent)
-			update.Unref = mergedMostRecent
+			err = update.setUnref(mergedMostRecent)
+			if err != nil {
+				return nil, nil, err
+			}
 			resOp.Updates[i] = update
 			updates[update.Unref] = update.Ref
 		}
@@ -3131,6 +3167,13 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	updates, bps, err := cr.syncBlocks(
 		ctx, lState, md, unmergedChains, mergedChains,
 		resolvedPaths, lbc, newFileBlocks)
+	if err != nil {
+		return err
+	}
+
+	// Can only do this after syncBlocks, since syncBlocks calls
+	// crFixOpPointers, and the ops may be invalid until then.
+	err = md.data.checkValid()
 	if err != nil {
 		return err
 	}

@@ -12,6 +12,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -559,8 +560,10 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 	})
 	mergedPaths[expectedUnmergedPath.tailPointer()] = mergedPath
 
-	coB := newCreateOp("dirB", dirAPtr, Dir)
-	coC := newCreateOp("dirC", dirBPtr, Dir)
+	coB, err := newCreateOp("dirB", dirAPtr, Dir)
+	require.NoError(t, err)
+	coC, err := newCreateOp("dirC", dirBPtr, Dir)
+	require.NoError(t, err)
 
 	dirAPtr1 := cr1.fbo.nodeCache.PathFromNode(dirA1).tailPointer()
 	expectedActions := map[BlockPointer]crActionList{
@@ -818,7 +821,8 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	mergedPathB := cr1.fbo.nodeCache.PathFromNode(dirB1)
 	mergedPaths[uPathB2.tailPointer()] = mergedPathB
 
-	coF := newCreateOp("dirF", dirEPtr, Dir)
+	coF, err := newCreateOp("dirF", dirEPtr, Dir)
+	require.NoError(t, err)
 
 	mergedPathE := cr1.fbo.nodeCache.PathFromNode(dirE1)
 	expectedActions := map[BlockPointer]crActionList{
@@ -907,8 +911,10 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	mergedPathB := cr1.fbo.nodeCache.PathFromNode(dirB1)
 	mergedPaths[unmergedPathB.tailPointer()] = mergedPathB
 
-	ro := newRmOp("dirA", dirRootPtr)
-	ro.Dir.Ref = unmergedPathRoot.tailPointer()
+	ro, err := newRmOp("dirA", dirRootPtr)
+	require.NoError(t, err)
+	err = ro.Dir.setRef(unmergedPathRoot.tailPointer())
+	require.NoError(t, err)
 	ro.dropThis = true
 	ro.setWriterInfo(writerInfo{name: "u2"})
 	ro.setFinalPath(unmergedPathRoot)
@@ -1081,7 +1087,8 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	})
 	mergedPaths[unmergedPathFile.tailPointer()] = mergedPathFile
 
-	coFile := newCreateOp("file", dirRootPtr, Exec)
+	coFile, err := newCreateOp("file", dirRootPtr, Exec)
+	require.NoError(t, err)
 
 	cre := WriterDeviceDateConflictRenamer{}
 	mergedPathRoot := cr1.fbo.nodeCache.PathFromNode(dirRoot1)

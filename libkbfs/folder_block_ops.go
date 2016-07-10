@@ -801,18 +801,22 @@ func (fbo *folderBlockOps) newRightBlockLocked(
 }
 
 func (fbo *folderBlockOps) getOrCreateSyncInfoLocked(
-	lState *lockState, de DirEntry) *syncInfo {
+	lState *lockState, de DirEntry) (*syncInfo, error) {
 	fbo.blockLock.AssertLocked(lState)
 	ref := de.ref()
 	si, ok := fbo.unrefCache[ref]
 	if !ok {
+		so, err := newSyncOp(de.BlockPointer)
+		if err != nil {
+			return nil, err
+		}
 		si = &syncInfo{
 			oldInfo: de.BlockInfo,
-			op:      newSyncOp(de.BlockPointer),
+			op:      so,
 		}
 		fbo.unrefCache[ref] = si
 	}
-	return si
+	return si, nil
 }
 
 func (fbo *folderBlockOps) mergeUnrefCacheLocked(
@@ -935,8 +939,12 @@ func (fbo *folderBlockOps) PrepRename(
 		return nil, nil, DirEntry{}, nil, NoSuchNameError{oldName}
 	}
 
-	md.AddOp(newRenameOp(oldName, oldParent.tailPointer(), newName,
-		newParent.tailPointer(), newDe.BlockPointer, newDe.Type))
+	ro, err := newRenameOp(oldName, oldParent.tailPointer(), newName,
+		newParent.tailPointer(), newDe.BlockPointer, newDe.Type)
+	if err != nil {
+		return nil, nil, DirEntry{}, nil, err
+	}
+	md.AddOp(ro)
 
 	lbc = make(localBcache)
 	// TODO: Write a SameBlock() function that can deal properly with
@@ -1234,7 +1242,10 @@ func (fbo *folderBlockOps) writeDataLocked(
 	}
 	oldSize := de.Size
 
-	si := fbo.getOrCreateSyncInfoLocked(lState, de)
+	si, err := fbo.getOrCreateSyncInfoLocked(lState, de)
+	if err != nil {
+		return WriteRange{}, nil, 0, err
+	}
 	for nCopied < n {
 		ptr, parentBlock, indexInParent, block, nextBlockOff, startOff, err :=
 			fbo.getFileBlockAtOffsetLocked(
@@ -1473,7 +1484,10 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 		return WriteRange{}, nil, err
 	}
 
-	si := fbo.getOrCreateSyncInfoLocked(lState, de)
+	si, err := fbo.getOrCreateSyncInfoLocked(lState, de)
+	if err != nil {
+		return WriteRange{}, nil, err
+	}
 
 	de.EncodedSize = 0
 	// update the file info
@@ -1575,7 +1589,10 @@ func (fbo *folderBlockOps) truncateLocked(
 	df := fbo.getOrCreateDirtyFileLocked(lState, file)
 	df.updateNotYetSyncingBytes(newlyDirtiedChildBytes)
 
-	si := fbo.getOrCreateSyncInfoLocked(lState, de)
+	si, err := fbo.getOrCreateSyncInfoLocked(lState, de)
+	if err != nil {
+		return nil, nil, 0, err
+	}
 	if nextBlockOff > 0 {
 		// TODO: if indexInParent == 0, we can remove the level of indirection
 		for _, ptr := range parentBlock.IPtrs[indexInParent+1:] {

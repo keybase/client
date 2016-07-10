@@ -497,6 +497,11 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 }
 
 func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata) error {
+	err := rmd.data.checkValid()
+	if err != nil {
+		return err
+	}
+
 	rmds, err := md.readyMD(ctx, rmd)
 	if err != nil {
 		return err

@@ -16,7 +16,8 @@ import (
 
 func TestCreateOpCustomUpdate(t *testing.T) {
 	oldDir := makeFakeBlockPointer(t)
-	co := newCreateOp("name", oldDir, Exec)
+	co, err := newCreateOp("name", oldDir, Exec)
+	require.NoError(t, err)
 	require.Equal(t, blockUpdate{Unref: oldDir}, co.Dir)
 
 	// Update to oldDir should update co.Dir.
@@ -29,7 +30,8 @@ func TestCreateOpCustomUpdate(t *testing.T) {
 
 func TestRmOpCustomUpdate(t *testing.T) {
 	oldDir := makeFakeBlockPointer(t)
-	ro := newRmOp("name", oldDir)
+	ro, err := newRmOp("name", oldDir)
+	require.NoError(t, err)
 	require.Equal(t, blockUpdate{Unref: oldDir}, ro.Dir)
 
 	// Update to oldDir should update ro.Dir.
@@ -44,9 +46,10 @@ func TestRenameOpCustomUpdateWithinDir(t *testing.T) {
 	oldDir := makeFakeBlockPointer(t)
 	renamed := oldDir
 	renamed.ID = fakeBlockID(42)
-	ro := newRenameOp(
+	ro, err := newRenameOp(
 		"old name", oldDir, "new name", oldDir,
 		renamed, Exec)
+	require.NoError(t, err)
 	require.Equal(t, blockUpdate{Unref: oldDir}, ro.OldDir)
 	require.Equal(t, BlockPointer{}, ro.NewDir.Unref)
 	require.Equal(t, BlockPointer{}, ro.NewDir.Ref)
@@ -66,9 +69,10 @@ func TestRenameOpCustomUpdateAcrossDirs(t *testing.T) {
 	oldNewDir.ID = fakeBlockID(42)
 	renamed := oldOldDir
 	renamed.ID = fakeBlockID(43)
-	ro := newRenameOp(
+	ro, err := newRenameOp(
 		"old name", oldOldDir, "new name", oldNewDir,
 		renamed, Exec)
+	require.NoError(t, err)
 	require.Equal(t, blockUpdate{Unref: oldOldDir}, ro.OldDir)
 	require.Equal(t, blockUpdate{Unref: oldNewDir}, ro.NewDir)
 
@@ -91,7 +95,8 @@ func TestRenameOpCustomUpdateAcrossDirs(t *testing.T) {
 
 func TestSyncOpCustomUpdate(t *testing.T) {
 	oldFile := makeFakeBlockPointer(t)
-	so := newSyncOp(oldFile)
+	so, err := newSyncOp(oldFile)
+	require.NoError(t, err)
 	require.Equal(t, blockUpdate{Unref: oldFile}, so.File)
 
 	// Update to oldFile should update so.File.
@@ -106,7 +111,8 @@ func TestSetAttrOpCustomUpdate(t *testing.T) {
 	oldDir := makeFakeBlockPointer(t)
 	file := oldDir
 	file.ID = fakeBlockID(42)
-	sao := newSetAttrOp("name", oldDir, mtimeAttr, file)
+	sao, err := newSetAttrOp("name", oldDir, mtimeAttr, file)
+	require.NoError(t, err)
 	require.Equal(t, blockUpdate{Unref: oldDir}, sao.Dir)
 
 	// Update to oldDir should update sao.Dir.
@@ -469,9 +475,11 @@ func TestOpSerialization(t *testing.T) {
 
 	ops := testOps{}
 	// add a couple ops of different types
-	ops.Ops = append(ops.Ops,
-		newCreateOp("test1", BlockPointer{ID: fakeBlockID(42)}, File),
-		newRmOp("test2", BlockPointer{ID: fakeBlockID(43)}))
+	co, err := newCreateOp("test1", BlockPointer{ID: fakeBlockID(42)}, File)
+	require.NoError(t, err)
+	ro, err := newRmOp("test2", BlockPointer{ID: fakeBlockID(43)})
+	require.NoError(t, err)
+	ops.Ops = append(ops.Ops, co, ro)
 
 	buf, err := c.Encode(ops)
 	if err != nil {
@@ -506,63 +514,81 @@ func TestOpInversion(t *testing.T) {
 	newPtr2 := BlockPointer{ID: fakeBlockID(83)}
 	filePtr := BlockPointer{ID: fakeBlockID(44)}
 
-	cop := newCreateOp("test1", oldPtr1, File)
+	cop, err := newCreateOp("test1", oldPtr1, File)
+	require.NoError(t, err)
 	cop.AddUpdate(oldPtr1, newPtr1)
 	cop.AddUpdate(oldPtr2, newPtr2)
-	expectedIOp := newRmOp("test1", newPtr1)
+	expectedIOp, err := newRmOp("test1", newPtr1)
+	require.NoError(t, err)
 	expectedIOp.AddUpdate(newPtr1, oldPtr1)
 	expectedIOp.AddUpdate(newPtr2, oldPtr2)
 
-	iop1, ok := invertOpForLocalNotifications(cop).(*rmOp)
-	if !ok || !reflect.DeepEqual(*iop1, *expectedIOp) {
+	iop1, err := invertOpForLocalNotifications(cop)
+	require.NoError(t, err)
+	ro, ok := iop1.(*rmOp)
+	if !ok || !reflect.DeepEqual(*ro, *expectedIOp) {
 		t.Errorf("createOp didn't invert properly, expected %v, got %v",
 			expectedIOp, iop1)
 	}
 
 	// convert it back (works because the inversion picks File as the
 	// type, which is what we use above)
-	iop2, ok := invertOpForLocalNotifications(iop1).(*createOp)
-	if !ok || !reflect.DeepEqual(*iop2, *cop) {
+	iop2, err := invertOpForLocalNotifications(iop1)
+	require.NoError(t, err)
+	co, ok := iop2.(*createOp)
+	if !ok || !reflect.DeepEqual(*co, *cop) {
 		t.Errorf("rmOp didn't invert properly, expected %v, got %v",
 			expectedIOp, iop2)
 	}
 
 	// rename
-	rop := newRenameOp("old", oldPtr1, "new", oldPtr2, filePtr, File)
+	rop, err := newRenameOp("old", oldPtr1, "new", oldPtr2, filePtr, File)
+	require.NoError(t, err)
 	rop.AddUpdate(oldPtr1, newPtr1)
 	rop.AddUpdate(oldPtr2, newPtr2)
-	expectedIOp3 := newRenameOp("new", newPtr2, "old", newPtr1, filePtr, File)
+	expectedIOp3, err := newRenameOp("new", newPtr2, "old", newPtr1, filePtr, File)
+	require.NoError(t, err)
 	expectedIOp3.AddUpdate(newPtr1, oldPtr1)
 	expectedIOp3.AddUpdate(newPtr2, oldPtr2)
 
-	iop3, ok := invertOpForLocalNotifications(rop).(*renameOp)
-	if !ok || !reflect.DeepEqual(*iop3, *expectedIOp3) {
+	iop3, err := invertOpForLocalNotifications(rop)
+	require.NoError(t, err)
+	renameOp, ok := iop3.(*renameOp)
+	if !ok || !reflect.DeepEqual(*renameOp, *expectedIOp3) {
 		t.Errorf("renameOp didn't invert properly, expected %v, got %v",
 			expectedIOp3, iop3)
 	}
 
 	// sync (writes should be the same as before)
-	sop := newSyncOp(oldPtr1)
+	sop, err := newSyncOp(oldPtr1)
+	require.NoError(t, err)
 	sop.AddUpdate(oldPtr1, newPtr1)
 	sop.addWrite(2, 3)
 	sop.addTruncate(100)
 	sop.addWrite(10, 12)
-	expectedIOp4 := newSyncOp(newPtr1)
+	expectedIOp4, err := newSyncOp(newPtr1)
+	require.NoError(t, err)
 	expectedIOp4.AddUpdate(newPtr1, oldPtr1)
 	expectedIOp4.Writes = sop.Writes
-	iop4, ok := invertOpForLocalNotifications(sop).(*syncOp)
-	if !ok || !reflect.DeepEqual(*iop4, *expectedIOp4) {
+	iop4, err := invertOpForLocalNotifications(sop)
+	require.NoError(t, err)
+	so, ok := iop4.(*syncOp)
+	if !ok || !reflect.DeepEqual(*so, *expectedIOp4) {
 		t.Errorf("syncOp didn't invert properly, expected %v, got %v",
 			expectedIOp4, iop4)
 	}
 
 	// setAttr
-	saop := newSetAttrOp("name", oldPtr1, mtimeAttr, filePtr)
+	saop, err := newSetAttrOp("name", oldPtr1, mtimeAttr, filePtr)
+	require.NoError(t, err)
 	saop.AddUpdate(oldPtr1, newPtr1)
-	expectedIOp5 := newSetAttrOp("name", newPtr1, mtimeAttr, filePtr)
+	expectedIOp5, err := newSetAttrOp("name", newPtr1, mtimeAttr, filePtr)
+	require.NoError(t, err)
 	expectedIOp5.AddUpdate(newPtr1, oldPtr1)
-	iop5, ok := invertOpForLocalNotifications(saop).(*setAttrOp)
-	if !ok || !reflect.DeepEqual(*iop5, *expectedIOp5) {
+	iop5, err := invertOpForLocalNotifications(saop)
+	require.NoError(t, err)
+	sao, ok := iop5.(*setAttrOp)
+	if !ok || !reflect.DeepEqual(*sao, *expectedIOp5) {
 		t.Errorf("setAttrOp didn't invert properly, expected %v, got %v",
 			expectedIOp5, iop5)
 	}

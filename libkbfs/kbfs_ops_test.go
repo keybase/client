@@ -3122,7 +3122,9 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 	data := []byte{1, 2, 3, 4, 5}
 	expectedFullData := []byte{5, 4, 1, 2, 3, 4, 5, 8, 7, 6}
-	rmd.AddOp(newSyncOp(filePtr))
+	so, err := newSyncOp(filePtr)
+	require.NoError(t, err)
+	rmd.AddOp(so)
 
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 	testPutBlockInCache(config, fileNode.BlockPointer, id, fileBlock)
@@ -3412,7 +3414,9 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
-	rmd.AddOp(newSyncOp(fileInfo.BlockPointer))
+	so, err := newSyncOp(fileInfo.BlockPointer)
+	require.NoError(t, err)
+	rmd.AddOp(so)
 
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 	testPutBlockInCache(config, fileNode.BlockPointer, id, fileBlock)
@@ -3496,7 +3500,9 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
-	rmd.AddOp(newSyncOp(fileInfo.BlockPointer))
+	so, err := newSyncOp(fileInfo.BlockPointer)
+	require.NoError(t, err)
+	rmd.AddOp(so)
 
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 	testPutBlockInCache(config, fileNode.BlockPointer, id, fileBlock)
@@ -3893,7 +3899,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 }
 
 func getOrCreateSyncInfo(
-	ops *folderBranchOps, lState *lockState, de DirEntry) *syncInfo {
+	ops *folderBranchOps, lState *lockState, de DirEntry) (*syncInfo, error) {
 	ops.blocks.blockLock.Lock(lState)
 	defer ops.blocks.blockLock.Unlock(lState)
 	return ops.blocks.getOrCreateSyncInfoLocked(lState, de)
@@ -3937,7 +3943,8 @@ func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 
 	lState := makeFBOLockState()
 
-	si := getOrCreateSyncInfo(ops, lState, rootBlock.Children["a"])
+	si, err := getOrCreateSyncInfo(ops, lState, rootBlock.Children["a"])
+	require.NoError(t, err)
 	si.op.addWrite(0, 10)
 
 	// fsync a
@@ -3963,7 +3970,7 @@ func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 			rmd, false, 0, 0, 0, &newRmd, blocks)
 	}
 
-	err := config.KBFSOps().Sync(ctx, n)
+	err = config.KBFSOps().Sync(ctx, n)
 	if err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
 	}
@@ -4119,7 +4126,8 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 
 	lState := makeFBOLockState()
 
-	si := getOrCreateSyncInfo(ops, lState, rootBlock.Children["a"])
+	si, err := getOrCreateSyncInfo(ops, lState, rootBlock.Children["a"])
+	require.NoError(t, err)
 	// add the dirty blocks to the unref list
 	si.op.addWrite(5, 5)
 	si.op.addWrite(15, 5)
@@ -4150,7 +4158,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 		expectSyncBlock(t, config, nil, uid, id, "", p, rmd, false, 0,
 			refBytes, unrefBytes, &newRmd, blocks)
 
-	err := config.KBFSOps().Sync(ctx, n)
+	err = config.KBFSOps().Sync(ctx, n)
 	if err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
 	}
@@ -4231,7 +4239,8 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 
 	lState := makeFBOLockState()
 
-	si := getOrCreateSyncInfo(ops, lState, rootBlock.Children["b"])
+	si, err := getOrCreateSyncInfo(ops, lState, rootBlock.Children["b"])
+	require.NoError(t, err)
 	si.op.addWrite(0, 10)
 
 	config.DirtyBlockCache().Put(bNode.BlockPointer, p.Branch, bBlock)
@@ -4267,7 +4276,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 		Return(nil)
 
 	// fsync b
-	err := config.KBFSOps().Sync(ctx, n)
+	err = config.KBFSOps().Sync(ctx, n)
 	if err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)
 	}

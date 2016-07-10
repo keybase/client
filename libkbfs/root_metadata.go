@@ -37,6 +37,16 @@ type PrivateMetadata struct {
 	cachedChanges BlockChanges
 }
 
+func (p PrivateMetadata) checkValid() error {
+	for i, op := range p.Changes.Ops {
+		err := op.checkValid()
+		if err != nil {
+			return fmt.Errorf("op[%d]=%v invalid: %v", i, op, err)
+		}
+	}
+	return nil
+}
+
 // MetadataFlags bitfield.
 type MetadataFlags byte
 

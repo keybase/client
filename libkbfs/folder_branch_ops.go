@@ -993,7 +993,8 @@ func (fbo *folderBranchOps) initMDLocked(
 			Ctime: now,
 		},
 	}
-	md.AddOp(newCreateOp("", BlockPointer{}, Dir))
+	co := newCreateOpForRootDir()
+	md.AddOp(co)
 	md.AddRefBlock(md.data.Dir.BlockInfo)
 	md.UnrefBytes = 0
 
@@ -2078,7 +2079,11 @@ func (fbo *folderBranchOps) createEntryLocked(
 		return nil, DirEntry{}, err
 	}
 
-	md.AddOp(newCreateOp(name, dirPath.tailPointer(), entryType))
+	co, err := newCreateOp(name, dirPath.tailPointer(), entryType)
+	if err != nil {
+		return nil, DirEntry{}, err
+	}
+	md.AddOp(co)
 	// create new data block
 	var newBlock Block
 	// XXX: for now, put a unique ID in every new block, to make sure it
@@ -2257,7 +2262,11 @@ func (fbo *folderBranchOps) createLinkLocked(
 		return DirEntry{}, err
 	}
 
-	md.AddOp(newCreateOp(fromName, dirPath.tailPointer(), Sym))
+	co, err := newCreateOp(fromName, dirPath.tailPointer(), Sym)
+	if err != nil {
+		return DirEntry{}, err
+	}
+	md.AddOp(co)
 
 	// Create a direntry for the link, and then sync
 	now := fbo.nowUnixNano()
@@ -2345,7 +2354,11 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 		return NoSuchNameError{name}
 	}
 
-	md.AddOp(newRmOp(name, dir.tailPointer()))
+	ro, err := newRmOp(name, dir.tailPointer())
+	if err != nil {
+		return err
+	}
+	md.AddOp(ro)
 	err = fbo.unrefEntry(ctx, lState, md, dir, de, name)
 	if err != nil {
 		return err
@@ -2749,8 +2762,12 @@ func (fbo *folderBranchOps) setExLocked(
 	}
 
 	parentPath := file.parentPath()
-	md.AddOp(newSetAttrOp(file.tailName(), parentPath.tailPointer(), exAttr,
-		file.tailPointer()))
+	sao, err := newSetAttrOp(file.tailName(), parentPath.tailPointer(), exAttr,
+		file.tailPointer())
+	if err != nil {
+		return err
+	}
+	md.AddOp(sao)
 
 	// If the type isn't File or Exec, there's nothing to do, but
 	// change the ctime anyway (to match ext4 behavior).
@@ -2801,8 +2818,12 @@ func (fbo *folderBranchOps) setMtimeLocked(
 	}
 
 	parentPath := file.parentPath()
-	md.AddOp(newSetAttrOp(file.tailName(), parentPath.tailPointer(), mtimeAttr,
-		file.tailPointer()))
+	sao, err := newSetAttrOp(file.tailName(), parentPath.tailPointer(), mtimeAttr,
+		file.tailPointer())
+	if err != nil {
+		return err
+	}
+	md.AddOp(sao)
 
 	de.Mtime = mtime.UnixNano()
 	// setting the mtime counts as changing the file MD, so must set ctime too
@@ -3356,7 +3377,19 @@ func (fbo *folderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 		// iterate the ops in reverse and invert each one
 		ops := rmd.data.Changes.Ops
 		for j := len(ops) - 1; j >= 0; j-- {
-			fbo.notifyOneOpLocked(ctx, lState, invertOpForLocalNotifications(ops[j]), rmd)
+			io, err := invertOpForLocalNotifications(ops[j])
+			if err != nil {
+				fbo.log.CWarningf(ctx,
+					"got error %v when invert op %v; "+
+						"skipping. Open file handles "+
+						"may now be in an invalid "+
+						"state, which can be fixed by "+
+						"either closing them all or "+
+						"restarting KBFS.",
+					err, ops[j])
+				continue
+			}
+			fbo.notifyOneOpLocked(ctx, lState, io, rmd)
 		}
 	}
 	return nil

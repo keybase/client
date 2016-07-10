@@ -343,10 +343,15 @@ func (ccs *crChains) makeChainForOp(op op) error {
 	case *renameOp:
 		// split rename op into two separate operations, one for
 		// remove and one for create
-		ro := newRmOp(realOp.OldName, realOp.OldDir.Unref)
+		ro, err := newRmOp(realOp.OldName, realOp.OldDir.Unref)
+		if err != nil {
+			return err
+		}
 		ro.setWriterInfo(realOp.getWriterInfo())
+		// realOp.OldDir.Ref may be zero if this is a
+		// post-resolution chain, so set ro.Dir.Ref manually.
 		ro.Dir.Ref = realOp.OldDir.Ref
-		err := ccs.addOp(realOp.OldDir.Ref, ro)
+		err = ccs.addOp(realOp.OldDir.Ref, ro)
 		if err != nil {
 			return err
 		}
@@ -362,9 +367,15 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		if len(realOp.Unrefs()) > 0 {
 			// Something was overwritten; make an explicit rm for it
 			// so we can check for conflicts.
-			roOverwrite := newRmOp(realOp.NewName, ndu)
+			roOverwrite, err := newRmOp(realOp.NewName, ndu)
+			if err != nil {
+				return err
+			}
 			roOverwrite.setWriterInfo(realOp.getWriterInfo())
-			roOverwrite.Dir.Ref = ndr
+			err = roOverwrite.Dir.setRef(ndr)
+			if err != nil {
+				return err
+			}
 			err = ccs.addOp(ndr, roOverwrite)
 			if err != nil {
 				return err
@@ -375,9 +386,14 @@ func (ccs *crChains) makeChainForOp(op op) error {
 			}
 		}
 
-		co := newCreateOp(realOp.NewName, ndu, realOp.RenamedType)
+		co, err := newCreateOp(realOp.NewName, ndu, realOp.RenamedType)
+		if err != nil {
+			return err
+		}
 		co.setWriterInfo(realOp.getWriterInfo())
 		co.renamed = true
+		// ndr may be zero if this is a post-resolution chain,
+		// so set co.Dir.Ref manually.
 		co.Dir.Ref = ndr
 		err = ccs.addOp(ndr, co)
 		if err != nil {
@@ -452,15 +468,18 @@ func (ccs *crChains) makeChainForOp(op op) error {
 
 func (ccs *crChains) makeChainForNewOpWithUpdate(
 	targetPtr BlockPointer, newOp op, update *blockUpdate) error {
-	oldUnref := update.Unref
-	update.Unref = targetPtr
-	update.Ref = update.Unref // so that most recent == original
+	oldUpdate := *update
+	// so that most recent == original
+	var err error
+	*update, err = makeBlockUpdate(targetPtr, update.Unref)
+	if err != nil {
+		return err
+	}
 	defer func() {
 		// reset the update to its original state before returning.
-		update.Unref = oldUnref
-		update.Ref = BlockPointer{}
+		*update = oldUpdate
 	}()
-	err := ccs.makeChainForOp(newOp)
+	err = ccs.makeChainForOp(newOp)
 	if err != nil {
 		return err
 	}
@@ -483,8 +502,11 @@ func (ccs *crChains) makeChainForNewOp(targetPtr BlockPointer, newOp op) error {
 		// In this case, we don't want to split the rename chain, so
 		// just make up a new operation and later overwrite it with
 		// the rename op.
-		co := newCreateOp(realOp.NewName, realOp.NewDir.Unref, File)
-		err := ccs.makeChainForNewOpWithUpdate(targetPtr, co, &co.Dir)
+		co, err := newCreateOp(realOp.NewName, realOp.NewDir.Unref, File)
+		if err != nil {
+			return err
+		}
+		err = ccs.makeChainForNewOpWithUpdate(targetPtr, co, &co.Dir)
 		if err != nil {
 			return err
 		}
