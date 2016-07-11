@@ -9,7 +9,7 @@ const baseMock = {
   onChangePaperKey: () => console.log('onBack'),
   paperKey: '',
   waitingForResponse: false,
-  error: ''
+  error: '',
 }
 
 const dumbComponentMap: DumbComponentMap<Render> = {
