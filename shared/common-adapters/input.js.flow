@@ -14,6 +14,7 @@ export type Props = $Shape<{
   onChange?: (event: Object) => void,
   onChangeText?: (text: string) => void,
   onEnterKeyDown?: (event: Object) => void,
+  underlineShow?: boolean,
   rows?: number,
   rowsMax?: number,
   style?: Object,

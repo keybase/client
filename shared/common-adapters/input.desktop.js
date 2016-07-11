@@ -80,31 +80,32 @@ export default class Input extends Component {
     return (
       <div style={{...style, ...this.props.style}} onClick={() => { this._textField && this._textField.focus() }}>
         <TextField
-          ref={textField => (this._textField = textField)}
-          name='name'
-          onKeyDown={e => this._onKeyDown(e)}
-          fullWidth
-          textAlign='center'
-          inputStyle={{...(this.props.small ? {} : {marginTop: 6}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}
-          underlineStyle={{...styles.underlineStyle, ...this.props.underlineStyle}}
-          errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
-          style={{...textStyle, ...globalStyles.flexBoxColumn, ...this.props.textStyle}}
+          autoComplete={(passwordVisible || password) ? 'off' : undefined}
           autoFocus={this.props.autoFocus}
+          errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
           errorText={this.props.errorText}
-          floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
-          floatingLabelStyle={styles.floatingLabelStyle}
           floatingLabelFocusStyle={styles.floatingLabelFocusStyle}
-          onFocus={() => this.setState({focused: true})}
-          onBlur={() => this.setState({focused: false})}
-          hintText={this.props.hintText}
+          floatingLabelStyle={styles.floatingLabelStyle}
+          floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
+          fullWidth
           hintStyle={{...styles.hintStyle, ...(this.props.multiLine ? {textAlign: 'center'} : {top: 3, bottom: 'auto'}), ...this.props.hintStyle}}
+          hintText={this.props.hintText}
+          inputStyle={{...(this.props.small ? {} : {marginTop: 6}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}
           multiLine={this.props.multiLine}
+          name='name'
+          onBlur={() => this.setState({focused: false})}
           onChange={event => this.onChange(event)}
-          underlineFocusStyle={{...styles.underlineFocusStyle, ...this.props.underlineStyle}}
+          onFocus={() => this.setState({focused: true})}
+          onKeyDown={e => this._onKeyDown(e)}
+          ref={textField => (this._textField = textField)}
           rows={this.props.rows}
           rowsMax={this.props.rowsMax}
-          autoComplete={(passwordVisible || password) ? 'off' : undefined}
+          style={{...textStyle, ...globalStyles.flexBoxColumn, ...this.props.textStyle}}
+          textAlign='center'
           type={password ? 'password' : 'text'}
+          underlineFocusStyle={{...styles.underlineFocusStyle, ...this.props.underlineStyle}}
+          underlineShow={this.props.underlineShow}
+          underlineStyle={{...styles.underlineStyle, ...this.props.underlineStyle}}
           value={this.state.value || ''}
           />
       </div>

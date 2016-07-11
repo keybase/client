@@ -112,7 +112,7 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   }
 
   return (
-    <ClickableBox onClick={() => onClickResult(result)} hoverColor={globalColors.blue4} backgroundColor={globalColors.white} style={rowStyle}>
+    <ClickableBox onClick={() => onClickResult(result)} hoverColor={globalColors.blue4} style={rowStyle}>
       <Box style={{...globalStyles.flexBoxRow}}>
         {icon}
         {alignedBody}
@@ -175,8 +175,8 @@ export class SearchBar extends Component<void, SearchBarProps, void> {
 
   render () {
     return (
-      <Box style={styles.headerContainer}>
-        <Box style={styles.servicesContainer}>
+      <Box>
+        <Box style={stylesServicesContainer}>
           <ServiceIcon
             serviceName='Keybase'
             tooltip='Keybase'
@@ -220,16 +220,23 @@ export class SearchBar extends Component<void, SearchBarProps, void> {
             onClickService={p => this._onClickService(p)}
             />
         </Box>
-        <Input
-          type='text'
-          ref='searchBox'
-          onEnterKeyDown={() => this._onSearch()}
-          onChange={() => this._onDebouncedSearch()}
-          value={this.props.searchText}
-          hintText={this.props.searchHintText}
-          style={styles.input}
-          underlineStyle={{display: 'none'}}
-          textStyle={{height: 40}} />
+        <Box style={stylesInputContainer}>
+          <Input
+            type='text'
+            ref='searchBox'
+            onEnterKeyDown={() => this._onSearch()}
+            onChange={() => this._onDebouncedSearch()}
+            value={this.props.searchText}
+            hintText={this.props.searchHintText}
+            hintStyle={{textAlign: 'left', marginTop: 3}}
+            underlineShow={false}
+            style={stylesInput}
+            textStyle={{height: 31}} />
+          <Icon type='fa-kb-iconfont-remove' style={{marginRight: 16}} onClick={() => {
+            this.refs.searchBox.clearValue()
+            this._onSearch()
+          }} />
+        </Box>
       </Box>
     )
   }
@@ -244,7 +251,7 @@ export function searchResultsList ({results, searchText, onClickResult}: {result
 export class SearchContainer extends Component {
   render () {
     return (
-      <Box style={styles.container}>
+      <Box style={stylesContainer}>
         {this.props.children}
       </Box>
     )
@@ -262,23 +269,26 @@ export default class Render extends Component<void, Props, void> {
   }
 }
 
-export const styles = {
-  container: {
-    paddingTop: 48,
-    overflow: 'auto',
-    flex: 1,
-  },
-  headerContainer: {
-  },
-  servicesContainer: {
-    ...globalStyles.flexBoxRow,
-    height: 64,
-  },
-  input: {
-    textAlign: 'left',
-    height: 48,
-    marginBottom: 0,
-    borderBottom: 'solid 1px',
-    borderBottomColor: globalColors.black_10,
-  },
+const stylesContainer = {
+  paddingTop: 48,
+  overflow: 'auto',
+  flex: 1,
+}
+const stylesServicesContainer = {
+  ...globalStyles.flexBoxRow,
+  height: 48,
+  paddingLeft: 16,
+}
+const stylesInputContainer = {
+  ...globalStyles.flexBoxRow,
+  height: 48,
+  borderBottom: `solid 1px ${globalColors.black_10}`,
+  alignItems: 'center',
+  marginBottom: 8,
+}
+const stylesInput = {
+  flex: 1,
+  textAlign: 'left',
+  marginLeft: 16,
+  marginRight: 30,
 }
