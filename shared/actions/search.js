@@ -75,11 +75,15 @@ function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult, isFollowing:
   }
 }
 
-function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean): ?SearchResult {
+function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean, myself: ?string): ?SearchResult {
   const extraInfo = parseExtraInfo(platform, rr, isFollowing)
   const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
 
   if (platform === 'Keybase' && rr.keybase) {
+    if (rr.keybase.username === myself) { // filter out myself
+      return null
+    }
+
     return {
       service: 'keybase',
       username: rr.keybase.username,
@@ -87,6 +91,10 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: 
       extraInfo,
     }
   } else if (serviceName) {
+    if (rr.keybase && rr.keybase.username === myself) { // filter out myself
+      return null
+    }
+
     return {
       service: 'external',
       icon: platformToLogo32(serviceName),
@@ -102,8 +110,9 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: 
   }
 }
 
-function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>, requestTimestamp: Date, isFollowing: (username: string) => boolean): Results {
-  const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr, isFollowing)))
+function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>,
+  requestTimestamp: Date, isFollowing: (username: string) => boolean, myself: ?string): Results {
+  const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr, isFollowing, myself)))
 
   return {
     type: Constants.results,
@@ -159,7 +168,8 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
           try {
             const json = JSON.parse(results.body)
             const isFollowing = (username: string) => isFollowing_(getState, username) // eslint-disable-line arrow-parens
-            dispatch(rawResults(term, platform, json.list || [], requestTimestamp, isFollowing))
+            const myself = getState().config.username
+            dispatch(rawResults(term, platform, json.list || [], requestTimestamp, isFollowing, myself))
           } catch (_) {
             console.log('Error searching (json). Not handling this error')
           }
