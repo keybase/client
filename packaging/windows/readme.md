@@ -7,17 +7,11 @@
 -- Use Windows' default console window (especially on Windows 10)  
 - Install [Go](https://golang.org/dl/) 1.5.3 (soon to switch to 1.6)  
 - Open a command console and make a directory for cloning the repo, e.g.:  
-`cd c:\`  
-`mkdir work`  
-`cd work`  
-`mkdir src`  
-`cd src`  
-`mkdir github.com`  
-`cd github.com`  
-`mkdir keybase`  
-`cd keybase`  
+`cd ~`  
+`mkdir -p work/src/github.com/keybase`  
+`cd work/src/github.com/keybase`  
 `git clone https://github.com/keybase/client.git`  
-- set GOPATH, e.g. `set GOPATH=c:\work`  
+- set GOPATH, e.g. `set GOPATH=~\work`  
 - set GO15VENDOREXPERIMENT=1 (not needed as of Go 1.6)  
 - `cd %GOPATH%\github.com\keybase\client\go\keybase`  
 - Find and set the address of your local server, e.g. set KEYBASE_SERVER_URI=http://172.16.199.5:3000 or use ci1.keybase.io  
