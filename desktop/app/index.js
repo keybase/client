@@ -82,9 +82,7 @@ function start () {
   })
 
   // Called when the user clicks the dock icon
-  // We'll show the main window if there are no visible
-  // windows
-  app.on('activate', (e, hasVisibleWindows) => {
+  app.on('activate', () => {
     mainWindow.show(true)
   })
 
