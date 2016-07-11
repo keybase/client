@@ -11,7 +11,7 @@ export type State = {
   searchHintText: string,
   searchText: ?string,
   searchIcon: IconType,
-  searchPlatform: ?SearchPlatforms,
+  searchPlatform: SearchPlatforms,
   results: Array<SearchResult>,
   requestTimestamp: ?Date,
   selectedUsers: Array<SearchResult>,
@@ -19,8 +19,12 @@ export type State = {
   showUserGroup: boolean,
 }
 
+const searchHintText = (searchPlatform: SearchPlatforms, selectedUsers: Array<SearchResult>): string => (
+  `${selectedUsers.length ? 'Add' : 'Search'} a ${searchPlatform} user`
+)
+
 const initialState: State = {
-  searchHintText: 'Search for a user on Keybase',
+  searchHintText: searchHintText('Keybase', []),
   searchText: null,
   searchIcon: 'icon-keybase-logo-24',
   searchPlatform: 'Keybase',
@@ -49,10 +53,11 @@ export default function (state: State = initialState, action: SearchActions): St
       break
     case Constants.selectPlatform:
       if (!action.error) {
+        const searchPlatform = action.payload.platform
         return {
           ...state,
-          searchHintText: `Search for a user on ${action.payload.platform}`,
-          searchPlatform: action.payload.platform,
+          searchHintText: searchHintText(searchPlatform, state.selectedUsers),
+          searchPlatform,
         }
       }
       break
@@ -71,17 +76,15 @@ export default function (state: State = initialState, action: SearchActions): St
         // if it's already a keybase search result or the user doesn't have a keybase account.
         const maybeUpgradedUser = user.service === 'external' && user.keybaseSearchResult ? user.keybaseSearchResult : user
         const alreadySelected = state.selectedUsers.find(u => equalSearchResult(u, maybeUpgradedUser)) !== undefined
+        const selectedUsers = alreadySelected ? state.selectedUsers : state.selectedUsers.concat(maybeUpgradedUser)
 
         return {
           ...state,
-          selectedUsers: alreadySelected
-            ? state.selectedUsers
-            : state.selectedUsers.concat(maybeUpgradedUser),
+          selectedUsers,
           showUserGroup: true,
-          searchHintText: 'Search for another user',
+          searchHintText: searchHintText(state.searchPlatform, state.selectedUsers),
           results: [],
           searchText: null,
-          searchPlatform: null,
         }
       }
       break
