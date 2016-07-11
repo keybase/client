@@ -11,6 +11,7 @@ type NotificationChannels = {
   favorites?: true,
   paperkeys?: true,
   keyfamily?: true,
+  service?: true,
 }
 
 let channelsSet = {}
@@ -27,6 +28,7 @@ export default function (channels: NotificationChannels): Promise<void> {
       favorites: !!channelsSet.favorites,
       paperkeys: !!channelsSet.paperkeys,
       keyfamily: !!channelsSet.keyfamily,
+      service: !!channelsSet.service,
     }
 
     engine.listenOnConnect('setNotifications', () => {

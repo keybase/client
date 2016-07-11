@@ -1,5 +1,6 @@
 /* @flow */
 
+import {remote} from 'electron'
 import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
 import {favoriteList} from '../actions/favorite'
@@ -44,6 +45,10 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
       if (model.type === 'RefreshFavorites') {
         dispatch(favoriteList())
       }
+    },
+    'keybase.1.NotifyService.shutdown': () => {
+      console.log('Quitting due to service shutdown')
+      remote.app.quit()
     },
   }
 }
