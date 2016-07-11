@@ -52,6 +52,11 @@
 			"revisionTime": "2015-09-15T09:53:35-07:00"
 		},
 		{
+			"path": "github.com/blang/semver",
+			"revision": "60ec3488bfea7cca02b021d106d9911120d25fe9",
+			"revisionTime": "2016-06-30T22:46:53-07:00"
+		},
+		{
 			"path": "github.com/cenkalti/backoff",
 			"revision": "4dc77674aceaabba2c7e3da25d4c823edfb73f99",
 			"revisionTime": "2015-08-14T12:43:33+03:00"
