@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/keybase/client/libkb"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libdokan"
 	"github.com/keybase/kbfs/libfs"
