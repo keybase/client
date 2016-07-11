@@ -26,6 +26,7 @@ export function listenForNotifications (): (dispatch: Dispatch) => void {
       session: true,
       users: true,
       kbfs: true,
+      service: true,
     })
 
     const listeners: incomingCallMapType = ListenerCreator(dispatch, getState, NotifyPopup)
