@@ -193,7 +193,8 @@ func makeTestKBPKIClientWithUnverifiedKey(t *testing.T) (
 		index := 99
 		keySalt := keySaltForUserDevice(user.Name, index)
 		newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
-		user.UnverifiedVerifyingKeys = []VerifyingKey{newVerifyingKey}
+		key := keybase1.PublicKey{KID: newVerifyingKey.kid}
+		user.UnverifiedKeys = []keybase1.PublicKey{key}
 		users[i] = user
 	}
 	codec := NewCodecMsgpack()
@@ -207,8 +208,8 @@ func TestKBPKIClientHasUnverifiedVerifyingKey(t *testing.T) {
 	c, _, localUsers := makeTestKBPKIClientWithUnverifiedKey(t)
 
 	var unverifiedKey VerifyingKey
-	for _, k := range localUsers[0].UnverifiedVerifyingKeys {
-		unverifiedKey = k
+	for _, k := range localUsers[0].UnverifiedKeys {
+		unverifiedKey.kid = k.KID
 		break
 	}
 

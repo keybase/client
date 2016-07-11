@@ -83,11 +83,11 @@ func (k KeybaseDaemonMeasured) LoadUserPlusKeys(ctx context.Context, uid keybase
 
 // LoadUnverifiedKeys implements the KeybaseDaemon interface for KeybaseDaemonMeasured.
 func (k KeybaseDaemonMeasured) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
-	verifyingKeys []VerifyingKey, cryptKeys []CryptPublicKey, err error) {
+	keys []keybase1.PublicKey, err error) {
 	k.loadUnverifiedKeysTimer.Time(func() {
-		verifyingKeys, cryptKeys, err = k.delegate.LoadUnverifiedKeys(ctx, uid)
+		keys, err = k.delegate.LoadUnverifiedKeys(ctx, uid)
 	})
-	return verifyingKeys, cryptKeys, err
+	return keys, err
 }
 
 // CurrentSession implements the KeybaseDaemon interface for

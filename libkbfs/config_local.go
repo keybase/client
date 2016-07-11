@@ -94,8 +94,7 @@ type LocalUser struct {
 	// Index into UserInfo.VerifyingKeys.
 	CurrentVerifyingKeyIndex int
 	// Unverified keys.
-	UnverifiedVerifyingKeys   []VerifyingKey
-	UnverifiedCryptPublicKeys []CryptPublicKey
+	UnverifiedKeys []keybase1.PublicKey
 }
 
 // GetCurrentCryptPublicKey returns this LocalUser's public encryption key.

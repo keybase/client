@@ -290,7 +290,7 @@ type KeybaseDaemon interface {
 	// of all known public keys associated with the account and the currently verified
 	// keys currently part of the user's sigchain.
 	LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
-		[]VerifyingKey, []CryptPublicKey, error)
+		[]keybase1.PublicKey, error)
 
 	// CurrentSession returns a SessionInfo struct with all the
 	// information for the current session, or an error otherwise.

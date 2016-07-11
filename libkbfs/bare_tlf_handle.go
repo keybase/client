@@ -269,3 +269,8 @@ func (h BareTlfHandle) Extensions() (extensions []TlfHandleExtension) {
 func (h BareTlfHandle) IsFinal() bool {
 	return h.FinalizedInfo != nil
 }
+
+// IsConflict returns true if the handle is a conflict handle.
+func (h BareTlfHandle) IsConflict() bool {
+	return h.ConflictInfo != nil
+}

@@ -216,14 +216,14 @@ func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context, uid keybase1.
 
 // LoadUnverifiedKeys implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
-	[]VerifyingKey, []CryptPublicKey, error) {
+	[]keybase1.PublicKey, error) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	u, err := k.localUsers.getLocalUser(uid)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
-	return u.UnverifiedVerifyingKeys, u.UnverifiedCryptPublicKeys, nil
+	return u.UnverifiedKeys, nil
 }
 
 // CurrentSession implements KeybaseDaemon for KeybaseDaemonLocal.

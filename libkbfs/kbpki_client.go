@@ -131,13 +131,13 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 
 func (k *KBPKIClient) hasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID,
 	verifyingKey VerifyingKey) (bool, error) {
-	verifyingKeys, _, err := k.loadUnverifiedKeys(ctx, uid)
+	keys, err := k.loadUnverifiedKeys(ctx, uid)
 	if err != nil {
 		return false, err
 	}
 
-	for _, key := range verifyingKeys {
-		if !verifyingKey.kid.Equal(key.kid) {
+	for _, key := range keys {
+		if !verifyingKey.kid.Equal(key.KID) {
 			continue
 		}
 		k.log.CDebugf(ctx, "Trusting potentially unverified key %s for user %s",
@@ -237,6 +237,6 @@ func (k *KBPKIClient) Notify(ctx context.Context, notification *keybase1.FSNotif
 }
 
 func (k *KBPKIClient) loadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
-	[]VerifyingKey, []CryptPublicKey, error) {
+	[]keybase1.PublicKey, error) {
 	return k.config.KeybaseDaemon().LoadUnverifiedKeys(ctx, uid)
 }
