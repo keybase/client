@@ -183,6 +183,13 @@
       Message="Microsoft patch KB3033929 is not installed. A reboot is needed between the installation of said patch and the installation of Keybase. https://support.microsoft.com/en-us/kb/3033929">
       <![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND WINTRUSTVERSION >= v6.1.7601.18741)]]>
     </bal:Condition>
+    <!-- If the installer is launched elevated, then the keybase.exe process will initially run under elevated permissions, which 
+        prevents clients run as normal user from connecting to its pipe. It is ok after reboot but confuses people, so lets' just not
+        let them.
+    -->
+    <bal:Condition Message="This installer must not be launched as administrator.">
+      NOT WixBundleElevated
+    </bal:Condition>
   </Fragment>
   <Fragment>
     <util:RegistrySearch
@@ -207,5 +214,4 @@
       <![CDATA[NOT InnoCLIInstalled AND NOT InnoCLIInstalled64]]>
     </bal:Condition>
   </Fragment>
-
 </Wix>
