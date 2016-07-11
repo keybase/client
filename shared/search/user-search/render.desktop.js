@@ -1,16 +1,11 @@
 // @flow
 import React, {Component} from 'react'
-import _ from 'lodash'
 
-import {Avatar, Box, ClickableBox, Icon, Input, Text} from '../../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
-import {IconButton} from 'material-ui'
-import {platformToLogo24} from '../../constants/search'
-
-import type {SearchResult, SearchPlatforms} from '../../constants/search'
-import type {Props, SearchResultFn, ServiceFn} from './render'
-import type {IconType} from '../../common-adapters/icon'
+import type {SearchResult} from '../../constants/search'
+import type {Props, SearchResultFn} from './render'
 import type {Props as TextProps} from '../../common-adapters/text'
 
 function EmboldenTextMatch ({text, match, style, textType, emboldenStyle}: {text: string, match: string, emboldenStyle?: Object, style?: Object, textType: TextProps.type}) {
@@ -112,7 +107,7 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   }
 
   return (
-    <ClickableBox onClick={() => onClickResult(result)} hoverColor={globalColors.blue4} backgroundColor={globalColors.white} style={rowStyle}>
+    <ClickableBox onClick={() => onClickResult(result)} hoverColor={globalColors.blue4} style={rowStyle}>
       <Box style={{...globalStyles.flexBoxRow}}>
         {icon}
         {alignedBody}
@@ -122,163 +117,18 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   )
 }
 
-function ServiceIcon ({serviceName, tooltip, iconType, selected, onClickService}: {serviceName: SearchPlatforms, tooltip: string, iconType: IconType, selected: boolean, onClickService: ServiceFn}) {
-  const iconStyles = {
-    borderRadius: 24,
-    minWidth: 48,
-    width: 48,
-    height: 48,
-    backgroundColor: selected ? globalColors.blue4 : null,
-  }
-
-  return (
-    <IconButton
-      tooltip={tooltip}
-      tooltipPosition='top-center'
-      style={iconStyles}
-      onClick={() => onClickService(serviceName)}>
-      <Icon type={iconType} />
-    </IconButton>
-  )
-}
-
-export type SearchBarProps = {
-  selectedService: ?SearchPlatforms,
-  onSearch: (term: string, platform?: ?SearchPlatforms) => void,
-  searchText: ?string,
-  searchHintText: string,
-  onClickService: (service: SearchPlatforms) => void,
-}
-
-export class SearchBar extends Component<void, SearchBarProps, void> {
-  _onDebouncedSearch: (overridePlatform?: SearchPlatforms) => void;
-
-  constructor (props: SearchBarProps) {
-    super(props)
-    this._onDebouncedSearch = _.debounce(this._onSearch, 500)
-  }
-
-  componentWillReceiveProps (nextProps: SearchBarProps) {
-    if (nextProps.searchText === null && nextProps.searchText !== this.props.searchText) {
-      this.refs && this.refs.searchBox && this.refs.searchBox.clearValue()
-    }
-  }
-
-  _onSearch (overridePlatform?: SearchPlatforms) {
-    this.props.onSearch(this.refs.searchBox ? this.refs.searchBox.getValue() : '', overridePlatform || null)
-  }
-
-  _onClickService (platform: SearchPlatforms) {
-    this.props.onClickService(platform)
-    this.refs.searchBox && !!this.refs.searchBox.getValue() && this._onSearch(platform)
-  }
-
+class Render extends Component<void, Props, void> {
   render () {
     return (
-      <Box style={styles.headerContainer}>
-        <Box style={styles.servicesContainer}>
-          <ServiceIcon
-            serviceName='Keybase'
-            tooltip='Keybase'
-            iconType={platformToLogo24('Keybase')}
-            selected={this.props.selectedService === 'Keybase'}
-            onClickService={p => this._onClickService(p)}
-            />
-          <ServiceIcon
-            serviceName='Twitter'
-            tooltip='Twitter'
-            iconType={platformToLogo24('Twitter')}
-            selected={this.props.selectedService === 'Twitter'}
-            onClickService={p => this._onClickService(p)}
-            />
-          <ServiceIcon
-            serviceName='Github'
-            tooltip='Github'
-            iconType={platformToLogo24('Github')}
-            selected={this.props.selectedService === 'Github'}
-            onClickService={p => this._onClickService(p)}
-            />
-          <ServiceIcon
-            serviceName='Coinbase'
-            tooltip='Coinbase'
-            iconType={platformToLogo24('Coinbase')}
-            selected={this.props.selectedService === 'Coinbase'}
-            onClickService={p => this._onClickService(p)}
-            />
-          <ServiceIcon
-            serviceName='Reddit'
-            tooltip='Reddit'
-            iconType={platformToLogo24('Reddit')}
-            selected={this.props.selectedService === 'Reddit'}
-            onClickService={p => this._onClickService(p)}
-            />
-          <ServiceIcon
-            serviceName='Hackernews'
-            tooltip='Hacker News'
-            iconType={platformToLogo24('Hackernews')}
-            selected={this.props.selectedService === 'Hackernews'}
-            onClickService={p => this._onClickService(p)}
-            />
-        </Box>
-        <Input
-          type='text'
-          ref='searchBox'
-          onEnterKeyDown={() => this._onSearch()}
-          onChange={() => this._onDebouncedSearch()}
-          value={this.props.searchText}
-          hintText={this.props.searchHintText}
-          style={styles.input}
-          underlineStyle={{display: 'none'}}
-          textStyle={{height: 40}} />
+      <Box style={{overflowY: 'auto', flex: 1}}>
+        {this.props.waiting && <Icon type='icon-progress-grey-animated'
+          style={{position: 'absolute', top: 20, left: 0, right: 0, marginLeft: 'auto', marginRight: 'auto'}} />}
+        {this.props.results.map(r => (
+          <Result key={r.service + (r.icon ? r.icon : '') + r.username} result={r}
+            searchText={this.props.searchText || ''} onClickResult={this.props.onClickResult} />))}
       </Box>
     )
   }
 }
 
-export function searchResultsList ({results, searchText, onClickResult}: {results: Array<SearchResult>, searchText: ?string, onClickResult: SearchResultFn}) {
-  return results.map(r => (
-    <Result key={r.service + (r.icon ? r.icon : '') + r.username} result={r} searchText={searchText || ''} onClickResult={onClickResult} />
-  ))
-}
-
-export class SearchContainer extends Component {
-  render () {
-    return (
-      <Box style={styles.container}>
-        {this.props.children}
-      </Box>
-    )
-  }
-}
-
-export default class Render extends Component<void, Props, void> {
-  render () {
-    return (
-      <SearchContainer>
-        <SearchBar {...this.props} />
-        {searchResultsList(this.props)}
-      </SearchContainer>
-    )
-  }
-}
-
-export const styles = {
-  container: {
-    paddingTop: 48,
-    overflow: 'auto',
-    flex: 1,
-  },
-  headerContainer: {
-  },
-  servicesContainer: {
-    ...globalStyles.flexBoxRow,
-    height: 64,
-  },
-  input: {
-    textAlign: 'left',
-    height: 48,
-    marginBottom: 0,
-    borderBottom: 'solid 1px',
-    borderBottomColor: globalColors.black_10,
-  },
-}
+export default Render

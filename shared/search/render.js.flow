@@ -1,6 +1,8 @@
 /* @flow */
 
 import type {Props as UserSearchProps} from './user-search/render'
+import type {Props as SearchBarProps} from './user-search/search-bar'
+import type {Props as UserGroupProps} from './user-search/user-group'
 import type {UserFn} from './user-search/user-group'
 import type {SearchResult} from '../constants/search'
 
@@ -16,7 +18,8 @@ export type Props = {
   onOpenPrivateGroupFolder: () => void,
   onOpenPublicGroupFolder: () => void,
   onGroupChat: () => void,
+  onReset: () => void,
   chatEnabled: boolean
-} & UserSearchProps
+} & UserSearchProps & UserGroupProps & SearchBarProps
 
 export default class Render extends React$Component<void, Props, void> { }

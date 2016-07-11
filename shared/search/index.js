@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {isMobile} from '../constants/platform'
-import {search, selectPlatform, addUserToGroup, removeUserFromGroup, selectUserForInfo, hideUserGroup} from '../actions/search'
+import {search, selectPlatform, addUserToGroup, removeUserFromGroup, selectUserForInfo, hideUserGroup, reset} from '../actions/search'
 import Render from './render'
 import {TypedConnector} from '../util/typed-connect'
 import {searchResultToAssertion} from '../constants/search'
@@ -47,12 +47,13 @@ export default connector.connect(
      showComingSoon: !flags.searchEnabled,
      onClickResult: user => { dispatch(addUserToGroup(user)) },
      selectedService: searchPlatform,
-     onSearch: (term, selectedPlatform) => { dispatch(search(term, selectedPlatform || searchPlatform)); dispatch(hideUserGroup()) },
+     onSearch: (term, selectedPlatform) => { dispatch(search(term, selectedPlatform || searchPlatform)) },
      onClickService: platform => { searchPlatform !== platform && dispatch(selectPlatform(platform)) },
      showUserGroup,
      selectedUsers,
      onRemoveUserFromGroup: user => { dispatch(removeUserFromGroup(user)) },
      onClickUserInGroup: user => { dispatch(isMobile ? routeAppend({path: 'profile', username: user.username}) : selectUserForInfo(user)) },
+     onReset: () => { dispatch(reset()) },
      onAddAnotherUserToGroup: () => { dispatch(hideUserGroup()) },
      onOpenPrivateGroupFolder: () => { username && dispatch(openInKBFS(privateFolderWithUsers(selectedUsers.map(searchResultToAssertion).concat(username)))) },
      onOpenPublicGroupFolder: () => { username && dispatch(openInKBFS(publicFolderWithUsers(selectedUsers.map(searchResultToAssertion)))) },

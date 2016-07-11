@@ -5,8 +5,8 @@ import React, {Component} from 'react'
 export type Props = {
   style?: Object,
   onClick: () => void,
-  hoverColor?: string,
-  backgroundColor?: string,
+  hoverColor?: ?string,
+  backgroundColor?: ?string,
 }
 
 declare export default class Box extends Component {

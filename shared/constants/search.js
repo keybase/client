@@ -77,7 +77,14 @@ export type RemoveUserFromGroup = TypedAction<'search:removeUserFromGroup', {use
 export const toggleUserGroup = 'search:toggleUserGroup'
 export type ToggleUserGroup = TypedAction<'search:toggleUserGroup', {show: boolean}, void>
 
-export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUserToGroup | RemoveUserFromGroup | ToggleUserGroup
+export const reset = 'search:reset'
+export type Reset = TypedAction<'search:reset', {}, void>
+
+export const waiting = 'search:waiting'
+export type Waiting = TypedAction<'search:waiting', {waiting: boolean}, void>
+
+export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUserToGroup
+  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
   return {
