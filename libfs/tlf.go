@@ -11,7 +11,7 @@ import (
 )
 
 // TlfDoesNotExist is a shortcut error for the cases a TLF does not exist and
-// an early successfull exit via FilterTLFEarlyExitError is wished.
+// an early successful exit via FilterTLFEarlyExitError is wished.
 type TlfDoesNotExist struct{}
 
 // Error - implement error interface.

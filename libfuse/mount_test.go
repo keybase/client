@@ -2741,10 +2741,6 @@ func TestUnstageFile(t *testing.T) {
 	}
 }
 
-type TP struct {
-	*testing.T
-}
-
 func TestSimpleCRNoConflict(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
