@@ -299,6 +299,13 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	config1B.Notifier().RegisterForChanges(
 		[]FolderBranch{rootNode1B.GetFolderBranch()}, cro)
 
+	ops1B := getOps(config1B, fileNode1B.GetFolderBranch().Tlf)
+	ops2B := getOps(config2B, fileNode1B.GetFolderBranch().Tlf)
+	lState := makeFBOLockState()
+	if ops1B.getLatestMergedRevision(lState) != ops2B.getCurrMDRevision(lState) {
+		t.Fatalf("latest merged revision from ops1B differs from that from ops2B")
+	}
+
 	// Unstage user 1's changes, and make sure everyone is back in
 	// sync.  TODO: remove this once we have automatic conflict
 	// resolution.

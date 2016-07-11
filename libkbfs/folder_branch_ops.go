@@ -1085,10 +1085,26 @@ func (fbo *folderBranchOps) CheckForNewMDAndInit(
 		fbo.mdWriterLock.Lock(lState)
 		defer fbo.mdWriterLock.Unlock(lState)
 
+		if md.MergedStatus() == Unmerged {
+			mdops := fbo.config.MDOps()
+			mergedMD, err := mdops.GetForTLF(ctx, fbo.id())
+			if err != nil {
+				return err
+			}
+
+			func() {
+				fbo.headLock.Lock(lState)
+				defer fbo.headLock.Unlock(lState)
+				fbo.setLatestMergedRevisionLocked(ctx, lState,
+					mergedMD.Revision, false)
+			}()
+		}
+
 		if md.data.Dir.Type == Dir {
 			// this MD is already initialized
 			fbo.headLock.Lock(lState)
 			defer fbo.headLock.Unlock(lState)
+
 			// Only update the head the first time; later it will be
 			// updated either directly via writes or through the
 			// background update processor.
