@@ -477,7 +477,10 @@ func (e *Identify2WithUID) checkFastCacheHit() bool {
 		return false
 	}
 	fn := func(u keybase1.UserPlusKeys) keybase1.Time { return u.Uvv.CachedAt }
-	u, _ := e.getCache().Get(e.arg.Uid, fn, libkb.Identify2CacheShortTimeout)
+	u, err := e.getCache().Get(e.arg.Uid, fn, libkb.Identify2CacheShortTimeout)
+	if err != nil {
+		e.G().Log.Debug("fast cache error for %s: %s", e.arg.Uid, err)
+	}
 	if u == nil {
 		return false
 	}

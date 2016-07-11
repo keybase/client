@@ -45,7 +45,7 @@ func TestPGPUserInterface(t *testing.T) {
 	notSigned, idCount := p.encrypt(false)
 
 	// test that identify ui was shown once to sender for recipient
-	p.assertEqual(idCount, 1, "identify ui count")
+	p.assertEqual(idCount, 1, "identify ui count [encrypt, not signed]")
 	// with identify2, no tracking, so test that sender doesn't track recipient
 	p.assert(!p.senderTracksRecipient(), "after encrypt, sender shouldn't track recipient")
 	p.assert(!p.recipientTracksSender(), "after encrypt, recipient shouldn't track sender")
@@ -53,8 +53,9 @@ func TestPGPUserInterface(t *testing.T) {
 	// encrypt, signed
 	signed, idCount := p.encrypt(true)
 
-	// test that identify ui was shown once to sender for recipient
-	p.assertEqual(idCount, 1, "identify ui count")
+	// test that identify ui was *not* shown to sender for recipient since
+	// just shown in previous p.encrypt() call.
+	p.assertEqual(idCount, 0, "identify ui count [encrypt, signed]")
 	// with identify2, not tracking, so test that sender doesn't track recipient
 	p.assert(!p.senderTracksRecipient(), "after encrypt, sender shouldn't track recipient")
 	p.assert(!p.recipientTracksSender(), "after encrypt, recipient shouldn't track sender")
@@ -117,14 +118,14 @@ func (p *pgpPair) assert(b bool, m string) {
 	if b {
 		return
 	}
-	p.t.Error(m)
+	p.t.Fatal(m)
 }
 
 func (p *pgpPair) assertEqual(actual, expected int, m string) {
 	if actual == expected {
 		return
 	}
-	p.t.Errorf("%s: %d, expected %d", m, actual, expected)
+	p.t.Fatalf("%s: %d, expected %d", m, actual, expected)
 }
 
 func (p *pgpPair) checkIdentifyUIAndPgpUI(name string, f func(string) (int, int), m string, n int) {

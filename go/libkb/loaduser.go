@@ -330,6 +330,7 @@ func lookupMerkleLeaf(g *GlobalContext, uid keybase1.UID, local *User) (f *Merkl
 		err = fmt.Errorf("uid parameter for lookupMerkleLeaf empty")
 		return
 	}
+
 	q := NewHTTPArgs()
 	q.Add("uid", UIDArg(uid))
 
@@ -337,6 +338,7 @@ func lookupMerkleLeaf(g *GlobalContext, uid keybase1.UID, local *User) (f *Merkl
 	if err == nil && f == nil && local != nil {
 		err = fmt.Errorf("User not found in server Merkle tree")
 	}
+
 	return
 }
 
@@ -357,5 +359,10 @@ func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID) (keybase1.UserPlusKeys
 		return up, fmt.Errorf("Nil user, nil error from LoadUser")
 	}
 
-	return u.ExportToUserPlusKeys(keybase1.Time(0)), nil
+	up, err = u.ExportToUserPlusKeys(keybase1.Time(0)), nil
+	if err != nil {
+		return up, err
+	}
+
+	return up, nil
 }
