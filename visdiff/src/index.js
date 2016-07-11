@@ -2,16 +2,19 @@
 
 import os from 'os'
 import process from 'process'
+import assert from 'assert'
 import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
-import {execSync} from 'child_process'
+import {spawnSync} from 'child_process'
 import _ from 'lodash'
 import mkdirp from 'mkdirp'
 import del from 'del'
 import gm from 'gm'
 import github from 'octonode'
 import s3 from 's3'
+
+const NPM_CMD = os.platform() === 'win32' ? 'npm.cmd' : 'npm'
 
 const BUCKET_S3 = 'keybase-app-visdiff'
 const BUCKET_HTTP = 'https://keybase-app-visdiff.s3.amazonaws.com'
@@ -35,11 +38,11 @@ function checkout (commit) {
   fs.renameSync('node_modules', `node_modules.${origPackageHash}`)
   console.log(`Shelved node_modules to node_modules.${origPackageHash}.`)
 
-  execSync(`git checkout -f ${commit}`)
+  spawnSync('git', ['checkout', '-f', commit])
 
   // The way shared is linked in Windows can confuse git into deleting files
   // and leaving the directory in an unclean state.
-  execSync('git reset --hard')
+  spawnSync('git', ['reset', '--hard'])
 
   console.log(`Checked out ${commit}.`)
 
@@ -50,7 +53,7 @@ function checkout (commit) {
   } else {
     console.log(`Installing dependencies for package.json:${newPackageHash}...`)
   }
-  execSync('npm install', {stdio: 'inherit'})
+  spawnSync(NPM_CMD, ['install'], {stdio: 'inherit'})
 }
 
 function renderScreenshots (commitRange) {
@@ -58,7 +61,7 @@ function renderScreenshots (commitRange) {
     checkout(commit)
     console.log(`Rendering screenshots of ${commit}`)
     mkdirp.sync(`screenshots/${commit}`)
-    execSync(`npm run render-screenshots -- screenshots/${commit}`, {stdio: 'inherit'})
+    spawnSync(NPM_CMD, ['run', 'render-screenshots', '--', `screenshots/${commit}`], {stdio: 'inherit'})
   }
 }
 
@@ -224,6 +227,30 @@ function processDiff (commitRange, results) {
   }
 }
 
+function resolveCommit (name) {
+  let result
+  if (name.startsWith('merge-base(')) {
+    let params
+    try {
+      params = name.match(/\((.*)\)/)[1].split(/\s*,\s*/)
+      assert.equal(params.length, 2, 'There should be two parameters')
+    } catch (e) {
+      console.log('Failed to parse commit:', e)
+      process.exit(1)
+    }
+    result = spawnSync('git', ['merge-base', params[0], params[1]], {encoding: 'utf-8'})
+  } else {
+    result = spawnSync('git', ['rev-parse', name], {encoding: 'utf-8'})
+  }
+  if (result.status !== 0 || !result.stdout) {
+    console.log(`Error resolving commit "${name}":`, result.error, result.stderr)
+    process.exit(1)
+  }
+  let resolved = result.stdout.trim().substr(0, 12)  // remove whitespace and clip for shorter paths
+  console.log(`Resolved "${name}" -> ${resolved}`)
+  return resolved
+}
+
 if (process.argv.length !== 3) {
   console.log(`Usage: node ${path.basename(process.argv[1])} COMMIT1..COMMIT2`)
   process.exit(1)
@@ -231,10 +258,7 @@ if (process.argv.length !== 3) {
 
 const commitRange = process.argv[2]
   .split(/\.{2,3}/)  // Travis gives us ranges like START...END
-  .map(s => {
-    const resolved = execSync(`git rev-parse ${s}`, {encoding: 'utf-8'})
-    return resolved.trim().substr(0, 12)  // remove whitespace and clip for shorter paths
-  })
+  .map(resolveCommit)
 
 console.log(`Performing visual diff of ${commitRange[0]}...${commitRange[1]}:`)
 const diffDir = `${Date.now()}-${commitRange[0]}-${commitRange[1]}-${os.platform()}`
