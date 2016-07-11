@@ -37,7 +37,7 @@ type Stopper interface {
 }
 
 func main() {
-	err := client.SaferDLLLoading()
+	err := libkb.SaferDLLLoading()
 
 	g := G
 	g.Init()
