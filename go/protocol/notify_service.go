@@ -28,7 +28,7 @@ func NotifyServiceProtocol(i NotifyServiceInterface) rpc.Protocol {
 					err = i.Shutdown(ctx)
 					return
 				},
-				MethodType: rpc.MethodNotify,
+				MethodType: rpc.MethodCall,
 			},
 		},
 	}
@@ -39,6 +39,6 @@ type NotifyServiceClient struct {
 }
 
 func (c NotifyServiceClient) Shutdown(ctx context.Context) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyService.shutdown", []interface{}{ShutdownArg{}})
+	err = c.Cli.Call(ctx, "keybase.1.NotifyService.shutdown", []interface{}{ShutdownArg{}}, nil)
 	return
 }

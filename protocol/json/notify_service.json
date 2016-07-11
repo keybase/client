@@ -10,8 +10,7 @@
   "messages": {
     "shutdown": {
       "request": [],
-      "response": null,
-      "oneway": true
+      "response": null
     }
   },
   "namespace": "keybase.1"
