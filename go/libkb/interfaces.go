@@ -15,7 +15,6 @@ package libkb
 import (
 	"io"
 	"net/http"
-	"net/url"
 	"time"
 
 	"golang.org/x/net/context"
@@ -219,18 +218,6 @@ type Command interface {
 }
 
 type JSONPayload map[string]interface{}
-
-type APIArg struct {
-	Endpoint       string
-	uArgs          url.Values
-	Args           HTTPArgs
-	JSONPayload    JSONPayload
-	NeedSession    bool
-	SessionR       SessionReader
-	HTTPStatus     []int
-	AppStatusCodes []int
-	Contextified
-}
 
 type APIRes struct {
 	Status     *jsonw.Wrapper
