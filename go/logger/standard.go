@@ -44,14 +44,16 @@ type CtxLogTags map[interface{}]string
 // tag mappings (context key -> display string).
 func NewContextWithLogTags(
 	ctx context.Context, logTagsToAdd CtxLogTags) context.Context {
-	currTags, ok := LogTagsFromContext(ctx)
-	if !ok {
-		currTags = make(CtxLogTags)
+	currTags, _ := LogTagsFromContext(ctx)
+	newTags := make(CtxLogTags)
+	// Make a copy to avoid races
+	for key, tag := range currTags {
+		newTags[key] = tag
 	}
 	for key, tag := range logTagsToAdd {
-		currTags[key] = tag
+		newTags[key] = tag
 	}
-	return context.WithValue(ctx, CtxLogTagsKey, currTags)
+	return context.WithValue(ctx, CtxLogTagsKey, newTags)
 }
 
 // LogTagsFromContext returns the log tags being passed along with the
