@@ -9,8 +9,12 @@ echo DOKAN_PATH %DOKAN_PATH%
 
 echo GOPATH %GOPATH%
 
+:: CGO causes dll loading security vulnerabilities
+set CGO_ENABLED=0
 echo GOROOT %GOROOT%
 pushd %GOPATH%\src\github.com\keybase\client\go\keybase
+:: Make sure the whole build fails if we can't build keybase
+del keybase.exe
 go version
 go generate
 
@@ -31,10 +35,13 @@ copy %DOKAN_PATH%\Win32\Release\dokan1.lib %GOPATH%\src\github.com\keybase\kbfs\
 ::if NOT %DOKANDLLHASH%==5C4FC6B6E3083E575EED06DE3115A6D05B30DB02 exit /B 1
 
 pushd %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan
+:: Make sure the whole build fails if we can't build kbfsdokan
+del kbfsdokan.exe
 :: winresource invokes git to get the current revision
 for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short HEAD') do set KBFS_HASH=%%i
 for /f "tokens=1 delims=+" %%i in ("%KEYBASE_BUILD%") do set KBFS_BUILD=%%i+%KBFS_HASH%
 echo KBFS_BUILD %KBFS_BUILD%
+set CGO_ENABLED=1
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=%KBFS_BUILD%"
 popd
 
