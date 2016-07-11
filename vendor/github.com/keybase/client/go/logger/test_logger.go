@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"runtime"
 	"strings"
+	"time"
 
 	logging "github.com/keybase/go-logging"
 
@@ -47,7 +48,8 @@ func prefixCaller(extraDepth int, lvl logging.Level, fmts string) string {
 	// it out (at least on a terminal) and do our own formatting.
 	_, file, line, _ := runtime.Caller(2 + extraDepth)
 	elements := strings.Split(file, "/")
-	return fmt.Sprintf("\r%s:%d: [%.1s] %s", elements[len(elements)-1], line, lvl, fmts)
+	return fmt.Sprintf("%s \r%s:%d: [%.1s] %s", time.Now(),
+		elements[len(elements)-1], line, lvl, fmts)
 }
 
 func (log *TestLogger) Debug(fmts string, arg ...interface{}) {
@@ -56,7 +58,8 @@ func (log *TestLogger) Debug(fmts string, arg ...interface{}) {
 
 func (log *TestLogger) CDebugf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.DEBUG, fmts), arg...)
+	log.log.Logf(prepareString(ctx,
+		prefixCaller(log.extraDepth, logging.DEBUG, fmts)), arg...)
 }
 
 func (log *TestLogger) Info(fmts string, arg ...interface{}) {
@@ -65,7 +68,8 @@ func (log *TestLogger) Info(fmts string, arg ...interface{}) {
 
 func (log *TestLogger) CInfof(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.INFO, fmts), arg...)
+	log.log.Logf(prepareString(ctx,
+		prefixCaller(log.extraDepth, logging.INFO, fmts)), arg...)
 }
 
 func (log *TestLogger) Notice(fmts string, arg ...interface{}) {
@@ -74,7 +78,8 @@ func (log *TestLogger) Notice(fmts string, arg ...interface{}) {
 
 func (log *TestLogger) CNoticef(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.NOTICE, fmts), arg...)
+	log.log.Logf(prepareString(ctx,
+		prefixCaller(log.extraDepth, logging.NOTICE, fmts)), arg...)
 }
 
 func (log *TestLogger) Warning(fmts string, arg ...interface{}) {
@@ -83,7 +88,8 @@ func (log *TestLogger) Warning(fmts string, arg ...interface{}) {
 
 func (log *TestLogger) CWarningf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.WARNING, fmts), arg...)
+	log.log.Logf(prepareString(ctx,
+		prefixCaller(log.extraDepth, logging.WARNING, fmts)), arg...)
 }
 
 func (log *TestLogger) Error(fmts string, arg ...interface{}) {
@@ -96,7 +102,8 @@ func (log *TestLogger) Errorf(fmts string, arg ...interface{}) {
 
 func (log *TestLogger) CErrorf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.ERROR, fmts), arg...)
+	log.log.Logf(prepareString(ctx,
+		prefixCaller(log.extraDepth, logging.ERROR, fmts)), arg...)
 }
 
 func (log *TestLogger) Critical(fmts string, arg ...interface{}) {
@@ -105,7 +112,8 @@ func (log *TestLogger) Critical(fmts string, arg ...interface{}) {
 
 func (log *TestLogger) CCriticalf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Logf(prefixCaller(log.extraDepth, logging.CRITICAL, fmts), arg...)
+	log.log.Logf(prepareString(ctx,
+		prefixCaller(log.extraDepth, logging.CRITICAL, fmts)), arg...)
 }
 
 func (log *TestLogger) Fatalf(fmts string, arg ...interface{}) {
@@ -114,7 +122,8 @@ func (log *TestLogger) Fatalf(fmts string, arg ...interface{}) {
 
 func (log *TestLogger) CFatalf(ctx context.Context, fmts string,
 	arg ...interface{}) {
-	log.log.Fatalf(prefixCaller(log.extraDepth, logging.CRITICAL, fmts), arg...)
+	log.log.Fatalf(prepareString(ctx,
+		prefixCaller(log.extraDepth, logging.CRITICAL, fmts)), arg...)
 }
 
 func (log *TestLogger) Profile(fmts string, arg ...interface{}) {
