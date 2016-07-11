@@ -21,6 +21,7 @@ class PaperKeyRender extends Component<void, Props, void> {
             style={stylesInput}
             floatingLabelText='Paper key'
             hintText='opp blezzard tofi pando'
+            errorText={this.props.error}
             onEnterKeyDown={() => this.props.onSubmit()}
             onChangeText={paperKey => this.props.onChangePaperKey(paperKey)}
             type='passwordVisible'
