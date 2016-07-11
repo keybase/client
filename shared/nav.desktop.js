@@ -25,7 +25,6 @@ import {navigateBack, navigateUp} from './actions/router'
 import TabBar from './tab-bar/index.render'
 
 import {bootstrap} from './actions/config'
-import {globalResizing} from './styles/style-guide'
 
 const tabs = {
   [settingsTab]: {module: Settings, name: 'Settings'},
@@ -106,37 +105,8 @@ class Nav extends Component<void, Props, State> {
         return
       }
 
-      const oldWasLogin = this._lastCheckedTab === loginTab
-      const newIsLogin = activeTab === loginTab
-
-      // going to/from login?
-      if (newIsLogin) {
-        const [width, height] = currentWindow.getContentSize()
-
-        // Did we actually change the size
-        if (width !== globalResizing.login.width && height !== globalResizing.login.height) {
-          this._originalSize = {width, height}
-        }
-
-        currentWindow.setContentSize(globalResizing.login.width, globalResizing.login.height, true)
-        currentWindow.setResizable(false)
-
-        if (flags.mainWindow) {
-          ipcRenderer.send('showMain')
-        }
-      } else if (oldWasLogin) {
-        if (!flags.mainWindow) {
-          // We close since that will hide the window and release the dock icon
-          currentWindow.close()
-        }
-
-        if (this._originalSize) {
-          const {width, height} = this._originalSize
-          currentWindow.setContentSize(width, height, true)
-        } else {
-          currentWindow.setContentSize(globalResizing.normal.width, globalResizing.normal.height, true)
-        }
-        currentWindow.setResizable(true)
+      if (flags.mainWindow) {
+        ipcRenderer.send('showMain')
       }
 
       this._lastCheckedTab = activeTab
