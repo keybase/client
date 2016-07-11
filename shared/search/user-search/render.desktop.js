@@ -269,7 +269,9 @@ export default class Render extends Component<void, Props, void> {
     return (
       <SearchContainer>
         <SearchBar {...this.props} />
-        {searchResultsList(this.props)}
+        <Box style={{overflowY: 'auto', flex: 1}}>
+          {searchResultsList(this.props)}
+        </Box>
       </SearchContainer>
     )
   }
@@ -277,7 +279,6 @@ export default class Render extends Component<void, Props, void> {
 
 const stylesContainer = {
   paddingTop: 48,
-  overflow: 'auto',
   flex: 1,
 }
 const stylesServicesContainer = {

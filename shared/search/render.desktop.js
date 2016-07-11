@@ -23,20 +23,18 @@ class Render extends Component<void, Props, void> {
   }
 
   _renderSearchResultsOrGroupAdd () {
-    if (this.props.showUserGroup) {
-      return (
-        <UserGroup
+    return (
+      <Box style={{overflowY: 'auto', height: 'calc(100% - 96px)'}}>
+        {this.props.showUserGroup ? <UserGroup
           users={this.props.selectedUsers}
           onRemoveUser={this.props.onRemoveUserFromGroup}
           onClickUser={this.props.onClickUserInGroup}
           onOpenPrivateGroupFolder={this.props.onOpenPrivateGroupFolder}
           onOpenPublicGroupFolder={this.props.onOpenPublicGroupFolder}
           onGroupChat={this.props.onGroupChat}
-          chatEnabled={this.props.chatEnabled} />
-      )
-    } else {
-      return searchResultsList(this.props)
-    }
+          chatEnabled={this.props.chatEnabled} /> : searchResultsList(this.props)}
+      </Box>
+    )
   }
 
   render () {
