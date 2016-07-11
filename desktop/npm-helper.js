@@ -245,7 +245,7 @@ type IconMeta = {
   require?: any,
 }
 
-export const iconMeta: {[key: string]: IconMeta} = {
+const iconMeta_ = {
 ${
   // eslint really doesn't understand embedded backticks
 /* eslint-disable */
@@ -274,7 +274,8 @@ Object.keys(icons).map(name => {
   }
 }
 
-export type IconType = $Keys<typeof iconMeta>
+export type IconType = $Keys<typeof iconMeta_>
+export const iconMeta: {[key: IconType]: IconMeta} = iconMeta_
 `
 
   fs.writeFileSync('./shared/common-adapters/icon.constants.js', iconConstants, 'utf8')

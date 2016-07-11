@@ -6,6 +6,7 @@ import _ from 'lodash'
 import Checkbox from './checkbox'
 import {Button, Box, TabBar, Text, Avatar, ListItem, PopupMenu, Icon} from './index'
 import {iconMeta} from './icon.constants'
+import type {IconType} from './icon.constants'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
@@ -43,7 +44,9 @@ const checkboxMap: DumbComponentMap<Checkbox> = {
 
 class IconHolder extends Component<void, {iconFont: boolean}, void> {
   render () {
-    const icons = Object.keys(iconMeta).filter(name => iconMeta[name].isFont === this.props.iconFont)
+    // $FlowIssue
+    const keys: Array<IconType> = Object.keys(iconMeta)
+    const icons: Array<IconType> = keys.filter(name => iconMeta[name].isFont === this.props.iconFont)
     return (
       <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'flex-start'}}>
       {icons.map(i => <Box key={i}><Text type='BodyXSmall'>{i}</Text><Icon type={i} style={{margin: 10, border: 'solid 1px #777777'}} /></Box>)}

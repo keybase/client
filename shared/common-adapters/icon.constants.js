@@ -9,7 +9,7 @@ type IconMeta = {
   require?: any,
 }
 
-export const iconMeta: {[key: string]: IconMeta} = {
+const iconMeta_ = {
   'iconfont-caret-down': {
     isFont: true,
     gridSize: 8,
@@ -1248,4 +1248,5 @@ export const iconMeta: {[key: string]: IconMeta} = {
   },
 }
 
-export type IconType = $Keys<typeof iconMeta>
+export type IconType = $Keys<typeof iconMeta_>
+export const iconMeta: {[key: IconType]: IconMeta} = iconMeta_
