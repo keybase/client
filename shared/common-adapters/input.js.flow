@@ -3,33 +3,34 @@
 import React, {Component} from 'react'
 
 export type Props = $Shape<{
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
   autoFocus?: bool,
-  errorText?: ?string,
+  blur: () => void,
   errorStyle?: ?Object,
+  errorStyle?: Object,
+  errorText?: ?string,
   floatingLabelText?: string,
-  hintText?: string,
+  focus: () => void,
   hintStyle?: Object,
+  hintText?: string,
+  inputStyle?: Object,
+  iosOmitUnderline?: boolean,
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'ascii-capable' | 'numbers-and-punctuation' | 'url' | 'number-pad' | 'name-phone-pad' | 'decimal-pad' | 'twitter' | 'web-search',
   multiLine?: bool,
-  onKeyDown?: (event: Object) => void,
   onChange?: (event: Object) => void,
   onChangeText?: (text: string) => void,
   onEnterKeyDown?: (event: Object) => void,
-  underlineShow?: boolean,
+  onKeyDown?: (event: Object) => void,
   rows?: number,
   rowsMax?: number,
+  select: () => void,
+  small?: bool,
   style?: Object,
   textStyle?: Object,
-  inputStyle?: Object,
-  iosOmitUnderline?: boolean,
-  underlineStyle?: Object,
   type?: 'password' | 'text' | 'passwordVisible',
-  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
+  underlineShow?: boolean,
+  underlineStyle?: Object,
   value?: ?string,
-  small?: bool,
-  errorStyle?: Object,
-  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'ascii-capable' | 'numbers-and-punctuation' | 'url' | 'number-pad' | 'name-phone-pad' | 'decimal-pad' | 'twitter' | 'web-search'
 }>
 
-declare export default class Input extends React.Component {
-  props: Props;
-}
+declare export default class Input extends React.Component<void, Props, void> { }

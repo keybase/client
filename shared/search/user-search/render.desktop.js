@@ -170,7 +170,12 @@ export class SearchBar extends Component<void, SearchBarProps, void> {
 
   _onClickService (platform: SearchPlatforms) {
     this.props.onClickService(platform)
-    this.refs.searchBox && !!this.refs.searchBox.getValue() && this._onSearch(platform)
+    if (this.refs.searchBox) {
+      if (this.refs.searchBox.getValue()) {
+        this._onSearch(platform)
+      }
+      this.refs.searchBox.focus()
+    }
   }
 
   render () {
@@ -223,6 +228,7 @@ export class SearchBar extends Component<void, SearchBarProps, void> {
         <Box style={stylesInputContainer}>
           <Input
             type='text'
+            autoFocus
             ref='searchBox'
             onEnterKeyDown={() => this._onSearch()}
             onChange={() => this._onDebouncedSearch()}

@@ -33,6 +33,14 @@ export default class Input extends Component {
     this.props.onChangeText && this.props.onChangeText(event.target.value || '')
   }
 
+  focus () {
+    this._textField && this._textField.focus()
+  }
+
+  select () {
+    this._textField && this._textField.select()
+  }
+
   blur () {
     this._textField && this._textField.blur()
   }
