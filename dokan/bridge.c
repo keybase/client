@@ -11,12 +11,13 @@ static HANDLE __stdcall (*kbfsLibdokanPtr_OpenRequestorToken)(PDOKAN_FILE_INFO D
 static int __stdcall (*kbfsLibdokanPtr_Main)(PDOKAN_OPTIONS DokanOptions, PDOKAN_OPERATIONS DokanOperations);
 
 DWORD kbfsLibdokanLoadLibrary(LPCWSTR location) {
-	DWORD flags = LOAD_LIBRARY_SEARCH_SYSTEM32;
-	for(int i=0; location[i]; i++)
-		if(location[i]== L'/' || location[i]==L'\\') {
-			flags = 0;
-			break;
-		}
+  // 0x800 is LOAD_LIBRARY_SEARCH_SYSTEM32 but that is not defined on build machines.
+  DWORD flags = 0x800;
+  for(int i=0; location[i]; i++)
+    if(location[i]== L'/' || location[i]==L'\\') {
+      flags = 0;
+      break;
+    }
   HMODULE mod = LoadLibraryExW(location, NULL, flags);
   if(mod == NULL)
     return GetLastError();
