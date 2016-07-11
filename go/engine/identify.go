@@ -5,7 +5,6 @@ package engine
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -198,7 +197,10 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	waiter := e.displayUserCardAsync(ctx)
 
 	e.user.IDTable().Identify(is, e.arg.ForceRemoteCheck, ctx.IdentifyUI, nil)
-	waiter()
+
+	if err := <-waiter; err != nil {
+		return nil, err
+	}
 
 	base := e.user.BaseProofSet()
 	res.AddProofsToSet(base, []keybase1.ProofState{keybase1.ProofState_OK})
@@ -342,23 +344,26 @@ func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret
 	return ret, nil
 }
 
-func displayUserCard(g *libkb.GlobalContext, ctx *Context, uid keybase1.UID, useSession bool) {
-	card, _ := getUserCard(g, uid, useSession)
-	if card != nil {
-		ctx.IdentifyUI.DisplayUserCard(*card)
+func displayUserCard(g *libkb.GlobalContext, ctx *Context, uid keybase1.UID, useSession bool) error {
+	card, err := getUserCard(g, uid, useSession)
+	if err != nil {
+		return err
 	}
+	if card == nil {
+		return nil
+	}
+
+	return ctx.IdentifyUI.DisplayUserCard(*card)
 }
 
-func displayUserCardAsync(g *libkb.GlobalContext, ctx *Context, uid keybase1.UID, useSession bool) (waiter func()) {
-	var wg sync.WaitGroup
-	wg.Add(1)
+func displayUserCardAsync(g *libkb.GlobalContext, ctx *Context, uid keybase1.UID, useSession bool) <-chan error {
+	ch := make(chan error)
 	go func() {
-		displayUserCard(g, ctx, uid, useSession)
-		wg.Done()
+		ch <- displayUserCard(g, ctx, uid, useSession)
 	}()
-	return func() { wg.Wait() }
+	return ch
 }
 
-func (e *Identify) displayUserCardAsync(ctx *Context) (waiter func()) {
+func (e *Identify) displayUserCardAsync(ctx *Context) <-chan error {
 	return displayUserCardAsync(e.G(), ctx, e.user.GetUID(), (e.me != nil))
 }

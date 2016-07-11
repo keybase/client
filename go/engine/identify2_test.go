@@ -87,37 +87,56 @@ func (i *Identify2WithUIDTester) GetTorError() libkb.ProofError {
 	return nil
 }
 
-func (i *Identify2WithUIDTester) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) {
-	return
+func (i *Identify2WithUIDTester) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
+	return nil
 }
 func (i *Identify2WithUIDTester) Confirm(*keybase1.IdentifyOutcome) (res keybase1.ConfirmResult, err error) {
 	return
 }
-func (i *Identify2WithUIDTester) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) {
-	return
+func (i *Identify2WithUIDTester) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
+	return nil
 }
-func (i *Identify2WithUIDTester) DisplayCryptocurrency(keybase1.Cryptocurrency)          { return }
-func (i *Identify2WithUIDTester) DisplayKey(keybase1.IdentifyKey)                        { return }
-func (i *Identify2WithUIDTester) ReportLastTrack(*keybase1.TrackSummary)                 { return }
-func (i *Identify2WithUIDTester) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) { return }
-func (i *Identify2WithUIDTester) DisplayTrackStatement(string) (err error)               { return }
-func (i *Identify2WithUIDTester) ReportTrackToken(keybase1.TrackToken) (err error)       { return }
-func (i *Identify2WithUIDTester) SetStrict(b bool)                                       { return }
-func (i *Identify2WithUIDTester) DisplayUserCard(keybase1.UserCard)                      { return }
+func (i *Identify2WithUIDTester) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+	return nil
+}
+func (i *Identify2WithUIDTester) DisplayKey(keybase1.IdentifyKey) error {
+	return nil
+}
+func (i *Identify2WithUIDTester) ReportLastTrack(*keybase1.TrackSummary) error {
+	return nil
+}
+func (i *Identify2WithUIDTester) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error {
+	return nil
+}
+func (i *Identify2WithUIDTester) DisplayTrackStatement(string) error {
+	return nil
+}
+func (i *Identify2WithUIDTester) ReportTrackToken(keybase1.TrackToken) (err error) {
+	return nil
+}
+func (i *Identify2WithUIDTester) SetStrict(b bool) error {
+	return nil
+}
+func (i *Identify2WithUIDTester) DisplayUserCard(keybase1.UserCard) error {
+	return nil
+}
 
 func (i *Identify2WithUIDTester) DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error {
 	return nil
 }
 
-func (i *Identify2WithUIDTester) Finish() {
+func (i *Identify2WithUIDTester) Finish() error {
 	i.finishCh <- struct{}{}
+	return nil
 }
 
-func (i *Identify2WithUIDTester) Dismiss(_ string, _ keybase1.DismissReason) {
+func (i *Identify2WithUIDTester) Dismiss(_ string, _ keybase1.DismissReason) error {
+	return nil
 }
 
-func (i *Identify2WithUIDTester) Start(string, keybase1.IdentifyReason) {
+func (i *Identify2WithUIDTester) Start(string, keybase1.IdentifyReason) error {
 	i.startCh <- struct{}{}
+	return nil
 }
 
 func (i *Identify2WithUIDTester) Get(uid keybase1.UID, gctf libkb.GetCheckTimeFunc, timeout time.Duration) (*keybase1.UserPlusKeys, error) {

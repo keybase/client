@@ -95,6 +95,8 @@ const (
 	LocalTrackMaxAge = 48 * time.Hour
 )
 
+const RemoteIdentifyUITimeout = 5 * time.Second
+
 var MerkleProdKIDs = []string{
 	"010159baae6c7d43c66adf8fb7bb2b8b4cbe408c062cfc369e693ccb18f85631dbcd0a",
 }
