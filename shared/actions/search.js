@@ -2,7 +2,7 @@
 
 import * as Constants from '../constants/search'
 import engine from '../engine'
-import {platformToIcon, platformToLogo32} from '../constants/search'
+import {platformToLogo16, platformToLogo32} from '../constants/search'
 import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
 
@@ -46,7 +46,7 @@ function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult): ExtraInfo {
     if (serviceName) {
       return {
         service: 'external',
-        icon: platformToIcon(serviceName),
+        icon: platformToLogo16(serviceName),
         serviceUsername: rr.service && rr.service.username || '',
         serviceAvatar: rr.service && rr.service.picture_url,
         fullNameOnService: fullName,
