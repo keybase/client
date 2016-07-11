@@ -570,6 +570,54 @@ func (sa SocialAssertion) String() string {
 	return fmt.Sprintf("%s@%s", sa.User, sa.Service)
 }
 
+func (a GetArg) GetEndpoint() string {
+	return a.Endpoint
+}
+
+func (a GetArg) GetHTTPArgs() []StringKVPair {
+	return a.Args
+}
+
+func (a GetArg) GetHttpStatuses() []int {
+	return a.HttpStatus
+}
+
+func (a GetArg) GetAppStatusCodes() []int {
+	return a.AppStatusCode
+}
+
+func (a PostArg) GetEndpoint() string {
+	return a.Endpoint
+}
+
+func (a PostArg) GetHTTPArgs() []StringKVPair {
+	return a.Args
+}
+
+func (a PostArg) GetHttpStatuses() []int {
+	return a.HttpStatus
+}
+
+func (a PostArg) GetAppStatusCodes() []int {
+	return a.AppStatusCode
+}
+
+func (a PostJSONArg) GetEndpoint() string {
+	return a.Endpoint
+}
+
+func (a PostJSONArg) GetHTTPArgs() []StringKVPair {
+	return a.Args
+}
+
+func (a PostJSONArg) GetHttpStatuses() []int {
+	return a.HttpStatus
+}
+
+func (a PostJSONArg) GetAppStatusCodes() []int {
+	return a.AppStatusCode
+}
+
 // ToStatusAble is something that can be coerced into a status. Some error types
 // in your application might want this.
 type ToStatusAble interface {

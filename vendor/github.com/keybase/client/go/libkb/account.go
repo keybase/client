@@ -9,7 +9,6 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 type timedGenericKey struct {
@@ -50,7 +49,7 @@ type Account struct {
 	skbKeyring   *SKBKeyringFile
 	secSigKey    GenericKey // cached secret signing key
 	secEncKey    GenericKey // cached secret encryption key
-	lksec        *LKSec     // local key security
+	lksec        *LKSec     // local key security (this member not currently used)
 
 	paperSigKey *timedGenericKey // cached, unlocked paper signing key
 	paperEncKey *timedGenericKey // cached, unlocked paper encryption key
@@ -164,7 +163,7 @@ func (a *Account) Logout() error {
 	return nil
 }
 
-func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps *PassphraseStream) {
+func (a *Account) CreateStreamCache(tsec Triplesec, pps *PassphraseStream) {
 	if a.streamCache != nil {
 		a.G().Log.Warning("Account.CreateStreamCache overwriting existing StreamCache")
 	}
@@ -204,7 +203,7 @@ func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
 		return err
 	}
 
-	tsec, pps, err := StretchPassphrase(passphrase, salt)
+	tsec, pps, err := StretchPassphrase(a.G(), passphrase, salt)
 	if err != nil {
 		return err
 	}
@@ -256,6 +255,8 @@ func (a *Account) LKSec() *LKSec {
 	return a.lksec
 }
 
+// LKSecUnlock isn't used, but it could be.  It's here for a future
+// refactoring of the key unlock mess.
 func (a *Account) LKSecUnlock(locked []byte) ([]byte, PassphraseGeneration, error) {
 	if a.lksec == nil {
 		return nil, 0, errors.New("LKSecUnlock: no lksec in account")

@@ -162,6 +162,7 @@ const (
 	SCKeyDuplicateUpdate     = int(keybase1.StatusCode_SCKeyDuplicateUpdate)
 	SCKeySyncedPGPNotFound   = int(keybase1.StatusCode_SCKeySyncedPGPNotFound)
 	SCKeyNoMatchingGPG       = int(keybase1.StatusCode_SCKeyNoMatchingGPG)
+	SCKeyRevoked             = int(keybase1.StatusCode_SCKeyRevoked)
 	SCSibkeyAlreadyExists    = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
 	SCDecryptionKeyNotFound  = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
 	SCBadTrackSession        = int(keybase1.StatusCode_SCBadTrackSession)
@@ -174,6 +175,7 @@ const (
 	SCStreamNotFound         = int(keybase1.StatusCode_SCStreamNotFound)
 	SCStreamWrongKind        = int(keybase1.StatusCode_SCStreamWrongKind)
 	SCStreamEOF              = int(keybase1.StatusCode_SCStreamEOF)
+	SCGenericAPIError        = int(keybase1.StatusCode_SCGenericAPIError)
 	SCAPINetworkError        = int(keybase1.StatusCode_SCAPINetworkError)
 	SCTimeout                = int(keybase1.StatusCode_SCTimeout)
 	SCProofError             = int(keybase1.StatusCode_SCProofError)
@@ -374,6 +376,9 @@ const (
 	Kex2ScryptKeylen  = 32
 )
 
+// PaperKeyWordCountMin of 13 is based on the current state:
+// entropy: 143 (PaperKeySecretEntropy [117] + PaperKeyIDBits [22] + PaperKeyVersionBits [4])
+// len(secwords): 2048
 const (
 	PaperKeyScryptCost    = 32768
 	PaperKeyScryptR       = 8
@@ -383,6 +388,7 @@ const (
 	PaperKeyIDBits        = 22
 	PaperKeyVersionBits   = 4
 	PaperKeyVersion       = 0
+	PaperKeyWordCountMin  = 13 // this should never change to a value greater than 13
 )
 
 const UserSummaryLimit = 500 // max number of user summaries in one request
@@ -423,6 +429,8 @@ const (
 type AppStartMode string
 
 const (
-	AppStartModeDisabled AppStartMode = ""
+	AppStartModeError    AppStartMode = "error"
+	AppStartModeDefault  AppStartMode = "default" // It will be "service" in most cases
+	AppStartModeDisabled AppStartMode = "disabled"
 	AppStartModeService  AppStartMode = "service" // Open app after service start
 )

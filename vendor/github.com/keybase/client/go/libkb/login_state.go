@@ -15,7 +15,6 @@ import (
 	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 // PassphraseGeneration represents which generation of the passphrase is
@@ -43,7 +42,7 @@ type LoginContext interface {
 	LoggedInProvisionedLoad() (bool, error)
 	Logout() error
 
-	CreateStreamCache(tsec *triplesec.Cipher, pps *PassphraseStream)
+	CreateStreamCache(tsec Triplesec, pps *PassphraseStream)
 	CreateStreamCacheViaStretch(passphrase string) error
 	PassphraseStreamCache() *PassphraseStreamCache
 	ClearStreamCache()
@@ -281,9 +280,59 @@ func (s *LoginState) GetPassphraseStreamWithPassphrase(passphrase string) (pps *
 	return nil, err
 }
 
+// GetPassphraseStreamExport either returns a cached, verified passphrase stream
+// export, or generates a new one via login.
+func (s *LoginState) GetPassphraseStreamExport(ui SecretUI) (pps keybase1.PassphraseStream, err error) {
+	s.G().Log.Debug("+ GetPassphraseStreamExport() called")
+	defer func() { s.G().Log.Debug("- GetPassphraseStreamExport() -> %s", ErrToOk(err)) }()
+
+	// 1. try cached
+	s.G().Log.Debug("| trying cached passphrase stream")
+	full, err := s.PassphraseStream()
+	if err != nil {
+		return pps, err
+	}
+	if full != nil {
+		s.G().Log.Debug("| cached passphrase stream ok, using it")
+		return full.Export(), nil
+	}
+
+	// 2. try from secret store
+	if s.G().SecretStoreAll != nil {
+		s.G().Log.Debug("| trying to get passphrase stream from secret store")
+		secret, err := s.G().SecretStoreAll.RetrieveSecret(s.G().Env.GetUsername())
+		if err != nil {
+			return pps, err
+		}
+		lks := NewLKSecWithFullSecret(secret, s.G().Env.GetUID(), s.G())
+		if err = lks.LoadServerHalf(nil); err != nil {
+			return pps, err
+		}
+		stream, err := NewPassphraseStreamLKSecOnly(secret)
+		if err != nil {
+			return pps, err
+		}
+		stream.SetGeneration(lks.Generation())
+		return stream.Export(), nil
+	}
+	s.G().Log.Debug("| no secret store available")
+
+	// 3. login and get it
+	s.G().Log.Debug("| using full GetPassphraseStream")
+	full, err = s.GetPassphraseStream(ui)
+	if err != nil {
+		return pps, err
+	}
+	if full != nil {
+		s.G().Log.Debug("| success using full GetPassphraseStream")
+		return full.Export(), nil
+	}
+	return pps, nil
+}
+
 // GetVerifiedTripleSec either returns a cached, verified Triplesec
 // or generates a new one that's verified via Login.
-func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, gen PassphraseGeneration, err error) {
+func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret Triplesec, gen PassphraseGeneration, err error) {
 	err = s.Account(func(a *Account) {
 		ret = a.PassphraseStreamCache().Triplesec()
 		gen = a.GetStreamGeneration()

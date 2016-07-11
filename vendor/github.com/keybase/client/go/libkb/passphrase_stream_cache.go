@@ -5,29 +5,27 @@ package libkb
 
 import (
 	"fmt"
-
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 type PassphraseStreamCache struct {
-	tsec             *triplesec.Cipher
+	tsec             Triplesec
 	passphraseStream *PassphraseStream
 }
 
 type PassphraseStreamCacheReader interface {
-	Triplesec() *triplesec.Cipher
+	Triplesec() Triplesec
 	PassphraseStream() *PassphraseStream
 	Valid() bool
 }
 
-func NewPassphraseStreamCache(tsec *triplesec.Cipher, ps *PassphraseStream) *PassphraseStreamCache {
+func NewPassphraseStreamCache(tsec Triplesec, ps *PassphraseStream) *PassphraseStreamCache {
 	return &PassphraseStreamCache{
 		tsec:             tsec,
 		passphraseStream: ps,
 	}
 }
 
-func (s *PassphraseStreamCache) Triplesec() *triplesec.Cipher {
+func (s *PassphraseStreamCache) Triplesec() Triplesec {
 	if s == nil {
 		return nil
 	}
@@ -53,10 +51,21 @@ func (s *PassphraseStreamCache) PassphraseStreamRef() *PassphraseStream {
 }
 
 func (s *PassphraseStreamCache) Valid() bool {
+	return s.ValidPassphraseStream() && s.ValidTsec()
+}
+
+func (s *PassphraseStreamCache) ValidPassphraseStream() bool {
 	if s == nil {
 		return false
 	}
-	return s.tsec != nil && s.passphraseStream != nil
+	return s.passphraseStream != nil
+}
+
+func (s *PassphraseStreamCache) ValidTsec() bool {
+	if s == nil {
+		return false
+	}
+	return s.tsec != nil
 }
 
 func (s *PassphraseStreamCache) Clear() {

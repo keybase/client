@@ -5,9 +5,10 @@ package libkb
 
 import (
 	"fmt"
+	"sort"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	"sort"
 )
 
 // ConnectionID is a sequential integer assigned to each RPC connection
@@ -80,7 +81,7 @@ func (c *ConnectionManager) LookupConnection(i ConnectionID) rpc.Transporter {
 }
 
 func (c *ConnectionManager) Shutdown() {
-	c.shutdownCh <- struct{}{}
+	close(c.shutdownCh)
 }
 
 func (c *ConnectionManager) lookupTransporter(i ConnectionID) (ret rpc.Transporter) {
@@ -88,6 +89,17 @@ func (c *ConnectionManager) lookupTransporter(i ConnectionID) (ret rpc.Transport
 		ret = conn.transporter
 	}
 	return ret
+}
+
+func (c *ConnectionManager) LookupByClientType(clientType keybase1.ClientType) *rpc.Transporter {
+	for _, v := range c.lookup {
+		if v.details != nil {
+			if v.details.ClientType == clientType {
+				return &v.transporter
+			}
+		}
+	}
+	return nil
 }
 
 func (c *ConnectionManager) Label(id ConnectionID, d keybase1.ClientDetails) error {

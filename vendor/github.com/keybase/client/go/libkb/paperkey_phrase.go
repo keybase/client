@@ -78,6 +78,10 @@ func (p PaperKeyPhrase) words() []string {
 	return strings.Fields(p.String())
 }
 
+func (p PaperKeyPhrase) NumWords() int {
+	return len(p.words())
+}
+
 // wordVersion caclulates the paper key phrase version based on a
 // word.
 func wordVersion(word string) uint8 {

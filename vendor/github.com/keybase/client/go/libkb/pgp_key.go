@@ -300,10 +300,11 @@ func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser, private bool) error {
 	return writer.Close()
 }
 
+var cleanPGPInputRxx = regexp.MustCompile(`[ \t\r]*\n[ \t\r]*`)
+
 func cleanPGPInput(s string) string {
-	rxx := regexp.MustCompile(`[ \t\r]*\n[ \t\r]*`)
 	s = strings.TrimSpace(s)
-	v := rxx.Split(s, -1)
+	v := cleanPGPInputRxx.Split(s, -1)
 	ret := strings.Join(v, "\n")
 	return ret
 }

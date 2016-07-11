@@ -1332,7 +1332,7 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 		return
 	}
 
-	idt.G().Log.Debug("| Check status failed with error: %s", res.err.Error())
+	idt.G().Log.Warning("| Check status failed with error: %s", res.err.Error())
 
 	return
 }
