@@ -270,18 +270,23 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 // If they are set, it will cancel requests that last longer than arg.Timeout and
 // retry them arg.RetryCount times.
 func doRetry(arg APIArg, cli *Client, req *http.Request) (*http.Response, error) {
-	if arg.Timeout == 0 && arg.RetryCount == 0 {
+	if arg.InitialTimeout == 0 && arg.RetryCount == 0 {
 		return cli.cli.Do(req)
 	}
 
 	timeout := cli.cli.Timeout
-	if arg.Timeout != 0 {
-		timeout = arg.Timeout
+	if arg.InitialTimeout != 0 {
+		timeout = arg.InitialTimeout
 	}
 
 	retries := 1
 	if arg.RetryCount > 1 {
 		retries = arg.RetryCount
+	}
+
+	multiplier := 1.0
+	if arg.RetryMultiplier != 0.0 {
+		multiplier = arg.RetryMultiplier
 	}
 
 	var lastErr error
@@ -294,6 +299,7 @@ func doRetry(arg APIArg, cli *Client, req *http.Request) (*http.Response, error)
 			return resp, nil
 		}
 		lastErr = err
+		timeout = time.Duration(float64(timeout) * multiplier)
 	}
 
 	return nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)

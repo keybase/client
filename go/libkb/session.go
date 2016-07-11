@@ -251,14 +251,12 @@ func (s *Session) check() error {
 		return nil
 	}
 
-	res, err := s.G().API.Get(APIArg{
-		SessionR:       s,
-		Endpoint:       "sesscheck",
-		NeedSession:    true,
-		AppStatusCodes: []int{SCOk, SCBadSession},
-		Timeout:        HTTPRetryTimeout,
-		RetryCount:     HTTPRetryCount,
-	})
+	arg := NewRetryAPIArg(s.G(), "sesscheck")
+	arg.SessionR = s
+	arg.NeedSession = true
+	arg.AppStatusCodes = []int{SCOk, SCBadSession}
+
+	res, err := s.G().API.Get(arg)
 
 	if err != nil {
 		return err
