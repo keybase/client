@@ -93,9 +93,10 @@
 			"tree": true
 		},
 		{
+			"checksumSHA1": "JSHl8b3nI8EWvzm+uyrIqj2Hiu4=",
 			"path": "github.com/golang/mock/gomock",
-			"revision": "58a501f87109a45c68afc54e6b1368398678d386",
-			"revisionTime": "2015-12-12T20:20:50-08:00"
+			"revision": "bd3c8e81be01eef76d4b503f5e687d2d1354d2d9",
+			"revisionTime": "2016-01-21T18:51:14Z"
 		},
 		{
 			"path": "github.com/google/go-snappy/snappy",
