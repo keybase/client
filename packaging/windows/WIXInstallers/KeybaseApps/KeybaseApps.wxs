@@ -3,7 +3,7 @@
 	<Product Id="*" Name="Keybase Apps" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="c118f7ec-9a1d-4ff1-91f5-15d208499d7b">
 		<Package InstallerVersion="500" Compressed="yes" InstallPrivileges="limited" InstallScope="perUser" />
     <MediaTemplate EmbedCab="yes"/>
-    <Icon Id="ProductIcon" SourceFile="$(env.GOPATH)\src\github.com\keybase\client\packaging\windows\keybase.ico"/>
+    <Icon Id="ProductIcon" SourceFile="$(env.GOPATH)\src\github.com\keybase\client\media\icons\Keybase.ico"/>
     <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
     <Property Id="ARPHELPLINK" Value="https://www.keybase.io"/>
     <Property Id="ARPURLINFOABOUT" Value="https://www.keybase.io"/>
