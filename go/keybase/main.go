@@ -37,12 +37,19 @@ type Stopper interface {
 }
 
 func main() {
+	err := client.SaferDLLLoading()
 
 	g := G
 	g.Init()
 
+	// Don't abort here. This should not happen on any known version of Windows, but
+	// new MS platforms may create regressions.
+	if err != nil {
+		g.Log.Errorf("SaferDLLLoading error: %v", err.Error())
+	}
+
 	go HandleSignals()
-	err := mainInner(g)
+	err = mainInner(g)
 
 	if g.Env.GetDebug() {
 		// hack to wait a little bit to receive all the log messages from the
