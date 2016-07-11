@@ -579,6 +579,7 @@ export type NotificationChannels = {
   favorites: boolean;
   paperkeys: boolean;
   keyfamily: boolean;
+  service: boolean;
 }
 
 export type NotifyFSFSActivityResult = void
@@ -626,6 +627,15 @@ export type NotifyPaperKeyPaperKeyCachedRpc = $Exact<{
     encKID: KID,
     sigKID: KID
   },
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}>
+
+export type NotifyServiceShutdownResult = void
+
+export type NotifyServiceShutdownRpc = $Exact<{
+  method: 'NotifyService.shutdown',
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -3777,6 +3787,7 @@ export type rpc =
   | NotifyFavoritesFavoritesChangedRpc
   | NotifyKeyfamilyKeyfamilyChangedRpc
   | NotifyPaperKeyPaperKeyCachedRpc
+  | NotifyServiceShutdownRpc
   | NotifySessionClientOutOfDateRpc
   | NotifySessionLoggedInRpc
   | NotifySessionLoggedOutRpc
@@ -5202,6 +5213,13 @@ export type incomingCallMapType = {
       encKID: KID,
       sigKID: KID
     },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.NotifyService.shutdown'?: (
+    params: {},
     response: {
       error: (err: RPCError) => void,
       result: () => void

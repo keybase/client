@@ -16,6 +16,7 @@ type NotificationChannels struct {
 	Favorites bool `codec:"favorites" json:"favorites"`
 	Paperkeys bool `codec:"paperkeys" json:"paperkeys"`
 	Keyfamily bool `codec:"keyfamily" json:"keyfamily"`
+	Service   bool `codec:"service" json:"service"`
 }
 
 type SetNotificationsArg struct {

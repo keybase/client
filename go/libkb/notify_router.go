@@ -4,6 +4,9 @@
 package libkb
 
 import (
+	"sync"
+	"time"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	context "golang.org/x/net/context"
@@ -362,4 +365,45 @@ func (n *NotifyRouter) HandleKeyfamilyChanged(uid keybase1.UID) {
 		n.listener.KeyfamilyChanged(uid)
 	}
 	n.G().Log.Debug("- Sent keyfamily changed notfication")
+}
+
+// HandleServiceShutdown is called whenever the service shuts down.
+func (n *NotifyRouter) HandleServiceShutdown() {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending service shutdown notfication")
+
+	var wg sync.WaitGroup
+
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Service` notification type
+		if n.getNotificationChannels(id).Service {
+			// In the background do...
+			wg.Add(1)
+			go func() {
+				(keybase1.NotifyServiceClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).Shutdown(context.TODO())
+				wg.Done()
+			}()
+		}
+		return true
+	})
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		n.G().Log.Warning("Timed out sending service shutdown notifications, proceeding to shutdown")
+	}
+
+	n.G().Log.Debug("- Sent service shutdown notfication")
 }
