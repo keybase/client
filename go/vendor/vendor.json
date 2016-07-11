@@ -205,8 +205,13 @@
 		},
 		{
 			"path": "github.com/keybase/go-ps",
-			"revision": "eae146130275a0543f214777bbfa8f8f9b34ca53",
-			"revisionTime": "2016-06-23T20:06:58-07:00"
+			"revision": "a56a1a84b3b72e5685e6f97c27b352b2ccec99c1",
+			"revisionTime": "2016-07-11T15:06:55Z"
+		},
+		{
+			"path": "github.com/keybase/go-ps/darwincgo",
+			"revision": "a56a1a84b3b72e5685e6f97c27b352b2ccec99c1",
+			"revisionTime": "2016-07-11T15:06:55Z"
 		},
 		{
 			"path": "github.com/keybase/go-triplesec",
