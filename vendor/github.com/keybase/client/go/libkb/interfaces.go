@@ -24,6 +24,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 	gregor "github.com/keybase/gregor"
+	gregor1 "github.com/keybase/gregor/protocol/gregor1"
 )
 
 type CommandLine interface {
@@ -62,6 +63,7 @@ type CommandLine interface {
 	GetLocalRPCDebug() string
 	GetTimers() string
 	GetRunMode() (RunMode, error)
+	GetAppStartMode() string
 
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)
@@ -70,6 +72,8 @@ type CommandLine interface {
 	GetTorHiddenAddress() string
 	GetTorProxy() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
+
+	GetMountDir() string
 
 	// Lower-level functions
 	GetGString(string) string
@@ -153,6 +157,7 @@ type ConfigReader interface {
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorDisabled() (bool, bool)
 	GetGregorPingInterval() (time.Duration, bool)
+	GetMountDir() string
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
@@ -161,7 +166,7 @@ type ConfigReader interface {
 	GetUpdateURL() string
 	GetUpdateDisabled() (bool, bool)
 	GetLocalTrackMaxAge() (time.Duration, bool)
-	GetAppStartMode() AppStartMode
+	GetAppStartMode() string
 	IsAdmin() (bool, bool)
 
 	GetTorMode() (TorMode, error)
@@ -309,6 +314,7 @@ type PromptArg struct {
 	Checker        *Checker
 	RetryMessage   string
 	UseSecretStore bool
+	ShowTyping     bool
 }
 
 type LoginUI interface {
@@ -330,7 +336,7 @@ type SecretUI interface {
 }
 
 type SaltpackUI interface {
-	SaltpackPromptForDecrypt(context.Context, keybase1.SaltpackPromptForDecryptArg) error
+	SaltpackPromptForDecrypt(context.Context, keybase1.SaltpackPromptForDecryptArg, bool) error
 	SaltpackVerifySuccess(context.Context, keybase1.SaltpackVerifySuccessArg) error
 }
 
@@ -353,10 +359,6 @@ type PgpUI interface {
 
 type ProvisionUI interface {
 	keybase1.ProvisionUiInterface
-}
-
-type UpdateUI interface {
-	keybase1.UpdateUiInterface
 }
 
 type PromptDefault int
@@ -399,7 +401,6 @@ type UI interface {
 	GetGPGUI() GPGUI
 	GetProvisionUI(role KexRole) ProvisionUI
 	GetPgpUI() PgpUI
-	GetUpdateUI() UpdateUI
 	Configure() error
 	Shutdown() error
 }
@@ -411,8 +412,8 @@ type UIRouter interface {
 	// error is nil.
 	GetIdentifyUI() (IdentifyUI, error)
 	GetSecretUI(sessionID int) (SecretUI, error)
-	GetUpdateUI() (UpdateUI, error)
 	GetRekeyUI() (keybase1.RekeyUIInterface, int, error)
+	GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error)
 
 	Shutdown()
 }
@@ -421,6 +422,13 @@ type UIConsumer interface {
 	Name() string
 	RequiredUIs() []UIKind
 	SubConsumers() []UIConsumer
+}
+
+type Triplesec interface {
+	DeriveKey(l int) ([]byte, []byte, error)
+	Decrypt([]byte) ([]byte, error)
+	Encrypt([]byte) ([]byte, error)
+	Scrub()
 }
 
 type Clock interface {
@@ -434,10 +442,17 @@ type GregorDismisser interface {
 type GregorInBandMessageHandler interface {
 	IsAlive() bool
 	Name() string
-	Create(ctx context.Context, category string, ibm gregor.Item) (bool, error)
-	Dismiss(ctx context.Context, category string, ibm gregor.Item) (bool, error)
+	Create(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error)
+	Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error)
+}
+
+type GregorFirehoseHandler interface {
+	IsAlive() bool
+	PushState(gregor1.State, keybase1.PushReason)
+	PushOutOfBandMessages([]gregor1.OutOfBandMessage)
 }
 
 type GregorListener interface {
 	PushHandler(handler GregorInBandMessageHandler)
+	PushFirehoseHandler(handler GregorFirehoseHandler)
 }

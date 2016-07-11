@@ -17,6 +17,7 @@ type ResolveResult struct {
 	body               *jsonw.Wrapper
 	err                error
 	queriedKbUsername  string
+	queriedByUID       bool
 	resolvedKbUsername string
 	cachedAt           time.Time
 	mutable            bool
@@ -41,6 +42,10 @@ func (res *ResolveResult) GetNormalizedUsername() NormalizedUsername {
 }
 func (res *ResolveResult) GetNormalizedQueriedUsername() NormalizedUsername {
 	return NewNormalizedUsername(res.queriedKbUsername)
+}
+
+func (res *ResolveResult) WasKBAssertion() bool {
+	return res.queriedKbUsername != "" || res.queriedByUID
 }
 
 func (res *ResolveResult) GetError() error {
@@ -132,6 +137,8 @@ func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, with
 
 	if au.IsKeybase() {
 		res.queriedKbUsername = au.GetValue()
+	} else if au.IsUID() {
+		res.queriedByUID = true
 	}
 
 	if key, val, res.err = au.ToLookup(); res.err != nil {

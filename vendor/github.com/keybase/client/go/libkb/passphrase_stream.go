@@ -10,20 +10,34 @@ import (
 	triplesec "github.com/keybase/go-triplesec"
 )
 
-func StretchPassphrase(passphrase string, salt []byte) (tsec *triplesec.Cipher, pps *PassphraseStream, err error) {
+func NewSecureTriplesec(passphrase []byte, salt []byte) (Triplesec, error) {
+	return triplesec.NewCipher(passphrase, salt)
+}
+
+func StretchPassphrase(g *GlobalContext, passphrase string, salt []byte) (tsec Triplesec, pps *PassphraseStream, err error) {
 	if salt == nil {
 		err = fmt.Errorf("no salt provided to StretchPassphrase")
-		return
+		return nil, nil, err
 	}
 	var tmp []byte
-	if tsec, err = triplesec.NewCipher([]byte(passphrase), salt); err != nil {
-		return
+	var fn func(pw []byte, salt []byte) (Triplesec, error)
+
+	if g == nil {
+		fn = NewSecureTriplesec
+	} else {
+		fn = g.NewTriplesec
 	}
-	if _, tmp, err = tsec.DeriveKey(extraLen); err != nil {
-		return
+
+	tsec, err = fn([]byte(passphrase), salt)
+	if err != nil {
+		return nil, nil, err
+	}
+	_, tmp, err = tsec.DeriveKey(extraLen)
+	if err != nil {
+		return nil, nil, err
 	}
 	pps = NewPassphraseStream(tmp)
-	return
+	return tsec, pps, nil
 }
 
 const (
@@ -48,6 +62,23 @@ func NewPassphraseStream(s []byte) *PassphraseStream {
 		stream: s,
 		gen:    PassphraseGeneration(0),
 	}
+}
+
+// NewPassphraseStreamLKSecOnly creates a PassphraseStream only with the lks bytes
+// (stream[lksIndex:]).  The rest of the stream is zeros.
+// This is used to create a passphrase stream from the information in the
+// secret store, which only contains the lksec portion of the stream.
+func NewPassphraseStreamLKSecOnly(s []byte) (*PassphraseStream, error) {
+	if len(s) != lksLen {
+		return nil, fmt.Errorf("invalid lksec stream length %d (expected %d)", len(s), lksLen)
+	}
+	stream := make([]byte, extraLen)
+	copy(stream[lksIndex:], s)
+	ps := &PassphraseStream{
+		stream: stream,
+		gen:    PassphraseGeneration(0),
+	}
+	return ps, nil
 }
 
 func (ps *PassphraseStream) SetGeneration(gen PassphraseGeneration) {

@@ -7,8 +7,10 @@ package libkb
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"sort"
+	"strconv"
 	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -107,7 +109,9 @@ func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
 	for j, d := range ir.Revoked {
 		// Should have all non-nil elements...
 		tmp.Revoked[j] = *ExportTrackDiff(d)
-		tmp.BreaksTracking = true
+		if d.BreaksTracking() {
+			tmp.BreaksTracking = true
+		}
 	}
 	tmp.RevokedDetails = ir.RevokedDetails
 	return &tmp
@@ -231,6 +235,10 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			fp, _ = PGPFingerprintFromHex(s.Desc)
 		}
 		return KeyExistsError{fp}
+	case SCKeyNotFound:
+		return NoKeyError{}
+	case SCKeyNoEldest:
+		return NoSigChainError{}
 	case SCStreamExists:
 		return StreamExistsError{}
 	case SCBadInvitationCode:
@@ -333,6 +341,24 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return NotFoundError{Msg: s.Desc}
 	case SCDecryptionError:
 		return DecryptionError{}
+	case SCKeyRevoked:
+		return KeyRevokedError{}
+	case SCGenericAPIError:
+		var code int
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "code":
+				var err error
+				code, err = strconv.Atoi(field.Value)
+				if err != nil {
+					G.Log.Warning("error parsing generic API error code: %s", err)
+				}
+			}
+		}
+		return &APIError{
+			Msg:  s.Desc,
+			Code: code,
+		}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -652,6 +678,18 @@ func ExportPGPIdentity(identity *openpgp.Identity) keybase1.PGPIdentity {
 	}
 }
 
+func (kf KeyFamily) Export() []keybase1.PublicKey {
+	var res []keybase1.PublicKey
+	for kid := range kf.AllKIDs {
+		if pgpKeySet, isPGP := kf.PGPKeySets[kid]; isPGP {
+			res = append(res, pgpKeySet.PermissivelyMergedKey.Export())
+		} else {
+			res = append(res, keybase1.PublicKey{KID: kid})
+		}
+	}
+	return res
+}
+
 func (bundle *PGPKeyBundle) Export() keybase1.PublicKey {
 	kid := bundle.GetKID()
 	fingerprintStr := ""
@@ -747,6 +785,7 @@ func (ckf ComputedKeyFamily) ExportRevokedDeviceKeys() []keybase1.RevokedKey {
 				Unix:  keybase1.TimeFromSeconds(key.RevokedAt.Unix),
 				Chain: key.RevokedAt.Chain,
 			},
+			By: key.RevokedBy,
 		}
 		ex = append(ex, rkey)
 	}
@@ -1138,4 +1177,30 @@ func (e DecryptionError) ToStatus() keybase1.Status {
 		Name: "SC_DECRYPTION_ERROR",
 		Desc: e.Error(),
 	}
+}
+
+func (e NoSigChainError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCKeyNoEldest,
+		Name: "SC_KEY_NO_ELDEST",
+		Desc: e.Error(),
+	}
+}
+
+func (e KeyRevokedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCKeyRevoked,
+		Name: "SC_KEY_REVOKED_ERROR",
+		Desc: e.Error(),
+	}
+}
+
+func (a *APIError) ToStatus() (s keybase1.Status) {
+	s.Code = SCGenericAPIError
+	s.Name = "GENERIC_API_ERROR"
+	s.Desc = a.Msg
+	s.Fields = []keybase1.StringKVPair{
+		{"code", fmt.Sprintf("%d", a.Code)},
+	}
+	return
 }

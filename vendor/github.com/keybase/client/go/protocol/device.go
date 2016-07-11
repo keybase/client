@@ -14,6 +14,7 @@ type DeviceDetail struct {
 	Provisioner   *Device `codec:"provisioner,omitempty" json:"provisioner,omitempty"`
 	ProvisionedAt *Time   `codec:"provisionedAt,omitempty" json:"provisionedAt,omitempty"`
 	RevokedAt     *Time   `codec:"revokedAt,omitempty" json:"revokedAt,omitempty"`
+	RevokedBy     KID     `codec:"revokedBy" json:"revokedBy"`
 	CurrentDevice bool    `codec:"currentDevice" json:"currentDevice"`
 }
 

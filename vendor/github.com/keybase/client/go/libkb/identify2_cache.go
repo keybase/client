@@ -70,7 +70,7 @@ func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, timeout ti
 func (c *Identify2Cache) Insert(up *keybase1.UserPlusKeys) error {
 	tmp := *up
 	copy := &tmp
-	copy.Uvv.CachedAt = keybase1.Time(time.Now().Unix())
+	copy.Uvv.CachedAt = keybase1.ToTime(time.Now())
 	return c.cache.Set(string(up.Uid), copy)
 }
 

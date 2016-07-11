@@ -52,6 +52,11 @@
 			"revisionTime": "2015-09-15T09:53:35-07:00"
 		},
 		{
+			"path": "github.com/blang/semver",
+			"revision": "60ec3488bfea7cca02b021d106d9911120d25fe9",
+			"revisionTime": "2016-06-30T22:46:53-07:00"
+		},
+		{
 			"path": "github.com/cenkalti/backoff",
 			"revision": "4dc77674aceaabba2c7e3da25d4c823edfb73f99",
 			"revisionTime": "2015-08-14T12:43:33+03:00"
@@ -129,8 +134,8 @@
 		{
 			"checksumSHA1": "hajIhCr8Znf3CAx6HrkWMTzeoPE=",
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "9ac76dd2b2280d7f90e953ded53ef55c6a92b556",
-			"revisionTime": "2016-06-10T22:58:26Z"
+			"revision": "58bf9734974215ebd99da9c18fb06eb09991cb55",
+			"revisionTime": "2016-07-11T12:37:48-07:00"
 		},
 		{
 			"checksumSHA1": "CzXn2I3yTTfbJrJmvWxyOnDdTxA=",
@@ -141,20 +146,20 @@
 		{
 			"checksumSHA1": "G6zAlO+oHfgqZGGqQGwTCQnFTSU=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "9ac76dd2b2280d7f90e953ded53ef55c6a92b556",
-			"revisionTime": "2016-06-10T22:58:26Z"
+			"revision": "58bf9734974215ebd99da9c18fb06eb09991cb55",
+			"revisionTime": "2016-07-11T12:37:48-07:00"
 		},
 		{
 			"checksumSHA1": "XhCyoYv9MobH4lRuM0iBWMUWDI4=",
 			"path": "github.com/keybase/client/go/logger",
 			"revision": "58bf9734974215ebd99da9c18fb06eb09991cb55",
-			"revisionTime": "2016-07-11T19:37:48Z"
+			"revisionTime": "2016-07-11T12:37:48-07:00"
 		},
 		{
 			"checksumSHA1": "/hQtx/hBBmD44SyNSvMOd2XwPo0=",
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "0f0ecd3725dccd30fab60a2cd8d6aecc8dbb4a5d",
-			"revisionTime": "2016-06-28T20:44:09-07:00"
+			"revision": "58bf9734974215ebd99da9c18fb06eb09991cb55",
+			"revisionTime": "2016-07-11T12:37:48-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",

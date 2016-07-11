@@ -69,7 +69,7 @@ type SKBPriv struct {
 	PassphraseGeneration int    `codec:"passphrase_generation,omitempty"`
 }
 
-func (key *PGPKeyBundle) ToServerSKB(gc *GlobalContext, tsec *triplesec.Cipher, gen PassphraseGeneration) (ret *SKB, err error) {
+func (key *PGPKeyBundle) ToServerSKB(gc *GlobalContext, tsec Triplesec, gen PassphraseGeneration) (ret *SKB, err error) {
 
 	ret = NewSKB(gc)
 
@@ -274,7 +274,7 @@ func (s *SKB) unlockSecretKeyFromSecretRetriever(lctx LoginContext, secretRetrie
 //
 // question: why is this a member of SKB?
 //
-func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (tsec *triplesec.Cipher, ret *PassphraseStream, err error) {
+func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (tsec Triplesec, ret *PassphraseStream, err error) {
 	var salt []byte
 	username := s.G().Env.GetUsername().String()
 	if lctx != nil {
@@ -302,10 +302,10 @@ func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (
 	if err != nil {
 		return nil, nil, err
 	}
-	return StretchPassphrase(passphrase, salt)
+	return StretchPassphrase(s.G(), passphrase, salt)
 }
 
-func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triplesec.Cipher, pps *PassphraseStream, secretStorer SecretStorer) (key GenericKey, err error) {
+func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec Triplesec, pps *PassphraseStream, secretStorer SecretStorer) (key GenericKey, err error) {
 	if key = s.decryptedSecret; key != nil {
 		return
 	}
@@ -316,7 +316,7 @@ func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triple
 		unlocked = s.Priv.Data
 	case int(triplesec.Version):
 		if tsec == nil {
-			tsec, err = triplesec.NewCipher([]byte(passphrase), nil)
+			tsec, err = s.G().NewTriplesec([]byte(passphrase), nil)
 			if err != nil {
 				return nil, err
 			}
@@ -382,7 +382,7 @@ func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 	return
 }
 
-func (s *SKB) tsecUnlock(tsec *triplesec.Cipher) ([]byte, error) {
+func (s *SKB) tsecUnlock(tsec Triplesec) ([]byte, error) {
 	unlocked, err := tsec.Decrypt(s.Priv.Data)
 	if err != nil {
 		if _, ok := err.(triplesec.BadPassphraseError); ok {
@@ -696,7 +696,7 @@ func (s *SKB) UnlockNoPrompt(lctx LoginContext, secretStore SecretStore) (Generi
 	}
 
 	// try using the passphrase stream cache
-	var tsec *triplesec.Cipher
+	var tsec Triplesec
 	var pps *PassphraseStream
 	if lctx != nil {
 		tsec = lctx.PassphraseStreamCache().Triplesec()

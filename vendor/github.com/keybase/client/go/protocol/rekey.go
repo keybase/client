@@ -10,7 +10,7 @@ import (
 
 type TLFID string
 type TLF struct {
-	Tlfid     TLFID    `codec:"tlfid" json:"tlfid"`
+	Id        TLFID    `codec:"id" json:"id"`
 	Name      string   `codec:"name" json:"name"`
 	Writers   []string `codec:"writers" json:"writers"`
 	Readers   []string `codec:"readers" json:"readers"`
@@ -18,9 +18,9 @@ type TLF struct {
 }
 
 type ProblemTLF struct {
-	Tlf       TLF   `codec:"tlf" json:"tlf"`
-	Score     int   `codec:"score" json:"score"`
-	Solutions []KID `codec:"solutions" json:"solutions"`
+	Tlf           TLF   `codec:"tlf" json:"tlf"`
+	Score         int   `codec:"score" json:"score"`
+	Solution_kids []KID `codec:"solution_kids" json:"solution_kids"`
 }
 
 // ProblemSet is for a particular (user,kid) that initiated a rekey problem.

@@ -70,18 +70,22 @@ type GlobalContext struct {
 	NotifyRouter      *NotifyRouter      // How to route notifications
 	// How to route UIs. Nil if we're in standalone mode or in
 	// tests, and non-nil in service mode.
-	UIRouter            UIRouter            // How to route UIs
-	ProofCheckerFactory ProofCheckerFactory // Makes new ProofCheckers
-	ExitCode            keybase1.ExitCode   // Value to return to OS on Exit()
-	RateLimits          *RateLimits         // tracks the last time certain actions were taken
-	clockMu             sync.Mutex          // protects Clock
-	clock               clockwork.Clock     // RealClock unless we're testing
-	SecretStoreAll      SecretStoreAll      // nil except for tests and supported platforms
-	hookMu              sync.RWMutex        // protects loginHooks, logoutHooks
-	loginHooks          []LoginHook         // call these on login
-	logoutHooks         []LogoutHook        // call these on logout
-	GregorDismisser     GregorDismisser     // for dismissing gregor items that we've handled
-	GregorListener      GregorListener      // for alerting about clients connecting and registering UI protocols
+	UIRouter            UIRouter               // How to route UIs
+	ProofCheckerFactory ProofCheckerFactory    // Makes new ProofCheckers
+	ExitCode            keybase1.ExitCode      // Value to return to OS on Exit()
+	RateLimits          *RateLimits            // tracks the last time certain actions were taken
+	clockMu             sync.Mutex             // protects Clock
+	clock               clockwork.Clock        // RealClock unless we're testing
+	SecretStoreAll      SecretStoreAll         // nil except for tests and supported platforms
+	hookMu              sync.RWMutex           // protects loginHooks, logoutHooks
+	loginHooks          []LoginHook            // call these on login
+	logoutHooks         []LogoutHook           // call these on logout
+	GregorDismisser     GregorDismisser        // for dismissing gregor items that we've handled
+	GregorListener      GregorListener         // for alerting about clients connecting and registering UI protocols
+	OutOfDateInfo       keybase1.OutOfDateInfo // Stores out of date messages we got from API server headers.
+
+	// Can be overloaded by tests to get an improvement in performance
+	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -91,6 +95,7 @@ func NewGlobalContext() *GlobalContext {
 		VDL:                 NewVDebugLog(log),
 		ProofCheckerFactory: defaultProofCheckerFactory,
 		clock:               clockwork.NewRealClock(),
+		NewTriplesec:        NewSecureTriplesec,
 	}
 }
 
@@ -556,6 +561,11 @@ func (g *GlobalContext) GetLog() logger.Logger {
 	return g.Log
 }
 
+// GetLogf returns a logger with a minimal formatter style interface
+func (g *GlobalContext) GetLogf() logger.Loggerf {
+	return logger.NewLoggerf(g.Log)
+}
+
 func (g *GlobalContext) AddLoginHook(hook LoginHook) {
 	g.hookMu.Lock()
 	defer g.hookMu.Unlock()
@@ -586,4 +596,61 @@ func (g *GlobalContext) CallLogoutHooks() {
 			g.Log.Warning("OnLogout hook error: %s", err)
 		}
 	}
+}
+
+func (g *GlobalContext) GetAppStartMode() (AppStartMode, error) {
+	return g.Env.GetAppStartMode()
+}
+
+func (g *GlobalContext) GetConfigDir() string {
+	return g.Env.GetConfigDir()
+}
+
+func (g *GlobalContext) GetMountDir() (string, error) {
+	return g.Env.GetMountDir()
+}
+
+// GetServiceInfoPath returns path to info file written by the Keybase service after startup
+func (g *GlobalContext) GetServiceInfoPath() string {
+	return g.Env.GetServiceInfoPath()
+}
+
+// GetKBFSInfoPath returns path to info file written by the KBFS service after startup
+func (g *GlobalContext) GetKBFSInfoPath() string {
+	return g.Env.GetKBFSInfoPath()
+}
+
+func (g *GlobalContext) GetLogDir() string {
+	return g.Env.GetLogDir()
+}
+
+func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {
+	return &RPCLogFactory{Contextified: NewContextified(g)}
+}
+
+// LogoutIfRevoked loads the user and checks if the current device keys
+// have been revoked.  If so, it calls Logout.
+func (g *GlobalContext) LogoutIfRevoked() error {
+	in, err := g.LoginState().LoggedInLoad()
+	if err != nil {
+		return err
+	}
+	if !in {
+		g.Log.Debug("LogoutIfRevoked: skipping check (not logged in)")
+		return nil
+	}
+
+	me, err := LoadMe(NewLoadUserForceArg(g))
+	if err != nil {
+		return err
+	}
+
+	if !me.HasCurrentDeviceInCurrentInstall() {
+		g.Log.Debug("LogoutIfRevoked: current device revoked, calling logout")
+		return g.Logout()
+	}
+
+	g.Log.Debug("LogoutIfRevoked: current device ok")
+
+	return nil
 }

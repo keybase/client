@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libdokan"
 	"github.com/keybase/kbfs/libfs"
@@ -56,6 +57,11 @@ func getUsageStr(ctx libkbfs.Context) string {
 }
 
 func start() *libfs.Error {
+	err := libkb.SaferDLLLoading()
+	if err != nil {
+		fmt.Printf("SaferDLLLoading failed: %v\n", err)
+	}
+
 	ctx := env.NewContext()
 	kbfsParams := libkbfs.AddFlags(flag.CommandLine, ctx)
 

@@ -674,12 +674,9 @@ func (f JSONConfigFile) IsAdmin() (bool, bool) {
 	return f.GetBoolAtPath("is_admin")
 }
 
-func (f JSONConfigFile) GetAppStartMode() AppStartMode {
-	s, isSet := f.GetStringAtPath("app_start_mode")
-	if s == "service" || !isSet {
-		return AppStartModeService
-	}
-	return AppStartModeDisabled
+func (f JSONConfigFile) GetAppStartMode() string {
+	s, _ := f.GetStringAtPath("app_start_mode")
+	return s
 }
 
 func (f JSONConfigFile) GetTimeAtPath(path string) keybase1.Time {
@@ -705,4 +702,8 @@ func (f *JSONConfigFile) SetTimeAtPath(path string, t keybase1.Time) error {
 
 func (f JSONConfigFile) GetLocalTrackMaxAge() (time.Duration, bool) {
 	return f.GetDurationAtPath("local_track_max_age")
+}
+
+func (f JSONConfigFile) GetMountDir() string {
+	return f.GetTopLevelString("mountdir")
 }

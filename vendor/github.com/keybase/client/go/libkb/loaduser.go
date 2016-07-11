@@ -248,7 +248,7 @@ func loadUser(g *GlobalContext, uid keybase1.UID, resolveBody *jsonw.Wrapper, fo
 	var ret *User
 	if !loadRemote && !force {
 		ret = local
-	} else if ret, err = loadUserFromServer(g, uid, resolveBody); err != nil {
+	} else if ret, err = LoadUserFromServer(g, uid, resolveBody); err != nil {
 		return nil, refresh, err
 	}
 
@@ -288,7 +288,7 @@ func loadUserFromLocalStorage(g *GlobalContext, uid keybase1.UID) (u *User, err 
 	return
 }
 
-func loadUserFromServer(g *GlobalContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
+func LoadUserFromServer(g *GlobalContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
 	g.Log.Debug("+ Load User from server: %s", uid)
 
 	// Res.body might already have been preloaded a a result of a Resolve call earlier.
@@ -330,6 +330,7 @@ func lookupMerkleLeaf(g *GlobalContext, uid keybase1.UID, local *User) (f *Merkl
 		err = fmt.Errorf("uid parameter for lookupMerkleLeaf empty")
 		return
 	}
+
 	q := NewHTTPArgs()
 	q.Add("uid", UIDArg(uid))
 
@@ -337,6 +338,7 @@ func lookupMerkleLeaf(g *GlobalContext, uid keybase1.UID, local *User) (f *Merkl
 	if err == nil && f == nil && local != nil {
 		err = fmt.Errorf("User not found in server Merkle tree")
 	}
+
 	return
 }
 
@@ -357,5 +359,10 @@ func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID) (keybase1.UserPlusKeys
 		return up, fmt.Errorf("Nil user, nil error from LoadUser")
 	}
 
-	return u.ExportToUserPlusKeys(keybase1.Time(0)), nil
+	up, err = u.ExportToUserPlusKeys(keybase1.Time(0)), nil
+	if err != nil {
+		return up, err
+	}
+
+	return up, nil
 }
