@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import type {Props} from './user-add'
 import {Box, Button, Input, Icon, Text} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles/style-guide'
+import {defaultKBFSPath} from '../constants/config'
 
 type State = {
   showingInput: boolean,
@@ -63,8 +64,8 @@ class UserAdd extends Component<void, Props, State> {
   _submit () {
     if (this.state.text) {
       this.props.onAdded(this.props.isPublic
-        ? `/keybase/public/${this.state.text}`
-        : `/keybase/private/${this.props.username},${this.state.text}`)
+        ? `${defaultKBFSPath}/public/${this.state.text}`
+        : `${defaultKBFSPath}/private/${this.props.username},${this.state.text}`)
     }
     this._showInput(false)
   }

@@ -4,63 +4,74 @@ import {shell} from 'electron'
 import * as Constants from '../../constants/config'
 import {Common} from '../../constants/types/keybase-v1'
 import type {AsyncAction} from '../../constants/types/flux'
-import {cleanup} from '../../util/kbfs'
+import path from 'path'
 
-const open = (kbfsPath: string, path: string = '') => { // eslint-disable-line space-infix-ops
-  if (path.startsWith(Constants.defaultPrivatePrefix)) {
-    path = Constants.defaultPrivatePrefix + cleanup(path.slice(Constants.defaultPrivatePrefix.length))
-  } else if (path.startsWith(Constants.defaultPublicPrefix)) {
-    path = Constants.defaultPublicPrefix + cleanup(path.slice(Constants.defaultPublicPrefix.length))
-  } else {
-    path = cleanup(path)
-  }
-
-  shell.openItem(`${kbfsPath}${path}`)
+function open (openPath: string) {
+  console.log('openItem:', openPath)
+  shell.openItem(openPath)
 }
 
-// Paths MUST start with /keybase/
-export function openInKBFS (path: string = Constants.defaultKBFSPath): AsyncAction {
-  if (!path.startsWith(Constants.defaultKBFSPath)) {
-    console.warn(`ERROR: openInKBFS requires ${Constants.defaultKBFSPath} prefix`)
-    return () => {}
-  }
-  path = path.slice(Constants.defaultKBFSPath.length)
-
+function openInDefault (openPath: string): AsyncAction {
   return (dispatch, getState) => new Promise((resolve, reject) => {
+    console.log('openInDefault:', openPath)
+    // Path resolve removes any ..
+    openPath = path.resolve(openPath)
+    // Paths MUST start with defaultKBFSPath
+    if (!openPath.startsWith(Constants.defaultKBFSPath)) {
+      console.warn(`openInKBFS requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
+      return
+    }
+    open(openPath)
+  })
+}
+
+function openInWindows (openPath: string = Constants.defaultKBFSPath): AsyncAction {
+  return (dispatch, getState) => new Promise((resolve, reject) => {
+    openPath = path.resolve(openPath) // Path resolve removes any ..
+    if (!openPath.startsWith(Constants.defaultKBFSPath)) {
+      console.warn(`openInKBFS requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
+      return
+    }
+    openPath = openPath.slice(Constants.defaultKBFSPath.length)
+
     const state = getState()
     const kbfsPath = state.config.kbfsPath
 
     // On windows the path isn't /keybase
     // We can figure it out by looking at the extendedConfig though
-    if (process.platform === 'win32') {
-      if (kbfsPath === Constants.defaultKBFSPath) {
-        const extendedConfig = Promise.resolve(state.config.extendedConfig)
+    if (kbfsPath === Constants.defaultKBFSPath) {
+      const extendedConfig = Promise.resolve(state.config.extendedConfig)
 
-        extendedConfig.then(extendedConfig => {
-          const kbfsClients = extendedConfig.Clients.filter(c => c.clientType === Common.ClientType.kbfs)
-          if (kbfsClients.length !== 1) {
-            return Promise.reject("There isn't exactly one kbfs client")
-          }
+      extendedConfig.then(extendedConfig => {
+        const kbfsClients = extendedConfig.Clients.filter(c => c.clientType === Common.ClientType.kbfs)
+        if (kbfsClients.length !== 1) {
+          return Promise.reject("There isn't exactly one kbfs client")
+        }
 
-          // Hacky Regex to find a mount point on windows matches anything like foobar:\ or K:\
-          const kbfsPath = kbfsClients[0].argv.filter(arg => arg.search(/.*:\\?$/) === 0)[0]
+        // Hacky Regex to find a mount point on windows matches anything like foobar:\ or K:\
+        const kbfsPath = kbfsClients[0].argv.filter(arg => arg.search(/.*:\\?$/) === 0)[0]
 
-          if (!kbfsPath) {
-            return Promise.reject("Couldn't figure out kbfs path from argv")
-          }
+        if (!kbfsPath) {
+          return Promise.reject("Couldn't figure out kbfs path from argv")
+        }
 
-          return Promise.resolve(kbfsPath + '\\')
-        }).then(kbfsPath => {
-          dispatch({type: Constants.changeKBFSPath, payload: {path: kbfsPath}})
-          open(kbfsPath, path)
-        }).catch(e => {
-          console.warn('Error in parsing kbfsPath: ', e)
-        })
-      } else {
-        open(kbfsPath, path)
-      }
+        return Promise.resolve(kbfsPath + '\\')
+      }).then(kbfsPath => {
+        dispatch({type: Constants.changeKBFSPath, payload: {path: kbfsPath}})
+        open(path.resolve(kbfsPath, openPath))
+      }).catch(e => {
+        console.warn('Error in parsing kbfsPath:', e)
+      })
     } else {
-      open(Constants.defaultKBFSPath, path)
+      open(path.resolve(kbfsPath, openPath))
     }
   })
+}
+
+export function openInKBFS (openPath: string = Constants.defaultKBFSPath): AsyncAction {
+  console.log('openInKBFS:', openPath)
+  if (process.platform === 'win32') {
+    return openInWindows(openPath)
+  }
+  return openInDefault(openPath)
 }

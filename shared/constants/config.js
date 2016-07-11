@@ -1,8 +1,9 @@
 /* @flow */
 import {uniq} from 'lodash'
+import {runMode} from './platform'
 
 // Constants
-export const defaultKBFSPath = '/keybase'
+export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`
 export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
 
