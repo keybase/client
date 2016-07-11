@@ -25,6 +25,7 @@ Switch to Node 5.7.0:
 - [NVM for Windows](https://github.com/coreybutler/nvm-windows/releases/download/1.1.0/nvm-setup.zip)  
 Issue the commands "nvm install 5.7.0" and "nvm use 5.7.0"  
 - [VisualStudio 2015](https://www.visualstudio.com/en-us/products/visual-studio-community-vs.aspx) 
+  - Install the following options: <img width="343" alt="options" src="https://cloud.githubusercontent.com/assets/594035/16749512/a2249536-477f-11e6-92fe-59a4a82a90c9.PNG">
 - Update npm. In an elevated command prompt (right-click cmd icon and select "Run As Administrator"), issue these commands, and select 3.8.1:
     `npm install -g npm-windows-upgrade`  
     `npm-windows-upgrade`  
