@@ -34,12 +34,17 @@ struct kbfsLibdokanCtx {
   DOKAN_OPTIONS dokan_options;
 };
 
+DWORD kbfsLibdokanLoadLibrary(LPCWSTR location);
+
 struct kbfsLibdokanCtx* kbfsLibdokanAllocCtx(ULONG64 fsslot);
 error_t kbfsLibdokanFree(struct kbfsLibdokanCtx* ctx);
 error_t kbfsLibdokanRun(struct kbfsLibdokanCtx* ctx);
 void kbfsLibdokanSet_path(struct kbfsLibdokanCtx* ctx, void*);
 
 int kbfsLibdokanFill_find(PFillFindData, PWIN32_FIND_DATAW, PDOKAN_FILE_INFO);
+
+BOOL kbfsLibdokan_RemoveMountPoint(LPCWSTR MountPoint);
+HANDLE kbfsLibdokan_OpenRequestorToken(PDOKAN_FILE_INFO DokanFileInfo);
 
 enum {
   kbfsLibdokanDebug = DOKAN_OPTION_DEBUG|DOKAN_OPTION_STDERR,

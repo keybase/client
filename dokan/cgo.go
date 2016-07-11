@@ -7,7 +7,6 @@
 package dokan
 
 /*
-#cgo LDFLAGS: -L${SRCDIR} -ldokan1
 #include "bridge.h"
 */
 import "C"
@@ -24,6 +23,16 @@ import (
 
 	"golang.org/x/sys/windows"
 )
+
+// LoadDokanDLL can be called to init the system with custom Dokan location,
+// e.g. LoadDokanDLL(`C:\mypath\dokan1.dll`).
+func LoadDokanDLL(fullpath string) error {
+	dw := syscall.Errno(C.kbfsLibdokanLoadLibrary((*C.WCHAR)(stringToUtf16Ptr(fullpath))))
+	if dw != 0 {
+		return dw
+	}
+	return nil
+}
 
 const ntstatusOk = C.NTSTATUS(0)
 
@@ -506,7 +515,7 @@ func (ctx *dokanCtx) Free() {
 // the requestor of this file system operation. Remember to
 // call Close on the Token.
 func (fi *FileInfo) GetRequestorToken() (syscall.Token, error) {
-	hdl := syscall.Handle(C.DokanOpenRequestorToken(fi.ptr))
+	hdl := syscall.Handle(C.kbfsLibdokan_OpenRequestorToken(fi.ptr))
 	var err error
 	if hdl == syscall.InvalidHandle {
 		// Tokens are value types, so returning nil is impossible,
@@ -566,7 +575,7 @@ var (
 // Unmount a drive mounted by dokan.
 func Unmount(path string) error {
 	debug("Unmount: Calling Dokan.Unmount")
-	res := C.DokanRemoveMountPoint((*C.WCHAR)(stringToUtf16Ptr(path)))
+	res := C.kbfsLibdokan_RemoveMountPoint((*C.WCHAR)(stringToUtf16Ptr(path)))
 	if res == C.FALSE {
 		debug("Unmount: Failed!")
 		return errors.New("DokanRemoveMountPoint failed!")
