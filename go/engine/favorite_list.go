@@ -60,6 +60,8 @@ func (e *FavoriteList) Run(ctx *Context) error {
 		Endpoint:    "kbfs/favorite/list",
 		NeedSession: true,
 		Args:        libkb.HTTPArgs{},
+		Timeout:     libkb.HTTPRetryTimeout,
+		RetryCount:  libkb.HTTPRetryCount,
 	}, &e.result)
 }
 

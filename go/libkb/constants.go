@@ -296,6 +296,8 @@ const CanonicalHost = "keybase.io"
 const (
 	HTTPDefaultTimeout = 60 * time.Second
 	HTTPPollMaximum    = 5 * time.Second
+	HTTPRetryTimeout   = 5 * time.Second // critical idempotent API endpoints
+	HTTPRetryCount     = 4               // can use these to fail faster
 )
 
 // Packet tags for OpenPGP and also Keybase packets

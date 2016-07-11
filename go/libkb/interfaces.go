@@ -229,6 +229,8 @@ type APIArg struct {
 	SessionR       SessionReader
 	HTTPStatus     []int
 	AppStatusCodes []int
+	Timeout        time.Duration // optional
+	RetryCount     int           // optional
 	Contextified
 }
 

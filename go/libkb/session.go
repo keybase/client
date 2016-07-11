@@ -256,6 +256,8 @@ func (s *Session) check() error {
 		Endpoint:       "sesscheck",
 		NeedSession:    true,
 		AppStatusCodes: []int{SCOk, SCBadSession},
+		Timeout:        HTTPRetryTimeout,
+		RetryCount:     HTTPRetryCount,
 	})
 
 	if err != nil {
