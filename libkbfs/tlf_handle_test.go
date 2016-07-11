@@ -669,7 +669,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err :=
-		h1.ResolvesTo(ctx, codec, kbpki, h1)
+		h1.ResolvesTo(ctx, codec, kbpki, *h1)
 	require.NoError(t, err)
 	require.True(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
@@ -680,14 +680,14 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, h2)
+		h1.ResolvesTo(ctx, codec, kbpki, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
 
-	// Test differing conflict info or finalized info.
+	// Test adding conflict info or finalized info.
 
-	h2, err = ParseTlfHandle(ctx, kbpki, name1, false)
+	h2, err = ParseTlfHandle(ctx, kbpki, name1, true)
 	require.NoError(t, err)
 	info := TlfHandleExtension{
 		Date:   100,
@@ -698,20 +698,86 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 	require.NoError(t, err)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, h2)
+		h1.ResolvesTo(ctx, codec, kbpki, *h2)
 	require.NoError(t, err)
-	require.False(t, resolvesTo)
+	require.True(t, resolvesTo)
 	require.Equal(t, h1, partialResolvedH1)
 
-	h2, err = ParseTlfHandle(ctx, kbpki, name1, false)
+	h2, err = ParseTlfHandle(ctx, kbpki, name1, true)
 	require.NoError(t, err)
+	info = TlfHandleExtension{
+		Date:   101,
+		Number: 51,
+		Type:   TlfHandleExtensionFinalized,
+	}
 	h2.SetFinalizedInfo(&info)
 
 	resolvesTo, partialResolvedH1, err =
-		h1.ResolvesTo(ctx, codec, kbpki, h2)
+		h1.ResolvesTo(ctx, codec, kbpki, *h2)
+	require.NoError(t, err)
+	require.True(t, resolvesTo)
+	require.Equal(t, h1, partialResolvedH1)
+
+	// Test differing conflict info or finalized info.
+
+	h2, err = ParseTlfHandle(ctx, kbpki, name1, true)
+	require.NoError(t, err)
+	info = TlfHandleExtension{
+		Date:   100,
+		Number: 50,
+		Type:   TlfHandleExtensionConflict,
+	}
+	err = h2.UpdateConflictInfo(codec, &info)
+	require.NoError(t, err)
+	info = TlfHandleExtension{
+		Date:   99,
+		Number: 49,
+		Type:   TlfHandleExtensionConflict,
+	}
+	err = h1.UpdateConflictInfo(codec, &info)
+	require.NoError(t, err)
+
+	resolvesTo, partialResolvedH1, err =
+		h1.ResolvesTo(ctx, codec, kbpki, *h2)
 	require.NoError(t, err)
 	require.False(t, resolvesTo)
-	require.Equal(t, h1, partialResolvedH1)
+
+	h1, err = ParseTlfHandle(ctx, kbpki, name1, true)
+	require.NoError(t, err)
+	h2, err = ParseTlfHandle(ctx, kbpki, name1, true)
+	require.NoError(t, err)
+	info = TlfHandleExtension{
+		Date:   101,
+		Number: 51,
+		Type:   TlfHandleExtensionFinalized,
+	}
+	h2.SetFinalizedInfo(&info)
+	info = TlfHandleExtension{
+		Date:   102,
+		Number: 52,
+		Type:   TlfHandleExtensionFinalized,
+	}
+	h1.SetFinalizedInfo(&info)
+
+	resolvesTo, partialResolvedH1, err =
+		h1.ResolvesTo(ctx, codec, kbpki, *h2)
+	require.NoError(t, err)
+	require.False(t, resolvesTo)
+
+	// Try to add conflict info to a finalized handle.
+
+	h2, err = ParseTlfHandle(ctx, kbpki, name1, true)
+	info = TlfHandleExtension{
+		Date:   100,
+		Number: 50,
+		Type:   TlfHandleExtensionConflict,
+	}
+	err = h2.UpdateConflictInfo(codec, &info)
+	require.NoError(t, err)
+
+	resolvesTo, partialResolvedH1, err =
+		h1.ResolvesTo(ctx, codec, kbpki, *h2)
+	require.Error(t, err)
 
 	// Test positive resolution cases.
 
@@ -738,7 +804,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 		daemon.addNewAssertionForTestOrBust(tc.resolveTo, "u2@twitter")
 
 		resolvesTo, partialResolvedH1, err =
-			h1.ResolvesTo(ctx, codec, kbpki, h2)
+			h1.ResolvesTo(ctx, codec, kbpki, *h2)
 		require.NoError(t, err)
 		assert.True(t, resolvesTo, tc.name2)
 		require.Equal(t, h2, partialResolvedH1, tc.name2)
@@ -761,7 +827,7 @@ func TestTlfHandleResolvesTo(t *testing.T) {
 		daemon.addNewAssertionForTestOrBust(tc.resolveTo, "u2@twitter")
 
 		resolvesTo, partialResolvedH1, err =
-			h1.ResolvesTo(ctx, codec, kbpki, h2)
+			h1.ResolvesTo(ctx, codec, kbpki, *h2)
 		require.NoError(t, err)
 		assert.False(t, resolvesTo, tc.name2)
 
