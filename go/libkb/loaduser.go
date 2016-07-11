@@ -348,10 +348,6 @@ func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID) (keybase1.UserPlusKeys
 		return up, fmt.Errorf("Nil UID")
 	}
 
-	if upk, ok := g.upkMemo.Get(uid); ok {
-		return upk, nil
-	}
-
 	arg := NewLoadUserArg(g)
 	arg.UID = uid
 	arg.PublicKeyOptional = true
@@ -366,10 +362,6 @@ func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID) (keybase1.UserPlusKeys
 	up, err = u.ExportToUserPlusKeys(keybase1.Time(0)), nil
 	if err != nil {
 		return up, err
-	}
-
-	if g.Env.GetUID().Equal(uid) {
-		g.upkMemo.Set(up)
 	}
 
 	return up, nil
