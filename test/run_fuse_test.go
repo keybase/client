@@ -57,6 +57,7 @@ func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("FUSE HasInvalidate=%v", mnt.Conn.Protocol().HasInvalidate())
 	// the fsUser.cancel will cancel notification processing; the FUSE
 	// serve loop is terminated by unmounting the filesystem
 	ctx := context.Background()
