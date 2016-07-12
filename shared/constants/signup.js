@@ -30,6 +30,9 @@ export type ShowPaperKey = TypedAction<'signup:showPaperKey', {paperkey: HiddenS
 export const showSuccess = 'signup:showSuccess'
 export type ShowSuccess = TypedAction<'signup:showSuccess', {}, {}>
 
+export const resetSignup = 'signup:resetSignup'
+export type ResetSignup = TypedAction<'signup:resetSignup', void, void>
+
 export const restartSignup = 'signup:restartSignup'
 export type RestartSignup = TypedAction<'signup:restartSignup', {}, {}>
 

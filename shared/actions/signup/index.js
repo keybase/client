@@ -11,7 +11,7 @@ import {routeAppend, navigateUp} from '../../actions/router'
 
 import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, RestartSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../../constants/signup'
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RestartSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../../constants/signup'
 import type {signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
   signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../../constants/types/flow-types'
 
@@ -356,6 +356,13 @@ function waiting (isWaiting: boolean): SignupWaiting {
   return {
     type: Constants.signupWaiting,
     payload: isWaiting,
+  }
+}
+
+export function resetSignup (): ResetSignup {
+  return {
+    type: Constants.resetSignup,
+    payload: undefined,
   }
 }
 

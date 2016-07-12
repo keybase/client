@@ -49,6 +49,7 @@ const initialState: SignupState = {
 export default function (state: SignupState = initialState, action: SignupActions): SignupState {
   switch (action.type) {
     case CommonConstants.resetStore:
+    case Constants.resetSignup:
       return {...initialState}
 
     case Constants.signupWaiting:
