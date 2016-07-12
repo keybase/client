@@ -31,7 +31,7 @@ ipcRenderer.on('display', (ev, msg) => {
   ReactDOM.render(displayTree, appEl, () => {
     // Remove pesky blinking cursors
     if (document.activeElement.tagName === 'INPUT') {
-      window.blur()
+      document.activeElement.blur()
     }
 
     // Unfortunately some resources lazy load after they're rendered.  We need
@@ -48,19 +48,6 @@ ipcRenderer.on('display', (ev, msg) => {
       }
 
       ev.sender.send('display-done', {rect, ...msg})
-    }, 250)
+    }, 1000)
   })
 })
-
-declare class ExtendedDocument extends Document {
-  fonts: {
-    ready: Promise
-  }
-}
-declare var document: ExtendedDocument
-
-window.addEventListener('load', () =>
-  document.fonts.ready.then(() =>
-    ipcRenderer.send('visdiff-ready')
-  )
-)

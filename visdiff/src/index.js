@@ -28,7 +28,7 @@ const DIFF_SAME = 'same'
 const DRY_RUN = !!process.env['VISDIFF_DRY_RUN']
 
 function packageHash () {
-  return crypto.createHash('sha1').update(fs.readFileSync('package.json')).digest('hex')
+  return crypto.createHash('sha1').update(fs.readFileSync('package.json')).digest('hex').substr(0, 12)
 }
 
 function checkout (commit) {
@@ -61,7 +61,9 @@ function renderScreenshots (commitRange) {
     checkout(commit)
     console.log(`Rendering screenshots of ${commit}`)
     mkdirp.sync(`screenshots/${commit}`)
+    const startTime = Date.now()
     spawnSync(NPM_CMD, ['run', 'render-screenshots', '--', `screenshots/${commit}`], {stdio: 'inherit'})
+    console.log(`Rendered in ${(Date.now() - startTime) / 1000}s.`)
   }
 }
 
