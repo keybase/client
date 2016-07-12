@@ -16,6 +16,7 @@ export type Props = {
   onOpenPrivateGroupFolder: () => void,
   onOpenPublicGroupFolder: () => void,
   onGroupChat: () => void,
+  onReset: () => void,
   chatEnabled: boolean
 } & UserSearchProps
 

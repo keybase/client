@@ -1,6 +1,6 @@
 /* @flow */
 import React, {Component} from 'react'
-import {Box} from '../common-adapters'
+import {Box, Text} from '../common-adapters'
 import SearchHelp from './help.desktop'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {SearchContainer, SearchBar, searchResultsList} from './user-search/render.desktop'
@@ -46,6 +46,9 @@ class Render extends Component<void, Props, void> {
     return (
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
         <SearchContainer>
+          <Box style={{...globalStyles.flexBoxColumn, height: 48, justifyContent: 'center', alignItems: 'flex-end', paddingRight: 16}}>
+            {this.props.showUserGroup && <Text type='BodySmallSecondaryLink' onClick={this.props.onReset}>Clear search</Text>}
+          </Box>
           <SearchBar
             onClickService={this.props.onClickService}
             onSearch={this.props.onSearch}

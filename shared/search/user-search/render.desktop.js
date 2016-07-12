@@ -255,7 +255,7 @@ export default class Render extends Component<void, Props, void> {
 }
 
 const stylesContainer = {
-  paddingTop: 48,
+  ...globalStyles.flexBoxColumn,
   flex: 1,
 }
 const stylesServicesContainer = {

@@ -7,7 +7,7 @@ import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
 import {isFollowing as isFollowing_} from './config'
 
-import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo, AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult, SearchPlatforms} from '../constants/search'
+import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo, AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult, SearchPlatforms, Reset} from '../constants/search'
 import type {apiserverGetRpc, apiserverGetResult} from '../constants/types/flow-types'
 import type {TypedAsyncAction} from '../constants/types/flux'
 
@@ -213,5 +213,12 @@ export function hideUserGroup (): ToggleUserGroup {
   return {
     type: Constants.toggleUserGroup,
     payload: {show: false},
+  }
+}
+
+export function reset (): Reset {
+  return {
+    type: Constants.reset,
+    payload: {},
   }
 }

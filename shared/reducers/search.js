@@ -130,6 +130,13 @@ export default function (state: State = initialState, action: SearchActions): St
         }
       }
       break
+    case Constants.reset:
+      return {
+        ...initialState,
+        searchIcon: state.searchIcon,
+        searchPlatform: state.searchPlatform,
+        showUserGroup: showUserGroup(null, []),
+      }
   }
 
   return state
