@@ -20,7 +20,7 @@ export default class AppState {
     }, this.opts)
 
     this.winRef = null
-    this.stateChangeTimer = null
+    this.debounceChangeTimer = null
     this.resizeHandlers = []
     this.moveHandlers = []
     this.closeHandlers = []
@@ -139,8 +139,8 @@ export default class AppState {
   }
 
   debounceChangeHandler () {
-    clearTimeout(this.stateChangeTimer)
-    this.stateChangeTimer = setTimeout(() => { this.updateState() }, this.eventHandlingDelay)
+    clearTimeout(this.debounceChangeTimer)
+    this.debounceChangeTimer = setTimeout(() => { this.updateState() }, this.eventHandlingDelay)
   }
 
   manageWindow (win) {
@@ -190,6 +190,6 @@ export default class AppState {
       this.closedHandlers = []
       this.winRef = null
     }
-    clearTimeout(this.stateChangeTimer)
+    clearTimeout(this.debounceChangeTimer)
   }
 }
