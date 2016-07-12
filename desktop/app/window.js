@@ -1,4 +1,4 @@
-import showDockIcon from './dock-icon'
+import {showDockIcon} from './dock-icon'
 import menuHelper from './menu-helper'
 import {ipcMain, BrowserWindow} from 'electron'
 import {focusOnShow} from '../shared/local-debug'
@@ -9,16 +9,12 @@ export default class Window {
     this.opts = opts || {}
     this.window = null
     this.initiallyVisible = this.opts.show || false
-    this.releaseDockIcon = null
     this.createWindow()
 
     // Listen for remote windows to show a dock icon for, we'll bind the on close to
     // hide the dock icon too
     ipcMain.on('showDockIconForRemoteWindow', (event, remoteWindowId) => {
-      const remoteReleaseDockIcon = showDockIcon()
-      BrowserWindow.fromId(remoteWindowId).on('close', () => {
-        remoteReleaseDockIcon()
-      })
+      showDockIcon()
     })
 
     ipcMain.on('listenForRemoteWindowClosed', (event, remoteWindowId) => {
@@ -47,18 +43,10 @@ export default class Window {
       // Prevent an actual close
       event.preventDefault()
       this.window.hide()
-      if (this.releaseDockIcon) {
-        this.releaseDockIcon()
-        this.releaseDockIcon = null
-      }
     })
 
     this.window.on('closed', () => {
       this.window = null
-      if (this.releaseDockIcon) {
-        this.releaseDockIcon()
-        this.releaseDockIcon = null
-      }
     })
   }
 
@@ -68,17 +56,21 @@ export default class Window {
     }
 
     if (this.opts.show) {
-      this.releaseDockIcon = showDockIcon()
+      showDockIcon()
     }
 
     this.window = new BrowserWindow({show: false, ...this.opts})
-    menuHelper(this.window)
     this.window.loadURL(`file://${this.filename}`)
     this.bindWindowListeners()
+    this.window.once('show', () => this.onFirstTimeBeingShown())
+  }
+
+  onFirstTimeBeingShown () {
+    menuHelper(this.window)
   }
 
   show (shouldShowDockIcon) {
-    this.releaseDockIcon = shouldShowDockIcon ? showDockIcon() : null
+    shouldShowDockIcon && showDockIcon()
 
     if (this.window) {
       if (!this.window.isVisible()) {

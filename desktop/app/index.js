@@ -2,7 +2,6 @@ import {BrowserWindow, app, dialog} from 'electron'
 import splash from './splash'
 import installer from './installer'
 import ListenLogUi from '../shared/native/listen-log-ui'
-import menuHelper from './menu-helper'
 import consoleHelper, {ipcLogs} from './console-helper'
 import devTools from './dev-tools'
 import menuBar from './menu-bar'
@@ -14,6 +13,7 @@ import hello from '../shared/util/hello'
 import semver from 'semver'
 import os from 'os'
 import {setupExecuteActionsListener} from '../shared/util/quit-helper.desktop'
+import {hideDockIcon} from './dock-icon'
 
 let mainWindow = null
 
@@ -21,7 +21,6 @@ function start () {
   // Only one app per app in osx...
   const shouldQuit = app.makeSingleInstance(() => {
     if (mainWindow) {
-      mainWindow.show()
       mainWindow.show(true)
       mainWindow.window.focus()
     }
@@ -67,10 +66,6 @@ function start () {
   ListenLogUi()
   windowHelper(app)
 
-  if (process.platform === 'darwin') {
-    menuHelper()
-  }
-
   installer(err => {
     if (err) {
       console.log('Error: ', err)
@@ -81,9 +76,14 @@ function start () {
   app.once('ready', () => {
     mainWindow = MainWindow()
     storeHelper(mainWindow)
-    if (app.dock && !mainWindow.initiallyVisible) {
-      app.dock.hide()
+    if (!mainWindow.initiallyVisible) {
+      hideDockIcon()
     }
+  })
+
+  // Called when the user clicks the dock icon
+  app.on('activate', () => {
+    mainWindow.show(true)
   })
 
   // Don't quit the app, instead try to close all windows

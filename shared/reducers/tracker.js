@@ -153,7 +153,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         trackToken: action.payload && action.payload.trackToken,
       }
     case Constants.userUpdated:
-      if (state.lastAction) {
+      if (state.lastAction || state.waiting) {
         return state
       } else {
         return {
@@ -251,7 +251,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         ...state,
         proofs: [
           ...(identity.revokedDetails || []).map(rv => revokedProofToProof(rv)),
-          ...(identity.proofs || []).map(rp => remoteProofToProof(rp.proof)),
+          ...(identity.proofs || []).map(rp => remoteProofToProof(checking, rp.proof)),
         ],
       }
 
@@ -440,7 +440,7 @@ function stateToColor (state: SimpleProofState): string {
   return 'gray'
 }
 
-function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff, remoteDiff: ?TrackDiff): SimpleProofState {
+function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff, remoteDiff: ?TrackDiff): ?SimpleProofState {
   // If there is no difference in what we've tracked from the server or remote resource it's good.
   if (diff && remoteDiff && diff.type === identifyCommon.TrackDiffType.none && remoteDiff.type === identifyCommon.TrackDiffType.none) {
     return normal
@@ -459,8 +459,9 @@ function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff,
     case 'none':
       return error
     case 'looking':
-    default:
       return checking
+    default:
+      return null
   }
 }
 
@@ -584,8 +585,8 @@ function revokedProofToProof (rv: RevokedProof): Proof {
   }
 }
 
-function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
-  const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || checking
+function remoteProofToProof (oldProofState: SimpleProofState, rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
+  const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || oldProofState
   const isTracked = !!(lcr && lcr.diff && lcr.diff.type === identifyCommon.TrackDiffType.none && !lcr.breaksTracking)
   const {diffMeta, statusMeta} = diffAndStatusMeta(lcr && lcr.diff && lcr.diff.type, lcr && lcr.proofResult && lcr.proofResult.status, isTracked)
   const humanUrl = (lcr && lcr.hint && lcr.hint.humanUrl)
@@ -608,13 +609,13 @@ function updateProof (proofs: Array<Proof>, rp: RemoteProof, lcr: LinkCheckResul
   let updated = proofs.map(proof => {
     if (proof.id === rp.sigID) {
       found = true
-      return remoteProofToProof(rp, lcr)
+      return remoteProofToProof(proof.state, rp, lcr)
     }
     return proof
   })
 
   if (!found) {
-    updated.push(remoteProofToProof(rp, lcr))
+    updated.push(remoteProofToProof(checking, rp, lcr))
   }
 
   return updated

@@ -17,6 +17,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/PuerkitoBio/goquery"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -212,7 +214,9 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 
 	timer := arg.G().Timers.Start(timerType)
 	dbg("Do")
-	internalResp, err := cli.cli.Do(req)
+
+	internalResp, err := doRetry(arg, cli, req)
+
 	dbg("Done")
 	defer func() {
 		if internalResp != nil && err != nil {
@@ -260,6 +264,82 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	return internalResp, jw, nil
+}
+
+// doRetry will just call cli.cli.Do if arg.Timeout and arg.RetryCount aren't set.
+// If they are set, it will cancel requests that last longer than arg.Timeout and
+// retry them arg.RetryCount times.
+func doRetry(arg APIArg, cli *Client, req *http.Request) (*http.Response, error) {
+	if arg.InitialTimeout == 0 && arg.RetryCount == 0 {
+		return cli.cli.Do(req)
+	}
+
+	timeout := cli.cli.Timeout
+	if arg.InitialTimeout != 0 {
+		timeout = arg.InitialTimeout
+	}
+
+	retries := 1
+	if arg.RetryCount > 1 {
+		retries = arg.RetryCount
+	}
+
+	multiplier := 1.0
+	if arg.RetryMultiplier != 0.0 {
+		multiplier = arg.RetryMultiplier
+	}
+
+	var lastErr error
+	for i := 0; i < retries; i++ {
+		if i > 0 {
+			arg.G().Log.Debug("retry attempt %d of %d for %s", i, retries, arg.Endpoint)
+		}
+		resp, err := doTimeout(cli, req, timeout)
+		if err == nil {
+			return resp, nil
+		}
+		lastErr = err
+		timeout = time.Duration(float64(timeout) * multiplier)
+	}
+
+	return nil, fmt.Errorf("doRetry failed, attempts: %d, timeout %s, last err: %s", retries, timeout, lastErr)
+
+}
+
+// adapted from https://blog.golang.org/context httpDo func
+func doTimeout(cli *Client, req *http.Request, timeout time.Duration) (*http.Response, error) {
+	// TODO: could pass in a context from further up the chain
+	// and use that instead of context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+
+	// new way to cancel requests
+	reqCancel := make(chan struct{})
+	req.Cancel = reqCancel
+
+	type response struct {
+		resp *http.Response
+		err  error
+	}
+	c := make(chan response, 1)
+	go func() {
+		var r response
+		r.resp, r.err = cli.cli.Do(req)
+		c <- r
+	}()
+
+	select {
+	case <-ctx.Done():
+		// request ctx timed out.  Cancel the request by closing req.Cancel channel:
+		close(reqCancel)
+		// wait for request to finish
+		<-c
+		return nil, ctx.Err()
+	case r := <-c:
+		// request successful
+		return r.resp, r.err
+	}
+
 }
 
 func checkHTTPStatus(arg APIArg, resp *http.Response) error {

@@ -4,7 +4,7 @@ import {Text, Icon, Input, Button} from '../../../common-adapters'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 
-const Render = ({onBack, onSubmit, onChangePaperKey, paperKey, waitingForResponse}: Props) => {
+const Render = ({onBack, onSubmit, onChangePaperKey, error, paperKey, waitingForResponse}: Props) => {
   return (
     <Container
       style={styles.container}
@@ -15,6 +15,7 @@ const Render = ({onBack, onSubmit, onChangePaperKey, paperKey, waitingForRespons
         autoFocus
         multiLine
         style={styles.input}
+        errorText={error}
         hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
         onEnterKeyDown={() => onSubmit()}
         onChange={event => onChangePaperKey(event.target.value)}

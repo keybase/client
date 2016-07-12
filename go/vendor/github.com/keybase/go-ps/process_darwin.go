@@ -2,105 +2,30 @@
 
 package ps
 
-/*
-#include <stdio.h>
-#include <errno.h>
-#include <libproc.h>
-extern int darwinProcesses();
-extern void darwinProcessPaths();
-*/
-import "C"
-
 import (
-	"fmt"
-	"path/filepath"
-	"sync"
+	"github.com/keybase/go-ps/darwincgo"
 )
 
-// This lock is what verifies that C calling back into Go is only
-// modifying data once at a time.
-var darwinLock sync.Mutex
-var darwinProcs []Process
-var darwinProcsByPID map[int]*DarwinProcess
-
-// DarwinProcess is process definition for OS X
-type DarwinProcess struct {
-	pid  int
-	ppid int
-	path string
-}
-
-// Pid returns process id
-func (p *DarwinProcess) Pid() int {
-	return p.pid
-}
-
-// PPid returns parent process id
-func (p *DarwinProcess) PPid() int {
-	return p.ppid
-}
-
-// Executable returns process executable name
-func (p *DarwinProcess) Executable() string {
-	path, _ := p.Path()
-	return filepath.Base(path)
-}
-
-// Path returns path to process executable
-func (p *DarwinProcess) Path() (string, error) {
-	return p.path, nil
-}
-
-//export goDarwinAppendProc
-func goDarwinAppendProc(pid C.pid_t, ppid C.pid_t, comm *C.char) {
-	proc := &DarwinProcess{
-		pid:  int(pid),
-		ppid: int(ppid),
-	}
-	darwinProcs = append(darwinProcs, proc)
-	darwinProcsByPID[proc.pid] = proc
-}
-
-//export goDarwinSetPath
-func goDarwinSetPath(pid C.pid_t, comm *C.char) {
-	if proc, ok := darwinProcsByPID[int(pid)]; ok && proc != nil {
-		proc.path = C.GoString(comm)
-	}
-}
-
 func findProcess(pid int) (Process, error) {
-	return findProcessWithFn(processes, pid)
-}
-
-func findProcessWithFn(processesFn processesFn, pid int) (Process, error) {
-	ps, err := processesFn()
+	m, err := darwincgo.ProcessMap()
 	if err != nil {
-		return nil, fmt.Errorf("Error listing processes: %s", err)
+		return nil, err
 	}
-
-	for _, p := range ps {
-		if p.Pid() == pid {
-			return p, nil
-		}
+	p := m[pid]
+	if p == nil {
+		return nil, nil
 	}
-
-	return nil, nil
+	return p, nil
 }
 
 func processes() ([]Process, error) {
-	darwinLock.Lock()
-	defer darwinLock.Unlock()
-	darwinProcs = make([]Process, 0, 50)
-	darwinProcsByPID = make(map[int]*DarwinProcess)
-
-	// To ignore deadcode warnings for exported functions
-	_ = goDarwinAppendProc
-	_ = goDarwinSetPath
-
-	// TODO: Investigate why darwinProcesses returns error even if process list
-	// succeeds
-	C.darwinProcesses()
-	C.darwinProcessPaths()
-
-	return darwinProcs, nil
+	m, err := darwincgo.ProcessMap()
+	if err != nil {
+		return nil, err
+	}
+	ps := make([]Process, 0, len(m))
+	for _, dp := range m {
+		ps = append(ps, dp)
+	}
+	return ps, nil
 }

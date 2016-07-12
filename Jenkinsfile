@@ -145,13 +145,13 @@ node("ec2-fleet") {
                                                 }
                                                 sh "npm install ./visdiff"
                                                 dir("desktop") {
-                                                    sh "../node_modules/.bin/keybase-visdiff HEAD^...HEAD"
+                                                    sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, HEAD)...HEAD'"
                                                 }
                                             } else {
                                                 dir("desktop") {
                                                     sh 'echo -e "[default]\\naccess_key = $VISDIFF_AWS_ACCESS_KEY_ID\\nsecret_key = $VISDIFF_AWS_SECRET_ACCESS_KEY" > ~/.s3cfg;'
                                                     sh "npm install octonode"
-                                                    sh "npm run visdiff -- \"`git rev-parse HEAD^1`...`git rev-parse HEAD`\""
+                                                    sh "npm run visdiff -- \"`git merge-base origin/master HEAD`...`git rev-parse HEAD`\""
                                                 }
                                             }
                                         }}}
@@ -246,7 +246,7 @@ node("ec2-fleet") {
                                                     withEnv([
                                                         "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                                     ]) {
-                                                        bat '..\\node_modules\\.bin\\keybase-visdiff "HEAD^^...HEAD"'
+                                                        bat '..\\node_modules\\.bin\\keybase-visdiff "merge-base(origin/master, HEAD)...HEAD"'
                                                     }}
                                                 }
                                             }

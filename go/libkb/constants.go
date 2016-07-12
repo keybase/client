@@ -298,6 +298,14 @@ const (
 	HTTPPollMaximum    = 5 * time.Second
 )
 
+// The following constants apply to APIArg parameters for
+// critical idempotent API calls
+const (
+	HTTPRetryInitialTimeout = 1 * time.Second
+	HTTPRetryMutliplier     = 1.5
+	HTTPRetryCount          = 6
+)
+
 // Packet tags for OpenPGP and also Keybase packets
 const (
 	KeybasePacketV1 = 1
