@@ -36,6 +36,10 @@ const getCurrentWindow = (function () {
 })()
 
 const showOnLoad = currentWindow => {
+  // On Windows we can try showing before Windows is ready
+  // This will result in a dropped .show request
+  // We add a listener to `did-finish-load` so we can show it when
+  // Windows is ready.
   currentWindow.show()
   currentWindow.webContents.once('did-finish-load', () => {
     currentWindow.show()
