@@ -637,19 +637,19 @@ func (h TlfHandle) ResolvesTo(
 
 	// Check the conflict extension.
 	var conflictAdded, finalizedAdded bool
-	if h.conflictInfo == nil && other.conflictInfo != nil {
+	if !h.IsConflict() && other.IsConflict() {
 		conflictAdded = true
 		// Ignore the added extension for resolution comparison purposes.
 		other.conflictInfo = nil
 	}
 
 	// Check the finalized extension.
-	if h.finalizedInfo != nil {
+	if h.IsFinal() {
 		if conflictAdded {
 			// Can't add conflict info to a finalized handle.
 			return false, nil, TlfHandleFinalizedError{}
 		}
-	} else if other.finalizedInfo != nil {
+	} else if other.IsFinal() {
 		finalizedAdded = true
 		// Ignore the added extension for resolution comparison purposes.
 		other.finalizedInfo = nil
@@ -941,4 +941,10 @@ func CheckTlfHandleOffline(
 // top-level folder.
 func (h TlfHandle) IsFinal() bool {
 	return h.finalizedInfo != nil
+}
+
+// IsConflict returns whether or not this TlfHandle represents a conflicted
+// top-level folder.
+func (h TlfHandle) IsConflict() bool {
+	return h.conflictInfo != nil
 }
