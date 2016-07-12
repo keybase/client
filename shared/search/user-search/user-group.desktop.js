@@ -61,16 +61,16 @@ const GroupAction = ({onClick, icon, label}: {onClick: () => void, icon: IconTyp
   </Box>
 )
 
-export default function UserGroup ({users, onClickUser, onRemoveUser, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, chatEnabled, onGroupChat, userForInfoPane}: Props) {
-  const privateFolderText = users.length > 1 ? 'Open private group folder' : 'Open private folder'
+export default function UserGroup ({selectedUsers, onClickUserInGroup, onRemoveUserFromGroup, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, chatEnabled, onGroupChat, userForInfoPane}: Props) {
+  const privateFolderText = selectedUsers.length > 1 ? 'Open private group folder' : 'Open private folder'
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-      {users.map(u => <User key={u.service + u.username}
+      {selectedUsers.map(u => <User key={u.service + u.username}
         selected={!!userForInfoPane && u.username === userForInfoPane.username} user={u}
-        onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
+        onRemove={onRemoveUserFromGroup} onClickUser={onClickUserInGroup} insertSpacing />)}
       <GroupAction onClick={onOpenPrivateGroupFolder} icon='icon-folder-private-open-24' label={privateFolderText} />
-      {users.length === 1 && <GroupAction onClick={onOpenPublicGroupFolder} icon='icon-folder-public-open-24' label='Open public folder' />}
+      {selectedUsers.length === 1 && <GroupAction onClick={onOpenPublicGroupFolder} icon='icon-folder-public-open-24' label='Open public folder' />}
       {chatEnabled && <GroupAction onClick={onGroupChat} icon='fa-kb-iconfont-chat' label='Start a chat' />}
     </Box>
   )

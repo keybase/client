@@ -7,7 +7,9 @@ import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
 import {isFollowing as isFollowing_} from './config'
 
-import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo, AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult, SearchPlatforms, Reset} from '../constants/search'
+import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo,
+  AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult,
+  SearchPlatforms, Reset, Waiting} from '../constants/search'
 import type {apiserverGetRpc, apiserverGetResult} from '../constants/types/flow-types'
 import type {TypedAsyncAction} from '../constants/types/flux'
 
@@ -120,7 +122,7 @@ function rawResults (term: string, platform: SearchPlatforms, rresults: Array<Ra
   }
 }
 
-export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results> {
+export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results | Waiting> {
   return (dispatch, getState) => {
     // In case platform is passed in as null
     const platform: SearchPlatforms = maybePlatform || 'Keybase'
@@ -161,6 +163,7 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
         ],
       },
       incomingCallMap: {},
+      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: (error: ?any, results: apiserverGetResult) => {
         if (error) {
           console.log('Error searching. Not handling this error')
@@ -179,6 +182,10 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
 
     engine.rpc(params)
   }
+}
+
+function waiting (waiting: boolean): Waiting {
+  return {type: Constants.waiting, payload: {waiting}}
 }
 
 export function selectPlatform (platform: SearchPlatforms): SelectPlatform {
