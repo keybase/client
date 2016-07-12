@@ -38,14 +38,13 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	require.Equal(t, 0, getMDJournalLength(t, s, NullBranchID))
 
 	uid := keybase1.MakeTestUID(1)
-	deviceKID := keybase1.KID("fake kid")
 	id := FakeTlfID(1, false)
 	h, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	// (1) Validate merged branch is empty.
 
-	head, err := s.getForTLF(uid, deviceKID, NullBranchID)
+	head, err := s.getForTLF(uid, NullBranchID)
 	require.NoError(t, err)
 	require.Nil(t, head)
 
@@ -67,7 +66,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		if i > 1 {
 			rmds.MD.PrevRoot = prevRoot
 		}
-		recordBranchID, err := s.put(uid, deviceKID, rmds)
+		recordBranchID, err := s.put(uid, rmds)
 		require.NoError(t, err)
 		require.False(t, recordBranchID)
 		prevRoot, err = rmds.MD.MetadataID(crypto)
@@ -88,7 +87,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	rmds.MD.SerializedPrivateMetadata[0] = 0x1
 	FakeInitialRekey(&rmds.MD, h)
 	rmds.MD.PrevRoot = prevRoot
-	_, err = s.put(uid, deviceKID, rmds)
+	_, err = s.put(uid, rmds)
 	require.IsType(t, MDServerErrorConflictRevision{}, err)
 
 	require.Equal(t, 10, getMDJournalLength(t, s, NullBranchID))
@@ -109,7 +108,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		rmds.MD.clearCachedMetadataIDForTest()
 		rmds.MD.WFlags |= MetadataFlagUnmerged
 		rmds.MD.BID = bid
-		recordBranchID, err := s.put(uid, deviceKID, rmds)
+		recordBranchID, err := s.put(uid, rmds)
 		require.NoError(t, err)
 		require.Equal(t, i == MetadataRevision(6), recordBranchID)
 		prevRoot, err = rmds.MD.MetadataID(crypto)
@@ -121,7 +120,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (5) Check for proper unmerged head.
 
-	head, err = s.getForTLF(uid, deviceKID, bid)
+	head, err = s.getForTLF(uid, bid)
 	require.NoError(t, err)
 	require.NotNil(t, head)
 	require.Equal(t, MetadataRevision(40), head.MD.Revision)
@@ -131,7 +130,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (6) Try to get unmerged range.
 
-	rmdses, err := s.getRange(uid, deviceKID, bid, 1, 100)
+	rmdses, err := s.getRange(uid, bid, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 35, len(rmdses))
 	for i := MetadataRevision(6); i < 16; i++ {
@@ -142,14 +141,14 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (10) Check for proper merged head.
 
-	head, err = s.getForTLF(uid, deviceKID, NullBranchID)
+	head, err = s.getForTLF(uid, NullBranchID)
 	require.NoError(t, err)
 	require.NotNil(t, head)
 	require.Equal(t, MetadataRevision(10), head.MD.Revision)
 
 	// (11) Try to get merged range.
 
-	rmdses, err = s.getRange(uid, deviceKID, NullBranchID, 1, 100)
+	rmdses, err = s.getRange(uid, NullBranchID, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(rmdses))
 	for i := MetadataRevision(1); i <= 10; i++ {

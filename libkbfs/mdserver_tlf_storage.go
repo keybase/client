@@ -195,7 +195,7 @@ func (s *mdServerTlfStorage) getHeadForTLFReadLocked(bid BranchID) (
 }
 
 func (s *mdServerTlfStorage) checkGetParamsReadLocked(
-	currentUID keybase1.UID, deviceKID keybase1.KID, bid BranchID) error {
+	currentUID keybase1.UID, bid BranchID) error {
 	mergedMasterHead, err := s.getHeadForTLFReadLocked(NullBranchID)
 	if err != nil {
 		return MDServerError{err}
@@ -213,10 +213,9 @@ func (s *mdServerTlfStorage) checkGetParamsReadLocked(
 }
 
 func (s *mdServerTlfStorage) getRangeReadLocked(
-	currentUID keybase1.UID, deviceKID keybase1.KID,
-	bid BranchID, start, stop MetadataRevision) (
+	currentUID keybase1.UID, bid BranchID, start, stop MetadataRevision) (
 	[]*RootMetadataSigned, error) {
-	err := s.checkGetParamsReadLocked(currentUID, deviceKID, bid)
+	err := s.checkGetParamsReadLocked(currentUID, bid)
 	if err != nil {
 		return nil, err
 	}
@@ -272,8 +271,7 @@ func (s *mdServerTlfStorage) journalLength(bid BranchID) (uint64, error) {
 }
 
 func (s *mdServerTlfStorage) getForTLF(
-	currentUID keybase1.UID, deviceKID keybase1.KID,
-	bid BranchID) (*RootMetadataSigned, error) {
+	currentUID keybase1.UID, bid BranchID) (*RootMetadataSigned, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -281,7 +279,7 @@ func (s *mdServerTlfStorage) getForTLF(
 		return nil, errMDServerTlfStorageShutdown
 	}
 
-	err := s.checkGetParamsReadLocked(currentUID, deviceKID, bid)
+	err := s.checkGetParamsReadLocked(currentUID, bid)
 	if err != nil {
 		return nil, err
 	}
@@ -294,8 +292,7 @@ func (s *mdServerTlfStorage) getForTLF(
 }
 
 func (s *mdServerTlfStorage) getRange(
-	currentUID keybase1.UID, deviceKID keybase1.KID,
-	bid BranchID, start, stop MetadataRevision) (
+	currentUID keybase1.UID, bid BranchID, start, stop MetadataRevision) (
 	[]*RootMetadataSigned, error) {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
@@ -304,12 +301,12 @@ func (s *mdServerTlfStorage) getRange(
 		return nil, errMDServerTlfStorageShutdown
 	}
 
-	return s.getRangeReadLocked(currentUID, deviceKID, bid, start, stop)
+	return s.getRangeReadLocked(currentUID, bid, start, stop)
 }
 
 func (s *mdServerTlfStorage) put(
-	currentUID keybase1.UID, deviceKID keybase1.KID,
-	rmds *RootMetadataSigned) (recordBranchID bool, err error) {
+	currentUID keybase1.UID, rmds *RootMetadataSigned) (
+	recordBranchID bool, err error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -349,7 +346,7 @@ func (s *mdServerTlfStorage) put(
 		// currHead for unmerged history might be on the main branch
 		prevRev := rmds.MD.Revision - 1
 		rmdses, err := s.getRangeReadLocked(
-			currentUID, deviceKID, NullBranchID, prevRev, prevRev)
+			currentUID, NullBranchID, prevRev, prevRev)
 		if err != nil {
 			return false, MDServerError{err}
 		}

@@ -317,17 +317,12 @@ func (md *MDServerDisk) GetForTLF(ctx context.Context, id TlfID,
 		return nil, MDServerError{err}
 	}
 
-	key, err := md.config.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		return nil, MDServerError{err}
-	}
-
 	tlfStorage, err := md.getStorage(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return tlfStorage.getForTLF(currentUID, key.kid, bid)
+	return tlfStorage.getForTLF(currentUID, bid)
 }
 
 // GetRange implements the MDServer interface for MDServerDisk.
@@ -353,17 +348,12 @@ func (md *MDServerDisk) GetRange(ctx context.Context, id TlfID,
 		return nil, MDServerError{err}
 	}
 
-	key, err := md.config.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		return nil, MDServerError{err}
-	}
-
 	tlfStorage, err := md.getStorage(id)
 	if err != nil {
 		return nil, err
 	}
 
-	return tlfStorage.getRange(currentUID, key.kid, bid, start, stop)
+	return tlfStorage.getRange(currentUID, bid, start, stop)
 }
 
 // Put implements the MDServer interface for MDServerDisk.
@@ -373,17 +363,12 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned) error
 		return MDServerError{err}
 	}
 
-	key, err := md.config.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		return MDServerError{err}
-	}
-
 	tlfStorage, err := md.getStorage(rmds.MD.ID)
 	if err != nil {
 		return err
 	}
 
-	recordBranchID, err := tlfStorage.put(currentUID, key.kid, rmds)
+	recordBranchID, err := tlfStorage.put(currentUID, rmds)
 	if err != nil {
 		return err
 	}
