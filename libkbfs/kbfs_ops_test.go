@@ -5176,6 +5176,31 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 
 	// Make sure we get the notification
 	<-c
+
+	// Since in the mock test all MDs get the same MD ID, manually
+	// alter head's md ID so it doesn't look the same as the next MD
+	// (which would cause setHeadRevision to skip it).
+	newRmd.mdIDLock.Lock()
+	newRmd.mdID = fakeMdID(fakeTlfIDByte(id) + 100)
+	newRmd.mdIDLock.Unlock()
+
+	// Make sure we get a sync even if we overwrite (not extend) the file
+	data[1] = 0
+	config.mockBsplit.EXPECT().CopyUntilSplit(
+		gomock.Any(), gomock.Any(), data, int64(0)).
+		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
+			block.Contents = data
+		}).Return(int64(len(data)))
+	// expect another sync to happen in the background
+	var newRmd2 *RootMetadata
+	blocks = make([]BlockID, 2)
+	expectSyncBlock(t, config, nil, uid, id, "", p, rmd, false, 0, 0, 0,
+		&newRmd2, blocks)
+
+	if err := config.KBFSOps().Write(ctx, n, data, 0); err != nil {
+		t.Errorf("Got error on write: %v", err)
+	}
+	<-c
 }
 
 func TestKBFSOpsWriteRenameStat(t *testing.T) {
