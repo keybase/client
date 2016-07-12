@@ -132,7 +132,6 @@ Welcome to keybase.io!
    - you are now logged in as %s
    - your profile on keybase is https://keybase.io/%s
    - type 'keybase help' for more instructions
-   - type 'keybase pgp gen' if you'd like to create a PGP key
 
 Keybase is in alpha and we'll be rolling out new features soon. Report bugs
 to us at https://github.com/keybase/keybase-issues
