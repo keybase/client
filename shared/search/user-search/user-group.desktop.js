@@ -46,7 +46,7 @@ function User ({selected, user, insertSpacing, onRemove, onClickUser}: {selected
         {avatar}
         {name}
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'flex-end', marginRight: 16}}>
-          <Icon onClick={e => { e && e.stopPropagation(); onRemove(user) }} type={'fa-kb-iconfont-remove'} style={{color: globalColors.black_20}} />
+          <Icon onClick={e => { e && e.stopPropagation(); onRemove(user) }} type={'fa-kb-iconfont-remove'} style={{color: globalColors.black_20, hoverColor: globalColors.black_60}} />
         </Box>
       </ClickableBox>
       {insertSpacing && <Box style={{height: 1}} />}

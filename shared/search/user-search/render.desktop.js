@@ -195,6 +195,7 @@ export class SearchBar extends Component<void, SearchBarProps, void> {
         <Box style={stylesServicesContainer}>
           {services.map(s => (
             <ServiceIcon
+              key={s}
               serviceName={s}
               tooltip={tooltips[s] || s}
               iconType={platformToLogo24(s)}
