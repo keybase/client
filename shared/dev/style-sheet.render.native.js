@@ -5,9 +5,8 @@ import {Switch} from 'react-native'
 import {ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
-import {Dropdown, Checkbox, Button, Box, Text, Terminal, Icon, Input, FormWithCheckbox, TabBar} from '../common-adapters'
+import {Dropdown, Checkbox, Button, Box, Text, Terminal, Input, FormWithCheckbox, TabBar} from '../common-adapters'
 import {TabBarItem} from '../common-adapters/tab-bar'
-import type {IconType} from '../common-adapters/icon'
 
 const Space = () => <Box style={{height: 20, width: 20}} />
 
@@ -257,29 +256,6 @@ const Dropdowns = ({selectedUser, selectUser, selectedOption, selectOption, user
   </Box>
 )
 
-const Icons = () => (
-  <Box style={{...globalStyles.flexBoxColumn}}>
-    {[
-      'icon-computer-bw-64',
-      'fa-copy',
-      'fa-eye',
-      'fa-key',
-      'icon-keybase-logo-160',
-      'fa-kb-iconfont-proof-broken',
-      'fa-kb-iconfont-proof-good',
-      'fa-kb-iconfont-proof-pending',
-      'fa-close',
-      'fa-mobile',
-    ].map((i: IconType) => [ // eslint-disable-line arrow-parens
-      <Row key={i}><Icon onClick={() => console.log('clicked')} type={i} /></Row>,
-      <Row key={i + '100px'}><Icon style={{width: 100, height: 100}} onClick={() => console.log('clicked')} type={i} /></Row>,
-    ])}
-    <Row key='a'><Icon type='fa-copy' style={{color: globalColors.blue}} /></Row>
-    <Row key='a1'><Icon type='fa-copy' style={{color: globalColors.green}} /></Row>
-    <Row key='a2'><Icon type='fa-copy' style={{color: globalColors.orange}} /></Row>
-  </Box>
-)
-
 const Checkboxes = ({check, flip}) => {
   return (
     <Box>
@@ -375,7 +351,6 @@ export default class Render extends Component {
         /></Container>
         <Container title='Inputs'><Inputs /></Container>
         <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check} /></Container>
-        <Container title='Icons'><Icons /></Container>
         <Container title='Colors'><Colors /></Container>
       </ScrollView>
     )

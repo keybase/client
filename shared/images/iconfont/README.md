@@ -3,12 +3,12 @@
 - Go to https://icomoon.io
 - Import project file kb-icomoon-project.json
 - Save exported svgs from Zeplin to this directory (protip you can export all assets in Zeplin under assets if you don't have anything selected)
-- Add new svgs to icomoon
+- Add new svgs to icomoon in the correct grid sections
 - Ensure settings:
 
 ```
 font name: kb
-class prefix: fa-
+class prefix: icon-
 class postfile:
 
 No checkboxes
@@ -24,6 +24,7 @@ Leave the rest as the defaults
 - When you get to the font download screen you should see each icon in the correct grid size category (visible in the upper left) like this picture:
 <img width="1323" alt="screen shot 2016-05-24 at 5 10 50 pm" src="https://cloud.githubusercontent.com/assets/594035/15523982/583acab6-21d3-11e6-93af-34b680d02f6c.png">
 
+- Download and replace kb-icomoon-project.json [IcoMoon Hamburger | Manage projects | Download]
 - Copy style.css -> desktop/renderer/fonticon.css
 - Copy font/kb.ttf -> desktop/renderer/fonts/kb.ttf
 
@@ -44,16 +45,7 @@ Go [here](https://www.fontsquirrel.com/tools/webfont-generator)
 1. turn off subsetting
 1. truetype hinting = keep existing
 
-## Update the flowtype and fonts on the React native side!
+## Update the flowtype and fonts on both apps
 
-1. Add new icons to shared/common-adapters/icon.js.flow
-1. Regen react-native icon paths
-
-    ```
-    cd react-native
-    npm run update-font-icon
-    ```
-
-## Update the flowtype and fonts on the electron side!
-
+1. Go to /desktop
 1. Run ```npm run updated-fonts```

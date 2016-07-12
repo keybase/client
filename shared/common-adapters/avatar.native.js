@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {Image, TouchableOpacity} from 'react-native'
 import type {Props} from './avatar'
 import {Box} from '../common-adapters'
-import {images} from './icon.paths.native'
+import {iconMeta} from './icon.constants'
 import {globalStyles} from '../styles/style-guide'
 import * as shared from './avatar.shared'
 
@@ -34,12 +34,22 @@ export default class Avatar extends Component<void, Props, State> {
           {!this.state.avatarLoaded &&
             <Image
               style={stylesPlaceholderImage(size)}
-              source={images['placeholder-avatar']} />}
+              source={placeholder(size)} />}
         </Box>
       </TouchableOpacity>
     )
   }
 }
+
+const placeholder = (size: number) => ({ // eslint-disable-line arrow-parens
+  '176': iconMeta['icon-placeholder-avatar-176-x-176'].require,
+  '112': iconMeta['icon-placeholder-avatar-112-x-112'].require,
+  '80': iconMeta['icon-placeholder-avatar-80-x-80'].require,
+  '64': iconMeta['icon-placeholder-avatar-64-x-64'].require,
+  '48': iconMeta['icon-placeholder-avatar-48-x-48'].require,
+  '32': iconMeta['icon-placeholder-avatar-32-x-32'].require,
+  '24': iconMeta['icon-placeholder-avatar-24-x-24'].require,
+}[String(size)])
 
 const stylesCommon = (size: number) => ({ // eslint-disable-line arrow-parens
   width: size,

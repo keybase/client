@@ -42,16 +42,16 @@ export function proofColor (proof: Proof): string {
 
 export function iconNameForProof (proof: Proof): IconType {
   const types : {[key: string]: IconType} = {
-    'twitter': 'fa-kb-iconfont-identity-twitter',
-    'github': 'fa-kb-iconfont-identity-github',
-    'reddit': 'fa-kb-iconfont-identity-reddit',
-    'pgp': 'fa-kb-iconfont-identity-pgp',
-    'coinbase': 'fa-kb-iconfont-coinbase',
-    'hackernews': 'fa-kb-iconfont-identity-hn',
-    'rooter': 'fa-shopping-basket',
-    'http': 'fa-globe',
-    'https': 'fa-globe',
-    'dns': 'fa-globe',
+    'twitter': 'iconfont-identity-twitter',
+    'github': 'iconfont-identity-github',
+    'reddit': 'iconfont-identity-reddit',
+    'pgp': 'iconfont-identity-pgp',
+    'coinbase': 'iconfont-coinbase',
+    'hackernews': 'iconfont-identity-hn',
+    'rooter': 'iconfont-thunderbolt',
+    'http': 'iconfont-identity-website',
+    'https': 'iconfont-identity-website',
+    'dns': 'iconfont-identity-website',
   }
 
   return types[proof.type]
@@ -60,15 +60,15 @@ export function iconNameForProof (proof: Proof): IconType {
 export function proofStatusIcon (proof: Proof): ?IconType {
   switch (proof.state) {
     case proofChecking:
-      return 'fa-kb-iconfont-proof-pending'
+      return 'iconfont-proof-pending'
 
     case proofNormal:
-      return proof.isTracked ? 'fa-kb-iconfont-proof-followed' : 'fa-kb-iconfont-proof-new'
+      return proof.isTracked ? 'iconfont-proof-followed' : 'iconfont-proof-new'
 
     case proofWarning:
     case proofError:
     case proofRevoked:
-      return 'fa-kb-iconfont-proof-broken'
+      return 'iconfont-proof-broken'
 
     default:
       return null

@@ -81,13 +81,13 @@ export type SearchActions = Search | Results | SelectPlatform | SelectUserForInf
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
   return {
-    'Keybase': 'fa-kb-iconfont-identity-devices',
-    'Twitter': 'fa-kb-iconfont-identity-twitter',
-    'Github': 'fa-kb-iconfont-identity-github',
-    'Reddit': 'fa-kb-iconfont-identity-reddit',
-    'Coinbase': 'fa-kb-iconfont-identity-bitcoin',
-    'Hackernews': 'fa-kb-iconfont-identity-hn',
-    'Pgp': 'fa-kb-iconfont-identity-pgp',
+    'Keybase': 'iconfont-identity-devices',
+    'Twitter': 'iconfont-identity-twitter',
+    'Github': 'iconfont-identity-github',
+    'Reddit': 'iconfont-identity-reddit',
+    'Coinbase': 'iconfont-identity-bitcoin',
+    'Hackernews': 'iconfont-identity-hn',
+    'Pgp': 'iconfont-identity-pgp',
   }[platform]
 }
 

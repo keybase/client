@@ -32,7 +32,7 @@ export default class Checkbox extends Component {
     return (
       <div style={{...styles.container, ...clickableStyle, ...this.props.style}} onClick={this.props.disabled ? undefined : () => this.props.onCheck(!this.props.checked)}>
         <div style={boxStyle}>
-          <Icon type='fa-check' style={{...styles.icon, ...(this.props.checked ? {} : {opacity: 0})}} />
+          <Icon type='iconfont-check' style={{...styles.icon, ...(this.props.checked ? {} : {opacity: 0})}} />
         </div>
         <Text type='Body' small style={{color: globalColors.black_75}}>{this.props.label}</Text>
       </div>

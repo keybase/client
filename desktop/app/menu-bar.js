@@ -32,7 +32,7 @@ export default function () {
     // Without this flag set, menubar will hide the dock icon when the app
     // ready event fires. We manage the dock icon ourselves, so this flag
     // prevents menubar from changing the state.
-    'show-dock-icon': true,
+    showDockIcon: true,
   })
 
   const updateIcon = () => {
@@ -79,9 +79,12 @@ export default function () {
   })
 
   mb.on('ready', () => {
-    // Hack: open widget when right clicked (in addition to left click;
-    // currently menubar affords one or the other).
-    mb.tray.on('right-click', (e, bounds) => mb.tray.emit('click', e, bounds))
+    // Hack: open widget when left/right/double clicked
+    mb.tray.on('right-click', (e, bounds) => {
+      e.preventDefault()
+      setImmediate(() => mb.tray.emit('click', {...e}, {...bounds}))
+    })
+    mb.tray.on('double-click', e => e.preventDefault())
 
     // prevent the menubar's window from dying when we quit
     // We remove any existing listeners to close because menubar has one that deletes the reference to mb.window
