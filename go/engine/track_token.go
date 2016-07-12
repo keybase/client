@@ -115,7 +115,9 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 		err = e.storeLocalTrack()
 	} else {
 		err = e.storeRemoteTrack(ctx, signingKeyPub.GetKID())
-		if err != nil {
+		if err == nil {
+			// if the remote track succeeded, remove local tracks
+			// (this also removes any snoozes)
 			e.removeLocalTracks()
 		}
 	}
