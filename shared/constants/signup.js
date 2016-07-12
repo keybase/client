@@ -30,10 +30,10 @@ export type ShowPaperKey = TypedAction<'signup:showPaperKey', {paperkey: HiddenS
 export const showSuccess = 'signup:showSuccess'
 export type ShowSuccess = TypedAction<'signup:showSuccess', {}, {}>
 
-export const resetSignup = 'signup:resetSignup'
-export type ResetSignup = TypedAction<'signup:resetSignup', {}, {}>
+export const restartSignup = 'signup:restartSignup'
+export type RestartSignup = TypedAction<'signup:restartSignup', {}, {}>
 
 export const signupWaiting = 'signup:waiting'
 export type SignupWaiting = TypedAction<'signup:waiting', boolean, void>
 
-export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase | SubmitDeviceName | Signup | ShowPaperKey | ShowSuccess | ResetSignup | SignupWaiting
+export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase | SubmitDeviceName | Signup | ShowPaperKey | ShowSuccess | RestartSignup | SignupWaiting

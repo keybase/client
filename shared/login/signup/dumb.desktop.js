@@ -179,7 +179,7 @@ export default {
       'Start': {
         ...signupShared,
         errorText: new HiddenString('This is an error'),
-        resetSignup: nullFunc,
+        restartSignup: nullFunc,
       },
     },
   },

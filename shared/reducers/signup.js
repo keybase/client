@@ -189,7 +189,7 @@ export default function (state: SignupState = initialState, action: SignupAction
         return state
       }
 
-    case Constants.resetSignup:
+    case Constants.restartSignup:
       return {
         ...state,
         phase: 'inviteCode',

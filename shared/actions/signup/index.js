@@ -11,7 +11,7 @@ import {routeAppend, navigateUp} from '../../actions/router'
 
 import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../../constants/signup'
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, RestartSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../../constants/signup'
 import type {signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
   signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../../constants/types/flow-types'
 
@@ -359,9 +359,9 @@ function waiting (isWaiting: boolean): SignupWaiting {
   }
 }
 
-export function resetSignup (): TypedAsyncAction<ResetSignup | RouteAppend> {
+export function restartSignup (): TypedAsyncAction<RestartSignup | RouteAppend> {
   return dispatch => new Promise((resolve, reject) => {
-    dispatch({type: Constants.resetSignup, payload: {}})
+    dispatch({type: Constants.restartSignup, payload: {}})
     dispatch(navigateUp(loginTab, Map({path: 'signup'})))
     dispatch(navigateUp())
     resolve()

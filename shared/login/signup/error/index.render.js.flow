@@ -5,7 +5,7 @@ import HiddenString from '../../../util/hidden-string'
 
 export type Props = {
   errorText: HiddenString,
-  resetSignup: () => void
+  restartSignup: () => void
 }
 
 export default class Render extends Component {
