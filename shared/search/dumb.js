@@ -120,15 +120,7 @@ const commonProps = {
   chatEnabled: false,
   showComingSoon: false,
   selectedUsers: commonUsers,
-  userForInfoPane: {
-    service: 'keybase',
-    username: 'malg',
-    isFollowing: false,
-    extraInfo: {
-      service: 'none',
-      fullName: 'John Malg',
-    },
-  },
+  userForInfoPane: commonUsers[0],
 }
 
 const searchMap: DumbComponentMap<Search> = {
@@ -144,6 +136,11 @@ const searchMap: DumbComponentMap<Search> = {
     'Group': {
       ...commonProps,
       showUserGroup: true,
+    },
+    'Group non-user': {
+      ...commonProps,
+      showUserGroup: true,
+      userForInfoPane: commonUsers[2],
     },
     'Chat enabled': {
       ...commonProps,
