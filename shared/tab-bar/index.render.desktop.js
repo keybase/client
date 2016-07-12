@@ -152,6 +152,7 @@ const stylesTabBarItem = {
 
 const stylesSearchButton = {
   ...globalStyles.flexBoxColumn,
+  ...globalStyles.clickable,
   justifyContent: 'center',
   alignItems: 'center',
   alignSelf: 'center',
