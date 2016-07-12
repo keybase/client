@@ -441,14 +441,11 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 		if err != nil {
 			fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
 		} else if dirsEqual {
-			// This md is part of the history of the folder,
-			// so we shouldn't delete the blocks.
-			fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d",
-				toDelete.md.Revision)
-			// But, since this MD put seems to have succeeded, we
-			// should archive it.
-			fbm.log.CDebugf(ctx, "Archiving successful MD revision %d",
-				rmds[0].Revision)
+			// This md is part of the history of the folder, so we
+			// shouldn't delete the blocks.  But, since this MD put
+			// seems to have succeeded, we should archive it.
+			fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d; "+
+				"archiving it", rmds[0].Revision)
 			// Don't block on archiving the MD, because that could
 			// lead to deadlock.
 			fbm.archiveUnrefBlocksNoWait(rmds[0])
@@ -532,6 +529,8 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 			for _, op := range md.data.Changes.Ops {
 				for _, ptr := range op.Unrefs() {
 					// Can be zeroPtr in weird failed sync scenarios.
+					// See syncInfo.replaceRemovedBlock for an example
+					// of how this can happen.
 					if ptr != zeroPtr {
 						ptrs = append(ptrs, ptr)
 					}

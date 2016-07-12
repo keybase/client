@@ -67,8 +67,39 @@ func (si *syncInfo) DeepCopy(codec Codec) (*syncInfo, error) {
 		}
 	}
 	newSi.toCleanIfUnused = make([]mdToCleanIfUnused, len(si.toCleanIfUnused))
-	copy(newSi.toCleanIfUnused, si.toCleanIfUnused)
+	for i, toClean := range si.toCleanIfUnused {
+		// It might be overkill to deep-copy these MDs and bpses,
+		// which are probably immutable, but for now let's do the safe
+		// thing.
+		copyMd, err := toClean.md.deepCopy(codec, false)
+		if err != nil {
+			return nil, err
+		}
+		newSi.toCleanIfUnused[i].md = copyMd
+		newSi.toCleanIfUnused[i].bps = toClean.bps.DeepCopy()
+	}
 	return newSi, nil
+}
+
+func (si *syncInfo) removeReplacedBlock(ctx context.Context,
+	log logger.Logger, ptr BlockPointer) {
+	for i, ref := range si.op.RefBlocks {
+		if ref == ptr {
+			log.CDebugf(ctx, "Replacing old ref %v", ptr)
+			si.op.RefBlocks = append(si.op.RefBlocks[:i],
+				si.op.RefBlocks[i+1:]...)
+			for j, unref := range si.unrefs {
+				if unref.BlockPointer == ptr {
+					// Don't completely remove the unref,
+					// since it contains size info that we
+					// need to incorporate into the MD
+					// usage calculations.
+					si.unrefs[j].BlockPointer = zeroPtr
+				}
+			}
+			break
+		}
+	}
 }
 
 // folderBlockOps contains all the fields that must be synchronized by
@@ -2092,23 +2123,8 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 				// If this block is replacing a block from a previous,
 				// failed Sync, we need to take that block out of the
 				// refs list, and avoid unrefing it as well.
-				for i, ref := range si.op.RefBlocks {
-					if ref == localPtr {
-						fbo.log.CDebugf(ctx, "Replacing old ref %v", localPtr)
-						si.op.RefBlocks = append(si.op.RefBlocks[:i],
-							si.op.RefBlocks[i+1:]...)
-						for j, unref := range si.unrefs {
-							if unref.BlockPointer == localPtr {
-								// Don't completely remove the unref,
-								// since it contains size info that we
-								// need to incorporate into the MD
-								// usage calculations.
-								si.unrefs[j].BlockPointer = zeroPtr
-							}
-						}
-						break
-					}
-				}
+				si.removeReplacedBlock(ctx, fbo.log, localPtr)
+
 				si.bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData,
 					func() error {
 						return df.setBlockSynced(localPtr)
@@ -2269,14 +2285,17 @@ func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
 	refs := make(map[BlockPointer]bool)
 	for _, op := range md.data.Changes.Ops {
 		for _, ptr := range op.Refs() {
-			if ptr != zeroPtr {
-				refs[ptr] = true
+			if ptr == zeroPtr {
+				panic("Unexpected zero ref ptr in a sync MD revision")
 			}
+			refs[ptr] = true
 		}
 		for _, update := range op.AllUpdates() {
-			if update.Ref != zeroPtr {
-				refs[update.Ref] = true
+			if update.Ref == zeroPtr {
+				panic("Unexpected zero update ref ptr in a sync MD revision")
 			}
+
+			refs[update.Ref] = true
 		}
 	}
 
@@ -2293,8 +2312,10 @@ func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
 
 		failedBps := newBlockPutState(len(oldMD.bps.blockStates))
 		for _, bs := range oldMD.bps.blockStates {
-			if bs.blockPtr == zeroPtr ||
-				(refs[bs.blockPtr] && bdType == blockDeleteAlways) {
+			if bs.blockPtr == zeroPtr {
+				panic("Unexpected zero block ptr in an old sync MD revision")
+			}
+			if refs[bs.blockPtr] && bdType == blockDeleteAlways {
 				continue
 			}
 			failedBps.blockStates = append(failedBps.blockStates,
