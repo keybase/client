@@ -24,7 +24,7 @@ export default class Input extends Component {
   }
 
   clearValue () {
-    this.setState({value: null})
+    this.onChange({target: {value: null}})
   }
 
   onChange (event: {target: {value: ?string}}) {

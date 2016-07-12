@@ -122,10 +122,6 @@ function rawResults (term: string, platform: SearchPlatforms, rresults: Array<Ra
 
 export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results> {
   return (dispatch, getState) => {
-    if (trim(term) === '') {
-      return
-    }
-
     // In case platform is passed in as null
     const platform: SearchPlatforms = maybePlatform || 'Keybase'
 
@@ -136,6 +132,10 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
         error: false,
       },
     })
+
+    if (trim(term) === '') {
+      return
+    }
 
     const service = {
       'Keybase': '',

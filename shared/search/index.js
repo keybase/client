@@ -45,7 +45,7 @@ export default connector.connect(
      showComingSoon: !flags.searchEnabled,
      onClickResult: user => { dispatch(addUserToGroup(user)) },
      selectedService: searchPlatform,
-     onSearch: (term, selectedPlatform) => { dispatch(search(term, selectedPlatform || searchPlatform)); dispatch(hideUserGroup()) },
+     onSearch: (term, selectedPlatform) => { dispatch(search(term, selectedPlatform || searchPlatform)) },
      onClickService: platform => { searchPlatform !== platform && dispatch(selectPlatform(platform)) },
      showUserGroup,
      selectedUsers,

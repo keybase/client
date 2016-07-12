@@ -9,6 +9,7 @@ export type UserFn = (user: SearchResult) => void
 
 export type Props = {
   users: Array<SearchResult>,
+  userForInfoPane: ?SearchResult,
   onRemoveUser: UserFn,
   onClickUser: UserFn,
   onAddUser?: () => void,

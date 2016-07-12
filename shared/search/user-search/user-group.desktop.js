@@ -8,7 +8,7 @@ import type {IconType} from '../../common-adapters/icon'
 import type {Props, UserFn} from './user-group'
 import type {SearchResult} from '../../constants/search'
 
-function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult, insertSpacing: boolean, onRemove: UserFn, onClickUser: UserFn}) {
+function User ({selected, user, insertSpacing, onRemove, onClickUser}: {selected: boolean, user: SearchResult, insertSpacing: boolean, onRemove: UserFn, onClickUser: UserFn}) {
   let avatar: React$Element
 
   if (user.service === 'keybase') {
@@ -42,7 +42,7 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {user: SearchResult
 
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
-      <ClickableBox hoverColor={globalColors.blue4} backgroundColor={globalColors.white} onClick={() => onClickUser(user)} style={userRowStyle}>
+      <ClickableBox hoverColor={globalColors.blue4} backgroundColor={selected ? globalColors.blue4 : null} onClick={() => onClickUser(user)} style={userRowStyle}>
         {avatar}
         {name}
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'flex-end', marginRight: 16}}>
@@ -64,12 +64,12 @@ function RowButton ({icon, text, onClick, iconStyle, rowStyle}:
   )
 }
 
-export default function UserGroup ({users, onClickUser, onRemoveUser, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, chatEnabled, onGroupChat}: Props) {
+export default function UserGroup ({users, onClickUser, onRemoveUser, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, chatEnabled, onGroupChat, userForInfoPane}: Props) {
   const privateFolderText = users.length > 1 ? 'Open private group folder' : 'Open shared private folder'
 
   return (
-    <Box style={{...globalStyles.flexBoxColumn, flex: 1, backgroundColor: globalColors.lightGrey}}>
-      {users.map(u => <User key={u.service + u.username} user={u} onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
+    <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+      {users.map(u => <User key={u.service + u.username} selected={!!userForInfoPane && u.username === userForInfoPane.username} user={u} onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
       <RowButton rowStyle={{height: 32}} iconStyle={{marginRight: 4}} icon='icon-folder-private-open-24' text={privateFolderText} onClick={onOpenPrivateGroupFolder} />
       {users.length === 1 && <RowButton rowStyle={{height: 32}} iconStyle={{marginRight: 4}} icon='icon-folder-public-open-24' text='Open public folder' onClick={onOpenPublicGroupFolder} />}
       {chatEnabled && <RowButton rowStyle={{height: 32}} iconStyle={{color: globalColors.blue}} icon='fa-kb-iconfont-chat' text='Start group chat' onClick={onGroupChat} />}

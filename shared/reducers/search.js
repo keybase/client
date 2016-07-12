@@ -23,6 +23,10 @@ const searchHintText = (searchPlatform: SearchPlatforms, selectedUsers: Array<Se
   `${selectedUsers.length ? 'Add' : 'Search'} a ${searchPlatform} user`
 )
 
+const showUserGroup = (searchText: ?string, selectedUsers: Array<SearchResult>): boolean => (
+  !searchText && !!selectedUsers.length
+)
+
 const initialState: State = {
   searchHintText: searchHintText('Keybase', []),
   searchText: null,
@@ -32,7 +36,7 @@ const initialState: State = {
   results: [],
   requestTimestamp: null,
   userForInfoPane: null,
-  showUserGroup: false,
+  showUserGroup: showUserGroup(null, []),
 }
 
 export default function (state: State = initialState, action: SearchActions): State {
@@ -46,6 +50,7 @@ export default function (state: State = initialState, action: SearchActions): St
         return {
           ...state,
           searchText: action.payload.term,
+          showUserGroup: showUserGroup(action.payload.term, state.selectedUsers),
           searchPlatform: state.searchPlatform || initialState.searchPlatform,
           results: [],
         }
@@ -81,7 +86,8 @@ export default function (state: State = initialState, action: SearchActions): St
         return {
           ...state,
           selectedUsers,
-          showUserGroup: true,
+          showUserGroup: showUserGroup(null, selectedUsers),
+          userForInfoPane: user,
           searchHintText: searchHintText(state.searchPlatform, state.selectedUsers),
           results: [],
           searchText: null,
@@ -102,7 +108,7 @@ export default function (state: State = initialState, action: SearchActions): St
         const nextSelectedUsers = state.selectedUsers.filter(u => u !== user)
         return {
           ...state,
-          showUserGroup: nextSelectedUsers.length === 0 ? false : state.showUserGroup,
+          showUserGroup: showUserGroup(null, nextSelectedUsers),
           selectedUsers: nextSelectedUsers,
         }
       }

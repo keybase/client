@@ -27,6 +27,7 @@ class Render extends Component<void, Props, void> {
       <Box style={{overflowY: 'auto', height: 'calc(100% - 96px)'}}>
         {this.props.showUserGroup ? <UserGroup
           users={this.props.selectedUsers}
+          userForInfoPane={this.props.userForInfoPane}
           onRemoveUser={this.props.onRemoveUserFromGroup}
           onClickUser={this.props.onClickUserInGroup}
           onOpenPrivateGroupFolder={this.props.onOpenPrivateGroupFolder}

@@ -18,6 +18,7 @@ class Render extends Component<void, Props, void> {
       return (
         <UserGroup
           users={this.props.selectedUsers}
+          userForInfoPane={this.props.userForInfoPane}
           onAddUser={this.props.onAddAnotherUserToGroup}
           onRemoveUser={this.props.onRemoveUserFromGroup}
           onClickUser={this.props.onClickUserInGroup}
