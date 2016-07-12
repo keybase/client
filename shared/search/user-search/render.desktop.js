@@ -3,9 +3,7 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 
 import {Avatar, Box, ClickableBox, Icon, Input, Text} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles/style-guide'
-
-import {IconButton} from 'material-ui'
+import {globalStyles, globalColors, transition} from '../../styles/style-guide'
 import {platformToLogo24} from '../../constants/search'
 
 import type {SearchResult, SearchPlatforms} from '../../constants/search'
@@ -122,24 +120,34 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   )
 }
 
-function ServiceIcon ({serviceName, tooltip, iconType, selected, onClickService}: {serviceName: SearchPlatforms, tooltip: string, iconType: IconType, selected: boolean, onClickService: ServiceFn}) {
-  const iconStyles = {
-    borderRadius: 24,
-    minWidth: 48,
-    width: 48,
-    height: 48,
-    backgroundColor: selected ? globalColors.blue4 : null,
+type ServiceIconState = {showingTooltip: boolean}
+type ServiceIconProps = {serviceName: SearchPlatforms, tooltip: string,
+  iconType: IconType, selected: boolean, onClickService: ServiceFn}
+class ServiceIcon extends Component<void, ServiceIconProps, ServiceIconState> {
+  state: ServiceIconState;
+
+  constructor (props: ServiceIconProps) {
+    super(props)
+
+    this.state = {
+      showingTooltip: false,
+    }
   }
 
-  return (
-    <IconButton
-      tooltip={tooltip}
-      tooltipPosition='top-center'
-      style={iconStyles}
-      onClick={() => onClickService(serviceName)}>
-      <Icon type={iconType} />
-    </IconButton>
-  )
+  render () {
+    const {serviceName, tooltip, iconType, selected, onClickService} = this.props
+    return (
+      <Box style={{...serviceContainerStyle, backgroundColor: selected ? globalColors.blue4 : null}}
+        onMouseEnter={() => this.setState({showingTooltip: true})}
+        onMouseLeave={() => this.setState({showingTooltip: false})}
+        onClick={() => onClickService(serviceName)} >
+        <Icon type={iconType} style={{...serviceIconStyle,
+          opacity: selected || this.state.showingTooltip ? 1.0 : 0.6}} />
+        <Text type='BodyXSmall' style={{...serviceTooltipStyle,
+          opacity: this.state.showingTooltip ? 1 : 0}}>{tooltip}</Text>
+      </Box>
+    )
+  }
 }
 
 export type SearchBarProps = {
@@ -268,4 +276,30 @@ const stylesInput = {
   textAlign: 'left',
   marginLeft: 16,
   marginRight: 30,
+}
+const serviceContainerStyle = {
+  ...globalStyles.flexBoxColumn,
+  ...transition('backgroundColor'),
+  alignItems: 'center',
+  borderRadius: 25,
+  height: 50,
+  justifyContent: 'center',
+  position: 'relative',
+  width: 50,
+}
+const serviceIconStyle = {
+  ...transition('opacity'),
+}
+const serviceTooltipStyle = {
+  ...transition('opacity'),
+  backgroundColor: globalColors.black_40,
+  borderRadius: 65,
+  color: globalColors.white,
+  left: -16,
+  lineHeight: '22px',
+  minHeight: 22,
+  minWidth: 86,
+  position: 'absolute',
+  textAlign: 'center',
+  top: -24,
 }
