@@ -24,7 +24,7 @@ function User ({selected, user, insertSpacing, onRemove, onClickUser}: {selected
   if (user.service === 'keybase') {
     name = (
       <Box style={{...globalStyles.flexBoxColumn}}>
-        <Text type={'Body'} style={{color: user.isFollowing ? globalColors.green2 : globalColors.orange}}>{user.username}</Text>
+        <Text type={'BodySemibold'} style={{color: user.isFollowing ? globalColors.green2 : globalColors.orange}}>{user.username}</Text>
         <Text type={'BodySmall'}>{fullName(user.extraInfo)}</Text>
       </Box>
     )
@@ -71,7 +71,7 @@ export default function UserGroup ({users, onClickUser, onRemoveUser, onOpenPubl
         onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
       <GroupAction onClick={onOpenPrivateGroupFolder} icon='icon-folder-private-open-24' label={privateFolderText} />
       {users.length === 1 && <GroupAction onClick={onOpenPublicGroupFolder} icon='icon-folder-public-open-24' label='Open public folder' />}
-      {chatEnabled && <GroupAction onClick={onGroupChat} icon='fa-kb-iconfont-chat' label='Start group chat' />}
+      {chatEnabled && <GroupAction onClick={onGroupChat} icon='fa-kb-iconfont-chat' label='Start a chat' />}
     </Box>
   )
 }
