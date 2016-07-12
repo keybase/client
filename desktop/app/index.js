@@ -8,6 +8,7 @@ import menuBar from './menu-bar'
 import storeHelper from './store-helper'
 import MainWindow from './main-window'
 import windowHelper from './window-helper'
+import kbfsHelper from './kbfs-helper'
 import urlHelper from './url-helper'
 import hello from '../shared/util/hello'
 import semver from 'semver'
@@ -63,6 +64,7 @@ function start () {
   devTools()
   menuBar()
   urlHelper()
+  kbfsHelper()
   ListenLogUi()
   windowHelper(app)
 
