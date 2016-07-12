@@ -95,11 +95,11 @@ function RowButton ({icon, text, onClick}: {icon: IconType, text: string, onClic
   )
 }
 
-export default function UserGroup ({users, onAddUser, onRemoveUser, onClickUser, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, chatEnabled, onGroupChat, userForInfoPane}: Props) {
+export default function UserGroup ({selectedUsers, onAddUser, onRemoveUserFromGroup, onClickUserInGroup, onOpenPublicGroupFolder, onOpenPrivateGroupFolder, chatEnabled, onGroupChat, userForInfoPane}: Props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1, backgroundColor: globalColors.lightGrey}}>
       <AddUser onClick={onAddUser} />
-      {users.map(u => <User key={u.service + u.username} selected={!!userForInfoPane && u.username === userForInfoPane.username} user={u} onRemove={onRemoveUser} onClickUser={onClickUser} insertSpacing />)}
+      {selectedUsers.map(u => <User key={u.service + u.username} selected={!!userForInfoPane && u.username === userForInfoPane.username} user={u} onRemove={onRemoveUserFromGroup} onClickUser={onClickUserInGroup} insertSpacing />)}
       <RowButton icon='icon-folder-private-open-32' text='Open private folder' onClick={onOpenPrivateGroupFolder} />
       <RowButton icon='icon-folder-public-open-32' text='Open public folder' onClick={onOpenPublicGroupFolder} />
       {chatEnabled && <RowButton style={{color: globalColors.blue}} icon='fa-kb-iconfont-chat' text='Start a chat' onClick={onGroupChat} />}
