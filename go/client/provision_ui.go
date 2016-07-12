@@ -288,7 +288,10 @@ func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.Promp
 }
 
 func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) error {
-	p.parent.Output("Secret successfully exchanged.  On your new device, choose and save a public name for it.\n\n")
+	p.parent.Output("\n\nVerification code received.  On your new device, choose and save a public name for it.\n\n")
+	p.parent.Output("Note: if you do not see a prompt on your new device for a device name\n")
+	p.parent.Output("in a few seconds then the verification code entered above does not match the\n")
+	p.parent.Output("verification code provided on your new device.\n")
 	return nil
 }
 
