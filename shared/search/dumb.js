@@ -85,6 +85,15 @@ const userGroupMap: DumbComponentMap<UserGroup> = {
   mocks: {
     'Chat enabled': {
       parentProps: {style: {marginTop: 20, flex: 1}},
+      userForInfoPane: {
+        service: 'keybase',
+        username: 'malg',
+        isFollowing: false,
+        extraInfo: {
+          service: 'none',
+          fullName: 'John Malg',
+        },
+      },
       users: [
         {
           service: 'keybase',

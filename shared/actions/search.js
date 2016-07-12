@@ -2,9 +2,10 @@
 
 import * as Constants from '../constants/search'
 import engine from '../engine'
-import {platformToIcon, platformToLogo32} from '../constants/search'
+import {platformToLogo16, platformToLogo32} from '../constants/search'
 import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
+import {isFollowing as isFollowing_} from './config'
 
 import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo, AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult, SearchPlatforms} from '../constants/search'
 import type {apiserverGetRpc, apiserverGetResult} from '../constants/types/flow-types'
@@ -38,7 +39,7 @@ function parseFullName (rr: RawResult): string {
   return ''
 }
 
-function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult): ExtraInfo {
+function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean): ExtraInfo {
   const fullName = parseFullName(rr)
   const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
 
@@ -46,7 +47,7 @@ function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult): ExtraInfo {
     if (serviceName) {
       return {
         service: 'external',
-        icon: platformToIcon(serviceName),
+        icon: platformToLogo16(serviceName),
         serviceUsername: rr.service && rr.service.username || '',
         serviceAvatar: rr.service && rr.service.picture_url,
         fullNameOnService: fullName,
@@ -63,8 +64,7 @@ function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult): ExtraInfo {
         service: 'keybase',
         username: rr.keybase.username,
         fullName: fullName,
-        // TODO (MM) get following status
-        isFollowing: false,
+        isFollowing: isFollowing(rr.keybase.username),
       }
     } else {
       return {
@@ -75,11 +75,15 @@ function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult): ExtraInfo {
   }
 }
 
-function parseRawResult (platform: SearchPlatforms, rr: RawResult): ?SearchResult {
-  const extraInfo = parseExtraInfo(platform, rr)
+function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean, myself: ?string): ?SearchResult {
+  const extraInfo = parseExtraInfo(platform, rr, isFollowing)
   const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
 
   if (platform === 'Keybase' && rr.keybase) {
+    if (rr.keybase.username === myself) { // filter out myself
+      return null
+    }
+
     return {
       service: 'keybase',
       username: rr.keybase.username,
@@ -87,6 +91,10 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult): ?SearchResul
       extraInfo,
     }
   } else if (serviceName) {
+    if (rr.keybase && rr.keybase.username === myself) { // filter out myself
+      return null
+    }
+
     return {
       service: 'external',
       icon: platformToLogo32(serviceName),
@@ -95,15 +103,16 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult): ?SearchResul
       profileUrl: 'TODO',
       serviceAvatar: rr.service && rr.service.picture_url,
       extraInfo,
-      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', rr) : null,
+      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', rr, isFollowing) : null,
     }
   } else {
     return null
   }
 }
 
-function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>, requestTimestamp: Date): Results {
-  const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr)))
+function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>,
+  requestTimestamp: Date, isFollowing: (username: string) => boolean, myself: ?string): Results {
+  const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr, isFollowing, myself)))
 
   return {
     type: Constants.results,
@@ -112,11 +121,7 @@ function rawResults (term: string, platform: SearchPlatforms, rresults: Array<Ra
 }
 
 export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results> {
-  return dispatch => {
-    if (trim(term) === '') {
-      return
-    }
-
+  return (dispatch, getState) => {
     // In case platform is passed in as null
     const platform: SearchPlatforms = maybePlatform || 'Keybase'
 
@@ -127,6 +132,10 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
         error: false,
       },
     })
+
+    if (trim(term) === '') {
+      return
+    }
 
     const service = {
       'Keybase': '',
@@ -158,7 +167,9 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
         } else {
           try {
             const json = JSON.parse(results.body)
-            dispatch(rawResults(term, platform, json.list || [], requestTimestamp))
+            const isFollowing = (username: string) => isFollowing_(getState, username) // eslint-disable-line arrow-parens
+            const myself = getState().config.username
+            dispatch(rawResults(term, platform, json.list || [], requestTimestamp, isFollowing, myself))
           } catch (_) {
             console.log('Error searching (json). Not handling this error')
           }
