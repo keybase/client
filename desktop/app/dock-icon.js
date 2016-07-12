@@ -1,24 +1,19 @@
+// @flow
+
 import {app} from 'electron'
 
-var visibleCount = 0
+let isDockVisible = false
 
-export default (() => {
-  if (!app.dock) {
-    return () => () => {}
+export function showDockIcon () {
+  if (!isDockVisible) {
+    isDockVisible = true
+    app.dock && app.dock.show()
   }
-  return function () {
-    if (++visibleCount === 1) {
-      app.dock.show()
-    }
-    let alreadyHidden = false
-    return () => {
-      if (alreadyHidden) {
-        throw new Error('Tried to hide the dock icon twice')
-      }
-      alreadyHidden = true
-      if (--visibleCount === 0) {
-        app.dock.hide()
-      }
-    }
+}
+
+export function hideDockIcon () {
+  if (isDockVisible) {
+    isDockVisible = false
+    app.dock && app.dock.hide()
   }
-})()
+}
