@@ -364,7 +364,9 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 
 	waiter := displayUserCardAsync(e.G(), ctx, e.them.GetUID(), (e.me != nil))
 	e.G().Log.Debug("| IdentifyUI.Identify(%s)", e.them.GetName())
-	e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, ctx.IdentifyUI, e)
+	if err = e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, ctx.IdentifyUI, e); err != nil {
+		return err
+	}
 
 	if err = <-waiter; err != nil {
 		return err

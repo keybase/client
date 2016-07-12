@@ -196,7 +196,9 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 	ctx.IdentifyUI.LaunchNetworkChecks(res.ExportToUncheckedIdentity(), e.user.Export())
 	waiter := e.displayUserCardAsync(ctx)
 
-	e.user.IDTable().Identify(is, e.arg.ForceRemoteCheck, ctx.IdentifyUI, nil)
+	if err := e.user.IDTable().Identify(is, e.arg.ForceRemoteCheck, ctx.IdentifyUI, nil); err != nil {
+		return nil, err
+	}
 
 	if err := <-waiter; err != nil {
 		return nil, err
