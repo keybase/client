@@ -60,7 +60,7 @@ export default function makeMenu (window) {
       label: '&File',
       submenu: [
        {label: '&Close', accelerator: 'CmdOrCtrl+W', role: 'close'},
-       {label: '&Quit ', accelerator: 'CmdOrCtrl+Q', role: 'close'},
+       {label: '&Quit', accelerator: 'CmdOrCtrl+Q', role: 'close'},
       ],
     }, {
       label: 'Help',
