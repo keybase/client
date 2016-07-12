@@ -47,7 +47,7 @@ type dirtyReq struct {
 //   files within a TLF.  In the TCP analogy, think of this as the
 //   congestion window (cwnd).
 //
-// The goal is to make sure that syncBuf can always be trasmitted to
+// The goal is to make sure that syncBuf can always be transmitted to
 // the server within the file system operation timeout forced on us by
 // the layer that interacts with the file system (19 seconds on OS X
 // and Windows, defaults to 30 seconds for other layers if not already
@@ -144,7 +144,7 @@ type DirtyBlockCacheStandard struct {
 // size.
 func NewDirtyBlockCacheStandard(clock Clock,
 	makeLog func(string) logger.Logger, minSyncBufCap int64,
-	startSyncBufCap int64, maxSyncBufCap int64) *DirtyBlockCacheStandard {
+	maxSyncBufCap int64, startSyncBufCap int64) *DirtyBlockCacheStandard {
 	d := &DirtyBlockCacheStandard{
 		clock:              clock,
 		makeLog:            makeLog,

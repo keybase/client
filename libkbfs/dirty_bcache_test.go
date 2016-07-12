@@ -47,14 +47,14 @@ func testExpectedMissingDirty(t *testing.T, id BlockID,
 
 func TestDirtyBcachePut(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
-		5<<20, 5<<20, 10<<20)
+		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 	testDirtyBcachePut(t, fakeBlockID(1), dirtyBcache)
 }
 
 func TestDirtyBcachePutDuplicate(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
-		5<<20, 5<<20, 10<<20)
+		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 	id1 := fakeBlockID(1)
 
@@ -99,7 +99,7 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 
 func TestDirtyBcacheDelete(t *testing.T) {
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
-		5<<20, 5<<20, 10<<20)
+		5<<20, 10<<20, 5<<20)
 	defer dirtyBcache.Shutdown()
 
 	id1 := fakeBlockID(1)
@@ -121,7 +121,7 @@ func TestDirtyBcacheDelete(t *testing.T) {
 func TestDirtyBcacheRequestPermission(t *testing.T) {
 	bufSize := int64(5)
 	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
-		bufSize, bufSize, bufSize*2)
+		bufSize, bufSize*2, bufSize)
 	defer dirtyBcache.Shutdown()
 	blockedChan := make(chan int64, 1)
 	dirtyBcache.blockedChanForTesting = blockedChan
@@ -195,7 +195,7 @@ func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 	bufSize := int64(10)
 	clock, now := newTestClockAndTimeNow()
 	dirtyBcache := NewDirtyBlockCacheStandard(clock, testLoggerMaker(t),
-		bufSize, bufSize, bufSize*2)
+		bufSize, bufSize*2, bufSize)
 	defer dirtyBcache.Shutdown()
 	// no backpressure yet
 	bp := dirtyBcache.calcBackpressure(now, now.Add(11*time.Second))

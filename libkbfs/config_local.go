@@ -590,10 +590,6 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	// ~1MB, so we can support a connection speed as low as ~54 KB/s.
 	minSyncBufferSize := int64(MaxBlockSizeBytesDefault)
 
-	// Start off conservatively to avoid getting immediate timeouts on
-	// slow connections.
-	startSyncBufferSize := minSyncBufferSize
-
 	// The maximum number of bytes we can try to sync at once (also
 	// limits the amount of memory used by dirty blocks).  We make it
 	// slightly bigger than the max number of parallel bytes in order
@@ -603,8 +599,13 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	// defaults).
 	maxSyncBufferSize :=
 		int64(MaxBlockSizeBytesDefault * maxParallelBlockPuts * 2)
+
+	// Start off conservatively to avoid getting immediate timeouts on
+	// slow connections.
+	startSyncBufferSize := minSyncBufferSize
+
 	c.dirtyBcache = NewDirtyBlockCacheStandard(c.clock, c.MakeLogger,
-		minSyncBufferSize, startSyncBufferSize, maxSyncBufferSize)
+		minSyncBufferSize, maxSyncBufferSize, startSyncBufferSize)
 	return oldDirtyBcache
 }
 
