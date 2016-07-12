@@ -5,7 +5,6 @@
 import electron from 'electron'
 import fs from 'fs'
 import path from 'path'
-import mkdirp from 'mkdirp'
 import jsonfile from 'jsonfile'
 import deepEqual from 'deep-equal'
 
@@ -30,6 +29,26 @@ export default class AppState {
     this.loadStateSync()
   }
 
+  get width () {
+    return this.state.width
+  }
+
+  get height () {
+    return this.state.height
+  }
+
+  get x () {
+    return this.state.x
+  }
+
+  get y () {
+    return this.state.y
+  }
+
+  get windowHidden () {
+    return this.state.windowHidden
+  }
+
   loadStateSync () {
     let configPath = this.configPath()
     try {
@@ -52,6 +71,11 @@ export default class AppState {
     } catch (e) {
       console.warn('Error loading app state:', e)
     }
+  }
+
+  setTab (tab) {
+    this.state.tab = tab
+    this.saveState()
   }
 
   configPath () {
@@ -91,18 +115,18 @@ export default class AppState {
     this.state.isMaximized = this.winRef.isMaximized()
     this.state.isFullScreen = this.winRef.isFullScreen()
     this.state.displayBounds = electron.screen.getDisplayMatching(winBounds).bounds
-    this.state.visible = this.winRef.isVisible()
+    this.state.windowHidden = !this.winRef.isVisible()
     this.saveState()
   }
 
   saveState () {
-    console.log('Saving state:', this.state)
     let configPath = this.configPath()
-    mkdirp(path.dirname(configPath), () => function (err) {
+    let stateToSave = this.state
+    console.log('Saving state:', stateToSave, configPath)
+    jsonfile.writeFile(configPath, stateToSave, function (err) {
       if (err) {
-        return
+        console.log('Error saving file:', err)
       }
-      jsonfile.writeFile(configPath, this.state)
     })
   }
 
@@ -111,15 +135,15 @@ export default class AppState {
   }
 
   closedHandler () {
-    this.unmanage()
+    this.clear()
   }
 
-  stateChangeHandler () {
+  debounceChangeHandler () {
     clearTimeout(this.stateChangeTimer)
     this.stateChangeTimer = setTimeout(() => { this.updateState() }, this.eventHandlingDelay)
   }
 
-  manage (win) {
+  manageWindow (win) {
     if (this.config.maximize && this.state.isMaximized) {
       win.maximize()
     }
@@ -127,11 +151,11 @@ export default class AppState {
       win.setFullScreen(true)
     }
 
-    let resizeHandler = () => { this.stateChangeHandler() }
+    let resizeHandler = () => { this.debounceChangeHandler() }
     this.resizeHandlers.push(resizeHandler)
     win.on('resize', resizeHandler)
 
-    let moveHandler = () => { this.stateChangeHandler() }
+    let moveHandler = () => { this.debounceChangeHandler() }
     this.moveHandlers.push(moveHandler)
     win.on('move', moveHandler)
 
@@ -146,7 +170,7 @@ export default class AppState {
     this.winRef = win
   }
 
-  unmanage () {
+  clear () {
     if (this.winRef) {
       for (let resizeHandler of this.resizeHandlers) {
         this.winRef.removeListener('resize', resizeHandler)

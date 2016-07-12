@@ -6,7 +6,6 @@ import type {Props as FolderProps} from '../folders/render'
 export type Props = {
   username: ?string,
   openApp: () => void,
-  showOpenApp: boolean,
   logIn: () => void,
   showHelp: () => void,
   showUser: (username: ?string) => void,

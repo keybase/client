@@ -105,11 +105,9 @@ class Nav extends Component<void, Props, State> {
         return
       }
 
-      if (flags.mainWindow) {
-        ipcRenderer.send('showMain')
-      }
-
       this._lastCheckedTab = activeTab
+
+      ipcRenderer.send('tabChanged', activeTab)
     })
   }
 
@@ -176,10 +174,6 @@ class Nav extends Component<void, Props, State> {
             rootComponent={Login} />
         </div>
       )
-    }
-
-    if (!flags.mainWindow) {
-      return <div>Coming soon!</div>
     }
 
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
