@@ -136,10 +136,7 @@ export function authAuthenticateSessionTokenRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: authAuthenticateSessionTokenResult) => void)}>) {
-  engine.rpc({
-    ...request,
-    method: 'auth.authenticateSessionToken',
-  })
+  engine.rpc({...request, method: 'auth.authenticateSessionToken'})
 }
 export type authUpdateRevokeSessionIDsRpcParam = $Exact<{
   sessionIDs?: ?Array<SessionID>
@@ -150,10 +147,7 @@ export function authUpdateRevokeSessionIDsRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({
-    ...request,
-    method: 'authUpdate.revokeSessionIDs',
-  })
+  engine.rpc({...request, method: 'authUpdate.revokeSessionIDs'})
 }
 export type incomingConsumeMessageRpcParam = $Exact<{
   m: Message
@@ -164,10 +158,7 @@ export function incomingConsumeMessageRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({
-    ...request,
-    method: 'incoming.consumeMessage',
-  })
+  engine.rpc({...request, method: 'incoming.consumeMessage'})
 }
 export type incomingConsumePublishMessageRpcParam = $Exact<{
   m: Message
@@ -178,10 +169,7 @@ export function incomingConsumePublishMessageRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({
-    ...request,
-    method: 'incoming.consumePublishMessage',
-  })
+  engine.rpc({...request, method: 'incoming.consumePublishMessage'})
 }
 export type incomingStateByCategoryPrefixRpcParam = $Exact<{
   uid: UID,
@@ -197,10 +185,7 @@ export function incomingStateByCategoryPrefixRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: incomingStateByCategoryPrefixResult) => void)}>) {
-  engine.rpc({
-    ...request,
-    method: 'incoming.stateByCategoryPrefix',
-  })
+  engine.rpc({...request, method: 'incoming.stateByCategoryPrefix'})
 }
 export type incomingStateRpcParam = $Exact<{
   uid: UID,
@@ -215,10 +200,7 @@ export function incomingStateRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: incomingStateResult) => void)}>) {
-  engine.rpc({
-    ...request,
-    method: 'incoming.state',
-  })
+  engine.rpc({...request, method: 'incoming.state'})
 }
 export type incomingSyncRpcParam = $Exact<{
   uid: UID,
@@ -233,10 +215,7 @@ export function incomingSyncRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: incomingSyncResult) => void)}>) {
-  engine.rpc({
-    ...request,
-    method: 'incoming.sync',
-  })
+  engine.rpc({...request, method: 'incoming.sync'})
 }
 export type outgoingBroadcastMessageRpcParam = $Exact<{
   m: Message
@@ -247,10 +226,7 @@ export function outgoingBroadcastMessageRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({
-    ...request,
-    method: 'outgoing.broadcastMessage',
-  })
+  engine.rpc({...request, method: 'outgoing.broadcastMessage'})
 }
 export type remindDeleteRemindersRpcParam = $Exact<{
   reminderIDs?: ?Array<ReminderID>
@@ -261,10 +237,7 @@ export function remindDeleteRemindersRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({
-    ...request,
-    method: 'remind.deleteReminders',
-  })
+  engine.rpc({...request, method: 'remind.deleteReminders'})
 }
 export type remindGetRemindersRpcParam = $Exact<{
   maxReminders: int
@@ -277,10 +250,7 @@ export function remindGetRemindersRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: remindGetRemindersResult) => void)}>) {
-  engine.rpc({
-    ...request,
-    method: 'remind.getReminders',
-  })
+  engine.rpc({...request, method: 'remind.getReminders'})
 }
 type authInternalCreateGregorSuperUserSessionTokenResult = SessionToken
 
@@ -288,10 +258,7 @@ export function authInternalCreateGregorSuperUserSessionTokenRpc (request: $Exac
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void)}>) {
-  engine.rpc({
-    ...request,
-    method: 'authInternal.createGregorSuperUserSessionToken',
-  })
+  engine.rpc({...request, method: 'authInternal.createGregorSuperUserSessionToken'})
 }
 type incomingPingResult = string
 
@@ -299,10 +266,7 @@ export function incomingPingRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: incomingPingResult) => void)}>) {
-  engine.rpc({
-    ...request,
-    method: 'incoming.ping',
-  })
+  engine.rpc({...request, method: 'incoming.ping'})
 }
 export type rpc =
     authAuthenticateSessionTokenRpc
