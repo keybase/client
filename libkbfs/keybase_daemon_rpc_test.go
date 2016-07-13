@@ -118,13 +118,9 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 
 	case "keybase.1.user.loadAllPublicKeysUnverified":
 		pk := keybase1.PublicKey{
-			KID:      MakeFakeVerifyingKeyOrBust("foo").KID(),
-			IsSibkey: true,
+			KID: MakeFakeVerifyingKeyOrBust("foo").KID(),
 		}
-		ck := keybase1.PublicKey{
-			KID: MakeFakeCryptPublicKeyOrBust("bar").KID(),
-		}
-		*res.(*[]keybase1.PublicKey) = []keybase1.PublicKey{pk, ck}
+		*res.(*[]keybase1.PublicKey) = []keybase1.PublicKey{pk}
 
 		c.loadAllPublicKeysUnverified = true
 		return nil
@@ -216,13 +212,11 @@ func testLoadUnverifiedKeys(
 	client.loadAllPublicKeysUnverified = false
 
 	ctx := context.Background()
-	verifyingKeys, cryptKeys, err := c.LoadUnverifiedKeys(ctx, uid)
+	keys, err := c.LoadUnverifiedKeys(ctx, uid)
 	require.NoError(t, err)
 
-	assert.Equal(t, 1, len(verifyingKeys))
-	assert.Equal(t, verifyingKeys[0].KID(), MakeFakeVerifyingKeyOrBust("foo").KID())
-	assert.Equal(t, 1, len(cryptKeys))
-	assert.Equal(t, cryptKeys[0].KID(), MakeFakeCryptPublicKeyOrBust("bar").KID())
+	assert.Equal(t, 1, len(keys))
+	assert.Equal(t, keys[0].KID, MakeFakeVerifyingKeyOrBust("foo").KID())
 	assert.Equal(t, expectedCalled, client.loadAllPublicKeysUnverified)
 }
 

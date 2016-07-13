@@ -442,9 +442,17 @@ func (md *RootMetadata) CheckValidSuccessor(
 	}
 
 	// (3) Check PrevRoot pointer.
-	currRoot, err := md.MetadataID(crypto)
-	if err != nil {
-		return err
+	var currRoot MdID
+	if !nextMd.IsFinal() {
+		var err error
+		currRoot, err = md.MetadataID(crypto)
+		if err != nil {
+			return err
+		}
+	} else {
+		// For finalized metadata the previous head's
+		// PrevRoot is expected.
+		currRoot = md.PrevRoot
 	}
 	if nextMd.PrevRoot != currRoot {
 		return MDPrevRootMismatch{

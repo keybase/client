@@ -231,7 +231,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 
 	handleResolvesToMdHandle, partialResolvedHandle, err :=
 		handle.ResolvesTo(
-			ctx, md.config.Codec(), md.config.KBPKI(), mdHandle)
+			ctx, md.config.Codec(), md.config.KBPKI(), *mdHandle)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 	// TODO: If handle has conflict info, mdHandle should, too.
 	mdHandleResolvesToHandle, partialResolvedMdHandle, err :=
 		mdHandle.ResolvesTo(
-			ctx, md.config.Codec(), md.config.KBPKI(), handle)
+			ctx, md.config.Codec(), md.config.KBPKI(), *handle)
 	if err != nil {
 		return nil, err
 	}

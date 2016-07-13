@@ -207,8 +207,8 @@ func init() {
 	}
 }
 
-// Equals returns whether h and other contain the same info.
-func (h TlfHandle) Equals(codec Codec, other TlfHandle) (bool, error) {
+// EqualsIgnoreName returns whether h and other contain the same info ignoring the name.
+func (h TlfHandle) EqualsIgnoreName(codec Codec, other TlfHandle) (bool, error) {
 	if h.public != other.public {
 		return false, nil
 	}
@@ -241,16 +241,22 @@ func (h TlfHandle) Equals(codec Codec, other TlfHandle) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if !eq {
-		return false, nil
+	return eq, nil
+}
+
+// Equals returns whether h and other contain the same info.
+func (h TlfHandle) Equals(codec Codec, other TlfHandle) (bool, error) {
+	eq, err := h.EqualsIgnoreName(codec, other)
+	if err != nil {
+		return false, err
 	}
 
-	if h.name != other.name {
+	if eq && h.name != other.name {
 		panic(fmt.Errorf(
 			"%+v equals %+v in everything but name", h, other))
 	}
 
-	return true, nil
+	return eq, nil
 }
 
 // ToBareHandle returns a BareTlfHandle corresponding to this handle.
@@ -626,8 +632,29 @@ func (pr partialResolver) Resolve(ctx context.Context, assertion string) (
 // resolved except for unresolved assertions in other; this should
 // equal other if and only if true is returned.
 func (h TlfHandle) ResolvesTo(
-	ctx context.Context, codec Codec, resolver resolver, other *TlfHandle) (
+	ctx context.Context, codec Codec, resolver resolver, other TlfHandle) (
 	resolvesTo bool, partialResolvedH *TlfHandle, err error) {
+
+	// Check the conflict extension.
+	var conflictAdded, finalizedAdded bool
+	if !h.IsConflict() && other.IsConflict() {
+		conflictAdded = true
+		// Ignore the added extension for resolution comparison purposes.
+		other.conflictInfo = nil
+	}
+
+	// Check the finalized extension.
+	if h.IsFinal() {
+		if conflictAdded {
+			// Can't add conflict info to a finalized handle.
+			return false, nil, TlfHandleFinalizedError{}
+		}
+	} else if other.IsFinal() {
+		finalizedAdded = true
+		// Ignore the added extension for resolution comparison purposes.
+		other.finalizedInfo = nil
+	}
+
 	unresolvedAssertions := make(map[string]bool)
 	for _, uw := range other.unresolvedWriters {
 		unresolvedAssertions[uw.String()] = true
@@ -645,11 +672,11 @@ func (h TlfHandle) ResolvesTo(
 		return false, nil, err
 	}
 
-	// TODO: If h doesn't have conflict info and other does, and
-	// everything else is equal, we should still return true.
-	//
-	// TODO: The same for finalized info?
-	resolvesTo, err = partialResolvedH.Equals(codec, *other)
+	if conflictAdded || finalizedAdded {
+		resolvesTo, err = partialResolvedH.EqualsIgnoreName(codec, other)
+	} else {
+		resolvesTo, err = partialResolvedH.Equals(codec, other)
+	}
 	if err != nil {
 		return false, nil, err
 	}
@@ -914,4 +941,10 @@ func CheckTlfHandleOffline(
 // top-level folder.
 func (h TlfHandle) IsFinal() bool {
 	return h.finalizedInfo != nil
+}
+
+// IsConflict returns whether or not this TlfHandle represents a conflicted
+// top-level folder.
+func (h TlfHandle) IsConflict() bool {
+	return h.conflictInfo != nil
 }

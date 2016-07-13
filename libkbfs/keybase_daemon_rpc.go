@@ -16,14 +16,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-type unverifiedKeys struct {
-	// Unnverified set of all keys which have ever ostensibly belonged
-	// to the user including those which existed prior to any account
-	// reset.
-	VerifyingKeys   []VerifyingKey
-	CryptPublicKeys []CryptPublicKey
-}
-
 // KeybaseDaemonRPC implements the KeybaseDaemon interface using RPC
 // calls.
 type KeybaseDaemonRPC struct {
@@ -49,7 +41,7 @@ type KeybaseDaemonRPC struct {
 	userCacheLock sync.RWMutex
 	// Map entries are removed when invalidated.
 	userCache               map[keybase1.UID]UserInfo
-	userCacheUnverifiedKeys map[keybase1.UID]unverifiedKeys
+	userCacheUnverifiedKeys map[keybase1.UID][]keybase1.PublicKey
 
 	lastNotificationFilenameLock sync.Mutex
 	lastNotificationFilename     string
@@ -94,7 +86,7 @@ func newKeybaseDaemonRPC(kbCtx Context, log logger.Logger) *KeybaseDaemonRPC {
 		context:                 kbCtx,
 		log:                     log,
 		userCache:               make(map[keybase1.UID]UserInfo),
-		userCacheUnverifiedKeys: make(map[keybase1.UID]unverifiedKeys),
+		userCacheUnverifiedKeys: make(map[keybase1.UID][]keybase1.PublicKey),
 	}
 	return &k
 }
@@ -212,23 +204,19 @@ func (k *KeybaseDaemonRPC) setCachedUserInfo(uid keybase1.UID, info UserInfo) {
 }
 
 func (k *KeybaseDaemonRPC) getCachedUnverifiedKeys(uid keybase1.UID) (
-	[]VerifyingKey, []CryptPublicKey, bool) {
+	[]keybase1.PublicKey, bool) {
 	k.userCacheLock.RLock()
 	defer k.userCacheLock.RUnlock()
 	if unverifiedKeys, ok := k.userCacheUnverifiedKeys[uid]; ok {
-		return unverifiedKeys.VerifyingKeys, unverifiedKeys.CryptPublicKeys, true
+		return unverifiedKeys, true
 	}
-	return nil, nil, false
+	return nil, false
 }
 
-func (k *KeybaseDaemonRPC) setCachedUnverifiedKeys(uid keybase1.UID, vk []VerifyingKey,
-	cpk []CryptPublicKey) {
+func (k *KeybaseDaemonRPC) setCachedUnverifiedKeys(uid keybase1.UID, pk []keybase1.PublicKey) {
 	k.userCacheLock.Lock()
 	defer k.userCacheLock.Unlock()
-	k.userCacheUnverifiedKeys[uid] = unverifiedKeys{
-		VerifyingKeys:   vk,
-		CryptPublicKeys: cpk,
-	}
+	k.userCacheUnverifiedKeys[uid] = pk
 }
 
 func (k *KeybaseDaemonRPC) clearCachedUnverifiedKeys(uid keybase1.UID) {
@@ -242,7 +230,7 @@ func (k *KeybaseDaemonRPC) clearCaches() {
 	k.userCacheLock.Lock()
 	defer k.userCacheLock.Unlock()
 	k.userCache = make(map[keybase1.UID]UserInfo)
-	k.userCacheUnverifiedKeys = make(map[keybase1.UID]unverifiedKeys)
+	k.userCacheUnverifiedKeys = make(map[keybase1.UID][]keybase1.PublicKey)
 }
 
 // LoggedIn implements keybase1.NotifySessionInterface.
@@ -600,28 +588,19 @@ func (k *KeybaseDaemonRPC) processUserPlusKeys(upk keybase1.UserPlusKeys) (
 
 // LoadUnverifiedKeys implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
-	[]VerifyingKey, []CryptPublicKey, error) {
-	if vk, cpk, ok := k.getCachedUnverifiedKeys(uid); ok {
-		return vk, cpk, nil
+	[]keybase1.PublicKey, error) {
+	if keys, ok := k.getCachedUnverifiedKeys(uid); ok {
+		return keys, nil
 	}
 
 	arg := keybase1.LoadAllPublicKeysUnverifiedArg{Uid: uid}
-	res, err := k.userClient.LoadAllPublicKeysUnverified(ctx, arg)
+	keys, err := k.userClient.LoadAllPublicKeysUnverified(ctx, arg)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
-	return k.processUnverifiedKeys(uid, res)
-}
-
-func (k *KeybaseDaemonRPC) processUnverifiedKeys(uid keybase1.UID, keys []keybase1.PublicKey) (
-	[]VerifyingKey, []CryptPublicKey, error) {
-	verifyingKeys, cryptPublicKeys, _, err := filterKeys(keys)
-	if err != nil {
-		return nil, nil, err
-	}
-	k.setCachedUnverifiedKeys(uid, verifyingKeys, cryptPublicKeys)
-	return verifyingKeys, cryptPublicKeys, nil
+	k.setCachedUnverifiedKeys(uid, keys)
+	return keys, nil
 }
 
 // CurrentSession implements the KeybaseDaemon interface for KeybaseDaemonRPC.

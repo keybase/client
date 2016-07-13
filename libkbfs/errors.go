@@ -1131,3 +1131,13 @@ type OpsCantHandleFavorite struct {
 func (e OpsCantHandleFavorite) Error() string {
 	return fmt.Sprintf("Couldn't handle the favorite operation: %s", e.Msg)
 }
+
+// TlfHandleFinalizedError is returned when something attempts to modify
+// a finalized TLF handle.
+type TlfHandleFinalizedError struct {
+}
+
+// Error implements the error interface for TlfHandleFinalizedError.
+func (e TlfHandleFinalizedError) Error() string {
+	return "Attempt to modify finalized TLF handle"
+}

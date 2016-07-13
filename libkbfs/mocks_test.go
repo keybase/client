@@ -4,15 +4,14 @@
 package libkbfs
 
 import (
-	reflect "reflect"
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	protocol "github.com/keybase/client/go/protocol"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
+	reflect "reflect"
+	time "time"
 )
 
 // Mock of AuthTokenRefreshHandler interface
@@ -545,12 +544,11 @@ func (_mr *_MockKeybaseDaemonRecorder) LoadUserPlusKeys(arg0, arg1 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadUserPlusKeys", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) LoadUnverifiedKeys(ctx context.Context, uid protocol.UID) ([]VerifyingKey, []CryptPublicKey, error) {
+func (_m *MockKeybaseDaemon) LoadUnverifiedKeys(ctx context.Context, uid protocol.UID) ([]protocol.PublicKey, error) {
 	ret := _m.ctrl.Call(_m, "LoadUnverifiedKeys", ctx, uid)
-	ret0, _ := ret[0].([]VerifyingKey)
-	ret1, _ := ret[1].([]CryptPublicKey)
-	ret2, _ := ret[2].(error)
-	return ret0, ret1, ret2
+	ret0, _ := ret[0].([]protocol.PublicKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 func (_mr *_MockKeybaseDaemonRecorder) LoadUnverifiedKeys(arg0, arg1 interface{}) *gomock.Call {
@@ -3567,6 +3565,14 @@ func (_m *MockConfig) DoBackgroundFlushes() bool {
 
 func (_mr *_MockConfigRecorder) DoBackgroundFlushes() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DoBackgroundFlushes")
+}
+
+func (_m *MockConfig) SetDoBackgroundFlushes(_param0 bool) {
+	_m.ctrl.Call(_m, "SetDoBackgroundFlushes", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetDoBackgroundFlushes(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetDoBackgroundFlushes", arg0)
 }
 
 func (_m *MockConfig) RekeyWithPromptWaitTime() time.Duration {

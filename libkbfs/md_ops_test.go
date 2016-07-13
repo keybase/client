@@ -719,7 +719,7 @@ func TestMDOpsGetRangeFailFinal(t *testing.T) {
 
 	rmds2.MD.Revision = 201
 	rmds2.MD.mdID = fakeMdID(41)
-	rmds2.MD.PrevRoot = rmds3.MD.mdID
+	rmds2.MD.PrevRoot = rmds3.MD.PrevRoot
 	rmds2.MD.Flags |= MetadataFlagFinal
 
 	rmds1.MD.Revision = 202
