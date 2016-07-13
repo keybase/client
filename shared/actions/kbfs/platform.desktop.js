@@ -1,6 +1,6 @@
 /* @flow */
 
-import {shell} from 'electron'
+import {ipcRenderer} from 'electron'
 import * as Constants from '../../constants/config'
 import {Common} from '../../constants/types/keybase-v1'
 import type {AsyncAction} from '../../constants/types/flux'
@@ -8,7 +8,7 @@ import path from 'path'
 
 function open (openPath: string) {
   console.log('openItem:', openPath)
-  shell.openItem(openPath)
+  ipcRenderer.send('openInKBFS', openPath)
 }
 
 function openInDefault (openPath: string): AsyncAction {
