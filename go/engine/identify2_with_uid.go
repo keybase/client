@@ -329,8 +329,9 @@ func (e *Identify2WithUID) useRemoteAssertions() bool {
 }
 
 func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {
-	f := func(k keybase1.IdentifyKey) {
+	f := func(k keybase1.IdentifyKey) error {
 		e.identifyKeys = append(e.identifyKeys, k)
+		return nil
 	}
 	e.state.Precompute(f)
 	return nil
@@ -344,27 +345,41 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.remotesReceived = e.them.BaseProofSet()
 
 	e.G().Log.Debug("| IdentifyUI.Start(%s)", e.them.GetName())
-	ctx.IdentifyUI.Start(e.them.GetName(), e.arg.Reason)
+	if err = ctx.IdentifyUI.Start(e.them.GetName(), e.arg.Reason); err != nil {
+		return err
+	}
 	for _, k := range e.identifyKeys {
-		ctx.IdentifyUI.DisplayKey(k)
+		if err = ctx.IdentifyUI.DisplayKey(k); err != nil {
+			return err
+		}
 	}
 	e.G().Log.Debug("| IdentifyUI.ReportLastTrack(%s)", e.them.GetName())
-	ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName()))
+	if err = ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName())); err != nil {
+		return err
+	}
 	e.G().Log.Debug("| IdentifyUI.LaunchNetworkChecks(%s)", e.them.GetName())
-	ctx.IdentifyUI.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export())
+	if err = ctx.IdentifyUI.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export()); err != nil {
+		return err
+	}
 
 	waiter := displayUserCardAsync(e.G(), ctx, e.them.GetUID(), (e.me != nil))
 	e.G().Log.Debug("| IdentifyUI.Identify(%s)", e.them.GetName())
-	e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, ctx.IdentifyUI, e)
+	if err = e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, ctx.IdentifyUI, e); err != nil {
+		return err
+	}
 
-	waiter()
+	if err = <-waiter; err != nil {
+		return err
+	}
 	e.G().Log.Debug("| IdentifyUI waited for waiter (%s)", e.them.GetName())
 
 	// use Confirm to display the IdentifyOutcome
 	ctx.IdentifyUI.Confirm(e.state.Result().Export())
 
 	e.insertTrackToken(ctx)
-	ctx.IdentifyUI.Finish()
+	if err = ctx.IdentifyUI.Finish(); err != nil {
+		return err
+	}
 	e.G().Log.Debug("| IdentifyUI.Finished(%s)", e.them.GetName())
 
 	err = e.checkRemoteAssertions([]keybase1.ProofState{keybase1.ProofState_OK})

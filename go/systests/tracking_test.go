@@ -31,19 +31,43 @@ func (*identifyUI) Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, e
 		RemoteConfirmed:   true,
 	}, nil
 }
-func (*identifyUI) Start(string, keybase1.IdentifyReason)                                 {}
-func (*identifyUI) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)    {}
-func (*identifyUI) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) {}
-func (*identifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency)                         {}
-func (*identifyUI) DisplayKey(keybase1.IdentifyKey)                                       {}
-func (*identifyUI) ReportLastTrack(*keybase1.TrackSummary)                                {}
-func (*identifyUI) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User)                {}
-func (*identifyUI) DisplayTrackStatement(string) error                                    { return nil }
-func (*identifyUI) DisplayUserCard(keybase1.UserCard)                                     {}
-func (*identifyUI) ReportTrackToken(keybase1.TrackToken) error                            { return nil }
-func (*identifyUI) SetStrict(b bool)                                                      {}
-func (*identifyUI) Finish()                                                               {}
-func (*identifyUI) Dismiss(string, keybase1.DismissReason)                                {}
+func (*identifyUI) Start(string, keybase1.IdentifyReason) error {
+	return nil
+}
+func (*identifyUI) FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
+	return nil
+}
+func (*identifyUI) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error {
+	return nil
+}
+func (*identifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+	return nil
+}
+func (*identifyUI) DisplayKey(keybase1.IdentifyKey) error {
+	return nil
+}
+func (*identifyUI) ReportLastTrack(*keybase1.TrackSummary) error {
+	return nil
+}
+func (*identifyUI) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error {
+	return nil
+}
+func (*identifyUI) DisplayTrackStatement(string) error {
+	return nil
+}
+func (*identifyUI) DisplayUserCard(keybase1.UserCard) error {
+	return nil
+}
+func (*identifyUI) ReportTrackToken(keybase1.TrackToken) error {
+	return nil
+}
+func (*identifyUI) SetStrict(b bool) {}
+func (*identifyUI) Finish() error {
+	return nil
+}
+func (*identifyUI) Dismiss(string, keybase1.DismissReason) error {
+	return nil
+}
 
 func (*identifyUI) DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error {
 	return nil
