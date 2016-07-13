@@ -32,6 +32,8 @@ const (
 	StatusCodeBServerErrorBlockDeleted = 2707
 	// StatusCodeBServerErrorNonceNonExistent is the error code when a nonce cannot be found
 	StatusCodeBServerErrorNonceNonExistent = 2708
+	// StatusCodeBServerErrorMaxRefExceeded is the error code to indicate there are too many refs to a block
+	StatusCodeBServerErrorMaxRefExceeded = 2709
 	// StatusCodeBServerErrorThrottle is the error code to indicate the client should initiate backoff.
 	StatusCodeBServerErrorThrottle = 2799
 )
@@ -240,6 +242,27 @@ func (e BServerErrorNonceNonExistent) Error() string {
 	return e.Msg
 }
 
+//BServerErrorMaxRefExceeded is an exportable error from bserver
+type BServerErrorMaxRefExceeded struct {
+	Msg string
+}
+
+// ToStatus implements the ExportableError interface for BServerErrorMaxRefExceeded
+func (e BServerErrorMaxRefExceeded) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeBServerErrorMaxRefExceeded
+	s.Name = "BLOCK_MAXREFEXCEEDED"
+	s.Desc = e.Msg
+	return
+}
+
+// Error implements the Error interface for BServerErrornonceNonExistent.
+func (e BServerErrorMaxRefExceeded) Error() string {
+	if e.Msg == "" {
+		return "BServer: reference nonce does not exist"
+	}
+	return e.Msg
+}
+
 // BServerErrorThrottle is returned when the server wants the client to backoff.
 type BServerErrorThrottle struct {
 	Msg string
@@ -316,6 +339,9 @@ func (eu bServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, di
 		break
 	case StatusCodeBServerErrorNonceNonExistent:
 		appError = BServerErrorNonceNonExistent{Msg: s.Desc}
+		break
+	case StatusCodeBServerErrorMaxRefExceeded:
+		appError = BServerErrorMaxRefExceeded{Msg: s.Desc}
 		break
 	default:
 		ase := libkb.AppStatusError{
