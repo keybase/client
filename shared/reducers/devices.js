@@ -36,6 +36,7 @@ export default function (state = initialState, action) {
             provisioner: dev.provisioner,
             provisionedAt: dev.provisionedAt,
             revokedAt: dev.revokedAt,
+            revokedBy: dev.revokedByDevice,
             lastUsed: dev.device.lastUsedTime,
           }))
           .orderBy(['currentDevice', 'name'], ['desc', 'asc'])
