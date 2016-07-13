@@ -168,6 +168,7 @@ export type DeviceDetail = {
   provisionedAt?: ?Time;
   revokedAt?: ?Time;
   revokedBy: KID;
+  revokedByDevice?: ?Device;
   currentDevice: boolean;
 }
 

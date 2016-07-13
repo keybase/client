@@ -138,6 +138,17 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 	if paper2.RevokedBy.IsNil() {
 		t.Fatal("paper device RevokedBy is nil")
 	}
+	if paper2.RevokedByDevice == nil {
+		t.Fatal("paper device RevokedByDevice is nil")
+	}
+	if paper2.RevokedByDevice.DeviceID != desktop.Device.DeviceID {
+		t.Fatalf("paper revoked by wrong device, %s != %s", paper2.RevokedByDevice.DeviceID,
+			desktop.Device.DeviceID)
+	}
+	if paper2.RevokedByDevice.Name != desktop.Device.Name {
+		t.Fatalf("paper revoked by wrong device, %s != %s", paper2.RevokedByDevice.Name,
+			desktop.Device.Name)
+	}
 }
 
 func TestDeviceHistoryPGP(t *testing.T) {
