@@ -7,6 +7,41 @@ const Menu = electron.Menu || electron.remote.Menu
 const shell = electron.shell || electron.remote.shell
 
 export default function makeMenu (window) {
+  const editMenu = {
+    label: 'Edit',
+    submenu: [
+      {label: 'Undo', accelerator: 'CmdOrCtrl+Z', role: 'undo'},
+      {label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', role: 'redo'},
+      {type: 'separator'},
+      {label: 'Cut', accelerator: 'CmdOrCtrl+X', role: 'cut'},
+      {label: 'Copy', accelerator: 'CmdOrCtrl+C', role: 'copy'},
+      {label: 'Paste', accelerator: 'CmdOrCtrl+V', role: 'paste'},
+      {label: 'Select All', accelerator: 'CmdOrCtrl+A', role: 'selectall'},
+    ],
+  }
+  const windowMenu = {
+    label: 'Window',
+    submenu: [
+      {label: 'Minimize', accelerator: 'CmdOrCtrl+M', role: 'minimize'},
+      {label: 'Close', accelerator: 'CmdOrCtrl+W', role: 'close'},
+      {type: 'separator'},
+      {label: 'Bring All to Front', role: 'front'},
+    ].concat(__DEV__ ? ([ // eslint-disable-line no-undef
+      {label: 'Reload',
+        accelerator: 'CmdOrCtrl+R',
+        click: (item, focusedWindow) => focusedWindow && focusedWindow.reload(),
+      },
+      {label: 'Toggle Developer Tools',
+        accelerator: (() => (process.platform === 'darwin') ? 'Alt+Command+I' : 'Ctrl+Shift+I')(),
+        click: (item, focusedWindow) => focusedWindow && focusedWindow.toggleDevTools(),
+      },
+    ]) : []),
+  }
+  const helpMenu = {
+    label: 'Help',
+    submenu: [{label: 'Learn More', click () { shell.openExternal('https://keybase.io') }}],
+  }
+
   if (process.platform === 'darwin') {
     const template = [{
       label: 'Keybase',
@@ -20,38 +55,11 @@ export default function makeMenu (window) {
         {label: 'Quit', accelerator: 'CmdOrCtrl+Q', click () { executeActions(quitOnContext({type: 'uiWindow'})) }},
       ],
     }, {
-      label: 'Edit',
-      submenu: [
-        {label: 'Undo', accelerator: 'CmdOrCtrl+Z', role: 'undo'},
-        {label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', role: 'redo'},
-        {type: 'separator'},
-        {label: 'Cut', accelerator: 'CmdOrCtrl+X', role: 'cut'},
-        {label: 'Copy', accelerator: 'CmdOrCtrl+C', role: 'copy'},
-        {label: 'Paste', accelerator: 'CmdOrCtrl+V', role: 'paste'},
-        {label: 'Select All', accelerator: 'CmdOrCtrl+A', role: 'selectall'},
-      ],
+      ...editMenu,
     }, {
-      label: 'Window',
-      submenu: [
-        {label: 'Minimize', accelerator: 'CmdOrCtrl+M', role: 'minimize'},
-        {label: 'Close', accelerator: 'CmdOrCtrl+W', role: 'close'},
-        {type: 'separator'},
-        {label: 'Bring All to Front', role: 'front'},
-      ].concat(__DEV__ ? ([ // eslint-disable-line no-undef
-        {label: 'Reload',
-          accelerator: 'CmdOrCtrl+R',
-          click: (item, focusedWindow) => focusedWindow && focusedWindow.reload(),
-        },
-        {label: 'Toggle Developer Tools',
-          accelerator: (() => (process.platform === 'darwin') ? 'Alt+Command+I' : 'Ctrl+Shift+I')(),
-          click: (item, focusedWindow) => focusedWindow && focusedWindow.toggleDevTools(),
-        },
-      ]) : []),
+      ...windowMenu,
     }, {
-      label: 'Help',
-      submenu: [
-        {label: 'Learn More', click () { shell.openExternal('https://keybase.io') }},
-      ],
+      ...helpMenu,
     }]
     const menu = Menu.buildFromTemplate(template)
     Menu.setApplicationMenu(menu)
@@ -63,8 +71,11 @@ export default function makeMenu (window) {
        {label: '&Quit', accelerator: 'CmdOrCtrl+Q', click () { executeActions(quitOnContext({type: 'uiWindow'})) }},
       ],
     }, {
-      label: 'Help',
-      submenu: [{label: 'Learn More', click () { shell.openExternal('https://keybase.io') }}],
+      ...editMenu,
+    }, {
+      ...windowMenu,
+    }, {
+      ...helpMenu,
     }]
     const menu = Menu.buildFromTemplate(template)
     window.setMenu(menu)
