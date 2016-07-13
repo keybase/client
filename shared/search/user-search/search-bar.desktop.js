@@ -100,7 +100,7 @@ export class SearchBar extends Component<void, Props, void> {
             underlineShow={false}
             style={stylesInput}
             textStyle={{height: 31}} />
-          <Icon type='fa-kb-iconfont-remove' style={{marginRight: 16, opacity: this.props.searchText ? 1 : 0}}
+          <Icon type='iconfont-remove' style={{marginRight: 16, opacity: this.props.searchText ? 1 : 0}}
             onClick={() => this.refs.searchBox.clearValue()} />
         </Box>
       </Box>
