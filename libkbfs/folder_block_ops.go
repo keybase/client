@@ -883,16 +883,15 @@ func (fbo *folderBlockOps) GetDirtyRefs(lState *lockState) []blockRef {
 	return dirtyRefs
 }
 
-// fixChildBlocksAfterRecoverableError should be called when a sync
+// fixChildBlocksAfterRecoverableErrorLocked should be called when a sync
 // failed with a recoverable block error on a multi-block file.  It
 // makes sure that any outstanding dirty versions of the file are
 // fixed up to reflect the fact that some of the indirect pointers now
 // need to change.
-func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableError(
+func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 	ctx context.Context, lState *lockState, file path,
 	redirtyOnRecoverableError map[BlockPointer]BlockPointer) {
-	fbo.blockLock.Lock(lState)
-	defer fbo.blockLock.Unlock(lState)
+	fbo.blockLock.AssertLocked(lState)
 
 	// If a copy of the top indirect block was made, we need to
 	// redirty all the sync'd blocks under their new IDs, so that
@@ -1797,14 +1796,33 @@ func (fbo *folderBlockOps) ClearCacheInfo(lState *lockState, file path) error {
 // include all the blocks from before the error, except for those that
 // have encountered recoverable block errors themselves.
 func (fbo *folderBlockOps) revertSyncInfoAfterRecoverableError(
-	blocksToRemove []BlockPointer, si, savedSi *syncInfo) {
+	blocksToRemove []BlockPointer, result fileSyncState) {
+	si := result.si
+	savedSi := result.savedSi
+
 	// Save the blocks we need to clean up on the next attempt.
 	toClean := si.toCleanIfUnused
+
+	newIndirect := make(map[BlockPointer]bool)
+	for _, ptr := range result.newIndirectFileBlockPtrs {
+		newIndirect[ptr] = true
+	}
+
+	// Propagate all unrefs forward, except those that belong to new
+	// blocks that were created during the sync.
+	unrefs := si.unrefs
+	for i, unref := range si.unrefs {
+		if newIndirect[unref.BlockPointer] {
+			unrefs = append(unrefs[:1], unrefs[i+1:]...)
+			fbo.log.CDebugf(nil, "Dropping unref %v", unref)
+		}
+	}
 
 	// This sync will be retried and needs new blocks, so
 	// reset everything in the sync info.
 	*si = *savedSi
 	si.toCleanIfUnused = toClean
+	si.unrefs = unrefs
 	if si.bps == nil {
 		return
 	}
@@ -2231,6 +2249,9 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		return
 	}
 
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+
 	// Notify error listeners before we reset the dirty blocks and
 	// permissions to be granted.
 	fbo.notifyErrListeners(lState, file.tailPointer(), err)
@@ -2250,13 +2271,13 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
 			df.assimilateDeferredNewBytes()
 		}
+
 		if result.si != nil {
-			fbo.revertSyncInfoAfterRecoverableError(
-				blocksToRemove, result.si, result.savedSi)
+			fbo.revertSyncInfoAfterRecoverableError(blocksToRemove, result)
 		}
 		if result.fblock != nil {
 			*result.fblock = *result.savedFblock
-			fbo.fixChildBlocksAfterRecoverableError(
+			fbo.fixChildBlocksAfterRecoverableErrorLocked(
 				ctx, lState, file,
 				result.redirtyOnRecoverableError)
 		}
@@ -2270,8 +2291,6 @@ func (fbo *folderBlockOps) CleanupSyncState(
 
 	// The sync is over, due to an error, so reset the map so that we
 	// don't defer any subsequent writes.
-	fbo.blockLock.Lock(lState)
-	defer fbo.blockLock.Unlock(lState)
 	// Old syncing blocks are now just dirty
 	if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
 		df.resetSyncingBlocksToDirty()
