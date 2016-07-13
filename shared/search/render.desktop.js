@@ -6,9 +6,8 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import UserSearch from './user-search/render.desktop'
 import UserGroup from './user-search/user-group'
 import SearchBar from './user-search/search-bar.desktop'
-import UserPane from './user-pane'
 
-import type {Props} from './render'
+import type {Props, RootProps} from './render'
 import type {Props as UserSearchProps} from './user-search/render'
 import type {Props as UserGroupProps} from './user-search/user-group'
 import type {Props as SearchBarProps} from './user-search/search-bar'
@@ -32,6 +31,8 @@ class Render extends Component<void, Props, void> {
     const userSearchProps: UserSearchProps = this.props
     const userGroupProps: UserGroupProps = this.props
     const searchBarProps: SearchBarProps = this.props
+    const rootProps: RootProps = this.props
+    const userPane = rootProps.userPane
 
     return (
       <Box style={{...globalStyles.flexBoxRow, flex: 1}}>
@@ -43,7 +44,7 @@ class Render extends Component<void, Props, void> {
           </Box>
         </Box>
         <Box style={{boxShadow: `0 0 5px ${globalColors.black_20}`, overflow: 'hidden'}}>
-          <UserPane userForInfoPane={this.props.userForInfoPane} />
+          {userPane}
         </Box>
       </Box>
     )

@@ -8,6 +8,7 @@ import {searchResultToAssertion} from '../constants/search'
 import {privateFolderWithUsers, publicFolderWithUsers} from '../constants/config'
 import {openInKBFS} from '../actions/kbfs'
 import {routeAppend} from '../actions/router'
+import UserPane from './user-pane'
 
 import type {TypedState} from '../constants/reducer'
 import type {Props} from './render'
@@ -39,6 +40,7 @@ export default connector.connect(
      {searchHintText, searchPlatform, searchText, searchIcon, results, userForInfoPane, showUserGroup, selectedUsers},
    config: {username}}, dispatch, ownProps) => ({
      username: username || '',
+     userPane: <UserPane />,
      searchHintText,
      searchText,
      searchIcon,
