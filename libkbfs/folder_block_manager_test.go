@@ -370,27 +370,13 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 
 	// Stall the puts that comes as part of the sync call.
-	onWriteStalledCh := make(chan struct{}, 2)
-	writeUnstallCh := make(chan struct{})
-	stallKey := "requestName"
-	writeValue := "write"
-	config2.SetBlockOps(&stallingBlockOps{
-		stallOpName: "Put",
-		stallKey:    stallKey,
-		stallMap: map[interface{}]staller{
-			writeValue: staller{
-				stalled: onWriteStalledCh,
-				unstall: writeUnstallCh,
-			},
-		},
-		internalDelegate: config2.BlockOps(),
-	})
+	onWriteStalledCh, writeUnstallCh, ctxStall := StallBlockOp(
+		ctx, config2, StallableBlockPut)
 
 	// Start the sync and wait for it to stall twice only.
 	errChan := make(chan error)
 	go func() {
-		syncCtx := context.WithValue(ctx, stallKey, writeValue)
-		errChan <- kbfsOps2.Sync(syncCtx, eNode)
+		errChan <- kbfsOps2.Sync(ctxStall, eNode)
 	}()
 	<-onWriteStalledCh
 	<-onWriteStalledCh

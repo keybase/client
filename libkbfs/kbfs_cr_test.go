@@ -951,30 +951,17 @@ func TestCRDouble(t *testing.T) {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
 
-	// Cancel this revision after the Put happens, to force the
-	// background block manager to try to clean up.
-	onSyncStalledCh := make(chan struct{}, 1)
-	syncUnstallCh := make(chan struct{})
-	stallKey := "requestName"
-	syncValue := "sync"
-	config2.SetMDOps(&stallingMDOps{
-		stallOpName: "PutUnmerged",
-		stallKey:    stallKey,
-		stallMap: map[interface{}]staller{
-			syncValue: staller{
-				stalled: onSyncStalledCh,
-				unstall: syncUnstallCh,
-			},
-		},
-		delegate: config2.MDOps(),
-	})
 	var wg sync.WaitGroup
 	syncCtx, cancel := context.WithCancel(ctx)
+
+	// Cancel this revision after the Put happens, to force the
+	// background block manager to try to clean up.
+	onSyncStalledCh, syncUnstallCh, syncCtx := StallMDOp(
+		syncCtx, config2, StallableMDPutUnmerged)
+
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		syncCtx = context.WithValue(syncCtx, stallKey, syncValue)
 		err = kbfsOps2.Sync(syncCtx, fileNodeC)
 		if err != context.Canceled {
 			t.Fatalf("Bad sync error, expected canceled: %v", err)
@@ -1504,25 +1491,6 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
-	// Now user 2 makes a big write where most of the blocks get canceled.
-	// We only need to know the first time we stall.
-	onSyncStalledCh := make(chan struct{}, maxParallelBlockPuts)
-	syncUnstallCh := make(chan struct{})
-	stallKey := "requestName"
-	syncValue := "sync"
-
-	config2.SetBlockOps(&stallingBlockOps{
-		stallOpName: "Put",
-		stallKey:    stallKey,
-		stallMap: map[interface{}]staller{
-			syncValue: staller{
-				stalled: onSyncStalledCh,
-				unstall: syncUnstallCh,
-			},
-		},
-		internalDelegate: config2.BlockOps(),
-	})
-
 	// User 2 writes some data
 	fileBlocks := int64(maxParallelBlockPuts + 5)
 	var data []byte
@@ -1538,11 +1506,16 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	var wg sync.WaitGroup
 	wg.Add(1)
 	syncCtx, cancel := context.WithCancel(context.Background())
+
+	// Now user 2 makes a big write where most of the blocks get canceled.
+	// We only need to know the first time we stall.
+	onSyncStalledCh, syncUnstallCh, syncCtx := StallBlockOp(
+		syncCtx, config2, StallableBlockPut)
+
 	var syncErr error
 	go func() {
 		defer wg.Done()
 
-		syncCtx = context.WithValue(syncCtx, stallKey, syncValue)
 		syncErr = kbfsOps2.Sync(syncCtx, fileNodeB)
 	}()
 	// Wait for 2 of the blocks and let them go
@@ -1576,8 +1549,6 @@ func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
 	// The state checker will make sure those blocks from
 	// the failed sync get cleaned up.
 
-	// Now succeed with different data so CR can happen.
-	config2.SetBlockOps(config2.BlockOps().(*stallingBlockOps).delegate())
 	for i := int64(0); i < blockSize*fileBlocks; i++ {
 		data[i] = byte(i + 10)
 	}
@@ -1681,7 +1652,7 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 	}
 
 	onPutStalledCh, putUnstallCh, putCtx :=
-		setStallingMDOpsForPut(ctx, config2, false)
+		StallMDOp(ctx, config2, StallableMDPut)
 
 	var wg sync.WaitGroup
 	putCtx, cancel := context.WithCancel(putCtx)
