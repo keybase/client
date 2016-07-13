@@ -9,7 +9,7 @@ import {fullName} from '../../constants/search'
 import keybaseUrl from '../../constants/urls'
 import {TypedConnector} from '../../util/typed-connect'
 
-import {getProfile} from '../../actions/tracker'
+import {getProfile, onFollow, onUnfollow} from '../../actions/tracker'
 
 import openURL from '../../util/open-url'
 
@@ -65,17 +65,18 @@ export default connector.connect(
       const username = userForInfoPane.username
       const trackerState = trackers[username]
       if (username && trackerState && trackerState.type === 'tracker') {
+        const currentlyFollowing = trackerState.lastAction === 'followed' || trackerState.lastAction === 'refollowed' || trackerState.currentlyFollowing
         return {
           mode: 'keybase',
           userInfoProps: {
             username: username,
             userInfo: trackerState.userInfo,
             proofs: trackerState.proofs,
-            currentlyFollowing: trackerState.currentlyFollowing,
+            currentlyFollowing: currentlyFollowing,
             trackerState: trackerState.trackerState,
-            onFollow: () => { console.log('TODO follow user') },
-            onUnfollow: () => { console.log('TODO unfollow user') },
-            onAcceptProofs: () => { console.log('TODO accept proofs') },
+            onFollow: () => { dispatch(onFollow(username, false)) },
+            onUnfollow: () => { dispatch(onUnfollow(username)) },
+            onAcceptProofs: () => { dispatch(onFollow(username, false)) },
           },
         }
       } else {
