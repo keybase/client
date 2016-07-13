@@ -1443,25 +1443,19 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	}()
 	<-onSyncStalledCh
 
-	/**
-	     // Needed after KBFS-1236 goes in
-
-
-		// Write more data which should get accepted but deferred.
-		moreData := make([]byte, dbcs.minSyncBufferSize*2+1)
-		err = kbfsOps.Write(ctx, fileNode, moreData, int64(len(data)))
-		if err != nil {
-			t.Errorf("Couldn't write file: %v", err)
-		}
-	*/
+	// Write more data which should get accepted but deferred.
+	moreData := make([]byte, dbcs.minSyncBufCap*2+1)
+	err = kbfsOps.Write(ctx, fileNode, moreData, int64(len(data)))
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
 
 	// Now write more data which should get blocked
 	newData := make([]byte, 1)
 	writeErrCh := make(chan error)
 	go func() {
 		writeErrCh <- kbfsOps.Write(ctx, fileNode, newData,
-			int64(len(data)))
-		//int64(len(data)+len(moreData)))  // After KBFS-1236
+			int64(len(data)+len(moreData)))
 	}()
 
 	// Wait until the second write is blocked
@@ -1473,7 +1467,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 		defer ops.blocks.blockLock.Unlock(lState)
 		df := ops.blocks.getOrCreateDirtyFileLocked(lState, filePath)
 		// TODO: locking
-		for len(df.errListeners) != 2 { // 3 for KBFS-1236
+		for len(df.errListeners) != 3 {
 			ops.blocks.blockLock.Unlock(lState)
 			runtime.Gosched()
 			ops.blocks.blockLock.Lock(lState)

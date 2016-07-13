@@ -24,13 +24,7 @@ func TestSimpleTruncate(t *testing.T) {
 		mdat3[i*100] = byte(i)
 	}
 	test(t,
-		// Fuse writes get split up into smaller pieces, and the new
-		// small starting sync buffer size means that some of those
-		// pieces get delayed.  By default tests have no background
-		// flushing, so the delayed writes always block.  However,
-		// turning on background flushes leads to retriable sync
-		// errors, which runs smack into KBFS-1261.
-		skip("fuse", "Does not work on FUSE pending KBFS-1261."),
+		bandwidth(1<<31-1), // hack to turn on background syncing
 		users("alice", "bob"),
 		as(alice,
 			mkfile("file", ""),
