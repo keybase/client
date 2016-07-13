@@ -45,6 +45,13 @@
           "name": "revokedBy"
         },
         {
+          "type": [
+            null,
+            "Device"
+          ],
+          "name": "revokedByDevice"
+        },
+        {
           "type": "boolean",
           "name": "currentDevice"
         }

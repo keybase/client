@@ -127,6 +127,11 @@ func (e *DeviceHistory) loadDevices() error {
 		}
 		if !cki.RevokedBy.IsNil() {
 			exp.RevokedBy = cki.RevokedBy
+			if deviceID, ok := ckis.KIDToDeviceID[cki.RevokedBy]; ok {
+				if device, ok := ckis.Devices[deviceID]; ok {
+					exp.RevokedByDevice = device.ProtExport()
+				}
+			}
 		}
 
 		if e.G().Env.GetDeviceID().Eq(d.ID) {

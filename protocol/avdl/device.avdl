@@ -17,6 +17,7 @@ protocol device {
     // union {null, Device} revoker;
     union {null, Time} revokedAt;
     KID revokedBy;
+    union {null, Device} revokedByDevice;
     boolean currentDevice;
   }
 
