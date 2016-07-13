@@ -43,7 +43,7 @@ class Render extends Component<void, Props, void> {
           </Box>
         </Box>
         <Box style={{boxShadow: `0 0 5px ${globalColors.black_20}`, overflow: 'hidden'}}>
-          <UserPane />
+          <UserPane userForInfoPane={this.props.userForInfoPane} />
         </Box>
       </Box>
     )

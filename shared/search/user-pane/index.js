@@ -20,7 +20,9 @@ import type {TypedState} from '../../constants/reducer'
 import type {SearchActions} from '../../constants/search'
 import type {TypedDispatch} from '../../constants/types/flux'
 
-type OwnProps = {}
+type OwnProps = {
+  userInfoProps?: ?UserInfoPaneProps,
+}
 
 type Props = {
   mode: 'keybase',
@@ -61,6 +63,11 @@ const connector: TypedConnector<TypedState, TypedDispatch<SearchActions>, OwnPro
 
 export default connector.connect(
   ({search: {userForInfoPane}, tracker: {trackers}}, dispatch, ownProps) => {
+    // Allow local overriding
+    if (ownProps.userForInfoPane) {
+      userForInfoPane = ownProps.userForInfoPane
+    }
+
     if (userForInfoPane && userForInfoPane.service === 'keybase') {
       const username = userForInfoPane.username
       const trackerState = trackers[username]
