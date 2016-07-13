@@ -30,7 +30,7 @@ class Render extends Component<void, Props, State> {
           <Icon type='icon-paper-key-corner' style={stylesPaperCorner} />
         </Box>
         {this.props.onFinish && <Checkbox style={stylesCheck} label='Yes, I wrote this down.' checked={this.state.inWallet} onCheck={inWallet => this.setState({inWallet})} />}
-        {this.props.onFinish && <Button style={stylesButton} type='Primary' label='Done' onClick={this.props.onFinish} disabled={!this.state.inWallet} />}
+        {this.props.onFinish && <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Done' onClick={this.props.onFinish} disabled={!this.state.inWallet} />}
       </Container>
     )
   }

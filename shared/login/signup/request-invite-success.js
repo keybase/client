@@ -11,7 +11,7 @@ class RequestInviteSuccess extends Component {
   render () {
     return (
       <Render
-        onBack={this.props.resetSignup}
+        onBack={this.props.restartSignup}
       />
     )
   }

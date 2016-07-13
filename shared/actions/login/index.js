@@ -566,6 +566,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
       appendRouteElement((
         <SuccessRender
           paperkey={new HiddenString(phrase)}
+          waiting={false}
           onFinish={() => { response.result() }}
           onBack={() => onBack(response)}
           title={"Your new paper key!"} />))
