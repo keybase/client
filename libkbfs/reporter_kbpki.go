@@ -52,6 +52,10 @@ var noErrorNames = map[string]bool{
 	"Keybase.app":    true, // some OSX mount thing
 	"DCIM":           true, // looking for digital pic folder
 	"Thumbs.db":      true, // Windows mounts
+	"config":         true, // Windows, possibly 7-Zip?
+	"m4root":         true, // OS X, iMovie?
+	"BDMV":           true, // OS X, iMovie?
+	"node_modules":   true, // Some npm shell configuration
 }
 
 // ReporterKBPKI implements the Notify function of the Reporter
