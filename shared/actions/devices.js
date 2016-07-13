@@ -1,11 +1,10 @@
 /* @flow */
 import * as Constants from '../constants/devices'
 import {devicesTab, loginTab} from '../constants/tabs'
-import engine from '../engine'
 import {navigateTo, navigateUp, switchTab} from './router'
 import {Map} from 'immutable'
 import type {AsyncAction} from '../constants/types/flux'
-import type {incomingCallMapType, loginDeprovisionRpc, revokeRevokeDeviceRpc, deviceDeviceHistoryListRpc, loginPaperKeyRpc} from '../constants/types/flow-types'
+import {loginDeprovisionRpc, revokeRevokeDeviceRpc, deviceDeviceHistoryListRpc, loginPaperKeyRpc} from '../constants/types/flow-types'
 import {setRevokedSelf} from './login'
 import HiddenString from '../util/hidden-string'
 
@@ -16,8 +15,7 @@ export function loadDevices () : AsyncAction {
       payload: null,
     })
 
-    const params : deviceDeviceHistoryListRpc = {
-      method: 'device.deviceHistoryList',
+    deviceDeviceHistoryListRpc({
       callback: (error, devices) => {
         // Flow is weird here, we have to give it true or false directly instead of just giving it !!error
         if (error) {
@@ -33,11 +31,8 @@ export function loadDevices () : AsyncAction {
             error: false,
           })
         }
-        // dispatch()
       },
-    }
-
-    engine.rpc(params)
+    })
   }
 }
 
@@ -48,7 +43,7 @@ export function generatePaperKey () : AsyncAction {
       payload: null,
     })
 
-    const incomingMap : incomingCallMapType = {
+    const incomingCallMap = {
       'keybase.1.loginUi.promptRevokePaperKeys': (param, response) => {
         response.result(false)
       },
@@ -64,9 +59,8 @@ export function generatePaperKey () : AsyncAction {
       },
     }
 
-    const params : loginPaperKeyRpc = {
-      method: 'login.paperKey',
-      incomingCallMap: incomingMap,
+    loginPaperKeyRpc({
+      incomingCallMap,
       callback: (error, paperKey) => {
         if (error) {
           dispatch({
@@ -76,9 +70,7 @@ export function generatePaperKey () : AsyncAction {
           })
         }
       },
-    }
-
-    engine.rpc(params)
+    })
   }
 }
 
@@ -91,8 +83,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
         console.warn('No username in removeDevice')
         return
       }
-      const params: loginDeprovisionRpc = {
-        method: 'login.deprovision',
+      loginDeprovisionRpc({
         param: {username, doRevoke: true},
         callback: error => {
           dispatch({
@@ -107,11 +98,9 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
             dispatch(switchTab(loginTab))
           }
         },
-      }
-      engine.rpc(params)
+      })
     } else {
-      const params: revokeRevokeDeviceRpc = {
-        method: 'revoke.revokeDevice',
+      revokeRevokeDeviceRpc({
         param: {deviceID, force: false},
         callback: error => {
           dispatch({
@@ -124,8 +113,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
             dispatch(navigateUp(devicesTab, Map({path: 'root'})))
           }
         },
-      }
-      engine.rpc(params)
+      })
     }
   }
 }

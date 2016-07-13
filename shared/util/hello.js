@@ -3,11 +3,10 @@
 
 import engine from '../engine'
 import {Common} from '../constants/types/keybase-v1'
-
-import type {ClientDetails, configHelloIAmRpc} from '../constants/types/flow-types'
+import {configHelloIAmRpc} from '../constants/types/flow-types'
 
 export default function (pid: number, desc: string, argv: Array<string>, version: string): Promise<void> {
-  const details: ClientDetails = {
+  const details = {
     pid,
     desc,
     version,
@@ -17,8 +16,7 @@ export default function (pid: number, desc: string, argv: Array<string>, version
 
   return new Promise((resolve, reject) => {
     engine.listenOnConnect('hello', () => {
-      const params : configHelloIAmRpc = {
-        method: 'config.helloIAm',
+      configHelloIAmRpc({
         param: {details},
         callback: (err, resp) => {
           if (err != null) {
@@ -28,9 +26,7 @@ export default function (pid: number, desc: string, argv: Array<string>, version
             resolve()
           }
         },
-      }
-
-      engine.rpc(params)
+      })
     })
   })
 }
