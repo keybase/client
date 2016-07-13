@@ -15,10 +15,10 @@ export default function () {
 
   const mainWindow = new Window(
     resolveRoot('renderer', `index.html?src=${hotPath('index.bundle.js')}`), {
-      x: appState.x,
-      y: appState.y,
-      width: appState.width,
-      height: appState.height,
+      x: appState.state.x,
+      y: appState.state.y,
+      width: appState.state.width,
+      height: appState.state.height,
       minWidth: windowStyle.minWidth,
       minHeight: windowStyle.minHeight,
       show: false,
@@ -33,7 +33,7 @@ export default function () {
 
   let windowVisibility = getenv.string('KEYBASE_WINDOW_VISIBILITY', '')
   let useAppStateForWindowVisibility = (windowVisibility === 'appState')
-  if (!useAppStateForWindowVisibility || (useAppStateForWindowVisibility && !appState.windowHidden)) {
+  if (!useAppStateForWindowVisibility || (useAppStateForWindowVisibility && !appState.state.windowHidden)) {
     // On Windows we can try showing before Windows is ready
     // This will result in a dropped .show request
     // We add a listener to `did-finish-load` so we can show it when
@@ -49,7 +49,8 @@ export default function () {
   })
 
   ipcMain.on('tabChanged', (event, tab) => {
-    appState.tab = tab
+    appState.state.tab = tab
+    appState.saveState()
   })
 
   return mainWindow
