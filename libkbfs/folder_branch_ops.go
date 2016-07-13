@@ -1965,7 +1965,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 
 		defer func() {
 			if err != nil {
-				fbo.fbm.cleanUpBlockState(md, bps)
+				fbo.fbm.cleanUpBlockState(md, bps, blockDeleteOnMDFail)
 			}
 		}()
 
@@ -2015,7 +2015,7 @@ func (fbo *folderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 
 	defer func() {
 		if err != nil {
-			fbo.fbm.cleanUpBlockState(md, bps)
+			fbo.fbm.cleanUpBlockState(md, bps, blockDeleteOnMDFail)
 		}
 	}()
 
@@ -2616,7 +2616,7 @@ func (fbo *folderBranchOps) renameLocked(
 
 	defer func() {
 		if err != nil {
-			fbo.fbm.cleanUpBlockState(md, newBps)
+			fbo.fbm.cleanUpBlockState(md, newBps, blockDeleteOnMDFail)
 		}
 	}()
 
@@ -2939,7 +2939,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		fbo.blocks.StartSync(ctx, lState, md, uid, file)
 	defer func() {
 		fbo.blocks.CleanupSyncState(
-			ctx, lState, file, blocksToRemove, syncState, err)
+			ctx, lState, md, file, blocksToRemove, syncState, err)
 	}()
 	if err != nil {
 		return true, err
@@ -2955,11 +2955,11 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 
 	bps.mergeOtherBps(newBps)
 
-	defer func() {
-		if err != nil {
-			fbo.fbm.cleanUpBlockState(md, bps)
-		}
-	}()
+	// Note: We explicitly don't call fbo.fbm.cleanUpBlockState here
+	// when there's an error, because it's possible some of the blocks
+	// will be reused in a future attempt at this same sync, and we
+	// don't want them cleaned up in that case.  Instead, the
+	// FinishSync call below will take care of that.
 
 	blocksToRemove, err = fbo.doBlockPuts(ctx, md, *bps)
 	if err != nil {
@@ -2982,7 +2982,8 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	// and the new paths will see the writes that happened during
 	// the sync.
 
-	return fbo.blocks.FinishSync(ctx, lState, file, newPath, md, syncState)
+	return fbo.blocks.FinishSync(ctx, lState, file, newPath, md, syncState,
+		fbo.fbm)
 }
 
 func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {

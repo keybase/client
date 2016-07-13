@@ -1395,18 +1395,13 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 		t.Fatalf("No expected canceled error: %v", err)
 	}
 
-	// Know that the sync finished by grabbing the lock.
-	lState := makeFBOLockState()
-	ops.mdWriterLock.Lock(lState)
-	ops.mdWriterLock.Unlock(lState)
-	if len(ops.fbm.blocksToDeleteChan) == 0 {
-		t.Fatalf("No blocks to delete after error")
-	}
-
 	// Flush the file.  This will result in conflict resolution, and
 	// an extra copy of the file, but that's ok for now.
 	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
 		t.Fatalf("Couldn't sync: %v", err)
+	}
+	if len(ops.fbm.blocksToDeleteChan) == 0 {
+		t.Fatalf("No blocks to delete after error")
 	}
 
 	unpauseDeleting <- struct{}{}
@@ -1602,11 +1597,25 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	}()
 	<-onSyncStalledCh
 
+	/**
+	     // Needed after KBFS-1236 goes in
+
+
+		// Write more data which should get accepted but deferred.
+		moreData := make([]byte, dbcs.minSyncBufferSize*2+1)
+		err = kbfsOps.Write(ctx, fileNode, moreData, int64(len(data)))
+		if err != nil {
+			t.Errorf("Couldn't write file: %v", err)
+		}
+	*/
+
 	// Now write more data which should get blocked
 	newData := make([]byte, 1)
 	writeErrCh := make(chan error)
 	go func() {
-		writeErrCh <- kbfsOps.Write(ctx, fileNode, newData, int64(len(data)))
+		writeErrCh <- kbfsOps.Write(ctx, fileNode, newData,
+			int64(len(data)))
+		//int64(len(data)+len(moreData)))  // After KBFS-1236
 	}()
 
 	// Wait until the second write is blocked
@@ -1618,7 +1627,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 		defer ops.blocks.blockLock.Unlock(lState)
 		df := ops.blocks.getOrCreateDirtyFileLocked(lState, filePath)
 		// TODO: locking
-		for len(df.errListeners) != 2 {
+		for len(df.errListeners) != 2 { // 3 for KBFS-1236
 			ops.blocks.blockLock.Unlock(lState)
 			runtime.Gosched()
 			ops.blocks.blockLock.Lock(lState)
@@ -1636,6 +1645,12 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	}
 	if writeErr != syncErr {
 		t.Fatalf("Unexpected write err: %v", writeErr)
+	}
+
+	// Finish the sync to clear out the byte counts
+	config.SetBlockOps(realBlockOps)
+	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+		t.Fatalf("Couldn't finish sync: %v", err)
 	}
 }
 

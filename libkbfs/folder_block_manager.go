@@ -34,9 +34,24 @@ const (
 	deleteBlocksRetryDelay = 10 * time.Millisecond
 )
 
+type blockDeleteType int
+
+const (
+	// Delete the blocks only if the given MD failed to make it to the
+	// servers.
+	blockDeleteOnMDFail blockDeleteType = iota
+
+	// Always delete the blocks, without first checking if the given
+	// revision was successful.  This is just an optimization to avoid
+	// fetching the MD from the server when we know for sure it had
+	// failed.
+	blockDeleteAlways
+)
+
 type blocksToDelete struct {
 	md     *RootMetadata
 	blocks []BlockPointer
+	bdType blockDeleteType
 }
 
 // folderBlockManager is a helper class for managing the blocks in a
@@ -198,10 +213,16 @@ func (fbm *folderBlockManager) shutdown() {
 //  }()
 //
 //  ... = ...doBlockPuts(ctx, md, *bps)
+//
+// The exception is for when blocks might get reused across multiple
+// attempts at the same operation (like for a Sync).  In that case,
+// failed blocks should be built up in a separate data structure, and
+// this should be called when the operation finally succeeds.
 func (fbm *folderBlockManager) cleanUpBlockState(
-	md *RootMetadata, bps *blockPutState) {
-	fbm.log.CDebugf(nil, "Clean up md %d %s", md.Revision, md.MergedStatus())
-	toDelete := blocksToDelete{md: md}
+	md *RootMetadata, bps *blockPutState, bdType blockDeleteType) {
+	fbm.log.CDebugf(nil, "Clean up md %d %s, bdType=%d", md.Revision,
+		md.MergedStatus(), bdType)
+	toDelete := blocksToDelete{md: md, bdType: bdType}
 	for _, bs := range bps.blockStates {
 		toDelete.blocks = append(toDelete.blocks, bs.blockPtr)
 	}
@@ -404,40 +425,43 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 	// part of the folder history.  (This could happen
 	// if the Sync was canceled while the MD put was
 	// outstanding.)
-	rmds, err := getMDRange(ctx, fbm.config, fbm.id, toDelete.md.BID,
-		toDelete.md.Revision, toDelete.md.Revision, toDelete.md.MergedStatus())
-	if err != nil || len(rmds) == 0 {
-		// Don't re-enqueue immediately, since this might mean no new
-		// revision has made it to the server yet, and we'd just get
-		// into an infinite loop.
-		fbm.enqueueBlocksToDeleteAfterShortDelay(toDelete)
-		return nil
-	}
-	dirsEqual, err := CodecEqual(fbm.config.Codec(),
-		rmds[0].data.Dir, toDelete.md.data.Dir)
-	if err != nil {
-		fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
-	} else if dirsEqual {
-		// This md is part of the history of the folder,
-		// so we shouldn't delete the blocks.
-		fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d",
+	if toDelete.bdType == blockDeleteOnMDFail {
+		rmds, err := getMDRange(ctx, fbm.config, fbm.id, toDelete.md.BID,
+			toDelete.md.Revision, toDelete.md.Revision,
+			toDelete.md.MergedStatus())
+		if err != nil || len(rmds) == 0 {
+			// Don't re-enqueue immediately, since this might mean no new
+			// revision has made it to the server yet, and we'd just get
+			// into an infinite loop.
+			fbm.enqueueBlocksToDeleteAfterShortDelay(toDelete)
+			return nil
+		}
+		dirsEqual, err := CodecEqual(fbm.config.Codec(),
+			rmds[0].data.Dir, toDelete.md.data.Dir)
+		if err != nil {
+			fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
+		} else if dirsEqual {
+			// This md is part of the history of the folder, so we
+			// shouldn't delete the blocks.  But, since this MD put
+			// seems to have succeeded, we should archive it.
+			fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d; "+
+				"archiving it", rmds[0].Revision)
+			// Don't block on archiving the MD, because that could
+			// lead to deadlock.
+			fbm.archiveUnrefBlocksNoWait(rmds[0])
+			return nil
+		}
+
+		// Otherwise something else has been written over
+		// this MD, so get rid of the blocks.
+		fbm.log.CDebugf(ctx, "Cleaning up blocks for failed revision %d",
 			toDelete.md.Revision)
-		// But, since this MD put seems to have succeeded, we
-		// should archive it.
-		fbm.log.CDebugf(ctx, "Archiving successful MD revision %d",
-			rmds[0].Revision)
-		// Don't block on archiving the MD, because that could
-		// lead to deadlock.
-		fbm.archiveUnrefBlocksNoWait(rmds[0])
-		return nil
+	} else {
+		fbm.log.CDebugf(ctx, "Cleaning up blocks for revision %d",
+			toDelete.md.Revision)
 	}
 
-	// Otherwise something else has been written over
-	// this MD, so get rid of the blocks.
-	fbm.log.CDebugf(ctx, "Cleaning up blocks for failed revision %d",
-		toDelete.md.Revision)
-
-	_, err = fbm.deleteBlockRefs(ctx, toDelete.md, toDelete.blocks)
+	_, err := fbm.deleteBlockRefs(ctx, toDelete.md, toDelete.blocks)
 	// Ignore permanent errors
 	_, isPermErr := err.(BServerError)
 	_, isNonceNonExistentErr := err.(BServerErrorNonceNonExistent)
@@ -503,7 +527,14 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 		case md := <-fbm.archiveChan:
 			var ptrs []BlockPointer
 			for _, op := range md.data.Changes.Ops {
-				ptrs = append(ptrs, op.Unrefs()...)
+				for _, ptr := range op.Unrefs() {
+					// Can be zeroPtr in weird failed sync scenarios.
+					// See syncInfo.replaceRemovedBlock for an example
+					// of how this can happen.
+					if ptr != zeroPtr {
+						ptrs = append(ptrs, ptr)
+					}
+				}
 				for _, update := range op.AllUpdates() {
 					// It's legal for there to be an "update" between
 					// two identical pointers (usually because of

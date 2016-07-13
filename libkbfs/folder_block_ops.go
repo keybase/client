@@ -34,13 +34,19 @@ const (
 	blockWrite
 )
 
+type mdToCleanIfUnused struct {
+	md  *RootMetadata
+	bps *blockPutState
+}
+
 type syncInfo struct {
-	oldInfo    BlockInfo
-	op         *syncOp
-	unrefs     []BlockInfo
-	bps        *blockPutState
-	refBytes   uint64
-	unrefBytes uint64
+	oldInfo         BlockInfo
+	op              *syncOp
+	unrefs          []BlockInfo
+	bps             *blockPutState
+	refBytes        uint64
+	unrefBytes      uint64
+	toCleanIfUnused []mdToCleanIfUnused
 }
 
 func (si *syncInfo) DeepCopy(codec Codec) (*syncInfo, error) {
@@ -60,7 +66,40 @@ func (si *syncInfo) DeepCopy(codec Codec) (*syncInfo, error) {
 			return nil, err
 		}
 	}
+	newSi.toCleanIfUnused = make([]mdToCleanIfUnused, len(si.toCleanIfUnused))
+	for i, toClean := range si.toCleanIfUnused {
+		// It might be overkill to deep-copy these MDs and bpses,
+		// which are probably immutable, but for now let's do the safe
+		// thing.
+		copyMd, err := toClean.md.deepCopy(codec, false)
+		if err != nil {
+			return nil, err
+		}
+		newSi.toCleanIfUnused[i].md = copyMd
+		newSi.toCleanIfUnused[i].bps = toClean.bps.DeepCopy()
+	}
 	return newSi, nil
+}
+
+func (si *syncInfo) removeReplacedBlock(ctx context.Context,
+	log logger.Logger, ptr BlockPointer) {
+	for i, ref := range si.op.RefBlocks {
+		if ref == ptr {
+			log.CDebugf(ctx, "Replacing old ref %v", ptr)
+			si.op.RefBlocks = append(si.op.RefBlocks[:i],
+				si.op.RefBlocks[i+1:]...)
+			for j, unref := range si.unrefs {
+				if unref.BlockPointer == ptr {
+					// Don't completely remove the unref,
+					// since it contains size info that we
+					// need to incorporate into the MD
+					// usage calculations.
+					si.unrefs[j].BlockPointer = zeroPtr
+				}
+			}
+			break
+		}
+	}
 }
 
 // folderBlockOps contains all the fields that must be synchronized by
@@ -1762,9 +1801,13 @@ func (fbo *folderBlockOps) ClearCacheInfo(lState *lockState, file path) error {
 // have encountered recoverable block errors themselves.
 func (fbo *folderBlockOps) revertSyncInfoAfterRecoverableError(
 	blocksToRemove []BlockPointer, si, savedSi *syncInfo) {
+	// Save the blocks we need to clean up on the next attempt.
+	toClean := si.toCleanIfUnused
+
 	// This sync will be retried and needs new blocks, so
 	// reset everything in the sync info.
 	*si = *savedSi
+	si.toCleanIfUnused = toClean
 	if si.bps == nil {
 		return
 	}
@@ -1931,11 +1974,6 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 	bcache := fbo.config.BlockCache()
 	dirtyBcache := fbo.config.DirtyBlockCache()
 	df := fbo.getOrCreateDirtyFileLocked(lState, file)
-	// If there were any deferred writes from before we started this
-	// sync, it implies that we are retrying a previous sync, and will
-	// be assimilating those bytes into this sync.
-	// TODO: clear the deferred writes slice in that case?
-	df.assimilateDeferredNewBytes()
 
 	// Note: below we add possibly updated file blocks as "unref" and
 	// "ref" blocks.  This is fine, since conflict resolution or
@@ -2081,6 +2119,12 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 
 				fblock.IPtrs[i].BlockInfo = newInfo
 				md.AddRefBlock(newInfo)
+
+				// If this block is replacing a block from a previous,
+				// failed Sync, we need to take that block out of the
+				// refs list, and avoid unrefing it as well.
+				si.removeReplacedBlock(ctx, fbo.log, localPtr)
+
 				si.bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData,
 					func() error {
 						return df.setBlockSynced(localPtr)
@@ -2145,7 +2189,7 @@ func (fbo *folderBlockOps) makeLocalBcache(ctx context.Context,
 //		...fbo.StartSync(ctx, lState, md, uid, file)
 //	defer func() {
 //		...fbo.CleanupSyncState(
-//			ctx, lState, file, ..., syncState, err)
+//			ctx, lState, md, file, ..., syncState, err)
 //	}()
 //	if err != nil {
 //		...
@@ -2174,7 +2218,7 @@ func (fbo *folderBlockOps) StartSync(ctx context.Context,
 // (which may be nil) that happens during or after StartSync() and
 // before FinishSync(). blocksToRemove may be nil.
 func (fbo *folderBlockOps) CleanupSyncState(
-	ctx context.Context, lState *lockState,
+	ctx context.Context, lState *lockState, md *RootMetadata,
 	file path, blocksToRemove []BlockPointer,
 	result fileSyncState, err error) {
 	if err == nil {
@@ -2190,8 +2234,16 @@ func (fbo *folderBlockOps) CleanupSyncState(
 	// get reused again in a later Sync call.
 	if result.si != nil {
 		result.si.op.resetUpdateState()
+
+		// Save this MD for later, so we can clean up its
+		// newly-referenced block pointers if necessary.
+		result.si.toCleanIfUnused = append(result.si.toCleanIfUnused,
+			mdToCleanIfUnused{md, result.si.bps})
 	}
 	if isRecoverableBlockError(err) {
+		if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
+			df.assimilateDeferredNewBytes()
+		}
 		if result.si != nil {
 			fbo.revertSyncInfoAfterRecoverableError(
 				blocksToRemove, result.si, result.savedSi)
@@ -2202,6 +2254,12 @@ func (fbo *folderBlockOps) CleanupSyncState(
 				ctx, lState, file,
 				result.redirtyOnRecoverableError)
 		}
+	} else {
+		// On an unrecoverable error, the deferred writes aren't
+		// needed anymore since they're already part of the
+		// (still-)dirty blocks.
+		fbo.deferredDirtyDeletes = nil
+		fbo.deferredWrites = nil
 	}
 
 	// The sync is over, due to an error, so reset the map so that we
@@ -2212,8 +2270,65 @@ func (fbo *folderBlockOps) CleanupSyncState(
 	if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
 		df.resetSyncingBlocksToDirty()
 	}
+}
 
-	// TODO: Clear deferredWrites and deferredDirtyDeletes?
+// cleanUpUnusedBlocks cleans up the blocks from any previous failed
+// sync attempts.
+func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
+	md *RootMetadata, syncState fileSyncState, fbm *folderBlockManager) error {
+	numToClean := len(syncState.si.toCleanIfUnused)
+	if numToClean == 0 {
+		return nil
+	}
+
+	// What blocks are referenced in the successful MD?
+	refs := make(map[BlockPointer]bool)
+	for _, op := range md.data.Changes.Ops {
+		for _, ptr := range op.Refs() {
+			if ptr == zeroPtr {
+				panic("Unexpected zero ref ptr in a sync MD revision")
+			}
+			refs[ptr] = true
+		}
+		for _, update := range op.AllUpdates() {
+			if update.Ref == zeroPtr {
+				panic("Unexpected zero update ref ptr in a sync MD revision")
+			}
+
+			refs[update.Ref] = true
+		}
+	}
+
+	// For each MD to clean, clean up the old failed blocks
+	// immediately if the merge status matches the successful put, if
+	// they didn't get referenced in the successful put.  If the merge
+	// status is different (e.g., we ended up on a conflict branch),
+	// clean it up only if the original revision failed.
+	for _, oldMD := range syncState.si.toCleanIfUnused {
+		bdType := blockDeleteAlways
+		if oldMD.md.MergedStatus() != md.MergedStatus() {
+			bdType = blockDeleteOnMDFail
+		}
+
+		failedBps := newBlockPutState(len(oldMD.bps.blockStates))
+		for _, bs := range oldMD.bps.blockStates {
+			if bs.blockPtr == zeroPtr {
+				panic("Unexpected zero block ptr in an old sync MD revision")
+			}
+			if refs[bs.blockPtr] && bdType == blockDeleteAlways {
+				continue
+			}
+			failedBps.blockStates = append(failedBps.blockStates,
+				blockState{blockPtr: bs.blockPtr})
+			fbo.log.CDebugf(ctx, "Cleaning up block %v from a previous "+
+				"failed revision %d", bs.blockPtr, oldMD.md.Revision)
+		}
+
+		if len(failedBps.blockStates) > 0 {
+			fbm.cleanUpBlockState(oldMD.md, failedBps, bdType)
+		}
+	}
+	return nil
 }
 
 // FinishSync finishes the sync process for a file, given the state
@@ -2222,7 +2337,8 @@ func (fbo *folderBlockOps) CleanupSyncState(
 func (fbo *folderBlockOps) FinishSync(
 	ctx context.Context, lState *lockState,
 	oldPath, newPath path, md *RootMetadata,
-	syncState fileSyncState) (stillDirty bool, err error) {
+	syncState fileSyncState, fbm *folderBlockManager) (
+	stillDirty bool, err error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 
@@ -2277,6 +2393,10 @@ func (fbo *folderBlockOps) FinishSync(
 	// happened during the sync, since we will replay the writes
 	// below anyway.
 	if err := fbo.clearCacheInfoLocked(lState, oldPath); err != nil {
+		return true, err
+	}
+
+	if err := fbo.cleanUpUnusedBlocks(ctx, md, syncState, fbm); err != nil {
 		return true, err
 	}
 
