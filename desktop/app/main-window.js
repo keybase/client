@@ -49,7 +49,7 @@ export default function () {
   })
 
   ipcMain.on('tabChanged', (event, tab) => {
-    appState.setTab(tab)
+    appState.tab = tab
   })
 
   return mainWindow
