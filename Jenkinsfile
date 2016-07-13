@@ -9,6 +9,9 @@ node("ec2-fleet") {
                     artifactNumToKeepStr: "1",
                 ]
             ],
+            [$class: 'RebuildSettings',
+                autoRebuild: true,
+            ],
             //[$class: "ParametersDefinitionProperty",
             //    parameterDefinitions: [
             //        [$class: 'StringParameterDefinition',
