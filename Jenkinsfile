@@ -1,6 +1,7 @@
 #!groovy
 
 node("ec2-fleet") {
+    deleteDir()
     properties([
         [$class: "BuildDiscarderProperty",
             strategy: [$class: "LogRotator",
@@ -111,6 +112,7 @@ node("ec2-fleet") {
                     //        "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                     //        "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
                     //    ]) {
+                    //    deleteDir()
                     //    ws("${pwd()}/src/github.com/keybase/client") {
                     //        println "Checkout Windows"
                     //        checkout scm
@@ -121,6 +123,7 @@ node("ec2-fleet") {
                     //},
                     test_osx: {
                         node('osx') {
+                            deleteDir()
                             def GOPATH=pwd()
                             withEnv([
                                 "PATH=${env.PATH}:${GOPATH}/bin",
