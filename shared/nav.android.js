@@ -180,8 +180,8 @@ Nav.propTypes = {
   navigateBack: React.PropTypes.func.isRequired,
   bootstrap: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
-  config: React.PropTypes.shape({
-  }).isRequired,
+  dumbFullscreen: React.PropTypes.bool.isRequired,
+  folderBadge: React.PropTypes.number.isRequired,
 }
 
 const styles = StyleSheet.create({
