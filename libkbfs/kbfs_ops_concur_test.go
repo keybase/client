@@ -1426,6 +1426,8 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 		t.Errorf("Couldn't write file: %v", err)
 	}
 
+	realBlockOps := config.BlockOps()
+
 	config.SetBlockOps(&blockOpsOverQuota{BlockOps: config.BlockOps()})
 
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
