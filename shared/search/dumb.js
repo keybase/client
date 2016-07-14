@@ -10,7 +10,7 @@ import userPaneMocks from './user-pane/dumb'
 const results = [
   {
     service: 'external',
-    serviceAvatar: null,
+    serviceAvatar: '',
     icon: 'icon-twitter-logo-32',
     username: 'malgorithms',
     serviceName: 'Twitter',
@@ -49,7 +49,7 @@ const results = [
       service: 'external',
       icon: 'iconfont-identity-twitter',
       serviceUsername: 'malgorithms',
-      serviceAvatar: null,
+      serviceAvatar: '',
       fullNameOnService: 'Chris Coyne',
     },
   },
@@ -87,7 +87,7 @@ const commonUsers = [
   },
   {
     service: 'external',
-    serviceAvatar: null,
+    serviceAvatar: '',
     serviceName: 'Twitter',
     icon: 'icon-twitter-logo-32',
     username: 'malgorithms',
@@ -97,7 +97,7 @@ const commonUsers = [
       service: 'external',
       icon: 'icon-twitter-logo-32',
       serviceUsername: 'malgorithms',
-      serviceAvatar: null,
+      serviceAvatar: '',
       fullNameOnService: 'Chris Coyne',
     },
   },

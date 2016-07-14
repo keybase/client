@@ -30,7 +30,7 @@ const showUserGroup = (searchText: ?string, selectedUsers: Array<SearchResult>):
 
 const initialState: State = {
   searchHintText: searchHintText('Keybase', []),
-  searchText: null,
+  searchText: '',
   searchIcon: 'icon-keybase-logo-24',
   searchPlatform: 'Keybase',
   selectedUsers: [],
@@ -83,13 +83,13 @@ export default function (state: State = initialState, action: SearchActions): St
         // if it's already a keybase search result or the user doesn't have a keybase account.
         const maybeUpgradedUser = user.service === 'external' && user.keybaseSearchResult ? user.keybaseSearchResult : user
         const alreadySelected = state.selectedUsers.find(u => equalSearchResult(u, maybeUpgradedUser)) !== undefined
-        const selectedUsers = alreadySelected ? state.selectedUsers : state.selectedUsers.concat(maybeUpgradedUser)
+        const selectedUsers = alreadySelected ? state.selectedUsers : [maybeUpgradedUser].concat(state.selectedUsers)
 
         return {
           ...state,
           selectedUsers,
           showUserGroup: showUserGroup(null, selectedUsers),
-          userForInfoPane: user,
+          userForInfoPane: maybeUpgradedUser,
           searchHintText: searchHintText(state.searchPlatform, state.selectedUsers),
           results: [],
           searchText: null,
@@ -107,11 +107,23 @@ export default function (state: State = initialState, action: SearchActions): St
     case Constants.removeUserFromGroup:
       if (!action.error) {
         const user = action.payload.user
-        const nextSelectedUsers = state.selectedUsers.filter(u => u !== user)
-        return {
-          ...state,
-          showUserGroup: showUserGroup(null, nextSelectedUsers),
-          selectedUsers: nextSelectedUsers,
+        const idx = state.selectedUsers.indexOf(user)
+        if (idx !== -1) {
+          const selectedUsers: Array<SearchResult> = state.selectedUsers.concat([])
+          selectedUsers.splice(idx, 1)
+          let userForInfoPane = state.userForInfoPane
+
+          // find a new selection if we just removed the selected user
+          if (user === userForInfoPane) {
+            userForInfoPane = selectedUsers.length > idx ? selectedUsers[idx] : null
+          }
+
+          return {
+            ...state,
+            showUserGroup: showUserGroup(null, selectedUsers),
+            selectedUsers,
+            userForInfoPane,
+          }
         }
       }
       break

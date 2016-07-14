@@ -23,6 +23,7 @@ type RawResult = {
     is_followee: boolean
   },
   service: ?{
+    service_name: string,
     username: string,
     picture_url: ?string,
     bio: ?string,
@@ -31,33 +32,22 @@ type RawResult = {
   }
 }
 
-function parseFullName (rr: RawResult): string {
-  if (rr.keybase && rr.keybase.full_name) {
-    return rr.keybase.full_name
-  } else if (rr.service && rr.service.full_name) {
-    return rr.service.full_name
-  }
-
-  return ''
-}
-
-function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean): ExtraInfo {
-  const fullName = parseFullName(rr)
-  const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
+function parseExtraInfo (platform: SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean): ExtraInfo {
+  const serviceName = rr.service && capitalize(rr.service.service_name || '')
 
   if (platform === 'Keybase') {
-    if (serviceName) {
+    if (rr.service) {
       return {
         service: 'external',
-        icon: platformToLogo16(serviceName),
-        serviceUsername: rr.service && rr.service.username || '',
-        serviceAvatar: rr.service && rr.service.picture_url,
-        fullNameOnService: fullName,
+        icon: serviceName && platformToLogo16(serviceName),
+        serviceUsername: rr.service.username || '',
+        serviceAvatar: '',
+        fullNameOnService: rr.service.full_name || '',
       }
-    } else {
+    } else if (rr.keybase) {
       return {
         service: 'none',
-        fullName,
+        fullName: rr.keybase.full_name || '',
       }
     }
   } else {
@@ -65,15 +55,23 @@ function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult, isFollowing:
       return {
         service: 'keybase',
         username: rr.keybase.username,
-        fullName: fullName,
+        fullName: rr.keybase.full_name || '',
         isFollowing: isFollowing(rr.keybase.username),
       }
-    } else {
+    } else if (rr.service) {
       return {
-        service: 'none',
-        fullName,
+        service: 'external',
+        icon: null,
+        serviceUsername: rr.service.username || '',
+        serviceAvatar: rr.service.picture_url || '',
+        fullNameOnService: rr.service.full_name || '',
       }
     }
+  }
+
+  return {
+    service: 'none',
+    fullName: '',
   }
 }
 
@@ -97,15 +95,16 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: 
       return null
     }
 
+    const toUpgrade = {...rr}
+    delete toUpgrade.service
     return {
       service: 'external',
       icon: platformToLogo32(serviceName),
       username: rr.service && rr.service.username || '',
       serviceName,
       profileUrl: 'TODO',
-      serviceAvatar: rr.service && rr.service.picture_url,
       extraInfo,
-      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', rr, isFollowing) : null,
+      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', toUpgrade, isFollowing) : null,
     }
   } else {
     return null
@@ -162,7 +161,6 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
           {key: 'service', value: service},
         ],
       },
-      incomingCallMap: {},
       waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: (error: ?any, results: apiserverGetResult) => {
         if (error) {
