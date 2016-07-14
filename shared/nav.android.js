@@ -125,7 +125,6 @@ class Nav extends Component {
     )
 
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
-    const folderBadge = this.props.privateBadge + this.props.publicBadge
     const username = this.props.username
 
     return (
@@ -167,7 +166,7 @@ class Nav extends Component {
             </View>
           </View>
           <View collapsable={false} style={{flex: 2}}>
-            <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={username} badgeNumbers={{[folderTab]: folderBadge}} tabContent={tabContent} />
+            <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={username} badgeNumbers={{[folderTab]: this.props.folderBadge}} tabContent={tabContent} />
           </View>
         </View>
       </DrawerLayoutAndroid>
@@ -222,8 +221,7 @@ export default connect(
       provisioned: extendedConfig && !!extendedConfig.device,
       username,
       dumbFullscreen,
-      publicBadge,
-      privateBadge,
+      folderBadge: publicBadge + privateBadge,
     }),
   dispatch => {
     return {
