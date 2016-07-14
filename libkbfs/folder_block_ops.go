@@ -1280,7 +1280,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 	if err != nil {
 		return WriteRange{}, nil, 0, err
 	}
-	oldSize := de.Size
+	oldSizeWithoutHoles := de.Size
 
 	si, err := fbo.getOrCreateSyncInfoLocked(lState, de)
 	if err != nil {
@@ -1344,11 +1344,11 @@ func (fbo *folderBlockOps) writeDataLocked(
 			newb := fblock.IPtrs[len(fblock.IPtrs)-1]
 			copy(fblock.IPtrs[indexInParent+2:], fblock.IPtrs[indexInParent+1:])
 			fblock.IPtrs[indexInParent+1] = newb
-			if oldSize == de.Size {
+			if oldSizeWithoutHoles == de.Size {
 				// For the purposes of calculating the newly-dirtied
 				// bytes for the deferral calculation, disregard the
 				// existing "hole" in the file.
-				oldSize = uint64(newb.Off)
+				oldSizeWithoutHoles = uint64(newb.Off)
 			}
 		}
 
@@ -1408,8 +1408,8 @@ func (fbo *folderBlockOps) writeDataLocked(
 		dirtyPtrs = append(dirtyPtrs, file.tailPointer())
 
 		lastByteWritten := off + int64(len(data)) // not counting holes
-		if fbo.doDeferWrite && lastByteWritten > int64(oldSize) {
-			df.addDeferredNewBytes(lastByteWritten - int64(oldSize))
+		if fbo.doDeferWrite && lastByteWritten > int64(oldSizeWithoutHoles) {
+			df.addDeferredNewBytes(lastByteWritten - int64(oldSizeWithoutHoles))
 		}
 	}
 	latestWrite = si.op.addWrite(uint64(off), uint64(len(data)))
@@ -1827,13 +1827,13 @@ func (fbo *folderBlockOps) revertSyncInfoAfterRecoverableError(
 
 	// Propagate all unrefs forward, except those that belong to new
 	// blocks that were created during the sync.
-	unrefs := make([]BlockInfo, len(si.unrefs))
+	unrefs := make([]BlockInfo, 0, len(si.unrefs))
 	for _, unref := range si.unrefs {
-		if !newIndirect[unref.BlockPointer] {
-			unrefs = append(unrefs, unref)
-		} else {
+		if newIndirect[unref.BlockPointer] {
 			fbo.log.CDebugf(nil, "Dropping unref %v", unref)
+			continue
 		}
+		unrefs = append(unrefs, unref)
 	}
 
 	// This sync will be retried and needs new blocks, so
