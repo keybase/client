@@ -175,6 +175,15 @@ class Nav extends Component {
   }
 }
 
+Nav.propTypes = {
+  switchTab: React.PropTypes.func.isRequired,
+  navigateBack: React.PropTypes.func.isRequired,
+  bootstrap: React.PropTypes.func.isRequired,
+  tabbedRouter: React.PropTypes.object.isRequired,
+  config: React.PropTypes.shape({
+  }).isRequired,
+}
+
 const styles = StyleSheet.create({
   tabContent: {
     flex: 1,
