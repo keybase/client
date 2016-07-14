@@ -206,7 +206,6 @@ function makeRpcUnionType (typeDefs) {
         const clean = t[0].trim()
         return acc.indexOf(clean) === -1 ? acc.concat([clean]) : acc
       }, [])
-      .filter(t => t)
       .sort()
       .join('\n  | ')
 
