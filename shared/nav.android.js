@@ -108,7 +108,7 @@ class Nav extends Component {
   }
 
   render () {
-    if (this.props.dev.debugConfig.dumbFullscreen) {
+    if (this.props.dumbFullscreen) {
       return <DumbSheet />
     }
 
@@ -125,8 +125,8 @@ class Nav extends Component {
     )
 
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
-
-    const username = this.props.config.username
+    const folderBadge = this.props.privateBadge + this.props.publicBadge
+    const username = this.props.username
 
     return (
       <DrawerLayoutAndroid
@@ -167,23 +167,13 @@ class Nav extends Component {
             </View>
           </View>
           <View collapsable={false} style={{flex: 2}}>
-            <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={username} badgeNumbers={{}} tabContent={tabContent} />
-
+            <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={username} badgeNumbers={{[folderTab]: folderBadge}} tabContent={tabContent} />
           </View>
         </View>
       </DrawerLayoutAndroid>
 
     )
   }
-}
-
-Nav.propTypes = {
-  switchTab: React.PropTypes.func.isRequired,
-  navigateBack: React.PropTypes.func.isRequired,
-  bootstrap: React.PropTypes.func.isRequired,
-  tabbedRouter: React.PropTypes.object.isRequired,
-  config: React.PropTypes.shape({
-  }).isRequired,
 }
 
 const styles = StyleSheet.create({
@@ -222,7 +212,19 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
-  store => store,
+  ({tabbedRouter,
+    config: {bootstrapped, extendedConfig, username},
+    dev: {debugConfig: {dumbFullscreen}},
+    favorite: {publicBadge, privateBadge},
+    notifications: {menuBadge}}) => ({
+      tabbedRouter,
+      bootstrapped,
+      provisioned: extendedConfig && !!extendedConfig.device,
+      username,
+      dumbFullscreen,
+      publicBadge,
+      privateBadge,
+    }),
   dispatch => {
     return {
       switchTab: tab => dispatch(switchTab(tab)),
