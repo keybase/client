@@ -59,8 +59,6 @@ node("ec2-fleet") {
 
         stage "Setup"
 
-
-
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
                     checkout: {
@@ -278,6 +276,9 @@ node("ec2-fleet") {
                             }
                         },
                     )
+            } catch(ex) {
+                sh "docker logs ${kbweb.id}"
+                throw ex
             } finally {
                 if (kbweb != null) {
                     kbweb.stop()
