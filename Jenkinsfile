@@ -313,17 +313,20 @@ def waitForURL(prefix, url) {
         ' """
     } else {
         bat """
-            powershell.exe -c ' \
+            powershell.exe -c "& { \
                 \$slept=0; \
-                \$res=1; \
                 do { \
-                    curl.exe --silent ${url} >nul 2>&1 && echo "Connected to ${url} after waiting \$slept times" && exit 0; \
+                    curl.exe --silent ${url} >\$null; \
+                    if (\$?) { \
+                        echo \\"Connected to ${url} after waiting \$slept times\\"; \
+                        exit 0; \
+                    } \
                     sleep 1; \
                     \$slept++; \
                 } while (\$slept -lt ${waitFor}); \
-                echo "Unable to connect to ${url} after waiting ${waitFor} times"; \
+                echo \\"Unable to connect to ${url} after waiting \$slept times\\"; \
                 exit 1; \
-            '
+            }"
         """
     }
 }
