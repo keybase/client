@@ -33,7 +33,8 @@ node("ec2-fleet") {
             //],
     ])
 
-    env.GOPATH=pwd()
+    env.BASEDIR=pwd()
+    env.GOPATH="${env.BASEDIR}/go"
     def mysqlImage = docker.image("keybaseprivate/mysql")
     def gregorImage = docker.image("keybaseprivate/kbgregor")
     def kbwebImage = docker.image("keybaseprivate/kbweb")
@@ -171,7 +172,8 @@ node("ec2-fleet") {
                         test_windows: {
                             node('windows') {
                                 deleteDir()
-                                def GOPATH=pwd()
+                                def BASEDIR=pwd()
+                                def GOPATH="${BASEDIR}/go"
                                 withEnv([
                                     'GOROOT=C:\\tools\\go',
                                     "GOPATH=\"${GOPATH}\"",
@@ -239,7 +241,8 @@ node("ec2-fleet") {
                         test_osx: {
                             node('osx') {
                                 deleteDir()
-                                def GOPATH=pwd()
+                                def BASEDIR=pwd()
+                                def GOPATH="${BASEDIR}/go"
                                 withEnv([
                                     "GOPATH=${GOPATH}",
                                     "PATH=${env.PATH}:${GOPATH}/bin",
