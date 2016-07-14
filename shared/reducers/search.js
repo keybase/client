@@ -21,7 +21,7 @@ export type State = {
 }
 
 const searchHintText = (searchPlatform: SearchPlatforms, selectedUsers: Array<SearchResult>): string => (
-  `${selectedUsers.length ? 'Add' : 'Search'} a ${searchPlatform} user`
+  `${selectedUsers.length ? 'Add' : 'Search for'} a ${searchPlatform} user`
 )
 
 const showUserGroup = (searchText: ?string, selectedUsers: Array<SearchResult>): boolean => (
