@@ -37,7 +37,7 @@ const connector: TypedConnector<TypedState, TypedDispatch<SearchActions>, OwnPro
 
 export default connector.connect(
   ({search:
-     {searchHintText, searchPlatform, searchText, searchIcon, results, userForInfoPane, showUserGroup, selectedUsers},
+     {waiting, searchHintText, searchPlatform, searchText, searchIcon, results, userForInfoPane, showUserGroup, selectedUsers},
    config: {username}}, dispatch, ownProps) => ({
      username: username || '',
      userPane: <UserPane />,
@@ -46,6 +46,7 @@ export default connector.connect(
      searchIcon,
      userForInfoPane,
      results,
+     waiting,
      showComingSoon: !flags.searchEnabled,
      onClickResult: user => { dispatch(addUserToGroup(user)) },
      selectedService: searchPlatform,

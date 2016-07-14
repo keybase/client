@@ -105,6 +105,7 @@ const commonUsers = [
 
 const commonProps = {
   username: 'bob',
+  waiting: false,
   userPane: <UserPane mode='keybase' userInfoProps={userPaneMocks['Search User Pane'].mocks['Unfollowed']} />,
   onSearch: text => console.log('OnSearch: ', text),
   searchHintText: 'Search Keybase',
@@ -134,6 +135,11 @@ const searchMap: DumbComponentMap<Search> = {
     'Coming soon': {
       ...commonProps,
       showComingSoon: true,
+    },
+    'Waiting': {
+      ...commonProps,
+      waiting: true,
+      results: [],
     },
     'Searching': {
       ...commonProps,
