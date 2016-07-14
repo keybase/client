@@ -51,8 +51,7 @@ type Props = {
   username: string,
   navigateBack: () => void,
   navigateUp: () => void,
-  publicBadge: number,
-  privateBadge: number
+  folderBadge: number
 }
 
 class Nav extends Component<void, Props, State> {
@@ -165,6 +164,10 @@ class Nav extends Component<void, Props, State> {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
+    if (this.props.folderBadge !== nextProps.folderBadge) {
+      return true
+    }
+
     if (this.props.menuBadge !== nextProps.menuBadge) {
       ipcRenderer.send(this.props.menuBadge ? 'showTrayRegular' : 'showTrayBadged')
     }
@@ -216,8 +219,6 @@ class Nav extends Component<void, Props, State> {
     }
 
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
-    const folderBadge = this.props.privateBadge + this.props.publicBadge
-
     return (
       <div style={stylesTabsContainer}>
         <TabBar
@@ -227,7 +228,7 @@ class Nav extends Component<void, Props, State> {
           searchActive={this.state.searchActive}
           username={this.props.username}
           searchContent={<Search />}
-          badgeNumbers={{[folderTab]: folderBadge}}
+          badgeNumbers={{[folderTab]: this.props.folderBadge}}
           tabContent={tabContent} />
       </div>
     )
@@ -249,8 +250,7 @@ export default connect(
       provisioned: extendedConfig && !!extendedConfig.device,
       username,
       menuBadge,
-      publicBadge,
-      privateBadge,
+      folderBadge: publicBadge + privateBadge,
     }),
   dispatch => {
     return {
