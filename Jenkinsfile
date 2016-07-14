@@ -32,7 +32,7 @@ node("ec2-fleet") {
             //],
     ])
 
-    env.GOPATH=pwd()
+    env.GOPATH=WORKSPACE
     def mysqlImage = docker.image("keybaseprivate/mysql")
     def gregorImage = docker.image("keybaseprivate/kbgregor")
     def kbwebImage = docker.image("keybaseprivate/kbweb")
@@ -55,9 +55,11 @@ node("ec2-fleet") {
     println "Cause: ${cause}"
     println "Pull Request ID: ${env.CHANGE_ID}"
 
-    ws("${env.GOPATH}/src/github.com/keybase/client") {
+    ws("src/github.com/keybase/client") {
 
         stage "Setup"
+            println "GOPATH: $WORKSPACE"
+            println "Running in workspace: $WORKSPACE"
 
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
@@ -196,7 +198,7 @@ node("ec2-fleet") {
                                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                 ]) {
-                                ws("${GOPATH}/src/github.com/keybase/client") {
+                                ws("src/github.com/keybase/client") {
                                     println "Checkout Windows"
                                     checkout scm
 
@@ -266,7 +268,7 @@ node("ec2-fleet") {
                                     "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
                                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
                                 ]) {
-                                ws("${GOPATH}/src/github.com/keybase/client") {
+                                ws("src/github.com/keybase/client") {
                                     println "Checkout OS X"
                                         checkout scm
 
