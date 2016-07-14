@@ -883,16 +883,15 @@ func (fbo *folderBlockOps) GetDirtyRefs(lState *lockState) []blockRef {
 	return dirtyRefs
 }
 
-// fixChildBlocksAfterRecoverableError should be called when a sync
+// fixChildBlocksAfterRecoverableErrorLocked should be called when a sync
 // failed with a recoverable block error on a multi-block file.  It
 // makes sure that any outstanding dirty versions of the file are
 // fixed up to reflect the fact that some of the indirect pointers now
 // need to change.
-func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableError(
+func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 	ctx context.Context, lState *lockState, file path,
 	redirtyOnRecoverableError map[BlockPointer]BlockPointer) {
-	fbo.blockLock.Lock(lState)
-	defer fbo.blockLock.Unlock(lState)
+	fbo.blockLock.AssertLocked(lState)
 
 	// If a copy of the top indirect block was made, we need to
 	// redirty all the sync'd blocks under their new IDs, so that
@@ -1281,7 +1280,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 	if err != nil {
 		return WriteRange{}, nil, 0, err
 	}
-	oldSize := de.Size
+	oldSizeWithoutHoles := de.Size
 
 	si, err := fbo.getOrCreateSyncInfoLocked(lState, de)
 	if err != nil {
@@ -1307,6 +1306,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 				max = room
 			}
 		}
+		oldNCopied := nCopied
 		nCopied += bsplit.CopyUntilSplit(block, nextBlockOff < 0, data[nCopied:max],
 			off+nCopied-startOff)
 
@@ -1344,6 +1344,20 @@ func (fbo *folderBlockOps) writeDataLocked(
 			newb := fblock.IPtrs[len(fblock.IPtrs)-1]
 			copy(fblock.IPtrs[indexInParent+2:], fblock.IPtrs[indexInParent+1:])
 			fblock.IPtrs[indexInParent+1] = newb
+			if oldSizeWithoutHoles == de.Size {
+				// For the purposes of calculating the newly-dirtied
+				// bytes for the deferral calculation, disregard the
+				// existing "hole" in the file.
+				oldSizeWithoutHoles = uint64(newb.Off)
+			}
+		}
+
+		// Nothing was copied, no need to dirty anything.  This can
+		// happen when trying to append to the contents of the file
+		// (i.e., either to the end of the file or right before the
+		// "hole"), and the last block is already full.
+		if nCopied == oldNCopied {
+			continue
 		}
 
 		// Only in the last block does the file size grow.
@@ -1371,6 +1385,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 				parentBlock.IPtrs[indexInParent].BlockInfo)
 			parentBlock.IPtrs[indexInParent].EncodedSize = 0
 		}
+
 		// keep the old block ID while it's dirty
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState, ptr, file,
 			block); err != nil {
@@ -1392,8 +1407,9 @@ func (fbo *folderBlockOps) writeDataLocked(
 		}
 		dirtyPtrs = append(dirtyPtrs, file.tailPointer())
 
-		if fbo.doDeferWrite && de.Size > oldSize {
-			df.addDeferredNewBytes(int64(de.Size - oldSize))
+		lastByteWritten := off + int64(len(data)) // not counting holes
+		if fbo.doDeferWrite && lastByteWritten > int64(oldSizeWithoutHoles) {
+			df.addDeferredNewBytes(lastByteWritten - int64(oldSizeWithoutHoles))
 		}
 	}
 	latestWrite = si.op.addWrite(uint64(off), uint64(len(data)))
@@ -1797,14 +1813,34 @@ func (fbo *folderBlockOps) ClearCacheInfo(lState *lockState, file path) error {
 // include all the blocks from before the error, except for those that
 // have encountered recoverable block errors themselves.
 func (fbo *folderBlockOps) revertSyncInfoAfterRecoverableError(
-	blocksToRemove []BlockPointer, si, savedSi *syncInfo) {
+	blocksToRemove []BlockPointer, result fileSyncState) {
+	si := result.si
+	savedSi := result.savedSi
+
 	// Save the blocks we need to clean up on the next attempt.
 	toClean := si.toCleanIfUnused
+
+	newIndirect := make(map[BlockPointer]bool)
+	for _, ptr := range result.newIndirectFileBlockPtrs {
+		newIndirect[ptr] = true
+	}
+
+	// Propagate all unrefs forward, except those that belong to new
+	// blocks that were created during the sync.
+	unrefs := make([]BlockInfo, 0, len(si.unrefs))
+	for _, unref := range si.unrefs {
+		if newIndirect[unref.BlockPointer] {
+			fbo.log.CDebugf(nil, "Dropping unref %v", unref)
+			continue
+		}
+		unrefs = append(unrefs, unref)
+	}
 
 	// This sync will be retried and needs new blocks, so
 	// reset everything in the sync info.
 	*si = *savedSi
 	si.toCleanIfUnused = toClean
+	si.unrefs = unrefs
 	if si.bps == nil {
 		return
 	}
@@ -2231,9 +2267,12 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		return
 	}
 
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+
 	// Notify error listeners before we reset the dirty blocks and
 	// permissions to be granted.
-	fbo.notifyErrListeners(lState, file.tailPointer(), err)
+	fbo.notifyErrListenersLocked(lState, file.tailPointer(), err)
 
 	// If there was an error, we need to back out any changes that
 	// might have been filled into the sync op, because it could
@@ -2250,13 +2289,13 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
 			df.assimilateDeferredNewBytes()
 		}
+
 		if result.si != nil {
-			fbo.revertSyncInfoAfterRecoverableError(
-				blocksToRemove, result.si, result.savedSi)
+			fbo.revertSyncInfoAfterRecoverableError(blocksToRemove, result)
 		}
 		if result.fblock != nil {
 			*result.fblock = *result.savedFblock
-			fbo.fixChildBlocksAfterRecoverableError(
+			fbo.fixChildBlocksAfterRecoverableErrorLocked(
 				ctx, lState, file,
 				result.redirtyOnRecoverableError)
 		}
@@ -2270,8 +2309,6 @@ func (fbo *folderBlockOps) CleanupSyncState(
 
 	// The sync is over, due to an error, so reset the map so that we
 	// don't defer any subsequent writes.
-	fbo.blockLock.Lock(lState)
-	defer fbo.blockLock.Unlock(lState)
 	// Old syncing blocks are now just dirty
 	if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
 		df.resetSyncingBlocksToDirty()
@@ -2411,8 +2448,9 @@ func (fbo *folderBlockOps) FinishSync(
 
 // notifyErrListeners notifies any write operations that are blocked
 // on a file so that they can learn about unrecoverable sync errors.
-func (fbo *folderBlockOps) notifyErrListeners(lState *lockState,
+func (fbo *folderBlockOps) notifyErrListenersLocked(lState *lockState,
 	ptr BlockPointer, err error) {
+	fbo.blockLock.AssertLocked(lState)
 	if isRecoverableBlockError(err) {
 		// Don't bother any listeners with this error, since the sync
 		// will be retried.  Unless the sync has reached its retry
@@ -2421,8 +2459,6 @@ func (fbo *folderBlockOps) notifyErrListeners(lState *lockState,
 		// that's ok since this error isn't fatal.
 		return
 	}
-	fbo.blockLock.Lock(lState)
-	defer fbo.blockLock.Unlock(lState)
 	df := fbo.dirtyFiles[ptr]
 	if df != nil {
 		df.notifyErrListeners(err)
