@@ -2774,28 +2774,16 @@ func (fbo *folderBranchOps) setExLocked(
 		return
 	}
 
-	// If the MD doesn't match the MD expected by the path, that
-	// implies we are using a cached path, which implies the node has
-	// been unlinked.  In that case, we can safely ignore this setex.
-	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
-		fbo.log.CDebugf(ctx, "Skipping setex for a removed file %v",
-			file.tailPointer())
-		// TODO: Save this exec status in a cached direntry, so
-		// subsequent stats using this stale node will see the right
-		// exec status.
-		return nil
-	}
-
 	dblock, de, err := fbo.blocks.GetDirtyParentAndEntry(
 		ctx, lState, md, file)
 	if err != nil {
-		return
+		return err
 	}
 
 	// If the file is a symlink, do nothing (to match ext4
 	// behavior).
 	if de.Type == Sym {
-		return
+		return nil
 	}
 
 	if ex && (de.Type == File) {
@@ -2803,18 +2791,29 @@ func (fbo *folderBranchOps) setExLocked(
 	} else if !ex && (de.Type == Exec) {
 		de.Type = File
 	}
-
-	parentPath := file.parentPath()
-	sao, err := newSetAttrOp(file.tailName(), parentPath.tailPointer(), exAttr,
-		file.tailPointer())
-	if err != nil {
-		return err
-	}
-	md.AddOp(sao)
-
 	// If the type isn't File or Exec, there's nothing to do, but
 	// change the ctime anyway (to match ext4 behavior).
 	de.Ctime = fbo.nowUnixNano()
+
+	parentPath := file.parentPath()
+	sao, err := newSetAttrOp(file.tailName(), parentPath.tailPointer(),
+		exAttr, file.tailPointer())
+	if err != nil {
+		return err
+	}
+
+	// If the MD doesn't match the MD expected by the path, that
+	// implies we are using a cached path, which implies the node has
+	// been unlinked.  In that case, we can safely ignore this setex.
+	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
+		fbo.log.CDebugf(ctx, "Skipping setex for a removed file %v",
+			file.tailPointer())
+		return fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
+			ctx, lState, md, file, sao, de)
+	}
+
+	md.AddOp(sao)
+
 	dblock.Children[file.tailName()] = de
 	_, err = fbo.syncBlockAndFinalizeLocked(
 		ctx, lState, md, dblock, *parentPath.parentPath(), parentPath.tailName(),
@@ -2854,6 +2853,22 @@ func (fbo *folderBranchOps) setMtimeLocked(
 		return err
 	}
 
+	dblock, de, err := fbo.blocks.GetDirtyParentAndEntry(
+		ctx, lState, md, file)
+	if err != nil {
+		return err
+	}
+	de.Mtime = mtime.UnixNano()
+	// setting the mtime counts as changing the file MD, so must set ctime too
+	de.Ctime = fbo.nowUnixNano()
+
+	parentPath := file.parentPath()
+	sao, err := newSetAttrOp(file.tailName(), parentPath.tailPointer(),
+		mtimeAttr, file.tailPointer())
+	if err != nil {
+		return err
+	}
+
 	// If the MD doesn't match the MD expected by the path, that
 	// implies we are using a cached path, which implies the node has
 	// been unlinked.  In that case, we can safely ignore this
@@ -2861,28 +2876,12 @@ func (fbo *folderBranchOps) setMtimeLocked(
 	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
 		fbo.log.CDebugf(ctx, "Skipping setmtime for a removed file %v",
 			file.tailPointer())
-		// TODO: Save this mtime in a cached direntry, so subsequent
-		// stats using this stale node will see the right time.
-		return nil
+		return fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
+			ctx, lState, md, file, sao, de)
 	}
 
-	dblock, de, err := fbo.blocks.GetDirtyParentAndEntry(
-		ctx, lState, md, file)
-	if err != nil {
-		return err
-	}
-
-	parentPath := file.parentPath()
-	sao, err := newSetAttrOp(file.tailName(), parentPath.tailPointer(), mtimeAttr,
-		file.tailPointer())
-	if err != nil {
-		return err
-	}
 	md.AddOp(sao)
 
-	de.Mtime = mtime.UnixNano()
-	// setting the mtime counts as changing the file MD, so must set ctime too
-	de.Ctime = fbo.nowUnixNano()
 	dblock.Children[file.tailName()] = de
 	_, err = fbo.syncBlockAndFinalizeLocked(
 		ctx, lState, md, dblock, *parentPath.parentPath(), parentPath.tailName(),

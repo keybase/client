@@ -1120,9 +1120,19 @@ func TestRemoveFileWhileOpenSetEx(t *testing.T) {
 	}
 
 	// this must not resurrect a deleted file
-	if err := f.Chmod(0777); err != nil {
+	if err := f.Chmod(0755); err != nil {
 		t.Fatalf("cannot setex: %v", err)
 	}
+
+	// Make sure the mode sticks around even though the file was unlinked.
+	fi, err := f.Stat()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := fi.Mode().String(), `-rwxr-xr-x`; g != e {
+		t.Errorf("wrong mode: %q != %q", g, e)
+	}
+
 	if err := f.Close(); err != nil {
 		t.Fatalf("error on close: %v", err)
 	}
