@@ -3345,7 +3345,7 @@ func mergeUnrefCache(
 	ops *folderBranchOps, lState *lockState, file path, md *RootMetadata) {
 	ops.blocks.blockLock.RLock(lState)
 	defer ops.blocks.blockLock.RUnlock(lState)
-	ops.blocks.mergeUnrefCacheLocked(lState, file, md)
+	ops.blocks.unrefCache[file.tailPointer().ref()].mergeUnrefCache(md)
 }
 
 func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {

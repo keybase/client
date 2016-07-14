@@ -102,6 +102,14 @@ func (si *syncInfo) removeReplacedBlock(ctx context.Context,
 	}
 }
 
+func (si *syncInfo) mergeUnrefCache(md *RootMetadata) {
+	for _, info := range si.unrefs {
+		// it's ok if we push the same ptr.ID/RefNonce multiple times,
+		// because the subsequent ones should have a QuotaSize of 0.
+		md.AddUnrefBlock(info)
+	}
+}
+
 // folderBlockOps contains all the fields that must be synchronized by
 // blockLock. It will eventually also contain all the methods that
 // must be synchronized by blockLock, so that folderBranchOps will
@@ -861,17 +869,6 @@ func (fbo *folderBlockOps) getOrCreateSyncInfoLocked(
 		fbo.unrefCache[ref] = si
 	}
 	return si, nil
-}
-
-func (fbo *folderBlockOps) mergeUnrefCacheLocked(
-	lState *lockState, file path, md *RootMetadata) {
-	fbo.blockLock.AssertRLocked(lState)
-	fileRef := file.tailPointer().ref()
-	for _, info := range fbo.unrefCache[fileRef].unrefs {
-		// it's ok if we push the same ptr.ID/RefNonce multiple times,
-		// because the subsequent ones should have a QuotaSize of 0.
-		md.AddUnrefBlock(info)
-	}
 }
 
 // GetDirtyRefs returns a list of references of all known dirty
@@ -1915,12 +1912,13 @@ type fileSyncState struct {
 	newIndirectFileBlockPtrs []BlockPointer
 }
 
-// startSyncWriteLocked contains the portion of StartSync() that's
-// done while write-locking blockLock.
-func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
+// startSyncWrite contains the portion of StartSync() that's done
+// while write-locking blockLock.  If there is no dirty de cache
+// entry, dirtyDe will be nil.
+func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	lState *lockState, md *RootMetadata, uid keybase1.UID, file path) (
 	fblock *FileBlock, bps *blockPutState, syncState fileSyncState,
-	err error) {
+	dirtyDe *DirEntry, err error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 
@@ -1928,13 +1926,14 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 	// to disk
 	fblock, err = fbo.getFileLocked(ctx, lState, md, file, blockWrite)
 	if err != nil {
-		return nil, nil, syncState, err
+		return nil, nil, syncState, nil, err
 	}
 
 	fileRef := file.tailPointer().ref()
 	si, ok := fbo.unrefCache[fileRef]
 	if !ok {
-		return nil, nil, syncState, fmt.Errorf("No syncOp found for file ref %v", fileRef)
+		return nil, nil, syncState, nil,
+			fmt.Errorf("No syncOp found for file ref %v", fileRef)
 	}
 
 	md.AddOp(si.op)
@@ -1943,7 +1942,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 	if fblock.IsInd {
 		fblockCopy, err := fblock.DeepCopy(fbo.config.Codec())
 		if err != nil {
-			return nil, nil, syncState, err
+			return nil, nil, syncState, nil, err
 		}
 		syncState.fblock = fblock
 		syncState.savedFblock = fblockCopy
@@ -1952,7 +1951,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 	syncState.si = si
 	syncState.savedSi, err = si.DeepCopy(fbo.config.Codec())
 	if err != nil {
-		return nil, nil, syncState, err
+		return nil, nil, syncState, nil, err
 	}
 
 	if si.bps == nil {
@@ -1998,7 +1997,8 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 			ptr := fblock.IPtrs[i]
 			isDirty := dirtyBcache.IsDirty(ptr.BlockPointer, file.Branch)
 			if (ptr.EncodedSize > 0) && isDirty {
-				return nil, nil, syncState, InconsistentEncodedSizeError{ptr.BlockInfo}
+				return nil, nil, syncState, nil,
+					InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
 			if isDirty {
 				_, _, _, block, nextBlockOff, _, err :=
@@ -2006,7 +2006,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 						ctx, lState, md, file, fblock,
 						ptr.Off, blockWrite)
 				if err != nil {
-					return nil, nil, syncState, err
+					return nil, nil, syncState, nil, err
 				}
 
 				splitAt := bsplit.CheckSplit(block)
@@ -2023,7 +2023,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 						if err := fbo.newRightBlockLocked(
 							ctx, lState, file.tailPointer(), file, fblock,
 							endOfBlock, md); err != nil {
-							return nil, nil, syncState, err
+							return nil, nil, syncState, nil, err
 						}
 					}
 					rPtr, _, _, rblock, _, _, err :=
@@ -2031,12 +2031,12 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 							ctx, lState, md, file, fblock,
 							endOfBlock, blockWrite)
 					if err != nil {
-						return nil, nil, syncState, err
+						return nil, nil, syncState, nil, err
 					}
 					rblock.Contents = append(extraBytes, rblock.Contents...)
 					if err = fbo.cacheBlockIfNotYetDirtyLocked(
 						lState, rPtr, file, rblock); err != nil {
-						return nil, nil, syncState, err
+						return nil, nil, syncState, nil, err
 					}
 					fblock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
 					md.AddUnrefBlock(fblock.IPtrs[i+1].BlockInfo)
@@ -2053,7 +2053,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 							ctx, lState, md, file, fblock,
 							endOfBlock, blockWrite)
 					if err != nil {
-						return nil, nil, syncState, err
+						return nil, nil, syncState, nil, err
 					}
 					// copy some of that block's data into this block
 					nCopied := bsplit.CopyUntilSplit(block, false,
@@ -2062,7 +2062,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 					if len(rblock.Contents) > 0 {
 						if err = fbo.cacheBlockIfNotYetDirtyLocked(
 							lState, rPtr, file, rblock); err != nil {
-							return nil, nil, syncState, err
+							return nil, nil, syncState, nil, err
 						}
 						fblock.IPtrs[i+1].Off =
 							ptr.Off + int64(len(block.Contents))
@@ -2089,25 +2089,26 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 			localPtr := ptr.BlockPointer
 			isDirty := dirtyBcache.IsDirty(localPtr, file.Branch)
 			if (ptr.EncodedSize > 0) && isDirty {
-				return nil, nil, syncState, InconsistentEncodedSizeError{ptr.BlockInfo}
+				return nil, nil, syncState, nil,
+					InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
 			if isDirty {
 				_, _, _, block, _, _, err := fbo.getFileBlockAtOffsetLocked(
 					ctx, lState, md, file, fblock, ptr.Off, blockWrite)
 				if err != nil {
-					return nil, nil, syncState, err
+					return nil, nil, syncState, nil, err
 				}
 
 				newInfo, _, readyBlockData, err :=
 					fbo.ReadyBlock(ctx, md, block, uid)
 				if err != nil {
-					return nil, nil, syncState, err
+					return nil, nil, syncState, nil, err
 				}
 
 				syncState.newIndirectFileBlockPtrs = append(syncState.newIndirectFileBlockPtrs, newInfo.BlockPointer)
 				err = bcache.Put(newInfo.BlockPointer, fbo.id(), block, PermanentEntry)
 				if err != nil {
-					return nil, nil, syncState, err
+					return nil, nil, syncState, nil, err
 				}
 				df.setBlockOrphaned(ptr.BlockPointer, true)
 
@@ -2131,7 +2132,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 					})
 				err = df.setBlockSyncing(localPtr)
 				if err != nil {
-					return nil, nil, syncState, err
+					return nil, nil, syncState, nil, err
 				}
 				syncState.redirtyOnRecoverableError[newInfo.BlockPointer] = localPtr
 			}
@@ -2140,17 +2141,24 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 
 	err = df.setBlockSyncing(file.tailPointer())
 	if err != nil {
-		return nil, nil, syncState, err
+		return nil, nil, syncState, nil, err
 	}
 	syncState.oldFileBlockPtrs = append(syncState.oldFileBlockPtrs, file.tailPointer())
+
+	// Capture the current de before we release the block lock, so
+	// other deferred writes don't slip in.
+	if de, ok := fbo.deCache[fileRef]; ok {
+		dirtyDe = &de
+	}
+
 	// TODO: Returning si.bps in this way is racy, since si is a
 	// member of unrefCache.
-	return fblock, si.bps, syncState, nil
+	return fblock, si.bps, syncState, dirtyDe, nil
 }
 
 func (fbo *folderBlockOps) makeLocalBcache(ctx context.Context,
-	lState *lockState, md *RootMetadata, file path, si *syncInfo) (
-	lbc localBcache, err error) {
+	lState *lockState, md *RootMetadata, file path, si *syncInfo,
+	dirtyDe *DirEntry) (lbc localBcache, err error) {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 
@@ -2162,18 +2170,15 @@ func (fbo *folderBlockOps) makeLocalBcache(ctx context.Context,
 		return nil, err
 	}
 
-	// add in the cached unref pieces and fixup the dir entry
-	fbo.mergeUnrefCacheLocked(lState, file, md)
-
-	fileRef := file.tailPointer().ref()
+	// Add in the cached unref'd blocks.
+	si.mergeUnrefCache(md)
 
 	lbc = make(localBcache)
 
-	// update the file's directory entry to the cached copy
-	if de, ok := fbo.deCache[fileRef]; ok {
-		// remember the old info
-		de.EncodedSize = si.oldInfo.EncodedSize
-		dblock.Children[file.tailName()] = de
+	// Update the file's directory entry to the cached copy.
+	if dirtyDe != nil {
+		dirtyDe.EncodedSize = si.oldInfo.EncodedSize
+		dblock.Children[file.tailName()] = *dirtyDe
 		lbc[parentPath.tailPointer()] = dblock
 	}
 
@@ -2201,13 +2206,14 @@ func (fbo *folderBlockOps) StartSync(ctx context.Context,
 	lState *lockState, md *RootMetadata, uid keybase1.UID, file path) (
 	fblock *FileBlock, bps *blockPutState, lbc localBcache,
 	syncState fileSyncState, err error) {
-	fblock, bps, syncState, err = fbo.startSyncWriteLocked(
+	fblock, bps, syncState, dirtyDe, err := fbo.startSyncWrite(
 		ctx, lState, md, uid, file)
 	if err != nil {
 		return nil, nil, nil, syncState, err
 	}
 
-	lbc, err = fbo.makeLocalBcache(ctx, lState, md, file, syncState.si)
+	lbc, err = fbo.makeLocalBcache(ctx, lState, md, file, syncState.savedSi,
+		dirtyDe)
 	if err != nil {
 		return nil, nil, nil, syncState, err
 	}
