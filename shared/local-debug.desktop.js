@@ -29,6 +29,7 @@ let config = {
   initialTabState: {},
   forceMainWindowPosition: null,
   closureStoreCheck: false,
+  searchActive: false,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -87,6 +88,7 @@ export const {
   skipLauncherDevtools,
   forceMainWindowPosition,
   closureStoreCheck,
+  searchActive,
 } = config
 
 export function initTabbedRouterState (state) {

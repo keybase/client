@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {Text, Avatar} from '../common-adapters'
+import {Text, Avatar, Box} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import * as shared from './user-bio.shared'
 
@@ -46,17 +46,16 @@ export default class BioRender extends Component {
             {followLabel &&
               <Text type='BodySmall' style={stylesFollowLabel}>{followLabel}</Text>
             }
-            <Text type='BodySmall' style={stylesFollowing}>
-              <span className='hover-underline' onClick={() => shared.onClickFollowers(username)}>
-                <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followersCount}</Text> {userInfo.followersCount === 1 ? 'Tracker' : 'Trackers'}
-              </span>
-              &nbsp;
-              &middot;
-              &nbsp;
-              <span className='hover-underline' onClick={() => shared.onClickFollowing(username)}>
-                Tracking <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
-              </span>
-            </Text>
+            <Box style={{...globalStyles.flexBoxRow}}>
+              <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}
+                onClick={() => shared.onClickFollowers(username)}>{userInfo.followersCount}
+                <Text type='BodySmallSecondaryLink'>&nbsp;Tracker{userInfo.followersCount === 1 ? '' : 's'}</Text>
+              </Text>
+              <Text type='BodySmall'>&nbsp; &middot; &nbsp;</Text>
+              <Text type='BodySmallSecondaryLink' onClick={() => shared.onClickFollowing(username)}>Tracking&nbsp;
+                <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
+              </Text>
+            </Box>
             {userInfo.bio &&
               <Text type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'} style={{...stylesBio, ...stylesBioType[this.props.type]}} {...bioLineClamp}>
                 {userInfo.bio}
@@ -100,9 +99,6 @@ const stylesFullname = {
 const stylesFollowLabel = {
   fontSize: 11,
   textTransform: 'uppercase',
-}
-const stylesFollowing = {
-  ...globalStyles.clickable,
 }
 const stylesBio = {
   ...globalStyles.selectable,
