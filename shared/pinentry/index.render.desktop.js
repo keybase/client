@@ -1,7 +1,7 @@
 // @flow
 
 import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
 import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapters'
 import {passphraseCommon} from '../constants/types/keybase-v1'
@@ -95,13 +95,13 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
         checked: this.state.features[feature],
         key: feature,
         name: feature,
-        style: styles.checkbox,
+        style: checkboxStyle,
         onCheck: checked => this.onCheck(feature, checked),
       })
     })
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white}}>
+      <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white, marginBottom: globalMargins.medium}}>
         <Header icon title='' onClose={() => this.props.onCancel()} />
         <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
           <Text type='Body' style={{textAlign: 'center'}}>{this.props.prompt}</Text>
@@ -124,12 +124,8 @@ PinentryRender.defaultProps = {
   submitLabel: 'Continue',
 }
 
-const styles = {
-  container: {
-  },
-  checkbox: {
-    ...globalStyles.topMost,
-    color: globalColors.black,
-    marginLeft: 10,
-  },
+const checkboxStyle = {
+  ...globalStyles.topMost,
+  color: globalColors.black,
+  marginLeft: 10,
 }
