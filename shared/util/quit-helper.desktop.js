@@ -56,7 +56,7 @@ export function executeActions (actions: Array<Action>) {
 }
 
 type appType = {
-  on: (name: string, callback:
+  once: (name: string, callback:
     (event: {preventDefault: () => void}) => void
   ) => void
 }
@@ -65,14 +65,8 @@ export function setupExecuteActionsListener (app: appType) {
     executeActions(actions)
   })
 
-  // only trap before-quit once
-  let handledQuit = false
-  // quit through doc
-  app.on('before-quit', event => {
-    if (handledQuit) {
-      return
-    }
-    handledQuit = true
+  // quit through dock. only listen once
+  app.once('before-quit', event => {
     console.log('Quit through dock')
     event.preventDefault()
     quit()
