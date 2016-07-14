@@ -1,17 +1,18 @@
 /* @flow */
 
-import engine from '../engine'
 import {navigateBack} from '../actions/router'
 import * as Constants from '../constants/favorite'
 import {defaultKBFSPath} from '../constants/config'
 import {badgeApp} from './notifications'
 import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
 import _ from 'lodash'
-import type {Folder, favoriteGetFavoritesRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc, FavoritesResult} from '../constants/types/flow-types'
+import {favoriteGetFavoritesRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc} from '../constants/types/flow-types'
+import {NotifyPopup} from '../native/notifications'
+
+import type {Folder} from '../constants/types/flow-types'
 import type {Dispatch} from '../constants/types/flux'
 import type {FavoriteAdd, FavoriteList, FavoriteIgnore, State} from '../constants/favorite'
 import type {UserList} from '../common-adapters/usernames'
-import {NotifyPopup} from '../native/notifications'
 
 export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
   const sortName = users.map(u => u.username).join(',')
@@ -119,9 +120,8 @@ let previousNotifyState = null
 
 export function favoriteList (): (dispatch: Dispatch) => void {
   return (dispatch, getState) => {
-    const params : favoriteGetFavoritesRpc = {
-      method: 'favorite.getFavorites',
-      callback: (error, favorites: FavoritesResult) => {
+    favoriteGetFavoritesRpc({
+      callback: (error, favorites) => {
         if (error) {
           console.warn('Err in favorite.getFavorites', error)
           return
@@ -193,8 +193,7 @@ export function favoriteList (): (dispatch: Dispatch) => void {
           previousNotifyState = newNotifyState
         }
       },
-    }
-    engine.rpc(params)
+    })
   }
 }
 
@@ -207,9 +206,8 @@ export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
       return
     }
 
-    const params : favoriteFavoriteIgnoreRpc = {
+    favoriteFavoriteIgnoreRpc({
       param: {folder},
-      method: 'favorite.favoriteIgnore',
       callback: error => {
         if (error) {
           console.warn('Err in favorite.favoriteIgnore', error)
@@ -220,8 +218,7 @@ export function ignoreFolder (path: string): (dispatch: Dispatch) => void {
         dispatch(action)
         dispatch(navigateBack())
       },
-    }
-    engine.rpc(params)
+    })
   }
 }
 
@@ -234,9 +231,8 @@ export function favoriteFolder (path: string): (dispatch: Dispatch) => void {
       return
     }
 
-    const params : favoriteFavoriteAddRpc = {
+    favoriteFavoriteAddRpc({
       param: {folder},
-      method: 'favorite.favoriteAdd',
       callback: error => {
         if (error) {
           console.warn('Err in favorite.favoriteAdd', error)
@@ -247,7 +243,6 @@ export function favoriteFolder (path: string): (dispatch: Dispatch) => void {
         dispatch(action)
         dispatch(navigateBack())
       },
-    }
-    engine.rpc(params)
+    })
   }
 }

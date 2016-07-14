@@ -6,7 +6,7 @@ import {routeAppend} from './router'
 import engine from '../engine'
 import {createServer} from '../engine/server'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
-import {identifyCommon, Common} from '../constants/types/keybase-v1'
+import {identifyCommon} from '../constants/types/keybase-v1'
 import {isFollowing, isFollower} from '../actions/config'
 import _ from 'lodash'
 
@@ -20,10 +20,10 @@ import type {Action, Dispatch} from '../constants/types/flux'
 
 import type {ShowNonUser, TrackingInfo, PendingIdentify} from '../constants/tracker'
 
-import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtlRegisterIdentifyUIRpc,
-  trackCheckTrackingRpc, trackUntrackRpc, trackTrackWithTokenRpc, incomingCallMapType,
-  identifyIdentify2Rpc, trackDismissWithTokenRpc, userListTrackersByNameRpc, UID,
-  userLoadUncheckedUserSummariesRpc, UserSummary, userListTrackingRpc} from '../constants/types/flow-types'
+import type {RemoteProof, LinkCheckResult, UserCard, UID, UserSummary} from '../constants/types/flow-types'
+import {delegateUiCtlRegisterIdentifyUIRpc, trackCheckTrackingRpc, trackUntrackRpc, trackTrackWithTokenRpc,
+  identifyIdentify2Rpc, trackDismissWithTokenRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc,
+  userListTrackingRpc} from '../constants/types/flow-types'
 
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState, config: ConfigState, favorite: FavoriteState}) => ?Promise
 
@@ -41,12 +41,7 @@ export function startTimer (): TrackerActionCreator {
           clearInterval(intervalId)
         }
 
-        const params : trackCheckTrackingRpc = {
-          method: 'track.checkTracking',
-          callback: () => {},
-        }
-
-        engine.rpc(params)
+        trackCheckTrackingRpc({})
       }, Constants.rpcUpdateTimerSeconds)
     }
   }
@@ -61,7 +56,7 @@ export function stopTimer (): Action {
 
 export function registerTrackerChangeListener (): TrackerActionCreator {
   return dispatch => {
-    const params: incomingCallMapType = {
+    const params = {
       'keybase.1.NotifyTracking.trackingChanged': args => {
         dispatch({
           type: Constants.userUpdated,
@@ -143,40 +138,36 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
       dispatch(pendingIdentify(userAssertion || uid, false))
     }, 60e3)
 
-    const params: identifyIdentify2Rpc = {
-      method: 'identify.identify2',
-      param: {
-        uid,
-        userAssertion,
-        alwaysBlock: false,
-        noErrorOnTrackFailure: true,
-        forceRemoteCheck: false,
-        useDelegateUI,
-        needProofSet: true,
-        reason: {
-          type: identifyCommon.IdentifyReasonType.id,
-          reason,
-          resource: '',
-        },
-        source: Common.ClientType.gui,
-        allowEmptySelfID,
-        noSkipSelf,
-      },
-      incomingCallMap,
-      callback: (error, response) => {
-        console.log('called identify and got back', error, response)
-        clearTimeout(clearPendingTimeout)
-        dispatch(pendingIdentify(userAssertion || uid, false))
-        resolve()
-      },
-    }
-
     const status = getState().config.status
     const myUID = status && status.user && status.user.uid
 
     // Don't identify ourself
     if (allowSelf || myUID !== uid) {
-      engine.rpc(params)
+      identifyIdentify2Rpc({
+        param: {
+          uid,
+          userAssertion,
+          alwaysBlock: false,
+          noErrorOnTrackFailure: true,
+          forceRemoteCheck: false,
+          useDelegateUI,
+          needProofSet: true,
+          reason: {
+            type: identifyCommon.IdentifyReasonType.id,
+            reason,
+            resource: '',
+          },
+          allowEmptySelfID,
+          noSkipSelf,
+        },
+        incomingCallMap,
+        callback: (error, response) => {
+          console.log('called identify and got back', error, response)
+          clearTimeout(clearPendingTimeout)
+          dispatch(pendingIdentify(userAssertion || uid, false))
+          resolve()
+        },
+      })
     }
   })
 }
@@ -184,8 +175,7 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
 export function registerIdentifyUi (): TrackerActionCreator {
   return (dispatch, getState) => {
     engine.listenOnConnect('registerIdentifyUi', () => {
-      const params : delegateUiCtlRegisterIdentifyUIRpc = {
-        method: 'delegateUiCtl.registerIdentifyUI',
+      delegateUiCtlRegisterIdentifyUIRpc({
         callback: (error, response) => {
           if (error != null) {
             console.warn('error in registering identify ui: ', error)
@@ -193,9 +183,7 @@ export function registerIdentifyUi (): TrackerActionCreator {
             console.log('Registered identify ui')
           }
         },
-      }
-
-      engine.rpc(params)
+      })
     })
 
     createServer(
@@ -255,8 +243,8 @@ export function onRefollow (username: string): TrackerActionCreator {
 }
 export function onUnfollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    const params : trackUntrackRpc = {
-      method: 'track.untrack',
+    dispatch(onWaiting(username, true))
+    trackUntrackRpc({
       param: {username},
       callback: (err, response) => {
         dispatch(onWaiting(username, false))
@@ -270,10 +258,7 @@ export function onUnfollow (username: string): TrackerActionCreator {
           console.log('success in untracking')
         }
       },
-    }
-
-    dispatch(onWaiting(username, true))
-    engine.rpc(params)
+    })
 
     dispatch({
       type: Constants.onUnfollow,
@@ -283,7 +268,7 @@ export function onUnfollow (username: string): TrackerActionCreator {
 }
 
 function trackUser (trackToken: ?string, localIgnore: bool): Promise<boolean> {
-  const options: TrackOptions = {
+  const options = {
     localOnly: localIgnore,
     expiringLocal: localIgnore,
     bypassConfirm: false,
@@ -292,8 +277,7 @@ function trackUser (trackToken: ?string, localIgnore: bool): Promise<boolean> {
 
   return new Promise((resolve, reject) => {
     if (trackToken != null) {
-      const params : trackTrackWithTokenRpc = {
-        method: 'track.trackWithToken',
+      trackTrackWithTokenRpc({
         param: {trackToken, options},
         callback: (err, response) => {
           if (err) {
@@ -304,9 +288,7 @@ function trackUser (trackToken: ?string, localIgnore: bool): Promise<boolean> {
           console.log('Finished tracking', response)
           resolve(true)
         },
-      }
-
-      engine.rpc(params)
+      })
     } else {
       resolve(false)
     }
@@ -355,16 +337,14 @@ export function onFollow (username: string, localIgnore: bool): (dispatch: Dispa
 }
 
 function _dismissWithToken (trackToken) {
-  const params : trackDismissWithTokenRpc = {
-    method: 'track.dismissWithToken',
+  trackDismissWithTokenRpc({
     param: {trackToken},
     callback: err => {
       if (err) {
         console.log('err dismissWithToken', err)
       }
     },
-  }
-  engine.rpc(params)
+  })
 }
 
 export function onClose (username: string): TrackerActionCreator {
@@ -572,10 +552,8 @@ function summaryToTrackingInfo (getState: any, summaries: Array<UserSummary>): A
 
 function listTrackers (username: string): Promise {
   return new Promise((resolve, reject) => {
-    const params : userListTrackersByNameRpc = {
-      method: 'user.listTrackersByName',
+    userListTrackersByNameRpc({
       param: {username},
-      incomingCallMap: {},
       callback: (err, trackers) => {
         if (err) {
           console.log('err getting trackers', err)
@@ -584,9 +562,7 @@ function listTrackers (username: string): Promise {
           resolve((trackers || []).map(t => t.tracker))
         }
       },
-    }
-
-    engine.rpc(params)
+    })
   })
 }
 
@@ -595,10 +571,8 @@ function loadSummaries (getState: any, uids: Array<UID>): Promise {
     if (!uids.length) {
       resolve([])
     } else {
-      const params : userLoadUncheckedUserSummariesRpc = {
-        method: 'user.loadUncheckedUserSummaries',
+      userLoadUncheckedUserSummariesRpc({
         param: {uids},
-        incomingCallMap: {},
         callback: (err, summaries) => {
           if (err) {
             console.log('err getting tracker summaries', err)
@@ -607,19 +581,15 @@ function loadSummaries (getState: any, uids: Array<UID>): Promise {
             resolve(summaryToTrackingInfo(getState, summaries || []))
           }
         },
-      }
-
-      engine.rpc(params)
+      })
     }
   })
 }
 
 function getTracking (username: string): Promise {
   return new Promise((resolve, reject) => {
-    const params : userListTrackingRpc = {
-      method: 'user.listTracking',
+    userListTrackingRpc({
       param: {assertion: username, filter: ''},
-      incomingCallMap: {},
       callback: (err, summaries) => { // turns out this ISN'T a full usersummary, just a subset so we have to call loadSummaries
         if (err) {
           console.log('err getting tracker summaries', err)
@@ -628,9 +598,7 @@ function getTracking (username: string): Promise {
           resolve((summaries || []).map(s => s.uid))
         }
       },
-    }
-
-    engine.rpc(params)
+    })
   })
 }
 

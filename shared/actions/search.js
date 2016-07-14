@@ -1,13 +1,12 @@
 // @flow
 
 import * as Constants from '../constants/search'
-import engine from '../engine'
 import {platformToIcon, platformToLogo32} from '../constants/search'
 import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
 
 import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo, AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult, SearchPlatforms} from '../constants/search'
-import type {apiserverGetRpc, apiserverGetResult} from '../constants/types/flow-types'
+import {apiserverGetRpc} from '../constants/types/flow-types'
 import type {TypedAsyncAction} from '../constants/types/flux'
 
 type RawResult = {
@@ -141,8 +140,7 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
     const limit = 20
 
     const requestTimestamp = new Date()
-    const params: apiserverGetRpc = {
-      method: 'apiserver.Get',
+    apiserverGetRpc({
       param: {
         endpoint: 'user/user_search',
         args: [
@@ -152,7 +150,7 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
         ],
       },
       incomingCallMap: {},
-      callback: (error: ?any, results: apiserverGetResult) => {
+      callback: (error, results) => {
         if (error) {
           console.log('Error searching. Not handling this error')
         } else {
@@ -164,9 +162,7 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
           }
         }
       },
-    }
-
-    engine.rpc(params)
+    })
   }
 }
 

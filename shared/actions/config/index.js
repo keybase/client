@@ -9,14 +9,13 @@ import {resetSignup} from '../../actions/signup'
 import * as native from './index.native'
 
 import type {AsyncAction} from '../../constants/types/flux'
-import type {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc,
+import {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc,
   userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
 
 function getConfig (): AsyncAction {
   return (dispatch, getState) => {
     return new Promise((resolve, reject) => {
-      const params : configGetConfigRpc = {
-        method: 'config.getConfig',
+      configGetConfigRpc({
         callback: (error, config) => {
           if (error) {
             reject(error)
@@ -26,9 +25,7 @@ function getConfig (): AsyncAction {
           dispatch({type: Constants.configLoaded, payload: {config}})
           resolve()
         },
-      }
-
-      engine.rpc(params)
+      })
     })
   }
 }
@@ -39,8 +36,7 @@ export function isFollower (getState: any, username: string) : boolean {
 
 function getMyFollowers (username: string): AsyncAction {
   return dispatch => {
-    const params : userListTrackersByNameRpc = {
-      method: 'user.listTrackersByName',
+    userListTrackersByNameRpc({
       param: {username},
       callback: (error, trackers) => {
         if (error) {
@@ -49,8 +45,7 @@ function getMyFollowers (username: string): AsyncAction {
 
         if (trackers && trackers.length) {
           const uids = trackers.map(t => t.tracker)
-          const params : userLoadUncheckedUserSummariesRpc = {
-            method: 'user.loadUncheckedUserSummaries',
+          userLoadUncheckedUserSummariesRpc({
             param: {uids},
             callback: (error, summaries) => {
               if (error) {
@@ -64,14 +59,10 @@ function getMyFollowers (username: string): AsyncAction {
                 payload: {followers},
               })
             },
-          }
-
-          engine.rpc(params)
+          })
         }
       },
-    }
-
-    engine.rpc(params)
+    })
   }
 }
 
@@ -81,8 +72,7 @@ export function isFollowing (getState: () => any, username: string) : boolean {
 
 function getMyFollowing (username: string): AsyncAction {
   return dispatch => {
-    const params : userListTrackingRpc = {
-      method: 'user.listTracking',
+    userListTrackingRpc({
       param: {assertion: username, filter: ''},
       callback: (error, summaries) => {
         if (error) {
@@ -96,17 +86,14 @@ function getMyFollowing (username: string): AsyncAction {
           payload: {following},
         })
       },
-    }
-
-    engine.rpc(params)
+    })
   }
 }
 
 function getExtendedStatus (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
-      const params : configGetExtendedStatusRpc = {
-        method: 'config.getExtendedStatus',
+      configGetExtendedStatusRpc({
         callback: (error, extendedConfig) => {
           if (error) {
             reject(error)
@@ -116,9 +103,7 @@ function getExtendedStatus (): AsyncAction {
           dispatch({type: Constants.extendedConfigLoaded, payload: {extendedConfig}})
           resolve(extendedConfig)
         },
-      }
-
-      engine.rpc(params)
+      })
     })
   }
 }
@@ -153,8 +138,7 @@ export function bootstrap (): AsyncAction {
 function getCurrentStatus (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
-      const params : configGetCurrentStatusRpc = {
-        method: 'config.getCurrentStatus',
+      configGetCurrentStatusRpc({
         callback: (error, status) => {
           if (error) {
             reject(error)
@@ -168,9 +152,7 @@ function getCurrentStatus (): AsyncAction {
 
           resolve(status && status.user && status.user.username)
         },
-      }
-
-      engine.rpc(params)
+      })
     })
   }
 }
