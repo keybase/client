@@ -8,7 +8,6 @@ import {globalStyles} from '../styles/style-guide'
 const propsNormal = {
   folderProps: map.mocks['Normal Private'],
   username: 'max',
-  showOpenApp: true,
   onFolderClick: () => console.log('folder clicked'),
   openApp: () => console.log('open app'),
   showKBFS: () => console.log('show kbfs'),

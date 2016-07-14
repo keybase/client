@@ -31,6 +31,7 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
+    "deep-equal": "^1.0.1",
     "framed-msgpack-rpc": "git://github.com/keybase/node-framed-msgpack-rpc#e3c96a2ebb8350836f5bae9710b89d04fb1fc87a",
     "getenv": "0.6.0",
     "immutable": "3.8.1",
