@@ -107,4 +107,4 @@ function start () {
 }
 
 start()
-setupExecuteActionsListener()
+setupExecuteActionsListener(app)

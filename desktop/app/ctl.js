@@ -18,6 +18,7 @@ export function quit () {
 
   console.log('Quit the app')
   ctlStop(function (stopErr) {
+    console.log('Done with ctlstop')
     if (stopErr) {
       console.log('Error in ctl stop, when quiting:', stopErr)
     }

@@ -55,8 +55,26 @@ export function executeActions (actions: Array<Action>) {
   }
 }
 
-export function setupExecuteActionsListener () {
+type appType = {
+  on: (name: string, callback:
+    (event: {preventDefault: () => void}) => void
+  ) => void
+}
+export function setupExecuteActionsListener (app: appType) {
   ipcMain.on('executeActions', (event, actions) => {
     executeActions(actions)
+  })
+
+  // only trap before-quit once
+  let handledQuit = false
+  // quit through doc
+  app.on('before-quit', event => {
+    if (handledQuit) {
+      return
+    }
+    handledQuit = true
+    console.log('Quit through dock')
+    event.preventDefault()
+    quit()
   })
 }
