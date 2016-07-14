@@ -50,7 +50,8 @@ type Props = {
   provisioned: boolean,
   username: string,
   navigateBack: () => void,
-  navigateUp: () => void
+  navigateUp: () => void,
+  folderBadge: number
 }
 
 class Nav extends Component<void, Props, State> {
@@ -163,6 +164,10 @@ class Nav extends Component<void, Props, State> {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
+    if (this.props.folderBadge !== nextProps.folderBadge) {
+      return true
+    }
+
     if (this.props.menuBadge !== nextProps.menuBadge) {
       ipcRenderer.send(this.props.menuBadge ? 'showTrayRegular' : 'showTrayBadged')
     }
@@ -214,7 +219,6 @@ class Nav extends Component<void, Props, State> {
     }
 
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
-
     return (
       <div style={stylesTabsContainer}>
         <TabBar
@@ -224,7 +228,7 @@ class Nav extends Component<void, Props, State> {
           searchActive={this.state.searchActive}
           username={this.props.username}
           searchContent={<Search />}
-          badgeNumbers={{}}
+          badgeNumbers={{[folderTab]: this.props.folderBadge}}
           tabContent={tabContent} />
       </div>
     )
@@ -237,13 +241,17 @@ const stylesTabsContainer = {
 }
 
 export default connect(
-  ({tabbedRouter, config: {bootstrapped, extendedConfig, username}, notifications: {menuBadge}}) => ({
-    tabbedRouter,
-    bootstrapped,
-    provisioned: extendedConfig && !!extendedConfig.device,
-    username,
-    menuBadge,
-  }),
+  ({tabbedRouter,
+    config: {bootstrapped, extendedConfig, username},
+    favorite: {publicBadge, privateBadge},
+    notifications: {menuBadge}}) => ({
+      tabbedRouter,
+      bootstrapped,
+      provisioned: extendedConfig && !!extendedConfig.device,
+      username,
+      menuBadge,
+      folderBadge: publicBadge + privateBadge,
+    }),
   dispatch => {
     return {
       switchTab: tab => dispatch(switchTab(tab)),
