@@ -110,8 +110,8 @@ node("ec2-fleet") {
                                 ]) {
                                     dir("desktop") {
                                         sh "npm run vendor-install"
-                                        sh "unzip ./js-vendor-desktop/flow/flow-linux64*.zip -d ${env.GOPATH}"
-                                        sh "${env.GOPATH}/flow/flow status shared"
+                                        sh "unzip ./js-vendor-desktop/flow/flow-linux64*.zip -d ${env.BASEDIR}"
+                                        sh "${env.BASEDIR}/flow/flow status shared"
                                     }
                                     sh "desktop/node_modules/.bin/eslint ."
                                     dir("protocol") {
