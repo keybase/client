@@ -32,7 +32,7 @@ node("ec2-fleet") {
             //],
     ])
 
-    env.GOPATH=WORKSPACE
+    env.GOPATH=pwd()
     def mysqlImage = docker.image("keybaseprivate/mysql")
     def gregorImage = docker.image("keybaseprivate/kbgregor")
     def kbwebImage = docker.image("keybaseprivate/kbweb")
@@ -55,16 +55,16 @@ node("ec2-fleet") {
     println "Cause: ${cause}"
     println "Pull Request ID: ${env.CHANGE_ID}"
 
-    ws("src/github.com/keybase/client") {
+    ws("${env.GOPATH}/src/github.com/keybase/client") {
 
         stage "Setup"
-            println "GOPATH: $WORKSPACE"
-            println "Running in workspace: $WORKSPACE"
+            println "GOPATH: ${env.GOPATH}"
 
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
                     checkout: {
                         checkout scm
+                        println "Running in workspace: ${env.GOPATH}"
                         sh "git rev-parse HEAD | tee go/revision"
                         sh "git add go/revision"
                     },
@@ -198,11 +198,12 @@ node("ec2-fleet") {
                                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                 ]) {
-                                ws("src/github.com/keybase/client") {
+                                ws("$GOPATH/src/github.com/keybase/client") {
                                     println "Checkout Windows"
                                     checkout scm
 
                                     println "Test Windows"
+                                    println "Running in workspace: ${env.GOPATH}"
                                     parallel (
                                         test_windows_go: {
                                             println "Test Windows Go"
@@ -268,11 +269,12 @@ node("ec2-fleet") {
                                     "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
                                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
                                 ]) {
-                                ws("src/github.com/keybase/client") {
+                                ws("$GOPATH/src/github.com/keybase/client") {
                                     println "Checkout OS X"
                                         checkout scm
 
                                     println "Test OS X"
+                                        println "Running in workspace: ${env.GOPATH}"
                                         testNixGo("OS X")
                                 }}
                             }
