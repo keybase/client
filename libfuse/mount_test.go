@@ -1101,6 +1101,40 @@ func TestRemoveDirNotEmpty(t *testing.T) {
 	}
 }
 
+func TestRemoveFileWhileOpenSetEx(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer libkbfs.CheckConfigAndShutdown(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
+	f, err := os.Create(p)
+	if err != nil {
+		t.Fatalf("cannot create file: %v", err)
+	}
+	defer f.Close()
+
+	if err := os.Remove(p); err != nil {
+		t.Fatalf("cannot delete file: %v", err)
+	}
+
+	// this must not resurrect a deleted file
+	if err := f.Chmod(0777); err != nil {
+		t.Fatalf("cannot setex: %v", err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatalf("error on close: %v", err)
+	}
+
+	checkDir(t, path.Join(mnt.Dir, PrivateName, "jdoe"),
+		map[string]fileInfoCheck{})
+
+	if _, err := ioutil.ReadFile(p); !os.IsNotExist(err) {
+		t.Errorf("file still exists: %v", err)
+	}
+}
+
 func TestRemoveFileWhileOpenWriting(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)

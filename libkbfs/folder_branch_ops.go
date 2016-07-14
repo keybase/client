@@ -2774,6 +2774,18 @@ func (fbo *folderBranchOps) setExLocked(
 		return
 	}
 
+	// If the MD doesn't match the MD expected by the path, that
+	// implies we are using a cached path, which implies the node has
+	// been unlinked.  In that case, we can safely ignore this setex.
+	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
+		fbo.log.CDebugf(ctx, "Skipping setex for a removed file %v",
+			file.tailPointer())
+		// TODO: Save this exec status in a cached direntry, so
+		// subsequent stats using this stale node will see the right
+		// exec status.
+		return nil
+	}
+
 	dblock, de, err := fbo.blocks.GetDirtyParentAndEntry(
 		ctx, lState, md, file)
 	if err != nil {
@@ -2840,6 +2852,18 @@ func (fbo *folderBranchOps) setMtimeLocked(
 	md, err := fbo.getMDForWriteLocked(ctx, lState)
 	if err != nil {
 		return err
+	}
+
+	// If the MD doesn't match the MD expected by the path, that
+	// implies we are using a cached path, which implies the node has
+	// been unlinked.  In that case, we can safely ignore this
+	// setmtime.
+	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
+		fbo.log.CDebugf(ctx, "Skipping setmtime for a removed file %v",
+			file.tailPointer())
+		// TODO: Save this mtime in a cached direntry, so subsequent
+		// stats using this stale node will see the right time.
+		return nil
 	}
 
 	dblock, de, err := fbo.blocks.GetDirtyParentAndEntry(

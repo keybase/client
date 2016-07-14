@@ -4019,6 +4019,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
+	rmd.data.Dir.ID = rootID
 	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
@@ -4147,6 +4148,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
+	rmd.data.Dir.ID = rootID
 	aID := fakeBlockID(43)
 	rootBlock := NewDirBlock().(*DirBlock)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
@@ -5080,7 +5082,8 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 
 	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)
-	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
+	rmd.data.Dir.BlockPointer = makeBP(rootID, rmd, config, u)
+	node := pathNode{rmd.data.Dir.BlockPointer, "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
 	n := nodeFromPath(t, ops, p)
 
