@@ -24,6 +24,7 @@ func TestSimpleTruncate(t *testing.T) {
 		mdat3[i*100] = byte(i)
 	}
 	test(t,
+		bandwidth(1<<31-1), // hack to turn on background syncing
 		users("alice", "bob"),
 		as(alice,
 			mkfile("file", ""),

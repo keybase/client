@@ -581,19 +581,15 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	// Limit the block cache to 10K entries or 1024 blocks (currently 512MiB)
 	c.bcache = NewBlockCacheStandard(c, 10000, MaxBlockSizeBytesDefault*1024)
 	oldDirtyBcache := c.dirtyBcache
-	minFactor := 1
-	if maxParallelBlockPuts > 10 {
-		minFactor = maxParallelBlockPuts / 10
-	}
+
 	// The minimum number of bytes we'll try to sync in parallel.
 	// This should be roughly the minimum amount of bytes we expect
 	// our worst supported connection to send within the timeout
 	// forced on us by the upper layer (19 seconds on OS X).  With the
-	// current defaults, this minimum works out to ~5MB, so we can
-	// support a connection of ~270 KB/s.  The buffer size will
-	// increase as more data gets pushed over the connection without
-	// risking timeouts.
-	minSyncBufferSize := int64(MaxBlockSizeBytesDefault * minFactor)
+	// current default of a single block, this minimum works out to
+	// ~1MB, so we can support a connection speed as low as ~54 KB/s.
+	minSyncBufferSize := int64(MaxBlockSizeBytesDefault)
+
 	// The maximum number of bytes we can try to sync at once (also
 	// limits the amount of memory used by dirty blocks).  We make it
 	// slightly bigger than the max number of parallel bytes in order
@@ -603,8 +599,13 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 	// defaults).
 	maxSyncBufferSize :=
 		int64(MaxBlockSizeBytesDefault * maxParallelBlockPuts * 2)
+
+	// Start off conservatively to avoid getting immediate timeouts on
+	// slow connections.
+	startSyncBufferSize := minSyncBufferSize
+
 	c.dirtyBcache = NewDirtyBlockCacheStandard(c.clock, c.MakeLogger,
-		minSyncBufferSize, maxSyncBufferSize)
+		minSyncBufferSize, maxSyncBufferSize, startSyncBufferSize)
 	return oldDirtyBcache
 }
 

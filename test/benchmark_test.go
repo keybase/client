@@ -13,6 +13,8 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/keybase/kbfs/libkbfs"
 )
 
 // BenchmarkWriteSeq512 writes to a large file in 512 byte writes.
@@ -125,12 +127,37 @@ func benchmarkReadSeqHoleN(b *testing.B, n int64, mask int64) {
 	)
 }
 
-func benchmarkWriteWithBandwidthHelper(b *testing.B, fileBytes int64,
-	perWriteBytes int64, writebwKBps int, warmUp bool) {
-	buf := make([]byte, perWriteBytes)
-	if !warmUp {
-		b.SetBytes(fileBytes)
+func benchmarkDoBenchWrites(b *testing.B, cb func(fileOp) error,
+	numWritesPerFile int, buf []byte, startIter int) error {
+	for i := startIter; i < b.N+startIter; i++ {
+		name := fmt.Sprintf("bench%d", i)
+		err := cb(mkfile(name, ""))
+		if err != nil {
+			return err
+		}
+		for j := 0; j < numWritesPerFile; j++ {
+			// make each block unique
+			for k := 0; k < 1+len(buf)/libkbfs.MaxBlockSizeBytesDefault; k++ {
+				buf[k] = byte(i)
+				buf[k+1] = byte(j)
+				buf[k+2] = byte(k)
+			}
+			// Only sync after the last write
+			sync := j+1 == numWritesPerFile
+			err = cb(pwriteBSSync(name, buf,
+				int64(j)*int64(len(buf)), sync))
+			if err != nil {
+				return err
+			}
+		}
 	}
+	return nil
+}
+
+func benchmarkWriteWithBandwidthHelper(b *testing.B, fileBytes int64,
+	perWriteBytes int64, writebwKBps int, doWarmUp bool) {
+	buf := make([]byte, perWriteBytes)
+	b.SetBytes(fileBytes)
 	numWritesPerFile := int(fileBytes / perWriteBytes)
 	test(silentBenchmark{b},
 		users("alice"),
@@ -139,35 +166,24 @@ func benchmarkWriteWithBandwidthHelper(b *testing.B, fileBytes int64,
 		opTimeout(19*time.Second),
 		as(alice,
 			custom(func(cb func(fileOp) error) error {
-				if !warmUp {
-					b.ResetTimer()
-					defer b.StopTimer()
-				}
-				for i := 0; i < b.N; i++ {
-					name := fmt.Sprintf("bench%d", i)
-					err := cb(mkfile(name, ""))
-					if err != nil {
+				startIter := 0
+				if doWarmUp {
+					if err := benchmarkDoBenchWrites(b, cb,
+						numWritesPerFile, buf, 0); err != nil {
 						return err
 					}
-					for j := 0; j < numWritesPerFile; j++ {
-						// make each block unique
-						buf[0] = byte(j + (i * numWritesPerFile))
-						// Only sync after the last write
-						sync := j+1 == numWritesPerFile
-						err = cb(pwriteBSSync(name, buf,
-							int64(j)*int64(len(buf)), sync))
-						if err != nil {
-							return err
-						}
-					}
+					startIter = b.N
 				}
-				return nil
+				b.ResetTimer()
+				defer b.StopTimer()
+				return benchmarkDoBenchWrites(b, cb, numWritesPerFile, buf,
+					startIter)
 			}),
 		),
 	)
 }
 
-func benchmarkWriteWithBandwidthWarmup(b *testing.B, fileBytes int64,
+func benchmarkWriteWithBandwidthPlusWarmup(b *testing.B, fileBytes int64,
 	perWriteBytes int64, writebwKBps int) {
 	benchmarkWriteWithBandwidthHelper(b, fileBytes, perWriteBytes,
 		writebwKBps, true)
@@ -180,15 +196,18 @@ func benchmarkWriteWithBandwidth(b *testing.B, fileBytes int64,
 }
 
 func BenchmarkWriteMediumFileLowBandwidth(b *testing.B) {
-	b.Skip("Doesn't work yet")
-	benchmarkWriteWithBandwidth(b, 10<<20 /* 10 MB */, 1<<16, 100 /* 100 KBps */)
+	benchmarkWriteWithBandwidth(b, 10<<20 /* 10 MB */, 1<<16, /* 65 KB writes */
+		100 /* 100 KBps */)
 }
 
 func BenchmarkWriteBigFileNormalBandwidth(b *testing.B) {
-	b.Skip("Doesn't work yet")
 	// Warm up to get the buffer as large as possible
-	benchmarkWriteWithBandwidthWarmup(b, 100<<20 /* 100 MB */, 1<<16,
-		11*1024/8 /* 11 Mbps */)
-	benchmarkWriteWithBandwidth(b, 100<<20 /* 100 MB */, 1<<16,
-		11*1024/8 /* 11 Mbps */)
+	benchmarkWriteWithBandwidthPlusWarmup(b, 100<<20, /* 100 MB */
+		1<<16 /* 65 KB writes */, 11*1024/8 /* 11 Mbps */)
+}
+
+func BenchmarkWriteBigFileBigBandwidth(b *testing.B) {
+	// Warm up to get the buffer as large as possible
+	benchmarkWriteWithBandwidthPlusWarmup(b, 1<<30, /* 1 GB */
+		1<<20 /*1 MB writes */, 100*1024/8 /* 100 Mbps */)
 }
