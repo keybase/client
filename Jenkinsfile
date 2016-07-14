@@ -62,7 +62,9 @@ node("ec2-fleet") {
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
                     checkout: {
-                        checkout scm
+                        retry(3) {
+                            checkout scm
+                        }
                         sh "git rev-parse HEAD | tee go/revision"
                         sh "git add go/revision"
                     },
@@ -199,7 +201,9 @@ node("ec2-fleet") {
                                 ]) {
                                 ws("$GOPATH/src/github.com/keybase/client") {
                                     println "Checkout Windows"
-                                    checkout scm
+                                    retry(3) {
+                                        checkout scm
+                                    }
 
                                     println "Test Windows"
                                     parallel (
@@ -270,7 +274,9 @@ node("ec2-fleet") {
                                 ]) {
                                 ws("$GOPATH/src/github.com/keybase/client") {
                                     println "Checkout OS X"
-                                        checkout scm
+                                        retry(3) {
+                                            checkout scm
+                                        }
 
                                     println "Test OS X"
                                         testNixGo("OS X")
