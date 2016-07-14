@@ -142,10 +142,9 @@ func (g *GlobalContext) createLoginStateLocked() {
 }
 
 func (g *GlobalContext) createLoginState() {
-	if g.loginState != nil {
-		g.loginState.Shutdown()
-	}
-	g.loginState = NewLoginState(g)
+	g.loginStateMu.Lock()
+	defer g.loginStateMu.Unlock()
+	g.createLoginStateLocked()
 }
 
 func (g *GlobalContext) LoginState() *LoginState {
