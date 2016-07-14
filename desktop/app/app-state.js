@@ -9,11 +9,11 @@ import fs from 'fs'
 import path from 'path'
 import jsonfile from 'jsonfile'
 import deepEqual from 'deep-equal'
-import type {State, Options, Managed} from './app-state'
+import type {State, Options, Config, Managed} from './app-state'
 
 export default class AppState {
   state: State;
-  opts: Options;
+  config: Config;
   managed: Managed;
 
   constructor (opts: Options) {
@@ -29,8 +29,7 @@ export default class AppState {
       tab: null,
     }
 
-    this.opts = {
-      ...opts,
+    this.config = {
       path: path.join(electron.app.getPath('userData'), 'app-state.json'),
       eventHandlingDelay: 100,
     }
@@ -48,7 +47,7 @@ export default class AppState {
   }
 
   saveState () {
-    let configPath = this.opts.path
+    let configPath = this.config.path
     let stateToSave = this.state
     console.log('Saving state:', stateToSave, configPath)
     jsonfile.writeFile(configPath, stateToSave, function (err) {
@@ -59,12 +58,13 @@ export default class AppState {
   }
 
   manageWindow (win: any) {
-    if (this.opts.maximize && this.state.isMaximized) {
-      win.maximize()
-    }
-    if (this.opts.fullScreen && this.state.isFullScreen) {
-      win.setFullScreen(true)
-    }
+    // TODO: Do we want to maximize or setFullScreen if the state says we were?
+    // if (this.config.maximize && this.state.isMaximized) {
+    //   win.maximize()
+    // }
+    // if (this.config.fullScreen && this.state.isFullScreen) {
+    //   win.setFullScreen(true)
+    // }
 
     let resizeHandler = () => { this._debounceChangeHandler() }
     this.managed.resizeHandlers.push(resizeHandler)
@@ -123,7 +123,7 @@ export default class AppState {
   }
 
   _loadStateSync () {
-    let configPath = this.opts.path
+    let configPath = this.config.path
     try {
       fs.accessSync(configPath, fs.F_OK)
     } catch (e) {
@@ -172,6 +172,6 @@ export default class AppState {
 
   _debounceChangeHandler () {
     clearTimeout(this.managed.debounceChangeTimer)
-    this.managed.debounceChangeTimer = setTimeout(() => { this._updateState() }, this.opts.eventHandlingDelay)
+    this.managed.debounceChangeTimer = setTimeout(() => { this._updateState() }, this.config.eventHandlingDelay)
   }
 }

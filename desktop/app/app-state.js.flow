@@ -12,9 +12,12 @@ export type State = {
   tab: ?string,
 }
 
-export type Options = {
+export type Config = {
   path: string,
-  eventHandlingDelay: number,
+  eventHandlingDelay: number
+}
+
+export type Options = {
   defaultWidth: number,
   defaultHeight: number
 }
@@ -30,6 +33,6 @@ export type Managed = {
 
 declare export default class AppState {
   state: State,
-  opts: Options,
+  config: Config,
   managed: Managed
 }
