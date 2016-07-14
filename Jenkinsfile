@@ -1,6 +1,7 @@
 #!groovy
 
 node("ec2-fleet") {
+    deleteDir()
     properties([
             [$class: "BuildDiscarderProperty",
                 strategy: [$class: "LogRotator",
@@ -58,13 +59,10 @@ node("ec2-fleet") {
     ws("${env.GOPATH}/src/github.com/keybase/client") {
 
         stage "Setup"
-            println "GOPATH: ${env.GOPATH}"
-
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
                     checkout: {
                         checkout scm
-                        println "Running in workspace: ${env.GOPATH}"
                         sh "git rev-parse HEAD | tee go/revision"
                         sh "git add go/revision"
                     },
@@ -190,6 +188,7 @@ node("ec2-fleet") {
                         },
                         test_windows: {
                             node('windows') {
+                                deleteDir()
                                 def GOPATH=pwd()
                                 withEnv([
                                     'GOROOT=C:\\tools\\go',
@@ -203,7 +202,6 @@ node("ec2-fleet") {
                                     checkout scm
 
                                     println "Test Windows"
-                                    println "Running in workspace: ${env.GOPATH}"
                                     parallel (
                                         test_windows_go: {
                                             println "Test Windows Go"
@@ -262,6 +260,7 @@ node("ec2-fleet") {
                         },
                         test_osx: {
                             node('osx') {
+                                deleteDir()
                                 def GOPATH=pwd()
                                 withEnv([
                                     "GOPATH=${GOPATH}",
@@ -274,7 +273,6 @@ node("ec2-fleet") {
                                         checkout scm
 
                                     println "Test OS X"
-                                        println "Running in workspace: ${env.GOPATH}"
                                         testNixGo("OS X")
                                 }}
                             }
