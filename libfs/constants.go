@@ -38,3 +38,15 @@ const EnableUpdatesFileName = ".kbfs_enable_updates"
 
 // ResetCachesFileName is the name of the KBFS unstaging file.
 const ResetCachesFileName = ".kbfs_reset_caches"
+
+// EnableJournalFileName is the name of the journal-enabling file. It
+// can be reached anywhere within a top-level folder.
+const EnableJournalFileName = ".kbfs_enable_journal"
+
+// FlushJournalFileName is the name of the journal-flushing file. It
+// can be reached anywhere within a top-level folder.
+const FlushJournalFileName = ".kbfs_flush_journal"
+
+// DisableJournalFileName is the name of the journal-disabling
+// file. It can be reached anywhere within a top-level folder.
+const DisableJournalFileName = ".kbfs_disable_journal"

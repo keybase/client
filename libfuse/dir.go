@@ -402,6 +402,27 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 			folder: d.folder,
 		}
 		return child, nil
+
+	case libfs.EnableJournalFileName:
+		child := &JournalControlFile{
+			folder: d.folder,
+			action: libfs.JournalEnable,
+		}
+		return child, nil
+
+	case libfs.FlushJournalFileName:
+		child := &JournalControlFile{
+			folder: d.folder,
+			action: libfs.JournalFlush,
+		}
+		return child, nil
+
+	case libfs.DisableJournalFileName:
+		child := &JournalControlFile{
+			folder: d.folder,
+			action: libfs.JournalDisable,
+		}
+		return child, nil
 	}
 
 	newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name)

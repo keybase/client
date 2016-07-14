@@ -52,6 +52,11 @@ type InitParams struct {
 
 	// LogFileConfig tells us where to log and rotation config.
 	LogFileConfig logger.LogFileConfig
+
+	// WriteJournalRoot, if non-empty, points to a path to a local
+	// directory to put write journals in. If non-empty, enables
+	// write journaling to be turned on for TLFs.
+	WriteJournalRoot string
 }
 
 // GetDefaultBServer returns the default value for the -bserver flag.
@@ -120,6 +125,7 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	flag.Var(SizeFlag{&params.LogFileConfig.MaxSize}, "log-file-max-size", "Maximum size of a log file before rotation")
 	// The default is to *DELETE* old log files for kbfs.
 	flag.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files", defaultParams.LogFileConfig.MaxKeepFiles, "Maximum number of log files for this service, older ones are deleted. 0 for infinite.")
+	flags.StringVar(&params.WriteJournalRoot, "write-journal-root-this-may-lose-data", "", "(EXPERIMENTAL) If non-empty, permits write journals to be turned on for TLFs which will be put in the given directory")
 	return &params
 }
 
@@ -356,6 +362,18 @@ func Init(ctx Context, params InitParams, keybaseDaemonFn KeybaseDaemonFn, onInt
 	}
 
 	config.SetBlockServer(bserv)
+
+	if len(params.WriteJournalRoot) > 0 {
+		// TODO: Sanity-check the root directory, e.g. create
+		// it if it doesn't exist, make sure that it doesn't
+		// point to /keybase itself, etc.
+		log := config.MakeLogger("")
+		jServer := makeJournalServer(
+			config, log, params.WriteJournalRoot,
+			config.BlockServer(), config.MDOps())
+		config.SetBlockServer(jServer.blockServer())
+		config.SetMDOps(jServer.mdOps())
+	}
 
 	return config, nil
 }
