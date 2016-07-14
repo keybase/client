@@ -304,6 +304,7 @@ class Engine {
       if (__DEV__) {
         logLocal(`Unknown incoming rpc: ${sessionID} ${method} ${param}${response ? ': Sending back error' : ''}`)
       }
+      console.warn(`Unknown incoming rpc: ${sessionID} ${method}`)
 
       if (this._failOnError && __DEV__) {
         throw new Error(`unhandled incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${response ? '. has response' : ''}`)
@@ -312,7 +313,7 @@ class Engine {
       if (response && response.error) {
         wrappedResponse.error({
           code: constants.StatusCode.scgeneric,
-          desc: 'Unhandled incoming RPC',
+          desc: `Unhandled incoming RPC ${sessionID} ${method}`,
         })
       }
     }
