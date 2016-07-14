@@ -1352,7 +1352,10 @@ func (fbo *folderBlockOps) writeDataLocked(
 			}
 		}
 
-		// Nothing was copied, no need to dirty anything.
+		// Nothing was copied, no need to dirty anything.  This can
+		// happen when trying to append to the contents of the file
+		// (i.e., either to the end of the file or right before the
+		// "hole"), and the last block is already full.
 		if nCopied == oldNCopied {
 			continue
 		}
@@ -1824,10 +1827,11 @@ func (fbo *folderBlockOps) revertSyncInfoAfterRecoverableError(
 
 	// Propagate all unrefs forward, except those that belong to new
 	// blocks that were created during the sync.
-	unrefs := si.unrefs
-	for i, unref := range si.unrefs {
-		if newIndirect[unref.BlockPointer] {
-			unrefs = append(unrefs[:1], unrefs[i+1:]...)
+	unrefs := make([]BlockInfo, len(si.unrefs))
+	for _, unref := range si.unrefs {
+		if !newIndirect[unref.BlockPointer] {
+			unrefs = append(unrefs, unref)
+		} else {
 			fbo.log.CDebugf(nil, "Dropping unref %v", unref)
 		}
 	}
