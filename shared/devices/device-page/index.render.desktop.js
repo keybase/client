@@ -48,7 +48,7 @@ const Timeline = ({timeline}) => (
         <TimelineMarker idx={idx} max={timeline.length - 1} />
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Text type='Body'>{desc}</Text>
-          {subDesc && (type === 'Added'
+          {subDesc && (type === 'Added' || type === 'Revoked'
             ? <Text type='BodySmall'>by <Text type='BodySmall' style={{fontStyle: 'italic', color: globalColors.black_75}}>{subDesc}</Text></Text>
             : <Text type='BodySmall'>{subDesc}</Text>
           )}

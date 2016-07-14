@@ -22,6 +22,9 @@ module.exports = {
     }, {
       test: /\.json?$/,
       loader: 'json',
+    }, {
+      test: /\.(gif|png)$/,
+      loader: 'null',
     }],
   },
   output: {

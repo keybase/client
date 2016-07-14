@@ -17,7 +17,7 @@ import type {Props} from './index.render'
 const SubTitle = ({usePhone}) => (
   <p>
     <Text type='BodySmall'>In the Keybase app on your {usePhone ? 'phone' : 'computer'}, go to</Text>
-    <Icon type='fa-mobile' style={stylesPhoneIcon} />
+    <Icon type='iconfont-identity-devices' style={stylesPhoneIcon} />
     <Text type='BodySmall'>Devices > Add a new device.</Text>
   </p>
 )

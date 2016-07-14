@@ -17,6 +17,7 @@ import Settings from './settings'
 import Login from './login'
 import flags from './util/feature-flags'
 import {mapValues} from 'lodash'
+import {searchActive} from './local-debug'
 import type {Tabs} from './constants/tabs'
 
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
@@ -64,7 +65,7 @@ class Nav extends Component<void, Props, State> {
     this.props.bootstrap()
     this._handleKeyDown = this._handleKeyDown.bind(this)
 
-    this.state = {searchActive: false}
+    this.state = {searchActive}
 
     // Restartup when we connect online.
     // If you startup while offline, you'll stay in an errored state

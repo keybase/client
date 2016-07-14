@@ -5,4 +5,4 @@ for /f %%i in ('winresource.exe -cv') do set KEYBASE_VERSION=%%i
 echo %KEYBASE_VERSION%
 
 pushd  %GOPATH%\src\github.com\keybase\client\desktop
-npm run package -- --arch ia32 --platform win32 --appVersion %KEYBASE_VERSION%
+npm run package -- --arch ia32 --platform win32 --appVersion %KEYBASE_VERSION% --icon %GOPATH%\src\github.com\keybase\client\media\icons\Keybase.ico

@@ -5,6 +5,7 @@ import HiddenString from '../../../util/hidden-string'
 
 export type Props = {
   paperkey: HiddenString,
+  waiting: boolean,
   onFinish?: () => void,
   onBack?: () => void,
   title?: ?string

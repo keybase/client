@@ -9,13 +9,14 @@ import (
 )
 
 type DeviceDetail struct {
-	Device        Device  `codec:"device" json:"device"`
-	Eldest        bool    `codec:"eldest" json:"eldest"`
-	Provisioner   *Device `codec:"provisioner,omitempty" json:"provisioner,omitempty"`
-	ProvisionedAt *Time   `codec:"provisionedAt,omitempty" json:"provisionedAt,omitempty"`
-	RevokedAt     *Time   `codec:"revokedAt,omitempty" json:"revokedAt,omitempty"`
-	RevokedBy     KID     `codec:"revokedBy" json:"revokedBy"`
-	CurrentDevice bool    `codec:"currentDevice" json:"currentDevice"`
+	Device          Device  `codec:"device" json:"device"`
+	Eldest          bool    `codec:"eldest" json:"eldest"`
+	Provisioner     *Device `codec:"provisioner,omitempty" json:"provisioner,omitempty"`
+	ProvisionedAt   *Time   `codec:"provisionedAt,omitempty" json:"provisionedAt,omitempty"`
+	RevokedAt       *Time   `codec:"revokedAt,omitempty" json:"revokedAt,omitempty"`
+	RevokedBy       KID     `codec:"revokedBy" json:"revokedBy"`
+	RevokedByDevice *Device `codec:"revokedByDevice,omitempty" json:"revokedByDevice,omitempty"`
+	CurrentDevice   bool    `codec:"currentDevice" json:"currentDevice"`
 }
 
 type DeviceListArg struct {

@@ -176,7 +176,7 @@ type FakeIdentifyUI struct {
 	sync.Mutex
 }
 
-func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) {
+func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) error {
 	ui.Lock()
 	defer ui.Unlock()
 	if ui.Proofs == nil {
@@ -191,9 +191,10 @@ func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result
 	if result.BreaksTracking {
 		ui.BrokenTracking = true
 	}
+	return nil
 }
 
-func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) {
+func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) error {
 	ui.Lock()
 	defer ui.Unlock()
 	if ui.Proofs == nil {
@@ -207,6 +208,7 @@ func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, res
 	if result.BreaksTracking {
 		ui.BrokenTracking = true
 	}
+	return nil
 }
 
 func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
@@ -217,10 +219,11 @@ func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result key
 	result.RemoteConfirmed = outcome.TrackOptions.BypassConfirm && !outcome.TrackOptions.ExpiringLocal
 	return
 }
-func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) {
+func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+	return nil
 }
 
-func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) {
+func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) error {
 	ui.Lock()
 	defer ui.Unlock()
 	if ui.Keys == nil {
@@ -230,32 +233,50 @@ func (ui *FakeIdentifyUI) DisplayKey(ik keybase1.IdentifyKey) {
 
 	ui.Keys[*fp] = ik.TrackDiff
 	ui.DisplayKeyCalls++
+	return nil
 }
-func (ui *FakeIdentifyUI) ReportLastTrack(*keybase1.TrackSummary) {
+func (ui *FakeIdentifyUI) ReportLastTrack(*keybase1.TrackSummary) error {
+	return nil
 }
-func (ui *FakeIdentifyUI) Start(username string, _ keybase1.IdentifyReason) {
+
+func (ui *FakeIdentifyUI) Start(username string, _ keybase1.IdentifyReason) error {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.StartCount++
+	return nil
 }
-func (ui *FakeIdentifyUI) Finish()                                    {}
-func (ui *FakeIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) {}
-func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {
+
+func (ui *FakeIdentifyUI) Finish() error {
+	return nil
+}
+
+func (ui *FakeIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) error {
+	return nil
+}
+
+func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) error {
 	ui.Lock()
 	defer ui.Unlock()
 	ui.User = user
+	return nil
 }
-func (ui *FakeIdentifyUI) DisplayTrackStatement(string) (err error) {
-	return
+
+func (ui *FakeIdentifyUI) DisplayTrackStatement(string) error {
+	return nil
 }
-func (ui *FakeIdentifyUI) DisplayUserCard(keybase1.UserCard) {
+
+func (ui *FakeIdentifyUI) DisplayUserCard(keybase1.UserCard) error {
+	return nil
 }
+
 func (ui *FakeIdentifyUI) ReportTrackToken(tok keybase1.TrackToken) error {
 	ui.Token = tok
 	return nil
 }
+
 func (ui *FakeIdentifyUI) SetStrict(b bool) {
 }
+
 func (ui *FakeIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
 	ui.DisplayTLFCount++
 	ui.DisplayTLFArg = arg

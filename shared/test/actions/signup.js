@@ -104,7 +104,7 @@ describe('Signup', function () {
 
   describe('Reset signup', () => {
     it('should reset the phase to inviteCode', () => {
-      store.dispatch(signupActions.resetSignup())
+      store.dispatch(signupActions.restartSignup())
       assert(store.getState().signup.phase === 'inviteCode', 'Resets the phase to inviteCode')
     })
   })

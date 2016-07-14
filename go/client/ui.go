@@ -42,13 +42,15 @@ type BaseIdentifyUI struct {
 	parent *UI
 }
 
-func (ui BaseIdentifyUI) DisplayUserCard(keybase1.UserCard) {}
+func (ui BaseIdentifyUI) DisplayUserCard(keybase1.UserCard) error {
+	return nil
+}
 
 type IdentifyUI struct {
 	BaseIdentifyUI
 }
 
-func (ui BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason) {
+func (ui BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason) error {
 	msg := "Identifying "
 	switch reason.Type {
 	case keybase1.IdentifyReasonType_TRACK:
@@ -57,9 +59,10 @@ func (ui BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason) 
 		msg = "Identifying recipient "
 	case keybase1.IdentifyReasonType_DECRYPT:
 		ui.G().Log.Info("Message authored by " + ColorString("bold", username) + "; identifying...")
-		return
+		return nil
 	}
 	ui.G().Log.Info(msg + ColorString("bold", username))
+	return nil
 }
 
 func (ui BaseIdentifyUI) DisplayTrackStatement(stmt string) error {
@@ -70,10 +73,12 @@ func (ui BaseIdentifyUI) ReportTrackToken(_ keybase1.TrackToken) error {
 	return nil
 }
 
-func (ui BaseIdentifyUI) Finish() {
+func (ui BaseIdentifyUI) Finish() error {
+	return nil
 }
 
-func (ui BaseIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) {
+func (ui BaseIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) error {
+	return nil
 }
 
 func (ui BaseIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
@@ -94,8 +99,8 @@ func (ui BaseIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmR
 	return keybase1.ConfirmResult{IdentityConfirmed: false, RemoteConfirmed: false}, nil
 }
 
-func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase1.Identity, u *keybase1.User) {
-	return
+func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase1.Identity, u *keybase1.User) error {
+	return nil
 }
 
 func (ui BaseIdentifyUI) ReportRevoked(del []keybase1.TrackDiff) {
@@ -345,7 +350,7 @@ func (w LinkCheckResultWrapper) GetCachedMsg() string {
 	return msg
 }
 
-func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) {
+func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
@@ -374,6 +379,8 @@ func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybas
 		msg += " " + ColorString("magenta", cachedMsg)
 	}
 	ui.ReportHook(msg)
+
+	return nil
 }
 
 func trackDiffToColor(typ keybase1.TrackDiffType) string {
@@ -403,7 +410,7 @@ func (ui BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) st
 	return ColorString("orange", "<Upgraded from "+t.GetPrev()+" to "+t.GetCurr()+">")
 }
 
-func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) {
+func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
@@ -451,14 +458,17 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.
 		msg += " " + ColorString("magenta", cachedMsg)
 	}
 	ui.ReportHook(msg)
+
+	return nil
 }
 
-func (ui BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) {
+func (ui BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) error {
 	msg := (BTC + " bitcoin " + ColorString("green", l.Address))
 	ui.ReportHook(msg)
+	return nil
 }
 
-func (ui BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
+func (ui BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
 	var fpq string
 	if fp := libkb.ImportPGPFingerprintSlice(key.PGPFingerprint); fp != nil {
 		fpq = fp.ToQuads()
@@ -477,9 +487,11 @@ func (ui BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
 		msg := CHECK + " " + ColorString("green", "public key fingerprint: "+fpq)
 		ui.ReportHook(msg)
 	}
+
+	return nil
 }
 
-func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) {
+func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) error {
 	if t := libkb.ImportTrackSummary(tl); t != nil {
 		locally := ""
 		if !t.IsRemote() {
@@ -489,6 +501,8 @@ func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) {
 			locally, t.Username(), libkb.FormatTime(t.GetCTime())))
 		ui.ReportHook(msg)
 	}
+
+	return nil
 }
 
 func (ui BaseIdentifyUI) Warning(m string) {

@@ -13,7 +13,7 @@ class Render extends Component<void, Props, void> {
   }
 
   _makeItem (isPublic: boolean, isSelected: boolean) {
-    const icon = isPublic ? 'fa-kb-iconfont-folder-public' : 'fa-kb-iconfont-folder-private'
+    const icon = isPublic ? 'iconfont-folder-public' : 'iconfont-folder-private'
     const selectedColor = isPublic ? globalColors.yellowGreen : globalColors.darkBlue2
     const iconStyle = isPublic
       ? {color: globalColors.yellowGreen, marginBottom: isSelected ? 0 : 0, opacity: isSelected ? 1.0 : 0.6}

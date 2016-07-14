@@ -45,7 +45,7 @@ class Render extends Component<DefaultProps, Props, State> {
         <Box style={{...stylesTopRow, position: 'absolute'}}>
           <Icon
             style={menuStyle}
-            type='fa-kb-iconfont-hamburger'
+            type='iconfont-hamburger'
             onClick={() => this.setState({showingMenu: !this.state.showingMenu})} />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
@@ -122,7 +122,7 @@ class Render extends Component<DefaultProps, Props, State> {
         <Box style={stylesTopRow}>
           <Icon
             style={menuStyle}
-            type='fa-kb-iconfont-hamburger'
+            type='iconfont-hamburger'
             onClick={() => this.setState({showingMenu: !this.state.showingMenu})} />
         </Box>
         <Folders {...mergedProps} />

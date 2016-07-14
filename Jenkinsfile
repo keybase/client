@@ -9,6 +9,9 @@ node("ec2-fleet") {
                     artifactNumToKeepStr: "1",
                 ]
             ],
+            [$class: 'RebuildSettings',
+                autoRebuild: true,
+            ],
             //[$class: "ParametersDefinitionProperty",
             //    parameterDefinitions: [
             //        [$class: 'StringParameterDefinition',
@@ -218,7 +221,8 @@ node("ec2-fleet") {
                                         },
                                         test_windows_js: {
                                         // Only run visdiff for PRs
-                                        if (env.CHANGE_ID) {
+                                        // FIXME (MBG): Disabled temporarily due to flaky false positives
+                                        if (false && env.CHANGE_ID) {
                                         wrap([$class: 'Xvfb']) {
                                             println "Test Windows JS"
                                             if (fileExists("visdiff")) {

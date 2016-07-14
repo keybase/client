@@ -115,7 +115,7 @@ IF %ERRORLEVEL% NEQ 0 (
 if NOT DEFINED JSON_UPDATE_FILENAME set JSON_UPDATE_FILENAME=update-windows-prod-v2.json
 
 :: Run keybase sign to get signature of update
-set KeybaseBin="%ProgramFiles(x86)%\Keybase\keybase.exe"
+set KeybaseBin="%APPDATA%\Keybase\keybase.exe"
 set SigFile=sig.txt
 %KeybaseBin% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
 IF %ERRORLEVEL% NEQ 0 (

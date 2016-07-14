@@ -12,6 +12,7 @@ package engine
 
 import (
 	"fmt"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -77,6 +78,16 @@ func (e *GPGImportKeyEngine) WantsGPG(ctx *Context) (bool, error) {
 	}
 
 	// they have gpg
+
+	// get an index of all the secret keys
+	index, _, err := gpg.Index(true, "")
+	if err != nil {
+		return false, err
+	}
+	if index.Len() == 0 {
+		// no private keys available, so don't offer
+		return false, nil
+	}
 
 	res, err := ctx.GPGUI.WantToAddGPGKey(context.TODO(), 0)
 	if err != nil {

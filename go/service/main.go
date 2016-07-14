@@ -307,6 +307,8 @@ func (d *Service) gregordConnect() (err error) {
 		}
 		d.G().GregorDismisser = d.gregor
 		d.G().GregorListener = d.gregor
+
+		d.gregor.PushHandler(newUserHandler(d.G()))
 	} else {
 		if d.gregor.Reset(); err != nil {
 			return err

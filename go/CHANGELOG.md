@@ -3,6 +3,9 @@
   in the Public key. Also, better tie-breaking if there are two self-signatures
   at the same time; use the one with the valid flags.
    (via vendored PR: keybase/go-crypto#31 and keybase/go-crypto#32 respectively)
+- Don't overwrite valid flags with empty flags, and assume lots of power for a 
+  primary key without flags
+   (via vendored PR: keybase/go-crypto#33 and keybase/go-crypto#34, respectively)
 
 ## 1.0.16 (2016-05-23)
 - Don't publish private warnings to debug log

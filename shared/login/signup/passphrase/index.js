@@ -6,7 +6,7 @@ import {bindActionCreators} from 'redux'
 import HiddenString from '../../../util/hidden-string'
 
 import Render from './index.render'
-import {checkPassphrase, resetSignup} from '../../../actions/signup'
+import {checkPassphrase, restartSignup} from '../../../actions/signup'
 import type {Props} from './index.render'
 
 type State = {
@@ -35,7 +35,7 @@ class PassphraseForm extends Component {
         pass2={this.state.pass2}
         pass2Update={pass2 => this.setState({pass2})}
         onSubmit={() => this.props.checkPassphrase(this.state.pass1, this.state.pass2)}
-        onBack={this.props.resetSignup}
+        onBack={this.props.restartSignup}
         />
     )
   }
@@ -50,5 +50,5 @@ export default connect(
   state => ({
     passphraseError: state.signup.passphraseError,
   }),
-  dispatch => bindActionCreators({checkPassphrase, resetSignup}, dispatch)
+  dispatch => bindActionCreators({checkPassphrase, restartSignup}, dispatch)
 )(PassphraseForm)

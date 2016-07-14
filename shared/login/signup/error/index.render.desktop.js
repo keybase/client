@@ -10,10 +10,10 @@ import type {Props} from './index.render'
 class Render extends Component<void, Props, void> {
   render () {
     return (
-      <Container onBack={this.props.resetSignup} style={container}>
+      <Container onBack={this.props.restartSignup} style={container}>
         <Text type='Header' style={topMargin}>Ah Shoot! Something went wrong, wanna try again?</Text>
         <Text type='Error' style={topMargin}>{this.props.errorText.stringValue()}</Text>
-        <Button style={topMargin} type='Secondary' label='Try Again' onClick={() => this.props.resetSignup()} />
+        <Button style={topMargin} type='Secondary' label='Try Again' onClick={() => this.props.restartSignup()} />
       </Container>
     )
   }

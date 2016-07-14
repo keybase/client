@@ -11,7 +11,7 @@ const Section = ({section, theme}) => (
   <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}>
       <Box key={section.name} style={{display: 'inline', marginLeft: 8}}>
-        {section.modifiedMarker && <Icon type='fa-kb-iconfont-thunderbolt' style={{fontSize: 14, marginTop: 2, marginRight: 6, ...styleSectionTextThemed[theme]}} />}
+        {section.modifiedMarker && <Icon type='iconfont-thunderbolt' style={{fontSize: 14, marginTop: 2, marginRight: 6, ...styleSectionTextThemed[theme]}} />}
         <Text type='BodySmallSemibold' style={{...styleSectionTextThemed[theme]}}>{section.name}</Text>
       </Box>
     </Box>
@@ -117,7 +117,7 @@ export default class Render extends Component<void, Props, void> {
           {this.props.recentFilesEnabled &&
             <Icon
               style={{...styleMenu, color: menuColor, hoverColor: menuColor, marginRight: 16, position: 'relative', top: 14}}
-              type='fa-kb-iconfont-hamburger'
+              type='iconfont-hamburger'
               onClick={this.props.onTogglePopupMenu} />
           }
         </Box>

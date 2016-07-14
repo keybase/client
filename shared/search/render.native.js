@@ -17,10 +17,11 @@ class Render extends Component<void, Props, void> {
     if (this.props.showUserGroup) {
       return (
         <UserGroup
-          users={this.props.selectedUsers}
+          selectedUsers={this.props.selectedUsers}
+          userForInfoPane={this.props.userForInfoPane}
           onAddUser={this.props.onAddAnotherUserToGroup}
-          onRemoveUser={this.props.onRemoveUserFromGroup}
-          onClickUser={this.props.onClickUserInGroup}
+          onRemoveUserFromGroup={this.props.onRemoveUserFromGroup}
+          onClickUserInGroup={this.props.onClickUserInGroup}
           onOpenPrivateGroupFolder={this.props.onOpenPrivateGroupFolder}
           onOpenPublicGroupFolder={this.props.onOpenPublicGroupFolder}
           onGroupChat={this.props.onGroupChat}

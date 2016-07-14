@@ -27,8 +27,8 @@ function InviteSection ({inviteLink, outOfInvites, onSendInvite, username, servi
       <Box style={stylesLinkContainer}>
         <Text type='Body' style={{textAlign: 'center'}}>You can send {`${username}@${serviceName}`} this link to skip the invitation queue:</Text>
         <Box style={stylesLinkBox}>
-          <Icon style={{color: globalColors.black_10}} type='fa-kb-iconfont-link' onClick={() => textRef && textRef.highlightText()} />
-          <Text ref={r => { textRef = r }} style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
+          <Icon style={{color: globalColors.black_10}} type='iconfont-link' onClick={() => textRef && textRef.highlightText()} />
+          <Text ref={r => { textRef = r }} style={stylesLink} type='BodyPrimaryLink'>{inviteLink}</Text>
         </Box>
       </Box>
     )
@@ -37,7 +37,7 @@ function InviteSection ({inviteLink, outOfInvites, onSendInvite, username, servi
   return (
     <Box style={styleInviteLink} onClick={onSendInvite}>
       <Icon type='icon-invite-link-24' />
-      <Text type='Body' style={styleInviteLinkText}>Send invite link</Text>
+      <Text type='BodyPrimaryLink' style={styleInviteLinkText}>Send invite link</Text>
     </Box>
   )
 }

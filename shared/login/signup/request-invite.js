@@ -32,7 +32,7 @@ class RequestInvite extends Component {
         emailChange={email => this.setState({email})}
         emailErrorText={this.props.emailErrorText}
         nameErrorText={this.props.nameErrorText}
-        onBack={this.props.resetSignup}
+        onBack={this.props.restartSignup}
         onSubmit={() => this.props.requestInvite(this.state.email, this.state.name)}
         waiting={this.props.waiting} />
     )

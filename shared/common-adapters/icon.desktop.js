@@ -29,15 +29,20 @@ export default class Icon extends Component {
     }
 
     const ext = shared.typeExtension(iconType)
-    const isFontIcon = iconType.startsWith('fa-')
+    const isFontIcon = iconType.startsWith('iconfont-')
     const fontSizeHint = shared.fontSize(iconType)
 
     if (isFontIcon) {
+      const cleanStyle = {...this.props.style}
+      // We have to blow these styles away else FontIcon gets confused and will overwrite what it calculates
+      delete cleanStyle.color
+      delete cleanStyle.hoverColor
+
       return <FontIcon
         title={this.props.hint}
-        style={{...globalStyles.noSelect, ...styles.icon, ...fontSizeHint, ...this.props.style}}
-        className={`fa ${iconType} ${this.props.className || ''}`}
-        color={color} // TODO (AW): this does nothing, color must be set in styles
+        style={{...globalStyles.noSelect, ...styles.icon, ...fontSizeHint, ...cleanStyle}}
+        className={`icon-kb-${iconType}${this.props.className && ' ' + this.props.className || ''}`}
+        color={color}
         hoverColor={this.props.onClick ? hoverColor : null}
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.props.onMouseLeave}

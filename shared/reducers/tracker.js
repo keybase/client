@@ -19,6 +19,7 @@ export type TrackerState = {
   type: 'tracker',
   eldestKidChanged: boolean,
   currentlyFollowing: boolean,
+  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   serverActive: boolean,
   trackerState: SimpleProofState,
   username: string,

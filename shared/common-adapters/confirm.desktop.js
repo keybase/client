@@ -9,7 +9,7 @@ class Confirm extends Component<void, Props, void> {
   render () {
     return (
       <Box style={{...styleContainer, ...backgroundColorThemed[this.props.theme]}}>
-        <Icon style={{...styleClose, ...styleCloseThemed[this.props.theme]}} type='fa-close' onClick={this.props.onCancel} />
+        <Icon style={{...styleClose, ...styleCloseThemed[this.props.theme]}} type='iconfont-close' onClick={this.props.onCancel} />
         <Box style={styleIconContainer}>
           {this.props.header}
         </Box>

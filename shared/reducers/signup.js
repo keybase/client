@@ -49,6 +49,7 @@ const initialState: SignupState = {
 export default function (state: SignupState = initialState, action: SignupActions): SignupState {
   switch (action.type) {
     case CommonConstants.resetStore:
+    case Constants.resetSignup:
       return {...initialState}
 
     case Constants.signupWaiting:
@@ -189,7 +190,7 @@ export default function (state: SignupState = initialState, action: SignupAction
         return state
       }
 
-    case Constants.resetSignup:
+    case Constants.restartSignup:
       return {
         ...state,
         phase: 'inviteCode',

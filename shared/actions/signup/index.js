@@ -11,7 +11,7 @@ import {routeAppend, navigateUp} from '../../actions/router'
 
 import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../../constants/signup'
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RestartSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../../constants/signup'
 import type {signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
   signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../../constants/types/flow-types'
 
@@ -269,7 +269,7 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
 
               const signupPromise = dispatch(signup(skipMail || false, onDisplayPaperKey))
               if (signupPromise) {
-                resolve(signupPromise.then(() => dispatch(nextPhase()) || Promise.resolve()))
+                signupPromise.then(resolve, reject)
               } else {
                 throw new Error('did not get promise from signup')
               }
@@ -338,6 +338,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
             reject()
           } else {
             console.log('Successful signup', passphraseOk, postOk, writeOk)
+            dispatch(waiting(true))
             resolve()
           }
         },
@@ -358,9 +359,16 @@ function waiting (isWaiting: boolean): SignupWaiting {
   }
 }
 
-export function resetSignup (): TypedAsyncAction<ResetSignup | RouteAppend> {
+export function resetSignup (): ResetSignup {
+  return {
+    type: Constants.resetSignup,
+    payload: undefined,
+  }
+}
+
+export function restartSignup (): TypedAsyncAction<RestartSignup | RouteAppend> {
   return dispatch => new Promise((resolve, reject) => {
-    dispatch({type: Constants.resetSignup, payload: {}})
+    dispatch({type: Constants.restartSignup, payload: {}})
     dispatch(navigateUp(loginTab, Map({path: 'signup'})))
     dispatch(navigateUp())
     resolve()

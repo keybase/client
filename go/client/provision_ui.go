@@ -288,7 +288,11 @@ func (p ProvisionUI) PromptNewDeviceName(ctx context.Context, arg keybase1.Promp
 }
 
 func (p ProvisionUI) DisplaySecretExchanged(ctx context.Context, sessionID int) error {
-	p.parent.Output("Secret successfully exchanged.  On your new device, choose and save a public name for it.\n\n")
+	p.parent.Output("\n\nVerification code received.  On your new device, choose and save a public name for it.\n\n")
+	p.parent.Output("Note: if you do not see a prompt on your new device for a device name\n")
+	p.parent.Output("in a few seconds then the verification code entered above does not match the\n")
+	p.parent.Output("verification code provided on your new device. If that happens, quit\n")
+	p.parent.Output("this (ctrl-c) and try again.\n")
 	return nil
 }
 
@@ -306,6 +310,7 @@ func (p ProvisionUI) ProvisioneeSuccess(ctx context.Context, arg keybase1.Provis
 }
 
 func (p ProvisionUI) ProvisionerSuccess(ctx context.Context, arg keybase1.ProvisionerSuccessArg) error {
+	p.parent.Output("\n\n")
 	p.parent.Printf(CHECK + " Success! You added a new device named " + ColorString("bold", arg.DeviceName) + " to your account.\n\n")
 	return nil
 }

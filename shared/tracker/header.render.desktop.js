@@ -61,7 +61,7 @@ export default class HeaderRender extends Component {
         <div style={{...styleHeader, ...headerStyle}}>
           <div style={{...styleHeader, ...headerStyle, height: 48, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColors.yellow}} />
           <Text type='BodySemibold' lineClamp={2} style={{...styleText, ...headerTextStyle, flex: 1, zIndex: isWarning ? 2 : 'inherit'}}>{headerText}</Text>
-          <Icon type='fa-close' style={styleClose}
+          <Icon type='iconfont-close' style={styleClose}
             onClick={() => this.props.onClose()}
             onMouseEnter={() => this.closeMouseEnter()}
             onMouseLeave={() => this.closeMouseLeave()} />

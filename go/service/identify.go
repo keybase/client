@@ -181,22 +181,28 @@ func (h *IdentifyHandler) identify(sessionID int, arg keybase1.IdentifyArg) (res
 	return res, err
 }
 
-func (u *RemoteIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) {
-	u.uicli.FinishWebProofCheck(context.TODO(), keybase1.FinishWebProofCheckArg{
-		SessionID: u.sessionID,
-		Rp:        p,
-		Lcr:       lcr,
-	})
-	return
+func (u *RemoteIdentifyUI) newContext() (context.Context, func()) {
+	return context.WithTimeout(context.Background(), libkb.RemoteIdentifyUITimeout)
 }
 
-func (u *RemoteIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) {
-	u.uicli.FinishSocialProofCheck(context.TODO(), keybase1.FinishSocialProofCheckArg{
+func (u *RemoteIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.FinishWebProofCheck(ctx, keybase1.FinishWebProofCheckArg{
 		SessionID: u.sessionID,
 		Rp:        p,
 		Lcr:       lcr,
 	})
-	return
+}
+
+func (u *RemoteIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.FinishSocialProofCheck(ctx, keybase1.FinishSocialProofCheckArg{
+		SessionID: u.sessionID,
+		Rp:        p,
+		Lcr:       lcr,
+	})
 }
 
 func (u *RemoteIdentifyUI) Confirm(io *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
@@ -207,53 +213,68 @@ func (u *RemoteIdentifyUI) Confirm(io *keybase1.IdentifyOutcome) (keybase1.Confi
 	return u.uicli.Confirm(context.TODO(), keybase1.ConfirmArg{SessionID: u.sessionID, Outcome: *io})
 }
 
-func (u *RemoteIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) {
-	u.uicli.DisplayCryptocurrency(context.TODO(), keybase1.DisplayCryptocurrencyArg{SessionID: u.sessionID, C: c})
-	return
+func (u *RemoteIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.DisplayCryptocurrency(ctx, keybase1.DisplayCryptocurrencyArg{SessionID: u.sessionID, C: c})
 }
 
-func (u *RemoteIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
-	u.uicli.DisplayKey(context.TODO(), keybase1.DisplayKeyArg{SessionID: u.sessionID, Key: key})
-	return
+func (u *RemoteIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.DisplayKey(ctx, keybase1.DisplayKeyArg{SessionID: u.sessionID, Key: key})
 }
 
-func (u *RemoteIdentifyUI) ReportLastTrack(t *keybase1.TrackSummary) {
-	u.uicli.ReportLastTrack(context.TODO(), keybase1.ReportLastTrackArg{SessionID: u.sessionID, Track: t})
-	return
+func (u *RemoteIdentifyUI) ReportLastTrack(t *keybase1.TrackSummary) error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.ReportLastTrack(ctx, keybase1.ReportLastTrackArg{SessionID: u.sessionID, Track: t})
 }
 
 func (u *RemoteIdentifyUI) DisplayTrackStatement(s string) error {
-	return u.uicli.DisplayTrackStatement(context.TODO(), keybase1.DisplayTrackStatementArg{Stmt: s, SessionID: u.sessionID})
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.DisplayTrackStatement(ctx, keybase1.DisplayTrackStatementArg{Stmt: s, SessionID: u.sessionID})
 }
 
 func (u *RemoteIdentifyUI) ReportTrackToken(token keybase1.TrackToken) error {
-	return u.uicli.ReportTrackToken(context.TODO(), keybase1.ReportTrackTokenArg{TrackToken: token, SessionID: u.sessionID})
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.ReportTrackToken(ctx, keybase1.ReportTrackTokenArg{TrackToken: token, SessionID: u.sessionID})
 }
 
-func (u *RemoteIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {
-	u.uicli.LaunchNetworkChecks(context.TODO(), keybase1.LaunchNetworkChecksArg{
+func (u *RemoteIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.LaunchNetworkChecks(ctx, keybase1.LaunchNetworkChecksArg{
 		SessionID: u.sessionID,
 		Identity:  *id,
 		User:      *user,
 	})
-	return
 }
 
-func (u *RemoteIdentifyUI) DisplayUserCard(card keybase1.UserCard) {
-	u.uicli.DisplayUserCard(context.TODO(), keybase1.DisplayUserCardArg{SessionID: u.sessionID, Card: card})
-	return
+func (u *RemoteIdentifyUI) DisplayUserCard(card keybase1.UserCard) error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.DisplayUserCard(ctx, keybase1.DisplayUserCardArg{SessionID: u.sessionID, Card: card})
 }
 
-func (u *RemoteIdentifyUI) Start(username string, reason keybase1.IdentifyReason) {
-	u.uicli.Start(context.TODO(), keybase1.StartArg{SessionID: u.sessionID, Username: username, Reason: reason})
+func (u *RemoteIdentifyUI) Start(username string, reason keybase1.IdentifyReason) error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.Start(ctx, keybase1.StartArg{SessionID: u.sessionID, Username: username, Reason: reason})
 }
 
-func (u *RemoteIdentifyUI) Finish() {
-	u.uicli.Finish(context.TODO(), u.sessionID)
+func (u *RemoteIdentifyUI) Finish() error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.Finish(ctx, u.sessionID)
 }
 
-func (u *RemoteIdentifyUI) Dismiss(username string, reason keybase1.DismissReason) {
-	u.uicli.Dismiss(context.TODO(), keybase1.DismissArg{
+func (u *RemoteIdentifyUI) Dismiss(username string, reason keybase1.DismissReason) error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.Dismiss(ctx, keybase1.DismissArg{
 		SessionID: u.sessionID,
 		Username:  username,
 		Reason:    reason,
@@ -265,6 +286,8 @@ func (u *RemoteIdentifyUI) SetStrict(b bool) {
 }
 
 func (u *RemoteIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
+	ctx, cancel := u.newContext()
+	defer cancel()
 	arg.SessionID = u.sessionID
-	return u.uicli.DisplayTLFCreateWithInvite(context.TODO(), arg)
+	return u.uicli.DisplayTLFCreateWithInvite(ctx, arg)
 }

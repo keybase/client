@@ -8,9 +8,10 @@ import type {IconType} from '../../common-adapters/icon'
 export type UserFn = (user: SearchResult) => void
 
 export type Props = {
-  users: Array<SearchResult>,
-  onRemoveUser: UserFn,
-  onClickUser: UserFn,
+  selectedUsers: Array<SearchResult>,
+  userForInfoPane: ?SearchResult,
+  onRemoveUserFromGroup: UserFn,
+  onClickUserInGroup: UserFn,
   onAddUser?: () => void,
   onOpenPrivateGroupFolder: () => void,
   onOpenPublicGroupFolder: () => void,

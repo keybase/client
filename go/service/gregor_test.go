@@ -90,13 +90,15 @@ type showTrackerPopupIdentifyUI struct {
 
 var _ libkb.IdentifyUI = (*showTrackerPopupIdentifyUI)(nil)
 
-func (ui *showTrackerPopupIdentifyUI) Start(name string, reason keybase1.IdentifyReason) {
+func (ui *showTrackerPopupIdentifyUI) Start(name string, reason keybase1.IdentifyReason) error {
 	ui.startedUsername = name
+	return nil
 }
 
 // Overriding the Dismiss method lets us test that it gets called.
-func (ui *showTrackerPopupIdentifyUI) Dismiss(username string, _ keybase1.DismissReason) {
+func (ui *showTrackerPopupIdentifyUI) Dismiss(username string, _ keybase1.DismissReason) error {
 	ui.dismissedUsername = username
+	return nil
 }
 
 // Test that when we inject a gregor "show_tracker_popup" message containing a

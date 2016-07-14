@@ -320,9 +320,11 @@ func (g *GlobalContext) Shutdown() error {
 		if g.LocalDb != nil {
 			epick.Push(g.LocalDb.Close())
 		}
-		if g.LoginState() != nil {
-			epick.Push(g.LoginState().Shutdown())
+		g.loginStateMu.Lock()
+		if g.loginState != nil {
+			epick.Push(g.loginState.Shutdown())
 		}
+		g.loginStateMu.Unlock()
 
 		if g.TrackCache != nil {
 			g.TrackCache.Shutdown()

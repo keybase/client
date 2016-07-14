@@ -50,6 +50,7 @@ export default class Render extends Component<void, Props, State> {
         <Box style={{flex: 2, justifyContent: 'flex-end'}}>
           <Button style={buttonStyle}
             disabled={!this.state.checked}
+            waiting={this.props.waiting}
             onClick={this.props.onFinish}
             label='Done'
             type='Primary' />

@@ -276,7 +276,7 @@ func SetupTest(tb testing.TB, name string, depth int) (tc TestContext) {
 		pc, file, line, ok := runtime.Caller(depth)
 		if ok {
 			fn := runtime.FuncForPC(pc)
-			fmt.Printf("SetupTest %s %v:%v\n", fn.Name(), file, line)
+			fmt.Fprintf(os.Stderr, "- SetupTest %s %s:%d\n", filepath.Base(fn.Name()), filepath.Base(file), line)
 		}
 	}
 	return tc

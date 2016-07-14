@@ -15,13 +15,13 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
   let textRef
   return (
     <Box style={stylesContainer}>
-      <Icon style={stylesClose} type='fa-close' onClick={onClose} />
+      <Icon style={stylesClose} type='iconfont-close' onClick={onClose} />
       <Text type='BodySmallSemibold' style={stylesMessage}>{reason}</Text>
       <Icon type={icon} />
       <Box style={globalStyles.flexBoxColumn}>
         <Text type='BodySmallSemibold' style={{...stylesMessage, ...(inviteLink ? {} : {marginBottom: 16})}}>{message}</Text>
         {inviteLink && <Box style={stylesLinkBox}>
-          <Icon style={{color: globalColors.black_10, marginTop: 3}} type='fa-kb-iconfont-link' onClick={() => textRef && textRef.highlightText()} />
+          <Icon style={{color: globalColors.black_10, marginTop: 3}} type='iconfont-link' onClick={() => textRef && textRef.highlightText()} />
           <Text ref={r => { textRef = r }} style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
         </Box>}
       </Box>

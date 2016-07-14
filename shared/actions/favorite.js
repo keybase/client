@@ -115,7 +115,7 @@ const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): S
 }
 
 // If the notify data has changed, show a popup
-let previousNotify = null
+let previousNotifyState = null
 
 export function favoriteList (): (dispatch: Dispatch) => void {
   return (dispatch, getState) => {
@@ -173,23 +173,24 @@ export function favoriteList (): (dispatch: Dispatch) => void {
         dispatch(action)
         dispatch(badgeApp('newTLFs', !!(state.publicBadge || state.privateBadge)))
 
-        const newNotify = {public: state.publicBadge, private: state.privateBadge}
         const total = state.publicBadge + state.privateBadge
 
-        if (total && !_.isEqual(newNotify, previousNotify)) {
-          previousNotify = newNotify
+        if (total) {
+          const newNotifyState = [].concat(state.private.tlfs || [], state.public.tlfs || [])
+            .filter(t => t.meta === 'new').map(t => t.path)
 
-          let body
+          if (_.difference(newNotifyState, previousNotifyState).length) {
+            let body
+            if (total <= 3) {
+              body = newNotifyState.join('\n')
+            } else {
+              body = `You have ${total} new folders`
+            }
 
-          if (total <= 3) {
-            body = [].concat(state.private.tlfs || [], state.public.tlfs || [])
-              .filter(t => t.meta === 'new')
-              .map(t => t.path).join('\n')
-          } else {
-            body = `You have ${total} new folders`
+            NotifyPopup('New Keybase Folders!', {body}, 60 * 10)
           }
 
-          NotifyPopup('New Keybase Folders!', {body}, 60 * 10)
+          previousNotifyState = newNotifyState
         }
       },
     }

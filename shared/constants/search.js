@@ -77,17 +77,24 @@ export type RemoveUserFromGroup = TypedAction<'search:removeUserFromGroup', {use
 export const toggleUserGroup = 'search:toggleUserGroup'
 export type ToggleUserGroup = TypedAction<'search:toggleUserGroup', {show: boolean}, void>
 
-export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUserToGroup | RemoveUserFromGroup | ToggleUserGroup
+export const reset = 'search:reset'
+export type Reset = TypedAction<'search:reset', {}, void>
+
+export const waiting = 'search:waiting'
+export type Waiting = TypedAction<'search:waiting', {waiting: boolean}, void>
+
+export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUserToGroup
+  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
   return {
-    'Keybase': 'fa-kb-iconfont-identity-devices',
-    'Twitter': 'fa-kb-iconfont-identity-twitter',
-    'Github': 'fa-kb-iconfont-identity-github',
-    'Reddit': 'fa-kb-iconfont-identity-reddit',
-    'Coinbase': 'fa-kb-iconfont-identity-bitcoin',
-    'Hackernews': 'fa-kb-iconfont-identity-hn',
-    'Pgp': 'fa-kb-iconfont-identity-pgp',
+    'Keybase': 'iconfont-identity-devices',
+    'Twitter': 'iconfont-identity-twitter',
+    'Github': 'iconfont-identity-github',
+    'Reddit': 'iconfont-identity-reddit',
+    'Coinbase': 'iconfont-identity-bitcoin',
+    'Hackernews': 'iconfont-identity-hn',
+    'Pgp': 'iconfont-identity-pgp',
   }[platform]
 }
 
