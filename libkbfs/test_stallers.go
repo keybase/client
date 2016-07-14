@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"sync"
 
 	"golang.org/x/net/context"
 )
@@ -37,6 +38,156 @@ const (
 	StallableMDAfterPut              StallableMDOp = "AfterPut"
 	StallableMDPutUnmerged           StallableMDOp = "PutUnmerged"
 )
+
+const stallKeyStallEverything = ""
+
+type naïveStallInfo struct {
+	onStalled   <-chan struct{}
+	unstall     chan<- struct{}
+	oldBlockOps BlockOps
+	oldMDOps    MDOps
+}
+
+// NaïveStaller is used to stall certain ops in BlockOps or MDOps. Unlike
+// StallBlockOp and StallMDOp which provides a way to precisely control which
+// particular op is stalled by passing in ctx with corresponding stallKey,
+// NaïveStaller simply stalls all instances of specified op.
+type NaïveStaller struct {
+	config Config
+
+	mu             sync.RWMutex
+	blockOpsStalls map[StallableBlockOp]*naïveStallInfo
+	mdOpsStalls    map[StallableMDOp]*naïveStallInfo
+}
+
+// NewNaïveStaller returns a new NaïveStaller
+func NewNaïveStaller(config Config) *NaïveStaller {
+	return &NaïveStaller{
+		config:         config,
+		blockOpsStalls: make(map[StallableBlockOp]*naïveStallInfo),
+		mdOpsStalls:    make(map[StallableMDOp]*naïveStallInfo),
+	}
+}
+
+func (s *NaïveStaller) getNaïveStallInfoForBlockOpOrBust(
+	stalledOp StallableBlockOp) *naïveStallInfo {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	info, ok := s.blockOpsStalls[stalledOp]
+	if !ok {
+		panic("naïveStallInfo is not found." +
+			"This indicates incorrect use of NaïveStaller")
+	}
+	return info
+}
+
+func (s *NaïveStaller) getNaïveStallInfoForMDOpOrBust(
+	stalledOp StallableMDOp) *naïveStallInfo {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	info, ok := s.mdOpsStalls[stalledOp]
+	if !ok {
+		panic("naïveStallInfo is not found." +
+			"This indicates incorrect use of NaïveStaller")
+	}
+	return info
+}
+
+// StallBlockOp wraps the internal BlockOps so that all subsequent stalledOp
+// will be stalled. This can be undone by calling UndoStallBlockOp.
+func (s *NaïveStaller) StallBlockOp(stalledOp StallableBlockOp) {
+	onStalledCh := make(chan struct{}, 1)
+	unstallCh := make(chan struct{})
+	oldBlockOps := s.config.BlockOps()
+	s.config.SetBlockOps(&stallingBlockOps{
+		stallOpName: stalledOp,
+		stallKey:    stallKeyStallEverything,
+		staller: staller{
+			stalled: onStalledCh,
+			unstall: unstallCh,
+		},
+		delegate: oldBlockOps,
+	})
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.blockOpsStalls[stalledOp] = &naïveStallInfo{
+		onStalled:   onStalledCh,
+		unstall:     unstallCh,
+		oldBlockOps: oldBlockOps,
+	}
+}
+
+// StallMDOp wraps the internal MDOps so that all subsequent stalledOp
+// will be stalled. This can be undone by calling UndoStallMDOp.
+func (s *NaïveStaller) StallMDOp(stalledOp StallableMDOp) {
+	onStalledCh := make(chan struct{}, 1)
+	unstallCh := make(chan struct{})
+	oldMDOps := s.config.MDOps()
+	s.config.SetMDOps(&stallingMDOps{
+		stallOpName: stalledOp,
+		stallKey:    stallKeyStallEverything,
+		staller: staller{
+			stalled: onStalledCh,
+			unstall: unstallCh,
+		},
+		delegate: oldMDOps,
+	})
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.mdOpsStalls[stalledOp] = &naïveStallInfo{
+		onStalled: onStalledCh,
+		unstall:   unstallCh,
+		oldMDOps:  oldMDOps,
+	}
+}
+
+// WaitForStallBlockOp blocks until stalledOp is stalled. StallBlockOp should
+// have been called upon stalledOp, otherwise this would panic.
+func (s *NaïveStaller) WaitForStallBlockOp(stalledOp StallableBlockOp) {
+	<-s.getNaïveStallInfoForBlockOpOrBust(stalledOp).onStalled
+}
+
+// WaitForStallMDOp blocks until stalledOp is stalled. StallMDOp should
+// have been called upon stalledOp, otherwise this would panic.
+func (s *NaïveStaller) WaitForStallMDOp(stalledOp StallableMDOp) {
+	<-s.getNaïveStallInfoForMDOpOrBust(stalledOp).onStalled
+}
+
+// UnstallOneBlockOp unstalls exactly one stalled stalledOp. StallBlockOp
+// should have been called upon stalledOp, otherwise this would panic.
+func (s *NaïveStaller) UnstallOneBlockOp(stalledOp StallableBlockOp) {
+	s.getNaïveStallInfoForBlockOpOrBust(stalledOp).unstall <- struct{}{}
+}
+
+// UnstallOneMDOp unstalls exactly one stalled stalledOp. StallMDOp
+// should have been called upon stalledOp, otherwise this would panic.
+func (s *NaïveStaller) UnstallOneMDOp(stalledOp StallableMDOp) {
+	s.getNaïveStallInfoForMDOpOrBust(stalledOp).unstall <- struct{}{}
+}
+
+// UndoStallBlockOp reverts StallBlockOp so that future stalledOp are not
+// stalled anymore. It also unstalls any stalled stalledOp. StallBlockOp
+// should have been called upon stalledOp, otherwise this would panic.
+func (s *NaïveStaller) UndoStallBlockOp(stalledOp StallableBlockOp) {
+	ns := s.getNaïveStallInfoForBlockOpOrBust(stalledOp)
+	s.config.SetBlockOps(ns.oldBlockOps)
+	close(ns.unstall)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.blockOpsStalls, stalledOp)
+}
+
+// UndoStallMDOp reverts StallMDOp so that future stalledOp are not
+// stalled anymore. It also unstalls any stalled stalledOp. StallMDOp
+// should have been called upon stalledOp, otherwise this would panic.
+func (s *NaïveStaller) UndoStallMDOp(stalledOp StallableMDOp) {
+	ns := s.getNaïveStallInfoForMDOpOrBust(stalledOp)
+	s.config.SetMDOps(ns.oldMDOps)
+	close(ns.unstall)
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.mdOpsStalls, stalledOp)
+}
 
 // StallBlockOp sets a wrapped BlockOps in config so that the specified Op, stalledOp,
 // is stalled. Caller should use the returned newCtx for subsequent operations
@@ -106,9 +257,10 @@ func maybeStall(ctx context.Context, opName stallableOp,
 		return
 	}
 
-	v, ok := ctx.Value(stallKey).(bool)
-	if !ok || !v {
-		return
+	if stallKey != stallKeyStallEverything {
+		if v, ok := ctx.Value(stallKey).(bool); !ok || !v {
+			return
+		}
 	}
 
 	select {

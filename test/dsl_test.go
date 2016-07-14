@@ -186,6 +186,7 @@ type ctx struct {
 	user       User
 	rootNode   Node
 	noSyncInit bool
+	staller    *libkbfs.NaïveStaller
 }
 
 func runFileOp(c *ctx, fop fileOp) (string, error) {
@@ -250,6 +251,7 @@ func as(user username, fops ...fileOp) optionOp {
 			opt:  o,
 			user: o.users[libkb.NewNormalizedUsername(string(user))],
 		}
+		ctx.staller = ctx.engine.MakeNaïveStaller(ctx.user)
 
 		for _, fop := range fops {
 			desc, err := runFileOp(ctx, fop)
@@ -475,6 +477,34 @@ func disableUpdates() fileOp {
 		}
 		return c.engine.DisableUpdatesForTesting(c.user, c.tlfName, c.tlfIsPublic)
 	}, IsInit}
+}
+
+func stallOnMDPut() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.StallMDOp(libkbfs.StallableMDPut)
+		return nil
+	}, Defaults}
+}
+
+func waitForStalledMDPut() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.WaitForStallMDOp(libkbfs.StallableMDPut)
+		return nil
+	}, Defaults}
+}
+
+func unstallOneMDPut() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.UnstallOneMDOp(libkbfs.StallableMDPut)
+		return nil
+	}, Defaults}
+}
+
+func undoStallOnMDPut() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.staller.UndoStallMDOp(libkbfs.StallableMDPut)
+		return nil
+	}, Defaults}
 }
 
 func reenableUpdates() fileOp {

@@ -95,6 +95,9 @@ type Engine interface {
 	// the given user to disable updates to trigger conflict
 	// conditions.
 	DisableUpdatesForTesting(u User, tlfName string, isPublic bool) (err error)
+	//MakeNaïveStaller returns a NaïveStaller associated with user u for
+	//stalling BlockOps or MDOps.
+	MakeNaïveStaller(u User) *libkbfs.NaïveStaller
 	// ReenableUpdates is called by the test harness as the given
 	// user to resume updates if previously disabled for testing.
 	ReenableUpdates(u User, tlfName string, isPublic bool) (err error)

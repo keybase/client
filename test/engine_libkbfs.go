@@ -447,6 +447,11 @@ func (k *LibKBFS) DisableUpdatesForTesting(u User, tlfName string, isPublic bool
 	return nil
 }
 
+// MakeNaïveStaller implements the Engine interface.
+func (*LibKBFS) MakeNaïveStaller(u User) *libkbfs.NaïveStaller {
+	return libkbfs.NewNaïveStaller(u.(*libkbfs.ConfigLocal))
+}
+
 // ReenableUpdates implements the Engine interface.
 func (k *LibKBFS) ReenableUpdates(u User, tlfName string, isPublic bool) error {
 	config := u.(*libkbfs.ConfigLocal)
