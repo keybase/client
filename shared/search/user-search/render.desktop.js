@@ -119,7 +119,6 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
 
 class Render extends Component<void, Props, void> {
   render () {
-    console.log('aaaaa', this.props.waiting)
     return (
       <Box style={{overflowY: 'auto', flex: 1, position: 'relative', minHeight: 40}}>
         {this.props.waiting && <Icon type='icon-progress-grey-animated'
