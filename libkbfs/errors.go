@@ -435,27 +435,27 @@ func (e OutdatedVersionError) Error() string {
 // InvalidKeyGenerationError indicates that an invalid key generation
 // was used.
 type InvalidKeyGenerationError struct {
-	TlfHandle *TlfHandle
-	KeyGen    KeyGen
+	TlfID  TlfID
+	KeyGen KeyGen
 }
 
 // Error implements the error interface for InvalidKeyGenerationError.
 func (e InvalidKeyGenerationError) Error() string {
-	return fmt.Sprintf("Invalid key generation %d for %v", int(e.KeyGen), e.TlfHandle)
+	return fmt.Sprintf("Invalid key generation %d for %s", int(e.KeyGen), e.TlfID)
 }
 
 // NewKeyGenerationError indicates that the data at the given path has
 // been written using keys that our client doesn't have.
 type NewKeyGenerationError struct {
-	TlfHandle *TlfHandle
-	KeyGen    KeyGen
+	TlfID  TlfID
+	KeyGen KeyGen
 }
 
 // Error implements the error interface for NewKeyGenerationError.
 func (e NewKeyGenerationError) Error() string {
 	return fmt.Sprintf(
 		"The data for %v is keyed with a key generation (%d) that "+
-			"we don't know", e.TlfHandle, e.KeyGen)
+			"we don't know", e.TlfID, e.KeyGen)
 }
 
 // BadSplitError indicates that the BlockSplitter has an error.

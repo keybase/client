@@ -963,7 +963,7 @@ func (fbo *folderBranchOps) initMDLocked(
 	}
 	keyGen := md.LatestKeyGeneration()
 	if keyGen != expectedKeyGen {
-		return InvalidKeyGenerationError{handle, keyGen}
+		return InvalidKeyGenerationError{md.ID, keyGen}
 	}
 	info, plainSize, readyBlockData, err :=
 		fbo.blocks.ReadyBlock(

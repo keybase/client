@@ -483,3 +483,96 @@ func (md *BareRootMetadata) TlfHandleExtensions() (
 	}
 	return extensions
 }
+
+func (md *BareRootMetadata) getTLFKeyBundles(keyGen KeyGen) (
+	*TLFWriterKeyBundle, *TLFReaderKeyBundle, error) {
+	if md.ID.IsPublic() {
+		return nil, nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundle"}
+	}
+
+	if keyGen < FirstValidKeyGen {
+		return nil, nil, InvalidKeyGenerationError{md.ID, keyGen}
+	}
+	i := int(keyGen - FirstValidKeyGen)
+	if i >= len(md.WKeys) || i >= len(md.RKeys) {
+		return nil, nil, NewKeyGenerationError{md.ID, keyGen}
+	}
+	return &md.WKeys[i], &md.RKeys[i], nil
+}
+
+// GetTLFCryptKeyInfo returns the TLFCryptKeyInfo entry for the given user
+// and device at the given key generation.
+func (md *BareRootMetadata) GetTLFCryptKeyInfo(keyGen KeyGen, user keybase1.UID,
+	currentCryptPublicKey CryptPublicKey) (
+	info TLFCryptKeyInfo, ok bool, err error) {
+	wkb, rkb, err := md.getTLFKeyBundles(keyGen)
+	if err != nil {
+		return TLFCryptKeyInfo{}, false, err
+	}
+
+	key := currentCryptPublicKey.kid
+	if u, ok1 := wkb.WKeys[user]; ok1 {
+		info, ok := u[key]
+		return info, ok, nil
+	} else if u, ok1 = rkb.RKeys[user]; ok1 {
+		info, ok := u[key]
+		return info, ok, nil
+	}
+	return TLFCryptKeyInfo{}, false, nil
+}
+
+// GetTLFCryptPublicKeys returns the public crypt keys for the given user
+// at the given key generation.
+func (md *BareRootMetadata) GetTLFCryptPublicKeys(
+	keyGen KeyGen, user keybase1.UID) (
+	[]keybase1.KID, bool) {
+	wkb, rkb, err := md.getTLFKeyBundles(keyGen)
+	if err != nil {
+		return nil, false
+	}
+
+	if u, ok1 := wkb.WKeys[user]; ok1 {
+		return u.GetKIDs(), true
+	} else if u, ok1 = rkb.RKeys[user]; ok1 {
+		return u.GetKIDs(), true
+	}
+	return nil, false
+}
+
+// GetTLFEphemeralPublicKey returns the ephemeral public key used for
+// the TLFCryptKeyInfo for the given user and device.
+func (md *BareRootMetadata) GetTLFEphemeralPublicKey(
+	keyGen KeyGen, user keybase1.UID,
+	currentCryptPublicKey CryptPublicKey) (TLFEphemeralPublicKey, error) {
+	wkb, rkb, err := md.getTLFKeyBundles(keyGen)
+	if err != nil {
+		return TLFEphemeralPublicKey{}, err
+	}
+
+	info, ok, err := md.GetTLFCryptKeyInfo(
+		keyGen, user, currentCryptPublicKey)
+	if err != nil {
+		return TLFEphemeralPublicKey{}, err
+	}
+	if !ok {
+		return TLFEphemeralPublicKey{},
+			TLFEphemeralPublicKeyNotFoundError{
+				user, currentCryptPublicKey.kid}
+	}
+
+	if info.EPubKeyIndex < 0 {
+		return rkb.TLFReaderEphemeralPublicKeys[-1-info.EPubKeyIndex], nil
+	}
+	return wkb.TLFEphemeralPublicKeys[info.EPubKeyIndex], nil
+}
+
+// DeepCopyForServerTest returns a complete copy of this BareRootMetadata
+// for testing.
+func (md *BareRootMetadata) DeepCopyForServerTest(codec Codec) (
+	*BareRootMetadata, error) {
+	var newMd BareRootMetadata
+	if err := CodecUpdate(codec, &newMd, md); err != nil {
+		return nil, err
+	}
+	return &newMd, nil
+}

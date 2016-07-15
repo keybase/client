@@ -80,13 +80,13 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	}
 
 	if keyGen < FirstValidKeyGen {
-		return TLFCryptKey{}, InvalidKeyGenerationError{md.GetTlfHandle(), keyGen}
+		return TLFCryptKey{}, InvalidKeyGenerationError{md.ID, keyGen}
 	}
 	// Is this some key we don't know yet?  Shouldn't really ever happen,
 	// since we must have seen the MD that led us to this block, which
 	// should include all the latest keys.  Consider this a failsafe.
 	if keyGen > md.LatestKeyGeneration() {
-		return TLFCryptKey{}, NewKeyGenerationError{md.GetTlfHandle(), keyGen}
+		return TLFCryptKey{}, NewKeyGenerationError{md.ID, keyGen}
 	}
 
 	// look in the cache first
