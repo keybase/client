@@ -201,7 +201,7 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 		return
 	}
 	// Uniquify name, since multiple tests may use the same name.
-	name = fmt.Sprintf("%s %s", name, hex.EncodeToString(buf))
+	name = fmt.Sprintf("%s_%s", name, hex.EncodeToString(buf))
 
 	g.Init()
 	g.Log.Debug("SetupTest %s", name)
