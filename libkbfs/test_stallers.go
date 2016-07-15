@@ -270,6 +270,24 @@ func maybeStall(ctx context.Context, opName stallableOp,
 	<-staller.unstall
 }
 
+// runWithContextCheck checks ctx.Done() before and after running action. If
+// either ctx.Done() check has error, ctx's error is returned. Otherwise,
+// action's returned value is returned.
+func runWithContextCheck(ctx context.Context, action func(ctx context.Context) error) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+	err := action(ctx)
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+	return err
+}
+
 // stallingBlockOps is an implementation of BlockOps whose operations
 // sometimes stall. In particular, if the operation name matches
 // stallOpName, and ctx.Value(stallKey) is a key in the corresponding
@@ -295,45 +313,50 @@ func (f *stallingBlockOps) Get(
 	ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
 	block Block) error {
 	f.maybeStall(ctx, StallableBlockGet)
-	return f.delegate.Get(ctx, md, blockPtr, block)
+	return runWithContextCheck(ctx, func(ctx context.Context) error {
+		return f.delegate.Get(ctx, md, blockPtr, block)
+	})
 }
 
 func (f *stallingBlockOps) Ready(
 	ctx context.Context, md *RootMetadata, block Block) (
 	id BlockID, plainSize int, readyBlockData ReadyBlockData, err error) {
 	f.maybeStall(ctx, StallableBlockReady)
-	return f.delegate.Ready(ctx, md, block)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		var errReady error
+		id, plainSize, readyBlockData, errReady = f.delegate.Ready(ctx, md, block)
+		return errReady
+	})
+	return id, plainSize, readyBlockData, err
 }
 
 func (f *stallingBlockOps) Put(
 	ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
 	readyBlockData ReadyBlockData) error {
 	f.maybeStall(ctx, StallableBlockPut)
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-	err := f.delegate.Put(ctx, md, blockPtr, readyBlockData)
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-	return err
+	return runWithContextCheck(ctx, func(ctx context.Context) error {
+		return f.delegate.Put(ctx, md, blockPtr, readyBlockData)
+	})
 }
 
 func (f *stallingBlockOps) Delete(
 	ctx context.Context, md *RootMetadata,
-	ptrs []BlockPointer) (map[BlockID]int, error) {
+	ptrs []BlockPointer) (notDeleted map[BlockID]int, err error) {
 	f.maybeStall(ctx, StallableBlockDelete)
-	return f.delegate.Delete(ctx, md, ptrs)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		var errDelete error
+		notDeleted, errDelete = f.delegate.Delete(ctx, md, ptrs)
+		return errDelete
+	})
+	return notDeleted, err
 }
 
 func (f *stallingBlockOps) Archive(
 	ctx context.Context, md *RootMetadata, ptrs []BlockPointer) error {
 	f.maybeStall(ctx, StallableBlockArchive)
-	return f.delegate.Archive(ctx, md, ptrs)
+	return runWithContextCheck(ctx, func(ctx context.Context) error {
+		return f.delegate.Archive(ctx, md, ptrs)
+	})
 }
 
 // stallingMDOps is an implementation of MDOps whose operations
@@ -358,83 +381,101 @@ func (m *stallingMDOps) maybeStall(ctx context.Context, opName StallableMDOp) {
 }
 
 func (m *stallingMDOps) GetForHandle(ctx context.Context, handle *TlfHandle) (
-	*RootMetadata, error) {
+	md *RootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetForHandle)
-	return m.delegate.GetForHandle(ctx, handle)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		var errGetForHandle error
+		md, errGetForHandle = m.delegate.GetForHandle(ctx, handle)
+		return errGetForHandle
+	})
+	return md, err
 }
 
 func (m *stallingMDOps) GetUnmergedForHandle(ctx context.Context,
-	handle *TlfHandle) (*RootMetadata, error) {
+	handle *TlfHandle) (md *RootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetUnmergedForHandle)
-	return m.delegate.GetUnmergedForHandle(ctx, handle)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		var errGetUnmergedForHandle error
+		md, errGetUnmergedForHandle = m.delegate.GetUnmergedForHandle(ctx, handle)
+		return errGetUnmergedForHandle
+	})
+	return md, err
 }
 
 func (m *stallingMDOps) GetForTLF(ctx context.Context, id TlfID) (
-	*RootMetadata, error) {
+	md *RootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetForTLF)
-	return m.delegate.GetForTLF(ctx, id)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		var errGetForTLF error
+		md, errGetForTLF = m.delegate.GetForTLF(ctx, id)
+		return errGetForTLF
+	})
+	return md, err
 }
 
 func (m *stallingMDOps) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
-	BareTlfHandle, error) {
+	h BareTlfHandle, err error) {
 	m.maybeStall(ctx, StallableMDGetLatestHandleForTLF)
-	return m.delegate.GetLatestHandleForTLF(ctx, id)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		var errGetLatestHandleForTLF error
+		h, errGetLatestHandleForTLF = m.delegate.GetLatestHandleForTLF(ctx, id)
+		return errGetLatestHandleForTLF
+	})
+	return h, err
 }
 
 func (m *stallingMDOps) GetUnmergedForTLF(ctx context.Context, id TlfID,
-	bid BranchID) (*RootMetadata, error) {
+	bid BranchID) (md *RootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetUnmergedForTLF)
-	return m.delegate.GetUnmergedForTLF(ctx, id, bid)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		var errGetUnmergedForTLF error
+		md, errGetUnmergedForTLF = m.delegate.GetUnmergedForTLF(ctx, id, bid)
+		return errGetUnmergedForTLF
+	})
+	return md, err
 }
 
 func (m *stallingMDOps) GetRange(ctx context.Context, id TlfID,
 	start, stop MetadataRevision) (
-	[]*RootMetadata, error) {
+	mds []*RootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetRange)
-	return m.delegate.GetRange(ctx, id, start, stop)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		var errGetRange error
+		mds, errGetRange = m.delegate.GetRange(ctx, id, start, stop)
+		return errGetRange
+	})
+	return mds, err
 }
 
 func (m *stallingMDOps) GetUnmergedRange(ctx context.Context, id TlfID,
-	bid BranchID, start, stop MetadataRevision) ([]*RootMetadata, error) {
+	bid BranchID, start, stop MetadataRevision) (mds []*RootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetUnmergedRange)
-	return m.delegate.GetUnmergedRange(ctx, id, bid, start, stop)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		var errGetUnmergedRange error
+		mds, errGetUnmergedRange = m.delegate.GetUnmergedRange(ctx, id, bid, start, stop)
+		return errGetUnmergedRange
+	})
+	return mds, err
 }
 
 func (m *stallingMDOps) Put(ctx context.Context, md *RootMetadata) error {
 	m.maybeStall(ctx, StallableMDPut)
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-	err := m.delegate.Put(ctx, md)
-	m.maybeStall(ctx, StallableMDAfterPut)
 	// If the Put was canceled, return the cancel error.  This
 	// emulates the Put being canceled while the RPC is outstanding.
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
+	return runWithContextCheck(ctx, func(ctx context.Context) error {
+		err := m.delegate.Put(ctx, md)
+		m.maybeStall(ctx, StallableMDAfterPut)
 		return err
-	}
+	})
 }
 
 func (m *stallingMDOps) PutUnmerged(ctx context.Context, md *RootMetadata,
 	bid BranchID) error {
 	m.maybeStall(ctx, StallableMDPutUnmerged)
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-	err := m.delegate.PutUnmerged(ctx, md, bid)
 	// If the PutUnmerged was canceled, return the cancel error.  This
 	// emulates the PutUnmerged being canceled while the RPC is
 	// outstanding.
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-		return err
-	}
+	return runWithContextCheck(ctx, func(ctx context.Context) error {
+		return m.delegate.PutUnmerged(ctx, md, bid)
+	})
 }
