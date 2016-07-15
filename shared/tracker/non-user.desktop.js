@@ -72,6 +72,7 @@ const stylesContainer = {
 }
 
 const stylesClose = {
+  ...globalStyles.windowDraggingClickable,
   position: 'absolute',
   right: 8,
   top: 8,
