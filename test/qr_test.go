@@ -121,3 +121,43 @@ func TestCRAfterQR(t *testing.T) {
 		),
 	)
 }
+
+// Test that conflict resolution works gracefully after quota
+// reclamation deletes a modified+deleted directory from the merged
+// branch.  Regression for KBFS-1202.
+func TestCRAfterRmdirAndQR(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a/b"),
+			mkfile("a/b/c", "world"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/b/d", "world2"),
+			rm("a/b/c"),
+			rm("a/b/d"),
+			rmdir("a/b"),
+		),
+		as(bob, noSync(),
+			setmtime("a/b/c", time.Now().Add(1*time.Minute)),
+			rm("a/b/c"),
+			rmdir("a/b"),
+		),
+		as(alice,
+			addTime(2*time.Minute),
+			// Force rmd.data.Dir.MTime to something recent. TODO: remove me.
+			mkfile("c", "test"),
+			forceQuotaReclamation(),
+		),
+		as(bob, noSync(),
+			reenableUpdates(),
+			lsdir("a/", m{}),
+		),
+		as(alice,
+			lsdir("a/", m{}),
+		),
+	)
+}
