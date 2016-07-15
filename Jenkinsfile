@@ -34,7 +34,8 @@ node("ec2-fleet") {
         ],
     ])
 
-    env.GOPATH=pwd()
+    env.BASEDIR=pwd()
+    env.GOPATH="${env.BASEDIR}/go"
     env.GO15VENDOREXPERIMENT=1
 
     ws("${env.GOPATH}/src/github.com/keybase/kbfs") {
@@ -107,7 +108,7 @@ node("ec2-fleet") {
                     //    node('windows') {
                     //    withEnv([
                     //        'GOROOT=C:\\tools\\go',
-                    //        "GOPATH=\"${pwd()}\"",
+                    //        "GOPATH=\"${pwd()}\\go\"",
                     //        'PATH+TOOLS="C:\\tools\\go\\bin";"C:\\Program Files (x86)\\GNU\\GnuPG";',
                     //        "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                     //        "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
@@ -124,7 +125,8 @@ node("ec2-fleet") {
                     test_osx: {
                         node('osx') {
                             deleteDir()
-                            def GOPATH=pwd()
+                            def BASEDIR=pwd()
+                            def GOPATH="${BASEDIR}/go"
                             withEnv([
                                 "PATH=${env.PATH}:${GOPATH}/bin",
                                 "GOPATH=${GOPATH}",
