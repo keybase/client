@@ -7,7 +7,7 @@ import * as Constants from '../constants/unlock-folders'
 import type {TypedAsyncAction, AsyncAction} from '../constants/types/flux'
 import type {ToPaperKeyInput, OnBackFromPaperKey, CheckPaperKey, Finish, Waiting,
   RegisterRekeyListenerAction, NewRekeyPopupAction} from '../constants/unlock-folders'
-import type {delegateUiCtlRegisterRekeyUIRpc, loginPaperKeySubmitRpc, rekeyRekeyStatusFinishRpc} from '../constants/types/flow-types'
+import {delegateUiCtlRegisterRekeyUIRpc, loginPaperKeySubmitRpc, rekeyRekeyStatusFinishRpc} from '../constants/types/flow-types'
 import {createServer} from '../engine/server'
 import type {Dispatch} from '../constants/types/flux'
 
@@ -27,11 +27,8 @@ function waiting (currentlyWaiting: boolean): Waiting {
 
 export function checkPaperKey (paperKey: HiddenString): TypedAsyncAction<CheckPaperKey | Waiting> {
   return dispatch => {
-    const params: loginPaperKeySubmitRpc = {
-      method: 'login.paperKeySubmit',
-      param: {
-        paperPhrase: paperKey.stringValue(),
-      },
+    loginPaperKeySubmitRpc({
+      param: {paperPhrase: paperKey.stringValue()},
       waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: error => {
         if (error) {
@@ -40,9 +37,7 @@ export function checkPaperKey (paperKey: HiddenString): TypedAsyncAction<CheckPa
           dispatch({type: Constants.checkPaperKey, payload: {success: true}})
         }
       },
-    }
-
-    engine.rpc(params)
+    })
   }
 }
 
@@ -52,11 +47,7 @@ export function finish (): Finish {
 
 export function close (): AsyncAction {
   return (dispatch, getState) => {
-    const params: rekeyRekeyStatusFinishRpc = {
-      method: 'rekey.rekeyStatusFinish',
-      callback: null,
-    }
-    engine.rpc(params)
+    rekeyRekeyStatusFinishRpc({})
     dispatch({type: Constants.close, payload: {}})
     uglyResponse('refresh', null)
   }
@@ -65,8 +56,7 @@ export function close (): AsyncAction {
 export function registerRekeyListener (): (dispatch: Dispatch) => void {
   return dispatch => {
     engine.listenOnConnect('registerRekeyUI', () => {
-      const params: delegateUiCtlRegisterRekeyUIRpc = {
-        method: 'delegateUiCtl.registerRekeyUI',
+      delegateUiCtlRegisterRekeyUIRpc({
         callback: (error, response) => {
           if (error != null) {
             console.warn('error in registering rekey ui: ', error)
@@ -74,9 +64,7 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
             console.log('Registered rekey ui')
           }
         },
-      }
-
-      engine.rpc(params)
+      })
     })
 
     createServer(

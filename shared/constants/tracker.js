@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {identifyUiDisplayTLFCreateWithInviteRpc} from './types/flow-types'
+import type {identifyUiDisplayTLFCreateWithInviteRpcParam} from './types/flow-types'
 import type {TypedAction} from './types/flux'
 import type {Folder} from '../folders/list'
 
@@ -66,7 +66,7 @@ export const showNonUser = 'tracker:showNonUser'
 export const updateFolders = 'tracker:updateFolders'
 export type UpdateFolders = TypedAction<'tracker:updateFolders', {username: string, tlfs: Array<Folder>}, void>
 
-export type ShowNonUser = TypedAction<'tracker:showNonUser', identifyUiDisplayTLFCreateWithInviteRpc.param, void>
+export type ShowNonUser = TypedAction<'tracker:showNonUser', identifyUiDisplayTLFCreateWithInviteRpcParam, void>
 
 export const pendingIdentify = 'tracker:pendingIdentify'
 export type PendingIdentify = TypedAction<'tracker:pendingIdentify', {username: string, pending: boolean}, void>
