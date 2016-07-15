@@ -393,6 +393,50 @@ func TestCrUnmergedRmdir(t *testing.T) {
 	)
 }
 
+// bob deletes a non-conflicting dir tree while unstaged.
+// Regression for KBFS-1202.
+func TestCrUnmergedRmdirTree(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a/b"),
+			mkdir("a/b/c"),
+			mkdir("a/b/d"),
+			mkfile("a/b/c/e", "hello"),
+			mkfile("a/b/d/f", "world"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/g", "merged"),
+			disableUpdates(),
+		),
+		as(bob, noSync(),
+			rm("a/b/d/f"),
+			rm("a/b/c/e"),
+			rmdir("a/b/d"),
+			rmdir("a/b/c"),
+			rmdir("a/b"),
+			reenableUpdates(),
+			lsdir("a/", m{"g": "FILE"}),
+			read("a/g", "merged"),
+		),
+		as(alice, noSync(),
+			mkfile("a/h", "merged2"),
+			reenableUpdates(),
+			lsdir("a/", m{"g": "FILE", "h": "FILE"}),
+			read("a/g", "merged"),
+			read("a/h", "merged2"),
+		),
+		as(bob,
+			lsdir("a/", m{"g": "FILE", "h": "FILE"}),
+			read("a/g", "merged"),
+			read("a/h", "merged2"),
+		),
+	)
+}
+
 // bob renames a non-conflicting file while unstaged
 func TestCrUnmergedRenameInDir(t *testing.T) {
 	test(t,
@@ -827,6 +871,40 @@ func TestCrMergedRmdir(t *testing.T) {
 		as(alice,
 			lsdir("a/", m{"c": "FILE"}),
 			read("a/c", "world"),
+		),
+	)
+}
+
+// alice deletes a non-conflicting dir tree while unstaged
+func TestCrMergedRmdirTree(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a/b"),
+			mkdir("a/b/c"),
+			mkdir("a/b/d"),
+			mkfile("a/b/c/e", "hello"),
+			mkfile("a/b/d/f", "world"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			rm("a/b/d/f"),
+			rm("a/b/c/e"),
+			rmdir("a/b/d"),
+			rmdir("a/b/c"),
+			rmdir("a/b"),
+		),
+		as(bob, noSync(),
+			mkfile("a/g", "unmerged"),
+			reenableUpdates(),
+			lsdir("a/", m{"g": "FILE"}),
+			read("a/g", "unmerged"),
+		),
+		as(alice,
+			lsdir("a/", m{"g": "FILE"}),
+			read("a/g", "unmerged"),
 		),
 	)
 }
