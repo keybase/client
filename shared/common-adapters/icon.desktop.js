@@ -53,7 +53,7 @@ export default class Icon extends Component {
         title={this.props.hint}
         style={{...globalStyles.noSelect, ...this.props.style}}
         onClick={this.props.onClick}
-        srcSet={imgPath(this.props.type, ext)} />
+        srcSet={imgPath(iconType, ext)} />
     }
   }
 }
