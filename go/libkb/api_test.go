@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"crypto/x509"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"net/http"
 	"net/url"
 	"testing"
@@ -169,3 +170,60 @@ K++p6Mo0K+KCu0IwKwdcTYKqty6xefK83p0j/IWVW29Lka44f+ZAroUlBn1+W4GO
 sB31+boS8zC7SOmgWuaHeOQdLT8=
 -----END CERTIFICATE-----
 `
+
+type DummyConfigReader struct {
+	NullConfiguration
+}
+
+var _ ConfigReader = (*DummyConfigReader)(nil)
+
+func (r *DummyConfigReader) GetDeviceID() keybase1.DeviceID {
+	return "dummy-device-id"
+}
+
+type DummyUpdaterConfigReader struct{}
+
+var _ UpdaterConfigReader = (*DummyUpdaterConfigReader)(nil)
+
+func (r *DummyUpdaterConfigReader) GetInstallID() InstallID {
+	return "dummy-install-id"
+}
+
+func TestInstallIDHeaders(t *testing.T) {
+	tc := SetupTest(t, "test", 1)
+	defer tc.Cleanup()
+
+	// Hack in the device ID and install ID with dummy readers.
+	tc.G.Env.config = &DummyConfigReader{}
+	tc.G.Env.updaterConfig = &DummyUpdaterConfigReader{}
+
+	api, err := NewInternalAPIEngine(tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := api.Get(APIArg{
+		Endpoint:     "pkg/show",
+		NeedSession:  false,
+		Args:         HTTPArgs{},
+		Contextified: NewContextified(tc.G),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	deviceID, err := res.Body.AtKey("device_id").GetString()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if deviceID != "dummy-device-id" {
+		t.Fatalf("expected device ID to be reflected back, got %s", res.Body.MarshalPretty())
+	}
+
+	installID, err := res.Body.AtKey("install_id").GetString()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if installID != "dummy-install-id" {
+		t.Fatalf("expected install ID to be reflected back, got %s", res.Body.MarshalPretty())
+	}
+}
