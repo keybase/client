@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 
-import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, Text, ProgressIndicator} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
 import type {SearchResult} from '../../constants/search'
@@ -120,9 +120,9 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
 class Render extends Component<void, Props, void> {
   render () {
     return (
-      <Box style={{overflowY: 'auto', flex: 1}}>
-        {this.props.waiting && <Icon type='icon-progress-grey-animated'
-          style={{position: 'absolute', top: 20, left: 0, right: 0, marginLeft: 'auto', marginRight: 'auto'}} />}
+      <Box style={{overflowY: 'auto', flex: 1, position: 'relative', minHeight: 40}}>
+        {this.props.waiting && <ProgressIndicator white={false}
+          style={{position: 'absolute', width: 20, top: 0, left: 0, right: 0, marginLeft: 'auto', marginRight: 'auto'}} />}
         {this.props.results.map(r => (
           <Result key={r.service + (r.icon ? r.icon : '') + r.username} result={r}
             searchText={this.props.searchText || ''} onClickResult={this.props.onClickResult} />))}

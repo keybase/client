@@ -53,13 +53,19 @@ export default class Icon extends Component {
         title={this.props.hint}
         style={{...globalStyles.noSelect, ...this.props.style}}
         onClick={this.props.onClick}
-        srcSet={imgPath(this.props.type, ext)} />
+        srcSet={imgPath(iconType, ext)} />
     }
   }
 }
 
 const imgName = (type, ext, mult) => `${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`
-const imgPath = (type, ext) => [1, 2, 3].map(mult => imgName(type, ext, mult)).join(', ')
+const imgPath = (type, ext) => {
+  if (ext === 'gif') {
+    return `${resolveImageAsURL('icons', type)}.${ext}`
+  } else {
+    return [1, 2, 3].map(mult => imgName(type, ext, mult)).join(', ')
+  }
+}
 
 export const styles = {
   icon: {
