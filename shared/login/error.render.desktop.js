@@ -2,7 +2,6 @@ import React from 'react'
 import {Text} from '../common-adapters'
 import Immutable from 'immutable'
 
-/* eslint-disable react/prop-types */
 export default props => <Text type='Body'>Error loading component {JSON.stringify(props.currentPath.toJS())}</Text>
 
 export const Mocks = {

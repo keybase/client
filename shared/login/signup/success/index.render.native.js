@@ -1,6 +1,4 @@
 /* @flow */
-/* eslint-disable react/prop-types */
-
 import React, {Component} from 'react'
 import {globalColors, globalStyles} from '../../../styles/style-guide'
 import {Box, Checkbox, Button, Text, Icon} from '../../../common-adapters'

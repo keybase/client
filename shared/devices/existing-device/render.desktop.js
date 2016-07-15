@@ -9,9 +9,9 @@ const Item = ({onClick, icon, title}) => {
   return (
     <Box className='existing-device-container' style={stylesItem} onClick={onClick}>
       <Box className='existing-device-item' style={stylesIconContainer}>
-        <Icon type={icon} style={stylesIcon} inheritColor />
+        <Icon type={icon} style={stylesIcon} inheritColor={true} />
       </Box>
-      <Text link type='Header'>{title}</Text>
+      <Text link={true} type='Header'>{title}</Text>
     </Box>
   )
 }

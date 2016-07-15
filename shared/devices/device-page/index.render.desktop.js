@@ -5,7 +5,7 @@ import {Box, Text, Icon, Button, BackButton} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import type {IconType} from '../../common-adapters/icon'
 
-const Banner = ({type, desc}: BannerItem) => { // eslint-disabled-line arrow-parens
+const Banner = ({type, desc}: BannerItem) => {
   const backgroundColor = {
     'OutOfDate': globalColors.yellow,
     'WillUnlock': globalColors.blue,

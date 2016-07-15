@@ -33,7 +33,7 @@ const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic}) => {
           {...i}
           users={i.users}
           isPublic={isPublic}
-          ignored={true} // eslint-disable-line
+          ignored={true}
           isFirst={!idx} />
         ))}
     </Box>

@@ -34,7 +34,7 @@ class Render extends Component<void, Props, void> {
             ]} />
 
           <Button
-            fullWidth
+            fullWidth={true}
             waiting={this.props.waitingForResponse}
             label='Continue'
             type='Primary'

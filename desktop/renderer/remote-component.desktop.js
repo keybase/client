@@ -1,9 +1,9 @@
 import React, {Component} from 'react'
-import {remote, ipcRenderer} from 'electron'
+import {remote, ipcRenderer, screen as electronScreen} from 'electron'
 import {resolveRootAsURL} from '../resolve-root'
 import menuHelper from '../app/menu-helper'
 import hotPath from '../hot-path'
-import {screen as electronScreen} from 'electron'
+
 const {BrowserWindow} = remote
 const remoteIdsToComponents = {}
 

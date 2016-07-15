@@ -3,10 +3,9 @@
 import React, {Component} from 'react'
 import openUrl from '../util/open-url'
 import * as shared from './user-proofs.shared'
-import {metaNone} from '../constants/tracker'
+import {metaNone, checking as proofChecking} from '../constants/tracker'
 import {Box, Icon, Meta, Text} from '../common-adapters/index'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import {checking as proofChecking} from '../constants/tracker'
 
 import type {Props, Proof} from './user-proofs'
 
@@ -44,9 +43,9 @@ export default class ProofsRender extends Component {
         <Icon style={stylesService} type={shared.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
         <Box style={stylesProofNameSection}>
           <Box style={stylesProofNameLabelContainer}>
-            <Text inline type='Body' onPress={onClickProfile} style={stylesProofName}>
-              <Text inline type='Body' style={proofNameStyle}>{proof.name}</Text>
-              <Text inline type='Body' style={stylesProofType}>@{proof.type}</Text>
+            <Text inline={true} type='Body' onPress={onClickProfile} style={stylesProofName}>
+              <Text inline={true} type='Body' style={proofNameStyle}>{proof.name}</Text>
+              <Text inline={true} type='Body' style={stylesProofType}>@{proof.type}</Text>
             </Text>
             {meta}
           </Box>

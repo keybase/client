@@ -38,11 +38,11 @@ export default class LoginRender extends Component<void, Props, void> {
           <Button
             waiting={this.props.waitingForResponse}
             style={{marginTop: 0}}
-            fullWidth
+            fullWidth={true}
             type='Primary'
             label='Log in'
             onClick={() => this.props.onSubmit()} />
-          <Text link type='BodySmallSecondaryLink' onClick={this.props.onForgotPassphrase} style={{marginTop: 24}}>Forgot passphrase?</Text>
+          <Text link={true} type='BodySmallSecondaryLink' onClick={this.props.onForgotPassphrase} style={{marginTop: 24}}>Forgot passphrase?</Text>
         </UserCard>
         <Text style={{marginTop: 30}} type='BodyPrimaryLink' onClick={this.props.onSignup}>Create an account</Text>
       </Box>

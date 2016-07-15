@@ -79,7 +79,7 @@ const stylesHeaderBar = (avatarSize: number, color: string) => ({
   height: avatarSize / 2,
   backgroundColor: color,
 })
-const stylesAvatarWrapper = (avatarSize: number) => ({ // eslint-disable-line arrow-parens
+const stylesAvatarWrapper = (avatarSize: number) => ({
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   flex: 1,

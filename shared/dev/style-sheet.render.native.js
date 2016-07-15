@@ -1,8 +1,7 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {Switch} from 'react-native'
-import {ScrollView} from 'react-native'
+import {Switch, ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
 import {Dropdown, Checkbox, Button, Box, Text, Terminal, Input, FormWithCheckbox, TabBar} from '../common-adapters'
@@ -12,7 +11,7 @@ const Space = () => <Box style={{height: 20, width: 20}} />
 
 const Row = ({children}) => (
   <Box style={{...globalStyles.flexBoxRow, marginBottom: 20}}>
-    {children.map && children.map(c => [c, <Space />]) || children}
+    {children.map && children.map((c, idx) => [c, <Space key={idx} />]) || children}
   </Box>
 )
 
@@ -59,11 +58,11 @@ const Inputs = () => (
       <Input type='password' hintText='Secure Passphrase Input' floatingLabelText='Passphrase' />
     </Row>
 
-    <Input multiLine type='passwordVisible' floatingLabelText='Multiline' style={{height: 80}} hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' />
+    <Input multiLine={true} type='passwordVisible' floatingLabelText='Multiline' style={{height: 80}} hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' />
 
     <ShowTypingDemo />
 
-    <ShowTypingDemo initialShowTyping />
+    <ShowTypingDemo initialShowTyping={true} />
 
   </Box>
 )
@@ -72,28 +71,28 @@ const Buttons = () => (
   <Box style={{...globalStyles.flexBoxColumn, padding: 10}}>
     <Row>
       <Button onClick={onClick} type='Primary' label='Primary' />
-      <Button onClick={onClick} type='Primary' label='Primary' disabled />
+      <Button onClick={onClick} type='Primary' label='Primary' disabled={true} />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Primary' label='Primary' waiting />
+      <Button onClick={onClick} type='Primary' label='Primary' waiting={true} />
     </Row>
     <Row>
       <Button onClick={onClick} type='Secondary' label='Secondary' />
-      <Button onClick={onClick} type='Secondary' label='Secondary' disabled />
+      <Button onClick={onClick} type='Secondary' label='Secondary' disabled={true} />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Secondary' label='Secondary' waiting />
+      <Button onClick={onClick} type='Secondary' label='Secondary' waiting={true} />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Danger' danger label='Danger' />
-      <Button onClick={onClick} type='Danger' danger label='Danger' disabled />
+      <Button onClick={onClick} type='Danger' danger={true} label='Danger' />
+      <Button onClick={onClick} type='Danger' danger={true} label='Danger' disabled={true} />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Danger' danger label='Danger' waiting />
+      <Button onClick={onClick} type='Danger' danger={true} label='Danger' waiting={true} />
     </Row>
     <Row>
       <Button onClick={onClick} type='Follow' label='Follow' />
-      <Button onClick={onClick} type='Follow' label='Follow' disabled />
+      <Button onClick={onClick} type='Follow' label='Follow' disabled={true} />
     </Row>
     <Row>
       <Button onClick={onClick} type='Following' label='Following' />
@@ -102,14 +101,14 @@ const Buttons = () => (
       <Button onClick={onClick} type='Unfollow' label='Unfollow' />
     </Row>
 
-    <Button onClick={onClick} type='Primary' fullWidth label='Primary full-width' /><Space />
-    <Button onClick={onClick} type='Primary' fullWidth label='Primary full-width' waiting /><Space />
-    <Button onClick={onClick} type='Secondary' fullWidth label='Secondary full-width' /><Space />
-    <Button onClick={onClick} type='Secondary' fullWidth label='Secondary full-width' waiting /><Space />
-    <Button onClick={onClick} type='Danger' fullWidth label='Danger full-width' /><Space />
-    <Button onClick={onClick} type='Danger' fullWidth label='Danger full-width' waiting /><Space />
-    <Button onClick={onClick} type='Follow' fullWidth label='Follow full-width' /><Space />
-    <Button onClick={onClick} type='Follow' fullWidth label='Follow full-width' waiting />
+    <Button onClick={onClick} type='Primary' fullWidth={true} label='Primary full-width' /><Space />
+    <Button onClick={onClick} type='Primary' fullWidth={true} label='Primary full-width' waiting={true} /><Space />
+    <Button onClick={onClick} type='Secondary' fullWidth={true} label='Secondary full-width' /><Space />
+    <Button onClick={onClick} type='Secondary' fullWidth={true} label='Secondary full-width' waiting={true} /><Space />
+    <Button onClick={onClick} type='Danger' fullWidth={true} label='Danger full-width' /><Space />
+    <Button onClick={onClick} type='Danger' fullWidth={true} label='Danger full-width' waiting={true} /><Space />
+    <Button onClick={onClick} type='Follow' fullWidth={true} label='Follow full-width' /><Space />
+    <Button onClick={onClick} type='Follow' fullWidth={true} label='Follow full-width' waiting={true} />
   </Box>
 )
 
@@ -221,7 +220,7 @@ const Colors = () => (
         <Box style={{width: 60, height: 60, backgroundColor: globalColors[c]}} />
         <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}}>
           <Text type='Body'>{c}</Text>
-          <Text type='Body' small>{globalColors[c]}</Text>
+          <Text type='Body' small={true}>{globalColors[c]}</Text>
         </Box>
       </Row>
       ))}
@@ -263,8 +262,8 @@ const Checkboxes = ({check, flip}) => {
       {false && <Row><Switch onTintColor={globalColors.blue} value={check[1]} onValueChange={() => flip(1)} /></Row>}
       <Row><Checkbox label='Switch unswitched' onCheck={() => flip(2)} checked={check[2]} disabled={false} /></Row>
       <Row><Checkbox label='Switch switched' onCheck={() => flip(3)} checked={check[3]} disabled={false} /></Row>
-      <Row><Checkbox label='Switch unswitched disabled' onCheck={() => flip(4)} checked={check[4]} disabled /></Row>
-      <Row><Checkbox label='Switch switched disabled' onCheck={() => flip(5)} checked={check[5]} disabled /></Row>
+      <Row><Checkbox label='Switch unswitched disabled' onCheck={() => flip(4)} checked={check[4]} disabled={true} /></Row>
+      <Row><Checkbox label='Switch switched disabled' onCheck={() => flip(5)} checked={check[5]} disabled={true} /></Row>
     </Box>
   )
 }
@@ -286,7 +285,7 @@ const TabBars = ({selected, onPress}) => {
         </TabBar>
       </Box>
       <Box>
-        <TabBar underlined>
+        <TabBar underlined={true}>
           <TabBarItem label='One' selected={selected[0]} onClick={() => onPress(0)}>
             <Text type='Header' style={{backgroundColor: 'orange'}}>One</Text>
           </TabBarItem>
@@ -338,7 +337,7 @@ export default class Render extends Component {
         <Container title='Text'><Fonts /></Container>
         <Container title='TabBar'>
           <TabBars selected={this.state.tabSelected} onPress={
-            (idx: number) => this._selectTab(idx) // eslint-disable-line arrow-parens
+            (idx: number) => this._selectTab(idx)
           } />
         </Container>
         <Container title='Dropdown'><Dropdowns

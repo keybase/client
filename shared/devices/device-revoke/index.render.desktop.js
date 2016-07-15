@@ -23,7 +23,7 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props
   const body = <Text type='Header'>Are you sure you want to revoke {currentDevice ? 'your current device' : name}?</Text>
 
   return (
-    <Confirm theme='public' danger header={header} body={body} submitLabel='Yes, delete it' onSubmit={() => onSubmit({deviceID, name, currentDevice})} onCancel={onCancel} />
+    <Confirm theme='public' danger={true} header={header} body={body} submitLabel='Yes, delete it' onSubmit={() => onSubmit({deviceID, name, currentDevice})} onCancel={onCancel} />
   )
 }
 

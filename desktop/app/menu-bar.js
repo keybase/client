@@ -5,7 +5,7 @@ import menubar from 'menubar'
 
 let iconType: 'regular' | 'update' | 'badged' = 'regular'
 
-const getIcon = () => { // eslint-disable-line arrow-parens
+const getIcon = () => {
   const devMode = __DEV__ ? '-dev' : ''
   let color = 'white'
   let platform = ''

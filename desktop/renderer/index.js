@@ -6,12 +6,11 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import {Provider} from 'react-redux'
-import {setup as setupLocalDebug} from '../shared/local-debug.desktop'
 import configureStore from '../shared/store/configure-store'
 import Nav from '../shared/nav.desktop'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import ListenLogUi from '../shared/native/listen-log-ui'
-import {reduxDevToolsEnable, devStoreChangingFunctions} from '../shared/local-debug.desktop'
+import {reduxDevToolsEnable, devStoreChangingFunctions, setup as setupLocalDebug} from '../shared/local-debug.desktop'
 import {listenForNotifications} from '../shared/actions/notifications'
 import hello from '../shared/util/hello'
 

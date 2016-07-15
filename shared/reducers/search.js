@@ -3,9 +3,9 @@
 import * as Constants from '../constants/search'
 import * as CommonConstants from '../constants/common'
 import type {IconType} from '../common-adapters/icon'
-import {equalSearchResult} from '../constants/search'
-
 import type {SearchResult, SearchActions, SearchPlatforms} from '../constants/search'
+
+const {equalSearchResult} = Constants
 
 export type State = {
   searchHintText: string,

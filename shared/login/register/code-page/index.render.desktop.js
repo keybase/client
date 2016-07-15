@@ -9,8 +9,8 @@ import {globalStyles, globalColors} from '../../../styles/style-guide'
 import {Text, Icon, Input, Button} from '../../../common-adapters'
 import {specialStyles as textStyles} from '../../../common-adapters/text'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
-        codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
-import {codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
+        codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer,
+        codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 
@@ -31,7 +31,7 @@ export default class CodePageRender extends Component<void, Props, void> {
 
         <Text type='Header' style={{marginTop: 60}}>Type in text code</Text>
         <p style={{marginTop: 10}}>
-          <Text type='BodySmall' inline>Run&nbsp;</Text><Text type='TerminalSmall' inline>keybase device add</Text><Text type='BodySmall' inline>&nbsp;on your other device and type this code there: </Text>
+          <Text type='BodySmall' inline={true}>Run&nbsp;</Text><Text type='TerminalSmall' inline={true}>keybase device add</Text><Text type='BodySmall' inline={true}>&nbsp;on your other device and type this code there: </Text>
         </p>
         <Icon type='icon-computer-bw-48' style={{marginTop: 28}} />
 
@@ -78,7 +78,7 @@ export default class CodePageRender extends Component<void, Props, void> {
           style={{alignSelf: 'stretch'}}
           hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
           floatingLabelText='Text code'
-          multiLine
+          multiLine={true}
           value={this.props.enterText}
           onChange={event => this.props.onChangeText(event.target.value)}
         />

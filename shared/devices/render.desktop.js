@@ -87,7 +87,7 @@ const RevokedDescription = () => (
 const RevokedDevices = ({revokedDevices, showExistingDevicePage}) => (
   <RevokedHeader>
     <RevokedDescription />
-    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked showExistingDevicePage={showExistingDevicePage} />)}
+    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked={true} showExistingDevicePage={showExistingDevicePage} />)}
   </RevokedHeader>
 )
 

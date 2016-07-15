@@ -48,14 +48,14 @@ class Login extends Component {
           placeholder='Passphrase'
           returnKeyType='go'
           clearButtonMode='while-editing'
-          secureTextEntry
+          secureTextEntry={true}
         />
         <Text style={{alignSelf: 'flex-end', marginTop: 20, padding: 10}} onPress={() => this.props.showForgotUserPassPage()}>Forgot username/passphrase?</Text>
         <Button
           style={{alignSelf: 'flex-end', marginTop: 20}}
           onPress={() => { this.submitLogin() }}
           enabled={this.state.username.length && this.state.passphrase.length}
-          isAction
+          isAction={true}
           type='Secondary'
           title='Submit' />
       </View>

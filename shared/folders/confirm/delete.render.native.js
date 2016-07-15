@@ -23,7 +23,7 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
       <Text type='Body' style={{...textColorThemed[theme], textAlign: 'center'}}>Deletes everything in this folder, including the backup versions.</Text>
     </Box>
   )
-  return <Confirm theme={theme} danger header={header} body={body} submitLabel='Yes, delete it' onSubmit={onSubmit} onCancel={onCancel} />
+  return <Confirm theme={theme} danger={true} header={header} body={body} submitLabel='Yes, delete it' onSubmit={onSubmit} onCancel={onCancel} />
 }
 
 const textColorThemed = {

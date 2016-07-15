@@ -13,9 +13,9 @@ class Render extends Component<void, Props, void> {
         <Icon type='icon-no-gpg' style={styles.icon} />
         <Text type='HeaderError' style={styles.header}>You don't have a GPG pinentry app installed.</Text>
         <p style={styles.paragraph}>
-          <Text type='Body' inline>If you want to use GPG to provision this device, you’ll need to use the </Text>
-          <Text type='Terminal' inline>keybase</Text>
-          <Text type='Body' inline> command line application or choose another way to provision this device.</Text>
+          <Text type='Body' inline={true}>If you want to use GPG to provision this device, you’ll need to use the </Text>
+          <Text type='Terminal' inline={true}>keybase</Text>
+          <Text type='Body' inline={true}> command line application or choose another way to provision this device.</Text>
         </p>
       </Container>
     )

@@ -1,6 +1,4 @@
 /* @flow */
-/* eslint-disable react/prop-types */
-
 import React, {Component} from 'react'
 import {findDOMNode} from 'react-dom'
 import {globalStyles, globalColors} from '../styles/style-guide'
@@ -146,7 +144,7 @@ export default class Text extends Component {
           ref='text'
           className={className}
           style={style}
-          contentEditable
+          contentEditable={true}
           onKeyUp={this.props.onKeyUp}
           onKeyDown={this.props.onKeyDown}
           onClick={this.props.onClick} />)

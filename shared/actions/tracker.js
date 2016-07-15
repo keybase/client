@@ -384,7 +384,6 @@ function updateUserInfo (userCard: UserCard, username: string, getState: () => {
 
 // TODO: if we get multiple tracker calls we should cancel one of the sessionIDs, now they'll clash
 function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: boolean = false): CallMap {
-  /* eslint-disable arrow-parens */
   const sessionIDToUsername: { [key: number]: string } = {}
   const identifyUi = {
     start: ({username, sessionID, reason}) => {
@@ -531,7 +530,6 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
   }
 
   return promisifyResponses(flattenCallMap({keybase: {'1': {identifyUi}}}))
-  /* eslint-enable arrow-parens */
 }
 
 function updateProof (remoteProof: RemoteProof, linkCheckResult: LinkCheckResult, username: string): Action {

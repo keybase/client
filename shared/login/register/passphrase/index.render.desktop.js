@@ -17,7 +17,7 @@ class Render extends Component<void, Props, void> {
         <UserCard style={stylesCard} username={this.props.username}>
           <Text type='HeaderBig' style={{...specialStyles.username}}>{this.props.username}</Text>
           <Input
-            autoFocus
+            autoFocus={true}
             style={stylesInput}
             type='password'
             floatingLabelText='Passphrase'
@@ -26,7 +26,7 @@ class Render extends Component<void, Props, void> {
             value={this.props.passphrase}
             errorText={this.props.error} />
           <Button
-            fullWidth
+            fullWidth={true}
             waiting={this.props.waitingForResponse}
             label='Continue'
             type='Primary'

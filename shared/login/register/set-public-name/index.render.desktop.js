@@ -9,7 +9,7 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
     <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
     <Icon type='icon-computer-colors-64' style={stylesIcon} />
     <Input
-      autoFocus
+      autoFocus={true}
       errorText={deviceNameError}
       style={stylesInput}
       floatingLabelText='Device name'

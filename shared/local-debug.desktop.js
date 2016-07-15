@@ -80,6 +80,7 @@ export const {
   showDevTools,
   showAllTrackers,
   reduxDevToolsSelect,
+  reduxDevToolsEnable,
   enableStoreLogging,
   forwardLogs,
   devStoreChangingFunctions,

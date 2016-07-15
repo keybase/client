@@ -1,5 +1,5 @@
 import logger from './logger'
-import setupLocalLogs, {logLocal, warnLocal, errorLocal} from '../util/local-log'
+import setupLocalLogs from '../util/local-log'
 import {forwardLogs} from '../local-debug'
 
 let forwarded = false
@@ -10,7 +10,7 @@ export default function () {
   }
   forwarded = true
 
-  setupLocalLogs()
+  const {logLocal, warnLocal, errorLocal} = setupLocalLogs()
 
   if (!forwardLogs) {
     return

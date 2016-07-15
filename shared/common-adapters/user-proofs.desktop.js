@@ -5,8 +5,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {Icon, Text, Meta} from '../common-adapters/index'
 import openUrl from '../util/open-url'
 import * as shared from './user-proofs.shared'
-import {metaNone} from '../constants/tracker'
-import {checking as proofChecking} from '../constants/tracker'
+import {metaNone, checking as proofChecking} from '../constants/tracker'
 
 import type {Proof, Props} from './user-proofs'
 
@@ -49,9 +48,9 @@ class ProofsRender extends Component {
         <Icon style={styleService} type={shared.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
         <span style={styleProofNameSection}>
           <span style={styleProofNameLabelContainer}>
-            <Text inline className='hover-underline-container' type='Body' onClick={onClickProfile} style={proofStyle}>
-              <Text inline type='Body' className='underline' style={proofNameStyle}>{proof.name}</Text>
-              <Text className='no-underline' inline type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>
+            <Text inline={true} className='hover-underline-container' type='Body' onClick={onClickProfile} style={proofStyle}>
+              <Text inline={true} type='Body' className='underline' style={proofNameStyle}>{proof.name}</Text>
+              <Text className='no-underline' inline={true} type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>
             </Text>
             {meta}
           </span>
