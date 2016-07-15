@@ -861,7 +861,8 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 			continue
 		}
 		mergedChain, ok := mergedChains.byOriginal[original]
-		if !ok || len(mergedChain.ops) == 0 {
+		if !ok || len(mergedChain.ops) == 0 ||
+			mergedChains.isDeleted(original) {
 			continue
 		}
 
