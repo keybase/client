@@ -30,6 +30,8 @@ let config = {
   forceMainWindowPosition: null,
   closureStoreCheck: false,
   searchActive: false,
+  logStatFrequency: 0,
+  actionStatFrequency: 0,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -40,8 +42,8 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.reduxDevToolsEnable = false
   config.redirectOnLogout = false
   config.reduxDevToolsSelect = state => state.tracker
-  config.enableStoreLogging = true
-  config.enableActionLogging = false
+  config.enableStoreLogging = false
+  config.enableActionLogging = true
   config.forwardLogs = false
   config.devStoreChangingFunctions = true
   config.printOutstandingRPCs = true
@@ -54,6 +56,8 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
     [Tabs.loginTab]: [],
     [Tabs.settingsTab]: ['devMenu', 'dumbSheet'],
   }
+  config.logStatFrequency = 0.8
+  config.actionStatFrequency = 0.8
 
   let envJson = null
   if (process.env.KEYBASE_LOCAL_DEBUG_JSON) {
@@ -89,6 +93,8 @@ export const {
   forceMainWindowPosition,
   closureStoreCheck,
   searchActive,
+  logStatFrequency,
+  actionStatFrequency,
 } = config
 
 export function initTabbedRouterState (state) {
