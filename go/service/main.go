@@ -202,6 +202,7 @@ func (d *Service) startupGregor() {
 
 		// Add default handlers
 		d.gregor.PushHandler(newUserHandler(d.G()))
+		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
 		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
