@@ -3,9 +3,11 @@
 
 export {default as globalColors} from './style-guide-colors'
 
-export const globalResizing = {
-  login: {width: 700, height: 580},
-  normal: {width: 900, height: 900},
+export const windowStyle = {
+  minWidth: 800,
+  minHeight: 600,
+  width: 800, // Default width
+  height: 600, // Default height
 }
 
 const fontCommon = {

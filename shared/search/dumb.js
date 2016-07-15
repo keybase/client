@@ -5,7 +5,7 @@ import Search from './render'
 import type {DumbComponentMap} from '../constants/types/more'
 import UserPane from './user-pane/render'
 
-import userPaneMocks from './user-pane/dumb.desktop'
+import userPaneMocks from './user-pane/dumb'
 
 const results = [
   {

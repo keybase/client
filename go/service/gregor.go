@@ -129,17 +129,18 @@ func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
 	return res, err
 }
 
-func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
-	gh = &gregorHandler{
+func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
+	gh := &gregorHandler{
 		Contextified: libkb.NewContextified(g),
 		freshReplay:  true,
 	}
 
-	// Create client interface to gregord; we should do this everytime a
-	// user logs in.
-	if err = gh.resetGregorClient(); err != nil {
-		return nil, err
+	// Attempt to create a gregor client initially, if we are not logged in
+	// or don't have user/device info in G, then this won't work
+	if err := gh.resetGregorClient(); err != nil {
+		g.Log.Warning("unable to create push service client: %s", err)
 	}
+
 	return gh, nil
 }
 
@@ -191,6 +192,13 @@ func (g *gregorHandler) resetGregorClient() (err error) {
 	return nil
 }
 
+func (g *gregorHandler) getGregorCli() (*grclient.Client, error) {
+	if g.gregorCli == nil {
+		return nil, errors.New("client unset")
+	}
+	return g.gregorCli, nil
+}
+
 func (g *gregorHandler) Debug(s string, args ...interface{}) {
 	g.G().Log.Debug("push handler: "+s, args...)
 }
@@ -206,6 +214,12 @@ func (g *gregorHandler) Errorf(s string, args ...interface{}) {
 func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
 
 	defer g.G().Trace("gregorHandler#Connect", func() error { return err })()
+
+	// Create client interface to gregord; the user needs to be logged in for this
+	// to work
+	if err = g.resetGregorClient(); err != nil {
+		return err
+	}
 
 	// In case we need to interrupt auth'ing or the ping loop,
 	// set up this channel.
@@ -234,9 +248,14 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 
 	g.ibmHandlers = append(g.ibmHandlers, handler)
 
-	if _, err := g.replayInBandMessages(context.TODO(), gregor1.IncomingClient{Cli: g.cli},
-		time.Time{}, handler); err != nil {
-		g.Errorf("replayInBandMessages on PushHandler failed: %s", err)
+	// Only try replaying if we are logged in, it's possible that a handler can
+	// attach before that is true (like if we start the service logged out and
+	// Electron connects)
+	if g.IsConnected() {
+		if _, err := g.replayInBandMessages(context.TODO(), gregor1.IncomingClient{Cli: g.cli},
+			time.Time{}, handler); err != nil {
+			g.Errorf("replayInBandMessages on PushHandler failed: %s", err)
+		}
 	}
 }
 
@@ -294,20 +313,25 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 	var msgs []gregor.InBandMessage
 	var err error
 
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return nil, err
+	}
+
 	if t.IsZero() {
 		g.Debug("replayInBandMessages: fresh replay: using state items")
-		state, err := g.gregorCli.StateMachineState(nil)
+		state, err := gcli.StateMachineState(nil)
 		if err != nil {
 			g.Warning("unable to fetch state for replay: %s", err)
 			return nil, err
 		}
-		if msgs, err = g.gregorCli.InBandMessagesFromState(state); err != nil {
+		if msgs, err = gcli.InBandMessagesFromState(state); err != nil {
 			g.Warning("unable to fetch messages from state for replay: %s", err)
 			return nil, err
 		}
 	} else {
 		g.Debug("replayInBandMessages: incremental replay: using ibms since")
-		if msgs, err = g.gregorCli.StateMachineInBandMessagesSince(t); err != nil {
+		if msgs, err = gcli.StateMachineInBandMessagesSince(t); err != nil {
 			g.Warning("unable to fetch messages for replay: %s", err)
 			return nil, err
 		}
@@ -344,10 +368,15 @@ func (g *gregorHandler) IsConnected() bool {
 func (g *gregorHandler) serverSync(ctx context.Context,
 	cli gregor1.IncomingInterface) ([]gregor.InBandMessage, []gregor.InBandMessage, error) {
 
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return nil, nil, err
+	}
+
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
 	if !g.freshReplay {
-		pt := g.gregorCli.StateMachineLatestCTime()
+		pt := gcli.StateMachineLatestCTime()
 		if pt != nil {
 			t = *pt
 		}
@@ -357,7 +386,7 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	}
 
 	// Sync down everything from the server
-	consumedMsgs, err := g.gregorCli.Sync(cli)
+	consumedMsgs, err := gcli.Sync(cli)
 	if err != nil {
 		g.Errorf("error syncing from the server, reason: %s", err)
 		return nil, nil, err
@@ -450,10 +479,13 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	// Handle the message
 	ibm := m.ToInBandMessage()
 	if ibm != nil {
-
+		gcli, err := g.getGregorCli()
+		if err != nil {
+			return err
+		}
 		// Check to see if this is already in our state
 		msgID := ibm.Metadata().MsgID()
-		state, err := g.gregorCli.StateMachineState(nil)
+		state, err := gcli.StateMachineState(nil)
 		if err != nil {
 			return err
 		}
@@ -466,7 +498,7 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 		err = g.handleInBandMessage(ctx, gregor1.IncomingClient{Cli: g.cli}, ibm)
 
 		// Send message to local state machine
-		g.gregorCli.StateMachineConsumeMessage(m)
+		gcli.StateMachineConsumeMessage(m)
 
 		// Forward to electron or whichever UI is listening for the new gregor state
 		g.pushState(keybase1.PushReason_NEW_DATA)
@@ -525,7 +557,11 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context, cli 
 	ibm gregor.InBandMessage, handler libkb.GregorInBandMessageHandler) (bool, error) {
 	g.Debug("handleInBand: %+v", ibm)
 
-	state, err := g.gregorCli.StateMachineState(nil)
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return false, err
+	}
+	state, err := gcli.StateMachineState(nil)
 	if err != nil {
 		return false, err
 	}

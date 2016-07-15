@@ -26,7 +26,6 @@ import {navigateBack, navigateUp} from './actions/router'
 import TabBar from './tab-bar/index.render'
 
 import {bootstrap} from './actions/config'
-import {globalResizing} from './styles/style-guide'
 
 const tabs = {
   [settingsTab]: {module: Settings, name: 'Settings'},
@@ -50,7 +49,8 @@ type Props = {
   provisioned: boolean,
   username: string,
   navigateBack: () => void,
-  navigateUp: () => void
+  navigateUp: () => void,
+  folderBadge: number
 }
 
 class Nav extends Component<void, Props, State> {
@@ -107,40 +107,9 @@ class Nav extends Component<void, Props, State> {
         return
       }
 
-      const oldWasLogin = this._lastCheckedTab === loginTab
-      const newIsLogin = activeTab === loginTab
-
-      // going to/from login?
-      if (newIsLogin) {
-        const [width, height] = currentWindow.getContentSize()
-
-        // Did we actually change the size
-        if (width !== globalResizing.login.width && height !== globalResizing.login.height) {
-          this._originalSize = {width, height}
-        }
-
-        currentWindow.setContentSize(globalResizing.login.width, globalResizing.login.height, true)
-        currentWindow.setResizable(false)
-
-        if (flags.mainWindow) {
-          ipcRenderer.send('showMain')
-        }
-      } else if (oldWasLogin) {
-        if (!flags.mainWindow) {
-          // We close since that will hide the window and release the dock icon
-          currentWindow.close()
-        }
-
-        if (this._originalSize) {
-          const {width, height} = this._originalSize
-          currentWindow.setContentSize(width, height, true)
-        } else {
-          currentWindow.setContentSize(globalResizing.normal.width, globalResizing.normal.height, true)
-        }
-        currentWindow.setResizable(true)
-      }
-
       this._lastCheckedTab = activeTab
+
+      ipcRenderer.send('tabChanged', activeTab)
     })
   }
 
@@ -163,6 +132,10 @@ class Nav extends Component<void, Props, State> {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
+    if (this.props.folderBadge !== nextProps.folderBadge) {
+      return true
+    }
+
     if (this.props.menuBadge !== nextProps.menuBadge) {
       ipcRenderer.send(this.props.menuBadge ? 'showTrayRegular' : 'showTrayBadged')
     }
@@ -209,12 +182,7 @@ class Nav extends Component<void, Props, State> {
       )
     }
 
-    if (!flags.mainWindow) {
-      return <div>Coming soon!</div>
-    }
-
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
-
     return (
       <div style={stylesTabsContainer}>
         <TabBar
@@ -224,7 +192,7 @@ class Nav extends Component<void, Props, State> {
           searchActive={this.state.searchActive}
           username={this.props.username}
           searchContent={<Search />}
-          badgeNumbers={{}}
+          badgeNumbers={{[folderTab]: this.props.folderBadge}}
           tabContent={tabContent} />
       </div>
     )
@@ -237,13 +205,17 @@ const stylesTabsContainer = {
 }
 
 export default connect(
-  ({tabbedRouter, config: {bootstrapped, extendedConfig, username}, notifications: {menuBadge}}) => ({
-    tabbedRouter,
-    bootstrapped,
-    provisioned: extendedConfig && !!extendedConfig.device,
-    username,
-    menuBadge,
-  }),
+  ({tabbedRouter,
+    config: {bootstrapped, extendedConfig, username},
+    favorite: {publicBadge, privateBadge},
+    notifications: {menuBadge}}) => ({
+      tabbedRouter,
+      bootstrapped,
+      provisioned: extendedConfig && !!extendedConfig.device,
+      username,
+      menuBadge,
+      folderBadge: publicBadge + privateBadge,
+    }),
   dispatch => {
     return {
       switchTab: tab => dispatch(switchTab(tab)),

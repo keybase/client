@@ -4,7 +4,6 @@ import type {FeatureFlags} from './feature-flags'
 
 const ff: FeatureFlags = {
   admin: __DEV__,
-  mainWindow: false,
   mobileAppsExist: false,
   tabPeopleEnabled: false,
   tabFoldersEnabled: false,

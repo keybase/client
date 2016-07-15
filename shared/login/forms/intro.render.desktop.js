@@ -29,6 +29,7 @@ export default class Intro extends Component<void, IntroProps, void> {
 const stylesLoginForm = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  justifyContent: 'center',
   marginTop: 95,
   flex: 1,
 }

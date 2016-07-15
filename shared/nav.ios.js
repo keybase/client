@@ -161,7 +161,7 @@ class Nav extends Component {
 
     return (
       <View style={{flex: 1}}>
-        <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{}} tabContent={tabContent} />
+        <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{[folderTab]: this.props.folderBadge}} tabContent={tabContent} />
       </View>
     )
   }
@@ -192,12 +192,13 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
-  ({tabbedRouter, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({
+  ({tabbedRouter, favorite: {privateBadge, publicBadge}, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({
     tabbedRouter,
     bootstrapped,
     provisioned: extendedConfig && !!extendedConfig.device,
     username,
     dumbFullscreen,
+    folderBadge: privateBadge + publicBadge,
   }),
   dispatch => {
     return {

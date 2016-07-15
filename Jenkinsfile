@@ -1,6 +1,7 @@
 #!groovy
 
 node("ec2-fleet") {
+    deleteDir()
     properties([
             [$class: "BuildDiscarderProperty",
                 strategy: [$class: "LogRotator",
@@ -58,13 +59,12 @@ node("ec2-fleet") {
     ws("${env.GOPATH}/src/github.com/keybase/client") {
 
         stage "Setup"
-
-
-
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
                     checkout: {
-                        checkout scm
+                        retry(3) {
+                            checkout scm
+                        }
                         sh "git rev-parse HEAD | tee go/revision"
                         sh "git add go/revision"
                     },
@@ -190,6 +190,7 @@ node("ec2-fleet") {
                         },
                         test_windows: {
                             node('windows') {
+                                deleteDir()
                                 def GOPATH=pwd()
                                 withEnv([
                                     'GOROOT=C:\\tools\\go',
@@ -198,9 +199,11 @@ node("ec2-fleet") {
                                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                 ]) {
-                                ws("${GOPATH}/src/github.com/keybase/client") {
+                                ws("$GOPATH/src/github.com/keybase/client") {
                                     println "Checkout Windows"
-                                    checkout scm
+                                    retry(3) {
+                                        checkout scm
+                                    }
 
                                     println "Test Windows"
                                     parallel (
@@ -261,6 +264,7 @@ node("ec2-fleet") {
                         },
                         test_osx: {
                             node('osx') {
+                                deleteDir()
                                 def GOPATH=pwd()
                                 withEnv([
                                     "GOPATH=${GOPATH}",
@@ -268,9 +272,11 @@ node("ec2-fleet") {
                                     "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
                                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
                                 ]) {
-                                ws("${GOPATH}/src/github.com/keybase/client") {
+                                ws("$GOPATH/src/github.com/keybase/client") {
                                     println "Checkout OS X"
-                                        checkout scm
+                                        retry(3) {
+                                            checkout scm
+                                        }
 
                                     println "Test OS X"
                                         testNixGo("OS X")
@@ -278,6 +284,9 @@ node("ec2-fleet") {
                             }
                         },
                     )
+            } catch(ex) {
+                sh "docker logs ${kbweb.id}"
+                throw ex
             } finally {
                 if (kbweb != null) {
                     kbweb.stop()
@@ -312,17 +321,20 @@ def waitForURL(prefix, url) {
         ' """
     } else {
         bat """
-            powershell.exe -c ' \
+            powershell.exe -c "& { \
                 \$slept=0; \
-                \$res=1; \
                 do { \
-                    curl.exe --silent ${url} >nul 2>&1 && echo "Connected to ${url} after waiting \$slept times" && exit 0; \
+                    curl.exe --silent ${url} >\$null; \
+                    if (\$?) { \
+                        echo \\"Connected to ${url} after waiting \$slept times\\"; \
+                        exit 0; \
+                    } \
                     sleep 1; \
                     \$slept++; \
                 } while (\$slept -lt ${waitFor}); \
-                echo "Unable to connect to ${url} after waiting ${waitFor} times"; \
+                echo \\"Unable to connect to ${url} after waiting \$slept times\\"; \
                 exit 1; \
-            '
+            }"
         """
     }
 }

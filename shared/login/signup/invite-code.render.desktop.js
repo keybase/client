@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {globalStyles} from '../../styles/style-guide'
-import {Text, Input, Button, Icon} from '../../common-adapters'
+import {Box, Text, Input, Button, Icon} from '../../common-adapters'
 import Container from '../forms/container'
 import type {Props} from './invite-code.render'
 
@@ -27,12 +27,14 @@ class Render extends Component<void, Props, State> {
 
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
-        <Text style={stylesHeader} type='Header'>Type in your invite code:</Text>
-        <Icon style={stylesIcon} type='icon-invite-code-48' />
-        <Input autoFocus style={stylesInput} hintText='goddess brown result reject' value={this.state.inviteCode} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode} onChange={event => this.setState({inviteCode: event.target.value})} />
-        <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode} />
-        <Text style={stylesText} type='Body'>Not invited?</Text>
-        <Text type='BodyPrimaryLink' onClick={this.props.onRequestInvite}>Request an invite code</Text>
+        <Box style={stylesBox}>
+          <Text style={stylesHeader} type='Header'>Type in your invite code:</Text>
+          <Icon style={stylesIcon} type='icon-invite-code-48' />
+          <Input autoFocus style={stylesInput} hintText='goddess brown result reject' value={this.state.inviteCode} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode} onChange={event => this.setState({inviteCode: event.target.value})} />
+          <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode} />
+          <Text style={stylesText} type='Body'>Not invited?</Text>
+          <Text type='BodyPrimaryLink' onClick={this.props.onRequestInvite}>Request an invite code</Text>
+        </Box>
       </Container>
     )
   }
@@ -46,6 +48,13 @@ const stylesButton = {
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  justifyContent: 'center',
+  flex: 1,
+}
+const stylesBox = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  width: 580,
 }
 const stylesHeader = {
   marginTop: 30,
