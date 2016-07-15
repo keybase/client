@@ -2623,13 +2623,16 @@ func (fbo *folderBlockOps) getUndirtiedEntry(
 
 func (fbo *folderBlockOps) setCachedAttr(
 	ctx context.Context, lState *lockState,
-	ref blockRef, op *setAttrOp, realEntry *DirEntry) {
+	ref blockRef, op *setAttrOp, realEntry *DirEntry, doCreate bool) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 
 	fileEntry, ok := fbo.deCache[ref]
 	if !ok {
-		return
+		if !doCreate {
+			return
+		}
+		fileEntry = *realEntry
 	}
 
 	switch op.Attr {
@@ -2638,6 +2641,7 @@ func (fbo *folderBlockOps) setCachedAttr(
 	case mtimeAttr:
 		fileEntry.Mtime = realEntry.Mtime
 	}
+	fileEntry.Ctime = realEntry.Ctime
 	fbo.deCache[ref] = fileEntry
 }
 
@@ -2673,10 +2677,20 @@ func (fbo *folderBlockOps) UpdateCachedEntryAttributes(
 	}
 
 	if cleanEntry != nil {
-		fbo.setCachedAttr(ctx, lState, de.ref(), op, cleanEntry)
+		fbo.setCachedAttr(ctx, lState, de.ref(), op, cleanEntry, false)
 	}
 
 	return childNode, nil
+}
+
+// UpdateCachedEntryAttributesOnRemovedFile updates any cached entry
+// for the given path of an unlinked file, according to the given op,
+// and it makes a new dirty cache entry if one doesn't exist yet.  We
+// assume Sync will be called eventually on the corresponding open
+// file handle, which will clear out the entry.
+func (fbo *folderBlockOps) UpdateCachedEntryAttributesOnRemovedFile(
+	ctx context.Context, lState *lockState, op *setAttrOp, de DirEntry) {
+	fbo.setCachedAttr(ctx, lState, de.ref(), op, &de, true)
 }
 
 func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
