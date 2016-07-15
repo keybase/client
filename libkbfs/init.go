@@ -342,15 +342,21 @@ func Init(ctx Context, params InitParams, keybaseDaemonFn KeybaseDaemonFn, onInt
 
 	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
 
+	var crypto Crypto
 	localUser := libkb.NewNormalizedUsername(params.LocalUser)
 	if localUser == "" {
-		c := NewCryptoClient(config, ctx)
-		config.SetCrypto(c)
+		crypto = NewCryptoClient(config, ctx)
 	} else {
 		signingKey := MakeLocalUserSigningKeyOrBust(localUser)
 		cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(localUser)
-		config.SetCrypto(NewCryptoLocal(config, signingKey, cryptPrivateKey))
+		crypto = NewCryptoLocal(config, signingKey, cryptPrivateKey)
 	}
+
+	if registry := config.MetricsRegistry(); registry != nil {
+		crypto = NewCryptoMeasured(crypto, registry)
+	}
+
+	config.SetCrypto(crypto)
 
 	bserv, err := makeBlockServer(config, params.ServerInMemory, params.ServerRootDir, params.BServerAddr, ctx, log)
 	if err != nil {

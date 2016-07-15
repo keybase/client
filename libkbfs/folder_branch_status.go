@@ -21,6 +21,7 @@ type FolderBranchStatus struct {
 	DiskUsage    uint64
 	RekeyPending bool
 	FolderID     string
+	Revision     MetadataRevision
 
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.
@@ -168,6 +169,7 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context) (
 		fbs.DiskUsage = fbsk.md.DiskUsage
 		fbs.RekeyPending = fbsk.config.RekeyQueue().IsRekeyPending(fbsk.md.ID)
 		fbs.FolderID = fbsk.md.ID.String()
+		fbs.Revision = fbsk.md.Revision
 	}
 
 	fbs.DirtyPaths = fbsk.convertNodesToPathsLocked(fbsk.dirtyNodes)
