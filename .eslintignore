@@ -3,6 +3,7 @@
 /desktop/release/**
 /desktop/node_modules
 /desktop/shared
+/desktop/js-vendor-desktop
 /react-native/node_modules
 /react-native/shared
 /shared/libs/immutable-interface.js
