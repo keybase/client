@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -35,8 +36,9 @@ type opt struct {
 	expectedCanonicalTlfName string
 	tlfIsPublic              bool
 	users                    map[libkb.NormalizedUsername]User
+	stallers                 map[libkb.NormalizedUsername]*libkbfs.NaïveStaller
 	t                        testing.TB
-	initDone                 bool
+	initOnce                 sync.Once
 	engine                   Engine
 	blockSize                int64
 	blockChangeSize          int64
@@ -56,6 +58,28 @@ func test(t testing.TB, actions ...optionOp) {
 	}
 }
 
+func parallel(actions ...optionOp) optionOp {
+	return func(o *opt) {
+		wg := new(sync.WaitGroup)
+		for _, omod := range actions {
+			wg.Add(1)
+			go func(omod optionOp) {
+				omod(o)
+				wg.Done()
+			}(omod)
+		}
+		wg.Wait()
+	}
+}
+
+func sequential(actions ...optionOp) optionOp {
+	return func(o *opt) {
+		for _, omod := range actions {
+			omod(o)
+		}
+	}
+}
+
 func (o *opt) close() {
 	for _, user := range o.users {
 		o.expectSuccess("Shutdown", o.engine.Shutdown(user))
@@ -63,14 +87,22 @@ func (o *opt) close() {
 }
 
 func (o *opt) runInitOnce() {
-	if o.initDone {
-		return
+	o.initOnce.Do(func() {
+		o.clock = &libkbfs.TestClock{}
+		o.clock.Set(time.Unix(0, 0))
+		o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize,
+			o.bwKBps, o.timeout, o.usernames, o.clock)
+		o.stallers = o.makeStallers()
+	})
+}
+
+func (o *opt) makeStallers() (
+	stallers map[libkb.NormalizedUsername]*libkbfs.NaïveStaller) {
+	stallers = make(map[libkb.NormalizedUsername]*libkbfs.NaïveStaller)
+	for username, user := range o.users {
+		stallers[username] = o.engine.MakeNaïveStaller(user)
 	}
-	o.clock = &libkbfs.TestClock{}
-	o.clock.Set(time.Unix(0, 0))
-	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize,
-		o.bwKBps, o.timeout, o.usernames, o.clock)
-	o.initDone = true
+	return stallers
 }
 
 func ntimesString(n int, s string) string {
@@ -233,7 +265,7 @@ func (o *opt) failf(format string, objs ...interface{}) {
 
 func (o *opt) expectSuccess(reason string, err error) {
 	if err != nil {
-		o.t.Fatalf("Error: %s: %v", reason, err)
+		o.t.Errorf("Error: %s: %v", reason, err)
 	}
 }
 
@@ -248,11 +280,12 @@ func as(user username, fops ...fileOp) optionOp {
 	return func(o *opt) {
 		o.t.Log("as", user)
 		o.runInitOnce()
+		u := libkb.NewNormalizedUsername(string(user))
 		ctx := &ctx{
-			opt:  o,
-			user: o.users[libkb.NewNormalizedUsername(string(user))],
+			opt:     o,
+			user:    o.users[u],
+			staller: o.stallers[u],
 		}
-		ctx.staller = ctx.engine.MakeNaïveStaller(ctx.user)
 
 		for _, fop := range fops {
 			desc, err := runFileOp(ctx, fop)
@@ -504,21 +537,21 @@ func waitForStalledMDPut() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.WaitForStallMDOp(libkbfs.StallableMDPut)
 		return nil
-	}, Defaults}
+	}, IsInit}
 }
 
 func unstallOneMDPut() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.UnstallOneMDOp(libkbfs.StallableMDPut)
 		return nil
-	}, Defaults}
+	}, IsInit}
 }
 
 func undoStallOnMDPut() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.staller.UndoStallMDOp(libkbfs.StallableMDPut)
 		return nil
-	}, Defaults}
+	}, IsInit}
 }
 
 func reenableUpdates() fileOp {

@@ -1102,6 +1102,34 @@ func TestCrBothCreateFileEXCL(t *testing.T) {
 	)
 }
 
+// alice and bob both exclusively create the same file, but neither write to it.
+func TestCrBothCreateFileEXCLParallel(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			lsdir("a/", m{}),
+		),
+		as(bob, stallOnMDPut()),
+		parallel(
+			as(bob,
+				expectError(mkfileexcl("a/b"), "b already exists"),
+				lsdir("a/", m{"b$": "FILE"}),
+			),
+			sequential(
+				as(bob, noSync(), waitForStalledMDPut()),
+				as(alice,
+					mkfileexcl("a/b"),
+					lsdir("a/", m{"b$": "FILE"}),
+				),
+				as(bob, noSync(), undoStallOnMDPut()),
+			),
+		),
+	)
+}
+
 // alice and bob both create the same file, but neither write to it
 func TestCrBothCreateFile(t *testing.T) {
 	test(t,
