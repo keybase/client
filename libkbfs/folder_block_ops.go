@@ -2689,10 +2689,8 @@ func (fbo *folderBlockOps) UpdateCachedEntryAttributes(
 // assume Sync will be called eventually on the corresponding open
 // file handle, which will clear out the entry.
 func (fbo *folderBlockOps) UpdateCachedEntryAttributesOnRemovedFile(
-	ctx context.Context, lState *lockState, md *RootMetadata,
-	file path, op *setAttrOp, de DirEntry) error {
+	ctx context.Context, lState *lockState, op *setAttrOp, de DirEntry) {
 	fbo.setCachedAttr(ctx, lState, de.ref(), op, &de, true)
-	return nil
 }
 
 func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {

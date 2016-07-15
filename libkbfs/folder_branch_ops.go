@@ -2808,8 +2808,9 @@ func (fbo *folderBranchOps) setExLocked(
 	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
 		fbo.log.CDebugf(ctx, "Skipping setex for a removed file %v",
 			file.tailPointer())
-		return fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
-			ctx, lState, md, file, sao, de)
+		fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
+			ctx, lState, sao, de)
+		return nil
 	}
 
 	md.AddOp(sao)
@@ -2876,8 +2877,9 @@ func (fbo *folderBranchOps) setMtimeLocked(
 	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
 		fbo.log.CDebugf(ctx, "Skipping setmtime for a removed file %v",
 			file.tailPointer())
-		return fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
-			ctx, lState, md, file, sao, de)
+		fbo.blocks.UpdateCachedEntryAttributesOnRemovedFile(
+			ctx, lState, sao, de)
+		return nil
 	}
 
 	md.AddOp(sao)
