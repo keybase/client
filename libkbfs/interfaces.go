@@ -419,7 +419,7 @@ type KeyManager interface {
 	// GetTLFCryptKeyForEncryption gets the crypt key to use for
 	// encryption (i.e., with the latest key generation) for the
 	// TLF with the given metadata.
-	GetTLFCryptKeyForEncryption(ctx context.Context, md *RootMetadata) (
+	GetTLFCryptKeyForEncryption(ctx context.Context, md ReadOnlyRootMetadata) (
 		TLFCryptKey, error)
 
 	// GetTLFCryptKeyForMDDecryption gets the crypt key to use for the
@@ -428,12 +428,12 @@ type KeyManager interface {
 	// (which in most cases is the same as mdToDecrypt) if it's not
 	// already cached.
 	GetTLFCryptKeyForMDDecryption(ctx context.Context,
-		mdToDecrypt, mdWithKeys *RootMetadata) (TLFCryptKey, error)
+		mdToDecrypt, mdWithKeys ReadOnlyRootMetadata) (TLFCryptKey, error)
 
 	// GetTLFCryptKeyForBlockDecryption gets the crypt key to use
 	// for the TLF with the given metadata to decrypt the block
 	// pointed to by the given pointer.
-	GetTLFCryptKeyForBlockDecryption(ctx context.Context, md *RootMetadata,
+	GetTLFCryptKeyForBlockDecryption(ctx context.Context, md ReadOnlyRootMetadata,
 		blockPtr BlockPointer) (TLFCryptKey, error)
 
 	// Rekey checks the given MD object, if it is a private TLF,
@@ -474,9 +474,9 @@ type Reporter interface {
 type MDCache interface {
 	// Get gets the metadata object associated with the given TlfID,
 	// revision number, and branch ID (NullBranchID for merged MD).
-	Get(tlf TlfID, rev MetadataRevision, bid BranchID) (*RootMetadata, error)
+	Get(tlf TlfID, rev MetadataRevision, bid BranchID) (ImmutableRootMetadata, error)
 	// Put stores the metadata object.
-	Put(md *RootMetadata) error
+	Put(md ImmutableRootMetadata) error
 }
 
 // KeyCache handles caching for both TLFCryptKeys and BlockCryptKeys.
@@ -625,7 +625,7 @@ type cryptoPure interface {
 	MakeRandomBranchID() (BranchID, error)
 
 	// MakeMdID computes the MD ID of a RootMetadata object.
-	MakeMdID(md *RootMetadata) (MdID, error)
+	MakeMdID(md *BareRootMetadata) (MdID, error)
 
 	// MakeMerkleHash computes the hash of a RootMetadataSigned object
 	// for inclusion into the KBFS Merkle tree.
@@ -779,32 +779,32 @@ type MDOps interface {
 	// creates the folder if one doesn't exist yet, and the logged-in
 	// user has permission to do so.
 	GetForHandle(ctx context.Context, handle *TlfHandle) (
-		*RootMetadata, error)
+		TlfID, ImmutableRootMetadata, error)
 
 	// GetUnmergedForHandle is the same as the above but for unmerged
 	// metadata history.
 	GetUnmergedForHandle(ctx context.Context, handle *TlfHandle) (
-		*RootMetadata, error)
+		ImmutableRootMetadata, error)
 
 	// GetForTLF returns the current metadata object
 	// corresponding to the given top-level folder, if the logged-in
 	// user has read permission on the folder.
-	GetForTLF(ctx context.Context, id TlfID) (*RootMetadata, error)
+	GetForTLF(ctx context.Context, id TlfID) (ImmutableRootMetadata, error)
 
 	// GetUnmergedForTLF is the same as the above but for unmerged
 	// metadata.
 	GetUnmergedForTLF(ctx context.Context, id TlfID, bid BranchID) (
-		*RootMetadata, error)
+		ImmutableRootMetadata, error)
 
 	// GetRange returns a range of metadata objects corresponding to
 	// the passed revision numbers (inclusive).
 	GetRange(ctx context.Context, id TlfID, start, stop MetadataRevision) (
-		[]*RootMetadata, error)
+		[]ImmutableRootMetadata, error)
 
 	// GetUnmergedRange is the same as the above but for unmerged
 	// metadata history (inclusive).
 	GetUnmergedRange(ctx context.Context, id TlfID, bid BranchID,
-		start, stop MetadataRevision) ([]*RootMetadata, error)
+		start, stop MetadataRevision) ([]ImmutableRootMetadata, error)
 
 	// Put stores the metadata object for the given
 	// top-level folder.
@@ -849,7 +849,7 @@ type BlockOps interface {
 	// decrypts it if necessary, and fills in the provided block
 	// object with its contents, if the logged-in user has read
 	// permission for that block.
-	Get(ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
+	Get(ctx context.Context, md ReadOnlyRootMetadata, blockPtr BlockPointer,
 		block Block) error
 
 	// Ready turns the given block (which belongs to the TLF with
@@ -857,26 +857,26 @@ type BlockOps interface {
 	// calculates its ID and size, so that we can do a bunch of
 	// block puts in parallel for every write. Ready() must
 	// guarantee that plainSize <= readyBlockData.QuotaSize().
-	Ready(ctx context.Context, md *RootMetadata, block Block) (
+	Ready(ctx context.Context, md ReadOnlyRootMetadata, block Block) (
 		id BlockID, plainSize int, readyBlockData ReadyBlockData, err error)
 
 	// Put stores the readied block data under the given block
 	// pointer (which belongs to the TLF with the given metadata)
 	// on the server.
-	Put(ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
+	Put(ctx context.Context, md ReadOnlyRootMetadata, blockPtr BlockPointer,
 		readyBlockData ReadyBlockData) error
 
 	// Delete instructs the server to delete the given block references.
 	// It returns the number of not-yet deleted references to
 	// each block reference
-	Delete(ctx context.Context, md *RootMetadata, ptrs []BlockPointer) (
+	Delete(ctx context.Context, md ReadOnlyRootMetadata, ptrs []BlockPointer) (
 		liveCounts map[BlockID]int, err error)
 
 	// Archive instructs the server to mark the given block references
 	// as "archived"; that is, they are not being used in the current
 	// view of the folder, and shouldn't be served to anyone other
 	// than folder writers.
-	Archive(ctx context.Context, md *RootMetadata, ptrs []BlockPointer) error
+	Archive(ctx context.Context, md ReadOnlyRootMetadata, ptrs []BlockPointer) error
 }
 
 // MDServer gets and puts metadata for each top-level directory.  The

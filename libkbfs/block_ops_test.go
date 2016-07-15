@@ -20,10 +20,22 @@ type rmdMatcher struct {
 	rmd *RootMetadata
 }
 
+func getRMD(x interface{}) (*RootMetadata, bool) {
+	rmd, ok := x.(*RootMetadata)
+	if ok {
+		return rmd, true
+	}
+	rormd, ok := x.(ReadOnlyRootMetadata)
+	if ok {
+		return rormd.RootMetadata, true
+	}
+	return nil, false
+}
+
 // Matches returns whether x is a *RootMetadata and it has the same ID
 // and latest key generation as m.rmd.
 func (m rmdMatcher) Matches(x interface{}) bool {
-	rmd, ok := x.(*RootMetadata)
+	rmd, ok := getRMD(x)
 	if !ok {
 		return false
 	}
@@ -118,7 +130,11 @@ func expectBlockDecrypt(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPoi
 
 func makeRMD() *RootMetadata {
 	tlfID := FakeTlfID(0, false)
-	return &RootMetadata{WriterMetadata: WriterMetadata{ID: tlfID}}
+	return &RootMetadata{
+		BareRootMetadata: BareRootMetadata{
+			WriterMetadata: WriterMetadata{ID: tlfID},
+		},
+	}
 }
 
 func TestBlockOpsGetSuccess(t *testing.T) {
@@ -138,7 +154,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	expectBlockDecrypt(config, rmd, blockPtr, encData, decData, nil)
 
 	var gotBlock TestBlock
-	err := config.BlockOps().Get(ctx, rmd, blockPtr, &gotBlock)
+	err := config.BlockOps().Get(ctx, rmd.ReadOnly(), blockPtr, &gotBlock)
 	if err != nil {
 		t.Fatalf("Got error on get: %v", err)
 	}
@@ -160,7 +176,8 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr.BlockContext).Return(
 		nil, BlockCryptKeyServerHalf{}, err)
 
-	if err2 := config.BlockOps().Get(ctx, rmd, blockPtr, nil); err2 != err {
+	if err2 := config.BlockOps().Get(
+		ctx, rmd.ReadOnly(), blockPtr, nil); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -179,7 +196,8 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 		encData, BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().VerifyBlockID(encData, id).Return(err)
 
-	if err2 := config.BlockOps().Get(ctx, rmd, blockPtr, nil); err2 != err {
+	if err2 := config.BlockOps().Get(
+		ctx, rmd.ReadOnly(), blockPtr, nil); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -199,7 +217,8 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 
 	expectBlockDecrypt(config, rmd, blockPtr, encData, TestBlock{}, err)
 
-	if err2 := config.BlockOps().Get(ctx, rmd, blockPtr, nil); err2 != err {
+	if err2 := config.BlockOps().Get(
+		ctx, rmd.ReadOnly(), blockPtr, nil); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -220,7 +239,7 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	config.mockCrypto.EXPECT().MakePermanentBlockID(encData).Return(id, nil)
 
 	id2, plainSize, readyBlockData, err :=
-		config.BlockOps().Ready(ctx, rmd, decData)
+		config.BlockOps().Ready(ctx, rmd.ReadOnly(), decData)
 	if err != nil {
 		t.Errorf("Got error on ready: %v", err)
 	} else if id2 != id {
@@ -244,7 +263,7 @@ func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
 
 	expectBlockEncrypt(config, rmd, decData, 4, encData, nil)
 
-	_, _, _, err := config.BlockOps().Ready(ctx, rmd, decData)
+	_, _, _, err := config.BlockOps().Ready(ctx, rmd.ReadOnly(), decData)
 	if _, ok := err.(TooLowByteCountError); !ok {
 		t.Errorf("Unexpectedly did not get TooLowByteCountError; "+
 			"instead got %v", err)
@@ -263,8 +282,8 @@ func TestBlockOpsReadyFailEncryptBlockData(t *testing.T) {
 
 	expectBlockEncrypt(config, rmd, decData, 0, nil, err)
 
-	if _, _, _, err2 := config.BlockOps().
-		Ready(ctx, rmd, decData); err2 != err {
+	if _, _, _, err2 := config.BlockOps().Ready(
+		ctx, rmd.ReadOnly(), decData); err2 != err {
 		t.Errorf("Got bad error on ready: %v", err2)
 	}
 }
@@ -284,8 +303,8 @@ func TestBlockOpsReadyFailMakePermanentBlockID(t *testing.T) {
 
 	config.mockCrypto.EXPECT().MakePermanentBlockID(encData).Return(fakeBlockID(0), err)
 
-	if _, _, _, err2 := config.BlockOps().
-		Ready(ctx, rmd, decData); err2 != err {
+	if _, _, _, err2 := config.BlockOps().Ready(
+		ctx, rmd.ReadOnly(), decData); err2 != err {
 		t.Errorf("Got bad error on ready: %v", err2)
 	}
 }
@@ -308,8 +327,8 @@ func TestBlockOpsPutNewBlockSuccess(t *testing.T) {
 	config.mockBserv.EXPECT().Put(ctx, id, rmd.ID, blockPtr.BlockContext,
 		readyBlockData.buf, readyBlockData.serverHalf).Return(nil)
 
-	if err := config.BlockOps().
-		Put(ctx, rmd, blockPtr, readyBlockData); err != nil {
+	if err := config.BlockOps().Put(
+		ctx, rmd.ReadOnly(), blockPtr, readyBlockData); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -338,8 +357,8 @@ func TestBlockOpsPutIncRefSuccess(t *testing.T) {
 	config.mockBserv.EXPECT().AddBlockReference(ctx, id, rmd.ID, blockPtr.BlockContext).
 		Return(nil)
 
-	if err := config.BlockOps().
-		Put(ctx, rmd, blockPtr, readyBlockData); err != nil {
+	if err := config.BlockOps().Put(
+		ctx, rmd.ReadOnly(), blockPtr, readyBlockData); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -364,8 +383,8 @@ func TestBlockOpsPutFail(t *testing.T) {
 	config.mockBserv.EXPECT().Put(ctx, id, rmd.ID, blockPtr.BlockContext,
 		readyBlockData.buf, readyBlockData.serverHalf).Return(err)
 
-	if err2 := config.BlockOps().
-		Put(ctx, rmd, blockPtr, readyBlockData); err2 != err {
+	if err2 := config.BlockOps().Put(
+		ctx, rmd.ReadOnly(), blockPtr, readyBlockData); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }
@@ -387,7 +406,8 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 	config.mockBserv.EXPECT().RemoveBlockReference(ctx, rmd.ID, contexts).
 		Return(liveCounts, nil)
 
-	if _, err := config.BlockOps().Delete(ctx, rmd, blockPtrs); err != nil {
+	if _, err := config.BlockOps().Delete(
+		ctx, rmd.ReadOnly(), blockPtrs); err != nil {
 		t.Errorf("Got error on delete: %v", err)
 	}
 }
@@ -410,7 +430,8 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	config.mockBserv.EXPECT().RemoveBlockReference(ctx, rmd.ID, contexts).
 		Return(liveCounts, err)
 
-	if _, err2 := config.BlockOps().Delete(ctx, rmd, blockPtrs); err2 != err {
+	if _, err2 := config.BlockOps().Delete(
+		ctx, rmd.ReadOnly(), blockPtrs); err2 != err {
 		t.Errorf("Got bad error on delete: %v", err2)
 	}
 }

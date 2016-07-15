@@ -42,13 +42,12 @@ func TestMDServerBasics(t *testing.T) {
 		rmds.MD.SerializedPrivateMetadata[0] = 0x1
 		rmds.MD.Revision = MetadataRevision(i)
 		FakeInitialRekey(&rmds.MD, h)
-		rmds.MD.clearCachedMetadataIDForTest()
 		if i > 1 {
 			rmds.MD.PrevRoot = prevRoot
 		}
 		err = mdServer.Put(ctx, rmds)
 		require.NoError(t, err)
-		prevRoot, err = rmds.MD.MetadataID(config.Crypto())
+		prevRoot, err = config.Crypto().MakeMdID(&rmds.MD)
 		require.NoError(t, err)
 		if i == 5 {
 			middleRoot = prevRoot
@@ -79,12 +78,11 @@ func TestMDServerBasics(t *testing.T) {
 		rmds.MD.SerializedPrivateMetadata[0] = 0x1
 		rmds.MD.PrevRoot = prevRoot
 		FakeInitialRekey(&rmds.MD, h)
-		rmds.MD.clearCachedMetadataIDForTest()
 		rmds.MD.WFlags |= MetadataFlagUnmerged
 		rmds.MD.BID = bid
 		err = mdServer.Put(ctx, rmds)
 		require.NoError(t, err)
-		prevRoot, err = rmds.MD.MetadataID(config.Crypto())
+		prevRoot, err = config.Crypto().MakeMdID(&rmds.MD)
 		require.NoError(t, err)
 	}
 

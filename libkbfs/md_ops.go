@@ -29,12 +29,12 @@ func NewMDOpsStandard(config Config) *MDOpsStandard {
 // convertVerifyingKeyError gives a better error when the TLF was
 // signed by a key that is no longer associated with the last writer.
 func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
-	rmds *RootMetadataSigned, err error) error {
+	rmds *RootMetadataSigned, handle *TlfHandle, err error) error {
 	if _, ok := err.(KeyNotFoundError); !ok {
 		return err
 	}
 
-	tlf := rmds.MD.GetTlfHandle().GetCanonicalPath()
+	tlf := handle.GetCanonicalPath()
 	writer, nameErr := md.config.KBPKI().GetNormalizedUsername(ctx,
 		rmds.MD.LastModifyingWriter)
 	if nameErr != nil {
@@ -46,10 +46,10 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 }
 
 func (md *MDOpsStandard) verifyWriterKey(
-	ctx context.Context, rmds *RootMetadataSigned, isTlfFinal bool) error {
+	ctx context.Context, rmds *RootMetadataSigned, handle *TlfHandle) error {
 	if !rmds.MD.IsWriterMetadataCopiedSet() {
 		var err error
-		if isTlfFinal {
+		if handle.IsFinal() {
 			err = md.config.KBPKI().HasUnverifiedVerifyingKey(ctx,
 				rmds.MD.LastModifyingWriter,
 				rmds.MD.WriterMetadataSigInfo.VerifyingKey)
@@ -60,7 +60,7 @@ func (md *MDOpsStandard) verifyWriterKey(
 				rmds.untrustedServerTimestamp)
 		}
 		if err != nil {
-			return md.convertVerifyingKeyError(ctx, rmds, err)
+			return md.convertVerifyingKeyError(ctx, rmds, handle, err)
 		}
 		return nil
 
@@ -119,22 +119,22 @@ func (md *MDOpsStandard) verifyWriterKey(
 	}
 }
 
-func (md *MDOpsStandard) processMetadata(ctx context.Context,
-	handle *TlfHandle, rmds *RootMetadataSigned) error {
+func (md *MDOpsStandard) processMetadata(
+	ctx context.Context, handle *TlfHandle, rmds *RootMetadataSigned) (
+	ImmutableRootMetadata, error) {
 	// A blank sig means this is a brand new MD object, and
 	// there's nothing to do.
 	if !rmds.IsInitialized() {
-		return errors.New("Missing RootMetadata signature")
+		return ImmutableRootMetadata{}, errors.New(
+			"Missing RootMetadata signature")
 	}
 
 	// Otherwise, verify signatures and deserialize private data.
 
-	rmds.MD.tlfHandle = handle
-
 	// Make sure the last writer is really a valid writer
 	writer := rmds.MD.LastModifyingWriter
 	if !handle.IsWriter(writer) {
-		return MDMismatchError{
+		return ImmutableRootMetadata{}, MDMismatchError{
 			handle.GetCanonicalPath(),
 			fmt.Errorf("Writer MD (id=%s) was written by a non-writer %s",
 				rmds.MD.ID, writer)}
@@ -143,15 +143,15 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	// Make sure the last user to change the blob is really a valid reader
 	user := rmds.MD.LastModifyingUser
 	if !handle.IsReader(user) {
-		return MDMismatchError{
+		return ImmutableRootMetadata{}, MDMismatchError{
 			handle.GetCanonicalPath(),
 			fmt.Errorf("MD (id=%s) was changed by a non-reader %s",
 				rmds.MD.ID, user),
 		}
 	}
 
-	if err := md.verifyWriterKey(ctx, rmds, handle.IsFinal()); err != nil {
-		return err
+	if err := md.verifyWriterKey(ctx, rmds, handle); err != nil {
+		return ImmutableRootMetadata{}, err
 	}
 
 	codec := md.config.Codec()
@@ -159,7 +159,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 
 	err := rmds.MD.VerifyWriterMetadata(codec, crypto)
 	if err != nil {
-		return err
+		return ImmutableRootMetadata{}, err
 	}
 
 	if handle.IsFinal() {
@@ -170,70 +170,73 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 			rmds.SigInfo.VerifyingKey, rmds.untrustedServerTimestamp)
 	}
 	if err != nil {
-		return md.convertVerifyingKeyError(ctx, rmds, err)
+		return ImmutableRootMetadata{}, md.convertVerifyingKeyError(ctx, rmds, handle, err)
 	}
 
 	err = rmds.VerifyRootMetadata(codec, crypto)
 	if err != nil {
-		return err
+		return ImmutableRootMetadata{}, err
+	}
+
+	rmd := RootMetadata{
+		BareRootMetadata: rmds.MD,
+		tlfHandle:        handle,
 	}
 
 	// Try to decrypt using the keys available in this md.  If that
 	// doesn't work, a future MD may contain more keys and will be
 	// tried later.
-	err = decryptMDPrivateData(ctx, md.config, &rmds.MD, &rmds.MD)
+	err = decryptMDPrivateData(
+		ctx, md.config, &rmd, rmd.ReadOnly())
 	if err != nil {
-		return err
+		return ImmutableRootMetadata{}, err
 	}
 
-	return nil
+	mdID, err := md.config.Crypto().MakeMdID(&rmd.BareRootMetadata)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+
+	return MakeImmutableRootMetadata(&rmd, mdID), nil
 }
 
 func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
-	mStatus MergeStatus) (
-	*RootMetadata, error) {
+	mStatus MergeStatus) (TlfID, ImmutableRootMetadata, error) {
 	mdserv := md.config.MDServer()
 	bh, err := handle.ToBareHandle()
 	if err != nil {
-		return nil, err
+		return TlfID{}, ImmutableRootMetadata{}, err
 	}
 
 	id, rmds, err := mdserv.GetForHandle(ctx, bh, mStatus)
 	if err != nil {
-		return nil, err
+		return TlfID{}, ImmutableRootMetadata{}, err
 	}
 
 	if rmds == nil {
 		if mStatus == Unmerged {
-			// don't automatically create unmerged MDs
-			return nil, nil
+			// The caller ignores the id argument for
+			// mStatus == Unmerged.
+			return TlfID{}, ImmutableRootMetadata{}, nil
 		}
-		var rmd RootMetadata
-		err := updateNewRootMetadata(&rmd, id, bh)
-		if err != nil {
-			return nil, err
-		}
-		// Need to keep the TLF handle around long enough to
-		// rekey the metadata for the first time.
-		rmd.tlfHandle = handle
-		return &rmd, nil
+		return id, ImmutableRootMetadata{}, nil
 	}
 
 	bareMdHandle, err := rmds.MD.MakeBareTlfHandle()
 	if err != nil {
-		return nil, err
+		return TlfID{}, ImmutableRootMetadata{}, err
 	}
 
 	mdHandle, err := MakeTlfHandle(ctx, bareMdHandle, md.config.KBPKI())
 	if err != nil {
-		return nil, err
+		return TlfID{}, ImmutableRootMetadata{}, err
 	}
 
 	handleResolvesToMdHandle, partialResolvedHandle, err :=
 		handle.ResolvesTo(
 			ctx, md.config.Codec(), md.config.KBPKI(), *mdHandle)
 	if err != nil {
-		return nil, err
+		return TlfID{}, ImmutableRootMetadata{}, err
 	}
 
 	// TODO: If handle has conflict info, mdHandle should, too.
@@ -241,13 +244,13 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 		mdHandle.ResolvesTo(
 			ctx, md.config.Codec(), md.config.KBPKI(), *handle)
 	if err != nil {
-		return nil, err
+		return TlfID{}, ImmutableRootMetadata{}, err
 	}
 
 	handlePath := handle.GetCanonicalPath()
 	mdHandlePath := mdHandle.GetCanonicalPath()
 	if !handleResolvesToMdHandle && !mdHandleResolvesToHandle {
-		return nil, MDMismatchError{
+		return TlfID{}, ImmutableRootMetadata{}, MDMismatchError{
 			handle.GetCanonicalPath(),
 			fmt.Errorf(
 				"MD (id=%s) contained unexpected handle path %s (%s -> %s) (%s -> %s)",
@@ -268,30 +271,33 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 	// consistency. In the future, we'd want to eventually notify
 	// the upper layers of the new name, either directly, or
 	// through a rekey.
-	if err := md.processMetadata(ctx, mdHandle, rmds); err != nil {
-		return nil, err
+	rmd, err := md.processMetadata(ctx, mdHandle, rmds)
+	if err != nil {
+		return TlfID{}, ImmutableRootMetadata{}, err
 	}
 
-	return &rmds.MD, nil
+	return id, rmd, nil
 }
 
 // GetForHandle implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle) (
-	*RootMetadata, error) {
+	TlfID, ImmutableRootMetadata, error) {
 	return md.getForHandle(ctx, handle, Merged)
 }
 
 // GetUnmergedForHandle implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetUnmergedForHandle(ctx context.Context, handle *TlfHandle) (
-	*RootMetadata, error) {
-	return md.getForHandle(ctx, handle, Unmerged)
+	ImmutableRootMetadata, error) {
+	_, rmd, err := md.getForHandle(ctx, handle, Unmerged)
+	return rmd, err
 }
 
 func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
-	id TlfID, bid BranchID, handle *TlfHandle, rmds *RootMetadataSigned) error {
+	id TlfID, bid BranchID, handle *TlfHandle, rmds *RootMetadataSigned) (
+	ImmutableRootMetadata, error) {
 	// Make sure the signed-over ID matches
 	if id != rmds.MD.ID {
-		return MDMismatchError{
+		return ImmutableRootMetadata{}, MDMismatchError{
 			id.String(),
 			fmt.Errorf("MD contained unexpected folder id %s, expected %s",
 				rmds.MD.ID.String(), id.String()),
@@ -299,7 +305,7 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	}
 	// Make sure the signed-over branch ID matches
 	if bid != rmds.MD.BID {
-		return MDMismatchError{
+		return ImmutableRootMetadata{}, MDMismatchError{
 			id.String(),
 			fmt.Errorf("MD contained unexpected branch id %s, expected %s, "+
 				"folder id %s", rmds.MD.BID.String(), bid.String(), id.String()),
@@ -310,52 +316,54 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 }
 
 func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID,
-	bid BranchID, mStatus MergeStatus) (*RootMetadata, error) {
+	bid BranchID, mStatus MergeStatus) (ImmutableRootMetadata, error) {
 	rmds, err := md.config.MDServer().GetForTLF(ctx, id, bid, mStatus)
 	if err != nil {
-		return nil, err
+		return ImmutableRootMetadata{}, err
 	}
 	if rmds == nil {
 		// Possible if mStatus is Unmerged
-		return nil, nil
+		return ImmutableRootMetadata{}, nil
 	}
 	bareHandle, err := rmds.MD.MakeBareTlfHandle()
 	if err != nil {
-		return nil, err
+		return ImmutableRootMetadata{}, err
 	}
 	handle, err := MakeTlfHandle(ctx, bareHandle, md.config.KBPKI())
 	if err != nil {
-		return nil, err
+		return ImmutableRootMetadata{}, err
 	}
-	err = md.processMetadataWithID(ctx, id, bid, handle, rmds)
+	rmd, err := md.processMetadataWithID(ctx, id, bid, handle, rmds)
 	if err != nil {
-		return nil, err
+		return ImmutableRootMetadata{}, err
 	}
-	return &rmds.MD, nil
+	return rmd, nil
 }
 
 // GetForTLF implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetForTLF(ctx context.Context, id TlfID) (*RootMetadata, error) {
+func (md *MDOpsStandard) GetForTLF(ctx context.Context, id TlfID) (
+	ImmutableRootMetadata, error) {
 	return md.getForTLF(ctx, id, NullBranchID, Merged)
 }
 
 // GetUnmergedForTLF implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetUnmergedForTLF(ctx context.Context, id TlfID, bid BranchID) (
-	*RootMetadata, error) {
+func (md *MDOpsStandard) GetUnmergedForTLF(
+	ctx context.Context, id TlfID, bid BranchID) (
+	ImmutableRootMetadata, error) {
 	return md.getForTLF(ctx, id, bid, Unmerged)
 }
 
 func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
-	bid BranchID, rmds []*RootMetadataSigned) (
-	[]*RootMetadata, error) {
-	if rmds == nil {
+	bid BranchID, rmdses []*RootMetadataSigned) (
+	[]ImmutableRootMetadata, error) {
+	if rmdses == nil {
 		return nil, nil
 	}
 
 	// Verify that the given MD objects form a valid sequence.
-	var prevMD *RootMetadata
-	rmd := make([]*RootMetadata, 0, len(rmds))
-	for _, r := range rmds {
+	var prevIRMD ImmutableRootMetadata
+	irmds := make([]ImmutableRootMetadata, 0, len(rmdses))
+	for _, r := range rmdses {
 		bareHandle, err := r.MD.MakeBareTlfHandle()
 		if err != nil {
 			return nil, err
@@ -365,9 +373,15 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 			return nil, err
 		}
 
-		if prevMD != nil {
-			err := prevMD.CheckValidSuccessor(
-				md.config.Crypto(), &r.MD)
+		if prevIRMD != (ImmutableRootMetadata{}) {
+			// Ideally, we'd call
+			// ReadOnlyRootMetadata.CheckValidSuccessor()
+			// instead. However, we only convert r.MD to
+			// an ImmutableRootMetadata in
+			// processMetadataWithID below, and we want to
+			// do this check before then.
+			err = prevIRMD.BareRootMetadata.CheckValidSuccessor(
+				prevIRMD.mdID, &r.MD)
 			if err != nil {
 				return nil, MDMismatchError{
 					handle.GetCanonicalPath(),
@@ -376,12 +390,12 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 			}
 		}
 
-		err = md.processMetadataWithID(ctx, id, bid, handle, r)
+		irmd, err := md.processMetadataWithID(ctx, id, bid, handle, r)
 		if err != nil {
 			return nil, err
 		}
-		prevMD = &r.MD
-		rmd = append(rmd, &r.MD)
+		prevIRMD = irmd
+		irmds = append(irmds, irmd)
 	}
 
 	// TODO: in the case where lastRoot == MdID{}, should we verify
@@ -390,14 +404,14 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 	// indeed valid, this probably isn't a huge deal, but it may let
 	// the server rollback or truncate unmerged history...
 
-	return rmd, nil
+	return irmds, nil
 }
 
 func (md *MDOpsStandard) getRange(ctx context.Context, id TlfID,
 	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
-	[]*RootMetadata, error) {
-	rmds, err := md.config.MDServer().GetRange(ctx, id, bid, mStatus, start,
-		stop)
+	[]ImmutableRootMetadata, error) {
+	rmds, err := md.config.MDServer().GetRange(
+		ctx, id, bid, mStatus, start, stop)
 	if err != nil {
 		return nil, err
 	}
@@ -410,13 +424,13 @@ func (md *MDOpsStandard) getRange(ctx context.Context, id TlfID,
 
 // GetRange implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetRange(ctx context.Context, id TlfID,
-	start, stop MetadataRevision) ([]*RootMetadata, error) {
+	start, stop MetadataRevision) ([]ImmutableRootMetadata, error) {
 	return md.getRange(ctx, id, NullBranchID, Merged, start, stop)
 }
 
 // GetUnmergedRange implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetUnmergedRange(ctx context.Context, id TlfID,
-	bid BranchID, start, stop MetadataRevision) ([]*RootMetadata, error) {
+	bid BranchID, start, stop MetadataRevision) ([]ImmutableRootMetadata, error) {
 	return md.getRange(ctx, id, bid, Unmerged, start, stop)
 }
 
@@ -443,7 +457,8 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 			rmd.SerializedPrivateMetadata = encodedPrivateMetadata
 		} else if !rmd.IsWriterMetadataCopiedSet() {
 			// Encrypt and encode the private metadata
-			k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
+			k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(
+				ctx, rmd.ReadOnly())
 			if err != nil {
 				return nil, err
 			}

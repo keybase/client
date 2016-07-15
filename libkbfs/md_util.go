@@ -18,7 +18,7 @@ type mdRange struct {
 
 func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 	start MetadataRevision, end MetadataRevision, mStatus MergeStatus) (
-	rmds []*RootMetadata, err error) {
+	rmds []ImmutableRootMetadata, err error) {
 	// The range is invalid.  Don't treat as an error though; it just
 	// indicates that we don't yet know about any revisions.
 	if start < MetadataRevisionInitial || end < MetadataRevisionInitial {
@@ -33,14 +33,14 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 	minSlot := int(end-start) + 1
 	maxSlot := -1
 	for i := start; i <= end; i++ {
-		rmd, err := mdcache.Get(id, i, bid)
+		irmd, err := mdcache.Get(id, i, bid)
 		if err != nil {
 			if len(toDownload) == 0 ||
 				toDownload[len(toDownload)-1].end != i-1 {
 				toDownload = append(toDownload, mdRange{i, i})
 			}
 			toDownload[len(toDownload)-1].end = i
-			rmd = nil
+			irmd = ImmutableRootMetadata{}
 		} else {
 			slot := len(rmds)
 			if slot < minSlot {
@@ -50,12 +50,12 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 				maxSlot = slot
 			}
 		}
-		rmds = append(rmds, rmd)
+		rmds = append(rmds, irmd)
 	}
 
 	// Try to fetch the rest from the server.  TODO: parallelize me.
 	for _, r := range toDownload {
-		var fetchedRmds []*RootMetadata
+		var fetchedRmds []ImmutableRootMetadata
 		switch mStatus {
 		case Merged:
 			fetchedRmds, err = config.MDOps().GetRange(
@@ -80,6 +80,7 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 			}
 
 			rmds[slot] = rmd
+
 			if err := mdcache.Put(rmd); err != nil {
 				config.MakeLogger("").CDebugf(ctx, "Error putting md "+
 					"%d into the cache: %v", rmd.Revision, err)
@@ -94,7 +95,7 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 	rmds = rmds[minSlot : maxSlot+1]
 	// check to make sure there are no holes
 	for i, rmd := range rmds {
-		if rmd == nil {
+		if rmd == (ImmutableRootMetadata{}) {
 			return nil, fmt.Errorf("No %s MD found for revision %d",
 				mStatus, int(start)+minSlot+i)
 		}
@@ -111,7 +112,7 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 // TODO: Accept a parameter to express that we want copies of the MDs
 // instead of the cached versions.
 func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
-	startRev MetadataRevision) (mergedRmds []*RootMetadata, err error) {
+	startRev MetadataRevision) (mergedRmds []ImmutableRootMetadata, err error) {
 	// We don't yet know about any revisions yet, so there's no range
 	// to get.
 	if startRev < MetadataRevisionInitial {
@@ -152,14 +153,15 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 			}
 			latestRmd := mergedRmds[len(mergedRmds)-1]
 			if err := decryptMDPrivateData(ctx, config,
-				rmdCopy, latestRmd); err != nil {
+				rmdCopy, latestRmd.ReadOnly()); err != nil {
 				return nil, err
 			}
 			// Overwrite the cached copy with the new copy
-			if err := config.MDCache().Put(rmdCopy); err != nil {
+			irmdCopy := MakeImmutableRootMetadata(rmdCopy, rmd.mdID)
+			if err := config.MDCache().Put(irmdCopy); err != nil {
 				return nil, err
 			}
-			mergedRmds[i] = rmdCopy
+			mergedRmds[i] = irmdCopy
 		}
 	}
 	return mergedRmds, nil
@@ -174,7 +176,7 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 // instead of the cached versions.
 func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
 	bid BranchID, startRev MetadataRevision) (
-	currHead MetadataRevision, unmergedRmds []*RootMetadata, err error) {
+	currHead MetadataRevision, unmergedRmds []ImmutableRootMetadata, err error) {
 	// We don't yet know about any revisions yet, so there's no range
 	// to get.
 	if startRev < MetadataRevisionInitial {
@@ -218,7 +220,7 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
 }
 
 func decryptMDPrivateData(ctx context.Context, config Config,
-	rmdToDecrypt, rmdWithKeys *RootMetadata) error {
+	rmdToDecrypt *RootMetadata, rmdWithKeys ReadOnlyRootMetadata) error {
 	handle := rmdToDecrypt.GetTlfHandle()
 	crypto := config.Crypto()
 	codec := config.Codec()
@@ -237,7 +239,7 @@ func decryptMDPrivateData(ctx context.Context, config Config,
 		}
 
 		k, err := config.KeyManager().GetTLFCryptKeyForMDDecryption(ctx,
-			rmdToDecrypt, rmdWithKeys)
+			rmdToDecrypt.ReadOnly(), rmdWithKeys)
 
 		privateMetadata := &PrivateMetadata{}
 		if err != nil {

@@ -8,8 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
-	"strconv"
-	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -47,288 +45,22 @@ func (p PrivateMetadata) checkValid() error {
 	return nil
 }
 
-// MetadataFlags bitfield.
-type MetadataFlags byte
-
-// Possible flags set in the MetadataFlags bitfield.
-const (
-	MetadataFlagRekey MetadataFlags = 1 << iota
-	MetadataFlagWriterMetadataCopied
-	MetadataFlagFinal
-)
-
-// WriterFlags bitfield.
-type WriterFlags byte
-
-// Possible flags set in the WriterFlags bitfield.
-const (
-	MetadataFlagUnmerged WriterFlags = 1 << iota
-)
-
-// MetadataRevision is the type for the revision number.
-// This is currently int64 since that's the type of Avro's long.
-type MetadataRevision int64
-
-// String converts a MetadataRevision to its string form.
-func (mr MetadataRevision) String() string {
-	return strconv.FormatInt(mr.Number(), 10)
-}
-
-// Number casts a MetadataRevision to it's primitive type.
-func (mr MetadataRevision) Number() int64 {
-	return int64(mr)
-}
-
-const (
-	// MetadataRevisionUninitialized indicates that a top-level folder has
-	// not yet been initialized.
-	MetadataRevisionUninitialized = MetadataRevision(0)
-	// MetadataRevisionInitial is always the first revision for an
-	// initialized top-level folder.
-	MetadataRevisionInitial = MetadataRevision(1)
-)
-
-// WriterMetadata stores the metadata for a TLF that is
-// only editable by users with writer permissions.
-//
-// NOTE: Don't add new fields to this type! Instead, add them to
-// WriterMetadataExtra. This is because we want old clients to
-// preserve unknown fields, and we're unable to do that for
-// WriterMetadata directly because it's embedded in RootMetadata.
-type WriterMetadata struct {
-	// Serialized, possibly encrypted, version of the PrivateMetadata
-	SerializedPrivateMetadata []byte `codec:"data"`
-	// The last KB user with writer permissions to this TLF
-	// who modified this WriterMetadata
-	LastModifyingWriter keybase1.UID
-	// For public TLFs (since those don't have any keys at all).
-	Writers []keybase1.UID `codec:",omitempty"`
-	// For private TLFs. Writer key generations for this metadata. The
-	// most recent one is last in the array. Must be same length as
-	// RootMetadata.RKeys.
-	WKeys TLFWriterKeyGenerations `codec:",omitempty"`
-	// The directory ID, signed over to make verification easier
-	ID TlfID
-	// The branch ID, currently only set if this is in unmerged per-device history.
-	BID BranchID
-	// Flags
-	WFlags WriterFlags
-	// Estimated disk usage at this revision
-	DiskUsage uint64
-
-	// The total number of bytes in new blocks
-	RefBytes uint64
-	// The total number of bytes in unreferenced blocks
-	UnrefBytes uint64
-
-	Extra WriterMetadataExtra `codec:"x,omitempty,omitemptycheckstruct"`
-}
-
-// WriterMetadataExtra stores more fields for WriterMetadata. (See
-// WriterMetadata comments as to why this type is needed.)
-type WriterMetadataExtra struct {
-	UnresolvedWriters []keybase1.SocialAssertion `codec:"uw,omitempty"`
-	codec.UnknownFieldSetHandler
-}
-
-// RootMetadata is the MD that is signed by the reader or writer.
+// A RootMetadata is a BareRootMetadata but with a deserialized
+// PrivateMetadata. However, note that it is possible that the
+// PrivateMetadata has to be left serialized due to not having the
+// right keys.
 type RootMetadata struct {
-	// The metadata that is only editable by the writer.
-	//
-	// TODO: If we ever get a chance to update RootMetadata
-	// without having to be backwards-compatible, WriterMetadata
-	// should be unembedded; see comments to WriterMetadata as for
-	// why.
-	WriterMetadata
-
-	// The signature for the writer metadata, to prove
-	// that it's only been changed by writers.
-	WriterMetadataSigInfo SignatureInfo
-
-	// The last KB user who modified this RootMetadata
-	LastModifyingUser keybase1.UID
-	// Flags
-	Flags MetadataFlags
-	// The revision number
-	Revision MetadataRevision
-	// Pointer to the previous root block ID
-	PrevRoot MdID
-	// For private TLFs. Reader key generations for this metadata. The
-	// most recent one is last in the array. Must be same length as
-	// WriterMetadata.WKeys. If there are no readers, each generation
-	// is empty.
-	RKeys TLFReaderKeyGenerations `codec:",omitempty"`
-	// For private TLFs. Any unresolved social assertions for readers.
-	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
-
-	// ConflictInfo is set if there's a conflict for the given folder's
-	// handle after a social assertion resolution.
-	ConflictInfo *TlfHandleExtension `codec:"ci,omitempty"`
-
-	// FinalizedInfo is set if there are no more valid writer keys capable
-	// of writing to the given folder.
-	FinalizedInfo *TlfHandleExtension `codec:"fi,omitempty"`
-
-	codec.UnknownFieldSetHandler
+	BareRootMetadata
 
 	// The plaintext, deserialized PrivateMetadata
+	//
+	// TODO: This should really be a pointer so that it's more
+	// clear when the data has been successfully deserialized.
 	data PrivateMetadata
 
 	// The TLF handle for this MD. May be nil if this object was
 	// deserialized (more common on the server side).
 	tlfHandle *TlfHandle
-
-	// The cached ID for this MD structure (hash)
-	mdIDLock sync.RWMutex
-	mdID     MdID
-}
-
-func (md *RootMetadata) haveOnlyUserRKeysChanged(codec Codec, prevMD *RootMetadata, user keybase1.UID) (bool, error) {
-	// Require the same number of generations
-	if len(md.RKeys) != len(prevMD.RKeys) {
-		return false, nil
-	}
-	for i, gen := range md.RKeys {
-		prevMDGen := prevMD.RKeys[i]
-		if len(gen.RKeys) != len(prevMDGen.RKeys) {
-			return false, nil
-		}
-		for u, keys := range gen.RKeys {
-			if u != user {
-				prevKeys := prevMDGen.RKeys[u]
-				keysEqual, err := CodecEqual(codec, keys, prevKeys)
-				if err != nil {
-					return false, err
-				}
-				if !keysEqual {
-					return false, nil
-				}
-			}
-		}
-	}
-	return true, nil
-}
-
-// IsValidRekeyRequest returns true if the current block is a simple rekey wrt
-// the passed block.
-func (md *RootMetadata) IsValidRekeyRequest(codec Codec, prevMd *RootMetadata, user keybase1.UID) (bool, error) {
-	if !md.IsWriterMetadataCopiedSet() {
-		// Not a copy.
-		return false, nil
-	}
-	writerEqual, err := CodecEqual(
-		codec, md.WriterMetadata, prevMd.WriterMetadata)
-	if err != nil {
-		return false, err
-	}
-	if !writerEqual {
-		// Copy mismatch.
-		return false, nil
-	}
-	writerSigInfoEqual, err := CodecEqual(codec,
-		md.WriterMetadataSigInfo, prevMd.WriterMetadataSigInfo)
-	if err != nil {
-		return false, err
-	}
-	if !writerSigInfoEqual {
-		// Signature/public key mismatch.
-		return false, nil
-	}
-	onlyUserRKeysChanged, err := md.haveOnlyUserRKeysChanged(
-		codec, prevMd, user)
-	if err != nil {
-		return false, err
-	}
-	if !onlyUserRKeysChanged {
-		// Keys outside of this user's reader key set have changed.
-		return false, nil
-	}
-	return true, nil
-}
-
-// MergedStatus returns the status of this update -- has it been
-// merged into the main folder or not?
-func (md *RootMetadata) MergedStatus() MergeStatus {
-	if md.WFlags&MetadataFlagUnmerged != 0 {
-		return Unmerged
-	}
-	return Merged
-}
-
-// IsRekeySet returns true if the rekey bit is set.
-func (md *RootMetadata) IsRekeySet() bool {
-	return md.Flags&MetadataFlagRekey != 0
-}
-
-// IsWriterMetadataCopiedSet returns true if the bit is set indicating the writer metadata
-// was copied.
-func (md *RootMetadata) IsWriterMetadataCopiedSet() bool {
-	return md.Flags&MetadataFlagWriterMetadataCopied != 0
-}
-
-// IsFinal returns true if this is the last metadata block for a given folder.  This is
-// only expected to be set for folder resets.
-func (md *RootMetadata) IsFinal() bool {
-	return md.Flags&MetadataFlagFinal != 0
-}
-
-// IsWriter returns whether or not the user+device is an authorized writer.
-func (md *RootMetadata) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
-	if md.ID.IsPublic() {
-		for _, w := range md.Writers {
-			if w == user {
-				return true
-			}
-		}
-		return false
-	}
-	return md.WKeys.IsWriter(user, deviceKID)
-}
-
-// IsReader returns whether or not the user+device is an authorized reader.
-func (md *RootMetadata) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
-	if md.ID.IsPublic() {
-		return true
-	}
-	return md.RKeys.IsReader(user, deviceKID)
-}
-
-// updateNewRootMetadata initializes the given freshly-created
-// RootMetadata object with the given TlfID and TlfHandle. Note that
-// if the given ID/handle are private, rekeying must be done
-// separately.
-func updateNewRootMetadata(rmd *RootMetadata, id TlfID, h BareTlfHandle) error {
-	if id.IsPublic() != h.IsPublic() {
-		return errors.New("TlfID and TlfHandle disagree on public status")
-	}
-
-	var writers []keybase1.UID
-	var wKeys TLFWriterKeyGenerations
-	var rKeys TLFReaderKeyGenerations
-	if id.IsPublic() {
-		writers = make([]keybase1.UID, len(h.Writers))
-		copy(writers, h.Writers)
-	} else {
-		wKeys = make(TLFWriterKeyGenerations, 0, 1)
-		rKeys = make(TLFReaderKeyGenerations, 0, 1)
-	}
-	rmd.WriterMetadata = WriterMetadata{
-		Writers: writers,
-		WKeys:   wKeys,
-		ID:      id,
-	}
-	if len(h.UnresolvedWriters) > 0 {
-		rmd.Extra.UnresolvedWriters = make([]keybase1.SocialAssertion, len(h.UnresolvedWriters))
-		copy(rmd.Extra.UnresolvedWriters, h.UnresolvedWriters)
-	}
-
-	rmd.Revision = MetadataRevisionInitial
-	rmd.RKeys = rKeys
-	if len(h.UnresolvedReaders) > 0 {
-		rmd.UnresolvedReaders = make([]keybase1.SocialAssertion, len(h.UnresolvedReaders))
-		copy(rmd.UnresolvedReaders, h.UnresolvedReaders)
-	}
-	return nil
 }
 
 // Data returns the private metadata of this RootMetadata.
@@ -384,7 +116,11 @@ func (md *RootMetadata) DeepCopyForServerTest(
 // MakeSuccessor returns a complete copy of this RootMetadata (but
 // with cleared block change lists and cleared serialized metadata),
 // with the revision incremented and a correct backpointer.
-func (md *RootMetadata) MakeSuccessor(config Config, isWriter bool) (*RootMetadata, error) {
+func (md *RootMetadata) MakeSuccessor(
+	config Config, mdID MdID, isWriter bool) (*RootMetadata, error) {
+	if mdID == (MdID{}) {
+		return nil, errors.New("Empty MdID in MakeSuccessor")
+	}
 	if md.IsFinal() {
 		return nil, MetadataIsFinalError{}
 	}
@@ -404,10 +140,7 @@ func (md *RootMetadata) MakeSuccessor(config Config, isWriter bool) (*RootMetada
 		newMd.Flags |= MetadataFlagWriterMetadataCopied
 	}
 
-	newMd.PrevRoot, err = md.MetadataID(config.Crypto())
-	if err != nil {
-		return nil, err
-	}
+	newMd.PrevRoot = mdID
 	// bump revision
 	if md.Revision < MetadataRevisionInitial {
 		return nil, errors.New("MD with invalid revision")
@@ -416,103 +149,11 @@ func (md *RootMetadata) MakeSuccessor(config Config, isWriter bool) (*RootMetada
 	return newMd, nil
 }
 
-// CheckValidSuccessor makes sure the given RootMetadata is a valid
-// successor to the current one, and returns an error otherwise.
-func (md *RootMetadata) CheckValidSuccessor(
-	crypto cryptoPure, nextMd *RootMetadata) error {
-	// (1) Verify current metadata is non-final.
-	if md.IsFinal() {
-		return MetadataIsFinalError{}
-	}
+// TODO: Move more functions below to BareRootMetadata (and remove the
+// dependence on md.GetTlfHandle()).
 
-	// (2) Check TLF ID.
-	if nextMd.ID != md.ID {
-		return MDTlfIDMismatch{
-			currID: md.ID,
-			nextID: nextMd.ID,
-		}
-	}
-
-	// (2) Check revision.
-	if nextMd.Revision != md.Revision+1 {
-		return MDRevisionMismatch{
-			rev:  nextMd.Revision,
-			curr: md.Revision,
-		}
-	}
-
-	// (3) Check PrevRoot pointer.
-	var currRoot MdID
-	if !nextMd.IsFinal() {
-		var err error
-		currRoot, err = md.MetadataID(crypto)
-		if err != nil {
-			return err
-		}
-	} else {
-		// For finalized metadata the previous head's
-		// PrevRoot is expected.
-		currRoot = md.PrevRoot
-	}
-	if nextMd.PrevRoot != currRoot {
-		return MDPrevRootMismatch{
-			prevRoot: nextMd.PrevRoot,
-			currRoot: currRoot,
-		}
-	}
-
-	expectedUsage := md.DiskUsage
-	if !nextMd.IsWriterMetadataCopiedSet() {
-		expectedUsage += nextMd.RefBytes - nextMd.UnrefBytes
-	}
-	if nextMd.DiskUsage != expectedUsage {
-		return MDDiskUsageMismatch{
-			expectedDiskUsage: expectedUsage,
-			actualDiskUsage:   nextMd.DiskUsage,
-		}
-	}
-
-	// TODO: Check that the successor (bare) TLF handle is the
-	// same or more resolved.
-
-	return nil
-}
-
-// CheckValidSuccessorForServer is like CheckValidSuccessor but with
-// server-specific error messages.
-func (md *RootMetadata) CheckValidSuccessorForServer(
-	crypto cryptoPure, nextMd *RootMetadata) error {
-	err := md.CheckValidSuccessor(crypto, nextMd)
-	switch err := err.(type) {
-	case nil:
-		break
-
-	case MDRevisionMismatch:
-		return MDServerErrorConflictRevision{
-			Expected: err.curr + 1,
-			Actual:   err.rev,
-		}
-
-	case MDPrevRootMismatch:
-		return MDServerErrorConflictPrevRoot{
-			Expected: err.currRoot,
-			Actual:   err.prevRoot,
-		}
-
-	case MDDiskUsageMismatch:
-		return MDServerErrorConflictDiskUsage{
-			Expected: err.expectedDiskUsage,
-			Actual:   err.actualDiskUsage,
-		}
-
-	default:
-		return MDServerError{Err: err}
-	}
-
-	return nil
-}
-
-func (md *RootMetadata) getTLFKeyBundles(keyGen KeyGen) (*TLFWriterKeyBundle, *TLFReaderKeyBundle, error) {
+func (md *RootMetadata) getTLFKeyBundles(keyGen KeyGen) (
+	*TLFWriterKeyBundle, *TLFReaderKeyBundle, error) {
 	if md.ID.IsPublic() {
 		return nil, nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundle"}
 	}
@@ -550,7 +191,8 @@ func (md *RootMetadata) GetTLFCryptKeyInfo(keyGen KeyGen, user keybase1.UID,
 
 // GetTLFCryptPublicKeys returns the public crypt keys for the given user
 // at the given key generation.
-func (md *RootMetadata) GetTLFCryptPublicKeys(keyGen KeyGen, user keybase1.UID) (
+func (md *RootMetadata) GetTLFCryptPublicKeys(
+	keyGen KeyGen, user keybase1.UID) (
 	[]keybase1.KID, bool) {
 	wkb, rkb, err := md.getTLFKeyBundles(keyGen)
 	if err != nil {
@@ -592,14 +234,6 @@ func (md *RootMetadata) GetTLFEphemeralPublicKey(
 	return wkb.TLFEphemeralPublicKeys[info.EPubKeyIndex], nil
 }
 
-// LatestKeyGeneration returns the newest key generation for this RootMetadata.
-func (md *RootMetadata) LatestKeyGeneration() KeyGen {
-	if md.ID.IsPublic() {
-		return PublicKeyGen
-	}
-	return md.WKeys.LatestKeyGeneration()
-}
-
 // AddNewKeys makes a new key generation for this RootMetadata using the
 // given TLFKeyBundles.
 func (md *RootMetadata) AddNewKeys(
@@ -621,45 +255,6 @@ func (md *RootMetadata) GetTlfHandle() *TlfHandle {
 	return md.tlfHandle
 }
 
-func (md *RootMetadata) makeBareTlfHandle() (BareTlfHandle, error) {
-	var writers, readers []keybase1.UID
-	if md.ID.IsPublic() {
-		writers = md.Writers
-		readers = []keybase1.UID{keybase1.PublicUID}
-	} else {
-		if len(md.WKeys) == 0 {
-			return BareTlfHandle{}, errors.New("No writer key generations; need rekey?")
-		}
-
-		if len(md.RKeys) == 0 {
-			return BareTlfHandle{}, errors.New("No reader key generations; need rekey?")
-		}
-
-		wkb := md.WKeys[len(md.WKeys)-1]
-		rkb := md.RKeys[len(md.RKeys)-1]
-		writers = make([]keybase1.UID, 0, len(wkb.WKeys))
-		readers = make([]keybase1.UID, 0, len(rkb.RKeys))
-		for w := range wkb.WKeys {
-			writers = append(writers, w)
-		}
-		for r := range rkb.RKeys {
-			// TODO: Return an error instead if r is
-			// PublicUID. Maybe return an error if r is in
-			// WKeys also. Or do all this in
-			// MakeBareTlfHandle.
-			if _, ok := wkb.WKeys[r]; !ok &&
-				r != keybase1.PublicUID {
-				readers = append(readers, r)
-			}
-		}
-	}
-
-	return MakeBareTlfHandle(
-		writers, readers,
-		md.Extra.UnresolvedWriters, md.UnresolvedReaders,
-		md.TlfHandleExtensions())
-}
-
 // MakeBareTlfHandle makes a BareTlfHandle for this
 // RootMetadata. Should be used only by servers and MDOps.
 func (md *RootMetadata) MakeBareTlfHandle() (BareTlfHandle, error) {
@@ -667,7 +262,7 @@ func (md *RootMetadata) MakeBareTlfHandle() (BareTlfHandle, error) {
 		panic(errors.New("MakeBareTlfHandle called when md.tlfHandle exists"))
 	}
 
-	return md.makeBareTlfHandle()
+	return md.BareRootMetadata.MakeBareTlfHandle()
 }
 
 // IsInitialized returns whether or not this RootMetadata has been initialized
@@ -678,35 +273,6 @@ func (md *RootMetadata) IsInitialized() bool {
 	}
 	// The data is only initialized once we have at least one set of keys
 	return keyGen >= FirstValidKeyGen
-}
-
-// MetadataID computes and caches the MdID for this RootMetadata
-func (md *RootMetadata) MetadataID(crypto cryptoPure) (MdID, error) {
-	mdID := func() MdID {
-		md.mdIDLock.RLock()
-		defer md.mdIDLock.RUnlock()
-		return md.mdID
-	}()
-	if mdID != (MdID{}) {
-		return mdID, nil
-	}
-
-	mdID, err := crypto.MakeMdID(md)
-	if err != nil {
-		return MdID{}, err
-	}
-
-	md.mdIDLock.Lock()
-	defer md.mdIDLock.Unlock()
-	md.mdID = mdID
-	return mdID, nil
-}
-
-// clearMetadataID forgets the cached version of the RootMetadata's MdID
-func (md *RootMetadata) clearCachedMetadataIDForTest() {
-	md.mdIDLock.Lock()
-	defer md.mdIDLock.Unlock()
-	md.mdID = MdID{}
 }
 
 // AddRefBlock adds the newly-referenced block to the add block change list.
@@ -770,31 +336,28 @@ func (md *RootMetadata) isReadableOrError(ctx context.Context, config Config) er
 	if err != nil {
 		return err
 	}
-	return makeRekeyReadError(md, resolvedHandle, md.LatestKeyGeneration(),
+	return md.makeRekeyReadError(resolvedHandle, md.LatestKeyGeneration(),
 		uid, username)
 }
 
-// writerKID returns the KID of the writer.
-func (md *RootMetadata) writerKID() keybase1.KID {
-	return md.WriterMetadataSigInfo.VerifyingKey.KID()
-}
-
-// VerifyWriterMetadata verifies md's WriterMetadata against md's
-// WriterMetadataSigInfo, assuming the verifying key there is valid.
-func (md *RootMetadata) VerifyWriterMetadata(codec Codec, crypto Crypto) error {
-	// We have to re-marshal the WriterMetadata, since it's
-	// embedded.
-	buf, err := codec.Encode(md.WriterMetadata)
-	if err != nil {
-		return err
+func (md *RootMetadata) makeRekeyReadError(
+	resolvedHandle *TlfHandle, keyGen KeyGen,
+	uid keybase1.UID, username libkb.NormalizedUsername) error {
+	if resolvedHandle.IsPublic() {
+		panic("makeRekeyReadError called on public folder")
+	}
+	// If the user is not a legitimate reader of the folder, this is a
+	// normal read access error.
+	if !resolvedHandle.IsReader(uid) {
+		return NewReadAccessError(resolvedHandle, username)
 	}
 
-	err = crypto.Verify(buf, md.WriterMetadataSigInfo)
-	if err != nil {
-		return err
+	// Otherwise, this folder needs to be rekeyed for this device.
+	tlfName := resolvedHandle.GetCanonicalName()
+	if keys, _ := md.GetTLFCryptPublicKeys(keyGen, uid); len(keys) > 0 {
+		return NeedSelfRekeyError{tlfName}
 	}
-
-	return nil
+	return NeedOtherRekeyError{tlfName}
 }
 
 // updateFromTlfHandle updates the current RootMetadata's fields to
@@ -851,15 +414,53 @@ func (md *RootMetadata) swapCachedBlockChanges() {
 	}
 }
 
-// TlfHandleExtensions returns a list of handle extensions associated with the TLf.
-func (md *RootMetadata) TlfHandleExtensions() (extensions []TlfHandleExtension) {
-	if md.ConflictInfo != nil {
-		extensions = append(extensions, *md.ConflictInfo)
+// A ReadOnlyRootMetadata is a thin wrapper around a
+// *RootMetadata. Functions that take a ReadOnlyRootMetadata parameter
+// must not modify it, and therefore code that passes a
+// ReadOnlyRootMetadata to a function can assume that it is not
+// modified by that function. However, callers that convert a
+// *RootMetadata to a ReadOnlyRootMetadata may still modify the
+// underlying RootMetadata through the original pointer, so care must
+// be taken if a function stores a ReadOnlyRootMetadata object past
+// the end of the function, or when a function takes both a
+// *RootMetadata and a ReadOnlyRootMetadata (see
+// decryptMDPrivateData).
+type ReadOnlyRootMetadata struct {
+	*RootMetadata
+}
+
+// CheckValidSuccessor makes sure the given ReadOnlyRootMetadata is a
+// valid successor to the current one, and returns an error otherwise.
+func (md ReadOnlyRootMetadata) CheckValidSuccessor(
+	currID MdID, nextMd ReadOnlyRootMetadata) error {
+	return md.BareRootMetadata.CheckValidSuccessor(
+		currID, &nextMd.BareRootMetadata)
+}
+
+// ReadOnly makes a ReadOnlyRootMetadata from the current
+// *RootMetadata.
+func (md *RootMetadata) ReadOnly() ReadOnlyRootMetadata {
+	return ReadOnlyRootMetadata{md}
+}
+
+// ImmutableRootMetadata is a thin wrapper around a
+// ReadOnlyRootMetadata that takes ownership of it and does not ever
+// modify it again. Thus, its MdID can be calculated and
+// stored. Unlike ReadOnlyRootMetadata, ImmutableRootMetadata objects
+// can be assumed to never alias a (modifiable) *RootMetadata.
+type ImmutableRootMetadata struct {
+	ReadOnlyRootMetadata
+	mdID MdID
+}
+
+// MakeImmutableRootMetadata makes a new ImmutableRootMetadata from
+// the given RMD and its corresponding MdID.
+func MakeImmutableRootMetadata(
+	rmd *RootMetadata, mdID MdID) ImmutableRootMetadata {
+	if mdID == (MdID{}) {
+		panic("zero mdID passed to MakeImmutableRootMetadata")
 	}
-	if md.FinalizedInfo != nil {
-		extensions = append(extensions, *md.FinalizedInfo)
-	}
-	return extensions
+	return ImmutableRootMetadata{rmd.ReadOnly(), mdID}
 }
 
 // RootMetadataSigned is the top-level MD object stored in MD server
@@ -867,7 +468,7 @@ type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key
 	SigInfo SignatureInfo `codec:",omitempty"`
 	// all the metadata
-	MD RootMetadata
+	MD BareRootMetadata
 	// When does the server say this MD update was received?  (This is
 	// not necessarily trustworthy, just for informational purposes.)
 	untrustedServerTimestamp time.Time
@@ -885,16 +486,18 @@ func (rmds *RootMetadataSigned) IsInitialized() bool {
 func (rmds *RootMetadataSigned) VerifyRootMetadata(codec Codec, crypto Crypto) error {
 	md := &rmds.MD
 	if rmds.MD.IsFinal() {
-		var err error
-		md, err = rmds.MD.deepCopy(codec, false)
-		if err != nil {
-			return err
-		}
-		// Mask out finalized additions.  These are the only things allowed
-		// to change in the finalized metadata block.
-		md.Flags &= ^MetadataFlagFinal
-		md.Revision--
-		md.FinalizedInfo = nil
+		// Since we're just working with the immediate fields
+		// of RootMetadata, we can get away with a shallow
+		// copy here.
+		mdCopy := rmds.MD
+
+		// Mask out finalized additions.  These are the only
+		// things allowed to change in the finalized metadata
+		// block.
+		mdCopy.Flags &= ^MetadataFlagFinal
+		mdCopy.Revision--
+		mdCopy.FinalizedInfo = nil
+		md = &mdCopy
 	}
 	// Re-marshal the whole RootMetadata. This is not avoidable
 	// without support from ugorji/codec.
@@ -941,7 +544,7 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 		return nil, MetadataIsFinalError{}
 	}
 	var newRmds RootMetadataSigned
-	err := rmds.MD.deepCopyInPlace(config.Codec(), false, &newRmds.MD)
+	err := rmds.MD.deepCopyInPlace(config.Codec(), &newRmds.MD)
 	if err != nil {
 		return nil, err
 	}
@@ -958,24 +561,4 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 	// the head revision - 1.
 	newRmds.MD.Revision = rmds.MD.Revision + 1
 	return &newRmds, nil
-}
-
-func makeRekeyReadError(
-	md *RootMetadata, resolvedHandle *TlfHandle, keyGen KeyGen,
-	uid keybase1.UID, username libkb.NormalizedUsername) error {
-	// If the user is not a legitimate reader of the folder, this is a
-	// normal read access error.
-	if resolvedHandle.IsPublic() {
-		panic("makeRekeyReadError called on public folder")
-	}
-	if !resolvedHandle.IsReader(uid) {
-		return NewReadAccessError(resolvedHandle, username)
-	}
-
-	// Otherwise, this folder needs to be rekeyed for this device.
-	tlfName := resolvedHandle.GetCanonicalName()
-	if keys, _ := md.GetTLFCryptPublicKeys(keyGen, uid); len(keys) > 0 {
-		return NeedSelfRekeyError{tlfName}
-	}
-	return NeedOtherRekeyError{tlfName}
 }

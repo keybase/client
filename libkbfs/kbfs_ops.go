@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 	"time"
@@ -246,12 +247,46 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
-	if md == nil {
-		md, err = mdops.GetForHandle(ctx, h)
+
+	if md == (ImmutableRootMetadata{}) {
+		var id TlfID
+		id, md, err = mdops.GetForHandle(ctx, h)
 		if err != nil {
 			return nil, EntryInfo{}, err
 		}
+		if md == (ImmutableRootMetadata{}) {
+			if id == (TlfID{}) {
+				return nil, EntryInfo{}, errors.New("No ID or MD")
+			}
+			if branch != MasterBranch {
+				return nil, EntryInfo{}, errors.New("Can only initialize with branch == MasterBranch")
+			}
+
+			// Init new MD.
+
+			fb := FolderBranch{Tlf: id, Branch: branch}
+			ops := fs.getOpsByHandle(ctx, h, fb)
+
+			err = ops.SetInitialHeadToNew(ctx, id, h)
+			if err != nil {
+				return nil, EntryInfo{}, err
+			}
+
+			node, ei, _, err = ops.getRootNode(ctx)
+			if err != nil {
+				return nil, EntryInfo{}, err
+			}
+
+			if err := ops.addToFavorites(ctx, fs.favs, true); err != nil {
+				// Failure to favorite shouldn't cause a failure.  Just log
+				// and move on.
+				fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
+			}
+
+			return node, ei, nil
+		}
 	}
+
 	fb := FolderBranch{Tlf: md.ID, Branch: branch}
 
 	// we might not be able to read the metadata if we aren't in the
@@ -270,14 +305,10 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 	}
 
 	ops := fs.getOpsByHandle(ctx, h, fb)
-	var created bool
-	if branch == MasterBranch {
-		// For now, only the master branch can be initialized with a
-		// branch new MD object.
-		created, err = ops.CheckForNewMDAndInit(ctx, md)
-		if err != nil {
-			return nil, EntryInfo{}, err
-		}
+
+	err = ops.SetInitialHeadFromServer(ctx, md)
+	if err != nil {
+		return nil, EntryInfo{}, err
 	}
 
 	node, ei, _, err = ops.getRootNode(ctx)
@@ -285,7 +316,7 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 		return nil, EntryInfo{}, err
 	}
 
-	if err := ops.addToFavorites(ctx, fs.favs, created); err != nil {
+	if err := ops.addToFavorites(ctx, fs.favs, false); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
 		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)

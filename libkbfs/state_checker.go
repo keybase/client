@@ -31,8 +31,8 @@ func NewStateChecker(config Config) *StateChecker {
 // the blocksFound map, if the given path represents an indirect
 // block.
 func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
-	lState *lockState, ops *folderBranchOps, md *RootMetadata, file path,
-	blockSizes map[BlockPointer]uint32) error {
+	lState *lockState, ops *folderBranchOps, md ReadOnlyRootMetadata,
+	file path, blockSizes map[BlockPointer]uint32) error {
 	fblock, err := ops.blocks.GetFileBlockForReading(ctx, lState, md,
 		file.tailPointer(), file.Branch, file)
 	if err != nil {
@@ -59,8 +59,8 @@ func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 // the blockSizes map, and then recursively checks all
 // subdirectories.
 func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
-	lState *lockState, ops *folderBranchOps, md *RootMetadata, dir path,
-	blockSizes map[BlockPointer]uint32) error {
+	lState *lockState, ops *folderBranchOps, md ReadOnlyRootMetadata,
+	dir path, blockSizes map[BlockPointer]uint32) error {
 	dblock, err := ops.blocks.GetDirBlockForReading(ctx, lState, md,
 		dir.tailPointer(), dir.Branch, dir)
 	if err != nil {
@@ -272,8 +272,8 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 			"node pointer %v", e, g)
 	}
 	actualLiveBlocks[rootPath.tailPointer()] = currMD.data.Dir.EncodedSize
-	if err := sc.findAllBlocksInPath(ctx, lState, ops, currMD, rootPath,
-		actualLiveBlocks); err != nil {
+	if err := sc.findAllBlocksInPath(ctx, lState, ops, currMD.ReadOnly(),
+		rootPath, actualLiveBlocks); err != nil {
 		return err
 	}
 	sc.log.CDebugf(ctx, "Folder %v has %d actual live blocks",

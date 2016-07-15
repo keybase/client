@@ -791,13 +791,13 @@ func (e MDTlfIDMismatch) Error() string {
 // MDPrevRootMismatch indicates that the PrevRoot field of a successor
 // MD doesn't match the metadata ID of its predecessor.
 type MDPrevRootMismatch struct {
-	prevRoot MdID
-	currRoot MdID
+	prevRoot         MdID
+	expectedPrevRoot MdID
 }
 
 func (e MDPrevRootMismatch) Error() string {
-	return fmt.Sprintf("PrevRoot %s doesn't match current root %s",
-		e.prevRoot, e.currRoot)
+	return fmt.Sprintf("PrevRoot %s doesn't match expected %s",
+		e.prevRoot, e.expectedPrevRoot)
 }
 
 // MDDiskUsageMismatch indicates an inconsistency in the DiskUsage

@@ -11,9 +11,27 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
+
+type shimCrypto struct {
+	Crypto
+	pure cryptoPure
+}
+
+func (c shimCrypto) MakeMdID(md *BareRootMetadata) (MdID, error) {
+	return c.pure.MakeMdID(md)
+}
+
+func injectShimCrypto(t *testing.T, config Config) {
+	crypto := shimCrypto{
+		config.Crypto(),
+		MakeCryptoCommon(NewCodecMsgpack(), logger.NewTestLogger(t)),
+	}
+	config.SetCrypto(crypto)
+}
 
 func mdOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config *ConfigMock, ctx context.Context) {
@@ -22,6 +40,7 @@ func mdOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config = NewConfigMock(mockCtrl, ctr)
 	mdops := NewMDOpsStandard(config)
 	config.SetMDOps(mdops)
+	injectShimCrypto(t, config)
 	interposeDaemonKBPKI(config, "alice", "bob", "charlie")
 	ctx = context.Background()
 	return
@@ -32,13 +51,36 @@ func mdOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	mockCtrl.Finish()
 }
 
+func addFakeRMDData(rmd *RootMetadata, h *TlfHandle) {
+	rmd.Revision = MetadataRevision(1)
+	rmd.LastModifyingWriter = h.FirstResolvedWriter()
+	rmd.LastModifyingUser = h.FirstResolvedWriter()
+
+	if !h.IsPublic() {
+		FakeInitialRekey(&rmd.BareRootMetadata, h.ToBareHandleOrBust())
+	}
+}
+
+func newRMD(t *testing.T, config Config, public bool) (
+	*RootMetadata, *TlfHandle) {
+	id := FakeTlfID(1, public)
+
+	h := parseTlfHandleOrBust(t, config, "alice,bob", public)
+	rmd := &RootMetadata{}
+	err := updateNewBareRootMetadata(
+		&rmd.BareRootMetadata, id, h.ToBareHandleOrBust())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	addFakeRMDData(rmd, h)
+
+	return rmd, h
+}
+
 func addFakeRMDSData(rmds *RootMetadataSigned, h *TlfHandle) {
-	rmds.MD.tlfHandle = h
-
-	// Need to do this to avoid calls to the mocked-out MakeMdID.
-	rmds.MD.mdID = fakeMdID(fakeTlfIDByte(rmds.MD.ID))
-
 	rmds.MD.Revision = MetadataRevision(1)
+	rmds.MD.SerializedPrivateMetadata = []byte{1}
 	rmds.MD.LastModifyingWriter = h.FirstResolvedWriter()
 	rmds.MD.LastModifyingUser = h.FirstResolvedWriter()
 	rmds.SigInfo = SignatureInfo{
@@ -52,19 +94,20 @@ func addFakeRMDSData(rmds *RootMetadataSigned, h *TlfHandle) {
 	}
 }
 
-func newRMDS(t *testing.T, config Config, public bool) *RootMetadataSigned {
+func newRMDS(t *testing.T, config Config, public bool) (
+	*RootMetadataSigned, *TlfHandle) {
 	id := FakeTlfID(1, public)
 
 	h := parseTlfHandleOrBust(t, config, "alice,bob", public)
 	rmds := &RootMetadataSigned{}
-	err := updateNewRootMetadata(&rmds.MD, id, h.ToBareHandleOrBust())
+	err := updateNewBareRootMetadata(&rmds.MD, id, h.ToBareHandleOrBust())
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	addFakeRMDSData(rmds, h)
 
-	return rmds
+	return rmds, h
 }
 
 func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
@@ -80,7 +123,7 @@ func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 		if verifyErr == nil {
 			config.mockCodec.EXPECT().Decode(
 				rmds.MD.SerializedPrivateMetadata,
-				&rmds.MD.data).Return(nil)
+				gomock.Any()).Return(nil)
 		}
 	}
 }
@@ -91,17 +134,17 @@ func verifyMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned) {
 
 	config.mockCodec.EXPECT().Decode(rmds.MD.SerializedPrivateMetadata, gomock.Any()).
 		Return(nil)
-	expectGetTLFCryptKeyForMDDecryption(config, &rmds.MD)
+	fakeRMD := RootMetadata{
+		BareRootMetadata: rmds.MD,
+	}
+	expectGetTLFCryptKeyForMDDecryption(config, &fakeRMD)
+	var pmd PrivateMetadata
 	config.mockCrypto.EXPECT().DecryptPrivateMetadata(
-		gomock.Any(), TLFCryptKey{}).Return(&rmds.MD.data, nil)
+		gomock.Any(), TLFCryptKey{}).Return(&pmd, nil)
 
 	if rmds.MD.IsFinal() {
 		config.mockKbpki.EXPECT().HasUnverifiedVerifyingKey(gomock.Any(), gomock.Any(),
 			gomock.Any()).AnyTimes().Return(nil)
-
-		// These are for the deepCopy done in VerifyRootMetadata when metadata is final.
-		config.mockCodec.EXPECT().Decode(gomock.Any(), gomock.Any()).Return(nil)
-		config.mockCodec.EXPECT().Decode(gomock.Any(), gomock.Any()).Return(nil)
 	} else {
 		config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 			gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
@@ -111,10 +154,10 @@ func verifyMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned) {
 	config.mockCrypto.EXPECT().Verify(packedData, rmds.MD.WriterMetadataSigInfo).Return(nil)
 }
 
-func putMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned) {
-	expectGetTLFCryptKeyForEncryption(config, &rmds.MD)
+func putMDForPrivate(config *ConfigMock, rmd *RootMetadata) {
+	expectGetTLFCryptKeyForEncryption(config, rmd)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
-		&rmds.MD.data, TLFCryptKey{}).Return(EncryptedPrivateMetadata{}, nil)
+		&rmd.data, TLFCryptKey{}).Return(EncryptedPrivateMetadata{}, nil)
 
 	packedData := []byte{4, 3, 2, 1}
 	// TODO make these EXPECTs more specific.
@@ -135,66 +178,40 @@ func TestMDOpsGetForHandlePublicSuccess(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds := newRMDS(t, config, true)
+	rmds, h := newRMDS(t, config, true)
 
-	// Do this before setting tlfHandle to nil.
 	verifyMDForPublic(config, rmds, nil, nil)
-
-	h := rmds.MD.GetTlfHandle()
-
-	// Set tlfHandle to nil so that the md server returns a
-	// 'deserialized' RMDS.
-	rmds.MD.tlfHandle = nil
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 
-	if rmd2, err := config.MDOps().GetForHandle(ctx, h); err != nil {
-		t.Errorf("Got error on get: %v", err)
-	} else if rmd2.ID != rmds.MD.ID {
-		t.Errorf("Got back wrong id on get: %v (expected %v)", rmd2.ID, rmds.MD.ID)
-	} else if rmd2 != &rmds.MD {
-		t.Errorf("Got back wrong data on get: %v (expected %v)", rmd2, &rmds.MD)
-	}
+	_, rmd2, err := config.MDOps().GetForHandle(ctx, h)
+	require.NoError(t, err)
+	require.Equal(t, rmds.MD, rmd2.BareRootMetadata)
 }
 
 func TestMDOpsGetForHandlePrivateSuccess(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds := newRMDS(t, config, false)
+	rmds, h := newRMDS(t, config, false)
 
-	// Do this before setting tlfHandle to nil.
 	verifyMDForPrivate(config, rmds)
-
-	h := rmds.MD.GetTlfHandle()
-
-	// Set tlfHandle to nil so that the md server returns a
-	// 'deserialized' RMDS.
-	rmds.MD.tlfHandle = nil
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 
-	if rmd2, err := config.MDOps().GetForHandle(ctx, h); err != nil {
-		t.Errorf("Got error on get: %v", err)
-	} else if rmd2.ID != rmds.MD.ID {
-		t.Errorf("Got back wrong id on get: %v (expected %v)", rmd2.ID, rmds.MD.ID)
-	} else if rmd2 != &rmds.MD {
-		t.Errorf("Got back wrong data on get: %v (expected %v)", rmd2, &rmds.MD)
-	}
+	_, rmd2, err := config.MDOps().GetForHandle(ctx, h)
+	require.NoError(t, err)
+	require.Equal(t, rmds.MD, rmd2.BareRootMetadata)
 }
 
 func TestMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds := newRMDS(t, config, true)
+	rmds, _ := newRMDS(t, config, true)
 
 	// Do this before setting tlfHandle to nil.
 	verifyMDForPublic(config, rmds, nil, nil)
-
-	// Set tlfHandle to nil so that the md server returns a
-	// 'deserialized' RMDS.
-	rmds.MD.tlfHandle = nil
 
 	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(),
 		"alice,bob@twitter", true)
@@ -205,7 +222,7 @@ func TestMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T) {
 	config.mockMdserv.EXPECT().GetForHandle(ctx, hUnresolved.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil).Times(2)
 
 	// First time should fail.
-	_, err = config.MDOps().GetForHandle(ctx, hUnresolved)
+	_, _, err = config.MDOps().GetForHandle(ctx, hUnresolved)
 	if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
@@ -214,7 +231,7 @@ func TestMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T) {
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	// Second time should succeed.
-	if _, err := config.MDOps().GetForHandle(ctx, hUnresolved); err != nil {
+	if _, _, err := config.MDOps().GetForHandle(ctx, hUnresolved); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	}
 }
@@ -238,29 +255,23 @@ func TestMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T) {
 	require.NoError(t, err)
 
 	rmds1 := &RootMetadataSigned{}
-	err = updateNewRootMetadata(&rmds1.MD, id, mdHandle1.ToBareHandleOrBust())
+	err = updateNewBareRootMetadata(&rmds1.MD, id, mdHandle1.ToBareHandleOrBust())
 	require.NoError(t, err)
 	addFakeRMDSData(rmds1, mdHandle1)
 
 	rmds2 := &RootMetadataSigned{}
-	err = updateNewRootMetadata(&rmds2.MD, id, mdHandle2.ToBareHandleOrBust())
+	err = updateNewBareRootMetadata(&rmds2.MD, id, mdHandle2.ToBareHandleOrBust())
 	require.NoError(t, err)
 	addFakeRMDSData(rmds2, mdHandle2)
 
 	rmds3 := &RootMetadataSigned{}
-	err = updateNewRootMetadata(&rmds3.MD, id, mdHandle3.ToBareHandleOrBust())
+	err = updateNewBareRootMetadata(&rmds3.MD, id, mdHandle3.ToBareHandleOrBust())
 	require.NoError(t, err)
 	addFakeRMDSData(rmds3, mdHandle3)
 
 	// Do this before setting tlfHandles to nil.
 	verifyMDForPublic(config, rmds2, nil, nil)
 	verifyMDForPublic(config, rmds3, nil, nil)
-
-	// Set tlfHandle to nil so that the md server returns a
-	// 'deserialized' RMDS.
-	rmds1.MD.tlfHandle = nil
-	rmds2.MD.tlfHandle = nil
-	rmds3.MD.tlfHandle = nil
 
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), "alice,bob,charlie@twitter", true)
@@ -271,7 +282,7 @@ func TestMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T) {
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds1, nil)
 
 	// First time should fail.
-	_, err = config.MDOps().GetForHandle(ctx, h)
+	_, _, err = config.MDOps().GetForHandle(ctx, h)
 	if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
@@ -283,13 +294,13 @@ func TestMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T) {
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds2, nil)
 
 	// Second and time should succeed.
-	if _, err := config.MDOps().GetForHandle(ctx, h); err != nil {
+	if _, _, err := config.MDOps().GetForHandle(ctx, h); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	}
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds3, nil)
 
-	if _, err := config.MDOps().GetForHandle(ctx, h); err != nil {
+	if _, _, err := config.MDOps().GetForHandle(ctx, h); err != nil {
 		t.Errorf("Got error on get: %v", err)
 	}
 }
@@ -298,11 +309,7 @@ func TestMDOpsGetForUnresolvedHandlePublicFailure(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds := newRMDS(t, config, true)
-
-	// Set tlfHandle to nil so that the md server returns a
-	// 'deserialized' RMDS.
-	rmds.MD.tlfHandle = nil
+	rmds, _ := newRMDS(t, config, true)
 
 	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(),
 		"alice,bob@github,bob@twitter", true)
@@ -316,7 +323,7 @@ func TestMDOpsGetForUnresolvedHandlePublicFailure(t *testing.T) {
 	config.mockMdserv.EXPECT().GetForHandle(ctx, hUnresolved.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 
 	// Should still fail.
-	_, err = config.MDOps().GetForHandle(ctx, hUnresolved)
+	_, _, err = config.MDOps().GetForHandle(ctx, hUnresolved)
 	if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
@@ -326,20 +333,14 @@ func TestMDOpsGetForHandlePublicFailFindKey(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds := newRMDS(t, config, true)
+	rmds, h := newRMDS(t, config, true)
 
 	// Do this before setting tlfHandle to nil.
 	verifyMDForPublic(config, rmds, KeyNotFoundError{}, nil)
 
-	h := rmds.MD.GetTlfHandle()
-
-	// Set tlfHandle to nil so that the md server returns a
-	// 'deserialized' RMDS.
-	rmds.MD.tlfHandle = nil
-
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 
-	_, err := config.MDOps().GetForHandle(ctx, h)
+	_, _, err := config.MDOps().GetForHandle(ctx, h)
 	if _, ok := err.(UnverifiableTlfUpdateError); !ok {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
@@ -349,21 +350,15 @@ func TestMDOpsGetForHandlePublicFailVerify(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds := newRMDS(t, config, true)
+	rmds, h := newRMDS(t, config, true)
 
 	// Do this before setting tlfHandle to nil.
 	expectedErr := libkb.VerificationError{}
 	verifyMDForPublic(config, rmds, nil, expectedErr)
 
-	h := rmds.MD.GetTlfHandle()
-
-	// Set tlfHandle to nil so that the md server returns a
-	// 'deserialized' RMDS.
-	rmds.MD.tlfHandle = nil
-
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 
-	if _, err := config.MDOps().GetForHandle(ctx, h); err != expectedErr {
+	if _, _, err := config.MDOps().GetForHandle(ctx, h); err != expectedErr {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
 }
@@ -379,7 +374,7 @@ func TestMDOpsGetForHandleFailGet(t *testing.T) {
 	// only the get happens, no verify needed with a blank sig
 	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, nil, err)
 
-	if _, err2 := config.MDOps().GetForHandle(ctx, h); err2 != err {
+	if _, _, err2 := config.MDOps().GetForHandle(ctx, h); err2 != err {
 		t.Errorf("Got bad error on get: %v", err2)
 	}
 }
@@ -388,17 +383,13 @@ func TestMDOpsGetForHandleFailHandleCheck(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds := newRMDS(t, config, false)
-
-	// Set tlfHandle to nil so that the md server returns a
-	// 'deserialized' RMDS.
-	rmds.MD.tlfHandle = nil
+	rmds, _ := newRMDS(t, config, false)
 
 	// Make a different handle.
 	otherH := parseTlfHandleOrBust(t, config, "alice", false)
 	config.mockMdserv.EXPECT().GetForHandle(ctx, otherH.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 
-	_, err := config.MDOps().GetForHandle(ctx, otherH)
+	_, _, err := config.MDOps().GetForHandle(ctx, otherH)
 	if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
@@ -408,34 +399,24 @@ func TestMDOpsGetSuccess(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds := newRMDS(t, config, false)
+	rmds, _ := newRMDS(t, config, false)
 
 	// Do this before setting tlfHandle to nil.
 	verifyMDForPrivate(config, rmds)
 
-	// Set tlfHandle to nil so that the md server returns a
-	// 'deserialized' RMDS.
-	rmds.MD.tlfHandle = nil
-
 	config.mockMdserv.EXPECT().GetForTLF(ctx, rmds.MD.ID, NullBranchID, Merged).Return(rmds, nil)
 
-	if rmd2, err := config.MDOps().GetForTLF(ctx, rmds.MD.ID); err != nil {
-		t.Errorf("Got error on get: %v", err)
-	} else if rmd2 != &rmds.MD {
-		t.Errorf("Got back wrong data on get: %v (expected %v)", rmd2, &rmds.MD)
-	}
+	rmd2, err := config.MDOps().GetForTLF(ctx, rmds.MD.ID)
+	require.NoError(t, err)
+	require.Equal(t, rmds.MD, rmd2.BareRootMetadata)
 }
 
 func TestMDOpsGetBlankSigFailure(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds := newRMDS(t, config, false)
+	rmds, _ := newRMDS(t, config, false)
 	rmds.SigInfo = SignatureInfo{}
-
-	// Set tlfHandle to nil so that the md server returns a
-	// 'deserialized' RMDS.
-	rmds.MD.tlfHandle = nil
 
 	// only the get happens, no verify needed with a blank sig
 	config.mockMdserv.EXPECT().GetForTLF(ctx, rmds.MD.ID, NullBranchID, Merged).Return(rmds, nil)
@@ -464,13 +445,9 @@ func TestMDOpsGetFailIdCheck(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds := newRMDS(t, config, false)
+	rmds, _ := newRMDS(t, config, false)
 
 	id2 := FakeTlfID(2, true)
-
-	// Set tlfHandle to nil so that the md server returns a
-	// 'deserialized' RMDS.
-	rmds.MD.tlfHandle = nil
 
 	config.mockMdserv.EXPECT().GetForTLF(ctx, id2, NullBranchID, Merged).Return(rmds, nil)
 
@@ -481,53 +458,46 @@ func TestMDOpsGetFailIdCheck(t *testing.T) {
 	}
 }
 
+func makeRMDSRange(t *testing.T, config Config,
+	start MetadataRevision, count int) []*RootMetadataSigned {
+	var rmdses []*RootMetadataSigned
+	var prevID MdID
+	for i := 0; i < count; i++ {
+		rmds, _ := newRMDS(t, config, false)
+		rmds.MD.PrevRoot = prevID
+		rmds.MD.Revision = start + MetadataRevision(i)
+		currID, err := config.Crypto().MakeMdID(&rmds.MD)
+		require.NoError(t, err)
+		prevID = currID
+		rmdses = append(rmdses, rmds)
+	}
+	return rmdses
+}
+
 func testMDOpsGetRangeSuccess(t *testing.T, fromStart bool) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds1 := newRMDS(t, config, false)
+	rmdses := makeRMDSRange(t, config, 100, 5)
 
-	rmds2 := newRMDS(t, config, false)
-
-	rmds2.MD.mdID = fakeMdID(42)
-	rmds1.MD.PrevRoot = rmds2.MD.mdID
-	rmds1.MD.Revision = 102
-
-	rmds3 := newRMDS(t, config, false)
-
-	rmds3.MD.mdID = fakeMdID(43)
-	rmds2.MD.PrevRoot = rmds3.MD.mdID
-	rmds2.MD.Revision = 101
-	mdID4 := fakeMdID(44)
-	rmds3.MD.PrevRoot = mdID4
-	rmds3.MD.Revision = 100
-
-	start, stop := MetadataRevision(100), MetadataRevision(102)
+	start := MetadataRevision(100)
+	stop := start + MetadataRevision(len(rmdses))
 	if fromStart {
 		start = 0
 	}
 
-	// Do this before setting tlfHandles to nil.
-	verifyMDForPrivate(config, rmds3)
-	verifyMDForPrivate(config, rmds2)
-	verifyMDForPrivate(config, rmds1)
+	for _, rmds := range rmdses {
+		verifyMDForPrivate(config, rmds)
+	}
 
-	// Set tlfHandles to nil so that the md server returns
-	// 'deserialized' RMDSes.
-	rmds1.MD.tlfHandle = nil
-	rmds2.MD.tlfHandle = nil
-	rmds3.MD.tlfHandle = nil
+	config.mockMdserv.EXPECT().GetRange(ctx, rmdses[0].MD.ID, NullBranchID, Merged, start,
+		stop).Return(rmdses, nil)
 
-	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
-
-	config.mockMdserv.EXPECT().GetRange(ctx, rmds1.MD.ID, NullBranchID, Merged, start,
-		stop).Return(allRMDSs, nil)
-
-	allRMDs, err := config.MDOps().GetRange(ctx, rmds1.MD.ID, start, stop)
-	if err != nil {
-		t.Errorf("Got error on GetRange: %v", err)
-	} else if len(allRMDs) != 3 {
-		t.Errorf("Got back wrong number of RMDs: %d", len(allRMDs))
+	rmds, err := config.MDOps().GetRange(ctx, rmdses[0].MD.ID, start, stop)
+	require.NoError(t, err)
+	require.Equal(t, len(rmdses), len(rmds))
+	for i := 0; i < len(rmdses); i++ {
+		require.Equal(t, rmdses[i].MD, rmds[i].BareRootMetadata)
 	}
 }
 
@@ -543,46 +513,22 @@ func TestMDOpsGetRangeFailBadPrevRoot(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds1 := newRMDS(t, config, false)
+	rmdses := makeRMDSRange(t, config, 100, 5)
 
-	rmds2 := newRMDS(t, config, false)
+	rmdses[2].MD.PrevRoot = fakeMdID(1)
 
-	rmds2.MD.mdID = fakeMdID(42)
-	rmds1.MD.PrevRoot = fakeMdID(46) // points to some random ID
-	rmds1.MD.Revision = 202
+	start := MetadataRevision(100)
+	stop := start + MetadataRevision(len(rmdses))
 
-	rmds3 := newRMDS(t, config, false)
-
-	rmds3.MD.mdID = fakeMdID(43)
-	rmds2.MD.PrevRoot = rmds3.MD.mdID
-	rmds2.MD.Revision = 201
-	mdID4 := fakeMdID(44)
-	rmds3.MD.PrevRoot = mdID4
-	rmds3.MD.Revision = 200
-
-	// Do this before setting tlfHandle to nil.
-	verifyMDForPrivate(config, rmds3)
-	verifyMDForPrivate(config, rmds2)
-
-	// Set tlfHandle to nil so that the md server returns
-	// 'deserialized' RMDSes.
-	rmds1.MD.tlfHandle = nil
-	rmds2.MD.tlfHandle = nil
-	rmds3.MD.tlfHandle = nil
-
-	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
-
-	start, stop := MetadataRevision(200), MetadataRevision(202)
-	config.mockMdserv.EXPECT().GetRange(ctx, rmds1.MD.ID, NullBranchID, Merged, start,
-		stop).Return(allRMDSs, nil)
-
-	_, err := config.MDOps().GetRange(ctx, rmds1.MD.ID, start, stop)
-	if err == nil {
-		t.Errorf("Got no expected error on GetSince")
-	} else if _, ok := err.(MDMismatchError); !ok {
-		t.Errorf("Got unexpected error on GetSince with bad PrevRoot chain: %v",
-			err)
+	for i := 0; i < 2; i++ {
+		verifyMDForPrivate(config, rmdses[i])
 	}
+
+	config.mockMdserv.EXPECT().GetRange(ctx, rmdses[0].MD.ID, NullBranchID, Merged, start,
+		stop).Return(rmdses, nil)
+
+	_, err := config.MDOps().GetRange(ctx, rmdses[0].MD.ID, start, stop)
+	require.IsType(t, MDMismatchError{}, err)
 }
 
 type fakeMDServerPut struct {
@@ -609,7 +555,7 @@ func (s *fakeMDServerPut) Shutdown() {}
 
 func validatePutPublicRMDS(
 	ctx context.Context, t *testing.T, config Config,
-	expectedRmd *RootMetadata, rmds *RootMetadataSigned) {
+	inputRmd *BareRootMetadata, rmds *RootMetadataSigned) {
 	// TODO: Handle private RMDS, too.
 
 	// Verify LastModifying* fields.
@@ -635,18 +581,17 @@ func validatePutPublicRMDS(
 	err = config.Crypto().Verify(buf, rmds.SigInfo)
 	require.NoError(t, err)
 
-	// Copy expectedRmd to get rid of unexported fields.
-	var expectedRmdCopy RootMetadata
-	err = CodecUpdate(config.Codec(), &expectedRmdCopy, expectedRmd)
+	var expectedRmd BareRootMetadata
+	err = CodecUpdate(config.Codec(), &expectedRmd, inputRmd)
 	require.NoError(t, err)
 
 	// Overwrite written fields.
-	expectedRmdCopy.LastModifyingWriter = rmds.MD.LastModifyingWriter
-	expectedRmdCopy.LastModifyingUser = rmds.MD.LastModifyingUser
-	expectedRmdCopy.WriterMetadataSigInfo = rmds.MD.WriterMetadataSigInfo
-	expectedRmdCopy.SerializedPrivateMetadata = rmds.MD.SerializedPrivateMetadata
+	expectedRmd.LastModifyingWriter = rmds.MD.LastModifyingWriter
+	expectedRmd.LastModifyingUser = rmds.MD.LastModifyingUser
+	expectedRmd.WriterMetadataSigInfo = rmds.MD.WriterMetadataSigInfo
+	expectedRmd.SerializedPrivateMetadata = rmds.MD.SerializedPrivateMetadata
 
-	require.Equal(t, expectedRmdCopy, rmds.MD)
+	require.Equal(t, expectedRmd, rmds.MD)
 }
 
 func TestMDOpsPutPublicSuccess(t *testing.T) {
@@ -661,7 +606,7 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 	h := parseTlfHandleOrBust(t, config, "alice,bob", true)
 
 	var rmd RootMetadata
-	err := updateNewRootMetadata(&rmd, id, h.ToBareHandleOrBust())
+	err := updateNewBareRootMetadata(&rmd.BareRootMetadata, id, h.ToBareHandleOrBust())
 	require.NoError(t, err)
 	rmd.data = makeFakePrivateMetadataFuture(t).toCurrent()
 	rmd.tlfHandle = h
@@ -670,17 +615,17 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 	err = config.MDOps().Put(ctx, &rmd)
 
 	rmds := mdServer.getLastRmds()
-	validatePutPublicRMDS(ctx, t, config, &rmd, rmds)
+	validatePutPublicRMDS(ctx, t, config, &rmd.BareRootMetadata, rmds)
 }
 
 func TestMDOpsPutPrivateSuccess(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds := newRMDS(t, config, false)
-	putMDForPrivate(config, rmds)
+	rmd, _ := newRMD(t, config, false)
+	putMDForPrivate(config, rmd)
 
-	if err := config.MDOps().PutUnmerged(ctx, &rmds.MD, NullBranchID); err != nil {
+	if err := config.MDOps().PutUnmerged(ctx, rmd, NullBranchID); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -709,44 +654,21 @@ func TestMDOpsGetRangeFailFinal(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	rmds1 := newRMDS(t, config, false)
-	rmds2 := newRMDS(t, config, false)
-	rmds3 := newRMDS(t, config, false)
+	rmdses := makeRMDSRange(t, config, 100, 5)
+	rmdses[2].MD.Flags |= MetadataFlagFinal
+	rmdses[2].MD.PrevRoot = rmdses[1].MD.PrevRoot
 
-	rmds3.MD.Revision = 200
-	rmds3.MD.mdID = fakeMdID(40)
-	rmds3.MD.PrevRoot = fakeMdID(39)
+	start := MetadataRevision(100)
+	stop := start + MetadataRevision(len(rmdses))
 
-	rmds2.MD.Revision = 201
-	rmds2.MD.mdID = fakeMdID(41)
-	rmds2.MD.PrevRoot = rmds3.MD.PrevRoot
-	rmds2.MD.Flags |= MetadataFlagFinal
-
-	rmds1.MD.Revision = 202
-	rmds1.MD.mdID = fakeMdID(42)
-	rmds1.MD.PrevRoot = rmds2.MD.mdID
-
-	// Do this before setting tlfHandle to nil.
-	verifyMDForPrivate(config, rmds3)
-	verifyMDForPrivate(config, rmds2)
-
-	// Set tlfHandle to nil so that the md server returns
-	// 'deserialized' RMDSes.
-	rmds1.MD.tlfHandle = nil
-	rmds2.MD.tlfHandle = nil
-	rmds3.MD.tlfHandle = nil
-
-	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
-
-	start, stop := MetadataRevision(200), MetadataRevision(202)
-	config.mockMdserv.EXPECT().GetRange(ctx, rmds1.MD.ID, NullBranchID, Merged, start,
-		stop).Return(allRMDSs, nil)
-
-	_, err := config.MDOps().GetRange(ctx, rmds1.MD.ID, start, stop)
-	if err == nil {
-		t.Errorf("Got no expected error on GetRange")
-	} else if _, ok := err.(MDMismatchError); !ok {
-		t.Errorf("Got unexpected error on GetRange with final non-head revision: %v",
-			err)
+	for i := 0; i <= 2; i++ {
+		verifyMDForPrivate(config, rmdses[i])
 	}
+
+	config.mockMdserv.EXPECT().GetRange(
+		ctx, rmdses[0].MD.ID, NullBranchID, Merged, start, stop).Return(
+		rmdses, nil)
+
+	_, err := config.MDOps().GetRange(ctx, rmdses[0].MD.ID, start, stop)
+	require.IsType(t, MDMismatchError{}, err)
 }

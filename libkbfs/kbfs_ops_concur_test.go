@@ -485,23 +485,23 @@ func (km *mdRecordingKeyManager) setLastMD(md *RootMetadata) {
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForEncryption(
-	ctx context.Context, md *RootMetadata) (TLFCryptKey, error) {
-	km.setLastMD(md)
+	ctx context.Context, md ReadOnlyRootMetadata) (TLFCryptKey, error) {
+	km.setLastMD(md.RootMetadata)
 	return km.delegate.GetTLFCryptKeyForEncryption(ctx, md)
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForMDDecryption(
-	ctx context.Context, mdToDecrypt, mdWithKeys *RootMetadata) (
+	ctx context.Context, mdToDecrypt, mdWithKeys ReadOnlyRootMetadata) (
 	TLFCryptKey, error) {
-	km.setLastMD(mdToDecrypt)
+	km.setLastMD(mdToDecrypt.RootMetadata)
 	return km.delegate.GetTLFCryptKeyForMDDecryption(ctx,
 		mdToDecrypt, mdWithKeys)
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForBlockDecryption(
-	ctx context.Context, md *RootMetadata, blockPtr BlockPointer) (
+	ctx context.Context, md ReadOnlyRootMetadata, blockPtr BlockPointer) (
 	TLFCryptKey, error) {
-	km.setLastMD(md)
+	km.setLastMD(md.RootMetadata)
 	return km.delegate.GetTLFCryptKeyForBlockDecryption(ctx, md, blockPtr)
 }
 
@@ -594,7 +594,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 
 	lastMD := km.getLastMD()
 
-	if md != lastMD {
+	if md.RootMetadata != lastMD {
 		t.Error("Last MD seen by key manager != head")
 	}
 }
@@ -681,7 +681,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 
 	lastMD := km.getLastMD()
 
-	if md != lastMD {
+	if md.RootMetadata != lastMD {
 		t.Error("Last MD seen by key manager != head")
 	}
 }
@@ -1395,7 +1395,7 @@ type blockOpsOverQuota struct {
 	BlockOps
 }
 
-func (booq *blockOpsOverQuota) Put(ctx context.Context, md *RootMetadata,
+func (booq *blockOpsOverQuota) Put(ctx context.Context, md ReadOnlyRootMetadata,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	return BServerErrorOverQuota{
 		Throttled: true,
