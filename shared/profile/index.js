@@ -62,11 +62,20 @@ export default connect(
   }),
   (stateProps, dispatchProps, ownProps) => {
     const username = ownProps.username || stateProps.myUsername
+    const isYou = username === stateProps.username
+    const bioEditFns = isYou && {
+      onEditAvatarClick: () => console.log('TODO'),
+      onNameEdit: () => console.log('TODO'),
+      onBioEdit: () => console.log('TODO'),
+      onLocationEdit: () => console.log('TODO'),
+    }
 
     return {
       ...ownProps,
       ...stateProps.trackers[username],
       ...dispatchProps,
+      isYou,
+      bioEditFns,
       username,
       refresh: username => dispatchProps.refresh(username),
     }

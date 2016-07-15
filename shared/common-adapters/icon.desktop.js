@@ -40,7 +40,7 @@ export default class Icon extends Component {
 
       return <FontIcon
         title={this.props.hint}
-        style={{...globalStyles.noSelect, ...styles.icon, ...fontSizeHint, ...cleanStyle}}
+        style={{...globalStyles.noSelect, ...styles.icon, ...fontSizeHint, ...cleanStyle, ...(this.props.onClick ? globalStyles.clickable : {})}}
         className={`icon-kb-${iconType}${this.props.className && ' ' + this.props.className || ''}`}
         color={color}
         hoverColor={this.props.onClick ? hoverColor : null}
@@ -51,7 +51,7 @@ export default class Icon extends Component {
       return <img
         className={this.props.className}
         title={this.props.hint}
-        style={{...globalStyles.noSelect, ...this.props.style}}
+        style={{...globalStyles.noSelect, ...this.props.style, ...(this.props.onClick ? globalStyles.clickable : {})}}
         onClick={this.props.onClick}
         srcSet={imgPath(this.props.type, ext)} />
     }
