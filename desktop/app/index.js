@@ -13,7 +13,7 @@ import urlHelper from './url-helper'
 import hello from '../shared/util/hello'
 import semver from 'semver'
 import os from 'os'
-import {setupExecuteActionsListener} from '../shared/util/quit-helper.desktop'
+import {setupExecuteActionsListener, executeActionsForContext} from '../shared/util/quit-helper.desktop'
 import {hideDockIcon} from './dock-icon'
 
 let mainWindow = null
@@ -104,7 +104,14 @@ function start () {
       w.destroy()
     })
   })
+
+  // quit through dock. only listen once
+  app.once('before-quit', event => {
+    console.log('Quit through before-quit')
+    event.preventDefault()
+    executeActionsForContext('beforeQuit')
+  })
 }
 
 start()
-setupExecuteActionsListener(app)
+setupExecuteActionsListener()

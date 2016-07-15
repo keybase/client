@@ -11,7 +11,7 @@ export function ctlStop (callback) {
 export function quit () {
   // Only quit the app in dev mode
   if (__DEV__) {
-    console.log('Only quiting app in dev mode')
+    console.log('Only quiting gui in dev mode')
     app.quit()
     return
   }
