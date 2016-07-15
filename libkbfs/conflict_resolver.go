@@ -2207,6 +2207,7 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 			ops = append(ops, op)
 		}
 	}
+
 	return ops, nil
 }
 
@@ -2657,7 +2658,7 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 	unrefs := make(map[BlockPointer]bool)
 	for _, op := range md.data.Changes.Ops {
 		for _, ptr := range op.Refs() {
-			// Don't add usage it's an unembedded block change pointer.
+			// Don't add usage if it's an unembedded block change pointer.
 			if _, ok := unmergedChains.blockChangePointers[ptr]; !ok {
 				refs[ptr] = true
 			}
@@ -2994,6 +2995,35 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		newUpdates = append(newUpdates, update)
 	}
 	resOp.Updates = newUpdates
+
+	// Also include rmop unrefs for chains that were deleted in the
+	// unmerged branch (and so wouldn't be included in the resolved
+	// ops), and not re-created by some action in the merged branch.
+	// These need to be in the resolution for proper block accounting
+	// and invalidation.
+	for original, chain := range unmergedChains.byOriginal {
+		mergedChain := mergedChains.byOriginal[original]
+		if chain.isFile() || !unmergedChains.isDeleted(original) ||
+			mergedChains.isDeleted(original) ||
+			(mergedChain != nil && len(mergedChain.ops) > 0) {
+			continue
+		}
+		for _, op := range chain.ops {
+			if _, ok := op.(*rmOp); !ok {
+				continue
+			}
+
+			// TODO: We might need to include these rmOps in the
+			// actual resolved MD, to send the proper invalidations
+			// into the kernel before we rm the parent.
+			for _, ptr := range op.Unrefs() {
+				if unrefOrig, ok := unmergedChains.originals[ptr]; ok {
+					ptr = unrefOrig
+				}
+				resOp.AddUnrefBlock(ptr)
+			}
+		}
+	}
 
 	newOps[0] = resOp // move the dummy ops to the front
 	md.data.Changes.Ops = newOps
