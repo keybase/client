@@ -5,6 +5,7 @@
   "main": "./dist/main.bundle.js",
   "scripts": {
     "vendor-install": "node npm-vendor.js",
+    "vendor-update": "node npm-vendor.js update",
     "start": "babel-node --presets es2015,stage-2 npm-helper.js start",
     "start-hot": "babel-node --presets es2015,stage-2 npm-helper.js start-hot",
     "start-cold": "babel-node --presets es2015,stage-2 npm-helper.js start-cold",
