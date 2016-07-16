@@ -10,7 +10,7 @@ import {login} from '../../actions/login'
 class Intro extends Component {
   render () {
     return (
-      <Render onSignup={this.props.onSignup} onLogin={this.props.onLogin} justRevokedSelf={this.props.justRevokedSelf} />
+      <Render onSignup={this.props.onSignup} onLogin={this.props.onLogin} loaded={this.props.loaded} justRevokedSelf={this.props.justRevokedSelf} />
     )
   }
 }
@@ -21,7 +21,7 @@ Intro.propTypes = {
 }
 
 export default connect(
-  state => ({justRevokedSelf: state.login.justRevokedSelf}),
+  state => ({justRevokedSelf: state.login.justRevokedSelf, loaded: state.login.loaded}),
   dispatch => ({
     onSignup: () => {
       dispatch(setRevokedSelf(''))
