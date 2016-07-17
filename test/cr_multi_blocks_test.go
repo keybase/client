@@ -22,6 +22,8 @@ func TestCrUnmergedWriteMultiblockFile(t *testing.T) {
 			write("a/foo", "hello"),
 		),
 		as(bob, noSync(),
+			write("a/b", ntimesString(5, "0123456789")),
+			write("a/b", ntimesString(10, "0123456789")),
 			write("a/b", ntimesString(15, "0123456789")),
 			reenableUpdates(),
 			lsdir("a/", m{"b": "FILE", "foo": "FILE"}),
