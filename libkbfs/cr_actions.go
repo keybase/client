@@ -275,6 +275,44 @@ func (cuea *copyUnmergedEntryAction) updateOps(unmergedMostRecent BlockPointer,
 			fixupNamesInOps(cuea.fromName, cuea.toName, unmergedChain.ops,
 				unmergedChains)
 	}
+
+	// If the target is a file that had child blocks, we need to
+	// transfer those references over to the createOp.
+	mergedEntry, ok := mergedBlock.Children[cuea.toName]
+	if !ok {
+		return fmt.Errorf("Couldn't find merged entry for %s", cuea.toName)
+	}
+	mostRecentTargetPtr := mergedEntry.BlockPointer
+	targetChain, ok := unmergedChains.byMostRecent[mostRecentTargetPtr]
+	var refs []BlockPointer
+	if ok && targetChain.isFile() {
+		// The create op also needs to reference the child block ptrs
+		// created by any sync ops (and not unreferenced by future
+		// ones).
+		for _, op := range targetChain.ops {
+			if _, ok := op.(*syncOp); !ok {
+				continue
+			}
+			for _, ref := range op.Refs() {
+				if !unmergedChains.isDeleted(ref) {
+					refs = append(refs, ref)
+				}
+			}
+		}
+	}
+	if len(refs) > 0 {
+		for _, uop := range unmergedChain.ops {
+			cop, ok := uop.(*createOp)
+			if !ok || cop.NewName != cuea.toName {
+				continue
+			}
+			for _, ref := range refs {
+				cop.AddRefBlock(ref)
+			}
+			break
+		}
+	}
+
 	return nil
 }
 
