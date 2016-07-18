@@ -1,5 +1,6 @@
 /* @flow */
 import Profile from './render'
+import ConfirmOrPending from './confirm-or-pending'
 import {normal, checking, revoked, error, metaNone} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
 import {isMobile} from '../constants/platform'
@@ -186,6 +187,19 @@ const dumbMap: DumbComponentMap<Profile> = {
   },
 }
 
+const confirmBase = {
+  platform: 'twitter',
+}
+
+const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
+  component: ConfirmOrPending,
+  mocks: {
+    'Confirm Twitter': confirmBase,
+    'Confirm Github': {...confirmBase, platform: 'github'},
+  },
+}
+
 export default {
   'Profile': dumbMap,
+  'My Profile: ConfirmOrPending': dumbConfirmOrPendingMap,
 }
