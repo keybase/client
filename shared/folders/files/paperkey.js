@@ -8,7 +8,7 @@ import HiddenString from '../../util/hidden-string'
 import Render from '../../login/register/paper-key/index.render'
 import type {State as StoreState} from '../../reducers/unlock-folders'
 
-type Props = $Shape<{
+type Props = {
   error: string,
   waiting: boolean,
   onBack: () => void,
@@ -16,7 +16,7 @@ type Props = $Shape<{
   toPaperKeyInput: () => void,
   phase: StoreState.phase,
   checkPaperKey: (paperKey: HiddenString) => void,
-}>
+}
 
 type State = {
   paperKey: string,

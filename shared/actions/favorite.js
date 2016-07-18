@@ -122,6 +122,45 @@ let previousNotifyState = null
 
 const injectMeta = type => f => { f.meta = type }
 
+const jsonToFolders = (json: Object, myKID: any) => {
+  const folderSets = [json.favorites, json.ignored, json.new]
+  folderSets.forEach(folders => {
+    folders.forEach(folder => {
+      folder.waitingForParticipantUnlock = []
+      folder.youCanUnlock = []
+
+      if (folder.problem_set) {
+        const solutions = folder.problem_set.solution_kids || {}
+        if (Object.keys(solutions).length) {
+          folder.meta = 'rekey'
+        }
+
+        if (folder.problem_set.can_self_help) {
+          const mySolutions = solutions[myKID] || []
+          folder.youCanUnlock = mySolutions.map(kid => {
+            const device = json.devices[kid]
+            return {...device, deviceID: kid}
+          })
+        } else {
+          folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
+            const devices = solutions[userID].map(kid => json.devices[kid].name)
+
+            if (devices.length > 1) {
+              devices[devices.length - 1] = `or ${devices[devices.length - 1]}`
+            }
+
+            return {
+              name: json.users[userID],
+              devices: `Tell them to turn on${devices.length > 1 ? ':' : ' '} ${devices.join(', ')}`,
+            }
+          })
+        }
+      }
+    })
+  })
+  return _.flatten(folderSets)
+}
+
 export function favoriteList (): (dispatch: Dispatch, getState: () => Object) => void {
   return (dispatch, getState) => {
     apiserverGetRpc({
@@ -152,43 +191,7 @@ export function favoriteList (): (dispatch: Dispatch, getState: () => Object) =>
         json.new && json.new.forEach(injectMeta('new'))
 
         // figure out who can solve the rekey
-        const folderSets = [json.favorites, json.ignored, json.new]
-        folderSets.forEach(folders => {
-          folders.forEach(folder => {
-            folder.waitingForParticipantUnlock = []
-            folder.youCanUnlock = []
-
-            if (folder.problem_set) {
-              const solutions = folder.problem_set.solution_kids || {}
-              if (Object.keys(solutions).length) {
-                folder.meta = 'rekey'
-              }
-
-              if (folder.problem_set.can_self_help) {
-                const mySolutions = solutions[myKID] || []
-                folder.youCanUnlock = mySolutions.map(kid => {
-                  const device = json.devices[kid]
-                  return {...device, deviceID: kid}
-                })
-              } else {
-                folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
-                  const devices = solutions[userID].map(kid => json.devices[kid].name)
-
-                  if (devices.length > 1) {
-                    devices[devices.length - 1] = `or ${devices[devices.length - 1]}`
-                  }
-
-                  return {
-                    name: json.users[userID],
-                    devices: `Tell them to turn on${devices.length > 1 ? ':' : ' '} ${devices.join(', ')}`,
-                  }
-                })
-              }
-            }
-          })
-        })
-
-        const folders: Array<FolderWithMeta> = _.flatten(folderSets)
+        const folders: Array<FolderWithMeta> = jsonToFolders(json, myKID)
         const config = getState && getState().config
         const currentUser = config && config.username
         const loggedIn = config && config.loggedIn
