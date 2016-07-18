@@ -45,7 +45,12 @@ function _executeActions (actions: Array<Action>) {
         break
       case 'quitApp':
         isQuitting = true
-        quit()
+        try {
+          quit()
+        } catch (err) {
+          isQuitting = false
+          console.warn("Couldn't quit")
+        }
         break
     }
   })
