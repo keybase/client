@@ -82,6 +82,7 @@ class Render extends Component<void, Props, State> {
             <Box style={styleBioColumn}>
               <UserBio
                 type='Profile'
+                editFns={this.props.bioEditFns}
                 avatarSize={AVATAR_SIZE}
                 style={{marginTop: HEADER_TOP_SPACE}}
                 username={this.props.username}
@@ -89,14 +90,14 @@ class Render extends Component<void, Props, State> {
                 currentlyFollowing={this.props.currentlyFollowing}
                 trackerState={this.props.trackerState}
               />
-              <UserActions
-                style={styleActions}
-                trackerState={this.props.trackerState}
-                currentlyFollowing={this.props.currentlyFollowing}
-                onFollow={this.props.onFollow}
-                onUnfollow={this.props.onUnfollow}
-                onAcceptProofs={this.props.onAcceptProofs}
-              />
+              {!this.props.isYou &&
+                <UserActions
+                  style={styleActions}
+                  trackerState={this.props.trackerState}
+                  currentlyFollowing={this.props.currentlyFollowing}
+                  onFollow={this.props.onFollow}
+                  onUnfollow={this.props.onUnfollow}
+                  onAcceptProofs={this.props.onAcceptProofs} />}
             </Box>
             <Box style={styleProofColumn}>
               <Box style={styleProofNoticeBox}>
