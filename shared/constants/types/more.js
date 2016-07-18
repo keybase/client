@@ -2,6 +2,10 @@
 
 import {Component} from 'react' // eslint-disable-line
 
+import {proveCommon} from './keybase-v1'
+
+export type Platforms = $Keys<typeof proveCommon.ProofType>
+
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 import type {Device as _Device, DeviceID, Time} from './flow-types'
 
