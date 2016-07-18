@@ -171,10 +171,18 @@ export function favoriteList (): (dispatch: Dispatch, getState: () => Object) =>
                   return {...device, deviceID: kid}
                 })
               } else {
-                folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => ({
-                  name: json.users[userID],
-                  devices: solutions[userID].map(kid => json.devices[kid].name).join(', '),
-                }))
+                folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
+                  const devices = solutions[userID].map(kid => json.devices[kid].name)
+
+                  if (devices.length > 1) {
+                    devices[devices.length - 1] = `or ${devices[devices.length - 1]}`
+                  }
+
+                  return {
+                    name: json.users[userID],
+                    devices: `Tell them to turn on${devices.length > 1 ? ':' : ' '} ${devices.join(', ')}`,
+                  }
+                })
               }
             }
           })
