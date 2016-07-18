@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+cd "$(dirname "$BASH_SOURCE")/.."
+
 set -f -u -e
 DIRS=$(go list ./... | grep -v /vendor/ | sed -e 's/^github.com\/keybase\/client\/go\///')
 
