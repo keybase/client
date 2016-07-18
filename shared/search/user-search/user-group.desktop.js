@@ -9,14 +9,12 @@ import type {Props, UserFn} from './user-group'
 import type {SearchResult} from '../../constants/search'
 
 function User ({selected, user, insertSpacing, onRemove, onClickUser}: {selected: boolean, user: SearchResult, insertSpacing: boolean, onRemove: UserFn, onClickUser: UserFn}) {
-  let avatar: React$Element
+  let avatarProps
 
   if (user.service === 'keybase') {
-    avatar = <Avatar style={avatarStyle} size={32} username={user.username} />
-  } else if (user.extraInfo === 'external') {
-    avatar = <Avatar style={avatarStyle} size={32} url={user.extraInfo.serviceAvatar} />
-  } else {
-    avatar = <Avatar style={avatarStyle} size={32} url={null} />
+    avatarProps = {username: user.username}
+  } else if (user.service === 'external') {
+    avatarProps = {url: user.extraInfo.service === 'external' ? user.extraInfo.serviceAvatar : null}
   }
 
   let name: React$Element
@@ -43,7 +41,7 @@ function User ({selected, user, insertSpacing, onRemove, onClickUser}: {selected
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
       <ClickableBox hoverColor={globalColors.blue4} backgroundColor={selected ? globalColors.blue4 : null} onClick={() => onClickUser(user)} style={userRowStyle}>
-        {avatar}
+        <Avatar style={avatarStyle} size={32} {...avatarProps} />
         {name}
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'flex-end', marginRight: 16}}>
           <Icon onClick={e => { e && e.stopPropagation(); onRemove(user) }} type={'iconfont-remove'} style={{color: globalColors.black_20, hoverColor: globalColors.black_60}} />
