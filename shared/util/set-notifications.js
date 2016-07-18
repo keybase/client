@@ -1,7 +1,7 @@
 /* @flow */
 
 import engine from '../engine'
-import type {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
+import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
 
 type NotificationChannels = {
   session?: true,
@@ -32,8 +32,7 @@ export default function (channels: NotificationChannels): Promise<void> {
     }
 
     engine.listenOnConnect('setNotifications', () => {
-      const params : notifyCtlSetNotificationsRpc = {
-        method: 'notifyCtl.setNotifications',
+      notifyCtlSetNotificationsRpc({
         param: {channels: toSend},
         callback: (error, response) => {
           if (error != null) {
@@ -43,8 +42,7 @@ export default function (channels: NotificationChannels): Promise<void> {
             resolve()
           }
         },
-      }
-      engine.rpc(params)
+      })
     })
   })
 }

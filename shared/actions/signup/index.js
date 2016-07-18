@@ -4,15 +4,12 @@ import _ from 'lodash'
 import * as Constants from '../../constants/signup'
 import {Map} from 'immutable'
 import HiddenString from '../../util/hidden-string'
-import engine from '../../engine'
 import {loginTab} from '../../constants/tabs'
-
 import {routeAppend, navigateUp} from '../../actions/router'
-
 import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
 import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RestartSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../../constants/signup'
-import type {signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
+import {signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
   signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../../constants/types/flow-types'
 
 function nextPhase (): TypedAsyncAction<RouteAppend> {
@@ -34,11 +31,8 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
   return dispatch => new Promise((resolve, reject) => {
     dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
 
-    const params: signupCheckInvitationCodeRpc = {
-      method: 'signup.checkInvitationCode',
-      param: {
-        invitationCode: inviteCode,
-      },
+    signupCheckInvitationCodeRpc({
+      param: {invitationCode: inviteCode},
       waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: err => {
         if (err) {
@@ -51,9 +45,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
           resolve()
         }
       },
-    }
-
-    engine.rpc(params)
+    })
   })
 }
 
@@ -72,8 +64,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
       return
     }
 
-    const params: signupInviteRequestRpc = {
-      method: 'signup.inviteRequest',
+    signupInviteRequestRpc({
       param: {
         email: email,
         fullname: name,
@@ -100,8 +91,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
           }
         }
       },
-    }
-    engine.rpc(params)
+    })
   })
 }
 
@@ -170,8 +160,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
       return
     }
 
-    const params: signupCheckUsernameAvailableRpc = {
-      method: 'signup.checkUsernameAvailable',
+    signupCheckUsernameAvailableRpc({
       param: {username},
       waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: err => {
@@ -197,9 +186,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
           }
         }
       },
-    }
-
-    engine.rpc(params)
+    })
   })
 }
 
@@ -247,8 +234,7 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
         payload: {deviceNameError},
       })
     } else {
-      const params: deviceCheckDeviceNameFormatRpc = {
-        method: 'device.checkDeviceNameFormat',
+      deviceCheckDeviceNameFormatRpc({
         param: {name: deviceName},
         waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
         callback: err => {
@@ -276,8 +262,7 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
             }
           }
         },
-      }
-      engine.rpc(params)
+      })
     }
   })
 }
@@ -298,8 +283,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
     paperKeyResponse = null
 
     if (email && username && inviteCode && passphrase && deviceName) {
-      const params: signupSignupRpc = {
-        method: 'signup.signup',
+      signupSignupRpc({
         waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
         param: {
           deviceName,
@@ -342,9 +326,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
             resolve()
           }
         },
-      }
-
-      engine.rpc(params)
+      })
     } else {
       console.warn('Entered signup action with a null required field')
       reject()

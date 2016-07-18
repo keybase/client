@@ -1,13 +1,16 @@
 // @flow
 
-import UserSearch from './user-search/render'
-import UserGroup from './user-search/user-group'
+import React from 'react'
+import Search from './render'
 import type {DumbComponentMap} from '../constants/types/more'
+import UserPane from './user-pane/render'
+
+import userPaneMocks from './user-pane/dumb'
 
 const results = [
   {
     service: 'external',
-    serviceAvatar: null,
+    serviceAvatar: '',
     icon: 'icon-twitter-logo-32',
     username: 'malgorithms',
     serviceName: 'Twitter',
@@ -46,7 +49,7 @@ const results = [
       service: 'external',
       icon: 'iconfont-identity-twitter',
       serviceUsername: 'malgorithms',
-      serviceAvatar: null,
+      serviceAvatar: '',
       fullNameOnService: 'Chris Coyne',
     },
   },
@@ -63,76 +66,120 @@ const results = [
   },
 ]
 
-const userSearchMap: DumbComponentMap<UserSearch> = {
-  component: UserSearch,
-  mocks: {
-    'Normal': {
-      onSearch: text => console.log('OnSearch: ', text),
-      searchHintText: 'Search Keybase',
-      searchText: 'malg',
-      searchIcon: 'icon-keybase-logo-32',
-      selectedService: 'Keybase',
-      onClickService: () => console.log('onClickService'),
-      onClickResult: () => console.log('onClickResult'),
-      results,
-      showUserGroup: false,
+const commonUsers = [
+  {
+    service: 'keybase',
+    username: 'max',
+    isFollowing: false,
+    extraInfo: {
+      service: 'none',
+      fullName: 'Max Krohn',
     },
   },
+  {
+    service: 'keybase',
+    username: 'malg',
+    isFollowing: false,
+    extraInfo: {
+      service: 'none',
+      fullName: 'John Malg',
+    },
+  },
+  {
+    service: 'external',
+    serviceAvatar: '',
+    serviceName: 'Twitter',
+    icon: 'icon-twitter-logo-32',
+    username: 'malgorithms',
+    profileUrl: 'https://twitter.com/malgorithms',
+    keybaseSearchResult: null,
+    extraInfo: {
+      service: 'external',
+      icon: 'icon-twitter-logo-32',
+      serviceUsername: 'malgorithms',
+      serviceAvatar: '',
+      fullNameOnService: 'Chris Coyne',
+    },
+  },
+]
+
+const commonProps = {
+  username: 'bob',
+  waiting: false,
+  userPane: <UserPane mode='keybase' userInfoProps={userPaneMocks['Search User Pane'].mocks['Unfollowed']} />,
+  onSearch: text => console.log('OnSearch: ', text),
+  searchHintText: 'Search Keybase',
+  searchText: 'malg',
+  searchIcon: 'icon-keybase-logo-32',
+  selectedService: 'Keybase',
+  onClickService: () => console.log('onClickService'),
+  onReset: () => console.log('onReset'),
+  onClickResult: () => console.log('onClickResult'),
+  results,
+  showUserGroup: false,
+  onOpenPrivateGroupFolder: () => console.log('onOpenPrivateGroupFolder'),
+  onOpenPublicGroupFolder: () => console.log('onOpenPublicGroupFolder'),
+  onRemoveUserFromGroup: u => console.log('onRemoveUser', u),
+  onClickUserInGroup: u => console.log('onClickUser', u),
+  onGroupChat: () => console.log('onGroupChat'),
+  onAddUser: () => console.log('onAddUser'),
+  chatEnabled: false,
+  showComingSoon: false,
+  selectedUsers: commonUsers,
+  userForInfoPane: commonUsers[0],
 }
 
-const userGroupMap: DumbComponentMap<UserGroup> = {
-  component: UserGroup,
+const searchMap: DumbComponentMap<Search> = {
+  component: Search,
   mocks: {
+    'Coming soon': {
+      ...commonProps,
+      showComingSoon: true,
+    },
+    'Waiting': {
+      ...commonProps,
+      waiting: true,
+      results: [],
+    },
+    'Searching': {
+      ...commonProps,
+    },
+    'Group': {
+      ...commonProps,
+      showUserGroup: true,
+    },
+    'Group non-user': {
+      ...commonProps,
+      showUserGroup: true,
+      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Normal']} />,
+      userForInfoPane: commonUsers[2],
+    },
+    'Group non-user No Avatar': {
+      ...commonProps,
+      showUserGroup: true,
+      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['No Avatar']} />,
+      userForInfoPane: commonUsers[2],
+    },
+    'Group non-user Out of invites': {
+      ...commonProps,
+      showUserGroup: true,
+      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Out of invites']} />,
+      userForInfoPane: commonUsers[2],
+    },
+    'Group non-user Has Invite': {
+      ...commonProps,
+      showUserGroup: true,
+      userPane: <UserPane mode='external' nonUserInfoProps={userPaneMocks['Search Non-User Pane'].mocks['Has Invite']} />,
+      userForInfoPane: commonUsers[2],
+    },
     'Chat enabled': {
-      parentProps: {style: {marginTop: 20, flex: 1}},
-      users: [
-        {
-          service: 'keybase',
-          username: 'max',
-          isFollowing: false,
-          extraInfo: {
-            service: 'none',
-            fullName: 'Max Krohn',
-          },
-        },
-        {
-          service: 'keybase',
-          username: 'malg',
-          isFollowing: false,
-          extraInfo: {
-            service: 'none',
-            fullName: 'John Malg',
-          },
-        },
-        {
-          service: 'external',
-          serviceAvatar: null,
-          serviceName: 'Twitter',
-          icon: 'iconfont-identity-twitter',
-          username: 'malgorithms',
-          profileUrl: 'https://twitter.com/malgorithms',
-          keybaseSearchResult: null,
-          extraInfo: {
-            service: 'external',
-            icon: 'iconfont-identity-twitter',
-            serviceUsername: 'malgorithms',
-            serviceAvatar: null,
-            fullNameOnService: 'Chris Coyne',
-          },
-        },
-      ],
-      onOpenPrivateGroupFolder: () => console.log('onOpenPrivateGroupFolder'),
-      onOpenPublicGroupFolder: () => console.log('onOpenPublicGroupFolder'),
-      onRemoveUser: u => console.log('onRemoveUser', u),
-      onClickUser: u => console.log('onClickUser', u),
-      onGroupChat: () => console.log('onGroupChat'),
-      onAddUser: () => console.log('onAddUser'),
+      ...commonProps,
+      showUserGroup: true,
       chatEnabled: true,
     },
   },
 }
 
 export default {
-  'user search': userSearchMap,
-  'user group': userGroupMap,
+  'Search': searchMap,
 }

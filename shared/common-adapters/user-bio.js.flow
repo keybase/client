@@ -13,6 +13,14 @@ export type UserInfo = {
   location: string
 }
 
+export type BioEditFns = {
+  onEditAvatarClick: () => void,
+  onNameEdit: () => void,
+  onBioEdit: () => void,
+  onLocationEdit: () => void,
+  onEditProfile: () => void,
+}
+
 export type Props = {
   type: 'Tracker' | 'Profile',
   avatarSize: AvatarSize,
@@ -20,7 +28,8 @@ export type Props = {
   username: ?string,
   userInfo: ?UserInfo,
   trackerState: SimpleProofState,
-  currentlyFollowing: boolean
+  currentlyFollowing: boolean,
+  editFns?: ?BioEditFns,
 }
 
 export default class Render extends React$Component<void, Props, void> {}

@@ -2,37 +2,55 @@ import Window from './window'
 import {ipcMain} from 'electron'
 import {resolveRoot} from '../resolve-root'
 import hotPath from '../hot-path'
-import {globalResizing} from '../shared/styles/style-guide'
-import isFirstTime from './first-time'
+import {windowStyle} from '../shared/styles/style-guide'
 import {forceMainWindowPosition} from '../shared/local-debug.desktop'
+import AppState from './app-state'
+import getenv from 'getenv'
 
 export default function () {
+  let appState = new AppState({
+    defaultWidth: windowStyle.width,
+    defaultHeight: windowStyle.height,
+  })
+
   const mainWindow = new Window(
     resolveRoot('renderer', `index.html?src=${hotPath('index.bundle.js')}`), {
-      useContentSize: true,
-      width: globalResizing.login.width,
-      height: globalResizing.login.height,
+      x: appState.state.x,
+      y: appState.state.y,
+      width: appState.state.width,
+      height: appState.state.height,
+      minWidth: windowStyle.minWidth,
+      minHeight: windowStyle.minHeight,
       show: false,
     }
   )
+
+  appState.manageWindow(mainWindow.window)
 
   if (__DEV__ && forceMainWindowPosition) {
     mainWindow.window.setPosition(forceMainWindowPosition.x, forceMainWindowPosition.y)
   }
 
-  isFirstTime.then(firstTime => {
-    if (firstTime) {
+  let windowVisibility = getenv.string('KEYBASE_WINDOW_VISIBILITY', '')
+  let useAppStateForWindowVisibility = (windowVisibility === 'appState')
+  if (!useAppStateForWindowVisibility || (useAppStateForWindowVisibility && !appState.state.windowHidden)) {
+    // On Windows we can try showing before Windows is ready
+    // This will result in a dropped .show request
+    // We add a listener to `did-finish-load` so we can show it when
+    // Windows is ready.
+    mainWindow.show(true)
+    mainWindow.window.webContents.once('did-finish-load', () => {
       mainWindow.show(true)
-      mainWindow.window.webContents.once('did-finish-load', () => {
-        mainWindow.show(true)
-      })
-    }
-  }).catch(err => {
-    console.log('err in showing main window:', err)
-  })
+    })
+  }
 
   ipcMain.on('showMain', () => {
     mainWindow.show(true)
+  })
+
+  ipcMain.on('tabChanged', (event, tab) => {
+    appState.state.tab = tab
+    appState.saveState()
   })
 
   return mainWindow

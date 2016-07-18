@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {Text, Avatar} from '../common-adapters'
+import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import * as shared from './user-bio.shared'
 
@@ -11,7 +11,7 @@ export default class BioRender extends Component {
   props: Props;
 
   render () {
-    const {avatarSize, username, userInfo, currentlyFollowing} = this.props
+    const {avatarSize, username, userInfo, currentlyFollowing, editFns} = this.props
     if (!userInfo) {
       return null
     }
@@ -25,52 +25,98 @@ export default class BioRender extends Component {
       locationLineClamp = {lineClamp: 1}
     }
 
+    let [nameTweaks, locationTweaks, bioTweaks] = [{}, {}, {}]
+    if (editFns) {
+      nameTweaks = {className: 'hover-underline', onClick: editFns.onNameEdit}
+      locationTweaks = {className: 'hover-underline', onClick: editFns.onLocationEdit}
+      bioTweaks = {className: 'hover-underline', onClick: editFns.onBioEdit}
+    }
+
     return (
-      <div style={this.props.style}>
-        <div style={stylesContainer}>
-          <Avatar
-            onClick={() => shared.onClickAvatar(username)}
-            style={{...globalStyles.clickable, zIndex: 2}}
-            url={userInfo.avatar}
-            size={avatarSize}
-            following={currentlyFollowing}
-            followsYou={followsYou} />
-          <div style={stylesContent}>
+      <Box style={this.props.style}>
+        <Box style={stylesContainer}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', zIndex: 2, position: 'relative'}}>
+            <Avatar
+              onClick={() => shared.onClickAvatar(username)}
+              style={globalStyles.clickable}
+              url={userInfo.avatar}
+              size={avatarSize}
+              following={currentlyFollowing}
+              followsYou={followsYou || !!editFns} />
+            {editFns &&
+              <Box style={{height: 16, width: 16}}>
+                <Icon
+                  type='iconfont-edit'
+                  onClick={editFns.onEditAvatarClick}
+                  style={stylesEditAvatarIcon(avatarSize)} />
+              </Box>}
+          </Box>
+          <Box style={stylesContent}>
             <Text
               type='HeaderBig'
               style={{...stylesUsername, ...shared.usernameStyle(this.props)}}
               onClick={() => shared.onClickAvatar(username)}>
               {username}
             </Text>
-            <Text type='BodySemibold' style={stylesFullname}>{userInfo.fullname}</Text>
-            {followLabel &&
+            <Text type='BodySemibold' style={stylesFullname} {...nameTweaks}>{userInfo.fullname}</Text>
+            {!userInfo.fullname && editFns &&
+              <Text type='BodySemibold' style={{...stylesFullname, color: globalColors.black_20}} {...nameTweaks}>Your full name</Text>}
+            {!editFns && followLabel &&
               <Text type='BodySmall' style={stylesFollowLabel}>{followLabel}</Text>
             }
-            <Text type='BodySmall' style={stylesFollowing}>
-              <span className='hover-underline' onClick={() => shared.onClickFollowers(username)}>
-                <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followersCount}</Text> {userInfo.followersCount === 1 ? 'Tracker' : 'Trackers'}
-              </span>
-              &nbsp;
-              &middot;
-              &nbsp;
-              <span className='hover-underline' onClick={() => shared.onClickFollowing(username)}>
-                Tracking <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
-              </span>
-            </Text>
+            <Box style={{...globalStyles.flexBoxRow}}>
+              <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}
+                onClick={() => shared.onClickFollowers(username)}>{userInfo.followersCount}
+                <Text type='BodySmallSecondaryLink'>&nbsp;Tracker{userInfo.followersCount === 1 ? '' : 's'}</Text>
+              </Text>
+              <Text type='BodySmall'>&nbsp; &middot; &nbsp;</Text>
+              <Text type='BodySmallSecondaryLink' onClick={() => shared.onClickFollowing(username)}>Tracking&nbsp;
+                <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
+              </Text>
+            </Box>
             {userInfo.bio &&
-              <Text type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'} style={{...stylesBio, ...stylesBioType[this.props.type]}} {...bioLineClamp}>
+              <Text type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
+                style={{...stylesBio, ...stylesBioType[this.props.type]}} {...bioLineClamp}
+                {...bioTweaks}>
                 {userInfo.bio}
               </Text>
             }
+            {!userInfo.bio && editFns &&
+              <Text type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
+                onClick={editFns.onBioEdit}
+                style={{...stylesBio, ...stylesBioType[this.props.type], color: globalColors.black_20}}
+                {...bioTweaks}
+                {...bioLineClamp}>
+                Write a brief bio
+              </Text>}
+
             {userInfo.location &&
-              <Text type='BodySmall' style={stylesLocation} {...locationLineClamp}>{userInfo.location}</Text>
+              <Text type='BodySmall' style={stylesLocation} {...locationLineClamp} {...locationTweaks}>{userInfo.location}</Text>
             }
-          </div>
-        </div>
-      </div>
+            {!userInfo.location && editFns &&
+              <Text type='BodySmall' style={{...stylesLocation, color: globalColors.black_20}} {...locationLineClamp} {...locationTweaks}>Wherever, Earth</Text>
+            }
+            {editFns &&
+              <Button
+                style={{marginTop: globalMargins.small}}
+                type='Primary'
+                label='Edit profile'
+                onClick={editFns.onEditProfile} />}
+          </Box>
+        </Box>
+      </Box>
     )
   }
 }
+
+const stylesEditAvatarIcon = avatarSize => ({
+  // Hack to make the hover and onclick register over the avatar
+  position: 'absolute',
+  bottom: 0,
+  right: 0,
+  paddingTop: avatarSize,
+  paddingLeft: avatarSize,
+})
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
@@ -100,9 +146,6 @@ const stylesFullname = {
 const stylesFollowLabel = {
   fontSize: 11,
   textTransform: 'uppercase',
-}
-const stylesFollowing = {
-  ...globalStyles.clickable,
 }
 const stylesBio = {
   ...globalStyles.selectable,

@@ -182,6 +182,7 @@ const styles = {
     transformOrigin: 'center top',
     borderStyle: 'solid',
     borderWidth: 1,
+    overflow: 'auto',
   },
 
   popover: {

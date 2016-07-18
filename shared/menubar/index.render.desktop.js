@@ -60,7 +60,7 @@ class Render extends Component<DefaultProps, Props, State> {
 
   _menuItems () {
     return [].concat(
-      this.props.loggedIn && this.props.showOpenApp ? [{title: 'Open Keybase', onClick: this.props.openApp}] : [],
+      this.props.loggedIn ? [{title: 'Open Keybase', onClick: this.props.openApp}] : [],
       [
         {title: 'Open folders', onClick: this.props.showKBFS},
         {title: 'Keybase.io', onClick: this.props.showUser},

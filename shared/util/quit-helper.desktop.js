@@ -3,18 +3,21 @@ import {ipcRenderer, ipcMain, app} from 'electron'
 import {quit} from '../../desktop/app/ctl'
 import {hideDockIcon} from '../../desktop/app/dock-icon'
 
-export type Context = {type: 'uiWindow'} | {type: 'mainThread'} | {type: 'quitButton'}
+export type Context = 'uiWindow' | 'mainThread' | 'quitButton' | 'beforeQuit'
+export type Action = 'closePopups' | 'quitMainWindow' | 'quitApp'
 
-export type Action = {type: 'closePopups'} | {type: 'quitMainWindow'} | {type: 'quitApp'}
+// Don't do beforeQuit path if we're really quitting
+let isQuitting = false
 
 // Logic to figure out what to do given your context
-export function quitOnContext (context: Context): Array<Action> {
-  switch (context.type) {
+function quitOnContext (context: Context): Array<Action> {
+  switch (context) {
     case 'uiWindow':
-      return [{type: 'closePopups'}, {type: 'quitMainWindow'}]
+      return ['closePopups', 'quitMainWindow']
     case 'mainThread':
+    case 'beforeQuit':
     case 'quitButton':
-      return [{type: 'quitApp'}]
+      return ['quitApp']
   }
 
   return []
@@ -27,17 +30,28 @@ function isMainThread () {
 }
 
 function _executeActions (actions: Array<Action>) {
+  // Don't allow us to re-enter this logic if we're already shutting down
+  if (isQuitting) {
+    return
+  }
+
   actions.forEach(a => {
-    switch (a.type) {
+    switch (a) {
       case 'quitMainWindow':
         hideDockIcon()
-        return
+        break
       case 'closePopups':
         app.emit('close-windows')
-        return
+        break
       case 'quitApp':
-        quit()
-        return
+        isQuitting = true
+        try {
+          quit()
+        } catch (err) {
+          isQuitting = false
+          console.warn("Couldn't quit")
+        }
+        break
     }
   })
 }
@@ -47,7 +61,8 @@ function _executeActionsFromRenderer (actions: Array<Action>) {
   ipcRenderer.send('executeActions', actions)
 }
 
-export function executeActions (actions: Array<Action>) {
+export function executeActionsForContext (context: Context) {
+  const actions = quitOnContext(context)
   if (isMainThread()) {
     _executeActions(actions)
   } else {
@@ -57,6 +72,7 @@ export function executeActions (actions: Array<Action>) {
 
 export function setupExecuteActionsListener () {
   ipcMain.on('executeActions', (event, actions) => {
-    executeActions(actions)
+    console.log('executeActionsRecieved', actions)
+    _executeActions(actions)
   })
 }

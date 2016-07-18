@@ -3,7 +3,8 @@
 import * as Constants from '../constants/pinentry'
 import engine from '../engine'
 
-import type {GUIEntryFeatures, incomingCallMapType, delegateUiCtlRegisterSecretUIRpc} from '../constants/types/flow-types'
+import type {GUIEntryFeatures, incomingCallMapType} from '../constants/types/flow-types'
+import {delegateUiCtlRegisterSecretUIRpc} from '../constants/types/flow-types'
 import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
 
 import type {Dispatch, AsyncAction} from '../constants/types/flux'
@@ -14,8 +15,7 @@ const uglySessionIDResponseMapper: {[key: number]: any} = {}
 export function registerPinentryListener (): AsyncAction {
   return dispatch => {
     engine.listenOnConnect('registerSecretUI', () => {
-      const params: delegateUiCtlRegisterSecretUIRpc = {
-        method: 'delegateUiCtl.registerSecretUI',
+      delegateUiCtlRegisterSecretUIRpc({
         callback: (error, response) => {
           if (error != null) {
             console.warn('error in registering secret ui: ', error)
@@ -23,9 +23,7 @@ export function registerPinentryListener (): AsyncAction {
             console.log('Registered secret ui')
           }
         },
-      }
-
-      engine.rpc(params)
+      })
     })
 
     dispatch(({

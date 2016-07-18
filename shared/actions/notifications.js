@@ -7,7 +7,7 @@ import * as Constants from '../constants/notifications'
 import {log} from '../native/log/logui'
 
 import type {Dispatch} from '../constants/types/flux'
-import type {Text as KBText, LogLevel, incomingCallMapType} from '../constants/types/flow-types'
+import type {Text as KBText, LogLevel} from '../constants/types/flow-types'
 import type {LogAction, NotificationKeys, NotificationAction} from '../constants/notifications'
 
 export function logUiLog ({text, level}: {text: KBText, level: LogLevel}, response: any): LogAction {
@@ -29,7 +29,7 @@ export function listenForNotifications (): (dispatch: Dispatch) => void {
       service: true,
     })
 
-    const listeners: incomingCallMapType = ListenerCreator(dispatch, getState, NotifyPopup)
+    const listeners = ListenerCreator(dispatch, getState, NotifyPopup)
     engine.listenGeneralIncomingRpc(listeners)
     initialized = true
   }

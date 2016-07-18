@@ -37,6 +37,10 @@ export function typeToIconMapper (type: IconType): IconType {
     case 'iconfont-proof-new':
     case 'iconfont-proof-followed':
       return 'iconfont-proof-good'
+    case 'icon-progress-white-animated':
+      return __SCREENSHOT__ ? 'icon-progress-white-static' : 'icon-progress-white-animated'
+    case 'icon-progress-grey-animated':
+      return __SCREENSHOT__ ? 'icon-progress-grey-static' : 'icon-progress-grey-animated'
     default:
       return type
   }

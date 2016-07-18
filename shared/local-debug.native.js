@@ -22,6 +22,8 @@ let config = {
   dumbIndex: 0,
   dumbFullscreen: false,
   printRoutes: false,
+  logStatFrequency: 0,
+  actionStatFrequency: 0,
 }
 
 if (__DEV__ && true) {
@@ -59,6 +61,8 @@ export const {
   dumbIndex,
   dumbFullscreen,
   printRoutes,
+  logStatFrequency,
+  actionStatFrequency,
 } = config
 
 export function initTabbedRouterState (state) {

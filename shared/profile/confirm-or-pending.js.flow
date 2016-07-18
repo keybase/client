@@ -1,0 +1,10 @@
+/* @flow */
+import {Component} from 'react'
+import type {Platforms} from '../constants/types/more'
+
+export type Props = {
+  platform: Platforms,
+}
+
+export default class Render extends Component<void, Props, void> {
+}

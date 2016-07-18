@@ -28,8 +28,9 @@ import {Map} from 'immutable'
 
 import type {DeviceType} from '../../constants/types/more'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
-import type {incomingCallMapType, loginRecoverAccountFromEmailAddressRpc, loginLoginRpc,
-  loginLogoutRpc, deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, loginClearStoredSecretRpc} from '../../constants/types/flow-types'
+import type {incomingCallMapType} from '../../constants/types/flow-types'
+import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc, deviceDeviceAddRpc,
+  loginGetConfiguredAccountsRpc, loginClearStoredSecretRpc} from '../../constants/types/flow-types'
 import {overrideLoggedInTab} from '../../local-debug'
 import type {DeviceRole} from '../../constants/login'
 import HiddenString from '../../util/hidden-string'
@@ -81,9 +82,8 @@ export function navBasedOnLoginState () :AsyncAction {
 
 function getAccounts (): AsyncAction {
   return dispatch => {
-    const params: loginGetConfiguredAccountsRpc = {
+    loginGetConfiguredAccountsRpc({
       ...makeWaitingHandler(dispatch),
-      method: 'login.getConfiguredAccounts',
       callback: (error, accounts) => {
         if (error) {
           dispatch({type: Constants.configuredAccounts, error: true, payload: error})
@@ -91,8 +91,7 @@ function getAccounts (): AsyncAction {
           dispatch({type: Constants.configuredAccounts, payload: {accounts}})
         }
       },
-    }
-    engine.rpc(params)
+    })
   }
 }
 
@@ -104,16 +103,15 @@ export function login (): AsyncAction {
         const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
         const onBack = response => { dispatch(cancelLogin(response)) }
         const onProvisionerSuccess = () => { dispatch(navBasedOnLoginState()) }
-        const incomingMap = makeKex2IncomingMap(dispatch, getState, onBack, onProvisionerSuccess)
-        const params : loginLoginRpc = {
+        const incomingCallMap = makeKex2IncomingMap(dispatch, getState, onBack, onProvisionerSuccess)
+        loginLoginRpc({
           ...makeWaitingHandler(dispatch),
-          method: 'login.login',
           param: {
             deviceType,
             usernameOrEmail: usernameOrEmail,
             clientType: Common.ClientType.gui,
           },
-          incomingCallMap: incomingMap,
+          incomingCallMap,
           callback: (error, response) => {
             if (error) {
               dispatch({
@@ -141,9 +139,7 @@ export function login (): AsyncAction {
               dispatch(bootstrap())
             }
           },
-        }
-
-        engine.rpc(params)
+        })
       },
     }
     // We can either be a newDevice or an existingDevice.  Here in the login
@@ -216,9 +212,8 @@ export function submitForgotPassword () : AsyncAction {
   return (dispatch, getState) => {
     dispatch({type: Constants.actionSetForgotPasswordSubmitting, payload: undefined})
 
-    const params : loginRecoverAccountFromEmailAddressRpc = {
+    loginRecoverAccountFromEmailAddressRpc({
       ...makeWaitingHandler(dispatch),
-      method: 'login.recoverAccountFromEmailAddress',
       param: {email: getState().login.forgotPasswordEmailAddress},
       callback: (error, response) => {
         if (error) {
@@ -235,18 +230,15 @@ export function submitForgotPassword () : AsyncAction {
           })
         }
       },
-    }
-
-    engine.rpc(params)
+    })
   }
 }
 
 export function autoLogin () : AsyncAction {
   return dispatch => {
     const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
-    const params : loginLoginRpc = {
+    loginLoginRpc({
       ...makeWaitingHandler(dispatch),
-      method: 'login.login',
       param: {
         deviceType,
         usernameOrEmail: '',
@@ -269,17 +261,15 @@ export function autoLogin () : AsyncAction {
           dispatch(navBasedOnLoginState())
         }
       },
-    }
-    engine.rpc(params)
+    })
   }
 }
 
 export function relogin (user: string, passphrase: string, store: boolean) : AsyncAction {
   return dispatch => {
     const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
-    const params : loginLoginRpc = {
+    loginLoginRpc({
       ...makeWaitingHandler(dispatch),
-      method: 'login.login',
       param: {
         deviceType,
         usernameOrEmail: user,
@@ -292,6 +282,18 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
             storeSecret: store,
           })
         },
+        'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
+          const message = 'This device is no longer provisioned.'
+          response.error({
+            code: constants.StatusCode.scgeneric,
+            desc: message,
+          })
+          dispatch({
+            type: Constants.loginDone,
+            error: true,
+            payload: {message},
+          })
+        },
       },
       callback: (error, status) => {
         if (error) {
@@ -302,16 +304,14 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
           dispatch(navBasedOnLoginState())
         }
       },
-    }
-    engine.rpc(params)
+    })
   }
 }
 
 export function logout () : AsyncAction {
   return dispatch => {
-    const params : loginLogoutRpc = {
+    loginLogoutRpc({
       ...makeWaitingHandler(dispatch),
-      method: 'login.logout',
       callback: (error, response) => {
         if (error) {
           console.log(error)
@@ -319,8 +319,7 @@ export function logout () : AsyncAction {
           dispatch(logoutDone())
         }
       },
-    }
-    engine.rpc(params)
+    })
   }
 }
 
@@ -342,12 +341,10 @@ export function saveInKeychainChanged (username: string, saveInKeychain: bool) :
       return
     }
 
-    const params: loginClearStoredSecretRpc = {
-      method: 'login.clearStoredSecret',
+    loginClearStoredSecretRpc({
       param: {username},
       callback: error => { error && console.log(error) },
-    }
-    engine.rpc(params)
+    })
   }
 }
 
@@ -427,8 +424,8 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
       }
     }
 
-    const incomingMap = makeKex2IncomingMap(dispatch, getState, onBack, onBack)
-    incomingMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response) => {
+    const incomingCallMap = makeKex2IncomingMap(dispatch, getState, onBack, onBack)
+    incomingCallMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response) => {
       let deviceType = {
         [Constants.codePageDeviceRoleNewComputer]: provisionUi.DeviceType.desktop,
         [Constants.codePageDeviceRoleNewPhone]: provisionUi.DeviceType.mobile,
@@ -438,15 +435,13 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
       response.result(deviceType)
     }
 
-    const params : deviceDeviceAddRpc = {
+    deviceDeviceAddRpc({
       ...makeWaitingHandler(dispatch),
-      method: 'device.deviceAdd',
-      incomingCallMap: incomingMap,
+      incomingCallMap,
       callback: (ignoredError, response) => {
         onBack()
       },
-    }
-    engine.rpc(params)
+    })
   }
 }
 

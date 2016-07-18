@@ -1,13 +1,15 @@
 // @flow
 
 import * as Constants from '../constants/search'
-import engine from '../engine'
-import {platformToIcon, platformToLogo32} from '../constants/search'
+import {platformToLogo16, platformToLogo32} from '../constants/search'
 import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
+import {isFollowing as isFollowing_} from './config'
 
-import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo, AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult, SearchPlatforms} from '../constants/search'
-import type {apiserverGetRpc, apiserverGetResult} from '../constants/types/flow-types'
+import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo,
+  AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult,
+  SearchPlatforms, Reset, Waiting} from '../constants/search'
+import {apiserverGetRpc} from '../constants/types/flow-types'
 import type {TypedAsyncAction} from '../constants/types/flux'
 
 type RawResult = {
@@ -20,6 +22,7 @@ type RawResult = {
     is_followee: boolean
   },
   service: ?{
+    service_name: string,
     username: string,
     picture_url: ?string,
     bio: ?string,
@@ -28,33 +31,22 @@ type RawResult = {
   }
 }
 
-function parseFullName (rr: RawResult): string {
-  if (rr.keybase && rr.keybase.full_name) {
-    return rr.keybase.full_name
-  } else if (rr.service && rr.service.full_name) {
-    return rr.service.full_name
-  }
-
-  return ''
-}
-
-function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult): ExtraInfo {
-  const fullName = parseFullName(rr)
-  const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
+function parseExtraInfo (platform: SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean): ExtraInfo {
+  const serviceName = rr.service && capitalize(rr.service.service_name || '')
 
   if (platform === 'Keybase') {
-    if (serviceName) {
+    if (rr.service) {
       return {
         service: 'external',
-        icon: platformToIcon(serviceName),
-        serviceUsername: rr.service && rr.service.username || '',
-        serviceAvatar: rr.service && rr.service.picture_url,
-        fullNameOnService: fullName,
+        icon: serviceName && platformToLogo16(serviceName),
+        serviceUsername: rr.service.username || '',
+        serviceAvatar: '',
+        fullNameOnService: rr.service.full_name || '',
       }
-    } else {
+    } else if (rr.keybase) {
       return {
         service: 'none',
-        fullName,
+        fullName: rr.keybase.full_name || '',
       }
     }
   } else {
@@ -62,24 +54,35 @@ function parseExtraInfo (platform: ?SearchPlatforms, rr: RawResult): ExtraInfo {
       return {
         service: 'keybase',
         username: rr.keybase.username,
-        fullName: fullName,
-        // TODO (MM) get following status
-        isFollowing: false,
+        fullName: rr.keybase.full_name || '',
+        isFollowing: isFollowing(rr.keybase.username),
       }
-    } else {
+    } else if (rr.service) {
       return {
-        service: 'none',
-        fullName,
+        service: 'external',
+        icon: null,
+        serviceUsername: rr.service.username || '',
+        serviceAvatar: rr.service.picture_url || '',
+        fullNameOnService: rr.service.full_name || '',
       }
     }
   }
+
+  return {
+    service: 'none',
+    fullName: '',
+  }
 }
 
-function parseRawResult (platform: SearchPlatforms, rr: RawResult): ?SearchResult {
-  const extraInfo = parseExtraInfo(platform, rr)
+function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean, myself: ?string): ?SearchResult {
+  const extraInfo = parseExtraInfo(platform, rr, isFollowing)
   const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
 
   if (platform === 'Keybase' && rr.keybase) {
+    if (rr.keybase.username === myself) { // filter out myself
+      return null
+    }
+
     return {
       service: 'keybase',
       username: rr.keybase.username,
@@ -87,23 +90,29 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult): ?SearchResul
       extraInfo,
     }
   } else if (serviceName) {
+    if (rr.keybase && rr.keybase.username === myself) { // filter out myself
+      return null
+    }
+
+    const toUpgrade = {...rr}
+    delete toUpgrade.service
     return {
       service: 'external',
       icon: platformToLogo32(serviceName),
       username: rr.service && rr.service.username || '',
       serviceName,
       profileUrl: 'TODO',
-      serviceAvatar: rr.service && rr.service.picture_url,
       extraInfo,
-      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', rr) : null,
+      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', toUpgrade, isFollowing) : null,
     }
   } else {
     return null
   }
 }
 
-function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>, requestTimestamp: Date): Results {
-  const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr)))
+function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>,
+  requestTimestamp: Date, isFollowing: (username: string) => boolean, myself: ?string): Results {
+  const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr, isFollowing, myself)))
 
   return {
     type: Constants.results,
@@ -111,12 +120,8 @@ function rawResults (term: string, platform: SearchPlatforms, rresults: Array<Ra
   }
 }
 
-export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results> {
-  return dispatch => {
-    if (trim(term) === '') {
-      return
-    }
-
+export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results | Waiting> {
+  return (dispatch, getState) => {
     // In case platform is passed in as null
     const platform: SearchPlatforms = maybePlatform || 'Keybase'
 
@@ -127,6 +132,10 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
         error: false,
       },
     })
+
+    if (trim(term) === '') {
+      return
+    }
 
     const service = {
       'Keybase': '',
@@ -141,8 +150,7 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
     const limit = 20
 
     const requestTimestamp = new Date()
-    const params: apiserverGetRpc = {
-      method: 'apiserver.Get',
+    apiserverGetRpc({
       param: {
         endpoint: 'user/user_search',
         args: [
@@ -151,23 +159,27 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
           {key: 'service', value: service},
         ],
       },
-      incomingCallMap: {},
-      callback: (error: ?any, results: apiserverGetResult) => {
+      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
+      callback: (error, results) => {
         if (error) {
           console.log('Error searching. Not handling this error')
         } else {
           try {
             const json = JSON.parse(results.body)
-            dispatch(rawResults(term, platform, json.list || [], requestTimestamp))
+            const isFollowing = (username: string) => isFollowing_(getState, username) // eslint-disable-line arrow-parens
+            const myself = getState().config.username
+            dispatch(rawResults(term, platform, json.list || [], requestTimestamp, isFollowing, myself))
           } catch (_) {
             console.log('Error searching (json). Not handling this error')
           }
         }
       },
-    }
-
-    engine.rpc(params)
+    })
   }
+}
+
+function waiting (waiting: boolean): Waiting {
+  return {type: Constants.waiting, payload: {waiting}}
 }
 
 export function selectPlatform (platform: SearchPlatforms): SelectPlatform {
@@ -202,5 +214,12 @@ export function hideUserGroup (): ToggleUserGroup {
   return {
     type: Constants.toggleUserGroup,
     payload: {show: false},
+  }
+}
+
+export function reset (): Reset {
+  return {
+    type: Constants.reset,
+    payload: {},
   }
 }

@@ -17,6 +17,7 @@ export type Props = {
   onClickService: ServiceFn,
   onClickResult: SearchResultFn,
   onSearch: (text: string) => void,
+  waiting: boolean,
 }
 
 export default class Render extends Component<void, Props, void> { }

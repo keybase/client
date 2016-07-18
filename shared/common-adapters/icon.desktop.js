@@ -33,11 +33,16 @@ export default class Icon extends Component {
     const fontSizeHint = shared.fontSize(iconType)
 
     if (isFontIcon) {
+      const cleanStyle = {...this.props.style}
+      // We have to blow these styles away else FontIcon gets confused and will overwrite what it calculates
+      delete cleanStyle.color
+      delete cleanStyle.hoverColor
+
       return <FontIcon
         title={this.props.hint}
-        style={{...globalStyles.noSelect, ...styles.icon, ...fontSizeHint, ...this.props.style}}
+        style={{...globalStyles.noSelect, ...styles.icon, ...fontSizeHint, ...cleanStyle, ...(this.props.onClick ? globalStyles.clickable : {})}}
         className={`icon-kb-${iconType}${this.props.className && ' ' + this.props.className || ''}`}
-        color={color} // TODO (AW): this does nothing, color must be set in styles
+        color={color}
         hoverColor={this.props.onClick ? hoverColor : null}
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.props.onMouseLeave}
@@ -46,15 +51,21 @@ export default class Icon extends Component {
       return <img
         className={this.props.className}
         title={this.props.hint}
-        style={{...globalStyles.noSelect, ...this.props.style}}
+        style={{...globalStyles.noSelect, ...this.props.style, ...(this.props.onClick ? globalStyles.clickable : {})}}
         onClick={this.props.onClick}
-        srcSet={imgPath(this.props.type, ext)} />
+        srcSet={imgPath(iconType, ext)} />
     }
   }
 }
 
 const imgName = (type, ext, mult) => `${resolveImageAsURL('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`
-const imgPath = (type, ext) => [1, 2, 3].map(mult => imgName(type, ext, mult)).join(', ')
+const imgPath = (type, ext) => {
+  if (ext === 'gif') {
+    return `${resolveImageAsURL('icons', type)}.${ext}`
+  } else {
+    return [1, 2, 3].map(mult => imgName(type, ext, mult)).join(', ')
+  }
+}
 
 export const styles = {
   icon: {

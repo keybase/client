@@ -1,6 +1,7 @@
 #!groovy
 
 node("ec2-fleet") {
+    deleteDir()
     properties([
             [$class: "BuildDiscarderProperty",
                 strategy: [$class: "LogRotator",
@@ -32,7 +33,8 @@ node("ec2-fleet") {
             //],
     ])
 
-    env.GOPATH=pwd()
+    env.BASEDIR=pwd()
+    env.GOPATH="${env.BASEDIR}/go"
     def mysqlImage = docker.image("keybaseprivate/mysql")
     def gregorImage = docker.image("keybaseprivate/kbgregor")
     def kbwebImage = docker.image("keybaseprivate/kbweb")
@@ -58,13 +60,12 @@ node("ec2-fleet") {
     ws("${env.GOPATH}/src/github.com/keybase/client") {
 
         stage "Setup"
-
-
-
             docker.withRegistry("", "docker-hub-creds") {
                 parallel (
                     checkout: {
-                        checkout scm
+                        retry(3) {
+                            checkout scm
+                        }
                         sh "git rev-parse HEAD | tee go/revision"
                         sh "git add go/revision"
                     },
@@ -107,23 +108,11 @@ node("ec2-fleet") {
                                     "PATH=${env.HOME}/.node/bin:${env.PATH}",
                                     "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
                                 ]) {
-                                    if (fileExists("desktop/npm-vendor.js")) {
-                                        dir("desktop") {
-                                            sh "npm run vendor-install"
-                                            sh "unzip ./js-vendor-desktop/flow/flow-linux64*.zip"
-                                            sh "./flow/flow"
-                                        }
-                                    } else {
-                                        dir("desktop") {
-                                            sh "../packaging/npm_mess.sh"
-                                        }
-                                        dir("shared") {
-                                            sh 'npm i -g flow-bin@$(tail -n1 .flowconfig)'
-                                            sh "flow"
-                                        }
+                                    dir("desktop") {
+                                        sh "npm run vendor-install"
+                                        sh "unzip ./js-vendor-desktop/flow/flow-linux64*.zip -d ${env.BASEDIR}"
+                                        sh "${env.BASEDIR}/flow/flow status shared"
                                     }
-                                    sh "npm ls"
-                                    sh "ls desktop/node_modules"
                                     sh "desktop/node_modules/.bin/eslint ."
                                     dir("protocol") {
                                         sh "./diff_test.sh"
@@ -142,20 +131,12 @@ node("ec2-fleet") {
                                         withEnv([
                                             "VISDIFF_PR_ID=${env.CHANGE_ID}",
                                         ]) {
-                                            if (fileExists("visdiff")) {
-                                                dir("visdiff") {
-                                                    sh "npm install"
-                                                }
-                                                sh "npm install ./visdiff"
-                                                dir("desktop") {
-                                                    sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, HEAD)...HEAD'"
-                                                }
-                                            } else {
-                                                dir("desktop") {
-                                                    sh 'echo -e "[default]\\naccess_key = $VISDIFF_AWS_ACCESS_KEY_ID\\nsecret_key = $VISDIFF_AWS_SECRET_ACCESS_KEY" > ~/.s3cfg;'
-                                                    sh "npm install octonode"
-                                                    sh "npm run visdiff -- \"`git merge-base origin/master HEAD`...`git rev-parse HEAD`\""
-                                                }
+                                            dir("visdiff") {
+                                                sh "npm install"
+                                            }
+                                            sh "npm install ./visdiff"
+                                            dir("desktop") {
+                                                sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, HEAD)...HEAD'"
                                             }
                                         }}}
                                     }
@@ -190,7 +171,9 @@ node("ec2-fleet") {
                         },
                         test_windows: {
                             node('windows') {
-                                def GOPATH=pwd()
+                                deleteDir()
+                                def BASEDIR=pwd()
+                                def GOPATH="${BASEDIR}/go"
                                 withEnv([
                                     'GOROOT=C:\\tools\\go',
                                     "GOPATH=\"${GOPATH}\"",
@@ -198,9 +181,11 @@ node("ec2-fleet") {
                                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                 ]) {
-                                ws("${GOPATH}/src/github.com/keybase/client") {
+                                ws("$GOPATH/src/github.com/keybase/client") {
                                     println "Checkout Windows"
-                                    checkout scm
+                                    retry(3) {
+                                        checkout scm
+                                    }
 
                                     println "Test Windows"
                                     parallel (
@@ -225,34 +210,28 @@ node("ec2-fleet") {
                                         if (false && env.CHANGE_ID) {
                                         wrap([$class: 'Xvfb']) {
                                             println "Test Windows JS"
-                                            if (fileExists("visdiff")) {
-                                                bat "choco install -y nodejs.install --allow-downgrade --version 6.1.0"
-                                                bat "choco install -y python --version 2.7.11"
-                                                bat "choco install -y graphicsmagick --version 1.3.24"
-                                                dir("visdiff") {
-                                                    bat "npm install"
-                                                }
-                                                bat "npm install .\\visdiff"
-                                                dir("desktop") {
-                                                    if (fileExists("npm-vendor.js")) {
-                                                        bat "npm run vendor-install"
-                                                    } else {
-                                                        bat "npm install"
-                                                    }
-                                                    withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                                            credentialsId: 'visdiff-aws-creds',
-                                                            usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
-                                                            passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
-                                                        ],[$class: 'StringBinding',
-                                                            credentialsId: 'visdiff-github-token',
-                                                            variable: 'VISDIFF_GH_TOKEN',
-                                                    ]]) {
-                                                    withEnv([
-                                                        "VISDIFF_PR_ID=${env.CHANGE_ID}",
-                                                    ]) {
-                                                        bat '..\\node_modules\\.bin\\keybase-visdiff "merge-base(origin/master, HEAD)...HEAD"'
-                                                    }}
-                                                }
+                                            bat "choco install -y nodejs.install --allow-downgrade --version 6.1.0"
+                                            bat "choco install -y python --version 2.7.11"
+                                            bat "choco install -y graphicsmagick --version 1.3.24"
+                                            dir("visdiff") {
+                                                bat "npm install"
+                                            }
+                                            bat "npm install .\\visdiff"
+                                            dir("desktop") {
+                                                bat "npm run vendor-install"
+                                                withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                                        credentialsId: 'visdiff-aws-creds',
+                                                        usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
+                                                        passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
+                                                    ],[$class: 'StringBinding',
+                                                        credentialsId: 'visdiff-github-token',
+                                                        variable: 'VISDIFF_GH_TOKEN',
+                                                ]]) {
+                                                withEnv([
+                                                    "VISDIFF_PR_ID=${env.CHANGE_ID}",
+                                                ]) {
+                                                    bat '..\\node_modules\\.bin\\keybase-visdiff "merge-base(origin/master, HEAD)...HEAD"'
+                                                }}
                                             }
                                         }}},
                                     )
@@ -261,16 +240,20 @@ node("ec2-fleet") {
                         },
                         test_osx: {
                             node('osx') {
-                                def GOPATH=pwd()
+                                deleteDir()
+                                def BASEDIR=pwd()
+                                def GOPATH="${BASEDIR}/go"
                                 withEnv([
                                     "GOPATH=${GOPATH}",
                                     "PATH=${env.PATH}:${GOPATH}/bin",
                                     "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
                                     "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
                                 ]) {
-                                ws("${GOPATH}/src/github.com/keybase/client") {
+                                ws("$GOPATH/src/github.com/keybase/client") {
                                     println "Checkout OS X"
-                                        checkout scm
+                                        retry(3) {
+                                            checkout scm
+                                        }
 
                                     println "Test OS X"
                                         testNixGo("OS X")
@@ -278,6 +261,9 @@ node("ec2-fleet") {
                             }
                         },
                     )
+            } catch(ex) {
+                sh "docker logs ${kbweb.id}"
+                throw ex
             } finally {
                 if (kbweb != null) {
                     kbweb.stop()
@@ -298,7 +284,7 @@ node("ec2-fleet") {
 }
 
 def waitForURL(prefix, url) {
-    def waitFor = 180;
+    def waitFor = 300;
     if (isUnix()) {
         sh """ bash -c '
             slept=0
@@ -307,22 +293,25 @@ def waitForURL(prefix, url) {
                 sleep 1;
                 ((slept++));
             done;
-            echo "Unable to connect to \$url after waiting ${waitFor} times";
+            echo "Unable to connect to ${url} after waiting ${waitFor} times";
             exit 1;
         ' """
     } else {
         bat """
-            powershell.exe -c ' \
+            powershell.exe -c "& { \
                 \$slept=0; \
-                \$res=1; \
                 do { \
-                    curl.exe --silent ${url} >nul 2>&1 && echo "Connected to ${url} after waiting \$slept times" && exit 0; \
+                    curl.exe --silent ${url} >\$null; \
+                    if (\$?) { \
+                        echo \\"Connected to ${url} after waiting \$slept times\\"; \
+                        exit 0; \
+                    } \
                     sleep 1; \
                     \$slept++; \
                 } while (\$slept -lt ${waitFor}); \
-                echo "Unable to connect to ${url} after waiting ${waitFor} times"; \
+                echo \\"Unable to connect to ${url} after waiting \$slept times\\"; \
                 exit 1; \
-            '
+            }"
         """
     }
 }

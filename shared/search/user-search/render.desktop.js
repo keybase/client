@@ -1,26 +1,24 @@
 // @flow
 import React, {Component} from 'react'
-import _ from 'lodash'
 
-import {Avatar, Box, ClickableBox, Icon, Input, Text} from '../../common-adapters'
+import {Avatar, Box, ClickableBox, Icon, Text, ProgressIndicator} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
-import {IconButton} from 'material-ui'
-import {platformToLogo24} from '../../constants/search'
-
-import type {SearchResult, SearchPlatforms} from '../../constants/search'
-import type {Props, SearchResultFn, ServiceFn} from './render'
-import type {IconType} from '../../common-adapters/icon'
+import type {SearchResult} from '../../constants/search'
+import type {Props, SearchResultFn} from './render'
 import type {Props as TextProps} from '../../common-adapters/text'
 
 function EmboldenTextMatch ({text, match, style, textType, emboldenStyle}: {text: string, match: string, emboldenStyle?: Object, style?: Object, textType: TextProps.type}) {
-  const indexOfMatch = text.indexOf(match)
+  const indexOfMatch = text.toLowerCase().indexOf(match.toLowerCase())
   if (indexOfMatch > -1) {
+    const left = text.substring(0, indexOfMatch)
+    const middle = text.substring(indexOfMatch, indexOfMatch + match.length)
+    const right = text.substring(indexOfMatch + match.length)
     return (
       <Box style={globalStyles.flexBoxRow}>
-        <Text type={textType} style={style}>{text.substring(0, indexOfMatch)}</Text>
-        <Text type={textType} style={{...globalStyles.fontBold, ...style, ...emboldenStyle}}>{match}</Text>
-        <EmboldenTextMatch style={style} text={text.substring(indexOfMatch + match.length)} match={match} textType={textType} emboldenStyle={emboldenStyle} />
+        {!!left && <Text type={textType} style={style}>{left}</Text>}
+        <Text type={textType} style={{...globalStyles.fontBold, ...style, ...emboldenStyle}}>{middle}</Text>
+        {!!right && <EmboldenTextMatch style={style} text={right} match={match} textType={textType} emboldenStyle={emboldenStyle} />}
       </Box>
     )
   }
@@ -38,7 +36,7 @@ function ExternalResultBody ({username, searchText}) {
 
 function KeybaseExtraInfo ({username, fullName, isFollowing, searchText}) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end'}}>
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <Avatar size={16} style={{width: 16, marginRight: 4}} username={username} />
         <EmboldenTextMatch text={username} match={searchText} textType={'BodySmall'} style={{color: isFollowing ? globalColors.green2 : globalColors.orange}} />
@@ -48,13 +46,13 @@ function KeybaseExtraInfo ({username, fullName, isFollowing, searchText}) {
   )
 }
 
-// TODO(MM) use serviceAvatar
-function ExternalExtraInfo ({serviceUsername, fullNameOnService, icon, searchText}) {
+function ExternalExtraInfo ({fullNameOnService, icon, serviceAvatar, serviceUsername, searchText}) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end'}}>
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        <Icon type={icon} style={{width: 17, marginRight: 4}} />
-        <EmboldenTextMatch text={serviceUsername} match={searchText} textType={'BodySmall'} emboldenStyle={{color: globalColors.black_75}} />
+        {!!icon && <Icon type={icon} style={{width: 17, marginRight: 4}} />}
+        {!icon && <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
+        {!!serviceUsername && <EmboldenTextMatch text={serviceUsername} match={searchText} textType={'BodySmall'} emboldenStyle={{color: globalColors.black_75}} />}
       </Box>
       {!!fullNameOnService && <Text type='BodyXSmall' style={{color: globalColors.black_40}}>{fullNameOnService}</Text>}
     </Box>
@@ -112,7 +110,7 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   }
 
   return (
-    <ClickableBox onClick={() => onClickResult(result)} hoverColor={globalColors.blue4} backgroundColor={globalColors.white} style={rowStyle}>
+    <ClickableBox onClick={() => onClickResult(result)} hoverColor={globalColors.blue4} style={rowStyle}>
       <Box style={{...globalStyles.flexBoxRow}}>
         {icon}
         {alignedBody}
@@ -122,163 +120,18 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
   )
 }
 
-function ServiceIcon ({serviceName, tooltip, iconType, selected, onClickService}: {serviceName: SearchPlatforms, tooltip: string, iconType: IconType, selected: boolean, onClickService: ServiceFn}) {
-  const iconStyles = {
-    borderRadius: 24,
-    minWidth: 48,
-    width: 48,
-    height: 48,
-    backgroundColor: selected ? globalColors.blue4 : null,
-  }
-
-  return (
-    <IconButton
-      tooltip={tooltip}
-      tooltipPosition='top-center'
-      style={iconStyles}
-      onClick={() => onClickService(serviceName)}>
-      <Icon type={iconType} />
-    </IconButton>
-  )
-}
-
-export type SearchBarProps = {
-  selectedService: ?SearchPlatforms,
-  onSearch: (term: string, platform?: ?SearchPlatforms) => void,
-  searchText: ?string,
-  searchHintText: string,
-  onClickService: (service: SearchPlatforms) => void,
-}
-
-export class SearchBar extends Component<void, SearchBarProps, void> {
-  _onDebouncedSearch: (overridePlatform?: SearchPlatforms) => void;
-
-  constructor (props: SearchBarProps) {
-    super(props)
-    this._onDebouncedSearch = _.debounce(this._onSearch, 500)
-  }
-
-  componentWillReceiveProps (nextProps: SearchBarProps) {
-    if (nextProps.searchText === null && nextProps.searchText !== this.props.searchText) {
-      this.refs && this.refs.searchBox && this.refs.searchBox.clearValue()
-    }
-  }
-
-  _onSearch (overridePlatform?: SearchPlatforms) {
-    this.props.onSearch(this.refs.searchBox ? this.refs.searchBox.getValue() : '', overridePlatform || null)
-  }
-
-  _onClickService (platform: SearchPlatforms) {
-    this.props.onClickService(platform)
-    this.refs.searchBox && !!this.refs.searchBox.getValue() && this._onSearch(platform)
-  }
-
+class Render extends Component<void, Props, void> {
   render () {
     return (
-      <Box style={styles.headerContainer}>
-        <Box style={styles.servicesContainer}>
-          <ServiceIcon
-            serviceName='Keybase'
-            tooltip='Keybase'
-            iconType={platformToLogo24('Keybase')}
-            selected={this.props.selectedService === 'Keybase'}
-            onClickService={p => this._onClickService(p)}
-            />
-          <ServiceIcon
-            serviceName='Twitter'
-            tooltip='Twitter'
-            iconType={platformToLogo24('Twitter')}
-            selected={this.props.selectedService === 'Twitter'}
-            onClickService={p => this._onClickService(p)}
-            />
-          <ServiceIcon
-            serviceName='Github'
-            tooltip='Github'
-            iconType={platformToLogo24('Github')}
-            selected={this.props.selectedService === 'Github'}
-            onClickService={p => this._onClickService(p)}
-            />
-          <ServiceIcon
-            serviceName='Coinbase'
-            tooltip='Coinbase'
-            iconType={platformToLogo24('Coinbase')}
-            selected={this.props.selectedService === 'Coinbase'}
-            onClickService={p => this._onClickService(p)}
-            />
-          <ServiceIcon
-            serviceName='Reddit'
-            tooltip='Reddit'
-            iconType={platformToLogo24('Reddit')}
-            selected={this.props.selectedService === 'Reddit'}
-            onClickService={p => this._onClickService(p)}
-            />
-          <ServiceIcon
-            serviceName='Hackernews'
-            tooltip='Hacker News'
-            iconType={platformToLogo24('Hackernews')}
-            selected={this.props.selectedService === 'Hackernews'}
-            onClickService={p => this._onClickService(p)}
-            />
-        </Box>
-        <Input
-          type='text'
-          ref='searchBox'
-          onEnterKeyDown={() => this._onSearch()}
-          onChange={() => this._onDebouncedSearch()}
-          value={this.props.searchText}
-          hintText={this.props.searchHintText}
-          style={styles.input}
-          underlineStyle={{display: 'none'}}
-          textStyle={{height: 40}} />
+      <Box style={{overflowY: 'auto', flex: 1, position: 'relative', minHeight: 40}}>
+        {this.props.waiting && <ProgressIndicator white={false}
+          style={{position: 'absolute', width: 20, top: 0, left: 0, right: 0, marginLeft: 'auto', marginRight: 'auto'}} />}
+        {this.props.results.map(r => (
+          <Result key={r.service + (r.icon ? r.icon : '') + r.username} result={r}
+            searchText={this.props.searchText || ''} onClickResult={this.props.onClickResult} />))}
       </Box>
     )
   }
 }
 
-export function searchResultsList ({results, searchText, onClickResult}: {results: Array<SearchResult>, searchText: ?string, onClickResult: SearchResultFn}) {
-  return results.map(r => (
-    <Result key={r.service + (r.icon ? r.icon : '') + r.username} result={r} searchText={searchText || ''} onClickResult={onClickResult} />
-  ))
-}
-
-export class SearchContainer extends Component {
-  render () {
-    return (
-      <Box style={styles.container}>
-        {this.props.children}
-      </Box>
-    )
-  }
-}
-
-export default class Render extends Component<void, Props, void> {
-  render () {
-    return (
-      <SearchContainer>
-        <SearchBar {...this.props} />
-        {searchResultsList(this.props)}
-      </SearchContainer>
-    )
-  }
-}
-
-export const styles = {
-  container: {
-    paddingTop: 48,
-    overflow: 'auto',
-    flex: 1,
-  },
-  headerContainer: {
-  },
-  servicesContainer: {
-    ...globalStyles.flexBoxRow,
-    height: 64,
-  },
-  input: {
-    textAlign: 'left',
-    height: 48,
-    marginBottom: 0,
-    borderBottom: 'solid 1px',
-    borderBottomColor: globalColors.black_10,
-  },
-}
+export default Render

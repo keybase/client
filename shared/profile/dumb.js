@@ -1,5 +1,6 @@
 /* @flow */
 import Profile from './render'
+import ConfirmOrPending from './confirm-or-pending'
 import {normal, checking, revoked, error, metaNone} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
 import {isMobile} from '../constants/platform'
@@ -123,6 +124,8 @@ const following = [
 
 const propsBase: RenderProps = {
   ...mockUserInfo,
+  isYou: false,
+  bioEditFns: null,
   proofs: proofsDefault,
   tlfs: folders,
   followers,
@@ -145,9 +148,33 @@ const propsBase: RenderProps = {
   },
 }
 
+const bioEditFns = {
+  onEditAvatarClick: () => console.log('onEditAvatarClick clicked'),
+  onNameEdit: () => console.log('onNameEdit clicked'),
+  onBioEdit: () => console.log('onBioEdit clicked'),
+  onLocationEdit: () => console.log('onLocationEdit clicked'),
+  onEditProfile: () => console.log('onEditProfile clicked'),
+}
+
 const dumbMap: DumbComponentMap<Profile> = {
   component: Profile,
   mocks: {
+    'Your Profile': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+    },
+    'Your Profile - empty': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      userInfo: {
+        ...mockUserInfo.userInfo,
+        fullname: '',
+        location: '',
+        bio: '',
+      },
+    },
     'Unfollowed': propsBase,
     'Unfollowed - Profile page': {
       ...propsBase,
@@ -186,6 +213,19 @@ const dumbMap: DumbComponentMap<Profile> = {
   },
 }
 
+const confirmBase = {
+  platform: 'twitter',
+}
+
+const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
+  component: ConfirmOrPending,
+  mocks: {
+    'Confirm Twitter': confirmBase,
+    'Confirm Github': {...confirmBase, platform: 'github'},
+  },
+}
+
 export default {
   'Profile': dumbMap,
+  'My Profile: ConfirmOrPending': dumbConfirmOrPendingMap,
 }

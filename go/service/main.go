@@ -188,6 +188,23 @@ func (d *Service) startupGregor() {
 		g.Log.Debug("Gregor disabled in Tor mode")
 	} else {
 		g.Log.Debug("connecting to gregord for push notifications")
+
+		// Create gregorHandler instance first so any handlers can connect
+		// to it before we actually connect to gregor (either gregor is down
+		// or we aren't logged in)
+		var err error
+		if d.gregor, err = newGregorHandler(d.G()); err != nil {
+			d.G().Log.Warning("failed to create push service handler: %s", err)
+			return
+		}
+		d.G().GregorDismisser = d.gregor
+		d.G().GregorListener = d.gregor
+
+		// Add default handlers
+		d.gregor.PushHandler(newUserHandler(d.G()))
+		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
+
+		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
 			g.Log.Debug("error connecting to gregord: %s", gcErr)
 		}
@@ -301,20 +318,15 @@ func (d *Service) gregordConnect() (err error) {
 	}
 	d.G().Log.Debug("| gregor URI: %s", uri)
 
-	if d.gregor == nil {
-		if d.gregor, err = newGregorHandler(d.G()); err != nil {
-			return err
-		}
-		d.G().GregorDismisser = d.gregor
-		d.G().GregorListener = d.gregor
-
-		d.gregor.PushHandler(newUserHandler(d.G()))
-	} else {
+	// If we are already connected, then shutdown and reset the gregor
+	// handler
+	if d.gregor.IsConnected() {
 		if d.gregor.Reset(); err != nil {
 			return err
 		}
 	}
 
+	// Connect to gregord
 	if err = d.gregor.Connect(uri); err != nil {
 		return err
 	}

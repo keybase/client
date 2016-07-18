@@ -7,10 +7,10 @@ export type SearchPlatforms = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Coi
 
 export type ExtraInfo = {
   service: 'external',
-  icon: IconType,
+  icon: ?IconType,
   serviceUsername: string, // i.e. with twitter it would be malgorithms
-  serviceAvatar: ?string, // i.e. with twitter it would be their twitter avatar url
-  fullNameOnService: ?string // Say with twitter we know malgorithms is "Chris Coyne"
+  serviceAvatar: string, // i.e. with twitter it would be their twitter avatar url
+  fullNameOnService: string // Say with twitter we know malgorithms is "Chris Coyne"
 } | {
   service: 'keybase',
   username: string,
@@ -29,7 +29,6 @@ export type SearchResult = {
 } | {
   service: 'external',
   icon: IconType,
-  serviceAvatar: ?string, // i.e. with twitter it would be their twitter avatar url
   username: string,
   serviceName: SearchPlatforms,
   profileUrl: string,
@@ -43,7 +42,7 @@ export function fullName (extraInfo: ExtraInfo): string {
     case 'none':
       return extraInfo.fullName
     case 'external':
-      return extraInfo.fullNameOnService || ''
+      return extraInfo.fullNameOnService
   }
   return ''
 }
@@ -77,7 +76,14 @@ export type RemoveUserFromGroup = TypedAction<'search:removeUserFromGroup', {use
 export const toggleUserGroup = 'search:toggleUserGroup'
 export type ToggleUserGroup = TypedAction<'search:toggleUserGroup', {show: boolean}, void>
 
-export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUserToGroup | RemoveUserFromGroup | ToggleUserGroup
+export const reset = 'search:reset'
+export type Reset = TypedAction<'search:reset', {}, void>
+
+export const waiting = 'search:waiting'
+export type Waiting = TypedAction<'search:waiting', {waiting: boolean}, void>
+
+export type SearchActions = Search | Results | SelectPlatform | SelectUserForInfo | AddUserToGroup
+  | RemoveUserFromGroup | ToggleUserGroup | Reset | Waiting
 
 export function platformToIcon (platform: SearchPlatforms): IconType {
   return {

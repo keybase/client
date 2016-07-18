@@ -10,11 +10,14 @@ import type {Props as TextProps} from '../../common-adapters/text'
 function EmboldenTextMatch ({text, match, style, textType, emboldenStyle}: {text: string, match: string, emboldenStyle?: Object, style?: Object, textType: TextProps.type}) {
   const indexOfMatch = text.indexOf(match)
   if (indexOfMatch > -1) {
+    const left = text.substring(0, indexOfMatch)
+    const middle = text.substring(indexOfMatch, indexOfMatch + match.length)
+    const right = text.substring(indexOfMatch + match.length)
     return (
       <Box style={globalStyles.flexBoxRow}>
-        <Text type={textType} style={style}>{text.substring(0, indexOfMatch)}</Text>
-        <Text type={textType} style={{...globalStyles.fontBold, ...style, ...emboldenStyle}}>{match}</Text>
-        <EmboldenTextMatch style={style} text={text.substring(indexOfMatch + match.length)} match={match} textType={textType} emboldenStyle={emboldenStyle} />
+        {!!left && <Text type={textType} style={style}>{left}</Text>}
+        <Text type={textType} style={{...globalStyles.fontBold, ...style, ...emboldenStyle}}>{middle}</Text>
+        {!!right && <EmboldenTextMatch style={style} text={right} match={match} textType={textType} emboldenStyle={emboldenStyle} />}
       </Box>
     )
   }
@@ -32,7 +35,7 @@ function ExternalResultBody ({username, searchText}) {
 
 function KeybaseExtraInfo ({username, fullName, isFollowing, searchText}) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end'}}>
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <Avatar size={16} style={{width: 16, marginRight: 4}} username={username} />
         <EmboldenTextMatch text={username} match={searchText} textType={'BodySmall'} style={{color: isFollowing ? globalColors.green2 : globalColors.orange}} />
@@ -42,13 +45,13 @@ function KeybaseExtraInfo ({username, fullName, isFollowing, searchText}) {
   )
 }
 
-// TODO(MM) use serviceAvatar
-function ExternalExtraInfo ({serviceUsername, fullNameOnService, icon, searchText}) {
+function ExternalExtraInfo ({fullNameOnService, icon, serviceAvatar, serviceUsername, searchText}) {
   return (
-    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end'}}>
+    <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-        <Icon type={icon} style={{width: 17, marginRight: 4}} />
-        <EmboldenTextMatch text={serviceUsername} match={searchText} textType={'BodySmall'} emboldenStyle={{color: globalColors.black_75}} />
+        {!!icon && <Icon type={icon} style={{width: 17, marginRight: 4}} />}
+        {!icon && <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
+        {!!serviceUsername && <EmboldenTextMatch text={serviceUsername} match={searchText} textType={'BodySmall'} emboldenStyle={{color: globalColors.black_75}} />}
       </Box>
       {!!fullNameOnService && <Text type='BodyXSmall' style={{color: globalColors.black_40}}>{fullNameOnService}</Text>}
     </Box>

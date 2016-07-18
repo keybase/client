@@ -12,9 +12,8 @@ import {switchTab} from '../actions/tabbed-router'
 
 import {ipcRenderer} from 'electron'
 import {loginTab} from '../constants/tabs'
-import flags from '../util/feature-flags'
 
-import {executeActions, quitOnContext} from '../util/quit-helper.desktop'
+import {executeActionsForContext} from '../util/quit-helper.desktop'
 
 import type {Props as FolderProps} from '../folders/render'
 
@@ -142,7 +141,7 @@ class Menubar extends Component<void, Props, void> {
   }
 
   _quit () {
-    executeActions(quitOnContext({type: 'quitButton'}))
+    executeActionsForContext('quitButton')
   }
 
   _showBug () {
@@ -159,7 +158,6 @@ class Menubar extends Component<void, Props, void> {
       showUser={() => this._showUser()}
       showKBFS={() => this._openFolder()}
       openApp={() => this._showMain()}
-      showOpenApp={flags.mainWindow}
       showBug={() => this._showBug()}
       username={this.props.username}
       quit={() => this._quit()}

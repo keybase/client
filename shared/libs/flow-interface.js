@@ -1,6 +1,8 @@
 /*eslint-disable */
 
 declare module 'Interpolation' { declare var exports: any; }
+declare module 'deep-diff' { declare var exports: any; }
+declare module 'deep-equal' { declare var exports: any; }
 declare module 'electron' { declare var exports: any; }
 declare module 'getenv' { declare var exports: any; }
 declare module 'lodash' { declare var exports: any; }
