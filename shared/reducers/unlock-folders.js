@@ -9,7 +9,7 @@ export type State = {
   started: boolean,
   closed: boolean,
   phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
-  devices: Array<Device>,
+  devices: ?Array<Device>,
   waiting: boolean,
   paperkeyError: ?string,
   sessionID: ?number
@@ -20,7 +20,7 @@ const initialState: State = {
   closed: true,
   phase: 'dead',
   waiting: false,
-  devices: [],
+  devices: null,
   paperkeyError: null,
   sessionID: null,
 }
