@@ -284,7 +284,7 @@ node("ec2-fleet") {
 }
 
 def waitForURL(prefix, url) {
-    def waitFor = 180;
+    def waitFor = 300;
     if (isUnix()) {
         sh """ bash -c '
             slept=0
@@ -293,7 +293,7 @@ def waitForURL(prefix, url) {
                 sleep 1;
                 ((slept++));
             done;
-            echo "Unable to connect to \$url after waiting ${waitFor} times";
+            echo "Unable to connect to ${url} after waiting ${waitFor} times";
             exit 1;
         ' """
     } else {
