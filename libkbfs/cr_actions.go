@@ -248,6 +248,49 @@ func crActionConvertSymlink(unmergedMostRecent BlockPointer,
 	return nil
 }
 
+// trackSyncPtrChangesInCreate makes sure the correct set of refs and
+// unrefs, from the syncOps on the unmerged branch, makes it into the
+// createOp for a new file.
+func (cuea *copyUnmergedEntryAction) trackSyncPtrChangesInCreate(
+	mostRecentTargetPtr BlockPointer, unmergedChain *crChain,
+	unmergedChains *crChains) {
+	targetChain, ok := unmergedChains.byMostRecent[mostRecentTargetPtr]
+	var refs, unrefs []BlockPointer
+	if ok && targetChain.isFile() {
+		// The create op also needs to reference the child block ptrs
+		// created by any sync ops (and not unreferenced by future
+		// ones).
+		for _, op := range targetChain.ops {
+			if _, ok := op.(*syncOp); !ok {
+				continue
+			}
+			for _, ref := range op.Refs() {
+				if !unmergedChains.isDeleted(ref) {
+					refs = append(refs, ref)
+				}
+			}
+			for _, unref := range op.Unrefs() {
+				unrefs = append(unrefs, unref)
+			}
+		}
+	}
+	if len(refs) > 0 {
+		for _, uop := range unmergedChain.ops {
+			cop, ok := uop.(*createOp)
+			if !ok || cop.NewName != cuea.toName {
+				continue
+			}
+			for _, ref := range refs {
+				cop.AddRefBlock(ref)
+			}
+			for _, unref := range unrefs {
+				cop.AddUnrefBlock(unref)
+			}
+			break
+		}
+	}
+}
+
 func (cuea *copyUnmergedEntryAction) updateOps(unmergedMostRecent BlockPointer,
 	mergedMostRecent BlockPointer, unmergedBlock *DirBlock,
 	mergedBlock *DirBlock, unmergedChains *crChains,
@@ -283,35 +326,8 @@ func (cuea *copyUnmergedEntryAction) updateOps(unmergedMostRecent BlockPointer,
 		return fmt.Errorf("Couldn't find merged entry for %s", cuea.toName)
 	}
 	mostRecentTargetPtr := mergedEntry.BlockPointer
-	targetChain, ok := unmergedChains.byMostRecent[mostRecentTargetPtr]
-	var refs []BlockPointer
-	if ok && targetChain.isFile() {
-		// The create op also needs to reference the child block ptrs
-		// created by any sync ops (and not unreferenced by future
-		// ones).
-		for _, op := range targetChain.ops {
-			if _, ok := op.(*syncOp); !ok {
-				continue
-			}
-			for _, ref := range op.Refs() {
-				if !unmergedChains.isDeleted(ref) {
-					refs = append(refs, ref)
-				}
-			}
-		}
-	}
-	if len(refs) > 0 {
-		for _, uop := range unmergedChain.ops {
-			cop, ok := uop.(*createOp)
-			if !ok || cop.NewName != cuea.toName {
-				continue
-			}
-			for _, ref := range refs {
-				cop.AddRefBlock(ref)
-			}
-			break
-		}
-	}
+	cuea.trackSyncPtrChangesInCreate(mostRecentTargetPtr, unmergedChain,
+		unmergedChains)
 
 	return nil
 }
