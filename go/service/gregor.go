@@ -322,17 +322,17 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 		g.Debug("replayInBandMessages: fresh replay: using state items")
 		state, err := gcli.StateMachineState(nil)
 		if err != nil {
-			g.Warning("unable to fetch state for replay: %s", err)
+			g.Debug("unable to fetch state for replay: %s", err)
 			return nil, err
 		}
 		if msgs, err = gcli.InBandMessagesFromState(state); err != nil {
-			g.Warning("unable to fetch messages from state for replay: %s", err)
+			g.Debug("unable to fetch messages from state for replay: %s", err)
 			return nil, err
 		}
 	} else {
 		g.Debug("replayInBandMessages: incremental replay: using ibms since")
 		if msgs, err = gcli.StateMachineInBandMessagesSince(t); err != nil {
-			g.Warning("unable to fetch messages for replay: %s", err)
+			g.Debug("unable to fetch messages for replay: %s", err)
 			return nil, err
 		}
 	}
@@ -350,7 +350,7 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, cli gregor1.In
 		// If an error happens when replaying, don't kill everything else that
 		// follows, just make a warning.
 		if err != nil {
-			g.Warning("Failure in message replay: %s", err.Error())
+			g.Debug("Failure in message replay: %s", err.Error())
 			err = nil
 		}
 	}
