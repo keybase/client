@@ -49,7 +49,7 @@ export default connector.connect(
       return {
         mode: 'external',
         nonUserInfoProps: {
-          avatar: userForInfoPane.serviceAvatar,
+          avatar: userForInfoPane.extraInfo.serviceAvatar || '',
           username: userForInfoPane.username,
           fullName: fullName(userForInfoPane.extraInfo),
           serviceName: userForInfoPane.serviceName,
