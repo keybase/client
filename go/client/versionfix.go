@@ -121,7 +121,7 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	}
 
 	if serviceConfig.ForkType == keybase1.ForkType_LAUNCHD {
-		return RestartLaunchdService(g, serviceConfig.Label, g.Env.GetServiceInfoPath())
+		return restartLaunchdService(g, serviceConfig.Label, g.Env.GetServiceInfoPath())
 	}
 
 	ctlCli = keybase1.CtlClient{Cli: gcli}

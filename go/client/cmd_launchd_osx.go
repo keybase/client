@@ -190,7 +190,7 @@ func (v *CmdLaunchdList) ParseArgv(ctx *cli.Context) error {
 
 func (v *CmdLaunchdList) Run() error {
 	if v.format == "json" {
-		servicesStatus, err := install.ListServices(v.G(), v.G().Log)
+		servicesStatus, err := install.ListServices(v.G(), 0, v.G().Log)
 		if err != nil {
 			return err
 		}
@@ -283,7 +283,7 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdLaunchdStatus) Run() error {
-	serviceStatus, err := install.ServiceStatus(v.G(), v.label, v.G().Log)
+	serviceStatus, err := install.ServiceStatus(v.G(), v.label, 0, v.G().Log)
 	if err != nil {
 		return err
 	}
@@ -329,7 +329,8 @@ func (v *CmdLaunchdAction) Run() error {
 	case "restart":
 		return launchd.Restart(v.label, defaultLaunchdWait, v.G().Log)
 	case "stop":
-		return launchd.Stop(v.label, defaultLaunchdWait, v.G().Log)
+		_, stopErr := launchd.Stop(v.label, defaultLaunchdWait, v.G().Log)
+		return stopErr
 	case "uninstall":
 		return launchd.Uninstall(v.label, defaultLaunchdWait, v.G().Log)
 	}
@@ -337,7 +338,7 @@ func (v *CmdLaunchdAction) Run() error {
 	return nil
 }
 
-func StartLaunchdService(g *libkb.GlobalContext, label string, serviceInfoPath string, wait bool) error {
+func startLaunchdService(g *libkb.GlobalContext, label string, serviceInfoPath string, wait bool) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
 	err := launchService.Start(defaultLaunchdWait)
@@ -350,7 +351,7 @@ func StartLaunchdService(g *libkb.GlobalContext, label string, serviceInfoPath s
 	return nil
 }
 
-func RestartLaunchdService(g *libkb.GlobalContext, label string, serviceInfoPath string) error {
+func restartLaunchdService(g *libkb.GlobalContext, label string, serviceInfoPath string) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
 	err := launchService.Restart(defaultLaunchdWait)
@@ -367,6 +368,9 @@ func WaitForService(g *libkb.GlobalContext, launchService launchd.Service, servi
 	}
 	if launchdStatus == nil {
 		return fmt.Errorf("%s was not found", launchService.Label())
+	}
+	if launchdStatus.IsErrored() {
+		return fmt.Errorf("%s is not running (exit status %s)", launchdStatus.Label(), launchdStatus.LastExitStatus())
 	}
 	_, err = libkb.WaitForServiceInfoFile(serviceInfoPath, launchdStatus.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, g.Log)
 	return err

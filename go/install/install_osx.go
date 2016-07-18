@@ -45,14 +45,14 @@ const (
 )
 
 // KeybaseServiceStatus returns service status for Keybase service
-func KeybaseServiceStatus(context Context, label string, log Log) (status keybase1.ServiceStatus) {
+func KeybaseServiceStatus(context Context, label string, wait time.Duration, log Log) (status keybase1.ServiceStatus) {
 	if label == "" {
 		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
 		return
 	}
 	kbService := launchd.NewService(label)
 
-	status, err := serviceStatusFromLaunchd(kbService, context.GetServiceInfoPath(), log)
+	status, err := serviceStatusFromLaunchd(kbService, context.GetServiceInfoPath(), wait, log)
 	status.BundleVersion = libkb.VersionString()
 	if err != nil {
 		return
@@ -69,14 +69,14 @@ func KeybaseServiceStatus(context Context, label string, log Log) (status keybas
 }
 
 // KBFSServiceStatus returns service status for KBFS
-func KBFSServiceStatus(context Context, label string, log Log) (status keybase1.ServiceStatus) {
+func KBFSServiceStatus(context Context, label string, wait time.Duration, log Log) (status keybase1.ServiceStatus) {
 	if label == "" {
 		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
 		return
 	}
 	kbfsService := launchd.NewService(label)
 
-	status, err := serviceStatusFromLaunchd(kbfsService, context.GetKBFSInfoPath(), log)
+	status, err := serviceStatusFromLaunchd(kbfsService, context.GetKBFSInfoPath(), wait, log)
 	if err != nil {
 		return
 	}
@@ -124,12 +124,12 @@ func UpdaterServiceStatus(context Context, label string) keybase1.ServiceStatus 
 	return serviceStatus
 }
 
-func serviceStatusFromLaunchd(ls launchd.Service, infoPath string, log Log) (status keybase1.ServiceStatus, err error) {
+func serviceStatusFromLaunchd(ls launchd.Service, infoPath string, wait time.Duration, log Log) (status keybase1.ServiceStatus, err error) {
 	status = keybase1.ServiceStatus{
 		Label: ls.Label(),
 	}
 
-	launchdStatus, err := ls.LoadStatus()
+	launchdStatus, err := ls.WaitForStatus(wait, 500*time.Millisecond)
 	if err != nil {
 		status.InstallStatus = keybase1.InstallStatus_ERROR
 		status.InstallAction = keybase1.InstallAction_NONE
@@ -177,17 +177,17 @@ func serviceStatusFromLaunchd(ls launchd.Service, infoPath string, log Log) (sta
 	return
 }
 
-func serviceStatusesFromLaunchd(context Context, ls []launchd.Service, log Log) []keybase1.ServiceStatus {
+func serviceStatusesFromLaunchd(context Context, ls []launchd.Service, wait time.Duration, log Log) []keybase1.ServiceStatus {
 	c := []keybase1.ServiceStatus{}
 	for _, l := range ls {
-		s, _ := serviceStatusFromLaunchd(l, "", log)
+		s, _ := serviceStatusFromLaunchd(l, "", wait, log)
 		c = append(c, s)
 	}
 	return c
 }
 
 // ListServices returns status for all services
-func ListServices(context Context, log Log) (*keybase1.ServicesStatus, error) {
+func ListServices(context Context, wait time.Duration, log Log) (*keybase1.ServicesStatus, error) {
 	services, err := launchd.ListServices([]string{"keybase.service", "homebrew.mxcl.keybase"})
 	if err != nil {
 		return nil, err
@@ -202,9 +202,9 @@ func ListServices(context Context, log Log) (*keybase1.ServicesStatus, error) {
 	}
 
 	return &keybase1.ServicesStatus{
-		Service: serviceStatusesFromLaunchd(context, services, log),
-		Kbfs:    serviceStatusesFromLaunchd(context, kbfs, log),
-		Updater: serviceStatusesFromLaunchd(context, updater, log),
+		Service: serviceStatusesFromLaunchd(context, services, wait, log),
+		Kbfs:    serviceStatusesFromLaunchd(context, kbfs, wait, log),
+		Updater: serviceStatusesFromLaunchd(context, updater, wait, log),
 	}, nil
 }
 
@@ -273,13 +273,13 @@ func keybasePlist(context Context, binPath string, label string, log Log) (launc
 	return launchd.NewPlist(label, binPath, plistArgs, envVars, startLogFile, defaultPlistComment), nil
 }
 
-func installKeybaseService(context Context, service launchd.Service, plist launchd.Plist, log Log) (*keybase1.ServiceStatus, error) {
+func installKeybaseService(context Context, service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
 	err := launchd.Install(plist, defaultLaunchdWait, log)
 	if err != nil {
 		return nil, err
 	}
 
-	st, err := serviceStatusFromLaunchd(service, context.GetServiceInfoPath(), log)
+	st, err := serviceStatusFromLaunchd(service, context.GetServiceInfoPath(), wait, log)
 	return &st, err
 }
 
@@ -326,13 +326,13 @@ func kbfsPlist(context Context, kbfsBinPath string, label string) (plist launchd
 	return
 }
 
-func installKBFSService(context Context, service launchd.Service, plist launchd.Plist, log Log) (*keybase1.ServiceStatus, error) {
+func installKBFSService(context Context, service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
 	err := launchd.Install(plist, defaultLaunchdWait, log)
 	if err != nil {
 		return nil, err
 	}
 
-	st, err := serviceStatusFromLaunchd(service, "", log)
+	st, err := serviceStatusFromLaunchd(service, "", wait, log)
 	return &st, err
 }
 
@@ -377,13 +377,13 @@ func (l ServiceLabel) ComponentName() ComponentName {
 }
 
 // ServiceStatus returns status for a service named by label
-func ServiceStatus(context Context, label ServiceLabel, log Log) (*keybase1.ServiceStatus, error) {
+func ServiceStatus(context Context, label ServiceLabel, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
 	switch label.ComponentName() {
 	case ComponentNameService:
-		st := KeybaseServiceStatus(context, string(label), log)
+		st := KeybaseServiceStatus(context, string(label), wait, log)
 		return &st, nil
 	case ComponentNameKBFS:
-		st := KBFSServiceStatus(context, string(label), log)
+		st := KBFSServiceStatus(context, string(label), wait, log)
 		return &st, nil
 	case ComponentNameUpdater:
 		st := UpdaterServiceStatus(context, string(label))
@@ -485,7 +485,7 @@ func installService(context Context, binPath string, force bool, log Log) error 
 		return err
 	}
 	log.Debug("Checking service: %s", label)
-	keybaseStatus := KeybaseServiceStatus(context, label, log)
+	keybaseStatus := KeybaseServiceStatus(context, label, time.Second, log)
 	log.Debug("Service: %s (Action: %s); %#v", keybaseStatus.InstallStatus.String(), keybaseStatus.InstallAction.String(), keybaseStatus)
 	needsInstall := keybaseStatus.NeedsInstall()
 
@@ -503,7 +503,7 @@ func installService(context Context, binPath string, force bool, log Log) error 
 	if needsInstall || force {
 		uninstallKeybaseServices(context.GetRunMode(), log)
 		log.Debug("Installing Keybase service")
-		_, err := installKeybaseService(context, service, plist, log)
+		_, err := installKeybaseService(context, service, plist, defaultLaunchdWait, log)
 		if err != nil {
 			log.Errorf("Error installing Keybase service: %s", err)
 			return err
@@ -528,7 +528,7 @@ func KBFS(context Context, binPath string, force bool, log Log) error {
 	}
 
 	log.Debug("Checking KBFS")
-	kbfsStatus := KBFSServiceStatus(context, label, log)
+	kbfsStatus := KBFSServiceStatus(context, label, time.Second, log)
 	log.Debug("KBFS: %s (Action: %s); %#v", kbfsStatus.InstallStatus.String(), kbfsStatus.InstallAction.String(), kbfsStatus)
 	needsInstall := kbfsStatus.NeedsInstall()
 
@@ -545,7 +545,7 @@ func KBFS(context Context, binPath string, force bool, log Log) error {
 	if needsInstall || force {
 		uninstallKBFSServices(context.GetRunMode(), log)
 		log.Debug("Installing KBFS")
-		_, err := installKBFSService(context, kbfsService, plist, log)
+		_, err := installKBFSService(context, kbfsService, plist, defaultLaunchdWait, log)
 		if err != nil {
 			log.Errorf("Error installing KBFS: %s", err)
 			return err
@@ -895,7 +895,7 @@ func installUpdater(context Context, keybaseBinPath string, force bool, log Log)
 	if needsInstall || force {
 		uninstallUpdater(context.GetRunMode(), log)
 		log.Debug("Installing updater service")
-		_, err := installUpdaterService(service, plist, log)
+		_, err := installUpdaterService(service, plist, defaultLaunchdWait, log)
 		if err != nil {
 			log.Errorf("Error installing updater service: %s", err)
 			return err
@@ -917,13 +917,13 @@ func updaterPlist(context Context, label string, serviceBinPath string, keybaseB
 	return launchd.NewPlist(label, serviceBinPath, plistArgs, envVars, logFile, comment), nil
 }
 
-func installUpdaterService(service launchd.Service, plist launchd.Plist, log Log) (*keybase1.ServiceStatus, error) {
+func installUpdaterService(service launchd.Service, plist launchd.Plist, wait time.Duration, log Log) (*keybase1.ServiceStatus, error) {
 	err := launchd.Install(plist, defaultLaunchdWait, log)
 	if err != nil {
 		return nil, err
 	}
 
-	st, err := serviceStatusFromLaunchd(service, "", log)
+	st, err := serviceStatusFromLaunchd(service, "", wait, log)
 	return &st, err
 }
 
