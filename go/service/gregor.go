@@ -952,6 +952,9 @@ func (g *gregorHandler) templateMessage() (*gregor1.Message, error) {
 }
 
 func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
+	if id == nil {
+		return nil
+	}
 	var err error
 	defer g.G().Trace(fmt.Sprintf("gregorHandler.DismissItem(%s)", id.String()),
 		func() error { return err },
@@ -1021,6 +1024,9 @@ func (g *gregorHandler) InjectOutOfBandMessage(system string, body []byte) error
 }
 
 func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {
+	g.Lock()
+	defer g.Unlock()
+
 	for _, handler := range g.ibmHandlers {
 		if !handler.IsAlive() {
 			continue
@@ -1031,6 +1037,24 @@ func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (k
 	}
 
 	return keybase1.Outcome_NONE, errors.New("no alive RekeyUIHandler found")
+}
+
+// RekeyReharass is called when a periodic recheck is done that determines
+// the user needs to be harassed again.
+func (g *gregorHandler) RekeyReharass(ctx context.Context, pset keybase1.ProblemSetDevices) error {
+	g.Lock()
+	defer g.Unlock()
+
+	for _, handler := range g.ibmHandlers {
+		if !handler.IsAlive() {
+			continue
+		}
+		if handler, ok := handler.(*RekeyUIHandler); ok {
+			return handler.RekeyReharass(ctx, pset)
+		}
+	}
+
+	return errors.New("no RekeyUIHandlers exist")
 }
 
 func (g *gregorHandler) simulateCrashForTesting() {

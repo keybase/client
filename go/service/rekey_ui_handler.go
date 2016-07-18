@@ -103,55 +103,7 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) (err
 		return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
 	}
 
-	// get the rekeyUI
-	rekeyUI, sessionID, err := r.G().UIRouter.GetRekeyUI()
-	if err != nil {
-		r.G().Log.Errorf("failed to get RekeyUI: %s", err)
-		return err
-	}
-	if rekeyUI == nil {
-		r.G().Log.Error("There was no RekeyUI registered, but a rekey is necessary. Here is the ProblemSet:")
-		r.G().Log.Errorf("Rekey ProblemSet: %+v", problemSet)
-		err = errors.New("got nil RekeyUI")
-		return err
-	}
-
-	// make a map of sessionID -> loops
-	r.updatersMu.RLock()
-	if _, ok := r.updaters[sessionID]; ok {
-		r.updatersMu.RUnlock()
-		err = fmt.Errorf("rekey status updater already exists for session id %d", sessionID)
-		return err
-	}
-	r.updatersMu.RUnlock()
-	args := rekeyStatusUpdaterArgs{
-		rekeyUI:    rekeyUI,
-		problemSet: problemSet,
-		msgID:      item.Metadata().MsgID(),
-		sessionID:  sessionID,
-		scorer:     r.scorer,
-	}
-	up := newRekeyStatusUpdater(r.G(), args)
-	go func() {
-		r.updatersMu.Lock()
-		r.updaters[sessionID] = up
-		r.updatersMu.Unlock()
-		select {
-		case r.notifyStart <- sessionID:
-		default:
-		}
-		up.Start()
-		r.G().Log.Debug("updater for %d complete", sessionID)
-		r.updatersMu.Lock()
-		delete(r.updaters, sessionID)
-		r.updatersMu.Unlock()
-		select {
-		case r.notifyComplete <- sessionID:
-		default:
-		}
-	}()
-
-	return nil
+	return r.startUpdater(ctx, problemSet, item.Metadata().MsgID())
 }
 
 type scoreResult struct {
@@ -199,6 +151,61 @@ func (r *RekeyUIHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (
 
 	r.G().Log.Debug("RekeyStatusFinish called for sessionID %d but no updater found", sessionID)
 	return keybase1.Outcome_NONE, nil
+}
+
+func (r *RekeyUIHandler) RekeyReharass(ctx context.Context, pset keybase1.ProblemSetDevices) error {
+	// no msgID because not initiated by gregor
+	return r.startUpdater(ctx, pset.ProblemSet, nil)
+}
+
+func (r *RekeyUIHandler) startUpdater(ctx context.Context, pset keybase1.ProblemSet, msgID gregor.MsgID) error {
+	// get the rekeyUI
+	rekeyUI, sessionID, err := r.G().UIRouter.GetRekeyUI()
+	if err != nil {
+		r.G().Log.Errorf("failed to get RekeyUI: %s", err)
+		return err
+	}
+	if rekeyUI == nil {
+		r.G().Log.Error("There was no RekeyUI registered, but a rekey is necessary. Here is the ProblemSet:")
+		r.G().Log.Errorf("Rekey ProblemSet: %+v", pset)
+		return errors.New("got nil RekeyUI")
+	}
+
+	// make a map of sessionID -> loops
+	r.updatersMu.RLock()
+	if _, ok := r.updaters[sessionID]; ok {
+		r.updatersMu.RUnlock()
+		return fmt.Errorf("rekey status updater already exists for session id %d", sessionID)
+	}
+	r.updatersMu.RUnlock()
+	args := rekeyStatusUpdaterArgs{
+		rekeyUI:    rekeyUI,
+		problemSet: pset,
+		msgID:      msgID,
+		sessionID:  sessionID,
+		scorer:     r.scorer,
+	}
+	up := newRekeyStatusUpdater(r.G(), args)
+	go func() {
+		r.updatersMu.Lock()
+		r.updaters[sessionID] = up
+		r.updatersMu.Unlock()
+		select {
+		case r.notifyStart <- sessionID:
+		default:
+		}
+		up.Start()
+		r.G().Log.Debug("updater for %d complete", sessionID)
+		r.updatersMu.Lock()
+		delete(r.updaters, sessionID)
+		r.updatersMu.Unlock()
+		select {
+		case r.notifyComplete <- sessionID:
+		default:
+		}
+	}()
+
+	return nil
 }
 
 type rekeyStatusUpdaterArgs struct {
