@@ -65,13 +65,13 @@ var _ KeybaseDaemon = (*KeybaseDaemonRPC)(nil)
 func NewKeybaseDaemonRPC(config Config, kbCtx Context, log logger.Logger, debug bool) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(kbCtx, log)
 	k.config = config
-	conn := NewSharedKeybaseConnection(kbCtx, config, k)
-	k.fillClients(conn.GetClient())
-	k.shutdownFn = conn.Shutdown
 	k.daemonLog = logger.NewWithCallDepth("daemon", 1)
 	if debug {
 		k.daemonLog.Configure("", true, "")
 	}
+	conn := NewSharedKeybaseConnection(kbCtx, config, k)
+	k.fillClients(conn.GetClient())
+	k.shutdownFn = conn.Shutdown
 	return k
 }
 
