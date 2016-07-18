@@ -143,6 +143,7 @@
 
   @try {
     [task launch];
+    [task waitUntilExit];
   } @catch (NSException *e) {
     completion(KBMakeError(KBErrorCodeGeneric, @"%@", e.reason), nil);
   }
