@@ -5,7 +5,7 @@
 	<key>BuildFlavor</key>
 	<string></string>
 	<key>BuildMachineOSBuild</key>
-	<string>14F1605</string>
+	<string>14F1808</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleIdentifier</key>
@@ -17,11 +17,11 @@
 	<key>CFBundlePackageType</key>
 	<string>fs </string>
 	<key>CFBundleShortVersionString</key>
-	<string>3.2.0</string>
+	<string>3.4.0</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>3.2.0</string>
+	<string>3.4.0</string>
 	<key>DTCompiler</key>
 	<string>com.apple.compilers.llvm.clang.1_0</string>
 	<key>DTPlatformBuild</key>

@@ -6,30 +6,30 @@
 	<dict>
 		<key>Resources/License.rtf</key>
 		<data>
-		QVABj3QRB/Tb6pwrKlF+CTySwdk=
+		not1NGhkshrwZcplnZuBVU6Wkbc=
 		</data>
 		<key>Resources/load_kbfuse</key>
 		<data>
-		ievBjhLLKrS0mIyiizd1uW8mcZs=
+		mj9zf9CPqbaNlk0LooXPuTUXcTo=
 		</data>
 		<key>Resources/mount_kbfuse</key>
 		<data>
-		DwHU8DtFtxwuCTTGzBH3T8qCjFw=
+		JOD4KcPRRgPkZnEx9o0evuco6vU=
 		</data>
 		<key>version.plist</key>
 		<data>
-		bZq/28qwYnfsz57qst1sr0kHwDE=
+		Zmv/RIVuJF9Sq2OY4qmLLAPEpH4=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
 		<key>Extensions/10.10/kbfuse.kext/Contents/Info.plist</key>
 		<data>
-		eO6Y+n3vrlC/wAOkDxzMweooFEs=
+		OGussZ+lYb0EQ6mHlMlbIVwIxNQ=
 		</data>
 		<key>Extensions/10.10/kbfuse.kext/Contents/MacOS/kbfuse</key>
 		<data>
-		ON+7pqGlsbAyaszxroHuTxbCw7E=
+		0pPOvBzO6jwp0VWMgxX6b63XN4w=
 		</data>
 		<key>Extensions/10.10/kbfuse.kext/Contents/_CodeSignature/CodeResources</key>
 		<data>
@@ -40,21 +40,26 @@
 			<key>symlink</key>
 			<string>10.10</string>
 		</dict>
+		<key>Extensions/10.12</key>
+		<dict>
+			<key>symlink</key>
+			<string>10.10</string>
+		</dict>
 		<key>Resources/License.rtf</key>
 		<data>
-		QVABj3QRB/Tb6pwrKlF+CTySwdk=
+		not1NGhkshrwZcplnZuBVU6Wkbc=
 		</data>
 		<key>Resources/load_kbfuse</key>
 		<data>
-		ievBjhLLKrS0mIyiizd1uW8mcZs=
+		mj9zf9CPqbaNlk0LooXPuTUXcTo=
 		</data>
 		<key>Resources/mount_kbfuse</key>
 		<data>
-		DwHU8DtFtxwuCTTGzBH3T8qCjFw=
+		JOD4KcPRRgPkZnEx9o0evuco6vU=
 		</data>
 		<key>version.plist</key>
 		<data>
-		bZq/28qwYnfsz57qst1sr0kHwDE=
+		Zmv/RIVuJF9Sq2OY4qmLLAPEpH4=
 		</data>
 	</dict>
 	<key>rules</key>

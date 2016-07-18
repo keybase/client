@@ -5,7 +5,7 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
-version=${VERSION:-"3.2.0"}
+version=${VERSION:?"Need to set VERSION for Fuse"}
 
 # Checkout
 rm -rf osxfuse
@@ -28,6 +28,7 @@ ditto /tmp/kbfuse/fsbundle/kbfuse.fs kbfuse.bundle
 # Fix sym links for supported OS's
 cd $dir/kbfuse.bundle/Contents/Extensions
 ln -s 10.10 10.11
+ln -s 10.10 10.12
 
 # Backup the fsbundle directory in case we need debug symbols later
 cd /tmp/kbfuse/fsbundle

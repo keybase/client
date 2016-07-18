@@ -6,7 +6,10 @@ of relying on 3rd party binaries from other developers.
 
 ### Building KBFuse from OSXFuse
 
-    ./build.sh
+    VERSION=3.4.0 ./build.sh
+
+You need a 10.10 SDK installed otherwise you may get a "No version of Xcode found" error.
+You can grab it out of an Xcode 6.x dmg at https://developer.apple.com/download/more/.
 
 ### Manual Install
 
