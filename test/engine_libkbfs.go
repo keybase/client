@@ -218,7 +218,7 @@ func (k *LibKBFS) CreateFile(u User, parentDir Node, name string) (file Node, er
 	ctx, cancel := k.newContext()
 	defer cancel()
 	file, _, err = kbfsOps.CreateFile(ctx, parentDir.(libkbfs.Node), name,
-		false, libkbfs.NoEXCL)
+		false, libkbfs.NoExcl)
 	if err != nil {
 		return file, err
 	}
@@ -226,16 +226,16 @@ func (k *LibKBFS) CreateFile(u User, parentDir Node, name string) (file Node, er
 	return file, nil
 }
 
-// CreateFileEXCL implements the Engine interface.
-func (k *LibKBFS) CreateFileEXCL(u User, parentDir Node, name string) (err error) {
+// CreateFileExcl implements the Engine interface.
+func (k *LibKBFS) CreateFileExcl(u User, parentDir Node, name string) (file Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	file, _, err := kbfsOps.CreateFile(context.Background(), parentDir.(libkbfs.Node), name, false, libkbfs.WithEXCL)
+	file, _, err = kbfsOps.CreateFile(context.Background(), parentDir.(libkbfs.Node), name, false, libkbfs.WithExcl)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	k.refs[config][file.(libkbfs.Node)] = true
-	return nil
+	return file, nil
 }
 
 // CreateLink implements the Engine interface.

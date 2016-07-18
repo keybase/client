@@ -1098,13 +1098,13 @@ func (e UnmergedError) Error() string {
 	return "fbo is on an unmerged local revision"
 }
 
-// EXCLOnUnmergedError happens when an operation with O_EXCL set when fbo is on
+// ExclOnUnmergedError happens when an operation with O_EXCL set when fbo is on
 // an unmerged local revision
-type EXCLOnUnmergedError struct {
+type ExclOnUnmergedError struct {
 }
 
-// Error implements the error interface for EXCLOnUnmergedError.
-func (e EXCLOnUnmergedError) Error() string {
+// Error implements the error interface for ExclOnUnmergedError.
+func (e ExclOnUnmergedError) Error() string {
 	return "an operation with O_EXCL set is called but fbo is on an unmerged local version"
 }
 

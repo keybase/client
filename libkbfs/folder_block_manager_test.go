@@ -226,7 +226,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
 	data := []byte{1, 2, 3, 4, 5}
 	kbfsOps1 := config1.KBFSOps()
-	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
+	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %v", err)
 	}
@@ -243,7 +243,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	// be deleted.
 	otherData := []byte{5, 4, 3, 2, 1}
 	for _, name := range []string{"b", "c"} {
-		node, _, err := kbfsOps1.CreateFile(ctx, rootNode1, name, false, NoEXCL)
+		node, _, err := kbfsOps1.CreateFile(ctx, rootNode1, name, false, NoExcl)
 		if err != nil {
 			t.Fatalf("Couldn't create dir: %v", err)
 		}
@@ -340,7 +340,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	// for which one reference has been deleted, but the other should
 	// still be live.  This will cause one dedup reference, and 3 new
 	// blocks (2 from the create, and 1 from the sync).
-	dNode, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "d", false, NoEXCL)
+	dNode, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "d", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -360,7 +360,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 
 	// Make the same file on node 2, making sure this doesn't try to
 	// reuse the same block (i.e., there are only 2 put calls).
-	eNode, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "e", false, NoEXCL)
+	eNode, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "e", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %v", err)
 	}

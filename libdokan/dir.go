@@ -383,17 +383,16 @@ func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir
 	return rootDir.open(ctx, oc, dst)
 }
 
-func getEXCLFromOpenContext(oc *openContext) libkbfs.EXCL {
-	return libkbfs.EXCL(oc.CreateDisposition == dokan.FileCreate)
+func getExclFromOpenContext(oc *openContext) libkbfs.Excl {
+	return libkbfs.Excl(oc.CreateDisposition == dokan.FileCreate)
 }
 
 func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan.File, isDir bool, err error) {
-	d.folder.fs.log.CDebugf(ctx, "Dir Create %s with openContext: %#v, %#v",
-		name, oc, oc.CreateData)
+	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", name)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err, nil) }()
 
 	isExec := false // Windows lacks executable modes.
-	excl := getEXCLFromOpenContext(oc)
+	excl := getExclFromOpenContext(oc)
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateFile(
 		ctx, d.node, name, isExec, excl)
 	if err != nil {

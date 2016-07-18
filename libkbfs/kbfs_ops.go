@@ -354,7 +354,7 @@ func (fs *KBFSOpsStandard) CreateDir(
 
 // CreateFile implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) CreateFile(
-	ctx context.Context, dir Node, name string, isExec bool, excl EXCL) (
+	ctx context.Context, dir Node, name string, isExec bool, excl Excl) (
 	Node, EntryInfo, error) {
 	ops := fs.getOpsByNode(ctx, dir)
 	return ops.CreateFile(ctx, dir, name, isExec, excl)

@@ -640,25 +640,25 @@ func (et EntryType) String() string {
 	return "<invalid EntryType>"
 }
 
-// EXCL indicates whether O_EXCL is set on a fuse call
-type EXCL bool
+// Excl indicates whether O_EXCL is set on a fuse call
+type Excl bool
 
 const (
-	// NoEXCL indicates O_EXCL is not set
-	NoEXCL EXCL = false
+	// NoExcl indicates O_EXCL is not set
+	NoExcl Excl = false
 
-	// WithEXCL indicates O_EXCL is set
-	WithEXCL EXCL = true
+	// WithExcl indicates O_EXCL is set
+	WithExcl Excl = true
 )
 
-func (o EXCL) String() string {
+func (o Excl) String() string {
 	switch o {
-	case NoEXCL:
+	case NoExcl:
 		return "O_EXCL unset"
-	case WithEXCL:
+	case WithExcl:
 		return "O_EXCL set"
 	default:
-		return "<invalid EXCL>"
+		return "<invalid Excl>"
 	}
 }
 

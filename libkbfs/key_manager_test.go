@@ -633,7 +633,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -643,7 +643,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	kbfsOps2 := config2.KBFSOps()
 
 	// user 2 creates a file
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoEXCL)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -693,7 +693,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	}
 
 	// user 2 creates another file
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "c", false, NoEXCL)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "c", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -738,7 +738,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	}
 
 	// force re-encryption of the root dir
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "d", false, NoEXCL)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "d", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -852,7 +852,7 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -937,7 +937,7 @@ func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 	kbfsOps1 := config1.KBFSOps()
 
 	t.Log("User 1 creates a file")
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -980,7 +980,7 @@ func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 	}
 
 	t.Log("User 2 device 2 creates a file")
-	_, _, err = kbfsOps2Dev2.CreateFile(ctx, root2dev2, "b", false, NoEXCL)
+	_, _, err = kbfsOps2Dev2.CreateFile(ctx, root2dev2, "b", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1019,7 +1019,7 @@ func TestKeyManagerReaderRekey(t *testing.T) {
 	kbfsOps1 := config1.KBFSOps()
 
 	t.Log("User 1 creates a file")
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1107,7 +1107,7 @@ func TestKeyManagerReaderRekeyAndRevoke(t *testing.T) {
 	kbfsOps1 := config1.KBFSOps()
 
 	t.Log("User 1 creates a file")
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1203,7 +1203,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1360,7 +1360,7 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1426,7 +1426,7 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	}
 
 	// force re-encryption of the root dir
-	_, _, err = kbfsOps2Dev2.CreateFile(ctx, root2Dev2, "b", false, NoEXCL)
+	_, _, err = kbfsOps2Dev2.CreateFile(ctx, root2Dev2, "b", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1484,7 +1484,7 @@ func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1554,7 +1554,7 @@ func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
 	}
 	// user 2 creates another file to make a new revision
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2Dev2, "b", false, NoEXCL)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2Dev2, "b", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1592,7 +1592,7 @@ func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 	kbfsOps1 := config1.KBFSOps()
 
 	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1676,7 +1676,7 @@ func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
 	}
 	// user 2 creates another file to make a new revision
-	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2Dev2, "b", false, NoEXCL)
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2Dev2, "b", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}

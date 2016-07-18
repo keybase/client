@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"fmt"
 	"path"
-	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -45,6 +44,7 @@ type opt struct {
 	bwKBps                   int
 	timeout                  time.Duration
 	clock                    *libkbfs.TestClock
+	isParallel               bool
 }
 
 func test(t testing.TB, actions ...optionOp) {
@@ -60,7 +60,8 @@ func test(t testing.TB, actions ...optionOp) {
 
 func parallel(actions ...optionOp) optionOp {
 	return func(o *opt) {
-		wg := new(sync.WaitGroup)
+		o.isParallel = true
+		wg := &sync.WaitGroup{}
 		for _, omod := range actions {
 			wg.Add(1)
 			go func(omod optionOp) {
@@ -255,17 +256,16 @@ func noSync() fileOp {
 	}, IsInit}
 }
 
-func (o *opt) fail(reason string) {
-	o.t.Fatal(reason)
-}
-
-func (o *opt) failf(format string, objs ...interface{}) {
-	o.t.Fatalf(format, objs...)
-}
-
 func (o *opt) expectSuccess(reason string, err error) {
 	if err != nil {
-		o.t.Errorf("Error: %s: %v", reason, err)
+		if o.isParallel {
+			// FailNow/Fatalf can only be called from the goroutine running the Test
+			// function. In parallel tests, this is not always true. So we use Errorf
+			// to mark the test as failed without an implicit FailNow.
+			o.t.Errorf("Error: %s: %v", reason, err)
+		} else {
+			o.t.Fatalf("Error: %s: %v", reason, err)
+		}
 	}
 }
 
@@ -400,13 +400,7 @@ func notExists(filename string) fileOp {
 
 func mkfileexcl(name string) fileOp {
 	return fileOp{func(c *ctx) error {
-		dir, file := filepath.Split(name)
-		d, _, err := c.getNode(dir, noCreate, resolveAllSyms)
-		if err != nil {
-			return err
-		}
-		err = c.engine.CreateFileEXCL(c.user, d, file)
-		c.t.Logf("mkfileexcl-CreateFileEXCL: %v", err)
+		_, _, err := c.getNode(name, createFileExcl, resolveAllSyms)
 		return err
 	}, Defaults}
 }
@@ -654,6 +648,7 @@ const (
 	noCreate createType = iota
 	createDir
 	createFile
+	createFileExcl
 )
 
 func (c createType) String() string {
@@ -664,6 +659,8 @@ func (c createType) String() string {
 		return "createDir"
 	case createFile:
 		return "createFile"
+	case createFileExcl:
+		return "createFileExcl"
 	default:
 		return fmt.Sprintf("unknownCreateType:%d", c)
 	}
@@ -695,19 +692,42 @@ func (c *ctx) getNode(filepath string, create createType, sym symBehavior) (
 	for i, name := range components {
 		node, symPath, err = c.engine.Lookup(c.user, parent, name)
 		c.t.Log("getNode:", i, name, node, symPath, err)
-		if err != nil && create != noCreate {
-			if create == createFile && i+1 == len(components) {
+
+		if i+1 == len(components) { // last element in path
+			switch {
+			case err == nil:
+				if create == createFileExcl {
+					return nil, false, libkbfs.NameExistsError{}
+				}
+			case create == createFileExcl:
+				c.t.Log("getNode: CreateFileExcl")
+				node, err = c.engine.CreateFileExcl(c.user, parent, name)
+				wasCreated = true
+			case create == createFile:
 				c.t.Log("getNode: CreateFile")
 				node, err = c.engine.CreateFile(c.user, parent, name)
-			} else {
+				wasCreated = true
+			case create == createDir:
 				c.t.Log("getNode: CreateDir")
 				node, err = c.engine.CreateDir(c.user, parent, name)
+				wasCreated = true
+			case create == noCreate:
+				// let it error!
+			default:
+				panic("unreachable")
 			}
-			wasCreated = true
+		} else { // intermediate element in path
+			if err != nil && create != noCreate {
+				c.t.Log("getNode: CreateDir")
+				node, err = c.engine.CreateDir(c.user, parent, name)
+				wasCreated = true
+			} // otherwise let it error!
 		}
+
 		if err != nil {
 			return nil, false, err
 		}
+
 		parent = node
 		// If this is a symlink, and either we're supposed to resolve
 		// all symlinks or this isn't the final one in the path, then

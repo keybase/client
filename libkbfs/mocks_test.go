@@ -292,7 +292,7 @@ func (_mr *_MockKBFSOpsRecorder) CreateDir(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CreateDir", arg0, arg1, arg2)
 }
 
-func (_m *MockKBFSOps) CreateFile(ctx context.Context, dir Node, name string, isExec bool, excl EXCL) (Node, EntryInfo, error) {
+func (_m *MockKBFSOps) CreateFile(ctx context.Context, dir Node, name string, isExec bool, excl Excl) (Node, EntryInfo, error) {
 	ret := _m.ctrl.Call(_m, "CreateFile", ctx, dir, name, isExec, excl)
 	ret0, _ := ret[0].(Node)
 	ret1, _ := ret[1].(EntryInfo)

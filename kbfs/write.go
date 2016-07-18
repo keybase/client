@@ -101,7 +101,7 @@ func writeHelper(ctx context.Context, config libkbfs.Config, args []string) (err
 		if *verbose {
 			fmt.Fprintf(os.Stderr, "Creating %s\n", p)
 		}
-		fileNode, _, err = kbfsOps.CreateFile(ctx, parentNode, filename, false, libkbfs.NoEXCL)
+		fileNode, _, err = kbfsOps.CreateFile(ctx, parentNode, filename, false, libkbfs.NoExcl)
 		if err != nil {
 			return err
 		}

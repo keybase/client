@@ -107,7 +107,7 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -164,7 +164,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -299,7 +299,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -412,7 +412,7 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -529,7 +529,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -616,7 +616,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -708,7 +708,7 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -761,7 +761,7 @@ func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -772,7 +772,7 @@ func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
 	}
 
 	// Now update the folder pointer in some other way
-	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "b", false, NoEXCL)
+	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "b", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -807,7 +807,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -915,7 +915,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1007,7 +1007,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 		t.Fatalf("Second sync failed: %v", err)
 	}
 
-	if _, _, err := kbfsOps.CreateFile(ctx, rootNode, "b", false, NoEXCL); err != nil {
+	if _, _, err := kbfsOps.CreateFile(ctx, rootNode, "b", false, NoExcl); err != nil {
 		t.Fatalf("Couldn't create file after sync: %v", err)
 	}
 
@@ -1044,7 +1044,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1132,7 +1132,7 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1162,7 +1162,7 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
-	fileNode2, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode2, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1239,7 +1239,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1321,7 +1321,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1337,7 +1337,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
-	fileNode2, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode2, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1414,7 +1414,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
 
 	kbfsOps := config.KBFSOps()
-	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoEXCL)
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false, NoExcl)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}

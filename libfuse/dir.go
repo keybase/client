@@ -474,8 +474,8 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	}
 }
 
-func getEXCLFromCreateRequest(req *fuse.CreateRequest) libkbfs.EXCL {
-	return libkbfs.EXCL(req.Flags&fuse.OpenExclusive == fuse.OpenExclusive)
+func getEXCLFromCreateRequest(req *fuse.CreateRequest) libkbfs.Excl {
+	return libkbfs.Excl(req.Flags&fuse.OpenExclusive == fuse.OpenExclusive)
 }
 
 // Create implements the fs.NodeCreater interface for Dir.

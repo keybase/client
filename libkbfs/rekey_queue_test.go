@@ -55,7 +55,7 @@ func TestRekeyQueueBasic(t *testing.T) {
 		// user 1 creates the directory
 		rootNode1 := GetRootNodeOrBust(t, config1, name, false)
 		// user 1 creates a file
-		_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoEXCL)
+		_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
 		if err != nil {
 			t.Fatalf("Couldn't create file: %v", err)
 		}
