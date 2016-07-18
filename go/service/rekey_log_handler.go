@@ -47,6 +47,9 @@ func (r *RekeyLogHandler) Name() string {
 }
 
 func (r *RekeyLogHandler) timeOrOffsetString(t gregor.TimeOrOffset) string {
+	if t == nil {
+		return "[empty]"
+	}
 	if t.Time() != nil {
 		return fmt.Sprintf("time: %s", t.Time())
 	}
