@@ -282,6 +282,18 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
             storeSecret: store,
           })
         },
+        'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
+          const message = 'This device is no longer provisioned.'
+          response.error({
+            code: constants.StatusCode.scgeneric,
+            desc: message,
+          })
+          dispatch({
+            type: Constants.loginDone,
+            error: true,
+            payload: {message},
+          })
+        },
       },
       callback: (error, status) => {
         if (error) {
