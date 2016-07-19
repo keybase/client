@@ -256,6 +256,7 @@ func (t errorFS) SetEndOfFile(fi *FileInfo, length int64) error                 
 func (t errorFS) SetAllocationSize(fi *FileInfo, length int64) error                       { return t }
 func (t errorFS) MoveFile(source *FileInfo, targetPath string, replaceExisting bool) error { return t }
 func (t errorFS) Mounted() error                                                           { return t }
+func (t errorFS) MountFlags() MountFlag                                                    { return Removable | MountManager | CurrentSession }
 
 var _ FileSystem = emptyFS{}
 
@@ -310,6 +311,7 @@ func (t emptyFS) Mounted() error {
 	debug("emptyFS.Mounted")
 	return nil
 }
+func (t emptyFS) MountFlags() MountFlag { return Removable | MountManager | CurrentSession }
 
 type emptyFile struct{}
 

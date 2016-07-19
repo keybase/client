@@ -14,6 +14,7 @@ import (
 	"os"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/env"
 	"github.com/keybase/kbfs/libdokan"
 	"github.com/keybase/kbfs/libfs"
@@ -24,6 +25,7 @@ var runtimeDir = flag.String("runtime-dir", os.Getenv("KEYBASE_RUNTIME_DIR"), "r
 var label = flag.String("label", os.Getenv("KEYBASE_LABEL"), "label to help identify if running as a service")
 var mountType = flag.String("mount-type", defaultMountType, "mount type: default, force")
 var version = flag.Bool("version", false, "Print version")
+var mountFlags = flag.Int64("mount-flags", int64(libdokan.DefaultMountFlags), "Dokan mount flags")
 
 const usageFormatStr = `Usage:
   kbfsdokan -version
@@ -94,6 +96,7 @@ func start() *libfs.Error {
 		KbfsParams: *kbfsParams,
 		RuntimeDir: *runtimeDir,
 		Label:      *label,
+		MountFlags: dokan.MountFlag(*mountFlags),
 	}
 
 	return libdokan.Start(mounter, options, ctx)

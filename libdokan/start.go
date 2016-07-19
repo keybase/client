@@ -11,6 +11,7 @@ import (
 	"path"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -21,6 +22,7 @@ type StartOptions struct {
 	KbfsParams libkbfs.InitParams
 	RuntimeDir string
 	Label      string
+	MountFlags dokan.MountFlag
 }
 
 // Start the filesystem
@@ -57,6 +59,7 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
+	fs.mountFlags = options.MountFlags
 
 	if newFolderNameErr != nil {
 		log.CWarningf(fs.context, "Error guessing new folder name: %v", newFolderNameErr)

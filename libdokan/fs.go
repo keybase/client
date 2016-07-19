@@ -36,7 +36,11 @@ type FS struct {
 
 	// remoteStatus is the current status of remote connections.
 	remoteStatus libfs.RemoteStatus
+
+	mountFlags dokan.MountFlag
 }
+
+const DefaultMountFlags = dokan.Removable | dokan.MountManager | dokan.CurrentSession
 
 // NewFS creates an FS
 func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, error) {
@@ -73,8 +77,13 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 	f.remoteStatus.Init(ctx, f.log, f.config)
 	f.notifications.LaunchProcessor(ctx)
 	go clearFolderListCacheLoop(ctx, f.root)
+	f.mountFlags = DefaultMountFlags
 
 	return f, nil
+}
+
+func (f *FS) MountFlags() dokan.MountFlag {
+	return f.mountFlags
 }
 
 var vinfo = dokan.VolumeInformation{
