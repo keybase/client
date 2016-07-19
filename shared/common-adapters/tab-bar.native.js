@@ -126,8 +126,6 @@ const stylesTabBarButtonIcon = {
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
-  paddingRight: 22,
-  paddingLeft: 22,
 }
 
 const stylesLabel = {
