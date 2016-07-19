@@ -57,11 +57,12 @@ func (h *DeviceHandler) DeviceHistoryList(nctx context.Context, sessionID int) (
 
 // DeviceAdd starts the kex2 device provisioning on the
 // provisioner (device X/C1)
-func (h *DeviceHandler) DeviceAdd(_ context.Context, sessionID int) error {
+func (h *DeviceHandler) DeviceAdd(c context.Context, sessionID int) error {
 	ctx := &engine.Context{
 		ProvisionUI: h.getProvisionUI(sessionID),
 		SecretUI:    h.getSecretUI(sessionID, h.G()),
 		SessionID:   sessionID,
+		NetContext:  c,
 	}
 	eng := engine.NewDeviceAdd(h.G())
 	return engine.RunEngine(eng, ctx)
