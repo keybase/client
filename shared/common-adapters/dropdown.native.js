@@ -119,7 +119,7 @@ class Dropdown extends Component {
 
     return (
       <Picker style={style} selectedValue={this.state.value} onValueChange={onValueChange}>
-        {items.map(i => <Picker.Item {...i} />)}
+        {items.map(i => <Picker.Item key={i.label} {...i} />)}
       </Picker>
     )
   }
@@ -137,7 +137,7 @@ class Dropdown extends Component {
     return (
       <TouchableWithoutFeedback onPress={() => this._showModal(true)}>
         <Box style={{...styleContainer, ...this.props.style}}>
-          <Modal animationType={'slide'} transparent visible={this.state.modalVisible} onRequestClose={() => this._showModal(false)}>
+          <Modal animationType={'slide'} transparent={true} visible={this.state.modalVisible} onRequestClose={() => this._showModal(false)}>
             <Box style={stylePickerContainer}>
               <TouchableWithoutFeedback onPress={() => this._showModal(false)}>
                 <Box style={{flex: 1}} />

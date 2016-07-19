@@ -5,7 +5,7 @@ import fs from 'fs'
 import path from 'path'
 import mkdirp from 'mkdirp'
 import {logFileName} from '../shared/constants/platform.native.desktop.js'
-import setupLocalLogs, {logLocal, warnLocal, errorLocal} from '../shared/util/local-log'
+import setupLocalLogs from '../shared/util/local-log'
 
 const methods = ['log', 'error', 'info']
 const originalConsole = {}
@@ -73,7 +73,8 @@ const output = {
 
 export default function pipeLogs () {
   setupLocalLogs()
-  if (!forwardLogs) { // eslint-disable-line no-undef
+
+  if (!forwardLogs) {
     return
   }
 
@@ -89,7 +90,7 @@ export default function pipeLogs () {
 
 export function ipcLogs () {
   // Simple ipc logging for debugging remote windows
-  if (!forwardLogs) { // eslint-disable-line no-undef
+  if (!forwardLogs) {
     return
   }
 
@@ -116,8 +117,9 @@ export function ipcLogs () {
 }
 
 export function ipcLogsRenderer () {
-  setupLocalLogs()
-  if (!forwardLogs) { // eslint-disable-line no-undef
+  const {logLocal, warnLocal, errorLocal} = setupLocalLogs()
+
+  if (!forwardLogs) {
     return
   }
 

@@ -20,18 +20,20 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
   constructor (props: Props) {
     super(props)
 
-    this.state = {
+    const state = {
       passphrase: '',
       features: {},
       showTyping: false,
     }
     for (const feature in this.props.features) {
-      this.state.features[feature] = this.props.features[feature].defaultValue
+      state.features[feature] = this.props.features[feature].defaultValue
 
       if (feature === 'showTyping') {
-        this.state.showTyping = this.props.features[feature].defaultValue
+        state.showTyping = this.props.features[feature].defaultValue
       }
     }
+
+    this.state = state
   }
 
   onCheck (feature: string, checked: boolean) {
@@ -102,7 +104,7 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white, marginBottom: globalMargins.medium}}>
-        <Header icon title='' onClose={() => this.props.onCancel()} />
+        <Header icon={true} title='' onClose={() => this.props.onCancel()} />
         <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
           <Text type='Body' style={{textAlign: 'center'}}>{this.props.prompt}</Text>
           {isPaperKey && <Icon type='icon-paper-key-64' style={{alignSelf: 'center'}} />}

@@ -13,7 +13,7 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
       <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
       <Icon type='icon-phone-colors-64' style={stylesIcon} />
       <Input
-        autoFocus
+        autoFocus={true}
         style={stylesInput}
         floatingLabelText='Device name'
         hintText='Device name'
@@ -23,7 +23,7 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
       <Button
         style={stylesButton}
         type='Primary'
-        fullWidth
+        fullWidth={true}
         enabled={deviceName}
         disabled={!submitEnabled}
         waiting={waiting}

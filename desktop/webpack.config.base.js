@@ -35,7 +35,7 @@ module.exports = {
   resolve: {
     modulesDirectories: [path.join(__dirname, 'node_modules')],
     root: [path.join(__dirname)],
-    extensions: ['', '.desktop.js', '.js', '.jsx', '.json'],
+    extensions: ['', '.desktop.js', '.js', '.jsx', '.json', '.flow'],
     packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main'],
   },
   resolveLoader: {

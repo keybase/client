@@ -4,8 +4,7 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './intro.render'
 import {routeAppend} from '../../actions/router'
-import {setRevokedSelf} from '../../actions/login'
-import {login} from '../../actions/login'
+import {setRevokedSelf, login} from '../../actions/login'
 
 class Intro extends Component {
   render () {

@@ -7,9 +7,9 @@
 import React, {Component} from 'react'
 import {StyleSheet, TouchableHighlight} from 'react-native'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
-        codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
-import {codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
-import QR from './qr'
+        codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer,
+        codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
+import Qr from './qr'
 import {Box, ProgressIndicator, Text, Icon} from '../../../common-adapters'
 import {specialStyles} from '../../../common-adapters/text'
 import Container from '../../forms/container'
@@ -78,9 +78,8 @@ export default class CodePageRender extends Component<void, Props, void> {
       codePageModeShowText: 'icon-phone-text-code-32',
     }
 
-    const iconTypeFn = (m: Mode) => iconTypeMap[m] || 'phone-text-code' // eslint-disable-line
-
-    const modeTextFn = (m: Mode) => modeTextMap[m] || 'Switch mode' // eslint-disable-line
+    const iconTypeFn = (m: Mode) => iconTypeMap[m] || 'phone-text-code'
+    const modeTextFn = (m: Mode) => modeTextMap[m] || 'Switch mode'
 
     return (
       <Box style={{...globalStyles.flexBoxRow, ...stylesSwitch}}>
@@ -113,10 +112,10 @@ export default class CodePageRender extends Component<void, Props, void> {
   renderIntroTextCode () {
     return (
       <Box style={stylesIntro}>
-        <Text type='Header' style={{marginBottom: 10}} inline>Type in text code</Text>
-        <Text type='BodySmall' inline>Please run </Text>
-        <Text type='TerminalSmall' inline>keybase device add</Text>
-        <Text type='BodySmall' inline> in the terminal on your computer.</Text>
+        <Text type='Header' style={{marginBottom: 10}} inline={true}>Type in text code</Text>
+        <Text type='BodySmall' inline={true}>Please run </Text>
+        <Text type='TerminalSmall' inline={true}>keybase device add</Text>
+        <Text type='BodySmall' inline={true}> in the terminal on your computer.</Text>
       </Box>
     )
   }
@@ -124,9 +123,9 @@ export default class CodePageRender extends Component<void, Props, void> {
   renderIntroScanQR () {
     return (
       <Box style={stylesIntro}>
-        <Text type='Header' style={{marginBottom: 10}} inline>Scan QR code</Text>
-        <Text type='BodySmall' inline>In the Keybase App</Text>
-        <Text type='BodySmall' inline>{'go to Devices > Add a new device'}</Text>
+        <Text type='Header' style={{marginBottom: 10}} inline={true}>Scan QR code</Text>
+        <Text type='BodySmall' inline={true}>In the Keybase App</Text>
+        <Text type='BodySmall' inline={true}>{'go to Devices > Add a new device'}</Text>
       </Box>
     )
   }
@@ -134,8 +133,8 @@ export default class CodePageRender extends Component<void, Props, void> {
   renderIntroShowQR () {
     return (
       <Box style={stylesIntro}>
-        <Text type='Header' style={{marginBottom: 10}} inline>Scan this QR code</Text>
-        <Text type='BodySmall' inline>{'When adding a new mobile device'}</Text>
+        <Text type='Header' style={{marginBottom: 10}} inline={true}>Scan this QR code</Text>
+        <Text type='BodySmall' inline={true}>{'When adding a new mobile device'}</Text>
       </Box>
     )
   }
@@ -161,20 +160,20 @@ export default class CodePageRender extends Component<void, Props, void> {
 
   renderCode () {
     return (
-      <QR
+      <Qr
         style={{alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}
         scanning={false}
         onBarCodeRead={() => {}}
         qrCode={this.props.qrCode}>
         <Text type='Body'>Scan this QR code with your other device</Text>
-      </QR>
+      </Qr>
     )
   }
 
   renderScanner () {
     return (
-      <QR
-        scanning
+      <Qr
+        scanning={true}
         onBarCodeRead={code => this.props.qrScanned(code)}
         style={{flex: 1}}
         qrCode={this.props.qrCode}>
@@ -188,7 +187,7 @@ export default class CodePageRender extends Component<void, Props, void> {
             <Box style={[styles.box, styles.boxCorner, {right: 0, bottom: 0}]} />
             <Box style={[styles.box, styles.boxCorner, {left: 0, bottom: 0}]} />
           </Box>}
-      </QR>
+      </Qr>
     )
   }
 

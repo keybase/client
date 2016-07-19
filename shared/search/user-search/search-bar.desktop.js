@@ -41,7 +41,7 @@ class ServiceIcon extends Component<void, ServiceIconProps, ServiceIconState> {
   }
 }
 
-export class SearchBar extends Component<void, Props, void> {
+class SearchBar extends Component<void, Props, void> {
   _onDebouncedSearch: (overridePlatform?: SearchPlatforms) => void;
 
   constructor (props: Props) {
@@ -90,7 +90,7 @@ export class SearchBar extends Component<void, Props, void> {
         <Box style={stylesInputContainer}>
           <Input
             type='text'
-            autoFocus
+            autoFocus={true}
             ref='searchBox'
             onEnterKeyDown={() => this._onSearch()}
             onChange={() => this._onDebouncedSearch()}

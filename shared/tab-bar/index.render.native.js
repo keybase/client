@@ -28,7 +28,7 @@ export default class Render extends Component<void, Props, void> {
 
     return (
       <TabBar style={{flex: 1}}
-        tabBarOnBottom
+        tabBarOnBottom={true}
         styleTabBar={stylesTabBar}>
 
         {tabs.map(t => {

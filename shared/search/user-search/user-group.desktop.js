@@ -66,7 +66,7 @@ export default function UserGroup ({selectedUsers, onClickUserInGroup, onRemoveU
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       {selectedUsers.map(u => <User key={u.service + u.username}
         selected={!!userForInfoPane && u.username === userForInfoPane.username} user={u}
-        onRemove={onRemoveUserFromGroup} onClickUser={onClickUserInGroup} insertSpacing />)}
+        onRemove={onRemoveUserFromGroup} onClickUser={onClickUserInGroup} insertSpacing={true} />)}
       <GroupAction onClick={onOpenPrivateGroupFolder} icon='icon-folder-private-open-24' label={privateFolderText} />
       {selectedUsers.length === 1 && <GroupAction onClick={onOpenPublicGroupFolder} icon='icon-folder-public-open-24' label='Open public folder' />}
       {chatEnabled && <GroupAction onClick={onGroupChat} icon='iconfont-chat' label='Start a chat' />}

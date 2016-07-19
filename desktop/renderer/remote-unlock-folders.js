@@ -32,7 +32,7 @@ class RemoteUnlockFolders extends Component<void, Props, void> {
         <RemoteComponent
           title='UnlockFolders'
           windowsOpts={windowsOpts}
-          waitForState
+          waitForState={true}
           onRemoteClose={() => this.props.close()}
           component='unlockFolders'
           onSubmit={() => {}}

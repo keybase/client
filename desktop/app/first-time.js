@@ -6,7 +6,7 @@ import fs from 'fs'
 
 const filePath = path.join(splashRoot, 'started.txt')
 
-let isFirstTime: Promise<boolean> = new Promise((resolve, reject) => {
+const isFirstTime: Promise<boolean> = new Promise((resolve, reject) => {
   fs.stat(filePath, (err, stats) => {
     if (err) {
       try {

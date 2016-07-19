@@ -1,19 +1,20 @@
 /* @flow */
 
 import * as Constants from '../constants/tracker'
+import type {SimpleProofState, SimpleProofMeta, NonUserActions} from '../constants/tracker'
 import * as CommonConstants from '../constants/common'
 
-import {normal, warning, error, checking} from '../constants/tracker'
-import {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored} from '../constants/tracker'
 import {identifyCommon, proveCommon} from '../constants/types/keybase-v1'
 
 import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof} from '../common-adapters/user-proofs'
-import type {SimpleProofState, SimpleProofMeta, NonUserActions} from '../constants/tracker'
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff,
   TrackDiffType, ProofStatus} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 import type {Folder} from '../constants/folders'
+
+const {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored,
+  normal, warning, error, checking} = Constants
 
 export type TrackerState = {
   type: 'tracker',
@@ -220,7 +221,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       const anyPending: boolean = proofs.reduce((acc, p) => acc || p.state === checking, false)
 
       // Helper to reduce boiler plate.
-      const anyMetaCheck = (v: SimpleProofMeta) => ((acc, p) => acc || p.meta === v) // eslint-disable-line
+      const anyMetaCheck = (v: SimpleProofMeta) => (acc, p) => acc || p.meta === v
 
       const anyDeletedProofs : boolean = proofs.reduce(anyMetaCheck(metaDeleted), false)
       const anyUnreachableProofs : boolean = proofs.reduce(anyMetaCheck(metaUnreachable), false)
@@ -547,20 +548,18 @@ function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracke
 
 // TODO Have the service give this information.
 // Currently this is copied from the website: https://github.com/keybase/keybase/blob/658aa97a9ad63733444298353a528e7f8499d8b9/lib/mod/user_lol.iced#L971
-/* eslint-disable no-multi-spaces */
 function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, humanUrl: ?string): string {
   switch (proofType) {
-    case proveCommon.ProofType.dns            : return `http://${name}`
-    case proveCommon.ProofType.genericWebSite : return `${key}://${name}`
-    case proveCommon.ProofType.twitter        : return `https://twitter.com/${name}`
-    case proveCommon.ProofType.github         : return `https://github.com/${name}`
-    case proveCommon.ProofType.reddit         : return `https://reddit.com/user/${name}`
-    case proveCommon.ProofType.coinbase       : return `https://coinbase.com/${name}`
-    case proveCommon.ProofType.hackernews     : return `https://news.ycombinator.com/user?id=${name}`
+    case proveCommon.ProofType.dns: return `http://${name}`
+    case proveCommon.ProofType.genericWebSite: return `${key}://${name}`
+    case proveCommon.ProofType.twitter: return `https://twitter.com/${name}`
+    case proveCommon.ProofType.github: return `https://github.com/${name}`
+    case proveCommon.ProofType.reddit: return `https://reddit.com/user/${name}`
+    case proveCommon.ProofType.coinbase: return `https://coinbase.com/${name}`
+    case proveCommon.ProofType.hackernews: return `https://news.ycombinator.com/user?id=${name}`
     default: return humanUrl || ''
   }
 }
-/* eslint-enable no-multi-spaces */
 
 function remoteProofToProofType (rp: RemoteProof): string {
   let proofType: string = ''

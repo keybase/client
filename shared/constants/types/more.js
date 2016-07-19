@@ -1,26 +1,23 @@
 // @flow
 
 import {Component} from 'react' // eslint-disable-line
-
 import {proveCommon} from './keybase-v1'
-
-export type Platforms = $Keys<typeof proveCommon.ProofType>
-
-export type DeviceType = 'mobile' | 'desktop' | 'backup'
 import type {Device as _Device, DeviceID, Time} from './flow-types'
 
+export type Platforms = $Keys<typeof proveCommon.ProofType>
+export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export type $Exact<X> = $Shape<X> & X
 
 export type Device = {
-  name: string;
-  deviceID: DeviceID;
-  type: DeviceType;
-  created: Time;
-  currentDevice: boolean;
-  provisioner: ?_Device;
-  provisionedAt: ?Time;
-  revokedAt: ?Time;
-  lastUsed: ?Time;
+  name: string,
+  deviceID: DeviceID,
+  type: DeviceType,
+  created: Time,
+  currentDevice: boolean,
+  provisioner: ?_Device,
+  provisionedAt: ?Time,
+  revokedAt: ?Time,
+  lastUsed: ?Time,
 }
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match

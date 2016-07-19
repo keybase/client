@@ -20,7 +20,7 @@ class Render extends Component<void, Props, void> {
             value={this.props.email}
             errorText={this.props.emailErrorText}
             onChangeText={email => this.props.emailChange(email)}
-            autoFocus />
+            autoFocus={true} />
           <Input
             style={stylesInput}
             floatingLabelText='Your name'

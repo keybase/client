@@ -5,7 +5,7 @@ import {is, List, Map, Record} from 'immutable'
 export type URI = List<Map<string, string>>
 type History = List<URI>
 
-export type RouterState = MapADT2<'uri', URI, 'history', History> // eslint-disable-line no-undef
+export type RouterState = MapADT2<'uri', URI, 'history', History>
 
 const RouterStateRecord = Record({uri: List(), history: List()})
 const initialState: RouterState = createRouterState(['nav'], [])

@@ -1,7 +1,6 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {openAccountResetPage} from '../../actions/login'
-import {relogin, login, saveInKeychainChanged} from '../../actions/login'
+import {openAccountResetPage, relogin, login, saveInKeychainChanged} from '../../actions/login'
 import {routeAppend} from '../../actions/router'
 import Render from './index.render'
 import type {Props} from './index.render'

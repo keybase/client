@@ -5,6 +5,9 @@ var path = require('path')
 var fs = require('fs')
 var spawnSync = require('child_process').spawnSync
 
+var VENDOR_DIR = process.env.KEYBASE_JS_VENDOR_DIR || './js-vendor-desktop'
+const NPM_CMD = os.platform() === 'win32' ? 'npm.cmd' : 'npm'
+
 function ensureSymlink (target, dest) {
   if (fs.existsSync(target)) {
     console.log('Removing existing', target)
@@ -17,13 +20,85 @@ function ensureSymlink (target, dest) {
 }
 
 function spawn (command, args, options) {
-  console.log('>', command, args.join(' '))
+  options = options || {}
+  args = args || []
+  console.log((options.cwd || '') + '>', command, args.join(' '))
   var res = spawnSync(command, args, Object.assign({stdio: 'inherit', encoding: 'utf8'}, options))
   if (res.error) {
     throw res.error
   } else if (res.status !== 0) {
     throw new Error('Unexpected exit code: ' + res.status)
   }
+  return res
+}
+
+function updateVendored () {
+  function checkClean (dir) {
+    var statusRes = spawn('git', ['status', '--porcelain'], {cwd: dir, stdio: 'pipe'})
+    if (statusRes.stdout.length) {
+      console.log(`Uncommitted changes detected in ${path.resolve(dir)}. Please commit your work and re-run.`)
+      process.exit(1)
+    }
+  }
+
+  if (!fs.existsSync(VENDOR_DIR)) {
+    console.log(`Could not find vendor dir: ${VENDOR_DIR}`)
+    process.exit(1)
+  }
+
+  checkClean('./')
+  checkClean(VENDOR_DIR)
+
+  console.log('\nShrinkwrapping...')
+
+  try {
+    spawn(NPM_CMD, ['run', 'wrap'])
+  } catch (e) {
+    console.log('\nUh oh! Shrinkwrapping failed. Try manually running `npm run wrap` to retry.')
+    process.exit(1)
+  }
+  spawn('git', ['add', './npm-shrinkwrap.json'])
+
+  console.log('\nShrinkpacking...')
+  ensureSymlink('./node_shrinkwrap', path.join(VENDOR_DIR, 'node_shrinkwrap'))
+  spawn('shrinkpack')
+
+  console.log('\nCommitting deps to js vendor repo...')
+  fs.renameSync('./npm-shrinkwrap.json', path.join(VENDOR_DIR, 'npm-shrinkwrap.json'))
+  spawn('git', ['add', './node_shrinkwrap', './npm-shrinkwrap.json'], {cwd: VENDOR_DIR})
+
+  function cleanup () {
+    // clean up npm-shrinkwrap.json and node_shrinkwrap/ dir to leave the repo
+    // in a pristine state.
+    console.log('\nCleaning up...')
+    spawn('git', ['checkout', 'HEAD', '--', './npm-shrinkwrap.json'])
+    fs.unlinkSync('./node_shrinkwrap')
+  }
+
+  var vendorStatusRes = spawn('git', ['status', '--porcelain'], {cwd: VENDOR_DIR, stdio: 'pipe'})
+  if (!vendorStatusRes.stdout.length) {
+    console.log('\nNo vendoring changes needed. Done.')
+    cleanup()
+    return
+  }
+
+  spawn('git', ['commit', '-m', 'Update desktop deps'], {cwd: VENDOR_DIR})
+
+  console.log('\nCommitting vendor update in client repo...')
+  var vendorURL = spawn('git', ['config', '--get', 'remote.origin.url'], {cwd: VENDOR_DIR, stdio: 'pipe'}).stdout.trim()
+  // force HTTPS for more efficient cloning
+  vendorURL = vendorURL.replace(/^git@github.com:/, 'https://github.com/')
+  var vendorCommit = spawn('git', ['rev-parse', 'HEAD'], {cwd: VENDOR_DIR, stdio: 'pipe'}).stdout.trim()
+  var packageInfo = JSON.parse(fs.readFileSync('./package.json'))
+  packageInfo.keybaseVendoredDependencies = `${vendorURL}#${vendorCommit}`
+  fs.writeFileSync('./package.json', JSON.stringify(packageInfo, 2, 2))
+  spawn('git', ['add', './package.json'])
+  spawn('git', ['commit', '-m', 'Update vendored deps'])
+
+  cleanup()
+
+  console.log('Updated keybaseVendoredDependencies:', packageInfo.keybaseVendoredDependencies)
+  console.log('\nDone!')
 }
 
 function installVendored () {
@@ -32,21 +107,25 @@ function installVendored () {
   var url = parts[0]
   var commit = parts[1]
 
-  if (!fs.existsSync('./js-vendor-desktop')) {
-    spawn('git', ['clone', url, 'js-vendor-desktop'])
+  if (!fs.existsSync(VENDOR_DIR)) {
+    spawn('git', ['clone', url, VENDOR_DIR])
   }
-  spawn('git', ['fetch', 'origin'], {cwd: './js-vendor-desktop'})
-  spawn('git', ['checkout', '-f', commit], {cwd: './js-vendor-desktop'})
+  spawn('git', ['fetch', 'origin'], {cwd: VENDOR_DIR})
+  spawn('git', ['checkout', '-f', commit], {cwd: VENDOR_DIR})
   console.log(`js-vendor-desktop: ${url} @ ${commit}`)
 
-  ensureSymlink('./npm-shrinkwrap.json', './js-vendor-desktop/npm-shrinkwrap.json')
-  ensureSymlink('./node_shrinkwrap', './js-vendor-desktop/node_shrinkwrap')
-  spawn(os.platform() === 'win32' ? 'npm.cmd' : 'npm', ['install', '--loglevel=http', '--no-optional'], {
+  ensureSymlink('./npm-shrinkwrap.json', path.join(VENDOR_DIR, 'npm-shrinkwrap.json'))
+  ensureSymlink('./node_shrinkwrap', path.join(VENDOR_DIR, 'node_shrinkwrap'))
+  spawn(NPM_CMD, ['install', '--loglevel=http', '--no-optional'], {
     env: Object.assign({}, process.env, {
-      ELECTRON_CACHE: path.resolve('./js-vendor-desktop/electron'),
+      ELECTRON_CACHE: path.resolve(path.join(VENDOR_DIR, 'electron')),
       ELECTRON_ONLY_CACHE: 1,
     }),
   })
 }
 
-installVendored()
+if (process.argv[process.argv.length - 1] === 'update') {
+  updateVendored()
+} else {
+  installVendored()
+}

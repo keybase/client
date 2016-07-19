@@ -4,16 +4,12 @@ import Render from './index.render'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
 import engine from '../engine'
-import {shell} from 'electron'
-
+import {shell, ipcRenderer} from 'electron'
 import * as favoriteAction from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
 import {switchTab} from '../actions/tabbed-router'
-
-import {ipcRenderer} from 'electron'
 import {loginTab} from '../constants/tabs'
-
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 
 import type {Props as FolderProps} from '../folders/render'
@@ -164,8 +160,8 @@ class Menubar extends Component<void, Props, void> {
       username={this.props.username}
       quit={() => this._quit()}
       refresh={() => this._checkForFolders(true)}
-      onRekey={(path: string) => this._onRekey(path)} // eslint-disable-line arrow-parens
-      onFolderClick={(path: string) => this._openFolder(path)} // eslint-disable-line arrow-parens
+      onRekey={(path: string) => this._onRekey(path)}
+      onFolderClick={(path: string) => this._openFolder(path)}
     />
   }
 }

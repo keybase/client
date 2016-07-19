@@ -1,6 +1,4 @@
 /* @flow */
-/* eslint-disable react/prop-types */
-
 import React, {Component} from 'react'
 import {Text as RNText} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
@@ -138,7 +136,7 @@ export default class Text extends Component {
         <RNText
           ref='text'
           style={style}
-          contentEditable
+          contentEditable={true}
           {...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {})}
           onKeyUp={this.props.onKeyUp}
           onKeyDown={this.props.onKeyDown}

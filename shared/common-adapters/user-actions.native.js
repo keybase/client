@@ -10,7 +10,7 @@ export default function UserActions ({trackerState, currentlyFollowing, style, o
     if (trackerState === proofNormal) {
       return (
         <Box style={style}>
-          <FollowButton following onUnfollow={onUnfollow} style={{marginRight: 0}} />
+          <FollowButton following={true} onUnfollow={onUnfollow} style={{marginRight: 0}} />
         </Box>
       )
     } else {

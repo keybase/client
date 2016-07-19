@@ -20,14 +20,14 @@ export default class Render extends Component {
           value={this.props.email}
           errorText={this.props.emailErrorText}
           onChangeText={email => this.props.emailChange(email)}
-          autoFocus />
+          autoFocus={true} />
         <Input
           hintText='Your name'
           value={this.props.name}
           errorText={this.props.nameErrorText}
           onChangeText={name => this.props.nameChange(name)} />
         <Button
-          fullWidth
+          fullWidth={true}
           style={stylesButton}
           waiting={this.props.waiting}
           type='Primary'

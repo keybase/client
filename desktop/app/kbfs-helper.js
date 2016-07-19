@@ -1,7 +1,6 @@
 // @flow
 
-import {ipcMain} from 'electron'
-import {shell} from 'electron'
+import {ipcMain, shell} from 'electron'
 
 export default function () {
   ipcMain.on('openInKBFS', (e, path) => {

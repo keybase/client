@@ -17,7 +17,7 @@ class PaperKeyRender extends Component<void, Props, void> {
           <Text type='Header' style={stylesHeader}>Type in your paper key:</Text>
           <Icon type='icon-paper-key-48' style={stylesIcon} />
           <Input
-            autoFocus
+            autoFocus={true}
             style={stylesInput}
             floatingLabelText='Paper key'
             hintText='opp blezzard tofi pando'
@@ -29,7 +29,7 @@ class PaperKeyRender extends Component<void, Props, void> {
           <Button
             style={stylesButton}
             type='Primary'
-            fullWidth
+            fullWidth={true}
             enabled={this.props.paperKey}
             label='Continue'
             waiting={this.props.waitingForResponse}

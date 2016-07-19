@@ -17,12 +17,12 @@ export default class Render extends Component<void, Props, void> {
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text type='BodySmall' style={pathStyleThemed[this.props.theme]}>{this.props.path}</Text>
           {!!this.props.lastModifiedBy && (<Box style={{...globalStyles.flexBoxRow}}>
-            <Text type='BodySmall' style={{...pathStyleThemed[this.props.theme], marginLeft: 4, marginRight: 4}} inline>·</Text>
+            <Text type='BodySmall' style={{...pathStyleThemed[this.props.theme], marginLeft: 4, marginRight: 4}} inline={true}>·</Text>
             {this.props.modifiedMarker &&
               <Icon type='iconfont-thunderbolt' style={{marginRight: 4, color: pathStyleThemed[this.props.theme].color}} />}
-            <Text type='BodySmall' style={modifiedByStyleThemed[this.props.theme]} inline>{this.props.lastModifiedMeta}</Text>
-            <Text type='BodySmall' style={modifiedByStyleThemed[this.props.theme]} inline> by </Text>
-            <Text type='BodySmallLink' style={{...modifyingUserStyleThemed[this.props.theme], ...(this.props.lastModifiedBySelf ? globalStyles.italic : {})}} inline>{this.props.lastModifiedBy}</Text>
+            <Text type='BodySmall' style={modifiedByStyleThemed[this.props.theme]} inline={true}>{this.props.lastModifiedMeta}</Text>
+            <Text type='BodySmall' style={modifiedByStyleThemed[this.props.theme]} inline={true}> by </Text>
+            <Text type='BodySmallLink' style={{...modifyingUserStyleThemed[this.props.theme], ...(this.props.lastModifiedBySelf ? globalStyles.italic : {})}} inline={true}>{this.props.lastModifiedBy}</Text>
           </Box>)}
         </Box>
       </Box>

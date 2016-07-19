@@ -38,7 +38,7 @@ const actionStatSink: StatSink = {
   startTime: 0,
 }
 
-export const actionLogger = (store: any) => (next: any) => (action: any) => { // eslint-disable-line arrow-parens
+export const actionLogger = (store: any) => (next: any) => (action: any) => {
   console.groupCollapsed && console.groupCollapsed(`Dispatching action: ${action.type}`)
 
   console.log(`Dispatching action: ${action.type}: ${JSON.stringify(action)} `)
