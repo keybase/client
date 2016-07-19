@@ -24,6 +24,7 @@ export default function (state: State = initialState, action: FavoriteAction): S
         ...state,
         ...(action.payload && action.payload.folders),
       }
+
     default:
       return state
   }

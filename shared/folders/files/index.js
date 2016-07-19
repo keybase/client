@@ -4,7 +4,8 @@ import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
 import {openInKBFS} from '../../actions/kbfs'
 import {favoriteFolder, ignoreFolder} from '../../actions/favorite'
-import {navigateBack} from '../../actions/router'
+import {navigateBack, routeAppend} from '../../actions/router'
+import paperkey from './paperkey'
 import flags from '../../util/feature-flags'
 import Render from './render'
 import _ from 'lodash'
@@ -16,6 +17,7 @@ type Props = $Shape<{
   path: string,
   username: string,
   navigateBack: () => void,
+  routeAppend: (route: any) => void,
   ignoreFolder: (path: string) => void,
   favoriteFolder: (path: string) => void,
   openInKBFS: (path: string) => void
@@ -53,6 +55,7 @@ class Files extends Component<void, Props, State> {
     const openCurrentFolder = () => { this.props.openInKBFS(this.props.path) }
     const ignoreCurrentFolder = () => { this.props.ignoreFolder(this.props.path) }
     const unIgnoreCurrentFolder = () => { this.props.favoriteFolder(this.props.path) }
+
     return (
       <Render
         ignored={folder.ignored}
@@ -69,6 +72,7 @@ class Files extends Component<void, Props, State> {
         youCanUnlock={folder.youCanUnlock}
         onBack={() => this.props.navigateBack()}
         openCurrentFolder={openCurrentFolder}
+        onClickPaperkey={device => this.props.routeAppend({path: 'paperkey', name: device.name})}
         ignoreCurrentFolder={ignoreCurrentFolder}
         unIgnoreCurrentFolder={unIgnoreCurrentFolder}
         recentFilesSection={folder.recentFiles} // TODO (AW): integrate recent files once the service provides this data
@@ -83,6 +87,7 @@ class Files extends Component<void, Props, State> {
         title: 'Files',
         element: <ConnectedFiles path={currentPath.get('path')} />,
       },
+      subRoutes: {paperkey},
     }
   }
 }
@@ -95,13 +100,15 @@ const ConnectedFiles = connect(
       _.get(state, 'favorite.private.ignored', []),
       _.get(state, 'favorite.public.ignored', [])
     )
+
     const folder = folders.find(f => f.path === ownProps.path)
+
     return {
       folder,
       username: state.config && state.config.username,
     }
   },
-  dispatch => bindActionCreators({favoriteFolder, ignoreFolder, navigateBack, openInKBFS}, dispatch)
+  dispatch => bindActionCreators({favoriteFolder, ignoreFolder, navigateBack, openInKBFS, routeAppend}, dispatch)
 )(Files)
 
 export default ConnectedFiles

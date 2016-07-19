@@ -166,7 +166,7 @@ class Engine {
         delete this.sessionIDToIncomingCall[sid]
       },
     }
-    this.serverListeners[method](param, cbs)
+    this.serverListeners[method](param, cbs, sid)
   }
 
   _rpcWrite (data) {
@@ -335,7 +335,8 @@ class Engine {
       param = {}
     }
 
-    const sessionID = param.sessionID = this.getSessionID()
+    // allow overwriting of sessionID with param.sessionID
+    const sessionID = param.sessionID = param.sessionID || this.getSessionID()
     this.sessionIDToIncomingCall[sessionID] = {incomingCallMap, waitingHandler}
     this.sessionIDToResponse[sessionID] = null
 

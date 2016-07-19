@@ -3,7 +3,7 @@
 import type {Props as FileProps} from './file/render'
 import type {UserList} from '../../common-adapters/usernames'
 import type {MenuItem, Props as MenuProps} from '../../common-adapters/popup-menu'
-import type {FileSection, ParticipantUnlock, UnlockDevice} from '../../constants/folders'
+import type {FileSection, Device, ParticipantUnlock} from '../../constants/folders'
 
 export type Props = {
   theme: 'public' | 'private',
@@ -21,7 +21,8 @@ export type Props = {
   ignoreCurrentFolder: () => void,
   unIgnoreCurrentFolder: () => void,
   waitingForParticipantUnlock: Array<ParticipantUnlock>,
-  youCanUnlock: Array<UnlockDevice>
+  youCanUnlock: Array<Device>,
+  onClickPaperkey: (device: Device) => void,
 }
 
 export default class Render extends React$Component<void, Props, void> { }

@@ -7,11 +7,12 @@ import * as Constants from '../constants/unlock-folders'
 import type {TypedAsyncAction, AsyncAction} from '../constants/types/flux'
 import type {ToPaperKeyInput, OnBackFromPaperKey, CheckPaperKey, Finish, Waiting,
   RegisterRekeyListenerAction, NewRekeyPopupAction} from '../constants/unlock-folders'
-import {delegateUiCtlRegisterRekeyUIRpc, loginPaperKeySubmitRpc, rekeyRekeyStatusFinishRpc} from '../constants/types/flow-types'
+import {delegateUiCtlRegisterRekeyUIRpc, loginPaperKeySubmitRpc, rekeyRekeyStatusFinishRpc, rekeyShowPendingRekeyStatusRpc} from '../constants/types/flow-types'
 import {createServer} from '../engine/server'
 import type {Dispatch} from '../constants/types/flux'
 
-type UglyKeys = 'refresh'
+// We need the sessionID of the delegateRekeyUI sessions
+let rekeyServer = null
 
 export function toPaperKeyInput (): ToPaperKeyInput {
   return {type: Constants.toPaperKeyInput, payload: {}}
@@ -32,7 +33,7 @@ export function checkPaperKey (paperKey: HiddenString): TypedAsyncAction<CheckPa
       waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
       callback: error => {
         if (error) {
-          dispatch({type: Constants.checkPaperKey, error: true, payload: {error: error.message}})
+          dispatch({type: Constants.checkPaperKey, error: true, payload: {error: error.raw.desc}})
         } else {
           dispatch({type: Constants.checkPaperKey, payload: {success: true}})
         }
@@ -45,11 +46,24 @@ export function finish (): Finish {
   return {type: Constants.finish, payload: {}}
 }
 
+export function openDialog (): AsyncAction {
+  return dispatch => {
+    const params: rekeyShowPendingRekeyStatusRpc = {
+      method: 'rekey.showPendingRekeyStatus',
+      callback: null,
+    }
+    engine.rpc(params)
+  }
+}
+
 export function close (): AsyncAction {
   return (dispatch, getState) => {
-    rekeyRekeyStatusFinishRpc({})
+    // waiting for cleanupRPC to get merged in so i can make param / sessionID optional
+    // $FlowIssue
+    rekeyRekeyStatusFinishRpc({
+      param: {sessionID: rekeyServer && rekeyServer.sessionID},
+    })
     dispatch({type: Constants.close, payload: {}})
-    uglyResponse('refresh', null)
   }
 }
 
@@ -67,18 +81,18 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
       })
     })
 
-    createServer(
+    // we get this with sessionID == 0 if we call openDialog
+    engine.listenGeneralIncomingRpc({
+      'keybase.1.rekeyUI.refresh': (params, response) => refreshHandler(params, response, dispatch),
+    })
+    // else we get this also as part of delegateRekeyUI
+    rekeyServer = createServer(
       engine,
       'keybase.1.rekeyUI.delegateRekeyUI',
       null,
       () => ({
         'keybase.1.rekeyUI.delegateRekeyUI': (params, response) => { },
-        'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}, response) => {
-          console.log('Asked for rekey')
-          dispatch(({type: Constants.newRekeyPopup, payload: {devices: problemSetDevices.devices || [], sessionID}}: NewRekeyPopupAction))
-          uglySessionIDResponseMapper['refresh'] = response
-          response.result()
-        },
+        'keybase.1.rekeyUI.refresh': (params, response) => refreshHandler(params, response, dispatch),
       })
     )
 
@@ -86,20 +100,9 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
   }
 }
 
-function uglyResponse (key: UglyKeys, result: any, err: ?any): void {
-  const response = uglySessionIDResponseMapper[key]
-  if (response == null) {
-    console.log('lost response reference')
-    return
-  }
-
-  if (err != null) {
-    response.error(err)
-  } else {
-    response.result(result)
-  }
-
-  delete uglySessionIDResponseMapper[key]
+const refreshHandler = ({sessionID, problemSetDevices}, response, dispatch) => {
+  console.log('Asked for rekey')
+  dispatch(({type: Constants.newRekeyPopup,
+    payload: {devices: problemSetDevices.devices || [], sessionID, problemSet: problemSetDevices.problemSet}}: NewRekeyPopupAction))
+  response.result()
 }
-
-const uglySessionIDResponseMapper: {[key: UglyKeys]: any} = {}
