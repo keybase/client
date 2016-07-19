@@ -21,7 +21,7 @@
     "immutable": "3.8.1",
     "lodash": "4.13.1",
     "moment": "2.14.1",
-    "purepack": "git://github.com/keybase/purepack#0b3603246149ac72bb7b4e1ae849ea5f2a00bab8",
+    "purepack": "1.0.4",
     "qrcode-generator": "1.0.0",
     "react": "15.2.1",
     "react-native": "0.29.2",
