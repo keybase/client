@@ -28,7 +28,7 @@ class ForgotUserPass extends Component {
           onChangeText={email => this.props.updateEmail(email)}
           onSubmitEditing={() => this.props.submit()}
           autoCorrect={false}
-          autoFocus
+          autoFocus={true}
           editable={!this.props.submitting && !this.props.success}
           placeholder='Email address (or username)'
           keyboardType='email-address'

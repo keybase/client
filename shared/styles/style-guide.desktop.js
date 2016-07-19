@@ -88,7 +88,7 @@ const util = {
   topMost: {
     zIndex: 9999,
   },
-  textDecoration: (type: string) => ({ // eslint-disable-line arrow-parens
+  textDecoration: (type: string) => ({
     textDecoration: type,
   }),
 }

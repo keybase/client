@@ -2,12 +2,11 @@
 import Folders from './render'
 import Files from './files/render'
 import File from './files/file/render'
-import type {PropsOf} from '../constants/types/more'
-import type {Folder} from './list'
-import type {Props as FilesProps} from './files/render'
-import type {DumbComponentMap} from '../constants/types/more'
 import {globalStyles} from '../styles/style-guide'
 import {pathFromFolder} from '../actions/favorite'
+import type {PropsOf, DumbComponentMap} from '../constants/types/more'
+import type {Folder} from './list'
+import type {Props as FilesProps} from './files/render'
 
 export function createFolder (partialFolder: $Shape<Folder>) {
   return {...partialFolder, path: pathFromFolder(partialFolder).path}
@@ -294,7 +293,7 @@ const filesMenuItems = [
   {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true},
 ]
 
-const commonFiles = (isPrivate): FilesProps => ({ // eslint-disable-line arrow-parens
+const commonFiles = (isPrivate): FilesProps => ({
   theme: isPrivate ? 'private' : 'public',
   ignored: false,
   visiblePopupMenu: false,

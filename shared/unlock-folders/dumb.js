@@ -20,7 +20,7 @@ const common = {
   onClose: () => { console.log('onClose') },
   toPaperKeyInput: () => { console.log('toPaperKeyInput') },
   onBackFromPaperKey: () => { console.log('onBackFromPaperKey') },
-  onContinueFromPaperKey: (paperkey: HiddenString) => { console.log('onContinueFromPaperKey') }, // eslint-disable-line arrow-parens
+  onContinueFromPaperKey: (paperkey: HiddenString) => { console.log('onContinueFromPaperKey') },
   paperkeyError: null,
   waiting: false,
   onFinish: () => { console.log('onFinish') },

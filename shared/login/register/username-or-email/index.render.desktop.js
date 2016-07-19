@@ -34,7 +34,7 @@ class Render extends Component<void, Props, State> {
         onBack={() => this.props.onBack()}>
         <UserCard style={stylesCard} outerStyle={stylesOuterCard}>
           <Input
-            autoFocus
+            autoFocus={true}
             style={stylesInput}
             floatingLabelText='Username or email'
             onEnterKeyDown={() => this.onSubmit()}
@@ -42,7 +42,7 @@ class Render extends Component<void, Props, State> {
             value={this.state.usernameOrEmail}
           />
           <Button
-            fullWidth
+            fullWidth={true}
             label='Continue'
             type='Primary'
             onClick={() => this.onSubmit()}

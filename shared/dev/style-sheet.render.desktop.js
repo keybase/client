@@ -10,7 +10,7 @@ const Space = () => <Box style={{minHeight: 20, minWidth: 20}} />
 
 const Row = ({children, style}) => (
   <Box style={{...globalStyles.flexBoxRow, marginBottom: 20, ...style}}>
-    {children.map && children.map(c => [c, <Space />]) || children}
+    {children.map && children.map((c, idx) => [c, <Space key={idx} />]) || children}
   </Box>
 )
 
@@ -22,54 +22,54 @@ const Buttons = () => (
   <Box style={{...globalStyles.flexBoxColumn, padding: 10}}>
     <Row>
       <Button onClick={onClick} type='Primary' label='Primary' />
-      <Button onClick={onClick} type='Primary' label='Primary' disabled />
-      <Button onClick={onClick} type='Primary' label='Primary' waiting />
+      <Button onClick={onClick} type='Primary' label='Primary' disabled={true} />
+      <Button onClick={onClick} type='Primary' label='Primary' waiting={true} />
     </Row>
     <Row>
       <Button onClick={onClick} type='Secondary' label='Secondary' />
-      <Button onClick={onClick} type='Secondary' label='Secondary' disabled />
-      <Button onClick={onClick} type='Secondary' label='Secondary' waiting />
+      <Button onClick={onClick} type='Secondary' label='Secondary' disabled={true} />
+      <Button onClick={onClick} type='Secondary' label='Secondary' waiting={true} />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Danger' danger label='Danger' />
-      <Button onClick={onClick} type='Danger' danger label='Danger' disabled />
-      <Button onClick={onClick} type='Danger' danger label='Danger' waiting />
+      <Button onClick={onClick} type='Danger' danger={true} label='Danger' />
+      <Button onClick={onClick} type='Danger' danger={true} label='Danger' disabled={true} />
+      <Button onClick={onClick} type='Danger' danger={true} label='Danger' waiting={true} />
     </Row>
     <Row>
       <Button onClick={onClick} type='Follow' label='Follow' />
-      <Button onClick={onClick} type='Follow' label='Follow' disabled />
+      <Button onClick={onClick} type='Follow' label='Follow' disabled={true} />
       <Button onClick={onClick} type='Following' label='Following' />
       <Button onClick={onClick} type='Unfollow' label='Unfollow' />
     </Row>
 
-    <Button onClick={onClick} type='Primary' fullWidth label='Primary full-width' /><Space />
-    <Button onClick={onClick} type='Primary' fullWidth label='Primary full-width' waiting /><Space />
-    <Button onClick={onClick} type='Secondary' fullWidth label='Secondary full-width' /><Space />
-    <Button onClick={onClick} type='Secondary' fullWidth label='Secondary full-width' waiting /><Space />
-    <Button onClick={onClick} type='Danger' fullWidth label='Danger full-width' /><Space />
-    <Button onClick={onClick} type='Danger' fullWidth label='Danger full-width' waiting /><Space />
-    <Button onClick={onClick} type='Follow' fullWidth label='Follow full-width' /><Space />
-    <Button onClick={onClick} type='Follow' fullWidth label='Follow full-width' waiting />
+    <Button onClick={onClick} type='Primary' fullWidth={true} label='Primary full-width' /><Space />
+    <Button onClick={onClick} type='Primary' fullWidth={true} label='Primary full-width' waiting={true} /><Space />
+    <Button onClick={onClick} type='Secondary' fullWidth={true} label='Secondary full-width' /><Space />
+    <Button onClick={onClick} type='Secondary' fullWidth={true} label='Secondary full-width' waiting={true} /><Space />
+    <Button onClick={onClick} type='Danger' fullWidth={true} label='Danger full-width' /><Space />
+    <Button onClick={onClick} type='Danger' fullWidth={true} label='Danger full-width' waiting={true} /><Space />
+    <Button onClick={onClick} type='Follow' fullWidth={true} label='Follow full-width' /><Space />
+    <Button onClick={onClick} type='Follow' fullWidth={true} label='Follow full-width' waiting={true} />
 
     <Space />
 
     <Row>
-      <Button onClick={onClick} type='Primary' small label='Primary small' />
-      <Button onClick={onClick} type='Secondary' small label='Secondary small' />
-      <Button onClick={onClick} type='Danger' small label='Danger small' />
-      <Button onClick={onClick} type='Follow' small label='Follow small' />
+      <Button onClick={onClick} type='Primary' small={true} label='Primary small' />
+      <Button onClick={onClick} type='Secondary' small={true} label='Secondary small' />
+      <Button onClick={onClick} type='Danger' small={true} label='Danger small' />
+      <Button onClick={onClick} type='Follow' small={true} label='Follow small' />
     </Row>
     <Row>
-      <Button waiting onClick={onClick} type='Primary' small label='Primary small' />
-      <Button waiting onClick={onClick} type='Secondary' small label='Secondary small' />
-      <Button waiting onClick={onClick} type='Danger' small label='Danger small' />
-      <Button waiting onClick={onClick} type='Follow' small label='Follow small' />
+      <Button waiting={true} onClick={onClick} type='Primary' small={true} label='Primary small' />
+      <Button waiting={true} onClick={onClick} type='Secondary' small={true} label='Secondary small' />
+      <Button waiting={true} onClick={onClick} type='Danger' small={true} label='Danger small' />
+      <Button waiting={true} onClick={onClick} type='Follow' small={true} label='Follow small' />
     </Row>
     <Row style={{padding: 20, backgroundColor: globalColors.midnightBlue}}>
       <Button onClick={onClick} type='Secondary' label='Secondary terminal mode' backgroundMode='Terminal' />
     </Row>
     <Row style={{padding: 20, backgroundColor: globalColors.midnightBlue}}>
-      <Button onClick={onClick} type='Secondary' fullWidth label='Secondary full-width terminal mode' backgroundMode='Terminal' /><Space />
+      <Button onClick={onClick} type='Secondary' fullWidth={true} label='Secondary full-width terminal mode' backgroundMode='Terminal' /><Space />
     </Row>
   </Box>
 )
@@ -90,7 +90,7 @@ const Fonts = () => (
         }[backgroundMode]
 
         return (
-          <Box style={{...globalStyles.flexBoxColumn, padding: 40, minWidth: 500, backgroundColor: background}}>
+          <Box key={backgroundMode} style={{...globalStyles.flexBoxColumn, padding: 40, minWidth: 500, backgroundColor: background}}>
             <Text backgroundMode={backgroundMode} type='HeaderJumbo'>{backgroundMode}</Text>
             <Text backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
             <Text backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
@@ -196,11 +196,11 @@ const Colors = () => (
     <Text type='Body'>Colors</Text>
     <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
     {Object.keys(globalColors).sort().map(c => (
-      <Box style={{...globalStyles.flexBoxRow, height: 60, margin: 5, minWidth: 230}}>
+      <Box key={c} style={{...globalStyles.flexBoxRow, height: 60, margin: 5, minWidth: 230}}>
         <Box style={{width: 60, height: 60, backgroundColor: globalColors[c]}} />
         <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}}>
           <Text type='Body'>{c}</Text>
-          <Text type='Body' small>{globalColors[c]}</Text>
+          <Text type='Body' small={true}>{globalColors[c]}</Text>
         </Box>
       </Box>)
     )}
@@ -216,13 +216,13 @@ const Inputs = () => (
   <Box style={{...globalStyles.flexBoxColumn, maxWidth: 250}}>
     <Input floatingLabelText='Label' />
     <Input floatingLabelText='Label' errorText='Error lorem ipsum dolor sit amet.' />
-    <Input multiLine floatingLabelText='Multiline' />
-    <Input multiLine floatingLabelText='Multiline' errorText='Error lorem ipsum dolor sit amet.' />
+    <Input multiLine={true} floatingLabelText='Multiline' />
+    <Input multiLine={true} floatingLabelText='Multiline' errorText='Error lorem ipsum dolor sit amet.' />
     <Input floatingLabelText='Label' />
-    <Input floatingLabelText='foo' rows={1} rowsMax={3} multiLine />
-    <Input hintText='foo' rows={1} rowsMax={3} multiLine />
-    <Input multiLine hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' style={{marginTop: 30}} />
-    <Input small hintText='user1,user2,etc' style={{width: '100%', marginLeft: 2}} />
+    <Input floatingLabelText='foo' rows={1} rowsMax={3} multiLine={true} />
+    <Input hintText='foo' rows={1} rowsMax={3} multiLine={true} />
+    <Input multiLine={true} hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' style={{marginTop: 30}} />
+    <Input small={true} hintText='user1,user2,etc' style={{width: '100%', marginLeft: 2}} />
     <FormWithCheckbox
       inputProps={{floatingLabelText: 'Passphrase', style: {marginBottom: 0}, errorText: 'Error Message'}}
       checkboxesProps={[

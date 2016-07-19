@@ -14,8 +14,8 @@ const UserButton = ({isPublic, onClick}: Props) => (
     backgroundColor: isPublic ? globalColors.white : globalColors.darkBlue,
   }}>
     <Button
-      fullWidth
-      small
+      fullWidth={true}
+      small={true}
       onClick={onClick}
       labelStyle={{color: globalColors.white}}
       style={{
@@ -30,8 +30,8 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username}) => (
   }}>
     {!isPublic && <Text type='BodySemiboldItalic' style={stylesPrivatePrefix}>{username},</Text>}
     <Input
-      small
-      autoFocus
+      small={true}
+      autoFocus={true}
       hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
       hintStyle={{...stylesInputHint, color: isPublic ? globalColors.black_20 : globalColors.white_40}}
       style={stylesInput}

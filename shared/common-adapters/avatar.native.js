@@ -41,7 +41,7 @@ export default class Avatar extends Component<void, Props, State> {
   }
 }
 
-const placeholder = (size: number) => ({ // eslint-disable-line arrow-parens
+const placeholder = (size: number) => ({
   '176': iconMeta['icon-placeholder-avatar-176-x-176'].require,
   '112': iconMeta['icon-placeholder-avatar-112-x-112'].require,
   '80': iconMeta['icon-placeholder-avatar-80-x-80'].require,
@@ -51,25 +51,25 @@ const placeholder = (size: number) => ({ // eslint-disable-line arrow-parens
   '24': iconMeta['icon-placeholder-avatar-24-x-24'].require,
 }[String(size)])
 
-const stylesCommon = (size: number) => ({ // eslint-disable-line arrow-parens
+const stylesCommon = (size: number) => ({
   width: size,
   height: size,
 })
 
-const stylesContainer = (size: number) => ({ // eslint-disable-line arrow-parens
+const stylesContainer = (size: number) => ({
   ...stylesCommon(size),
   ...globalStyles.flexBoxColumn,
   justifyContent: 'center',
   alignItems: 'center',
 })
 
-const stylesImage = (size: number) => ({ // eslint-disable-line arrow-parens
+const stylesImage = (size: number) => ({
   ...stylesCommon(size),
   resizeMode: 'cover',
   borderRadius: size / 2,
 })
 
-const stylesPlaceholderImage = (size: number) => ({ // eslint-disable-line arrow-parens
+const stylesPlaceholderImage = (size: number) => ({
   ...stylesImage(size),
   position: 'absolute',
   top: 0,

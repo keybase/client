@@ -1,9 +1,8 @@
 /* @flow */
 import React, {Component} from 'react'
 
-import {Box} from '../common-adapters'
+import {UserBio, UserProofs, Box} from '../common-adapters'
 import Header from './header.render'
-import {UserBio, UserProofs} from '../common-adapters'
 import Action from './action.render'
 import {globalColors, globalMargins} from '../styles/style-guide'
 

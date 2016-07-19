@@ -12,8 +12,8 @@ const Render = ({onBack, onSubmit, onChangePaperKey, error, paperKey, waitingFor
       <Text type='Header' style={styles.header}>Type in your paper key:</Text>
       <Icon type='icon-paper-key-48' style={styles.icon} />
       <Input
-        autoFocus
-        multiLine
+        autoFocus={true}
+        multiLine={true}
         style={styles.input}
         errorText={error}
         hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'

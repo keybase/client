@@ -7,17 +7,17 @@ import type {Action} from '../constants/types/flux'
 import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
 
 export type ConfigState = {
-  status: ?GetCurrentStatusRes;
-  config: ?Config;
-  extendedConfig: ?ExtendedStatus;
-  username: ?string;
+  status: ?GetCurrentStatusRes,
+  config: ?Config,
+  extendedConfig: ?ExtendedStatus,
+  username: ?string,
   loggedIn: boolean,
-  kbfsPath: string;
-  error: ?any;
-  devConfig: ?any;
-  bootstrapped: number;
-  followers: {[key: string]: true};
-  following: {[key: string]: true};
+  kbfsPath: string,
+  error: ?any,
+  devConfig: ?any,
+  bootstrapped: number,
+  followers: {[key: string]: true},
+  following: {[key: string]: true},
 }
 
 const initialState: ConfigState = {

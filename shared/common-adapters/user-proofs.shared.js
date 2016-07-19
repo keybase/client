@@ -1,8 +1,8 @@
 /* @flow */
 
 import {globalColors, globalStyles} from '../styles/style-guide'
-import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaIgnored} from '../constants/tracker'
+import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning,
+  metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaIgnored} from '../constants/tracker'
 
 import type {IconType} from '../common-adapters/icon'
 import type {Proof} from './user-proofs'

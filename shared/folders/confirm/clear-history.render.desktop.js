@@ -13,7 +13,7 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
     <Box style={{textAlign: 'center'}}>
       <Box style={{marginBottom: 8}}>
         <Text type='Header' style={textColorThemed[theme]}>Clear history for {isPrivate ? 'private/' : 'public/'}</Text>
-        <Usernames type='Header' style={textColorThemed[theme]} inline users={users} />
+        <Usernames type='Header' style={textColorThemed[theme]} inline={true} users={users} />
         <Text type='Header' style={textColorThemed[theme]}>?</Text>
         <Text type='Header' style={{...textColorThemed[theme], whiteSpace: 'pre'}}> ({folderSize})</Text>
       </Box>
@@ -22,7 +22,7 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
   )
 
   return (
-    <Confirm theme={theme} danger header={header} body={body} submitLabel='Yes, clear history' onSubmit={onSubmit} onCancel={onCancel} />
+    <Confirm theme={theme} danger={true} header={header} body={body} submitLabel='Yes, clear history' onSubmit={onSubmit} onCancel={onCancel} />
   )
 }
 

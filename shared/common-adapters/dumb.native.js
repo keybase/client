@@ -3,11 +3,9 @@
 import React from 'react'
 
 import Checkbox from './checkbox'
-import {TabBar, Text, Box, ListItem, Button} from './index'
+import {TabBar, Text, Box, ListItem, Button, Avatar} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalColors} from '../styles/style-guide'
-
-import {Avatar} from './index'
 
 import type {DumbComponentMap} from '../constants/types/more'
 
@@ -22,14 +20,13 @@ const tabBarButtonMap: DumbComponentMap<TabBarButton> = {
 const tabBarBaseMock = {
   style: {flex: 1},
   children: [
-    // eslint-disable-next-line react/jsx-boolean-value
-    (<TabBarItem label='One' selected={true} onClick={() => {}}>
+    (<TabBarItem key='one' label='One' selected={true} onClick={() => {}}>
       <Text type='Header' style={{flex: 2}}>One</Text>
     </TabBarItem>),
-    (<TabBarItem label='Two' selected={false} onClick={() => {}}>
+    (<TabBarItem key='two' label='Two' selected={false} onClick={() => {}}>
       <Text type='Header'>Two</Text>
     </TabBarItem>),
-    (<TabBarItem label='Three' selected={false} onClick={() => {}}>
+    (<TabBarItem key='three' label='Three' selected={false} onClick={() => {}}>
       <Text type='Header'>Three</Text>
     </TabBarItem>),
   ],
@@ -53,7 +50,7 @@ const tabBarCustomButtons = selectedIndex => ({
       : <IconButton icon={buttonInfo.icon} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
 
     return (
-      <TabBarItem tabBarButton={button} style={{flex: 1}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
+      <TabBarItem key={i} tabBarButton={button} style={{flex: 1}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
         <Text type='Header' style={{flex: 2}}>Content here at: {i}</Text>
       </TabBarItem>
     )

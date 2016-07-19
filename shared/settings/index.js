@@ -6,13 +6,19 @@ import {routeAppend} from '../actions/router'
 import about from './about'
 import logSend from '../dev/log-send'
 import account from './account'
-import billing from './about'
-import appPrefs from './about'
-import invites from './about'
-import notifs from './about'
-import deleteMe from './about'
+// import billing from './about'
+// import appPrefs from './about'
+// import invites from './about'
+// import notifs from './about'
+// import deleteMe from './about'
 import devMenu from '../dev/dev-menu'
 import flags from '../util/feature-flags'
+
+const billing = about
+const invites = about
+const appPrefs = about
+const notifs = about
+const deleteMe = about
 
 class Settings extends Component {
   static parseRoute () {

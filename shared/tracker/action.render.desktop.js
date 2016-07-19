@@ -39,10 +39,10 @@ export default class ActionRender extends Component {
       <div style={styleLoggedOutContainer}>
         <Icon type='icon-terminal-32' style={{marginBottom: -5, marginTop: -5}} />
         <div style={{textAlign: 'center'}}>
-          <Text type='Terminal' inline>keybase login</Text>
-          <Text type='BodySmall' inline> or </Text>
-          <Text type='Terminal' inline>keybase signup</Text>
-          <Text type='BodySmall' inline> from the terminal for more options.</Text>
+          <Text type='Terminal' inline={true}>keybase login</Text>
+          <Text type='BodySmall' inline={true}> or </Text>
+          <Text type='Terminal' inline={true}>keybase signup</Text>
+          <Text type='BodySmall' inline={true}> from the terminal for more options.</Text>
         </div>
         <Button style={{...styleActionButton, alignSelf: 'flex-end'}} type='Secondary' label='Close' onClick={() => this.props.onClose()} />
       </div>

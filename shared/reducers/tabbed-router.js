@@ -14,7 +14,7 @@ import {initTabbedRouterState} from '../local-debug'
 import type {RouterState} from './router'
 
 type TabName = string
-type TabbedRouterState = MapADT2<'tabs', Map<TabName, RouterState>, 'activeTab', TabName> // eslint-disable-line no-undef
+type TabbedRouterState = MapADT2<'tabs', Map<TabName, RouterState>, 'activeTab', TabName>
 
 const emptyRouterState: RouterState = createRouterState([], [])
 

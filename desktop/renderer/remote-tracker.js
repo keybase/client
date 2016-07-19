@@ -36,11 +36,11 @@ class RemoteTracker extends Component<void, Props, void> {
       <div>
         {Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
           <RemoteComponent
-            positionBottomRight
+            positionBottomRight={true}
             windowsOpts={windowsOpts}
             title={`tracker - ${username}`}
-            waitForState
-            ignoreNewProps
+            waitForState={true}
+            ignoreNewProps={true}
             hidden={trackers[username].hidden}
             onRemoteClose={() => this.props.onClose(username)}
             component='tracker'

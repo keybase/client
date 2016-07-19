@@ -37,7 +37,7 @@ export default class Render extends Component<void, Props, void> {
 
     return (
       <div style={styles.container}>
-        <div style={styles.header}><Header icon type='Default' title='' onClose={this.props.onClose} /></div>
+        <div style={styles.header}><Header icon={true} type='Default' title='' onClose={this.props.onClose} /></div>
         {innerComponent}
       </div>
     )

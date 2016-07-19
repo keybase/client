@@ -54,7 +54,7 @@ class Render extends Component<void, Props, State> {
           <Icon {...folderIconProps(folder, styleFolderIcon)} />
           <Box className='hover-underline'>
             <Text type='Body' style={{color: 'inherit'}}>{folder.isPublic ? 'public/' : 'private/'}</Text>
-            <Usernames inline users={folder.users} type='Body' style={{color: 'inherit'}} />
+            <Usernames inline={true} users={folder.users} type='Body' style={{color: 'inherit'}} />
           </Box>
         </Box>
       ))

@@ -1,7 +1,6 @@
 // @flow
 
 import * as Constants from '../constants/search'
-import {platformToLogo16, platformToLogo32} from '../constants/search'
 import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
 import {isFollowing as isFollowing_} from './config'
@@ -11,6 +10,8 @@ import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo,
   SearchPlatforms, Reset, Waiting} from '../constants/search'
 import {apiserverGetRpc} from '../constants/types/flow-types'
 import type {TypedAsyncAction} from '../constants/types/flux'
+
+const {platformToLogo16, platformToLogo32} = Constants
 
 type RawResult = {
   score: number,
@@ -166,7 +167,7 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
         } else {
           try {
             const json = JSON.parse(results.body)
-            const isFollowing = (username: string) => isFollowing_(getState, username) // eslint-disable-line arrow-parens
+            const isFollowing = (username: string) => isFollowing_(getState, username)
             const myself = getState().config.username
             dispatch(rawResults(term, platform, json.list || [], requestTimestamp, isFollowing, myself))
           } catch (_) {

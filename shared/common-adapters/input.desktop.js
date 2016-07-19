@@ -95,7 +95,7 @@ export default class Input extends Component {
           floatingLabelFocusStyle={styles.floatingLabelFocusStyle}
           floatingLabelStyle={styles.floatingLabelStyle}
           floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
-          fullWidth
+          fullWidth={true}
           hintStyle={{...styles.hintStyle, ...(this.props.multiLine ? {textAlign: 'center'} : {top: 3, bottom: 'auto'}), ...this.props.hintStyle}}
           hintText={this.props.hintText}
           inputStyle={{...(this.props.small ? {} : {marginTop: 6}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}

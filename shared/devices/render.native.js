@@ -1,12 +1,10 @@
 /* @flow */
 import React, {Component} from 'react'
-import {View} from 'react-native'
-import {TouchableHighlight} from 'react-native'
-
+import {View, TouchableHighlight} from 'react-native'
 import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import type {IconType} from '../common-adapters/icon'
 
+import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
 
 type RevokedHeaderProps = {children?: Array<any>}
@@ -91,7 +89,7 @@ const RevokedDescription = () => (
 const RevokedDevices = ({revokedDevices}) => (
   <RevokedHeader>
     <RevokedDescription />
-    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked />)}
+    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked={true} />)}
   </RevokedHeader>
 )
 

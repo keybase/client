@@ -491,7 +491,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
           appendRouteElement((
             <PaperKey
               mapStateToProps={state => ({})}
-              onSubmit={(passphrase: string) => { response.result({passphrase, storeSecret: false}) }} // eslint-disable-line arrow-parens
+              onSubmit={(passphrase: string) => { response.result({passphrase, storeSecret: false}) }}
               onBack={() => onBack(response)}
               error={retryLabel} />))
           break

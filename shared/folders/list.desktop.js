@@ -31,7 +31,7 @@ const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onOpen, onCl
         onRekey={onRekey}
         isPublic={isPublic}
         smallMode={smallMode}
-        ignored={true} // eslint-disable-line
+        ignored={true}
       />}
     </Box>
   )

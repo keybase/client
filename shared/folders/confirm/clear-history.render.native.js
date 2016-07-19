@@ -21,7 +21,7 @@ const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
     </Box>
   )
 
-  return <Confirm theme={theme} danger header={header} body={body} submitLabel='Yes, clear history' onSubmit={onSubmit} onCancel={onCancel} />
+  return <Confirm theme={theme} danger={true} header={header} body={body} submitLabel='Yes, clear history' onSubmit={onSubmit} onCancel={onCancel} />
 }
 
 const textColorThemed = {

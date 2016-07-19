@@ -7,8 +7,8 @@ import path from 'path'
 import type {FSNotification} from '../constants/types/flow-types'
 
 type DecodedKBFSError = {
-  'title': string;
-  'body': string;
+  'title': string,
+  'body': string,
 }
 
 export function decodeKBFSError (user: string, notification: FSNotification): DecodedKBFSError {
