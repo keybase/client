@@ -22,6 +22,7 @@ type FileSystem interface {
 	MountFlags() MountFlag
 }
 
+// MountFlag is the type for Dokan mount flags.
 type MountFlag uint32
 
 // CreateData contains all the info needed to create a file.
