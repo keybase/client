@@ -3,6 +3,7 @@ import Profile from './render'
 import ConfirmOrPending from './confirm-or-pending'
 import {normal, checking, revoked, error, metaNone} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
+import {globalColors} from '../styles/style-guide'
 import {isMobile} from '../constants/platform'
 import type {Props as RenderProps} from './render'
 import type {Proof} from '../common-adapters/user-proofs'
@@ -215,17 +216,46 @@ const dumbMap: DumbComponentMap<Profile> = {
 
 const confirmBase = {
   platform: 'twitter',
+  title: 'Your proof is verified!',
+  titleColor: globalColors.green,
+  platformIcon: 'icon-twitter-logo-48',
+  platformIconOverlay: 'iconfont-proof-good',
+  platformIconOverlayColor: globalColors.green,
+  username: 'chris',
+  usernameSubtitle: '@twitter',
+  message: 'Leave your proof up so other users can identify you!',
+  onReloadProfile: () => { console.log('on reload profile') },
+}
+
+const pending = {
+  titleText: 'Your proof is pending.',
+  platformIconOverlay: 'iconfont-proof-pending',
+  platformIconOverlayColor: globalColors.grey,
+  titleColor: globalColors.blue,
 }
 
 const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
   component: ConfirmOrPending,
   mocks: {
     'Confirm Twitter': confirmBase,
+    'Confirm Reddit': {...confirmBase, platform: 'reddit'},
     'Confirm Github': {...confirmBase, platform: 'github'},
+    'Pending Hacker News': {...confirmBase, ...pending,
+      platform: 'hackernews',
+      message: 'Hacker News caches its bios, so it might be a few hours before you can verify your proof. Check back later.'},
+    'Confirm Coinbase': {...confirmBase, platform: 'coinbase'},
+    'Confirm Bitcoin': {...confirmBase, platform: 'btc', usernameSubtitle: undefined,
+      message: 'You Bitcoin address has now been signed onto your profile.', title: 'Verified'},
+    'Pending dns': {...confirmBase, ...pending,
+      platform: 'dns', usernameSubtitle: 'dns',
+      message: 'DNS proofs can take a few hours to recognize. Check back later.'},
+    'Confirm http': {...confirmBase, platform: 'genericWebSite', usernameSubtitle: 'http',
+      message: 'Leave your proof up so other users can identify you!',
+      messageSubtitle: 'Note: www.chriscoyne.com doesn\'t load over https. If you get a real SSL certificate (not self-signed) in the future, please replace this proof with a fresh one.'},
   },
 }
 
 export default {
   'Profile': dumbMap,
-  'My Profile: ConfirmOrPending': dumbConfirmOrPendingMap,
+  'My Profile: Confirm or Pending': dumbConfirmOrPendingMap,
 }
