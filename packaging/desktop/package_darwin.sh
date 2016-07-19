@@ -20,6 +20,7 @@ if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
 fi
 
 # Ensure we have packaging tools
+rm -rf "$dir/node_modules"
 npm install
 node_bin="$dir/node_modules/.bin"
 
