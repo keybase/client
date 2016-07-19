@@ -108,10 +108,7 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	}()
 
 	defer func() {
-		if canceler != nil {
-			e.G().Log.Debug("canceling DisplayAndPromptSecret call")
-			canceler()
-		}
+		canceler()
 	}()
 
 	if err := RunEngine(provisioner, ctx); err != nil {
