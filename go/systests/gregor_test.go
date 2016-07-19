@@ -15,6 +15,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/gregor"
 	gregor1 "github.com/keybase/gregor/protocol/gregor1"
 	context "golang.org/x/net/context"
 )
@@ -119,6 +120,10 @@ func TestGregorForwardToElectron(t *testing.T) {
 		t.Fatal("Gregor never came up after we signed up")
 	}
 
+	svc.SetGregorPushStateFilter(func(m gregor.Message) bool {
+		cat := m.ToInBandMessage().ToStateUpdateMessage().Creation().Category()
+		return cat.String() != "user.identity_change" && cat.String() != "user.key_change"
+	})
 	err = ncli.RegisterGregorFirehose(context.TODO())
 	check()
 
