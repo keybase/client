@@ -529,6 +529,10 @@ func (d *Service) SimulateGregorCrashForTesting() {
 	}
 }
 
+func (d *Service) SetGregorPushStateFilter(f func(m gregor.Message) bool) {
+	d.gregor.SetPushStateFilter(f)
+}
+
 // configurePath is a somewhat unfortunate hack, but as it currently stands,
 // when the keybase service is run out of launchd, its path is minimal and
 // often can't find the GPG location. We have hacks around this for CLI operation,
