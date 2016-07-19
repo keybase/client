@@ -1,6 +1,7 @@
 /* @flow */
 import Profile from './render'
 import ConfirmOrPending from './confirm-or-pending'
+import ProveEnterUsername from './prove-enter-username'
 import {normal, checking, revoked, error, metaNone} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
 import {globalColors} from '../styles/style-guide'
@@ -255,7 +256,32 @@ const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
   },
 }
 
+const proveEnterUsernameBase = {
+  username: 'chris',
+  canContinue: true,
+  onUsernameChange: username => { console.log('username change', username) },
+  onContinue: () => { console.log('continue clicked') },
+  onCancel: () => { console.log('cancel clicked') },
+  parentProps: isMobile ? {} : {style: {display: 'flex', minWidth: 640, height: 580}},
+}
+
+const dumbProveEnterUsername: DumbComponentMap<ProveEnterUsername> = {
+  component: ProveEnterUsername,
+  mocks: {
+    'Twitter': {...proveEnterUsernameBase, platform: 'twitter'},
+    'Reddit': {...proveEnterUsernameBase, platform: 'reddit'},
+    'GitHub': {...proveEnterUsernameBase, platform: 'github'},
+    'Coinbase': {...proveEnterUsernameBase, platform: 'coinbase'},
+    'Hacker News': {...proveEnterUsernameBase, platform: 'hackernews'},
+    'Bitcoin': {...proveEnterUsernameBase, platform: 'btc'},
+    'Bitcoin - Disabled': {...proveEnterUsernameBase, platform: 'btc', canContinue: false},
+    'DNS': {...proveEnterUsernameBase, platform: 'dns'},
+    'Website': {...proveEnterUsernameBase, platform: 'genericWebSite'},
+  },
+}
+
 export default {
   'Profile': dumbMap,
-  'My Profile: Confirm or Pending': dumbConfirmOrPendingMap,
+  'New Proof: Confirm or Pending': dumbConfirmOrPendingMap,
+  'New Proof: Enter Username': dumbProveEnterUsername,
 }
