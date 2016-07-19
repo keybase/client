@@ -27,7 +27,6 @@ function openInDefault (openPath: string): AsyncAction {
 
 function openInWindows (openPath: string = Constants.defaultKBFSPath): AsyncAction {
   return (dispatch, getState) => new Promise((resolve, reject) => {
-    openPath = path.resolve(openPath) // Path resolve removes any ..
     if (!openPath.startsWith(Constants.defaultKBFSPath)) {
       console.warn(`openInKBFS requires ${Constants.defaultKBFSPath} prefix: ${openPath}`)
       return
