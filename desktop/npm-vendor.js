@@ -2,7 +2,7 @@
 
 var os = require('os')
 var path = require('path')
-var fs = require('fs-extra')
+var fs = require('fs')
 var spawnSync = require('child_process').spawnSync
 
 var VENDOR_DIR = process.env.KEYBASE_JS_VENDOR_DIR || './js-vendor-desktop'
@@ -11,7 +11,7 @@ const NPM_CMD = os.platform() === 'win32' ? 'npm.cmd' : 'npm'
 function ensureSymlink (target, dest) {
   if (fs.existsSync(target)) {
     console.log('Removing existing', target)
-    fs.removeSync(target)
+    fs.unlinkSync(target)
   }
 
   var absDest = path.resolve(dest)
@@ -41,6 +41,11 @@ function updateVendored () {
     }
   }
 
+  if (!fs.existsSync(VENDOR_DIR)) {
+    console.log(`Could not find vendor dir: ${VENDOR_DIR}`)
+    process.exit(1)
+  }
+
   checkClean('./')
   checkClean(VENDOR_DIR)
 
@@ -67,7 +72,7 @@ function updateVendored () {
     // in a pristine state.
     console.log('\nCleaning up...')
     spawn('git', ['checkout', 'HEAD', '--', './npm-shrinkwrap.json'])
-    fs.removeSync('./node_shrinkwrap')
+    fs.unlinkSync('./node_shrinkwrap')
   }
 
   var vendorStatusRes = spawn('git', ['status', '--porcelain'], {cwd: VENDOR_DIR, stdio: 'pipe'})
