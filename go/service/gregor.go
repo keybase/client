@@ -102,6 +102,10 @@ type gregorHandler struct {
 	freshReplay         bool
 	transportForTesting *connTransport
 
+	// Function for determining if a new BroadcastMessage should trigger
+	// a pushState call to firehose handlers
+	pushStateFilter func(m gregor.Message) bool
+
 	shutdownCh chan struct{}
 }
 
@@ -131,8 +135,9 @@ func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
 
 func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
 	gh := &gregorHandler{
-		Contextified: libkb.NewContextified(g),
-		freshReplay:  true,
+		Contextified:    libkb.NewContextified(g),
+		freshReplay:     true,
+		pushStateFilter: func(m gregor.Message) bool { return true },
 	}
 
 	// Attempt to create a gregor client initially, if we are not logged in
@@ -209,6 +214,10 @@ func (g *gregorHandler) Warning(s string, args ...interface{}) {
 
 func (g *gregorHandler) Errorf(s string, args ...interface{}) {
 	g.G().Log.Errorf("push handler: "+s, args...)
+}
+
+func (g *gregorHandler) SetPushStateFilter(f func(m gregor.Message) bool) {
+	g.pushStateFilter = f
 }
 
 func (g *gregorHandler) Connect(uri *rpc.FMPURI) (err error) {
@@ -501,7 +510,9 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 		gcli.StateMachineConsumeMessage(m)
 
 		// Forward to electron or whichever UI is listening for the new gregor state
-		g.pushState(keybase1.PushReason_NEW_DATA)
+		if g.pushStateFilter(m) {
+			g.pushState(keybase1.PushReason_NEW_DATA)
+		}
 
 		return err
 	}
