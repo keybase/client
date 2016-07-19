@@ -174,6 +174,9 @@ func (h *RekeyHandler) recheckRekeyStatus() {
 	}
 
 	h.G().Log.Debug("recheckRekeyStatus: need to harass user, %d TLFs need help", numTLFs)
+	if err := h.gregor.RekeyReharass(ctx, psetDevices); err != nil {
+		h.G().Log.Warning("recheckRekeyStatus: reharass error: %s", err)
+	}
 }
 
 func newProblemSetDevices(u *libkb.User, pset keybase1.ProblemSet) (keybase1.ProblemSetDevices, error) {
