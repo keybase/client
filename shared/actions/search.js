@@ -4,13 +4,18 @@ import * as Constants from '../constants/search'
 import {platformToLogo16, platformToLogo32} from '../constants/search'
 import {capitalize, trim} from 'lodash'
 import {filterNull} from '../util/arrays'
-import {isFollowing as isFollowing_} from './config'
+
+import {select, put} from 'redux-saga/effects'
+import {takeLatest} from 'redux-saga'
+import {cpsWithWaiting} from '../util/saga'
 
 import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo,
   AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult,
   SearchPlatforms, Reset, Waiting} from '../constants/search'
 import {apiserverGetRpc} from '../constants/types/flow-types'
-import type {TypedAsyncAction} from '../constants/types/flux'
+import type {APIRes} from '../constants/types/flow-types'
+import type {TypedState} from '../constants/reducer'
+import type {NodeCB, SagaGenerator} from '../constants/types/sagas'
 
 type RawResult = {
   score: number,
@@ -111,71 +116,48 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: 
 }
 
 function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>,
-  requestTimestamp: Date, isFollowing: (username: string) => boolean, myself: ?string): Results {
+  isFollowing: (username: string) => boolean, myself: ?string): Results {
   const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr, isFollowing, myself)))
 
   return {
     type: Constants.results,
-    payload: {term, results, requestTimestamp},
+    payload: {term, results},
   }
 }
 
-export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAsyncAction<Search | Results | Waiting> {
-  return (dispatch, getState) => {
-    // In case platform is passed in as null
-    const platform: SearchPlatforms = maybePlatform || 'Keybase'
+export function search (term: string, platform: ?SearchPlatforms): Search {
+  return {type: Constants.search, payload: {term, platform}}
+}
 
-    dispatch({
-      type: Constants.search,
-      payload: {
-        term,
-        error: false,
-      },
-    })
-
-    if (trim(term) === '') {
-      return
-    }
-
-    const service = {
-      'Keybase': '',
-      'Twitter': 'twitter',
-      'Reddit': 'reddit',
-      'Hackernews': 'hackernews',
-      'Coinbase': 'coinbase',
-      'Github': 'github',
-      'Pgp': 'pgp',
-    }[platform]
-
-    const limit = 20
-
-    const requestTimestamp = new Date()
-    apiserverGetRpc({
-      param: {
-        endpoint: 'user/user_search',
-        args: [
-          {key: 'q', value: term},
-          {key: 'num_wanted', value: String(limit)},
-          {key: 'service', value: service},
-        ],
-      },
-      waitingHandler: isWaiting => { dispatch(waiting(isWaiting)) },
-      callback: (error, results) => {
-        if (error) {
-          console.log('Error searching. Not handling this error')
-        } else {
-          try {
-            const json = JSON.parse(results.body)
-            const isFollowing = (username: string) => isFollowing_(getState, username) // eslint-disable-line arrow-parens
-            const myself = getState().config.username
-            dispatch(rawResults(term, platform, json.list || [], requestTimestamp, isFollowing, myself))
-          } catch (_) {
-            console.log('Error searching (json). Not handling this error')
-          }
-        }
-      },
-    })
+function _search (term: string, platform: SearchPlatforms, callback: NodeCB): void {
+  if (trim(term) === '') {
+    callback('empty search query')
   }
+
+  const service = {
+    'Keybase': '',
+    'Twitter': 'twitter',
+    'Reddit': 'reddit',
+    'Hackernews': 'hackernews',
+    'Coinbase': 'coinbase',
+    'Github': 'github',
+    'Pgp': 'pgp',
+  }[platform]
+
+  const limit = 20
+
+  apiserverGetRpc({
+    param: {
+      endpoint: 'user/user_search',
+      args: [
+        {key: 'q', value: term},
+        {key: 'num_wanted', value: String(limit)},
+        {key: 'service', value: service},
+      ],
+    },
+    incomingCallMap: {},
+    callback,
+  })
 }
 
 function waiting (waiting: boolean): Waiting {
@@ -222,4 +204,28 @@ export function reset (): Reset {
     type: Constants.reset,
     payload: {},
   }
+}
+
+function * handleSearchRequest (action: Search): SagaGenerator<any, any> {
+  if (action.error) {
+    return
+  }
+
+  const {term, platform} = action.payload
+  try {
+    const results: APIRes = yield * cpsWithWaiting(waiting, _search, term, platform)
+    const json = JSON.parse(results.body)
+    const followingState = yield select((state: TypedState) => state.config.following) // eslint-disable-line arrow-parens
+
+    const myself: ?string = yield select((state: TypedState) => state.config.username) // eslint-disable-line arrow-parens
+
+    const isFollowing = (username: string) => !!followingState && !!followingState[username] // eslint-disable-line arrow-parens
+    yield put(rawResults(term, platform || 'Keybase', json.list || [], isFollowing, myself))
+  } catch (error) {
+    console.log('Error searching. Not handling this error:', error)
+  }
+}
+
+export function * searchSaga (): SagaGenerator<any, void> {
+  yield * takeLatest(Constants.search, handleSearchRequest)
 }
