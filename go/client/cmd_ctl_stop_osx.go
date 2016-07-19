@@ -63,7 +63,8 @@ func (s *CmdCtlStop) ParseArgv(ctx *cli.Context) error {
 }
 
 func ctlBrewStop(g *libkb.GlobalContext) error {
-	return launchd.Stop(install.DefaultServiceLabel(g.Env.GetRunMode()), defaultLaunchdWait, g.Log)
+	_, err := launchd.Stop(install.DefaultServiceLabel(g.Env.GetRunMode()), defaultLaunchdWait, g.Log)
+	return err
 }
 
 func ctlStop(g *libkb.GlobalContext, components map[string]bool, wait time.Duration) error {
@@ -79,17 +80,17 @@ func ctlStop(g *libkb.GlobalContext, components map[string]bool, wait time.Durat
 		}
 	}
 	if ok := components[install.ComponentNameService.String()]; ok {
-		if err := launchd.Stop(install.DefaultServiceLabel(runMode), wait, g.Log); err != nil {
+		if _, err := launchd.Stop(install.DefaultServiceLabel(runMode), wait, g.Log); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	if ok := components[install.ComponentNameKBFS.String()]; ok {
-		if err := launchd.Stop(install.DefaultKBFSLabel(runMode), wait, g.Log); err != nil {
+		if _, err := launchd.Stop(install.DefaultKBFSLabel(runMode), wait, g.Log); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	if ok := components[install.ComponentNameUpdater.String()]; ok {
-		if err := launchd.Stop(install.DefaultUpdaterLabel(runMode), wait, g.Log); err != nil {
+		if _, err := launchd.Stop(install.DefaultUpdaterLabel(runMode), wait, g.Log); err != nil {
 			errs = append(errs, err)
 		}
 	}
