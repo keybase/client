@@ -504,7 +504,7 @@ func allocCtx(slot uint32) *dokanCtx {
 }
 
 func (ctx *dokanCtx) Run(path string, flags MountFlag) error {
-	ctx.ptr.dokan_options.Options = C.ulong(flags)
+	ctx.ptr.dokan_options.Options = C.ULONG(flags)
 	if isDebug {
 		ctx.ptr.dokan_options.Options |= C.kbfsLibdokanDebug | C.kbfsLibdokanStderr
 	}
