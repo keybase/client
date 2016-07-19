@@ -22,6 +22,8 @@ type FileSystem interface {
 	MountFlags() MountFlag
 }
 
+type MountFlag uint32
+
 // CreateData contains all the info needed to create a file.
 type CreateData struct {
 	DesiredAccess     uint32

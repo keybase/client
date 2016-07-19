@@ -24,8 +24,6 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-type MountFlag uint32
-
 const (
 	CDebug         = MountFlag(C.kbfsLibdokanDebug)
 	CStderr        = MountFlag(C.kbfsLibdokanDebug)
