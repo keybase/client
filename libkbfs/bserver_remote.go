@@ -9,6 +9,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -339,12 +340,12 @@ func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID][]BlockContext, archive bool) (
 	doneRefs map[BlockID]map[BlockRefNonce]int, finalError error) {
-	tries := 0
 	doneRefs = make(map[BlockID]map[BlockRefNonce]int)
 	notDone := b.getNotDone(contexts, doneRefs)
-	var res keybase1.DowngradeReferenceRes
-	var err error
-	for len(notDone) > 0 {
+
+	throttleErr := backoff.Retry(func() error {
+		var res keybase1.DowngradeReferenceRes
+		var err error
 		if archive {
 			res, err = b.client.ArchiveReferenceWithCount(ctx, keybase1.ArchiveReferenceWithCountArg{
 				Refs:   notDone,
@@ -356,43 +357,17 @@ func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 				Folder: tlfID.String(),
 			})
 		}
-		tries++
+
+		// log errors
 		if err != nil {
-			b.log.CWarningf(ctx, "batchDowngradeReferences archive %t (tries %d) sent=%s done=%s failedRef=%s err=%v",
-				archive, tries, notDone, res.Completed, res.Failed, err)
+			b.log.CWarningf(ctx, "batchDowngradeReferences archive %t sent=%v done=%v failedRef=%v err=%v",
+				archive, notDone, res.Completed, res.Failed, err)
 		} else {
-			b.log.CDebugf(ctx, "batchDowngradeReferences archive %t (tries %d) sent=%s all succeeded",
-				archive, tries, notDone)
-		}
-		madeProgress := false
-		if err != nil {
-			//if Failed reference is not a throttle error, do not retry it
-			_, tmpErr := err.(BServerErrorThrottle)
-			if !tmpErr {
-				finalError = err
-				bid, err := BlockIDFromString(res.Failed.Bid.BlockHash)
-				if err == nil {
-					if refs, ok := contexts[bid]; ok {
-						for i := range refs {
-							if refs[i].GetRefNonce() == BlockRefNonce(res.Failed.Nonce) {
-								refs = append(refs[:i], refs[i+1:]...)
-								madeProgress = true
-								break
-							}
-						}
-					}
-				}
-				if !madeProgress {
-					// This wasn't a failure due to a particular
-					// reference, it was a complete failure (e.g., the
-					// network connection is down, or the server
-					// returned a failure for an unexpected refnonce).
-					return nil, finalError
-				}
-			}
+			b.log.CDebugf(ctx, "batchDowngradeReferences archive %t notdone=%v all succeeded",
+				archive, notDone)
 		}
 
-		//update the set of completed reference
+		// update the set of completed reference
 		for _, ref := range res.Completed {
 			bid, err := BlockIDFromString(ref.Ref.Bid.BlockHash)
 			if err != nil {
@@ -405,25 +380,39 @@ func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 			}
 			nonces[BlockRefNonce(ref.Ref.Nonce)] = ref.LiveCount
 		}
-
-		//figure out the not-yet-deleted references
-		oldNotDoneLen := len(notDone)
+		// update the list of references to downgrade
 		notDone = b.getNotDone(contexts, doneRefs)
-		if !madeProgress {
-			madeProgress = len(notDone) < oldNotDoneLen
-		}
-		if !madeProgress {
-			return doneRefs,
-				errors.New("Made no progress after a batch downgrade call")
-		}
 
 		//if context is cancelled, return immediately
 		select {
 		case <-ctx.Done():
-			return doneRefs, ctx.Err()
+			finalError = ctx.Err()
+			return nil
 		default:
 		}
 
+		// check whether to backoff and retry
+		if err != nil {
+			// if error is of type throttle, retry
+			if _, ok := err.(BServerErrorThrottle); ok {
+				return err
+			}
+			// non-throttle error, do not retry here
+			finalError = err
+		}
+		return nil
+	}, backoff.NewExponentialBackOff())
+
+	// if backoff has given up retrying, return error
+	if throttleErr != nil {
+		return doneRefs, throttleErr
+	}
+
+	if finalError == nil {
+		if len(notDone) != 0 {
+			b.log.CErrorf(ctx, "batchDowngradeReferences finished successfully with outstanding refs? all=%v done=%v notDone=%v\n", contexts, doneRefs, notDone)
+			return doneRefs, errors.New("batchDowngradeReferences inconsistent result\n")
+		}
 	}
 	return doneRefs, finalError
 }
