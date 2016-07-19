@@ -11,8 +11,18 @@ import {autoResize} from '../../desktop/renderer/remote-component-helper'
 
 import type {RenderProps} from './render'
 
-export default class Render extends Component<void, RenderProps, void> {
+type State = {
+  scrollBarWidth: number
+}
+
+export default class Render extends Component<void, RenderProps, State> {
   props: RenderProps;
+  state: State;
+
+  constructor () {
+    super()
+    this.state = {scrollBarWidth: 0}
+  }
 
   componentDidMount () {
     autoResize()
@@ -35,17 +45,32 @@ export default class Render extends Component<void, RenderProps, void> {
     // So we use the existing paddingBottom and add the height of the footer
     const footerHeight = calcFooterHeight(this.props.loggedIn)
     const calculatedPadding = styles.content.paddingBottom + footerHeight
+
     return (
       <div style={styles.container}>
         <Header
           reason={this.props.reason}
           onClose={this.props.onClose}
+          scrollBarWidth={this.state.scrollBarWidth || 0}
           trackerState={this.props.trackerState}
           currentlyFollowing={this.props.currentlyFollowing}
           lastAction={this.props.lastAction}
           loggedIn={this.props.loggedIn}
         />
         <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar, scroll-container'>
+          <div style={{flex: 1}} ref={r => {
+            // Hack to detect if we have a scroll bar, and what it's width is
+            // Note this has to be a div, otherwise we have to reach into Box's div
+            if (!r || !r.clientWidth) {
+              return
+            }
+            const containerSize = styles.container.width
+            const actualSize = r.clientWidth
+            const scrollBarWidth = containerSize - actualSize
+            if (this.state.scrollBarWidth !== scrollBarWidth) {
+              this.setState({scrollBarWidth})
+            }
+          }} />
           <UserBio type='Tracker'
             style={{marginTop: 50}}
             avatarSize={80}

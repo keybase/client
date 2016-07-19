@@ -16,6 +16,7 @@ export default class HeaderRender extends Component {
   }
 
   render () {
+    const scrollBarWidth = this.props.scrollBarWidth || 0
     let headerStyle = this.props.currentlyFollowing ? styleHeaderFollowing : styleHeaderNotFollowing
     let headerTextStyle = styleHeaderTextNormal
 
@@ -58,8 +59,8 @@ export default class HeaderRender extends Component {
 
     return (
       <div style={styleOuter}>
-        <div style={{...styleHeader, ...headerStyle}}>
-          <div style={{...styleHeader, ...headerStyle, height: 48, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColors.yellow}} />
+        <div style={{...styleHeader(scrollBarWidth), ...headerStyle}}>
+          <div style={{...styleHeader(scrollBarWidth), ...headerStyle, height: 48, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColors.yellow}} />
           <Text type='BodySemibold' lineClamp={2} style={{...styleText, ...headerTextStyle, flex: 1, zIndex: isWarning ? 2 : 'inherit'}}>{headerText}</Text>
           <Icon type='iconfont-close' style={styleClose}
             onClick={() => this.props.onClose()}
@@ -83,15 +84,16 @@ const styleOuter = {
   position: 'relative',
 }
 
-const styleHeader = {
+const styleHeader = (scrollBarWidth: number) => ({ // eslint-disable-line arrow-parens
   ...globalStyles.windowDragging,
+  ...globalStyles.flexBoxRow,
   cursor: 'default',
   position: 'absolute',
   top: 0,
-  ...globalStyles.flexBoxRow,
+  left: 0,
   height: 90,
-  width: 320,
-}
+  width: 320 - scrollBarWidth,
+})
 
 const styleHeaderNotFollowing = {
   backgroundColor: globalColors.blue,
