@@ -1710,7 +1710,8 @@ func isRecoverableBlockError(err error) bool {
 	_, isArchiveError := err.(BServerErrorBlockArchived)
 	_, isDeleteError := err.(BServerErrorBlockDeleted)
 	_, isRefError := err.(BServerErrorBlockNonExistent)
-	return isArchiveError || isDeleteError || isRefError
+	_, isMaxExceededError := err.(BServerErrorMaxRefExceeded)
+	return isArchiveError || isDeleteError || isRefError || isMaxExceededError
 }
 
 // Returns whether the given error is one that shouldn't block the
