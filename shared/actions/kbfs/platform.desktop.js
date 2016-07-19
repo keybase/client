@@ -57,7 +57,15 @@ function openInWindows (openPath: string = Constants.defaultKBFSPath): AsyncActi
         return Promise.resolve(kbfsPath + '\\')
       }).then(kbfsPath => {
         dispatch({type: Constants.changeKBFSPath, payload: {path: kbfsPath}})
-        open(path.resolve(kbfsPath, openPath))
+
+        openPath = path.resolve(kbfsPath, openPath)
+        // Check to make sure our resolved path starts with the kbfsPath
+        // i.e. (not opening a folder outside kbfs)
+        if (!openPath.startsWith(kbfsPath)) {
+          console.warn(`openInKBFS requires ${kbfsPath} prefix: ${openPath}`)
+          return
+        }
+        open(openPath)
       }).catch(e => {
         console.warn('Error in parsing kbfsPath:', e)
       })
