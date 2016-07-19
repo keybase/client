@@ -315,13 +315,14 @@ const commonFiles = (isPrivate): FilesProps => ({ // eslint-disable-line arrow-p
     {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, isPrivate)},
   ],
   recentFilesEnabled: true,
+  onClickPaperkey: device => console.log('on click paperkey ', device),
 })
 
 const commonParticipant = {
   recentFilesSection: [],
   waitingForParticipantUnlock: [
-    {name: 'throughnothing', devices: 'Tell them to turn on: Home Computer, ben\'s iPhone or Work laptop.', onClick: () => console.log('clicked throughnothing')},
-    {name: 'bob', devices: 'Tell them to turn on bob\'s Android phone', onClick: () => console.log('clicked bob')},
+    {name: 'throughnothing', devices: 'Tell them to turn on: Home Computer, ben\'s iPhone or Work laptop.'},
+    {name: 'bob', devices: 'Tell them to turn on bob\'s Android phone'},
   ],
 }
 
@@ -329,11 +330,11 @@ const commonUnlock = {
   recentFilesSection: [],
   waitingForParticipantUnlock: [],
   youCanUnlock: [
-    {name: 'Work Computer', icon: 'icon-computer-bw-32'},
-    {name: 'Home Computer', icon: 'icon-computer-bw-32'},
-    {name: 'Cecil\'s iPhone', icon: 'icon-phone-bw-48'},
-    {name: 'project green...', icon: 'icon-paper-key-32', onClickPaperkey: () => console.log('clicked on project green')},
-    {name: 'gumball sparkles...', icon: 'icon-paper-key-32', onClickPaperkey: () => console.log('clicked on gumball sparkles')},
+    {name: 'Work Computer', type: 'desktop', deviceID: '1'},
+    {name: 'Home Computer', type: 'desktop', deviceID: '2'},
+    {name: 'Cecil\'s iPhone', type: 'mobile', deviceID: '3'},
+    {name: 'project green...', type: 'backup', deviceID: '4'},
+    {name: 'gumball sparkles...', type: 'backup', deviceID: '5'},
   ],
 }
 

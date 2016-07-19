@@ -45,6 +45,14 @@ class Render extends Component<void, Props, void> {
       return this._renderComingSoon()
     }
 
+    const sharedListProps = {
+      style: this.props.listStyle,
+      smallMode: this.props.smallMode,
+      onRekey: this.props.onRekey,
+      onOpen: this.props.onOpen,
+      onClick: this.props.onClick,
+    }
+
     return (
       <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.lightGrey, paddingTop: 0, minHeight: 32}}>
         <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, minHeight: this.props.smallMode ? 32 : 64, paddingTop: this.props.smallMode ? 0 : 32}}>
@@ -53,13 +61,7 @@ class Render extends Component<void, Props, void> {
             styleContainer={itemContainerStyle}
             tabBarButton={this._makeItem(false, this.props.showingPrivate === true)}
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(true) }}>
-            <List
-              {...this.props.private}
-              style={this.props.listStyle}
-              smallMode={this.props.smallMode}
-              onRekey={this.props.onRekey}
-              onOpen={this.props.onOpen}
-              onClick={this.props.onClick} />
+            <List {...this.props.private} {...sharedListProps} isPublic={false} />
           </TabBarItem>
           <TabBarItem
             selected={!this.props.showingPrivate}
@@ -68,11 +70,9 @@ class Render extends Component<void, Props, void> {
             onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(false) }}>
             <List
               {...this.props.public}
-              style={this.props.listStyle}
-              smallMode={this.props.smallMode}
-              onRekey={this.props.onRekey}
-              onOpen={this.props.onOpen}
-              onClick={this.props.onClick} />
+              {...sharedListProps}
+              isPublic={true} // eslint-disable-line
+            />
           </TabBarItem>
         </TabBar>
       </Box>

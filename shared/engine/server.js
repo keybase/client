@@ -47,6 +47,7 @@ type Engine = any
 export default class Server {
   startMethodName: string;
   engine: Engine;
+  sessionID: ?number; // if you want to make a call with the same sessionID as this server
   endpointsFn: (params: any, end: () => void) => CallMap;
 
   constructor (engine: Engine, startMethodName: string, endMethodName: ?string, endpointMapFn: (params: any) => CallMap) {
@@ -73,15 +74,17 @@ export default class Server {
   }
 
   listen () {
-    this.engine.listenServerInit(this.startMethodName, (param, cbs) => this.init(param, cbs))
+    this.engine.listenServerInit(this.startMethodName, (param, cbs, sessionID) => this.init(param, cbs, sessionID))
   }
 
-  init (params: any, {start, end}: {start: (endpoints: CallMap) => void, end: () => void}) {
+  init (params: any, {start, end}: {start: (endpoints: CallMap) => void, end: () => void}, sessionID: number) {
+    this.sessionID = sessionID
     start(this.endpointsFn(params, end))
   }
 }
 
-export function createServer (engine: Engine, startMethodName: string, endMethodName: ?string, endpointMapFn: (params: any) => CallMap): void {
+export function createServer (engine: Engine, startMethodName: string, endMethodName: ?string, endpointMapFn: (params: any) => CallMap): Server {
   const s = new Server(engine, startMethodName, endMethodName, endpointMapFn)
   s.listen()
+  return s
 }

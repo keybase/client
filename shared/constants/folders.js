@@ -3,8 +3,8 @@
 // TODO(mm) Everytype in this file should be pure...
 
 import type {UserList} from '../common-adapters/usernames'
-import type {IconType} from '../common-adapters/icon'
 import type {Props as FileProps} from '../folders/files/file/render'
+import type {DeviceType} from '../constants/types/more'
 
 export type FileSection = {
   name: string,
@@ -15,19 +15,20 @@ export type FileSection = {
 export type ParticipantUnlock = {
   name: string,
   devices: string,
-  onClick: () => void
 }
 
-export type UnlockDevice = {
+export type Device = {
+  type: DeviceType,
   name: string,
-  icon: IconType,
-  onClickPaperkey?: () => void
+  deviceID: string,
 }
+
+export type MetaType = 'new' | 'rekey' | 'ignored' | null
 
 export type Folder = {
   users: UserList,
   path: string,
-  meta?: 'new' | 'rekey' | null,
+  meta?: MetaType,
   modified?: {
     when: string,
     username: string
@@ -38,6 +39,6 @@ export type Folder = {
   groupAvatar: boolean,
   userAvatar: ?string,
   recentFiles: Array<FileSection>, // TODO make pure
-  waitingForParticipantUnlock: Array<ParticipantUnlock>, // TODO make pure
-  youCanUnlock: Array<UnlockDevice> // TODO make pure
+  waitingForParticipantUnlock: Array<ParticipantUnlock>,
+  youCanUnlock: Array<Device>,
 }

@@ -1,7 +1,7 @@
 /* @flow */
 
 import type {TypedAction} from '../constants/types/flux'
-import type {DeviceID, Device as ServiceDevice} from '../constants/types/flow-types'
+import type {DeviceID, Device as ServiceDevice, ProblemSet} from '../constants/types/flow-types'
 import type {DeviceType} from '../constants/types/more'
 
 export type Device = {
@@ -32,7 +32,10 @@ export type Waiting = TypedAction<'unlockFolders:waiting', boolean, {}>
 export type RegisterRekeyListenerAction = TypedAction<'notifications:registerRekeyListener', any, any>
 export const registerRekeyListener = 'notifications:registerRekeyListener'
 
-export type NewRekeyPopupAction = TypedAction<'notifications:newRekeyPopup', {sessionID: number, devices: Array<ServiceDevice>}, void>
+export type NewRekeyPopupAction = TypedAction<'notifications:newRekeyPopup', {
+  sessionID: number,
+  devices: Array<ServiceDevice>,
+  problemSet: ProblemSet}, void>
 export const newRekeyPopup = 'notifications:newRekeyPopup'
 
 export type UnlockFolderActions = ToPaperKeyInput | OnBackFromPaperKey | CheckPaperKey | Finish

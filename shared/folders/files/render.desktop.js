@@ -6,6 +6,7 @@ import {globalStyles, globalColors} from '../../styles/style-guide'
 import {resolveImageAsURL} from '../../../desktop/resolve-root'
 import {intersperseFn} from '../../util/arrays'
 import type {Props} from './render'
+import type {IconType} from '../../common-adapters/icon'
 
 const Section = ({section, theme}) => (
   <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
@@ -31,7 +32,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
             key={p.name}
             type='Large' action={<Box />} icon={<Avatar size={48} username={p.name} />}
             body={<Box style={{...globalStyles.flexBoxColumn}}>
-              <Text type='Body' backgroundMode={backgroundMode} onClick={p.onClick}>{p.name}</Text>
+              <Text type='Body' backgroundMode={backgroundMode}>{p.name}</Text>
               <Text type='BodySmall' backgroundMode={backgroundMode}>{p.devices}</Text>
             </Box>} />
         )))}
@@ -40,7 +41,20 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
   )
 }
 
-const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode}) => {
+const deviceIcon: (isPrivate: boolean, type: string) => IconType = (isPrivate, type) => ({
+  'private': {
+    'backup': 'icon-paper-key-dark-blue-32',
+    'desktop': 'icon-computer-dark-blue-32',
+    'mobile': 'icon-phone-dark-blue-32',
+  },
+  'public': {
+    'backup': 'icon-paper-key-32',
+    'desktop': 'icon-computer-bw-32',
+    'mobile': 'icon-phone-bw-32',
+  },
+}[isPrivate ? 'private' : 'public'][type])
+
+const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
       <Text type='BodySmallSemibold' style={styleWarningBanner}>Until you take one of the steps below, you're at risk of losing data forever.</Text>
@@ -49,13 +63,13 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode}) => {
         youCanUnlock.map(device => (
           <ListItem
             key={device.name}
-            type='Large' action={device.onClickPaperkey
-              ? <Button label='Enter paper key' onClick={device.onClickPaperkey} type='Secondary' backgroundMode={backgroundMode} />
+            type='Large' action={device.type === 'backup'
+              ? <Button label='Enter paper key' onClick={() => onClickPaperkey(device)} type='Secondary' backgroundMode={backgroundMode} />
               : <Box />}
-            icon={<Icon type={device.icon} />}
+            icon={<Icon type={deviceIcon(isPrivate, device.type)} />}
             body={<Box style={{...globalStyles.flexBoxColumn}}>
               <Text type='Body' backgroundMode={backgroundMode}>{device.name}</Text>
-              {!device.onClickPaperkey && <Text type='BodySmall' backgroundMode={backgroundMode}>Open the Keybase app</Text>}
+              {device.type !== 'backup' && <Text type='BodySmall' backgroundMode={backgroundMode}>Open the Keybase app</Text>}
             </Box>} />
         )))}
       </Box>
@@ -64,9 +78,17 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode}) => {
 }
 
 export default class Render extends Component<void, Props, void> {
-
   _renderContents (isPrivate: boolean, ignored: boolean) {
     const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
+
+    if (this.props.youCanUnlock.length) {
+      return <YouCanUnlock youCanUnlock={this.props.youCanUnlock} isPrivate={isPrivate} backgroundMode={backgroundMode}
+        onClickPaperkey={this.props.onClickPaperkey} />
+    }
+
+    if (this.props.waitingForParticipantUnlock.length) {
+      return <ParticipantUnlock waitingForParticipantUnlock={this.props.waitingForParticipantUnlock} isPrivate={isPrivate} backgroundMode={backgroundMode} />
+    }
 
     if (!this.props.recentFilesEnabled) {
       return (
@@ -77,14 +99,6 @@ export default class Render extends Component<void, Props, void> {
           <Button key='open' type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' />
         </Box>
       )
-    }
-
-    if (this.props.youCanUnlock.length) {
-      return <YouCanUnlock youCanUnlock={this.props.youCanUnlock} isPrivate={isPrivate} backgroundMode={backgroundMode} />
-    }
-
-    if (this.props.waitingForParticipantUnlock.length) {
-      return <ParticipantUnlock waitingForParticipantUnlock={this.props.waitingForParticipantUnlock} isPrivate={isPrivate} backgroundMode={backgroundMode} />
     }
 
     if (this.props.recentFilesSection.length) {
