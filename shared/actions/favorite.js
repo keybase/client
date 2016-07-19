@@ -144,14 +144,16 @@ const jsonToFolders = (json: Object, myKID: any) => {
         } else {
           folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
             const devices = solutions[userID].map(kid => json.devices[kid].name)
+            const numDevices = devices.length
+            let last
 
-            if (devices.length > 1) {
-              devices[devices.length - 1] = `or ${devices[devices.length - 1]}`
+            if (numDevices > 1) {
+              last = devices.pop()
             }
 
             return {
               name: json.users[userID],
-              devices: `Tell them to turn on${devices.length > 1 ? ':' : ' '} ${devices.join(', ')}`,
+              devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${last ? ` or ${last}` : ''}.`,
             }
           })
         }
