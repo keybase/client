@@ -76,6 +76,7 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	provisioner := NewKex2Provisioner(e.G(), secret.Secret(), pps)
 
 	var canceler func()
+	ctx.NetContext, canceler = context.WithCancel(ctx.NetContext)
 
 	// display secret and prompt for secret from X in a goroutine:
 	go func() {
@@ -85,12 +86,10 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 			Phrase:          secret.Phrase(),
 			OtherDeviceType: provisioneeType,
 		}
-		var contxt context.Context
-		contxt, canceler = context.WithCancel(context.Background())
-		receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(contxt, arg)
+		receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(ctx.NetContext, arg)
 		if err != nil {
-			// XXX ???
 			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
+			canceler()
 		} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
 			e.G().Log.Debug("received secret, adding to provisioner")
 			var ks kex2.Secret
@@ -100,7 +99,8 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 			e.G().Log.Debug("received secret phrase, adding to provisioner")
 			ks, err := libkb.NewKex2SecretFromPhrase(receivedSecret.Phrase)
 			if err != nil {
-				e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
+				e.G().Log.Warning("NewKex2SecretFromPhrase error: %s", err)
+				canceler()
 			} else {
 				provisioner.AddSecret(ks.Secret())
 			}
@@ -114,17 +114,16 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 		}
 	}()
 
-	// run provisioner
-	if err = RunEngine(provisioner, ctx); err != nil {
+	if err := RunEngine(provisioner, ctx); err != nil {
 		if err == kex2.ErrHelloTimeout {
-			return libkb.CanceledError{M: "Failed to provision device: are you sure you typed the secret properly?"}
+			err = libkb.CanceledError{M: "Failed to provision device: are you sure you typed the secret properly?"}
 		}
 		return err
 	}
 
 	// provisioning was successful, so the user has changed:
 	e.G().NotifyRouter.HandleKeyfamilyChanged(e.G().Env.GetUID())
-	// Remove this after kbfs notification change complete
+	// TODO: Remove this after kbfs notification change complete
 	e.G().NotifyRouter.HandleUserChanged(e.G().Env.GetUID())
 
 	return nil
