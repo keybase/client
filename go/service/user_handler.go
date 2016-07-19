@@ -28,12 +28,26 @@ func newUserHandler(g *libkb.GlobalContext) *userHandler {
 func (r *userHandler) Create(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
 	switch category {
 	case "user.key_change":
-		return true, r.G().LogoutIfRevoked()
+		return true, r.keyChange()
 	case "user.identity_change":
-		return true, nil
+		return true, r.identityChange()
 	default:
 		return false, fmt.Errorf("unknown userHandler category: %q", category)
 	}
+}
+
+func (r *userHandler) keyChange() error {
+	r.G().NotifyRouter.HandleKeyfamilyChanged(r.G().Env.GetUID())
+	// TODO: remove this when KBFS handles KeyfamilyChanged
+	r.G().NotifyRouter.HandleUserChanged(r.G().Env.GetUID())
+
+	// check if this device was just revoked and if so, logout
+	return r.G().LogoutIfRevoked()
+}
+
+func (r *userHandler) identityChange() error {
+	r.G().NotifyRouter.HandleUserChanged(r.G().Env.GetUID())
+	return nil
 }
 
 func (r *userHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {
