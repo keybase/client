@@ -1,0 +1,15 @@
+// @flow
+import {Component} from 'react'
+import type {Platforms} from '../constants/types/more'
+import type {IconType} from '../common-adapters/icon'
+
+export type Props = {
+  platform: Platforms | 'btc', // bitcoin isn't a real proof
+  username: string,
+  canContinue?: boolean,
+  onUsernameChange?: (username: string) => void,
+  onContinue: (username: string) => void,
+  onCancel: () => void,
+}
+
+export default class Render extends Component<void, Props, void> {}
