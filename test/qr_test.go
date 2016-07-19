@@ -7,6 +7,7 @@
 package test
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -30,7 +31,8 @@ func TestQRLargePointerSet(t *testing.T) {
 	var busyWork []fileOp
 	iters := 100
 	for i := 0; i < iters; i++ {
-		busyWork = append(busyWork, mkfile("a", "hello"), rm("a"))
+		name := fmt.Sprintf("a%d", i)
+		busyWork = append(busyWork, mkfile(name, "hello"), rm(name))
 	}
 	// 5 unreferenced pointers per iteration -- 3 updates to the root
 	// block, one empty file written to, and one non-empty file
