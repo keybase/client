@@ -104,8 +104,8 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 
 	nctx := ctx.NetContext
 	if nctx == nil {
-		e.G().Log.Debug("no NetContext in engine.Context, using context.TODO")
-		nctx = context.TODO()
+		e.G().Log.Debug("no NetContext in engine.Context, using context.Background()")
+		nctx = context.Background()
 	}
 
 	// all set:  start provisioner
