@@ -818,7 +818,12 @@ func OSVersion() (semver.Version, error) {
 	if err != nil {
 		return semver.Version{}, err
 	}
-	return semver.Make(strings.TrimSpace(string(out)))
+	swver := strings.TrimSpace(string(out))
+	// The version might not be semver compliant for beta macOS (e.g. "10.12")
+	if strings.Count(swver, ".") == 1 {
+		swver = swver + ".0"
+	}
+	return semver.Make(swver)
 }
 
 // RunAfterStartup runs after service startup
