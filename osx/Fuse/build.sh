@@ -11,9 +11,8 @@ version=${VERSION:?"Need to set VERSION for Fuse"}
 rm -rf osxfuse
 git clone --recursive -b osxfuse-$version git://github.com/osxfuse/osxfuse.git osxfuse
 
-# Rename osxfuse to kbfuse
-# Run multiple times to workaround dir renames (TODO: Fix hack)
-./rename.sh || ./rename.sh || ./rename.sh || ./rename.sh
+# Patch osxfuse to turn it into kbfuse
+./patch.sh
 
 # Compile
 rm -rf /tmp/kbfuse*
