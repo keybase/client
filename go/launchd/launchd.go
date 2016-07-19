@@ -16,6 +16,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -93,17 +94,22 @@ func (s Service) Start(wait time.Duration) error {
 	// We start using load -w on plist file
 	output, err := exec.Command("/bin/launchctl", "load", "-w", plistDest).CombinedOutput()
 	s.log.Debug("Output (launchctl load): %s", string(output))
+	if err != nil {
+		return err
+	}
 
 	if wait > 0 {
 		status, waitErr := s.WaitForStatus(wait, 500*time.Millisecond)
 		if waitErr != nil {
 			return waitErr
 		}
-		if status != nil {
-			s.log.Debug("Service status: %#v", status)
+		if status == nil {
+			return fmt.Errorf("%s is not running", s.label)
 		}
+		s.log.Debug("Service status: %#v", status)
 	}
-	return err
+
+	return nil
 }
 
 // HasPlist returns true if service has plist installed
@@ -115,23 +121,42 @@ func (s Service) HasPlist() bool {
 	return false
 }
 
+func exitStatus(err error) int {
+	if exitErr, ok := err.(*exec.ExitError); ok {
+		if status, ok := exitErr.Sys().(syscall.WaitStatus); ok {
+			return status.ExitStatus()
+		}
+	}
+	return 0
+}
+
 // Stop a service.
-func (s Service) Stop(wait time.Duration) error {
+// Returns true, nil on successful stop.
+// If false, nil is returned it means there was nothing to stop.
+func (s Service) Stop(wait time.Duration) (bool, error) {
 	s.log.Info("Stopping %s", s.label)
 	// We stop by removing the job. This works for non-demand and demand jobs.
 	output, err := exec.Command("/bin/launchctl", "remove", s.label).CombinedOutput()
 	s.log.Debug("Output (launchctl remove): %s", string(output))
+	if err != nil {
+		exitStatus := exitStatus(err)
+		// Exit status 3 on remove means there was no job to remove
+		if exitStatus == 3 {
+			s.log.Debug("Nothing to stop (%s)", s.label)
+			return false, nil
+		}
+		return false, fmt.Errorf("Error removing via launchctl: %s", err)
+	}
 	if wait > 0 {
 		// The docs say launchd ExitTimeOut defaults to 20 seconds, but in practice
 		// it seems more like 5 seconds before it resorts to a SIGKILL.
 		// Because of the SIGKILL fallback we can use a large timeout here of 25
 		// seconds, which we'll likely never reach unless the process is zombied.
-		err = s.WaitForExit(wait)
-		if err != nil {
-			return err
+		if waitErr := s.WaitForExit(wait); waitErr != nil {
+			return false, waitErr
 		}
 	}
-	return err
+	return true, nil
 }
 
 // Restart a service.
@@ -200,6 +225,7 @@ func (s Service) install(p Plist, plistDest string, wait time.Duration) error {
 	}
 	plist := p.plistXML()
 
+	// Plist directory (~/Library/LaunchAgents/) might not exist on clean OS installs
 	// See GH issue: https://github.com/keybase/client/pull/1399#issuecomment-164810645
 	if err := libkb.MakeParentDirs(plistDest); err != nil {
 		return err
@@ -216,7 +242,7 @@ func (s Service) install(p Plist, plistDest string, wait time.Duration) error {
 
 // Uninstall will uninstall the launchd service
 func (s Service) Uninstall(wait time.Duration) error {
-	if err := s.Stop(wait); err != nil {
+	if _, err := s.Stop(wait); err != nil {
 		return err
 	}
 
@@ -293,6 +319,11 @@ func (s ServiceStatus) Description() string {
 // IsRunning is true if the service is running (with a pid)
 func (s ServiceStatus) IsRunning() bool {
 	return s.pid != ""
+}
+
+// IsErrored is true if the service errored trying to start
+func (s ServiceStatus) IsErrored() bool {
+	return s.lastExitStatus != ""
 }
 
 // StatusDescription returns the service status description
@@ -373,8 +404,10 @@ func Start(label string, wait time.Duration, log Log) error {
 	return service.Start(wait)
 }
 
-// Stop will stop a service
-func Stop(label string, wait time.Duration, log Log) error {
+// Stop a service.
+// Returns true, nil on successful stop.
+// If false, nil is returned it means there was nothing to stop.
+func Stop(label string, wait time.Duration, log Log) (bool, error) {
 	service := NewService(label)
 	service.SetLogger(log)
 	return service.Stop(wait)
@@ -400,8 +433,7 @@ func ShowStatus(label string, log Log) error {
 func Restart(label string, wait time.Duration, log Log) error {
 	service := NewService(label)
 	service.SetLogger(log)
-	err := service.Stop(wait)
-	if err != nil {
+	if _, err := service.Stop(wait); err != nil {
 		return err
 	}
 	return service.Start(wait)

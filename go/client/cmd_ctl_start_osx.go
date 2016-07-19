@@ -56,7 +56,7 @@ func (s *cmdCtlStart) ParseArgv(ctx *cli.Context) error {
 }
 
 func ctlBrewStart(g *libkb.GlobalContext) error {
-	return StartLaunchdService(g, install.DefaultServiceLabel(g.Env.GetRunMode()), g.Env.GetServiceInfoPath(), true)
+	return startLaunchdService(g, install.DefaultServiceLabel(g.Env.GetRunMode()), g.Env.GetServiceInfoPath(), true)
 }
 
 func ctlStart(g *libkb.GlobalContext, components map[string]bool) error {
@@ -67,23 +67,27 @@ func ctlStart(g *libkb.GlobalContext, components map[string]bool) error {
 	g.Log.Debug("Components: %v", components)
 	errs := []error{}
 	if ok := components[install.ComponentNameService.String()]; ok {
-		if err := StartLaunchdService(g, install.DefaultServiceLabel(runMode), g.Env.GetServiceInfoPath(), true); err != nil {
+		if err := startLaunchdService(g, install.DefaultServiceLabel(runMode), g.Env.GetServiceInfoPath(), true); err != nil {
 			errs = append(errs, err)
+			g.Log.Errorf("%s", err)
 		}
 	}
 	if ok := components[install.ComponentNameKBFS.String()]; ok {
-		if err := StartLaunchdService(g, install.DefaultKBFSLabel(runMode), g.Env.GetKBFSInfoPath(), true); err != nil {
+		if err := startLaunchdService(g, install.DefaultKBFSLabel(runMode), g.Env.GetKBFSInfoPath(), true); err != nil {
 			errs = append(errs, err)
+			g.Log.Errorf("%s", err)
 		}
 	}
 	if ok := components[install.ComponentNameUpdater.String()]; ok {
 		if err := launchd.Start(install.DefaultUpdaterLabel(runMode), defaultLaunchdWait, g.Log); err != nil {
 			errs = append(errs, err)
+			g.Log.Errorf("%s", err)
 		}
 	}
 	if ok := components[install.ComponentNameApp.String()]; ok {
 		if err := install.RunApp(g, g.Log); err != nil {
 			errs = append(errs, err)
+			g.Log.Errorf("%s", err)
 		}
 	}
 	return libkb.CombineErrors(errs...)
