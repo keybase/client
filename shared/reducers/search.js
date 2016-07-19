@@ -21,7 +21,7 @@ export type State = {
 }
 
 const searchHintText = (searchPlatform: SearchPlatforms, selectedUsers: Array<SearchResult>): string => (
-  `${selectedUsers.length ? 'Add' : 'Search for'} a ${searchPlatform} user`
+  `${selectedUsers.length ? `Add a ${searchPlatform} user` : `Search ${searchPlatform}`}`
 )
 
 const showUserGroup = (searchText: ?string, selectedUsers: Array<SearchResult>): boolean => (
@@ -90,7 +90,7 @@ export default function (state: State = initialState, action: SearchActions): St
           selectedUsers,
           showUserGroup: showUserGroup(null, selectedUsers),
           userForInfoPane: maybeUpgradedUser,
-          searchHintText: searchHintText(state.searchPlatform, state.selectedUsers),
+          searchHintText: searchHintText(state.searchPlatform, selectedUsers),
           results: [],
           searchText: null,
         }
