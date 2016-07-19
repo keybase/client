@@ -10,12 +10,12 @@
     "watch": "npm run sync && cd ../shared && watchman-make -p '**' --make 'cd ../react-native && npm run sync && cd ../shared' -t all",
     "sync": "rsync -avhW --delete --exclude='*.desktop.js' ../shared/ ./shared/",
     "wrap": "rm -rf node_modules/net && npm shrinkwrap --dev",
-    "postinstall": "npm run sync; mkdir -p node_modules/net; echo 'exports = {}' > node_modules/net/index.js; echo '{\"main\": \"index.js\"}' > node_modules/net/package.json"
+    "postinstall": "npm run sync; node make-shim net ; node make-shim tls ; node make-shim msgpack"
   },
   "dependencies": {
     "buffer": "4.7.1",
     "deep-diff": "0.3.4",
-    "framed-msgpack-rpc": "git://github.com/keybase/node-framed-msgpack-rpc#3da13a39e63aaa97a36b0e88fada60b974393a20",
+    "framed-msgpack-rpc": "git://github.com/keybase/node-framed-msgpack-rpc#e3c96a2ebb8350836f5bae9710b89d04fb1fc87a",
     "getenv": "0.6.0",
     "iced-runtime": "1.0.3",
     "immutable": "3.8.1",
