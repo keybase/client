@@ -18,6 +18,8 @@ type FileSystem interface {
 
 	GetVolumeInformation() (VolumeInformation, error)
 	Mounted() error
+
+	MountFlags() MountFlag
 }
 
 // CreateData contains all the info needed to create a file.

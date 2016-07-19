@@ -47,7 +47,11 @@ BOOL kbfsLibdokan_RemoveMountPoint(LPCWSTR MountPoint);
 HANDLE kbfsLibdokan_OpenRequestorToken(PDOKAN_FILE_INFO DokanFileInfo);
 
 enum {
-  kbfsLibdokanDebug = DOKAN_OPTION_DEBUG|DOKAN_OPTION_STDERR,
+  kbfsLibdokanDebug = DOKAN_OPTION_DEBUG,
+  kbfsLibdokanStderr = DOKAN_OPTION_STDERR,
+  kbfsLibdokanRemovable = DOKAN_OPTION_REMOVABLE,
+  kbfsLibdokanMountManager = DOKAN_OPTION_MOUNT_MANAGER,
+  kbfsLibdokanCurrentSession = DOKAN_OPTION_CURRENT_SESSION,
 };
 
 #endif /* windows check */

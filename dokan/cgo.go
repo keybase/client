@@ -24,6 +24,16 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+type MountFlag uint32
+
+const (
+	CDebug         = MountFlag(C.kbfsLibdokanDebug)
+	CStderr        = MountFlag(C.kbfsLibdokanDebug)
+	Removable      = MountFlag(C.kbfsLibdokanRemovable)
+	MountManager   = MountFlag(C.kbfsLibdokanMountManager)
+	CurrentSession = MountFlag(C.kbfsLibdokanCurrentSession)
+)
+
 // LoadDokanDLL can be called to init the system with custom Dokan location,
 // e.g. LoadDokanDLL(`C:\mypath\dokan1.dll`).
 func LoadDokanDLL(fullpath string) error {
@@ -493,9 +503,10 @@ func allocCtx(slot uint32) *dokanCtx {
 	return &dokanCtx{C.kbfsLibdokanAllocCtx(C.ULONG64(slot)), slot}
 }
 
-func (ctx *dokanCtx) Run(path string) error {
+func (ctx *dokanCtx) Run(path string, flags MountFlag) error {
+	ctx.ptr.dokan_options.Options = C.ulong(flags)
 	if isDebug {
-		ctx.ptr.dokan_options.Options |= C.kbfsLibdokanDebug
+		ctx.ptr.dokan_options.Options |= C.kbfsLibdokanDebug | C.kbfsLibdokanStderr
 	}
 	C.kbfsLibdokanSet_path(ctx.ptr, stringToUtf16Ptr(path))
 	ec := C.kbfsLibdokanRun(ctx.ptr)
@@ -606,6 +617,7 @@ func stringToUtf16Buffer(s string, ptr C.LPWSTR, blenUcs2 C.DWORD) bool {
 	src := utf16.Encode([]rune(s))
 	tgt := ptrUcs2Slice(C.LPCWSTR(unsafe.Pointer(ptr)), int(blenUcs2))
 	if len(src)+1 >= len(tgt) {
+		tgt[0] = 0
 		return false
 	}
 	copy(tgt, src)

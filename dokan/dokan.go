@@ -19,10 +19,11 @@ type MountHandle struct {
 func Mount(fs FileSystem, path string) (*MountHandle, error) {
 	var ec = make(chan error, 2)
 	var slot = fsTableStore(fs, ec)
+	flags := fs.MountFlags()
 	go func() {
 		ctx := allocCtx(slot)
 		defer ctx.Free()
-		ec <- ctx.Run(path)
+		ec <- ctx.Run(path, flags)
 		close(ec)
 	}()
 	// This gets a send from either
