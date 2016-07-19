@@ -127,6 +127,9 @@ func (h *RekeyHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (ke
 	return outcome, err
 }
 
+// recheckRekeyStatusPeriodic checks the recheckDeadline every hour.
+// If it is set and the current time is after the deadline, then
+// it will recheck the rekey status for this user.
 func (h *RekeyHandler) recheckRekeyStatusPeriodic() {
 	h.G().Log.Debug("starting recheck rekey status loop")
 	ticker := time.NewTicker(1 * time.Hour)
@@ -137,26 +140,49 @@ func (h *RekeyHandler) recheckRekeyStatusPeriodic() {
 	})
 	go func() {
 		for {
+			// this fires every hour
 			<-ticker.C
-			h.recheckMu.Lock()
-			if h.recheckDeadline.IsZero() {
-				h.recheckMu.Unlock()
-				continue
-			}
-			if time.Now().Before(h.recheckDeadline) {
-				h.recheckMu.Unlock()
-				continue
-			}
-			h.recheckMu.Unlock()
-			h.G().Log.Debug("rechecking rekey status")
 
+			// continue if not at recheck deadline (or there
+			// isn't a deadline set)
+			if !h.atRecheckDeadline() {
+				continue
+			}
+
+			// recheck rekey status
+			h.G().Log.Debug("rechecking rekey status")
 			h.recheckRekeyStatus()
 
-			h.recheckMu.Lock()
-			h.recheckDeadline = time.Time{}
-			h.recheckMu.Unlock()
+			// clear the deadline
+			h.clearRecheckDeadline()
 		}
 	}()
+}
+
+// atRecheckDeadline returns true if the current time is after
+// recheckDeadline.  If recheckDeadline isn't set, it returns
+// false.
+func (h *RekeyHandler) atRecheckDeadline() bool {
+	h.recheckMu.Lock()
+	defer h.recheckMu.Unlock()
+
+	if h.recheckDeadline.IsZero() {
+		return false
+	}
+
+	if time.Now().Before(h.recheckDeadline) {
+		return false
+	}
+
+	return true
+}
+
+// clearRecheckDeadline sets the recheck deadline to zero.
+func (h *RekeyHandler) clearRecheckDeadline() {
+	h.recheckMu.Lock()
+	defer h.recheckMu.Unlock()
+
+	h.recheckDeadline = time.Time{}
 }
 
 func (h *RekeyHandler) recheckRekeyStatus() {
