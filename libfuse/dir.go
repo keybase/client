@@ -426,21 +426,21 @@ func openSpecialInFolder(name string, folder *Folder, resp *fuse.LookupResponse)
 
 	case libfs.EnableJournalFileName:
 		child := &JournalControlFile{
-			folder: d.folder,
+			folder: folder,
 			action: libfs.JournalEnable,
 		}
 		return child
 
 	case libfs.FlushJournalFileName:
 		child := &JournalControlFile{
-			folder: d.folder,
+			folder: folder,
 			action: libfs.JournalFlush,
 		}
 		return child
 
 	case libfs.DisableJournalFileName:
 		child := &JournalControlFile{
-			folder: d.folder,
+			folder: folder,
 			action: libfs.JournalDisable,
 		}
 		return child
