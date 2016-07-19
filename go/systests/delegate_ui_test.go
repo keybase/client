@@ -199,7 +199,6 @@ func TestDelegateUI(t *testing.T) {
 
 	// Wait for the server to start up
 	<-startCh
-
 	dui := newDelegateUI()
 
 	launchDelegateUI := func(dui *delegateUI) error {
@@ -227,7 +226,7 @@ func TestDelegateUI(t *testing.T) {
 	id.SetUser("t_alice")
 	id.UseDelegateUI()
 	if err := id.Run(); err != nil {
-		t.Errorf("Error in Run: %v", err)
+		t.Fatalf("Error in Run: %v", err)
 	}
 
 	// We should get either a 'done' or an 'error' from the delegateUI.
