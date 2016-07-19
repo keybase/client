@@ -1,32 +1,27 @@
-import React, {Component} from 'react'
-import {Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback} from 'react-native'
-
-import {connect} from 'react-redux'
-import MetaNavigator from './router/meta-navigator'
-import globalRoutes from './router/global-routes'
-import TabBar from './tab-bar/index.render.native'
-
 import Devices from './devices'
+import DumbSheet from './dev/dumb-sheet'
 import Folders from './folders'
+import ListenLogUi from './native/listen-log-ui'
+import Login from './login'
+import MetaNavigator from './router/meta-navigator'
 import NoTab from './no-tab'
+import Profile from './profile'
+import React, {Component} from 'react'
 import Search from './search'
 import Settings from './settings'
-import Profile from './profile'
-import Login from './login'
-import {mapValues} from 'lodash'
-
-import DumbSheet from './dev/dumb-sheet'
-
-import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab, prettify} from './constants/tabs'
-
-import {switchTab} from './actions/tabbed-router'
-import {navigateBack} from './actions/router'
-import {bootstrap} from './actions/config'
-import ListenLogUi from './native/listen-log-ui'
-import {listenForNotifications} from './actions/notifications'
-import hello from './util/hello'
-
+import TabBar from './tab-bar/index.render.native'
+import flags from './util/feature-flags'
 import forwardLogs from './native/forward-logs'
+import globalRoutes from './router/global-routes'
+import hello from './util/hello'
+import {Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback} from 'react-native'
+import {bootstrap} from './actions/config'
+import {connect} from 'react-redux'
+import {listenForNotifications} from './actions/notifications'
+import {mapValues} from 'lodash'
+import {navigateBack} from './actions/router'
+import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab, prettify} from './constants/tabs'
+import {switchTab} from './actions/tabbed-router'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
@@ -230,7 +225,7 @@ export default connect(
       provisioned: extendedConfig && !!extendedConfig.device,
       username,
       dumbFullscreen,
-      folderBadge: publicBadge + privateBadge,
+      folderBadge: flags.tabFoldersEnabled ? privateBadge + publicBadge : 0,
     }),
   dispatch => {
     return {

@@ -1,36 +1,28 @@
-import React, {Component} from 'react'
-import {View, Navigator, Text, TouchableOpacity, StyleSheet} from 'react-native'
-
-import {mapValues} from 'lodash'
-
-import TabBar from './tab-bar/index.render.native'
-
-import {connect} from 'react-redux'
-
-import MetaNavigator from './router/meta-navigator'
-import globalRoutes from './router/global-routes'
-
 import Devices from './devices'
+import DumbSheet from './dev/dumb-sheet'
 import Folders from './folders'
+import ListenLogUi from './native/listen-log-ui'
+import Login from './login'
+import MetaNavigator from './router/meta-navigator'
 import NoTab from './no-tab'
+import Profile from './profile'
+import React, {Component} from 'react'
 import Search from './search'
 import Settings from './settings'
-import Profile from './profile'
-import Login from './login'
-
-import {switchTab} from './actions/tabbed-router'
-import {navigateTo, navigateUp} from './actions/router'
-import {bootstrap} from './actions/config'
-
-import {navBarHeight, tabBarHeight} from './styles/style-guide'
-
-import DumbSheet from './dev/dumb-sheet'
-
-import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
-import type {VisibleTab} from './constants/tabs' // eslint-disable-line
-import ListenLogUi from './native/listen-log-ui'
-import {listenForNotifications} from './actions/notifications'
+import TabBar from './tab-bar/index.render.native'
+import flags from './util/feature-flags'
+import globalRoutes from './router/global-routes'
 import hello from './util/hello'
+import type {VisibleTab} from './constants/tabs'
+import {View, Navigator, Text, TouchableOpacity, StyleSheet} from 'react-native'
+import {bootstrap} from './actions/config'
+import {connect} from 'react-redux'
+import {listenForNotifications} from './actions/notifications'
+import {mapValues} from 'lodash'
+import {navBarHeight, tabBarHeight} from './styles/style-guide'
+import {navigateTo, navigateUp} from './actions/router'
+import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
+import {switchTab} from './actions/tabbed-router'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
@@ -198,7 +190,7 @@ export default connect(
     provisioned: extendedConfig && !!extendedConfig.device,
     username,
     dumbFullscreen,
-    folderBadge: privateBadge + publicBadge,
+    folderBadge: flags.tabFoldersEnabled ? privateBadge + publicBadge : 0,
   }),
   dispatch => {
     return {
