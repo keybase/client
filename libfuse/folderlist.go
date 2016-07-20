@@ -83,8 +83,8 @@ func (fl *FolderList) addToFavorite(ctx context.Context, h *libkbfs.TlfHandle) (
 
 	// `rmdir` command on macOS does a lookup after removing the dir. if the
 	// TLF is recently removed, it's likely that this lookup is issued by the
-	// `rmdir` command, and the lookup should indicate the dir does not exist
-	// and not add the dir to favorites.
+	// `rmdir` command, and the lookup should not result in adding the dir to
+	// favorites.
 	if !fl.isRecentlyRemoved(cName) {
 		fl.fs.log.CDebugf(ctx, "adding %s to favorites", cName)
 		fl.fs.config.KBFSOps().AddFavorite(ctx, h.ToFavorite())
@@ -110,36 +110,20 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return specialNode, nil
 	}
 
+	if child, ok := fl.folders[req.Name]; ok {
+		return child, nil
+	}
+
 	// Shortcut for dreaded extraneous OSX finder lookups
 	if strings.HasPrefix(req.Name, "._") {
 		return nil, fuse.ENOENT
 	}
 
-	h, errParseTlfHandle := libkbfs.ParseTlfHandle(
+	h, err := libkbfs.ParseTlfHandle(
 		ctx, fl.fs.config.KBPKI(), req.Name, fl.public)
-
-	if child, ok := fl.folders[req.Name]; ok {
-		if errParseTlfHandle == nil {
-			// If a TLF is accessed (i.e. added to favorites), then removed (i.e.
-			// removed from favorites), then accessed again, it would still be cached
-			// in fl.folders. This `addToFavorite` call makes sure that in this case
-			// the TLF is re-added to favorites before returning it from
-			// `fl.folders`.
-			if err = fl.addToFavorite(ctx, h); err != nil {
-				return nil, err
-			}
-		}
-		return child, nil
-	}
-
-	switch err := errParseTlfHandle.(type) {
+	switch err := err.(type) {
 	case nil:
-		// when a lookup happens (e.g. `mkdir` does a lookup before trying to
-		// make the directory), if the lookup is the canonical name of a TLF, the
-		// corresponding TLF is added to favorites.
-		if err = fl.addToFavorite(ctx, h); err != nil {
-			return nil, err
-		}
+		// no error
 
 	case libkbfs.TlfNameNotCanonical:
 
@@ -236,9 +220,6 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 				tlf.clearStoredDir()
 			}
 		}()
-
-		cName := h.GetCanonicalName()
-		fl.addToRecentlyRemoved(cName)
 
 		// TODO how to handle closing down the folderbranchops
 		// object? Open files may still exist long after removing

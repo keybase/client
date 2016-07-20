@@ -93,20 +93,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 		fl.mu.Unlock()
 
-		h, errParseTlfHandle := libkbfs.ParseTlfHandle(
-			ctx, fl.fs.config.KBPKI(), name, fl.public)
-
 		if ok {
-			if errParseTlfHandle == nil {
-				// If a TLF is accessed (i.e. added to favorites), then removed (i.e.
-				// removed from favorites), then accessed again, it would still be cached
-				// in fl.folders. This `addToFavorite` call makes sure that in this case
-				// the TLF is re-added to favorites before returning it from
-				// `fl.folders`.
-				if err = fl.addToFavorite(ctx, h); err != nil {
-					return nil, false, err
-				}
-			}
 			fl.fs.log.CDebugf(ctx, "FL Lookup recursing to child %q", name)
 			return child.open(ctx, oc, path[1:])
 		}
@@ -130,14 +117,12 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			continue
 		}
 
+		h, err := libkbfs.ParseTlfHandle(
+			ctx, fl.fs.config.KBPKI(), name, fl.public)
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing -> %v,%v", h, err)
-		switch err := errParseTlfHandle.(type) {
+		switch err := err.(type) {
 		case nil:
-			// if the lookup is the canonical name of a TLF, the corresponding TLF is
-			// added to favorites.
-			if err = fl.addToFavorite(ctx, h); err != nil {
-				return nil, false, err
-			}
+			// no error
 
 		case libkbfs.TlfNameNotCanonical:
 			// Only permit Aliases to targets that contain no errors.

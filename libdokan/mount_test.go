@@ -441,41 +441,6 @@ func TestMountAgain(t *testing.T) {
 	}()
 }
 
-func TestMkdirTLF(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "janedoe")
-	defer libkbfs.CheckConfigAndShutdown(t, config)
-	mnt, _, cancelFn := makeFS(t, config)
-	defer mnt.Close()
-	defer cancelFn()
-	checkDir(t, filepath.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
-		"jdoe": nil,
-	})
-	p := filepath.Join(mnt.Dir, PrivateName, "janedoe,jdoe")
-
-	if err := os.MkdirAll(p, 0755); err != nil {
-		t.Fatalf("error creating directory %s: %s", p, err.Error())
-	}
-	checkDir(t, filepath.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
-		"jdoe":         nil,
-		"janedoe,jdoe": nil,
-	})
-
-	if err := os.Remove(p); err != nil {
-		t.Fatalf("error removing directory %s: %s", p, err.Error())
-	}
-	checkDir(t, filepath.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
-		"jdoe": nil,
-	})
-
-	if err := os.MkdirAll(p, 0755); err != nil {
-		t.Fatalf("error creating directory %s: %s", p, err.Error())
-	}
-	checkDir(t, filepath.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
-		"jdoe":         nil,
-		"janedoe,jdoe": nil,
-	})
-}
-
 func TestMkdir(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)
