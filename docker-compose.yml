@@ -1,0 +1,39 @@
+version: '2'
+services:
+    mysql.local:
+        image: keybaseprivate/mysql
+        restart: unless-stopped
+        environment:
+            - MYSQL_ROOT_PASSWORD=secret
+            - MYSQL_DATABASES=gregor
+        ports:
+            - "3306"
+        command: ["--innodb_print_all_deadlocks=1"]
+    kbweb.local:
+        image: keybaseprivate/kbweb
+        ports:
+            - "3000:3000"
+            - "13009"
+            # TODO: remove
+            - "9911:9911"
+        links:
+            - mysql.local
+            - gregor.local
+        environment:
+            - KEYBASE_RUN_MODE=devel
+              # - KEYBASE_NO_GREGORD_LAUNCH=true
+              # - KEYBASE_GREGORD_HOSTNAME=gregor.local
+            - MYSQL_HOST=mysql.local
+              # - KEYBASE_KBFSTLFD_TLS_HOSTNAME=kbweb.local
+    gregor.local:
+        image: keybaseprivate/kbgregor
+        ports:
+            - "9911"
+            # - "9911:9911"
+        restart: unless-stopped
+        links:
+            - mysql.local
+        environment:
+            - GREGOR_BIND_ADDRESS=0.0.0.0:9911
+            - GREGOR_AUTH_SERVER=fmprpc://kbweb.local:13009
+            - MYSQL_DSN=root:secret@tcp(mysql.local:3306)/gregor
