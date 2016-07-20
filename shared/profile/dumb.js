@@ -3,10 +3,12 @@ import Profile from './render'
 import ConfirmOrPending from './confirm-or-pending'
 import ProveEnterUsername from './prove-enter-username'
 import EditAvatar from './edit-avatar'
+import Revoke from './revoke'
 import {normal, checking, revoked, error, metaNone} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
 import {globalColors} from '../styles/style-guide'
 import {isMobile} from '../constants/platform'
+
 import type {Props as RenderProps} from './render'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {UserInfo} from '../common-adapters/user-bio'
@@ -295,9 +297,31 @@ const dumbEditAvatar: DumbComponentMap<EditAvatar> = {
   },
 }
 
+const revokeBase = {
+  platform: 'twitter',
+  username: 'chris',
+  onCancel: () => console.log('clicked Cancel'),
+  onRevoke: () => console.log('clicked Revoke'),
+}
+
+const dumbRevoke: DumbComponentMap<Revoke> = {
+  component: Revoke,
+  mocks: {
+    'Twitter': {...revokeBase, platformHandle: 'malgorithms', platform: 'twitter'},
+    'Reddit': {...revokeBase, platformHandle: 'malgorithms', platform: 'reddit'},
+    'GitHub': {...revokeBase, platformHandle: 'malgorithms', platform: 'github'},
+    'Coinbase': {...revokeBase, platformHandle: 'malgorithms', platform: 'coinbase'},
+    'Hacker News': {...revokeBase, platformHandle: 'malgorithms', platform: 'hackernews'},
+    'Bitcoin': {...revokeBase, platformHandle: '1BjgMvwVkpmmJ5HFGZ3L3H1G6fcKLNGT5h', platform: 'btc'},
+    'DNS': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'dns'},
+    'Website': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'genericWebSite'},
+  },
+}
+
 export default {
   'Profile': dumbMap,
   'Edit Avatar': dumbEditAvatar,
+  'Revoke Proof': dumbRevoke,
   'New Proof: Confirm or Pending': dumbConfirmOrPendingMap,
   'New Proof: Enter Username': dumbProveEnterUsername,
 }

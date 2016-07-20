@@ -1,19 +1,14 @@
-/* @flow */
+// @flow
+
 import {Component} from 'react'
 import type {Platforms} from '../constants/types/more'
 import type {IconType} from '../common-adapters/icon'
 
 export type Props = {
   platform: Platforms | 'btc', // bitcoin isn't a real proof
-  title: string,
-  titleColor: string,
-  platformIconOverlay: IconType,
-  platformIconOverlayColor: string,
-  username: string,
-  usernameSubtitle?: string,
-  message: string,
-  messageSubtitle?: string,
-  onReloadProfile: () => void,
+  platformHandle: string,
+  onCancel: () => void,
+  onRevoke: () => void,
 }
 
 export default class Render extends Component<void, Props, void> {
