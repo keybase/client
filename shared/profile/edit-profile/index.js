@@ -18,14 +18,6 @@ class EditProfile extends Component<void, Props, State> {
   props: Props;
   state: State;
 
-  constructor (props: Props) {
-    super(props)
-    this.state = {
-      bio: this.props.bio,
-      fullname: this.props.fullname,
-      location: this.props.location,
-    }
-  }
   static parseRoute (currentPath, uri) {
     return {
       componentAtTop: {
@@ -33,6 +25,15 @@ class EditProfile extends Component<void, Props, State> {
         props: {},
       },
       subRoutes: {},
+    }
+  }
+
+  constructor (props: Props) {
+    super(props)
+    this.state = {
+      bio: this.props.bio,
+      fullname: this.props.fullname,
+      location: this.props.location,
     }
   }
 
