@@ -181,6 +181,8 @@ export function selector (): (store: Object) => Object {
       config: {
         username: store.config.username,
         loggedIn: store.config.loggedIn,
+        kbfsPath: store.config.kbfsPath,
+        extendedConfig: store.config.extendedConfig,
       },
       favorite: store.favorite,
     }
