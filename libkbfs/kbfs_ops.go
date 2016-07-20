@@ -94,8 +94,10 @@ func (fs *KBFSOpsStandard) markForReIdentifyIfNeeded(now time.Time, maxValid tim
 // been launched by KBFSOpsStandard.
 func (fs *KBFSOpsStandard) Shutdown() error {
 	close(fs.reIdentifyControlChan)
-	fs.favs.Shutdown()
 	var errors []error
+	if err := fs.favs.Shutdown(); err != nil {
+		errors = append(errors, err)
+	}
 	for _, ops := range fs.ops {
 		if err := ops.Shutdown(); err != nil {
 			errors = append(errors, err)

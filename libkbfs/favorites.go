@@ -53,6 +53,8 @@ type Favorites struct {
 	// Channels for interacting with the favorites cache
 	reqChan chan *favReq
 
+	wg RepeatedWaitGroup
+
 	// cache tracks the favorites for this user, that we know about.
 	// It may not be consistent with the server's view of the user's
 	// favorites list, if other devices have modified the list since
@@ -156,15 +158,17 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 func (f *Favorites) loop() {
 	for req := range f.reqChan {
 		f.handleReq(req)
+		f.wg.Done()
 	}
 }
 
 // Shutdown shuts down this Favorites instance.
-func (f *Favorites) Shutdown() {
+func (f *Favorites) Shutdown() error {
 	f.muShutdown.Lock()
 	defer f.muShutdown.Unlock()
 	f.shutdown = true
 	close(f.reqChan)
+	return f.wg.Wait(context.Background())
 }
 
 func (f *Favorites) hasShutdown() bool {
@@ -195,9 +199,11 @@ func (f *Favorites) waitOnReq(ctx context.Context,
 }
 
 func (f *Favorites) sendReq(ctx context.Context, req *favReq) error {
+	f.wg.Add(1)
 	select {
 	case f.reqChan <- req:
 	case <-ctx.Done():
+		f.wg.Done()
 		err := ctx.Err()
 		f.closeReq(req, err)
 		return err
@@ -258,9 +264,11 @@ func (f *Favorites) AddAsync(ctx context.Context, fav favToAdd) {
 	// if the original context is canceled.
 	req, doSend := f.startOrJoinAddReq(context.Background(), fav)
 	if doSend {
+		f.wg.Add(1)
 		select {
 		case f.reqChan <- req:
 		case <-ctx.Done():
+			f.wg.Done()
 			err := ctx.Err()
 			f.closeReq(req, err)
 			return
@@ -293,9 +301,11 @@ func (f *Favorites) RefreshCache(ctx context.Context) {
 		done:    make(chan struct{}),
 		ctx:     context.Background(),
 	}
+	f.wg.Add(1)
 	select {
 	case f.reqChan <- req:
 	case <-ctx.Done():
+		f.wg.Done()
 		return
 	}
 }
