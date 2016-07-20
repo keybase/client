@@ -5,6 +5,8 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
+dest="/Library/Filesystems/kbfuse.fs"
+
 echo "Checking for mounts..."
 mounts=`mount -t kbfuse`
 if [[ $mounts = *[!\ ]* ]]; then
@@ -14,6 +16,9 @@ if [[ $mounts = *[!\ ]* ]]; then
 fi
 
 echo "Unloading kext..."
-sudo kextunload -b "com.github.kbfuse.filesystems.kbfuse"
-echo "Removing bundle..."
-sudo rm -rf "/Library/Filesystems/kbfuse.fs"
+sudo kextunload -b "com.github.kbfuse.filesystems.kbfuse" || true
+
+if [ -d "$dest" ]; then
+  echo "Removing bundle..."
+  sudo rm -rf "$dest"
+fi
