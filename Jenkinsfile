@@ -92,6 +92,12 @@ node("ec2-fleet") {
                 retry(5) {
                     kbweb = kbwebImage.run('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh')
                 }
+                sh "docker cp ${kbweb.id}:/home/keybase/gregor_revision gregor_revision"
+                sh "docker cp ${kbweb.id}:/home/keybase/kbweb_revision kbweb_revision"
+                def gregorRevision = readFile("gregor_revision")
+                def kbwebRevision = readFile("kbweb_revision")
+                println "Running with gregor revision ${gregorRevision}"
+                println "Running with kbweb revision ${kbwebRevision}"
 
                 stage "Test"
                     parallel (
