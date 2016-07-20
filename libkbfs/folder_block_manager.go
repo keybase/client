@@ -29,9 +29,16 @@ const (
 	// The most revisions to consider for each QR run.
 	numMaxRevisionsPerQR = 100
 
-	// The delay to wait for before trying a failed block deletion again. Used by
-	// enqueueBlocksToDeleteAfterShortDelay().
+	// The delay to wait for before trying a failed block deletion
+	// again. Used by enqueueBlocksToDeleteAfterShortDelay().
 	deleteBlocksRetryDelay = 10 * time.Millisecond
+
+	// The maximum time we're allowed to retry a delete request.  This
+	// should be bigger than the expected time it would take us to get
+	// a notification about one of our own revisions from the md
+	// server (a revision which locally looked canceled, but still
+	// made it safely to the mdserver).
+	deleteBlockMaxRetryTIme = 20 * time.Second
 )
 
 type blockDeleteType int
@@ -52,6 +59,7 @@ type blocksToDelete struct {
 	md     ReadOnlyRootMetadata
 	blocks []BlockPointer
 	bdType blockDeleteType
+	start  time.Time
 }
 
 // folderBlockManager is a helper class for managing the blocks in a
@@ -222,7 +230,11 @@ func (fbm *folderBlockManager) cleanUpBlockState(
 	md ReadOnlyRootMetadata, bps *blockPutState, bdType blockDeleteType) {
 	fbm.log.CDebugf(nil, "Clean up md %d %s, bdType=%d", md.Revision,
 		md.MergedStatus(), bdType)
-	toDelete := blocksToDelete{md: md, bdType: bdType}
+	toDelete := blocksToDelete{
+		md:     md,
+		bdType: bdType,
+		start:  fbm.config.Clock().Now(),
+	}
 	for _, bs := range bps.blockStates {
 		toDelete.blocks = append(toDelete.blocks, bs.blockPtr)
 	}
@@ -430,26 +442,37 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 			toDelete.md.Revision, toDelete.md.Revision,
 			toDelete.md.MergedStatus())
 		if err != nil || len(rmds) == 0 {
-			// Don't re-enqueue immediately, since this might mean no new
-			// revision has made it to the server yet, and we'd just get
-			// into an infinite loop.
-			fbm.enqueueBlocksToDeleteAfterShortDelay(toDelete)
-			return nil
-		}
-		dirsEqual, err := CodecEqual(fbm.config.Codec(),
-			rmds[0].data.Dir, toDelete.md.data.Dir)
-		if err != nil {
-			fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
-		} else if dirsEqual {
-			// This md is part of the history of the folder, so we
-			// shouldn't delete the blocks.  But, since this MD put
-			// seems to have succeeded, we should archive it.
-			fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d; "+
-				"archiving it", rmds[0].Revision)
-			// Don't block on archiving the MD, because that could
-			// lead to deadlock.
-			fbm.archiveUnrefBlocksNoWait(rmds[0].ReadOnly())
-			return nil
+			// Don't re-enqueue immediately, since this might mean no
+			// new revision has made it to the server yet, and we'd
+			// just get into an infinite loop.  But don't retry
+			// forever; if the operation was canceled locally and a
+			// new revision hasn't happened yet, eventually we should
+			// just assume the server never saw it and get on with our
+			// lives.
+			timeSinceStart := fbm.config.Clock().Now().Sub(toDelete.start)
+			if timeSinceStart < deleteBlockMaxRetryTIme {
+				fbm.enqueueBlocksToDeleteAfterShortDelay(toDelete)
+				return nil
+			}
+			fbm.log.CDebugf(ctx, "Giving up on waiting for a new %d "+
+				"revision, and proceeding with the cleanup",
+				toDelete.md.Revision)
+		} else {
+			dirsEqual, err := CodecEqual(fbm.config.Codec(),
+				rmds[0].data.Dir, toDelete.md.data.Dir)
+			if err != nil {
+				fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
+			} else if dirsEqual {
+				// This md is part of the history of the folder, so we
+				// shouldn't delete the blocks.  But, since this MD
+				// put seems to have succeeded, we should archive it.
+				fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d; "+
+					"archiving it", rmds[0].Revision)
+				// Don't block on archiving the MD, because that could
+				// lead to deadlock.
+				fbm.archiveUnrefBlocksNoWait(rmds[0].ReadOnly())
+				return nil
+			}
 		}
 
 		// Otherwise something else has been written over
