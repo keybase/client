@@ -1,7 +1,7 @@
 #!groovy
 
 if (env.CHANGE_TITLE.contains('[ci-skip]')) {
-    println "Skipping build because PR title contains [ci-skip]"
+  println "Skipping build because PR title contains [ci-skip]"
 } else {
   node("ec2-fleet") {
     deleteDir()
