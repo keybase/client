@@ -1,6 +1,9 @@
 #!groovy
 
-node("ec2-fleet") {
+if (env.CHANGE_TITLE.contains('[ci-skip]')) {
+    println "Skipping build because PR title contains [ci-skip]"
+} else {
+  node("ec2-fleet") {
     deleteDir()
     properties([
             [$class: "BuildDiscarderProperty",
@@ -281,6 +284,7 @@ node("ec2-fleet") {
                 println "Not pushing docker"
             }
     }
+  }
 }
 
 def waitForURL(prefix, url) {
