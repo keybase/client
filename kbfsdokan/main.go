@@ -26,6 +26,7 @@ var label = flag.String("label", os.Getenv("KEYBASE_LABEL"), "label to help iden
 var mountType = flag.String("mount-type", defaultMountType, "mount type: default, force")
 var version = flag.Bool("version", false, "Print version")
 var mountFlags = flag.Int64("mount-flags", int64(libdokan.DefaultMountFlags), "Dokan mount flags")
+var dokandll = flag.String("dokan-dll", "", "Absolute path of dokan dll to load")
 
 const usageFormatStr = `Usage:
   kbfsdokan -version
@@ -82,6 +83,13 @@ func start() *libfs.Error {
 	if len(flag.Args()) > 1 {
 		fmt.Print(getUsageStr(ctx))
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
+	}
+
+	// If we are passed a custom dokan dll path we cmdline try to load that.
+	if *dokandll != "" {
+		if err = dokan.LoadDokanDLL(*dokandll); err != nil {
+			return libfs.InitError("Error loading dokan dll: " + err.Error())
+		}
 	}
 
 	mountpoint := flag.Arg(0)
