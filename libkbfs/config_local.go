@@ -707,6 +707,10 @@ func (c *ConfigLocal) Shutdown() error {
 				if err := fbo.fbm.waitForArchives(context.Background()); err != nil {
 					return err
 				}
+				if err := fbo.fbm.waitForDeletingBlocks(
+					context.Background()); err != nil {
+					return err
+				}
 			}
 		}
 	}
