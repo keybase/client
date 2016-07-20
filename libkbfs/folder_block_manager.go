@@ -38,7 +38,7 @@ const (
 	// a notification about one of our own revisions from the md
 	// server (a revision which locally looked canceled, but still
 	// made it safely to the mdserver).
-	deleteBlockMaxRetryTIme = 20 * time.Second
+	deleteBlockMaxRetryTime = 20 * time.Second
 )
 
 type blockDeleteType int
@@ -450,7 +450,7 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 			// just assume the server never saw it and get on with our
 			// lives.
 			timeSinceStart := fbm.config.Clock().Now().Sub(toDelete.start)
-			if timeSinceStart < deleteBlockMaxRetryTIme {
+			if timeSinceStart < deleteBlockMaxRetryTime {
 				fbm.enqueueBlocksToDeleteAfterShortDelay(toDelete)
 				return nil
 			}
