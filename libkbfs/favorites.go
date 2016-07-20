@@ -261,6 +261,8 @@ func (f *Favorites) AddAsync(ctx context.Context, fav favToAdd) {
 		select {
 		case f.reqChan <- req:
 		case <-ctx.Done():
+			err := ctx.Err()
+			f.closeReq(req, err)
 			return
 		}
 	}
