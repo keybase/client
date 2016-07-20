@@ -9,8 +9,8 @@ export type Props = {
   location: string,
   onBack: ?() => void,
   onBioChange: () => void,
-  onEditProfile: () => void,
   onCancel: ?() => void,
+  onEditProfile: () => void,
   onFullnameChange: () => void,
   onLocationChange: () => void,
   onSubmit: () => void
