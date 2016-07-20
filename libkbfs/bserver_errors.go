@@ -255,7 +255,7 @@ func (e BServerErrorMaxRefExceeded) ToStatus() (s keybase1.Status) {
 	return
 }
 
-// Error implements the Error interface for BServerErrornonceNonExistent.
+// Error implements the Error interface for BServerErrorMaxRefExceeded
 func (e BServerErrorMaxRefExceeded) Error() string {
 	if e.Msg == "" {
 		return "BServer: maximum allowed number of references exceeded"
