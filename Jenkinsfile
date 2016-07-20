@@ -3,8 +3,7 @@
 if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
     println "Skipping build because PR title contains [ci-skip]"
 } else {
-    node("ec2-fleet") {
-        deleteDir()
+    nodeWithCleanup("ec2-fleet") {
         properties([
                 [$class: "BuildDiscarderProperty",
                     strategy: [$class: "LogRotator",
@@ -72,13 +71,12 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             sh "git rev-parse HEAD | tee go/revision"
                             sh "git add go/revision"
                         },
-                        // TODO: take gregor and mysql out of kbweb
-                        //pull_mysql: {
-                        //    mysqlImage.pull()
-                        //},
-                        //pull_gregor: {
-                        //    gregorImage.pull()
-                        //},
+                        pull_mysql: {
+                            mysqlImage.pull()
+                        },
+                        pull_gregor: {
+                            gregorImage.pull()
+                        },
                         pull_kbweb: {
                             kbwebImage.pull()
                         },
@@ -93,8 +91,9 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
 
                 try {
                     retry(5) {
-                        kbweb = kbwebImage.run('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh')
+                        sh "docker-compose up -d mysql.local"
                     }
+                    sh "docker-compose up -d kbweb.local"
 
                     stage "Test"
                         parallel (
@@ -173,7 +172,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 )
                             },
                             test_windows: {
-                                node('windows') {
+                                nodeWithCleanup('windows') {
                                     deleteDir()
                                     def BASEDIR=pwd()
                                     def GOPATH="${BASEDIR}/go"
@@ -242,7 +241,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 }
                             },
                             test_osx: {
-                                node('osx') {
+                                nodeWithCleanup('osx') {
                                     deleteDir()
                                     def BASEDIR=pwd()
                                     def GOPATH="${BASEDIR}/go"
@@ -265,7 +264,11 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             },
                         )
                 } catch(ex) {
-                    sh "docker logs ${kbweb.id}"
+                    sh "docker-compose logs gregor.local"
+                    println "MySQL logs:"
+                    sh "docker-compose logs mysql.local"
+                    println "KBweb logs:"
+                    sh "docker-compose logs kbweb.local"
                     if (env.CHANGE_ID) {
                         withCredentials([[$class: 'StringBinding',
                             credentialsId: 'SLACK_INTEGRATION_TOKEN',
@@ -276,9 +279,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                     }
                     throw ex
                 } finally {
-                    if (kbweb != null) {
-                        kbweb.stop()
-                    }
+                    sh "docker-compose down"
                 }
 
 
@@ -348,4 +349,16 @@ def getCauseString() {
     } else {
         return "other"
     }
+}
+
+def nodeWithCleanup(label, closure) {
+    def wrappedClosure = {
+        try {
+            deleteDir()
+            closure()
+        } finally {
+            deleteDir()
+        }
+    }
+    node(label, wrappedClosure)
 }
