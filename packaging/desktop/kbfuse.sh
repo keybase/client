@@ -19,6 +19,7 @@ installer_url="https://github.com/keybase/client/releases/download/v1.0.16/Keyba
 
 if [ "$EUID" -ne 0 ]; then
   echo "Please run as root"
+  exit 1
 fi
 
 # Clear tmp
