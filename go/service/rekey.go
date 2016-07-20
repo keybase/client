@@ -5,6 +5,8 @@ package service
 
 import (
 	"errors"
+	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -14,17 +16,23 @@ import (
 )
 
 type RekeyHandler struct {
-	*BaseHandler
-	gregor *gregorHandler
 	libkb.Contextified
+	*BaseHandler
+	gregor          *gregorHandler
+	scorer          func(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error)
+	recheckMu       sync.Mutex
+	recheckDeadline time.Time
 }
 
 func NewRekeyHandler(xp rpc.Transporter, g *libkb.GlobalContext, gregor *gregorHandler) *RekeyHandler {
-	return &RekeyHandler{
+	h := &RekeyHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		gregor:       gregor,
+		scorer:       scoreProblemFolders,
 		Contextified: libkb.NewContextified(g),
 	}
+	h.recheckRekeyStatusPeriodic()
+	return h
 }
 
 func (h *RekeyHandler) ShowPendingRekeyStatus(ctx context.Context, sessionID int) error {
@@ -51,7 +59,7 @@ func (h *RekeyHandler) GetPendingRekeyStatus(ctx context.Context, sessionID int)
 	if err != nil {
 		return keybase1.ProblemSetDevices{}, err
 	}
-	pset, err := scoreProblemFolders(h.G(), keybase1.ProblemSet{})
+	pset, err := h.scorer(h.G(), keybase1.ProblemSet{})
 	if err != nil {
 		return keybase1.ProblemSetDevices{}, err
 	}
@@ -111,7 +119,109 @@ func (h *RekeyHandler) DebugShowRekeyStatus(ctx context.Context, sessionID int) 
 }
 
 func (h *RekeyHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {
-	return h.gregor.RekeyStatusFinish(ctx, sessionID)
+	outcome, err := h.gregor.RekeyStatusFinish(ctx, sessionID)
+	if err == nil {
+		// recheck rekey status 24h from now
+		h.setRecheckDeadline()
+	}
+	return outcome, err
+}
+
+// recheckRekeyStatusPeriodic checks the recheckDeadline every hour.
+// If it is set and the current time is after the deadline, then
+// it will recheck the rekey status for this user.
+func (h *RekeyHandler) recheckRekeyStatusPeriodic() {
+	h.G().Log.Debug("starting recheck rekey status loop")
+	ticker := time.NewTicker(1 * time.Hour)
+	h.G().PushShutdownHook(func() error {
+		h.G().Log.Debug("stopping recheckRekeyStatus timer")
+		ticker.Stop()
+		return nil
+	})
+
+	go h.recheckRekeyStatusTicker(ticker.C)
+}
+
+func (h *RekeyHandler) recheckRekeyStatusTicker(ticker <-chan time.Time) {
+	for {
+		// this fires every hour
+		<-ticker
+
+		// continue if not at recheck deadline (or there
+		// isn't a deadline set)
+		if !h.atRecheckDeadline() {
+			continue
+		}
+
+		// recheck rekey status
+		h.G().Log.Debug("rechecking rekey status")
+		h.recheckRekeyStatus()
+
+		// clear the deadline
+		h.clearRecheckDeadline()
+	}
+}
+
+// atRecheckDeadline returns true if the current time is after
+// recheckDeadline.  If recheckDeadline isn't set, it returns
+// false.
+func (h *RekeyHandler) atRecheckDeadline() bool {
+	h.recheckMu.Lock()
+	defer h.recheckMu.Unlock()
+
+	if h.recheckDeadline.IsZero() {
+		return false
+	}
+
+	if h.G().Clock().Now().Before(h.recheckDeadline) {
+		return false
+	}
+
+	return true
+}
+
+// clearRecheckDeadline sets the recheck deadline to zero.
+func (h *RekeyHandler) clearRecheckDeadline() {
+	h.recheckMu.Lock()
+	defer h.recheckMu.Unlock()
+
+	h.recheckDeadline = time.Time{}
+}
+
+// isRecheckDeadlineZero returns true if the recheckDeadline is zero/unset.
+func (h *RekeyHandler) isRecheckDeadlineZero() bool {
+	h.recheckMu.Lock()
+	defer h.recheckMu.Unlock()
+
+	return h.recheckDeadline.IsZero()
+}
+
+// setRecheckDeadline sets the recheck deadline to 24 hours from now.
+func (h *RekeyHandler) setRecheckDeadline() {
+	h.recheckMu.Lock()
+	defer h.recheckMu.Unlock()
+
+	h.recheckDeadline = h.G().Clock().Now().Add(24 * time.Hour)
+}
+
+func (h *RekeyHandler) recheckRekeyStatus() {
+	ctx := context.Background()
+	psetDevices, err := h.GetPendingRekeyStatus(ctx, 0)
+	if err != nil {
+		h.G().Log.Warning("recheckRekeyStatus: error getting pending rekey status: %s", err)
+		return
+	}
+
+	numTLFs := len(psetDevices.ProblemSet.Tlfs)
+	if numTLFs == 0 {
+		h.G().Log.Debug("recheckRekeyStatus: empty problem set")
+		return
+	}
+
+	h.G().Log.Debug("recheckRekeyStatus: need to harass user, %d TLFs need help", numTLFs)
+	if err := h.gregor.RekeyReharass(ctx, psetDevices); err != nil {
+		h.G().Log.Warning("recheckRekeyStatus: reharass error: %s", err)
+	}
 }
 
 func newProblemSetDevices(u *libkb.User, pset keybase1.ProblemSet) (keybase1.ProblemSetDevices, error) {
