@@ -266,6 +266,14 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                         )
                 } catch(ex) {
                     sh "docker logs ${kbweb.id}"
+                    if (env.CHANGE_ID) {
+                        withCredentials([[$class: 'StringBinding',
+                            credentialsId: 'SLACK_INTEGRATION_TOKEN',
+                            variable: 'SLACK_INTEGRATION_TOKEN',
+                        ]]) {
+                            slackSend channel: "#ci-notify", color: "danger", message: "<${env.CHANGE_URL}|${env.CHANGE_TITLE}>\n:small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}> by ${env.CHANGE_AUTHOR}", teamDomain: "keybase", token: "${env.SLACK_INTEGRATION_TOKEN}"
+                        }
+                    }
                     throw ex
                 } finally {
                     if (kbweb != null) {
