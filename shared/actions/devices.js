@@ -95,7 +95,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
           } else {
             dispatch({
               type: Constants.deviceRemoved,
-              payload: error,
+              payload: null,
               error: false,
             })
           }
@@ -121,7 +121,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
           } else {
             dispatch({
               type: Constants.deviceRemoved,
-              payload: error,
+              payload: null,
               error: false,
             })
           }
