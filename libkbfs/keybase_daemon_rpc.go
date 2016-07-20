@@ -52,7 +52,7 @@ type KeybaseDaemonRPC struct {
 
 var _ keybase1.NotifySessionInterface = (*KeybaseDaemonRPC)(nil)
 
-var _ keybase1.NotifyUsersInterface = (*KeybaseDaemonRPC)(nil)
+var _ keybase1.NotifyKeyfamilyInterface = (*KeybaseDaemonRPC)(nil)
 
 var _ keybase1.NotifyPaperKeyInterface = (*KeybaseDaemonRPC)(nil)
 
@@ -260,9 +260,10 @@ func (k *KeybaseDaemonRPC) LoggedOut(ctx context.Context) error {
 	return nil
 }
 
-// UserChanged implements keybase1.NotifyUsersInterface.
-func (k *KeybaseDaemonRPC) UserChanged(ctx context.Context, uid keybase1.UID) error {
-	k.log.CDebugf(ctx, "User %s changed", uid)
+// KeyfamilyChanged implements keybase1.NotifyKeyfamilyInterface.
+func (k *KeybaseDaemonRPC) KeyfamilyChanged(ctx context.Context,
+	uid keybase1.UID) error {
+	k.log.CDebugf(ctx, "Key family for user %s changed", uid)
 	k.setCachedUserInfo(uid, UserInfo{})
 	k.clearCachedUnverifiedKeys(uid)
 
@@ -436,7 +437,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		keybase1.LogUiProtocol(daemonLogUI{k.daemonLog}),
 		keybase1.IdentifyUiProtocol(daemonIdentifyUI{k.daemonLog}),
 		keybase1.NotifySessionProtocol(k),
-		keybase1.NotifyUsersProtocol(k),
+		keybase1.NotifyKeyfamilyProtocol(k),
 		keybase1.NotifyPaperKeyProtocol(k),
 	}
 

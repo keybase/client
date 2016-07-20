@@ -276,7 +276,7 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCached)
 
 	// Should invalidate cache for uid1.
-	err := c.UserChanged(context.Background(), uid1)
+	err := c.KeyfamilyChanged(context.Background(), uid1)
 	require.NoError(t, err)
 
 	// Should fill cache again.
@@ -298,7 +298,7 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	testLoadUnverifiedKeys(t, client, c, uid2, name2, expectCached)
 
 	// Should invalidate cache for uid2.
-	err = c.UserChanged(context.Background(), uid2)
+	err = c.KeyfamilyChanged(context.Background(), uid2)
 	require.NoError(t, err)
 
 	// Should fill cache again.
@@ -341,9 +341,9 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 		func(ctx context.Context) {
 			errChan <- nil
 		}).Return(errChan)
-	err = c.UserChanged(context.Background(), uid1)
+	err = c.KeyfamilyChanged(context.Background(), uid1)
 	<-errChan
 	// This one shouldn't trigger CheckForRekeys; if it does, the mock
 	// controller will catch it during Finish.
-	err = c.UserChanged(context.Background(), uid2)
+	err = c.KeyfamilyChanged(context.Background(), uid2)
 }
