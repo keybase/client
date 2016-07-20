@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+#
+# This is a script to install KBFuse fsbundle and load the kext.
+# It is likely used by build or test machines since it requires
+# root permissions. Our end users have this installed via a
+# privileged helper tool in the Installer app.
+#
+
 set -e -u -o pipefail # Fail on error
 
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
