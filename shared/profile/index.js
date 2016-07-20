@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './render'
+import EditProfile from './edit-profile'
 import type {Props} from './render'
 import flags from '../util/feature-flags'
 import {getProfile, updateTrackers} from '../actions/tracker'
@@ -18,7 +19,9 @@ class Profile extends Component<void, Props, void> {
           profileIsRoot: !!uri.count() && uri.last().get('path') === 'root',
         },
       },
-      subRoutes: {},
+      subRoutes: {
+        'editprofile': EditProfile,
+      },
     }
   }
 
@@ -56,18 +59,22 @@ export default connect(
       dispatch(getProfile(username))
       dispatch(updateTrackers(username))
     },
+
     onUserClick: username => { dispatch(routeAppend({path: 'profile', username})) },
     onBack: () => dispatch(navigateUp()),
     onFolderClick: folder => dispatch(openInKBFS(folder.path)),
+    onEditProfile: () => dispatch(routeAppend({path: 'editprofile'})),
   }),
   (stateProps, dispatchProps, ownProps) => {
     const username = ownProps.username || stateProps.myUsername
-    const isYou = username === stateProps.username
+    const isYou = username === stateProps.myUsername
+    const onEditProfile = () => dispatchProps.onEditProfile()
     const bioEditFns = isYou && {
-      onEditAvatarClick: () => console.log('TODO'),
-      onNameEdit: () => console.log('TODO'),
-      onBioEdit: () => console.log('TODO'),
-      onLocationEdit: () => console.log('TODO'),
+      onEditAvatarClick: onEditProfile,
+      onNameEdit: onEditProfile,
+      onBioEdit: onEditProfile,
+      onLocationEdit: onEditProfile,
+      onEditProfile: onEditProfile,
     }
 
     return {

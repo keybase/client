@@ -1,0 +1,65 @@
+/* @flow */
+import React, {Component} from 'react'
+import {BackButton, Box, Button, Input} from '../../common-adapters'
+import {globalStyles} from '../../styles/style-guide'
+
+class Render extends Component<void, Props, void> {
+  render () {
+    return (
+      <Box style={styleOuterContainer}>
+        {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 10, top: 10, zIndex: 12}} />}
+        <Box style={styleContainer}>
+          <Input
+            autoFocus
+            style={styleEditProfile}
+            floatingLabelText='Full name' value={this.props.fullname}
+            onEnterKeyDown={this.props.onSubmit}
+            onChangeText={fullname => this.props.fullnameChange(fullname)} />
+
+          <Input
+            style={styleEditProfile}
+            floatingLabelText='Location'
+            value={this.props.location}
+            onEnterKeyDown={this.props.onSubmit}
+            onChangeText={location => this.props.locationChange(location)} />
+
+          <Input
+            style={styleEditProfile}
+            floatingLabelText='Bio'
+            value={this.props.bio}
+            errorText={this.props.bioLengthLeft <= 5 ? this.props.bioLengthLeft + ' characters left.' : ''}
+            onEnterKeyDown={this.props.onSubmit}
+            onChangeText={bio => this.props.bioChange(bio)} />
+
+          <Box style={styleButtonContainer}>
+            <Button type='Secondary' onClick={this.props.onCancel} label='Cancel' />
+            <Button type='Primary' onClick={this.props.onSubmit} label='Save' />
+          </Box>
+        </Box>
+      </Box>
+    )
+  }
+}
+
+const styleOuterContainer = {
+  position: 'relative',
+  height: '100%',
+}
+
+const styleButtonContainer = {
+  ...globalStyles.flexBoxRow,
+  marginTop: 35,
+}
+
+const styleContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  flex: 1,
+  marginTop: 35,
+}
+
+const styleEditProfile = {
+  marginTop: 35,
+}
+
+export default Render
