@@ -1,7 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// +build linux
+// +build linux freebsd
 
 package install
 
@@ -14,7 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// Similar to the Brew install on OSX, the Linux install happens in two steps.
+// Similar to the Brew install on OSX, the Unix install happens in two steps.
 // First, the system package manager installs all the binaries as root. Second,
 // an autostart file needs to be written to the user's home dir, so that
 // Keybase launches when that user logs in. The second step is done the first
@@ -43,7 +43,7 @@ func autostartFilePath(context Context) string {
 	return path.Join(autostartDir(context), "keybase_autostart.desktop")
 }
 
-// AutoInstall installs auto start on linux
+// AutoInstall installs auto start on unix
 func AutoInstall(context Context, _ string, _ bool, log Log) ( /* newProc */ bool, error) {
 	// If the desktop file already exists, short circuit.
 	if _, err := os.Stat(autostartFilePath(context)); err == nil {
@@ -56,7 +56,7 @@ func AutoInstall(context Context, _ string, _ bool, log Log) ( /* newProc */ boo
 	return false, ioutil.WriteFile(autostartFilePath(context), []byte(autostartFileText), 0644)
 }
 
-// CheckIfValidLocation is not used on linux
+// CheckIfValidLocation is not used on unix
 func CheckIfValidLocation() error {
 	return nil
 }
@@ -66,7 +66,7 @@ func KBFSBinPath(runMode libkb.RunMode, binPath string) (string, error) {
 	return kbfsBinPathDefault(runMode, binPath)
 }
 
-// RunAfterStartup is not used on linux
+// RunAfterStartup is not used on unix
 func RunAfterStartup(context Context, isService bool, log Log) error {
 	return nil
 }
@@ -77,7 +77,7 @@ func kbfsBinName() string {
 }
 
 func updaterBinName() (string, error) {
-	return "", fmt.Errorf("Updater isn't supported on linux")
+	return "", fmt.Errorf("Updater isn't supported on unix")
 }
 
 // RunApp starts the app
