@@ -47,6 +47,7 @@ func TestDeviceAdd(t *testing.T) {
 			ctx := &Context{
 				ProvisionUI:  &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
 				LoginContext: lctx,
+				NetContext:   context.TODO(),
 			}
 			deviceID, err := libkb.NewDeviceID()
 			if err != nil {
@@ -81,6 +82,7 @@ func TestDeviceAdd(t *testing.T) {
 	ctx := &Context{
 		SecretUI:    userX.NewSecretUI(),
 		ProvisionUI: &testXProvisionUI{secret: secretY},
+		NetContext:  context.TODO(),
 	}
 	eng := NewDeviceAdd(tcX.G)
 	if err := RunEngine(eng, ctx); err != nil {
@@ -121,6 +123,7 @@ func TestDeviceAddPhrase(t *testing.T) {
 			ctx := &Context{
 				ProvisionUI:  &testProvisionUI{secretCh: make(chan kex2.Secret, 1)},
 				LoginContext: lctx,
+				NetContext:   context.TODO(),
 			}
 			deviceID, err := libkb.NewDeviceID()
 			if err != nil {
@@ -155,6 +158,7 @@ func TestDeviceAddPhrase(t *testing.T) {
 	ctx := &Context{
 		SecretUI:    userX.NewSecretUI(),
 		ProvisionUI: &testPhraseProvisionUI{phrase: secretY.Phrase()},
+		NetContext:  context.TODO(),
 	}
 	eng := NewDeviceAdd(tcX.G)
 	if err := RunEngine(eng, ctx); err != nil {

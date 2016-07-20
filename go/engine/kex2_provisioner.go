@@ -102,9 +102,15 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 
 	deviceID := e.G().Env.GetDeviceID()
 
+	nctx := ctx.NetContext
+	if nctx == nil {
+		e.G().Log.Debug("no NetContext in engine.Context, using context.Background()")
+		nctx = context.Background()
+	}
+
 	// all set:  start provisioner
 	karg := kex2.KexBaseArg{
-		Ctx:           context.TODO(),
+		Ctx:           nctx,
 		Mr:            libkb.NewKexRouter(e.G()),
 		DeviceID:      deviceID,
 		Secret:        e.secret,
