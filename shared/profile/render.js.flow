@@ -15,6 +15,7 @@ export type Props = {
   currentlyFollowing: boolean,
   refresh: () => void,
   onBack: ?() => void,
+  onCancel: ?() => void,
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,

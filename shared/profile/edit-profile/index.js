@@ -1,12 +1,11 @@
 /* @flow */
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {BackButton, Box, Button, Input} from '../../common-adapters'
-import {globalStyles} from '../../styles/style-guide'
 import {editProfile} from '../../actions/profile'
 import {maxProfileBioChars} from '../../constants/profile'
 
 import Render from './render'
+import type {Props} from './render'
 import {navigateUp} from '../../actions/router'
 
 type State = {
@@ -37,37 +36,26 @@ class EditProfile extends Component<void, Props, State> {
     }
   }
 
-  fullnameChange (fullname) {
-    this.setState({fullname})
-  }
-
-  bioChange (bio) {
-    this.setState({bio})
-  }
-
-  locationChange (location) {
-    this.setState({location})
-  }
-
   onSubmit () {
     const {bio, location, fullname} = this.state
-    this.props.editProfile({bio, location, fullname})
+    this.props.onEditProfile({bio, location, fullname})
   }
 
   render () {
     const bioMaxChars = maxProfileBioChars
     const bioLengthLeft = bioMaxChars - this.state.bio.length
     return <Render
+      bio={this.props.bio}
+      bioLengthLeft={bioLengthLeft}
       fullname={this.props.fullname}
       location={this.props.location}
-      bio={this.props.bio}
-      fullnameChange={fullname => this.setState({fullname})}
-      bioChange={bio => this.setState({bio})}
-      locationChange={location => this.setState({location})}
       onBack={this.props.onBack}
       onCancel={this.props.onBack}
+      onBioChange={bio => this.setState({bio})}
+      onEditProfile={this.props.onEditProfile}
+      onFullnameChange={fullname => this.setState({fullname})}
+      onLocationChange={location => this.setState({location})}
       onSubmit={() => this.onSubmit()}
-      bioLengthLeft={bioLengthLeft}
     />
   }
 }
@@ -84,7 +72,7 @@ export default connect(
   dispatch => {
     return {
       onBack: () => dispatch(navigateUp()),
-      editProfile: ({bio, location, fullname}) => dispatch(editProfile(bio, location, fullname)),
+      onEditProfile: ({bio, location, fullname}) => dispatch(editProfile(bio, location, fullname)),
     }
   }
 )(EditProfile)

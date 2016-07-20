@@ -11,6 +11,7 @@ import TabBarMap from '../tab-bar/dumb.desktop'
 import FoldersMap from '../folders/dumb'
 import FoldersConfirmMap from '../folders/confirm/dumb'
 import ProfileMap from '../profile/dumb'
+import EditProfileMap from '../profile/edit-profile/dumb'
 import SearchMap from '../search/dumb'
 import SearchUserPaneMap from '../search/user-pane/dumb'
 import UnlockFoldersMap from '../unlock-folders/dumb'
@@ -30,6 +31,7 @@ const map : DumbComponentMap = {
   ...FoldersMap,
   ...FoldersConfirmMap,
   ...ProfileMap,
+  ...EditProfileMap,
   ...SearchMap,
   ...SearchUserPaneMap,
   ...UnlockFoldersMap,

@@ -4,11 +4,11 @@ import * as Constants from '../constants/profile'
 import type {AsyncAction} from '../constants/types/flux'
 import {apiserverPostRpc} from '../constants/types/flow-types'
 
-export function editProfile (bio: string, location: string, fullname: string) : AsyncAction {
+export function editProfile (bio: string, fullname: string, location: string) : AsyncAction {
   return function (dispatch) {
     dispatch({
       type: Constants.editingProfile,
-      payload: {bio, location, fullname},
+      payload: {bio, fullname, location},
     })
 
     apiserverPostRpc({
@@ -16,8 +16,8 @@ export function editProfile (bio: string, location: string, fullname: string) : 
         endpoint: 'profile-edit',
         args: [
           {key: 'bio', value: bio},
-          {key: 'location', value: location},
           {key: 'full_name', value: fullname},
+          {key: 'location', value: location},
         ],
       },
       incomingCallMap: {},

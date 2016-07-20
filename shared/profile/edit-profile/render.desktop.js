@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {BackButton, Box, Button, Input} from '../../common-adapters'
 import {globalStyles} from '../../styles/style-guide'
+import type {Props} from './render'
 
 class Render extends Component<void, Props, void> {
   render () {
@@ -14,14 +15,14 @@ class Render extends Component<void, Props, void> {
             style={styleEditProfile}
             floatingLabelText='Full name' value={this.props.fullname}
             onEnterKeyDown={this.props.onSubmit}
-            onChangeText={fullname => this.props.fullnameChange(fullname)} />
+            onChangeText={fullname => this.props.onFullnameChange(fullname)} />
 
           <Input
             style={styleEditProfile}
             floatingLabelText='Location'
             value={this.props.location}
             onEnterKeyDown={this.props.onSubmit}
-            onChangeText={location => this.props.locationChange(location)} />
+            onChangeText={location => this.props.onLocationChange(location)} />
 
           <Input
             style={styleEditProfile}
@@ -29,7 +30,7 @@ class Render extends Component<void, Props, void> {
             value={this.props.bio}
             errorText={this.props.bioLengthLeft <= 5 ? this.props.bioLengthLeft + ' characters left.' : ''}
             onEnterKeyDown={this.props.onSubmit}
-            onChangeText={bio => this.props.bioChange(bio)} />
+            onChangeText={bio => this.props.onBioChange(bio)} />
 
           <Box style={styleButtonContainer}>
             <Button type='Secondary' onClick={this.props.onCancel} label='Cancel' />

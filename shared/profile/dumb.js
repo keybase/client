@@ -133,6 +133,7 @@ const propsBase: RenderProps = {
   trackerState: normal,
   currentlyFollowing: false,
   onPushProfile: username => console.log('onpush', username),
+  onCancel: () => console.log('onCancel'),
   onBack: () => console.log('onBack'),
   refresh: () => console.log('refresh'),
   onFollow: () => console.log('onFollow'),
