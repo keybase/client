@@ -18,7 +18,7 @@
 
 ### Releasing Installer
 
-Upload the build KeybaseInstaller-x.y.z-darwin.tgz to the latest release downlods at https://github.com/keybase/client/releases.
+Upload the build KeybaseInstaller-x.y.z-darwin.tgz to the latest release downloads at https://github.com/keybase/client/releases.
 
 Update the scripts that reference the older version such to include this version:
 - `packaging/desktop/package_darwin.sh`
