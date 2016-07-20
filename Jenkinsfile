@@ -3,7 +3,10 @@
 if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
     println "Skipping build because PR title contains [ci-skip]"
 } else {
-    nodeWithCleanup("ec2-fleet") {
+    nodeWithCleanup("ec2-fleet", {
+        sh 'docker rm -v $(docker ps --filter status=exited -q 2>/dev/null) 2>/dev/null || echo "No Docker containers to remove"'
+        sh 'docker rmi $(docker images --filter dangling=true -q --no-trunc 2>/dev/null) 2>/dev/null || echo "No Docker images to remove"'
+    }) {
         properties([
                 [$class: "BuildDiscarderProperty",
                     strategy: [$class: "LogRotator",
@@ -172,8 +175,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 )
                             },
                             test_windows: {
-                                nodeWithCleanup('windows') {
-                                    deleteDir()
+                                nodeWithCleanup('windows', {}) {
                                     def BASEDIR=pwd()
                                     def GOPATH="${BASEDIR}/go"
                                     withEnv([
@@ -241,8 +243,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 }
                             },
                             test_osx: {
-                                nodeWithCleanup('osx') {
-                                    deleteDir()
+                                nodeWithCleanup('osx', {}) {
                                     def BASEDIR=pwd()
                                     def GOPATH="${BASEDIR}/go"
                                     withEnv([
@@ -336,6 +337,23 @@ def testNixGo(prefix) {
     }
 }
 
+def nodeWithCleanup(label, cleanup, closure) {
+    def wrappedClosure = {
+        try {
+            deleteDir()
+            closure()
+        } finally {
+            try {
+                cleanup()
+            } catch (ex) {
+                println "Unable to cleanup: ${ex.getMessage()}"
+            }
+            deleteDir()
+        }
+    }
+    node(label, wrappedClosure)
+}
+
 // Need to separate this out because cause is not serializable and thus state
 // cannot be saved. @NonCPS makes this method run as native and thus cannot be
 // re-entered.
@@ -349,16 +367,4 @@ def getCauseString() {
     } else {
         return "other"
     }
-}
-
-def nodeWithCleanup(label, closure) {
-    def wrappedClosure = {
-        try {
-            deleteDir()
-            closure()
-        } finally {
-            deleteDir()
-        }
-    }
-    node(label, wrappedClosure)
 }

@@ -19,6 +19,7 @@ services:
         links:
             - mysql.local
             - gregor.local
+        entrypoint: ["run/startup_for_container.sh"]
         environment:
             - KEYBASE_RUN_MODE=devel
               # - KEYBASE_NO_GREGORD_LAUNCH=true
