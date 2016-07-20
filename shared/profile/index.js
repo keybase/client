@@ -69,11 +69,11 @@ export default connect(
     const isYou = username === stateProps.myUsername
     const onEditProfile = () => dispatchProps.onEditProfile()
     const bioEditFns = isYou && {
-      onEditAvatarClick: onEditProfile,
-      onNameEdit: onEditProfile,
       onBioEdit: onEditProfile,
-      onLocationEdit: onEditProfile,
+      onEditAvatarClick: onEditProfile,
       onEditProfile: onEditProfile,
+      onLocationEdit: onEditProfile,
+      onNameEdit: onEditProfile,
     }
 
     return {
