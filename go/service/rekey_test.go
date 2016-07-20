@@ -35,7 +35,7 @@ func rekeySetup(tc libkb.TestContext) (gregor1.UID, *gregorHandler, *RekeyUIHand
 	rekeyHandler.alwaysAlive = true
 	rekeyHandler.notifyStart = make(chan int, 10)
 	rekeyHandler.notifyComplete = make(chan int, 10)
-	rekeyHandler.scorer = fakeScoreProblemFolders
+	rekeyHandler.scorer = fakeScoreProblemFoldersEmpty
 	h.PushHandler(rekeyHandler)
 
 	return gUID, h, rekeyHandler
@@ -233,6 +233,102 @@ func TestRekeyNeededUserClose(t *testing.T) {
 	}
 }
 
+// After user cancels rekey harass window, it should be spawned 24h later.
+func TestRekeyReharass(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor", 1)
+	defer tc.Cleanup()
+
+	rkeyui := &fakeRekeyUI{}
+	rkeyui.notifyRefresh = make(chan bool, 10)
+	router := fakeUIRouter{
+		rekeyUI: rkeyui,
+	}
+	tc.G.SetUIRouter(&router)
+
+	clock := clockwork.NewFakeClock()
+	tc.G.SetClock(clock)
+
+	gUID, gregorHandler, rekeyUIHandler := rekeySetup(tc)
+
+	// need a RekeyHandler for this test too (it has the rekey reharass loop in it)
+	// creating it here to fake the time.Ticker
+	rekeyHandler := &RekeyHandler{
+		Contextified: libkb.NewContextified(tc.G),
+		gregor:       gregorHandler,
+		scorer:       fakeScoreProblemFoldersFull,
+	}
+	ticker := make(chan time.Time)
+	go rekeyHandler.recheckRekeyStatusTicker(ticker)
+
+	rekeyBroadcast(tc, gUID, gregorHandler, problemSet)
+
+	// 1. start
+	select {
+	case <-rekeyUIHandler.notifyStart:
+	case <-time.After(20 * time.Second):
+		t.Fatal("timeout waiting for rekeyUIHandler.notifyStart")
+	}
+
+	// 2. refresh called on ui
+	select {
+	case <-rkeyui.notifyRefresh:
+	case <-time.After(20 * time.Second):
+		t.Fatal("timeout waiting for rekeyui.notifyRefresh")
+	}
+
+	// 3. user cancels rekey window
+	outcome, err := rekeyHandler.RekeyStatusFinish(context.Background(), rkeyui.sessionID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if outcome != keybase1.Outcome_IGNORED {
+		t.Fatalf("RekeyStatusFinish outcome: %v, expected %v", outcome, keybase1.Outcome_IGNORED)
+	}
+
+	clock.Advance(3 * time.Second)
+
+	// 4. wait for it to finish
+	select {
+	case <-rekeyUIHandler.notifyComplete:
+	case <-time.After(20 * time.Second):
+		t.Fatal("timeout waiting for rekeyHandler.notifyComplete")
+	}
+
+	// There should only be one call to refresh to bring the window up
+	// The RekeyStatusFinish call above should close the window and stop the loop.
+	if len(rkeyui.refreshArgs) != 1 {
+		t.Fatalf("rkeyui refresh calls: %d, expected 1", len(rkeyui.refreshArgs))
+	}
+
+	// A recheck deadline should be set
+	if rekeyHandler.isRecheckDeadlineZero() {
+		t.Fatalf("rekeyHandler recheckDeadline is zero, it should be set to a time in the future")
+	}
+
+	// 5. fast-forward 25h
+	clock.Advance(25 * time.Hour)
+	ticker <- clock.Now()
+
+	// 6. rekey updater loop should start up again
+	select {
+	case <-rekeyUIHandler.notifyStart:
+	case <-time.After(20 * time.Second):
+		t.Fatal("timeout waiting for rekeyUIHandler.notifyStart")
+	}
+
+	// 7. refresh called on ui
+	select {
+	case <-rkeyui.notifyRefresh:
+	case <-time.After(20 * time.Second):
+		t.Fatal("timeout waiting for rekeyui.notifyRefresh")
+	}
+
+	// make sure refresh was called again
+	if len(rkeyui.refreshArgs) != 2 {
+		t.Fatalf("rkeyui refresh calls: %d, expected 2", len(rkeyui.refreshArgs))
+	}
+}
+
 func (f *fakeRekeyUI) DelegateRekeyUI(ctx context.Context) (int, error) {
 	f.sessionID++
 	return f.sessionID, nil
@@ -247,7 +343,20 @@ func (f *fakeRekeyUI) Refresh(ctx context.Context, arg keybase1.RefreshArg) erro
 	return nil
 }
 
-func fakeScoreProblemFolders(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error) {
+func fakeScoreProblemFoldersEmpty(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error) {
 	// always return empty ProblemSet
 	return keybase1.ProblemSet{}, nil
+}
+
+func fakeScoreProblemFoldersFull(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error) {
+	return keybase1.ProblemSet{
+		Tlfs: []keybase1.ProblemTLF{
+			{
+				Tlf: keybase1.TLF{
+					Id:   "tlfid",
+					Name: "problemdir",
+				},
+			},
+		},
+	}, nil
 }

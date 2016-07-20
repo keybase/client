@@ -19,6 +19,7 @@ type RekeyHandler struct {
 	libkb.Contextified
 	*BaseHandler
 	gregor          *gregorHandler
+	scorer          func(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error)
 	recheckMu       sync.Mutex
 	recheckDeadline time.Time
 }
@@ -27,6 +28,7 @@ func NewRekeyHandler(xp rpc.Transporter, g *libkb.GlobalContext, gregor *gregorH
 	h := &RekeyHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		gregor:       gregor,
+		scorer:       scoreProblemFolders,
 		Contextified: libkb.NewContextified(g),
 	}
 	h.recheckRekeyStatusPeriodic()
@@ -57,7 +59,7 @@ func (h *RekeyHandler) GetPendingRekeyStatus(ctx context.Context, sessionID int)
 	if err != nil {
 		return keybase1.ProblemSetDevices{}, err
 	}
-	pset, err := scoreProblemFolders(h.G(), keybase1.ProblemSet{})
+	pset, err := h.scorer(h.G(), keybase1.ProblemSet{})
 	if err != nil {
 		return keybase1.ProblemSetDevices{}, err
 	}
@@ -120,9 +122,7 @@ func (h *RekeyHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (ke
 	outcome, err := h.gregor.RekeyStatusFinish(ctx, sessionID)
 	if err == nil {
 		// recheck rekey status 24h from now
-		h.recheckMu.Lock()
-		h.recheckDeadline = time.Now().Add(24 * time.Hour)
-		h.recheckMu.Unlock()
+		h.setRecheckDeadline()
 	}
 	return outcome, err
 }
@@ -138,25 +138,28 @@ func (h *RekeyHandler) recheckRekeyStatusPeriodic() {
 		ticker.Stop()
 		return nil
 	})
-	go func() {
-		for {
-			// this fires every hour
-			<-ticker.C
 
-			// continue if not at recheck deadline (or there
-			// isn't a deadline set)
-			if !h.atRecheckDeadline() {
-				continue
-			}
+	go h.recheckRekeyStatusTicker(ticker.C)
+}
 
-			// recheck rekey status
-			h.G().Log.Debug("rechecking rekey status")
-			h.recheckRekeyStatus()
+func (h *RekeyHandler) recheckRekeyStatusTicker(ticker <-chan time.Time) {
+	for {
+		// this fires every hour
+		<-ticker
 
-			// clear the deadline
-			h.clearRecheckDeadline()
+		// continue if not at recheck deadline (or there
+		// isn't a deadline set)
+		if !h.atRecheckDeadline() {
+			continue
 		}
-	}()
+
+		// recheck rekey status
+		h.G().Log.Debug("rechecking rekey status")
+		h.recheckRekeyStatus()
+
+		// clear the deadline
+		h.clearRecheckDeadline()
+	}
 }
 
 // atRecheckDeadline returns true if the current time is after
@@ -170,7 +173,7 @@ func (h *RekeyHandler) atRecheckDeadline() bool {
 		return false
 	}
 
-	if time.Now().Before(h.recheckDeadline) {
+	if h.G().Clock().Now().Before(h.recheckDeadline) {
 		return false
 	}
 
@@ -183,6 +186,22 @@ func (h *RekeyHandler) clearRecheckDeadline() {
 	defer h.recheckMu.Unlock()
 
 	h.recheckDeadline = time.Time{}
+}
+
+// isRecheckDeadlineZero returns true if the recheckDeadline is zero/unset.
+func (h *RekeyHandler) isRecheckDeadlineZero() bool {
+	h.recheckMu.Lock()
+	defer h.recheckMu.Unlock()
+
+	return h.recheckDeadline.IsZero()
+}
+
+// setRecheckDeadline sets the recheck deadline to 24 hours from now.
+func (h *RekeyHandler) setRecheckDeadline() {
+	h.recheckMu.Lock()
+	defer h.recheckMu.Unlock()
+
+	h.recheckDeadline = h.G().Clock().Now().Add(24 * time.Hour)
 }
 
 func (h *RekeyHandler) recheckRekeyStatus() {
