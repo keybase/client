@@ -50,8 +50,8 @@ class EditProfile extends Component<void, Props, State> {
       fullname={this.props.fullname}
       location={this.props.location}
       onBack={this.props.onBack}
-      onCancel={this.props.onBack}
       onBioChange={bio => this.setState({bio})}
+      onCancel={this.props.onBack}
       onEditProfile={this.props.onEditProfile}
       onFullnameChange={fullname => this.setState({fullname})}
       onLocationChange={location => this.setState({location})}
