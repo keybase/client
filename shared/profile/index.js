@@ -59,7 +59,6 @@ export default connect(
       dispatch(getProfile(username))
       dispatch(updateTrackers(username))
     },
-
     onUserClick: username => { dispatch(routeAppend({path: 'profile', username})) },
     onBack: () => dispatch(navigateUp()),
     onFolderClick: folder => dispatch(openInKBFS(folder.path)),
