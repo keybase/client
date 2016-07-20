@@ -54,6 +54,8 @@ var _ keybase1.NotifySessionInterface = (*KeybaseDaemonRPC)(nil)
 
 var _ keybase1.NotifyUsersInterface = (*KeybaseDaemonRPC)(nil)
 
+var _ keybase1.NotifyPaperKeyInterface = (*KeybaseDaemonRPC)(nil)
+
 var _ rpc.ConnectionHandler = (*KeybaseDaemonRPC)(nil)
 
 var _ KeybaseDaemon = (*KeybaseDaemonRPC)(nil)
@@ -273,6 +275,20 @@ func (k *KeybaseDaemonRPC) UserChanged(ctx context.Context, uid keybase1.UID) er
 	return nil
 }
 
+// PaperKeyCached implements keybase1.NotifyPaperKeyInterface.
+func (k *KeybaseDaemonRPC) PaperKeyCached(ctx context.Context,
+	arg keybase1.PaperKeyCachedArg) error {
+	k.log.CDebugf(ctx, "Paper key for %s cached", arg.Uid)
+
+	if k.getCachedCurrentSession().UID == arg.Uid {
+		// Ignore any errors for now, we don't want to block this
+		// notification and it's not worth spawning a goroutine for.
+		k.config.MDServer().CheckForRekeys(context.Background())
+	}
+
+	return nil
+}
+
 // ClientOutOfDate implements keybase1.NotifySessionInterface.
 func (k *KeybaseDaemonRPC) ClientOutOfDate(ctx context.Context,
 	arg keybase1.ClientOutOfDateArg) error {
@@ -421,6 +437,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		keybase1.IdentifyUiProtocol(daemonIdentifyUI{k.daemonLog}),
 		keybase1.NotifySessionProtocol(k),
 		keybase1.NotifyUsersProtocol(k),
+		keybase1.NotifyPaperKeyProtocol(k),
 	}
 
 	if k.protocols != nil {
