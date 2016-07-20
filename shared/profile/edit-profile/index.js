@@ -65,15 +65,15 @@ export default connect(
   (state, ownProps) => {
     const userInfo = state.tracker.trackers[state.config.username].userInfo
     return ({
-      fullname: userInfo.fullname,
       bio: userInfo.bio,
+      fullname: userInfo.fullname,
       location: userInfo.location,
     })
   },
   dispatch => {
     return {
       onBack: () => dispatch(navigateUp()),
-      onEditProfile: ({bio, location, fullname}) => dispatch(editProfile(bio, location, fullname)),
+      onEditProfile: ({bio, fullname, location}) => dispatch(editProfile(bio, fullname, location)),
     }
   }
 )(EditProfile)
