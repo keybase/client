@@ -10,10 +10,10 @@ export type TypedAction<T, P, E> = {
   payload: E
 }
 
-export type Action = TypedAction<string, any, any>
+export type Action = TypedAction<any, any, any>
 export type GetState = () => Object
-export type AsyncAction = (dispatch: Dispatch, getState: GetState) => ?Promise
-export type Dispatch = (action: TypedAction | AsyncAction) => ?Promise
+export type AsyncAction = (dispatch: Dispatch, getState: GetState) => ?Promise<*>
+export type Dispatch = (action: AsyncAction | Action) => ?Promise<*>
 
-export type TypedAsyncAction<A> = (dispatch: TypedDispatch<A>, getState: GetState) => ?Promise
-export type TypedDispatch<A> = (action: TypedAsyncAction<A> | A) => ?Promise
+export type TypedAsyncAction<A> = (dispatch: TypedDispatch<A>, getState: GetState) => ?Promise<*>
+export type TypedDispatch<A> = (action: TypedAsyncAction<A> | A) => ?Promise<*>

@@ -19,12 +19,12 @@ export default class Text extends Component {
   props: Props;
   context: Context;
 
-  _terminalPrefix (type: Props.type): ?React$Element {
+  _terminalPrefix (type: Props.type): ?React$Element<*> {
     return ({
       'TerminalEmpty': <span>&nbsp;</span>,
       'TerminalCommand': <span>> </span>,
       'TerminalComment': <span># </span>,
-    }: {[key: string]: React$Element})[type]
+    }: {[key: string]: React$Element<*>})[type]
   }
 
   static _inlineStyle (type: Props.type, context: Context): Object {

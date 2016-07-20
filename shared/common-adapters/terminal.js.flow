@@ -8,7 +8,7 @@ export type Context = {
 
 export type Props = {
   style?: Object,
-  children?: React$Element
+  children?: React$Element<*>
 }
 
 declare export default class Terminal extends React.Component {

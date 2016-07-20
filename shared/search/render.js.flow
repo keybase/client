@@ -21,7 +21,7 @@ export type RootProps = {
   onGroupChat: () => void,
   onReset: () => void,
   chatEnabled: boolean,
-  userPane: React$Element,
+  userPane: React$Element<*>,
 }
 
 export type Props = RootProps & UserSearchProps & UserGroupProps & SearchBarProps

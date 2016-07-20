@@ -453,7 +453,7 @@ export function openAccountResetPage () : AsyncAction {
 
 type SimpleCB = () => void
 function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisionerSuccess: SimpleCB) : incomingCallMapType {
-  function appendRouteElement (element: React$Element) {
+  function appendRouteElement (element: React$Element<any>) {
     dispatch(routeAppend({parseRoute: {componentAtTop: {element}}}))
   }
 

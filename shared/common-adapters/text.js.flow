@@ -27,7 +27,7 @@ export type Props = {
   onClick?: (e: SyntheticEvent) => void,
   lineClamp?: number,
   style?: Object,
-  children?: React$Element,
+  children?: React$Element<*>,
   className?: string,
   contentEditable?: boolean,
   onKeyDown?: (e: SyntheticEvent) => void,

@@ -12,9 +12,10 @@ import _ from 'lodash'
 
 import setNotifications from '../util/set-notifications'
 
+import type {TypedState} from '../constants/reducer'
+
 import type {CallMap} from '../engine/call-map-middleware'
 import type {State as RootTrackerState} from '../reducers/tracker'
-import type {State as FavoriteState} from '../constants/favorite'
 import type {ConfigState} from '../reducers/config'
 import type {Action, Dispatch} from '../constants/types/flux'
 
@@ -25,7 +26,7 @@ import {delegateUiCtlRegisterIdentifyUIRpc, trackCheckTrackingRpc, trackUntrackR
   identifyIdentify2Rpc, trackDismissWithTokenRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc,
   userListTrackingRpc} from '../constants/types/flow-types'
 
-type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState, config: ConfigState, favorite: FavoriteState}) => ?Promise
+type TrackerActionCreator = (dispatch: Dispatch, getState: () => TypedState) => ?Promise<*>
 
 export function startTimer (): TrackerActionCreator {
   return (dispatch, getState) => {
@@ -85,7 +86,7 @@ export function getProfile (username: string): TrackerActionCreator {
 
     dispatch({type: Constants.updateUsername, payload: {username}})
     dispatch(triggerIdentify('', username, true, serverCallMap(dispatch, getState, true)))
-    dispatch(fillFolders(getState, username))
+    dispatch(fillFolders(username))
   }
 }
 
@@ -95,7 +96,7 @@ export function getMyProfile (): TrackerActionCreator {
 
     const username = status && status.user && status.user.username
     if (username) {
-      dispatch(fillFolders(getState, username))
+      dispatch(fillFolders(username))
       dispatch({type: Constants.updateUsername, payload: {username}})
     }
 
@@ -548,7 +549,7 @@ function summaryToTrackingInfo (getState: any, summaries: Array<UserSummary>): A
   }))
 }
 
-function listTrackers (username: string): Promise {
+function listTrackers (username: string): Promise<*> {
   return new Promise((resolve, reject) => {
     userListTrackersByNameRpc({
       param: {username},
@@ -564,7 +565,7 @@ function listTrackers (username: string): Promise {
   })
 }
 
-function loadSummaries (getState: any, uids: Array<UID>): Promise {
+function loadSummaries (getState: any, uids: Array<UID>): Promise<*> {
   return new Promise((resolve, reject) => {
     if (!uids.length) {
       resolve([])
@@ -584,7 +585,7 @@ function loadSummaries (getState: any, uids: Array<UID>): Promise {
   })
 }
 
-function getTracking (username: string): Promise {
+function getTracking (username: string): Promise<*> {
   return new Promise((resolve, reject) => {
     userListTrackingRpc({
       param: {assertion: username, filter: ''},
@@ -600,9 +601,10 @@ function getTracking (username: string): Promise {
   })
 }
 
-function fillFolders (getState: () => {favorite: FavoriteState}, username: string): TrackerActionCreator {
+function fillFolders (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    const root = getState().favorite.folders
+    const state: TypedState = getState()
+    const root = state.favorite
     const pubIg = _.get(root, 'public.ignored', [])
     const pubTlf = _.get(root, 'public.tlfs', [])
     const privIg = _.get(root, 'private.ignored', [])
@@ -620,7 +622,7 @@ function fillFolders (getState: () => {favorite: FavoriteState}, username: strin
   }
 }
 
-export function updateTrackers (username: string) : TrackerActionCreator {
+export function updateTrackers (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     const figureTrackers = listTrackers(username).then(uids => loadSummaries(getState, uids))
     const figureTracking = getTracking(username).then(uids => loadSummaries(getState, uids))

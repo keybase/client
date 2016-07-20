@@ -20,7 +20,7 @@ function fullName (extraInfo: ExtraInfo): string {
 }
 
 function User ({user, insertSpacing, onRemove, onClickUser}: {selected: boolean, user: SearchResult, insertSpacing: boolean, onRemove: UserFn, onClickUser: UserFn}) {
-  let avatar: React$Element
+  let avatar: React$Element<any>
 
   if (user.service === 'keybase') {
     avatar = <Avatar style={avatarStyle} size={48} username={user.username} />
@@ -30,7 +30,7 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {selected: boolean,
     avatar = <Avatar style={avatarStyle} size={48} url={null} />
   }
 
-  let name: React$Element
+  let name: React$Element<*>
 
   if (user.service === 'keybase') {
     name = (

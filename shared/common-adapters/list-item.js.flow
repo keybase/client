@@ -9,9 +9,9 @@ import React, {Component} from 'react'
 
 export type Props = {
   type: 'Small' | 'Large',
-  icon: React$Element,
-  body: React$Element,
-  action: React$Element,
+  icon: React$Element<*>,
+  body: React$Element<*>,
+  action: React$Element<*>,
   extraRightMarginAction?: boolean, // Spacing is different if the action is just text (for example)
   onClick?: () => void,
   containerStyle?: Object,

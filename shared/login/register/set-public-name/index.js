@@ -19,7 +19,7 @@ export class SetPublicName extends Component<void, Props, State> {
   render () {
     const nameTaken = !!(this.props.existingDevices && this.props.existingDevices.indexOf(this.state.deviceName) !== -1)
     const submitEnabled = !!(this.state.deviceName && this.state.deviceName.length && !nameTaken)
-    const nameTakenError = nameTaken ? `The device name: ${this.state.deviceName} is already taken` : null
+    const nameTakenError = nameTaken ? `The device name: ${this.state.deviceName || ''} is already taken` : null
 
     return (
       <Render

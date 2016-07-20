@@ -9,8 +9,8 @@ export type Props = {
   selectedTab: VisibleTab,
   username: string,
   badgeNumbers: {[key: VisibleTab]: number},
-  searchContent?: React$Element,
-  tabContent: {[key: VisibleTab]: React$Element}
+  searchContent?: React$Element<*>,
+  tabContent: {[key: VisibleTab]: React$Element<*>}
 }
 
 export default class TabBar extends Component<void, Props, void> { }

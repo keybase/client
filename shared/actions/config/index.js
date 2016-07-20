@@ -8,7 +8,7 @@ import {resetSignup} from '../../actions/signup'
 // $FlowFixMe
 import * as native from './index.native'
 
-import type {AsyncAction} from '../../constants/types/flux'
+import type {AsyncAction, Action} from '../../constants/types/flux'
 import {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc,
   userListTrackingRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc} from '../../constants/types/flow-types'
 
@@ -127,7 +127,7 @@ export function bootstrap (): AsyncAction {
           }
           dispatch({type: Constants.bootstrapped, payload: null})
           dispatch(navBasedOnLoginState())
-          dispatch(resetSignup())
+          dispatch((resetSignup(): Action))
         }).catch(error => {
           console.warn('Error bootstrapping: ', error)
         })

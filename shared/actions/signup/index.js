@@ -37,7 +37,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
       callback: err => {
         if (err) {
           console.warn('error in inviteCode:', err)
-          dispatch({type: Constants.checkInviteCode, error: true, payload: {errorText: "Sorry, that's not a valid invite code."}})
+          dispatch(({type: Constants.checkInviteCode, error: true, payload: {errorText: "Sorry, that's not a valid invite code."}}: CheckInviteCode))
           reject(err)
         } else {
           dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
@@ -55,11 +55,11 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
     const emailError = isValidEmail(email)
     const nameError = isValidName(name)
     if (emailError || nameError || !email || !name) {
-      dispatch({
+      dispatch(({
         type: Constants.requestInvite,
         error: true,
         payload: {emailError, nameError, email, name},
-      })
+      }: RequestInvite))
       resolve()
       return
     }
@@ -151,11 +151,11 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
     const usernameError = isValidUsername(username)
 
     if (emailError || usernameError || !username || !email) {
-      dispatch({
+      dispatch(({
         type: Constants.checkUsernameEmail,
         error: true,
         payload: {emailError, usernameError, email, username},
-      })
+      }: CheckUsernameEmail))
       resolve()
       return
     }
@@ -166,11 +166,11 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
       callback: err => {
         if (err) {
           console.warn("username isn't available:", err)
-          dispatch({
+          dispatch(({
             type: Constants.checkUsernameEmail,
             error: true,
             payload: {emailError, usernameError: `Username error: ${err.message}`, email, username},
-          })
+          }: CheckUsernameEmail))
           resolve()
         } else {
           // We need this check to make flow happy. This should never be null
@@ -202,11 +202,11 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
     }
 
     if (passphraseError) {
-      dispatch({
+      dispatch(({
         type: Constants.checkPassphrase,
         error: true,
         payload: {passphraseError},
-      })
+      }: CheckPassphrase))
     } else {
       dispatch({
         type: Constants.checkPassphrase,
@@ -219,7 +219,7 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
   })
 }
 
-export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<SubmitDeviceName | RouteAppend | Signup | ShowPaperKey> {
+export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<SubmitDeviceName | RouteAppend | Signup | ShowPaperKey | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
     // TODO do some checking on the device name - ideally this is done on the service side
     let deviceNameError = null
@@ -228,11 +228,11 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
     }
 
     if (deviceNameError) {
-      dispatch({
+      dispatch(({
         type: Constants.submitDeviceName,
         error: true,
-        payload: {deviceNameError},
-      })
+        payload: {deviceNameError: deviceNameError || '', deviceName},
+      }: SubmitDeviceName))
     } else {
       deviceCheckDeviceNameFormatRpc({
         param: {name: deviceName},
@@ -240,18 +240,18 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
         callback: err => {
           if (err) {
             console.warn('device name is invalid: ', err)
-            dispatch({
+            dispatch(({
               type: Constants.submitDeviceName,
               error: true,
               payload: {deviceNameError: `Device name is invalid: ${err.message}.`, deviceName},
-            })
+            }: SubmitDeviceName))
             reject(err)
           } else {
             if (deviceName) {
-              dispatch({
+              dispatch(({
                 type: Constants.submitDeviceName,
                 payload: {deviceName},
-              })
+              }: SubmitDeviceName))
 
               const signupPromise = dispatch(signup(skipMail || false, onDisplayPaperKey))
               if (signupPromise) {
@@ -298,10 +298,10 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
         incomingCallMap: {
           'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
             paperKeyResponse = response
-            dispatch({
+            dispatch(({
               type: Constants.showPaperKey,
               payload: {paperkey: new HiddenString(phrase)},
-            })
+            }: ShowPaperKey))
             onDisplayPaperKey && onDisplayPaperKey()
             dispatch(nextPhase())
           },
@@ -313,11 +313,11 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
         callback: (err, {passphraseOk, postOk, writeOk}) => {
           if (err) {
             console.warn('error in signup:', err)
-            dispatch({
+            dispatch(({
               type: Constants.signup,
               error: true,
               payload: {signupError: new HiddenString(err + '')},
-            })
+            }: Signup))
             dispatch(nextPhase())
             reject()
           } else {
