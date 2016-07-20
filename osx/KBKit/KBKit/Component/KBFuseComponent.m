@@ -199,7 +199,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
   NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:nil];
   if (!fileAttributes) return YES;
   NSNumber *loadPermissions = fileAttributes[NSFilePosixPermissions];
-  DDLogDebug(@"Load permissions: %@", loadPermissions);
+  DDLogDebug(@"Load permissions: %o", [loadPermissions shortValue]);
   return ![loadPermissions isEqual:[NSNumber numberWithShort:04755]];
 }
 

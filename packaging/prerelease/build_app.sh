@@ -98,9 +98,9 @@ if [ ! "$nowait" = "1" ]; then
   "$release_bin" wait-ci --repo="kbfs" --commit=`git -C $kbfs_dir log -1 --pretty=format:%h` --context="Jenkins job master" --context="continuous-integration/appveyor/branch"
   echo "Checking updater CI"
   "$release_bin" wait-ci --repo="go-updater" --commit=`git -C $updater_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push"
-fi
 
-"$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build and release for $platform."
+  "$client_dir/packaging/slack/send.sh" "CI tests passed! Starting build and release for $platform."
+fi
 
 if [ ! "$nobuild" = "1" ]; then
   BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"
