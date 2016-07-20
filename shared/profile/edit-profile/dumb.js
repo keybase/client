@@ -1,5 +1,6 @@
 /* @flow */
 import EditProfile from './render'
+import {isMobile} from '../../constants/platform'
 import type {DumbComponentMap} from '../../constants/types/more'
 import type {Props as RenderProps} from './render'
 
@@ -16,6 +17,7 @@ const propsBase: RenderProps = {
   onFullnameChange: () => console.log('onFullnameChange'),
   onLocationChange: () => console.log('onLocationChange'),
   onEditProfile: () => console.log('onEditProfile clicked'),
+  parentProps: isMobile ? {} : {style: {display: 'flex', minWidth: 640, height: 580}},
 }
 
 const dumbMap: DumbComponentMap<EditProfile> = {

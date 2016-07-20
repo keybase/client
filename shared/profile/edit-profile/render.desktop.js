@@ -13,7 +13,8 @@ class Render extends Component<void, Props, void> {
           <Input
             autoFocus
             style={styleEditProfile}
-            floatingLabelText='Full name' value={this.props.fullname}
+            floatingLabelText='Full name'
+            value={this.props.fullname}
             onEnterKeyDown={this.props.onSubmit}
             onChangeText={fullname => this.props.onFullnameChange(fullname)} />
 
@@ -61,6 +62,7 @@ const styleContainer = {
 
 const styleEditProfile = {
   marginTop: 35,
+  minWidth: 450,
 }
 
 export default Render
