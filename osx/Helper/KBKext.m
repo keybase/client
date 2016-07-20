@@ -9,6 +9,7 @@
 #import "KBKext.h"
 
 #import <IOKit/kext/KextManager.h>
+#include <sys/stat.h>
 
 @implementation KBKext
 
@@ -57,13 +58,7 @@
     return;
   }
 
-  NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:destination error:NULL];
-  NSMutableDictionary *attributes = [NSMutableDictionary dictionaryWithDictionary:fileAttributes];
-  attributes[NSFilePosixPermissions] = [NSNumber numberWithShort:0755];
-  attributes[NSFileOwnerAccountID] = @(0);
-  attributes[NSFileGroupOwnerAccountID] = @(0);
-
-  [self updateAttributes:attributes path:destination completion:^(NSError *error) {
+  [self updateAttributes:0 gid:0 perm:0755 path:destination completion:^(NSError *error) {
     if (error) {
       completion(error, nil);
       return;
@@ -76,22 +71,32 @@
   }];
 }
 
-+ (BOOL)updateLoaderFileAttributes:(NSString *)destination error:(NSError **)error {
-  NSString *path = [NSString stringWithFormat:@"%@/Contents/Resources/load_kbfuse", destination];
-  NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:error];
-  if (!fileAttributes) {
-    return NO;
-  }
-  NSMutableDictionary *attributes = [NSMutableDictionary dictionaryWithDictionary:fileAttributes];
-  attributes[NSFilePosixPermissions] = [NSNumber numberWithShort:04755];
-  attributes[NSFileOwnerAccountID] = @(0);
-  attributes[NSFileGroupOwnerAccountID] = @(0);
-  return [NSFileManager.defaultManager setAttributes:attributes ofItemAtPath:path error:error];
++ (NSNumber *)permissionsForPath:(NSString *)path {
+  NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:nil];
+  if (!fileAttributes) return nil;
+  return fileAttributes[NSFilePosixPermissions];
 }
 
-+ (void)updateAttributes:(NSDictionary *)attributes path:(NSString *)path completion:(KBCompletion)completion {
++ (BOOL)updateLoaderFileAttributes:(NSString *)destination error:(NSError **)error {
+  NSString *path = [NSString stringWithFormat:@"%@/Contents/Resources/load_kbfuse", destination];
+  return [self setUID:path error:error];
+}
+
++ (BOOL)setUID:(NSString *)path error:(NSError **)error {
+  mode_t perm = 04755;
+  const char *file = [NSFileManager.defaultManager fileSystemRepresentationWithPath:path];
+  int err = chmod(file, perm);
+  if (err != 0) {
+    if (error) *error = KBMakeError(KBHelperErrorKext, @"Unable to set permissions for %@; chown error: %@", path, @(err));
+    return NO;
+  }
+  KBLog(@"Permissions for %@: %o", path, [[self permissionsForPath:path] shortValue]);
+  return YES;
+}
+
++ (void)updateAttributes:(uid_t)uid gid:(gid_t)gid perm:(mode_t)perm path:(NSString *)path completion:(KBCompletion)completion {
   NSError *error = nil;
-  if (![self updateAttributes:attributes path:path error:&error]) {
+  if (![self updateAttributes:uid gid:gid perm:perm path:path error:&error]) {
     if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to set attributes");
     completion(error);
     return;
@@ -100,7 +105,7 @@
   NSDirectoryEnumerator *enumerator = [NSFileManager.defaultManager enumeratorAtPath:path];
   NSString *file;
   while ((file = [enumerator nextObject])) {
-    if (![self updateAttributes:attributes path:[path stringByAppendingPathComponent:file] error:&error]) {
+    if (![self updateAttributes:uid gid:gid perm:perm path:[path stringByAppendingPathComponent:file] error:&error]) {
       if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to set attributes");
       completion(error);
       return;
@@ -110,26 +115,28 @@
   completion(nil);
 }
 
-+ (BOOL)updateAttributes:(NSDictionary *)attributes path:(NSString *)path error:(NSError **)error {
++ (BOOL)updateAttributes:(uid_t)uid gid:(gid_t)gid perm:(mode_t)perm path:(NSString *)path error:(NSError **)error {
   NSDictionary *existingAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:error];
   if (!existingAttributes) {
     return NO;
   }
+  const char *file = [NSFileManager.defaultManager fileSystemRepresentationWithPath:path];
 
-  // setAttributes doesn't work on symbolic links
+  int chownErr = 0;
   if (existingAttributes[NSFileType] == NSFileTypeSymbolicLink) {
-    const char *file = [NSFileManager.defaultManager fileSystemRepresentationWithPath:path];
-    uid_t uid = [attributes[NSFileOwnerAccountID] intValue];
-    gid_t gid = [attributes[NSFileGroupOwnerAccountID] intValue];
-    int res = lchown(file, uid, gid);
-    if (res != 0) {
-      if (error) *error = KBMakeError(KBHelperErrorKext, @"Unable to set attributes on symlink: %@", @(res));
-      return NO;
-    }
-    return YES;
+    chownErr = lchown(file, uid, gid);
+  } else {
+    chownErr = chown(file, uid, gid);
+  }
+  if (chownErr != 0) {
+    if (error) *error = KBMakeError(KBHelperErrorKext, @"Unable to chown: %@", @(chownErr));
+    return NO;
   }
 
-  if (![NSFileManager.defaultManager setAttributes:attributes ofItemAtPath:path error:error]) {
+  int chmodErr = 0;
+  chmodErr = chmod(file, perm);
+  if (chmodErr != 0) {
+    if (error) *error = KBMakeError(KBHelperErrorKext, @"Unable to chmodErr: %@", @(chmodErr));
     return NO;
   }
 

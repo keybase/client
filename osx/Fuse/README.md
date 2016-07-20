@@ -6,7 +6,9 @@ of relying on 3rd party binaries from other developers.
 
 ### Building KBFuse from OSXFuse
 
-    ./build.sh
+    VERSION=3.4.0 ./build.sh
+
+You should build from a 10.10 macOS.
 
 ### Manual Install
 

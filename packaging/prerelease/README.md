@@ -20,7 +20,7 @@ In addition, a comment with a short sha of the last commit is added as well allo
 To build and deploy the app:
 
 ```
-./build_app.sh
+PLATFORM=darwin ./build_app.sh
 ```
 
 ### Scheduling Builds

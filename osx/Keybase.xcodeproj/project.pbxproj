@@ -23,7 +23,7 @@
 		004624CE1B2A3BE300E218AC /* FinderSync.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 004624CD1B2A3BE300E218AC /* FinderSync.framework */; };
 		0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C21AE57A7A00BFB0E7 /* main.m */; };
 		0057B0DB1AE57B5900BFB0E7 /* keybase.Helper in Copy Files */ = {isa = PBXBuildFile; fileRef = 0057B0B41AE57A4900BFB0E7 /* keybase.Helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
-		006D68101C7D014600B1CA0B /* kbfuse.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 006D680F1C7D014600B1CA0B /* kbfuse.bundle */; };
+		00938E2F1D3D9938003BB1EC /* kbfuse.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 00938E2E1D3D9938003BB1EC /* kbfuse.bundle */; };
 		009E135C1B27654200C72B28 /* ShareViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 009E135B1B27654200C72B28 /* ShareViewController.xib */; };
 		009E136B1B27B39300C72B28 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 009E136A1B27B39300C72B28 /* icon.icns */; };
 		009E136F1B27B39300C72B28 /* ActionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E136E1B27B39300C72B28 /* ActionViewController.m */; };
@@ -136,7 +136,7 @@
 		0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelper.m; sourceTree = "<group>"; };
 		0057B0C11AE57A7A00BFB0E7 /* keybase.Helper.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = keybase.Helper.plist; sourceTree = "<group>"; };
 		0057B0C21AE57A7A00BFB0E7 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		006D680F1C7D014600B1CA0B /* kbfuse.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = kbfuse.bundle; path = Fuse/kbfuse.bundle; sourceTree = "<group>"; };
+		00938E2E1D3D9938003BB1EC /* kbfuse.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = kbfuse.bundle; path = Fuse/kbfuse.bundle; sourceTree = "<group>"; };
 		009E135B1B27654200C72B28 /* ShareViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ShareViewController.xib; sourceTree = "<group>"; };
 		009E13611B2794CF00C72B28 /* Installer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Installer.entitlements; sourceTree = "<group>"; };
 		009E13661B27B39300C72B28 /* Action.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Action.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -366,7 +366,7 @@
 				00F808061A4A5F600038BC63 /* README.md */,
 				004D14961A3BCF1F0083888D /* Podfile */,
 				00CC434B1A3A9E6C006118A9 /* Installer */,
-				006D680F1C7D014600B1CA0B /* kbfuse.bundle */,
+				00938E2E1D3D9938003BB1EC /* kbfuse.bundle */,
 				0036080C1C442E6100B3300E /* Status */,
 				00734B291B263FB500F3B714 /* Extensions */,
 				00E1CEF21C4432E600ED3A35 /* Utils */,
@@ -757,7 +757,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				001392751B06B18A0082DEA8 /* Fuse.icns in Resources */,
-				006D68101C7D014600B1CA0B /* kbfuse.bundle in Resources */,
+				00938E2F1D3D9938003BB1EC /* kbfuse.bundle in Resources */,
 				00E1CEEF1C44313B00ED3A35 /* Media.xcassets in Resources */,
 				0005BCA01C445AFB0062EF1D /* MainMenu.xib in Resources */,
 			);
