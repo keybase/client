@@ -138,6 +138,9 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 		code = keybase1.FSErrorType_OVER_QUOTA
 		params[errorParamUsageBytes] = strconv.FormatInt(e.UsageBytes, 10)
 		params[errorParamLimitBytes] = strconv.FormatInt(e.LimitBytes, 10)
+	case NoSigChainError:
+		code = keybase1.FSErrorType_NO_SIG_CHAIN
+		params[errorParamUsername] = e.User.String()
 	}
 
 	if code < 0 && err == context.DeadlineExceeded {
