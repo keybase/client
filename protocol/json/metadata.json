@@ -73,6 +73,16 @@
           "name": "root"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PingResponse",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "timestamp"
+        }
+      ]
     }
   ],
   "messages": {
@@ -291,6 +301,10 @@
     "ping": {
       "request": [],
       "response": null
+    },
+    "ping2": {
+      "request": [],
+      "response": "PingResponse"
     },
     "getLatestFolderHandle": {
       "request": [
