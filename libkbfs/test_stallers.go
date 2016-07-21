@@ -58,6 +58,12 @@ type NaïveStaller struct {
 	mu             sync.RWMutex
 	blockOpsStalls map[StallableBlockOp]*naïveStallInfo
 	mdOpsStalls    map[StallableMDOp]*naïveStallInfo
+
+	// We are only supporting stalling one Op per kind at a time for now. If in
+	// the future a dsl test needs to stall different Ops, please see
+	// https://github.com/keybase/kbfs/pull/163 for an implementation.
+	blockStalled bool
+	mdStalled    bool
 }
 
 // NewNaïveStaller returns a new NaïveStaller
@@ -96,6 +102,12 @@ func (s *NaïveStaller) getNaïveStallInfoForMDOpOrBust(
 // StallBlockOp wraps the internal BlockOps so that all subsequent stalledOp
 // will be stalled. This can be undone by calling UndoStallBlockOp.
 func (s *NaïveStaller) StallBlockOp(stalledOp StallableBlockOp) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.blockStalled {
+		panic("incorrect use of NaïveStaller;" +
+			" only one stalled Op at a time is supported")
+	}
 	onStalledCh := make(chan struct{}, 1)
 	unstallCh := make(chan struct{})
 	oldBlockOps := s.config.BlockOps()
@@ -108,8 +120,7 @@ func (s *NaïveStaller) StallBlockOp(stalledOp StallableBlockOp) {
 		},
 		delegate: oldBlockOps,
 	})
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.blockStalled = true
 	s.blockOpsStalls[stalledOp] = &naïveStallInfo{
 		onStalled:   onStalledCh,
 		unstall:     unstallCh,
@@ -120,6 +131,12 @@ func (s *NaïveStaller) StallBlockOp(stalledOp StallableBlockOp) {
 // StallMDOp wraps the internal MDOps so that all subsequent stalledOp
 // will be stalled. This can be undone by calling UndoStallMDOp.
 func (s *NaïveStaller) StallMDOp(stalledOp StallableMDOp) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.mdStalled {
+		panic("incorrect use of NaïveStaller;" +
+			" only one stalled Op at a time is supported")
+	}
 	onStalledCh := make(chan struct{}, 1)
 	unstallCh := make(chan struct{})
 	oldMDOps := s.config.MDOps()
@@ -132,8 +149,7 @@ func (s *NaïveStaller) StallMDOp(stalledOp StallableMDOp) {
 		},
 		delegate: oldMDOps,
 	})
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mdStalled = true
 	s.mdOpsStalls[stalledOp] = &naïveStallInfo{
 		onStalled: onStalledCh,
 		unstall:   unstallCh,
@@ -174,6 +190,7 @@ func (s *NaïveStaller) UndoStallBlockOp(stalledOp StallableBlockOp) {
 	close(ns.unstall)
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.blockStalled = false
 	delete(s.blockOpsStalls, stalledOp)
 }
 
@@ -186,6 +203,7 @@ func (s *NaïveStaller) UndoStallMDOp(stalledOp StallableMDOp) {
 	close(ns.unstall)
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	s.mdStalled = false
 	delete(s.mdOpsStalls, stalledOp)
 }
 
