@@ -15,7 +15,7 @@ import (
 )
 
 type fbmHelper interface {
-	getMDForFBM(ctx context.Context) (ImmutableRootMetadata, error)
+	getMDForExternalUse(ctx context.Context) (ImmutableRootMetadata, error)
 	finalizeGCOp(ctx context.Context, gco *gcOp) error
 }
 
@@ -876,7 +876,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	// run indefinitely.
 
 	// First get the current head, and see if we're staged or not.
-	head, err := fbm.helper.getMDForFBM(ctx)
+	head, err := fbm.helper.getMDForExternalUse(ctx)
 	if err != nil {
 		return err
 	} else if err := isReadableOrError(ctx, fbm.config, head.ReadOnly()); err != nil {

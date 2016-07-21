@@ -841,8 +841,9 @@ func (fbo *folderBranchOps) getMDForReadHelper(
 	return md, nil
 }
 
-// getMDForFBM is a helper method for the folderBlockManager only.
-func (fbo *folderBranchOps) getMDForFBM(ctx context.Context) (
+// getMDForExternalUse is a helper method for other structs to get the
+// current head for reading.
+func (fbo *folderBranchOps) getMDForExternalUse(ctx context.Context) (
 	ImmutableRootMetadata, error) {
 	lState := makeFBOLockState()
 	return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
