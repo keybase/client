@@ -1141,3 +1141,15 @@ type TlfHandleFinalizedError struct {
 func (e TlfHandleFinalizedError) Error() string {
 	return "Attempt to modify finalized TLF handle"
 }
+
+// NoSigChainError means that a user we were trying to identify does
+// not have a sigchain.
+type NoSigChainError struct {
+	User libkb.NormalizedUsername
+}
+
+// Error implements the error interface for NoSigChainError.
+func (e NoSigChainError) Error() string {
+	return fmt.Sprintf("%s has not yet installed Keybase and set up the "+
+		"Keybase filesystem. Please ask them to.", e.User)
+}

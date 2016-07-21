@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
@@ -24,6 +25,11 @@ func identifyUID(ctx context.Context, nug normalizedUsernameGetter, identifier i
 	}
 	userInfo, err := identifier.Identify(ctx, username.String(), reason)
 	if err != nil {
+		// Convert libkb.NoSigChainError into one we can report.  (See
+		// KBFS-1252).
+		if _, ok := err.(libkb.NoSigChainError); ok {
+			return NoSigChainError{username}
+		}
 		return err
 	}
 	if userInfo.Name != username {
