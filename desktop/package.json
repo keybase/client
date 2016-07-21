@@ -22,7 +22,7 @@
     "postinstall": "babel-node --presets es2015,stage-2 npm-helper.js postinstall",
     "render-screenshots": "babel-node --presets es2015,stage-2 npm-helper.js render-screenshots",
     "updated-fonts": "babel-node --presets es2015,stage-2 npm-helper.js updated-fonts",
-    "wrap": "npm uninstall fsevents && npm prune && npm shrinkwrap --dev",
+    "wrap": "npm dedupe && npm uninstall fsevents && npm prune && npm shrinkwrap --dev",
     "help": "babel-node --presets es2015,stage-2 npm-helper.js help",
     "watch-test-file": "KEYBASE_RUN_MODE=devel babel-node --presets es2015,stage-2 npm-helper.js watch-test-file",
     "mocha": "KEYBASE_RUN_MODE=devel node_modules/mocha/bin/mocha --require source-map-support/register dist/test.bundle.js",
