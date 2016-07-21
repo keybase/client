@@ -23,6 +23,7 @@ class DeviceName extends Component {
         deviceNameError={this.props.deviceNameError}
         onChange={deviceName => this.setState({deviceName})}
         onSubmit={() => this.props.submitDeviceName(this.state.deviceName || '')}
+        submitEnabled={!this.props.waiting}
         onBack={this.props.restartSignup}
         waiting={this.props.waiting} />
     )
