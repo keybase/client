@@ -14,23 +14,19 @@ services:
         ports:
             - "3000:3000"
             - "13009"
-            # TODO: remove
-            - "9911:9911"
         links:
             - mysql.local
             - gregor.local
         entrypoint: ["run/startup_for_container.sh"]
         environment:
             - KEYBASE_RUN_MODE=devel
-              # - KEYBASE_NO_GREGORD_LAUNCH=true
-              # - KEYBASE_GREGORD_HOSTNAME=gregor.local
+            - KEYBASE_NO_GREGORD_LAUNCH=true
+            - KEYBASE_GREGORD_HOSTNAME=gregor.local
             - MYSQL_HOST=mysql.local
-              # - KEYBASE_KBFSTLFD_TLS_HOSTNAME=kbweb.local
     gregor.local:
         image: keybaseprivate/kbgregor
         ports:
-            - "9911"
-            # - "9911:9911"
+            - "9911:9911"
         restart: unless-stopped
         links:
             - mysql.local

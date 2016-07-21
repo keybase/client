@@ -264,7 +264,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 }
                             },
                         )
-                } catch(ex) {
+                } catch (ex) {
+                    println "Gregor logs:"
                     sh "docker-compose logs gregor.local"
                     println "MySQL logs:"
                     sh "docker-compose logs mysql.local"
