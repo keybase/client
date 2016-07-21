@@ -18,9 +18,6 @@ let config = {
   printOutstandingRPCs: false,
   reactPerf: false,
   overrideLoggedInTab: null,
-  dumbFilter: '',
-  dumbIndex: 0,
-  dumbFullscreen: false,
   printRoutes: false,
   logStatFrequency: 0,
   actionStatFrequency: 0,
@@ -57,9 +54,6 @@ export const {
   printOutstandingRPCs,
   reactPerf,
   overrideLoggedInTab,
-  dumbFilter,
-  dumbIndex,
-  dumbFullscreen,
   printRoutes,
   logStatFrequency,
   actionStatFrequency,
@@ -81,19 +75,11 @@ export function initTabbedRouterState (state) {
   }
 }
 
-function updateStore (store, config) {
-  store.dispatch(updateDebugConfig({
-    dumbFilter: config.dumbFilter,
-    dumbIndex: config.dumbIndex,
-    dumbFullscreen: config.dumbFullscreen,
-  }))
-}
-
 export function setup (store) {
+  const updateLiveConfig = () => store.dispatch(updateDebugConfig(require('./local-debug-live')))
+
   if (module.hot) {
-    module.hot.accept(() => {
-      updateStore(store, require('./local-debug.native'))
-    })
+    module.hot.accept(() => updateLiveConfig())
   }
-  updateStore(store, config)
+  updateLiveConfig()
 }

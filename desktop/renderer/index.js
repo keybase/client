@@ -12,6 +12,7 @@ import ListenLogUi from '../shared/native/listen-log-ui'
 import {devStoreChangingFunctions} from '../shared/local-debug.desktop'
 import {listenForNotifications} from '../shared/actions/notifications'
 import {bootstrap} from '../shared/actions/config'
+import {updateDebugConfig} from '../shared/actions/dev'
 import hello from '../shared/util/hello'
 
 import Root from './container'
@@ -74,6 +75,8 @@ function setupApp (store) {
   // Introduce ourselves to the service
   hello(process.pid, 'Main Renderer', process.argv, __VERSION__) // eslint-disable-line no-undef
 
+  store.dispatch(updateDebugConfig(require('../shared/local-debug-live')))
+
   store.dispatch(bootstrap())
   // Restartup when we connect online.
   // If you startup while offline, you'll stay in an errored state
@@ -98,5 +101,12 @@ if (module.hot) {
       <AppContainer><NewRoot store={store} /></AppContainer>,
       appEl,
     )
+  })
+}
+
+// flowtype requires this to be a separate if statement
+if (module.hot) {
+  module.hot.accept('../shared/local-debug-live', () => {
+    store.dispatch(updateDebugConfig(require('../shared/local-debug-live')))
   })
 }
