@@ -12,8 +12,14 @@ type FSActivityArg struct {
 	Notification FSNotification `codec:"notification" json:"notification"`
 }
 
+type FSEditListResponseArg struct {
+	Edits     []FSNotification `codec:"edits" json:"edits"`
+	RequestID int              `codec:"requestID" json:"requestID"`
+}
+
 type NotifyFSInterface interface {
 	FSActivity(context.Context, FSNotification) error
+	FSEditListResponse(context.Context, FSEditListResponseArg) error
 }
 
 func NotifyFSProtocol(i NotifyFSInterface) rpc.Protocol {
@@ -36,6 +42,22 @@ func NotifyFSProtocol(i NotifyFSInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodNotify,
 			},
+			"FSEditListResponse": {
+				MakeArg: func() interface{} {
+					ret := make([]FSEditListResponseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FSEditListResponseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FSEditListResponseArg)(nil), args)
+						return
+					}
+					err = i.FSEditListResponse(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodNotify,
+			},
 		},
 	}
 }
@@ -47,5 +69,10 @@ type NotifyFSClient struct {
 func (c NotifyFSClient) FSActivity(ctx context.Context, notification FSNotification) (err error) {
 	__arg := FSActivityArg{Notification: notification}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSActivity", []interface{}{__arg})
+	return
+}
+
+func (c NotifyFSClient) FSEditListResponse(ctx context.Context, __arg FSEditListResponseArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSEditListResponse", []interface{}{__arg})
 	return
 }
