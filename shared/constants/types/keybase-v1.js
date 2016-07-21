@@ -240,6 +240,7 @@ export const kbfsCommon = {
     'notImplemented': 7,
     'oldVersion': 8,
     'overQuota': 9,
+    'noSigChain': 10,
   },
 }
 

@@ -37,7 +37,8 @@
         "BAD_FOLDER_6",
         "NOT_IMPLEMENTED_7",
         "OLD_VERSION_8",
-        "OVER_QUOTA_9"
+        "OVER_QUOTA_9",
+        "NO_SIG_CHAIN_10"
       ]
     },
     {
