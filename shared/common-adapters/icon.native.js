@@ -5,10 +5,10 @@ import {TouchableHighlight, Text, Image} from 'react-native'
 import {globalColors} from '../styles/style-guide'
 import {iconMeta} from './icon.constants'
 import type {Props} from './icon'
+import type {$Exact} from '../constants/types/more'
 import * as shared from './icon.shared'
 
-export default class Icon extends Component {
-  props: Props;
+export default class Icon extends Component<void, $Exact<Props>, void> {
 
   render () {
     let color = shared.defaultColor(this.props.type)

@@ -51,7 +51,7 @@ const Modified = ({styles, modified}) => {
   const iconColor = Text._colorStyleBackgroundMode(styles.modifiedMode, 'BodySmallLink')
   return (
     <Box style={stylesModified}>
-      <Icon type='iconfont-thunderbolt' style={{alignSelf: 'center', marginLeft: -2, marginRight: 2, ...iconColor}} title='Modified' />
+      <Icon type='iconfont-thunderbolt' style={{alignSelf: 'center', marginLeft: -2, marginRight: 2, ...iconColor}} hint='Modified' />
       <Text type='BodySmall' backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
       <Text type='BodySmallLink' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
     </Box>
