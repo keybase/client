@@ -11,7 +11,7 @@ class Render extends Component<void, Props, void> {
         {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 10, top: 10, zIndex: 12}} />}
         <Box style={styleContainer}>
           <Input
-            autoFocus
+            autoFocus={true}
             style={styleEditProfile}
             floatingLabelText='Full name'
             value={this.props.fullname}
