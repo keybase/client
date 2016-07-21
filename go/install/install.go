@@ -103,7 +103,7 @@ func ComponentNameFromString(s string) ComponentName {
 }
 
 // ResolveInstallStatus will determine necessary install actions for the current environment
-func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus string) (installStatus keybase1.InstallStatus, installAction keybase1.InstallAction, status keybase1.Status) {
+func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus string, log Log) (installStatus keybase1.InstallStatus, installAction keybase1.InstallAction, status keybase1.Status) {
 	installStatus = keybase1.InstallStatus_UNKNOWN
 	installAction = keybase1.InstallAction_UNKNOWN
 	if version != "" && bundleVersion != "" {
@@ -129,10 +129,10 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 			installStatus = keybase1.InstallStatus_INSTALLED
 			installAction = keybase1.InstallAction_NONE
 		} else if bsv.LT(sv) {
-			installStatus = keybase1.InstallStatus_ERROR
+			// It's ok if we have a bundled version less than what was installed
+			log.Warning("Bundle version (%s) is less than installed version (%s)", bundleVersion, version)
+			installStatus = keybase1.InstallStatus_INSTALLED
 			installAction = keybase1.InstallAction_NONE
-			status = keybase1.StatusFromCode(keybase1.StatusCode_SCOldVersionError, fmt.Sprintf("Bundle version (%s) is less than installed version (%s)", bundleVersion, version))
-			return
 		}
 	} else if version != "" && bundleVersion == "" {
 		installStatus = keybase1.InstallStatus_INSTALLED
