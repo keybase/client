@@ -4,4 +4,4 @@ include ':app', ':keybaselib'
 include ':ReactNativeBarcodescanner', ':app'
 project(':ReactNativeBarcodescanner').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-barcodescanner/android')
 include ':RNPermissionsModule', ':app'
-project(':RNPermissionsModule').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-android-permissions')
+project(':RNPermissionsModule').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-android-permissions/android')
