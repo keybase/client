@@ -655,3 +655,9 @@ func (md *MDServerMemory) GetLatestHandleForTLF(_ context.Context, id TlfID) (
 
 	return md.latestHandleDb[id], nil
 }
+
+// OffsetFromServerTime implements the MDServer interface for
+// MDServerMemory.
+func (md *MDServerMemory) OffsetFromServerTime() time.Duration {
+	return 0
+}

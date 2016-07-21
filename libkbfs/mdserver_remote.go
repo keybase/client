@@ -583,6 +583,12 @@ func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
 	return handle, nil
 }
 
+// OffsetFromServerTime implements the MDServer interface for
+// MDServerRemote.
+func (md *MDServerRemote) OffsetFromServerTime() time.Duration {
+	return 0
+}
+
 // CheckForRekeys implements the MDServer interface.
 func (md *MDServerRemote) CheckForRekeys(ctx context.Context) <-chan error {
 	// Wait 5 seconds before asking for rekeys, because the server

@@ -2405,6 +2405,16 @@ func (_mr *_MockMDServerRecorder) GetLatestHandleForTLF(arg0, arg1 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLatestHandleForTLF", arg0, arg1)
 }
 
+func (_m *MockMDServer) OffsetFromServerTime() time.Duration {
+	ret := _m.ctrl.Call(_m, "OffsetFromServerTime")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+func (_mr *_MockMDServerRecorder) OffsetFromServerTime() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "OffsetFromServerTime")
+}
+
 // Mock of mdServerLocal interface
 type MockmdServerLocal struct {
 	ctrl     *gomock.Controller
@@ -2566,6 +2576,16 @@ func (_m *MockmdServerLocal) GetLatestHandleForTLF(ctx context.Context, id TlfID
 
 func (_mr *_MockmdServerLocalRecorder) GetLatestHandleForTLF(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLatestHandleForTLF", arg0, arg1)
+}
+
+func (_m *MockmdServerLocal) OffsetFromServerTime() time.Duration {
+	ret := _m.ctrl.Call(_m, "OffsetFromServerTime")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+func (_mr *_MockmdServerLocalRecorder) OffsetFromServerTime() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "OffsetFromServerTime")
 }
 
 func (_m *MockmdServerLocal) addNewAssertionForTest(uid protocol.UID, newAssertion protocol.SocialAssertion) error {

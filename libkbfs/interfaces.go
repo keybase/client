@@ -965,6 +965,12 @@ type MDServer interface {
 	// should verify the mapping with a Merkle tree lookup.
 	GetLatestHandleForTLF(ctx context.Context, id TlfID) (
 		BareTlfHandle, error)
+
+	// OffsetFromServerTime is the current estimate for how off our
+	// local clock is from the mdserver clock.  Add this to any
+	// mdserver-provided timestamps to get the "local" time of the
+	// corresponding event.
+	OffsetFromServerTime() time.Duration
 }
 
 type mdServerLocal interface {
