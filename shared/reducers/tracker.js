@@ -10,6 +10,7 @@ import type {Proof} from '../common-adapters/user-proofs'
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff,
   TrackDiffType, ProofStatus} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
+import type {PlatformsExpanded} from '../constants/types/more'
 
 const {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored,
   normal, warning, error, checking} = Constants
@@ -404,8 +405,9 @@ export default function (state: State = initialState, action: Action): State {
   }
 }
 
-function mapTagToName (obj: any, tag: any): ?string {
-  return Object.keys(obj).filter(x => obj[x] === tag)[0]
+function mapValueToKey<K: string, V> (obj: {[key: K]: V}, tag: V): ?K {
+  // $FlowIssue the problem is that Object.keys returns an array of strings
+  return Object.keys(obj).find(key => obj[key] === tag)
 }
 
 function stateToColor (state: SimpleProofState): string {
@@ -426,7 +428,7 @@ function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff,
     return normal
   }
 
-  const statusName: ?string = mapTagToName(proveCommon.ProofState, proofState)
+  const statusName: ?string = mapValueToKey(proveCommon.ProofState, proofState)
   switch (statusName) {
     case 'ok':
       return normal
@@ -540,14 +542,12 @@ function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, hu
   }
 }
 
-function remoteProofToProofType (rp: RemoteProof): string {
-  let proofType: string = ''
+function remoteProofToProofType (rp: RemoteProof): PlatformsExpanded {
   if (rp.proofType === proveCommon.ProofType.genericWebSite) {
-    proofType = rp.key
+    return rp.key === 'http' ? 'http' : 'https'
   } else {
-    proofType = mapTagToName(proveCommon.ProofType, rp.proofType) || ''
+    return mapValueToKey(proveCommon.ProofType, rp.proofType) || 'none'
   }
-  return proofType
 }
 
 function revokedProofToProof (rv: RevokedProof): Proof {
