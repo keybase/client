@@ -7,6 +7,7 @@ import type {IconType} from '../common-adapters/icon'
 export type Props = {
   platform: Platforms | 'btc', // bitcoin isn't a real proof
   platformHandle: string,
+  isHttps: boolean,
   onCancel: () => void,
   onRevoke: () => void,
 }

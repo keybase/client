@@ -25,8 +25,24 @@ function formatMessage (platform: Platforms | 'btc') {
   return `${prefix} ${body}?`
 }
 
-const Render = ({platform, platformHandle, onCancel, onRevoke}: Props) => {
-  const platformHandleSubtitle = platform === 'btc' ? null : platform
+function formatSubtext (platform: Platforms | 'btc', isHttps: boolean) {
+  switch (platform) {
+    case 'btc':
+      return ''
+    case 'dns':
+      return 'dns'
+    case 'genericWebSite':
+      if (isHttps) {
+        return 'https'
+      }
+      return 'http'
+    default:
+      return `@${platform}`
+  }
+}
+
+const Render = ({platform, platformHandle, isHttps, onCancel, onRevoke}: Props) => {
+  const platformHandleSubtitle = formatSubtext(platform, isHttps)
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
