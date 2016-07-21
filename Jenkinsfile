@@ -54,7 +54,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
 
         ws("${env.GOPATH}/src/github.com/keybase/kbfs") {
             def mysqlImage = docker.image("keybaseprivate/mysql")
-            def gregorImage = docker.image("keybaseprivate/gregor")
+            def gregorImage = docker.image("keybaseprivate/kbgregor")
             def kbwebImage = docker.image("keybaseprivate/kbweb")
             def clientImage = docker.image("keybaseprivate/kbclient")
             def kbfsImage = docker.image("keybaseprivate/kbfsfuse")
@@ -65,8 +65,9 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                 println "Setting up build: ${env.BUILD_TAG}"
                 def cause = getCauseString()
                 println "Cause: ${cause}"
+                def startKbweb = !binding.variables.containsKey("kbwebNodePrivateIP") || kbwebNodePrivateIP == '' || kbwebNodePublicIP == ''
+
                 docker.withRegistry("", "docker-hub-creds") {
-                    def startKbweb = !binding.variables.containsKey("kbwebNodePrivateIP") || kbwebNodePrivateIP == '' || kbwebNodePublicIP == ''
                     parallel (
                         checkout: { checkout scm },
                         pull_mysql: {
@@ -282,15 +283,15 @@ def nodeWithCleanup(label, handleError, cleanup, closure) {
         } catch (ex) {
             try {
                 handleError()
-            } catch (ex) {
-                println "Unable to handle error: ${ex.getMessage()}"
+            } catch (ex2) {
+                println "Unable to handle error: ${ex2.getMessage()}"
             }
             throw ex
         } finally {
             try {
                 cleanup()
-            } catch (ex) {
-                println "Unable to cleanup: ${ex.getMessage()}"
+            } catch (ex2) {
+                println "Unable to cleanup: ${ex2.getMessage()}"
             }
             deleteDir()
         }
