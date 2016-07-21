@@ -4,6 +4,15 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
     println "Skipping build because PR title contains [ci-skip]"
 } else {
     nodeWithCleanup("ec2-fleet", {
+        if (env.CHANGE_ID) {
+            withCredentials([[$class: 'StringBinding',
+                credentialsId: 'SLACK_INTEGRATION_TOKEN',
+                variable: 'SLACK_INTEGRATION_TOKEN',
+            ]]) {
+                slackSend channel: "#ci-notify", color: "danger", message: "<${env.CHANGE_URL}|${env.CHANGE_TITLE}>\n:small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}> by ${env.CHANGE_AUTHOR}", teamDomain: "keybase", token: "${env.SLACK_INTEGRATION_TOKEN}"
+            }
+        }
+    }, {
         sh 'docker rm -v $(docker ps --filter status=exited -q 2>/dev/null) 2>/dev/null || echo "No Docker containers to remove"'
         sh 'docker rmi $(docker images --filter dangling=true -q --no-trunc 2>/dev/null) 2>/dev/null || echo "No Docker images to remove"'
     }) {
@@ -175,7 +184,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 )
                             },
                             test_windows: {
-                                nodeWithCleanup('windows', {}) {
+                                nodeWithCleanup('windows', {}, {}) {
                                     def BASEDIR=pwd()
                                     def GOPATH="${BASEDIR}/go"
                                     withEnv([
@@ -243,7 +252,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 }
                             },
                             test_osx: {
-                                nodeWithCleanup('osx', {}) {
+                                nodeWithCleanup('osx', {}, {}) {
                                     def BASEDIR=pwd()
                                     def GOPATH="${BASEDIR}/go"
                                     withEnv([
@@ -271,14 +280,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                     sh "docker-compose logs mysql.local"
                     println "KBweb logs:"
                     sh "docker-compose logs kbweb.local"
-                    if (env.CHANGE_ID) {
-                        withCredentials([[$class: 'StringBinding',
-                            credentialsId: 'SLACK_INTEGRATION_TOKEN',
-                            variable: 'SLACK_INTEGRATION_TOKEN',
-                        ]]) {
-                            slackSend channel: "#ci-notify", color: "danger", message: "<${env.CHANGE_URL}|${env.CHANGE_TITLE}>\n:small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}> by ${env.CHANGE_AUTHOR}", teamDomain: "keybase", token: "${env.SLACK_INTEGRATION_TOKEN}"
-                        }
-                    }
                     throw ex
                 } finally {
                     sh "docker-compose down"
@@ -338,16 +339,23 @@ def testNixGo(prefix) {
     }
 }
 
-def nodeWithCleanup(label, cleanup, closure) {
+def nodeWithCleanup(label, handleError, cleanup, closure) {
     def wrappedClosure = {
         try {
             deleteDir()
             closure()
+        } catch (ex) {
+            try {
+                handleError()
+            } catch (ex2) {
+                println "Unable to handle error: ${ex2.getMessage()}"
+            }
+            throw ex
         } finally {
             try {
                 cleanup()
-            } catch (ex) {
-                println "Unable to cleanup: ${ex.getMessage()}"
+            } catch (ex2) {
+                println "Unable to cleanup: ${ex2.getMessage()}"
             }
             deleteDir()
         }
