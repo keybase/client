@@ -370,6 +370,7 @@ export type FSErrorType =
   | 7 // NOT_IMPLEMENTED_7
   | 8 // OLD_VERSION_8
   | 9 // OVER_QUOTA_9
+  | 10 // NO_SIG_CHAIN_10
 
 export type FSNotification = {
   publicTopLevelFolder: boolean;

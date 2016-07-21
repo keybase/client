@@ -40,6 +40,7 @@ const (
 	FSErrorType_NOT_IMPLEMENTED       FSErrorType = 7
 	FSErrorType_OLD_VERSION           FSErrorType = 8
 	FSErrorType_OVER_QUOTA            FSErrorType = 9
+	FSErrorType_NO_SIG_CHAIN          FSErrorType = 10
 )
 
 type FSNotification struct {
