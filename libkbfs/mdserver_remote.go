@@ -51,6 +51,9 @@ type MDServerRemote struct {
 
 	rekeyCancel context.CancelFunc
 	rekeyTimer  *time.Timer
+
+	serverOffsetMu sync.RWMutex
+	serverOffset   time.Duration
 }
 
 // Test that MDServerRemote fully implements the MDServer interface.
@@ -241,10 +244,28 @@ func (md *MDServerRemote) resetPingTicker(intervalSeconds int) {
 		for {
 			select {
 			case <-ticker.C:
-				err := md.client.Ping(ctx)
+				clock := md.config.Clock()
+				beforePing := clock.Now()
+				resp, err := md.client.Ping2(ctx)
 				if err != nil {
 					md.log.Debug("MDServerRemote: ping error %s", err)
+					break
 				}
+				afterPing := clock.Now()
+				pingLatency := afterPing.Sub(beforePing)
+				serverTimeNow :=
+					keybase1.FromTime(resp.Timestamp).Add(pingLatency / 2)
+
+				func() {
+					md.serverOffsetMu.Lock()
+					defer md.serverOffsetMu.Unlock()
+					// Estimate the server offset, assuming a balanced
+					// round trip latency (and 0 server processing
+					// latency).  Calculate it so that it can be added
+					// to a server timestamp in order to get the local
+					// time of a server-timestamped event.
+					md.serverOffset = afterPing.Sub(serverTimeNow)
+				}()
 
 			case <-ctx.Done():
 				md.log.Debug("MDServerRemote: stopping ping ticker")
@@ -586,7 +607,9 @@ func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
 // OffsetFromServerTime implements the MDServer interface for
 // MDServerRemote.
 func (md *MDServerRemote) OffsetFromServerTime() time.Duration {
-	return 0
+	md.serverOffsetMu.RLock()
+	defer md.serverOffsetMu.RUnlock()
+	return md.serverOffset
 }
 
 // CheckForRekeys implements the MDServer interface.
