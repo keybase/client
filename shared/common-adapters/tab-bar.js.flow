@@ -17,14 +17,14 @@ export type Props = $Exact<{
 export default class TabBar extends Component<void, Props, void> { }
 
 export type ItemProps = $Exact<{
-  tabBarButton?: React$Element,
+  tabBarButton?: React$Element<*>,
   label?: string,
   selected: boolean,
   selectedColor?: string,
   onClick?: () => void,
   style?: Object,
   styleContainer?: Object,
-  children?: React$Element,
+  children?: React$Element<*>,
 }>
 
 export class TabBarItem extends Component<void, ItemProps, void> { }

@@ -5,8 +5,8 @@ import {Box, Text} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 import type {Props} from './dumb-sheet-item'
 
-class DumbSheetItem extends Component<void, Props, void> {
-  _component: Component;
+class DumbSheetItem extends Component<void, Props<*>, void> {
+  _component: Component<*, *, *>;
 
   componentDidMount () {
     if (this.props.mock.afterMount) {

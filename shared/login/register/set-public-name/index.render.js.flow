@@ -1,13 +1,15 @@
 // @flow
 import {Component} from 'react'
 
-export type Props = $Shape<{
+import type {$Exact} from '../../../constants/types/more'
+
+export type Props = $Exact<{
   onBack?: () => void,
   onChange: (deviceName: string) => void,
   onSubmit: () => void,
   deviceName: ?string,
   deviceNameError?: ?string,
-  submitEnabled?: ?boolean,
+  submitEnabled: boolean,
   waiting?: ?boolean
 }>
 

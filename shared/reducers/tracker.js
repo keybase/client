@@ -549,6 +549,7 @@ function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracke
 // TODO Have the service give this information.
 // Currently this is copied from the website: https://github.com/keybase/keybase/blob/658aa97a9ad63733444298353a528e7f8499d8b9/lib/mod/user_lol.iced#L971
 function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, humanUrl: ?string): string {
+  key = key || ''
   switch (proofType) {
     case proveCommon.ProofType.dns: return `http://${name}`
     case proveCommon.ProofType.genericWebSite: return `${key}://${name}`

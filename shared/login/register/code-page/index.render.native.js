@@ -140,7 +140,7 @@ export default class CodePageRender extends Component<void, Props, void> {
   }
 
   renderIntro () {
-    const headerTextMap: {[key: Mode]: React$Element} = {
+    const headerTextMap: {[key: Mode]: React$Element<*>} = {
       codePageModeScanCode: this.renderIntroScanQR(),
       codePageModeShowCode: this.renderIntroShowQR(),
       codePageModeShowText: this.renderIntroTextCode(),

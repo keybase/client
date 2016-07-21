@@ -17,7 +17,7 @@ function User ({selected, user, insertSpacing, onRemove, onClickUser}: {selected
     avatarProps = {url: user.extraInfo.service === 'external' ? user.extraInfo.serviceAvatar : null}
   }
 
-  let name: React$Element
+  let name: React$Element<*>
 
   if (user.service === 'keybase') {
     name = (

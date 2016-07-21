@@ -120,7 +120,7 @@ const styleBadgeOutline = {
 class TabBar extends Component {
   props: Props;
 
-  _labels (): Array<React$Element> {
+  _labels (): Array<React$Element<*>> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item: {props: ItemProps}, i) => {
       const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i

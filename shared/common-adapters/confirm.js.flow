@@ -8,8 +8,8 @@ export type Props = {
   submitLabel: string,
   onCancel: () => void,
   onSubmit: () => void,
-  header: React$Element,
-  body: React$Element
+  header: React$Element<*>,
+  body: React$Element<*>,
 }
 
 declare export default class Confirm extends React.Component<void, Props, void> {

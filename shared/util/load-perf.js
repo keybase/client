@@ -2,6 +2,7 @@
 import {reactPerf} from '../local-debug'
 
 function print (...rest) {
+  // $FlowIssue
   console.log(`%c⏱ React perf: ${rest}`, 'font-size: x-large')
 }
 

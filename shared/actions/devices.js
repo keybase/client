@@ -86,11 +86,20 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
       loginDeprovisionRpc({
         param: {username, doRevoke: true},
         callback: error => {
-          dispatch({
-            type: Constants.deviceRemoved,
-            payload: error,
-            error: !!error,
-          })
+          if (error) {
+            dispatch({
+              type: Constants.deviceRemoved,
+              payload: error,
+              error: true,
+            })
+          } else {
+            dispatch({
+              type: Constants.deviceRemoved,
+              payload: null,
+              error: false,
+            })
+          }
+
           if (!error) {
             dispatch(loadDevices())
             dispatch(setRevokedSelf(name))
@@ -103,11 +112,20 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
       revokeRevokeDeviceRpc({
         param: {deviceID, force: false},
         callback: error => {
-          dispatch({
-            type: Constants.deviceRemoved,
-            payload: error,
-            error: !!error,
-          })
+          if (error) {
+            dispatch({
+              type: Constants.deviceRemoved,
+              payload: error,
+              error: true,
+            })
+          } else {
+            dispatch({
+              type: Constants.deviceRemoved,
+              payload: null,
+              error: false,
+            })
+          }
+
           if (!error) {
             dispatch(loadDevices())
             dispatch(navigateUp(devicesTab, Map({path: 'root'})))

@@ -27,7 +27,7 @@ export default class Render extends Component<void, Props, State> {
 
   render () {
     const onSubmitIssue = () => {
-      Linking.openURL(`https://github.com/keybase/client/issues/new?body=[write%20something%20useful%20and%20descriptive%20here]%0A%0Amy%20log%20id:%20${this.props.logSendId}`)
+      Linking.openURL(`https://github.com/keybase/client/issues/new?body=[write%20something%20useful%20and%20descriptive%20here]%0A%0Amy%20log%20id:%20${this.props.logSendId || ''}`)
     }
 
     if (!this.props.logSendId) {

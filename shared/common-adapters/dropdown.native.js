@@ -93,14 +93,14 @@ class Dropdown extends Component {
     }[value] || value
   }
 
-  _renderLabelAndCaret (): Array<React$Element> {
+  _renderLabelAndCaret (): Array<React$Element<*>> {
     return [
       <Text key='text' type='Header' style={{...styleText, ...this._itemStyle()}}>{this._label(this.state.value)}</Text>,
       <Icon key='icon' type='iconfont-caret-down' style={styleIcon} />,
     ]
   }
 
-  _renderPicker (style: Object, selectOnChange: boolean): React$Element {
+  _renderPicker (style: Object, selectOnChange: boolean): React$Element<*> {
     const pickItem = this.showingPick ? [{key: pickItemValue, value: pickItemValue, label: this._label(pickItemValue)}] : []
     const actualItems = (this.props.options || []).map(o => ({key: o, label: o, value: o}))
     const otherItem = this.props.onOther ? {key: otherItemValue, label: this._label(otherItemValue), value: otherItemValue} : []
@@ -124,7 +124,7 @@ class Dropdown extends Component {
     )
   }
 
-  _renderAndroid (): React$Element {
+  _renderAndroid (): React$Element<*> {
     return (
       <Box style={{...styleContainer, ...this.props.style}}>
         {this._renderPicker(stylePickerAndroid, true)}
@@ -133,7 +133,7 @@ class Dropdown extends Component {
     )
   }
 
-  _renderIOS (): React$Element {
+  _renderIOS (): React$Element<*> {
     return (
       <TouchableWithoutFeedback onPress={() => this._showModal(true)}>
         <Box style={{...styleContainer, ...this.props.style}}>
@@ -151,7 +151,7 @@ class Dropdown extends Component {
     )
   }
 
-  render (): React$Element {
+  render (): React$Element<*> {
     return OS === Platform.OS_IOS ? this._renderIOS() : this._renderAndroid()
   }
 }
