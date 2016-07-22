@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -608,4 +609,10 @@ func (md *MDServerDisk) GetLatestHandleForTLF(_ context.Context, id TlfID) (
 		}
 	}
 	return handle, nil
+}
+
+// OffsetFromServerTime implements the MDServer interface for
+// MDServerDisk.
+func (md *MDServerDisk) OffsetFromServerTime() (time.Duration, bool) {
+	return 0, true
 }
