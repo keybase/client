@@ -3,7 +3,7 @@
 
 // +build android
 
-package logger
+package internal
 
 import (
 	"errors"

@@ -1,4 +1,4 @@
-package logger
+package internal
 
 import (
 	"fmt"
@@ -139,7 +139,7 @@ func deleteOldLogFilesIfNeeded(config LogFileConfig) {
 	err := deleteOldLogFilesIfNeededWorker(config)
 	if err != nil {
 		log := New("logger")
-		log.Warning("Deletion of old log files failed: %v", err)
+		log.Warningf("Deletion of old log files failed: %v", err)
 	}
 }
 

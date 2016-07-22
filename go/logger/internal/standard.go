@@ -1,7 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package logger
+package internal
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	logging "github.com/keybase/go-logging"
 	"golang.org/x/net/context"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/logger"
 )
 
 const permDir os.FileMode = 0700
@@ -63,41 +63,44 @@ func LogTagsFromContext(ctx context.Context) (CtxLogTags, bool) {
 	return logTags, ok
 }
 
-type ExternalLogger interface {
-	Log(level keybase1.LogLevel, format string, args []interface{})
-}
-
 type entry struct {
-	level  keybase1.LogLevel
+	level  logger.LogLevel
 	format string
 	args   []interface{}
 }
 
-type Standard struct {
+type Standard interface {
+	Logger
+	logger.Forwarder
+	logger.LogFileRotater
+	logger.Configurable
+}
+
+type standard struct {
 	internal       *logging.Logger
 	filename       string
 	configureMutex sync.Mutex
 	module         string
 
-	externalHandler ExternalHandler
+	externalHandler logger.LogHandler
 }
 
 // Verify Standard fully implements the Logger interface.
-var _ Logger = (*Standard)(nil)
+var _ Standard = (*standard)(nil)
 
 // New creates a new Standard logger for module.
-func New(module string) *Standard {
+func New(module string) Standard {
 	return NewWithCallDepth(module, 0)
 }
 
 // NewWithCallDepth creates a new Standard logger for module, and when
 // printing file names and line numbers, it goes extraCallDepth up the
 // stack from where logger was invoked.
-func NewWithCallDepth(module string, extraCallDepth int) *Standard {
+func NewWithCallDepth(module string, extraCallDepth int) Standard {
 	log := logging.MustGetLogger(module)
 	log.ExtraCalldepth = 1 + extraCallDepth
 
-	ret := &Standard{
+	ret := &standard{
 		internal: log,
 		module:   module,
 	}
@@ -105,7 +108,7 @@ func NewWithCallDepth(module string, extraCallDepth int) *Standard {
 	return ret
 }
 
-func (log *Standard) setLogLevelInfo() {
+func (log *standard) setLogLevelInfo() {
 	initLoggingSetLevelMutex.Lock()
 	defer initLoggingSetLevelMutex.Unlock()
 
@@ -133,115 +136,107 @@ func prepareString(
 	return fmts + " [tags:" + strings.Join(tags, ",") + "]"
 }
 
-func (log *Standard) Debug(fmt string, arg ...interface{}) {
+func (log *standard) Debugf(fmt string, arg ...interface{}) {
 	log.internal.Debugf(fmt, arg...)
 	if log.externalHandler != nil {
-		log.externalHandler.Log(keybase1.LogLevel_DEBUG, fmt, arg)
+		log.externalHandler.Log(logger.DEBUG, fmt, arg)
 	}
 }
 
-func (log *Standard) CDebugf(ctx context.Context, fmt string,
+func (log *standard) CDebugf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.DEBUG) {
-		log.Debug(prepareString(ctx, fmt), arg...)
+		log.Debugf(prepareString(ctx, fmt), arg...)
 	}
 }
 
-func (log *Standard) Info(fmt string, arg ...interface{}) {
+func (log *standard) Infof(fmt string, arg ...interface{}) {
 	log.internal.Infof(fmt, arg...)
 	if log.externalHandler != nil {
-		log.externalHandler.Log(keybase1.LogLevel_INFO, fmt, arg)
+		log.externalHandler.Log(logger.INFO, fmt, arg)
 	}
 }
 
-func (log *Standard) CInfof(ctx context.Context, fmt string,
+func (log *standard) CInfof(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.INFO) {
-		log.Info(prepareString(ctx, fmt), arg...)
+		log.Infof(prepareString(ctx, fmt), arg...)
 	}
 }
 
-func (log *Standard) Notice(fmt string, arg ...interface{}) {
+func (log *standard) Noticef(fmt string, arg ...interface{}) {
 	log.internal.Noticef(fmt, arg...)
 	if log.externalHandler != nil {
-		log.externalHandler.Log(keybase1.LogLevel_NOTICE, fmt, arg)
+		log.externalHandler.Log(logger.NOTICE, fmt, arg)
 	}
 }
 
-func (log *Standard) CNoticef(ctx context.Context, fmt string,
+func (log *standard) CNoticef(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.NOTICE) {
-		log.Notice(prepareString(ctx, fmt), arg...)
+		log.Noticef(prepareString(ctx, fmt), arg...)
 	}
 }
 
-func (log *Standard) Warning(fmt string, arg ...interface{}) {
+func (log *standard) Warningf(fmt string, arg ...interface{}) {
 	log.internal.Warningf(fmt, arg...)
 	if log.externalHandler != nil {
-		log.externalHandler.Log(keybase1.LogLevel_WARN, fmt, arg)
+		log.externalHandler.Log(logger.WARN, fmt, arg)
 	}
 }
 
-func (log *Standard) CWarningf(ctx context.Context, fmt string,
+func (log *standard) CWarningf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.WARNING) {
-		log.Warning(prepareString(ctx, fmt), arg...)
+		log.Warningf(prepareString(ctx, fmt), arg...)
 	}
 }
 
-func (log *Standard) Error(fmt string, arg ...interface{}) {
+func (log *standard) Errorf(fmt string, arg ...interface{}) {
 	log.internal.Errorf(fmt, arg...)
 	if log.externalHandler != nil {
-		log.externalHandler.Log(keybase1.LogLevel_ERROR, fmt, arg)
+		log.externalHandler.Log(logger.ERROR, fmt, arg)
 	}
 }
 
-func (log *Standard) Errorf(fmt string, arg ...interface{}) {
-	log.Error(fmt, arg...)
-}
-
-func (log *Standard) CErrorf(ctx context.Context, fmt string,
+func (log *standard) CErrorf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.ERROR) {
-		log.Error(prepareString(ctx, fmt), arg...)
+		log.Errorf(prepareString(ctx, fmt), arg...)
 	}
 }
 
-func (log *Standard) Critical(fmt string, arg ...interface{}) {
+func (log *standard) Criticalf(fmt string, arg ...interface{}) {
 	log.internal.Criticalf(fmt, arg...)
 	if log.externalHandler != nil {
-		log.externalHandler.Log(keybase1.LogLevel_CRITICAL, fmt, arg)
+		log.externalHandler.Log(logger.CRITICAL, fmt, arg)
 	}
 }
 
-func (log *Standard) CCriticalf(ctx context.Context, fmt string,
+func (log *standard) CCriticalf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	if log.internal.IsEnabledFor(logging.CRITICAL) {
-		log.Critical(prepareString(ctx, fmt), arg...)
+		log.Criticalf(prepareString(ctx, fmt), arg...)
 	}
 }
 
-func (log *Standard) Fatalf(fmt string, arg ...interface{}) {
+func (log *standard) Fatalf(fmt string, arg ...interface{}) {
 	log.internal.Fatalf(fmt, arg...)
 	if log.externalHandler != nil {
-		log.externalHandler.Log(keybase1.LogLevel_FATAL, fmt, arg)
+		log.externalHandler.Log(logger.FATAL, fmt, arg)
 	}
 }
 
-func (log *Standard) CFatalf(ctx context.Context, fmt string,
+func (log *standard) CFatalf(ctx context.Context, fmt string,
 	arg ...interface{}) {
 	log.Fatalf(prepareString(ctx, fmt), arg...)
-}
-
-func (log *Standard) Profile(fmts string, arg ...interface{}) {
-	log.Debug(fmts, arg...)
 }
 
 // Configure sets the style of the log file, whether debugging (verbose)
 // is enabled and a filename. If a filename is provided here it will
 // be used for logging straight away (this is a new feature).
 // SetLogFileConfig provides a way to set the log file with more control on rotation.
-func (log *Standard) Configure(style string, debug bool, filename string) {
+func (log *standard) Configure(style string, debug bool, filename string) {
 	log.configureMutex.Lock()
 	defer log.configureMutex.Unlock()
 
@@ -336,7 +331,7 @@ func PickFirstError(errors ...error) error {
 	return nil
 }
 
-func (log *Standard) CloneWithAddedDepth(depth int) Logger {
+func (log *standard) CloneWithAddedDepth(depth int) Logger {
 	clone := *log
 	cloneInternal := *log.internal
 	cloneInternal.ExtraCalldepth = log.internal.ExtraCalldepth + depth
@@ -344,48 +339,14 @@ func (log *Standard) CloneWithAddedDepth(depth int) Logger {
 	return &clone
 }
 
-func (log *Standard) SetExternalHandler(handler ExternalHandler) {
+func (log *standard) SetExternalHandler(handler logger.LogHandler) {
 	log.externalHandler = handler
 }
 
-type UnforwardedLogger Standard
-
-func (log *Standard) GetUnforwardedLogger() *UnforwardedLogger {
-	return (*UnforwardedLogger)(log)
+type UnforwardedLogger interface {
+	logger.FLogger
 }
 
-func (log *UnforwardedLogger) Debug(s string, args ...interface{}) {
-	if log.internal != nil {
-		log.internal.Debugf(s, args...)
-	}
-}
-
-func (log *UnforwardedLogger) Error(s string, args ...interface{}) {
-	if log.internal != nil {
-		log.internal.Errorf(s, args...)
-	}
-}
-
-func (log *UnforwardedLogger) Errorf(s string, args ...interface{}) {
-	if log.internal != nil {
-		log.internal.Errorf(s, args...)
-	}
-}
-
-func (log *UnforwardedLogger) Warning(s string, args ...interface{}) {
-	if log.internal != nil {
-		log.internal.Warningf(s, args...)
-	}
-}
-
-func (log *UnforwardedLogger) Info(s string, args ...interface{}) {
-	if log.internal != nil {
-		log.internal.Infof(s, args...)
-	}
-}
-
-func (log *UnforwardedLogger) Profile(s string, args ...interface{}) {
-	if log.internal != nil {
-		log.internal.Debugf(s, args...)
-	}
+func (log *standard) GetUnforwardedLogger() UnforwardedLogger {
+	return log.internal
 }

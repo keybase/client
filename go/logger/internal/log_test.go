@@ -1,7 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package logger
+package internal
 
 import (
 	"sync"
@@ -12,7 +12,7 @@ import (
 
 // This test must pass with -race.
 func TestInitLogging(t *testing.T) {
-	var l1, l2 *Standard
+	var l1, l2 Standard
 
 	var wg sync.WaitGroup
 	wg.Add(2)

@@ -3,7 +3,7 @@
 
 // +build !windows
 
-package logger
+package internal
 
 const (
 	fancyFormat   = "%{color}%{time:2006-01-02T15:04:05.000000} ▶ [%{level:.4s} %{module} %{shortfile}] %{id:03x}%{color:reset} %{message}"
