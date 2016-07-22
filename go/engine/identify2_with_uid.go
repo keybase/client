@@ -45,10 +45,11 @@ const (
 type Identify2WithUID struct {
 	libkb.Contextified
 
-	arg        *keybase1.Identify2Arg
-	testArgs   *Identify2WithUIDTestArgs
-	trackToken keybase1.TrackToken
-	cachedRes  *keybase1.UserPlusKeys
+	arg           *keybase1.Identify2Arg
+	testArgs      *Identify2WithUIDTestArgs
+	trackToken    keybase1.TrackToken
+	confirmResult keybase1.ConfirmResult
+	cachedRes     *keybase1.UserPlusKeys
 
 	// If we just resolved a user, then we can plumb this through to loadUser()
 	ResolveBody *jsonw.Wrapper
@@ -74,6 +75,11 @@ type Identify2WithUID struct {
 	remotesCompleted bool
 
 	responsibleGregorItem gregor.Item
+
+	// When tracking is being performed, the identify engine is used with a tracking ui.
+	// These options are sent to the ui based on command line options.
+	// For normal identify, safe to leave these in their default zero state.
+	trackOptions keybase1.TrackOptions
 }
 
 var _ (Engine) = (*Identify2WithUID)(nil)
@@ -229,17 +235,16 @@ func (e *Identify2WithUID) maybeCacheResult() {
 	}
 }
 
-func (e *Identify2WithUID) insertTrackToken(ctx *Context) (err error) {
+func (e *Identify2WithUID) insertTrackToken(ctx *Context, outcome *libkb.IdentifyOutcome) (err error) {
 	e.G().Log.Debug("+ insertTrackToken")
 	defer func() {
 		e.G().Log.Debug("- insertTrackToken -> %v", err)
 	}()
-	var tt keybase1.TrackToken
-	tt, err = e.G().TrackCache.Insert(e.state.Result())
+	e.trackToken, err = e.G().TrackCache.Insert(outcome)
 	if err != nil {
 		return err
 	}
-	if err = ctx.IdentifyUI.ReportTrackToken(tt); err != nil {
+	if err = ctx.IdentifyUI.ReportTrackToken(e.trackToken); err != nil {
 		return err
 	}
 	return nil
@@ -374,9 +379,15 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.G().Log.Debug("| IdentifyUI waited for waiter (%s)", e.them.GetName())
 
 	// use Confirm to display the IdentifyOutcome
-	ctx.IdentifyUI.Confirm(e.state.Result().Export())
+	outcome := e.state.Result()
+	outcome.TrackOptions = e.trackOptions
+	e.confirmResult, err = ctx.IdentifyUI.Confirm(outcome.Export())
+	if err != nil {
+		return err
+	}
 
-	e.insertTrackToken(ctx)
+	e.insertTrackToken(ctx, outcome)
+
 	if err = ctx.IdentifyUI.Finish(); err != nil {
 		return err
 	}
@@ -561,4 +572,12 @@ func (e *Identify2WithUID) getTrackType() identify2TrackType {
 
 func (e *Identify2WithUID) SetResponsibleGregorItem(item gregor.Item) {
 	e.responsibleGregorItem = item
+}
+
+func (e *Identify2WithUID) TrackToken() keybase1.TrackToken {
+	return e.trackToken
+}
+
+func (e *Identify2WithUID) ConfirmResult() keybase1.ConfirmResult {
+	return e.confirmResult
 }
