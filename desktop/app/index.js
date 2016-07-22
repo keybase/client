@@ -105,9 +105,13 @@ function start () {
     })
   })
 
-  // quit through dock. only listen once
+  // This is called when there is any browser quit event such as,
+  // - Quit through dock
+  // - SIGINT and SIGTERM
+  // See https://keybase.atlassian.net/browse/CORE-3418
   app.once('before-quit', event => {
-    console.log('Quit through before-quit')
+    console.log('Quit through before-quit:', event)
+    // Prevent the default quit action, we'll do it ourselves
     event.preventDefault()
     executeActionsForContext('beforeQuit')
   })
