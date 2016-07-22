@@ -3,7 +3,7 @@ import Profile from './render'
 import ConfirmOrPending from './confirm-or-pending'
 import ProveEnterUsername from './prove-enter-username'
 import EditAvatar from './edit-avatar'
-import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted} from '../constants/tracker'
+import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaUnreachable} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
 import {globalColors} from '../styles/style-guide'
 import {isMobile} from '../constants/platform'
@@ -23,6 +23,8 @@ export const proofsDefault: Array<Proof> = [
 export const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: true}))
 
 export const proofsDeleted = proofsDefault.map((proof, idx) => ({...proof, state: idx % 2 ? checking : revoked, meta: idx % 2 ? metaNone : metaDeleted}))
+
+export const proofsChanged = proofsDefault.map((proof, idx) => ({...proof, state: idx === 0 ? error : checking, meta: idx === 0 ? metaUnreachable : metaNone}))
 
 export const mockUserInfo: {username: string, userInfo: UserInfo} = {
   username: 'chris',
@@ -177,6 +179,13 @@ const dumbMap: DumbComponentMap<Profile> = {
         location: '',
         bio: '',
       },
+    },
+    'Your Profile - Broken': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      proofs: proofsChanged,
+      trackerState: error,
     },
     'Unfollowed': propsBase,
     'Unfollowed - Profile page': {
