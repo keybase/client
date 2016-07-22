@@ -2,6 +2,7 @@
 import Profile from './render'
 import ConfirmOrPending from './confirm-or-pending'
 import ProveEnterUsername from './prove-enter-username'
+import EditAvatar from './edit-avatar'
 import {normal, checking, revoked, error, metaNone} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
 import {globalColors} from '../styles/style-guide'
@@ -280,8 +281,23 @@ const dumbProveEnterUsername: DumbComponentMap<ProveEnterUsername> = {
   },
 }
 
+const editAvatarBase = {
+  keybaseUsername: 'thedude',
+  hasAvatar: true,
+  onAck: () => console.log('clicked onAck'),
+}
+
+const dumbEditAvatar: DumbComponentMap<EditAvatar> = {
+  component: EditAvatar,
+  mocks: {
+    'has avatar': {...editAvatarBase},
+    'does not have avatar': {...editAvatarBase, hasAvatar: false},
+  },
+}
+
 export default {
   'Profile': dumbMap,
+  'Edit Avatar': dumbEditAvatar,
   'New Proof: Confirm or Pending': dumbConfirmOrPendingMap,
   'New Proof: Enter Username': dumbProveEnterUsername,
 }

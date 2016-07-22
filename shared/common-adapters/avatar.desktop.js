@@ -81,7 +81,7 @@ const followInner = (size, color) => {
   return {
     position: 'absolute',
     background: color,
-    borderRadius: '50%',
+    borderRadius: size / 2,
     top: padding,
     right: padding,
     bottom: padding,
