@@ -9,6 +9,7 @@ const compiler = webpack(config)
 
 // Just build output files and don't run a hot server
 const NO_SERVER = getenv.boolish('NO_SERVER', false)
+const KEYBASE_VERBOSE_WEBPACK = getenv.boolish('KEYBASE_VERBOSE_WEBPACK', false)
 
 if (NO_SERVER) {
   console.log('Starting local file build')
@@ -38,6 +39,7 @@ if (NO_SERVER) {
     headers: {'Access-Control-Allow-Origin': '*'},
     stats: {
       colors: true,
+      chunkModules: KEYBASE_VERBOSE_WEBPACK,
     },
   }))
 
