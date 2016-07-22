@@ -38,8 +38,6 @@ if (NO_SERVER) {
     headers: {'Access-Control-Allow-Origin': '*'},
     stats: {
       colors: true,
-      quiet: false,
-      noInfo: false,
     },
   }))
 
