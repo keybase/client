@@ -3,19 +3,8 @@
 if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
     println "Skipping build because PR title contains [ci-skip]"
 } else {
-    nodeWithCleanup("ec2-fleet", {
-        if (env.CHANGE_ID) {
-            withCredentials([[$class: 'StringBinding',
-                credentialsId: 'SLACK_INTEGRATION_TOKEN',
-                variable: 'SLACK_INTEGRATION_TOKEN',
-            ]]) {
-                slackSend channel: "#ci-notify", color: "danger", message: "<${env.CHANGE_URL}|${env.CHANGE_TITLE}>\n:small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}> by ${env.CHANGE_AUTHOR}", teamDomain: "keybase", token: "${env.SLACK_INTEGRATION_TOKEN}"
-            }
-        }
-    }, {
-        sh 'docker rm -v $(docker ps --filter status=exited -q 2>/dev/null) 2>/dev/null || echo "No Docker containers to remove"'
-        sh 'docker rmi $(docker images --filter dangling=true -q --no-trunc 2>/dev/null) 2>/dev/null || echo "No Docker images to remove"'
-    }) {
+    node("ec2-fleet") {
+        deleteDir()
         properties([
                 [$class: "BuildDiscarderProperty",
                     strategy: [$class: "LogRotator",
@@ -83,12 +72,13 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             sh "git rev-parse HEAD | tee go/revision"
                             sh "git add go/revision"
                         },
-                        pull_mysql: {
-                            mysqlImage.pull()
-                        },
-                        pull_gregor: {
-                            gregorImage.pull()
-                        },
+                        // TODO: take gregor and mysql out of kbweb
+                        //pull_mysql: {
+                        //    mysqlImage.pull()
+                        //},
+                        //pull_gregor: {
+                        //    gregorImage.pull()
+                        //},
                         pull_kbweb: {
                             kbwebImage.pull()
                         },
@@ -103,9 +93,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
 
                 try {
                     retry(5) {
-                        sh "docker-compose up -d mysql.local"
+                        kbweb = kbwebImage.run('-p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh')
                     }
-                    sh "docker-compose up -d kbweb.local"
 
                     stage "Test"
                         parallel (
@@ -184,7 +173,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 )
                             },
                             test_windows: {
-                                nodeWithCleanup('windows', {}, {}) {
+                                node('windows') {
+                                    deleteDir()
                                     def BASEDIR=pwd()
                                     def GOPATH="${BASEDIR}/go"
                                     withEnv([
@@ -252,7 +242,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 }
                             },
                             test_osx: {
-                                nodeWithCleanup('osx', {}, {}) {
+                                node('osx') {
+                                    deleteDir()
                                     def BASEDIR=pwd()
                                     def GOPATH="${BASEDIR}/go"
                                     withEnv([
@@ -273,16 +264,21 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 }
                             },
                         )
-                } catch (ex) {
-                    println "Gregor logs:"
-                    sh "docker-compose logs gregor.local"
-                    println "MySQL logs:"
-                    sh "docker-compose logs mysql.local"
-                    println "KBweb logs:"
-                    sh "docker-compose logs kbweb.local"
+                } catch(ex) {
+                    sh "docker logs ${kbweb.id}"
+                    if (env.CHANGE_ID) {
+                        withCredentials([[$class: 'StringBinding',
+                            credentialsId: 'SLACK_INTEGRATION_TOKEN',
+                            variable: 'SLACK_INTEGRATION_TOKEN',
+                        ]]) {
+                            slackSend channel: "#ci-notify", color: "danger", message: "<${env.CHANGE_URL}|${env.CHANGE_TITLE}>\n:small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}> by ${env.CHANGE_AUTHOR}", teamDomain: "keybase", token: "${env.SLACK_INTEGRATION_TOKEN}"
+                        }
+                    }
                     throw ex
                 } finally {
-                    sh "docker-compose down"
+                    if (kbweb != null) {
+                        kbweb.stop()
+                    }
                 }
 
 
@@ -337,30 +333,6 @@ def testNixGo(prefix) {
         waitForURL(prefix, env.KEYBASE_SERVER_URI)
         sh './test/run_tests.sh'
     }
-}
-
-def nodeWithCleanup(label, handleError, cleanup, closure) {
-    def wrappedClosure = {
-        try {
-            deleteDir()
-            closure()
-        } catch (ex) {
-            try {
-                handleError()
-            } catch (ex2) {
-                println "Unable to handle error: ${ex2.getMessage()}"
-            }
-            throw ex
-        } finally {
-            try {
-                cleanup()
-            } catch (ex2) {
-                println "Unable to cleanup: ${ex2.getMessage()}"
-            }
-            deleteDir()
-        }
-    }
-    node(label, wrappedClosure)
 }
 
 // Need to separate this out because cause is not serializable and thus state
