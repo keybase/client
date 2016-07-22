@@ -1,4 +1,4 @@
-FROM kbclient
+FROM keybaseprivate/kbclient
 MAINTAINER Keybase <admin@keybase.io>
 
 ARG KEYBASE_TEST_ROOT_CERT_PEM
