@@ -77,7 +77,7 @@ class Render extends Component<void, Props, State> {
       )
     }
 
-    const missingProofs = !this.props.isYou ? [] : shared.missingProofs(this.props.proofs, (p) => console.log(`Prove ${p.type}`))
+    const missingProofs = !this.props.isYou ? [] : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
 
     return (
       <Box style={styleOuterContainer}>
