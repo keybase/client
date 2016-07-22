@@ -3,7 +3,7 @@ import Profile from './render'
 import ConfirmOrPending from './confirm-or-pending'
 import ProveEnterUsername from './prove-enter-username'
 import EditAvatar from './edit-avatar'
-import {normal, checking, revoked, error, metaNone, metaNew} from '../constants/tracker'
+import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
 import {globalColors} from '../styles/style-guide'
 import {isMobile} from '../constants/platform'
@@ -22,7 +22,7 @@ export const proofsDefault: Array<Proof> = [
 
 export const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: true}))
 
-export const proofsChanged = proofsDefault.map((proof, idx) => ({...proof, state: idx % 2 ? checking : revoked}))
+export const proofsDeleted = proofsDefault.map((proof, idx) => ({...proof, state: idx % 2 ? checking : revoked, meta: idx % 2 ? metaNone : metaDeleted}))
 
 export const mockUserInfo: {username: string, userInfo: UserInfo} = {
   username: 'chris',
@@ -202,13 +202,13 @@ const dumbMap: DumbComponentMap<Profile> = {
     },
     'Changed': {
       ...propsBase,
-      proofs: proofsChanged,
+      proofs: proofsDeleted,
       trackerState: error,
       currentlyFollowing: true,
     },
     'Changed - Scrolled': {
       ...propsBase,
-      proofs: proofsChanged,
+      proofs: proofsDeleted,
       trackerState: error,
       currentlyFollowing: true,
       afterMount: (c, node) => { node.querySelector('.scroll-container').scrollTop = 50 },
