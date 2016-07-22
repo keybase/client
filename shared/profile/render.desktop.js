@@ -7,7 +7,7 @@ import {headerColor as whichHeaderColor} from '../common-adapters/user-bio.share
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import ProfileHelp from './help.desktop'
-import {folderIconProps} from './render.shared'
+import * as shared from './render.shared'
 import type {Tab as FriendshipsTab} from './friendships'
 import type {Props} from './render'
 
@@ -58,7 +58,7 @@ class Render extends Component<void, Props, State> {
       .orderBy('isPublic', 'asc')
       .map(folder => (
         <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
-          <Icon {...folderIconProps(folder, styleFolderIcon)} />
+          <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
           <Box className='hover-underline'>
             <Text type='Body' style={{color: 'inherit'}}>{folder.isPublic ? 'public/' : 'private/'}</Text>
             <Usernames inline={true} users={folder.users} type='Body' style={{color: 'inherit'}} />
@@ -76,6 +76,8 @@ class Render extends Component<void, Props, State> {
         </Box>
       )
     }
+
+    const missingProofs = !this.props.isYou ? [] : shared.missingProofs(this.props.proofs, (p) => console.log(`Prove ${p.type}`))
 
     return (
       <Box style={styleOuterContainer}>
@@ -114,10 +116,17 @@ class Render extends Component<void, Props, State> {
               <UserProofs
                 style={styleProofs}
                 username={this.props.username}
-                loading={loading}
+                isLoading={loading}
                 proofs={this.props.proofs}
                 currentlyFollowing={this.props.currentlyFollowing}
               />
+              {!loading &&
+                <UserProofs
+                  style={styleMissingProofs}
+                  username={this.props.username}
+                  missingProofs={missingProofs}
+                  currentlyFollowing={false}
+                />}
               {!loading && folders}
             </Box>
           </Box>
@@ -200,6 +209,10 @@ const styleProofNoticeBox = {
 const styleProofs = {
   // header + small space from top of header + tiny space to pad top of first item
   marginTop: globalMargins.small + globalMargins.tiny,
+}
+
+const styleMissingProofs = {
+  marginTop: globalMargins.tiny,
 }
 
 const styleFolderLine = {

@@ -8,7 +8,7 @@ import {usernameText} from '../common-adapters/usernames'
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {headerColor as whichHeaderColor} from '../common-adapters/user-bio.shared'
-import {folderIconProps} from './render.shared'
+import * as shared from './render.shared'
 import type {Tab as FriendshipsTab} from './friendships'
 import type {Props} from './render'
 
@@ -50,7 +50,7 @@ class Render extends Component<void, Props, State> {
       .orderBy('isPublic', 'asc')
       .map(folder => (
         <Box key={folder.path} style={styleFolderLine}>
-          <Icon {...folderIconProps(folder, styleFolderIcon)} onClick={() => this.props.onFolderClick(folder)} />
+          <Icon {...shared.folderIconProps(folder, styleFolderIcon)} onClick={() => this.props.onFolderClick(folder)} />
           <Text type='Body' style={{...styleFolderTextLine, ...styleFolderText}} onClick={() => this.props.onFolderClick(folder)}>
             {folder.isPublic ? 'public/' : 'private/'}
             {usernameText({type: 'Body', users: folder.users, style: styleFolderText})}
@@ -58,6 +58,8 @@ class Render extends Component<void, Props, State> {
         </Box>
       ))
       .value()
+
+    const missingProofs = !this.props.isYou ? [] : shared.missingProofs(this.props.proofs, (p) => console.log(`Prove ${p.type}`))
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
@@ -87,12 +89,18 @@ class Render extends Component<void, Props, State> {
             onUnfollow={this.props.onUnfollow}
             onAcceptProofs={this.props.onAcceptProofs}
           />
-          <Box style={styleProofs}>
+          <Box style={styleProofsAndFolders}>
             <UserProofs
               username={this.props.username}
               loading={this.props.loading}
               proofs={this.props.proofs}
               currentlyFollowing={this.props.currentlyFollowing}
+            />
+            <UserProofs
+              style={styleMissingProofs}
+              username={this.props.username}
+              missingProofs={missingProofs}
+              currentlyFollowing={false}
             />
             {folders}
           </Box>
@@ -128,10 +136,14 @@ const styleActions = {
   justifyContent: 'center',
 }
 
-const styleProofs = {
-  paddingBottom: globalMargins.medium,
+const styleProofsAndFolders = {
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
+  paddingBottom: globalMargins.medium,
+}
+
+const styleMissingProofs = {
+  marginTop: globalMargins.tiny,
 }
 
 const styleFolderLine = {

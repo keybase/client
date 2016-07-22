@@ -1,16 +1,56 @@
 /* @flow */
 
 import React, {Component} from 'react'
+import {TouchableHighlight} from 'react-native'
 import openUrl from '../util/open-url'
 import * as shared from './user-proofs.shared'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 import {Box, Icon, Meta, Text} from '../common-adapters/index'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 
-import type {Props, Proof} from './user-proofs'
+import type {Props, Proof, MissingProof} from './user-proofs'
 
-export default class ProofsRender extends Component {
-  props: Props;
+export function MissingProofRow (proof: MissingProof, style: Object): React$Element {
+  const missingColor = globalColors.black_20
+  // TODO (AW): this is copied from desktop as a starting point for mobile
+  return (
+    <TouchableHighlight style={{...stylesRow, flex: 1, ...style}} key={proof.type} onPress={() => proof.onClick(proof)}>
+      <Box style={stylesRow}>
+        <Icon style={{...stylesService, color: missingColor}} type={shared.iconNameForProof(proof)} hint={proof.type} />
+        <Box style={stylesProofNameSection}>
+          <Box style={stylesProofNameLabelContainer}>
+            <Text inline={true} type='Body' style={stylesProofName}>
+              <Text inline={true} type='Body' style={{color: missingColor}}>{proof.message}</Text>
+            </Text>
+          </Box>
+        </Box>
+        <Icon type={'iconfont-proof-good'} style={{...stylesStatusIcon, color: missingColor}} />
+      </Box>
+    </TouchableHighlight>
+  )
+}
+
+export function ProofRow (proof: Proof, onClickProof: (proof: Proof) => void, onClickProfile: (proof: Proof) => void, style: Object): React$Element {
+  const proofStatusIconType = shared.proofStatusIcon(proof)
+
+  return (
+    <Box style={{...stylesRow, ...style}} key={`${proof.id}${proof.type}`}>
+      <Icon style={stylesService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
+      <Box style={stylesProofNameSection}>
+        <Box style={stylesProofNameLabelContainer}>
+          <Text inline={true} type='Body' onPress={() => onClickProfile(proof)} style={stylesProofName}>
+            <Text inline={true} type='Body' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
+            <Text inline={true} type='Body' style={stylesProofType}>@{proof.type}</Text>
+          </Text>
+          {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
+        </Box>
+      </Box>
+      {proofStatusIconType && <Icon type={proofStatusIconType} style={stylesStatusIcon} onClick={() => onClickProof(proof)} />}
+    </Box>
+  )
+}
+
+export default class ProofsRender extends Component<void, Props, void> {
 
   _ensureUrlProtocal (url: string): string {
     return url && (url.indexOf('://') === -1 ? 'http://' : '') + url
@@ -28,37 +68,12 @@ export default class ProofsRender extends Component {
     }
   }
 
-  _renderProofRow (proof: Proof, idx: number) {
-    const metaBackgroundColor = shared.metaColor(proof)
-    const proofStatusIconType = shared.proofStatusIcon(proof)
-    const proofNameStyle = shared.proofNameStyle(proof)
-    const onClickProfile = () => { this._onClickProfile(proof) }
-
-    const meta = proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: metaBackgroundColor}} />
-
-    const proofIcon = proofStatusIconType && <Icon type={proofStatusIconType} style={stylesStatusIcon} onClick={() => this._onClickProof(proof)} />
-
-    return (
-      <Box style={{...stylesRow, paddingTop: idx > 0 ? 8 : 0}} key={`${proof.id}${proof.type}`}>
-        <Icon style={stylesService} type={shared.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
-        <Box style={stylesProofNameSection}>
-          <Box style={stylesProofNameLabelContainer}>
-            <Text inline={true} type='Body' onPress={onClickProfile} style={stylesProofName}>
-              <Text inline={true} type='Body' style={proofNameStyle}>{proof.name}</Text>
-              <Text inline={true} type='Body' style={stylesProofType}>@{proof.type}</Text>
-            </Text>
-            {meta}
-          </Box>
-        </Box>
-        {proofIcon}
-      </Box>
-    )
-  }
-
   render () {
+    const pad = idx => idx > 0 ? {paddingTop: globalMargins.tiny} : {}
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
-        {this.props.proofs.map((p, idx) => this._renderProofRow(p, idx))}
+        {this.props.proofs && this.props.proofs.map((p, idx) => ProofRow(p, this._onClickProof, this._onClickProfile, pad(idx)))}
+        {this.props.missingProofs && this.props.missingProofs.map((p, idx) => MissingProofRow(p, pad(idx)))}
       </Box>
     )
   }
