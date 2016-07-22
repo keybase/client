@@ -7,12 +7,15 @@ package client
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/keybase/client/go/libkb"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
@@ -72,6 +75,9 @@ func GetInstallLogPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	getVersionAndDrivers(logFile)
+
 	if len(keybaseLogFiles) == 0 {
 		fmt.Fprintf(logFile, "   --- NO INSTALL LOGS FOUND!?! ---\n")
 	}
@@ -96,4 +102,40 @@ func GetInstallLogPath() (string, error) {
 	}
 
 	return logName, err
+}
+
+func getVersionAndDrivers(logFile *os.File) {
+	// Capture Windows Version
+	cmd := exec.Command("cmd", "ver")
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
+	err := cmd.Run()
+	if err != nil {
+		logFile.WriteString("Error getting version\n")
+	}
+	logFile.WriteString("\n")
+
+	// Check 64 or 32
+	cmd = exec.Command("reg", "query", "HKLM\\Hardware\\Description\\System\\CentralProcessor\\0")
+	cmd.Stdout = logFile
+	cmd.Stderr = logFile
+	err = cmd.Run()
+	if err != nil {
+		logFile.WriteString("Error getting CPU type\n")
+	}
+	logFile.WriteString("\n")
+
+	// List filesystem drivers
+	outputBytes, err := exec.Command("driverquery").Output()
+	if err != nil {
+		fmt.Fprintf(logFile, "Error querying drivers: %v\n", err)
+	}
+	// For now, only list filesystem ones
+	scanner := bufio.NewScanner(bytes.NewReader(outputBytes))
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), "File System") {
+			logFile.WriteString(scanner.Text() + "\n")
+		}
+	}
+	logFile.WriteString("\n\n")
 }
