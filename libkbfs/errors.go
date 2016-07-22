@@ -1153,3 +1153,13 @@ func (e NoSigChainError) Error() string {
 	return fmt.Sprintf("%s has not yet installed Keybase and set up the "+
 		"Keybase filesystem. Please ask them to.", e.User)
 }
+
+// RekeyConflictError indicates a conflict happened while trying to rekey.
+type RekeyConflictError struct {
+	Err error
+}
+
+// Error implements the error interface for RekeyConflictError.
+func (e RekeyConflictError) Error() string {
+	return fmt.Sprintf("Conflict during a rekey, not retrying: %v", e.Err)
+}

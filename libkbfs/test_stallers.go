@@ -37,6 +37,7 @@ const (
 	StallableMDPut                   StallableMDOp = "Put"
 	StallableMDAfterPut              StallableMDOp = "AfterPut"
 	StallableMDPutUnmerged           StallableMDOp = "PutUnmerged"
+	StallableMDAfterPutUnmerged      StallableMDOp = "AfterPutUnmerged"
 )
 
 const stallKeyStallEverything = ""
@@ -495,6 +496,8 @@ func (m *stallingMDOps) PutUnmerged(ctx context.Context, md *RootMetadata,
 	// emulates the PutUnmerged being canceled while the RPC is
 	// outstanding.
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
-		return m.delegate.PutUnmerged(ctx, md, bid)
+		err := m.delegate.PutUnmerged(ctx, md, bid)
+		m.maybeStall(ctx, StallableMDAfterPutUnmerged)
+		return err
 	})
 }

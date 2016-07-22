@@ -537,6 +537,11 @@ func (fbo *folderBranchOps) setHeadLocked(
 		fbo.setLatestMergedRevisionLocked(ctx, lState, md.Revision, false)
 	}
 
+	if md.MergedStatus() == Unmerged && md.BID != fbo.bid {
+		return fmt.Errorf("Unexpected branch ID on unmerged branch: %s vs. %s",
+			md.BID, fbo.bid)
+	}
+
 	fbo.head = md
 	fbo.status.setRootMetadata(md)
 	if isFirstHead {
@@ -1725,7 +1730,8 @@ func isRecoverableBlockErrorForRemoval(err error) bool {
 
 func isRetriableError(err error, retries int) bool {
 	_, isExclOnUnmergedError := err.(ExclOnUnmergedError)
-	recoverable := isExclOnUnmergedError || isRecoverableBlockError(err)
+	recoverable := isExclOnUnmergedError || isRevisionConflict(err) ||
+		isRecoverableBlockError(err)
 	return recoverable && retries < maxRetriesOnRecoverableErrors
 }
 
@@ -1850,7 +1856,7 @@ func (fbo *folderBranchOps) finalizeBlocks(bps *blockPutState) error {
 }
 
 // Returns true if the passed error indicates a revision conflict.
-func (fbo *folderBranchOps) isRevisionConflict(err error) bool {
+func isRevisionConflict(err error) bool {
 	if err == nil {
 		return false
 	}
@@ -1878,7 +1884,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		// only do a normal Put if we're not already staged.
 		err = mdops.Put(ctx, md)
 
-		if doUnmergedPut = fbo.isRevisionConflict(err); doUnmergedPut {
+		if doUnmergedPut = isRevisionConflict(err); doUnmergedPut {
 			fbo.log.CDebugf(ctx, "Conflict: %v", err)
 			mergedRev = md.Revision
 
@@ -1970,7 +1976,7 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 
 	// finally, write out the new metadata
 	err = fbo.config.MDOps().Put(ctx, md)
-	isConflict := fbo.isRevisionConflict(err)
+	isConflict := isRevisionConflict(err)
 	if err != nil && !isConflict {
 		return err
 	}
@@ -1982,7 +1988,7 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 		// be safe as it's idempotent. we don't want any rekeys present
 		// in unmerged history or that will just make a mess.
 		fbo.config.RekeyQueue().Enqueue(md.ID)
-		return err
+		return RekeyConflictError{err}
 	}
 
 	mdID, err := fbo.config.Crypto().MakeMdID(&md.BareRootMetadata)
@@ -2242,6 +2248,31 @@ func (fbo *folderBranchOps) doMDWriteWithRetry(ctx context.Context,
 				if err = fbo.cr.Wait(ctx); err != nil {
 					return err
 				}
+			} else if isRevisionConflict(err) {
+				// We can only get here if we are already on an
+				// unmerged branch and an errored PutUnmerged did make
+				// it to the mdserver.  Let's force sync, with a fresh
+				// context so the observer doesn't ignore the updates
+				// (but tie the cancels together).
+				newCtx := fbo.ctxWithFBOID(context.Background())
+				newCtx, cancel := context.WithCancel(newCtx)
+				defer cancel()
+				var wg sync.WaitGroup
+				wg.Add(1)
+				go func() {
+					select {
+					case <-ctx.Done():
+						cancel()
+					case <-newCtx.Done():
+					}
+				}()
+				fbo.log.CDebugf(ctx, "Got a revision conflict while unmerged "+
+					"(%v); forcing a sync", err)
+				err = fbo.getAndApplyNewestUnmergedHead(newCtx, lState)
+				if err != nil {
+					return err
+				}
+				cancel()
 			}
 			continue
 		} else if err != nil {
@@ -3591,6 +3622,45 @@ func (fbo *folderBranchOps) getAndApplyMDUpdates(ctx context.Context,
 	return nil
 }
 
+func (fbo *folderBranchOps) getAndApplyNewestUnmergedHead(ctx context.Context,
+	lState *lockState) error {
+	fbo.log.CDebugf(ctx, "Fetching the newest unmerged head")
+	bid := func() BranchID {
+		fbo.mdWriterLock.Lock(lState)
+		defer fbo.mdWriterLock.Unlock(lState)
+		return fbo.bid
+	}()
+
+	// We can only ever be at most one revision behind, so fetch the
+	// latest unmerged revision and apply it as a successor.
+	md, err := fbo.config.MDOps().GetUnmergedForTLF(ctx, fbo.id(), bid)
+	if err != nil {
+		return err
+	}
+
+	if md == (ImmutableRootMetadata{}) {
+		// There is no unmerged revision, oops!
+		return errors.New("Couldn't find an unmerged head")
+	}
+
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	if fbo.isMasterBranchLocked(lState) {
+		return errors.New("Can't apply newest unmerged head while on master")
+	}
+
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+	if err := fbo.setHeadSuccessorLocked(ctx, lState, md); err != nil {
+		return err
+	}
+	fbo.notifyBatchLocked(ctx, lState, md)
+	if err := fbo.config.MDCache().Put(md); err != nil {
+		return err
+	}
+	return nil
+}
+
 // getUnmergedMDUpdates returns a slice of the unmerged MDs for this
 // TLF's current unmerged branch and unmerged branch, between the
 // merge point for the branch and the current head.  The returned MDs
@@ -4255,7 +4325,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	// Put the MD.  If there's a conflict, abort the whole process and
 	// let CR restart itself.
 	err = fbo.config.MDOps().Put(ctx, md)
-	doUnmergedPut := fbo.isRevisionConflict(err)
+	doUnmergedPut := isRevisionConflict(err)
 	if doUnmergedPut {
 		fbo.log.CDebugf(ctx, "Got a conflict after resolution; aborting CR")
 		return err
