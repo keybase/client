@@ -8,6 +8,9 @@ type CommonProps = {
   size: AvatarSize,
   style?: ?Object,
   onClick?: ?(() => void),
+  // Use a solid color instead of a noAvatar image initially
+  loadingColor?: string,
+  forceLoading?: boolean,
   following?: ?boolean,
   followsYou?: ?boolean
 }

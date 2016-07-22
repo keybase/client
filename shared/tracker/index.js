@@ -36,17 +36,18 @@ export type TrackerProps = {
   name?: string,
   serviceName?: string,
   inviteLink?: ?string,
-  isPrivate?: boolean
+  isPrivate?: boolean,
+  loading: boolean,
 }
 
 export function trackerPropsToRenderProps ({currentlyFollowing, inviteLink, isPrivate, lastAction,
     loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
-    proofs, reason, serviceName, trackerState, userInfo, username, waiting}:
+    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading}:
 TrackerProps): RenderPropsUnshaped {
   return {
     currentlyFollowing, inviteLink, isPrivate, lastAction,
     loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
-    proofs, reason, serviceName, trackerState, userInfo, username, waiting,
+    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading,
   }
 }
 
@@ -100,6 +101,7 @@ export default connect(
       onIgnore: () => actions.onIgnore(ownProps.username),
       onRefollow: () => actions.onRefollow(ownProps.username),
       onUnfollow: () => actions.onUnfollow(ownProps.username),
+      loading: false,
     }
   }
 )(Tracker)

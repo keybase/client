@@ -49,6 +49,7 @@ export default class Render extends Component<void, RenderProps, void> {
           <UserBio type='Tracker'
             style={{marginTop: 50}}
             avatarSize={80}
+            loading={this.props.loading}
             username={this.props.username}
             userInfo={this.props.userInfo}
             currentlyFollowing={this.props.currentlyFollowing}

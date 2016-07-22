@@ -10,6 +10,7 @@ import type {Folder} from '../folders/list'
 
 export type Props = {
   isYou: boolean,
+  loading: boolean,
   bioEditFns: ?BioEditFns,
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,

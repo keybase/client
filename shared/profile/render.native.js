@@ -73,6 +73,7 @@ class Render extends Component<void, Props, State> {
           <UserBio
             type='Profile'
             avatarSize={AVATAR_SIZE}
+            loading={this.props.loading}
             username={this.props.username}
             userInfo={this.props.userInfo}
             currentlyFollowing={this.props.currentlyFollowing}

@@ -12,12 +12,13 @@ export default class Avatar extends Component {
   props: Props;
 
   state: {
-    avatarLoaded: boolean
+    avatarLoaded: boolean,
+    errored: boolean,
   };
 
   constructor (props: Props) {
     super(props)
-    this.state = {avatarLoaded: false}
+    this.state = {avatarLoaded: false, errored: false}
   }
 
   render () {
@@ -27,20 +28,27 @@ export default class Avatar extends Component {
     const url = shared.createAvatarUrl(this.props) || noAvatar
     const avatarStyle = {width, height, borderRadius: size / 2, position: 'absolute'}
 
+    const showNoAvatar = (!this.props.loadingColor && !this.state.avatarLoaded) ||
+      (this.state.avatarLoaded && this.state.errored)
+    const showLoadingColor = (this.props.loadingColor && !this.state.avatarLoaded) || this.props.forceLoading
+
     return (
       <div onClick={this.props.onClick} style={{...globalStyles.noSelect, position: 'relative', width, height, ...this.props.style}}>
-        {!this.state.avatarLoaded &&
+        {showNoAvatar &&
           <div
             style={{...avatarStyle,
               backgroundImage: `url('${noAvatar}')`,
               backgroundSize: 'cover',
             }} />}
+        {showLoadingColor &&
+          <div style={{...avatarStyle, backgroundColor: this.props.loadingColor}} />}
         <img
           src={url}
           style={{...avatarStyle,
-            display: this.state.avatarLoaded ? 'block' : 'none',
+            display: (!showNoAvatar && !showLoadingColor) ? 'block' : 'none',
             backgroundColor: globalColors.white,
           }}
+          onError={() => this.setState({errored: true})}
           onLoad={() => this.setState({avatarLoaded: true})} />
         <div>
         {size > 16 && (this.props.following || this.props.followsYou) &&

@@ -86,6 +86,7 @@ const propsBase = {
   waiting: false,
   loggedIn: true,
   lastAction: null,
+  loading: false,
 }
 
 const propsDefault: TrackerProps = {

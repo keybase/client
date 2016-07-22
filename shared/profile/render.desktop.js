@@ -83,6 +83,7 @@ class Render extends Component<void, Props, State> {
               <UserBio
                 type='Profile'
                 editFns={this.props.bioEditFns}
+                loading={this.props.loading}
                 avatarSize={AVATAR_SIZE}
                 style={{marginTop: HEADER_TOP_SPACE}}
                 username={this.props.username}

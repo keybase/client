@@ -19,6 +19,7 @@ export default class Render extends Component<void, Props, void> {
             type='Tracker'
             avatarSize={AVATAR_SIZE}
             style={{marginTop: HEADER_TOP_SPACE}}
+            loading={false}
             username={this.props.username}
             userInfo={this.props.userInfo}
             trackerState={this.props.trackerState}

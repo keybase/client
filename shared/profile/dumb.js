@@ -128,6 +128,7 @@ const following = [
 const propsBase: RenderProps = {
   ...mockUserInfo,
   isYou: false,
+  loading: false,
   bioEditFns: null,
   proofs: proofsDefault,
   tlfs: folders,
@@ -164,6 +165,12 @@ const dumbMap: DumbComponentMap<Profile> = {
   mocks: {
     'Your Profile': {
       ...propsBase,
+      bioEditFns,
+      isYou: true,
+    },
+    'Your Profile - loading': {
+      ...propsBase,
+      loading: true,
       bioEditFns,
       isYou: true,
     },
