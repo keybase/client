@@ -4,7 +4,11 @@ import exec from './exec'
 
 export function ctlStop (callback) {
   const binPath = keybaseBinPath()
-  const args = ['ctl', 'stop', '--exclude=app', '--no-wait']
+  // Don't need to stop app, since we will quit ourselves
+  // We don't stop the updater either since quit may be triggered from the
+  // updater itself.
+  // See https://keybase.atlassian.net/browse/CORE-3418
+  const args = ['ctl', 'stop', '--exclude=app,updater', '--no-wait']
   exec(binPath, args, 'darwin', 'prod', false, callback)
 }
 
