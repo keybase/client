@@ -2405,10 +2405,11 @@ func (_mr *_MockMDServerRecorder) GetLatestHandleForTLF(arg0, arg1 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLatestHandleForTLF", arg0, arg1)
 }
 
-func (_m *MockMDServer) OffsetFromServerTime() time.Duration {
+func (_m *MockMDServer) OffsetFromServerTime() (time.Duration, bool) {
 	ret := _m.ctrl.Call(_m, "OffsetFromServerTime")
 	ret0, _ := ret[0].(time.Duration)
-	return ret0
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
 }
 
 func (_mr *_MockMDServerRecorder) OffsetFromServerTime() *gomock.Call {
@@ -2578,10 +2579,11 @@ func (_mr *_MockmdServerLocalRecorder) GetLatestHandleForTLF(arg0, arg1 interfac
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLatestHandleForTLF", arg0, arg1)
 }
 
-func (_m *MockmdServerLocal) OffsetFromServerTime() time.Duration {
+func (_m *MockmdServerLocal) OffsetFromServerTime() (time.Duration, bool) {
 	ret := _m.ctrl.Call(_m, "OffsetFromServerTime")
 	ret0, _ := ret[0].(time.Duration)
-	return ret0
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
 }
 
 func (_mr *_MockmdServerLocalRecorder) OffsetFromServerTime() *gomock.Call {
