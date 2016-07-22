@@ -61,7 +61,7 @@ func KeybaseServiceStatus(context Context, label string, wait time.Duration, log
 		return
 	}
 
-	installStatus, installAction, kbStatus := ResolveInstallStatus(status.Version, status.BundleVersion, status.LastExitStatus)
+	installStatus, installAction, kbStatus := ResolveInstallStatus(status.Version, status.BundleVersion, status.LastExitStatus, log)
 	status.InstallStatus = installStatus
 	status.InstallAction = installAction
 	status.Status = kbStatus
@@ -90,7 +90,7 @@ func KBFSServiceStatus(context Context, label string, wait time.Duration, log Lo
 		return
 	}
 
-	installStatus, installAction, kbStatus := ResolveInstallStatus(status.Version, status.BundleVersion, status.LastExitStatus)
+	installStatus, installAction, kbStatus := ResolveInstallStatus(status.Version, status.BundleVersion, status.LastExitStatus, log)
 	status.InstallStatus = installStatus
 	status.InstallAction = installAction
 	status.Status = kbStatus

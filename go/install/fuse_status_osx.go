@@ -73,7 +73,7 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	st.Version = kextInfo.Version
 	st.KextStarted = kextInfo.Started
 
-	installStatus, installAction, status := ResolveInstallStatus(st.Version, st.BundleVersion, "")
+	installStatus, installAction, status := ResolveInstallStatus(st.Version, st.BundleVersion, "", log)
 	st.InstallStatus = installStatus
 	st.InstallAction = installAction
 	st.Status = status
