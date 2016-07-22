@@ -11,14 +11,13 @@ export function ctlStop (callback) {
 export function quit () {
   // Only quit the app in dev mode
   if (__DEV__) {
-    console.log('Only quiting gui in dev mode')
+    console.log('Only quiting app in dev mode')
     app.quit()
     return
   }
 
   console.log('Quit the app')
   ctlStop(function (stopErr) {
-    console.log('Done with ctlstop')
     if (stopErr) {
       console.log('Error in ctl stop, when quiting:', stopErr)
     }
