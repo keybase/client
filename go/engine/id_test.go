@@ -53,6 +53,9 @@ func checkDougProofs(t *testing.T, idUI *FakeIdentifyUI, user *libkb.User) {
 }
 
 func checkKeyedProfile(tb testing.TB, idUI *FakeIdentifyUI, them *libkb.User, name string, hasImg bool, expectedProofs map[string]string) {
+	if them == nil {
+		tb.Fatal("nil 'them' user")
+	}
 	if exported := them.Export(); !reflect.DeepEqual(idUI.User, exported) {
 		tb.Fatal("LaunchNetworkChecks User not equal to result user.", idUI.User, exported)
 	}

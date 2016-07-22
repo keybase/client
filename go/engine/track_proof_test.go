@@ -40,11 +40,17 @@ func checkTrackCommon(tc libkb.TestContext, blocks []sb, outcome *keybase1.Ident
 	if err != nil {
 		return err
 	}
+	if them == nil {
+		tc.T.Fatal("checkTrackCommon called with nil 'them' user")
+	}
 	s, err := me.TrackChainLinkFor(them.GetName(), them.GetUID())
 	if err != nil {
 		return err
 	}
 
+	if s == nil {
+		tc.T.Fatal("me.TrackChainLinkFor(...) returned nil, nil")
+	}
 	tc.T.Logf("payload json:\n%s", s.GetPayloadJSON().MarshalPretty())
 
 	sbs := s.ToServiceBlocks()

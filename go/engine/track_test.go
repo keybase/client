@@ -258,6 +258,10 @@ func TestTrackLocal(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	if them == nil {
+		t.Fatal("runTrackWithOptions returned nil 'them' user")
+	}
+
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(tc.G))
 	if err != nil {
 		t.Fatal(err)

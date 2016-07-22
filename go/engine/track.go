@@ -56,42 +56,44 @@ func (e *TrackEngine) SubConsumers() []libkb.UIConsumer {
 }
 
 func (e *TrackEngine) Run(ctx *Context) error {
-	iarg := NewIdentifyTrackArg(e.arg.UserAssertion, true, e.arg.ForceRemoteCheck, e.arg.Options)
-	iarg.AllowSelf = e.arg.AllowSelfIdentify
-	iarg.Reason.Type = keybase1.IdentifyReasonType_TRACK
-	ieng := NewIdentify(iarg, e.G())
+	arg := &keybase1.Identify2Arg{
+		UserAssertion:         e.arg.UserAssertion,
+		ForceRemoteCheck:      e.arg.ForceRemoteCheck,
+		NeedProofSet:          true,
+		NoErrorOnTrackFailure: true,
+	}
+
+	ieng := NewResolveThenIdentify2WithTrack(e.G(), arg, e.arg.Options)
 	if err := RunEngine(ieng, ctx); err != nil {
-		e.G().Log.Debug("RunEngine(NewIdentify) error: %v", err)
 		return err
 	}
 
-	token := ieng.TrackToken()
-	e.them = ieng.User()
-
-	// prompt if the identify is correct
-	outcome := ieng.Outcome().Export()
-	result, err := ctx.IdentifyUI.Confirm(outcome)
+	upk := ieng.Result().Upk
+	var err error
+	e.them, err = libkb.LoadUser(libkb.NewLoadUserByUIDArg(e.G(), upk.Uid))
 	if err != nil {
-		e.G().Log.Debug("IdentifyUI.Confirm error: %v", err)
 		return err
 	}
-	if !result.IdentityConfirmed {
+
+	confirmResult := ieng.ConfirmResult()
+	if !confirmResult.IdentityConfirmed {
+		e.G().Log.Debug("confirmResult: %+v", confirmResult)
 		return errors.New("Track not confirmed")
 	}
 
 	// if they didn't specify local only on the command line, then if they answer no to posting
 	// the tracking statement publicly to keybase, change LocalOnly to true here:
-	if !e.arg.Options.LocalOnly && !result.RemoteConfirmed {
+	if !e.arg.Options.LocalOnly && !confirmResult.RemoteConfirmed {
 		e.arg.Options.LocalOnly = true
 	}
 
-	if !e.arg.Options.ExpiringLocal && result.ExpiringLocal {
+	if !e.arg.Options.ExpiringLocal && confirmResult.ExpiringLocal {
 		e.G().Log.Debug("-ExpiringLocal-")
 		e.arg.Options.ExpiringLocal = true
 	}
 
 	targ := &TrackTokenArg{
-		Token:   token,
+		Token:   ieng.TrackToken(),
 		Me:      e.arg.Me,
 		Options: e.arg.Options,
 	}

@@ -15,20 +15,33 @@ type ResolveThenIdentify2 struct {
 	i2eng                 *Identify2WithUID
 	testArgs              *Identify2WithUIDTestArgs
 	responsibleGregorItem gregor.Item
+
+	// When tracking is being performed, the identify engine is used with a tracking ui.
+	// These options are sent to the ui based on command line options.
+	// For normal identify, safe to leave these in their default zero state.
+	trackOptions keybase1.TrackOptions
 }
 
 var _ (Engine) = (*ResolveThenIdentify2)(nil)
-
-// Name is the unique engine name.
-func (e *ResolveThenIdentify2) Name() string {
-	return "ResolveThenIdentify2"
-}
 
 func NewResolveThenIdentify2(g *libkb.GlobalContext, arg *keybase1.Identify2Arg) *ResolveThenIdentify2 {
 	return &ResolveThenIdentify2{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
 	}
+}
+
+func NewResolveThenIdentify2WithTrack(g *libkb.GlobalContext, arg *keybase1.Identify2Arg, topts keybase1.TrackOptions) *ResolveThenIdentify2 {
+	return &ResolveThenIdentify2{
+		Contextified: libkb.NewContextified(g),
+		arg:          arg,
+		trackOptions: topts,
+	}
+}
+
+// Name is the unique engine name.
+func (e *ResolveThenIdentify2) Name() string {
+	return "ResolveThenIdentify2"
 }
 
 // GetPrereqs returns the engine prereqs.
@@ -91,6 +104,7 @@ func (e *ResolveThenIdentify2) Run(ctx *Context) (err error) {
 	if e.responsibleGregorItem != nil {
 		e.i2eng.SetResponsibleGregorItem(e.responsibleGregorItem)
 	}
+	e.i2eng.trackOptions = e.trackOptions
 
 	if err = e.resolveUID(ctx); err != nil {
 		return
@@ -111,4 +125,12 @@ func (e *ResolveThenIdentify2) Result() *keybase1.Identify2Res {
 
 func (e *ResolveThenIdentify2) SetResponsibleGregorItem(item gregor.Item) {
 	e.responsibleGregorItem = item
+}
+
+func (e *ResolveThenIdentify2) TrackToken() keybase1.TrackToken {
+	return e.i2eng.TrackToken()
+}
+
+func (e *ResolveThenIdentify2) ConfirmResult() keybase1.ConfirmResult {
+	return e.i2eng.ConfirmResult()
 }
