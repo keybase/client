@@ -248,11 +248,17 @@ func (md *MDServerRemote) resetPingTicker(intervalSeconds int) {
 				beforePing := clock.Now()
 				resp, err := md.client.Ping2(ctx)
 				if err != nil {
-					md.log.Debug("MDServerRemote: ping error %s", err)
+					md.log.CDebugf(ctx, "MDServerRemote: ping error %s", err)
 					break
 				}
 				afterPing := clock.Now()
 				pingLatency := afterPing.Sub(beforePing)
+				if md.serverOffset > 0 && pingLatency > 5*time.Second {
+					md.log.CDebugf(ctx, "Ignoring large ping time: %s",
+						pingLatency)
+					break
+				}
+
 				serverTimeNow :=
 					keybase1.FromTime(resp.Timestamp).Add(pingLatency / 2)
 
@@ -268,7 +274,7 @@ func (md *MDServerRemote) resetPingTicker(intervalSeconds int) {
 				}()
 
 			case <-ctx.Done():
-				md.log.Debug("MDServerRemote: stopping ping ticker")
+				md.log.CDebugf(ctx, "MDServerRemote: stopping ping ticker")
 				ticker.Stop()
 				return
 			}
