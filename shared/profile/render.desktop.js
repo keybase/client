@@ -36,6 +36,7 @@ class Render extends Component<void, Props, State> {
   }
 
   render () {
+    const {loading} = this.props
     if (this.props.showComingSoon) {
       return this._renderComingSoon()
     }
@@ -43,7 +44,7 @@ class Render extends Component<void, Props, State> {
     const headerColor = whichHeaderColor(this.props)
 
     let proofNotice
-    if (this.props.trackerState !== proofNormal) {
+    if (this.props.trackerState !== proofNormal && !this.props.isYou) {
       proofNotice = `Some of ${this.props.username}'s proofs have changed since you last tracked them.`
     }
 
@@ -83,7 +84,7 @@ class Render extends Component<void, Props, State> {
               <UserBio
                 type='Profile'
                 editFns={this.props.bioEditFns}
-                loading={this.props.loading}
+                loading={loading}
                 avatarSize={AVATAR_SIZE}
                 style={{marginTop: HEADER_TOP_SPACE}}
                 username={this.props.username}
@@ -91,7 +92,7 @@ class Render extends Component<void, Props, State> {
                 currentlyFollowing={this.props.currentlyFollowing}
                 trackerState={this.props.trackerState}
               />
-              {!this.props.isYou &&
+              {!this.props.isYou && !loading &&
                 <UserActions
                   style={styleActions}
                   trackerState={this.props.trackerState}
@@ -107,20 +108,21 @@ class Render extends Component<void, Props, State> {
               <UserProofs
                 style={styleProofs}
                 username={this.props.username}
+                loading={loading}
                 proofs={this.props.proofs}
                 currentlyFollowing={this.props.currentlyFollowing}
               />
-              {folders}
+              {!loading && folders}
             </Box>
           </Box>
-          <Friendships
-            style={styleFriendships}
-            currentTab={this.state.currentFriendshipsTab}
-            onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
-            onUserClick={this.props.onUserClick}
-            followers={this.props.followers}
-            following={this.props.following}
-          />
+          {!loading &&
+            <Friendships
+              style={styleFriendships}
+              currentTab={this.state.currentFriendshipsTab}
+              onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
+              onUserClick={this.props.onUserClick}
+              followers={this.props.followers}
+              following={this.props.following} />}
         </Box>
       </Box>
     )

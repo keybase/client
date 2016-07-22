@@ -1,6 +1,7 @@
 /* @flow */
 // Styles from our designers
 
+import globalColors from './style-guide-colors'
 export {default as globalColors} from './style-guide-colors'
 
 export const windowStyle = {
@@ -50,6 +51,15 @@ const flexBoxCommon = {
   display: 'flex',
 }
 
+export const globalMargins = {
+  xtiny: 4,
+  tiny: 8,
+  small: 16,
+  medium: 32,
+  large: 48,
+  xlarge: 64,
+}
+
 const util = {
   flexBoxColumn: {
     ...flexBoxCommon,
@@ -91,20 +101,20 @@ const util = {
   textDecoration: (type: string) => ({
     textDecoration: type,
   }),
+  loadingTextStyle: {
+    backgroundColor: globalColors.lightGrey,
+    height: 16,
+    marginTop: globalMargins.tiny,
+    marginBottom: globalMargins.tiny,
+  },
+  fadeOpacity: {
+    transition: 'opacity .25s ease-in-out',
+  },
 }
 
 export const globalStyles = {
   ...font,
   ...util,
-}
-
-export const globalMargins = {
-  xtiny: 4,
-  tiny: 8,
-  small: 16,
-  medium: 32,
-  large: 48,
-  xlarge: 64,
 }
 
 export function transition (...properties: Array<string>) : Object {

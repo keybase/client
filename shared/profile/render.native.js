@@ -90,6 +90,7 @@ class Render extends Component<void, Props, State> {
           <Box style={styleProofs}>
             <UserProofs
               username={this.props.username}
+              loading={this.props.loading}
               proofs={this.props.proofs}
               currentlyFollowing={this.props.currentlyFollowing}
             />

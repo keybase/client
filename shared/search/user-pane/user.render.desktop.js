@@ -19,7 +19,7 @@ export default class Render extends Component<void, Props, void> {
             type='Tracker'
             avatarSize={AVATAR_SIZE}
             style={{marginTop: HEADER_TOP_SPACE}}
-            loading={false}
+            loading={this.props.loading}
             username={this.props.username}
             userInfo={this.props.userInfo}
             trackerState={this.props.trackerState}
@@ -28,6 +28,7 @@ export default class Render extends Component<void, Props, void> {
           <UserProofs
             style={{marginTop: globalMargins.small, marginLeft: globalMargins.medium, marginRight: globalMargins.medium}}
             username={this.props.username}
+            loading={this.props.loading}
             proofs={this.props.proofs}
             currentlyFollowing={this.props.currentlyFollowing}
           />

@@ -253,6 +253,7 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'You track them': trackerPropsToRenderProps({...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}}),
     'Unfollowed': trackerPropsToRenderProps(propsUnfollowed),
     'Barely there': trackerPropsToRenderProps(propsLessData),
+    'Tracker - Loading': trackerPropsToRenderProps({...propsLessData, loading: true}),
     'Whatevz': trackerPropsToRenderProps(propsWhatevz),
     'Platforms': trackerPropsToRenderProps(propsWhatevz),
   },

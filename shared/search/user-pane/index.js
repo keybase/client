@@ -28,6 +28,7 @@ export default connector.connect(
             username: username,
             userInfo: trackerState.userInfo,
             proofs: trackerState.proofs,
+            loading: false,
             currentlyFollowing: currentlyFollowing,
             trackerState: trackerState.trackerState,
             onFollow: () => { dispatch(onFollow(username, false)) },

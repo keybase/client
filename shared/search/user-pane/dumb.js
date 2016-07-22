@@ -17,6 +17,7 @@ const defaultParentProps = {
 
 const userPaneBase: UserRenderProps = {
   ...mockUserInfo,
+  loading: false,
   proofs: proofsDefault,
   trackerState: normal,
   currentlyFollowing: false,
@@ -30,6 +31,7 @@ const dumbMapUser: DumbComponentMap<UserPane> = {
   component: UserPane,
   mocks: {
     'Unfollowed': userPaneBase,
+    'Loading': {...userPaneBase, loading: true},
     'Unfollowed Scrolling': {
       ...userPaneBase,
       parentProps: {

@@ -34,6 +34,7 @@ export default class Render extends Component<void, RenderProps, void> {
           <UserProofs
             style={stylesProofs}
             username={this.props.username}
+            loading={this.props.loading}
             proofs={this.props.proofs}
             currentlyFollowing={this.props.currentlyFollowing}
           />

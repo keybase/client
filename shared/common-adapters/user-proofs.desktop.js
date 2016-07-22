@@ -2,12 +2,26 @@
 
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import {Icon, Text, Meta} from '../common-adapters/index'
+import {Box, Icon, Text, Meta} from '../common-adapters/index'
 import openUrl from '../util/open-url'
 import * as shared from './user-proofs.shared'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
 import type {Proof, Props} from './user-proofs'
+
+function LoadingProofRow ({index, textBlockWidth}: {index: number, textBlockWidth: number}) {
+  // TODO(mm) make iconfont-proof-pending the unfinished one instead
+  return (
+    <div style={{...styleRow, paddingTop: index > 0 ? 8 : 0}}>
+      <span style={styleProofNameSection}>
+        <span style={styleProofNameLabelContainer}>
+          <div style={{...globalStyles.loadingTextStyle, width: textBlockWidth}} />
+        </span>
+      </span>
+      <Icon style={styleService} type={'iconfont-proof-pending'} />
+    </div>
+  )
+}
 
 class ProofsRender extends Component {
   props: Props;
@@ -45,7 +59,7 @@ class ProofsRender extends Component {
 
     return (
       <p style={{...styleRow, paddingTop: idx > 0 ? 8 : 0}} key={`${proof.id}${proof.type}`}>
-        <Icon style={styleService} type={shared.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
+        <Icon style={styleService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={onClickProfile} />
         <span style={styleProofNameSection}>
           <span style={styleProofNameLabelContainer}>
             <Text inline={true} className='hover-underline-container' type='Body' onClick={onClickProfile} style={proofStyle}>
@@ -63,15 +77,29 @@ class ProofsRender extends Component {
   render () {
     return (
       <div style={{...styleContainer, ...this.props.style}}>
-        {this.props.proofs.map((p, idx) => this._renderProofRow(p, idx))}
+        <Box style={{...styleLoading, opacity: this.props.loading ? 1 : 0}}>
+          {[147, 77, 117].map((w, i) => <LoadingProofRow key={i} index={i} textBlockWidth={w} />)}
+        </Box>
+        <Box style={{...globalStyles.fadeOpacity, opacity: !this.props.loading ? 1 : 0}}>
+          {this.props.proofs.map((p, idx) => this._renderProofRow(p, idx))}
+        </Box>
       </div>
     )
   }
 }
 
+const styleLoading = {
+  ...globalStyles.fadeOpacity,
+  position: 'absolute',
+  width: '100%',
+  paddingRight: 41,
+  top: 4,
+}
+
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
+  position: 'relative',
 }
 
 const styleRow = {

@@ -59,6 +59,7 @@ export default class Render extends Component<void, RenderProps, void> {
             style={{paddingTop: 8, paddingLeft: 30, paddingRight: 30}}
             username={this.props.username}
             proofs={this.props.proofs}
+            loading={this.props.loading}
             currentlyFollowing={this.props.currentlyFollowing}
           />
         </div>

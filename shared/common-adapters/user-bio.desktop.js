@@ -8,15 +8,8 @@ import * as shared from './user-bio.shared'
 import type {Props} from './user-bio'
 import type {AvatarSize} from './avatar'
 
-class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize}, void> {
+class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize, loading: boolean}, void> {
   render () {
-    const loadingTextStyle = {
-      backgroundColor: globalColors.lightGrey,
-      height: 16,
-      marginTop: globalMargins.small,
-      marginBottom: globalMargins.small,
-    }
-
     return (
       <Box style={{position: 'absolute'}}>
         <Box style={stylesContainer}>
@@ -30,10 +23,10 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize}
               following={false}
               followsYou={false} />
           </Box>
-          <Box className='fade' style={{...stylesContent, position: 'absolute', opacity: this.props.loading ? 1 : 0}}>
-            <div style={{...loadingTextStyle, width: 157}} />
-            <div style={{...loadingTextStyle, width: 87}} />
-            <div style={{...loadingTextStyle, width: 117}} />
+          <Box style={{...stylesContent, ...globalStyles.fadeOpacity, position: 'absolute', opacity: this.props.loading ? 1 : 0}}>
+            <div style={{...globalStyles.loadingTextStyle, width: 157}} />
+            <div style={{...globalStyles.loadingTextStyle, width: 87}} />
+            <div style={{...globalStyles.loadingTextStyle, width: 117}} />
           </Box>
         </Box>
       </Box>
@@ -64,20 +57,11 @@ export default class BioRender extends Component<void, Props, void> {
       bioTweaks = {className: 'hover-underline', onClick: editFns.onBioEdit}
     }
 
-    console.log('loading props are', this.props.loading)
-
-    const fadeCSS = `
-      .fade {
-         transition: opacity .25s ease-in-out;
-      }
-    `
-
     return (
-      <Box style={this.props.style}>
-        <style>{fadeCSS}</style>
+      <Box style={{minHeight: 170, ...this.props.style}}>
         <BioLoading loading={loading} style={this.props.style} avatarSize={this.props.avatarSize} />
         <Box style={stylesContainer}>
-          <Box className='fade' style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', zIndex: 2, position: 'relative', opacity: loading ? 0 : 1}}>
+          <Box style={{...globalStyles.flexBoxRow, ...globalStyles.fadeOpacity, alignItems: 'flex-end', zIndex: 2, position: 'relative', opacity: loading ? 0 : 1}}>
             <Avatar
               onClick={() => shared.onClickAvatar(username)}
               style={globalStyles.clickable}
@@ -93,7 +77,7 @@ export default class BioRender extends Component<void, Props, void> {
                   style={stylesEditAvatarIcon(avatarSize)} />
               </Box>}
           </Box>
-          <Box className='fade' style={{...stylesContent, opacity: loading ? 0 : 1}}>
+          <Box style={{...stylesContent, ...globalStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
             <Text
               type='HeaderBig'
               style={{...stylesUsername, ...shared.usernameStyle(this.props)}}
