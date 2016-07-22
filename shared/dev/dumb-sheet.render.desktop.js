@@ -26,6 +26,11 @@ class Render extends Component<void, any, any> {
     ReactDOM.findDOMNode(this.refs.filterInput).querySelector('input').focus()
   }
 
+  componentWillReceiveProps (nextProps: any) {
+    // FIXME: desktop <Input> element keeps internal state, need to set its value manually
+    this.refs.filterInput.setValue(nextProps.dumbFilter)
+  }
+
   render () {
     const filter = this.props.dumbFilter.toLowerCase()
 

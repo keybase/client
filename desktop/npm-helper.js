@@ -109,7 +109,7 @@ const commands = {
   },
   'hot-server': {
     env: {HOT: 'true', DEBUG: 'express:*'},
-    nodeEnv: 'production',
+    nodeEnv: 'development',
     nodePathDesktop: true,
     shell: 'node server.js',
     help: 'Start the webpack hot reloading code server (needed by npm run start-hot)',

@@ -69,29 +69,31 @@ const iconMap: DumbComponentMap<IconHolder> = {
   },
 }
 
-const IconButton = ({selected, icon, badgeNumber, label}: any) => <TabBarButton label={label} source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber} style={{height: 40}} />
-const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton source={{type: 'avatar', avatar}} selected={selected} badgeNumber={badgeNumber} style={{flex: 1}} styleContainer={{height: 40}} />
+const tabBarCustomButtons = selectedIndex => {
+  const IconButton = ({selected, icon, badgeNumber, label}: any) => <TabBarButton label={label} source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber} style={{height: 40}} />
+  const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton source={{type: 'avatar', avatar}} selected={selected} badgeNumber={badgeNumber} style={{flex: 1}} styleContainer={{height: 40}} />
 
-const tabBarCustomButtons = selectedIndex => ({
-  style: {flex: 1, display: 'flex', ...globalStyles.flexBoxRow, height: 580},
-  styleTabBar: {justifyContent: 'flex-start', width: 160, backgroundColor: globalColors.midnightBlue, ...globalStyles.flexBoxColumn},
-  children: [
-    {avatar: <Avatar size={32} onClick={null} username='max' />},
-    {icon: 'iconfont-people', label: 'PEOPLE', badgeNumber: 3},
-    {icon: 'iconfont-folder', label: 'FOLDERS'},
-    {icon: 'iconfont-device', label: 'DEVICES', badgeNumber: 12},
-    {icon: 'iconfont-settings', label: 'SETTINGS'},
-  ].map((buttonInfo: any, i) => {
-    const button = buttonInfo.avatar
-      ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar} />
-      : <IconButton icon={buttonInfo.icon} label={buttonInfo.label} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
-    return (
-      <TabBarItem key={i} tabBarButton={button} styleContainer={{display: 'flex'}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
-        <Text type='Header' style={{flex: 1}}>Content here at: {i}</Text>
-      </TabBarItem>
-    )
-  }),
-})
+  return {
+    style: {flex: 1, display: 'flex', ...globalStyles.flexBoxRow, height: 580},
+    styleTabBar: {justifyContent: 'flex-start', width: 160, backgroundColor: globalColors.midnightBlue, ...globalStyles.flexBoxColumn},
+    children: [
+      {avatar: <Avatar size={32} onClick={null} username='max' />},
+      {icon: 'iconfont-people', label: 'PEOPLE', badgeNumber: 3},
+      {icon: 'iconfont-folder', label: 'FOLDERS'},
+      {icon: 'iconfont-device', label: 'DEVICES', badgeNumber: 12},
+      {icon: 'iconfont-settings', label: 'SETTINGS'},
+    ].map((buttonInfo: any, i) => {
+      const button = buttonInfo.avatar
+        ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar} />
+        : <IconButton icon={buttonInfo.icon} label={buttonInfo.label} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
+      return (
+        <TabBarItem key={i} tabBarButton={button} styleContainer={{display: 'flex'}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
+          <Text type='Header' style={{flex: 1}}>Content here at: {i}</Text>
+        </TabBarItem>
+      )
+    }),
+  }
+}
 
 const tabBarMap: DumbComponentMap<TabBar> = {
   component: TabBar,

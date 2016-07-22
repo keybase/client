@@ -93,8 +93,7 @@
     "mocha": "2.5.3",
     "null-loader": "0.1.1",
     "react-addons-perf": "15.2.1",
-    "react-transform-catch-errors": "1.0.2",
-    "react-transform-hmr": "1.0.4",
+    "react-hot-loader": "3.0.0-beta.2",
     "redux-devtools": "3.3.1",
     "redux-devtools-dock-monitor": "1.1.1",
     "redux-devtools-log-monitor": "1.0.11",
@@ -109,5 +108,5 @@
   "optionalDependencies": {
     "fsevents": "1.0.13"
   },
-  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#9c409a258efe1b93a8d50bdab35a901a0991f85b"
+  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#1b1170bd107681dd513bc8231869248da65bc127"
 }

@@ -16,15 +16,17 @@ const badgeNumbers = {
   [settingsTab]: 0,
 }
 
-const DummyContent = ({text}) => <Text type='Body'>Filler: {text}</Text>
+const tabContent = (() => {  // wrapped in a self-calling function to prevent React Hot Loader
+  const DummyContent = ({text}) => <Text type='Body'>Filler: {text}</Text>
 
-const tabContent = {
-  [profileTab]: <DummyContent text='profile' />,
-  [peopleTab]: <DummyContent text='people' />,
-  [folderTab]: <DummyContent text='folder' />,
-  [devicesTab]: <DummyContent text='devicees' />,
-  [settingsTab]: <DummyContent text='settings' />,
-}
+  return {
+    [profileTab]: <DummyContent text='profile' />,
+    [peopleTab]: <DummyContent text='people' />,
+    [folderTab]: <DummyContent text='folder' />,
+    [devicesTab]: <DummyContent text='devicees' />,
+    [settingsTab]: <DummyContent text='settings' />,
+  }
+})()
 
 const map: DumbComponentMap<TabBar> = {
   component: TabBar,

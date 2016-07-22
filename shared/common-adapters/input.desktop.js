@@ -19,8 +19,13 @@ export default class Input extends Component {
       focused: false,
     }
   }
+
   getValue (): ?string {
     return this.state.value
+  }
+
+  setValue (value: string) {
+    this.setState({value})
   }
 
   clearValue () {
