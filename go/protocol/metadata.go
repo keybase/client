@@ -30,6 +30,10 @@ type MerkleRoot struct {
 	Root    []byte `codec:"root" json:"root"`
 }
 
+type PingResponse struct {
+	Timestamp Time `codec:"timestamp" json:"timestamp"`
+}
+
 type GetChallengeArg struct {
 }
 
@@ -103,6 +107,9 @@ type GetFoldersForRekeyArg struct {
 type PingArg struct {
 }
 
+type Ping2Arg struct {
+}
+
 type GetLatestFolderHandleArg struct {
 	FolderID string `codec:"folderID" json:"folderID"`
 }
@@ -140,6 +147,7 @@ type MetadataInterface interface {
 	GetFolderHandle(context.Context, GetFolderHandleArg) ([]byte, error)
 	GetFoldersForRekey(context.Context, KID) error
 	Ping(context.Context) error
+	Ping2(context.Context) (PingResponse, error)
 	GetLatestFolderHandle(context.Context, string) ([]byte, error)
 	GetMerkleRoot(context.Context, GetMerkleRootArg) (MerkleRoot, error)
 	GetMerkleRootLatest(context.Context, MerkleTreeID) (MerkleRoot, error)
@@ -365,6 +373,17 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"ping2": {
+				MakeArg: func() interface{} {
+					ret := make([]Ping2Arg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.Ping2(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getLatestFolderHandle": {
 				MakeArg: func() interface{} {
 					ret := make([]GetLatestFolderHandleArg, 1)
@@ -524,6 +543,11 @@ func (c MetadataClient) GetFoldersForRekey(ctx context.Context, deviceKID KID) (
 
 func (c MetadataClient) Ping(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.metadata.ping", []interface{}{PingArg{}}, nil)
+	return
+}
+
+func (c MetadataClient) Ping2(ctx context.Context) (res PingResponse, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.ping2", []interface{}{Ping2Arg{}}, &res)
 	return
 }
 

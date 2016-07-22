@@ -870,6 +870,10 @@ export type PassphraseType =
   | 2 // PASS_PHRASE_2
   | 3 // VERIFY_PASS_PHRASE_3
 
+export type PingResponse = {
+  timestamp: Time;
+}
+
 export type PlatformInfo = {
   os: string;
   arch: string;
@@ -3640,6 +3644,14 @@ export function metadataGetChallengeRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: metadataGetChallengeResult) => void)}>) {
   engine.rpc({...request, method: 'metadata.getChallenge'})
 }
+type metadataPing2Result = PingResponse
+
+export function metadataPing2Rpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: metadataPing2Result) => void)}>) {
+  engine.rpc({...request, method: 'metadata.ping2'})
+}
 type rekeyGetPendingRekeyStatusResult = ProblemSetDevices
 
 export function rekeyGetPendingRekeyStatusRpc (request: $Exact<{
@@ -3802,6 +3814,7 @@ export type rpc =
   | metadataGetMerkleRootRpc
   | metadataGetMerkleRootSinceRpc
   | metadataGetMetadataRpc
+  | metadataPing2Rpc
   | metadataPingRpc
   | metadataPruneBranchRpc
   | metadataPutKeysRpc
@@ -5008,6 +5021,13 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: (err: RPCError) => void,
       result: () => void
+    }
+  ) => void,
+  'keybase.1.metadata.ping2'?: (
+    params: $Exact<{}>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: metadataPing2Result) => void
     }
   ) => void,
   'keybase.1.metadata.getLatestFolderHandle'?: (

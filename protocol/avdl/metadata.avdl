@@ -25,6 +25,10 @@ protocol metadata {
          bytes root;
   }
 
+  record PingResponse {
+         Time timestamp;
+  }
+
   ChallengeInfo getChallenge();
   int authenticate(string signature);
   void putMetadata(MDBlock mdBlock, map<string> logTags);
@@ -39,6 +43,7 @@ protocol metadata {
   bytes getFolderHandle(string folderID, string signature, string challenge);
   void getFoldersForRekey(KID deviceKID);
   void ping();
+  PingResponse ping2();
   bytes getLatestFolderHandle(string folderID);
 
   // Merkle tree specific commands
