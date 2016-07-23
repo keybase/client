@@ -91,9 +91,10 @@ class ProofsRender extends Component {
 const styleLoading = {
   ...globalStyles.fadeOpacity,
   position: 'absolute',
-  width: '100%',
-  paddingRight: 41,
-  top: 4,
+  left: 0,
+  right: 0,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 const styleContainer = {
