@@ -100,6 +100,7 @@ const styleContainer = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
   position: 'relative',
+  minHeight: 120,
 }
 
 const styleRow = {

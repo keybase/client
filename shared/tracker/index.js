@@ -37,13 +37,16 @@ export type TrackerProps = {
   serviceName?: string,
   inviteLink?: ?string,
   isPrivate?: boolean,
-  loading: boolean,
 }
 
 export function trackerPropsToRenderProps ({currentlyFollowing, inviteLink, isPrivate, lastAction,
     loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
-    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading}:
+    proofs, reason, serviceName, trackerState, userInfo, username, waiting}:
 TrackerProps): RenderPropsUnshaped {
+  // TODO (mm) ideally userInfo should be null until we get a response from the server
+  // Same with proofs (instead of empty array). So we know the difference between
+  // not having data and having empty data.
+  const loading = !userInfo || userInfo.followersCount === -1
   return {
     currentlyFollowing, inviteLink, isPrivate, lastAction,
     loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
@@ -101,7 +104,6 @@ export default connect(
       onIgnore: () => actions.onIgnore(ownProps.username),
       onRefollow: () => actions.onRefollow(ownProps.username),
       onUnfollow: () => actions.onUnfollow(ownProps.username),
-      loading: false,
     }
   }
 )(Tracker)

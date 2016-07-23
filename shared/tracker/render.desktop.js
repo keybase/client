@@ -64,19 +64,19 @@ export default class Render extends Component<void, RenderProps, void> {
           />
         </div>
         <div style={styles.footer}>
-          <Action
-            loggedIn={this.props.loggedIn}
-            waiting={this.props.waiting}
-            state={this.props.trackerState}
-            currentlyFollowing={this.props.currentlyFollowing}
-            username={this.props.username}
-            lastAction={this.props.lastAction}
-            onClose={this.props.onClose}
-            onIgnore={this.props.onIgnore}
-            onFollow={this.props.onFollow}
-            onRefollow={this.props.onRefollow}
-            onUnfollow={this.props.onUnfollow}
-          />
+          {!this.props.loading &&
+            <Action
+              loggedIn={this.props.loggedIn}
+              waiting={this.props.waiting}
+              state={this.props.trackerState}
+              currentlyFollowing={this.props.currentlyFollowing}
+              username={this.props.username}
+              lastAction={this.props.lastAction}
+              onClose={this.props.onClose}
+              onIgnore={this.props.onIgnore}
+              onFollow={this.props.onFollow}
+              onRefollow={this.props.onRefollow}
+              onUnfollow={this.props.onUnfollow} />}
         </div>
       </div>
     )
