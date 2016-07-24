@@ -9,6 +9,12 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
         if (env.CHANGE_ID) {
             message = "<${env.CHANGE_URL}|${env.CHANGE_TITLE}>\n :small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}> by ${env.CHANGE_AUTHOR}"
         } else if (env.BRANCH_NAME == "master" && cause != "upstream" && env.AUTHOR_NAME) {
+            sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
+            sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
+            env.AUTHOR_NAME = readFile('.author_name')
+            env.AUTHOR_EMAIL = readFile('.author_email')
+            sh 'rm .author_name .author_email'
+            def commitUrl = "https://github.com/keybase/client/commit/${env.COMMIT_HASH}"
             color = "danger"
             message = "*BROKEN: master on keybase/client*\n :small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>\n Commit: <${commitUrl}|${env.COMMIT_HASH}>\n Author: ${env.AUTHOR_NAME} &lt;${env.AUTHOR_EMAIL}&gt;"
         }
@@ -96,13 +102,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             }
                             sh 'echo -n $(git rev-parse HEAD) > go/revision'
                             sh "git add go/revision"
-                            sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
-                            sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
-                            env.AUTHOR_NAME = readFile('.author_name')
-                            env.AUTHOR_EMAIL = readFile('.author_email')
                             env.COMMIT_HASH = readFile('go/revision')
-                            sh 'rm .author_name .author_email'
-                            def commitUrl = "https://github.com/keybase/client/commit/${env.COMMIT_HASH}"
                         },
                         pull_mysql: {
                             mysqlImage.pull()
