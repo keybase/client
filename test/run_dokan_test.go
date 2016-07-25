@@ -47,7 +47,11 @@ func createUserDokan(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 		t.Logf("Ignoring op timeout for Dokan test")
 	}
 
-	mnt, err := dokan.Mount(fs, string([]byte{driveLetter, ':'}))
+	mnt, err := dokan.Mount(&dokan.Config{
+		FileSystem: fs,
+		Path:       string([]byte{driveLetter, ':'}),
+		MountFlags: libdokan.DefaultMountFlags,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-
 package libdokan
 
 import (
@@ -60,7 +59,11 @@ func makeFSE(t testing.TB, config *libkbfs.ConfigLocal, driveLetter byte) (*comp
 		t.Fatalf("NewFS failed: %q", err.Error())
 	}
 
-	mnt, err := dokan.Mount(filesys, string([]byte{driveLetter, ':', '\\'}))
+	mnt, err := dokan.Mount(&dokan.Config{
+		FileSystem: filesys,
+		Path:       string([]byte{driveLetter, ':', '\\'}),
+		MountFlags: DefaultMountFlags,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

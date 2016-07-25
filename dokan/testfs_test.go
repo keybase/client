@@ -17,14 +17,15 @@ import (
 	"time"
 	"unsafe"
 
+	"golang.org/x/net/context"
 	"golang.org/x/sys/windows"
 )
 
 func TestEmptyFS(t *testing.T) {
-	s0 := fsTableStore(errorFS{}, nil)
+	s0 := fsTableStore(emptyFS{}, nil)
 	defer fsTableFree(s0)
 	fs := newTestFS()
-	mnt, err := Mount(fs, `T:\`)
+	mnt, err := Mount(&Config{FileSystem: fs, Path: `T:\`})
 	if err != nil {
 		t.Fatal("Mount failed:", err)
 	}
@@ -218,122 +219,90 @@ func testDiskFreeSpace(t *testing.T) {
 	}
 }
 
-var _ FileSystem = errorFS{}
-
-type errorFS struct{}
-
-func (errorFS) Error() string {
-	return "errorFS: error!"
-}
-
-func (t errorFS) Cleanup(fi *FileInfo) {}
-func (t errorFS) CloseFile(*FileInfo)  {}
-
-func (t errorFS) GetVolumeInformation() (VolumeInformation, error) {
-	return VolumeInformation{}, t
-}
-
-func (t errorFS) GetDiskFreeSpace() (FreeSpace, error) {
-	return FreeSpace{}, t
-}
-func (t errorFS) FlushFileBuffers(*FileInfo) error {
-	return t
-}
-func (t errorFS) CanDeleteFile(*FileInfo) error {
-	return t
-}
-func (t errorFS) CanDeleteDirectory(*FileInfo) error {
-	return t
-}
-func (t errorFS) CreateFile(fi *FileInfo, cd *CreateData) (File, bool, error) {
-	return nil, true, t
-}
-func (t errorFS) ReadFile(fi *FileInfo, bs []byte, offset int64) (int, error)              { return 0, t }
-func (t errorFS) WriteFile(fi *FileInfo, bs []byte, offset int64) (int, error)             { return 0, t }
-func (t errorFS) SetFileTime(*FileInfo, time.Time, time.Time, time.Time) error             { return t }
-func (t errorFS) SetFileAttributes(fi *FileInfo, fileAttributes uint32) error              { return t }
-func (t errorFS) SetEndOfFile(fi *FileInfo, length int64) error                            { return t }
-func (t errorFS) SetAllocationSize(fi *FileInfo, length int64) error                       { return t }
-func (t errorFS) MoveFile(source *FileInfo, targetPath string, replaceExisting bool) error { return t }
-func (t errorFS) MountFlags() MountFlag                                                    { return CurrentSession }
-
 var _ FileSystem = emptyFS{}
 
 type emptyFS struct{}
 
-func (t emptyFile) Cleanup(fi *FileInfo) {
+func (t emptyFile) Cleanup(ctx context.Context, fi *FileInfo) {
 	debug("emptyFS.Cleanup")
 }
 
-func (t emptyFile) CloseFile(*FileInfo) {
+func (t emptyFile) CloseFile(ctx context.Context, fi *FileInfo) {
 	debug("emptyFS.CloseFile")
 }
 
-func (t emptyFS) GetVolumeInformation() (VolumeInformation, error) {
+func (t emptyFS) WithContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	return ctx, nil
+}
+
+func (t emptyFS) GetVolumeInformation(ctx context.Context) (VolumeInformation, error) {
 	debug("emptyFS.GetVolumeInformation")
 	return VolumeInformation{}, nil
 }
 
-func (t emptyFS) GetDiskFreeSpace() (FreeSpace, error) {
+func (t emptyFS) GetDiskFreeSpace(ctx context.Context) (FreeSpace, error) {
 	debug("emptyFS.GetDiskFreeSpace")
 	return FreeSpace{}, nil
 }
-func (t emptyFS) CreateFile(fi *FileInfo, cd *CreateData) (File, bool, error) {
+func (t emptyFS) CreateFile(ctx context.Context, fi *FileInfo, cd *CreateData) (File, bool, error) {
 	debug("emptyFS.CreateFile")
 	return emptyFile{}, true, nil
 }
-func (t emptyFile) CanDeleteFile(*FileInfo) error {
+func (t emptyFile) CanDeleteFile(ctx context.Context, fi *FileInfo) error {
 	return ErrAccessDenied
 }
-func (t emptyFile) CanDeleteDirectory(*FileInfo) error {
+func (t emptyFile) CanDeleteDirectory(ctx context.Context, fi *FileInfo) error {
 	return ErrAccessDenied
 }
-func (t emptyFile) SetEndOfFile(fi *FileInfo, length int64) error {
+func (t emptyFile) SetEndOfFile(ctx context.Context, fi *FileInfo, length int64) error {
 	debug("emptyFile.SetEndOfFile")
 	return nil
 }
-func (t emptyFile) SetAllocationSize(fi *FileInfo, length int64) error {
+func (t emptyFile) SetAllocationSize(ctx context.Context, fi *FileInfo, length int64) error {
 	debug("emptyFile.SetAllocationSize")
 	return nil
 }
-func (t emptyFS) MoveFile(source *FileInfo, targetPath string, replaceExisting bool) error {
+func (t emptyFS) MoveFile(ctx context.Context, source *FileInfo, targetPath string, replaceExisting bool) error {
 	debug("emptyFS.MoveFile")
 	return nil
 }
-func (t emptyFile) ReadFile(fi *FileInfo, bs []byte, offset int64) (int, error)  { return len(bs), nil }
-func (t emptyFile) WriteFile(fi *FileInfo, bs []byte, offset int64) (int, error) { return len(bs), nil }
-func (t emptyFile) FlushFileBuffers(*FileInfo) error {
+func (t emptyFile) ReadFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error) {
+	return len(bs), nil
+}
+func (t emptyFile) WriteFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error) {
+	return len(bs), nil
+}
+func (t emptyFile) FlushFileBuffers(ctx context.Context, fi *FileInfo) error {
 	debug("emptyFS.FlushFileBuffers")
 	return nil
 }
-func (t emptyFS) MountFlags() MountFlag { return CurrentSession }
 
 type emptyFile struct{}
 
-func (t emptyFile) GetFileInformation(*FileInfo) (*Stat, error) {
+func (t emptyFile) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, error) {
 	debug("emptyFile.GetFileInformation")
 	var st Stat
 	st.FileAttributes = syscall.FILE_ATTRIBUTE_NORMAL
 	return &st, nil
 }
-func (t emptyFile) FindFiles(*FileInfo, func(*NamedStat) error) error {
+func (t emptyFile) FindFiles(context.Context, *FileInfo, func(*NamedStat) error) error {
 	debug("emptyFile.FindFiles")
 	return nil
 }
-func (t emptyFile) SetFileTime(*FileInfo, time.Time, time.Time, time.Time) error {
+func (t emptyFile) SetFileTime(context.Context, *FileInfo, time.Time, time.Time, time.Time) error {
 	debug("emptyFile.SetFileTime")
 	return nil
 }
-func (t emptyFile) SetFileAttributes(fi *FileInfo, fileAttributes uint32) error {
+func (t emptyFile) SetFileAttributes(ctx context.Context, fi *FileInfo, fileAttributes uint32) error {
 	debug("emptyFile.SetFileAttributes")
 	return nil
 }
 
-func (t emptyFile) LockFile(fi *FileInfo, offset int64, length int64) error {
+func (t emptyFile) LockFile(ctx context.Context, fi *FileInfo, offset int64, length int64) error {
 	debug("emptyFile.LockFile")
 	return nil
 }
-func (t emptyFile) UnlockFile(fi *FileInfo, offset int64, length int64) error {
+func (t emptyFile) UnlockFile(ctx context.Context, fi *FileInfo, offset int64, length int64) error {
 	debug("emptyFile.UnlockFile")
 	return nil
 }
@@ -349,12 +318,7 @@ func newTestFS() *testFS {
 	return &t
 }
 
-func (t *testFS) Mounted() error {
-	debug("testFS.Mounted")
-	return nil
-}
-
-func (t *testFS) CreateFile(fi *FileInfo, cd *CreateData) (File, bool, error) {
+func (t *testFS) CreateFile(ctx context.Context, fi *FileInfo, cd *CreateData) (File, bool, error) {
 	path := fi.Path()
 	debug("testFS.CreateFile", path)
 	switch path {
@@ -371,7 +335,7 @@ func (t *testFS) CreateFile(fi *FileInfo, cd *CreateData) (File, bool, error) {
 	}
 	return nil, false, ErrObjectNameNotFound
 }
-func (t *testFS) GetDiskFreeSpace() (FreeSpace, error) {
+func (t *testFS) GetDiskFreeSpace(ctx context.Context) (FreeSpace, error) {
 	debug("testFS.GetDiskFreeSpace")
 	return FreeSpace{
 		FreeBytesAvailable:     testFreeAvail,
@@ -394,14 +358,14 @@ type testDir struct {
 
 const helloStr = "hello world\r\n"
 
-func (t testDir) FindFiles(fi *FileInfo, cb func(*NamedStat) error) error {
+func (t testDir) FindFiles(ctx context.Context, fi *FileInfo, cb func(*NamedStat) error) error {
 	debug("testDir.FindFiles")
 	st := NamedStat{}
 	st.Name = "hello.txt"
 	st.FileSize = int64(len(helloStr))
 	return cb(&st)
 }
-func (t testDir) GetFileInformation(*FileInfo) (*Stat, error) {
+func (t testDir) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, error) {
 	debug("testDir.GetFileInformation")
 	return &Stat{
 		FileAttributes: syscall.FILE_ATTRIBUTE_DIRECTORY,
@@ -413,14 +377,14 @@ type testFile struct {
 	emptyFile
 }
 
-func (t testFile) GetFileInformation(*FileInfo) (*Stat, error) {
+func (t testFile) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, error) {
 	debug("testFile.GetFileInformation")
 	return &Stat{
 		FileSize:      int64(len(helloStr)),
 		NumberOfLinks: 1,
 	}, nil
 }
-func (t testFile) ReadFile(fi *FileInfo, bs []byte, offset int64) (int, error) {
+func (t testFile) ReadFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error) {
 	debug("testFile.ReadFile")
 	rd := strings.NewReader(helloStr)
 	return rd.ReadAt(bs, offset)
@@ -443,7 +407,7 @@ func newRAMFile() *ramFile {
 	return &r
 }
 
-func (r *ramFile) GetFileInformation(*FileInfo) (*Stat, error) {
+func (r *ramFile) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, error) {
 	debug("ramFile.GetFileInformation")
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -456,7 +420,7 @@ func (r *ramFile) GetFileInformation(*FileInfo) (*Stat, error) {
 	}, nil
 }
 
-func (r *ramFile) ReadFile(fi *FileInfo, bs []byte, offset int64) (int, error) {
+func (r *ramFile) ReadFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error) {
 	debug("ramFile.ReadFile")
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -465,7 +429,7 @@ func (r *ramFile) ReadFile(fi *FileInfo, bs []byte, offset int64) (int, error) {
 	return rd.ReadAt(bs, offset)
 }
 
-func (r *ramFile) WriteFile(fi *FileInfo, bs []byte, offset int64) (int, error) {
+func (r *ramFile) WriteFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error) {
 	debug("ramFile.WriteFile")
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -478,7 +442,7 @@ func (r *ramFile) WriteFile(fi *FileInfo, bs []byte, offset int64) (int, error) 
 	n := copy(r.contents[int(offset):], bs)
 	return n, nil
 }
-func (r *ramFile) SetFileTime(fi *FileInfo, creationTime time.Time, lastReadTime time.Time, lastWriteTime time.Time) error {
+func (r *ramFile) SetFileTime(ctx context.Context, fi *FileInfo, creationTime time.Time, lastReadTime time.Time, lastWriteTime time.Time) error {
 	debug("ramFile.SetFileTime")
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -487,7 +451,7 @@ func (r *ramFile) SetFileTime(fi *FileInfo, creationTime time.Time, lastReadTime
 	}
 	return nil
 }
-func (r *ramFile) SetEndOfFile(fi *FileInfo, length int64) error {
+func (r *ramFile) SetEndOfFile(ctx context.Context, fi *FileInfo, length int64) error {
 	debug("ramFile.SetEndOfFile")
 	r.lock.Lock()
 	defer r.lock.Unlock()
@@ -500,7 +464,7 @@ func (r *ramFile) SetEndOfFile(fi *FileInfo, length int64) error {
 	}
 	return nil
 }
-func (r *ramFile) SetAllocationSize(fi *FileInfo, length int64) error {
+func (r *ramFile) SetAllocationSize(ctx context.Context, fi *FileInfo, length int64) error {
 	debug("ramFile.SetAllocationSize")
 	r.lock.Lock()
 	defer r.lock.Unlock()
