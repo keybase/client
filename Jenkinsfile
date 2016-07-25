@@ -183,6 +183,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             }
                             sh "docker save -o kbfsfuse.tar keybaseprivate/kbfsfuse"
                             archive("kbfsfuse.tar")
+                            sh "docker save keybaseprivate/kbfsfuse | gzip > kbfsfuse.tar.gz"
+                            archive("kbfsfuse.tar.gz")
                             build([
                                 job: "/kbfs-server/master",
                                 parameters: [
