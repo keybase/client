@@ -2,12 +2,9 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
-	"syscall"
 	"time"
 
 	"github.com/keybase/kbfs/dokan"
@@ -131,9 +128,9 @@ func defaultSymlinkDirInformation() (*dokan.Stat, error) {
 }
 
 const (
-	fileAttributeNormal       = syscall.FILE_ATTRIBUTE_NORMAL
-	fileAttributeDirectory    = syscall.FILE_ATTRIBUTE_DIRECTORY
-	fileAttributeReparsePoint = syscall.FILE_ATTRIBUTE_REPARSE_POINT
-	fileAttributeReadonly     = syscall.FILE_ATTRIBUTE_READONLY
-	reparsePointTagSymlink    = syscall.IO_REPARSE_TAG_SYMLINK
+	fileAttributeNormal       = dokan.FILE_ATTRIBUTE_NORMAL
+	fileAttributeDirectory    = dokan.FILE_ATTRIBUTE_DIRECTORY
+	fileAttributeReparsePoint = dokan.FILE_ATTRIBUTE_REPARSE_POINT
+	fileAttributeReadonly     = dokan.FILE_ATTRIBUTE_READONLY
+	reparsePointTagSymlink    = dokan.IO_REPARSE_TAG_SYMLINK
 )

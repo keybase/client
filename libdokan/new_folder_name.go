@@ -24,6 +24,11 @@ func isNewFolderName(name string) bool {
 var newFolderName, newFolderNameErr = getNewFolderName()
 var newFolderAltName = altCase(newFolderName)
 
+func altCase(s string) string {
+	_, idx := utf8.DecodeRuneInString(s)
+	return s[:idx] + strings.ToLower(s[idx:])
+}
+
 // The resourse IDs are not considered stable by Microsoft.
 // Luckily for us this happens to be the same for our
 // targeted Windows versions where kbfsdokan works.
@@ -40,11 +45,6 @@ func getNewFolderName() (string, error) {
 		return "New Folder", err
 	}
 	return lpcwstrToString(u16ptr), nil
-}
-
-func altCase(s string) string {
-	_, idx := utf8.DecodeRuneInString(s)
-	return s[:idx] + strings.ToLower(s[idx:])
 }
 
 var (

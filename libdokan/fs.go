@@ -2,14 +2,11 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
 	"errors"
 	"strings"
-	"syscall"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
@@ -32,7 +29,7 @@ type FS struct {
 
 	// currentUserSID stores the Windows identity of the user running
 	// this process.
-	currentUserSID *syscall.SID
+	currentUserSID *dokan.SID
 
 	// remoteStatus is the current status of remote connections.
 	remoteStatus libfs.RemoteStatus
@@ -180,7 +177,7 @@ func (oc *openContext) isTruncate() bool {
 
 // isOpenReparsePoint checks the flags whether a reparse point open is wanted.
 func (oc *openContext) isOpenReparsePoint() bool {
-	return oc.CreateOptions&syscall.FILE_FLAG_OPEN_REPARSE_POINT != 0
+	return oc.CreateOptions&dokan.FileOpenReparsePoint != 0
 }
 
 // returnDirNoCleanup returns a dir or nothing depending on the open
