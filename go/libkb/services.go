@@ -21,12 +21,11 @@ type ServiceType interface {
 	// NormalizeRemote normalizes the given remote username, which
 	// is usually but not always the same as the username. It also
 	// allows leaders like '@' and 'dns://'.
-	NormalizeRemoteName(string) (string, error)
+	NormalizeRemoteName(*GlobalContext, string) (string, error)
 
-	ToChecker() Checker
 	GetPrompt() string
 	LastWriterWins() bool
-	PreProofCheck(remotename string) (*Markup, error)
+	PreProofCheck(g *GlobalContext, remotename string) (*Markup, error)
 	PreProofWarning(remotename string) *Markup
 	ToServiceJSON(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
@@ -92,24 +91,13 @@ func (t BaseServiceType) BaseGetProofType(st ServiceType) string {
 	return "web_service_binding." + st.GetTypeName()
 }
 
-func (t BaseServiceType) BaseToChecker(st ServiceType, hint string) Checker {
-	return Checker{
-		F: func(s string) bool {
-			_, err := st.NormalizeRemoteName(s)
-			return (err == nil)
-		},
-		Hint:          hint,
-		PreserveSpace: false,
-	}
-}
-
 func (t BaseServiceType) BaseAllStringKeys(st ServiceType) []string {
 	return []string{st.GetTypeName()}
 }
 
-func (t BaseServiceType) LastWriterWins() bool                      { return true }
-func (t BaseServiceType) PreProofCheck(string) (*Markup, error)     { return nil, nil }
-func (t BaseServiceType) PreProofWarning(remotename string) *Markup { return nil }
+func (t BaseServiceType) LastWriterWins() bool                                  { return true }
+func (t BaseServiceType) PreProofCheck(*GlobalContext, string) (*Markup, error) { return nil, nil }
+func (t BaseServiceType) PreProofWarning(remotename string) *Markup             { return nil }
 
 func (t BaseServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
 	return ppr.Text, nil
