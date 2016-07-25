@@ -1,31 +1,48 @@
 // @flow
 import * as Constants from '../constants/favorite'
 import * as CommonConstants from '../constants/common'
-import type {FavoriteAction, State} from '../constants/favorite'
+import type {FavoriteAction, FavoriteState} from '../constants/favorite'
 
-const initialState: State = {
-  privateBadge: 0,
-  private: {
-    isPublic: false,
+const initialState: FavoriteState = {
+  folderState: {
+    privateBadge: 0,
+    private: {
+      isPublic: false,
+    },
+    publicBadge: 0,
+    public: {
+      isPublic: true,
+    },
   },
-  publicBadge: 0,
-  public: {
-    isPublic: true,
-  },
+  showingPrivate: true,
 }
 
-export default function (state: State = initialState, action: FavoriteAction): State {
+export default function (state: FavoriteState = initialState, action: FavoriteAction): FavoriteState {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
 
     case Constants.favoriteList:
+      if (action.error) {
+        break
+      }
       return {
         ...state,
-        ...(action.payload && action.payload.folders),
+        folderState: action.payload.folders,
+      }
+
+    case Constants.favoriteSwitchTab:
+      if (action.error) {
+        break
+      }
+      return {
+        ...state,
+        showingPrivate: action.payload.showingPrivate,
       }
 
     default:
-      return state
+      break
   }
+
+  return state
 }

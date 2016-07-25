@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './render'
-import {favoriteList} from '../actions/favorite'
+import {favoriteList, switchTab} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {bindActionCreators} from 'redux'
 import {routeAppend} from '../actions/router'
@@ -14,24 +14,13 @@ export type Props = {
   favoriteList: () => void,
   folderProps: ?RenderProps,
   openInKBFS: (path: string) => void,
+  showingPrivate: boolean,
   username: string,
   routeAppend: (path: any) => void,
+  switchTab: (showingPrivate: boolean) => void,
 }
 
-type State = {
-  showingPrivate: boolean
-}
-
-class Folders extends Component<void, Props, State> {
-  state: State;
-
-  constructor (props: Props) {
-    super(props)
-    this.state = {
-      showingPrivate: true,
-    }
-  }
-
+class Folders extends Component<void, Props, void> {
   componentDidMount () {
     this.props.favoriteList()
   }
@@ -43,8 +32,8 @@ class Folders extends Component<void, Props, State> {
         onClick={path => this.props.routeAppend(path)}
         onRekey={path => this.props.routeAppend(path)}
         onOpen={path => this.props.openInKBFS(path)}
-        onSwitchTab={showingPrivate => this.setState({showingPrivate})}
-        showingPrivate={this.state.showingPrivate}
+        onSwitchTab={showingPrivate => this.props.switchTab(showingPrivate)}
+        showingPrivate={this.props.showingPrivate}
         showComingSoon={!flags.tabFoldersEnabled}
         username={this.props.username}
       />
@@ -62,7 +51,8 @@ class Folders extends Component<void, Props, State> {
 export default connect(
   state => ({
     username: state.config.username,
-    folderProps: state.favorite,
+    folderProps: state.favorite && state.favorite.folderState,
+    showingPrivate: state.favorite && state.favorite.showingPrivate,
   }),
-  dispatch => bindActionCreators({favoriteList, routeAppend, openInKBFS}, dispatch)
+  dispatch => bindActionCreators({favoriteList, routeAppend, openInKBFS, switchTab}, dispatch)
 )(Folders)

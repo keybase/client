@@ -95,10 +95,10 @@ class Files extends Component<void, Props, State> {
 const ConnectedFiles = connect(
   (state, ownProps) => {
     const folders: Array<Folder> = [].concat(
-      _.get(state, 'favorite.private.tlfs', []),
-      _.get(state, 'favorite.public.tlfs', []),
-      _.get(state, 'favorite.private.ignored', []),
-      _.get(state, 'favorite.public.ignored', [])
+      _.get(state, 'favorite.folderState.private.tlfs', []),
+      _.get(state, 'favorite.folderState.public.tlfs', []),
+      _.get(state, 'favorite.folderState.private.ignored', []),
+      _.get(state, 'favorite.folderState.public.ignored', [])
     )
 
     const folder = folders.find(f => f.path === ownProps.path)
