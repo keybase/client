@@ -23,7 +23,10 @@ func getMDJournalLength(t *testing.T, s *mdServerTlfStorage, bid BranchID) int {
 // single mdServerTlfStorage.
 func TestMDServerTlfStorageBasic(t *testing.T) {
 	codec := NewCodecMsgpack()
-	crypto := makeTestCryptoCommon(t)
+	crypto := MakeCryptoCommon(codec)
+	signingKey := MakeFakeSigningKeyOrBust("test key")
+	verifyingKey := MakeFakeVerifyingKeyOrBust("test key")
+	signer := cryptoSignerLocal{signingKey}
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "mdserver_tlf_storage")
 	require.NoError(t, err)
@@ -55,16 +58,9 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	prevRoot := MdID{}
 	middleRoot := MdID{}
 	for i := MetadataRevision(1); i <= 10; i++ {
-		rmds, err := NewRootMetadataSignedForTest(id, h)
-		require.NoError(t, err)
-
-		rmds.MD.SerializedPrivateMetadata = []byte{0x1}
-		rmds.MD.Revision = MetadataRevision(i)
-		FakeInitialRekey(&rmds.MD, h)
-		if i > 1 {
-			rmds.MD.PrevRoot = prevRoot
-		}
-		recordBranchID, err := s.put(uid, rmds)
+		rmds := makeRMDSForTest(t, id, h, i, uid, prevRoot)
+		signRMDSForTest(t, codec, signer, rmds)
+		recordBranchID, err := s.put(uid, verifyingKey, rmds)
 		require.NoError(t, err)
 		require.False(t, recordBranchID)
 		prevRoot, err = crypto.MakeMdID(&rmds.MD)
@@ -78,14 +74,9 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 
 	// (3) Trigger a conflict.
 
-	rmds, err := NewRootMetadataSignedForTest(id, h)
-	require.NoError(t, err)
-	rmds.MD.Revision = MetadataRevision(10)
-	rmds.MD.SerializedPrivateMetadata = make([]byte, 1)
-	rmds.MD.SerializedPrivateMetadata[0] = 0x1
-	FakeInitialRekey(&rmds.MD, h)
-	rmds.MD.PrevRoot = prevRoot
-	_, err = s.put(uid, rmds)
+	rmds := makeRMDSForTest(t, id, h, 10, uid, prevRoot)
+	signRMDSForTest(t, codec, signer, rmds)
+	_, err = s.put(uid, verifyingKey, rmds)
 	require.IsType(t, MDServerErrorConflictRevision{}, err)
 
 	require.Equal(t, 10, getMDJournalLength(t, s, NullBranchID))
@@ -96,15 +87,11 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	prevRoot = middleRoot
 	bid := FakeBranchID(1)
 	for i := MetadataRevision(6); i < 41; i++ {
-		rmds, err := NewRootMetadataSignedForTest(id, h)
-		require.NoError(t, err)
-		rmds.MD.Revision = MetadataRevision(i)
-		rmds.MD.SerializedPrivateMetadata = []byte{0x1}
-		rmds.MD.PrevRoot = prevRoot
-		FakeInitialRekey(&rmds.MD, h)
+		rmds := makeRMDSForTest(t, id, h, i, uid, prevRoot)
 		rmds.MD.WFlags |= MetadataFlagUnmerged
 		rmds.MD.BID = bid
-		recordBranchID, err := s.put(uid, rmds)
+		signRMDSForTest(t, codec, signer, rmds)
+		recordBranchID, err := s.put(uid, verifyingKey, rmds)
 		require.NoError(t, err)
 		require.Equal(t, i == MetadataRevision(6), recordBranchID)
 		prevRoot, err = crypto.MakeMdID(&rmds.MD)

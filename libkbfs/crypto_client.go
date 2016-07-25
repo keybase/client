@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
@@ -18,6 +19,8 @@ import (
 // signing key.
 type CryptoClient struct {
 	CryptoCommon
+	log        logger.Logger
+	deferLog   logger.Logger
 	client     keybase1.CryptoClient
 	shutdownFn func()
 	config     Config
@@ -34,8 +37,11 @@ var _ rpc.ConnectionHandler = (*CryptoClient)(nil)
 // NewCryptoClient constructs a new CryptoClient.
 func NewCryptoClient(config Config, kbCtx Context) *CryptoClient {
 	log := config.MakeLogger("")
+	deferLog := log.CloneWithAddedDepth(1)
 	c := &CryptoClient{
-		CryptoCommon: MakeCryptoCommon(config.Codec(), log),
+		CryptoCommon: MakeCryptoCommon(config.Codec()),
+		log:          log,
+		deferLog:     deferLog,
 		config:       config,
 	}
 	conn := NewSharedKeybaseConnection(kbCtx, config, c)
@@ -47,8 +53,11 @@ func NewCryptoClient(config Config, kbCtx Context) *CryptoClient {
 // newCryptoClientWithClient should only be used for testing.
 func newCryptoClientWithClient(config Config, client rpc.GenericClient) *CryptoClient {
 	log := config.MakeLogger("")
+	deferLog := log.CloneWithAddedDepth(1)
 	return &CryptoClient{
-		CryptoCommon: MakeCryptoCommon(config.Codec(), log),
+		CryptoCommon: MakeCryptoCommon(config.Codec()),
+		log:          log,
+		deferLog:     deferLog,
 		client:       keybase1.CryptoClient{Cli: client},
 	}
 }

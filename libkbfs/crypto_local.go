@@ -74,26 +74,11 @@ func (k CryptPrivateKey) getPublicKey() CryptPublicKey {
 	return MakeCryptPublicKey(k.kp.Public.GetKID())
 }
 
-// CryptoLocal implements the Crypto interface by using a local
-// signing key and a local crypt private key.
-type CryptoLocal struct {
-	CryptoCommon
-	signingKey      SigningKey
-	cryptPrivateKey CryptPrivateKey
+type cryptoSignerLocal struct {
+	signingKey SigningKey
 }
 
-var _ Crypto = (*CryptoLocal)(nil)
-
-// NewCryptoLocal constructs a new CryptoLocal instance with the given
-// signing key.
-func NewCryptoLocal(config Config, signingKey SigningKey, cryptPrivateKey CryptPrivateKey) *CryptoLocal {
-	log := config.MakeLogger("")
-	return &CryptoLocal{MakeCryptoCommon(config.Codec(), log),
-		signingKey, cryptPrivateKey}
-}
-
-// Sign implements the Crypto interface for CryptoLocal.
-func (c *CryptoLocal) Sign(ctx context.Context, msg []byte) (
+func (c cryptoSignerLocal) Sign(ctx context.Context, msg []byte) (
 	sigInfo SignatureInfo, err error) {
 	sigInfo = SignatureInfo{
 		Version:      SigED25519,
@@ -103,14 +88,33 @@ func (c *CryptoLocal) Sign(ctx context.Context, msg []byte) (
 	return
 }
 
-// SignToString implements the Crypto interface for CryptoLocal.
-func (c *CryptoLocal) SignToString(ctx context.Context, msg []byte) (
+func (c cryptoSignerLocal) SignToString(ctx context.Context, msg []byte) (
 	signature string, err error) {
 	signature, _, err = c.signingKey.kp.SignToString(msg)
 	return
 }
 
-func (c *CryptoLocal) prepareTLFCryptKeyClientHalf(encryptedClientHalf EncryptedTLFCryptKeyClientHalf,
+// CryptoLocal implements the Crypto interface by using a local
+// signing key and a local crypt private key.
+type CryptoLocal struct {
+	CryptoCommon
+	cryptoSignerLocal
+	cryptPrivateKey CryptPrivateKey
+}
+
+var _ Crypto = CryptoLocal{}
+
+// NewCryptoLocal constructs a new CryptoLocal instance with the given
+// signing key.
+func NewCryptoLocal(config Config, signingKey SigningKey, cryptPrivateKey CryptPrivateKey) CryptoLocal {
+	return CryptoLocal{
+		MakeCryptoCommon(config.Codec()),
+		cryptoSignerLocal{signingKey},
+		cryptPrivateKey,
+	}
+}
+
+func (c CryptoLocal) prepareTLFCryptKeyClientHalf(encryptedClientHalf EncryptedTLFCryptKeyClientHalf,
 	clientHalf TLFCryptKeyClientHalf) (
 	nonce [24]byte, err error) {
 	if encryptedClientHalf.Version != EncryptionSecretbox {
@@ -135,7 +139,7 @@ func (c *CryptoLocal) prepareTLFCryptKeyClientHalf(encryptedClientHalf Encrypted
 
 // DecryptTLFCryptKeyClientHalf implements the Crypto interface for
 // CryptoLocal.
-func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
+func (c CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	publicKey TLFEphemeralPublicKey,
 	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
 	clientHalf TLFCryptKeyClientHalf, err error) {
@@ -161,7 +165,7 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 
 // DecryptTLFCryptKeyClientHalfAny implements the Crypto interface for
 // CryptoLocal.
-func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
+func (c CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	keys []EncryptedTLFCryptKeyClientAndEphemeral, _ bool) (
 	clientHalf TLFCryptKeyClientHalf, index int, err error) {
 	if len(keys) == 0 {
@@ -183,4 +187,4 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 }
 
 // Shutdown implements the Crypto interface for CryptoLocal.
-func (c *CryptoLocal) Shutdown() {}
+func (c CryptoLocal) Shutdown() {}

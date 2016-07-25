@@ -5091,7 +5091,7 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 
 	// Make sure all MDs get different MD IDs, as otherwise
 	// setHeadLocked will panic).
-	injectShimCrypto(t, config)
+	injectShimCrypto(config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID

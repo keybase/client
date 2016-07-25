@@ -310,7 +310,8 @@ func (s *mdServerTlfStorage) getRange(
 }
 
 func (s *mdServerTlfStorage) put(
-	currentUID keybase1.UID, rmds *RootMetadataSigned) (
+	currentUID keybase1.UID, currentVerifyingKey VerifyingKey,
+	rmds *RootMetadataSigned) (
 	recordBranchID bool, err error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -319,11 +320,10 @@ func (s *mdServerTlfStorage) put(
 		return false, errMDServerTlfStorageShutdown
 	}
 
-	mStatus := rmds.MD.MergedStatus()
-	bid := rmds.MD.BID
-
-	if (mStatus == Merged) != (bid == NullBranchID) {
-		return false, MDServerErrorBadRequest{Reason: "Invalid branch ID"}
+	err = rmds.IsValidAndSigned(
+		s.codec, s.crypto, currentUID, currentVerifyingKey)
+	if err != nil {
+		return false, MDServerErrorBadRequest{Reason: err.Error()}
 	}
 
 	// Check permissions
@@ -341,6 +341,9 @@ func (s *mdServerTlfStorage) put(
 	if !ok {
 		return false, MDServerErrorUnauthorized{}
 	}
+
+	bid := rmds.MD.BID
+	mStatus := rmds.MD.MergedStatus()
 
 	head, err := s.getHeadForTLFReadLocked(bid)
 	if err != nil {

@@ -11,7 +11,6 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/nacl/secretbox"
@@ -34,16 +33,14 @@ func cryptoRandRead(buf []byte) error {
 // CryptoCommon contains many of the function implementations need for
 // the Crypto interface, which can be reused by other implementations.
 type CryptoCommon struct {
-	codec    Codec
-	log      logger.Logger
-	deferLog logger.Logger
+	codec Codec
 }
 
 var _ cryptoPure = (*CryptoCommon)(nil)
 
 // MakeCryptoCommon returns a default CryptoCommon object.
-func MakeCryptoCommon(codec Codec, log logger.Logger) CryptoCommon {
-	return CryptoCommon{codec, log, log.CloneWithAddedDepth(1)}
+func MakeCryptoCommon(codec Codec) CryptoCommon {
+	return CryptoCommon{codec}
 }
 
 // MakeRandomTlfID implements the Crypto interface for CryptoCommon.
@@ -230,12 +227,6 @@ func (c CryptoCommon) UnmaskBlockCryptKey(serverHalf BlockCryptKeyServerHalf, tl
 
 // Verify implements the Crypto interface for CryptoCommon.
 func (c CryptoCommon) Verify(msg []byte, sigInfo SignatureInfo) (err error) {
-	defer func() {
-		c.deferLog.Debug(
-			"Verify result for %d-byte message with %s: %v",
-			len(msg), sigInfo, err)
-	}()
-
 	if sigInfo.Version != SigED25519 {
 		err = UnknownSigVer{sigInfo.Version}
 		return

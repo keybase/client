@@ -359,7 +359,7 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 		t.Fatal(err.Error())
 	}
 
-	if _, ok := config.Crypto().(*CryptoLocal); !ok {
+	if _, ok := config.Crypto().(CryptoLocal); !ok {
 		t.Fatal("Bad crypto")
 	}
 

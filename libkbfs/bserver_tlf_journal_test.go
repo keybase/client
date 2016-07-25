@@ -21,7 +21,7 @@ func getBlockJournalLength(t *testing.T, j *bserverTlfJournal) int {
 
 func TestBserverTlfJournalBasic(t *testing.T) {
 	codec := NewCodecMsgpack()
-	crypto := makeTestCryptoCommon(t)
+	crypto := MakeCryptoCommon(codec)
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "bserver_tlf_journal")
 	require.NoError(t, err)
@@ -95,7 +95,7 @@ func TestBserverTlfJournalBasic(t *testing.T) {
 
 func TestBserverTlfJournalRemoveReferences(t *testing.T) {
 	codec := NewCodecMsgpack()
-	crypto := makeTestCryptoCommon(t)
+	crypto := MakeCryptoCommon(codec)
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "bserver_tlf_storage")
 	require.NoError(t, err)
@@ -149,7 +149,7 @@ func TestBserverTlfJournalRemoveReferences(t *testing.T) {
 
 func TestBserverTlfJournalArchiveReferences(t *testing.T) {
 	codec := NewCodecMsgpack()
-	crypto := makeTestCryptoCommon(t)
+	crypto := MakeCryptoCommon(codec)
 
 	tempdir, err := ioutil.TempDir(os.TempDir(), "bserver_tlf_storage")
 	require.NoError(t, err)

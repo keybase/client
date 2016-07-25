@@ -390,7 +390,8 @@ func (rmds *RootMetadataSigned) IsInitialized() bool {
 
 // VerifyRootMetadata verifies rmd's MD against rmd's SigInfo,
 // assuming the verifying key there is valid.
-func (rmds *RootMetadataSigned) VerifyRootMetadata(codec Codec, crypto Crypto) error {
+func (rmds *RootMetadataSigned) VerifyRootMetadata(
+	codec Codec, crypto cryptoPure) error {
 	md := &rmds.MD
 	if rmds.MD.IsFinal() {
 		// Since we're just working with the immediate fields
@@ -468,4 +469,28 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 	// the head revision - 1.
 	newRmds.MD.Revision = rmds.MD.Revision + 1
 	return &newRmds, nil
+}
+
+// IsValidAndSigned verifies the RootMetadataSigned given the current
+// user and device, checks the writer signature, and returns an error
+// if a problem was found.
+func (rmds *RootMetadataSigned) IsValidAndSigned(
+	codec Codec, crypto cryptoPure,
+	currentUID keybase1.UID, currentVerifyingKey VerifyingKey) error {
+	err := rmds.MD.IsValidAndSigned(
+		codec, crypto, currentUID, currentVerifyingKey)
+	if err != nil {
+		return err
+	}
+
+	if rmds.SigInfo.VerifyingKey != currentVerifyingKey {
+		return errors.New("Last modifier verifying key and current verifying key mismatch")
+	}
+
+	err = rmds.VerifyRootMetadata(codec, crypto)
+	if err != nil {
+		return fmt.Errorf("Could not verify root metadata: %v", err)
+	}
+
+	return nil
 }

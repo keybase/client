@@ -715,15 +715,19 @@ type cryptoPure interface {
 		nonce *[24]byte, ePubKey TLFEphemeralPublicKey) (*MerkleLeaf, error)
 }
 
-// Crypto signs, verifies, encrypts, and decrypts stuff.
-type Crypto interface {
-	cryptoPure
-
+type cryptoSigner interface {
 	// Sign signs the msg with the current device's private key.
 	Sign(ctx context.Context, msg []byte) (sigInfo SignatureInfo, err error)
 	// Sign signs the msg with the current device's private key and output
 	// the full serialized NaclSigInfo.
 	SignToString(ctx context.Context, msg []byte) (signature string, err error)
+}
+
+// Crypto signs, verifies, encrypts, and decrypts stuff.
+type Crypto interface {
+	cryptoPure
+	cryptoSigner
+
 	// DecryptTLFCryptKeyClientHalf decrypts a TLFCryptKeyClientHalf
 	// using the current device's private key and the TLF's ephemeral
 	// public key.

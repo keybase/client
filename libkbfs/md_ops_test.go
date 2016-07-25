@@ -11,7 +11,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
@@ -25,10 +24,10 @@ func (c shimCrypto) MakeMdID(md *BareRootMetadata) (MdID, error) {
 	return c.pure.MakeMdID(md)
 }
 
-func injectShimCrypto(t *testing.T, config Config) {
+func injectShimCrypto(config Config) {
 	crypto := shimCrypto{
 		config.Crypto(),
-		MakeCryptoCommon(NewCodecMsgpack(), logger.NewTestLogger(t)),
+		MakeCryptoCommon(NewCodecMsgpack()),
 	}
 	config.SetCrypto(crypto)
 }
@@ -40,7 +39,7 @@ func mdOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config = NewConfigMock(mockCtrl, ctr)
 	mdops := NewMDOpsStandard(config)
 	config.SetMDOps(mdops)
-	injectShimCrypto(t, config)
+	injectShimCrypto(config)
 	interposeDaemonKBPKI(config, "alice", "bob", "charlie")
 	ctx = context.Background()
 	return

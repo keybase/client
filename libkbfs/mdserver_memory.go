@@ -315,21 +315,26 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id TlfID,
 
 // Put implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) error {
-	mStatus := rmds.MD.MergedStatus()
-	bid := rmds.MD.BID
+	_, currentUID, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return MDServerError{err}
+	}
 
-	if (mStatus == Merged) != (bid == NullBranchID) {
-		return MDServerErrorBadRequest{Reason: "Invalid branch ID"}
+	currentVerifyingKey, err := md.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	if err != nil {
+		return MDServerError{err}
+	}
+
+	err = rmds.IsValidAndSigned(
+		md.config.Codec(), md.config.Crypto(),
+		currentUID, currentVerifyingKey)
+	if err != nil {
+		return MDServerErrorBadRequest{Reason: err.Error()}
 	}
 
 	id := rmds.MD.ID
 
 	// Check permissions
-
-	_, currentUID, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return MDServerError{err}
-	}
 
 	mergedMasterHead, err :=
 		md.getHeadForTLF(ctx, id, NullBranchID, Merged)
@@ -345,6 +350,9 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 	if !ok {
 		return MDServerErrorUnauthorized{}
 	}
+
+	bid := rmds.MD.BID
+	mStatus := rmds.MD.MergedStatus()
 
 	head, err := md.getHeadForTLF(ctx, id, bid, mStatus)
 	if err != nil {
