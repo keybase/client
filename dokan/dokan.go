@@ -11,16 +11,16 @@ type MountHandle struct {
 	Dir string
 }
 
-// Mount mounts a FileSystem to the given path and returns when it has been mounted
-// or there is an error.
-func Mount(fs FileSystem, path string) (*MountHandle, error) {
+// Mount mounts a FileSystem with the given Config.
+// Mount returns when the filesystem has been mounted or there is an error.
+func Mount(cfg *Config) (*MountHandle, error) {
 	var ec = make(chan error, 2)
-	var slot = fsTableStore(fs, ec)
-	flags := fs.MountFlags()
+	var slot = fsTableStore(cfg.FileSystem, ec)
+	flags := cfg.MountFlags
 	go func() {
 		ctx := allocCtx(slot)
 		defer ctx.Free()
-		ec <- ctx.Run(path, flags)
+		ec <- ctx.Run(cfg.Path, flags)
 		close(ec)
 	}()
 	// This gets a send from either
@@ -33,7 +33,7 @@ func Mount(fs FileSystem, path string) (*MountHandle, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &MountHandle{ec, path}, nil
+	return &MountHandle{ec, cfg.Path}, nil
 }
 
 // Close unmounts the filesystem.

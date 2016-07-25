@@ -7,6 +7,8 @@ package dokan
 import (
 	"strconv"
 	"time"
+
+	"golang.org/x/net/context"
 )
 
 // Config is the configuration used for a mount.
@@ -34,17 +36,17 @@ type FileSystem interface {
 	WithContext(context.Context) (context.Context, context.CancelFunc)
 
 	// CreateFile is called to open and create files.
-	CreateFile(fi *FileInfo, data *CreateData) (file File, isDirectory bool, err error)
+	CreateFile(ctx context.Context, fi *FileInfo, data *CreateData) (file File, isDirectory bool, err error)
 
 	// GetDiskFreeSpace returns information about disk free space.
 	// Called quite often by Explorer.
-	GetDiskFreeSpace() (FreeSpace, error)
+	GetDiskFreeSpace(ctx context.Context) (FreeSpace, error)
 
 	// GetVolumeInformation returns information about the volume.
-	GetVolumeInformation() (VolumeInformation, error)
+	GetVolumeInformation(ctx context.Context) (VolumeInformation, error)
 
 	// MoveFile corresponds to rename.
-	MoveFile(source *FileInfo, targetPath string, replaceExisting bool) error
+	MoveFile(ctx context.Context, source *FileInfo, targetPath string, replaceExisting bool) error
 }
 
 // MountFlag is the type for Dokan mount flags.
@@ -102,44 +104,44 @@ const (
 
 // File is the interface for files and directories.
 type File interface {
-	ReadFile(fi *FileInfo, bs []byte, offset int64) (int, error)
-	WriteFile(fi *FileInfo, bs []byte, offset int64) (int, error)
-	FlushFileBuffers(fi *FileInfo) error
+	ReadFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error)
+	WriteFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error)
+	FlushFileBuffers(ctx context.Context, fi *FileInfo) error
 
 	// GetFileInformation - corresponds to stat.
-	GetFileInformation(*FileInfo) (*Stat, error)
+	GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, error)
 	// FindFiles is the readdir. The function is a callback that
 	// should be called with each file. The same NamedStat may
 	// be reused for subsequent calls.
-	FindFiles(*FileInfo, func(*NamedStat) error) error
+	FindFiles(ctx context.Context, fi *FileInfo, fillStatCallback func(*NamedStat) error) error
 
 	//FindFilesWithPattern
 
 	// SetFileTime sets the file time. Test times with .IsZero
 	// whether they should be set.
-	SetFileTime(fi *FileInfo, creation time.Time, lastAccess time.Time, lastWrite time.Time) error
-	SetFileAttributes(fi *FileInfo, fileAttributes uint32) error
+	SetFileTime(ctx context.Context, fi *FileInfo, creation time.Time, lastAccess time.Time, lastWrite time.Time) error
+	SetFileAttributes(ctx context.Context, fi *FileInfo, fileAttributes uint32) error
 
-	SetEndOfFile(fi *FileInfo, length int64) error
+	SetEndOfFile(ctx context.Context, fi *FileInfo, length int64) error
 	// SetAllocationSize see FILE_ALLOCATION_INFORMATION on msdn.
 	// For simple semantics if length > filesize then ignore else truncate(length).
-	SetAllocationSize(fi *FileInfo, length int64) error
+	SetAllocationSize(ctx context.Context, fi *FileInfo, length int64) error
 
-	LockFile(fi *FileInfo, offset int64, length int64) error
-	UnlockFile(fi *FileInfo, offset int64, length int64) error
+	LockFile(ctx context.Context, fi *FileInfo, offset int64, length int64) error
+	UnlockFile(ctx context.Context, fi *FileInfo, offset int64, length int64) error
 
 	// CanDeleteFile and CanDeleteDirectory should check whether the file/directory
 	// can be deleted. The actual deletion should be done by checking
 	// FileInfo.DeleteOnClose in Cleanup.
-	CanDeleteFile(*FileInfo) error
-	CanDeleteDirectory(*FileInfo) error
+	CanDeleteFile(ctx context.Context, fi *FileInfo) error
+	CanDeleteDirectory(ctx context.Context, fi *FileInfo) error
 	// Cleanup is called after the last handle from userspace is closed.
 	// Cleanup must perform actual deletions marked from CanDelete*
 	// by checking FileInfo.DeleteOnClose if the filesystem supports
 	// deletions.
-	Cleanup(fi *FileInfo)
+	Cleanup(ctx context.Context, fi *FileInfo)
 	// CloseFile is called when closing a handle to the file
-	CloseFile(fi *FileInfo)
+	CloseFile(ctx context.Context, fi *FileInfo)
 }
 
 // FreeSpace - semantics as with WINAPI GetDiskFreeSpaceEx
