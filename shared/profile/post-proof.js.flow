@@ -1,0 +1,25 @@
+/* @flow */
+import {Component} from 'react'
+import type {Platforms} from '../constants/types/more'
+import type {IconType} from '../common-adapters/icon'
+
+export type Props = {
+  platform: Platforms | 'btc',
+  platformUserName: string,
+  platformSubtitle?: ?string,
+  descriptionText?: string,
+  descriptionView?: React$Element<*>,
+  proofText?: ?string,
+  proofAction?: () => void,
+  proofActionIcon?: IconType,
+  proofActionText?: ?string,
+  noteText?: string,
+  onCancel?: () => void,
+  onCancelText?: ?string,
+  onComplete: () => void,
+  onCompleteText: string,
+  errorMessage?: ?string,
+  pendingMessage?: ?string,
+}
+
+export default class Render extends Component<void, Props, void> { }

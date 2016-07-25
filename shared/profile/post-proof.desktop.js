@@ -1,0 +1,100 @@
+// @flow
+import React from 'react'
+import {Box, Text, Button, Icon, PlatformIcon} from '../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import type {Props} from './post-proof'
+
+const Render = (props: Props) => {
+  const {platform, platformUserName, platformSubtitle, descriptionView, descriptionText, proofText, proofAction, proofActionIcon, proofActionText, noteText, onCancel, onCancelText, onComplete, onCompleteText} = props
+  return (
+    <Box style={styleContainer}>
+      <Box style={styleContentContainer}>
+        <PlatformIcon style={stylePlatformIcon} platform={platform} overlay='iconfont-proof-good' overlayColor={globalColors.grey} size={48} />
+        <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
+        {platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
+        {descriptionView || (descriptionText && <Text style={styleDescription} type='Body'>{descriptionText}</Text>)}
+        {proofText && <textInput style={styleProofText} readOnly={true}>{proofText}</textInput>}
+        {noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
+        {proofAction &&
+          <Text style={styleProofAction} type='BodyPrimaryLink' onClick={() => proofAction()}><Icon style={styleProofActionIcon} type={proofActionIcon} />{proofActionText}</Text>}
+        <Box style={styleButtonsContainer}>
+          {onCancel && <Button style={styleCancelButton} type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
+          <Button style={styleCompleteButton} type='Primary' onClick={() => onComplete()} label={onCompleteText} />
+        </Box>
+      </Box>
+    </Box>
+  )
+}
+
+const styleContainer = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1,
+  alignItems: 'center',
+}
+
+const styleContentContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  margin: globalMargins.large,
+  maxWidth: 512,
+  textAlign: 'center',
+}
+
+const stylePlatformIcon = { }
+
+const stylePlatformUsername = {
+  color: globalColors.blue,
+}
+
+const stylePlatformSubtitle = {
+  color: globalColors.black_10,
+  marginBottom: globalMargins.medium,
+}
+
+const styleDescription = {
+}
+
+const styleProofText = {
+  marginTop: globalMargins.small,
+  padding: 10,
+  maxHeight: 116,
+  justifyContent: 'stretch',
+  alignItems: 'flex-start',
+  backgroundColor: globalColors.lightGrey,
+  border: `solid 1px ${globalColors.black_10}`,
+  borderRadius: 3,
+  ...globalStyles.fontTerminal,
+  fontSize: 14,
+  lineHeight: '21px',
+  whiteSpace: 'pre-wrap',
+  overflowY: 'auto',
+  overflowX: 'hidden',
+  textAlign: 'left',
+  color: globalColors.black_75,
+}
+
+const styleNoteText = {
+  marginTop: globalMargins.tiny,
+}
+
+const styleProofAction = {
+  marginTop: globalMargins.tiny,
+}
+
+const styleProofActionIcon = {
+  color: globalColors.blue,
+  marginRight: globalMargins.xtiny,
+}
+
+const styleButtonsContainer = {
+  ...globalStyles.flexBoxRow,
+  marginTop: globalMargins.medium,
+}
+
+const styleCancelButton = {
+}
+
+const styleCompleteButton = {
+}
+
+export default Render
