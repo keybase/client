@@ -16,20 +16,28 @@ type ListState = $Exact<{
   extraRows?: Array<React$Element<*>>
 }>
 
-export type State = $Exact<{
+export type FolderState = $Exact<{
   privateBadge: number,
   private: ListState,
   publicBadge: number,
   public: ListState,
 }>
 
+export type FavoriteState = $Exact<{
+  folderState: FolderState,
+  showingPrivate: boolean,
+}>
+
 export const favoriteAdd = 'favorite:favoriteAdd'
 export type FavoriteAdd = TypedAction<'favorite:favoriteAdd', void, {errorText: string}>
 
 export const favoriteList = 'favorite:favoriteList'
-export type FavoriteList = TypedAction<'favorite:favoriteList', {folders: State}, void>
+export type FavoriteList = TypedAction<'favorite:favoriteList', {folders: FolderState}, void>
 
 export const favoriteIgnore = 'favorite:favoriteIgnore'
 export type FavoriteIgnore = TypedAction<'favorite:favoriteIgnore', void, {errorText: string}>
 
-export type FavoriteAction = FavoriteAdd | FavoriteList | FavoriteIgnore
+export const favoriteSwitchTab = 'favorite:favoriteSwitchTab'
+export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showingPrivate: boolean}, void>
+
+export type FavoriteAction = FavoriteAdd | FavoriteList | FavoriteIgnore | FavoriteSwitchTab
