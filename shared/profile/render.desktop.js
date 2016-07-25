@@ -192,8 +192,8 @@ const styleActions = {
 const styleProofColumn = {
   ...globalStyles.flexBoxColumn,
   width: 320,
-  marginLeft: globalMargins.medium,
-  marginRight: globalMargins.medium,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 const styleProofNoticeBox = {
