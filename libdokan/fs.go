@@ -433,11 +433,6 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	return nil
 }
 
-// Mounted is called from dokan on unmount.
-func (f *FS) Mounted() error {
-	return nil
-}
-
 func (f *FS) queueNotification(fn func()) {
 	f.notifications.QueueNotification(fn)
 }

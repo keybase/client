@@ -9,22 +9,48 @@ import (
 	"time"
 )
 
+// Config is the configuration used for a mount.
+type Config struct {
+	// Path is the path to mount, e.g. `L:`. Must be set.
+	Path string
+	// FileSystem is the filesystem implementation. Must be set.
+	FileSystem FileSystem
+	// MountFlags for this filesystem instance. Is optional.
+	MountFlags MountFlag
+	// DllPath is the optional full path to dokan1.dll.
+	// Empty causes dokan1.dll to be loaded from the system directory.
+	// Only the first load of a dll determines the path -
+	// further instances in the same process will use
+	// the same instance regardless of path.
+	DllPath string
+}
+
 // FileSystem is the inteface for filesystems in Dokan.
 type FileSystem interface {
+	// WithContext returns a context for a new request. If the CancelFunc
+	// is not null it is called after the request is done. The most minimal
+	// implementation is
+	// `func (*T)WithContext(c context.Context) { return c, nil }`.
+	WithContext(context.Context) (context.Context, context.CancelFunc)
+
+	// CreateFile is called to open and create files.
 	CreateFile(fi *FileInfo, data *CreateData) (file File, isDirectory bool, err error)
+
+	// GetDiskFreeSpace returns information about disk free space.
+	// Called quite often by Explorer.
 	GetDiskFreeSpace() (FreeSpace, error)
 
-	MoveFile(source *FileInfo, targetPath string, replaceExisting bool) error
-
+	// GetVolumeInformation returns information about the volume.
 	GetVolumeInformation() (VolumeInformation, error)
-	Mounted() error
 
-	MountFlags() MountFlag
+	// MoveFile corresponds to rename.
+	MoveFile(source *FileInfo, targetPath string, replaceExisting bool) error
 }
 
 // MountFlag is the type for Dokan mount flags.
 type MountFlag uint32
 
+// Flags for mounting the filesystem. See Dokan documentation for these.
 const (
 	CDebug         = MountFlag(kbfsLibdokanDebug)
 	CStderr        = MountFlag(kbfsLibdokanStderr)
@@ -38,18 +64,21 @@ type CreateData struct {
 	DesiredAccess     uint32
 	FileAttributes    uint32
 	ShareAccess       uint32
-	CreateDisposition uint32
+	CreateDisposition CreateDisposition
 	CreateOptions     uint32
 }
 
-// File replacement flags for CreateFile. Note that this is not a bitmask.
+// CreateDisposition marks whether to create or open a file. Not a bitmask.
+type CreateDisposition uint32
+
+// File creation flags for CreateFile. This is not a bitmask.
 const (
-	FileSupersede   = 0
-	FileOpen        = 1
-	FileCreate      = 2
-	FileOpenIf      = 3
-	FileOverwrite   = 4
-	FileOverwriteIf = 5
+	FileSupersede   = CreateDisposition(0)
+	FileOpen        = CreateDisposition(1)
+	FileCreate      = CreateDisposition(2)
+	FileOpenIf      = CreateDisposition(3)
+	FileOverwrite   = CreateDisposition(4)
+	FileOverwriteIf = CreateDisposition(5)
 )
 
 // CreateOptions flags. These are bitmask flags.
@@ -73,19 +102,15 @@ const (
 
 // File is the interface for files and directories.
 type File interface {
-	// Cleanup is called after the last handle from userspace is closed.
-	// Cleanup must perform actual deletions marked from CanDelete*
-	// by checking FileInfo.DeleteOnClose if the filesystem supports
-	// deletions.
-	Cleanup(fi *FileInfo)
-	// CloseFile is called when closing a handle to the file
-	CloseFile(fi *FileInfo)
-
 	ReadFile(fi *FileInfo, bs []byte, offset int64) (int, error)
 	WriteFile(fi *FileInfo, bs []byte, offset int64) (int, error)
 	FlushFileBuffers(fi *FileInfo) error
 
+	// GetFileInformation - corresponds to stat.
 	GetFileInformation(*FileInfo) (*Stat, error)
+	// FindFiles is the readdir. The function is a callback that
+	// should be called with each file. The same NamedStat may
+	// be reused for subsequent calls.
 	FindFiles(*FileInfo, func(*NamedStat) error) error
 
 	//FindFilesWithPattern
@@ -108,6 +133,13 @@ type File interface {
 	// FileInfo.DeleteOnClose in Cleanup.
 	CanDeleteFile(*FileInfo) error
 	CanDeleteDirectory(*FileInfo) error
+	// Cleanup is called after the last handle from userspace is closed.
+	// Cleanup must perform actual deletions marked from CanDelete*
+	// by checking FileInfo.DeleteOnClose if the filesystem supports
+	// deletions.
+	Cleanup(fi *FileInfo)
+	// CloseFile is called when closing a handle to the file
+	CloseFile(fi *FileInfo)
 }
 
 // FreeSpace - semantics as with WINAPI GetDiskFreeSpaceEx

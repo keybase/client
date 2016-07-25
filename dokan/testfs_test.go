@@ -255,7 +255,6 @@ func (t errorFS) SetFileAttributes(fi *FileInfo, fileAttributes uint32) error   
 func (t errorFS) SetEndOfFile(fi *FileInfo, length int64) error                            { return t }
 func (t errorFS) SetAllocationSize(fi *FileInfo, length int64) error                       { return t }
 func (t errorFS) MoveFile(source *FileInfo, targetPath string, replaceExisting bool) error { return t }
-func (t errorFS) Mounted() error                                                           { return t }
 func (t errorFS) MountFlags() MountFlag                                                    { return CurrentSession }
 
 var _ FileSystem = emptyFS{}
@@ -305,10 +304,6 @@ func (t emptyFile) ReadFile(fi *FileInfo, bs []byte, offset int64) (int, error) 
 func (t emptyFile) WriteFile(fi *FileInfo, bs []byte, offset int64) (int, error) { return len(bs), nil }
 func (t emptyFile) FlushFileBuffers(*FileInfo) error {
 	debug("emptyFS.FlushFileBuffers")
-	return nil
-}
-func (t emptyFS) Mounted() error {
-	debug("emptyFS.Mounted")
 	return nil
 }
 func (t emptyFS) MountFlags() MountFlag { return CurrentSession }
