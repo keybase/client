@@ -19,8 +19,11 @@ function formatMessage (platform: Platforms | 'btc') {
     case 'genericWebSite':
       body = 'website'
       break
+    case 'hackerNews':
+      body = 'Hacker News identity'
+      break
     default:
-      body = capitalize(platform)
+      body = `${capitalize(platform)} identity`
   }
   return `${prefix} ${body}?`
 }
