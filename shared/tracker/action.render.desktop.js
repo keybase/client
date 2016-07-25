@@ -11,7 +11,11 @@ export default class ActionRender extends Component {
   props: ActionProps;
 
   render () {
-    const {loggedIn} = this.props
+    const {loggedIn, loading} = this.props
+
+    if (loading) {
+      return null
+    }
 
     if (!loggedIn) {
       return this.renderLoggedOut()

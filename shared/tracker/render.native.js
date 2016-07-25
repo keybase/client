@@ -38,6 +38,7 @@ export default class Render extends Component<void, RenderProps, void> {
           />
         </Box>
         <Action
+          loading={this.props.loading}
           loggedIn={this.props.loggedIn}
           waiting={this.props.waiting}
           state={this.props.trackerState}

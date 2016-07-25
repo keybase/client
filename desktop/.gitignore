@@ -2,3 +2,5 @@ node_modules
 dist
 release
 build
+js-vendor-desktop
+node_shrinkwrap

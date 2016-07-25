@@ -68,6 +68,7 @@ const propsDefault: TrackerProps = {
   },
   trackerState: normal,
   proofs: proofsDefault,
+  serverActive: false,
 
   // For hover
   headerProps: {
@@ -169,6 +170,8 @@ const propsLessData: TrackerProps = {
   },
   currentlyFollowing: false,
   trackerState: normal,
+  serverActive: false,
+
   proofs: [
     proofGithub,
   ],
