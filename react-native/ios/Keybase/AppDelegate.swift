@@ -94,11 +94,7 @@ class KeyListener: UIViewController {
 extension AppDelegate: UIApplicationDelegate {
 
   func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
-    #if DEBUG
-      AppDefault.RunMode.setDefaultValue("staging")
-    #else
-      AppDefault.RunMode.setDefaultValue("prod")
-    #endif
+    AppDefault.RunMode.setDefaultValue("staging")
 
     #if SIMULATOR
       AppDefault.ReactHost.setDefaultValue("localhost:8081")
