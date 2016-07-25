@@ -24,9 +24,9 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
               followsYou={false} />
           </Box>
           <Box style={{...stylesContent, ...globalStyles.fadeOpacity, position: 'absolute', opacity: this.props.loading ? 1 : 0}}>
-            <div style={{...globalStyles.loadingTextStyle, width: 157}} />
-            <div style={{...globalStyles.loadingTextStyle, width: 87}} />
-            <div style={{...globalStyles.loadingTextStyle, width: 117}} />
+            <Box style={{...globalStyles.loadingTextStyle, width: 157}} />
+            <Box style={{...globalStyles.loadingTextStyle, width: 87}} />
+            <Box style={{...globalStyles.loadingTextStyle, width: 117}} />
           </Box>
         </Box>
       </Box>

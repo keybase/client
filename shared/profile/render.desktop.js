@@ -1,7 +1,7 @@
 /* @flow */
 import React, {Component} from 'react'
 import _ from 'lodash'
-import {normal as proofNormal} from '../constants/tracker'
+import {normal as proofNormal, checking as proofChecking} from '../constants/tracker'
 import {Box, Icon, Text, UserBio, UserActions, UserProofs, Usernames, BackButton} from '../common-adapters'
 import {headerColor as whichHeaderColor} from '../common-adapters/user-bio.shared'
 import Friendships from './friendships'
@@ -44,7 +44,7 @@ class Render extends Component<void, Props, State> {
     const headerColor = whichHeaderColor(this.props)
 
     let proofNotice
-    if (this.props.trackerState !== proofNormal && !this.props.isYou) {
+    if (this.props.trackerState !== proofNormal && this.props.trackerState !== proofChecking && !this.props.isYou && !this.props.loading) {
       proofNotice = `Some of ${this.props.username}'s proofs have changed since you last tracked them.`
     }
 

@@ -8,11 +8,9 @@ import flags from '../util/feature-flags'
 import {getProfile, updateTrackers} from '../actions/tracker'
 import {routeAppend, navigateUp} from '../actions/router'
 import {openInKBFS} from '../actions/kbfs'
+import {isLoading} from '../constants/tracker'
 
-type State = {loaded: boolean}
-
-class Profile extends Component<void, Props, State> {
-  state: State;
+class Profile extends Component<void, Props, void> {
   static parseRoute (currentPath, uri) {
     return {
       componentAtTop: {
@@ -38,25 +36,13 @@ class Profile extends Component<void, Props, State> {
     }
   }
 
-  constructor () {
-    super()
-    this.state = {loaded: false}
-  }
-
   render () {
-    // TODO: remove this when we actually have loading logic
-    setTimeout(() => {
-      if (!this.state.loaded) {
-        this.setState({loaded: true})
-      }
-    }, 1.5e3)
-
     return (
       <Render
         showComingSoon={!flags.tabProfileEnabled}
         {...this.props}
         proofs={this.props.proofs || []}
-        loading={!this.state.loaded}
+        loading={this.props.loading}
         onBack={!this.props.profileIsRoot ? this.props.onBack : undefined}
         followers={this.props.trackers || []}
         following={this.props.tracking || []}
@@ -100,6 +86,7 @@ export default connect(
       bioEditFns,
       username,
       refresh: username => dispatchProps.refresh(username),
+      loading: isLoading(stateProps.trackers[username]),
     }
   }
 )(Profile)

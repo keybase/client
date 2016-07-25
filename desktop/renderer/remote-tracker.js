@@ -5,7 +5,7 @@ import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
 import {registerIdentifyUi, onClose, startTimer, stopTimer, registerTrackerIncomingRpcs} from '../shared/actions/tracker'
 import RemoteComponent from './remote-component'
-import type {TrackerState} from '../shared/reducers/tracker'
+import type {TrackerState} from '../shared/constants/tracker'
 import type {Action, Dispatch} from '../shared/constants/types/flux'
 
 type Props = {

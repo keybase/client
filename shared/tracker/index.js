@@ -6,6 +6,7 @@ import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
+import {isLoading} from '../constants/tracker'
 
 import type {RenderPropsUnshaped} from './render'
 import type {UserInfo} from '../common-adapters/user-bio'
@@ -37,16 +38,13 @@ export type TrackerProps = {
   serviceName?: string,
   inviteLink?: ?string,
   isPrivate?: boolean,
+  loading: boolean,
 }
 
 export function trackerPropsToRenderProps ({currentlyFollowing, inviteLink, isPrivate, lastAction,
     loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
-    proofs, reason, serviceName, trackerState, userInfo, username, waiting}:
+    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading}:
 TrackerProps): RenderPropsUnshaped {
-  // TODO (mm) ideally userInfo should be null until we get a response from the server
-  // Same with proofs (instead of empty array). So we know the difference between
-  // not having data and having empty data.
-  const loading = !userInfo || userInfo.followersCount === -1
   return {
     currentlyFollowing, inviteLink, isPrivate, lastAction,
     loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
@@ -92,6 +90,7 @@ export default connect(
     ...state.tracker,
     nonUser: state.tracker.trackers[ownProps.username] && state.tracker.trackers[ownProps.username].type === 'nonUser',
     loggedIn: state.config && state.config.loggedIn,
+    loading: isLoading(state.tracker.trackers[ownProps.username]),
     ...state.tracker.trackers[ownProps.username],
     ...ownProps,
   }),
