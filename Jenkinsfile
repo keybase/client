@@ -185,8 +185,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             sh "go install github.com/keybase/client/go/keybase"
                                             sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
                                             clientImage = docker.build("keybaseprivate/kbclient")
-                                            sh "docker save -o kbclient.tar keybaseprivate/kbclient"
-                                            archive("kbclient.tar")
+                                            sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                                            archive("kbclient.tar.gz")
                                             //build([
                                             //    job: "/kbfs/master",
                                             //    parameters: [
