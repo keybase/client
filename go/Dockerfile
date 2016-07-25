@@ -1,13 +1,8 @@
-FROM alpine:3.3
+FROM keybaseprivate/glibc
 MAINTAINER Keybase <admin@keybase.io>
 
 # Remove openssl once KBFSDocker changes are in
-RUN apk add --update wget ca-certificates fuse jq bash openssl && \
-    cd /tmp && \
-    wget "https://github.com/andyshinn/alpine-pkg-glibc/releases/download/2.23-r1/glibc-2.23-r1.apk" \
-        "https://github.com/andyshinn/alpine-pkg-glibc/releases/download/2.23-r1/glibc-bin-2.23-r1.apk" && \
-    apk add --allow-untrusted glibc-2.23-r1.apk glibc-bin-2.23-r1.apk && \
-    echo 'hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4' >> /etc/nsswitch.conf && \
+RUN apk add --update fuse jq bash openssl && \
     adduser -D keybase && \
     mkdir /keybase && \
     chmod 777 /keybase && \
