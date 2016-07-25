@@ -4,6 +4,7 @@ import {Component} from 'react'
 import type {SimpleProofState} from '../constants/tracker'
 
 export type ActionProps = {
+  loading: boolean,
   loggedIn: boolean,
   waiting: boolean,
   state: SimpleProofState,

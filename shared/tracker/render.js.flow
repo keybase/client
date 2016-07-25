@@ -12,6 +12,7 @@ export type RenderPropsUnshaped = {
   inviteLink?: ?string,
   isPrivate?: boolean,
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
+  loading: boolean,
   loggedIn: boolean,
   name?: string,
   nonUser?: ?boolean,

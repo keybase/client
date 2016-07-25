@@ -14,6 +14,7 @@ import type {SimpleProofState} from '../constants/tracker'
 
 export type TrackerProps = {
   currentlyFollowing: boolean,
+  serverActive: boolean,
   loggedIn: boolean,
   trackerState: SimpleProofState,
   username: string,
@@ -41,12 +42,13 @@ export type TrackerProps = {
 
 export function trackerPropsToRenderProps ({currentlyFollowing, inviteLink, isPrivate, lastAction,
     loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
-    proofs, reason, serviceName, trackerState, userInfo, username, waiting}:
+    proofs, reason, serviceName, trackerState, userInfo, username, waiting, serverActive}:
 TrackerProps): RenderPropsUnshaped {
   return {
     currentlyFollowing, inviteLink, isPrivate, lastAction,
     loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
     proofs, reason, serviceName, trackerState, userInfo, username, waiting,
+    loading: serverActive,
   }
 }
 

@@ -63,6 +63,7 @@ export default class Render extends Component<void, RenderProps, void> {
         </div>
         <div style={styles.footer}>
           <Action
+            loading={this.props.loading}
             loggedIn={this.props.loggedIn}
             waiting={this.props.waiting}
             state={this.props.trackerState}
