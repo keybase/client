@@ -78,8 +78,6 @@ const stylesMenu = {
   alignItems: 'stretch',
   backgroundColor: globalColors.white,
   borderRadius: 3,
-  marginTop: 29,
-  marginLeft: 4,
   boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
   overflowX: 'hidden',
   overflowY: 'auto',
