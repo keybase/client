@@ -72,6 +72,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
         def mysqlImage = docker.image("keybaseprivate/mysql")
         def gregorImage = docker.image("keybaseprivate/kbgregor")
         def kbwebImage = docker.image("keybaseprivate/kbweb")
+        def glibcImage = docker.image("keybaseprivate/glibc")
         def clientImage = null
 
         sh "curl -s http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
@@ -103,6 +104,9 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             sh 'echo -n $(git rev-parse HEAD) > go/revision'
                             sh "git add go/revision"
                             env.COMMIT_HASH = readFile('go/revision')
+                        },
+                        pull_glibc: {
+                            glibcImage.pull()
                         },
                         pull_mysql: {
                             mysqlImage.pull()
