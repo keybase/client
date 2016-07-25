@@ -25,8 +25,6 @@ import {switchTab} from './actions/tabbed-router'
 import {navigateBack, navigateUp} from './actions/router'
 import TabBar from './tab-bar/index.render'
 
-import {bootstrap} from './actions/config'
-
 const tabs = {
   [settingsTab]: {module: Settings, name: 'Settings'},
   [profileTab]: {module: Profile, name: 'Profile'},
@@ -42,10 +40,8 @@ type State = {
 
 type Props = {
   menuBadge: boolean,
-  bootstrap: () => void,
   switchTab: (tab: Tabs) => void,
   tabbedRouter: Object,
-  bootstrapped: boolean,
   provisioned: boolean,
   username: string,
   navigateBack: () => void,
@@ -62,23 +58,11 @@ class Nav extends Component<void, Props, State> {
 
   constructor (props) {
     super(props)
-    this._setupDebug()
-    this.props.bootstrap()
     this._handleKeyDown = this._handleKeyDown.bind(this)
 
     this.state = {searchActive}
 
-    // Restartup when we connect online.
-    // If you startup while offline, you'll stay in an errored state
-    window.addEventListener('online', () => this.props.bootstrap())
-
     this._lastCheckedTab = null // the last tab we resized for
-  }
-
-  _setupDebug () {
-    if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
-      require('devtron').install()
-    }
   }
 
   _handleTabsChange (e, key, payload) {
@@ -206,11 +190,10 @@ const stylesTabsContainer = {
 
 export default connect(
   ({tabbedRouter,
-    config: {bootstrapped, extendedConfig, username},
+    config: {extendedConfig, username},
     favorite: {publicBadge, privateBadge},
     notifications: {menuBadge}}) => ({
       tabbedRouter,
-      bootstrapped,
       provisioned: extendedConfig && !!extendedConfig.device,
       username,
       menuBadge,
@@ -219,7 +202,6 @@ export default connect(
   dispatch => {
     return {
       switchTab: tab => dispatch(switchTab(tab)),
-      bootstrap: () => dispatch(bootstrap()),
       navigateBack: () => dispatch(navigateBack()),
       navigateUp: () => dispatch(navigateUp()),
     }

@@ -16,7 +16,7 @@ module.exports = {
       exclude: /(node_modules|\/dist\/)/,
       query: {
         cacheDirectory: true,
-        plugins: ['transform-runtime'],
+        plugins: ['transform-runtime', 'react-hot-loader/babel'],
         presets: ['es2015', 'stage-1', 'react'],
       },
     }, {

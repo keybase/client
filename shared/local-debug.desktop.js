@@ -3,7 +3,6 @@
  */
 
 import {createRouterState} from './reducers/router'
-import {updateDebugConfig} from './actions/dev'
 import * as Tabs from './constants/tabs'
 import {updateConfig} from './command-line.desktop.js'
 
@@ -23,7 +22,6 @@ let config = {
   reactPerf: false,
   overrideLoggedInTab: null,
   focusOnShow: true,
-  dumbFilter: '',
   printRoutes: false,
   skipLauncherDevtools: true,
   initialTabState: {},
@@ -50,7 +48,6 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.reactPerf = false
   config.overrideLoggedInTab = Tabs.settingsTab
   config.focusOnShow = false
-  config.dumbFilter = ''
   config.printRoutes = true
   config.initialTabState = {
     [Tabs.loginTab]: [],
@@ -88,7 +85,6 @@ export const {
   reactPerf,
   overrideLoggedInTab,
   focusOnShow,
-  dumbFilter,
   printRoutes,
   skipLauncherDevtools,
   forceMainWindowPosition,
@@ -114,21 +110,4 @@ export function initTabbedRouterState (state) {
       ...tabState,
     },
   }
-}
-
-function updateStore (store, config) {
-  store.dispatch(updateDebugConfig({
-    dumbFilter: config.dumbFilter,
-    dumbIndex: config.dumbIndex,
-    dumbFullscreen: config.dumbFullscreen,
-  }))
-}
-
-export function setup (store) {
-  if (module.hot) {
-    module.hot.accept('./local-debug.desktop', () => {
-      updateStore(store, require('./local-debug.desktop'))
-    })
-  }
-  updateStore(store, config)
 }
