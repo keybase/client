@@ -1,5 +1,4 @@
 // @flow
-
 import {envVarDebugJson} from './local-debug'
 
 const dumbFilterJson = (envVarDebugJson() || {}).dumbFilter || ''
