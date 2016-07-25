@@ -35,6 +35,11 @@ export default class Icon extends Component {
     delete containerProps.textAlign
     delete containerProps.fontSize
 
+    if (!iconMeta[iconType]) {
+      console.warn(`Invalid icon type passed in: ${iconType}`)
+      return null
+    }
+
     const icon = iconMeta[iconType].isFont
       ? <Text style={{color, textAlign, fontFamily: 'kb', fontSize: fontSize, ...width}}>{
         String.fromCharCode(iconMeta[iconType].charCode || 0)}</Text>
