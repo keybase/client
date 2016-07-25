@@ -46,7 +46,7 @@ void KBLog(NSString *msg, ...) {
     NSString * const logPath = @"/Library/Logs/keybase.system.log";
     if (![[NSFileManager defaultManager] fileExistsAtPath:logPath]) {
       if (![[NSFileManager defaultManager] createFileAtPath:logPath contents:nil attributes:nil]) {
-        NSLog(@"Unable to log file: %@", logPath);
+        NSLog(@"Unable to create log file: %@", logPath);
       }
     }
     _currentLogFileHandle = [NSFileHandle fileHandleForWritingAtPath:logPath];
