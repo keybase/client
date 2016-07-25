@@ -24,12 +24,15 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+// Wrap SID for users.
+type SID = syscall.SID
+
 const (
-	CDebug         = MountFlag(C.kbfsLibdokanDebug)
-	CStderr        = MountFlag(C.kbfsLibdokanDebug)
-	Removable      = MountFlag(C.kbfsLibdokanRemovable)
-	MountManager   = MountFlag(C.kbfsLibdokanMountManager)
-	CurrentSession = MountFlag(C.kbfsLibdokanCurrentSession)
+	kbfsLibdokanDebug          = MountFlag(C.kbfsLibdokanDebug)
+	kbfsLibdokanStderr         = MountFlag(C.kbfsLibdokanStderr)
+	kbfsLibdokanRemovable      = MountFlag(C.kbfsLibdokanRemovable)
+	kbfsLibdokanMountManager   = MountFlag(C.kbfsLibdokanMountManager)
+	kbfsLibdokanCurrentSession = MountFlag(C.kbfsLibdokanCurrentSession)
 )
 
 // LoadDokanDLL can be called to init the system with custom Dokan location,
@@ -420,35 +423,10 @@ type FileInfo struct {
 	rawPath C.LPCWSTR
 }
 
-// Path converts the path to UTF-8 running in O(n).
-func (fi *FileInfo) Path() string {
-	return lpcwstrToString(fi.rawPath)
-}
-
-// DeleteOnClose should be checked from Cleanup.
-func (fi *FileInfo) DeleteOnClose() bool {
-	return fi.ptr.DeleteOnClose != 0
-}
 
 func makeFI(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) *FileInfo {
 	return &FileInfo{pfi, fname}
 }
-
-// File replacement flags for CreateFile
-const (
-	FileSupersede   = C.FILE_SUPERSEDE
-	FileCreate      = C.FILE_CREATE
-	FileOpen        = C.FILE_OPEN
-	FileOpenIf      = C.FILE_OPEN_IF
-	FileOverwrite   = C.FILE_OVERWRITE
-	FileOverwriteIf = C.FILE_OVERWRITE_IF
-)
-
-// CreateOptions stuff
-const (
-	FileDirectoryFile    = C.FILE_DIRECTORY_FILE
-	FileNonDirectoryFile = C.FILE_NON_DIRECTORY_FILE
-)
 
 func packTime(t time.Time) C.FILETIME {
 	ft := syscall.NsecToFiletime(t.UnixNano())
@@ -534,10 +512,10 @@ func (fi *FileInfo) GetRequestorToken() (syscall.Token, error) {
 	return syscall.Token(hdl), err
 }
 
-// IsRequestorUserSidEqualTo returns true if the sid passed as
+// isRequestorUserSidEqualTo returns true if the sid passed as
 // the argument is equal to the sid of the user associated with
 // the filesystem request.
-func (fi *FileInfo) IsRequestorUserSidEqualTo(sid *syscall.SID) bool {
+func (fi *FileInfo) isRequestorUserSidEqualTo(sid *SID) bool {
 	tok, err := fi.GetRequestorToken()
 	if err != nil {
 		debug("IsRequestorUserSidEqualTo:", err)
@@ -561,9 +539,9 @@ func (fi *FileInfo) IsRequestorUserSidEqualTo(sid *syscall.SID) bool {
 	return res != 0
 }
 
-// CurrentProcessUserSid is a utility to get the
+// currentProcessUserSid is a utility to get the
 // SID of the current user running the process.
-func CurrentProcessUserSid() (*syscall.SID, error) {
+func currentProcessUserSid() (*syscall.SID, error) {
 	tok, err := syscall.OpenCurrentProcessToken()
 	if err != nil {
 		return nil, err
@@ -581,8 +559,8 @@ var (
 	procEqualSid = modadvapi32.NewProc("EqualSid")
 )
 
-// Unmount a drive mounted by dokan.
-func Unmount(path string) error {
+// unmount a drive mounted by dokan.
+func unmount(path string) error {
 	debug("Unmount: Calling Dokan.Unmount")
 	res := C.kbfsLibdokan_RemoveMountPoint((*C.WCHAR)(stringToUtf16Ptr(path)))
 	if res == C.FALSE {

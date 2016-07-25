@@ -25,6 +25,14 @@ type FileSystem interface {
 // MountFlag is the type for Dokan mount flags.
 type MountFlag uint32
 
+const (
+	CDebug         = MountFlag(kbfsLibdokanDebug)
+	CStderr        = MountFlag(kbfsLibdokanStderr)
+	Removable      = MountFlag(kbfsLibdokanRemovable)
+	MountManager   = MountFlag(kbfsLibdokanMountManager)
+	CurrentSession = MountFlag(kbfsLibdokanCurrentSession)
+)
+
 // CreateData contains all the info needed to create a file.
 type CreateData struct {
 	DesiredAccess     uint32
@@ -33,6 +41,35 @@ type CreateData struct {
 	CreateDisposition uint32
 	CreateOptions     uint32
 }
+
+// File replacement flags for CreateFile. Note that this is not a bitmask.
+const (
+	FileSupersede   = 0
+	FileOpen        = 1
+	FileCreate      = 2
+	FileOpenIf      = 3
+	FileOverwrite   = 4
+	FileOverwriteIf = 5
+)
+
+// CreateOptions flags. These are bitmask flags.
+const (
+	FileDirectoryFile    = 0x1
+	FileNonDirectoryFile = 0x40
+	FileOpenReparsePoint = 0x00200000
+)
+
+// File attribute bit masks - same as syscall but provided for all platforms.
+const (
+	FILE_ATTRIBUTE_READONLY      = 0x00000001
+	FILE_ATTRIBUTE_HIDDEN        = 0x00000002
+	FILE_ATTRIBUTE_SYSTEM        = 0x00000004
+	FILE_ATTRIBUTE_DIRECTORY     = 0x00000010
+	FILE_ATTRIBUTE_ARCHIVE       = 0x00000020
+	FILE_ATTRIBUTE_NORMAL        = 0x00000080
+	FILE_ATTRIBUTE_REPARSE_POINT = 0x00000400
+	IO_REPARSE_TAG_SYMLINK       = 0xA000000C
+)
 
 // File is the interface for files and directories.
 type File interface {

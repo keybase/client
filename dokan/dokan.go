@@ -2,9 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
-// Package dokan is a binding to the Dokan usermode filesystem binding library on Windows.
 package dokan
 
 // MountHandle holds a reference to a mounted filesystem.
@@ -52,4 +49,32 @@ func (m *MountHandle) BlockTillDone() error {
 	// 2) Mount got send from Mount (which errored) and closed the channel
 	err, _ := <-m.errChan
 	return err
+}
+
+// Unmount a drive mounted by Dokan.
+func Unmount(path string) error {
+	return unmount(path)
+}
+
+// Path converts the path to UTF-8 running in O(n).
+func (fi *FileInfo) Path() string {
+	return lpcwstrToString(fi.rawPath)
+}
+
+// DeleteOnClose should be checked from Cleanup.
+func (fi *FileInfo) DeleteOnClose() bool {
+	return fi.ptr.DeleteOnClose != 0
+}
+
+// IsRequestorUserSidEqualTo returns true if the sid passed as
+// the argument is equal to the sid of the user associated with
+// the filesystem request.
+func (fi *FileInfo) IsRequestorUserSidEqualTo(sid *SID) bool {
+	return fi.isRequestorUserSidEqualTo(sid)
+}
+
+// CurrentProcessUserSid is a utility to get the
+// SID of the current user running the process.
+func CurrentProcessUserSid() (*SID, error) {
+	return currentProcessUserSid()
 }
