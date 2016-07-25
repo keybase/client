@@ -14,6 +14,10 @@ type MountHandle struct {
 // Mount mounts a FileSystem with the given Config.
 // Mount returns when the filesystem has been mounted or there is an error.
 func Mount(cfg *Config) (*MountHandle, error) {
+	err := loadDokanDLL(cfg.DllPath)
+	if err != nil {
+		return nil, err
+	}
 	var ec = make(chan error, 2)
 	var slot = fsTableStore(cfg.FileSystem, ec)
 	flags := cfg.MountFlags
@@ -29,7 +33,7 @@ func Mount(cfg *Config) (*MountHandle, error) {
 	// Thus either the filesystem was mounted ok or it was not mounted
 	// and an err is not nil. DokanMain does not return errors after the
 	// mount, but if such errors occured they can be catched by BlockTillDone.
-	err := <-ec
+	err = <-ec
 	if err != nil {
 		return nil, err
 	}

@@ -14,6 +14,8 @@ import (
 
 var errNotWindows = errors.New("Dokan not supported outside Windows.")
 
+func loadDokanDLL(fullpath string) error { return errNotWindows }
+
 // FileInfo contains information about files, this is a dummy definition.
 type FileInfo struct {
 	ptr *struct {

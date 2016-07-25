@@ -35,9 +35,12 @@ const (
 	kbfsLibdokanCurrentSession = MountFlag(C.kbfsLibdokanCurrentSession)
 )
 
-// LoadDokanDLL can be called to init the system with custom Dokan location,
+// loadDokanDLL can be called to init the system with custom Dokan location,
 // e.g. LoadDokanDLL(`C:\mypath\dokan1.dll`).
-func LoadDokanDLL(fullpath string) error {
+func loadDokanDLL(fullpath string) error {
+	if fullpath == "" {
+		return nil
+	}
 	dw := syscall.Errno(C.kbfsLibdokanLoadLibrary((*C.WCHAR)(stringToUtf16Ptr(fullpath))))
 	if dw != 0 {
 		return dw
