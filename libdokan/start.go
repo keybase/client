@@ -58,6 +58,7 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 		return libfs.InitError(err.Error())
 	}
 	options.DokanConfig.FileSystem = fs
+	options.DokanConfig.Path = mounter.Dir()
 
 	if newFolderNameErr != nil {
 		log.CWarningf(fs.context, "Error guessing new folder name: %v", newFolderNameErr)
