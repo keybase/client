@@ -40,7 +40,7 @@ type FS struct {
 	mountFlags dokan.MountFlag
 }
 
-const DefaultMountFlags = dokan.Removable | dokan.MountManager | dokan.CurrentSession
+const DefaultMountFlags = dokan.CurrentSession
 
 // NewFS creates an FS
 func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, error) {
