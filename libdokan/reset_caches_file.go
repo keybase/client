@@ -2,12 +2,12 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-
 package libdokan
 
 import (
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
+	"golang.org/x/net/context"
 )
 
 // ResetCachesFile represents a write-only file where any write of at
@@ -22,9 +22,9 @@ type ResetCachesFile struct {
 }
 
 // WriteFile implements writes for dokan.
-func (f *ResetCachesFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
-	ctx, cancel := NewContextWithOpID(f.fs, "ResetCachesFile Write")
-	defer func() { f.fs.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
+func (f *ResetCachesFile) WriteFile(ctx context.Context, fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
+	f.fs.logEnter(ctx, "ResetCachesFile Write")
+	defer func() { f.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
 	if len(bs) == 0 {
 		return 0, nil
 	}

@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-
 package libdokan
 
 import (
@@ -70,7 +69,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string, filterErr bool) 
 			exitEarly, err = libfs.FilterTLFEarlyExitError(ctx, err, tlf.folder.fs.log, name)
 		}
 
-		tlf.folder.reportErr(ctx, libkbfs.ReadMode, err, nil)
+		tlf.folder.reportErr(ctx, libkbfs.ReadMode, err)
 	}()
 
 	// In case there were any unresolved assertions, try them again on
@@ -121,38 +120,36 @@ func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context, info string) (
 }
 
 // SetFileTime sets mtime for FSOs (File and Dir).
-func (tlf *TLF) SetFileTime(fi *dokan.FileInfo, creation time.Time, lastAccess time.Time, lastWrite time.Time) (err error) {
-	ctx, cancel := NewContextWithOpID(tlf.folder.fs, "TLF SetFileTime")
-	defer cancel()
+func (tlf *TLF) SetFileTime(ctx context.Context, fi *dokan.FileInfo, creation time.Time, lastAccess time.Time, lastWrite time.Time) (err error) {
+	tlf.folder.fs.logEnter(ctx, "TLF SetFileTime")
 
 	dir, _, err := tlf.loadDirHelper(ctx, "TLF SetFileTime", false)
 	if err != nil {
 		return err
 	}
-	return dir.SetFileTime(fi, creation, lastAccess, lastWrite)
+	return dir.SetFileTime(ctx, fi, creation, lastAccess, lastWrite)
 }
 
 // SetFileAttributes for Dokan.
-func (tlf *TLF) SetFileAttributes(fi *dokan.FileInfo, fileAttributes uint32) error {
-	ctx, cancel := NewContextWithOpID(tlf.folder.fs, "TLF SetFileAttributes")
-	defer cancel()
+func (tlf *TLF) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileAttributes uint32) error {
+	tlf.folder.fs.logEnter(ctx, "TLF SetFileAttributes")
 	dir, _, err := tlf.loadDirHelper(ctx, "TLF SetFileAttributes", false)
 	if err != nil {
 		return err
 	}
-	return dir.SetFileAttributes(fi, fileAttributes)
+	return dir.SetFileAttributes(ctx, fi, fileAttributes)
 
 	return nil
 }
 
 // GetFileInformation for dokan.
-func (tlf *TLF) GetFileInformation(fi *dokan.FileInfo) (st *dokan.Stat, err error) {
+func (tlf *TLF) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (st *dokan.Stat, err error) {
 	dir := tlf.getStoredDir()
 	if dir == nil {
 		return defaultDirectoryInformation()
 	}
 
-	return dir.GetFileInformation(fi)
+	return dir.GetFileInformation(ctx, fi)
 }
 
 // open tries to open a file.
@@ -175,9 +172,8 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (dokan
 }
 
 // FindFiles does readdir for dokan.
-func (tlf *TLF) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
-	ctx, cancel := NewContextWithOpID(tlf.folder.fs, "TLF FindFiles")
-	defer cancel()
+func (tlf *TLF) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
+	tlf.folder.fs.logEnter(ctx, "TLF FindFiles")
 	dir, exitEarly, err := tlf.loadDirAllowNonexistent(ctx, "FindFiles")
 	if err != nil {
 		return errToDokan(err)
@@ -185,21 +181,21 @@ func (tlf *TLF) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) er
 	if exitEarly {
 		return dokan.ErrObjectNameNotFound
 	}
-	return dir.FindFiles(fi, callback)
+	return dir.FindFiles(ctx, fi, callback)
 }
 
 // CanDeleteDirectory - return just nil because tlfs
 // can always be removed from favorites.
-func (tlf *TLF) CanDeleteDirectory(*dokan.FileInfo) (err error) {
+func (tlf *TLF) CanDeleteDirectory(ctx context.Context, fi *dokan.FileInfo) (err error) {
 	return nil
 }
 
 // Cleanup - forget references, perform deletions etc.
-func (tlf *TLF) Cleanup(fi *dokan.FileInfo) {
+func (tlf *TLF) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	var err error
 	if fi != nil && fi.DeleteOnClose() {
-		ctx, cancel := NewContextWithOpID(tlf.folder.fs, "TLF Cleanup")
-		defer tlf.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel)
+		tlf.folder.fs.logEnter(ctx, "TLF Cleanup")
+		defer tlf.folder.reportErr(ctx, libkbfs.WriteMode, err)
 		err = tlf.folder.fs.config.KBFSOps().DeleteFavorite(ctx, libkbfs.Favorite{
 			Name:   string(tlf.folder.name()),
 			Public: tlf.isPublic(),
@@ -211,6 +207,6 @@ func (tlf *TLF) Cleanup(fi *dokan.FileInfo) {
 		if dir == nil {
 			return
 		}
-		dir.Cleanup(fi)
+		dir.Cleanup(ctx, fi)
 	}
 }

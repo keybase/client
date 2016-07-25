@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-
 package libdokan
 
 import (
@@ -18,7 +17,7 @@ import (
 // Mounter defines interface for different mounting strategies
 type Mounter interface {
 	Dir() string
-	Mount(dokan.FileSystem, logger.Logger) error
+	Mount(*dokan.Config, logger.Logger) error
 	Unmount() error
 }
 
@@ -41,12 +40,12 @@ func NewForceMounter(dir string) *DefaultMounter {
 }
 
 // Mount uses default mount and blocks.
-func (m *DefaultMounter) Mount(fs dokan.FileSystem, log logger.Logger) error {
+func (m *DefaultMounter) Mount(cfg *dokan.Config, log logger.Logger) error {
 	var err error
 	var h *dokan.MountHandle
 	// Retry loop
 	for i := 8; true; i *= 2 {
-		h, err = m.mountHelper(fs)
+		h, err = m.mountHelper(cfg)
 		// break if success, no force or too many tries.
 		if err == nil || i > 128 {
 			break
@@ -69,9 +68,9 @@ func (m *DefaultMounter) Mount(fs dokan.FileSystem, log logger.Logger) error {
 
 // mountHelper is needed since Unmount may be called from an another
 // go-routine.
-func (m *DefaultMounter) mountHelper(fs dokan.FileSystem) (*dokan.MountHandle, error) {
+func (m *DefaultMounter) mountHelper(cfg *dokan.Config) (*dokan.MountHandle, error) {
 	// m.dir is constant and safe to access outside the lock.
-	handle, err := dokan.Mount(fs, m.dir)
+	handle, err := dokan.Mount(cfg)
 	if err != nil {
 		return nil, err
 	}

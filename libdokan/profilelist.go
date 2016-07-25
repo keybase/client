@@ -2,7 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-
 package libdokan
 
 import (
@@ -22,7 +21,7 @@ type ProfileList struct {
 }
 
 // GetFileInformation for dokan.
-func (ProfileList) GetFileInformation(*dokan.FileInfo) (st *dokan.Stat, err error) {
+func (ProfileList) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (st *dokan.Stat, err error) {
 	return defaultDirectoryInformation()
 }
 
@@ -42,7 +41,7 @@ func (pl ProfileList) open(ctx context.Context, oc *openContext, path []string) 
 }
 
 // FindFiles does readdir for dokan.
-func (ProfileList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
+func (ProfileList) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
 	profiles := pprof.Profiles()
 	var ns dokan.NamedStat
 	ns.FileAttributes = fileAttributeReadonly

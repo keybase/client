@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
-	"golang.org/x/net/context"
 )
 
 const (
@@ -33,20 +32,6 @@ const (
 	// CtxIDKey is the type of the tag for unique operation IDs.
 	CtxIDKey CtxTagKey = iota
 )
-
-// NewContextWithOpID adds a unique ID to this context, identifying
-// a particular request.
-func NewContextWithOpID(fs *FS, debugMessage string) (
-	ctx context.Context, cancelFn func()) {
-	defer func() { fs.log.CDebugf(ctx, debugMessage) }()
-	id, err := libkbfs.MakeRandomRequestID()
-	if err != nil {
-		fs.log.Errorf("Couldn't make request ID: %v", err)
-		return fs.context, func() {}
-	}
-	ctx = context.WithValue(fs.context, CtxIDKey, id)
-	return context.WithTimeout(ctx, 29*time.Second)
-}
 
 // eiToStat converts from a libkbfs.EntryInfo and error to a *dokan.Stat and error.
 // Note that handling symlinks to directories requires extra processing not done here.
