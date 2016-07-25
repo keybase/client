@@ -10,7 +10,7 @@ import {apiserverGetRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc} from
 import {NotifyPopup} from '../native/notifications'
 import type {Folder} from '../constants/types/flow-types'
 import type {Dispatch} from '../constants/types/flux'
-import type {FavoriteAdd, FavoriteList, FavoriteIgnore, State} from '../constants/favorite'
+import type {FavoriteAdd, FavoriteList, FavoriteIgnore, FolderState} from '../constants/favorite'
 import type {ParticipantUnlock, Device, Folder as FoldersFolder, MetaType} from '../constants/folders'
 import type {UserList} from '../common-adapters/usernames'
 
@@ -46,7 +46,7 @@ type FolderWithMeta = {
   youCanUnlock: Array<Device>,
 } & Folder
 
-const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): State => { // eslint-disable-line space-infix-ops
+const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): FolderState => { // eslint-disable-line space-infix-ops
   let privateBadge = 0
   let publicBadge = 0
 
@@ -291,4 +291,8 @@ export function favoriteFolder (path: string): (dispatch: Dispatch) => void {
       },
     })
   }
+}
+
+export function switchTab (showingPrivate: boolean) {
+  return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
 }

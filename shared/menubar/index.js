@@ -171,7 +171,7 @@ export default connect(
   state => ({
     username: state.config && state.config.username,
     loggedIn: state.config && state.config.loggedIn,
-    folderProps: state.favorite,
+    folderProps: state.favorite && state.favorite.folderState,
   }),
   dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab, openRekeyDialog}, dispatch)
 )(Menubar)
