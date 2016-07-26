@@ -40,7 +40,7 @@ func (t emptyFile) FindFiles(ctx context.Context, fi *dokan.FileInfo, cb func(*d
 func (t emptyFile) SetFileTime(context.Context, *dokan.FileInfo, time.Time, time.Time, time.Time) error {
 	return dokan.ErrAccessDenied
 }
-func (t emptyFile) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileAttributes uint32) error {
+func (t emptyFile) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileAttributes dokan.FileAttribute) error {
 	return dokan.ErrAccessDenied
 }
 func (t emptyFile) LockFile(ctx context.Context, fi *dokan.FileInfo, offset int64, length int64) error {

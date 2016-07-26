@@ -192,7 +192,7 @@ func (d *Dir) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (st *d
 }
 
 // SetFileAttributes for Dokan.
-func (d *Dir) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileAttributes uint32) error {
+func (d *Dir) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileAttributes dokan.FileAttribute) error {
 	d.folder.fs.logEnter(ctx, "Dir SetFileAttributes")
 	// TODO handle attributes for real.
 	return nil

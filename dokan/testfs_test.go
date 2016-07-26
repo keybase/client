@@ -293,7 +293,7 @@ func (t emptyFile) SetFileTime(context.Context, *FileInfo, time.Time, time.Time,
 	debug("emptyFile.SetFileTime")
 	return nil
 }
-func (t emptyFile) SetFileAttributes(ctx context.Context, fi *FileInfo, fileAttributes uint32) error {
+func (t emptyFile) SetFileAttributes(ctx context.Context, fi *FileInfo, fileAttributes FileAttribute) error {
 	debug("emptyFile.SetFileAttributes")
 	return nil
 }

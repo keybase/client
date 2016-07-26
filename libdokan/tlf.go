@@ -131,7 +131,7 @@ func (tlf *TLF) SetFileTime(ctx context.Context, fi *dokan.FileInfo, creation ti
 }
 
 // SetFileAttributes for Dokan.
-func (tlf *TLF) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileAttributes uint32) error {
+func (tlf *TLF) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileAttributes dokan.FileAttribute) error {
 	tlf.folder.fs.logEnter(ctx, "TLF SetFileAttributes")
 	dir, _, err := tlf.loadDirHelper(ctx, "TLF SetFileAttributes", false)
 	if err != nil {

@@ -270,7 +270,7 @@ func kbfsLibdokanSetFileAttributes(
 	if cancel != nil {
 		defer cancel()
 	}
-	err := getfi(pfi).SetFileAttributes(ctx, makeFI(fname, pfi), uint32(fileAttributes))
+	err := getfi(pfi).SetFileAttributes(ctx, makeFI(fname, pfi), FileAttribute(fileAttributes))
 	return errToNT(err)
 }
 

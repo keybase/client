@@ -95,20 +95,23 @@ type FileAttribute uint32
 
 // File attribute bit masks - same as syscall but provided for all platforms.
 const (
-	FileAttributeReadonly     = 0x00000001
-	FileAttributeHidden       = 0x00000002
-	FileAttributeSystem       = 0x00000004
-	FileAttributeDirectory    = 0x00000010
-	FileAttributeArchive      = 0x00000020
-	FileAttributeNormal       = 0x00000080
-	FileAttributeReparsePoint = 0x00000400
+	FileAttributeReadonly     = FileAttribute(0x00000001)
+	FileAttributeHidden       = FileAttribute(0x00000002)
+	FileAttributeSystem       = FileAttribute(0x00000004)
+	FileAttributeDirectory    = FileAttribute(0x00000010)
+	FileAttributeArchive      = FileAttribute(0x00000020)
+	FileAttributeNormal       = FileAttribute(0x00000080)
+	FileAttributeReparsePoint = FileAttribute(0x00000400)
 	IOReparseTagSymlink       = 0xA000000C
 )
 
 // File is the interface for files and directories.
 type File interface {
+	// ReadFile implements read for dokan.
 	ReadFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error)
+	// WriteFile implements write for dokan.
 	WriteFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error)
+	// FlushFileBuffers corresponds to fsync.
 	FlushFileBuffers(ctx context.Context, fi *FileInfo) error
 
 	// GetFileInformation - corresponds to stat.
@@ -123,7 +126,8 @@ type File interface {
 	// SetFileTime sets the file time. Test times with .IsZero
 	// whether they should be set.
 	SetFileTime(ctx context.Context, fi *FileInfo, creation time.Time, lastAccess time.Time, lastWrite time.Time) error
-	SetFileAttributes(ctx context.Context, fi *FileInfo, fileAttributes uint32) error
+	// SetFileAttributes is for setting file attributes.
+	SetFileAttributes(ctx context.Context, fi *FileInfo, fileAttributes FileAttribute) error
 
 	SetEndOfFile(ctx context.Context, fi *FileInfo, length int64) error
 	// SetAllocationSize see FILE_ALLOCATION_INFORMATION on msdn.
