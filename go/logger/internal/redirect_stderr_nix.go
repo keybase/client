@@ -3,7 +3,7 @@
 
 // +build linux,!android darwin freebsd
 
-package logger
+package internal
 
 import (
 	"os"

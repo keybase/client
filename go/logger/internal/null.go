@@ -1,7 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package logger
+package internal
 
 import "golang.org/x/net/context"
 
@@ -10,9 +10,6 @@ type Null struct{}
 func NewNull() *Null {
 	return &Null{}
 }
-
-// Verify Null fully implements the Logger interface.
-var _ Logger = (*Null)(nil)
 
 func (l *Null) Debug(format string, args ...interface{})                       {}
 func (l *Null) Info(format string, args ...interface{})                        {}

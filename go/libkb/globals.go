@@ -39,20 +39,20 @@ type LogoutHook interface {
 }
 
 type GlobalContext struct {
-	Log               logger.Logger  // Handles all logging
-	VDL               *VDebugLog     // verbose debug log
-	Env               *Env           // Env variables, cmdline args & config
-	Keyrings          *Keyrings      // Gpg Keychains holding keys
-	API               API            // How to make a REST call to the server
-	Resolver          *Resolver      // cache of resolve results
-	LocalDb           *JSONLocalDb   // Local DB for cache
-	MerkleClient      *MerkleClient  // client for querying server's merkle sig tree
-	XAPI              ExternalAPI    // for contacting Twitter, Github, etc.
-	Output            io.Writer      // where 'Stdout'-style output goes
-	ProofCache        *ProofCache    // where to cache proof results
-	GpgClient         *GpgCLI        // A standard GPG-client (optional)
-	ShutdownHooks     []ShutdownHook // on shutdown, fire these...
-	SocketInfo        Socket         // which socket to bind/connect to
+	Log               logger.LegacyLogger // Handles all logging
+	VDL               *VDebugLog          // verbose debug log
+	Env               *Env                // Env variables, cmdline args & config
+	Keyrings          *Keyrings           // Gpg Keychains holding keys
+	API               API                 // How to make a REST call to the server
+	Resolver          *Resolver           // cache of resolve results
+	LocalDb           *JSONLocalDb        // Local DB for cache
+	MerkleClient      *MerkleClient       // client for querying server's merkle sig tree
+	XAPI              ExternalAPI         // for contacting Twitter, Github, etc.
+	Output            io.Writer           // where 'Stdout'-style output goes
+	ProofCache        *ProofCache         // where to cache proof results
+	GpgClient         *GpgCLI             // A standard GPG-client (optional)
+	ShutdownHooks     []ShutdownHook      // on shutdown, fire these...
+	SocketInfo        Socket              // which socket to bind/connect to
 	socketWrapperMu   sync.RWMutex
 	SocketWrapper     *SocketWrapper     // only need one connection per
 	LoopbackListener  *LoopbackListener  // If we're in loopback mode, we'll connect through here
@@ -89,7 +89,7 @@ type GlobalContext struct {
 }
 
 func NewGlobalContext() *GlobalContext {
-	log := logger.New("keybase")
+	log := logger.NewLegacyLogger("keybase")
 	return &GlobalContext{
 		Log:                 log,
 		VDL:                 NewVDebugLog(log),
@@ -188,10 +188,10 @@ func (g *GlobalContext) ConfigureLogging() error {
 	debug := g.Env.GetDebug()
 	logFile := g.Env.GetLogFile()
 	if logFile == "" {
-		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
+		logger.Configure(g.Log, style, debug, g.Env.GetDefaultLogFile())
 	} else {
-		g.Log.Configure(style, debug, logFile)
-		g.Log.RotateLogFile()
+		logger.Configure(g.Log, style, debug, logFile)
+		logger.RotateLogFile(g.Log)
 	}
 	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())
@@ -546,25 +546,17 @@ func (g *GlobalContext) GetMyClientDetails() keybase1.ClientDetails {
 	}
 }
 
-func (g *GlobalContext) GetUnforwardedLogger() *logger.UnforwardedLogger {
-	if g.Log == nil {
-		return nil
-	}
-	log, ok := g.Log.(*logger.Standard)
-	if !ok {
-		g.Log.Notice("Can't make Unforwarded logger from a non-standard logger")
-		return nil
-	}
-	return (*logger.UnforwardedLogger)(log)
+func (g *GlobalContext) GetUnforwardedLogger() logger.LegacyLogger {
+	return logger.GetUnforwardedLogger(g.Log)
 }
 
 func (g *GlobalContext) GetLog() logger.Logger {
 	return g.Log
 }
 
-// GetLogf returns a logger with a minimal formatter style interface
+// GetLogf returns a simple logger interface
 func (g *GlobalContext) GetLogf() logger.Loggerf {
-	return logger.NewLoggerf(g.Log)
+	return logger.NewLoggerFromLegacyLogger(g.Log)
 }
 
 func (g *GlobalContext) AddLoginHook(hook LoginHook) {

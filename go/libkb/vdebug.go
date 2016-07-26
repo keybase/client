@@ -5,20 +5,21 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/client/go/logger"
 	"strings"
+
+	"github.com/keybase/client/go/logger"
 )
 
 // VDebugLog is a "Verbose" debug logger; enable it if you really
 // want spam and/or minutiae
 type VDebugLog struct {
-	log logger.Logger
+	log logger.LegacyLogger
 	lev VDebugLevel
 }
 
 type VDebugLevel int
 
-func NewVDebugLog(l logger.Logger) *VDebugLog {
+func NewVDebugLog(l logger.LegacyLogger) *VDebugLog {
 	return &VDebugLog{log: l}
 }
 

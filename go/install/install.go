@@ -276,7 +276,7 @@ func IsInUse(mountDir string, log Log) bool {
 // TerminateApp will stop the Keybase (UI) app
 func TerminateApp(context Context, log Log) error {
 	appExecName := "Keybase"
-	logf := logger.NewLoggerf(log)
+	logf := logger.NewLoggerFromSimpleLogger(log)
 	log.Info("Stopping Keybase app")
 	appPIDs := process.TerminateAll(process.NewMatcher(appExecName, process.ExecutableEqual, logf), 5*time.Second, logf)
 	if len(appPIDs) > 0 {
