@@ -150,6 +150,11 @@ const iconMeta_ = {
     gridSize: 16,
     charCode: 59685,
   },
+  'iconfont-proof-placeholder': {
+    isFont: true,
+    gridSize: 24,
+    charCode: 59686,
+  },
   'iconfont-proof-good': {
     isFont: true,
     gridSize: 24,

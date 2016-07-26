@@ -9,7 +9,7 @@ const Render = (props: Props) => {
   return (
     <Box style={styleContainer}>
       <Box style={styleContentContainer}>
-        <PlatformIcon style={stylePlatformIcon} platform={platform} overlay='iconfont-proof-good' overlayColor={globalColors.grey} size={48} />
+        <PlatformIcon style={stylePlatformIcon} platform={platform} overlay='iconfont-proof-placeholder' overlayColor={globalColors.grey} size={48} />
         <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
         {platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
         {descriptionView || (descriptionText && <Text style={styleDescription} type='Body'>{descriptionText}</Text>)}
