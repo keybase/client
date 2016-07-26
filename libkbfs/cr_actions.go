@@ -261,7 +261,8 @@ func (cuea *copyUnmergedEntryAction) trackSyncPtrChangesInCreate(
 		// created by any sync ops (and not unreferenced by future
 		// ones).
 		for _, op := range targetChain.ops {
-			if _, ok := op.(*syncOp); !ok {
+			syncOp, ok := op.(*syncOp)
+			if !ok {
 				continue
 			}
 			for _, ref := range op.Refs() {
@@ -271,6 +272,12 @@ func (cuea *copyUnmergedEntryAction) trackSyncPtrChangesInCreate(
 			}
 			for _, unref := range op.Unrefs() {
 				unrefs = append(unrefs, unref)
+			}
+			// Account for the file ptr too, if it's the most recent.
+			filePtr := syncOp.File.Ref
+			_, isMostRecent := unmergedChains.byMostRecent[filePtr]
+			if isMostRecent && !unmergedChains.isDeleted(filePtr) {
+				refs = append(refs, filePtr)
 			}
 		}
 	}

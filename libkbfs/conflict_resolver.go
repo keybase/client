@@ -2155,9 +2155,11 @@ func (cr *ConflictResolver) makeRevertedOps(ctx context.Context,
 						chain.original, cop.NewName)
 				}
 
-				if otherChains.isDeleted(renameOriginal) {
-					// If we are re-instating a deleted node, just use
-					// the create op.
+				if otherChains.isDeleted(renameOriginal) ||
+					chains.isCreated(renameOriginal) {
+					// If we are re-instating a deleted node, or
+					// dealing with a node that was created entirely
+					// in this branch, just use the create op.
 					op = chains.copyOpAndRevertUnrefsToOriginals(cop)
 					if cop.Type != Dir {
 						err := cr.addChildBlocksIfIndirectFile(ctx, lState,

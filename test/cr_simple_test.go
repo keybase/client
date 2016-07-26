@@ -466,6 +466,37 @@ func TestCrUnmergedRenameInDir(t *testing.T) {
 	)
 }
 
+// bob creates and renames a non-conflicting file while unstaged
+func TestCrUnmergedCreateAndRenameInDir(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/c", "world"),
+		),
+		as(bob, noSync(),
+			write("a/b2", "hellohello"),
+			rename("a/b2", "a/d"),
+			reenableUpdates(),
+			lsdir("a/", m{"b": "FILE", "c": "FILE", "d": "FILE"}),
+			read("a/b", "hello"),
+			read("a/c", "world"),
+			read("a/d", "hellohello"),
+		),
+		as(alice,
+			lsdir("a/", m{"b": "FILE", "c": "FILE", "d": "FILE"}),
+			read("a/b", "hello"),
+			read("a/c", "world"),
+			read("a/d", "hellohello"),
+		),
+	)
+}
+
 // bob renames a non-conflicting symlink(while unstaged),
 func TestCrUnmergedRenameSymlinkInDir(t *testing.T) {
 	test(t,
