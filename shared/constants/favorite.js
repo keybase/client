@@ -23,9 +23,15 @@ export type FolderState = $Exact<{
   public: ListState,
 }>
 
+export type ViewState = $Exact<{
+  showingPrivate: boolean,
+  publicIgnoredOpen: boolean,
+  privateIgnoredOpen: boolean,
+}>
+
 export type FavoriteState = $Exact<{
   folderState: FolderState,
-  showingPrivate: boolean,
+  viewState: ViewState,
 }>
 
 export const favoriteAdd = 'favorite:favoriteAdd'
@@ -40,4 +46,7 @@ export type FavoriteIgnore = TypedAction<'favorite:favoriteIgnore', void, {error
 export const favoriteSwitchTab = 'favorite:favoriteSwitchTab'
 export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showingPrivate: boolean}, void>
 
-export type FavoriteAction = FavoriteAdd | FavoriteList | FavoriteIgnore | FavoriteSwitchTab
+export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
+export type FavoriteToggleIgnored = TypedAction<'favorite:favoriteToggleIgnored', {isPrivate: boolean}, void>
+
+export type FavoriteAction = FavoriteAdd | FavoriteList | FavoriteIgnore | FavoriteSwitchTab | FavoriteToggleIgnored

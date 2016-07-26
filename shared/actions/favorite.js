@@ -10,7 +10,7 @@ import {apiserverGetRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc} from
 import {NotifyPopup} from '../native/notifications'
 import type {Folder} from '../constants/types/flow-types'
 import type {Dispatch} from '../constants/types/flux'
-import type {FavoriteAdd, FavoriteList, FavoriteIgnore, FolderState} from '../constants/favorite'
+import type {FavoriteAdd, FavoriteList, FavoriteIgnore, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored} from '../constants/favorite'
 import type {ParticipantUnlock, Device, Folder as FoldersFolder, MetaType} from '../constants/folders'
 import type {UserList} from '../common-adapters/usernames'
 
@@ -293,6 +293,10 @@ export function favoriteFolder (path: string): (dispatch: Dispatch) => void {
   }
 }
 
-export function switchTab (showingPrivate: boolean) {
+export function switchTab (showingPrivate: boolean): FavoriteSwitchTab {
   return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
+}
+
+export function toggleShowIgnored (isPrivate: boolean): FavoriteToggleIgnored {
+  return {type: Constants.favoriteToggleIgnored, payload: {isPrivate}, error: false}
 }

@@ -6,10 +6,6 @@ import {Box, Text, Icon} from '../common-adapters'
 import Row from './row'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
-type State = {
-  showIgnored: boolean
-}
-
 const rowKey = users => users && users.map(u => u.username).join('-')
 
 const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onOpen, onClick, onRekey, smallMode}) => {
@@ -46,17 +42,7 @@ const Rows = ({rows, ignored, isPublic, onOpen, onClick, onRekey, smallMode}) =>
   </Box>
 )
 
-class Render extends Component<void, Props, State> {
-  state: State;
-
-  constructor (props: Props) {
-    super(props)
-
-    this.state = {
-      showIgnored: false,
-    }
-  }
-
+class Render extends Component<void, Props, void> {
   render () {
     const realCSS = `
       .folder-row .folder-row-hover-action { visibility: hidden }
@@ -84,9 +70,9 @@ class Render extends Component<void, Props, State> {
         />
           {this.props.ignored && this.props.ignored.length > 0 && <Ignored
             ignored={this.props.ignored}
-            showIgnored={this.state.showIgnored}
+            showIgnored={this.props.showIgnored}
             styles={styles}
-            onToggle={() => this.setState({showIgnored: !this.state.showIgnored})}
+            onToggle={this.props.onToggleShowIgnored}
             {...sharedProps}
           />}
       </Box>

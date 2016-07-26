@@ -14,7 +14,11 @@ const initialState: FavoriteState = {
       isPublic: true,
     },
   },
-  showingPrivate: true,
+  viewState: {
+    showingPrivate: true,
+    publicIgnoredOpen: false,
+    privateIgnoredOpen: false,
+  },
 }
 
 export default function (state: FavoriteState = initialState, action: FavoriteAction): FavoriteState {
@@ -37,7 +41,23 @@ export default function (state: FavoriteState = initialState, action: FavoriteAc
       }
       return {
         ...state,
-        showingPrivate: action.payload.showingPrivate,
+        viewState: {
+          ...state.viewState,
+          showingPrivate: action.payload.showingPrivate,
+        },
+      }
+
+    case Constants.favoriteToggleIgnored:
+      if (action.error) {
+        break
+      }
+      return {
+        ...state,
+        viewState: {
+          ...state.viewState,
+          publicIgnoredOpen: action.payload.isPrivate ? state.viewState.publicIgnoredOpen : !state.viewState.publicIgnoredOpen,
+          privateIgnoredOpen: action.payload.isPrivate ? !state.viewState.privateIgnoredOpen : state.viewState.privateIgnoredOpen,
+        },
       }
 
     default:
