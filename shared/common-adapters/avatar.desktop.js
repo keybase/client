@@ -29,6 +29,12 @@ export default class Avatar extends Component {
 
     return (
       <div onClick={this.props.onClick} style={{...globalStyles.noSelect, position: 'relative', width, height, ...this.props.style}}>
+        {this.props.hasBackgroundColor &&
+          <div
+            style={{...avatarStyle,
+              backgroundColor: this.props.hasBackgroundColor,
+              backgroundSize: 'cover',
+            }} />}
         {!this.state.avatarLoaded &&
           <div
             style={{...avatarStyle,
@@ -40,6 +46,7 @@ export default class Avatar extends Component {
           style={{...avatarStyle,
             display: this.state.avatarLoaded ? 'block' : 'none',
             backgroundColor: globalColors.white,
+            opacity: this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0,
           }}
           onLoad={() => this.setState({avatarLoaded: true})} />
         <div>
