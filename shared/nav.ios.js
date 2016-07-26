@@ -19,7 +19,7 @@ import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
-import {navBarHeight, tabBarHeight} from './styles/style-guide'
+import {navBarHeight} from './styles/style-guide'
 import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 
@@ -106,7 +106,7 @@ class Nav extends Component {
   _renderContent (tab, module) {
     const tabStyle = {
       flex: 1,
-      marginBottom: tab === loginTab ? 0 : tabBarHeight,
+      marginBottom: 0,
     }
 
     return (

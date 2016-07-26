@@ -6,11 +6,12 @@ import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
 import type {IconType} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
-const Avatars = ({styles, users, isPublic}) => {
+const Avatars = ({styles, users, isPublic, ignored}) => {
   // TODO (MM) fix type
   const groupIcon: any = styles.groupIcon
   const contents = users.length === 1 || users.length === 2
-      ? <Avatar size={32} username={users[users.length - 1].username} />
+    ? <Avatar size={32} username={users[users.length - 1].username} opacity={ignored ? 0.5 : 1.0}
+      hasBackgroundColor={styles.rowContainer.backgroundColor} />
       : <Icon type={groupIcon} />
 
   if (isPublic) {
@@ -95,7 +96,7 @@ const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path, 
     <TouchableHighlight onPress={() => { onClick && onClick(path) }}>
       <Box style={containerStyle}>
         <Box style={{...globalStyles.flexBoxRow}}>
-          <Avatars users={users} styles={styles} isPublic={isPublic} />
+          <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
           <Box style={stylesBodyContainer}>
             <Names users={users} styles={styles} meta={meta} modified={modified} />
             {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
