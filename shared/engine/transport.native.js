@@ -11,6 +11,7 @@ class MobileTransport extends BaseTransport {
     this.needsConnect = false
     this.needsBase64 = true
     this.writeCallback = rpcWriteCallback
+    this.rawWriteLength = null
   }
 
   connect (cb) { cb() }
@@ -19,10 +20,15 @@ class MobileTransport extends BaseTransport {
   close () { }
   get_generation () { return 1 } // eslint-disable-line camelcase
 
-  _raw_write_bufs (len, buf) { // eslint-disable-line camelcase
-    const buffer = Buffer.concat([new Buffer(len), new Buffer(buf)])
-    const data = buffer.toString('base64')
-    this.writeCallback(data)
+  // We get called 2 times per transport. once with the lenth and once with the payload
+  _raw_write (bufStr, enc) { // eslint-disable-line camelcase
+    if (this.rawWriteLength === null) {
+      this.rawWriteLength = Buffer.from(bufStr, enc)
+    } else {
+      const buffer = Buffer.concat([this.rawWriteLength, Buffer.from(bufStr, enc)])
+      this.rawWriteLength = null
+      this.writeCallback(buffer.toString('base64'))
+    }
   }
 }
 
