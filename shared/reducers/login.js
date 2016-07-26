@@ -155,6 +155,9 @@ export default function (state: LoginState = initialState, action: any): LoginSt
     case Constants.setRevokedSelf:
       toMerge = {justRevokedSelf: action.payload}
       break
+    case Constants.setLoginFromRevokedDevice:
+      toMerge = {justLoginFromRevokedDevice: action.payload}
+      break
     default:
       return state
   }

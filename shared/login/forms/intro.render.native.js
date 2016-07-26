@@ -9,6 +9,9 @@ export default class Render extends Component {
         {!!this.props.justRevokedSelf &&
           <Text type='BodySemiboldItalic' style={{...stylesRevoked}}>{this.props.justRevokedSelf}<Text type='BodySemiboldItalic' style={{color: globalColors.white}}>&nbsp;was revoked successfully</Text></Text>
         }
+        {!!this.props.justLoginFromRevokedDevice &&
+          <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>This device has been revoked, please log in again.</Text>
+        }
         <Icon type='icon-keybase-logo-160' />
         <Text style={stylesHeader} type='HeaderJumbo'>Join Keybase</Text>
         <Text style={stylesHeaderSub} type='Body'>Folders for anyone in the world.</Text>

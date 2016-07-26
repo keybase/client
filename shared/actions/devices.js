@@ -103,7 +103,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
           if (!error) {
             dispatch(loadDevices())
             dispatch(setRevokedSelf(name))
-            dispatch(navigateTo('', loginTab))
+            dispatch(navigateTo([], loginTab))
             dispatch(switchTab(loginTab))
           }
         },
