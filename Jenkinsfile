@@ -109,6 +109,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             glibcImage.pull()
                         },
                         pull_mysql: {
+                            sh "docker rmi keybaseprivate/mysql"
                             mysqlImage.pull()
                         },
                         pull_gregor: {
