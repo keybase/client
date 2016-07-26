@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './render'
-import {favoriteList, switchTab} from '../actions/favorite'
+import {favoriteList, switchTab, toggleShowIgnored as onToggleShowIgnored} from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {bindActionCreators} from 'redux'
 import {routeAppend} from '../actions/router'
@@ -18,6 +18,9 @@ export type Props = {
   username: string,
   routeAppend: (path: any) => void,
   switchTab: (showingPrivate: boolean) => void,
+  onToggleShowIgnored: (isPrivate: boolean) => void,
+  publicShowingIgnored: boolean,
+  privateShowingIgnored: boolean,
 }
 
 class Folders extends Component<void, Props, void> {
@@ -36,6 +39,9 @@ class Folders extends Component<void, Props, void> {
         showingPrivate={this.props.showingPrivate}
         showComingSoon={!flags.tabFoldersEnabled}
         username={this.props.username}
+        onToggleShowIgnored={this.props.onToggleShowIgnored}
+        publicShowingIgnored={this.props.publicShowingIgnored}
+        privateShowingIgnored={this.props.privateShowingIgnored}
       />
     )
   }
@@ -52,7 +58,9 @@ export default connect(
   state => ({
     username: state.config.username,
     folderProps: state.favorite && state.favorite.folderState,
-    showingPrivate: state.favorite && state.favorite.showingPrivate,
+    showingPrivate: state.favorite && state.favorite.viewState.showingPrivate,
+    publicShowingIgnored: state.favorite && state.favorite.viewState.publicIgnoredOpen,
+    privateShowingIgnored: state.favorite && state.favorite.viewState.privateIgnoredOpen,
   }),
-  dispatch => bindActionCreators({favoriteList, routeAppend, openInKBFS, switchTab}, dispatch)
+  dispatch => bindActionCreators({favoriteList, routeAppend, openInKBFS, switchTab, onToggleShowIgnored}, dispatch)
 )(Folders)
