@@ -13,6 +13,7 @@ import com.burnweb.rnpermissions.RNPermissionsPackage;
 import com.eguma.barcodescanner.BarcodeScannerPackage;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
+import com.facebook.react.ReactPackage;
 import com.facebook.react.ReactRootView;
 import com.facebook.react.shell.MainReactPackage;
 
@@ -30,39 +31,17 @@ import static go.keybase.Keybase.InitOnce;
 import static go.keybase.Keybase.LogSend;
 
 public class MainActivity extends ReactActivity {
-
     private static final String TAG = MainActivity.class.getName();
-
     private ReactInstanceManager mReactInstanceManager;
     private ReactRootView mReactRootView;
     private File logFile;
-
-    /**
-     * Returns the name of the main component registered from JavaScript.
-     * This is used to schedule rendering of the component.
-     */
-    @Override
-    protected String getMainComponentName() {
-        return "Keybase";
-    }
-
-    /**
-     * Returns whether dev mode should be enabled.
-     * This enables e.g. the dev menu.
-     */
-    @Override
-    protected boolean getUseDeveloperSupport() {
-        return BuildConfig.DEBUG;
-    }
-
 
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected void onCreate(Bundle savedInstanceState) {
         logFile = this.getFileStreamPath("android.log");
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M && !Settings.canDrawOverlays(this) && this.getUseDeveloperSupport()) {
-            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-              Uri.parse("package:" + getPackageName()));
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
             startActivityForResult(intent, -1);
         }
 
@@ -90,16 +69,6 @@ public class MainActivity extends ReactActivity {
         }
         return super.onKeyUp(keyCode, event);
     }
-
-    @Override
-    protected List<com.facebook.react.ReactPackage> getPackages() {
-        return Arrays.asList(
-          new MainReactPackage(),
-          new BarcodeScannerPackage(),
-          new RNPermissionsPackage(),
-          new KBReactPackage(logFile.getAbsolutePath()));
-    }
-
     // For dealing with permissions using RNPermissionsPackage
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -107,5 +76,12 @@ public class MainActivity extends ReactActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-
+    /**
+     * Returns the name of the main component registered from JavaScript.
+     * This is used to schedule rendering of the component.
+     */
+    @Override
+    protected String getMainComponentName() {
+        return "Keybase";
+    }
 }

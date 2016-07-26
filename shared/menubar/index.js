@@ -11,6 +11,7 @@ import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
 import {switchTab} from '../actions/tabbed-router'
 import {loginTab} from '../constants/tabs'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
+import {defaultKBFSPath} from '../constants/config'
 
 import type {Props as FolderProps} from '../folders/render'
 
@@ -114,7 +115,7 @@ class Menubar extends Component<void, Props, void> {
   }
 
   _openFolder (path: ?string) {
-    this.props.openInKBFS(path)
+    this.props.openInKBFS(path || defaultKBFSPath)
     this._closeMenubar()
   }
 

@@ -159,6 +159,10 @@ export function setRevokedSelf (revoked: string) {
   return {type: Constants.setRevokedSelf, payload: revoked}
 }
 
+export function setLoginFromRevokedDevice (error: string) {
+  return {type: Constants.setLoginFromRevokedDevice, payload: error}
+}
+
 export function doneRegistering (): TypedAction<'login:doneRegistering', void, void> {
   // this has to be undefined for flow to match it to void
   return {type: Constants.doneRegistering, payload: undefined}
@@ -293,6 +297,9 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
             error: true,
             payload: {message},
           })
+          dispatch(setLoginFromRevokedDevice(message))
+          dispatch(navigateTo([], loginTab))
+          dispatch(switchTab(loginTab))
         },
       },
       callback: (error, status) => {

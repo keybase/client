@@ -19,10 +19,13 @@ export default class Intro extends Component<void, IntroProps, void> {
 
   _render () {
     return (
-      <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf ? 0 : 45}}>
+      <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf || this.props.justLoginFromRevokedDevice ? 0 : 45}}>
         {!!this.props.justRevokedSelf && <Box style={stylesRevoked}>
           <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>{this.props.justRevokedSelf}</Text>
           <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>&nbsp;was revoked successfully</Text>
+        </Box>}
+        {!!this.props.justLoginFromRevokedDevice && <Box style={stylesRevoked}>
+          <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>This device has been revoked, please log in again.</Text>
         </Box>}
         <Icon type='icon-keybase-logo-160' />
         <Text style={stylesHeader} type='HeaderJumbo'>Join Keybase</Text>
