@@ -27,6 +27,7 @@ export const doneRegistering = 'login:doneRegistering'
 export const configuredAccounts = 'login:configuredAccounts'
 export const waitingForResponse = 'login:waitingForResponse'
 export const setRevokedSelf = 'login:setRevokedSelf'
+export const setLoginFromRevokedDevice = 'login:setLoginFromRevokedDevice'
 
 export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
 export const actionSetForgotPasswordSubmitting = 'login:actionSetForgotPasswordSubmitting'
