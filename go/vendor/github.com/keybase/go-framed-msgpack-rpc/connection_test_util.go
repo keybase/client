@@ -18,20 +18,20 @@ func (testConnectionHandler) OnConnect(context.Context, *Connection, GenericClie
 	return nil
 }
 
-func (testConnectionHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
+func (testConnectionHandler) OnConnectError(ctx context.Context, err error, reconnectThrottleDuration time.Duration) {
 }
 
-func (testConnectionHandler) OnDoCommandError(err error, nextTime time.Duration) {
+func (testConnectionHandler) OnDoCommandError(ctx context.Context, err error, nextTime time.Duration) {
 }
 
 func (testConnectionHandler) OnDisconnected(ctx context.Context, status DisconnectStatus) {
 }
 
-func (testConnectionHandler) ShouldRetry(name string, err error) bool {
+func (testConnectionHandler) ShouldRetry(ctx context.Context, name string, err error) bool {
 	return false
 }
 
-func (testConnectionHandler) ShouldRetryOnConnect(err error) bool {
+func (testConnectionHandler) ShouldRetryOnConnect(ctx context.Context, err error) bool {
 	return false
 }
 

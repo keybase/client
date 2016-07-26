@@ -144,7 +144,7 @@ func (g *pingGregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	return err
 }
 
-func (g *pingGregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
+func (g *pingGregorHandler) OnConnectError(_ context.Context, err error, reconnectThrottleDuration time.Duration) {
 	g.G().Log.Debug("pingGregorHandler OnConnectError", err)
 	g.pingErrors <- err
 }
@@ -153,18 +153,18 @@ func (g *pingGregorHandler) OnDisconnected(ctx context.Context, status rpc.Disco
 	g.G().Log.Debug("pingGregorHandler OnDisconnected", status)
 }
 
-func (g *pingGregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
+func (g *pingGregorHandler) OnDoCommandError(_ context.Context, err error, nextTime time.Duration) {
 	g.G().Log.Debug("pingGregorHandler DoCommandError", err)
 	g.pingErrors <- err
 }
 
-func (g *pingGregorHandler) ShouldRetry(name string, err error) bool {
+func (g *pingGregorHandler) ShouldRetry(_ context.Context, name string, err error) bool {
 	g.G().Log.Debug("pingGregorHandler ShouldRetry", name, err)
 	g.pingErrors <- err
 	return false
 }
 
-func (g *pingGregorHandler) ShouldRetryOnConnect(err error) bool {
+func (g *pingGregorHandler) ShouldRetryOnConnect(_ context.Context, err error) bool {
 	g.G().Log.Debug("pingGregorHandler ShouldRetryOnConnect", err)
 	g.pingErrors <- err
 	return false

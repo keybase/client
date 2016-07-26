@@ -447,7 +447,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	return nil
 }
 
-func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
+func (g *gregorHandler) OnConnectError(_ context.Context, err error, reconnectThrottleDuration time.Duration) {
 	g.Debug("connect error %s, reconnect throttle duration: %s", err, reconnectThrottleDuration)
 }
 
@@ -455,16 +455,16 @@ func (g *gregorHandler) OnDisconnected(ctx context.Context, status rpc.Disconnec
 	g.Debug("disconnected: %v", status)
 }
 
-func (g *gregorHandler) OnDoCommandError(err error, nextTime time.Duration) {
+func (g *gregorHandler) OnDoCommandError(_ context.Context, err error, nextTime time.Duration) {
 	g.Debug("do command error: %s, nextTime: %s", err, nextTime)
 }
 
-func (g *gregorHandler) ShouldRetry(name string, err error) bool {
+func (g *gregorHandler) ShouldRetry(_ context.Context, name string, err error) bool {
 	g.Debug("should retry: name %s, err %v (returning false)", name, err)
 	return false
 }
 
-func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
+func (g *gregorHandler) ShouldRetryOnConnect(_ context.Context, err error) bool {
 	if err == nil {
 		return false
 	}
