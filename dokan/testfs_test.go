@@ -282,7 +282,7 @@ type emptyFile struct{}
 func (t emptyFile) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, error) {
 	debug("emptyFile.GetFileInformation")
 	var st Stat
-	st.FileAttributes = syscall.FILE_ATTRIBUTE_NORMAL
+	st.FileAttributes = syscall.FileAttributeNORMAL
 	return &st, nil
 }
 func (t emptyFile) FindFiles(context.Context, *FileInfo, func(*NamedStat) error) error {
@@ -368,7 +368,7 @@ func (t testDir) FindFiles(ctx context.Context, fi *FileInfo, cb func(*NamedStat
 func (t testDir) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, error) {
 	debug("testDir.GetFileInformation")
 	return &Stat{
-		FileAttributes: syscall.FILE_ATTRIBUTE_DIRECTORY,
+		FileAttributes: syscall.FileAttributeDIRECTORY,
 		NumberOfLinks:  1,
 	}, nil
 }

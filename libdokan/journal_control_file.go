@@ -21,7 +21,7 @@ type JournalControlFile struct {
 	action libfs.JournalAction
 }
 
-// Write implements writes for dokan.
+// WriteFile implements writes for dokan.
 func (f *JournalControlFile) WriteFile(ctx context.Context,
 	fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
 	f.folder.fs.logEnter(ctx,

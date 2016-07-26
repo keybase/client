@@ -54,12 +54,12 @@ func fillStat(a *dokan.Stat, de *libkbfs.EntryInfo) {
 	a.NumberOfLinks = 1
 	switch de.Type {
 	case libkbfs.File, libkbfs.Exec:
-		a.FileAttributes = fileAttributeNormal
+		a.FileAttributes = dokan.FileAttributeNormal
 	case libkbfs.Dir:
-		a.FileAttributes = fileAttributeDirectory
+		a.FileAttributes = dokan.FileAttributeDirectory
 	case libkbfs.Sym:
-		a.FileAttributes = fileAttributeReparsePoint
-		a.ReparsePointTag = reparsePointTagSymlink
+		a.FileAttributes = dokan.FileAttributeReparsePoint
+		a.ReparsePointTag = dokan.IOReparseTagSymlink
 	}
 }
 
@@ -81,7 +81,7 @@ func errToDokan(err error) error {
 // defaultDirectoryInformation returns default directory information.
 func defaultDirectoryInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
-	st.FileAttributes = fileAttributeDirectory
+	st.FileAttributes = dokan.FileAttributeDirectory
 	st.NumberOfLinks = 1
 	return &st, nil
 }
@@ -89,7 +89,7 @@ func defaultDirectoryInformation() (*dokan.Stat, error) {
 // defaultFileInformation returns default file information.
 func defaultFileInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
-	st.FileAttributes = fileAttributeNormal
+	st.FileAttributes = dokan.FileAttributeNormal
 	st.NumberOfLinks = 1
 	return &st, nil
 }
@@ -97,8 +97,8 @@ func defaultFileInformation() (*dokan.Stat, error) {
 // defaultSymlinkFileInformation returns default symlink to file information.
 func defaultSymlinkFileInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
-	st.FileAttributes = fileAttributeReparsePoint
-	st.ReparsePointTag = reparsePointTagSymlink
+	st.FileAttributes = dokan.FileAttributeReparsePoint
+	st.ReparsePointTag = dokan.IOReparseTagSymlink
 	st.NumberOfLinks = 1
 	return &st, nil
 }
@@ -106,16 +106,8 @@ func defaultSymlinkFileInformation() (*dokan.Stat, error) {
 // defaultSymlinkDirInformation returns default symlink to directory information.
 func defaultSymlinkDirInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
-	st.FileAttributes = fileAttributeReparsePoint | fileAttributeDirectory
-	st.ReparsePointTag = reparsePointTagSymlink
+	st.FileAttributes = dokan.FileAttributeReparsePoint | dokan.FileAttributeDirectory
+	st.ReparsePointTag = dokan.IOReparseTagSymlink
 	st.NumberOfLinks = 1
 	return &st, nil
 }
-
-const (
-	fileAttributeNormal       = dokan.FILE_ATTRIBUTE_NORMAL
-	fileAttributeDirectory    = dokan.FILE_ATTRIBUTE_DIRECTORY
-	fileAttributeReparsePoint = dokan.FILE_ATTRIBUTE_REPARSE_POINT
-	fileAttributeReadonly     = dokan.FILE_ATTRIBUTE_READONLY
-	reparsePointTagSymlink    = dokan.IO_REPARSE_TAG_SYMLINK
-)

@@ -36,6 +36,7 @@ type FS struct {
 	remoteStatus libfs.RemoteStatus
 }
 
+// DefaultMountFlags are the default mount flags for libdokan.
 const DefaultMountFlags = dokan.CurrentSession
 
 // NewFS creates an FS
@@ -483,7 +484,7 @@ func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(
 	var ns dokan.NamedStat
 	var err error
 	ns.NumberOfLinks = 1
-	ns.FileAttributes = fileAttributeDirectory
+	ns.FileAttributes = dokan.FileAttributeDirectory
 	ename, esize := r.private.fs.remoteStatus.ExtraFileNameAndSize()
 	switch ename {
 	case "":
@@ -502,7 +503,7 @@ func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(
 	}
 	if ename != "" {
 		ns.Name = ename
-		ns.FileAttributes = fileAttributeNormal
+		ns.FileAttributes = dokan.FileAttributeNormal
 		ns.FileSize = esize
 		err = callback(&ns)
 		if err != nil {

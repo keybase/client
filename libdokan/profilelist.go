@@ -44,7 +44,7 @@ func (pl ProfileList) open(ctx context.Context, oc *openContext, path []string) 
 func (ProfileList) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
 	profiles := pprof.Profiles()
 	var ns dokan.NamedStat
-	ns.FileAttributes = fileAttributeReadonly
+	ns.FileAttributes =dokan.FileAttributeReadonly
 	ns.NumberOfLinks = 1
 	for _, p := range profiles {
 		ns.Name = p.Name()

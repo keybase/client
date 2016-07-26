@@ -179,7 +179,7 @@ func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, callbac
 		}
 	}
 	var ns dokan.NamedStat
-	ns.FileAttributes = fileAttributeDirectory
+	ns.FileAttributes =dokan.FileAttributeDirectory
 	ns.NumberOfLinks = 1
 	empty := true
 	for _, fav := range favs {

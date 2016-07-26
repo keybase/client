@@ -90,16 +90,19 @@ const (
 	FileOpenReparsePoint = 0x00200000
 )
 
+// FileAttribute is the type of a directory entry in Stat.
+type FileAttribute uint32
+
 // File attribute bit masks - same as syscall but provided for all platforms.
 const (
-	FILE_ATTRIBUTE_READONLY      = 0x00000001
-	FILE_ATTRIBUTE_HIDDEN        = 0x00000002
-	FILE_ATTRIBUTE_SYSTEM        = 0x00000004
-	FILE_ATTRIBUTE_DIRECTORY     = 0x00000010
-	FILE_ATTRIBUTE_ARCHIVE       = 0x00000020
-	FILE_ATTRIBUTE_NORMAL        = 0x00000080
-	FILE_ATTRIBUTE_REPARSE_POINT = 0x00000400
-	IO_REPARSE_TAG_SYMLINK       = 0xA000000C
+	FileAttributeReadonly     = 0x00000001
+	FileAttributeHidden       = 0x00000002
+	FileAttributeSystem       = 0x00000004
+	FileAttributeDirectory    = 0x00000010
+	FileAttributeArchive      = 0x00000020
+	FileAttributeNormal       = 0x00000080
+	FileAttributeReparsePoint = 0x00000400
+	IOReparseTagSymlink       = 0xA000000C
 )
 
 // File is the interface for files and directories.
@@ -187,8 +190,8 @@ const (
 
 // Stat is for GetFileInformation and friends.
 type Stat struct {
-	// FileAttributes holds the file attributes (see package syscall).
-	FileAttributes uint32
+	// FileAttributes bitmask holds the file attributes.
+	FileAttributes FileAttribute
 	// Timestamps for the file
 	Creation, LastAccess, LastWrite time.Time
 	// VolumeSerialNumber is the serial number of the volume (0 is fine)

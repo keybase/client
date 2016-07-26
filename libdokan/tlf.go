@@ -138,8 +138,6 @@ func (tlf *TLF) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileA
 		return err
 	}
 	return dir.SetFileAttributes(ctx, fi, fileAttributes)
-
-	return nil
 }
 
 // GetFileInformation for dokan.

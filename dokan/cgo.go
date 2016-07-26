@@ -63,7 +63,7 @@ func kbfsLibdokanCreateFile(
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	var cd = CreateData{
 		DesiredAccess:     uint32(DesiredAccess),
-		FileAttributes:    uint32(FileAttributes),
+		FileAttributes:    FileAttribute(FileAttributes),
 		ShareAccess:       uint32(ShareAccess),
 		CreateDisposition: CreateDisposition(cCreateDisposition),
 		CreateOptions:     uint32(CreateOptions),
