@@ -383,8 +383,7 @@ const dumbPostProof: DumbComponentMap<PostProof> = {
       proofText: `### Keybase proof\n\nI hereby claim:\n\n  * I am awendland on coinbase.\n  * I am cboss123 on keybase.\n  * I have a public key whose fingerprint is B457 EF35 8730 2603 CEFF  F736 A8F5 0B84 538B 481C`,
       proofAction: () => console.log('Open Coinbase'),
     },
-    'Hacker News':
-    {
+    'Hacker News': {
       ...postProofBase,
       platform: 'hackernews',
       proofText: '[ my public key: https://keybase.io/awendland; my proof: https://keybase.io/awendland/sigs/akwCq7rlMfq_09mUM911_SYMb018w_jYj22RbZQ2oLQ ]',
@@ -401,6 +400,7 @@ const dumbPostProof: DumbComponentMap<PostProof> = {
       platform: 'genericWebSite',
       platformUsername: 'alexwendland.com',
       proofText: '==================================================================\nhttps://keybase.io/awendland\n--------------------------------------------------------------------\n\nI hereby claim:\n\n  * I am an admin of http://www.caleyostrander.com\n  * I am cboss123 (https://keybase.io/cboss123) on keybase.',
+      baseUrl: 'http://alexwendland.com',
     },
   },
 }
