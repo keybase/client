@@ -537,11 +537,6 @@ func (fbo *folderBranchOps) setHeadLocked(
 		fbo.setLatestMergedRevisionLocked(ctx, lState, md.Revision, false)
 	}
 
-	if md.MergedStatus() == Unmerged && md.BID != fbo.bid {
-		return fmt.Errorf("Unexpected branch ID on unmerged branch: %s vs. %s",
-			md.BID, fbo.bid)
-	}
-
 	fbo.head = md
 	fbo.status.setRootMetadata(md)
 	if isFirstHead {
@@ -719,6 +714,7 @@ func (fbo *folderBranchOps) setHeadConflictResolvedLocked(ctx context.Context,
 	if md.MergedStatus() != Merged {
 		return errors.New("Unexpected unmerged update in setHeadConflictResolvedLocked")
 	}
+
 	return fbo.setHeadLocked(ctx, lState, md)
 }
 
