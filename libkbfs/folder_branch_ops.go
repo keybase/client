@@ -2303,17 +2303,22 @@ func (fbo *folderBranchOps) CreateDir(
 		return nil, EntryInfo{}, err
 	}
 
+	var retNode Node
+	var retEntryInfo EntryInfo
 	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,
 		func(lState *lockState) error {
-			node, de, err := fbo.createEntryLocked(ctx, lState, dir, path, Dir, NoExcl)
-			n = node
-			ei = de.EntryInfo
+			node, de, err :=
+				fbo.createEntryLocked(ctx, lState, dir, path, Dir, NoExcl)
+			// Don't set node and ei directly, as that can cause a
+			// race when the Create is canceled.
+			retNode = node
+			retEntryInfo = de.EntryInfo
 			return err
 		})
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
-	return n, ei, nil
+	return retNode, retEntryInfo, nil
 }
 
 func (fbo *folderBranchOps) CreateFile(
@@ -2347,18 +2352,22 @@ func (fbo *folderBranchOps) CreateFile(
 		}
 	}
 
+	var retNode Node
+	var retEntryInfo EntryInfo
 	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,
 		func(lState *lockState) error {
+			// Don't set node and ei directly, as that can cause a
+			// race when the Create is canceled.
 			node, de, err :=
 				fbo.createEntryLocked(ctx, lState, dir, path, entryType, excl)
-			n = node
-			ei = de.EntryInfo
+			retNode = node
+			retEntryInfo = de.EntryInfo
 			return err
 		})
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
-	return n, ei, nil
+	return retNode, retEntryInfo, nil
 }
 
 func (fbo *folderBranchOps) createLinkLocked(
@@ -2443,16 +2452,19 @@ func (fbo *folderBranchOps) CreateLink(
 		return EntryInfo{}, err
 	}
 
+	var retEntryInfo EntryInfo
 	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,
 		func(lState *lockState) error {
+			// Don't set ei directly, as that can cause a race when
+			// the Create is canceled.
 			de, err := fbo.createLinkLocked(ctx, lState, dir, fromName, toPath)
-			ei = de.EntryInfo
+			retEntryInfo = de.EntryInfo
 			return err
 		})
 	if err != nil {
 		return EntryInfo{}, err
 	}
-	return ei, nil
+	return retEntryInfo, nil
 }
 
 // unrefEntry modifies md to unreference all relevant blocks for the

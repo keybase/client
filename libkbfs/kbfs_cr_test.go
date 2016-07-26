@@ -1889,7 +1889,7 @@ func TestBasicCRBlockUnmergedWrites(t *testing.T) {
 
 // Test that an umerged put can be canceled, and the next put will
 // force itself into sync with the server on a retry and succeed.
-func TestCRCanceledAfterCanceledUnmergedPut(t *testing.T) {
+func TestUnmergedPutAfterCanceledUnmergedPut(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
@@ -1970,12 +1970,7 @@ func TestCRCanceledAfterCanceledUnmergedPut(t *testing.T) {
 			t.Fatalf("Could create file without error: %v", err)
 		}
 	}()
-	timer := time.After(2 * time.Second)
-	select {
-	case <-onPutStalledCh:
-	case <-timer:
-		t.Fatalf("TIMEOUT")
-	}
+	<-onPutStalledCh
 	cancel()
 	close(putUnstallCh)
 	wg.Wait()
