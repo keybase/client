@@ -2255,8 +2255,6 @@ func (fbo *folderBranchOps) doMDWriteWithRetry(ctx context.Context,
 				newCtx := fbo.ctxWithFBOID(context.Background())
 				newCtx, cancel := context.WithCancel(newCtx)
 				defer cancel()
-				var wg sync.WaitGroup
-				wg.Add(1)
 				go func() {
 					select {
 					case <-ctx.Done():
@@ -3643,8 +3641,11 @@ func (fbo *folderBranchOps) getAndApplyNewestUnmergedHead(ctx context.Context,
 
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
-	if fbo.isMasterBranchLocked(lState) {
-		return errors.New("Can't apply newest unmerged head while on master")
+	if fbo.bid != bid {
+		// The branches switched (apparently CR completed), so just
+		// try again.
+		fbo.log.CDebugf(ctx, "Branches switched while fetching unmerged head")
+		return nil
 	}
 
 	fbo.headLock.Lock(lState)
