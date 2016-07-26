@@ -35,7 +35,7 @@
   "dependencies": {
     "deep-diff": "^0.3.4",
     "deep-equal": "^1.0.1",
-    "framed-msgpack-rpc": "git://github.com/keybase/node-framed-msgpack-rpc#e3c96a2ebb8350836f5bae9710b89d04fb1fc87a",
+    "framed-msgpack-rpc": "git://github.com/keybase/node-framed-msgpack-rpc#c57c294968c4e909bf76806f2b48c348395374ef",
     "getenv": "0.6.0",
     "immutable": "3.8.1",
     "jsonfile": "2.3.1",
@@ -72,9 +72,9 @@
     "chai-as-promised": "5.3.0",
     "del": "2.2.1",
     "devtron": "1.2.1",
+    "electron-download": "git://github.com/keybase/electron-download#5350b5a1bad8ba7bb8c7201abe59ae3a03c3d75d",
     "electron-packager": "7.3.0",
     "electron-prebuilt": "1.2.7",
-    "electron-download": "git://github.com/keybase/electron-download#5350b5a1bad8ba7bb8c7201abe59ae3a03c3d75d",
     "eslint": "3.0.1",
     "eslint-config-standard": "5.3.5",
     "eslint-config-standard-jsx": "2.0.0",
@@ -108,5 +108,5 @@
   "optionalDependencies": {
     "fsevents": "1.0.14"
   },
-  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#1b1170bd107681dd513bc8231869248da65bc127"
+  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#97fcea205dc64ee69f1339f822c6a808129c441e"
 }

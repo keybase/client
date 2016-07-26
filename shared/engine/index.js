@@ -75,6 +75,9 @@ class Engine {
     // any non-responded to response objects
     this.sessionIDToResponse = {}
 
+    // seqid to wrapped response so we can handle cancelations
+    this.seqIDToWrappedResponse = {}
+
     // A call map for general listeners
     // These are commands that the service can call at any point in time
     this.generalListeners = {}
@@ -173,13 +176,27 @@ class Engine {
 
   _wrapResponseOnceOnly (method, param, response, waitingHandler) {
     const {sessionID} = param
+    const {seqid} = response || {seqid: 0}
 
     let once = false
+
+    const cleanup = () => {
+      delete this.sessionIDToResponse[sessionID]
+      delete this.seqIDToWrappedResponse[seqid]
+      if (waitingHandler) {
+        waitingHandler(true, method, sessionID)
+      }
+    }
     const wrappedResponse = {
+      cancel: () => {
+        this.logLocal('Cancelling response', method, seqid, param)
+        cleanup()
+        once = true
+      },
       result: (...args) => {
         if (once) {
           if (printRPC) {
-            this.logLocal('RPC ▼ result bailing on additional calls: ', method, param, ...args)
+            this.logLocal('RPC ▼ result bailing on additional calls: ', method, seqid, param, ...args)
           }
           return
         }
@@ -189,10 +206,7 @@ class Engine {
           this.logLocal('RPC ▼ result: ', method, param, ...args)
         }
         if (response) {
-          this.sessionIDToResponse[sessionID] = null
-          if (waitingHandler) {
-            waitingHandler(true, method, sessionID)
-          }
+          cleanup()
           response.result(...args)
         } else if (__DEV__) {
           console.warn('Calling response.result on non-response object: ', method)
@@ -201,7 +215,7 @@ class Engine {
       error: (...args) => {
         if (once) {
           if (printRPC) {
-            this.logLocal('RPC ▼ error bailing on additional calls: ', method, param, ...args)
+            this.logLocal('RPC ▼ error bailing on additional calls: ', method, seqid, param, ...args)
           }
           return
         }
@@ -212,10 +226,7 @@ class Engine {
         }
 
         if (response) {
-          this.sessionIDToResponse[sessionID] = null
-          if (waitingHandler) {
-            waitingHandler(true, method, sessionID)
-          }
+          cleanup()
           response.error(...args)
         } else if (__DEV__) {
           console.warn('Calling response.error on non-response object: ', method)
@@ -245,6 +256,10 @@ class Engine {
       }
     }
 
+    if (seqid) {
+      this.seqIDToWrappedResponse[seqid] = wrappedResponse
+    }
+
     return wrappedResponse
   }
 
@@ -270,10 +285,23 @@ class Engine {
 
   _rpcIncoming (payload) {
     const {
-      method: method,
-      param: [param],
-      response: response,
+      method,
+      param: incomingParam,
+      response,
     } = payload
+
+    const param = incomingParam && incomingParam.length ? incomingParam[0] : {}
+    const {seqid, cancelled} = response || {seqid: 0, cancelled: false}
+
+    if (cancelled) {
+      const toCancel = this.seqIDToWrappedResponse[seqid]
+      if (toCancel) {
+        delete this.seqIDToWrappedResponse[seqid]
+        toCancel.cancel()
+      }
+
+      return
+    }
 
     const {sessionID} = param
 
@@ -281,7 +309,7 @@ class Engine {
     const callMap = incomingCallMap
 
     if (printRPC) {
-      this.logLocal('RPC ◀ incoming: ', payload)
+      this.logLocal('RPC ◀ incoming: ', payload, seqid)
     }
     // make wrapper so we only call this once
     const wrappedResponse = this._wrapResponseOnceOnly(method, param, response, waitingHandler)
@@ -300,7 +328,7 @@ class Engine {
       this._serverInitIncomingRPC(method, param, wrappedResponse)
     } else {
       if (__DEV__) {
-        this.logLocal(`Unknown incoming rpc: ${sessionID} ${method} ${param}${response ? ': Sending back error' : ''}`)
+        this.logLocal(`Unknown incoming rpc: ${sessionID} ${method} ${seqid} ${param}${response ? ': Sending back error' : ''}`)
       }
       console.warn(`Unknown incoming rpc: ${sessionID} ${method}`)
 
