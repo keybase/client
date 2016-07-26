@@ -3,7 +3,7 @@
 
 // +build windows
 
-package logger
+package internal
 
 // These had a weird unicode character which made it look messy on Windows
 

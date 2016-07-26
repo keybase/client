@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"github.com/keybase/gregor"
@@ -138,7 +139,7 @@ func (d *Service) Run() (err error) {
 	d.G().SetUIRouter(NewUIRouter(d.G()))
 
 	// register the service's logForwarder as the external handler for the log module:
-	d.G().Log.SetExternalHandler(d.logForwarder)
+	logger.SetExternalHandler(d.G().Log, d.logForwarder)
 
 	err = d.writeServiceInfo()
 	if err != nil {

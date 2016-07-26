@@ -3,7 +3,7 @@
 
 // +build !windows
 
-package logger
+package internal
 
 import (
 	"io"

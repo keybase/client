@@ -9,7 +9,7 @@
 // calling GetConsoleMode and checking for
 // ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 
-package logger
+package internal
 
 import (
 	"bytes"

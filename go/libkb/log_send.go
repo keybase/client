@@ -104,7 +104,7 @@ func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, s
 	return id, nil
 }
 
-func tail(Log logger.Logger, filename string, numLines int) string {
+func tail(Log logger.LegacyLogger, filename string, numLines int) string {
 	if filename == "" {
 		return ""
 	}

@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
@@ -34,7 +35,7 @@ func (c *CtlHandler) Stop(_ context.Context, args keybase1.StopArg) error {
 }
 
 func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
-	return c.G().Log.RotateLogFile()
+	return logger.RotateLogFile(c.G().Log)
 }
 
 func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {
