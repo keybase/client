@@ -50,15 +50,11 @@ after_build:
 build_script:
   - SET PATH=%PATH%;c:\MinGW\bin
   - cd c:\work\src\github.com\keybase\kbfs
-  - copy C:\dokan\Win32\Release\dokan1.lib dokan\
   - cd dokan
   - go test -i
   - go test -c
-  - cd ..\libdokan
-  - go test -i
-  - go test -c
   - cd ..\kbfsdokan
-  - go build
+  - go install
   - cd ..\test
   - go test -i
   - cd ..
