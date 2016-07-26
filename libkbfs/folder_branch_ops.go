@@ -4225,16 +4225,18 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 	}
 }
 
-// finalizeResolution caches all the blocks, and writes the new MD to
-// the merged branch, failing if there is a conflict.  It also sends
-// out the given newOps notifications locally.  This is used for
-// completing conflict resolution.
-func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
+func (fbo *folderBranchOps) blockUnmergedWrites(lState *lockState) {
+	fbo.mdWriterLock.Lock(lState)
+}
+
+func (fbo *folderBranchOps) unblockUnmergedWrites(lState *lockState) {
+	fbo.mdWriterLock.Unlock(lState)
+}
+
+func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState,
 	newOps []op) error {
-	// Take the writer lock.
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
+	fbo.mdWriterLock.AssertLocked(lState)
 
 	// Put the blocks into the cache so that, even if we fail below,
 	// future attempts may reuse the blocks.
@@ -4297,6 +4299,19 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 		fbo.notifyOneOpLocked(ctx, lState, op, irmd)
 	}
 	return nil
+}
+
+// finalizeResolution caches all the blocks, and writes the new MD to
+// the merged branch, failing if there is a conflict.  It also sends
+// out the given newOps notifications locally.  This is used for
+// completing conflict resolution.
+func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
+	lState *lockState, md *RootMetadata, bps *blockPutState,
+	newOps []op) error {
+	// Take the writer lock.
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	return fbo.finalizeResolutionLocked(ctx, lState, md, bps, newOps)
 }
 
 func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,

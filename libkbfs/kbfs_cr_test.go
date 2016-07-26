@@ -8,6 +8,7 @@ import (
 	"reflect"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
@@ -1724,5 +1725,164 @@ func TestCRCanceledAfterNewOperation(t *testing.T) {
 		if _, ok := children2[child]; !ok {
 			t.Errorf("Couldn't find child %s", child)
 		}
+	}
+}
+
+// Tests that if a user gets /too/ unmerged, they will have their
+// unmerged writes blocked.
+func TestBasicCRBlockUnmergedWrites(t *testing.T) {
+	// simulate two users
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CheckConfigAndShutdown(t, config1)
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	defer CheckConfigAndShutdown(t, config2)
+
+	name := userName1.String() + "," + userName2.String()
+
+	// user1 creates a file in a shared dir
+	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+
+	kbfsOps1 := config1.KBFSOps()
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	if err != nil {
+		t.Fatalf("Couldn't create dir: %v", err)
+	}
+	_, _, err = kbfsOps1.CreateFile(ctx, dirA1, "b", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// look it up on user2
+	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+
+	kbfsOps2 := config2.KBFSOps()
+	ops2 := getOps(config2, rootNode2.GetFolderBranch().Tlf)
+	ops2.cr.maxRevsThreshold = 2
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	if err != nil {
+		t.Fatalf("Couldn't lookup dir: %v", err)
+	}
+	_, _, err = kbfsOps2.Lookup(ctx, dirA2, "b")
+	if err != nil {
+		t.Fatalf("Couldn't lookup file: %v", err)
+	}
+
+	// disable updates on user 2
+	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+	err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+
+	// One write for user 1
+	_, _, err = kbfsOps1.CreateFile(ctx, dirA1, "c", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Two writes for user 2
+	_, _, err = kbfsOps2.CreateFile(ctx, dirA2, "d", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	_, _, err = kbfsOps2.CreateFile(ctx, dirA2, "e", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Start CR, but cancel it before it completes, which should lead
+	// to it locking next time (since it has seen how many revisions
+	// are outstanding).
+	onPutStalledCh, putUnstallCh, putCtx :=
+		StallMDOp(ctx, config2, StallableMDPut)
+
+	var wg sync.WaitGroup
+	firstPutCtx, cancel := context.WithCancel(putCtx)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		// Make sure the CR gets done with a context we can use for
+		// stalling.
+		err = RestartCRForTesting(firstPutCtx, config2,
+			rootNode2.GetFolderBranch())
+		if err != nil {
+			t.Fatalf("Couldn't disable updates: %v", err)
+		}
+		err = kbfsOps2.SyncFromServerForTesting(firstPutCtx,
+			rootNode2.GetFolderBranch())
+		if err == nil {
+			t.Fatalf("Unexpected successful sync/CR: %v", err)
+		}
+		err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
+		if err != nil {
+			t.Fatalf("Couldn't disable updates: %v", err)
+		}
+	}()
+	<-onPutStalledCh
+	cancel()
+	putUnstallCh <- struct{}{}
+	wg.Wait()
+
+	// Pretend that CR was canceled by another write.
+	_, _, err = kbfsOps2.CreateFile(ctx, dirA2, "f", false, NoExcl)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Now restart CR, and make sure it blocks all writes.
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		// Make sure the CR gets done with a context we can use for
+		// stalling.
+		err = RestartCRForTesting(putCtx, config2,
+			rootNode2.GetFolderBranch())
+		if err != nil {
+			t.Fatalf("Couldn't disable updates: %v", err)
+		}
+		err = kbfsOps2.SyncFromServerForTesting(putCtx,
+			rootNode2.GetFolderBranch())
+		if err != nil {
+			t.Fatalf("Unexpected unsuccessful sync/CR: %v", err)
+		}
+	}()
+	<-onPutStalledCh
+	c <- struct{}{}
+
+	// Now try to write again
+	writeErrCh := make(chan error, 1)
+	go func() {
+		_, _, err := kbfsOps2.CreateFile(ctx, dirA2, "g", false, NoExcl)
+		if err != nil {
+			t.Fatalf("Couldn't create file: %v", err)
+		}
+		writeErrCh <- err
+	}()
+
+	// For now, assume we're blocked if the write doesn't go through
+	// in 20ms.  TODO: instruct mdWriterLock to know for sure how many
+	// goroutines its blocking?
+	timer := time.After(20 * time.Millisecond)
+	select {
+	case <-writeErrCh:
+		t.Fatalf("Write finished without blocking")
+	case <-timer:
+	}
+
+	// Finish the CR.
+	close(putUnstallCh)
+	wg.Wait()
+
+	// Now the write can finish
+	err = <-writeErrCh
+	if err != nil {
+		t.Fatalf("Couldn't write after blocking on CR: %v", err)
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -24,6 +25,17 @@ const (
 	// CtxCRIDKey is the type of the tag for unique operation IDs
 	// related to conflict resolution
 	CtxCRIDKey CtxCRTagKey = iota
+
+	// If the number of outstanding revisions that need to be resolved
+	// together (unmerged+merged) is greater than this number, then
+	// block unmerged writes to make sure we don't get *too* unmerged.
+	// TODO: throttle unmerged writes before resorting to complete
+	// blockage.
+	crMaxRevsThresholdDefault = 500
+
+	// How long we're allowed to block writes for if we exceed the max
+	// revisions threshold.
+	crMaxWriteLockTime = 10 * time.Second
 )
 
 // CtxCROpID is the display name for the unique operation
@@ -38,9 +50,10 @@ type conflictInput struct {
 // ConflictResolver is responsible for resolving conflicts in the
 // background.
 type ConflictResolver struct {
-	config Config
-	fbo    *folderBranchOps
-	log    logger.Logger
+	config           Config
+	fbo              *folderBranchOps
+	log              logger.Logger
+	maxRevsThreshold int
 
 	inputChanLock sync.RWMutex
 	inputChan     chan conflictInput
@@ -48,8 +61,9 @@ type ConflictResolver struct {
 	// resolveGroup tracks the outstanding resolves.
 	resolveGroup RepeatedWaitGroup
 
-	inputLock sync.Mutex
-	currInput conflictInput
+	inputLock    sync.Mutex
+	currInput    conflictInput
+	lockNextTime bool
 }
 
 // NewConflictResolver constructs a new ConflictResolver (and launches
@@ -66,9 +80,10 @@ func NewConflictResolver(
 		branchSuffix))
 
 	cr := &ConflictResolver{
-		config: config,
-		fbo:    fbo,
-		log:    log,
+		config:           config,
+		fbo:              fbo,
+		log:              log,
+		maxRevsThreshold: crMaxRevsThresholdDefault,
 		currInput: conflictInput{
 			unmerged: MetadataRevisionUninitialized,
 			merged:   MetadataRevisionUninitialized,
@@ -214,11 +229,19 @@ func (cr *ConflictResolver) checkDone(ctx context.Context) error {
 	}
 }
 
-func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState) (
+func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState,
+	writerLocked bool) (
 	unmerged []*RootMetadata, merged []*RootMetadata, err error) {
 	// first get all outstanding unmerged MDs for this device
-	branchPoint, unmergedImmutable, err :=
-		cr.fbo.getUnmergedMDUpdates(ctx, lState)
+	var branchPoint MetadataRevision
+	var unmergedImmutable []ImmutableRootMetadata
+	if writerLocked {
+		branchPoint, unmergedImmutable, err =
+			cr.fbo.getUnmergedMDUpdatesLocked(ctx, lState)
+	} else {
+		branchPoint, unmergedImmutable, err =
+			cr.fbo.getUnmergedMDUpdates(ctx, lState)
+	}
 	if err != nil {
 		return nil, nil, err
 	}
@@ -285,6 +308,10 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 				"expected merged revision %d", rev, cr.currInput.merged)
 		}
 		cr.currInput.merged = rev
+	}
+
+	if len(unmerged)+len(merged) > cr.maxRevsThreshold {
+		cr.lockNextTime = true
 	}
 	return nil
 }
@@ -995,12 +1022,12 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 // compute all this.  Note that even if err is nil, the merged MD list
 // might be non-nil to allow for better error handling.
 func (cr *ConflictResolver) buildChainsAndPaths(
-	ctx context.Context, lState *lockState) (
+	ctx context.Context, lState *lockState, writerLocked bool) (
 	unmergedChains, mergedChains *crChains, unmergedPaths []path,
 	mergedPaths map[BlockPointer]path, recreateOps []*createOp,
 	unmerged, merged []*RootMetadata, err error) {
 	// Fetch the merged and unmerged MDs
-	unmerged, merged, err = cr.getMDs(ctx, lState)
+	unmerged, merged, err = cr.getMDs(ctx, lState, writerLocked)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, nil, err
 	}
@@ -3181,7 +3208,7 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 	lState *lockState, md *RootMetadata, unmergedChains *crChains,
 	mergedChains *crChains, updates map[BlockPointer]BlockPointer,
-	bps *blockPutState) error {
+	bps *blockPutState, writerLocked bool) error {
 	// Fix up all the block pointers in the merged ops to work well
 	// for local notifications.  Make a dummy op at the beginning to
 	// convert all the merged most recent pointers into unmerged most
@@ -3195,6 +3222,9 @@ func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 
 	cr.log.CDebugf(ctx, "Local notifications: %v", newOps)
 
+	if writerLocked {
+		return cr.fbo.finalizeResolutionLocked(ctx, lState, md, bps, newOps)
+	}
 	return cr.fbo.finalizeResolution(ctx, lState, md, bps, newOps)
 }
 
@@ -3204,7 +3234,8 @@ func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	lState *lockState, unmergedChains *crChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path, lbc localBcache,
-	newFileBlocks fileBlockMap, unmergedMDs []*RootMetadata) (err error) {
+	newFileBlocks fileBlockMap, unmergedMDs []*RootMetadata,
+	writerLocked bool) (err error) {
 	md, err := cr.createResolvedMD(ctx, lState, unmergedPaths, unmergedChains,
 		mergedChains)
 	if err != nil {
@@ -3245,7 +3276,7 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	}
 
 	err = cr.finalizeResolution(ctx, lState, md, unmergedChains,
-		mergedChains, updates, bps)
+		mergedChains, updates, bps, writerLocked)
 	if err != nil {
 		return err
 	}
@@ -3315,6 +3346,11 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 			cr.config.Reporter().ReportErr(ctx,
 				handle.GetCanonicalName(), handle.IsPublic(),
 				WriteMode, CRWrapError{err})
+		} else {
+			// We finished successfully, so no need to lock next time.
+			cr.inputLock.Lock()
+			defer cr.inputLock.Unlock()
+			cr.lockNextTime = false
 		}
 	}()
 
@@ -3327,9 +3363,34 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	var mergedMDs []*RootMetadata
 	defer func() {
 		if err != nil {
+			// writerLock is definitely unlocked by here.
 			err = cr.maybeUnstageAfterFailure(ctx, lState, mergedMDs, err)
 		}
 	}()
+
+	// Check if we need to deploy the nuclear option and completely
+	// block unmerged writes while we try to resolve.
+	doLock := func() bool {
+		cr.inputLock.Lock()
+		defer cr.inputLock.Unlock()
+		return cr.lockNextTime
+	}()
+	if doLock {
+		cr.log.CDebugf(ctx, "Blocking unmerged writes due to large amounts "+
+			"of unresolved state")
+		cr.fbo.blockUnmergedWrites(lState)
+		defer cr.fbo.unblockUnmergedWrites(lState)
+		err = cr.checkDone(ctx)
+		if err != nil {
+			return
+		}
+
+		// Don't let us hold the lock for too long though
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, crMaxWriteLockTime)
+		defer cancel()
+		cr.log.CDebugf(ctx, "Unmerged writes blocked")
+	}
 
 	// Step 1: Build the chains for each branch, as well as the paths
 	// and necessary extra recreate ops.  The result of this step is:
@@ -3341,7 +3402,8 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	//     to recreate any directories that were modified in the unmerged
 	//     branch but removed in the merged branch.
 	unmergedChains, mergedChains, unmergedPaths, mergedPaths, recOps,
-		unmergedMDs, mergedMDs, err := cr.buildChainsAndPaths(ctx, lState)
+		unmergedMDs, mergedMDs, err :=
+		cr.buildChainsAndPaths(ctx, lState, doLock)
 	if err != nil {
 		return
 	}
@@ -3351,7 +3413,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		lbc := make(localBcache)
 		newFileBlocks := make(fileBlockMap)
 		err = cr.completeResolution(ctx, lState, unmergedChains, mergedChains,
-			unmergedPaths, mergedPaths, lbc, newFileBlocks, unmergedMDs)
+			unmergedPaths, mergedPaths, lbc, newFileBlocks, unmergedMDs, doLock)
 		return
 	}
 
@@ -3441,7 +3503,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// putting the final resolved MD, and issuing all the local
 	// notifications.
 	err = cr.completeResolution(ctx, lState, unmergedChains, mergedChains,
-		unmergedPaths, mergedPaths, lbc, newFileBlocks, unmergedMDs)
+		unmergedPaths, mergedPaths, lbc, newFileBlocks, unmergedMDs, doLock)
 	if err != nil {
 		return
 	}
