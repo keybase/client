@@ -65,5 +65,10 @@ func newWriterInfo(ctx context.Context, cfg Config, uid keybase1.UID, kid keybas
 		return writerInfo{}, err
 	}
 
-	return writerInfo{name: ui.Name, kid: kid, deviceName: ui.KIDNames[kid]}, nil
+	return writerInfo{
+		name:       ui.Name,
+		uid:        uid,
+		kid:        kid,
+		deviceName: ui.KIDNames[kid],
+	}, nil
 }

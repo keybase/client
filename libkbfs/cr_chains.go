@@ -6,7 +6,9 @@ package libkbfs
 
 import (
 	"fmt"
+	"sort"
 
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
 
@@ -798,4 +800,67 @@ func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 		ccs.renamedOriginals[newOriginal] = ri
 	}
 	return nil
+}
+
+// getPaths returns a sorted slice of most recent paths to all the
+// nodes in the given CR chains that were directly modified during a
+// branch, and which existed at both the start and the end of the
+// branch.  This represents the paths that need to be checked for
+// conflicts.  The paths are sorted by descending path length.  It
+// uses the corresponding node cache when looking up paths, which must
+// at least contain the most recent root node of the branch.  Note
+// that if a path cannot be found, the corresponding chain is
+// completely removed from the set of CR chains.
+func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
+	log logger.Logger, nodeCache NodeCache, localNodeCache NodeCache,
+	ignoreCreates bool) (
+	[]path, error) {
+	newPtrs := make(map[BlockPointer]bool)
+	var ptrs []BlockPointer
+	for ptr, chain := range ccs.byMostRecent {
+		newPtrs[ptr] = true
+		// We only care about the paths for ptrs that are directly
+		// affected by operations and were live through the entire
+		// unmerged branch.
+		if len(chain.ops) > 0 &&
+			(!ignoreCreates || !ccs.isCreated(chain.original)) &&
+			!ccs.isDeleted(chain.original) {
+			ptrs = append(ptrs, ptr)
+		}
+	}
+
+	nodeMap, err := blocks.SearchForNodes(ctx, nodeCache, ptrs, newPtrs,
+		ccs.mostRecentMD.ReadOnly())
+	if err != nil {
+		return nil, err
+	}
+
+	paths := make([]path, 0, len(nodeMap))
+	for ptr, n := range nodeMap {
+		if n == nil {
+			log.CDebugf(ctx, "Ignoring pointer with no found path: %v", ptr)
+			ccs.removeChain(ptr)
+			continue
+		}
+
+		p := localNodeCache.PathFromNode(n)
+		if p.tailPointer() != ptr {
+			return nil, NodeNotFoundError{ptr}
+		}
+		paths = append(paths, p)
+
+		// update the unmerged final paths
+		chain, ok := ccs.byMostRecent[ptr]
+		if !ok {
+			log.CErrorf(ctx, "Couldn't find chain for found path: %v", ptr)
+			continue
+		}
+		for _, op := range chain.ops {
+			op.setFinalPath(p)
+		}
+	}
+
+	// Order by descending path length.
+	sort.Sort(crSortedPaths(paths))
+	return paths, nil
 }
