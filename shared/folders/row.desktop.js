@@ -80,13 +80,13 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
     ...styles.rowContainer,
     minHeight: smallMode ? 40 : 48,
     backgroundColor,
+    borderBottom: `solid 1px ${globalColors.black_10}`,
   }
 
   const icon: IconType = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
 
   return (
     <Box style={containerStyle} className='folder-row' onClick={() => onClick && onClick(path)}>
-      <Box style={stylesLine} />
       <Box style={{...globalStyles.flexBoxRow}}>
         <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} ignored={ignored} />
         <Box style={stylesBodyContainer}>
@@ -109,15 +109,6 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
       </Box>
     </Box>
   )
-}
-
-const stylesLine = {
-  backgroundColor: globalColors.black_10,
-  height: 1,
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
 }
 
 const rowContainer = {

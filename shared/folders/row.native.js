@@ -77,7 +77,7 @@ const RowMeta = ({ignored, meta, styles}) => {
   return <Meta {...metaProps} />
 }
 
-const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path, onClick}: Folder & {isFirst: boolean, onClick: (path: string) => void}) => {
+const Row = ({users, isPublic, ignored, meta, modified, hasData, path, onClick}: Folder & {onClick: (path: string) => void}) => {
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   let backgroundColor = styles.rowContainer.backgroundColor
@@ -106,7 +106,7 @@ const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path, 
             {hasData && <Icon type={icon} style={{width: 32}} />}
           </Box>
         </Box>
-        {!isFirst && <Box style={stylesLine} />}
+        <Box style={stylesLine} />
       </Box>
     </TouchableHighlight>
   )

@@ -37,8 +37,7 @@ class Render extends Component<void, Props, void> {
         key={rowKey(i.users)}
         users={i.users}
         isPublic={this.props.isPublic}
-        ignored={true}
-        isFirst={!idx} />))
+        ignored={true} />))
 
     return (
       <Box style={stylesContainer}>
@@ -48,8 +47,7 @@ class Render extends Component<void, Props, void> {
             {...t}
             isPublic={this.props.isPublic}
             ignored={false}
-            onClick={this.props.onClick}
-            isFirst={!idx} />
+            onClick={this.props.onClick} />
           ))}
         <Ignored rows={ignoredRows} showIgnored={this.props.showIgnored} styles={styles}
           isPublic={this.props.isPublic} onToggle={this.props.onToggleShowIgnored} />
