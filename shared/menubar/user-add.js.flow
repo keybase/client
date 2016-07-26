@@ -3,7 +3,8 @@ import React, {Component} from 'react'
 
 export type Props = {
   isPublic: boolean,
-  onAdded: (path: string) => void
+  onAdded: (path: string) => void,
+  username: ?string,
 }
 
 export default class UserAdd extends Component<void, Props, void> {}
