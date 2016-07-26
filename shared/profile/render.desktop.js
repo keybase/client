@@ -113,14 +113,15 @@ class Render extends Component<void, Props, State> {
               <Box style={styleProofNoticeBox}>
                 {proofNotice && <Text type='BodySmallSemibold' style={{color: globalColors.white}}>{proofNotice}</Text>}
               </Box>
-              <UserProofs
-                style={styleProofs}
-                username={this.props.username}
-                isLoading={loading}
-                proofs={this.props.proofs}
-                currentlyFollowing={this.props.currentlyFollowing}
-              />
-              {!loading &&
+              {this.props.proofs && this.props.proofs.length > 0 &&
+                <UserProofs
+                  style={styleProofs}
+                  username={this.props.username}
+                  isLoading={loading}
+                  proofs={this.props.proofs}
+                  currentlyFollowing={this.props.currentlyFollowing}
+                />}
+              {missingProofs.length > 0 &&
                 <UserProofs
                   style={styleMissingProofs}
                   username={this.props.username}
