@@ -51,6 +51,7 @@ const propsBase = {
   loggedIn: true,
   lastAction: null,
   loading: false,
+  actionBarReady: true,
 }
 
 const propsDefault: TrackerProps = {
@@ -192,6 +193,7 @@ const dumbMap: DumbComponentMap<Tracker> = {
   mocks: {
     'New user': trackerPropsToRenderProps(propsNewUser),
     'New user, follows me': trackerPropsToRenderProps(propsNewUserFollowsYou),
+    'Only one proof - action bar not ready': trackerPropsToRenderProps({...propsOneProof, actionBarReady: false}),
     'Only one proof': trackerPropsToRenderProps(propsOneProof),
     '5 proofs': trackerPropsToRenderProps(propsFiveProof),
     'Followed': trackerPropsToRenderProps(propsFollowing),

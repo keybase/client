@@ -30,6 +30,7 @@ export type RenderPropsUnshaped = {
   waiting: boolean,
   afterMount?: any,
   loading: boolean,
+  actionBarReady: boolean,
 }
 
 export type RenderProps = $Exact<RenderPropsUnshaped>

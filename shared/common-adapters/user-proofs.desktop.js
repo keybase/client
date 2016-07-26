@@ -77,7 +77,7 @@ class ProofsRender extends Component {
   render () {
     const {loading} = this.props
     return (
-      <div style={{...styleContainer, minHeight: loading ? 120 : undefined, ...this.props.style}}>
+      <div style={{...styleContainer, minHeight: loading ? 120 : 50, ...this.props.style}}>
         <Box style={{...styleLoading, opacity: loading ? 1 : 0}}>
           {[147, 77, 117].map((w, i) => <LoadingProofRow key={i} index={i} textBlockWidth={w} />)}
         </Box>
@@ -94,6 +94,8 @@ const styleLoading = {
   position: 'absolute',
   left: 0,
   right: 0,
+  // We don't want the hidden loading state to affect sizings.
+  height: 0,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
 }

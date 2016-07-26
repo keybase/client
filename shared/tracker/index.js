@@ -39,16 +39,17 @@ export type TrackerProps = {
   inviteLink?: ?string,
   isPrivate?: boolean,
   loading: boolean,
+  actionBarReady: boolean,
 }
 
 export function trackerPropsToRenderProps ({currentlyFollowing, inviteLink, isPrivate, lastAction,
     loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
-    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading}:
+    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading, actionBarReady}:
 TrackerProps): RenderPropsUnshaped {
   return {
     currentlyFollowing, inviteLink, isPrivate, lastAction,
     loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
-    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading,
+    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading, actionBarReady,
   }
 }
 
@@ -91,6 +92,7 @@ export default connect(
     nonUser: state.tracker.trackers[ownProps.username] && state.tracker.trackers[ownProps.username].type === 'nonUser',
     loggedIn: state.config && state.config.loggedIn,
     loading: isLoading(state.tracker.trackers[ownProps.username]),
+    actionBarReady: !!state.tracker.trackers[ownProps.username] && !state.tracker.trackers[ownProps.username].serverActive,
     ...state.tracker.trackers[ownProps.username],
     ...ownProps,
   }),
