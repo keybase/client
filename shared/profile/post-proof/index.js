@@ -30,7 +30,7 @@ const platformProps = {
 
   'github': {
     platformSubtitle: '@github',
-    descriptionView: <Text type='Body'>Login to GitHub and paste the text below into a <Text type='Body'>public</Text> gist called <Text type='Body' style={globalStyles.italic}>keybase.md.</Text></Text>,
+    descriptionView: <Text type='Body'>Login to GitHub and paste the text below into a <Text type='BodySemibold'>public</Text> gist called <Text type='Body' style={globalStyles.italic}>keybase.md.</Text></Text>,
     proofActionText: 'Create gist now',
     proofActionIcon: 'iconfont-open-browser',
     onCompleteText: 'OK posted! Check for it!',
