@@ -40,10 +40,11 @@ func Mount(cfg *Config) (*MountHandle, error) {
 	return &MountHandle{ec, cfg.Path}, nil
 }
 
-// Close unmounts the filesystem.
+// Close unmounts the filesystem. Can be used to interrupt a
+// running filesystem - usually not needed if BlockTillDone
+// is used.
 func (m *MountHandle) Close() error {
-	err := Unmount(m.Dir)
-	return err
+	return Unmount(m.Dir)
 }
 
 // BlockTillDone blocks till Dokan is done.
