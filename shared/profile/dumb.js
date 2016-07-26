@@ -371,6 +371,10 @@ const dumbPostProof: DumbComponentMap<PostProof> = {
   component: PostProof,
   mocks: {
     'Twitter': postProofTwitter,
+    'Twitter Waiting': {
+      ...postProofTwitter,
+      isOnCompleteWaiting: true,
+    },
     'Twitter Error': {
       ...postProofTwitter,
       errorMessage: 'We couldn\'t find your proof. Please retry!',

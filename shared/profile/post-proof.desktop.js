@@ -5,7 +5,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import type {Props} from './post-proof'
 
 const Render = (props: Props) => {
-  const {platform, platformUserName, platformSubtitle, descriptionView, descriptionText, proofText, proofAction, proofActionIcon, proofActionText, noteText, onCancel, onCancelText, onComplete, onCompleteText, errorMessage} = props
+  const {platform, platformUserName, platformSubtitle, descriptionView, descriptionText, proofText, proofAction, proofActionIcon, proofActionText, noteText, onCancel, onCancelText, onComplete, onCompleteText, isOnCompleteWaiting, errorMessage} = props
   return (
     <Box style={styleContainer}>
       {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
@@ -20,7 +20,7 @@ const Render = (props: Props) => {
           <Text style={styleProofAction} type='BodyPrimaryLink' onClick={() => proofAction()}><Icon style={styleProofActionIcon} type={proofActionIcon} />{proofActionText}</Text>}
         <Box style={styleButtonsContainer}>
           {onCancel && <Button style={styleCancelButton} type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
-          <Button style={styleCompleteButton} type='Primary' onClick={() => onComplete()} label={onCompleteText} />
+          <Button style={styleCompleteButton} type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
         </Box>
       </Box>
     </Box>

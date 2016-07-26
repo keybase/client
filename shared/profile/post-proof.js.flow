@@ -18,6 +18,7 @@ export type Props = {
   onCancelText?: ?string,
   onComplete: () => void,
   onCompleteText: string,
+  isOnCompleteWaiting?: boolean,
   errorMessage?: ?string,
 }
 
