@@ -23,7 +23,7 @@ export default connect(
   state => ({
     justLoginFromRevokedDevice: state.login.justLoginFromRevokedDevice,
     justRevokedSelf: state.login.justRevokedSelf,
-    loaded: state.login.loaded
+    loaded: state.login.loaded,
   }),
   dispatch => ({
     onSignup: () => {
