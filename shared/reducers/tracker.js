@@ -1,40 +1,18 @@
 /* @flow */
 
 import * as Constants from '../constants/tracker'
-import type {SimpleProofState, SimpleProofMeta, NonUserActions} from '../constants/tracker'
+import type {SimpleProofState, SimpleProofMeta, NonUserActions, TrackerState} from '../constants/tracker'
 import * as CommonConstants from '../constants/common'
 
 import {identifyCommon, proveCommon} from '../constants/types/keybase-v1'
 
-import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff,
   TrackDiffType, ProofStatus} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
-import type {Folder} from '../constants/folders'
 
 const {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored,
   normal, warning, error, checking} = Constants
-
-export type TrackerState = {
-  type: 'tracker',
-  eldestKidChanged: boolean,
-  currentlyFollowing: boolean,
-  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
-  serverActive: boolean,
-  trackerState: SimpleProofState,
-  username: string,
-  shouldFollow: ?boolean,
-  reason: ?string,
-  waiting: boolean,
-  userInfo: UserInfo,
-  proofs: Array<Proof>,
-  closed: boolean,
-  hidden: boolean,
-  trackToken: ?string,
-  needTrackTokenDismiss: boolean,
-  tlfs: Array<Folder>,
-}
 
 export type NonUserState = {
   type: 'nonUser',

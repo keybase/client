@@ -23,6 +23,7 @@ export type BioEditFns = {
 
 export type Props = {
   type: 'Tracker' | 'Profile',
+  loading: boolean,
   avatarSize: AvatarSize,
   style?: Object,
   username: ?string,

@@ -6,6 +6,7 @@ import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
+import {isLoading} from '../constants/tracker'
 
 import type {RenderPropsUnshaped} from './render'
 import type {UserInfo} from '../common-adapters/user-bio'
@@ -36,17 +37,19 @@ export type TrackerProps = {
   name?: string,
   serviceName?: string,
   inviteLink?: ?string,
-  isPrivate?: boolean
+  isPrivate?: boolean,
+  loading: boolean,
+  actionBarReady: boolean,
 }
 
 export function trackerPropsToRenderProps ({currentlyFollowing, inviteLink, isPrivate, lastAction,
     loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
-    proofs, reason, serviceName, trackerState, userInfo, username, waiting}:
+    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading, actionBarReady}:
 TrackerProps): RenderPropsUnshaped {
   return {
     currentlyFollowing, inviteLink, isPrivate, lastAction,
     loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
-    proofs, reason, serviceName, trackerState, userInfo, username, waiting,
+    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading, actionBarReady,
   }
 }
 
@@ -88,6 +91,8 @@ export default connect(
     ...state.tracker,
     nonUser: state.tracker.trackers[ownProps.username] && state.tracker.trackers[ownProps.username].type === 'nonUser',
     loggedIn: state.config && state.config.loggedIn,
+    loading: isLoading(state.tracker.trackers[ownProps.username]),
+    actionBarReady: !!state.tracker.trackers[ownProps.username] && !state.tracker.trackers[ownProps.username].serverActive,
     ...state.tracker.trackers[ownProps.username],
     ...ownProps,
   }),

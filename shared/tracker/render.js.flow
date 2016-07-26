@@ -8,6 +8,7 @@ import type {Proof} from '../common-adapters/user-proofs'
 import type {$Exact} from '../constants/types/more'
 
 export type RenderPropsUnshaped = {
+  loading: boolean,
   currentlyFollowing: boolean,
   inviteLink?: ?string,
   isPrivate?: boolean,
@@ -28,6 +29,8 @@ export type RenderPropsUnshaped = {
   username: string,
   waiting: boolean,
   afterMount?: any,
+  loading: boolean,
+  actionBarReady: boolean,
 }
 
 export type RenderProps = $Exact<RenderPropsUnshaped>

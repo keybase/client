@@ -8,6 +8,7 @@ import flags from '../util/feature-flags'
 import {getProfile, updateTrackers} from '../actions/tracker'
 import {routeAppend, navigateUp} from '../actions/router'
 import {openInKBFS} from '../actions/kbfs'
+import {isLoading} from '../constants/tracker'
 
 class Profile extends Component<void, Props, void> {
   static parseRoute (currentPath, uri) {
@@ -41,6 +42,7 @@ class Profile extends Component<void, Props, void> {
         showComingSoon={!flags.tabProfileEnabled}
         {...this.props}
         proofs={this.props.proofs || []}
+        loading={this.props.loading}
         onBack={!this.props.profileIsRoot ? this.props.onBack : undefined}
         followers={this.props.trackers || []}
         following={this.props.tracking || []}
@@ -84,6 +86,7 @@ export default connect(
       bioEditFns,
       username,
       refresh: username => dispatchProps.refresh(username),
+      loading: isLoading(stateProps.trackers[username]),
     }
   }
 )(Profile)

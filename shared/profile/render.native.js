@@ -73,6 +73,7 @@ class Render extends Component<void, Props, State> {
           <UserBio
             type='Profile'
             avatarSize={AVATAR_SIZE}
+            loading={this.props.loading}
             username={this.props.username}
             userInfo={this.props.userInfo}
             currentlyFollowing={this.props.currentlyFollowing}
@@ -89,6 +90,7 @@ class Render extends Component<void, Props, State> {
           <Box style={styleProofs}>
             <UserProofs
               username={this.props.username}
+              loading={this.props.loading}
               proofs={this.props.proofs}
               currentlyFollowing={this.props.currentlyFollowing}
             />

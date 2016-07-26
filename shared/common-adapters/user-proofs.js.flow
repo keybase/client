@@ -16,6 +16,7 @@ export type Proof = {
 export type Props = {
   style?: Object,
   proofs: Array<Proof>,
+  loading: boolean,
   username: ?string,
   currentlyFollowing: boolean
 }

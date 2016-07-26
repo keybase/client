@@ -25,6 +25,7 @@ export default class Render extends Component<void, RenderProps, void> {
         <Box style={stylesContent}>
           <UserBio type='Tracker'
             avatarSize={112}
+            loading={this.props.loading}
             username={this.props.username}
             userInfo={this.props.userInfo}
             currentlyFollowing={this.props.currentlyFollowing}
@@ -33,6 +34,7 @@ export default class Render extends Component<void, RenderProps, void> {
           <UserProofs
             style={stylesProofs}
             username={this.props.username}
+            loading={this.props.loading}
             proofs={this.props.proofs}
             currentlyFollowing={this.props.currentlyFollowing}
           />

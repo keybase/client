@@ -3,6 +3,8 @@
 import type {identifyUiDisplayTLFCreateWithInviteRpcParam} from './types/flow-types'
 import type {TypedAction} from './types/flux'
 import type {Folder} from '../folders/list'
+import type {UserInfo} from '../common-adapters/user-bio'
+import type {Proof} from '../common-adapters/user-proofs'
 
 // Simple state of the overall proof result
 export type SimpleProofState = 'normal' | 'warning' | 'error' | 'checking' | 'revoked'
@@ -78,4 +80,41 @@ export type TrackingInfo = {
   fullname: string,
   followsYou: boolean,
   following: boolean
+}
+
+export type TrackerState = {
+  type: 'tracker',
+  eldestKidChanged: boolean,
+  currentlyFollowing: boolean,
+  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
+  serverActive: boolean,
+  trackerState: SimpleProofState,
+  username: string,
+  shouldFollow: ?boolean,
+  reason: ?string,
+  waiting: boolean,
+  userInfo: UserInfo,
+  proofs: Array<Proof>,
+  closed: boolean,
+  hidden: boolean,
+  trackToken: ?string,
+  needTrackTokenDismiss: boolean,
+  tlfs: Array<Folder>,
+}
+
+export function isLoading (state: ?TrackerState): boolean {
+  // TODO (mm) ideally userInfo should be null until we get a response from the server
+  // Same with proofs (instead of empty array). So we know the difference between
+  // not having data and having empty data.
+
+  if (!state) {
+    return true
+  }
+
+  // This logic is only valid for info on a keybase user (non user trackers are different)
+  if (state.type !== 'tracker') {
+    return false
+  }
+
+  return !state.userInfo || state.userInfo.followersCount === -1
 }

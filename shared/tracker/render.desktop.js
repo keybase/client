@@ -49,6 +49,7 @@ export default class Render extends Component<void, RenderProps, void> {
           <UserBio type='Tracker'
             style={{marginTop: 50}}
             avatarSize={80}
+            loading={this.props.loading}
             username={this.props.username}
             userInfo={this.props.userInfo}
             currentlyFollowing={this.props.currentlyFollowing}
@@ -58,23 +59,24 @@ export default class Render extends Component<void, RenderProps, void> {
             style={{paddingTop: 8, paddingLeft: 30, paddingRight: 30}}
             username={this.props.username}
             proofs={this.props.proofs}
+            loading={this.props.loading}
             currentlyFollowing={this.props.currentlyFollowing}
           />
         </div>
         <div style={styles.footer}>
-          <Action
-            loggedIn={this.props.loggedIn}
-            waiting={this.props.waiting}
-            state={this.props.trackerState}
-            currentlyFollowing={this.props.currentlyFollowing}
-            username={this.props.username}
-            lastAction={this.props.lastAction}
-            onClose={this.props.onClose}
-            onIgnore={this.props.onIgnore}
-            onFollow={this.props.onFollow}
-            onRefollow={this.props.onRefollow}
-            onUnfollow={this.props.onUnfollow}
-          />
+          {!this.props.loading && this.props.actionBarReady &&
+            <Action
+              loggedIn={this.props.loggedIn}
+              waiting={this.props.waiting}
+              state={this.props.trackerState}
+              currentlyFollowing={this.props.currentlyFollowing}
+              username={this.props.username}
+              lastAction={this.props.lastAction}
+              onClose={this.props.onClose}
+              onIgnore={this.props.onIgnore}
+              onFollow={this.props.onFollow}
+              onRefollow={this.props.onRefollow}
+              onUnfollow={this.props.onUnfollow} />}
         </div>
       </div>
     )

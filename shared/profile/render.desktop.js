@@ -1,7 +1,7 @@
 /* @flow */
 import React, {Component} from 'react'
 import _ from 'lodash'
-import {normal as proofNormal, metaUnreachable} from '../constants/tracker'
+import {normal as proofNormal, checking as proofChecking, metaUnreachable} from '../constants/tracker'
 import {Box, Icon, Text, UserBio, UserActions, UserProofs, Usernames, BackButton} from '../common-adapters'
 import {headerColor as whichHeaderColor} from '../common-adapters/user-bio.shared'
 import Friendships from './friendships'
@@ -36,6 +36,7 @@ class Render extends Component<void, Props, State> {
   }
 
   render () {
+    const {loading} = this.props
     if (this.props.showComingSoon) {
       return this._renderComingSoon()
     }
@@ -43,7 +44,7 @@ class Render extends Component<void, Props, State> {
     const headerColor = whichHeaderColor(this.props)
 
     let proofNotice
-    if (this.props.trackerState !== proofNormal) {
+    if (this.props.trackerState !== proofNormal && this.props.trackerState !== proofChecking && !this.props.loading) {
       if (this.props.isYou) {
         if (this.props.proofs.some(proof => proof.meta === metaUnreachable)) {
           proofNotice = 'Some of your proofs are unreachable.'
@@ -89,6 +90,7 @@ class Render extends Component<void, Props, State> {
               <UserBio
                 type='Profile'
                 editFns={this.props.bioEditFns}
+                loading={loading}
                 avatarSize={AVATAR_SIZE}
                 style={{marginTop: HEADER_TOP_SPACE}}
                 username={this.props.username}
@@ -96,7 +98,7 @@ class Render extends Component<void, Props, State> {
                 currentlyFollowing={this.props.currentlyFollowing}
                 trackerState={this.props.trackerState}
               />
-              {!this.props.isYou &&
+              {!this.props.isYou && !loading &&
                 <UserActions
                   style={styleActions}
                   trackerState={this.props.trackerState}
@@ -112,20 +114,21 @@ class Render extends Component<void, Props, State> {
               <UserProofs
                 style={styleProofs}
                 username={this.props.username}
+                loading={loading}
                 proofs={this.props.proofs}
                 currentlyFollowing={this.props.currentlyFollowing}
               />
-              {folders}
+              {!loading && folders}
             </Box>
           </Box>
-          <Friendships
-            style={styleFriendships}
-            currentTab={this.state.currentFriendshipsTab}
-            onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
-            onUserClick={this.props.onUserClick}
-            followers={this.props.followers}
-            following={this.props.following}
-          />
+          {!loading &&
+            <Friendships
+              style={styleFriendships}
+              currentTab={this.state.currentFriendshipsTab}
+              onSwitchTab={currentFriendshipsTab => this.setState({currentFriendshipsTab})}
+              onUserClick={this.props.onUserClick}
+              followers={this.props.followers}
+              following={this.props.following} />}
         </Box>
       </Box>
     )

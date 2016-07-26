@@ -22,12 +22,17 @@ export default connector.connect(
       const trackerState = trackers[username]
       if (username && trackerState && trackerState.type === 'tracker') {
         const currentlyFollowing = trackerState.lastAction === 'followed' || trackerState.lastAction === 'refollowed' || trackerState.currentlyFollowing
+        // TODO (mm) ideally userInfo should be null until we get a response from the server
+        // Same with proofs (instead of empty array). So we know the difference between
+        // not having data and having empty data.
+        const loading = trackerState.userInfo.followersCount === -1
         return {
           mode: 'keybase',
           userInfoProps: {
             username: username,
             userInfo: trackerState.userInfo,
             proofs: trackerState.proofs,
+            loading: loading,
             currentlyFollowing: currentlyFollowing,
             trackerState: trackerState.trackerState,
             onFollow: () => { dispatch(onFollow(username, false)) },

@@ -18,7 +18,8 @@ export default class Render extends Component<void, Props, void> {
           <UserBio
             type='Tracker'
             avatarSize={AVATAR_SIZE}
-            style={{marginTop: HEADER_TOP_SPACE}}
+            style={{marginTop: HEADER_TOP_SPACE, minHeight: 200}}
+            loading={this.props.loading}
             username={this.props.username}
             userInfo={this.props.userInfo}
             trackerState={this.props.trackerState}
@@ -27,18 +28,19 @@ export default class Render extends Component<void, Props, void> {
           <UserProofs
             style={{marginTop: globalMargins.small, marginLeft: globalMargins.medium, marginRight: globalMargins.medium}}
             username={this.props.username}
+            loading={this.props.loading}
             proofs={this.props.proofs}
             currentlyFollowing={this.props.currentlyFollowing}
           />
         </Box>
-        <UserActions
-          style={styleActionBox}
-          trackerState={this.props.trackerState}
-          currentlyFollowing={this.props.currentlyFollowing}
-          onFollow={this.props.onFollow}
-          onUnfollow={this.props.onUnfollow}
-          onAcceptProofs={this.props.onAcceptProofs}
-        />
+        {!this.props.loading &&
+          <UserActions
+            style={styleActionBox}
+            trackerState={this.props.trackerState}
+            currentlyFollowing={this.props.currentlyFollowing}
+            onFollow={this.props.onFollow}
+            onUnfollow={this.props.onUnfollow}
+            onAcceptProofs={this.props.onAcceptProofs} />}
       </Box>
     )
   }

@@ -86,6 +86,8 @@ const propsBase = {
   waiting: false,
   loggedIn: true,
   lastAction: null,
+  loading: false,
+  actionBarReady: true,
 }
 
 const propsDefault: TrackerProps = {
@@ -236,6 +238,7 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'NonuserLink': trackerPropsToRenderProps(propsNonUser),
     'NonuserNoLinkPublic': trackerPropsToRenderProps({...propsNonUser, inviteLink: null}),
     'Logged out': trackerPropsToRenderProps(propsLoggedOut),
+    'Only one proof, action bar not ready': trackerPropsToRenderProps({...propsOneProof, actionBarReady: false}),
     'Only one proof': trackerPropsToRenderProps(propsOneProof),
     '5 proofs': trackerPropsToRenderProps(propsFiveProof),
     'New user': trackerPropsToRenderProps(propsNewUser),
@@ -252,6 +255,7 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'You track them': trackerPropsToRenderProps({...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}}),
     'Unfollowed': trackerPropsToRenderProps(propsUnfollowed),
     'Barely there': trackerPropsToRenderProps(propsLessData),
+    'Tracker - Loading': trackerPropsToRenderProps({...propsLessData, loading: true}),
     'Whatevz': trackerPropsToRenderProps(propsWhatevz),
     'Platforms': trackerPropsToRenderProps(propsWhatevz),
   },
