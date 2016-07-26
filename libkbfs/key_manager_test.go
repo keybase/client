@@ -1416,7 +1416,7 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	// Make sure user 1's rekey failed.
 	putUnstallCh <- struct{}{}
 	err = <-errChan
-	if _, isConflict := err.(MDServerErrorConflictRevision); !isConflict {
+	if _, isConflict := err.(RekeyConflictError); !isConflict {
 		t.Fatalf("Expected failure due to conflict")
 	}
 

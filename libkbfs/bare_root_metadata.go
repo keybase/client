@@ -325,7 +325,7 @@ func (md *BareRootMetadata) CheckValidSuccessor(
 		}
 	}
 
-	// (2) Check revision.
+	// (3) Check revision.
 	if nextMd.Revision != md.Revision+1 {
 		return MDRevisionMismatch{
 			rev:  nextMd.Revision,
@@ -333,7 +333,7 @@ func (md *BareRootMetadata) CheckValidSuccessor(
 		}
 	}
 
-	// (3) Check PrevRoot pointer.
+	// (4) Check PrevRoot pointer.
 	expectedPrevRoot := currID
 	if nextMd.IsFinal() {
 		expectedPrevRoot = md.PrevRoot
@@ -345,6 +345,15 @@ func (md *BareRootMetadata) CheckValidSuccessor(
 		}
 	}
 
+	// (5) Check branch ID.
+	if md.MergedStatus() == nextMd.MergedStatus() && md.BID != nextMd.BID {
+		return fmt.Errorf("Unexpected branch ID on successor: %s vs. %s",
+			md.BID, nextMd.BID)
+	} else if md.MergedStatus() == Unmerged && nextMd.MergedStatus() == Merged {
+		return errors.New("Merged MD can't follow unmerged MD.")
+	}
+
+	// (6) Check disk usage.
 	expectedUsage := md.DiskUsage
 	if !nextMd.IsWriterMetadataCopiedSet() {
 		expectedUsage += nextMd.RefBytes - nextMd.UnrefBytes
