@@ -55,6 +55,7 @@ export default class Avatar extends Component {
             display: (!showNoAvatar && !showLoadingColor) ? 'block' : 'none',
             backgroundColor: globalColors.white,
             opacity: this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0,
+            backgroundClip: 'padding-box',
           }}
           onError={() => this.setState({errored: true})}
           onLoad={() => this.setState({avatarLoaded: true})} />

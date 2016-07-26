@@ -22,7 +22,7 @@ const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
         <Icon type={caretIcon} style={{color: isPublic ? globalColors.black_40 : globalColors.white_40}} />
       </Box>
       {showIgnored && <Box style={styles.bottomBox}>
-        <Text type='BodySmallSemibold' style={stylesDividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
+        <Text type='BodySmall' style={stylesDividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
       </Box>}
       {showIgnored && rows}
     </Box>

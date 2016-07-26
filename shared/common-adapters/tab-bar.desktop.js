@@ -70,7 +70,7 @@ export class TabBarButton extends Component<void, TabBarButtonProps, void> {
     return (
       <Box style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}>
         <Icon type={this.props.source.icon} style={{...stylesIcon, color, ...this.props.styleIcon}} />
-        {!!this.props.label && <Text type={this.props.styleLabelType || 'Body'} style={{color, ...this.props.styleLabel}}>{this.props.label}</Text>}
+        {!!this.props.label && <Text type={this.props.styleLabelType || 'BodySmallSemibold'} style={{color, ...this.props.styleLabel}}>{this.props.label}</Text>}
         {badgeNumber > 0 &&
           <Box style={{...styleBadge, ...this.props.styleBadge}}>
             <Text style={{flex: 0, ...this.props.styleBadgeNumber}} type='BadgeNumber'>{badgeNumber}</Text>
