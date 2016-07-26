@@ -4,7 +4,7 @@ import type {Platforms} from '../constants/types/more'
 import type {IconType} from '../common-adapters/icon'
 
 export type Props = {
-  platform: Platforms | 'btc',
+  platform: Platforms,
   platformUserName: string,
   platformSubtitle?: ?string,
   descriptionText?: string,
