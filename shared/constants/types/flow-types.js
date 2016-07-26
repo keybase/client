@@ -5121,9 +5121,11 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.NotifyApp.exit'?: (
-    params: $Exact<{}> /* ,
-    response: {} // Notify call
-    */
+    params: $Exact<{}>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
   ) => void,
   'keybase.1.notifyCtl.setNotifications'?: (
     params: $Exact<{

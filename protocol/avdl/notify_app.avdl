@@ -2,6 +2,6 @@
 @namespace("keybase.1")
 protocol NotifyApp {
 
-  @notify("")
-  void exit();
+  void exit() oneway;
+
 }
