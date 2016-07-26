@@ -9,7 +9,9 @@ type CommonProps = {
   style?: ?Object,
   onClick?: ?(() => void),
   following?: ?boolean,
-  followsYou?: ?boolean
+  followsYou?: ?boolean,
+  hasBackgroundColor?: string,
+  opacity?: number,
 }
 
 export type Props = ({url: ?string} & CommonProps) | ({username: ?string} & CommonProps)

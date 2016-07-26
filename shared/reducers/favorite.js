@@ -1,31 +1,68 @@
 // @flow
 import * as Constants from '../constants/favorite'
 import * as CommonConstants from '../constants/common'
-import type {FavoriteAction, State} from '../constants/favorite'
+import type {FavoriteAction, FavoriteState} from '../constants/favorite'
 
-const initialState: State = {
-  privateBadge: 0,
-  private: {
-    isPublic: false,
+const initialState: FavoriteState = {
+  folderState: {
+    privateBadge: 0,
+    private: {
+      isPublic: false,
+    },
+    publicBadge: 0,
+    public: {
+      isPublic: true,
+    },
   },
-  publicBadge: 0,
-  public: {
-    isPublic: true,
+  viewState: {
+    showingPrivate: true,
+    publicIgnoredOpen: false,
+    privateIgnoredOpen: false,
   },
 }
 
-export default function (state: State = initialState, action: FavoriteAction): State {
+export default function (state: FavoriteState = initialState, action: FavoriteAction): FavoriteState {
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
 
     case Constants.favoriteList:
+      if (action.error) {
+        break
+      }
       return {
         ...state,
-        ...(action.payload && action.payload.folders),
+        folderState: action.payload.folders,
+      }
+
+    case Constants.favoriteSwitchTab:
+      if (action.error) {
+        break
+      }
+      return {
+        ...state,
+        viewState: {
+          ...state.viewState,
+          showingPrivate: action.payload.showingPrivate,
+        },
+      }
+
+    case Constants.favoriteToggleIgnored:
+      if (action.error) {
+        break
+      }
+      return {
+        ...state,
+        viewState: {
+          ...state.viewState,
+          publicIgnoredOpen: action.payload.isPrivate ? state.viewState.publicIgnoredOpen : !state.viewState.publicIgnoredOpen,
+          privateIgnoredOpen: action.payload.isPrivate ? !state.viewState.privateIgnoredOpen : state.viewState.privateIgnoredOpen,
+        },
       }
 
     default:
-      return state
+      break
   }
+
+  return state
 }

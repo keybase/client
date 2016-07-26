@@ -1,19 +1,19 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './list'
+import type {Props, Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
 import {Box, Text, Icon} from '../common-adapters'
 import Row from './row'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
-type State = {
-  showIgnored: boolean
-}
-
 const rowKey = users => users && users.map(u => u.username).join('-')
 
-const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onOpen, onClick, onRekey, smallMode}) => {
+const Ignored = ({rows, showIgnored, styles, onToggle, isPublic, onClick}) => {
   const caretIcon: IconType = showIgnored ? 'iconfont-caret-down' : 'iconfont-caret-right'
+
+  if (!rows) {
+    return null
+  }
 
   return (
     <Box style={stylesIgnoreContainer}>
@@ -24,39 +24,29 @@ const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onOpen, onCl
       {showIgnored && <Box style={styles.bottomBox}>
         <Text type='BodySmallSemibold' style={stylesDividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
       </Box>}
-      {showIgnored && ignored && <Rows
-        rows={ignored}
-        onOpen={onOpen}
-        onClick={onClick}
-        onRekey={onRekey}
-        isPublic={isPublic}
-        smallMode={smallMode}
-        ignored={true}
-      />}
+      {showIgnored && rows}
     </Box>
   )
 }
 
-const Rows = ({rows, ignored, isPublic, onOpen, onClick, onRekey, smallMode}) => (
+const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onClick, onRekey, smallMode}: Props & {isIgnored: boolean, smallMode?: boolean, tlfs?: Array<Folder>}) => (
   <Box>
-    {!!rows && rows.map((row, idx) => (
-      <Row {...row} key={rowKey(row.users)} isPublic={isPublic} ignored={ignored} onClick={onClick}
-        onRekey={onRekey} onOpen={onOpen} isFirst={!idx} smallMode={smallMode} />
+    {!!tlfs && tlfs.map((tlf, idx) => (
+      <Row
+        {...tlf}
+        key={rowKey(tlf.users)}
+        isPublic={isPublic}
+        ignored={isIgnored}
+        onClick={onClick}
+        onRekey={onRekey}
+        onOpen={onOpen}
+        isFirst={!idx}
+        smallMode={smallMode} />
     ))}
   </Box>
 )
 
-class Render extends Component<void, Props, State> {
-  state: State;
-
-  constructor (props: Props) {
-    super(props)
-
-    this.state = {
-      showIgnored: false,
-    }
-  }
-
+class Render extends Component<void, Props, void> {
   render () {
     const realCSS = `
       .folder-row .folder-row-hover-action { visibility: hidden }
@@ -64,31 +54,22 @@ class Render extends Component<void, Props, State> {
     `
 
     const styles = this.props.isPublic ? stylesPublic : stylesPrivate
-
-    const sharedProps = {
-      onOpen: this.props.onOpen,
-      onClick: this.props.onClick,
-      onRekey: this.props.onRekey,
-      isPublic: this.props.isPublic,
-      smallMode: this.props.smallMode,
-    }
+    const ignoredRows = <Rows {...this.props} isIgnored={true} tlfs={this.props.ignored || []} />
 
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
         <style>{realCSS}</style>
         {this.props.extraRows}
         <Rows
-          ignored={false}
-          rows={this.props.tlfs}
-          {...sharedProps}
-        />
-          {this.props.ignored && this.props.ignored.length > 0 && <Ignored
-            ignored={this.props.ignored}
-            showIgnored={this.state.showIgnored}
-            styles={styles}
-            onToggle={() => this.setState({showIgnored: !this.state.showIgnored})}
-            {...sharedProps}
-          />}
+          {...this.props}
+          isIgnored={false}
+          tlfs={this.props.tlfs || []} />
+        <Ignored
+          isPublic={this.props.isPublic}
+          showIgnored={this.props.showIgnored}
+          styles={styles}
+          onToggle={this.props.onToggleShowIgnored}
+          rows={ignoredRows} />
       </Box>
     )
   }

@@ -56,24 +56,22 @@ class Render extends Component<void, Props, void> {
     return (
       <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.lightGrey, paddingTop: 0, minHeight: 32}}>
         <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white, minHeight: this.props.smallMode ? 32 : 64, paddingTop: this.props.smallMode ? 0 : 32}}>
-          <TabBarItem
-            selected={this.props.showingPrivate}
-            styleContainer={itemContainerStyle}
-            tabBarButton={this._makeItem(false, this.props.showingPrivate === true)}
-            onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(true) }}>
-            <List {...this.props.private} {...sharedListProps} isPublic={false} />
-          </TabBarItem>
-          <TabBarItem
-            selected={!this.props.showingPrivate}
-            styleContainer={itemContainerStyle}
-            tabBarButton={this._makeItem(true, this.props.showingPrivate === false)}
-            onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(false) }}>
-            <List
-              {...this.props.public}
-              {...sharedListProps}
-              isPublic={true} // eslint-disable-line
-            />
-          </TabBarItem>
+          {
+            [false, true].map(isPublic => (
+              <TabBarItem
+                key={isPublic ? 'public' : 'private'}
+                selected={this.props.showingPrivate !== isPublic}
+                styleContainer={itemContainerStyle}
+                tabBarButton={this._makeItem(isPublic, this.props.showingPrivate !== isPublic)}
+                onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(!isPublic) }}>
+                <List
+                  {...(isPublic ? this.props.public : this.props.private)}
+                  {...sharedListProps}
+                  isPublic={isPublic}
+                  showIgnored={isPublic ? this.props.publicShowingIgnored : this.props.privateShowingIgnored}
+                  onToggleShowIgnored={() => this.props.onToggleShowIgnored(!isPublic)} />
+              </TabBarItem>
+            ))}
         </TabBar>
       </Box>
     )

@@ -7,13 +7,9 @@ import {Box, Text, Icon} from '../common-adapters'
 import Row from './row'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
-type State = {
-  showIgnored: boolean
-}
-
 const rowKey = users => users && users.map(u => u.username).join('-')
 
-const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic}) => {
+const Ignored = ({rows, showIgnored, ignored, styles, onToggle, isPublic}) => {
   const caretIcon: IconType = showIgnored ? 'iconfont-caret-down' : 'iconfont-caret-down'
 
   return (
@@ -27,32 +23,22 @@ const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic}) => {
       {showIgnored && <Box style={styles.bottomBox}>
         <Text type='BodySmallSemibold' style={styles.dividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
       </Box>}
-      {showIgnored && (ignored || []).map((i, idx) => (
-        <Row
-          key={rowKey(i.users)}
-          {...i}
-          users={i.users}
-          isPublic={isPublic}
-          ignored={true}
-          isFirst={!idx} />
-        ))}
+      {showIgnored && rows}
     </Box>
   )
 }
 
-class Render extends Component<void, Props, State> {
-  state: State;
-
-  constructor (props: Props) {
-    super(props)
-
-    this.state = {
-      showIgnored: false,
-    }
-  }
-
+class Render extends Component<void, Props, void> {
   render () {
     const styles = this.props.isPublic ? stylesPublic : stylesPrivate
+    const ignoredRows = (this.props.ignored || []).map((i, idx) => (
+      <Row
+        {...i}
+        key={rowKey(i.users)}
+        users={i.users}
+        isPublic={this.props.isPublic}
+        ignored={true}
+        isFirst={!idx} />))
 
     return (
       <Box style={stylesContainer}>
@@ -65,8 +51,8 @@ class Render extends Component<void, Props, State> {
             onClick={this.props.onClick}
             isFirst={!idx} />
           ))}
-        <Ignored ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles}
-          isPublic={this.props.isPublic} onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />
+        <Ignored rows={ignoredRows} showIgnored={this.props.showIgnored} styles={styles}
+          isPublic={this.props.isPublic} onToggle={this.props.onToggleShowIgnored} />
       </Box>
     )
   }
