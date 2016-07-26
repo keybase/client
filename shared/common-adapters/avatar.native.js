@@ -1,7 +1,8 @@
 // @flow
 
 import React, {Component} from 'react'
-import {Image, TouchableOpacity} from 'react-native'
+import _ from 'lodash'
+import {Image, TouchableOpacity, View} from 'react-native'
 import type {Props} from './avatar'
 import {Box} from '../common-adapters'
 import {iconMeta} from './icon.constants'
@@ -23,13 +24,25 @@ export default class Avatar extends Component<void, Props, State> {
   render () {
     const {size} = this.props
     const uri = {uri: shared.createAvatarUrl(this.props)}
+    const propsOpacity = this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0
+    const opacity = this.state.avatarLoaded ? propsOpacity : 0
 
     return (
-      <TouchableOpacity style={{...stylesContainer(size), ...this.props.style}} disabled={!this.props.onClick} onPress={this.props.onClick} activeOpacity={0.8}>
+      <TouchableOpacity
+        style={{...stylesContainer(size), ...this.props.style}}
+        disabled={!this.props.onClick}
+        onPress={this.props.onClick}
+        activeOpacity={0.8}>
         <Box style={stylesContainer(size)}>
+          {this.props.hasBackgroundColor &&
+            <View
+              style={_.omit({...stylesImage(size),
+                resizeMode: undefined,
+                backgroundColor: this.props.hasBackgroundColor,
+              }, 'resizeMode')} />}
           {!!uri.uri && <Image
-            style={{...stylesImage(size), opacity: this.state.avatarLoaded ? 1 : 0}}
-            onLoad={e => this.setState({avatarLoaded: true})}
+            style={{...stylesImage(size), opacity}}
+            onLoad={() => this.setState({avatarLoaded: true})}
             source={uri} />}
           {(!this.state.avatarLoaded || !uri.uri) &&
             <Image
@@ -61,12 +74,15 @@ const stylesContainer = (size: number) => ({
   ...globalStyles.flexBoxColumn,
   justifyContent: 'center',
   alignItems: 'center',
+  position: 'relative',
 })
 
 const stylesImage = (size: number) => ({
   ...stylesCommon(size),
   resizeMode: 'cover',
   borderRadius: size / 2,
+  position: 'absolute',
+  top: 0,
 })
 
 const stylesPlaceholderImage = (size: number) => ({
