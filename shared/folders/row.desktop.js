@@ -96,14 +96,14 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
         </Box>
         <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
           {!smallMode && meta !== 'rekey' && <Text
-            type='BodySmall' className='folder-row-hover-action' onClick={onOpenClick} style={stylesAction}>Open</Text>}
+            type='BodySmall' className='folder-row-hover-action' onClick={onOpenClick} style={styles.action}>Open</Text>}
           {meta === 'rekey' && <Button
             backgroundMode={styles.modifiedMode} small={smallMode} type='Secondary'
             onClick={e => {
               if (onRekey) {
                 e.stopPropagation()
                 onRekey(path)
-              } }} label='Rekey' style={stylesAction} />}
+              } }} label='Rekey' style={styles.action} />}
           <Icon type={icon} style={{visibility: hasData ? 'visible' : 'hidden', ...(smallMode && !hasData ? {display: 'none'} : {})}} />
         </Box>
       </Box>
@@ -143,6 +143,11 @@ const stylesPrivate = {
   },
   nameColor: globalColors.white,
   modifiedMode: 'Terminal',
+  action: {
+    ...globalStyles.clickable,
+    alignSelf: 'center',
+    color: globalColors.white,
+  },
 }
 
 const stylesPublic = {
@@ -168,6 +173,11 @@ const stylesPublic = {
   },
   nameColor: globalColors.yellowGreen2,
   modifiedMode: 'Normal',
+  action: {
+    ...globalStyles.clickable,
+    alignSelf: 'center',
+    color: globalColors.black_60,
+  },
 }
 
 const stylesBodyContainer = {
@@ -182,12 +192,6 @@ const stylesActionContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   justifyContent: 'flex-end',
-}
-
-const stylesAction = {
-  ...globalStyles.clickable,
-  color: globalColors.white,
-  alignSelf: 'center',
 }
 
 const stylesModified = {
