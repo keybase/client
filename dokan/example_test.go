@@ -8,7 +8,8 @@ import (
 	"log"
 )
 
-func ExampleMount(myFileSystem FileSystem) {
+func ExampleMount() {
+	var myFileSystem FileSystem // Should be the real filesystem implementation
 	mp, err := Mount(&Config{FileSystem: myFileSystem, Path: `Q:`})
 	if err != nil {
 		log.Fatal("Mount failed:", err)
