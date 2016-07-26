@@ -37,11 +37,24 @@ export default class Avatar extends Component {
         {showNoAvatar &&
           <img src={noAvatar} style={{...avatarStyle, display: 'block'}} />}
         {showLoadingColor && <div style={{...avatarStyle, backgroundColor: this.props.loadingColor}} />}
+        {this.props.hasBackgroundColor &&
+          <div
+            style={{...avatarStyle,
+              backgroundColor: this.props.hasBackgroundColor,
+              backgroundSize: 'cover',
+            }} />}
+        {!this.state.avatarLoaded &&
+          <div
+            style={{...avatarStyle,
+              backgroundImage: `url('${noAvatar}')`,
+              backgroundSize: 'cover',
+            }} />}
         <img
           src={url}
           style={{...avatarStyle,
             display: (!showNoAvatar && !showLoadingColor) ? 'block' : 'none',
             backgroundColor: globalColors.white,
+            opacity: this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0,
           }}
           onError={() => this.setState({errored: true})}
           onLoad={() => this.setState({avatarLoaded: true})} />

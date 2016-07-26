@@ -6,21 +6,23 @@ import type {IconType} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
-const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar}) => {
-  const paddingLR = smallMode ? 4 : 8
-  const paddingTB = smallMode ? 8 : 12
+const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored}) => {
+  const boxStyle = {
+    width: smallMode ? 32 : 48,
+    minHeight: smallMode ? 40 : 48,
+    paddingTop: smallMode ? 8 : 12,
+    paddingBottom: smallMode ? 8 : 12,
+    paddingLeft: smallMode ? 4 : 8,
+    paddingRight: smallMode ? 4 : 8,
+  }
 
   const groupIcon: IconType = smallMode ? styles.groupIcon.small : styles.groupIcon.normal
   return (
-    <Box style={{
-      ...styles.avatarContainer,
-      width: smallMode ? 32 : 48,
-      minHeight: smallMode ? 40 : 48,
-      paddingTop: paddingTB, paddingBottom: paddingTB,
-      paddingLeft: paddingLR, paddingRight: paddingLR}}>
+    <Box style={{...styles.avatarContainer, ...boxStyle}}>
       {groupAvatar
-        ? <Icon type={groupIcon} />
-        : <Avatar size={smallMode ? 24 : 32} username={userAvatar} />}
+        ? <Icon type={groupIcon} style={ignored ? {opacity: 0.5} : {}} />
+        : <Avatar size={smallMode ? 24 : 32} username={userAvatar} opacity={ignored ? 0.5 : 1.0}
+          hasBackgroundColor={styles.rowContainer.backgroundColor} />}
     </Box>
   )
 }
@@ -56,8 +58,9 @@ const RowMeta = ({ignored, meta, styles}) => {
   return <Meta {...metaProps} />
 }
 
-const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onOpen, onClick, groupAvatar, userAvatar, onRekey, path}:
-  {smallMode: boolean, onOpen: (path: string) => void, onClick: (path: string) => void, onRekey: (path: string) => void} & Folder) => {
+type RowType = {smallMode: boolean, onOpen: (path: string) => void, onClick: (path: string) => void, onRekey: (path: string) => void}
+const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
+  onOpen, onClick, groupAvatar, userAvatar, onRekey, path}: RowType & Folder) => {
   const onOpenClick = event => {
     event.preventDefault()
     event.stopPropagation()
@@ -85,7 +88,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onOp
     <Box style={containerStyle} className='folder-row' onClick={() => onClick && onClick(path)}>
       <Box style={stylesLine} />
       <Box style={{...globalStyles.flexBoxRow}}>
-        <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} />
+        <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} ignored={ignored} />
         <Box style={stylesBodyContainer}>
           <Usernames users={users} type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'} style={{color: styles.nameColor}} />
           {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
