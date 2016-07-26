@@ -88,7 +88,7 @@ func (p *Prove) checkExists1(ctx *Context) (err error) {
 func (p *Prove) promptRemoteName(ctx *Context) error {
 	// If the name is already supplied, there's no need to prompt.
 	if len(p.arg.Username) > 0 {
-		remoteNameNormalized, err := p.st.NormalizeRemoteName(p.arg.Username)
+		remoteNameNormalized, err := p.st.NormalizeRemoteName(p.G(), p.arg.Username)
 		if err == nil {
 			p.remoteNameNormalized = remoteNameNormalized
 		}
@@ -107,7 +107,7 @@ func (p *Prove) promptRemoteName(ctx *Context) error {
 			return err
 		}
 		var remoteNameNormalized string
-		remoteNameNormalized, normalizationError = p.st.NormalizeRemoteName(un)
+		remoteNameNormalized, normalizationError = p.st.NormalizeRemoteName(p.G(), un)
 		if normalizationError == nil {
 			p.remoteNameNormalized = remoteNameNormalized
 			return nil
@@ -148,7 +148,7 @@ func (p *Prove) checkExists2(ctx *Context) (err error) {
 
 func (p *Prove) doPrechecks(ctx *Context) (err error) {
 	var w *libkb.Markup
-	w, err = p.st.PreProofCheck(p.remoteNameNormalized)
+	w, err = p.st.PreProofCheck(p.G(), p.remoteNameNormalized)
 	if w != nil {
 		if uierr := ctx.ProveUI.OutputPrechecks(context.TODO(), keybase1.OutputPrechecksArg{Text: w.Export()}); uierr != nil {
 			p.G().Log.Warning("prove ui OutputPrechecks call error: %s", uierr)

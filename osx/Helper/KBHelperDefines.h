@@ -20,10 +20,4 @@ typedef void (^KBOnCompletion)(NSError *error, id value);
 #define KBOr(obj, dv) (obj ? obj : dv)
 #define KBIfNull(obj, val) ([obj isEqual:NSNull.null] ? val : obj)
 
-
-void KBHelperLog(NSString *msg, ...);
-
 NSString *KBNSStringWithFormat(NSString *formatString, ...);
-
-#undef KBLog
-#define KBLog KBHelperLog

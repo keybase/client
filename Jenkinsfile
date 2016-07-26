@@ -4,12 +4,32 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
     println "Skipping build because PR title contains [ci-skip]"
 } else {
     nodeWithCleanup("ec2-fleet", {
+        def message = null
+        def color = "warning"
         if (env.CHANGE_ID) {
+            message = "<${env.CHANGE_URL}|${env.CHANGE_TITLE}>\n :small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}> by ${env.CHANGE_AUTHOR}"
+        } else if (env.BRANCH_NAME == "master" && cause != "upstream" && env.AUTHOR_NAME) {
+            sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
+            sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
+            env.AUTHOR_NAME = readFile('.author_name')
+            env.AUTHOR_EMAIL = readFile('.author_email')
+            sh 'rm .author_name .author_email'
+            def commitUrl = "https://github.com/keybase/client/commit/${env.COMMIT_HASH}"
+            color = "danger"
+            message = "*BROKEN: master on keybase/client*\n :small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>\n Commit: <${commitUrl}|${env.COMMIT_HASH}>\n Author: ${env.AUTHOR_NAME} &lt;${env.AUTHOR_EMAIL}&gt;"
+        }
+        if (message) {
             withCredentials([[$class: 'StringBinding',
                 credentialsId: 'SLACK_INTEGRATION_TOKEN',
                 variable: 'SLACK_INTEGRATION_TOKEN',
             ]]) {
-                slackSend channel: "#ci-notify", color: "danger", message: "<${env.CHANGE_URL}|${env.CHANGE_TITLE}>\n:small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}> by ${env.CHANGE_AUTHOR}", teamDomain: "keybase", token: "${env.SLACK_INTEGRATION_TOKEN}"
+                slackSend([
+                    channel: "#ci-notify",
+                    color: color,
+                    message: message,
+                    teamDomain: "keybase",
+                    token: "${env.SLACK_INTEGRATION_TOKEN}"
+                ])
             }
         }
     }, {
@@ -52,6 +72,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
         def mysqlImage = docker.image("keybaseprivate/mysql")
         def gregorImage = docker.image("keybaseprivate/kbgregor")
         def kbwebImage = docker.image("keybaseprivate/kbweb")
+        def glibcImage = docker.image("keybaseprivate/glibc")
         def clientImage = null
 
         sh "curl -s http://169.254.169.254/latest/meta-data/public-ipv4 > public.txt"
@@ -80,10 +101,15 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             retry(3) {
                                 checkout scm
                             }
-                            sh "git rev-parse HEAD | tee go/revision"
+                            sh 'echo -n $(git rev-parse HEAD) > go/revision'
                             sh "git add go/revision"
+                            env.COMMIT_HASH = readFile('go/revision')
+                        },
+                        pull_glibc: {
+                            glibcImage.pull()
                         },
                         pull_mysql: {
+                            sh "docker rmi keybaseprivate/mysql || echo 'No mysql image to remove'"
                             mysqlImage.pull()
                         },
                         pull_gregor: {
@@ -160,8 +186,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             sh "go install github.com/keybase/client/go/keybase"
                                             sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
                                             clientImage = docker.build("keybaseprivate/kbclient")
-                                            sh "docker save -o kbclient.tar keybaseprivate/kbclient"
-                                            archive("kbclient.tar")
+                                            sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
+                                            archive("kbclient.tar.gz")
                                             //build([
                                             //    job: "/kbfs/master",
                                             //    parameters: [

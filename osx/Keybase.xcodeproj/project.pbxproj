@@ -28,6 +28,7 @@
 		009E136B1B27B39300C72B28 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 009E136A1B27B39300C72B28 /* icon.icns */; };
 		009E136F1B27B39300C72B28 /* ActionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 009E136E1B27B39300C72B28 /* ActionViewController.m */; };
 		009E13711B27B39300C72B28 /* ActionViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 009E13701B27B39300C72B28 /* ActionViewController.xib */; };
+		00A8E4AF1D42A4CD00B77F08 /* KBLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 00A8E4AE1D42A4CD00B77F08 /* KBLogger.m */; };
 		00AA043C1C03D6AF0047E448 /* Installer.m in Sources */ = {isa = PBXBuildFile; fileRef = 00AA043B1C03D6AF0047E448 /* Installer.m */; };
 		00CC43521A3A9E6C006118A9 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 00CC43511A3A9E6C006118A9 /* main.m */; };
 		00DAF5C01B2F8969000D7F9A /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 00DAF5BE1B2F885D000D7F9A /* Social.framework */; };
@@ -146,6 +147,8 @@
 		009E136D1B27B39300C72B28 /* ActionViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ActionViewController.h; sourceTree = "<group>"; };
 		009E136E1B27B39300C72B28 /* ActionViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ActionViewController.m; sourceTree = "<group>"; };
 		009E13701B27B39300C72B28 /* ActionViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ActionViewController.xib; sourceTree = "<group>"; };
+		00A8E4AD1D42A4CD00B77F08 /* KBLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLogger.h; sourceTree = "<group>"; };
+		00A8E4AE1D42A4CD00B77F08 /* KBLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLogger.m; sourceTree = "<group>"; };
 		00AA043A1C03D6AF0047E448 /* Installer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Installer.h; sourceTree = "<group>"; };
 		00AA043B1C03D6AF0047E448 /* Installer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Installer.m; sourceTree = "<group>"; };
 		00AA750F1B27635D0069A6CC /* Tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Tests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -317,6 +320,8 @@
 				003C454F1AE6D1CA00431829 /* KBHelperDefines.m */,
 				003F6C921BEC287600638A74 /* KBHelperTest.h */,
 				003F6C931BEC287600638A74 /* KBHelperTest.m */,
+				00A8E4AD1D42A4CD00B77F08 /* KBLogger.h */,
+				00A8E4AE1D42A4CD00B77F08 /* KBLogger.m */,
 			);
 			path = Helper;
 			sourceTree = "<group>";
@@ -934,6 +939,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				003B40471B265F7B000B7D3B /* KBKext.m in Sources */,
+				00A8E4AF1D42A4CD00B77F08 /* KBLogger.m in Sources */,
 				0057B0C61AE57A7A00BFB0E7 /* main.m in Sources */,
 				003B40481B265F7B000B7D3B /* KBHelperDefines.m in Sources */,
 				003B40451B265F7B000B7D3B /* KBHelper.m in Sources */,

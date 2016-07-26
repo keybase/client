@@ -8,21 +8,6 @@
 
 #import "KBHelperDefines.h"
 
-#import <syslog.h>
-
-void KBHelperLog(NSString *msg, ...) {
-  va_list args;
-  va_start(args, msg);
-
-  NSString *string = [[NSString alloc] initWithFormat:msg arguments:args];
-
-  va_end(args);
-
-  NSLog(@"%@", string);
-  syslog(LOG_NOTICE, "%s", [string UTF8String]);
-}
-
-
 NSString *KBNSStringWithFormat(NSString *formatString, ...) {
   va_list args;
   va_start(args, formatString);

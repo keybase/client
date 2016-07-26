@@ -1314,12 +1314,12 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 	// cache (in the defer above).
 	doCache = true
 
-	if res.err = pc.CheckHint(*res.hint); res.err != nil {
+	if res.err = pc.CheckHint(idt.G(), *res.hint); res.err != nil {
 		idt.G().Log.Debug("| Hint failed with error: %s", res.err.Error())
 		return
 	}
 
-	res.err = pc.CheckStatus(*res.hint)
+	res.err = pc.CheckStatus(idt.G(), *res.hint)
 
 	// If no error than all good
 	if res.err == nil {

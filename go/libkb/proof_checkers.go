@@ -9,8 +9,8 @@ import (
 
 // ProofChecker is an interface for performing a remote check for a proof
 type ProofChecker interface {
-	CheckHint(h SigHint) ProofError
-	CheckStatus(h SigHint) ProofError
+	CheckHint(g *GlobalContext, h SigHint) ProofError
+	CheckStatus(g *GlobalContext, h SigHint) ProofError
 	GetTorError() ProofError
 }
 
