@@ -71,9 +71,8 @@ func (fi *FileInfo) IsDeleteOnClose() bool {
 	return fi.ptr.DeleteOnClose != 0
 }
 
-// IsRequestorUserSidEqualTo returns true if the sid passed as
-// the argument is equal to the sid of the user associated with
-// the filesystem request.
+// IsRequestorUserSidEqualTo returns true if the argument is equal
+// to the sid of the user associated with the filesystem request.
 func (fi *FileInfo) IsRequestorUserSidEqualTo(sid *SID) bool {
 	return fi.isRequestorUserSidEqualTo(sid)
 }

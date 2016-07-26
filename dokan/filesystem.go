@@ -30,7 +30,7 @@ type Config struct {
 // FileSystem is the inteface for filesystems in Dokan.
 type FileSystem interface {
 	// WithContext returns a context for a new request. If the CancelFunc
-	// is not null it is called after the request is done. The most minimal
+	// is not null, it is called after the request is done. The most minimal
 	// implementation is
 	// `func (*T)WithContext(c context.Context) { return c, nil }`.
 	WithContext(context.Context) (context.Context, context.CancelFunc)
@@ -212,8 +212,8 @@ type Stat struct {
 }
 
 // NamedStat is used to for stat responses that require file names.
-// If the name is longer than a dos-name insert the corresponding
-// dos-name to ShortName.
+// If the name is longer than a DOS-name, insert the corresponding
+// DOS-name to ShortName.
 type NamedStat struct {
 	Name      string
 	ShortName string
