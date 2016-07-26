@@ -1726,7 +1726,8 @@ func isRecoverableBlockErrorForRemoval(err error) bool {
 
 func isRetriableError(err error, retries int) bool {
 	_, isExclOnUnmergedError := err.(ExclOnUnmergedError)
-	recoverable := isExclOnUnmergedError || isRevisionConflict(err) ||
+	_, isUnmergedSelfConflictError := err.(UnmergedSelfConflictError)
+	recoverable := isExclOnUnmergedError || isUnmergedSelfConflictError ||
 		isRecoverableBlockError(err)
 	return recoverable && retries < maxRetriesOnRecoverableErrors
 }
@@ -1915,10 +1916,11 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 			bid = fbo.bid
 		}
 		err := mdops.PutUnmerged(ctx, md, bid)
+		if isRevisionConflict(err) {
+			// Self-conflicts are retried in `doMDWriteWithRetry`.
+			err = UnmergedSelfConflictError{err}
+		}
 		if err != nil {
-			// TODO: if this is a conflict error, we should try to
-			// fast-forward to the most recent revision after
-			// returning this error.
 			return err
 		}
 		fbo.setBranchIDLocked(lState, bid)
@@ -2244,7 +2246,7 @@ func (fbo *folderBranchOps) doMDWriteWithRetry(ctx context.Context,
 				if err = fbo.cr.Wait(ctx); err != nil {
 					return err
 				}
-			} else if isRevisionConflict(err) {
+			} else if _, ok := err.(UnmergedSelfConflictError); ok {
 				// We can only get here if we are already on an
 				// unmerged branch and an errored PutUnmerged did make
 				// it to the mdserver.  Let's force sync, with a fresh

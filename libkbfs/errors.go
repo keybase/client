@@ -1163,3 +1163,15 @@ type RekeyConflictError struct {
 func (e RekeyConflictError) Error() string {
 	return fmt.Sprintf("Conflict during a rekey, not retrying: %v", e.Err)
 }
+
+// UnmergedSelfConflictError indicates that we hit a conflict on the
+// unmerged branch, so a previous MD PutUnmerged we thought had
+// failed, had actually succeeded.
+type UnmergedSelfConflictError struct {
+	Err error
+}
+
+// Error implements the error interface for UnmergedSelfConflictError.
+func (e UnmergedSelfConflictError) Error() string {
+	return fmt.Sprintf("Unmerged self conflict: %v", e.Err)
+}
