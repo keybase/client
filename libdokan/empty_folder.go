@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
@@ -25,11 +23,11 @@ func (ef *EmptyFolder) open(ctx context.Context, oc *openContext, path []string)
 }
 
 // GetFileInformation for dokan.
-func (*EmptyFolder) GetFileInformation(*dokan.FileInfo) (a *dokan.Stat, err error) {
+func (*EmptyFolder) GetFileInformation(context.Context, *dokan.FileInfo) (a *dokan.Stat, err error) {
 	return defaultDirectoryInformation()
 }
 
 // FindFiles for dokan.
-func (*EmptyFolder) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
+func (*EmptyFolder) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
 	return nil
 }

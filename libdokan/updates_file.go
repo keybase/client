@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
@@ -25,9 +23,9 @@ type UpdatesFile struct {
 }
 
 // WriteFile performs writes for dokan.
-func (f *UpdatesFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
-	ctx, cancel := NewContextWithOpID(f.folder.fs, "UpdatesFile WriteFile")
-	defer func() { f.folder.fs.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
+func (f *UpdatesFile) WriteFile(ctx context.Context, fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
+	f.folder.fs.logEnter(ctx, "UpdatesFile WriteFile")
+	defer func() { f.folder.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
 	f.folder.fs.log.CDebugf(ctx, "UpdatesFile (enable: %t) Write", f.enable)
 	if len(bs) == 0 {
 		return 0, nil

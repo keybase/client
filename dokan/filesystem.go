@@ -7,70 +7,149 @@ package dokan
 import (
 	"strconv"
 	"time"
+
+	"golang.org/x/net/context"
 )
+
+// Config is the configuration used for a mount.
+type Config struct {
+	// Path is the path to mount, e.g. `L:`. Must be set.
+	Path string
+	// FileSystem is the filesystem implementation. Must be set.
+	FileSystem FileSystem
+	// MountFlags for this filesystem instance. Is optional.
+	MountFlags MountFlag
+	// DllPath is the optional full path to dokan1.dll.
+	// Empty causes dokan1.dll to be loaded from the system directory.
+	// Only the first load of a dll determines the path -
+	// further instances in the same process will use
+	// the same instance regardless of path.
+	DllPath string
+}
 
 // FileSystem is the inteface for filesystems in Dokan.
 type FileSystem interface {
-	CreateFile(fi *FileInfo, data *CreateData) (file File, isDirectory bool, err error)
-	GetDiskFreeSpace() (FreeSpace, error)
+	// WithContext returns a context for a new request. If the CancelFunc
+	// is not null, it is called after the request is done. The most minimal
+	// implementation is
+	// `func (*T)WithContext(c context.Context) { return c, nil }`.
+	WithContext(context.Context) (context.Context, context.CancelFunc)
 
-	MoveFile(source *FileInfo, targetPath string, replaceExisting bool) error
+	// CreateFile is called to open and create files.
+	CreateFile(ctx context.Context, fi *FileInfo, data *CreateData) (file File, isDirectory bool, err error)
 
-	GetVolumeInformation() (VolumeInformation, error)
-	Mounted() error
+	// GetDiskFreeSpace returns information about disk free space.
+	// Called quite often by Explorer.
+	GetDiskFreeSpace(ctx context.Context) (FreeSpace, error)
 
-	MountFlags() MountFlag
+	// GetVolumeInformation returns information about the volume.
+	GetVolumeInformation(ctx context.Context) (VolumeInformation, error)
+
+	// MoveFile corresponds to rename.
+	MoveFile(ctx context.Context, source *FileInfo, targetPath string, replaceExisting bool) error
 }
 
 // MountFlag is the type for Dokan mount flags.
 type MountFlag uint32
 
+// Flags for mounting the filesystem. See Dokan documentation for these.
+const (
+	CDebug         = MountFlag(kbfsLibdokanDebug)
+	CStderr        = MountFlag(kbfsLibdokanStderr)
+	Removable      = MountFlag(kbfsLibdokanRemovable)
+	MountManager   = MountFlag(kbfsLibdokanMountManager)
+	CurrentSession = MountFlag(kbfsLibdokanCurrentSession)
+)
+
 // CreateData contains all the info needed to create a file.
 type CreateData struct {
 	DesiredAccess     uint32
-	FileAttributes    uint32
+	FileAttributes    FileAttribute
 	ShareAccess       uint32
-	CreateDisposition uint32
+	CreateDisposition CreateDisposition
 	CreateOptions     uint32
 }
 
+// CreateDisposition marks whether to create or open a file. Not a bitmask.
+type CreateDisposition uint32
+
+// File creation flags for CreateFile. This is not a bitmask.
+const (
+	FileSupersede   = CreateDisposition(0)
+	FileOpen        = CreateDisposition(1)
+	FileCreate      = CreateDisposition(2)
+	FileOpenIf      = CreateDisposition(3)
+	FileOverwrite   = CreateDisposition(4)
+	FileOverwriteIf = CreateDisposition(5)
+)
+
+// CreateOptions flags. These are bitmask flags.
+const (
+	FileDirectoryFile    = 0x1
+	FileNonDirectoryFile = 0x40
+	FileOpenReparsePoint = 0x00200000
+)
+
+// FileAttribute is the type of a directory entry in Stat.
+type FileAttribute uint32
+
+// File attribute bit masks - same as syscall but provided for all platforms.
+const (
+	FileAttributeReadonly     = FileAttribute(0x00000001)
+	FileAttributeHidden       = FileAttribute(0x00000002)
+	FileAttributeSystem       = FileAttribute(0x00000004)
+	FileAttributeDirectory    = FileAttribute(0x00000010)
+	FileAttributeArchive      = FileAttribute(0x00000020)
+	FileAttributeNormal       = FileAttribute(0x00000080)
+	FileAttributeReparsePoint = FileAttribute(0x00000400)
+	IOReparseTagSymlink       = 0xA000000C
+)
+
 // File is the interface for files and directories.
 type File interface {
-	// Cleanup is called after the last handle from userspace is closed.
-	// Cleanup must perform actual deletions marked from CanDelete*
-	// by checking FileInfo.DeleteOnClose if the filesystem supports
-	// deletions.
-	Cleanup(fi *FileInfo)
-	// CloseFile is called when closing a handle to the file
-	CloseFile(fi *FileInfo)
+	// ReadFile implements read for dokan.
+	ReadFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error)
+	// WriteFile implements write for dokan.
+	WriteFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error)
+	// FlushFileBuffers corresponds to fsync.
+	FlushFileBuffers(ctx context.Context, fi *FileInfo) error
 
-	ReadFile(fi *FileInfo, bs []byte, offset int64) (int, error)
-	WriteFile(fi *FileInfo, bs []byte, offset int64) (int, error)
-	FlushFileBuffers(fi *FileInfo) error
-
-	GetFileInformation(*FileInfo) (*Stat, error)
-	FindFiles(*FileInfo, func(*NamedStat) error) error
+	// GetFileInformation - corresponds to stat.
+	GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, error)
+	// FindFiles is the readdir. The function is a callback that
+	// should be called with each file. The same NamedStat may
+	// be reused for subsequent calls.
+	FindFiles(ctx context.Context, fi *FileInfo, fillStatCallback func(*NamedStat) error) error
 
 	//FindFilesWithPattern
 
 	// SetFileTime sets the file time. Test times with .IsZero
 	// whether they should be set.
-	SetFileTime(fi *FileInfo, creation time.Time, lastAccess time.Time, lastWrite time.Time) error
-	SetFileAttributes(fi *FileInfo, fileAttributes uint32) error
+	SetFileTime(ctx context.Context, fi *FileInfo, creation time.Time, lastAccess time.Time, lastWrite time.Time) error
+	// SetFileAttributes is for setting file attributes.
+	SetFileAttributes(ctx context.Context, fi *FileInfo, fileAttributes FileAttribute) error
 
-	SetEndOfFile(fi *FileInfo, length int64) error
-	// SetAllocationSize see FILE_ALLOCATION_INFORMATION on msdn.
+	// SetEndOfFile truncates the file. May be used to extend a file with zeros.
+	SetEndOfFile(ctx context.Context, fi *FileInfo, length int64) error
+	// SetAllocationSize see FILE_ALLOCATION_INFORMATION on MSDN.
 	// For simple semantics if length > filesize then ignore else truncate(length).
-	SetAllocationSize(fi *FileInfo, length int64) error
+	SetAllocationSize(ctx context.Context, fi *FileInfo, length int64) error
 
-	LockFile(fi *FileInfo, offset int64, length int64) error
-	UnlockFile(fi *FileInfo, offset int64, length int64) error
+	LockFile(ctx context.Context, fi *FileInfo, offset int64, length int64) error
+	UnlockFile(ctx context.Context, fi *FileInfo, offset int64, length int64) error
 
 	// CanDeleteFile and CanDeleteDirectory should check whether the file/directory
 	// can be deleted. The actual deletion should be done by checking
-	// FileInfo.DeleteOnClose in Cleanup.
-	CanDeleteFile(*FileInfo) error
-	CanDeleteDirectory(*FileInfo) error
+	// FileInfo.IsDeleteOnClose in Cleanup.
+	CanDeleteFile(ctx context.Context, fi *FileInfo) error
+	CanDeleteDirectory(ctx context.Context, fi *FileInfo) error
+	// Cleanup is called after the last handle from userspace is closed.
+	// Cleanup must perform actual deletions marked from CanDelete*
+	// by checking FileInfo.IsDeleteOnClose if the filesystem supports
+	// deletions.
+	Cleanup(ctx context.Context, fi *FileInfo)
+	// CloseFile is called when closing a handle to the file.
+	CloseFile(ctx context.Context, fi *FileInfo)
 }
 
 // FreeSpace - semantics as with WINAPI GetDiskFreeSpaceEx
@@ -116,15 +195,15 @@ const (
 
 // Stat is for GetFileInformation and friends.
 type Stat struct {
-	// FileAttributes holds the file attributes (see package syscall).
-	FileAttributes uint32
+	// FileAttributes bitmask holds the file attributes.
+	FileAttributes FileAttribute
 	// Timestamps for the file
 	Creation, LastAccess, LastWrite time.Time
 	// VolumeSerialNumber is the serial number of the volume (0 is fine)
 	VolumeSerialNumber uint32
 	// FileSize is the size of the file in bytes
 	FileSize int64
-	// NumberOfLinks should typically be 1
+	// NumberOfLinks can be omitted, if zero set to 1.
 	NumberOfLinks uint32
 	// FileIndex is a 64 bit (nearly) unique ID of the file
 	FileIndex uint64
@@ -133,40 +212,42 @@ type Stat struct {
 }
 
 // NamedStat is used to for stat responses that require file names.
-// If the name is longer than a dos-name insert the corresponding
-// dos-name to ShortName.
+// If the name is longer than a DOS-name, insert the corresponding
+// DOS-name to ShortName.
 type NamedStat struct {
 	Name      string
 	ShortName string
 	Stat
 }
 
-// NtError is a type of errors for NTSTATUS values
-type NtError uint32
+// NtStatus is a type implementing error interface that corresponds
+// to NTSTATUS. It can be used to set the exact error/status code
+// from the filesystem.
+type NtStatus uint32
 
-func (n NtError) Error() string {
+func (n NtStatus) Error() string {
 	return "NTSTATUS=" + strconv.FormatUint(uint64(n), 16)
 }
 
 const (
 	// ErrAccessDenied - access denied (EPERM)
-	ErrAccessDenied = NtError(0xC0000022)
+	ErrAccessDenied = NtStatus(0xC0000022)
 	// ErrObjectNameNotFound - filename does not exist (ENOENT)
-	ErrObjectNameNotFound = NtError(0xC0000034)
+	ErrObjectNameNotFound = NtStatus(0xC0000034)
 	// ErrObjectNameCollision - a pathname already exists (EEXIST)
-	ErrObjectNameCollision = NtError(0xC0000035)
+	ErrObjectNameCollision = NtStatus(0xC0000035)
 	// ErrObjectPathNotFound - a pathname does not exist (ENOENT)
-	ErrObjectPathNotFound = NtError(0xC000003A)
+	ErrObjectPathNotFound = NtStatus(0xC000003A)
 	// ErrNotSupported - not supported.
-	ErrNotSupported = NtError(0xC00000BB)
+	ErrNotSupported = NtStatus(0xC00000BB)
 	// ErrFileIsADirectory - file is a directory.
-	ErrFileIsADirectory = NtError(0xC00000BA)
+	ErrFileIsADirectory = NtStatus(0xC00000BA)
 	// ErrDirectoryNotEmpty - wanted an empty dir - it is not empty.
-	ErrDirectoryNotEmpty = NtError(0xC0000101)
+	ErrDirectoryNotEmpty = NtStatus(0xC0000101)
 	// ErrFileAlreadyExists - file already exists - fatal.
-	ErrFileAlreadyExists = NtError(0xC0000035)
+	ErrFileAlreadyExists = NtStatus(0xC0000035)
 	// ErrNotSameDevice - MoveFile is denied, please use copy+delete.
-	ErrNotSameDevice = NtError(0xC00000D4)
+	ErrNotSameDevice = NtStatus(0xC00000D4)
 	// StatusObjectNameExists - already exists, may be non-fatal...
-	StatusObjectNameExists = NtError(0x40000000)
+	StatusObjectNameExists = NtStatus(0x40000000)
 )

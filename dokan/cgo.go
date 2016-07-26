@@ -21,20 +21,27 @@ import (
 	"unicode/utf16"
 	"unsafe"
 
+	"golang.org/x/net/context"
 	"golang.org/x/sys/windows"
 )
 
+// Wrap SID for users.
+type SID syscall.SID
+
 const (
-	CDebug         = MountFlag(C.kbfsLibdokanDebug)
-	CStderr        = MountFlag(C.kbfsLibdokanDebug)
-	Removable      = MountFlag(C.kbfsLibdokanRemovable)
-	MountManager   = MountFlag(C.kbfsLibdokanMountManager)
-	CurrentSession = MountFlag(C.kbfsLibdokanCurrentSession)
+	kbfsLibdokanDebug          = MountFlag(C.kbfsLibdokanDebug)
+	kbfsLibdokanStderr         = MountFlag(C.kbfsLibdokanStderr)
+	kbfsLibdokanRemovable      = MountFlag(C.kbfsLibdokanRemovable)
+	kbfsLibdokanMountManager   = MountFlag(C.kbfsLibdokanMountManager)
+	kbfsLibdokanCurrentSession = MountFlag(C.kbfsLibdokanCurrentSession)
 )
 
-// LoadDokanDLL can be called to init the system with custom Dokan location,
+// loadDokanDLL can be called to init the system with custom Dokan location,
 // e.g. LoadDokanDLL(`C:\mypath\dokan1.dll`).
-func LoadDokanDLL(fullpath string) error {
+func loadDokanDLL(fullpath string) error {
+	if fullpath == "" {
+		return nil
+	}
 	dw := syscall.Errno(C.kbfsLibdokanLoadLibrary((*C.WCHAR)(stringToUtf16Ptr(fullpath))))
 	if dw != 0 {
 		return dw
@@ -51,35 +58,55 @@ func kbfsLibdokanCreateFile(
 	DesiredAccess C.ACCESS_MASK,
 	FileAttributes C.ULONG,
 	ShareAccess C.ULONG,
-	CreateDisposition C.ULONG,
+	cCreateDisposition C.ULONG,
 	CreateOptions C.ULONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	var cd = CreateData{
 		DesiredAccess:     uint32(DesiredAccess),
-		FileAttributes:    uint32(FileAttributes),
+		FileAttributes:    FileAttribute(FileAttributes),
 		ShareAccess:       uint32(ShareAccess),
-		CreateDisposition: uint32(CreateDisposition),
+		CreateDisposition: CreateDisposition(cCreateDisposition),
 		CreateOptions:     uint32(CreateOptions),
 	}
 	debugf("CreateFile '%v' %#v pid: %v\n",
 		d16{fname}, cd, pfi.ProcessId)
-	fi, isDir, err := getfs(pfi).CreateFile(makeFI(fname, pfi), &cd)
+	fs := getfs(pfi)
+	ctx, cancel := fs.WithContext(globalContext())
+	if cancel != nil {
+		defer cancel()
+	}
+	fi, isDir, err := fs.CreateFile(ctx, makeFI(fname, pfi), &cd)
 	if isDir {
 		pfi.IsDirectory = 1
 	}
 	return fiStore(pfi, fi, err)
 }
 
+func globalContext() context.Context {
+	return context.Background()
+}
+func getContext(pfi C.PDOKAN_FILE_INFO) (context.Context, context.CancelFunc) {
+	return getfs(pfi).WithContext(globalContext())
+}
+
 //export kbfsLibdokanCleanup
 func kbfsLibdokanCleanup(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) {
 	debugf("Cleanup '%v' %v\n", d16{fname}, *pfi)
-	getfi(pfi).Cleanup(makeFI(fname, pfi))
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+	getfi(pfi).Cleanup(ctx, makeFI(fname, pfi))
 }
 
 //export kbfsLibdokanCloseFile
 func kbfsLibdokanCloseFile(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) {
 	debugf("CloseFile '%v' %v\n", d16{fname}, *pfi)
-	getfi(pfi).CloseFile(makeFI(fname, pfi))
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+	getfi(pfi).CloseFile(ctx, makeFI(fname, pfi))
 	fiTableFreeFile(uint32(pfi.DokanOptions.GlobalContext), uint32(pfi.Context))
 	pfi.Context = 0
 }
@@ -93,7 +120,12 @@ func kbfsLibdokanReadFile(
 	Offset C.LONGLONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("ReadFile '%v' %d bytes @ %d %v", d16{fname}, NumberOfBytesToRead, Offset, *pfi)
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
 	n, err := getfi(pfi).ReadFile(
+		ctx,
 		makeFI(fname, pfi),
 		bufToSlice(unsafe.Pointer(Buffer), uint32(NumberOfBytesToRead)),
 		int64(Offset))
@@ -115,7 +147,12 @@ func kbfsLibdokanWriteFile(
 	Offset C.LONGLONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("WriteFile '%v' %d bytes @ %d %v", d16{fname}, NumberOfBytesToWrite, Offset, *pfi)
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
 	n, err := getfi(pfi).WriteFile(
+		ctx,
 		makeFI(fname, pfi),
 		bufToSlice(unsafe.Pointer(Buffer), uint32(NumberOfBytesToWrite)),
 		int64(Offset))
@@ -129,8 +166,19 @@ func kbfsLibdokanFlushFileBuffers(
 	fname C.LPCWSTR,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("FlushFileBuffers '%v' %v", d16{fname}, *pfi)
-	err := getfi(pfi).FlushFileBuffers(makeFI(fname, pfi))
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+	err := getfi(pfi).FlushFileBuffers(ctx, makeFI(fname, pfi))
 	return errToNT(err)
+}
+
+func u32zeroToOne(u uint32) uint32 {
+	if u == 0 {
+		return 1
+	}
+	return u
 }
 
 //export kbfsLibdokanGetFileInformation
@@ -139,7 +187,11 @@ func kbfsLibdokanGetFileInformation(
 	sbuf C.LPBY_HANDLE_FILE_INFORMATION,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("GetFileInformation '%v' %v", d16{fname}, *pfi)
-	st, err := getfi(pfi).GetFileInformation(makeFI(fname, pfi))
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+	st, err := getfi(pfi).GetFileInformation(ctx, makeFI(fname, pfi))
 	debug("->", st, err)
 	if st != nil {
 		sbuf.dwFileAttributes = C.DWORD(st.FileAttributes)
@@ -149,7 +201,7 @@ func kbfsLibdokanGetFileInformation(
 		sbuf.dwVolumeSerialNumber = C.DWORD(st.VolumeSerialNumber)
 		sbuf.nFileSizeHigh = C.DWORD(st.FileSize >> 32)
 		sbuf.nFileSizeLow = C.DWORD(st.FileSize)
-		sbuf.nNumberOfLinks = C.DWORD(st.NumberOfLinks)
+		sbuf.nNumberOfLinks = C.DWORD(u32zeroToOne(st.NumberOfLinks))
 		sbuf.nFileIndexHigh = C.DWORD(st.FileIndex >> 32)
 		sbuf.nFileIndexLow = C.DWORD(st.FileIndex)
 	}
@@ -164,6 +216,10 @@ func kbfsLibdokanFindFiles(
 	FindData C.PFillFindData, // call this function with PWIN32_FIND_DATAW
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("FindFiles '%v' %v", d16{PathName}, *pfi)
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
 	var fdata C.WIN32_FIND_DATAW
 	fun := func(ns *NamedStat) error {
 		fdata.dwFileAttributes = C.DWORD(ns.FileAttributes)
@@ -188,7 +244,7 @@ func kbfsLibdokanFindFiles(
 		}
 		return nil
 	}
-	err := getfi(pfi).FindFiles(makeFI(PathName, pfi), fun)
+	err := getfi(pfi).FindFiles(ctx, makeFI(PathName, pfi), fun)
 	return errToNT(err)
 }
 
@@ -210,7 +266,11 @@ func kbfsLibdokanSetFileAttributes(
 	fileAttributes C.DWORD,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("SetFileAttributes '%v' %X %v", d16{fname}, fileAttributes, pfi)
-	err := getfi(pfi).SetFileAttributes(makeFI(fname, pfi), uint32(fileAttributes))
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+	err := getfi(pfi).SetFileAttributes(ctx, makeFI(fname, pfi), FileAttribute(fileAttributes))
 	return errToNT(err)
 }
 
@@ -222,6 +282,10 @@ func kbfsLibdokanSetFileTime(
 	lastWrite *C.FILETIME,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("SetFileTime '%v' %v", d16{fname}, *pfi)
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
 	var t0, t1, t2 time.Time
 	if creation != nil {
 		t0 = unpackTime(*creation)
@@ -232,7 +296,7 @@ func kbfsLibdokanSetFileTime(
 	if lastWrite != nil {
 		t2 = unpackTime(*lastWrite)
 	}
-	err := getfi(pfi).SetFileTime(makeFI(fname, pfi), t0, t1, t2)
+	err := getfi(pfi).SetFileTime(ctx, makeFI(fname, pfi), t0, t1, t2)
 	return errToNT(err)
 }
 
@@ -241,7 +305,11 @@ func kbfsLibdokanDeleteFile(
 	fname C.LPCWSTR,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("DeleteFile '%v' %v", d16{fname}, *pfi)
-	err := getfi(pfi).CanDeleteFile(makeFI(fname, pfi))
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+	err := getfi(pfi).CanDeleteFile(ctx, makeFI(fname, pfi))
 	return errToNT(err)
 }
 
@@ -250,7 +318,11 @@ func kbfsLibdokanDeleteDirectory(
 	fname C.LPCWSTR,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("DeleteDirectory '%v' %v", d16{fname}, *pfi)
-	err := getfi(pfi).CanDeleteDirectory(makeFI(fname, pfi))
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+	err := getfi(pfi).CanDeleteDirectory(ctx, makeFI(fname, pfi))
 	return errToNT(err)
 }
 
@@ -262,7 +334,11 @@ func kbfsLibdokanMoveFile(
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	newPath := lpcwstrToString(newFName)
 	debugf("MoveFile '%v' %v target %v", d16{oldFName}, *pfi, newPath)
-	err := getfs(pfi).MoveFile(makeFI(oldFName, pfi), newPath, bool(replaceExisiting != 0))
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+	err := getfs(pfi).MoveFile(ctx, makeFI(oldFName, pfi), newPath, bool(replaceExisiting != 0))
 	return errToNT(err)
 }
 
@@ -272,7 +348,11 @@ func kbfsLibdokanSetEndOfFile(
 	length C.LONGLONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("SetEndOfFile '%v' %d %v", d16{fname}, length, *pfi)
-	err := getfi(pfi).SetEndOfFile(makeFI(fname, pfi), int64(length))
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+	err := getfi(pfi).SetEndOfFile(ctx, makeFI(fname, pfi), int64(length))
 	return errToNT(err)
 }
 
@@ -282,7 +362,11 @@ func kbfsLibdokanSetAllocationSize(
 	length C.LONGLONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("SetAllocationSize '%v' %d %v", d16{fname}, length, *pfi)
-	err := getfi(pfi).SetAllocationSize(makeFI(fname, pfi), int64(length))
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+	err := getfi(pfi).SetAllocationSize(ctx, makeFI(fname, pfi), int64(length))
 	return errToNT(err)
 }
 
@@ -293,7 +377,12 @@ func kbfsLibdokanLockFile(
 	length C.LONGLONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("LockFile '%v' %v", d16{fname}, *pfi)
-	err := getfi(pfi).LockFile(makeFI(fname, pfi), int64(offset), int64(length))
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+
+	err := getfi(pfi).LockFile(ctx, makeFI(fname, pfi), int64(offset), int64(length))
 	return errToNT(err)
 }
 
@@ -304,7 +393,11 @@ func kbfsLibdokanUnlockFile(
 	length C.LONGLONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("UnlockFile '%v' %v", d16{fname}, *pfi)
-	err := getfi(pfi).UnlockFile(makeFI(fname, pfi), int64(offset), int64(length))
+	ctx, cancel := getContext(pfi)
+	if cancel != nil {
+		defer cancel()
+	}
+	err := getfi(pfi).UnlockFile(ctx, makeFI(fname, pfi), int64(offset), int64(length))
 	return errToNT(err)
 }
 
@@ -315,19 +408,24 @@ func kbfsLibdokanGetDiskFreeSpace(
 	TotalNumberOfFreeBytes *C.ULONGLONG,
 	FileInfo C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debug("GetDiskFreeSpace", *FileInfo)
-	fs, err := getfs(FileInfo).GetDiskFreeSpace()
-	debug("->", fs, err)
+	fs := getfs(FileInfo)
+	ctx, cancel := fs.WithContext(globalContext())
+	if cancel != nil {
+		defer cancel()
+	}
+	space, err := fs.GetDiskFreeSpace(ctx)
+	debug("->", space, err)
 	if err != nil {
 		return errToNT(err)
 	}
 	if FreeBytesAvailable != nil {
-		*FreeBytesAvailable = C.ULONGLONG(fs.FreeBytesAvailable)
+		*FreeBytesAvailable = C.ULONGLONG(space.FreeBytesAvailable)
 	}
 	if TotalNumberOfBytes != nil {
-		*TotalNumberOfBytes = C.ULONGLONG(fs.TotalNumberOfBytes)
+		*TotalNumberOfBytes = C.ULONGLONG(space.TotalNumberOfBytes)
 	}
 	if TotalNumberOfFreeBytes != nil {
-		*TotalNumberOfFreeBytes = C.ULONGLONG(fs.TotalNumberOfFreeBytes)
+		*TotalNumberOfFreeBytes = C.ULONGLONG(space.TotalNumberOfFreeBytes)
 	}
 	return ntstatusOk
 }
@@ -343,7 +441,12 @@ func kbfsLibdokanGetVolumeInformation(
 	FileSystemNameSize C.DWORD, // in num of chars
 	FileInfo C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debug("GetVolumeInformation", VolumeNameSize, MaximumComponentLength, FileSystemNameSize, *FileInfo)
-	vi, err := getfs(FileInfo).GetVolumeInformation()
+	fs := getfs(FileInfo)
+	ctx, cancel := fs.WithContext(globalContext())
+	if cancel != nil {
+		defer cancel()
+	}
+	vi, err := fs.GetVolumeInformation(ctx)
 	debug("->", vi, err)
 	if err != nil {
 		return errToNT(err)
@@ -373,8 +476,7 @@ func kbfsLibdokanMounted(pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	// Signal that the filesystem is mounted and can be used.
 	fsTableGetErrChan(uint32(pfi.DokanOptions.GlobalContext)) <- nil
 	// Dokan wants a NTSTATUS here, but is discarding it.
-	err := getfs(pfi).Mounted()
-	return errToNT(err)
+	return ntstatusOk
 }
 
 //export kbfsLibdokanGetFileSecurity
@@ -420,35 +522,9 @@ type FileInfo struct {
 	rawPath C.LPCWSTR
 }
 
-// Path converts the path to UTF-8 running in O(n).
-func (fi *FileInfo) Path() string {
-	return lpcwstrToString(fi.rawPath)
-}
-
-// DeleteOnClose should be checked from Cleanup.
-func (fi *FileInfo) DeleteOnClose() bool {
-	return fi.ptr.DeleteOnClose != 0
-}
-
 func makeFI(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) *FileInfo {
 	return &FileInfo{pfi, fname}
 }
-
-// File replacement flags for CreateFile
-const (
-	FileSupersede   = C.FILE_SUPERSEDE
-	FileCreate      = C.FILE_CREATE
-	FileOpen        = C.FILE_OPEN
-	FileOpenIf      = C.FILE_OPEN_IF
-	FileOverwrite   = C.FILE_OVERWRITE
-	FileOverwriteIf = C.FILE_OVERWRITE_IF
-)
-
-// CreateOptions stuff
-const (
-	FileDirectoryFile    = C.FILE_DIRECTORY_FILE
-	FileNonDirectoryFile = C.FILE_NON_DIRECTORY_FILE
-)
 
 func packTime(t time.Time) C.FILETIME {
 	ft := syscall.NsecToFiletime(t.UnixNano())
@@ -482,7 +558,7 @@ func errToNT(err error) C.NTSTATUS {
 	var code uint32
 	if err != nil {
 		debug("ERROR:", err)
-		n, ok := err.(NtError)
+		n, ok := err.(NtStatus)
 		if ok {
 			code = uint32(n)
 		} else {
@@ -520,10 +596,10 @@ func (ctx *dokanCtx) Free() {
 	fsTableFree(ctx.slot)
 }
 
-// GetRequestorToken returns the syscall.Token associated with
+// getRequestorToken returns the syscall.Token associated with
 // the requestor of this file system operation. Remember to
 // call Close on the Token.
-func (fi *FileInfo) GetRequestorToken() (syscall.Token, error) {
+func (fi *FileInfo) getRequestorToken() (syscall.Token, error) {
 	hdl := syscall.Handle(C.kbfsLibdokan_OpenRequestorToken(fi.ptr))
 	var err error
 	if hdl == syscall.InvalidHandle {
@@ -534,11 +610,11 @@ func (fi *FileInfo) GetRequestorToken() (syscall.Token, error) {
 	return syscall.Token(hdl), err
 }
 
-// IsRequestorUserSidEqualTo returns true if the sid passed as
+// isRequestorUserSidEqualTo returns true if the sid passed as
 // the argument is equal to the sid of the user associated with
 // the filesystem request.
-func (fi *FileInfo) IsRequestorUserSidEqualTo(sid *syscall.SID) bool {
-	tok, err := fi.GetRequestorToken()
+func (fi *FileInfo) isRequestorUserSidEqualTo(sid *SID) bool {
+	tok, err := fi.getRequestorToken()
 	if err != nil {
 		debug("IsRequestorUserSidEqualTo:", err)
 		return false
@@ -554,16 +630,16 @@ func (fi *FileInfo) IsRequestorUserSidEqualTo(sid *syscall.SID) bool {
 		uintptr(unsafe.Pointer(tokUser.User.Sid)),
 		0)
 	if isDebug {
-		u1, _ := sid.String()
+		u1, _ := (*syscall.SID)(sid).String()
 		u2, _ := tokUser.User.Sid.String()
 		debugf("IsRequestorUserSidEqualTo: EqualSID(%q,%q) => %v (expecting non-zero)\n", u1, u2, res)
 	}
 	return res != 0
 }
 
-// CurrentProcessUserSid is a utility to get the
+// currentProcessUserSid is a utility to get the
 // SID of the current user running the process.
-func CurrentProcessUserSid() (*syscall.SID, error) {
+func currentProcessUserSid() (*SID, error) {
 	tok, err := syscall.OpenCurrentProcessToken()
 	if err != nil {
 		return nil, err
@@ -573,7 +649,7 @@ func CurrentProcessUserSid() (*syscall.SID, error) {
 	if err != nil {
 		return nil, err
 	}
-	return tokUser.User.Sid, nil
+	return (*SID)(tokUser.User.Sid), nil
 }
 
 var (
@@ -581,8 +657,8 @@ var (
 	procEqualSid = modadvapi32.NewProc("EqualSid")
 )
 
-// Unmount a drive mounted by dokan.
-func Unmount(path string) error {
+// unmount a drive mounted by dokan.
+func unmount(path string) error {
 	debug("Unmount: Calling Dokan.Unmount")
 	res := C.kbfsLibdokan_RemoveMountPoint((*C.WCHAR)(stringToUtf16Ptr(path)))
 	if res == C.FALSE {

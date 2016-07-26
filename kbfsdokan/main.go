@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 // Keybase file system
 
 package main
@@ -85,13 +83,6 @@ func start() *libfs.Error {
 		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
 
-	// If we are passed a custom dokan dll path we cmdline try to load that.
-	if *dokandll != "" {
-		if err = dokan.LoadDokanDLL(*dokandll); err != nil {
-			return libfs.InitError("Error loading dokan dll: " + err.Error())
-		}
-	}
-
 	mountpoint := flag.Arg(0)
 	var mounter libdokan.Mounter
 	if *mountType == "force" {
@@ -104,7 +95,10 @@ func start() *libfs.Error {
 		KbfsParams: *kbfsParams,
 		RuntimeDir: *runtimeDir,
 		Label:      *label,
-		MountFlags: dokan.MountFlag(*mountFlags),
+		DokanConfig: dokan.Config{
+			MountFlags: dokan.MountFlag(*mountFlags),
+			DllPath:    *dokandll,
+		},
 	}
 
 	return libdokan.Start(mounter, options, ctx)

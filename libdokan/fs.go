@@ -2,14 +2,12 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
 	"errors"
 	"strings"
-	"syscall"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
@@ -32,14 +30,13 @@ type FS struct {
 
 	// currentUserSID stores the Windows identity of the user running
 	// this process.
-	currentUserSID *syscall.SID
+	currentUserSID *dokan.SID
 
 	// remoteStatus is the current status of remote connections.
 	remoteStatus libfs.RemoteStatus
-
-	mountFlags dokan.MountFlag
 }
 
+// DefaultMountFlags are the default mount flags for libdokan.
 const DefaultMountFlags = dokan.CurrentSession
 
 // NewFS creates an FS
@@ -77,13 +74,19 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 	f.remoteStatus.Init(ctx, f.log, f.config)
 	f.notifications.LaunchProcessor(ctx)
 	go clearFolderListCacheLoop(ctx, f.root)
-	f.mountFlags = DefaultMountFlags
 
 	return f, nil
 }
 
-func (f *FS) MountFlags() dokan.MountFlag {
-	return f.mountFlags
+// WithContext creates context for filesystem operations.
+func (f *FS) WithContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	id, err := libkbfs.MakeRandomRequestID()
+	if err != nil {
+		f.log.Errorf("Couldn't make request ID: %v", err)
+		return f.context, func() {}
+	}
+	ctx = context.WithValue(f.context, CtxIDKey, id)
+	return context.WithTimeout(ctx, 29*time.Second)
 }
 
 var vinfo = dokan.VolumeInformation{
@@ -96,16 +99,19 @@ var vinfo = dokan.VolumeInformation{
 }
 
 // GetVolumeInformation returns information about the whole filesystem for dokan.
-func (f *FS) GetVolumeInformation() (dokan.VolumeInformation, error) {
-	// TODO should this be refused to other users?
+func (f *FS) GetVolumeInformation(ctx context.Context) (dokan.VolumeInformation, error) {
+	// TODO should this be explicitely refused to other users?
+	// As the mount is limited to current session there is little need.
 	return vinfo, nil
 }
 
 const dummyFreeSpace = 10 * 1024 * 1024 * 1024
 
 // GetDiskFreeSpace returns information about free space on the volume for dokan.
-func (f *FS) GetDiskFreeSpace() (freeSpace dokan.FreeSpace, err error) {
+func (f *FS) GetDiskFreeSpace(ctx context.Context) (freeSpace dokan.FreeSpace, err error) {
 	// TODO should this be refused to other users?
+	// As the mount is limited to current session there is little need.
+	f.logEnter(ctx, "FS GetDiskFreeSpace")
 	// Refuse private directories while we are in a error state.
 	if f.remoteStatus.ExtraFileName() != "" {
 		f.log.Warning("Dummy disk free space while errors are present!")
@@ -115,8 +121,7 @@ func (f *FS) GetDiskFreeSpace() (freeSpace dokan.FreeSpace, err error) {
 			FreeBytesAvailable:     dummyFreeSpace,
 		}, nil
 	}
-	ctx, cancel := NewContextWithOpID(f, "FS GetDiskFreeSpace")
-	defer func() { f.reportErr(ctx, libkbfs.ReadMode, err, cancel) }()
+	defer func() { f.reportErr(ctx, libkbfs.ReadMode, err) }()
 	uqi, err := f.config.BlockServer().GetUserQuotaInfo(ctx)
 	if err != nil {
 		return dokan.FreeSpace{}, errToDokan(err)
@@ -180,7 +185,7 @@ func (oc *openContext) isTruncate() bool {
 
 // isOpenReparsePoint checks the flags whether a reparse point open is wanted.
 func (oc *openContext) isOpenReparsePoint() bool {
-	return oc.CreateOptions&syscall.FILE_FLAG_OPEN_REPARSE_POINT != 0
+	return oc.CreateOptions&dokan.FileOpenReparsePoint != 0
 }
 
 // returnDirNoCleanup returns a dir or nothing depending on the open
@@ -205,13 +210,12 @@ func newSyntheticOpenContext() *openContext {
 }
 
 // CreateFile called from dokan, may be a file or directory.
-func (f *FS) CreateFile(fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, bool, error) {
+func (f *FS) CreateFile(ctx context.Context, fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, bool, error) {
 	// Only allow the current user access
 	if !fi.IsRequestorUserSidEqualTo(f.currentUserSID) {
 		return nil, false, dokan.ErrAccessDenied
 	}
-	ctx, cancel := NewContextWithOpID(f, "FS CreateFile")
-	defer cancel()
+	f.logEnter(ctx, "FS CreateFile")
 	return f.openRaw(ctx, fi, cd)
 }
 
@@ -286,11 +290,10 @@ func windowsPathSplit(raw string) ([]string, error) {
 }
 
 // MoveFile tries to move a file.
-func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
+func (f *FS) MoveFile(ctx context.Context, source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
 	// User checking is handled by the opening of the source file
-
-	ctx, cancel := NewContextWithOpID(f, "FS MoveFile")
-	defer func() { f.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
+	f.logEnter(ctx, "FS MoveFile")
+	defer func() { f.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	oc := newSyntheticOpenContext()
 	src, _, err := f.openRaw(ctx, source, oc.CreateData)
@@ -298,7 +301,7 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	if err != nil {
 		return err
 	}
-	defer src.Cleanup(nil)
+	defer src.Cleanup(ctx, nil)
 
 	// Source directory
 	srcDirPath, err := windowsPathSplit(source.Path())
@@ -314,7 +317,7 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	if err != nil {
 		return err
 	}
-	defer srcDir.Cleanup(nil)
+	defer srcDir.Cleanup(ctx, nil)
 
 	// Destination directory, not the destination file
 	dstPath, err := windowsPathSplit(targetPath)
@@ -331,7 +334,7 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	if err != nil {
 		return err
 	}
-	defer dstDir.Cleanup(nil)
+	defer dstDir.Cleanup(ctx, nil)
 	if !dstIsDir {
 		return errors.New("Tried to move to a non-directory path")
 	}
@@ -366,7 +369,7 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	if !replaceExisting {
 		x, _, err := f.open(ctx, oc, dstPath)
 		if err == nil {
-			defer x.Cleanup(nil)
+			defer x.Cleanup(ctx, nil)
 		}
 		if !isNoSuchNameError(err) {
 			f.log.CDebugf(ctx, "FS Rename target open error %T %v", err, err)
@@ -422,7 +425,7 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	// Perhaps create destination by opening it.
 	x, _, err := f.open(ctx, oc, dstPath)
 	if err == nil {
-		x.Cleanup(nil)
+		x.Cleanup(ctx, nil)
 	}
 	fl.mu.Lock()
 	defer fl.mu.Unlock()
@@ -436,20 +439,11 @@ func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openConte
 	return nil
 }
 
-// Mounted is called from dokan on unmount.
-func (f *FS) Mounted() error {
-	return nil
-}
-
 func (f *FS) queueNotification(fn func()) {
 	f.notifications.QueueNotification(fn)
 }
 
-func (f *FS) reportErr(ctx context.Context, mode libkbfs.ErrorModeType,
-	err error, cancelFn func()) {
-	if cancelFn != nil {
-		defer cancelFn()
-	}
+func (f *FS) reportErr(ctx context.Context, mode libkbfs.ErrorModeType, err error) {
 	if err == nil {
 		f.log.CDebugf(ctx, "Request complete")
 		return
@@ -469,6 +463,10 @@ func (f *FS) NotificationGroupWait() {
 	f.notifications.Wait()
 }
 
+func (f *FS) logEnter(ctx context.Context, s string) {
+	f.log.CDebugf(ctx, "=> %s", s)
+}
+
 // Root represents the root of the KBFS file system.
 type Root struct {
 	emptyFile
@@ -477,16 +475,15 @@ type Root struct {
 }
 
 // GetFileInformation for dokan stats.
-func (r *Root) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
+func (r *Root) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (*dokan.Stat, error) {
 	return defaultDirectoryInformation()
 }
 
 // FindFiles for dokan readdir.
-func (r *Root) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) error {
+func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) error {
 	var ns dokan.NamedStat
 	var err error
-	ns.NumberOfLinks = 1
-	ns.FileAttributes = fileAttributeDirectory
+	ns.FileAttributes = dokan.FileAttributeDirectory
 	ename, esize := r.private.fs.remoteStatus.ExtraFileNameAndSize()
 	switch ename {
 	case "":
@@ -505,7 +502,7 @@ func (r *Root) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) err
 	}
 	if ename != "" {
 		ns.Name = ename
-		ns.FileAttributes = fileAttributeNormal
+		ns.FileAttributes = dokan.FileAttributeNormal
 		ns.FileSize = esize
 		err = callback(&ns)
 		if err != nil {

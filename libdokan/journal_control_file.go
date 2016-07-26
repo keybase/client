@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
@@ -12,6 +10,7 @@ import (
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
+	"golang.org/x/net/context"
 )
 
 // JournalControlFile is a special file used to control journal
@@ -22,13 +21,12 @@ type JournalControlFile struct {
 	action libfs.JournalAction
 }
 
-// Write implements writes for dokan.
-func (f *JournalControlFile) WriteFile(
+// WriteFile implements writes for dokan.
+func (f *JournalControlFile) WriteFile(ctx context.Context,
 	fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
-	ctx, cancel := NewContextWithOpID(
-		f.folder.fs,
+	f.folder.fs.logEnter(ctx,
 		fmt.Sprintf("JournalQuotaFile (f.action=%s) Write", f.action))
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 	if len(bs) == 0 {
 		return 0, nil
 	}

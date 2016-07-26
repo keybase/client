@@ -2,13 +2,12 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
+	"golang.org/x/net/context"
 )
 
 // Symlink represents KBFS symlinks.
@@ -27,9 +26,9 @@ type Symlink struct {
 }
 
 // GetFileInformation does stat for dokan.
-func (s *Symlink) GetFileInformation(*dokan.FileInfo) (a *dokan.Stat, err error) {
-	ctx, cancel := NewContextWithOpID(s.parent.folder.fs, "Symlink GetFileInformation")
-	defer func() { s.parent.folder.reportErr(ctx, libkbfs.ReadMode, err, cancel) }()
+func (s *Symlink) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (a *dokan.Stat, err error) {
+	s.parent.folder.fs.logEnter(ctx, "Symlink GetFileInformation")
+	defer func() { s.parent.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	_, _, err = s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {

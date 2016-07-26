@@ -2,10 +2,5 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build !windows
-
-// This is a dummy.
-
-package main
-
-func main() {}
+// Package dokan binds to the Dokan Windows filesystem library (similar to fuse).
+package dokan

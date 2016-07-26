@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
@@ -34,7 +32,7 @@ type FolderList struct {
 }
 
 // GetFileInformation for dokan.
-func (*FolderList) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
+func (*FolderList) GetFileInformation(context.Context, *dokan.FileInfo) (*dokan.Stat, error) {
 	return defaultDirectoryInformation()
 }
 
@@ -166,9 +164,9 @@ func (fl *FolderList) forgetFolder(folderName string) {
 }
 
 // FindFiles for dokan.
-func (fl *FolderList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
-	ctx, cancel := NewContextWithOpID(fl.fs, "FL FindFiles")
-	defer func() { fl.fs.reportErr(ctx, libkbfs.ReadMode, err, cancel) }()
+func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
+	fl.fs.logEnter(ctx, "FL FindFiles")
+	defer func() { fl.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	_, _, err = fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
 	isLoggedIn := err == nil
@@ -181,8 +179,7 @@ func (fl *FolderList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedSt
 		}
 	}
 	var ns dokan.NamedStat
-	ns.FileAttributes = fileAttributeDirectory
-	ns.NumberOfLinks = 1
+	ns.FileAttributes = dokan.FileAttributeDirectory
 	empty := true
 	for _, fav := range favs {
 		if fav.Public != fl.public {

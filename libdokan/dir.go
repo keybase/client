@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
@@ -118,10 +116,7 @@ func (f *Folder) forgetNode(node libkbfs.Node) {
 }
 
 func (f *Folder) reportErr(ctx context.Context,
-	mode libkbfs.ErrorModeType, err error, cancelFn func()) {
-	if cancelFn != nil {
-		defer cancelFn()
-	}
+	mode libkbfs.ErrorModeType, err error) {
 	if err == nil {
 		f.fs.log.CDebugf(ctx, "Request complete")
 		return
@@ -189,17 +184,16 @@ func newDir(folder *Folder, node libkbfs.Node, name string, parent libkbfs.Node)
 }
 
 // GetFileInformation for dokan.
-func (d *Dir) GetFileInformation(*dokan.FileInfo) (st *dokan.Stat, err error) {
-	ctx, cancel := NewContextWithOpID(d.folder.fs, "Dir GetFileInformation")
-	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err, cancel) }()
+func (d *Dir) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (st *dokan.Stat, err error) {
+	d.folder.fs.logEnter(ctx, "Dir GetFileInformation")
+	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	return eiToStat(d.folder.fs.config.KBFSOps().Stat(ctx, d.node))
 }
 
 // SetFileAttributes for Dokan.
-func (d *Dir) SetFileAttributes(fi *dokan.FileInfo, fileAttributes uint32) error {
-	_, cancel := NewContextWithOpID(d.folder.fs, "Dir SetFileAttributes")
-	cancel()
+func (d *Dir) SetFileAttributes(ctx context.Context, fi *dokan.FileInfo, fileAttributes dokan.FileAttribute) error {
+	d.folder.fs.logEnter(ctx, "Dir SetFileAttributes")
 	// TODO handle attributes for real.
 	return nil
 }
@@ -389,7 +383,7 @@ func getExclFromOpenContext(oc *openContext) libkbfs.Excl {
 
 func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan.File, isDir bool, err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", name)
-	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err, nil) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	isExec := false // Windows lacks executable modes.
 	excl := getExclFromOpenContext(oc)
@@ -406,7 +400,7 @@ func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan
 
 func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (f *Dir, isDir bool, err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Mkdir %s", name)
-	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err, nil) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateDir(
 		ctx, d.node, name)
@@ -420,9 +414,9 @@ func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (f *Dir, 
 }
 
 // FindFiles does readdir for dokan.
-func (d *Dir) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
-	ctx, cancel := NewContextWithOpID(d.folder.fs, "Dir FindFiles")
-	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err, cancel) }()
+func (d *Dir) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
+	d.folder.fs.logEnter(ctx, "Dir FindFiles")
+	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
 	if err != nil {
@@ -431,7 +425,6 @@ func (d *Dir) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) erro
 
 	empty := true
 	var ns dokan.NamedStat
-	ns.NumberOfLinks = 1
 	for name, de := range children {
 		empty = false
 		ns.Name = name
@@ -450,9 +443,9 @@ func (d *Dir) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) erro
 
 // CanDeleteDirectory - return just nil
 // TODO check for permissions here.
-func (d *Dir) CanDeleteDirectory(*dokan.FileInfo) (err error) {
-	ctx, cancel := NewContextWithOpID(d.folder.fs, "Dir CanDeleteDirectory")
-	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
+func (d *Dir) CanDeleteDirectory(ctx context.Context, fi *dokan.FileInfo) (err error) {
+	d.folder.fs.logEnter(ctx, "Dir CanDeleteDirectory")
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
 	if err != nil {
@@ -466,12 +459,12 @@ func (d *Dir) CanDeleteDirectory(*dokan.FileInfo) (err error) {
 }
 
 // Cleanup - forget references, perform deletions etc.
-func (d *Dir) Cleanup(fi *dokan.FileInfo) {
+func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	var err error
-	ctx, cancel := NewContextWithOpID(d.folder.fs, "Dir Cleanup")
-	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
+	d.folder.fs.logEnter(ctx, "Dir Cleanup")
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
-	if fi != nil && fi.DeleteOnClose() && d.parent != nil {
+	if fi != nil && fi.IsDeleteOnClose() && d.parent != nil {
 		d.folder.fs.log.CDebugf(ctx, "Removing dir in cleanup %s", d.name)
 
 		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.parent, d.name)
@@ -508,7 +501,7 @@ func resolveSymlinkIsDir(ctx context.Context, oc *openContext, rootDir *Dir, ori
 	}
 	obj, isDir, err := rootDir.open(ctx, oc, dst)
 	if err == nil {
-		obj.Cleanup(nil)
+		obj.Cleanup(ctx, nil)
 	}
 	return isDir, err
 }

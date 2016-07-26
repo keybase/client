@@ -2,13 +2,12 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
+	"golang.org/x/net/context"
 )
 
 // SyncFromServerFile represents a write-only file when any write of
@@ -28,9 +27,9 @@ type SyncFromServerFile struct {
 }
 
 // WriteFile implements writes for dokan.
-func (f *SyncFromServerFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
-	ctx, cancel := NewContextWithOpID(f.folder.fs, "SyncFromServerFile Write")
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
+func (f *SyncFromServerFile) WriteFile(ctx context.Context, fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
+	f.folder.fs.logEnter(ctx, "SyncFromServerFile Write")
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 	if len(bs) == 0 {
 		return 0, nil
 	}

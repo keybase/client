@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
@@ -22,9 +20,8 @@ type SpecialReadFile struct {
 }
 
 // GetFileInformation does stats for dokan.
-func (f *SpecialReadFile) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
-	ctx, cancel := NewContextWithOpID(f.fs, "SpecialReadFile GetFileInformation")
-	defer cancel()
+func (f *SpecialReadFile) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (*dokan.Stat, error) {
+	f.fs.logEnter(ctx, "SpecialReadFile GetFileInformation")
 	data, t, err := f.read(ctx)
 	if err != nil {
 		return nil, err
@@ -34,7 +31,7 @@ func (f *SpecialReadFile) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, erro
 	// here, as is usual for pseudofiles. So return the actual
 	// size, even though it may be racy.
 	a, err := defaultFileInformation()
-	a.FileAttributes |= fileAttributeReadonly
+	a.FileAttributes |=dokan.FileAttributeReadonly
 	a.FileSize = int64(len(data))
 	a.LastWrite = t
 	a.LastAccess = t
@@ -43,9 +40,8 @@ func (f *SpecialReadFile) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, erro
 }
 
 // ReadFile does reads for dokan.
-func (f *SpecialReadFile) ReadFile(fi *dokan.FileInfo, bs []byte, offset int64) (int, error) {
-	ctx, cancel := NewContextWithOpID(f.fs, "SpecialReadFile ReadFile")
-	defer cancel()
+func (f *SpecialReadFile) ReadFile(ctx context.Context, fi *dokan.FileInfo, bs []byte, offset int64) (int, error) {
+	f.fs.logEnter(ctx, "SpecialReadFile ReadFile")
 	data, _, err := f.read(ctx)
 	if err != nil {
 		return 0, err

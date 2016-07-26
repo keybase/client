@@ -2,9 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
-// Package dokan is a binding to the Dokan usermode filesystem binding library on Windows.
 package dokan
 
 // MountHandle holds a reference to a mounted filesystem.
@@ -14,16 +11,20 @@ type MountHandle struct {
 	Dir string
 }
 
-// Mount mounts a FileSystem to the given path and returns when it has been mounted
-// or there is an error.
-func Mount(fs FileSystem, path string) (*MountHandle, error) {
+// Mount mounts a FileSystem with the given Config.
+// Mount returns when the filesystem has been mounted or there is an error.
+func Mount(cfg *Config) (*MountHandle, error) {
+	err := loadDokanDLL(cfg.DllPath)
+	if err != nil {
+		return nil, err
+	}
 	var ec = make(chan error, 2)
-	var slot = fsTableStore(fs, ec)
-	flags := fs.MountFlags()
+	var slot = fsTableStore(cfg.FileSystem, ec)
+	flags := cfg.MountFlags
 	go func() {
 		ctx := allocCtx(slot)
 		defer ctx.Free()
-		ec <- ctx.Run(path, flags)
+		ec <- ctx.Run(cfg.Path, flags)
 		close(ec)
 	}()
 	// This gets a send from either
@@ -32,17 +33,18 @@ func Mount(fs FileSystem, path string) (*MountHandle, error) {
 	// Thus either the filesystem was mounted ok or it was not mounted
 	// and an err is not nil. DokanMain does not return errors after the
 	// mount, but if such errors occured they can be catched by BlockTillDone.
-	err := <-ec
+	err = <-ec
 	if err != nil {
 		return nil, err
 	}
-	return &MountHandle{ec, path}, nil
+	return &MountHandle{ec, cfg.Path}, nil
 }
 
-// Close unmounts the filesystem.
+// Close unmounts the filesystem. Can be used to interrupt a
+// running filesystem - usually not needed if BlockTillDone
+// is used.
 func (m *MountHandle) Close() error {
-	err := Unmount(m.Dir)
-	return err
+	return Unmount(m.Dir)
 }
 
 // BlockTillDone blocks till Dokan is done.
@@ -52,4 +54,31 @@ func (m *MountHandle) BlockTillDone() error {
 	// 2) Mount got send from Mount (which errored) and closed the channel
 	err, _ := <-m.errChan
 	return err
+}
+
+// Unmount a drive mounted by Dokan.
+func Unmount(path string) error {
+	return unmount(path)
+}
+
+// Path converts the path to UTF-8 running in O(n).
+func (fi *FileInfo) Path() string {
+	return lpcwstrToString(fi.rawPath)
+}
+
+// IsDeleteOnClose should be checked from Cleanup.
+func (fi *FileInfo) IsDeleteOnClose() bool {
+	return fi.ptr.DeleteOnClose != 0
+}
+
+// IsRequestorUserSidEqualTo returns true if the argument is equal
+// to the sid of the user associated with the filesystem request.
+func (fi *FileInfo) IsRequestorUserSidEqualTo(sid *SID) bool {
+	return fi.isRequestorUserSidEqualTo(sid)
+}
+
+// CurrentProcessUserSid is a utility to get the
+// SID of the current user running the process.
+func CurrentProcessUserSid() (*SID, error) {
+	return currentProcessUserSid()
 }

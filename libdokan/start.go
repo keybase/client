@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
@@ -19,10 +17,10 @@ import (
 
 // StartOptions are options for starting up
 type StartOptions struct {
-	KbfsParams libkbfs.InitParams
-	RuntimeDir string
-	Label      string
-	MountFlags dokan.MountFlag
+	KbfsParams  libkbfs.InitParams
+	RuntimeDir  string
+	Label       string
+	DokanConfig dokan.Config
 }
 
 // Start the filesystem
@@ -59,14 +57,15 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
-	fs.mountFlags = options.MountFlags
+	options.DokanConfig.FileSystem = fs
+	options.DokanConfig.Path = mounter.Dir()
 
 	if newFolderNameErr != nil {
 		log.CWarningf(fs.context, "Error guessing new folder name: %v", newFolderNameErr)
 	}
 	log.CDebugf(fs.context, "New folder name guess: %q %q", newFolderName, newFolderAltName)
 
-	err = mounter.Mount(fs, log)
+	err = mounter.Mount(&options.DokanConfig, log)
 	if err != nil {
 		return libfs.MountError(err.Error())
 	}

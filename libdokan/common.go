@@ -2,17 +2,13 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build windows
-
 package libdokan
 
 import (
-	"syscall"
 	"time"
 
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
-	"golang.org/x/net/context"
 )
 
 const (
@@ -37,20 +33,6 @@ const (
 	CtxIDKey CtxTagKey = iota
 )
 
-// NewContextWithOpID adds a unique ID to this context, identifying
-// a particular request.
-func NewContextWithOpID(fs *FS, debugMessage string) (
-	ctx context.Context, cancelFn func()) {
-	defer func() { fs.log.CDebugf(ctx, debugMessage) }()
-	id, err := libkbfs.MakeRandomRequestID()
-	if err != nil {
-		fs.log.Errorf("Couldn't make request ID: %v", err)
-		return fs.context, func() {}
-	}
-	ctx = context.WithValue(fs.context, CtxIDKey, id)
-	return context.WithTimeout(ctx, 29*time.Second)
-}
-
 // eiToStat converts from a libkbfs.EntryInfo and error to a *dokan.Stat and error.
 // Note that handling symlinks to directories requires extra processing not done here.
 func eiToStat(ei libkbfs.EntryInfo, err error) (*dokan.Stat, error) {
@@ -69,15 +51,14 @@ func fillStat(a *dokan.Stat, de *libkbfs.EntryInfo) {
 	a.LastWrite = time.Unix(0, de.Mtime)
 	a.LastAccess = a.LastWrite
 	a.Creation = time.Unix(0, de.Ctime)
-	a.NumberOfLinks = 1
 	switch de.Type {
 	case libkbfs.File, libkbfs.Exec:
-		a.FileAttributes = fileAttributeNormal
+		a.FileAttributes = dokan.FileAttributeNormal
 	case libkbfs.Dir:
-		a.FileAttributes = fileAttributeDirectory
+		a.FileAttributes = dokan.FileAttributeDirectory
 	case libkbfs.Sym:
-		a.FileAttributes = fileAttributeReparsePoint
-		a.ReparsePointTag = reparsePointTagSymlink
+		a.FileAttributes = dokan.FileAttributeReparsePoint
+		a.ReparsePointTag = dokan.IOReparseTagSymlink
 	}
 }
 
@@ -99,41 +80,29 @@ func errToDokan(err error) error {
 // defaultDirectoryInformation returns default directory information.
 func defaultDirectoryInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
-	st.FileAttributes = fileAttributeDirectory
-	st.NumberOfLinks = 1
+	st.FileAttributes = dokan.FileAttributeDirectory
 	return &st, nil
 }
 
 // defaultFileInformation returns default file information.
 func defaultFileInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
-	st.FileAttributes = fileAttributeNormal
-	st.NumberOfLinks = 1
+	st.FileAttributes = dokan.FileAttributeNormal
 	return &st, nil
 }
 
 // defaultSymlinkFileInformation returns default symlink to file information.
 func defaultSymlinkFileInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
-	st.FileAttributes = fileAttributeReparsePoint
-	st.ReparsePointTag = reparsePointTagSymlink
-	st.NumberOfLinks = 1
+	st.FileAttributes = dokan.FileAttributeReparsePoint
+	st.ReparsePointTag = dokan.IOReparseTagSymlink
 	return &st, nil
 }
 
 // defaultSymlinkDirInformation returns default symlink to directory information.
 func defaultSymlinkDirInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
-	st.FileAttributes = fileAttributeReparsePoint | fileAttributeDirectory
-	st.ReparsePointTag = reparsePointTagSymlink
-	st.NumberOfLinks = 1
+	st.FileAttributes = dokan.FileAttributeReparsePoint | dokan.FileAttributeDirectory
+	st.ReparsePointTag = dokan.IOReparseTagSymlink
 	return &st, nil
 }
-
-const (
-	fileAttributeNormal       = syscall.FILE_ATTRIBUTE_NORMAL
-	fileAttributeDirectory    = syscall.FILE_ATTRIBUTE_DIRECTORY
-	fileAttributeReparsePoint = syscall.FILE_ATTRIBUTE_REPARSE_POINT
-	fileAttributeReadonly     = syscall.FILE_ATTRIBUTE_READONLY
-	reparsePointTagSymlink    = syscall.IO_REPARSE_TAG_SYMLINK
-)
