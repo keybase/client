@@ -5,9 +5,10 @@ import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import type {Props} from './post-proof'
 
 const Render = (props: Props) => {
-  const {platform, platformUserName, platformSubtitle, descriptionView, descriptionText, proofText, proofAction, proofActionIcon, proofActionText, noteText, onCancel, onCancelText, onComplete, onCompleteText} = props
+  const {platform, platformUserName, platformSubtitle, descriptionView, descriptionText, proofText, proofAction, proofActionIcon, proofActionText, noteText, onCancel, onCancelText, onComplete, onCompleteText, errorMessage} = props
   return (
     <Box style={styleContainer}>
+      {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
         <PlatformIcon style={stylePlatformIcon} platform={platform} overlay='iconfont-proof-placeholder' overlayColor={globalColors.grey} size={48} />
         <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
@@ -30,10 +31,29 @@ const styleContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   alignItems: 'center',
+  paddingTop: globalMargins.large,
+  paddingBottom: globalMargins.large,
+  ...globalStyles.scrollable,
+}
+
+const styleErrorBanner = {
+  ...globalStyles.flexBoxColumn,
+  justifyContent: 'center',
+  alignItems: 'center',
+  width: '100%',
+  height: globalMargins.large,
+  marginTop: -globalMargins.large,
+  backgroundColor: globalColors.red,
+}
+
+const styleErrorBannerText = {
+  color: globalColors.white,
 }
 
 const styleContentContainer = {
   ...globalStyles.flexBoxColumn,
+  flex: 1,
+  justifyContent: 'center',
   alignItems: 'center',
   margin: globalMargins.large,
   maxWidth: 512,
@@ -57,6 +77,7 @@ const styleDescription = {
 const styleProofText = {
   marginTop: globalMargins.small,
   padding: 10,
+  width: '100%',
   maxHeight: 116,
   justifyContent: 'stretch',
   alignItems: 'flex-start',
@@ -67,6 +88,7 @@ const styleProofText = {
   fontSize: 14,
   lineHeight: '21px',
   whiteSpace: 'pre-wrap',
+  wordWrap: 'break-word',
   overflowY: 'auto',
   overflowX: 'hidden',
   textAlign: 'left',

@@ -354,20 +354,26 @@ const postProofBase = {
   parentProps: isMobile ? {} : {style: {display: 'flex', minWidth: 640, height: 580}},
 }
 
+const postProofTwitter = {
+  ...postProofBase,
+  platform: 'twitter',
+  platformUsername: 'alexrwendland',
+  platformSubtitle: '@twitter',
+  descriptionView: <Text type='Body'>Please tweet the below text <Text type='Body' style={globalStyles.italic}>exactly as it appears.</Text></Text>,
+  proofText: 'Verifying myself: I am awendland on Keybase.io. 3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB / https://keybase.io/awendland/sigs/3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB',
+  proofAction: () => console.log('Open twitter to post tweet'),
+  proofActionText: 'Tweet it now',
+  proofActionIcon: 'iconfont-tweet',
+  onCompleteText: 'OK tweeted! Check for it!',
+}
+
 const dumbPostProof: DumbComponentMap<PostProof> = {
   component: PostProof,
   mocks: {
-    'Twitter': {
-      ...postProofBase,
-      platform: 'twitter',
-      platformUsername: 'alexrwendland',
-      platformSubtitle: '@twitter',
-      descriptionView: <Text type='Body'>Please tweet the below text <Text type='Body' style={globalStyles.italic}>exactly as it appears.</Text></Text>,
-      proofText: 'Verifying myself: I am awendland on Keybase.io. 3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB / https://keybase.io/awendland/sigs/3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB',
-      proofAction: () => console.log('Open twitter to post tweet'),
-      proofActionText: 'Tweet it now',
-      proofActionIcon: 'iconfont-tweet',
-      onCompleteText: 'OK tweeted! Check for it!',
+    'Twitter': postProofTwitter,
+    'Twitter Error': {
+      ...postProofTwitter,
+      errorMessage: 'We couldn\'t find your proof. Please retry!',
     },
     'Reddit': {
       ...postProofBase,

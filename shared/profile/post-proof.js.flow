@@ -19,7 +19,6 @@ export type Props = {
   onComplete: () => void,
   onCompleteText: string,
   errorMessage?: ?string,
-  pendingMessage?: ?string,
 }
 
 export default class Render extends Component<void, Props, void> { }
