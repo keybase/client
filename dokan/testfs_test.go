@@ -369,7 +369,6 @@ func (t testDir) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, e
 	debug("testDir.GetFileInformation")
 	return &Stat{
 		FileAttributes: syscall.FileAttributeDIRECTORY,
-		NumberOfLinks:  1,
 	}, nil
 }
 
@@ -380,8 +379,7 @@ type testFile struct {
 func (t testFile) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, error) {
 	debug("testFile.GetFileInformation")
 	return &Stat{
-		FileSize:      int64(len(helloStr)),
-		NumberOfLinks: 1,
+		FileSize: int64(len(helloStr)),
 	}, nil
 }
 func (t testFile) ReadFile(ctx context.Context, fi *FileInfo, bs []byte, offset int64) (int, error) {
@@ -412,11 +410,10 @@ func (r *ramFile) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, 
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	return &Stat{
-		FileSize:      int64(len(r.contents)),
-		NumberOfLinks: 1,
-		LastAccess:    r.lastReadTime,
-		LastWrite:     r.lastWriteTime,
-		Creation:      r.creationTime,
+		FileSize:   int64(len(r.contents)),
+		LastAccess: r.lastReadTime,
+		LastWrite:  r.lastWriteTime,
+		Creation:   r.creationTime,
 	}, nil
 }
 

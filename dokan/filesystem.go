@@ -198,7 +198,7 @@ type Stat struct {
 	VolumeSerialNumber uint32
 	// FileSize is the size of the file in bytes
 	FileSize int64
-	// NumberOfLinks should typically be 1
+	// NumberOfLinks can be omitted, if zero set to 1.
 	NumberOfLinks uint32
 	// FileIndex is a 64 bit (nearly) unique ID of the file
 	FileIndex uint64

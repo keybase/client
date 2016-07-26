@@ -425,7 +425,6 @@ func (d *Dir) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*
 
 	empty := true
 	var ns dokan.NamedStat
-	ns.NumberOfLinks = 1
 	for name, de := range children {
 		empty = false
 		ns.Name = name

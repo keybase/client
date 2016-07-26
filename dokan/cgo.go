@@ -174,6 +174,13 @@ func kbfsLibdokanFlushFileBuffers(
 	return errToNT(err)
 }
 
+func u32zeroToOne(u uint32) uint32 {
+	if u == 0 {
+		return 1
+	}
+	return u
+}
+
 //export kbfsLibdokanGetFileInformation
 func kbfsLibdokanGetFileInformation(
 	fname C.LPCWSTR,
@@ -194,7 +201,7 @@ func kbfsLibdokanGetFileInformation(
 		sbuf.dwVolumeSerialNumber = C.DWORD(st.VolumeSerialNumber)
 		sbuf.nFileSizeHigh = C.DWORD(st.FileSize >> 32)
 		sbuf.nFileSizeLow = C.DWORD(st.FileSize)
-		sbuf.nNumberOfLinks = C.DWORD(st.NumberOfLinks)
+		sbuf.nNumberOfLinks = C.DWORD(u32zeroToOne(st.NumberOfLinks))
 		sbuf.nFileIndexHigh = C.DWORD(st.FileIndex >> 32)
 		sbuf.nFileIndexLow = C.DWORD(st.FileIndex)
 	}

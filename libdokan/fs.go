@@ -483,7 +483,6 @@ func (r *Root) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (*dok
 func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) error {
 	var ns dokan.NamedStat
 	var err error
-	ns.NumberOfLinks = 1
 	ns.FileAttributes = dokan.FileAttributeDirectory
 	ename, esize := r.private.fs.remoteStatus.ExtraFileNameAndSize()
 	switch ename {

@@ -51,7 +51,6 @@ func fillStat(a *dokan.Stat, de *libkbfs.EntryInfo) {
 	a.LastWrite = time.Unix(0, de.Mtime)
 	a.LastAccess = a.LastWrite
 	a.Creation = time.Unix(0, de.Ctime)
-	a.NumberOfLinks = 1
 	switch de.Type {
 	case libkbfs.File, libkbfs.Exec:
 		a.FileAttributes = dokan.FileAttributeNormal
@@ -82,7 +81,6 @@ func errToDokan(err error) error {
 func defaultDirectoryInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
 	st.FileAttributes = dokan.FileAttributeDirectory
-	st.NumberOfLinks = 1
 	return &st, nil
 }
 
@@ -90,7 +88,6 @@ func defaultDirectoryInformation() (*dokan.Stat, error) {
 func defaultFileInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
 	st.FileAttributes = dokan.FileAttributeNormal
-	st.NumberOfLinks = 1
 	return &st, nil
 }
 
@@ -99,7 +96,6 @@ func defaultSymlinkFileInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
 	st.FileAttributes = dokan.FileAttributeReparsePoint
 	st.ReparsePointTag = dokan.IOReparseTagSymlink
-	st.NumberOfLinks = 1
 	return &st, nil
 }
 
@@ -108,6 +104,5 @@ func defaultSymlinkDirInformation() (*dokan.Stat, error) {
 	var st dokan.Stat
 	st.FileAttributes = dokan.FileAttributeReparsePoint | dokan.FileAttributeDirectory
 	st.ReparsePointTag = dokan.IOReparseTagSymlink
-	st.NumberOfLinks = 1
 	return &st, nil
 }
