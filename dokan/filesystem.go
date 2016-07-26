@@ -212,32 +212,34 @@ type NamedStat struct {
 	Stat
 }
 
-// NtError is a type of errors for NTSTATUS values
-type NtError uint32
+// NtStatus is a type implementing error interface that corresponds
+// to NTSTATUS. It can be used to set the exact error/status code
+// from the filesystem.
+type NtStatus uint32
 
-func (n NtError) Error() string {
+func (n NtStatus) Error() string {
 	return "NTSTATUS=" + strconv.FormatUint(uint64(n), 16)
 }
 
 const (
 	// ErrAccessDenied - access denied (EPERM)
-	ErrAccessDenied = NtError(0xC0000022)
+	ErrAccessDenied = NtStatus(0xC0000022)
 	// ErrObjectNameNotFound - filename does not exist (ENOENT)
-	ErrObjectNameNotFound = NtError(0xC0000034)
+	ErrObjectNameNotFound = NtStatus(0xC0000034)
 	// ErrObjectNameCollision - a pathname already exists (EEXIST)
-	ErrObjectNameCollision = NtError(0xC0000035)
+	ErrObjectNameCollision = NtStatus(0xC0000035)
 	// ErrObjectPathNotFound - a pathname does not exist (ENOENT)
-	ErrObjectPathNotFound = NtError(0xC000003A)
+	ErrObjectPathNotFound = NtStatus(0xC000003A)
 	// ErrNotSupported - not supported.
-	ErrNotSupported = NtError(0xC00000BB)
+	ErrNotSupported = NtStatus(0xC00000BB)
 	// ErrFileIsADirectory - file is a directory.
-	ErrFileIsADirectory = NtError(0xC00000BA)
+	ErrFileIsADirectory = NtStatus(0xC00000BA)
 	// ErrDirectoryNotEmpty - wanted an empty dir - it is not empty.
-	ErrDirectoryNotEmpty = NtError(0xC0000101)
+	ErrDirectoryNotEmpty = NtStatus(0xC0000101)
 	// ErrFileAlreadyExists - file already exists - fatal.
-	ErrFileAlreadyExists = NtError(0xC0000035)
+	ErrFileAlreadyExists = NtStatus(0xC0000035)
 	// ErrNotSameDevice - MoveFile is denied, please use copy+delete.
-	ErrNotSameDevice = NtError(0xC00000D4)
+	ErrNotSameDevice = NtStatus(0xC00000D4)
 	// StatusObjectNameExists - already exists, may be non-fatal...
-	StatusObjectNameExists = NtError(0x40000000)
+	StatusObjectNameExists = NtStatus(0x40000000)
 )

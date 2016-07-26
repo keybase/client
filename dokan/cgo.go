@@ -551,7 +551,7 @@ func errToNT(err error) C.NTSTATUS {
 	var code uint32
 	if err != nil {
 		debug("ERROR:", err)
-		n, ok := err.(NtError)
+		n, ok := err.(NtStatus)
 		if ok {
 			code = uint32(n)
 		} else {
