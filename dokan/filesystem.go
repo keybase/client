@@ -64,7 +64,7 @@ const (
 // CreateData contains all the info needed to create a file.
 type CreateData struct {
 	DesiredAccess     uint32
-	FileAttributes    uint32
+	FileAttributes    FileAttribute
 	ShareAccess       uint32
 	CreateDisposition CreateDisposition
 	CreateOptions     uint32
