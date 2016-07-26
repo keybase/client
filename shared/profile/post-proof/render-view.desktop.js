@@ -1,8 +1,8 @@
 // @flow
 import React from 'react'
-import {Box, Text, Button, Icon, PlatformIcon} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import type {Props} from './post-proof'
+import {Box, Text, Button, Icon, PlatformIcon} from '../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../styles/style-guide'
+import type {Props} from './render-view'
 
 const Render = (props: Props) => {
   const {platform, platformUserName, platformSubtitle, descriptionView, descriptionText, proofText, proofAction, proofActionIcon, proofActionText, noteText, onCancel, onCancelText, onComplete, onCompleteText, isOnCompleteWaiting, errorMessage} = props
@@ -17,8 +17,8 @@ const Render = (props: Props) => {
         {descriptionView || (descriptionText && <Text style={styleDescription} type='Body'>{descriptionText}</Text>)}
         {proofText && <textInput style={styleProofText} readOnly={true}>{proofText}</textInput>}
         {noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
-        {proofAction &&
-          <Text style={styleProofAction} type='BodyPrimaryLink' onClick={() => proofAction()}><Icon style={styleProofActionIcon} type={proofActionIcon} />{proofActionText}</Text>}
+        {proofAction && proofActionText &&
+          <Text style={styleProofAction} type='BodyPrimaryLink' onClick={() => proofAction()}>{proofActionIcon && <Icon style={styleProofActionIcon} type={proofActionIcon} />}{proofActionText}</Text>}
         <Box style={styleButtonsContainer}>
           {onCancelText && <Button style={styleCancelButton} type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
           <Button style={styleCompleteButton} type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />

@@ -1,24 +1,15 @@
 /* @flow */
-import React from 'react'
 import Profile from './render'
 import ConfirmOrPending from './confirm-or-pending'
 import ProveEnterUsername from './prove-enter-username'
 import EditAvatar from './edit-avatar'
-<<<<<<< 5b7a892027b85fc9c16e797ec14cc4ae53072344
 import Revoke from './revoke'
-import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaUnreachable} from '../constants/tracker'
-=======
 import PostProof from './post-proof'
-import {normal, checking, revoked, error, metaNone} from '../constants/tracker'
->>>>>>> Implement static features of post proof dumb component
+import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaUnreachable} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
 import {isMobile} from '../constants/platform'
-<<<<<<< 5b7a892027b85fc9c16e797ec14cc4ae53072344
-
-=======
 import {Text, Box, Icon} from '../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../styles/style-guide'
->>>>>>> Implement static features of post proof dumb component
 import type {Props as RenderProps} from './render'
 import type {Proof} from '../common-adapters/user-proofs'
 import type {UserInfo} from '../common-adapters/user-bio'
@@ -358,13 +349,8 @@ const postProofTwitter = {
   ...postProofBase,
   platform: 'twitter',
   platformUsername: 'alexrwendland',
-  platformSubtitle: '@twitter',
-  descriptionView: <Text type='Body'>Please tweet the below text <Text type='Body' style={globalStyles.italic}>exactly as it appears.</Text></Text>,
   proofText: 'Verifying myself: I am awendland on Keybase.io. 3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB / https://keybase.io/awendland/sigs/3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB',
   proofAction: () => console.log('Open twitter to post tweet'),
-  proofActionText: 'Tweet it now',
-  proofActionIcon: 'iconfont-tweet',
-  onCompleteText: 'OK tweeted! Check for it!',
 }
 
 const dumbPostProof: DumbComponentMap<PostProof> = {
@@ -382,73 +368,39 @@ const dumbPostProof: DumbComponentMap<PostProof> = {
     'Reddit': {
       ...postProofBase,
       platform: 'reddit',
-      platformSubtitle: '@reddit',
-      descriptionView: <Text type='Body'>Click the link below and post the form in the subreddit <Text type='Body' style={globalStyles.italic}>KeybaseProofs.</Text></Text>,
-      noteText: 'Make sure you\'re signed in to Reddit, and don\'t edit the text or title before submitting.',
       proofAction: () => console.log('Open Reddit to post'),
-      proofActionText: 'Reddit form',
-      proofActionIcon: 'iconfont-open-browser',
-      onCompleteText: 'OK posted! Check for it!',
     },
     'GitHub': {
       ...postProofBase,
       platform: 'github',
-      platformSubtitle: '@github',
-      descriptionView: <Text type='Body'>Login to GitHub and paste the text below into a <Text type='Body'>public</Text> gist called <Text type='Body' style={globalStyles.italic}>keybase.md.</Text></Text>,
       // Place a full proof message here in order to test how the UI handles overflow
       proofText: '### Keybase proof\n\nI hereby claim:\n\n  * I am chris on github.\n  * I am cboss123 (https://keybase.io/cboss123) on keybase.\n  * I have a public key whose fingerprint is B457 EF35 8730 2603 CEFF  F736 A8F5 0B84 538B 481C\n\nTo claim this, I am signing this object:\n\n```json\n{\n    "body": {\n        "key": {\n            "eldest_kid": "0101099377094ad34d1ef62c6a4a186c0ca02c259b2fdc1cf52b5773baa4aa239d780a",\n            "fingerprint": "b457ef3587302603cefff736a8f50b84538b481c",\n            "host": "keybase.io",\n            "key_id": "a8f50b84538b481c",\n            "kid": "0101099377094ad34d1ef62c6a4a186c0ca02c259b2fdc1cf52b5773baa4aa239d780a",\n            "uid": "b301e0ff41ef623a28220d2c4f074919",\n            "username": "cboss123"\n        },\n        "service": {\n            "name": "github",\n            "username": "cbostrander"\n        },\n        "type": "web_service_binding",\n        "version": 1\n    },\n    "ctime": 1466184805,\n    "expire_in": 157680000,\n    "prev": "b6c111ed28a297f465ca3dcd46cdbd3f64d208d81ed89388675b9e9740d9d7e3",\n    "seqno": 28,\n    "tag": "signature"\n}\n```\n\nwith the key [B457 EF35 8730 2603 CEFF  F736 A8F5 0B84 538B 481C](https://keybase.io/cboss123), yielding the signature:\n\n```\n-----BEGIN PGP MESSAGE-----\nVersion: Keybase OpenPGP v2.0.53\nComment: https://keybase.io/crypto\n\nyMIdAnicrZJbSBVBGMfXskxJisAuiA8t9mIn2529zZ4KKhFNipIuRlmH2ZnZ42rt\nOe7usaJOkBYJ0U0jiuwGRoUPoT6U9FCavuQluthNzIJ8SIqkwiyTmpV6qsdmHob5\n5vf/8/8+pj11MpeS0HtsbUclWcsldLbWxrgiItO9vBEhe/jgXr6MThx0B6GuFyqz\nCB/kBZFtXZc0TdBlRCSZiNRUAVaRjESoYgEjAWCg6AYwCRaxqQBD0TTJQAxAQNKJ\nBgXEB3jTssPUiTqW7TFbQ1Y0akoK1CQBqIKEqWmamqQiaCqCAWVFgoYMRcyEJRHX\nV7BwBnJpthVhNXYJTcT7B/+fc8cm7AxJEKlgmvKEi4QABEAgAMumoMm6qPugSx0b\n7aSMxkbEdUUg8fEAz6oVFqb+YH+/hi2vJGb8rfAcZBPq+CJvT9Sv7qJG6Lc+ZFg2\nYSNksgrquFbE5oMiI7Fn+QairKoilKGgBHi6O2o5NGT5hKKpUGArwEcdWuE3omJR\nFCkBEAFdM2VVwUgimMgqJgaRTFUmQIAEMgTqEoSqphg61TVZIGwkVOL9jsrtCB8E\nkOVEYebpWmEbeTGH8vG2u8WJXEIKN3XKJP9vcSnJM//8uFPJSeNpJ4us8ZH6ysiJ\nV9HNtbmdX0q7l10d+zT7+UBD+vnq3uWJ8xY1dQerugv3n533rG/4Rpicrp/RyHEZ\nmU05F/vPHQwkDT7sf/GyretjSf/2/Deriqc1pItWVZKdNxhvyR9uKCyfu8U4kZd8\n6XJX+eMLLfVewUDd+Hs0K7c5sab6Q50XzWwsehrtSW0duZO4DgzFF4xmLoxlPM56\nJFZmZOZOmzN/n5LzDVfH83uuzXlF8rLat3odwXel994uPfTg6PrjnSsbam8/acaH\nP4+eORIYbc7LvrVC2fDj0z5v8RX3+ra0ovvTXw+tPt2KuY2DYydrOhOWOGsWbjow\nkr6jr+Dnza/fa38ByARBcQ==\n=qsWl\n-----END PGP MESSAGE-----\n\n```\n\nAnd finally, I am proving ownership of the github account by posting this as a gist.\n\n### My publicly-auditable identity:\n\nhttps://keybase.io/cboss123\n\n### From the command line:\n\nConsider the [keybase command line program](https://keybase.io/download).\n\n```bash\n# look me up\nkeybase id cboss123\n```',
       proofAction: () => console.log('Open gist'),
-      proofActionText: 'Create gist now',
-      proofActionIcon: 'iconfont-open-browser',
-      onCompleteText: 'OK posted! Check for it!',
     },
     'Coinbase': {
       ...postProofBase,
       platform: 'coinbase',
-      platformSubtitle: '@coinbase',
-      descriptionView: <Text type='Body'>Please paste the below text <Text type='Body' style={globalStyles.italic}>exactly as it appears</Text> as your "public key" on Coinbase.</Text>,
       proofText: `### Keybase proof\n\nI hereby claim:\n\n  * I am awendland on coinbase.\n  * I am cboss123 on keybase.\n  * I have a public key whose fingerprint is B457 EF35 8730 2603 CEFF  F736 A8F5 0B84 538B 481C`,
       proofAction: () => console.log('Open Coinbase'),
-      proofActionText: 'Go to Coinbase to add as "public key"',
-      proofActionIcon: 'iconfont-open-browser',
-      onCompleteText: 'OK posted! Check for it!',
     },
     'Hacker News':
     {
       ...postProofBase,
       platform: 'hackernews',
-      platformSubtitle: '@hackernews',
-      descriptionView: <Text type='Body'>Please add the below text <Text type='Body' style={globalStyles.italic}>exactly as it appears</Text> to your profile.</Text>,
       proofText: '[ my public key: https://keybase.io/awendland; my proof: https://keybase.io/awendland/sigs/akwCq7rlMfq_09mUM911_SYMb018w_jYj22RbZQ2oLQ ]',
       proofAction: () => console.log('Open Hacker News'),
-      proofActionText: 'Go to Hacker News',
-      proofActionIcon: 'iconfont-open-browser',
-      onCompleteText: 'OK posted! Check for it!',
     },
     'DNS': {
       ...postProofBase,
       platform: 'dns',
       platformUsername: 'alexwendland.com',
-      platformSubtitle: 'dns',
-      descriptionView: <Text type='Body'>Enter the following as a TXT entry in your DNS zone, <Text type='Body' style={globalStyles.italic}>exactly as it appears</Text>. If you need a "name" for you entry, give it "@".</Text>,
       proofText: 'keybase-site-verification=EgqpSziQnyApGkOO-Ylm_lJtDIQC7pi9u_xwgYppdTo',
-      onCompleteText: 'OK posted! Check for it!',
     },
     'HTTP': {
       ...postProofBase,
       platform: 'genericWebSite',
       platformUsername: 'alexwendland.com',
-      platformSubtitle: 'genericWebSite',
-      descriptionView: (
-        <Box>
-          <Text type='Body'>Please serve the text below <Text type='Body' style={globalStyles.italic}>exactly as it appears</Text> at one of these URL's.</Text>
-          <Text type='BodyPrimaryLink' style={{display: 'block'}}><Icon type='iconfont-open-browser' style={{marginRight: globalMargins.xtiny, color: globalColors.blue}} />http://www.alexwendland.com/keybase.txt</Text>
-          <Text type='BodyPrimaryLink' style={{display: 'block'}}><Icon type='iconfont-open-browser' style={{marginRight: globalMargins.xtiny, color: globalColors.blue}} />http://www.alexwendland.com/.well-known/keybase.txt</Text>
-        </Box>
-      ),
       proofText: '==================================================================\nhttps://keybase.io/awendland\n--------------------------------------------------------------------\n\nI hereby claim:\n\n  * I am an admin of http://www.caleyostrander.com\n  * I am cboss123 (https://keybase.io/cboss123) on keybase.',
-      noteText: 'Note: If someone already verified this domain, just append to the existing keybase.txt file.',
-      onCompleteText: 'OK posted! Check for it!',
     },
   },
 }

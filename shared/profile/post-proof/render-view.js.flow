@@ -1,10 +1,10 @@
 /* @flow */
 import {Component} from 'react'
-import type {Platforms} from '../constants/types/more'
-import type {IconType} from '../common-adapters/icon'
+import type {ProvablePlatforms} from '../../constants/types/more'
+import type {IconType} from '../../common-adapters/icon'
 
-export type Props = {
-  platform: Platforms,
+export type PropsSubset = {
+  platform: ProvablePlatforms,
   platformUserName: string,
   platformSubtitle?: ?string,
   descriptionText?: string,
@@ -17,9 +17,12 @@ export type Props = {
   onCancel: () => void,
   onCancelText?: ?string,
   onComplete: () => void,
-  onCompleteText: string,
   isOnCompleteWaiting?: boolean,
   errorMessage?: ?string,
+}
+
+export type Props = PropsSubset & {
+  onCompleteText: string,
 }
 
 export default class Render extends Component<void, Props, void> { }
