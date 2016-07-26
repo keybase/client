@@ -11,17 +11,17 @@ const Render = (props: Props) => {
       <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />
       {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
-        <PlatformIcon style={stylePlatformIcon} platform={platform} overlay='iconfont-proof-placeholder' overlayColor={globalColors.grey} size={48} />
+        <PlatformIcon platform={platform} overlay='iconfont-proof-placeholder' overlayColor={globalColors.grey} size={48} />
         <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
         {platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
-        {descriptionView || (descriptionText && <Text style={styleDescription} type='Body'>{descriptionText}</Text>)}
+        {descriptionView || (descriptionText && <Text type='Body'>{descriptionText}</Text>)}
         {proofText && <textInput style={styleProofText} readOnly={true}>{proofText}</textInput>}
         {noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
         {proofAction && proofActionText &&
           <Text style={styleProofAction} type='BodyPrimaryLink' onClick={() => proofAction()}>{proofActionIcon && <Icon style={styleProofActionIcon} type={proofActionIcon} />}{proofActionText}</Text>}
         <Box style={styleButtonsContainer}>
-          {onCancelText && <Button style={styleCancelButton} type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
-          <Button style={styleCompleteButton} type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
+          {onCancelText && <Button type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
+          <Button type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
         </Box>
       </Box>
     </Box>
@@ -71,8 +71,6 @@ const styleContentContainer = {
   textAlign: 'center',
 }
 
-const stylePlatformIcon = { }
-
 const stylePlatformUsername = {
   color: globalColors.blue,
 }
@@ -80,9 +78,6 @@ const stylePlatformUsername = {
 const stylePlatformSubtitle = {
   color: globalColors.black_10,
   marginBottom: globalMargins.medium,
-}
-
-const styleDescription = {
 }
 
 const styleProofText = {
@@ -122,12 +117,6 @@ const styleProofActionIcon = {
 const styleButtonsContainer = {
   ...globalStyles.flexBoxRow,
   marginTop: globalMargins.medium,
-}
-
-const styleCancelButton = {
-}
-
-const styleCompleteButton = {
 }
 
 export default Render
