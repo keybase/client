@@ -7,10 +7,6 @@ import {Box, Text, Icon} from '../common-adapters'
 import Row from './row'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
-type State = {
-  showIgnored: boolean
-}
-
 const rowKey = users => users && users.map(u => u.username).join('-')
 
 const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic}) => {
@@ -40,17 +36,7 @@ const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic}) => {
   )
 }
 
-class Render extends Component<void, Props, State> {
-  state: State;
-
-  constructor (props: Props) {
-    super(props)
-
-    this.state = {
-      showIgnored: false,
-    }
-  }
-
+class Render extends Component<void, Props, void> {
   render () {
     const styles = this.props.isPublic ? stylesPublic : stylesPrivate
 
@@ -65,8 +51,8 @@ class Render extends Component<void, Props, State> {
             onClick={this.props.onClick}
             isFirst={!idx} />
           ))}
-        <Ignored ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles}
-          isPublic={this.props.isPublic} onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />
+        <Ignored ignored={this.props.ignored} showIgnored={this.props.showIgnored} styles={styles}
+          isPublic={this.props.isPublic} onToggle={this.props.onToggleShowIgnored} />
       </Box>
     )
   }
