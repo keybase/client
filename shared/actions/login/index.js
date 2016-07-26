@@ -8,17 +8,7 @@ import {navigateTo, routeAppend, navigateUp} from '../router'
 import engine from '../../engine'
 import type {responseError} from '../../engine'
 import {Common, constants, provisionUi, passphraseCommon} from '../../constants/types/keybase-v1'
-import ExistingDevice from '../../devices/existing-device'
-import SelectOtherDevice from '../../login/register/select-other-device'
-import UsernameOrEmail from '../../login/register/username-or-email'
 // import GPGMissingPinentry from '../../login/register/gpg-missing-pinentry'
-import GPGSign from '../../login/register/gpg-sign'
-import Passphrase from '../../login/register/passphrase'
-import PaperKey from '../../login/register/paper-key'
-import CodePage from '../../login/register/code-page'
-import Error from '../../login/register/error'
-import SetPublicName from '../../login/register/set-public-name'
-import SuccessRender from '../../login/signup/success/index.render'
 import {switchTab} from '../tabbed-router'
 import {devicesTab, loginTab} from '../../constants/tabs'
 import {loadDevices} from '../devices'
@@ -96,6 +86,9 @@ function getAccounts (): AsyncAction {
 }
 
 export function login (): AsyncAction {
+  // See FIXME about HMR at the bottom of this file
+  const UsernameOrEmail = require('../../login/register/username-or-email').default
+  const Error = require('../../login/register/error').default
   return (dispatch, getState) => {
     const props = {
       onBack: () => dispatch(cancelLogin()),
@@ -355,42 +348,6 @@ export function saveInKeychainChanged (username: string, saveInKeychain: bool) :
   }
 }
 
-function askForCodePage (cb, onBack) : AsyncAction {
-  return dispatch => {
-    const mapStateToProps = state => {
-      const {
-        mode, codeCountDown, textCode, qrCode,
-        myDeviceRole, otherDeviceRole, cameraBrokenMode,
-      } = state.login.codePage
-      return {
-        mode,
-        codeCountDown,
-        textCode,
-        qrCode,
-        myDeviceRole,
-        otherDeviceRole,
-        cameraBrokenMode,
-      }
-    }
-
-    const props = {
-      mapStateToProps,
-      onBack: onBack,
-      setCodePageMode: mode => dispatch(setCodePageMode(mode)),
-      qrScanned: code => cb(code.data),
-      setCameraBrokenMode: broken => dispatch(setCameraBrokenMode(broken)),
-      textEntered: text => cb(text),
-      doneRegistering: () => dispatch(doneRegistering()),
-    }
-
-    dispatch(routeAppend({
-      parseRoute: {
-        componentAtTop: {component: CodePage, props},
-      },
-    }))
-  }
-}
-
 function cancelLogin (response: ?responseError) : AsyncAction {
   return (dispatch, getState) => {
     dispatch(navBasedOnLoginState())
@@ -465,6 +422,59 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
   }
 
   let username = null
+
+  // FIXME (mbg): The above usage of React components in the action code causes
+  // a module dependency which prevents HMR. We can't hot reload action code,
+  // so when these views (or more likely, their subcomponents from
+  // common-adapters) change, HMR is unable to update the tree. We can band-aid
+  // this by dynamically requiring these views as below, but they probably
+  // won't hot reload properly until we decouple these action effects from the
+  // view class implementations.
+  const ExistingDevice = require('../../devices/existing-device').default
+  const SelectOtherDevice = require('../../login/register/select-other-device').default
+  const UsernameOrEmail = require('../../login/register/username-or-email').default
+  const GPGSign = require('../../login/register/gpg-sign').default
+  const Passphrase = require('../../login/register/passphrase').default
+  const PaperKey = require('../../login/register/paper-key').default
+  const CodePage = require('../../login/register/code-page').default
+  const SetPublicName = require('../../login/register/set-public-name').default
+  const SuccessRender = require('../../login/signup/success/index.render').default
+
+  function askForCodePage (cb, onBack) : AsyncAction {
+    return dispatch => {
+      const mapStateToProps = state => {
+        const {
+          mode, codeCountDown, textCode, qrCode,
+          myDeviceRole, otherDeviceRole, cameraBrokenMode,
+        } = state.login.codePage
+        return {
+          mode,
+          codeCountDown,
+          textCode,
+          qrCode,
+          myDeviceRole,
+          otherDeviceRole,
+          cameraBrokenMode,
+        }
+      }
+
+      const props = {
+        mapStateToProps,
+        onBack: onBack,
+        setCodePageMode: mode => dispatch(setCodePageMode(mode)),
+        qrScanned: code => cb(code.data),
+        setCameraBrokenMode: broken => dispatch(setCameraBrokenMode(broken)),
+        textEntered: text => cb(text),
+        doneRegistering: () => dispatch(doneRegistering()),
+      }
+
+      dispatch(routeAppend({
+        parseRoute: {
+          componentAtTop: {component: CodePage, props},
+        },
+      }))
+    }
+  }
 
   return {
     'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
