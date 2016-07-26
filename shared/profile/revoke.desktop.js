@@ -19,7 +19,7 @@ function formatMessage (platform: Platforms | 'btc') {
     case 'genericWebSite':
       body = 'website'
       break
-    case 'hackerNews':
+    case 'hackernews':
       body = 'Hacker News identity'
       break
     default:
