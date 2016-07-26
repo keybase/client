@@ -1,7 +1,7 @@
 /* @flow */
 import React, {Component} from 'react'
 import _ from 'lodash'
-import {normal as proofNormal} from '../constants/tracker'
+import {normal as proofNormal, metaUnreachable} from '../constants/tracker'
 import {Box, Icon, Text, UserBio, UserActions, UserProofs, Usernames, BackButton} from '../common-adapters'
 import {headerColor as whichHeaderColor} from '../common-adapters/user-bio.shared'
 import Friendships from './friendships'
@@ -44,7 +44,13 @@ class Render extends Component<void, Props, State> {
 
     let proofNotice
     if (this.props.trackerState !== proofNormal) {
-      proofNotice = `Some of ${this.props.username}'s proofs have changed since you last tracked them.`
+      if (this.props.isYou) {
+        if (this.props.proofs.some(proof => proof.meta === metaUnreachable)) {
+          proofNotice = 'Some of your proofs are unreachable.'
+        }
+      } else {
+        proofNotice = `Some of ${this.props.username}'s proofs have changed since you last tracked them.`
+      }
     }
 
     let folders = _.chain(this.props.tlfs)
