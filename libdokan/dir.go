@@ -464,7 +464,7 @@ func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	d.folder.fs.logEnter(ctx, "Dir Cleanup")
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
-	if fi != nil && fi.DeleteOnClose() && d.parent != nil {
+	if fi != nil && fi.IsDeleteOnClose() && d.parent != nil {
 		d.folder.fs.log.CDebugf(ctx, "Removing dir in cleanup %s", d.name)
 
 		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.parent, d.name)

@@ -191,7 +191,7 @@ func (tlf *TLF) CanDeleteDirectory(ctx context.Context, fi *dokan.FileInfo) (err
 // Cleanup - forget references, perform deletions etc.
 func (tlf *TLF) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	var err error
-	if fi != nil && fi.DeleteOnClose() {
+	if fi != nil && fi.IsDeleteOnClose() {
 		tlf.folder.fs.logEnter(ctx, "TLF Cleanup")
 		defer tlf.folder.reportErr(ctx, libkbfs.WriteMode, err)
 		err = tlf.folder.fs.config.KBFSOps().DeleteFavorite(ctx, libkbfs.Favorite{

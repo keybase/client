@@ -129,8 +129,9 @@ type File interface {
 	// SetFileAttributes is for setting file attributes.
 	SetFileAttributes(ctx context.Context, fi *FileInfo, fileAttributes FileAttribute) error
 
+	// SetEndOfFile truncates the file. May be used to extend a file with zeros.
 	SetEndOfFile(ctx context.Context, fi *FileInfo, length int64) error
-	// SetAllocationSize see FILE_ALLOCATION_INFORMATION on msdn.
+	// SetAllocationSize see FILE_ALLOCATION_INFORMATION on MSDN.
 	// For simple semantics if length > filesize then ignore else truncate(length).
 	SetAllocationSize(ctx context.Context, fi *FileInfo, length int64) error
 
@@ -139,15 +140,15 @@ type File interface {
 
 	// CanDeleteFile and CanDeleteDirectory should check whether the file/directory
 	// can be deleted. The actual deletion should be done by checking
-	// FileInfo.DeleteOnClose in Cleanup.
+	// FileInfo.IsDeleteOnClose in Cleanup.
 	CanDeleteFile(ctx context.Context, fi *FileInfo) error
 	CanDeleteDirectory(ctx context.Context, fi *FileInfo) error
 	// Cleanup is called after the last handle from userspace is closed.
 	// Cleanup must perform actual deletions marked from CanDelete*
-	// by checking FileInfo.DeleteOnClose if the filesystem supports
+	// by checking FileInfo.IsDeleteOnClose if the filesystem supports
 	// deletions.
 	Cleanup(ctx context.Context, fi *FileInfo)
-	// CloseFile is called when closing a handle to the file
+	// CloseFile is called when closing a handle to the file.
 	CloseFile(ctx context.Context, fi *FileInfo)
 }
 

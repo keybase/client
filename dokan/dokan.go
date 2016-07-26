@@ -66,8 +66,8 @@ func (fi *FileInfo) Path() string {
 	return lpcwstrToString(fi.rawPath)
 }
 
-// DeleteOnClose should be checked from Cleanup.
-func (fi *FileInfo) DeleteOnClose() bool {
+// IsDeleteOnClose should be checked from Cleanup.
+func (fi *FileInfo) IsDeleteOnClose() bool {
 	return fi.ptr.DeleteOnClose != 0
 }
 
