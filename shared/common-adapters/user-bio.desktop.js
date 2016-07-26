@@ -13,7 +13,7 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
     return (
       <Box style={{position: 'absolute'}}>
         <Box style={stylesContainer}>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', zIndex: 2, position: 'relative'}}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', zIndex: 2, position: 'relative', ...globalStyles.fadeOpacity, opacity: this.props.loading ? 1 : 0}}>
             <Avatar
               style={globalStyles.clickable}
               url={''}

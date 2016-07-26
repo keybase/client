@@ -75,12 +75,13 @@ class ProofsRender extends Component {
   }
 
   render () {
+    const {loading} = this.props
     return (
-      <div style={{...styleContainer, ...this.props.style}}>
-        <Box style={{...styleLoading, opacity: this.props.loading ? 1 : 0}}>
+      <div style={{...styleContainer, minHeight: loading ? 120 : undefined, ...this.props.style}}>
+        <Box style={{...styleLoading, opacity: loading ? 1 : 0}}>
           {[147, 77, 117].map((w, i) => <LoadingProofRow key={i} index={i} textBlockWidth={w} />)}
         </Box>
-        <Box style={{...globalStyles.fadeOpacity, opacity: !this.props.loading ? 1 : 0}}>
+        <Box style={{...globalStyles.fadeOpacity, opacity: !loading ? 1 : 0}}>
           {this.props.proofs.map((p, idx) => this._renderProofRow(p, idx))}
         </Box>
       </div>
@@ -101,7 +102,6 @@ const styleContainer = {
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
   position: 'relative',
-  minHeight: 120,
 }
 
 const styleRow = {
