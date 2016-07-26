@@ -72,6 +72,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                         checkout: { checkout scm },
                         pull_mysql: {
                             if (startKbweb) {
+                                sh "docker rmi keybaseprivate/mysql || echo 'No mysql image to remove'"
                                 mysqlImage.pull()
                             }
                         },
