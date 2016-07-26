@@ -1,5 +1,7 @@
+// @flow
 import React, {Component} from 'react'
 import type {Props} from './user-add'
+import type {IconType} from '../common-adapters/icon'
 import {Box, Button, Input, Icon, Text} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles/style-guide'
 import {defaultKBFSPath} from '../constants/config'
@@ -9,11 +11,11 @@ type State = {
   text: string
 }
 
-const UserButton = ({isPublic, onClick}: Props) => (
+const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void}) => (
   <Box style={{...stylesButtonContainer,
-    backgroundColor: isPublic ? globalColors.white : globalColors.darkBlue,
-  }}>
+    backgroundColor: isPublic ? globalColors.white : globalColors.darkBlue}}>
     <Button
+      type='Primary'
       fullWidth={true}
       small={true}
       onClick={onClick}
@@ -24,30 +26,33 @@ const UserButton = ({isPublic, onClick}: Props) => (
   </Box>
 )
 
-const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username}) => (
-  <Box style={{...stylesInputContainer,
-    backgroundColor: isPublic ? globalColors.lightGrey : globalColors.darkBlue3,
-  }}>
-    {!isPublic && <Text type='BodySemiboldItalic' style={stylesPrivatePrefix}>{username},</Text>}
-    <Input
-      small={true}
-      autoFocus={true}
-      hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
-      hintStyle={{...stylesInputHint, color: isPublic ? globalColors.black_20 : globalColors.white_40}}
-      style={stylesInput}
-      inputStyle={{...stylesInputInput, color: isPublic ? globalColors.black_75 : globalColors.white}}
-      underlineStyle={stylesInputUnderline}
-      onChangeText={onUpdateText}
-      onKeyDown={event => {
-        if (event.key === 'Enter') {
-          onSubmit()
-        } else if (event.key === 'Escape') {
-          onCancel()
-        }
-      }} />
-    <Icon type={`folder-${isPublic ? 'public' : 'private'}-open-32`} onClick={onSubmit} style={{...globalStyles.clickable}} />
-  </Box>
-)
+const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username}) => {
+  const icon: IconType = isPublic ? 'icon-folder-public-open-32' : 'icon-folder-private-open-32'
+
+  return (
+    <Box style={{...stylesInputContainer,
+      backgroundColor: isPublic ? globalColors.lightGrey : globalColors.darkBlue3}}>
+      {!isPublic && <Text type='BodySemiboldItalic' style={stylesPrivatePrefix}>{username},</Text>}
+      <Input
+        small={true}
+        autoFocus={true}
+        hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
+        hintStyle={{...stylesInputHint, color: isPublic ? globalColors.black_20 : globalColors.white_40}}
+        style={stylesInput}
+        inputStyle={{...stylesInputInput, color: isPublic ? globalColors.black_75 : globalColors.white}}
+        underlineStyle={stylesInputUnderline}
+        onChangeText={onUpdateText}
+        onKeyDown={event => {
+          if (event.key === 'Enter') {
+            onSubmit()
+          } else if (event.key === 'Escape') {
+            onCancel()
+          }
+        }} />
+      <Icon type={icon} onClick={onSubmit} style={{...globalStyles.clickable}} />
+    </Box>
+  )
+}
 
 class UserAdd extends Component<void, Props, State> {
   state: State;
@@ -65,7 +70,7 @@ class UserAdd extends Component<void, Props, State> {
     if (this.state.text) {
       this.props.onAdded(this.props.isPublic
         ? `${defaultKBFSPath}/public/${this.state.text}`
-        : `${defaultKBFSPath}/private/${this.props.username},${this.state.text}`)
+        : `${defaultKBFSPath}/private/${this.props.username || ''},${this.state.text}`)
     }
     this._showInput(false)
   }
@@ -82,6 +87,7 @@ class UserAdd extends Component<void, Props, State> {
         onUpdateText={text => this.setState({text})}
         {...this.props} />
       : <UserButton
+        isPublic={this.props.isPublic}
         onClick={() => this._showInput(true)}
         {...this.props} />
   }

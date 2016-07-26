@@ -26,7 +26,7 @@ func NewTwitterChecker(p RemoteProofChainLink) (*TwitterChecker, ProofError) {
 
 func (rc *TwitterChecker) GetTorError() ProofError { return nil }
 
-func (rc *TwitterChecker) CheckHint(h SigHint) ProofError {
+func (rc *TwitterChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
 	wantedURL := ("https://twitter.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/")
 	wantedShortID := (" " + rc.proof.GetSigID().ToShortID() + " /")
 	if !strings.HasPrefix(strings.ToLower(h.apiURL), wantedURL) {
@@ -78,7 +78,7 @@ func (rc *TwitterChecker) findSigInTweet(h SigHint, s *goquery.Selection) ProofE
 		checkText, inside)
 }
 
-func (rc *TwitterChecker) CheckStatus(h SigHint) ProofError {
+func (rc *TwitterChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
 	res, err := G.XAPI.GetHTML(APIArg{
 		Endpoint:    h.apiURL,
 		NeedSession: false,
@@ -129,14 +129,10 @@ func (t TwitterServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t TwitterServiceType) NormalizeRemoteName(s string) (string, error) {
+func (t TwitterServiceType) NormalizeRemoteName(g *GlobalContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
-}
-
-func (t TwitterServiceType) ToChecker() Checker {
-	return t.BaseToChecker(t, "alphanumeric, up to 20 characters")
 }
 
 func (t TwitterServiceType) GetPrompt() string {

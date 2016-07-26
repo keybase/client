@@ -56,15 +56,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.logStatFrequency = 0.8
   config.actionStatFrequency = 0.8
 
-  let envJson = null
-  if (process.env.KEYBASE_LOCAL_DEBUG_JSON) {
-    try {
-      envJson = JSON.parse(process.env.KEYBASE_LOCAL_DEBUG_JSON)
-    } catch (e) {
-      console.warn('Invalid KEYBASE_LOCAL_DEBUG_JSON:', e)
-    }
-  }
-
+  const envJson = envVarDebugJson()
   config = {...config, ...envJson}
 }
 
@@ -110,4 +102,16 @@ export function initTabbedRouterState (state) {
       ...tabState,
     },
   }
+}
+
+export function envVarDebugJson () {
+  if (process.env.KEYBASE_LOCAL_DEBUG_JSON) {
+    try {
+      return JSON.parse(process.env.KEYBASE_LOCAL_DEBUG_JSON)
+    } catch (e) {
+      console.warn('Invalid KEYBASE_LOCAL_DEBUG_JSON:', e)
+    }
+  }
+
+  return null
 }

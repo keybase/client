@@ -296,8 +296,9 @@ var RemoteServiceOrder = []keybase1.ProofType{
 const CanonicalHost = "keybase.io"
 
 const (
-	HTTPDefaultTimeout = 60 * time.Second
-	HTTPPollMaximum    = 5 * time.Second
+	HTTPDefaultTimeout        = 60 * time.Second
+	HTTPDefaultScraperTimeout = 10 * time.Second
+	HTTPPollMaximum           = 5 * time.Second
 )
 
 // The following constants apply to APIArg parameters for

@@ -10,6 +10,7 @@
 
 #import <IOKit/kext/KextManager.h>
 #include <sys/stat.h>
+#import "KBLogger.h"
 
 @implementation KBKext
 

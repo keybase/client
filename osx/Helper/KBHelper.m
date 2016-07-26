@@ -9,7 +9,7 @@
 #import "KBHelper.h"
 
 #import "KBKext.h"
-
+#import "KBLogger.h"
 #import <MPMessagePack/MPXPCProtocol.h>
 
 @implementation KBHelper

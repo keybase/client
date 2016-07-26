@@ -12,3 +12,6 @@
 if (typeof __SCREENSHOT__ === 'undefined') {
   __SCREENSHOT__ = false
 }
+
+// Needed for purepack
+window.Buffer = require('buffer').Buffer

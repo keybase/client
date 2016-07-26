@@ -27,11 +27,11 @@ export default class Avatar extends Component<void, Props, State> {
     return (
       <TouchableOpacity style={{...stylesContainer(size), ...this.props.style}} disabled={!this.props.onClick} onPress={this.props.onClick} activeOpacity={0.8}>
         <Box style={stylesContainer(size)}>
-          <Image
+          {!!uri.uri && <Image
             style={{...stylesImage(size), opacity: this.state.avatarLoaded ? 1 : 0}}
-            onLoad={() => this.setState({avatarLoaded: true})}
-            source={uri} />
-          {!this.state.avatarLoaded &&
+            onLoad={e => this.setState({avatarLoaded: true})}
+            source={uri} />}
+          {(!this.state.avatarLoaded || !uri.uri) &&
             <Image
               style={stylesPlaceholderImage(size)}
               source={placeholder(size)} />}

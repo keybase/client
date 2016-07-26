@@ -10,6 +10,7 @@
 
 #import "KBHelper.h"
 #import "KBKext.h"
+#import "KBLogger.h"
 
 @implementation KBHelperTest
 
