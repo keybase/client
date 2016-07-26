@@ -24,7 +24,7 @@ function MissingProofRow (proof: MissingProof, style: Object): React$Element<*> 
             </Text>
           </Box>
         </Box>
-        <Icon type={'iconfont-proof-good'} style={{...stylesStatusIcon, color: missingColor}} />
+        <Icon type={'iconfont-proof-placeholder'} style={{...stylesStatusIcon, color: missingColor}} />
       </Box>
     </TouchableHighlight>
   )

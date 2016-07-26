@@ -21,7 +21,7 @@ function MissingProofRow (proof: MissingProof, style: Object): React$Element<*> 
           </Text>
         </span>
       </span>
-      <Icon type={'iconfont-proof-good'} style={{...styleStatusIcon, color: missingColor}} />
+      <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon, color: missingColor}} />
     </p>
   )
 }
@@ -55,7 +55,7 @@ function LoadingProofRow ({index, textBlockWidth, style}: {index: number, textBl
           <div style={{...globalStyles.loadingTextStyle, width: textBlockWidth}} />
         </span>
       </span>
-      <Icon style={styleService} type={'iconfont-proof-pending'} />
+      <Icon style={styleService} type={'iconfont-proof-placeholder'} />
     </div>
   )
 }
