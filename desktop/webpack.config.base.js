@@ -6,7 +6,7 @@ const defines = {
   '__HOT__': JSON.stringify(getenv.boolish('HOT', false)),
 }
 
-console.log('Injecting defines: ', defines)
+console.warn('Injecting defines: ', defines)
 
 module.exports = {
   module: {

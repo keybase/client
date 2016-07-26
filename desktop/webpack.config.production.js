@@ -11,7 +11,7 @@ const defines = {
   'process.env.NODE_ENV': JSON.stringify('production'),
 }
 
-console.log('Injecting production defines: ', defines)
+console.warn('Injecting production defines: ', defines)
 
 config.devtool = 'source-map'
 config.output.publicPath = '/dist/'

@@ -12,7 +12,7 @@ const defines = {
   '__VERSION__': JSON.stringify('Development'),
 }
 
-console.log('Injecting dev defines: ', defines)
+console.warn('Injecting dev defines: ', defines)
 
 config.debug = true
 config.devtool = NO_SOURCE_MAPS ? undefined : 'cheap-module-eval-source-map'
