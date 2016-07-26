@@ -5,7 +5,7 @@ import {Box, Text, Button, PlatformIcon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import type {Props} from './confirm-or-pending'
 
-const Render = ({platform, title, titleColor, platformIcon, platformIconOverlay, platformIconOverlayColor,
+const Render = ({platform, title, titleColor, platformIconOverlay, platformIconOverlayColor,
   username, usernameSubtitle, message, messageSubtitle, onReloadProfile}: Props) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
