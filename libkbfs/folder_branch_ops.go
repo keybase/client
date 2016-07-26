@@ -487,7 +487,7 @@ func (fbo *folderBranchOps) setBranchIDLocked(lState *lockState, bid BranchID) {
 
 	fbo.bid = bid
 	if bid == NullBranchID {
-		fbo.status.setCRChains(nil, nil)
+		fbo.status.setCRSummary(nil, nil)
 	}
 }
 
@@ -3150,9 +3150,6 @@ func (fbo *folderBranchOps) FolderStatus(
 		return FolderBranchStatus{}, nil,
 			WrongOpsError{fbo.folderBranch, folderBranch}
 	}
-
-	// Wait for conflict resolution to settle down, if necessary.
-	fbo.cr.Wait(ctx)
 
 	return fbo.status.getStatus(ctx)
 }

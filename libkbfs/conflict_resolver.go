@@ -304,7 +304,13 @@ func (cr *ConflictResolver) makeChains(ctx context.Context,
 		return nil, nil, err
 	}
 
-	cr.fbo.status.setCRChains(unmergedChains, mergedChains)
+	// Make the chain summaries.  Identify using the unmerged chains,
+	// since those are most likely to be able to identify a node in
+	// the cache.
+	unmergedSummary := unmergedChains.summary(unmergedChains, cr.fbo.nodeCache)
+	mergedSummary := mergedChains.summary(unmergedChains, cr.fbo.nodeCache)
+
+	cr.fbo.status.setCRSummary(unmergedSummary, mergedSummary)
 	return unmergedChains, mergedChains, nil
 }
 

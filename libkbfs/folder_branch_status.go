@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"reflect"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
@@ -56,8 +57,8 @@ type folderBranchStatusKeeper struct {
 
 	md         ImmutableRootMetadata
 	dirtyNodes map[NodeID]Node
-	unmerged   *crChains
-	merged     *crChains
+	unmerged   []*crChainSummary
+	merged     []*crChainSummary
 	dataMutex  sync.Mutex
 
 	updateChan  chan StatusUpdate
@@ -94,11 +95,12 @@ func (fbsk *folderBranchStatusKeeper) setRootMetadata(md ImmutableRootMetadata) 
 	fbsk.signalChangeLocked()
 }
 
-func (fbsk *folderBranchStatusKeeper) setCRChains(unmerged *crChains,
-	merged *crChains) {
+func (fbsk *folderBranchStatusKeeper) setCRSummary(unmerged []*crChainSummary,
+	merged []*crChainSummary) {
 	fbsk.dataMutex.Lock()
 	defer fbsk.dataMutex.Unlock()
-	if unmerged == fbsk.unmerged && merged == fbsk.merged {
+	if reflect.DeepEqual(unmerged, fbsk.unmerged) &&
+		reflect.DeepEqual(merged, fbsk.merged) {
 		return
 	}
 	fbsk.unmerged = unmerged
@@ -174,15 +176,7 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context) (
 
 	fbs.DirtyPaths = fbsk.convertNodesToPathsLocked(fbsk.dirtyNodes)
 
-	// Make the chain summaries.  Identify using the unmerged chains,
-	// since those are most likely to be able to identify a node in
-	// the cache.
-	if fbsk.unmerged != nil {
-		fbs.Unmerged = fbsk.unmerged.summary(fbsk.unmerged, fbsk.nodeCache)
-		if fbsk.merged != nil {
-			fbs.Merged = fbsk.merged.summary(fbsk.unmerged, fbsk.nodeCache)
-		}
-	}
-
+	fbs.Unmerged = fbsk.unmerged
+	fbs.Merged = fbsk.merged
 	return fbs, fbsk.updateChan, nil
 }
