@@ -9,16 +9,15 @@ import type {IconType} from '../common-adapters/icon'
 import type {Proof} from './user-proofs'
 
 export function metaColor (proof: Proof): string {
-  let color = globalColors.blue
   switch (proof.meta) {
-    case metaNew: color = globalColors.blue; break
-    case metaUpgraded: color = globalColors.blue; break
-    case metaUnreachable: color = globalColors.red; break
-    case metaPending: color = globalColors.black_40; break
-    case metaDeleted: color = globalColors.red; break
-    case metaIgnored: color = globalColors.green; break
+    case metaNew: return globalColors.blue
+    case metaUpgraded: return globalColors.blue
+    case metaUnreachable: return globalColors.red
+    case metaPending: return globalColors.black_40
+    case metaDeleted: return globalColors.red
+    case metaIgnored: return globalColors.green
+    default: return globalColors.blue
   }
-  return color
 }
 
 export function proofColor (proof: Proof): string {

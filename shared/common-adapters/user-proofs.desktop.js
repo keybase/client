@@ -38,7 +38,7 @@ function ProofRow (proof: Proof, onClickProof: (proof: Proof) => void, onClickPr
             <Text inline={true} type='Body' className='underline' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
             {proof.id && <Text className='no-underline' inline={true} type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>}
           </Text>
-          {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundcolor: shared.metaColor(proof)}} />}
+          {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
         </span>
       </span>
       {proofStatusIconType && <Icon type={proofStatusIconType} style={styleStatusIcon} onClick={() => onClickProof(proof)} />}
