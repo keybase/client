@@ -14,7 +14,7 @@ export type Props = {
   proofActionIcon?: IconType,
   proofActionText?: ?string,
   noteText?: string,
-  onCancel?: () => void,
+  onCancel: () => void,
   onCancelText?: ?string,
   onComplete: () => void,
   onCompleteText: string,

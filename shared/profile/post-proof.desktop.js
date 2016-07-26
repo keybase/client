@@ -8,6 +8,7 @@ const Render = (props: Props) => {
   const {platform, platformUserName, platformSubtitle, descriptionView, descriptionText, proofText, proofAction, proofActionIcon, proofActionText, noteText, onCancel, onCancelText, onComplete, onCompleteText, isOnCompleteWaiting, errorMessage} = props
   return (
     <Box style={styleContainer}>
+      <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />
       {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
         <PlatformIcon style={stylePlatformIcon} platform={platform} overlay='iconfont-proof-placeholder' overlayColor={globalColors.grey} size={48} />
@@ -19,7 +20,7 @@ const Render = (props: Props) => {
         {proofAction &&
           <Text style={styleProofAction} type='BodyPrimaryLink' onClick={() => proofAction()}><Icon style={styleProofActionIcon} type={proofActionIcon} />{proofActionText}</Text>}
         <Box style={styleButtonsContainer}>
-          {onCancel && <Button style={styleCancelButton} type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
+          {onCancelText && <Button style={styleCancelButton} type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
           <Button style={styleCompleteButton} type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
         </Box>
       </Box>
@@ -31,9 +32,18 @@ const styleContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   alignItems: 'center',
+  position: 'relative',
   paddingTop: globalMargins.large,
   paddingBottom: globalMargins.large,
   ...globalStyles.scrollable,
+}
+
+const styleClose = {
+  position: 'absolute',
+  top: globalMargins.small,
+  right: globalMargins.small,
+  ...globalStyles.clickable,
+  color: globalColors.black_10,
 }
 
 const styleErrorBanner = {
@@ -41,6 +51,7 @@ const styleErrorBanner = {
   justifyContent: 'center',
   alignItems: 'center',
   width: '100%',
+  zIndex: 1,
   height: globalMargins.large,
   marginTop: -globalMargins.large,
   backgroundColor: globalColors.red,
