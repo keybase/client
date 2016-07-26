@@ -42,6 +42,10 @@
         {
           "type": "boolean",
           "name": "service"
+        },
+        {
+          "type": "boolean",
+          "name": "app"
         }
       ]
     }

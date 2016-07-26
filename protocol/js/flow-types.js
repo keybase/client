@@ -716,6 +716,7 @@ export type NotificationChannels = {
   paperkeys: boolean;
   keyfamily: boolean;
   service: boolean;
+  app: boolean;
 }
 
 export type NotifyFSFSActivityRpcParam = $Exact<{
