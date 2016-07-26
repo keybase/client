@@ -10,7 +10,7 @@ import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 
 import type {Props, Proof, MissingProof} from './user-proofs'
 
-export function MissingProofRow (proof: MissingProof, style: Object): React$Element {
+function MissingProofRow (proof: MissingProof, style: Object): React$Element<*> {
   const missingColor = globalColors.black_20
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
@@ -30,7 +30,7 @@ export function MissingProofRow (proof: MissingProof, style: Object): React$Elem
   )
 }
 
-export function ProofRow (proof: Proof, onClickProof: (proof: Proof) => void, onClickProfile: (proof: Proof) => void, style: Object): React$Element {
+function ProofRow (proof: Proof, onClickProof: (proof: Proof) => void, onClickProfile: (proof: Proof) => void, style: Object): React$Element<*> {
   const proofStatusIconType = shared.proofStatusIcon(proof)
 
   return (

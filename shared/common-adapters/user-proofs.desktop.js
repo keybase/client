@@ -9,7 +9,7 @@ import {metaNone, checking as proofChecking} from '../constants/tracker'
 
 import type {Proof, Props, MissingProof} from './user-proofs'
 
-export function MissingProofRow (proof: MissingProof, style: Object): React$Element {
+function MissingProofRow (proof: MissingProof, style: Object): React$Element<*> {
   const missingColor = globalColors.black_20
   return (
     <p style={{...styleMissingProofRow, ...style}} className='user-proof-row' key={proof.type} onClick={() => proof.onClick(proof)}>
@@ -26,7 +26,7 @@ export function MissingProofRow (proof: MissingProof, style: Object): React$Elem
   )
 }
 
-export function ProofRow (proof: Proof, onClickProof: (proof: Proof) => void, onClickProfile: (proof: Proof) => void, style: Object): React$Element {
+function ProofRow (proof: Proof, onClickProof: (proof: Proof) => void, onClickProfile: (proof: Proof) => void, style: Object): React$Element<*> {
   const proofStatusIconType = shared.proofStatusIcon(proof)
 
   return (
@@ -60,7 +60,7 @@ function LoadingProofRow ({index, textBlockWidth, style}: {index: number, textBl
   )
 }
 
-class ProofsRender extends Component<void, Props, void> {
+export default class ProofsRender extends Component<void, Props, void> {
 
   _onClickProof (proof: Proof): void {
     if (proof.state !== proofChecking) {
@@ -173,5 +173,3 @@ const styleProofType = {
   color: globalColors.black_10,
   wordBreak: 'normal',
 }
-
-export default ProofsRender

@@ -34,4 +34,4 @@ export type Props = ({
   missingProofs: Array<MissingProof>,
 } & CommonProps)
 
-export default class Render extends React$Component<void, Props, void> {}
+export default class ProofsRender extends React$Component<void, Props, void> {}
