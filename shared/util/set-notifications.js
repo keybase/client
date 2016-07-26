@@ -29,6 +29,7 @@ export default function (channels: NotificationChannels): Promise<void> {
       paperkeys: !!channelsSet.paperkeys,
       keyfamily: !!channelsSet.keyfamily,
       service: !!channelsSet.service,
+      app: !!channelsSet.app,
     }
 
     engine.listenOnConnect('setNotifications', () => {

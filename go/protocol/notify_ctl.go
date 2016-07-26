@@ -17,6 +17,7 @@ type NotificationChannels struct {
 	Paperkeys bool `codec:"paperkeys" json:"paperkeys"`
 	Keyfamily bool `codec:"keyfamily" json:"keyfamily"`
 	Service   bool `codec:"service" json:"service"`
+	App       bool `codec:"app" json:"app"`
 }
 
 type SetNotificationsArg struct {

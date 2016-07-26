@@ -28,6 +28,7 @@ func NewCmdCtl(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 			NewCmdCtlLogRotate(cl, g),
 			NewCmdWatchdog(cl, g),
 			NewCmdWatchdog2(cl, g),
+			NewCmdCtlAppExit(cl, g),
 		},
 	}
 }

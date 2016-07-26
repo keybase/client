@@ -408,3 +408,22 @@ func (n *NotifyRouter) HandleServiceShutdown() {
 
 	n.G().Log.Debug("- Sent service shutdown notfication")
 }
+
+// HandleAppExit is called whenever an app exit command is issued
+func (n *NotifyRouter) HandleAppExit() {
+	if n == nil {
+		return
+	}
+	n.G().Log.Debug("+ Sending app exit notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).App {
+			go func() {
+				(keybase1.NotifyAppClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).Exit(context.TODO())
+			}()
+		}
+		return true
+	})
+	n.G().Log.Debug("- Sent app exit notfication")
+}

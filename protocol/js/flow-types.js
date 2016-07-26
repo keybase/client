@@ -20,6 +20,12 @@ export function Kex2ProvisionerKexStartRpc (request: $Exact<{
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'Kex2Provisioner.kexStart'})
 }
+export function NotifyAppExitRpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'NotifyApp.exit'})
+}
 export function NotifyServiceShutdownRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -31,6 +37,12 @@ export function NotifySessionLoggedOutRpc (request: $Exact<{
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'NotifySession.loggedOut'})
+}
+export function ctlAppExitRpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'ctl.appExit'})
 }
 export function ctlDbNukeRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
@@ -3697,6 +3709,7 @@ export type rpc =
   | Kex2ProvisioneeDidCounterSignRpc
   | Kex2ProvisioneeHelloRpc
   | Kex2ProvisionerKexStartRpc
+  | NotifyAppExitRpc
   | NotifyFSFSActivityRpc
   | NotifyFavoritesFavoritesChangedRpc
   | NotifyKeyfamilyKeyfamilyChangedRpc
@@ -3737,6 +3750,7 @@ export type rpc =
   | cryptoSignToStringRpc
   | cryptoUnboxBytes32AnyRpc
   | cryptoUnboxBytes32Rpc
+  | ctlAppExitRpc
   | ctlDbNukeRpc
   | ctlLogRotateRpc
   | ctlReloadRpc
@@ -4244,6 +4258,15 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.ctl.dbNuke'?: (
+    params: $Exact<{
+      sessionID: int
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.ctl.appExit'?: (
     params: $Exact<{
       sessionID: int
     }>,
@@ -5096,6 +5119,11 @@ export type incomingCallMapType = $Exact<{
       error: (err: RPCError) => void,
       result: () => void
     }
+  ) => void,
+  'keybase.1.NotifyApp.exit'?: (
+    params: $Exact<{}> /* ,
+    response: {} // Notify call
+    */
   ) => void,
   'keybase.1.notifyCtl.setNotifications'?: (
     params: $Exact<{

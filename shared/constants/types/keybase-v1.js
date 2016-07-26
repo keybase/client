@@ -260,6 +260,8 @@ export const metadata = {}
 
 export const metadataUpdate = {}
 
+export const NotifyApp = {}
+
 export const notifyCtl = {}
 
 export const NotifyFavorites = {}
@@ -491,6 +493,7 @@ export default {
   loginUi,
   metadata,
   metadataUpdate,
+  NotifyApp,
   notifyCtl,
   NotifyFavorites,
   NotifyFS,
