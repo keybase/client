@@ -34,21 +34,15 @@ export default class Avatar extends Component {
 
     return (
       <div onClick={this.props.onClick} style={{...globalStyles.noSelect, position: 'relative', width, height, ...this.props.style}}>
-        {showNoAvatar &&
-          <img src={noAvatar} style={{...avatarStyle, display: 'block'}} />}
-        {showLoadingColor && <div style={{...avatarStyle, backgroundColor: this.props.loadingColor}} />}
         {this.props.hasBackgroundColor &&
           <div
             style={{...avatarStyle,
               backgroundColor: this.props.hasBackgroundColor,
               backgroundSize: 'cover',
             }} />}
-        {!this.state.avatarLoaded &&
-          <div
-            style={{...avatarStyle,
-              backgroundImage: `url('${noAvatar}')`,
-              backgroundSize: 'cover',
-            }} />}
+        {showNoAvatar &&
+          <img src={noAvatar} style={{...avatarStyle, display: 'block'}} />}
+        {showLoadingColor && <div style={{...avatarStyle, backgroundColor: this.props.loadingColor}} />}
         <img
           src={url}
           style={{...avatarStyle,
