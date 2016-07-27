@@ -46,7 +46,7 @@ function ProofRow (proof: Proof, onClickProof: (proof: Proof) => void, onClickPr
   )
 }
 
-function LoadingProofRow ({index, textBlockWidth, style}: {index: number, textBlockWidth: number, style: Object}) {
+function LoadingProofRow ({textBlockWidth, style}: {textBlockWidth: number, style: Object}) {
   // TODO(mm) make iconfont-proof-pending the unfinished one instead
   return (
     <div style={{...styleRow, ...style}}>
@@ -76,18 +76,18 @@ export default class ProofsRender extends Component<void, Props, void> {
   }
 
   render () {
-    const {isLoading} = this.props
+    const {loading} = this.props
     const pad = idx => idx > 0 ? {marginTop: globalMargins.tiny} : {}
     const missingProofsRealCSS = `
       .user-proof-row .user-proof-row__name { text-underline: none; font-weight: normal; }
       .user-proof-row:hover .user-proof-row__name { text-decoration: underline; font-weight: bold; }
     `
     return (
-      <Box style={{...styleContainer(isLoading), ...this.props.style}}>
-        <Box style={{...styleLoading(isLoading)}} className='loading'>
+      <Box style={{...styleContainer(loading), ...this.props.style}}>
+        <Box style={{...styleLoading(loading)}} className='loading'>
           {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} style={pad(idx)} />)}
         </Box>
-        <Box style={{...styleDoneLoading(isLoading)}} className='notLoading'>
+        <Box style={{...styleDoneLoading(loading)}} className='notLoading'>
           {this.props.proofs && this.props.proofs.map((p, idx) => ProofRow(p, this._onClickProof, this._onClickProfile, pad(idx)))}
           {this.props.missingProofs && this.props.missingProofs.map((p, idx) => MissingProofRow(p, pad(idx)))}
           {this.props.missingProofs && <style>{missingProofsRealCSS}</style>}
@@ -97,14 +97,14 @@ export default class ProofsRender extends Component<void, Props, void> {
   }
 }
 
-const styleContainer = (isLoading) => ({
+const styleContainer = (loading) => ({
   ...globalStyles.flexBoxColumn,
   backgroundColor: globalColors.white,
   position: 'relative',
-  minHeight: isLoading ? 120 : 0,
+  minHeight: loading ? 120 : 0,
 })
 
-const styleLoading = (isLoading) => ({
+const styleLoading = (loading) => ({
   ...globalStyles.fadeOpacity,
   position: 'absolute',
   left: 0,
@@ -113,12 +113,12 @@ const styleLoading = (isLoading) => ({
   height: 0,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
-  opacity: isLoading ? 1 : 0,
+  opacity: loading ? 1 : 0,
 })
 
-const styleDoneLoading = (isLoading) => ({
+const styleDoneLoading = (loading) => ({
   ...globalStyles.fadeOpacity,
-  opacity: !isLoading ? 1 : 0,
+  opacity: !loading ? 1 : 0,
 })
 
 const styleRow = {

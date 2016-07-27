@@ -44,7 +44,7 @@ class Render extends Component<void, Props, State> {
     const headerColor = whichHeaderColor(this.props)
 
     let proofNotice
-    if (this.props.trackerState !== proofNormal && this.props.trackerState !== proofChecking && !this.props.loading) {
+    if (this.props.trackerState !== proofNormal && this.props.trackerState !== proofChecking && !loading) {
       if (this.props.isYou) {
         if (this.props.proofs.some(proof => proof.meta === metaUnreachable)) {
           proofNotice = 'Some of your proofs are unreachable.'
@@ -117,16 +117,14 @@ class Render extends Component<void, Props, State> {
                 <UserProofs
                   style={styleProofs}
                   username={this.props.username}
-                  isLoading={loading}
+                  loading={loading}
                   proofs={this.props.proofs}
-                  currentlyFollowing={this.props.currentlyFollowing}
                 />}
               {missingProofs.length > 0 &&
                 <UserProofs
                   style={styleMissingProofs}
                   username={this.props.username}
                   missingProofs={missingProofs}
-                  currentlyFollowing={false}
                 />}
               {!loading && folders}
             </Box>

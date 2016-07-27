@@ -22,10 +22,8 @@ export type Proof = {
 
 type CommonProps = {
   style?: Object,
-  proofs: Array<Proof>,
-  isLoading: boolean,
+  loading?: boolean,
   username: ?string,
-  currentlyFollowing: boolean
 }
 
 export type Props = ({
