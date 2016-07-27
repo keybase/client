@@ -92,7 +92,9 @@ func (h *UserHandler) ListTrackingJSON(_ context.Context, arg keybase1.ListTrack
 }
 
 func (h *UserHandler) LoadUser(_ context.Context, arg keybase1.LoadUserArg) (user keybase1.User, err error) {
-	u, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(h.G(), arg.Uid))
+	loadUserArg := libkb.NewLoadUserByUIDArg(h.G(), arg.Uid)
+	loadUserArg.PublicKeyOptional = true
+	u, err := libkb.LoadUser(loadUserArg)
 	if err != nil {
 		return
 	}
@@ -102,7 +104,9 @@ func (h *UserHandler) LoadUser(_ context.Context, arg keybase1.LoadUserArg) (use
 }
 
 func (h *UserHandler) LoadUserByName(_ context.Context, arg keybase1.LoadUserByNameArg) (user keybase1.User, err error) {
-	u, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(h.G(), arg.Username))
+	loadUserArg := libkb.NewLoadUserByNameArg(h.G(), arg.Username)
+	loadUserArg.PublicKeyOptional = true
+	u, err := libkb.LoadUser(loadUserArg)
 	if err != nil {
 		return
 	}
