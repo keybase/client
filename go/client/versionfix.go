@@ -69,7 +69,8 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	// (like 1.0.8)
 	socket, err = g.SocketInfo.DialSocket()
 	if err != nil {
-		return err
+		g.Log.Debug("| Failed to DialSocket, but ignoring error: %s\n", err)
+		return nil
 	}
 	xp := libkb.NewTransportFromSocket(g, socket)
 	srv := rpc.NewServer(xp, libkb.WrapError)
