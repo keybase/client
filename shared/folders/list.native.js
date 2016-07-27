@@ -17,7 +17,7 @@ const Ignored = ({rows, showIgnored, ignored, styles, onToggle, isPublic}) => {
       <TouchableWithoutFeedback onPress={onToggle}>
         <Box style={styles.topBox}>
           <Text type='BodySmallSemibold' style={styles.dividerText}>Ignored folders</Text>
-          <Icon type={caretIcon} style={stylesIgnoreCaret} />
+          <Icon type={caretIcon} style={{...stylesIgnoreCaret, color: isPublic ? globalColors.black_40 : globalColors.white_40}} />
         </Box>
       </TouchableWithoutFeedback>
       {showIgnored && <Box style={styles.bottomBox}>
@@ -89,7 +89,6 @@ const stylesDividerBodyText = {
 }
 
 const stylesIgnoreCaret = {
-  color: globalColors.white_75,
   width: 8,
   height: 8,
 }
