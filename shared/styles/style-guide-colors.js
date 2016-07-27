@@ -34,6 +34,7 @@ export default {
   white_90: 'rgba(255, 255, 255, 0.90)',
   yellow: '#fff75a',
   yellowGreen2: '#94b52f',
+  yellowGreen2_75: 'rgba(154, 180, 57, 0.75)',
   yellowGreen3: '#d2e697',
   yellowGreen: '#a8cf36',
 }

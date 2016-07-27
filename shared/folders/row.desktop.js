@@ -71,8 +71,11 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   let backgroundColor = styles.rowContainer.backgroundColor
+  let nameColor = styles.nameColor
+
   if (ignored) {
     backgroundColor = isPublic ? globalColors.white_40 : globalColors.darkBlue4
+    nameColor = isPublic ? globalColors.yellowGreen2_75 : globalColors.white_40
   }
 
   const containerStyle = {
@@ -88,7 +91,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
       <Box style={{...globalStyles.flexBoxRow}}>
         <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} ignored={ignored} />
         <Box style={stylesBodyContainer}>
-          <Usernames users={users} type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'} style={{color: styles.nameColor}} />
+          <Usernames users={users} type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'} style={{color: nameColor}} />
           {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
           {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} smallMode={smallMode} />}
         </Box>
