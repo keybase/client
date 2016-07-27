@@ -245,14 +245,14 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
 	// TODO: only do this the first time, cache the folder ID after that
-	md, err := mdops.GetUnmergedForHandle(ctx, h)
+	_, md, err := mdops.GetForHandle(ctx, h, Unmerged)
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
 
 	if md == (ImmutableRootMetadata{}) {
 		var id TlfID
-		id, md, err = mdops.GetForHandle(ctx, h)
+		id, md, err = mdops.GetForHandle(ctx, h, Merged)
 		if err != nil {
 			return nil, EntryInfo{}, err
 		}

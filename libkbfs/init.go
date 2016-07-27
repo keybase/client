@@ -369,6 +369,9 @@ func Init(ctx Context, params InitParams, keybaseDaemonFn KeybaseDaemonFn, onInt
 
 	config.SetBlockServer(bserv)
 
+	// TODO: Don't turn on journaling if -server-in-memory is
+	// used.
+
 	if len(params.WriteJournalRoot) > 0 {
 		// TODO: Sanity-check the root directory, e.g. create
 		// it if it doesn't exist, make sure that it doesn't

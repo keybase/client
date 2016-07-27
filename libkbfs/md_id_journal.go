@@ -10,21 +10,20 @@ import (
 	"reflect"
 )
 
-// An mdServerBranchJournal wraps a diskJournal to provide a
-// persistent list of MdIDs with sequential MetadataRevisions for a
-// single branch.
+// An mdIDJournal wraps a diskJournal to provide a persistent list of
+// MdIDs with sequential MetadataRevisions for a single branch.
 //
 // TODO: Consider future-proofing this in case we want to journal
 // other stuff besides metadata puts. But doing so would be difficult,
 // since then we would require the ordinals to be something other than
 // MetadataRevisions.
-type mdServerBranchJournal struct {
+type mdIDJournal struct {
 	j diskJournal
 }
 
-func makeMDServerBranchJournal(codec Codec, dir string) mdServerBranchJournal {
+func makeMdIDJournal(codec Codec, dir string) mdIDJournal {
 	j := makeDiskJournal(codec, dir, reflect.TypeOf(MdID{}))
-	return mdServerBranchJournal{j}
+	return mdIDJournal{j}
 }
 
 func ordinalToRevision(o journalOrdinal) (MetadataRevision, error) {
@@ -47,7 +46,7 @@ func revisionToOrdinal(r MetadataRevision) (journalOrdinal, error) {
 // TODO: Consider caching the values returned by the read functions
 // below in memory.
 
-func (j mdServerBranchJournal) readEarliestRevision() (
+func (j mdIDJournal) readEarliestRevision() (
 	MetadataRevision, error) {
 	o, err := j.j.readEarliestOrdinal()
 	if os.IsNotExist(err) {
@@ -58,7 +57,7 @@ func (j mdServerBranchJournal) readEarliestRevision() (
 	return ordinalToRevision(o)
 }
 
-func (j mdServerBranchJournal) writeEarliestRevision(r MetadataRevision) error {
+func (j mdIDJournal) writeEarliestRevision(r MetadataRevision) error {
 	o, err := revisionToOrdinal(r)
 	if err != nil {
 		return err
@@ -66,7 +65,7 @@ func (j mdServerBranchJournal) writeEarliestRevision(r MetadataRevision) error {
 	return j.j.writeEarliestOrdinal(o)
 }
 
-func (j mdServerBranchJournal) readLatestRevision() (
+func (j mdIDJournal) readLatestRevision() (
 	MetadataRevision, error) {
 	o, err := j.j.readLatestOrdinal()
 	if os.IsNotExist(err) {
@@ -77,7 +76,7 @@ func (j mdServerBranchJournal) readLatestRevision() (
 	return ordinalToRevision(o)
 }
 
-func (j mdServerBranchJournal) writeLatestRevision(r MetadataRevision) error {
+func (j mdIDJournal) writeLatestRevision(r MetadataRevision) error {
 	o, err := revisionToOrdinal(r)
 	if err != nil {
 		return err
@@ -85,7 +84,7 @@ func (j mdServerBranchJournal) writeLatestRevision(r MetadataRevision) error {
 	return j.j.writeLatestOrdinal(o)
 }
 
-func (j mdServerBranchJournal) readMdID(r MetadataRevision) (MdID, error) {
+func (j mdIDJournal) readMdID(r MetadataRevision) (MdID, error) {
 	o, err := revisionToOrdinal(r)
 	if err != nil {
 		return MdID{}, err
@@ -101,11 +100,21 @@ func (j mdServerBranchJournal) readMdID(r MetadataRevision) (MdID, error) {
 
 // All functions below are public functions.
 
-func (j mdServerBranchJournal) journalLength() (uint64, error) {
-	return j.j.journalLength()
+func (j mdIDJournal) length() (uint64, error) {
+	return j.j.length()
 }
 
-func (j mdServerBranchJournal) getHead() (MdID, error) {
+func (j mdIDJournal) getEarliest() (MdID, error) {
+	earliestRevision, err := j.readEarliestRevision()
+	if err != nil {
+		return MdID{}, err
+	} else if earliestRevision == MetadataRevisionUninitialized {
+		return MdID{}, nil
+	}
+	return j.readMdID(earliestRevision)
+}
+
+func (j mdIDJournal) getLatest() (MdID, error) {
 	latestRevision, err := j.readLatestRevision()
 	if err != nil {
 		return MdID{}, err
@@ -115,7 +124,7 @@ func (j mdServerBranchJournal) getHead() (MdID, error) {
 	return j.readMdID(latestRevision)
 }
 
-func (j mdServerBranchJournal) getRange(
+func (j mdIDJournal) getRange(
 	start, stop MetadataRevision) (MetadataRevision, []MdID, error) {
 	earliestRevision, err := j.readEarliestRevision()
 	if err != nil {
@@ -154,10 +163,18 @@ func (j mdServerBranchJournal) getRange(
 	return start, mdIDs, nil
 }
 
-func (j mdServerBranchJournal) append(r MetadataRevision, mdID MdID) error {
+func (j mdIDJournal) append(r MetadataRevision, mdID MdID) error {
 	o, err := revisionToOrdinal(r)
 	if err != nil {
 		return err
 	}
 	return j.j.appendJournalEntry(&o, mdID)
+}
+
+func (j mdIDJournal) removeEarliest() error {
+	return j.j.removeEarliest()
+}
+
+func (j mdIDJournal) clear() error {
+	return j.j.clearOrdinals()
 }

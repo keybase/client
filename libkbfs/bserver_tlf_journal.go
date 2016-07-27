@@ -214,10 +214,10 @@ func (j *bserverTlfJournal) appendJournalEntryLocked(
 	})
 }
 
-func (j *bserverTlfJournal) journalLength() (uint64, error) {
+func (j *bserverTlfJournal) length() (uint64, error) {
 	j.lock.RLock()
 	defer j.lock.RUnlock()
-	return j.j.journalLength()
+	return j.j.length()
 }
 
 func (j *bserverTlfJournal) getRefEntryLocked(

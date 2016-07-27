@@ -14,7 +14,7 @@ import (
 )
 
 func getBlockJournalLength(t *testing.T, j *bserverTlfJournal) int {
-	len, err := j.journalLength()
+	len, err := j.length()
 	require.NoError(t, err)
 	return int(len)
 }

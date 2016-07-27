@@ -114,7 +114,7 @@ func TestMDServerBasics(t *testing.T) {
 	rmdses, err := mdServer.GetRange(ctx, id, bid, Unmerged, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 35, len(rmdses))
-	for i := MetadataRevision(6); i < 16; i++ {
+	for i := MetadataRevision(6); i < 41; i++ {
 		require.Equal(t, i, rmdses[i-6].MD.Revision)
 	}
 

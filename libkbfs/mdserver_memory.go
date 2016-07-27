@@ -169,12 +169,15 @@ func (md *MDServerMemory) checkGetParams(
 		return NullBranchID, MDServerError{err}
 	}
 
-	ok, err := isReader(currentUID, mergedMasterHead)
-	if err != nil {
-		return NullBranchID, MDServerError{err}
-	}
-	if !ok {
-		return NullBranchID, MDServerErrorUnauthorized{}
+	// TODO: Figure out nil case.
+	if mergedMasterHead != nil {
+		ok, err := isReader(currentUID, &mergedMasterHead.MD)
+		if err != nil {
+			return NullBranchID, MDServerError{err}
+		}
+		if !ok {
+			return NullBranchID, MDServerErrorUnauthorized{}
+		}
 	}
 
 	// Lookup the branch ID if not supplied
@@ -342,13 +345,17 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 		return MDServerError{err}
 	}
 
-	ok, err := isWriterOrValidRekey(
-		md.config.Codec(), currentUID, mergedMasterHead, rmds)
-	if err != nil {
-		return MDServerError{err}
-	}
-	if !ok {
-		return MDServerErrorUnauthorized{}
+	// TODO: Figure out nil case.
+	if mergedMasterHead != nil {
+		ok, err := isWriterOrValidRekey(
+			md.config.Codec(), currentUID,
+			&mergedMasterHead.MD, &rmds.MD)
+		if err != nil {
+			return MDServerError{err}
+		}
+		if !ok {
+			return MDServerErrorUnauthorized{}
+		}
 	}
 
 	bid := rmds.MD.BID

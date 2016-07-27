@@ -413,14 +413,18 @@ type KBPKI interface {
 	Notify(ctx context.Context, notification *keybase1.FSNotification) error
 }
 
-// KeyManager fetches and constructs the keys needed for KBFS file
-// operations.
-type KeyManager interface {
+type encryptionKeyGetter interface {
 	// GetTLFCryptKeyForEncryption gets the crypt key to use for
 	// encryption (i.e., with the latest key generation) for the
 	// TLF with the given metadata.
 	GetTLFCryptKeyForEncryption(ctx context.Context, md ReadOnlyRootMetadata) (
 		TLFCryptKey, error)
+}
+
+// KeyManager fetches and constructs the keys needed for KBFS file
+// operations.
+type KeyManager interface {
+	encryptionKeyGetter
 
 	// GetTLFCryptKeyForMDDecryption gets the crypt key to use for the
 	// TLF with the given metadata to decrypt the private portion of
@@ -777,18 +781,14 @@ type Codec interface {
 // MDOps gets and puts root metadata to an MDServer.  On a get, it
 // verifies the metadata is signed by the metadata's signing key.
 type MDOps interface {
-	// GetForHandle returns the current metadata
-	// object corresponding to the given top-level folder's handle, if
-	// the logged-in user has read permission on the folder.  It
-	// creates the folder if one doesn't exist yet, and the logged-in
-	// user has permission to do so.
-	GetForHandle(ctx context.Context, handle *TlfHandle) (
+	// GetForHandle returns the current metadata object
+	// corresponding to the given top-level folder's handle and
+	// merge status, if the logged-in user has read permission on
+	// the folder.  It creates the folder if one doesn't exist
+	// yet, and the logged-in user has permission to do so.
+	GetForHandle(
+		ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (
 		TlfID, ImmutableRootMetadata, error)
-
-	// GetUnmergedForHandle is the same as the above but for unmerged
-	// metadata history.
-	GetUnmergedForHandle(ctx context.Context, handle *TlfHandle) (
-		ImmutableRootMetadata, error)
 
 	// GetForTLF returns the current metadata object
 	// corresponding to the given top-level folder, if the logged-in
@@ -812,11 +812,15 @@ type MDOps interface {
 
 	// Put stores the metadata object for the given
 	// top-level folder.
-	Put(ctx context.Context, rmd *RootMetadata) error
+	Put(ctx context.Context, rmd *RootMetadata) (MdID, error)
 
 	// PutUnmerged is the same as the above but for unmerged
 	// metadata history.
-	PutUnmerged(ctx context.Context, rmd *RootMetadata, bid BranchID) error
+	PutUnmerged(ctx context.Context, rmd *RootMetadata) (MdID, error)
+
+	// PruneBranch prunes all unmerged history for the given TLF
+	// branch.
+	PruneBranch(ctx context.Context, id TlfID, bid BranchID) error
 
 	// GetLatestHandleForTLF returns the server's idea of the latest handle for the TLF,
 	// which may not yet be reflected in the MD if the TLF hasn't been rekeyed since it

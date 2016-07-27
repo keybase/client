@@ -28,7 +28,6 @@ const (
 	StallableBlockArchive StallableBlockOp = "Archive"
 
 	StallableMDGetForHandle          StallableMDOp = "GetForHandle"
-	StallableMDGetUnmergedForHandle  StallableMDOp = "GetUnmergedForHandle"
 	StallableMDGetForTLF             StallableMDOp = "GetForTLF"
 	StallableMDGetLatestHandleForTLF StallableMDOp = "GetLatestHandleForTLF"
 	StallableMDGetUnmergedForTLF     StallableMDOp = "GetUnmergedForTLF"
@@ -38,6 +37,7 @@ const (
 	StallableMDAfterPut              StallableMDOp = "AfterPut"
 	StallableMDPutUnmerged           StallableMDOp = "PutUnmerged"
 	StallableMDAfterPutUnmerged      StallableMDOp = "AfterPutUnmerged"
+	StallableMDPruneBranch           StallableMDOp = "PruneBranch"
 )
 
 const stallKeyStallEverything = ""
@@ -399,27 +399,17 @@ func (m *stallingMDOps) maybeStall(ctx context.Context, opName StallableMDOp) {
 		m.stallKey, m.staller)
 }
 
-func (m *stallingMDOps) GetForHandle(ctx context.Context, handle *TlfHandle) (
+func (m *stallingMDOps) GetForHandle(
+	ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (
 	tlfID TlfID, md ImmutableRootMetadata, err error) {
 	m.maybeStall(ctx, StallableMDGetForHandle)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGetForHandle error
 		tlfID, md, errGetForHandle =
-			m.delegate.GetForHandle(ctx, handle)
+			m.delegate.GetForHandle(ctx, handle, mStatus)
 		return errGetForHandle
 	})
 	return tlfID, md, err
-}
-
-func (m *stallingMDOps) GetUnmergedForHandle(ctx context.Context,
-	handle *TlfHandle) (md ImmutableRootMetadata, err error) {
-	m.maybeStall(ctx, StallableMDGetUnmergedForHandle)
-	err = runWithContextCheck(ctx, func(ctx context.Context) error {
-		var errGetUnmergedForHandle error
-		md, errGetUnmergedForHandle = m.delegate.GetUnmergedForHandle(ctx, handle)
-		return errGetUnmergedForHandle
-	})
-	return md, err
 }
 
 func (m *stallingMDOps) GetForTLF(ctx context.Context, id TlfID) (
@@ -478,26 +468,32 @@ func (m *stallingMDOps) GetUnmergedRange(ctx context.Context, id TlfID,
 	return mds, err
 }
 
-func (m *stallingMDOps) Put(ctx context.Context, md *RootMetadata) error {
+func (m *stallingMDOps) Put(ctx context.Context, md *RootMetadata) (
+	mdID MdID, err error) {
 	m.maybeStall(ctx, StallableMDPut)
-	// If the Put was canceled, return the cancel error.  This
-	// emulates the Put being canceled while the RPC is outstanding.
-	return runWithContextCheck(ctx, func(ctx context.Context) error {
-		err := m.delegate.Put(ctx, md)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		mdID, err = m.delegate.Put(ctx, md)
 		m.maybeStall(ctx, StallableMDAfterPut)
 		return err
 	})
+	return mdID, err
 }
 
-func (m *stallingMDOps) PutUnmerged(ctx context.Context, md *RootMetadata,
-	bid BranchID) error {
+func (m *stallingMDOps) PutUnmerged(ctx context.Context, md *RootMetadata) (
+	mdID MdID, err error) {
 	m.maybeStall(ctx, StallableMDPutUnmerged)
-	// If the PutUnmerged was canceled, return the cancel error.  This
-	// emulates the PutUnmerged being canceled while the RPC is
-	// outstanding.
-	return runWithContextCheck(ctx, func(ctx context.Context) error {
-		err := m.delegate.PutUnmerged(ctx, md, bid)
+	err = runWithContextCheck(ctx, func(ctx context.Context) error {
+		mdID, err = m.delegate.PutUnmerged(ctx, md)
 		m.maybeStall(ctx, StallableMDAfterPutUnmerged)
 		return err
+	})
+	return mdID, err
+}
+
+func (m *stallingMDOps) PruneBranch(
+	ctx context.Context, id TlfID, bid BranchID) error {
+	m.maybeStall(ctx, StallableMDPruneBranch)
+	return runWithContextCheck(ctx, func(ctx context.Context) error {
+		return m.delegate.PruneBranch(ctx, id, bid)
 	})
 }

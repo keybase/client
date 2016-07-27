@@ -47,7 +47,7 @@ func (f *JournalControlFile) Write(ctx context.Context, req *fuse.WriteRequest,
 		return err
 	}
 
-	err = f.action.Execute(jServer, f.folder.getFolderBranch().Tlf)
+	err = f.action.Execute(ctx, jServer, f.folder.getFolderBranch().Tlf)
 	if err != nil {
 		return err
 	}

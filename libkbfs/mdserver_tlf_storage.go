@@ -58,7 +58,7 @@ type mdServerTlfStorage struct {
 	// TODO: Consider using https://github.com/pkg/singlefile
 	// instead.
 	lock           sync.RWMutex
-	branchJournals map[BranchID]mdServerBranchJournal
+	branchJournals map[BranchID]mdIDJournal
 }
 
 func makeMDServerTlfStorage(
@@ -67,7 +67,7 @@ func makeMDServerTlfStorage(
 		codec:          codec,
 		crypto:         crypto,
 		dir:            dir,
-		branchJournals: make(map[BranchID]mdServerBranchJournal),
+		branchJournals: make(map[BranchID]mdIDJournal),
 	}
 	return journal
 }
@@ -166,7 +166,7 @@ func (s *mdServerTlfStorage) putMDLocked(rmds *RootMetadataSigned) (MdID, error)
 }
 
 func (s *mdServerTlfStorage) getOrCreateBranchJournalLocked(
-	bid BranchID) (mdServerBranchJournal, error) {
+	bid BranchID) (mdIDJournal, error) {
 	j, ok := s.branchJournals[bid]
 	if ok {
 		return j, nil
@@ -175,10 +175,10 @@ func (s *mdServerTlfStorage) getOrCreateBranchJournalLocked(
 	dir := filepath.Join(s.branchJournalsPath(), bid.String())
 	err := os.MkdirAll(dir, 0700)
 	if err != nil {
-		return mdServerBranchJournal{}, err
+		return mdIDJournal{}, err
 	}
 
-	j = makeMDServerBranchJournal(s.codec, dir)
+	j = makeMdIDJournal(s.codec, dir)
 	s.branchJournals[bid] = j
 	return j, nil
 }
@@ -189,7 +189,7 @@ func (s *mdServerTlfStorage) getHeadForTLFReadLocked(bid BranchID) (
 	if !ok {
 		return nil, nil
 	}
-	headID, err := j.getHead()
+	headID, err := j.getLatest()
 	if err != nil {
 		return nil, err
 	}
@@ -206,12 +206,14 @@ func (s *mdServerTlfStorage) checkGetParamsReadLocked(
 		return MDServerError{err}
 	}
 
-	ok, err := isReader(currentUID, mergedMasterHead)
-	if err != nil {
-		return MDServerError{err}
-	}
-	if !ok {
-		return MDServerErrorUnauthorized{}
+	if mergedMasterHead != nil {
+		ok, err := isReader(currentUID, &mergedMasterHead.MD)
+		if err != nil {
+			return MDServerError{err}
+		}
+		if !ok {
+			return MDServerErrorUnauthorized{}
+		}
 	}
 
 	return nil
@@ -272,7 +274,7 @@ func (s *mdServerTlfStorage) journalLength(bid BranchID) (uint64, error) {
 		return 0, nil
 	}
 
-	return j.journalLength()
+	return j.length()
 }
 
 func (s *mdServerTlfStorage) getForTLF(
@@ -333,13 +335,16 @@ func (s *mdServerTlfStorage) put(
 		return false, MDServerError{err}
 	}
 
-	ok, err := isWriterOrValidRekey(
-		s.codec, currentUID, mergedMasterHead, rmds)
-	if err != nil {
-		return false, MDServerError{err}
-	}
-	if !ok {
-		return false, MDServerErrorUnauthorized{}
+	// TODO: Figure out nil case.
+	if mergedMasterHead != nil {
+		ok, err := isWriterOrValidRekey(
+			s.codec, currentUID, &mergedMasterHead.MD, &rmds.MD)
+		if err != nil {
+			return false, MDServerError{err}
+		}
+		if !ok {
+			return false, MDServerErrorUnauthorized{}
+		}
 	}
 
 	bid := rmds.MD.BID

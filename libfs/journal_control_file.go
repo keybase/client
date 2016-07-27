@@ -7,6 +7,8 @@ package libfs
 import (
 	"fmt"
 
+	"golang.org/x/net/context"
+
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -38,7 +40,8 @@ func (a JournalAction) String() string {
 // Execute performs the action on the given JournalServer for the
 // given TLF.
 func (a JournalAction) Execute(
-	jServer *libkbfs.JournalServer, tlf libkbfs.TlfID) error {
+	ctx context.Context, jServer *libkbfs.JournalServer,
+	tlf libkbfs.TlfID) error {
 	switch a {
 	case JournalEnable:
 		err := jServer.Enable(tlf)
@@ -47,7 +50,7 @@ func (a JournalAction) Execute(
 		}
 
 	case JournalFlush:
-		err := jServer.Flush(tlf)
+		err := jServer.Flush(ctx, tlf)
 		if err != nil {
 			return err
 		}

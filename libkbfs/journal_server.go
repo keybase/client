@@ -5,6 +5,8 @@
 package libkbfs
 
 import (
+	"fmt"
+	"path/filepath"
 	"sync"
 
 	"github.com/keybase/client/go/logger"
@@ -13,7 +15,10 @@ import (
 )
 
 type tlfJournalBundle struct {
-	// TODO: Fill in with a block journal and an MD journal.
+	lock sync.RWMutex
+
+	// TODO: Fill in with a block journal.
+	mdJournal mdJournal
 }
 
 // JournalServer is the server that handles write journals. It
@@ -35,6 +40,21 @@ type JournalServer struct {
 
 	lock       sync.RWMutex
 	tlfBundles map[TlfID]*tlfJournalBundle
+}
+
+func makeJournalServer(
+	config Config, log logger.Logger, dir string,
+	bserver BlockServer, mdOps MDOps) *JournalServer {
+	jServer := JournalServer{
+		config:              config,
+		log:                 log,
+		deferLog:            log.CloneWithAddedDepth(1),
+		dir:                 dir,
+		delegateBlockServer: bserver,
+		delegateMDOps:       mdOps,
+		tlfBundles:          make(map[TlfID]*tlfJournalBundle),
+	}
+	return &jServer
 }
 
 func (j *JournalServer) getBundle(tlfID TlfID) (*tlfJournalBundle, bool) {
@@ -63,14 +83,21 @@ func (j *JournalServer) Enable(tlfID TlfID) (err error) {
 		return nil
 	}
 
-	j.log.Debug("Enabled journal for %s", tlfID)
+	tlfDir := filepath.Join(j.dir, tlfID.String())
+	j.log.Debug("Enabled journal for %s with path %s", tlfID, tlfDir)
 
-	j.tlfBundles[tlfID] = &tlfJournalBundle{}
+	log := j.config.MakeLogger("")
+	mdJournal := makeMDJournal(
+		j.config.Codec(), j.config.Crypto(), tlfDir, log)
+
+	j.tlfBundles[tlfID] = &tlfJournalBundle{
+		mdJournal: mdJournal,
+	}
 	return nil
 }
 
 // Flush flushes the write journal for the given TLF.
-func (j *JournalServer) Flush(tlfID TlfID) (err error) {
+func (j *JournalServer) Flush(ctx context.Context, tlfID TlfID) (err error) {
 	j.log.Debug("Flushing journal for %s", tlfID)
 	flushedBlockEntries := 0
 	flushedMDEntries := 0
@@ -83,13 +110,40 @@ func (j *JournalServer) Flush(tlfID TlfID) (err error) {
 				tlfID, err)
 		}
 	}()
-	_, ok := j.getBundle(tlfID)
+	bundle, ok := j.getBundle(tlfID)
 	if !ok {
 		j.log.Debug("Journal not enabled for %s", tlfID)
 		return nil
 	}
 
-	// TODO: Flush block and MD journal.
+	// TODO: Flush block journal.
+
+	_, uid, err := j.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return err
+	}
+
+	key, err := j.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	if err != nil {
+		return err
+	}
+
+	for {
+		flushed, err := func() (bool, error) {
+			bundle.lock.Lock()
+			defer bundle.lock.Unlock()
+			return bundle.mdJournal.flushOne(
+				ctx, j.config.Crypto(), uid, key,
+				j.config.MDServer())
+		}()
+		if err != nil {
+			return err
+		}
+		if !flushed {
+			break
+		}
+		flushedMDEntries++
+	}
 
 	j.log.Debug("Flushed %d block entries and %d MD entries for %s",
 		flushedBlockEntries, flushedMDEntries, tlfID)
@@ -110,19 +164,35 @@ func (j *JournalServer) Disable(tlfID TlfID) (err error) {
 
 	j.lock.Lock()
 	defer j.lock.Unlock()
-	_, ok := j.tlfBundles[tlfID]
+	bundle, ok := j.tlfBundles[tlfID]
 	if !ok {
 		j.log.Debug("Journal already disabled for %s", tlfID)
 		return nil
 	}
 
-	// TODO: Either return an error if there are still entries in
-	// the journal, or flush them.
+	bundle.lock.RLock()
+	defer bundle.lock.RUnlock()
+	length, err := bundle.mdJournal.length()
+	if err != nil {
+		return err
+	}
+
+	if length != 0 {
+		return fmt.Errorf("Journal still has %d entries", length)
+	}
 
 	j.log.Debug("Disabled journal for %s", tlfID)
 
 	delete(j.tlfBundles, tlfID)
 	return nil
+}
+
+func (j *JournalServer) blockServer() journalBlockServer {
+	return journalBlockServer{j, j.delegateBlockServer}
+}
+
+func (j *JournalServer) mdOps() journalMDOps {
+	return journalMDOps{j.delegateMDOps, j}
 }
 
 type journalBlockServer struct {
@@ -175,53 +245,4 @@ func (j journalBlockServer) ArchiveBlockReferences(
 	}
 
 	return j.BlockServer.ArchiveBlockReferences(ctx, tlfID, contexts)
-}
-
-type journalMDOps struct {
-	jServer *JournalServer
-	MDOps
-}
-
-var _ MDOps = journalMDOps{}
-
-func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) error {
-	_, ok := j.jServer.getBundle(rmd.ID)
-	if ok {
-		// TODO: Delegate to bundle's MD journal.
-	}
-
-	return j.MDOps.Put(ctx, rmd)
-}
-
-func (j journalMDOps) PutUnmerged(
-	ctx context.Context, rmd *RootMetadata, bid BranchID) error {
-	_, ok := j.jServer.getBundle(rmd.ID)
-	if ok {
-		// TODO: Delegate to bundle's MD journal.
-	}
-
-	return j.MDOps.PutUnmerged(ctx, rmd, bid)
-}
-
-func (j *JournalServer) blockServer() journalBlockServer {
-	return journalBlockServer{j, j.delegateBlockServer}
-}
-
-func (j *JournalServer) mdOps() journalMDOps {
-	return journalMDOps{j, j.delegateMDOps}
-}
-
-func makeJournalServer(
-	config Config, log logger.Logger,
-	dir string, bserver BlockServer, mdOps MDOps) *JournalServer {
-	jServer := JournalServer{
-		config:              config,
-		log:                 log,
-		deferLog:            log.CloneWithAddedDepth(1),
-		dir:                 dir,
-		delegateBlockServer: bserver,
-		delegateMDOps:       mdOps,
-		tlfBundles:          make(map[TlfID]*tlfJournalBundle),
-	}
-	return &jServer
 }

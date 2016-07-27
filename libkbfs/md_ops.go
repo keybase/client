@@ -200,7 +200,8 @@ func (md *MDOpsStandard) processMetadata(
 	return MakeImmutableRootMetadata(&rmd, mdID), nil
 }
 
-func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
+// GetForHandle implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 	mStatus MergeStatus) (TlfID, ImmutableRootMetadata, error) {
 	mdserv := md.config.MDServer()
 	bh, err := handle.ToBareHandle()
@@ -279,19 +280,6 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 	return id, rmd, nil
 }
 
-// GetForHandle implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle) (
-	TlfID, ImmutableRootMetadata, error) {
-	return md.getForHandle(ctx, handle, Merged)
-}
-
-// GetUnmergedForHandle implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) GetUnmergedForHandle(ctx context.Context, handle *TlfHandle) (
-	ImmutableRootMetadata, error) {
-	_, rmd, err := md.getForHandle(ctx, handle, Unmerged)
-	return rmd, err
-}
-
 func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	id TlfID, bid BranchID, handle *TlfHandle, rmds *RootMetadataSigned) (
 	ImmutableRootMetadata, error) {
@@ -304,7 +292,7 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 		}
 	}
 	// Make sure the signed-over branch ID matches
-	if bid != rmds.MD.BID {
+	if bid != NullBranchID && bid != rmds.MD.BID {
 		return ImmutableRootMetadata{}, MDMismatchError{
 			id.String(),
 			fmt.Errorf("MD contained unexpected branch id %s, expected %s, "+
@@ -434,113 +422,71 @@ func (md *MDOpsStandard) GetUnmergedRange(ctx context.Context, id TlfID,
 	return md.getRange(ctx, id, bid, Unmerged, start, stop)
 }
 
-func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
-	rms *RootMetadataSigned, err error) {
+func (md *MDOpsStandard) put(
+	ctx context.Context, rmd *RootMetadata) (MdID, error) {
 	_, me, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
-		return nil, err
+		return MdID{}, err
 	}
 
-	codec := md.config.Codec()
-	crypto := md.config.Crypto()
-
-	if rmd.ID.IsPublic() || !rmd.IsWriterMetadataCopiedSet() {
-		// Record the last writer to modify this writer metadata
-		rmd.LastModifyingWriter = me
-
-		if rmd.ID.IsPublic() {
-			// Encode the private metadata
-			encodedPrivateMetadata, err := codec.Encode(rmd.data)
-			if err != nil {
-				return nil, err
-			}
-			rmd.SerializedPrivateMetadata = encodedPrivateMetadata
-		} else if !rmd.IsWriterMetadataCopiedSet() {
-			// Encrypt and encode the private metadata
-			k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(
-				ctx, rmd.ReadOnly())
-			if err != nil {
-				return nil, err
-			}
-			encryptedPrivateMetadata, err := crypto.EncryptPrivateMetadata(&rmd.data, k)
-			if err != nil {
-				return nil, err
-			}
-			encodedEncryptedPrivateMetadata, err := codec.Encode(encryptedPrivateMetadata)
-			if err != nil {
-				return nil, err
-			}
-			rmd.SerializedPrivateMetadata = encodedEncryptedPrivateMetadata
-		}
-
-		// Sign the writer metadata
-		buf, err := codec.Encode(rmd.WriterMetadata)
-		if err != nil {
-			return nil, err
-		}
-
-		sigInfo, err := crypto.Sign(ctx, buf)
-		if err != nil {
-			return nil, err
-		}
-		rmd.WriterMetadataSigInfo = sigInfo
-	}
-
-	// Record the last user to modify this metadata
-	rmd.LastModifyingUser = me
-
-	// encode the root metadata and sign it
-	buf, err := codec.Encode(rmd)
+	brmd, err := encryptMDPrivateData(
+		ctx, md.config.Codec(), md.config.Crypto(),
+		md.config.Crypto(), md.config.KeyManager(), me, rmd.ReadOnly())
 	if err != nil {
-		return nil, err
+		return MdID{}, err
 	}
 
-	rmds := &RootMetadataSigned{}
-	err = codec.Decode(buf, &rmds.MD)
-	if err != nil {
-		return nil, err
+	rmds := RootMetadataSigned{
+		MD: *brmd,
 	}
 
-	// Sign normally using the local device private key
-	sigInfo, err := crypto.Sign(ctx, buf)
+	err = signMD(ctx, md.config.Codec(), md.config.Crypto(), &rmds)
 	if err != nil {
-		return nil, err
-	}
-	rmds.SigInfo = sigInfo
-
-	return rmds, nil
-}
-
-func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata) error {
-	err := rmd.data.checkValid()
-	if err != nil {
-		return err
+		return MdID{}, err
 	}
 
-	rmds, err := md.readyMD(ctx, rmd)
+	err = md.config.MDServer().Put(ctx, &rmds)
 	if err != nil {
-		return err
+		return MdID{}, err
 	}
-	err = md.config.MDServer().Put(ctx, rmds)
+
+	mdID, err := md.config.Crypto().MakeMdID(&rmds.MD)
 	if err != nil {
-		return err
+		return MdID{}, err
 	}
-	return nil
+
+	rmd.BareRootMetadata = rmds.MD
+	return mdID, nil
 }
 
 // Put implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) Put(ctx context.Context, rmd *RootMetadata) error {
+func (md *MDOpsStandard) Put(
+	ctx context.Context, rmd *RootMetadata) (MdID, error) {
 	if rmd.MergedStatus() == Unmerged {
-		return UnexpectedUnmergedPutError{}
+		return MdID{}, UnexpectedUnmergedPutError{}
 	}
 	return md.put(ctx, rmd)
 }
 
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) PutUnmerged(ctx context.Context, rmd *RootMetadata, bid BranchID) error {
+func (md *MDOpsStandard) PutUnmerged(
+	ctx context.Context, rmd *RootMetadata) (MdID, error) {
 	rmd.WFlags |= MetadataFlagUnmerged
-	rmd.BID = bid
+	if rmd.BID == NullBranchID {
+		// new branch ID
+		bid, err := md.config.Crypto().MakeRandomBranchID()
+		if err != nil {
+			return MdID{}, err
+		}
+		rmd.BID = bid
+	}
 	return md.put(ctx, rmd)
+}
+
+// PruneBranch implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) PruneBranch(
+	ctx context.Context, id TlfID, bid BranchID) error {
+	return md.config.MDServer().PruneBranch(ctx, id, bid)
 }
 
 // GetLatestHandleForTLF implements the MDOps interface for MDOpsStandard.
