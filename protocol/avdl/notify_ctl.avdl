@@ -13,6 +13,7 @@ protocol notifyCtl {
     boolean paperkeys;
     boolean keyfamily;
     boolean service;
+    boolean app;
   }
 
   void setNotifications(NotificationChannels channels);

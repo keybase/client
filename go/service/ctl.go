@@ -58,3 +58,9 @@ func (c *CtlHandler) DbNuke(_ context.Context, sessionID int) error {
 	// Now drop caches, since we had the DB's state in-memory too.
 	return c.G().ConfigureCaches()
 }
+
+func (c *CtlHandler) AppExit(_ context.Context, sessionID int) error {
+	c.G().Log.Debug("Received appExit RPC")
+	c.G().NotifyRouter.HandleAppExit()
+	return nil
+}

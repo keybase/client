@@ -57,6 +57,15 @@
         }
       ],
       "response": null
+    },
+    "appExit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

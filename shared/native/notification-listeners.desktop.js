@@ -47,8 +47,13 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
       // }
     // },
     'keybase.1.NotifyService.shutdown': () => {
-      console.log('Quitting due to service shutdown')
-      remote.app.quit()
+      // console.log('Quitting due to service shutdown')
+      // App quiting will call ctl stop, which will stop the service
+      // remote.app.quit()
+    },
+    'keybase.1.NotifyApp.exit': () => {
+      console.log('App exit requested')
+      remote.app.exit(0)
     },
   }
 }
