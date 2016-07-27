@@ -33,6 +33,7 @@ dependencies:
     # - emulator -avd circleci-android22 -no-audio -no-window:
     #    background: true
     #    parallel: true
+    - rm -rf $HOME/client/react-native/node_modules # Clear node_modules cache, it appears to be getting out of sync
     - npm install
     - npm install -g react-native-cli
     - mkdir -p $GOPATH/src/github.com/keybase
