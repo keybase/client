@@ -123,12 +123,22 @@ function pack (plat, arch, cb) {
   // there is no darwin ia32 electron
   if (plat === 'darwin' && arch === 'ia32') return
 
-  const opts = Object.assign({}, DEFAULT_OPTS, {
+  var opts = Object.assign({}, DEFAULT_OPTS, {
     platform: plat,
     arch: arch,
     prune: true,
     out: `release/${plat}-${arch}`,
   })
+
+  if (plat === 'win32') {
+    opts = Object.assign(opts, {
+      'version-string': {
+        'OriginalFilename': appName + '.exe',
+        'FileDescription': appName,
+        'ProductName': appName,
+      },
+    })
+  }
 
   packager(opts, cb)
 }
