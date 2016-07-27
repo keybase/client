@@ -3,8 +3,7 @@ import React from 'react'
 import type {Folder} from './list'
 import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
 import type {IconType} from '../common-adapters/icon'
-import {globalStyles, globalColors} from '../styles/style-guide'
-import {resolveImageAsURL} from '../../desktop/resolve-root'
+import {globalStyles, globalColors, backgroundURL} from '../styles/style-guide'
 
 const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored}) => {
   const boxStyle = {
@@ -80,7 +79,6 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
     ...styles.rowContainer,
     minHeight: smallMode ? 40 : 48,
     backgroundColor,
-    borderBottom: `solid 1px ${globalColors.black_10}`,
   }
 
   const icon: IconType = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
@@ -107,6 +105,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
           <Icon type={icon} style={{visibility: hasData ? 'visible' : 'hidden', ...(smallMode && !hasData ? {display: 'none'} : {})}} />
         </Box>
       </Box>
+      <Box style={{height: 1, backgroundColor: globalColors.black_05, position: 'absolute', bottom: 0, left: 0, right: 0}} />
     </Box>
   )
 }
@@ -137,9 +136,7 @@ const stylesPrivate = {
     normal: 'icon-folder-private-group-32',
   },
   avatarContainer: {
-    backgroundColor: globalColors.darkBlue3,
-    backgroundImage: `url(${resolveImageAsURL('icons', 'icon-damier-pattern-good-open.png')})`,
-    backgroundRepeat: 'repeat',
+    background: `${backgroundURL('icons', 'icon-damier-pattern-good-open.png')} ${globalColors.darkBlue3} repeat`,
   },
   nameColor: globalColors.white,
   modifiedMode: 'Terminal',

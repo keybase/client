@@ -113,7 +113,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, path, onClick}:
 }
 
 const stylesLine = {
-  backgroundColor: globalColors.black_10,
+  backgroundColor: globalColors.black_05,
   height: 1,
   position: 'absolute',
   top: 0,

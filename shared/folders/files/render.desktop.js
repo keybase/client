@@ -2,8 +2,7 @@
 import React, {Component} from 'react'
 import {Box, Text, BackButton, Avatar, PopupMenu, Icon, Usernames, ListItem, Button} from '../../common-adapters'
 import File from './file/render'
-import {globalStyles, globalColors, globalMargins} from '../../styles/style-guide'
-import {resolveImageAsURL} from '../../../desktop/resolve-root'
+import {globalStyles, globalColors, globalMargins, backgroundURL} from '../../styles/style-guide'
 import {intersperseFn} from '../../util/arrays'
 import type {Props} from './render'
 import type {IconType} from '../../common-adapters/icon'
@@ -160,9 +159,7 @@ class Render extends Component<void, Props, void> {
 
 const styleHeaderThemed = {
   'private': {
-    backgroundColor: globalColors.darkBlue3,
-    backgroundImage: `url(${resolveImageAsURL('icons', 'icon-damier-pattern-good-open.png')})`,
-    backgroundRepeat: 'repeat',
+    background: `${backgroundURL('icons', 'icon-damier-pattern-good-open.png')} ${globalColors.darkBlue3} repeat`,
   },
 
   'public': {

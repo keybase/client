@@ -108,3 +108,6 @@ export const globalMargins = {
 
 export const navBarHeight = OS === OS_ANDROID ? 60 : NavigatorNavigationBarStyles.General.TotalNavHeight
 export const tabBarHeight = 48
+export function backgroundURL (...path: Array<string>): Object {
+  return {}
+}
