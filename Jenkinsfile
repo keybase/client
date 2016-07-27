@@ -59,6 +59,9 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                 def cause = getCauseString()
                 println "Cause: ${cause}"
                 def startKbweb = !binding.variables.containsKey("kbwebNodePrivateIP") || kbwebNodePrivateIP == '' || kbwebNodePublicIP == ''
+                sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
+                sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
+                sh "docker rmi --no-prune keybaseprivate/mysql keybaseprivate/kbgregor keybaseprivate/kbweb keybaseprivate/kbclient || echo 'No images to remove'"
 
                 docker.withRegistry("", "docker-hub-creds") {
                     parallel (
@@ -69,7 +72,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                         },
                         pull_mysql: {
                             if (startKbweb) {
-                                sh "docker rmi keybaseprivate/mysql || echo 'No mysql image to remove'"
                                 mysqlImage.pull()
                             }
                         },
@@ -84,9 +86,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             }
                         },
                         pull_kbclient: {
-                            sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
-                            sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
-                            sh 'docker rmi --no-prune keybaseprivate/kbclient || echo "no images to remove"'
                             if (cause == "upstream" && clientProjectName != '') {
                                 step([$class: 'CopyArtifact',
                                         projectName: "${clientProjectName}",
