@@ -71,8 +71,8 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   let backgroundColor = styles.rowContainer.backgroundColor
-  if (isPublic && ignored) {
-    backgroundColor = globalColors.white_40
+  if (ignored) {
+    backgroundColor = isPublic ? globalColors.white_40 : globalColors.darkBlue4
   }
 
   const containerStyle = {
