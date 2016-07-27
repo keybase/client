@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {Box, Text, BackButton, Avatar, PopupMenu, Icon, Usernames, ListItem, Button} from '../../common-adapters'
 import File from './file/render'
-import {globalStyles, globalColors} from '../../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../../styles/style-guide'
 import {resolveImageAsURL} from '../../../desktop/resolve-root'
 import {intersperseFn} from '../../util/arrays'
 import type {Props} from './render'
@@ -10,8 +10,8 @@ import type {IconType} from '../../common-adapters/icon'
 
 const Section = ({section, theme}) => (
   <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
-    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}>
-      <Box key={section.name} style={{display: 'inline', marginLeft: 8}}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: globalMargins.medium}}>
+      <Box key={section.name} style={{display: 'inline', marginLeft: globalMargins.tiny}}>
         {section.modifiedMarker && <Icon type='iconfont-thunderbolt' style={{fontSize: 14, marginTop: 2, marginRight: 6, ...styleSectionTextThemed[theme]}} />}
         <Text type='BodySmallSemibold' style={{...styleSectionTextThemed[theme]}}>{section.name}</Text>
       </Box>
@@ -25,7 +25,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
       <Text type='BodySmallSemibold' style={styleWarningBanner}>This folder is waiting for either participant to turn on a device.</Text>
-      <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
+      <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: globalMargins.xlarge, paddingRight: globalMargins.xlarge}}>
         {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: globalColors.black_10}} />,
         waitingForParticipantUnlock.map(p => (
           <ListItem
@@ -58,7 +58,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey}
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
       <Text type='BodySmallSemibold' style={styleWarningBanner}>Until you take one of the steps below, you're at risk of losing data forever.</Text>
-      <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
+      <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: globalMargins.xlarge, paddingRight: globalMargins.xlarge}}>
         {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
         youCanUnlock.map(device => (
           <ListItem
@@ -77,7 +77,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey}
   )
 }
 
-export default class Render extends Component<void, Props, void> {
+class Render extends Component<void, Props, void> {
   _renderContents (isPrivate: boolean, ignored: boolean) {
     const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
 
@@ -92,18 +92,18 @@ export default class Render extends Component<void, Props, void> {
 
     if (!this.props.recentFilesEnabled) {
       return (
-        <Box style={{...styleRecentFilesNotEnabled}}>
+        <Box style={styleRecentFilesNotEnabled}>
+          <Button key='open' type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' style={{marginBottom: globalMargins.small}} />
           {ignored
-          ? <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' />
-          : <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />}
-          <Button key='open' type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' />
+          ? <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' style={{marginRight: 0}} />
+          : <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' style={{marginRight: 0}} />}
         </Box>
       )
     }
 
     if (this.props.recentFilesSection.length) {
       return (
-        <Box style={{...globalStyles.flexBoxColumn}}>
+        <Box style={globalStyles.flexBoxColumn}>
           {this.props.recentFilesSection.map(s => <Section key={s.name} section={s} theme={this.props.theme} />)}
         </Box>
       )
@@ -139,7 +139,7 @@ export default class Render extends Component<void, Props, void> {
           <Box style={{...globalStyles.flexBoxRow, height: 0, justifyContent: 'center', position: 'relative', bottom: 16}}>
             {this.props.users.map(u => <Box key={u.username} style={{height: 32, width: 28}}><Avatar username={u.username} size={32} /></Box>)}
           </Box>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'baseline', marginBottom: 'auto', marginTop: 'auto'}}>
+          <Box style={styleTLFNameContainer}>
             <Text type='BodySmallSemibold' style={tlfTextStyle}>{isPrivate ? 'private/' : 'public/'}</Text>
             <Usernames users={this.props.users} type='BodySemibold' style={tlfTextStyle} />
           </Box>
@@ -164,8 +164,19 @@ const styleHeaderThemed = {
 }
 
 const styleTLFHeader = {
-  height: 64,
+  minHeight: globalMargins.xlarge,
   alignItems: 'center',
+}
+
+const styleTLFNameContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'baseline',
+  marginBottom: 'auto',
+  marginTop: 'auto',
+  paddingLeft: globalMargins.xlarge,
+  paddingRight: globalMargins.xlarge,
+  paddingTop: 22,
+  paddingBottom: 20,
 }
 
 const styleTLFHeaderThemed = {
@@ -214,11 +225,11 @@ const backButtonColorThemed = {
 }
 
 const styleRecentFilesNotEnabled = {
-  ...globalStyles.flexBoxRow,
+  ...globalStyles.flexBoxColumn,
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
-  padding: 64,
+  padding: globalMargins.xlarge,
 }
 
 const styleNoFiles = {
@@ -226,7 +237,7 @@ const styleNoFiles = {
   flex: 1,
   justifyContent: 'center',
   alignItems: 'center',
-  padding: 64,
+  padding: globalMargins.xlarge,
 }
 
 const styleWarningBanner = {
@@ -234,8 +245,8 @@ const styleWarningBanner = {
   color: globalColors.white,
   paddingTop: 13,
   paddingBottom: 13,
-  paddingLeft: 64,
-  paddingRight: 64,
+  paddingLeft: globalMargins.xlarge,
+  paddingRight: globalMargins.xlarge,
   textAlign: 'center',
 }
 
@@ -244,3 +255,5 @@ function styleMenuColorThemed (theme, showingMenu): string {
     ? (showingMenu ? globalColors.black_40 : globalColors.white)
     : (showingMenu ? globalColors.blue3 : globalColors.white)
 }
+
+export default Render
