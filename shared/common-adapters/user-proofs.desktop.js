@@ -55,7 +55,7 @@ function LoadingProofRow ({textBlockWidth, style}: {textBlockWidth: number, styl
           <div style={{...globalStyles.loadingTextStyle, width: textBlockWidth}} />
         </span>
       </span>
-      <Icon style={styleService} type={'iconfont-proof-placeholder'} />
+      <Icon style={{...styleStatusIcon, color: globalStyles.loadingTextStyle.backgroundColor}} type={'iconfont-proof-placeholder'} />
     </div>
   )
 }
