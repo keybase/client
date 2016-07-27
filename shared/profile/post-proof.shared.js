@@ -1,18 +1,12 @@
 // @flow
-import React, {Component} from 'react'
-import {Text, Box, Icon} from '../../common-adapters'
-import RenderView from './render-view'
-import {globalStyles, globalColors, globalMargins} from '../../styles/style-guide'
+import React from 'react'
+import {Text, Box, Icon} from '../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {resolve as urlResolve} from 'url'
-import openUrl from '../../util/open-url'
-import type {PropsSubset as ViewProps} from './render-view'
+import openUrl from '../util/open-url'
+import type {Props} from './post-proof'
 
-type Props = ViewProps & {
-  onCompleteText?: string,
-  baseUrl?: string,
-}
-
-const platformProps = (props: Props) => {
+export function propsForPlatform (props: Props) {
   switch (props.platform) {
     case 'twitter':
       return {
@@ -75,16 +69,5 @@ const platformProps = (props: Props) => {
         noteText: 'Note: If someone already verified this domain, just append to the existing keybase.txt file.',
         onCompleteText: 'OK posted! Check for it!',
       }
-  }
-}
-
-export default class Render extends Component<void, Props, void> {
-  render () {
-    return (
-      <RenderView
-        {...platformProps(this.props)}
-        {...this.props}
-      />
-    )
   }
 }

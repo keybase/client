@@ -1,11 +1,12 @@
 // @flow
 import React from 'react'
-import {Box, Text, Button, Icon, PlatformIcon} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles/style-guide'
-import type {Props} from './render-view'
+import {Box, Text, Button, Icon, PlatformIcon} from '../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import * as shared from './post-proof.shared'
+import type {Props} from './post-proof'
 
 const Render = (props: Props) => {
-  const {platform, platformUserName, platformSubtitle, descriptionView, descriptionText, proofText, proofAction, proofActionIcon, proofActionText, noteText, onCancel, onCancelText, onComplete, onCompleteText, isOnCompleteWaiting, errorMessage} = props
+  const {platform, platformUserName, platformSubtitle, descriptionView, descriptionText, proofText, proofAction, proofActionIcon, proofActionText, noteText, onCancel, onCancelText, onComplete, onCompleteText, isOnCompleteWaiting, errorMessage} = {...shared.propsForPlatform(props), ...props}
   return (
     <Box style={styleContainer}>
       <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />
