@@ -71,8 +71,8 @@ const RowMeta = ({ignored, meta, styles}) => {
   }
 
   const metaProps = meta === 'ignored'
-    ? {title: 'ignored', style: styles.ignored}
-    : {title: meta || '', style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {}}
+    ? {title: 'ignored', style: {...styles.ignored, marginTop: 3}}
+    : {title: meta || '', style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta], marginTop: 2} : {}}
 
   return <Meta {...metaProps} />
 }
@@ -194,6 +194,8 @@ const stylesBodyContainer = {
 const stylesBodyNameContainer = {
   ...globalStyles.flexBoxRow,
   flexWrap: 'wrap',
+  justifyContent: 'flex-start',
+  alignItems: 'flex-start',
 }
 
 const stylesActionContainer = {

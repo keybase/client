@@ -44,7 +44,7 @@ export default class Usernames extends Component<void, Props, void> {
     const containerStyle = this.props.inline ? {display: 'inline'} : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
 
     return (
-      <Box style={{...containerStyle, textDecoration: 'inherit'}}>
+      <Box style={{...containerStyle, ...(isMobile ? {} : {textDecoration: 'inherit'})}}>
         {usernameText(this.props)}
       </Box>
     )

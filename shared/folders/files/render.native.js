@@ -8,7 +8,7 @@ import {intersperseFn} from '../../util/arrays'
 import type {Props} from './render'
 import type {FileSection} from '../../constants/folders'
 
-export default class Render extends Component<void, Props, void> {
+class Render extends Component<void, Props, void> {
   _renderSection (section: FileSection) {
     return (
       <Box key={section.name} style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[this.props.theme]}}>
@@ -46,11 +46,11 @@ export default class Render extends Component<void, Props, void> {
   _renderContents (isPrivate: boolean, ignored: boolean) {
     if (!this.props.recentFilesEnabled) {
       return (
-        <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative'}}>
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+          <Button key='open' type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' style={{marginBottom: 20}} />
           {ignored
           ? <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' />
           : <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />}
-          <Button key='open' type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' />
         </Box>
       )
     } else {
@@ -65,11 +65,11 @@ export default class Render extends Component<void, Props, void> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', backgroundColor: backgroundColorThemed[this.props.theme]}}>
         {this._renderHeader()}
-        <Box style={{...globalStyles.flexBoxColumn, ...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
-          <Box style={{...globalStyles.flexBoxRow, position: 'relative', justifyContent: 'center'}}>
+        <Box style={{...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
+          <Box style={{...globalStyles.flexBoxRow, position: 'relative', justifyContent: 'center', alignItems: 'flex-start', marginTop: -16}}>
             {this.props.users.map(u => <Box key={u.username} style={{height: 32, width: 28}}><Avatar username={u.username} size={32} /></Box>)}
           </Box>
-          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', justifyContent: 'center', marginTop: 20, marginBottom: 20, flex: 1}}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', justifyContent: 'center', marginTop: 3, marginBottom: 20, flex: 1}}>
             <Text type='BodySmallSemibold' style={tlfTextStyle}>{isPrivate ? 'private/' : 'public/'}</Text>
             <Usernames users={this.props.users} type='BodySemibold' style={tlfTextStyle} />
           </Box>
@@ -91,7 +91,8 @@ const styleHeaderThemed = {
 }
 
 const styleTLFHeader = {
-  height: 64,
+  ...globalStyles.flexBoxColumn,
+  minHeight: 64,
 }
 
 const styleTLFHeaderThemed = {
@@ -143,3 +144,5 @@ function styleMenuColorThemed (theme, showingMenu): string {
     ? (showingMenu ? globalColors.black_40 : globalColors.white)
     : (showingMenu ? globalColors.blue3 : globalColors.white)
 }
+
+export default Render
