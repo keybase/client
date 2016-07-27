@@ -114,7 +114,6 @@ export default class Input extends Component {
           rows={this.props.rows}
           rowsMax={this.props.rowsMax}
           style={{...textStyle, ...globalStyles.flexBoxColumn, ...this.props.textStyle}}
-          textAlign='center'
           type={password ? 'password' : 'text'}
           underlineFocusStyle={{...styles.underlineFocusStyle, ...this.props.underlineStyle}}
           underlineShow={this.props.underlineShow}

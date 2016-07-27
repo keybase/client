@@ -11,6 +11,4 @@ export type Props = {
   children?: React$Element<*>
 }
 
-declare export default class Terminal extends React.Component {
-  props: Props;
-}
+declare export default class Terminal extends React.Component<void, Props, void> { }

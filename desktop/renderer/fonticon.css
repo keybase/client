@@ -1,9 +1,9 @@
 @font-face {
     font-family: 'kb';
     src:
-        url('fonts/kb.ttf?o1ai9o') format('truetype'),
-        url('fonts/kb.woff?o1ai9o') format('woff'),
-        url('fonts/kb.svg?o1ai9o#kb') format('svg');
+        url('fonts/kb.ttf?u528ua') format('truetype'),
+        url('fonts/kb.woff?u528ua') format('woff'),
+        url('fonts/kb.svg?u528ua#kb') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -106,6 +106,9 @@
 }
 .icon-kb-iconfont-lock:before {
     content: "\e925";
+}
+.icon-kb-iconfont-proof-placeholder:before {
+    content: "\e926";
 }
 .icon-kb-iconfont-proof-good:before {
     content: "\e917";
