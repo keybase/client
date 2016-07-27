@@ -113,7 +113,7 @@ const stylesPrivate = {
     ...stylesIgnoreDivider,
     backgroundColor: globalColors.darkBlue3,
     color: globalColors.white_75,
-    borderTop: 'solid 1px rgba(255, 255, 255, 0.05)',
+    borderBottom: 'solid 1px rgba(255, 255, 255, 0.05)',
   },
   bottomBox: {
     ...stylesIgnoreDesc,
@@ -127,7 +127,7 @@ const stylesPublic = {
     ...stylesIgnoreDivider,
     backgroundColor: globalColors.lightGrey,
     color: globalColors.black_40,
-    borderTop: 'solid 1px rgba(0, 0, 0, 0.05)',
+    borderBottom: 'solid 1px rgba(0, 0, 0, 0.05)',
   },
   bottomBox: {
     ...stylesIgnoreDesc,

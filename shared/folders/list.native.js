@@ -98,6 +98,8 @@ const stylesPrivate = {
   topBox: {
     ...stylesIgnoreDivider,
     backgroundColor: globalColors.darkBlue3,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
   },
   dividerText: {
     ...stylesDividerText,
@@ -117,6 +119,8 @@ const stylesPublic = {
   topBox: {
     ...stylesIgnoreDivider,
     backgroundColor: globalColors.lightGrey,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
   },
   dividerText: {
     ...stylesDividerText,
