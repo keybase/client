@@ -113,16 +113,16 @@ class Render extends Component<void, Props, State> {
               <Box style={styleProofNoticeBox}>
                 {proofNotice && <Text type='BodySmallSemibold' style={{color: globalColors.white}}>{proofNotice}</Text>}
               </Box>
-              {this.props.proofs && this.props.proofs.length > 0 &&
+              {(loading || this.props.proofs.length > 0) &&
                 <UserProofs
                   style={styleProofs}
                   username={this.props.username}
                   loading={loading}
                   proofs={this.props.proofs}
                 />}
-              {missingProofs.length > 0 &&
+              {!loading && missingProofs.length > 0 &&
                 <UserProofs
-                  style={styleMissingProofs}
+                  style={styleMissingProofs(this.props.proofs.length > 0)}
                   username={this.props.username}
                   missingProofs={missingProofs}
                 />}
@@ -205,14 +205,16 @@ const styleProofNoticeBox = {
   zIndex: 11,
 }
 
+// header + small space from top of header + tiny space to pad top of first item
+const userProofsTopPadding = globalMargins.small + globalMargins.tiny
+
 const styleProofs = {
-  // header + small space from top of header + tiny space to pad top of first item
-  marginTop: globalMargins.small + globalMargins.tiny,
+  marginTop: userProofsTopPadding,
 }
 
-const styleMissingProofs = {
-  marginTop: globalMargins.tiny,
-}
+const styleMissingProofs = (hasProofs) => ({
+  marginTop: hasProofs ? globalMargins.tiny : userProofsTopPadding,
+})
 
 const styleFolderLine = {
   ...globalStyles.flexBoxRow,
