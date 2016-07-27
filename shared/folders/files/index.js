@@ -16,6 +16,7 @@ type Props = $Shape<{
   folder: ?Folder,
   path: string,
   username: string,
+  allowIgnore: boolean,
   navigateBack: () => void,
   routeAppend: (route: any) => void,
   ignoreFolder: (path: string) => void,
@@ -55,6 +56,7 @@ class Files extends Component<void, Props, State> {
     const openCurrentFolder = () => { this.props.openInKBFS(this.props.path) }
     const ignoreCurrentFolder = () => { this.props.ignoreFolder(this.props.path) }
     const unIgnoreCurrentFolder = () => { this.props.favoriteFolder(this.props.path) }
+    const allowIgnore = folder.users.filter(f => !f.you).length > 0
 
     return (
       <Render
@@ -67,6 +69,7 @@ class Files extends Component<void, Props, State> {
         visiblePopupMenu={this.state.visiblePopupMenu}
         onTogglePopupMenu={() => this.setState({visiblePopupMenu: !this.state.visiblePopupMenu})}
         selfUsername={username}
+        allowIgnore={allowIgnore}
         users={folder.users}
         waitingForParticipantUnlock={folder.waitingForParticipantUnlock}
         youCanUnlock={folder.youCanUnlock}

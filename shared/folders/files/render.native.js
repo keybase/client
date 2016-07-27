@@ -43,14 +43,14 @@ class Render extends Component<void, Props, void> {
     return contents
   }
 
-  _renderContents (isPrivate: boolean, ignored: boolean) {
+  _renderContents (isPrivate: boolean, ignored: boolean, allowIgnore: boolean) {
     if (!this.props.recentFilesEnabled) {
       return (
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
           <Button key='open' type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' style={{marginBottom: 20}} />
           {ignored
-          ? <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' />
-          : <Button backgroundMode={isPrivate ? 'Terminal' : 'Normal'} type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />}
+          ? allowIgnore && <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' />
+          : allowIgnore && <Button backgroundMode={isPrivate ? 'Terminal' : 'Normal'} type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />}
         </Box>
       )
     } else {
@@ -74,7 +74,7 @@ class Render extends Component<void, Props, void> {
             <Usernames users={this.props.users} type='BodySemibold' style={tlfTextStyle} />
           </Box>
         </Box>
-        {this._renderContents(isPrivate, this.props.ignored)}
+        {this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}
       </Box>
     )
   }

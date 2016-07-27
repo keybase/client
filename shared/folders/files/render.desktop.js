@@ -78,25 +78,32 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey}
 }
 
 class Render extends Component<void, Props, void> {
-  _renderContents (isPrivate: boolean, ignored: boolean) {
+  _renderContents (isPrivate: boolean, ignored: boolean, allowIgnore: boolean) {
     const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
 
     if (this.props.youCanUnlock.length) {
-      return <YouCanUnlock youCanUnlock={this.props.youCanUnlock} isPrivate={isPrivate} backgroundMode={backgroundMode}
+      return <YouCanUnlock
+        youCanUnlock={this.props.youCanUnlock}
+        isPrivate={isPrivate}
+        backgroundMode={backgroundMode}
         onClickPaperkey={this.props.onClickPaperkey} />
     }
 
     if (this.props.waitingForParticipantUnlock.length) {
-      return <ParticipantUnlock waitingForParticipantUnlock={this.props.waitingForParticipantUnlock} isPrivate={isPrivate} backgroundMode={backgroundMode} />
+      return <ParticipantUnlock
+        waitingForParticipantUnlock={this.props.waitingForParticipantUnlock}
+        isPrivate={isPrivate}
+        backgroundMode={backgroundMode} />
     }
 
     if (!this.props.recentFilesEnabled) {
       return (
         <Box style={styleRecentFilesNotEnabled}>
-          <Button key='open' type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' style={{marginBottom: globalMargins.small}} />
+          <Button key='open' type='Primary' onClick={this.props.openCurrentFolder}
+            label='Open folder' style={{marginBottom: globalMargins.small}} />
           {ignored
-          ? <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' style={{marginRight: 0}} />
-          : <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' style={{marginRight: 0}} />}
+          ? allowIgnore && <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' style={{marginRight: 0}} />
+          : allowIgnore && <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' style={{marginRight: 0}} />}
         </Box>
       )
     }
@@ -145,7 +152,7 @@ class Render extends Component<void, Props, void> {
           </Box>
         </Box>
         <PopupMenu style={{marginLeft: 'auto', marginRight: 8, marginTop: 36, width: 320}} items={this.props.popupMenuItems} visible={this.props.visiblePopupMenu} onHidden={this.props.onTogglePopupMenu} />
-        {this._renderContents(isPrivate, this.props.ignored)}
+        {this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}
       </Box>
     )
   }

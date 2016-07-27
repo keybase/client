@@ -293,6 +293,7 @@ const filesMenuItems = [
 const commonFiles = (isPrivate): FilesProps => ({
   theme: isPrivate ? 'private' : 'public',
   ignored: false,
+  allowIgnore: true,
   visiblePopupMenu: false,
   popupMenuItems: filesMenuItems,
   selfUsername: 'cecileb',
@@ -379,6 +380,13 @@ export const files: DumbComponentMap<Files> = {
       ...commonFiles(true),
       recentFilesSection: undefined,
       recentFilesEnabled: false,
+    },
+    'Recent Files Disabled - Private - You': {
+      ...commonFiles(true),
+      recentFilesSection: undefined,
+      recentFilesEnabled: false,
+      users: [{username: 'cecileb', you: true}],
+      allowIgnore: false,
     },
     'Recent Files Disabled - Public': {
       ...commonFiles(false),
