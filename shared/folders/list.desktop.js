@@ -1,5 +1,6 @@
 // @flow
 import React, {Component} from 'react'
+import ReactDOM from 'react-dom'
 import type {Props, Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
 import {Box, Text, Icon} from '../common-adapters'
@@ -46,6 +47,22 @@ const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onClick, onRekey, smallMo
 )
 
 class Render extends Component<void, Props, void> {
+  _scrollContainer: ?Object;
+
+  constructor (props: Props) {
+    super(props)
+
+    this._scrollContainer = null
+  }
+
+  componentDidUpdate (prevProps: Props) {
+    if (prevProps.showIgnored !== this.props.showIgnored &&
+      this._scrollContainer &&
+      this.props.showIgnored) {
+      ReactDOM.findDOMNode(this._scrollContainer).scrollTop += 100
+    }
+  }
+
   render () {
     const realCSS = `
       .folder-row .folder-row-hover-action { visibility: hidden; }
@@ -57,7 +74,7 @@ class Render extends Component<void, Props, void> {
     const ignoredRows = <Rows {...this.props} isIgnored={true} tlfs={this.props.ignored || []} />
 
     return (
-      <Box style={{...stylesContainer, ...this.props.style}}>
+      <Box style={{...stylesContainer, ...this.props.style}} ref={r => { this._scrollContainer = r }}>
         <style>{realCSS}</style>
         {this.props.extraRows}
         <Rows
