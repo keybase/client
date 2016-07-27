@@ -83,3 +83,7 @@ export function setup (store) {
   }
   updateLiveConfig()
 }
+
+export function envVarDebugJson () {
+  return null
+}
