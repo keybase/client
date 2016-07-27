@@ -48,8 +48,9 @@ const Rows = ({tlfs = [], isIgnored, isPublic, onOpen, onClick, onRekey, smallMo
 class Render extends Component<void, Props, void> {
   render () {
     const realCSS = `
-      .folder-row .folder-row-hover-action { visibility: hidden }
-      .folder-row:hover .folder-row-hover-action { visibility: visible }
+      .folder-row .folder-row-hover-action { visibility: hidden; }
+      .folder-row:hover .folder-row-hover-action { visibility: visible; }
+      .folder-row:hover .folder-row-hover-action:hover { text-decoration: underline; }
     `
 
     const styles = this.props.isPublic ? stylesPublic : stylesPrivate
