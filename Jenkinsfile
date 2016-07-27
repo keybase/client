@@ -68,6 +68,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
         ws("${env.GOPATH}/src/github.com/keybase/client") {
 
             stage "Setup"
+                sh "docker rmi keybaseprivate/mysql || echo 'No mysql image to remove'"
                 docker.withRegistry("", "docker-hub-creds") {
                     parallel (
                         checkout: {
@@ -82,7 +83,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             glibcImage.pull()
                         },
                         pull_mysql: {
-                            sh "docker rmi keybaseprivate/mysql || echo 'No mysql image to remove'"
                             mysqlImage.pull()
                         },
                         pull_gregor: {
