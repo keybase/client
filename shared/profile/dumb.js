@@ -197,6 +197,12 @@ const dumbMap: DumbComponentMap<Profile> = {
       proofs: proofsChanged,
       trackerState: error,
     },
+    'Your Profile - No Proofs': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      proofs: [],
+    },
     'Unfollowed': propsBase,
     'Unfollowed - Profile page': {
       ...propsBase,
