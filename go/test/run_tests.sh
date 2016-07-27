@@ -11,12 +11,28 @@ export KEYBASE_LOG_SETUPTEST_FUNCS=1
 go get "github.com/stretchr/testify/require"
 go get "github.com/stretchr/testify/assert"
 
-for i in $DIRS; do
-	if [ "$i" = "bind" ]; then
-		echo "Skipping bind"
-		continue
-	fi
+failures=()
 
-	echo -n "$i......."
-	(cd $i && go test -timeout 50m)
+for i in $DIRS; do
+  if [ "$i" = "bind" ]; then
+    echo "Skipping bind"
+    continue
+  fi
+
+  echo -n "$i......."
+  if ! (cd $i && go test -timeout 50m) ; then
+    failures+=("$i")
+  fi
 done
+
+echo
+if [ "${#failures[@]}" -ne 0 ] ; then
+  echo FAILURES:
+  for failure in "${failures[@]}" ; do
+    echo "  $failure"
+  done
+  exit 1
+else
+  echo SUCCESS
+  exit 0
+fi
