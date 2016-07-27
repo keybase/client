@@ -4,14 +4,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
     println "Skipping build because PR title contains [ci-skip]"
 } else {
     nodeWithCleanup("ec2-fleet", {
-        if (env.CHANGE_ID) {
-            withCredentials([[$class: 'StringBinding',
-                credentialsId: 'SLACK_INTEGRATION_TOKEN',
-                variable: 'SLACK_INTEGRATION_TOKEN',
-            ]]) {
-                slackSend channel: "#ci-notify", color: "danger", message: "<${env.CHANGE_URL}|${env.CHANGE_TITLE}>\n:small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}> by ${env.CHANGE_AUTHOR}", teamDomain: "keybase", token: "${env.SLACK_INTEGRATION_TOKEN}"
-            }
-        }
+        slackOnError("kbfs")
     }, {
         sh 'docker rm -v $(docker ps --filter status=exited -q 2>/dev/null) 2>/dev/null || echo "No Docker containers to remove"'
         sh 'docker rmi $(docker images --filter dangling=true -q --no-trunc 2>/dev/null) 2>/dev/null || echo "No Docker images to remove"'
@@ -66,10 +59,17 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                 def cause = getCauseString()
                 println "Cause: ${cause}"
                 def startKbweb = !binding.variables.containsKey("kbwebNodePrivateIP") || kbwebNodePrivateIP == '' || kbwebNodePublicIP == ''
+                sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
+                sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
+                sh "docker rmi --no-prune keybaseprivate/mysql keybaseprivate/kbgregor keybaseprivate/kbweb keybaseprivate/kbclient || echo 'No images to remove'"
 
                 docker.withRegistry("", "docker-hub-creds") {
                     parallel (
-                        checkout: { checkout scm },
+                        checkout: {
+                            checkout scm
+                            sh 'echo -n $(git rev-parse HEAD) > kbfsfuse/revision'
+                            env.COMMIT_HASH = readFile('kbfsfuse/revision')
+                        },
                         pull_mysql: {
                             if (startKbweb) {
                                 mysqlImage.pull()
@@ -86,9 +86,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             }
                         },
                         pull_kbclient: {
-                            sh 'docker stop $(docker ps -q) || echo "nothing to stop"'
-                            sh 'docker rm $(docker ps -aq) || echo "nothing to remove"'
-                            sh 'docker rmi --no-prune keybaseprivate/kbclient || echo "no images to remove"'
                             if (cause == "upstream" && clientProjectName != '') {
                                 step([$class: 'CopyArtifact',
                                         projectName: "${clientProjectName}",
@@ -175,7 +172,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
                             withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64', variable: 'KBFS_DOCKER_CERT_B64']]) {
                                 println "Building Docker"
-                                sh 'git rev-parse HEAD > kbfsfuse/revision'
                                 sh '''
                                     set +x
                                     docker build -t keybaseprivate/kbfsfuse --build-arg KEYBASE_TEST_ROOT_CERT_PEM_B64=\"$KBFS_DOCKER_CERT_B64\" kbfsfuse
@@ -275,6 +271,21 @@ def runNixTest(prefix) {
     parallel (tests)
 }
 
+// Need to separate this out because cause is not serializable and thus state
+// cannot be saved. @NonCPS makes this method run as native and thus cannot be
+// re-entered.
+@NonCPS
+def getCauseString() {
+    def cause = currentBuild.getRawBuild().getCause(hudson.model.Cause)
+    if (cause in hudson.model.Cause.UpstreamCause) {
+        return "upstream"
+    } else if (cause in hudson.model.Cause.UserIdCause) {
+        return "user: ${cause.getUserName()}"
+    } else {
+        return "other"
+    }
+}
+
 def nodeWithCleanup(label, handleError, cleanup, closure) {
     def wrappedClosure = {
         try {
@@ -299,17 +310,33 @@ def nodeWithCleanup(label, handleError, cleanup, closure) {
     node(label, wrappedClosure)
 }
 
-// Need to separate this out because cause is not serializable and thus state
-// cannot be saved. @NonCPS makes this method run as native and thus cannot be
-// re-entered.
-@NonCPS
-def getCauseString() {
-    def cause = currentBuild.getRawBuild().getCause(hudson.model.Cause)
-    if (cause in hudson.model.Cause.UpstreamCause) {
-        return "upstream"
-    } else if (cause in hudson.model.Cause.UserIdCause) {
-        return "user: ${cause.getUserName()}"
-    } else {
-        return "other"
+def slackOnError(repoName) {
+    def message = null
+    def color = "warning"
+    if (env.CHANGE_ID) {
+        message = "<${env.CHANGE_URL}|${env.CHANGE_TITLE}>\n :small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}> by ${env.CHANGE_AUTHOR}"
+    } else if (env.BRANCH_NAME == "master" && cause != "upstream" && env.AUTHOR_NAME) {
+        sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
+        sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
+        env.AUTHOR_NAME = readFile('.author_name')
+        env.AUTHOR_EMAIL = readFile('.author_email')
+        sh 'rm .author_name .author_email'
+        def commitUrl = "https://github.com/keybase/${repoName}/commit/${env.COMMIT_HASH}"
+        color = "danger"
+        message = "*BROKEN: master on keybase/${repoName}*\n :small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>\n Commit: <${commitUrl}|${env.COMMIT_HASH}>\n Author: ${env.AUTHOR_NAME} &lt;${env.AUTHOR_EMAIL}&gt;"
+    }
+    if (message) {
+        withCredentials([[$class: 'StringBinding',
+            credentialsId: 'SLACK_INTEGRATION_TOKEN',
+            variable: 'SLACK_INTEGRATION_TOKEN',
+        ]]) {
+            slackSend([
+                channel: "#ci-notify",
+                color: color,
+                message: message,
+                teamDomain: "keybase",
+                token: "${env.SLACK_INTEGRATION_TOKEN}"
+            ])
+        }
     }
 }
