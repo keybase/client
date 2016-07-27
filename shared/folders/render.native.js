@@ -22,8 +22,8 @@ class Render extends Component<void, Props, void> {
       styleIcon={styleIcon}
       styleLabel={{
         color: isPublic
-          ? (isSelected ? globalColors.black : globalColors.white_75)
-          : (isSelected ? globalColors.white : globalColors.black_75),
+          ? (isSelected ? globalColors.black_75 : globalColors.white_75)
+          : (isSelected ? globalColors.white : globalColors.black_60),
       }}
       styleBadgeNumber={styleBadgeNumber}
       selected={isSelected}

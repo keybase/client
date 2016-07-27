@@ -30,7 +30,7 @@ class Render extends Component<void, Props, void> {
       styleLabel={{
         color: isPublic
           ? (isSelected ? globalColors.black_75 : globalColors.white_75)
-          : (isSelected ? globalColors.white : globalColors.black_75),
+          : (isSelected ? globalColors.white : globalColors.black_60),
         fontSize: 14,
       }}
       styleBadgeNumber={styleBadgeNumber}

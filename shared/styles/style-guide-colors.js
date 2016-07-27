@@ -27,6 +27,7 @@ export default {
   midnightBlue: '#082640',
   orange: '#ff6f21',
   red: '#ff4d61',
+  red_75: 'rgba(255,0,0,0.75)',
   transparent: 'rgba(0, 0, 0, 0)',
   white: '#ffffff',
   white_40: 'rgba(255, 255, 255, 0.40)',

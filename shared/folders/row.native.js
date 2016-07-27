@@ -31,14 +31,14 @@ const Avatars = ({styles, users, isPublic, ignored}) => {
   )
 }
 
-const Names = ({styles, users}) => {
+const Names = ({styles, users, nameColor, redColor}) => {
   return (
     <Box style={stylesBodyNameContainer}>
       {users.map((u, i) => (
         <Text
           key={u.username}
           type={u.you ? 'BodySemiboldItalic' : 'BodySemibold'}
-          style={{color: u.broken ? globalColors.red : styles.nameColor}}>{u.username}
+          style={{color: u.broken ? redColor : nameColor}}>{u.username}
           {
             (i !== users.length - 1) && // Injecting the commas here so we never wrap and have newlines starting with a ,
               <Text type='BodySemibold' style={{color: styles.nameColor, marginRight: 2}}>,</Text>}
@@ -81,8 +81,13 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, path, onClick}:
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   let backgroundColor = styles.rowContainer.backgroundColor
-  if (isPublic && ignored) {
-    backgroundColor = globalColors.white_40
+  let nameColor = styles.nameColor
+  let redColor = globalColors.red
+
+  if (ignored) {
+    backgroundColor = isPublic ? globalColors.white_40 : globalColors.darkBlue4
+    nameColor = isPublic ? globalColors.yellowGreen2_75 : globalColors.white_40
+    redColor = globalColors.red_75
   }
 
   const containerStyle = {
@@ -98,7 +103,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, path, onClick}:
         <Box style={{...globalStyles.flexBoxRow}}>
           <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
           <Box style={stylesBodyContainer}>
-            <Names users={users} styles={styles} meta={meta} modified={modified} />
+            <Names users={users} styles={styles} meta={meta} modified={modified} nameColor={nameColor} redColor={redColor} />
             {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
             {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
           </Box>
