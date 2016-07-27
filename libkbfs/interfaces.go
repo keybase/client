@@ -250,6 +250,13 @@ type KBFSOps interface {
 	// outstanding writes from the local device.
 	GetUpdateHistory(ctx context.Context, folderBranch FolderBranch) (
 		history TLFUpdateHistory, err error)
+	// GetEditHistory returns a clustered list of the most recent file
+	// edits by each of the valid writers of the given folder.  users
+	// looking to get updates to this list can register as an observer
+	// for the folder.
+	GetEditHistory(ctx context.Context, folderBranch FolderBranch) (
+		edits TlfWriterEdits, err error)
+
 	// Shutdown is called to clean up any resources associated with
 	// this KBFSOps instance.
 	Shutdown() error

@@ -510,6 +510,13 @@ func (fs *KBFSOpsStandard) GetUpdateHistory(ctx context.Context,
 	return ops.GetUpdateHistory(ctx, folderBranch)
 }
 
+// GetEditHistory implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) GetEditHistory(ctx context.Context,
+	folderBranch FolderBranch) (edits TlfWriterEdits, err error) {
+	ops := fs.getOps(ctx, folderBranch)
+	return ops.GetEditHistory(ctx, folderBranch)
+}
+
 // Notifier:
 var _ Notifier = (*KBFSOpsStandard)(nil)
 
