@@ -355,37 +355,37 @@ func (log *Standard) GetUnforwardedLogger() *UnforwardedLogger {
 }
 
 func (log *UnforwardedLogger) Debug(s string, args ...interface{}) {
-	if log.internal != nil {
+	if log != nil && log.internal != nil {
 		log.internal.Debugf(s, args...)
 	}
 }
 
 func (log *UnforwardedLogger) Error(s string, args ...interface{}) {
-	if log.internal != nil {
+	if log != nil && log.internal != nil {
 		log.internal.Errorf(s, args...)
 	}
 }
 
 func (log *UnforwardedLogger) Errorf(s string, args ...interface{}) {
-	if log.internal != nil {
+	if log != nil && log.internal != nil {
 		log.internal.Errorf(s, args...)
 	}
 }
 
 func (log *UnforwardedLogger) Warning(s string, args ...interface{}) {
-	if log.internal != nil {
+	if log != nil && log.internal != nil {
 		log.internal.Warningf(s, args...)
 	}
 }
 
 func (log *UnforwardedLogger) Info(s string, args ...interface{}) {
-	if log.internal != nil {
+	if log != nil && log.internal != nil {
 		log.internal.Infof(s, args...)
 	}
 }
 
 func (log *UnforwardedLogger) Profile(s string, args ...interface{}) {
-	if log.internal != nil {
+	if log != nil && log.internal != nil {
 		log.internal.Debugf(s, args...)
 	}
 }
