@@ -40,6 +40,7 @@ func TestRPCs(t *testing.T) {
 	testIdentifyResolve2(t, tc2.G)
 	testCheckInvitationCode(t, tc2.G)
 	testLoadAllPublicKeysUnverified(t, tc2.G)
+	testLoadUserWithNoKeys(t, tc2.G)
 
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
@@ -130,5 +131,36 @@ func testLoadAllPublicKeysUnverified(t *testing.T, g *libkb.GlobalContext) {
 		if _, ok := keys[key.KID]; !ok {
 			t.Fatalf("unknown key in response: %s", key.KID)
 		}
+	}
+}
+
+func testLoadUserWithNoKeys(t *testing.T, g *libkb.GlobalContext) {
+	// The LoadUser class in libkb returns an error by default if the user in
+	// question has no keys. The RPC methods that wrap it should suppress this
+	// error, by setting the PublicKeyOptional flag.
+
+	cli, err := client.GetUserClient(g)
+	if err != nil {
+		t.Fatalf("failed to get a user client: %v", err)
+	}
+
+	// Check the LoadUserByName RPC. t_ellen is a test user with no keys.
+	loadUserByNameArg := keybase1.LoadUserByNameArg{Username: "t_ellen"}
+	tEllen, err := cli.LoadUserByName(context.TODO(), loadUserByNameArg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tEllen.Username != "t_ellen" {
+		t.Fatalf("expected t_ellen, saw %s", tEllen.Username)
+	}
+
+	// Check the LoadUser RPC.
+	loadUserArg := keybase1.LoadUserArg{Uid: tEllen.Uid}
+	tEllen2, err := cli.LoadUser(context.TODO(), loadUserArg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if tEllen2.Username != "t_ellen" {
+		t.Fatalf("expected t_ellen, saw %s", tEllen2.Username)
 	}
 }
