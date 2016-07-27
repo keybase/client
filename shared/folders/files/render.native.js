@@ -50,7 +50,7 @@ class Render extends Component<void, Props, void> {
           <Button key='open' type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' style={{marginBottom: 20}} />
           {ignored
           ? <Button type='Secondary' onClick={this.props.unIgnoreCurrentFolder} label='Unignore folder' />
-          : <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />}
+          : <Button backgroundMode={isPrivate ? 'Terminal' : 'Normal'} type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />}
         </Box>
       )
     } else {
