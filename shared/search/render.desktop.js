@@ -13,7 +13,7 @@ import type {Props as UserGroupProps} from './user-search/user-group'
 import type {Props as SearchBarProps} from './user-search/search-bar'
 
 const ClearSearch = ({onReset, showUserGroup}) => (
-  <Box style={{...globalStyles.flexBoxColumn, height: 48, justifyContent: 'center', alignItems: 'flex-end', paddingRight: 16}}>
+  <Box style={{...globalStyles.flexBoxColumn, height: 40, justifyContent: 'center', alignItems: 'flex-end', paddingRight: 16, flexShrink: 0}}>
     {showUserGroup && <Text type='BodySmallSecondaryLink' onClick={onReset}>Clear search</Text>}
   </Box>
 )
@@ -39,7 +39,7 @@ class Render extends Component<void, Props, void> {
         <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
           <ClearSearch {...this.props} />
           <SearchBar {...searchBarProps} />
-          <Box style={{overflowY: 'auto', height: 'calc(100% - 96px)'}}>
+          <Box style={{overflowY: 'auto'}}>
             {this.props.showUserGroup ? <UserGroup {...userGroupProps} /> : <UserSearch {...userSearchProps} />}
           </Box>
         </Box>

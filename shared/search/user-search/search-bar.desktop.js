@@ -110,7 +110,8 @@ class SearchBar extends Component<void, Props, void> {
 
 const stylesServicesContainer = {
   ...globalStyles.flexBoxRow,
-  height: 48,
+  height: 64,
+  alignItems: 'center',
   paddingLeft: 16,
 }
 const stylesInputContainer = {
