@@ -9,19 +9,20 @@ import type {Props, SearchResultFn} from './render'
 import type {Props as TextProps} from '../../common-adapters/text'
 
 function EmboldenTextMatch ({text, match, style, textType, emboldenStyle}: {text: string, match: string, emboldenStyle?: Object, style?: Object, textType: TextProps.type}) {
-  const indexOfMatch = text.toLowerCase().indexOf(match.toLowerCase())
-  if (indexOfMatch > -1) {
-    const left = text.substring(0, indexOfMatch)
-    const middle = text.substring(indexOfMatch, indexOfMatch + match.length)
-    const right = text.substring(indexOfMatch + match.length)
-    return (
-      <Box style={globalStyles.flexBoxRow}>
-        {!!left && <Text type={textType} style={style}>{left}</Text>}
-        <Text type={textType} style={{...globalStyles.fontBold, ...style, ...emboldenStyle}}>{middle}</Text>
-        {!!right && <EmboldenTextMatch style={style} text={right} match={match} textType={textType} emboldenStyle={emboldenStyle} />}
-      </Box>
-    )
-  }
+  // TEMP leaving this out while we dicuss with design. i think the bold is actually harder to parse visually so we might tear this all out
+  // const indexOfMatch = text.toLowerCase().indexOf(match.toLowerCase())
+  // if (indexOfMatch > -1) {
+    // const left = text.substring(0, indexOfMatch)
+    // const middle = text.substring(indexOfMatch, indexOfMatch + match.length)
+    // const right = text.substring(indexOfMatch + match.length)
+    // return (
+      // <Box style={globalStyles.flexBoxRow}>
+        // {!!left && <Text type={textType} style={style}>{left}</Text>}
+        // <Text type={textType} style={{...globalStyles.fontBold, ...style, ...emboldenStyle}}>{middle}</Text>
+        // {!!right && <EmboldenTextMatch style={style} text={right} match={match} textType={textType} emboldenStyle={emboldenStyle} />}
+      // </Box>
+    // )
+  // }
 
   return <Text type={textType} style={style}>{text}</Text>
 }

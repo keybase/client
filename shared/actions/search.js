@@ -34,15 +34,23 @@ type RawResult = {
 
 function parseExtraInfo (platform: SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean): ExtraInfo {
   const serviceName = rr.service && capitalize(rr.service.service_name || '')
+  let userName = ''
+  if (rr.service) {
+    userName = rr.service.username || ''
+    if (rr.service.service_name === 'key_fingerprint') {
+      const parts = [4, 8].map(idx => userName.slice(-16 - idx, -16 - idx + 4))
+      userName = `...${parts.join(' ')}`
+    }
+  }
 
   if (platform === 'Keybase') {
     if (rr.service) {
       return {
         service: 'external',
         icon: serviceName && platformToLogo16(serviceName),
-        serviceUsername: rr.service.username || '',
+        serviceUsername: userName,
         serviceAvatar: '',
-        fullNameOnService: rr.service.full_name || '',
+        fullNameOnService: rr.service.full_name || (rr.keybase && rr.keybase.full_name) || '',
       }
     } else if (rr.keybase) {
       return {
@@ -62,7 +70,7 @@ function parseExtraInfo (platform: SearchPlatforms, rr: RawResult, isFollowing: 
       return {
         service: 'external',
         icon: null,
-        serviceUsername: rr.service.username || '',
+        serviceUsername: userName,
         serviceAvatar: rr.service.picture_url || '',
         fullNameOnService: rr.service.full_name || '',
       }
