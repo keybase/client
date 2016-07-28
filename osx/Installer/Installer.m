@@ -103,7 +103,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
   KBEnvironment *environment = [self.settings environment];
 
   KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer installWithEnvironment:environment force:NO completion:^(NSError *error, NSArray *installables) {
+  [installer installWithEnvironment:environment force:NO stopOnError:YES completion:^(NSError *error, NSArray *installables) {
     [self checkError:error environment:environment completion:^(NSError *error, KBExit exit) {
       completion(error, environment, exit);
     }];

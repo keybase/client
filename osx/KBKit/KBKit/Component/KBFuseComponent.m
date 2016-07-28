@@ -49,7 +49,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 + (void)status:(NSString *)binPath bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnFuseStatus)completion {
   NSString *bundleVersionFlag = NSStringWithFormat(@"--bundle-version=%@", [bundleVersion description]);
-  [KBTask execute:binPath args:@[@"-d", @"--log-format=file", @"fuse", @"status", bundleVersionFlag] completion:^(NSError *error, NSData *outData, NSData *errData) {
+  [KBTask execute:binPath args:@[@"-d", @"--log-format=file", @"fuse", @"status", bundleVersionFlag] timeout:5 completion:^(NSError *error, NSData *outData, NSData *errData) {
     if (error) {
       completion(error, nil);
       return;

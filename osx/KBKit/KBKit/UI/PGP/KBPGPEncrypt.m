@@ -17,7 +17,7 @@
 
 @implementation KBPGPEncrypt
 
-- (void)encryptWithOptions:(KBRPGPEncryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion {
+- (void)encryptWithOptions:(KBRPGPEncryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works, BOOL stop))completion {
   KBRunOver *runOver = [[KBRunOver alloc] init];
   runOver.enumerator = [streams objectEnumerator];
   runOver.runBlock = ^(KBStream *stream, KBRunCompletion runCompletion) {
@@ -41,7 +41,7 @@
   sink.fd = stream.label;
 
   [request pgpEncryptWithSource:source sink:sink opts:options completion:^(NSError *error) {
-    completion([KBWork workWithInput:stream output:stream error:error]);
+    completion([KBWork workWithInput:stream output:stream error:error], NO);
   }];
 }
 
@@ -65,7 +65,7 @@
   KBPGPEncrypt *encrypter = [[KBPGPEncrypt alloc] init];
   [encrypter encryptWithOptions:options streams:@[stream] client:client sender:sender completion:^(NSArray *works) {
     KBWork *work = works[0];
-    completion(work); // KBWork
+    completion(work, NO); // KBWork
   }];
 }
 

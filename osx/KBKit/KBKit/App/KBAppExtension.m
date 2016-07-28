@@ -42,7 +42,7 @@
   KBPGPEncrypt *encrypt = [[KBPGPEncrypt alloc] init];
   KBRPClient *client = self.client;
   NSString *text = extensionItem.attributedContentText.string;
-  [encrypt encryptText:text usernames:usernames client:client sender:sender completion:^(KBWork *work) {
+  [encrypt encryptText:text usernames:usernames client:client sender:sender completion:^(KBWork *work, BOOL stop) {
     //NSError *error = [work error];
     // TODO: Handle error
     KBStream *stream = [work output];

@@ -20,7 +20,7 @@
 
 @implementation KBPGPDecrypt
 
-- (void)decryptWithOptions:(KBRPGPDecryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works))completion {
+- (void)decryptWithOptions:(KBRPGPDecryptOptions *)options streams:(NSArray *)streams client:(KBRPClient *)client sender:(id)sender completion:(void (^)(NSArray *works, BOOL stopped))completion {
   KBRunOver *runOver = [[KBRunOver alloc] init];
   runOver.enumerator = [streams objectEnumerator];
   runOver.runBlock = ^(KBStream *stream, KBRunCompletion runCompletion) {
@@ -46,7 +46,7 @@
   [request pgpDecryptWithSource:source sink:sink opts:options completion:^(NSError *error, KBRPGPSigVerification *pgpSigVerification) {
     KBPGPDecrypted *decrypted = [KBPGPDecrypted decryptedWithStream:stream pgpSigVerification:pgpSigVerification];
     KBWork *work = [KBWork workWithInput:stream output:decrypted error:error];
-    completion(work);
+    completion(work, NO);
   }];
 }
 

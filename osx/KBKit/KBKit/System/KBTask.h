@@ -10,9 +10,9 @@
 
 @interface KBTask : NSObject
 
-+ (void)execute:(NSString *)command args:(NSArray *)args completion:(void (^)(NSError *error, NSData *outData, NSData *errData))completion;
++ (void)execute:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, NSData *outData, NSData *errData))completion;
 
 // Execute and parse JSON from stdout (otherwise error)
-+ (void)executeForJSONWithCommand:(NSString *)command args:(NSArray *)args completion:(void (^)(NSError *error, id value))completion;
++ (void)executeForJSONWithCommand:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, id value))completion;
 
 @end

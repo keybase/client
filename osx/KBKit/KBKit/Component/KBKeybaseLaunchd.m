@@ -20,13 +20,13 @@
 @implementation KBKeybaseLaunchd
 
 + (void)run:(NSString *)binPath args:(NSArray *)args completion:(KBCompletion)completion {
-  [KBTask execute:binPath args:args completion:^(NSError *error, NSData *outData, NSData *errData) {
+  [KBTask execute:binPath args:args timeout:5 completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
 }
 
 + (void)list:(NSString *)binPath name:(NSString *)name completion:(KBOnServiceStatuses)completion {
-  [KBTask executeForJSONWithCommand:binPath args:@[@"--log-format=file", @"launchd", @"list", @"--format=json", name] completion:^(NSError *error, id value) {
+  [KBTask executeForJSONWithCommand:binPath args:@[@"--log-format=file", @"launchd", @"list", @"--format=json", name] timeout:5 completion:^(NSError *error, id value) {
     NSArray *statuses = [MTLJSONAdapter modelsOfClass:KBRServiceStatus.class fromJSONArray:value[name] error:&error];
     completion(nil, statuses);
   }];
@@ -34,7 +34,7 @@
 
 + (void)status:(NSString *)binPath name:(NSString *)name completion:(KBOnServiceStatus)completion {
   DDLogDebug(@"Checking launchd status for %@", name);
-  [KBTask executeForJSONWithCommand:binPath args:@[@"--log-format=file", @"launchd", @"status", @"--format=json", name] completion:^(NSError *error, id value) {
+  [KBTask executeForJSONWithCommand:binPath args:@[@"--log-format=file", @"launchd", @"status", @"--format=json", name] timeout:5 completion:^(NSError *error, id value) {
     if (error) {
       completion(error, nil);
       return;

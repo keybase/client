@@ -10,10 +10,10 @@
 
 
 
-typedef void (^KBRunCompletion)(id output);
+typedef void (^KBRunCompletion)(id output, BOOL stop);
 typedef void (^KBRunBlock)(id obj, KBRunCompletion completion);
 
-typedef void (^KBRunOverCompletion)(NSArray *outputs);
+typedef void (^KBRunOverCompletion)(NSArray *outputs, BOOL stopped);
 
 @interface KBRunOver : NSObject
 

@@ -8,6 +8,7 @@
 
 #import "KBLaunchCtl.h"
 #import "KBDefines.h"
+#import "KBTask.h"
 
 @implementation KBLaunchCtl
 
@@ -27,7 +28,7 @@
   if (force) [args addObject:@"-w"];
   [args addObject:plist];
   DDLogDebug(@"Loading %@", label);
-  [self execute:@"/bin/launchctl" args:args completion:^(NSError *error, NSData *data) {
+  [self execute:@"/bin/launchctl" args:args timeout:5 completion:^(NSError *error, NSData *data) {
     NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     DDLogDebug(@"Output: %@", output);
     if (error) {
@@ -47,7 +48,7 @@
   if (disable) [args addObject:@"-w"];
   [args addObject:plist];
   DDLogDebug(@"Unloading %@", label);
-  [self execute:@"/bin/launchctl" args:args completion:^(NSError *error, NSData *data) {
+  [self execute:@"/bin/launchctl" args:args timeout:5 completion:^(NSError *error, NSData *data) {
     NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     DDLogDebug(@"Output: %@", output);
     if (error) {
@@ -67,12 +68,12 @@
 + (void)status:(NSString *)label completion:(KBOnLaunchCtlStatus)completion {
   NSParameterAssert(label);
   DDLogDebug(@"Checking launchd status for %@", label);
-  [self execute:@"/bin/launchctl" args:@[@"list"] completion:^(NSError *error, NSData *data) {
-    NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+  [self execute:@"/bin/launchctl" args:@[@"list"] timeout:5 completion:^(NSError *error, NSData *data) {
     if (error) {
       completion([KBLaunchdStatus error:error]);
       return;
     }
+    NSString *output = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
     for (NSString *line in [output componentsSeparatedByCharactersInSet:[NSCharacterSet newlineCharacterSet]]) {
       NSArray *info = [line componentsSeparatedByCharactersInSet:NSCharacterSet.whitespaceCharacterSet];
       if ([info count] != 3) continue;
@@ -124,29 +125,11 @@
   }];
 }
 
-+ (void)execute:(NSString *)command args:(NSArray *)args completion:(void (^)(NSError *error, NSData *data))completion {
-  NSTask *task = [[NSTask alloc] init];
-  task.launchPath = command;
-  task.arguments = args;
-  NSPipe *outpipe = [NSPipe pipe];
-  [task setStandardOutput:outpipe];
-  [task setStandardError:outpipe];
-  task.terminationHandler = ^(NSTask *t) {
-    //DDLogDebug(@"Task: \"%@ %@\" (%@)", command, [args componentsJoinedByString:@" "], @(t.terminationStatus));
-    NSFileHandle *read = [outpipe fileHandleForReading];
-    NSData *data = [read readDataToEndOfFile];
-    dispatch_async(dispatch_get_main_queue(), ^{
-      // TODO Check termination status and complete with error if > 0
-      completion(nil, data);
-    });
-  };
-
-  @try {
-    [task launch];
-    [task waitUntilExit];
-  } @catch (NSException *e) {
-    completion(KBMakeError(KBErrorCodeGeneric, @"%@", e.reason), nil);
-  }
++ (void)execute:(NSString *)command args:(NSArray *)args timeout:(NSTimeInterval)timeout completion:(void (^)(NSError *error, NSData *data))completion {
+  [KBTask execute:command args:args timeout:timeout completion:^(NSError *error, NSData *outData, NSData *errData) {
+    // TODO outData or errData?
+    completion(error, outData);
+  }];
 }
 
 @end

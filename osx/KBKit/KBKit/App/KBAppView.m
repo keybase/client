@@ -117,7 +117,7 @@ typedef NS_ENUM (NSInteger, KBAppViewMode) {
 - (void)install:(KBCompletion)completion {
   [self showInProgress:@"Loading"];
   KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer installWithEnvironment:_environment force:NO completion:^(NSError *error, NSArray *installables) {
+  [installer installWithEnvironment:_environment force:NO stopOnError:NO completion:^(NSError *error, NSArray *installables) {
     [self showInstallStatusView:completion];
   }];
 }
