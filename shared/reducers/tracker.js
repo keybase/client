@@ -164,6 +164,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     case Constants.onFollow:
       return {
         ...state,
+        currentlyFollowing: true,
         lastAction: 'followed',
         reason: `You have followed ${state.username}.`,
       }
@@ -176,6 +177,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     case Constants.onUnfollow:
       return {
         ...state,
+        currentlyFollowing: false,
         lastAction: 'unfollowed',
         reason: `You have unfollowed ${state.username}.`,
       }
