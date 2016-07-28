@@ -3,6 +3,7 @@
 import React, {Component} from 'react'
 import {Icon, Text} from '../common-adapters/index'
 import {globalStyles, globalColors} from '../styles/style-guide'
+import {stateColors} from '../util/tracker'
 
 import type {HeaderProps} from './header.render'
 
@@ -16,51 +17,18 @@ export default class HeaderRender extends Component {
   }
 
   render () {
-    let headerStyle = this.props.currentlyFollowing ? styleHeaderFollowing : styleHeaderNotFollowing
-    let headerTextStyle = styleHeaderTextNormal
+    const isWarningAboutTrackerShowingUpLater = this.props.loggedin && !this.props.currentlyfollowing && this.state.showCloseWarning
+    const headerText = isWarningAboutTrackerShowingUpLater ? 'You will see this window every time you access this folder.' : this.props.reason
 
-    if (this.props.currentlyFollowing) {
-      switch (this.props.trackerState) {
-        case 'warning':
-          headerStyle = styleHeaderWarning
-          headerTextStyle = styleHeaderTextWarning
-          break
-        case 'error': headerStyle = styleHeaderError; break
-      }
-    }
-
-    let headerText: string = this.props.reason
-    let isWarning = false
-    if (this.props.loggedIn && !this.props.currentlyFollowing && this.state.showCloseWarning) {
-      isWarning = true
-      headerStyle = styleHeaderWarning
-      headerTextStyle = styleHeaderTextWarning
-      headerText = 'You will see this window every time you access this folder.'
-    }
-
-    // If there's a lastAction, it overrides everything else.
-    switch (this.props.lastAction) {
-      case 'followed':
-      case 'refollowed':
-        headerStyle = styleHeaderFollowing
-        headerTextStyle = styleHeaderTextNormal
-        headerText = this.props.reason
-        break
-      case 'unfollowed':
-        headerStyle = styleHeaderNotFollowing
-        headerTextStyle = styleHeaderTextNormal
-        headerText = this.props.reason
-        break
-      case 'error':
-        headerStyle = styleHeaderWarning
-        headerTextStyle = styleHeaderTextWarning
-    }
+    const trackerStateColors = stateColors(this.props)
+    const headerBackgroundColor = isWarningAboutTrackerShowingUpLater ? globalColors.yellow : trackerStateColors.header.background
+    const headerTextColor = isWarningAboutTrackerShowingUpLater ? globalColors.brown_60 : trackerStateColors.header.text
 
     return (
       <div style={styleOuter}>
-        <div style={{...styleHeader, ...headerStyle}}>
-          <div style={{...styleHeader, ...headerStyle, height: 48, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColors.yellow}} />
-          <Text type='BodySemibold' lineClamp={2} style={{...styleText, ...headerTextStyle, flex: 1, zIndex: isWarning ? 2 : 'inherit'}}>{headerText}</Text>
+        <div style={{...styleHeader, backgroundColor: headerBackgroundColor}}>
+          <div style={{...styleHeader, height: 48, zIndex: 2, opacity: isWarningAboutTrackerShowingUpLater ? 1 : 0, backgroundColor: globalColors.yellow}} />
+          <Text type='BodySemibold' lineClamp={2} style={{...styleText, color: headerTextColor, ...(isWarningAboutTrackerShowingUpLater ? {zIndex: 2} : {})}}>{headerText}</Text>
           <Icon type='iconfont-close' style={styleClose}
             onClick={() => this.props.onClose()}
             onMouseEnter={() => this.closeMouseEnter()}
@@ -93,36 +61,6 @@ const styleHeader = {
   width: 320,
 }
 
-const styleHeaderNotFollowing = {
-  backgroundColor: globalColors.blue,
-}
-
-const styleHeaderFollowing = {
-  backgroundColor: globalColors.green,
-}
-
-const styleHeaderWarning = {
-  backgroundColor: globalColors.yellow,
-}
-
-const styleHeaderTextNormal = {
-  color: globalColors.white,
-  fontSize: 14,
-  lineHeight: 'normal',
-  opacity: 1,
-}
-
-const styleHeaderTextWarning = {
-  color: globalColors.brown_60,
-  fontSize: 14,
-  lineHeight: 'normal',
-  opacity: 1,
-}
-
-const styleHeaderError = {
-  backgroundColor: globalColors.red,
-}
-
 const styleClose = {
   ...globalStyles.clickable,
   ...globalStyles.windowDraggingClickable,
@@ -134,6 +72,7 @@ const styleClose = {
 
 const styleText = {
   ...globalStyles.flexBoxRow,
+  flex: 1,
   alignItems: 'center',
   justifyContent: 'center',
   color: globalColors.white,
@@ -142,4 +81,5 @@ const styleText = {
   marginBottom: 32,
   fontSize: 14,
   textAlign: 'center',
+  lineHeight: 'normal',
 }

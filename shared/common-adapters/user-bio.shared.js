@@ -2,11 +2,8 @@
 
 import keybaseUrl from '../constants/urls'
 import openUrl from '../util/open-url'
-import {globalColors} from '../styles/style-guide'
-import {error as proofError} from '../constants/tracker'
 
 import type {UserInfo} from './user-bio'
-import type {SimpleProofState} from '../constants/tracker'
 
 export function onClickAvatar (username: ?string) {
   username && openUrl(`${keybaseUrl}/${username}`)
@@ -29,18 +26,3 @@ export function followLabel (userInfo: UserInfo, currentlyFollowing: boolean): ?
   return null
 }
 
-export function usernameStyle ({currentlyFollowing, trackerState}: {currentlyFollowing: boolean, trackerState: SimpleProofState}): Object {
-  if (trackerState === proofError) {
-    return {color: globalColors.red}
-  }
-  if (currentlyFollowing) {
-    return {color: globalColors.green2}
-  }
-  return {color: globalColors.orange}
-}
-
-export function headerColor ({currentlyFollowing, trackerState}: {currentlyFollowing: boolean, trackerState: SimpleProofState}): string {
-  if (trackerState === proofError) return globalColors.red
-  if (currentlyFollowing) return globalColors.green
-  return globalColors.blue
-}

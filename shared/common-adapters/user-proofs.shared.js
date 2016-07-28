@@ -6,7 +6,7 @@ import {normal as proofNormal, checking as proofChecking, revoked as proofRevoke
 import type {PlatformsExpanded} from '../constants/types/more.js'
 
 import type {IconType} from '../common-adapters/icon'
-import type {Proof} from './user-proofs'
+import type {Proof} from '../constants/tracker'
 
 export function metaColor (proof: Proof): string {
   switch (proof.meta) {

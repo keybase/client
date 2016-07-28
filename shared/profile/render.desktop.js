@@ -5,13 +5,13 @@ import _ from 'lodash'
 import moment from 'moment'
 import {normal as proofNormal, checking as proofChecking, metaUnreachable, metaPending} from '../constants/tracker'
 import {Box, Icon, PlatformIcon, PopupMenu, Text, UserBio, UserActions, UserProofs, Usernames, BackButton} from '../common-adapters'
-import {headerColor as whichHeaderColor} from '../common-adapters/user-bio.shared'
+import {stateColors} from '../util/tracker'
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import ProfileHelp from './help.desktop'
 import * as shared from './render.shared'
 import type {Tab as FriendshipsTab} from './friendships'
-import type {Proof} from '../common-adapters/user-proofs'
+import type {Proof} from '../constants/tracker'
 import type {Props} from './render'
 
 export const AVATAR_SIZE = 112
@@ -160,7 +160,7 @@ class Render extends Component<void, Props, State> {
       return this._renderComingSoon()
     }
 
-    const headerColor = whichHeaderColor(this.props)
+    const trackerStateColors = stateColors(this.props)
 
     let proofNotice
     if (this.props.trackerState !== proofNormal && this.props.trackerState !== proofChecking && !loading) {
@@ -201,12 +201,12 @@ class Render extends Component<void, Props, State> {
 
     return (
       <Box style={styleOuterContainer}>
-        <Box style={{...styleScrollHeaderBg, backgroundColor: headerColor}} />
-        <Box style={{...styleScrollHeaderCover, backgroundColor: headerColor}} />
+        <Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
+        <Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
         {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 10, top: 10, zIndex: 12}}
           textStyle={{color: globalColors.white}} iconStyle={{color: globalColors.white}} />}
         <Box ref={c => { this._scrollContainer = c }} className='scroll-container' style={styleContainer}>
-          <Box style={{...styleHeader, backgroundColor: headerColor}} />
+          <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}} />
           <Box style={{...globalStyles.flexBoxRow, minHeight: 300}}>
             <Box style={styleBioColumn}>
               <UserBio

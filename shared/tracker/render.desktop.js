@@ -42,7 +42,6 @@ export default class Render extends Component<void, RenderProps, void> {
           onClose={this.props.onClose}
           trackerState={this.props.trackerState}
           currentlyFollowing={this.props.currentlyFollowing}
-          lastAction={this.props.lastAction}
           loggedIn={this.props.loggedIn}
         />
         <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar, scroll-container'>

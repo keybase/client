@@ -5,6 +5,7 @@ import React, {Component} from 'react'
 import {Box, Avatar, Text} from './'
 import * as shared from './user-bio.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {stateColors} from '../util/tracker'
 
 import type {Props} from './user-bio'
 
@@ -19,7 +20,7 @@ export default class BioRender extends Component {
 
     const {followsYou} = userInfo
     const followLabel = shared.followLabel(userInfo, currentlyFollowing)
-    const headerColor = shared.headerColor(this.props)
+    const trackerStateColors = stateColors(this.props)
 
     let [bioLineClamp, locationLineClamp] = [{}, {}]
     if (this.props.type === 'Tracker') {
@@ -29,7 +30,7 @@ export default class BioRender extends Component {
 
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
-        <Box style={stylesHeaderBar(avatarSize, headerColor)} />
+        <Box style={stylesHeaderBar(avatarSize, trackerStateColors.header.background)} />
         <Box style={stylesAvatarWrapper(avatarSize)}>
           <Avatar
             style={stylesAvatar}
@@ -42,7 +43,7 @@ export default class BioRender extends Component {
         <Box style={stylesContent}>
           <Text
             type='HeaderBig'
-            style={{...stylesUsername, ...shared.usernameStyle(this.props)}}
+            style={{...stylesUsername, color: trackerStateColors.username}}
             onClick={() => shared.onClickAvatar(username)}>
             {username}
           </Text>

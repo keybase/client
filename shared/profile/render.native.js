@@ -7,7 +7,7 @@ import {BackButton, Box, ComingSoon, Icon, Text, UserActions, UserBio, UserProof
 import {usernameText} from '../common-adapters/usernames'
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import {headerColor as whichHeaderColor} from '../common-adapters/user-bio.shared'
+import {stateColors} from '../util/tracker'
 import * as shared from './render.shared'
 import type {Tab as FriendshipsTab} from './friendships'
 import type {Props} from './render'
@@ -39,7 +39,7 @@ class Render extends Component<void, Props, State> {
       return this._renderComingSoon()
     }
 
-    const headerColor = whichHeaderColor(this.props)
+    const trackerStateColors = stateColors(this.props)
 
     let proofNotice
     if (this.props.trackerState !== proofNormal) {
@@ -63,12 +63,12 @@ class Render extends Component<void, Props, State> {
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        <Box style={{...styleHeader, backgroundColor: headerColor}}>
+        <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}}>
           {this.props.onBack && <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: 16}} iconStyle={{color: globalColors.white}} />}
         </Box>
-        <ScrollView style={{flex: 1, backgroundColor: headerColor}} contentContainerStyle={{backgroundColor: globalColors.white}}>
+        <ScrollView style={{flex: 1, backgroundColor: trackerStateColors.header.background}} contentContainerStyle={{backgroundColor: globalColors.white}}>
           {proofNotice && (
-            <Box style={{...styleProofNotice, backgroundColor: headerColor}}>
+            <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
               <Text type='BodySmallSemibold' style={{color: globalColors.white}}>{proofNotice}</Text>
             </Box>
           )}
