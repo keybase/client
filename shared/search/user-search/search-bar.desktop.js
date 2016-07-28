@@ -116,7 +116,6 @@ const stylesServicesContainer = {
 const stylesInputContainer = {
   ...globalStyles.flexBoxRow,
   height: 48,
-  borderBottom: `solid 1px ${globalColors.black_10}`,
   alignItems: 'center',
   marginBottom: 8,
 }

@@ -105,8 +105,8 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
     paddingBottom: 8,
     paddingRight: 8,
     paddingLeft: 8,
-    borderBottom: 'solid 1px',
-    borderBottomColor: globalColors.black_10,
+    borderTop: 'solid 1px',
+    borderTopColor: globalColors.black_10,
   }
 
   return (
