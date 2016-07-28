@@ -5,6 +5,7 @@
 package libdokan
 
 import (
+	"strings"
 	"time"
 
 	"github.com/keybase/kbfs/dokan"
@@ -105,4 +106,17 @@ func defaultSymlinkDirInformation() (*dokan.Stat, error) {
 	st.FileAttributes = dokan.FileAttributeReparsePoint | dokan.FileAttributeDirectory
 	st.ReparsePointTag = dokan.IOReparseTagSymlink
 	return &st, nil
+}
+
+// lowerTranslateCandidate returns whether a path components
+// has a (different) lowercase translation.
+func lowerTranslateCandidate(oc *openContext, s string) string {
+	if !oc.isUppercasePath {
+		return ""
+	}
+	c := strings.ToLower(s)
+	if c == s {
+		return ""
+	}
+	return c
 }

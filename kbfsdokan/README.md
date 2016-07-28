@@ -69,3 +69,25 @@ dir
 mkdir foo
 notepad bar.txt
 ```
+
+# Symlink destinations from outside KBFS to KBFS
+
+Windows makes paths case insentive in symlink destination. KBFS has
+support for this in the case that the case insensitive path is unique
+and guessable.
+
+To make this work make symlinks from outside KBFS to KBFS make it refer
+to either the root of the drive or use `PRIVATE` or `PUBLIC` in the path
+instead of `private` and `public`. This enables the case insentive path
+resolving logic inside KBFS.
+
+e.g.
+```
+C:
+cd \tmp
+mklink /D link1 K:\
+mklink /D link2 K:\PRIVATE
+mklink /D link3 K:\PRIVATE\user1,user2
+```
+
+Note that symbolic link creation (mklink) requires admin privileges.

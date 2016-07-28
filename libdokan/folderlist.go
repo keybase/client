@@ -66,7 +66,8 @@ func (fl *FolderList) addToFavorite(ctx context.Context, h *libkbfs.TlfHandle) (
 // open tries to open the correct thing. Following aliases and deferring to
 // Dir.open as necessary.
 func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, isDir bool, err error) {
-	fl.fs.log.CDebugf(ctx, "FL Lookup %#v public=%v", path, fl.public)
+	fl.fs.log.CDebugf(ctx, "FL Lookup %#v public=%v upper=%v",
+		path, fl.public, oc.isUppercasePath)
 	if len(path) == 0 {
 		return oc.returnDirNoCleanup(fl)
 	}
@@ -75,10 +76,18 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		fl.reportErr(ctx, libkbfs.ReadMode, libkbfs.CanonicalTlfName(path[0]), err, nil)
 	}()
 
+	// TODO: A simple lower-casing is not good enough - see CORE-2967
+	// However libkbfs does this too in tlf_handle.go...
+	// The case of possible redirections will be ok, so we only need
+	// to do this initially.
+	if c := lowerTranslateCandidate(oc, path[0]); c != "" {
+		path[0] = c
+	}
+
 	for oc.reduceRedirectionsLeft() {
 		name := path[0]
 
-		if name == "desktop.ini" {
+		if name == "desktop.ini" || name == "DESKTOP.INI" {
 			fl.fs.log.CDebugf(ctx, "FL Lookup ignoring desktop.ini")
 			return nil, false, dokan.ErrObjectNameNotFound
 		}
