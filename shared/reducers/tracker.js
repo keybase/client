@@ -196,22 +196,10 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     }
     case Constants.updateProofState:
       const proofs = state.proofs
-      const allOk: boolean = proofs.reduce((acc, p) => acc && p.state === normal, true)
-      const anyWarnings: boolean = proofs.reduce((acc, p) => acc || p.state === warning, false)
-      const anyError: boolean = proofs.reduce((acc, p) => acc || p.state === error, false)
-      const anyPending: boolean = proofs.reduce((acc, p) => acc || p.state === checking, false)
-
-      // Helper to reduce boiler plate.
-      const anyMetaCheck = (v: SimpleProofMeta) => (acc, p) => acc || p.meta === v
-
-      const anyDeletedProofs : boolean = proofs.reduce(anyMetaCheck(metaDeleted), false)
-      const anyUnreachableProofs : boolean = proofs.reduce(anyMetaCheck(metaUnreachable), false)
-      const anyUpgradedProofs : boolean = proofs.reduce(anyMetaCheck(metaUpgraded), false)
-      const anyNewProofs: boolean = proofs.reduce(anyMetaCheck(metaNew), false)
-
-      const changed = !(proofs || []).every(function (proof, index, ar) {
-        return (!proof.meta || proof.meta === metaNone)
-      })
+      const allOk = proofs.every(p => p.state === normal)
+      const [anyWarnings, anyError, anyPending] = [warning, error, checking].map(s => proofs.some(p => p.state === s))
+      const [anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs] = [metaDeleted, metaUnreachable, metaUpgraded, metaNew].map(m => proofs.some(p => p.meta === m))
+      const changed = proofs.some(proof => proof.meta && proof.meta !== metaNone)
 
       const trackerMessage = deriveTrackerMessage(state.username, allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs)
       const reason = state.currentlyFollowing && trackerMessage ? trackerMessage : state.reason
