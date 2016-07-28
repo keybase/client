@@ -9,15 +9,15 @@ import {metaNone, checking as proofChecking} from '../constants/tracker'
 
 import type {Proof, Props, MissingProof} from './user-proofs'
 
-function MissingProofRow ({proof, style}: {proof: MissingProof, style: Object}): React$Element<*> {
+function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {
   const missingColor = globalColors.black_20
   return (
-    <p style={{...styleMissingProofRow, ...style}} className='user-proof-row' key={proof.type} onClick={() => proof.onClick(proof)}>
-      <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(proof)} hint={proof.type} />
+    <p style={{...styleMissingProofRow, ...style}} className='user-proof-row' key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
+      <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
       <span style={styleProofNameSection}>
         <span style={styleProofNameLabelContainer}>
           <Text inline={true} className='user-proof-row__name' type='Body' style={{...styleProofName, color: missingColor}}>
-            {proof.message}
+            {missingProof.message}
           </Text>
         </span>
       </span>
@@ -89,7 +89,7 @@ export default class ProofsRender extends Component<void, Props, void> {
         </Box>
         <Box style={{...styleDoneLoading(loading)}}>
           {this.props.proofs && this.props.proofs.map((p, idx) => <ProofRow key={`${p.id || ''}${p.type}`} proof={p} onClickProof={this._onClickProof} onClickProfile={this._onClickProfile} style={pad(idx)} />)}
-          {this.props.missingProofs && this.props.missingProofs.map((p, idx) => <MissingProofRow key={p.type} proof={p} style={pad(idx)} />)}
+          {this.props.missingProofs && this.props.missingProofs.map((mp, idx) => <MissingProofRow key={mp.type} missingProof={mp} style={pad(idx)} />)}
           {this.props.missingProofs && <style>{missingProofsRealCSS}</style>}
         </Box>
       </Box>

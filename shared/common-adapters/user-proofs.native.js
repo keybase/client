@@ -10,17 +10,17 @@ import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 
 import type {Props, Proof, MissingProof} from './user-proofs'
 
-function MissingProofRow (proof: MissingProof, style: Object): React$Element<*> {
+function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {
   const missingColor = globalColors.black_20
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
-    <TouchableHighlight style={{...stylesRow, flex: 1, ...style}} key={proof.type} onPress={() => proof.onClick(proof)}>
+    <TouchableHighlight style={{...stylesRow, flex: 1, ...style}} key={missingProof.type} onPress={() => missingProof.onClick(missingProof)}>
       <Box style={stylesRow}>
-        <Icon style={{...stylesService, color: missingColor}} type={shared.iconNameForProof(proof)} hint={proof.type} />
+        <Icon style={{...stylesService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
         <Box style={stylesProofNameSection}>
           <Box style={stylesProofNameLabelContainer}>
             <Text inline={true} type='Body' style={stylesProofName}>
-              <Text inline={true} type='Body' style={{color: missingColor}}>{proof.message}</Text>
+              <Text inline={true} type='Body' style={{color: missingColor}}>{missingProof.message}</Text>
             </Text>
           </Box>
         </Box>
@@ -30,7 +30,7 @@ function MissingProofRow (proof: MissingProof, style: Object): React$Element<*> 
   )
 }
 
-function ProofRow (proof: Proof, onClickProof: (proof: Proof) => void, onClickProfile: (proof: Proof) => void, style: Object): React$Element<*> {
+function ProofRow ({proof, onClickProof, onClickProfile, style}: {proof: Proof, onClickProof: (proof: Proof) => void, onClickProfile: (proof: Proof) => void, style: Object}): React$Element<*> {
   const proofStatusIconType = shared.proofStatusIcon(proof)
 
   return (
@@ -72,8 +72,8 @@ export default class ProofsRender extends Component<void, Props, void> {
     const pad = idx => idx > 0 ? {paddingTop: globalMargins.tiny} : {}
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
-        {this.props.proofs && this.props.proofs.map((p, idx) => ProofRow(p, this._onClickProof, this._onClickProfile, pad(idx)))}
-        {this.props.missingProofs && this.props.missingProofs.map((p, idx) => MissingProofRow(p, pad(idx)))}
+        {this.props.proofs && this.props.proofs.map((p, idx) => <ProofRow key={`${p.id || ''}${p.type}`} proof={p} onClickProof={this._onClickProof} onClickProfile={this._onClickProfile} style={pad(idx)} />)}
+        {this.props.missingProofs && this.props.missingProofs.map((mp, idx) => <MissingProofRow key={mp.type} missingProof={mp} style={pad(idx)} />)}
       </Box>
     )
   }

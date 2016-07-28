@@ -19,7 +19,7 @@ export function folderIconProps (folder, style = {}) {
   }
 }
 
-export function missingProofs (userProofs: Array<Proof>, onClick: (proof: MissingProof) => void): Array<MissingProof> {
+export function missingProofs (userProofs: Array<Proof>, onClick: (missingProof: MissingProof) => void): Array<MissingProof> {
   const availableProofTypes = ['btc'].concat(_.without(_.keys(proveCommon.ProofType), 'none', 'keybase', 'dns' /* genericWebSite is displayed instead, which should provide an option for dns once clicked */))
   const userProofTypes = _.chain(userProofs)
     .map(p => p.type)

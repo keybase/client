@@ -19,7 +19,7 @@ export type Props = {
   onFollow: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
-  onMissingProofClick: (proof: MissingProof) => void,
+  onMissingProofClick: (missingProof: MissingProof) => void,
   onFolderClick: (folder: Folder) => void,
   onUserClick: (username: string) => void,
   username: string,

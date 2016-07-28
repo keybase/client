@@ -6,7 +6,7 @@ import type {PlatformsExpanded} from '../constants/types/more'
 export type MissingProof = {
   type: PlatformsExpanded,
   message: string,
-  onClick: (proof: MissingProof) => void,
+  onClick: (missingProof: MissingProof) => void,
 }
 
 export type Proof = {
