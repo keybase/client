@@ -11,7 +11,7 @@ import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo,
 import {apiserverGetRpc} from '../constants/types/flow-types'
 import type {TypedAsyncAction} from '../constants/types/flux'
 
-const {platformToLogo16, platformToLogo32} = Constants
+const {platformToLogo16, platformToLogo32, searchResultKeys} = Constants
 
 type RawResult = {
   score: number,
@@ -83,45 +83,48 @@ function parseExtraInfo (platform: SearchPlatforms, rr: RawResult, isFollowing: 
   }
 }
 
-function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean, myself: ?string): ?SearchResult {
+function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean, myself: ?string, added: Object): ?SearchResult {
   const extraInfo = parseExtraInfo(platform, rr, isFollowing)
   const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
 
-  if (platform === 'Keybase' && rr.keybase) {
-    if (rr.keybase.username === myself) { // filter out myself
-      return null
-    }
+  if (rr.keybase && rr.keybase.username === myself) { // filter out myself
+    return null
+  }
 
-    return {
+  let searchResult = null
+  if (platform === 'Keybase' && rr.keybase) {
+    searchResult = {
       service: 'keybase',
       username: rr.keybase.username,
       isFollowing: rr.keybase.is_followee,
       extraInfo,
     }
   } else if (serviceName) {
-    if (rr.keybase && rr.keybase.username === myself) { // filter out myself
-      return null
-    }
-
     const toUpgrade = {...rr}
     delete toUpgrade.service
-    return {
+    searchResult = {
       service: 'external',
       icon: platformToLogo32(serviceName),
       username: rr.service && rr.service.username || '',
       serviceName,
       profileUrl: 'TODO',
       extraInfo,
-      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', toUpgrade, isFollowing) : null,
+      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', toUpgrade, isFollowing, null, {}) : null,
     }
   } else {
     return null
   }
+
+  if (searchResultKeys(searchResult).filter(key => added[key]).length) { // filter out already added
+    return null
+  }
+
+  return searchResult
 }
 
 function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>,
-  requestTimestamp: Date, isFollowing: (username: string) => boolean, myself: ?string): Results {
-  const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr, isFollowing, myself)))
+  requestTimestamp: Date, isFollowing: (username: string) => boolean, myself: ?string, added: Object): Results {
+  const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr, isFollowing, myself, added)))
 
   return {
     type: Constants.results,
@@ -177,7 +180,12 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
             const json = JSON.parse(results.body)
             const isFollowing = (username: string) => isFollowing_(getState, username)
             const myself = getState().config.username
-            dispatch(rawResults(term, platform, json.list || [], requestTimestamp, isFollowing, myself))
+            // map of service+username
+            const added = getState().search.selectedUsers.reduce((m, cur) => {
+              searchResultKeys(cur).forEach(key => { m[key] = true })
+              return m
+            }, {})
+            dispatch(rawResults(term, platform, json.list || [], requestTimestamp, isFollowing, myself, added))
           } catch (_) {
             console.log('Error searching (json). Not handling this error')
           }
