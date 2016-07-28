@@ -61,7 +61,7 @@ export default class ActionRender extends Component {
     return (
       <div style={styleContainer}>
         {!this.props.currentlyFollowing &&
-          <Button waiting={this.props.waiting} style={styleActionButton} type='Follow' label='Track' onClick={() => this.props.onFollow()} />}
+          <Button waiting={this.props.waiting} style={styleActionButton} type='Follow' label='Follow' onClick={() => this.props.onFollow()} />}
         {this.props.currentlyFollowing &&
           <Button style={styleActionButton} type='Secondary' label='Close' onClick={() => this.props.onClose()} />}
       </div>

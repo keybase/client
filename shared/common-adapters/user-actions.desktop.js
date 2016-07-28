@@ -16,7 +16,7 @@ export default function UserActions ({trackerState, currentlyFollowing, style, o
     } else {
       return (
         <Box style={style}>
-          <Button type='Unfollow' label='Untrack' onClick={onUnfollow} style={{marginRight: globalMargins.xtiny}} />
+          <Button type='Unfollow' label='Unfollow' onClick={onUnfollow} style={{marginRight: globalMargins.xtiny}} />
           <Button type='Follow' label='Accept' onClick={onAcceptProofs} style={{marginRight: 0}} />
         </Box>
       )
