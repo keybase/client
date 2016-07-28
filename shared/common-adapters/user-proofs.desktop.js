@@ -84,10 +84,10 @@ export default class ProofsRender extends Component<void, Props, void> {
     `
     return (
       <Box style={{...styleContainer(loading), ...this.props.style}}>
-        <Box style={{...styleLoading(loading)}} className='loading'>
+        <Box style={{...styleLoading(loading)}}>
           {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} style={pad(idx)} />)}
         </Box>
-        <Box style={{...styleDoneLoading(loading)}} className='notLoading'>
+        <Box style={{...styleDoneLoading(loading)}}>
           {this.props.proofs && this.props.proofs.map((p, idx) => <ProofRow key={`${p.id || ''}${p.type}`} proof={p} onClickProof={this._onClickProof} onClickProfile={this._onClickProfile} style={pad(idx)} />)}
           {this.props.missingProofs && this.props.missingProofs.map((p, idx) => <MissingProofRow key={p.type} proof={p} style={pad(idx)} />)}
           {this.props.missingProofs && <style>{missingProofsRealCSS}</style>}

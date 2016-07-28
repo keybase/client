@@ -266,7 +266,7 @@ const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
   mocks: {
     'Confirm Twitter': confirmBase,
     'Confirm Reddit': {...confirmBase, platform: 'reddit'},
-    'Confirm Github': {...confirmBase, platform: 'github'},
+    'Confirm GitHub': {...confirmBase, platform: 'github'},
     'Pending Hacker News': {...confirmBase, ...pending,
       platform: 'hackernews',
       message: 'Hacker News caches its bios, so it might be a few hours before you can verify your proof. Check back later.'},
