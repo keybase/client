@@ -7,7 +7,7 @@ import {headerColor as whichHeaderColor} from '../common-adapters/user-bio.share
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import ProfileHelp from './help.desktop'
-import {folderIconProps} from './render.shared'
+import * as shared from './render.shared'
 import type {Tab as FriendshipsTab} from './friendships'
 import type {Props} from './render'
 
@@ -44,7 +44,7 @@ class Render extends Component<void, Props, State> {
     const headerColor = whichHeaderColor(this.props)
 
     let proofNotice
-    if (this.props.trackerState !== proofNormal && this.props.trackerState !== proofChecking && !this.props.loading) {
+    if (this.props.trackerState !== proofNormal && this.props.trackerState !== proofChecking && !loading) {
       if (this.props.isYou) {
         if (this.props.proofs.some(proof => proof.meta === metaUnreachable)) {
           proofNotice = 'Some of your proofs are unreachable.'
@@ -58,7 +58,7 @@ class Render extends Component<void, Props, State> {
       .orderBy('isPublic', 'asc')
       .map(folder => (
         <Box key={folder.path} style={styleFolderLine} onClick={() => this.props.onFolderClick(folder)}>
-          <Icon {...folderIconProps(folder, styleFolderIcon)} />
+          <Icon {...shared.folderIconProps(folder, styleFolderIcon)} />
           <Box className='hover-underline'>
             <Text type='Body' style={{color: 'inherit'}}>{folder.isPublic ? 'public/' : 'private/'}</Text>
             <Usernames inline={true} users={folder.users} type='Body' style={{color: 'inherit'}} />
@@ -76,6 +76,8 @@ class Render extends Component<void, Props, State> {
         </Box>
       )
     }
+
+    const missingProofs = !this.props.isYou ? [] : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
 
     return (
       <Box style={styleOuterContainer}>
@@ -111,13 +113,19 @@ class Render extends Component<void, Props, State> {
               <Box style={styleProofNoticeBox}>
                 {proofNotice && <Text type='BodySmallSemibold' style={{color: globalColors.white}}>{proofNotice}</Text>}
               </Box>
-              <UserProofs
-                style={styleProofs}
-                username={this.props.username}
-                loading={loading}
-                proofs={this.props.proofs}
-                currentlyFollowing={this.props.currentlyFollowing}
-              />
+              {(loading || this.props.proofs.length > 0) &&
+                <UserProofs
+                  style={styleProofs}
+                  username={this.props.username}
+                  loading={loading}
+                  proofs={this.props.proofs}
+                />}
+              {!loading && missingProofs.length > 0 &&
+                <UserProofs
+                  style={styleMissingProofs(this.props.proofs.length > 0)}
+                  username={this.props.username}
+                  missingProofs={missingProofs}
+                />}
               {!loading && folders}
             </Box>
           </Box>
@@ -197,10 +205,16 @@ const styleProofNoticeBox = {
   zIndex: 11,
 }
 
+// header + small space from top of header + tiny space to pad top of first item
+const userProofsTopPadding = globalMargins.small + globalMargins.tiny
+
 const styleProofs = {
-  // header + small space from top of header + tiny space to pad top of first item
-  marginTop: globalMargins.small + globalMargins.tiny,
+  marginTop: userProofsTopPadding,
 }
+
+const styleMissingProofs = (hasProofs) => ({
+  marginTop: hasProofs ? globalMargins.tiny : userProofsTopPadding,
+})
 
 const styleFolderLine = {
   ...globalStyles.flexBoxRow,

@@ -21,10 +21,10 @@ const Row = ({deviceID, name, type, onSelect}) => {
   }
 
   return (
-    <TouchableHighlight style={stylesRow} onPress={onPress || (() => {})}>
+    <TouchableHighlight style={stylesRow} onPress={onPress}>
       <View style={stylesIconName}>
         <View style={stylesIconContainer}>
-          <Icon style={stylesIcon} type={iconType} onPress={onPress} />
+          <Icon style={stylesIcon} type={iconType} />
         </View>
         <Text type='BodySemiboldItalic' onPress={onPress}>{name}</Text>
       </View>

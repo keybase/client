@@ -148,6 +148,7 @@ const propsBase: RenderProps = {
   onAcceptProofs: () => console.log('onAcceptProofs'),
   onFolderClick: folder => { console.log('onFolderClick', folder) },
   onUserClick: username => { console.log('onUserClick', username) },
+  onMissingProofClick: proof => { console.log(`Prove ${proof.type}`) },
   parentProps: isMobile ? {} : {
     style: {
       width: 640,
@@ -195,6 +196,12 @@ const dumbMap: DumbComponentMap<Profile> = {
       isYou: true,
       proofs: proofsChanged,
       trackerState: error,
+    },
+    'Your Profile - No Proofs': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      proofs: [],
     },
     'Unfollowed': propsBase,
     'Unfollowed - Profile page': {
@@ -259,7 +266,7 @@ const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
   mocks: {
     'Confirm Twitter': confirmBase,
     'Confirm Reddit': {...confirmBase, platform: 'reddit'},
-    'Confirm Github': {...confirmBase, platform: 'github'},
+    'Confirm GitHub': {...confirmBase, platform: 'github'},
     'Pending Hacker News': {...confirmBase, ...pending,
       platform: 'hackernews',
       message: 'Hacker News caches its bios, so it might be a few hours before you can verify your proof. Check back later.'},

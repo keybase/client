@@ -76,6 +76,7 @@ export default connect(
       onEditProfile: onEditProfile,
       onLocationEdit: onEditProfile,
       onNameEdit: onEditProfile,
+      onMissingProofClick: () => console.log('TODO onMissingProofClick'),
     }
 
     return {

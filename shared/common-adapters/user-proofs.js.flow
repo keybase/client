@@ -1,10 +1,17 @@
 /* @flow */
 
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
+import type {PlatformsExpanded} from '../constants/types/more'
+
+export type MissingProof = {
+  type: PlatformsExpanded,
+  message: string,
+  onClick: (missingProof: MissingProof) => void,
+}
 
 export type Proof = {
   id: string,
-  type: string,
+  type: PlatformsExpanded,
   meta: ?SimpleProofMeta,
   humanUrl: ?string,
   profileUrl: ?string,
@@ -13,12 +20,16 @@ export type Proof = {
   isTracked: bool
 }
 
-export type Props = {
+type CommonProps = {
   style?: Object,
-  proofs: Array<Proof>,
-  loading: boolean,
+  loading?: boolean,
   username: ?string,
-  currentlyFollowing: boolean
 }
 
-export default class Render extends React$Component<void, Props, void> {}
+export type Props = ({
+  proofs: Array<Proof>,
+} & CommonProps) | ({
+  missingProofs: Array<MissingProof>,
+} & CommonProps)
+
+export default class ProofsRender extends React$Component<void, Props, void> {}

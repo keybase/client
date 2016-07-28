@@ -4,10 +4,11 @@ import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {FontIcon} from 'material-ui'
 import type {Props} from './icon'
+import type {$Exact} from '../constants/types/more'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 import * as shared from './icon.shared'
 
-export default class Icon extends Component {
+export default class Icon extends Component<void, $Exact<Props>, void> {
   props: Props;
 
   render () {

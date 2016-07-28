@@ -7,24 +7,60 @@ import openUrl from '../util/open-url'
 import * as shared from './user-proofs.shared'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
-import type {Proof, Props} from './user-proofs'
+import type {Proof, Props, MissingProof} from './user-proofs'
 
-function LoadingProofRow ({index, textBlockWidth}: {index: number, textBlockWidth: number}) {
+function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {
+  const missingColor = globalColors.black_20
+  return (
+    <p style={{...styleMissingProofRow, ...style}} className='user-proof-row' key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
+      <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
+      <span style={styleProofNameSection}>
+        <span style={styleProofNameLabelContainer}>
+          <Text inline={true} className='user-proof-row__name' type='Body' style={{...styleProofName, color: missingColor}}>
+            {missingProof.message}
+          </Text>
+        </span>
+      </span>
+      <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon, color: missingColor}} />
+    </p>
+  )
+}
+
+function ProofRow ({proof, onClickProof, onClickProfile, style}: {proof: Proof, onClickProof: (proof: Proof) => void, onClickProfile: (proof: Proof) => void, style: Object}): React$Element<*> {
+  const proofStatusIconType = shared.proofStatusIcon(proof)
+
+  return (
+    <p style={{...styleRow, ...style}}>
+      <Icon style={styleService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
+      <span style={styleProofNameSection}>
+        <span style={styleProofNameLabelContainer}>
+          <Text inline={true} className='hover-underline-container' type='Body' onClick={() => onClickProfile(proof)} style={styleProofName}>
+            <Text inline={true} type='Body' className='underline' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
+            {proof.id && <Text className='no-underline' inline={true} type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>}
+          </Text>
+          {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
+        </span>
+      </span>
+      {proofStatusIconType && <Icon type={proofStatusIconType} style={styleStatusIcon} onClick={() => onClickProof(proof)} />}
+    </p>
+  )
+}
+
+function LoadingProofRow ({textBlockWidth, style}: {textBlockWidth: number, style: Object}) {
   // TODO(mm) make iconfont-proof-pending the unfinished one instead
   return (
-    <div style={{...styleRow, paddingTop: index > 0 ? 8 : 0}}>
+    <div style={{...styleRow, ...style}}>
       <span style={styleProofNameSection}>
         <span style={styleProofNameLabelContainer}>
           <div style={{...globalStyles.loadingTextStyle, width: textBlockWidth}} />
         </span>
       </span>
-      <Icon style={styleService} type={'iconfont-proof-pending'} />
+      <Icon style={{...styleStatusIcon, color: globalStyles.loadingTextStyle.backgroundColor}} type={'iconfont-proof-placeholder'} />
     </div>
   )
 }
 
-class ProofsRender extends Component {
-  props: Props;
+export default class ProofsRender extends Component<void, Props, void> {
 
   _onClickProof (proof: Proof): void {
     if (proof.state !== proofChecking) {
@@ -39,57 +75,36 @@ class ProofsRender extends Component {
     }
   }
 
-  _renderProofRow (proof: Proof, idx: number) {
-    const metaBackgroundColor = shared.metaColor(proof)
-    const proofStatusIconType = shared.proofStatusIcon(proof)
-    const proofNameStyle = shared.proofNameStyle(proof)
-    const onClickProfile = () => { this._onClickProfile(proof) }
-
-    const proofStyle = {
-      ...globalStyles.selectable,
-      width: 208,
-      display: 'inline-block',
-      wordBreak: 'break-all',
-      ...styleProofName,
-    }
-
-    const meta = proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: metaBackgroundColor}} />
-
-    const proofIcon = proofStatusIconType && <Icon type={proofStatusIconType} style={styleStatusIcon} onClick={() => this._onClickProof(proof)} />
-
-    return (
-      <p style={{...styleRow, paddingTop: idx > 0 ? 8 : 0}} key={`${proof.id}${proof.type}`}>
-        <Icon style={styleService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={onClickProfile} />
-        <span style={styleProofNameSection}>
-          <span style={styleProofNameLabelContainer}>
-            <Text inline={true} className='hover-underline-container' type='Body' onClick={onClickProfile} style={proofStyle}>
-              <Text inline={true} type='Body' className='underline' style={proofNameStyle}>{proof.name}</Text>
-              <Text className='no-underline' inline={true} type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>
-            </Text>
-            {meta}
-          </span>
-        </span>
-        {proofIcon}
-      </p>
-    )
-  }
-
   render () {
     const {loading} = this.props
+    const pad = idx => idx > 0 ? {marginTop: globalMargins.tiny} : {}
+    const missingProofsRealCSS = `
+      .user-proof-row .user-proof-row__name { text-underline: none; font-weight: normal; }
+      .user-proof-row:hover .user-proof-row__name { text-decoration: underline; font-weight: bold; }
+    `
     return (
-      <div style={{...styleContainer, minHeight: loading ? 120 : 50, ...this.props.style}}>
-        <Box style={{...styleLoading, opacity: loading ? 1 : 0}}>
-          {[147, 77, 117].map((w, i) => <LoadingProofRow key={i} index={i} textBlockWidth={w} />)}
+      <Box style={{...styleContainer(loading), ...this.props.style}}>
+        <Box style={{...styleLoading(loading)}}>
+          {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} style={pad(idx)} />)}
         </Box>
-        <Box style={{...globalStyles.fadeOpacity, opacity: !loading ? 1 : 0}}>
-          {this.props.proofs.map((p, idx) => this._renderProofRow(p, idx))}
+        <Box style={{...styleDoneLoading(loading)}}>
+          {this.props.proofs && this.props.proofs.map((p, idx) => <ProofRow key={`${p.id || ''}${p.type}`} proof={p} onClickProof={this._onClickProof} onClickProfile={this._onClickProfile} style={pad(idx)} />)}
+          {this.props.missingProofs && this.props.missingProofs.map((mp, idx) => <MissingProofRow key={mp.type} missingProof={mp} style={pad(idx)} />)}
+          {this.props.missingProofs && <style>{missingProofsRealCSS}</style>}
         </Box>
-      </div>
+      </Box>
     )
   }
 }
 
-const styleLoading = {
+const styleContainer = (loading) => ({
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.white,
+  position: 'relative',
+  minHeight: loading ? 120 : 0,
+})
+
+const styleLoading = (loading) => ({
   ...globalStyles.fadeOpacity,
   position: 'absolute',
   left: 0,
@@ -98,18 +113,23 @@ const styleLoading = {
   height: 0,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
-}
+  opacity: loading ? 1 : 0,
+})
 
-const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
-  position: 'relative',
-}
+const styleDoneLoading = (loading) => ({
+  ...globalStyles.fadeOpacity,
+  opacity: !loading ? 1 : 0,
+})
 
 const styleRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   justifyContent: 'flex-start',
+}
+
+const styleMissingProofRow = {
+  ...styleRow,
+  ...globalStyles.clickable,
 }
 
 const styleService = {
@@ -142,6 +162,10 @@ const styleProofNameLabelContainer = {
 
 const styleProofName = {
   ...globalStyles.clickable,
+  ...globalStyles.selectable,
+  width: 208,
+  display: 'inline-block',
+  wordBreak: 'break-all',
   flex: 1,
 }
 
@@ -149,5 +173,3 @@ const styleProofType = {
   color: globalColors.black_10,
   wordBreak: 'normal',
 }
-
-export default ProofsRender

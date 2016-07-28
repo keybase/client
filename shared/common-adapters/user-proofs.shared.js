@@ -3,21 +3,21 @@
 import {globalColors, globalStyles} from '../styles/style-guide'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning,
   metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaIgnored} from '../constants/tracker'
+import type {PlatformsExpanded} from '../constants/types/more.js'
 
 import type {IconType} from '../common-adapters/icon'
 import type {Proof} from './user-proofs'
 
 export function metaColor (proof: Proof): string {
-  let color = globalColors.blue
   switch (proof.meta) {
-    case metaNew: color = globalColors.blue; break
-    case metaUpgraded: color = globalColors.blue; break
-    case metaUnreachable: color = globalColors.red; break
-    case metaPending: color = globalColors.black_40; break
-    case metaDeleted: color = globalColors.red; break
-    case metaIgnored: color = globalColors.green; break
+    case metaNew: return globalColors.blue
+    case metaUpgraded: return globalColors.blue
+    case metaUnreachable: return globalColors.red
+    case metaPending: return globalColors.black_40
+    case metaDeleted: return globalColors.red
+    case metaIgnored: return globalColors.green
+    default: return globalColors.blue
   }
-  return color
 }
 
 export function proofColor (proof: Proof): string {
@@ -40,8 +40,10 @@ export function proofColor (proof: Proof): string {
   return color
 }
 
-export function iconNameForProof (proof: Proof): IconType {
-  const types : {[key: string]: IconType} = {
+export function iconNameForProof ({type}: {type: PlatformsExpanded}): IconType {
+  const types = {
+    'none': 'iconfont-close',
+    'keybase': 'iconfont-close',
     'twitter': 'iconfont-identity-twitter',
     'github': 'iconfont-identity-github',
     'reddit': 'iconfont-identity-reddit',
@@ -49,12 +51,14 @@ export function iconNameForProof (proof: Proof): IconType {
     'coinbase': 'iconfont-coinbase',
     'hackernews': 'iconfont-identity-hn',
     'rooter': 'iconfont-thunderbolt',
+    'btc': 'iconfont-identity-bitcoin',
+    'genericWebSite': 'iconfont-identity-website',
     'http': 'iconfont-identity-website',
     'https': 'iconfont-identity-website',
     'dns': 'iconfont-identity-website',
   }
 
-  return types[proof.type]
+  return types[type]
 }
 
 export function proofStatusIcon (proof: Proof): ?IconType {

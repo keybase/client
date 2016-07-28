@@ -3,6 +3,7 @@
 import React, {Component} from 'react'
 import type {IconType as _IconType} from './icon.constants'
 export type IconType = _IconType
+import type {$Exact} from '../constants/types/more'
 
 export type Props = {
   type: IconType,
@@ -16,6 +17,4 @@ export type Props = {
   className?: string
 }
 
-declare export default class Icon extends React.Component {
-  props: Props;
-}
+declare export default class Icon extends React.Component<void, $Exact<Props>, void> {}
