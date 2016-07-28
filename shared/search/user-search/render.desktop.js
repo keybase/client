@@ -41,7 +41,7 @@ function KeybaseExtraInfo ({username, fullName, isFollowing, searchText}) {
         <Avatar size={16} style={{width: 16, marginRight: 4}} username={username} />
         <EmboldenTextMatch text={username} match={searchText} textType={'BodySmall'} style={{color: isFollowing ? globalColors.green2 : globalColors.orange}} />
       </Box>
-      {!!fullName && <Text type='BodyXSmall' style={{color: globalColors.black_40}}>{fullName}</Text>}
+      {!!fullName && <Text type='BodyXSmall' style={{...fullNameStyle, color: globalColors.black_40}}>{fullName}</Text>}
     </Box>
   )
 }
@@ -54,7 +54,7 @@ function ExternalExtraInfo ({fullNameOnService, icon, serviceAvatar, serviceUser
         {!icon && <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
         {!!serviceUsername && <EmboldenTextMatch text={serviceUsername} match={searchText} textType={'BodySmall'} emboldenStyle={{color: globalColors.black_75}} />}
       </Box>
-      {!!fullNameOnService && <Text type='BodyXSmall' style={{color: globalColors.black_40}}>{fullNameOnService}</Text>}
+      {!!fullNameOnService && <Text type='BodyXSmall' style={{...fullNameStyle, color: globalColors.black_40}}>{fullNameOnService}</Text>}
     </Box>
   )
 }
@@ -94,7 +94,7 @@ export function Result ({result, searchText, onClickResult}: {result: SearchResu
       extraInfo = <KeybaseExtraInfo {...result.extraInfo} searchText={searchText} />
       break
     case 'none':
-      extraInfo = <Text type='BodyXSmall' style={{color: globalColors.black_40, alignSelf: 'center'}}>{result.extraInfo.fullName}</Text>
+      extraInfo = <Text type='BodyXSmall' style={{...fullNameStyle, color: globalColors.black_40, alignSelf: 'center'}}>{result.extraInfo.fullName}</Text>
       break
   }
 
@@ -132,6 +132,14 @@ class Render extends Component<void, Props, void> {
       </Box>
     )
   }
+}
+
+const fullNameStyle = {
+  whiteSpace: 'nowrap',
+  width: 130,
+  textOverflow: 'ellipsis',
+  overflow: 'auto',
+  textAlign: 'right',
 }
 
 export default Render
