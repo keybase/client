@@ -1,6 +1,8 @@
 /* @flow */
 
 import React, {Component} from 'react'
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {Box, Icon, Text, Meta} from '../common-adapters/index'
 import openUrl from '../util/open-url'
@@ -83,16 +85,21 @@ export default class ProofsRender extends Component<void, Props, void> {
       .user-proof-row:hover .user-proof-row__name { text-decoration: underline; font-weight: bold; }
     `
     return (
-      <Box style={{...styleContainer(loading), ...this.props.style}}>
-        <Box style={{...styleLoading(loading)}}>
-          {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} style={pad(idx)} />)}
-        </Box>
-        <Box style={{...styleDoneLoading(loading)}}>
-          {this.props.proofs && this.props.proofs.map((p, idx) => <ProofRow key={`${p.id || ''}${p.type}`} proof={p} onClickProof={this._onClickProof} onClickProfile={this._onClickProfile} style={pad(idx)} />)}
-          {this.props.missingProofs && this.props.missingProofs.map((mp, idx) => <MissingProofRow key={mp.type} missingProof={mp} style={pad(idx)} />)}
-          {this.props.missingProofs && <style>{missingProofsRealCSS}</style>}
-        </Box>
-      </Box>
+      <div style={{...styleContainer(loading), ...this.props.style}}>
+        <ReactCSSTransitionGroup transitionName='fade-anim' transitionEnterTimeout={250} transitionLeaveTimeout={250}>
+          {loading
+          ? (
+            <Box key='loading' style={styleLoading}>
+              {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} style={pad(idx)} />)}
+            </Box>)
+          : (
+            <Box style={{...styleDoneLoading(loading)}}>
+              {this.props.proofs && this.props.proofs.map((p, idx) => <ProofRow key={`${p.id || ''}${p.type}`} proof={p} onClickProof={this._onClickProof} onClickProfile={this._onClickProfile} style={pad(idx)} />)}
+              {this.props.missingProofs && this.props.missingProofs.map((mp, idx) => <MissingProofRow key={mp.type} missingProof={mp} style={pad(idx)} />)}
+              {this.props.missingProofs && <style>{missingProofsRealCSS}</style>}
+            </Box>)}
+        </ReactCSSTransitionGroup>
+      </div>
     )
   }
 }
@@ -104,17 +111,16 @@ const styleContainer = (loading) => ({
   minHeight: loading ? 120 : 0,
 })
 
-const styleLoading = (loading) => ({
-  ...globalStyles.fadeOpacity,
+const styleLoading = {
   position: 'absolute',
+  top: 0,
   left: 0,
   right: 0,
   // We don't want the hidden loading state to affect sizings.
   height: 0,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
-  opacity: loading ? 1 : 0,
-})
+}
 
 const styleDoneLoading = (loading) => ({
   ...globalStyles.fadeOpacity,
