@@ -133,6 +133,14 @@ export function platformToLogo16 (platform: SearchPlatforms): IconType {
   }[platform]
 }
 
+export function platformToNiceName (platform: SearchPlatforms): string {
+  const niceNames: {[key: SearchPlatforms]: ?string} = {
+    'Hackernews': 'Hacker News',
+  }
+
+  return niceNames[platform] || platform
+}
+
 export function equalSearchResult (a: SearchResult, b: SearchResult): boolean {
   return a.service === b.service && a.username === b.username
 }
