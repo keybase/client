@@ -9,7 +9,7 @@ import {metaNone, checking as proofChecking} from '../constants/tracker'
 
 import type {Proof, Props, MissingProof} from './user-proofs'
 
-function MissingProofRow (proof: MissingProof, style: Object): React$Element<*> {
+function MissingProofRow ({proof, style}: {proof: MissingProof, style: Object}): React$Element<*> {
   const missingColor = globalColors.black_20
   return (
     <p style={{...styleMissingProofRow, ...style}} className='user-proof-row' key={proof.type} onClick={() => proof.onClick(proof)}>
@@ -26,7 +26,7 @@ function MissingProofRow (proof: MissingProof, style: Object): React$Element<*> 
   )
 }
 
-function ProofRow (proof: Proof, onClickProof: (proof: Proof) => void, onClickProfile: (proof: Proof) => void, style: Object): React$Element<*> {
+function ProofRow ({proof, onClickProof, onClickProfile, style}: {proof: Proof, onClickProof: (proof: Proof) => void, onClickProfile: (proof: Proof) => void, style: Object}): React$Element<*> {
   const proofStatusIconType = shared.proofStatusIcon(proof)
 
   return (
@@ -88,8 +88,8 @@ export default class ProofsRender extends Component<void, Props, void> {
           {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} style={pad(idx)} />)}
         </Box>
         <Box style={{...styleDoneLoading(loading)}} className='notLoading'>
-          {this.props.proofs && this.props.proofs.map((p, idx) => ProofRow(p, this._onClickProof, this._onClickProfile, pad(idx)))}
-          {this.props.missingProofs && this.props.missingProofs.map((p, idx) => MissingProofRow(p, pad(idx)))}
+          {this.props.proofs && this.props.proofs.map((p, idx) => <ProofRow key={p.type} proof={p} onClickProof={this._onClickProof} onClickProfile={this._onClickProfile} style={pad(idx)} />)}
+          {this.props.missingProofs && this.props.missingProofs.map((p, idx) => <MissingProofRow key={p.type} proof={p} style={pad(idx)} />)}
           {this.props.missingProofs && <style>{missingProofsRealCSS}</style>}
         </Box>
       </Box>
