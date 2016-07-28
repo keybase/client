@@ -20,12 +20,13 @@ export function folderIconProps (folder, style = {}) {
 }
 
 export function missingProofs (userProofs: Array<Proof>, onClick: (proof: MissingProof) => void): Array<MissingProof> {
-  const availableProofs = ['btc'].concat(_.without(_.keys(proveCommon.ProofType), 'none', 'keybase', 'dns'))
+  const availableProofTypes = ['btc'].concat(_.without(_.keys(proveCommon.ProofType), 'none', 'keybase', 'dns' /* genericWebSite is displayed instead, which should provide an option for dns once clicked */))
+  const userProofTypes = _.chain(userProofs)
+    .map(p => p.type)
+    .map(t => _.includes(['dns', 'genericWebSite', 'http', 'https'], t) ? 'genericWebSite' : t)
+    .uniq()
+    .value()
+  return _
+    .difference(availableProofTypes, userProofTypes)
     .map(type => ({type, message: proveMessage(type), onClick}))
-  const userProofTypes = userProofs.map(p => p.type)
-  const missingProofs = availableProofs.filter(ap => userProofTypes.indexOf(ap.type) === -1)
-  if (['dns', 'genericWebSite', 'http', 'https'].some(t => _.includes(userProofTypes, t))) {
-    return missingProofs.filter(mp => !_.includes(['dns', 'genericWebSite'], mp.type))
-  }
-  return missingProofs
 }
