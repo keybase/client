@@ -57,8 +57,9 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Usage: "Don't include recipients in metadata",
 			},
 			cli.BoolFlag{
-				Name:  "hide-self",
-				Usage: "Don't include sender in metadata",
+				Name: "anonymous",
+				Usage: "Don't include sender or recipients in metadata. " +
+					"Implies --hide-recipients.",
 			},
 			cli.BoolFlag{
 				Name:  "no-self",
@@ -120,8 +121,9 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	infile := ctx.String("infile")
 	c.noSelfEncrypt = ctx.Bool("no-self")
 	c.binary = ctx.Bool("binary")
-	c.hideRecipients = ctx.Bool("hide-recipients")
-	c.hideSelf = ctx.Bool("hide-self")
+	// --anonymous means hide both self and recipients.
+	c.hideSelf = ctx.Bool("anonymous")
+	c.hideRecipients = ctx.Bool("hide-recipients") || ctx.Bool("anonymous")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
 	}
