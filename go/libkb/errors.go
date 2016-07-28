@@ -727,7 +727,7 @@ func (n NoConfigFile) Error() string {
 type SelfTrackError struct{}
 
 func (e SelfTrackError) Error() string {
-	return "Cannot track yourself"
+	return "Cannot follow yourself"
 }
 
 //=============================================================================
@@ -1062,7 +1062,7 @@ type UntrackError struct {
 }
 
 func (e UntrackError) Error() string {
-	return fmt.Sprintf("Untrack error: %s", e.err)
+	return fmt.Sprintf("Unfollow error: %s", e.err)
 }
 
 func NewUntrackError(d string, a ...interface{}) UntrackError {
@@ -1308,7 +1308,7 @@ func (e NoUIDError) Error() string {
 type TrackingBrokeError struct{}
 
 func (e TrackingBrokeError) Error() string {
-	return "Tracking broke"
+	return "Following broke"
 }
 
 //=============================================================================
@@ -1326,7 +1326,7 @@ type TrackStaleError struct {
 }
 
 func (e TrackStaleError) Error() string {
-	return "Tracking statement was stale"
+	return "Following statement was stale"
 }
 
 //=============================================================================
