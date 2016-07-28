@@ -3,6 +3,7 @@ import React from 'react'
 import {Image, TouchableHighlight} from 'react-native'
 import type {Folder} from './list'
 import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
+import {iconMeta} from '../common-adapters/icon.constants'
 import type {IconType} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
@@ -18,8 +19,8 @@ const Avatars = ({styles, users, isPublic, ignored}) => {
     return <Box style={styles.avatarContainer}>{contents}</Box>
   }
 
-  // $FlowIssue doesn't like images
-  const source = require('../images/icons/icon-damier-pattern-48.png')
+  const source = iconMeta[ignored ? 'icon-damier-pattern-ignored-locked-48-1000' : 'icon-damier-pattern-good-open-48-1000'].require
+
   return (
     <Box style={{width: 48, height: 1}}>
       <Image

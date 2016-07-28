@@ -5,8 +5,8 @@ import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapte
 import type {IconType} from '../common-adapters/icon'
 import {globalStyles, globalColors, backgroundURL} from '../styles/style-guide'
 
-const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored}) => {
-  const boxStyle = {
+const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, isPublic}) => {
+  let boxStyle: Object = {
     width: smallMode ? 32 : 48,
     minHeight: smallMode ? 40 : 48,
     paddingTop: smallMode ? 8 : 12,
@@ -15,9 +15,15 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored}) =
     paddingRight: smallMode ? 4 : 8,
   }
 
+  if (isPublic) {
+    boxStyle.backgroundColor = globalColors.yellowGreen
+  } else {
+    boxStyle.background = `${backgroundURL('icons', `icon-damier-pattern-${ignored ? 'ignored-locked' : 'good-open'}.png`)} ${globalColors.darkBlue3} repeat`
+  }
+
   const groupIcon: IconType = smallMode ? styles.groupIcon.small : styles.groupIcon.normal
   return (
-    <Box style={{...styles.avatarContainer, ...boxStyle}}>
+    <Box style={boxStyle}>
       {groupAvatar
         ? <Icon type={groupIcon} style={ignored ? {opacity: 0.5} : {}} />
         : <Avatar size={smallMode ? 24 : 32} username={userAvatar} opacity={ignored ? 0.5 : 1.0}
@@ -58,6 +64,7 @@ const RowMeta = ({ignored, meta, styles}) => {
 }
 
 type RowType = {smallMode: boolean, onOpen: (path: string) => void, onClick: (path: string) => void, onRekey: (path: string) => void}
+
 const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
   onOpen, onClick, groupAvatar, userAvatar, onRekey, path}: RowType & Folder) => {
   const onOpenClick = event => {
@@ -91,7 +98,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
   return (
     <Box style={containerStyle} className='folder-row' onClick={() => onClick && onClick(path)}>
       <Box style={{...globalStyles.flexBoxRow}}>
-        <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} ignored={ignored} />
+        <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} ignored={ignored} isPublic={isPublic} />
         <Box style={stylesBodyContainer}>
           <Usernames users={users} type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'} style={{color: nameColor}} redColor={redColor} />
           {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
@@ -140,9 +147,6 @@ const stylesPrivate = {
     small: 'icon-folder-private-group-24',
     normal: 'icon-folder-private-group-32',
   },
-  avatarContainer: {
-    background: `${backgroundURL('icons', 'icon-damier-pattern-good-open.png')} ${globalColors.darkBlue3} repeat`,
-  },
   nameColor: globalColors.white,
   modifiedMode: 'Terminal',
   action: {
@@ -169,9 +173,6 @@ const stylesPublic = {
   groupIcon: {
     small: 'icon-folder-public-group-24',
     normal: 'icon-folder-public-group-32',
-  },
-  avatarContainer: {
-    backgroundColor: globalColors.yellowGreen,
   },
   nameColor: globalColors.yellowGreen2,
   modifiedMode: 'Normal',
