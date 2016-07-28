@@ -22,6 +22,7 @@ type CmdEncrypt struct {
 	noSelfEncrypt  bool
 	binary         bool
 	hideRecipients bool
+	hideSelf       bool
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -56,6 +57,10 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Usage: "Don't include recipients in metadata",
 			},
 			cli.BoolFlag{
+				Name:  "hide-self",
+				Usage: "Don't include sender in metadata",
+			},
+			cli.BoolFlag{
 				Name:  "no-self",
 				Usage: "Don't encrypt for yourself",
 			},
@@ -88,6 +93,7 @@ func (c *CmdEncrypt) Run() error {
 		NoSelfEncrypt:  c.noSelfEncrypt,
 		Binary:         c.binary,
 		HideRecipients: c.hideRecipients,
+		HideSelf:       c.hideSelf,
 	}
 	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.SaltpackEncrypt(context.TODO(), arg)
@@ -115,6 +121,7 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	c.noSelfEncrypt = ctx.Bool("no-self")
 	c.binary = ctx.Bool("binary")
 	c.hideRecipients = ctx.Bool("hide-recipients")
+	c.hideSelf = ctx.Bool("hide-self")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
 	}
