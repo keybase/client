@@ -1,15 +1,16 @@
-/* @flow */
+// @flow
 import * as Constants from '../constants/devices'
-import {devicesTab, loginTab} from '../constants/tabs'
-import {navigateTo, navigateUp, switchTab} from './router'
-import {Map} from 'immutable'
-import type {AsyncAction} from '../constants/types/flux'
-import {loginDeprovisionRpc, revokeRevokeDeviceRpc, deviceDeviceHistoryListRpc, loginPaperKeyRpc} from '../constants/types/flow-types'
-import {setRevokedSelf} from './login'
 import HiddenString from '../util/hidden-string'
+import type {AsyncAction} from '../constants/types/flux'
+import {Map} from 'immutable'
+import {devicesTab, loginTab} from '../constants/tabs'
+import {loginDeprovisionRpc, revokeRevokeDeviceRpc, deviceDeviceHistoryListRpc,
+  loginPaperKeyRpc} from '../constants/types/flow-types'
+import {navigateTo, navigateUp, switchTab} from './router'
+import {setRevokedSelf} from './login'
 
 export function loadDevices () : AsyncAction {
-  return function (dispatch) {
+  return (dispatch) => {
     dispatch({
       type: Constants.loadingDevices,
       payload: null,
@@ -37,7 +38,7 @@ export function loadDevices () : AsyncAction {
 }
 
 export function generatePaperKey () : AsyncAction {
-  return function (dispatch) {
+  return (dispatch) => {
     dispatch({
       type: Constants.paperKeyLoading,
       payload: null,

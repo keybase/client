@@ -21,8 +21,7 @@ import {searchActive} from './local-debug'
 import type {Tabs} from './constants/tabs'
 
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
-import {switchTab} from './actions/tabbed-router'
-import {navigateBack, navigateUp} from './actions/router'
+import {navigateBack, navigateUp, switchTab} from './actions/router'
 import TabBar from './tab-bar/index.render'
 
 const tabs = {
@@ -41,7 +40,7 @@ type State = {
 type Props = {
   menuBadge: boolean,
   switchTab: (tab: Tabs) => void,
-  tabbedRouter: Object,
+  router: Object,
   provisioned: boolean,
   username: string,
   navigateBack: () => void,
@@ -98,7 +97,7 @@ class Nav extends Component<void, Props, State> {
   }
 
   _activeTab () {
-    return this.props.tabbedRouter.get('activeTab')
+    return this.props.router.get('activeTab')
   }
 
   _handleKeyDown (e: SyntheticKeyboardEvent) {
@@ -128,7 +127,7 @@ class Nav extends Component<void, Props, State> {
       return true
     }
 
-    return (nextProps.tabbedRouter.get('activeTab') !== this._activeTab())
+    return (nextProps.router.get('activeTab') !== this._activeTab())
   }
 
   componentDidMount () {
@@ -189,11 +188,12 @@ const stylesTabsContainer = {
 }
 
 export default connect(
-  ({tabbedRouter,
+  ({
+    router,
     config: {extendedConfig, username},
     favorite: {publicBadge, privateBadge},
     notifications: {menuBadge}}) => ({
-      tabbedRouter,
+      router,
       provisioned: extendedConfig && !!extendedConfig.device,
       username,
       menuBadge,

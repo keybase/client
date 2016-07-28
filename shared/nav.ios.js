@@ -20,9 +20,8 @@ import {connect} from 'react-redux'
 import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
 import {navBarHeight, tabBarHeight} from './styles/style-guide'
-import {navigateTo, navigateUp} from './actions/router'
+import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
-import {switchTab} from './actions/tabbed-router'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
@@ -125,11 +124,11 @@ class Nav extends Component {
   }
 
   _activeTab () {
-    return this.props.tabbedRouter.get('activeTab')
+    return this.props.router.get('activeTab')
   }
 
   shouldComponentUpdate (nextProps, nextState) {
-    return (nextProps.tabbedRouter.get('activeTab') !== this._activeTab() ||
+    return (nextProps.router.get('activeTab') !== this._activeTab() ||
             nextProps.dumbFullscreen !== this.props.dumbFullscreen)
   }
 
@@ -184,8 +183,8 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
-  ({tabbedRouter, favorite: {privateBadge, publicBadge}, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({
-    tabbedRouter,
+  ({router, favorite: {privateBadge, publicBadge}, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({
+    router,
     bootstrapped,
     provisioned: extendedConfig && !!extendedConfig.device,
     username,

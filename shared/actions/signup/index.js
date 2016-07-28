@@ -1,14 +1,15 @@
-/* @flow */
-
-import _ from 'lodash'
+// @flow
 import * as Constants from '../../constants/signup'
-import {Map} from 'immutable'
 import HiddenString from '../../util/hidden-string'
+import _ from 'lodash'
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName,
+  Signup, ShowPaperKey, ShowSuccess, ResetSignup, RestartSignup, RequestInvite,
+  StartRequestInvite, SignupWaiting} from '../../constants/signup'
+import type {RouteAppend} from '../../constants/router'
+import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
+import {Map} from 'immutable'
 import {loginTab} from '../../constants/tabs'
 import {routeAppend, navigateUp} from '../../actions/router'
-import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
-import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RestartSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../../constants/signup'
 import {signupSignupRpc, signupCheckInvitationCodeRpc, signupCheckUsernameAvailableRpc,
   signupInviteRequestRpc, deviceCheckDeviceNameFormatRpc} from '../../constants/types/flow-types'
 

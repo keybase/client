@@ -8,7 +8,7 @@ import signupRouter from './signup'
 import Login from './login'
 
 import {Map} from 'immutable'
-import type {URI} from '../reducers/router'
+import type {URI} from '../constants/router'
 
 function loginRouter (currentPath: Map<string, string>, uri: URI): any {
   // Fallback (for debugging)

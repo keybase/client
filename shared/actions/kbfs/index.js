@@ -1,12 +1,11 @@
-/* @flow */
-
+// @flow
 import * as Constants from '../../constants/kbfs'
 import type {AsyncAction} from '../../constants/types/flux'
 import {fsListRpc} from '../../constants/types/flow-types'
 import {openInKBFS as platformOpenInKBFS} from './platform'
 
 export function fsList (path: string) : AsyncAction {
-  return function (dispatch) {
+  return (dispatch) => {
     fsListRpc({
       param: {path},
       callback: (error, result) => {

@@ -1,11 +1,11 @@
-/* @flow */
-import {navigateUp} from '../actions/router'
+// @flow
 import * as Constants from '../constants/profile'
 import type {AsyncAction} from '../constants/types/flux'
 import {apiserverPostRpc} from '../constants/types/flow-types'
+import {navigateUp} from '../actions/router'
 
 export function editProfile (bio: string, fullname: string, location: string) : AsyncAction {
-  return function (dispatch) {
+  return (dispatch) => {
     dispatch({
       type: Constants.editingProfile,
       payload: {bio, fullname, location},

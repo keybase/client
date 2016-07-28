@@ -178,5 +178,5 @@ MetaNavigator.propTypes = {
 }
 
 export default connect(
-  (state, ownProps) => state.tabbedRouter.getIn(['tabs', ownProps.tab]).toObject()
+  (state, ownProps) => state.router.getIn(['tabs', ownProps.tab]).toObject()
 )(MetaNavigator)

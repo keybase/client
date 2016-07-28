@@ -14,7 +14,7 @@ import Success from './success'
 import SignupError from './error'
 
 import {Map} from 'immutable'
-import type {URI} from '../../reducers/router'
+import type {URI} from '../../constants/router'
 
 export default function signupRouter (currentPath: Map<string, string>, uri: URI): any {
   // Fallback (for debugging)

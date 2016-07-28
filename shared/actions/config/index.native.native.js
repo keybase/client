@@ -1,10 +1,13 @@
-import {NativeModules} from 'react-native'
+// @flow
 import * as Constants from '../../constants/config'
+import type {AsyncAction, Action} from '../../constants/types/flux'
+import {NativeModules} from 'react-native'
 
-export function getDevSettings () {
-  return function (dispatch) {
+export function getDevSettings (): AsyncAction {
+  return (dispatch) => {
     dispatch({
       type: Constants.devConfigLoading,
+      payload: {},
     })
 
     NativeModules.App.getDevConfig(devConfig => {
@@ -16,18 +19,21 @@ export function getDevSettings () {
   }
 }
 
-export function saveDevSettings () {
-  return function (dispatch, getState) {
+export function saveDevSettings (): AsyncAction {
+  return (dispatch, getState) => {
     const {config: {devConfig}} = getState()
 
     console.info(devConfig)
     NativeModules.App.setDevConfig(devConfig.configured)
 
-    return dispatch({type: Constants.devConfigSaved})
+    return dispatch({
+      type: Constants.devConfigSaved,
+      payload: {},
+    })
   }
 }
 
-export function updateDevSettings (updates) {
+export function updateDevSettings (updates: any): Action {
   return {
     type: Constants.devConfigUpdate,
     payload: {updates},

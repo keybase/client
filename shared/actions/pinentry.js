@@ -1,14 +1,11 @@
-/* @flow */
-
+// @flow
 import * as Constants from '../constants/pinentry'
 import engine from '../engine'
-
-import type {GUIEntryFeatures, incomingCallMapType} from '../constants/types/flow-types'
-import {delegateUiCtlRegisterSecretUIRpc} from '../constants/types/flow-types'
-import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
-
 import type {Dispatch, AsyncAction} from '../constants/types/flux'
+import type {GUIEntryFeatures, incomingCallMapType} from '../constants/types/flow-types'
+import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
 import {constants} from '../constants/types/keybase-v1'
+import {delegateUiCtlRegisterSecretUIRpc} from '../constants/types/flow-types'
 
 const uglySessionIDResponseMapper: {[key: number]: any} = {}
 

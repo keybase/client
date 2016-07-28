@@ -1,30 +1,27 @@
-/* @flow */
-import React from 'react'
-import * as Constants from '../../constants/login'
+// @flow
 import * as CommonConstants from '../../constants/common'
-import {bindActionCreators} from 'redux'
-import {isMobile} from '../../constants/platform'
-import {navigateTo, routeAppend, navigateUp} from '../router'
+import * as Constants from '../../constants/login'
+import HiddenString from '../../util/hidden-string'
+import React from 'react'
 import engine from '../../engine'
+import openURL from '../../util/open-url'
+import type {DeviceRole} from '../../constants/login'
+import type {DeviceType} from '../../constants/types/more'
+import type {Dispatch, GetState, AsyncAction, TypedAction, Action} from '../../constants/types/flux'
+import type {incomingCallMapType} from '../../constants/types/flow-types'
 import type {responseError} from '../../engine'
 import {Common, constants, provisionUi, passphraseCommon} from '../../constants/types/keybase-v1'
-// import GPGMissingPinentry from '../../login/register/gpg-missing-pinentry'
-import {switchTab} from '../tabbed-router'
-import {devicesTab, loginTab} from '../../constants/tabs'
-import {loadDevices} from '../devices'
-import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
-import {bootstrap} from '../config'
 import {Map} from 'immutable'
-
-import type {DeviceType} from '../../constants/types/more'
-import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
-import type {incomingCallMapType} from '../../constants/types/flow-types'
-import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc, deviceDeviceAddRpc,
-  loginGetConfiguredAccountsRpc, loginClearStoredSecretRpc} from '../../constants/types/flow-types'
+import {bindActionCreators} from 'redux'
+import {bootstrap} from '../config'
+import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
+import {devicesTab, loginTab} from '../../constants/tabs'
+import {isMobile} from '../../constants/platform'
+import {loadDevices} from '../devices'
+import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
+  deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, loginClearStoredSecretRpc} from '../../constants/types/flow-types'
+import {navigateTo, routeAppend, navigateUp, switchTab} from '../router'
 import {overrideLoggedInTab} from '../../local-debug'
-import type {DeviceRole} from '../../constants/login'
-import HiddenString from '../../util/hidden-string'
-import openURL from '../../util/open-url'
 
 const InputCancelError = {desc: 'Cancel Login', code: constants.StatusCode.scinputcanceled}
 
@@ -365,7 +362,7 @@ export function addNewComputer () : AsyncAction {
   return addNewDevice(Constants.codePageDeviceRoleNewComputer)
 }
 
-export function addNewPaperKey () : AsyncAction {
+export function addNewPaperKey () : Action {
   return routeAppend('genPaperKey')
 }
 

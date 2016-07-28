@@ -1,14 +1,13 @@
-/* @flow */
-
-import engine from '../engine'
-import HiddenString from '../util/hidden-string'
+// @flow
 import * as Constants from '../constants/unlock-folders'
-
+import HiddenString from '../util/hidden-string'
+import engine from '../engine'
+import type {ToPaperKeyInput, OnBackFromPaperKey, CheckPaperKey, Finish,
+  Waiting, RegisterRekeyListenerAction, NewRekeyPopupAction} from '../constants/unlock-folders'
 import type {TypedAsyncAction, AsyncAction, Dispatch} from '../constants/types/flux'
-import type {ToPaperKeyInput, OnBackFromPaperKey, CheckPaperKey, Finish, Waiting,
-  RegisterRekeyListenerAction, NewRekeyPopupAction} from '../constants/unlock-folders'
-import {delegateUiCtlRegisterRekeyUIRpc, loginPaperKeySubmitRpc, rekeyRekeyStatusFinishRpc, rekeyShowPendingRekeyStatusRpc} from '../constants/types/flow-types'
 import {createServer} from '../engine/server'
+import {delegateUiCtlRegisterRekeyUIRpc, loginPaperKeySubmitRpc, rekeyRekeyStatusFinishRpc,
+  rekeyShowPendingRekeyStatusRpc} from '../constants/types/flow-types'
 
 // We need the sessionID of the delegateRekeyUI sessions
 let rekeyServer = null
