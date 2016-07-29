@@ -6,33 +6,15 @@ import {globalStyles, globalColors} from '../../styles/style-guide'
 
 import type {SearchResult} from '../../constants/search'
 import type {Props, SearchResultFn} from './render'
-import type {Props as TextProps} from '../../common-adapters/text'
-
-function EmboldenTextMatch ({text, match, style, textType, emboldenStyle}: {text: string, match: string, emboldenStyle?: Object, style?: Object, textType: TextProps.type}) {
-  // TEMP leaving this out while we dicuss with design. i think the bold is actually harder to parse visually so we might tear this all out
-  // const indexOfMatch = text.toLowerCase().indexOf(match.toLowerCase())
-  // if (indexOfMatch > -1) {
-    // const left = text.substring(0, indexOfMatch)
-    // const middle = text.substring(indexOfMatch, indexOfMatch + match.length)
-    // const right = text.substring(indexOfMatch + match.length)
-    // return (
-      // <Box style={globalStyles.flexBoxRow}>
-        // {!!left && <Text type={textType} style={style}>{left}</Text>}
-        // <Text type={textType} style={{...globalStyles.fontBold, ...style, ...emboldenStyle}}>{middle}</Text>
-        // {!!right && <EmboldenTextMatch style={style} text={right} match={match} textType={textType} emboldenStyle={emboldenStyle} />}
-      // </Box>
-    // )
-  // }
-
-  return <Text type={textType} style={style}>{text}</Text>
-}
 
 function KeybaseResultBody ({username, searchText, isFollowing}) {
-  return <EmboldenTextMatch text={username} match={searchText} textType={'Body'} style={{color: isFollowing ? globalColors.green2 : globalColors.orange}} />
+  return <Text type='Body'
+    style={{color: isFollowing ? globalColors.green2 : globalColors.orange}}>{username}</Text>
 }
 
 function ExternalResultBody ({username, searchText}) {
-  return <EmboldenTextMatch text={username} match={searchText} textType={'Body'} style={{color: globalColors.black_75}} />
+  return <Text type='Body'
+    style={{color: globalColors.black_75}}>{username}</Text>
 }
 
 function KeybaseExtraInfo ({username, fullName, isFollowing, searchText}) {
@@ -40,7 +22,8 @@ function KeybaseExtraInfo ({username, fullName, isFollowing, searchText}) {
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-end', justifyContent: 'center'}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <Avatar size={16} style={{width: 16, marginRight: 4}} username={username} />
-        <EmboldenTextMatch text={username} match={searchText} textType={'BodySmall'} style={{color: isFollowing ? globalColors.green2 : globalColors.orange}} />
+        <Text type='BodySmall'
+          style={{color: isFollowing ? globalColors.green2 : globalColors.orange}}>{username}</Text>
       </Box>
       {!!fullName && <Text type='BodyXSmall' style={{...fullNameStyle, color: globalColors.black_40}}>{fullName}</Text>}
     </Box>
@@ -53,9 +36,10 @@ function ExternalExtraInfo ({fullNameOnService, icon, serviceAvatar, serviceUser
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         {!!icon && <Icon type={icon} style={{width: 17, marginRight: 4}} />}
         {!icon && <Avatar size={16} url={serviceAvatar} style={{marginRight: 4}} />}
-        {!!serviceUsername && <EmboldenTextMatch text={serviceUsername} match={searchText} textType={'BodySmall'} emboldenStyle={{color: globalColors.black_75}} />}
+        {!!serviceUsername && <Text type='BodySmall'>{serviceUsername}</Text>}
       </Box>
-      {!!fullNameOnService && <Text type='BodyXSmall' style={{...fullNameStyle, color: globalColors.black_40}}>{fullNameOnService}</Text>}
+      {!!fullNameOnService && <Text type='BodyXSmall'
+        style={{...fullNameStyle, color: globalColors.black_40}}>{fullNameOnService}</Text>}
     </Box>
   )
 }
