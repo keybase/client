@@ -546,16 +546,34 @@ func (g *GlobalContext) GetMyClientDetails() keybase1.ClientDetails {
 	}
 }
 
-func (g *GlobalContext) GetUnforwardedLogger() *logger.UnforwardedLogger {
+type UnforwardedLoggerWithLegacyInterface interface {
+	Debug(s string, args ...interface{})
+	Error(s string, args ...interface{})
+	Errorf(s string, args ...interface{})
+	Warning(s string, args ...interface{})
+	Info(s string, args ...interface{})
+	Profile(s string, args ...interface{})
+}
+
+func (g *GlobalContext) GetUnforwardedLogger() (log UnforwardedLoggerWithLegacyInterface) {
+	defer func() {
+		if log == nil {
+			// Hopefully this won't happen before we get to refactor the logger
+			// interfaces. If this happens, we really shouldn't return nil, but
+			// rather fix whatever caused it.
+			panic("can't make unforwarded logger")
+		}
+	}()
 	if g.Log == nil {
 		return nil
 	}
-	log, ok := g.Log.(*logger.Standard)
-	if !ok {
-		g.Log.Notice("Can't make Unforwarded logger from a non-standard logger")
-		return nil
+	if log, ok := g.Log.(*logger.Standard); ok {
+		return (*logger.UnforwardedLogger)(log)
 	}
-	return (*logger.UnforwardedLogger)(log)
+	if log, ok := g.Log.(*logger.TestLogger); ok {
+		return log
+	}
+	return nil
 }
 
 func (g *GlobalContext) GetLog() logger.Logger {
