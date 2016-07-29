@@ -1,6 +1,5 @@
 // @flow
-
-import React, {Component} from 'react'
+import {Component} from 'react'
 import type {UserList} from '../../common-adapters/usernames'
 
 export type Props = {
@@ -11,5 +10,4 @@ export type Props = {
   onSubmit: () => void,
 }
 
-declare export default class ConfirmClearHistory extends React.Component<void, Props, void> {
-}
+declare export default class ConfirmClearHistory extends Component<void, Props, void> { }

@@ -1,13 +1,12 @@
-/* @flow */
-
+// @flow
 import {globalColors, globalStyles} from '../styles/style-guide'
-import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning,
+import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked,
+  error as proofError, warning as proofWarning,
   metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaIgnored} from '../constants/tracker'
-
 import type {IconType} from '../common-adapters/icon'
 import type {Proof} from './user-proofs'
 
-export function metaColor (proof: Proof): string {
+function metaColor (proof: Proof): string {
   let color = globalColors.blue
   switch (proof.meta) {
     case metaNew: color = globalColors.blue; break
@@ -20,7 +19,7 @@ export function metaColor (proof: Proof): string {
   return color
 }
 
-export function proofColor (proof: Proof): string {
+function proofColor (proof: Proof): string {
   let color = globalColors.blue
   switch (proof.state) {
     case proofNormal: {
@@ -40,7 +39,7 @@ export function proofColor (proof: Proof): string {
   return color
 }
 
-export function iconNameForProof (proof: Proof): IconType {
+function iconNameForProof (proof: Proof): IconType {
   const types : {[key: string]: IconType} = {
     'twitter': 'iconfont-identity-twitter',
     'github': 'iconfont-identity-github',
@@ -57,7 +56,7 @@ export function iconNameForProof (proof: Proof): IconType {
   return types[proof.type]
 }
 
-export function proofStatusIcon (proof: Proof): ?IconType {
+function proofStatusIcon (proof: Proof): ?IconType {
   switch (proof.state) {
     case proofChecking:
       return 'iconfont-proof-pending'
@@ -75,9 +74,17 @@ export function proofStatusIcon (proof: Proof): ?IconType {
   }
 }
 
-export function proofNameStyle (proof: Proof) {
+function proofNameStyle (proof: Proof) {
   return {
     color: proofColor(proof),
     ...(proof.meta === metaDeleted ? globalStyles.textDecoration('line-through') : {}),
   }
+}
+
+export {
+  proofNameStyle,
+  metaColor,
+  proofColor,
+  iconNameForProof,
+  proofStatusIcon,
 }

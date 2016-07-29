@@ -1,5 +1,5 @@
-/* @flow */
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type Props = {
   onBack: () => void,
@@ -10,4 +10,4 @@ export type Props = {
   waitingForResponse?: ?boolean
 }
 
-export default class PaperKey extends React$Component<void, Props, void> { }
+export default class PaperKey extends Component<void, Props, void> { }

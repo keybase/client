@@ -6,7 +6,6 @@ import Box from './box'
 import type {Props, Context} from './terminal'
 
 export default class Terminal extends Component<void, Props, void> {
-
   getChildContext (): Context {
     return {
       inTerminal: true,

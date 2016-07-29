@@ -1,13 +1,11 @@
-/* @flow */
-
+// @flow
+import Box from './box'
+import Platform, {OS} from '../constants/platform'
 import React, {Component} from 'react'
+import Text from './text.native'
+import type {Props} from './input'
 import {TextInput} from 'react-native'
 import {globalColors, globalStyles} from '../styles/style-guide'
-import Platform, {OS} from '../constants/platform'
-import Text from './text.native'
-import Box from './box'
-
-import type {Props} from './input'
 
 type State = {
   inputFocused: boolean,

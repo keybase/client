@@ -1,5 +1,5 @@
-/* @flow */
-import React from 'react'
+// @flow
+import {Component} from 'react'
 
 export type Props = {
     onBack?: () => void,
@@ -8,6 +8,4 @@ export type Props = {
     outerStyle?: ?Object
 };
 
-declare export default class Container extends React.Component {
-  props: Props;
-}
+declare export default class Container extends Component<void, Props, void> { }

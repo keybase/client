@@ -1,11 +1,11 @@
 // @flow
 import React, {Component} from 'react'
-import {Button} from './'
 import type {Props} from './follow-button'
+import {Button} from './'
 
 type State = {mouseOver: boolean}
 
-export default class FollowButton extends Component<void, Props, State> {
+class FollowButton extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -44,3 +44,5 @@ export default class FollowButton extends Component<void, Props, State> {
 const styleButton = {
   width: 125,
 }
+
+export default FollowButton

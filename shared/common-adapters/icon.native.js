@@ -1,15 +1,12 @@
-/* @flow */
-
+// @flow
+import * as shared from './icon.shared'
 import React, {Component} from 'react'
+import type {Props} from './icon'
 import {TouchableHighlight, Text, Image} from 'react-native'
 import {globalColors} from '../styles/style-guide'
 import {iconMeta} from './icon.constants'
-import type {Props} from './icon'
-import * as shared from './icon.shared'
 
-export default class Icon extends Component {
-  props: Props;
-
+class Icon extends Component<void, Props, void> {
   render () {
     let color = shared.defaultColor(this.props.type)
     let iconType = shared.typeToIconMapper(this.props.type)
@@ -57,3 +54,5 @@ export default class Icon extends Component {
     )
   }
 }
+
+export default Icon

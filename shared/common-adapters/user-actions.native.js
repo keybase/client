@@ -1,11 +1,11 @@
 // @flow
 import React from 'react'
-import {normal as proofNormal} from '../constants/tracker'
+import type {Props} from './user-actions'
 import {Box, Button, FollowButton} from '../common-adapters'
 import {globalMargins} from '../styles/style-guide'
-import type {Props} from './user-actions'
+import {normal as proofNormal} from '../constants/tracker'
 
-export default function UserActions ({trackerState, currentlyFollowing, style, onFollow, onUnfollow, onAcceptProofs}: Props) {
+function UserActions ({trackerState, currentlyFollowing, style, onFollow, onUnfollow, onAcceptProofs}: Props) {
   if (currentlyFollowing) {
     if (trackerState === proofNormal) {
       return (
@@ -29,3 +29,5 @@ export default function UserActions ({trackerState, currentlyFollowing, style, o
     )
   }
 }
+
+export default UserActions

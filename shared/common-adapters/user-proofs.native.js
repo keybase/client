@@ -1,17 +1,13 @@
-/* @flow */
-
+// @flow
+import * as shared from './user-proofs.shared'
 import React, {Component} from 'react'
 import openUrl from '../util/open-url'
-import * as shared from './user-proofs.shared'
-import {metaNone, checking as proofChecking} from '../constants/tracker'
+import type {Props, Proof} from './user-proofs'
 import {Box, Icon, Meta, Text} from '../common-adapters/index'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {metaNone, checking as proofChecking} from '../constants/tracker'
 
-import type {Props, Proof} from './user-proofs'
-
-export default class ProofsRender extends Component {
-  props: Props;
-
+class ProofsRender extends Component<void, Props, void> {
   _ensureUrlProtocal (url: string): string {
     return url && (url.indexOf('://') === -1 ? 'http://' : '') + url
   }
@@ -104,3 +100,5 @@ const stylesProofName = {
 const stylesProofType = {
   color: globalColors.black_10,
 }
+
+export default ProofsRender

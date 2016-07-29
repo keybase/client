@@ -1,11 +1,10 @@
 // @flow
-import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../styles/style-guide'
 import Box from './box'
+import React, {Component} from 'react'
 import type {Props, Context} from './terminal'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
-export default class Terminal extends Component<void, Props, void> {
-
+class Terminal extends Component<void, Props, void> {
   getChildContext (): Context {
     return {
       inTerminal: true,
@@ -31,3 +30,5 @@ const styleContainer = {
   padding: 10,
   alignItems: 'flex-start',
 }
+
+export default Terminal

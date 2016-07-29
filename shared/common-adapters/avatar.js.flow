@@ -1,6 +1,5 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type AvatarSize = 176 | 112 | 80 | 64 | 48 | 32 | 24 | 16
 

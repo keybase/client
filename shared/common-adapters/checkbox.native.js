@@ -1,10 +1,9 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
-import {View, TouchableWithoutFeedback, Animated, Easing} from 'react-native'
 import Text from './text'
-import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './checkbox'
+import {View, TouchableWithoutFeedback, Animated, Easing} from 'react-native'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 const checkedOffset = 14
 
@@ -12,8 +11,7 @@ type State = {
   left: any
 }
 
-class Checkbox extends Component {
-  props: Props;
+class Checkbox extends Component<void, Props, State> {
   state: State;
 
   _getOffset (props: Props): number {
@@ -23,7 +21,6 @@ class Checkbox extends Component {
   constructor (props: Props) {
     super(props)
     this.state = {left: new Animated.Value(this._getOffset(props))}
-    console.log(props, this.state)
   }
 
   componentWillReceiveProps (nextProps: Props) {

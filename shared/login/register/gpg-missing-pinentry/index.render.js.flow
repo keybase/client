@@ -1,8 +1,8 @@
-/* @flow */
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type Props = {
   onBack: () => void
 }
 
-export default class GPGMissingPinentry extends React$Component<void, Props, void> { }
+export default class GPGMissingPinentry extends Component<void, Props, void> { }

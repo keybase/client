@@ -1,6 +1,5 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type Props = $Shape<{
   autoFocus?: bool,
@@ -12,4 +11,4 @@ export type Props = $Shape<{
   style?: Object
 }>
 
-declare export default class Input extends React.Component<void, Props, void> {}
+declare export default class Input extends Component<void, Props, void> {}

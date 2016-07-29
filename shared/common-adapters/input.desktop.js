@@ -1,14 +1,18 @@
 // @flow
+import MultiLineInput from './multi-line-input.desktop'
 import React, {Component} from 'react'
+import type {Props} from './input'
 import {TextField} from 'material-ui'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {styles as TextStyles, specialStyles} from './text'
-import MultiLineInput from './multi-line-input.desktop'
-import type {Props} from './input'
 
-export default class Input extends Component {
-  props: Props;
-  state: {value: ?string, focused: boolean};
+type State = {
+  value: ?string,
+  focused: boolean
+}
+
+class Input extends Component<void, Props, State> {
+  state: State;
   _textField: any;
 
   constructor (props: Props) {
@@ -193,3 +197,4 @@ export const styles = {
   },
 }
 
+export default Input
