@@ -37,3 +37,8 @@ After install if you are having problems loading the kext:
 View kext status:
 
     sudo kextstat -b com.github.kbfuse.filesystems.kbfuse
+
+### Release
+
+The Fuse bundle is included in the KeybaseInstaller.app.
+Building a new installer will automatically pick up the kbfuse.bundle checked in here.
