@@ -12,17 +12,17 @@ import type {Proof, Props, MissingProof} from './user-proofs'
 function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {
   const missingColor = globalColors.black_20
   return (
-    <p style={{...styleMissingProofRow, ...style}} className='user-proof-row' key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
+    <Box style={{...styleMissingProofRow, ...style}} className='user-proof-row' key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
       <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
-      <span style={styleProofNameSection}>
-        <span style={styleProofNameLabelContainer}>
+      <Box style={styleProofNameSection}>
+        <Box style={styleProofNameLabelContainer}>
           <Text inline={true} className='user-proof-row__name' type='Body' style={{...styleProofName, color: missingColor}}>
             {missingProof.message}
           </Text>
-        </span>
-      </span>
+        </Box>
+      </Box>
       <Icon type={'iconfont-proof-placeholder'} style={{...styleStatusIcon, color: missingColor}} />
-    </p>
+    </Box>
   )
 }
 
@@ -30,33 +30,33 @@ function ProofRow ({proof, onClickProof, onClickProfile, style}: {proof: Proof, 
   const proofStatusIconType = shared.proofStatusIcon(proof)
 
   return (
-    <p style={{...styleRow, ...style}}>
+    <Box style={{...styleRow, ...style}}>
       <Icon style={styleService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
-      <span style={styleProofNameSection}>
-        <span style={styleProofNameLabelContainer}>
+      <Box style={styleProofNameSection}>
+        <Box style={styleProofNameLabelContainer}>
           <Text inline={true} className='hover-underline-container' type='Body' onClick={() => onClickProfile(proof)} style={styleProofName}>
             <Text inline={true} type='Body' className='underline' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
             {proof.id && <Text className='no-underline' inline={true} type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>}
           </Text>
           {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
-        </span>
-      </span>
+        </Box>
+      </Box>
       {proofStatusIconType && <Icon type={proofStatusIconType} style={styleStatusIcon} onClick={() => onClickProof(proof)} />}
-    </p>
+    </Box>
   )
 }
 
 function LoadingProofRow ({textBlockWidth, style}: {textBlockWidth: number, style: Object}) {
   // TODO(mm) make iconfont-proof-pending the unfinished one instead
   return (
-    <div style={{...styleRow, ...style}}>
-      <span style={styleProofNameSection}>
-        <span style={styleProofNameLabelContainer}>
-          <div style={{...globalStyles.loadingTextStyle, width: textBlockWidth}} />
-        </span>
-      </span>
+    <Box style={{...styleRow, ...style}}>
+      <Box style={styleProofNameSection}>
+        <Box style={styleProofNameLabelContainer}>
+          <Box style={{...globalStyles.loadingTextStyle, width: textBlockWidth}} />
+        </Box>
+      </Box>
       <Icon style={{...styleStatusIcon, color: globalStyles.loadingTextStyle.backgroundColor}} type={'iconfont-proof-placeholder'} />
-    </div>
+    </Box>
   )
 }
 
