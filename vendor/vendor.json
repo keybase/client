@@ -126,6 +126,11 @@
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		},
 		{
+			"path": "github.com/kardianos/osext",
+			"revision": "29ae4ffbc9a6fe9fb2bc5029050ce6996ea1d3bc",
+			"revisionTime": "2015-12-22T07:32:29-08:00"
+		},
+		{
 			"checksumSHA1": "tBFISVudi8RzOoFhK2+p0PRicfw=",
 			"path": "github.com/keybase/backoff",
 			"revision": "726b63b835ec48ae1fac42bcba4e8c7b742fa97d",

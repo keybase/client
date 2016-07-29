@@ -200,8 +200,8 @@ func (*Root) Attr(ctx context.Context, a *fuse.Attr) error {
 var _ fs.NodeRequestLookuper = (*Root)(nil)
 
 // Lookup implements the fs.NodeRequestLookuper interface for Root.
-func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
-	r.private.fs.log.CDebugf(ctx, "FS Lookup %s", req.Name)
+func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (_ fs.Node, err error) {
+	r.log().CDebugf(ctx, "FS Lookup %s", req.Name)
 	defer func() { r.private.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	specialNode := handleSpecialFile(req.Name, r.private.fs, resp)
@@ -219,6 +219,11 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 	case libfs.HumanErrorFileName, libfs.HumanNoLoginFileName:
 		resp.EntryValid = 0
 		return &SpecialReadFile{r.private.fs.remoteStatus.NewSpecialReadFunc}, nil
+	}
+
+	platformNode, err := r.platformLookup(ctx, req, resp)
+	if platformNode != nil || err != nil {
+		return platformNode, err
 	}
 
 	// Don't want to pop up errors on special OS files.
@@ -239,7 +244,7 @@ var _ fs.HandleReadDirAller = (*Root)(nil)
 
 // ReadDirAll implements the ReadDirAll interface for Root.
 func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
-	r.private.fs.log.CDebugf(ctx, "FS ReadDirAll")
+	r.log().CDebugf(ctx, "FS ReadDirAll")
 	defer func() { r.private.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
 	res = []fuse.Dirent{
 		{
@@ -256,4 +261,8 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 		res = append(res, fuse.Dirent{Type: fuse.DT_File, Name: name})
 	}
 	return res, nil
+}
+
+func (r *Root) log() logger.Logger {
+	return r.private.fs.log
 }
