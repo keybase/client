@@ -1,8 +1,8 @@
 // @flow
-import React, {Component} from 'react'
 import Dropdown from '../../common-adapters/dropdown'
+import React, {Component} from 'react'
 
-export default class DropdownDemo extends Component {
+class DropdownDemo extends Component {
   state: any;
 
   constructor (props: {}) {
@@ -31,3 +31,5 @@ export default class DropdownDemo extends Component {
     )
   }
 }
+
+export default DropdownDemo

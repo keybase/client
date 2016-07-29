@@ -387,10 +387,11 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
 
     const incomingCallMap = makeKex2IncomingMap(dispatch, getState, onBack, onBack)
     incomingCallMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response) => {
-      let deviceType = {
+      const deviceTypeMap: {[key: string]: any} = {
         [Constants.codePageDeviceRoleNewComputer]: provisionUi.DeviceType.desktop,
         [Constants.codePageDeviceRoleNewPhone]: provisionUi.DeviceType.mobile,
-      }[kind]
+      }
+      let deviceType = deviceTypeMap[kind]
 
       dispatch(setCodePageOtherDeviceRole(kind))
       response.result(deviceType)
@@ -488,11 +489,12 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
         <SelectOtherDevice
           devices={devices}
           onSelect={deviceID => {
-            const type: DeviceRole = (devices || []).find(d => d.deviceID === deviceID).type
+            // $FlowIssue
+            const type: DeviceType = (devices || []).find(d => d.deviceID === deviceID).type
             const role = ({
               mobile: Constants.codePageDeviceRoleExistingPhone,
               desktop: Constants.codePageDeviceRoleExistingComputer,
-            }: {[key: DeviceType]: string})[type]
+            }: {[key: DeviceType]: DeviceRole})[type]
             dispatch(setCodePageOtherDeviceRole(role))
             response.result(deviceID)
           }}

@@ -1,21 +1,21 @@
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import {BackButton, Box} from '../common-adapters'
-import {routeAppend, navigateUp, switchTab} from '../actions/router'
-import {logout} from '../actions/login'
-import {pushDebugTracker} from '../actions/tracker'
+// @flow
 import MenuList from '../settings/menu-list'
+import React, {Component} from 'react'
 import RemoteComponent from '../../desktop/renderer/remote-component'
-import {globalStyles} from '../styles/style-guide'
-
-import {loginTab} from '../constants/tabs'
+import developer from './developer.desktop'
+import dumbSheet from './dumb-sheet'
 import engine from '../engine'
-import developer from './developer'
 import login from '../login'
 import pinentry from '../pinentry'
-import tracker from '../tracker'
 import styleSheet from './style-sheet'
-import dumbSheet from './dumb-sheet'
+import tracker from '../tracker'
+import {BackButton, Box} from '../common-adapters'
+import {connect} from 'react-redux'
+import {globalStyles} from '../styles/style-guide'
+import {loginTab} from '../constants/tabs'
+import {logout} from '../actions/login'
+import {pushDebugTracker} from '../actions/tracker'
+import {routeAppend, navigateUp, switchTab} from '../actions/router'
 
 class Foo extends Component {
   render () {

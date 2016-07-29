@@ -1,7 +1,9 @@
+// @flow
 import React, {Component} from 'react'
+// $FlowIssue
 import Render from './component-sheet.render'
 
-export default class ComponentSheet extends Component {
+class ComponentSheet extends Component {
   render () {
     return <Render {...this.props} />
   }
@@ -12,3 +14,5 @@ export default class ComponentSheet extends Component {
     }
   }
 }
+
+export default ComponentSheet

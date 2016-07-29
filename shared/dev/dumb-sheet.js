@@ -1,8 +1,9 @@
+// @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
 import Render from './dumb-sheet.render'
-import {updateDebugConfig} from '../actions/dev'
+import {connect} from 'react-redux'
 import {navigateUp} from '../actions/router'
+import {updateDebugConfig} from '../actions/dev'
 
 class DumbSheet extends Component {
   render () {

@@ -1,10 +1,9 @@
-/* @flow */
-
-import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
+// @flow
+import type {ConfigState} from '../reducers/config'
+import type {FavoriteState} from '../constants/favorite'
 import type {State as SearchState} from '../reducers/search'
 import type {State as TotalTrackerState} from '../reducers/tracker'
-import type {FavoriteState} from '../constants/favorite'
-import type {ConfigState} from '../reducers/config'
+import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
 
 export type TypedState = {
   unlockFolders: UnlockFoldersState,

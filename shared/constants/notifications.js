@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import type {LogLevel} from '../constants/types/flow-types'
 import type {TypedAction} from '../constants/types/flux'
 
