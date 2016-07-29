@@ -43,7 +43,7 @@ in a few special cases.
 On Device Provisioning - If you've previously set up a keybase account and host
   your secret key via gpg locally, the keybase app will need a signature signed with
   that key to delegate authority to a new local device key. That device key will then
-  do all of the non-PGP work for this machine going forward (e.g., signing tracker
+  do all of the non-PGP work for this machine going forward (e.g., signing follower
   statements, provisioning new devices, etc.)
 
 On signup - When you signup, you can also "select" a PGP key for use with keybase

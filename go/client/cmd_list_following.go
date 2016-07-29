@@ -28,7 +28,7 @@ func (s *CmdListTracking) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) == 1 {
 		s.assertion = ctx.Args()[0]
 	} else if len(ctx.Args()) > 1 {
-		return fmt.Errorf("list-tracking takes at most one argument")
+		return fmt.Errorf("list-following takes at most one argument")
 	}
 
 	s.json = ctx.Bool("json")
@@ -45,7 +45,7 @@ func displayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (e
 		if len(entries) == 1 {
 			noun = "user"
 		}
-		GlobUI.Printf("Tracking %d %s:\n\n", len(entries), noun)
+		GlobUI.Printf("Following %d %s:\n\n", len(entries), noun)
 	}
 
 	var cols []string
@@ -56,7 +56,7 @@ func displayTable(entries []keybase1.UserSummary, verbose bool, headers bool) (e
 				"Username",
 				"Sig ID",
 				"PGP fingerprints",
-				"When Tracked",
+				"When Followed",
 				"Proofs",
 			}
 		} else {
@@ -131,11 +131,11 @@ func (s *CmdListTracking) Run() error {
 
 func NewCmdListTracking(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "list-tracking",
+		Name:         "list-following",
 		ArgumentHelp: "<username>",
-		Usage:        "List who username is tracking",
+		Usage:        "List who you or the given user is following",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdListTracking{Contextified: libkb.NewContextified(g)}, "tracking", c)
+			cl.ChooseCommand(&CmdListTracking{Contextified: libkb.NewContextified(g)}, "following", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{

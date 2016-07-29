@@ -30,9 +30,9 @@ type CmdListTrackers struct {
 // NewCmdListTrackers creates a new cli.Command.
 func NewCmdListTrackers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "list-trackers",
+		Name:         "list-followers",
 		ArgumentHelp: "<username>",
-		Usage:        "List trackers",
+		Usage:        "List those who follow you",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "H, headers",
@@ -48,7 +48,7 @@ func NewCmdListTrackers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdListTrackers{Contextified: libkb.NewContextified(g)}, "list-trackers", c)
+			cl.ChooseCommand(&CmdListTrackers{Contextified: libkb.NewContextified(g)}, "list-followers", c)
 		},
 	}
 }
@@ -108,9 +108,9 @@ func (c *CmdListTrackers) headout(count int) *tabwriter.Writer {
 		return nil
 	}
 
-	noun := "tracker"
+	noun := "follower"
 	if count > 1 {
-		noun = "trackers"
+		noun = "followers"
 	}
 	GlobUI.Printf("%d %s:\n\n", count, noun)
 
@@ -129,7 +129,7 @@ func (c *CmdListTrackers) output(trs []keybase1.Tracker, summarizer batchfn) (er
 	}
 
 	if len(sums) == 0 {
-		GlobUI.Printf("no trackers\n")
+		GlobUI.Printf("no followers\n")
 		return nil
 	}
 

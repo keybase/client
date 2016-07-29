@@ -24,17 +24,17 @@ type CmdTrack struct {
 
 func NewCmdTrack(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "track",
+		Name:         "follow",
 		ArgumentHelp: "<username>",
-		Usage:        "Verify a user's authenticity and optionally track them",
+		Usage:        "Verify a user's authenticity and optionally follow them",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "local, l",
-				Usage: "Only track locally, don't send a statement to the server.",
+				Usage: "Only follow locally, don't send a public statement to the server.",
 			},
 			cli.BoolFlag{
 				Name:  "y",
-				Usage: "Approve remote tracking without prompting.",
+				Usage: "Approve remote following without prompting.",
 			},
 			cli.BoolFlag{
 				Name:  "s, skip-proof-cache",
@@ -42,7 +42,7 @@ func NewCmdTrack(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdTrackRunner(g), "track", c)
+			cl.ChooseCommand(NewCmdTrackRunner(g), "follow", c)
 		},
 	}
 }
@@ -61,7 +61,7 @@ func (v *CmdTrack) SetOptions(options keybase1.TrackOptions) {
 
 func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("Track only takes one argument, the user to track.")
+		return fmt.Errorf("Track only takes one argument, the user to follow.")
 	}
 	v.user = ctx.Args()[0]
 	v.options = keybase1.TrackOptions{LocalOnly: ctx.Bool("local"), BypassConfirm: ctx.Bool("y")}
