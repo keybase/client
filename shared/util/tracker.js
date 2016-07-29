@@ -11,6 +11,7 @@ type StateColors = {
   },
   username: string
 }
+
 export function stateColors ({currentlyFollowing, trackerState}: {currentlyFollowing: boolean, trackerState: SimpleProofState}): StateColors {
   if ([warning, error].indexOf(trackerState) !== -1) {
     return {

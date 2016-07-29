@@ -17,7 +17,7 @@ export default class HeaderRender extends Component {
   }
 
   render () {
-    const isWarningAboutTrackerShowingUpLater = this.props.loggedin && !this.props.currentlyfollowing && this.state.showCloseWarning
+    const isWarningAboutTrackerShowingUpLater = this.props.loggedIn && !this.props.currentlyFollowing && this.state.showCloseWarning
     const headerText = isWarningAboutTrackerShowingUpLater ? 'You will see this window every time you access this folder.' : this.props.reason
 
     const trackerStateColors = stateColors(this.props)
@@ -27,7 +27,6 @@ export default class HeaderRender extends Component {
     return (
       <div style={styleOuter}>
         <div style={{...styleHeader, backgroundColor: headerBackgroundColor}}>
-          <div style={{...styleHeader, height: 48, zIndex: 2, opacity: isWarningAboutTrackerShowingUpLater ? 1 : 0, backgroundColor: globalColors.yellow}} />
           <Text type='BodySemibold' lineClamp={2} style={{...styleText, color: headerTextColor, ...(isWarningAboutTrackerShowingUpLater ? {zIndex: 2} : {})}}>{headerText}</Text>
           <Icon type='iconfont-close' style={styleClose}
             onClick={() => this.props.onClose()}
