@@ -22,42 +22,22 @@ import (
 )
 
 type CheckBlockOps struct {
-	delegate BlockOps
-	tr       gomock.TestReporter
+	BlockOps
+	tr gomock.TestReporter
 }
 
 var _ BlockOps = (*CheckBlockOps)(nil)
 
-func (cbo *CheckBlockOps) Get(ctx context.Context, md ReadOnlyRootMetadata,
-	blockPtr BlockPointer, block Block) error {
-	return cbo.delegate.Get(ctx, md, blockPtr, block)
-}
-
-func (cbo *CheckBlockOps) Ready(ctx context.Context, md ReadOnlyRootMetadata,
+func (cbo *CheckBlockOps) Ready(ctx context.Context, kmd KeyMetadata,
 	block Block) (id BlockID, plainSize int, readyBlockData ReadyBlockData,
 	err error) {
-	id, plainSize, readyBlockData, err = cbo.delegate.Ready(ctx, md, block)
+	id, plainSize, readyBlockData, err = cbo.BlockOps.Ready(ctx, kmd, block)
 	encodedSize := readyBlockData.GetEncodedSize()
 	if plainSize > encodedSize {
 		cbo.tr.Errorf("expected plainSize <= encodedSize, got plainSize = %d, "+
 			"encodedSize = %d", plainSize, encodedSize)
 	}
 	return
-}
-
-func (cbo *CheckBlockOps) Put(ctx context.Context, md ReadOnlyRootMetadata,
-	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	return cbo.delegate.Put(ctx, md, blockPtr, readyBlockData)
-}
-
-func (cbo *CheckBlockOps) Delete(ctx context.Context, md ReadOnlyRootMetadata,
-	ptrs []BlockPointer) (map[BlockID]int, error) {
-	return cbo.delegate.Delete(ctx, md, ptrs)
-}
-
-func (cbo *CheckBlockOps) Archive(ctx context.Context, md ReadOnlyRootMetadata,
-	ptrs []BlockPointer) error {
-	return cbo.delegate.Archive(ctx, md, ptrs)
 }
 
 var tCtxID = "kbfs-ops-test-id"
@@ -381,10 +361,10 @@ func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 	assert.False(t, fboIdentityDone(ops))
 }
 
-func expectBlock(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer, block Block, err error) {
-	config.mockBops.EXPECT().Get(gomock.Any(), rmdMatcher{rmd},
+func expectBlock(config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer, block Block, err error) {
+	config.mockBops.EXPECT().Get(gomock.Any(), kmdMatcher{kmd},
 		ptrMatcher{blockPtr}, gomock.Any()).
-		Do(func(ctx context.Context, md ReadOnlyRootMetadata,
+		Do(func(ctx context.Context, kmd KeyMetadata,
 			blockPtr BlockPointer, getBlock Block) {
 			switch v := getBlock.(type) {
 			case *FileBlock:
@@ -531,11 +511,11 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 // the helper functions below, but all the callers would have to go
 // md.ReadOnly(), which doesn't buy us much in tests.
 
-func makeBP(id BlockID, rmd *RootMetadata, config Config,
+func makeBP(id BlockID, kmd KeyMetadata, config Config,
 	u keybase1.UID) BlockPointer {
 	return BlockPointer{
 		ID:      id,
-		KeyGen:  rmd.LatestKeyGeneration(),
+		KeyGen:  kmd.LatestKeyGeneration(),
 		DataVer: DefaultNewBlockDataVersion(config, false),
 		BlockContext: BlockContext{
 			Creator: u,
@@ -545,19 +525,19 @@ func makeBP(id BlockID, rmd *RootMetadata, config Config,
 	}
 }
 
-func makeBI(id BlockID, rmd *RootMetadata, config Config,
+func makeBI(id BlockID, kmd KeyMetadata, config Config,
 	u keybase1.UID, encodedSize uint32) BlockInfo {
 	return BlockInfo{
-		BlockPointer: makeBP(id, rmd, config, u),
+		BlockPointer: makeBP(id, kmd, config, u),
 		EncodedSize:  encodedSize,
 	}
 }
 
-func makeIFP(id BlockID, rmd *RootMetadata, config Config,
+func makeIFP(id BlockID, kmd KeyMetadata, config Config,
 	u keybase1.UID, encodedSize uint32, off int64) IndirectFilePtr {
 	return IndirectFilePtr{
 		BlockInfo{
-			BlockPointer: makeBP(id, rmd, config, u),
+			BlockPointer: makeBP(id, kmd, config, u),
 			EncodedSize:  encodedSize,
 		},
 		off,
@@ -969,7 +949,7 @@ func (s shimMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (MdID, er
 
 func expectSyncBlockHelper(
 	t *testing.T, config *ConfigMock, lastCall *gomock.Call,
-	uid keybase1.UID, id TlfID, name string, p path, rmd *RootMetadata,
+	uid keybase1.UID, id TlfID, name string, p path, kmd KeyMetadata,
 	newEntry bool, skipSync int, refBytes uint64, unrefBytes uint64,
 	newRmd *ImmutableRootMetadata, newBlockIDs []BlockID, isUnmerged bool) (
 	path, *gomock.Call) {
@@ -1003,7 +983,7 @@ func expectSyncBlockHelper(
 		readyBlockData := ReadyBlockData{
 			buf: newBuf,
 		}
-		call := config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd},
+		call := config.mockBops.EXPECT().Ready(gomock.Any(), kmdMatcher{kmd},
 			gomock.Any()).Return(newID, len(newBuf), readyBlockData, nil)
 		if lastCall != nil {
 			call = call.After(lastCall)
@@ -1011,7 +991,7 @@ func expectSyncBlockHelper(
 		lastCall = call
 		newPath.path[i].ID = newID
 		newBlockIDs[i] = newID
-		config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
+		config.mockBops.EXPECT().Put(gomock.Any(), kmd.TlfID(),
 			ptrMatcher{newPath.path[i].BlockPointer}, readyBlockData).
 			Return(nil)
 	}
@@ -1045,19 +1025,19 @@ func expectSyncBlockHelper(
 
 func expectSyncBlock(
 	t *testing.T, config *ConfigMock, lastCall *gomock.Call,
-	uid keybase1.UID, id TlfID, name string, p path, rmd *RootMetadata,
+	uid keybase1.UID, id TlfID, name string, p path, kmd KeyMetadata,
 	newEntry bool, skipSync int, refBytes uint64, unrefBytes uint64,
 	newRmd *ImmutableRootMetadata, newBlockIDs []BlockID) (path, *gomock.Call) {
-	return expectSyncBlockHelper(t, config, lastCall, uid, id, name, p, rmd,
+	return expectSyncBlockHelper(t, config, lastCall, uid, id, name, p, kmd,
 		newEntry, skipSync, refBytes, unrefBytes, newRmd, newBlockIDs, false)
 }
 
 func expectSyncBlockUnmerged(
 	t *testing.T, config *ConfigMock, lastCall *gomock.Call,
-	uid keybase1.UID, id TlfID, name string, p path, rmd *RootMetadata,
+	uid keybase1.UID, id TlfID, name string, p path, kmd KeyMetadata,
 	newEntry bool, skipSync int, refBytes uint64, unrefBytes uint64,
 	newRmd *ImmutableRootMetadata, newBlockIDs []BlockID) (path, *gomock.Call) {
-	return expectSyncBlockHelper(t, config, lastCall, uid, id, name, p, rmd,
+	return expectSyncBlockHelper(t, config, lastCall, uid, id, name, p, kmd,
 		newEntry, skipSync, refBytes, unrefBytes, newRmd, newBlockIDs, true)
 }
 
@@ -4147,9 +4127,9 @@ func getOrCreateSyncInfo(
 	return ops.blocks.getOrCreateSyncInfoLocked(lState, de)
 }
 
-func makeBlockStateDirty(config Config, rmd *RootMetadata, p path,
+func makeBlockStateDirty(config Config, kmd KeyMetadata, p path,
 	ptr BlockPointer) {
-	ops := getOps(config, rmd.ID)
+	ops := getOps(config, kmd.TlfID())
 	lState := makeFBOLockState()
 	ops.blocks.blockLock.Lock(lState)
 	defer ops.blocks.blockLock.Unlock(lState)
@@ -4281,7 +4261,7 @@ func TestSyncCleanSuccess(t *testing.T) {
 	checkBlockCache(t, config, nil, nil)
 }
 
-func expectSyncDirtyBlock(config *ConfigMock, rmd *RootMetadata,
+func expectSyncDirtyBlock(config *ConfigMock, kmd KeyMetadata,
 	p path, ptr BlockPointer, block *FileBlock, splitAt int64,
 	padSize int, opsLockHeld bool) *gomock.Call {
 	branch := MasterBranch
@@ -4294,7 +4274,7 @@ func expectSyncDirtyBlock(config *ConfigMock, rmd *RootMetadata,
 		config.DirtyBlockCache().Put(ptr, branch, block)
 	}
 	if !opsLockHeld {
-		makeBlockStateDirty(config, rmd, p, ptr)
+		makeBlockStateDirty(config, kmd, p, ptr)
 	}
 	c1 := config.mockBsplit.EXPECT().CheckSplit(block).Return(splitAt)
 
@@ -4306,19 +4286,19 @@ func expectSyncDirtyBlock(config *ConfigMock, rmd *RootMetadata,
 	readyBlockData := ReadyBlockData{
 		buf: newEncBuf,
 	}
-	c2 := config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd}, block).
+	c2 := config.mockBops.EXPECT().Ready(gomock.Any(), kmdMatcher{kmd}, block).
 		After(c1).Return(newID, len(block.Contents), readyBlockData, nil)
 
 	newPtr := BlockPointer{ID: newID}
 	if config.mockBcache != nil {
-		config.mockBcache.EXPECT().Put(ptrMatcher{newPtr}, rmd.ID, block, PermanentEntry).Return(nil)
+		config.mockBcache.EXPECT().Put(ptrMatcher{newPtr}, kmd.TlfID(), block, PermanentEntry).Return(nil)
 		config.mockBcache.EXPECT().DeletePermanent(newID).Return(nil)
 	} else {
 		// Nothing to do, since the cache entry is added and
 		// removed.
 	}
 
-	config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
+	config.mockBops.EXPECT().Put(gomock.Any(), kmd.TlfID(),
 		ptrMatcher{newPtr}, gomock.Any()).Return(nil)
 	return c2
 }
@@ -4493,7 +4473,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	readyBlockData := ReadyBlockData{
 		buf: []byte{6, 7, 8, 9, 10, 11, 12},
 	}
-	config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd}, bBlock).
+	config.mockBops.EXPECT().Ready(gomock.Any(), kmdMatcher{rmd}, bBlock).
 		Return(bID, len(bBlock.Contents), readyBlockData, nil)
 
 	refNonce := BlockRefNonce{1}
@@ -4513,7 +4493,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	// manually add b
 	expectedPath.path = append(expectedPath.path,
 		pathNode{BlockPointer{ID: aID, BlockContext: BlockContext{RefNonce: refNonce}}, "b"})
-	config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
+	config.mockBops.EXPECT().Put(gomock.Any(), rmd.ID,
 		ptrMatcher{expectedPath.path[1].BlockPointer}, readyBlockData).
 		Return(nil)
 
@@ -5003,10 +4983,10 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	changeReadyBlockData := ReadyBlockData{
 		buf: changeBuf,
 	}
-	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), rmdMatcher{rmd},
+	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), kmdMatcher{rmd},
 		gomock.Any()).Return(changeBlockID, changePlainSize,
 		changeReadyBlockData, nil).After(lastCall)
-	config.mockBops.EXPECT().Put(gomock.Any(), rmdMatcher{rmd},
+	config.mockBops.EXPECT().Put(gomock.Any(), rmd.ID,
 		ptrMatcher{BlockPointer{ID: changeBlockID}}, changeReadyBlockData).
 		Return(nil)
 

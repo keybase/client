@@ -329,52 +329,52 @@ func (f *stallingBlockOps) maybeStall(ctx context.Context, opName StallableBlock
 }
 
 func (f *stallingBlockOps) Get(
-	ctx context.Context, md ReadOnlyRootMetadata, blockPtr BlockPointer,
+	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
 	block Block) error {
 	f.maybeStall(ctx, StallableBlockGet)
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
-		return f.delegate.Get(ctx, md, blockPtr, block)
+		return f.delegate.Get(ctx, kmd, blockPtr, block)
 	})
 }
 
 func (f *stallingBlockOps) Ready(
-	ctx context.Context, md ReadOnlyRootMetadata, block Block) (
+	ctx context.Context, kmd KeyMetadata, block Block) (
 	id BlockID, plainSize int, readyBlockData ReadyBlockData, err error) {
 	f.maybeStall(ctx, StallableBlockReady)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errReady error
-		id, plainSize, readyBlockData, errReady = f.delegate.Ready(ctx, md, block)
+		id, plainSize, readyBlockData, errReady = f.delegate.Ready(ctx, kmd, block)
 		return errReady
 	})
 	return id, plainSize, readyBlockData, err
 }
 
 func (f *stallingBlockOps) Put(
-	ctx context.Context, md ReadOnlyRootMetadata, blockPtr BlockPointer,
+	ctx context.Context, tlfID TlfID, blockPtr BlockPointer,
 	readyBlockData ReadyBlockData) error {
 	f.maybeStall(ctx, StallableBlockPut)
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
-		return f.delegate.Put(ctx, md, blockPtr, readyBlockData)
+		return f.delegate.Put(ctx, tlfID, blockPtr, readyBlockData)
 	})
 }
 
 func (f *stallingBlockOps) Delete(
-	ctx context.Context, md ReadOnlyRootMetadata,
+	ctx context.Context, tlfID TlfID,
 	ptrs []BlockPointer) (notDeleted map[BlockID]int, err error) {
 	f.maybeStall(ctx, StallableBlockDelete)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errDelete error
-		notDeleted, errDelete = f.delegate.Delete(ctx, md, ptrs)
+		notDeleted, errDelete = f.delegate.Delete(ctx, tlfID, ptrs)
 		return errDelete
 	})
 	return notDeleted, err
 }
 
 func (f *stallingBlockOps) Archive(
-	ctx context.Context, md ReadOnlyRootMetadata, ptrs []BlockPointer) error {
+	ctx context.Context, tlfID TlfID, ptrs []BlockPointer) error {
 	f.maybeStall(ctx, StallableBlockArchive)
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
-		return f.delegate.Archive(ctx, md, ptrs)
+		return f.delegate.Archive(ctx, tlfID, ptrs)
 	})
 }
 

@@ -900,6 +900,81 @@ func (_mr *_MockKBPKIRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0, arg1)
 }
 
+// Mock of KeyMetadata interface
+type MockKeyMetadata struct {
+	ctrl     *gomock.Controller
+	recorder *_MockKeyMetadataRecorder
+}
+
+// Recorder for MockKeyMetadata (not exported)
+type _MockKeyMetadataRecorder struct {
+	mock *MockKeyMetadata
+}
+
+func NewMockKeyMetadata(ctrl *gomock.Controller) *MockKeyMetadata {
+	mock := &MockKeyMetadata{ctrl: ctrl}
+	mock.recorder = &_MockKeyMetadataRecorder{mock}
+	return mock
+}
+
+func (_m *MockKeyMetadata) EXPECT() *_MockKeyMetadataRecorder {
+	return _m.recorder
+}
+
+func (_m *MockKeyMetadata) TlfID() TlfID {
+	ret := _m.ctrl.Call(_m, "TlfID")
+	ret0, _ := ret[0].(TlfID)
+	return ret0
+}
+
+func (_mr *_MockKeyMetadataRecorder) TlfID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TlfID")
+}
+
+func (_m *MockKeyMetadata) LatestKeyGeneration() KeyGen {
+	ret := _m.ctrl.Call(_m, "LatestKeyGeneration")
+	ret0, _ := ret[0].(KeyGen)
+	return ret0
+}
+
+func (_mr *_MockKeyMetadataRecorder) LatestKeyGeneration() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LatestKeyGeneration")
+}
+
+func (_m *MockKeyMetadata) GetTlfHandle() *TlfHandle {
+	ret := _m.ctrl.Call(_m, "GetTlfHandle")
+	ret0, _ := ret[0].(*TlfHandle)
+	return ret0
+}
+
+func (_mr *_MockKeyMetadataRecorder) GetTlfHandle() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTlfHandle")
+}
+
+func (_m *MockKeyMetadata) HasKeyForUser(keyGen KeyGen, user protocol.UID) bool {
+	ret := _m.ctrl.Call(_m, "HasKeyForUser", keyGen, user)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockKeyMetadataRecorder) HasKeyForUser(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasKeyForUser", arg0, arg1)
+}
+
+func (_m *MockKeyMetadata) GetTLFCryptKeyParams(keyGen KeyGen, user protocol.UID, key CryptPublicKey) (TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf, TLFCryptKeyServerHalfID, bool, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyParams", keyGen, user, key)
+	ret0, _ := ret[0].(TLFEphemeralPublicKey)
+	ret1, _ := ret[1].(EncryptedTLFCryptKeyClientHalf)
+	ret2, _ := ret[2].(TLFCryptKeyServerHalfID)
+	ret3, _ := ret[3].(bool)
+	ret4, _ := ret[4].(error)
+	return ret0, ret1, ret2, ret3, ret4
+}
+
+func (_mr *_MockKeyMetadataRecorder) GetTLFCryptKeyParams(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyParams", arg0, arg1, arg2)
+}
+
 // Mock of encryptionKeyGetter interface
 type MockencryptionKeyGetter struct {
 	ctrl     *gomock.Controller
@@ -921,8 +996,8 @@ func (_m *MockencryptionKeyGetter) EXPECT() *_MockencryptionKeyGetterRecorder {
 	return _m.recorder
 }
 
-func (_m *MockencryptionKeyGetter) GetTLFCryptKeyForEncryption(ctx context.Context, md ReadOnlyRootMetadata) (TLFCryptKey, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForEncryption", ctx, md)
+func (_m *MockencryptionKeyGetter) GetTLFCryptKeyForEncryption(ctx context.Context, kmd KeyMetadata) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForEncryption", ctx, kmd)
 	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -953,8 +1028,8 @@ func (_m *MockKeyManager) EXPECT() *_MockKeyManagerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyManager) GetTLFCryptKeyForEncryption(ctx context.Context, md ReadOnlyRootMetadata) (TLFCryptKey, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForEncryption", ctx, md)
+func (_m *MockKeyManager) GetTLFCryptKeyForEncryption(ctx context.Context, kmd KeyMetadata) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForEncryption", ctx, kmd)
 	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -964,8 +1039,8 @@ func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForEncryption(arg0, arg1 inter
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForEncryption", arg0, arg1)
 }
 
-func (_m *MockKeyManager) GetTLFCryptKeyForMDDecryption(ctx context.Context, mdToDecrypt ReadOnlyRootMetadata, mdWithKeys ReadOnlyRootMetadata) (TLFCryptKey, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForMDDecryption", ctx, mdToDecrypt, mdWithKeys)
+func (_m *MockKeyManager) GetTLFCryptKeyForMDDecryption(ctx context.Context, kmdToDecrypt KeyMetadata, kmdWithKeys KeyMetadata) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForMDDecryption", ctx, kmdToDecrypt, kmdWithKeys)
 	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -975,8 +1050,8 @@ func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForMDDecryption(arg0, arg1, ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForMDDecryption", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(ctx context.Context, md ReadOnlyRootMetadata, blockPtr BlockPointer) (TLFCryptKey, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForBlockDecryption", ctx, md, blockPtr)
+func (_m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForBlockDecryption", ctx, kmd, blockPtr)
 	ret0, _ := ret[0].(TLFCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -1663,6 +1738,17 @@ func (_mr *_MockcryptoSignerRecorder) Sign(arg0, arg1 interface{}) *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Sign", arg0, arg1)
 }
 
+func (_m *MockcryptoSigner) SignToString(ctx context.Context, msg []byte) (string, error) {
+	ret := _m.ctrl.Call(_m, "SignToString", ctx, msg)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockcryptoSignerRecorder) SignToString(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SignToString", arg0, arg1)
+}
+
 // Mock of Crypto interface
 type MockCrypto struct {
 	ctrl     *gomock.Controller
@@ -2253,8 +2339,8 @@ func (_m *MockBlockOps) EXPECT() *_MockBlockOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBlockOps) Get(ctx context.Context, md ReadOnlyRootMetadata, blockPtr BlockPointer, block Block) error {
-	ret := _m.ctrl.Call(_m, "Get", ctx, md, blockPtr, block)
+func (_m *MockBlockOps) Get(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer, block Block) error {
+	ret := _m.ctrl.Call(_m, "Get", ctx, kmd, blockPtr, block)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -2263,8 +2349,8 @@ func (_mr *_MockBlockOpsRecorder) Get(arg0, arg1, arg2, arg3 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockOps) Ready(ctx context.Context, md ReadOnlyRootMetadata, block Block) (BlockID, int, ReadyBlockData, error) {
-	ret := _m.ctrl.Call(_m, "Ready", ctx, md, block)
+func (_m *MockBlockOps) Ready(ctx context.Context, kmd KeyMetadata, block Block) (BlockID, int, ReadyBlockData, error) {
+	ret := _m.ctrl.Call(_m, "Ready", ctx, kmd, block)
 	ret0, _ := ret[0].(BlockID)
 	ret1, _ := ret[1].(int)
 	ret2, _ := ret[2].(ReadyBlockData)
@@ -2276,8 +2362,8 @@ func (_mr *_MockBlockOpsRecorder) Ready(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Ready", arg0, arg1, arg2)
 }
 
-func (_m *MockBlockOps) Put(ctx context.Context, md ReadOnlyRootMetadata, blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	ret := _m.ctrl.Call(_m, "Put", ctx, md, blockPtr, readyBlockData)
+func (_m *MockBlockOps) Put(ctx context.Context, tlfID TlfID, blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
+	ret := _m.ctrl.Call(_m, "Put", ctx, tlfID, blockPtr, readyBlockData)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -2286,8 +2372,8 @@ func (_mr *_MockBlockOpsRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockOps) Delete(ctx context.Context, md ReadOnlyRootMetadata, ptrs []BlockPointer) (map[BlockID]int, error) {
-	ret := _m.ctrl.Call(_m, "Delete", ctx, md, ptrs)
+func (_m *MockBlockOps) Delete(ctx context.Context, tlfID TlfID, ptrs []BlockPointer) (map[BlockID]int, error) {
+	ret := _m.ctrl.Call(_m, "Delete", ctx, tlfID, ptrs)
 	ret0, _ := ret[0].(map[BlockID]int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -2297,8 +2383,8 @@ func (_mr *_MockBlockOpsRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2)
 }
 
-func (_m *MockBlockOps) Archive(ctx context.Context, md ReadOnlyRootMetadata, ptrs []BlockPointer) error {
-	ret := _m.ctrl.Call(_m, "Archive", ctx, md, ptrs)
+func (_m *MockBlockOps) Archive(ctx context.Context, tlfID TlfID, ptrs []BlockPointer) error {
+	ret := _m.ctrl.Call(_m, "Archive", ctx, tlfID, ptrs)
 	ret0, _ := ret[0].(error)
 	return ret0
 }

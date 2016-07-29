@@ -302,7 +302,7 @@ func (c BlockContext) String() string {
 // considering how old clients will handle them.
 type BlockPointer struct {
 	ID      BlockID `codec:"i"`
-	KeyGen  KeyGen  `codec:"k"` // if valid, which generation of the TLFKeyBundle to use.
+	KeyGen  KeyGen  `codec:"k"` // if valid, which generation of the TLF{Writer,Reader}KeyBundle to use.
 	DataVer DataVer `codec:"d"` // if valid, which version of the KBFS data structures is pointed to
 	BlockContext
 }

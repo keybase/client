@@ -12,9 +12,6 @@ import (
 // All section references below are to https://keybase.io/blog/kbfs-crypto
 // (version 1.3).
 
-// TODO once TLFKeyBundle is removed, ensure that methods take
-// value receivers unless they mutate the receiver.
-
 // TLFCryptKeyServerHalfID is the identifier type for a server-side key half.
 type TLFCryptKeyServerHalfID struct {
 	ID HMAC // Exported for serialization.
@@ -100,15 +97,6 @@ func (kim DeviceKeyInfoMap) fillInDeviceInfo(crypto Crypto,
 	}
 
 	return serverMap, nil
-}
-
-// GetKIDs returns the KIDs for the given bundle.
-func (kim DeviceKeyInfoMap) GetKIDs() []keybase1.KID {
-	var keys []keybase1.KID
-	for k := range kim {
-		keys = append(keys, k)
-	}
-	return keys
 }
 
 // UserDeviceKeyInfoMap maps a user's keybase UID to their DeviceKeyInfoMap

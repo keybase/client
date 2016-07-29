@@ -31,9 +31,9 @@ func NewStateChecker(config Config) *StateChecker {
 // the blocksFound map, if the given path represents an indirect
 // block.
 func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
-	lState *lockState, ops *folderBranchOps, md ReadOnlyRootMetadata,
+	lState *lockState, ops *folderBranchOps, kmd KeyMetadata,
 	file path, blockSizes map[BlockPointer]uint32) error {
-	fblock, err := ops.blocks.GetFileBlockForReading(ctx, lState, md,
+	fblock, err := ops.blocks.GetFileBlockForReading(ctx, lState, kmd,
 		file.tailPointer(), file.Branch, file)
 	if err != nil {
 		return err
@@ -47,7 +47,7 @@ func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 	for _, childPtr := range fblock.IPtrs {
 		blockSizes[childPtr.BlockPointer] = childPtr.EncodedSize
 		p := parentPath.ChildPath(file.tailName(), childPtr.BlockPointer)
-		err := sc.findAllFileBlocks(ctx, lState, ops, md, p, blockSizes)
+		err := sc.findAllFileBlocks(ctx, lState, ops, kmd, p, blockSizes)
 		if err != nil {
 			return err
 		}
@@ -59,9 +59,9 @@ func (sc *StateChecker) findAllFileBlocks(ctx context.Context,
 // the blockSizes map, and then recursively checks all
 // subdirectories.
 func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
-	lState *lockState, ops *folderBranchOps, md ReadOnlyRootMetadata,
+	lState *lockState, ops *folderBranchOps, kmd KeyMetadata,
 	dir path, blockSizes map[BlockPointer]uint32) error {
-	dblock, err := ops.blocks.GetDirBlockForReading(ctx, lState, md,
+	dblock, err := ops.blocks.GetDirBlockForReading(ctx, lState, kmd,
 		dir.tailPointer(), dir.Branch, dir)
 	if err != nil {
 		return err
@@ -76,13 +76,13 @@ func (sc *StateChecker) findAllBlocksInPath(ctx context.Context,
 		p := dir.ChildPath(name, de.BlockPointer)
 
 		if de.Type == Dir {
-			err := sc.findAllBlocksInPath(ctx, lState, ops, md, p, blockSizes)
+			err := sc.findAllBlocksInPath(ctx, lState, ops, kmd, p, blockSizes)
 			if err != nil {
 				return err
 			}
 		} else {
 			// If it's a file, check to see if it's indirect.
-			err := sc.findAllFileBlocks(ctx, lState, ops, md, p, blockSizes)
+			err := sc.findAllFileBlocks(ctx, lState, ops, kmd, p, blockSizes)
 			if err != nil {
 				return err
 			}

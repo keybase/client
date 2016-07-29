@@ -21,7 +21,7 @@ type singleEncryptionKeyGetter struct {
 }
 
 func (g singleEncryptionKeyGetter) GetTLFCryptKeyForEncryption(
-	ctx context.Context, md ReadOnlyRootMetadata) (TLFCryptKey, error) {
+	ctx context.Context, kmd KeyMetadata) (TLFCryptKey, error) {
 	return g.k, nil
 }
 

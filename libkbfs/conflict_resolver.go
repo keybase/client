@@ -1866,7 +1866,7 @@ func (cr *ConflictResolver) computeActions(ctx context.Context,
 }
 
 func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
-	lState *lockState, md ReadOnlyRootMetadata, dir path, lbc localBcache) (
+	lState *lockState, kmd KeyMetadata, dir path, lbc localBcache) (
 	*DirBlock, error) {
 	ptr := dir.tailPointer()
 	// TODO: lock lbc if we parallelize
@@ -1874,7 +1874,7 @@ func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
 		return block, nil
 	}
 	dblock, err := cr.fbo.blocks.GetDirBlockForReading(
-		ctx, lState, md, ptr, dir.Branch, dir)
+		ctx, lState, kmd, ptr, dir.Branch, dir)
 	if err != nil {
 		return nil, err
 	}
@@ -3270,7 +3270,8 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	}()
 
 	// Put all the blocks.  TODO: deal with recoverable block errors?
-	_, err = cr.fbo.doBlockPuts(ctx, md.ReadOnly(), *bps)
+	_, err = cr.fbo.doBlockPuts(
+		ctx, md.ID, md.GetTlfHandle().GetCanonicalName(), *bps)
 	if err != nil {
 		return err
 	}

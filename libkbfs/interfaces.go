@@ -413,11 +413,48 @@ type KBPKI interface {
 	Notify(ctx context.Context, notification *keybase1.FSNotification) error
 }
 
+// KeyMetadata is an interface for something that holds key
+// information. This is usually implemented by RootMetadata.
+type KeyMetadata interface {
+	// TlfID returns the ID of the TLF for which this object holds
+	// key info.
+	TlfID() TlfID
+
+	// LatestKeyGeneration returns the most recent key generation
+	// with key data in this object, or PublicKeyGen if this TLF
+	// is public.
+	LatestKeyGeneration() KeyGen
+
+	// GetTlfHandle returns the handle for the TLF. It must not
+	// return nil.
+	//
+	// TODO: Remove the need for this function in this interface,
+	// so that BareRootMetadata can implement this interface
+	// fully.
+	GetTlfHandle() *TlfHandle
+
+	// HasKeyForUser returns whether or not the given user has
+	// keys for at least one device at the given key
+	// generation. Returns false if the TLF is public, or if the
+	// given key generation is invalid.
+	HasKeyForUser(keyGen KeyGen, user keybase1.UID) bool
+
+	// GetTLFCryptKeyParams returns all the necessary info to
+	// construct the TLF crypt key for the given key generation,
+	// user, and device (identified by its crypt public key), or
+	// false if not found. This returns an error if the TLF is
+	// public.
+	GetTLFCryptKeyParams(
+		keyGen KeyGen, user keybase1.UID, key CryptPublicKey) (
+		TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
+		TLFCryptKeyServerHalfID, bool, error)
+}
+
 type encryptionKeyGetter interface {
 	// GetTLFCryptKeyForEncryption gets the crypt key to use for
 	// encryption (i.e., with the latest key generation) for the
 	// TLF with the given metadata.
-	GetTLFCryptKeyForEncryption(ctx context.Context, md ReadOnlyRootMetadata) (
+	GetTLFCryptKeyForEncryption(ctx context.Context, kmd KeyMetadata) (
 		TLFCryptKey, error)
 }
 
@@ -432,12 +469,12 @@ type KeyManager interface {
 	// (which in most cases is the same as mdToDecrypt) if it's not
 	// already cached.
 	GetTLFCryptKeyForMDDecryption(ctx context.Context,
-		mdToDecrypt, mdWithKeys ReadOnlyRootMetadata) (TLFCryptKey, error)
+		kmdToDecrypt, kmdWithKeys KeyMetadata) (TLFCryptKey, error)
 
 	// GetTLFCryptKeyForBlockDecryption gets the crypt key to use
 	// for the TLF with the given metadata to decrypt the block
 	// pointed to by the given pointer.
-	GetTLFCryptKeyForBlockDecryption(ctx context.Context, md ReadOnlyRootMetadata,
+	GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd KeyMetadata,
 		blockPtr BlockPointer) (TLFCryptKey, error)
 
 	// Rekey checks the given MD object, if it is a private TLF,
@@ -853,38 +890,38 @@ type KeyOps interface {
 // the necessary crypto operations on each block.
 type BlockOps interface {
 	// Get gets the block associated with the given block pointer
-	// (which belongs to the TLF with the given metadata),
+	// (which belongs to the TLF with the given key metadata),
 	// decrypts it if necessary, and fills in the provided block
 	// object with its contents, if the logged-in user has read
 	// permission for that block.
-	Get(ctx context.Context, md ReadOnlyRootMetadata, blockPtr BlockPointer,
+	Get(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
 		block Block) error
 
 	// Ready turns the given block (which belongs to the TLF with
-	// the given metadata) into encoded (and encrypted) data, and
-	// calculates its ID and size, so that we can do a bunch of
-	// block puts in parallel for every write. Ready() must
+	// the given key metadata) into encoded (and encrypted) data,
+	// and calculates its ID and size, so that we can do a bunch
+	// of block puts in parallel for every write. Ready() must
 	// guarantee that plainSize <= readyBlockData.QuotaSize().
-	Ready(ctx context.Context, md ReadOnlyRootMetadata, block Block) (
+	Ready(ctx context.Context, kmd KeyMetadata, block Block) (
 		id BlockID, plainSize int, readyBlockData ReadyBlockData, err error)
 
 	// Put stores the readied block data under the given block
-	// pointer (which belongs to the TLF with the given metadata)
-	// on the server.
-	Put(ctx context.Context, md ReadOnlyRootMetadata, blockPtr BlockPointer,
+	// pointer (which belongs to the TLF with the given ID) on the
+	// server.
+	Put(ctx context.Context, tlfID TlfID, blockPtr BlockPointer,
 		readyBlockData ReadyBlockData) error
 
 	// Delete instructs the server to delete the given block references.
 	// It returns the number of not-yet deleted references to
 	// each block reference
-	Delete(ctx context.Context, md ReadOnlyRootMetadata, ptrs []BlockPointer) (
+	Delete(ctx context.Context, tlfID TlfID, ptrs []BlockPointer) (
 		liveCounts map[BlockID]int, err error)
 
 	// Archive instructs the server to mark the given block references
 	// as "archived"; that is, they are not being used in the current
 	// view of the folder, and shouldn't be served to anyone other
 	// than folder writers.
-	Archive(ctx context.Context, md ReadOnlyRootMetadata, ptrs []BlockPointer) error
+	Archive(ctx context.Context, tlfID TlfID, ptrs []BlockPointer) error
 }
 
 // MDServer gets and puts metadata for each top-level directory.  The

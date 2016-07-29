@@ -20,6 +20,8 @@ type BlockOpsConstrained struct {
 	lock   sync.Mutex
 }
 
+var _ BlockOps = (*BlockOpsConstrained)(nil)
+
 // NewBlockOpsConstrained constructs a new BlockOpsConstrained.
 func NewBlockOpsConstrained(delegate BlockOps, bwKBps int) *BlockOpsConstrained {
 	return &BlockOpsConstrained{
@@ -46,10 +48,10 @@ func (b *BlockOpsConstrained) delay(ctx context.Context, size int) error {
 }
 
 // Put implements the BlockOps interface for BlockOpsConstrained.
-func (b *BlockOpsConstrained) Put(ctx context.Context, md ReadOnlyRootMetadata,
+func (b *BlockOpsConstrained) Put(ctx context.Context, tlfID TlfID,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	if err := b.delay(ctx, len(readyBlockData.buf)); err != nil {
 		return err
 	}
-	return b.BlockOps.Put(ctx, md, blockPtr, readyBlockData)
+	return b.BlockOps.Put(ctx, tlfID, blockPtr, readyBlockData)
 }

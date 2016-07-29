@@ -140,6 +140,20 @@ type BareRootMetadata struct {
 	codec.UnknownFieldSetHandler
 }
 
+// TlfID returns the ID of the TLF this BareRootMetadata is for.
+func (md *BareRootMetadata) TlfID() TlfID {
+	return md.ID
+}
+
+// LatestKeyGeneration returns the most recent key generation in this
+// BareRootMetadata, or PublicKeyGen if this TLF is public.
+func (md *BareRootMetadata) LatestKeyGeneration() KeyGen {
+	if md.ID.IsPublic() {
+		return PublicKeyGen
+	}
+	return md.WKeys.LatestKeyGeneration()
+}
+
 func (md *BareRootMetadata) haveOnlyUserRKeysChanged(
 	codec Codec, prevMD *BareRootMetadata, user keybase1.UID) (bool, error) {
 	// Require the same number of generations
@@ -371,14 +385,6 @@ func (md *BareRootMetadata) CheckValidSuccessor(
 	return nil
 }
 
-// LatestKeyGeneration returns the newest key generation for this BareRootMetadata.
-func (md *BareRootMetadata) LatestKeyGeneration() KeyGen {
-	if md.ID.IsPublic() {
-		return PublicKeyGen
-	}
-	return md.WKeys.LatestKeyGeneration()
-}
-
 // CheckValidSuccessorForServer is like CheckValidSuccessor but with
 // server-specific error messages.
 func (md *BareRootMetadata) CheckValidSuccessorForServer(
@@ -497,7 +503,7 @@ func (md *BareRootMetadata) TlfHandleExtensions() (
 func (md *BareRootMetadata) getTLFKeyBundles(keyGen KeyGen) (
 	*TLFWriterKeyBundle, *TLFReaderKeyBundle, error) {
 	if md.ID.IsPublic() {
-		return nil, nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundle"}
+		return nil, nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundles"}
 	}
 
 	if keyGen < FirstValidKeyGen {
@@ -510,70 +516,71 @@ func (md *BareRootMetadata) getTLFKeyBundles(keyGen KeyGen) (
 	return &md.WKeys[i], &md.RKeys[i], nil
 }
 
-// GetTLFCryptKeyInfo returns the TLFCryptKeyInfo entry for the given user
-// and device at the given key generation.
-func (md *BareRootMetadata) GetTLFCryptKeyInfo(keyGen KeyGen, user keybase1.UID,
-	currentCryptPublicKey CryptPublicKey) (
-	info TLFCryptKeyInfo, ok bool, err error) {
+// HasKeyForUser returns whether or not the given user has keys for at
+// least one device at the given key generation. Returns false if the
+// TLF is public, or if the given key generation is invalid.
+func (md *RootMetadata) HasKeyForUser(
+	keyGen KeyGen, user keybase1.UID) bool {
 	wkb, rkb, err := md.getTLFKeyBundles(keyGen)
 	if err != nil {
-		return TLFCryptKeyInfo{}, false, err
+		return false
 	}
 
-	key := currentCryptPublicKey.kid
-	if u, ok1 := wkb.WKeys[user]; ok1 {
-		info, ok := u[key]
-		return info, ok, nil
-	} else if u, ok1 = rkb.RKeys[user]; ok1 {
-		info, ok := u[key]
-		return info, ok, nil
-	}
-	return TLFCryptKeyInfo{}, false, nil
+	return (len(wkb.WKeys[user]) > 0) || (len(rkb.RKeys[user]) > 0)
 }
 
-// GetTLFCryptPublicKeys returns the public crypt keys for the given user
-// at the given key generation.
-func (md *BareRootMetadata) GetTLFCryptPublicKeys(
-	keyGen KeyGen, user keybase1.UID) (
-	[]keybase1.KID, bool) {
+// GetTLFCryptKeyParams returns all the necessary info to construct
+// the TLF crypt key for the given key generation, user, and device
+// (identified by its crypt public key), or false if not found. This
+// returns an error if the TLF is public.
+func (md *BareRootMetadata) GetTLFCryptKeyParams(
+	keyGen KeyGen, user keybase1.UID, key CryptPublicKey) (
+	TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
+	TLFCryptKeyServerHalfID, bool, error) {
 	wkb, rkb, err := md.getTLFKeyBundles(keyGen)
 	if err != nil {
-		return nil, false
+		return TLFEphemeralPublicKey{},
+			EncryptedTLFCryptKeyClientHalf{},
+			TLFCryptKeyServerHalfID{}, false, err
 	}
 
-	if u, ok1 := wkb.WKeys[user]; ok1 {
-		return u.GetKIDs(), true
-	} else if u, ok1 = rkb.RKeys[user]; ok1 {
-		return u.GetKIDs(), true
+	dkim := wkb.WKeys[user]
+	if dkim == nil {
+		dkim = rkb.RKeys[user]
+		if dkim == nil {
+			return TLFEphemeralPublicKey{},
+				EncryptedTLFCryptKeyClientHalf{},
+				TLFCryptKeyServerHalfID{}, false, nil
+		}
 	}
-	return nil, false
-}
-
-// GetTLFEphemeralPublicKey returns the ephemeral public key used for
-// the TLFCryptKeyInfo for the given user and device.
-func (md *BareRootMetadata) GetTLFEphemeralPublicKey(
-	keyGen KeyGen, user keybase1.UID,
-	currentCryptPublicKey CryptPublicKey) (TLFEphemeralPublicKey, error) {
-	wkb, rkb, err := md.getTLFKeyBundles(keyGen)
-	if err != nil {
-		return TLFEphemeralPublicKey{}, err
-	}
-
-	info, ok, err := md.GetTLFCryptKeyInfo(
-		keyGen, user, currentCryptPublicKey)
-	if err != nil {
-		return TLFEphemeralPublicKey{}, err
-	}
+	info, ok := dkim[key.kid]
 	if !ok {
 		return TLFEphemeralPublicKey{},
-			TLFEphemeralPublicKeyNotFoundError{
-				user, currentCryptPublicKey.kid}
+			EncryptedTLFCryptKeyClientHalf{},
+			TLFCryptKeyServerHalfID{}, false, nil
 	}
 
-	if info.EPubKeyIndex < 0 {
-		return rkb.TLFReaderEphemeralPublicKeys[-1-info.EPubKeyIndex], nil
+	var index int
+	var publicKeys TLFEphemeralPublicKeys
+	var keyType string
+	if info.EPubKeyIndex >= 0 {
+		index = info.EPubKeyIndex
+		publicKeys = wkb.TLFEphemeralPublicKeys
+		keyType = "writer"
+	} else {
+		index = -1 - info.EPubKeyIndex
+		publicKeys = rkb.TLFReaderEphemeralPublicKeys
+		keyType = "reader"
 	}
-	return wkb.TLFEphemeralPublicKeys[info.EPubKeyIndex], nil
+	keyCount := len(publicKeys)
+	if index >= keyCount {
+		return TLFEphemeralPublicKey{},
+			EncryptedTLFCryptKeyClientHalf{},
+			TLFCryptKeyServerHalfID{}, false,
+			fmt.Errorf("Invalid %s key index %d >= %d",
+				keyType, index, keyCount)
+	}
+	return publicKeys[index], info.ClientHalf, info.ServerHalfID, true, nil
 }
 
 // DeepCopyForServerTest returns a complete copy of this BareRootMetadata

@@ -10,10 +10,8 @@ import (
 	"reflect"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-codec/codec"
-	"golang.org/x/net/context"
 )
 
 // PrivateMetadata contains the portion of metadata that's secret for private
@@ -62,6 +60,8 @@ type RootMetadata struct {
 	// deserialized (more common on the server side).
 	tlfHandle *TlfHandle
 }
+
+var _ KeyMetadata = (*RootMetadata)(nil)
 
 // Data returns the private metadata of this RootMetadata.
 func (md *RootMetadata) Data() *PrivateMetadata {
@@ -142,7 +142,7 @@ func (md *RootMetadata) MakeSuccessor(
 }
 
 // AddNewKeys makes a new key generation for this RootMetadata using the
-// given TLFKeyBundles.
+// given TLF key bundles.
 func (md *RootMetadata) AddNewKeys(
 	wkb TLFWriterKeyBundle, rkb TLFReaderKeyBundle) error {
 	if md.ID.IsPublic() {
@@ -224,47 +224,6 @@ func (md *RootMetadata) ClearBlockChanges() {
 	md.data.Changes.sizeEstimate = 0
 	md.data.Changes.Info = BlockInfo{}
 	md.data.Changes.Ops = nil
-}
-
-// Helper which returns nil if the md block is uninitialized or readable by
-// the current user. Otherwise an appropriate read access error is returned.
-func (md *RootMetadata) isReadableOrError(ctx context.Context, config Config) error {
-	if !md.IsInitialized() || md.IsReadable() {
-		return nil
-	}
-	// this should only be the case if we're a new device not yet
-	// added to the set of reader/writer keys.
-	username, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return err
-	}
-	h := md.GetTlfHandle()
-	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI())
-	if err != nil {
-		return err
-	}
-	return md.makeRekeyReadError(resolvedHandle, md.LatestKeyGeneration(),
-		uid, username)
-}
-
-func (md *RootMetadata) makeRekeyReadError(
-	resolvedHandle *TlfHandle, keyGen KeyGen,
-	uid keybase1.UID, username libkb.NormalizedUsername) error {
-	if resolvedHandle.IsPublic() {
-		panic("makeRekeyReadError called on public folder")
-	}
-	// If the user is not a legitimate reader of the folder, this is a
-	// normal read access error.
-	if !resolvedHandle.IsReader(uid) {
-		return NewReadAccessError(resolvedHandle, username)
-	}
-
-	// Otherwise, this folder needs to be rekeyed for this device.
-	tlfName := resolvedHandle.GetCanonicalName()
-	if keys, _ := md.GetTLFCryptPublicKeys(keyGen, uid); len(keys) > 0 {
-		return NeedSelfRekeyError{tlfName}
-	}
-	return NeedOtherRekeyError{tlfName}
 }
 
 // updateFromTlfHandle updates the current RootMetadata's fields to

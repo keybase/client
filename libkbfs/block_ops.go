@@ -19,10 +19,11 @@ type BlockOpsStandard struct {
 var _ BlockOps = (*BlockOpsStandard)(nil)
 
 // Get implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Get(ctx context.Context, md ReadOnlyRootMetadata,
+func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
 	blockPtr BlockPointer, block Block) error {
 	bserv := b.config.BlockServer()
-	buf, blockServerHalf, err := bserv.Get(ctx, blockPtr.ID, md.ID, blockPtr.BlockContext)
+	buf, blockServerHalf, err := bserv.Get(
+		ctx, blockPtr.ID, kmd.TlfID(), blockPtr.BlockContext)
 	if err != nil {
 		// Temporary code to track down bad block
 		// requests. Remove when not needed anymore.
@@ -40,7 +41,7 @@ func (b *BlockOpsStandard) Get(ctx context.Context, md ReadOnlyRootMetadata,
 	}
 
 	tlfCryptKey, err := b.config.KeyManager().
-		GetTLFCryptKeyForBlockDecryption(ctx, md, blockPtr)
+		GetTLFCryptKeyForBlockDecryption(ctx, kmd, blockPtr)
 	if err != nil {
 		return err
 	}
@@ -69,7 +70,7 @@ func (b *BlockOpsStandard) Get(ctx context.Context, md ReadOnlyRootMetadata,
 }
 
 // Ready implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Ready(ctx context.Context, md ReadOnlyRootMetadata,
+func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 	block Block) (id BlockID, plainSize int, readyBlockData ReadyBlockData,
 	err error) {
 	defer func() {
@@ -83,7 +84,7 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, md ReadOnlyRootMetadata,
 	crypto := b.config.Crypto()
 
 	tlfCryptKey, err := b.config.KeyManager().
-		GetTLFCryptKeyForEncryption(ctx, md)
+		GetTLFCryptKeyForEncryption(ctx, kmd)
 	if err != nil {
 		return
 	}
@@ -135,45 +136,39 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, md ReadOnlyRootMetadata,
 }
 
 // Put implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Put(ctx context.Context, md ReadOnlyRootMetadata,
+func (b *BlockOpsStandard) Put(ctx context.Context, tlfID TlfID,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	bserv := b.config.BlockServer()
 	var err error
 	if blockPtr.RefNonce == zeroBlockRefNonce {
-		err = bserv.Put(ctx, blockPtr.ID, md.ID, blockPtr.BlockContext,
+		err = bserv.Put(ctx, blockPtr.ID, tlfID, blockPtr.BlockContext,
 			readyBlockData.buf, readyBlockData.serverHalf)
 	} else {
 		// non-zero block refnonce means this is a new reference to an
 		// existing block.
-		err = bserv.AddBlockReference(ctx, blockPtr.ID, md.ID,
+		err = bserv.AddBlockReference(ctx, blockPtr.ID, tlfID,
 			blockPtr.BlockContext)
-	}
-	if qe, ok := err.(BServerErrorOverQuota); ok && !qe.Throttled {
-		name := md.GetTlfHandle().GetCanonicalName()
-		b.config.Reporter().ReportErr(ctx, name, md.ID.IsPublic(),
-			WriteMode, OverQuotaWarning{qe.Usage, qe.Limit})
-		return nil
 	}
 	return err
 }
 
 // Delete implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Delete(ctx context.Context, md ReadOnlyRootMetadata,
+func (b *BlockOpsStandard) Delete(ctx context.Context, tlfID TlfID,
 	ptrs []BlockPointer) (liveCounts map[BlockID]int, err error) {
 	contexts := make(map[BlockID][]BlockContext)
 	for _, ptr := range ptrs {
 		contexts[ptr.ID] = append(contexts[ptr.ID], ptr.BlockContext)
 	}
-	return b.config.BlockServer().RemoveBlockReference(ctx, md.ID, contexts)
+	return b.config.BlockServer().RemoveBlockReference(ctx, tlfID, contexts)
 }
 
 // Archive implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Archive(ctx context.Context, md ReadOnlyRootMetadata,
+func (b *BlockOpsStandard) Archive(ctx context.Context, tlfID TlfID,
 	ptrs []BlockPointer) error {
 	contexts := make(map[BlockID][]BlockContext)
 	for _, ptr := range ptrs {
 		contexts[ptr.ID] = append(contexts[ptr.ID], ptr.BlockContext)
 	}
 
-	return b.config.BlockServer().ArchiveBlockReferences(ctx, md.ID, contexts)
+	return b.config.BlockServer().ArchiveBlockReferences(ctx, tlfID, contexts)
 }

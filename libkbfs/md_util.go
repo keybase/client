@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
 
 	"golang.org/x/net/context"
@@ -16,6 +17,57 @@ import (
 type mdRange struct {
 	start MetadataRevision
 	end   MetadataRevision
+}
+
+func makeRekeyReadErrorHelper(
+	kmd KeyMetadata, resolvedHandle *TlfHandle, keyGen KeyGen,
+	uid keybase1.UID, username libkb.NormalizedUsername) error {
+	if resolvedHandle.IsPublic() {
+		panic("makeRekeyReadError called on public folder")
+	}
+	// If the user is not a legitimate reader of the folder, this is a
+	// normal read access error.
+	if !resolvedHandle.IsReader(uid) {
+		return NewReadAccessError(resolvedHandle, username)
+	}
+
+	// Otherwise, this folder needs to be rekeyed for this device.
+	tlfName := resolvedHandle.GetCanonicalName()
+	if hasKeys := kmd.HasKeyForUser(keyGen, uid); hasKeys {
+		return NeedSelfRekeyError{tlfName}
+	}
+	return NeedOtherRekeyError{tlfName}
+}
+
+func makeRekeyReadError(
+	ctx context.Context, config Config, kmd KeyMetadata, keyGen KeyGen,
+	uid keybase1.UID, username libkb.NormalizedUsername) error {
+	h := kmd.GetTlfHandle()
+	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI())
+	if err != nil {
+		// Ignore error and pretend h is already fully
+		// resolved.
+		resolvedHandle = h
+	}
+	return makeRekeyReadErrorHelper(
+		kmd, resolvedHandle, keyGen, uid, username)
+}
+
+// Helper which returns nil if the md block is uninitialized or readable by
+// the current user. Otherwise an appropriate read access error is returned.
+func isReadableOrError(
+	ctx context.Context, config Config, md ReadOnlyRootMetadata) error {
+	if !md.IsInitialized() || md.IsReadable() {
+		return nil
+	}
+	// this should only be the case if we're a new device not yet
+	// added to the set of reader/writer keys.
+	username, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return err
+	}
+	return makeRekeyReadError(
+		ctx, config, md, md.LatestKeyGeneration(), uid, username)
 }
 
 func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
@@ -145,7 +197,7 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 	// readable until the newer revision, containing the key for this
 	// device, is processed.
 	for i, rmd := range mergedRmds {
-		if err := rmd.isReadableOrError(ctx, config); err != nil {
+		if err := isReadableOrError(ctx, config, rmd.ReadOnly()); err != nil {
 			// The right secret key for the given rmd's
 			// key generation may only be present in the
 			// most recent rmd.
@@ -308,7 +360,7 @@ func signMD(
 }
 
 func decryptMDPrivateData(ctx context.Context, config Config,
-	rmdToDecrypt *RootMetadata, rmdWithKeys ReadOnlyRootMetadata) error {
+	rmdToDecrypt *RootMetadata, rmdWithKeys KeyMetadata) error {
 	handle := rmdToDecrypt.GetTlfHandle()
 	crypto := config.Crypto()
 	codec := config.Codec()

@@ -10,60 +10,47 @@ import (
 	"testing"
 
 	"github.com/golang/mock/gomock"
+	"github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
 
-// rmdMatcher implements the gomock.Matcher interface to compare
-// RootMetadata objects. We can't just compare pointers as copies are
-// made for mutations.
-type rmdMatcher struct {
-	rmd *RootMetadata
+// kmdMatcher implements the gomock.Matcher interface to compare
+// KeyMetadata objects.
+type kmdMatcher struct {
+	kmd KeyMetadata
 }
 
-func getRMD(x interface{}) (*RootMetadata, bool) {
-	rmd, ok := x.(*RootMetadata)
-	if ok {
-		return rmd, true
-	}
-	rormd, ok := x.(ReadOnlyRootMetadata)
-	if ok {
-		return rormd.RootMetadata, true
-	}
-	return nil, false
-}
-
-// Matches returns whether x is a *RootMetadata and it has the same ID
-// and latest key generation as m.rmd.
-func (m rmdMatcher) Matches(x interface{}) bool {
-	rmd, ok := getRMD(x)
+func (m kmdMatcher) Matches(x interface{}) bool {
+	kmd, ok := x.(KeyMetadata)
 	if !ok {
 		return false
 	}
-	return (rmd.ID == m.rmd.ID) && (rmd.LatestKeyGeneration() == m.rmd.LatestKeyGeneration())
+	return (m.kmd.TlfID() == kmd.TlfID()) &&
+		(m.kmd.LatestKeyGeneration() == kmd.LatestKeyGeneration())
 }
 
-// String implements the Matcher interface for rmdMatcher.
-func (m rmdMatcher) String() string {
-	return fmt.Sprintf("Matches RMD %v", m.rmd)
+func (m kmdMatcher) String() string {
+	return fmt.Sprintf("Matches KeyMetadata with TlfID=%s and key generation %d",
+		m.kmd.TlfID(), m.kmd.LatestKeyGeneration())
 }
 
-func expectGetTLFCryptKeyForEncryption(config *ConfigMock, rmd *RootMetadata) {
+func expectGetTLFCryptKeyForEncryption(config *ConfigMock, kmd KeyMetadata) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForEncryption(gomock.Any(),
-		rmdMatcher{rmd}).Return(TLFCryptKey{}, nil)
+		kmdMatcher{kmd}).Return(TLFCryptKey{}, nil)
 }
 
-func expectGetTLFCryptKeyForMDDecryption(config *ConfigMock, rmd *RootMetadata) {
+func expectGetTLFCryptKeyForMDDecryption(config *ConfigMock, kmd KeyMetadata) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
-		rmdMatcher{rmd}, rmdMatcher{rmd}).Return(TLFCryptKey{}, nil)
+		kmdMatcher{kmd}, kmdMatcher{kmd}).Return(TLFCryptKey{}, nil)
 }
 
 // TODO: Add test coverage for decryption of blocks with an old key
 // generation.
 
 func expectGetTLFCryptKeyForBlockDecryption(
-	config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer) {
+	config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForBlockDecryption(gomock.Any(),
-		rmdMatcher{rmd}, blockPtr).Return(TLFCryptKey{}, nil)
+		kmdMatcher{kmd}, blockPtr).Return(TLFCryptKey{}, nil)
 }
 
 type TestBlock struct {
@@ -97,8 +84,8 @@ func blockOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	mockCtrl.Finish()
 }
 
-func expectBlockEncrypt(config *ConfigMock, rmd *RootMetadata, decData Block, plainSize int, encData []byte, err error) {
-	expectGetTLFCryptKeyForEncryption(config, rmd)
+func expectBlockEncrypt(config *ConfigMock, kmd KeyMetadata, decData Block, plainSize int, encData []byte, err error) {
+	expectGetTLFCryptKeyForEncryption(config, kmd)
 	config.mockCrypto.EXPECT().MakeRandomBlockCryptKeyServerHalf().
 		Return(BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(
@@ -113,9 +100,9 @@ func expectBlockEncrypt(config *ConfigMock, rmd *RootMetadata, decData Block, pl
 	}
 }
 
-func expectBlockDecrypt(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer, encData []byte, block TestBlock, err error) {
+func expectBlockDecrypt(config *ConfigMock, kmd KeyMetadata, blockPtr BlockPointer, encData []byte, block TestBlock, err error) {
 	config.mockCrypto.EXPECT().VerifyBlockID(encData, blockPtr.ID).Return(nil)
-	expectGetTLFCryptKeyForBlockDecryption(config, rmd, blockPtr)
+	expectGetTLFCryptKeyForBlockDecryption(config, kmd, blockPtr)
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(gomock.Any(), gomock.Any()).
 		Return(BlockCryptKey{}, nil)
 	config.mockCodec.EXPECT().Decode(encData, gomock.Any()).Return(nil)
@@ -128,33 +115,63 @@ func expectBlockDecrypt(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPoi
 		}).Return(err)
 }
 
-func makeRMD() *RootMetadata {
-	tlfID := FakeTlfID(0, false)
-	return &RootMetadata{
-		BareRootMetadata: BareRootMetadata{
-			WriterMetadata: WriterMetadata{ID: tlfID},
-		},
-	}
+type emptyKeyMetadata struct {
+	tlfID  TlfID
+	keyGen KeyGen
+}
+
+var _ KeyMetadata = emptyKeyMetadata{}
+
+func (kmd emptyKeyMetadata) TlfID() TlfID {
+	return kmd.tlfID
+}
+
+// GetTlfHandle just returns nil. This contradicts the requirements
+// for KeyMetadata, but emptyKeyMetadata shouldn't be used in contexts
+// that actually use GetTlfHandle().
+func (kmd emptyKeyMetadata) GetTlfHandle() *TlfHandle {
+	return nil
+}
+
+func (kmd emptyKeyMetadata) LatestKeyGeneration() KeyGen {
+	return kmd.keyGen
+}
+
+func (kmd emptyKeyMetadata) HasKeyForUser(
+	keyGen KeyGen, user keybase1.UID) bool {
+	return false
+}
+
+func (kmd emptyKeyMetadata) GetTLFCryptKeyParams(
+	keyGen KeyGen, user keybase1.UID, key CryptPublicKey) (
+	TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
+	TLFCryptKeyServerHalfID, bool, error) {
+	return TLFEphemeralPublicKey{}, EncryptedTLFCryptKeyClientHalf{},
+		TLFCryptKeyServerHalfID{}, false, nil
+}
+
+func makeKMD() KeyMetadata {
+	return emptyKeyMetadata{FakeTlfID(0, false), 1}
 }
 
 func TestBlockOpsGetSuccess(t *testing.T) {
 	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
-	rmd := makeRMD()
+	kmd := makeKMD()
 
 	// expect one call to fetch a block, and one to decrypt it
 	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr.BlockContext).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, kmd.TlfID(), blockPtr.BlockContext).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	decData := TestBlock{42}
 
-	expectBlockDecrypt(config, rmd, blockPtr, encData, decData, nil)
+	expectBlockDecrypt(config, kmd, blockPtr, encData, decData, nil)
 
 	var gotBlock TestBlock
-	err := config.BlockOps().Get(ctx, rmd.ReadOnly(), blockPtr, &gotBlock)
+	err := config.BlockOps().Get(ctx, kmd, blockPtr, &gotBlock)
 	if err != nil {
 		t.Fatalf("Got error on get: %v", err)
 	}
@@ -168,16 +185,16 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
-	rmd := makeRMD()
+	kmd := makeKMD()
 	// fail the fetch call
 	id := fakeBlockID(1)
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr.BlockContext).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, kmd.TlfID(), blockPtr.BlockContext).Return(
 		nil, BlockCryptKeyServerHalf{}, err)
 
 	if err2 := config.BlockOps().Get(
-		ctx, rmd.ReadOnly(), blockPtr, nil); err2 != err {
+		ctx, kmd, blockPtr, nil); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -186,18 +203,18 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
-	rmd := makeRMD()
+	kmd := makeKMD()
 	// fail the fetch call
 	id := fakeBlockID(1)
 	err := errors.New("Fake verification fail")
 	blockPtr := BlockPointer{ID: id}
 	encData := []byte{1, 2, 3}
-	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr.BlockContext).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, kmd.TlfID(), blockPtr.BlockContext).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().VerifyBlockID(encData, id).Return(err)
 
 	if err2 := config.BlockOps().Get(
-		ctx, rmd.ReadOnly(), blockPtr, nil); err2 != err {
+		ctx, kmd, blockPtr, nil); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -206,19 +223,19 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
-	rmd := makeRMD()
+	kmd := makeKMD()
 	// expect one call to fetch a block, then fail to decrypt
 	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr.BlockContext).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, kmd.TlfID(), blockPtr.BlockContext).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	err := errors.New("Fake fail")
 
-	expectBlockDecrypt(config, rmd, blockPtr, encData, TestBlock{}, err)
+	expectBlockDecrypt(config, kmd, blockPtr, encData, TestBlock{}, err)
 
 	if err2 := config.BlockOps().Get(
-		ctx, rmd.ReadOnly(), blockPtr, nil); err2 != err {
+		ctx, kmd, blockPtr, nil); err2 != err {
 		t.Errorf("Got bad error: %v", err2)
 	}
 }
@@ -232,14 +249,14 @@ func TestBlockOpsReadySuccess(t *testing.T) {
 	encData := []byte{1, 2, 3, 4}
 	id := fakeBlockID(1)
 
-	rmd := makeRMD()
+	kmd := makeKMD()
 
 	expectedPlainSize := 4
-	expectBlockEncrypt(config, rmd, decData, expectedPlainSize, encData, nil)
+	expectBlockEncrypt(config, kmd, decData, expectedPlainSize, encData, nil)
 	config.mockCrypto.EXPECT().MakePermanentBlockID(encData).Return(id, nil)
 
 	id2, plainSize, readyBlockData, err :=
-		config.BlockOps().Ready(ctx, rmd.ReadOnly(), decData)
+		config.BlockOps().Ready(ctx, kmd, decData)
 	if err != nil {
 		t.Errorf("Got error on ready: %v", err)
 	} else if id2 != id {
@@ -259,11 +276,11 @@ func TestBlockOpsReadyFailTooLowByteCount(t *testing.T) {
 	decData := TestBlock{42}
 	encData := []byte{1, 2, 3}
 
-	rmd := makeRMD()
+	kmd := makeKMD()
 
-	expectBlockEncrypt(config, rmd, decData, 4, encData, nil)
+	expectBlockEncrypt(config, kmd, decData, 4, encData, nil)
 
-	_, _, _, err := config.BlockOps().Ready(ctx, rmd.ReadOnly(), decData)
+	_, _, _, err := config.BlockOps().Ready(ctx, kmd, decData)
 	if _, ok := err.(TooLowByteCountError); !ok {
 		t.Errorf("Unexpectedly did not get TooLowByteCountError; "+
 			"instead got %v", err)
@@ -278,12 +295,12 @@ func TestBlockOpsReadyFailEncryptBlockData(t *testing.T) {
 	decData := TestBlock{42}
 	err := errors.New("Fake fail")
 
-	rmd := makeRMD()
+	kmd := makeKMD()
 
-	expectBlockEncrypt(config, rmd, decData, 0, nil, err)
+	expectBlockEncrypt(config, kmd, decData, 0, nil, err)
 
 	if _, _, _, err2 := config.BlockOps().Ready(
-		ctx, rmd.ReadOnly(), decData); err2 != err {
+		ctx, kmd, decData); err2 != err {
 		t.Errorf("Got bad error on ready: %v", err2)
 	}
 }
@@ -297,14 +314,14 @@ func TestBlockOpsReadyFailMakePermanentBlockID(t *testing.T) {
 	encData := []byte{1, 2, 3, 4}
 	err := errors.New("Fake fail")
 
-	rmd := makeRMD()
+	kmd := makeKMD()
 
-	expectBlockEncrypt(config, rmd, decData, 4, encData, nil)
+	expectBlockEncrypt(config, kmd, decData, 4, encData, nil)
 
 	config.mockCrypto.EXPECT().MakePermanentBlockID(encData).Return(fakeBlockID(0), err)
 
 	if _, _, _, err2 := config.BlockOps().Ready(
-		ctx, rmd.ReadOnly(), decData); err2 != err {
+		ctx, kmd, decData); err2 != err {
 		t.Errorf("Got bad error on ready: %v", err2)
 	}
 }
@@ -318,17 +335,17 @@ func TestBlockOpsPutNewBlockSuccess(t *testing.T) {
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
 
-	rmd := makeRMD()
+	tlfID := FakeTlfID(1, false)
 
 	readyBlockData := ReadyBlockData{
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().Put(ctx, id, rmd.ID, blockPtr.BlockContext,
+	config.mockBserv.EXPECT().Put(ctx, id, tlfID, blockPtr.BlockContext,
 		readyBlockData.buf, readyBlockData.serverHalf).Return(nil)
 
 	if err := config.BlockOps().Put(
-		ctx, rmd.ReadOnly(), blockPtr, readyBlockData); err != nil {
+		ctx, tlfID, blockPtr, readyBlockData); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -348,17 +365,17 @@ func TestBlockOpsPutIncRefSuccess(t *testing.T) {
 		},
 	}
 
-	rmd := makeRMD()
+	kmd := makeKMD()
 
 	readyBlockData := ReadyBlockData{
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().AddBlockReference(ctx, id, rmd.ID, blockPtr.BlockContext).
+	config.mockBserv.EXPECT().AddBlockReference(ctx, id, kmd.TlfID(), blockPtr.BlockContext).
 		Return(nil)
 
 	if err := config.BlockOps().Put(
-		ctx, rmd.ReadOnly(), blockPtr, readyBlockData); err != nil {
+		ctx, kmd.TlfID(), blockPtr, readyBlockData); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
@@ -374,17 +391,17 @@ func TestBlockOpsPutFail(t *testing.T) {
 
 	err := errors.New("Fake fail")
 
-	rmd := makeRMD()
+	tlfID := FakeTlfID(1, false)
 
 	readyBlockData := ReadyBlockData{
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().Put(ctx, id, rmd.ID, blockPtr.BlockContext,
+	config.mockBserv.EXPECT().Put(ctx, id, tlfID, blockPtr.BlockContext,
 		readyBlockData.buf, readyBlockData.serverHalf).Return(err)
 
 	if err2 := config.BlockOps().Put(
-		ctx, rmd.ReadOnly(), blockPtr, readyBlockData); err2 != err {
+		ctx, tlfID, blockPtr, readyBlockData); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }
@@ -394,7 +411,6 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// expect one call to delete several blocks
-	rmd := makeRMD()
 
 	contexts := make(map[BlockID][]BlockContext)
 	b1 := BlockPointer{ID: fakeBlockID(1)}
@@ -403,11 +419,12 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 	contexts[b2.ID] = []BlockContext{b2.BlockContext}
 	blockPtrs := []BlockPointer{b1, b2}
 	var liveCounts map[BlockID]int
-	config.mockBserv.EXPECT().RemoveBlockReference(ctx, rmd.ID, contexts).
+	tlfID := FakeTlfID(1, false)
+	config.mockBserv.EXPECT().RemoveBlockReference(ctx, tlfID, contexts).
 		Return(liveCounts, nil)
 
 	if _, err := config.BlockOps().Delete(
-		ctx, rmd.ReadOnly(), blockPtrs); err != nil {
+		ctx, tlfID, blockPtrs); err != nil {
 		t.Errorf("Got error on delete: %v", err)
 	}
 }
@@ -417,7 +434,6 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	// fail the delete call
-	rmd := makeRMD()
 
 	contexts := make(map[BlockID][]BlockContext)
 	b1 := BlockPointer{ID: fakeBlockID(1)}
@@ -427,11 +443,12 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	blockPtrs := []BlockPointer{b1, b2}
 	err := errors.New("Fake fail")
 	var liveCounts map[BlockID]int
-	config.mockBserv.EXPECT().RemoveBlockReference(ctx, rmd.ID, contexts).
+	tlfID := FakeTlfID(1, false)
+	config.mockBserv.EXPECT().RemoveBlockReference(ctx, tlfID, contexts).
 		Return(liveCounts, err)
 
 	if _, err2 := config.BlockOps().Delete(
-		ctx, rmd.ReadOnly(), blockPtrs); err2 != err {
+		ctx, tlfID, blockPtrs); err2 != err {
 		t.Errorf("Got bad error on delete: %v", err2)
 	}
 }
