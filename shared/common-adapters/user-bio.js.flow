@@ -1,7 +1,7 @@
-/* @flow */
-
+// @flow
 import type {AvatarSize} from './avatar'
 import type {SimpleProofState} from '../constants/tracker'
+import {Component} from 'react'
 
 export type UserInfo = {
   fullname: string,
@@ -33,4 +33,4 @@ export type Props = {
   editFns?: ?BioEditFns,
 }
 
-export default class Render extends React$Component<void, Props, void> {}
+export default class Render extends Component<void, Props, void> {}

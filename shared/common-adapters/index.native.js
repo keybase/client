@@ -1,6 +1,4 @@
-/* @flow */
-// export {default as Divider} from './divider'
-// export {default as Header} from './header'
+// @flow
 export {default as Avatar} from './avatar'
 export {default as BackButton} from './back-button'
 export {default as Box} from './box'

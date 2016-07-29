@@ -1,4 +1,5 @@
-/* @flow */
+// @flow
+import {Component} from 'react'
 
 export type FriendshipUserInfo = {
   username: string,
@@ -18,5 +19,4 @@ export type Props = {
   following: Array<FriendshipUserInfo>
 }
 
-export default class Render extends React$Component<void, Props, void> {
-}
+export default class Render extends Component<void, Props, void> { }

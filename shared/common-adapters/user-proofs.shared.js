@@ -1,14 +1,14 @@
-/* @flow */
-
+// @flow
 import {globalColors, globalStyles} from '../styles/style-guide'
-import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning,
+import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked,
+  error as proofError, warning as proofWarning,
   metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaIgnored} from '../constants/tracker'
 import type {PlatformsExpanded} from '../constants/types/more.js'
 
 import type {IconType} from '../common-adapters/icon'
 import type {Proof} from '../constants/tracker'
 
-export function metaColor (proof: Proof): string {
+function metaColor (proof: Proof): string {
   switch (proof.meta) {
     case metaNew: return globalColors.blue
     case metaUpgraded: return globalColors.blue
@@ -20,7 +20,7 @@ export function metaColor (proof: Proof): string {
   }
 }
 
-export function proofColor (proof: Proof): string {
+function proofColor (proof: Proof): string {
   let color = globalColors.blue
   switch (proof.state) {
     case proofNormal: {
@@ -40,7 +40,7 @@ export function proofColor (proof: Proof): string {
   return color
 }
 
-export function iconNameForProof ({type}: {type: PlatformsExpanded}): IconType {
+function iconNameForProof ({type}: {type: PlatformsExpanded}): IconType {
   const types = {
     'none': 'iconfont-close',
     'keybase': 'iconfont-close',
@@ -61,7 +61,7 @@ export function iconNameForProof ({type}: {type: PlatformsExpanded}): IconType {
   return types[type]
 }
 
-export function proofStatusIcon (proof: Proof): ?IconType {
+function proofStatusIcon (proof: Proof): ?IconType {
   switch (proof.state) {
     case proofChecking:
       return 'iconfont-proof-pending'
@@ -79,9 +79,17 @@ export function proofStatusIcon (proof: Proof): ?IconType {
   }
 }
 
-export function proofNameStyle (proof: Proof) {
+function proofNameStyle (proof: Proof) {
   return {
     color: proofColor(proof),
     ...(proof.meta === metaDeleted ? globalStyles.textDecoration('line-through') : {}),
   }
+}
+
+export {
+  proofNameStyle,
+  metaColor,
+  proofColor,
+  iconNameForProof,
+  proofStatusIcon,
 }

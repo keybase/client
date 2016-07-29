@@ -1,5 +1,5 @@
 // @flow
-
+import {Component} from 'react'
 import type {IconType} from '../../../common-adapters/icon'
 
 export type Props = {
@@ -15,4 +15,4 @@ export type Props = {
   onClick: () => void
 }
 
-export default class Render extends React$Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> { }

@@ -1,19 +1,18 @@
 // @flow
-
+import * as shared from './avatar.shared'
 import React, {Component} from 'react'
 import _ from 'lodash'
-import {Image, TouchableOpacity, View} from 'react-native'
 import type {Props} from './avatar'
 import {Box} from '../common-adapters'
-import {iconMeta} from './icon.constants'
+import {Image, TouchableOpacity, View} from 'react-native'
 import {globalStyles} from '../styles/style-guide'
-import * as shared from './avatar.shared'
+import {iconMeta} from './icon.constants'
 
 type State = {
   avatarLoaded: boolean,
 }
 
-export default class Avatar extends Component<void, Props, State> {
+class Avatar extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -90,3 +89,5 @@ const stylesPlaceholderImage = (size: number) => ({
   top: 0,
   left: 0,
 })
+
+export default Avatar

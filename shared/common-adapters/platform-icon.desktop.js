@@ -1,11 +1,10 @@
-/* @flow */
-
+// @flow
 import React from 'react'
+import type {IconType} from './icon'
+import type {PlatformsExpanded} from '../constants/types/more'
+import type {Props} from './platform-icon'
 import {Box, Icon} from '../common-adapters'
 import {globalColors} from '../styles/style-guide'
-import type {PlatformsExpanded} from '../constants/types/more'
-import type {IconType} from './icon'
-import type {Props} from './platform-icon'
 
 const supportedPlatformsAndSizes: {[key: PlatformsExpanded]: ?{[key: string]: ?IconType}} = {
   'coinbase': {

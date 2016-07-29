@@ -1,12 +1,10 @@
-/* @flow */
-
+// @flow
+import ProgressIndicator from './progress-indicator'
 import React, {Component} from 'react'
+import Text from './text'
+import type {Props} from './button'
 import {TouchableHighlight, View} from 'react-native'
 import {globalColors, globalStyles} from '../styles/style-guide'
-import Text from './text'
-import ProgressIndicator from './progress-indicator'
-
-import type {Props} from './button'
 
 const Progress = () => (
   <View style={{...progress}}>
@@ -14,9 +12,7 @@ const Progress = () => (
   </View>
 )
 
-class Button extends Component {
-  props: Props;
-
+class Button extends Component<void, Props, void> {
   render () {
     const backgroundModeName = this.props.backgroundMode ? {
       Terminal: 'OnTerminal',

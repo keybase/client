@@ -1,5 +1,5 @@
-/* @flow */
-import type {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type Props = {
   users: Array<string>,
@@ -18,4 +18,4 @@ export type Props = {
   onSubmit: () => void
 }
 
-export default class LoginRender extends React$Component<void, Props, void> { }
+export default class LoginRender extends Component<void, Props, void> { }

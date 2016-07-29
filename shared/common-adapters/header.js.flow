@@ -1,6 +1,5 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type Props = {
   icon?: boolean,
@@ -15,6 +14,6 @@ export type DefaultProps = {
   type: Props.type
 }
 
-declare export default class Header extends React.Component<DefaultProps, Props, void> {
+declare export default class Header extends Component<DefaultProps, Props, void> {
   static defaultProps: DefaultProps;
 }

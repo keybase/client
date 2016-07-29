@@ -1,10 +1,9 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
+import type {Context} from './terminal'
+import type {Props, Background} from './text'
 import {findDOMNode} from 'react-dom'
 import {globalStyles, globalColors} from '../styles/style-guide'
-
-import type {Props, Background} from './text'
-import type {Context} from './terminal'
 
 const LinkTypes = {
   'HeaderLink': true,
@@ -15,8 +14,7 @@ const LinkTypes = {
   'BodyXSmallLink': true,
 }
 
-export default class Text extends Component {
-  props: Props;
+class Text extends Component<void, Props, void> {
   context: Context;
 
   _terminalPrefix (type: Props.type): ?React$Element<*> {
@@ -246,7 +244,7 @@ const headerStyles = {
   },
 }
 
-export const specialStyles = {
+const specialStyles = {
   textInput: {
     ...textCommon,
     ...globalStyles.fontSemibold,
@@ -269,7 +267,7 @@ export const specialStyles = {
   },
 }
 
-export const styles = {
+const styles = {
   ...headerStyles,
   textBody: {
     ...textCommon,
@@ -378,9 +376,17 @@ const lineCommon = {
   WebkitBoxOrient: 'vertical',
 }
 
-export function lineClamp (lines: number): Object {
+function lineClamp (lines: number): Object {
   return {
     ...lineCommon,
     WebkitLineClamp: lines,
   }
 }
+
+export {
+  lineClamp,
+  specialStyles,
+  styles,
+}
+
+export default Text

@@ -1,13 +1,13 @@
 // @flow
-
-import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../styles/style-guide'
-import type {Props} from './user-card'
 import Avatar from './avatar'
+import React, {Component} from 'react'
+import type {Props} from './user-card'
 import {Box} from '../common-adapters'
+import {globalStyles, globalColors} from '../styles/style-guide'
+
 const avatarSize = 112
 
-export default class UserCard extends Component<void, Props, void> {
+class UserCard extends Component<void, Props, void> {
   render () {
     const url = this.props.username ? `https://keybase.io/${this.props.username}` : null
     return (
@@ -52,3 +52,5 @@ const styles = {
     right: 0,
   },
 }
+
+export default UserCard
