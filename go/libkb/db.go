@@ -127,6 +127,8 @@ const (
 	DBMerkleRoot              = 0xf0
 	DBTrackers                = 0xf1
 	DBGregor                  = 0xf2
+	DBTrackers2               = 0xf3
+	DBTrackers2Reverse        = 0xf4
 )
 
 const (

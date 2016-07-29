@@ -159,3 +159,16 @@ func (h *UserHandler) LoadAllPublicKeysUnverified(_ context.Context,
 	}
 	return publicKeys, nil
 }
+
+func (h *UserHandler) ListTrackers2(_ context.Context, arg keybase1.ListTrackers2Arg) (res keybase1.UserSummary2Set, err error) {
+	eng := engine.NewListTrackers2(h.G(), arg)
+	ctx := &engine.Context{
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
+	err = engine.RunEngine(eng, ctx)
+	if err == nil {
+		res = eng.GetResults()
+	}
+	return res, err
+}
