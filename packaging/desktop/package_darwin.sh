@@ -174,6 +174,8 @@ package_app() {(
   mkdir -p "$resources_dir"
   echo "Copying icons"
   cp -R "$client_dir/media/icons/KeybaseFolder.icns" "$resources_dir/KeybaseFolder.icns"
+  echo "Copying other resources"
+  cp -R "$client_dir/osx/Resources/ExtendedAttributeFinderInfo.bin" "$resources_dir/ExtendedAttributeFinderInfo.bin"
   echo "Copying installer"
   cp -R "$installer_app" "$resources_dir/KeybaseInstaller.app"
   echo "Copying updater (app)"
