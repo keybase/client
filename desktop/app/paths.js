@@ -37,3 +37,14 @@ export function keybaseBinPath () {
   if (bundlePath === null) return null
   return path.resolve(bundlePath, 'Contents', 'SharedSupport', 'bin', 'keybase')
 }
+
+export function pathToURL (pathName) {
+  pathName = pathName.replace(/\\/g, '/')
+
+  // Windows drive letter must be prefixed with a slash
+  if (pathName[0] !== '/') {
+    pathName = '/' + pathName
+  }
+
+  return encodeURI('file://' + pathName)
+}

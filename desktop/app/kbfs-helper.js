@@ -1,10 +1,13 @@
 // @flow
 
 import {ipcMain, shell} from 'electron'
+import {pathToURL} from './paths'
 
 export default function () {
   ipcMain.on('openInKBFS', (e, path) => {
-    // We do the `shell.openItem` here to not block the ui thread
-    shell.openItem(path)
+    // shell.showItemInFolder(path)
+    let url = pathToURL(path)
+    console.log('Open URL:', url)
+    shell.openExternal(url)
   })
 }
