@@ -19,13 +19,15 @@ export type Proof = {
   profileUrl: ?string,
   name: string,
   state: SimpleProofState,
-  isTracked: bool
+  isTracked: bool,
 }
 
 type CommonProps = {
   style?: Object,
   loading?: boolean,
   username: ?string,
+  onClickProofMenu?: ?(idx: number) => void,
+  showingMenuIndex?: ?number,
 }
 
 export type Props = ({
@@ -34,4 +36,6 @@ export type Props = ({
   missingProofs: Array<MissingProof>,
 } & CommonProps)
 
-export default class ProofsRender extends React$Component<void, Props, void> {}
+export default class ProofsRender extends React$Component<void, Props, void> {
+  getRow: (idx: number) => React$Component<*,*,*>;
+}

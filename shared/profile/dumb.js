@@ -5,7 +5,7 @@ import ProveEnterUsername from './prove-enter-username'
 import EditAvatar from './edit-avatar'
 import Revoke from './revoke'
 import PostProof from './post-proof'
-import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaUnreachable} from '../constants/tracker'
+import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaPending, metaUnreachable} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
 import {isMobile} from '../constants/platform'
 import {globalColors} from '../styles/style-guide'
@@ -27,6 +27,8 @@ export const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: t
 export const proofsDeleted = proofsDefault.map((proof, idx) => ({...proof, state: idx % 2 ? checking : revoked, meta: idx % 2 ? metaNone : metaDeleted}))
 
 export const proofsChanged = proofsDefault.map((proof, idx) => ({...proof, state: idx === 0 ? error : checking, meta: idx === 0 ? metaUnreachable : metaNone}))
+
+export const proofsPending = proofsDefault.map((proof, idx) => ({...proof, state: checking, meta: metaPending}))
 
 export const mockUserInfo: {username: string, userInfo: UserInfo} = {
   username: 'chris',
@@ -149,6 +151,9 @@ const propsBase: RenderProps = {
   onFolderClick: folder => { console.log('onFolderClick', folder) },
   onUserClick: username => { console.log('onUserClick', username) },
   onMissingProofClick: proof => { console.log(`Prove ${proof.type}`) },
+  onViewProof: proof => console.log('onViewProof', proof),
+  onRecheckProof: proof => console.log('onRecheckProof', proof),
+  onRevokeProof: proof => console.log('onRevokeProof', proof),
   parentProps: isMobile ? {} : {
     style: {
       width: 640,
@@ -190,12 +195,48 @@ const dumbMap: DumbComponentMap<Profile> = {
         bio: '',
       },
     },
+    'Your Profile - Proof Menu': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      afterMount: c => c.handleShowMenu(0),
+    },
+    'Your Profile - Pending - Proof Menu': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      proofs: proofsPending,
+      afterMount: c => c.handleShowMenu(0),
+    },
+    'Your Profile - Pending - Proof Menu - HN': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      proofs: proofsPending,
+      afterMount: c => c.handleShowMenu(2),
+    },
+    'Your Profile - Pending - Proof Menu - DNS': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      proofs: proofsPending,
+      afterMount: c => c.handleShowMenu(3),
+    },
     'Your Profile - Broken': {
       ...propsBase,
       bioEditFns,
       isYou: true,
       proofs: proofsChanged,
       trackerState: error,
+      afterMount: c => c.handleShowMenu(0),
+    },
+    'Your Profile - Broken - Proof Menu': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      proofs: proofsChanged,
+      trackerState: error,
+      afterMount: c => c.handleShowMenu(0),
     },
     'Your Profile - No Proofs': {
       ...propsBase,
