@@ -1,9 +1,9 @@
 // @flow
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
+import type {Props} from './dumb-sheet-item'
 import {Box, Text} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
-import type {Props} from './dumb-sheet-item'
 
 class DumbSheetItem extends Component<void, Props<*>, void> {
   _component: Component<*, *, *>;

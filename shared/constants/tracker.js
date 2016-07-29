@@ -1,10 +1,9 @@
-/* @flow */
-
-import type {identifyUiDisplayTLFCreateWithInviteRpcParam} from './types/flow-types'
-import type {TypedAction} from './types/flux'
+// @flow
 import type {Folder} from '../folders/list'
-import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof} from '../common-adapters/user-proofs'
+import type {TypedAction} from './types/flux'
+import type {UserInfo} from '../common-adapters/user-bio'
+import type {identifyUiDisplayTLFCreateWithInviteRpcParam} from './types/flow-types'
 
 // Simple state of the overall proof result
 export type SimpleProofState = 'normal' | 'warning' | 'error' | 'checking' | 'revoked'

@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {Box, Text} from '../../common-adapters'
 
-export default class Render extends Component {
+class Render extends Component {
   render () {
     return (
       <Box>
@@ -13,3 +13,5 @@ export default class Render extends Component {
     )
   }
 }
+
+export default Render

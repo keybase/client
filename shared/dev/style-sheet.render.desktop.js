@@ -1,10 +1,9 @@
-/* @flow */
-import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../styles/style-guide'
+// @flow
 import Container from './dev-container.desktop.js'
-import {Box, Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
-
 import DropdownDemo from './components/dropdown.desktop'
+import React, {Component} from 'react'
+import {Box, Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 const Space = () => <Box style={{minHeight: 20, minWidth: 20}} />
 
@@ -233,7 +232,7 @@ const Inputs = () => (
   </Box>
 )
 
-export default class Render extends Component {
+class Render extends Component {
   render () {
     return (
       <Box style={{flex: 1, ...globalStyles.scrollable, padding: 20}}>
@@ -247,3 +246,4 @@ export default class Render extends Component {
   }
 }
 
+export default Render

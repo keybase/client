@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 
 import type {TypedAction} from '../constants/types/flux'
 

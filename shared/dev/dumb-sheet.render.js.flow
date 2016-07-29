@@ -1,0 +1,12 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  onBack: () => void,
+  onDebugConfigChange: () => void,
+  dumbIndex: number,
+  dumbFilter: string,
+  dumbFullscreen: boolean,
+}
+
+export default class Render extends Component<void, Props, void> {}

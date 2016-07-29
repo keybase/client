@@ -2,6 +2,7 @@
 import type {TypedAction} from '../constants/types/flux'
 import type {Tabs} from '../constants/tabs'
 import {List, Map} from 'immutable'
+
 type History = List<URI>
 
 export type TabbedRouterState = MapADT2<'tabs', Map<Tabs, RouterState>, 'activeTab', Tabs>

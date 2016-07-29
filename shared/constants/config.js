@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import {uniq} from 'lodash'
 import {runMode} from './platform'
 
