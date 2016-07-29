@@ -28,6 +28,7 @@ class Menu extends Component<void, Props, void> {
       }}>
         <style>{realCSS}</style>
         <Box style={{...stylesMenu, ...this.props.style}}>
+          {this.props.header}
           <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0, paddingTop: 7, paddingBottom: 7}} >
             {
               this.props.items.map((i, idx) => {
