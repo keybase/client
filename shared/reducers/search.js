@@ -5,7 +5,7 @@ import * as CommonConstants from '../constants/common'
 import type {IconType} from '../common-adapters/icon'
 import type {SearchResult, SearchActions, SearchPlatforms} from '../constants/search'
 
-const {equalSearchResult} = Constants
+const {equalSearchResult, platformToNiceName} = Constants
 
 export type State = {
   searchHintText: string,
@@ -20,9 +20,10 @@ export type State = {
   waiting: boolean,
 }
 
-const searchHintText = (searchPlatform: SearchPlatforms, selectedUsers: Array<SearchResult>): string => (
-  `${selectedUsers.length ? `Add a ${searchPlatform} user` : `Search ${searchPlatform}`}`
-)
+const searchHintText = (searchPlatform: SearchPlatforms, selectedUsers: Array<SearchResult>): string => {
+  const name = platformToNiceName(searchPlatform)
+  return `${selectedUsers.length ? `Add a ${name} user` : `Search ${name}`}`
+}
 
 const showUserGroup = (searchText: ?string, selectedUsers: Array<SearchResult>): boolean => (
   !searchText && !!selectedUsers.length
