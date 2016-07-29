@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -46,7 +47,7 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	}
 
 	// put the md
-	irmd := MakeImmutableRootMetadata(rmd, fakeMdID(1))
+	irmd := MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Time{})
 	if err := config.MDCache().Put(irmd); err != nil {
 		t.Errorf("Got error on put on md %v: %v", tlf, err)
 	}

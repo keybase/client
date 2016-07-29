@@ -197,7 +197,12 @@ func (md *MDOpsStandard) processMetadata(
 		return ImmutableRootMetadata{}, err
 	}
 
-	return MakeImmutableRootMetadata(&rmd, mdID), nil
+	localTimestamp := rmds.untrustedServerTimestamp
+	if offset, ok := md.config.MDServer().OffsetFromServerTime(); ok {
+		localTimestamp = localTimestamp.Add(offset)
+	}
+
+	return MakeImmutableRootMetadata(&rmd, mdID, localTimestamp), nil
 }
 
 // GetForHandle implements the MDOps interface for MDOpsStandard.

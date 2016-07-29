@@ -316,17 +316,19 @@ func (md *RootMetadata) ReadOnly() ReadOnlyRootMetadata {
 // can be assumed to never alias a (modifiable) *RootMetadata.
 type ImmutableRootMetadata struct {
 	ReadOnlyRootMetadata
-	mdID MdID
+	mdID           MdID
+	localTimestamp time.Time
 }
 
 // MakeImmutableRootMetadata makes a new ImmutableRootMetadata from
 // the given RMD and its corresponding MdID.
 func MakeImmutableRootMetadata(
-	rmd *RootMetadata, mdID MdID) ImmutableRootMetadata {
+	rmd *RootMetadata, mdID MdID,
+	localTimestamp time.Time) ImmutableRootMetadata {
 	if mdID == (MdID{}) {
 		panic("zero mdID passed to MakeImmutableRootMetadata")
 	}
-	return ImmutableRootMetadata{rmd.ReadOnly(), mdID}
+	return ImmutableRootMetadata{rmd.ReadOnly(), mdID, localTimestamp}
 }
 
 // RootMetadataSigned is the top-level MD object stored in MD server

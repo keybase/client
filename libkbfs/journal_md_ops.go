@@ -117,7 +117,8 @@ func (j journalMDOps) getHeadFromJournal(
 		return ImmutableRootMetadata{}, err
 	}
 
-	return MakeImmutableRootMetadata(&rmd, head.mdID), nil
+	return MakeImmutableRootMetadata(&rmd, head.mdID,
+		head.localTimestamp), nil
 }
 
 func (j journalMDOps) getRangeFromJournal(
@@ -182,7 +183,8 @@ func (j journalMDOps) getRangeFromJournal(
 			return nil, err
 		}
 
-		irmd := MakeImmutableRootMetadata(&rmd, ibrmd.mdID)
+		irmd := MakeImmutableRootMetadata(&rmd, ibrmd.mdID,
+			ibrmd.localTimestamp)
 		irmds = append(irmds, irmd)
 	}
 
