@@ -8,17 +8,17 @@ import type {Proof} from '../common-adapters/user-proofs'
 import type {DumbComponentMap} from '../constants/types/more'
 
 function proofGithubMaker (name): Proof {
-  return {name: 'githubuser' + name, type: 'github', id: 'githubId' + name, state: normal, meta: metaNone, humanUrl: 'github.com', profileUrl: 'http://github.com', isTracked: false}
+  return {name: 'githubuser' + name, type: 'github', id: 'githubId' + name, state: normal, meta: metaNone, humanUrl: 'github.com', profileUrl: 'http://github.com', isTracked: false, mTime: 1469665223000}
 }
 
 const proofGithub = proofGithubMaker('')
 
-const proofTwitter: Proof = {name: 'twitteruser', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com', isTracked: false}
-const proofHN: Proof = {name: 'pg', type: 'hackernews', id: 'hnId', state: normal, meta: metaNone, humanUrl: 'news.ycombinator.com', profileUrl: 'http://news.ycombinator.com', isTracked: false}
+const proofTwitter: Proof = {name: 'twitteruser', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com', isTracked: false, mTime: 1469665223000}
+const proofHN: Proof = {name: 'pg', type: 'hackernews', id: 'hnId', state: normal, meta: metaNone, humanUrl: 'news.ycombinator.com', profileUrl: 'http://news.ycombinator.com', isTracked: false, mTime: 1469565223000}
 const longDomainName = 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com'
-const proofWeb1: Proof = {name: longDomainName, type: 'http', id: 'webId', state: normal, meta: metaNone, humanUrl: longDomainName, profileUrl: '', isTracked: false}
-const proofWeb2: Proof = {name: longDomainName.substring(1), type: 'http', id: 'webId1', state: normal, meta: metaNone, humanUrl: longDomainName, profileUrl: '', isTracked: false}
-const proofRooter: Proof = {name: 'roooooooter', type: 'rooter', state: normal, meta: metaNone, id: 'rooterId', humanUrl: '', profileUrl: '', isTracked: false}
+const proofWeb1: Proof = {name: longDomainName, type: 'http', id: 'webId', state: normal, meta: metaNone, humanUrl: longDomainName, profileUrl: '', isTracked: false, mTime: 1469465223000}
+const proofWeb2: Proof = {name: longDomainName.substring(1), type: 'http', id: 'webId1', state: normal, meta: metaNone, humanUrl: longDomainName, profileUrl: '', isTracked: false, mTime: 1469365223000}
+const proofRooter: Proof = {name: 'roooooooter', type: 'rooter', state: normal, meta: metaNone, id: 'rooterId', humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469265223000}
 
 const proofsDefault: Array<Proof> = [
   proofGithub,
@@ -30,11 +30,11 @@ const proofsDefault: Array<Proof> = [
 ]
 
 const proofsChanged: Array<Proof> = [
-  {name: 'deleted', type: 'github', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: '', profileUrl: '', isTracked: false},
-  {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: '', profileUrl: '', isTracked: false},
-  {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, meta: metaNone, humanUrl: '', profileUrl: '', isTracked: false},
-  {name: 'pending', type: 'https', id: 'pendingId', state: normal, meta: metaPending, humanUrl: '', profileUrl: '', isTracked: false},
-  {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: '', profileUrl: '', isTracked: false},
+  {name: 'deleted', type: 'github', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469665223000},
+  {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469565223000},
+  {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, meta: metaNone, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469465223000},
+  {name: 'pending', type: 'https', id: 'pendingId', state: normal, meta: metaPending, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469365223000},
+  {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469265223000},
 ]
 
 const propsBase = {

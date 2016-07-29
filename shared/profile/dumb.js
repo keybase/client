@@ -15,11 +15,11 @@ import type {UserInfo} from '../common-adapters/user-bio'
 import type {DumbComponentMap} from '../constants/types/more'
 
 export const proofsDefault: Array<Proof> = [
-  {name: 'malgorithms', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com', isTracked: false},
-  {name: 'malgorithms', type: 'github', id: 'githubId', state: normal, meta: metaNew, humanUrl: 'github.com', profileUrl: 'http://github.com', isTracked: false},
-  {name: 'malgorithms', type: 'reddit', id: 'redditId', state: normal, meta: metaNone, humanUrl: 'reddit.com', profileUrl: 'http://reddit.com', isTracked: false},
-  {name: 'keybase.io', type: 'dns', id: 'dnsId', state: normal, meta: metaNone, humanUrl: 'keybase.io', profileUrl: 'http://keybase.io', isTracked: false},
-  {name: 'keybase.pub', type: 'dns', id: 'dns2Id', state: normal, meta: metaNone, humanUrl: 'keybase.pub', profileUrl: 'http://keybase.pub', isTracked: false},
+  {name: 'malgorithms', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com', isTracked: false, mTime: 1469665223000},
+  {name: 'malgorithms', type: 'github', id: 'githubId', state: normal, meta: metaNew, humanUrl: 'github.com', profileUrl: 'http://github.com', isTracked: false, mTime: 1469565223000},
+  {name: 'malgorithms', type: 'hackernews', id: 'hackernewsId', state: normal, meta: metaNone, humanUrl: 'hackernews.com', profileUrl: 'http://hackernews.com', isTracked: false, mTime: 1469465223000},
+  {name: 'keybase.io', type: 'dns', id: 'dnsId', state: normal, meta: metaNone, humanUrl: 'keybase.io', profileUrl: 'http://keybase.io', isTracked: false, mTime: 1469365223000},
+  {name: 'keybase.pub', type: 'dns', id: 'dns2Id', state: normal, meta: metaNone, humanUrl: 'keybase.pub', profileUrl: 'http://keybase.pub', isTracked: false, mTime: 1469265223000},
 ]
 
 export const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: true}))

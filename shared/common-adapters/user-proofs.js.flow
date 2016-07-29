@@ -2,6 +2,7 @@
 
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 import type {PlatformsExpanded} from '../constants/types/more'
+import type {Time} from '../constants/types/flow-types'
 
 export type MissingProof = {
   type: PlatformsExpanded,
@@ -12,6 +13,7 @@ export type MissingProof = {
 export type Proof = {
   id: string,
   type: PlatformsExpanded,
+  mTime: Time,
   meta: ?SimpleProofMeta,
   humanUrl: ?string,
   profileUrl: ?string,
