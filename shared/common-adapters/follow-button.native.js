@@ -10,7 +10,7 @@ export default class FollowButton extends Component<void, Props, void> {
     if (following) {
       return <Button
         type='Following'
-        label='Tracking'
+        label='Following'
         onClick={onUnfollow}
         style={{...styleButton, ...style}}
         {...otherProps}
@@ -18,7 +18,7 @@ export default class FollowButton extends Component<void, Props, void> {
     } else {
       return <Button
         type='Follow'
-        label='Track'
+        label='Follow'
         onClick={onFollow}
         style={{...styleButton, ...style}}
         {...otherProps}

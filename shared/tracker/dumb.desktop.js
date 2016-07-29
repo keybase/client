@@ -158,7 +158,7 @@ function setFollow (source: TrackerProps, filter: setFollowFilter): TrackerProps
 const propsFollowing: TrackerProps = setFollow({
   ...propsNewUser,
   currentlyFollowing: true,
-  reason: 'You have tracked gabrielh.',
+  reason: 'You have followed gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true,
@@ -169,7 +169,7 @@ const propsFollowing: TrackerProps = setFollow({
 
 const propsWhatevz: TrackerProps = setFollow({
   ...propsFollowing,
-  reason: 'You have tracked gabrielh',
+  reason: 'You have followed gabrielh',
   proofs: [
     proofGithub,
     {...proofTwitter, meta: metaIgnored},
@@ -179,7 +179,7 @@ const propsWhatevz: TrackerProps = setFollow({
 const propsChangedProofs: TrackerProps = {
   ...propsDefault,
   currentlyFollowing: true,
-  reason: 'Some of gabrielh\'s proofs have changed since you last tracked them.',
+  reason: 'Some of gabrielh\'s proofs have changed since you last followed them.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true,
@@ -190,7 +190,7 @@ const propsChangedProofs: TrackerProps = {
 
 const propsUnfollowed: TrackerProps = {
   ...propsDefault,
-  reason: 'You have untracked gabrielh.',
+  reason: 'You have unfollowed gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true,
@@ -252,7 +252,7 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'Followed': trackerPropsToRenderProps(propsFollowing),
     'Changed/Broken proofs user you don\'t follow': trackerPropsToRenderProps({...propsChangedProofs, currentlyFollowing: false}),
     'Changed/Broken proofs': trackerPropsToRenderProps(propsChangedProofs),
-    'You track them': trackerPropsToRenderProps({...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}}),
+    'You follow them': trackerPropsToRenderProps({...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}}),
     'Unfollowed': trackerPropsToRenderProps(propsUnfollowed),
     'Barely there': trackerPropsToRenderProps(propsLessData),
     'Tracker - Loading': trackerPropsToRenderProps({...propsLessData, loading: true}),
@@ -264,4 +264,3 @@ const dumbMap: DumbComponentMap<Tracker> = {
 export default {
   'Tracker': dumbMap,
 }
-
