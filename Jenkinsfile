@@ -184,15 +184,16 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             }
                             sh "docker save keybaseprivate/kbfsfuse | gzip > kbfsfuse.tar.gz"
                             archive("kbfsfuse.tar.gz")
-                            build([
-                                job: "/kbfs-server/master",
-                                parameters: [
-                                    [$class: 'StringParameterValue',
-                                        name: 'kbfsProjectName',
-                                        value: env.JOB_NAME,
-                                    ],
-                                ]
-                            ])
+                            // TODO: Uncomment this once we've established that it's working correctly again
+                            //build([
+                            //    job: "/kbfs-server/master",
+                            //    parameters: [
+                            //        [$class: 'StringParameterValue',
+                            //            name: 'kbfsProjectName',
+                            //            value: env.JOB_NAME,
+                            //        ],
+                            //    ]
+                            //])
                         },
                     )
                 } catch (ex) {
