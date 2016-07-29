@@ -1,16 +1,17 @@
 // @flow
+import DumbSheetItem from './dumb-sheet-item'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
+import debounce from 'lodash/debounce'
+import dumbComponentMap from './dumb-component-map.desktop'
+import type {Props} from './dumb-sheet.render'
 import {Box, Text, Input, BackButton} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
-import dumbComponentMap from './dumb-component-map.desktop'
-import DumbSheetItem from './dumb-sheet-item'
-import debounce from 'lodash/debounce'
 
-class Render extends Component<void, any, any> {
+class Render extends Component<void, Props, any> {
   _onFilterChange: (a: any) => void;
 
-  constructor (props: any) {
+  constructor (props: Props) {
     super(props)
 
     this._onFilterChange = debounce(filter => {
@@ -26,7 +27,7 @@ class Render extends Component<void, any, any> {
     ReactDOM.findDOMNode(this.refs.filterInput).querySelector('input').focus()
   }
 
-  componentWillReceiveProps (nextProps: any) {
+  componentWillReceiveProps (nextProps: Props) {
     // FIXME: desktop <Input> element keeps internal state, need to set its value manually
     this.refs.filterInput.setValue(nextProps.dumbFilter)
   }

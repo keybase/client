@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import HiddenString from '../util/hidden-string'
 import type {TypedAction} from '../constants/types/flux'
 
@@ -39,4 +38,12 @@ export type RestartSignup = TypedAction<'signup:restartSignup', {}, {}>
 export const signupWaiting = 'signup:waiting'
 export type SignupWaiting = TypedAction<'signup:waiting', boolean, void>
 
-export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase | SubmitDeviceName | Signup | ShowPaperKey | ShowSuccess | RestartSignup | SignupWaiting
+export type SignupActions = CheckInviteCode
+| CheckUsernameEmail
+| CheckPassphrase
+| SubmitDeviceName
+| Signup
+| ShowPaperKey
+| ShowSuccess
+| RestartSignup
+| SignupWaiting

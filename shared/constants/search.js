@@ -1,9 +1,14 @@
 // @flow
-
 import type {IconType} from '../common-adapters/icon'
 import type {TypedAction} from '../constants/types/flux'
 
-export type SearchPlatforms = 'Keybase' | 'Twitter' | 'Github' | 'Reddit' | 'Coinbase' | 'Hackernews' | 'Pgp'
+export type SearchPlatforms = 'Keybase'
+| 'Twitter'
+| 'Github'
+| 'Reddit'
+| 'Coinbase'
+| 'Hackernews'
+| 'Pgp'
 
 export type ExtraInfo = {
   service: 'external',

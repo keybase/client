@@ -1,16 +1,17 @@
 // @flow
 import React, {Component} from 'react'
-import {ScrollView} from 'react-native'
-import {Box, Text, Input, Button} from '../common-adapters'
-import {globalStyles} from '../styles/style-guide'
-import dumbComponentMap from './dumb-component-map.native'
 import debounce from 'lodash/debounce'
+import dumbComponentMap from './dumb-component-map.native'
+import type {Props} from './dumb-sheet.render'
+import {Box, Text, Input, Button} from '../common-adapters'
+import {ScrollView} from 'react-native'
+import {globalStyles} from '../styles/style-guide'
 
-class Render extends Component<void, any, any> {
+class Render extends Component<void, Props, any> {
   state: any;
   _onFilterChange: (a: any) => void;
 
-  constructor (props: any) {
+  constructor (props: Props) {
     super(props)
 
     this.state = {
