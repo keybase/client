@@ -1,13 +1,10 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type Props = {
   style: Object,
   vertical: bool,
-  key: Object
+  key: Object,
 }
 
-declare export default class Divider extends React.Component {
-  props: Props;
-}
+declare export default class Divider extends Component<void, Props, void> { }

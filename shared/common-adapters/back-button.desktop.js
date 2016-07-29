@@ -1,13 +1,10 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
+import type {Props} from './back-button'
 import {Text, Icon} from './index'
 import {globalStyles} from '../styles/style-guide'
-import type {Props} from './back-button'
 
-export default class BackButton extends Component {
-  props: Props;
-
+class BackButton extends Component<void, Props, void> {
   onClick (event: SyntheticEvent) {
     event.preventDefault()
     event.stopPropagation()
@@ -26,11 +23,6 @@ export default class BackButton extends Component {
   }
 }
 
-BackButton.propTypes = {
-  onClick: React.PropTypes.func.isRequired,
-  style: React.PropTypes.object,
-}
-
 export const styles = {
   container: {
     ...globalStyles.flexBoxRow,
@@ -42,3 +34,4 @@ export const styles = {
   },
 }
 
+export default BackButton

@@ -1,12 +1,12 @@
 // @flow
-import React, {Component} from 'react'
-import {TouchableHighlight} from 'react-native'
 import Box from './box'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import React, {Component} from 'react'
 import type {Props} from './list-item'
+import {TouchableHighlight} from 'react-native'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 // TODO Add swipe for action
-export default class ListItem extends Component<void, Props, void> {
+class ListItem extends Component<void, Props, void> {
   render () {
     const clickable = !!this.props.onClick
     const height = ({'Large': 64, 'Small': 48})[this.props.type] // minimum height
@@ -69,3 +69,5 @@ function bodyContainerStyle (swipeToAction) {
     justifyContent: 'center',
   }
 }
+
+export default ListItem

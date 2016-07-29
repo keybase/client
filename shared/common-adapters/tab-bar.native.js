@@ -1,17 +1,14 @@
 // @flow
-import React, {Component} from 'react'
-import {TouchableWithoutFeedback} from 'react-native'
-import _ from 'lodash'
-import {globalStyles, globalColors} from '../styles/style-guide'
 import Box from './box'
-import Text from './text'
 import Icon from './icon'
-
+import React, {Component} from 'react'
+import Text from './text'
+import _ from 'lodash'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
+import {TouchableWithoutFeedback} from 'react-native'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
-export class TabBarItem extends Component {
-  props: ItemProps;
-
+class TabBarItem extends Component<void, ItemProps, void> {
   render () {
     return this.props.children
   }
@@ -32,7 +29,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
   }
 }
 
-export class TabBarButton extends Component<void, TabBarButtonProps, void> {
+class TabBarButton extends Component<void, TabBarButtonProps, void> {
   render () {
     const backgroundColor = this.props.selected ? globalColors.darkBlue4 : globalColors.midnightBlue
     const badgeNumber = this.props.badgeNumber || 0
@@ -146,6 +143,11 @@ const stylesUnselectedUnderline = {
   marginTop: 1,
   backgroundColor: globalColors.black_10,
   alignSelf: 'stretch',
+}
+
+export {
+  TabBarItem,
+  TabBarButton,
 }
 
 export default TabBar

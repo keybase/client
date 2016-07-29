@@ -1,9 +1,8 @@
 // @flow
 import React, {Component} from 'react'
+import type {Props} from './confirm'
 import {Box, Button, Text} from './'
 import {globalStyles, globalColors} from '../styles/style-guide'
-
-import type {Props} from './confirm'
 
 class Confirm extends Component<void, Props, void> {
   render () {

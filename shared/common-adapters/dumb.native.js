@@ -1,13 +1,10 @@
 // @flow
-
-import React from 'react'
-
 import Checkbox from './checkbox'
+import React from 'react'
+import type {DumbComponentMap} from '../constants/types/more'
 import {TabBar, Text, Box, ListItem, Button, Avatar} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalColors} from '../styles/style-guide'
-
-import type {DumbComponentMap} from '../constants/types/more'
 
 const tabBarButtonMap: DumbComponentMap<TabBarButton> = {
   // $FlowIssue

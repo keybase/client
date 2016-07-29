@@ -1,8 +1,7 @@
-/* @flow */
-
+// @flow
+import Icon from './icon'
 import React from 'react'
 import type {Props} from './progress-indicator'
-import Icon from './icon'
 
 const ProgressIndicator = ({white, style}: Props) => (
   <Icon

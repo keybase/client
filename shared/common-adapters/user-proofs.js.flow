@@ -1,5 +1,5 @@
-/* @flow */
-
+// @flow
+import {Component} from 'react'
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 
 export type Proof = {
@@ -21,4 +21,4 @@ export type Props = {
   currentlyFollowing: boolean
 }
 
-export default class Render extends React$Component<void, Props, void> {}
+export default class Render extends Component<void, Props, void> {}

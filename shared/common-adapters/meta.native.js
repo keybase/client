@@ -1,11 +1,11 @@
 // @flow
-import React from 'react'
-import {View} from 'react-native'
-import _ from 'lodash'
-import Text from './text'
-import type {Props} from './meta'
-import {globalColors} from '../styles/style-guide'
 import Platform, {OS} from '../constants/platform'
+import React from 'react'
+import Text from './text'
+import _ from 'lodash'
+import type {Props} from './meta'
+import {View} from 'react-native'
+import {globalColors} from '../styles/style-guide'
 
 const isAndroid = Platform.OS_ANDROID === OS
 

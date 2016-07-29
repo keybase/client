@@ -1,14 +1,11 @@
 // @flow
 import React, {Component} from 'react'
-
 import Text from './text'
-import {transition, globalColors, globalStyles} from '../styles/style-guide'
-
-import type {Props, MenuItemProps} from './dropdown'
 import type {Props as TextProps} from './text'
-
-import {Popover, PopoverAnimationVertical} from 'material-ui/Popover'
+import type {Props, MenuItemProps} from './dropdown'
 import {NavigationArrowDropDown} from 'material-ui/svg-icons'
+import {Popover, PopoverAnimationVertical} from 'material-ui/Popover'
+import {transition, globalColors, globalStyles} from '../styles/style-guide'
 
 type State = {
   popoverOpen: boolean

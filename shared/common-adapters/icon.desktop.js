@@ -1,15 +1,12 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../styles/style-guide'
-import {FontIcon} from 'material-ui'
-import type {Props} from './icon'
-import {resolveImageAsURL} from '../../desktop/resolve-root'
+// @flow
 import * as shared from './icon.shared'
+import React, {Component} from 'react'
+import type {Props} from './icon'
+import {FontIcon} from 'material-ui'
+import {globalStyles, globalColors} from '../styles/style-guide'
+import {resolveImageAsURL} from '../../desktop/resolve-root'
 
-export default class Icon extends Component {
-  props: Props;
-
+class Icon extends Component<void, Props, void> {
   render () {
     let color = shared.defaultColor(this.props.type)
     let hoverColor = shared.defaultHoverColor(this.props.type)
@@ -72,3 +69,5 @@ export const styles = {
     fontSize: 16,
   },
 }
+
+export default Icon

@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 
 import React, {Component} from 'react'
 
@@ -11,9 +11,7 @@ export type Props = {
   style?: Object
 }
 
-declare export default class Dropdown extends Component {
-  props: Props;
-}
+declare export default class Dropdown extends Component<void, Props, void> { }
 
 export type MenuItemProps = {
   value?: any, // The value of the menu item.
@@ -24,6 +22,4 @@ export type MenuItemProps = {
   children?: any
 }
 
-export class MenuItem extends Component {
-  props: MenuItemProps;
-}
+export class MenuItem extends Component<void, MenuItemProps, void> { }

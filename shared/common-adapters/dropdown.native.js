@@ -1,12 +1,12 @@
 // @flow
-import React, {Component} from 'react'
-import {TouchableWithoutFeedback, Picker, Modal} from 'react-native'
-import Platform, {OS} from '../constants/platform'
-import {globalStyles, globalColors} from '../styles/style-guide'
-import Text from './text'
 import Box from './box'
 import Icon from './icon'
+import Platform, {OS} from '../constants/platform'
+import React, {Component} from 'react'
+import Text from './text'
 import type {Props} from './dropdown'
+import {TouchableWithoutFeedback, Picker, Modal} from 'react-native'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 /*
  * A dropdown on ios and android.
@@ -24,7 +24,7 @@ type State = {
   value: ?string
 }
 
-class Dropdown extends Component {
+class Dropdown extends Component<void, Props, State> {
   state: State;
   showingPick: boolean;
 
@@ -50,7 +50,7 @@ class Dropdown extends Component {
   _selected () {
     // Didn't actually select anything
     if (this.state.value === pickItemValue) {
-      this.props.onClick(null, -1)
+      this.props.onClick('', -1)
     } else if (this.state.value === otherItemValue) {
       if (this.props.onOther) {
         this.props.onOther()
@@ -58,7 +58,7 @@ class Dropdown extends Component {
         console.warn('otherValue selected, yet no onOther handler')
       }
     } else if (this.props.onClick) {
-      this.props.onClick(this.state.value, (this.props.options || []).indexOf(this.state.value))
+      this.props.onClick(this.state.value || '', (this.props.options || []).indexOf(this.state.value || ''))
     }
   }
 

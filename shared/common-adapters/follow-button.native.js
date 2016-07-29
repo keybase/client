@@ -1,9 +1,9 @@
 // @flow
 import React, {Component} from 'react'
-import {Button} from './'
 import type {Props} from './follow-button'
+import {Button} from './'
 
-export default class FollowButton extends Component<void, Props, void> {
+class FollowButton extends Component<void, Props, void> {
   render () {
     const {following, onFollow, onUnfollow, style, ...otherProps} = this.props
 
@@ -30,3 +30,5 @@ export default class FollowButton extends Component<void, Props, void> {
 const styleButton = {
   width: 140,
 }
+
+export default FollowButton

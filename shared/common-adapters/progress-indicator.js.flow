@@ -1,6 +1,5 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type Props = {
   style?: Object,
@@ -8,5 +7,4 @@ export type Props = {
   type?: 'Small' | 'Large'
 }
 
-declare export default class ProgressIndicator extends React.Component<void, Props, void> {
-}
+declare export default class ProgressIndicator extends Component<void, Props, void> { }

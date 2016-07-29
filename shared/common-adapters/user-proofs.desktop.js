@@ -1,13 +1,11 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import {Box, Icon, Text, Meta} from '../common-adapters/index'
-import openUrl from '../util/open-url'
+// @flow
 import * as shared from './user-proofs.shared'
-import {metaNone, checking as proofChecking} from '../constants/tracker'
-
+import React, {Component} from 'react'
+import openUrl from '../util/open-url'
 import type {Proof, Props} from './user-proofs'
+import {Box, Icon, Text, Meta} from '../common-adapters/index'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {metaNone, checking as proofChecking} from '../constants/tracker'
 
 function LoadingProofRow ({index, textBlockWidth}: {index: number, textBlockWidth: number}) {
   // TODO(mm) make iconfont-proof-pending the unfinished one instead
@@ -23,9 +21,7 @@ function LoadingProofRow ({index, textBlockWidth}: {index: number, textBlockWidt
   )
 }
 
-class ProofsRender extends Component {
-  props: Props;
-
+class ProofsRender extends Component<void, Props, void> {
   _onClickProof (proof: Proof): void {
     if (proof.state !== proofChecking) {
       proof.humanUrl && openUrl(proof.humanUrl)
