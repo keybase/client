@@ -173,13 +173,13 @@ const dumbMap: DumbComponentMap<Profile> = {
       bioEditFns,
       isYou: true,
     },
-    'Your Profile - loading': {
+    'Your Profile - Loading': {
       ...propsBase,
       loading: true,
       bioEditFns,
       isYou: true,
     },
-    'Your Profile - empty': {
+    'Your Profile - Empty': {
       ...propsBase,
       bioEditFns,
       isYou: true,
