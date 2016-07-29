@@ -163,7 +163,7 @@ package_electron() {(
   fi
 )}
 
-# Adds the keybase binaries and Installer.app bundle to Keybase.app
+# Adds the keybase binaries, app bundles, and icons to Keybase.app
 package_app() {(
   cd "$build_dir"
   echo "Copying keybase binaries"
@@ -172,6 +172,10 @@ package_app() {(
   cp "$kbfs_bin" "$shared_support_dir/bin"
   cp "$updater_bin" "$shared_support_dir/bin"
   mkdir -p "$resources_dir"
+  echo "Copying icons"
+  cp -R "$client_dir/media/icons/KeybaseFolder.icns" "$resources_dir/KeybaseFolder.icns"
+  echo "Copying other resources"
+  cp -R "$client_dir/osx/Resources/ExtendedAttributeFinderInfo.bin" "$resources_dir/ExtendedAttributeFinderInfo.bin"
   echo "Copying installer"
   cp -R "$installer_app" "$resources_dir/KeybaseInstaller.app"
   echo "Copying updater (app)"
@@ -240,6 +244,7 @@ kbsign() {(
 update_json() {(
   cd "$out_dir"
   if [ -n "$s3host" ]; then
+    echo "Generating $update_json_name"
     "$release_bin" update-json --version="$app_version" --src="$zip_name" \
       --uri="$s3host/$platform-updates" --signature="$out_dir/$sig_name" --description="$client_dir/desktop/CHANGELOG.txt" > "$update_json_name"
   fi
