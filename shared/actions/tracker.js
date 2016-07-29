@@ -58,11 +58,12 @@ export function stopTimer (): Action {
 export function registerTrackerChangeListener (): TrackerActionCreator {
   return dispatch => {
     const params = {
-      'keybase.1.NotifyTracking.trackingChanged': args => {
+      'keybase.1.NotifyTracking.trackingChanged': ({username}) => {
         dispatch({
           type: Constants.userUpdated,
-          payload: args,
+          payload: {},
         })
+        dispatch(getProfile(username))
       },
     }
 
