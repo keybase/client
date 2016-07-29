@@ -60,8 +60,7 @@ export default class BioRender extends Component<void, Props, void> {
     }
 
     return (
-      <Box style={{minHeight: 170, ...this.props.style}}>
-
+      <Box style={{minHeight: 190, ...this.props.style}}>
         <ReactCSSTransitionGroup transitionName='no-anim' transitionEnterTimeout={250} transitionLeaveTimeout={250}>
           {loading && <BioLoading key='loading-state' loading={loading} style={this.props.style} avatarSize={this.props.avatarSize} />}
         </ReactCSSTransitionGroup>
