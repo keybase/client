@@ -12,7 +12,7 @@ export function quit () {
   // Only quit the app in dev mode
   if (__DEV__) {
     console.log('Only quiting gui in dev mode')
-    app.quit()
+    app.exit(0)
     return
   }
 
@@ -22,6 +22,6 @@ export function quit () {
     if (stopErr) {
       console.log('Error in ctl stop, when quiting:', stopErr)
     }
-    app.quit()
+    app.exit(0)
   })
 }
