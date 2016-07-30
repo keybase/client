@@ -1,13 +1,10 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
 import HiddenString from '../../../util/hidden-string'
+import {Component} from 'react'
 
 export type Props = {
   errorText: HiddenString,
   restartSignup: () => void
 }
 
-export default class Render extends Component {
-  props: Props;
-}
+export default class Render extends Component<void, Props, void> { }

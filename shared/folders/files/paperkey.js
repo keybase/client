@@ -1,12 +1,12 @@
 // @flow
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
-import {navigateUp} from '../../actions/router'
-import {checkPaperKey, toPaperKeyInput, onBackFromPaperKey} from '../../actions/unlock-folders'
 import HiddenString from '../../util/hidden-string'
+import React, {Component} from 'react'
 import Render from '../../login/register/paper-key/index.render'
 import type {State as StoreState} from '../../reducers/unlock-folders'
+import {bindActionCreators} from 'redux'
+import {checkPaperKey, toPaperKeyInput, onBackFromPaperKey} from '../../actions/unlock-folders'
+import {connect} from 'react-redux'
+import {navigateUp} from '../../actions/router'
 
 type Props = {
   error: string,

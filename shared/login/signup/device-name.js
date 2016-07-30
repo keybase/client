@@ -1,10 +1,9 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
-import Render from '../register/set-public-name/index.render'
+// @flow
 import * as signupActions from '../../actions/signup'
+import React, {Component} from 'react'
+import Render from '../register/set-public-name/index.render'
+import {bindActionCreators} from 'redux'
+import {connect} from 'react-redux'
 
 class DeviceName extends Component {
   state: {

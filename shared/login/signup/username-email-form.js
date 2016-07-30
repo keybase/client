@@ -1,12 +1,10 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
-
-import Render from './username-email-form.render'
+// @flow
 import * as signupActions from '../../actions/signup'
+import React, {Component} from 'react'
+import Render from './username-email-form.render'
 import type {Props} from './username-email-form.render'
+import {bindActionCreators} from 'redux'
+import {connect} from 'react-redux'
 
 type State = {
   username: string,

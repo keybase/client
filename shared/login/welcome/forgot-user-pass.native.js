@@ -1,7 +1,8 @@
+// @flow
+import Button from '../../common-adapters/button'
 import React, {Component} from 'react'
 import {StyleSheet, Text, TextInput, View} from 'react-native'
 import {connect} from 'react-redux'
-import Button from '../../common-adapters/button'
 import {updateForgotPasswordEmail, submitForgotPassword} from '../../actions/login'
 
 // TODO redo this screen with style guide
@@ -35,9 +36,10 @@ class ForgotUserPass extends Component {
           clearButtonMode='while-editing'
         />
         <Button
-          title='Submit'
+          type='Primary'
+          label='Submit'
           style={styles.submitButton}
-          onPress={() => this.props.submit()}
+          onClick={() => this.props.submit()}
           enabled={!this.props.success}
         />
         {this.props.error && (
@@ -54,15 +56,6 @@ class ForgotUserPass extends Component {
   static parseRoute () {
     return {componentAtTop: {}}
   }
-}
-
-ForgotUserPass.propTypes = {
-  updateEmail: React.PropTypes.func.isRequired,
-  submit: React.PropTypes.func.isRequired,
-  email: React.PropTypes.string.isRequired,
-  submitting: React.PropTypes.bool.isRequired,
-  success: React.PropTypes.bool.isRequired,
-  error: React.PropTypes.object,
 }
 
 const styles = StyleSheet.create({

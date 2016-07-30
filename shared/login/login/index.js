@@ -1,9 +1,10 @@
+// @flow
 import React, {Component} from 'react'
+import Render from './index.render'
+import type {Props} from './index.render'
 import {connect} from 'react-redux'
 import {openAccountResetPage, relogin, login, saveInKeychainChanged} from '../../actions/login'
 import {routeAppend} from '../../actions/router'
-import Render from './index.render'
-import type {Props} from './index.render'
 
 type State = {
   selectedUser: ?string,
@@ -15,7 +16,7 @@ type State = {
 class Login extends Component {
   state: State;
 
-  constructor (props: Props) {
+  constructor (props: Props & {lastUser: ?string}) {
     super(props)
 
     this.state = {
@@ -56,8 +57,6 @@ class Login extends Component {
   }
 }
 
-Login.propTypes = Render.propTypes
-
 export default connect(
   store => {
     const users = store.login.configuredAccounts && store.login.configuredAccounts.map(c => c.username) || []
@@ -69,18 +68,17 @@ export default connect(
 
     return {
       serverURI: 'https://keybase.io',
-      users, lastUser,
+      users,
+      lastUser,
       error: store.login.loginError,
       waitingForResponse: store.login.waitingForResponse,
     }
   },
-  dispatch => {
-    return {
-      onForgotPassphrase: () => dispatch(openAccountResetPage()),
-      onLogin: (user, passphrase, store) => dispatch(relogin(user, passphrase, store)),
-      onSignup: () => dispatch(routeAppend(['signup'])),
-      onSomeoneElse: () => { dispatch(login()) },
-      onSaveInKeychainChange: (user, saveInKeychain) => { dispatch(saveInKeychainChanged(user, saveInKeychain)) },
-    }
-  }
+  dispatch => ({
+    onForgotPassphrase: () => dispatch(openAccountResetPage()),
+    onLogin: (user, passphrase, store) => dispatch(relogin(user, passphrase, store)),
+    onSignup: () => dispatch(routeAppend(['signup'])),
+    onSomeoneElse: () => { dispatch(login()) },
+    onSaveInKeychainChange: (user, saveInKeychain) => { dispatch(saveInKeychainChanged(user, saveInKeychain)) },
+  })
 )(Login)

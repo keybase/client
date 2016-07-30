@@ -1,11 +1,10 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
 import Render from './index.render'
 import type {Props, State} from './index'
+import {connect} from 'react-redux'
 
 class PaperKey extends Component<void, Props, State> {
-  props: Props;
   state: State;
 
   constructor (props) {
@@ -28,11 +27,6 @@ class PaperKey extends Component<void, Props, State> {
       />
     )
   }
-}
-
-PaperKey.propTypes = {
-  onSubmit: React.PropTypes.func.isRequired,
-  onBack: React.PropTypes.func.isRequired,
 }
 
 export default connect(

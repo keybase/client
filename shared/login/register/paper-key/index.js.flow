@@ -1,5 +1,5 @@
-/* @flow */
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type Props = {
   onSubmit: (paperKey: string) => void,
@@ -12,7 +12,6 @@ export type State = {
     paperKey: string
 }
 
-export default class PaperKey extends Component {
-  props: Props;
+export default class PaperKey extends Component<void, Props, State> {
   state: State;
 }

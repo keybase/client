@@ -1,9 +1,9 @@
 // @flow
 import React from 'react'
-import {Image, TouchableHighlight} from 'react-native'
 import type {Folder} from './list'
-import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
 import type {IconType} from '../common-adapters/icon'
+import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
+import {Image, TouchableHighlight} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 const Avatars = ({styles, users, isPublic}) => {

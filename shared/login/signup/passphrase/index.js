@@ -1,13 +1,10 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
-import HiddenString from '../../../util/hidden-string'
-
 import Render from './index.render'
-import {checkPassphrase, restartSignup} from '../../../actions/signup'
 import type {Props} from './index.render'
+import {bindActionCreators} from 'redux'
+import {checkPassphrase, restartSignup} from '../../../actions/signup'
+import {connect} from 'react-redux'
 
 type State = {
   pass1: string,
@@ -39,11 +36,6 @@ class PassphraseForm extends Component {
         />
     )
   }
-}
-
-PassphraseForm.propTypes = {
-  passphraseError: React.PropTypes.instanceOf(HiddenString),
-  checkPassphrase: React.PropTypes.func,
 }
 
 export default connect(

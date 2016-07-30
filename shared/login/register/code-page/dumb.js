@@ -1,5 +1,4 @@
 // @flow
-
 import Render from './index.render'
 import type {DumbComponentMap} from '../../../constants/types/more'
 
@@ -16,6 +15,7 @@ const baseMock = {
   setCameraBrokenMode: () => {},
   textEntered: () => console.log('textEntered'),
   onChangeText: () => console.log('onChangeText'),
+  doneRegistering: () => console.log('doneRegistering'),
   onBack: () => console.log('onBack'),
   enterText: 'Foo Enter Text',
 }

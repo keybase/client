@@ -1,11 +1,9 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
-
-import Render from './request-invite-success.render'
+// @flow
 import * as signupActions from '../../actions/signup'
+import React, {Component} from 'react'
+import Render from './request-invite-success.render'
+import {bindActionCreators} from 'redux'
+import {connect} from 'react-redux'
 
 class RequestInviteSuccess extends Component {
   render () {
