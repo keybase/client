@@ -1,10 +1,10 @@
 // @flow
-import React, {Component} from 'react'
-import {Button, UserCard, Text, FormWithCheckbox} from '../../../common-adapters'
-import {specialStyles} from '../../../common-adapters/text'
-import {globalColors} from '../../../styles/style-guide'
 import Container from '../../forms/container'
+import React, {Component} from 'react'
 import type {Props} from './index.render'
+import {Button, UserCard, Text, FormWithCheckbox} from '../../../common-adapters'
+import {globalColors} from '../../../styles/style-guide'
+import {specialStyles} from '../../../common-adapters/text'
 
 class Render extends Component<void, Props, void> {
   render () {

@@ -1,10 +1,10 @@
 // @flow
 import React from 'react'
-import {globalStyles} from '../../styles/style-guide'
-import {Box, BackButton} from '../../common-adapters'
 import type {Props} from './container'
+import {Box, BackButton} from '../../common-adapters'
+import {globalStyles} from '../../styles/style-guide'
 
-export default ({children, onBack, style, outerStyle}: Props) => {
+const Container = ({children, onBack, style, outerStyle}: Props) => {
   return (
     <Box style={{...styles.container, ...outerStyle}}>
       <Box style={{...styles.innerContainer, ...style}}>
@@ -32,3 +32,5 @@ const styles = {
     left: 22,
   },
 }
+
+export default Container

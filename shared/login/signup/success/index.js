@@ -1,11 +1,8 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import HiddenString from '../../../util/hidden-string'
-import {sawPaperKey} from '../../../actions/signup'
-
 import Render from './index.render'
+import {connect} from 'react-redux'
+import {sawPaperKey} from '../../../actions/signup'
 
 class Success extends Component {
   render () {
@@ -19,11 +16,6 @@ class Success extends Component {
         />
     )
   }
-}
-
-Success.propTypes = {
-  paperkey: React.PropTypes.instanceOf(HiddenString).isRequired,
-  onFinish: React.PropTypes.func.isRequired,
 }
 
 export default connect(

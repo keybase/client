@@ -1,11 +1,12 @@
+// NOT FLOW - redo this
+import Button from '../../common-adapters/button'
 import React, {Component} from 'react'
 import {LinkingIOS, StyleSheet, Text, View} from 'react-native'
-import Button from '../../common-adapters/button'
 
 // TODO redo this screen with style guide
 const commonStyles = {}
 
-export default class WelcomeRender extends Component {
+class WelcomeRender extends Component {
   render () {
     return (
       <View style={[styles.container, {marginTop: 64, marginBottom: 48}]}>
@@ -31,11 +32,6 @@ export default class WelcomeRender extends Component {
   }
 }
 
-WelcomeRender.propTypes = {
-  onGotoLoginPage: React.PropTypes.func.isRequired,
-  onGotoSignupPage: React.PropTypes.func.isRequired,
-}
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -44,3 +40,5 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
 })
+
+export default WelcomeRender

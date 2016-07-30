@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import {Component} from 'react'
 import type {Props as ListProps} from './list'
 

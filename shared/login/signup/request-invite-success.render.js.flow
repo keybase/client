@@ -1,12 +1,8 @@
-/* @flow */
-/* eslint-disable react/prop-types */
-
+// @flow
 import React, {Component} from 'react'
 
 export type Props = {
   onBack: () => void
 }
 
-export default class Render extends Component {
-  props: Props;
-}
+export default class Render extends Component<void, Props, void> { }

@@ -1,11 +1,11 @@
 // @flow
 import React from 'react'
-import {Image, TouchableHighlight} from 'react-native'
 import type {Folder} from './list'
-import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
-import {iconMeta} from '../common-adapters/icon.constants'
 import type {IconType} from '../common-adapters/icon'
+import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
+import {Image, TouchableHighlight} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
+import {iconMeta} from '../common-adapters/icon.constants'
 
 const Avatars = ({styles, users, isPublic, ignored}) => {
   // TODO (MM) fix type

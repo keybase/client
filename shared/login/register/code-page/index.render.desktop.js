@@ -4,15 +4,14 @@
  * you're a phone/computer and if you're the existing device or the new device
  */
 
-import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../../../styles/style-guide'
-import {Text, Icon, Input, Button} from '../../../common-adapters'
-import {specialStyles as textStyles} from '../../../common-adapters/text'
-import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
-        codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer,
-        codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
 import Container from '../../forms/container.desktop'
+import React, {Component} from 'react'
 import type {Props} from './index.render'
+import {Text, Icon, Input, Button} from '../../../common-adapters'
+import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
+  codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
+import {globalStyles, globalColors} from '../../../styles/style-guide'
+import {specialStyles as textStyles} from '../../../common-adapters/text'
 
 const SubTitle = ({usePhone}) => (
   <p>
@@ -22,7 +21,7 @@ const SubTitle = ({usePhone}) => (
   </p>
 )
 
-export default class CodePageRender extends Component<void, Props, void> {
+class CodePageRender extends Component<void, Props, void> {
   _renderText () {
     return (
       <Container
@@ -105,24 +104,6 @@ export default class CodePageRender extends Component<void, Props, void> {
   }
 }
 
-const validRoles = [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer]
-
-CodePageRender.propTypes = {
-  mode: React.PropTypes.oneOf([codePageModeShowCode, codePageModeEnterText, codePageModeShowText]),
-  textCode: React.PropTypes.string,
-  qrCode: React.PropTypes.string,
-  myDeviceRole: React.PropTypes.oneOf(validRoles).isRequired,
-  otherDeviceRole: React.PropTypes.oneOf(validRoles).isRequired,
-  cameraBrokenMode: React.PropTypes.bool.isRequired,
-  setCodePageMode: React.PropTypes.func.isRequired,
-  qrScanned: React.PropTypes.func.isRequired,
-  setCameraBrokenMode: React.PropTypes.func.isRequired,
-  textEntered: React.PropTypes.func.isRequired,
-  onChangeText: React.PropTypes.func.isRequired,
-  onBack: React.PropTypes.func.isRequired,
-  enterText: React.PropTypes.string,
-}
-
 const stylesContainer = {
   flex: 1,
   alignItems: 'center',
@@ -158,3 +139,5 @@ const stylesPhoneIcon = {
   marginRight: 25,
   transform: 'rotate(-325deg) translateX(18px)',
 }
+
+export default CodePageRender

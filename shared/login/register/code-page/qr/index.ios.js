@@ -1,13 +1,11 @@
 // @flow
-
-import React, {Component} from 'react'
-import {Image, View} from 'react-native'
 import Camera from 'react-native-camera'
+import React, {Component} from 'react'
+import type {Props} from './index'
+import {Image, View} from 'react-native'
 import {globalStyles} from '../../../../styles/style-guide'
 
-import type {Props} from './index'
-
-export default class QR extends Component<void, Props, void> {
+class QR extends Component<void, Props, void> {
   render () {
     if (this.props.scanning) {
       return (
@@ -34,3 +32,5 @@ const cameraStyle = {
   justifyContent: 'center',
   flex: 1,
 }
+
+export default QR

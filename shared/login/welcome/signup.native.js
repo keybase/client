@@ -1,3 +1,4 @@
+ // @flow
 import React, {Component} from 'react'
 import {Text, View} from 'react-native'
 import {connect} from 'react-redux'
@@ -22,7 +23,5 @@ class Signup extends Component {
     return {}
   }
 }
-
-Signup.propTypes = { }
 
 export default connect()(Signup)

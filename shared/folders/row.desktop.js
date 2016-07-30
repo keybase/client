@@ -1,8 +1,8 @@
 // @flow
 import React from 'react'
 import type {Folder} from './list'
-import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
 import type {IconType} from '../common-adapters/icon'
+import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
 import {globalStyles, globalColors, backgroundURL, globalMargins} from '../styles/style-guide'
 
 const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, isPublic}) => {

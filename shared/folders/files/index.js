@@ -1,16 +1,15 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
-import {openInKBFS} from '../../actions/kbfs'
-import {favoriteFolder, ignoreFolder} from '../../actions/favorite'
-import {navigateBack, routeAppend} from '../../actions/router'
-import paperkey from './paperkey'
-import flags from '../../util/feature-flags'
 import Render from './render'
 import _ from 'lodash'
-
+import flags from '../../util/feature-flags'
+import paperkey from './paperkey'
 import type {Folder} from '../list'
+import {bindActionCreators} from 'redux'
+import {connect} from 'react-redux'
+import {favoriteFolder, ignoreFolder} from '../../actions/favorite'
+import {navigateBack, routeAppend} from '../../actions/router'
+import {openInKBFS} from '../../actions/kbfs'
 
 type Props = $Shape<{
   folder: ?Folder,

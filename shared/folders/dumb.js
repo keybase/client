@@ -1,14 +1,14 @@
-/* @flow */
-import Folders from './render'
-import Files from './files/render'
+// @flow
 import File from './files/file/render'
-import {globalStyles} from '../styles/style-guide'
-import {pathFromFolder} from '../actions/favorite'
-import type {PropsOf, DumbComponentMap} from '../constants/types/more'
+import Files from './files/render'
+import Folders from './render'
 import type {Folder} from './list'
 import type {Props as FilesProps} from './files/render'
+import type {PropsOf, DumbComponentMap} from '../constants/types/more'
+import {globalStyles} from '../styles/style-guide'
+import {pathFromFolder} from '../actions/favorite'
 
-export function createFolder (partialFolder: $Shape<Folder>) {
+function createFolder (partialFolder: $Shape<Folder>) {
   return {...partialFolder, path: pathFromFolder(partialFolder).path}
 }
 
@@ -193,7 +193,7 @@ const commonFolders = {
   privateShowingIgnored: true,
 }
 
-export const map: DumbComponentMap<Folders> = {
+const map: DumbComponentMap<Folders> = {
   component: Folders,
   mocks: {
     'Normal Private': {...commonFolders},
@@ -221,7 +221,7 @@ const commonFile = {
   onClick: () => console.log('onClick:file'),
 }
 
-export const file: DumbComponentMap<File> = {
+const file: DumbComponentMap<File> = {
   component: File,
   mocks: {
     'Normal Private': {
@@ -335,7 +335,7 @@ const commonUnlock = {
   ],
 }
 
-export const files: DumbComponentMap<Files> = {
+const files: DumbComponentMap<Files> = {
   component: Files,
   mocks: {
     'Normal - Public': {
@@ -400,4 +400,11 @@ export default {
   'Folders TLF': map,
   'Files': files,
   'File': file,
+}
+
+export {
+  createFolder,
+  map,
+  file,
+  files,
 }

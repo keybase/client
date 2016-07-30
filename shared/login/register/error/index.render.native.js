@@ -1,8 +1,8 @@
 // @flow
-import React from 'react'
-import {Text} from '../../../common-adapters'
 import Container from '../../forms/container'
+import React from 'react'
 import type {Props} from './index.render'
+import {Text} from '../../../common-adapters'
 
 const Render = ({onBack, error}: Props) => (
   <Container

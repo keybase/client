@@ -1,13 +1,11 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {globalStyles} from '../../styles/style-guide'
-import {Text, Icon, Input, Button, Box} from '../../common-adapters'
+// @flow
 import Container from '../forms/container'
-
+import React, {Component} from 'react'
 import type {Props} from './request-invite.render'
+import {Text, Icon, Input, Button, Box} from '../../common-adapters'
+import {globalStyles} from '../../styles/style-guide'
 
-export default class Render extends Component {
+class Render extends Component {
   props: Props;
 
   render () {
@@ -56,3 +54,5 @@ const stylesIcon = {
   marginTop: 40,
   alignSelf: 'center',
 }
+
+export default Render
