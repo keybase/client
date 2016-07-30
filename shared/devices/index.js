@@ -1,20 +1,16 @@
 // @flow
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import _ from 'lodash'
-
 import CodePage from '../login/register/code-page'
-import GenPaperKey from './gen-paper-key'
 import ExistingDevice from './existing-device'
-
+import GenPaperKey from './gen-paper-key'
+import React, {Component} from 'react'
+import RemoveDevice from './device-revoke'
+import Render from './render'
+import ShowDevice from './device-page'
+import _ from 'lodash'
+import {addNewPhone, addNewComputer, addNewPaperKey} from '../actions/login'
+import {connect} from 'react-redux'
 import {loadDevices} from '../actions/devices'
 import {routeAppend} from '../actions/router'
-import {addNewPhone, addNewComputer, addNewPaperKey} from '../actions/login'
-
-import ShowDevice from './device-page'
-import RemoveDevice from './device-revoke'
-
-import Render from './render'
 
 class Devices extends Component {
   componentWillMount () {

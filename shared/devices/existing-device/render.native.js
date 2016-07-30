@@ -5,7 +5,7 @@ import {StyleSheet, Text, TouchableHighlight, View} from 'react-native'
 // TODO redo this screen with style guide
 const commonStyles = {}
 
-export default class ExistingDeviceRender extends Component {
+class ExistingDeviceRender extends Component {
   render () {
     return (
       <View style={[styles.container, {marginTop: 200, padding: 20, alignItems: 'stretch'}]}>
@@ -41,3 +41,5 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
 })
+
+export default ExistingDeviceRender

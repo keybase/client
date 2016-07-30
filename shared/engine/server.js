@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 
 /**
  * Server abstraction for incoming RPC's

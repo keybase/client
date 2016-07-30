@@ -1,11 +1,14 @@
+// @flow
 import BaseTransport from './rpc'
 import {socketPath} from '../constants/platform.native.desktop'
 
 export default class DesktopTransport extends BaseTransport {
+  // $FlowIssue
   constructor (incomingRPCCallback, writeCallback, connectCallback) {
     let hooks = null
     if (connectCallback) {
       hooks = {connected: () => {
+  // $FlowIssue
         this.needsConnect = false
         connectCallback()
       }}

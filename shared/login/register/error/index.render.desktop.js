@@ -6,7 +6,7 @@ import type {Props} from './index.render'
 import {errorMap} from '../../../engine/errors'
 import openURL from '../../../util/open-url'
 
-const renderError = error => {
+const renderError = (error: Object) => {
   const fields = (error.raw && error.raw.fields || []).reduce((acc, f) => {
     acc[f.key] = f.value
     return acc

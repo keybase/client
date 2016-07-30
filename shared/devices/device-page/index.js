@@ -1,13 +1,11 @@
 // @flow
+import * as devicesActions from '../../actions/devices'
 import React, {Component} from 'react'
+import RemoveDevice from '../device-revoke'
+import Render from './index.render'
+import moment from 'moment'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import moment from 'moment'
-
-import Render from './index.render'
-import RemoveDevice from '../device-revoke'
-
-import * as devicesActions from '../../actions/devices'
 import {routeAppend, navigateUp} from '../../actions/router'
 
 class DevicePage extends Component {

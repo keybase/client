@@ -1,11 +1,10 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
 import Render from './render'
 import type {DeviceRole} from '../../constants/login'
-import {codePageDeviceRoleExistingPhone,
-  codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer,
-  codePageDeviceRoleNewComputer} from '../../constants/login'
+import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
+  codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../constants/login'
+import {connect} from 'react-redux'
 
 type Props = {
   myDeviceRole: DeviceRole,
