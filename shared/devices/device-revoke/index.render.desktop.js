@@ -1,10 +1,9 @@
 // @flow
-
 import React from 'react'
+import type {IconType} from '../../common-adapters/icon'
 import type {Props} from './index.render'
 import {Confirm, Box, Text, Icon} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
-import type {IconType} from '../../common-adapters/icon'
 
 const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props) => {
   const icon: IconType = {

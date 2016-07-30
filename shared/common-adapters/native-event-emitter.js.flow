@@ -1,0 +1,7 @@
+// @flow
+
+const methods = {
+  addListener: (name: string, callback: (data: any) => void) => {}
+}
+
+export default methods

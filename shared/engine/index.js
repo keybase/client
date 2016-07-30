@@ -1,23 +1,49 @@
+// @flow
 // Handles sending requests to native mobile (then go) and back
-
-import engine from './index.native'
+import NativeEventEmitter from '../common-adapters/native-event-emitter'
 import Transport from './transport'
+import nativeEngine from './index.native'
 import rpc from 'framed-msgpack-rpc'
-import {printRPC, printOutstandingRPCs} from '../local-debug'
 import setupLocalLogs from '../util/local-log'
 import {Buffer} from 'buffer'
-import NativeEventEmitter from '../common-adapters/native-event-emitter'
-import {log} from '../native/log/logui'
 import {constants} from '../constants/types/keybase-v1'
+import {log} from '../native/log/logui'
+import {printRPC, printOutstandingRPCs} from '../local-debug'
+import type {incomingCallMapType} from '../constants/types/flow-types'
 
 const {client: {Client: RpcClient}} = rpc
+const KEYBASE_RPC_DELAY_RESULT: number = process.env.KEYBASE_RPC_DELAY_RESULT ? parseInt(process.env.KEYBASE_RPC_DELAY_RESULT) : 0
+const KEYBASE_RPC_DELAY: number = process.env.KEYBASE_RPC_DELAY ? parseInt(process.env.KEYBASE_RPC_DELAY) : 0
 
 const NO_ENGINE = process.env.KEYBASE_NO_ENGINE
 if (NO_ENGINE) {
   console.log('Engine disabled!')
 }
 
+type SessionID = number;
+type SessionIDKey = string; // used in our maps, really converted to a string key
+type MethodKey = string;
+type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => void
+
 class Engine {
+  logLocal: (msgs: any) => void;
+  responseMeta: {[key: SessionIDKey]: {
+    method: string,
+    param: ?Object,
+  }};
+  sessionIDToResponse: {[key: SessionIDKey]: ?Object};
+  rpcClient: Object;
+  sessionID: number;
+  sessionIDToIncomingCall: {[key: SessionIDKey]: {
+    incomingCallMap: incomingCallMapType,
+    waitingHandler: ?WaitingHandlerType,
+  }}
+  generalListeners: {[key: MethodKey]: (param: ?Object, response: ?Object) => void};
+  serverListeners: {[key: MethodKey]: (param: ?Object, cbs: Object, sessionID: SessionID) => void};
+  onConnectFns: {[key: string]: () => void};
+  _failOnError: boolean;
+  inListenerCallback: boolean;
+
   constructor () {
     const {logLocal} = setupLocalLogs()
     this.logLocal = logLocal
@@ -38,14 +64,13 @@ class Engine {
       }, 10 * 1000)
     }
 
-    this.program = 'keybase.1'
-
     if (!NO_ENGINE) {
       this.rpcClient = new RpcClient(
+        // $FlowIssue
         new Transport(
           payload => {
-            if (__DEV__ && process.env.KEYBASE_RPC_DELAY_RESULT) {
-              setTimeout(() => this._rpcIncoming(payload), process.env.KEYBASE_RPC_DELAY_RESULT)
+            if (__DEV__ && KEYBASE_RPC_DELAY_RESULT) {
+              setTimeout(() => this._rpcIncoming(payload), KEYBASE_RPC_DELAY_RESULT)
             } else {
               this._rpcIncoming(payload)
             }
@@ -53,7 +78,7 @@ class Engine {
           this._rpcWrite,
           () => this._onConnect()
         ),
-        this.program
+        'keybase.1',
       )
 
       if (this.rpcClient.transport.needsConnect) {
@@ -97,7 +122,7 @@ class Engine {
     this.inListenerCallback = false
   }
 
-  listenOnConnect (key, f) {
+  listenOnConnect (key: string, f: () => void) {
     if (NO_ENGINE) {
       return
     }
@@ -126,8 +151,8 @@ class Engine {
   }
 
   _setupListener () {
-    this.subscription = NativeEventEmitter.addListener(
-      engine.eventName,
+    NativeEventEmitter.addListener(
+      nativeEngine.eventName,
       payload => {
         if (!payload) {
           return
@@ -142,39 +167,39 @@ class Engine {
 
   // Bind a single callback to a method.
   // Newer calls to this will overwrite older listeners, and older listeners will not get called.
-  listenGeneralIncomingRpc (params) {
+  listenGeneralIncomingRpc (params: {[key: MethodKey]: () => void}) {
     Object.keys(params).forEach(method => {
       this.generalListeners[method] = params[method]
     })
   }
 
-  removeGeneralIncomingRpc (method) {
+  removeGeneralIncomingRpc (method: MethodKey) {
     this.listenGeneralIncomingRpc({[method]: () => {}})
   }
 
-  listenServerInit (method, listener) {
+  listenServerInit (method: MethodKey, listener: (param: ?Object, cbs: Object, sessionID: SessionID) => void) {
     this.serverListeners[method] = listener
   }
 
-  _serverInitIncomingRPC (method, param, response) {
+  _serverInitIncomingRPC (method: MethodKey, param: ?Object, response: Object) {
     const sid = this.getSessionID()
     const cbs = {
       start: callMap => {
-        this.sessionIDToIncomingCall[sid] = {incomingCallMap: callMap, waitingHandler: null}
+        this.sessionIDToIncomingCall[String(sid)] = {incomingCallMap: callMap, waitingHandler: null}
         response.result(sid)
       },
       end: () => {
-        delete this.sessionIDToIncomingCall[sid]
+        delete this.sessionIDToIncomingCall[String(sid)]
       },
     }
     this.serverListeners[method](param, cbs, sid)
   }
 
-  _rpcWrite (data) {
-    engine.runWithData(data)
+  _rpcWrite (data: any) {
+    nativeEngine.runWithData(data)
   }
 
-  _wrapResponseOnceOnly (method, param, response, waitingHandler) {
+  _wrapResponseOnceOnly (method: MethodKey, param: Object, response: ?Object, waitingHandler: ?WaitingHandlerType) {
     const {sessionID} = param
     const {seqid} = response || {seqid: 0}
 
@@ -193,7 +218,7 @@ class Engine {
         cleanup()
         once = true
       },
-      result: (...args) => {
+      result: (...args: Array<any>) => {
         if (once) {
           if (printRPC) {
             this.logLocal('RPC ▼ result bailing on additional calls: ', method, seqid, param, ...args)
@@ -212,7 +237,7 @@ class Engine {
           console.warn('Calling response.result on non-response object: ', method)
         }
       },
-      error: (...args) => {
+      error: (...args: Array<any>) => {
         if (once) {
           if (printRPC) {
             this.logLocal('RPC ▼ error bailing on additional calls: ', method, seqid, param, ...args)
@@ -234,22 +259,22 @@ class Engine {
       },
     }
 
-    if (__DEV__ && process.env.KEYBASE_RPC_DELAY) {
+    if (__DEV__ && KEYBASE_RPC_DELAY) {
       const result = wrappedResponse.result
       const error = wrappedResponse.error
       wrappedResponse.result = (...args) => {
         console.log('RPC Delayed')
-        setTimeout(() => { result(...args) }, process.env.KEYBASE_RPC_DELAY)
+        setTimeout(() => { result(...args) }, KEYBASE_RPC_DELAY)
       }
       wrappedResponse.error = (...args) => {
         console.log('RPC Delayed')
-        setTimeout(() => { error(...args) }, process.env.KEYBASE_RPC_DELAY)
+        setTimeout(() => { error(...args) }, KEYBASE_RPC_DELAY)
       }
     }
 
     // Incoming calls have no sessionID so let's ignore
     if (sessionID) {
-      this.sessionIDToResponse[sessionID] = wrappedResponse
+      this.sessionIDToResponse[String(sessionID)] = wrappedResponse
 
       if (printOutstandingRPCs) {
         this.responseMeta[sessionID] = {method, param}
@@ -263,7 +288,7 @@ class Engine {
     return wrappedResponse
   }
 
-  _generalIncomingRpc (method, param, response) {
+  _generalIncomingRpc (method: MethodKey, param: Object, response: any) {
     const listener = this.generalListeners[method]
 
     if (!listener) {
@@ -271,19 +296,19 @@ class Engine {
     }
 
     // make wrapper so we only call this once
-    const wrappedResponse = this._wrapResponseOnceOnly(method, param, response)
+    const wrappedResponse = this._wrapResponseOnceOnly(method, param, response, null)
     listener(param, wrappedResponse)
   }
 
-  _hasNoHandler (method, callMap, generalIncomingRpcMap) {
+  _hasNoHandler (method: MethodKey, callMap: incomingCallMapType) {
     if (!callMap) {
-      return generalIncomingRpcMap[method] == null
+      return this._generalIncomingRpc[method] == null
     }
 
     return callMap[method] == null
   }
 
-  _rpcIncoming (payload) {
+  _rpcIncoming (payload: {method: MethodKey, param: Array<Object>, response: ?Object}) {
     const {
       method,
       param: incomingParam,
@@ -304,8 +329,7 @@ class Engine {
     }
 
     const {sessionID} = param
-
-    const {incomingCallMap, waitingHandler} = this.sessionIDToIncomingCall[sessionID] || {}
+    const {incomingCallMap, waitingHandler} = this.sessionIDToIncomingCall[String(sessionID)] || {}
     const callMap = incomingCallMap
 
     if (printRPC) {
@@ -319,7 +343,7 @@ class Engine {
         waitingHandler(false, method, sessionID)
       }
       callMap[method](param, wrappedResponse)
-    } else if (method === 'keybase.1.logUi.log' && this._hasNoHandler(method, callMap || {}, this._generalIncomingRpc)) {
+    } else if (method === 'keybase.1.logUi.log' && this._hasNoHandler(method, callMap || {})) {
       log(param)
       wrappedResponse.result()
     } else if (!sessionID && this.generalListeners[method]) {
@@ -349,10 +373,8 @@ class Engine {
     this._failOnError = true
   }
 
-  // Make an RPC and call callbacks in the incomingCallMap
-  // (name of call, {arguments object}, {methodName: function(params, response)}, function(err, data), function(waiting, method, sessionID)
-  // Use rpc() instead
-  rpcUnchecked (method, param, incomingCallMap, callback, waitingHandler) {
+  rpc (params: {method: MethodKey, param: ?Object, incomingCallMap: incomingCallMapType, callback: () => void, waitingHandler: WaitingHandlerType}) {
+    let {method, param, incomingCallMap, callback, waitingHandler} = params
     if (NO_ENGINE) {
       return
     }
@@ -363,8 +385,8 @@ class Engine {
 
     // allow overwriting of sessionID with param.sessionID
     const sessionID = param.sessionID = param.sessionID || this.getSessionID()
-    this.sessionIDToIncomingCall[sessionID] = {incomingCallMap, waitingHandler}
-    this.sessionIDToResponse[sessionID] = null
+    this.sessionIDToIncomingCall[String(sessionID)] = {incomingCallMap, waitingHandler}
+    this.sessionIDToResponse[String(sessionID)] = null
 
     const invokeCallback = (err, data) => {
       if (waitingHandler) {
@@ -375,8 +397,8 @@ class Engine {
         this.logLocal('RPC ◀', method, param, err, err && err.raw, JSON.stringify(data))
       }
       // deregister incomingCallbacks
-      delete this.sessionIDToIncomingCall[sessionID]
-      delete this.sessionIDToResponse[sessionID]
+      delete this.sessionIDToIncomingCall[String(sessionID)]
+      delete this.sessionIDToResponse[String(sessionID)]
       if (callback) {
         callback(err, data)
       }
@@ -391,20 +413,20 @@ class Engine {
         waitingHandler(true, method, sessionID)
       }
 
-      if (__DEV__ && process.env.KEYBASE_RPC_DELAY_RESULT) {
+      if (__DEV__ && KEYBASE_RPC_DELAY_RESULT) {
         this.rpcClient.invoke(method, [param], (err, data) => {
-          setTimeout(() => invokeCallback(err, data), process.env.KEYBASE_RPC_DELAY_RESULT)
+          setTimeout(() => invokeCallback(err, data), KEYBASE_RPC_DELAY_RESULT)
         })
       } else {
         this.rpcClient.invoke(method, [param], invokeCallback)
       }
     }
 
-    if (__DEV__ && process.env.KEYBASE_RPC_DELAY) {
+    if (__DEV__ && KEYBASE_RPC_DELAY) {
       if (printRPC) {
         this.logLocal('RPC [DELAYED] ▶', method, param)
       }
-      setTimeout(invoke, process.env.KEYBASE_RPC_DELAY)
+      setTimeout(invoke, KEYBASE_RPC_DELAY)
     } else {
       invoke()
     }
@@ -412,12 +434,7 @@ class Engine {
     return sessionID
   }
 
-  rpc (params) {
-    const {method, param, incomingCallMap, callback, waitingHandler} = params
-    return this.rpcUnchecked(method, param, incomingCallMap, callback, waitingHandler)
-  }
-
-  cancelRPC (response, error) {
+  cancelRPC (response: ?{error: () => void}, error: any) {
     if (response) {
       if (response.error) {
         response.error(error || cancelError)
@@ -428,17 +445,13 @@ class Engine {
   }
 
   reset () {
-    engine.reset()
+    nativeEngine.reset()
   }
 }
 
 const cancelError = {
   code: constants.StatusCode.scgeneric,
   desc: 'Canceling RPC',
-}
-
-export function isRPCCancelError (err) {
-  return err && err.code === cancelError.code && err.message === cancelError.message
 }
 
 export default new Engine()
