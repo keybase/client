@@ -1,6 +1,7 @@
 // @flow
 export default {
   black: '#000000',
+  black_05: 'rgba(0, 0, 0, 0.05)',
   black_10: 'rgba(0, 0, 0, 0.10)',
   black_20: 'rgba(0, 0, 0, 0.20)',
   black_40: 'rgba(0, 0, 0, 0.40)',

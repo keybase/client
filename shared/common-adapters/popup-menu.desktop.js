@@ -28,6 +28,7 @@ class Menu extends Component<void, Props, void> {
       }}>
         <style>{realCSS}</style>
         <Box style={{...stylesMenu, ...this.props.style}}>
+          {this.props.header}
           <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0, paddingTop: 7, paddingBottom: 7}} >
             {
               this.props.items.map((i, idx) => {
@@ -78,8 +79,6 @@ const stylesMenu = {
   alignItems: 'stretch',
   backgroundColor: globalColors.white,
   borderRadius: 3,
-  marginTop: 29,
-  marginLeft: 4,
   boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
   overflowX: 'hidden',
   overflowY: 'auto',
