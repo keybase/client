@@ -1,14 +1,14 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
-import {View, TouchableHighlight} from 'react-native'
-import {Box, Text, Icon} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles/style-guide'
-
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
+import {Box, Text, Icon} from '../common-adapters'
+import {View, TouchableHighlight} from 'react-native'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 type RevokedHeaderProps = {children?: Array<any>}
 type RevokedHeaderState = {expanded: boolean}
+
 class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderState> {
   state: RevokedHeaderState;
 

@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 export type Endpoint = (params: any, response: any) => (Promise<any> | any)
 
 export type NestedCallMap = {[key: string]: (NestedCallMap | Endpoint)}

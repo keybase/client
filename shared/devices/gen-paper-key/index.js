@@ -1,10 +1,10 @@
 // @flow
+import HiddenString from '../../util/hidden-string'
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
 import Render from '../../login/signup/success/index.render'
+import {connect} from 'react-redux'
 import {generatePaperKey} from '../../actions/devices'
 import {navigateUp} from '../../actions/router'
-import HiddenString from '../../util/hidden-string'
 
 type State = {
   loading: boolean

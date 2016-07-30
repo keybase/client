@@ -1,10 +1,9 @@
 // @flow
-
 import React from 'react'
+import type {IconType} from '../../common-adapters/icon'
 import type {Props, BannerItem} from './index.render'
 import {Box, Text, Icon, Button, BackButton} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
-import type {IconType} from '../../common-adapters/icon'
 
 const Banner = ({type, desc}: BannerItem) => {
   const backgroundColor = {

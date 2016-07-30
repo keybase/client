@@ -1,5 +1,7 @@
+// @flow
 import EngineError from './errors'
 import rpc from 'framed-msgpack-rpc'
+// $FlowIssue
 import windowsHack from './windows-hack'
 
 const {
@@ -7,6 +9,7 @@ const {
 } = rpc
 
 class BaseTransport extends RobustTransport {
+// $FlowIssue
   constructor (opts, writeCallback, incomingRPCCallback) {
     super(opts)
 
@@ -18,7 +21,7 @@ class BaseTransport extends RobustTransport {
     }
   }
 
-  unwrap_incoming_error (err) { // eslint-disable-line camelcase
+  unwrap_incoming_error (err: any) { // eslint-disable-line camelcase
     if (!err) {
       return null
     }
@@ -30,7 +33,7 @@ class BaseTransport extends RobustTransport {
     }
   }
 
-  _connect_critical_section (cb) { // eslint-disable-line camelcase
+  _connect_critical_section (cb: any) { // eslint-disable-line camelcase
     super._connect_critical_section(cb)
     windowsHack()
   }
