@@ -1,5 +1,4 @@
 // @flow
-
 import React from 'react'
 import type {Props} from './ignore.render'
 import {Confirm, Box, Text, Icon, Avatar, Usernames} from '../../common-adapters'

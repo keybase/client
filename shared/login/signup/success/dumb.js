@@ -1,8 +1,7 @@
 // @flow
-
+import HiddenString from '../../../util/hidden-string'
 import Render from './index.render'
 import type {DumbComponentMap} from '../../../constants/types/more'
-import HiddenString from '../../../util/hidden-string'
 
 const baseMock = {
   paperkey: new HiddenString('elephant bag candy asteroid laptop mug second archive pizza ring fish bumpy down'),

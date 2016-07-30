@@ -1,9 +1,9 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props} from './list'
-import type {IconType} from '../common-adapters/icon'
-import {Box, Text, Icon} from '../common-adapters'
 import Row from './row'
+import type {IconType} from '../common-adapters/icon'
+import type {Props} from './list'
+import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 type State = {

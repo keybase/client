@@ -1,10 +1,10 @@
 // @flow
 import React from 'react'
-import {globalStyles} from '../../styles/style-guide'
-import {BackButton} from '../../common-adapters'
 import type {Props} from './container'
+import {BackButton} from '../../common-adapters'
+import {globalStyles} from '../../styles/style-guide'
 
-export default ({children, onBack, style, outerStyle}: Props) => {
+const Container = ({children, onBack, style, outerStyle}: Props) => {
   return (
     <div style={{...stylesContainer, ...outerStyle}}>
       {onBack && <BackButton style={stylesButton} onClick={onBack} />}
@@ -34,3 +34,5 @@ const stylesButton = {
   zIndex: 9999,
   position: 'absolute',
 }
+
+export default Container

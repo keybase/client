@@ -1,6 +1,5 @@
 // @flow
 import {Component} from 'react'
-
 import type {$Exact} from '../../../constants/types/more'
 
 export type Props = $Exact<{

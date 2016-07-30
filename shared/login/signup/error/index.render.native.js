@@ -1,10 +1,9 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
+import type {Props} from './index.render'
 import {View} from 'react-native'
 
-import type {Props} from './index.render'
-
-export default class Render extends Component {
+class Render extends Component {
   props: Props;
 
   render () {
@@ -12,3 +11,4 @@ export default class Render extends Component {
   }
 }
 
+export default Render

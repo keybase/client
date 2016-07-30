@@ -1,10 +1,9 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
-import {globalColors, globalStyles} from '../../../styles/style-guide'
-import {Box, Checkbox, Button, Text, Icon} from '../../../common-adapters'
-import {specialStyles} from '../../../common-adapters/text'
-
 import type {Props} from './index.render'
+import {Box, Checkbox, Button, Text, Icon} from '../../../common-adapters'
+import {globalColors, globalStyles} from '../../../styles/style-guide'
+import {specialStyles} from '../../../common-adapters/text'
 
 /* types:
   paperkey: HiddenString,
@@ -17,7 +16,7 @@ type State = {
   checked: boolean
 }
 
-export default class Render extends Component<void, Props, State> {
+class Render extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -92,3 +91,5 @@ const paperCornerStyle = {
   right: 0,
   top: -4,
 }
+
+export default Render

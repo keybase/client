@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 import ConfirmClearHistory from './clear-history.render'
 import ConfirmDelete from './delete.render'
 import ConfirmIgnore from './ignore.render'
@@ -7,7 +7,7 @@ import {isMobile} from '../../constants/platform'
 
 const parentPropsCommon = isMobile ? {} : {style: {display: 'flex', width: 640, height: 580, outline: '1px solid lightgray'}}
 
-export const clearHistoryMap: DumbComponentMap<ConfirmClearHistory> = {
+const clearHistoryMap: DumbComponentMap<ConfirmClearHistory> = {
   component: ConfirmClearHistory,
   mocks: {
     'Normal - Public': {
@@ -56,7 +56,7 @@ export const clearHistoryMap: DumbComponentMap<ConfirmClearHistory> = {
   },
 }
 
-export const deleteMap: DumbComponentMap<ConfirmDelete> = {
+const deleteMap: DumbComponentMap<ConfirmDelete> = {
   component: ConfirmDelete,
   mocks: {
     'Normal - Public': {
@@ -84,7 +84,7 @@ export const deleteMap: DumbComponentMap<ConfirmDelete> = {
   },
 }
 
-export const ignoreMap: DumbComponentMap<ConfirmIgnore> = {
+const ignoreMap: DumbComponentMap<ConfirmIgnore> = {
   component: ConfirmIgnore,
   mocks: {
     'Normal - Public': {
@@ -116,4 +116,10 @@ export default {
   'Folders Clear History Confirmation': clearHistoryMap,
   'Folders Delete Confirmation': deleteMap,
   'Folders Ignore Confirmation': ignoreMap,
+}
+
+export {
+  clearHistoryMap,
+  deleteMap,
+  ignoreMap,
 }

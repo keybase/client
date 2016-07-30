@@ -1,8 +1,7 @@
 // @flow
 import Intro from './intro.render'
-import type {DumbComponentMap} from '../../constants/types/more'
-
 import type IntroProps from './intro'
+import type {DumbComponentMap} from '../../constants/types/more'
 
 const props: IntroProps = {
   onSignup: () => {},
@@ -12,7 +11,7 @@ const props: IntroProps = {
   loaded: false,
 }
 
-export const dumbMap: DumbComponentMap<Intro> = {
+const dumbMap: DumbComponentMap<Intro> = {
   component: Intro,
   mocks: {
     'Splash': props,
@@ -24,4 +23,8 @@ export const dumbMap: DumbComponentMap<Intro> = {
 
 export default {
   'Intro': dumbMap,
+}
+
+export {
+  dumbMap,
 }

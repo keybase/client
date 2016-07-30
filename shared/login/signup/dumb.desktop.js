@@ -1,14 +1,13 @@
 // @flow
+import DeviceName from '../register/set-public-name/index.render'
+import Error from './error/index.render'
+import HiddenString from '../../util/hidden-string'
 import InviteCode from './invite-code.render'
+import Passphrase from './passphrase/index.render'
 import RequestInviteSuccess from './request-invite-success.render'
 import RequesteInvite from './request-invite.render'
-import usernameEmail from './username-email-form.render'
-import Error from './error/index.render'
-import Passphrase from './passphrase/index.render'
 import Success from './success/index.render'
-import DeviceName from '../register/set-public-name/index.render'
-
-import HiddenString from '../../util/hidden-string'
+import usernameEmail from './username-email-form.render'
 
 const nullFunc = () => {}
 

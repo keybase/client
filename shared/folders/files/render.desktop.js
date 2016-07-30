@@ -1,12 +1,12 @@
 // @flow
-import React, {Component} from 'react'
-import {Box, Text, BackButton, Avatar, PopupMenu, Icon, Usernames, ListItem, Button} from '../../common-adapters'
 import File from './file/render'
-import {globalStyles, globalColors} from '../../styles/style-guide'
-import {resolveImageAsURL} from '../../../desktop/resolve-root'
-import {intersperseFn} from '../../util/arrays'
-import type {Props} from './render'
+import React, {Component} from 'react'
 import type {IconType} from '../../common-adapters/icon'
+import type {Props} from './render'
+import {Box, Text, BackButton, Avatar, PopupMenu, Icon, Usernames, ListItem, Button} from '../../common-adapters'
+import {globalStyles, globalColors} from '../../styles/style-guide'
+import {intersperseFn} from '../../util/arrays'
+import {resolveImageAsURL} from '../../../desktop/resolve-root'
 
 const Section = ({section, theme}) => (
   <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
@@ -77,7 +77,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode, onClickPaperkey}
   )
 }
 
-export default class Render extends Component<void, Props, void> {
+class Render extends Component<void, Props, void> {
   _renderContents (isPrivate: boolean, ignored: boolean) {
     const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
 
@@ -244,3 +244,5 @@ function styleMenuColorThemed (theme, showingMenu): string {
     ? (showingMenu ? globalColors.black_40 : globalColors.white)
     : (showingMenu ? globalColors.blue3 : globalColors.white)
 }
+
+export default Render

@@ -1,5 +1,4 @@
 // @flow
-
 import Render from './index.render'
 import type {DumbComponentMap} from '../../../constants/types/more'
 

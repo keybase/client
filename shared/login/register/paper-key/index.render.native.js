@@ -1,13 +1,11 @@
 // @flow
-import React, {Component} from 'react'
-import {Box, Button, Icon, Input, Text} from '../../../common-adapters'
 import Container from '../../forms/container'
+import React, {Component} from 'react'
 import type {Props} from './index.render'
+import {Box, Button, Icon, Input, Text} from '../../../common-adapters'
 import {globalStyles} from '../../../styles/style-guide'
 
 class PaperKeyRender extends Component<void, Props, void> {
-  props: Props;
-
   render () {
     return (
       <Box style={stylesBox}>

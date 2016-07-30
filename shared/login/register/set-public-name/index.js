@@ -1,10 +1,10 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
 import Render from './index.render'
 import type {Props, State} from './index.render'
+import {connect} from 'react-redux'
 
-export class SetPublicName extends Component<void, Props, State> {
+class SetPublicName extends Component<void, Props, State> {
   props: Props;
   state: State;
 
@@ -48,3 +48,7 @@ export class SetPublicName extends Component<void, Props, State> {
 export default connect(
   state => ({waiting: state.login.waitingForResponse})
 )(SetPublicName)
+
+export {
+  SetPublicName,
+}

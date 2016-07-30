@@ -15,6 +15,7 @@ export type Props = {
   setCameraBrokenMode: Function,
   textEntered: Function,
   onChangeText: Function,
+  doneRegistering: Function,
   onBack: Function,
   enterText: string
 }

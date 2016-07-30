@@ -1,7 +1,5 @@
-/* @flow */
-/* eslint-disable react/prop-types */
-
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type Props = {
   name: string,
@@ -15,5 +13,4 @@ export type Props = {
   waiting: boolean
 }
 
-export default class Render extends Component<void, Props, void> {
-}
+export default class Render extends Component<void, Props, void> { }

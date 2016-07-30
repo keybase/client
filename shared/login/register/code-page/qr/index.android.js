@@ -1,18 +1,16 @@
 // @flow
+import BarcodeScanner from 'react-native-barcodescanner'
 import React, {Component} from 'react'
+import type {Props} from './index'
 import {Image, View} from 'react-native'
 import {globalStyles} from '../../../../styles/style-guide'
-
-import BarcodeScanner from 'react-native-barcodescanner'
 import {requestPermission} from 'react-native-android-permissions'
-
-import type {Props} from './index'
 
 type State = {
   permissionGranted: boolean
 }
 
-export default class QR extends Component<void, Props, State> {
+class QR extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -47,3 +45,5 @@ export default class QR extends Component<void, Props, State> {
     }
   }
 }
+
+export default QR

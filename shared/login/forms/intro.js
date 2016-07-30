@@ -1,8 +1,7 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
 import Render from './intro.render'
+import {connect} from 'react-redux'
 import {routeAppend} from '../../actions/router'
 import {setRevokedSelf, setLoginFromRevokedDevice, login} from '../../actions/login'
 
