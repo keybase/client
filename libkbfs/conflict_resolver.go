@@ -230,52 +230,33 @@ func (cr *ConflictResolver) checkDone(ctx context.Context) error {
 }
 
 func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState,
-	writerLocked bool) (
-	unmerged []*RootMetadata, merged []*RootMetadata, err error) {
+	writerLocked bool) (unmerged []ImmutableRootMetadata,
+	merged []ImmutableRootMetadata, err error) {
 	// first get all outstanding unmerged MDs for this device
 	var branchPoint MetadataRevision
-	var unmergedImmutable []ImmutableRootMetadata
 	if writerLocked {
-		branchPoint, unmergedImmutable, err =
+		branchPoint, unmerged, err =
 			cr.fbo.getUnmergedMDUpdatesLocked(ctx, lState)
 	} else {
-		branchPoint, unmergedImmutable, err =
+		branchPoint, unmerged, err =
 			cr.fbo.getUnmergedMDUpdates(ctx, lState)
 	}
 	if err != nil {
 		return nil, nil, err
 	}
-	unmerged = make([]*RootMetadata, len(unmergedImmutable))
-	// Deep copy because CR may change them.
-	for i, md := range unmergedImmutable {
-		mdCopy, err := md.deepCopy(cr.config.Codec(), true)
-		if err != nil {
-			return nil, nil, err
-		}
-		unmerged[i] = mdCopy
-	}
 
 	// now get all the merged MDs, starting from after the branch point
-	mergedImmutable, err := getMergedMDUpdates(
+	merged, err = getMergedMDUpdates(
 		ctx, cr.fbo.config, cr.fbo.id(), branchPoint+1)
 	if err != nil {
 		return nil, nil, err
-	}
-	merged = make([]*RootMetadata, len(mergedImmutable))
-	// Deep copy because CR may change them.
-	for i, md := range mergedImmutable {
-		mdCopy, err := md.deepCopy(cr.config.Codec(), true)
-		if err != nil {
-			return nil, nil, err
-		}
-		merged[i] = mdCopy
 	}
 
 	return unmerged, merged, nil
 }
 
 func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
-	unmerged []*RootMetadata, merged []*RootMetadata) (err error) {
+	unmerged, merged []ImmutableRootMetadata) (err error) {
 	cr.inputLock.Lock()
 	defer cr.inputLock.Unlock()
 	// check done while holding the lock, so we know for sure if
@@ -317,7 +298,7 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 }
 
 func (cr *ConflictResolver) makeChains(ctx context.Context,
-	unmerged []*RootMetadata, merged []*RootMetadata) (
+	unmerged, merged []ImmutableRootMetadata) (
 	unmergedChains *crChains, mergedChains *crChains, err error) {
 	unmergedChains, err =
 		newCRChains(ctx, cr.config, unmerged, &cr.fbo.blocks, true)
@@ -1025,7 +1006,7 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 	ctx context.Context, lState *lockState, writerLocked bool) (
 	unmergedChains, mergedChains *crChains, unmergedPaths []path,
 	mergedPaths map[BlockPointer]path, recreateOps []*createOp,
-	unmerged, merged []*RootMetadata, err error) {
+	unmerged, merged []ImmutableRootMetadata, err error) {
 	// Fetch the merged and unmerged MDs
 	unmerged, merged, err = cr.getMDs(ctx, lState, writerLocked)
 	if err != nil {
@@ -2554,7 +2535,9 @@ func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 	// No need to run any identifies on these chains, since we have
 	// already finished all actions.
 	resolvedChains, err := newCRChains(ctx, cr.config,
-		[]*RootMetadata{md}, &cr.fbo.blocks, false)
+		[]ImmutableRootMetadata{MakeImmutableRootMetadata(md, fakeMdID(1),
+			cr.config.Clock().Now())},
+		&cr.fbo.blocks, false)
 	if err != nil {
 		return nil, err
 	}
@@ -3234,7 +3217,7 @@ func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	lState *lockState, unmergedChains *crChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path, lbc localBcache,
-	newFileBlocks fileBlockMap, unmergedMDs []*RootMetadata,
+	newFileBlocks fileBlockMap, unmergedMDs []ImmutableRootMetadata,
 	writerLocked bool) (err error) {
 	md, err := cr.createResolvedMD(ctx, lState, unmergedPaths, unmergedChains,
 		mergedChains)
@@ -3288,7 +3271,7 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 // conflict resolution failure due to missing blocks, caused by a
 // concurrent gcOp on the main branch.
 func (cr *ConflictResolver) maybeUnstageAfterFailure(ctx context.Context,
-	lState *lockState, mergedMDs []*RootMetadata, err error) error {
+	lState *lockState, mergedMDs []ImmutableRootMetadata, err error) error {
 	// Make sure the error is related to a missing block.
 	_, isBlockNotFound := err.(BServerErrorBlockNonExistent)
 	_, isBlockDeleted := err.(BServerErrorBlockDeleted)
@@ -3361,7 +3344,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
-	var mergedMDs []*RootMetadata
+	var mergedMDs []ImmutableRootMetadata
 	defer func() {
 		if err != nil {
 			// writerLock is definitely unlocked by here.
