@@ -3,7 +3,7 @@
 if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
     println "Skipping build because PR title contains [ci-skip]"
 } else {
-    nodeWithCleanup("ec2-fleet", {
+    nodeWithCleanup("test-debian", {
         slackOnError("client")
     }, {
         sh 'docker rm -v $(docker ps --filter status=exited -q 2>/dev/null) 2>/dev/null || echo "No Docker containers to remove"'
