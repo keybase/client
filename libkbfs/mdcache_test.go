@@ -47,7 +47,7 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	}
 
 	// put the md
-	irmd := MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Time{})
+	irmd := MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
 	if err := config.MDCache().Put(irmd); err != nil {
 		t.Errorf("Got error on put on md %v: %v", tlf, err)
 	}

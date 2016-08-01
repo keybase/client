@@ -90,6 +90,7 @@ func addFakeRMDSData(rmds *RootMetadataSigned, h *TlfHandle) {
 		Signature:    []byte{42},
 		VerifyingKey: MakeFakeVerifyingKeyOrBust("fake key"),
 	}
+	rmds.untrustedServerTimestamp = time.Now()
 
 	if !h.IsPublic() {
 		FakeInitialRekey(&rmds.MD, h.ToBareHandleOrBust())

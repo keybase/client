@@ -337,6 +337,9 @@ func MakeImmutableRootMetadata(
 	if mdID == (MdID{}) {
 		panic("zero mdID passed to MakeImmutableRootMetadata")
 	}
+	if localTimestamp == (time.Time{}) {
+		panic("zero localTimestamp passed to MakeImmutableRootMetadata")
+	}
 	return ImmutableRootMetadata{rmd.ReadOnly(), mdID, localTimestamp}
 }
 

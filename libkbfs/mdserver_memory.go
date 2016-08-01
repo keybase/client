@@ -228,6 +228,7 @@ func (md *MDServerMemory) getHeadForTLF(ctx context.Context, id TlfID,
 	if err != nil {
 		return nil, err
 	}
+	rmds.untrustedServerTimestamp = blocks[len(blocks)-1].timestamp
 	return &rmds, nil
 }
 
@@ -305,6 +306,7 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id TlfID,
 		if err != nil {
 			return nil, MDServerError{err}
 		}
+		rmds.untrustedServerTimestamp = blocks[i].timestamp
 		expectedRevision := blockList.initialRevision + MetadataRevision(i)
 		if expectedRevision != rmds.MD.Revision {
 			panic(fmt.Errorf("expected revision %v, got %v",
