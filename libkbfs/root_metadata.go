@@ -316,7 +316,16 @@ func (md *RootMetadata) ReadOnly() ReadOnlyRootMetadata {
 // can be assumed to never alias a (modifiable) *RootMetadata.
 type ImmutableRootMetadata struct {
 	ReadOnlyRootMetadata
-	mdID           MdID
+	mdID MdID
+	// localTimestamp represents the time at which the MD update was
+	// applied at the server, adjusted for the local clock.  So for
+	// example, it can be used to show how long ago a particular
+	// update happened (e.g., "5 hours ago").  Note that the update
+	// time supplied by the server is technically untrusted (i.e., not
+	// signed by a writer of the TLF, only provided by the server).
+	// If this ImmutableRootMetadata was generated locally and still
+	// persists in the journal or in the cache, localTimestamp comes
+	// directly from the local clock.
 	localTimestamp time.Time
 }
 
