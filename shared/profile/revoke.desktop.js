@@ -3,49 +3,13 @@
 import React from 'react'
 import {Box, Text, Button, PlatformIcon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import {capitalize} from 'lodash'
+import {formatMessage} from './revoke.shared'
+import {subtitle as platformSubtitle} from '../util/platforms'
 
 import type {Props} from './revoke'
-import type {Platforms} from '../constants/types/more'
-
-function formatMessage (platform: Platforms | 'btc') {
-  const prefix = 'Are you sure you want to revoke your'
-  let body
-  switch (platform) {
-    case 'btc':
-      body = 'Bitcoin address'
-      break
-    case 'dns':
-    case 'genericWebSite':
-      body = 'website'
-      break
-    case 'hackernews':
-      body = 'Hacker News identity'
-      break
-    default:
-      body = `${capitalize(platform)} identity`
-  }
-  return `${prefix} ${body}?`
-}
-
-function formatSubtext (platform: Platforms | 'btc', isHttps: boolean) {
-  switch (platform) {
-    case 'btc':
-      return ''
-    case 'dns':
-      return 'dns'
-    case 'genericWebSite':
-      if (isHttps) {
-        return 'https'
-      }
-      return 'http'
-    default:
-      return `@${platform}`
-  }
-}
 
 const Render = ({platform, platformHandle, isHttps, onCancel, onRevoke}: Props) => {
-  const platformHandleSubtitle = formatSubtext(platform, isHttps)
+  const platformHandleSubtitle = platformSubtitle(platform, isHttps)
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
