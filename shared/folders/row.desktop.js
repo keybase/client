@@ -3,16 +3,16 @@ import React from 'react'
 import type {Folder} from './list'
 import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
 import type {IconType} from '../common-adapters/icon'
-import {globalStyles, globalColors, backgroundURL} from '../styles/style-guide'
+import {globalStyles, globalColors, backgroundURL, globalMargins} from '../styles/style-guide'
 
 const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, isPublic}) => {
   let boxStyle: Object = {
-    width: smallMode ? 32 : 48,
-    minHeight: smallMode ? 40 : 48,
-    paddingTop: smallMode ? 8 : 12,
-    paddingBottom: smallMode ? 8 : 12,
-    paddingLeft: smallMode ? 4 : 8,
-    paddingRight: smallMode ? 4 : 8,
+    width: smallMode ? globalMargins.medium : globalMargins.large,
+    minHeight: smallMode ? 40 : globalMargins.large,
+    paddingTop: smallMode ? globalMargins.tiny : 12,
+    paddingBottom: smallMode ? globalMargins.tiny : 12,
+    paddingLeft: smallMode ? globalMargins.xtiny : globalMargins.tiny,
+    paddingRight: smallMode ? globalMargins.xtiny : globalMargins.tiny,
   }
 
   if (isPublic) {
@@ -27,7 +27,7 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, is
       {groupAvatar
         ? <Icon type={groupIcon} style={ignored ? {opacity: 0.5} : {}} />
         : <Avatar size={smallMode ? 24 : 32} username={userAvatar} opacity={ignored ? 0.5 : 1.0}
-          hasBackgroundColor={styles.rowContainer.backgroundColor} />}
+          backgroundColor={styles.rowContainer.backgroundColor} />}
     </Box>
   )
 }

@@ -56,7 +56,7 @@ class Files extends Component<void, Props, State> {
     const openCurrentFolder = () => { this.props.openInKBFS(this.props.path) }
     const ignoreCurrentFolder = () => { this.props.ignoreFolder(this.props.path) }
     const unIgnoreCurrentFolder = () => { this.props.favoriteFolder(this.props.path) }
-    const allowIgnore = folder.users.filter(f => !f.you).length > 0
+    const allowIgnore = folder.users.some(f => !f.you)
 
     return (
       <Render

@@ -12,7 +12,7 @@ const Avatars = ({styles, users, isPublic, ignored}) => {
   const groupIcon: any = styles.groupIcon
   const contents = users.length === 1 || users.length === 2
     ? <Avatar size={32} username={users[users.length - 1].username} opacity={ignored ? 0.5 : 1.0}
-      hasBackgroundColor={styles.rowContainer.backgroundColor} />
+      backgroundColor={styles.rowContainer.backgroundColor} />
       : <Icon type={groupIcon} />
 
   if (isPublic) {

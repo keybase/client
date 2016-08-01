@@ -34,10 +34,10 @@ export default class Avatar extends Component {
 
     return (
       <div onClick={this.props.onClick} style={{...globalStyles.noSelect, position: 'relative', width, height, ...this.props.style}}>
-        {this.props.hasBackgroundColor &&
+        {this.props.backgroundColor &&
           <div
             style={{...avatarStyle,
-              backgroundColor: this.props.hasBackgroundColor,
+              backgroundColor: this.props.backgroundColor,
               backgroundSize: 'cover',
             }} />}
         {showNoAvatar &&

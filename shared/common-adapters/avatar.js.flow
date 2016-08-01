@@ -13,7 +13,7 @@ type CommonProps = {
   forceLoading?: boolean,
   following?: ?boolean,
   followsYou?: ?boolean,
-  hasBackgroundColor?: string,
+  backgroundColor?: string,
   opacity?: number,
 }
 

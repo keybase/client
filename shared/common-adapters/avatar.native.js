@@ -34,11 +34,10 @@ export default class Avatar extends Component<void, Props, State> {
         onPress={this.props.onClick}
         activeOpacity={0.8}>
         <Box style={stylesContainer(size)}>
-          {this.props.hasBackgroundColor &&
+          {this.props.backgroundColor &&
             <View
               style={_.omit({...stylesImage(size),
-                resizeMode: undefined,
-                backgroundColor: this.props.hasBackgroundColor,
+                backgroundColor: this.props.backgroundColor,
               }, 'resizeMode')} />}
           {!!uri.uri && <Image
             style={{...stylesImage(size), opacity}}
