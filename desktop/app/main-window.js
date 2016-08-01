@@ -1,5 +1,5 @@
 import Window from './window'
-import {app, ipcMain} from 'electron'
+import {ipcMain} from 'electron'
 import {resolveRoot} from '../resolve-root'
 import hotPath from '../hot-path'
 import {windowStyle} from '../shared/styles/style-guide'
@@ -27,7 +27,6 @@ export default function () {
   )
 
   appState.manageWindow(mainWindow.window)
-  appState.manageApp(app)
 
   if (__DEV__ && forceMainWindowPosition) {
     mainWindow.window.setPosition(forceMainWindowPosition.x, forceMainWindowPosition.y)
