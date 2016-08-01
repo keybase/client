@@ -78,6 +78,8 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	c := make(chan error, 1)
 	config.mockMdserv.EXPECT().RegisterForUpdate(gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().Return(c, nil)
+	config.mockMdserv.EXPECT().OffsetFromServerTime().
+		Return(time.Duration(0), true).AnyTimes()
 
 	// None of these tests depend on time
 	config.mockClock.EXPECT().Now().AnyTimes().Return(time.Now())
@@ -244,7 +246,8 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 	FakeInitialRekey(&rmd.BareRootMetadata, h.ToBareHandleOrBust())
 
 	ops := getOps(config, id)
-	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(fakeTlfIDByte(id)))
+	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(fakeTlfIDByte(id)),
+		time.Now())
 	rmd.SerializedPrivateMetadata = make([]byte, 1)
 	config.Notifier().RegisterForChanges(
 		[]FolderBranch{{id, MasterBranch}}, config.observer)
@@ -430,7 +433,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	// create a new MD
 	config.mockMdops.EXPECT().GetUnmergedForTLF(
 		gomock.Any(), id, gomock.Any()).Return(ImmutableRootMetadata{}, nil)
-	irmd := MakeImmutableRootMetadata(rmd, fakeMdID(1))
+	irmd := MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
 	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id).Return(irmd, nil)
 	config.mockMdcache.EXPECT().Put(irmd).Return(nil)
 
@@ -479,11 +482,11 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h, Unmerged).Return(
 		TlfID{}, ImmutableRootMetadata{}, nil)
 	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h, Merged).Return(
-		TlfID{}, MakeImmutableRootMetadata(rmd, fakeMdID(1)), nil)
+		TlfID{}, MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now()), nil)
 	ops := getOps(config, id)
 	assert.False(t, fboIdentityDone(ops))
 
-	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(2))
+	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(2), time.Now())
 	n, ei, err :=
 		config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
 	require.NoError(t, err)
@@ -656,7 +659,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	n := nodeFromPath(t, ops, p)
 
 	// won't even try getting the block if the user isn't a reader
-	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1))
+	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
 	expectedErr := ReadAccessError{"alice", h.GetCanonicalName(), false}
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")
@@ -697,7 +700,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 
 	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
-	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1))
+	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
 
 	u := h.FirstResolvedWriter()
 
@@ -737,7 +740,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 
 	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
-	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1))
+	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
 
 	u := h.FirstResolvedWriter()
 
@@ -780,7 +783,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 
 	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
-	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1))
+	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
 
 	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)
@@ -818,7 +821,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 
 	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
-	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1))
+	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
 
 	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)
@@ -853,7 +856,7 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 
 	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
-	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1))
+	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
 
 	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)
@@ -894,7 +897,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 
 	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
-	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1))
+	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
 
 	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)
@@ -5010,7 +5013,7 @@ func TestKBFSOpsStatRootSuccess(t *testing.T) {
 
 	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
-	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1))
+	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
 
 	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)
@@ -5030,7 +5033,7 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 
 	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
-	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1))
+	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(1), time.Now())
 
 	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)

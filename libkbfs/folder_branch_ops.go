@@ -1025,7 +1025,8 @@ func (fbo *folderBranchOps) initMDLocked(
 			"%v: Unexpected MD ID during new MD initialization: %v",
 			md.ID, fbo.head.mdID)
 	}
-	fbo.setNewInitialHeadLocked(ctx, lState, MakeImmutableRootMetadata(md, mdID))
+	fbo.setNewInitialHeadLocked(ctx, lState,
+		MakeImmutableRootMetadata(md, mdID, fbo.config.Clock().Now()))
 	if err != nil {
 		return err
 	}
@@ -1966,7 +1967,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	irmd := MakeImmutableRootMetadata(md, mdID)
+	irmd := MakeImmutableRootMetadata(md, mdID, fbo.config.Clock().Now())
 	err = fbo.setHeadSuccessorLocked(ctx, lState, irmd, rebased)
 	if err != nil {
 		return err
@@ -2013,7 +2014,8 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	return fbo.setHeadSuccessorLocked(ctx, lState, MakeImmutableRootMetadata(md, mdID), rebased)
+	return fbo.setHeadSuccessorLocked(ctx, lState,
+		MakeImmutableRootMetadata(md, mdID, fbo.config.Clock().Now()), rebased)
 }
 
 func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
@@ -2088,7 +2090,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	irmd := MakeImmutableRootMetadata(md, mdID)
+	irmd := MakeImmutableRootMetadata(md, mdID, fbo.config.Clock().Now())
 	err = fbo.setHeadSuccessorLocked(ctx, lState, irmd, rebased)
 	if err != nil {
 		return err
@@ -4378,7 +4380,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	// Set the head to the new MD.
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
-	irmd := MakeImmutableRootMetadata(md, mdID)
+	irmd := MakeImmutableRootMetadata(md, mdID, fbo.config.Clock().Now())
 	err = fbo.setHeadConflictResolvedLocked(ctx, lState, irmd)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't set local MD head after a "+

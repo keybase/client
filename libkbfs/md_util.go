@@ -211,7 +211,8 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 				return nil, err
 			}
 			// Overwrite the cached copy with the new copy
-			irmdCopy := MakeImmutableRootMetadata(rmdCopy, rmd.mdID)
+			irmdCopy := MakeImmutableRootMetadata(rmdCopy, rmd.mdID,
+				rmd.localTimestamp)
 			if err := config.MDCache().Put(irmdCopy); err != nil {
 				return nil, err
 			}

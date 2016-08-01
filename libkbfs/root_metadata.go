@@ -317,16 +317,30 @@ func (md *RootMetadata) ReadOnly() ReadOnlyRootMetadata {
 type ImmutableRootMetadata struct {
 	ReadOnlyRootMetadata
 	mdID MdID
+	// localTimestamp represents the time at which the MD update was
+	// applied at the server, adjusted for the local clock.  So for
+	// example, it can be used to show how long ago a particular
+	// update happened (e.g., "5 hours ago").  Note that the update
+	// time supplied by the server is technically untrusted (i.e., not
+	// signed by a writer of the TLF, only provided by the server).
+	// If this ImmutableRootMetadata was generated locally and still
+	// persists in the journal or in the cache, localTimestamp comes
+	// directly from the local clock.
+	localTimestamp time.Time
 }
 
 // MakeImmutableRootMetadata makes a new ImmutableRootMetadata from
 // the given RMD and its corresponding MdID.
 func MakeImmutableRootMetadata(
-	rmd *RootMetadata, mdID MdID) ImmutableRootMetadata {
+	rmd *RootMetadata, mdID MdID,
+	localTimestamp time.Time) ImmutableRootMetadata {
 	if mdID == (MdID{}) {
 		panic("zero mdID passed to MakeImmutableRootMetadata")
 	}
-	return ImmutableRootMetadata{rmd.ReadOnly(), mdID}
+	if localTimestamp == (time.Time{}) {
+		panic("zero localTimestamp passed to MakeImmutableRootMetadata")
+	}
+	return ImmutableRootMetadata{rmd.ReadOnly(), mdID, localTimestamp}
 }
 
 // RootMetadataSigned is the top-level MD object stored in MD server

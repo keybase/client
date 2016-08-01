@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 
@@ -28,17 +29,19 @@ import (
 // places.
 type ImmutableBareRootMetadata struct {
 	*BareRootMetadata
-	mdID MdID
+	mdID           MdID
+	localTimestamp time.Time
 }
 
 // MakeImmutableBareRootMetadata makes a new ImmutableBareRootMetadata
 // from the given BareRootMetadata and its corresponding MdID.
 func MakeImmutableBareRootMetadata(
-	rmd *BareRootMetadata, mdID MdID) ImmutableBareRootMetadata {
+	rmd *BareRootMetadata, mdID MdID,
+	localTimestamp time.Time) ImmutableBareRootMetadata {
 	if mdID == (MdID{}) {
 		panic("zero mdID passed to MakeImmutableBareRootMetadata")
 	}
-	return ImmutableBareRootMetadata{rmd, mdID}
+	return ImmutableBareRootMetadata{rmd, mdID, localTimestamp}
 }
 
 // mdJournal stores a single ordered list of metadata IDs for
@@ -108,40 +111,46 @@ func (j mdJournal) mdPath(id MdID) string {
 }
 
 // getMD verifies the MD data and the writer signature (but not the
-// key) for the given ID and returns it.
-func (j mdJournal) getMD(id MdID) (*BareRootMetadata, error) {
+// key) for the given ID and returns it. It also returns the
+// last-modified timestamp of the file.
+func (j mdJournal) getMD(id MdID) (*BareRootMetadata, time.Time, error) {
 	// Read file.
 
 	path := j.mdPath(id)
 	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return nil, time.Time{}, err
 	}
 
 	var rmd BareRootMetadata
 	err = j.codec.Decode(data, &rmd)
 	if err != nil {
-		return nil, err
+		return nil, time.Time{}, err
 	}
 
 	// Check integrity.
 
 	mdID, err := j.crypto.MakeMdID(&rmd)
 	if err != nil {
-		return nil, err
+		return nil, time.Time{}, err
 	}
 
 	if id != mdID {
-		return nil, fmt.Errorf(
+		return nil, time.Time{}, fmt.Errorf(
 			"Metadata ID mismatch: expected %s, got %s", id, mdID)
 	}
 
 	err = rmd.VerifyWriterMetadata(j.codec, j.crypto)
 	if err != nil {
-		return nil, err
+		return nil, time.Time{}, err
 	}
 
-	return &rmd, nil
+	fi, err := os.Stat(path)
+	if err != nil {
+		return nil, time.Time{}, err
+	}
+
+	return &rmd, fi.ModTime(), nil
 }
 
 // putMD stores the given metadata under its ID, if it's not already
@@ -160,7 +169,7 @@ func (j mdJournal) putMD(
 		return MdID{}, err
 	}
 
-	_, err = j.getMD(id)
+	_, _, err = j.getMD(id)
 	if os.IsNotExist(err) {
 		// Continue on.
 	} else if err != nil {
@@ -198,11 +207,11 @@ func (j mdJournal) getHeadHelper() (ImmutableBareRootMetadata, error) {
 	if headID == (MdID{}) {
 		return ImmutableBareRootMetadata{}, nil
 	}
-	head, err := j.getMD(headID)
+	head, ts, err := j.getMD(headID)
 	if err != nil {
 		return ImmutableBareRootMetadata{}, err
 	}
-	return MakeImmutableBareRootMetadata(head, headID), nil
+	return MakeImmutableBareRootMetadata(head, headID, ts), nil
 }
 
 func (j mdJournal) checkGetParams(currentUID keybase1.UID) (
@@ -266,7 +275,7 @@ func (j mdJournal) convertToBranch(
 	var prevID MdID
 
 	for i, id := range allMdIDs {
-		brmd, err := j.getMD(id)
+		brmd, _, err := j.getMD(id)
 		if err != nil {
 			return err
 		}
@@ -294,6 +303,12 @@ func (j mdJournal) convertToBranch(
 			brmd.PrevRoot = prevID
 		}
 
+		// TODO: this rewrites the file, and so the modification time
+		// no longer tracks when exactly the original operation is
+		// done, so future ImmutableBareMetadatas for this MD will
+		// have a slightly wrong localTimestamp.  Instead, we might
+		// want to pass in the timestamp and do an explicit
+		// os.Chtimes() on the file after writing it.
 		newID, err := j.putMD(brmd, currentUID, currentVerifyingKey)
 		if err != nil {
 			return err
@@ -329,7 +344,7 @@ func (j mdJournal) pushEarliestToServer(
 		return MdID{}, nil, nil
 	}
 
-	rmd, err := j.getMD(earliestID)
+	rmd, _, err := j.getMD(earliestID)
 	if err != nil {
 		return MdID{}, nil, err
 	}
@@ -379,7 +394,7 @@ func (j mdJournal) getRange(
 	var rmds []ImmutableBareRootMetadata
 	for i, mdID := range mdIDs {
 		expectedRevision := realStart + MetadataRevision(i)
-		rmd, err := j.getMD(mdID)
+		rmd, ts, err := j.getMD(mdID)
 		if err != nil {
 			return nil, err
 		}
@@ -387,7 +402,7 @@ func (j mdJournal) getRange(
 			panic(fmt.Errorf("expected revision %v, got %v",
 				expectedRevision, rmd.Revision))
 		}
-		irmd := MakeImmutableBareRootMetadata(rmd, mdID)
+		irmd := MakeImmutableBareRootMetadata(rmd, mdID, ts)
 		rmds = append(rmds, irmd)
 	}
 

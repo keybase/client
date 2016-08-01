@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"sort"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"golang.org/x/net/context"
@@ -115,7 +116,8 @@ func TestFBStatusAllFields(t *testing.T) {
 	p2 := path{path: []pathNode{{Name: "a2"}, {Name: "b2"}}}
 	nodeCache.EXPECT().PathFromNode(mockNodeMatcher{n2}).AnyTimes().Return(p2)
 
-	fbsk.setRootMetadata(MakeImmutableRootMetadata(md, fakeMdID(1)))
+	fbsk.setRootMetadata(MakeImmutableRootMetadata(md, fakeMdID(1),
+		time.Now()))
 	fbsk.addDirtyNode(n1)
 	fbsk.addDirtyNode(n2)
 

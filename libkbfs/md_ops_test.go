@@ -8,6 +8,7 @@ import (
 	"errors"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
@@ -39,6 +40,8 @@ func mdOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config = NewConfigMock(mockCtrl, ctr)
 	mdops := NewMDOpsStandard(config)
 	config.SetMDOps(mdops)
+	config.mockMdserv.EXPECT().OffsetFromServerTime().
+		Return(time.Duration(0), true).AnyTimes()
 	injectShimCrypto(config)
 	interposeDaemonKBPKI(config, "alice", "bob", "charlie")
 	ctx = context.Background()
@@ -87,6 +90,7 @@ func addFakeRMDSData(rmds *RootMetadataSigned, h *TlfHandle) {
 		Signature:    []byte{42},
 		VerifyingKey: MakeFakeVerifyingKeyOrBust("fake key"),
 	}
+	rmds.untrustedServerTimestamp = time.Now()
 
 	if !h.IsPublic() {
 		FakeInitialRekey(&rmds.MD, h.ToBareHandleOrBust())
