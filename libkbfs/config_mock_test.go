@@ -69,7 +69,7 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.mockKbfs = NewMockKBFSOps(c)
 	config.SetKBFSOps(config.mockKbfs)
 	config.mockKbd = NewMockKeybaseDaemon(c)
-	config.SetKeybaseDaemon(config.mockKbd)
+	config.SetKeybaseService(config.mockKbd)
 	config.mockKbpki = NewMockKBPKI(c)
 	config.SetKBPKI(config.mockKbpki)
 	config.mockKeyman = NewMockKeyManager(c)

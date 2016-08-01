@@ -1503,7 +1503,7 @@ func TestKBFSOpsCancelGetFavorites(t *testing.T) {
 		nil,
 		conn.GetClient(),
 		logger.NewTestLogger(t))
-	config.SetKeybaseDaemon(daemon)
+	config.SetKeybaseService(daemon)
 
 	f := func(ctx context.Context) error {
 		_, err := config.KBFSOps().GetFavorites(ctx)

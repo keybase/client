@@ -258,9 +258,9 @@ type KBFSOps interface {
 	PushConnectionStatusChange(service string, newStatus error)
 }
 
-// KeybaseDaemon is an interface for communicating with the local
-// Keybase daemon.
-type KeybaseDaemon interface {
+// KeybaseService is an interface for communicating with the keybase
+// service.
+type KeybaseService interface {
 	// Resolve, given an assertion, resolves it to a username/UID
 	// pair. The username <-> UID mapping is trusted and
 	// immutable, so it can be cached. If the assertion is just
@@ -1258,8 +1258,8 @@ type Config interface {
 	SetBlockServer(BlockServer)
 	KeyServer() KeyServer
 	SetKeyServer(KeyServer)
-	KeybaseDaemon() KeybaseDaemon
-	SetKeybaseDaemon(KeybaseDaemon)
+	KeybaseService() KeybaseService
+	SetKeybaseService(KeybaseService)
 	BlockSplitter() BlockSplitter
 	SetBlockSplitter(BlockSplitter)
 	Notifier() Notifier

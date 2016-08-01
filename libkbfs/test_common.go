@@ -87,7 +87,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 
 	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers,
 		config.Codec())
-	config.SetKeybaseDaemon(daemon)
+	config.SetKeybaseService(daemon)
 
 	kbpki := NewKBPKIClient(config)
 	config.SetKBPKI(kbpki)
@@ -195,7 +195,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	c.SetMDOps(NewMDOpsStandard(c))
 	c.SetClock(config.Clock())
 
-	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	loggedInUID, ok := daemon.asserts[string(loggedInUser)]
 	if !ok {
 		panic("bad test: unknown user: " + loggedInUser)
@@ -206,7 +206,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 		localUsers = append(localUsers, u)
 	}
 	newDaemon := NewKeybaseDaemonMemory(loggedInUID, localUsers, c.Codec())
-	c.SetKeybaseDaemon(newDaemon)
+	c.SetKeybaseService(newDaemon)
 	c.SetKBPKI(NewKBPKIClient(c))
 
 	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser)
@@ -316,7 +316,7 @@ func makeFakeKeys(name libkb.NormalizedUsername, index int) (
 // returns the index for that device.
 func AddDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 	uid keybase1.UID) int {
-	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		t.Fatal("Bad keybase daemon")
 	}
@@ -332,7 +332,7 @@ func AddDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 // given index.
 func RevokeDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 	uid keybase1.UID, index int) {
-	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		t.Fatal("Bad keybase daemon")
 	}
@@ -350,7 +350,7 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 		t.Fatalf("Couldn't get UID: %v", err)
 	}
 
-	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		t.Fatal("Bad keybase daemon")
 	}
@@ -376,7 +376,7 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 // given config.
 func AddNewAssertionForTest(
 	config Config, oldAssertion, newAssertion string) error {
-	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	kbd, ok := config.KeybaseService().(*KeybaseDaemonLocal)
 	if !ok {
 		return errors.New("Bad keybase daemon")
 	}

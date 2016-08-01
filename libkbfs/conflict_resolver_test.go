@@ -30,7 +30,7 @@ func crTestInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock,
 
 	mockDaemon := NewMockKeybaseDaemon(mockCtrl)
 	mockDaemon.EXPECT().LoadUserPlusKeys(gomock.Any(), gomock.Any()).AnyTimes().Return(UserInfo{Name: "mockUser"}, nil)
-	config.SetKeybaseDaemon(mockDaemon)
+	config.SetKeybaseService(mockDaemon)
 	return mockCtrl, config, fbo.cr
 }
 

@@ -56,7 +56,7 @@ type ConfigLocal struct {
 	mdserv      MDServer
 	bserv       BlockServer
 	keyserv     KeyServer
-	daemon      KeybaseDaemon
+	service     KeybaseService
 	bsplit      BlockSplitter
 	notifier    Notifier
 	clock       Clock
@@ -443,18 +443,18 @@ func (c *ConfigLocal) SetKeyServer(k KeyServer) {
 	c.keyserv = k
 }
 
-// KeybaseDaemon implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) KeybaseDaemon() KeybaseDaemon {
+// KeybaseService implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) KeybaseService() KeybaseService {
 	c.lock.RLock()
 	defer c.lock.RUnlock()
-	return c.daemon
+	return c.service
 }
 
-// SetKeybaseDaemon implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetKeybaseDaemon(k KeybaseDaemon) {
+// SetKeybaseService implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetKeybaseService(k KeybaseService) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
-	c.daemon = k
+	c.service = k
 }
 
 // BlockSplitter implements the Config interface for ConfigLocal.
@@ -723,7 +723,7 @@ func (c *ConfigLocal) Shutdown() error {
 	}
 	c.MDServer().Shutdown()
 	c.KeyServer().Shutdown()
-	c.KeybaseDaemon().Shutdown()
+	c.KeybaseService().Shutdown()
 	c.BlockServer().Shutdown()
 	c.Crypto().Shutdown()
 	c.Reporter().Shutdown()

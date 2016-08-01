@@ -607,7 +607,7 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 	err = makeRekeyReadErrorHelper(rmd.ReadOnly(), h, FirstValidKeyGen, uid, u)
 	require.Equal(t, NewReadAccessError(h, u), err)
 
-	config.KeybaseDaemon().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
+	config.KeybaseService().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
 		"bob", "bob@twitter")
 
 	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI())

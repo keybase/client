@@ -366,7 +366,7 @@ func (km *KeyManagerStandard) generateKeyMapForUsers(ctx context.Context, users 
 	// TODO: parallelize
 	for _, w := range users {
 		// HACK: clear cache
-		km.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, w)
+		km.config.KeybaseService().FlushUserFromLocalCache(ctx, w)
 		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, w)
 		if err != nil {
 			return nil, err

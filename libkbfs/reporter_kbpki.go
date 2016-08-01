@@ -177,7 +177,7 @@ func (r *ReporterKBPKI) Shutdown() {
 // the keybase daemon.
 func (r *ReporterKBPKI) send(ctx context.Context) {
 	for notification := range r.notifyBuffer {
-		if err := r.config.KeybaseDaemon().Notify(ctx, notification); err != nil {
+		if err := r.config.KeybaseService().Notify(ctx, notification); err != nil {
 			r.log.CDebugf(ctx, "ReporterDaemon: error sending notification: %s",
 				err)
 		}

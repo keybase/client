@@ -13,10 +13,10 @@ import (
 )
 
 // daemonKBPKI is a hacky way to make a KBPKI instance that uses some
-// methods from KeybaseDaemon.
+// methods from KeybaseService.
 type daemonKBPKI struct {
 	KBPKI
-	daemon KeybaseDaemon
+	daemon KeybaseService
 }
 
 func (d *daemonKBPKI) GetCurrentUserInfo(ctx context.Context) (
@@ -58,7 +58,7 @@ func interposeDaemonKBPKI(
 
 	daemon := NewKeybaseDaemonMemory(loggedInUser.UID, localUsers,
 		NewCodecMsgpack())
-	config.SetKeybaseDaemon(daemon)
+	config.SetKeybaseService(daemon)
 
 	daemonKBPKI := &daemonKBPKI{
 		KBPKI:  config.mockKbpki,

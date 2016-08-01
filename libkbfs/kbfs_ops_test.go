@@ -169,7 +169,7 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	// dup for testing
 	handles := []*TlfHandle{handle1, handle2, handle2}
 	for _, h := range handles {
-		config.KeybaseDaemon().FavoriteAdd(
+		config.KeybaseService().FavoriteAdd(
 			context.Background(), h.ToFavorite().toKBFolder(false))
 	}
 

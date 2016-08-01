@@ -215,7 +215,7 @@ func TestMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T) {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
 
-	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	// Second time should succeed.
@@ -275,7 +275,7 @@ func TestMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T) {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
 
-	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
 
@@ -305,7 +305,7 @@ func TestMDOpsGetForUnresolvedHandlePublicFailure(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, hUnresolved.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)

@@ -60,7 +60,7 @@ func splitExtension(path string) (string, string) {
 }
 
 func newWriterInfo(ctx context.Context, cfg Config, uid keybase1.UID, kid keybase1.KID) (writerInfo, error) {
-	ui, err := cfg.KeybaseDaemon().LoadUserPlusKeys(ctx, uid)
+	ui, err := cfg.KeybaseService().LoadUserPlusKeys(ctx, uid)
 	if err != nil {
 		return writerInfo{}, err
 	}

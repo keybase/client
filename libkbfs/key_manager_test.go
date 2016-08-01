@@ -298,7 +298,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 	require.NoError(t, err)
 	rmd := newRootMetadataOrBust(t, id, h)
 
-	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	config.mockMdops.EXPECT().GetLatestHandleForTLF(gomock.Any(), gomock.Any()).
@@ -337,7 +337,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
 	require.NoError(t, err)
 	rmd := newRootMetadataOrBust(t, id, h)
 
-	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("alice", "alice@twitter")
 	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
 
@@ -378,7 +378,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	expectRekey(config, h.ToBareHandleOrBust(), 3, true)
 
 	// Pretend that {bob,charlie}@twitter now resolve to {bob,charlie}.
-	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
 
@@ -448,7 +448,7 @@ func TestKeyManagerPromoteReaderSuccessPrivate(t *testing.T) {
 	expectRekey(config, h.ToBareHandleOrBust(), 2, true)
 
 	// Pretend that bob@twitter now resolves to bob.
-	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	// Make the first key generation
@@ -496,7 +496,7 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 		newH.GetCanonicalName())
 
 	// Now resolve everyone, but have reader bob to do the rekey
-	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
 	daemon.addNewAssertionForTestOrBust("dave", "dave@twitter")
@@ -567,7 +567,7 @@ func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
 		newH.GetCanonicalName())
 
 	// Now resolve everyone, but have reader bob to do the rekey
-	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon := config.KeybaseService().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	// Now resolve which gets rid of the unresolved writers, but

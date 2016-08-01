@@ -124,7 +124,7 @@ type KeybaseDaemonLocal struct {
 	favoriteStore favoriteStore
 }
 
-var _ KeybaseDaemon = &KeybaseDaemonLocal{}
+var _ KeybaseService = &KeybaseDaemonLocal{}
 
 func (k *KeybaseDaemonLocal) assertionToUIDLocked(ctx context.Context,
 	assertion string) (uid keybase1.UID, err error) {

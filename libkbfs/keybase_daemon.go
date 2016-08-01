@@ -13,10 +13,10 @@ import (
 	"github.com/keybase/client/go/logger"
 )
 
-// KeybaseDaemonFn defines a constructor for a KeybaseDaemonFn
-type KeybaseDaemonFn func(config Config, params InitParams, ctx Context, log logger.Logger) (KeybaseDaemon, error)
+// KeybaseServiceFn defines a constructor for a KeybaseService
+type KeybaseServiceFn func(config Config, params InitParams, ctx Context, log logger.Logger) (KeybaseService, error)
 
-func makeKeybaseDaemon(config Config, params InitParams, ctx Context, log logger.Logger) (KeybaseDaemon, error) {
+func makeKeybaseDaemon(config Config, params InitParams, ctx Context, log logger.Logger) (KeybaseService, error) {
 	localUser := libkb.NewNormalizedUsername(params.LocalUser)
 	if len(localUser) == 0 {
 		ctx.ConfigureSocketInfo()

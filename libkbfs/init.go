@@ -238,9 +238,9 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 // defer).
 //
 // The keybaseDaemonFn argument is to temporarily support KBFS on
-// mobile (for using a custom KeybaseDaemon implementation) and will
+// mobile (for using a custom KeybaseService implementation) and will
 // be removed in the future, when we use a non-RPC implementation.
-func Init(ctx Context, params InitParams, keybaseDaemonFn KeybaseDaemonFn, onInterruptFn func(), log logger.Logger) (Config, error) {
+func Init(ctx Context, params InitParams, keybaseServiceFn KeybaseServiceFn, onInterruptFn func(), log logger.Logger) (Config, error) {
 
 	if params.CPUProfile != "" {
 		// Let the GC/OS clean up the file handle.
@@ -323,19 +323,19 @@ func Init(ctx Context, params InitParams, keybaseDaemonFn KeybaseDaemonFn, onInt
 
 	config.SetKeyServer(keyServer)
 
-	if keybaseDaemonFn == nil {
-		keybaseDaemonFn = makeKeybaseDaemon
+	if keybaseServiceFn == nil {
+		keybaseServiceFn = makeKeybaseDaemon
 	}
-	daemon, err := keybaseDaemonFn(config, params, ctx, config.MakeLogger(""))
+	service, err := keybaseServiceFn(config, params, ctx, config.MakeLogger(""))
 	if err != nil {
 		return nil, fmt.Errorf("problem creating daemon: %s", err)
 	}
 
 	if registry := config.MetricsRegistry(); registry != nil {
-		daemon = NewKeybaseDaemonMeasured(daemon, registry)
+		service = NewKeybaseServiceMeasured(service, registry)
 	}
 
-	config.SetKeybaseDaemon(daemon)
+	config.SetKeybaseService(service)
 
 	k := NewKBPKIClient(config)
 	config.SetKBPKI(k)

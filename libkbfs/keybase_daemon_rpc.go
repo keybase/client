@@ -58,7 +58,7 @@ var _ keybase1.NotifyPaperKeyInterface = (*KeybaseDaemonRPC)(nil)
 
 var _ rpc.ConnectionHandler = (*KeybaseDaemonRPC)(nil)
 
-var _ KeybaseDaemon = (*KeybaseDaemonRPC)(nil)
+var _ KeybaseService = (*KeybaseDaemonRPC)(nil)
 
 // NewKeybaseDaemonRPC makes a new KeybaseDaemonRPC that makes RPC
 // calls using the socket of the given Keybase context.

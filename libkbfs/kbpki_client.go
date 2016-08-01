@@ -14,7 +14,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-// KBPKIClient uses a config's KeybaseDaemon.
+// KBPKIClient uses a config's KeybaseService.
 type KBPKIClient struct {
 	config Config
 	log    logger.Logger
@@ -73,13 +73,13 @@ func (k *KBPKIClient) GetCurrentVerifyingKey(ctx context.Context) (
 // Resolve implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Resolve(ctx context.Context, assertion string) (
 	libkb.NormalizedUsername, keybase1.UID, error) {
-	return k.config.KeybaseDaemon().Resolve(ctx, assertion)
+	return k.config.KeybaseService().Resolve(ctx, assertion)
 }
 
 // Identify implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
 	UserInfo, error) {
-	return k.config.KeybaseDaemon().Identify(ctx, assertion, reason)
+	return k.config.KeybaseService().Identify(ctx, assertion, reason)
 }
 
 // GetNormalizedUsername implements the KBPKI interface for
@@ -162,7 +162,7 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	// If the first attempt couldn't find the key, try again after
 	// clearing our local cache.  We might have stale info if the
 	// service hasn't learned of the users' new key yet.
-	k.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, uid)
+	k.config.KeybaseService().FlushUserFromLocalCache(ctx, uid)
 
 	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
 	if err != nil {
@@ -184,7 +184,7 @@ func (k *KBPKIClient) HasUnverifiedVerifyingKey(ctx context.Context, uid keybase
 	if ok {
 		return nil
 	}
-	k.config.KeybaseDaemon().FlushUserUnverifiedKeysFromLocalCache(ctx, uid)
+	k.config.KeybaseService().FlushUserUnverifiedKeysFromLocalCache(ctx, uid)
 	ok, err = k.hasUnverifiedVerifyingKey(ctx, uid, verifyingKey)
 	if err != nil {
 		return err
@@ -207,36 +207,36 @@ func (k *KBPKIClient) GetCryptPublicKeys(ctx context.Context,
 
 func (k *KBPKIClient) loadUserPlusKeys(ctx context.Context, uid keybase1.UID) (
 	UserInfo, error) {
-	return k.config.KeybaseDaemon().LoadUserPlusKeys(ctx, uid)
+	return k.config.KeybaseService().LoadUserPlusKeys(ctx, uid)
 }
 
 func (k *KBPKIClient) session(ctx context.Context) (SessionInfo, error) {
 	const sessionID = 0
-	return k.config.KeybaseDaemon().CurrentSession(ctx, sessionID)
+	return k.config.KeybaseService().CurrentSession(ctx, sessionID)
 }
 
 // FavoriteAdd implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
-	return k.config.KeybaseDaemon().FavoriteAdd(ctx, folder)
+	return k.config.KeybaseService().FavoriteAdd(ctx, folder)
 }
 
 // FavoriteDelete implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
-	return k.config.KeybaseDaemon().FavoriteDelete(ctx, folder)
+	return k.config.KeybaseService().FavoriteDelete(ctx, folder)
 }
 
 // FavoriteList implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) FavoriteList(ctx context.Context) ([]keybase1.Folder, error) {
 	const sessionID = 0
-	return k.config.KeybaseDaemon().FavoriteList(ctx, sessionID)
+	return k.config.KeybaseService().FavoriteList(ctx, sessionID)
 }
 
 // Notify implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
-	return k.config.KeybaseDaemon().Notify(ctx, notification)
+	return k.config.KeybaseService().Notify(ctx, notification)
 }
 
 func (k *KBPKIClient) loadUnverifiedKeys(ctx context.Context, uid keybase1.UID) (
 	[]keybase1.PublicKey, error) {
-	return k.config.KeybaseDaemon().LoadUnverifiedKeys(ctx, uid)
+	return k.config.KeybaseService().LoadUnverifiedKeys(ctx, uid)
 }
