@@ -153,7 +153,7 @@ func (cc *crChain) isFile() bool {
 // state, but setAttr(mtime) can apply to either type; in that case,
 // we need to fetch the block to figure out the type.
 func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
-	md *RootMetadata, chains *crChains) error {
+	md ImmutableRootMetadata, chains *crChains) error {
 	if len(cc.ops) == 0 {
 		return nil
 	}
@@ -280,7 +280,7 @@ type crChains struct {
 
 	// Also keep a reference to the most recent MD that's part of this
 	// chain.
-	mostRecentMD *RootMetadata
+	mostRecentMD ImmutableRootMetadata
 
 	// We need to be able to track ANY BlockPointer, at any point in
 	// the chain, back to its original.
@@ -613,7 +613,7 @@ func newCRChainsEmpty() *crChains {
 	}
 }
 
-func newCRChains(ctx context.Context, cfg Config, rmds []*RootMetadata,
+func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 	fbo *folderBlockOps, identifyTypes bool) (
 	ccs *crChains, err error) {
 	ccs = newCRChainsEmpty()
@@ -627,7 +627,8 @@ func newCRChains(ctx context.Context, cfg Config, rmds []*RootMetadata,
 			continue
 		}
 
-		winfo, err := newWriterInfo(ctx, cfg, rmd.LastModifyingWriter, rmd.writerKID())
+		winfo, err := newWriterInfo(ctx, cfg, rmd.LastModifyingWriter,
+			rmd.writerKID())
 		if err != nil {
 			return nil, err
 		}
@@ -636,7 +637,14 @@ func newCRChains(ctx context.Context, cfg Config, rmds []*RootMetadata,
 			ccs.blockChangePointers[ptr] = true
 		}
 
-		for _, op := range rmd.data.Changes.Ops {
+		// Copy the ops since CR will change them.
+		ops := make(opsList, len(rmd.data.Changes.Ops))
+		err = CodecUpdate(cfg.Codec(), &ops, rmd.data.Changes.Ops)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, op := range ops {
 			op.setWriterInfo(winfo)
 			err := ccs.makeChainForOp(op)
 			if err != nil {

@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -99,6 +100,7 @@ func testCRCheckOps(t *testing.T, cc *crChains, original BlockPointer,
 		t.Fatalf("Wrong number of operations: %d vs %d: %v", g, e, chain.ops)
 	}
 
+	codec := NewCodecMsgpack()
 	for i, op := range chain.ops {
 		eOp := expectedOps[i]
 		// First check for rename create ops.
@@ -125,24 +127,36 @@ func testCRCheckOps(t *testing.T, cc *crChains, original BlockPointer,
 				eROp.Dir.Ref.IsInitialized() {
 				t.Errorf("Bad create op after rename: %v", ro)
 			}
-		} else if op != eOp {
-			t.Errorf("Unexpected op %v at %v[%d]", op, original, i)
+		} else {
+			ok, err := CodecEqual(codec, op, eOp)
+			if err != nil {
+				t.Fatalf("Couldn't compare ops: %v", err)
+			}
+			if !ok {
+				t.Errorf("Unexpected op %v at %v[%d]; expected %v", op,
+					original, i, eOp)
+			}
 		}
 
 	}
 }
 
-func testCRChainsFillInWriter(t *testing.T, rmds []*RootMetadata) Config {
+func testCRChainsFillInWriter(t *testing.T, rmds []*RootMetadata) (
+	Config, []ImmutableRootMetadata) {
 	config := MakeTestConfigOrBust(t, "u1")
 	kbpki := config.KBPKI()
 	_, uid, err := kbpki.GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatalf("Couldn't get UID: %v", err)
 	}
-	for _, rmd := range rmds {
+	immutableRmds := make([]ImmutableRootMetadata, len(rmds))
+	for i, rmd := range rmds {
 		rmd.LastModifyingWriter = uid
+		rmd.ID = FakeTlfID(1, false)
+		immutableRmds[i] = MakeImmutableRootMetadata(rmd,
+			fakeMdID(1), time.Now())
 	}
-	return config
+	return config, immutableRmds
 }
 
 func TestCRChainsSingleOp(t *testing.T) {
@@ -162,9 +176,9 @@ func TestCRChainsSingleOp(t *testing.T) {
 	rmd.data.Dir.BlockPointer = expected[rootPtrUnref]
 
 	rmds := []*RootMetadata{rmd}
-	config := testCRChainsFillInWriter(t, rmds)
+	config, irmds := testCRChainsFillInWriter(t, rmds)
 	defer config.Shutdown()
-	cc, err := newCRChains(context.Background(), config, rmds, nil, true)
+	cc, err := newCRChains(context.Background(), config, irmds, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -197,9 +211,9 @@ func TestCRChainsRenameOp(t *testing.T) {
 	rmd.data.Dir.BlockPointer = expected[rootPtrUnref]
 
 	rmds := []*RootMetadata{rmd}
-	config := testCRChainsFillInWriter(t, rmds)
+	config, irmds := testCRChainsFillInWriter(t, rmds)
 	defer config.Shutdown()
-	cc, err := newCRChains(context.Background(), config, rmds, nil, true)
+	cc, err := newCRChains(context.Background(), config, irmds, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -307,9 +321,9 @@ func TestCRChainsMultiOps(t *testing.T) {
 
 	bigRmd.data.Dir.BlockPointer = expected[rootPtrUnref]
 	rmds := []*RootMetadata{bigRmd}
-	config := testCRChainsFillInWriter(t, rmds)
+	config, irmds := testCRChainsFillInWriter(t, rmds)
 	defer config.Shutdown()
-	cc, err := newCRChains(context.Background(), config, rmds, nil, true)
+	cc, err := newCRChains(context.Background(), config, irmds, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains for big RMD: %v", err)
 	}
@@ -339,9 +353,9 @@ func TestCRChainsMultiOps(t *testing.T) {
 	testCRCheckOps(t, cc, file4Unref, []op{op4})
 
 	// now make sure the chain of MDs gets the same answers
-	config = testCRChainsFillInWriter(t, multiRmds)
+	config, multiIrmds := testCRChainsFillInWriter(t, multiRmds)
 	defer config.Shutdown()
-	mcc, err := newCRChains(context.Background(), config, multiRmds, nil, true)
+	mcc, err := newCRChains(context.Background(), config, multiIrmds, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains for multi RMDs: %v", err)
 	}
@@ -465,9 +479,9 @@ func TestCRChainsCollapse(t *testing.T) {
 
 	rmd.data.Dir.BlockPointer = expected[rootPtrUnref]
 	rmds := []*RootMetadata{rmd}
-	config := testCRChainsFillInWriter(t, rmds)
+	config, irmds := testCRChainsFillInWriter(t, rmds)
 	defer config.Shutdown()
-	cc, err := newCRChains(context.Background(), config, rmds, nil, true)
+	cc, err := newCRChains(context.Background(), config, irmds, nil, true)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
