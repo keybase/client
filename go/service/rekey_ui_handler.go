@@ -121,8 +121,8 @@ func keySolvesProblemTLF(key libkb.GenericKey, tlf keybase1.ProblemTLF) bool {
 	return false
 }
 
-// currentDeviceSolvesProblemSet returns true if the current device can key all
-// of the folders in the ProblemSet are solved by the current device's key.
+// currentDeviceSolvesProblemSet returns true if the current device can fix all
+// of the folders in the ProblemSet.
 func currentDeviceSolvesProblemSet(g *libkb.GlobalContext, ps keybase1.ProblemSet) (ret bool) {
 	g.Log.Debug("+ currentDeviceSolvesProblemSet")
 	defer func() {
