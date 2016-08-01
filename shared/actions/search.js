@@ -1,15 +1,13 @@
 // @flow
-
 import * as Constants from '../constants/search'
-import {capitalize, trim} from 'lodash'
-import {filterNull} from '../util/arrays'
-import {isFollowing as isFollowing_} from './config'
-
 import type {ExtraInfo, Search, Results, SelectPlatform, SelectUserForInfo,
   AddUserToGroup, RemoveUserFromGroup, ToggleUserGroup, SearchResult,
   SearchPlatforms, Reset, Waiting} from '../constants/search'
-import {apiserverGetRpc} from '../constants/types/flow-types'
 import type {TypedAsyncAction} from '../constants/types/flux'
+import {apiserverGetRpc} from '../constants/types/flow-types'
+import {capitalize, trim} from 'lodash'
+import {filterNull} from '../util/arrays'
+import {isFollowing as isFollowing_} from './config'
 
 const {platformToLogo16, platformToLogo32, searchResultKeys} = Constants
 
@@ -196,7 +194,10 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
 }
 
 function waiting (waiting: boolean): Waiting {
-  return {type: Constants.waiting, payload: {waiting}}
+  return {
+    type: Constants.waiting,
+    payload: {waiting},
+  }
 }
 
 export function selectPlatform (platform: SearchPlatforms): SelectPlatform {

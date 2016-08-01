@@ -1,16 +1,15 @@
-/* @flow */
-
-import * as RouterConstants from '../constants/router'
-import {is, List, Map, Record} from 'immutable'
-export type URI = List<Map<string, string>>
-type History = List<URI>
-
-export type RouterState = MapADT2<'uri', URI, 'history', History>
+// @flow
+import * as CommonConstants from '../constants/common'
+import * as Constants from '../constants/router'
+import type {TabbedRouterState, RouterState, URI} from '../constants/router'
+import {initTabbedRouterState} from '../local-debug'
+import {is, List, Map, Record, fromJS} from 'immutable'
+import {profileTab, startupTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from '../constants/tabs'
 
 const RouterStateRecord = Record({uri: List(), history: List()})
-const initialState: RouterState = createRouterState(['nav'], [])
+const routerInitialState: RouterState = createRouterState(['nav'], [])
 
-export function createRouterState (uri: Array<string>, history: Array<Array<string>>): RouterState {
+function createRouterState (uri: Array<string>, history: Array<Array<string>>): RouterState {
   return new RouterStateRecord({
     uri: parseUri(uri),
     history: List(history.map(parseUri)),
@@ -47,13 +46,13 @@ function parseUri (uri: any): URI {
 }
 
 // This is called by the tabbed reducer, not the global reducer
-export function subReducer (state: RouterState = initialState, action: any): RouterState {
+function routerReducer (state: RouterState = routerInitialState, action: any): RouterState {
   const stateWithHistory = state.update('history', pushIfTailIsDifferent.bind(null, state.get('uri')))
   switch (action.type) {
     // TODO(MM): change the history so if we go up to something that is already in the history,
     // or a child of it
     // we get rid of everything after it
-    case RouterConstants.navigateUp:
+    case Constants.navigateUp:
       const uri = state.get('uri')
       if (uri.count() > 1) {
         if (action.payload.till) {
@@ -73,16 +72,64 @@ export function subReducer (state: RouterState = initialState, action: any): Rou
         }
       }
       return state
-    case RouterConstants.navigateBack:
+    case Constants.navigateBack:
       const lastUri = state.get('history').last() || parseUri([])
       return state.update('history', history => history.pop()).set('uri', lastUri)
-    case RouterConstants.navigate:
+    case Constants.navigate:
       return stateWithHistory.set('uri', parseUri(action.payload.uri))
-    case RouterConstants.navigateAppend:
+    case Constants.navigateAppend:
       if (action.payload.route.constructor === Array) {
         return stateWithHistory.update('uri', uri => uri.concat(action.payload.route.map(parsePath)))
       }
       return stateWithHistory.update('uri', uri => uri.push(parsePath(action.payload.route)))
+    default:
+      return state
+  }
+}
+
+const emptyRouterState: RouterState = createRouterState([], [])
+
+function initialStateFn (): TabbedRouterState {
+  let init = {
+    // a map from tab name to router obj
+    tabs: {
+      [profileTab]: emptyRouterState,
+      [startupTab]: emptyRouterState,
+      [folderTab]: emptyRouterState,
+      [chatTab]: emptyRouterState,
+      [peopleTab]: emptyRouterState,
+      [devicesTab]: emptyRouterState,
+      [settingsTab]: emptyRouterState,
+      [loginTab]: emptyRouterState,
+    },
+    activeTab: loginTab,
+  }
+
+  let ts = initTabbedRouterState()
+  Object.keys(ts).forEach(tab => { init[tab] = createRouterState(ts[tab], []) })
+  return fromJS(init)
+}
+
+const initialState: TabbedRouterState = initialStateFn()
+
+export default function (state: TabbedRouterState = initialState, action: any): TabbedRouterState {
+  switch (action.type) {
+    case CommonConstants.resetStore:
+      return initialStateFn()
+
+    case Constants.switchTab:
+      return state.set('activeTab', action.payload)
+    case Constants.navigateUp:
+    case Constants.navigateBack:
+    case Constants.navigate:
+    case Constants.navigateAppend:
+      let tab = state.get('activeTab')
+
+      if (action.payload && action.payload.tab) {
+        tab = action.payload.tab
+      }
+
+      return state.updateIn(['tabs', tab], routerState => routerReducer(routerState, action))
     default:
       return state
   }

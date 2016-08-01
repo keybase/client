@@ -1,12 +1,12 @@
+// @flow
 /*
  * File to stash local debug changes to. Never check this in with changes
  */
 
-import {createRouterState} from './reducers/router'
 import * as Tabs from './constants/tabs'
 import {updateConfig} from './command-line.desktop.js'
 
-let config = {
+let config: {[key:string]: any} = {
   allowStartupFailure: false,
   printRPC: false,
   showDevTools: false,
@@ -86,22 +86,12 @@ export const {
   actionStatFrequency,
 } = config
 
-export function initTabbedRouterState (state) {
+export function initTabbedRouterState () {
   if (!__DEV__ || !process.env.KEYBASE_LOCAL_DEBUG) {
-    return state
+    return []
   }
 
-  const ts = config.initialTabState
-  const tabState = {}
-  Object.keys(ts).forEach(tab => { tabState[tab] = createRouterState(ts[tab], []) })
-
-  return {
-    ...state,
-    tabs: {
-      ...state.tabs,
-      ...tabState,
-    },
-  }
+  return config.initialTabState
 }
 
 export function envVarDebugJson () {

@@ -1,30 +1,25 @@
-/* @flow */
-
-import {showAllTrackers} from '../local-debug'
+// @flow
 import * as Constants from '../constants/tracker'
-import {routeAppend} from './router'
+import _ from 'lodash'
 import engine from '../engine'
+import setNotifications from '../util/set-notifications'
+import type {Action, Dispatch} from '../constants/types/flux'
+import type {CallMap} from '../engine/call-map-middleware'
+import type {ConfigState} from '../reducers/config'
+import type {RemoteProof, LinkCheckResult, UserCard, UID, UserSummary} from '../constants/types/flow-types'
+import type {ShowNonUser, TrackingInfo, PendingIdentify} from '../constants/tracker'
+import type {State as RootTrackerState} from '../reducers/tracker'
+import type {TypedState} from '../constants/reducer'
 import {createServer} from '../engine/server'
+import {delegateUiCtlRegisterIdentifyUIRpc, trackCheckTrackingRpc, trackUntrackRpc,
+  trackTrackWithTokenRpc, identifyIdentify2Rpc, trackDismissWithTokenRpc,
+  userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc,
+  userListTrackingRpc} from '../constants/types/flow-types'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
 import {identifyCommon} from '../constants/types/keybase-v1'
 import {isFollowing, isFollower} from '../actions/config'
-import _ from 'lodash'
-
-import setNotifications from '../util/set-notifications'
-
-import type {TypedState} from '../constants/reducer'
-
-import type {CallMap} from '../engine/call-map-middleware'
-import type {State as RootTrackerState} from '../reducers/tracker'
-import type {ConfigState} from '../reducers/config'
-import type {Action, Dispatch} from '../constants/types/flux'
-
-import type {ShowNonUser, TrackingInfo, PendingIdentify} from '../constants/tracker'
-
-import type {RemoteProof, LinkCheckResult, UserCard, UID, UserSummary} from '../constants/types/flow-types'
-import {delegateUiCtlRegisterIdentifyUIRpc, trackCheckTrackingRpc, trackUntrackRpc, trackTrackWithTokenRpc,
-  identifyIdentify2Rpc, trackDismissWithTokenRpc, userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc,
-  userListTrackingRpc} from '../constants/types/flow-types'
+import {routeAppend} from './router'
+import {showAllTrackers} from '../local-debug'
 
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => TypedState) => ?Promise<*>
 
@@ -51,7 +46,7 @@ export function startTimer (): TrackerActionCreator {
 export function stopTimer (): Action {
   return {
     type: Constants.stopTimer,
-    payload: null,
+    payload: {},
   }
 }
 
@@ -197,9 +192,7 @@ export function registerIdentifyUi (): TrackerActionCreator {
 
     dispatch({
       type: Constants.registerIdentifyUi,
-      payload: {
-        started: true,
-      },
+      payload: {started: true},
     })
   }
 }

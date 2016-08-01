@@ -1,7 +1,6 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {routeAppend} from '../actions/router'
-import {switchTab} from '../actions/tabbed-router'
+import {routeAppend, switchTab} from '../actions/router'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
 import MenuList from '../settings/menu-list'
