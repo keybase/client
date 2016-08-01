@@ -514,7 +514,8 @@ func (k *KeybaseDaemonRPC) ShouldRetryOnConnect(err error) bool {
 	return !inputCanceled
 }
 
-func convertIdentifyError(assertion string, err error) error {
+// ConvertIdentifyError converts a errors during identify into KBFS errors
+func ConvertIdentifyError(assertion string, err error) error {
 	switch err.(type) {
 	case libkb.NotFoundError:
 		return NoSuchUserError{assertion}
@@ -530,7 +531,7 @@ func (k *KeybaseDaemonRPC) Resolve(ctx context.Context, assertion string) (
 	user, err := k.identifyClient.Resolve2(ctx, assertion)
 	if err != nil {
 		return libkb.NormalizedUsername(""), keybase1.UID(""),
-			convertIdentifyError(assertion, err)
+			ConvertIdentifyError(assertion, err)
 	}
 	return libkb.NewNormalizedUsername(user.Username), user.Uid, nil
 }
@@ -548,7 +549,7 @@ func (k *KeybaseDaemonRPC) Identify(ctx context.Context, assertion, reason strin
 	}
 	res, err := k.identifyClient.Identify2(ctx, arg)
 	if err != nil {
-		return UserInfo{}, convertIdentifyError(assertion, err)
+		return UserInfo{}, ConvertIdentifyError(assertion, err)
 	}
 
 	return k.processUserPlusKeys(res.Upk)
@@ -641,23 +642,9 @@ func (k *KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 		}
 		return SessionInfo{}, err
 	}
-	// Import the KIDs to validate them.
-	deviceSubkey, err := libkb.ImportKeypairFromKID(res.DeviceSubkeyKid)
+	s, err := SessionInfoFromProtocol(res)
 	if err != nil {
-		return SessionInfo{}, err
-	}
-	deviceSibkey, err := libkb.ImportKeypairFromKID(res.DeviceSibkeyKid)
-	if err != nil {
-		return SessionInfo{}, err
-	}
-	cryptPublicKey := MakeCryptPublicKey(deviceSubkey.GetKID())
-	verifyingKey := MakeVerifyingKey(deviceSibkey.GetKID())
-	s := SessionInfo{
-		Name:           libkb.NewNormalizedUsername(res.Username),
-		UID:            keybase1.UID(res.Uid),
-		Token:          res.Token,
-		CryptPublicKey: cryptPublicKey,
-		VerifyingKey:   verifyingKey,
+		return s, err
 	}
 
 	k.log.CDebugf(

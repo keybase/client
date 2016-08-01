@@ -891,3 +891,52 @@ const (
 	// WriteMode indicates that an error happened while trying to write.
 	WriteMode
 )
+
+// UserInfoFromProtocol returns UserInfo from UserPlusKeys
+func UserInfoFromProtocol(upk keybase1.UserPlusKeys) (UserInfo, error) {
+	verifyingKeys, cryptPublicKeys, kidNames, err := filterKeys(upk.DeviceKeys)
+	if err != nil {
+		return UserInfo{}, err
+	}
+
+	revokedVerifyingKeys, revokedCryptPublicKeys, revokedKidNames, err := filterRevokedKeys(upk.RevokedDeviceKeys)
+	if err != nil {
+		return UserInfo{}, err
+	}
+
+	for k, v := range revokedKidNames {
+		kidNames[k] = v
+	}
+
+	return UserInfo{
+		Name:                   libkb.NewNormalizedUsername(upk.Username),
+		UID:                    upk.Uid,
+		VerifyingKeys:          verifyingKeys,
+		CryptPublicKeys:        cryptPublicKeys,
+		KIDNames:               kidNames,
+		RevokedVerifyingKeys:   revokedVerifyingKeys,
+		RevokedCryptPublicKeys: revokedCryptPublicKeys,
+	}, nil
+}
+
+// SessionInfoFromProtocol returns SessionInfo from Session
+func SessionInfoFromProtocol(session keybase1.Session) (SessionInfo, error) {
+	// Import the KIDs to validate them.
+	deviceSubkey, err := libkb.ImportKeypairFromKID(session.DeviceSubkeyKid)
+	if err != nil {
+		return SessionInfo{}, err
+	}
+	deviceSibkey, err := libkb.ImportKeypairFromKID(session.DeviceSibkeyKid)
+	if err != nil {
+		return SessionInfo{}, err
+	}
+	cryptPublicKey := MakeCryptPublicKey(deviceSubkey.GetKID())
+	verifyingKey := MakeVerifyingKey(deviceSibkey.GetKID())
+	return SessionInfo{
+		Name:           libkb.NewNormalizedUsername(session.Username),
+		UID:            keybase1.UID(session.Uid),
+		Token:          session.Token,
+		CryptPublicKey: cryptPublicKey,
+		VerifyingKey:   verifyingKey,
+	}, nil
+}
