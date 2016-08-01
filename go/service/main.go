@@ -31,6 +31,10 @@ type Service struct {
 	gregor       *gregorHandler
 }
 
+type Shutdowner interface {
+	Shutdown()
+}
+
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 	return &Service{
 		Contextified: libkb.NewContextified(g),
@@ -45,7 +49,9 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 	return d.startCh
 }
 
-func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister, g *libkb.GlobalContext) error {
+func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister, g *libkb.GlobalContext) (shutdowners []Shutdowner, err error) {
+	rekeyHandler := NewRekeyHandler(xp, g, d.gregor)
+	shutdowners = append(shutdowners, rekeyHandler)
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewBTCHandler(xp, g)),
@@ -75,15 +81,15 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.UserProtocol(NewUserHandler(xp, g)),
 		keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g)),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
-		keybase1.RekeyProtocol(NewRekeyHandler(xp, g, d.gregor)),
+		keybase1.RekeyProtocol(rekeyHandler),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
 	}
 	for _, proto := range protocols {
-		if err := srv.Register(proto); err != nil {
-			return err
+		if err = srv.Register(proto); err != nil {
+			return
 		}
 	}
-	return nil
+	return
 }
 
 func (d *Service) Handle(c net.Conn) {
@@ -102,8 +108,13 @@ func (d *Service) Handle(c net.Conn) {
 		logReg = newLogRegister(d.logForwarder, d.G().Log)
 		defer logReg.UnregisterLogger()
 	}
-
-	if err := d.RegisterProtocols(server, xp, connID, logReg, d.G()); err != nil {
+	shutdowners, err := d.RegisterProtocols(server, xp, connID, logReg, d.G())
+	defer func() {
+		for _, shutdowner := range shutdowners {
+			shutdowner.Shutdown()
+		}
+	}()
+	if err != nil {
 		d.G().Log.Warning("RegisterProtocols error: %s", err)
 		return
 	}
@@ -111,7 +122,7 @@ func (d *Service) Handle(c net.Conn) {
 	// Run the server and wait for it to finish.
 	<-server.Run()
 	// err is always non-nil.
-	err := server.Err()
+	err = server.Err()
 	cl <- err
 	if err != io.EOF {
 		d.G().Log.Warning("Run error: %s", err)
