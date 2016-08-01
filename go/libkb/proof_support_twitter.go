@@ -29,22 +29,25 @@ func (rc *TwitterChecker) GetTorError() ProofError { return nil }
 func (rc *TwitterChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
 	wantedURL := ("https://twitter.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/")
 	wantedShortID := (" " + rc.proof.GetSigID().ToShortID() + " /")
+
 	if !strings.HasPrefix(strings.ToLower(h.apiURL), wantedURL) {
 		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should start with '%s'", wantedURL)
-	} else if !strings.Contains(h.checkText, wantedShortID) {
+	}
+
+	if !strings.Contains(h.checkText, wantedShortID) {
 		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad proof-check text from server; need '%s' as a substring", wantedShortID)
-	} else {
-		return nil
 	}
+
+	return nil
 }
 
 func (rc *TwitterChecker) ScreenNameCompare(s1, s2 string) bool {
 	return Cicmp(s1, s2)
 }
 
-func (rc *TwitterChecker) findSigInTweet(h SigHint, s *goquery.Selection) ProofError {
+func (rc *TwitterChecker) findSigInTweet(g *GlobalContext, h SigHint, s *goquery.Selection) ProofError {
 
 	inside := s.Text()
 	html, err := s.Html()
@@ -55,8 +58,8 @@ func (rc *TwitterChecker) findSigInTweet(h SigHint, s *goquery.Selection) ProofE
 		return NewProofError(keybase1.ProofStatus_CONTENT_FAILURE, "No HTML tweet found: %s", err)
 	}
 
-	G.Log.Debug("+ Checking tweet '%s' for signature '%s'", inside, checkText)
-	G.Log.Debug("| HTML is: %s", html)
+	g.Log.Debug("+ Checking tweet '%s' for signature '%s'", inside, checkText)
+	g.Log.Debug("| HTML is: %s", html)
 
 	rxx := regexp.MustCompile(`^(@[a-zA-Z0-9_-]+\s+)`)
 	for {
@@ -65,7 +68,7 @@ func (rc *TwitterChecker) findSigInTweet(h SigHint, s *goquery.Selection) ProofE
 		} else {
 			prefix := inside[m[2]:m[3]]
 			inside = inside[m[3]:]
-			G.Log.Debug("| Stripping off @prefx: %s", prefix)
+			g.Log.Debug("| Stripping off @prefx: %s", prefix)
 		}
 	}
 	inside = WhitespaceNormalize(inside)
@@ -79,7 +82,7 @@ func (rc *TwitterChecker) findSigInTweet(h SigHint, s *goquery.Selection) ProofE
 }
 
 func (rc *TwitterChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
-	res, err := G.XAPI.GetHTML(APIArg{
+	res, err := g.XAPI.GetHTML(APIArg{
 		Endpoint:    h.apiURL,
 		NeedSession: false,
 	})
@@ -110,7 +113,7 @@ func (rc *TwitterChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
 			"Missing <div class='tweet-text'> container for tweet")
 	}
 
-	return rc.findSigInTweet(h, p.First())
+	return rc.findSigInTweet(g, h, p.First())
 }
 
 //
