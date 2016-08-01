@@ -1,18 +1,23 @@
 // @flow
-import React, {Component} from 'react'
-import {Box, Text} from '../common-adapters'
-import Render from './render'
-import EditProfile from './edit-profile'
-import flags from '../util/feature-flags'
-import {routeAppend, navigateUp} from '../actions/router'
-import {openInKBFS} from '../actions/kbfs'
 import * as trackerActions from '../actions/tracker'
-import {isLoading} from '../constants/tracker'
-import {TypedConnector} from '../util/typed-connect'
-
+import ConfirmOrPending from './confirm-or-pending-container'
+import EditProfile from './edit-profile'
+import PostProof from './post-proof-container'
+import ProveEnterUsername from './prove-enter-username-container'
+import React, {Component} from 'react'
+import Render from './render'
+import Revoke from './revoke-container'
+import flags from '../util/feature-flags'
 import type {Props} from './render'
-import type {TypedState} from '../constants/reducer'
 import type {TypedDispatch, Action} from '../constants/types/flux'
+import type {TypedState} from '../constants/reducer'
+import {Box, Text} from '../common-adapters'
+import {TypedConnector} from '../util/typed-connect'
+import {isLoading} from '../constants/tracker'
+import {openInKBFS} from '../actions/kbfs'
+import {routeAppend, navigateUp} from '../actions/router'
+
+const {getProfile, updateTrackers, onFollow, onUnfollow} = trackerActions
 
 type OwnProps = {
   userOverride?: {
@@ -33,6 +38,10 @@ class Profile extends Component<void, ?Props, void> {
       },
       subRoutes: {
         'editprofile': EditProfile,
+        ProveEnterUsername,
+        Revoke,
+        PostProof,
+        ConfirmOrPending,
       },
     }
   }
@@ -75,8 +84,6 @@ export default connector.connect((state, dispatch, ownProps) => {
     username: stateProps.myUsername || '',
     uid: stateProps.myUid || '',
   }
-
-  const {getProfile, updateTrackers, onFollow, onUnfollow} = trackerActions
 
   const refresh = () => {
     dispatch(getProfile(username))

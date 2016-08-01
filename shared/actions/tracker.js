@@ -2,13 +2,14 @@
 import * as Constants from '../constants/tracker'
 import _ from 'lodash'
 import engine from '../engine'
+import openUrl from '../util/open-url'
 import setNotifications from '../util/set-notifications'
-import type {Action, Dispatch} from '../constants/types/flux'
+import type {Action, Dispatch, AsyncAction} from '../constants/types/flux'
 import type {CallMap} from '../engine/call-map-middleware'
 import type {ConfigState} from '../reducers/config'
 import type {FriendshipUserInfo} from '../profile/friendships'
 import type {RemoteProof, LinkCheckResult, UserCard} from '../constants/types/flow-types'
-import type {ShowNonUser, PendingIdentify} from '../constants/tracker'
+import type {ShowNonUser, PendingIdentify, Proof} from '../constants/tracker'
 import type {State as RootTrackerState} from '../reducers/tracker'
 import type {TypedState} from '../constants/reducer'
 import {createServer} from '../engine/server'
@@ -26,6 +27,7 @@ import {identifyCommon} from '../constants/types/keybase-v1'
 import {routeAppend} from './router'
 import {showAllTrackers} from '../local-debug'
 
+const {bufferToNiceHexString} = Constants
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => TypedState) => ?Promise<*>
 
 export function startTimer (): TrackerActionCreator {
@@ -382,6 +384,26 @@ function updateUserInfo (userCard: UserCard, username: string, getState: () => {
   }
 }
 
+function updateBTC (username: string, address: string): Action {
+  return {
+    type: Constants.updateBTC,
+    payload: {
+      username,
+      address,
+    },
+  }
+}
+
+function updatePGPKey (username: string, pgpFingerprint: Buffer): Action {
+  return {
+    type: Constants.updatePGPKey,
+    payload: {
+      username,
+      fingerPrint: bufferToNiceHexString(pgpFingerprint),
+    },
+  }
+}
+
 // TODO: if we get multiple tracker calls we should cancel one of the sessionIDs, now they'll clash
 function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: boolean = false): CallMap {
   const sessionIDToUsername: { [key: number]: string } = {}
@@ -426,6 +448,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         if (!skipPopups) {
           dispatch({type: Constants.showTracker, payload: {username}})
         }
+      } else if (key.pgpFingerprint) {
+        dispatch(updatePGPKey(username, key.pgpFingerprint))
+        dispatch({type: Constants.updateProofState, payload: {username}})
       }
     },
     reportLastTrack: ({sessionID, track}) => {
@@ -483,7 +508,10 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         dispatch({type: Constants.showTracker, payload: {username}})
       }
     },
-    displayCryptocurrency: params => {
+    displayCryptocurrency: ({sessionID, c: {address}}) => {
+      const username = sessionIDToUsername[sessionID]
+      dispatch(updateBTC(username, address))
+      dispatch({type: Constants.updateProofState, payload: {username}})
     },
     displayUserCard: ({sessionID, card}) => {
       const username = sessionIDToUsername[sessionID]
@@ -624,5 +652,11 @@ export function pendingIdentify (username: string, pending: boolean): PendingIde
   return {
     type: Constants.pendingIdentify,
     payload: {username, pending},
+  }
+}
+
+export function openProofUrl (proof: Proof): AsyncAction {
+  return (dispatch) => {
+    openUrl(proof.humanUrl)
   }
 }

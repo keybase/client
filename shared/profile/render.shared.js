@@ -1,8 +1,8 @@
 import _ from 'lodash'
 import {globalColors} from '../styles/style-guide'
 import type {Proof, MissingProof} from './render'
-import {proveCommon} from '../constants/types/keybase-v1'
 import {proveMessage} from '../util/platforms.js'
+import {PlatformsExpanded} from '../constants/types/more'
 
 export function folderIconProps (folder, style = {}) {
   const type = folder.isPublic
@@ -20,13 +20,16 @@ export function folderIconProps (folder, style = {}) {
 }
 
 export function missingProofs (userProofs: Array<Proof>, onClick: (missingProof: MissingProof) => void): Array<MissingProof> {
-  const availableProofTypes = ['btc'].concat(_.without(_.keys(proveCommon.ProofType), 'none', 'keybase', 'dns' /* genericWebSite is displayed instead, which should provide an option for dns once clicked */))
+  const availableProofTypes = _.without(PlatformsExpanded, 'http', 'https', 'dnsOrGenericWebSite', 'dns')
   const userProofTypes = _.chain(userProofs)
     .map(p => p.type)
-    .map(t => _.includes(['dns', 'genericWebSite', 'http', 'https'], t) ? 'genericWebSite' : t)
     .uniq()
     .value()
-  return _
+
+  const missingRegular = _
     .difference(availableProofTypes, userProofTypes)
     .map(type => ({type, message: proveMessage(type), onClick}))
+
+  // always ensure you can add a web site
+  return missingRegular.concat({type: 'dnsOrGenericWebSite', message: proveMessage('dnsOrGenericWebSite'), onClick})
 }

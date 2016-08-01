@@ -2,6 +2,7 @@
 import type {ConfigState} from '../reducers/config'
 import type {FavoriteState} from '../constants/favorite'
 import type {State as GregorState} from '../reducers/gregor'
+import type {State as ProfileState} from '../constants/profile'
 import type {State as SearchState} from '../reducers/search'
 import type {State as TotalTrackerState} from '../reducers/tracker'
 import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
@@ -13,6 +14,7 @@ export type TypedState = {
   tracker: TotalTrackerState,
   favorite: FavoriteState,
   gregor: GregorState,
+  profile: ProfileState,
 }
 
 // TODO swap State with TypedState when TypedState includes everything we care about
