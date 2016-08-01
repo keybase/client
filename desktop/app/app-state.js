@@ -27,6 +27,7 @@ export default class AppState {
       isFullScreen: null,
       displayBounds: null,
       tab: null,
+      dockHidden: false,
     }
 
     this.config = {
@@ -37,6 +38,7 @@ export default class AppState {
     this.managed = {
       debounceChangeTimer: null,
       winRef: null,
+      showHandlers: [],
       resizeHandlers: [],
       moveHandlers: [],
       closeHandlers: [],
@@ -57,6 +59,18 @@ export default class AppState {
     })
   }
 
+  manageApp (app: any) {
+    app.on('-keybase-dock-show', () => {
+      this.state.dockHidden = false
+      this.saveState()
+    })
+
+    app.on('-keybase-dock-hide', () => {
+      this.state.dockHidden = true
+      this.saveState()
+    })
+  }
+
   manageWindow (win: any) {
     // TODO: Do we want to maximize or setFullScreen if the state says we were?
     // if (this.config.maximize && this.state.isMaximized) {
@@ -65,6 +79,10 @@ export default class AppState {
     // if (this.config.fullScreen && this.state.isFullScreen) {
     //   win.setFullScreen(true)
     // }
+
+    let showHandler = () => { this._showHandler() }
+    this.managed.showHandlers.push(showHandler)
+    win.on('show', showHandler)
 
     let resizeHandler = () => { this._debounceChangeHandler() }
     this.managed.resizeHandlers.push(resizeHandler)
@@ -160,6 +178,10 @@ export default class AppState {
       this.state.windowHidden = !winRef.isVisible()
     }
     this.saveState()
+  }
+
+  _showHandler () {
+    this._updateState()
   }
 
   _closeHandler () {
