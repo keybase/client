@@ -2,8 +2,13 @@ import React, {Component} from 'react'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
+import {connect} from 'react-redux'
+import {bootstrapTest} from '../../actions/config'
+
 export default class Render extends Component {
   render () {
+    const Test = connect(state => ({}), dispatch => ({bootstrapTest: () => dispatch(bootstrapTest())}))
+      (props => <Button label="hello" onClick={() => props.bootstrapTest()} type='Primary' />)
     return (
       <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf ? 0 : 55}}>
         {!!this.props.justRevokedSelf &&
@@ -14,6 +19,7 @@ export default class Render extends Component {
         }
         <Icon type='icon-keybase-logo-160' />
         <Text style={stylesHeader} type='HeaderJumbo'>Join Keybase</Text>
+        {<Test />}
         <Text style={stylesHeaderSub} type='Body'>Folders for anyone in the world.</Text>
         <Button style={stylesButton} type='Primary' onClick={this.props.onSignup} label='Create an account' />
         <Text style={stylesLoginHeader} type='Body' onClick={this.props.onLogin}>Already on Keybase?</Text>

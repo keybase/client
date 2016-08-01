@@ -135,6 +135,21 @@ export function bootstrap (): AsyncAction {
   }
 }
 
+let bstCount = 0
+export function bootstrapTest () {
+  return dispatch => {
+    bstCount++
+    const thisCount = bstCount
+    console.log('MAX: bst', thisCount)
+    Promise.all(
+      [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(([username]) => {
+        console.log('MAX: finished bst', thisCount)
+      }).catch(error => {
+        console.warn('MAX: error bst', thisCount, error)
+      })
+  }
+}
+
 function getCurrentStatus (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {

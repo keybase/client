@@ -77,15 +77,11 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		Logs:         logs,
 	}
 
-	// FIXME (MBG): This is causing RPC responses to sometimes not be recieved
-	// on iOS. Repro by hooking up getExtendedStatus to a button in the iOS
-	// client and watching JS logs. Disabling until we have a root cause / fix.
-	//
-	//kbfsParams := libkbfs.DefaultInitParams(kbCtx)
-	//kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, newKeybaseDaemon, func() {}, kbCtx.Log)
-	//if err != nil {
-	//	return err
-	//}
+	kbfsParams := libkbfs.DefaultInitParams(kbCtx)
+	kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, newKeybaseDaemon, func() {}, kbCtx.Log)
+	if err != nil {
+		return err
+	}
 
 	return Reset()
 }
@@ -106,6 +102,7 @@ func LogSend(uiLogPath string) (string, error) {
 
 // WriteB64 sends a base64 encoded msgpack rpc payload
 func WriteB64(str string) error {
+	kbCtx.Log.Debug("WriteB64: data: %s", str)
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
 		return fmt.Errorf("Base64 decode error: %s; %s", err, str)
@@ -132,8 +129,10 @@ func ReadB64() (string, error) {
 	data := make([]byte, bufferSize)
 
 	n, err := conn.Read(data)
+	kbCtx.Log.Debug("ReadB64: n: %v, err: %v", n, err)
 	if n > 0 && err == nil {
 		str := base64.StdEncoding.EncodeToString(data[0:n])
+		kbCtx.Log.Debug("ReadB64: data: %s", str)
 		return str, nil
 	}
 
