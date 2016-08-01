@@ -109,10 +109,7 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 }
 
 func (rc *RedditChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
-	res, err := g.XAPI.Get(APIArg{
-		Endpoint:    h.apiURL,
-		NeedSession: false,
-	})
+	res, err := g.XAPI.Get(NewAPIArg(g, h.apiURL))
 	if err != nil {
 		return XapiError(err, h.apiURL)
 	}

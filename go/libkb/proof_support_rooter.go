@@ -137,10 +137,8 @@ func (rc *RooterChecker) CheckStatus(g *GlobalContext, h SigHint) (perr ProofErr
 	}
 	g.Log.Debug("| URL after rewriter is: %s", url)
 
-	res, err := g.XAPI.Get(APIArg{
-		Endpoint:    url,
-		NeedSession: false,
-	})
+	res, err := g.XAPI.Get(NewAPIArg(g, url))
+
 	if err != nil {
 		perr = XapiError(err, url)
 		return perr
