@@ -96,4 +96,21 @@ protocol user {
     from the server with no verification
     */
   array<PublicKey> loadAllPublicKeysUnverified(int sessionID, UID uid);
+
+  record UserSummary2 {
+    UID uid;
+    string username;
+    string thumbnail;
+    string fullName;
+    bool isFollower;
+    bool isFollowee;
+  }
+
+  record UserSummary2Set {
+    array<UserSummary2> users;
+    Time time;
+    int version;
+  }
+
+  UserSummary2Set listTrackers2(int sessionID, string assertion, bool reverse);
 }

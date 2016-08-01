@@ -4,17 +4,11 @@
 package client
 
 import (
-	"encoding/json"
-	"fmt"
-	"strings"
-	"text/tabwriter"
-
-	"golang.org/x/net/context"
-
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"golang.org/x/net/context"
 )
 
 // CmdListTrackers is the 'list-trackers' command.  It displays
@@ -35,14 +29,6 @@ func NewCmdListTrackers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 		Usage:        "List those who follow you",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "H, headers",
-				Usage: "Show column headers.",
-			},
-			cli.BoolFlag{
-				Name:  "j, json",
-				Usage: "Output as JSON (default is text).",
-			},
-			cli.BoolFlag{
 				Name:  "v, verbose",
 				Usage: "A full dump, with more gory details.",
 			},
@@ -51,29 +37,6 @@ func NewCmdListTrackers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			cl.ChooseCommand(&CmdListTrackers{Contextified: libkb.NewContextified(g)}, "list-followers", c)
 		},
 	}
-}
-
-type batchfn func([]keybase1.UID) ([]keybase1.UserSummary, error)
-
-func populateList(trs []keybase1.Tracker, summarizer batchfn) (ret []keybase1.UserSummary, err error) {
-
-	for i := 0; i < len(trs); i += libkb.UserSummaryLimit {
-		max := i + libkb.UserSummaryLimit
-		if max > len(trs) {
-			max = len(trs)
-		}
-		sub := trs[i:max]
-		uids := make([]keybase1.UID, len(sub))
-		for i, v := range sub {
-			uids[i] = v.Tracker
-		}
-		var tmp []keybase1.UserSummary
-		if tmp, err = summarizer(uids); err != nil {
-			return
-		}
-		ret = append(ret, tmp...)
-	}
-	return
 }
 
 // RunClient runs the command in client/server mode.
@@ -86,120 +49,33 @@ func (c *CmdListTrackers) Run() error {
 		return err
 	}
 
-	var trs []keybase1.Tracker
-	if len(c.assertion) > 0 {
-		trs, err = cli.ListTrackersByName(context.TODO(), keybase1.ListTrackersByNameArg{Username: c.assertion})
-	} else {
-		trs, err = cli.ListTrackersSelf(context.TODO(), 0)
+	arg := keybase1.ListTrackers2Arg{
+		Assertion: c.assertion,
+		Reverse:   false,
 	}
+	uss, err := cli.ListTrackers2(context.TODO(), arg)
 	if err != nil {
 		return err
 	}
-
-	summarize := func(uids []keybase1.UID) (res []keybase1.UserSummary, err error) {
-		return cli.LoadUncheckedUserSummaries(context.TODO(), keybase1.LoadUncheckedUserSummariesArg{Uids: uids})
-	}
-
-	return c.output(trs, summarize)
+	return c.output(uss)
 }
 
-func (c *CmdListTrackers) headout(count int) *tabwriter.Writer {
-	if !c.verbose {
-		return nil
-	}
+func (c *CmdListTrackers) output(uss keybase1.UserSummary2Set) (err error) {
 
-	noun := "follower"
-	if count > 1 {
-		noun = "followers"
-	}
-	GlobUI.Printf("%d %s:\n\n", count, noun)
-
-	w := GlobUI.DefaultTabWriter()
-	if c.headers {
-		fmt.Fprintf(w, "Username\tFull name\tProofs\n")
-		fmt.Fprintf(w, "==========\t==========\t==========\n")
-	}
-	return w
-}
-
-func (c *CmdListTrackers) output(trs []keybase1.Tracker, summarizer batchfn) (err error) {
-	var sums []keybase1.UserSummary
-	if sums, err = populateList(trs, summarizer); err != nil {
-		return err
-	}
-
-	if len(sums) == 0 {
+	if len(uss.Users) == 0 {
 		GlobUI.Printf("no followers\n")
 		return nil
 	}
+	dui := c.G().UI.GetDumbOutputUI()
 
-	if c.json {
-		return c.outputJSON(sums)
+	for _, user := range uss.Users {
+		dui.Printf("%s", user.Username)
+		if c.verbose {
+			dui.Printf("\t%s", user.FullName)
+		}
+		dui.Printf("\n")
 	}
-
-	if c.verbose {
-		w := c.headout(len(sums))
-		if w == nil {
-			return nil
-		}
-		for _, v := range sums {
-			p := c.proofSummary(v.Proofs)
-			fmt.Fprintf(w, "%s\t%s\t%s\n", v.Username, v.FullName, p)
-		}
-		w.Flush()
-	} else {
-		for _, v := range sums {
-			GlobUI.Println(v.Username)
-		}
-	}
-
 	return nil
-}
-
-func (c *CmdListTrackers) outputJSON(sums []keybase1.UserSummary) error {
-	type smallProofs struct {
-		Social     []keybase1.TrackProof `json:"social,omitempty"`
-		Web        []keybase1.WebProof   `json:"web,omitempty"`
-		PublicKeys []keybase1.PublicKey  `json:"public_keys,omitempty"`
-	}
-	type smallSum struct {
-		UID      keybase1.UID `json:"uid"`
-		Username string       `json:"username"`
-		FullName string       `json:"full_name,omitempty"`
-		Proofs   smallProofs  `json:"proofs,omitempty"`
-	}
-	small := make([]smallSum, len(sums))
-	for i, s := range sums {
-		small[i] = smallSum{
-			UID:      s.Uid,
-			Username: s.Username,
-			FullName: s.FullName,
-			Proofs: smallProofs{
-				Social:     s.Proofs.Social,
-				Web:        s.Proofs.Web,
-				PublicKeys: s.Proofs.PublicKeys,
-			},
-		}
-	}
-
-	j, err := json.MarshalIndent(small, "", "\t")
-	if err != nil {
-		return err
-	}
-	GlobUI.Println(string(j))
-	return nil
-}
-
-func (c *CmdListTrackers) proofSummary(p keybase1.Proofs) string {
-	var ps []string
-	for _, sp := range p.Social {
-		ps = append(ps, sp.IdString)
-	}
-	for _, wp := range p.Web {
-		ps = append(ps, wp.Hostname)
-	}
-
-	return strings.Join(ps, ", ")
 }
 
 // ParseArgv parses the command args.
@@ -209,9 +85,6 @@ func (c *CmdListTrackers) ParseArgv(ctx *cli.Context) error {
 	}
 
 	c.verbose = ctx.Bool("verbose")
-	c.json = ctx.Bool("json")
-	c.headers = ctx.Bool("headers")
-
 	return nil
 }
 

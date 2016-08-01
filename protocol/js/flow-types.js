@@ -1444,6 +1444,21 @@ export type UserSummary = {
   trackTime: Time;
 }
 
+export type UserSummary2 = {
+  uid: UID;
+  username: string;
+  thumbnail: string;
+  fullName: string;
+  isFollower: bool;
+  isFollowee: bool;
+}
+
+export type UserSummary2Set = {
+  users?: ?Array<UserSummary2>;
+  time: Time;
+  version: int;
+}
+
 export type UserVersionVector = {
   id: long;
   sigHints: int;
@@ -3375,6 +3390,20 @@ export function uiPromptYesNoRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: uiPromptYesNoResult) => void)}>) {
   engine.rpc({...request, method: 'ui.promptYesNo'})
 }
+export type userListTrackers2RpcParam = $Exact<{
+  assertion: string,
+  reverse: bool
+}>
+
+type userListTrackers2Result = UserSummary2Set
+
+export function userListTrackers2Rpc (request: $Exact<{
+  param: userListTrackers2RpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: userListTrackers2Result) => void)}>) {
+  engine.rpc({...request, method: 'user.listTrackers2'})
+}
 export type userListTrackersByNameRpcParam = $Exact<{
   username: string
 }>
@@ -3911,6 +3940,7 @@ export type rpc =
   | trackTrackWithTokenRpc
   | trackUntrackRpc
   | uiPromptYesNoRpc
+  | userListTrackers2Rpc
   | userListTrackersByNameRpc
   | userListTrackersRpc
   | userListTrackersSelfRpc
@@ -6106,6 +6136,17 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: (err: RPCError) => void,
       result: (result: userLoadAllPublicKeysUnverifiedResult) => void
+    }
+  ) => void,
+  'keybase.1.user.listTrackers2'?: (
+    params: $Exact<{
+      sessionID: int,
+      assertion: string,
+      reverse: bool
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: userListTrackers2Result) => void
     }
   ) => void
 }>

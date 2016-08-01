@@ -215,7 +215,7 @@ func (c *CmdStress) listTrackers() {
 		return
 	}
 	ucli := keybase1.UserClient{Cli: cli}
-	_, err = ucli.ListTrackersSelf(context.TODO(), 0)
+	_, err = ucli.ListTrackers2(context.TODO(), keybase1.ListTrackers2Arg{})
 	if err != nil {
 		G.Log.Warning("list followers error: %s", err)
 	}
