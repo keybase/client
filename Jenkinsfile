@@ -94,14 +94,14 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             if (cause == "upstream" && clientProjectName != '') {
                                 step([$class: 'CopyArtifact',
                                         projectName: "${clientProjectName}",
-                                        filter: 'kbclient.tar',
+                                        filter: 'kbclient.tar.gz',
                                         fingerprintArtifacts: true,
                                         selector: [$class: 'TriggeredBuildSelector',
                                             allowUpstreamDependencies: false,
                                             fallbackToLastSuccessful: false,
                                             upstreamFilterStrategy: 'UseGlobalSetting'],
                                         target: '.'])
-                                sh "docker load -i kbclient.tar"
+                                sh "gunzip -c kbclient.tar.gz | docker load"
                             } else {
                                 clientImage.pull()
                             }
