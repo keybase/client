@@ -54,7 +54,7 @@ func (ui BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason) 
 	msg := "Identifying "
 	switch reason.Type {
 	case keybase1.IdentifyReasonType_TRACK:
-		msg = "Generating tracking statement for "
+		msg = "Generating follower statement for "
 	case keybase1.IdentifyReasonType_ENCRYPT:
 		msg = "Identifying recipient "
 	case keybase1.IdentifyReasonType_DECRYPT:
@@ -107,7 +107,7 @@ func (ui BaseIdentifyUI) ReportRevoked(del []keybase1.TrackDiff) {
 	if len(del) == 0 {
 		return
 	}
-	ui.G().Log.Warning("Some proofs you previously tracked were revoked:")
+	ui.G().Log.Warning("Some proofs were revoked:")
 	for _, d := range del {
 		ui.ReportHook(BADX + " " + trackDiffToColoredString(d))
 	}
@@ -146,7 +146,7 @@ func (ui IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome) 
 		inputChecker.Set = append(inputChecker.Set, "I")
 	}
 
-	prompt := "Some previously tracked proofs are failing. " + ignorePrompt + "[A]ccept these changes or [C]ancel?"
+	prompt := "Some proofs are failing. " + ignorePrompt + "[A]ccept these changes or [C]ancel?"
 
 	choice, err := PromptWithChecker(PromptDescriptorTrackPublic, ui.parent, prompt, false, inputChecker.Checker())
 	if libkb.Cicmp(choice, "C") {
@@ -189,7 +189,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 
 	// If we are tracking remotely, and we we're asked to track local only then error.
 	if trackedRemote && o.TrackOptions.LocalOnly {
-		err = fmt.Errorf("Can't locally track if you are already tracking remotely")
+		err = fmt.Errorf("Can't locally follow if you are already following remotely")
 		return
 	}
 
@@ -201,18 +201,18 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	case keybase1.TrackStatus_UPDATE_BROKEN_REVOKED, keybase1.TrackStatus_UPDATE_BROKEN_FAILED_PROOFS:
 		return ui.confirmFailedTrackProofs(o)
 	case keybase1.TrackStatus_UPDATE_NEW_PROOFS:
-		prompt = "Your tracking statement of " + username +
+		prompt = "Your view of " + username +
 			" is still valid; update it to reflect new proofs?"
 		promptDefault = libkb.PromptDefaultYes
 	case keybase1.TrackStatus_UPDATE_OK:
-		ui.G().Log.Info("Your tracking statement is up-to-date")
+		ui.G().Log.Info("Your view is up-to-date")
 		trackChanged = false
 	case keybase1.TrackStatus_NEW_ZERO_PROOFS:
 		prompt = "We found an account for " + username +
-			", but they haven't proven their identity. Still track them?"
+			", but they haven't proven their identity. Still follow them?"
 		promptDefault = libkb.PromptDefaultNo
 	case keybase1.TrackStatus_NEW_FAIL_PROOFS:
-		verb := "track"
+		verb := "follow"
 		if o.ForPGPPull {
 			verb = "pull PGP key for"
 		}
@@ -243,7 +243,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 			result.RemoteConfirmed = true
 			return
 		}
-		prompt = "Publicly write tracking statement to server?"
+		prompt = "Publicly follow?"
 		if result.RemoteConfirmed, err = ui.parent.PromptYesNo(PromptDescriptorTrackPublic, prompt, promptDefault); err != nil {
 			return
 		}
@@ -497,7 +497,7 @@ func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) error {
 		if !t.IsRemote() {
 			locally += "locally "
 		}
-		msg := ColorString("bold", fmt.Sprintf("You last %stracked %s on %s",
+		msg := ColorString("bold", fmt.Sprintf("You last %sfollowed %s on %s",
 			locally, t.Username(), libkb.FormatTime(t.GetCTime())))
 		ui.ReportHook(msg)
 	}

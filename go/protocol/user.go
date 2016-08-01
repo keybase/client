@@ -56,6 +56,21 @@ type SearchResult struct {
 	Score      float64           `codec:"score" json:"score"`
 }
 
+type UserSummary2 struct {
+	Uid        UID    `codec:"uid" json:"uid"`
+	Username   string `codec:"username" json:"username"`
+	Thumbnail  string `codec:"thumbnail" json:"thumbnail"`
+	FullName   string `codec:"fullName" json:"fullName"`
+	IsFollower bool   `codec:"isFollower" json:"isFollower"`
+	IsFollowee bool   `codec:"isFollowee" json:"isFollowee"`
+}
+
+type UserSummary2Set struct {
+	Users   []UserSummary2 `codec:"users" json:"users"`
+	Time    Time           `codec:"time" json:"time"`
+	Version int            `codec:"version" json:"version"`
+}
+
 type ListTrackersArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 	Uid       UID `codec:"uid" json:"uid"`
@@ -118,6 +133,12 @@ type LoadAllPublicKeysUnverifiedArg struct {
 	Uid       UID `codec:"uid" json:"uid"`
 }
 
+type ListTrackers2Arg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Assertion string `codec:"assertion" json:"assertion"`
+	Reverse   bool   `codec:"reverse" json:"reverse"`
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -144,6 +165,7 @@ type UserInterface interface {
 	// Load all the user's public keys (even those in reset key families)
 	// from the server with no verification
 	LoadAllPublicKeysUnverified(context.Context, LoadAllPublicKeysUnverifiedArg) ([]PublicKey, error)
+	ListTrackers2(context.Context, ListTrackers2Arg) (UserSummary2Set, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -342,6 +364,22 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"listTrackers2": {
+				MakeArg: func() interface{} {
+					ret := make([]ListTrackers2Arg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ListTrackers2Arg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ListTrackers2Arg)(nil), args)
+						return
+					}
+					ret, err = i.ListTrackers2(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -421,5 +459,10 @@ func (c UserClient) Search(ctx context.Context, __arg SearchArg) (res []SearchRe
 // from the server with no verification
 func (c UserClient) LoadAllPublicKeysUnverified(ctx context.Context, __arg LoadAllPublicKeysUnverifiedArg) (res []PublicKey, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.loadAllPublicKeysUnverified", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) ListTrackers2(ctx context.Context, __arg ListTrackers2Arg) (res UserSummary2Set, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.user.listTrackers2", []interface{}{__arg}, &res)
 	return
 }

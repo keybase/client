@@ -55,7 +55,7 @@ class RenderHelp extends Component<void, Props, State> {
           </Box>
           <Box style={styleBody}>
             <Text type='BodySmall' style={{...styleBodyText}}>
-              Until then, you have to use the terminal to search for and track users.
+              Until then, you have to use the terminal to search for and follow users.
             </Text>
             <Text type='BodySmall' style={{...styleBodyText}}>
               <Text type='BodySmallSemibold'>Remember:</Text> you can look up people
@@ -67,13 +67,13 @@ class RenderHelp extends Component<void, Props, State> {
                   <Text type='Terminal'>keybase id maxtaco@twitter</Text>
                   <Text type='Terminal'>keybase id max</Text>
                   <Text type='Terminal'>keybase search "maxwell"</Text>
-                  <Text type='Terminal'>keybase track max</Text>
+                  <Text type='Terminal'>keybase follow max</Text>
                 </Box>
                 <Box style={{...styleTerminalGroups, marginLeft: '2em'}}>
                   <Text type='TerminalComment'>id by twitter name</Text>
                   <Text type='TerminalComment'>or keybase name</Text>
                   <Text type='TerminalComment'>search usernames</Text>
-                  <Text type='TerminalComment'>track someone</Text>
+                  <Text type='TerminalComment'>follow someone</Text>
                 </Box>
               </Box>
               <Text type='TerminalEmpty' />

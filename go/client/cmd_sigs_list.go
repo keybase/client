@@ -38,7 +38,7 @@ func (s *CmdSigsList) ParseTypes(ctx *cli.Context) error {
 	}
 
 	types := map[string]bool{
-		"track":          true,
+		"follow":         true,
 		"proof":          true,
 		"cryptocurrency": true,
 		"self":           true,
@@ -152,7 +152,7 @@ func (s *CmdSigsList) Run() error {
 	var t *keybase1.SigTypes
 	if s.types != nil {
 		t = &keybase1.SigTypes{
-			Track:          s.types["track"],
+			Track:          s.types["follow"],
 			Proof:          s.types["proof"],
 			Cryptocurrency: s.types["cryptocurrency"],
 			IsSelf:         s.types["self"],
@@ -206,7 +206,7 @@ func NewCmdSigsList(cl *libcmdline.CommandLine) cli.Command {
 			},
 			cli.StringFlag{
 				Name:  "t, type",
-				Usage: "Type of sig to output: track, proof, cryptocurrency, self, all (default is all).",
+				Usage: "Type of sig to output: follow, proof, cryptocurrency, self, all (default is all).",
 			},
 			cli.BoolFlag{
 				Name:  "a, all-keys",

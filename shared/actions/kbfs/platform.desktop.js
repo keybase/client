@@ -1,10 +1,9 @@
-/* @flow */
-
-import {ipcRenderer} from 'electron'
+// @flow
 import * as Constants from '../../constants/config'
-import {Common} from '../../constants/types/keybase-v1'
-import type {AsyncAction} from '../../constants/types/flux'
 import path from 'path'
+import type {AsyncAction} from '../../constants/types/flux'
+import {Common} from '../../constants/types/keybase-v1'
+import {ipcRenderer} from 'electron'
 
 function open (openPath: string) {
   console.log('openItem:', openPath)

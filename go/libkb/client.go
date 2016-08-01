@@ -7,7 +7,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"h12.me/socks"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"h12.me/socks"
 )
 
 type ClientConfig struct {
@@ -135,11 +136,19 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 		jar, _ = cookiejar.New(nil)
 	}
 
-	var xprt *http.Transport
 	var timeout time.Duration
 
+	xprt := *(http.DefaultTransport.(*http.Transport)) // shallow copying
+
+	// This disables HTTP/2. There's a bug introduced between (go1.6, go1.6.3]
+	// that makes client.Get hang on certain HTTP/2 servers. See CORE-3441 for
+	// details.
+	//
+	// TODO: remove this after the bug is fixed.
+	xprt.TLSNextProto = make(
+		map[string]func(authority string, c *tls.Conn) http.RoundTripper)
+
 	if (config != nil && config.RootCAs != nil) || e.GetTorMode().Enabled() {
-		xprt = &http.Transport{}
 		if config != nil && config.RootCAs != nil {
 			xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
 		}
@@ -163,8 +172,6 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 	if jar != nil {
 		ret.cli.Jar = jar
 	}
-	if xprt != nil {
-		ret.cli.Transport = xprt
-	}
+	ret.cli.Transport = &xprt
 	return ret
 }

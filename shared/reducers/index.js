@@ -1,25 +1,23 @@
-/* @flow */
-
-import {combineReducers} from 'redux'
-import {List} from 'immutable'
-import type {State} from '../constants/reducer'
+// @flow
 import * as Constants from '../constants/dev'
-import {resetStore} from '../constants/common.js'
-
 import config from './config'
+import dev from './dev'
+import devEdit from './dev-edit'
 import devices from './devices'
 import favorite from './favorite'
 import login from './login'
-import pinentry from './pinentry'
 import notifications from './notifications'
+import pinentry from './pinentry'
+import router from './router'
 import search from './search'
 import serialize from './serialize'
 import signup from './signup'
-import tabbedRouter from './tabbed-router'
 import tracker from './tracker'
+import type {State} from '../constants/reducer'
 import unlockFolders from './unlock-folders'
-import devEdit from './dev-edit'
-import dev from './dev'
+import {List} from 'immutable'
+import {combineReducers} from 'redux'
+import {resetStore} from '../constants/common.js'
 
 let history = List()
 let index = 0
@@ -40,18 +38,18 @@ function timeTravel (state: State, action: any): State {
 }
 
 const combinedReducer = combineReducers({
-  login,
-  devices,
-  tabbedRouter,
-  search,
   config,
-  tracker,
-  pinentry,
-  favorite,
-  signup,
-  unlockFolders,
-  notifications,
   dev,
+  devices,
+  favorite,
+  login,
+  notifications,
+  pinentry,
+  router,
+  search,
+  signup,
+  tracker,
+  unlockFolders,
 })
 
 let reducer

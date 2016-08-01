@@ -11,6 +11,8 @@ export function defaultColor (type: IconType): ?string {
       return globalColors.green
     case 'iconfont-proof-new':
       return globalColors.blue2
+    case 'iconfont-proof-pending':
+      return globalColors.black_40
     case 'iconfont-close':
       return globalColors.black_20
     default:
@@ -23,6 +25,7 @@ export function defaultHoverColor (type: IconType): ?string {
     case 'iconfont-proof-new':
     case 'iconfont-proof-followed':
     case 'iconfont-proof-broken':
+    case 'iconfont-proof-pending':
       return defaultColor(type)
     case 'iconfont-close':
       return globalColors.black_60

@@ -6,7 +6,7 @@ import {isMobile} from '../constants/platform'
 
 import type {Props} from './usernames'
 
-export function usernameText ({type, users, style, inline}: Props) {
+export function usernameText ({type, users, style, inline, redColor}: Props) {
   return users.map((u, i) => {
     const userStyle = {...style}
 
@@ -15,7 +15,7 @@ export function usernameText ({type, users, style, inline}: Props) {
     }
 
     if (u.broken) {
-      userStyle.color = globalColors.red
+      userStyle.color = redColor || globalColors.red
     }
 
     if (inline) {
@@ -44,7 +44,7 @@ export default class Usernames extends Component<void, Props, void> {
     const containerStyle = this.props.inline ? {display: 'inline'} : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
 
     return (
-      <Box style={{...containerStyle, textDecoration: 'inherit'}}>
+      <Box style={{...containerStyle, ...(isMobile ? {} : {textDecoration: 'inherit'})}}>
         {usernameText(this.props)}
       </Box>
     )

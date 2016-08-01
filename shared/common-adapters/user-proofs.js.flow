@@ -2,6 +2,7 @@
 
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 import type {PlatformsExpanded} from '../constants/types/more'
+import type {Time} from '../constants/types/flow-types'
 
 export type MissingProof = {
   type: PlatformsExpanded,
@@ -12,18 +13,21 @@ export type MissingProof = {
 export type Proof = {
   id: string,
   type: PlatformsExpanded,
+  mTime: Time,
   meta: ?SimpleProofMeta,
   humanUrl: ?string,
   profileUrl: ?string,
   name: string,
   state: SimpleProofState,
-  isTracked: bool
+  isTracked: bool,
 }
 
 type CommonProps = {
   style?: Object,
   loading?: boolean,
   username: ?string,
+  onClickProofMenu?: ?(idx: number) => void,
+  showingMenuIndex?: ?number,
 }
 
 export type Props = ({
@@ -32,4 +36,6 @@ export type Props = ({
   missingProofs: Array<MissingProof>,
 } & CommonProps)
 
-export default class ProofsRender extends React$Component<void, Props, void> {}
+export default class ProofsRender extends React$Component<void, Props, void> {
+  getRow: (idx: number) => React$Component<*,*,*>;
+}

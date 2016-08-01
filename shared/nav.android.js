@@ -19,9 +19,8 @@ import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
-import {navigateBack} from './actions/router'
+import {navigateBack, switchTab} from './actions/router'
 import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab, prettify} from './constants/tabs'
-import {switchTab} from './actions/tabbed-router'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
@@ -93,7 +92,7 @@ class Nav extends Component {
   componentWillMount () {
     BackAndroid.addEventListener('hardwareBackPress', () => {
       // TODO Properly handle android back button press
-      const currentRoute = this.props.tabbedRouter.getIn(['tabs', this.props.tabbedRouter.get('activeTab'), 'uri'])
+      const currentRoute = this.props.router.getIn(['tabs', this.props.router.get('activeTab'), 'uri'])
       if (currentRoute == null || currentRoute.count() <= 1) {
         return false
       }
@@ -107,7 +106,7 @@ class Nav extends Component {
       return <DumbSheet />
     }
 
-    const activeTab = this.props.tabbedRouter.get('activeTab')
+    const activeTab = this.props.router.get('activeTab')
 
     if (activeTab === loginTab) {
       return this._renderContent(loginTab, Login)
@@ -170,15 +169,6 @@ class Nav extends Component {
   }
 }
 
-Nav.propTypes = {
-  switchTab: React.PropTypes.func.isRequired,
-  navigateBack: React.PropTypes.func.isRequired,
-  bootstrap: React.PropTypes.func.isRequired,
-  tabbedRouter: React.PropTypes.object.isRequired,
-  dumbFullscreen: React.PropTypes.bool.isRequired,
-  folderBadge: React.PropTypes.number.isRequired,
-}
-
 const styles = StyleSheet.create({
   tabContent: {
     flex: 1,
@@ -215,12 +205,13 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
-  ({tabbedRouter,
+  ({
+    router,
     config: {bootstrapped, extendedConfig, username},
     dev: {debugConfig: {dumbFullscreen}},
     favorite: {publicBadge, privateBadge},
     notifications: {menuBadge}}) => ({
-      tabbedRouter,
+      router,
       bootstrapped,
       provisioned: extendedConfig && !!extendedConfig.device,
       username,

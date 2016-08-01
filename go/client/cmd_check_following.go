@@ -39,10 +39,10 @@ func (c *CmdCheckTracking) Run() (err error) {
 
 func NewCmdCheckTracking(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "check-tracking",
+		Name:  "check-following",
 		Flags: []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdCheckTrackingRunner(g), "check-tracking", c)
+			cl.ChooseCommand(NewCmdCheckTrackingRunner(g), "check-following", c)
 		},
 	}
 }

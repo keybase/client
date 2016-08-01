@@ -97,10 +97,10 @@ export default class BioRender extends Component<void, Props, void> {
             <Box style={{...globalStyles.flexBoxRow}}>
               <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}
                 onClick={() => shared.onClickFollowers(username)}>{userInfo.followersCount}
-                <Text type='BodySmallSecondaryLink'>&nbsp;Tracker{userInfo.followersCount === 1 ? '' : 's'}</Text>
+                <Text type='BodySmallSecondaryLink'>&nbsp;Follower{userInfo.followersCount === 1 ? '' : 's'}</Text>
               </Text>
               <Text type='BodySmall'>&nbsp; &middot; &nbsp;</Text>
-              <Text type='BodySmallSecondaryLink' onClick={() => shared.onClickFollowing(username)}>Tracking&nbsp;
+              <Text type='BodySmallSecondaryLink' onClick={() => shared.onClickFollowing(username)}>Following&nbsp;
                 <Text type='BodySmallSecondaryLink' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
               </Text>
             </Box>

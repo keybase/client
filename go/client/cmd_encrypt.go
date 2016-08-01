@@ -22,6 +22,7 @@ type CmdEncrypt struct {
 	noSelfEncrypt  bool
 	binary         bool
 	hideRecipients bool
+	hideSelf       bool
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -56,6 +57,11 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Usage: "Don't include recipients in metadata",
 			},
 			cli.BoolFlag{
+				Name: "anonymous",
+				Usage: "Don't include sender or recipients in metadata. " +
+					"Implies --hide-recipients.",
+			},
+			cli.BoolFlag{
 				Name:  "no-self",
 				Usage: "Don't encrypt for yourself",
 			},
@@ -88,6 +94,7 @@ func (c *CmdEncrypt) Run() error {
 		NoSelfEncrypt:  c.noSelfEncrypt,
 		Binary:         c.binary,
 		HideRecipients: c.hideRecipients,
+		HideSelf:       c.hideSelf,
 	}
 	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.SaltpackEncrypt(context.TODO(), arg)
@@ -114,7 +121,9 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	infile := ctx.String("infile")
 	c.noSelfEncrypt = ctx.Bool("no-self")
 	c.binary = ctx.Bool("binary")
-	c.hideRecipients = ctx.Bool("hide-recipients")
+	// --anonymous means hide both self and recipients.
+	c.hideSelf = ctx.Bool("anonymous")
+	c.hideRecipients = ctx.Bool("hide-recipients") || ctx.Bool("anonymous")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
 	}

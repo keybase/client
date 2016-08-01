@@ -77,7 +77,7 @@
     return;
   }
 
-  [self.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
+  [self.helper sendRequest:@"version" params:nil maxAttempts:4 completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionReinstall info:info error:error];
       completion(self.componentStatus);

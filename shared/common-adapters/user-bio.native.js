@@ -51,13 +51,13 @@ export default class BioRender extends Component {
             <Text type='BodySmall' style={stylesFollowLabel}>{followLabel.toUpperCase()}</Text>}
           <Text type='BodySmall' style={stylesFollowing}>
             <Text type='BodySmallLink' onClick={() => shared.onClickFollowers(username)} style={stylesFollowingLabel}>
-              <Text type='BodySmall' style={stylesFollowingCount}>{userInfo.followersCount}</Text> {userInfo.followersCount === 1 ? 'Tracker' : 'Trackers'}
+              <Text type='BodySmall' style={stylesFollowingCount}>{userInfo.followersCount}</Text> {userInfo.followersCount === 1 ? 'Follower' : 'Followers'}
             </Text>
             &nbsp;
             &middot;
             &nbsp;
             <Text type='BodySmallLink' onClick={() => shared.onClickFollowing(username)} style={stylesFollowingLabel}>
-              Tracking <Text type='BodySmall' style={stylesFollowingCount}>{userInfo.followingCount}</Text>
+              Following <Text type='BodySmall' style={stylesFollowingCount}>{userInfo.followingCount}</Text>
             </Text>
           </Text>
           {!!userInfo.bio &&

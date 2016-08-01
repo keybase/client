@@ -12,7 +12,9 @@ type CommonProps = {
   loadingColor?: string,
   forceLoading?: boolean,
   following?: ?boolean,
-  followsYou?: ?boolean
+  followsYou?: ?boolean,
+  backgroundColor?: string,
+  opacity?: number,
 }
 
 export type Props = ({url: ?string} & CommonProps) | ({username: ?string} & CommonProps)

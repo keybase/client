@@ -1,9 +1,12 @@
+// @flow
 import * as Constants from '../../constants/config'
+import type {AsyncAction} from '../../constants/types/flux'
 
-export function getDevSettings () {
-  return function (dispatch) {
+export function getDevSettings (): AsyncAction {
+  return (dispatch) => {
     dispatch({
       type: Constants.devConfigLoading,
+      payload: {},
     })
 
     dispatch({
@@ -14,12 +17,12 @@ export function getDevSettings () {
 }
 
 export function saveDevSettings () {
-  return function (dispatch, getState) {
-    return dispatch({type: Constants.devConfigSaved})
+  return {
+    type: Constants.devConfigSaved,
   }
 }
 
-export function updateDevSettings (updates) {
+export function updateDevSettings (updates: any) {
   return {
     type: Constants.devConfigUpdate,
     payload: {updates},

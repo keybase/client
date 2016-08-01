@@ -34,6 +34,12 @@ export default class Avatar extends Component {
 
     return (
       <div onClick={this.props.onClick} style={{...globalStyles.noSelect, position: 'relative', width, height, ...this.props.style}}>
+        {this.props.backgroundColor &&
+          <div
+            style={{...avatarStyle,
+              backgroundColor: this.props.backgroundColor,
+              backgroundSize: 'cover',
+            }} />}
         {showNoAvatar &&
           <img src={noAvatar} style={{...avatarStyle, display: 'block'}} />}
         {showLoadingColor && <div style={{...avatarStyle, backgroundColor: this.props.loadingColor}} />}
@@ -42,6 +48,8 @@ export default class Avatar extends Component {
           style={{...avatarStyle,
             display: (!showNoAvatar && !showLoadingColor) ? 'block' : 'none',
             backgroundColor: globalColors.white,
+            opacity: this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0,
+            backgroundClip: 'padding-box',
           }}
           onError={() => this.setState({errored: true})}
           onLoad={() => this.setState({avatarLoaded: true})} />

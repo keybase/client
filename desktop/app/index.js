@@ -98,13 +98,6 @@ function start () {
     })
   })
 
-  app.on('before-quit', event => {
-    const windows = BrowserWindow.getAllWindows()
-    windows.forEach(w => {
-      w.destroy()
-    })
-  })
-
   // quit through dock. only listen once
   app.once('before-quit', event => {
     console.log('Quit through before-quit')

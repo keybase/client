@@ -1,18 +1,17 @@
-/* @flow */
-
-import {navigateBack} from '../actions/router'
+// @flow
 import * as Constants from '../constants/favorite'
-import {defaultKBFSPath} from '../constants/config'
-import {badgeApp} from './notifications'
-import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
 import _ from 'lodash'
-import {apiserverGetRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc} from '../constants/types/flow-types'
-import {NotifyPopup} from '../native/notifications'
-import type {Folder} from '../constants/types/flow-types'
 import type {Dispatch} from '../constants/types/flux'
-import type {FavoriteAdd, FavoriteList, FavoriteIgnore, State} from '../constants/favorite'
+import type {FavoriteAdd, FavoriteList, FavoriteIgnore, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored} from '../constants/favorite'
+import type {Folder} from '../constants/types/flow-types'
 import type {ParticipantUnlock, Device, Folder as FoldersFolder, MetaType} from '../constants/folders'
 import type {UserList} from '../common-adapters/usernames'
+import {NotifyPopup} from '../native/notifications'
+import {apiserverGetRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc} from '../constants/types/flow-types'
+import {badgeApp} from './notifications'
+import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
+import {defaultKBFSPath} from '../constants/config'
+import {navigateBack} from '../actions/router'
 
 export function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
   const sortName = users.map(u => u.username).join(',')
@@ -46,7 +45,7 @@ type FolderWithMeta = {
   youCanUnlock: Array<Device>,
 } & Folder
 
-const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): State => { // eslint-disable-line space-infix-ops
+const folderToState = (folders: Array<FolderWithMeta>, username: string = ''): FolderState => { // eslint-disable-line space-infix-ops
   let privateBadge = 0
   let publicBadge = 0
 
@@ -291,4 +290,12 @@ export function favoriteFolder (path: string): (dispatch: Dispatch) => void {
       },
     })
   }
+}
+
+export function switchTab (showingPrivate: boolean): FavoriteSwitchTab {
+  return {type: Constants.favoriteSwitchTab, payload: {showingPrivate}, error: false}
+}
+
+export function toggleShowIgnored (isPrivate: boolean): FavoriteToggleIgnored {
+  return {type: Constants.favoriteToggleIgnored, payload: {isPrivate}, error: false}
 }
