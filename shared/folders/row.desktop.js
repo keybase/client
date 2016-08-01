@@ -3,24 +3,31 @@ import React from 'react'
 import type {Folder} from './list'
 import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
 import type {IconType} from '../common-adapters/icon'
-import {globalStyles, globalColors} from '../styles/style-guide'
-import {resolveImageAsURL} from '../../desktop/resolve-root'
+import {globalStyles, globalColors, backgroundURL, globalMargins} from '../styles/style-guide'
 
-const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar}) => {
-  const paddingLR = smallMode ? 4 : 8
-  const paddingTB = smallMode ? 8 : 12
+const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, isPublic}) => {
+  let boxStyle: Object = {
+    width: smallMode ? globalMargins.medium : globalMargins.large,
+    minHeight: smallMode ? 40 : globalMargins.large,
+    paddingTop: smallMode ? globalMargins.tiny : 12,
+    paddingBottom: smallMode ? globalMargins.tiny : 12,
+    paddingLeft: smallMode ? globalMargins.xtiny : globalMargins.tiny,
+    paddingRight: smallMode ? globalMargins.xtiny : globalMargins.tiny,
+  }
+
+  if (isPublic) {
+    boxStyle.backgroundColor = globalColors.yellowGreen
+  } else {
+    boxStyle.background = `${backgroundURL('icons', `icon-damier-pattern-${ignored ? 'ignored-locked' : 'good-open'}.png`)} ${globalColors.darkBlue3} repeat`
+  }
 
   const groupIcon: IconType = smallMode ? styles.groupIcon.small : styles.groupIcon.normal
   return (
-    <Box style={{
-      ...styles.avatarContainer,
-      width: smallMode ? 32 : 48,
-      minHeight: smallMode ? 40 : 48,
-      paddingTop: paddingTB, paddingBottom: paddingTB,
-      paddingLeft: paddingLR, paddingRight: paddingLR}}>
+    <Box style={boxStyle}>
       {groupAvatar
-        ? <Icon type={groupIcon} />
-        : <Avatar size={smallMode ? 24 : 32} username={userAvatar} />}
+        ? <Icon type={groupIcon} style={ignored ? {opacity: 0.5} : {}} />
+        : <Avatar size={smallMode ? 24 : 32} username={userAvatar} opacity={ignored ? 0.5 : 1.0}
+          backgroundColor={styles.rowContainer.backgroundColor} />}
     </Box>
   )
 }
@@ -56,8 +63,10 @@ const RowMeta = ({ignored, meta, styles}) => {
   return <Meta {...metaProps} />
 }
 
-const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onOpen, onClick, groupAvatar, userAvatar, onRekey, path}:
-  {smallMode: boolean, onOpen: (path: string) => void, onClick: (path: string) => void, onRekey: (path: string) => void} & Folder) => {
+type RowType = {smallMode: boolean, onOpen: (path: string) => void, onClick: (path: string) => void, onRekey: (path: string) => void}
+
+const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode,
+  onOpen, onClick, groupAvatar, userAvatar, onRekey, path}: RowType & Folder) => {
   const onOpenClick = event => {
     event.preventDefault()
     event.stopPropagation()
@@ -69,8 +78,13 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onOp
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   let backgroundColor = styles.rowContainer.backgroundColor
-  if (isPublic && ignored) {
-    backgroundColor = globalColors.white_40
+  let nameColor = styles.nameColor
+  let redColor = globalColors.red
+
+  if (ignored) {
+    backgroundColor = isPublic ? globalColors.white_40 : globalColors.darkBlue4
+    nameColor = isPublic ? globalColors.yellowGreen2_75 : globalColors.white_40
+    redColor = globalColors.red_75
   }
 
   const containerStyle = {
@@ -83,38 +97,29 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onOp
 
   return (
     <Box style={containerStyle} className='folder-row' onClick={() => onClick && onClick(path)}>
-      <Box style={stylesLine} />
       <Box style={{...globalStyles.flexBoxRow}}>
-        <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} />
+        <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} ignored={ignored} isPublic={isPublic} />
         <Box style={stylesBodyContainer}>
-          <Usernames users={users} type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'} style={{color: styles.nameColor}} />
+          <Usernames users={users} type={smallMode ? 'BodySmallSemibold' : 'BodySemibold'} style={{color: nameColor}} redColor={redColor} />
           {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
           {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} smallMode={smallMode} />}
         </Box>
         <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
           {!smallMode && meta !== 'rekey' && <Text
-            type='BodySmall' className='folder-row-hover-action' onClick={onOpenClick} style={stylesAction}>Open</Text>}
+            type='BodySmall' className='folder-row-hover-action' onClick={onOpenClick} style={styles.action}>Open</Text>}
           {meta === 'rekey' && <Button
             backgroundMode={styles.modifiedMode} small={smallMode} type='Secondary'
             onClick={e => {
               if (onRekey) {
                 e.stopPropagation()
                 onRekey(path)
-              } }} label='Rekey' style={stylesAction} />}
+              } }} label='Rekey' style={styles.action} />}
           <Icon type={icon} style={{visibility: hasData ? 'visible' : 'hidden', ...(smallMode && !hasData ? {display: 'none'} : {})}} />
         </Box>
       </Box>
+      <Box style={{height: 1, backgroundColor: globalColors.black_05, position: 'absolute', bottom: 0, left: 0, right: 0}} />
     </Box>
   )
-}
-
-const stylesLine = {
-  backgroundColor: globalColors.black_10,
-  height: 1,
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
 }
 
 const rowContainer = {
@@ -142,13 +147,13 @@ const stylesPrivate = {
     small: 'icon-folder-private-group-24',
     normal: 'icon-folder-private-group-32',
   },
-  avatarContainer: {
-    backgroundColor: globalColors.darkBlue3,
-    backgroundImage: `url(${resolveImageAsURL('icons', 'icon-damier-pattern-good-open.png')})`,
-    backgroundRepeat: 'repeat',
-  },
   nameColor: globalColors.white,
   modifiedMode: 'Terminal',
+  action: {
+    ...globalStyles.clickable,
+    alignSelf: 'center',
+    color: globalColors.white,
+  },
 }
 
 const stylesPublic = {
@@ -169,11 +174,13 @@ const stylesPublic = {
     small: 'icon-folder-public-group-24',
     normal: 'icon-folder-public-group-32',
   },
-  avatarContainer: {
-    backgroundColor: globalColors.yellowGreen,
-  },
   nameColor: globalColors.yellowGreen2,
   modifiedMode: 'Normal',
+  action: {
+    ...globalStyles.clickable,
+    alignSelf: 'center',
+    color: globalColors.black_60,
+  },
 }
 
 const stylesBodyContainer = {
@@ -188,12 +195,6 @@ const stylesActionContainer = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   justifyContent: 'flex-end',
-}
-
-const stylesAction = {
-  ...globalStyles.clickable,
-  color: globalColors.white,
-  alignSelf: 'center',
 }
 
 const stylesModified = {

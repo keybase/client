@@ -13,7 +13,8 @@ export type Props = {
   type: TextType,
   style?: Object,
   inline?: bool,
-  users: UserList
+  users: UserList,
+  redColor?: string,
 }
 
 declare export function usernameText(props: Props): void

@@ -16,7 +16,10 @@ export type Props = {
   smallMode?: boolean,
   onClick?: (path: string) => void,
   onOpen?: (path: string) => void,
-  onRekey: (path: string) => void
+  onRekey: (path: string) => void,
+  onToggleShowIgnored: (isPrivate: boolean) => void,
+  publicShowingIgnored: boolean,
+  privateShowingIgnored: boolean,
 }
 
 export default class Render extends Component<void, Props, void> { }

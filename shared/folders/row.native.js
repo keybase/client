@@ -3,22 +3,24 @@ import React from 'react'
 import {Image, TouchableHighlight} from 'react-native'
 import type {Folder} from './list'
 import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
+import {iconMeta} from '../common-adapters/icon.constants'
 import type {IconType} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
-const Avatars = ({styles, users, isPublic}) => {
+const Avatars = ({styles, users, isPublic, ignored}) => {
   // TODO (MM) fix type
   const groupIcon: any = styles.groupIcon
   const contents = users.length === 1 || users.length === 2
-      ? <Avatar size={32} username={users[users.length - 1].username} />
+    ? <Avatar size={32} username={users[users.length - 1].username} opacity={ignored ? 0.5 : 1.0}
+      backgroundColor={styles.rowContainer.backgroundColor} />
       : <Icon type={groupIcon} />
 
   if (isPublic) {
     return <Box style={styles.avatarContainer}>{contents}</Box>
   }
 
-  // $FlowIssue doesn't like images
-  const source = require('../images/icons/icon-damier-pattern-48.png')
+  const source = iconMeta[ignored ? 'icon-damier-pattern-ignored-locked-48-1000' : 'icon-damier-pattern-good-open-48-1000'].require
+
   return (
     <Box style={{width: 48, height: 1}}>
       <Image
@@ -30,14 +32,14 @@ const Avatars = ({styles, users, isPublic}) => {
   )
 }
 
-const Names = ({styles, users}) => {
+const Names = ({styles, users, nameColor, redColor}) => {
   return (
     <Box style={stylesBodyNameContainer}>
       {users.map((u, i) => (
         <Text
           key={u.username}
           type={u.you ? 'BodySemiboldItalic' : 'BodySemibold'}
-          style={{color: u.broken ? globalColors.red : styles.nameColor}}>{u.username}
+          style={{color: u.broken ? redColor : nameColor}}>{u.username}
           {
             (i !== users.length - 1) && // Injecting the commas here so we never wrap and have newlines starting with a ,
               <Text type='BodySemibold' style={{color: styles.nameColor, marginRight: 2}}>,</Text>}
@@ -70,18 +72,23 @@ const RowMeta = ({ignored, meta, styles}) => {
   }
 
   const metaProps = meta === 'ignored'
-    ? {title: 'ignored', style: styles.ignored}
-    : {title: meta || '', style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta]} : {}}
+    ? {title: 'ignored', style: {...styles.ignored, marginTop: 3}}
+    : {title: meta || '', style: meta ? {color: metaColors[meta], backgroundColor: metaBGColors[meta], marginTop: 2} : {}}
 
   return <Meta {...metaProps} />
 }
 
-const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path, onClick}: Folder & {isFirst: boolean, onClick: (path: string) => void}) => {
+const Row = ({users, isPublic, ignored, meta, modified, hasData, path, onClick}: Folder & {onClick: (path: string) => void}) => {
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   let backgroundColor = styles.rowContainer.backgroundColor
-  if (isPublic && ignored) {
-    backgroundColor = globalColors.white_40
+  let nameColor = styles.nameColor
+  let redColor = globalColors.red
+
+  if (ignored) {
+    backgroundColor = isPublic ? globalColors.white_40 : globalColors.darkBlue4
+    nameColor = isPublic ? globalColors.yellowGreen2_75 : globalColors.white_40
+    redColor = globalColors.red_75
   }
 
   const containerStyle = {
@@ -95,9 +102,9 @@ const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path, 
     <TouchableHighlight onPress={() => { onClick && onClick(path) }}>
       <Box style={containerStyle}>
         <Box style={{...globalStyles.flexBoxRow}}>
-          <Avatars users={users} styles={styles} isPublic={isPublic} />
+          <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
           <Box style={stylesBodyContainer}>
-            <Names users={users} styles={styles} meta={meta} modified={modified} />
+            <Names users={users} styles={styles} meta={meta} modified={modified} nameColor={nameColor} redColor={redColor} />
             {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
             {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
           </Box>
@@ -105,14 +112,14 @@ const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path, 
             {hasData && <Icon type={icon} style={{width: 32}} />}
           </Box>
         </Box>
-        {!isFirst && <Box style={stylesLine} />}
+        <Box style={stylesLine} />
       </Box>
     </TouchableHighlight>
   )
 }
 
 const stylesLine = {
-  backgroundColor: globalColors.black_10,
+  backgroundColor: globalColors.black_05,
   height: 1,
   position: 'absolute',
   top: 0,
@@ -193,6 +200,8 @@ const stylesBodyContainer = {
 const stylesBodyNameContainer = {
   ...globalStyles.flexBoxRow,
   flexWrap: 'wrap',
+  justifyContent: 'flex-start',
+  alignItems: 'flex-start',
 }
 
 const stylesActionContainer = {
