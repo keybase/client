@@ -58,10 +58,7 @@ func (rc *WebChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
 }
 
 func (rc *WebChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
-	res, err := g.XAPI.GetText(APIArg{
-		Endpoint:    h.apiURL,
-		NeedSession: false,
-	})
+	res, err := g.XAPI.GetText(NewAPIArg(g, h.apiURL))
 
 	if err != nil {
 		return XapiError(err, h.apiURL)
@@ -126,6 +123,7 @@ func (t WebServiceType) NormalizeRemoteName(g *GlobalContext, s string) (ret str
 		Args: HTTPArgs{
 			"hostname": S{host},
 		},
+		Contextified: NewContextified(g),
 	})
 	if err != nil {
 		return

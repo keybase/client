@@ -39,10 +39,7 @@ func (rc *CoinbaseChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
 func (rc *CoinbaseChecker) GetTorError() ProofError { return nil }
 
 func (rc *CoinbaseChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
-	res, err := g.XAPI.GetHTML(APIArg{
-		Endpoint:    h.apiURL,
-		NeedSession: false,
-	})
+	res, err := g.XAPI.GetHTML(NewAPIArg(g, h.apiURL))
 	if err != nil {
 		return XapiError(err, h.apiURL)
 	}
@@ -105,10 +102,7 @@ func (t CoinbaseServiceType) GetPrompt() string {
 }
 
 func (t CoinbaseServiceType) PreProofCheck(g *GlobalContext, normalizedUsername string) (*Markup, error) {
-	_, err := g.XAPI.GetHTML(APIArg{
-		Endpoint:    coinbaseUserURL(normalizedUsername),
-		NeedSession: false,
-	})
+	_, err := g.XAPI.GetHTML(NewAPIArg(g, coinbaseUserURL(normalizedUsername)))
 	if err != nil {
 		if ae, ok := err.(*APIError); ok && ae.Code == 404 {
 			err = ProfileNotPublicError{fmt.Sprintf("%s isn't public! Change your settings at %s",

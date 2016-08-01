@@ -38,10 +38,7 @@ func (rc *GithubChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
 }
 
 func (rc *GithubChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
-	res, err := g.XAPI.GetText(APIArg{
-		Endpoint:    h.apiURL,
-		NeedSession: false,
-	})
+	res, err := g.XAPI.GetText(NewAPIArg(g, h.apiURL))
 
 	if err != nil {
 		return XapiError(err, h.apiURL)
