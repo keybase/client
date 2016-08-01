@@ -637,13 +637,14 @@ func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 			ccs.blockChangePointers[ptr] = true
 		}
 
-		// Copy the rmd since CR will change the ops.
-		rmdCopy, err := rmd.deepCopy(cfg.Codec(), false)
+		// Copy the ops since CR will change them.
+		ops := make(opsList, len(rmd.data.Changes.Ops))
+		err = CodecUpdate(cfg.Codec(), &ops, rmd.data.Changes.Ops)
 		if err != nil {
 			return nil, err
 		}
 
-		for _, op := range rmdCopy.data.Changes.Ops {
+		for _, op := range ops {
 			op.setWriterInfo(winfo)
 			err := ccs.makeChainForOp(op)
 			if err != nil {
@@ -654,7 +655,7 @@ func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 		if !ccs.originalRoot.IsInitialized() {
 			// Find the original pointer for the root directory
 			if rootChain, ok :=
-				ccs.byMostRecent[rmdCopy.data.Dir.BlockPointer]; ok {
+				ccs.byMostRecent[rmd.data.Dir.BlockPointer]; ok {
 				ccs.originalRoot = rootChain.original
 			}
 		}

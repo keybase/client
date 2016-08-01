@@ -2533,7 +2533,11 @@ func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 	md *RootMetadata, unmergedChains *crChains, mergedChains *crChains,
 	mergedPaths map[BlockPointer]path) (map[BlockPointer]path, error) {
 	// No need to run any identifies on these chains, since we have
-	// already finished all actions.
+	// already finished all actions.  It is an ugly hack that we fake
+	// out the metadata ID here, but we can't calculate the true ID
+	// yet since the private metadata isn't yet set.  newCRChains
+	// doesn't use it; it only inspects the MD itself and the
+	// timestamp.
 	resolvedChains, err := newCRChains(ctx, cr.config,
 		[]ImmutableRootMetadata{MakeImmutableRootMetadata(md, fakeMdID(1),
 			cr.config.Clock().Now())},
