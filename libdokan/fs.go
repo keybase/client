@@ -142,6 +142,10 @@ type openContext struct {
 	fi *dokan.FileInfo
 	*dokan.CreateData
 	redirectionsLeft int
+	// isUppercasePath marks a path containing only upper case letters,
+	// associated with e.g. resolving some reparse points. This has
+	// special case insensitive path resolving functionality.
+	isUppercasePath bool
 }
 
 // reduceRedictionsLeft reduces redirections and returns whether there are
@@ -235,6 +239,7 @@ func (f *FS) openRaw(ctx context.Context, fi *dokan.FileInfo, caf *dokan.CreateD
 
 // open tries to open a file deferring to more specific implementations.
 func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File, bool, error) {
+	f.log.CDebugf(ctx, "open: %#v", ps)
 	psl := len(ps)
 	switch {
 	case psl < 1:
@@ -252,14 +257,20 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 	// TODO
 	// Unfortunately sometimes we end up in this case while using
 	// reparse points.
-	case PublicName == ps[0], "PUBLIC" == ps[0]:
+	case `PUBLIC` == ps[0]:
+		oc.isUppercasePath = true
+		fallthrough
+	case PublicName == ps[0]:
 		// Refuse private directories while we are in a a generic error state.
 		if f.remoteStatus.ExtraFileName() == libfs.HumanErrorFileName {
 			f.log.CWarningf(ctx, "Refusing access to public directory while errors are present!")
 			return nil, false, dokan.ErrAccessDenied
 		}
 		return f.root.public.open(ctx, oc, ps[1:])
-	case PrivateName == ps[0], "PRIVATE" == ps[0]:
+	case `PRIVATE` == ps[0]:
+		oc.isUppercasePath = true
+		fallthrough
+	case PrivateName == ps[0]:
 		// Refuse private directories while we are in a error state.
 		if f.remoteStatus.ExtraFileName() != "" {
 			f.log.CWarningf(ctx, "Refusing access to private directory while errors are present!")

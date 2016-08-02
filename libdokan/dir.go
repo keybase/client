@@ -268,6 +268,23 @@ func openDir(ctx context.Context, d *Dir, oc *openContext, path []string) (dokan
 	origPath := path
 	rootDir := d
 	for len(path) > 0 {
+		// Handle upper case filenames from junctions etc
+		if c := lowerTranslateCandidate(oc, path[0]); c != "" {
+			var hit string
+			var nhits int
+			d.FindFiles(ctx, nil, func(ns *dokan.NamedStat) error {
+				if strings.ToLower(ns.Name) == c {
+					hit = ns.Name
+					nhits++
+				}
+				return nil
+			})
+			if nhits != 1 {
+				return nil, false, dokan.ErrObjectNameNotFound
+			}
+			path[0] = hit
+		}
+
 		leaf := len(path) == 1
 		newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, path[0])
 
