@@ -177,7 +177,7 @@ outer:
 			continue
 		}
 
-		for _, op := range chain.ops {
+		for i, op := range chain.ops {
 			// Is this a create?
 			switch realOp := op.(type) {
 			case *createOp:
@@ -210,8 +210,16 @@ outer:
 					LocalTime: op.getLocalTimestamp(),
 				})
 			case *syncOp:
-				// Only the final writer matters.
-				lastOp := chain.ops[len(chain.ops)-1]
+				lastOp := op
+				// Only the final writer matters, so find the last
+				// syncOp in this chain.
+				for j := len(chain.ops) - 1; j > i; j-- {
+					if syncOp, ok := chain.ops[j].(*syncOp); ok {
+						lastOp = syncOp
+						break
+					}
+				}
+
 				writer := lastOp.getWriterInfo().uid
 				t := FileModified
 				if chains.isCreated(ptr) {
@@ -220,7 +228,7 @@ outer:
 				edits[writer] = append(edits[writer], TlfEdit{
 					Filepath:  lastOp.getFinalPath().String(),
 					Type:      t,
-					LocalTime: op.getLocalTimestamp(),
+					LocalTime: lastOp.getLocalTimestamp(),
 				})
 				continue outer
 			default:
