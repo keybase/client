@@ -1,6 +1,8 @@
 /* @flow */
 
 import React, {Component} from 'react'
+import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+
 import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import * as shared from './user-bio.shared'
@@ -58,8 +60,10 @@ export default class BioRender extends Component<void, Props, void> {
     }
 
     return (
-      <Box style={{minHeight: 170, ...this.props.style}}>
-        <BioLoading loading={loading} style={this.props.style} avatarSize={this.props.avatarSize} />
+      <Box style={{minHeight: 190, ...this.props.style}}>
+        <ReactCSSTransitionGroup transitionName='no-anim' transitionEnterTimeout={250} transitionLeaveTimeout={250}>
+          {loading && <BioLoading key='loading-state' loading={loading} style={this.props.style} avatarSize={this.props.avatarSize} />}
+        </ReactCSSTransitionGroup>
         <Box style={stylesContainer}>
           <Box style={{...globalStyles.flexBoxRow, ...globalStyles.fadeOpacity, alignItems: 'flex-end', zIndex: 2, position: 'relative', opacity: loading ? 0 : 1}}>
             <Avatar

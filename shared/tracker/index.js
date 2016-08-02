@@ -92,7 +92,8 @@ export default connect(
     nonUser: state.tracker.trackers[ownProps.username] && state.tracker.trackers[ownProps.username].type === 'nonUser',
     loggedIn: state.config && state.config.loggedIn,
     loading: isLoading(state.tracker.trackers[ownProps.username]),
-    actionBarReady: !!state.tracker.trackers[ownProps.username] && !state.tracker.trackers[ownProps.username].serverActive,
+    // TODO (mm) we can't use serverActive, (see DESKTOP-1593) let's investigate a better approach: DESKTOP-1594
+    actionBarReady: true,
     ...state.tracker.trackers[ownProps.username],
     ...ownProps,
   }),

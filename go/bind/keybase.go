@@ -90,12 +90,12 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	return Reset()
 }
 
-func newKeybaseDaemon(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseDaemon, error) {
-	keybaseDaemon := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true)
-	keybaseDaemon.AddProtocols([]rpc.Protocol{
+func newKeybaseDaemon(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
+	keybaseService := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true)
+	keybaseService.AddProtocols([]rpc.Protocol{
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
 	})
-	return keybaseDaemon, nil
+	return keybaseService, nil
 }
 
 // LogSend sends a log to Keybase

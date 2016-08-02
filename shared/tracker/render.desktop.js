@@ -45,7 +45,7 @@ export default class Render extends Component<void, RenderProps, void> {
           lastAction={this.props.lastAction}
           loggedIn={this.props.loggedIn}
         />
-        <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar, scroll-container'>
+        <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar scroll-container'>
           <UserBio type='Tracker'
             style={{marginTop: 50}}
             avatarSize={80}

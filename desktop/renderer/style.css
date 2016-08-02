@@ -139,3 +139,21 @@ body {
 	display: none;
 	width: 0;
 }
+
+.fade-anim-enter {
+  opacity: 0;
+}
+
+.fade-anim-enter.fade-anim-enter-active {
+  opacity: 1;
+  transition: opacity 250ms ease-in-out;
+}
+
+.fade-anim-leave {
+  opacity: 1;
+}
+
+.fade-anim-leave.fade-anim-leave-active {
+  opacity: 0.01;
+  transition: opacity 250ms ease-in-out;
+}
