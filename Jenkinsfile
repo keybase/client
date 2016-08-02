@@ -92,16 +92,18 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                         },
                         pull_kbclient: {
                             if (cause == "upstream" && clientProjectName != '') {
-                                step([$class: 'CopyArtifact',
-                                        projectName: "${clientProjectName}",
-                                        filter: 'kbclient.tar',
-                                        fingerprintArtifacts: true,
-                                        selector: [$class: 'TriggeredBuildSelector',
-                                            allowUpstreamDependencies: false,
-                                            fallbackToLastSuccessful: false,
-                                            upstreamFilterStrategy: 'UseGlobalSetting'],
-                                        target: '.'])
-                                sh "docker load -i kbclient.tar"
+                                retry(5) {
+                                    step([$class: 'CopyArtifact',
+                                            projectName: "${clientProjectName}",
+                                            filter: 'kbclient.tar.gz',
+                                            fingerprintArtifacts: true,
+                                            selector: [$class: 'TriggeredBuildSelector',
+                                                allowUpstreamDependencies: false,
+                                                fallbackToLastSuccessful: false,
+                                                upstreamFilterStrategy: 'UseGlobalSetting'],
+                                            target: '.'])
+                                    sh "gunzip -c kbclient.tar.gz | docker load"
+                                }
                             } else {
                                 clientImage.pull()
                             }
@@ -184,16 +186,15 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             }
                             sh "docker save keybaseprivate/kbfsfuse | gzip > kbfsfuse.tar.gz"
                             archive("kbfsfuse.tar.gz")
-                            // TODO: Uncomment this once we've established that it's working correctly again
-                            //build([
-                            //    job: "/kbfs-server/master",
-                            //    parameters: [
-                            //        [$class: 'StringParameterValue',
-                            //            name: 'kbfsProjectName',
-                            //            value: env.JOB_NAME,
-                            //        ],
-                            //    ]
-                            //])
+                            build([
+                                job: "/kbfs-server/master",
+                                parameters: [
+                                    [$class: 'StringParameterValue',
+                                        name: 'kbfsProjectName',
+                                        value: env.JOB_NAME,
+                                    ],
+                                ]
+                            ])
                         },
                     )
                 } catch (ex) {
@@ -317,12 +318,15 @@ def nodeWithCleanup(label, handleError, cleanup, closure) {
 }
 
 def slackOnError(repoName) {
+    def cause = getCauseString()
+    if (cause == "upstream") {
+        return
+    }
     def message = null
     def color = "warning"
-    def cause = getCauseString()
     if (env.CHANGE_ID) {
         message = "<${env.CHANGE_URL}|${env.CHANGE_TITLE}>\n :small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}> by ${env.CHANGE_AUTHOR}"
-    } else if (env.BRANCH_NAME == "master" && cause != "upstream" && env.AUTHOR_NAME) {
+    } else if (env.BRANCH_NAME == "master" && env.AUTHOR_NAME) {
         def commitUrl = "https://github.com/keybase/${repoName}/commit/${env.COMMIT_HASH}"
         color = "danger"
         message = "*BROKEN: master on keybase/${repoName}*\n :small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>\n Commit: <${commitUrl}|${env.COMMIT_HASH}>\n Author: ${env.AUTHOR_NAME} &lt;${env.AUTHOR_EMAIL}&gt;"
