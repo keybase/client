@@ -32,8 +32,16 @@ export default function () {
     mainWindow.window.setPosition(forceMainWindowPosition.x, forceMainWindowPosition.y)
   }
 
-  let isRestore = getenv.boolish('KEYBASE_RESTORE_UI', false)
-  if (!isRestore || (isRestore && !appState.state.windowHidden)) {
+  const isRestore = getenv.boolish('KEYBASE_RESTORE_UI', false)
+  const startUI = getenv.string('KEYBASE_START_UI', '')
+
+  // We show the main window on startup if:
+  //  - We are not restoring the UI (after update, or boot)
+  //    Or, we are restoring UI and the window was previously visible (in app state)
+  //  - And, startUI is not set to 'hideWindow'.
+  const showMainWindow = (!isRestore || (isRestore && !appState.state.windowHidden)) && (startUI !== 'hideWindow')
+
+  if (showMainWindow) {
     // On Windows we can try showing before Windows is ready
     // This will result in a dropped .show request
     // We add a listener to `did-finish-load` so we can show it when
