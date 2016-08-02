@@ -1,7 +1,11 @@
 // @flow
+import ConfirmOrPending from './confirm-or-pending-container'
 import EditProfile from './edit-profile'
+import PostProof from './post-proof-container'
+import ProveEnterUsername from './prove-enter-username-container'
 import React, {Component} from 'react'
 import Render from './render'
+import Revoke from './revoke-container'
 import flags from '../util/feature-flags'
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/tracker'
@@ -12,8 +16,6 @@ import {getProfile, updateTrackers} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
 import {openInKBFS} from '../actions/kbfs'
 import {routeAppend, navigateUp} from '../actions/router'
-import ProveEnterUsername from './prove-enter-username-container'
-import Revoke from './revoke-container'
 
 class Profile extends Component<void, Props, void> {
   static parseRoute (currentPath, uri) {
@@ -29,6 +31,8 @@ class Profile extends Component<void, Props, void> {
         'editprofile': EditProfile,
         ProveEnterUsername,
         Revoke,
+        PostProof,
+        ConfirmOrPending,
       },
     }
   }

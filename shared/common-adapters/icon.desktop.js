@@ -9,8 +9,6 @@ import {resolveImageAsURL} from '../../desktop/resolve-root'
 import * as shared from './icon.shared'
 
 export default class Icon extends Component<void, $Exact<Props>, void> {
-  props: Props;
-
   render () {
     let color = shared.defaultColor(this.props.type)
     let hoverColor = shared.defaultHoverColor(this.props.type)

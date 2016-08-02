@@ -1,10 +1,9 @@
 /* @flow */
 
 import {capitalize} from 'lodash'
+import type {PlatformsExpandedType} from '../constants/types/more'
 
-import type {PlatformsExpanded} from '../constants/types/more'
-
-export function formatMessage (platform: PlatformsExpanded) {
+export function formatMessage (platform: PlatformsExpandedType) {
   const prefix = 'Are you sure you want to revoke your'
   let body
   switch (platform) {
@@ -14,7 +13,6 @@ export function formatMessage (platform: PlatformsExpanded) {
     case 'dns':
     case 'http':
     case 'https':
-    case 'genericWebSite':
       body = 'website'
       break
     case 'hackernews':

@@ -11,7 +11,7 @@ import {identifyCommon, proveCommon} from '../constants/types/keybase-v1'
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff,
   TrackDiffType, ProofStatus} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
-import type {PlatformsExpanded} from '../constants/types/more'
+import type {PlatformsExpandedType} from '../constants/types/more'
 
 const {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored,
   normal, warning, error, checking} = Constants
@@ -528,11 +528,12 @@ function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, hu
   }
 }
 
-function remoteProofToProofType (rp: RemoteProof): PlatformsExpanded {
+function remoteProofToProofType (rp: RemoteProof): PlatformsExpandedType {
   if (rp.proofType === proveCommon.ProofType.genericWebSite) {
     return rp.key === 'http' ? 'http' : 'https'
   } else {
-    return mapValueToKey(proveCommon.ProofType, rp.proofType) || 'none'
+    // $FlowIssue
+    return mapValueToKey(proveCommon.ProofType, rp.proofType)
   }
 }
 

@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import ProveEnterUsername from './prove-enter-username'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import {submitUsername, cancelAddProof, updateUsername} from '../actions/profile'
+import {submitUsername, cancelAddProof, updateUsername, submitBTCAddress} from '../actions/profile'
 
 class ProveEnterUsernameContainer extends Component<void, any, void> {
   static parseRoute (currentPath, uri) {
@@ -24,6 +24,8 @@ export default connect(
     const profile = state.profile
     return {
       waiting: profile.waiting,
+      error: profile.error,
+      errorCode: profile.errorCode,
       username: profile.username,
       platform: profile.platform,
       canContinue: profile.usernameValid,
@@ -34,5 +36,12 @@ export default connect(
       onUsernameChange: (username: string) => updateUsername(username),
       onCancel: () => cancelAddProof(),
       onContinue: () => submitUsername(),
-    }, dispatch))
+      onContinueBTC: () => submitBTCAddress(),
+    }, dispatch)),
+  (stateProps, dispatchProps, ownProps) => ({
+    ...stateProps,
+    ...dispatchProps,
+    onContinue: stateProps.platform === 'btc' ? dispatchProps.onContinueBTC : dispatchProps.onContinue,
+    ...ownProps,
+  })
 )(ProveEnterUsernameContainer)

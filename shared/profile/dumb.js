@@ -1,18 +1,19 @@
 /* @flow */
-import Profile from './render'
 import ConfirmOrPending from './confirm-or-pending'
-import ProveEnterUsername from './prove-enter-username'
 import EditAvatar from './edit-avatar'
-import Revoke from './revoke'
 import PostProof from './post-proof'
-import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaPending, metaUnreachable} from '../constants/tracker'
-import {createFolder} from '../folders/dumb'
-import {isMobile} from '../constants/platform'
-import {globalColors} from '../styles/style-guide'
-import type {Props as RenderProps} from './render'
-import type {Proof} from '../constants/tracker'
-import type {UserInfo} from '../common-adapters/user-bio'
+import Profile from './render'
+import ProveEnterUsername from './prove-enter-username'
+import Revoke from './revoke'
 import type {DumbComponentMap} from '../constants/types/more'
+import type {Proof} from '../constants/tracker'
+import type {Props as RenderProps} from './render'
+import type {UserInfo} from '../common-adapters/user-bio'
+import {constants} from '../constants/types/keybase-v1'
+import {createFolder} from '../folders/dumb'
+import {globalColors} from '../styles/style-guide'
+import {isMobile} from '../constants/platform'
+import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaPending, metaUnreachable} from '../constants/tracker'
 
 export const proofsDefault: Array<Proof> = [
   {name: 'malgorithms', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com', isTracked: false, mTime: 1469665223000},
@@ -317,7 +318,7 @@ const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
     'Pending dns': {...confirmBase, ...pending,
       platform: 'dns', usernameSubtitle: 'dns',
       message: 'DNS proofs can take a few hours to recognize. Check back later.'},
-    'Confirm http': {...confirmBase, platform: 'genericWebSite', usernameSubtitle: 'http',
+    'Confirm http': {...confirmBase, platform: 'http', usernameSubtitle: 'http',
       message: 'Leave your proof up so other users can identify you!',
       messageSubtitle: 'Note: www.chriscoyne.com doesn\'t load over https. If you get a real SSL certificate (not self-signed) in the future, please replace this proof with a fresh one.'},
   },
@@ -325,6 +326,8 @@ const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
 
 const proveEnterUsernameBase = {
   username: 'chris',
+  error: null,
+  errorCode: -1,
   canContinue: true,
   onUsernameChange: username => { console.log('username change', username) },
   onContinue: () => { console.log('continue clicked') },
@@ -336,14 +339,16 @@ const dumbProveEnterUsername: DumbComponentMap<ProveEnterUsername> = {
   component: ProveEnterUsername,
   mocks: {
     'Twitter': {...proveEnterUsernameBase, platform: 'twitter'},
+    'Twitter with Error': {...proveEnterUsernameBase, platform: 'twitter', error: 'Something went wrong'},
     'Reddit': {...proveEnterUsernameBase, platform: 'reddit'},
     'GitHub': {...proveEnterUsernameBase, platform: 'github'},
     'Coinbase': {...proveEnterUsernameBase, platform: 'coinbase'},
+    'Coinbase with Error': {...proveEnterUsernameBase, platform: 'coinbase', error: 'Coinbase specific error', errorCode: constants.StatusCode.scprofilenotpublic},
     'Hacker News': {...proveEnterUsernameBase, platform: 'hackernews'},
     'Bitcoin': {...proveEnterUsernameBase, platform: 'btc'},
     'Bitcoin - Disabled': {...proveEnterUsernameBase, platform: 'btc', canContinue: false},
     'DNS': {...proveEnterUsernameBase, platform: 'dns'},
-    'Website': {...proveEnterUsernameBase, platform: 'genericWebSite'},
+    'Website': {...proveEnterUsernameBase, platform: 'http'},
   },
 }
 
@@ -384,7 +389,7 @@ const dumbRevoke: DumbComponentMap<Revoke> = {
     'Hacker News': {...revokeBase, platformHandle: 'malgorithms', platform: 'hackernews'},
     'Bitcoin': {...revokeBase, platformHandle: '1BjgMvwVkpmmJ5HFGZ3L3H1G6fcKLNGT5h', platform: 'btc'},
     'DNS': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'dns'},
-    'Website': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'genericWebSite'},
+    'Website': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'http'},
     'https website': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'https'},
   },
 }
@@ -449,7 +454,7 @@ const dumbPostProof: DumbComponentMap<PostProof> = {
     },
     'HTTP': {
       ...postProofBase,
-      platform: 'genericWebSite',
+      platform: 'http',
       platformUsername: 'alexwendland.com',
       proofText: '==================================================================\nhttps://keybase.io/awendland\n--------------------------------------------------------------------\n\nI hereby claim:\n\n  * I am an admin of http://www.caleyostrander.com\n  * I am cboss123 (https://keybase.io/cboss123) on keybase.',
       baseUrl: 'http://alexwendland.com',

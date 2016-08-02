@@ -4,13 +4,13 @@ import type {identifyUiDisplayTLFCreateWithInviteRpcParam} from './types/flow-ty
 import type {TypedAction} from './types/flux'
 import type {Folder} from '../folders/list'
 import type {UserInfo} from '../common-adapters/user-bio'
-import type {PlatformsExpanded} from '../constants/types/more'
+import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Time} from '../constants/types/flow-types'
 
 // Types
 export type Proof = {
   id: string,
-  type: PlatformsExpanded,
+  type: PlatformsExpandedType,
   mTime: Time,
   meta: ?SimpleProofMeta,
   humanUrl: ?string,

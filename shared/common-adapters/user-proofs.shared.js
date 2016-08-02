@@ -3,7 +3,7 @@
 import {globalColors, globalStyles} from '../styles/style-guide'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning,
   metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaIgnored} from '../constants/tracker'
-import type {PlatformsExpanded} from '../constants/types/more.js'
+import type {PlatformsExpandedType} from '../constants/types/more.js'
 
 import type {IconType} from '../common-adapters/icon'
 import type {Proof} from '../constants/tracker'
@@ -40,7 +40,7 @@ export function proofColor (proof: Proof): string {
   return color
 }
 
-export function iconNameForProof ({type}: {type: PlatformsExpanded}): IconType {
+export function iconNameForProof ({type}: {type: PlatformsExpandedType}): IconType {
   const types = {
     'none': 'iconfont-close',
     'keybase': 'iconfont-close',
@@ -52,7 +52,7 @@ export function iconNameForProof ({type}: {type: PlatformsExpanded}): IconType {
     'hackernews': 'iconfont-identity-hn',
     'rooter': 'iconfont-thunderbolt',
     'btc': 'iconfont-identity-bitcoin',
-    'genericWebSite': 'iconfont-identity-website',
+    'dnsOrGenericWebSite': 'iconfont-identity-website',
     'http': 'iconfont-identity-website',
     'https': 'iconfont-identity-website',
     'dns': 'iconfont-identity-website',

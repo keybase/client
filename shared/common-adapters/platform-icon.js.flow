@@ -1,10 +1,10 @@
 /* @flow */
 import {Component} from 'react'
-import type {PlatformsExpanded} from '../constants/types/more'
+import type {PlatformsExpandedType} from '../constants/types/more'
 import type {IconType} from '../common-adapters/icon'
 
 export type Props = {
-  platform: PlatformsExpanded,
+  platform: PlatformsExpandedType,
   size: 48,
   overlay: IconType,
   overlayColor: string,
