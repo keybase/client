@@ -35,10 +35,9 @@
         // Dump golang stack to log
         kill(task.processIdentifier, SIGABRT);
 
-        [self readOutPipe:outPipe errPipe:errPipe completion:^(NSData *outData, NSData *errData) {
-          NSString *taskDesc = NSStringWithFormat(@"%@ %@", command, [args join:@" "]);
+        NSString *taskDesc = NSStringWithFormat(@"%@ %@", command, [args join:@" "]);
+        [self readOutPipe:outPipe errPipe:errPipe description:taskDesc completion:^(NSData *outData, NSData *errData) {
           DDLogError(@"Task timed out: %@", taskDesc);
-
           dispatch_async(dispatch_get_main_queue(), ^{
             completion(KBMakeError(KBErrorCodeTimeout, @"Task timed out: %@", taskDesc), nil, nil);
           });
@@ -56,13 +55,14 @@
 
   task.terminationHandler = ^(NSTask *t) {
     dispatch_async(taskQueue, ^{
+      NSString *taskDesc = NSStringWithFormat(@"%@ %@", command, [args join:@" "]);
       if (timedOut) {
         DDLogDebug(@"Task termination handler, timed out, skipping");
         return;
       }
       replied = YES;
       DDLogDebug(@"Task termination handler, reading output");
-      [self readOutPipe:outPipe errPipe:errPipe completion:^(NSData *outData, NSData *errData) {
+      [self readOutPipe:outPipe errPipe:errPipe description:taskDesc completion:^(NSData *outData, NSData *errData) {
         DDLogDebug(@"Task dispatch completion");
         dispatch_async(dispatch_get_main_queue(), ^{
           completion(nil, outData, errData);
@@ -109,17 +109,17 @@
   }];
 }
 
-+ (void)readOutPipe:(NSPipe *)outPipe errPipe:(NSPipe *)errPipe completion:(void (^)(NSData *outData, NSData *errData))completion {
++ (void)readOutPipe:(NSPipe *)outPipe errPipe:(NSPipe *)errPipe description:(NSString *)description completion:(void (^)(NSData *outData, NSData *errData))completion {
   NSFileHandle *outRead = [outPipe fileHandleForReading];
   NSData *outData = [outRead readDataToEndOfFile];
   NSFileHandle *errRead = [errPipe fileHandleForReading];
   NSData *errData = [errRead readDataToEndOfFile];
 
   if ([outData length] > 0) {
-    DDLogDebug(@"Task (out): %@", [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding]);
+    DDLogDebug(@"Task %@ (out): %@", description, [[NSString alloc] initWithData:outData encoding:NSUTF8StringEncoding]);
   }
   if ([errData length] > 0) {
-    DDLogDebug(@"Task (err): %@", [[NSString alloc] initWithData:errData encoding:NSUTF8StringEncoding]);
+    DDLogDebug(@"Task %@ (err): %@", description, [[NSString alloc] initWithData:errData encoding:NSUTF8StringEncoding]);
   }
   completion(outData, errData);
 }
