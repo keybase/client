@@ -1,11 +1,11 @@
 #!groovy
 
-helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, '')
+helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
 
 if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
     println "Skipping build because PR title contains [ci-skip]"
 } else {
-    helpers.nodeWithCleanup("ec2-fleet", {
+    helpers.nodeWithCleanup("linux", {
         helpers.slackOnError("client", env, currentBuild)
     }, {
         sh 'docker rm -v $(docker ps --filter status=exited -q 2>/dev/null) 2>/dev/null || echo "No Docker containers to remove"'
