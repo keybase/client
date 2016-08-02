@@ -106,7 +106,7 @@ function initialStateFn (): TabbedRouterState {
   }
 
   let ts = initTabbedRouterState()
-  Object.keys(ts).forEach(tab => { init[tab] = createRouterState(ts[tab], []) })
+  Object.keys(ts).forEach(tab => { init.tabs[tab] = createRouterState(ts[tab], []) })
   return fromJS(init)
 }
 
