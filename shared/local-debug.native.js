@@ -2,7 +2,6 @@
  * File to stash local debug changes to. Never check this in with changes
  */
 
-import {createRouterState} from './reducers/router'
 import {updateDebugConfig} from './actions/dev'
 import * as Tabs from './constants/tabs'
 
@@ -17,6 +16,7 @@ let config = {
   devStoreChangingFunctions: false,
   printOutstandingRPCs: false,
   reactPerf: false,
+  initialTabState: {},
   overrideLoggedInTab: null,
   printRoutes: false,
   logStatFrequency: 0,
@@ -34,6 +34,10 @@ if (__DEV__ && true) {
   config.devStoreChangingFunctions = true
   config.printOutstandingRPCs = true
   config.reactPerf = false
+  config.initialTabState = {
+    [Tabs.loginTab]: [],
+    [Tabs.settingsTab]: ['devMenu', 'dumbSheet'],
+  }
   config.overrideLoggedInTab = Tabs.settingsTab
   config.dumbFilter = ''
   config.dumbIndex = 0
@@ -59,20 +63,12 @@ export const {
   actionStatFrequency,
 } = config
 
-export function initTabbedRouterState (state) {
+export function initTabbedRouterState () {
   if (!__DEV__) {
-    return state
+    return []
   }
 
-  return {
-    ...state,
-    tabs: {
-      ...state.tabs,
-      [Tabs.loginTab]: createRouterState([], []),
-      [Tabs.settingsTab]: createRouterState(['devMenu', 'dumbSheet'], []),
-    },
-    activeTab: Tabs.settingsTab,
-  }
+  return config.initialTabState
 }
 
 export function setup (store) {
