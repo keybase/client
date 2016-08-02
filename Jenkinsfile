@@ -362,23 +362,25 @@ def testNixGo(prefix) {
 
 def nodeWithCleanup(label, handleError, cleanup, closure) {
     def wrappedClosure = {
-        try {
-            deleteDir()
-            closure()
-        } catch (ex) {
+        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
             try {
-                handleError()
-            } catch (ex2) {
-                println "Unable to handle error: ${ex2.getMessage()}"
+                deleteDir()
+                closure()
+            } catch (ex) {
+                try {
+                    handleError()
+                } catch (ex2) {
+                    println "Unable to handle error: ${ex2.getMessage()}"
+                }
+                throw ex
+            } finally {
+                try {
+                    cleanup()
+                } catch (ex2) {
+                    println "Unable to cleanup: ${ex2.getMessage()}"
+                }
+                deleteDir()
             }
-            throw ex
-        } finally {
-            try {
-                cleanup()
-            } catch (ex2) {
-                println "Unable to cleanup: ${ex2.getMessage()}"
-            }
-            deleteDir()
         }
     }
     node(label, wrappedClosure)
