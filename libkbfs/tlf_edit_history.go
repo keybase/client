@@ -205,8 +205,9 @@ outer:
 				writer := op.getWriterInfo().uid
 				createdPath := op.getFinalPath().ChildPathNoPtr(realOp.NewName)
 				edits[writer] = append(edits[writer], TlfEdit{
-					Filepath: createdPath.String(),
-					Type:     FileCreated,
+					Filepath:  createdPath.String(),
+					Type:      FileCreated,
+					LocalTime: op.getLocalTimestamp(),
 				})
 			case *syncOp:
 				// Only the final writer matters.
@@ -217,9 +218,9 @@ outer:
 					t = FileCreated
 				}
 				edits[writer] = append(edits[writer], TlfEdit{
-					Filepath: lastOp.getFinalPath().String(),
-					Type:     t,
-					// LocalTime: XXX
+					Filepath:  lastOp.getFinalPath().String(),
+					Type:      t,
+					LocalTime: op.getLocalTimestamp(),
 				})
 				continue outer
 			default:

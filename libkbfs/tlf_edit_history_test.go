@@ -17,6 +17,9 @@ func TestBasicTlfEditHistory(t *testing.T) {
 	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
 	defer CheckConfigAndShutdown(t, config1)
 
+	clock, now := newTestClockAndTimeNow()
+	config1.SetClock(clock)
+
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
@@ -53,12 +56,14 @@ func TestBasicTlfEditHistory(t *testing.T) {
 	// Each user should see 1 create edit for each user
 	expectedEdits := make(TlfWriterEdits)
 	expectedEdits[uid1] = TlfEditList{{
-		Filepath: name + "/a",
-		Type:     FileCreated,
+		Filepath:  name + "/a",
+		Type:      FileCreated,
+		LocalTime: now,
 	}}
 	expectedEdits[uid2] = TlfEditList{{
-		Filepath: name + "/b",
-		Type:     FileCreated,
+		Filepath:  name + "/b",
+		Type:      FileCreated,
+		LocalTime: now,
 	}}
 
 	edits1, err := kbfsOps1.GetEditHistory(ctx, rootNode1.GetFolderBranch())
