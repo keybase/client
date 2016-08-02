@@ -95,7 +95,7 @@ if [ ! "$nowait" = "1" ]; then
   echo "Checking client CI"
   "$release_bin" wait-ci --repo="client" --commit=`git -C $client_dir log -1 --pretty=format:%h` --context="Jenkins job master" --context="ci/circleci"
   echo "Checking kbfs CI"
-  "$release_bin" wait-ci --repo="kbfs" --commit=`git -C $kbfs_dir log -1 --pretty=format:%h` --context="Jenkins job master" --context="continuous-integration/appveyor/branch"
+  "$release_bin" wait-ci --repo="kbfs" --commit=`git -C $kbfs_dir log -1 --pretty=format:%h` --context="Jenkins job master"
   echo "Checking updater CI"
   "$release_bin" wait-ci --repo="go-updater" --commit=`git -C $updater_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push"
 
