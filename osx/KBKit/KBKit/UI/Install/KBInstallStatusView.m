@@ -127,7 +127,7 @@
   [_log clear];
   [self clear];
   KBInstaller *installer = [[KBInstaller alloc] init];
-  [installer installWithEnvironment:self.environment force:NO completion:^(NSError *error, NSArray *installables) {
+  [installer installWithEnvironment:self.environment force:NO stopOnError:NO completion:^(NSError *error, NSArray *installables) {
     [KBActivity setProgressEnabled:NO sender:self];
     [self refreshInstallables];
   }];

@@ -18,14 +18,18 @@
 
 - (void)next:(id)input {
   if (!input) {
-    self.completion(self.outputs);
+    self.completion(self.outputs, NO);
     return;
   }
 
   GHWeakSelf gself = self;
-  self.runBlock(input, ^(id output) {
+  self.runBlock(input, ^(id output, BOOL stop) {
     NSAssert(output, @"You need an output");
     [gself.outputs addObject:output];
+    if (stop) {
+      self.completion(self.outputs, YES);
+      return;
+    }
     [self next:[gself.enumerator nextObject]];
   });
 }

@@ -21,10 +21,10 @@
   rover.runBlock = ^(KBInstallable *installable, KBRunCompletion runCompletion) {
     [installable uninstall:^(NSError *error) {
       installable.error = error;
-      runCompletion(installable);
+      runCompletion(installable, NO);
     }];
   };
-  rover.completion = ^(NSArray *installables) {
+  rover.completion = ^(NSArray *installables, BOOL stopped) {
     completion([KBInstallable combineErrors:installables ignoreWarnings:YES]);
   };
   [rover run];
@@ -48,13 +48,13 @@
       [KBLaunchCtl unload:URL.path label:nil disable:NO completion:^(NSError *error, NSString *output) {
         DDLogDebug(@"Removing %@", URL.path);
         [fileManager removeItemAtPath:[KBPath path:URL.path options:0] error:nil];
-        runCompletion(URL);
+        runCompletion(URL, NO);
       }];
     } else {
-      runCompletion(URL);
+      runCompletion(URL, NO);
     }
   };
-  rover.completion = ^(NSArray *outputs) {
+  rover.completion = ^(NSArray *outputs, BOOL stopped) {
     //[self deleteAll:@"~/Library/Application Support/Keybase"];
     completion(nil);
   };

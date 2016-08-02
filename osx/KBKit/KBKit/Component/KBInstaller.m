@@ -21,7 +21,7 @@
 
 @implementation KBInstaller
 
-- (void)installWithEnvironment:(KBEnvironment *)environment force:(BOOL)force completion:(void (^)(NSError *error, NSArray *installables))completion {
+- (void)installWithEnvironment:(KBEnvironment *)environment force:(BOOL)force stopOnError:(BOOL)stopOnError completion:(void (^)(NSError *error, NSArray *installables))completion {
   // TODO force
 
   DDLogDebug(@"Installables: %@", environment.installables);
@@ -32,12 +32,17 @@
     DDLogDebug(@"Install: %@", installable.name);
     [installable install:^(NSError *error) {
       installable.error = error;
+      if (stopOnError && error) {
+        runCompletion(installable, YES);
+        return;
+      }
       [installable refreshComponent:^(KBComponentStatus *cs) {
-        runCompletion(installable);
+        runCompletion(installable, NO);
       }];
     }];
   };
-  rover.completion = ^(NSArray *installables) {
+  rover.completion = ^(NSArray *installables, BOOL stopped) {
+    DDLogInfo(@"Install complete");
     for (KBInstallable *installable in installables) {
       NSString *name = installable.name;
       NSString *desc = [[installable installDescription:@"\n"] join:@"\n"];
@@ -58,10 +63,10 @@
   rover.runBlock = ^(KBInstallable *installable, KBRunCompletion runCompletion) {
     DDLogDebug(@"Checking %@", installable.name);
     [installable refreshComponent:^(KBComponentStatus *cs) {
-      runCompletion(installable);
+      runCompletion(installable, NO);
     }];
   };
-  rover.completion = ^(NSArray *installables) {
+  rover.completion = ^(NSArray *installables, BOOL stopped) {
     completion();
   };
   [rover run];
@@ -79,10 +84,10 @@
   rover.runBlock = ^(KBInstallable *installable, KBRunCompletion runCompletion) {
     [installable uninstall:^(NSError *error) {
       // TODO Set error
-      runCompletion(installable);
+      runCompletion(installable, NO);
     }];
   };
-  rover.completion = ^(NSArray *installables) {
+  rover.completion = ^(NSArray *installables, BOOL stopped) {
     completion();
   };
   [rover run];
