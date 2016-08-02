@@ -3,8 +3,8 @@ import * as Constants from '../constants/profile'
 import engine from '../engine'
 import type {Dispatch, AsyncAction} from '../constants/types/flux'
 import type {PlatformsExpanded} from '../constants/types/more'
-import type {UpdateUsername, UpdatePlatform, Waiting} from '../constants/profile'
-import {apiserverPostRpc, proveStartProofRpc} from '../constants/types/flow-types'
+import type {UpdateUsername, UpdatePlatform, Waiting, WaitingRevokeProof, FinishRevokeProof} from '../constants/profile'
+import {apiserverPostRpc, proveStartProofRpc, revokeRevokeSigsRpc} from '../constants/types/flow-types'
 import {bindActionCreators} from 'redux'
 import {constants as RpcConstants} from '../constants/types/keybase-v1'
 import {navigateUp, routeAppend} from '../actions/router'
@@ -129,6 +129,74 @@ function addProof (platform: PlatformsExpanded): AsyncAction {
   }
 }
 
+function revokedWaitingForResponse (waiting: boolean): WaitingRevokeProof {
+  return {
+    type: Constants.waitingRevokeProof,
+    payload: {waiting},
+  }
+}
+
+function revokedErrorResponse (error: string): FinishRevokeProof {
+  return {
+    type: Constants.finishRevokeProof,
+    payload: {error},
+    error: true,
+  }
+}
+
+function makeRevokeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
+  return {
+    waitingHandler: bindActionCreators(revokedWaitingForResponse, dispatch),
+  }
+}
+
+function revokedFinishResponse (): FinishRevokeProof {
+  return {
+    type: Constants.finishRevokeProof,
+    payload: undefined,
+    error: false,
+  }
+}
+
+function finishRevoking (): AsyncAction {
+  return (dispatch) => {
+    dispatch(revokedFinishResponse())
+    dispatch(navigateUp())
+  }
+}
+
+let submitRevokeProofResponse: ?Object = null
+
+function submitRevokeProof (proofId: string): AsyncAction {
+  return (dispatch) => {
+    revokeRevokeSigsRpc({
+      ...makeRevokeWaitingHandler(dispatch),
+      param: {
+        sigIDQueries: [proofId],
+      },
+      incomingCallMap: { },
+      callback: error => {
+        if (error) {
+          console.warn(`Error when revoking proof ${proofId}`, error)
+          dispatch(revokedErrorResponse('There was an error revoking your proof. You can click the button to try again.'))
+        } else {
+          dispatch(finishRevoking())
+        }
+      },
+    })
+  }
+}
+
+function cancelRevokeProof (): AsyncAction {
+  return (dispatch) => {
+    if (submitRevokeProofResponse) {
+      engine.cancelRPC(submitRevokeProofResponse, InputCancelError)
+      submitRevokeProofResponse = null
+    }
+    dispatch(finishRevoking())
+  }
+}
+
 export {
   addProof,
   editProfile,
@@ -136,4 +204,6 @@ export {
   updateUsername,
   submitUsername,
   cancelAddProof,
+  submitRevokeProof,
+  cancelRevokeProof,
 }

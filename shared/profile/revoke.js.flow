@@ -10,7 +10,7 @@ export type Props = {
   isHttps: boolean,
   onCancel: () => void,
   onRevoke: () => void,
+  isWaiting?: boolean,
 }
 
-export default class Render extends Component<void, Props, void> {
-}
+export default class Render extends Component<void, Props, void> { }

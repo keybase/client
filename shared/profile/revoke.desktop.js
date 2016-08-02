@@ -8,7 +8,7 @@ import {subtitle as platformSubtitle} from '../util/platforms'
 
 import type {Props} from './revoke'
 
-const Render = ({platform, platformHandle, isHttps, onCancel, onRevoke}: Props) => {
+const Render = ({platform, platformHandle, isHttps, onCancel, onRevoke, isWaiting}: Props) => {
   const platformHandleSubtitle = platformSubtitle(platform, isHttps)
 
   return (
@@ -21,7 +21,7 @@ const Render = ({platform, platformHandle, isHttps, onCancel, onRevoke}: Props) 
         <Text type='Body' style={{marginTop: globalMargins.tiny, textAlign: 'center'}}>You can add it again later, if you change your mind.</Text>
         <Box style={{...globalStyles.flexBoxRow}}>
           <Button type='Secondary' onClick={onCancel} label='Cancel' style={{marginTop: globalMargins.medium}} />
-          <Button type='Danger' onClick={onRevoke} label='Yes, revoke it' style={{marginTop: globalMargins.medium}} />
+          <Button type='Danger' onClick={onRevoke} label='Yes, revoke it' style={{marginTop: globalMargins.medium}} waiting={isWaiting} />
         </Box>
       </Box>
     </Box>
