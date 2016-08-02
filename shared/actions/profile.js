@@ -3,11 +3,15 @@ import * as Constants from '../constants/profile'
 import engine from '../engine'
 import type {Dispatch, AsyncAction} from '../constants/types/flux'
 import type {PlatformsExpanded} from '../constants/types/more'
-import type {UpdateUsername, UpdatePlatform, Waiting} from '../constants/profile'
-import {apiserverPostRpc, proveStartProofRpc} from '../constants/types/flow-types'
+import type {SigID} from '../constants/types/flow-types'
+import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateError, UpdateProofStatus} from '../constants/profile'
+import {apiserverPostRpc, proveStartProofRpc, proveCheckProofRpc} from '../constants/types/flow-types'
 import {bindActionCreators} from 'redux'
 import {constants as RpcConstants} from '../constants/types/keybase-v1'
-import {navigateUp, routeAppend} from '../actions/router'
+import {getMyProfile} from './tracker'
+import {navigateUp, navigateTo} from '../actions/router'
+import {profileTab} from '../constants/tabs'
+import {shell} from 'electron'
 
 const InputCancelError = {desc: 'Cancel Add Proof', code: RpcConstants.StatusCode.scinputcanceled}
 
@@ -70,13 +74,24 @@ function selectPlatform (platform: PlatformsExpanded): UpdatePlatform {
   }
 }
 
-let submitUsernameResponse: ?Object = null
+let promptUsernameResponse: ?Object = null
 
 function submitUsername (): AsyncAction {
   return (dispatch, getState) => {
-    if (submitUsernameResponse) {
-      submitUsernameResponse.result(getState().profile.username)
-      submitUsernameResponse = null
+    if (promptUsernameResponse) {
+      promptUsernameResponse.result(getState().profile.username)
+      promptUsernameResponse = null
+    }
+  }
+}
+
+let outputInstructionsResponse: ?Object = null
+
+function submitOutputInstructions (): AsyncAction {
+  return (dispatch, getState) => {
+    if (outputInstructionsResponse) {
+      outputInstructionsResponse.result()
+      outputInstructionsResponse = null
     }
   }
 }
@@ -88,13 +103,40 @@ function updateUsername (username: string): UpdateUsername {
   }
 }
 
-function cancelAddProof () : AsyncAction {
+function cancelAddProof (): AsyncAction {
   return (dispatch) => {
-    if (submitUsernameResponse) {
-      engine.cancelRPC(submitUsernameResponse, InputCancelError)
-      submitUsernameResponse = null
+    if (promptUsernameResponse) {
+      engine.cancelRPC(promptUsernameResponse, InputCancelError)
+      promptUsernameResponse = null
     }
+
+    if (outputInstructionsResponse) {
+      engine.cancelRPC(outputInstructionsResponse, InputCancelError)
+      outputInstructionsResponse = null
+    }
+
     dispatch(navigateUp())
+  }
+}
+
+function updateProofText (proof: string): UpdateProofText {
+  return {
+    type: Constants.updateProofText,
+    payload: {proof},
+  }
+}
+
+function updateError (error: string): UpdateError {
+  return {
+    type: Constants.updateError,
+    payload: {error},
+  }
+}
+
+function updateProofStatus (found, status): UpdateProofStatus {
+  return {
+    type: Constants.updateProofStatus,
+    payload: {found, status},
   }
 }
 
@@ -113,27 +155,78 @@ function addProof (platform: PlatformsExpanded): AsyncAction {
       },
       incomingCallMap: {
         'keybase.1.proveUi.promptUsername': ({prompt, prevError}, response) => {
-          submitUsernameResponse = response
-          dispatch(routeAppend({path: 'ProveEnterUsername'}))
+          promptUsernameResponse = response
+          dispatch(navigateTo([{path: 'ProveEnterUsername'}], profileTab))
+        },
+        'keybase.1.proveUi.outputInstructions': ({instructions, proof}, response) => {
+          dispatch(updateProofText(proof))
+          outputInstructionsResponse = response
+          dispatch(navigateTo([{path: 'PostProof'}], profileTab))
         },
       },
       callback: (error, {sigID}) => {
         if (error) {
           console.warn('Error making proof')
-          // TODO dispatch error
+          dispatch(updateError(error))
+        } else {
+          console.log('Start Proof done: ', sigID)
+          dispatch(checkProof(sigID))
         }
-        console.log('Proof done: ', sigID)
-        dispatch(navigateUp())
       },
     })
   }
 }
 
+function checkProof (sigID: SigID): AsyncAction {
+  return (dispatch) => {
+    proveCheckProofRpc({
+      ...makeWaitingHandler(dispatch),
+      param: {sigID},
+      callback: (error, {found, status}) => {
+        if (error) {
+          console.warn('Error getting proof update')
+          dispatch(updateError(error))
+        } else {
+          dispatch(updateProofStatus(found, status))
+          dispatch(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
+        }
+      },
+    })
+  }
+}
+
+function outputInstructionsActionLink (): AsyncAction {
+  return (dispatch, getState) => {
+    const profile = getState().profile
+    switch (profile.platform) {
+      case 'twitter':
+        shell.openExternal(`https://twitter.com/home?status=${profile.proof}`)
+        break
+      case 'reddit':
+      case 'github':
+        shell.openExternal(profile.proof)
+        break
+      default:
+        break
+    }
+  }
+}
+
+function reloadProfile (): AsyncAction {
+  return (dispatch) => {
+    dispatch(getMyProfile())
+    dispatch(navigateUp())
+  }
+}
+
 export {
   addProof,
-  editProfile,
-  selectPlatform,
-  updateUsername,
-  submitUsername,
   cancelAddProof,
+  editProfile,
+  outputInstructionsActionLink,
+  selectPlatform,
+  submitOutputInstructions,
+  submitUsername,
+  updateUsername,
+  reloadProfile,
 }
