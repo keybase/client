@@ -1,7 +1,7 @@
 // @flow
 import type {PlatformsExpanded} from '../constants/types/more'
 import type {TypedAction} from '../constants/types/flux'
-import type {ProofStatus} from '../constants/types/flow-types'
+import type {ProofStatus, SigID} from '../constants/types/flow-types'
 
 export const editingProfile = 'profile:editingProfile'
 export const editedProfile = 'profile:editedProfile'
@@ -24,6 +24,9 @@ export type UpdateError = TypedAction<'profile:updateError', {error: string}, vo
 export const updateProofStatus = 'profile:updateProofStatus'
 export type UpdateProofStatus = TypedAction<'profile:updateProofStatus', {found: boolean, status: ProofStatus}, void>
 
+export const updateSigID = 'profile:updateSigID'
+export type UpdateSigID = TypedAction<'profile:updateSigID', {sigID: SigID}, void>
+
 export const maxProfileBioChars = 256
 
 export type Actions = Waiting
@@ -32,6 +35,7 @@ export type Actions = Waiting
   | UpdateProofText
   | UpdateError
   | UpdateProofStatus
+  | UpdateSigID
 
 export type State = {
   error: ?string,
@@ -41,4 +45,5 @@ export type State = {
   usernameValid: boolean,
   proofFound: boolean,
   proofStatus: ?ProofStatus,
+  sigID: ?SigID,
 }
