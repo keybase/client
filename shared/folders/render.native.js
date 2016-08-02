@@ -22,8 +22,8 @@ class Render extends Component<void, Props, void> {
       styleIcon={styleIcon}
       styleLabel={{
         color: isPublic
-          ? (isSelected ? globalColors.black : globalColors.white_75)
-          : (isSelected ? globalColors.white : globalColors.black_75),
+          ? (isSelected ? globalColors.black_75 : globalColors.white_75)
+          : (isSelected ? globalColors.white : globalColors.black_60),
       }}
       styleBadgeNumber={styleBadgeNumber}
       selected={isSelected}
@@ -36,28 +36,24 @@ class Render extends Component<void, Props, void> {
     return (
       <Box style={{...stylesContainer, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.lightGrey}}>
         <TabBar styleTabBar={{...tabBarStyle, backgroundColor: this.props.showingPrivate ? globalColors.darkBlue : globalColors.white}}>
-          <TabBarItem
-            selected={this.props.showingPrivate}
-            styleContainer={itemContainerStyle}
-            tabBarButton={this._makeItem(false, this.props.showingPrivate === true)}
-            onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(true) }}>
-            <List
-              {...this.props.private}
-              style={this.props.listStyle}
-              smallMode={this.props.smallMode}
-              onClick={this.props.onClick} />
-          </TabBarItem>
-          <TabBarItem
-            selected={!this.props.showingPrivate}
-            styleContainer={itemContainerStyle}
-            tabBarButton={this._makeItem(true, this.props.showingPrivate === false)}
-            onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(false) }}>
-            <List
-              {...this.props.public}
-              style={this.props.listStyle}
-              smallMode={this.props.smallMode}
-              onClick={this.props.onClick} />
-          </TabBarItem>
+          {
+            [false, true].map(isPublic => (
+              <TabBarItem
+                key={isPublic ? 'public' : 'private'}
+                selected={this.props.showingPrivate !== isPublic}
+                styleContainer={itemContainerStyle}
+                tabBarButton={this._makeItem(isPublic, this.props.showingPrivate !== isPublic)}
+                onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab(!isPublic) }}>
+                <List
+                  {...(isPublic ? this.props.public : this.props.private)}
+                  style={this.props.listStyle}
+                  smallMode={this.props.smallMode}
+                  onClick={this.props.onClick}
+                  isPublic={isPublic}
+                  showIgnored={isPublic ? this.props.publicShowingIgnored : this.props.privateShowingIgnored}
+                  onToggleShowIgnored={() => this.props.onToggleShowIgnored(!isPublic)} />
+              </TabBarItem>
+            ))}
         </TabBar>
       </Box>
     )

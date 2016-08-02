@@ -1,6 +1,7 @@
 // @flow
 export default {
   black: '#000000',
+  black_05: 'rgba(0, 0, 0, 0.05)',
   black_10: 'rgba(0, 0, 0, 0.10)',
   black_20: 'rgba(0, 0, 0, 0.20)',
   black_40: 'rgba(0, 0, 0, 0.40)',
@@ -26,6 +27,7 @@ export default {
   midnightBlue: '#082640',
   orange: '#ff6f21',
   red: '#ff4d61',
+  red_75: 'rgba(255,0,0,0.75)',
   transparent: 'rgba(0, 0, 0, 0)',
   white: '#ffffff',
   white_40: 'rgba(255, 255, 255, 0.40)',
@@ -33,6 +35,7 @@ export default {
   white_90: 'rgba(255, 255, 255, 0.90)',
   yellow: '#fff75a',
   yellowGreen2: '#94b52f',
+  yellowGreen2_75: 'rgba(154, 180, 57, 0.75)',
   yellowGreen3: '#d2e697',
   yellowGreen: '#a8cf36',
 }

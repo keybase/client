@@ -78,6 +78,11 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             sh 'echo -n $(git rev-parse HEAD) > go/revision'
                             sh "git add go/revision"
                             env.COMMIT_HASH = readFile('go/revision')
+                            sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
+                            sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
+                            env.AUTHOR_NAME = readFile('.author_name')
+                            env.AUTHOR_EMAIL = readFile('.author_email')
+                            sh 'rm .author_name .author_email'
                         },
                         pull_glibc: {
                             glibcImage.pull()
@@ -109,6 +114,9 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                     stage "Test"
                         parallel (
                             test_linux: {
+                                dir("protocol") {
+                                    sh "./diff_test.sh"
+                                }
                                 parallel (
                                     test_linux_go: { withEnv([
                                         "PATH=${env.PATH}:${env.GOPATH}/bin",
@@ -128,9 +136,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             sh "${env.BASEDIR}/flow/flow status shared"
                                         }
                                         sh "desktop/node_modules/.bin/eslint ."
-                                        dir("protocol") {
-                                            sh "./diff_test.sh"
-                                        }
                                         // Only run visdiff for PRs
                                         if (env.CHANGE_ID) {
                                             wrap([$class: 'Xvfb']) { 
@@ -382,14 +387,10 @@ def nodeWithCleanup(label, handleError, cleanup, closure) {
 def slackOnError(repoName) {
     def message = null
     def color = "warning"
+    def cause = getCauseString()
     if (env.CHANGE_ID) {
         message = "<${env.CHANGE_URL}|${env.CHANGE_TITLE}>\n :small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}> by ${env.CHANGE_AUTHOR}"
     } else if (env.BRANCH_NAME == "master" && cause != "upstream" && env.AUTHOR_NAME) {
-        sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
-        sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
-        env.AUTHOR_NAME = readFile('.author_name')
-        env.AUTHOR_EMAIL = readFile('.author_email')
-        sh 'rm .author_name .author_email'
         def commitUrl = "https://github.com/keybase/${repoName}/commit/${env.COMMIT_HASH}"
         color = "danger"
         message = "*BROKEN: master on keybase/${repoName}*\n :small_red_triangle: Test failed: <${env.BUILD_URL}|${env.JOB_NAME} ${env.BUILD_DISPLAY_NAME}>\n Commit: <${commitUrl}|${env.COMMIT_HASH}>\n Author: ${env.AUTHOR_NAME} &lt;${env.AUTHOR_EMAIL}&gt;"

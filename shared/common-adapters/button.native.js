@@ -18,14 +18,30 @@ class Button extends Component {
   props: Props;
 
   render () {
+    const backgroundModeName = this.props.backgroundMode ? {
+      Terminal: 'OnTerminal',
+      Normal: '',
+    }[this.props.backgroundMode] : ''
+
     let style = {
       Primary,
       Secondary,
+      SecondaryOnTerminal,
       Danger,
       Follow,
       Following,
       Unfollow,
-    }[this.props.type]
+    }[this.props.type + backgroundModeName]
+
+    const labelStyle = {
+      PrimaryLabel,
+      SecondaryLabel,
+      SecondaryLabelOnTerminal,
+      DangerLabel,
+      FollowLabel,
+      FollowingLabel,
+      UnfollowLabel,
+    }[this.props.type + 'Label' + backgroundModeName]
 
     if (this.props.fullWidth) {
       style = {...style, ...fullWidth}
@@ -34,15 +50,6 @@ class Button extends Component {
     if (this.props.disabled || this.props.waiting) {
       style = {...style, ...disabled[this.props.type]}
     }
-
-    const labelStyle = {
-      PrimaryLabel,
-      SecondaryLabel,
-      DangerLabel,
-      FollowLabel,
-      FollowingLabel,
-      UnfollowLabel,
-    }[this.props.type + 'Label']
 
     const onPress = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
 
@@ -105,9 +112,17 @@ const Secondary = {
   ...common,
   backgroundColor: globalColors.lightGrey2,
 }
+const SecondaryOnTerminal = {
+  ...Secondary,
+  backgroundColor: globalColors.blue_30,
+}
 const SecondaryLabel = {
   ...commonLabel,
   color: globalColors.black_75,
+}
+const SecondaryLabelOnTerminal = {
+  ...SecondaryLabel,
+  color: globalColors.white,
 }
 
 const Danger = {

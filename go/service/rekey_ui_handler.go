@@ -103,7 +103,52 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) (err
 		return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
 	}
 
+	if currentDeviceSolvesProblemSet(r.G(), problemSet) {
+		r.G().Log.Info("Short-circuiting update; our device is on the solution list")
+		return
+	}
+
 	return r.startUpdater(ctx, problemSet, item.Metadata().MsgID())
+}
+
+func keySolvesProblemTLF(key libkb.GenericKey, tlf keybase1.ProblemTLF) bool {
+	ourKid := key.GetKID()
+	for _, kid := range tlf.Solution_kids {
+		if kid.Equal(ourKid) {
+			return true
+		}
+	}
+	return false
+}
+
+// currentDeviceSolvesProblemSet returns true if the current device can fix all
+// of the folders in the ProblemSet.
+func currentDeviceSolvesProblemSet(g *libkb.GlobalContext, ps keybase1.ProblemSet) (ret bool) {
+	g.Log.Debug("+ currentDeviceSolvesProblemSet")
+	defer func() {
+		g.Log.Debug("- currentDeviceSolvesProblemSet -> %v\n", ret)
+	}()
+
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
+	if err != nil {
+		g.Log.Info("| Problem loading me: %s\n", err)
+		return ret
+	}
+
+	key, err := me.GetDeviceSubkey()
+	if err != nil {
+		g.Log.Info("| Problem getting device subkey: %s\n", err)
+		return ret
+	}
+
+	for _, tlf := range ps.Tlfs {
+		if !keySolvesProblemTLF(key, tlf) {
+			g.Log.Debug("| Doesn't solve problem TLF: %s (%s)\n", tlf.Tlf.Name, tlf.Tlf.Id)
+			return ret
+		}
+	}
+	ret = true
+	return ret
 }
 
 type scoreResult struct {
@@ -245,15 +290,6 @@ func (u *rekeyStatusUpdater) Start() {
 	u.update()
 }
 
-func containsCurrentDevice(g *libkb.GlobalContext, devices []keybase1.Device) bool {
-	for _, dev := range devices {
-		if dev.DeviceID == g.Env.GetDeviceID() {
-			return true
-		}
-	}
-	return false
-}
-
 func (u *rekeyStatusUpdater) update() {
 	var err error
 	defer u.G().Trace("rekeyStatusUpdater#update", func() error { return err })()
@@ -271,17 +307,26 @@ func (u *rekeyStatusUpdater) update() {
 				return
 			}
 
-			if containsCurrentDevice(u.G(), set.Devices) {
-				u.G().Log.Info("Short-circuiting update; our device is on the list")
-				return
-			}
-
 			arg := keybase1.RefreshArg{
 				SessionID:         u.sessionID,
 				ProblemSetDevices: set,
 			}
+
+			// If our current device solves the problem set, then short-circuit
+			// further work, but dismiss the UI.
+			selfInSolution := currentDeviceSolvesProblemSet(u.G(), set.ProblemSet)
+			if selfInSolution {
+				u.G().Log.Info("Short-circuiting update; our device is on the list")
+				// This is the way we dismiss the UI (sort of a hack).
+				arg.ProblemSetDevices.ProblemSet.Tlfs = []keybase1.ProblemTLF{}
+			}
+
 			if err = u.rekeyUI.Refresh(context.TODO(), arg); err != nil {
 				u.G().Log.Errorf("rekey ui Refresh error: %s", err)
+				return
+			}
+
+			if selfInSolution {
 				return
 			}
 		}

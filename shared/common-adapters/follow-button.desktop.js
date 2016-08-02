@@ -22,7 +22,7 @@ export default class FollowButton extends Component<void, Props, State> {
     if (following) {
       return <Button
         type={this.state.mouseOver ? 'Unfollow' : 'Following'}
-        label={this.state.mouseOver ? 'Untrack' : 'Tracking'}
+        label={this.state.mouseOver ? 'Unfollow' : 'Following'}
         onClick={onUnfollow}
         onMouseEnter={() => this.setState({mouseOver: true})}
         onMouseLeave={() => this.setState({mouseOver: false})}
@@ -32,7 +32,7 @@ export default class FollowButton extends Component<void, Props, State> {
     } else {
       return <Button
         type='Follow'
-        label='Track'
+        label='Follow'
         onClick={onFollow}
         style={{...styleButton, ...style}}
         {...otherProps}

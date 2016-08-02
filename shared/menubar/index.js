@@ -8,7 +8,7 @@ import {shell, ipcRenderer} from 'electron'
 import * as favoriteAction from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {openDialog as openRekeyDialog} from '../actions/unlock-folders'
-import {switchTab} from '../actions/tabbed-router'
+import {switchTab} from '../actions/router'
 import {loginTab} from '../constants/tabs'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {defaultKBFSPath} from '../constants/config'
@@ -171,7 +171,7 @@ export default connect(
   state => ({
     username: state.config && state.config.username,
     loggedIn: state.config && state.config.loggedIn,
-    folderProps: state.favorite,
+    folderProps: state.favorite && state.favorite.folderState,
   }),
   dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab, openRekeyDialog}, dispatch)
 )(Menubar)

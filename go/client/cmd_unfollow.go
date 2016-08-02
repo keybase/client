@@ -22,18 +22,18 @@ type CmdUntrack struct {
 
 func NewCmdUntrack(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "untrack",
+		Name:         "unfollow",
 		ArgumentHelp: "<username>",
-		Usage:        "Untrack a user",
+		Usage:        "Unfollow a user",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdUntrack{Contextified: libkb.NewContextified(g)}, "untrack", c)
+			cl.ChooseCommand(&CmdUntrack{Contextified: libkb.NewContextified(g)}, "unfollow", c)
 		},
 	}
 }
 
 func (v *CmdUntrack) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("Untrack only takes one argument, the user to untrack.")
+		return fmt.Errorf("Unfollow only takes one argument, the user to unfollow.")
 	}
 	v.user = ctx.Args()[0]
 	return nil

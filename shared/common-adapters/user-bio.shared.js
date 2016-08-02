@@ -22,9 +22,9 @@ export function onClickFollowing (username: ?string) {
 
 export function followLabel (userInfo: UserInfo, currentlyFollowing: boolean): ?string {
   if (userInfo.followsYou && currentlyFollowing) {
-    return 'You track each other'
+    return 'You follow each other'
   } else if (userInfo.followsYou) {
-    return 'Tracks you'
+    return 'Follows you'
   }
   return null
 }

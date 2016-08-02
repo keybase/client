@@ -8,6 +8,7 @@ import type {FileSection, Device, ParticipantUnlock} from '../../constants/folde
 export type Props = {
   theme: 'public' | 'private',
   ignored: boolean,
+  allowIgnore: boolean,
   visiblePopupMenu: boolean,
   popupMenuItems: MenuProps.items,
   selfUsername: string,

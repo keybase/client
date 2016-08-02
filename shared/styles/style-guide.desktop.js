@@ -2,6 +2,8 @@
 // Styles from our designers
 
 import globalColors from './style-guide-colors'
+import {resolveImageAsURL} from '../../desktop/resolve-root'
+import path from 'path'
 export {default as globalColors} from './style-guide-colors'
 
 export const windowStyle = {
@@ -127,4 +129,20 @@ export function transitionColor () : Object {
   return {
     transition: 'background 0.2s linear',
   }
+}
+
+export function backgroundURL (...to: Array<string>): string {
+  const goodPath = [...to]
+
+  if (goodPath && goodPath.length) {
+    const last = goodPath[goodPath.length - 1]
+    const ext = path.extname(last)
+    goodPath[goodPath.length - 1] = path.basename(last, ext)
+
+    const images = [1, 2, 3].map(mult => `url('${resolveImageAsURL(...goodPath)}${mult === 1 ? '' : `@${mult}x`}${ext}') ${mult}x`)
+
+    return `-webkit-image-set(${images.join(', ')})`
+  }
+
+  return ''
 }

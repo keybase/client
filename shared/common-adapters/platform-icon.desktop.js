@@ -3,11 +3,11 @@
 import React from 'react'
 import {Box, Icon} from '../common-adapters'
 import {globalColors} from '../styles/style-guide'
-import type {Platforms} from '../constants/types/more'
+import type {PlatformsExpanded} from '../constants/types/more'
 import type {IconType} from './icon'
 import type {Props} from './platform-icon'
 
-const supportedPlatformsAndSizes: {[key: Platforms | 'btc']: ?{[key: string]: ?IconType}} = {
+const supportedPlatformsAndSizes: {[key: PlatformsExpanded]: ?{[key: string]: ?IconType}} = {
   'coinbase': {
     '48': 'icon-coinbase-logo-48',
   },
@@ -27,6 +27,12 @@ const supportedPlatformsAndSizes: {[key: Platforms | 'btc']: ?{[key: string]: ?I
     '48': 'icon-website-48',
   },
   'dns': {
+    '48': 'icon-website-48',
+  },
+  'http': {
+    '48': 'icon-website-48',
+  },
+  'https': {
     '48': 'icon-website-48',
   },
   'btc': {

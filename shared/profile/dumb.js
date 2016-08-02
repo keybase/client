@@ -5,7 +5,7 @@ import ProveEnterUsername from './prove-enter-username'
 import EditAvatar from './edit-avatar'
 import Revoke from './revoke'
 import PostProof from './post-proof'
-import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaUnreachable} from '../constants/tracker'
+import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaPending, metaUnreachable} from '../constants/tracker'
 import {createFolder} from '../folders/dumb'
 import {isMobile} from '../constants/platform'
 import {globalColors} from '../styles/style-guide'
@@ -15,11 +15,11 @@ import type {UserInfo} from '../common-adapters/user-bio'
 import type {DumbComponentMap} from '../constants/types/more'
 
 export const proofsDefault: Array<Proof> = [
-  {name: 'malgorithms', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com', isTracked: false},
-  {name: 'malgorithms', type: 'github', id: 'githubId', state: normal, meta: metaNew, humanUrl: 'github.com', profileUrl: 'http://github.com', isTracked: false},
-  {name: 'malgorithms', type: 'reddit', id: 'redditId', state: normal, meta: metaNone, humanUrl: 'reddit.com', profileUrl: 'http://reddit.com', isTracked: false},
-  {name: 'keybase.io', type: 'dns', id: 'dnsId', state: normal, meta: metaNone, humanUrl: 'keybase.io', profileUrl: 'http://keybase.io', isTracked: false},
-  {name: 'keybase.pub', type: 'dns', id: 'dns2Id', state: normal, meta: metaNone, humanUrl: 'keybase.pub', profileUrl: 'http://keybase.pub', isTracked: false},
+  {name: 'malgorithms', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com', isTracked: false, mTime: 1469665223000},
+  {name: 'malgorithms', type: 'github', id: 'githubId', state: normal, meta: metaNew, humanUrl: 'github.com', profileUrl: 'http://github.com', isTracked: false, mTime: 1469565223000},
+  {name: 'malgorithms', type: 'hackernews', id: 'hackernewsId', state: normal, meta: metaNone, humanUrl: 'hackernews.com', profileUrl: 'http://hackernews.com', isTracked: false, mTime: 1469465223000},
+  {name: 'keybase.io', type: 'dns', id: 'dnsId', state: normal, meta: metaNone, humanUrl: 'keybase.io', profileUrl: 'http://keybase.io', isTracked: false, mTime: 1469365223000},
+  {name: 'keybase.pub', type: 'dns', id: 'dns2Id', state: normal, meta: metaNone, humanUrl: 'keybase.pub', profileUrl: 'http://keybase.pub', isTracked: false, mTime: 1469265223000},
 ]
 
 export const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: true}))
@@ -27,6 +27,8 @@ export const proofsTracked = proofsDefault.map(proof => ({...proof, isTracked: t
 export const proofsDeleted = proofsDefault.map((proof, idx) => ({...proof, state: idx % 2 ? checking : revoked, meta: idx % 2 ? metaNone : metaDeleted}))
 
 export const proofsChanged = proofsDefault.map((proof, idx) => ({...proof, state: idx === 0 ? error : checking, meta: idx === 0 ? metaUnreachable : metaNone}))
+
+export const proofsPending = proofsDefault.map((proof, idx) => ({...proof, state: checking, meta: metaPending}))
 
 export const mockUserInfo: {username: string, userInfo: UserInfo} = {
   username: 'chris',
@@ -149,6 +151,9 @@ const propsBase: RenderProps = {
   onFolderClick: folder => { console.log('onFolderClick', folder) },
   onUserClick: username => { console.log('onUserClick', username) },
   onMissingProofClick: proof => { console.log(`Prove ${proof.type}`) },
+  onViewProof: proof => console.log('onViewProof', proof),
+  onRecheckProof: proof => console.log('onRecheckProof', proof),
+  onRevokeProof: proof => console.log('onRevokeProof', proof),
   parentProps: isMobile ? {} : {
     style: {
       width: 640,
@@ -173,13 +178,13 @@ const dumbMap: DumbComponentMap<Profile> = {
       bioEditFns,
       isYou: true,
     },
-    'Your Profile - loading': {
+    'Your Profile - Loading': {
       ...propsBase,
       loading: true,
       bioEditFns,
       isYou: true,
     },
-    'Your Profile - empty': {
+    'Your Profile - Empty': {
       ...propsBase,
       bioEditFns,
       isYou: true,
@@ -190,12 +195,48 @@ const dumbMap: DumbComponentMap<Profile> = {
         bio: '',
       },
     },
+    'Your Profile - Proof Menu': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      afterMount: c => c.handleShowMenu(0),
+    },
+    'Your Profile - Pending - Proof Menu': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      proofs: proofsPending,
+      afterMount: c => c.handleShowMenu(0),
+    },
+    'Your Profile - Pending - Proof Menu - HN': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      proofs: proofsPending,
+      afterMount: c => c.handleShowMenu(2),
+    },
+    'Your Profile - Pending - Proof Menu - DNS': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      proofs: proofsPending,
+      afterMount: c => c.handleShowMenu(3),
+    },
     'Your Profile - Broken': {
       ...propsBase,
       bioEditFns,
       isYou: true,
       proofs: proofsChanged,
       trackerState: error,
+      afterMount: c => c.handleShowMenu(0),
+    },
+    'Your Profile - Broken - Proof Menu': {
+      ...propsBase,
+      bioEditFns,
+      isYou: true,
+      proofs: proofsChanged,
+      trackerState: error,
+      afterMount: c => c.handleShowMenu(0),
     },
     'Your Profile - No Proofs': {
       ...propsBase,

@@ -101,7 +101,6 @@ const stylesButtonContainer = {
   alignItems: 'stretch',
   flex: 1,
   height: 40,
-  borderTop: `solid 1px ${globalColors.black_10}`,
 }
 
 const stylesInputContainer = {

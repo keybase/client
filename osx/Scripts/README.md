@@ -16,6 +16,14 @@
 
 ./build/KeybaseInstaller.app/Contents/MacOS/Keybase --app-path=/Applications/Keybase.app --run-mode=prod
 
+### Releasing Installer
+
+Upload the build KeybaseInstaller-x.y.z-darwin.tgz to the latest release downloads at https://github.com/keybase/client/releases.
+
+Update the scripts that reference the older version such to include this version:
+- `packaging/desktop/package_darwin.sh`
+- `packaging/desktop/kbfuse.sh`
+
 ## Overview
 
 When the Keybase.app runs it checks for the following components and compares the bundled version with the installed and running versions to make sure it's installed and up to date:

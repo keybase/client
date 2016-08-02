@@ -165,6 +165,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     case Constants.onFollow:
       return {
         ...state,
+        currentlyFollowing: true,
         lastAction: 'followed',
         reason: `You have followed ${state.username}.`,
       }
@@ -177,6 +178,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     case Constants.onUnfollow:
       return {
         ...state,
+        currentlyFollowing: false,
         lastAction: 'unfollowed',
         reason: `You have unfollowed ${state.username}.`,
       }
@@ -556,6 +558,7 @@ function revokedProofToProof (rv: RevokedProof): Proof {
     id: rv.proof.sigID,
     meta: metaDeleted,
     type: remoteProofToProofType(rv.proof),
+    mTime: rv.proof.mTime,
     color: stateToColor(error),
     name: rv.proof.displayMarkup,
     humanUrl: '',
@@ -575,6 +578,7 @@ function remoteProofToProof (oldProofState: SimpleProofState, rp: RemoteProof, l
     id: rp.sigID,
     meta: statusMeta || diffMeta,
     type: remoteProofToProofType(rp),
+    mTime: rp.mTime,
     color: stateToColor(proofState),
     name: rp.displayMarkup,
     humanUrl: humanUrl,
@@ -637,9 +641,9 @@ function deriveTrackerMessage (
   if (allOk) {
     return null
   } else if (anyDeletedProofs || anyUnreachableProofs) {
-    return `Some of ${username}’s proofs have changed since you last tracked them.`
+    return `Some of ${username}’s proofs have changed since you last followed them.`
   } else if (anyUpgradedProofs) {
-    return `${username} added new proofs to their profile since you last tracked them.`
+    return `${username} added new proofs to their profile since you last followed them.`
   }
 }
 

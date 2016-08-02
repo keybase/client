@@ -196,7 +196,7 @@ func (c *CmdStress) trackSomeone() {
 	options := keybase1.TrackOptions{LocalOnly: false, BypassConfirm: true}
 	err = tcli.Track(context.TODO(), keybase1.TrackArg{UserAssertion: username, Options: options})
 	if err != nil {
-		G.Log.Warning("track %s error: %s", username, err)
+		G.Log.Warning("follow %s error: %s", username, err)
 
 	}
 	if libkb.RandIntn(2) == 0 {
@@ -204,7 +204,7 @@ func (c *CmdStress) trackSomeone() {
 	}
 	err = tcli.Untrack(context.TODO(), keybase1.UntrackArg{Username: username})
 	if err != nil {
-		G.Log.Warning("untrack %s error: %s", username, err)
+		G.Log.Warning("unfollow %s error: %s", username, err)
 	}
 }
 
@@ -215,9 +215,9 @@ func (c *CmdStress) listTrackers() {
 		return
 	}
 	ucli := keybase1.UserClient{Cli: cli}
-	_, err = ucli.ListTrackersSelf(context.TODO(), 0)
+	_, err = ucli.ListTrackers2(context.TODO(), keybase1.ListTrackers2Arg{})
 	if err != nil {
-		G.Log.Warning("list trackers error: %s", err)
+		G.Log.Warning("list followers error: %s", err)
 	}
 }
 
@@ -230,7 +230,7 @@ func (c *CmdStress) listTracking() {
 	ucli := keybase1.UserClient{Cli: cli}
 	_, err = ucli.ListTracking(context.TODO(), keybase1.ListTrackingArg{})
 	if err != nil {
-		G.Log.Warning("list tracking error: %s", err)
+		G.Log.Warning("list following error: %s", err)
 	}
 }
 

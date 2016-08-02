@@ -45,7 +45,7 @@ export default class Render extends Component<void, RenderProps, void> {
           lastAction={this.props.lastAction}
           loggedIn={this.props.loggedIn}
         />
-        <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar, scroll-container'>
+        <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar scroll-container'>
           <UserBio type='Tracker'
             style={{marginTop: 50}}
             avatarSize={80}
@@ -56,7 +56,12 @@ export default class Render extends Component<void, RenderProps, void> {
             trackerState={this.props.trackerState}
           />
           <UserProofs
-            style={{paddingTop: 8, paddingLeft: 30, paddingRight: 30}}
+            style={{
+              paddingTop: 8,
+              paddingLeft: 30,
+              paddingRight: 30,
+              width: 325,  // FIXME (mbg): fixed width to line up with existing layout which doesn't take scrollbar into account
+            }}
             username={this.props.username}
             proofs={this.props.proofs}
             loading={this.props.loading}

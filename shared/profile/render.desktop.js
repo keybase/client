@@ -1,14 +1,17 @@
 /* @flow */
 import React, {Component} from 'react'
+import {findDOMNode} from 'react-dom'
 import _ from 'lodash'
-import {normal as proofNormal, checking as proofChecking, metaUnreachable} from '../constants/tracker'
-import {Box, Icon, Text, UserBio, UserActions, UserProofs, Usernames, BackButton} from '../common-adapters'
+import moment from 'moment'
+import {normal as proofNormal, checking as proofChecking, metaUnreachable, metaPending} from '../constants/tracker'
+import {Box, Icon, PlatformIcon, PopupMenu, Text, UserBio, UserActions, UserProofs, Usernames, BackButton} from '../common-adapters'
 import {headerColor as whichHeaderColor} from '../common-adapters/user-bio.shared'
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import ProfileHelp from './help.desktop'
 import * as shared from './render.shared'
 import type {Tab as FriendshipsTab} from './friendships'
+import type {Proof} from '../common-adapters/user-proofs'
 import type {Props} from './render'
 
 export const AVATAR_SIZE = 112
@@ -18,21 +21,137 @@ export const HEADER_SIZE = AVATAR_SIZE / 2 + HEADER_TOP_SPACE
 type State = {
   currentFriendshipsTab: FriendshipsTab,
   foldersExpanded: boolean,
+  proofMenuIndex: ?number,
+  popupMenuPosition: {
+    top?: number,
+    right?: number,
+  }
 }
 
 class Render extends Component<void, Props, State> {
   state: State;
+  _proofList: ?UserProofs;
+  _scrollContainer: ?React$Component<*, *, *>;
 
   constructor (props: Props) {
     super(props)
+
+    this._proofList = null
+    this._scrollContainer = null
+
     this.state = {
       currentFriendshipsTab: 'Followers',
       foldersExpanded: false,
+      proofMenuIndex: null,
+      popupMenuPosition: {},
     }
   }
 
   _renderComingSoon () {
     return <ProfileHelp username={this.props.username} />
+  }
+
+  _proofMenuContent (proof: Proof) {
+    if (!proof || !this.props.isYou) {
+      return
+    }
+
+    const headerStyle = {
+      fontWeight: 'bold',
+      textAlign: 'center',
+      paddingLeft: globalMargins.small,
+      paddingRight: globalMargins.small,
+      paddingTop: globalMargins.tiny,
+      paddingBottom: globalMargins.tiny,
+    }
+
+    if (proof.meta === metaUnreachable) {
+      return {
+        header: <Text
+          key='header'
+          type='BodySmall'
+          style={{
+            ...headerStyle,
+            color: globalColors.white,
+            backgroundColor: globalColors.red,
+          }}
+        >Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?</Text>,
+        items: [
+          {title: 'View proof', onClick: () => this.props.onViewProof(proof)},
+          {title: 'I fixed it - recheck', onClick: () => this.props.onRecheckProof(proof)},
+          {title: 'Revoke proof', danger: true, onClick: () => this.props.onRevokeProof(proof)},
+        ],
+      }
+    } else if (proof.meta === metaPending) {
+      let pendingMessage
+      if (proof.type === 'hackernews') {
+        pendingMessage = 'Your proof is pending. Hacker News caches its bios, so it might take a few hours before your proof gets verified.'
+      } else if (proof.type === 'dns') {
+        pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
+      }
+      return {
+        header: pendingMessage && <Text
+          key='header'
+          type='BodySmall'
+          style={{
+            ...headerStyle,
+            color: globalColors.white,
+            backgroundColor: globalColors.blue,
+          }}
+        >{pendingMessage}</Text>,
+        items: [
+          {title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)},
+        ],
+      }
+    } else {
+      return {
+        header: <Box onClick={() => this.props.onViewProof(proof)}
+          style={{
+            ...globalStyles.flexBoxColumn,
+            padding: globalMargins.small,
+            alignItems: 'center',
+            borderBottom: `1px solid ${globalColors.black_05}`,
+          }}
+        >
+          <PlatformIcon platform={proof.type} overlay='iconfont-proof-good' overlayColor={globalColors.blue} size={48} />
+          <Text type='Body' style={{textAlign: 'center', color: globalColors.black_40}}>Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>
+        </Box>,
+        items: [
+          {title: 'View proof', onClick: () => this.props.onViewProof(proof)},
+          {title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)},
+        ],
+      }
+    }
+  }
+
+  handleShowMenu (idx: number) {
+    if (!this._proofList) {
+      return
+    }
+    const target = findDOMNode(this._proofList.getRow(idx))
+    const targetBox = target.getBoundingClientRect()
+
+    if (!this._scrollContainer) {
+      return
+    }
+    const base = findDOMNode(this._scrollContainer)
+    const baseBox = base.getBoundingClientRect()
+
+    this.setState({
+      proofMenuIndex: idx,
+      popupMenuPosition: {
+        position: 'absolute',
+        top: targetBox.bottom - baseBox.top + base.scrollTop,
+        right: base.clientWidth - (targetBox.right - baseBox.left),
+      },
+    })
+  }
+
+  handleHideMenu () {
+    this.setState({
+      proofMenuIndex: null,
+      popupMenuPosition: {},
+    })
   }
 
   render () {
@@ -78,6 +197,7 @@ class Render extends Component<void, Props, State> {
     }
 
     const missingProofs = !this.props.isYou ? [] : shared.missingProofs(this.props.proofs, this.props.onMissingProofClick)
+    const proofMenuContent = this.state.proofMenuIndex != null && this._proofMenuContent(this.props.proofs[this.state.proofMenuIndex])
 
     return (
       <Box style={styleOuterContainer}>
@@ -85,7 +205,7 @@ class Render extends Component<void, Props, State> {
         <Box style={{...styleScrollHeaderCover, backgroundColor: headerColor}} />
         {this.props.onBack && <BackButton onClick={this.props.onBack} style={{position: 'absolute', left: 10, top: 10, zIndex: 12}}
           textStyle={{color: globalColors.white}} iconStyle={{color: globalColors.white}} />}
-        <Box className='scroll-container' style={styleContainer}>
+        <Box ref={c => { this._scrollContainer = c }} className='scroll-container' style={styleContainer}>
           <Box style={{...styleHeader, backgroundColor: headerColor}} />
           <Box style={{...globalStyles.flexBoxRow, minHeight: 300}}>
             <Box style={styleBioColumn}>
@@ -115,10 +235,13 @@ class Render extends Component<void, Props, State> {
               </Box>
               {(loading || this.props.proofs.length > 0) &&
                 <UserProofs
+                  ref={c => { this._proofList = c }}
                   style={styleProofs}
                   username={this.props.username}
                   loading={loading}
                   proofs={this.props.proofs}
+                  onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
+                  showingMenuIndex={this.state.proofMenuIndex}
                 />}
               {!loading && missingProofs.length > 0 &&
                 <UserProofs
@@ -137,6 +260,7 @@ class Render extends Component<void, Props, State> {
               onUserClick={this.props.onUserClick}
               followers={this.props.followers}
               following={this.props.following} />}
+          {proofMenuContent && <PopupMenu style={{...styleProofMenu, ...this.state.popupMenuPosition}} visible={true} {...proofMenuContent} onHidden={() => this.handleHideMenu()} />}
         </Box>
       </Box>
     )
@@ -192,8 +316,8 @@ const styleActions = {
 const styleProofColumn = {
   ...globalStyles.flexBoxColumn,
   width: 320,
-  marginLeft: globalMargins.medium,
-  marginRight: globalMargins.medium,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 const styleProofNoticeBox = {
@@ -233,6 +357,13 @@ const styleFolderIcon = {
 
 const styleFriendships = {
   marginTop: globalMargins.medium,
+}
+
+const styleProofMenu = {
+  marginTop: globalMargins.xtiny,
+  minWidth: 196,
+  maxWidth: 240,
+  zIndex: 5,
 }
 
 export default Render

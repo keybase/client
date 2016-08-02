@@ -36,6 +36,21 @@ export type SearchResult = {
   keybaseSearchResult: ?SearchResult, // If we want to grab the keybase version of a search result
 }
 
+// Keys for service+username to use in cross referencing things
+export function searchResultKeys (result: SearchResult) : Array<string> {
+  const results = []
+  if (result.service === 'keybase') {
+    results.push('Keybase' + result.username)
+  } else if (result.service === 'external') {
+    if (result.keybaseSearchResult) {
+      results.push('Keybase' + result.keybaseSearchResult.username)
+    }
+    results.push(result.serviceName + result.username)
+  }
+
+  return results
+}
+
 export function fullName (extraInfo: ExtraInfo): string {
   switch (extraInfo.service) {
     case 'keybase':
@@ -131,6 +146,14 @@ export function platformToLogo16 (platform: SearchPlatforms): IconType {
     'Hackernews': 'icon-hacker-news-logo-16',
     'Pgp': 'icon-pgp-key-16',
   }[platform]
+}
+
+export function platformToNiceName (platform: SearchPlatforms): string {
+  const niceNames: {[key: SearchPlatforms]: ?string} = {
+    'Hackernews': 'Hacker News',
+  }
+
+  return niceNames[platform] || platform
 }
 
 export function equalSearchResult (a: SearchResult, b: SearchResult): boolean {

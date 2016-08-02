@@ -343,11 +343,11 @@ const iconMeta_ = {
     // $FlowIssue
     require: require('../images/icons/icon-computer-text-code-48.png'),
   },
-  'icon-damier-pattern-48': {
+  'icon-damier-pattern-good-open-48-1000': {
     isFont: false,
     extension: 'png',
     // $FlowIssue
-    require: require('../images/icons/icon-damier-pattern-48.png'),
+    require: require('../images/icons/icon-damier-pattern-good-open-48-1000.png'),
   },
   'icon-damier-pattern-good-open': {
     isFont: false,
@@ -355,11 +355,17 @@ const iconMeta_ = {
     // $FlowIssue
     require: require('../images/icons/icon-damier-pattern-good-open.png'),
   },
-  'icon-damier-pattern-lockedignored': {
+  'icon-damier-pattern-ignored-locked-48-1000': {
     isFont: false,
     extension: 'png',
     // $FlowIssue
-    require: require('../images/icons/icon-damier-pattern-lockedignored.png'),
+    require: require('../images/icons/icon-damier-pattern-ignored-locked-48-1000.png'),
+  },
+  'icon-damier-pattern-ignored-locked': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue
+    require: require('../images/icons/icon-damier-pattern-ignored-locked.png'),
   },
   'icon-devices-add-64-x-48': {
     isFont: false,

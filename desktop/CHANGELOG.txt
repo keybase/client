@@ -1,11 +1,16 @@
 Recent changes:
 ---------------
+- Search from the app! Want to share data in KBFS with a Twitter user? Just click the Twitter bird and type their username. This will popup a folder for you, and if they're not on Keybase yet, and invitation code to share.
 
-- Introducing the main GUI screen - this is where you'll look people up, manage your folders, and perform other actions. A lot of the features are stubbed out, but you can start playing with it.
+- Introducing the main GUI screen. This is where you'll look people up, manage your folders, and perform other actions. A lot of the features are stubbed out, but you can start playing with it.
 
-- Sharing before signup: go ahead and put data in /keybase/private/you,friend@twitter/. If you have any invite codes, this will pop up a window with a link to DM them. It also works for end-to-end encryption with Reddit, Coinbase, Github, and Hacker News users.
+- Sharing before signup! Go ahead and put data in /keybase/private/you,friend@twitter/. If you have any invite codes, this will pop up a window with a link to DM them. It also works for end-to-end encryption with Reddit, Coinbase, Github, and Hacker News users.
+
+Small stuff:
+--------------
+- Various bug fixes and improvements
 
 What we are currently working on:
 ---------------------------------
-
 - KBFS performance, including delayed writes
+- profile editing and proof generation inside the GUI

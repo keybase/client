@@ -23,10 +23,10 @@ func (s *SaltpackUI) doNonInteractive(arg keybase1.SaltpackPromptForDecryptArg) 
 	switch arg.Sender.SenderType {
 	case keybase1.SaltpackSenderType_TRACKING_BROKE:
 		if s.force {
-			s.G().Log.Warning("Tracking statement is broken for sender, but forcing through.")
+			s.G().Log.Warning("Your view of the sender is broken, but forcing through.")
 			return nil
 		}
-		return libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "tracking broke"}
+		return libkb.IdentifyFailedError{Assertion: arg.Sender.Username, Reason: "sender identity failed"}
 	default:
 		return nil
 	}
@@ -39,13 +39,13 @@ func (s *SaltpackUI) doInteractive(arg keybase1.SaltpackPromptForDecryptArg) err
 	case keybase1.SaltpackSenderType_TRACKING_OK, keybase1.SaltpackSenderType_SELF:
 		return nil
 	case keybase1.SaltpackSenderType_NOT_TRACKED:
-		why = "The sender of this message is a Keybase user you don't track"
+		why = "The sender of this message is a Keybase user you don't follow"
 	case keybase1.SaltpackSenderType_UNKNOWN:
 		why = "The sender of this message is unknown to Keybase"
 	case keybase1.SaltpackSenderType_ANONYMOUS:
 		why = "The sender of this message has chosen to remain anonymous"
 	case keybase1.SaltpackSenderType_TRACKING_BROKE:
-		why = "You track the sender of this message, but their tracking statement is broken"
+		why = "You follow the sender of this message, but your view of them is broken"
 		def = libkb.PromptDefaultNo
 	}
 	why += ". Go ahead and decrypt?"

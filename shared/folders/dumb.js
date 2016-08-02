@@ -178,35 +178,32 @@ const parentProps = {
   },
 }
 
+const onToggleShowIgnored = () => console.log('toggle')
+
+const commonFolders = {
+  smallMode: false,
+  onRekey: path => console.log(`open rekey page: ${path}`),
+  onToggleShowIgnored,
+  username: 'cecileb',
+  showComingSoon: false,
+  private: {tlfs, ignored, isPublic: false, parentProps, onToggleShowIgnored, showIgnored: true},
+  public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps, onToggleShowIgnored, showIgnored: false},
+  showingPrivate: true,
+  publicShowingIgnored: false,
+  privateShowingIgnored: true,
+}
+
 export const map: DumbComponentMap<Folders> = {
   component: Folders,
   mocks: {
-    'Normal Private': {
-      smallMode: false,
-      onRekey: path => console.log(`open rekey page: ${path}`),
-      username: 'cecileb',
-      showComingSoon: false,
-      private: {tlfs, ignored, isPublic: false, parentProps},
-      public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps},
-      showingPrivate: true,
-    },
+    'Normal Private': {...commonFolders},
     'Normal Public': {
-      smallMode: false,
-      onRekey: path => console.log(`open rekey page: ${path}`),
-      username: 'cecileb',
-      showComingSoon: false,
-      private: {tlfs, ignored, isPublic: false, parentProps},
-      public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps},
+      ...commonFolders,
       showingPrivate: false,
     },
     'ComingSoon': {
-      smallMode: false,
-      onRekey: path => console.log(`open rekey page: ${path}`),
-      username: 'cecileb',
+      ...commonFolders,
       showComingSoon: true,
-      private: {tlfs, ignored, isPublic: false, parentProps},
-      public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps},
-      showingPrivate: true,
     },
   },
 }
@@ -296,6 +293,7 @@ const filesMenuItems = [
 const commonFiles = (isPrivate): FilesProps => ({
   theme: isPrivate ? 'private' : 'public',
   ignored: false,
+  allowIgnore: true,
   visiblePopupMenu: false,
   popupMenuItems: filesMenuItems,
   selfUsername: 'cecileb',
@@ -382,6 +380,13 @@ export const files: DumbComponentMap<Files> = {
       ...commonFiles(true),
       recentFilesSection: undefined,
       recentFilesEnabled: false,
+    },
+    'Recent Files Disabled - Private - You': {
+      ...commonFiles(true),
+      recentFilesSection: undefined,
+      recentFilesEnabled: false,
+      users: [{username: 'cecileb', you: true}],
+      allowIgnore: false,
     },
     'Recent Files Disabled - Public': {
       ...commonFiles(false),

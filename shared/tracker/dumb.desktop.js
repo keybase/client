@@ -10,6 +10,7 @@ import type {DumbComponentMap} from '../constants/types/more'
 const proofMaker = (type, id = 'id-') => ({
   name: type + 'user', type, id: String(id), state: normal,
   meta: metaNone, humanUrl: '', profileUrl: '', isTracked: false,
+  mTime: 1469665223000,
 })
 
 const proofWeb: Proof = {...proofMaker('http'),
@@ -65,11 +66,11 @@ const proofsDefault: Array<Proof> = [
 ]
 
 const proofsChanged: Array<Proof> = [
-  {name: 'deleted', type: 'github', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: '', profileUrl: '', isTracked: false},
-  {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: '', profileUrl: '', isTracked: false},
-  {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, meta: metaNone, humanUrl: '', profileUrl: '', isTracked: false},
-  {name: 'pending', type: 'https', id: 'pendingId', state: normal, meta: metaPending, humanUrl: '', profileUrl: '', isTracked: false},
-  {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: '', profileUrl: '', isTracked: false},
+  {name: 'deleted', type: 'github', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469665223000},
+  {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469565223000},
+  {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, meta: metaNone, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469465223000},
+  {name: 'pending', type: 'https', id: 'pendingId', state: normal, meta: metaPending, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469365223000},
+  {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: '', profileUrl: '', isTracked: false, mTime: 1469265223000},
 ]
 
 const propsBase = {
@@ -158,7 +159,7 @@ function setFollow (source: TrackerProps, filter: setFollowFilter): TrackerProps
 const propsFollowing: TrackerProps = setFollow({
   ...propsNewUser,
   currentlyFollowing: true,
-  reason: 'You have tracked gabrielh.',
+  reason: 'You have followed gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true,
@@ -169,7 +170,7 @@ const propsFollowing: TrackerProps = setFollow({
 
 const propsWhatevz: TrackerProps = setFollow({
   ...propsFollowing,
-  reason: 'You have tracked gabrielh',
+  reason: 'You have followed gabrielh',
   proofs: [
     proofGithub,
     {...proofTwitter, meta: metaIgnored},
@@ -179,7 +180,7 @@ const propsWhatevz: TrackerProps = setFollow({
 const propsChangedProofs: TrackerProps = {
   ...propsDefault,
   currentlyFollowing: true,
-  reason: 'Some of gabrielh\'s proofs have changed since you last tracked them.',
+  reason: 'Some of gabrielh\'s proofs have changed since you last followed them.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true,
@@ -190,7 +191,7 @@ const propsChangedProofs: TrackerProps = {
 
 const propsUnfollowed: TrackerProps = {
   ...propsDefault,
-  reason: 'You have untracked gabrielh.',
+  reason: 'You have unfollowed gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true,
@@ -252,7 +253,7 @@ const dumbMap: DumbComponentMap<Tracker> = {
     'Followed': trackerPropsToRenderProps(propsFollowing),
     'Changed/Broken proofs user you don\'t follow': trackerPropsToRenderProps({...propsChangedProofs, currentlyFollowing: false}),
     'Changed/Broken proofs': trackerPropsToRenderProps(propsChangedProofs),
-    'You track them': trackerPropsToRenderProps({...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}}),
+    'You follow them': trackerPropsToRenderProps({...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}}),
     'Unfollowed': trackerPropsToRenderProps(propsUnfollowed),
     'Barely there': trackerPropsToRenderProps(propsLessData),
     'Tracker - Loading': trackerPropsToRenderProps({...propsLessData, loading: true}),
@@ -264,4 +265,3 @@ const dumbMap: DumbComponentMap<Tracker> = {
 export default {
   'Tracker': dumbMap,
 }
-

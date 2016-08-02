@@ -100,8 +100,8 @@ class SearchBar extends Component<void, Props, void> {
             underlineShow={false}
             style={stylesInput}
             textStyle={{height: 31}} />
-          <Icon type='iconfont-remove' style={{marginRight: 16, opacity: this.props.searchText ? 1 : 0}}
-            onClick={() => this.refs.searchBox.clearValue()} />
+          {this.props.searchText && <Icon type='iconfont-remove' style={{marginRight: 16}}
+            onClick={() => this.refs.searchBox.clearValue()} />}
         </Box>
       </Box>
     )
@@ -110,13 +110,13 @@ class SearchBar extends Component<void, Props, void> {
 
 const stylesServicesContainer = {
   ...globalStyles.flexBoxRow,
-  height: 48,
+  height: 64,
+  alignItems: 'center',
   paddingLeft: 16,
 }
 const stylesInputContainer = {
   ...globalStyles.flexBoxRow,
   height: 48,
-  borderBottom: `solid 1px ${globalColors.black_10}`,
   alignItems: 'center',
   marginBottom: 8,
 }

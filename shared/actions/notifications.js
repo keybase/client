@@ -1,14 +1,13 @@
-/* @flow */
-import engine from '../engine'
-import {NotifyPopup} from '../native/notifications'
-import ListenerCreator from '../native/notification-listeners'
-import setNotifications from '../util/set-notifications'
+// @flow
 import * as Constants from '../constants/notifications'
-import {log} from '../native/log/logui'
-
+import ListenerCreator from '../native/notification-listeners'
+import engine from '../engine'
+import setNotifications from '../util/set-notifications'
 import type {Dispatch} from '../constants/types/flux'
-import type {Text as KBText, LogLevel} from '../constants/types/flow-types'
 import type {LogAction, NotificationKeys, NotificationAction} from '../constants/notifications'
+import type {Text as KBText, LogLevel} from '../constants/types/flow-types'
+import {NotifyPopup} from '../native/notifications'
+import {log} from '../native/log/logui'
 
 export function logUiLog ({text, level}: {text: KBText, level: LogLevel}, response: any): LogAction {
   log({text, level}, response)

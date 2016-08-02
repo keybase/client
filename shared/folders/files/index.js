@@ -16,6 +16,7 @@ type Props = $Shape<{
   folder: ?Folder,
   path: string,
   username: string,
+  allowIgnore: boolean,
   navigateBack: () => void,
   routeAppend: (route: any) => void,
   ignoreFolder: (path: string) => void,
@@ -55,6 +56,7 @@ class Files extends Component<void, Props, State> {
     const openCurrentFolder = () => { this.props.openInKBFS(this.props.path) }
     const ignoreCurrentFolder = () => { this.props.ignoreFolder(this.props.path) }
     const unIgnoreCurrentFolder = () => { this.props.favoriteFolder(this.props.path) }
+    const allowIgnore = folder.users.some(f => !f.you)
 
     return (
       <Render
@@ -67,6 +69,7 @@ class Files extends Component<void, Props, State> {
         visiblePopupMenu={this.state.visiblePopupMenu}
         onTogglePopupMenu={() => this.setState({visiblePopupMenu: !this.state.visiblePopupMenu})}
         selfUsername={username}
+        allowIgnore={allowIgnore}
         users={folder.users}
         waitingForParticipantUnlock={folder.waitingForParticipantUnlock}
         youCanUnlock={folder.youCanUnlock}
@@ -95,10 +98,10 @@ class Files extends Component<void, Props, State> {
 const ConnectedFiles = connect(
   (state, ownProps) => {
     const folders: Array<Folder> = [].concat(
-      _.get(state, 'favorite.private.tlfs', []),
-      _.get(state, 'favorite.public.tlfs', []),
-      _.get(state, 'favorite.private.ignored', []),
-      _.get(state, 'favorite.public.ignored', [])
+      _.get(state, 'favorite.folderState.private.tlfs', []),
+      _.get(state, 'favorite.folderState.public.tlfs', []),
+      _.get(state, 'favorite.folderState.private.ignored', []),
+      _.get(state, 'favorite.folderState.public.ignored', [])
     )
 
     const folder = folders.find(f => f.path === ownProps.path)

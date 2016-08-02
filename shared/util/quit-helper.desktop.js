@@ -6,9 +6,6 @@ import {hideDockIcon} from '../../desktop/app/dock-icon'
 export type Context = 'uiWindow' | 'mainThread' | 'quitButton' | 'beforeQuit'
 export type Action = 'closePopups' | 'quitMainWindow' | 'quitApp'
 
-// Don't do beforeQuit path if we're really quitting
-let isQuitting = false
-
 // Logic to figure out what to do given your context
 function quitOnContext (context: Context): Array<Action> {
   switch (context) {
@@ -30,11 +27,6 @@ function isMainThread () {
 }
 
 function _executeActions (actions: Array<Action>) {
-  // Don't allow us to re-enter this logic if we're already shutting down
-  if (isQuitting) {
-    return
-  }
-
   actions.forEach(a => {
     switch (a) {
       case 'quitMainWindow':
@@ -44,13 +36,7 @@ function _executeActions (actions: Array<Action>) {
         app.emit('close-windows')
         break
       case 'quitApp':
-        isQuitting = true
-        try {
-          quit()
-        } catch (err) {
-          isQuitting = false
-          console.warn("Couldn't quit")
-        }
+        quit()
         break
     }
   })
