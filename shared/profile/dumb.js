@@ -369,10 +369,18 @@ const revokeBase = {
   isHttps: false,
 }
 
+const revokeTwitter = {
+  ...revokeBase,
+  platformHandle: 'alexrwendland',
+  platform: 'twitter',
+}
+
 const dumbRevoke: DumbComponentMap<Revoke> = {
   component: Revoke,
   mocks: {
-    'Twitter': {...revokeBase, platformHandle: 'malgorithms', platform: 'twitter'},
+    'Twitter': {...revokeTwitter},
+    'Twitter - Error': {...revokeTwitter, errorMessage: 'There was an error revoking your proof. You can click the button to try again.'},
+    'Twitter - Waiting': {...revokeTwitter, isWaiting: true},
     'Reddit': {...revokeBase, platformHandle: 'malgorithms', platform: 'reddit'},
     'GitHub': {...revokeBase, platformHandle: 'malgorithms', platform: 'github'},
     'Coinbase': {...revokeBase, platformHandle: 'malgorithms', platform: 'coinbase'},
