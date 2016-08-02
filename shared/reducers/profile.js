@@ -9,6 +9,8 @@ const initialState: State = {
   username: '',
   platform: null,
   usernameValid: true,
+  proofFound: false,
+  proofStatus: null,
 }
 
 export default function (state: State = initialState, action: Actions) {
@@ -16,28 +18,35 @@ export default function (state: State = initialState, action: Actions) {
     case CommonConstants.resetStore:
       return {...initialState}
     case Constants.waiting:
-      if (action.error) {
-        break
-      }
+      if (action.error) { break }
       return {
         ...state,
         waiting: action.payload.waiting,
       }
     case Constants.updatePlatform:
-      if (action.error) {
-        break
-      }
+      if (action.error) { break }
       return {
         ...state,
         platform: action.payload.platform,
       }
     case Constants.updateUsername:
-      if (action.error) {
-        break
-      }
+      if (action.error) { break }
       return {
         ...state,
         username: action.payload.username,
+      }
+    case Constants.updateProofText:
+      if (action.error) { break }
+      return {
+        ...state,
+        proof: action.payload.proof,
+      }
+    case Constants.updateProofStatus:
+      if (action.error) { break }
+      return {
+        ...state,
+        proofFound: action.payload.found,
+        proofStatus: action.payload.status,
       }
   }
 
