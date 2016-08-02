@@ -236,10 +236,14 @@ outer:
 // history for this TLF.
 func (teh *TlfEditHistory) GetComplete(ctx context.Context) (
 	TlfWriterEdits, error) {
-	currEdits := teh.getEditsCopy()
-	if currEdits != nil {
-		return currEdits, nil
-	}
+	var currEdits TlfWriterEdits
+	/**
+	* Once we update currEdits based on notifications, we can uncomment this.
+		currEdits := teh.getEditsCopy()
+		if currEdits != nil {
+			return currEdits, nil
+		}
+	*/
 
 	// We have no history -- fetch from the server until we have a
 	// complete history.
