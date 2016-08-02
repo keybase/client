@@ -223,7 +223,7 @@
                   InstallCondition="NOT VersionNT64"
                   Compressed="yes"
                   Visible="yes"
-                  Permanent="yes"
+                  Permanent="no"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
@@ -235,7 +235,7 @@
                   InstallCondition="VersionNT64"
                   Compressed="yes"
                   Visible="yes"
-                  Permanent="yes"
+                  Permanent="no"
                   >
         <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
         <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
