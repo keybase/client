@@ -8,8 +8,8 @@ import {subtitle as platformSubtitle} from '../util/platforms'
 
 import type {Props} from './revoke'
 
-const Render = ({platform, platformHandle, errorMessage, isHttps, onCancel, onRevoke, isWaiting}: Props) => {
-  const platformHandleSubtitle = platformSubtitle(platform, isHttps)
+const Render = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isWaiting}: Props) => {
+  const platformHandleSubtitle = platformSubtitle(platform)
 
   return (
     <Box style={styleContainer}>

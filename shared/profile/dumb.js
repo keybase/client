@@ -362,11 +362,8 @@ const dumbEditAvatar: DumbComponentMap<EditAvatar> = {
 }
 
 const revokeBase = {
-  platform: 'twitter',
-  username: 'chris',
-  onCancel: () => console.log('clicked Cancel'),
-  onRevoke: () => console.log('clicked Revoke'),
-  isHttps: false,
+  onCancel: () => console.log('Revoke Proof: clicked Cancel'),
+  onRevoke: () => console.log('Revoke Proof: clicked Revoke'),
 }
 
 const revokeTwitter = {
@@ -388,7 +385,7 @@ const dumbRevoke: DumbComponentMap<Revoke> = {
     'Bitcoin': {...revokeBase, platformHandle: '1BjgMvwVkpmmJ5HFGZ3L3H1G6fcKLNGT5h', platform: 'btc'},
     'DNS': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'dns'},
     'Website': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'genericWebSite'},
-    'https website': {...revokeBase, isHttps: true, platformHandle: 'chriscoyne.com', platform: 'genericWebSite'},
+    'https website': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'https'},
   },
 }
 

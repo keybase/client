@@ -43,20 +43,16 @@ export function proveMessage (platform: PlatformsExpanded) {
   return ProveMessages[platform]
 }
 
-export function subtitle (platform: PlatformsExpanded, isHttps?: boolean) {
+export function subtitle (platform: PlatformsExpanded): ?string {
   switch (platform) {
     case 'btc':
-      return ''
+      return null
     case 'dns':
-      return 'dns'
+    case 'http':
+    case 'https':
+      return platform
     case 'genericWebSite':
-      if (isHttps == null) {
-        return 'http(s)'
-      }
-      if (isHttps) {
-        return 'https'
-      }
-      return 'http'
+      return 'http(s)'
     default:
       return `@${platform}`
   }

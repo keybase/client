@@ -1,17 +1,19 @@
 // @flow
 
 import {Component} from 'react'
-import type {Platforms} from '../constants/types/more'
+import type {PlatformsExpanded} from '../constants/types/more'
 import type {IconType} from '../common-adapters/icon'
+import type {$Exact} from '../constants/types/more'
 
-export type Props = {
-  platform: Platforms | 'btc', // bitcoin isn't a real proof
+export type PropsLoose = {
+  platform: PlatformsExpanded,
   platformHandle: string,
   errorMessage?: ?string,
-  isHttps: boolean,
   onCancel: () => void,
   onRevoke: () => void,
   isWaiting?: boolean,
 }
+
+export type Props = $Exact<PropsLoose>
 
 export default class Render extends Component<void, Props, void> { }

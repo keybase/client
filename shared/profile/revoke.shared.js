@@ -12,6 +12,8 @@ export function formatMessage (platform: PlatformsExpanded) {
       body = 'Bitcoin address'
       break
     case 'dns':
+    case 'http':
+    case 'https':
     case 'genericWebSite':
       body = 'website'
       break

@@ -2,15 +2,15 @@
 import React, {Component} from 'react'
 import Revoke from './revoke'
 import {TypedConnector} from '../util/typed-connect'
-import {bindActionCreators} from 'redux'
 import {submitRevokeProof, cancelRevokeProof} from '../actions/profile'
 
+import type {PlatformsExpanded} from '../constants/types/more'
 import type {Props} from './revoke'
 import type {TypedState} from '../constants/reducer'
 import type {TypedDispatch} from '../constants/types/flux'
 
 type OwnProps = {
-  platform: string,
+  platform: PlatformsExpanded,
   proofId: string,
   platformHandle: string,
 }
@@ -38,12 +38,11 @@ const connector: TypedConnector<TypedState, TypedDispatch<{}>, OwnProps, Props> 
 
 export default connector.connect(
   (state, dispatch, ownProps) => ({
-    waiting: state.profile.revoke.waiting,
+    isWaiting: state.profile.revoke.waiting,
     errorMessage: state.profile.revoke.error,
-    ...bindActionCreators({
-      onCancel: () => cancelRevokeProof(),
-      onRevoke: () => submitRevokeProof(ownProps.proofId),
-    }, dispatch),
-    ...ownProps,
+    onCancel: () => { dispatch(cancelRevokeProof()) },
+    onRevoke: () => { dispatch(submitRevokeProof(ownProps.proofId)) },
+    platform: ownProps.platform,
+    platformHandle: ownProps.platformHandle,
   })
 )(RevokeContainer)
