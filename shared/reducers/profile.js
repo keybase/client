@@ -11,6 +11,7 @@ const initialState: State = {
   usernameValid: true,
   proofFound: false,
   proofStatus: null,
+  sigID: null,
 }
 
 export default function (state: State = initialState, action: Actions) {
@@ -47,6 +48,18 @@ export default function (state: State = initialState, action: Actions) {
         ...state,
         proofFound: action.payload.found,
         proofStatus: action.payload.status,
+      }
+    case Constants.updateError:
+      if (action.error) { break }
+      return {
+        ...state,
+        error: action.payload.error,
+      }
+    case Constants.updateSigID:
+      if (action.error) { break }
+      return {
+        ...state,
+        sigID: action.payload.sigID,
       }
   }
 

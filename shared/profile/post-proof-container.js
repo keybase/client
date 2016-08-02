@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import PostProof from './post-proof'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import {cancelAddProof, submitOutputInstructions, outputInstructionsActionLink} from '../actions/profile'
+import {cancelAddProof, checkProof, outputInstructionsActionLink} from '../actions/profile'
 
 class PostProofContainer extends Component<void, any, void> {
   static parseRoute (currentPath, uri) {
@@ -34,7 +34,7 @@ export default connect(
   dispatch => (
     bindActionCreators({
       onCancel: () => cancelAddProof(),
-      onComplete: () => submitOutputInstructions(),
+      onComplete: () => checkProof(),
       proofAction: () => outputInstructionsActionLink(),
     }, dispatch))
 )(PostProofContainer)

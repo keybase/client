@@ -4,16 +4,20 @@ import engine from '../engine'
 import type {Dispatch, AsyncAction} from '../constants/types/flux'
 import type {PlatformsExpanded} from '../constants/types/more'
 import type {SigID} from '../constants/types/flow-types'
-import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateError, UpdateProofStatus} from '../constants/profile'
+import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateError, UpdateProofStatus, UpdateSigID} from '../constants/profile'
 import {apiserverPostRpc, proveStartProofRpc, proveCheckProofRpc} from '../constants/types/flow-types'
 import {bindActionCreators} from 'redux'
-import {constants as RpcConstants} from '../constants/types/keybase-v1'
+import {constants as RpcConstants, proveCommon} from '../constants/types/keybase-v1'
 import {getMyProfile} from './tracker'
 import {navigateUp, navigateTo} from '../actions/router'
 import {profileTab} from '../constants/tabs'
 import {shell} from 'electron'
 
 const InputCancelError = {desc: 'Cancel Add Proof', code: RpcConstants.StatusCode.scinputcanceled}
+
+// Soon to be saga-ed away. We bookkeep the respsonse object in the incomingCallMap so we can call it in our actions
+let promptUsernameResponse: ?Object = null
+let outputInstructionsResponse: ?Object = null
 
 function editProfile (bio: string, fullname: string, location: string): AsyncAction {
   return (dispatch) => {
@@ -74,24 +78,11 @@ function selectPlatform (platform: PlatformsExpanded): UpdatePlatform {
   }
 }
 
-let promptUsernameResponse: ?Object = null
-
 function submitUsername (): AsyncAction {
   return (dispatch, getState) => {
     if (promptUsernameResponse) {
       promptUsernameResponse.result(getState().profile.username)
       promptUsernameResponse = null
-    }
-  }
-}
-
-let outputInstructionsResponse: ?Object = null
-
-function submitOutputInstructions (): AsyncAction {
-  return (dispatch, getState) => {
-    if (outputInstructionsResponse) {
-      outputInstructionsResponse.result()
-      outputInstructionsResponse = null
     }
   }
 }
@@ -140,6 +131,13 @@ function updateProofStatus (found, status): UpdateProofStatus {
   }
 }
 
+function updateSigID (sigID: SigID): UpdateSigID {
+  return {
+    type: Constants.updateSigID,
+    payload: {sigID},
+  }
+}
+
 function addProof (platform: PlatformsExpanded): AsyncAction {
   return (dispatch) => {
     dispatch(selectPlatform(platform))
@@ -165,30 +163,44 @@ function addProof (platform: PlatformsExpanded): AsyncAction {
         },
       },
       callback: (error, {sigID}) => {
+        dispatch(updateSigID(sigID))
+
         if (error) {
           console.warn('Error making proof')
           dispatch(updateError(error))
         } else {
           console.log('Start Proof done: ', sigID)
-          dispatch(checkProof(sigID))
+          dispatch(checkProof())
         }
       },
     })
   }
 }
 
-function checkProof (sigID: SigID): AsyncAction {
-  return (dispatch) => {
+function checkProof (): AsyncAction {
+  return (dispatch, getState) => {
+    // The first 'check for it' call happens as part of the incomingCallMap above. If that fails we can try again here
+    if (outputInstructionsResponse) {
+      outputInstructionsResponse.result()
+      outputInstructionsResponse = null
+    }
+
     proveCheckProofRpc({
       ...makeWaitingHandler(dispatch),
-      param: {sigID},
+      param: {
+        sigID: getState().profile.sigID,
+      },
       callback: (error, {found, status}) => {
         if (error) {
           console.warn('Error getting proof update')
-          dispatch(updateError(error))
+          dispatch(updateError(`We couldn't verify your proof (${error}). Please retry!`))
         } else {
-          dispatch(updateProofStatus(found, status))
-          dispatch(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
+          if (!found || status !== proveCommon.ProofStatus.ok) {
+            dispatch(updateError("We couldn't find your proof. Please retry!"))
+          } else {
+            dispatch(updateProofStatus(found, status))
+            dispatch(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
+          }
         }
       },
     })
@@ -202,8 +214,10 @@ function outputInstructionsActionLink (): AsyncAction {
       case 'twitter':
         shell.openExternal(`https://twitter.com/home?status=${profile.proof}`)
         break
-      case 'reddit':
       case 'github':
+        shell.openExternal('https://gist.github.com/')
+        break
+      case 'reddit':
         shell.openExternal(profile.proof)
         break
       default:
@@ -225,8 +239,8 @@ export {
   editProfile,
   outputInstructionsActionLink,
   selectPlatform,
-  submitOutputInstructions,
   submitUsername,
   updateUsername,
   reloadProfile,
+  checkProof,
 }
