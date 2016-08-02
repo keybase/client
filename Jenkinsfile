@@ -169,23 +169,23 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             clientImage = docker.build("keybaseprivate/kbclient")
                                             sh "docker save keybaseprivate/kbclient | gzip > kbclient.tar.gz"
                                             archive("kbclient.tar.gz")
-                                            //build([
-                                            //    job: "/kbfs/master",
-                                            //    parameters: [
-                                            //        [$class: 'StringParameterValue',
-                                            //            name: 'clientProjectName',
-                                            //            value: env.JOB_NAME,
-                                            //        ],
-                                            //        [$class: 'StringParameterValue',
-                                            //            name: 'kbwebNodePrivateIP',
-                                            //            value: kbwebNodePrivateIP,
-                                            //        ],
-                                            //        [$class: 'StringParameterValue',
-                                            //            name: 'kbwebNodePublicIP',
-                                            //            value: kbwebNodePublicIP,
-                                            //        ],
-                                            //    ]
-                                            //])
+                                            build([
+                                                job: "/kbfs/master",
+                                                parameters: [
+                                                    [$class: 'StringParameterValue',
+                                                        name: 'clientProjectName',
+                                                        value: env.JOB_NAME,
+                                                    ],
+                                                    [$class: 'StringParameterValue',
+                                                        name: 'kbwebNodePrivateIP',
+                                                        value: kbwebNodePrivateIP,
+                                                    ],
+                                                    [$class: 'StringParameterValue',
+                                                        name: 'kbwebNodePublicIP',
+                                                        value: kbwebNodePublicIP,
+                                                    ],
+                                                ]
+                                            ])
                                         }
                                     },
                                 )
