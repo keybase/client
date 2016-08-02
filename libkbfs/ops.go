@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/keybase/go-codec/codec"
 )
@@ -27,6 +28,8 @@ type op interface {
 	getWriterInfo() writerInfo
 	setFinalPath(p path)
 	getFinalPath() path
+	setLocalTimestamp(t time.Time)
+	getLocalTimestamp() time.Time
 	checkValid() error
 	// CheckConflict compares the function's target op with the given
 	// op, and returns a resolution if one is needed (or nil
@@ -127,6 +130,10 @@ type OpCommon struct {
 	// operation affects in a set of MD updates.  Not exported; only
 	// used during conflict resolution.
 	finalPath path
+	// localTimestamp should be set to the localTimestamp of the
+	// corresponding ImmutableRootMetadata when ops need individual
+	// timestamps.  Not exported; only used locally.
+	localTimestamp time.Time
 }
 
 // AddRefBlock adds this block to the list of newly-referenced blocks
@@ -176,6 +183,14 @@ func (oc *OpCommon) setFinalPath(p path) {
 
 func (oc *OpCommon) getFinalPath() path {
 	return oc.finalPath
+}
+
+func (oc *OpCommon) setLocalTimestamp(t time.Time) {
+	oc.localTimestamp = t
+}
+
+func (oc *OpCommon) getLocalTimestamp() time.Time {
+	return oc.localTimestamp
 }
 
 func (oc *OpCommon) checkUpdatesValid() error {

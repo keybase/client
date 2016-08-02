@@ -648,6 +648,7 @@ func newCRChains(ctx context.Context, cfg Config, rmds []ImmutableRootMetadata,
 
 		for _, op := range ops {
 			op.setWriterInfo(winfo)
+			op.setLocalTimestamp(rmd.localTimestamp)
 			err := ccs.makeChainForOp(op)
 			if err != nil {
 				return nil, err

@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/require"
@@ -224,6 +225,7 @@ func makeFakeOpCommon(t *testing.T, withRefBlocks bool) OpCommon {
 		codec.UnknownFieldSetHandler{},
 		writerInfo{},
 		path{},
+		time.Time{},
 	}
 	return oc
 }
