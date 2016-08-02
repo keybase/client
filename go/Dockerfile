@@ -6,6 +6,8 @@ RUN apk add --update fuse jq bash openssl && \
     adduser -D keybase && \
     mkdir /keybase && \
     chmod 777 /keybase && \
+    mkdir -p /home/keybase && \
+    chown keybase:keybase /home/keybase && \
     rm -rf /tmp/* /var/cache/apk/*
 
 USER keybase
