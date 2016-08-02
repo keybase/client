@@ -284,6 +284,24 @@ export type ConfirmResult = {
   expiringLocal: boolean;
 }
 
+export type Conversation = {
+  metadata: ConversationMetadata;
+  maxHeaders?: ?Array<MessageServerHeader>;
+}
+
+export type ConversationID = long
+
+export type ConversationIDTriple = {
+  tlfid: TLFID;
+  topicType: int;
+  topicID: TopicID;
+}
+
+export type ConversationMetadata = {
+  idTriple: ConversationIDTriple;
+  conversationID: ConversationID;
+}
+
 export type Cryptocurrency = {
   rowId: int;
   pkhash: bytes;
@@ -346,6 +364,12 @@ export type ED25519SignatureInfo = {
 }
 
 export type EncryptedBytes32 = any
+
+export type EncryptedData = {
+  v: int;
+  e: bytes;
+  n: bytes;
+}
 
 export type ExitCode =
     0 // OK_0
@@ -585,6 +609,11 @@ export type Identity = {
   breaksTracking: boolean;
 }
 
+export type InboxView = {
+  conversations?: ?Array<Conversation>;
+  pagination?: ?Pagination;
+}
+
 export type InstallAction =
     0 // UNKNOWN_0
   | 1 // NONE_1
@@ -693,6 +722,87 @@ export type MerkleTreeID =
     0 // MASTER_0
   | 1 // KBFS_PUBLIC_1
   | 2 // KBFS_PRIVATE_2
+
+export type Message = {
+  serverHeader: MessageServerHeader;
+  messagePlaintext: MessagePlaintext;
+}
+
+export type MessageAttachment = {
+  path: string;
+}
+
+export type MessageBody = {
+  type: MessageType;
+  text?: ?MessageText;
+  attachment?: ?MessageAttachment;
+  edit?: ?MessageEdit;
+  delete?: ?MessageDelete;
+  conversationMetadata?: ?MessageConversationMetadata;
+}
+
+export type MessageBoxed = {
+  serverHeader?: ?MessageServerHeader;
+  clientHeader: MessageClientHeader;
+  bodyCiphertext: EncryptedData;
+  headerSignature: SignatureInfo;
+  bodySignature: SignatureInfo;
+  keyGeneration: int;
+}
+
+export type MessageClientHeader = {
+  conv: ConversationIDTriple;
+  messageType: MessageType;
+  prev?: ?Array<MessagePreviousPointer>;
+  sender: UID;
+  senderDevice: DeviceID;
+}
+
+export type MessageConversationMetadata = {
+  conversationTitle: string;
+}
+
+export type MessageDelete = {
+  messageID: MessageID;
+}
+
+export type MessageEdit = {
+  messageID: MessageID;
+  body: string;
+}
+
+export type MessageID = bytes
+
+export type MessagePlaintext = {
+  clientHeader: MessageClientHeader;
+  messageBodies?: ?Array<MessageBody>;
+}
+
+export type MessagePreviousPointer = {
+  id: MessageID;
+  hash: bytes;
+}
+
+export type MessageServerHeader = {
+  messageType: MessageType;
+  messageID: MessageID;
+  sender: UID;
+  senderDevice: DeviceID;
+  supersededBy: MessageID;
+  ctime: Time;
+}
+
+export type MessageText = {
+  body: string;
+}
+
+export type MessageType =
+    0 // NONE_0
+  | 1 // TEXT_1
+  | 2 // ATTACHMENT_2
+  | 3 // EDIT_3
+  | 4 // DELETE_4
+  | 5 // METADATA_5
 
 export type MetadataResponse = {
   folderID: string;
@@ -871,6 +981,14 @@ export type PGPVerifyOptions = {
   signedBy: string;
   signature: bytes;
 }
+
+export type Pagination = {
+  resourceID: bytes;
+  last: int;
+  num: int;
+}
+
+export type PaginationResourceID = bytes
 
 export type PassphraseStream = {
   passphraseStream: bytes;
@@ -1213,6 +1331,12 @@ export type SignMode =
   | 1 // DETACHED_1
   | 2 // CLEAR_2
 
+export type SignatureInfo = {
+  v: int;
+  s: bytes;
+  k: bytes;
+}
+
 export type SignupRes = {
   passphraseOk: boolean;
   postOk: boolean;
@@ -1331,7 +1455,21 @@ export type Text = {
   markup: boolean;
 }
 
+export type ThreadID = bytes
+
+export type ThreadView = {
+  messages?: ?Array<Message>;
+  pagination?: ?Pagination;
+}
+
+export type ThreadViewBoxed = {
+  messages?: ?Array<MessageBoxed>;
+  pagination?: ?Pagination;
+}
+
 export type Time = long
+
+export type TopicID = bytes
 
 export type TrackDiff = {
   type: TrackDiffType;
@@ -1658,6 +1796,106 @@ export function blockPutBlockRpc (request: $Exact<{
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'block.putBlock'})
+}
+export type chatLocalGetInboxLocalRpcParam = $Exact<{
+  pagination: (null | Pagination)
+}>
+
+type chatLocalGetInboxLocalResult = InboxView
+
+export function chatLocalGetInboxLocalRpc (request: $Exact<{
+  param: chatLocalGetInboxLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatLocalGetInboxLocalResult) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.getInboxLocal'})
+}
+export type chatLocalGetThreadLocalRpcParam = $Exact<{
+  conversationID: ConversationID,
+  pagination: (null | Pagination)
+}>
+
+type chatLocalGetThreadLocalResult = ThreadView
+
+export function chatLocalGetThreadLocalRpc (request: $Exact<{
+  param: chatLocalGetThreadLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatLocalGetThreadLocalResult) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.getThreadLocal'})
+}
+export type chatLocalNewConversationLocalRpcParam = $Exact<{
+  conversationTriple: ConversationIDTriple
+}>
+
+export function chatLocalNewConversationLocalRpc (request: $Exact<{
+  param: chatLocalNewConversationLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.newConversationLocal'})
+}
+export type chatLocalPostLocalRpcParam = $Exact<{
+  conversationID: ConversationID,
+  messagePlaintext: MessagePlaintext
+}>
+
+export function chatLocalPostLocalRpc (request: $Exact<{
+  param: chatLocalPostLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.postLocal'})
+}
+export type chatRemoteGetInboxRemoteRpcParam = $Exact<{
+  pagination: (null | Pagination)
+}>
+
+type chatRemoteGetInboxRemoteResult = InboxView
+
+export function chatRemoteGetInboxRemoteRpc (request: $Exact<{
+  param: chatRemoteGetInboxRemoteRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatRemoteGetInboxRemoteResult) => void)}>) {
+  engine.rpc({...request, method: 'chatRemote.getInboxRemote'})
+}
+export type chatRemoteGetThreadRemoteRpcParam = $Exact<{
+  conversationID: ConversationID,
+  pagination: (null | Pagination)
+}>
+
+type chatRemoteGetThreadRemoteResult = ThreadViewBoxed
+
+export function chatRemoteGetThreadRemoteRpc (request: $Exact<{
+  param: chatRemoteGetThreadRemoteRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatRemoteGetThreadRemoteResult) => void)}>) {
+  engine.rpc({...request, method: 'chatRemote.getThreadRemote'})
+}
+export type chatRemoteNewConversationRemoteRpcParam = $Exact<{
+  conversationMetadata: ConversationMetadata
+}>
+
+export function chatRemoteNewConversationRemoteRpc (request: $Exact<{
+  param: chatRemoteNewConversationRemoteRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'chatRemote.newConversationRemote'})
+}
+export type chatRemotePostRemoteRpcParam = $Exact<{
+  conversationID: ConversationID,
+  messageBoxed: MessageBoxed
+}>
+
+export function chatRemotePostRemoteRpc (request: $Exact<{
+  param: chatRemotePostRemoteRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'chatRemote.postRemote'})
 }
 export type configClearValueRpcParam = $Exact<{
   path: string
@@ -3766,6 +4004,14 @@ export type rpc =
   | blockGetSessionChallengeRpc
   | blockGetUserQuotaInfoRpc
   | blockPutBlockRpc
+  | chatLocalGetInboxLocalRpc
+  | chatLocalGetThreadLocalRpc
+  | chatLocalNewConversationLocalRpc
+  | chatLocalPostLocalRpc
+  | chatRemoteGetInboxRemoteRpc
+  | chatRemoteGetThreadRemoteRpc
+  | chatRemoteNewConversationRemoteRpc
+  | chatRemotePostRemoteRpc
   | configCheckAPIServerOutOfDateWarningRpc
   | configClearValueRpc
   | configGetConfigRpc
@@ -4114,6 +4360,82 @@ export type incomingCallMapType = $Exact<{
       sessionID: int,
       address: string,
       force: boolean
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.chatLocal.getInboxLocal'?: (
+    params: $Exact<{
+      pagination: (null | Pagination)
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: chatLocalGetInboxLocalResult) => void
+    }
+  ) => void,
+  'keybase.1.chatLocal.getThreadLocal'?: (
+    params: $Exact<{
+      conversationID: ConversationID,
+      pagination: (null | Pagination)
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: chatLocalGetThreadLocalResult) => void
+    }
+  ) => void,
+  'keybase.1.chatLocal.postLocal'?: (
+    params: $Exact<{
+      conversationID: ConversationID,
+      messagePlaintext: MessagePlaintext
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.chatLocal.newConversationLocal'?: (
+    params: $Exact<{
+      conversationTriple: ConversationIDTriple
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.chatRemote.getInboxRemote'?: (
+    params: $Exact<{
+      pagination: (null | Pagination)
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: chatRemoteGetInboxRemoteResult) => void
+    }
+  ) => void,
+  'keybase.1.chatRemote.getThreadRemote'?: (
+    params: $Exact<{
+      conversationID: ConversationID,
+      pagination: (null | Pagination)
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: chatRemoteGetThreadRemoteResult) => void
+    }
+  ) => void,
+  'keybase.1.chatRemote.postRemote'?: (
+    params: $Exact<{
+      conversationID: ConversationID,
+      messageBoxed: MessageBoxed
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.chatRemote.newConversationRemote'?: (
+    params: $Exact<{
+      conversationMetadata: ConversationMetadata
     }>,
     response: {
       error: (err: RPCError) => void,

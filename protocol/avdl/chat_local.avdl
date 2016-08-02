@@ -1,0 +1,62 @@
+@namespace("keybase.1")
+protocol chatLocal {
+
+  enum MessageType {
+    NONE_0,
+    TEXT_1,
+    ATTACHMENT_2,
+    EDIT_3,
+    DELETE_4,
+    METADATA_5
+  }
+
+  record MessageText {
+    string body;
+  }
+
+  record MessageConversationMetadata {
+    string conversationTitle;
+  }
+
+  record MessageEdit {
+    MessageID messageID;
+    string body;
+  }
+
+  record MessageDelete {
+    MessageID messageID;
+  }
+
+  record MessageAttachment {
+    string path;
+  }
+
+  record MessageBody {
+    MessageType type;
+    union { null, MessageText } text;
+    union { null, MessageAttachment } attachment;
+    union { null, MessageEdit } edit;
+    union { null, MessageDelete } delete;
+    union { null, MessageConversationMetadata } conversationMetadata;
+  }
+
+  record MessagePlaintext {
+    MessageClientHeader clientHeader;
+    array<MessageBody> messageBodies;
+  }
+
+  record Message {
+    MessageServerHeader serverHeader;
+    MessagePlaintext messagePlaintext;
+  }
+
+  record ThreadView {
+    array<Message> messages;
+    union { null, Pagination } pagination;
+  }
+
+  InboxView getInboxLocal(union { null, Pagination } pagination);
+  ThreadView getThreadLocal(ConversationID conversationID, union { null, Pagination } pagination);
+  void postLocal(ConversationID conversationID, MessagePlaintext messagePlaintext);
+  void newConversationLocal(ConversationIDTriple conversationTriple);
+}

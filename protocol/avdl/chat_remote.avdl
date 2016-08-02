@@ -1,0 +1,25 @@
+@namespace("keybase.1")
+protocol chatRemote {
+
+  record MessageBoxed {
+    // Only set when returned from the server; on the way up to the
+    // server, it's null.
+    union { null, MessageServerHeader } serverHeader;
+    MessageClientHeader clientHeader;
+    EncryptedData bodyCiphertext;
+    SignatureInfo headerSignature;
+    SignatureInfo bodySignature;
+    int keyGeneration;
+  }
+
+  record ThreadViewBoxed {
+    array<MessageBoxed> messages;
+    union { null, Pagination } pagination;
+  }
+
+  InboxView getInboxRemote(union { null, Pagination } pagination);
+  ThreadViewBoxed getThreadRemote(ConversationID conversationID, union { null, Pagination } pagination);
+
+  void postRemote(ConversationID conversationID, MessageBoxed messageBoxed);
+  void newConversationRemote(ConversationMetadata conversationMetadata);
+}
