@@ -114,6 +114,9 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                     stage "Test"
                         parallel (
                             test_linux: {
+                                dir("protocol") {
+                                    sh "./diff_test.sh"
+                                }
                                 parallel (
                                     test_linux_go: { withEnv([
                                         "PATH=${env.PATH}:${env.GOPATH}/bin",
@@ -133,9 +136,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             sh "${env.BASEDIR}/flow/flow status shared"
                                         }
                                         sh "desktop/node_modules/.bin/eslint ."
-                                        dir("protocol") {
-                                            sh "./diff_test.sh"
-                                        }
                                         // Only run visdiff for PRs
                                         if (env.CHANGE_ID) {
                                             wrap([$class: 'Xvfb']) { 
