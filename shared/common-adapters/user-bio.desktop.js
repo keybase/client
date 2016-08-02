@@ -6,6 +6,7 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import * as shared from './user-bio.shared'
+import {stateColors} from '../util/tracker'
 
 import type {Props} from './user-bio'
 import type {AvatarSize} from './avatar'
@@ -46,6 +47,8 @@ export default class BioRender extends Component<void, Props, void> {
     const {followsYou} = userInfo
     const followLabel = shared.followLabel(userInfo, currentlyFollowing)
 
+    const trackerStateColors = stateColors(this.props)
+
     let [bioLineClamp, locationLineClamp] = [{}, {}]
     if (this.props.type === 'Tracker') {
       bioLineClamp = {lineClamp: userInfo.location ? 2 : 3}
@@ -84,7 +87,7 @@ export default class BioRender extends Component<void, Props, void> {
           <Box style={{...stylesContent, ...globalStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
             <Text
               type='HeaderBig'
-              style={{...stylesUsername, ...shared.usernameStyle(this.props)}}
+              style={{...stylesUsername, color: trackerStateColors.username}}
               onClick={() => shared.onClickAvatar(username)}>
               {username}
             </Text>
