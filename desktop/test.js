@@ -11,17 +11,14 @@ if (getenv.boolish('WATCH', false)) {
   mocha.addFile('./dist/test.bundle.js')
   compiler.watch({}, function (err, stats) {
     if (err) {
-      console.error(err)
-      return
+      throw err
     }
     var jsonStats = stats.toJson()
     if (jsonStats.errors.length > 0) {
-      console.error(jsonStats.errors.join('\n'))
-      return
+      throw jsonStats.errors.join('\n')
     }
     if (jsonStats.warnings.length > 0) {
-      console.log(jsonStats.warnings.join('\n'))
-      return
+      throw jsonStats.warnings.join('\n')
     }
     console.log('done, running tests')
     try {
