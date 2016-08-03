@@ -9,6 +9,7 @@ import (
 	"net"
 	"os"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/keybase/cli"
@@ -109,11 +110,19 @@ func (d *Service) Handle(c net.Conn) {
 		defer logReg.UnregisterLogger()
 	}
 	shutdowners, err := d.RegisterProtocols(server, xp, connID, logReg, d.G())
-	defer func() {
-		for _, shutdowner := range shutdowners {
-			shutdowner.Shutdown()
-		}
-	}()
+
+	once := &sync.Once{}
+	shutdown := func() error {
+		once.Do(func() {
+			for _, shutdowner := range shutdowners {
+				shutdowner.Shutdown()
+			}
+		})
+		return nil
+	}
+	defer shutdown()
+	d.G().PushShutdownHook(shutdown)
+
 	if err != nil {
 		d.G().Log.Warning("RegisterProtocols error: %s", err)
 		return
