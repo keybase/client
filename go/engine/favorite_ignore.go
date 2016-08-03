@@ -62,12 +62,3 @@ func (e *FavoriteIgnore) Run(ctx *Context) error {
 	})
 	return err
 }
-
-func FavoriteIgnoreRunEngine(g *libkb.GlobalContext, folder keybase1.Folder) error {
-	arg := keybase1.FavoriteIgnoreArg{
-		Folder: folder,
-	}
-	eng := NewFavoriteIgnore(&arg, g)
-	engineCtx := &Context{}
-	return RunEngine(eng, engineCtx)
-}

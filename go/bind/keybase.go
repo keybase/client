@@ -12,7 +12,10 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -74,17 +77,25 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		Logs:         logs,
 	}
 
-	kbfsParams := libkbfs.DefaultInitParams(kbCtx)
-	kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, newKeybaseService, func() {}, kbCtx.Log)
-	if err != nil {
-		return err
-	}
+	// FIXME (MBG): This is causing RPC responses to sometimes not be recieved
+	// on iOS. Repro by hooking up getExtendedStatus to a button in the iOS
+	// client and watching JS logs. Disabling until we have a root cause / fix.
+	//
+	//kbfsParams := libkbfs.DefaultInitParams(kbCtx)
+	//kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, newKeybaseDaemon, func() {}, kbCtx.Log)
+	//if err != nil {
+	//	return err
+	//}
 
 	return Reset()
 }
 
-func newKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
-	return &kbservice{ctx: kbCtx}, nil
+func newKeybaseDaemon(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
+	keybaseService := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true)
+	keybaseService.AddProtocols([]rpc.Protocol{
+		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
+	})
+	return keybaseService, nil
 }
 
 // LogSend sends a log to Keybase
