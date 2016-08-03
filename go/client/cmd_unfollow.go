@@ -25,6 +25,7 @@ func NewCmdUntrack(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Name:         "unfollow",
 		ArgumentHelp: "<username>",
 		Usage:        "Unfollow a user",
+		Aliases:      []string{"untrack"},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdUntrack{Contextified: libkb.NewContextified(g)}, "unfollow", c)
 		},
