@@ -92,7 +92,7 @@ func (fc *FakeBServerClient) PutBlock(ctx context.Context, arg keybase1.PutBlock
 		RefNonce: zeroBlockRefNonce,
 		Creator:  arg.Bid.ChargedTo,
 	}
-	return fc.bserverMem.Put(ctx, id, tlfID, bCtx, arg.Buf, serverHalf)
+	return fc.bserverMem.Put(ctx, tlfID, id, bCtx, arg.Buf, serverHalf)
 }
 
 func (fc *FakeBServerClient) GetBlock(ctx context.Context, arg keybase1.GetBlockArg) (keybase1.GetBlockRes, error) {
@@ -121,7 +121,7 @@ func (fc *FakeBServerClient) GetBlock(ctx context.Context, arg keybase1.GetBlock
 		Creator:  arg.Bid.ChargedTo,
 	}
 
-	data, serverHalf, err := fc.bserverMem.Get(ctx, id, tlfID, bCtx)
+	data, serverHalf, err := fc.bserverMem.Get(ctx, tlfID, id, bCtx)
 	if err != nil {
 		return keybase1.GetBlockRes{}, err
 	}
@@ -147,7 +147,7 @@ func (fc *FakeBServerClient) AddReference(ctx context.Context, arg keybase1.AddR
 		Creator:  arg.Ref.ChargedTo,
 	}
 
-	return fc.bserverMem.AddBlockReference(ctx, id, tlfID, bCtx)
+	return fc.bserverMem.AddBlockReference(ctx, tlfID, id, bCtx)
 }
 
 func (fc *FakeBServerClient) DelReference(context.Context, keybase1.DelReferenceArg) error {
@@ -200,7 +200,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 		t.Errorf("Couldn't make block server key half: %v", err)
 	}
 	ctx := context.Background()
-	err = b.Put(ctx, bID, tlfID, bCtx, data, serverHalf)
+	err = b.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
 	if err != nil {
 		t.Fatalf("Put got error: %v", err)
 	}
@@ -212,7 +212,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	}
 
 	// Now get the same block back
-	buf, key, err := b.Get(ctx, bID, tlfID, bCtx)
+	buf, key, err := b.Get(ctx, tlfID, bID, bCtx)
 	if err != nil {
 		t.Fatalf("Get returned an error: %v", err)
 	}
@@ -229,13 +229,13 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 		t.Fatal(err)
 	}
 	bCtx2 := BlockContext{currentUID, localUsers[1].UID, nonce}
-	err = b.AddBlockReference(ctx, bID, tlfID, bCtx2)
+	err = b.AddBlockReference(ctx, tlfID, bID, bCtx2)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Now get the same block back
-	buf, key, err = b.Get(ctx, bID, tlfID, bCtx2)
+	buf, key, err = b.Get(ctx, tlfID, bID, bCtx2)
 	if err != nil {
 		t.Fatalf("Get returned an error: %v", err)
 	}
@@ -270,7 +270,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 		if err != nil {
 			t.Errorf("Couldn't make block server key half: %v", err)
 		}
-		err = b.Put(ctx, bID, tlfID, bCtx, data, serverHalf)
+		err = b.Put(ctx, tlfID, bID, bCtx, data, serverHalf)
 		return err
 	}
 	testRPCWithCanceledContext(t, serverConn, f)

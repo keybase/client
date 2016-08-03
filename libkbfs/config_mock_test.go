@@ -41,7 +41,7 @@ type ConfigMock struct {
 	// local references to the proper mock type
 	mockKbfs        *MockKBFSOps
 	mockKbpki       *MockKBPKI
-	mockKbd         *MockKeybaseDaemon
+	mockKbs         *MockKeybaseService
 	mockKeyman      *MockKeyManager
 	mockRep         *MockReporter
 	mockMdcache     *MockMDCache
@@ -68,8 +68,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config := &ConfigMock{}
 	config.mockKbfs = NewMockKBFSOps(c)
 	config.SetKBFSOps(config.mockKbfs)
-	config.mockKbd = NewMockKeybaseDaemon(c)
-	config.SetKeybaseService(config.mockKbd)
+	config.mockKbs = NewMockKeybaseService(c)
+	config.SetKeybaseService(config.mockKbs)
 	config.mockKbpki = NewMockKBPKI(c)
 	config.SetKBPKI(config.mockKbpki)
 	config.mockKeyman = NewMockKeyManager(c)

@@ -15,10 +15,14 @@ import (
 )
 
 type tlfJournalBundle struct {
+	// Protects all operations on blockJournal and mdJournal.
+	//
+	// TODO: Consider using https://github.com/pkg/singlefile
+	// instead.
 	lock sync.RWMutex
 
-	// TODO: Fill in with a block journal.
-	mdJournal mdJournal
+	blockJournal *blockJournal
+	mdJournal    mdJournal
 }
 
 // JournalServer is the server that handles write journals. It
@@ -65,7 +69,7 @@ func (j *JournalServer) getBundle(tlfID TlfID) (*tlfJournalBundle, bool) {
 }
 
 // Enable turns on the write journal for the given TLF.
-func (j *JournalServer) Enable(tlfID TlfID) (err error) {
+func (j *JournalServer) Enable(ctx context.Context, tlfID TlfID) (err error) {
 	j.log.Debug("Enabling journal for %s", tlfID)
 	defer func() {
 		if err != nil {
@@ -87,12 +91,18 @@ func (j *JournalServer) Enable(tlfID TlfID) (err error) {
 	j.log.Debug("Enabled journal for %s with path %s", tlfID, tlfDir)
 
 	log := j.config.MakeLogger("")
+	bundle := &tlfJournalBundle{}
+	blockJournal, err := makeBlockJournal(
+		ctx, j.config.Codec(), j.config.Crypto(), tlfDir, log)
+	if err != nil {
+		return err
+	}
+
+	bundle.blockJournal = blockJournal
 	mdJournal := makeMDJournal(
 		j.config.Codec(), j.config.Crypto(), tlfDir, log)
-
-	j.tlfBundles[tlfID] = &tlfJournalBundle{
-		mdJournal: mdJournal,
-	}
+	bundle.mdJournal = mdJournal
+	j.tlfBundles[tlfID] = bundle
 	return nil
 }
 
@@ -116,7 +126,26 @@ func (j *JournalServer) Flush(ctx context.Context, tlfID TlfID) (err error) {
 		return nil
 	}
 
-	// TODO: Flush block journal.
+	// TODO: Interleave block flushes with their related MD
+	// flushes.
+
+	// TODO: Parallelize block puts.
+
+	for {
+		flushed, err := func() (bool, error) {
+			bundle.lock.Lock()
+			defer bundle.lock.Unlock()
+			return bundle.blockJournal.flushOne(
+				ctx, j.delegateBlockServer, tlfID)
+		}()
+		if err != nil {
+			return err
+		}
+		if !flushed {
+			break
+		}
+		flushedBlockEntries++
+	}
 
 	_, uid, err := j.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -172,13 +201,22 @@ func (j *JournalServer) Disable(tlfID TlfID) (err error) {
 
 	bundle.lock.RLock()
 	defer bundle.lock.RUnlock()
-	length, err := bundle.mdJournal.length()
+	length, err := bundle.blockJournal.length()
 	if err != nil {
 		return err
 	}
 
 	if length != 0 {
-		return fmt.Errorf("Journal still has %d entries", length)
+		return fmt.Errorf("Journal still has %d block entries", length)
+	}
+
+	length, err = bundle.mdJournal.length()
+	if err != nil {
+		return err
+	}
+
+	if length != 0 {
+		return fmt.Errorf("Journal still has %d MD entries", length)
 	}
 
 	j.log.Debug("Disabled journal for %s", tlfID)
@@ -193,56 +231,4 @@ func (j *JournalServer) blockServer() journalBlockServer {
 
 func (j *JournalServer) mdOps() journalMDOps {
 	return journalMDOps{j.delegateMDOps, j}
-}
-
-type journalBlockServer struct {
-	jServer *JournalServer
-	BlockServer
-}
-
-var _ BlockServer = journalBlockServer{}
-
-func (j journalBlockServer) Put(
-	ctx context.Context, id BlockID, tlfID TlfID, context BlockContext,
-	buf []byte, serverHalf BlockCryptKeyServerHalf) error {
-	_, ok := j.jServer.getBundle(tlfID)
-	if ok {
-		// TODO: Delegate to bundle's block journal.
-	}
-
-	return j.BlockServer.Put(ctx, id, tlfID, context, buf, serverHalf)
-}
-
-func (j journalBlockServer) AddBlockReference(
-	ctx context.Context, id BlockID, tlfID TlfID,
-	context BlockContext) error {
-	_, ok := j.jServer.getBundle(tlfID)
-	if ok {
-		// TODO: Delegate to bundle's block journal.
-	}
-
-	return j.BlockServer.AddBlockReference(ctx, id, tlfID, context)
-}
-
-func (j journalBlockServer) RemoveBlockReference(
-	ctx context.Context, tlfID TlfID,
-	contexts map[BlockID][]BlockContext) (
-	liveCounts map[BlockID]int, err error) {
-	_, ok := j.jServer.getBundle(tlfID)
-	if ok {
-		// TODO: Delegate to bundle's block journal.
-	}
-
-	return j.BlockServer.RemoveBlockReference(ctx, tlfID, contexts)
-}
-
-func (j journalBlockServer) ArchiveBlockReferences(
-	ctx context.Context, tlfID TlfID,
-	contexts map[BlockID][]BlockContext) error {
-	_, ok := j.jServer.getBundle(tlfID)
-	if ok {
-		// TODO: Delegate to bundle's block journal.
-	}
-
-	return j.BlockServer.ArchiveBlockReferences(ctx, tlfID, contexts)
 }

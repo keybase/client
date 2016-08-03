@@ -9,21 +9,24 @@ import (
 	"os"
 	"testing"
 
+	"golang.org/x/net/context"
+
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol"
 	"github.com/stretchr/testify/require"
 )
 
-func getBlockJournalLength(t *testing.T, j *bserverTlfJournal) int {
+func getBlockJournalLength(t *testing.T, j *blockJournal) int {
 	len, err := j.length()
 	require.NoError(t, err)
 	return int(len)
 }
 
-func TestBserverTlfJournalBasic(t *testing.T) {
+func TestBlockJournalBasic(t *testing.T) {
 	codec := NewCodecMsgpack()
 	crypto := MakeCryptoCommon(codec)
 
-	tempdir, err := ioutil.TempDir(os.TempDir(), "bserver_tlf_journal")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "block_journal")
 	require.NoError(t, err)
 	defer func() {
 		err := os.RemoveAll(tempdir)
@@ -33,7 +36,10 @@ func TestBserverTlfJournalBasic(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(1)
 	uid2 := keybase1.MakeTestUID(2)
 
-	j, err := makeBserverTlfJournal(codec, crypto, tempdir)
+	ctx := context.Background()
+
+	log := logger.NewTestLogger(t)
+	j, err := makeBlockJournal(ctx, codec, crypto, tempdir, log)
 	require.NoError(t, err)
 	defer j.shutdown()
 
@@ -49,12 +55,12 @@ func TestBserverTlfJournalBasic(t *testing.T) {
 	require.NoError(t, err)
 
 	// Put the block.
-	err = j.putData(bID, bCtx, data, serverHalf)
+	err = j.putData(ctx, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
 	require.Equal(t, 1, getBlockJournalLength(t, j))
 
 	// Make sure we get the same block back.
-	buf, key, err := j.getData(bID, bCtx)
+	buf, key, err := j.getDataWithContext(bID, bCtx)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
@@ -63,41 +69,41 @@ func TestBserverTlfJournalBasic(t *testing.T) {
 	nonce, err := crypto.MakeBlockRefNonce()
 	require.NoError(t, err)
 	bCtx2 := BlockContext{uid1, uid2, nonce}
-	err = j.addReference(bID, bCtx2)
+	err = j.addReference(ctx, bID, bCtx2)
 	require.NoError(t, err)
 	require.Equal(t, 2, getBlockJournalLength(t, j))
 
 	// Make sure we get the same block via that reference.
-	buf, key, err = j.getData(bID, bCtx2)
+	buf, key, err = j.getDataWithContext(bID, bCtx2)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
 	// Shutdown and restart.
 	j.shutdown()
-	j, err = makeBserverTlfJournal(codec, crypto, tempdir)
+	j, err = makeBlockJournal(ctx, codec, crypto, tempdir, log)
 	require.NoError(t, err)
 
 	require.Equal(t, 2, getBlockJournalLength(t, j))
 
 	// Make sure we get the same block for both refs.
 
-	buf, key, err = j.getData(bID, bCtx)
+	buf, key, err = j.getDataWithContext(bID, bCtx)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
-	buf, key, err = j.getData(bID, bCtx2)
+	buf, key, err = j.getDataWithContext(bID, bCtx2)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 }
 
-func TestBserverTlfJournalRemoveReferences(t *testing.T) {
+func TestBlockJournalRemoveReferences(t *testing.T) {
 	codec := NewCodecMsgpack()
 	crypto := MakeCryptoCommon(codec)
 
-	tempdir, err := ioutil.TempDir(os.TempDir(), "bserver_tlf_storage")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "block_journal")
 	require.NoError(t, err)
 	defer func() {
 		err := os.RemoveAll(tempdir)
@@ -107,7 +113,10 @@ func TestBserverTlfJournalRemoveReferences(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(1)
 	uid2 := keybase1.MakeTestUID(2)
 
-	j, err := makeBserverTlfJournal(codec, crypto, tempdir)
+	ctx := context.Background()
+
+	log := logger.NewTestLogger(t)
+	j, err := makeBlockJournal(ctx, codec, crypto, tempdir, log)
 	require.NoError(t, err)
 	defer j.shutdown()
 
@@ -123,7 +132,7 @@ func TestBserverTlfJournalRemoveReferences(t *testing.T) {
 	require.NoError(t, err)
 
 	// Put the block.
-	err = j.putData(bID, bCtx, data, serverHalf)
+	err = j.putData(ctx, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
 	require.Equal(t, 1, getBlockJournalLength(t, j))
 
@@ -131,27 +140,28 @@ func TestBserverTlfJournalRemoveReferences(t *testing.T) {
 	nonce, err := crypto.MakeBlockRefNonce()
 	require.NoError(t, err)
 	bCtx2 := BlockContext{uid1, uid2, nonce}
-	err = j.addReference(bID, bCtx2)
+	err = j.addReference(ctx, bID, bCtx2)
 	require.NoError(t, err)
 	require.Equal(t, 2, getBlockJournalLength(t, j))
 
 	// Remove references.
-	liveCount, err := j.removeReferences(bID, []BlockContext{bCtx, bCtx2})
+	liveCounts, err := j.removeReferences(
+		ctx, map[BlockID][]BlockContext{bID: {bCtx, bCtx2}}, true)
 	require.NoError(t, err)
-	require.Equal(t, 0, liveCount)
+	require.Equal(t, map[BlockID]int{bID: 0}, liveCounts)
 	require.Equal(t, 3, getBlockJournalLength(t, j))
 
 	// Add reference back, which should error.
-	err = j.addReference(bID, bCtx2)
-	require.IsType(t, BServerErrorBlockArchived{}, err)
+	err = j.addReference(ctx, bID, bCtx2)
+	require.IsType(t, BServerErrorBlockNonExistent{}, err)
 	require.Equal(t, 3, getBlockJournalLength(t, j))
 }
 
-func TestBserverTlfJournalArchiveReferences(t *testing.T) {
+func TestBlockJournalArchiveReferences(t *testing.T) {
 	codec := NewCodecMsgpack()
 	crypto := MakeCryptoCommon(codec)
 
-	tempdir, err := ioutil.TempDir(os.TempDir(), "bserver_tlf_storage")
+	tempdir, err := ioutil.TempDir(os.TempDir(), "block_journal")
 	require.NoError(t, err)
 	defer func() {
 		err := os.RemoveAll(tempdir)
@@ -161,7 +171,10 @@ func TestBserverTlfJournalArchiveReferences(t *testing.T) {
 	uid1 := keybase1.MakeTestUID(1)
 	uid2 := keybase1.MakeTestUID(2)
 
-	j, err := makeBserverTlfJournal(codec, crypto, tempdir)
+	ctx := context.Background()
+
+	log := logger.NewTestLogger(t)
+	j, err := makeBlockJournal(ctx, codec, crypto, tempdir, log)
 	require.NoError(t, err)
 	defer j.shutdown()
 
@@ -177,7 +190,7 @@ func TestBserverTlfJournalArchiveReferences(t *testing.T) {
 	require.NoError(t, err)
 
 	// Put the block.
-	err = j.putData(bID, bCtx, data, serverHalf)
+	err = j.putData(ctx, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
 	require.Equal(t, 1, getBlockJournalLength(t, j))
 
@@ -185,17 +198,18 @@ func TestBserverTlfJournalArchiveReferences(t *testing.T) {
 	nonce, err := crypto.MakeBlockRefNonce()
 	require.NoError(t, err)
 	bCtx2 := BlockContext{uid1, uid2, nonce}
-	err = j.addReference(bID, bCtx2)
+	err = j.addReference(ctx, bID, bCtx2)
 	require.NoError(t, err)
 	require.Equal(t, 2, getBlockJournalLength(t, j))
 
 	// Archive references.
-	err = j.archiveReferences(bID, []BlockContext{bCtx, bCtx2})
+	err = j.archiveReferences(
+		ctx, map[BlockID][]BlockContext{bID: {bCtx, bCtx2}})
 	require.NoError(t, err)
 	require.Equal(t, 3, getBlockJournalLength(t, j))
 
 	// Add reference back, which should error.
-	err = j.addReference(bID, bCtx2)
+	err = j.addReference(ctx, bID, bCtx2)
 	require.IsType(t, BServerErrorBlockArchived{}, err)
 	require.Equal(t, 3, getBlockJournalLength(t, j))
 }

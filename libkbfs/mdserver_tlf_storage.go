@@ -54,9 +54,6 @@ type mdServerTlfStorage struct {
 
 	// Protects any IO operations in dir or any of its children,
 	// as well as branchJournals and its contents.
-	//
-	// TODO: Consider using https://github.com/pkg/singlefile
-	// instead.
 	lock           sync.RWMutex
 	branchJournals map[BranchID]mdIDJournal
 }

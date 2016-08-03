@@ -52,7 +52,8 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 	if !ok {
 		t.Fatalf("Bad block server")
 	}
-	preQR1Blocks, err := bserverLocal.getAll(rootNode.GetFolderBranch().Tlf)
+	preQR1Blocks, err := bserverLocal.getAll(
+		ctx, rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get blocks: %v", err)
 	}
@@ -64,7 +65,8 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 		t.Fatalf("Couldn't wait for QR: %v", err)
 	}
 
-	postQR1Blocks, err := bserverLocal.getAll(rootNode.GetFolderBranch().Tlf)
+	postQR1Blocks, err := bserverLocal.getAll(
+		ctx, rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get blocks: %v", err)
 	}
@@ -82,7 +84,8 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 		t.Fatalf("Couldn't create dir: %v", err)
 	}
 
-	preQR2Blocks, err := bserverLocal.getAll(rootNode.GetFolderBranch().Tlf)
+	preQR2Blocks, err := bserverLocal.getAll(
+		ctx, rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get blocks: %v", err)
 	}
@@ -93,7 +96,8 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 		t.Fatalf("Couldn't wait for QR: %v", err)
 	}
 
-	postQR2Blocks, err := bserverLocal.getAll(rootNode.GetFolderBranch().Tlf)
+	postQR2Blocks, err := bserverLocal.getAll(
+		ctx, rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get blocks: %v", err)
 	}
@@ -177,7 +181,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	if !ok {
 		t.Fatalf("Bad block server")
 	}
-	blocks, err := bserverLocal.getAll(rootNode.GetFolderBranch().Tlf)
+	blocks, err := bserverLocal.getAll(ctx, rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get blocks: %v", err)
 	}
@@ -195,7 +199,8 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 			t.Fatalf("Couldn't wait for QR: %v", err)
 		}
 
-		blocks, err := bserverLocal.getAll(rootNode.GetFolderBranch().Tlf)
+		blocks, err := bserverLocal.getAll(
+			ctx, rootNode.GetFolderBranch().Tlf)
 		if err != nil {
 			t.Fatalf("Couldn't get blocks: %v", err)
 		}
@@ -306,7 +311,8 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	if !ok {
 		t.Fatalf("Bad block server")
 	}
-	preQRBlocks, err := bserverLocal.getAll(rootNode1.GetFolderBranch().Tlf)
+	preQRBlocks, err := bserverLocal.getAll(
+		ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get blocks: %v", err)
 	}
@@ -319,7 +325,8 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 		t.Fatalf("Couldn't wait for QR: %v", err)
 	}
 
-	postQRBlocks, err := bserverLocal.getAll(rootNode1.GetFolderBranch().Tlf)
+	postQRBlocks, err := bserverLocal.getAll(
+		ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get blocks: %v", err)
 	}
@@ -404,7 +411,8 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 		t.Fatalf("Couldn't wait for QR: %v", err)
 	}
 
-	endBlocks, err := bserverLocal.getAll(rootNode2.GetFolderBranch().Tlf)
+	endBlocks, err := bserverLocal.getAll(
+		ctx, rootNode2.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't get blocks: %v", err)
 	}

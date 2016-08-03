@@ -29,7 +29,7 @@ func crTestInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock,
 	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), gomock.Any()).
 		AnyTimes().Return(libkb.NormalizedUsername("mockUser"), nil)
 
-	mockDaemon := NewMockKeybaseDaemon(mockCtrl)
+	mockDaemon := NewMockKeybaseService(mockCtrl)
 	mockDaemon.EXPECT().LoadUserPlusKeys(gomock.Any(), gomock.Any()).AnyTimes().Return(UserInfo{Name: "mockUser"}, nil)
 	config.SetKeybaseService(mockDaemon)
 	return mockCtrl, config, fbo.cr

@@ -317,7 +317,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	if !ok {
 		return errors.New("StateChecker only works against BlockServerLocal")
 	}
-	bserverKnownBlocks, err := bserverLocal.getAll(tlf)
+	bserverKnownBlocks, err := bserverLocal.getAll(ctx, tlf)
 	if err != nil {
 		return err
 	}
@@ -343,10 +343,10 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 					"Got %v, expected %v", id, gRefs, eRefs)
 			}
 		}
-		for id := range g {
-			if eRefs, ok := e[id]; !ok {
+		for id, gRefs := range g {
+			if _, ok := e[id]; !ok {
 				sc.log.CDebugf(ctx, "Did not find matching expected "+
-					"ID for found block %v (with refs %v)", id, eRefs)
+					"ID for found block %v (with refs %v)", id, gRefs)
 			}
 		}
 

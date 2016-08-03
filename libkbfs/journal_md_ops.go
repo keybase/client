@@ -406,7 +406,7 @@ func (j journalMDOps) PruneBranch(
 		err = func() error {
 			bundle.lock.Lock()
 			defer bundle.lock.Unlock()
-			return bundle.mdJournal.clear(uid, bid)
+			return bundle.mdJournal.clear(ctx, uid, bid)
 		}()
 		if err != nil {
 			return err

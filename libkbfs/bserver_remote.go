@@ -207,7 +207,7 @@ func makeBlockReference(id BlockID, context BlockContext) keybase1.BlockReferenc
 }
 
 // Get implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Get(ctx context.Context, id BlockID, tlfID TlfID,
+func (b *BlockServerRemote) Get(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	var err error
 	size := -1
@@ -244,7 +244,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID, tlfID TlfID,
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
+func (b *BlockServerRemote) Put(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
 	var err error
@@ -275,8 +275,8 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
-func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
-	tlfID TlfID, context BlockContext) error {
+func (b *BlockServerRemote) AddBlockReference(ctx context.Context, tlfID TlfID,
+	id BlockID, context BlockContext) error {
 	var err error
 	defer func() {
 		if err != nil {
@@ -297,15 +297,15 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	})
 }
 
-// RemoveBlockReference implements the BlockServer interface for
+// RemoveBlockReferences implements the BlockServer interface for
 // BlockServerRemote
-func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context,
+func (b *BlockServerRemote) RemoveBlockReferences(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID][]BlockContext) (liveCounts map[BlockID]int, err error) {
 	defer func() {
 		if err != nil {
-			b.deferLog.CWarningf(ctx, "RemoveBlockReference batch size=%d err=%v", len(contexts), err)
+			b.deferLog.CWarningf(ctx, "RemoveBlockReferences batch size=%d err=%v", len(contexts), err)
 		} else {
-			b.deferLog.CDebugf(ctx, "RemoveBlockReference batch size=%d", len(contexts))
+			b.deferLog.CDebugf(ctx, "RemoveBlockReferences batch size=%d", len(contexts))
 		}
 	}()
 	doneRefs, err := b.batchDowngradeReferences(ctx, tlfID, contexts, false)

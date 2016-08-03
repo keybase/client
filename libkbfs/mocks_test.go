@@ -4,15 +4,14 @@
 package libkbfs
 
 import (
-	reflect "reflect"
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	protocol "github.com/keybase/client/go/protocol"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
+	reflect "reflect"
+	time "time"
 )
 
 // Mock of AuthTokenRefreshHandler interface
@@ -491,27 +490,27 @@ func (_mr *_MockKBFSOpsRecorder) PushConnectionStatusChange(arg0, arg1 interface
 }
 
 // Mock of KeybaseService interface
-type MockKeybaseDaemon struct {
+type MockKeybaseService struct {
 	ctrl     *gomock.Controller
-	recorder *_MockKeybaseDaemonRecorder
+	recorder *_MockKeybaseServiceRecorder
 }
 
-// Recorder for MockKeybaseDaemon (not exported)
-type _MockKeybaseDaemonRecorder struct {
-	mock *MockKeybaseDaemon
+// Recorder for MockKeybaseService (not exported)
+type _MockKeybaseServiceRecorder struct {
+	mock *MockKeybaseService
 }
 
-func NewMockKeybaseDaemon(ctrl *gomock.Controller) *MockKeybaseDaemon {
-	mock := &MockKeybaseDaemon{ctrl: ctrl}
-	mock.recorder = &_MockKeybaseDaemonRecorder{mock}
+func NewMockKeybaseService(ctrl *gomock.Controller) *MockKeybaseService {
+	mock := &MockKeybaseService{ctrl: ctrl}
+	mock.recorder = &_MockKeybaseServiceRecorder{mock}
 	return mock
 }
 
-func (_m *MockKeybaseDaemon) EXPECT() *_MockKeybaseDaemonRecorder {
+func (_m *MockKeybaseService) EXPECT() *_MockKeybaseServiceRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeybaseDaemon) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, protocol.UID, error) {
+func (_m *MockKeybaseService) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, protocol.UID, error) {
 	ret := _m.ctrl.Call(_m, "Resolve", ctx, assertion)
 	ret0, _ := ret[0].(libkb.NormalizedUsername)
 	ret1, _ := ret[1].(protocol.UID)
@@ -519,116 +518,116 @@ func (_m *MockKeybaseDaemon) Resolve(ctx context.Context, assertion string) (lib
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) Resolve(arg0, arg1 interface{}) *gomock.Call {
+func (_mr *_MockKeybaseServiceRecorder) Resolve(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Resolve", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) Identify(ctx context.Context, assertion string, reason string) (UserInfo, error) {
+func (_m *MockKeybaseService) Identify(ctx context.Context, assertion string, reason string) (UserInfo, error) {
 	ret := _m.ctrl.Call(_m, "Identify", ctx, assertion, reason)
 	ret0, _ := ret[0].(UserInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) Identify(arg0, arg1, arg2 interface{}) *gomock.Call {
+func (_mr *_MockKeybaseServiceRecorder) Identify(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Identify", arg0, arg1, arg2)
 }
 
-func (_m *MockKeybaseDaemon) LoadUserPlusKeys(ctx context.Context, uid protocol.UID) (UserInfo, error) {
+func (_m *MockKeybaseService) LoadUserPlusKeys(ctx context.Context, uid protocol.UID) (UserInfo, error) {
 	ret := _m.ctrl.Call(_m, "LoadUserPlusKeys", ctx, uid)
 	ret0, _ := ret[0].(UserInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) LoadUserPlusKeys(arg0, arg1 interface{}) *gomock.Call {
+func (_mr *_MockKeybaseServiceRecorder) LoadUserPlusKeys(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadUserPlusKeys", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) LoadUnverifiedKeys(ctx context.Context, uid protocol.UID) ([]protocol.PublicKey, error) {
+func (_m *MockKeybaseService) LoadUnverifiedKeys(ctx context.Context, uid protocol.UID) ([]protocol.PublicKey, error) {
 	ret := _m.ctrl.Call(_m, "LoadUnverifiedKeys", ctx, uid)
 	ret0, _ := ret[0].([]protocol.PublicKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) LoadUnverifiedKeys(arg0, arg1 interface{}) *gomock.Call {
+func (_mr *_MockKeybaseServiceRecorder) LoadUnverifiedKeys(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadUnverifiedKeys", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error) {
+func (_m *MockKeybaseService) CurrentSession(ctx context.Context, sessionID int) (SessionInfo, error) {
 	ret := _m.ctrl.Call(_m, "CurrentSession", ctx, sessionID)
 	ret0, _ := ret[0].(SessionInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) CurrentSession(arg0, arg1 interface{}) *gomock.Call {
+func (_mr *_MockKeybaseServiceRecorder) CurrentSession(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CurrentSession", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) FavoriteAdd(ctx context.Context, folder protocol.Folder) error {
+func (_m *MockKeybaseService) FavoriteAdd(ctx context.Context, folder protocol.Folder) error {
 	ret := _m.ctrl.Call(_m, "FavoriteAdd", ctx, folder)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) FavoriteAdd(arg0, arg1 interface{}) *gomock.Call {
+func (_mr *_MockKeybaseServiceRecorder) FavoriteAdd(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteAdd", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) FavoriteDelete(ctx context.Context, folder protocol.Folder) error {
+func (_m *MockKeybaseService) FavoriteDelete(ctx context.Context, folder protocol.Folder) error {
 	ret := _m.ctrl.Call(_m, "FavoriteDelete", ctx, folder)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) FavoriteDelete(arg0, arg1 interface{}) *gomock.Call {
+func (_mr *_MockKeybaseServiceRecorder) FavoriteDelete(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteDelete", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) FavoriteList(ctx context.Context, sessionID int) ([]protocol.Folder, error) {
+func (_m *MockKeybaseService) FavoriteList(ctx context.Context, sessionID int) ([]protocol.Folder, error) {
 	ret := _m.ctrl.Call(_m, "FavoriteList", ctx, sessionID)
 	ret0, _ := ret[0].([]protocol.Folder)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) FavoriteList(arg0, arg1 interface{}) *gomock.Call {
+func (_mr *_MockKeybaseServiceRecorder) FavoriteList(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteList", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) Notify(ctx context.Context, notification *protocol.FSNotification) error {
+func (_m *MockKeybaseService) Notify(ctx context.Context, notification *protocol.FSNotification) error {
 	ret := _m.ctrl.Call(_m, "Notify", ctx, notification)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
+func (_mr *_MockKeybaseServiceRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) FlushUserFromLocalCache(ctx context.Context, uid protocol.UID) {
+func (_m *MockKeybaseService) FlushUserFromLocalCache(ctx context.Context, uid protocol.UID) {
 	_m.ctrl.Call(_m, "FlushUserFromLocalCache", ctx, uid)
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) FlushUserFromLocalCache(arg0, arg1 interface{}) *gomock.Call {
+func (_mr *_MockKeybaseServiceRecorder) FlushUserFromLocalCache(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FlushUserFromLocalCache", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context, uid protocol.UID) {
+func (_m *MockKeybaseService) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context, uid protocol.UID) {
 	_m.ctrl.Call(_m, "FlushUserUnverifiedKeysFromLocalCache", ctx, uid)
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) FlushUserUnverifiedKeysFromLocalCache(arg0, arg1 interface{}) *gomock.Call {
+func (_mr *_MockKeybaseServiceRecorder) FlushUserUnverifiedKeysFromLocalCache(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FlushUserUnverifiedKeysFromLocalCache", arg0, arg1)
 }
 
-func (_m *MockKeybaseDaemon) Shutdown() {
+func (_m *MockKeybaseService) Shutdown() {
 	_m.ctrl.Call(_m, "Shutdown")
 }
 
-func (_mr *_MockKeybaseDaemonRecorder) Shutdown() *gomock.Call {
+func (_mr *_MockKeybaseServiceRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
@@ -2812,8 +2811,8 @@ func (_mr *_MockBlockServerRecorder) RefreshAuthToken(arg0 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
 }
 
-func (_m *MockBlockServer) Get(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
-	ret := _m.ctrl.Call(_m, "Get", ctx, id, tlfID, context)
+func (_m *MockBlockServer) Get(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "Get", ctx, tlfID, id, context)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(BlockCryptKeyServerHalf)
 	ret2, _ := ret[2].(error)
@@ -2824,8 +2823,8 @@ func (_mr *_MockBlockServerRecorder) Get(arg0, arg1, arg2, arg3 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockServer) Put(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext, buf []byte, serverHalf BlockCryptKeyServerHalf) error {
-	ret := _m.ctrl.Call(_m, "Put", ctx, id, tlfID, context, buf, serverHalf)
+func (_m *MockBlockServer) Put(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext, buf []byte, serverHalf BlockCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "Put", ctx, tlfID, id, context, buf, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -2834,8 +2833,8 @@ func (_mr *_MockBlockServerRecorder) Put(arg0, arg1, arg2, arg3, arg4, arg5 inte
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-func (_m *MockBlockServer) AddBlockReference(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext) error {
-	ret := _m.ctrl.Call(_m, "AddBlockReference", ctx, id, tlfID, context)
+func (_m *MockBlockServer) AddBlockReference(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext) error {
+	ret := _m.ctrl.Call(_m, "AddBlockReference", ctx, tlfID, id, context)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -2844,15 +2843,15 @@ func (_mr *_MockBlockServerRecorder) AddBlockReference(arg0, arg1, arg2, arg3 in
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddBlockReference", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockServer) RemoveBlockReference(ctx context.Context, tlfID TlfID, contexts map[BlockID][]BlockContext) (map[BlockID]int, error) {
-	ret := _m.ctrl.Call(_m, "RemoveBlockReference", ctx, tlfID, contexts)
+func (_m *MockBlockServer) RemoveBlockReferences(ctx context.Context, tlfID TlfID, contexts map[BlockID][]BlockContext) (map[BlockID]int, error) {
+	ret := _m.ctrl.Call(_m, "RemoveBlockReferences", ctx, tlfID, contexts)
 	ret0, _ := ret[0].(map[BlockID]int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockBlockServerRecorder) RemoveBlockReference(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RemoveBlockReference", arg0, arg1, arg2)
+func (_mr *_MockBlockServerRecorder) RemoveBlockReferences(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RemoveBlockReferences", arg0, arg1, arg2)
 }
 
 func (_m *MockBlockServer) ArchiveBlockReferences(ctx context.Context, tlfID TlfID, contexts map[BlockID][]BlockContext) error {
@@ -2913,8 +2912,8 @@ func (_mr *_MockblockServerLocalRecorder) RefreshAuthToken(arg0 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
 }
 
-func (_m *MockblockServerLocal) Get(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
-	ret := _m.ctrl.Call(_m, "Get", ctx, id, tlfID, context)
+func (_m *MockblockServerLocal) Get(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "Get", ctx, tlfID, id, context)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(BlockCryptKeyServerHalf)
 	ret2, _ := ret[2].(error)
@@ -2925,8 +2924,8 @@ func (_mr *_MockblockServerLocalRecorder) Get(arg0, arg1, arg2, arg3 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockblockServerLocal) Put(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext, buf []byte, serverHalf BlockCryptKeyServerHalf) error {
-	ret := _m.ctrl.Call(_m, "Put", ctx, id, tlfID, context, buf, serverHalf)
+func (_m *MockblockServerLocal) Put(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext, buf []byte, serverHalf BlockCryptKeyServerHalf) error {
+	ret := _m.ctrl.Call(_m, "Put", ctx, tlfID, id, context, buf, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -2935,8 +2934,8 @@ func (_mr *_MockblockServerLocalRecorder) Put(arg0, arg1, arg2, arg3, arg4, arg5
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3, arg4, arg5)
 }
 
-func (_m *MockblockServerLocal) AddBlockReference(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext) error {
-	ret := _m.ctrl.Call(_m, "AddBlockReference", ctx, id, tlfID, context)
+func (_m *MockblockServerLocal) AddBlockReference(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext) error {
+	ret := _m.ctrl.Call(_m, "AddBlockReference", ctx, tlfID, id, context)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -2945,15 +2944,15 @@ func (_mr *_MockblockServerLocalRecorder) AddBlockReference(arg0, arg1, arg2, ar
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddBlockReference", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockblockServerLocal) RemoveBlockReference(ctx context.Context, tlfID TlfID, contexts map[BlockID][]BlockContext) (map[BlockID]int, error) {
-	ret := _m.ctrl.Call(_m, "RemoveBlockReference", ctx, tlfID, contexts)
+func (_m *MockblockServerLocal) RemoveBlockReferences(ctx context.Context, tlfID TlfID, contexts map[BlockID][]BlockContext) (map[BlockID]int, error) {
+	ret := _m.ctrl.Call(_m, "RemoveBlockReferences", ctx, tlfID, contexts)
 	ret0, _ := ret[0].(map[BlockID]int)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockblockServerLocalRecorder) RemoveBlockReference(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RemoveBlockReference", arg0, arg1, arg2)
+func (_mr *_MockblockServerLocalRecorder) RemoveBlockReferences(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RemoveBlockReferences", arg0, arg1, arg2)
 }
 
 func (_m *MockblockServerLocal) ArchiveBlockReferences(ctx context.Context, tlfID TlfID, contexts map[BlockID][]BlockContext) error {
@@ -2985,15 +2984,15 @@ func (_mr *_MockblockServerLocalRecorder) GetUserQuotaInfo(arg0 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUserQuotaInfo", arg0)
 }
 
-func (_m *MockblockServerLocal) getAll(tlfID TlfID) (map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
-	ret := _m.ctrl.Call(_m, "getAll", tlfID)
+func (_m *MockblockServerLocal) getAll(ctx context.Context, tlfID TlfID) (map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
+	ret := _m.ctrl.Call(_m, "getAll", ctx, tlfID)
 	ret0, _ := ret[0].(map[BlockID]map[BlockRefNonce]blockRefLocalStatus)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockblockServerLocalRecorder) getAll(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "getAll", arg0)
+func (_mr *_MockblockServerLocalRecorder) getAll(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "getAll", arg0, arg1)
 }
 
 // Mock of BlockSplitter interface

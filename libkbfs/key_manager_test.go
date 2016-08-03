@@ -105,7 +105,7 @@ func expectRekey(config *ConfigMock, bh BareTlfHandle, numDevices int, handleCha
 
 	// Ignore Notify and Flush calls for now
 	config.mockRep.EXPECT().Notify(gomock.Any(), gomock.Any()).AnyTimes()
-	config.mockKbd.EXPECT().FlushUserFromLocalCache(gomock.Any(),
+	config.mockKbs.EXPECT().FlushUserFromLocalCache(gomock.Any(),
 		gomock.Any()).AnyTimes()
 }
 

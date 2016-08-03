@@ -256,7 +256,8 @@ func (j mdJournal) convertToBranch(
 
 	latestRevision := head.Revision
 
-	j.log.Debug("rewriting MDs %s to %s", earliestRevision, latestRevision)
+	j.log.CDebugf(
+		ctx, "rewriting MDs %s to %s", earliestRevision, latestRevision)
 
 	_, allMdIDs, err := j.j.getRange(earliestRevision, latestRevision)
 	if err != nil {
@@ -268,7 +269,7 @@ func (j mdJournal) convertToBranch(
 		return err
 	}
 
-	j.log.Debug("New branch ID=%s", bid)
+	j.log.CDebugf(ctx, "New branch ID=%s", bid)
 
 	// TODO: Do the below atomically.
 
@@ -294,11 +295,11 @@ func (j mdJournal) convertToBranch(
 		}
 		brmd.WriterMetadataSigInfo = sigInfo
 
-		j.log.Debug("Old prev root of rev=%s is %s",
+		j.log.CDebugf(ctx, "Old prev root of rev=%s is %s",
 			brmd.Revision, brmd.PrevRoot)
 
 		if i > 0 {
-			j.log.Debug("Changing prev root of rev=%s to %s",
+			j.log.CDebugf(ctx, "Changing prev root of rev=%s to %s",
 				brmd.Revision, prevID)
 			brmd.PrevRoot = prevID
 		}
@@ -326,7 +327,7 @@ func (j mdJournal) convertToBranch(
 
 		prevID = newID
 
-		j.log.Debug("Changing ID for rev=%s from %s to %s",
+		j.log.CDebugf(ctx, "Changing ID for rev=%s from %s to %s",
 			brmd.Revision, id, newID)
 	}
 
@@ -349,7 +350,7 @@ func (j mdJournal) pushEarliestToServer(
 		return MdID{}, nil, err
 	}
 
-	j.log.Debug("Flushing MD for TLF=%s with id=%s, rev=%s, bid=%s",
+	j.log.CDebugf(ctx, "Flushing MD for TLF=%s with id=%s, rev=%s, bid=%s",
 		rmd.ID, earliestID, rmd.Revision, rmd.BID)
 
 	var rmds RootMetadataSigned
@@ -425,7 +426,7 @@ func (j mdJournal) put(
 	ctx context.Context, signer cryptoSigner, ekg encryptionKeyGetter,
 	rmd *RootMetadata, currentUID keybase1.UID,
 	currentVerifyingKey VerifyingKey) (mdID MdID, err error) {
-	j.log.Debug("Putting MD for TLF=%s with rev=%s bid=%s",
+	j.log.CDebugf(ctx, "Putting MD for TLF=%s with rev=%s bid=%s",
 		rmd.ID, rmd.Revision, rmd.BID)
 	defer func() {
 		if err != nil {
@@ -509,7 +510,7 @@ func (j mdJournal) flushOne(
 	ctx context.Context, signer cryptoSigner, currentUID keybase1.UID,
 	currentVerifyingKey VerifyingKey, mdserver MDServer) (
 	flushed bool, err error) {
-	j.log.Debug("Flushing one MD to server")
+	j.log.CDebugf(ctx, "Flushing one MD to server")
 	defer func() {
 		if err != nil {
 			j.deferLog.Debug("Flush failed with %v", err)
@@ -519,7 +520,7 @@ func (j mdJournal) flushOne(
 	earliestID, rmd, pushErr := j.pushEarliestToServer(
 		ctx, signer, mdserver)
 	if isRevisionConflict(pushErr) && rmd.MergedStatus() == Merged {
-		j.log.Debug("Conflict detected %v", pushErr)
+		j.log.CDebugf(ctx, "Conflict detected %v", pushErr)
 
 		err := j.convertToBranch(
 			ctx, signer, currentUID, currentVerifyingKey)
@@ -545,8 +546,10 @@ func (j mdJournal) flushOne(
 	return true, nil
 }
 
-func (j mdJournal) clear(currentUID keybase1.UID, bid BranchID) (err error) {
-	j.log.Debug("Clearing journal for branch %s", bid)
+func (j mdJournal) clear(
+	ctx context.Context, currentUID keybase1.UID, bid BranchID) (
+	err error) {
+	j.log.CDebugf(ctx, "Clearing journal for branch %s", bid)
 	defer func() {
 		if err != nil {
 			j.deferLog.Debug("Clearing journal for branch %s failed with %v",

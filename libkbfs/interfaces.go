@@ -1041,7 +1041,7 @@ type BlockServer interface {
 	// the block, and fills in the provided block object with its
 	// contents, if the logged-in user has read permission for that
 	// block.
-	Get(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext) (
+	Get(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext) (
 		[]byte, BlockCryptKeyServerHalf, error)
 	// Put stores the (encrypted) block data under the given ID and
 	// context on the server, along with the server half of the block
@@ -1056,7 +1056,7 @@ type BlockServer interface {
 	// If this returns a BServerErrorOverQuota, with Throttled=false,
 	// the caller can treat it as informational and otherwise ignore
 	// the error.
-	Put(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext,
+	Put(ctx context.Context, tlfID TlfID, id BlockID, context BlockContext,
 		buf []byte, serverHalf BlockCryptKeyServerHalf) error
 
 	// AddBlockReference adds a new reference to the given block,
@@ -1074,16 +1074,16 @@ type BlockServer interface {
 	// If this returns a BServerErrorOverQuota, with Throttled=false,
 	// the caller can treat it as informational and otherwise ignore
 	// the error.
-	AddBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
+	AddBlockReference(ctx context.Context, tlfID TlfID, id BlockID,
 		context BlockContext) error
-	// RemoveBlockReference removes the reference to the given block
-	// ID defined by the given context.  If no references to the block
+	// RemoveBlockReferences removes the references to the given block
+	// ID defined by the given contexts.  If no references to the block
 	// remain after this call, the server is allowed to delete the
 	// corresponding block permanently.  If the reference defined by
 	// the count has already been removed, the call is a no-op.
 	// It returns the number of remaining not-yet-deleted references after this
 	// reference has been removed
-	RemoveBlockReference(ctx context.Context, tlfID TlfID,
+	RemoveBlockReferences(ctx context.Context, tlfID TlfID,
 		contexts map[BlockID][]BlockContext) (liveCounts map[BlockID]int, err error)
 
 	// ArchiveBlockReferences marks the given block references as
@@ -1118,7 +1118,8 @@ type blockServerLocal interface {
 	BlockServer
 	// getAll returns all the known block references, and should only be
 	// used during testing.
-	getAll(tlfID TlfID) (map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error)
+	getAll(ctx context.Context, tlfID TlfID) (
+		map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error)
 }
 
 // BlockSplitter decides when a file or directory block needs to be split

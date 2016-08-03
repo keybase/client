@@ -117,7 +117,7 @@ type BlockServerMemory struct {
 	m map[BlockID]blockMemEntry
 }
 
-var _ BlockServer = (*BlockServerMemory)(nil)
+var _ blockServerLocal = (*BlockServerMemory)(nil)
 
 // NewBlockServerMemory constructs a new BlockServerMemory that stores
 // its data in memory.
@@ -133,7 +133,7 @@ func NewBlockServerMemory(config Config) *BlockServerMemory {
 var errBlockServerMemoryShutdown = errors.New("BlockServerMemory is shutdown")
 
 // Get implements the BlockServer interface for BlockServerMemory.
-func (b *BlockServerMemory) Get(ctx context.Context, id BlockID, tlfID TlfID,
+func (b *BlockServerMemory) Get(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	b.log.CDebugf(ctx, "BlockServerMemory.Get id=%s tlfID=%s context=%s",
 		id, tlfID, context)
@@ -188,7 +188,7 @@ func validateBlockServerPut(
 }
 
 // Put implements the BlockServer interface for BlockServerMemory.
-func (b *BlockServerMemory) Put(ctx context.Context, id BlockID, tlfID TlfID,
+func (b *BlockServerMemory) Put(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
 	b.log.CDebugf(ctx, "BlockServerMemory.Put id=%s tlfID=%s context=%s "+
@@ -245,8 +245,8 @@ func (b *BlockServerMemory) Put(ctx context.Context, id BlockID, tlfID TlfID,
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerMemory.
-func (b *BlockServerMemory) AddBlockReference(ctx context.Context, id BlockID,
-	tlfID TlfID, context BlockContext) error {
+func (b *BlockServerMemory) AddBlockReference(ctx context.Context, tlfID TlfID,
+	id BlockID, context BlockContext) error {
 	b.log.CDebugf(ctx, "BlockServerMemory.AddBlockReference id=%s "+
 		"tlfID=%s context=%s", id, tlfID, context)
 
@@ -277,8 +277,8 @@ func (b *BlockServerMemory) AddBlockReference(ctx context.Context, id BlockID,
 	return entry.refs.put(context, liveBlockRef)
 }
 
-func (b *BlockServerMemory) removeBlockReferences(
-	id BlockID, tlfID TlfID, contexts []BlockContext) (int, error) {
+func (b *BlockServerMemory) removeBlockReference(
+	tlfID TlfID, id BlockID, contexts []BlockContext) (int, error) {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
@@ -310,16 +310,16 @@ func (b *BlockServerMemory) removeBlockReferences(
 	return count, nil
 }
 
-// RemoveBlockReference implements the BlockServer interface for
+// RemoveBlockReferences implements the BlockServer interface for
 // BlockServerMemory.
-func (b *BlockServerMemory) RemoveBlockReference(ctx context.Context,
+func (b *BlockServerMemory) RemoveBlockReferences(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID][]BlockContext) (
 	liveCounts map[BlockID]int, err error) {
 	b.log.CDebugf(ctx, "BlockServerMemory.RemoveBlockReference "+
 		"tlfID=%s contexts=%v", tlfID, contexts)
 	liveCounts = make(map[BlockID]int)
 	for id, idContexts := range contexts {
-		count, err := b.removeBlockReferences(id, tlfID, idContexts)
+		count, err := b.removeBlockReference(tlfID, id, idContexts)
 		if err != nil {
 			return nil, err
 		}
@@ -329,7 +329,7 @@ func (b *BlockServerMemory) RemoveBlockReference(ctx context.Context,
 }
 
 func (b *BlockServerMemory) archiveBlockReference(
-	id BlockID, tlfID TlfID, context BlockContext) error {
+	tlfID TlfID, id BlockID, context BlockContext) error {
 	b.lock.Lock()
 	defer b.lock.Unlock()
 
@@ -368,7 +368,7 @@ func (b *BlockServerMemory) ArchiveBlockReferences(ctx context.Context,
 
 	for id, idContexts := range contexts {
 		for _, context := range idContexts {
-			err := b.archiveBlockReference(id, tlfID, context)
+			err := b.archiveBlockReference(tlfID, id, context)
 			if err != nil {
 				return err
 			}
@@ -380,7 +380,7 @@ func (b *BlockServerMemory) ArchiveBlockReferences(ctx context.Context,
 
 // getAll returns all the known block references, and should only be
 // used during testing.
-func (b *BlockServerMemory) getAll(tlfID TlfID) (
+func (b *BlockServerMemory) getAll(ctx context.Context, tlfID TlfID) (
 	map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
 	res := make(map[BlockID]map[BlockRefNonce]blockRefLocalStatus)
 	b.lock.RLock()

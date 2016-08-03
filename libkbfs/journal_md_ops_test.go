@@ -54,7 +54,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 
-	err = jServer.Enable(id)
+	err = jServer.Enable(ctx, id)
 	require.NoError(t, err)
 
 	var rmd RootMetadata

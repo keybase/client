@@ -164,7 +164,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, id, kmd.TlfID(), blockPtr.BlockContext).Return(
+	config.mockBserv.EXPECT().Get(ctx, kmd.TlfID(), id, blockPtr.BlockContext).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	decData := TestBlock{42}
 
@@ -190,7 +190,7 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	id := fakeBlockID(1)
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, id, kmd.TlfID(), blockPtr.BlockContext).Return(
+	config.mockBserv.EXPECT().Get(ctx, kmd.TlfID(), id, blockPtr.BlockContext).Return(
 		nil, BlockCryptKeyServerHalf{}, err)
 
 	if err2 := config.BlockOps().Get(
@@ -209,7 +209,7 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	err := errors.New("Fake verification fail")
 	blockPtr := BlockPointer{ID: id}
 	encData := []byte{1, 2, 3}
-	config.mockBserv.EXPECT().Get(ctx, id, kmd.TlfID(), blockPtr.BlockContext).Return(
+	config.mockBserv.EXPECT().Get(ctx, kmd.TlfID(), id, blockPtr.BlockContext).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().VerifyBlockID(encData, id).Return(err)
 
@@ -228,7 +228,7 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, id, kmd.TlfID(), blockPtr.BlockContext).Return(
+	config.mockBserv.EXPECT().Get(ctx, kmd.TlfID(), id, blockPtr.BlockContext).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	err := errors.New("Fake fail")
 
@@ -341,7 +341,7 @@ func TestBlockOpsPutNewBlockSuccess(t *testing.T) {
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().Put(ctx, id, tlfID, blockPtr.BlockContext,
+	config.mockBserv.EXPECT().Put(ctx, tlfID, id, blockPtr.BlockContext,
 		readyBlockData.buf, readyBlockData.serverHalf).Return(nil)
 
 	if err := config.BlockOps().Put(
@@ -371,7 +371,7 @@ func TestBlockOpsPutIncRefSuccess(t *testing.T) {
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().AddBlockReference(ctx, id, kmd.TlfID(), blockPtr.BlockContext).
+	config.mockBserv.EXPECT().AddBlockReference(ctx, kmd.TlfID(), id, blockPtr.BlockContext).
 		Return(nil)
 
 	if err := config.BlockOps().Put(
@@ -397,7 +397,7 @@ func TestBlockOpsPutFail(t *testing.T) {
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().Put(ctx, id, tlfID, blockPtr.BlockContext,
+	config.mockBserv.EXPECT().Put(ctx, tlfID, id, blockPtr.BlockContext,
 		readyBlockData.buf, readyBlockData.serverHalf).Return(err)
 
 	if err2 := config.BlockOps().Put(
@@ -420,7 +420,7 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 	blockPtrs := []BlockPointer{b1, b2}
 	var liveCounts map[BlockID]int
 	tlfID := FakeTlfID(1, false)
-	config.mockBserv.EXPECT().RemoveBlockReference(ctx, tlfID, contexts).
+	config.mockBserv.EXPECT().RemoveBlockReferences(ctx, tlfID, contexts).
 		Return(liveCounts, nil)
 
 	if _, err := config.BlockOps().Delete(
@@ -444,7 +444,7 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	err := errors.New("Fake fail")
 	var liveCounts map[BlockID]int
 	tlfID := FakeTlfID(1, false)
-	config.mockBserv.EXPECT().RemoveBlockReference(ctx, tlfID, contexts).
+	config.mockBserv.EXPECT().RemoveBlockReferences(ctx, tlfID, contexts).
 		Return(liveCounts, err)
 
 	if _, err2 := config.BlockOps().Delete(

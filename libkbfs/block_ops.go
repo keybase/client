@@ -23,7 +23,7 @@ func (b *BlockOpsStandard) Get(ctx context.Context, kmd KeyMetadata,
 	blockPtr BlockPointer, block Block) error {
 	bserv := b.config.BlockServer()
 	buf, blockServerHalf, err := bserv.Get(
-		ctx, blockPtr.ID, kmd.TlfID(), blockPtr.BlockContext)
+		ctx, kmd.TlfID(), blockPtr.ID, blockPtr.BlockContext)
 	if err != nil {
 		// Temporary code to track down bad block
 		// requests. Remove when not needed anymore.
@@ -141,12 +141,12 @@ func (b *BlockOpsStandard) Put(ctx context.Context, tlfID TlfID,
 	bserv := b.config.BlockServer()
 	var err error
 	if blockPtr.RefNonce == zeroBlockRefNonce {
-		err = bserv.Put(ctx, blockPtr.ID, tlfID, blockPtr.BlockContext,
+		err = bserv.Put(ctx, tlfID, blockPtr.ID, blockPtr.BlockContext,
 			readyBlockData.buf, readyBlockData.serverHalf)
 	} else {
 		// non-zero block refnonce means this is a new reference to an
 		// existing block.
-		err = bserv.AddBlockReference(ctx, blockPtr.ID, tlfID,
+		err = bserv.AddBlockReference(ctx, tlfID, blockPtr.ID,
 			blockPtr.BlockContext)
 	}
 	return err
@@ -159,7 +159,7 @@ func (b *BlockOpsStandard) Delete(ctx context.Context, tlfID TlfID,
 	for _, ptr := range ptrs {
 		contexts[ptr.ID] = append(contexts[ptr.ID], ptr.BlockContext)
 	}
-	return b.config.BlockServer().RemoveBlockReference(ctx, tlfID, contexts)
+	return b.config.BlockServer().RemoveBlockReferences(ctx, tlfID, contexts)
 }
 
 // Archive implements the BlockOps interface for BlockOpsStandard.

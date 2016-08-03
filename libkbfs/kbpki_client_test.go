@@ -132,14 +132,14 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 	info1 := UserInfo{
 		VerifyingKeys: []VerifyingKey{key1},
 	}
-	config.mockKbd.EXPECT().LoadUserPlusKeys(gomock.Any(), u).
+	config.mockKbs.EXPECT().LoadUserPlusKeys(gomock.Any(), u).
 		Return(info1, nil)
 
-	config.mockKbd.EXPECT().FlushUserFromLocalCache(gomock.Any(), u)
+	config.mockKbs.EXPECT().FlushUserFromLocalCache(gomock.Any(), u)
 	info2 := UserInfo{
 		VerifyingKeys: []VerifyingKey{key1, key2},
 	}
-	config.mockKbd.EXPECT().LoadUserPlusKeys(gomock.Any(), u).
+	config.mockKbs.EXPECT().LoadUserPlusKeys(gomock.Any(), u).
 		Return(info2, nil)
 
 	err := c.HasVerifyingKey(context.Background(), u, key2, time.Now())

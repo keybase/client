@@ -16,7 +16,7 @@ type BlockServerMeasured struct {
 	getTimer                    metrics.Timer
 	putTimer                    metrics.Timer
 	addBlockReferenceTimer      metrics.Timer
-	removeBlockReferenceTimer   metrics.Timer
+	removeBlockReferencesTimer  metrics.Timer
 	archiveBlockReferencesTimer metrics.Timer
 }
 
@@ -28,55 +28,56 @@ func NewBlockServerMeasured(delegate BlockServer, r metrics.Registry) BlockServe
 	getTimer := metrics.GetOrRegisterTimer("BlockServer.Get", r)
 	putTimer := metrics.GetOrRegisterTimer("BlockServer.Put", r)
 	addBlockReferenceTimer := metrics.GetOrRegisterTimer("BlockServer.AddBlockReference", r)
-	removeBlockReferenceTimer := metrics.GetOrRegisterTimer("BlockServer.RemoveBlockReference", r)
+	removeBlockReferencesTimer := metrics.GetOrRegisterTimer("BlockServer.RemoveBlockReferences", r)
 	archiveBlockReferencesTimer := metrics.GetOrRegisterTimer("BlockServer.ArchiveBlockReferences", r)
 	return BlockServerMeasured{
 		delegate:                    delegate,
 		getTimer:                    getTimer,
 		putTimer:                    putTimer,
 		addBlockReferenceTimer:      addBlockReferenceTimer,
-		removeBlockReferenceTimer:   removeBlockReferenceTimer,
+		removeBlockReferencesTimer:  removeBlockReferencesTimer,
 		archiveBlockReferencesTimer: archiveBlockReferencesTimer,
 	}
 }
 
 // Get implements the BlockServer interface for BlockServerMeasured.
-func (b BlockServerMeasured) Get(ctx context.Context, id BlockID, tlfID TlfID,
+func (b BlockServerMeasured) Get(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext) (
 	buf []byte, serverHalf BlockCryptKeyServerHalf, err error) {
 	b.getTimer.Time(func() {
-		buf, serverHalf, err = b.delegate.Get(ctx, id, tlfID, context)
+		buf, serverHalf, err = b.delegate.Get(ctx, tlfID, id, context)
 	})
 	return buf, serverHalf, err
 }
 
 // Put implements the BlockServer interface for BlockServerMeasured.
-func (b BlockServerMeasured) Put(ctx context.Context, id BlockID, tlfID TlfID,
+func (b BlockServerMeasured) Put(ctx context.Context, tlfID TlfID, id BlockID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) (err error) {
 	b.putTimer.Time(func() {
-		err = b.delegate.Put(ctx, id, tlfID, context, buf, serverHalf)
+		err = b.delegate.Put(ctx, tlfID, id, context, buf, serverHalf)
 	})
 	return err
 }
 
 // AddBlockReference implements the BlockServer interface for
 // BlockServerMeasured.
-func (b BlockServerMeasured) AddBlockReference(ctx context.Context, id BlockID,
-	tlfID TlfID, context BlockContext) (err error) {
+func (b BlockServerMeasured) AddBlockReference(ctx context.Context, tlfID TlfID,
+	id BlockID, context BlockContext) (err error) {
 	b.addBlockReferenceTimer.Time(func() {
-		err = b.delegate.AddBlockReference(ctx, id, tlfID, context)
+		err = b.delegate.AddBlockReference(ctx, tlfID, id, context)
 	})
 	return err
 }
 
-// RemoveBlockReference implements the BlockServer interface for
+// RemoveBlockReferences implements the BlockServer interface for
 // BlockServerMeasured.
-func (b BlockServerMeasured) RemoveBlockReference(ctx context.Context,
+func (b BlockServerMeasured) RemoveBlockReferences(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID][]BlockContext) (
 	liveCounts map[BlockID]int, err error) {
-	b.removeBlockReferenceTimer.Time(func() {
-		liveCounts, err = b.delegate.RemoveBlockReference(ctx, tlfID, contexts)
+	b.removeBlockReferencesTimer.Time(func() {
+		liveCounts, err = b.delegate.RemoveBlockReferences(
+			ctx, tlfID, contexts)
 	})
 	return liveCounts, err
 }
