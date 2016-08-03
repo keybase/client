@@ -221,7 +221,7 @@
 
       <MsiPackage SourceFile="$(env.DOKAN_PATH)\dokan_wix\bin\x86\$(var.Configuration)\Dokan_x86.msi"
                   InstallCondition="NOT VersionNT64"
-                  Compressed="no"
+                  Compressed="yes"
                   Visible="yes"
                   Permanent="yes"
                   >
@@ -233,7 +233,7 @@
 
       <MsiPackage SourceFile="$(env.DOKAN_PATH)\dokan_wix\bin\x64\$(var.Configuration)\Dokan_x64.msi"
                   InstallCondition="VersionNT64"
-                  Compressed="no"
+                  Compressed="yes"
                   Visible="yes"
                   Permanent="yes"
                   >
