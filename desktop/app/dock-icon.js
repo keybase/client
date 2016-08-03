@@ -2,22 +2,18 @@
 
 import {app} from 'electron'
 
-// TODO: Let's switch to using app.dock.isVisible if this gets merged:
-// https://github.com/electron/electron/pull/6683
-let isDockHidden = false
-
 export function showDockIcon () {
-  if (isDockHidden) {
-    isDockHidden = false
-    app.dock && app.dock.show()
-    app.emit('-keybase-dock-show', {}, this)
+  if (app.dock && !app.dock.isVisible()) {
+    // Be aware that app.dock.isVisible() won't be true immediately
+    // after app.dock.show() since there is a slight delay there.
+    app.dock.show()
+    app.emit('-keybase-dock-showing', {}, this)
   }
 }
 
 export function hideDockIcon () {
-  if (!isDockHidden) {
-    isDockHidden = true
-    app.dock && app.dock.hide()
+  if (app.dock && app.dock.isVisible()) {
+    app.dock.hide()
     app.emit('-keybase-dock-hide', {}, this)
   }
 }

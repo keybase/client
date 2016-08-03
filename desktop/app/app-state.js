@@ -191,7 +191,7 @@ export default class AppState {
   }
 
   _loadAppListeners () {
-    app.on('-keybase-dock-show', () => {
+    app.on('-keybase-dock-showing', () => {
       this.state.dockHidden = false
       this.saveState()
     })
