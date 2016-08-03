@@ -111,7 +111,7 @@ func (d *Service) Handle(c net.Conn) {
 	}
 	shutdowners, err := d.RegisterProtocols(server, xp, connID, logReg, d.G())
 
-	once := &sync.Once{}
+	var once sync.Once
 	shutdown := func() error {
 		once.Do(func() {
 			for _, shutdowner := range shutdowners {
