@@ -81,6 +81,7 @@ function selectPlatform (platform: PlatformsExpanded): UpdatePlatform {
 function submitUsername (): AsyncAction {
   return (dispatch, getState) => {
     if (promptUsernameResponse) {
+      dispatch(updateError(null))
       promptUsernameResponse.result(getState().profile.username)
       promptUsernameResponse = null
     }
@@ -96,6 +97,7 @@ function updateUsername (username: string): UpdateUsername {
 
 function cancelAddProof (): AsyncAction {
   return (dispatch) => {
+    dispatch(updateError(null))
     if (promptUsernameResponse) {
       engine.cancelRPC(promptUsernameResponse, InputCancelError)
       promptUsernameResponse = null
@@ -117,10 +119,15 @@ function updateProofText (proof: string): UpdateProofText {
   }
 }
 
-function updateError (error: string): UpdateError {
+function updateError (error: ?string, code: ?number): UpdateError {
+  // Flow needs this for some reason instead of default params
+  if (code === undefined || code === null) {
+    code = -1
+  }
+
   return {
     type: Constants.updateError,
-    payload: {error},
+    payload: {error, errorCode: code},
   }
 }
 
@@ -141,6 +148,7 @@ function updateSigID (sigID: SigID): UpdateSigID {
 function addProof (platform: PlatformsExpanded): AsyncAction {
   return (dispatch) => {
     dispatch(selectPlatform(platform))
+    dispatch(updateError(null))
 
     proveStartProofRpc({
       ...makeWaitingHandler(dispatch),
@@ -154,6 +162,9 @@ function addProof (platform: PlatformsExpanded): AsyncAction {
       incomingCallMap: {
         'keybase.1.proveUi.promptUsername': ({prompt, prevError}, response) => {
           promptUsernameResponse = response
+          if (prevError) {
+            dispatch(updateError(prevError.desc, prevError.code))
+          }
           dispatch(navigateTo([{path: 'ProveEnterUsername'}], profileTab))
         },
         'keybase.1.proveUi.outputInstructions': ({instructions, proof}, response) => {
@@ -167,7 +178,7 @@ function addProof (platform: PlatformsExpanded): AsyncAction {
 
         if (error) {
           console.warn('Error making proof')
-          dispatch(updateError(error))
+          dispatch(updateError(error.raw.desc, error.raw.code))
         } else {
           console.log('Start Proof done: ', sigID)
           dispatch(checkProof())
@@ -179,6 +190,7 @@ function addProof (platform: PlatformsExpanded): AsyncAction {
 
 function checkProof (): AsyncAction {
   return (dispatch, getState) => {
+    dispatch(updateError(null))
     // The first 'check for it' call happens as part of the incomingCallMap above. If that fails we can try again here
     if (outputInstructionsResponse) {
       outputInstructionsResponse.result()
@@ -193,7 +205,7 @@ function checkProof (): AsyncAction {
       callback: (error, {found, status}) => {
         if (error) {
           console.warn('Error getting proof update')
-          dispatch(updateError(`We couldn't verify your proof (${error}). Please retry!`))
+          dispatch(updateError("We couldn't verify your proof. Please retry!"))
         } else {
           if (!found || status !== proveCommon.ProofStatus.ok) {
             dispatch(updateError("We couldn't find your proof. Please retry!"))
@@ -211,6 +223,9 @@ function outputInstructionsActionLink (): AsyncAction {
   return (dispatch, getState) => {
     const profile = getState().profile
     switch (profile.platform) {
+      case 'coinbase':
+        shell.openExternal(`https://coinbase.com/${profile.username}#settings`)
+        break
       case 'twitter':
         shell.openExternal(`https://twitter.com/home?status=${profile.proof}`)
         break

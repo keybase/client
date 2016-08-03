@@ -6,6 +6,8 @@ import type {IconType} from '../common-adapters/icon'
 export type Props = {
   platform: Platforms | 'btc', // bitcoin isn't a real proof
   username: string,
+  error: ?string,
+  errorCode: number,
   canContinue?: boolean,
   onUsernameChange?: (username: string) => void,
   onContinue: (username: string) => void,

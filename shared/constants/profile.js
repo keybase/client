@@ -19,7 +19,7 @@ export const updateProofText = 'profile:updateProofText'
 export type UpdateProofText = TypedAction<'profile:updateProofText', {proof: string}, void>
 
 export const updateError = 'profile:updateError'
-export type UpdateError = TypedAction<'profile:updateError', {error: string}, void>
+export type UpdateError = TypedAction<'profile:updateError', {error: ?string, errorCode: number}, void>
 
 export const updateProofStatus = 'profile:updateProofStatus'
 export type UpdateProofStatus = TypedAction<'profile:updateProofStatus', {found: boolean, status: ProofStatus}, void>
@@ -39,6 +39,7 @@ export type Actions = Waiting
 
 export type State = {
   error: ?string,
+  errorCode: number,
   waiting: boolean,
   username: string,
   platform: ?PlatformsExpanded,
