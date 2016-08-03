@@ -56,8 +56,8 @@ func NewLoopbackListener() *LoopbackListener {
 
 // NewLoopbackConnPair makes a new loopback connection pair
 func NewLoopbackConnPair() (*LoopbackConn, *LoopbackConn) {
-	aCh := make(chan []byte)
-	bCh := make(chan []byte)
+	aCh := make(chan []byte, 1000)
+	bCh := make(chan []byte, 1000)
 	a := &LoopbackConn{ch: aCh}
 	b := &LoopbackConn{ch: bCh}
 	a.partnerCh = bCh
