@@ -196,11 +196,6 @@ func (pi *pinentryInstance) Run(arg keybase1.SecretEntryArg) (res *keybase1.Secr
 		return
 	}
 
-	pinentrySecretStoreInfo, err := pi.useSecretStore(arg.UseSecretStore)
-	if err != nil {
-		return
-	}
-
 	fmt.Fprintf(pi.stdin, "GETPIN\n")
 	var lineb []byte
 	lineb, _, err = pi.br.ReadLine()
@@ -219,8 +214,6 @@ func (pi *pinentryInstance) Run(arg keybase1.SecretEntryArg) (res *keybase1.Secr
 	default:
 		return nil, fmt.Errorf("GETPIN response didn't start with D; got %q", line)
 	}
-
-	res.StoreSecret = pi.shouldStoreSecret(pinentrySecretStoreInfo)
 
 	return
 }

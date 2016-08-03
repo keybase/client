@@ -2430,7 +2430,7 @@ func (t *testRetrySecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keyb
 	t.index++
 	return keybase1.GetPassphraseRes{
 		Passphrase:  t.Passphrases[n],
-		StoreSecret: p.Features.StoreSecret.Allow && t.StoreSecret,
+		StoreSecret: t.StoreSecret,
 	}, nil
 }
 
