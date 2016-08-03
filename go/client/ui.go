@@ -779,7 +779,6 @@ func (ui SecretUI) GetPassphrase(pin keybase1.GUIEntryArg, term *keybase1.Secret
 		PinentryDesc:   pin.Prompt,
 		Checker:        &libkb.CheckPassphraseSimple,
 		RetryMessage:   pin.RetryLabel,
-		UseSecretStore: pin.Features.StoreSecret.Allow,
 		ShowTyping:     pin.Features.ShowTyping.DefaultValue,
 	})
 	return res, err

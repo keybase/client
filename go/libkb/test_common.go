@@ -365,7 +365,7 @@ func (t *TestSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.
 	t.CalledGetPassphrase = true
 	return keybase1.GetPassphraseRes{
 		Passphrase:  t.Passphrase,
-		StoreSecret: p.Features.StoreSecret.Allow && t.StoreSecret,
+		StoreSecret: t.StoreSecret,
 	}, nil
 }
 
