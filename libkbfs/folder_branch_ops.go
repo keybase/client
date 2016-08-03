@@ -848,9 +848,8 @@ func (fbo *folderBranchOps) getMDForReadHelper(
 	return md, nil
 }
 
-// getMDForExternalUse is a helper method for other structs to get the
-// current head for reading.
-func (fbo *folderBranchOps) getMDForExternalUse(ctx context.Context) (
+// getMDForFBM is a helper method for the folderBlockManager only.
+func (fbo *folderBranchOps) getMDForFBM(ctx context.Context) (
 	ImmutableRootMetadata, error) {
 	lState := makeFBOLockState()
 	return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
@@ -4505,14 +4504,15 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 // GetEditHistory implements the KBFSOps interface for folderBranchOps
 func (fbo *folderBranchOps) GetEditHistory(ctx context.Context,
 	folderBranch FolderBranch) (edits TlfWriterEdits, err error) {
-	fbo.log.CDebugf(ctx, "GetWriterEdits")
+	fbo.log.CDebugf(ctx, "GetEditHistory")
 	defer func() { fbo.deferLog.CDebugf(ctx, "Done: %v", err) }()
 
 	if folderBranch != fbo.folderBranch {
 		return nil, WrongOpsError{fbo.folderBranch, folderBranch}
 	}
 
-	head, err := fbo.getMDForExternalUse(ctx)
+	lState := makeFBOLockState()
+	head, err := fbo.getMDForReadHelper(ctx, lState, mdReadNeedIdentify)
 	if err != nil {
 		return nil, err
 	}

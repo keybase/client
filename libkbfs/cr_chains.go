@@ -811,9 +811,10 @@ func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 // uses nodeCache when looking up paths, which must at least contain
 // the most recent root node of the branch.  Note that if a path
 // cannot be found, the corresponding chain is completely removed from
-// the set of CR chains.
+// the set of CR chains.  Set includeCreates to true if the returned
+// paths should include the paths of newly-created nodes.
 func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
-	log logger.Logger, nodeCache NodeCache, ignoreCreates bool) (
+	log logger.Logger, nodeCache NodeCache, includeCreates bool) (
 	[]path, error) {
 	newPtrs := make(map[BlockPointer]bool)
 	var ptrs []BlockPointer
@@ -821,9 +822,10 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 		newPtrs[ptr] = true
 		// We only care about the paths for ptrs that are directly
 		// affected by operations and were live through the entire
-		// unmerged branch.
+		// unmerged branch, or, if includeCreates was set, was created
+		// and not deleted in the unmerged branch.
 		if len(chain.ops) > 0 &&
-			(!ignoreCreates || !ccs.isCreated(chain.original)) &&
+			(includeCreates || !ccs.isCreated(chain.original)) &&
 			!ccs.isDeleted(chain.original) {
 			ptrs = append(ptrs, ptr)
 		}

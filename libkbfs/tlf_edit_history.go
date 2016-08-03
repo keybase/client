@@ -89,8 +89,7 @@ func (wee writerEditEstimates) isComplete() bool {
 }
 
 func (wee *writerEditEstimates) update(rmds []ImmutableRootMetadata) {
-	for i := len(rmds) - 1; i >= 0; i-- {
-		rmd := rmds[i]
+	for _, rmd := range rmds {
 		if rmd.IsWriterMetadataCopiedSet() {
 			continue
 		}
@@ -149,11 +148,12 @@ func (teh *TlfEditHistory) getEditsCopy() TlfWriterEdits {
 }
 
 func (teh *TlfEditHistory) updateRmds(rmds []ImmutableRootMetadata,
-	olderRmds []ImmutableRootMetadata) ([]ImmutableRootMetadata, error) {
+	olderRmds []ImmutableRootMetadata) []ImmutableRootMetadata {
+	// Avoid hidden sharing with olderRmds by making a copy.
 	newRmds := make([]ImmutableRootMetadata, len(olderRmds)+len(rmds))
 	copy(newRmds[:len(olderRmds)], olderRmds)
 	copy(newRmds[len(olderRmds):], rmds)
-	return newRmds, nil
+	return newRmds
 }
 
 func (teh *TlfEditHistory) calculateEditCounts(ctx context.Context,
@@ -165,7 +165,7 @@ func (teh *TlfEditHistory) calculateEditCounts(ctx context.Context,
 
 	// Set the paths on all the ops
 	_, err = chains.getPaths(ctx, &teh.fbo.blocks, teh.log, teh.fbo.nodeCache,
-		false)
+		true)
 	if err != nil {
 		return nil, err
 	}
@@ -182,7 +182,7 @@ outer:
 		}
 
 		for i, op := range chain.ops {
-			// Is this a create?
+			// Count only creates and syncs.
 			switch realOp := op.(type) {
 			case *createOp:
 				if realOp.renamed {
@@ -234,6 +234,9 @@ outer:
 					Type:      t,
 					LocalTime: lastOp.getLocalTimestamp(),
 				})
+				// We know there will be no creates in this chain
+				// since it's a file, so it's safe to skip to the next
+				// chain.
 				continue outer
 			default:
 				continue
@@ -275,10 +278,7 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 			return nil, err
 		}
 		estimates.update(unmergedRmds)
-		rmds, err = teh.updateRmds(rmds, unmergedRmds)
-		if err != nil {
-			return nil, err
-		}
+		rmds = teh.updateRmds(rmds, unmergedRmds)
 	}
 
 	for (currEdits == nil || !currEdits.isComplete()) &&
@@ -311,6 +311,12 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 			if startRev < MetadataRevisionInitial {
 				startRev = MetadataRevisionInitial
 			}
+			// Don't fetch more MDs than we want to include in our
+			// estimates.
+			if int64(len(rmds))+int64(endRev-startRev)+1 > maxMDsToInspect {
+				startRev = MetadataRevision(
+					int64(len(rmds)) + (int64(endRev) - maxMDsToInspect) + 1)
+			}
 
 			olderRmds, err := getMDRange(ctx, teh.config, head.ID, NullBranchID,
 				startRev, endRev, Merged)
@@ -321,10 +327,7 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 			// Estimate the number of per-writer file operations by
 			// keeping a count of the createOps and syncOps found.
 			estimates.update(olderRmds)
-			rmds, err = teh.updateRmds(rmds, olderRmds)
-			if err != nil {
-				return nil, err
-			}
+			rmds = teh.updateRmds(rmds, olderRmds)
 		}
 	}
 

@@ -6,12 +6,12 @@ package libkbfs
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -34,27 +34,22 @@ func TestBasicTlfEditHistory(t *testing.T) {
 	// user 1 creates a file
 	kbfsOps1 := config1.KBFSOps()
 	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
-	}
+	require.NoError(t, err)
 
 	kbfsOps2 := config2.KBFSOps()
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
-	}
+	require.NoError(t, err)
+
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
-	}
+	require.NoError(t, err)
 
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
-	}
+	require.NoError(t, err)
 
 	_, uid1, err := config1.KBPKI().GetCurrentUserInfo(context.Background())
+	require.NoError(t, err)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	require.NoError(t, err)
 
 	// Each user should see 1 create edit for each user
 	expectedEdits := make(TlfWriterEdits)
@@ -70,36 +65,24 @@ func TestBasicTlfEditHistory(t *testing.T) {
 	}}
 
 	edits1, err := kbfsOps1.GetEditHistory(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't get history: %v", err)
-	}
+	require.NoError(t, err)
 	edits2, err := kbfsOps2.GetEditHistory(ctx, rootNode2.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't get history: %v", err)
-	}
+	require.NoError(t, err)
 
-	if !reflect.DeepEqual(expectedEdits, edits1) {
-		t.Fatalf("User1 has unexpected edit history: %v", edits1)
-	}
-	if !reflect.DeepEqual(expectedEdits, edits2) {
-		t.Fatalf("User2 has unexpected edit history: %v", edits2)
-	}
+	require.Equal(t, expectedEdits, edits1, "User1 has unexpected edit history")
+	require.Equal(t, expectedEdits, edits2, "User2 has unexpected edit history")
 }
 
 func testDoTlfEdit(t *testing.T, ctx context.Context, tlfName string,
 	kbfsOps KBFSOps, rootNode Node, i int, uid keybase1.UID, now time.Time,
 	createRemainders map[keybase1.UID]int, edits TlfWriterEdits) {
 	err := kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
-	}
+	require.NoError(t, err)
 
 	// Sometimes mix it up with a different operation.
 	if i%(len(createRemainders)*2) == createRemainders[uid] {
 		_, _, err := kbfsOps.CreateDir(ctx, rootNode, fmt.Sprintf("dir%d", i))
-		if err != nil {
-			t.Fatalf("Couldn't mkdir: %v", err)
-		}
+		require.NoError(t, err)
 	}
 
 	if i%len(createRemainders) == createRemainders[uid] {
@@ -107,9 +90,7 @@ func testDoTlfEdit(t *testing.T, ctx context.Context, tlfName string,
 		fileName := fmt.Sprintf("file%d", i)
 		_, _, err := kbfsOps.CreateFile(ctx, rootNode,
 			fileName, false, NoExcl)
-		if err != nil {
-			t.Fatalf("Couldn't create file: %v", err)
-		}
+		require.NoError(t, err)
 		if i >= 70 {
 			edits[uid] = append(edits[uid], TlfEdit{
 				Filepath:  tlfName + "/" + fileName,
@@ -123,17 +104,11 @@ func testDoTlfEdit(t *testing.T, ctx context.Context, tlfName string,
 	// Write to an old file.
 	fileName := fmt.Sprintf("file%d", i-50)
 	fileNode, _, err := kbfsOps.Lookup(ctx, rootNode, fileName)
-	if err != nil {
-		t.Fatalf("Couldn't lookup old file: %v", err)
-	}
+	require.NoError(t, err)
 	err = kbfsOps.Write(ctx, fileNode, []byte{0}, 0)
-	if err != nil {
-		t.Fatalf("Couldn't write old file: %v", err)
-	}
+	require.NoError(t, err)
 	err = kbfsOps.Sync(ctx, fileNode)
-	if err != nil {
-		t.Fatalf("Couldn't sync old file: %v", err)
-	}
+	require.NoError(t, err)
 	if i >= 70 {
 		edits[uid] = append(edits[uid], TlfEdit{
 			Filepath:  tlfName + "/" + fileName,
@@ -167,13 +142,13 @@ func TestLongTlfEditHistory(t *testing.T) {
 	for ; i < 50; i++ {
 		_, _, err := kbfsOps1.CreateFile(ctx, rootNode1,
 			fmt.Sprintf("file%d", i), false, NoExcl)
-		if err != nil {
-			t.Fatalf("Couldn't create file: %v", err)
-		}
+		require.NoError(t, err)
 	}
 
 	_, uid1, err := config1.KBPKI().GetCurrentUserInfo(context.Background())
+	require.NoError(t, err)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	require.NoError(t, err)
 	createRemainders := map[keybase1.UID]int{
 		uid1: 0,
 		uid2: 1,
@@ -195,27 +170,15 @@ func TestLongTlfEditHistory(t *testing.T) {
 	}
 
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
-	}
+	require.NoError(t, err)
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
-	}
+	require.NoError(t, err)
 
 	edits1, err := kbfsOps1.GetEditHistory(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't get history: %v", err)
-	}
+	require.NoError(t, err)
 	edits2, err := kbfsOps2.GetEditHistory(ctx, rootNode2.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't get history: %v", err)
-	}
+	require.NoError(t, err)
 
-	if !reflect.DeepEqual(expectedEdits, edits1) {
-		t.Fatalf("User1 has unexpected edit history: %v  \n\n %v", expectedEdits, edits1)
-	}
-	if !reflect.DeepEqual(expectedEdits, edits2) {
-		t.Fatalf("User2 has unexpected edit history: %v", edits2)
-	}
+	require.Equal(t, expectedEdits, edits1, "User1 has unexpected edit history")
+	require.Equal(t, expectedEdits, edits2, "User2 has unexpected edit history")
 }
