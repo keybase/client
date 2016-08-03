@@ -283,11 +283,11 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                         )
                 } catch (ex) {
                     println "Gregor logs:"
-                    sh "docker-compose logs gregor.local"
+                    sh "docker-compose logs --tail=10000 gregor.local"
                     println "MySQL logs:"
-                    sh "docker-compose logs mysql.local"
+                    sh "docker-compose logs --tail=10000 mysql.local"
                     println "KBweb logs:"
-                    sh "docker-compose logs kbweb.local"
+                    sh "docker-compose logs --tail=10000 kbweb.local"
                     throw ex
                 } finally {
                     sh "docker-compose down"
