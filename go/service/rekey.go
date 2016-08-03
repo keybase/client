@@ -22,6 +22,7 @@ type RekeyHandler struct {
 	scorer          func(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error)
 	recheckMu       sync.Mutex
 	recheckDeadline time.Time
+	recheckTicker   *time.Ticker
 }
 
 func NewRekeyHandler(xp rpc.Transporter, g *libkb.GlobalContext, gregor *gregorHandler) *RekeyHandler {
@@ -33,6 +34,11 @@ func NewRekeyHandler(xp rpc.Transporter, g *libkb.GlobalContext, gregor *gregorH
 	}
 	h.recheckRekeyStatusPeriodic()
 	return h
+}
+
+func (h *RekeyHandler) Shutdown() {
+	h.G().Log.Debug("stopping recheckRekeyStatus timer")
+	h.recheckTicker.Stop()
 }
 
 func (h *RekeyHandler) ShowPendingRekeyStatus(ctx context.Context, sessionID int) error {
@@ -132,14 +138,8 @@ func (h *RekeyHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (ke
 // it will recheck the rekey status for this user.
 func (h *RekeyHandler) recheckRekeyStatusPeriodic() {
 	h.G().Log.Debug("starting recheck rekey status loop")
-	ticker := time.NewTicker(1 * time.Hour)
-	h.G().PushShutdownHook(func() error {
-		h.G().Log.Debug("stopping recheckRekeyStatus timer")
-		ticker.Stop()
-		return nil
-	})
-
-	go h.recheckRekeyStatusTicker(ticker.C)
+	h.recheckTicker = time.NewTicker(1 * time.Hour)
+	go h.recheckRekeyStatusTicker(h.recheckTicker.C)
 }
 
 func (h *RekeyHandler) recheckRekeyStatusTicker(ticker <-chan time.Time) {

@@ -10,7 +10,7 @@ import {createFolder} from '../folders/dumb'
 import {isMobile} from '../constants/platform'
 import {globalColors} from '../styles/style-guide'
 import type {Props as RenderProps} from './render'
-import type {Proof} from '../common-adapters/user-proofs'
+import type {Proof} from '../constants/tracker'
 import type {UserInfo} from '../common-adapters/user-bio'
 import type {DumbComponentMap} from '../constants/types/more'
 

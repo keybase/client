@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
      xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
-     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension"
+     xmlns:netfx='http://schemas.microsoft.com/wix/NetFxExtension'>
   <Bundle Name="Keybase" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="418432ab-0366-40fd-a396-8cc0c4200252">
-    <Variable Name="DokanProduct64" Type="string" Value="{65A3A964-3DC3-0100-0000-160621082245}" />
-    <Variable Name="DokanProduct86" Type="string" Value="{65A3A986-3DC3-0100-0000-160621082245}" />
+
+    <Variable Name="DokanInstallFolder" Type="string" Value="[ProgramFiles6432Folder]Dokan\Dokan Library-1.0.0"/>
+
     <Log PathVariable="LOGPATH_PROP"/>
     <util:FileSearchRef Id='WINTRUST_FileSearch' />
     <util:RegistrySearchRef Id='InnoCLIUninstall' />
     <util:RegistrySearchRef Id='InnoCLIUninstall64' />
+    <util:RegistrySearchRef Id='InnoKBFSUninstall' />
+    <util:RegistrySearchRef Id='InnoKBFSUninstall64' />
     <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication
             LicenseUrl="https://keybase.io/docs/terms"
@@ -20,29 +24,10 @@
             SuppressOptionsUI="yes"
             />
     </BootstrapperApplicationRef>
-    <!-- These two are for the most recent KBFS -->
-    <util:RegistrySearch Id="InnoUninstall"
-                 Variable="InnoUninstallString"        
-                 Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{357F272E-BE0E-409F-8E39-0BB9827F5716}_is1"
-                 Value="QuietUninstallString"
-                 Format="raw"        
-                 />
-    <util:RegistrySearch Id="InnoUninstall64"
-                 After="InnoUninstall"
-                 Condition="NOT InnoUninstallString"
-                 Variable="InnoUninstallString"
-                 Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{357F272E-BE0E-409F-8E39-0BB9827F5716}_is1"
-                 Value="QuietUninstallString"
-                 Format="raw"
-                 Win64="yes"
-                 />
+    
     <!-- From the old Inno installer for Dokan 0.8.0 -->
     <util:RegistrySearch Id="InnoUninstall2"
              Variable="InnoUninstallString"
-             After="InnoUninstall64"
-             Condition="NOT InnoUninstallString"
              Root="HKLM"
              Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DEB2E54C-C39F-4DC8-93A7-ABE0AB91DDCA}_is1"
              Value="QuietUninstallString"
@@ -58,6 +43,7 @@
                  Format="raw"
                  Win64="yes"
                  />
+    
     <!-- From the old Inno installer for Dokan 1.0.0RC2 -->
     <util:RegistrySearch Id="InnoUninstall3"
              Variable="InnoUninstallString"
@@ -78,100 +64,192 @@
                  Format="raw"
                  Win64="yes"
                  />
+    
+    <bal:Condition
+      Message="Please uninstall any previous versions of the Dokan driver package before continuing.">
+      <![CDATA[NOT InnoUninstallString]]>
+    </bal:Condition>
 
-    <!-- Dokany Product Codes: v1.0.0-RC4.2 -->
-    
-    <util:RegistrySearch Id="DokanUninstallx86"
-                 Variable="DokanUninstallString"
-                 Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[DokanProduct86]"
-                 Value="UninstallString"
-                 Format="raw"
-                 />
-    <util:RegistrySearch Id="DokanUninstallx86_64"
-                 After="DokanUninstallx86"        
-                 Condition="NOT DokanUninstallString"        
-                 Variable="DokanUninstallString"
-                 Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[DokanProduct86]"
-                 Value="UninstallString"
-                 Format="raw"
-                 Win64="yes"
-                 />
-    
-    <util:RegistrySearch Id="DokanUninstall64"
-                 After="DokanUninstallx86_64"        
-                 Condition="NOT DokanUninstallString"        
-                 Variable="DokanUninstallString"
-                 Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[DokanProduct64]"
-                 Value="UninstallString"
-                 Format="raw"
-                 />
-    <util:RegistrySearch Id="DokanUninstall64_64"
-                 After="DokanUninstallx86_64"
-                 Condition="NOT DokanUninstallString"
-                 Variable="DokanUninstallString"
-                 Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[DokanProduct64]"
-                 Value="UninstallString"
-                 Format="raw"
-                 Win64="yes"
-                 />
-    
-    <util:RegistrySearch Id="TargetDokanUninstallKey"
-                 Variable="TargetDokanUninstallKey"
-                 Root="HKCU"
-                 Key="SOFTWARE\Keybase"
-                 Value="TargetDokanUninstallKey"
-                 Format="raw"
-                 />
-    <util:RegistrySearch Id="TargetDokanUninstallKey_64"
-                 Variable="TargetDokanUninstallKey"
-                 After="TargetDokanUninstallKey"
-                 Condition="NOT TargetDokanUninstallKey"
-                 Root="HKCU"
-                 Key="SOFTWARE\Keybase"
-                 Value="TargetDokanUninstallKey"
-                 Format="raw"
-                 Win64="yes"
-                 />
+    <util:FileSearch Id="SearchSystem"
+                     Path="[SystemFolder]advapi32.dll"
+                     Variable="ADVAPIVERSION"
+                     Result="version"
+                     />
+
+    <util:FileSearch Id="SearchSystem2"
+                     Path="[SystemFolder]ucrtbase.dll"
+                     Variable="UCRTVERSION"
+                     Result="version"
+                     />
+
+    <util:FileSearch Id="SearchSystem3"
+                     Path="[WindowsFolder]System32\ucrtbase.dll"
+                     Variable="UCRTVERSION64"
+                     Result="version"
+                       />
+
+    <util:RegistrySearch Id="vcredist_2015_x86_check" Root="HKLM" Key="SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum" Value="Install" Variable="vcredist_2015_x86_installed" Win64="no"/>
+    <util:RegistrySearch Id="vcredist_2015_x86_versioncheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_x86,v14" Value="Version" Variable="vcredist_2015_x86_version" Result="exists" Win64="no"/>
+    <util:RegistrySearch Id="vcredist_2015_x86_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_x86,v14" Value="Version" Variable="vcredist_2015_x86_versionnumber" Result="value" Win64="no"/>
+
+    <util:RegistrySearch Id="vcredist_2015_x64_check" Root="HKLM" Key="SOFTWARE\Microsoft\DevDiv\VC\Servicing\14.0\RuntimeMinimum" Value="Install" Variable="vcredist_2015_x64_installed" Win64="yes"/>
+    <util:RegistrySearch Id="vcredist_2015_x64_versioncheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2015_x64_version" Result="exists" Win64="yes"/>
+    <util:RegistrySearch Id="vcredist_2015_x64_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2015_x64_versionnumber" Result="value" Win64="yes"/>
+
+    <bal:Condition Message="Installation failed because your version of Windows is too old. Dokan requires Windows 7 SP1 or newer."><![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND ServicePackLevel >= 1)]]></bal:Condition>
+
 
 
     <Chain>
-      <!-- Run whatever quiet uninstaller we detected. -->
-      <ExePackage
-        SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe"
-          InstallCommand="-wait [InnoUninstallString] /NORESTART"
-          DetectCondition="NOT InnoUninstallString"
-          PerMachine="yes"
-          Permanent="yes">
-        <ExitCode Behavior="forceReboot"/>
+      <PackageGroupRef Id="NetFx40Web"/>
+
+      <ExePackage Id="vcredist_2015_x86.exe"
+                  Name="vc_redist.x86.exe"
+                  InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
+                  RepairCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
+                  UninstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
+                  Protocol="netfx4"
+                  Permanent="yes"
+                  DetectCondition="vcredist_2015_x86_installed AND vcredist_2015_x86_version AND vcredist_2015_x86_versionnumber &gt;= v14.0.23918"
+                  PerMachine="yes"
+                  Vital="yes"
+                  Cache="no"
+                  SuppressSignatureVerification="yes"
+                  SourceFile="Redist\VCRedist_2015\vc_redist.x86.exe"
+                  DownloadUrl="https://download.microsoft.com/download/2/6/8/268f7be7-8d2a-42d6-a823-5c6941a3d70a/vc_redist.x86.exe"
+      >
+        <ExitCode Behavior="scheduleReboot"/>
       </ExePackage>
 
-      <!-- DetectCondition is critical here, since on update this package will be invoked with /uninstall,
-           (WixBundleAction=3). We want to let it uninstall (condition true) if we know the target is different,
-           which the updater writes to the registry and we retrieve via TargetDokanUninstallKey. 
-           Otherwise, we block uninstall, so things will be nice and quiet. 
-           
-           Stated another way, we want DetectCondition to be always true after install except
-           if ( uninstalling and TargetDokanUninstallKey <> [DokanUninstallCode])
-        -->
-      <ExePackage
-        SourceFile="$(env.DOKAN_PATH)\dokan_wix\DokanSetup_redist.exe"
-          InstallCommand="/quiet"
-          UninstallCommand="/quiet /uninstall"
-          DetectCondition="DokanUninstallString and NOT (WixBundleAction=3 AND ( TargetDokanUninstallKey &lt;&gt; DokanProduct64 AND TargetDokanUninstallKey &lt;&gt; DokanProduct86 ))"
-          PerMachine="yes"
-          Permanent="yes">
+
+      <ExePackage Id="vcredist_2015_x64.exe"
+                  Name="vc_redist.x64.exe"
+                  InstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
+                  RepairCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
+                  UninstallCommand="/norestart /passive /chainingpackage ADMINDEPLOYMENT"
+                  Protocol="netfx4"
+                  Permanent="yes"
+                  InstallCondition="VersionNT64"
+                  DetectCondition="vcredist_2015_x64_installed AND vcredist_2015_x64_version AND vcredist_2015_x64_versionnumber &gt;= v14.0.23918"
+                  PerMachine="yes"
+                  Vital="yes"
+                  Cache="yes"
+                  SuppressSignatureVerification="yes"
+                  SourceFile="Redist\VCRedist_2015\vc_redist.x64.exe"
+                  DownloadUrl="https://download.microsoft.com/download/6/3/a/63abaf83-2ca6-4460-90d7-12de8e815b1a/vc_redist.x64.exe"
+                  >
+        <ExitCode Behavior="scheduleReboot"/>
       </ExePackage>
-      
-      <MsiPackage Id="KeybasePrograms" 
-                  SourceFile="$(var.KeybaseApps.TargetPath)" 
+
+      <MsuPackage Id="Win71_KB2999226_x86"
+                  Name="Windows6.1-KB2999226-x86.msu"
+                  Compressed="yes"
+                  Permanent="yes"
+                  InstallCondition="NOT VersionNT64 AND VersionNT = v6.1"
+                  DetectCondition="UCRTVERSION &gt;= v6.2.10585.0"
+                  Vital="yes"
+                  Cache="no"
+                  SuppressSignatureVerification="yes"
+                  SourceFile="Redist\KB2999226\Windows6.1-KB2999226-x86.msu"
+                  DownloadUrl="https://download.microsoft.com/download/4/F/E/4FE73868-5EDD-4B47-8B33-CE1BB7B2B16A/Windows6.1-KB2999226-x86.msu"
+                  />
+
+      <MsuPackage Id="Win71_KB2999226_x64"
+                  Name="Windows6.1-KB2999226-x64.msu"
+                  Compressed="yes"
+                  Permanent="yes"
+                  InstallCondition="VersionNT64 AND VersionNT = v6.1"
+                  DetectCondition="UCRTVERSION64 &gt;= v6.2.10585.0"
+                  Vital="yes"
+                  Cache="no"
+                  SuppressSignatureVerification="yes"
+                  SourceFile="Redist\KB2999226\Windows6.1-KB2999226-x64.msu"
+                  DownloadUrl="https://download.microsoft.com/download/1/1/5/11565A9A-EA09-4F0A-A57E-520D5D138140/Windows6.1-KB2999226-x64.msu"
+                  />
+
+      <MsuPackage Id="Win80_KB2999226_x86"
+                  Name="Windows8-RT-KB2999226-x86.msu"
+                  Compressed="yes"
+                  Permanent="yes"
+                  InstallCondition="NOT VersionNT64 AND VersionNT = v6.2"
+                  DetectCondition="UCRTVERSION &gt;= v6.2.10585.0"
+                  Vital="yes"
+                  Cache="no"
+                  SuppressSignatureVerification="yes"
+                  SourceFile="Redist\KB2999226\Windows8-RT-KB2999226-x86.msu"
+                  DownloadUrl="https://download.microsoft.com/download/1/E/8/1E8AFE90-5217-464D-9292-7D0B95A56CE4/Windows8-RT-KB2999226-x86.msu"
+                  />
+
+      <MsuPackage Id="Win80_KB2999226_x64"
+                  Name="Windows8-RT-KB2999226-x64.msu"
+                  Compressed="yes"
+                  Permanent="yes"
+                  InstallCondition="VersionNT64 AND VersionNT = v6.2"
+                  DetectCondition="UCRTVERSION64 &gt;= v6.2.10585.0"
+                  Vital="yes"
+                  Cache="no"
+                  SuppressSignatureVerification="yes"
+                  SourceFile="Redist\KB2999226\Windows8-RT-KB2999226-x64.msu"
+                  DownloadUrl="https://download.microsoft.com/download/A/C/1/AC15393F-A6E6-469B-B222-C44B3BB6ECCC/Windows8-RT-KB2999226-x64.msu"
+                  />
+
+      <MsuPackage Id="Win81_KB2999226_x86"
+                  Name="Windows8.1-KB2999226-x86.msu"
+                  Compressed="yes"
+                  Permanent="yes"
+                  InstallCondition="NOT VersionNT64 AND VersionNT &gt;= v6.3 AND ADVAPIVERSION &lt; v6.3.10000.0"
+                  DetectCondition="UCRTVERSION &gt;= v6.2.10585.0"
+                  Vital="yes"
+                  Cache="no"
+                  SuppressSignatureVerification="yes"
+                  SourceFile="Redist\KB2999226\Windows8.1-KB2999226-x86.msu"
+                  DownloadUrl="https://download.microsoft.com/download/E/4/6/E4694323-8290-4A08-82DB-81F2EB9452C2/Windows8.1-KB2999226-x86.msu"
+                  />
+
+      <MsuPackage Id="Win81_KB2999226_x64"
+                  Name="Windows8.1-KB2999226-x64.msu"
+                  Compressed="yes"
+                  Permanent="yes"
+                  InstallCondition="VersionNT64 AND VersionNT &gt;= v6.3 AND ADVAPIVERSION &lt; v6.3.10000.0"
+                  DetectCondition="UCRTVERSION64 &gt;= v6.2.10585.0"
+                  Vital="yes"
+                  Cache="no"
+                  SuppressSignatureVerification="yes"
+                  SourceFile="Redist\KB2999226\Windows8.1-KB2999226-x64.msu"
+                  DownloadUrl="https://download.microsoft.com/download/9/6/F/96FD0525-3DDF-423D-8845-5F92F4A6883E/Windows8.1-KB2999226-x64.msu"
+                  />
+
+      <MsiPackage SourceFile="$(env.DOKAN_PATH)\dokan_wix\bin\x86\$(var.Configuration)\Dokan_x86.msi"
+                  InstallCondition="NOT VersionNT64"
+                  Compressed="yes"
+                  Visible="yes"
+                  Permanent="yes"
+                  >
+        <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
+        <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
+        <MsiProperty Name="INSTALLDIR" Value="[DokanInstallFolder]" />
+        <MsiProperty Name="INSTALLDEVFILES" Value="0" />
+      </MsiPackage>
+
+      <MsiPackage SourceFile="$(env.DOKAN_PATH)\dokan_wix\bin\x64\$(var.Configuration)\Dokan_x64.msi"
+                  InstallCondition="VersionNT64"
+                  Compressed="yes"
+                  Visible="yes"
+                  Permanent="yes"
+                  >
+        <!--<MsiProperty Name="ADDLOCAL" Value="ALL" />-->
+        <MsiProperty Name="MSIUNINSTALLSUPERSEDEDCOMPONENTS" Value="1"/>
+        <MsiProperty Name="INSTALLDIR" Value="[DokanInstallFolder]" />
+        <MsiProperty Name="INSTALLDEVFILES" Value="0" />
+      </MsiPackage>
+
+      <MsiPackage Id="KeybasePrograms"
+                  SourceFile="$(var.KeybaseApps.TargetPath)"
                   DisplayInternalUI='no'
                   Permanent="no">
       </MsiPackage>
-		</Chain>
+
+    </Chain>
 	</Bundle>
   <Fragment>    
     <util:FileSearch Id="WINTRUST_FileSearch"
@@ -195,16 +273,37 @@
 
     <util:RegistrySearch
           Id='InnoCLIUninstall64'
-          Variable="InnoCLIInstalled64"
+          After="InnoCLIUninstall"
+          Variable="InnoCLIInstalled"
+          Condition="NOT InnoCLIInstalled"
           Result="exists"
           Root="HKLM"
           Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
           Value="UninstallString" 
           Win64="yes"/>
 
+    <!-- These two are for the most recent KBFS -->
+    <util:RegistrySearch Id="InnoKBFSUninstall"
+                 Variable="InnoKBFSUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{357F272E-BE0E-409F-8E39-0BB9827F5716}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 />
+    <util:RegistrySearch Id="InnoKBFSUninstall64"
+                 After="InnoKBFSUninstall"
+                 Condition="NOT InnoKBFSUninstallString"
+                 Variable="InnoKBFSUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{357F272E-BE0E-409F-8E39-0BB9827F5716}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
+
     <bal:Condition
       Message="Please uninstall any previous Keybase versions before continuing.">
-      <![CDATA[NOT InnoCLIInstalled AND NOT InnoCLIInstalled64]]>
+      <![CDATA[NOT InnoCLIInstalled AND NOT InnoKBFSUninstallString]]>
     </bal:Condition>
   </Fragment>
 

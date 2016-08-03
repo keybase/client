@@ -2,7 +2,7 @@
 
 import {Component} from 'react'
 import type {UserInfo} from '../../common-adapters/user-bio'
-import type {Proof} from '../../common-adapters/user-proofs'
+import type {Proof} from '../../constants/tracker'
 import type {SimpleProofState} from '../../constants/tracker'
 
 export type Props = {

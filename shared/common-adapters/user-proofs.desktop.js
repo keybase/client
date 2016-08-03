@@ -10,7 +10,8 @@ import openUrl from '../util/open-url'
 import * as shared from './user-proofs.shared'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
-import type {Proof, Props, MissingProof} from './user-proofs'
+import type {Props, MissingProof} from './user-proofs'
+import type {Proof} from '../constants/tracker'
 
 function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {
   const missingColor = globalColors.black_20

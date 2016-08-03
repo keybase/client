@@ -10,8 +10,7 @@ import {isLoading} from '../constants/tracker'
 
 import type {RenderPropsUnshaped} from './render'
 import type {UserInfo} from '../common-adapters/user-bio'
-import type {Proof} from '../common-adapters/user-proofs'
-import type {SimpleProofState} from '../constants/tracker'
+import type {Proof, SimpleProofState} from '../constants/tracker'
 
 export type TrackerProps = {
   currentlyFollowing: boolean,

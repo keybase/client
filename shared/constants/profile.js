@@ -1,4 +1,5 @@
 /* @flow */
+
 // Actions
 export const editingProfile = 'devices:editingProfile'
 export const editedProfile = 'devices:editedProfile'

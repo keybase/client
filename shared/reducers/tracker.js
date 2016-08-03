@@ -1,12 +1,13 @@
 /* @flow */
 
 import * as Constants from '../constants/tracker'
-import type {SimpleProofState, SimpleProofMeta, NonUserActions, TrackerState} from '../constants/tracker'
+import type {
+  Proof, OverviewProofState, SimpleProofState, SimpleProofMeta, NonUserActions, TrackerState,
+} from '../constants/tracker'
 import * as CommonConstants from '../constants/common'
 
 import {identifyCommon, proveCommon} from '../constants/types/keybase-v1'
 
-import type {Proof} from '../common-adapters/user-proofs'
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff,
   TrackDiffType, ProofStatus} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
@@ -195,33 +196,16 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       }
     }
     case Constants.updateProofState:
-      const proofs = state.proofs
-      const allOk: boolean = proofs.reduce((acc, p) => acc && p.state === normal, true)
-      const anyWarnings: boolean = proofs.reduce((acc, p) => acc || p.state === warning, false)
-      const anyError: boolean = proofs.reduce((acc, p) => acc || p.state === error, false)
-      const anyPending: boolean = proofs.reduce((acc, p) => acc || p.state === checking, false)
-
-      // Helper to reduce boiler plate.
-      const anyMetaCheck = (v: SimpleProofMeta) => (acc, p) => acc || p.meta === v
-
-      const anyDeletedProofs : boolean = proofs.reduce(anyMetaCheck(metaDeleted), false)
-      const anyUnreachableProofs : boolean = proofs.reduce(anyMetaCheck(metaUnreachable), false)
-      const anyUpgradedProofs : boolean = proofs.reduce(anyMetaCheck(metaUpgraded), false)
-      const anyNewProofs: boolean = proofs.reduce(anyMetaCheck(metaNew), false)
-
-      const changed = !(proofs || []).every(function (proof, index, ar) {
-        return (!proof.meta || proof.meta === metaNone)
-      })
-
-      const trackerMessage = deriveTrackerMessage(state.username, allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs)
+      const proofsGeneralState = overviewStateOfProofs(state.proofs)
+      const trackerMessage = deriveTrackerMessage(state.username, proofsGeneralState)
       const reason = state.currentlyFollowing && trackerMessage ? trackerMessage : state.reason
 
       return {
         ...state,
-        changed,
-        shouldFollow: deriveShouldFollow(allOk),
+        changed: proofsGeneralState.anyChanged,
+        shouldFollow: deriveShouldFollow(proofsGeneralState),
         reason,
-        trackerState: deriveTrackerState(allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs, state.eldestKidChanged),
+        trackerState: deriveSimpleProofState(state.eldestKidChanged, proofsGeneralState),
       }
 
     case Constants.setProofs:
@@ -604,14 +588,17 @@ function updateProof (proofs: Array<Proof>, rp: RemoteProof, lcr: LinkCheckResul
   return updated
 }
 
-function deriveTrackerState (
-  allOk: boolean,
-  anyWarnings: boolean,
-  anyError: boolean,
-  anyPending: boolean,
-  anyDeletedProofs : boolean,
-  anyUnreachableProofs : boolean,
-  eldestKidChanged: boolean
+export function overviewStateOfProofs (proofs: Array<Proof>): OverviewProofState {
+  const allOk = proofs.every(p => p.state === normal)
+  const [anyWarnings, anyError, anyPending] = [warning, error, checking].map(s => proofs.some(p => p.state === s))
+  const [anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs] = [metaDeleted, metaUnreachable, metaUpgraded, metaNew].map(m => proofs.some(p => p.meta === m))
+  const anyChanged = proofs.some(proof => proof.meta && proof.meta !== metaNone)
+  return {allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs, anyChanged}
+}
+
+export function deriveSimpleProofState (
+  eldestKidChanged: boolean,
+  {allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs}: {allOk: boolean, anyWarnings: boolean, anyError: boolean, anyPending: boolean, anyDeletedProofs : boolean, anyUnreachableProofs : boolean}
 ): SimpleProofState {
   if (eldestKidChanged) {
     return error
@@ -632,11 +619,7 @@ function deriveTrackerState (
 
 function deriveTrackerMessage (
   username: string,
-  allOk: boolean,
-  anyDeletedProofs : boolean,
-  anyUnreachableProofs : boolean,
-  anyUpgradedProofs : boolean,
-  anyNewProofs: boolean
+  {allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs}: {allOk: boolean, anyDeletedProofs: boolean, anyUnreachableProofs: boolean, anyUpgradedProofs: boolean, anyNewProofs: boolean}
 ): ?string {
   if (allOk) {
     return null
@@ -647,6 +630,6 @@ function deriveTrackerMessage (
   }
 }
 
-function deriveShouldFollow (allOk: boolean): boolean {
+function deriveShouldFollow ({allOk}: {allOk: boolean}): boolean {
   return allOk
 }

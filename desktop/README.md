@@ -63,16 +63,20 @@ npm install -g sourcemap-finder
 smfinder --position 1200:10 path-to-your-source-map
 ```
 
-### Dependencies
+### Updating Dependencies
 
-Updating packages
-
-Some of these steps are theoretically not needed but in practice npm is buggy as hell. Make sure your npm is updated globally
-```npm install -g npm```
+#### Updating packages
 
 1. Remove old shrinkwrap: Run ```rm npm-shrinkwrap.json```
 2. Find outdated packages: Run ```npm outdated```
 3. Install updated packages: Run ```npm install -E -S packageName@specificVersion``` or ```npm install -E -D devPackageName@specificVersion```
-4. If in react-native, delete our dummy net package. ```rm -rf node_modules/net```
-5. Build shrinkwrap: Run ```npm shrinkwrap --dev```
 
+#### Shrinkwrapping and re-vendoring
+
+Dependencies are shrinkwrapped in this repository, and vendored in [keybase/js-vendor-desktop](https://github.com/keybase/js-vendor-desktop).
+
+After you've changed `package.json`, to update the shrinkwrap and re-vendor dependencies:
+
+```
+KEYBASE_JS_VENDOR_DIR=path/to/js-vendor-desktop npm run vendor-update
+```

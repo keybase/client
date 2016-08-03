@@ -33,6 +33,4 @@ typedef void (^KBOnLaunchCtlStatus)(KBLaunchdStatus *serviceStatus);
 
 + (void)status:(NSString *)label completion:(KBOnLaunchCtlStatus)completion;
 
-+ (void)execute:(NSString *)command args:(NSArray *)args completion:(void (^)(NSError *error, NSData *data))completion;
-
 @end

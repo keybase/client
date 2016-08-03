@@ -2,19 +2,19 @@
 
 import React, {Component} from 'react'
 import {Box, UserProofs, UserBio, UserActions} from '../../common-adapters'
-import {headerColor as whichHeaderColor} from '../../common-adapters/user-bio.shared'
 import {globalColors, globalStyles, globalMargins} from '../../styles/style-guide'
 import {AVATAR_SIZE, HEADER_TOP_SPACE, HEADER_SIZE} from '../../profile/render.desktop'
+import {stateColors} from '../../util/tracker'
 import type {Props} from './user.render'
 
 export default class Render extends Component<void, Props, void> {
   render () {
-    const headerColor = whichHeaderColor(this.props)
+    const trackerStateColors = stateColors(this.props)
 
     return (
       <Box style={styleContainer}>
         <Box style={styleScroller} className='hide-scrollbar'>
-          <Box style={{...styleHeader, backgroundColor: headerColor}} />
+          <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}} />
           <UserBio
             type='Tracker'
             avatarSize={AVATAR_SIZE}
