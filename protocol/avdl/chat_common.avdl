@@ -61,7 +61,7 @@ protocol chatCommon {
 
   record SignatureInfo {
     int   v; // version = 1
-    bytes s; // signature; output if EdDSA
+    bytes s; // signature; output of EdDSA
     bytes k; // Verifying key
   }
 
