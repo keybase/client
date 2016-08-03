@@ -744,8 +744,8 @@ export type MessageBody = {
 export type MessageBoxed = {
   serverHeader?: ?MessageServerHeader;
   clientHeader: MessageClientHeader;
-  bodyCiphertext: EncryptedData;
   headerSignature: SignatureInfo;
+  bodyCiphertext: EncryptedData;
   bodySignature: SignatureInfo;
   keyGeneration: int;
 }

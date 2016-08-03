@@ -5,9 +5,14 @@ protocol chatRemote {
     // Only set when returned from the server; on the way up to the
     // server, it's null.
     union { null, MessageServerHeader } serverHeader;
+
+    // Sent as plaintext so that if the message is ever deleted, we can still
+    // validate that metadata.
     MessageClientHeader clientHeader;
-    EncryptedData bodyCiphertext;
+    // The signature of the above.
     SignatureInfo headerSignature;
+
+    EncryptedData bodyCiphertext;
     SignatureInfo bodySignature;
     int keyGeneration;
   }

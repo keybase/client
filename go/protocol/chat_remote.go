@@ -11,8 +11,8 @@ import (
 type MessageBoxed struct {
 	ServerHeader    *MessageServerHeader `codec:"serverHeader,omitempty" json:"serverHeader,omitempty"`
 	ClientHeader    MessageClientHeader  `codec:"clientHeader" json:"clientHeader"`
-	BodyCiphertext  EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
 	HeaderSignature SignatureInfo        `codec:"headerSignature" json:"headerSignature"`
+	BodyCiphertext  EncryptedData        `codec:"bodyCiphertext" json:"bodyCiphertext"`
 	BodySignature   SignatureInfo        `codec:"bodySignature" json:"bodySignature"`
 	KeyGeneration   int                  `codec:"keyGeneration" json:"keyGeneration"`
 }

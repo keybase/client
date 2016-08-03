@@ -40,6 +40,7 @@ protocol chatLocal {
     union { null, MessageConversationMetadata } conversationMetadata;
   }
 
+  // This is what is encrypted and sent over as bodyCiphertext.
   record MessagePlaintext {
     MessageClientHeader clientHeader;
     array<MessageBody> messageBodies;
