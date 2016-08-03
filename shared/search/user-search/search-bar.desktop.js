@@ -46,7 +46,7 @@ class SearchBar extends Component<void, Props, void> {
 
   constructor (props: Props) {
     super(props)
-    this._onDebouncedSearch = _.debounce(this._onSearch, 500)
+    this._onDebouncedSearch = () => null
   }
 
   componentWillReceiveProps (nextProps: Props) {

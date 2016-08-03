@@ -50,7 +50,7 @@ export default connector.connect(
      showComingSoon: !flags.searchEnabled,
      onClickResult: user => { dispatch(addUserToGroup(user)) },
      selectedService: searchPlatform,
-     onSearch: (term, selectedPlatform) => { dispatch(search(term, selectedPlatform || searchPlatform)) },
+     onSearch: (term, selectedPlatform) => { console.warn('hi!'); dispatch(openInKBFS(term)) },
      onClickService: platform => { searchPlatform !== platform && dispatch(selectPlatform(platform)) },
      showUserGroup,
      selectedUsers,
