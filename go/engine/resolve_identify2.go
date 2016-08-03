@@ -134,3 +134,12 @@ func (e *ResolveThenIdentify2) TrackToken() keybase1.TrackToken {
 func (e *ResolveThenIdentify2) ConfirmResult() keybase1.ConfirmResult {
 	return e.i2eng.ConfirmResult()
 }
+
+func Resolve(g *libkb.GlobalContext, assertion string) (libkb.NormalizedUsername, keybase1.UID, error) {
+	rres := g.Resolver.ResolveFullExpressionNeedUsername(assertion)
+	err := rres.GetError()
+	if err != nil {
+		return libkb.NormalizedUsername(""), keybase1.UID(""), err
+	}
+	return libkb.NewNormalizedUsername(rres.GetNormalizedUsername().String()), rres.GetUID(), nil
+}

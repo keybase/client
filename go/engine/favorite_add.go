@@ -130,3 +130,14 @@ func (e *FavoriteAdd) checkInviteNeeded(ctx *Context) error {
 
 	return nil
 }
+
+func FavoriteAddRunEngine(g *libkb.GlobalContext, folder keybase1.Folder) error {
+	arg := keybase1.FavoriteAddArg{
+		Folder: folder,
+	}
+	eng := NewFavoriteAdd(&arg, g)
+	engineCtx := &Context{
+		IdentifyUI: g.UI.GetIdentifyUI(),
+	}
+	return RunEngine(eng, engineCtx)
+}
