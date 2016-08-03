@@ -5,6 +5,7 @@ import type {Actions, State} from '../constants/profile'
 
 const initialState: State = {
   error: null,
+  errorCode: -1,
   waiting: false,
   username: '',
   platform: null,
@@ -54,6 +55,7 @@ export default function (state: State = initialState, action: Actions) {
       return {
         ...state,
         error: action.payload.error,
+        errorCode: action.payload.errorCode,
       }
     case Constants.updateSigID:
       if (action.error) { break }
