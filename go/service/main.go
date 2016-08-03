@@ -52,7 +52,11 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 
 func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister, g *libkb.GlobalContext) (shutdowners []Shutdowner, err error) {
 	rekeyHandler := NewRekeyHandler(xp, g, d.gregor)
+
+	// The rekeyHandler implements Shutdowner interface to stop the timer
+	// properly
 	shutdowners = append(shutdowners, rekeyHandler)
+
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewBTCHandler(xp, g)),
@@ -111,16 +115,21 @@ func (d *Service) Handle(c net.Conn) {
 	}
 	shutdowners, err := d.RegisterProtocols(server, xp, connID, logReg, d.G())
 
-	var once sync.Once
+	var shutdownOnce sync.Once
 	shutdown := func() error {
-		once.Do(func() {
+		shutdownOnce.Do(func() {
 			for _, shutdowner := range shutdowners {
 				shutdowner.Shutdown()
 			}
 		})
 		return nil
 	}
+
+	// Clean up handlers when the connection closes.
 	defer shutdown()
+
+	// Make sure shutdown is called when service shuts down but the connection
+	// isn't closed yet.
 	d.G().PushShutdownHook(shutdown)
 
 	if err != nil {
