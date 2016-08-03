@@ -877,6 +877,7 @@ type TLFUpdateHistory struct {
 // writerInfo is the keybase username and device that generated the operation.
 type writerInfo struct {
 	name       libkb.NormalizedUsername
+	uid        keybase1.UID
 	kid        keybase1.KID
 	deviceName string
 }

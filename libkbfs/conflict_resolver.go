@@ -341,67 +341,6 @@ func (sp crSortedPaths) Swap(i, j int) {
 	sp[j], sp[i] = sp[i], sp[j]
 }
 
-// getPathsFromChains returns a sorted slice of most recent paths to
-// all the nodes in the given CR chains that were directly modified
-// during a branch, and which existed at both the start and the end of
-// the branch.  This represents the paths that need to be checked for
-// conflicts.  The paths are sorted by descending path length.  It
-// uses the corresponding node cache when looking up paths, which must
-// at least contain the most recent root node of the branch.  Note
-// that if a path cannot be found, the corresponding chain is
-// completely removed from the set of CR chains.
-func (cr *ConflictResolver) getPathsFromChains(ctx context.Context,
-	chains *crChains, nodeCache NodeCache) ([]path, error) {
-	newPtrs := make(map[BlockPointer]bool)
-	var ptrs []BlockPointer
-	for ptr, chain := range chains.byMostRecent {
-		newPtrs[ptr] = true
-		// We only care about the paths for ptrs that are directly
-		// affected by operations and were live through the entire
-		// unmerged branch.
-		if len(chain.ops) > 0 && !chains.isCreated(chain.original) &&
-			!chains.isDeleted(chain.original) {
-			ptrs = append(ptrs, ptr)
-		}
-	}
-
-	nodeMap, err := cr.fbo.blocks.SearchForNodes(
-		ctx, nodeCache, ptrs, newPtrs,
-		chains.mostRecentMD.ReadOnly())
-	if err != nil {
-		return nil, err
-	}
-
-	paths := make([]path, 0, len(nodeMap))
-	for ptr, n := range nodeMap {
-		if n == nil {
-			cr.log.CDebugf(ctx, "Ignoring pointer with no found path: %v", ptr)
-			chains.removeChain(ptr)
-			continue
-		}
-
-		p := cr.fbo.nodeCache.PathFromNode(n)
-		if p.tailPointer() != ptr {
-			return nil, NodeNotFoundError{ptr}
-		}
-		paths = append(paths, p)
-
-		// update the unmerged final paths
-		chain, ok := chains.byMostRecent[ptr]
-		if !ok {
-			cr.log.CErrorf(ctx, "Couldn't find chain for found path: %v", ptr)
-			continue
-		}
-		for _, op := range chain.ops {
-			op.setFinalPath(p)
-		}
-	}
-
-	// Order by descending path length.
-	sort.Sort(crSortedPaths(paths))
-	return paths, nil
-}
-
 func fileWithConflictingWrite(unmergedChains *crChains, mergedChains *crChains,
 	unmergedOriginal BlockPointer, mergedOriginal BlockPointer) bool {
 	mergedChain := mergedChains.byOriginal[mergedOriginal]
@@ -1045,8 +984,8 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 	// Get the full path for every most recent unmerged pointer with a
 	// chain of unmerged operations, and which was not created or
 	// deleted within in the unmerged branch.
-	unmergedPaths, err = cr.getPathsFromChains(ctx, unmergedChains,
-		cr.fbo.nodeCache)
+	unmergedPaths, err = unmergedChains.getPaths(ctx, &cr.fbo.blocks,
+		cr.log, cr.fbo.nodeCache, false)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, nil, err
 	}
@@ -1368,8 +1307,8 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 				newChains.byMostRecent[c.mostRecent] = newChain
 			}
 			newChains.mostRecentMD = unmergedChains.mostRecentMD
-			unmergedPaths, err := cr.getPathsFromChains(ctx, newChains,
-				cr.fbo.nodeCache)
+			unmergedPaths, err := newChains.getPaths(ctx, &cr.fbo.blocks,
+				cr.log, cr.fbo.nodeCache, false)
 			if err != nil {
 				return nil, err
 			}

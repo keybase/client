@@ -283,6 +283,8 @@ type folderBranchOps struct {
 	// rekey with a paper key prompt, if enough time has passed.
 	// Protected by mdWriterLock
 	rekeyWithPromptTimer *time.Timer
+
+	editHistory TlfEditHistory
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -344,9 +346,14 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 		shutdownChan:    make(chan struct{}),
 		updatePauseChan: make(chan (<-chan struct{})),
 		forceSyncChan:   forceSyncChan,
+		editHistory: TlfEditHistory{
+			config: config,
+			log:    log,
+		},
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
 	fbo.fbm = newFolderBlockManager(config, fb, fbo)
+	fbo.editHistory.fbo = fbo
 	if config.DoBackgroundFlushes() {
 		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
 	}
@@ -4492,6 +4499,25 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 		history.Updates = append(history.Updates, updateSummary)
 	}
 	return history, nil
+}
+
+// GetEditHistory implements the KBFSOps interface for folderBranchOps
+func (fbo *folderBranchOps) GetEditHistory(ctx context.Context,
+	folderBranch FolderBranch) (edits TlfWriterEdits, err error) {
+	fbo.log.CDebugf(ctx, "GetEditHistory")
+	defer func() { fbo.deferLog.CDebugf(ctx, "Done: %v", err) }()
+
+	if folderBranch != fbo.folderBranch {
+		return nil, WrongOpsError{fbo.folderBranch, folderBranch}
+	}
+
+	lState := makeFBOLockState()
+	head, err := fbo.getMDForReadHelper(ctx, lState, mdReadNeedIdentify)
+	if err != nil {
+		return nil, err
+	}
+
+	return fbo.editHistory.GetComplete(ctx, head)
 }
 
 // PushConnectionStatusChange pushes human readable connection status changes.

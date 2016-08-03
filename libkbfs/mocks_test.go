@@ -471,6 +471,17 @@ func (_mr *_MockKBFSOpsRecorder) GetUpdateHistory(arg0, arg1 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUpdateHistory", arg0, arg1)
 }
 
+func (_m *MockKBFSOps) GetEditHistory(ctx context.Context, folderBranch FolderBranch) (TlfWriterEdits, error) {
+	ret := _m.ctrl.Call(_m, "GetEditHistory", ctx, folderBranch)
+	ret0, _ := ret[0].(TlfWriterEdits)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBFSOpsRecorder) GetEditHistory(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetEditHistory", arg0, arg1)
+}
+
 func (_m *MockKBFSOps) Shutdown() error {
 	ret := _m.ctrl.Call(_m, "Shutdown")
 	ret0, _ := ret[0].(error)
