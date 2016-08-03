@@ -4,7 +4,7 @@
 // This is modified from https://github.com/mawie81/electron-window-state
 //
 
-import electron from 'electron'
+import {app, screen} from 'electron'
 import fs from 'fs'
 import path from 'path'
 import jsonfile from 'jsonfile'
@@ -27,16 +27,18 @@ export default class AppState {
       isFullScreen: null,
       displayBounds: null,
       tab: null,
+      dockHidden: false,
     }
 
     this.config = {
-      path: path.join(electron.app.getPath('userData'), 'app-state.json'),
+      path: path.join(app.getPath('userData'), 'app-state.json'),
       eventHandlingDelay: 100,
     }
 
     this.managed = {
       debounceChangeTimer: null,
       winRef: null,
+      showHandlers: [],
       resizeHandlers: [],
       moveHandlers: [],
       closeHandlers: [],
@@ -44,6 +46,7 @@ export default class AppState {
     }
 
     this._loadStateSync()
+    this._loadAppListeners()
   }
 
   saveState () {
@@ -66,6 +69,10 @@ export default class AppState {
     //   win.setFullScreen(true)
     // }
 
+    let showHandler = () => { this._showHandler() }
+    this.managed.showHandlers.push(showHandler)
+    win.on('show', showHandler)
+
     let resizeHandler = () => { this._debounceChangeHandler() }
     this.managed.resizeHandlers.push(resizeHandler)
     win.on('resize', resizeHandler)
@@ -85,9 +92,13 @@ export default class AppState {
     this.managed.winRef = win
   }
 
-  clear () {
+  _clearWindow () {
     let winRef = this.managed.winRef
     if (winRef) {
+      for (let showHandler of this.managed.showHandlers) {
+        winRef.removeListener('show', showHandler)
+      }
+      this.managed.showHandlers = []
       for (let resizeHandler of this.managed.resizeHandlers) {
         winRef.removeListener('resize', resizeHandler)
       }
@@ -117,7 +128,7 @@ export default class AppState {
       width: state.width,
       height: state.height,
     }
-    let displayBounds = electron.screen.getDisplayMatching(rect).bounds
+    let displayBounds = screen.getDisplayMatching(rect).bounds
     console.log('Check bounds:', rect, state.displayBounds, displayBounds)
     return deepEqual(state.displayBounds, displayBounds, {strict: true})
   }
@@ -156,10 +167,14 @@ export default class AppState {
       }
       this.state.isMaximized = winRef.isMaximized()
       this.state.isFullScreen = winRef.isFullScreen()
-      this.state.displayBounds = electron.screen.getDisplayMatching(winBounds).bounds
+      this.state.displayBounds = screen.getDisplayMatching(winBounds).bounds
       this.state.windowHidden = !winRef.isVisible()
     }
     this.saveState()
+  }
+
+  _showHandler () {
+    this._updateState()
   }
 
   _closeHandler () {
@@ -167,11 +182,23 @@ export default class AppState {
   }
 
   _closedHandler () {
-    this.clear()
+    this._clearWindow()
   }
 
   _debounceChangeHandler () {
     clearTimeout(this.managed.debounceChangeTimer)
     this.managed.debounceChangeTimer = setTimeout(() => { this._updateState() }, this.config.eventHandlingDelay)
+  }
+
+  _loadAppListeners () {
+    app.on('-keybase-dock-showing', () => {
+      this.state.dockHidden = false
+      this.saveState()
+    })
+
+    app.on('-keybase-dock-hide', () => {
+      this.state.dockHidden = true
+      this.saveState()
+    })
   }
 }
