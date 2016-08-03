@@ -808,13 +808,12 @@ func (ccs *crChains) changeOriginal(oldOriginal BlockPointer,
 // branch, and which existed at both the start and the end of the
 // branch.  This represents the paths that need to be checked for
 // conflicts.  The paths are sorted by descending path length.  It
-// uses the corresponding node cache when looking up paths, which must
-// at least contain the most recent root node of the branch.  Note
-// that if a path cannot be found, the corresponding chain is
-// completely removed from the set of CR chains.
+// uses nodeCache when looking up paths, which must at least contain
+// the most recent root node of the branch.  Note that if a path
+// cannot be found, the corresponding chain is completely removed from
+// the set of CR chains.
 func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
-	log logger.Logger, nodeCache NodeCache, localNodeCache NodeCache,
-	ignoreCreates bool) (
+	log logger.Logger, nodeCache NodeCache, ignoreCreates bool) (
 	[]path, error) {
 	newPtrs := make(map[BlockPointer]bool)
 	var ptrs []BlockPointer
@@ -844,7 +843,7 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 			continue
 		}
 
-		p := localNodeCache.PathFromNode(n)
+		p := nodeCache.PathFromNode(n)
 		if p.tailPointer() != ptr {
 			return nil, NodeNotFoundError{ptr}
 		}

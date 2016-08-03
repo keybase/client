@@ -129,19 +129,23 @@ type TlfEditHistory struct {
 	edits TlfWriterEdits
 }
 
-func (teh *TlfEditHistory) getEditsCopy() TlfWriterEdits {
-	teh.lock.Lock()
-	defer teh.lock.Unlock()
+func (teh *TlfEditHistory) getEditsCopyLocked() TlfWriterEdits {
 	if teh.edits == nil {
 		return nil
 	}
 	edits := make(TlfWriterEdits)
 	for user, userEdits := range teh.edits {
-		userEditsCopy := make([]TlfEdit, 0, len(userEdits))
+		userEditsCopy := make([]TlfEdit, len(userEdits))
 		copy(userEditsCopy, userEdits)
 		edits[user] = userEditsCopy
 	}
 	return edits
+}
+
+func (teh *TlfEditHistory) getEditsCopy() TlfWriterEdits {
+	teh.lock.Lock()
+	defer teh.lock.Unlock()
+	return teh.getEditsCopyLocked()
 }
 
 func (teh *TlfEditHistory) updateRmds(rmds []ImmutableRootMetadata,
@@ -160,8 +164,8 @@ func (teh *TlfEditHistory) calculateEditCounts(ctx context.Context,
 	}
 
 	// Set the paths on all the ops
-	_, err = chains.getPaths(ctx, &teh.fbo.blocks, teh.config.MakeLogger(""),
-		teh.fbo.nodeCache, teh.fbo.nodeCache, false)
+	_, err = chains.getPaths(ctx, &teh.fbo.blocks, teh.log, teh.fbo.nodeCache,
+		false)
 	if err != nil {
 		return nil, err
 	}
@@ -242,8 +246,8 @@ outer:
 
 // GetComplete returns the most recently known set of clustered edit
 // history for this TLF.
-func (teh *TlfEditHistory) GetComplete(ctx context.Context) (
-	TlfWriterEdits, error) {
+func (teh *TlfEditHistory) GetComplete(ctx context.Context,
+	head ImmutableRootMetadata) (TlfWriterEdits, error) {
 	var currEdits TlfWriterEdits
 	/**
 	* Once we update currEdits based on notifications, we can uncomment this.
@@ -255,12 +259,6 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context) (
 
 	// We have no history -- fetch from the server until we have a
 	// complete history.
-
-	// Get current head for this folder.
-	head, err := teh.fbo.getMDForExternalUse(ctx)
-	if err != nil {
-		return nil, err
-	}
 
 	estimates := make(writerEditEstimates)
 	for _, writer := range head.GetTlfHandle().ResolvedWriters() {
@@ -291,6 +289,7 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context) (
 			// Once the estimate hits the threshold for each writer,
 			// calculate the chains using all those MDs, and build the
 			// real edit map (discounting deleted files, etc).
+			var err error
 			currEdits, err = teh.calculateEditCounts(ctx, rmds)
 			if err != nil {
 				return nil, err
@@ -331,6 +330,7 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context) (
 
 	if currEdits == nil {
 		// We broke out of the loop early.
+		var err error
 		currEdits, err = teh.calculateEditCounts(ctx, rmds)
 		if err != nil {
 			return nil, err
@@ -351,5 +351,5 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context) (
 	teh.lock.Lock()
 	defer teh.lock.Unlock()
 	teh.edits = currEdits
-	return currEdits, nil
+	return teh.getEditsCopyLocked(), nil
 }

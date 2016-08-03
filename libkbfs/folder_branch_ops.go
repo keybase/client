@@ -4512,7 +4512,12 @@ func (fbo *folderBranchOps) GetEditHistory(ctx context.Context,
 		return nil, WrongOpsError{fbo.folderBranch, folderBranch}
 	}
 
-	return fbo.editHistory.GetComplete(ctx)
+	head, err := fbo.getMDForExternalUse(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return fbo.editHistory.GetComplete(ctx, head)
 }
 
 // PushConnectionStatusChange pushes human readable connection status changes.

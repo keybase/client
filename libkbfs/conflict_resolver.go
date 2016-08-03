@@ -985,7 +985,7 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 	// chain of unmerged operations, and which was not created or
 	// deleted within in the unmerged branch.
 	unmergedPaths, err = unmergedChains.getPaths(ctx, &cr.fbo.blocks,
-		cr.log, cr.fbo.nodeCache, cr.fbo.nodeCache, true)
+		cr.log, cr.fbo.nodeCache, true)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, nil, err
 	}
@@ -1308,7 +1308,7 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 			}
 			newChains.mostRecentMD = unmergedChains.mostRecentMD
 			unmergedPaths, err := newChains.getPaths(ctx, &cr.fbo.blocks,
-				cr.log, cr.fbo.nodeCache, cr.fbo.nodeCache, true)
+				cr.log, cr.fbo.nodeCache, true)
 			if err != nil {
 				return nil, err
 			}
