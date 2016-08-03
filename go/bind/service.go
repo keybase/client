@@ -4,6 +4,8 @@
 package keybase
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -24,7 +26,7 @@ func (s *kbservice) Resolve(ctx context.Context, assertion string) (libkb.Normal
 }
 
 func (s *kbservice) Identify(_ context.Context, assertion, reason string) (libkbfs.UserInfo, error) {
-	upk, err := engine.Identify2(s.ctx, assertion, reason)
+	upk, err := engine.Identify2Run(s.ctx, assertion, reason)
 	if err != nil {
 		return libkbfs.UserInfo{}, libkbfs.ConvertIdentifyError(assertion, err)
 	}
@@ -64,19 +66,22 @@ func (s *kbservice) CurrentSession(_ context.Context, sessionID int) (libkbfs.Se
 }
 
 func (s *kbservice) FavoriteAdd(_ context.Context, folder keybase1.Folder) error {
-	return engine.FavoriteAddRunEngine(s.ctx, folder)
+	return engine.FavoriteAddRun(s.ctx, folder)
 }
 
 func (s *kbservice) FavoriteDelete(_ context.Context, folder keybase1.Folder) error {
-	return engine.FavoriteIgnoreRunEngine(s.ctx, folder)
+	return engine.FavoriteIgnoreRun(s.ctx, folder)
 }
 
 func (s *kbservice) FavoriteList(_ context.Context, sessionID int) ([]keybase1.Folder, error) {
-	return engine.FavoriteListRunEngine(s.ctx, sessionID)
+	return engine.FavoriteListRun(s.ctx, sessionID)
 }
 
 func (s *kbservice) Notify(_ context.Context, notification *keybase1.FSNotification) error {
-	s.ctx.NotifyRouter.HandleFSActivity(notification)
+	if notification == nil {
+		return fmt.Errorf("Missing notification in notify")
+	}
+	s.ctx.NotifyRouter.HandleFSActivity(*notification)
 	return nil
 }
 

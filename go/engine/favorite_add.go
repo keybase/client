@@ -131,7 +131,7 @@ func (e *FavoriteAdd) checkInviteNeeded(ctx *Context) error {
 	return nil
 }
 
-func FavoriteAddRunEngine(g *libkb.GlobalContext, folder keybase1.Folder) error {
+func FavoriteAddRun(g *libkb.GlobalContext, folder keybase1.Folder) error {
 	arg := keybase1.FavoriteAddArg{
 		Folder: folder,
 	}

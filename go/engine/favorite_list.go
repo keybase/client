@@ -70,7 +70,7 @@ func (e *FavoriteList) Result() keybase1.FavoritesResult {
 	}
 }
 
-func FavoriteListRunEngine(g *libkb.GlobalContext, sessionID int) ([]keybase1.Folder, error) {
+func FavoriteListRun(g *libkb.GlobalContext, sessionID int) ([]keybase1.Folder, error) {
 	eng := NewFavoriteList(g)
 	engineCtx := &Context{}
 	if err := RunEngine(eng, engineCtx); err != nil {
