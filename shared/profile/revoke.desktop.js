@@ -13,7 +13,7 @@ const Render = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
 
   return (
     <Box style={styleContainer}>
-      <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />
+      {!isWaiting && <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />}
       {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
         <PlatformIcon platform={platform} overlay={'iconfont-proof-broken'} overlayColor={globalColors.red} size={48} />
@@ -22,7 +22,7 @@ const Render = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
         <Text style={styleDescriptionText} type='Header'>{formatMessage(platform)}</Text>
         <Text style={styleReminderText} type='Body'>You can add it again later, if you change your mind.</Text>
         <Box style={styleButtonsContainer}>
-          <Button type='Secondary' onClick={onCancel} label='Cancel' />
+          <Button type='Secondary' onClick={onCancel} label='Cancel' disabled={isWaiting} />
           <Button type='Danger' onClick={onRevoke} label='Yes, revoke it' waiting={isWaiting} />
         </Box>
       </Box>

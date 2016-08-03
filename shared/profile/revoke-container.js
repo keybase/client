@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import Revoke from './revoke'
 import {TypedConnector} from '../util/typed-connect'
-import {submitRevokeProof, cancelRevokeProof} from '../actions/profile'
+import {submitRevokeProof, finishRevoking} from '../actions/profile'
 
 import type {PlatformsExpanded} from '../constants/types/more'
 import type {Props} from './revoke'
@@ -40,7 +40,7 @@ export default connector.connect(
   (state, dispatch, ownProps) => ({
     isWaiting: state.profile.revoke.waiting,
     errorMessage: state.profile.revoke.error,
-    onCancel: () => { dispatch(cancelRevokeProof()) },
+    onCancel: () => { dispatch(finishRevoking()) },
     onRevoke: () => { dispatch(submitRevokeProof(ownProps.proofId)) },
     platform: ownProps.platform,
     platformHandle: ownProps.platformHandle,

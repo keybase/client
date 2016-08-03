@@ -165,8 +165,6 @@ function finishRevoking (): AsyncAction {
   }
 }
 
-let submitRevokeProofResponse: ?Object = null
-
 function submitRevokeProof (proofId: string): AsyncAction {
   return (dispatch) => {
     revokeRevokeSigsRpc({
@@ -187,16 +185,6 @@ function submitRevokeProof (proofId: string): AsyncAction {
   }
 }
 
-function cancelRevokeProof (): AsyncAction {
-  return (dispatch) => {
-    if (submitRevokeProofResponse) {
-      engine.cancelRPC(submitRevokeProofResponse, InputCancelError)
-      submitRevokeProofResponse = null
-    }
-    dispatch(finishRevoking())
-  }
-}
-
 export {
   addProof,
   editProfile,
@@ -205,5 +193,5 @@ export {
   submitUsername,
   cancelAddProof,
   submitRevokeProof,
-  cancelRevokeProof,
+  finishRevoking,
 }
