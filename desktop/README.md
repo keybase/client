@@ -73,10 +73,12 @@ smfinder --position 1200:10 path-to-your-source-map
 
 #### Shrinkwrapping and re-vendoring
 
-Dependencies are shrinkwrapped in this repository, and vendored in [keybase/js-vendor-desktop](https://github.com/keybase/js-vendor-desktop).
+Dependencies are shrinkwrapped in this repository. Vendored copies of dependencies are located in [keybase/js-vendor-desktop](https://github.com/keybase/js-vendor-desktop).
 
-After you've changed `package.json`, to update the shrinkwrap and re-vendor dependencies:
+First, commit your changes to `package.json`. Then, to update the shrinkwrap and re-vendor dependencies, you'll need to clone [keybase/js-vendor-desktop](https://github.com/keybase/js-vendor-desktop) and run:
 
 ```
 KEYBASE_JS_VENDOR_DIR=path/to/js-vendor-desktop npm run vendor-update
 ```
+
+This will create a new commit in this repo and js-vendor-desktop containing the updated deps.
