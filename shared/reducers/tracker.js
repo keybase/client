@@ -66,6 +66,8 @@ function initialTrackerState (username: string): TrackerState {
     trackToken: null,
     trackerState: initialProofState,
     type: 'tracker',
+    trackers: [],
+    tracking: [],
     userInfo: {
       fullname: '', // TODO get this info,
       followersCount: -1,
@@ -197,8 +199,8 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     }
     case Constants.updateProofState:
       const proofsGeneralState = overviewStateOfProofs(state.proofs)
-      const trackerMessage = deriveTrackerMessage(state.username, proofsGeneralState)
-      const reason = state.currentlyFollowing && trackerMessage ? trackerMessage : state.reason
+      const trackerMessage = deriveTrackerMessage(state.username, state.currentlyFollowing, proofsGeneralState)
+      const reason = trackerMessage || state.reason
 
       return {
         ...state,
@@ -619,9 +621,10 @@ export function deriveSimpleProofState (
 
 function deriveTrackerMessage (
   username: string,
+  currentlyFollowing: boolean,
   {allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs}: {allOk: boolean, anyDeletedProofs: boolean, anyUnreachableProofs: boolean, anyUpgradedProofs: boolean, anyNewProofs: boolean}
 ): ?string {
-  if (allOk) {
+  if (allOk || !currentlyFollowing) {
     return null
   } else if (anyDeletedProofs || anyUnreachableProofs) {
     return `Some of ${username}’s proofs have changed since you last followed them.`
