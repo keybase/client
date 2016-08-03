@@ -804,11 +804,10 @@ func (ui SecretUI) passphrasePrompt(arg libkb.PromptArg) (text string, storeSecr
 		tp = tp + ": "
 
 		res, err = ui.getSecret(keybase1.SecretEntryArg{
-			Err:            emp,
-			Desc:           arg.PinentryDesc,
-			Prompt:         arg.PinentryPrompt,
-			UseSecretStore: arg.UseSecretStore,
-			ShowTyping:     arg.ShowTyping,
+			Err:        emp,
+			Desc:       arg.PinentryDesc,
+			Prompt:     arg.PinentryPrompt,
+			ShowTyping: arg.ShowTyping,
 		}, &keybase1.SecretEntryArg{
 			Err:        emt,
 			Prompt:     tp,
