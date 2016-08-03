@@ -27,7 +27,6 @@ func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
 	arg.WindowTitle = "Pick a new passphrase"
 	arg.Prompt = "Pick a new strong passphrase (12+ characters)"
 	arg.Type = keybase1.PassphraseType_VERIFY_PASS_PHRASE
-	arg.Features.StoreSecret.Allow = false
 	res, err := promptPassphraseWithArg(g, arg, "Please reenter your new passphrase for confirmation")
 	if err != nil {
 		return "", err
@@ -42,7 +41,6 @@ func PromptPaperPhrase(g *libkb.GlobalContext) (string, error) {
 	arg.WindowTitle = "Enter a paper key"
 	arg.Prompt = "Enter a paper key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
-	arg.Features.StoreSecret.Allow = false
 	arg.Features.ShowTyping.Allow = true
 	arg.Features.ShowTyping.DefaultValue = true
 
