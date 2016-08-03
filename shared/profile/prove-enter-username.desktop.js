@@ -1,9 +1,11 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Icon, Text, Button, Input, PlatformIcon} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import type {Platforms} from '../constants/types/more'
 import type {Props} from './prove-enter-username'
+import {Box, Icon, Text, Button, Input, PlatformIcon} from '../common-adapters'
+import {constants} from '../constants/types/keybase-v1'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {shell} from 'electron'
 
 function standardText (name) {
   return {
@@ -51,6 +53,19 @@ type State = {
   username: string
 }
 
+function customError (error: string, code: number) {
+  if (code === constants.StatusCode.scprofilenotpublic) {
+    return <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
+      <Text style={styleErrorBannerText} type='BodySmallSemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}} onClick={() => shell.openExternal('https://www.coinbase.com/settings#payment_page')}>
+        <Text style={styleErrorBannerText} type='BodySmallSemibold'>Go to Coinbase</Text>
+        <Icon type='iconfont-open-browser' style={{color: globalColors.white_40, marginLeft: 4}} />
+      </Box>
+    </Box>
+  }
+  return <Text style={styleErrorBannerText} type='BodySmallSemibold'>{error}</Text>
+}
+
 class Render extends Component<void, Props, State> {
   state: State;
 
@@ -85,6 +100,7 @@ class Render extends Component<void, Props, State> {
     return (
       <Box style={styleContainer}>
         <Icon style={styleClose} type='iconfont-close' onClick={this.props.onCancel} />
+        {this.props.error && <Box style={styleErrorBanner}>{customError(this.props.error, this.props.errorCode)}</Box>}
         <Text type='Header' style={{marginBottom: globalMargins.medium}}>{headerText}</Text>
         {/* FIXME: awaiting blank icon overlay art here */}
         <PlatformIcon platform={this.props.platform} overlay={'iconfont-proof-pending'} overlayColor={globalColors.grey} size={48} />
@@ -97,6 +113,23 @@ class Render extends Component<void, Props, State> {
       </Box>
     )
   }
+}
+
+const styleErrorBanner = {
+  ...globalStyles.flexBoxColumn,
+  justifyContent: 'center',
+  position: 'absolute',
+  alignItems: 'center',
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 1,
+  minHeight: globalMargins.large,
+  backgroundColor: globalColors.red,
+}
+
+const styleErrorBannerText = {
+  color: globalColors.white,
 }
 
 const styleContainer = {
