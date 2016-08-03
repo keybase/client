@@ -9,6 +9,7 @@ const initialState: State = {
   username: '',
   platform: null,
   usernameValid: true,
+  revoke: {},
 }
 
 export default function (state: State = initialState, action: Actions) {
@@ -38,6 +39,24 @@ export default function (state: State = initialState, action: Actions) {
       return {
         ...state,
         username: action.payload.username,
+      }
+    case Constants.waitingRevokeProof:
+      if (action.error) {
+        break
+      }
+      return {
+        ...state,
+        revoke: {
+          ...state.revoke,
+          waiting: action.payload.waiting,
+        },
+      }
+    case Constants.finishRevokeProof:
+      return {
+        ...state,
+        revoke: action.error
+          ? {error: action.payload.error}
+          : {},
       }
   }
 

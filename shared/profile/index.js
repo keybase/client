@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import Render from './render'
 import flags from '../util/feature-flags'
 import type {MissingProof} from '../common-adapters/user-proofs'
+import type {Proof} from '../constants/tracker'
 import type {Props} from './render'
 import {addProof} from '../actions/profile'
 import {connect} from 'react-redux'
@@ -12,6 +13,7 @@ import {isLoading} from '../constants/tracker'
 import {openInKBFS} from '../actions/kbfs'
 import {routeAppend, navigateUp} from '../actions/router'
 import ProveEnterUsername from './prove-enter-username-container'
+import Revoke from './revoke-container'
 
 class Profile extends Component<void, Props, void> {
   static parseRoute (currentPath, uri) {
@@ -26,6 +28,7 @@ class Profile extends Component<void, Props, void> {
       subRoutes: {
         'editprofile': EditProfile,
         ProveEnterUsername,
+        Revoke,
       },
     }
   }
@@ -70,6 +73,7 @@ export default connect(
     onFolderClick: folder => dispatch(openInKBFS(folder.path)),
     onEditProfile: () => dispatch(routeAppend({path: 'editprofile'})),
     onMissingProofClick: (missingProof: MissingProof) => dispatch(addProof(missingProof.type)),
+    onRevokeProof: (proof: Proof) => dispatch(routeAppend({path: 'Revoke', platform: proof.type, platformHandle: proof.name, proofId: proof.id})),
   }),
   (stateProps, dispatchProps, ownProps) => {
     const username = ownProps.username || stateProps.myUsername
