@@ -458,8 +458,9 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	// recursion.
 	c := keybase1.NotifyCtlClient{Cli: rawClient}
 	err := c.SetNotifications(ctx, keybase1.NotificationChannels{
-		Session: true,
-		Users:   true,
+		Session:   true,
+		Paperkeys: true,
+		Keyfamily: true,
 	})
 	if err != nil {
 		return err
