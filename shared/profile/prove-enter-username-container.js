@@ -24,6 +24,8 @@ export default connect(
     const profile = state.profile
     return {
       waiting: profile.waiting,
+      error: profile.error,
+      errorCode: profile.errorCode,
       username: profile.username,
       platform: profile.platform,
       canContinue: profile.usernameValid,

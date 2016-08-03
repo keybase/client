@@ -6,18 +6,13 @@ import type {IconType} from '../common-adapters/icon'
 export type Props = {
   platform: ProvablePlatforms,
   platformUserName: string,
-  platformSubtitle?: ?string,
   descriptionText?: string,
-  descriptionView?: React$Element<*>,
   proofText?: ?string,
   proofAction?: () => void,
-  proofActionIcon?: IconType,
   proofActionText?: ?string,
-  noteText?: string,
   onCancel: () => void,
   onCancelText?: ?string,
   onComplete: () => void,
-  onCompleteText?: string,
   isOnCompleteWaiting?: boolean,
   errorMessage?: ?string,
 }

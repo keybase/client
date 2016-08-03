@@ -12,6 +12,8 @@ import {isLoading} from '../constants/tracker'
 import {openInKBFS} from '../actions/kbfs'
 import {routeAppend, navigateUp} from '../actions/router'
 import ProveEnterUsername from './prove-enter-username-container'
+import PostProof from './post-proof-container'
+import ConfirmOrPending from './confirm-or-pending-container'
 
 class Profile extends Component<void, Props, void> {
   static parseRoute (currentPath, uri) {
@@ -26,6 +28,8 @@ class Profile extends Component<void, Props, void> {
       subRoutes: {
         'editprofile': EditProfile,
         ProveEnterUsername,
+        PostProof,
+        ConfirmOrPending,
       },
     }
   }
