@@ -51,7 +51,6 @@ class Profile extends Component<void, ?Props, void> {
         showComingSoon={!flags.tabProfileEnabled}
         {...this.props}
         proofs={this.props.proofs || []}
-        loading={this.props.loading}
         onBack={!this.props.profileIsRoot ? this.props.onBack : undefined}
       />
     ) : (
@@ -102,7 +101,7 @@ export default connector.connect((state, dispatch, ownProps) => {
 
   const trackerState = stateProps.trackers[username]
 
-  if (trackerState.type !== 'tracker') {
+  if (trackerState && trackerState.type !== 'tracker') {
     console.warn('Expected a tracker type, trying to show profile for non user')
     return null
   }
@@ -115,8 +114,8 @@ export default connector.connect((state, dispatch, ownProps) => {
     bioEditFns,
     username,
     refresh,
-    followers: trackerState.trackers || [],
-    following: trackerState.tracking || [],
+    followers: trackerState ? trackerState.trackers : [],
+    following: trackerState ? trackerState.tracking : [],
     onMissingProofClick,
     onRecheckProof: () => console.log('TODO'),
     onRevokeProof: () => console.log('TODO'),
