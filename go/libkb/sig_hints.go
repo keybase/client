@@ -127,6 +127,7 @@ func LoadSigHints(uid keybase1.UID, g *GlobalContext) (sh *SigHints, err error) 
 	if err != nil {
 		return
 	}
+	// jw might be nil here, but that's allowed.
 	sh, err = NewSigHints(jw, uid, false, g)
 	if err == nil {
 		g.Log.Debug("| SigHints loaded @v%d", sh.version)
