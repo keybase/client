@@ -129,6 +129,15 @@ if (!VENDOR_DIR) {
   process.exit(1)
 }
 
+var npmVersionRes = spawn(NPM_CMD, ['-v'], {stdio: 'pipe'})
+var npmVersion = npmVersionRes.stdout.split('.').map(n => parseInt(n, 10))
+var npmTooOld = npmVersion[0] === 3 && (npmVersion[1] < 10 || npmVersion[1] === 10 && npmVersion[2] < 4)
+var npmTooNew = npmVersion[0] === 3 && (npmVersion[1] > 8 || npmVersion[1] === 8 && npmVersion[2] > 7)
+if (npmTooOld && npmTooNew) {
+  console.log(`Error: Your version of npm (${npmVersion.join('.')}) contains a regression which makes it incompatible with shrinkpack. Please upgrade npm to 3.10.4 or later.`)
+  process.exit(1)
+}
+
 if (process.argv[process.argv.length - 1] === 'update') {
   updateVendored()
 } else {
