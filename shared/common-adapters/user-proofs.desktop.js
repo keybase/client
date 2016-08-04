@@ -146,7 +146,7 @@ export default class ProofsRender extends Component {
               {[147, 77, 117].map((w, idx) => <LoadingProofRow key={idx} textBlockWidth={w} style={pad(idx)} />)}
             </Box>)
           : (
-            <Box key='non-loading' style={{...styleDoneLoading(loading)}}>
+            <Box key='non-loading'>
               {this.props.proofs && this.props.proofs.map((p, idx) =>
                 <ProofRow
                   key={`${p.id || ''}${p.type}`}
@@ -185,11 +185,6 @@ const styleLoading = {
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
 }
-
-const styleDoneLoading = (loading) => ({
-  ...globalStyles.fadeOpacity,
-  opacity: !loading ? 1 : 0,
-})
 
 const styleRow = {
   ...globalStyles.flexBoxRow,
