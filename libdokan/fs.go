@@ -25,9 +25,6 @@ type FS struct {
 
 	root *Root
 
-	// context is the top level context for this filesystem
-	context context.Context
-
 	// currentUserSID stores the Windows identity of the user running
 	// this process.
 	currentUserSID *dokan.SID
@@ -65,11 +62,7 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 			aliasCache: map[string]string{},
 		}}
 
-	ctx = context.WithValue(ctx, CtxAppIDKey, f)
-	logTags := make(logger.CtxLogTags)
-	logTags[CtxIDKey] = CtxOpID
-	ctx = logger.NewContextWithLogTags(ctx, logTags)
-	f.context = ctx
+	ctx = wrapContext(ctx, f)
 
 	f.remoteStatus.Init(ctx, f.log, f.config)
 	f.notifications.LaunchProcessor(ctx)
@@ -78,14 +71,23 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 	return f, nil
 }
 
+// Adds log tags etc
+func wrapContext(ctx context.Context, f *FS) context.Context {
+	ctx = context.WithValue(ctx, CtxAppIDKey, f)
+	logTags := make(logger.CtxLogTags)
+	logTags[CtxIDKey] = CtxOpID
+	ctx = logger.NewContextWithLogTags(ctx, logTags)
+	return ctx
+}
+
 // WithContext creates context for filesystem operations.
 func (f *FS) WithContext(ctx context.Context) (context.Context, context.CancelFunc) {
 	id, err := libkbfs.MakeRandomRequestID()
 	if err != nil {
 		f.log.Errorf("Couldn't make request ID: %v", err)
-		return f.context, func() {}
+		return ctx, func() {}
 	}
-	ctx = context.WithValue(f.context, CtxIDKey, id)
+	ctx = wrapContext(context.WithValue(ctx, CtxIDKey, id), f)
 	return context.WithTimeout(ctx, 29*time.Second)
 }
 
