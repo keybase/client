@@ -335,6 +335,13 @@ type KeybaseService interface {
 	Shutdown()
 }
 
+// KeybaseServiceCn defines methods needed to construct KeybaseService
+// and Crypto implementations.
+type KeybaseServiceCn interface {
+	NewKeybaseService(config Config, params InitParams, ctx Context, log logger.Logger) (KeybaseService, error)
+	NewCrypto(config Config, params InitParams, ctx Context, log logger.Logger) (Crypto, error)
+}
+
 type resolver interface {
 	// Resolve, given an assertion, resolves it to a username/UID
 	// pair. The username <-> UID mapping is trusted and

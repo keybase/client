@@ -10,110 +10,43 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
-// CryptoClient implements the Crypto interface by sending RPCs to the
-// keybase daemon to perform signatures using the device's current
-// signing key.
+// CryptoClient is a keybase1.CryptoInterface based implementation for Crypto.
 type CryptoClient struct {
 	CryptoCommon
 	log        logger.Logger
 	deferLog   logger.Logger
-	client     keybase1.CryptoClient
+	client     keybase1.CryptoInterface
 	shutdownFn func()
 	config     Config
 }
 
-// cryptoRPCWarningTime says how long we should wait before logging a
-// message about an RPC taking too long.
-const cryptoRPCWarningTime = 2 * time.Minute
+// cryptoWarningTime says how long we should wait before logging a
+// message about it taking too long.
+const cryptoWarningTime = 2 * time.Minute
 
 var _ Crypto = (*CryptoClient)(nil)
 
-var _ rpc.ConnectionHandler = (*CryptoClient)(nil)
-
-// NewCryptoClient constructs a new CryptoClient.
-func NewCryptoClient(config Config, kbCtx Context) *CryptoClient {
-	log := config.MakeLogger("")
+// NewCryptoClient constructs a crypto client for a keybase1.CryptoInterface.
+func NewCryptoClient(config Config, client keybase1.CryptoInterface, log logger.Logger) *CryptoClient {
 	deferLog := log.CloneWithAddedDepth(1)
-	c := &CryptoClient{
+	return &CryptoClient{
 		CryptoCommon: MakeCryptoCommon(config.Codec()),
+		client:       client,
 		log:          log,
 		deferLog:     deferLog,
 		config:       config,
 	}
-	conn := NewSharedKeybaseConnection(kbCtx, config, c)
-	c.client = keybase1.CryptoClient{Cli: conn.GetClient()}
-	c.shutdownFn = conn.Shutdown
-	return c
 }
 
-// newCryptoClientWithClient should only be used for testing.
-func newCryptoClientWithClient(config Config, client rpc.GenericClient) *CryptoClient {
-	log := config.MakeLogger("")
-	deferLog := log.CloneWithAddedDepth(1)
-	return &CryptoClient{
-		CryptoCommon: MakeCryptoCommon(config.Codec()),
-		log:          log,
-		deferLog:     deferLog,
-		client:       keybase1.CryptoClient{Cli: client},
-	}
-}
-
-// HandlerName implements the ConnectionHandler interface.
-func (CryptoClient) HandlerName() string {
-	return "CryptoClient"
-}
-
-// OnConnect implements the ConnectionHandler interface.
-func (c *CryptoClient) OnConnect(ctx context.Context, conn *rpc.Connection,
-	_ rpc.GenericClient, server *rpc.Server) error {
-	c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, nil)
-	return nil
-}
-
-// OnConnectError implements the ConnectionHandler interface.
-func (c *CryptoClient) OnConnectError(err error, wait time.Duration) {
-	c.log.Warning("CryptoClient: connection error: %q; retrying in %s",
-		err, wait)
-	c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, err)
-}
-
-// OnDoCommandError implements the ConnectionHandler interface.
-func (c *CryptoClient) OnDoCommandError(err error, wait time.Duration) {
-	c.log.Warning("CryptoClient: docommand error: %q; retrying in %s",
-		err, wait)
-	c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, err)
-}
-
-// OnDisconnected implements the ConnectionHandler interface.
-func (c *CryptoClient) OnDisconnected(_ context.Context,
-	status rpc.DisconnectStatus) {
-	if status == rpc.StartingNonFirstConnection {
-		c.log.Warning("CryptoClient is disconnected")
-		c.config.KBFSOps().PushConnectionStatusChange(KeybaseServiceName, errDisconnected{})
-	}
-}
-
-// ShouldRetry implements the ConnectionHandler interface.
-func (c *CryptoClient) ShouldRetry(rpcName string, err error) bool {
-	return false
-}
-
-// ShouldRetryOnConnect implements the ConnectionHandler interface.
-func (c *CryptoClient) ShouldRetryOnConnect(err error) bool {
-	_, inputCanceled := err.(libkb.InputCanceledError)
-	return !inputCanceled
-}
-
-func (c *CryptoClient) logAboutLongRPCUnlessCancelled(ctx context.Context,
+func (c *CryptoClient) logAboutTooLongUnlessCancelled(ctx context.Context,
 	method string) *time.Timer {
-	return time.AfterFunc(cryptoRPCWarningTime, func() {
+	return time.AfterFunc(cryptoWarningTime, func() {
 		log := c.log.CloneWithAddedDepth(2)
-		log.CInfof(ctx, "%s RPC call took more than %s", method,
-			cryptoRPCWarningTime)
+		log.CInfof(ctx, "%s call took more than %s", method,
+			cryptoWarningTime)
 	})
 }
 
@@ -126,7 +59,7 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 			sigInfo, err)
 	}()
 
-	timer := c.logAboutLongRPCUnlessCancelled(ctx, "SignED25519")
+	timer := c.logAboutTooLongUnlessCancelled(ctx, "SignED25519")
 	defer timer.Stop()
 	ed25519SigInfo, err := c.client.SignED25519(ctx, keybase1.SignED25519Arg{
 		Msg:    msg,
@@ -152,7 +85,7 @@ func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 		c.deferLog.CDebugf(ctx, "Signed %d-byte message: err=%v", len(msg), err)
 	}()
 
-	timer := c.logAboutLongRPCUnlessCancelled(ctx, "SignToString")
+	timer := c.logAboutTooLongUnlessCancelled(ctx, "SignToString")
 	defer timer.Stop()
 	signature, err = c.client.SignToString(ctx, keybase1.SignToStringArg{
 		Msg:    msg,
@@ -197,7 +130,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 		return
 	}
 
-	timer := c.logAboutLongRPCUnlessCancelled(ctx, "UnboxBytes32")
+	timer := c.logAboutTooLongUnlessCancelled(ctx, "UnboxBytes32")
 	defer timer.Stop()
 	decryptedClientHalf, err := c.client.UnboxBytes32(ctx, keybase1.UnboxBytes32Arg{
 		EncryptedBytes32: encryptedData,
@@ -247,7 +180,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 		err = errors[0]
 		return
 	}
-	timer := c.logAboutLongRPCUnlessCancelled(ctx, "UnboxBytes32Any")
+	timer := c.logAboutTooLongUnlessCancelled(ctx, "UnboxBytes32Any")
 	defer timer.Stop()
 	res, err := c.client.UnboxBytes32Any(ctx, keybase1.UnboxBytes32AnyArg{
 		Bundles:     bundles,

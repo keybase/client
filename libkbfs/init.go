@@ -237,10 +237,10 @@ func InitLog(params InitParams, ctx Context) (logger.Logger, error) {
 // below) should then be called at the end of main (usually via
 // defer).
 //
-// The keybaseDaemonFn argument is to temporarily support KBFS on
-// mobile (for using a custom KeybaseService implementation) and will
-// be removed in the future, when we use a non-RPC implementation.
-func Init(ctx Context, params InitParams, keybaseServiceFn KeybaseServiceFn, onInterruptFn func(), log logger.Logger) (Config, error) {
+// The keybaseServiceCn argument is to specify a custom service and
+// crypto (for non-RPC environments) like mobile. If this is nil, we'll
+// use the default RPC implementation.
+func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onInterruptFn func(), log logger.Logger) (Config, error) {
 
 	if params.CPUProfile != "" {
 		// Let the GC/OS clean up the file handle.
@@ -323,12 +323,12 @@ func Init(ctx Context, params InitParams, keybaseServiceFn KeybaseServiceFn, onI
 
 	config.SetKeyServer(keyServer)
 
-	if keybaseServiceFn == nil {
-		keybaseServiceFn = makeKeybaseDaemon
+	if keybaseServiceCn == nil {
+		keybaseServiceCn = keybaseDaemon{}
 	}
-	service, err := keybaseServiceFn(config, params, ctx, config.MakeLogger(""))
+	service, err := keybaseServiceCn.NewKeybaseService(config, params, ctx, config.MakeLogger(""))
 	if err != nil {
-		return nil, fmt.Errorf("problem creating daemon: %s", err)
+		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
 
 	if registry := config.MetricsRegistry(); registry != nil {
@@ -342,14 +342,9 @@ func Init(ctx Context, params InitParams, keybaseServiceFn KeybaseServiceFn, onI
 
 	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
 
-	var crypto Crypto
-	localUser := libkb.NewNormalizedUsername(params.LocalUser)
-	if localUser == "" {
-		crypto = NewCryptoClient(config, ctx)
-	} else {
-		signingKey := MakeLocalUserSigningKeyOrBust(localUser)
-		cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(localUser)
-		crypto = NewCryptoLocal(config, signingKey, cryptPrivateKey)
+	crypto, err := keybaseServiceCn.NewCrypto(config, params, ctx, log)
+	if err != nil {
+		return nil, fmt.Errorf("problem creating crypto: %s", err)
 	}
 
 	if registry := config.MetricsRegistry(); registry != nil {
