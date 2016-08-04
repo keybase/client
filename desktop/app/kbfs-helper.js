@@ -29,8 +29,12 @@ export default function () {
           const url = pathToURL(resolvedPath)
           console.warn(`${new Date()} - Post pathToUrl`)
           console.log('Open URL (directory):', url)
-          shell.openExternal(url)
-          console.warn(`${new Date()} - Post openExternal`)
+          setImmediate(() => {
+            console.warn(`${new Date()} - Pre openExternal`)
+            shell.openExternal(url)
+            console.warn(`${new Date()} - Post openExternal`)
+          })
+          console.warn(`${new Date()} - Post setImmediate`)
         })
       }
     })
