@@ -126,6 +126,7 @@
         SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe"
         InstallCommand="-wait [DokanBundleUninstallString]"
         DetectCondition="NOT DokanBundleUninstallString"
+        Description="Remove previous drivers"
         PerMachine="yes"
         Permanent="yes">
         <ExitCode Behavior="forceReboot"/>
