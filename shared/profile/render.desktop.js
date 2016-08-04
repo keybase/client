@@ -169,7 +169,7 @@ class Render extends Component<void, Props, State> {
           proofNotice = 'Some of your proofs are unreachable.'
         }
       } else {
-        proofNotice = `Some of ${this.props.username}'s proofs have changed since you last tracked them.`
+        proofNotice = this.props.reason
       }
     }
 
