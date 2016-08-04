@@ -30,6 +30,7 @@ type Service struct {
 	stopCh       chan keybase1.ExitCode
 	logForwarder *logFwd
 	gregor       *gregorHandler
+	onConnect    []OnConnectFn
 }
 
 type Shutdowner interface {
@@ -67,7 +68,6 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
-		keybase1.FsProtocol(newFSHandler(xp, g)),
 		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
 		keybase1.KbfsProtocol(NewKBFSHandler(xp, g)),
 		keybase1.LogProtocol(NewLogHandler(xp, logReg, g)),
@@ -137,6 +137,11 @@ func (d *Service) Handle(c net.Conn) {
 		return
 	}
 
+	// Notify any onConnect listeners
+	for _, onConnectFn := range d.onConnect {
+		onConnectFn(server)
+	}
+
 	// Run the server and wait for it to finish.
 	<-server.Run()
 	// err is always non-nil.
@@ -147,6 +152,15 @@ func (d *Service) Handle(c net.Conn) {
 	}
 
 	d.G().Log.Debug("Handle() complete for connection %d", connID)
+}
+
+// OnConnectFn is a listener for when the service handle a new connection
+type OnConnectFn func(srv *rpc.Server) error
+
+// RegisterOnConnect registers a listener for when the service handles a
+// new connection.
+func (d *Service) RegisterOnConnect(cfn OnConnectFn) {
+	d.onConnect = append(d.onConnect, cfn)
 }
 
 func (d *Service) Run() (err error) {

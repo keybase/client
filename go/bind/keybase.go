@@ -12,7 +12,10 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -74,11 +77,17 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		Logs:         logs,
 	}
 
+	// Initialize KBFS
 	kbfsParams := libkbfs.DefaultInitParams(kbCtx)
 	kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, serviceCn{kbCtx: kbCtx}, func() {}, kbCtx.Log)
 	if err != nil {
 		return err
 	}
+
+	// Tell service that KBFS can handle FS protocols
+	svc.RegisterOnConnect(func(srv *rpc.Server) error {
+		return srv.Register(keybase1.FsProtocol(fsrpc.NewFS(kbfsConfig, kbCtx.Log)))
+	})
 
 	return Reset()
 }

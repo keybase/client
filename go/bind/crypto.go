@@ -28,18 +28,26 @@ type cryptoClient struct {
 
 var _ keybase1.CryptoInterface = (*cryptoClient)(nil)
 
-func (c cryptoClient) SignED25519(_ context.Context, arg keybase1.SignED25519Arg) (keybase1.ED25519SignatureInfo, error) {
-	return engine.SignED25519(c.ctx, c.ctx.UI.GetSecretUI(), arg)
+func (c *cryptoClient) secretUI() libkb.SecretUI {
+	if c.ctx.UI == nil {
+		c.ctx.Log.Warning("No secret UI for crypto client")
+		return nil
+	}
+	return c.ctx.UI.GetSecretUI()
+}
+
+func (c *cryptoClient) SignED25519(_ context.Context, arg keybase1.SignED25519Arg) (keybase1.ED25519SignatureInfo, error) {
+	return engine.SignED25519(c.ctx, c.secretUI, arg)
 }
 
 func (c cryptoClient) SignToString(_ context.Context, arg keybase1.SignToStringArg) (string, error) {
-	return engine.SignToString(c.ctx, c.ctx.UI.GetSecretUI(), arg)
+	return engine.SignToString(c.ctx, c.secretUI, arg)
 }
 
 func (c cryptoClient) UnboxBytes32(ctx context.Context, arg keybase1.UnboxBytes32Arg) (keybase1.Bytes32, error) {
-	return engine.UnboxBytes32(c.ctx, c.ctx.UI.GetSecretUI(), arg)
+	return engine.UnboxBytes32(c.ctx, c.secretUI, arg)
 }
 
 func (c cryptoClient) UnboxBytes32Any(ctx context.Context, arg keybase1.UnboxBytes32AnyArg) (keybase1.UnboxAnyRes, error) {
-	return engine.UnboxBytes32Any(c.ctx, c.ctx.UI.GetSecretUI(), arg)
+	return engine.UnboxBytes32Any(c.ctx, c.secretUI, arg)
 }
