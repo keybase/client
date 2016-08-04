@@ -14,10 +14,6 @@ func newUI(kbCtx *libkb.GlobalContext) *ui {
 }
 
 func (u ui) secretUI(sessionID int) libkb.SecretUI {
-	if u.ctx.UIRouter == nil {
-		u.ctx.Log.Error("No secret UI")
-		return nil
-	}
 	secretUI, err := u.ctx.UIRouter.GetSecretUI(sessionID)
 	if err != nil {
 		u.ctx.Log.Errorf("Error getting secret UI: %s", err)
@@ -26,10 +22,6 @@ func (u ui) secretUI(sessionID int) libkb.SecretUI {
 }
 
 func (u ui) identifyUI() libkb.IdentifyUI {
-	if u.ctx.UIRouter == nil {
-		u.ctx.Log.Error("No UIRouter")
-		return nil
-	}
 	identifyUI, err := u.ctx.UIRouter.GetIdentifyUI()
 	if err != nil {
 		u.ctx.Log.Errorf("Error getting identify UI: %s", err)
