@@ -57,7 +57,8 @@ func AutoInstall(context Context, _ string, _ bool, log Log) ( /* newProc */ boo
 		// Check if the user has disabled autostart manually.
 		// If the user inserts Hidden=true, our autostart will be ignored.
 		// GNOME inserts X-GNOME-Autostart-enabled=false when startup apps are disabled via gnome-session-properties.
-		autostartDisabledRegex := regexp.MustCompile(`(?m)^Hidden=true|^X-GNOME-Autostart-enabled=false`)
+		// In past versions, users have been instructed to disable autostart by commenting out the "Exec" line.
+		autostartDisabledRegex := regexp.MustCompile(`(?m)^Hidden=true|^X-GNOME-Autostart-enabled=false|^#\s*Exec`)
 		if autostartDisabledRegex.MatchReader(bufio.NewReader(file)) {
 			return false, nil
 		}
