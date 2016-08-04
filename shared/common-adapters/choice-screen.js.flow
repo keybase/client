@@ -1,0 +1,18 @@
+/* @flow */
+import {Component} from 'react'
+import type {IconType} from './icon'
+
+export type Option = {
+  title: string,
+  description: string,
+  icon: IconType | React$Element<*>,
+  onClick: () => void,
+}
+
+export type Props = {
+  title: string,
+  options: Array<Option>,
+  onCancel: () => void,
+}
+
+export default class StandardScreen extends Component<void, Props, void> { }
