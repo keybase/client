@@ -86,13 +86,13 @@ func (s *kbservice) Notify(_ context.Context, notification *keybase1.FSNotificat
 }
 
 func (s *kbservice) FlushUserFromLocalCache(_ context.Context, uid keybase1.UID) {
-	// TODO: No caching is not enabled yet
+	// Caching not enabled
 }
 
 func (s *kbservice) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context, uid keybase1.UID) {
-	// TODO: No caching is not enabled yet
+	// Caching not enabled
 }
 
 func (s *kbservice) Shutdown() {
-	// There a no resources to cleanup (this is useful for RPC impl)
+	// No resources to cleanup
 }
