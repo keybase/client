@@ -102,7 +102,7 @@ func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitP
 }
 
 func (s serviceCn) NewCrypto(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.Crypto, error) {
-	return libkbfs.NewCrypto(config, params, ctx, log)
+	return libkbfs.NewCryptoClientRPC(config, ctx)
 }
 
 // LogSend sends a log to Keybase
