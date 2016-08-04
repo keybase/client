@@ -1,0 +1,11 @@
+/* @flow */
+import {Component} from 'react'
+
+export type Props = {
+children?: ?(React$Element<*> | Array<React$Element<*>>),
+  onClose?: ?() => void,
+  showClose?: boolean,
+  errorMessage?: ?string,
+}
+
+export default class StandardScreen extends Component<void, Props, void> { }
