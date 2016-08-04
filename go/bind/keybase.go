@@ -80,12 +80,11 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	// FIXME (MBG): This is causing RPC responses to sometimes not be recieved
 	// on iOS. Repro by hooking up getExtendedStatus to a button in the iOS
 	// client and watching JS logs. Disabling until we have a root cause / fix.
-	//
-	//kbfsParams := libkbfs.DefaultInitParams(kbCtx)
-	//kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, newKeybaseDaemon, func() {}, kbCtx.Log)
-	//if err != nil {
-	//	return err
-	//}
+	kbfsParams := libkbfs.DefaultInitParams(kbCtx)
+	kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, newKeybaseDaemon, func() {}, kbCtx.Log)
+	if err != nil {
+		return err
+	}
 
 	return Reset()
 }
@@ -153,7 +152,7 @@ func Reset() error {
 	}
 
 	var err error
-	conn, _, _, err = kbCtx.ResetSocket(false)
+	conn, err = kbCtx.LoopbackListener.Dial()
 	if err != nil {
 		return fmt.Errorf("Socket error: %s", err)
 	}
