@@ -97,6 +97,7 @@ const propsDefault: TrackerProps = {
   username: 'darksim905',
   reason: 'You accessed a private folder with gabrielh.',
   userInfo: {
+    uid: '0',
     fullname: 'Gabriel Handford',
     followersCount: 1871,
     followingCount: 356,
@@ -206,6 +207,7 @@ const propsLessData: TrackerProps = {
   reason: 'I\'m a user with not much data.',
   userInfo: {
     fullname: 'Hi',
+    uid: '0',
     bio: '',
     followersCount: 1,
     followingCount: 0,

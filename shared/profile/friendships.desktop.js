@@ -9,8 +9,8 @@ type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void
 };
 
-const UserEntry = ({onClick, username, followsYou, following}: UserEntryProps) => (
-  <Box style={userEntryContainerStyle} onClick={() => { onClick && onClick(username) }}>
+const UserEntry = ({onClick, username, uid, followsYou, following}: UserEntryProps) => (
+  <Box style={userEntryContainerStyle} onClick={() => { onClick && onClick(username, uid) }}>
     <Avatar style={userEntryAvatarStyle} size={64} username={username} followsYou={followsYou} following={following} />
     <Text type='BodySmall' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
   </Box>

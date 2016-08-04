@@ -2,9 +2,10 @@
 
 export type FriendshipUserInfo = {
   username: string,
+  uid: string,
   fullname: string,
   followsYou: boolean,
-  following: boolean
+  following: boolean,
 }
 
 export type Tab = 'Followers' | 'Following'

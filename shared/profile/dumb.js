@@ -33,6 +33,7 @@ export const proofsPending = proofsDefault.map((proof, idx) => ({...proof, state
 export const mockUserInfo: {username: string, userInfo: UserInfo} = {
   username: 'chris',
   userInfo: {
+    uid: '0',
     fullname: 'Chris Coyne',
     followersCount: 1871,
     followingCount: 356,
@@ -115,20 +116,20 @@ const folders = [
 ]
 
 const followers = [
-  {username: 'awendland', fullname: 'Alex Wendland', followsYou: true, following: false},
-  {username: 'marcopolo', fullname: 'Marco Munizaga', followsYou: false, following: false},
-  {username: 'chromakode', fullname: 'Max Goodman', followsYou: true, following: true},
-  {username: 'strib', fullname: 'Jeremy Stribling', followsYou: false, following: true},
-  {username: 'chris', fullname: 'Chris Vendle', followsYou: false, following: false},
-  {username: 'thor', fullname: 'Thor Asgard', followsYou: false, following: true},
-  {username: 'alex', fullname: 'Alexander The-Gret', followsYou: true, following: false},
-  {username: 'daniel', fullname: 'Daniel Steven', followsYou: true, following: true},
+  {username: 'awendland', uid: '0', fullname: 'Alex Wendland', followsYou: true, following: false},
+  {username: 'marcopolo', uid: '0', fullname: 'Marco Munizaga', followsYou: false, following: false},
+  {username: 'chromakode', uid: '0', fullname: 'Max Goodman', followsYou: true, following: true},
+  {username: 'strib', uid: '0', fullname: 'Jeremy Stribling', followsYou: false, following: true},
+  {username: 'chris', uid: '0', fullname: 'Chris Vendle', followsYou: false, following: false},
+  {username: 'thor', uid: '0', fullname: 'Thor Asgard', followsYou: false, following: true},
+  {username: 'alex', uid: '0', fullname: 'Alexander The-Gret', followsYou: true, following: false},
+  {username: 'daniel', uid: '0', fullname: 'Daniel Steven', followsYou: true, following: true},
 ]
 
 const following = [
-  {username: 'zanderz', fullname: 'Steve Sanders', followsYou: false, following: false},
-  {username: 'awendland', fullname: 'Alex Wendland', followsYou: true, following: false},
-  {username: 'strib', fullname: 'Jeremy Stribling', followsYou: false, following: true},
+  {username: 'zanderz', uid: '0', fullname: 'Steve Sanders', followsYou: false, following: false},
+  {username: 'awendland', uid: '0', fullname: 'Alex Wendland', followsYou: true, following: false},
+  {username: 'strib', uid: '0', fullname: 'Jeremy Stribling', followsYou: false, following: true},
 ]
 
 const propsBase: RenderProps = {
