@@ -26,10 +26,12 @@ func TestCryptoSignED25519(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "fu")
-	secretUI := &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	f := func() libkb.SecretUI {
+		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	}
 
 	msg := []byte("test message")
-	ret, err := SignED25519(tc.G, secretUI, keybase1.SignED25519Arg{
+	ret, err := SignED25519(tc.G, f, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -49,10 +51,12 @@ func TestCryptoSignToString(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "fu")
-	secretUI := &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	f := func() libkb.SecretUI {
+		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	}
 
 	msg := []byte("test message")
-	signature, err := SignToString(tc.G, secretUI, keybase1.SignToStringArg{
+	signature, err := SignToString(tc.G, f, keybase1.SignToStringArg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -75,8 +79,10 @@ func TestCryptoSignED25519NoSigningKey(t *testing.T) {
 	tc := SetupEngineTest(t, "crypto")
 	defer tc.Cleanup()
 
-	secretUI := &libkb.TestSecretUI{}
-	_, err := SignED25519(tc.G, secretUI, keybase1.SignED25519Arg{
+	f := func() libkb.SecretUI {
+		return &libkb.TestSecretUI{}
+	}
+	_, err := SignED25519(tc.G, f, keybase1.SignED25519Arg{
 		Msg: []byte("test message"),
 	})
 
@@ -90,12 +96,14 @@ func BenchmarkCryptoSignED25519(b *testing.B) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "fu")
-	secretUI := u.NewSecretUI()
+	f := func() libkb.SecretUI {
+		return u.NewSecretUI()
+	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
 		msg := []byte("test message")
-		_, err := SignED25519(tc.G, secretUI, keybase1.SignED25519Arg{
+		_, err := SignED25519(tc.G, f, keybase1.SignED25519Arg{
 			Msg: msg,
 		})
 		if err != nil {
@@ -111,10 +119,12 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "fu")
-	secretUI := &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	f := func() libkb.SecretUI {
+		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	}
 
 	key, err := getMySecretKey(
-		tc.G, secretUI, libkb.DeviceEncryptionKeyType, "test")
+		tc.G, f, libkb.DeviceEncryptionKeyType, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,7 +151,7 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 
 	copy(encryptedBytes32[:], encryptedData)
 
-	bytes32, err := UnboxBytes32(tc.G, secretUI, keybase1.UnboxBytes32Arg{
+	bytes32, err := UnboxBytes32(tc.G, f, keybase1.UnboxBytes32Arg{
 		EncryptedBytes32: encryptedBytes32,
 		Nonce:            nonce,
 		PeersPublicKey:   peersPublicKey,
@@ -161,7 +171,7 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 			{Kid: kp.GetKID(), Ciphertext: encryptedBytes32, Nonce: nonce, PublicKey: peersPublicKey},
 		},
 	}
-	res, err := UnboxBytes32Any(tc.G, secretUI, arg)
+	res, err := UnboxBytes32Any(tc.G, f, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,9 +193,11 @@ func TestCryptoUnboxBytes32DecryptionError(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "fu")
-	secretUI := &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	f := func() libkb.SecretUI {
+		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	}
 
-	_, err := UnboxBytes32(tc.G, secretUI, keybase1.UnboxBytes32Arg{})
+	_, err := UnboxBytes32(tc.G, f, keybase1.UnboxBytes32Arg{})
 	if _, ok := err.(libkb.DecryptionError); !ok {
 		t.Errorf("expected libkb.DecryptionError, got %T", err)
 	}
@@ -197,8 +209,10 @@ func TestCryptoUnboxBytes32NoEncryptionKey(t *testing.T) {
 	tc := SetupEngineTest(t, "crypto")
 	defer tc.Cleanup()
 
-	secretUI := &libkb.TestSecretUI{}
-	_, err := UnboxBytes32(tc.G, secretUI, keybase1.UnboxBytes32Arg{})
+	f := func() libkb.SecretUI {
+		return &libkb.TestSecretUI{}
+	}
+	_, err := UnboxBytes32(tc.G, f, keybase1.UnboxBytes32Arg{})
 
 	if _, ok := err.(libkb.SelfNotFoundError); !ok {
 		t.Errorf("expected SelfNotFoundError, got %v", err)
@@ -261,8 +275,12 @@ func TestCachedSecretKey(t *testing.T) {
 	assertCachedSecretKey(tc, libkb.DeviceSigningKeyType)
 	assertCachedSecretKey(tc, libkb.DeviceEncryptionKeyType)
 
+	f := func() libkb.SecretUI {
+		return u.NewSecretUI()
+	}
+
 	msg := []byte("test message")
-	_, err := SignED25519(tc.G, u.NewSecretUI(), keybase1.SignED25519Arg{
+	_, err := SignED25519(tc.G, f, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -330,7 +348,11 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 
 	copy(encryptedBytes32[:], encryptedData)
 
-	_, err = UnboxBytes32(tc.G, u.NewSecretUI(), keybase1.UnboxBytes32Arg{
+	f := func() libkb.SecretUI {
+		return u.NewSecretUI()
+	}
+
+	_, err = UnboxBytes32(tc.G, f, keybase1.UnboxBytes32Arg{
 		EncryptedBytes32: encryptedBytes32,
 		Nonce:            nonce,
 		PeersPublicKey:   peersPublicKey,
@@ -351,7 +373,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 		},
 		PromptPaper: true,
 	}
-	res, err := UnboxBytes32Any(tc.G, u.NewSecretUI(), arg)
+	res, err := UnboxBytes32Any(tc.G, f, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -370,11 +392,14 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// set the passphrase in the secretUI to the paper key
-	secretUI := u.NewSecretUI()
-	secretUI.Passphrase = peng.Passphrase()
+	f = func() libkb.SecretUI {
+		// set the passphrase in the secretUI to the paper key
+		secretUI := u.NewSecretUI()
+		secretUI.Passphrase = peng.Passphrase()
+		return secretUI
+	}
 
-	res, err = UnboxBytes32Any(tc.G, secretUI, arg)
+	res, err = UnboxBytes32Any(tc.G, f, arg)
 	if err != nil {
 		t.Fatal(err)
 	}
