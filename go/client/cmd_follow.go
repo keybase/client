@@ -41,6 +41,7 @@ func NewCmdTrack(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 				Usage: "Skip cached proofs, force re-check",
 			},
 		},
+		Aliases: []string{"track"},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdTrackRunner(g), "follow", c)
 		},

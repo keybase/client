@@ -10,6 +10,7 @@ export type State = {
   isFullScreen: ?boolean,
   displayBounds: ?any,
   tab: ?string,
+  dockHidden: boolean,
 }
 
 export type Config = {
@@ -25,6 +26,7 @@ export type Options = {
 export type Managed = {
   winRef: ?any,
   debounceChangeTimer: ?number,
+  showHandlers: Array<function>,
   resizeHandlers: Array<function>,
   moveHandlers: Array<function>,
   closeHandlers: Array<function>,

@@ -6,6 +6,7 @@ import {windowStyle} from '../shared/styles/style-guide'
 import {forceMainWindowPosition} from '../shared/local-debug.desktop'
 import AppState from './app-state'
 import getenv from 'getenv'
+import {hideDockIcon} from './dock-icon'
 
 export default function () {
   let appState = new AppState({
@@ -31,9 +32,16 @@ export default function () {
     mainWindow.window.setPosition(forceMainWindowPosition.x, forceMainWindowPosition.y)
   }
 
-  let windowVisibility = getenv.string('KEYBASE_WINDOW_VISIBILITY', '')
-  let useAppStateForWindowVisibility = (windowVisibility === 'appState')
-  if (!useAppStateForWindowVisibility || (useAppStateForWindowVisibility && !appState.state.windowHidden)) {
+  const isRestore = getenv.boolish('KEYBASE_RESTORE_UI', false)
+  const startUI = getenv.string('KEYBASE_START_UI', '')
+
+  // We show the main window on startup if:
+  //  - We are not restoring the UI (after update, or boot)
+  //    Or, we are restoring UI and the window was previously visible (in app state)
+  //  - And, startUI is not set to 'hideWindow'.
+  const showMainWindow = (!isRestore || (isRestore && !appState.state.windowHidden)) && (startUI !== 'hideWindow')
+
+  if (showMainWindow) {
     // On Windows we can try showing before Windows is ready
     // This will result in a dropped .show request
     // We add a listener to `did-finish-load` so we can show it when
@@ -42,6 +50,10 @@ export default function () {
     mainWindow.window.webContents.once('did-finish-load', () => {
       mainWindow.show(true)
     })
+  }
+
+  if (isRestore && appState.state.dockHidden) {
+    hideDockIcon()
   }
 
   ipcMain.on('showMain', () => {
