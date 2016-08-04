@@ -362,17 +362,22 @@ const dumbEditAvatar: DumbComponentMap<EditAvatar> = {
 }
 
 const revokeBase = {
+  onCancel: () => console.log('Revoke Proof: clicked Cancel'),
+  onRevoke: () => console.log('Revoke Proof: clicked Revoke'),
+}
+
+const revokeTwitter = {
+  ...revokeBase,
+  platformHandle: 'alexrwendland',
   platform: 'twitter',
-  username: 'chris',
-  onCancel: () => console.log('clicked Cancel'),
-  onRevoke: () => console.log('clicked Revoke'),
-  isHttps: false,
 }
 
 const dumbRevoke: DumbComponentMap<Revoke> = {
   component: Revoke,
   mocks: {
-    'Twitter': {...revokeBase, platformHandle: 'malgorithms', platform: 'twitter'},
+    'Twitter': {...revokeTwitter},
+    'Twitter - Error': {...revokeTwitter, errorMessage: 'There was an error revoking your proof. You can click the button to try again.'},
+    'Twitter - Waiting': {...revokeTwitter, isWaiting: true},
     'Reddit': {...revokeBase, platformHandle: 'malgorithms', platform: 'reddit'},
     'GitHub': {...revokeBase, platformHandle: 'malgorithms', platform: 'github'},
     'Coinbase': {...revokeBase, platformHandle: 'malgorithms', platform: 'coinbase'},
@@ -380,7 +385,7 @@ const dumbRevoke: DumbComponentMap<Revoke> = {
     'Bitcoin': {...revokeBase, platformHandle: '1BjgMvwVkpmmJ5HFGZ3L3H1G6fcKLNGT5h', platform: 'btc'},
     'DNS': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'dns'},
     'Website': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'genericWebSite'},
-    'https website': {...revokeBase, isHttps: true, platformHandle: 'chriscoyne.com', platform: 'genericWebSite'},
+    'https website': {...revokeBase, platformHandle: 'chriscoyne.com', platform: 'https'},
   },
 }
 

@@ -1,14 +1,19 @@
 // @flow
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import Render from './render'
 import EditProfile from './edit-profile'
-import type {Props} from './render'
+import React, {Component} from 'react'
+import Render from './render'
 import flags from '../util/feature-flags'
+import type {MissingProof} from '../common-adapters/user-proofs'
+import type {Proof} from '../constants/tracker'
+import type {Props} from './render'
+import {addProof} from '../actions/profile'
+import {connect} from 'react-redux'
 import {getProfile, updateTrackers} from '../actions/tracker'
-import {routeAppend, navigateUp} from '../actions/router'
-import {openInKBFS} from '../actions/kbfs'
 import {isLoading} from '../constants/tracker'
+import {openInKBFS} from '../actions/kbfs'
+import {routeAppend, navigateUp} from '../actions/router'
+import ProveEnterUsername from './prove-enter-username-container'
+import Revoke from './revoke-container'
 
 class Profile extends Component<void, Props, void> {
   static parseRoute (currentPath, uri) {
@@ -22,6 +27,8 @@ class Profile extends Component<void, Props, void> {
       },
       subRoutes: {
         'editprofile': EditProfile,
+        ProveEnterUsername,
+        Revoke,
       },
     }
   }
@@ -65,6 +72,8 @@ export default connect(
     onBack: () => dispatch(navigateUp()),
     onFolderClick: folder => dispatch(openInKBFS(folder.path)),
     onEditProfile: () => dispatch(routeAppend({path: 'editprofile'})),
+    onMissingProofClick: (missingProof: MissingProof) => dispatch(addProof(missingProof.type)),
+    onRevokeProof: (proof: Proof) => dispatch(routeAppend({path: 'Revoke', platform: proof.type, platformHandle: proof.name, proofId: proof.id})),
   }),
   (stateProps, dispatchProps, ownProps) => {
     const username = ownProps.username || stateProps.myUsername
@@ -76,7 +85,6 @@ export default connect(
       onEditProfile: onEditProfile,
       onLocationEdit: onEditProfile,
       onNameEdit: onEditProfile,
-      onMissingProofClick: () => console.log('TODO onMissingProofClick'),
     }
 
     return {

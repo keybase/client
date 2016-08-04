@@ -42,3 +42,18 @@ const ProveMessages = {
 export function proveMessage (platform: PlatformsExpanded) {
   return ProveMessages[platform]
 }
+
+export function subtitle (platform: PlatformsExpanded): ?string {
+  switch (platform) {
+    case 'btc':
+      return null
+    case 'dns':
+    case 'http':
+    case 'https':
+      return platform
+    case 'genericWebSite':
+      return 'http(s)'
+    default:
+      return `@${platform}`
+  }
+}

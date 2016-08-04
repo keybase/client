@@ -53,13 +53,16 @@ const styleErrorBanner = {
   alignItems: 'center',
   width: '100%',
   zIndex: 1,
-  height: globalMargins.large,
+  minHeight: globalMargins.large,
+  padding: globalMargins.tiny,
   marginTop: -globalMargins.large,
   backgroundColor: globalColors.red,
 }
 
 const styleErrorBannerText = {
   color: globalColors.white,
+  maxWidth: 512,
+  textAlign: 'center',
 }
 
 const styleContentContainer = {
