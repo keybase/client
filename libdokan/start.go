@@ -53,7 +53,9 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 		log.Configure("", true, "")
 	}
 
-	fs, err := NewFS(context.Background(), config, log)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	fs, err := NewFS(ctx, config, log)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
@@ -61,9 +63,9 @@ func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.
 	options.DokanConfig.Path = mounter.Dir()
 
 	if newFolderNameErr != nil {
-		log.CWarningf(fs.context, "Error guessing new folder name: %v", newFolderNameErr)
+		log.CWarningf(ctx, "Error guessing new folder name: %v", newFolderNameErr)
 	}
-	log.CDebugf(fs.context, "New folder name guess: %q %q", newFolderName, newFolderAltName)
+	log.CDebugf(ctx, "New folder name guess: %q %q", newFolderName, newFolderAltName)
 
 	err = mounter.Mount(&options.DokanConfig, log)
 	if err != nil {
