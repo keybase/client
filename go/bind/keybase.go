@@ -75,7 +75,7 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	}
 
 	kbfsParams := libkbfs.DefaultInitParams(kbCtx)
-	kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, newKeybaseService, func() {}, kbCtx.Log)
+	kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, serviceCn{kbCtx: kbCtx}, func() {}, kbCtx.Log)
 	if err != nil {
 		return err
 	}
@@ -83,8 +83,16 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	return Reset()
 }
 
-func newKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
-	return &kbservice{ctx: kbCtx}, nil
+type serviceCn struct {
+	kbCtx *libkb.GlobalContext
+}
+
+func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
+	return &kbservice{ctx: s.kbCtx}, nil
+}
+
+func (s serviceCn) NewCrypto(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.Crypto, error) {
+	return newCrypto(config, s.kbCtx, log), nil
 }
 
 // LogSend sends a log to Keybase

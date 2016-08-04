@@ -18,7 +18,7 @@ type kbservice struct {
 }
 
 func (s *kbservice) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, keybase1.UID, error) {
-	username, uid, err := engine.Resolve(s.ctx, assertion)
+	username, uid, err := engine.ResolveRun(s.ctx, assertion)
 	if err != nil {
 		err = libkbfs.ConvertIdentifyError(assertion, err)
 	}
