@@ -582,12 +582,7 @@ func (e *Identify2WithUID) ConfirmResult() keybase1.ConfirmResult {
 	return e.confirmResult
 }
 
-func Identify2Run(g *libkb.GlobalContext, assertion, reason string) (keybase1.UserPlusKeys, error) {
-	engineCtx := Context{
-		LogUI:      g.UI.GetLogUI(),
-		IdentifyUI: g.UI.GetIdentifyUI(),
-		SessionID:  0,
-	}
+func Identify2Run(g *libkb.GlobalContext, engineCtx *Context, assertion, reason string) (keybase1.UserPlusKeys, error) {
 	arg := keybase1.Identify2Arg{
 		UserAssertion: assertion,
 		Reason: keybase1.IdentifyReason{
@@ -595,7 +590,7 @@ func Identify2Run(g *libkb.GlobalContext, assertion, reason string) (keybase1.Us
 		},
 	}
 	eng := NewResolveThenIdentify2(g, &arg)
-	err := RunEngine(eng, &engineCtx)
+	err := RunEngine(eng, engineCtx)
 	if err != nil {
 		return keybase1.UserPlusKeys{}, err
 	}

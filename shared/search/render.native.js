@@ -11,7 +11,7 @@ import {fsList} from '../actions/kbfs'
 class Render extends Component<void, Props, void> {
   _renderComingSoon () {
     // For testing fs listing only, revert before PR merge
-    const Connected = connect(state => ({}), dispatch => ({fsList: () => dispatch(fsList('/keybase'))}))
+    const Connected = connect(state => ({}), dispatch => ({fsList: () => dispatch(fsList('/keybase/private/gabrielh/'))}))
       (props => <Button label='List /keybase' onClick={() => props.fsList()} type='Primary' />)
     return <Connected />
   }

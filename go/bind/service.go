@@ -15,6 +15,20 @@ import (
 
 type kbservice struct {
 	ctx *libkb.GlobalContext
+	ui  *ui
+}
+
+func newService(kbCtx *libkb.GlobalContext) *kbservice {
+	return &kbservice{ctx: kbCtx, ui: newUI(kbCtx)}
+}
+
+func (s *kbservice) engineContext(sessionID int) *engine.Context {
+	return &engine.Context{
+		SecretUI:   s.ui.secretUI(sessionID),
+		IdentifyUI: s.ui.identifyUI(),
+		LogUI:      s.ui.logUI(),
+		SessionID:  sessionID,
+	}
 }
 
 func (s *kbservice) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, keybase1.UID, error) {
@@ -26,7 +40,7 @@ func (s *kbservice) Resolve(ctx context.Context, assertion string) (libkb.Normal
 }
 
 func (s *kbservice) Identify(_ context.Context, assertion, reason string) (libkbfs.UserInfo, error) {
-	upk, err := engine.Identify2Run(s.ctx, assertion, reason)
+	upk, err := engine.Identify2Run(s.ctx, s.engineContext(0), assertion, reason)
 	if err != nil {
 		return libkbfs.UserInfo{}, libkbfs.ConvertIdentifyError(assertion, err)
 	}
@@ -66,15 +80,15 @@ func (s *kbservice) CurrentSession(_ context.Context, sessionID int) (libkbfs.Se
 }
 
 func (s *kbservice) FavoriteAdd(_ context.Context, folder keybase1.Folder) error {
-	return engine.FavoriteAddRun(s.ctx, folder)
+	return engine.FavoriteAddRun(s.ctx, s.engineContext(0), folder)
 }
 
 func (s *kbservice) FavoriteDelete(_ context.Context, folder keybase1.Folder) error {
-	return engine.FavoriteIgnoreRun(s.ctx, folder)
+	return engine.FavoriteIgnoreRun(s.ctx, s.engineContext(0), folder)
 }
 
 func (s *kbservice) FavoriteList(_ context.Context, sessionID int) ([]keybase1.Folder, error) {
-	return engine.FavoriteListRun(s.ctx, sessionID)
+	return engine.FavoriteListRun(s.ctx, s.engineContext(sessionID))
 }
 
 func (s *kbservice) Notify(_ context.Context, notification *keybase1.FSNotification) error {
@@ -86,11 +100,11 @@ func (s *kbservice) Notify(_ context.Context, notification *keybase1.FSNotificat
 }
 
 func (s *kbservice) FlushUserFromLocalCache(_ context.Context, uid keybase1.UID) {
-	// Caching not enabled
+	// Nothing to flush
 }
 
 func (s *kbservice) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context, uid keybase1.UID) {
-	// Caching not enabled
+	// Nothing to flush
 }
 
 func (s *kbservice) Shutdown() {
