@@ -209,9 +209,19 @@ outer:
 					break
 				}
 
-				// If a chain exists for the file, ignore this create.
-				if _, ok := chains.byOriginal[ptr]; ok {
-					continue
+				// If a chain exists with sync ops for the file,
+				// ignore this create.
+				if fileChain, ok := chains.byOriginal[ptr]; ok {
+					syncOpFound := false
+					for _, fileOp := range fileChain.ops {
+						if _, ok := fileOp.(*syncOp); ok {
+							syncOpFound = true
+							break
+						}
+					}
+					if syncOpFound {
+						continue
+					}
 				}
 
 				writer := op.getWriterInfo().uid
