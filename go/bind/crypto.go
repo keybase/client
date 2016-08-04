@@ -26,7 +26,7 @@ type cryptoClient struct {
 	ctx *libkb.GlobalContext
 }
 
-var _ libkbfs.CryptoClientProvider = (*cryptoClient)(nil)
+var _ keybase1.CryptoInterface = (*cryptoClient)(nil)
 
 func (c cryptoClient) SignED25519(_ context.Context, arg keybase1.SignED25519Arg) (keybase1.ED25519SignatureInfo, error) {
 	return engine.SignED25519(c.ctx, c.ctx.UI.GetSecretUI(), arg)
