@@ -216,9 +216,12 @@ func TestSignAfterRevoke(t *testing.T) {
 
 	// Still logged in on tc1, a revoked device.
 
+	f := func() libkb.SecretUI {
+		return u.NewSecretUI()
+	}
 	// Test signing with (revoked) device key on tc1, which works...
 	msg := []byte("test message")
-	ret, err := SignED25519(tc1.G, u.NewSecretUI(), keybase1.SignED25519Arg{
+	ret, err := SignED25519(tc1.G, f, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {
@@ -237,7 +240,7 @@ func TestSignAfterRevoke(t *testing.T) {
 	AssertLoggedOut(tc1)
 
 	// And now this should fail.
-	ret, err = SignED25519(tc1.G, u.NewSecretUI(), keybase1.SignED25519Arg{
+	ret, err = SignED25519(tc1.G, f, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err == nil {
@@ -263,8 +266,12 @@ func TestLogoutIfRevokedNoop(t *testing.T) {
 
 	AssertLoggedIn(tc)
 
+	f := func() libkb.SecretUI {
+		return u.NewSecretUI()
+	}
+
 	msg := []byte("test message")
-	ret, err := SignED25519(tc.G, u.NewSecretUI(), keybase1.SignED25519Arg{
+	ret, err := SignED25519(tc.G, f, keybase1.SignED25519Arg{
 		Msg: msg,
 	})
 	if err != nil {
