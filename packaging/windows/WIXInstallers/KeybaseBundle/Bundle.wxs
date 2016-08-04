@@ -64,7 +64,26 @@
                  Format="raw"
                  Win64="yes"
                  />
-    
+
+    <!-- Dokan Bundle 1.0.0RC4.3 -->
+    <util:RegistrySearch Id="DokanBundleUninstall"
+             Variable="DokanBundleUninstallString"
+             Root="HKLM"
+             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{d36c41f1-e204-487e-9c4a-29834dddcabe}"
+             Value="QuietUninstallString"
+             Format="raw"
+             />
+    <util:RegistrySearch Id="DokanBundleUninstall64"
+                 After="DokanBundleUninstall"
+                 Condition="NOT DokanBundleUninstallString"
+                 Variable="DokanBundleUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{d36c41f1-e204-487e-9c4a-29834dddcabe}"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
+
     <bal:Condition
       Message="Please uninstall any previous versions of the Dokan driver package before continuing.">
       <![CDATA[NOT InnoUninstallString]]>
@@ -102,6 +121,15 @@
 
     <Chain>
       <PackageGroupRef Id="NetFx40Web"/>
+      
+      <ExePackage
+        SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe"
+        InstallCommand="-wait [DokanBundleUninstallString]"
+        DetectCondition="NOT DokanBundleUninstallString"
+        PerMachine="yes"
+        Permanent="yes">
+        <ExitCode Behavior="forceReboot"/>
+      </ExePackage>
 
       <ExePackage Id="vcredist_2015_x86.exe"
                   Name="vc_redist.x86.exe"
