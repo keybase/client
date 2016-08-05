@@ -55,7 +55,7 @@ export function registerTrackerChangeListener (): TrackerActionCreator {
     const params = {
       'keybase.1.NotifyTracking.trackingChanged': ({username}) => {
         const trackerState = getState().tracker.trackers[username]
-        if (trackerState && trackerState.type === 'tracker' && !trackerState.closed) {
+        if (trackerState && trackerState.type === 'tracker') {
           dispatch(getProfile(username))
         }
       },
