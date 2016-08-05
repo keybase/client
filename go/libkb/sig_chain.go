@@ -665,6 +665,10 @@ func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
 		if link, err = ImportLinkFromStorage(curr, suid, l.G()); err != nil {
 			return
 		}
+		if link == nil {
+			l.G().Log.Debug("| ImportLinkFromStorage returned nil")
+			return
+		}
 		kid2 := link.ToEldestKID()
 
 		if loadKID.IsNil() {
