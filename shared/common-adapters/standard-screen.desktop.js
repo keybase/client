@@ -9,10 +9,10 @@ const defaults = {
 }
 
 const StandardScreen = (props: Props) => {
-  const {children, onClose, showClose, errorMessage} = {...defaults, ...props}
+  const {children, onClose, errorMessage} = {...defaults, ...props}
   return (
     <Box style={styleContainer}>
-      {!!onClose && showClose && <Icon style={styleClose} type='iconfont-close' onClick={() => onClose()} />}
+      {!!onClose && <Icon style={styleClose} type='iconfont-close' onClick={() => onClose()} />}
       {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
         {children}
@@ -23,19 +23,19 @@ const StandardScreen = (props: Props) => {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
+  ...globalStyles.scrollable,
   flex: 1,
   alignItems: 'center',
   position: 'relative',
   paddingTop: globalMargins.large,
   paddingBottom: globalMargins.large,
-  ...globalStyles.scrollable,
 }
 
 const styleClose = {
+  ...globalStyles.clickable,
   position: 'absolute',
   top: globalMargins.small,
   right: globalMargins.small,
-  ...globalStyles.clickable,
   color: globalColors.black_10,
 }
 

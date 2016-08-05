@@ -2,9 +2,8 @@
 import {Component} from 'react'
 
 export type Props = {
-children?: ?(React$Element<*> | Array<React$Element<*>>),
+  children?: ?any,
   onClose?: ?() => void,
-  showClose?: boolean,
   errorMessage?: ?string,
 }
 
