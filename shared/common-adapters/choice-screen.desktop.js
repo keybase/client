@@ -14,7 +14,9 @@ const ChoiceScreen = (props: Props) => {
       {options.map((op, idx) => (
         <Box style={styleEntry} key={idx} className='choice-screen__entry' onClick={() => op.onClick()}>
           <Box style={styleIconContainer} className='choice-screen__entry__icon-ctnr'>
-            {typeof op.icon === 'string' ? <Icon style={styleIcon} type={op.icon} className='choice-screen__entry__icon-ctnr__icon' /> : <Box style={styleIcon} className='choice-screen__entry__icon-ctnr__icon'>{op.icon}</Box>}
+          {typeof op.icon === 'string'
+            ? <Icon style={styleIcon} type={op.icon} className='choice-screen__entry__icon-ctnr__icon' />
+            : <Box style={styleIcon} className='choice-screen__entry__icon-ctnr__icon'>{op.icon}</Box>}
           </Box>
           <Box style={styleInfoContainer}>
             <Text style={styleInfoTitle} type='Header'>{op.title}</Text>
@@ -59,8 +61,8 @@ const styleTitle = {
 
 const styleEntry = {
   ...globalStyles.flexBoxRow,
-  padding: `${globalMargins.tiny}px ${globalMargins.small}px`,
   ...globalStyles.clickable,
+  padding: `${globalMargins.tiny}px ${globalMargins.small}px`,
   width: '100%',
 }
 
