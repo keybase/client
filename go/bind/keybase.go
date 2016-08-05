@@ -159,7 +159,7 @@ func Reset() error {
 	}
 
 	var err error
-	conn, _, _, err = kbCtx.ResetSocket(false)
+	conn, err = kbCtx.LoopbackListener.Dial()
 	if err != nil {
 		return fmt.Errorf("Socket error: %s", err)
 	}
