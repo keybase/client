@@ -222,6 +222,31 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         ],
       }
 
+    case Constants.updateBTC:
+      if (!action.payload) {
+        return state
+      }
+
+      const url = `https://keybase.io/${state.username}/sigchain`
+      const proof = {
+        state: 'normal',
+        id: action.payload.address,
+        meta: null,
+        type: 'btc',
+        mTime: 0,
+        color: 'green',
+        name: action.payload.address,
+        // TODO: We don't currently get the sigID so we can't link to the actual sigChain statement. See https://keybase.atlassian.net/browse/CORE-3529
+        humanUrl: url,
+        profileUrl: url,
+        isTracked: state.currentlyFollowing,
+      }
+
+      return {
+        ...state,
+        proofs: [].concat(state.proofs).concat([proof]),
+      }
+
     case Constants.updateProof:
       if (!action.payload) {
         return state

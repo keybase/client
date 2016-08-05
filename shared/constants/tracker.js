@@ -63,6 +63,7 @@ export const updateTrackers = 'tracker:updateTrackers'
 
 export const setProofs = 'tracker:setProofs'
 export const updateProof = 'tracker:updateProof'
+export const updateBTC = 'tracker:updateBTC'
 
 export const updateProofState = 'tracker:updateProofState'
 

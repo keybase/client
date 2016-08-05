@@ -117,7 +117,7 @@ class Render extends Component<void, Props, State> {
           <Text type='Body' style={{textAlign: 'center', color: globalColors.black_40}}>Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>
         </Box>,
         items: [
-          {title: 'View proof', onClick: () => this.props.onViewProof(proof)},
+          {title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`, onClick: () => this.props.onViewProof(proof)},
           {title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)},
         ],
       }

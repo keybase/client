@@ -12,7 +12,7 @@ import type {Proof} from '../constants/tracker'
 import type {Props} from './render'
 import {addProof} from '../actions/profile'
 import {connect} from 'react-redux'
-import {getProfile, updateTrackers} from '../actions/tracker'
+import {getProfile, updateTrackers, openProofUrl} from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
 import {openInKBFS} from '../actions/kbfs'
 import {routeAppend, navigateUp} from '../actions/router'
@@ -77,7 +77,9 @@ export default connect(
     onFolderClick: folder => dispatch(openInKBFS(folder.path)),
     onEditProfile: () => dispatch(routeAppend({path: 'editprofile'})),
     onMissingProofClick: (missingProof: MissingProof) => dispatch(addProof(missingProof.type)),
-    onRevokeProof: (proof: Proof) => dispatch(routeAppend({path: 'Revoke', platform: proof.type, platformHandle: proof.name, proofId: proof.id})),
+    onRevokeProof: (proof: Proof) => dispatch(routeAppend({path: 'Revoke', platform: proof.type,
+      platformHandle: proof.name, proofId: proof.id})),
+    onViewProof: (proof: Proof) => dispatch(openProofUrl(proof)),
   }),
   (stateProps, dispatchProps, ownProps) => {
     const username = ownProps.username || stateProps.myUsername
