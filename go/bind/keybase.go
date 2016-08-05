@@ -97,11 +97,19 @@ type serviceCn struct {
 }
 
 func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
-	return newService(s.ctx), nil
+	// To use a local non-RPC service provider:
+	// return newServiceProvider(s.ctx, config, log), nil
+
+	// To use an RPC based service provider:
+	return newServiceRPCProvider(s.ctx, config, log), nil
 }
 
 func (s serviceCn) NewCrypto(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.Crypto, error) {
-	return newCrypto(config, s.ctx, log), nil
+	// To use a local non-RPC crypto provider:
+	// return newCrypto(s.ctx, config, log), nil
+
+	// To use an RPC based crypto provider:
+	return newCryptoRPC(s.ctx, config, log), nil
 }
 
 // LogSend sends a log to Keybase

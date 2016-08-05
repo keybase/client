@@ -20,35 +20,61 @@ import (
 type RemoteIdentifyUI struct {
 	libkb.Contextified
 	sessionID  int
-	uicli      keybase1.IdentifyUiClient
+	uicli      keybase1.IdentifyUiInterface // TODO: Rename this to identifyUI
 	logUI      libkb.LogUI
 	strict     bool
 	skipPrompt bool
 }
 
+func NewRemoteIdentifyUI(g *libkb.GlobalContext, sessionID int, identifyUI keybase1.IdentifyUiInterface, logUI libkb.LogUI) *RemoteIdentifyUI {
+	return &RemoteIdentifyUI{
+		sessionID:    sessionID,
+		uicli:        identifyUI,
+		logUI:        logUI,
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
 type IdentifyHandler struct {
-	*BaseHandler
 	libkb.Contextified
 	resultCache *ramcache.Ramcache
 	callGroup   singleflight.Group
+	ui          IdentifyUI
 }
 
-func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHandler {
+type IdentifyRPCHandler struct {
+	*BaseHandler
+	*IdentifyHandler
+}
+
+func NewIdentifyHandler(g *libkb.GlobalContext, ui IdentifyUI) *IdentifyHandler {
 	c := ramcache.New()
 	c.TTL = 5 * time.Minute
 	c.MaxAge = 5 * time.Minute
-
 	return &IdentifyHandler{
-		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 		resultCache:  c,
+		ui:           ui,
+	}
+}
+
+type IdentifyUI interface {
+	NewRemoteIdentifyUI(sessionID int, g *libkb.GlobalContext) *RemoteIdentifyUI
+	GetLogUI(sessionID int) libkb.LogUI
+}
+
+func NewIdentifyRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyRPCHandler {
+	handler := NewBaseHandler(xp)
+	return &IdentifyRPCHandler{
+		BaseHandler:     handler,
+		IdentifyHandler: NewIdentifyHandler(g, handler),
 	}
 }
 
 func (h *IdentifyHandler) Identify2(_ context.Context, arg keybase1.Identify2Arg) (res keybase1.Identify2Res, err error) {
 	defer h.G().Trace("IdentifyHandler.Identify2", func() error { return err })()
-	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
-	logui := h.getLogUI(arg.SessionID)
+	iui := h.ui.NewRemoteIdentifyUI(arg.SessionID, h.G())
+	logui := h.ui.GetLogUI(arg.SessionID)
 	ctx := engine.Context{
 		LogUI:      logui,
 		IdentifyUI: iui,
@@ -151,7 +177,7 @@ func (h *IdentifyHandler) makeContext(sessionID int, arg keybase1.IdentifyArg) (
 	// If we failed to delegate, we can still fallback and just log to the terminal.
 	if iui == nil {
 		h.G().Log.Debug("| using a remote UI as normal")
-		iui = h.NewRemoteIdentifyUI(sessionID, h.G())
+		iui = h.ui.NewRemoteIdentifyUI(sessionID, h.G())
 	}
 
 	if iui == nil {
@@ -159,7 +185,7 @@ func (h *IdentifyHandler) makeContext(sessionID int, arg keybase1.IdentifyArg) (
 		return nil, err
 	}
 
-	logui := h.getLogUI(sessionID)
+	logui := h.ui.GetLogUI(sessionID)
 
 	ctx := engine.Context{
 		LogUI:      logui,

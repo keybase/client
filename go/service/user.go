@@ -11,17 +11,37 @@ import (
 	"golang.org/x/net/context"
 )
 
-// UserHandler is the RPC handler for the user interface.
+// UserHandler implements for the keybase1.UserInterface
 type UserHandler struct {
-	*BaseHandler
 	libkb.Contextified
+	ui UserUI
 }
 
-// NewUserHandler creates a UserHandler for the xp transport.
-func NewUserHandler(xp rpc.Transporter, g *libkb.GlobalContext) *UserHandler {
+// UserRPCHandler is the RPC handler for the keybase1.UserInterface
+type UserRPCHandler struct {
+	*BaseHandler
+	*UserHandler
+}
+
+// UserUI resolves UI for user requests
+type UserUI interface {
+	GetLogUI(sessionID int) libkb.LogUI
+}
+
+// NewUserHandler creates a UserHandler
+func NewUserHandler(g *libkb.GlobalContext, ui UserUI) *UserHandler {
 	return &UserHandler{
-		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
+		ui:           ui,
+	}
+}
+
+// NewUserRPCHandler creates a UserHandler for the xp transport.
+func NewUserRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext) *UserRPCHandler {
+	handler := NewBaseHandler(xp)
+	return &UserRPCHandler{
+		BaseHandler: handler,
+		UserHandler: NewUserHandler(g, handler),
 	}
 }
 
@@ -47,7 +67,7 @@ func (h *UserHandler) ListTrackersSelf(_ context.Context, sessionID int) ([]keyb
 
 func (h *UserHandler) listTrackers(sessionID int, eng *engine.ListTrackersEngine) ([]keybase1.Tracker, error) {
 	ctx := &engine.Context{
-		LogUI:     h.getLogUI(sessionID),
+		LogUI:     h.ui.GetLogUI(sessionID),
 		SessionID: sessionID,
 	}
 	if err := engine.RunEngine(eng, ctx); err != nil {
@@ -124,7 +144,7 @@ func (h *UserHandler) Search(_ context.Context, arg keybase1.SearchArg) (results
 		Query: arg.Query,
 	}, h.G())
 	ctx := &engine.Context{
-		LogUI:     h.getLogUI(arg.SessionID),
+		LogUI:     h.ui.GetLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
 	err = engine.RunEngine(eng, ctx)
@@ -163,7 +183,7 @@ func (h *UserHandler) LoadAllPublicKeysUnverified(_ context.Context,
 func (h *UserHandler) ListTrackers2(_ context.Context, arg keybase1.ListTrackers2Arg) (res keybase1.UserSummary2Set, err error) {
 	eng := engine.NewListTrackers2(h.G(), arg)
 	ctx := &engine.Context{
-		LogUI:     h.getLogUI(arg.SessionID),
+		LogUI:     h.ui.GetLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}
 	err = engine.RunEngine(eng, ctx)

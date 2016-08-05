@@ -12,14 +12,24 @@ import (
 )
 
 type KBFSHandler struct {
-	*BaseHandler
 	libkb.Contextified
 }
 
-func NewKBFSHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KBFSHandler {
+type KBFSRPCHandler struct {
+	*BaseHandler
+	*KBFSHandler
+}
+
+func NewKBFSHandler(g *libkb.GlobalContext) *KBFSHandler {
 	return &KBFSHandler{
-		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func NewKBFSRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext) *KBFSRPCHandler {
+	return &KBFSRPCHandler{
+		BaseHandler: NewBaseHandler(xp),
+		KBFSHandler: NewKBFSHandler(g),
 	}
 }
 
