@@ -34,6 +34,7 @@ export default function () {
 
   const isRestore = getenv.boolish('KEYBASE_RESTORE_UI', false)
   const startUI = getenv.string('KEYBASE_START_UI', '')
+  console.log('Main window, isRestore:', isRestore, 'startUI:', startUI)
 
   // We show the main window on startup if:
   //  - We are not restoring the UI (after update, or boot)
