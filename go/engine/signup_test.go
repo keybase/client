@@ -77,8 +77,8 @@ func TestSignupEngine(t *testing.T) {
 
 	mockGetPassphrase.CheckLastErr(t)
 
-	if !mockGetPassphrase.Called {
-		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
+	if mockGetPassphrase.Called {
+		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly called")
 	}
 
 	if err = AssertDeviceID(tc.G); err != nil {
