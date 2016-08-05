@@ -69,12 +69,3 @@ func (e *FavoriteList) Result() keybase1.FavoritesResult {
 		NewFolders:      e.result.New,
 	}
 }
-
-func FavoriteListRun(g *libkb.GlobalContext, engineCtx *Context) ([]keybase1.Folder, error) {
-	eng := NewFavoriteList(g)
-	if err := RunEngine(eng, engineCtx); err != nil {
-		return []keybase1.Folder{}, err
-	}
-	resp := eng.Result()
-	return resp.FavoriteFolders, nil
-}

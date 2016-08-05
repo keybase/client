@@ -581,19 +581,3 @@ func (e *Identify2WithUID) TrackToken() keybase1.TrackToken {
 func (e *Identify2WithUID) ConfirmResult() keybase1.ConfirmResult {
 	return e.confirmResult
 }
-
-func Identify2Run(g *libkb.GlobalContext, engineCtx *Context, assertion, reason string) (keybase1.UserPlusKeys, error) {
-	arg := keybase1.Identify2Arg{
-		UserAssertion: assertion,
-		Reason: keybase1.IdentifyReason{
-			Reason: reason,
-		},
-	}
-	eng := NewResolveThenIdentify2(g, &arg)
-	err := RunEngine(eng, engineCtx)
-	if err != nil {
-		return keybase1.UserPlusKeys{}, err
-	}
-	resp := eng.Result()
-	return resp.Upk, nil
-}
