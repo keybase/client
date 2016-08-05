@@ -360,6 +360,10 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	case UpdateHistoryFileName:
 		return NewUpdateHistoryFile(d.folder, resp), nil
 
+	case libfs.EditHistoryName:
+		folderBranch := d.folder.getFolderBranch()
+		return NewTlfEditHistoryFile(d.folder.fs, folderBranch, resp), nil
+
 	case libfs.UnstageFileName:
 		resp.EntryValid = 0
 		child := &UnstageFile{
