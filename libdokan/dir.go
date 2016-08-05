@@ -221,6 +221,10 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		folderBranch := d.folder.getFolderBranch()
 		return NewStatusFile(d.folder.fs, &folderBranch), false, nil
 
+	case libfs.EditHistoryName:
+		folderBranch := d.folder.getFolderBranch()
+		return NewTlfEditHistoryFile(d.folder.fs, folderBranch), false, nil
+
 	case libfs.UnstageFileName:
 		child := &UnstageFile{
 			folder: d.folder,
