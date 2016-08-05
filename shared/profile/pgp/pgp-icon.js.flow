@@ -1,0 +1,15 @@
+/* @flow */
+import {Component} from 'react'
+
+export type Overlays =
+    'good'
+  | 'placeholder'
+  | 'import'
+  | 'generate'
+
+export type Props = {
+  type: Overlays,
+}
+
+export default class PgpIcon extends Component<void, Props, void> {
+}
