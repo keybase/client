@@ -24,61 +24,21 @@
             SuppressOptionsUI="yes"
             />
     </BootstrapperApplicationRef>
-    
-    <!-- From the old Inno installer for Dokan 0.8.0 -->
-    <util:RegistrySearch Id="InnoUninstall2"
-             Variable="InnoUninstallString"
-             Root="HKLM"
-             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DEB2E54C-C39F-4DC8-93A7-ABE0AB91DDCA}_is1"
-             Value="QuietUninstallString"
-             Format="raw"
-                 />
-    <util:RegistrySearch Id="InnoUninstall264"
-                 After="InnoUninstall2"
-                 Condition="NOT InnoUninstallString"
-                 Variable="InnoUninstallString"
-                 Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DEB2E54C-C39F-4DC8-93A7-ABE0AB91DDCA}_is1"
-                 Value="QuietUninstallString"
-                 Format="raw"
-                 Win64="yes"
-                 />
-    
-    <!-- From the old Inno installer for Dokan 1.0.0RC2 -->
-    <util:RegistrySearch Id="InnoUninstall3"
-             Variable="InnoUninstallString"
-             After="InnoUninstall264"
-             Condition="NOT InnoUninstallString"
-             Root="HKLM"
-             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1B2672D9-2BAD-4C11-BA53-A75AF6FD7789}_is1"
-             Value="QuietUninstallString"
-             Format="raw"
-                 />
-    <util:RegistrySearch Id="InnoUninstall364"
-                 After="InnoUninstall3"
-                 Condition="NOT InnoUninstallString"
-                 Variable="InnoUninstallString"
-                 Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1B2672D9-2BAD-4C11-BA53-A75AF6FD7789}_is1"
-                 Value="QuietUninstallString"
-                 Format="raw"
-                 Win64="yes"
-                 />
 
-    <!-- Dokan Bundle 1.0.0RC4.3 -->
-    <util:RegistrySearch Id="DokanBundleUninstall"
-             Variable="DokanBundleUninstallString"
+    <!-- Keybase Dokany Build 58-->
+    <util:RegistrySearch Id="DokanUninstall"
+             Variable="DokanUninstallString"
              Root="HKLM"
-             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{d36c41f1-e204-487e-9c4a-29834dddcabe}"
+             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A932-3DC3-0100-0000-160803110110}"
              Value="QuietUninstallString"
              Format="raw"
              />
-    <util:RegistrySearch Id="DokanBundleUninstall64"
-                 After="DokanBundleUninstall"
-                 Condition="NOT DokanBundleUninstallString"
-                 Variable="DokanBundleUninstallString"
+    <util:RegistrySearch Id="DokanUninstall64"
+                 After="DokanUninstall"
+                 Condition="NOT DokanUninstallString"
+                 Variable="DokanUninstallString"
                  Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{d36c41f1-e204-487e-9c4a-29834dddcabe}"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160803110110}"
                  Value="QuietUninstallString"
                  Format="raw"
                  Win64="yes"
@@ -117,19 +77,17 @@
 
     <bal:Condition Message="Installation failed because your version of Windows is too old. Dokan requires Windows 7 SP1 or newer."><![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND ServicePackLevel >= 1)]]></bal:Condition>
 
-
-
     <Chain>
       <PackageGroupRef Id="NetFx40Web"/>
       
       <ExePackage
-        SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\runquiet\runquiet.exe"
-        InstallCommand="-wait [DokanBundleUninstallString]"
-        DetectCondition="NOT DokanBundleUninstallString"
+        SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe"
+        DetectCondition="NOT DokanUninstallString"
         Description="Remove previous drivers"
         PerMachine="yes"
         Permanent="yes">
-        <ExitCode Behavior="forceReboot"/>
+        <ExitCode Value="1" Behavior="forceReboot"/>
+        <ExitCode Value="0" Behavior="success" />
       </ExePackage>
 
       <ExePackage Id="vcredist_2015_x86.exe"
