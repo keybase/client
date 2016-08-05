@@ -416,8 +416,18 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 
 	// Sort into slice based on revision.
 	irmds := make([]ImmutableRootMetadata, len(rmdses))
+	startRev := rmdses[0].MD.Revision
+	numExpected := MetadataRevision(len(irmds))
 	for irmd := range irmdChan {
-		irmds[irmd.Revision-rmdses[0].MD.Revision] = irmd
+		i := irmd.Revision - startRev
+		if i < 0 || i >= numExpected {
+			return nil, fmt.Errorf("Unexpected revision %d; expected "+
+				"something between %d and %d inclusive", irmd.Revision,
+				startRev, startRev+numExpected-1)
+		} else if irmds[i] != (ImmutableRootMetadata{}) {
+			return nil, fmt.Errorf("Got revision %d twice", irmd.Revision)
+		}
+		irmds[i] = irmd
 	}
 
 	// Now that we have all the immutable RootMetadatas, verify that
