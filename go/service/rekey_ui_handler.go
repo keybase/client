@@ -111,11 +111,16 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) (err
 	return r.startUpdater(ctx, problemSet, item.Metadata().MsgID())
 }
 
-func keySolvesProblemTLF(key libkb.GenericKey, tlf keybase1.ProblemTLF) bool {
-	ourKid := key.GetKID()
-	for _, kid := range tlf.Solution_kids {
-		if kid.Equal(ourKid) {
-			return true
+func keysSolveProblemTLF(keys []libkb.GenericKey, tlf keybase1.ProblemTLF) bool {
+	var ourKIDs []keybase1.KID
+	for _, key := range keys {
+		ourKIDs = append(ourKIDs, key.GetKID())
+	}
+	for _, theirKID := range tlf.Solution_kids {
+		for _, ourKID := range ourKIDs {
+			if ourKID.Equal(theirKID) {
+				return true
+			}
 		}
 	}
 	return false
@@ -135,14 +140,25 @@ func currentDeviceSolvesProblemSet(g *libkb.GlobalContext, ps keybase1.ProblemSe
 		return ret
 	}
 
-	key, err := me.GetDeviceSubkey()
+	var paperKey libkb.GenericKey
+	deviceKey, err := me.GetDeviceSubkey()
 	if err != nil {
 		g.Log.Info("| Problem getting device subkey: %s\n", err)
 		return ret
 	}
 
+	err = g.LoginState().Account(func(a *libkb.Account) {
+		paperKey = a.GetUnlockedPaperEncKey()
+	}, "currentDeviceSolvesProblemSet")
+
+	// We can continue though, so no need to error out
+	if err != nil {
+		g.Log.Info("| Error getting paper key: %s\n", err)
+		err = nil
+	}
+
 	for _, tlf := range ps.Tlfs {
-		if !keySolvesProblemTLF(key, tlf) {
+		if !keysSolveProblemTLF([]libkb.GenericKey{deviceKey, paperKey}, tlf) {
 			g.Log.Debug("| Doesn't solve problem TLF: %s (%s)\n", tlf.Tlf.Name, tlf.Tlf.Id)
 			return ret
 		}
