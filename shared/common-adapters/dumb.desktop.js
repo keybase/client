@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 
 import Checkbox from './checkbox'
-import {Button, Box, TabBar, Text, Avatar, ListItem, PopupMenu, Icon, ChoiceScreen} from './index'
+import {Button, Box, TabBar, Text, Avatar, ListItem, PopupMenu, Icon, ChoiceList} from './index'
 import {iconMeta} from './icon.constants'
 import type {IconType} from './icon.constants'
 import {TabBarButton, TabBarItem} from './tab-bar'
@@ -196,24 +196,22 @@ const avatarMap: DumbComponentMap<Avatar> = {
   },
 }
 
-const choiceScreenMap: DumbComponentMap<ChoiceScreen> = {
-  component: ChoiceScreen,
+const choiceListMap: DumbComponentMap<ChoiceList> = {
+  component: ChoiceList,
   mocks: {
-    'Two Choices - Website': {
-      title: 'Prove your website in two ways:',
-      onCancel: () => console.log('ChoiceScreen: onCancel'),
+    'Two Choices': {
       options: [
         {
           title: 'Host a TXT file',
           description: 'Host a text file on your site, such as yoursite.com/keybase.txt.',
           icon: 'icon-file-txt-48',
-          onClick: () => console.log('ChoiceScreen: onClick TXT file'),
+          onClick: () => console.log('ChoiceList: onClick TXT file'),
         },
         {
           title: 'Set a DNS',
           description: 'Place a Keybase proof in your DNS records.',
           icon: 'icon-dns-48',
-          onClick: () => console.log('ChoiceScreen: onClick DNS'),
+          onClick: () => console.log('ChoiceList: onClick DNS'),
         },
       ],
     },
@@ -227,5 +225,5 @@ export default {
   PopupMenu: popupMenuMap,
   Avatar: avatarMap,
   Icon: iconMap,
-  ChoiceScreen: choiceScreenMap,
+  ChoiceList: choiceListMap,
 }

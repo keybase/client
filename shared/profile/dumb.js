@@ -2,6 +2,7 @@
 import Profile from './render'
 import ConfirmOrPending from './confirm-or-pending'
 import ProveEnterUsername from './prove-enter-username'
+import ProveWebsiteChoice from './prove-website-choice'
 import EditAvatar from './edit-avatar'
 import Revoke from './revoke'
 import PostProof from './post-proof'
@@ -452,6 +453,16 @@ const dumbPostProof: DumbComponentMap<PostProof> = {
   },
 }
 
+const dumbProveWebsiteChoice: DumbComponentMap<ProveWebsiteChoice> = {
+  component: ProveWebsiteChoice,
+  mocks: {
+    'DNS or File': {
+      onCancel: () => console.log('ProveWebsiteChoice: onCancel'),
+      onOptionClick: op => console.log(`ProveWebsiteChoice: onOptionClick = ${op}`),
+    },
+  },
+}
+
 export default {
   'Profile': dumbMap,
   'Edit Avatar': dumbEditAvatar,
@@ -459,4 +470,5 @@ export default {
   'New Proof: Confirm or Pending': dumbConfirmOrPendingMap,
   'New Proof: Enter Username': dumbProveEnterUsername,
   'New Proof: Post': dumbPostProof,
+  'New Proof: Website': dumbProveWebsiteChoice,
 }

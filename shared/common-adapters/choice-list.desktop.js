@@ -1,22 +1,19 @@
 // @flow
 import React from 'react'
-import {Box, Text, Icon, Button} from '../common-adapters'
+import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import StandardScreen from './standard-screen'
-import type {Props} from './choice-screen'
+import type {Props} from './choice-list'
 
-const ChoiceScreen = (props: Props) => {
-  const {options, onCancel, title} = {...props}
+const ChoiceList = ({options}: Props) => {
   return (
-    <StandardScreen onClose={onCancel}>
+    <Box>
       <style>{rawCSS}</style>
-      <Text style={styleTitle} type='Header'>{title}</Text>
       {options.map((op, idx) => (
-        <Box style={styleEntry} key={idx} className='choice-screen__entry' onClick={() => op.onClick()}>
-          <Box style={styleIconContainer} className='choice-screen__entry__icon-ctnr'>
+        <Box style={styleEntry} key={idx} className='choice-list__entry' onClick={() => op.onClick()}>
+          <Box style={styleIconContainer} className='choice-list__entry__icon-ctnr'>
           {typeof op.icon === 'string'
-            ? <Icon style={styleIcon} type={op.icon} className='choice-screen__entry__icon-ctnr__icon' />
-            : <Box style={styleIcon} className='choice-screen__entry__icon-ctnr__icon'>{op.icon}</Box>}
+            ? <Icon style={styleIcon} type={op.icon} className='choice-list__entry__icon-ctnr__icon' />
+            : <Box style={styleIcon} className='choice-list__entry__icon-ctnr__icon'>{op.icon}</Box>}
           </Box>
           <Box style={styleInfoContainer}>
             <Text style={styleInfoTitle} type='Header'>{op.title}</Text>
@@ -24,40 +21,35 @@ const ChoiceScreen = (props: Props) => {
           </Box>
         </Box>
       ))}
-      <Button style={styleCancelButton} type='Secondary' onClick={() => onCancel()} label={'Cancel'} />
-    </StandardScreen>
+    </Box>
   )
 }
 
 const rawCSS = `
-  .choice-screen__entry {
+  .choice-list__entry {
     background-color: transparent;
   }
-  .choice-screen__entry:hover {
+  .choice-list__entry:hover {
     background-color: ${globalColors.blue4};
   }
 
-  .choice-screen__entry__icon-ctnr__icon {
+  .choice-list__entry__icon-ctnr__icon {
     transform-origin: center center;
     transition: 0.5s transform;
   }
-  .choice-screen__entry:hover .choice-screen__entry__icon-ctnr__icon {
+  .choice-list__entry:hover .choice-list__entry__icon-ctnr__icon {
     transform: translateX(25%);
   }
 
-  .choice-screen__entry__icon-ctnr {
+  .choice-list__entry__icon-ctnr {
     transition: 0.5s background;
     background: ${globalColors.lightGrey};
     border-radius: 50%;
   }
-  .choice-screen__entry:hover .choice-screen__entry__icon-ctnr {
+  .choice-list__entry:hover .choice-list__entry__icon-ctnr {
     background: transparent;
   }
 `
-
-const styleTitle = {
-  marginBottom: globalMargins.medium,
-}
 
 const styleEntry = {
   ...globalStyles.flexBoxRow,
@@ -96,8 +88,4 @@ const styleInfoDescription = {
   color: globalColors.black_40,
 }
 
-const styleCancelButton = {
-  marginTop: globalMargins.medium,
-}
-
-export default ChoiceScreen
+export default ChoiceList

@@ -10,9 +10,7 @@ export type Option = {
 }
 
 export type Props = {
-  title: string,
   options: Array<Option>,
-  onCancel: () => void,
 }
 
-export default class StandardScreen extends Component<void, Props, void> { }
+export default class ChoiceList extends Component<void, Props, void> { }
