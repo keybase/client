@@ -17,10 +17,10 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
   const missingColor = globalColors.black_20
   return (
     <Box style={{...styleMissingProofRow, ...style}} className='user-proof-row' key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
-      <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
+      <Icon className='user-proof-row__icon' style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Text inline={true} className='user-proof-row__name' type='Body' style={{...styleProofName, color: missingColor}}>
+          <Text inline={true} className='user-proof-row__name' type='Body' style={styleProofName}>
             {missingProof.message}
           </Text>
         </Box>
@@ -134,8 +134,18 @@ export default class ProofsRender extends Component {
     const {loading, onClickProofMenu, showingMenuIndex} = this.props
     const pad = idx => idx > 0 ? {marginTop: globalMargins.tiny} : {}
     const missingProofsRealCSS = `
-      .user-proof-row .user-proof-row__name { text-underline: none; font-weight: normal; }
-      .user-proof-row:hover .user-proof-row__name { text-decoration: underline; font-weight: bold; }
+      .user-proof-row .user-proof-row__name {
+        text-underline: none;
+      }
+      .user-proof-row:hover .user-proof-row__name {
+        text-decoration: underline;
+      }
+      .user-proof-row .user-proof-row__name, .user-proof-row .user-proof-row__icon {
+        color: ${globalColors.black_20} !important; /* Must use important because Text has a default color which is set inline */
+      }
+      .user-proof-row:hover .user-proof-row__name, .user-proof-row:hover .user-proof-row__icon {
+        color: ${globalColors.black_60} !important;
+      }
     `
     return (
       <Box style={{...styleContainer(loading), ...this.props.style}}>
@@ -203,9 +213,9 @@ const styleService = {
   flexShrink: 0,
   textAlign: 'center',
   color: globalColors.black_75,
-  hoverColor: globalColors.black_75,
   marginRight: globalMargins.tiny,
   marginTop: 5,
+  transition: '0.15s color',
 }
 
 const styleStatusIcon = {
@@ -231,6 +241,7 @@ const styleProofName = {
   display: 'inline-block',
   wordBreak: 'break-all',
   flex: 1,
+  transition: '0.15s color',
 }
 
 const styleProofType = {
