@@ -8,14 +8,19 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
-	arg := DefaultPassphraseArg(g, allowSecretStore)
+func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
+	arg := DefaultPassphraseArg(g, true)
 	arg.WindowTitle = "Keybase passphrase"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Username = username
 	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", username)
 	arg.RetryLabel = retryMsg
-	return GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+	res, err := GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+	if err != nil {
+		return res, err
+	}
+	res.StoreSecret = true
+	return res, nil
 }
 
 func GetSecret(g *GlobalContext, ui SecretUI, title, prompt, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
@@ -27,7 +32,12 @@ func GetSecret(g *GlobalContext, ui SecretUI, title, prompt, retryMsg string, al
 	// apparently allowSecretStore can be true even though HasSecretStore()
 	// is false (in the case of mocked secret store tests on linux, for
 	// example). So, pass this through:
-	return GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+	res, err := GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+	if err != nil {
+		return res, err
+	}
+	res.StoreSecret = allowSecretStore
+	return res, nil
 }
 
 func GetPaperKeyPassphrase(g *GlobalContext, ui SecretUI, username string, lastErr error) (string, error) {

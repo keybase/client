@@ -227,8 +227,8 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 
 	mockGetKeybasePassphrase.CheckLastErr(t)
 
-	if !mockGetKeybasePassphrase.Called {
-		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
+	if mockGetKeybasePassphrase.Called {
+		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly called")
 	}
 
 	Logout(tc)
@@ -251,8 +251,8 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 		t.Errorf("loginUI.GetEmailOrUsername() unexpectedly not called")
 	}
 
-	if !mockGetKeybasePassphrase.Called {
-		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
+	if mockGetKeybasePassphrase.Called {
+		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly called")
 	}
 }
 
