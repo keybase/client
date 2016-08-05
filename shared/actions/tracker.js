@@ -569,7 +569,7 @@ function _listTrackersOrTracking (uid: string, listTrackers: boolean): Promise<A
       callback: (error, results) => {
         if (error) {
           console.log('err getting trackers', error)
-          reject()
+          reject(error)
         } else {
           const json = JSON.parse(results.body)
           resolve(json.users.map(parseFriendship))
@@ -610,6 +610,8 @@ export function updateTrackers (username: string, uid: string): TrackerActionCre
         type: Constants.updateTrackers,
         payload: {username, trackers, tracking},
       })
+    }).catch(e => {
+      console.warn('Failed to get followers/followings', e)
     })
   }
 }
