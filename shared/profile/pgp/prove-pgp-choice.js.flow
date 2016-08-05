@@ -1,0 +1,13 @@
+// @flow
+import {Component} from 'react'
+
+export type Options =
+    'import'
+  | 'generate'
+
+export type Props = {
+  onOptionClick: (type: Options) => void,
+  onCancel: () => void,
+}
+
+export default class ProvePgpChoice extends Component<void, Props, void> {}
