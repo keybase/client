@@ -124,14 +124,22 @@ type TlfEditHistory struct {
 	fbo    *folderBranchOps
 	log    logger.Logger
 
-	lock  sync.Mutex
-	edits TlfWriterEdits
+	lock      sync.Mutex
+	edits     TlfWriterEdits
+	editsTime time.Time
 }
 
 func (teh *TlfEditHistory) getEditsCopyLocked() TlfWriterEdits {
 	if teh.edits == nil {
 		return nil
 	}
+	// Until we listen for later updates and repair the edits list,
+	// let's not cache this for too long.  TODO: fix me.
+	if teh.config.Clock().Now().After(teh.editsTime.Add(1 * time.Minute)) {
+		teh.edits = nil
+		return nil
+	}
+
 	edits := make(TlfWriterEdits)
 	for user, userEdits := range teh.edits {
 		userEditsCopy := make([]TlfEdit, len(userEdits))
@@ -201,9 +209,19 @@ outer:
 					break
 				}
 
-				// If a chain exists for the file, ignore this create.
-				if _, ok := chains.byOriginal[ptr]; ok {
-					continue
+				// If a chain exists with sync ops for the file,
+				// ignore this create.
+				if fileChain, ok := chains.byOriginal[ptr]; ok {
+					syncOpFound := false
+					for _, fileOp := range fileChain.ops {
+						if _, ok := fileOp.(*syncOp); ok {
+							syncOpFound = true
+							break
+						}
+					}
+					if syncOpFound {
+						continue
+					}
 				}
 
 				writer := op.getWriterInfo().uid
@@ -251,14 +269,10 @@ outer:
 // history for this TLF.
 func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 	head ImmutableRootMetadata) (TlfWriterEdits, error) {
-	var currEdits TlfWriterEdits
-	/**
-	* Once we update currEdits based on notifications, we can uncomment this.
-		currEdits := teh.getEditsCopy()
-		if currEdits != nil {
-			return currEdits, nil
-		}
-	*/
+	currEdits := teh.getEditsCopy()
+	if currEdits != nil {
+		return currEdits, nil
+	}
 
 	// We have no history -- fetch from the server until we have a
 	// complete history.
@@ -354,5 +368,6 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 	teh.lock.Lock()
 	defer teh.lock.Unlock()
 	teh.edits = currEdits
+	teh.editsTime = teh.config.Clock().Now()
 	return teh.getEditsCopyLocked(), nil
 }

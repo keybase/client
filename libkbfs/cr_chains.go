@@ -721,7 +721,11 @@ func (ccs *crChains) summary(identifyChains *crChains,
 }
 
 func (ccs *crChains) removeChain(ptr BlockPointer) {
-	delete(ccs.byOriginal, ptr)
+	if chain, ok := ccs.byMostRecent[ptr]; ok {
+		delete(ccs.byOriginal, chain.original)
+	} else {
+		delete(ccs.byOriginal, ptr)
+	}
 	delete(ccs.byMostRecent, ptr)
 }
 
