@@ -350,7 +350,7 @@ func (md *MDOpsStandard) GetUnmergedForTLF(
 func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 	bid BranchID, rmdses []*RootMetadataSigned) (
 	[]ImmutableRootMetadata, error) {
-	if rmdses == nil {
+	if len(rmdses) == 0 {
 		return nil, nil
 	}
 
