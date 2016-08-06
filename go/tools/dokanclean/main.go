@@ -19,6 +19,8 @@ func doUninstallAction(uninst string, list bool) bool {
 	retval := false
 
 	// Parse out the command, which may be inside quotes, and arguments
+	// e.g.:
+	//    "C:\ProgramData\Package Cache\{d36c41f1-e204-487e-9c4a-29834dddcabe}\DokanSetup.exe" /uninstall /quiet
 	var command string
 	if strings.HasPrefix(uninst, "\"") {
 		if commandEnd := strings.Index(uninst[1:], "\""); commandEnd != -1 {
@@ -31,6 +33,13 @@ func doUninstallAction(uninst string, list bool) bool {
 		command = args[0]
 		args = args[1:]
 	}
+
+	// If this is an msi package, it probably has no QuietUninstallString
+	if strings.HasPrefix(strings.ToLower(command), "msiexec") {
+		args = append(args, "/quiet")
+	}
+
+	args = append(args, "/norestart")
 
 	if list {
 		fmt.Printf("%s %v\n", command, args)
@@ -46,12 +55,13 @@ func doUninstallAction(uninst string, list bool) bool {
 	return retval
 }
 
+// Read all the uninstall subkeys and find the ones with DisplayName starting with "Dokan Library"
 func findDokanUninstall(list bool, wow64 bool) (result bool) {
 	var access uint32 = registry.ENUMERATE_SUB_KEYS | registry.QUERY_VALUE
 	if wow64 {
 		access = access | registry.WOW64_32KEY
 	}
-	//    HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160803110110}
+
 	k, err := registry.OpenKey(registry.LOCAL_MACHINE, "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall", access)
 	if err != nil {
 		fmt.Printf("Error %s opening uninstall subkeys\n", err.Error())
