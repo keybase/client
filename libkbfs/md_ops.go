@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -349,23 +350,90 @@ func (md *MDOpsStandard) GetUnmergedForTLF(
 func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 	bid BranchID, rmdses []*RootMetadataSigned) (
 	[]ImmutableRootMetadata, error) {
-	if rmdses == nil {
+	if len(rmdses) == 0 {
 		return nil, nil
 	}
 
-	// Verify that the given MD objects form a valid sequence.
-	var prevIRMD ImmutableRootMetadata
-	irmds := make([]ImmutableRootMetadata, 0, len(rmdses))
-	for _, r := range rmdses {
-		bareHandle, err := r.MD.MakeBareTlfHandle()
-		if err != nil {
-			return nil, err
-		}
-		handle, err := MakeTlfHandle(ctx, bareHandle, md.config.KBPKI())
-		if err != nil {
-			return nil, err
-		}
+	var wg sync.WaitGroup
+	numWorkers := len(rmdses)
+	if numWorkers > maxMDsAtATime {
+		numWorkers = maxMDsAtATime
+	}
+	wg.Add(numWorkers)
 
+	// Parallelize the MD decryption, because it could involve
+	// fetching blocks to get unembedded block changes.
+	rmdsChan := make(chan *RootMetadataSigned, len(rmdses))
+	irmdChan := make(chan ImmutableRootMetadata, len(rmdses))
+	errChan := make(chan error, 1)
+	worker := func() {
+		defer wg.Done()
+		for rmds := range rmdsChan {
+			bareHandle, err := rmds.MD.MakeBareTlfHandle()
+			if err != nil {
+				select {
+				case errChan <- err:
+				default:
+				}
+				return
+			}
+			handle, err := MakeTlfHandle(ctx, bareHandle, md.config.KBPKI())
+			if err != nil {
+				select {
+				case errChan <- err:
+				default:
+				}
+				return
+			}
+			irmd, err := md.processMetadataWithID(ctx, id, bid, handle, rmds)
+			if err != nil {
+				select {
+				case errChan <- err:
+				default:
+				}
+				return
+			}
+			irmdChan <- irmd
+		}
+	}
+
+	for i := 0; i < numWorkers; i++ {
+		go worker()
+	}
+	for _, rmds := range rmdses {
+		rmdsChan <- rmds
+	}
+	close(rmdsChan)
+	go func() {
+		wg.Wait()
+		close(errChan)
+		close(irmdChan)
+	}()
+	err := <-errChan
+	if err != nil {
+		return nil, err
+	}
+
+	// Sort into slice based on revision.
+	irmds := make([]ImmutableRootMetadata, len(rmdses))
+	startRev := rmdses[0].MD.Revision
+	numExpected := MetadataRevision(len(irmds))
+	for irmd := range irmdChan {
+		i := irmd.Revision - startRev
+		if i < 0 || i >= numExpected {
+			return nil, fmt.Errorf("Unexpected revision %d; expected "+
+				"something between %d and %d inclusive", irmd.Revision,
+				startRev, startRev+numExpected-1)
+		} else if irmds[i] != (ImmutableRootMetadata{}) {
+			return nil, fmt.Errorf("Got revision %d twice", irmd.Revision)
+		}
+		irmds[i] = irmd
+	}
+
+	// Now that we have all the immutable RootMetadatas, verify that
+	// the given MD objects form a valid sequence.
+	var prevIRMD ImmutableRootMetadata
+	for _, irmd := range irmds {
 		if prevIRMD != (ImmutableRootMetadata{}) {
 			// Ideally, we'd call
 			// ReadOnlyRootMetadata.CheckValidSuccessor()
@@ -374,21 +442,15 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 			// processMetadataWithID below, and we want to
 			// do this check before then.
 			err = prevIRMD.BareRootMetadata.CheckValidSuccessor(
-				prevIRMD.mdID, &r.MD)
+				prevIRMD.mdID, &irmd.BareRootMetadata)
 			if err != nil {
 				return nil, MDMismatchError{
-					handle.GetCanonicalPath(),
+					irmd.GetTlfHandle().GetCanonicalPath(),
 					err,
 				}
 			}
 		}
-
-		irmd, err := md.processMetadataWithID(ctx, id, bid, handle, r)
-		if err != nil {
-			return nil, err
-		}
 		prevIRMD = irmd
-		irmds = append(irmds, irmd)
 	}
 
 	// TODO: in the case where lastRoot == MdID{}, should we verify

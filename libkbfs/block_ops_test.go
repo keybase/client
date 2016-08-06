@@ -44,6 +44,12 @@ func expectGetTLFCryptKeyForMDDecryption(config *ConfigMock, kmd KeyMetadata) {
 		kmdMatcher{kmd}, kmdMatcher{kmd}).Return(TLFCryptKey{}, nil)
 }
 
+func expectGetTLFCryptKeyForMDDecryptionAtMostOnce(config *ConfigMock,
+	kmd KeyMetadata) {
+	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
+		kmdMatcher{kmd}, kmdMatcher{kmd}).MaxTimes(1).Return(TLFCryptKey{}, nil)
+}
+
 // TODO: Add test coverage for decryption of blocks with an old key
 // generation.
 
