@@ -114,7 +114,9 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) (err
 func keysSolveProblemTLF(keys []libkb.GenericKey, tlf keybase1.ProblemTLF) bool {
 	var ourKIDs []keybase1.KID
 	for _, key := range keys {
-		ourKIDs = append(ourKIDs, key.GetKID())
+		if key != nil {
+			ourKIDs = append(ourKIDs, key.GetKID())
+		}
 	}
 	for _, theirKID := range tlf.Solution_kids {
 		for _, ourKID := range ourKIDs {
