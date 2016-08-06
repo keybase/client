@@ -25,7 +25,9 @@
             />
     </BootstrapperApplicationRef>
 
-    <!-- Keybase Dokany Build 58-->
+    <!-- Keybase Dokany Build 58 
+         This is the target we need to install with. If it's not there,
+         we may need to invoke the dokan cleaner. -->
     <util:RegistrySearch Id="DokanUninstall"
              Variable="DokanUninstallString"
              Root="HKLM"
@@ -80,9 +82,10 @@
     <Chain>
       <PackageGroupRef Id="NetFx40Web"/>
       
+      <!-- Remember: if DetectCondition is true, this package is considered already present. -->
       <ExePackage
         SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe"
-        DetectCondition="NOT DokanUninstallString"
+        DetectCondition="DokanUninstallString"
         Description="Remove previous drivers"
         PerMachine="yes"
         Permanent="yes">
