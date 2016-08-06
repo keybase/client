@@ -177,19 +177,20 @@ func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.Proo
 	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
-func PostDeviceLKS(sr SessionReader, deviceID keybase1.DeviceID, deviceType string, serverHalf []byte,
+func PostDeviceLKS(g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceID, deviceType string, serverHalf []byte,
 	ppGen PassphraseGeneration,
 	clientHalfRecovery string, clientHalfRecoveryKID keybase1.KID) error {
 	if len(serverHalf) == 0 {
 		return fmt.Errorf("PostDeviceLKS: called with empty serverHalf")
 	}
 	if ppGen < 1 {
-		G.Log.Warning("PostDeviceLKS: ppGen < 1 (%d)", ppGen)
+		g.Log.Warning("PostDeviceLKS: ppGen < 1 (%d)", ppGen)
 		debug.PrintStack()
 	}
 	arg := APIArg{
-		Endpoint:    "device/update",
-		NeedSession: true,
+		Contextified: NewContextified(g),
+		Endpoint:     "device/update",
+		NeedSession:  true,
 		Args: HTTPArgs{
 			"device_id":       S{Val: deviceID.String()},
 			"type":            S{Val: deviceType},
@@ -200,7 +201,7 @@ func PostDeviceLKS(sr SessionReader, deviceID keybase1.DeviceID, deviceType stri
 		},
 		SessionR: sr,
 	}
-	_, err := G.API.Post(arg)
+	_, err := g.API.Post(arg)
 	return err
 }
 

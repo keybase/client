@@ -11,29 +11,36 @@ import (
 	"golang.org/x/net/context"
 )
 
-func NewCmdPaperKey(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPaperKey(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "paperkey",
 		Usage: "Generate paper keys for recovering your account",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPaperKey{}, "paperkey", c)
+			cl.ChooseCommand(NewCmdPaperKeyRunner(g), "paperkey", c)
 		},
 	}
 }
 
 type CmdPaperKey struct {
+	libkb.Contextified
+}
+
+func NewCmdPaperKeyRunner(g *libkb.GlobalContext) *CmdPaperKey {
+	return &CmdPaperKey{
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (c *CmdPaperKey) Run() error {
-	cli, err := GetLoginClient(G)
+	cli, err := GetLoginClient(c.G())
 	if err != nil {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewLoginUIProtocol(G),
-		NewSecretUIProtocol(G),
+		NewLoginUIProtocol(c.G()),
+		NewSecretUIProtocol(c.G()),
 	}
-	if err := RegisterProtocols(protocols); err != nil {
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 	return cli.PaperKey(context.TODO(), 0)

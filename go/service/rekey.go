@@ -133,6 +133,10 @@ func (h *RekeyHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (ke
 	return outcome, err
 }
 
+func (h *RekeyHandler) Sync(ctx context.Context, sessionID int) error {
+	return nil
+}
+
 // recheckRekeyStatusPeriodic checks the recheckDeadline every hour.
 // If it is set and the current time is after the deadline, then
 // it will recheck the rekey status for this user.

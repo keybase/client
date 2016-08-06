@@ -8,4 +8,26 @@ protocol rekeyUI {
    * because a change came in, or because there was a timeout poll.
    */
   void refresh(int sessionID, ProblemSetDevices problemSetDevices);
+
+  enum RekeyEventType {
+    NONE_0,
+    NOT_LOGGED_IN_1,
+    API_ERROR_2,
+    NO_PROBLEMS_3,
+    LOAD_ME_ERROR_4,
+    CURRENT_DEVICE_CAN_REKEY_5,
+    DEVICE_LOAD_ERROR_6,
+    HARASS_7
+  }
+
+  record RekeyEvent {
+    RekeyEventType eventType;
+    int interruptType;
+  }
+
+  /**
+   * rekeySendEvent sends updates as to what's going on in the rekey
+   * thread. This is mainly useful in testing.
+   */
+  void rekeySendEvent(int sessionID, RekeyEvent event);
 }

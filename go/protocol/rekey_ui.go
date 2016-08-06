@@ -8,6 +8,24 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type RekeyEventType int
+
+const (
+	RekeyEventType_NONE                     RekeyEventType = 0
+	RekeyEventType_NOT_LOGGED_IN            RekeyEventType = 1
+	RekeyEventType_API_ERROR                RekeyEventType = 2
+	RekeyEventType_NO_PROBLEMS              RekeyEventType = 3
+	RekeyEventType_LOAD_ME_ERROR            RekeyEventType = 4
+	RekeyEventType_CURRENT_DEVICE_CAN_REKEY RekeyEventType = 5
+	RekeyEventType_DEVICE_LOAD_ERROR        RekeyEventType = 6
+	RekeyEventType_HARASS                   RekeyEventType = 7
+)
+
+type RekeyEvent struct {
+	EventType     RekeyEventType `codec:"eventType" json:"eventType"`
+	InterruptType int            `codec:"interruptType" json:"interruptType"`
+}
+
 type DelegateRekeyUIArg struct {
 }
 
@@ -16,11 +34,19 @@ type RefreshArg struct {
 	ProblemSetDevices ProblemSetDevices `codec:"problemSetDevices" json:"problemSetDevices"`
 }
 
+type RekeySendEventArg struct {
+	SessionID int        `codec:"sessionID" json:"sessionID"`
+	Event     RekeyEvent `codec:"event" json:"event"`
+}
+
 type RekeyUIInterface interface {
 	DelegateRekeyUI(context.Context) (int, error)
 	// refresh is called whenever Electron should refresh the UI, either
 	// * because a change came in, or because there was a timeout poll.
 	Refresh(context.Context, RefreshArg) error
+	// * rekeySendEvent sends updates as to what's going on in the rekey
+	// * thread. This is mainly useful in testing.
+	RekeySendEvent(context.Context, RekeySendEventArg) error
 }
 
 func RekeyUIProtocol(i RekeyUIInterface) rpc.Protocol {
@@ -54,6 +80,22 @@ func RekeyUIProtocol(i RekeyUIInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"rekeySendEvent": {
+				MakeArg: func() interface{} {
+					ret := make([]RekeySendEventArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RekeySendEventArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RekeySendEventArg)(nil), args)
+						return
+					}
+					err = i.RekeySendEvent(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -71,5 +113,12 @@ func (c RekeyUIClient) DelegateRekeyUI(ctx context.Context) (res int, err error)
 // * because a change came in, or because there was a timeout poll.
 func (c RekeyUIClient) Refresh(ctx context.Context, __arg RefreshArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.rekeyUI.refresh", []interface{}{__arg}, nil)
+	return
+}
+
+// * rekeySendEvent sends updates as to what's going on in the rekey
+// * thread. This is mainly useful in testing.
+func (c RekeyUIClient) RekeySendEvent(ctx context.Context, __arg RekeySendEventArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.rekeyUI.rekeySendEvent", []interface{}{__arg}, nil)
 	return
 }

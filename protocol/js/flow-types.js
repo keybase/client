@@ -1112,6 +1112,21 @@ export type PushReason =
   | 1 // RECONNECTED_1
   | 2 // NEW_DATA_2
 
+export type RekeyEvent = {
+  eventType: RekeyEventType;
+  interruptType: int;
+}
+
+export type RekeyEventType =
+    0 // NONE_0
+  | 1 // NOT_LOGGED_IN_1
+  | 2 // API_ERROR_2
+  | 3 // NO_PROBLEMS_3
+  | 4 // LOAD_ME_ERROR_4
+  | 5 // CURRENT_DEVICE_CAN_REKEY_5
+  | 6 // DEVICE_LOAD_ERROR_6
+  | 7 // HARASS_7
+
 export type RemoteProof = {
   proofType: ProofType,
   key: string,
@@ -3197,6 +3212,17 @@ export function quotaVerifySessionRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: quotaVerifySessionResult) => void)}>) {
   engine.rpc({...request, method: 'quota.verifySession'})
 }
+export type rekeyRekeySyncRpcParam = $Exact<{
+  force: boolean
+}>
+
+export function rekeyRekeySyncRpc (request: $Exact<{
+  param: rekeyRekeySyncRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'rekey.rekeySync'})
+}
 export type rekeyUIRefreshRpcParam = $Exact<{
   problemSetDevices: ProblemSetDevices
 }>
@@ -3207,6 +3233,17 @@ export function rekeyUIRefreshRpc (request: $Exact<{
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'rekeyUI.refresh'})
+}
+export type rekeyUIRekeySendEventRpcParam = $Exact<{
+  event: RekeyEvent
+}>
+
+export function rekeyUIRekeySendEventRpc (request: $Exact<{
+  param: rekeyUIRekeySendEventRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'rekeyUI.rekeySendEvent'})
 }
 export type revokeRevokeDeviceRpcParam = $Exact<{
   deviceID: DeviceID,
@@ -3933,6 +3970,14 @@ export function userListTrackersSelfRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: userListTrackersSelfResult) => void)}>) {
   engine.rpc({...request, method: 'user.listTrackersSelf'})
 }
+type userLoadMyPublicKeysResult = ?Array<PublicKey>
+
+export function userLoadMyPublicKeysRpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: userLoadMyPublicKeysResult) => void)}>) {
+  engine.rpc({...request, method: 'user.loadMyPublicKeys'})
+}
 export type rpc =
     BTCRegisterBTCRpc
   | Kex2ProvisioneeDidCounterSignRpc
@@ -4114,9 +4159,11 @@ export type rpc =
   | rekeyDebugShowRekeyStatusRpc
   | rekeyGetPendingRekeyStatusRpc
   | rekeyRekeyStatusFinishRpc
+  | rekeyRekeySyncRpc
   | rekeyShowPendingRekeyStatusRpc
   | rekeyUIDelegateRekeyUIRpc
   | rekeyUIRefreshRpc
+  | rekeyUIRekeySendEventRpc
   | revokeRevokeDeviceRpc
   | revokeRevokeKeyRpc
   | revokeRevokeSigsRpc
@@ -4156,6 +4203,7 @@ export type rpc =
   | userListTrackingJSONRpc
   | userListTrackingRpc
   | userLoadAllPublicKeysUnverifiedRpc
+  | userLoadMyPublicKeysRpc
   | userLoadPublicKeysRpc
   | userLoadUncheckedUserSummariesRpc
   | userLoadUserByNameRpc
@@ -5950,6 +5998,16 @@ export type incomingCallMapType = $Exact<{
       result: (result: rekeyRekeyStatusFinishResult) => void
     }
   ) => void,
+  'keybase.1.rekey.rekeySync'?: (
+    params: $Exact<{
+      sessionID: int,
+      force: boolean
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.rekeyUI.delegateRekeyUI'?: (
     params: $Exact<{}>,
     response: {
@@ -5961,6 +6019,16 @@ export type incomingCallMapType = $Exact<{
     params: $Exact<{
       sessionID: int,
       problemSetDevices: ProblemSetDevices
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.rekeyUI.rekeySendEvent'?: (
+    params: $Exact<{
+      sessionID: int,
+      event: RekeyEvent
     }>,
     response: {
       error: (err: RPCError) => void,
@@ -6395,6 +6463,15 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: (err: RPCError) => void,
       result: (result: userLoadPublicKeysResult) => void
+    }
+  ) => void,
+  'keybase.1.user.loadMyPublicKeys'?: (
+    params: $Exact<{
+      sessionID: int
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: userLoadMyPublicKeysResult) => void
     }
   ) => void,
   'keybase.1.user.listTracking'?: (

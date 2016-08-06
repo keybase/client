@@ -95,8 +95,8 @@
 		},
 		{
 			"path": "github.com/jonboulle/clockwork",
-			"revision": "ed104f61ea4877bea08af6f759805674861e968d",
-			"revisionTime": "2015-11-20T16:16:58-08:00"
+			"revision": "e3653ace2d63753697e0e5b07b9393971c0bba9d",
+			"revisionTime": "2016-08-03T05:44:09-07:00"
 		},
 		{
 			"path": "github.com/josephspurrier/goversioninfo",

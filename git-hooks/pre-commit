@@ -98,7 +98,7 @@ check_path_Join()
 #-----------------------------------------------------------------------------
 
 check_go_fmt
-check_go_vet
+# check_go_vet
 check_make_lint
 # removed call to check_path_Join here because path.Join is
 # completely valid and useful to make URL paths, for example.

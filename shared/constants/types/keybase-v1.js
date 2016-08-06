@@ -424,7 +424,18 @@ export const rekey = {
   },
 }
 
-export const rekeyUI = {}
+export const rekeyUI = {
+  'RekeyEventType': {
+    'none': 0,
+    'notLoggedIn': 1,
+    'apiError': 2,
+    'noProblems': 3,
+    'loadMeError': 4,
+    'currentDeviceCanRekey': 5,
+    'deviceLoadError': 6,
+    'harass': 7,
+  },
+}
 
 export const revoke = {}
 

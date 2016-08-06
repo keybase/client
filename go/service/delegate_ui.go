@@ -13,16 +13,18 @@ import (
 type DelegateUICtlHandler struct {
 	libkb.Contextified
 	*BaseHandler
-	id libkb.ConnectionID
+	id          libkb.ConnectionID
+	rekeyMaster *rekeyMaster
 }
 
 // NewDelegateUICtlHandler creates a new handler for setting up notification
 // channels
-func NewDelegateUICtlHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.GlobalContext) *DelegateUICtlHandler {
+func NewDelegateUICtlHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.GlobalContext, rekeyMaster *rekeyMaster) *DelegateUICtlHandler {
 	return &DelegateUICtlHandler{
 		Contextified: libkb.NewContextified(g),
 		BaseHandler:  NewBaseHandler(xp),
 		id:           id,
+		rekeyMaster:  rekeyMaster,
 	}
 }
 
@@ -60,11 +62,8 @@ func (d *DelegateUICtlHandler) RegisterGregorFirehose(_ context.Context) error {
 
 func (d *DelegateUICtlHandler) RegisterRekeyUI(_ context.Context) error {
 	d.G().UIRouter.SetUI(d.id, libkb.RekeyUIKind)
-
-	// Let Gregor related code know that a RekeyUI client
-	// (probably Electron) has connected, and to sync out state to it
-	if d.G().GregorListener != nil {
-		d.G().GregorListener.PushHandler(NewRekeyUIHandler(d.G(), d.id))
+	if d.rekeyMaster != nil {
+		d.rekeyMaster.newUIRegistered()
 	}
 	return nil
 }
