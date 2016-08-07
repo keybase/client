@@ -11,12 +11,23 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"syscall"
 
 	"golang.org/x/sys/windows/registry"
 )
 
-func doUninstallAction(uninst string, list bool) bool {
-	retval := false
+// Make sure reboot status takes precedence; otherwise favor errors over OK
+func mergeResults(current int, next int) int {
+	// ERROR_SUCCESS_REBOOT_INITIATED	1641	The installer has initiated a restart. This message is indicative of a success.
+	// ERROR_SUCCESS_REBOOT_REQUIRED	3010	A restart is required to complete the install. This message is indicative of a success. This does not include installs where the ForceReboot action is run.
+	if current == 1641 || current == 3010 || current > next {
+		return current
+	}
+	return next
+}
+
+func doUninstallAction(uninst string, list bool) int {
+	retval := 1
 
 	// Parse out the command, which may be inside quotes, and arguments
 	// e.g.:
@@ -48,15 +59,21 @@ func doUninstallAction(uninst string, list bool) bool {
 		err := uninstCmd.Run()
 		if err != nil {
 			fmt.Printf("Error %s uninstalling %s\n", err.Error(), uninst)
+			if e2, ok := err.(*exec.ExitError); ok {
+				if s, ok := e2.Sys().(syscall.WaitStatus); ok {
+					retval = int(s.ExitCode)
+				}
+			}
 		} else {
-			retval = true
+			retval = 0
 		}
 	}
 	return retval
 }
 
-// Read all the uninstall subkeys and find the ones with DisplayName starting with "Dokan Library"
-func findDokanUninstall(list bool, wow64 bool) (result bool) {
+// Read all the uninstall subkeys and find the ones with DisplayName starting with "Dokan Library".
+// If not just listing, execute each uninstaller we find and merge return codes.
+func findDokanUninstall(list bool, wow64 bool) (result int) {
 	var access uint32 = registry.ENUMERATE_SUB_KEYS | registry.QUERY_VALUE
 	if wow64 {
 		access = access | registry.WOW64_32KEY
@@ -90,7 +107,7 @@ func findDokanUninstall(list bool, wow64 bool) (result bool) {
 			if err != nil {
 				fmt.Printf("Error %s opening subkey UninstallString", err.Error())
 			} else {
-				result = result || doUninstallAction(uninstall, list)
+				result = mergeResults(result, doUninstallAction(uninstall, list))
 			}
 		}
 	}
@@ -103,10 +120,7 @@ func main() {
 
 	flag.Parse()
 
-	code := 0
-	if findDokanUninstall(*listPtr, false) || findDokanUninstall(*listPtr, true) {
-		code = 1
-	}
-
+	code := findDokanUninstall(*listPtr, false)
+	code = mergeResults(code, findDokanUninstall(*listPtr, true))
 	os.Exit(code)
 }

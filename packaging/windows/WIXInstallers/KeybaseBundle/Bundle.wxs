@@ -89,7 +89,8 @@
         Description="Remove previous drivers"
         PerMachine="yes"
         Permanent="yes">
-        <ExitCode Value="1" Behavior="forceReboot"/>
+        <ExitCode Value="1641" Behavior="forceReboot"/>
+        <ExitCode Value="3010" Behavior="forceReboot"/>
         <ExitCode Value="0" Behavior="success" />
       </ExePackage>
 
