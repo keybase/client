@@ -2,9 +2,9 @@
 import React, {Component} from 'react'
 import {Button, Terminal, Text, StandardScreen, Icon} from '../../common-adapters'
 import {globalMargins} from '../../styles/style-guide'
-import type {Props} from './prove-pgp-choice'
+import type {Props} from './prove-pgp-import'
 
-class ProvePgpChoice extends Component<void, Props, void> {
+class ProvePgpImport extends Component<void, Props, void> {
   render () {
     return (
       <StandardScreen onClose={this.props.onCancel} style={styleContainer}>
@@ -57,4 +57,4 @@ const styleTerminal = {
   padding: globalMargins.medium,
 }
 
-export default ProvePgpChoice
+export default ProvePgpImport
