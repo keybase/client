@@ -150,6 +150,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                 }
                                                 sh "npm install ./visdiff"
                                                 dir("desktop") {
+                                                    sh "mkdir -p ~/.config/fontconfig"
                                                     sh """cat <<EOF > ~/.config/fontconfig/fonts.conf
 <?xml version="1.0"?>
 <!DOCTYPE fontconfig SYSTEM "fonts.dtd">
