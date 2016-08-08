@@ -4,12 +4,12 @@ import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import type {Props} from './standard-screen'
 
-const StandardScreen = ({children, onClose, errorMessage}: Props) => {
+const StandardScreen = ({children, onClose, errorMessage, style}: Props) => {
   return (
     <Box style={styleContainer}>
       {!!onClose && <Icon style={styleClose} type='iconfont-close' onClick={onClose} />}
       {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
-      <Box style={styleContentContainer}>
+      <Box style={{...styleContentContainer, ...style}}>
         {children}
       </Box>
     </Box>
@@ -55,7 +55,6 @@ const styleContentContainer = {
   justifyContent: 'center',
   alignItems: 'center',
   margin: globalMargins.large,
-  maxWidth: 512,
   textAlign: 'center',
 }
 
