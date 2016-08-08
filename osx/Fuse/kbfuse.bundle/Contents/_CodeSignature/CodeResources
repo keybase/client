@@ -10,26 +10,26 @@
 		</data>
 		<key>Resources/load_kbfuse</key>
 		<data>
-		mj9zf9CPqbaNlk0LooXPuTUXcTo=
+		W4Ubu4PNtlRSaDGv3MeVA01aKCw=
 		</data>
 		<key>Resources/mount_kbfuse</key>
 		<data>
-		rkgAzk4DdZjF8pdQH2I6fKkgY9E=
+		PS6yMmbX86juJ9kXfIFWfxFTzGo=
 		</data>
 		<key>version.plist</key>
 		<data>
-		Zmv/RIVuJF9Sq2OY4qmLLAPEpH4=
+		LFpYzlTHPZH8VpT74oj6AmDHrw4=
 		</data>
 	</dict>
 	<key>files2</key>
 	<dict>
 		<key>Extensions/10.10/kbfuse.kext/Contents/Info.plist</key>
 		<data>
-		OGussZ+lYb0EQ6mHlMlbIVwIxNQ=
+		gDZX962zEl0Z1kmy1vm87Mf9mgE=
 		</data>
 		<key>Extensions/10.10/kbfuse.kext/Contents/MacOS/kbfuse</key>
 		<data>
-		+aa9tb+iCmaSaf0IuwHeCgAMDZs=
+		zZqrQ4MbrbPS0Kc1enFAdzPe5zg=
 		</data>
 		<key>Extensions/10.10/kbfuse.kext/Contents/_CodeSignature/CodeResources</key>
 		<data>
@@ -51,15 +51,15 @@
 		</data>
 		<key>Resources/load_kbfuse</key>
 		<data>
-		mj9zf9CPqbaNlk0LooXPuTUXcTo=
+		W4Ubu4PNtlRSaDGv3MeVA01aKCw=
 		</data>
 		<key>Resources/mount_kbfuse</key>
 		<data>
-		rkgAzk4DdZjF8pdQH2I6fKkgY9E=
+		PS6yMmbX86juJ9kXfIFWfxFTzGo=
 		</data>
 		<key>version.plist</key>
 		<data>
-		Zmv/RIVuJF9Sq2OY4qmLLAPEpH4=
+		LFpYzlTHPZH8VpT74oj6AmDHrw4=
 		</data>
 	</dict>
 	<key>rules</key>
