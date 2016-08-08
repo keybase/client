@@ -150,7 +150,23 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                 }
                                                 sh "npm install ./visdiff"
                                                 dir("desktop") {
+                                                    sh """cat <<EOF > ~/.config/fontconfig/fonts.conf
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+  <match target="font">
+    <edit name="antialias" mode="assign"><bool>true</bool></edit>
+  </match>
+  <match target="font">
+    <edit name="hintstyle" mode="assign"><const>hintnone</const></edit>
+  </match>
+  <match target="font">
+   <edit mode="assign" name="hinting"><bool>false</bool></edit>
+  </match>
+</fontconfig>
+EOF"""
                                                     sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, HEAD)...HEAD'"
+                                                    sh "rm -f ~/.config/fontconfig/fonts.conf"
                                                 }
                                             }}}
                                         }
