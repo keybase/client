@@ -1,11 +1,11 @@
 // @flow
 import {Component} from 'react'
-import type {Props} from './prove-pgp-choice'
+import type {Props} from './prove-pgp-import'
 
-class ProvePgpChoice extends Component<void, Props, void> {
+class ProvePgpImport extends Component<void, Props, void> {
   render () {
     return null
   }
 }
 
-export default ProvePgpChoice
+export default ProvePgpImport
