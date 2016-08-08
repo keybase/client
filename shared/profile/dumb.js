@@ -480,7 +480,6 @@ const dumbProvePgpImport: DumbComponentMap<ProvePgpImport> = {
   mocks: {
     'Import PGP': {
       onCancel: () => console.log('ProvePgpImport: onCancel'),
-      parentProps: isMobile ? {} : {style: {width: 640}},
     },
   },
 }
