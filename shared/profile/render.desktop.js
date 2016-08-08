@@ -316,8 +316,8 @@ const styleActions = {
 const styleProofColumn = {
   ...globalStyles.flexBoxColumn,
   width: 320,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
 }
 
 const styleProofNoticeBox = {
