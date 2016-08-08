@@ -80,22 +80,29 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 	// FIXME (MBG): This is causing RPC responses to sometimes not be recieved
 	// on iOS. Repro by hooking up getExtendedStatus to a button in the iOS
 	// client and watching JS logs. Disabling until we have a root cause / fix.
-	//
-	//kbfsParams := libkbfs.DefaultInitParams(kbCtx)
-	//kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, newKeybaseDaemon, func() {}, kbCtx.Log)
-	//if err != nil {
-	//	return err
-	//}
+	kbfsParams := libkbfs.DefaultInitParams(kbCtx)
+	kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, serviceCn{}, func() {}, kbCtx.Log)
+	if err != nil {
+		return err
+	}
 
 	return Reset()
 }
 
-func newKeybaseDaemon(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
+type serviceCn struct {
+	ctx *libkb.GlobalContext
+}
+
+func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
 	keybaseService := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true)
 	keybaseService.AddProtocols([]rpc.Protocol{
 		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
 	})
 	return keybaseService, nil
+}
+
+func (s serviceCn) NewCrypto(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.Crypto, error) {
+	return libkbfs.NewCryptoClientRPC(config, ctx), nil
 }
 
 // LogSend sends a log to Keybase
@@ -153,7 +160,7 @@ func Reset() error {
 	}
 
 	var err error
-	conn, _, _, err = kbCtx.ResetSocket(false)
+	conn, err = kbCtx.LoopbackListener.Dial()
 	if err != nil {
 		return fmt.Errorf("Socket error: %s", err)
 	}

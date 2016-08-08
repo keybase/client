@@ -1,12 +1,10 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
+import type {Props} from './progress-indicator'
 import {ActivityIndicatorIOS} from 'react-native'
 import {globalColors} from '../styles/style-guide'
-import type {Props} from './progress-indicator'
 
-export default class ProgressIndicator extends Component {
-  props: Props;
-
+class ProgressIndicator extends Component<void, Props, void> {
   render () {
     const size = (this.props.type === 'Large') ? 'large' : 'small'
 
@@ -21,3 +19,5 @@ const style = {
   alignItems: 'center',
   justifyContent: 'center',
 }
+
+export default ProgressIndicator

@@ -14,7 +14,6 @@ import hello from '../shared/util/hello'
 import semver from 'semver'
 import os from 'os'
 import {setupExecuteActionsListener, executeActionsForContext} from '../shared/util/quit-helper.desktop'
-import {hideDockIcon} from './dock-icon'
 
 let mainWindow = null
 
@@ -78,9 +77,6 @@ function start () {
   app.once('ready', () => {
     mainWindow = MainWindow()
     storeHelper(mainWindow)
-    if (!mainWindow.initiallyVisible) {
-      hideDockIcon()
-    }
   })
 
   // Called when the user clicks the dock icon

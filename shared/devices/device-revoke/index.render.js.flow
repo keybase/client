@@ -1,6 +1,7 @@
-/* @flow */
-
+// @flow
+import {Component} from 'react'
 import type {Device, DeviceType} from '../../constants/types/more'
+
 export type Props = {
   type: DeviceType,
   name: string,
@@ -11,5 +12,4 @@ export type Props = {
   device: Device
 }
 
-export default class Render extends React$Component<void, Props, void> {
-}
+export default class Render extends Component<void, Props, void> { }

@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -138,7 +139,19 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 
 	var timeout time.Duration
 
-	xprt := *(http.DefaultTransport.(*http.Transport)) // shallow copying
+	// from http.DefaultTransport;
+	//
+	// TODO: change this back (see comment below) to allow
+	// shared Transport after we switch to go1.7
+	xprt := http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		Dial: (&net.Dialer{
+			Timeout:   30 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
 
 	// This disables HTTP/2. There's a bug introduced between (go1.6, go1.6.3]
 	// that makes client.Get hang on certain HTTP/2 servers. See CORE-3441 for

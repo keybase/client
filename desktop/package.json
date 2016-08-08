@@ -22,7 +22,7 @@
     "postinstall": "babel-node --presets es2015,stage-2 npm-helper.js postinstall",
     "render-screenshots": "babel-node --presets es2015,stage-2 npm-helper.js render-screenshots",
     "updated-fonts": "babel-node --presets es2015,stage-2 npm-helper.js updated-fonts",
-    "wrap": "npm uninstall fsevents && npm prune && npm shrinkwrap --dev",
+    "wrap": "npm uninstall fsevents && npm prune && npm dedupe && npm shrinkwrap --dev",
     "help": "babel-node --presets es2015,stage-2 npm-helper.js help",
     "watch-test-file": "KEYBASE_RUN_MODE=devel babel-node --presets es2015,stage-2 npm-helper.js watch-test-file",
     "mocha": "KEYBASE_RUN_MODE=devel node_modules/mocha/bin/mocha --require source-map-support/register dist/test.bundle.js",
@@ -75,7 +75,7 @@
     "devtron": "1.2.1",
     "electron-download": "git://github.com/keybase/electron-download#5350b5a1bad8ba7bb8c7201abe59ae3a03c3d75d",
     "electron-packager": "7.3.0",
-    "electron-prebuilt": "1.2.7",
+    "electron-prebuilt": "1.3.2",
     "eslint": "3.0.1",
     "eslint-config-standard": "5.3.5",
     "eslint-config-standard-jsx": "2.0.0",
@@ -109,5 +109,5 @@
   "optionalDependencies": {
     "fsevents": "1.0.14"
   },
-  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#ac1deb16af4f20f19de821157ed0587fb73e85c2"
+  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#69a46559ad44c6c76beed9aa9c91e70d8d9abba4"
 }

@@ -48,7 +48,7 @@ func prefixCaller(extraDepth int, lvl logging.Level, fmts string) string {
 	// it out (at least on a terminal) and do our own formatting.
 	_, file, line, _ := runtime.Caller(2 + extraDepth)
 	elements := strings.Split(file, "/")
-	return fmt.Sprintf("%s \r%s:%d: [%.1s] %s", time.Now(),
+	return fmt.Sprintf("\r%s %s:%d: [%.1s] %s", time.Now(),
 		elements[len(elements)-1], line, lvl, fmts)
 }
 

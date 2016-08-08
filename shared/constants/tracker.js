@@ -6,6 +6,7 @@ import type {Folder} from '../folders/list'
 import type {UserInfo} from '../common-adapters/user-bio'
 import type {PlatformsExpanded} from '../constants/types/more'
 import type {Time} from '../constants/types/flow-types'
+import type {FriendshipUserInfo} from '../profile/friendships'
 
 // Types
 export type Proof = {
@@ -101,13 +102,6 @@ export type PendingIdentify = TypedAction<'tracker:pendingIdentify', {username: 
 
 export type NonUserActions = ShowNonUser | OnClose | PendingIdentify | UpdateFolders
 
-export type TrackingInfo = {
-  username: string,
-  fullname: string,
-  followsYou: boolean,
-  following: boolean
-}
-
 export type TrackerState = {
   type: 'tracker',
   eldestKidChanged: boolean,
@@ -118,6 +112,8 @@ export type TrackerState = {
   username: string,
   shouldFollow: ?boolean,
   reason: ?string,
+  trackers: Array<FriendshipUserInfo>,
+  tracking: Array<FriendshipUserInfo>,
   waiting: boolean,
   userInfo: UserInfo,
   proofs: Array<Proof>,

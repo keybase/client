@@ -4,7 +4,7 @@ import Box from './box'
 import {globalStyles} from '../styles/style-guide'
 import type {Props} from './list-item'
 
-export default class ListItem extends Component<void, Props, void> {
+class ListItem extends Component<void, Props, void> {
   render () {
     const clickable = !!this.props.onClick
     const minHeight = ({'Large': 64, 'Small': 48})[this.props.type]
@@ -51,3 +51,5 @@ const bodyContainerStyle = {
   marginTop: 8,
   justifyContent: 'center',
 }
+
+export default ListItem

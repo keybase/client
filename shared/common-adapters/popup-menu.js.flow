@@ -1,6 +1,5 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type MenuItem = {
   title: string,
@@ -18,5 +17,4 @@ export type Props = {
   style?: Object
 }
 
-declare export default class PopupMenu extends React.Component<void, Props, void> {
-}
+declare export default class PopupMenu extends Component<void, Props, void> { }

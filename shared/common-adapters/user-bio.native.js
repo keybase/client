@@ -1,17 +1,12 @@
-/* @flow */
-
-import React, {Component} from 'react'
-
-import {Box, Avatar, Text} from './'
+// @flow
 import * as shared from './user-bio.shared'
+import React, {Component} from 'react'
+import type {Props} from './user-bio'
+import {Box, Avatar, Text} from './'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {stateColors} from '../util/tracker'
 
-import type {Props} from './user-bio'
-
-export default class BioRender extends Component {
-  props: Props;
-
+class BioRender extends Component<void, Props, void> {
   render () {
     const {avatarSize, username, userInfo, currentlyFollowing} = this.props
     if (!userInfo) {
@@ -133,3 +128,5 @@ const stylesLocation = {
   textAlign: 'center',
   marginTop: globalMargins.xtiny,
 }
+
+export default BioRender

@@ -1,6 +1,5 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 import type {IconType as _IconType} from './icon.constants'
 export type IconType = _IconType
 import type {$Exact} from '../constants/types/more'
@@ -17,4 +16,4 @@ export type Props = {
   className?: string
 }
 
-declare export default class Icon extends React.Component<void, $Exact<Props>, void> {}
+declare export default class Icon extends Component<void, $Exact<Props>, void> {}

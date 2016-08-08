@@ -1,6 +1,5 @@
 // @flow
-
-import React, {Component} from 'react'
+import {Component} from 'react'
 
 export type Props = {
   theme: 'public' | 'private',
@@ -12,5 +11,4 @@ export type Props = {
   body: React$Element<*>,
 }
 
-declare export default class Confirm extends React.Component<void, Props, void> {
-}
+declare export default class Confirm extends Component<void, Props, void> { }

@@ -592,7 +592,7 @@ func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*
 
 	jw, err := g.LocalDb.Get(DbKey{Typ: DBLink, Key: id.String()})
 	var ret *ChainLink
-	if err == nil {
+	if err == nil && jw != nil {
 		// May as well recheck onload (maybe revisit this)
 		ret = NewChainLink(g, nil, id, jw)
 		if err = ret.Unpack(true, selfUID); err != nil {

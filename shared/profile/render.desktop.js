@@ -169,7 +169,11 @@ class Render extends Component<void, Props, State> {
           proofNotice = 'Some of your proofs are unreachable.'
         }
       } else {
-        proofNotice = `Some of ${this.props.username}'s proofs have changed since you last tracked them.`
+        // TODO (mm) better solution than this (DESKTOP-1631)
+        // ignore if we aren't following them or reason is just 'Profile'
+        if (!this.props.currentlyFollowing && this.props.reason !== 'Profile') {
+          proofNotice = this.props.reason
+        }
       }
     }
 

@@ -1,22 +1,33 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
+import {Box, Text} from '../common-adapters'
 import Render from './render'
 import EditProfile from './edit-profile'
-import type {Props} from './render'
 import flags from '../util/feature-flags'
-import {getProfile, updateTrackers} from '../actions/tracker'
 import {routeAppend, navigateUp} from '../actions/router'
 import {openInKBFS} from '../actions/kbfs'
+import * as trackerActions from '../actions/tracker'
 import {isLoading} from '../constants/tracker'
+import {TypedConnector} from '../util/typed-connect'
 
-class Profile extends Component<void, Props, void> {
+import type {Props} from './render'
+import type {TypedState} from '../constants/reducer'
+import type {TypedDispatch, Action} from '../constants/types/flux'
+
+type OwnProps = {
+  userOverride?: {
+    username: string,
+    uid: string,
+  }
+}
+
+class Profile extends Component<void, ?Props, void> {
   static parseRoute (currentPath, uri) {
     return {
       componentAtTop: {
         title: 'Profile',
         props: {
-          username: currentPath.get('username'),
+          userOverride: currentPath.get('userOverride'),
           profileIsRoot: !!uri.count() && uri.last().get('path') === 'root',
         },
       },
@@ -27,67 +38,95 @@ class Profile extends Component<void, Props, void> {
   }
 
   componentDidMount () {
-    this.props.refresh(this.props.username)
+    this.props && this.props.refresh()
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.username !== this.props.username) {
-      this.props.refresh(nextProps.username)
+    const oldUsername = this.props && this.props.username
+    if (nextProps && nextProps.username !== oldUsername) {
+      nextProps.refresh()
     }
   }
 
   render () {
-    return (
+    return this.props ? (
       <Render
         showComingSoon={!flags.tabProfileEnabled}
         {...this.props}
         proofs={this.props.proofs || []}
-        loading={this.props.loading}
         onBack={!this.props.profileIsRoot ? this.props.onBack : undefined}
-        followers={this.props.trackers || []}
-        following={this.props.tracking || []}
       />
+    ) : (
+      <Box><Text type='Error'>Could not derive props; check the log</Text></Box>
     )
   }
 }
 
-export default connect(
-  state => ({
-    myUsername: state.config.username,
-    trackers: state.tracker.trackers,
-  }),
-  dispatch => ({
-    refresh: username => {
-      dispatch(getProfile(username))
-      dispatch(updateTrackers(username))
-    },
-    onUserClick: username => { dispatch(routeAppend({path: 'profile', username})) },
-    onBack: () => dispatch(navigateUp()),
-    onFolderClick: folder => dispatch(openInKBFS(folder.path)),
-    onEditProfile: () => dispatch(routeAppend({path: 'editprofile'})),
-  }),
-  (stateProps, dispatchProps, ownProps) => {
-    const username = ownProps.username || stateProps.myUsername
-    const isYou = username === stateProps.myUsername
-    const onEditProfile = () => dispatchProps.onEditProfile()
-    const bioEditFns = isYou && {
-      onBioEdit: onEditProfile,
-      onEditAvatarClick: onEditProfile,
-      onEditProfile: onEditProfile,
-      onLocationEdit: onEditProfile,
-      onNameEdit: onEditProfile,
-      onMissingProofClick: () => console.log('TODO onMissingProofClick'),
-    }
+const connector: TypedConnector<TypedState, TypedDispatch<Action>, OwnProps, ?Props> = new TypedConnector()
 
-    return {
-      ...ownProps,
-      ...stateProps.trackers[username],
-      ...dispatchProps,
-      isYou,
-      bioEditFns,
-      username,
-      refresh: username => dispatchProps.refresh(username),
-      loading: isLoading(stateProps.trackers[username]),
-    }
+export default connector.connect((state, dispatch, ownProps) => {
+  const stateProps = {
+    myUsername: state.config.username,
+    myUid: state.config.uid,
+    trackers: state.tracker.trackers,
   }
-)(Profile)
+
+  const {username, uid} = ownProps.userOverride ? ownProps.userOverride : {
+    username: stateProps.myUsername || '',
+    uid: stateProps.myUid || '',
+  }
+
+  const {getProfile, updateTrackers, onFollow, onUnfollow} = trackerActions
+
+  const refresh = () => {
+    dispatch(getProfile(username))
+    dispatch(updateTrackers(username, uid))
+  }
+
+  const dispatchProps = {
+    onUserClick: (username, uid) => { dispatch(routeAppend({path: 'profile', userOverride: {username, uid}})) },
+    onBack: () => { dispatch(navigateUp()) },
+    onFolderClick: folder => { dispatch(openInKBFS(folder.path)) },
+    onEditProfile: () => { dispatch(routeAppend({path: 'editprofile'})) },
+    onFollow: () => { dispatch(onFollow(username, false)) },
+    onUnfollow: () => { dispatch(onUnfollow(username)) },
+    onAcceptProofs: () => { dispatch(onFollow(username, false)) },
+  }
+
+  const onMissingProofClick = () => { console.log('TODO onMissingProofClick') }
+
+  const isYou = username === stateProps.myUsername
+  const onEditProfile = () => { dispatchProps.onEditProfile() }
+  const bioEditFns = isYou ? {
+    onBioEdit: onEditProfile,
+    onEditAvatarClick: onEditProfile,
+    onEditProfile: onEditProfile,
+    onLocationEdit: onEditProfile,
+    onNameEdit: onEditProfile,
+    onMissingProofClick,
+  } : null
+
+  const trackerState = stateProps.trackers[username]
+
+  if (trackerState && trackerState.type !== 'tracker') {
+    console.warn('Expected a tracker type, trying to show profile for non user')
+    return null
+  }
+
+  return {
+    ...ownProps,
+    ...trackerState,
+    ...dispatchProps,
+    isYou,
+    bioEditFns,
+    username,
+    refresh,
+    followers: trackerState ? trackerState.trackers : [],
+    following: trackerState ? trackerState.tracking : [],
+    onMissingProofClick,
+    onRecheckProof: () => console.log('TODO'),
+    onRevokeProof: () => console.log('TODO'),
+    onViewProof: () => console.log('TODO'),
+    loading: isLoading(trackerState),
+  }
+})(Profile)

@@ -1,6 +1,5 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type Props = {
   onClick: Function,
@@ -10,7 +9,5 @@ export type Props = {
   title?: ?string
 }
 
-declare export default class BackButton extends Component {
-  props: Props;
-}
+declare export default class BackButton extends Component<void, Props, void> {}
 

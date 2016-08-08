@@ -1,20 +1,19 @@
 // @flow
-
-import React, {Component} from 'react'
-import {resolveImageAsURL} from '../../desktop/resolve-root'
-import {globalStyles, globalColors} from '../styles/style-guide'
-import type {Props} from './avatar'
 import * as shared from './avatar.shared'
+import React, {Component} from 'react'
+import type {Props} from './avatar'
+import {globalStyles, globalColors} from '../styles/style-guide'
+import {resolveImageAsURL} from '../../desktop/resolve-root'
 
 const noAvatar = resolveImageAsURL('icons', 'icon-placeholder-avatar-112-x-112@2x.png')
 
-export default class Avatar extends Component {
-  props: Props;
+type State = {
+  avatarLoaded: boolean,
+  errored: boolean,
+}
 
-  state: {
-    avatarLoaded: boolean,
-    errored: boolean,
-  };
+class Avatar extends Component<void, Props, State> {
+  state: State;
 
   constructor (props: Props) {
     super(props)
@@ -100,3 +99,4 @@ const followInner = (size, color) => {
   }
 }
 
+export default Avatar

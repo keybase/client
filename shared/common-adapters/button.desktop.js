@@ -1,14 +1,11 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {FlatButton} from 'material-ui'
+// @flow
 import ProgressIndicator from './progress-indicator'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import React, {Component} from 'react'
 import type {Props} from './button'
+import {FlatButton} from 'material-ui'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
-class Button extends Component {
-  props: Props;
-
+class Button extends Component<void, Props, void> {
   _styles (type: Props.type): Object {
     let backgroundStyle = {}
     let labelStyle = {}

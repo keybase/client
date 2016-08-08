@@ -1,16 +1,13 @@
 // @flow
-
+import Checkbox from './checkbox'
 import React, {Component} from 'react'
 import _ from 'lodash'
-
-import Checkbox from './checkbox'
-import {Button, Box, TabBar, Text, Avatar, ListItem, PopupMenu, Icon} from './index'
-import {iconMeta} from './icon.constants'
+import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
+import {Button, Box, TabBar, Text, Avatar, ListItem, PopupMenu, Icon} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
-
-import type {DumbComponentMap} from '../constants/types/more'
+import {iconMeta} from './icon.constants'
 
 const onCheck = () => console.log('on check!')
 

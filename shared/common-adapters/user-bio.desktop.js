@@ -1,15 +1,12 @@
-/* @flow */
-
+// @flow
+import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
-
+import type {AvatarSize} from './avatar'
+import type {Props} from './user-bio'
 import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import * as shared from './user-bio.shared'
 import {stateColors} from '../util/tracker'
-
-import type {Props} from './user-bio'
-import type {AvatarSize} from './avatar'
 
 class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize, loading: boolean}, void> {
   render () {
@@ -26,7 +23,7 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
               following={false}
               followsYou={false} />
           </Box>
-          <Box style={{...stylesContent, ...globalStyles.fadeOpacity, position: 'absolute', opacity: this.props.loading ? 1 : 0}}>
+          <Box style={{...stylesContent, ...globalStyles.fadeOpacity, opacity: this.props.loading ? 1 : 0}}>
             <Box style={{...globalStyles.loadingTextStyle, width: 157}} />
             <Box style={{...globalStyles.loadingTextStyle, width: 87}} />
             <Box style={{...globalStyles.loadingTextStyle, width: 117}} />
@@ -37,7 +34,7 @@ class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize,
   }
 }
 
-export default class BioRender extends Component<void, Props, void> {
+class BioRender extends Component<void, Props, void> {
   render () {
     const {avatarSize, username, userInfo, currentlyFollowing, editFns, loading} = this.props
     if (!userInfo) {
@@ -199,3 +196,5 @@ const stylesLocation = {
   paddingRight: 30,
   textAlign: 'center',
 }
+
+export default BioRender
