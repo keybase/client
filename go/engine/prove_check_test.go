@@ -60,12 +60,15 @@ func TestProveCheck(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	found, status, text := checkEng.Results()
+	found, status, state, text := checkEng.Results()
 	if !found {
 		t.Errorf("proof not found, expected to be found")
 	}
 	if status != 1 {
 		t.Errorf("proof status: %d, expected 1", int(status))
+	}
+	if state != 1 {
+		t.Errorf("proof state: %d, expected 1", int(state))
 	}
 	if len(text) == 0 {
 		t.Errorf("empty proof text, expected non-empty")
