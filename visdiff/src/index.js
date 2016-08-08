@@ -27,6 +27,16 @@ const DIFF_SAME = 'same'
 
 const DRY_RUN = !!process.env['VISDIFF_DRY_RUN']
 
+function spawn (...args) {
+  var res = spawnSync(...args)
+  if (res.error) {
+    throw res.error
+  } else if (res.status !== 0) {
+    throw new Error('Unexpected exit code: ' + res.status)
+  }
+  return res
+}
+
 function packageHash () {
   return crypto.createHash('sha1').update(fs.readFileSync('package.json')).digest('hex').substr(0, 12)
 }
@@ -38,11 +48,11 @@ function checkout (commit) {
   fs.renameSync('node_modules', `node_modules.${origPackageHash}`)
   console.log(`Shelved node_modules to node_modules.${origPackageHash}.`)
 
-  spawnSync('git', ['checkout', '-f', commit])
+  spawn('git', ['checkout', '-f', commit])
 
   // The way shared is linked in Windows can confuse git into deleting files
   // and leaving the directory in an unclean state.
-  spawnSync('git', ['reset', '--hard'])
+  spawn('git', ['reset', '--hard'])
 
   console.log(`Checked out ${commit}.`)
 
@@ -55,10 +65,10 @@ function checkout (commit) {
   }
 
   if (JSON.parse(fs.readFileSync('package.json')).keybaseVendoredDependencies) {
-    spawnSync(NPM_CMD, ['run', 'vendor-install'], {stdio: 'inherit'})
+    spawn(NPM_CMD, ['run', 'vendor-install'], {stdio: 'inherit'})
   } else {
     console.log('Warning: not using vendored dependencies')
-    spawnSync(NPM_CMD, ['install'], {stdio: 'inherit'})
+    spawn(NPM_CMD, ['install'], {stdio: 'inherit'})
   }
 }
 
@@ -68,7 +78,7 @@ function renderScreenshots (commitRange) {
     console.log(`Rendering screenshots of ${commit}`)
     mkdirp.sync(`screenshots/${commit}`)
     const startTime = Date.now()
-    spawnSync(NPM_CMD, ['run', 'render-screenshots', '--', `screenshots/${commit}`], {stdio: 'inherit'})
+    spawn(NPM_CMD, ['run', 'render-screenshots', '--', `screenshots/${commit}`], {stdio: 'inherit'})
     console.log(`Rendered in ${(Date.now() - startTime) / 1000}s.`)
   }
 }
@@ -246,9 +256,9 @@ function resolveCommit (name) {
       console.log('Failed to parse commit:', e)
       process.exit(1)
     }
-    result = spawnSync('git', ['merge-base', params[0], params[1]], {encoding: 'utf-8'})
+    result = spawn('git', ['merge-base', params[0], params[1]], {encoding: 'utf-8'})
   } else {
-    result = spawnSync('git', ['rev-parse', name], {encoding: 'utf-8'})
+    result = spawn('git', ['rev-parse', name], {encoding: 'utf-8'})
   }
   if (result.status !== 0 || !result.stdout) {
     console.log(`Error resolving commit "${name}":`, result.error, result.stderr)
