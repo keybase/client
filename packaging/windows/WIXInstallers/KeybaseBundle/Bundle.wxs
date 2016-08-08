@@ -32,7 +32,7 @@
              Variable="DokanUninstallString"
              Root="HKLM"
              Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A986-3DC3-0100-0000-160803110110}"
-             Value="QuietUninstallString"
+             Value="UninstallString"
              Format="raw"
              />
     <util:RegistrySearch Id="DokanUninstall64"
@@ -41,7 +41,7 @@
                  Variable="DokanUninstallString"
                  Root="HKLM"
                  Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160803110110}"
-                 Value="QuietUninstallString"
+                 Value="UninstallString"
                  Format="raw"
                  Win64="yes"
                  />
