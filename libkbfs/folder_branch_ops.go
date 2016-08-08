@@ -284,7 +284,7 @@ type folderBranchOps struct {
 	// Protected by mdWriterLock
 	rekeyWithPromptTimer *time.Timer
 
-	editHistory TlfEditHistory
+	editHistory *TlfEditHistory
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -346,14 +346,10 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 		shutdownChan:    make(chan struct{}),
 		updatePauseChan: make(chan (<-chan struct{})),
 		forceSyncChan:   forceSyncChan,
-		editHistory: TlfEditHistory{
-			config: config,
-			log:    log,
-		},
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
 	fbo.fbm = newFolderBlockManager(config, fb, fbo)
-	fbo.editHistory.fbo = fbo
+	fbo.editHistory = NewTlfEditHistory(config, fbo, log)
 	if config.DoBackgroundFlushes() {
 		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
 	}
@@ -399,6 +395,7 @@ func (fbo *folderBranchOps) Shutdown() error {
 	close(fbo.shutdownChan)
 	fbo.cr.Shutdown()
 	fbo.fbm.shutdown()
+	fbo.editHistory.Shutdown()
 	// Wait for the update goroutine to finish, so that we don't have
 	// any races with logging during test reporting.
 	if fbo.updateDoneChan != nil {

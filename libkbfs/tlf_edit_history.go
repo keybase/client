@@ -124,9 +124,44 @@ type TlfEditHistory struct {
 	fbo    *folderBranchOps
 	log    logger.Logger
 
+	rmdsChan chan []ImmutableRootMetadata
+	wg       RepeatedWaitGroup
+
 	lock      sync.Mutex
 	edits     TlfWriterEdits
 	editsTime time.Time
+	cancel    context.CancelFunc
+}
+
+// NewTlfEditHistory makes a new TLF edit history.
+func NewTlfEditHistory(config Config, fbo *folderBranchOps,
+	log logger.Logger) *TlfEditHistory {
+	teh := &TlfEditHistory{
+		config:   config,
+		fbo:      fbo,
+		log:      log,
+		rmdsChan: make(chan []ImmutableRootMetadata, 100),
+	}
+	go teh.process()
+	return teh
+}
+
+// Shutdown shuts down all background processing.
+func (teh *TlfEditHistory) Shutdown() {
+	close(teh.rmdsChan)
+	teh.lock.Lock()
+	defer teh.lock.Unlock()
+	if teh.cancel != nil {
+		teh.cancel()
+	}
+}
+
+// Wait returns nil once all outstanding processing is complete.
+func (teh *TlfEditHistory) Wait(ctx context.Context) error {
+	if err := teh.wg.Wait(ctx); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (teh *TlfEditHistory) getEditsCopyLocked() TlfWriterEdits {
@@ -370,4 +405,68 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 	teh.edits = currEdits
 	teh.editsTime = teh.config.Clock().Now()
 	return teh.getEditsCopyLocked(), nil
+}
+
+func (teh *TlfEditHistory) processMDs(ctx context.Context,
+	rmds []ImmutableRootMetadata) error {
+	defer teh.wg.Done()
+	if len(rmds) == 0 {
+		return nil
+	}
+	teh.log.CDebugf(ctx, "Processing %d MDs for notifications "+
+		"(most recent revision: %d)", len(rmds), rmds[len(rmds)-1].Revision)
+
+	chains, err := newCRChains(ctx, teh.config, rmds, &teh.fbo.blocks, false)
+	if err != nil {
+		return err
+	}
+
+	// Set the paths on all the ops
+	_, err = chains.getPaths(ctx, &teh.fbo.blocks, teh.log, teh.fbo.nodeCache,
+		true)
+	if err != nil {
+		return err
+	}
+
+	// For every file create, sync, delete, or rename, update the
+	// cached history.
+	return nil
+}
+
+func (teh *TlfEditHistory) process() {
+	var ctx context.Context
+	func() {
+		teh.lock.Lock()
+		defer teh.lock.Unlock()
+		ctx, teh.cancel = context.WithCancel(context.Background())
+	}()
+
+	for rmds := range teh.rmdsChan {
+		ctx := ctxWithRandomID(ctx, CtxFBOIDKey, CtxFBOOpID, teh.log)
+		err := teh.processMDs(ctx, rmds)
+		if err != nil {
+			teh.log.CWarningf(ctx,
+				"Error while processing edit notifications: %v", err)
+		}
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+	}
+}
+
+// ProcessMDs updates the cached edit history, and sends FS
+// notifications about the changes.  This assumes the last
+// ImmutableRootMetadata in rmds is the current head.
+func (teh *TlfEditHistory) ProcessMDs(ctx context.Context,
+	rmds []ImmutableRootMetadata) error {
+	teh.wg.Add(1)
+	select {
+	case teh.rmdsChan <- rmds:
+	case <-ctx.Done():
+		teh.wg.Done()
+		return ctx.Err()
+	}
+	return nil
 }
