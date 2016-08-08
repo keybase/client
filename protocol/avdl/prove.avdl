@@ -9,6 +9,7 @@ protocol prove {
     boolean found;
     ProofStatus status;
     string proofText;
+    ProofState state;
   }
 
   record StartProofResult {

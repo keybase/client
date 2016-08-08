@@ -128,7 +128,7 @@ func DeletePrimary() (err error) {
 	return
 }
 
-func CheckPosted(proofID string) (found bool, status keybase1.ProofStatus, err error) {
+func CheckPosted(proofID string) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
 	res, e2 := G.API.Post(APIArg{
 		Endpoint:    "sig/posted",
 		NeedSession: true,
@@ -143,14 +143,16 @@ func CheckPosted(proofID string) (found bool, status keybase1.ProofStatus, err e
 	var (
 		rfound  bool
 		rstatus int
+		rstate  int
 		rerr    error
 	)
 	res.Body.AtKey("proof_ok").GetBoolVoid(&rfound, &rerr)
 	res.Body.AtPath("proof_res.status").GetIntVoid(&rstatus, &rerr)
-	return rfound, keybase1.ProofStatus(rstatus), rerr
+	res.Body.AtPath("proof_res.state").GetIntVoid(&rstate, &rerr)
+	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
-func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, err error) {
+func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.ProofStatus, state keybase1.ProofState, err error) {
 	res, e2 := G.API.Post(APIArg{
 		Endpoint:    "sig/posted",
 		NeedSession: true,
@@ -166,11 +168,13 @@ func CheckPostedViaSigID(sigID keybase1.SigID) (found bool, status keybase1.Proo
 	var (
 		rfound  bool
 		rstatus int
+		rstate  int
 		rerr    error
 	)
 	res.Body.AtKey("proof_ok").GetBoolVoid(&rfound, &rerr)
 	res.Body.AtPath("proof_res.status").GetIntVoid(&rstatus, &rerr)
-	return rfound, keybase1.ProofStatus(rstatus), rerr
+	res.Body.AtPath("proof_res.state").GetIntVoid(&rstate, &rerr)
+	return rfound, keybase1.ProofStatus(rstatus), keybase1.ProofState(rstate), rerr
 }
 
 func PostDeviceLKS(sr SessionReader, deviceID keybase1.DeviceID, deviceType string, serverHalf []byte,

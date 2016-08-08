@@ -87,8 +87,8 @@ func (ph *ProveHandler) CheckProof(_ context.Context, arg keybase1.CheckProofArg
 	if err = engine.RunEngine(eng, ctx); err != nil {
 		return
 	}
-	found, status, text := eng.Results()
-	res = keybase1.CheckProofStatus{Found: found, Status: status, ProofText: text}
+	found, status, state, text := eng.Results()
+	res = keybase1.CheckProofStatus{Found: found, Status: status, State: state, ProofText: text}
 
 	return
 }
