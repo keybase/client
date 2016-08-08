@@ -217,12 +217,38 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       return {
         ...state,
         proofs: [
+          ...state.proofs,
           ...(identity.revokedDetails || []).map(rv => revokedProofToProof(rv)),
           ...(identity.proofs || []).map(rp => remoteProofToProof(checking, rp.proof)),
         ],
       }
 
-    case Constants.updateBTC:
+    case Constants.updatePGPKey: {
+      if (!action.payload) {
+        return state
+      }
+      const url = `https://keybase.io/${state.username}/sigchain`
+      const proof = {
+        state: 'normal',
+        id: action.payload.fingerPrint,
+        meta: null,
+        type: 'pgp',
+        mTime: 0,
+        color: 'green',
+        name: action.payload.fingerPrint,
+        // TODO: We don't currently get the sigID so we can't link to the actual sigChain statement. See https://keybase.atlassian.net/browse/CORE-3529
+        humanUrl: url,
+        profileUrl: url,
+        isTracked: state.currentlyFollowing,
+      }
+
+      return {
+        ...state,
+        proofs: [].concat(state.proofs).concat([proof]),
+      }
+    }
+
+    case Constants.updateBTC: {
       if (!action.payload) {
         return state
       }
@@ -246,6 +272,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         ...state,
         proofs: [].concat(state.proofs).concat([proof]),
       }
+    }
 
     case Constants.updateProof:
       if (!action.payload) {
@@ -276,10 +303,15 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       }
 
     case Constants.reportLastTrack:
-      const lastTrack = action.payload && action.payload.track
+      const currentlyFollowing = !!(action.payload && action.payload.track)
+      const proofs = state.proofs.map(p => ['btc', 'pgp'].includes(p.type)
+        ? {...p, isTracked: currentlyFollowing}
+        : p)
+
       return {
         ...state,
-        currentlyFollowing: !!lastTrack,
+        currentlyFollowing,
+        proofs,
       }
 
     case Constants.showTracker:
