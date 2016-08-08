@@ -1,15 +1,14 @@
 // @flow
 import React, {Component} from 'react'
-import {Button, Terminal, Text, StandardScreen} from '../../common-adapters'
+import {Button, Terminal, Text, StandardScreen, Icon} from '../../common-adapters'
 import {globalMargins} from '../../styles/style-guide'
-import PgpIcon from './pgp-icon'
 import type {Props} from './prove-pgp-choice'
 
 class ProvePgpChoice extends Component<void, Props, void> {
   render () {
     return (
-      <StandardScreen onClose={this.props.onCancel}>
-        <PgpIcon type='import' />
+      <StandardScreen onClose={this.props.onCancel} style={styleContainer}>
+        <Icon type='icon-pgp-key-48' />
         <Text style={styleHeader} type='Header'>Import a PGP key</Text>
         <Text style={styleBody} type='Body'>To upload your existing PGP key to Keybase, please run the following command from your terminal:</Text>
         <Terminal style={styleTerminal}>
@@ -28,6 +27,13 @@ class ProvePgpChoice extends Component<void, Props, void> {
   }
 }
 
+const styleContainer = {
+  maxWidth: 576,
+  padding: globalMargins.medium,
+  marginLeft: globalMargins.medium,
+  marginRight: globalMargins.medium,
+}
+
 const styleHeader = {
   marginTop: globalMargins.medium,
 }
@@ -43,9 +49,12 @@ const styleCancelButton = {
 
 const styleTerminal = {
   borderRadius: 4,
+  textAlign: 'left',
+  boxSizing: 'content-box',
   width: '100%',
-  maxWidth: 576,
-  padding: 32,
+  marginLeft: -globalMargins.medium,
+  marginRight: -globalMargins.medium,
+  padding: globalMargins.medium,
 }
 
 export default ProvePgpChoice
