@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -177,6 +178,75 @@ func TestLongTlfEditHistory(t *testing.T) {
 	edits1, err := kbfsOps1.GetEditHistory(ctx, rootNode1.GetFolderBranch())
 	require.NoError(t, err)
 	edits2, err := kbfsOps2.GetEditHistory(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	require.Equal(t, expectedEdits, edits1, "User1 has unexpected edit history")
+	require.Equal(t, expectedEdits, edits2, "User2 has unexpected edit history")
+
+	now = now.Add(1 * time.Minute)
+	clock.Set(now)
+
+	// Now make sure removes, renames, and subsequent edits get
+	// applied correctly.
+	rmIndex := 9
+	renameIndex := 19
+	editIndex := 4
+	rmFile1 := filepath.Base(expectedEdits[uid1][rmIndex].Filepath)
+	rmFile2 := filepath.Base(expectedEdits[uid2][rmIndex].Filepath)
+	renameFile := filepath.Base(expectedEdits[uid1][renameIndex].Filepath)
+	editFile := filepath.Base(expectedEdits[uid2][editIndex].Filepath)
+
+	// Expect some new edits
+	expectedEdits[uid1] = append(expectedEdits[uid1][:rmIndex],
+		expectedEdits[uid1][rmIndex+1:]...)
+	expectedEdits[uid2] = append(expectedEdits[uid2][:rmIndex],
+		expectedEdits[uid2][rmIndex+1:]...)
+	renameIndex--
+	expectedEdits[uid1][renameIndex].Filepath = name + "/" + renameFile + ".New"
+	newEdit := expectedEdits[uid2][editIndex]
+	newEdit.Type = FileModified
+	newEdit.LocalTime = clock.Now()
+	expectedEdits[uid2] = append(expectedEdits[uid2][:editIndex],
+		expectedEdits[uid2][editIndex+1:]...)
+	expectedEdits[uid2] = append(expectedEdits[uid2], newEdit)
+
+	// Two older edits are now on the fronts of the lists.
+	oldNow := expectedEdits[uid1][0].LocalTime.Add(-1 * time.Minute)
+	expectedEdits[uid1] = append([]TlfEdit{{
+		Filepath:  name + "/file19",
+		Type:      FileModified,
+		LocalTime: oldNow,
+	}}, expectedEdits[uid1]...)
+	expectedEdits[uid2] = append([]TlfEdit{{
+		Filepath:  name + "/file69",
+		Type:      FileCreated,
+		LocalTime: oldNow,
+	}}, expectedEdits[uid2]...)
+
+	err = kbfsOps1.RemoveEntry(ctx, rootNode1, rmFile1)
+	require.NoError(t, err)
+	err = kbfsOps1.RemoveEntry(ctx, rootNode1, rmFile2)
+	require.NoError(t, err)
+	err = kbfsOps1.Rename(ctx, rootNode1, renameFile, rootNode1,
+		renameFile+".New")
+
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+	editNode, _, err := kbfsOps2.Lookup(ctx, rootNode2, editFile)
+	require.NoError(t, err)
+	err = kbfsOps2.Write(ctx, editNode, []byte{1}, 1)
+	require.NoError(t, err)
+	err = kbfsOps2.Sync(ctx, editNode)
+	require.NoError(t, err)
+
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	edits1, err = kbfsOps1.GetEditHistory(ctx, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
+	edits2, err = kbfsOps2.GetEditHistory(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
 
 	require.Equal(t, expectedEdits, edits1, "User1 has unexpected edit history")

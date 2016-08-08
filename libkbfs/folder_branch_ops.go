@@ -3249,6 +3249,7 @@ func (fbo *folderBranchOps) notifyBatchLocked(
 
 	lastOp := md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
 	fbo.notifyOneOpLocked(ctx, lState, lastOp, md)
+	fbo.editHistory.UpdateHistory(ctx, []ImmutableRootMetadata{md})
 }
 
 // searchForNode tries to figure out the path to the given
@@ -3550,6 +3551,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			fbo.notifyOneOpLocked(ctx, lState, op, rmd)
 		}
 	}
+	fbo.editHistory.UpdateHistory(ctx, rmds)
 	return nil
 }
 
@@ -3609,6 +3611,7 @@ func (fbo *folderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 			fbo.notifyOneOpLocked(ctx, lState, io, rmd)
 		}
 	}
+	// TODO: update the edit history?
 	return nil
 }
 
@@ -4115,6 +4118,9 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 	if err := fbo.fbm.waitForDeletingBlocks(ctx); err != nil {
 		return err
 	}
+	if err := fbo.editHistory.Wait(ctx); err != nil {
+		return err
+	}
 	return fbo.fbm.waitForQuotaReclamations(ctx)
 }
 
@@ -4400,6 +4406,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	for _, op := range newOps {
 		fbo.notifyOneOpLocked(ctx, lState, op, irmd)
 	}
+	fbo.editHistory.UpdateHistory(ctx, []ImmutableRootMetadata{irmd})
 	return nil
 }
 
