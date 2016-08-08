@@ -5,6 +5,7 @@ export type Props = {
   children?: ?any,
   onClose?: ?(event: SyntheticMouseEvent) => void,
   errorMessage?: ?string,
+  style?: ?Object,
 }
 
 export default class StandardScreen extends Component<void, Props, void> { }
