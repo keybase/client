@@ -4,8 +4,6 @@
 package client
 
 import (
-	"fmt"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
@@ -22,17 +20,26 @@ func NewCmdPGPPurge(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdPGPPurge{Contextified: libkb.NewContextified(g)}, "purge", c)
 		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "p, purge",
+				Usage: "After export, purge keys from keyring",
+			},
+		},
 	}
 }
 
 type CmdPGPPurge struct {
 	libkb.Contextified
+	doPurge bool
 }
 
 func (s *CmdPGPPurge) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) > 0 {
 		return UnexpectedArgsError("pgp purge")
 	}
+
+	s.doPurge = ctx.Bool("purge")
 
 	return nil
 }
@@ -57,7 +64,7 @@ func (s *CmdPGPPurge) Run() error {
 	}
 
 	arg := keybase1.PGPPurgeArg{
-		DoPurge: false,
+		DoPurge: s.doPurge,
 	}
 
 	res, err := cli.PGPPurge(context.TODO(), arg)
@@ -65,7 +72,31 @@ func (s *CmdPGPPurge) Run() error {
 		return err
 	}
 
-	fmt.Printf("res: %+v\n", res)
+	dui := s.G().UI.GetDumbOutputUI()
+	if len(res.Filenames) == 0 {
+		dui.Printf("No PGP keys found in local keyring\n")
+		return nil
+	}
+
+	dui.Printf("Exported PGP key files:\n")
+	for i, name := range res.Filenames {
+		dui.Printf("%2d. %s\n", i+1, name)
+	}
+
+	dui.Printf("\n")
+	if s.doPurge {
+		dui.Printf("All PGP keys have been purged from the local Keybase keyring.\n")
+	} else {
+		dui.Printf("The PGP keys in the local Keybase keyring have been exported.\n")
+		dui.Printf("Please check that you have no problems decrypting them with\n\n")
+		dui.Printf("    keybase decrypt <filename>\n\n")
+		dui.Printf("and importing them into another keyring (like GPG).\n\n")
+		dui.Printf("Once you are confident that you have your keys in a safe place,\n")
+		dui.Printf("run this command with the -p flag:\n\n")
+		dui.Printf("    keybase pgp purge -p\n\n")
+		dui.Printf("to remove the keys from the local Keybase keyring.\n")
+	}
+
 	return nil
 }
 

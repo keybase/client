@@ -10,6 +10,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
+// Test the export of the keys.
 func TestPGPPurgeLksec(t *testing.T) {
 	tc := SetupEngineTest(t, "purge")
 	defer tc.Cleanup()
@@ -31,6 +32,42 @@ func TestPGPPurgeLksec(t *testing.T) {
 
 	if len(eng.KeyFiles()) != 1 {
 		t.Fatalf("number of exported key files: %d, expected 1", len(eng.KeyFiles()))
+	}
+}
+
+// Test the removal of the keys.
+func TestPGPPurgeRemove(t *testing.T) {
+	tc := SetupEngineTest(t, "purge")
+	defer tc.Cleanup()
+
+	createFakeUserWithPGPSibkey(tc)
+
+	idUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+	ctx := &Context{
+		SecretUI:   &libkb.TestSecretUI{}, // empty on purpose...shouldn't be necessary
+		SaltpackUI: &fakeSaltpackUI{},
+		IdentifyUI: idUI,
+	}
+	eng := NewPGPPurge(tc.G, keybase1.PGPPurgeArg{DoPurge: true})
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(eng.KeyFiles()) != 1 {
+		t.Fatalf("number of exported key files: %d, expected 1", len(eng.KeyFiles()))
+	}
+
+	// redo, should purge 0 files
+
+	eng = NewPGPPurge(tc.G, keybase1.PGPPurgeArg{DoPurge: true})
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(eng.KeyFiles()) != 0 {
+		t.Fatalf("number of exported key files: %d, expected 0", len(eng.KeyFiles()))
 	}
 }
 
