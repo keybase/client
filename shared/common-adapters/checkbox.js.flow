@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 
 export type Props = {
-  label: string,
+  label?: string,
   onCheck: (newCheckedValue: boolean) => void,
   checked: boolean,
   style?: Object,
