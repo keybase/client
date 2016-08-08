@@ -428,6 +428,20 @@
       ],
       "response": null,
       "doc": "Push updated key(s) to the server."
+    },
+    "pgpPurge": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "doPurge",
+          "type": "boolean"
+        }
+      ],
+      "response": null,
+      "doc": "Export all pgp keys in lksec, then if doPurge is true, remove the keys from lksec."
     }
   },
   "namespace": "keybase.1"

@@ -102,4 +102,9 @@ protocol pgp {
     Push updated key(s) to the server.
     */
   void pgpUpdate(int sessionID, boolean all, array<string> fingerprints);
+
+  /**
+    Export all pgp keys in lksec, then if doPurge is true, remove the keys from lksec.
+    */
+  void pgpPurge(int sessionID, boolean doPurge);
 }

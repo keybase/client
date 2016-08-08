@@ -2707,6 +2707,17 @@ export function pgpPgpPullRpc (request: $Exact<{
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'pgp.pgpPull'})
 }
+export type pgpPgpPurgeRpcParam = $Exact<{
+  doPurge: boolean
+}>
+
+export function pgpPgpPurgeRpc (request: $Exact<{
+  param: pgpPgpPurgeRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'pgp.pgpPurge'})
+}
 export type pgpPgpSelectRpcParam = $Exact<{
   fingerprintQuery: string,
   allowMulti: boolean,
@@ -3879,6 +3890,7 @@ export type rpc =
   | pgpPgpImportRpc
   | pgpPgpKeyGenRpc
   | pgpPgpPullRpc
+  | pgpPgpPurgeRpc
   | pgpPgpSelectRpc
   | pgpPgpSignRpc
   | pgpPgpUpdateRpc
@@ -5400,6 +5412,16 @@ export type incomingCallMapType = $Exact<{
       sessionID: int,
       all: boolean,
       fingerprints?: ?Array<string>
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.pgp.pgpPurge'?: (
+    params: $Exact<{
+      sessionID: int,
+      doPurge: boolean
     }>,
     response: {
       error: (err: RPCError) => void,

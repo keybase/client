@@ -240,3 +240,13 @@ func (h *PGPHandler) PGPUpdate(_ context.Context, arg keybase1.PGPUpdateArg) err
 	eng := engine.NewPGPUpdateEngine(arg.Fingerprints, arg.All, h.G())
 	return engine.RunEngine(eng, &ctx)
 }
+
+func (h *PGPHandler) PGPPurge(ctx context.Context, arg keybase1.PGPPurgeArg) error {
+	ectx := &engine.Context{
+		LogUI:      h.getLogUI(arg.SessionID),
+		SessionID:  arg.SessionID,
+		NetContext: ctx,
+	}
+	eng := engine.NewPGPPurge(h.G())
+	return engine.RunEngine(eng, ectx)
+}
