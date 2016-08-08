@@ -75,6 +75,7 @@ const (
 	ProofStatus_UNKNOWN_TYPE      ProofStatus = 305
 	ProofStatus_NO_HINT           ProofStatus = 306
 	ProofStatus_BAD_HINT_TEXT     ProofStatus = 307
+	ProofStatus_INVALID_PVL       ProofStatus = 308
 )
 
 var ProofStatusMap = map[string]ProofStatus{
@@ -115,6 +116,7 @@ var ProofStatusMap = map[string]ProofStatus{
 	"UNKNOWN_TYPE":      305,
 	"NO_HINT":           306,
 	"BAD_HINT_TEXT":     307,
+	"INVALID_PVL":       308,
 }
 
 type ProofType int

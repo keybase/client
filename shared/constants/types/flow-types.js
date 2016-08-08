@@ -1134,6 +1134,7 @@ export type ProofStatus =
   | 305 // UNKNOWN_TYPE_305
   | 306 // NO_HINT_306
   | 307 // BAD_HINT_TEXT_307
+  | 308 // INVALID_PVL_308
 
 export type ProofType =
     0 // NONE_0
