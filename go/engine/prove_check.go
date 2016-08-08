@@ -19,6 +19,7 @@ type ProveCheck struct {
 	sigID     keybase1.SigID
 	found     bool
 	status    keybase1.ProofStatus
+	state     keybase1.ProofState
 	proofText string
 }
 
@@ -52,12 +53,13 @@ func (e *ProveCheck) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *ProveCheck) Run(ctx *Context) error {
-	found, status, err := libkb.CheckPostedViaSigID(e.sigID)
+	found, status, state, err := libkb.CheckPostedViaSigID(e.sigID)
 	if err != nil {
 		return err
 	}
 	e.found = found
 	e.status = keybase1.ProofStatus(status)
+	e.state = state
 
 	e.G().Log.Debug("looking for ChainLink for %s", e.sigID)
 	me, err := libkb.LoadMe(libkb.NewLoadUserPubOptionalArg(e.G()))
@@ -78,6 +80,6 @@ func (e *ProveCheck) Run(ctx *Context) error {
 	return nil
 }
 
-func (e *ProveCheck) Results() (found bool, status keybase1.ProofStatus, proofText string) {
-	return e.found, e.status, e.proofText
+func (e *ProveCheck) Results() (found bool, status keybase1.ProofStatus, state keybase1.ProofState, proofText string) {
+	return e.found, e.status, e.state, e.proofText
 }

@@ -210,6 +210,7 @@ export type CheckProofStatus = {
   found: boolean;
   status: ProofStatus;
   proofText: string;
+  state: ProofState;
 }
 
 export type CheckResult = {

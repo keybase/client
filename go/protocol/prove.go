@@ -12,6 +12,7 @@ type CheckProofStatus struct {
 	Found     bool        `codec:"found" json:"found"`
 	Status    ProofStatus `codec:"status" json:"status"`
 	ProofText string      `codec:"proofText" json:"proofText"`
+	State     ProofState  `codec:"state" json:"state"`
 }
 
 type StartProofResult struct {
