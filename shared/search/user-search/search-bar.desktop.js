@@ -143,6 +143,7 @@ const serviceIconStyle = {
 const serviceTooltipStyle = {
   ...transition('opacity'),
   backgroundColor: globalColors.black_40,
+  borderBottom: '2px solid white',
   borderRadius: 65,
   color: globalColors.white,
   cursor: 'default',
