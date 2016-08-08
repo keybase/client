@@ -329,6 +329,7 @@ func newConnectionWithTransportAndProtocols(handler ConnectionHandler,
 		errorUnwrapper:   errorUnwrapper,
 		reconnectBackoff: reconnectBackoff,
 		doCommandBackoff: backoff.NewExponentialBackOff(),
+		wef:              wef,
 		tagsFunc:         tagsFunc,
 		log: connectionLog{
 			LogOutput: log,
