@@ -25,8 +25,10 @@ export default connect(
   state => {
     const profile = state.profile
     const isGood = profile.proofFound && profile.proofStatus === proveCommon.ProofStatus.ok
+    const isPending = !isGood && !profile.proofFound && profile.proofStatus <= proveCommon.ProofStatus.baseHardError
 
     return {
+      isPending,
       platform: profile.platform,
       titleColor: isGood ? globalColors.green : globalColors.blue,
       username: profile.username,

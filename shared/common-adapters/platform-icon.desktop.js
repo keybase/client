@@ -2,7 +2,6 @@
 
 import React from 'react'
 import {Box, Icon} from '../common-adapters'
-import {globalColors} from '../styles/style-guide'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {IconType} from './icon'
 import type {Props} from './platform-icon'
@@ -44,13 +43,11 @@ const Render = ({platform, overlay, overlayColor, size}: Props) => {
     return null
   }
 
-  // TODO switch with new assets from cecile. This is temp ( you can see through the checkmarks etc). remove white underlay
   return (
     <Box style={{position: 'relative'}}>
       <Icon type={icon} />
       <Box style={{position: 'absolute', bottom: 0, right: 0}}>
-        <Icon type={overlay} style={{position: 'absolute', bottom: -3, right: -3, color: globalColors.white, fontSize: 30}} />
-        <Icon type={overlay} style={{color: overlayColor}} />
+        <Icon type={overlay} style={{position: 'absolute', bottom: -2, right: -5}} />
       </Box>
     </Box>
   )

@@ -148,7 +148,7 @@ function updateSigID (sigID: SigID): UpdateSigID {
 
 function askTextOrDNS (): AsyncAction {
   return (dispatch) => {
-    const replace = 'https'
+    const replace = 'dns'
     console.warn(`TEMP hardcoded to using ${replace} proof for all web`)
     // really show the screen then have that do addProof
     dispatch(addProof(replace)) // TEMP hardcoded
@@ -344,7 +344,8 @@ function checkProof (): AsyncAction {
           console.warn('Error getting proof update')
           dispatch(updateError("We couldn't verify your proof. Please retry!"))
         } else {
-          if (!found || status !== proveCommon.ProofStatus.ok) {
+          // this enum value is the divider between soft and hard errors
+          if (!found && status >= proveCommon.ProofStatus.baseHardError) {
             dispatch(updateError("We couldn't find your proof. Please retry!"))
           } else {
             dispatch(updateProofStatus(found, status))

@@ -16,7 +16,7 @@ const Render = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
       {!isWaiting && <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />}
       {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
-        <PlatformIcon platform={platform} overlay={'iconfont-proof-broken'} overlayColor={globalColors.red} size={48} />
+        <PlatformIcon platform={platform} overlay={'icon-proof-broken'} overlayColor={globalColors.red} size={48} />
         <Text style={stylePlatformUsername} type='Header'>{platformHandle}</Text>
         {!!platformHandleSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformHandleSubtitle}</Text>}
         <Text style={styleDescriptionText} type='Header'>{formatMessage(platform)}</Text>

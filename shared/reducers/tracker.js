@@ -13,7 +13,7 @@ import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, T
 import type {Action} from '../constants/types/flux'
 import type {PlatformsExpandedType} from '../constants/types/more'
 
-const {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored,
+const {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored, metaPending,
   normal, warning, error, checking} = Constants
 
 export type NonUserState = {
@@ -494,6 +494,7 @@ function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracke
     if (!status) {
       return null
     }
+
     // The full mapping between the proof status we get back from the server
     // and a simplified representation that we show the users.
     return {
@@ -501,15 +502,15 @@ function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracke
       [proveCommon.ProofStatus.ok]: null,
       [proveCommon.ProofStatus.local]: null,
       [proveCommon.ProofStatus.found]: null,
-      [proveCommon.ProofStatus.baseError]: null,
-      [proveCommon.ProofStatus.hostUnreachable]: metaUnreachable,
-      [proveCommon.ProofStatus.permissionDenied]: metaUnreachable,
-      [proveCommon.ProofStatus.failedParse]: metaUnreachable,
-      [proveCommon.ProofStatus.dnsError]: metaUnreachable,
-      [proveCommon.ProofStatus.authFailed]: metaUnreachable,
-      [proveCommon.ProofStatus.http500]: metaUnreachable,
-      [proveCommon.ProofStatus.timeout]: metaUnreachable,
-      [proveCommon.ProofStatus.internalError]: metaUnreachable,
+      [proveCommon.ProofStatus.baseError]: metaPending,
+      [proveCommon.ProofStatus.hostUnreachable]: metaPending,
+      [proveCommon.ProofStatus.permissionDenied]: metaPending,
+      [proveCommon.ProofStatus.failedParse]: metaPending,
+      [proveCommon.ProofStatus.dnsError]: metaPending,
+      [proveCommon.ProofStatus.authFailed]: metaPending,
+      [proveCommon.ProofStatus.http500]: metaPending,
+      [proveCommon.ProofStatus.timeout]: metaPending,
+      [proveCommon.ProofStatus.internalError]: metaPending,
       [proveCommon.ProofStatus.baseHardError]: metaUnreachable,
       [proveCommon.ProofStatus.notFound]: metaUnreachable,
       [proveCommon.ProofStatus.contentFailure]: metaUnreachable,

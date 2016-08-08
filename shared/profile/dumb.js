@@ -288,8 +288,9 @@ const confirmBase = {
   title: 'Your proof is verified!',
   titleColor: globalColors.green,
   platformIcon: 'icon-twitter-logo-48',
-  platformIconOverlay: 'iconfont-proof-good',
+  platformIconOverlay: 'icon-proof-success',
   platformIconOverlayColor: globalColors.green,
+  isPending: false,
   username: 'chris',
   usernameSubtitle: '@twitter',
   message: 'Leave your proof up so other users can identify you!',
@@ -297,8 +298,9 @@ const confirmBase = {
 }
 
 const pending = {
+  isPending: true,
   titleText: 'Your proof is pending.',
-  platformIconOverlay: 'iconfont-proof-pending',
+  platformIconOverlay: 'icon-proof-pending',
   platformIconOverlayColor: globalColors.grey,
   titleColor: globalColors.blue,
 }
