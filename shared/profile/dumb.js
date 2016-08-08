@@ -4,6 +4,7 @@ import ConfirmOrPending from './confirm-or-pending'
 import ProveEnterUsername from './prove-enter-username'
 import ProveWebsiteChoice from './prove-website-choice'
 import ProvePgpChoice from './pgp/prove-pgp-choice'
+import ProvePgpImport from './pgp/prove-pgp-import'
 import EditAvatar from './edit-avatar'
 import Revoke from './revoke'
 import PostProof from './post-proof'
@@ -474,6 +475,15 @@ const dumbProvePgpChoice: DumbComponentMap<ProvePgpChoice> = {
   },
 }
 
+const dumbProvePgpImport: DumbComponentMap<ProvePgpImport> = {
+  component: ProvePgpImport,
+  mocks: {
+    'Import PGP': {
+      onCancel: () => console.log('ProvePgpImport: onCancel'),
+      parentProps: isMobile ? {} : {style: {width: 640, height: 578}},
+    },
+  },
+}
 export default {
   'Profile': dumbMap,
   'Edit Avatar': dumbEditAvatar,
@@ -483,4 +493,5 @@ export default {
   'New Proof: Post': dumbPostProof,
   'New Proof: Website': dumbProveWebsiteChoice,
   'New Proof: PGP': dumbProvePgpChoice,
+  'New Proof: PGP import': dumbProvePgpImport,
 }
