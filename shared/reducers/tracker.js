@@ -9,7 +9,7 @@ import * as CommonConstants from '../constants/common'
 import {identifyCommon, proveCommon} from '../constants/types/keybase-v1'
 
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff,
-  TrackDiffType, ProofStatus} from '../constants/types/flow-types'
+  TrackDiffType, ProofStatus, ProofResult} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 import type {PlatformsExpandedType} from '../constants/types/more'
 
@@ -458,7 +458,9 @@ function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff,
   }
 }
 
-function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracked: bool) : {diffMeta: ?SimpleProofMeta, statusMeta: ?SimpleProofMeta} {
+function diffAndStatusMeta (diff: ?TrackDiffType, proofResult: ?ProofResult, isTracked: bool) : {diffMeta: ?SimpleProofMeta, statusMeta: ?SimpleProofMeta} {
+  const {status, state} = proofResult || {}
+
   if (status && status !== proveCommon.ProofStatus.ok && isTracked) {
     return {
       diffMeta: metaIgnored,
@@ -468,7 +470,7 @@ function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracke
 
   return {
     diffMeta: trackDiffToSimpleProofMeta(diff),
-    statusMeta: proofStatusToSimpleProofMeta(status),
+    statusMeta: proofStatusToSimpleProofMeta(status, state),
   }
 
   function trackDiffToSimpleProofMeta (diff: ?TrackDiffType): ?SimpleProofMeta {
@@ -490,9 +492,13 @@ function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracke
     }[diff]
   }
 
-  function proofStatusToSimpleProofMeta (status: ?ProofStatus): ?SimpleProofMeta {
+  function proofStatusToSimpleProofMeta (status: ?ProofStatus, state: ?ProofState): ?SimpleProofMeta {
     if (!status) {
       return null
+    }
+
+    if (state === proveCommon.ProofState.tempFailure) {
+      return metaPending
     }
 
     // The full mapping between the proof status we get back from the server
@@ -502,15 +508,15 @@ function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracke
       [proveCommon.ProofStatus.ok]: null,
       [proveCommon.ProofStatus.local]: null,
       [proveCommon.ProofStatus.found]: null,
-      [proveCommon.ProofStatus.baseError]: metaPending,
-      [proveCommon.ProofStatus.hostUnreachable]: metaPending,
-      [proveCommon.ProofStatus.permissionDenied]: metaPending,
-      [proveCommon.ProofStatus.failedParse]: metaPending,
-      [proveCommon.ProofStatus.dnsError]: metaPending,
-      [proveCommon.ProofStatus.authFailed]: metaPending,
-      [proveCommon.ProofStatus.http500]: metaPending,
-      [proveCommon.ProofStatus.timeout]: metaPending,
-      [proveCommon.ProofStatus.internalError]: metaPending,
+      [proveCommon.ProofStatus.baseError]: metaUnreachable,
+      [proveCommon.ProofStatus.hostUnreachable]: metaUnreachable,
+      [proveCommon.ProofStatus.permissionDenied]: metaUnreachable,
+      [proveCommon.ProofStatus.failedParse]: metaUnreachable,
+      [proveCommon.ProofStatus.dnsError]: metaUnreachable,
+      [proveCommon.ProofStatus.authFailed]: metaUnreachable,
+      [proveCommon.ProofStatus.http500]: metaUnreachable,
+      [proveCommon.ProofStatus.timeout]: metaUnreachable,
+      [proveCommon.ProofStatus.internalError]: metaUnreachable,
       [proveCommon.ProofStatus.baseHardError]: metaUnreachable,
       [proveCommon.ProofStatus.notFound]: metaUnreachable,
       [proveCommon.ProofStatus.contentFailure]: metaUnreachable,
@@ -581,7 +587,7 @@ function revokedProofToProof (rv: RevokedProof): Proof {
 function remoteProofToProof (oldProofState: SimpleProofState, rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
   const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || oldProofState
   const isTracked = !!(lcr && lcr.diff && lcr.diff.type === identifyCommon.TrackDiffType.none && !lcr.breaksTracking)
-  const {diffMeta, statusMeta} = diffAndStatusMeta(lcr && lcr.diff && lcr.diff.type, lcr && lcr.proofResult && lcr.proofResult.status, isTracked)
+  const {diffMeta, statusMeta} = diffAndStatusMeta(lcr && lcr.diff && lcr.diff.type, lcr && lcr.proofResult, isTracked)
   const humanUrl = (lcr && lcr.hint && lcr.hint.humanUrl)
 
   return {
@@ -618,9 +624,9 @@ function updateProof (proofs: Array<Proof>, rp: RemoteProof, lcr: LinkCheckResul
 export function overviewStateOfProofs (proofs: Array<Proof>): OverviewProofState {
   const allOk = proofs.every(p => p.state === normal)
   const [anyWarnings, anyError, anyPending] = [warning, error, checking].map(s => proofs.some(p => p.state === s))
-  const [anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs] = [metaDeleted, metaUnreachable, metaUpgraded, metaNew].map(m => proofs.some(p => p.meta === m))
+  const [anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs, anyPendingProofs] = [metaDeleted, metaUnreachable, metaUpgraded, metaNew, metaPending].map(m => proofs.some(p => p.meta === m))
   const anyChanged = proofs.some(proof => proof.meta && proof.meta !== metaNone)
-  return {allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs, anyChanged}
+  return {allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs, anyChanged, anyPendingProofs}
 }
 
 export function deriveSimpleProofState (
