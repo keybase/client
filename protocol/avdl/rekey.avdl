@@ -3,9 +3,6 @@
 protocol rekey {
   import idl "common.avdl";
 
-  @typedef("string")
-  record TLFID {}
-
   record TLF {
     TLFID id;
     string name;

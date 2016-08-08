@@ -33,11 +33,6 @@
     },
     {
       "type": "fixed",
-      "name": "Bytes32",
-      "size": "32"
-    },
-    {
-      "type": "fixed",
       "name": "EncryptedBytes32",
       "size": "48"
     },

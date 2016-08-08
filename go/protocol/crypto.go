@@ -15,7 +15,6 @@ type ED25519SignatureInfo struct {
 	PublicKey ED25519PublicKey `codec:"publicKey" json:"publicKey"`
 }
 
-type Bytes32 [32]byte
 type EncryptedBytes32 [48]byte
 type BoxNonce [24]byte
 type BoxPublicKey [32]byte

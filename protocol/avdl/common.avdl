@@ -29,6 +29,11 @@ protocol Common {
   @typedef("string")
   record KID {}
 
+  @typedef("string")
+  record TLFID {}
+
+  fixed Bytes32(32);
+
   record Text {
     string data;
     boolean markup;

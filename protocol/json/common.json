@@ -73,6 +73,17 @@
     },
     {
       "type": "record",
+      "name": "TLFID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "fixed",
+      "name": "Bytes32",
+      "size": "32"
+    },
+    {
+      "type": "record",
       "name": "Text",
       "fields": [
         {

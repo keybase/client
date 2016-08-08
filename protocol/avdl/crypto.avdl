@@ -27,7 +27,6 @@ protocol crypto {
     */
   string signToString(int sessionID, bytes msg, string reason);
 
-  fixed Bytes32(32);
   // 32 + fixed-size nacl/box overhead.
   fixed EncryptedBytes32(48);
   fixed BoxNonce(24);

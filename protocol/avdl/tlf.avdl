@@ -1,0 +1,12 @@
+@namespace("keybase.1")
+
+// tlf defines TLF related RPCs from `keybase` CLI to service (keybase daemon)
+protocol tlf {
+  import idl "tlf_keys.avdl";
+
+  /**
+   CryptKeys returns TLF crypt keys from all generations.
+   */
+  TLFCryptKeys CryptKeys(string tlfName);
+
+}

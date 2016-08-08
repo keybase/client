@@ -1,0 +1,55 @@
+{
+  "protocol": "tlfKeys",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "CanonicalTlfName",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "TLFCryptKeys",
+      "fields": [
+        {
+          "type": "TLFID",
+          "name": "tlfID"
+        },
+        {
+          "type": "CanonicalTlfName",
+          "name": "CanonicalName"
+        },
+        {
+          "type": "int",
+          "name": "FirstValidKeyGen"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Bytes32"
+          },
+          "name": "CryptKeys"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "getTLFCryptKeys": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        }
+      ],
+      "response": "TLFCryptKeys",
+      "doc": "getTLFCryptKeys returns TLF crypt keys from all generations."
+    }
+  },
+  "namespace": "keybase.1"
+}

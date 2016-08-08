@@ -201,6 +201,8 @@ export type BoxPublicKey = any
 
 export type Bytes32 = any
 
+export type CanonicalTlfName = string
+
 export type ChallengeInfo = {
   now: long;
   challenge: string;
@@ -1319,6 +1321,13 @@ export type TLF = {
   writers?: ?Array<string>;
   readers?: ?Array<string>;
   isPrivate: boolean;
+}
+
+export type TLFCryptKeys = {
+  tlfID: TLFID;
+  CanonicalName: CanonicalTlfName;
+  FirstValidKeyGen: int;
+  CryptKeys?: ?Array<Bytes32>;
 }
 
 export type TLFID = string
@@ -3319,6 +3328,32 @@ export function testTestRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: testTestResult) => void)}>) {
   engine.rpc({...request, method: 'test.test'})
 }
+export type tlfCryptKeysRpcParam = $Exact<{
+  tlfName: string
+}>
+
+type tlfCryptKeysResult = TLFCryptKeys
+
+export function tlfCryptKeysRpc (request: $Exact<{
+  param: tlfCryptKeysRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: tlfCryptKeysResult) => void)}>) {
+  engine.rpc({...request, method: 'tlf.CryptKeys'})
+}
+export type tlfKeysGetTLFCryptKeysRpcParam = $Exact<{
+  tlfName: string
+}>
+
+type tlfKeysGetTLFCryptKeysResult = TLFCryptKeys
+
+export function tlfKeysGetTLFCryptKeysRpc (request: $Exact<{
+  param: tlfKeysGetTLFCryptKeysRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void)}>) {
+  engine.rpc({...request, method: 'tlfKeys.getTLFCryptKeys'})
+}
 export type trackDismissWithTokenRpcParam = $Exact<{
   trackToken: TrackToken
 }>
@@ -3934,6 +3969,8 @@ export type rpc =
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc
+  | tlfCryptKeysRpc
+  | tlfKeysGetTLFCryptKeysRpc
   | trackCheckTrackingRpc
   | trackDismissWithTokenRpc
   | trackFakeTrackingChangedRpc
@@ -5942,6 +5979,24 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: (err: RPCError) => void,
       result: () => void
+    }
+  ) => void,
+  'keybase.1.tlf.CryptKeys'?: (
+    params: $Exact<{
+      tlfName: string
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: tlfCryptKeysResult) => void
+    }
+  ) => void,
+  'keybase.1.tlfKeys.getTLFCryptKeys'?: (
+    params: $Exact<{
+      tlfName: string
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: tlfKeysGetTLFCryptKeysResult) => void
     }
   ) => void,
   'keybase.1.track.track'?: (
