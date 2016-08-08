@@ -102,13 +102,6 @@ export type PendingIdentify = TypedAction<'tracker:pendingIdentify', {username: 
 
 export type NonUserActions = ShowNonUser | OnClose | PendingIdentify | UpdateFolders
 
-export type TrackingInfo = {
-  username: string,
-  fullname: string,
-  followsYou: boolean,
-  following: boolean
-}
-
 export type TrackerState = {
   type: 'tracker',
   eldestKidChanged: boolean,

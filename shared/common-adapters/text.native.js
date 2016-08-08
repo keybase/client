@@ -1,15 +1,14 @@
-/* @flow */
+// @flow
+import Platform, {OS} from '../constants/platform'
 import React, {Component} from 'react'
+import type {Context} from './terminal'
+import type {Props, Background} from './text'
 import {Text as RNText} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import Platform, {OS} from '../constants/platform'
-
-import type {Props, Background} from './text'
-import type {Context} from './terminal'
 
 const isAndroid = Platform.OS_ANDROID === OS
 
-export default class Text extends Component {
+class Text extends Component {
   props: Props;
   context: Context;
 
@@ -195,7 +194,7 @@ const textTerminal = {
   lineHeight: 21,
 }
 
-export const specialStyles = {
+const specialStyles = {
   textInput: {
     ...textCommon,
     ...globalStyles.fontSemibold,
@@ -217,7 +216,7 @@ export const specialStyles = {
   },
 }
 
-export const styles = {
+const styles = {
   textHeaderJumbo: {
     ...textCommon,
     ...globalStyles.fontBold,
@@ -343,8 +342,16 @@ export const styles = {
   },
 }
 
-export function lineClamp (lines: number): Object {
+function lineClamp (lines: number): Object {
   return {
     numberOfLines: lines,
   }
 }
+
+export {
+  lineClamp,
+  specialStyles,
+  styles,
+}
+
+export default Text

@@ -1,6 +1,6 @@
-/* @flow */
+// @flow
 
-import React, {Component} from 'react'
+import {Component} from 'react'
 
 export type Props = {
   following?: boolean,

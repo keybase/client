@@ -1,6 +1,5 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
+import {Component, Element} from 'react'
 
 // splits the rendering into 3 parts like the style guide shows.
 // Part 1 Icon
@@ -9,9 +8,9 @@ import React, {Component} from 'react'
 
 export type Props = {
   type: 'Small' | 'Large',
-  icon: React$Element<*>,
-  body: React$Element<*>,
-  action: React$Element<*>,
+  icon: Element<*>,
+  body: Element<*>,
+  action: Element<*>,
   extraRightMarginAction?: boolean, // Spacing is different if the action is just text (for example)
   onClick?: () => void,
   containerStyle?: Object,

@@ -1,12 +1,9 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
-import {globalColors} from '../styles/style-guide'
 import type {Props} from './divider'
+import {globalColors} from '../styles/style-guide'
 
-export default class Divider extends Component {
-  props: Props;
-
+class Divider extends Component<void, Props, void> {
   render () {
     const orientationStyle = this.props.vertical
       ? {maxWidth: 1, minWidth: 1}
@@ -18,15 +15,11 @@ export default class Divider extends Component {
   }
 }
 
-Divider.propTypes = {
-  vertical: React.PropTypes.bool,
-  style: React.PropTypes.object,
-  key: React.PropTypes.object,
-}
-
 const styles = {
   divider: {
     backgroundColor: globalColors.black_10,
     flex: 1,
   },
 }
+
+export default Divider

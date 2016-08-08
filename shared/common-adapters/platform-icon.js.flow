@@ -1,7 +1,7 @@
-/* @flow */
-import {Component} from 'react'
-import type {PlatformsExpanded} from '../constants/types/more'
+// @flow
 import type {IconType} from '../common-adapters/icon'
+import type {PlatformsExpanded} from '../constants/types/more'
+import {Component} from 'react'
 
 export type Props = {
   platform: PlatformsExpanded,
@@ -10,5 +10,4 @@ export type Props = {
   overlayColor: string,
 }
 
-export default class Render extends Component<void, Props, void> {
-}
+export default class Render extends Component<void, Props, void> { }

@@ -15,7 +15,10 @@ import type {TypedState} from '../constants/reducer'
 import type {TypedDispatch, Action} from '../constants/types/flux'
 
 type OwnProps = {
-  username?: string,
+  userOverride?: {
+    username: string,
+    uid: string,
+  }
 }
 
 class Profile extends Component<void, ?Props, void> {
@@ -24,7 +27,7 @@ class Profile extends Component<void, ?Props, void> {
       componentAtTop: {
         title: 'Profile',
         props: {
-          username: currentPath.get('username'),
+          userOverride: currentPath.get('userOverride'),
           profileIsRoot: !!uri.count() && uri.last().get('path') === 'root',
         },
       },
@@ -64,20 +67,24 @@ const connector: TypedConnector<TypedState, TypedDispatch<Action>, OwnProps, ?Pr
 export default connector.connect((state, dispatch, ownProps) => {
   const stateProps = {
     myUsername: state.config.username,
+    myUid: state.config.uid,
     trackers: state.tracker.trackers,
   }
 
-  const username = ownProps.username || stateProps.myUsername || ''
+  const {username, uid} = ownProps.userOverride ? ownProps.userOverride : {
+    username: stateProps.myUsername || '',
+    uid: stateProps.myUid || '',
+  }
 
   const {getProfile, updateTrackers, onFollow, onUnfollow} = trackerActions
 
   const refresh = () => {
     dispatch(getProfile(username))
-    dispatch(updateTrackers(username))
+    dispatch(updateTrackers(username, uid))
   }
 
   const dispatchProps = {
-    onUserClick: username => { dispatch(routeAppend({path: 'profile', username})) },
+    onUserClick: (username, uid) => { dispatch(routeAppend({path: 'profile', userOverride: {username, uid}})) },
     onBack: () => { dispatch(navigateUp()) },
     onFolderClick: folder => { dispatch(openInKBFS(folder.path)) },
     onEditProfile: () => { dispatch(routeAppend({path: 'editprofile'})) },

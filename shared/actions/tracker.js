@@ -6,20 +6,20 @@ import setNotifications from '../util/set-notifications'
 import type {Action, Dispatch} from '../constants/types/flux'
 import type {CallMap} from '../engine/call-map-middleware'
 import type {ConfigState} from '../reducers/config'
-import type {RemoteProof, LinkCheckResult, UserCard, UID, UserSummary} from '../constants/types/flow-types'
-import type {ShowNonUser, TrackingInfo, PendingIdentify} from '../constants/tracker'
+import type {RemoteProof, LinkCheckResult, UserCard} from '../constants/types/flow-types'
+import type {ShowNonUser, PendingIdentify} from '../constants/tracker'
 import type {State as RootTrackerState} from '../reducers/tracker'
 import type {TypedState} from '../constants/reducer'
 import {createServer} from '../engine/server'
 import {delegateUiCtlRegisterIdentifyUIRpc, trackCheckTrackingRpc, trackUntrackRpc,
   trackTrackWithTokenRpc, identifyIdentify2Rpc, trackDismissWithTokenRpc,
-  userListTrackersByNameRpc, userLoadUncheckedUserSummariesRpc,
-  userListTrackingRpc} from '../constants/types/flow-types'
+  apiserverGetRpc} from '../constants/types/flow-types'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
 import {identifyCommon} from '../constants/types/keybase-v1'
-import {isFollowing, isFollower} from '../actions/config'
 import {routeAppend} from './router'
 import {showAllTrackers} from '../local-debug'
+
+import type {FriendshipUserInfo} from '../profile/friendships'
 
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => TypedState) => ?Promise<*>
 
@@ -368,6 +368,7 @@ function updateUserInfo (userCard: UserCard, username: string, getState: () => {
         followersCount: userCard.followers,
         followingCount: userCard.following,
         followsYou: userCard.theyFollowYou,
+        uid: userCard.uid,
         bio: userCard.bio,
         avatar: `https://keybase.io/${username}/picture`,
         location: userCard.location,
@@ -534,66 +535,52 @@ function updateProof (remoteProof: RemoteProof, linkCheckResult: LinkCheckResult
   }
 }
 
-function summaryToTrackingInfo (getState: any, summaries: Array<UserSummary>): Array<TrackingInfo> {
-  return summaries.map(s => ({
-    username: s.username,
-    fullname: s.fullName,
-    following: isFollowing(getState, s.username),
-    followsYou: isFollower(getState, s.username),
-  }))
+type APIFriendshipUserInfo = {
+  uid: string,
+  username: string,
+  full_name: string,
+  location: string,
+  bio: string,
+  thumbnail: string,
+  is_followee: boolean,
+  is_follower: boolean,
 }
 
-function listTrackers (username: string): Promise<*> {
+function parseFriendship ({is_followee, is_follower, username, uid, full_name}: APIFriendshipUserInfo): FriendshipUserInfo {
+  return {
+    username,
+    uid,
+    fullname: full_name,
+    followsYou: is_follower,
+    following: is_followee,
+  }
+}
+
+function _listTrackersOrTracking (uid: string, listTrackers: boolean): Promise<Array<FriendshipUserInfo>> {
   return new Promise((resolve, reject) => {
-    userListTrackersByNameRpc({
-      param: {username},
-      callback: (err, trackers) => {
-        if (err) {
-          console.log('err getting trackers', err)
-          reject()
+    apiserverGetRpc({
+      param: {
+        endpoint: 'user/list_followers_for_display',
+        args: [
+          {key: 'uid', value: uid},
+          {key: 'reverse', value: String(!listTrackers)},
+        ],
+      },
+      callback: (error, results) => {
+        if (error) {
+          console.log('err getting trackers', error)
+          reject(error)
         } else {
-          resolve((trackers || []).map(t => t.tracker))
+          const json = JSON.parse(results.body)
+          resolve(json.users.map(parseFriendship))
         }
       },
     })
   })
 }
 
-function loadSummaries (getState: any, uids: Array<UID>): Promise<*> {
-  return new Promise((resolve, reject) => {
-    if (!uids.length) {
-      resolve([])
-    } else {
-      userLoadUncheckedUserSummariesRpc({
-        param: {uids},
-        callback: (err, summaries) => {
-          if (err) {
-            console.log('err getting tracker summaries', err)
-            reject()
-          } else {
-            resolve(summaryToTrackingInfo(getState, summaries || []))
-          }
-        },
-      })
-    }
-  })
-}
-
-function getTracking (username: string): Promise<*> {
-  return new Promise((resolve, reject) => {
-    userListTrackingRpc({
-      param: {assertion: username, filter: ''},
-      callback: (err, summaries) => { // turns out this ISN'T a full usersummary, just a subset so we have to call loadSummaries
-        if (err) {
-          console.log('err getting tracker summaries', err)
-          reject()
-        } else {
-          resolve((summaries || []).map(s => s.uid))
-        }
-      },
-    })
-  })
-}
+const listTrackers = uid => _listTrackersOrTracking(uid, true)
+const listTracking = uid => _listTrackersOrTracking(uid, false)
 
 function fillFolders (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
@@ -616,16 +603,15 @@ function fillFolders (username: string): TrackerActionCreator {
   }
 }
 
-export function updateTrackers (username: string): TrackerActionCreator {
+export function updateTrackers (username: string, uid: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    const figureTrackers = listTrackers(username).then(uids => loadSummaries(getState, uids))
-    const figureTracking = getTracking(username).then(uids => loadSummaries(getState, uids))
-
-    Promise.all([figureTrackers, figureTracking]).then(([trackers, tracking]) => {
+    Promise.all([listTrackers(uid), listTracking(uid)]).then(([trackers, tracking]) => {
       dispatch({
         type: Constants.updateTrackers,
         payload: {username, trackers, tracking},
       })
+    }).catch(e => {
+      console.warn('Failed to get followers/followings', e)
     })
   }
 }

@@ -1,26 +1,23 @@
-/* @flow */
-
+// @flow
+import * as shared from './user-proofs.shared'
 import React, {Component} from 'react'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
-
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import {Box, Icon, Text, Meta} from '../common-adapters/index'
-import {defaultColor} from '../common-adapters/icon.shared'
 import openUrl from '../util/open-url'
-import * as shared from './user-proofs.shared'
-import {metaNone, checking as proofChecking} from '../constants/tracker'
-
 import type {Props, MissingProof} from './user-proofs'
 import type {Proof} from '../constants/tracker'
+import {Box, Icon, Text, Meta} from '../common-adapters/index'
+import {defaultColor} from '../common-adapters/icon.shared'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {metaNone, checking as proofChecking} from '../constants/tracker'
 
 function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {
   const missingColor = globalColors.black_20
   return (
     <Box style={{...styleMissingProofRow, ...style}} className='user-proof-row' key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
-      <Icon style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
+      <Icon className='user-proof-row__icon' style={{...styleService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Text inline={true} className='user-proof-row__name' type='Body' style={{...styleProofName, color: missingColor}}>
+          <Text inline={true} className='user-proof-row__name' type='Body' style={styleProofName}>
             {missingProof.message}
           </Text>
         </Box>
@@ -104,8 +101,7 @@ function LoadingProofRow ({textBlockWidth, style}: {textBlockWidth: number, styl
   )
 }
 
-export default class ProofsRender extends Component {
-  props: Props;
+class ProofsRender extends Component<void, Props, void> {
   _rows: Array<React$Element<*>>;
 
   constructor (props: Props) {
@@ -134,8 +130,18 @@ export default class ProofsRender extends Component {
     const {loading, onClickProofMenu, showingMenuIndex} = this.props
     const pad = idx => idx > 0 ? {marginTop: globalMargins.tiny} : {}
     const missingProofsRealCSS = `
-      .user-proof-row .user-proof-row__name { text-underline: none; font-weight: normal; }
-      .user-proof-row:hover .user-proof-row__name { text-decoration: underline; font-weight: bold; }
+      .user-proof-row .user-proof-row__name {
+        text-underline: none;
+      }
+      .user-proof-row:hover .user-proof-row__name {
+        text-decoration: underline;
+      }
+      .user-proof-row .user-proof-row__name, .user-proof-row .user-proof-row__icon {
+        color: ${globalColors.black_20} !important; /* Must use important because Text has a default color which is set inline */
+      }
+      .user-proof-row:hover .user-proof-row__name, .user-proof-row:hover .user-proof-row__icon {
+        color: ${globalColors.black_60} !important;
+      }
     `
     return (
       <Box style={{...styleContainer(loading), ...this.props.style}}>
@@ -203,9 +209,9 @@ const styleService = {
   flexShrink: 0,
   textAlign: 'center',
   color: globalColors.black_75,
-  hoverColor: globalColors.black_75,
   marginRight: globalMargins.tiny,
   marginTop: 5,
+  transition: '0.15s color',
 }
 
 const styleStatusIcon = {
@@ -231,6 +237,7 @@ const styleProofName = {
   display: 'inline-block',
   wordBreak: 'break-all',
   flex: 1,
+  transition: '0.15s color',
 }
 
 const styleProofType = {
@@ -248,3 +255,5 @@ const styleProofMenuButton = {
   alignItems: 'center',
   justifyContent: 'flex-end',
 }
+
+export default ProofsRender

@@ -1,5 +1,5 @@
-/* @flow */
-
+// @flow
+import {Component} from 'react'
 import type {SimpleProofState} from '../constants/tracker'
 
 export type Props = {
@@ -11,4 +11,4 @@ export type Props = {
   onAcceptProofs: () => void,
 }
 
-export default class UserAction extends React$Component<void, Props, void> {}
+export default class UserAction extends Component<void, Props, void> {}

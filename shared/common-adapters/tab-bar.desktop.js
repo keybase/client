@@ -1,16 +1,13 @@
 // @flow
-import React, {Component} from 'react'
-import _ from 'lodash'
-import {globalStyles, globalColors} from '../styles/style-guide'
 import Box from './box'
-import Text from './text'
 import Icon from './icon'
-
+import React, {Component} from 'react'
+import Text from './text'
+import _ from 'lodash'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
-export class TabBarItem extends Component {
-  props: ItemProps;
-
+class TabBarItem extends Component<void, ItemProps, void> {
   render () {
     return this.props.children
   }
@@ -44,7 +41,7 @@ class SimpleTabBarButton extends Component<void, ItemProps, void> {
   }
 }
 
-export class TabBarButton extends Component<void, TabBarButtonProps, void> {
+class TabBarButton extends Component<void, TabBarButtonProps, void> {
   _renderAvatar (backgroundColor: string, color: string, badgeNumber: number) {
     if (this.props.source.type !== 'avatar') return // needed to make flow happy
     return (
@@ -175,4 +172,8 @@ const stylesIcon = {
   textAlign: 'center',
 }
 
+export {
+  TabBarItem,
+  TabBarButton,
+}
 export default TabBar

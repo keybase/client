@@ -1,12 +1,11 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
+import Text from './text'
+import type {Props, DefaultProps} from './header'
 import {Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import type {Props, DefaultProps} from './header'
-import Text from './text'
 
-export default class Header extends Component<DefaultProps, Props, void> {
+class Header extends Component<DefaultProps, Props, void> {
   static defaultProps: DefaultProps;
 
   renderDefault () {
@@ -74,3 +73,5 @@ const styles = {
     ...globalStyles.clickable,
   },
 }
+
+export default Header

@@ -1,5 +1,5 @@
-/* @flow */
-
+// @flow
+import {Component} from 'react'
 import type {Device, DeviceType} from '../../constants/types/more'
 import type {Time} from '../../constants/types/flow-types'
 
@@ -27,5 +27,4 @@ export type Props = {
   onBack: () => void
 }
 
-export default class Render extends React$Component<void, Props, void> {
-}
+export default class Render extends Component<void, Props, void> { }

@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Text} from '../common-adapters/index'
 import type {Props} from './popup-menu'
+import {Box, Text} from '../common-adapters/index'
 import {globalColors, globalStyles} from '../styles/style-guide'
 
 class Menu extends Component<void, Props, void> {

@@ -1,10 +1,12 @@
-/* @flow */
+// @flow
+import {Component} from 'react'
 
 export type FriendshipUserInfo = {
   username: string,
+  uid: string,
   fullname: string,
   followsYou: boolean,
-  following: boolean
+  following: boolean,
 }
 
 export type Tab = 'Followers' | 'Following'
@@ -18,5 +20,4 @@ export type Props = {
   following: Array<FriendshipUserInfo>
 }
 
-export default class Render extends React$Component<void, Props, void> {
-}
+export default class Render extends Component<void, Props, void> { }

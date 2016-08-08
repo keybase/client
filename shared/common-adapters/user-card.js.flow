@@ -1,4 +1,4 @@
-/* @flow */
+// @flow
 
 import React, {Component} from 'react'
 
@@ -11,5 +11,3 @@ export type Props = {
 }
 
 declare export default class UserCard extends Component<void, Props, void> { }
-
-
