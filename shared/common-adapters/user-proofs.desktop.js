@@ -1,17 +1,14 @@
-/* @flow */
-
+// @flow
+import * as shared from './user-proofs.shared'
 import React, {Component} from 'react'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
-
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import {Box, Icon, Text, Meta} from '../common-adapters/index'
-import {defaultColor} from '../common-adapters/icon.shared'
 import openUrl from '../util/open-url'
-import * as shared from './user-proofs.shared'
-import {metaNone, checking as proofChecking} from '../constants/tracker'
-
 import type {Props, MissingProof} from './user-proofs'
 import type {Proof} from '../constants/tracker'
+import {Box, Icon, Text, Meta} from '../common-adapters/index'
+import {defaultColor} from '../common-adapters/icon.shared'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {metaNone, checking as proofChecking} from '../constants/tracker'
 
 function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {
   const missingColor = globalColors.black_20
@@ -104,8 +101,7 @@ function LoadingProofRow ({textBlockWidth, style}: {textBlockWidth: number, styl
   )
 }
 
-export default class ProofsRender extends Component {
-  props: Props;
+class ProofsRender extends Component<void, Props, void> {
   _rows: Array<React$Element<*>>;
 
   constructor (props: Props) {
@@ -259,3 +255,5 @@ const styleProofMenuButton = {
   alignItems: 'center',
   justifyContent: 'flex-end',
 }
+
+export default ProofsRender

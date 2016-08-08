@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
 
 export type Props = {
@@ -9,6 +8,4 @@ export type Props = {
   backgroundColor?: ?string,
 }
 
-declare export default class Box extends Component {
-  props: Props;
-}
+declare export default class Box extends Component<void, Props, void> { }

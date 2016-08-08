@@ -1,15 +1,13 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {TouchableHighlight} from 'react-native'
-import openUrl from '../util/open-url'
+// @flow
 import * as shared from './user-proofs.shared'
-import {metaNone, checking as proofChecking} from '../constants/tracker'
-import {Box, Icon, Meta, Text} from '../common-adapters/index'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-
+import React, {Component} from 'react'
+import openUrl from '../util/open-url'
 import type {Props, MissingProof} from './user-proofs'
 import type {Proof} from '../constants/tracker'
+import {Box, Icon, Meta, Text} from '../common-adapters/index'
+import {TouchableHighlight} from 'react-native'
+import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {metaNone, checking as proofChecking} from '../constants/tracker'
 
 function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {
   const missingColor = globalColors.black_20
@@ -51,8 +49,7 @@ function ProofRow ({proof, onClickProof, onClickProfile, style}: {proof: Proof, 
   )
 }
 
-export default class ProofsRender extends Component<void, Props, void> {
-
+class ProofsRender extends Component<void, Props, void> {
   _ensureUrlProtocal (url: string): string {
     return url && (url.indexOf('://') === -1 ? 'http://' : '') + url
   }
@@ -120,3 +117,5 @@ const stylesProofName = {
 const stylesProofType = {
   color: globalColors.black_10,
 }
+
+export default ProofsRender

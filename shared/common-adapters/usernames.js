@@ -1,12 +1,11 @@
 // @flow
 import React, {Component} from 'react'
+import type {Props} from './usernames'
 import {Box, Text} from './'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {isMobile} from '../constants/platform'
 
-import type {Props} from './usernames'
-
-export function usernameText ({type, users, style, inline, redColor}: Props) {
+function usernameText ({type, users, style, inline, redColor}: Props) {
   return users.map((u, i) => {
     const userStyle = {...style}
 
@@ -39,7 +38,7 @@ export function usernameText ({type, users, style, inline, redColor}: Props) {
   })
 }
 
-export default class Usernames extends Component<void, Props, void> {
+class Usernames extends Component<void, Props, void> {
   render () {
     const containerStyle = this.props.inline ? {display: 'inline'} : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
 
@@ -50,3 +49,9 @@ export default class Usernames extends Component<void, Props, void> {
     )
   }
 }
+
+export {
+  usernameText,
+}
+
+export default Usernames

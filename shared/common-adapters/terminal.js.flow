@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
 
 export type Context = {
@@ -11,4 +10,4 @@ export type Props = {
   children?: React$Element<*>
 }
 
-declare export default class Terminal extends React.Component<void, Props, void> { }
+declare export default class Terminal extends Component<void, Props, void> { }

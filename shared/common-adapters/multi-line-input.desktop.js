@@ -1,12 +1,12 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles, globalColors, transition} from '../styles/style-guide'
 import Text from './text'
 import type {Props} from './multi-line-input'
+import {globalStyles, globalColors, transition} from '../styles/style-guide'
 
 type State = {textContent: string}
 
-export default class MultiLineInput extends Component<void, Props, State> {
+class MultiLineInput extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -95,3 +95,5 @@ const errorTextStyle = {
   outline: 'none',
   textAlign: 'center',
 }
+
+export default MultiLineInput

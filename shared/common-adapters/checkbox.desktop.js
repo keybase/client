@@ -1,14 +1,11 @@
-/* @flow */
-
+// @flow
+import Icon from './icon'
 import React, {Component} from 'react'
 import Text from './text'
-import Icon from './icon'
-import {globalStyles, globalColors, transition} from '../styles/style-guide'
 import type {Props} from './checkbox'
+import {globalStyles, globalColors, transition} from '../styles/style-guide'
 
-export default class Checkbox extends Component {
-  props: Props;
-
+class Checkbox extends Component<void, Props, void> {
   render () {
     let borderColor = globalColors.blue
 
@@ -40,14 +37,6 @@ export default class Checkbox extends Component {
   }
 }
 
-Checkbox.propTypes = {
-  label: React.PropTypes.string.isRequired,
-  onCheck: React.PropTypes.func.isRequired,
-  checked: React.PropTypes.bool.isRequired,
-  style: React.PropTypes.object,
-  disabled: React.PropTypes.bool,
-}
-
 const styles = {
   container: {
     ...globalStyles.flexBoxRow,
@@ -63,3 +52,5 @@ const styles = {
     fontSize: 11,
   },
 }
+
+export default Checkbox

@@ -1,7 +1,6 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
 import Avatar from './avatar'
+import {Component} from 'react'
 import type {$Exact} from '../constants/types/more'
 import type {IconType} from './icon'
 import type {TextType} from './text'

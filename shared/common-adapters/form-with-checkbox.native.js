@@ -1,15 +1,13 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {globalStyles} from '../styles/style-guide'
+// @flow
 import Box from './box'
-import Input from './input'
 import Checkbox from './checkbox'
-
-import type {Props} from './form-with-checkbox'
+import Input from './input'
+import React, {Component} from 'react'
 import type {Props as CheckboxProps} from './checkbox'
+import type {Props} from './form-with-checkbox'
+import {globalStyles} from '../styles/style-guide'
 
-export default class FormWithCheckbox extends Component<void, Props, void> {
+class FormWithCheckbox extends Component<void, Props, void> {
   render () {
     const {inputProps, checkboxesProps} = this.props
 
@@ -35,3 +33,5 @@ const styles = {
     top: 7,
   },
 }
+
+export default FormWithCheckbox

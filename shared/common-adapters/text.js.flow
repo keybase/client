@@ -1,6 +1,5 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 import type {Context} from './terminal'
 
 export type Background = 'Normal' | 'Announcements' | 'Success' | 'Information' | 'HighRisk' | 'Documentation' | 'Terminal'
@@ -34,8 +33,7 @@ export type Props = {
   onKeyUp?: (e: SyntheticEvent) => void
 }
 
-declare export default class Text extends React.Component {
-  props: Props;
+declare export default class Text extends Component<void, Props, void> {
   static _colorStyleBackgroundMode: (backgroundMode: Background, type: Props.type) => {color?: string};
   static _inlineStyle: (type: Props.type, context: Context) => Object;
 }

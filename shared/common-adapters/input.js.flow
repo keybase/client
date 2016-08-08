@@ -1,6 +1,5 @@
-/* @flow */
-
-import React, {Component} from 'react'
+// @flow
+import {Component} from 'react'
 
 export type Props = $Shape<{
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
@@ -33,4 +32,4 @@ export type Props = $Shape<{
   value?: ?string,
 }>
 
-declare export default class Input extends React.Component<void, Props, void> { }
+declare export default class Input extends Component<void, Props, void> { }
