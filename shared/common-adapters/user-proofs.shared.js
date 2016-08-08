@@ -8,7 +8,6 @@ import type {PlatformsExpanded} from '../constants/types/more.js'
 import type {Proof} from '../constants/tracker'
 
 function metaColor (proof: Proof): string {
-  let color = globalColors.blue
   switch (proof.meta) {
     case metaNew: return globalColors.blue
     case metaUpgraded: return globalColors.blue

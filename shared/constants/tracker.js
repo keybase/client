@@ -1,10 +1,24 @@
 // @flow
 import type {Folder} from '../folders/list'
 import type {FriendshipUserInfo} from '../profile/friendships'
-import type {Proof} from '../common-adapters/user-proofs'
+import type {PlatformsExpanded} from '../constants/types/more'
+import type {Time} from '../constants/types/flow-types'
 import type {TypedAction} from './types/flux'
 import type {UserInfo} from '../common-adapters/user-bio'
 import type {identifyUiDisplayTLFCreateWithInviteRpcParam} from './types/flow-types'
+
+// Types
+export type Proof = {
+  id: string,
+  type: PlatformsExpanded,
+  mTime: Time,
+  meta: ?SimpleProofMeta,
+  humanUrl: ?string,
+  profileUrl: ?string,
+  name: string,
+  state: SimpleProofState,
+  isTracked: bool,
+}
 
 export type OverviewProofState = {
   allOk: boolean,

@@ -2,7 +2,7 @@
 import * as Constants from '../constants/favorite'
 import _ from 'lodash'
 import type {Dispatch} from '../constants/types/flux'
-import type {FavoriteAdd, FavoriteList, FavoriteIgnore, State, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored} from '../constants/favorite'
+import type {FavoriteAdd, FavoriteList, FavoriteIgnore, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored} from '../constants/favorite'
 import type {Folder} from '../constants/types/flow-types'
 import type {ParticipantUnlock, Device, Folder as FoldersFolder, MetaType} from '../constants/folders'
 import type {UserList} from '../common-adapters/usernames'

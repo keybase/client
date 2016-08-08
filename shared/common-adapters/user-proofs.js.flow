@@ -2,24 +2,11 @@
 import type {PlatformsExpanded} from '../constants/types/more'
 import type {Proof, SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 import {Component} from 'react'
-import {Component} from 'react'
-import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 
 export type MissingProof = {
   type: PlatformsExpanded,
   message: string,
   onClick: (missingProof: MissingProof) => void,
-}
-
-export type Proof = {
-  id: string,
-  type: string,
-  meta: ?SimpleProofMeta,
-  humanUrl: ?string,
-  profileUrl: ?string,
-  name: string,
-  state: SimpleProofState,
-  isTracked: bool
 }
 
 type CommonProps = {
@@ -39,6 +26,3 @@ export type Props = ({
 export default class ProofsRender extends Component<void, Props, void> {
   getRow: (idx: number) => React$Component<*,*,*>;
 }
-
-export default class Render extends Component<void, Props, void> {}
-
