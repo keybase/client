@@ -140,7 +140,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                         sh "desktop/node_modules/.bin/eslint ."
                                         // Only run visdiff for PRs
                                         if (env.CHANGE_ID) {
-                                            wrap([$class: 'Xvfb']) { 
+                                            wrap([$class: 'Xvfb', additionalOptions: '+extension RANDR']) { 
                                             withCredentials([[$class: 'UsernamePasswordMultiBinding',
                                                     credentialsId: 'visdiff-aws-creds',
                                                     usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
