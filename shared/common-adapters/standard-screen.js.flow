@@ -3,7 +3,7 @@ import {Component} from 'react'
 
 export type Props = {
   children?: ?any,
-  onClose?: ?() => void,
+  onClose?: ?(event: SyntheticMouseEvent) => void,
   errorMessage?: ?string,
 }
 

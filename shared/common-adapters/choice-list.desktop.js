@@ -9,11 +9,11 @@ const ChoiceList = ({options}: Props) => {
     <Box>
       <style>{rawCSS}</style>
       {options.map((op, idx) => (
-        <Box style={styleEntry} key={idx} className='choice-list__entry' onClick={() => op.onClick()}>
-          <Box style={styleIconContainer} className='choice-list__entry__icon-ctnr'>
+        <Box style={styleEntry} key={idx} className='cl-entry' onClick={() => op.onClick()}>
+          <Box style={styleIconContainer} className='cl-icon-container'>
           {typeof op.icon === 'string'
-            ? <Icon style={styleIcon} type={op.icon} className='choice-list__entry__icon-ctnr__icon' />
-            : <Box style={styleIcon} className='choice-list__entry__icon-ctnr__icon'>{op.icon}</Box>}
+            ? <Icon style={styleIcon} type={op.icon} className='cl-icon' />
+            : <Box style={styleIcon} className='cl-icon'>{op.icon}</Box>}
           </Box>
           <Box style={styleInfoContainer}>
             <Text style={styleInfoTitle} type='Header'>{op.title}</Text>
@@ -26,27 +26,27 @@ const ChoiceList = ({options}: Props) => {
 }
 
 const rawCSS = `
-  .choice-list__entry {
+  .cl-entry {
     background-color: transparent;
   }
-  .choice-list__entry:hover {
+  .cl-entry:hover {
     background-color: ${globalColors.blue4};
   }
 
-  .choice-list__entry__icon-ctnr__icon {
+  .cl-icon {
     transform-origin: center center;
     transition: 0.5s transform;
   }
-  .choice-list__entry:hover .choice-list__entry__icon-ctnr__icon {
+  .cl-entry:hover .cl-icon {
     transform: translateX(25%);
   }
 
-  .choice-list__entry__icon-ctnr {
+  .cl-icon-container {
     transition: 0.5s background;
     background: ${globalColors.lightGrey};
     border-radius: 50%;
   }
-  .choice-list__entry:hover .choice-list__entry__icon-ctnr {
+  .cl-entry:hover .cl-icon-container {
     background: transparent;
   }
 `
@@ -62,13 +62,13 @@ const styleIconContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',
-  width: 80,
-  height: 80,
+  width: globalMargins.large + globalMargins.medium,
+  height: globalMargins.large + globalMargins.medium,
 }
 
 const styleIcon = {
-  width: 48,
-  height: 48,
+  width: globalMargins.large,
+  height: globalMargins.large,
 }
 
 const styleInfoContainer = {

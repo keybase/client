@@ -4,15 +4,10 @@ import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import type {Props} from './standard-screen'
 
-const defaults = {
-  showClose: true,
-}
-
-const StandardScreen = (props: Props) => {
-  const {children, onClose, errorMessage} = {...defaults, ...props}
+const StandardScreen = ({children, onClose, errorMessage}: Props) => {
   return (
     <Box style={styleContainer}>
-      {!!onClose && <Icon style={styleClose} type='iconfont-close' onClick={() => onClose()} />}
+      {!!onClose && <Icon style={styleClose} type='iconfont-close' onClick={onClose} />}
       {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
         {children}
