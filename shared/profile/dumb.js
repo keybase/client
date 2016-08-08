@@ -3,6 +3,7 @@ import Profile from './render'
 import ConfirmOrPending from './confirm-or-pending'
 import ProveEnterUsername from './prove-enter-username'
 import ProveWebsiteChoice from './prove-website-choice'
+import ProvePgpChoice from './pgp/prove-pgp-choice'
 import EditAvatar from './edit-avatar'
 import Revoke from './revoke'
 import PostProof from './post-proof'
@@ -465,6 +466,16 @@ const dumbProveWebsiteChoice: DumbComponentMap<ProveWebsiteChoice> = {
   },
 }
 
+const dumbProvePgpChoice: DumbComponentMap<ProvePgpChoice> = {
+  component: ProvePgpChoice,
+  mocks: {
+    'Import or Generate': {
+      onCancel: () => console.log('ProvePgpChoice: onCancel'),
+      onOptionClick: op => console.log(`ProvePgpChoice: onOptionClick = ${op}`),
+    },
+  },
+}
+
 export default {
   'Profile': dumbMap,
   'Edit Avatar': dumbEditAvatar,
@@ -473,4 +484,5 @@ export default {
   'New Proof: Enter Username': dumbProveEnterUsername,
   'New Proof: Post': dumbPostProof,
   'New Proof: Website': dumbProveWebsiteChoice,
+  'New Proof: PGP': dumbProvePgpChoice,
 }
