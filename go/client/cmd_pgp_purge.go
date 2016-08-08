@@ -4,12 +4,15 @@
 package client
 
 import (
+	"fmt"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 func NewCmdPGPPurge(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -40,11 +43,30 @@ func (s *CmdPGPPurge) Run() error {
 		return err
 	}
 
+	spui := &SaltpackUI{
+		Contextified: libkb.NewContextified(s.G()),
+		terminal:     s.G().UI.GetTerminalUI(),
+	}
+	protocols := []rpc.Protocol{
+		NewSecretUIProtocol(s.G()),
+		NewIdentifyUIProtocol(s.G()),
+		keybase1.SaltpackUiProtocol(spui),
+	}
+	if err := RegisterProtocolsWithContext(protocols, s.G()); err != nil {
+		return err
+	}
+
 	arg := keybase1.PGPPurgeArg{
 		DoPurge: false,
 	}
 
-	return cli.PGPPurge(context.TODO(), arg)
+	res, err := cli.PGPPurge(context.TODO(), arg)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("res: %+v\n", res)
+	return nil
 }
 
 func (s *CmdPGPPurge) GetUsage() libkb.Usage {

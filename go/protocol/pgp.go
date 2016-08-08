@@ -68,6 +68,11 @@ type PGPCreateUids struct {
 	Ids        []PGPIdentity `codec:"ids" json:"ids"`
 }
 
+// Export all pgp keys in lksec, then if doPurge is true, remove the keys from lksec.
+type PGPPurgeRes struct {
+	Filenames []string `codec:"filenames" json:"filenames"`
+}
+
 type PGPSignArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
 	Source    Stream         `codec:"source" json:"source"`
@@ -173,8 +178,7 @@ type PGPInterface interface {
 	PGPSelect(context.Context, PGPSelectArg) error
 	// Push updated key(s) to the server.
 	PGPUpdate(context.Context, PGPUpdateArg) error
-	// Export all pgp keys in lksec, then if doPurge is true, remove the keys from lksec.
-	PGPPurge(context.Context, PGPPurgeArg) error
+	PGPPurge(context.Context, PGPPurgeArg) (PGPPurgeRes, error)
 }
 
 func PGPProtocol(i PGPInterface) rpc.Protocol {
@@ -400,7 +404,7 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PGPPurgeArg)(nil), args)
 						return
 					}
-					err = i.PGPPurge(ctx, (*typedArgs)[0])
+					ret, err = i.PGPPurge(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -484,8 +488,7 @@ func (c PGPClient) PGPUpdate(ctx context.Context, __arg PGPUpdateArg) (err error
 	return
 }
 
-// Export all pgp keys in lksec, then if doPurge is true, remove the keys from lksec.
-func (c PGPClient) PGPPurge(ctx context.Context, __arg PGPPurgeArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPurge", []interface{}{__arg}, nil)
+func (c PGPClient) PGPPurge(ctx context.Context, __arg PGPPurgeArg) (res PGPPurgeRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPurge", []interface{}{__arg}, &res)
 	return
 }
