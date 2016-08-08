@@ -11,6 +11,7 @@ export type ConfigState = {
   config: ?Config,
   extendedConfig: ?ExtendedStatus,
   username: ?string,
+  uid: ?string,
   loggedIn: boolean,
   kbfsPath: string,
   error: ?any,
@@ -25,6 +26,7 @@ const initialState: ConfigState = {
   config: null,
   extendedConfig: null,
   username: null,
+  uid: null,
   loggedIn: false,
   kbfsPath: Constants.defaultKBFSPath,
   error: null,
@@ -73,6 +75,7 @@ export default function (state: ConfigState = initialState, action: Action): Con
           ...state,
           status,
           username: status.user && status.user.username,
+          uid: status.user && status.user.uid,
           loggedIn: status.loggedIn,
         }
       }
