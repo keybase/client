@@ -3,19 +3,7 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
-import {
-  Avatar,
-  Button,
-  Box,
-  Checkbox,
-  ChoiceList,
-  Icon,
-  ListItem,
-  PopupMenu,
-  StandardScreen,
-  TabBar,
-  Text,
-} from './index'
+import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, ListItem, PopupMenu, StandardScreen, TabBar, Text} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {iconMeta} from './icon.constants'
