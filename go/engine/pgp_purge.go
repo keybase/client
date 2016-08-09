@@ -76,7 +76,7 @@ func (e *PGPPurge) KeyFiles() []string {
 }
 
 func (e *PGPPurge) export(ctx *Context, bundle *libkb.PGPKeyBundle) error {
-	key, err := e.findAndUnlock(bundle)
+	skb, key, err := e.findAndUnlock(bundle)
 	if err != nil {
 		return err
 	}
@@ -89,11 +89,18 @@ func (e *PGPPurge) export(ctx *Context, bundle *libkb.PGPKeyBundle) error {
 		return err
 	}
 
+	if e.arg.DoPurge {
+		e.G().Log.Debug("Removing PGP Key %s from keyring", key.GetFingerprint())
+		if err := libkb.RemoveSKBFromKeyring(e.G(), skb); err != nil {
+			return err
+		}
+	}
+
 	e.filenames = append(e.filenames, filename)
 	return nil
 }
 
-func (e *PGPPurge) findAndUnlock(bundle *libkb.PGPKeyBundle) (*libkb.PGPKeyBundle, error) {
+func (e *PGPPurge) findAndUnlock(bundle *libkb.PGPKeyBundle) (*libkb.SKB, *libkb.PGPKeyBundle, error) {
 	arg := libkb.SecretKeyArg{
 		Me:       e.me,
 		KeyType:  libkb.PGPKeyType,
@@ -105,13 +112,13 @@ func (e *PGPPurge) findAndUnlock(bundle *libkb.PGPKeyBundle) (*libkb.PGPKeyBundl
 		skb, err = a.LockedLocalSecretKey(arg)
 	}, "PGPPurge - export")
 	if aerr != nil {
-		return nil, aerr
+		return nil, nil, aerr
 	}
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if skb == nil {
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	secretRetriever := libkb.NewSecretStore(e.G(), e.me.GetNormalizedName())
@@ -119,13 +126,13 @@ func (e *PGPPurge) findAndUnlock(bundle *libkb.PGPKeyBundle) (*libkb.PGPKeyBundl
 	// so this should suffice:
 	gk, err := skb.UnlockNoPrompt(nil, secretRetriever)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	pk, ok := gk.(*libkb.PGPKeyBundle)
 	if !ok {
-		return nil, fmt.Errorf("unlocked key incorrect type")
+		return nil, nil, fmt.Errorf("unlocked key incorrect type")
 	}
-	return pk, nil
+	return skb, pk, nil
 }
 
 func (e *PGPPurge) encryptToFile(ctx *Context, bundle *libkb.PGPKeyBundle, filename string) error {

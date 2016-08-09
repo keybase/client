@@ -510,6 +510,16 @@ func (k *SKBKeyringFile) addToIndex(g GenericKey, b *SKB) {
 	k.kidIndex[g.GetKID()] = b
 }
 
+func (k *SKBKeyringFile) removeFromIndex(g GenericKey) {
+	if g == nil {
+		return
+	}
+	if fp := g.GetFingerprintP(); fp != nil {
+		delete(k.fpIndex, *fp)
+	}
+	delete(k.kidIndex, g.GetKID())
+}
+
 func (k *SKBKeyringFile) Index() (err error) {
 	for _, b := range k.Blocks {
 		var key GenericKey
@@ -616,6 +626,39 @@ func (k *SKBKeyringFile) Push(skb *SKB) error {
 	k.dirty = true
 	k.Blocks = append(k.Blocks, skb)
 	k.addToIndex(key, skb)
+	return nil
+}
+
+func (k *SKBKeyringFile) Remove(skb *SKB) error {
+	key, err := skb.GetPubKey()
+	if err != nil {
+		return fmt.Errorf("Failed to get pubkey: %s", err)
+	}
+	index := -1
+	for i, block := range k.Blocks {
+		bkey, err := block.GetPubKey()
+		if err != nil {
+			return err
+		}
+		if bkey.GetKID().Equal(key.GetKID()) {
+			index = i
+			break
+		}
+	}
+	if index == -1 {
+		return fmt.Errorf("key not found in Blocks")
+	}
+
+	// delete index from Blocks (which contains pointers)
+	// https://github.com/golang/go/wiki/SliceTricks
+	copy(k.Blocks[index:], k.Blocks[index+1:])
+	k.Blocks[len(k.Blocks)-1] = nil
+	k.Blocks = k.Blocks[:len(k.Blocks)-1]
+
+	k.removeFromIndex(key)
+
+	k.dirty = true
+
 	return nil
 }
 
@@ -804,6 +847,28 @@ func (k *SKBKeyringFile) PushAndSave(skb *SKB) error {
 	return k.Save()
 }
 
+func (k *SKBKeyringFile) RemoveAndSave(skb *SKB) error {
+	if err := k.Remove(skb); err != nil {
+		return err
+	}
+	return k.Save()
+}
+
 func (k *SKBKeyringFile) HasPGPKeys() bool {
 	return len(k.fpIndex) > 0
+}
+
+// RemoveSKBFromKeyring removes skb from the local keyring.
+func RemoveSKBFromKeyring(g *GlobalContext, skb *SKB) error {
+	var err error
+	kerr := g.LoginState().Keyring(func(ring *SKBKeyringFile) {
+		err = ring.RemoveAndSave(skb)
+	}, "RemoveAndSave")
+	if kerr != nil {
+		return kerr
+	}
+	if err != nil {
+		return err
+	}
+	return nil
 }
