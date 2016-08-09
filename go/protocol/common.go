@@ -24,6 +24,8 @@ type UID string
 type DeviceID string
 type SigID string
 type KID string
+type TLFID string
+type Bytes32 [32]byte
 type Text struct {
 	Data   string `codec:"data" json:"data"`
 	Markup bool   `codec:"markup" json:"markup"`

@@ -1,0 +1,31 @@
+@namespace("keybase.1")
+
+// tlfKeys defines RPC protocol from service (keybase daemon) to kbfs for
+// getting TLF keys
+protocol tlfKeys {
+  import idl "common.avdl";
+
+  @typedef("string")
+  record CanonicalTlfName {}
+
+  record TLFCryptKeys {
+    
+    TLFID tlfID;
+
+    // canonical name of the TLF
+    CanonicalTlfName CanonicalName;
+
+    // the KeyGen of the first element stored in SecretKeys
+    int FirstValidKeyGen;
+
+    // crypt keys of all generations for this TLF, in order, starting from
+    // FirstValidKeyGen
+    array<Bytes32> CryptKeys;
+  }
+
+  /**
+   getTLFCryptKeys returns TLF crypt keys from all generations.
+   */
+  TLFCryptKeys getTLFCryptKeys(string tlfName);
+
+}

@@ -447,6 +447,10 @@ export const streamUi = {}
 
 export const test = {}
 
+export const tlf = {}
+
+export const tlfKeys = {}
+
 export const track = {}
 
 export const ui = {
@@ -525,6 +529,8 @@ export default {
   sigs,
   streamUi,
   test,
+  tlf,
+  tlfKeys,
   track,
   ui,
   user,
