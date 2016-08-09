@@ -7,7 +7,7 @@ export type Background = 'Normal' | 'Announcements' | 'Success' | 'Information' 
 export type TextType =
     'HeaderJumbo' | 'HeaderBig' | 'Header' | 'HeaderError' | 'HeaderLink'
   | 'Body' | 'BodySemibold' | 'BodyPrimaryLink'
-  | 'BodySmall' | 'BodySmallLink' | 'BodySmallError' | 'BodySmallPrimaryLink' | 'BodySmallSecondaryLink'
+  | 'BodySmall' | 'BodySmallItalic' | 'BodySmallLink' | 'BodySmallError' | 'BodySmallPrimaryLink' | 'BodySmallSecondaryLink'
   | 'BodyXSmall' | 'BodyXSmallLink'
   | 'BodySmallSemibold'
   | 'BodySemiboldItalic'

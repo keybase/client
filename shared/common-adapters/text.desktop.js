@@ -54,6 +54,7 @@ class Text extends Component<void, Props, void> {
       case 'Body':
         return {color: backgroundMode === 'Normal' ? globalColors.black_75 : globalColors.white}
       case 'BodySmall':
+      case 'BodySmallItalic':
       case 'BodyXSmall':
         return {color: backgroundMode === 'Normal' ? globalColors.black_40 : globalColors.white_40}
       case 'BodySmallLink':
@@ -88,6 +89,7 @@ class Text extends Component<void, Props, void> {
       'BodySemibold': styles.textBodySemibold,
       'BodySemiboldItalic': {...styles.textBodySemibold, ...globalStyles.italic, cursor: 'default'},
       'BodySmall': styles.textBodySmall,
+      'BodySmallItalic': {...styles.textBodySmall, ...globalStyles.italic},
       'BodySmallError': styles.textBodySmallError,
       'BodySmallLink': styles.textBodySmallLink,
       'BodySmallPrimaryLink': styles.textBodySmallPrimaryLink,
