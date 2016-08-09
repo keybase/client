@@ -5,8 +5,6 @@
 
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
-        codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
 import Render from './index.render'
 
 class CodePage extends Component {
@@ -38,23 +36,6 @@ class CodePage extends Component {
       />
     )
   }
-}
-
-const validRoles = [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer]
-
-CodePage.propTypes = {
-  mode: React.PropTypes.string,
-  onBack: React.PropTypes.func.isRequired,
-  textCode: React.PropTypes.string,
-  qrCode: React.PropTypes.string,
-  myDeviceRole: React.PropTypes.oneOf(validRoles),
-  otherDeviceRole: React.PropTypes.oneOf(validRoles),
-  cameraBrokenMode: React.PropTypes.bool.isRequired,
-  setCodePageMode: React.PropTypes.func.isRequired,
-  qrScanned: React.PropTypes.func.isRequired,
-  setCameraBrokenMode: React.PropTypes.func.isRequired,
-  textEntered: React.PropTypes.func.isRequired,
-  doneRegistering: React.PropTypes.func.isRequired,
 }
 
 export default connect(

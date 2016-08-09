@@ -171,7 +171,7 @@ function generateQRCode (dispatch: Dispatch, getState: GetState) {
   const goodMode = store.mode === Constants.codePageModeShowCode
 
   if (goodMode && !store.qrCode && store.textCode) {
-    dispatch({type: Constants.setQRCode, payload: qrGenerate(store.textCode)})
+    dispatch({type: Constants.setQRCode, payload: {qrCode: new HiddenString(qrGenerate(store.textCode.stringValue()))}})
   }
 }
 
@@ -447,8 +447,8 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
         return {
           mode,
           codeCountDown,
-          textCode,
-          qrCode,
+          textCode: textCode ? textCode.stringValue() : '',
+          qrCode: qrCode ? qrCode.stringValue() : '',
           myDeviceRole,
           otherDeviceRole,
           cameraBrokenMode,
@@ -529,7 +529,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
       }
     },
     'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
-      dispatch({type: Constants.setTextCode, payload: phrase})
+      dispatch({type: Constants.setTextCode, payload: {textCode: new HiddenString(phrase)}})
       generateQRCode(dispatch, getState)
       dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }, () => onBack(response)))
     },
