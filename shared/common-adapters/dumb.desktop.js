@@ -1,10 +1,9 @@
 // @flow
-import Checkbox from './checkbox'
 import React, {Component} from 'react'
 import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
-import {Button, Box, TabBar, Text, Avatar, ListItem, PopupMenu, Icon} from './index'
+import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, ListItem, PopupMenu, StandardScreen, TabBar, Text} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {iconMeta} from './icon.constants'
@@ -193,6 +192,56 @@ const avatarMap: DumbComponentMap<Avatar> = {
   },
 }
 
+const choiceListMap: DumbComponentMap<ChoiceList> = {
+  component: ChoiceList,
+  mocks: {
+    'Two Choices': {
+      options: [
+        {
+          title: 'Host a TXT file',
+          description: 'Host a text file on your site, such as yoursite.com/keybase.txt.',
+          icon: 'icon-file-txt-48',
+          onClick: () => console.log('ChoiceList: onClick TXT file'),
+        },
+        {
+          title: 'Set a DNS',
+          description: 'Place a Keybase proof in your DNS records.',
+          icon: 'icon-dns-48',
+          onClick: () => console.log('ChoiceList: onClick DNS'),
+        },
+      ],
+    },
+  },
+}
+
+const standardScreenProps = {
+  onClose: () => console.log('StandardScreen: onClose'),
+  children: <Text type='Header'>Whoa, look at this centered thing</Text>,
+}
+
+const standardScreenMap: DumbComponentMap<StandardScreen> = {
+  component: StandardScreen,
+  mocks: {
+    'Normal': {
+      ...standardScreenProps,
+    },
+    'Error': {
+      ...standardScreenProps,
+      notification: {
+        message: 'Something went horribly wrong! :-(',
+        type: 'error',
+      },
+    },
+    'Success w/ Custom Notification Element': {
+      ...standardScreenProps,
+      notification: {
+        message: <Text type='BodySmallSemibold' style={{color: globalColors.white}}>You won a unicorn! <Text type='BodySmallSemibold' style={{color: globalColors.white, textDecoration: 'underline'}}>Make sure to feed it</Text> :-)</Text>,
+        type: 'success',
+      },
+    },
+  },
+}
+
 export default {
   Checkbox: checkboxMap,
   TabBar: tabBarMap,
@@ -200,4 +249,6 @@ export default {
   PopupMenu: popupMenuMap,
   Avatar: avatarMap,
   Icon: iconMap,
+  ChoiceList: choiceListMap,
+  StandardScreen: standardScreenMap,
 }

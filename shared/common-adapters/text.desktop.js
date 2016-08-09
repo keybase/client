@@ -199,7 +199,6 @@ const textTerminal = {
   ...globalStyles.fontTerminalSemibold,
   fontSize: 14,
   lineHeight: '21px',
-  height: 20,
 }
 
 const headerStyles = {

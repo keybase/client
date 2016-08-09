@@ -1,0 +1,16 @@
+/* @flow */
+import {Component} from 'react'
+
+export type NotificationType = 'error' | 'success'
+
+export type Props = {
+  children?: ?any,
+  onClose?: ?(event: SyntheticMouseEvent) => void,
+  notification?: {
+    message: string | React$Element<*>,
+    type: NotificationType,
+  },
+  style?: ?Object,
+}
+
+export default class StandardScreen extends Component<void, Props, void> { }

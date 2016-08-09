@@ -2,6 +2,9 @@
 import Profile from './render'
 import ConfirmOrPending from './confirm-or-pending'
 import ProveEnterUsername from './prove-enter-username'
+import ProveWebsiteChoice from './prove-website-choice'
+import ProvePgpChoice from './pgp/prove-pgp-choice'
+import ProvePgpImport from './pgp/prove-pgp-import'
 import EditAvatar from './edit-avatar'
 import Revoke from './revoke'
 import PostProof from './post-proof'
@@ -454,6 +457,34 @@ const dumbPostProof: DumbComponentMap<PostProof> = {
   },
 }
 
+const dumbProveWebsiteChoice: DumbComponentMap<ProveWebsiteChoice> = {
+  component: ProveWebsiteChoice,
+  mocks: {
+    'DNS or File': {
+      onCancel: () => console.log('ProveWebsiteChoice: onCancel'),
+      onOptionClick: op => console.log(`ProveWebsiteChoice: onOptionClick = ${op}`),
+    },
+  },
+}
+
+const dumbProvePgpChoice: DumbComponentMap<ProvePgpChoice> = {
+  component: ProvePgpChoice,
+  mocks: {
+    'Import or Generate': {
+      onCancel: () => console.log('ProvePgpChoice: onCancel'),
+      onOptionClick: op => console.log(`ProvePgpChoice: onOptionClick = ${op}`),
+    },
+  },
+}
+
+const dumbProvePgpImport: DumbComponentMap<ProvePgpImport> = {
+  component: ProvePgpImport,
+  mocks: {
+    'Import PGP': {
+      onCancel: () => console.log('ProvePgpImport: onCancel'),
+    },
+  },
+}
 export default {
   'Profile': dumbMap,
   'Edit Avatar': dumbEditAvatar,
@@ -461,4 +492,7 @@ export default {
   'New Proof: Confirm or Pending': dumbConfirmOrPendingMap,
   'New Proof: Enter Username': dumbProveEnterUsername,
   'New Proof: Post': dumbPostProof,
+  'New Proof: Website': dumbProveWebsiteChoice,
+  'New Proof: PGP': dumbProvePgpChoice,
+  'New Proof: PGP import': dumbProvePgpImport,
 }
