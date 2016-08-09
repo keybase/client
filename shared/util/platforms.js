@@ -1,5 +1,5 @@
 /* @flow */
-import type {PlatformsExpanded} from '../constants/types/more'
+import type {PlatformsExpandedType} from '../constants/types/more'
 
 const FriendlyNames = {
   'none': 'None',
@@ -9,7 +9,7 @@ const FriendlyNames = {
   'reddit': 'Reddit',
   'coinbase': 'Coinbase',
   'hackernews': 'Hacker News',
-  'genericWebSite': 'Website',
+  'dnsOrGenericWebSite': 'Website',
   'http': 'Website',
   'https': 'Website',
   'dns': 'DNS',
@@ -18,7 +18,7 @@ const FriendlyNames = {
   'btc': 'Bitcoin',
 }
 
-export function friendlyName (platform: PlatformsExpanded) {
+export function friendlyName (platform: PlatformsExpandedType) {
   return FriendlyNames[platform]
 }
 
@@ -30,7 +30,7 @@ const ProveMessages = {
   'reddit': 'Prove your Reddit',
   'coinbase': 'Prove your Coinbase',
   'hackernews': 'Prove your Hacker News',
-  'genericWebSite': 'Prove your website',
+  'dnsOrGenericWebSite': 'Prove your website',
   'http': 'Prove your website',
   'https': 'Prove your website',
   'dns': 'Prove your website',
@@ -39,11 +39,11 @@ const ProveMessages = {
   'btc': 'Set a Bitcoin address',
 }
 
-export function proveMessage (platform: PlatformsExpanded) {
+export function proveMessage (platform: PlatformsExpandedType) {
   return ProveMessages[platform]
 }
 
-export function subtitle (platform: PlatformsExpanded): ?string {
+export function subtitle (platform: PlatformsExpandedType): ?string {
   switch (platform) {
     case 'btc':
       return null
@@ -51,8 +51,6 @@ export function subtitle (platform: PlatformsExpanded): ?string {
     case 'http':
     case 'https':
       return platform
-    case 'genericWebSite':
-      return 'http(s)'
     default:
       return `@${platform}`
   }

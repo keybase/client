@@ -1117,6 +1117,36 @@ const iconMeta_ = {
     // $FlowIssue
     require: require('../images/icons/icon-progress-white-static.png'),
   },
+  'icon-proof-broken': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue
+    require: require('../images/icons/icon-proof-broken.png'),
+  },
+  'icon-proof-pending': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue
+    require: require('../images/icons/icon-proof-pending.png'),
+  },
+  'icon-proof-published': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue
+    require: require('../images/icons/icon-proof-published.png'),
+  },
+  'icon-proof-success': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue
+    require: require('../images/icons/icon-proof-success.png'),
+  },
+  'icon-proof-unfinished': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue
+    require: require('../images/icons/icon-proof-unfinished.png'),
+  },
   'icon-reddit-logo-16': {
     isFont: false,
     extension: 'png',

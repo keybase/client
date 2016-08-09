@@ -4,13 +4,13 @@ import Revoke from './revoke'
 import {TypedConnector} from '../util/typed-connect'
 import {submitRevokeProof, finishRevoking} from '../actions/profile'
 
-import type {PlatformsExpanded} from '../constants/types/more'
+import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Props} from './revoke'
 import type {TypedState} from '../constants/reducer'
 import type {TypedDispatch} from '../constants/types/flux'
 
 type OwnProps = {
-  platform: PlatformsExpanded,
+  platform: PlatformsExpandedType,
   proofId: string,
   platformHandle: string,
 }

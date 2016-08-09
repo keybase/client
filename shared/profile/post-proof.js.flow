@@ -1,23 +1,18 @@
 /* @flow */
 import {Component} from 'react'
-import type {ProvablePlatforms} from '../constants/types/more'
+import type {ProvablePlatformsType} from '../constants/types/more'
 import type {IconType} from '../common-adapters/icon'
 
 export type Props = {
-  platform: ProvablePlatforms,
+  platform: ProvablePlatformsType,
   platformUserName: string,
-  platformSubtitle?: ?string,
   descriptionText?: string,
-  descriptionView?: React$Element<*>,
   proofText?: ?string,
   proofAction?: () => void,
-  proofActionIcon?: IconType,
   proofActionText?: ?string,
-  noteText?: string,
   onCancel: () => void,
   onCancelText?: ?string,
   onComplete: () => void,
-  onCompleteText?: string,
   isOnCompleteWaiting?: boolean,
   errorMessage?: ?string,
 }

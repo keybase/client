@@ -1,11 +1,13 @@
 // @flow
 import {Component} from 'react'
-import type {Platforms} from '../constants/types/more'
+import type {PlatformsExpandedType} from '../constants/types/more'
 import type {IconType} from '../common-adapters/icon'
 
 export type Props = {
-  platform: Platforms | 'btc', // bitcoin isn't a real proof
+  platform: PlatformsExpandedType,
   username: string,
+  errorText: ?string,
+  errorCode: ?number,
   canContinue?: boolean,
   onUsernameChange?: (username: string) => void,
   onContinue: (username: string) => void,

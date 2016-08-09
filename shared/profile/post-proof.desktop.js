@@ -4,19 +4,31 @@ import {Box, Text, Button, Icon, PlatformIcon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import * as shared from './post-proof.shared'
 import type {Props} from './post-proof'
+import {clipboard} from 'electron'
 
 const Render = (props: Props) => {
-  const {platform, platformUserName, platformSubtitle, descriptionView, descriptionText, proofText, proofAction, proofActionIcon, proofActionText, noteText, onCancel, onCancelText, onComplete, onCompleteText, isOnCompleteWaiting, errorMessage} = {...shared.propsForPlatform(props), ...props}
+  const {
+    platform, platformUserName, descriptionText, proofAction, onCancel,
+    onCancelText, onComplete, isOnCompleteWaiting, errorMessage,
+  } = props
+  const {
+    descriptionView, noteText, onCompleteText, proofText, platformSubtitle, proofActionIcon, proofActionText,
+  } = shared.propsForPlatform(props)
+
   return (
-    <Box style={styleContainer}>
+    <Box style={styleContainer} onCopyCapture={(e) => {
+      // disallow copying the whole screen by accident
+      e.preventDefault()
+      clipboard.writeText(proofText)
+    }}>
       <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />
       {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
-        <PlatformIcon platform={platform} overlay='iconfont-proof-placeholder' overlayColor={globalColors.grey} size={48} />
+        <PlatformIcon platform={platform} overlay='icon-proof-unfinished' overlayColor={globalColors.grey} size={48} />
         <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
         {platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
         {descriptionView || (descriptionText && <Text type='Body'>{descriptionText}</Text>)}
-        {proofText && <textInput style={styleProofText} readOnly={true}>{proofText}</textInput>}
+        {proofText && <textarea style={styleProofText} readOnly={true} value={proofText} />}
         {noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
         {proofAction && proofActionText &&
           <Text style={styleProofAction} type='BodyPrimaryLink' onClick={() => proofAction()}>{proofActionIcon && <Icon style={styleProofActionIcon} type={proofActionIcon} />}{proofActionText}</Text>}
@@ -85,16 +97,17 @@ const stylePlatformSubtitle = {
 }
 
 const styleProofText = {
+  ...globalStyles.fontTerminal,
   marginTop: globalMargins.small,
   padding: 10,
   width: '100%',
+  minHeight: 116,
   maxHeight: 116,
   justifyContent: 'stretch',
   alignItems: 'flex-start',
   backgroundColor: globalColors.lightGrey,
   border: `solid 1px ${globalColors.black_10}`,
   borderRadius: 3,
-  ...globalStyles.fontTerminal,
   fontSize: 14,
   lineHeight: '21px',
   whiteSpace: 'pre-wrap',
@@ -102,6 +115,7 @@ const styleProofText = {
   overflowY: 'auto',
   overflowX: 'hidden',
   textAlign: 'left',
+  resize: 'none',
   color: globalColors.black_75,
 }
 

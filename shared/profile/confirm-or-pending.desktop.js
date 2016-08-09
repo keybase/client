@@ -1,12 +1,17 @@
 /* @flow */
 
 import React from 'react'
+import type {Props} from './confirm-or-pending'
 import {Box, Text, Button, PlatformIcon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import type {Props} from './confirm-or-pending'
+import {propsForPlatform} from './confirm-or-pending.shared'
 
-const Render = ({platform, title, titleColor, platformIconOverlay, platformIconOverlayColor,
-  username, usernameSubtitle, message, messageSubtitle, onReloadProfile}: Props) => {
+const Render = (props: Props) => {
+  const {platform, onReloadProfile, titleColor, username, platformIconOverlayColor} = props
+  const {
+    title, platformIconOverlay, usernameSubtitle, message, messageSubtitle,
+  } = propsForPlatform(props)
+
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
       <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', backgroundColor: titleColor, height: globalMargins.large}}>

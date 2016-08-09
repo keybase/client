@@ -1,12 +1,41 @@
 // @flow
 
 import {Component} from 'react' // eslint-disable-line
-import {proveCommon} from './keybase-v1'
 import type {Device as _Device, DeviceID, Time} from './flow-types'
 
-export type Platforms = $Keys<typeof proveCommon.ProofType>
-export type ProvablePlatforms = 'twitter' | 'reddit' | 'github' | 'coinbase' | 'hackernews' | 'dns' | 'genericWebSite'
-export type PlatformsExpanded = Platforms | 'btc' | 'http' | 'https'
+const ProvablePlatformsMap = {
+  'twitter': true,
+  'reddit': true,
+  'github': true,
+  'coinbase': true,
+  'hackernews': true,
+  'dns': true,
+  'http': true,
+  'https': true,
+  'rooter': true,
+}
+
+const PlatformsExpandedMap = {
+  // Flow needs this to be duplicated
+  'twitter': true,
+  'reddit': true,
+  'github': true,
+  'coinbase': true,
+  'hackernews': true,
+  'dns': true,
+  'http': true,
+  'https': true,
+  'rooter': true,
+  'btc': true,
+  'dnsOrGenericWebSite': true,
+  'pgp': true,
+}
+
+export const ProvablePlatforms = Object.keys(ProvablePlatformsMap)
+export type ProvablePlatformsType = $Keys<typeof ProvablePlatformsMap>
+
+export const PlatformsExpanded = Object.keys(PlatformsExpandedMap)
+export type PlatformsExpandedType = $Keys<typeof PlatformsExpandedMap>
 
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
 export type $Exact<X> = $Shape<X> & X

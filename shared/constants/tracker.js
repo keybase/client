@@ -4,13 +4,13 @@ import type {identifyUiDisplayTLFCreateWithInviteRpcParam} from './types/flow-ty
 import type {TypedAction} from './types/flux'
 import type {Folder} from '../folders/list'
 import type {UserInfo} from '../common-adapters/user-bio'
-import type {PlatformsExpanded} from '../constants/types/more'
+import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Time} from '../constants/types/flow-types'
 
 // Types
 export type Proof = {
   id: string,
-  type: PlatformsExpanded,
+  type: PlatformsExpandedType,
   mTime: Time,
   meta: ?SimpleProofMeta,
   humanUrl: ?string,
@@ -63,6 +63,8 @@ export const updateTrackers = 'tracker:updateTrackers'
 
 export const setProofs = 'tracker:setProofs'
 export const updateProof = 'tracker:updateProof'
+export const updateBTC = 'tracker:updateBTC'
+export const updatePGPKey = 'tracker:updatePGPKey'
 
 export const updateProofState = 'tracker:updateProofState'
 
@@ -143,4 +145,13 @@ export function isLoading (state: ?TrackerState): boolean {
   }
 
   return !state.userInfo || state.userInfo.followersCount === -1
+}
+
+export function bufferToNiceHexString (fingerPrint: Buffer): string {
+  try {
+    // $FlowIssue
+    return fingerPrint.toString('hex').slice(-16).toUpperCase().match(/(.{4})(.{4})(.{4})(.{4})/).slice(1).join(' ')
+  } catch (_) {
+    return ''
+  }
 }
