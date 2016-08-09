@@ -1324,10 +1324,10 @@ export type TLF = {
 }
 
 export type TLFCryptKeys = {
-  tlfID: TLFID;
-  CanonicalName: CanonicalTlfName;
-  FirstValidKeyGen: int;
-  CryptKeys?: ?Array<Bytes32>;
+  tlfID: TLFID,
+  CanonicalName: CanonicalTlfName,
+  FirstValidKeyGen: int,
+  CryptKeys?: ?Array<Bytes32>,
 }
 
 export type TLFID = string
