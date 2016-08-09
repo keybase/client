@@ -1,13 +1,23 @@
 // @flow
 import React from 'react'
+import openUrl from '../util/open-url'
+import type {IconType} from '../common-adapters/icon.constants'
+import type {Props} from './post-proof'
 import {Text, Box, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {resolve as urlResolve} from 'url'
-import openUrl from '../util/open-url'
 import {subtitle} from '../util/platforms'
-import type {Props} from './post-proof'
 
-export function propsForPlatform (props: Props): Object {
+type MoreProps = {
+  descriptionView?: ?any,
+  noteText?: ?string,
+  onCompleteText?: ?string,
+  proofText?: ?string,
+  platformSubtitle?: ?string,
+  proofActionIcon?: ?IconType,
+  proofActionText?: ?string,
+}
+export function propsForPlatform (props: Props): MoreProps {
   const base = {
     platformSubtitle: subtitle(props.platform),
   }
@@ -92,6 +102,6 @@ export function propsForPlatform (props: Props): Object {
         onCompleteText: 'OK posted! Check for it!',
       }
     default:
-      return {}
+      return { }
   }
 }
