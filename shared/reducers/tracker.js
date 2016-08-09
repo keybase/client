@@ -244,7 +244,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
 
       return {
         ...state,
-        proofs: [].concat(state.proofs).concat([proof]),
+        proofs: state.proofs.concat([proof]),
       }
 
     case Constants.updateProof:

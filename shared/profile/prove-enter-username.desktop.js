@@ -106,7 +106,6 @@ class Render extends Component<void, Props, State> {
         <Icon style={styleClose} type='iconfont-close' onClick={this.props.onCancel} />
         {this.props.errorText && <Box style={styleErrorBanner}>{customError(this.props.errorText, this.props.errorCode)}</Box>}
         <Text type='Header' style={{marginBottom: globalMargins.medium}}>{headerText}</Text>
-        {/* FIXME: awaiting blank icon overlay art here */}
         <PlatformIcon platform={this.props.platform} overlay={'icon-proof-pending'} overlayColor={globalColors.grey} size={48} />
         <Input
           autoFocus={true}
