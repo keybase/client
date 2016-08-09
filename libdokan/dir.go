@@ -241,8 +241,8 @@ func openSpecialFile(name string, folder *Folder) dokan.File {
 		return NewStatusFile(folder.fs, &folderBranch)
 
 	case libfs.EditHistoryName:
-		folderBranch := d.folder.getFolderBranch()
-		return NewTlfEditHistoryFile(d.folder.fs, folderBranch), false, nil
+		folderBranch := folder.getFolderBranch()
+		return NewTlfEditHistoryFile(folder.fs, folderBranch)
 
 	case libfs.UnstageFileName:
 		child := &UnstageFile{
