@@ -137,16 +137,6 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         ...state,
         trackToken: action.payload && action.payload.trackToken,
       }
-    case Constants.userUpdated:
-      if (state.lastAction || state.waiting) {
-        return state
-      } else {
-        return {
-          ...state,
-          closed: true,
-          hidden: false,
-        }
-      }
     case Constants.onClose:
       return {
         ...state,
