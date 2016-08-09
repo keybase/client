@@ -315,8 +315,6 @@ func TestLoginWithStoredSecret(t *testing.T) {
 		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
 	}
 
-	Logout(tc)
-
 	if !userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly does not have a stored secret", fu.Username)
 	}
@@ -416,8 +414,6 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 		t.Error(err)
 	}
 
-	Logout(tc)
-
 	if !userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly does not have a stored secret", fu.Username)
 	}
@@ -439,10 +435,8 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 
 // TODO: Test LoginWithPassphrase with pubkey login failing.
 
-// Test that the signup with saving the secret, logout, then login
-// flow works.
-func TestSignupWithStoreThenLogin(t *testing.T) {
-
+// Signup followed by logout clears the stored secret
+func TestSignupWithStoreThenLogout(t *testing.T) {
 	tc := SetupEngineTest(t, "signup with store then login")
 	defer tc.Cleanup()
 
@@ -457,16 +451,6 @@ func TestSignupWithStoreThenLogin(t *testing.T) {
 	_ = SignupFakeUserWithArg(tc, fu, arg)
 
 	Logout(tc)
-
-	// TODO: Mock out the SecretStore and make sure that it's
-	// actually consulted.
-	if err := tc.G.LoginState().LoginWithStoredSecret(fu.Username, nil); err != nil {
-		t.Error(err)
-	}
-
-	if err := libkb.ClearStoredSecret(tc.G, fu.NormalizedUsername()); err != nil {
-		t.Error(err)
-	}
 
 	if userHasStoredSecret(&tc, fu.Username) {
 		t.Errorf("User %s unexpectedly has a stored secret", fu.Username)

@@ -162,6 +162,9 @@ func (g *GlobalContext) ResetLoginState() {
 func (g *GlobalContext) Logout() error {
 	g.loginStateMu.Lock()
 	defer g.loginStateMu.Unlock()
+
+	username := g.Env.GetUsername()
+
 	if err := g.loginState.Logout(); err != nil {
 		return err
 	}
@@ -179,6 +182,13 @@ func (g *GlobalContext) Logout() error {
 
 	// get a clean LoginState:
 	g.createLoginStateLocked()
+
+	// remove stored secret
+	if g.SecretStoreAll != nil {
+		if err := g.SecretStoreAll.ClearSecret(username); err != nil {
+			g.Log.Debug("clear stored secret error: %s", err)
+		}
+	}
 
 	return nil
 }
