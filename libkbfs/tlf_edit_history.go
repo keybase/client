@@ -158,9 +158,11 @@ type TlfEditHistory struct {
 	rmdsChan chan []ImmutableRootMetadata
 	wg       RepeatedWaitGroup
 
-	lock   sync.Mutex
-	edits  TlfWriterEdits
-	cancel context.CancelFunc
+	lock     sync.Mutex
+	edits    TlfWriterEdits
+	cancel   context.CancelFunc
+	shutdown bool
+	sends    sync.WaitGroup
 }
 
 // NewTlfEditHistory makes a new TLF edit history.
@@ -178,12 +180,18 @@ func NewTlfEditHistory(config Config, fbo *folderBranchOps,
 
 // Shutdown shuts down all background processing.
 func (teh *TlfEditHistory) Shutdown() {
+	// Wait until we're sure all sends have finished before we close
+	// the channel.
+	func() {
+		teh.lock.Lock()
+		defer teh.lock.Unlock()
+		teh.shutdown = true
+		if teh.cancel != nil {
+			teh.cancel()
+		}
+	}()
+	teh.sends.Wait()
 	close(teh.rmdsChan)
-	teh.lock.Lock()
-	defer teh.lock.Unlock()
-	if teh.cancel != nil {
-		teh.cancel()
-	}
 }
 
 // Wait returns nil once all outstanding processing is complete.
@@ -566,6 +574,22 @@ func (teh *TlfEditHistory) process() {
 // ImmutableRootMetadata in rmds is the current head.
 func (teh *TlfEditHistory) UpdateHistory(ctx context.Context,
 	rmds []ImmutableRootMetadata) error {
+	// If a shutdown hasn't happened yet, mark ourselves as sending to
+	// force the shutdown to wait.
+	err := func() error {
+		teh.lock.Lock()
+		defer teh.lock.Unlock()
+		if teh.shutdown {
+			return ShutdownHappenedError{}
+		}
+		teh.sends.Add(1)
+		return nil
+	}()
+	defer teh.sends.Done()
+	if err != nil {
+		return err
+	}
+
 	teh.wg.Add(1)
 	select {
 	case teh.rmdsChan <- rmds:
