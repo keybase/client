@@ -102,10 +102,10 @@ type ConnectionHandler interface {
 	OnConnect(context.Context, *Connection, GenericClient, *Server) error
 
 	// OnConnectError is called whenever there is an error during connection.
-	OnConnectError(err error, reconnectThrottleDuration time.Duration)
+	OnConnectError(ctx context.Context, err error, reconnectThrottleDuration time.Duration)
 
 	// OnDoCommandError is called whenever there is an error during DoCommand
-	OnDoCommandError(err error, nextTime time.Duration)
+	OnDoCommandError(ctx context.Context, err error, nextTime time.Duration)
 
 	// OnDisconnected is called whenever the connection notices it
 	// is disconnected.
@@ -115,12 +115,12 @@ type ConnectionHandler interface {
 	// an RPC function passed to Connection.DoCommand(), and
 	// should return whether or not that error signifies that that
 	// RPC should retried (with backoff)
-	ShouldRetry(name string, err error) bool
+	ShouldRetry(ctx context.Context, name string, err error) bool
 
 	// ShouldRetryOnConnect is called whenever an error is returned
 	// during connection establishment, and should return whether or
 	// not the connection should be established again.
-	ShouldRetryOnConnect(err error) bool
+	ShouldRetryOnConnect(ctx context.Context, err error) bool
 
 	// HandlerName returns a string representing the type of the connection
 	// handler.
@@ -350,7 +350,7 @@ func (c *Connection) connect(ctx context.Context) error {
 	// connect
 	transport, err := c.transport.Dial(ctx)
 	if err != nil {
-		c.log.Warning("Connection: error dialing transport: %s", err)
+		c.log.Warning("Connection: error dialing transport: %#v", err)
 		return err
 	}
 
@@ -364,7 +364,7 @@ func (c *Connection) connect(ctx context.Context) error {
 	// call the connect handler
 	err = c.handler.OnConnect(ctx, c, client, server)
 	if err != nil {
-		c.log.Warning("Connection: error calling OnConnect handler: %s", err)
+		c.log.Warning("Connection: error calling OnConnect handler: %#v", err)
 		return err
 	}
 
@@ -405,12 +405,14 @@ func (c *Connection) DoCommand(ctx context.Context, name string,
 			// immediately when ctx is canceled. will
 			// retry connectivity errors w/backoff.
 			throttleErr := rpcFunc(rawClient)
-			if throttleErr != nil && c.handler.ShouldRetry(name, throttleErr) {
+			if throttleErr != nil && c.handler.ShouldRetry(ctx, name, throttleErr) {
 				return throttleErr
 			}
 			rpcErr = throttleErr
 			return nil
-		}, c.doCommandBackoff, c.handler.OnDoCommandError)
+		}, c.doCommandBackoff, func(err error, nextTime time.Duration) {
+			c.handler.OnDoCommandError(ctx, err, nextTime)
+		})
 
 		// RetryNotify gave up.
 		if throttleErr != nil {
@@ -506,7 +508,7 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 			return nil
 		default:
 		}
-		if !c.handler.ShouldRetryOnConnect(err) {
+		if !c.handler.ShouldRetryOnConnect(ctx, err) {
 			// A fatal error happened.
 			*reconnectErrPtr = err
 			// short-circuit Retry
@@ -515,7 +517,9 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 		return err
 	}, c.reconnectBackoff,
 		// give the caller a chance to log any other error or adjust state
-		c.handler.OnConnectError)
+		func(err error, reconnectThrottleDuration time.Duration) {
+			c.handler.OnConnectError(ctx, err, reconnectThrottleDuration)
+		})
 
 	if err != nil {
 		// this shouldn't happen, but just in case.
