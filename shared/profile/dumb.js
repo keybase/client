@@ -5,6 +5,7 @@ import ProveEnterUsername from './prove-enter-username'
 import ProveWebsiteChoice from './prove-website-choice'
 import ProvePgpChoice from './pgp/prove-pgp-choice'
 import ProvePgpImport from './pgp/prove-pgp-import'
+import FinishedGeneratedPgp from './pgp/finished-generating-pgp'
 import EditAvatar from './edit-avatar'
 import Revoke from './revoke'
 import PostProof from './post-proof'
@@ -485,6 +486,17 @@ const dumbProvePgpImport: DumbComponentMap<ProvePgpImport> = {
     },
   },
 }
+
+const dumbFinishedGeneratingPgp: DumbComponentMap<FinishedGeneratedPgp> = {
+  component: FinishedGeneratedPgp,
+  mocks: {
+    ' ': {
+      onDone: shouldStoreKeyOnServer => console.log(`FinishedGeneratedPgp: onDone [shouldStoreKeyOnServer: ${String(shouldStoreKeyOnServer)}]`),
+      pgpKeyString: '-----BEGIN PGP PUBLIC KEY BLOCK-----\nComment: GPGTools - https://gpgtools.org\n\nmQINBFWtLwEBEADLvrTe/bzrKVL0Z4bofdrLACmwC8PGXk3iD6t+1uTBKVMpfqkH\nQxGVECp598wS8XI6ZC+sMUM+AGTROi+HUsfn2cFk6y6pYl/z9A7lgctoX5xKXYTt\nE4xAZBeN1mn+x2YTjHW2lga/SZmh5qpSn5AMeNe42R0EtZ9FrCwD+IiOlw/LqGoh\n7DHKVDHmqK//mfK/lFTJck+HPkgmLyC4iYjpGuqXKqODUtMFT4+bHYfowG8WkvVX\ncf59Z6Fc7PA+rSFy9QXt7TP1po5Mnxxr9jcqQzzy3BSrAhHxAPj3F9rWBLUG0yGJ\nmAy6c1yTsbSgviiA0n4gjqPVj3iD3aiOx/KGxCdN/vru37Gp5q4KiBz7yHIqvg3B\nSeCBEOremB3gZG24OIVncpr0U6qITaFIe6iHmx53sID9JAKwfxAIwcktXe+aGtWp\n',
+    },
+  },
+}
+
 export default {
   'Profile': dumbMap,
   'Edit Avatar': dumbEditAvatar,
@@ -495,4 +507,5 @@ export default {
   'New Proof: Website': dumbProveWebsiteChoice,
   'New Proof: PGP': dumbProvePgpChoice,
   'New Proof: PGP import': dumbProvePgpImport,
+  'New Proof: PGP generate finished': dumbFinishedGeneratingPgp,
 }

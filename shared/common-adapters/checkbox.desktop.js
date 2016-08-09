@@ -5,6 +5,9 @@ import Text from './text'
 import type {Props} from './checkbox'
 import {globalStyles, globalColors, transition} from '../styles/style-guide'
 
+export const CHECKBOX_SIZE = 13
+export const CHECKBOX_MARGIN = 6
+
 class Checkbox extends Component<void, Props, void> {
   render () {
     let borderColor = globalColors.blue
@@ -15,9 +18,9 @@ class Checkbox extends Component<void, Props, void> {
 
     const boxStyle = {
       ...transition('background'),
-      width: 13,
-      height: 13,
-      marginRight: 6,
+      width: CHECKBOX_SIZE,
+      height: CHECKBOX_SIZE,
+      marginRight: CHECKBOX_MARGIN,
       position: 'relative',
       border: `solid 1px ${borderColor}`,
       backgroundColor: this.props.checked ? globalColors.blue : 'inherit',
@@ -27,9 +30,9 @@ class Checkbox extends Component<void, Props, void> {
     const clickableStyle = this.props.disabled ? {} : globalStyles.clickable
 
     return (
-      <div style={{...styles.container, ...clickableStyle, ...this.props.style}} onClick={this.props.disabled ? undefined : () => this.props.onCheck(!this.props.checked)}>
+      <div style={{...styleContainer, ...clickableStyle, ...this.props.style}} onClick={this.props.disabled ? undefined : () => this.props.onCheck(!this.props.checked)}>
         <div style={boxStyle}>
-          <Icon type='iconfont-check' style={{...styles.icon, ...(this.props.checked ? {} : {opacity: 0})}} />
+          <Icon type='iconfont-check' style={{...styleIcon, ...(this.props.checked ? {} : {opacity: 0})}} />
         </div>
         <Text type='Body' small={true} style={{color: globalColors.black_75}}>{this.props.label}</Text>
       </div>
@@ -37,20 +40,19 @@ class Checkbox extends Component<void, Props, void> {
   }
 }
 
-const styles = {
-  container: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-  },
-  icon: {
-    ...transition('opacity'),
-    color: globalColors.white,
-    hoverColor: globalColors.white,
-    position: 'absolute',
-    top: 1,
-    left: 0,
-    fontSize: 11,
-  },
+const styleContainer = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+}
+
+const styleIcon = {
+  ...transition('opacity'),
+  color: globalColors.white,
+  hoverColor: globalColors.white,
+  position: 'absolute',
+  top: 1,
+  left: 0,
+  fontSize: 11,
 }
 
 export default Checkbox
