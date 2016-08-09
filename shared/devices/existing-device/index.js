@@ -15,33 +15,16 @@ type Props = {
 
 class ExistingDevice extends Component<void, Props, void> {
   render () {
-    let otherDeviceComputer = null
-    let otherDevicePhone = null
+    const otherRoleIsNew = this.props.myDeviceRole === codePageDeviceRoleExistingPhone ||
+      this.props.myDeviceRole === codePageDeviceRoleExistingComputer
 
-    switch (this.props.myDeviceRole) {
-      case codePageDeviceRoleExistingPhone: // fallthrough
-      case codePageDeviceRoleExistingComputer:
-        otherDeviceComputer = codePageDeviceRoleNewComputer
-        otherDevicePhone = codePageDeviceRoleNewPhone
-        break
-      case codePageDeviceRoleNewPhone: // fallthrough
-      case codePageDeviceRoleNewComputer:
-      default:
-        otherDeviceComputer = codePageDeviceRoleExistingComputer
-        otherDevicePhone = codePageDeviceRoleExistingPhone
-        break
-    }
+    const otherDeviceComputer = otherRoleIsNew ? codePageDeviceRoleNewComputer : codePageDeviceRoleExistingComputer
+    const otherDevicePhone = otherRoleIsNew ? codePageDeviceRoleNewPhone : codePageDeviceRoleExistingPhone
 
     return (
       <Render
-        onSubmitComputer={() => {
-          // $FlowIssue
-          this.props.onSubmit(otherDeviceComputer)
-        }}
-        onSubmitPhone={() => {
-          // $FlowIssue
-          this.props.onSubmit(otherDevicePhone)
-        }}
+        onSubmitComputer={() => this.props.onSubmit(otherDeviceComputer)}
+        onSubmitPhone={() => this.props.onSubmit(otherDevicePhone)}
         onBack={this.props.onBack}
       />
     )

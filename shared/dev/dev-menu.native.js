@@ -1,7 +1,6 @@
 // @flow
 import MenuList from '../settings/menu-list'
 import React, {Component} from 'react'
-import components from './component-sheet'
 import developer from './developer.native'
 import dumbSheet from './dumb-sheet'
 import engine from '../engine'
@@ -36,9 +35,6 @@ class DevMenu extends Component {
       {name: 'Search', hasChildren: true, onClick: () => {
         this.props.routeAppend('search')
       }},
-      {name: 'Components', hasChildren: true, onClick: () => {
-        this.props.routeAppend('components')
-      }},
       {name: 'Stylesheet', hasChildren: true, onClick: () => {
         this.props.routeAppend('styleSheet')
       }},
@@ -54,7 +50,7 @@ class DevMenu extends Component {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Dev Menu'},
-      subRoutes: {developer, login, components, styleSheet, dumbSheet, search},
+      subRoutes: {developer, login, styleSheet, dumbSheet, search},
     }
   }
 }
