@@ -1,21 +1,15 @@
-/* @flow */
+// @flow
 import {Component} from 'react'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {IconType} from '../common-adapters/icon'
 
 export type Props = {
   platform: PlatformsExpandedType,
-  title: string,
   titleColor: string,
   isPending: boolean,
-  platformIconOverlay: IconType,
   platformIconOverlayColor: string,
   username: string,
-  usernameSubtitle?: string,
-  message: string,
-  messageSubtitle?: string,
   onReloadProfile: () => void,
 }
 
-export default class Render extends Component<void, Props, void> {
-}
+export default class Render extends Component<void, Props, void> { }

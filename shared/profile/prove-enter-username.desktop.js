@@ -57,7 +57,7 @@ type State = {
   username: string
 }
 
-function customError (error: string, code: number) {
+function customError (error: string, code: ?number) {
   if (code === constants.StatusCode.scprofilenotpublic) {
     return <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
       <Text style={styleErrorBannerText} type='BodySmallSemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
@@ -104,7 +104,7 @@ class Render extends Component<void, Props, State> {
     return (
       <Box style={styleContainer}>
         <Icon style={styleClose} type='iconfont-close' onClick={this.props.onCancel} />
-        {this.props.error && <Box style={styleErrorBanner}>{customError(this.props.error, this.props.errorCode)}</Box>}
+        {this.props.errorText && <Box style={styleErrorBanner}>{customError(this.props.errorText, this.props.errorCode)}</Box>}
         <Text type='Header' style={{marginBottom: globalMargins.medium}}>{headerText}</Text>
         {/* FIXME: awaiting blank icon overlay art here */}
         <PlatformIcon platform={this.props.platform} overlay={'icon-proof-pending'} overlayColor={globalColors.grey} size={48} />

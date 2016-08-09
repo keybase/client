@@ -4,7 +4,7 @@ import engine from '../engine'
 import type {Dispatch, AsyncAction} from '../constants/types/flux'
 import type {PlatformsExpandedType, ProvablePlatformsType} from '../constants/types/more'
 import type {SigID} from '../constants/types/flow-types'
-import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateError, UpdateProofStatus,
+import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateErrorText, UpdateProofStatus,
   UpdateSigID, WaitingRevokeProof, FinishRevokeProof} from '../constants/profile'
 import {apiserverPostRpc, proveStartProofRpc, proveCheckProofRpc, revokeRevokeSigsRpc, BTCRegisterBTCRpc} from '../constants/types/flow-types'
 import {bindActionCreators} from 'redux'
@@ -82,7 +82,7 @@ function updatePlatform (platform: PlatformsExpandedType): UpdatePlatform {
 function submitUsername (): AsyncAction {
   return (dispatch, getState) => {
     if (promptUsernameResponse) {
-      dispatch(updateError(null))
+      dispatch(updateErrorText(null))
       promptUsernameResponse.result(getState().profile.username)
       promptUsernameResponse = null
     }
@@ -98,7 +98,7 @@ function updateUsername (username: string): UpdateUsername {
 
 function cancelAddProof (): AsyncAction {
   return (dispatch) => {
-    dispatch(updateError(null))
+    dispatch(updateErrorText(null))
     if (promptUsernameResponse) {
       engine.cancelRPC(promptUsernameResponse, InputCancelError)
       promptUsernameResponse = null
@@ -120,15 +120,10 @@ function updateProofText (proof: string): UpdateProofText {
   }
 }
 
-function updateError (error: ?string, code: ?number): UpdateError {
-  // Flow needs this for some reason instead of default params
-  if (code === undefined || code === null) {
-    code = -1
-  }
-
+function updateErrorText (errorText: ?string, errorCode: ?number): UpdateErrorText {
   return {
-    type: Constants.updateError,
-    payload: {error, errorCode: code},
+    type: Constants.updateErrorText,
+    payload: {errorText, errorCode},
   }
 }
 
@@ -172,7 +167,7 @@ function submitBTCAddress (): AsyncAction {
       callback: (error) => {
         if (error) {
           console.warn('Error making proof')
-          dispatch(updateError(error.raw.desc, error.raw.code))
+          dispatch(updateErrorText(error.raw.desc, error.raw.code))
         } else {
           dispatch(updateProofStatus(true, proveCommon.ProofStatus.ok))
           dispatch(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
@@ -197,7 +192,7 @@ function addServiceProof (service: ProvablePlatformsType): AsyncAction {
         'keybase.1.proveUi.promptUsername': ({prompt, prevError}, response) => {
           promptUsernameResponse = response
           if (prevError) {
-            dispatch(updateError(prevError.desc, prevError.code))
+            dispatch(updateErrorText(prevError.desc, prevError.code))
           }
           dispatch(navigateTo([{path: 'ProveEnterUsername'}], profileTab))
         },
@@ -227,7 +222,7 @@ function addServiceProof (service: ProvablePlatformsType): AsyncAction {
 
         if (error) {
           console.warn('Error making proof')
-          dispatch(updateError(error.raw.desc, error.raw.code))
+          dispatch(updateErrorText(error.raw.desc, error.raw.code))
         } else {
           console.log('Start Proof done: ', sigID)
           dispatch(checkProof())
@@ -240,7 +235,7 @@ function addServiceProof (service: ProvablePlatformsType): AsyncAction {
 function addProof (platform: PlatformsExpandedType): AsyncAction {
   return (dispatch) => {
     dispatch(updatePlatform(platform))
-    dispatch(updateError(null))
+    dispatch(updateErrorText(null))
 
     // Special cases
     switch (platform) {
@@ -320,40 +315,46 @@ function submitRevokeProof (proofId: string): AsyncAction {
   }
 }
 
+// Tell the server we've updated the proof so it should validate it
 function checkProof (): AsyncAction {
   return (dispatch, getState) => {
-    dispatch(updateError(null))
+    dispatch(updateErrorText(null))
     const sigID = getState().profile.sigID
 
-    // The initial checkProof() call happens while we're in the middle of the incomingCallMap flow. That can error out
-    // and we can call this again. This if case is when we're in the incomingCallMap
+    // This is a little tricky...
+    // As part of the addServiceProof RPC it will automatically check the proof when we finish up that flow.
+    // That's the first context in which this action is dispatched.
+    // If that works the first time, the outputInstructionsResponse.result() will just continue the addServiceProof flow and we'll be done.
+    // If that doesn't work we'll actually error out of the entire addServiceProof RPC and be sitting on the outputInstructions page (this is ok)
+    // The user can continue to hit the 'ok check it' button and we'll call proveCheckProofRpc
+
+    // If we're still in the addServiceProof RPC
     if (outputInstructionsResponse) {
       outputInstructionsResponse.result()
       outputInstructionsResponse = null
-
-      return // the proveStartProofRpc will call checkProof after we respond to outputInstructionsResponse automatically
-    }
-
-    proveCheckProofRpc({
-      ...makeWaitingHandler(dispatch),
-      param: {
-        sigID,
-      },
-      callback: (error, {found, status}) => {
-        if (error) {
-          console.warn('Error getting proof update')
-          dispatch(updateError("We couldn't verify your proof. Please retry!"))
-        } else {
-          // this enum value is the divider between soft and hard errors
-          if (!found && status >= proveCommon.ProofStatus.baseHardError) {
-            dispatch(updateError("We couldn't find your proof. Please retry!"))
+    } else {
+      // We just want to check the proof, we're NOT in addServiceProof RPC anymore
+      proveCheckProofRpc({
+        ...makeWaitingHandler(dispatch),
+        param: {
+          sigID,
+        },
+        callback: (error, {found, status}) => {
+          if (error) {
+            console.warn('Error getting proof update')
+            dispatch(updateErrorText("We couldn't verify your proof. Please retry!"))
           } else {
-            dispatch(updateProofStatus(found, status))
-            dispatch(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
+            // this enum value is the divider between soft and hard errors
+            if (!found && status >= proveCommon.ProofStatus.baseHardError) {
+              dispatch(updateErrorText("We couldn't find your proof. Please retry!"))
+            } else {
+              dispatch(updateProofStatus(found, status))
+              dispatch(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
+            }
           }
-        }
-      },
-    })
+        },
+      })
+    }
   }
 }
 
@@ -379,7 +380,7 @@ function outputInstructionsActionLink (): AsyncAction {
   }
 }
 
-function reloadProfile (): AsyncAction {
+function backToProfile (): AsyncAction {
   return (dispatch) => {
     dispatch(getMyProfile())
     dispatch(navigateUp())
@@ -393,7 +394,7 @@ export {
   editProfile,
   finishRevoking,
   outputInstructionsActionLink,
-  reloadProfile,
+  backToProfile,
   submitBTCAddress,
   submitRevokeProof,
   submitUsername,

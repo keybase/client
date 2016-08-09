@@ -328,8 +328,8 @@ const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
 
 const proveEnterUsernameBase = {
   username: 'chris',
-  error: null,
-  errorCode: -1,
+  errorText: null,
+  errorCode: null,
   canContinue: true,
   onUsernameChange: username => { console.log('username change', username) },
   onContinue: () => { console.log('continue clicked') },
@@ -341,11 +341,11 @@ const dumbProveEnterUsername: DumbComponentMap<ProveEnterUsername> = {
   component: ProveEnterUsername,
   mocks: {
     'Twitter': {...proveEnterUsernameBase, platform: 'twitter'},
-    'Twitter with Error': {...proveEnterUsernameBase, platform: 'twitter', error: 'Something went wrong'},
+    'Twitter with Error': {...proveEnterUsernameBase, platform: 'twitter', errorText: 'Something went wrong'},
     'Reddit': {...proveEnterUsernameBase, platform: 'reddit'},
     'GitHub': {...proveEnterUsernameBase, platform: 'github'},
     'Coinbase': {...proveEnterUsernameBase, platform: 'coinbase'},
-    'Coinbase with Error': {...proveEnterUsernameBase, platform: 'coinbase', error: 'Coinbase specific error', errorCode: constants.StatusCode.scprofilenotpublic},
+    'Coinbase with Error': {...proveEnterUsernameBase, platform: 'coinbase', errorText: 'Coinbase specific error', errorCode: constants.StatusCode.scprofilenotpublic},
     'Hacker News': {...proveEnterUsernameBase, platform: 'hackernews'},
     'Bitcoin': {...proveEnterUsernameBase, platform: 'btc'},
     'Bitcoin - Disabled': {...proveEnterUsernameBase, platform: 'btc', canContinue: false},

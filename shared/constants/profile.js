@@ -24,8 +24,8 @@ export type FinishRevokeProof = TypedAction<'profile:revoke:finish', void, {erro
 export const updateProofText = 'profile:updateProofText'
 export type UpdateProofText = TypedAction<'profile:updateProofText', {proof: string}, void>
 
-export const updateError = 'profile:updateError'
-export type UpdateError = TypedAction<'profile:updateError', {error: ?string, errorCode: number}, void>
+export const updateErrorText = 'profile:updateErrorText'
+export type UpdateErrorText = TypedAction<'profile:updateErrorText', {errorText: ?string, errorCode: ?number}, void>
 
 export const updateProofStatus = 'profile:updateProofStatus'
 export type UpdateProofStatus = TypedAction<'profile:updateProofStatus', {found: boolean, status: ProofStatus}, void>
@@ -41,13 +41,13 @@ export type Actions = Waiting
   | WaitingRevokeProof
   | FinishRevokeProof
   | UpdateProofText
-  | UpdateError
+  | UpdateErrorText
   | UpdateProofStatus
   | UpdateSigID
 
 export type State = {
-  error: ?string,
-  errorCode: number,
+  errorText: ?string,
+  errorCode: ?number,
   waiting: boolean,
   username: string,
   platform: ?PlatformsExpandedType,

@@ -4,8 +4,8 @@ import * as Constants from '../constants/profile'
 import type {Actions, State} from '../constants/profile'
 
 const initialState: State = {
-  error: null,
-  errorCode: -1,
+  errorText: null,
+  errorCode: null,
   waiting: false,
   username: '',
   platform: null,
@@ -86,11 +86,11 @@ export default function (state: State = initialState, action: Actions) {
         proofFound: action.payload.found,
         proofStatus: action.payload.status,
       }
-    case Constants.updateError:
+    case Constants.updateErrorText:
       if (action.error) { break }
       return {
         ...state,
-        error: action.payload.error,
+        errorText: action.payload.errorText,
         errorCode: action.payload.errorCode,
       }
     case Constants.updateSigID:
