@@ -1,19 +1,17 @@
+// @flow
+import MenuList from '../settings/menu-list'
 import React, {Component} from 'react'
+import developer from './developer.native'
+import dumbSheet from './dumb-sheet'
+import engine from '../engine'
+import login from '../login'
+import search from '../search'
+import styleSheet from './style-sheet'
 import {connect} from 'react-redux'
-import {routeAppend, switchTab} from '../actions/router'
+import {loginTab} from '../constants/tabs'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
-import MenuList from '../settings/menu-list'
-
-import {loginTab} from '../constants/tabs'
-import engine from '../engine'
-
-import search from '../search'
-import developer from './developer'
-import login from '../login'
-import components from './component-sheet'
-import styleSheet from './style-sheet'
-import dumbSheet from './dumb-sheet'
+import {routeAppend, switchTab} from '../actions/router'
 
 class DevMenu extends Component {
   render () {
@@ -37,9 +35,6 @@ class DevMenu extends Component {
       {name: 'Search', hasChildren: true, onClick: () => {
         this.props.routeAppend('search')
       }},
-      {name: 'Components', hasChildren: true, onClick: () => {
-        this.props.routeAppend('components')
-      }},
       {name: 'Stylesheet', hasChildren: true, onClick: () => {
         this.props.routeAppend('styleSheet')
       }},
@@ -55,16 +50,9 @@ class DevMenu extends Component {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Dev Menu'},
-      subRoutes: {developer, login, components, styleSheet, dumbSheet, search},
+      subRoutes: {developer, login, styleSheet, dumbSheet, search},
     }
   }
-}
-
-DevMenu.propTypes = {
-  routeAppend: React.PropTypes.func.isRequired,
-  logout: React.PropTypes.func.isRequired,
-  showTrackerListener: React.PropTypes.func.isRequired,
-  switchTab: React.PropTypes.func.isRequired,
 }
 
 export default connect(

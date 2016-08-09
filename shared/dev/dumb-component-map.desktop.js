@@ -1,3 +1,4 @@
+// @flow
 import CommonMap from '../common-adapters/dumb.desktop'
 import DevicesMap from '../devices/dumb'
 import LoginMap from '../login/dumb.desktop'
@@ -15,9 +16,8 @@ import EditProfileMap from '../profile/edit-profile/dumb'
 import SearchMap from '../search/dumb'
 import SearchUserPaneMap from '../search/user-pane/dumb'
 import UnlockFoldersMap from '../unlock-folders/dumb'
-import type {DumbComponentMap} from '../constants/types/more'
 
-const map : DumbComponentMap = {
+const map: any = {
   ...CommonMap,
   ...DevicesMap,
   ...LoginMap,

@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import type {TypedAction} from '../constants/types/flux'
 import type {$Exact} from '../constants/types/more'
 import type {Folder} from '../constants/folders'

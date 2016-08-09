@@ -1,11 +1,12 @@
-import {OS_DESKTOP} from './platform.shared'
+// @flow
+import {OS_ELECTRON} from './platform.shared'
 import path from 'path'
 import getenv from 'getenv'
 
-export const OS = OS_DESKTOP
-export const isMobile = false
+const OS = OS_ELECTRON
+const isMobile = false
 
-export const runMode = getenv('KEYBASE_RUN_MODE', 'prod')
+const runMode = getenv('KEYBASE_RUN_MODE', 'prod')
 
 if (__DEV__) {
   console.log(`Run mode: ${runMode}`)
@@ -65,7 +66,7 @@ function findDataRoot () {
   return paths[process.platform]
 }
 
-export function logFileName () {
+function logFileName () {
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.log`,
     'linux': null, // linux is null because we can redirect stdout
@@ -75,8 +76,20 @@ export function logFileName () {
   return paths[process.platform]
 }
 
-export const socketRoot = findSocketRoot()
-export const socketName = 'keybased.sock'
-export const socketPath = path.join(socketRoot, socketName)
-export const dataRoot = findDataRoot()
-export const splashRoot = process.platform === 'darwin' ? socketRoot : dataRoot
+const socketRoot = findSocketRoot()
+const socketName = 'keybased.sock'
+const socketPath = path.join(socketRoot, socketName)
+const dataRoot = findDataRoot()
+const splashRoot = process.platform === 'darwin' ? socketRoot : dataRoot
+
+export {
+  OS,
+  dataRoot,
+  isMobile,
+  logFileName,
+  runMode,
+  socketName,
+  socketPath,
+  socketRoot,
+  splashRoot,
+}

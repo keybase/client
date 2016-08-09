@@ -6,20 +6,25 @@ import setNotifications from '../util/set-notifications'
 import type {Action, Dispatch} from '../constants/types/flux'
 import type {CallMap} from '../engine/call-map-middleware'
 import type {ConfigState} from '../reducers/config'
+import type {FriendshipUserInfo} from '../profile/friendships'
 import type {RemoteProof, LinkCheckResult, UserCard} from '../constants/types/flow-types'
 import type {ShowNonUser, PendingIdentify} from '../constants/tracker'
 import type {State as RootTrackerState} from '../reducers/tracker'
 import type {TypedState} from '../constants/reducer'
 import {createServer} from '../engine/server'
-import {delegateUiCtlRegisterIdentifyUIRpc, trackCheckTrackingRpc, trackUntrackRpc,
-  trackTrackWithTokenRpc, identifyIdentify2Rpc, trackDismissWithTokenRpc,
-  apiserverGetRpc} from '../constants/types/flow-types'
+import {
+  apiserverGetRpc,
+  delegateUiCtlRegisterIdentifyUIRpc,
+  identifyIdentify2Rpc,
+  trackCheckTrackingRpc,
+  trackDismissWithTokenRpc,
+  trackTrackWithTokenRpc,
+  trackUntrackRpc,
+} from '../constants/types/flow-types'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
 import {identifyCommon} from '../constants/types/keybase-v1'
 import {routeAppend} from './router'
 import {showAllTrackers} from '../local-debug'
-
-import type {FriendshipUserInfo} from '../profile/friendships'
 
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => TypedState) => ?Promise<*>
 

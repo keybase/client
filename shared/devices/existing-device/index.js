@@ -2,7 +2,8 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './render'
-import {DeviceRole, codePageDeviceRoleExistingPhone,
+import type {DeviceRole} from '../../constants/login'
+import {codePageDeviceRoleExistingPhone,
   codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer,
   codePageDeviceRoleNewComputer} from '../../constants/login'
 
@@ -14,22 +15,11 @@ type Props = {
 
 class ExistingDevice extends Component<void, Props, void> {
   render () {
-    let otherDeviceComputer = null
-    let otherDevicePhone = null
+    const otherRoleIsNew = this.props.myDeviceRole === codePageDeviceRoleExistingPhone ||
+      this.props.myDeviceRole === codePageDeviceRoleExistingComputer
 
-    switch (this.props.myDeviceRole) {
-      case codePageDeviceRoleExistingPhone: // fallthrough
-      case codePageDeviceRoleExistingComputer:
-        otherDeviceComputer = codePageDeviceRoleNewComputer
-        otherDevicePhone = codePageDeviceRoleNewPhone
-        break
-      case codePageDeviceRoleNewPhone: // fallthrough
-      case codePageDeviceRoleNewComputer:
-      default:
-        otherDeviceComputer = codePageDeviceRoleExistingComputer
-        otherDevicePhone = codePageDeviceRoleExistingPhone
-        break
-    }
+    const otherDeviceComputer = otherRoleIsNew ? codePageDeviceRoleNewComputer : codePageDeviceRoleExistingComputer
+    const otherDevicePhone = otherRoleIsNew ? codePageDeviceRoleNewPhone : codePageDeviceRoleExistingPhone
 
     return (
       <Render

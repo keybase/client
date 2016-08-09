@@ -1,6 +1,7 @@
-import {runMode} from './platform.native'
+// @flow
+import {runMode} from './platform'
 
 const keybaseUrl = runMode !== 'prod' ? 'https://stage0.keybase.io' : 'https://keybase.io'
-export default keybaseUrl
 
 export const apiUrl = `${keybaseUrl}/_/api/1.0`
+export default keybaseUrl

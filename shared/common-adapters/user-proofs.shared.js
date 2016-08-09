@@ -3,9 +3,8 @@ import {globalColors, globalStyles} from '../styles/style-guide'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked,
   error as proofError, warning as proofWarning,
   metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaIgnored} from '../constants/tracker'
-import type {PlatformsExpanded} from '../constants/types/more.js'
-
 import type {IconType} from '../common-adapters/icon'
+import type {PlatformsExpanded} from '../constants/types/more.js'
 import type {Proof} from '../constants/tracker'
 
 function metaColor (proof: Proof): string {
