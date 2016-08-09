@@ -34,18 +34,25 @@ func NewCmdLogSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "n",
 				Usage: "Number of lines in each log file",
 			},
+			cli.BoolFlag{
+				Name:  "no-confirm",
+				Usage: "Send logs without confirming",
+			},
 		},
 	}
 }
 
 type CmdLogSend struct {
 	libkb.Contextified
-	numLines int
+	numLines  int
+	noConfirm bool
 }
 
 func (c *CmdLogSend) Run() error {
-	if err := c.confirm(); err != nil {
-		return err
+	if !c.noConfirm {
+		if err := c.confirm(); err != nil {
+			return err
+		}
 	}
 
 	// if this fails for any reason, it is not a fatal error.
@@ -114,6 +121,7 @@ func (c *CmdLogSend) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) > 0 {
 		return UnexpectedArgsError("log send")
 	}
+	c.noConfirm = ctx.Bool("no-confirm")
 	c.numLines = ctx.Int("n")
 	if c.numLines < 1 {
 		c.numLines = defaultLines
