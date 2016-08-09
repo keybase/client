@@ -41,7 +41,7 @@ const actionStatSink: StatSink = {
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
   console.groupCollapsed && console.groupCollapsed(`Dispatching action: ${action.type}`)
 
-  // console.log(`Dispatching action: ${action.type}: ${JSON.stringify(action)} `)
+  console.log(`Dispatching action: ${action.type}: ${JSON.stringify(action)} `)
 
   const shouldRunLogStats = shouldRunStats(logStatFrequency)
   const shouldRunActionStats = shouldRunStats(actionStatFrequency)
@@ -56,7 +56,7 @@ export const actionLogger = (store: any) => (next: any) => (action: any) => {
 
   startTiming(shouldRunLogStats, loggingStatSink)
   const diff = deep.diff(objToJS(oldState), objToJS(newState))
-  // console.log('Diff:', JSON.stringify(diff))
+  console.log('Diff:', JSON.stringify(diff))
   endTiming(shouldRunLogStats, loggingStatSink)
 
   console.groupEnd && console.groupEnd()
