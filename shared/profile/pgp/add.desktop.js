@@ -1,34 +1,9 @@
 // @flow
 
 import React, {Component} from 'react'
-import {Box, Button, Input, Text} from '../../common-adapters'
+import {Box, Button, Icon, Input, SmallInput, Text} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles/style-guide'
 import type {Props} from './add'
-
-type SmallInputProps = {
-  hintText: string,
-  label: string,
-  value: ?string,
-  onChange: (next: string) => void,
-  errorState: boolean,
-}
-
-function SmallInput ({hintText, label, onChange, value, errorState}: SmallInputProps) {
-  return (
-    <Box style={{...globalStyles.flexBoxRow, position: 'relative'}}>
-      <Text type='BodySmall' style={{position: 'absolute', bottom: 6, left: 2, color: (errorState ? globalColors.red : globalColors.blue)}}>{label}</Text>
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        <Input hintText={hintText}
-          hintStyle={{textAlign: 'left', marginLeft: 60, marginTop: 6, top: undefined}}
-          inputStyle={{textAlign: 'left', marginLeft: 60, top: 2}}
-          value={value}
-          textStyle={{height: undefined}}
-          underlineStyle={errorState ? {backgroundColor: globalColors.red} : {}}
-          onChangeText={onChange} />
-      </Box>
-    </Box>
-  )
-}
 
 class PgpAdd extends Component<void, Props, void> {
   render () {
@@ -36,7 +11,9 @@ class PgpAdd extends Component<void, Props, void> {
     return (
       <Box style={containerStyle}>
         {/* TODO(MM) when we get the pgp icon, put it in here */}
-        <Box style={{backgroundColor: 'black', width: 48, height: 48, alignSelf: 'center'}} />
+        <Icon
+          type={'iconfont-identity-pgp'}
+          style={{width: 48, height: 48, fontSize: 48, alignSelf: 'center'}} />
         <Text
           style={{marginTop: globalMargins.medium, alignSelf: 'center'}}
           type='Body'>

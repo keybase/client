@@ -1,0 +1,13 @@
+// @flow
+
+import {Component} from 'react'
+
+export type SmallInputProps = {
+  hintText: string,
+  label: string,
+  value: ?string,
+  onChange: (next: string) => void,
+  errorState: boolean,
+}
+
+declare export default class Icon extends Component<void, SmallInputProps, void> {}

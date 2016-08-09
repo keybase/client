@@ -1,3 +1,5 @@
+// @flow
+
 import PgpAdd from './add'
 import type {DumbComponentMap} from '../../constants/types/more'
 
