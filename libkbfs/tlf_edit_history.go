@@ -79,12 +79,12 @@ func (we TlfWriterEdits) isComplete() bool {
 
 // updateOldEdits removes edits from `we` belonging to files that have
 // been removed, and renames ones that have been renamed.
-func (we *TlfWriterEdits) updateOldEdits(removed map[string]bool,
+func (we TlfWriterEdits) updateOldEdits(removed map[string]bool,
 	renamed map[string]string) {
 	if len(removed) == 0 && len(renamed) == 0 {
 		return
 	}
-	for writer, edits := range *we {
+	for writer, edits := range we {
 		var newEdits TlfEditList
 		for _, edit := range edits {
 			if removed[edit.Filepath] {
@@ -95,15 +95,15 @@ func (we *TlfWriterEdits) updateOldEdits(removed map[string]bool,
 			}
 			newEdits = append(newEdits, edit)
 		}
-		(*we)[writer] = newEdits
+		we[writer] = newEdits
 	}
 }
 
 // addNewEdits simply adds in edits from the new list to `we`.
-func (we *TlfWriterEdits) addNewEdits(newEdits TlfWriterEdits) {
+func (we TlfWriterEdits) addNewEdits(newEdits TlfWriterEdits) {
 	for w, edits := range newEdits {
 		for _, edit := range edits {
-			(*we)[w] = append((*we)[w], edit)
+			we[w] = append(we[w], edit)
 		}
 	}
 }
