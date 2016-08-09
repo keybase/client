@@ -21,8 +21,8 @@ class Avatar extends Component<void, Props, State> {
   }
 
   componentWillReceiveProps (nextProps: Props) {
-    const url = shared.createAvatarUrl(this.props) || noAvatar
-    const nextUrl = shared.createAvatarUrl(nextProps) || noAvatar
+    const url = shared.createAvatarUrl(this.props)
+    const nextUrl = shared.createAvatarUrl(nextProps)
 
     if (url !== nextUrl) {
       this.setState({avatarLoaded: false, errored: false})
