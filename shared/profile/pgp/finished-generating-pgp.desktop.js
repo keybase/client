@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {StandardScreen, Box, Text, Button, Icon, Checkbox} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles/style-guide'
+import {CHECKBOX_SIZE, CHECKBOX_MARGIN} from '../../common-adapters/checkbox.desktop'
 import type {Props} from './finished-generating-pgp'
 
 type State = {
@@ -29,11 +30,8 @@ class FinishedGeneratedPgp extends Component<void, Props, State> {
         <Text style={styleTitle} type='Header'>Here is your unique public key!</Text>
         <textInput style={stylePgpKeyString} readOnly={true}>{this.props.pgpKeyString}</textInput>
         <Box style={styleUploadContainer}>
-          <Checkbox onCheck={(newVal) => this._onCheckToggle(newVal)} checked={this.state.shouldStoreKeyOnServer} />
-          <Box style={styleUploadTextContainer}>
-            <Text style={styleUploadTextPrimary} type='BodySmall'>{'Store encrypted private key on Keybase’s server (recommended)'}</Text>
-            <Text style={styleUploadTextSecondary} type='BodySmall'>{'Allows you to download & import your key to other devices.'}</Text>
-          </Box>
+          <Checkbox onCheck={(newVal) => this._onCheckToggle(newVal)} checked={this.state.shouldStoreKeyOnServer} label='Store encrypted private key on Keybase’s server (recommended)' />
+          <Text style={styleUploadTextSublabel} type='BodySmall'>{'Allows you to download & import your key to other devices.'}</Text>
         </Box>
         <Button style={styleDoneButton} type='Primary' onClick={() => this.props.onDone(this.state.shouldStoreKeyOnServer)} label={'Done, post to Keybase'} />
       </StandardScreen>
@@ -69,22 +67,14 @@ const stylePgpKeyString = {
 }
 
 const styleUploadContainer = {
-  ...globalStyles.flexBoxRow,
+  ...globalStyles.flexBoxColumn,
+  textAlign: 'left',
   marginTop: globalMargins.small,
 }
 
-const styleUploadTextContainer = {
-  ...globalStyles.flexBoxColumn,
-  textAlign: 'left',
-  marginLeft: globalMargins.tiny,
-}
-
-const styleUploadTextPrimary = {
-  color: globalColors.black_75,
-}
-
-const styleUploadTextSecondary = {
+const styleUploadTextSublabel = {
   color: globalColors.black_40,
+  marginLeft: CHECKBOX_SIZE + CHECKBOX_MARGIN,
 }
 
 const styleDoneButton = {

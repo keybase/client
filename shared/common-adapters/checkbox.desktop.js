@@ -5,6 +5,9 @@ import Text from './text'
 import type {Props} from './checkbox'
 import {globalStyles, globalColors, transition} from '../styles/style-guide'
 
+export const CHECKBOX_SIZE = 13
+export const CHECKBOX_MARGIN = 6
+
 class Checkbox extends Component<void, Props, void> {
   render () {
     let borderColor = globalColors.blue
@@ -15,9 +18,9 @@ class Checkbox extends Component<void, Props, void> {
 
     const boxStyle = {
       ...transition('background'),
-      width: 13,
-      height: 13,
-      marginRight: 6,
+      width: CHECKBOX_SIZE,
+      height: CHECKBOX_SIZE,
+      marginRight: CHECKBOX_MARGIN,
       position: 'relative',
       border: `solid 1px ${borderColor}`,
       backgroundColor: this.props.checked ? globalColors.blue : 'inherit',
@@ -31,7 +34,7 @@ class Checkbox extends Component<void, Props, void> {
         <div style={boxStyle}>
           <Icon type='iconfont-check' style={{...styleIcon, ...(this.props.checked ? {} : {opacity: 0})}} />
         </div>
-        {!!this.props.label && <Text type='Body' small={true} style={{color: globalColors.black_75}}>{this.props.label}</Text>}
+        <Text type='Body' small={true} style={{color: globalColors.black_75}}>{this.props.label}</Text>
       </div>
     )
   }
