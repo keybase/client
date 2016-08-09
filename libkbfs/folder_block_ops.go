@@ -1315,6 +1315,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 		// generalize, just annoying
 
 		// if we need another block but there are no more, then make one
+		switchToIndirect := false
 		if nCopied < n && nextBlockOff < 0 {
 			// If the block doesn't already have a parent block, make one.
 			if ptr == file.tailPointer() {
@@ -1324,6 +1325,10 @@ func (fbo *folderBlockOps) writeDataLocked(
 					return WriteRange{}, nil, newlyDirtiedChildBytes, err
 				}
 				ptr = fblock.IPtrs[0].BlockPointer
+				// The whole block needs to be re-uploaded as an
+				// indirect block, so track those dirty bytes and
+				// cache the block as dirty.
+				switchToIndirect = true
 			}
 
 			// Make a new right block and update the parent's
@@ -1356,7 +1361,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 		// happen when trying to append to the contents of the file
 		// (i.e., either to the end of the file or right before the
 		// "hole"), and the last block is already full.
-		if nCopied == oldNCopied {
+		if nCopied == oldNCopied && !switchToIndirect {
 			continue
 		}
 
