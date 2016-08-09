@@ -61,7 +61,7 @@ func TestSignupEngine(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Now try to logout and log back in w/ PublicKey Auth
+	// Now try to logout and log back in
 	Logout(tc)
 
 	if err := AssertLoggedOut(tc); err != nil {
@@ -77,8 +77,8 @@ func TestSignupEngine(t *testing.T) {
 
 	mockGetPassphrase.CheckLastErr(t)
 
-	if mockGetPassphrase.Called {
-		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly called")
+	if !mockGetPassphrase.Called {
+		t.Errorf("secretUI.GetKeybasePassphrase() not called")
 	}
 
 	if err = AssertDeviceID(tc.G); err != nil {
