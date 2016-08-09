@@ -53,7 +53,7 @@ class MultiLineInput extends Component<void, Props, State> {
           onKeyDown={e => this._handleKeyDown(e)}
           type='HeaderBig'>type</Text>
         {this.props.errorText && <Text style={{...errorTextStyle, ...this.props.errorStyle}} type='Error'>{this.props.errorText}</Text>}
-        <div style={underlineStyle}></div>
+        <div style={underlineStyle} />
       </div>
     )
   }
