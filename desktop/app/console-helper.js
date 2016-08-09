@@ -28,33 +28,48 @@ function fileDoesNotExist (err) {
 const logLimit = 5e6
 const logFile = logFileName()
 let fileWritable = null
-// If the file is too big, let's reset the log
-if (logFile) {
-  // ensure it exists
+
+function setupFileWritable () {
+  if (!logFile) {
+    console.log('No log file')
+    return
+  }
+  // Ensure log directory exists
   mkdirp.sync(path.dirname(logFile))
 
-  fs.access(logFile, fs.W_OK, err => {
-    if (err && !fileDoesNotExist(err)) {
-      console.log("Can't write to log file.", err)
-      fileWritable = null
+  // Check if we can write to log file
+  try {
+    fs.accessSync(logFile, fs.W_OK)
+  } catch (e) {
+    if (!fileDoesNotExist(e)) {
+      console.error('Unable to write to log file:', e)
       return
     }
+  }
 
-    fs.stat(logFile, (err, stat) => {
-      if (err != null) {
-        fileWritable = fs.createWriteStream(logFile)
-        return
-      }
+  let stat = null
+  try {
+    stat = fs.statSync(logFile)
+  } catch (e) {
+    if (!fileDoesNotExist(e)) {
+      console.error('Error getting status for log file:', e)
+    }
+    fileWritable = fs.createWriteStream(logFile)
+    return
+  }
 
-      if (stat.size > logLimit) {
-        fileWritable = fs.createWriteStream(logFile)
-        return
-      }
+  // If the file is too big, let's reset the log
+  if (stat.size > logLimit) {
+    console.log('File too big, resetting')
+    fileWritable = fs.createWriteStream(logFile)
+    return
+  }
 
-      fileWritable = fs.createWriteStream(logFile, {flags: 'a'})
-    })
-  })
+  // Append to existing log
+  fileWritable = fs.createWriteStream(logFile, {flags: 'a'})
 }
+
+setupFileWritable()
 
 function tee (...writeFns) {
   return t => writeFns.forEach(w => w(t))
