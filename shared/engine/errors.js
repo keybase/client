@@ -1,8 +1,9 @@
+// @flow
 import {constants} from '../constants/types/keybase-v1'
 
 const nameFix = fromGo => fromGo.replace(/_/g, '').toLowerCase()
 
-export const errorMap = Object.keys(constants.StatusCode).reduce((acc, cur) => {
+const errorMap: {[key: string]: ?string} = Object.keys(constants.StatusCode).reduce((acc, cur) => {
   acc[nameFix(cur)] = constants.StatusCode[cur]
   return acc
 }, {})
@@ -14,8 +15,10 @@ const niceMap = {
   sckeynomatchinggpg: () => 'No matching private GPG keys found on this device',
 }
 
-export default class EngineError extends Error {
-  constructor (err) {
+class EngineError extends Error {
+  raw: any;
+
+  constructor (err: any) {
     if (!err) {
       err = {}
     }
@@ -30,3 +33,9 @@ export type EngineErrorType = {
   raw: any,
   message: string
 }
+
+export {
+  errorMap,
+}
+
+export default EngineError
