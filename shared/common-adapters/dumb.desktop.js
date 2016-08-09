@@ -1,5 +1,4 @@
 // @flow
-import Checkbox from './checkbox'
 import React, {Component} from 'react'
 import _ from 'lodash'
 import type {DumbComponentMap} from '../constants/types/more'
@@ -10,7 +9,7 @@ import {
   Box,
   Checkbox,
   ChoiceList,
-  Icon
+  Icon,
   ListItem,
   PopupMenu,
   TabBar,
