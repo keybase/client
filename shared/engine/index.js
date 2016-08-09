@@ -9,7 +9,7 @@ import {Buffer} from 'buffer'
 import {constants} from '../constants/types/keybase-v1'
 import {log} from '../native/log/logui'
 import {printRPC, printOutstandingRPCs} from '../local-debug'
-import type {incomingCallMapType} from '../constants/types/flow-types'
+import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
 
 const {client: {Client: RpcClient}} = rpc
 const KEYBASE_RPC_DELAY_RESULT: number = process.env.KEYBASE_RPC_DELAY_RESULT ? parseInt(process.env.KEYBASE_RPC_DELAY_RESULT) : 0
@@ -31,6 +31,7 @@ class Engine {
     method: string,
     param: ?Object,
   }};
+  seqIDToWrappedResponse: {[key: number]: Object};
   sessionIDToResponse: {[key: SessionIDKey]: ?Object};
   rpcClient: Object;
   sessionID: number;
@@ -344,7 +345,9 @@ class Engine {
       }
       callMap[method](param, wrappedResponse)
     } else if (method === 'keybase.1.logUi.log' && this._hasNoHandler(method, callMap || {})) {
-      log(param)
+      // $FlowIssue: This really is this type but we can't prove this to flow today
+      const logParam: logUiLogRpcParam = param
+      log(logParam)
       wrappedResponse.result()
     } else if (!sessionID && this.generalListeners[method]) {
       this._generalIncomingRpc(method, param, wrappedResponse)
