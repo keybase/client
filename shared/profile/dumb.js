@@ -5,6 +5,7 @@ import ProveEnterUsername from './prove-enter-username'
 import ProveWebsiteChoice from './prove-website-choice'
 import ProvePgpChoice from './pgp/prove-pgp-choice'
 import ProvePgpImport from './pgp/prove-pgp-import'
+import GeneratingPgp from './pgp/generating-pgp'
 import FinishedGeneratedPgp from './pgp/finished-generating-pgp'
 import EditAvatar from './edit-avatar'
 import Revoke from './revoke'
@@ -497,6 +498,15 @@ const dumbFinishedGeneratingPgp: DumbComponentMap<FinishedGeneratedPgp> = {
   },
 }
 
+const dumbGeneratingPgp: DumbComponentMap<GeneratingPgp> = {
+  component: GeneratingPgp,
+  mocks: {
+    'Generating PGP': {
+      onCancel: () => console.log('GeneratingPgp: onCancel'),
+    },
+  },
+}
+
 export default {
   'Profile': dumbMap,
   'Edit Avatar': dumbEditAvatar,
@@ -507,5 +517,6 @@ export default {
   'New Proof: Website': dumbProveWebsiteChoice,
   'New Proof: PGP': dumbProvePgpChoice,
   'New Proof: PGP import': dumbProvePgpImport,
+  'New Proof: PGP generating': dumbGeneratingPgp,
   'New Proof: PGP generate finished': dumbFinishedGeneratingPgp,
 }

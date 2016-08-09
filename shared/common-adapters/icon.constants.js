@@ -865,6 +865,18 @@ const iconMeta_ = {
     // $FlowIssue
     require: require('../images/icons/icon-keybase-logo-64.png'),
   },
+  'icon-loader-infinity-64': {
+    isFont: false,
+    extension: 'gif',
+    // $FlowIssue
+    require: require('../images/icons/icon-loader-infinity-64.gif'),
+  },
+  'icon-loader-infinity-80': {
+    isFont: false,
+    extension: 'gif',
+    // $FlowIssue
+    require: require('../images/icons/icon-loader-infinity-80.gif'),
+  },
   'icon-no-gpg': {
     isFont: false,
     extension: 'png',
