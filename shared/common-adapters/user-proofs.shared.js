@@ -83,5 +83,6 @@ export function proofNameStyle (proof: Proof) {
   return {
     color: proofColor(proof),
     ...(proof.meta === metaDeleted ? globalStyles.textDecoration('line-through') : {}),
+    ...(['btc', 'pgp'].includes(proof.type) ? {fontSize: 13} : {}),
   }
 }
