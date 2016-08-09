@@ -895,7 +895,7 @@ func (ui *UI) PromptForConfirmation(prompt string) error {
 	if err != nil {
 		return err
 	}
-	if res != "YES" {
+	if strings.ToLower(res) != "yes" {
 		return NotConfirmedError{}
 	}
 	return nil
