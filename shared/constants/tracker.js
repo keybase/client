@@ -62,6 +62,7 @@ export const updateEldestKidChanged = 'tracker:updateEldestKidChanged'
 export const updateTrackers = 'tracker:updateTrackers'
 
 export const setProofs = 'tracker:setProofs'
+export const resetProofs = 'tracker:resetProofs'
 export const updateProof = 'tracker:updateProof'
 export const updateBTC = 'tracker:updateBTC'
 export const updatePGPKey = 'tracker:updatePGPKey'

@@ -77,7 +77,7 @@ class Render extends Component<void, Props, State> {
           }}
         >Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?</Text>,
         items: [
-          {title: 'View proof', onClick: () => this.props.onViewProof(proof)},
+          ...(proof.humanUrl ? [{title: 'View proof', onClick: () => this.props.onViewProof(proof)}] : []),
           {title: 'I fixed it - recheck', onClick: () => this.props.onRecheckProof(proof)},
           {title: 'Revoke proof', danger: true, onClick: () => this.props.onRevokeProof(proof)},
         ],

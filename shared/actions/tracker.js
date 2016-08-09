@@ -421,6 +421,11 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
       })
 
       dispatch({
+        type: Constants.resetProofs,
+        payload: {username},
+      })
+
+      dispatch({
         type: Constants.updateReason,
         payload: {username, reason: reason && reason.reason},
       })

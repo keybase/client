@@ -59,13 +59,13 @@ function editProfile (bio: string, fullname: string, location: string): AsyncAct
   }
 }
 
-function makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
+function _makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
   return {
-    waitingHandler: bindActionCreators(waitingForResponse, dispatch),
+    waitingHandler: bindActionCreators(_waitingForResponse, dispatch),
   }
 }
 
-function waitingForResponse (waiting: boolean): Waiting {
+function _waitingForResponse (waiting: boolean): Waiting {
   return {
     type: Constants.waiting,
     payload: {waiting},
@@ -82,7 +82,7 @@ function updatePlatform (platform: PlatformsExpandedType): UpdatePlatform {
 function submitUsername (): AsyncAction {
   return (dispatch, getState) => {
     if (promptUsernameResponse) {
-      dispatch(updateErrorText(null))
+      dispatch(_updateErrorText(null))
       promptUsernameResponse.result(getState().profile.username)
       promptUsernameResponse = null
     }
@@ -98,7 +98,7 @@ function updateUsername (username: string): UpdateUsername {
 
 function cancelAddProof (): AsyncAction {
   return (dispatch) => {
-    dispatch(updateErrorText(null))
+    dispatch(_updateErrorText(null))
     if (promptUsernameResponse) {
       engine.cancelRPC(promptUsernameResponse, InputCancelError)
       promptUsernameResponse = null
@@ -113,35 +113,35 @@ function cancelAddProof (): AsyncAction {
   }
 }
 
-function updateProofText (proof: string): UpdateProofText {
+function _updateProofText (proof: string): UpdateProofText {
   return {
     type: Constants.updateProofText,
     payload: {proof},
   }
 }
 
-function updateErrorText (errorText: ?string, errorCode: ?number): UpdateErrorText {
+function _updateErrorText (errorText: ?string, errorCode: ?number): UpdateErrorText {
   return {
     type: Constants.updateErrorText,
     payload: {errorText, errorCode},
   }
 }
 
-function updateProofStatus (found, status): UpdateProofStatus {
+function _updateProofStatus (found, status): UpdateProofStatus {
   return {
     type: Constants.updateProofStatus,
     payload: {found, status},
   }
 }
 
-function updateSigID (sigID: SigID): UpdateSigID {
+function _updateSigID (sigID: SigID): UpdateSigID {
   return {
     type: Constants.updateSigID,
     payload: {sigID},
   }
 }
 
-function askTextOrDNS (): AsyncAction {
+function _askTextOrDNS (): AsyncAction {
   return (dispatch) => {
     const replace = 'dns'
     console.warn(`TEMP hardcoded to using ${replace} proof for all web`)
@@ -150,7 +150,7 @@ function askTextOrDNS (): AsyncAction {
   }
 }
 
-function registerBTC (): AsyncAction {
+function _registerBTC (): AsyncAction {
   return (dispatch) => {
     dispatch(navigateTo([{path: 'ProveEnterUsername'}], profileTab))
   }
@@ -159,7 +159,7 @@ function registerBTC (): AsyncAction {
 function submitBTCAddress (): AsyncAction {
   return (dispatch, getState) => {
     BTCRegisterBTCRpc({
-      ...makeWaitingHandler(dispatch),
+      ..._makeWaitingHandler(dispatch),
       param: {
         address: getState().profile.username,
         force: true,
@@ -167,9 +167,9 @@ function submitBTCAddress (): AsyncAction {
       callback: (error) => {
         if (error) {
           console.warn('Error making proof')
-          dispatch(updateErrorText(error.raw.desc, error.raw.code))
+          dispatch(_updateErrorText(error.raw.desc, error.raw.code))
         } else {
-          dispatch(updateProofStatus(true, proveCommon.ProofStatus.ok))
+          dispatch(_updateProofStatus(true, proveCommon.ProofStatus.ok))
           dispatch(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
         }
       },
@@ -177,10 +177,10 @@ function submitBTCAddress (): AsyncAction {
   }
 }
 
-function addServiceProof (service: ProvablePlatformsType): AsyncAction {
+function _addServiceProof (service: ProvablePlatformsType): AsyncAction {
   return (dispatch) => {
     proveStartProofRpc({
-      ...makeWaitingHandler(dispatch),
+      ..._makeWaitingHandler(dispatch),
       param: {
         service,
         username: '',
@@ -192,7 +192,7 @@ function addServiceProof (service: ProvablePlatformsType): AsyncAction {
         'keybase.1.proveUi.promptUsername': ({prompt, prevError}, response) => {
           promptUsernameResponse = response
           if (prevError) {
-            dispatch(updateErrorText(prevError.desc, prevError.code))
+            dispatch(_updateErrorText(prevError.desc, prevError.code))
           }
           dispatch(navigateTo([{path: 'ProveEnterUsername'}], profileTab))
         },
@@ -207,7 +207,7 @@ function addServiceProof (service: ProvablePlatformsType): AsyncAction {
             }
           }
 
-          dispatch(updateProofText(proof))
+          dispatch(_updateProofText(proof))
           outputInstructionsResponse = response
           dispatch(navigateTo([{path: 'PostProof'}], profileTab))
         },
@@ -218,11 +218,11 @@ function addServiceProof (service: ProvablePlatformsType): AsyncAction {
         'keybase.1.proveUi.displayRecheckWarning': (_, response) => { response.result() },
       },
       callback: (error, {sigID}) => {
-        dispatch(updateSigID(sigID))
+        dispatch(_updateSigID(sigID))
 
         if (error) {
           console.warn('Error making proof')
-          dispatch(updateErrorText(error.raw.desc, error.raw.code))
+          dispatch(_updateErrorText(error.raw.desc, error.raw.code))
         } else {
           console.log('Start Proof done: ', sigID)
           dispatch(checkProof())
@@ -235,15 +235,15 @@ function addServiceProof (service: ProvablePlatformsType): AsyncAction {
 function addProof (platform: PlatformsExpandedType): AsyncAction {
   return (dispatch) => {
     dispatch(updatePlatform(platform))
-    dispatch(updateErrorText(null))
+    dispatch(_updateErrorText(null))
 
     // Special cases
     switch (platform) {
       case 'dnsOrGenericWebSite':
-        dispatch(askTextOrDNS())
+        dispatch(_askTextOrDNS())
         break
       case 'btc':
-        dispatch(registerBTC())
+        dispatch(_registerBTC())
         break
       // flow needs this for some reason
       case 'http':
@@ -254,19 +254,19 @@ function addProof (platform: PlatformsExpandedType): AsyncAction {
       case 'coinbase':
       case 'hackernews':
       case 'dns':
-        dispatch(addServiceProof(platform))
+        dispatch(_addServiceProof(platform))
     }
   }
 }
 
-function revokedWaitingForResponse (waiting: boolean): WaitingRevokeProof {
+function _revokedWaitingForResponse (waiting: boolean): WaitingRevokeProof {
   return {
     type: Constants.waitingRevokeProof,
     payload: {waiting},
   }
 }
 
-function revokedErrorResponse (error: string): FinishRevokeProof {
+function _revokedErrorResponse (error: string): FinishRevokeProof {
   return {
     type: Constants.finishRevokeProof,
     payload: {error},
@@ -274,13 +274,13 @@ function revokedErrorResponse (error: string): FinishRevokeProof {
   }
 }
 
-function makeRevokeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
+function _makeRevokeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
   return {
-    waitingHandler: bindActionCreators(revokedWaitingForResponse, dispatch),
+    waitingHandler: bindActionCreators(_revokedWaitingForResponse, dispatch),
   }
 }
 
-function revokedFinishResponse (): FinishRevokeProof {
+function _revokedFinishResponse (): FinishRevokeProof {
   return {
     type: Constants.finishRevokeProof,
     payload: undefined,
@@ -290,7 +290,7 @@ function revokedFinishResponse (): FinishRevokeProof {
 
 function finishRevoking (): AsyncAction {
   return (dispatch) => {
-    dispatch(revokedFinishResponse())
+    dispatch(_revokedFinishResponse())
     dispatch(navigateUp())
   }
 }
@@ -298,7 +298,7 @@ function finishRevoking (): AsyncAction {
 function submitRevokeProof (proofId: string): AsyncAction {
   return (dispatch) => {
     revokeRevokeSigsRpc({
-      ...makeRevokeWaitingHandler(dispatch),
+      ..._makeRevokeWaitingHandler(dispatch),
       param: {
         sigIDQueries: [proofId],
       },
@@ -306,7 +306,7 @@ function submitRevokeProof (proofId: string): AsyncAction {
       callback: error => {
         if (error) {
           console.warn(`Error when revoking proof ${proofId}`, error)
-          dispatch(revokedErrorResponse('There was an error revoking your proof. You can click the button to try again.'))
+          dispatch(_revokedErrorResponse('There was an error revoking your proof. You can click the button to try again.'))
         } else {
           dispatch(finishRevoking())
         }
@@ -315,46 +315,65 @@ function submitRevokeProof (proofId: string): AsyncAction {
   }
 }
 
-// Tell the server we've updated the proof so it should validate it
+function checkSpecificProof (sigID: ?string): AsyncAction {
+  return (dispatch, getState) => {
+    if (sigID) {
+      dispatch(_checkProof(sigID, false))
+    }
+  }
+}
+
 function checkProof (): AsyncAction {
   return (dispatch, getState) => {
-    dispatch(updateErrorText(null))
-    const sigID = getState().profile.sigID
-
     // This is a little tricky...
-    // As part of the addServiceProof RPC it will automatically check the proof when we finish up that flow.
+    // As part of the _addServiceProof RPC it will automatically check the proof when we finish up that flow.
     // That's the first context in which this action is dispatched.
-    // If that works the first time, the outputInstructionsResponse.result() will just continue the addServiceProof flow and we'll be done.
-    // If that doesn't work we'll actually error out of the entire addServiceProof RPC and be sitting on the outputInstructions page (this is ok)
+    // If that works the first time, the outputInstructionsResponse.result() will just continue the _addServiceProof flow and we'll be done.
+    // If that doesn't work we'll actually error out of the entire _addServiceProof RPC and be sitting on the outputInstructions page (this is ok)
     // The user can continue to hit the 'ok check it' button and we'll call proveCheckProofRpc
-
-    // If we're still in the addServiceProof RPC
     if (outputInstructionsResponse) {
       outputInstructionsResponse.result()
       outputInstructionsResponse = null
     } else {
-      // We just want to check the proof, we're NOT in addServiceProof RPC anymore
-      proveCheckProofRpc({
-        ...makeWaitingHandler(dispatch),
-        param: {
-          sigID,
-        },
-        callback: (error, {found, status}) => {
-          if (error) {
-            console.warn('Error getting proof update')
-            dispatch(updateErrorText("We couldn't verify your proof. Please retry!"))
-          } else {
+      // We just want to check the proof, we're NOT in _addServiceProof RPC anymore
+      const sigID = getState().profile.sigID
+      if (sigID) {
+        dispatch(_checkProof(sigID, true))
+      }
+    }
+  }
+}
+
+function _checkProof (sigID: string, currentlyAdding: boolean): AsyncAction {
+  return (dispatch, getState) => {
+    if (currentlyAdding) {
+      dispatch(_updateErrorText(null))
+    }
+
+    proveCheckProofRpc({
+      ..._makeWaitingHandler(dispatch),
+      param: {
+        sigID,
+      },
+      callback: (error, {found, status}) => {
+        if (error) {
+          console.warn('Error getting proof update')
+          if (currentlyAdding) {
+            dispatch(_updateErrorText("We couldn't verify your proof. Please retry!"))
+          }
+        } else {
+          if (currentlyAdding) {
             // this enum value is the divider between soft and hard errors
             if (!found && status >= proveCommon.ProofStatus.baseHardError) {
-              dispatch(updateErrorText("We couldn't find your proof. Please retry!"))
+              dispatch(_updateErrorText("We couldn't find your proof. Please retry!"))
             } else {
-              dispatch(updateProofStatus(found, status))
+              dispatch(_updateProofStatus(found, status))
               dispatch(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
             }
           }
-        },
-      })
-    }
+        }
+      },
+    })
   }
 }
 
@@ -389,12 +408,13 @@ function backToProfile (): AsyncAction {
 
 export {
   addProof,
+  backToProfile,
   cancelAddProof,
   checkProof,
+  checkSpecificProof,
   editProfile,
   finishRevoking,
   outputInstructionsActionLink,
-  backToProfile,
   submitBTCAddress,
   submitRevokeProof,
   submitUsername,

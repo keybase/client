@@ -1,17 +1,12 @@
-/* @flow */
-
-import * as Constants from '../constants/tracker'
-import type {
-  Proof, OverviewProofState, SimpleProofState, SimpleProofMeta, NonUserActions, TrackerState,
-} from '../constants/tracker'
+// @flow
 import * as CommonConstants from '../constants/common'
-
-import {identifyCommon, proveCommon} from '../constants/types/keybase-v1'
-
-import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff,
-  TrackDiffType, ProofStatus, ProofResult} from '../constants/types/flow-types'
+import * as Constants from '../constants/tracker'
+import _ from 'lodash'
+import type {Proof, OverviewProofState, SimpleProofState, SimpleProofMeta, NonUserActions, TrackerState} from '../constants/tracker'
 import type {Action} from '../constants/types/flux'
+import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, ProofResult} from '../constants/types/flow-types'
 import type {PlatformsExpandedType} from '../constants/types/more'
+import {identifyCommon, proveCommon} from '../constants/types/keybase-v1'
 
 const {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored, metaPending,
   normal, warning, error, checking} = Constants
@@ -124,6 +119,10 @@ function updateNonUserState (state: NonUserState, action: NonUserActions): NonUs
   }
 }
 
+function dedupeProofs (proofs: Array<Proof>): Array<Proof> {
+  return _.uniqBy(proofs, 'id')
+}
+
 function updateUserState (state: TrackerState, action: Action): TrackerState {
   switch (action.type) {
     case Constants.updateReason:
@@ -201,6 +200,16 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         trackerState: deriveSimpleProofState(state.eldestKidChanged, proofsGeneralState),
       }
 
+    case Constants.resetProofs:
+      if (!action.payload) {
+        return state
+      }
+
+      return {
+        ...state,
+        proofs: [],
+      }
+
     case Constants.setProofs:
       if (!action.payload) {
         return state
@@ -209,11 +218,11 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       const identity: Identity = action.payload.identity
       return {
         ...state,
-        proofs: [
+        proofs: dedupeProofs([
           ...state.proofs,
           ...(identity.revokedDetails || []).map(rv => revokedProofToProof(rv)),
           ...(identity.proofs || []).map(rp => remoteProofToProof(checking, rp.proof)),
-        ],
+        ]),
       }
 
     case Constants.updatePGPKey: {
@@ -237,7 +246,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
 
       return {
         ...state,
-        proofs: [].concat(state.proofs).concat([proof]),
+        proofs: dedupeProofs(state.proofs.concat([proof])),
       }
     }
 
@@ -263,7 +272,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
 
       return {
         ...state,
-        proofs: state.proofs.concat([proof]),
+        proofs: dedupeProofs(state.proofs.concat([proof])),
       }
     }
 
