@@ -378,8 +378,8 @@ func openSpecialInFolder(name string, folder *Folder, resp *fuse.LookupResponse)
 		return NewUpdateHistoryFile(folder, resp)
 
 	case libfs.EditHistoryName:
-		folderBranch := d.folder.getFolderBranch()
-		return NewTlfEditHistoryFile(d.folder.fs, folderBranch, resp), nil
+		folderBranch := folder.getFolderBranch()
+		return NewTlfEditHistoryFile(folder.fs, folderBranch, resp)
 
 	case libfs.UnstageFileName:
 		resp.EntryValid = 0
