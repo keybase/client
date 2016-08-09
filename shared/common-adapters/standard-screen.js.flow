@@ -1,10 +1,15 @@
 /* @flow */
 import {Component} from 'react'
 
+export type NotificationType = 'error' | 'success'
+
 export type Props = {
   children?: ?any,
   onClose?: ?(event: SyntheticMouseEvent) => void,
-  errorMessage?: ?string,
+  notification?: {
+    message: string | React$Element<*>,
+    type: NotificationType,
+  },
   style?: ?Object,
 }
 

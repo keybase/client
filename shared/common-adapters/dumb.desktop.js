@@ -12,6 +12,7 @@ import {
   Icon,
   ListItem,
   PopupMenu,
+  StandardScreen,
   TabBar,
   Text,
 } from './index'
@@ -225,6 +226,34 @@ const choiceListMap: DumbComponentMap<ChoiceList> = {
   },
 }
 
+const standardScreenProps = {
+  onClose: () => console.log('StandardScreen: onClose'),
+  children: <Text type='Header'>Whoa, look at this centered thing</Text>,
+}
+
+const standardScreenMap: DumbComponentMap<StandardScreen> = {
+  component: StandardScreen,
+  mocks: {
+    'Normal': {
+      ...standardScreenProps,
+    },
+    'Error': {
+      ...standardScreenProps,
+      notification: {
+        message: 'Something went horribly wrong! :-(',
+        type: 'error',
+      },
+    },
+    'Success w/ Custom Notification Element': {
+      ...standardScreenProps,
+      notification: {
+        message: <Text type='BodySmallSemibold' style={{color: globalColors.white}}>You won a unicorn! <Text type='BodySmallSemibold' style={{color: globalColors.white, textDecoration: 'underline'}}>Make sure to feed it</Text> :-)</Text>,
+        type: 'success',
+      },
+    },
+  },
+}
+
 export default {
   Checkbox: checkboxMap,
   TabBar: tabBarMap,
@@ -233,4 +262,5 @@ export default {
   Avatar: avatarMap,
   Icon: iconMap,
   ChoiceList: choiceListMap,
+  StandardScreen: standardScreenMap,
 }

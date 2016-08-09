@@ -2,13 +2,18 @@
 import React from 'react'
 import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import type {Props} from './standard-screen'
+import type {Props, NotificationType} from './standard-screen'
 
-const StandardScreen = ({children, onClose, errorMessage, style}: Props) => {
+const StandardScreen = ({children, onClose, notification, style}: Props) => {
   return (
     <Box style={styleContainer}>
       {!!onClose && <Icon style={styleClose} type='iconfont-close' onClick={onClose} />}
-      {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
+      {!!notification && <Box style={styleBanner(notification.type)}>
+        {typeof notification.message === 'string'
+          ? <Text style={styleBannerText} type='BodySmallSemibold'>{notification.message}</Text>
+          : notification.message
+        }
+      </Box>}
       <Box style={{...styleContentContainer, ...style}}>
         {children}
       </Box>
@@ -34,7 +39,7 @@ const styleClose = {
   color: globalColors.black_10,
 }
 
-const styleErrorBanner = {
+const styleBanner = (notificationType: NotificationType) => ({
   ...globalStyles.flexBoxColumn,
   justifyContent: 'center',
   alignItems: 'center',
@@ -42,10 +47,12 @@ const styleErrorBanner = {
   zIndex: 1,
   height: globalMargins.large,
   marginTop: -globalMargins.large,
-  backgroundColor: globalColors.red,
-}
+  backgroundColor: notificationType === 'error'
+    ? globalColors.red
+    : globalColors.green,
+})
 
-const styleErrorBannerText = {
+const styleBannerText = {
   color: globalColors.white,
 }
 
