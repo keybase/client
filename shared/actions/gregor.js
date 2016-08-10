@@ -1,7 +1,7 @@
 // @flow
 
 import * as Constants from '../constants/gregor'
-import {put, select} from 'redux-saga/effects'
+import {call, put, select} from 'redux-saga/effects'
 import {takeEvery} from 'redux-saga'
 import {favoriteList} from './favorite'
 import engine from '../engine'
@@ -57,26 +57,37 @@ function registerGregorListeners () {
   }
 }
 
-function * handleTLFUpdate (pushAction: PushState): SagaGenerator<any, any> {
+function * handleTLFUpdate (items: Array<NonNullGregorItem>): SagaGenerator<any, any> {
   // $ForceType
-  let seenMsgs: MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
+  const seenMsgs: MsgMap = yield select((state: TypedState) => state.gregor.seenMsgs)
 
+  // Check if any are a tlf items
+  const tlfUpdates = items.filter(isTlfItem)
+  const newTlfUpdates = tlfUpdates.filter(gItem => !seenMsgs[gItem.md.msgID.toString('base64')])
+  if (newTlfUpdates.length) {
+    yield put(updateSeenMsgs(newTlfUpdates))
+    yield put(favoriteList())
+  }
+}
+
+function * handlePushState (pushAction: PushState): SagaGenerator<any, any> {
   if (!pushAction.error) {
     const {payload: {state}} = pushAction
-    // Check if any are a tlf items
-    const tlfUpdates = toNonNullGregorItems(state).filter(isTlfItem)
-    const newTlfUpdates = tlfUpdates.filter(gItem => !seenMsgs[gItem.md.msgID.toString('base64')])
-    if (newTlfUpdates.length) {
-      yield put(updateSeenMsgs(newTlfUpdates))
-      yield put(favoriteList())
+    const nonNullItems = toNonNullGregorItems(state)
+    if (nonNullItems.length !== (state.items || []).length) {
+      console.warn('Lost some messages in filtering out nonNull gregor items')
     }
+
+    yield [
+      call(handleTLFUpdate, nonNullItems),
+    ]
   } else {
     console.log('Error in gregor pushState', pushAction.payload)
   }
 }
 
 function * gregorSaga (): SagaGenerator<any, any> {
-  yield takeEvery(Constants.pushState, handleTLFUpdate)
+  yield takeEvery(Constants.pushState, handlePushState)
 }
 
 export {

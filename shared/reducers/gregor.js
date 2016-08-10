@@ -29,8 +29,7 @@ export default function (state: State = initialState, action: GregorActions): St
           },
         }
       }
-      return state
-    default:
-      return state
+      break
   }
+  return state
 }
