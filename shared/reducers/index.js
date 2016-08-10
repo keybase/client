@@ -5,6 +5,7 @@ import dev from './dev'
 import devEdit from './dev-edit'
 import devices from './devices'
 import favorite from './favorite'
+import gregor from './gregor'
 import login from './login'
 import notifications from './notifications'
 import pinentry from './pinentry'
@@ -42,6 +43,7 @@ const combinedReducer = combineReducers({
   dev,
   devices,
   favorite,
+  gregor,
   login,
   notifications,
   pinentry,

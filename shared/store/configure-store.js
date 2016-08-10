@@ -8,6 +8,10 @@ import {enableStoreLogging, enableActionLogging, closureStoreCheck} from '../loc
 import {actionLogger} from './action-logger'
 import {closureCheck} from './closure-check'
 
+import createSagaMiddleware from 'redux-saga'
+import {call} from 'redux-saga/effects'
+import gregorSaga from '../actions/gregor'
+
 // Transform objects from Immutable on printing
 const objToJS = state => {
   var newState = {}
@@ -30,7 +34,14 @@ const loggerMiddleware = enableStoreLogging ? createLogger({
   collapsed: true,
 }) : null
 
-let middlewares = [thunkMiddleware]
+function * mainSaga (getState) {
+  yield [
+    call(gregorSaga),
+  ]
+}
+
+const sagaMiddleware = createSagaMiddleware()
+let middlewares = [sagaMiddleware, thunkMiddleware]
 
 if (enableStoreLogging) {
   middlewares.push(loggerMiddleware)
@@ -45,5 +56,7 @@ if (closureStoreCheck) {
 const createStoreWithMiddleware = applyMiddleware.apply(null, middlewares)
 
 export default function configureStore (initialState) {
-  return configureStoreNative(createStoreWithMiddleware)(rootReducer, initialState)
+  const s = configureStoreNative(createStoreWithMiddleware)(rootReducer, initialState)
+  sagaMiddleware.run(mainSaga)
+  return s
 }

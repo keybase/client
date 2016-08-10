@@ -3023,6 +3023,11 @@
       "from": "redux-logger@2.6.1",
       "resolved": "https://registry.npmjs.org/redux-logger/-/redux-logger-2.6.1.tgz"
     },
+    "redux-saga": {
+      "version": "0.11.0",
+      "from": "redux-saga@0.11.0",
+      "resolved": "https://registry.npmjs.org/redux-saga/-/redux-saga-0.11.0.tgz"
+    },
     "redux-thunk": {
       "version": "2.1.0",
       "from": "redux-thunk@2.1.0",
