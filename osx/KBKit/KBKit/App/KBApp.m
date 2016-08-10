@@ -47,7 +47,8 @@
 @implementation KBApp
 
 + (instancetype)app {
-  return [[NSApp delegate] app];
+  id<KBAppDelegate> delegate = [NSApp delegate];
+  return [delegate app];
 }
 
 + (KBEnvironment *)environment {

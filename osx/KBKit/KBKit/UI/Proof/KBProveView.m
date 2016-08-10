@@ -156,6 +156,8 @@
   }];
 
   [KBActivity setProgressEnabled:YES sender:self];
+  // TODO: Protocol changed
+  /*
   [request startProofWithService:_serviceName username:_serviceUsername force:NO promptPosted:NO completion:^(NSError *error, KBRStartProofResult *startProofResult) {
     [KBActivity setProgressEnabled:NO sender:self];
     if (error) {
@@ -164,6 +166,7 @@
     }
     gself.sigId = startProofResult.sigID;
   }];
+   */
 }
 
 - (void)cancel {
@@ -176,11 +179,14 @@
   GHWeakSelf gself = self;
   [KBActivity setProgressEnabled:YES sender:self];
   KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
+  // TODO: Protocol changed
+  /*
   [request revokeSigsWithSigIDs:@[sigId] completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     if ([KBActivity setError:error sender:self]) return;
     gself.completion(gself, NO);
   }];
+   */
 }
 
 - (void)continueProof {

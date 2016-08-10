@@ -19,6 +19,19 @@ script_path = File.expand_path(File.dirname(__FILE__))
 
 paths = Dir["#{script_path}/../json/*.json"]
 
+# Add common first to workaround import ordering, TODO: Fixme
+paths_move = ["#{script_path}/../json/common.json",
+  "#{script_path}/../json/prove_common.json",
+  "#{script_path}/../json/identify_common.json",
+  "#{script_path}/../json/saltpack_ui.json"]
+paths_move.reverse.each do |p|
+  paths.delete(p)
+  paths.unshift(p)
+end
+# Uses external import, TODO: Fixme
+paths.delete("#{script_path}/../json/gregor_ui.json")
+paths.delete("#{script_path}/../json/gregor.json")
+
 defined_types = []
 enums = []
 aliases = {}
@@ -40,7 +53,7 @@ end
 
 def objc_for_type(type, enums, aliases, space)
   type = type["type"] if type.kind_of?(Hash) # Subtype (for arrays)
-  type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
+  type = type.find { |t| t != "null" && !t.nil? } if type.kind_of?(Array) # Union
 
   type = aliases[type] if aliases[type]
 
@@ -54,6 +67,7 @@ def objc_for_type(type, enums, aliases, space)
   when "array" then ["NSArray *", true]
   when "map" then ["NSDictionary *", true]
   when "boolean" then ["BOOL", false]
+  when "bool" then ["BOOL", false]
   when "bytes" then ["NSData *", true]
   when "null" then ["void", false]
   when nil then ["void", false]
@@ -76,8 +90,8 @@ def is_native_type(type)
 end
 
 def is_primitive_type(type)
-  type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
-  ["int", "long", "float", "double", "boolean", "null", "Time"].include?(type)
+  type = type.find { |t| t != "null" && !t.nil? } if type.kind_of?(Array) # Union
+  ["int", "long", "float", "double", "boolean", "bool", "null", nil, "Time"].include?(type)
 end
 
 # Deprecated
@@ -88,9 +102,11 @@ end
 def validate_name(name, source)
   case name
   when "self"
-    return "slf"
+    return "selfValue"
   when "default"
-    return "dflt"
+    return "defaultValue"
+  when "auto"
+    return "automatic"
   end
 
   # Move new to end of name if starts with name, e.g. "newFolders" => "foldersNew"
@@ -112,6 +128,7 @@ def default_name_for_type(type)
   when "array" then "items"
   when "map" then "dict"
   when "boolean" then "b"
+  when "bool" then "b"
   when "binary" then "data"
   when "null" then "void"
   when nil then "void"
@@ -120,7 +137,7 @@ def default_name_for_type(type)
 end
 
 def value_for_type(type, name, enums, aliases)
-  type = type.find { |t| t != "null" } if type.kind_of?(Array) # Union
+  type = type.find { |t| t != "null" && !t.nil? } if type.kind_of?(Array) # Union
   varname = "params[0][@\"#{name}\"]"
 
   if type.kind_of?(Hash) # For array, map
@@ -151,6 +168,7 @@ def value_for_type(type, name, enums, aliases)
   when "float" then "[#{varname} floatValue]"
   when "double" then "[#{varname} doubleValue]"
   when "boolean" then "[#{varname} boolValue]"
+  when "bool" then "[#{varname} boolValue]"
   when "string" then varname
   when "array" then varname
   when "map" then varname
@@ -169,7 +187,7 @@ def add_methods(header, impl, namespace, protocol, response_type, method, reques
   header << "#{objc_method};\n"
   impl << "#{objc_method} {"
 
-  callback = if response_type == "null" then # No result
+  callback = if response_type == "null" || response_type.nil? then # No result
     "completion(error);"
   elsif is_primitive_type(response_type) # Primitive type result
     "completion(error, 0);" # TODO
@@ -285,7 +303,7 @@ paths.each do |path|
 
     request_params.shift if request_params.length > 0 && request_params[0]["name"] == "sessionID"
 
-    response_completion = if response_type == "null" then
+    response_completion = if response_type == "null" || response_type.nil? then
       "void (^)(NSError *error)"
     else
       "void (^)(NSError *error, #{objc_for_type(response_type, enums, aliases, true)}#{default_name_for_type(response_type)})"
@@ -293,10 +311,11 @@ paths.each do |path|
 
     # Generate with params object
     request_params_items = request_params.map do |p|
+      name = validate_name(p["name"], protocol)
       if is_primitive_type(p["type"]) || enums.include?(p["type"])
-        "@\"#{p["name"]}\": @(params.#{alias_name(p["name"])})"
+        "@\"#{p["name"]}\": @(params.#{alias_name(name)})"
       else
-        "@\"#{p["name"]}\": KBRValue(params.#{alias_name(p["name"])})"
+        "@\"#{p["name"]}\": KBRValue(params.#{alias_name(name)})"
       end
     end
     params_str = []
@@ -317,20 +336,22 @@ paths.each do |path|
     # Generate with full method signature (deprecated)
     if request_params.length > 0
       request_params_items = request_params.map do |p|
+        name = validate_name(p["name"], protocol)
         if is_primitive_type(p["type"]) || enums.include?(p["type"])
-          "@\"#{p["name"]}\": @(#{alias_name(p["name"])})"
+          "@\"#{p["name"]}\": @(#{alias_name(name)})"
         else
-          "@\"#{p["name"]}\": KBRValue(#{alias_name(p["name"])})"
+          "@\"#{p["name"]}\": KBRValue(#{alias_name(name)})"
         end
       end
       request_params << {"name" => "completion", "type" => response_completion}
       params_str = request_params.each_with_index.collect do |param, index|
         name = alias_name(param["name"])
         name = validate_name(name, protocol)
-        name = "With#{name.camelize}" if index == 0
-        name = "" if request_params.length == 1
+        nameLabel = name
+        nameLabel = "With#{name.camelize}" if index == 0
+        nameLabel = "" if request_params.length == 1
 
-        "#{name}:(#{objc_for_type(param["type"], enums, aliases, false)})#{alias_name(param["name"])}"
+        "#{nameLabel}:(#{objc_for_type(param["type"], enums, aliases, false)})#{alias_name(name)}"
       end
       add_methods(header, impl, namespace, protocol, response_type, method, request_params_items, params_str, aliases, enums)
     end
@@ -339,7 +360,8 @@ paths.each do |path|
     if mparam["request"].length > 0
       header_rparams << "@interface KBR#{method.camelize}RequestParams : KBRRequestParams"
       mparam["request"].each do |param|
-        header_rparams << "@property #{objc_for_type(param["type"], enums, aliases, true)}#{param["name"]};"
+        name = validate_name(param["name"], protocol)
+        header_rparams << "@property #{objc_for_type(param["type"], enums, aliases, true)}#{name};"
       end
       header_rparams << "@end"
 
@@ -349,8 +371,9 @@ paths.each do |path|
       impl_rparams << "- (instancetype)initWithParams:(NSArray *)params {"
       impl_rparams << "  if ((self = [super initWithParams:params])) {"
       mparam["request"].each do |param|
-        value = value_for_type(param["type"], param["name"], enums, aliases)
-        impl_rparams << "    self.#{param["name"]} = #{value};"
+        name = validate_name(param["name"], protocol)
+        value = value_for_type(param["type"], name, enums, aliases)
+        impl_rparams << "    self.#{name} = #{value};"
       end
       impl_rparams << "  }"
       impl_rparams << "  return self;"

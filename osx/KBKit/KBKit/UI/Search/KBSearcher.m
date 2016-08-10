@@ -32,6 +32,8 @@
     }];
   } else {
     KBRUserRequest *request = [[KBRUserRequest alloc] initWithClient:client];
+    // TODO: Protocol changed
+    /*
     [request listTrackingWithFilter:query completion:^(NSError *error, NSArray *userSummaries) {
       KBSearchResults *searchResults = [[KBSearchResults alloc] init];
       searchResults.results = userSummaries;
@@ -39,6 +41,7 @@
       searchResults.section = 0;
       completion(error, searchResults);
     }];
+     */
   }
 }
 
