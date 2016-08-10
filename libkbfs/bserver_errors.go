@@ -53,7 +53,7 @@ func (e BServerError) ToStatus() (s keybase1.Status) {
 
 // Error implements the Error interface for BServerError.
 func (e BServerError) Error() string {
-	return e.Msg
+	return "BServerError{" + e.Msg + "}"
 }
 
 // BServerErrorBadRequest is a generic client-side error.
@@ -74,7 +74,7 @@ func (e BServerErrorBadRequest) Error() string {
 	if e.Msg == "" {
 		return "BServer: bad client request"
 	}
-	return e.Msg
+	return "BServerErrorBadRequest{" + e.Msg + "}"
 }
 
 // BServerErrorUnauthorized is a generic client-side error.
@@ -95,7 +95,7 @@ func (e BServerErrorUnauthorized) Error() string {
 	if e.Msg == "" {
 		return "BServer: session not validated"
 	}
-	return e.Msg
+	return "BServerErrorUnauthorized{" + e.Msg + "}"
 }
 
 // BServerErrorOverQuota is a generic client-side error.
@@ -134,7 +134,7 @@ func (e BServerErrorOverQuota) Error() string {
 	if e.Msg == "" {
 		return "BServer: user has exceeded quota"
 	}
-	return e.Msg
+	return "BServerErrorOverQuota{" + e.Msg + "}"
 }
 
 //BServerErrorBlockNonExistent is an exportable error from bserver
@@ -155,7 +155,7 @@ func (e BServerErrorBlockNonExistent) Error() string {
 	if e.Msg == "" {
 		return "BServer: block does not exist"
 	}
-	return e.Msg
+	return "BServerErrorBlockNonExistent{" + e.Msg + "}"
 }
 
 //BServerErrorBlockArchived is an exportable error from bserver
@@ -176,7 +176,7 @@ func (e BServerErrorBlockArchived) Error() string {
 	if e.Msg == "" {
 		return "BServer: block is archived"
 	}
-	return e.Msg
+	return "BServerErrorBlockArchived{" + e.Msg + "}"
 }
 
 //BServerErrorBlockDeleted is an exportable error from bserver
@@ -197,7 +197,7 @@ func (e BServerErrorBlockDeleted) Error() string {
 	if e.Msg == "" {
 		return "BServer: block is deleted"
 	}
-	return e.Msg
+	return "BServerErrorBlockDeleted{" + e.Msg + "}"
 }
 
 //BServerErrorNoPermission is an exportable error from bserver
@@ -218,7 +218,7 @@ func (e BServerErrorNoPermission) Error() string {
 	if e.Msg == "" {
 		return "BServer: permission denied"
 	}
-	return e.Msg
+	return "BServerErrorNoPermission{" + e.Msg + "}"
 }
 
 //BServerErrorNonceNonExistent is an exportable error from bserver
@@ -239,7 +239,7 @@ func (e BServerErrorNonceNonExistent) Error() string {
 	if e.Msg == "" {
 		return "BServer: reference nonce does not exist"
 	}
-	return e.Msg
+	return "BServerErrorNonceNonExistent{" + e.Msg + "}"
 }
 
 //BServerErrorMaxRefExceeded is an exportable error from bserver
@@ -260,7 +260,7 @@ func (e BServerErrorMaxRefExceeded) Error() string {
 	if e.Msg == "" {
 		return "BServer: maximum allowed number of references exceeded"
 	}
-	return e.Msg
+	return "BServerErrorMaxRefExceeded{" + e.Msg + "}"
 }
 
 // BServerErrorThrottle is returned when the server wants the client to backoff.
@@ -270,7 +270,7 @@ type BServerErrorThrottle struct {
 
 // Error implements the Error interface for BServerErrorThrottle.
 func (e BServerErrorThrottle) Error() string {
-	return e.Msg
+	return "BServerErrorThrottle{" + e.Msg + "}"
 }
 
 // ToStatus implements the ExportableError interface for BServerErrorThrottle.

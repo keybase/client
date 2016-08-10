@@ -59,7 +59,7 @@ func (e MDServerError) Error() string {
 	if e.Err != nil {
 		return e.Err.Error()
 	}
-	return "Generic error"
+	return "MDServerError"
 }
 
 // MDServerErrorBadRequest is a generic client-side error.
@@ -77,7 +77,7 @@ func (e MDServerErrorBadRequest) ToStatus() (s keybase1.Status) {
 
 // Error implements the Error interface for MDServerErrorBadRequest.
 func (e MDServerErrorBadRequest) Error() string {
-	return fmt.Sprintf("Bad request: %s", e.Reason)
+	return fmt.Sprintf("Bad MD server request: %s", e.Reason)
 }
 
 // MDServerErrorConflictRevision is returned when the passed MD block is inconsistent with current history.
@@ -92,7 +92,7 @@ func (e MDServerErrorConflictRevision) Error() string {
 	if e.Desc == "" {
 		return fmt.Sprintf("Conflict: expected revision %d, actual %d", e.Expected, e.Actual)
 	}
-	return e.Desc
+	return "MDServerConflictRevision{" + e.Desc + "}"
 }
 
 // ToStatus implements the ExportableError interface for MDServerErrorConflictRevision.
@@ -115,7 +115,7 @@ func (e MDServerErrorConflictPrevRoot) Error() string {
 	if e.Desc == "" {
 		return fmt.Sprintf("Conflict: expected previous root %v, actual %v", e.Expected, e.Actual)
 	}
-	return e.Desc
+	return "MDServerConflictPrevRoot{" + e.Desc + "}"
 }
 
 // ToStatus implements the ExportableError interface for MDServerErrorConflictPrevRoot.
@@ -146,7 +146,7 @@ func (e MDServerErrorConflictDiskUsage) Error() string {
 	if e.Desc == "" {
 		return fmt.Sprintf("Conflict: expected disk usage %d, actual %d", e.Expected, e.Actual)
 	}
-	return e.Desc
+	return "MDServerConflictDiskUsage{" + e.Desc + "}"
 }
 
 // MDServerErrorLocked is returned when the folder truncation lock is acquired by someone else.
@@ -155,7 +155,7 @@ type MDServerErrorLocked struct {
 
 // Error implements the Error interface for MDServerErrorLocked.
 func (e MDServerErrorLocked) Error() string {
-	return "Locked"
+	return "MDServerErrorLocked{}"
 }
 
 // ToStatus implements the ExportableError interface for MDServerErrorLocked.
@@ -173,7 +173,7 @@ type MDServerErrorUnauthorized struct {
 
 // Error implements the Error interface for MDServerErrorUnauthorized.
 func (e MDServerErrorUnauthorized) Error() string {
-	msg := "Unauthorized"
+	msg := "MDServer Unauthorized"
 	if e.Err != nil {
 		msg += ": " + e.Err.Error()
 	}
@@ -194,7 +194,7 @@ type MDServerErrorWriteAccess struct{}
 
 // Error implements the Error interface for MDServerErrorWriteAccess.
 func (e MDServerErrorWriteAccess) Error() string {
-	return "WriteAccess"
+	return "MDServerErrorWriteAccess{}"
 }
 
 // ToStatus implements the ExportableError interface for MDServerErrorWriteAccess.
@@ -212,7 +212,7 @@ type MDServerErrorThrottle struct {
 
 // Error implements the Error interface for MDServerErrorThrottle.
 func (e MDServerErrorThrottle) Error() string {
-	return e.Err.Error()
+	return "MDServerErrorThrottle{" + e.Err.Error() + "}"
 }
 
 // ToStatus implements the ExportableError interface for MDServerErrorThrottle.
@@ -231,7 +231,7 @@ type MDServerErrorConditionFailed struct {
 
 // Error implements the Error interface for MDServerErrorConditionFailed.
 func (e MDServerErrorConditionFailed) Error() string {
-	return e.Err.Error()
+	return "MDServerErrorConditionFailed{" + e.Err.Error() + "}"
 }
 
 // ToStatus implements the ExportableError interface for MDServerErrorConditionFailed.
@@ -256,7 +256,7 @@ func (e MDServerErrorConflictFolderMapping) Error() string {
 		return fmt.Sprintf("Conflict: expected folder ID %s, actual %s",
 			e.Expected, e.Actual)
 	}
-	return e.Desc
+	return "MDServerErrorConflictFolderMapping{" + e.Desc + "}"
 }
 
 // ToStatus implements the ExportableError interface for MDServerErrorConflictFolderMapping
