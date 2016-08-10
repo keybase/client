@@ -14,6 +14,7 @@ services:
         ports:
             - "3000:3000"
             - "13009"
+            - "13010"
         links:
             - mysql.local
             - gregor.local
