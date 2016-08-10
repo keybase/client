@@ -61,8 +61,35 @@ func (e *PGPPurge) Run(ctx *Context) error {
 	}
 	e.me = me
 
-	for _, bundle := range e.me.GetActivePGPKeys(false) {
-		if err := e.export(ctx, bundle); err != nil {
+	// get all PGP blocks in keyring
+	var blocks []*libkb.SKB
+	kerr := e.G().LoginState().Keyring(func(ring *libkb.SKBKeyringFile) {
+		blocks, err = ring.AllPGPBlocks()
+	}, "AllPGPBlocks")
+	if kerr != nil {
+		return kerr
+	}
+	if err != nil {
+		return err
+	}
+
+	// export each one to a file
+	if err := e.exportBlocks(ctx, blocks); err != nil {
+		return err
+	}
+
+	if e.arg.DoPurge {
+		// if purge flag set, remove all PGP blocks from keyring and save it
+		kerr = e.G().LoginState().Keyring(func(ring *libkb.SKBKeyringFile) {
+			err = ring.RemoveAllPGPBlocks()
+			if err == nil {
+				err = ring.Save()
+			}
+		}, "RemoveAllPGPBlocks")
+		if kerr != nil {
+			return kerr
+		}
+		if err != nil {
 			return err
 		}
 	}
@@ -75,66 +102,35 @@ func (e *PGPPurge) KeyFiles() []string {
 	return e.filenames
 }
 
-func (e *PGPPurge) export(ctx *Context, bundle *libkb.PGPKeyBundle) error {
-	skb, key, err := e.findAndUnlock(ctx, bundle)
-	if err != nil {
-		return err
-	}
-	if key == nil {
-		return nil
-	}
-
-	filename := filepath.Join(e.G().Env.GetConfigDir(), key.GetFingerprint().String()+".sp")
-	if err := e.encryptToFile(ctx, key, filename); err != nil {
-		return err
-	}
-
-	if e.arg.DoPurge {
-		e.G().Log.Debug("Removing PGP Key %s from keyring", key.GetFingerprint())
-		if err := libkb.RemoveSKBFromKeyring(e.G(), skb); err != nil {
-			return err
-		}
-	}
-
-	e.filenames = append(e.filenames, filename)
-	return nil
-}
-
-func (e *PGPPurge) findAndUnlock(ctx *Context, bundle *libkb.PGPKeyBundle) (*libkb.SKB, *libkb.PGPKeyBundle, error) {
-	arg := libkb.SecretKeyArg{
-		Me:       e.me,
-		KeyType:  libkb.PGPKeyType,
-		KeyQuery: bundle.GetFingerprint().String(),
-	}
-	var skb *libkb.SKB
-	var err error
-	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
-		skb, err = a.LockedLocalSecretKey(arg)
-	}, "PGPPurge - export")
-	if aerr != nil {
-		return nil, nil, aerr
-	}
-	if err != nil {
-		return nil, nil, err
-	}
-	if skb == nil {
-		return nil, nil, nil
-	}
-
-	secretRetriever := libkb.NewSecretStore(e.G(), e.me.GetNormalizedName())
+func (e *PGPPurge) exportBlocks(ctx *Context, blocks []*libkb.SKB) error {
+	sstore := libkb.NewSecretStore(e.G(), e.me.GetNormalizedName())
 	promptArg := libkb.SecretKeyPromptArg{
 		SecretUI: ctx.SecretUI,
 		Reason:   "export private PGP key",
 	}
-	gk, err := skb.PromptAndUnlock(promptArg, secretRetriever, e.me)
-	if err != nil {
-		return nil, nil, err
+
+	for i, block := range blocks {
+		block.SetUID(e.me.GetUID())
+		key, err := block.PromptAndUnlock(promptArg, sstore, e.me)
+		if err != nil {
+			return err
+		}
+
+		pgpKey, ok := key.(*libkb.PGPKeyBundle)
+		if !ok {
+			return fmt.Errorf("unlocked key incorrect type")
+		}
+
+		name := fmt.Sprintf("kb-%04d-%s.sp", i, pgpKey.GetFingerprint())
+		path := filepath.Join(e.G().Env.GetConfigDir(), name)
+		if err := e.encryptToFile(ctx, pgpKey, path); err != nil {
+			return err
+		}
+
+		e.filenames = append(e.filenames, path)
 	}
-	pk, ok := gk.(*libkb.PGPKeyBundle)
-	if !ok {
-		return nil, nil, fmt.Errorf("unlocked key incorrect type")
-	}
-	return skb, pk, nil
+
+	return nil
 }
 
 func (e *PGPPurge) encryptToFile(ctx *Context, bundle *libkb.PGPKeyBundle, filename string) error {

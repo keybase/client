@@ -629,53 +629,6 @@ func (k *SKBKeyringFile) Push(skb *SKB) error {
 	return nil
 }
 
-func (k *SKBKeyringFile) Remove(skb *SKB) error {
-	key, err := skb.GetPubKey()
-	if err != nil {
-		return fmt.Errorf("Failed to get pubkey: %s", err)
-	}
-
-	ok := true
-	for ok {
-		ok, err = k.removeKey(key)
-		if err != nil {
-			return err
-		}
-	}
-
-	k.removeFromIndex(key)
-
-	k.dirty = true
-
-	return nil
-}
-
-// removeKey returns true, nil if it removed a key that matched.
-func (k *SKBKeyringFile) removeKey(key GenericKey) (bool, error) {
-	index := -1
-	for i, block := range k.Blocks {
-		bkey, err := block.GetPubKey()
-		if err != nil {
-			return false, err
-		}
-		if bkey.GetKID().Equal(key.GetKID()) {
-			index = i
-			break
-		}
-	}
-	if index == -1 {
-		return false, nil
-	}
-
-	// delete index from Blocks (which contains pointers)
-	// https://github.com/golang/go/wiki/SliceTricks
-	copy(k.Blocks[index:], k.Blocks[index+1:])
-	k.Blocks[len(k.Blocks)-1] = nil
-	k.Blocks = k.Blocks[:len(k.Blocks)-1]
-
-	return true, nil
-}
-
 func (k SKBKeyringFile) GetFilename() string { return k.filename }
 
 func (k SKBKeyringFile) WriteTo(w io.Writer) (int64, error) {
@@ -861,28 +814,40 @@ func (k *SKBKeyringFile) PushAndSave(skb *SKB) error {
 	return k.Save()
 }
 
-func (k *SKBKeyringFile) RemoveAndSave(skb *SKB) error {
-	if err := k.Remove(skb); err != nil {
-		return err
-	}
-	return k.Save()
-}
-
 func (k *SKBKeyringFile) HasPGPKeys() bool {
 	return len(k.fpIndex) > 0
 }
 
-// RemoveSKBFromKeyring removes skb from the local keyring.
-func RemoveSKBFromKeyring(g *GlobalContext, skb *SKB) error {
-	var err error
-	kerr := g.LoginState().Keyring(func(ring *SKBKeyringFile) {
-		err = ring.RemoveAndSave(skb)
-	}, "RemoveAndSave")
-	if kerr != nil {
-		return kerr
+func (k *SKBKeyringFile) AllPGPBlocks() ([]*SKB, error) {
+	var pgpBlocks []*SKB
+	for _, block := range k.Blocks {
+		k, err := block.GetPubKey()
+		if err != nil {
+			return nil, err
+		}
+		if fp := k.GetFingerprintP(); fp != nil {
+			pgpBlocks = append(pgpBlocks, block)
+		}
 	}
-	if err != nil {
-		return err
+	return pgpBlocks, nil
+}
+
+func (k *SKBKeyringFile) RemoveAllPGPBlocks() error {
+	var blocks []*SKB
+	for _, block := range k.Blocks {
+		k, err := block.GetPubKey()
+		if err != nil {
+			return err
+		}
+		if fp := k.GetFingerprintP(); fp == nil {
+			blocks = append(blocks, block)
+		}
 	}
+	k.Blocks = blocks
+	k.fpIndex = make(map[PGPFingerprint]*SKB)
+	k.kidIndex = make(map[keybase1.KID]*SKB)
+	k.Index()
+	k.dirty = true
+
 	return nil
 }
