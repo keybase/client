@@ -22,7 +22,7 @@ type tlfJournalBundle struct {
 	lock sync.RWMutex
 
 	blockJournal *blockJournal
-	mdJournal    mdJournal
+	mdJournal    *mdJournal
 }
 
 // JournalServer is the server that handles write journals. It

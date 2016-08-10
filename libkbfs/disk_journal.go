@@ -126,27 +126,31 @@ func (j diskJournal) clearOrdinals() error {
 	return os.Remove(j.latestPath())
 }
 
-func (j diskJournal) removeEarliest() error {
+func (j diskJournal) removeEarliest() (empty bool, err error) {
 	earliestOrdinal, err := j.readEarliestOrdinal()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	latestOrdinal, err := j.readLatestOrdinal()
 	if err != nil {
-		return err
+		return false, err
 	}
 
 	if earliestOrdinal == latestOrdinal {
-		return j.clearOrdinals()
+		err := j.clearOrdinals()
+		if err != nil {
+			return false, err
+		}
+		return true, nil
 	}
 
 	err = j.writeEarliestOrdinal(earliestOrdinal + 1)
 	if err != nil {
-		return err
+		return false, err
 	}
 
-	return nil
+	return false, nil
 }
 
 // The functions below are for reading and writing journal entries.

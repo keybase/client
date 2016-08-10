@@ -411,7 +411,7 @@ func (j *blockJournal) putData(
 		len(buf), id, context)
 	defer func() {
 		if err != nil {
-			j.deferLog.Debug(
+			j.deferLog.CDebugf(ctx,
 				"Put for block %s with context %v failed with %v",
 				id, context, err)
 		}
@@ -490,7 +490,7 @@ func (j *blockJournal) addReference(
 		id, context)
 	defer func() {
 		if err != nil {
-			j.deferLog.Debug(
+			j.deferLog.CDebugf(ctx,
 				"Adding reference for block %s with context %v failed with %v",
 				id, context, err)
 		}
@@ -544,7 +544,7 @@ func (j *blockJournal) removeReferences(
 		contexts, removeUnreferencedBlocks)
 	defer func() {
 		if err != nil {
-			j.deferLog.Debug(
+			j.deferLog.CDebugf(ctx,
 				"Removing references for %v (remove unreferenced blocks=%t)",
 				contexts, removeUnreferencedBlocks, err)
 		}
@@ -596,7 +596,7 @@ func (j *blockJournal) archiveReferences(
 	j.log.CDebugf(ctx, "Archiving references for %v", contexts)
 	defer func() {
 		if err != nil {
-			j.deferLog.Debug(
+			j.deferLog.CDebugf(ctx,
 				"Archiving references for %v,", contexts, err)
 		}
 	}()
@@ -710,7 +710,7 @@ func (j *blockJournal) flushOne(
 		return false, fmt.Errorf("Unknown op %s", e.Op)
 	}
 
-	err = j.j.removeEarliest()
+	_, err = j.j.removeEarliest()
 	if err != nil {
 		return false, err
 	}

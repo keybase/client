@@ -81,10 +81,17 @@ type mdJournal struct {
 	deferLog logger.Logger
 
 	j mdIDJournal
+
+	// Set only when the journal becomes empty due to
+	// flushing. This doesn't need to be persisted, since on a
+	// restart this info is retrieved from the server (via
+	// GetUnmergedForTLF).
+	lastMdID     MdID
+	lastBranchID BranchID
 }
 
 func makeMDJournal(codec Codec, crypto cryptoPure, dir string,
-	log logger.Logger) mdJournal {
+	log logger.Logger) *mdJournal {
 	journalDir := filepath.Join(dir, "md_journal")
 
 	deferLog := log.CloneWithAddedDepth(1)
@@ -96,7 +103,7 @@ func makeMDJournal(codec Codec, crypto cryptoPure, dir string,
 		deferLog: deferLog,
 		j:        makeMdIDJournal(codec, journalDir),
 	}
-	return journal
+	return &journal
 }
 
 // The functions below are for building various paths.
@@ -422,7 +429,7 @@ func (e MDJournalConflictError) Error() string {
 // modifying it as needed. In particular, if this is an unmerged
 // RootMetadata but the branch ID isn't set, it will be set to the
 // journal's branch ID, which is assumed to be non-zero.
-func (j mdJournal) put(
+func (j *mdJournal) put(
 	ctx context.Context, signer cryptoSigner, ekg encryptionKeyGetter,
 	rmd *RootMetadata, currentUID keybase1.UID,
 	currentVerifyingKey VerifyingKey) (mdID MdID, err error) {
@@ -430,7 +437,7 @@ func (j mdJournal) put(
 		rmd.ID, rmd.Revision, rmd.BID)
 	defer func() {
 		if err != nil {
-			j.deferLog.Debug(
+			j.deferLog.CDebugf(ctx,
 				"Put MD for TLF=%s with rev=%s bid=%s failed with %v",
 				rmd.ID, rmd.Revision, rmd.BID, err)
 		}
@@ -441,18 +448,36 @@ func (j mdJournal) put(
 		return MdID{}, err
 	}
 
+	var lastMdID MdID
+	var lastBranchID BranchID
+	if head == (ImmutableBareRootMetadata{}) {
+		lastMdID = j.lastMdID
+		lastBranchID = j.lastBranchID
+	} else {
+		lastMdID = head.mdID
+		lastBranchID = head.BID
+	}
+
 	mStatus := rmd.MergedStatus()
 	bid := rmd.BID
 
-	if (mStatus == Unmerged) && (bid == NullBranchID) &&
-		(head != ImmutableBareRootMetadata{}) {
-		rmd.BID = head.BID
-		rmd.PrevRoot = head.mdID
+	if (mStatus == Unmerged) && (bid == NullBranchID) {
+		j.log.CDebugf(
+			ctx, "Changing branch ID to %s and prev root to %s for MD for TLF=%s with rev=%s",
+			lastBranchID, lastMdID, rmd.ID, rmd.Revision, rmd.BID)
+		rmd.BID = lastBranchID
+		rmd.PrevRoot = lastMdID
 		bid = rmd.BID
 	}
 
 	if (mStatus == Merged) != (bid == NullBranchID) {
 		return MdID{}, errors.New("Invalid branch ID")
+	}
+
+	// If we're trying to push a merged MD onto a branch, return a
+	// conflict error so the caller can retry with an unmerged MD.
+	if mStatus == Merged && lastBranchID != NullBranchID {
+		return MdID{}, MDJournalConflictError{}
 	}
 
 	// Check permissions and consistency with head, if it exists.
@@ -466,13 +491,6 @@ func (j mdJournal) put(
 		if !ok {
 			// TODO: Use a non-server error.
 			return MdID{}, MDServerErrorUnauthorized{}
-		}
-
-		// If we're trying to push a merged MD onto a branch,
-		// return a conflict error so the caller can retry
-		// with an unmerged MD.
-		if mStatus == Merged && head.BID != NullBranchID {
-			return MdID{}, MDJournalConflictError{}
 		}
 
 		// Consistency checks
@@ -500,20 +518,24 @@ func (j mdJournal) put(
 		return MdID{}, err
 	}
 
+	// Since the journal is now non-empty, clear these fields.
+	j.lastMdID = MdID{}
+	j.lastBranchID = BranchID{}
+
 	return id, nil
 }
 
 // flushOne sends the earliest MD in the journal to the given MDServer
 // if one exists, and then removes it. Returns whether there was an MD
 // that was put.
-func (j mdJournal) flushOne(
+func (j *mdJournal) flushOne(
 	ctx context.Context, signer cryptoSigner, currentUID keybase1.UID,
 	currentVerifyingKey VerifyingKey, mdserver MDServer) (
 	flushed bool, err error) {
 	j.log.CDebugf(ctx, "Flushing one MD to server")
 	defer func() {
 		if err != nil {
-			j.deferLog.Debug("Flush failed with %v", err)
+			j.deferLog.CDebugf(ctx, "Flush failed with %v", err)
 		}
 	}()
 
@@ -538,9 +560,18 @@ func (j mdJournal) flushOne(
 		return false, nil
 	}
 
-	err = j.j.removeEarliest()
+	empty, err := j.j.removeEarliest()
 	if err != nil {
 		return false, err
+	}
+
+	// Since the journal is now empty, set these fields.
+	if empty {
+		j.log.CDebugf(ctx,
+			"Journal is now empty; saving last MdID=%s and last Branch ID=%s",
+			earliestID, rmd.BID)
+		j.lastMdID = earliestID
+		j.lastBranchID = rmd.BID
 	}
 
 	return true, nil
@@ -552,7 +583,8 @@ func (j mdJournal) clear(
 	j.log.CDebugf(ctx, "Clearing journal for branch %s", bid)
 	defer func() {
 		if err != nil {
-			j.deferLog.Debug("Clearing journal for branch %s failed with %v",
+			j.deferLog.CDebugf(ctx,
+				"Clearing journal for branch %s failed with %v",
 				bid, err)
 		}
 	}()
@@ -566,6 +598,8 @@ func (j mdJournal) clear(
 		// Nothing to do.
 		return nil
 	}
+
+	// No need to set lastMdID or lastBranchID in this case.
 
 	return j.j.clear()
 }

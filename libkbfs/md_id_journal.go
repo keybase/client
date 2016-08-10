@@ -171,7 +171,7 @@ func (j mdIDJournal) append(r MetadataRevision, mdID MdID) error {
 	return j.j.appendJournalEntry(&o, mdID)
 }
 
-func (j mdIDJournal) removeEarliest() error {
+func (j mdIDJournal) removeEarliest() (empty bool, err error) {
 	return j.j.removeEarliest()
 }
 
