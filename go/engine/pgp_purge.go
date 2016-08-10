@@ -121,7 +121,7 @@ func (e *PGPPurge) exportBlocks(ctx *Context, blocks []*libkb.SKB) error {
 			return fmt.Errorf("unlocked key incorrect type")
 		}
 
-		name := fmt.Sprintf("kb-%04d-%s.sp", i, pgpKey.GetFingerprint())
+		name := fmt.Sprintf("kb-%04d-%s.saltpack", i, pgpKey.GetFingerprint())
 		path := filepath.Join(e.G().Env.GetConfigDir(), name)
 		if err := e.encryptToFile(ctx, pgpKey, path); err != nil {
 			return err
