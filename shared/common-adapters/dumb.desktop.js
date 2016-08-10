@@ -243,12 +243,12 @@ const standardScreenMap: DumbComponentMap<StandardScreen> = {
 }
 
 export default {
+  Avatar: avatarMap,
   Checkbox: checkboxMap,
-  TabBar: tabBarMap,
+  ChoiceList: choiceListMap,
+  Icon: iconMap,
   ListItem: listItemMap,
   PopupMenu: popupMenuMap,
-  Avatar: avatarMap,
-  Icon: iconMap,
-  ChoiceList: choiceListMap,
   StandardScreen: standardScreenMap,
+  TabBar: tabBarMap,
 }

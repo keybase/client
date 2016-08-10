@@ -4,18 +4,18 @@ import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import type {Props, NotificationType} from './standard-screen'
 
-const StandardScreen = ({children, onClose, notification, style}: Props) => {
+const StandardScreen = (props: Props) => {
   return (
-    <Box style={styleContainer}>
-      {!!onClose && <Icon style={styleClose} type='iconfont-close' onClick={onClose} />}
-      {!!notification && <Box style={styleBanner(notification.type)}>
-        {typeof notification.message === 'string'
-          ? <Text style={styleBannerText} type='BodySmallSemibold'>{notification.message}</Text>
-          : notification.message
+    <Box style={{...styleContainer, ...props.styleOuter}}>
+      {!!props.onClose && <Icon style={{...styleClose, ...props.styleClose}} type='iconfont-close' onClick={props.onClose} />}
+      {!!props.notification && <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
+        {typeof props.notification.message === 'string'
+          ? <Text style={styleBannerText} type='BodySmallSemibold'>{props.notification.message}</Text>
+          : props.notification.message
         }
       </Box>}
-      <Box style={{...styleContentContainer, ...style}}>
-        {children}
+      <Box style={{...styleContentContainer, ...props.style}}>
+        {props.children}
       </Box>
     </Box>
   )
