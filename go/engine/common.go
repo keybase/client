@@ -48,7 +48,7 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 		return nil, libkb.NoPaperKeysError{}
 	}
 
-	passphrase, err := libkb.GetPaperKeyPassphrase(g, ctx.SecretUI, me.GetName())
+	passphrase, err := libkb.GetPaperKeyPassphrase(g, ctx.SecretUI, me.GetName(), nil)
 	if err != nil {
 		return nil, err
 	}
