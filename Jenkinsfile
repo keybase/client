@@ -112,6 +112,12 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                         sh "docker-compose up -d mysql.local"
                     }
                     sh "docker-compose up -d kbweb.local"
+                    sh "docker cp client_gregor.local_1:/home/keybase/revision gregor_revision"
+                    sh "docker cp client_kbweb.local_1:/home/keybase/kbweb_revision kbweb_revision"
+                    def gregorRevision = readFile("gregor_revision")
+                    def kbwebRevision = readFile("kbweb_revision")
+                    println "Ran with gregor revision ${gregorRevision}"
+                    println "Ran with kbweb revision ${kbwebRevision}"
 
                     stage "Test"
                         parallel (
