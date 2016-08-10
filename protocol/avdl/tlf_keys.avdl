@@ -8,6 +8,11 @@ protocol tlfKeys {
   @typedef("string")
   record CanonicalTlfName {}
 
+  record CryptKey {
+    int KeyGeneration;
+    Bytes32 Key;
+  }
+
   record TLFCryptKeys {
     
     TLFID tlfID;
@@ -15,12 +20,9 @@ protocol tlfKeys {
     // canonical name of the TLF
     CanonicalTlfName CanonicalName;
 
-    // the KeyGen of the first element stored in SecretKeys
-    int FirstValidKeyGen;
-
     // crypt keys of all generations for this TLF, in order, starting from
     // FirstValidKeyGen
-    array<Bytes32> CryptKeys;
+    array<CryptKey> CryptKeys;
   }
 
   /**

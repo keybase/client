@@ -15,6 +15,20 @@
     },
     {
       "type": "record",
+      "name": "CryptKey",
+      "fields": [
+        {
+          "type": "int",
+          "name": "KeyGeneration"
+        },
+        {
+          "type": "Bytes32",
+          "name": "Key"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TLFCryptKeys",
       "fields": [
         {
@@ -26,13 +40,9 @@
           "name": "CanonicalName"
         },
         {
-          "type": "int",
-          "name": "FirstValidKeyGen"
-        },
-        {
           "type": {
             "type": "array",
-            "items": "Bytes32"
+            "items": "CryptKey"
           },
           "name": "CryptKeys"
         }

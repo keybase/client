@@ -287,6 +287,11 @@ export type ConfirmResult = {
   expiringLocal: boolean,
 }
 
+export type CryptKey = {
+  KeyGeneration: int,
+  Key: Bytes32,
+}
+
 export type Cryptocurrency = {
   rowId: int,
   pkhash: bytes,
@@ -1326,8 +1331,7 @@ export type TLF = {
 export type TLFCryptKeys = {
   tlfID: TLFID,
   CanonicalName: CanonicalTlfName,
-  FirstValidKeyGen: int,
-  CryptKeys?: ?Array<Bytes32>,
+  CryptKeys?: ?Array<CryptKey>,
 }
 
 export type TLFID = string
