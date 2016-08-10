@@ -284,7 +284,7 @@ type folderBranchOps struct {
 	// Protected by mdWriterLock
 	rekeyWithPromptTimer *time.Timer
 
-	editHistory TlfEditHistory
+	editHistory *TlfEditHistory
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -346,14 +346,10 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 		shutdownChan:    make(chan struct{}),
 		updatePauseChan: make(chan (<-chan struct{})),
 		forceSyncChan:   forceSyncChan,
-		editHistory: TlfEditHistory{
-			config: config,
-			log:    log,
-		},
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
 	fbo.fbm = newFolderBlockManager(config, fb, fbo)
-	fbo.editHistory.fbo = fbo
+	fbo.editHistory = NewTlfEditHistory(config, fbo, log)
 	if config.DoBackgroundFlushes() {
 		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
 	}
@@ -399,6 +395,7 @@ func (fbo *folderBranchOps) Shutdown() error {
 	close(fbo.shutdownChan)
 	fbo.cr.Shutdown()
 	fbo.fbm.shutdown()
+	fbo.editHistory.Shutdown()
 	// Wait for the update goroutine to finish, so that we don't have
 	// any races with logging during test reporting.
 	if fbo.updateDoneChan != nil {
@@ -3252,6 +3249,7 @@ func (fbo *folderBranchOps) notifyBatchLocked(
 
 	lastOp := md.data.Changes.Ops[len(md.data.Changes.Ops)-1]
 	fbo.notifyOneOpLocked(ctx, lState, lastOp, md)
+	fbo.editHistory.UpdateHistory(ctx, []ImmutableRootMetadata{md})
 }
 
 // searchForNode tries to figure out the path to the given
@@ -3553,6 +3551,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 			fbo.notifyOneOpLocked(ctx, lState, op, rmd)
 		}
 	}
+	fbo.editHistory.UpdateHistory(ctx, rmds)
 	return nil
 }
 
@@ -3612,6 +3611,7 @@ func (fbo *folderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 			fbo.notifyOneOpLocked(ctx, lState, io, rmd)
 		}
 	}
+	// TODO: update the edit history?
 	return nil
 }
 
@@ -4118,6 +4118,9 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 	if err := fbo.fbm.waitForDeletingBlocks(ctx); err != nil {
 		return err
 	}
+	if err := fbo.editHistory.Wait(ctx); err != nil {
+		return err
+	}
 	return fbo.fbm.waitForQuotaReclamations(ctx)
 }
 
@@ -4403,6 +4406,7 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	for _, op := range newOps {
 		fbo.notifyOneOpLocked(ctx, lState, op, irmd)
 	}
+	fbo.editHistory.UpdateHistory(ctx, []ImmutableRootMetadata{irmd})
 	return nil
 }
 

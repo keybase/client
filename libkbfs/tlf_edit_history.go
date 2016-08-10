@@ -77,6 +77,37 @@ func (we TlfWriterEdits) isComplete() bool {
 	return true
 }
 
+// updateOldEdits removes edits from `we` belonging to files that have
+// been removed, and renames ones that have been renamed.
+func (we TlfWriterEdits) updateOldEdits(removed map[string]bool,
+	renamed map[string]string) {
+	if len(removed) == 0 && len(renamed) == 0 {
+		return
+	}
+	for writer, edits := range we {
+		var newEdits TlfEditList
+		for _, edit := range edits {
+			if removed[edit.Filepath] {
+				continue
+			}
+			if newName, ok := renamed[edit.Filepath]; ok {
+				edit.Filepath = newName
+			}
+			newEdits = append(newEdits, edit)
+		}
+		we[writer] = newEdits
+	}
+}
+
+// addNewEdits simply adds in edits from the new list to `we`.
+func (we TlfWriterEdits) addNewEdits(newEdits TlfWriterEdits) {
+	for w, edits := range newEdits {
+		for _, edit := range edits {
+			we[w] = append(we[w], edit)
+		}
+	}
+}
+
 type writerEditEstimates map[keybase1.UID]int
 
 func (wee writerEditEstimates) isComplete() bool {
@@ -124,19 +155,54 @@ type TlfEditHistory struct {
 	fbo    *folderBranchOps
 	log    logger.Logger
 
-	lock      sync.Mutex
-	edits     TlfWriterEdits
-	editsTime time.Time
+	rmdsChan chan []ImmutableRootMetadata
+	wg       RepeatedWaitGroup
+	cancel   context.CancelFunc
+
+	lock     sync.Mutex
+	edits    TlfWriterEdits
+	shutdown bool
+	sends    sync.WaitGroup
+}
+
+// NewTlfEditHistory makes a new TLF edit history.
+func NewTlfEditHistory(config Config, fbo *folderBranchOps,
+	log logger.Logger) *TlfEditHistory {
+	processCtx, cancel := context.WithCancel(context.Background())
+	teh := &TlfEditHistory{
+		config:   config,
+		fbo:      fbo,
+		log:      log,
+		rmdsChan: make(chan []ImmutableRootMetadata, 100),
+		cancel:   cancel,
+	}
+	go teh.process(processCtx)
+	return teh
+}
+
+// Shutdown shuts down all background processing.
+func (teh *TlfEditHistory) Shutdown() {
+	teh.lock.Lock()
+	teh.shutdown = true
+	teh.lock.Unlock()
+	teh.cancel()
+
+	// Wait until we're sure all sends have finished before we close
+	// the channel.
+	teh.sends.Wait()
+	close(teh.rmdsChan)
+}
+
+// Wait returns nil once all outstanding processing is complete.
+func (teh *TlfEditHistory) Wait(ctx context.Context) error {
+	if err := teh.wg.Wait(ctx); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (teh *TlfEditHistory) getEditsCopyLocked() TlfWriterEdits {
 	if teh.edits == nil {
-		return nil
-	}
-	// Until we listen for later updates and repair the edits list,
-	// let's not cache this for too long.  TODO: fix me.
-	if teh.config.Clock().Now().After(teh.editsTime.Add(1 * time.Minute)) {
-		teh.edits = nil
 		return nil
 	}
 
@@ -165,17 +231,17 @@ func (teh *TlfEditHistory) updateRmds(rmds []ImmutableRootMetadata,
 }
 
 func (teh *TlfEditHistory) calculateEditCounts(ctx context.Context,
-	rmds []ImmutableRootMetadata) (TlfWriterEdits, error) {
+	rmds []ImmutableRootMetadata) (TlfWriterEdits, *crChains, error) {
 	chains, err := newCRChains(ctx, teh.config, rmds, &teh.fbo.blocks, false)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	// Set the paths on all the ops
 	_, err = chains.getPaths(ctx, &teh.fbo.blocks, teh.log, teh.fbo.nodeCache,
 		true)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	edits := make(TlfWriterEdits)
@@ -262,7 +328,25 @@ outer:
 		}
 	}
 
-	return edits, nil
+	return edits, chains, nil
+}
+
+func (teh *TlfEditHistory) setEdits(ctx context.Context,
+	currEdits TlfWriterEdits, rmds []ImmutableRootMetadata) {
+	// Sort each of the edit lists by timestamp
+	for w, list := range currEdits {
+		sort.Sort(list)
+		if len(list) > desiredEditsPerWriter {
+			list = list[len(list)-desiredEditsPerWriter:]
+		}
+		currEdits[w] = list
+	}
+	teh.log.CDebugf(ctx, "Edits complete: %d revisions, starting from "+
+		"revision %d", len(rmds), rmds[0].Revision)
+
+	teh.lock.Lock()
+	defer teh.lock.Unlock()
+	teh.edits = currEdits
 }
 
 // GetComplete returns the most recently known set of clustered edit
@@ -275,7 +359,8 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 	}
 
 	// We have no history -- fetch from the server until we have a
-	// complete history.
+	// complete history.  TODO: make sure only one goroutine tries to
+	// calculate the edit history at a time?
 
 	estimates := make(writerEditEstimates)
 	for _, writer := range head.GetTlfHandle().ResolvedWriters() {
@@ -304,7 +389,7 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 			// calculate the chains using all those MDs, and build the
 			// real edit map (discounting deleted files, etc).
 			var err error
-			currEdits, err = teh.calculateEditCounts(ctx, rmds)
+			currEdits, _, err = teh.calculateEditCounts(ctx, rmds)
 			if err != nil {
 				return nil, err
 			}
@@ -348,26 +433,161 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 	if currEdits == nil {
 		// We broke out of the loop early.
 		var err error
-		currEdits, err = teh.calculateEditCounts(ctx, rmds)
+		currEdits, _, err = teh.calculateEditCounts(ctx, rmds)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	// Sort each of the edit lists by timestamp
-	for w, list := range currEdits {
-		sort.Sort(list)
-		if len(list) > desiredEditsPerWriter {
-			list = list[len(list)-desiredEditsPerWriter:]
-		}
-		currEdits[w] = list
-	}
-	teh.log.CDebugf(ctx, "Edits complete: %d revisions, starting from "+
-		"revision %d", len(rmds), rmds[0].Revision)
-
-	teh.lock.Lock()
-	defer teh.lock.Unlock()
-	teh.edits = currEdits
-	teh.editsTime = teh.config.Clock().Now()
+	teh.setEdits(ctx, currEdits, rmds)
 	return teh.getEditsCopyLocked(), nil
+}
+
+func (teh *TlfEditHistory) updateHistory(ctx context.Context,
+	rmds []ImmutableRootMetadata) error {
+	defer teh.wg.Done()
+	if len(rmds) == 0 {
+		return nil
+	}
+	teh.log.CDebugf(ctx, "Processing %d MDs for notifications "+
+		"(most recent revision: %d)", len(rmds), rmds[len(rmds)-1].Revision)
+
+	currEdits := teh.getEditsCopy()
+	if currEdits == nil {
+		teh.log.CDebugf(ctx, "No history to update; ignoring")
+		return nil
+	}
+
+	wasComplete := currEdits.isComplete()
+
+	newEdits, chains, err := teh.calculateEditCounts(ctx, rmds)
+	if err != nil {
+		return err
+	}
+
+	// Which paths have been removed?
+	removed := make(map[string]bool)
+	// TODO: can I used chains.deletedOriginals instead?  It's hard to
+	// get the full path that way.
+	for _, chain := range chains.byOriginal {
+		for _, op := range chain.ops {
+			rop, ok := op.(*rmOp)
+			if !ok {
+				continue
+			}
+			path := rop.getFinalPath().ChildPathNoPtr(rop.OldName).String()
+			// A rename op might show later that this was only renamed.
+			removed[path] = true
+		}
+	}
+
+	// Which paths have been renamed?
+	renamed := make(map[string]string)
+	for original, ri := range chains.renamedOriginals {
+		// Find both the old path and the new path using the old and
+		// new parents (which are each guaranteed to have at least one
+		// op, since the rename operation is split up into two ops).
+		oldParentChain, ok := chains.byOriginal[ri.originalOldParent]
+		if !ok || len(oldParentChain.ops) == 0 {
+			teh.log.CDebugf(ctx, "Couldn't find old parent to a rename "+
+				"op for original ptr %v", original)
+		}
+		oldPath := oldParentChain.ops[0].getFinalPath().
+			ChildPathNoPtr(ri.oldName).String()
+
+		newParentChain, ok := chains.byOriginal[ri.originalNewParent]
+		if !ok || len(newParentChain.ops) == 0 {
+			teh.log.CDebugf(ctx, "Couldn't find new parent to a rename "+
+				"op for original ptr %v", original)
+		}
+		newPath := newParentChain.ops[0].getFinalPath().
+			ChildPathNoPtr(ri.newName).String()
+
+		// Ignore any previous rmOps.
+		delete(removed, oldPath)
+		// If a file was overwritten, ignore all the old edits.
+		removed[newPath] = true
+		// Rename the file.
+		renamed[oldPath] = newPath
+	}
+
+	// Also, remove old edits for new file paths, because the newer
+	// edits take precedence.
+	for _, edits := range newEdits {
+		for _, edit := range edits {
+			removed[edit.Filepath] = true
+			delete(renamed, edit.Filepath)
+		}
+	}
+
+	// Remove and rename old edits as needed.
+	if len(removed)+len(renamed) > 0 {
+		teh.log.CDebugf(ctx, "Removed paths: %v, renamed paths: %v",
+			removed, renamed)
+		currEdits.updateOldEdits(removed, renamed)
+	}
+
+	currEdits.addNewEdits(newEdits)
+	// If we have a net negative removed, we have to search back
+	// farther in time to become complete again.
+	if !currEdits.isComplete() && wasComplete {
+		teh.log.CDebugf(ctx, "Too many removals; re-calculating edit history")
+		func() {
+			teh.lock.Lock()
+			defer teh.lock.Unlock()
+			teh.edits = nil
+		}()
+		_, err := teh.GetComplete(ctx, rmds[len(rmds)-1])
+		return err
+	}
+
+	teh.setEdits(ctx, currEdits, rmds)
+	return nil
+}
+
+func (teh *TlfEditHistory) process(ctx context.Context) {
+	for rmds := range teh.rmdsChan {
+		ctx := ctxWithRandomID(ctx, CtxFBOIDKey, CtxFBOOpID, teh.log)
+		err := teh.updateHistory(ctx, rmds)
+		if err != nil {
+			teh.log.CWarningf(ctx,
+				"Error while processing edit notifications: %v", err)
+		}
+		select {
+		case <-ctx.Done():
+			return
+		default:
+		}
+	}
+}
+
+// UpdateHistory updates the cached edit history, and sends FS
+// notifications about the changes.  This assumes the last
+// ImmutableRootMetadata in rmds is the current head.
+func (teh *TlfEditHistory) UpdateHistory(ctx context.Context,
+	rmds []ImmutableRootMetadata) error {
+	// If a shutdown hasn't happened yet, mark ourselves as sending to
+	// force the shutdown to wait.
+	err := func() error {
+		teh.lock.Lock()
+		defer teh.lock.Unlock()
+		if teh.shutdown {
+			return ShutdownHappenedError{}
+		}
+		teh.sends.Add(1)
+		return nil
+	}()
+	defer teh.sends.Done()
+	if err != nil {
+		return err
+	}
+
+	teh.wg.Add(1)
+	select {
+	case teh.rmdsChan <- rmds:
+	case <-ctx.Done():
+		teh.wg.Done()
+		return ctx.Err()
+	}
+	return nil
 }
