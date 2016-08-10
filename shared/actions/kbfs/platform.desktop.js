@@ -68,7 +68,7 @@ function openInWindows (openPath: string = Constants.defaultKBFSPath): AsyncActi
         .then(formKbfsPathWindows)
         // In case the first try fails, let's try to get the extendedConfig again
         // This can happen because kbfs loads after the first getExtended status call
-        .catch(() => dispatch(getExtendedStatus()))
+        .catch(() => dispatch(getExtendedStatus()).then(formKbfsPathWindows))
         .then(kbfsPath => {
           dispatch({type: Constants.changeKBFSPath, payload: {path: kbfsPath}})
 
