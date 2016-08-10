@@ -157,10 +157,10 @@ type TlfEditHistory struct {
 
 	rmdsChan chan []ImmutableRootMetadata
 	wg       RepeatedWaitGroup
+	cancel   context.CancelFunc
 
 	lock     sync.Mutex
 	edits    TlfWriterEdits
-	cancel   context.CancelFunc
 	shutdown bool
 	sends    sync.WaitGroup
 }
@@ -168,28 +168,27 @@ type TlfEditHistory struct {
 // NewTlfEditHistory makes a new TLF edit history.
 func NewTlfEditHistory(config Config, fbo *folderBranchOps,
 	log logger.Logger) *TlfEditHistory {
+	processCtx, cancel := context.WithCancel(context.Background())
 	teh := &TlfEditHistory{
 		config:   config,
 		fbo:      fbo,
 		log:      log,
 		rmdsChan: make(chan []ImmutableRootMetadata, 100),
+		cancel:   cancel,
 	}
-	go teh.process()
+	go teh.process(processCtx)
 	return teh
 }
 
 // Shutdown shuts down all background processing.
 func (teh *TlfEditHistory) Shutdown() {
+	teh.lock.Lock()
+	teh.shutdown = true
+	teh.lock.Unlock()
+	teh.cancel()
+
 	// Wait until we're sure all sends have finished before we close
 	// the channel.
-	func() {
-		teh.lock.Lock()
-		defer teh.lock.Unlock()
-		teh.shutdown = true
-		if teh.cancel != nil {
-			teh.cancel()
-		}
-	}()
 	teh.sends.Wait()
 	close(teh.rmdsChan)
 }
@@ -476,7 +475,7 @@ func (teh *TlfEditHistory) updateHistory(ctx context.Context,
 			if !ok {
 				continue
 			}
-			path := rop.getFinalPath().String() + "/" + rop.OldName
+			path := rop.getFinalPath().ChildPathNoPtr(rop.OldName).String()
 			// A rename op might show later that this was only renamed.
 			removed[path] = true
 		}
@@ -493,16 +492,16 @@ func (teh *TlfEditHistory) updateHistory(ctx context.Context,
 			teh.log.CDebugf(ctx, "Couldn't find old parent to a rename "+
 				"op for original ptr %v", original)
 		}
-		oldPath := oldParentChain.ops[0].getFinalPath().String() + "/" +
-			ri.oldName
+		oldPath := oldParentChain.ops[0].getFinalPath().
+			ChildPathNoPtr(ri.oldName).String()
 
 		newParentChain, ok := chains.byOriginal[ri.originalNewParent]
 		if !ok || len(newParentChain.ops) == 0 {
 			teh.log.CDebugf(ctx, "Couldn't find new parent to a rename "+
 				"op for original ptr %v", original)
 		}
-		newPath := newParentChain.ops[0].getFinalPath().String() + "/" +
-			ri.newName
+		newPath := newParentChain.ops[0].getFinalPath().
+			ChildPathNoPtr(ri.newName).String()
 
 		// Ignore any previous rmOps.
 		delete(removed, oldPath)
@@ -546,14 +545,7 @@ func (teh *TlfEditHistory) updateHistory(ctx context.Context,
 	return nil
 }
 
-func (teh *TlfEditHistory) process() {
-	var ctx context.Context
-	func() {
-		teh.lock.Lock()
-		defer teh.lock.Unlock()
-		ctx, teh.cancel = context.WithCancel(context.Background())
-	}()
-
+func (teh *TlfEditHistory) process(ctx context.Context) {
 	for rmds := range teh.rmdsChan {
 		ctx := ctxWithRandomID(ctx, CtxFBOIDKey, CtxFBOOpID, teh.log)
 		err := teh.updateHistory(ctx, rmds)
