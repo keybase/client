@@ -50,7 +50,7 @@ class Render extends Component<DefaultProps, Props, State> {
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
           <Icon type='icon-keybase-logo-128' style={stylesLogo} />
-          <Text type='Body' small={true} style={{alignSelf: 'center', marginTop: 6}}>You're logged out of Keybase!</Text>
+          <Text type='Body' small={true} style={{alignSelf: 'center', marginTop: 6}}>You''re logged out of Keybase!</Text>
           <Button type='Primary' label='Log In' onClick={this.props.logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12}} />
         </Box>
         <PopupMenu style={styleMenu} visible={this.state.showingMenu} items={this._menuItems()} onHidden={() => this.setState({showingMenu: false})} />
@@ -59,16 +59,21 @@ class Render extends Component<DefaultProps, Props, State> {
   }
 
   _menuItems () {
-    return [].concat(
-      this.props.loggedIn ? [{title: 'Open Keybase', onClick: this.props.openApp}] : [],
-      [
-        {title: 'Open folders', onClick: this.props.showKBFS},
-        {title: 'Keybase.io', onClick: this.props.showUser},
-        {title: 'Report a bug', onClick: this.props.showBug},
-        {title: 'Help/Doc', onClick: this.props.showHelp},
-        {title: 'Quit', onClick: this.props.quit},
-      ]
+    let items = []
+    if (this.props.loggedIn) {
+      items.push({title: 'Open Keybase', onClick: this.props.openApp})
+    }
+    items.push({title: 'Open folders', onClick: this.props.showKBFS})
+    if (process.platform === 'win32') {
+      items.push({title: 'Keybase Shell', onClick: this.props.openShell})
+    }
+    items.push(
+      {title: 'Keybase.io', onClick: this.props.showUser},
+      {title: 'Report a bug', onClick: this.props.showBug},
+      {title: 'Help/Doc', onClick: this.props.showHelp},
+      {title: 'Quit', onClick: this.props.quit},
     )
+    return items
   }
 
   _onAdd (path: string) {
