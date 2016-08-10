@@ -76,7 +76,7 @@ func (e *PGPPurge) KeyFiles() []string {
 }
 
 func (e *PGPPurge) export(ctx *Context, bundle *libkb.PGPKeyBundle) error {
-	skb, key, err := e.findAndUnlock(bundle)
+	skb, key, err := e.findAndUnlock(ctx, bundle)
 	if err != nil {
 		return err
 	}
@@ -100,7 +100,7 @@ func (e *PGPPurge) export(ctx *Context, bundle *libkb.PGPKeyBundle) error {
 	return nil
 }
 
-func (e *PGPPurge) findAndUnlock(bundle *libkb.PGPKeyBundle) (*libkb.SKB, *libkb.PGPKeyBundle, error) {
+func (e *PGPPurge) findAndUnlock(ctx *Context, bundle *libkb.PGPKeyBundle) (*libkb.SKB, *libkb.PGPKeyBundle, error) {
 	arg := libkb.SecretKeyArg{
 		Me:       e.me,
 		KeyType:  libkb.PGPKeyType,
@@ -122,9 +122,11 @@ func (e *PGPPurge) findAndUnlock(bundle *libkb.PGPKeyBundle) (*libkb.SKB, *libkb
 	}
 
 	secretRetriever := libkb.NewSecretStore(e.G(), e.me.GetNormalizedName())
-	// the whole point of this is that these keys are unlockable without a prompt
-	// so this should suffice:
-	gk, err := skb.UnlockNoPrompt(nil, secretRetriever)
+	promptArg := libkb.SecretKeyPromptArg{
+		SecretUI: ctx.SecretUI,
+		Reason:   "export private PGP key",
+	}
+	gk, err := skb.PromptAndUnlock(promptArg, secretRetriever, e.me)
 	if err != nil {
 		return nil, nil, err
 	}
