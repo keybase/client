@@ -61,6 +61,7 @@ func (e *TrackEngine) Run(ctx *Context) error {
 		ForceRemoteCheck:      e.arg.ForceRemoteCheck,
 		NeedProofSet:          true,
 		NoErrorOnTrackFailure: true,
+		AlwaysBlock:           true,
 	}
 
 	ieng := NewResolveThenIdentify2WithTrack(e.G(), arg, e.arg.Options)
