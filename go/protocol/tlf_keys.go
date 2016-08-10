@@ -9,11 +9,15 @@ import (
 )
 
 type CanonicalTlfName string
+type CryptKey struct {
+	KeyGeneration int     `codec:"KeyGeneration" json:"KeyGeneration"`
+	Key           Bytes32 `codec:"Key" json:"Key"`
+}
+
 type TLFCryptKeys struct {
-	TlfID            TLFID            `codec:"tlfID" json:"tlfID"`
-	CanonicalName    CanonicalTlfName `codec:"CanonicalName" json:"CanonicalName"`
-	FirstValidKeyGen int              `codec:"FirstValidKeyGen" json:"FirstValidKeyGen"`
-	CryptKeys        []Bytes32        `codec:"CryptKeys" json:"CryptKeys"`
+	TlfID         TLFID            `codec:"tlfID" json:"tlfID"`
+	CanonicalName CanonicalTlfName `codec:"CanonicalName" json:"CanonicalName"`
+	CryptKeys     []CryptKey       `codec:"CryptKeys" json:"CryptKeys"`
 }
 
 type GetTLFCryptKeysArg struct {
