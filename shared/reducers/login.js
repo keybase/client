@@ -1,15 +1,13 @@
-/* @flow */
-
-import * as Constants from '../constants/login'
-import * as ConfigConstants from '../constants/config'
+// @flow
 import * as CommonConstants from '../constants/common'
+import * as ConfigConstants from '../constants/config'
+import * as Constants from '../constants/login'
+import HiddenString from '../util/hidden-string'
+import type {DeviceRole, Mode} from '../constants/login'
 import {fromJS} from 'immutable'
 
-import type {DeviceRole, Mode} from '../constants/login'
-
 // It's the b64 encoded value used to render the image
-type QRCode = string
-
+type QRCode = HiddenString
 type Error = string
 
 type LoginState = {
@@ -19,7 +17,7 @@ type LoginState = {
     mode: ?Mode,
     cameraBrokenMode: boolean,
     codeCountDown: number,
-    textCode: ?string,
+    textCode: ?HiddenString,
     qrScanned: ?QRCode,
     qrCode: ?QRCode
   },
@@ -92,10 +90,10 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       toMerge = {codePage: {mode: action.payload}}
       break
     case Constants.setTextCode:
-      toMerge = {codePage: {textCode: action.payload}}
+      toMerge = {codePage: {textCode: action.payload.textCode}}
       break
     case Constants.setQRCode:
-      toMerge = {codePage: {qrCode: action.payload}}
+      toMerge = {codePage: {qrCode: action.payload.qrCode}}
       break
     case Constants.qrScanned:
       toMerge = {codePage: {qrScanned: action.payload}}

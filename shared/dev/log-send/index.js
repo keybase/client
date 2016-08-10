@@ -7,7 +7,7 @@ type State = {
   logSendId: ?string
 }
 
-export default class LogSend extends Component<void, {}, State> {
+class LogSend extends Component<void, {}, State> {
   state: State;
 
   constructor (props: {}) {
@@ -29,3 +29,5 @@ export default class LogSend extends Component<void, {}, State> {
     return {componentAtTop: {title: 'Log Send'}}
   }
 }
+
+export default LogSend

@@ -1,7 +1,9 @@
+// @flow
 import BaseTransport from './rpc'
 import {Buffer} from 'buffer'
 
 class MobileTransport extends BaseTransport {
+  // $FlowIssue
   constructor (incomingRPCCallback, rpcWriteCallback) {
     super(
       {},
@@ -14,14 +16,14 @@ class MobileTransport extends BaseTransport {
     this.rawWriteLength = null
   }
 
-  connect (cb) { cb() }
+  connect (cb: () => void) { cb() }
   is_connected () { return true } // eslint-disable-line camelcase
   reset () { }
   close () { }
   get_generation () { return 1 } // eslint-disable-line camelcase
 
   // We get called 2 times per transport. once with the lenth and once with the payload
-  _raw_write (bufStr, enc) { // eslint-disable-line camelcase
+  _raw_write (bufStr: any, enc: any) { // eslint-disable-line camelcase
     if (this.rawWriteLength === null) {
       this.rawWriteLength = Buffer.from(bufStr, enc)
     } else {

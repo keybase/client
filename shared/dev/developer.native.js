@@ -1,3 +1,4 @@
+// @flow
 import React, {Component} from 'react'
 import {StyleSheet, Navigator, TextInput, View, Text} from 'react-native'
 import {connect} from 'react-redux'

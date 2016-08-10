@@ -1,0 +1,6 @@
+// @flow
+export default {
+  eventName: '',
+  runWithData: (data: any) => {},
+  reset: () => {},
+}

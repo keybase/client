@@ -1,6 +1,7 @@
 /*eslint-disable */
 
 declare module 'Interpolation' { declare var exports: any; }
+declare module 'buffer' { declare var exports: {Buffer: any}; }
 declare module 'deep-diff' { declare var exports: any; }
 declare module 'deep-equal' { declare var exports: any; }
 declare module 'electron' { declare var exports: any; }
@@ -16,10 +17,10 @@ declare module 'material-ui/svg-icons' { declare var exports: any; }
 declare module 'moment' { declare var exports: any; }
 declare module 'qrcode-generator' { declare var exports: any; }
 declare module 'react-native' { declare var exports: any; }
-declare module 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS' { declare var exports: any; }
 declare module 'react-native-android-permissions' { declare var exports: any; }
 declare module 'react-native-barcodescanner' { declare var exports: any; }
 declare module 'react-native-camera' { declare var exports: any; }
+declare module 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS' { declare var exports: any; }
 declare module 'react-redux' { declare var exports: any; }
 declare module 'react-tap-event-plugin' { declare var exports: any; }
 declare module 'redux' { declare var exports: any; }

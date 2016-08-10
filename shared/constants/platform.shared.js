@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 export type OSType = 'electron' | 'android' | 'ios'
 
 export const OS_ELECTRON = 'electron'

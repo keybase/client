@@ -1,11 +1,10 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {Switch, ScrollView} from 'react-native'
-import {globalStyles, globalColors} from '../styles/style-guide'
+// @flow
 import Container from './dev-container.native'
+import React, {Component} from 'react'
 import {Dropdown, Checkbox, Button, Box, Text, Terminal, Input, FormWithCheckbox, TabBar} from '../common-adapters'
+import {Switch, ScrollView} from 'react-native'
 import {TabBarItem} from '../common-adapters/tab-bar'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 const Space = () => <Box style={{height: 20, width: 20}} />
 
@@ -301,7 +300,7 @@ const TabBars = ({selected, onPress}) => {
   )
 }
 
-export default class Render extends Component {
+class Render extends Component {
   state: {
     check: any, selectedUser: ?string, selectedOption: ?string, userIdx: number, optionIdx: number, tabSelected: Array<bool>
   };
@@ -355,3 +354,5 @@ export default class Render extends Component {
     )
   }
 }
+
+export default Render

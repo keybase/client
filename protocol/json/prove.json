@@ -30,6 +30,10 @@
         {
           "type": "string",
           "name": "proofText"
+        },
+        {
+          "type": "ProofState",
+          "name": "state"
         }
       ]
     },

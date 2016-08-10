@@ -131,6 +131,7 @@ const serviceContainerStyle = {
   ...transition('backgroundColor'),
   alignItems: 'center',
   borderRadius: 25,
+  cursor: 'pointer',
   height: 50,
   justifyContent: 'center',
   position: 'relative',
@@ -142,8 +143,10 @@ const serviceIconStyle = {
 const serviceTooltipStyle = {
   ...transition('opacity'),
   backgroundColor: globalColors.black_40,
+  borderBottom: '2px solid white',
   borderRadius: 65,
   color: globalColors.white,
+  cursor: 'default',
   left: -16,
   lineHeight: '22px',
   minHeight: 22,

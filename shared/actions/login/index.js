@@ -171,7 +171,7 @@ function generateQRCode (dispatch: Dispatch, getState: GetState) {
   const goodMode = store.mode === Constants.codePageModeShowCode
 
   if (goodMode && !store.qrCode && store.textCode) {
-    dispatch({type: Constants.setQRCode, payload: qrGenerate(store.textCode)})
+    dispatch({type: Constants.setQRCode, payload: {qrCode: new HiddenString(qrGenerate(store.textCode.stringValue()))}})
   }
 }
 
@@ -387,10 +387,11 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
 
     const incomingCallMap = makeKex2IncomingMap(dispatch, getState, onBack, onBack)
     incomingCallMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response) => {
-      let deviceType = {
+      const deviceTypeMap: {[key: string]: any} = {
         [Constants.codePageDeviceRoleNewComputer]: provisionUi.DeviceType.desktop,
         [Constants.codePageDeviceRoleNewPhone]: provisionUi.DeviceType.mobile,
-      }[kind]
+      }
+      let deviceType = deviceTypeMap[kind]
 
       dispatch(setCodePageOtherDeviceRole(kind))
       response.result(deviceType)
@@ -447,8 +448,8 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
         return {
           mode,
           codeCountDown,
-          textCode,
-          qrCode,
+          textCode: textCode ? textCode.stringValue() : '',
+          qrCode: qrCode ? qrCode.stringValue() : '',
           myDeviceRole,
           otherDeviceRole,
           cameraBrokenMode,
@@ -488,11 +489,12 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
         <SelectOtherDevice
           devices={devices}
           onSelect={deviceID => {
-            const type: DeviceRole = (devices || []).find(d => d.deviceID === deviceID).type
+            // $FlowIssue
+            const type: DeviceType = (devices || []).find(d => d.deviceID === deviceID).type
             const role = ({
               mobile: Constants.codePageDeviceRoleExistingPhone,
               desktop: Constants.codePageDeviceRoleExistingComputer,
-            }: {[key: DeviceType]: string})[type]
+            }: {[key: DeviceType]: DeviceRole})[type]
             dispatch(setCodePageOtherDeviceRole(role))
             response.result(deviceID)
           }}
@@ -529,7 +531,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
       }
     },
     'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
-      dispatch({type: Constants.setTextCode, payload: phrase})
+      dispatch({type: Constants.setTextCode, payload: {textCode: new HiddenString(phrase)}})
       generateQRCode(dispatch, getState)
       dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }, () => onBack(response)))
     },

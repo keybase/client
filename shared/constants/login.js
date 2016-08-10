@@ -1,3 +1,4 @@
+// @flow
 // constants
 
 export const codePageDeviceRoleExistingPhone = 'codePageDeviceRoleExistingPhone'
@@ -37,5 +38,12 @@ export const actionRegisteredWithUserPass = 'login:actionRegisteredWithUserPass'
 export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
 export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'
 
-export type DeviceRole = 'codePageDeviceRoleExistingPhone' | 'codePageDeviceRoleNewPhone' | 'codePageDeviceRoleExistingComputer' | 'codePageDeviceRoleNewComputer'
-export type Mode = 'codePageModeScanCode' | 'codePageModeShowCode' | 'codePageModeEnterText' | 'codePageModeShowText'
+export type DeviceRole = 'codePageDeviceRoleExistingPhone'
+| 'codePageDeviceRoleNewPhone'
+| 'codePageDeviceRoleExistingComputer'
+| 'codePageDeviceRoleNewComputer'
+
+export type Mode = 'codePageModeScanCode'
+| 'codePageModeShowCode'
+| 'codePageModeEnterText'
+| 'codePageModeShowText'

@@ -1,18 +1,15 @@
 // @flow
-
 import React, {Component} from 'react'
-import {Box, Text, Button} from '../../common-adapters'
-import {globalStyles} from '../../styles/style-guide'
-
-import {Linking, Clipboard} from 'react-native'
-
 import type {Props} from './render'
+import {Box, Text, Button} from '../../common-adapters'
+import {Linking, Clipboard} from 'react-native'
+import {globalStyles} from '../../styles/style-guide'
 
 type State = {
   copiedToClipboard: boolean
 }
 
-export default class Render extends Component<void, Props, State> {
+class Render extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -66,3 +63,5 @@ const stylesContainer = {
 const stylesInfoText = {
   marginTop: 20,
 }
+
+export default Render

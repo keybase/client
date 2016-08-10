@@ -76,15 +76,15 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                         checkout: {
                             retry(3) {
                                 checkout scm
+                                sh 'echo -n $(git rev-parse HEAD) > go/revision'
+                                sh "git add go/revision"
+                                env.COMMIT_HASH = readFile('go/revision')
+                                sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
+                                sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
+                                env.AUTHOR_NAME = readFile('.author_name')
+                                env.AUTHOR_EMAIL = readFile('.author_email')
+                                sh 'rm .author_name .author_email'
                             }
-                            sh 'echo -n $(git rev-parse HEAD) > go/revision'
-                            sh "git add go/revision"
-                            env.COMMIT_HASH = readFile('go/revision')
-                            sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
-                            sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
-                            env.AUTHOR_NAME = readFile('.author_name')
-                            env.AUTHOR_EMAIL = readFile('.author_email')
-                            sh 'rm .author_name .author_email'
                         },
                         pull_glibc: {
                             glibcImage.pull()
@@ -139,28 +139,29 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                         }
                                         sh "desktop/node_modules/.bin/eslint ."
                                         // Only run visdiff for PRs
-                                        if (env.CHANGE_ID) {
-                                            wrap([$class: 'Xvfb']) { 
-                                            withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                                    credentialsId: 'visdiff-aws-creds',
-                                                    usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
-                                                    passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
-                                                ],[$class: 'StringBinding',
-                                                    credentialsId: 'visdiff-github-token',
-                                                    variable: 'VISDIFF_GH_TOKEN',
-                                            ]]) {
-                                            withEnv([
-                                                "VISDIFF_PR_ID=${env.CHANGE_ID}",
-                                            ]) {
-                                                dir("visdiff") {
-                                                    sh "npm install"
-                                                }
-                                                sh "npm install ./visdiff"
-                                                dir("desktop") {
-                                                    sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, HEAD)...HEAD'"
-                                                }
-                                            }}}
-                                        }
+                                        // FIXME visdiff currently hangs. Re-enable once we know how to fix it.
+                                        //if (env.CHANGE_ID) {
+                                        //    wrap([$class: 'Xvfb', screen: '1280x1024x16']) {
+                                        //    withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                        //            credentialsId: 'visdiff-aws-creds',
+                                        //            usernameVariable: 'VISDIFF_AWS_ACCESS_KEY_ID',
+                                        //            passwordVariable: 'VISDIFF_AWS_SECRET_ACCESS_KEY',
+                                        //        ],[$class: 'StringBinding',
+                                        //            credentialsId: 'visdiff-github-token',
+                                        //            variable: 'VISDIFF_GH_TOKEN',
+                                        //    ]]) {
+                                        //    withEnv([
+                                        //        "VISDIFF_PR_ID=${env.CHANGE_ID}",
+                                        //    ]) {
+                                        //        dir("visdiff") {
+                                        //            sh "npm install"
+                                        //        }
+                                        //        sh "npm install ./visdiff"
+                                        //        dir("desktop") {
+                                        //            sh "../node_modules/.bin/keybase-visdiff 'merge-base(origin/master, HEAD)...HEAD'"
+                                        //        }
+                                        //    }}}
+                                        //}
                                     }},
                                     test_kbfs: {
                                         dir('go') {
@@ -282,12 +283,15 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             },
                         )
                 } catch (ex) {
+                    println "Dockers:"
+                    sh "docker ps -a"
+                    sh "docker-compose stop"
                     println "Gregor logs:"
-                    sh "docker-compose logs --tail=10000 gregor.local"
+                    sh "docker logs client_gregor.local_1"
                     println "MySQL logs:"
-                    sh "docker-compose logs --tail=10000 mysql.local"
+                    sh "docker logs client_mysql.local_1"
                     println "KBweb logs:"
-                    sh "docker-compose logs --tail=10000 kbweb.local"
+                    sh "docker logs client_kbweb.local_1"
                     throw ex
                 } finally {
                     sh "docker-compose down"

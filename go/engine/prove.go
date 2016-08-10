@@ -257,7 +257,7 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 		if !retry || err != nil {
 			break
 		}
-		found, status, err = libkb.CheckPosted(p.postRes.ID)
+		found, status, _, err = libkb.CheckPosted(p.postRes.ID)
 		if found || err != nil {
 			break
 		}

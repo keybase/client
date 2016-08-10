@@ -1,5 +1,9 @@
-/* @flow */
+// @flow
 
-export function getAppPath (): string {
+function getAppPath (): string {
   throw new Error('Unsupported')
+}
+
+export {
+  getAppPath,
 }

@@ -8,7 +8,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type TLFID string
 type TLF struct {
 	Id        TLFID    `codec:"id" json:"id"`
 	Name      string   `codec:"name" json:"name"`

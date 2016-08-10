@@ -9,12 +9,6 @@
   "types": [
     {
       "type": "record",
-      "name": "TLFID",
-      "fields": [],
-      "typedef": "string"
-    },
-    {
-      "type": "record",
       "name": "TLF",
       "fields": [
         {
