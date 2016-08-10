@@ -18,12 +18,12 @@ func makeRMDSForTest(t *testing.T, id TlfID, h BareTlfHandle,
 	prevRoot MdID) *RootMetadataSigned {
 	rmds, err := NewRootMetadataSignedForTest(id, h)
 	require.NoError(t, err)
-	rmds.MD.SerializedPrivateMetadata = []byte{0x1}
-	rmds.MD.Revision = revision
-	rmds.MD.LastModifyingWriter = uid
-	rmds.MD.LastModifyingUser = uid
-	FakeInitialRekey(&rmds.MD, h)
-	rmds.MD.PrevRoot = prevRoot
+	rmds.MD.SetSerializedPrivateMetadata([]byte{0x1})
+	rmds.MD.SetRevision(revision)
+	rmds.MD.SetLastModifyingWriter(uid)
+	rmds.MD.SetLastModifyingUser(uid)
+	rmds.MD.FakeInitialRekey(h)
+	rmds.MD.SetPrevRoot(prevRoot)
 	return rmds
 }
 
@@ -32,12 +32,12 @@ func signRMDSForTest(t *testing.T, codec Codec, signer cryptoSigner,
 	ctx := context.Background()
 
 	// Encode and sign writer metadata.
-	buf, err := codec.Encode(rmds.MD.WriterMetadata)
+	buf, err := rmds.MD.GetSerializedWriterMetadata(codec)
 	require.NoError(t, err)
 
 	sigInfo, err := signer.Sign(ctx, buf)
 	require.NoError(t, err)
-	rmds.MD.WriterMetadataSigInfo = sigInfo
+	rmds.MD.SetWriterMetadataSigInfo(sigInfo)
 
 	// Encode and sign root metadata.
 	buf, err = codec.Encode(rmds.MD)
@@ -75,7 +75,7 @@ func TestMDServerBasics(t *testing.T) {
 		signRMDSForTest(t, config.Codec(), config.Crypto(), rmds)
 		err = mdServer.Put(ctx, rmds)
 		require.NoError(t, err)
-		prevRoot, err = config.Crypto().MakeMdID(&rmds.MD)
+		prevRoot, err = config.Crypto().MakeMdID(rmds.MD)
 		require.NoError(t, err)
 		if i == 5 {
 			middleRoot = prevRoot
@@ -95,12 +95,12 @@ func TestMDServerBasics(t *testing.T) {
 	require.NoError(t, err)
 	for i := MetadataRevision(6); i < 41; i++ {
 		rmds := makeRMDSForTest(t, id, h, i, uid, prevRoot)
-		rmds.MD.WFlags |= MetadataFlagUnmerged
-		rmds.MD.BID = bid
+		rmds.MD.SetUnmerged()
+		rmds.MD.SetBranchID(bid)
 		signRMDSForTest(t, config.Codec(), config.Crypto(), rmds)
 		err = mdServer.Put(ctx, rmds)
 		require.NoError(t, err)
-		prevRoot, err = config.Crypto().MakeMdID(&rmds.MD)
+		prevRoot, err = config.Crypto().MakeMdID(rmds.MD)
 		require.NoError(t, err)
 	}
 
@@ -108,14 +108,14 @@ func TestMDServerBasics(t *testing.T) {
 	head, err := mdServer.GetForTLF(ctx, id, bid, Unmerged)
 	require.NoError(t, err)
 	require.NotNil(t, head)
-	require.Equal(t, MetadataRevision(40), head.MD.Revision)
+	require.Equal(t, MetadataRevision(40), head.MD.RevisionNumber())
 
 	// (6a) try to get unmerged range
 	rmdses, err := mdServer.GetRange(ctx, id, bid, Unmerged, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 35, len(rmdses))
 	for i := MetadataRevision(6); i < 41; i++ {
-		require.Equal(t, i, rmdses[i-6].MD.Revision)
+		require.Equal(t, i, rmdses[i-6].MD.RevisionNumber())
 	}
 
 	// (6b) try to get unmerged range subset.
@@ -123,7 +123,7 @@ func TestMDServerBasics(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 8, len(rmdses))
 	for i := MetadataRevision(7); i <= 14; i++ {
-		require.Equal(t, i, rmdses[i-7].MD.Revision)
+		require.Equal(t, i, rmdses[i-7].MD.RevisionNumber())
 	}
 
 	// (7) prune unmerged
@@ -144,14 +144,14 @@ func TestMDServerBasics(t *testing.T) {
 	head, err = mdServer.GetForTLF(ctx, id, NullBranchID, Merged)
 	require.NoError(t, err)
 	require.NotNil(t, head)
-	require.Equal(t, MetadataRevision(10), head.MD.Revision)
+	require.Equal(t, MetadataRevision(10), head.MD.RevisionNumber())
 
 	// (11) try to get merged range
 	rmdses, err = mdServer.GetRange(ctx, id, NullBranchID, Merged, 1, 100)
 	require.NoError(t, err)
 	require.Equal(t, 10, len(rmdses))
 	for i := MetadataRevision(1); i <= 10; i++ {
-		require.Equal(t, i, rmdses[i-1].MD.Revision)
+		require.Equal(t, i, rmdses[i-1].MD.RevisionNumber())
 	}
 }
 

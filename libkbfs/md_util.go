@@ -125,7 +125,7 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 		}
 
 		for _, rmd := range fetchedRmds {
-			slot := int(rmd.Revision - start)
+			slot := int(rmd.Revision() - start)
 			if slot < minSlot {
 				minSlot = slot
 			}
@@ -137,7 +137,7 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 
 			if err := mdcache.Put(rmd); err != nil {
 				config.MakeLogger("").CDebugf(ctx, "Error putting md "+
-					"%d into the cache: %v", rmd.Revision, err)
+					"%d into the cache: %v", rmd.Revision(), err)
 			}
 		}
 	}
@@ -259,7 +259,7 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
 
 		// on the next iteration, start apply the previous root
 		if numNew > 0 {
-			currHead = rmds[0].Revision - 1
+			currHead = rmds[0].Revision() - 1
 		}
 		if currHead < MetadataRevisionInitial {
 			return MetadataRevisionUninitialized, nil,
@@ -283,26 +283,26 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
 func encryptMDPrivateData(
 	ctx context.Context, codec Codec, crypto cryptoPure,
 	signer cryptoSigner, ekg encryptionKeyGetter, me keybase1.UID,
-	rmd ReadOnlyRootMetadata) (*BareRootMetadata, error) {
+	rmd ReadOnlyRootMetadata) (BareRootMetadata, error) {
 	err := rmd.data.checkValid()
 	if err != nil {
 		return nil, err
 	}
 
-	brmd := rmd.BareRootMetadata
+	brmd := rmd.bareMd
 	privateData := &rmd.data
 
-	if brmd.ID.IsPublic() || !brmd.IsWriterMetadataCopiedSet() {
+	if brmd.TlfID().IsPublic() || !brmd.IsWriterMetadataCopiedSet() {
 		// Record the last writer to modify this writer metadata
-		brmd.LastModifyingWriter = me
+		brmd.SetLastModifyingWriter(me)
 
-		if brmd.ID.IsPublic() {
+		if brmd.TlfID().IsPublic() {
 			// Encode the private metadata
 			encodedPrivateMetadata, err := codec.Encode(privateData)
 			if err != nil {
 				return nil, err
 			}
-			brmd.SerializedPrivateMetadata = encodedPrivateMetadata
+			brmd.SetSerializedPrivateMetadata(encodedPrivateMetadata)
 		} else if !brmd.IsWriterMetadataCopiedSet() {
 			// Encrypt and encode the private metadata
 			k, err := ekg.GetTLFCryptKeyForEncryption(ctx, rmd)
@@ -317,13 +317,13 @@ func encryptMDPrivateData(
 			if err != nil {
 				return nil, err
 			}
-			brmd.SerializedPrivateMetadata = encodedEncryptedPrivateMetadata
+			brmd.SetSerializedPrivateMetadata(encodedEncryptedPrivateMetadata)
 		}
 
 		// Sign the writer metadata. This has to be done here,
 		// instead of in signMD, since the MetadataID depends
 		// on it.
-		buf, err := codec.Encode(brmd.WriterMetadata)
+		buf, err := brmd.GetSerializedWriterMetadata(codec)
 		if err != nil {
 			return nil, err
 		}
@@ -332,13 +332,13 @@ func encryptMDPrivateData(
 		if err != nil {
 			return nil, err
 		}
-		brmd.WriterMetadataSigInfo = sigInfo
+		brmd.SetWriterMetadataSigInfo(sigInfo)
 	}
 
 	// Record the last user to modify this metadata
-	brmd.LastModifyingUser = me
+	brmd.SetLastModifyingUser(me)
 
-	return &brmd, nil
+	return brmd, nil
 }
 
 func signMD(
@@ -367,14 +367,14 @@ func decryptMDPrivateData(ctx context.Context, config Config,
 	codec := config.Codec()
 
 	if handle.IsPublic() {
-		if err := codec.Decode(rmdToDecrypt.SerializedPrivateMetadata,
+		if err := codec.Decode(rmdToDecrypt.GetSerializedPrivateMetadata(),
 			&rmdToDecrypt.data); err != nil {
 			return err
 		}
 	} else {
 		// decrypt the root data for non-public directories
 		var encryptedPrivateMetadata EncryptedPrivateMetadata
-		if err := codec.Decode(rmdToDecrypt.SerializedPrivateMetadata,
+		if err := codec.Decode(rmdToDecrypt.GetSerializedPrivateMetadata(),
 			&encryptedPrivateMetadata); err != nil {
 			return err
 		}
@@ -423,7 +423,7 @@ func decryptMDPrivateData(ctx context.Context, config Config,
 				return err
 			}
 			if err := config.BlockCache().Put(info.BlockPointer,
-				rmdToDecrypt.ID, block, TransientEntry); err != nil {
+				rmdToDecrypt.TlfID(), block, TransientEntry); err != nil {
 				return err
 			}
 		}

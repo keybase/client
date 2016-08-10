@@ -2012,16 +2012,16 @@ func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 		si.bps = newBlockPutState(1)
 	} else {
 		// reinstate byte accounting from the previous Sync
-		md.RefBytes = si.refBytes
-		md.DiskUsage += si.refBytes
-		md.UnrefBytes = si.unrefBytes
-		md.DiskUsage -= si.unrefBytes
+		md.SetRefBytes(si.refBytes)
+		md.AddDiskUsage(si.refBytes)
+		md.SetUnrefBytes(si.unrefBytes)
+		md.SetDiskUsage(md.DiskUsage() - si.unrefBytes)
 		syncState.newIndirectFileBlockPtrs = append(
 			syncState.newIndirectFileBlockPtrs, si.op.Refs()...)
 	}
 	defer func() {
-		si.refBytes = md.RefBytes
-		si.unrefBytes = md.UnrefBytes
+		si.refBytes = md.RefBytes()
+		si.unrefBytes = md.UnrefBytes()
 	}()
 
 	bcache := fbo.config.BlockCache()

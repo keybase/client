@@ -409,20 +409,13 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID,
 	// deserialize blocks
 	rmdses := make([]*RootMetadataSigned, len(response.MdBlocks))
 	for i, block := range response.MdBlocks {
-		ver := MetadataVer(block.Version)
-		if ver < FirstValidMetadataVer {
-			return id, nil, InvalidMetadataVersionError{id, ver}
-		} else if ver > md.config.MetadataVersion() {
-			return id, nil, NewMetadataVersionError{id, ver}
-		}
-
-		var rmds RootMetadataSigned
-		err = md.config.Codec().Decode(block.Block, &rmds)
+		ver, max := MetadataVer(block.Version), md.config.MetadataVersion()
+		rmds, err := DecodeRootMetadataSigned(md.config.Codec(), id, ver, max, block.Block)
 		if err != nil {
-			return id, rmdses, err
+			return id, nil, err
 		}
 		rmds.untrustedServerTimestamp = keybase1.FromTime(block.Timestamp)
-		rmdses[i] = &rmds
+		rmdses[i] = rmds
 	}
 	return id, rmdses, nil
 }

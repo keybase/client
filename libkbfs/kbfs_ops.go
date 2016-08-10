@@ -330,7 +330,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		return nil, EntryInfo{}, identifyHandle(ctx, kbpki, kbpki, h)
 	}
 
-	fb := FolderBranch{Tlf: md.ID, Branch: branch}
+	fb := FolderBranch{Tlf: md.TlfID(), Branch: branch}
 
 	// we might not be able to read the metadata if we aren't in the
 	// key group yet.

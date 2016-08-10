@@ -67,7 +67,7 @@ outer:
 			"Could not get TLF ID for %q", tlfStr)
 	}
 
-	return irmd.ID, nil
+	return irmd.TlfID(), nil
 }
 
 func getBranchID(ctx context.Context, config libkbfs.Config,
@@ -85,7 +85,7 @@ func getBranchID(ctx context.Context, config libkbfs.Config,
 		if irmd == (libkbfs.ImmutableRootMetadata{}) {
 			return libkbfs.NullBranchID, nil
 		}
-		return irmd.BID, nil
+		return irmd.BID(), nil
 	}
 
 	return libkbfs.ParseBranchID(branchStr)
@@ -101,7 +101,7 @@ func getRevision(ctx context.Context, config libkbfs.Config,
 				return libkbfs.MetadataRevisionUninitialized,
 					err
 			}
-			return irmd.Revision, nil
+			return irmd.Revision(), nil
 		}
 
 		irmd, err := config.MDOps().GetUnmergedForTLF(
@@ -109,7 +109,7 @@ func getRevision(ctx context.Context, config libkbfs.Config,
 		if err != nil {
 			return libkbfs.MetadataRevisionUninitialized, err
 		}
-		return irmd.Revision, nil
+		return irmd.Revision(), nil
 	}
 
 	base := 10
@@ -194,7 +194,7 @@ func mdDumpOne(ctx context.Context, config libkbfs.Config,
 	rmd libkbfs.ImmutableRootMetadata) error {
 	fmt.Printf("MD ID: %s\n", rmd.MdID())
 
-	buf, err := config.Codec().Encode(&rmd.BareRootMetadata)
+	buf, err := config.Codec().Encode(rmd.GetBareRootMetadata())
 	if err != nil {
 		return err
 	}
@@ -204,10 +204,10 @@ func mdDumpOne(ctx context.Context, config libkbfs.Config,
 	fmt.Print("Reader/writer metadata\n")
 	fmt.Print("----------------------\n")
 	fmt.Printf("Last modifying user: %s\n",
-		getUserString(ctx, config, rmd.LastModifyingUser))
+		getUserString(ctx, config, rmd.LastModifyingUser()))
 	// TODO: Print flags.
-	fmt.Printf("Revision: %s\n", rmd.Revision)
-	fmt.Printf("Prev MD ID: %s\n", rmd.PrevRoot)
+	fmt.Printf("Revision: %s\n", rmd.Revision())
+	fmt.Printf("Prev MD ID: %s\n", rmd.PrevRoot())
 	// TODO: Print RKeys, unresolved readers, conflict info,
 	// finalized info, and unknown fields.
 	fmt.Print("\n")
@@ -215,20 +215,20 @@ func mdDumpOne(ctx context.Context, config libkbfs.Config,
 	fmt.Print("Writer metadata\n")
 	fmt.Print("---------------\n")
 	fmt.Printf("Last modifying writer: %s\n",
-		getUserString(ctx, config, rmd.LastModifyingWriter))
+		getUserString(ctx, config, rmd.LastModifyingWriter()))
 	// TODO: Print Writers/WKeys and unresolved writers.
-	fmt.Printf("TLF ID: %s\n", rmd.ID)
-	fmt.Printf("Branch ID: %s\n", rmd.BID)
+	fmt.Printf("TLF ID: %s\n", rmd.TlfID())
+	fmt.Printf("Branch ID: %s\n", rmd.BID())
 	// TODO: Print writer flags.
-	fmt.Printf("Disk usage: %d\n", rmd.DiskUsage)
-	fmt.Printf("Bytes in new blocks: %d\n", rmd.RefBytes)
-	fmt.Printf("Bytes in unreferenced blocks: %d\n", rmd.UnrefBytes)
+	fmt.Printf("Disk usage: %d\n", rmd.DiskUsage())
+	fmt.Printf("Bytes in new blocks: %d\n", rmd.RefBytes())
+	fmt.Printf("Bytes in unreferenced blocks: %d\n", rmd.UnrefBytes())
 	// TODO: Print unknown fields.
 	fmt.Print("\n")
 
 	fmt.Print("Private metadata\n")
 	fmt.Print("----------------\n")
-	fmt.Printf("Serialized size: %d bytes\n", len(rmd.SerializedPrivateMetadata))
+	fmt.Printf("Serialized size: %d bytes\n", len(rmd.GetSerializedPrivateMetadata()))
 
 	data := rmd.Data()
 	// TODO: Clean up output.

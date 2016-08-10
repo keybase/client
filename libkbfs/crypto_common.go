@@ -69,11 +69,11 @@ func (c CryptoCommon) MakeRandomBranchID() (BranchID, error) {
 }
 
 // MakeMdID implements the Crypto interface for CryptoCommon.
-func (c CryptoCommon) MakeMdID(md *BareRootMetadata) (MdID, error) {
+func (c CryptoCommon) MakeMdID(md BareRootMetadata) (MdID, error) {
 	// Make sure that the serialized metadata is set; otherwise we
 	// won't get the right MdID.
-	if md.SerializedPrivateMetadata == nil {
-		return MdID{}, MDMissingDataError{md.ID}
+	if md.GetSerializedPrivateMetadata() == nil {
+		return MdID{}, MDMissingDataError{md.TlfID()}
 	}
 
 	buf, err := c.codec.Encode(md)

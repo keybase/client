@@ -369,7 +369,7 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned) error
 		return MDServerError{err}
 	}
 
-	tlfStorage, err := md.getStorage(rmds.MD.ID)
+	tlfStorage, err := md.getStorage(rmds.MD.TlfID())
 	if err != nil {
 		return err
 	}
@@ -382,7 +382,7 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned) error
 
 	// Record branch ID
 	if recordBranchID {
-		err = md.putBranchID(ctx, rmds.MD.ID, rmds.MD.BID)
+		err = md.putBranchID(ctx, rmds.MD.TlfID(), rmds.MD.BID())
 		if err != nil {
 			return MDServerError{err}
 		}
@@ -393,7 +393,7 @@ func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned) error
 		// Don't send notifies if it's just a rekey (the real mdserver
 		// sends a "folder needs rekey" notification in this case).
 		!(rmds.MD.IsRekeySet() && rmds.MD.IsWriterMetadataCopiedSet()) {
-		md.updateManager.setHead(rmds.MD.ID, md)
+		md.updateManager.setHead(rmds.MD.TlfID(), md)
 	}
 
 	return nil
@@ -426,7 +426,7 @@ func (md *MDServerDisk) getCurrentMergedHeadRevision(
 		return 0, err
 	}
 	if head != nil {
-		rev = head.MD.Revision
+		rev = head.MD.RevisionNumber()
 	}
 	return
 }

@@ -171,7 +171,7 @@ func (md *MDServerMemory) checkGetParams(
 
 	// TODO: Figure out nil case.
 	if mergedMasterHead != nil {
-		ok, err := isReader(currentUID, &mergedMasterHead.MD)
+		ok, err := isReader(currentUID, mergedMasterHead.MD)
 		if err != nil {
 			return NullBranchID, MDServerError{err}
 		}
@@ -223,13 +223,14 @@ func (md *MDServerMemory) getHeadForTLF(ctx context.Context, id TlfID,
 		return nil, nil
 	}
 	blocks := blockList.blocks
-	var rmds RootMetadataSigned
-	err = md.config.Codec().Decode(blocks[len(blocks)-1].encodedMd, &rmds)
+	ver := md.config.MetadataVersion()
+	buf := blocks[len(blocks)-1].encodedMd
+	rmds, err := DecodeRootMetadataSigned(md.config.Codec(), id, ver, ver, buf)
 	if err != nil {
 		return nil, err
 	}
 	rmds.untrustedServerTimestamp = blocks[len(blocks)-1].timestamp
-	return &rmds, nil
+	return rmds, nil
 }
 
 func (md *MDServerMemory) getMDKey(
@@ -299,20 +300,22 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id TlfID,
 		endI = len(blocks)
 	}
 
+	ver := md.config.MetadataVersion()
+
 	var rmdses []*RootMetadataSigned
 	for i := startI; i < endI; i++ {
-		var rmds RootMetadataSigned
-		err = md.config.Codec().Decode(blocks[i].encodedMd, &rmds)
+		buf := blocks[i].encodedMd
+		rmds, err := DecodeRootMetadataSigned(md.config.Codec(), id, ver, ver, buf)
 		if err != nil {
 			return nil, MDServerError{err}
 		}
 		rmds.untrustedServerTimestamp = blocks[i].timestamp
 		expectedRevision := blockList.initialRevision + MetadataRevision(i)
-		if expectedRevision != rmds.MD.Revision {
+		if expectedRevision != rmds.MD.RevisionNumber() {
 			panic(fmt.Errorf("expected revision %v, got %v",
-				expectedRevision, rmds.MD.Revision))
+				expectedRevision, rmds.MD.RevisionNumber()))
 		}
-		rmdses = append(rmdses, &rmds)
+		rmdses = append(rmdses, rmds)
 	}
 
 	return rmdses, nil
@@ -337,7 +340,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 		return MDServerErrorBadRequest{Reason: err.Error()}
 	}
 
-	id := rmds.MD.ID
+	id := rmds.MD.TlfID()
 
 	// Check permissions
 
@@ -351,7 +354,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 	if mergedMasterHead != nil {
 		ok, err := isWriterOrValidRekey(
 			md.config.Codec(), currentUID,
-			&mergedMasterHead.MD, &rmds.MD)
+			mergedMasterHead.MD, rmds.MD)
 		if err != nil {
 			return MDServerError{err}
 		}
@@ -360,7 +363,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 		}
 	}
 
-	bid := rmds.MD.BID
+	bid := rmds.MD.BID()
 	mStatus := rmds.MD.MergedStatus()
 
 	head, err := md.getHeadForTLF(ctx, id, bid, mStatus)
@@ -372,7 +375,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 
 	if mStatus == Unmerged && head == nil {
 		// currHead for unmerged history might be on the main branch
-		prevRev := rmds.MD.Revision - 1
+		prevRev := rmds.MD.RevisionNumber() - 1
 		rmdses, err := md.GetRange(ctx, id, NullBranchID, Merged, prevRev, prevRev)
 		if err != nil {
 			return MDServerError{err}
@@ -388,11 +391,11 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 
 	// Consistency checks
 	if head != nil {
-		id, err := md.config.Crypto().MakeMdID(&head.MD)
+		id, err := md.config.Crypto().MakeMdID(head.MD)
 		if err != nil {
 			return err
 		}
-		err = head.MD.CheckValidSuccessorForServer(id, &rmds.MD)
+		err = head.MD.CheckValidSuccessorForServer(id, rmds.MD)
 		if err != nil {
 			return err
 		}
@@ -443,7 +446,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 		md.mdDb[revKey] = blockList
 	} else {
 		md.mdDb[revKey] = mdBlockMemList{
-			initialRevision: rmds.MD.Revision,
+			initialRevision: rmds.MD.RevisionNumber(),
 			blocks:          []mdBlockMem{block},
 		}
 	}
@@ -656,7 +659,7 @@ func (md *MDServerMemory) getCurrentMergedHeadRevision(
 		return 0, err
 	}
 	if head != nil {
-		rev = head.MD.Revision
+		rev = head.MD.RevisionNumber()
 	}
 	return
 }

@@ -122,7 +122,7 @@ func (wee *writerEditEstimates) update(rmds []ImmutableRootMetadata) {
 		if rmd.IsWriterMetadataCopiedSet() {
 			continue
 		}
-		writer := rmd.LastModifyingWriter
+		writer := rmd.LastModifyingWriter()
 		for _, op := range rmd.data.Changes.Ops {
 			// Estimate the number of writes just based on operations
 			// (without yet taking into account whether the same file
@@ -376,8 +376,8 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 
 	// If unmerged, get all the unmerged updates.
 	if head.MergedStatus() == Unmerged {
-		_, unmergedRmds, err := getUnmergedMDUpdates(ctx, teh.config, head.ID,
-			head.BID, head.Revision-1)
+		_, unmergedRmds, err := getUnmergedMDUpdates(ctx, teh.config, head.TlfID(),
+			head.BID(), head.Revision()-1)
 		if err != nil {
 			return nil, err
 		}
@@ -387,7 +387,7 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 
 	for (currEdits == nil || !currEdits.isComplete()) &&
 		len(rmds) < maxMDsToInspect &&
-		rmds[0].Revision > MetadataRevisionInitial {
+		rmds[0].Revision() > MetadataRevisionInitial {
 		teh.log.CDebugf(ctx, "Edits not complete after %d revisions", len(rmds))
 		if estimates.isComplete() {
 			// Once the estimate hits the threshold for each writer,
@@ -407,10 +407,10 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 		}
 
 		for !estimates.isComplete() && len(rmds) < maxMDsToInspect &&
-			rmds[0].Revision > MetadataRevisionInitial {
+			rmds[0].Revision() > MetadataRevisionInitial {
 			// Starting from the head/branchpoint, work backwards
 			// mdMax revisions at a time.
-			endRev := rmds[0].Revision - 1
+			endRev := rmds[0].Revision() - 1
 			startRev := endRev - maxMDsAtATime + 1
 			if startRev < MetadataRevisionInitial {
 				startRev = MetadataRevisionInitial
@@ -422,7 +422,7 @@ func (teh *TlfEditHistory) GetComplete(ctx context.Context,
 					int64(len(rmds)) + (int64(endRev) - maxMDsToInspect) + 1)
 			}
 
-			olderRmds, err := getMDRange(ctx, teh.config, head.ID, NullBranchID,
+			olderRmds, err := getMDRange(ctx, teh.config, head.TlfID(), NullBranchID,
 				startRev, endRev, Merged)
 			if err != nil {
 				return nil, err

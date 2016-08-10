@@ -105,8 +105,8 @@ func TestFBStatusAllFields(t *testing.T) {
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	u := h.FirstResolvedWriter()
 	md := newRootMetadataOrBust(t, id, h)
-	md.WFlags = MetadataFlagUnmerged
-	md.LastModifyingWriter = u
+	md.SetUnmerged()
+	md.SetLastModifyingWriter(u)
 
 	// make two nodes with expected PathFromNode calls
 	n1 := newMockNode(mockCtrl)

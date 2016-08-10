@@ -1552,7 +1552,7 @@ func (_mr *_MockcryptoPureRecorder) MakeRandomBranchID() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomBranchID")
 }
 
-func (_m *MockcryptoPure) MakeMdID(md *BareRootMetadata) (MdID, error) {
+func (_m *MockcryptoPure) MakeMdID(md BareRootMetadata) (MdID, error) {
 	ret := _m.ctrl.Call(_m, "MakeMdID", md)
 	ret0, _ := ret[0].(MdID)
 	ret1, _ := ret[1].(error)
@@ -1881,7 +1881,7 @@ func (_mr *_MockCryptoRecorder) MakeRandomBranchID() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeRandomBranchID")
 }
 
-func (_m *MockCrypto) MakeMdID(md *BareRootMetadata) (MdID, error) {
+func (_m *MockCrypto) MakeMdID(md BareRootMetadata) (MdID, error) {
 	ret := _m.ctrl.Call(_m, "MakeMdID", md)
 	ret0, _ := ret[0].(MdID)
 	ret1, _ := ret[1].(error)
@@ -4158,4 +4158,970 @@ func (_m *MockRekeyQueue) Wait(ctx context.Context) error {
 
 func (_mr *_MockRekeyQueueRecorder) Wait(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Wait", arg0)
+}
+
+// Mock of BareRootMetadata interface
+type MockBareRootMetadata struct {
+	ctrl     *gomock.Controller
+	recorder *_MockBareRootMetadataRecorder
+}
+
+// Recorder for MockBareRootMetadata (not exported)
+type _MockBareRootMetadataRecorder struct {
+	mock *MockBareRootMetadata
+}
+
+func NewMockBareRootMetadata(ctrl *gomock.Controller) *MockBareRootMetadata {
+	mock := &MockBareRootMetadata{ctrl: ctrl}
+	mock.recorder = &_MockBareRootMetadataRecorder{mock}
+	return mock
+}
+
+func (_m *MockBareRootMetadata) EXPECT() *_MockBareRootMetadataRecorder {
+	return _m.recorder
+}
+
+func (_m *MockBareRootMetadata) TlfID() TlfID {
+	ret := _m.ctrl.Call(_m, "TlfID")
+	ret0, _ := ret[0].(TlfID)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) TlfID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TlfID")
+}
+
+func (_m *MockBareRootMetadata) LatestKeyGeneration() KeyGen {
+	ret := _m.ctrl.Call(_m, "LatestKeyGeneration")
+	ret0, _ := ret[0].(KeyGen)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) LatestKeyGeneration() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LatestKeyGeneration")
+}
+
+func (_m *MockBareRootMetadata) IsValidRekeyRequest(codec Codec, prevMd BareRootMetadata, user protocol.UID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsValidRekeyRequest", codec, prevMd, user)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBareRootMetadataRecorder) IsValidRekeyRequest(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidRekeyRequest", arg0, arg1, arg2)
+}
+
+func (_m *MockBareRootMetadata) MergedStatus() MergeStatus {
+	ret := _m.ctrl.Call(_m, "MergedStatus")
+	ret0, _ := ret[0].(MergeStatus)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) MergedStatus() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MergedStatus")
+}
+
+func (_m *MockBareRootMetadata) IsRekeySet() bool {
+	ret := _m.ctrl.Call(_m, "IsRekeySet")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) IsRekeySet() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsRekeySet")
+}
+
+func (_m *MockBareRootMetadata) IsWriterMetadataCopiedSet() bool {
+	ret := _m.ctrl.Call(_m, "IsWriterMetadataCopiedSet")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) IsWriterMetadataCopiedSet() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriterMetadataCopiedSet")
+}
+
+func (_m *MockBareRootMetadata) IsFinal() bool {
+	ret := _m.ctrl.Call(_m, "IsFinal")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) IsFinal() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsFinal")
+}
+
+func (_m *MockBareRootMetadata) IsWriter(user protocol.UID, deviceKID protocol.KID) bool {
+	ret := _m.ctrl.Call(_m, "IsWriter", user, deviceKID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) IsWriter(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriter", arg0, arg1)
+}
+
+func (_m *MockBareRootMetadata) IsReader(user protocol.UID, deviceKID protocol.KID) bool {
+	ret := _m.ctrl.Call(_m, "IsReader", user, deviceKID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) IsReader(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsReader", arg0, arg1)
+}
+
+func (_m *MockBareRootMetadata) DeepCopy(codec Codec) (BareRootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "DeepCopy", codec)
+	ret0, _ := ret[0].(BareRootMetadata)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBareRootMetadataRecorder) DeepCopy(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeepCopy", arg0)
+}
+
+func (_m *MockBareRootMetadata) CheckValidSuccessor(currID MdID, nextMd BareRootMetadata) error {
+	ret := _m.ctrl.Call(_m, "CheckValidSuccessor", currID, nextMd)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) CheckValidSuccessor(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckValidSuccessor", arg0, arg1)
+}
+
+func (_m *MockBareRootMetadata) CheckValidSuccessorForServer(currID MdID, nextMd BareRootMetadata) error {
+	ret := _m.ctrl.Call(_m, "CheckValidSuccessorForServer", currID, nextMd)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) CheckValidSuccessorForServer(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckValidSuccessorForServer", arg0, arg1)
+}
+
+func (_m *MockBareRootMetadata) MakeBareTlfHandle() (BareTlfHandle, error) {
+	ret := _m.ctrl.Call(_m, "MakeBareTlfHandle")
+	ret0, _ := ret[0].(BareTlfHandle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBareRootMetadataRecorder) MakeBareTlfHandle() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeBareTlfHandle")
+}
+
+func (_m *MockBareRootMetadata) VerifyWriterMetadata(codec Codec, crypto cryptoPure) error {
+	ret := _m.ctrl.Call(_m, "VerifyWriterMetadata", codec, crypto)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) VerifyWriterMetadata(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "VerifyWriterMetadata", arg0, arg1)
+}
+
+func (_m *MockBareRootMetadata) TlfHandleExtensions() []TlfHandleExtension {
+	ret := _m.ctrl.Call(_m, "TlfHandleExtensions")
+	ret0, _ := ret[0].([]TlfHandleExtension)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) TlfHandleExtensions() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TlfHandleExtensions")
+}
+
+func (_m *MockBareRootMetadata) GetDeviceKIDs(keyGen KeyGen, user protocol.UID) ([]protocol.KID, error) {
+	ret := _m.ctrl.Call(_m, "GetDeviceKIDs", keyGen, user)
+	ret0, _ := ret[0].([]protocol.KID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBareRootMetadataRecorder) GetDeviceKIDs(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceKIDs", arg0, arg1)
+}
+
+func (_m *MockBareRootMetadata) HasKeyForUser(keyGen KeyGen, user protocol.UID) bool {
+	ret := _m.ctrl.Call(_m, "HasKeyForUser", keyGen, user)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) HasKeyForUser(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasKeyForUser", arg0, arg1)
+}
+
+func (_m *MockBareRootMetadata) GetTLFCryptKeyParams(keyGen KeyGen, user protocol.UID, key CryptPublicKey) (TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf, TLFCryptKeyServerHalfID, bool, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyParams", keyGen, user, key)
+	ret0, _ := ret[0].(TLFEphemeralPublicKey)
+	ret1, _ := ret[1].(EncryptedTLFCryptKeyClientHalf)
+	ret2, _ := ret[2].(TLFCryptKeyServerHalfID)
+	ret3, _ := ret[3].(bool)
+	ret4, _ := ret[4].(error)
+	return ret0, ret1, ret2, ret3, ret4
+}
+
+func (_mr *_MockBareRootMetadataRecorder) GetTLFCryptKeyParams(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyParams", arg0, arg1, arg2)
+}
+
+func (_m *MockBareRootMetadata) IsValidAndSigned(codec Codec, crypto cryptoPure, currentUID protocol.UID, currentVerifyingKey VerifyingKey) error {
+	ret := _m.ctrl.Call(_m, "IsValidAndSigned", codec, crypto, currentUID, currentVerifyingKey)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) IsValidAndSigned(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidAndSigned", arg0, arg1, arg2, arg3)
+}
+
+func (_m *MockBareRootMetadata) LastModifyingWriter() protocol.UID {
+	ret := _m.ctrl.Call(_m, "LastModifyingWriter")
+	ret0, _ := ret[0].(protocol.UID)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) LastModifyingWriter() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastModifyingWriter")
+}
+
+func (_m *MockBareRootMetadata) LastModifyingWriterKID() protocol.KID {
+	ret := _m.ctrl.Call(_m, "LastModifyingWriterKID")
+	ret0, _ := ret[0].(protocol.KID)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) LastModifyingWriterKID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastModifyingWriterKID")
+}
+
+func (_m *MockBareRootMetadata) GetLastModifyingUser() protocol.UID {
+	ret := _m.ctrl.Call(_m, "GetLastModifyingUser")
+	ret0, _ := ret[0].(protocol.UID)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) GetLastModifyingUser() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLastModifyingUser")
+}
+
+func (_m *MockBareRootMetadata) RefBytes() uint64 {
+	ret := _m.ctrl.Call(_m, "RefBytes")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) RefBytes() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefBytes")
+}
+
+func (_m *MockBareRootMetadata) UnrefBytes() uint64 {
+	ret := _m.ctrl.Call(_m, "UnrefBytes")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) UnrefBytes() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnrefBytes")
+}
+
+func (_m *MockBareRootMetadata) DiskUsage() uint64 {
+	ret := _m.ctrl.Call(_m, "DiskUsage")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) DiskUsage() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DiskUsage")
+}
+
+func (_m *MockBareRootMetadata) RevisionNumber() MetadataRevision {
+	ret := _m.ctrl.Call(_m, "RevisionNumber")
+	ret0, _ := ret[0].(MetadataRevision)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) RevisionNumber() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RevisionNumber")
+}
+
+func (_m *MockBareRootMetadata) BID() BranchID {
+	ret := _m.ctrl.Call(_m, "BID")
+	ret0, _ := ret[0].(BranchID)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) BID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BID")
+}
+
+func (_m *MockBareRootMetadata) GetPrevRoot() MdID {
+	ret := _m.ctrl.Call(_m, "GetPrevRoot")
+	ret0, _ := ret[0].(MdID)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) GetPrevRoot() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetPrevRoot")
+}
+
+func (_m *MockBareRootMetadata) IsUnmergedSet() bool {
+	ret := _m.ctrl.Call(_m, "IsUnmergedSet")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) IsUnmergedSet() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsUnmergedSet")
+}
+
+func (_m *MockBareRootMetadata) GetSerializedPrivateMetadata() []byte {
+	ret := _m.ctrl.Call(_m, "GetSerializedPrivateMetadata")
+	ret0, _ := ret[0].([]byte)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) GetSerializedPrivateMetadata() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSerializedPrivateMetadata")
+}
+
+func (_m *MockBareRootMetadata) GetSerializedWriterMetadata(codec Codec) ([]byte, error) {
+	ret := _m.ctrl.Call(_m, "GetSerializedWriterMetadata", codec)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBareRootMetadataRecorder) GetSerializedWriterMetadata(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSerializedWriterMetadata", arg0)
+}
+
+func (_m *MockBareRootMetadata) GetWriterMetadataSigInfo() SignatureInfo {
+	ret := _m.ctrl.Call(_m, "GetWriterMetadataSigInfo")
+	ret0, _ := ret[0].(SignatureInfo)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) GetWriterMetadataSigInfo() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetWriterMetadataSigInfo")
+}
+
+func (_m *MockBareRootMetadata) Version() MetadataVer {
+	ret := _m.ctrl.Call(_m, "Version")
+	ret0, _ := ret[0].(MetadataVer)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) Version() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Version")
+}
+
+// Mock of MutableBareRootMetadata interface
+type MockMutableBareRootMetadata struct {
+	ctrl     *gomock.Controller
+	recorder *_MockMutableBareRootMetadataRecorder
+}
+
+// Recorder for MockMutableBareRootMetadata (not exported)
+type _MockMutableBareRootMetadataRecorder struct {
+	mock *MockMutableBareRootMetadata
+}
+
+func NewMockMutableBareRootMetadata(ctrl *gomock.Controller) *MockMutableBareRootMetadata {
+	mock := &MockMutableBareRootMetadata{ctrl: ctrl}
+	mock.recorder = &_MockMutableBareRootMetadataRecorder{mock}
+	return mock
+}
+
+func (_m *MockMutableBareRootMetadata) EXPECT() *_MockMutableBareRootMetadataRecorder {
+	return _m.recorder
+}
+
+func (_m *MockMutableBareRootMetadata) TlfID() TlfID {
+	ret := _m.ctrl.Call(_m, "TlfID")
+	ret0, _ := ret[0].(TlfID)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) TlfID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TlfID")
+}
+
+func (_m *MockMutableBareRootMetadata) LatestKeyGeneration() KeyGen {
+	ret := _m.ctrl.Call(_m, "LatestKeyGeneration")
+	ret0, _ := ret[0].(KeyGen)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) LatestKeyGeneration() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LatestKeyGeneration")
+}
+
+func (_m *MockMutableBareRootMetadata) IsValidRekeyRequest(codec Codec, prevMd BareRootMetadata, user protocol.UID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "IsValidRekeyRequest", codec, prevMd, user)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) IsValidRekeyRequest(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidRekeyRequest", arg0, arg1, arg2)
+}
+
+func (_m *MockMutableBareRootMetadata) MergedStatus() MergeStatus {
+	ret := _m.ctrl.Call(_m, "MergedStatus")
+	ret0, _ := ret[0].(MergeStatus)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) MergedStatus() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MergedStatus")
+}
+
+func (_m *MockMutableBareRootMetadata) IsRekeySet() bool {
+	ret := _m.ctrl.Call(_m, "IsRekeySet")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) IsRekeySet() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsRekeySet")
+}
+
+func (_m *MockMutableBareRootMetadata) IsWriterMetadataCopiedSet() bool {
+	ret := _m.ctrl.Call(_m, "IsWriterMetadataCopiedSet")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) IsWriterMetadataCopiedSet() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriterMetadataCopiedSet")
+}
+
+func (_m *MockMutableBareRootMetadata) IsFinal() bool {
+	ret := _m.ctrl.Call(_m, "IsFinal")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) IsFinal() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsFinal")
+}
+
+func (_m *MockMutableBareRootMetadata) IsWriter(user protocol.UID, deviceKID protocol.KID) bool {
+	ret := _m.ctrl.Call(_m, "IsWriter", user, deviceKID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) IsWriter(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriter", arg0, arg1)
+}
+
+func (_m *MockMutableBareRootMetadata) IsReader(user protocol.UID, deviceKID protocol.KID) bool {
+	ret := _m.ctrl.Call(_m, "IsReader", user, deviceKID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) IsReader(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsReader", arg0, arg1)
+}
+
+func (_m *MockMutableBareRootMetadata) DeepCopy(codec Codec) (BareRootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "DeepCopy", codec)
+	ret0, _ := ret[0].(BareRootMetadata)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) DeepCopy(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeepCopy", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) CheckValidSuccessor(currID MdID, nextMd BareRootMetadata) error {
+	ret := _m.ctrl.Call(_m, "CheckValidSuccessor", currID, nextMd)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) CheckValidSuccessor(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckValidSuccessor", arg0, arg1)
+}
+
+func (_m *MockMutableBareRootMetadata) CheckValidSuccessorForServer(currID MdID, nextMd BareRootMetadata) error {
+	ret := _m.ctrl.Call(_m, "CheckValidSuccessorForServer", currID, nextMd)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) CheckValidSuccessorForServer(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckValidSuccessorForServer", arg0, arg1)
+}
+
+func (_m *MockMutableBareRootMetadata) MakeBareTlfHandle() (BareTlfHandle, error) {
+	ret := _m.ctrl.Call(_m, "MakeBareTlfHandle")
+	ret0, _ := ret[0].(BareTlfHandle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) MakeBareTlfHandle() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeBareTlfHandle")
+}
+
+func (_m *MockMutableBareRootMetadata) VerifyWriterMetadata(codec Codec, crypto cryptoPure) error {
+	ret := _m.ctrl.Call(_m, "VerifyWriterMetadata", codec, crypto)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) VerifyWriterMetadata(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "VerifyWriterMetadata", arg0, arg1)
+}
+
+func (_m *MockMutableBareRootMetadata) TlfHandleExtensions() []TlfHandleExtension {
+	ret := _m.ctrl.Call(_m, "TlfHandleExtensions")
+	ret0, _ := ret[0].([]TlfHandleExtension)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) TlfHandleExtensions() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TlfHandleExtensions")
+}
+
+func (_m *MockMutableBareRootMetadata) GetDeviceKIDs(keyGen KeyGen, user protocol.UID) ([]protocol.KID, error) {
+	ret := _m.ctrl.Call(_m, "GetDeviceKIDs", keyGen, user)
+	ret0, _ := ret[0].([]protocol.KID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetDeviceKIDs(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceKIDs", arg0, arg1)
+}
+
+func (_m *MockMutableBareRootMetadata) HasKeyForUser(keyGen KeyGen, user protocol.UID) bool {
+	ret := _m.ctrl.Call(_m, "HasKeyForUser", keyGen, user)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) HasKeyForUser(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasKeyForUser", arg0, arg1)
+}
+
+func (_m *MockMutableBareRootMetadata) GetTLFCryptKeyParams(keyGen KeyGen, user protocol.UID, key CryptPublicKey) (TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf, TLFCryptKeyServerHalfID, bool, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyParams", keyGen, user, key)
+	ret0, _ := ret[0].(TLFEphemeralPublicKey)
+	ret1, _ := ret[1].(EncryptedTLFCryptKeyClientHalf)
+	ret2, _ := ret[2].(TLFCryptKeyServerHalfID)
+	ret3, _ := ret[3].(bool)
+	ret4, _ := ret[4].(error)
+	return ret0, ret1, ret2, ret3, ret4
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetTLFCryptKeyParams(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyParams", arg0, arg1, arg2)
+}
+
+func (_m *MockMutableBareRootMetadata) IsValidAndSigned(codec Codec, crypto cryptoPure, currentUID protocol.UID, currentVerifyingKey VerifyingKey) error {
+	ret := _m.ctrl.Call(_m, "IsValidAndSigned", codec, crypto, currentUID, currentVerifyingKey)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) IsValidAndSigned(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidAndSigned", arg0, arg1, arg2, arg3)
+}
+
+func (_m *MockMutableBareRootMetadata) LastModifyingWriter() protocol.UID {
+	ret := _m.ctrl.Call(_m, "LastModifyingWriter")
+	ret0, _ := ret[0].(protocol.UID)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) LastModifyingWriter() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastModifyingWriter")
+}
+
+func (_m *MockMutableBareRootMetadata) LastModifyingWriterKID() protocol.KID {
+	ret := _m.ctrl.Call(_m, "LastModifyingWriterKID")
+	ret0, _ := ret[0].(protocol.KID)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) LastModifyingWriterKID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastModifyingWriterKID")
+}
+
+func (_m *MockMutableBareRootMetadata) GetLastModifyingUser() protocol.UID {
+	ret := _m.ctrl.Call(_m, "GetLastModifyingUser")
+	ret0, _ := ret[0].(protocol.UID)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetLastModifyingUser() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLastModifyingUser")
+}
+
+func (_m *MockMutableBareRootMetadata) RefBytes() uint64 {
+	ret := _m.ctrl.Call(_m, "RefBytes")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) RefBytes() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefBytes")
+}
+
+func (_m *MockMutableBareRootMetadata) UnrefBytes() uint64 {
+	ret := _m.ctrl.Call(_m, "UnrefBytes")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) UnrefBytes() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnrefBytes")
+}
+
+func (_m *MockMutableBareRootMetadata) DiskUsage() uint64 {
+	ret := _m.ctrl.Call(_m, "DiskUsage")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) DiskUsage() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DiskUsage")
+}
+
+func (_m *MockMutableBareRootMetadata) RevisionNumber() MetadataRevision {
+	ret := _m.ctrl.Call(_m, "RevisionNumber")
+	ret0, _ := ret[0].(MetadataRevision)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) RevisionNumber() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RevisionNumber")
+}
+
+func (_m *MockMutableBareRootMetadata) BID() BranchID {
+	ret := _m.ctrl.Call(_m, "BID")
+	ret0, _ := ret[0].(BranchID)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) BID() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "BID")
+}
+
+func (_m *MockMutableBareRootMetadata) GetPrevRoot() MdID {
+	ret := _m.ctrl.Call(_m, "GetPrevRoot")
+	ret0, _ := ret[0].(MdID)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetPrevRoot() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetPrevRoot")
+}
+
+func (_m *MockMutableBareRootMetadata) IsUnmergedSet() bool {
+	ret := _m.ctrl.Call(_m, "IsUnmergedSet")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) IsUnmergedSet() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsUnmergedSet")
+}
+
+func (_m *MockMutableBareRootMetadata) GetSerializedPrivateMetadata() []byte {
+	ret := _m.ctrl.Call(_m, "GetSerializedPrivateMetadata")
+	ret0, _ := ret[0].([]byte)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetSerializedPrivateMetadata() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSerializedPrivateMetadata")
+}
+
+func (_m *MockMutableBareRootMetadata) GetSerializedWriterMetadata(codec Codec) ([]byte, error) {
+	ret := _m.ctrl.Call(_m, "GetSerializedWriterMetadata", codec)
+	ret0, _ := ret[0].([]byte)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetSerializedWriterMetadata(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetSerializedWriterMetadata", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) GetWriterMetadataSigInfo() SignatureInfo {
+	ret := _m.ctrl.Call(_m, "GetWriterMetadataSigInfo")
+	ret0, _ := ret[0].(SignatureInfo)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetWriterMetadataSigInfo() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetWriterMetadataSigInfo")
+}
+
+func (_m *MockMutableBareRootMetadata) Version() MetadataVer {
+	ret := _m.ctrl.Call(_m, "Version")
+	ret0, _ := ret[0].(MetadataVer)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) Version() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Version")
+}
+
+func (_m *MockMutableBareRootMetadata) SetRefBytes(refBytes uint64) {
+	_m.ctrl.Call(_m, "SetRefBytes", refBytes)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetRefBytes(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRefBytes", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetUnrefBytes(unrefBytes uint64) {
+	_m.ctrl.Call(_m, "SetUnrefBytes", unrefBytes)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetUnrefBytes(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetUnrefBytes", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetDiskUsage(diskUsage uint64) {
+	_m.ctrl.Call(_m, "SetDiskUsage", diskUsage)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetDiskUsage(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetDiskUsage", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) AddRefBytes(refBytes uint64) {
+	_m.ctrl.Call(_m, "AddRefBytes", refBytes)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) AddRefBytes(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddRefBytes", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) AddUnrefBytes(unrefBytes uint64) {
+	_m.ctrl.Call(_m, "AddUnrefBytes", unrefBytes)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) AddUnrefBytes(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddUnrefBytes", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) AddDiskUsage(diskUsage uint64) {
+	_m.ctrl.Call(_m, "AddDiskUsage", diskUsage)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) AddDiskUsage(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddDiskUsage", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) ClearRekeyBit() {
+	_m.ctrl.Call(_m, "ClearRekeyBit")
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) ClearRekeyBit() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ClearRekeyBit")
+}
+
+func (_m *MockMutableBareRootMetadata) ClearWriterMetadataCopiedBit() {
+	_m.ctrl.Call(_m, "ClearWriterMetadataCopiedBit")
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) ClearWriterMetadataCopiedBit() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ClearWriterMetadataCopiedBit")
+}
+
+func (_m *MockMutableBareRootMetadata) ClearFinalBit() {
+	_m.ctrl.Call(_m, "ClearFinalBit")
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) ClearFinalBit() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ClearFinalBit")
+}
+
+func (_m *MockMutableBareRootMetadata) SetUnmerged() {
+	_m.ctrl.Call(_m, "SetUnmerged")
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetUnmerged() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetUnmerged")
+}
+
+func (_m *MockMutableBareRootMetadata) SetBranchID(bid BranchID) {
+	_m.ctrl.Call(_m, "SetBranchID", bid)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetBranchID(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetBranchID", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetPrevRoot(mdID MdID) {
+	_m.ctrl.Call(_m, "SetPrevRoot", mdID)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetPrevRoot(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetPrevRoot", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetSerializedPrivateMetadata(spmd []byte) {
+	_m.ctrl.Call(_m, "SetSerializedPrivateMetadata", spmd)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetSerializedPrivateMetadata(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetSerializedPrivateMetadata", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetWriterMetadataSigInfo(sigInfo SignatureInfo) {
+	_m.ctrl.Call(_m, "SetWriterMetadataSigInfo", sigInfo)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetWriterMetadataSigInfo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetWriterMetadataSigInfo", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetLastModifyingWriter(user protocol.UID) {
+	_m.ctrl.Call(_m, "SetLastModifyingWriter", user)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetLastModifyingWriter(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetLastModifyingWriter", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetLastModifyingUser(user protocol.UID) {
+	_m.ctrl.Call(_m, "SetLastModifyingUser", user)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetLastModifyingUser(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetLastModifyingUser", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetRekeyBit() {
+	_m.ctrl.Call(_m, "SetRekeyBit")
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetRekeyBit() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRekeyBit")
+}
+
+func (_m *MockMutableBareRootMetadata) SetFinalBit() {
+	_m.ctrl.Call(_m, "SetFinalBit")
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetFinalBit() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetFinalBit")
+}
+
+func (_m *MockMutableBareRootMetadata) SetWriterMetadataCopiedBit() {
+	_m.ctrl.Call(_m, "SetWriterMetadataCopiedBit")
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetWriterMetadataCopiedBit() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetWriterMetadataCopiedBit")
+}
+
+func (_m *MockMutableBareRootMetadata) SetRevision(revision MetadataRevision) {
+	_m.ctrl.Call(_m, "SetRevision", revision)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetRevision(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRevision", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) AddNewKeys(wkb TLFWriterKeyBundle, rkb TLFReaderKeyBundle) {
+	_m.ctrl.Call(_m, "AddNewKeys", wkb, rkb)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) AddNewKeys(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddNewKeys", arg0, arg1)
+}
+
+func (_m *MockMutableBareRootMetadata) SetUnresolvedReaders(readers []protocol.SocialAssertion) {
+	_m.ctrl.Call(_m, "SetUnresolvedReaders", readers)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetUnresolvedReaders(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetUnresolvedReaders", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetUnresolvedWriters(writers []protocol.SocialAssertion) {
+	_m.ctrl.Call(_m, "SetUnresolvedWriters", writers)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetUnresolvedWriters(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetUnresolvedWriters", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetConflictInfo(ci *TlfHandleExtension) {
+	_m.ctrl.Call(_m, "SetConflictInfo", ci)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetConflictInfo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetConflictInfo", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetFinalizedInfo(fi *TlfHandleExtension) {
+	_m.ctrl.Call(_m, "SetFinalizedInfo", fi)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetFinalizedInfo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetFinalizedInfo", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetWriters(writers []protocol.UID) {
+	_m.ctrl.Call(_m, "SetWriters", writers)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetWriters(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetWriters", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) SetTlfID(tlf TlfID) {
+	_m.ctrl.Call(_m, "SetTlfID", tlf)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) SetTlfID(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetTlfID", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) FakeInitialRekey(h BareTlfHandle) {
+	_m.ctrl.Call(_m, "FakeInitialRekey", h)
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) FakeInitialRekey(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "FakeInitialRekey", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) Update(tlf TlfID, h BareTlfHandle) error {
+	ret := _m.ctrl.Call(_m, "Update", tlf, h)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) Update(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Update", arg0, arg1)
+}
+
+func (_m *MockMutableBareRootMetadata) GetTLFKeyBundles(keyGen KeyGen) (*TLFWriterKeyBundle, *TLFReaderKeyBundle, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFKeyBundles", keyGen)
+	ret0, _ := ret[0].(*TLFWriterKeyBundle)
+	ret1, _ := ret[1].(*TLFReaderKeyBundle)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetTLFKeyBundles(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFKeyBundles", arg0)
 }

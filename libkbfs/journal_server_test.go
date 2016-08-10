@@ -78,16 +78,16 @@ func TestJournalServerRestart(t *testing.T) {
 
 	// Put an MD.
 
-	var rmd RootMetadata
-	err = updateNewBareRootMetadata(&rmd.BareRootMetadata, tlfID, bh)
+	rmd := NewRootMetadata()
+	err = rmd.Update(tlfID, bh)
 	require.NoError(t, err)
 	rmd.tlfHandle = h
-	rmd.Revision = MetadataRevision(1)
-	rekeyDone, _, err := config.KeyManager().Rekey(ctx, &rmd, false)
+	rmd.SetRevision(MetadataRevision(1))
+	rekeyDone, _, err := config.KeyManager().Rekey(ctx, rmd, false)
 	require.NoError(t, err)
 	require.True(t, rekeyDone)
 
-	_, err = mdOps.Put(ctx, &rmd)
+	_, err = mdOps.Put(ctx, rmd)
 	require.NoError(t, err)
 
 	// Simulate a restart.
@@ -112,5 +112,5 @@ func TestJournalServerRestart(t *testing.T) {
 
 	head, err := mdOps.GetForTLF(ctx, tlfID)
 	require.NoError(t, err)
-	require.Equal(t, rmd.Revision, head.Revision)
+	require.Equal(t, rmd.Revision(), head.Revision())
 }

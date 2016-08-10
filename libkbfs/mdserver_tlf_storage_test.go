@@ -63,7 +63,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		recordBranchID, err := s.put(uid, verifyingKey, rmds)
 		require.NoError(t, err)
 		require.False(t, recordBranchID)
-		prevRoot, err = crypto.MakeMdID(&rmds.MD)
+		prevRoot, err = crypto.MakeMdID(rmds.MD)
 		require.NoError(t, err)
 		if i == 5 {
 			middleRoot = prevRoot
@@ -88,13 +88,13 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	bid := FakeBranchID(1)
 	for i := MetadataRevision(6); i < 41; i++ {
 		rmds := makeRMDSForTest(t, id, h, i, uid, prevRoot)
-		rmds.MD.WFlags |= MetadataFlagUnmerged
-		rmds.MD.BID = bid
+		rmds.MD.SetUnmerged()
+		rmds.MD.SetBranchID(bid)
 		signRMDSForTest(t, codec, signer, rmds)
 		recordBranchID, err := s.put(uid, verifyingKey, rmds)
 		require.NoError(t, err)
 		require.Equal(t, i == MetadataRevision(6), recordBranchID)
-		prevRoot, err = crypto.MakeMdID(&rmds.MD)
+		prevRoot, err = crypto.MakeMdID(rmds.MD)
 		require.NoError(t, err)
 	}
 
@@ -106,7 +106,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	head, err = s.getForTLF(uid, bid)
 	require.NoError(t, err)
 	require.NotNil(t, head)
-	require.Equal(t, MetadataRevision(40), head.MD.Revision)
+	require.Equal(t, MetadataRevision(40), head.MD.RevisionNumber())
 
 	require.Equal(t, 10, getMDJournalLength(t, s, NullBranchID))
 	require.Equal(t, 35, getMDJournalLength(t, s, bid))
@@ -117,7 +117,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 35, len(rmdses))
 	for i := MetadataRevision(6); i < 16; i++ {
-		require.Equal(t, i, rmdses[i-6].MD.Revision)
+		require.Equal(t, i, rmdses[i-6].MD.RevisionNumber())
 	}
 
 	// Nothing corresponds to (7) - (9) from MDServerTestBasics.
@@ -127,7 +127,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	head, err = s.getForTLF(uid, NullBranchID)
 	require.NoError(t, err)
 	require.NotNil(t, head)
-	require.Equal(t, MetadataRevision(10), head.MD.Revision)
+	require.Equal(t, MetadataRevision(10), head.MD.RevisionNumber())
 
 	// (11) Try to get merged range.
 
@@ -135,7 +135,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 10, len(rmdses))
 	for i := MetadataRevision(1); i <= 10; i++ {
-		require.Equal(t, i, rmdses[i-1].MD.Revision)
+		require.Equal(t, i, rmdses[i-1].MD.RevisionNumber())
 	}
 
 	require.Equal(t, 10, getMDJournalLength(t, s, NullBranchID))
