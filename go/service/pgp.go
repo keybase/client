@@ -240,3 +240,20 @@ func (h *PGPHandler) PGPUpdate(_ context.Context, arg keybase1.PGPUpdateArg) err
 	eng := engine.NewPGPUpdateEngine(arg.Fingerprints, arg.All, h.G())
 	return engine.RunEngine(eng, &ctx)
 }
+
+func (h *PGPHandler) PGPPurge(ctx context.Context, arg keybase1.PGPPurgeArg) (keybase1.PGPPurgeRes, error) {
+	ectx := &engine.Context{
+		LogUI:      h.getLogUI(arg.SessionID),
+		SessionID:  arg.SessionID,
+		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
+		NetContext: ctx,
+	}
+	eng := engine.NewPGPPurge(h.G(), arg)
+	var res keybase1.PGPPurgeRes
+	if err := engine.RunEngine(eng, ectx); err != nil {
+		return res, err
+	}
+	res.Filenames = eng.KeyFiles()
+	return res, nil
+}

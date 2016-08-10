@@ -6,16 +6,17 @@ package client
 import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
 )
 
-func NewCmdSigs(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdSigs(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "sigs",
 		ArgumentHelp: "[arguments...]",
 		Usage:        "Manage signatures",
 		Subcommands: []cli.Command{
-			NewCmdSigsList(cl),
-			NewCmdSigsRevoke(cl),
+			NewCmdSigsList(cl, g),
+			NewCmdSigsRevoke(cl, g),
 		},
 	}
 }

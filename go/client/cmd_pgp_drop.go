@@ -16,6 +16,7 @@ import (
 )
 
 type CmdPGPDrop struct {
+	libkb.Contextified
 	id keybase1.KID
 }
 
@@ -31,15 +32,15 @@ func (c *CmdPGPDrop) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (c *CmdPGPDrop) Run() (err error) {
-	cli, err := GetRevokeClient()
+	cli, err := GetRevokeClient(c.G())
 	if err != nil {
 		return err
 	}
 
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(G),
+		NewSecretUIProtocol(c.G()),
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
 
@@ -48,7 +49,7 @@ func (c *CmdPGPDrop) Run() (err error) {
 	})
 }
 
-func NewCmdPGPDrop(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPDrop(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "drop",
 		ArgumentHelp: "<key-id>",
