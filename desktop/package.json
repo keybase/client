@@ -40,7 +40,6 @@
     "immutable": "3.8.1",
     "jsonfile": "2.3.1",
     "lodash": "4.14.2",
-    "marked": "0.3.6",
     "material-ui": "0.15.3",
     "menubar": "5.1.0",
     "mkdirp": "0.5.1",
