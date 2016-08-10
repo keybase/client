@@ -1,6 +1,6 @@
 #!groovy
 
-helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'master', null, 'linux')
+helpers = fileLoader.fromGit('helpers', 'https://github.com/keybase/jenkins-helpers.git', 'jzila/kbweb-helper', null, 'linux')
 
 if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
     println "Skipping build because PR title contains [ci-skip]"
@@ -105,13 +105,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                     )
                 }
 
-                def kbweb = null
-
-                try {
-                    retry(5) {
-                        sh "docker-compose up -d mysql.local"
-                    }
-                    sh "docker-compose up -d kbweb.local"
+                helpers.withKbweb() {
 
                     stage "Test"
                         parallel (
@@ -282,19 +276,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 }
                             },
                         )
-                } catch (ex) {
-                    println "Dockers:"
-                    sh "docker ps -a"
-                    sh "docker-compose stop"
-                    println "Gregor logs:"
-                    sh "docker logs --tail 100000 client_gregor.local_1"
-                    println "MySQL logs:"
-                    sh "docker logs --tail 100000 client_mysql.local_1"
-                    println "KBweb logs:"
-                    sh "docker logs --tail 100000 client_kbweb.local_1"
-                    throw ex
-                } finally {
-                    sh "docker-compose down"
                 }
 
 
