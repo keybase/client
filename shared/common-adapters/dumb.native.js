@@ -2,7 +2,7 @@
 import Checkbox from './checkbox'
 import React from 'react'
 import type {DumbComponentMap} from '../constants/types/more'
-import {TabBar, Text, Box, ListItem, Button, Avatar} from './index'
+import {Avatar, Box, Button, ListItem, StandardScreen, TabBar, Text} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalColors} from '../styles/style-guide'
 
@@ -132,9 +132,39 @@ const listItemMap: DumbComponentMap<ListItem> = {
   },
 }
 
+const standardScreenProps = {
+  onClose: () => console.log('StandardScreen: onClose'),
+  children: <Text type='Header'>Whoa, look at this centered thing</Text>,
+}
+
+const standardScreenMap: DumbComponentMap<StandardScreen> = {
+  component: StandardScreen,
+  mocks: {
+    'Normal': {
+      ...standardScreenProps,
+    },
+    'Error w/ Custom Close Text': {
+      ...standardScreenProps,
+      onCloseText: 'Back',
+      notification: {
+        message: 'Something went horribly wrong! :-(',
+        type: 'error',
+      },
+    },
+    'Success w/ Custom Notification Element': {
+      ...standardScreenProps,
+      notification: {
+        message: <Text type='BodySmallSemibold' style={{color: globalColors.white, textAlign: 'center'}}>You won a unicorn! <Text type='BodySmallPrimaryLink'>Make sure to feed it</Text> :-)</Text>,
+        type: 'success',
+      },
+    },
+  },
+}
+
 export default {
-  'TabBarButton': tabBarButtonMap,
-  'TabBar': tabBarMap,
   'Checkbox': checkboxMap,
-  ListItem: listItemMap,
+  'ListItem': listItemMap,
+  'StandardScreen': standardScreenMap,
+  'TabBar': tabBarMap,
+  'TabBarButton': tabBarButtonMap,
 }
