@@ -634,11 +634,29 @@ func (k *SKBKeyringFile) Remove(skb *SKB) error {
 	if err != nil {
 		return fmt.Errorf("Failed to get pubkey: %s", err)
 	}
+
+	ok := true
+	for ok {
+		ok, err = k.removeKey(key)
+		if err != nil {
+			return err
+		}
+	}
+
+	k.removeFromIndex(key)
+
+	k.dirty = true
+
+	return nil
+}
+
+// removeKey returns true, nil if it removed a key that matched.
+func (k *SKBKeyringFile) removeKey(key GenericKey) (bool, error) {
 	index := -1
 	for i, block := range k.Blocks {
 		bkey, err := block.GetPubKey()
 		if err != nil {
-			return err
+			return false, err
 		}
 		if bkey.GetKID().Equal(key.GetKID()) {
 			index = i
@@ -646,7 +664,7 @@ func (k *SKBKeyringFile) Remove(skb *SKB) error {
 		}
 	}
 	if index == -1 {
-		return fmt.Errorf("key not found in Blocks")
+		return false, nil
 	}
 
 	// delete index from Blocks (which contains pointers)
@@ -655,11 +673,7 @@ func (k *SKBKeyringFile) Remove(skb *SKB) error {
 	k.Blocks[len(k.Blocks)-1] = nil
 	k.Blocks = k.Blocks[:len(k.Blocks)-1]
 
-	k.removeFromIndex(key)
-
-	k.dirty = true
-
-	return nil
+	return true, nil
 }
 
 func (k SKBKeyringFile) GetFilename() string { return k.filename }
