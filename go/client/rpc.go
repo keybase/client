@@ -149,9 +149,9 @@ func GetUserClient(g *libkb.GlobalContext) (cli keybase1.UserClient, err error) 
 	return
 }
 
-func GetSigsClient() (cli keybase1.SigsClient, err error) {
+func GetSigsClient(g *libkb.GlobalContext) (cli keybase1.SigsClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.SigsClient{Cli: rcli}
 	}
 	return
@@ -165,9 +165,9 @@ func GetPGPClient() (cli keybase1.PGPClient, err error) {
 	return
 }
 
-func GetRevokeClient() (cli keybase1.RevokeClient, err error) {
+func GetRevokeClient(g *libkb.GlobalContext) (cli keybase1.RevokeClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.RevokeClient{Cli: rcli}
 	}
 	return
