@@ -1,40 +1,24 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './confirm'
-import {Box, Button, Text} from './'
+import {Box, Button, StandardScreen} from './'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 class Confirm extends Component<void, Props, void> {
   render () {
     return (
-      <Box style={{...styleContainer, ...backgroundColorThemed[this.props.theme]}}>
-        <Text type='BodyPrimaryLink' style={{...styleClose, ...styleCloseThemed[this.props.theme]}} onClick={this.props.onCancel}>Cancel</Text>
-        <Box style={styleInnerContainer}>
+      <StandardScreen styleOuter={backgroundColorThemed[this.props.theme]} styleClose={styleCloseThemed[this.props.theme]} onClose={this.props.onCancel}>
+        <Box style={styleBodyContainer}>
           <Box style={styleIconContainer}>
             {this.props.header}
           </Box>
-          <Box style={styleBodyContainer}>
-            {this.props.body}
-          </Box>
+          {this.props.body}
         </Box>
         <Button type={this.props.danger ? 'Danger' : 'Primary'} onClick={this.props.onSubmit} label={this.props.submitLabel} style={{...styleButton, marginBottom: 16}} />
         <Button type='Secondary' onClick={this.props.onCancel} label='Cancel' style={{...styleButton, ...cancelButtonThemed[this.props.theme]}} labelStyle={cancelButtonLabelThemed[this.props.theme]} />
-      </Box>
+      </StandardScreen>
     )
   }
-}
-
-const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  padding: 16,
-  flex: 1,
-}
-
-const styleInnerContainer = {
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  justifyContent: 'center',
-  flex: 1,
 }
 
 const styleIconContainer = {
@@ -47,7 +31,9 @@ const styleIconContainer = {
 
 const styleBodyContainer = {
   ...globalStyles.flexBoxColumn,
+  flex: 1,
   alignItems: 'center',
+  justifyContent: 'center',
   marginLeft: 16,
   marginRight: 16,
   marginBottom: 16,
@@ -78,12 +64,6 @@ const cancelButtonLabelThemed = {
   'private': {
     color: globalColors.white,
   },
-}
-
-const styleClose = {
-  alignSelf: 'flex-start',
-  marginTop: 7,
-  marginBottom: 12,
 }
 
 const styleCloseThemed = {

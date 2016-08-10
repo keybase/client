@@ -1,14 +1,13 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './confirm'
-import {Box, Icon, Button} from './'
+import {Box, Button, StandardScreen} from './'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 class Confirm extends Component<void, Props, void> {
   render () {
     return (
-      <Box style={{...styleContainer, ...backgroundColorThemed[this.props.theme]}}>
-        <Icon style={{...styleClose, ...styleCloseThemed[this.props.theme]}} type='iconfont-close' onClick={this.props.onCancel} />
+      <StandardScreen style={styleContainer} styleOuter={{...backgroundColorThemed[this.props.theme]}} styleClose={styleCloseThemed[this.props.theme]} onClose={this.props.onCancel}>
         <Box style={styleIconContainer}>
           {this.props.header}
         </Box>
@@ -17,18 +16,13 @@ class Confirm extends Component<void, Props, void> {
           <Button type='Secondary' style={cancelButtonThemed[this.props.theme]} labelStyle={cancelButtonLabelThemed[this.props.theme]} onClick={this.props.onCancel} label='Cancel' />
           <Button type={this.props.danger ? 'Danger' : 'Primary'} onClick={this.props.onSubmit} label={this.props.submitLabel} />
         </Box>
-      </Box>
+      </StandardScreen>
     )
   }
 }
 
 const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-  padding: 64,
-  alignItems: 'center',
-  justifyContent: 'center',
-  position: 'relative',
+  maxWidth: 512,
 }
 
 const styleIconContainer = {
@@ -60,13 +54,6 @@ const cancelButtonLabelThemed = {
   'private': {
     color: globalColors.white,
   },
-}
-
-const styleClose = {
-  ...globalStyles.clickable,
-  position: 'absolute',
-  right: 16,
-  top: 16,
 }
 
 const styleCloseThemed = {

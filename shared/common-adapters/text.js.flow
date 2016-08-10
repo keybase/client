@@ -23,7 +23,7 @@ export type Props = {
   inline?: boolean,
   link?: boolean,
   reversed?: boolean,
-  onClick?: (e: SyntheticEvent) => void,
+  onClick?: ?(e: SyntheticEvent) => void,
   lineClamp?: number,
   style?: Object,
   children?: React$Element<*>,
