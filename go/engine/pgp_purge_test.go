@@ -40,7 +40,7 @@ func TestPGPPurgeRemove(t *testing.T) {
 	tc := SetupEngineTest(t, "purge")
 	defer tc.Cleanup()
 
-	createFakeUserWithPGPSibkey(tc)
+	u := createFakeUserWithPGPSibkey(tc)
 
 	idUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
@@ -59,6 +59,14 @@ func TestPGPPurgeRemove(t *testing.T) {
 		t.Fatalf("number of exported key files: %d, expected 1", len(eng.KeyFiles()))
 	}
 
+	kr := libkb.NewSKBKeyringFile(tc.G.SKBFilenameForUser(libkb.NewNormalizedUsername(u.Username)))
+	if err := kr.LoadAndIndex(); err != nil {
+		t.Fatal(err)
+	}
+	if kr.HasPGPKeys() {
+		t.Fatal("after purge, keyring has pgp keys")
+	}
+
 	// redo, should purge 0 files
 
 	eng = NewPGPPurge(tc.G, keybase1.PGPPurgeArg{DoPurge: true})
@@ -69,6 +77,7 @@ func TestPGPPurgeRemove(t *testing.T) {
 	if len(eng.KeyFiles()) != 0 {
 		t.Fatalf("number of exported key files: %d, expected 0", len(eng.KeyFiles()))
 	}
+
 }
 
 // Create a user with a synced PGP key.  PGPPurge shouldn't touch it.
