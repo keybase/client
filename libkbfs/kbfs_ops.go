@@ -233,6 +233,55 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	return ops
 }
 
+// GetTLFCryptKeys implements the KBFSOps interface for
+// KBFSOpsStandard
+func (fs *KBFSOpsStandard) GetTLFCryptKeys(ctx context.Context,
+	tlfHandle *TlfHandle) (keys []TLFCryptKey, id TlfID, err error) {
+	var rmd ImmutableRootMetadata
+	_, rmd, id, err = fs.getOrInitializeNewMDMaster(
+		ctx, fs.config.MDOps(), tlfHandle)
+	if err != nil {
+		return keys, id, err
+	}
+
+	keys, err = fs.config.KeyManager().GetTLFCryptKeyOfAllGenerations(ctx, rmd)
+	return keys, id, err
+}
+
+func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
+	ctx context.Context, mdops MDOps, h *TlfHandle) (initialized bool,
+	md ImmutableRootMetadata, id TlfID, err error) {
+	id, md, err = mdops.GetForHandle(ctx, h, Merged)
+	if err != nil {
+		return false, ImmutableRootMetadata{}, id, err
+	}
+	if md != (ImmutableRootMetadata{}) {
+		return false, md, id, nil
+	}
+
+	if id == (TlfID{}) {
+		return false, ImmutableRootMetadata{}, id, errors.New("No ID or MD")
+	}
+
+	// Init new MD.
+
+	fb := FolderBranch{Tlf: id, Branch: MasterBranch}
+	fops := fs.getOpsByHandle(ctx, h, fb)
+
+	err = fops.SetInitialHeadToNew(ctx, id, h)
+	if err != nil {
+		return false, ImmutableRootMetadata{}, id, err
+	}
+
+	id, md, err = mdops.GetForHandle(ctx, h, Merged)
+	if err != nil {
+		return true, ImmutableRootMetadata{}, id, err
+	}
+
+	return true, md, id, err
+
+}
+
 // GetOrCreateRootNode implements the KBFSOps interface for
 // KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetOrCreateRootNode(
@@ -251,35 +300,23 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 	}
 
 	if md == (ImmutableRootMetadata{}) {
+		var initialized bool
 		var id TlfID
-		id, md, err = mdops.GetForHandle(ctx, h, Merged)
+		initialized, md, id, err = fs.getOrInitializeNewMDMaster(
+			ctx, mdops, h)
 		if err != nil {
 			return nil, EntryInfo{}, err
 		}
-		if md == (ImmutableRootMetadata{}) {
-			if id == (TlfID{}) {
-				return nil, EntryInfo{}, errors.New("No ID or MD")
-			}
-			if branch != MasterBranch {
-				return nil, EntryInfo{}, errors.New("Can only initialize with branch == MasterBranch")
-			}
+		if initialized {
+			fb := FolderBranch{Tlf: id, Branch: MasterBranch}
+			fops := fs.getOpsByHandle(ctx, h, fb)
 
-			// Init new MD.
-
-			fb := FolderBranch{Tlf: id, Branch: branch}
-			ops := fs.getOpsByHandle(ctx, h, fb)
-
-			err = ops.SetInitialHeadToNew(ctx, id, h)
+			node, ei, _, err = fops.getRootNode(ctx)
 			if err != nil {
 				return nil, EntryInfo{}, err
 			}
 
-			node, ei, _, err = ops.getRootNode(ctx)
-			if err != nil {
-				return nil, EntryInfo{}, err
-			}
-
-			if err := ops.addToFavorites(ctx, fs.favs, true); err != nil {
+			if err := fops.addToFavorites(ctx, fs.favs, true); err != nil {
 				// Failure to favorite shouldn't cause a failure.  Just log
 				// and move on.
 				fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)

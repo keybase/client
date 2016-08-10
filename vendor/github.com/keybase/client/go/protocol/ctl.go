@@ -33,11 +33,16 @@ type DbNukeArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type AppExitArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type CtlInterface interface {
 	Stop(context.Context, StopArg) error
 	LogRotate(context.Context, int) error
 	Reload(context.Context, int) error
 	DbNuke(context.Context, int) error
+	AppExit(context.Context, int) error
 }
 
 func CtlProtocol(i CtlInterface) rpc.Protocol {
@@ -108,6 +113,22 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"appExit": {
+				MakeArg: func() interface{} {
+					ret := make([]AppExitArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]AppExitArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]AppExitArg)(nil), args)
+						return
+					}
+					err = i.AppExit(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -136,5 +157,11 @@ func (c CtlClient) Reload(ctx context.Context, sessionID int) (err error) {
 func (c CtlClient) DbNuke(ctx context.Context, sessionID int) (err error) {
 	__arg := DbNukeArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.ctl.dbNuke", []interface{}{__arg}, nil)
+	return
+}
+
+func (c CtlClient) AppExit(ctx context.Context, sessionID int) (err error) {
+	__arg := AppExitArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.ctl.appExit", []interface{}{__arg}, nil)
 	return
 }

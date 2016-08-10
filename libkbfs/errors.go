@@ -58,6 +58,15 @@ func (e NoSuchUserError) Error() string {
 	return fmt.Sprintf("%s is not a Keybase user", e.Input)
 }
 
+// ToStatus implements the keybase1.ToStatusAble interface for NoSuchUserError
+func (e NoSuchUserError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Name: "NotFound",
+		Code: int(keybase1.StatusCode_SCNotFound),
+		Desc: e.Error(),
+	}
+}
+
 // BadTLFNameError indicates a top-level folder name that has an
 // incorrect format.
 type BadTLFNameError struct {

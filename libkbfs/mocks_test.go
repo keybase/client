@@ -4,14 +4,15 @@
 package libkbfs
 
 import (
+	reflect "reflect"
+	time "time"
+
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	protocol "github.com/keybase/client/go/protocol"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
-	reflect "reflect"
-	time "time"
 )
 
 // Mock of AuthTokenRefreshHandler interface
@@ -232,6 +233,16 @@ func (_m *MockKBFSOps) DeleteFavorite(ctx context.Context, fav Favorite) error {
 
 func (_mr *_MockKBFSOpsRecorder) DeleteFavorite(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteFavorite", arg0, arg1)
+}
+
+func (_m *MockKBFSOps) GetTLFCryptKeys(
+	ctx context.Context, h *TlfHandle) (
+	[]TLFCryptKey, TlfID, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeys", ctx, h)
+	ret0, _ := ret[0].([]TLFCryptKey)
+	ret1, _ := ret[1].(TlfID)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 func (_m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, h *TlfHandle, branch BranchName) (Node, EntryInfo, error) {
@@ -1064,6 +1075,14 @@ func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForMDDecryption(arg0, arg1, ar
 func (_m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer) (TLFCryptKey, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyForBlockDecryption", ctx, kmd, blockPtr)
 	ret0, _ := ret[0].(TLFCryptKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_m *MockKeyManager) GetTLFCryptKeyOfAllGenerations(
+	ctx context.Context, kmd KeyMetadata) (keys []TLFCryptKey, err error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyOfAllGenerations", ctx, kmd)
+	ret0, _ := ret[0].([]TLFCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

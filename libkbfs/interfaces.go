@@ -107,6 +107,12 @@ type KBFSOps interface {
 	// isn't favorited.
 	DeleteFavorite(ctx context.Context, fav Favorite) error
 
+	// GetTLFCryptKeys gets crypt key of all generations as well as
+	// TLF ID for tlfHandle. The returned keys (the keys slice) are ordered by
+	// generation, starting with the key for FirstValidKeyGen.
+	GetTLFCryptKeys(ctx context.Context, tlfHandle *TlfHandle) (
+		keys []TLFCryptKey, id TlfID, err error)
+
 	// GetOrCreateRootNode returns the root node and root entry
 	// info associated with the given TLF handle and branch, if
 	// the logged-in user has read permissions to the top-level
@@ -490,6 +496,12 @@ type KeyManager interface {
 	// pointed to by the given pointer.
 	GetTLFCryptKeyForBlockDecryption(ctx context.Context, kmd KeyMetadata,
 		blockPtr BlockPointer) (TLFCryptKey, error)
+
+	// GetTLFCryptKeyOfAllGenerations gets the crypt keys of all generations
+	// for current devices. keys contains crypt keys from all generations, in
+	// order, starting from FirstValidKeyGen.
+	GetTLFCryptKeyOfAllGenerations(ctx context.Context, kmd KeyMetadata) (
+		keys []TLFCryptKey, err error)
 
 	// Rekey checks the given MD object, if it is a private TLF,
 	// against the current set of device keys for all valid

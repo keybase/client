@@ -1046,6 +1046,12 @@ func (fbo *folderBranchOps) initMDLocked(
 	return nil
 }
 
+func (fbo *folderBranchOps) GetTLFCryptKeys(ctx context.Context,
+	h *TlfHandle) (keys []TLFCryptKey, id TlfID, err error) {
+	err = errors.New("GetTLFCryptKeys is not supported by folderBranchOps")
+	return
+}
+
 func (fbo *folderBranchOps) GetOrCreateRootNode(
 	ctx context.Context, h *TlfHandle, branch BranchName) (
 	node Node, ei EntryInfo, err error) {
