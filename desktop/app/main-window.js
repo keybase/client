@@ -34,14 +34,14 @@ export default function () {
 
   const isRestore = getenv.boolish('KEYBASE_RESTORE_UI', false)
   const startUI = getenv.string('KEYBASE_START_UI', '')
-  console.log('Main window, isRestore:', isRestore, 'startUI:', startUI)
+  console.log('Main window, isRestore: %s, startUI: %s', isRestore, startUI)
 
   // We show the main window on startup if:
   //  - We are not restoring the UI (after update, or boot)
   //    Or, we are restoring UI and the window was previously visible (in app state)
   //  - And, startUI is not set to 'hideWindow'.
   const showMainWindow = (!isRestore || (isRestore && !appState.state.windowHidden)) && (startUI !== 'hideWindow')
-
+  console.log('Show main window: %s', showMainWindow)
   if (showMainWindow) {
     // On Windows we can try showing before Windows is ready
     // This will result in a dropped .show request
@@ -53,11 +53,14 @@ export default function () {
     })
   }
 
-  if (isRestore && appState.state.dockHidden) {
+  const hideDockIcon = (isRestore && appState.state.dockHidden)
+  console.log('Hide dock icon: %s', hideDockIcon)
+  if (hideDockIcon) {
     hideDockIcon()
   }
 
   ipcMain.on('showMain', () => {
+    console.log('Show main window (requested)')
     mainWindow.show(true)
   })
 
