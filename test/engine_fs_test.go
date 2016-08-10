@@ -169,6 +169,10 @@ func (*fsEngine) WriteFile(u User, file Node, data []byte, off int64, sync bool)
 		return err
 	}
 	defer f.Close()
+	_, err = f.Seek(off, 0)
+	if err != nil {
+		return err
+	}
 	_, err = f.Write(data)
 	if err != nil {
 		return err

@@ -21,6 +21,22 @@ func TestWriteMultiblockFile(t *testing.T) {
 	)
 }
 
+func TestSwitchToMultiblockFile(t *testing.T) {
+	test(t,
+		blockSize(20), users("alice", "bob"),
+		as(alice,
+			// Fill up the first block (a desired encrypted block size
+			// of 20 ends up with a plaintext size of 12).
+			write("a/b", ntimesString(3, "0123")),
+			// Then append to the end of the file to force a split.
+			pwriteBS("a/b", []byte(ntimesString(3, "0123")), 12),
+		),
+		as(bob,
+			read("a/b", ntimesString(6, "0123")),
+		),
+	)
+}
+
 // alice writes a file, and bob overwrites it with a multi-block file
 func TestOverwriteMultiblockFile(t *testing.T) {
 	test(t,
