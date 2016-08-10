@@ -556,7 +556,7 @@ func (d *DirtyBlockCacheStandard) SyncFinished(size int64) {
 	// We don't want a series of small writes to increase the buffer
 	// size, since that doesn't give us any real information about the
 	// throughput of the connection.
-	if bufferIncrease >= d.minSyncBufCap {
+	if bufferIncrease >= d.syncBufferCap {
 		d.syncBufferCap += bufferIncrease
 		if d.syncBufferCap > d.maxSyncBufCap {
 			d.syncBufferCap = d.maxSyncBufCap

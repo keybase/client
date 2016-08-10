@@ -211,3 +211,46 @@ func BenchmarkWriteBigFileBigBandwidth(b *testing.B) {
 	benchmarkWriteWithBandwidthPlusWarmup(b, 1<<30, /* 1 GB */
 		1<<20 /*1 MB writes */, 100*1024/8 /* 100 Mbps */)
 }
+
+func BenchmarkWriteMixedFilesNormalBandwidth(b *testing.B) {
+	perWriteBytes := int64(1 << 16) // 65 KB writes
+	buf := make([]byte, perWriteBytes)
+
+	// Files:
+	// * 100 MB to set the buffer size appropriately
+	// * A bunch of 2 MB files
+	// * Another 100 MB to make sure the buffer is still sized right
+	fileSizes := []int64{100 << 20}
+	for i := 0; i < 50; i++ {
+		fileSizes = append(fileSizes, 2<<20)
+	}
+	fileSizes = append(fileSizes, 100<<20)
+	var totalSize int64
+	for _, size := range fileSizes {
+		totalSize += size
+	}
+	b.SetBytes(totalSize)
+
+	test(silentBenchmark{b},
+		users("alice"),
+		blockSize(512<<10),
+		bandwidth(11*1024/8 /* 11 Mbps */),
+		opTimeout(19*time.Second),
+		as(alice,
+			custom(func(cb func(fileOp) error) error {
+				b.ResetTimer()
+				defer b.StopTimer()
+				currIter := 0
+				for _, fileSize := range fileSizes {
+					numWrites := int(fileSize / perWriteBytes)
+					if err := benchmarkDoBenchWrites(b, cb,
+						numWrites, buf, currIter); err != nil {
+						return err
+					}
+					currIter += b.N
+				}
+				return nil
+			}),
+		),
+	)
+}
