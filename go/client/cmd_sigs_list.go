@@ -16,6 +16,8 @@ import (
 )
 
 type CmdSigsList struct {
+	libkb.Contextified
+
 	filter  string
 	revoked bool
 	json    bool
@@ -139,13 +141,13 @@ func (s *CmdSigsList) DisplayKTable(sigs []keybase1.Sig) (err error) {
 		return row
 	}
 
-	GlobUI.Tablify(cols, rowfunc)
+	libkb.Tablify(s.G().UI.GetTerminalUI().OutputWriter(), cols, rowfunc)
 
 	return
 }
 
 func (s *CmdSigsList) Run() error {
-	cli, err := GetSigsClient()
+	cli, err := GetSigsClient(s.G())
 	if err != nil {
 		return err
 	}
@@ -172,7 +174,7 @@ func (s *CmdSigsList) Run() error {
 		if err != nil {
 			return err
 		}
-		GlobUI.Println(json)
+		s.G().UI.GetTerminalUI().Output(json)
 		return nil
 	}
 
@@ -183,13 +185,13 @@ func (s *CmdSigsList) Run() error {
 	return s.DisplayKTable(sigs)
 }
 
-func NewCmdSigsList(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdSigsList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "list",
 		Usage:        "List signatures",
 		ArgumentHelp: "[username]",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdSigsList{}, "list", c)
+			cl.ChooseCommand(&CmdSigsList{Contextified: libkb.NewContextified(g)}, "list", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{

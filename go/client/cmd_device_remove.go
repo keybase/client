@@ -47,7 +47,7 @@ func (c *CmdDeviceRemove) Run() (err error) {
 		}
 	}
 
-	cli, err := GetRevokeClient()
+	cli, err := GetRevokeClient(c.G())
 	if err != nil {
 		return err
 	}
