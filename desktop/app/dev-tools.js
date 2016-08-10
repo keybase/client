@@ -1,5 +1,5 @@
 import {BrowserWindow, app, globalShortcut} from 'electron'
-import {showDevTools, skipLauncherDevtools} from '../shared/local-debug.desktop'
+import {showDevTools, skipSecondaryDevtools} from '../shared/local-debug.desktop'
 
 function setupDevToolsExtensions () {
   if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -33,22 +33,17 @@ export default function () {
     cleanupOpenDevtools()
   })
 
-  if (!showDevTools) {
-    return
-  }
+  if (showDevTools) {
+    app.on('browser-window-created', (e, win) => {
+      win = win || BrowserWindow.getFocusedWindow()
 
-  app.on('browser-window-created', (e, win) => {
-    win = win || BrowserWindow.getFocusedWindow()
-
-    if (win) {
-      if (skipLauncherDevtools) {
-        win.webContents.addListener('did-finish-load', () => {
-          if (win.webContents.getURL().indexOf('launcher.') !== -1) {
-            win.closeDevTools()
+      if (win) {
+        win.webContents.addListener('did-navigate', () => {
+          if (!skipSecondaryDevtools || win.webContents.getURL().indexOf('renderer/index.html') !== -1) {
+            win.openDevTools()
           }
         })
       }
-      win.openDevTools()
-    }
-  })
+    })
+  }
 }
