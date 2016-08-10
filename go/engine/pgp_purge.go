@@ -84,7 +84,7 @@ func (e *PGPPurge) export(ctx *Context, bundle *libkb.PGPKeyBundle) error {
 		return nil
 	}
 
-	filename := filepath.Join(e.G().Env.GetHome(), key.GetFingerprint().String()+".sp")
+	filename := filepath.Join(e.G().Env.GetConfigDir(), key.GetFingerprint().String()+".sp")
 	if err := e.encryptToFile(ctx, key, filename); err != nil {
 		return err
 	}
