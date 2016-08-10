@@ -27,6 +27,7 @@ func NewCmdPGP(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 			NewCmdPGPImport(cl),
 			NewCmdPGPDrop(cl),
 			NewCmdPGPList(cl, g),
+			NewCmdPGPPurge(cl, g),
 		},
 	}
 }

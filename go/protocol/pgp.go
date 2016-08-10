@@ -68,6 +68,11 @@ type PGPCreateUids struct {
 	Ids        []PGPIdentity `codec:"ids" json:"ids"`
 }
 
+// Export all pgp keys in lksec, then if doPurge is true, remove the keys from lksec.
+type PGPPurgeRes struct {
+	Filenames []string `codec:"filenames" json:"filenames"`
+}
+
 type PGPSignArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
 	Source    Stream         `codec:"source" json:"source"`
@@ -149,6 +154,11 @@ type PGPUpdateArg struct {
 	Fingerprints []string `codec:"fingerprints" json:"fingerprints"`
 }
 
+type PGPPurgeArg struct {
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	DoPurge   bool `codec:"doPurge" json:"doPurge"`
+}
+
 type PGPInterface interface {
 	PGPSign(context.Context, PGPSignArg) error
 	// Download PGP keys for tracked users and update the local GPG keyring.
@@ -168,6 +178,7 @@ type PGPInterface interface {
 	PGPSelect(context.Context, PGPSelectArg) error
 	// Push updated key(s) to the server.
 	PGPUpdate(context.Context, PGPUpdateArg) error
+	PGPPurge(context.Context, PGPPurgeArg) (PGPPurgeRes, error)
 }
 
 func PGPProtocol(i PGPInterface) rpc.Protocol {
@@ -382,6 +393,22 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"pgpPurge": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPPurgeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPPurgeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPPurgeArg)(nil), args)
+						return
+					}
+					ret, err = i.PGPPurge(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -458,5 +485,10 @@ func (c PGPClient) PGPSelect(ctx context.Context, __arg PGPSelectArg) (err error
 // Push updated key(s) to the server.
 func (c PGPClient) PGPUpdate(ctx context.Context, __arg PGPUpdateArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpUpdate", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PGPClient) PGPPurge(ctx context.Context, __arg PGPPurgeArg) (res PGPPurgeRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpPurge", []interface{}{__arg}, &res)
 	return
 }

@@ -174,6 +174,20 @@
           "name": "ids"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "PGPPurgeRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "filenames"
+        }
+      ],
+      "doc": "Export all pgp keys in lksec, then if doPurge is true, remove the keys from lksec."
     }
   ],
   "messages": {
@@ -428,6 +442,19 @@
       ],
       "response": null,
       "doc": "Push updated key(s) to the server."
+    },
+    "pgpPurge": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "doPurge",
+          "type": "boolean"
+        }
+      ],
+      "response": "PGPPurgeRes"
     }
   },
   "namespace": "keybase.1"
