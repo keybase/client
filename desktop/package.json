@@ -53,6 +53,7 @@
     "react-redux": "4.4.5",
     "react-tap-event-plugin": "1.0.0",
     "redux": "3.5.2",
+    "redux-saga": "0.11.0",
     "redux-thunk": "2.1.0",
     "semver": "5.3.0"
   },
@@ -109,5 +110,5 @@
   "optionalDependencies": {
     "fsevents": "1.0.14"
   },
-  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#69a46559ad44c6c76beed9aa9c91e70d8d9abba4"
+  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#255431fcc79d6e3330ca3251dd1a3ce83977d225"
 }

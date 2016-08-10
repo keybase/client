@@ -856,7 +856,7 @@ export type PGPIdentity = {
 }
 
 export type PGPPurgeRes = {
-  filenames?: ?Array<string>;
+  filenames?: ?Array<string>,
 }
 
 export type PGPQuery = {

@@ -4,6 +4,7 @@ import engine from '../../engine'
 
 import {navBasedOnLoginState} from '../../actions/login'
 import {resetSignup} from '../../actions/signup'
+import {registerGregorListeners} from '../../actions/gregor'
 
 // $FlowFixMe
 import * as native from './index.native'
@@ -128,6 +129,7 @@ export function bootstrap (): AsyncAction {
           dispatch({type: Constants.bootstrapped, payload: null})
           dispatch(navBasedOnLoginState())
           dispatch((resetSignup(): Action))
+          dispatch(registerGregorListeners())
         }).catch(error => {
           console.warn('Error bootstrapping: ', error)
         })
