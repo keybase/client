@@ -217,7 +217,11 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                     bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
                                                     bat "choco install -y curl"
                                                     helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
-                                                    bat "for /f %%i in (testlist.txt) do (go test -timeout 10m %%i || exit /B 1)"
+                                                    def testlist = readFile('testlist.txt')
+                                                    def tests = testlist.tokenize()
+                                                    for (test in tests) {
+                                                        bat "go test -timeout 10m ${test}"
+                                                    }
                                                 }
                                             },
                                             test_windows_js: {
