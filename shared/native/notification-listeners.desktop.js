@@ -2,7 +2,6 @@
 
 import {remote} from 'electron'
 import {bootstrap} from '../actions/config'
-import {pushState} from '../actions/gregor'
 import {logoutDone} from '../actions/login'
 // import {favoriteList} from '../actions/favorite'
 import {kbfsNotification} from '../util/kbfs-notifications'
@@ -41,9 +40,6 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     },
     'keybase.1.NotifyFS.FSActivity': ({notification}) => {
       kbfsNotification(notification, notify, getState)
-    },
-    'keybase.1.gregorUI.pushState': ({state, reason}) => {
-      dispatch(pushState(state, reason))
     },
     'keybase.1.NotifyService.shutdown': () => {
       // console.log('Quitting due to service shutdown')
