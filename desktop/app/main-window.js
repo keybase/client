@@ -53,9 +53,9 @@ export default function () {
     })
   }
 
-  const hideDockIcon = (isRestore && appState.state.dockHidden)
-  console.log('Hide dock icon: %s', hideDockIcon)
-  if (hideDockIcon) {
+  const shouldHideDockIcon = (isRestore && appState.state.dockHidden)
+  console.log('Hide dock icon: %s', shouldHideDockIcon)
+  if (shouldHideDockIcon) {
     hideDockIcon()
   }
 
