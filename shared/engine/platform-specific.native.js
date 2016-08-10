@@ -4,7 +4,7 @@ import {Buffer} from 'buffer'
 import {NativeModules, NativeAppEventEmitter} from 'react-native'
 import {TransportShared, sharedCreateClient} from './transport-shared'
 
-const nativeBridge = NativeModules.KeybaseEngine
+const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
 
 class NativeTransport extends TransportShared {
   constructor (incomingRPCCallback, connectCallback) {
@@ -45,7 +45,7 @@ function createClient (incomingRPCCallback: incomingRPCCallbackType, connectCall
     nativeBridge.eventName,
     payload => {
       if (payload) {
-        this.rpcClient.transport.packetize_data(new Buffer(payload, 'base64'))
+        client.transport.packetize_data(new Buffer(payload, 'base64'))
       }
     }
   )
