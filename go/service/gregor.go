@@ -780,6 +780,8 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 	switch obm.System().String() {
 	case "kbfs.favorites":
 		return g.kbfsFavorites(ctx, obm)
+	case "chat.newMessage":
+		return g.newChatMessage(ctx, obm)
 	default:
 		return fmt.Errorf("unhandled system: %s", obm.System())
 	}
@@ -831,6 +833,33 @@ func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.U
 		return err
 	}
 	g.G().NotifyRouter.HandleFavoritesChanged(kbUID)
+	return nil
+}
+
+func (g *gregorHandler) newChatMessage(ctx context.Context, m gregor.OutOfBandMessage) error {
+	if m.Body() == nil {
+		return errors.New("gregor handler for kbfs.favorites: nil message body")
+	}
+	body, err := jsonw.Unmarshal(m.Body().Bytes())
+	if err != nil {
+		return err
+	}
+
+	var msg keybase1.Message
+
+	// TODO: decrypt message from body and fill into plaintext msg
+	_ = body
+
+	return g.notifyNewChatMessage(ctx, m.UID(), &msg)
+
+}
+
+func (g *gregorHandler) notifyNewChatMessage(ctx context.Context, uid gregor.UID, message *keybase1.Message) error {
+	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
+	if err != nil {
+		return err
+	}
+	g.G().NotifyRouter.HandleNewChatMessage(ctx, kbUID, message)
 	return nil
 }
 

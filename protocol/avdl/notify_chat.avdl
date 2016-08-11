@@ -1,0 +1,9 @@
+
+@namespace("keybase.1")
+protocol NotifyChat {
+  import idl "common.avdl";
+  import idl "chat_local.avdl";
+
+  @notify("")
+  void newChatMessage(UID uid, Message msg);
+}

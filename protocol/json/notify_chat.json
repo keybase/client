@@ -1,0 +1,31 @@
+{
+  "protocol": "NotifyChat",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "chat_local.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "newChatMessage": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "msg",
+          "type": "Message"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    }
+  },
+  "namespace": "keybase.1"
+}

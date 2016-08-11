@@ -80,7 +80,8 @@ func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID
 func (n *nlistener) FavoritesChanged(uid keybase1.UID) {
 	n.favoritesChanged = append(n.favoritesChanged, uid)
 }
-func (n *nlistener) KeyfamilyChanged(uid keybase1.UID) {}
+func (n *nlistener) NewChatMessage(uid keybase1.UID, msg keybase1.Message) {}
+func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                     {}
 
 type showTrackerPopupIdentifyUI struct {
 	kbtest.FakeIdentifyUI

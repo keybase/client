@@ -35,6 +35,7 @@ type NotifyListener interface {
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
+	NewChatMessage(uid keybase1.UID, message keybase1.Message)
 }
 
 // NotifyRouter routes notifications to the various active RPC
@@ -307,6 +308,35 @@ func (n *NotifyRouter) HandleFavoritesChanged(uid keybase1.UID) {
 		n.listener.FavoritesChanged(uid)
 	}
 	n.G().Log.Debug("- Sent favorites changed notfication")
+}
+
+func (n *NotifyRouter) HandleNewChatMessage(ctx context.Context, uid keybase1.UID, message *keybase1.Message) {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending NewChatMessage notfication")
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Favorites` notification type
+		if n.getNotificationChannels(id).Favorites {
+			// In the background do...
+			go func() {
+				// A send of a `FavoritesChanged` RPC with the user's UID
+				(keybase1.NotifyChatClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).NewChatMessage(ctx, keybase1.NewChatMessageArg{
+					Uid: uid,
+					Msg: *message,
+				})
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.NewChatMessage(uid, *message)
+	}
+	n.G().Log.Debug("- Sent NewChatMessage notfication")
 }
 
 // HandlePaperKeyCached is called whenever a paper key is cached
