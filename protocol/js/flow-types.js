@@ -712,7 +712,7 @@ export type MessageAttachment = {
 }
 
 export type MessageBody = {
-  type: MessageType,
+  type: chat1.MessageType,
   text?: ?MessageText,
   attachment?: ?MessageAttachment,
   edit?: ?MessageEdit,
@@ -741,14 +741,6 @@ export type MessagePlaintext = {
 export type MessageText = {
   body: string,
 }
-
-export type MessageType =
-    0 // NONE_0
-  | 1 // TEXT_1
-  | 2 // ATTACHMENT_2
-  | 3 // EDIT_3
-  | 4 // DELETE_4
-  | 5 // METADATA_5
 
 export type MetadataResponse = {
   folderID: string,

@@ -9,17 +9,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type MessageType int
-
-const (
-	MessageType_NONE       MessageType = 0
-	MessageType_TEXT       MessageType = 1
-	MessageType_ATTACHMENT MessageType = 2
-	MessageType_EDIT       MessageType = 3
-	MessageType_DELETE     MessageType = 4
-	MessageType_METADATA   MessageType = 5
-)
-
 type MessageText struct {
 	Body string `codec:"body" json:"body"`
 }
@@ -42,7 +31,7 @@ type MessageAttachment struct {
 }
 
 type MessageBody struct {
-	Type                 MessageType                  `codec:"type" json:"type"`
+	Type                 chat1.MessageType            `codec:"type" json:"type"`
 	Text                 *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
 	Attachment           *MessageAttachment           `codec:"attachment,omitempty" json:"attachment,omitempty"`
 	Edit                 *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`

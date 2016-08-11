@@ -12,16 +12,7 @@ export const block = {}
 
 export const BTC = {}
 
-export const chatLocal = {
-  'MessageType': {
-    'none': 0,
-    'text': 1,
-    'attachment': 2,
-    'edit': 3,
-    'delete': 4,
-    'metadata': 5,
-  },
-}
+export const chatLocal = {}
 
 export const Common = {
   'LogLevel': {

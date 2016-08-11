@@ -4,15 +4,6 @@ protocol chatLocal {
 
   import idl "github.com/keybase/gregor/protocol/chat1" as chat1;
 
-  enum MessageType {
-    NONE_0,
-    TEXT_1,
-    ATTACHMENT_2,
-    EDIT_3,
-    DELETE_4,
-    METADATA_5
-  }
-
   record MessageText {
     string body;
   }
@@ -35,7 +26,7 @@ protocol chatLocal {
   }
 
   record MessageBody {
-    MessageType type;
+    chat1.MessageType type;
     union { null, MessageText } text;
     union { null, MessageAttachment } attachment;
     union { null, MessageEdit } edit;

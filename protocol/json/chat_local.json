@@ -9,18 +9,6 @@
   ],
   "types": [
     {
-      "type": "enum",
-      "name": "MessageType",
-      "symbols": [
-        "NONE_0",
-        "TEXT_1",
-        "ATTACHMENT_2",
-        "EDIT_3",
-        "DELETE_4",
-        "METADATA_5"
-      ]
-    },
-    {
       "type": "record",
       "name": "MessageText",
       "fields": [
@@ -79,7 +67,7 @@
       "name": "MessageBody",
       "fields": [
         {
-          "type": "MessageType",
+          "type": "chat1.MessageType",
           "name": "type"
         },
         {
