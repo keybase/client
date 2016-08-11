@@ -9,7 +9,6 @@ import {AppContainer} from 'react-hot-loader'
 import configureStore from '../shared/store/configure-store'
 import engine from '../shared/engine'
 import injectTapEventPlugin from 'react-tap-event-plugin'
-import ListenLogUi from '../shared/native/listen-log-ui'
 import {devStoreChangingFunctions} from '../shared/local-debug.desktop'
 import {listenForNotifications} from '../shared/actions/notifications'
 import {bootstrap} from '../shared/actions/config'
@@ -70,9 +69,6 @@ function setupApp (store) {
 
   // Handle notifications from the service
   store.dispatch(listenForNotifications())
-
-  // Handle logUi.log
-  ListenLogUi()
 
   // Introduce ourselves to the service
   hello(process.pid, 'Main Renderer', process.argv, __VERSION__) // eslint-disable-line no-undef

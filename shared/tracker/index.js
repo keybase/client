@@ -5,7 +5,6 @@ import {connect} from 'react-redux'
 import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
-import ErrorLoadingProfile from '../common-adapters/error-profile.js'
 import {bindActionCreators} from 'redux'
 import {isLoading} from '../constants/tracker'
 
@@ -62,12 +61,7 @@ class Tracker extends Component {
       return <div />
     }
 
-    if (this.props.error) {
-      return <ErrorLoadingProfile error={this.props.error} />
-    }
-
     const renderProps = trackerPropsToRenderProps(this.props)
-
     return <Render {...renderProps} />
   }
 
@@ -84,16 +78,18 @@ class Tracker extends Component {
 }
 
 export default connect(
-  (state, ownProps) => ({
-    ...state.tracker,
-    nonUser: state.tracker.trackers[ownProps.username] && state.tracker.trackers[ownProps.username].type === 'nonUser',
-    loggedIn: state.config && state.config.loggedIn,
-    loading: isLoading(state.tracker.trackers[ownProps.username]),
-    // TODO (mm) we can't use serverActive, (see DESKTOP-1593) let's investigate a better approach: DESKTOP-1594
-    actionBarReady: true,
-    ...state.tracker.trackers[ownProps.username],
-    ...ownProps,
-  }),
+  (state, ownProps) => {
+    const trackerState = state.tracker.trackers[ownProps.username]
+    return {
+      ...state.tracker,
+      nonUser: trackerState && trackerState.type === 'nonUser',
+      loggedIn: state.config && state.config.loggedIn,
+      loading: isLoading(trackerState),
+      actionBarReady: !trackerState.serverActive && !state.error,
+      ...trackerState,
+      ...ownProps,
+    }
+  },
   (dispatch, ownProps) => {
     const actions = bindActionCreators(trackerActions, dispatch)
     return {

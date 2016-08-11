@@ -31,7 +31,9 @@ export function listenForNotifications (): (dispatch: Dispatch) => void {
     })
 
     const listeners = ListenerCreator(dispatch, getState, NotifyPopup)
-    engine.listenGeneralIncomingRpc(listeners)
+    Object.keys(listeners).forEach(key => {
+      engine.setIncomingHandler(key, listeners[key])
+    })
     initialized = true
   }
 }

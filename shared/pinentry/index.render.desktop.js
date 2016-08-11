@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
 import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapters'
-import {passphraseCommon} from '../constants/types/keybase-v1'
+import {PassphraseCommonPassphraseType} from '../constants/types/flow-types'
 import type {Props, DefaultProps} from './index.render'
 
 type State = {
@@ -56,17 +56,17 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
   render () {
     const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
 
-    const isPaperKey = this.props.type === passphraseCommon.PassphraseType.paperKey
+    const isPaperKey = this.props.type === PassphraseCommonPassphraseType.paperKey
     const typeStyle = {
-      [passphraseCommon.PassphraseType.verifyPassPhrase]: {
+      [PassphraseCommonPassphraseType.verifyPassPhrase]: {
         floatingLabelText: 'Verify Passphrase',
         style: {marginBottom: 0},
       },
-      [passphraseCommon.PassphraseType.passPhrase]: {
+      [PassphraseCommonPassphraseType.passPhrase]: {
         floatingLabelText: 'Passphrase',
         style: {marginBottom: 0},
       },
-      [passphraseCommon.PassphraseType.paperKey]: {
+      [PassphraseCommonPassphraseType.paperKey]: {
         floatingLabelText: 'Paperkey',
         multiLine: true,
         hintText: 'elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose',
@@ -77,9 +77,9 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
     }[this.props.type]
 
     const checkboxContainerStyle = {
-      [passphraseCommon.PassphraseType.verifyPassPhrase]: null,
-      [passphraseCommon.PassphraseType.passPhrase]: null,
-      [passphraseCommon.PassphraseType.paperKey]: {bottom: 0},
+      [PassphraseCommonPassphraseType.verifyPassPhrase]: null,
+      [PassphraseCommonPassphraseType.passPhrase]: null,
+      [PassphraseCommonPassphraseType.paperKey]: {bottom: 0},
     }[this.props.type]
 
     const inputProps = {
