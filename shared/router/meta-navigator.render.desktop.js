@@ -32,4 +32,7 @@ MetaNavigatorRender.propTypes = {
   navigateUp: React.PropTypes.func.isRequired,
 }
 
-export default connect(state => state, dispatch => bindActionCreators({navigateUp}, dispatch))(MetaNavigatorRender)
+export default connect(
+  state => ({}),
+  dispatch => bindActionCreators({navigateUp}, dispatch)
+)(MetaNavigatorRender)

@@ -77,7 +77,7 @@ class Render extends Component<void, Props, State> {
           }}
         >Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?</Text>,
         items: [
-          {title: 'View proof', onClick: () => this.props.onViewProof(proof)},
+          ...(proof.humanUrl ? [{title: 'View proof', onClick: () => this.props.onViewProof(proof)}] : []),
           {title: 'I fixed it - recheck', onClick: () => this.props.onRecheckProof(proof)},
           {title: 'Revoke proof', danger: true, onClick: () => this.props.onRevokeProof(proof)},
         ],
@@ -113,11 +113,11 @@ class Render extends Component<void, Props, State> {
             borderBottom: `1px solid ${globalColors.black_05}`,
           }}
         >
-          <PlatformIcon platform={proof.type} overlay='iconfont-proof-good' overlayColor={globalColors.blue} size={48} />
+          <PlatformIcon platform={proof.type} overlay='icon-proof-success' overlayColor={globalColors.blue} size={48} />
           <Text type='Body' style={{textAlign: 'center', color: globalColors.black_40}}>Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>
         </Box>,
         items: [
-          {title: 'View proof', onClick: () => this.props.onViewProof(proof)},
+          {title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`, onClick: () => this.props.onViewProof(proof)},
           {title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)},
         ],
       }
