@@ -5,7 +5,7 @@ import type {Props} from './prove-enter-username'
 import {Box, Icon, Text, Button, Input, PlatformIcon} from '../common-adapters'
 import {constants} from '../constants/types/keybase-v1'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import {shell} from 'electron'
+import openURL from '../util/open-url'
 
 function standardText (name) {
   return {
@@ -61,7 +61,7 @@ function customError (error: string, code: ?number) {
   if (code === constants.StatusCode.scprofilenotpublic) {
     return <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
       <Text style={styleErrorBannerText} type='BodySmallSemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
-      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}} onClick={() => shell.openExternal('https://www.coinbase.com/settings#payment_page')}>
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}} onClick={() => openURL('https://www.coinbase.com/settings#payment_page')}>
         <Text style={styleErrorBannerText} type='BodySmallSemibold'>Go to Coinbase</Text>
         <Icon type='iconfont-open-browser' style={{color: globalColors.white_40, marginLeft: 4}} />
       </Box>

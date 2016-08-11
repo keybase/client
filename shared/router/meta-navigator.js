@@ -118,6 +118,9 @@ class MetaNavigator extends Component {
         if (nextPath && subRoutes[nextPath.get('path')]) {
           nextComponent = subRoutes[nextPath.get('path')]
           parseNextRoute = nextComponent.parseRoute
+          if (!parseNextRoute) {
+            console.warn(`MetaNavigator: sub-route '${nextPath.get('path')}' lacks a static parseRoute function`)
+          }
         }
       }
 
