@@ -170,3 +170,5 @@ export function saveDevSettings () {
 export function updateDevSettings (updates: any) {
   return native.updateDevSettings(updates)
 }
+
+export {getExtendedStatus}
