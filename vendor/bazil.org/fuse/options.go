@@ -106,6 +106,14 @@ func NoAppleXattr() MountOption {
 	return noAppleXattr
 }
 
+// ExclCreate causes O_EXCL flag to be set for only "truly" exclusive creates,
+// i.e. create calls for which the initiator explicitly set the O_EXCL flag.
+//
+// OS X only. Others ignore this options.
+func ExclCreate() MountOption {
+	return exclCreate
+}
+
 // DaemonTimeout sets the time in seconds between a request and a reply before
 // the FUSE mount is declared dead.
 //

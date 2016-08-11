@@ -19,3 +19,7 @@ func noAppleXattr(conf *mountConfig) error {
 func noAppleDouble(conf *mountConfig) error {
 	return nil
 }
+
+func exclCreate(conf *mountConfig) error {
+	return nil
+}

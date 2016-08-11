@@ -28,3 +28,8 @@ func noAppleDouble(conf *mountConfig) error {
 	conf.options["noappledouble"] = ""
 	return nil
 }
+
+func exclCreate(conf *mountConfig) error {
+	conf.options["excl_create"] = ""
+	return nil
+}

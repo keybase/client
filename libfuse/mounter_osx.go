@@ -39,6 +39,7 @@ func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) 
 	}
 
 	options = append(options, fuse.VolumeName(volName))
+	options = append(options, fuse.ExclCreate())
 
 	return options, nil
 }
@@ -49,6 +50,7 @@ func GetPlatformSpecificMountOptionsForTest() []fuse.MountOption {
 	// TODO: Consider mandate testing with kbfuse?
 	return []fuse.MountOption{
 		fuse.OSXFUSELocations(kbfusePath, fuse.OSXFUSELocationV3),
+		fuse.ExclCreate(),
 	}
 }
 
