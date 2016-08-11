@@ -1,8 +1,7 @@
 // @flow
-
 import React from 'react'
-import type {Props} from './delete.render'
 import type {IconType} from '../../common-adapters/icon'
+import type {Props} from './delete.render'
 import {Confirm, Box, Text, Icon, Usernames} from '../../common-adapters'
 import {globalColors} from '../../styles/style-guide'
 

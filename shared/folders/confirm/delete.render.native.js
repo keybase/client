@@ -1,11 +1,10 @@
 // @flow
-
 import React from 'react'
-import type {Props} from './delete.render'
 import type {IconType} from '../../common-adapters/icon'
+import type {Props} from './delete.render'
 import {Confirm, Box, Text, Icon} from '../../common-adapters'
-import {usernameText} from '../../common-adapters/usernames'
 import {globalColors} from '../../styles/style-guide'
+import {usernameText} from '../../common-adapters/usernames'
 
 const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
   const theme = isPrivate ? 'private' : 'public'

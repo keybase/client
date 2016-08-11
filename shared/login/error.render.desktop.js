@@ -1,10 +1,16 @@
+// @flow
 import React from 'react'
 import {Text} from '../common-adapters'
-import Immutable from 'immutable'
+import {Map} from 'immutable'
 
-export default props => <Text type='Body'>Error loading component {JSON.stringify(props.currentPath.toJS())}</Text>
+const Render = (props: {currentPath: Object}) => <Text type='Body'>Error loading component {JSON.stringify(props.currentPath.toJS())}</Text>
 
-export const Mocks = {
-  'Error': {currentPath: Immutable.Map({a: 1, b: 2, c: 3})},
-  'Error2': {currentPath: Immutable.Map({a: 3, b: 2, c: 1})},
+const Mocks = {
+  'Error': {currentPath: Map({a: 1, b: 2, c: 3})},
+  'Error2': {currentPath: Map({a: 3, b: 2, c: 1})},
+}
+
+export default Render
+export {
+  Mocks,
 }

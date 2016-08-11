@@ -1,8 +1,9 @@
+// @flow
 import React, {Component} from 'react'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
-export default class Render extends Component {
+class Render extends Component {
   render () {
     return (
       <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf ? 0 : 55}}>
@@ -56,3 +57,5 @@ const stylesRevoked = {
   alignSelf: 'stretch',
   backgroundColor: globalColors.green,
 }
+
+export default Render

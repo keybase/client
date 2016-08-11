@@ -1,14 +1,11 @@
-/* @flow */
-
-import React from 'react'
-import Intro from './forms/intro'
+// @flow
 import ErrorText from './error.render'
-
-import signupRouter from './signup'
+import Intro from './forms/intro'
 import Login from './login'
-
-import {Map} from 'immutable'
+import React from 'react'
+import signupRouter from './signup'
 import type {URI} from '../constants/router'
+import {Map} from 'immutable'
 
 function loginRouter (currentPath: Map<string, string>, uri: URI): any {
   // Fallback (for debugging)

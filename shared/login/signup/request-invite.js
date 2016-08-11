@@ -1,12 +1,10 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
-
-import Render from './request-invite.render'
+// @flow
 import * as signupActions from '../../actions/signup'
+import React, {Component} from 'react'
+import Render from './request-invite.render'
 import type {Props} from './request-invite.render'
+import {bindActionCreators} from 'redux'
+import {connect} from 'react-redux'
 
 class RequestInvite extends Component {
   state: {

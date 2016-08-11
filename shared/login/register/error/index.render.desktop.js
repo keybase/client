@@ -1,10 +1,10 @@
 // @flow
-import React from 'react'
-import {Text} from '../../../common-adapters'
 import Container from '../../forms/container.desktop'
-import type {Props} from './index.render'
-import {errorMap} from '../../../engine/errors'
+import React from 'react'
 import openURL from '../../../util/open-url'
+import type {Props} from './index.render'
+import {Text} from '../../../common-adapters'
+import {errorMap} from '../../../engine/errors'
 
 const renderError = (error: Object) => {
   const fields = (error.raw && error.raw.fields || []).reduce((acc, f) => {

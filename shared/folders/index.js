@@ -1,14 +1,14 @@
 // @flow
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import Render from './render'
-import {favoriteList, switchTab, toggleShowIgnored as onToggleShowIgnored} from '../actions/favorite'
-import {openInKBFS} from '../actions/kbfs'
-import {bindActionCreators} from 'redux'
-import {routeAppend} from '../actions/router'
 import Files from './files'
+import React, {Component} from 'react'
+import Render from './render'
 import flags from '../util/feature-flags'
 import type {Props as RenderProps} from './render'
+import {bindActionCreators} from 'redux'
+import {connect} from 'react-redux'
+import {favoriteList, switchTab, toggleShowIgnored as onToggleShowIgnored} from '../actions/favorite'
+import {openInKBFS} from '../actions/kbfs'
+import {routeAppend} from '../actions/router'
 
 export type Props = {
   favoriteList: () => void,

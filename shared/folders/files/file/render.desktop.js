@@ -1,10 +1,10 @@
 // @flow
 import React, {Component} from 'react'
+import type {Props} from './render'
 import {Box, Text, Icon, ListItem} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles/style-guide'
-import type {Props} from './render'
 
-export default class Render extends Component<void, Props, void> {
+class Render extends Component<void, Props, void> {
   _renderIconPart () {
     const size = this.props.size === 'Small' ? 32 : 48
     return <Icon type={this.props.fileIcon} style={{height: size, width: size}} />
@@ -92,3 +92,5 @@ const modifyingUserStyleThemed = {
     color: globalColors.white_75,
   },
 }
+
+export default Render

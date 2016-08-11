@@ -1,8 +1,7 @@
 // @flow
 import Login from './index.render'
-import type {DumbComponentMap} from '../../constants/types/more'
-
 import type LoginProps from './'
+import type {DumbComponentMap} from '../../constants/types/more'
 
 function createLogger (event) {
   return function () {
@@ -28,7 +27,7 @@ const props: LoginProps = {
   onSubmit: createLogger('onSubmit'),
 }
 
-export const dumbMap: DumbComponentMap<Login> = {
+const dumbMap: DumbComponentMap<Login> = {
   component: Login,
   mocks: {
     'Single previous user': props,
@@ -45,4 +44,8 @@ export const dumbMap: DumbComponentMap<Login> = {
 
 export default {
   'Login: Signed Out': dumbMap,
+}
+
+export {
+  dumbMap,
 }

@@ -1,11 +1,11 @@
 // @flow
-import React, {Component} from 'react'
-import {Box, Text, BackButton, Avatar, PopupMenu, Icon, Usernames, ListItem, Button} from '../../common-adapters'
 import File from './file/render'
+import React, {Component} from 'react'
+import type {IconType} from '../../common-adapters/icon'
+import type {Props} from './render'
+import {Box, Text, BackButton, Avatar, PopupMenu, Icon, Usernames, ListItem, Button} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, backgroundURL} from '../../styles/style-guide'
 import {intersperseFn} from '../../util/arrays'
-import type {Props} from './render'
-import type {IconType} from '../../common-adapters/icon'
 
 const Section = ({section, theme}) => (
   <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>

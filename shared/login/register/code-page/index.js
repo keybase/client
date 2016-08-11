@@ -1,14 +1,21 @@
+// @flow
 /*
  * Screen to scan/show qrcode/text code. Goes into various modes with various options depending on if
  * you're a phone/computer and if you're the existing device or the new device
  */
-
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
 import Render from './index.render'
+import type {Props} from './index.render'
+import {connect} from 'react-redux'
 
-class CodePage extends Component {
-  constructor (props) {
+type State = {
+  enterText: string,
+}
+
+class CodePage extends Component<void, Props, State> {
+  state: State;
+
+  constructor (props: Props) {
     super(props)
 
     this.state = {

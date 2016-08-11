@@ -1,10 +1,14 @@
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
+// @flow
+// $FlowIssue
 import Login from './login'
-import Signup from './signup'
-import {routeAppend} from '../../actions/router'
-import {login} from '../../actions/login'
+import React, {Component} from 'react'
+// $FlowIssue
 import Render from './index.render'
+// $FlowIssue
+import Signup from './signup'
+import {connect} from 'react-redux'
+import {login} from '../../actions/login'
+import {routeAppend} from '../../actions/router'
 
 class Welcome extends Component {
   render () {
@@ -25,11 +29,6 @@ class Welcome extends Component {
       },
     }
   }
-}
-
-Welcome.propTypes = {
-  onGotoLoginPage: React.PropTypes.func.isRequired,
-  onGotoSignupPage: React.PropTypes.func.isRequired,
 }
 
 export default connect(

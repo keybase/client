@@ -1,22 +1,18 @@
-/* @flow */
-
-import React from 'react'
+// @flow
+import DeviceName from './device-name'
 import ErrorText from '../error.render'
-
-// Signup Components
 import InviteCode from './invite-code'
+import PassphraseSignup from './passphrase'
+import React from 'react'
 import RequestInvite from './request-invite'
 import RequestInviteSuccess from './request-invite-success'
-import UsernameEmailForm from './username-email-form'
-import PassphraseSignup from './passphrase'
-import DeviceName from './device-name'
-import Success from './success'
 import SignupError from './error'
-
-import {Map} from 'immutable'
+import Success from './success'
+import UsernameEmailForm from './username-email-form'
 import type {URI} from '../../constants/router'
+import {Map} from 'immutable'
 
-export default function signupRouter (currentPath: Map<string, string>, uri: URI): any {
+function signupRouter (currentPath: Map<string, string>, uri: URI): any {
   // Fallback (for debugging)
   let element = <ErrorText currentPath={currentPath} />
 
@@ -66,3 +62,5 @@ export default function signupRouter (currentPath: Map<string, string>, uri: URI
     parseNextRoute: signupRouter,
   }
 }
+
+export default signupRouter

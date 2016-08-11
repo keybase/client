@@ -1,11 +1,9 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
-
-import Render from './invite-code.render'
+// @flow
 import * as signupActions from '../../actions/signup'
+import React, {Component} from 'react'
+import Render from './invite-code.render'
+import {bindActionCreators} from 'redux'
+import {connect} from 'react-redux'
 import {navigateUp} from '../../actions/router'
 
 class InviteCode extends Component {
