@@ -142,7 +142,8 @@ function analyzeMessages (json, project) {
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any${r}) => void)}>) {
-  engine.rpc({...request, method: '${json.protocol}.${m}'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: '${json.protocol}.${m}'})
 }
 `
     return [paramType, response, rpc].filter(i => !!i).join('\n\n')

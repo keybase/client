@@ -1,7 +1,6 @@
 import {BrowserWindow, app, dialog} from 'electron'
 import splash from './splash'
 import installer from './installer'
-import ListenLogUi from '../shared/native/listen-log-ui'
 import consoleHelper, {ipcLogs} from './console-helper'
 import devTools from './dev-tools'
 import menuBar from './menu-bar'
@@ -64,7 +63,6 @@ function start () {
   menuBar()
   urlHelper()
   kbfsHelper()
-  ListenLogUi()
   windowHelper(app)
 
   installer(err => {

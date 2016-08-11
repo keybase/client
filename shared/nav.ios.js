@@ -1,7 +1,6 @@
 import Devices from './devices'
 import DumbSheet from './dev/dumb-sheet'
 import Folders from './folders'
-import ListenLogUi from './native/listen-log-ui'
 import Login from './login'
 import MetaNavigator from './router/meta-navigator'
 import NoTab from './no-tab'
@@ -88,10 +87,7 @@ class Nav extends Component {
     this.props.bootstrap()
     this.props.listenForNotifications()
 
-    // Handle logUi.log
-    ListenLogUi()
-
-    // Introduce ourselves to the service
+        // Introduce ourselves to the service
     hello(0, 'iOS app', [], '0.0.0') // TODO real version
   }
 

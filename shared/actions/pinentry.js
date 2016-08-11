@@ -1,8 +1,8 @@
 // @flow
 import * as Constants from '../constants/pinentry'
 import engine from '../engine'
-import type {Dispatch, AsyncAction} from '../constants/types/flux'
-import type {GUIEntryFeatures, incomingCallMapType} from '../constants/types/flow-types'
+import type {AsyncAction} from '../constants/types/flux'
+import type {GUIEntryFeatures} from '../constants/types/flow-types'
 import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
 import {constants} from '../constants/types/keybase-v1'
 import {delegateUiCtlRegisterSecretUIRpc} from '../constants/types/flow-types'
@@ -28,8 +28,28 @@ export function registerPinentryListener (): AsyncAction {
       payload: {started: true},
     }: RegisterPinentryListenerAction))
 
-    const pinentryListeners = pinentryListenersCreator(dispatch)
-    engine.listenGeneralIncomingRpc(pinentryListeners)
+    engine.setIncomingHandler('keybase.1.secretUi.getPassphrase', (payload, response) => {
+      console.log('Asked for passphrase')
+
+      const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = payload.pinentry
+      const sessionID = payload.sessionID
+
+      dispatch(({
+        type: Constants.newPinentry,
+        payload: {
+          type,
+          sessionID,
+          features,
+          prompt,
+          submitLabel,
+          cancelLabel,
+          windowTitle,
+          retryLabel,
+        },
+      }: NewPinentryAction))
+
+      uglySessionIDResponseMapper[sessionID] = response
+    })
   }
 }
 
@@ -68,31 +88,4 @@ function uglyResponse (sessionID: number, result: any, err: ?any): void {
   }
 
   delete uglySessionIDResponseMapper[sessionID]
-}
-
-function pinentryListenersCreator (dispatch: Dispatch): incomingCallMapType {
-  return {
-    'keybase.1.secretUi.getPassphrase': (payload, response) => {
-      console.log('Asked for passphrase')
-
-      const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = payload.pinentry
-      const sessionID = payload.sessionID
-
-      dispatch(({
-        type: Constants.newPinentry,
-        payload: {
-          type,
-          sessionID,
-          features,
-          prompt,
-          submitLabel,
-          cancelLabel,
-          windowTitle,
-          retryLabel,
-        },
-      }: NewPinentryAction))
-
-      uglySessionIDResponseMapper[sessionID] = response
-    },
-  }
 }
