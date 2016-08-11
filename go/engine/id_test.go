@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -217,6 +218,13 @@ func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, res
 func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
 	ui.Lock()
 	defer ui.Unlock()
+
+	// Do a short sleep. This helps trigger bugs when other code is racing
+	// against the UI here. (Note from Jack: In the bug I initially added this
+	// for, 10ms was just enough to trigger it. I'm adding in an extra factor
+	// of 10.)
+	time.Sleep(100 * time.Millisecond)
+
 	ui.Outcome = outcome
 	result.IdentityConfirmed = outcome.TrackOptions.BypassConfirm
 	result.RemoteConfirmed = outcome.TrackOptions.BypassConfirm && !outcome.TrackOptions.ExpiringLocal
