@@ -15,20 +15,34 @@ import (
 type chatLocalHandler struct {
 	*BaseHandler
 	libkb.Contextified
+	gh *gregorHandler
 }
 
-func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext) *chatLocalHandler {
+func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
 	return &chatLocalHandler{
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
+		gh:           gh,
 	}
 }
 
-func (h *chatLocalHandler) GetInboxLocal(context.Context, *chat1.Pagination) (chat1.InboxView, error) {
-	return chat1.InboxView{}, nil
+func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, p *chat1.Pagination) (chat1.InboxView, error) {
+	return h.remoteClient().GetInboxRemote(ctx, p)
 }
 
-func (h *chatLocalHandler) GetThreadLocal(context.Context, keybase1.GetThreadLocalArg) (keybase1.ThreadView, error) {
+func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetThreadLocalArg) (keybase1.ThreadView, error) {
+	rarg := chat1.GetThreadRemoteArg{
+		ConversationID: arg.ConversationID,
+		Pagination:     arg.Pagination,
+	}
+	boxed, err := h.remoteClient().GetThreadRemote(ctx, rarg)
+	if err != nil {
+		return keybase1.ThreadView{}, err
+	}
+
+	// TODO: ThreadViewBoxed -> ThreadView
+	_ = boxed
+
 	return keybase1.ThreadView{}, nil
 }
 
@@ -36,6 +50,16 @@ func (h *chatLocalHandler) NewConversationLocal(context.Context, chat1.Conversat
 	return nil
 }
 
-func (h *chatLocalHandler) PostLocal(context.Context, keybase1.PostLocalArg) error {
-	return nil
+func (h *chatLocalHandler) PostLocal(ctx context.Context, arg keybase1.PostLocalArg) error {
+	rarg := chat1.PostRemoteArg{
+		ConversationID: arg.ConversationID,
+	}
+
+	// TODO: arg.MessagePlaintext => rarg.MessageBoxed
+
+	return h.remoteClient().PostRemote(ctx, rarg)
+}
+
+func (h *chatLocalHandler) remoteClient() *chat1.RemoteClient {
+	return &chat1.RemoteClient{Cli: h.gh.cli}
 }

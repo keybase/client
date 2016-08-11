@@ -204,6 +204,10 @@ func (g *gregorHandler) getGregorCli() (*grclient.Client, error) {
 	return g.gregorCli, nil
 }
 
+func (g *gregorHandler) getRPCCli() rpc.GenericClient {
+	return g.cli
+}
+
 func (g *gregorHandler) Debug(s string, args ...interface{}) {
 	g.G().Log.Debug("push handler: "+s, args...)
 }
