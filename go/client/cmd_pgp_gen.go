@@ -111,9 +111,7 @@ func (v *CmdPGPGen) propmptPGPIDs() (err error) {
 
 	emailsSeen[id.Email] = struct{}{}
 
-	idAdditional := libkb.Identity{
-		Username: id.Username,
-	}
+	idAdditional := libkb.Identity{}
 	prompt = "Enter another email address (or <enter> when done)"
 	for {
 		idAdditional.Email, err = PromptWithChecker(PromptDescriptorPGPGenEnterID, v.G().UI.GetTerminalUI(), prompt, false, CheckOptionalEmail)
