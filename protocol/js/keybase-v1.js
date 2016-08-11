@@ -12,6 +12,8 @@ export const block = {}
 
 export const BTC = {}
 
+export const chatLocal = {}
+
 export const Common = {
   'LogLevel': {
     'none': 0,
@@ -469,6 +471,7 @@ export default {
   backendCommon,
   block,
   BTC,
+  chatLocal,
   Common,
   config,
   constants,

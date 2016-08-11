@@ -250,6 +250,12 @@
 			"revisionTime": "2016-07-01T19:55:25Z"
 		},
 		{
+			"checksumSHA1": "V5FQ4JcT9qLhD67DCPUqKR3z4UM=",
+			"path": "github.com/keybase/gregor/protocol/chat1",
+			"revision": "21dd526b1037eba38085792aaa7810e8d5ceb80b",
+			"revisionTime": "2016-08-11T15:54:09Z"
+		},
+		{
 			"checksumSHA1": "62b13boBTrv4t4xnFt6FEjDoWKI=",
 			"path": "github.com/keybase/gregor/protocol/gregor1",
 			"revision": "a3935baeb79f89a99a1834aabfce326fc5887ed5",

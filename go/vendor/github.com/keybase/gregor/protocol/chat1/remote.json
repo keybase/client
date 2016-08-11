@@ -1,0 +1,112 @@
+{
+  "protocol": "remote",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "MessageBoxed",
+      "fields": [
+        {
+          "type": [
+            null,
+            "MessageServerHeader"
+          ],
+          "name": "serverHeader"
+        },
+        {
+          "type": "MessageClientHeader",
+          "name": "clientHeader"
+        },
+        {
+          "type": "SignatureInfo",
+          "name": "headerSignature"
+        },
+        {
+          "type": "EncryptedData",
+          "name": "bodyCiphertext"
+        },
+        {
+          "type": "SignatureInfo",
+          "name": "bodySignature"
+        },
+        {
+          "type": "int",
+          "name": "keyGeneration"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ThreadViewBoxed",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageBoxed"
+          },
+          "name": "messages"
+        },
+        {
+          "type": [
+            null,
+            "Pagination"
+          ],
+          "name": "pagination"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "getInboxRemote": {
+      "request": [
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        }
+      ],
+      "response": "InboxView"
+    },
+    "getThreadRemote": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        }
+      ],
+      "response": "ThreadViewBoxed"
+    },
+    "postRemote": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "messageBoxed",
+          "type": "MessageBoxed"
+        }
+      ],
+      "response": null
+    },
+    "newConversationRemote": {
+      "request": [
+        {
+          "name": "conversationMetadata",
+          "type": "ConversationMetadata"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "chat.1"
+}
