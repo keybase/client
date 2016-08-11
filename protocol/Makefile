@@ -31,8 +31,7 @@ go-build-stamp: avdl/*.avdl $(AVDLC) | config
 js/flow-types.js: build-stamp | config
 	@mkdir -p js/
 	node --harmony ./bin/flow.js
-	cp ./js/flow-types.js ../shared/constants/types
-	cp ./js/flow-types-gregor.js ../shared/constants/types
+	cp ./js/flow-types* ../shared/constants/types
 
 js/keybase_v1.js: build-stamp | config
 	@mkdir -p js/
