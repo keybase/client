@@ -25,6 +25,8 @@ declare module 'react-redux' { declare var exports: any; }
 declare module 'react-tap-event-plugin' { declare var exports: any; }
 declare module 'redux' { declare var exports: any; }
 declare module 'redux-devtools' { declare var exports: any; }
+declare module 'redux-saga' { declare var exports: any; }
+declare module 'redux-saga/effects' { declare var exports: any; }
 
 declare module 'invariant' { declare var exports: (callback: any) => any; }
 declare module 'react-addons-perf' {

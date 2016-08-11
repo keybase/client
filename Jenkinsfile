@@ -105,13 +105,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                     )
                 }
 
-                def kbweb = null
-
-                try {
-                    retry(5) {
-                        sh "docker-compose up -d mysql.local"
-                    }
-                    sh "docker-compose up -d kbweb.local"
+                helpers.withKbweb() {
 
                     stage "Test"
                         parallel (
@@ -223,7 +217,11 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                     bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
                                                     bat "choco install -y curl"
                                                     helpers.waitForURL("Windows", env.KEYBASE_SERVER_URI)
-                                                    bat "for /f %%i in (testlist.txt) do (go test -timeout 10m %%i || exit /B 1)"
+                                                    def testlist = readFile('testlist.txt')
+                                                    def tests = testlist.tokenize()
+                                                    for (test in tests) {
+                                                        bat "go test -timeout 10m ${test}"
+                                                    }
                                                 }
                                             },
                                             test_windows_js: {
@@ -282,19 +280,6 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 }
                             },
                         )
-                } catch (ex) {
-                    println "Dockers:"
-                    sh "docker ps -a"
-                    sh "docker-compose stop"
-                    println "Gregor logs:"
-                    sh "docker logs client_gregor.local_1"
-                    println "MySQL logs:"
-                    sh "docker logs client_mysql.local_1"
-                    println "KBweb logs:"
-                    sh "docker logs client_kbweb.local_1"
-                    throw ex
-                } finally {
-                    sh "docker-compose down"
                 }
 
 

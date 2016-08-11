@@ -41,11 +41,6 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     'keybase.1.NotifyFS.FSActivity': ({notification}) => {
       kbfsNotification(notification, notify, getState)
     },
-    // 'keybase.1.GREGOR.TODO': ({model}) => { // TODO: This isn't the real message. Mocking this out until we get the real one
-      // if (model.type === 'RefreshFavorites') {
-        // dispatch(favoriteList())
-      // }
-    // },
     'keybase.1.NotifyService.shutdown': () => {
       // console.log('Quitting due to service shutdown')
       // App quiting will call ctl stop, which will stop the service
