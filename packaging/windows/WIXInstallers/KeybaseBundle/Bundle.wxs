@@ -78,11 +78,14 @@
     <util:RegistrySearch Id="vcredist_2015_x64_versionnumbercheck" Root="HKLM" Key="SOFTWARE\Classes\Installer\Dependencies\Microsoft.VS.VC_RuntimeMinimumVSU_amd64,v14" Value="Version" Variable="vcredist_2015_x64_versionnumber" Result="value" Win64="yes"/>
 
     <bal:Condition Message="Installation failed because your version of Windows is too old. Dokan requires Windows 7 SP1 or newer."><![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND ServicePackLevel >= 1)]]></bal:Condition>
-
+    
     <Chain>
       <PackageGroupRef Id="NetFx40Web"/>
       
-      <!-- Remember: if DetectCondition is true, this package is considered already present. -->
+      <!-- Remember: if DetectCondition is true, this package is considered already present. 
+        WixBundleAction of 4 means install. 3 is uninstall, 5 is upgrade.
+        Making this permanent prevents it from being invoked on uninstall or other removal.
+      -->
       <ExePackage
         SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\tools\dokanclean\dokanclean.exe"
         DetectCondition="DokanUninstallString"

@@ -24,10 +24,12 @@
       <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
       <Custom Action="StopUpdater" Before="InstallValidate"/>
       <Custom Action="StopGUI" Before="InstallValidate"/>
-      <Custom Action="StopKBFS" Before="InstallValidate"/>
       <Custom Action="StopMainApp" Before="InstallValidate"/>
-      <Custom Action="RunMainApp" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
-      <Custom Action="RunGUI" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
+      <Custom Action="StopKBFS" Before="InstallValidate"/>
+      <!-- Force reboot for this version until everyone has kill-kbfs -->
+      <ScheduleReboot Before="InstallFinalize">UPGRADINGPRODUCTCODE</ScheduleReboot>
+      <Custom Action="RunMainApp" Before="InstallFinalize">NOT REBOOT AND NOT (REMOVE ~= "ALL")</Custom>
+      <Custom Action="RunGUI" Before="InstallFinalize">NOT REBOOT AND NOT (REMOVE ~= "ALL")</Custom>
     </InstallExecuteSequence>
 
 
@@ -196,7 +198,7 @@
               Return="ignore"/>
   </Fragment>
   <Fragment>
-    <!-- This is just in case --kill-kbfs doesn't work -->
+    <!-- This is just in case kill-kbfs doesn't work -->
     <CustomAction Id="StopKBFS"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM kbfsdokan.exe"
