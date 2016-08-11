@@ -55,7 +55,7 @@ const styleBannerText = {
 
 const styleContentContainer = (isBannerShowing) => ({
   ...globalStyles.flexBoxColumn,
-  alignItems: 'center',
+  alignItems: 'stretch',
   justifyContent: 'center',
   flex: 1,
   ...(isBannerShowing ? {marginTop: -MIN_BANNER_HEIGHT} : {}),
