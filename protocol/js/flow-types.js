@@ -17,156 +17,1045 @@ export type RPCError = {
   code: number,
   desc: string
 }
-export function Kex2ProvisionerKexStartRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
+
+// $FlowIssue we're calling an internal method on engine that's there just for us
+const engineRpcOutgoing = (...args) => engine._rpcOutgoing(...args)
+
+type requestCommon = {
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'Kex2Provisioner.kexStart'})
 }
-export function NotifyAppExitRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyApp.exit'})
+
+type requestErrorCallback = {
+  callback?: ?(err: ?any) => void
 }
-export function NotifyServiceShutdownRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyService.shutdown'})
+
+type RPCErrorHandler = (err: RPCError) => void
+
+type CommonResponseHandler = {
+  error: RPCErrorHandler,
+  result: (...rest: Array<void>) => void,
 }
-export function NotifySessionLoggedOutRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifySession.loggedOut'})
+export const CommonClientType = {
+  none: 0,
+  cli: 1,
+  gui: 2,
+  kbfs: 3,
 }
-export function ctlAppExitRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'ctl.appExit'})
+
+export const CommonLogLevel = {
+  none: 0,
+  debug: 1,
+  info: 2,
+  notice: 3,
+  warn: 4,
+  error: 5,
+  critical: 6,
+  fatal: 7,
 }
-export function ctlDbNukeRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'ctl.dbNuke'})
+
+export const CommonMerkleTreeID = {
+  master: 0,
+  kbfsPublic: 1,
+  kbfsPrivate: 2,
 }
-export function ctlLogRotateRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'ctl.logRotate'})
+
+export const ConfigForkType = {
+  none: 0,
+  auto: 1,
+  watchdog: 2,
+  launchd: 3,
 }
-export function ctlReloadRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'ctl.reload'})
+
+export const ConstantsStatusCode = {
+  scok: 0,
+  scloginrequired: 201,
+  scbadsession: 202,
+  scbadloginusernotfound: 203,
+  scbadloginpassword: 204,
+  scnotfound: 205,
+  scthrottlecontrol: 210,
+  scgeneric: 218,
+  scalreadyloggedin: 235,
+  sccanceled: 237,
+  scinputcanceled: 239,
+  screloginrequired: 274,
+  scresolutionfailed: 275,
+  scprofilenotpublic: 276,
+  scidentifyfailed: 277,
+  sctrackingbroke: 278,
+  scwrongcryptoformat: 279,
+  scdecryptionerror: 280,
+  scbadsignupusernametaken: 701,
+  scbadinvitationcode: 707,
+  scmissingresult: 801,
+  sckeynotfound: 901,
+  sckeyinuse: 907,
+  sckeybadgen: 913,
+  sckeynosecret: 914,
+  sckeybaduids: 915,
+  sckeynoactive: 916,
+  sckeynosig: 917,
+  sckeybadsig: 918,
+  sckeybadeldest: 919,
+  sckeynoeldest: 920,
+  sckeyduplicateupdate: 921,
+  scsibkeyalreadyexists: 922,
+  scdecryptionkeynotfound: 924,
+  sckeynopgpencryption: 927,
+  sckeynonaclencryption: 928,
+  sckeysyncedpgpnotfound: 929,
+  sckeynomatchinggpg: 930,
+  sckeyrevoked: 931,
+  scbadtracksession: 1301,
+  scdevicenotfound: 1409,
+  scdevicemismatch: 1410,
+  scdevicerequired: 1411,
+  scdeviceprevprovisioned: 1413,
+  scdevicenoprovision: 1414,
+  scstreamexists: 1501,
+  scstreamnotfound: 1502,
+  scstreamwrongkind: 1503,
+  scstreameof: 1504,
+  scgenericapierror: 1600,
+  scapinetworkerror: 1601,
+  sctimeout: 1602,
+  scprooferror: 1701,
+  scidentificationexpired: 1702,
+  scselfnotfound: 1703,
+  scbadkexphrase: 1704,
+  scnouidelegation: 1705,
+  scnoui: 1706,
+  scgpgunavailable: 1707,
+  scinvalidversionerror: 1800,
+  scoldversionerror: 1801,
+  scinvalidlocationerror: 1802,
+  scservicestatuserror: 1803,
+  scinstallerror: 1804,
 }
-export function delegateUiCtlRegisterGregorFirehoseRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'delegateUiCtl.registerGregorFirehose'})
+
+export const CtlExitCode = {
+  ok: 0,
+  notok: 2,
+  restart: 4,
 }
-export function delegateUiCtlRegisterIdentifyUIRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'delegateUiCtl.registerIdentifyUI'})
+
+export const GregorUIPushReason = {
+  none: 0,
+  reconnected: 1,
+  newData: 2,
 }
-export function delegateUiCtlRegisterRekeyUIRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'delegateUiCtl.registerRekeyUI'})
+
+export const IdentifyCommonIdentifyReasonType = {
+  none: 0,
+  id: 1,
+  track: 2,
+  encrypt: 3,
+  decrypt: 4,
+  verify: 5,
+  resource: 6,
 }
-export function delegateUiCtlRegisterSecretUIRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'delegateUiCtl.registerSecretUI'})
+
+export const IdentifyCommonTrackDiffType = {
+  none: 0,
+  error: 1,
+  clash: 2,
+  revoked: 3,
+  upgraded: 4,
+  new: 5,
+  remoteFail: 6,
+  remoteWorking: 7,
+  remoteChanged: 8,
+  newEldest: 9,
+  noneViaTemporary: 10,
 }
-export function delegateUiCtlRegisterUpdateUIRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'delegateUiCtl.registerUpdateUI'})
+
+export const IdentifyCommonTrackStatus = {
+  newOk: 1,
+  newZeroProofs: 2,
+  newFailProofs: 3,
+  updateBrokenFailedProofs: 4,
+  updateNewProofs: 5,
+  updateOk: 6,
+  updateBrokenRevoked: 7,
 }
-export function deviceDeviceAddRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'device.deviceAdd'})
+
+export const IdentifyUiCheckResultFreshness = {
+  fresh: 0,
+  aged: 1,
+  rancid: 2,
 }
-export function identifyUiFinishRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.finish'})
+
+export const IdentifyUiDismissReasonType = {
+  none: 0,
+  handledElsewhere: 1,
 }
-export function loginLogoutRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.logout'})
+
+export const InstallInstallAction = {
+  unknown: 0,
+  none: 1,
+  upgrade: 2,
+  reinstall: 3,
+  install: 4,
 }
-export function loginPaperKeyRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.paperKey'})
+
+export const InstallInstallStatus = {
+  unknown: 0,
+  error: 1,
+  notInstalled: 2,
+  installed: 4,
 }
-export function loginUnlockRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.unlock'})
+
+export const KbfsCommonFSErrorType = {
+  accessDenied: 0,
+  userNotFound: 1,
+  revokedDataDetected: 2,
+  notLoggedIn: 3,
+  timeout: 4,
+  rekeyNeeded: 5,
+  badFolder: 6,
+  notImplemented: 7,
+  oldVersion: 8,
+  overQuota: 9,
+  noSigChain: 10,
 }
-export function metadataPingRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.ping'})
+
+export const KbfsCommonFSNotificationType = {
+  encrypting: 0,
+  decrypting: 1,
+  signing: 2,
+  verifying: 3,
+  rekeying: 4,
+  connection: 5,
+  mdReadSuccess: 6,
+  fileCreated: 7,
+  fileModified: 8,
+  fileDeleted: 9,
+  fileRenamed: 10,
 }
-export function pgpPgpDeletePrimaryRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpDeletePrimary'})
+
+export const KbfsCommonFSStatusCode = {
+  start: 0,
+  finish: 1,
+  error: 2,
 }
-export function pgpUiFinishedRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgpUi.finished'})
+
+export const NotifyChatChatActivityType = {
+  reserved: 0,
+  incomingMessage: 1,
 }
-export function provisionUiDisplaySecretExchangedRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.DisplaySecretExchanged'})
+
+export const PassphraseCommonPassphraseType = {
+  none: 0,
+  paperKey: 1,
+  passPhrase: 2,
+  verifyPassPhrase: 3,
 }
-export function rekeyDebugShowRekeyStatusRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'rekey.debugShowRekeyStatus'})
+
+export const PgpSignMode = {
+  attached: 0,
+  detached: 1,
+  clear: 2,
 }
-export function rekeyShowPendingRekeyStatusRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'rekey.showPendingRekeyStatus'})
+
+export const ProcessFileType = {
+  unknown: 0,
+  directory: 1,
+  file: 2,
 }
-export function trackCheckTrackingRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'track.checkTracking'})
+
+export const ProveCommonProofState = {
+  none: 0,
+  ok: 1,
+  tempFailure: 2,
+  permFailure: 3,
+  looking: 4,
+  superseded: 5,
+  posted: 6,
+  revoked: 7,
 }
+
+export const ProveCommonProofStatus = {
+  none: 0,
+  ok: 1,
+  local: 2,
+  found: 3,
+  baseError: 100,
+  hostUnreachable: 101,
+  permissionDenied: 103,
+  failedParse: 106,
+  dnsError: 107,
+  authFailed: 108,
+  http429: 129,
+  http500: 150,
+  timeout: 160,
+  internalError: 170,
+  baseHardError: 200,
+  notFound: 201,
+  contentFailure: 202,
+  badUsername: 203,
+  badRemoteId: 204,
+  textNotFound: 205,
+  badArgs: 206,
+  contentMissing: 207,
+  titleNotFound: 208,
+  serviceError: 209,
+  torSkipped: 210,
+  torIncompatible: 211,
+  http300: 230,
+  http400: 240,
+  httpOther: 260,
+  emptyJson: 270,
+  deleted: 301,
+  serviceDead: 302,
+  badSignature: 303,
+  badApiUrl: 304,
+  unknownType: 305,
+  noHint: 306,
+  badHintText: 307,
+}
+
+export const ProveCommonProofType = {
+  none: 0,
+  keybase: 1,
+  twitter: 2,
+  github: 3,
+  reddit: 4,
+  coinbase: 5,
+  hackernews: 6,
+  genericWebSite: 1000,
+  dns: 1001,
+  pgp: 1002,
+  rooter: 100001,
+}
+
+export const ProveUiPromptOverwriteType = {
+  social: 0,
+  site: 1,
+}
+
+export const ProvisionUiChooseType = {
+  existingDevice: 0,
+  newDevice: 1,
+}
+
+export const ProvisionUiDeviceType = {
+  desktop: 0,
+  mobile: 1,
+}
+
+export const ProvisionUiGPGMethod = {
+  gpgNone: 0,
+  gpgImport: 1,
+  gpgSign: 2,
+}
+
+export const ProvisionUiProvisionMethod = {
+  device: 0,
+  paperKey: 1,
+  passphrase: 2,
+  gpgImport: 3,
+  gpgSign: 4,
+}
+
+export const RekeyOutcome = {
+  none: 0,
+  fixed: 1,
+  ignored: 2,
+}
+
+export const RekeyUIRekeyEventType = {
+  none: 0,
+  notLoggedIn: 1,
+  apiError: 2,
+  noProblems: 3,
+  loadMeError: 4,
+  currentDeviceCanRekey: 5,
+  deviceLoadError: 6,
+  harass: 7,
+  noGregorMessages: 8,
+}
+
+export const SaltpackUiSaltpackSenderType = {
+  notTracked: 0,
+  unknown: 1,
+  anonymous: 2,
+  trackingBroke: 3,
+  trackingOk: 4,
+  self: 5,
+}
+
+export const UiPromptDefault = {
+  none: 0,
+  yes: 1,
+  no: 2,
+}
+
+export function BTCRegisterBTCRpc (request: $Exact<requestCommon & requestErrorCallback & {param: BTCRegisterBTCRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'BTC.registerBTC'})
+}
+
+export function Kex2ProvisioneeDidCounterSignRpc (request: $Exact<requestCommon & requestErrorCallback & {param: Kex2ProvisioneeDidCounterSignRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'Kex2Provisionee.didCounterSign'})
+}
+
+export function Kex2ProvisioneeHelloRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2ProvisioneeHelloResult) => void} & {param: Kex2ProvisioneeHelloRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'Kex2Provisionee.hello'})
+}
+
+export function Kex2ProvisionerKexStartRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'Kex2Provisioner.kexStart'})
+}
+
+export function SecretKeysGetSecretKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'SecretKeys.getSecretKeys'})
+}
+
+export function accountPassphraseChangeRpc (request: $Exact<requestCommon & requestErrorCallback & {param: accountPassphraseChangeRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'account.passphraseChange'})
+}
+
+export function accountPassphrasePromptRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountPassphrasePromptResult) => void} & {param: accountPassphrasePromptRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'account.passphrasePrompt'})
+}
+
+export function apiserverGetRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetResult) => void} & {param: apiserverGetRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'apiserver.Get'})
+}
+
+export function apiserverPostJSONRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostJSONResult) => void} & {param: apiserverPostJSONRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'apiserver.PostJSON'})
+}
+
+export function apiserverPostRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostResult) => void} & {param: apiserverPostRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'apiserver.Post'})
+}
+
+export function blockAddReferenceRpc (request: $Exact<requestCommon & requestErrorCallback & {param: blockAddReferenceRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'block.addReference'})
+}
+
+export function blockArchiveReferenceRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceResult) => void} & {param: blockArchiveReferenceRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'block.archiveReference'})
+}
+
+export function blockArchiveReferenceWithCountRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceWithCountResult) => void} & {param: blockArchiveReferenceWithCountRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'block.archiveReferenceWithCount'})
+}
+
+export function blockAuthenticateSessionRpc (request: $Exact<requestCommon & requestErrorCallback & {param: blockAuthenticateSessionRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'block.authenticateSession'})
+}
+
+export function blockDelReferenceRpc (request: $Exact<requestCommon & requestErrorCallback & {param: blockDelReferenceRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'block.delReference'})
+}
+
+export function blockDelReferenceWithCountRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockDelReferenceWithCountResult) => void} & {param: blockDelReferenceWithCountRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'block.delReferenceWithCount'})
+}
+
+export function blockGetBlockRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetBlockResult) => void} & {param: blockGetBlockRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'block.getBlock'})
+}
+
+export function blockGetSessionChallengeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetSessionChallengeResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'block.getSessionChallenge'})
+}
+
+export function blockGetUserQuotaInfoRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'block.getUserQuotaInfo'})
+}
+
+export function blockPutBlockRpc (request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'block.putBlock'})
+}
+
+export function chatLocalGetInboxLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxLocalResult) => void} & {param: chatLocalGetInboxLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chatLocal.getInboxLocal'})
+}
+
+export function chatLocalGetMessagesLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetMessagesLocalResult) => void} & {param: chatLocalGetMessagesLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chatLocal.getMessagesLocal'})
+}
+
+export function chatLocalGetOrCreateTextConversationLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetOrCreateTextConversationLocalResult) => void} & {param: chatLocalGetOrCreateTextConversationLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chatLocal.getOrCreateTextConversationLocal'})
+}
+
+export function chatLocalGetThreadLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetThreadLocalResult) => void} & {param: chatLocalGetThreadLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chatLocal.getThreadLocal'})
+}
+
+export function chatLocalNewConversationLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalNewConversationLocalResult) => void} & {param: chatLocalNewConversationLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chatLocal.newConversationLocal'})
+}
+
+export function chatLocalPostLocalRpc (request: $Exact<requestCommon & requestErrorCallback & {param: chatLocalPostLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chatLocal.postLocal'})
+}
+
+export function configCheckAPIServerOutOfDateWarningRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'config.checkAPIServerOutOfDateWarning'})
+}
+
+export function configClearValueRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configClearValueRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'config.clearValue'})
+}
+
+export function configGetConfigRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetConfigResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'config.getConfig'})
+}
+
+export function configGetCurrentStatusRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetCurrentStatusResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'config.getCurrentStatus'})
+}
+
+export function configGetExtendedStatusRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetExtendedStatusResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'config.getExtendedStatus'})
+}
+
+export function configGetValueRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetValueResult) => void} & {param: configGetValueRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'config.getValue'})
+}
+
+export function configHelloIAmRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configHelloIAmRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'config.helloIAm'})
+}
+
+export function configSetPathRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configSetPathRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'config.setPath'})
+}
+
+export function configSetUserConfigRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configSetUserConfigRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'config.setUserConfig'})
+}
+
+export function configSetValueRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configSetValueRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'config.setValue'})
+}
+
+export function cryptoSignED25519Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519Result) => void} & {param: cryptoSignED25519RpcParam}>) {
+  engineRpcOutgoing({...request, method: 'crypto.signED25519'})
+}
+
+export function cryptoSignToStringRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignToStringResult) => void} & {param: cryptoSignToStringRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'crypto.signToString'})
+}
+
+export function cryptoUnboxBytes32AnyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32AnyResult) => void} & {param: cryptoUnboxBytes32AnyRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'crypto.unboxBytes32Any'})
+}
+
+export function cryptoUnboxBytes32Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32Result) => void} & {param: cryptoUnboxBytes32RpcParam}>) {
+  engineRpcOutgoing({...request, method: 'crypto.unboxBytes32'})
+}
+
+export function ctlAppExitRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'ctl.appExit'})
+}
+
+export function ctlDbNukeRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'ctl.dbNuke'})
+}
+
+export function ctlLogRotateRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'ctl.logRotate'})
+}
+
+export function ctlReloadRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'ctl.reload'})
+}
+
+export function ctlStopRpc (request: $Exact<requestCommon & requestErrorCallback & {param: ctlStopRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'ctl.stop'})
+}
+
+export function debuggingFirstStepRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingFirstStepResult) => void} & {param: debuggingFirstStepRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'debugging.firstStep'})
+}
+
+export function debuggingIncrementRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingIncrementResult) => void} & {param: debuggingIncrementRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'debugging.increment'})
+}
+
+export function debuggingSecondStepRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingSecondStepResult) => void} & {param: debuggingSecondStepRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'debugging.secondStep'})
+}
+
+export function delegateUiCtlRegisterGregorFirehoseRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'delegateUiCtl.registerGregorFirehose'})
+}
+
+export function delegateUiCtlRegisterIdentifyUIRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'delegateUiCtl.registerIdentifyUI'})
+}
+
+export function delegateUiCtlRegisterRekeyUIRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'delegateUiCtl.registerRekeyUI'})
+}
+
+export function delegateUiCtlRegisterSecretUIRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'delegateUiCtl.registerSecretUI'})
+}
+
+export function delegateUiCtlRegisterUpdateUIRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'delegateUiCtl.registerUpdateUI'})
+}
+
+export function deviceCheckDeviceNameFormatRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceCheckDeviceNameFormatResult) => void} & {param: deviceCheckDeviceNameFormatRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'device.checkDeviceNameFormat'})
+}
+
+export function deviceDeviceAddRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'device.deviceAdd'})
+}
+
+export function deviceDeviceHistoryListRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceHistoryListResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'device.deviceHistoryList'})
+}
+
+export function deviceDeviceListRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceListResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'device.deviceList'})
+}
+
+export function favoriteFavoriteAddRpc (request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteAddRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'favorite.favoriteAdd'})
+}
+
+export function favoriteFavoriteIgnoreRpc (request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteIgnoreRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'favorite.favoriteIgnore'})
+}
+
+export function favoriteGetFavoritesRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: favoriteGetFavoritesResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'favorite.getFavorites'})
+}
+
+export function fsListRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: fsListResult) => void} & {param: fsListRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'fs.List'})
+}
+
+export function gregorGetStateRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'gregor.getState'})
+}
+
+export function identifyIdentify2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}>) {
+  engineRpcOutgoing({...request, method: 'identify.identify2'})
+}
+
+export function identifyIdentifyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'identify.identify'})
+}
+
+export function identifyResolve2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam}>) {
+  engineRpcOutgoing({...request, method: 'identify.Resolve2'})
+}
+
+export function identifyResolveRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'identify.Resolve'})
+}
+
+export function kbfsFSEditListRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'kbfs.FSEditList'})
+}
+
+export function kbfsFSEventRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEventRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'kbfs.FSEvent'})
+}
+
+export function logRegisterLoggerRpc (request: $Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'log.registerLogger'})
+}
+
+export function loginClearStoredSecretRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginClearStoredSecretRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'login.clearStoredSecret'})
+}
+
+export function loginDeprovisionRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginDeprovisionRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'login.deprovision'})
+}
+
+export function loginGetConfiguredAccountsRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: loginGetConfiguredAccountsResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'login.getConfiguredAccounts'})
+}
+
+export function loginLoginRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'login.login'})
+}
+
+export function loginLogoutRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'login.logout'})
+}
+
+export function loginPaperKeyRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'login.paperKey'})
+}
+
+export function loginPaperKeySubmitRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginPaperKeySubmitRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'login.paperKeySubmit'})
+}
+
+export function loginPgpProvisionRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginPgpProvisionRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'login.pgpProvision'})
+}
+
+export function loginRecoverAccountFromEmailAddressRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginRecoverAccountFromEmailAddressRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'login.recoverAccountFromEmailAddress'})
+}
+
+export function loginUnlockRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'login.unlock'})
+}
+
+export function loginUnlockWithPassphraseRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginUnlockWithPassphraseRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'login.unlockWithPassphrase'})
+}
+
+export function metadataAuthenticateRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.authenticate'})
+}
+
+export function metadataDeleteKeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataDeleteKeyRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.deleteKey'})
+}
+
+export function metadataGetChallengeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetChallengeResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'metadata.getChallenge'})
+}
+
+export function metadataGetFolderHandleRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetFolderHandleResult) => void} & {param: metadataGetFolderHandleRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.getFolderHandle'})
+}
+
+export function metadataGetFoldersForRekeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataGetFoldersForRekeyRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.getFoldersForRekey'})
+}
+
+export function metadataGetKeyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyResult) => void} & {param: metadataGetKeyRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.getKey'})
+}
+
+export function metadataGetLatestFolderHandleRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetLatestFolderHandleResult) => void} & {param: metadataGetLatestFolderHandleRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.getLatestFolderHandle'})
+}
+
+export function metadataGetMerkleNodeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleNodeResult) => void} & {param: metadataGetMerkleNodeRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.getMerkleNode'})
+}
+
+export function metadataGetMerkleRootLatestRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootLatestResult) => void} & {param: metadataGetMerkleRootLatestRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.getMerkleRootLatest'})
+}
+
+export function metadataGetMerkleRootRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootResult) => void} & {param: metadataGetMerkleRootRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.getMerkleRoot'})
+}
+
+export function metadataGetMerkleRootSinceRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootSinceResult) => void} & {param: metadataGetMerkleRootSinceRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.getMerkleRootSince'})
+}
+
+export function metadataGetMetadataRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMetadataResult) => void} & {param: metadataGetMetadataRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.getMetadata'})
+}
+
+export function metadataPing2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataPing2Result) => void}>) {
+  engineRpcOutgoing({...request, method: 'metadata.ping2'})
+}
+
+export function metadataPingRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'metadata.ping'})
+}
+
+export function metadataPruneBranchRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPruneBranchRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.pruneBranch'})
+}
+
+export function metadataPutKeysRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutKeysRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.putKeys'})
+}
+
+export function metadataPutMetadataRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.putMetadata'})
+}
+
+export function metadataRegisterForUpdatesRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.registerForUpdates'})
+}
+
+export function metadataTruncateLockRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateLockResult) => void} & {param: metadataTruncateLockRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.truncateLock'})
+}
+
+export function metadataTruncateUnlockRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateUnlockResult) => void} & {param: metadataTruncateUnlockRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadata.truncateUnlock'})
+}
+
+export function metadataUpdateFolderNeedsRekeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFolderNeedsRekeyRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadataUpdate.folderNeedsRekey'})
+}
+
+export function metadataUpdateMetadataUpdateRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateMetadataUpdateRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'metadataUpdate.metadataUpdate'})
+}
+
+export function notifyCtlSetNotificationsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: notifyCtlSetNotificationsRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'notifyCtl.setNotifications'})
+}
+
+export function paperprovisionPaperProvisionRpc (request: $Exact<requestCommon & requestErrorCallback & {param: paperprovisionPaperProvisionRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'paperprovision.paperProvision'})
+}
+
+export function pgpPgpDecryptRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpDecryptResult) => void} & {param: pgpPgpDecryptRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpDecrypt'})
+}
+
+export function pgpPgpDeletePrimaryRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpDeletePrimary'})
+}
+
+export function pgpPgpEncryptRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpEncryptRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpEncrypt'})
+}
+
+export function pgpPgpExportByFingerprintRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByFingerprintResult) => void} & {param: pgpPgpExportByFingerprintRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpExportByFingerprint'})
+}
+
+export function pgpPgpExportByKIDRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByKIDResult) => void} & {param: pgpPgpExportByKIDRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpExportByKID'})
+}
+
+export function pgpPgpExportRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportResult) => void} & {param: pgpPgpExportRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpExport'})
+}
+
+export function pgpPgpImportRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpImportRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpImport'})
+}
+
+export function pgpPgpKeyGenDefaultRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenDefaultRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpKeyGenDefault'})
+}
+
+export function pgpPgpKeyGenRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpKeyGen'})
+}
+
+export function pgpPgpPullRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpPullRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpPull'})
+}
+
+export function pgpPgpPurgeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpPurgeResult) => void} & {param: pgpPgpPurgeRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpPurge'})
+}
+
+export function pgpPgpSelectRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSelectRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpSelect'})
+}
+
+export function pgpPgpSignRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSignRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpSign'})
+}
+
+export function pgpPgpUpdateRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpUpdateRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpUpdate'})
+}
+
+export function pgpPgpVerifyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpVerifyResult) => void} & {param: pgpPgpVerifyRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'pgp.pgpVerify'})
+}
+
+export function proveCheckProofRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveCheckProofResult) => void} & {param: proveCheckProofRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'prove.checkProof'})
+}
+
+export function proveStartProofRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveStartProofResult) => void} & {param: proveStartProofRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'prove.startProof'})
+}
+
+export function quotaVerifySessionRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: quotaVerifySessionResult) => void} & {param: quotaVerifySessionRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'quota.verifySession'})
+}
+
+export function rekeyDebugShowRekeyStatusRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'rekey.debugShowRekeyStatus'})
+}
+
+export function rekeyGetPendingRekeyStatusRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetPendingRekeyStatusResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'rekey.getPendingRekeyStatus'})
+}
+
+export function rekeyRekeyStatusFinishRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyRekeyStatusFinishResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'rekey.rekeyStatusFinish'})
+}
+
+export function rekeyRekeySyncRpc (request: $Exact<requestCommon & requestErrorCallback & {param: rekeyRekeySyncRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'rekey.rekeySync'})
+}
+
+export function rekeyShowPendingRekeyStatusRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'rekey.showPendingRekeyStatus'})
+}
+
+export function revokeRevokeDeviceRpc (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeDeviceRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'revoke.revokeDevice'})
+}
+
+export function revokeRevokeKeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeKeyRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'revoke.revokeKey'})
+}
+
+export function revokeRevokeSigsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeSigsRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'revoke.revokeSigs'})
+}
+
+export function saltpackSaltpackDecryptRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: saltpackSaltpackDecryptResult) => void} & {param: saltpackSaltpackDecryptRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'saltpack.saltpackDecrypt'})
+}
+
+export function saltpackSaltpackEncryptRpc (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackEncryptRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'saltpack.saltpackEncrypt'})
+}
+
+export function saltpackSaltpackSignRpc (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackSignRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'saltpack.saltpackSign'})
+}
+
+export function saltpackSaltpackVerifyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackVerifyRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'saltpack.saltpackVerify'})
+}
+
+export function sessionCurrentSessionRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sessionCurrentSessionResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'session.currentSession'})
+}
+
+export function signupCheckInvitationCodeRpc (request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckInvitationCodeRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'signup.checkInvitationCode'})
+}
+
+export function signupCheckUsernameAvailableRpc (request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckUsernameAvailableRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'signup.checkUsernameAvailable'})
+}
+
+export function signupInviteRequestRpc (request: $Exact<requestCommon & requestErrorCallback & {param: signupInviteRequestRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'signup.inviteRequest'})
+}
+
+export function signupSignupRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupSignupResult) => void} & {param: signupSignupRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'signup.signup'})
+}
+
+export function sigsSigListJSONRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListJSONResult) => void} & {param: sigsSigListJSONRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'sigs.sigListJSON'})
+}
+
+export function sigsSigListRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListResult) => void} & {param: sigsSigListRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'sigs.sigList'})
+}
+
+export function testPanicRpc (request: $Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'test.panic'})
+}
+
+export function testTestCallbackRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestCallbackResult) => void} & {param: testTestCallbackRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'test.testCallback'})
+}
+
+export function testTestRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestResult) => void} & {param: testTestRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'test.test'})
+}
+
+export function tlfCryptKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'tlf.CryptKeys'})
+}
+
+export function tlfKeysGetTLFCryptKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'tlfKeys.getTLFCryptKeys'})
+}
+
+export function trackCheckTrackingRpc (request: $Exact<requestCommon & requestErrorCallback>) {
+  engineRpcOutgoing({...request, method: 'track.checkTracking'})
+}
+
+export function trackDismissWithTokenRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackDismissWithTokenRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'track.dismissWithToken'})
+}
+
+export function trackFakeTrackingChangedRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackFakeTrackingChangedRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'track.fakeTrackingChanged'})
+}
+
+export function trackTrackRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'track.track'})
+}
+
+export function trackTrackWithTokenRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackWithTokenRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'track.trackWithToken'})
+}
+
+export function trackUntrackRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackUntrackRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'track.untrack'})
+}
+
+export function userListTrackers2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackers2Result) => void} & {param: userListTrackers2RpcParam}>) {
+  engineRpcOutgoing({...request, method: 'user.listTrackers2'})
+}
+
+export function userListTrackersByNameRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersByNameResult) => void} & {param: userListTrackersByNameRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'user.listTrackersByName'})
+}
+
+export function userListTrackersRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersResult) => void} & {param: userListTrackersRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'user.listTrackers'})
+}
+
+export function userListTrackersSelfRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersSelfResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'user.listTrackersSelf'})
+}
+
+export function userListTrackingJSONRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingJSONResult) => void} & {param: userListTrackingJSONRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'user.listTrackingJSON'})
+}
+
+export function userListTrackingRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingResult) => void} & {param: userListTrackingRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'user.listTracking'})
+}
+
+export function userLoadAllPublicKeysUnverifiedRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void} & {param: userLoadAllPublicKeysUnverifiedRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'user.loadAllPublicKeysUnverified'})
+}
+
+export function userLoadMyPublicKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMyPublicKeysResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'user.loadMyPublicKeys'})
+}
+
+export function userLoadPublicKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadPublicKeysResult) => void} & {param: userLoadPublicKeysRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'user.loadPublicKeys'})
+}
+
+export function userLoadUncheckedUserSummariesRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUncheckedUserSummariesResult) => void} & {param: userLoadUncheckedUserSummariesRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'user.loadUncheckedUserSummaries'})
+}
+
+export function userLoadUserByNameRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserByNameResult) => void} & {param: userLoadUserByNameRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'user.loadUserByName'})
+}
+
+export function userLoadUserPlusKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserPlusKeysResult) => void} & {param: userLoadUserPlusKeysRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'user.loadUserPlusKeys'})
+}
+
+export function userLoadUserRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserResult) => void} & {param: userLoadUserRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'user.loadUser'})
+}
+
+export function userSearchRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'user.search'})
+}
+
 export type APIRes = {
   status: string,
   body: string,
@@ -179,13 +1068,6 @@ export type BTCRegisterBTCRpcParam = $Exact<{
   force: boolean
 }>
 
-export function BTCRegisterBTCRpc (request: $Exact<{
-  param: BTCRegisterBTCRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'BTC.registerBTC'})
-}
 export type BinaryKID = bytes
 
 export type BlockIdCombo = {
@@ -652,13 +1534,6 @@ export type Kex2ProvisioneeDidCounterSignRpcParam = $Exact<{
   sig: bytes
 }>
 
-export function Kex2ProvisioneeDidCounterSignRpc (request: $Exact<{
-  param: Kex2ProvisioneeDidCounterSignRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'Kex2Provisionee.didCounterSign'})
-}
 export type Kex2ProvisioneeHelloRpcParam = $Exact<{
   uid: UID,
   token: SessionToken,
@@ -667,15 +1542,6 @@ export type Kex2ProvisioneeHelloRpcParam = $Exact<{
   sigBody: string
 }>
 
-type Kex2ProvisioneeHelloResult = HelloRes
-
-export function Kex2ProvisioneeHelloRpc (request: $Exact<{
-  param: Kex2ProvisioneeHelloRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: Kex2ProvisioneeHelloResult) => void)}>) {
-  engine.rpc({...request, method: 'Kex2Provisionee.hello'})
-}
 export type KeyHalf = {
   user: UID,
   deviceKID: KID,
@@ -762,6 +1628,25 @@ export type MessageBody = {
 export type MessageConversationMetadata = {
   conversationTitle: string,
 }
+<<<<<<< a13957abf3282cc50abebbf5292d8a0c9e068123
+export type chatLocalCompleteAndCanonicalizeTlfNameRpcParam = $Exact<{
+  tlfName: string
+}>
+
+type chatLocalCompleteAndCanonicalizeTlfNameResult = CanonicalTlfName
+
+export function chatLocalCompleteAndCanonicalizeTlfNameRpc (request: $Exact<{
+  param: chatLocalCompleteAndCanonicalizeTlfNameRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatLocalCompleteAndCanonicalizeTlfNameResult) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.completeAndCanonicalizeTlfName'})
+}
+export type chatLocalGetInboxLocalRpcParam = $Exact<{
+  pagination: (null | chat1.Pagination)
+}>
+=======
+>>>>>>> Refactored engine object
 
 export type MessageDelete = {
   messageID: chat1.MessageID,
@@ -820,129 +1705,52 @@ export type NotifyChatNewChatActivityRpcParam = $Exact<{
   activity: ChatActivity
 }>
 
-export function NotifyChatNewChatActivityRpc (request: $Exact<{
-  param: NotifyChatNewChatActivityRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyChat.NewChatActivity'})
-}
 export type NotifyFSFSActivityRpcParam = $Exact<{
   notification: FSNotification
 }>
 
-export function NotifyFSFSActivityRpc (request: $Exact<{
-  param: NotifyFSFSActivityRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyFS.FSActivity'})
-}
 export type NotifyFSFSEditListResponseRpcParam = $Exact<{
   edits?: ?Array<FSNotification>,
   requestID: int
 }>
 
-export function NotifyFSFSEditListResponseRpc (request: $Exact<{
-  param: NotifyFSFSEditListResponseRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyFS.FSEditListResponse'})
-}
 export type NotifyFSRequestFSEditListRequestRpcParam = $Exact<{
   req: FSEditListRequest
 }>
 
-export function NotifyFSRequestFSEditListRequestRpc (request: $Exact<{
-  param: NotifyFSRequestFSEditListRequestRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyFSRequest.FSEditListRequest'})
-}
 export type NotifyFavoritesFavoritesChangedRpcParam = $Exact<{
   uid: UID
 }>
 
-export function NotifyFavoritesFavoritesChangedRpc (request: $Exact<{
-  param: NotifyFavoritesFavoritesChangedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyFavorites.favoritesChanged'})
-}
 export type NotifyKeyfamilyKeyfamilyChangedRpcParam = $Exact<{
   uid: UID
 }>
 
-export function NotifyKeyfamilyKeyfamilyChangedRpc (request: $Exact<{
-  param: NotifyKeyfamilyKeyfamilyChangedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyKeyfamily.keyfamilyChanged'})
-}
 export type NotifyPaperKeyPaperKeyCachedRpcParam = $Exact<{
   uid: UID,
   encKID: KID,
   sigKID: KID
 }>
 
-export function NotifyPaperKeyPaperKeyCachedRpc (request: $Exact<{
-  param: NotifyPaperKeyPaperKeyCachedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyPaperKey.paperKeyCached'})
-}
 export type NotifySessionClientOutOfDateRpcParam = $Exact<{
   upgradeTo: string,
   upgradeURI: string,
   upgradeMsg: string
 }>
 
-export function NotifySessionClientOutOfDateRpc (request: $Exact<{
-  param: NotifySessionClientOutOfDateRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifySession.clientOutOfDate'})
-}
 export type NotifySessionLoggedInRpcParam = $Exact<{
   username: string
 }>
 
-export function NotifySessionLoggedInRpc (request: $Exact<{
-  param: NotifySessionLoggedInRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifySession.loggedIn'})
-}
 export type NotifyTrackingTrackingChangedRpcParam = $Exact<{
   uid: UID,
   username: string
 }>
 
-export function NotifyTrackingTrackingChangedRpc (request: $Exact<{
-  param: NotifyTrackingTrackingChangedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyTracking.trackingChanged'})
-}
 export type NotifyUsersUserChangedRpcParam = $Exact<{
   uid: UID
 }>
 
-export function NotifyUsersUserChangedRpc (request: $Exact<{
-  param: NotifyUsersUserChangedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyUsers.userChanged'})
-}
 export type OutOfDateInfo = {
   upgradeTo: string,
   upgradeURI: string,
@@ -1647,26 +2455,10 @@ export type accountPassphraseChangeRpcParam = $Exact<{
   force: boolean
 }>
 
-export function accountPassphraseChangeRpc (request: $Exact<{
-  param: accountPassphraseChangeRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'account.passphraseChange'})
-}
 export type accountPassphrasePromptRpcParam = $Exact<{
   guiArg: GUIEntryArg
 }>
 
-type accountPassphrasePromptResult = GetPassphraseRes
-
-export function accountPassphrasePromptRpc (request: $Exact<{
-  param: accountPassphrasePromptRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: accountPassphrasePromptResult) => void)}>) {
-  engine.rpc({...request, method: 'account.passphrasePrompt'})
-}
 export type apiserverGetRpcParam = $Exact<{
   endpoint: string,
   args?: ?Array<StringKVPair>,
@@ -1674,15 +2466,6 @@ export type apiserverGetRpcParam = $Exact<{
   appStatusCode?: ?Array<int>
 }>
 
-type apiserverGetResult = APIRes
-
-export function apiserverGetRpc (request: $Exact<{
-  param: apiserverGetRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: apiserverGetResult) => void)}>) {
-  engine.rpc({...request, method: 'apiserver.Get'})
-}
 export type apiserverPostJSONRpcParam = $Exact<{
   endpoint: string,
   args?: ?Array<StringKVPair>,
@@ -1691,15 +2474,6 @@ export type apiserverPostJSONRpcParam = $Exact<{
   appStatusCode?: ?Array<int>
 }>
 
-type apiserverPostJSONResult = APIRes
-
-export function apiserverPostJSONRpc (request: $Exact<{
-  param: apiserverPostJSONRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: apiserverPostJSONResult) => void)}>) {
-  engine.rpc({...request, method: 'apiserver.PostJSON'})
-}
 export type apiserverPostRpcParam = $Exact<{
   endpoint: string,
   args?: ?Array<StringKVPair>,
@@ -1707,106 +2481,40 @@ export type apiserverPostRpcParam = $Exact<{
   appStatusCode?: ?Array<int>
 }>
 
-type apiserverPostResult = APIRes
-
-export function apiserverPostRpc (request: $Exact<{
-  param: apiserverPostRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: apiserverPostResult) => void)}>) {
-  engine.rpc({...request, method: 'apiserver.Post'})
-}
 export type blockAddReferenceRpcParam = $Exact<{
   folder: string,
   ref: BlockReference
 }>
 
-export function blockAddReferenceRpc (request: $Exact<{
-  param: blockAddReferenceRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'block.addReference'})
-}
 export type blockArchiveReferenceRpcParam = $Exact<{
   folder: string,
   refs?: ?Array<BlockReference>
 }>
 
-type blockArchiveReferenceResult = ?Array<BlockReference>
-
-export function blockArchiveReferenceRpc (request: $Exact<{
-  param: blockArchiveReferenceRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: blockArchiveReferenceResult) => void)}>) {
-  engine.rpc({...request, method: 'block.archiveReference'})
-}
 export type blockArchiveReferenceWithCountRpcParam = $Exact<{
   folder: string,
   refs?: ?Array<BlockReference>
 }>
 
-type blockArchiveReferenceWithCountResult = DowngradeReferenceRes
-
-export function blockArchiveReferenceWithCountRpc (request: $Exact<{
-  param: blockArchiveReferenceWithCountRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: blockArchiveReferenceWithCountResult) => void)}>) {
-  engine.rpc({...request, method: 'block.archiveReferenceWithCount'})
-}
 export type blockAuthenticateSessionRpcParam = $Exact<{
   signature: string
 }>
 
-export function blockAuthenticateSessionRpc (request: $Exact<{
-  param: blockAuthenticateSessionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'block.authenticateSession'})
-}
 export type blockDelReferenceRpcParam = $Exact<{
   folder: string,
   ref: BlockReference
 }>
 
-export function blockDelReferenceRpc (request: $Exact<{
-  param: blockDelReferenceRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'block.delReference'})
-}
 export type blockDelReferenceWithCountRpcParam = $Exact<{
   folder: string,
   refs?: ?Array<BlockReference>
 }>
 
-type blockDelReferenceWithCountResult = DowngradeReferenceRes
-
-export function blockDelReferenceWithCountRpc (request: $Exact<{
-  param: blockDelReferenceWithCountRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: blockDelReferenceWithCountResult) => void)}>) {
-  engine.rpc({...request, method: 'block.delReferenceWithCount'})
-}
 export type blockGetBlockRpcParam = $Exact<{
   bid: BlockIdCombo,
   folder: string
 }>
 
-type blockGetBlockResult = GetBlockRes
-
-export function blockGetBlockRpc (request: $Exact<{
-  param: blockGetBlockRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: blockGetBlockResult) => void)}>) {
-  engine.rpc({...request, method: 'block.getBlock'})
-}
 export type blockPutBlockRpcParam = $Exact<{
   bid: BlockIdCombo,
   folder: string,
@@ -1814,220 +2522,77 @@ export type blockPutBlockRpcParam = $Exact<{
   buf: bytes
 }>
 
-export function blockPutBlockRpc (request: $Exact<{
-  param: blockPutBlockRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'block.putBlock'})
-}
-export type chatLocalCompleteAndCanonicalizeTlfNameRpcParam = $Exact<{
-  tlfName: string
-}>
-
-type chatLocalCompleteAndCanonicalizeTlfNameResult = CanonicalTlfName
-
-export function chatLocalCompleteAndCanonicalizeTlfNameRpc (request: $Exact<{
-  param: chatLocalCompleteAndCanonicalizeTlfNameRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: chatLocalCompleteAndCanonicalizeTlfNameResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.completeAndCanonicalizeTlfName'})
-}
 export type chatLocalGetInboxLocalRpcParam = $Exact<{
-  pagination: (null | chat1.Pagination)
+  pagination?: ?chat1.Pagination
 }>
 
-type chatLocalGetInboxLocalResult = chat1.InboxView
-
-export function chatLocalGetInboxLocalRpc (request: $Exact<{
-  param: chatLocalGetInboxLocalRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: chatLocalGetInboxLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.getInboxLocal'})
-}
 export type chatLocalGetMessagesLocalRpcParam = $Exact<{
   selector: MessageSelector
 }>
 
-type chatLocalGetMessagesLocalResult = ?Array<Message>
-
-export function chatLocalGetMessagesLocalRpc (request: $Exact<{
-  param: chatLocalGetMessagesLocalRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: chatLocalGetMessagesLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.getMessagesLocal'})
-}
 export type chatLocalGetOrCreateTextConversationLocalRpcParam = $Exact<{
   tlfName: string,
   topicName: string,
   topicType: chat1.TopicType
 }>
 
-type chatLocalGetOrCreateTextConversationLocalResult = chat1.ConversationID
-
-export function chatLocalGetOrCreateTextConversationLocalRpc (request: $Exact<{
-  param: chatLocalGetOrCreateTextConversationLocalRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: chatLocalGetOrCreateTextConversationLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.getOrCreateTextConversationLocal'})
-}
 export type chatLocalGetThreadLocalRpcParam = $Exact<{
   conversationID: chat1.ConversationID,
-  pagination: (null | chat1.Pagination)
+  pagination?: ?chat1.Pagination
 }>
 
-type chatLocalGetThreadLocalResult = ThreadView
-
-export function chatLocalGetThreadLocalRpc (request: $Exact<{
-  param: chatLocalGetThreadLocalRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: chatLocalGetThreadLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.getThreadLocal'})
-}
 export type chatLocalNewConversationLocalRpcParam = $Exact<{
   conversationTriple: chat1.ConversationIDTriple
 }>
 
-type chatLocalNewConversationLocalResult = chat1.ConversationID
-
-export function chatLocalNewConversationLocalRpc (request: $Exact<{
-  param: chatLocalNewConversationLocalRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: chatLocalNewConversationLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.newConversationLocal'})
-}
 export type chatLocalPostLocalRpcParam = $Exact<{
   conversationID: chat1.ConversationID,
   messagePlaintext: MessagePlaintext
 }>
 
-export function chatLocalPostLocalRpc (request: $Exact<{
-  param: chatLocalPostLocalRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.postLocal'})
-}
 export type configClearValueRpcParam = $Exact<{
   path: string
 }>
 
-export function configClearValueRpc (request: $Exact<{
-  param: configClearValueRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'config.clearValue'})
-}
 export type configGetValueRpcParam = $Exact<{
   path: string
 }>
 
-type configGetValueResult = ConfigValue
-
-export function configGetValueRpc (request: $Exact<{
-  param: configGetValueRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: configGetValueResult) => void)}>) {
-  engine.rpc({...request, method: 'config.getValue'})
-}
 export type configHelloIAmRpcParam = $Exact<{
   details: ClientDetails
 }>
 
-export function configHelloIAmRpc (request: $Exact<{
-  param: configHelloIAmRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'config.helloIAm'})
-}
 export type configSetPathRpcParam = $Exact<{
   path: string
 }>
 
-export function configSetPathRpc (request: $Exact<{
-  param: configSetPathRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'config.setPath'})
-}
 export type configSetUserConfigRpcParam = $Exact<{
   username: string,
   key: string,
   value: string
 }>
 
-export function configSetUserConfigRpc (request: $Exact<{
-  param: configSetUserConfigRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'config.setUserConfig'})
-}
 export type configSetValueRpcParam = $Exact<{
   path: string,
   value: ConfigValue
 }>
 
-export function configSetValueRpc (request: $Exact<{
-  param: configSetValueRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'config.setValue'})
-}
 export type cryptoSignED25519RpcParam = $Exact<{
   msg: bytes,
   reason: string
 }>
 
-type cryptoSignED25519Result = ED25519SignatureInfo
-
-export function cryptoSignED25519Rpc (request: $Exact<{
-  param: cryptoSignED25519RpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: cryptoSignED25519Result) => void)}>) {
-  engine.rpc({...request, method: 'crypto.signED25519'})
-}
 export type cryptoSignToStringRpcParam = $Exact<{
   msg: bytes,
   reason: string
 }>
 
-type cryptoSignToStringResult = string
-
-export function cryptoSignToStringRpc (request: $Exact<{
-  param: cryptoSignToStringRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: cryptoSignToStringResult) => void)}>) {
-  engine.rpc({...request, method: 'crypto.signToString'})
-}
 export type cryptoUnboxBytes32AnyRpcParam = $Exact<{
   bundles?: ?Array<CiphertextBundle>,
   reason: string,
   promptPaper: boolean
 }>
 
-type cryptoUnboxBytes32AnyResult = UnboxAnyRes
-
-export function cryptoUnboxBytes32AnyRpc (request: $Exact<{
-  param: cryptoUnboxBytes32AnyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: cryptoUnboxBytes32AnyResult) => void)}>) {
-  engine.rpc({...request, method: 'crypto.unboxBytes32Any'})
-}
 export type cryptoUnboxBytes32RpcParam = $Exact<{
   encryptedBytes32: EncryptedBytes32,
   nonce: BoxNonce,
@@ -2035,176 +2600,60 @@ export type cryptoUnboxBytes32RpcParam = $Exact<{
   reason: string
 }>
 
-type cryptoUnboxBytes32Result = Bytes32
-
-export function cryptoUnboxBytes32Rpc (request: $Exact<{
-  param: cryptoUnboxBytes32RpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: cryptoUnboxBytes32Result) => void)}>) {
-  engine.rpc({...request, method: 'crypto.unboxBytes32'})
-}
 export type ctlStopRpcParam = $Exact<{
   exitCode: ExitCode
 }>
 
-export function ctlStopRpc (request: $Exact<{
-  param: ctlStopRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'ctl.stop'})
-}
 export type debuggingFirstStepRpcParam = $Exact<{
   val: int
 }>
 
-type debuggingFirstStepResult = FirstStepResult
-
-export function debuggingFirstStepRpc (request: $Exact<{
-  param: debuggingFirstStepRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: debuggingFirstStepResult) => void)}>) {
-  engine.rpc({...request, method: 'debugging.firstStep'})
-}
 export type debuggingIncrementRpcParam = $Exact<{
   val: int
 }>
 
-type debuggingIncrementResult = int
-
-export function debuggingIncrementRpc (request: $Exact<{
-  param: debuggingIncrementRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: debuggingIncrementResult) => void)}>) {
-  engine.rpc({...request, method: 'debugging.increment'})
-}
 export type debuggingSecondStepRpcParam = $Exact<{
   val: int
 }>
 
-type debuggingSecondStepResult = int
-
-export function debuggingSecondStepRpc (request: $Exact<{
-  param: debuggingSecondStepRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: debuggingSecondStepResult) => void)}>) {
-  engine.rpc({...request, method: 'debugging.secondStep'})
-}
 export type deviceCheckDeviceNameFormatRpcParam = $Exact<{
   name: string
 }>
 
-type deviceCheckDeviceNameFormatResult = boolean
-
-export function deviceCheckDeviceNameFormatRpc (request: $Exact<{
-  param: deviceCheckDeviceNameFormatRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: deviceCheckDeviceNameFormatResult) => void)}>) {
-  engine.rpc({...request, method: 'device.checkDeviceNameFormat'})
-}
 export type favoriteFavoriteAddRpcParam = $Exact<{
   folder: Folder
 }>
 
-export function favoriteFavoriteAddRpc (request: $Exact<{
-  param: favoriteFavoriteAddRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'favorite.favoriteAdd'})
-}
 export type favoriteFavoriteIgnoreRpcParam = $Exact<{
   folder: Folder
 }>
 
-export function favoriteFavoriteIgnoreRpc (request: $Exact<{
-  param: favoriteFavoriteIgnoreRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'favorite.favoriteIgnore'})
-}
 export type fsListRpcParam = $Exact<{
   path: string
 }>
 
-type fsListResult = ListResult
-
-export function fsListRpc (request: $Exact<{
-  param: fsListRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: fsListResult) => void)}>) {
-  engine.rpc({...request, method: 'fs.List'})
-}
 export type gpgUiSelectKeyAndPushOptionRpcParam = $Exact<{
   keys?: ?Array<GPGKey>
 }>
 
-type gpgUiSelectKeyAndPushOptionResult = SelectKeyRes
-
-export function gpgUiSelectKeyAndPushOptionRpc (request: $Exact<{
-  param: gpgUiSelectKeyAndPushOptionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: gpgUiSelectKeyAndPushOptionResult) => void)}>) {
-  engine.rpc({...request, method: 'gpgUi.selectKeyAndPushOption'})
-}
 export type gpgUiSelectKeyRpcParam = $Exact<{
   keys?: ?Array<GPGKey>
 }>
 
-type gpgUiSelectKeyResult = string
-
-export function gpgUiSelectKeyRpc (request: $Exact<{
-  param: gpgUiSelectKeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: gpgUiSelectKeyResult) => void)}>) {
-  engine.rpc({...request, method: 'gpgUi.selectKey'})
-}
 export type gpgUiSignRpcParam = $Exact<{
   msg: bytes,
   fingerprint: bytes
 }>
 
-type gpgUiSignResult = string
-
-export function gpgUiSignRpc (request: $Exact<{
-  param: gpgUiSignRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: gpgUiSignResult) => void)}>) {
-  engine.rpc({...request, method: 'gpgUi.sign'})
-}
 export type gregorUIPushOutOfBandMessagesRpcParam = $Exact<{
   oobm?: ?Array<gregor1.OutOfBandMessage>
 }>
 
-export function gregorUIPushOutOfBandMessagesRpc (request: $Exact<{
-  param: gregorUIPushOutOfBandMessagesRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'gregorUI.pushOutOfBandMessages'})
-}
 export type gregorUIPushStateRpcParam = $Exact<{
   state: gregor1.State,
   reason: PushReason
 }>
 
-export function gregorUIPushStateRpc (request: $Exact<{
-  param: gregorUIPushStateRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'gregorUI.pushState'})
-}
 export type identifyIdentify2RpcParam = $Exact<{
   uid: UID,
   userAssertion: string,
@@ -2218,15 +2667,6 @@ export type identifyIdentify2RpcParam = $Exact<{
   noSkipSelf?: boolean
 }>
 
-type identifyIdentify2Result = Identify2Res
-
-export function identifyIdentify2Rpc (request: $Exact<{
-  param: identifyIdentify2RpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: identifyIdentify2Result) => void)}>) {
-  engine.rpc({...request, method: 'identify.identify2'})
-}
 export type identifyIdentifyRpcParam = $Exact<{
   userAssertion: string,
   forceRemoteCheck?: boolean,
@@ -2235,88 +2675,31 @@ export type identifyIdentifyRpcParam = $Exact<{
   source: ClientType
 }>
 
-type identifyIdentifyResult = IdentifyRes
-
-export function identifyIdentifyRpc (request: $Exact<{
-  param: identifyIdentifyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: identifyIdentifyResult) => void)}>) {
-  engine.rpc({...request, method: 'identify.identify'})
-}
 export type identifyResolve2RpcParam = $Exact<{
   assertion: string
 }>
 
-type identifyResolve2Result = User
-
-export function identifyResolve2Rpc (request: $Exact<{
-  param: identifyResolve2RpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: identifyResolve2Result) => void)}>) {
-  engine.rpc({...request, method: 'identify.Resolve2'})
-}
 export type identifyResolveRpcParam = $Exact<{
   assertion: string
 }>
 
-type identifyResolveResult = UID
-
-export function identifyResolveRpc (request: $Exact<{
-  param: identifyResolveRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: identifyResolveResult) => void)}>) {
-  engine.rpc({...request, method: 'identify.Resolve'})
-}
 export type identifyUiConfirmRpcParam = $Exact<{
   outcome: IdentifyOutcome
 }>
 
-type identifyUiConfirmResult = ConfirmResult
-
-export function identifyUiConfirmRpc (request: $Exact<{
-  param: identifyUiConfirmRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: identifyUiConfirmResult) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.confirm'})
-}
 export type identifyUiDismissRpcParam = $Exact<{
   username: string,
   reason: DismissReason
 }>
 
-export function identifyUiDismissRpc (request: $Exact<{
-  param: identifyUiDismissRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.dismiss'})
-}
 export type identifyUiDisplayCryptocurrencyRpcParam = $Exact<{
   c: Cryptocurrency
 }>
 
-export function identifyUiDisplayCryptocurrencyRpc (request: $Exact<{
-  param: identifyUiDisplayCryptocurrencyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.displayCryptocurrency'})
-}
 export type identifyUiDisplayKeyRpcParam = $Exact<{
   key: IdentifyKey
 }>
 
-export function identifyUiDisplayKeyRpc (request: $Exact<{
-  param: identifyUiDisplayKeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.displayKey'})
-}
 export type identifyUiDisplayTLFCreateWithInviteRpcParam = $Exact<{
   folderName: string,
   isPrivate: boolean,
@@ -2326,283 +2709,111 @@ export type identifyUiDisplayTLFCreateWithInviteRpcParam = $Exact<{
   throttled: boolean
 }>
 
-export function identifyUiDisplayTLFCreateWithInviteRpc (request: $Exact<{
-  param: identifyUiDisplayTLFCreateWithInviteRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.displayTLFCreateWithInvite'})
-}
 export type identifyUiDisplayTrackStatementRpcParam = $Exact<{
   stmt: string
 }>
 
-export function identifyUiDisplayTrackStatementRpc (request: $Exact<{
-  param: identifyUiDisplayTrackStatementRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.displayTrackStatement'})
-}
 export type identifyUiDisplayUserCardRpcParam = $Exact<{
   card: UserCard
 }>
 
-export function identifyUiDisplayUserCardRpc (request: $Exact<{
-  param: identifyUiDisplayUserCardRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.displayUserCard'})
-}
 export type identifyUiFinishSocialProofCheckRpcParam = $Exact<{
   rp: RemoteProof,
   lcr: LinkCheckResult
 }>
 
-export function identifyUiFinishSocialProofCheckRpc (request: $Exact<{
-  param: identifyUiFinishSocialProofCheckRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.finishSocialProofCheck'})
-}
 export type identifyUiFinishWebProofCheckRpcParam = $Exact<{
   rp: RemoteProof,
   lcr: LinkCheckResult
 }>
 
-export function identifyUiFinishWebProofCheckRpc (request: $Exact<{
-  param: identifyUiFinishWebProofCheckRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.finishWebProofCheck'})
-}
 export type identifyUiLaunchNetworkChecksRpcParam = $Exact<{
   identity: Identity,
   user: User
 }>
 
-export function identifyUiLaunchNetworkChecksRpc (request: $Exact<{
-  param: identifyUiLaunchNetworkChecksRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.launchNetworkChecks'})
-}
 export type identifyUiReportLastTrackRpcParam = $Exact<{
-  track: (null | TrackSummary)
+  track?: ?TrackSummary
 }>
 
-export function identifyUiReportLastTrackRpc (request: $Exact<{
-  param: identifyUiReportLastTrackRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.reportLastTrack'})
-}
 export type identifyUiReportTrackTokenRpcParam = $Exact<{
   trackToken: TrackToken
 }>
 
-export function identifyUiReportTrackTokenRpc (request: $Exact<{
-  param: identifyUiReportTrackTokenRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.reportTrackToken'})
-}
 export type identifyUiStartRpcParam = $Exact<{
   username: string,
   reason: IdentifyReason
 }>
 
-export function identifyUiStartRpc (request: $Exact<{
-  param: identifyUiStartRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.start'})
-}
 export type kbfsFSEditListRpcParam = $Exact<{
   edits?: ?Array<FSNotification>,
   requestID: int
 }>
 
-export function kbfsFSEditListRpc (request: $Exact<{
-  param: kbfsFSEditListRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'kbfs.FSEditList'})
-}
 export type kbfsFSEventRpcParam = $Exact<{
   event: FSNotification
 }>
 
-export function kbfsFSEventRpc (request: $Exact<{
-  param: kbfsFSEventRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'kbfs.FSEvent'})
-}
 export type logRegisterLoggerRpcParam = $Exact<{
   name: string,
   level: LogLevel
 }>
 
-export function logRegisterLoggerRpc (request: $Exact<{
-  param: logRegisterLoggerRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'log.registerLogger'})
-}
 export type logUiLogRpcParam = $Exact<{
   level: LogLevel,
   text: Text
 }>
 
-export function logUiLogRpc (request: $Exact<{
-  param: logUiLogRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'logUi.log'})
-}
 export type loginClearStoredSecretRpcParam = $Exact<{
   username: string
 }>
 
-export function loginClearStoredSecretRpc (request: $Exact<{
-  param: loginClearStoredSecretRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.clearStoredSecret'})
-}
 export type loginDeprovisionRpcParam = $Exact<{
   username: string,
   doRevoke: boolean
 }>
 
-export function loginDeprovisionRpc (request: $Exact<{
-  param: loginDeprovisionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.deprovision'})
-}
 export type loginLoginRpcParam = $Exact<{
   deviceType: string,
   usernameOrEmail: string,
   clientType: ClientType
 }>
 
-export function loginLoginRpc (request: $Exact<{
-  param: loginLoginRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.login'})
-}
 export type loginPaperKeySubmitRpcParam = $Exact<{
   paperPhrase: string
 }>
 
-export function loginPaperKeySubmitRpc (request: $Exact<{
-  param: loginPaperKeySubmitRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.paperKeySubmit'})
-}
 export type loginPgpProvisionRpcParam = $Exact<{
   username: string,
   passphrase: string,
   deviceName: string
 }>
 
-export function loginPgpProvisionRpc (request: $Exact<{
-  param: loginPgpProvisionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.pgpProvision'})
-}
 export type loginRecoverAccountFromEmailAddressRpcParam = $Exact<{
   email: string
 }>
 
-export function loginRecoverAccountFromEmailAddressRpc (request: $Exact<{
-  param: loginRecoverAccountFromEmailAddressRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.recoverAccountFromEmailAddress'})
-}
 export type loginUiDisplayPaperKeyPhraseRpcParam = $Exact<{
   phrase: string
 }>
 
-export function loginUiDisplayPaperKeyPhraseRpc (request: $Exact<{
-  param: loginUiDisplayPaperKeyPhraseRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'loginUi.displayPaperKeyPhrase'})
-}
 export type loginUiDisplayPrimaryPaperKeyRpcParam = $Exact<{
   phrase: string
 }>
 
-export function loginUiDisplayPrimaryPaperKeyRpc (request: $Exact<{
-  param: loginUiDisplayPrimaryPaperKeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'loginUi.displayPrimaryPaperKey'})
-}
 export type loginUiPromptRevokePaperKeysRpcParam = $Exact<{
   device: Device,
   index: int
 }>
 
-type loginUiPromptRevokePaperKeysResult = boolean
-
-export function loginUiPromptRevokePaperKeysRpc (request: $Exact<{
-  param: loginUiPromptRevokePaperKeysRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: loginUiPromptRevokePaperKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'loginUi.promptRevokePaperKeys'})
-}
 export type loginUnlockWithPassphraseRpcParam = $Exact<{
   passphrase: string
 }>
 
-export function loginUnlockWithPassphraseRpc (request: $Exact<{
-  param: loginUnlockWithPassphraseRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.unlockWithPassphrase'})
-}
 export type metadataAuthenticateRpcParam = $Exact<{
   signature: string
 }>
 
-type metadataAuthenticateResult = int
-
-export function metadataAuthenticateRpc (request: $Exact<{
-  param: metadataAuthenticateRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataAuthenticateResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.authenticate'})
-}
 export type metadataDeleteKeyRpcParam = $Exact<{
   uid: UID,
   deviceKID: KID,
@@ -2610,121 +2821,44 @@ export type metadataDeleteKeyRpcParam = $Exact<{
   logTags: {[key: string]: string}
 }>
 
-export function metadataDeleteKeyRpc (request: $Exact<{
-  param: metadataDeleteKeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.deleteKey'})
-}
 export type metadataGetFolderHandleRpcParam = $Exact<{
   folderID: string,
   signature: string,
   challenge: string
 }>
 
-type metadataGetFolderHandleResult = bytes
-
-export function metadataGetFolderHandleRpc (request: $Exact<{
-  param: metadataGetFolderHandleRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataGetFolderHandleResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getFolderHandle'})
-}
 export type metadataGetFoldersForRekeyRpcParam = $Exact<{
   deviceKID: KID
 }>
 
-export function metadataGetFoldersForRekeyRpc (request: $Exact<{
-  param: metadataGetFoldersForRekeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getFoldersForRekey'})
-}
 export type metadataGetKeyRpcParam = $Exact<{
   keyHalfID: bytes,
   deviceKID: string,
   logTags: {[key: string]: string}
 }>
 
-type metadataGetKeyResult = bytes
-
-export function metadataGetKeyRpc (request: $Exact<{
-  param: metadataGetKeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataGetKeyResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getKey'})
-}
 export type metadataGetLatestFolderHandleRpcParam = $Exact<{
   folderID: string
 }>
 
-type metadataGetLatestFolderHandleResult = bytes
-
-export function metadataGetLatestFolderHandleRpc (request: $Exact<{
-  param: metadataGetLatestFolderHandleRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataGetLatestFolderHandleResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getLatestFolderHandle'})
-}
 export type metadataGetMerkleNodeRpcParam = $Exact<{
   hash: string
 }>
 
-type metadataGetMerkleNodeResult = bytes
-
-export function metadataGetMerkleNodeRpc (request: $Exact<{
-  param: metadataGetMerkleNodeRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataGetMerkleNodeResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getMerkleNode'})
-}
 export type metadataGetMerkleRootLatestRpcParam = $Exact<{
   treeID: MerkleTreeID
 }>
 
-type metadataGetMerkleRootLatestResult = MerkleRoot
-
-export function metadataGetMerkleRootLatestRpc (request: $Exact<{
-  param: metadataGetMerkleRootLatestRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataGetMerkleRootLatestResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getMerkleRootLatest'})
-}
 export type metadataGetMerkleRootRpcParam = $Exact<{
   treeID: MerkleTreeID,
   seqNo: long
 }>
 
-type metadataGetMerkleRootResult = MerkleRoot
-
-export function metadataGetMerkleRootRpc (request: $Exact<{
-  param: metadataGetMerkleRootRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataGetMerkleRootResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getMerkleRoot'})
-}
 export type metadataGetMerkleRootSinceRpcParam = $Exact<{
   treeID: MerkleTreeID,
   when: Time
 }>
 
-type metadataGetMerkleRootSinceResult = MerkleRoot
-
-export function metadataGetMerkleRootSinceRpc (request: $Exact<{
-  param: metadataGetMerkleRootSinceRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataGetMerkleRootSinceResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getMerkleRootSince'})
-}
 export type metadataGetMetadataRpcParam = $Exact<{
   folderID: string,
   folderHandle: bytes,
@@ -2735,229 +2869,89 @@ export type metadataGetMetadataRpcParam = $Exact<{
   logTags: {[key: string]: string}
 }>
 
-type metadataGetMetadataResult = MetadataResponse
-
-export function metadataGetMetadataRpc (request: $Exact<{
-  param: metadataGetMetadataRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataGetMetadataResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getMetadata'})
-}
 export type metadataPruneBranchRpcParam = $Exact<{
   folderID: string,
   branchID: string,
   logTags: {[key: string]: string}
 }>
 
-export function metadataPruneBranchRpc (request: $Exact<{
-  param: metadataPruneBranchRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.pruneBranch'})
-}
 export type metadataPutKeysRpcParam = $Exact<{
   keyHalves?: ?Array<KeyHalf>,
   logTags: {[key: string]: string}
 }>
 
-export function metadataPutKeysRpc (request: $Exact<{
-  param: metadataPutKeysRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.putKeys'})
-}
 export type metadataPutMetadataRpcParam = $Exact<{
   mdBlock: MDBlock,
   logTags: {[key: string]: string}
 }>
 
-export function metadataPutMetadataRpc (request: $Exact<{
-  param: metadataPutMetadataRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.putMetadata'})
-}
 export type metadataRegisterForUpdatesRpcParam = $Exact<{
   folderID: string,
   currRevision: long,
   logTags: {[key: string]: string}
 }>
 
-export function metadataRegisterForUpdatesRpc (request: $Exact<{
-  param: metadataRegisterForUpdatesRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.registerForUpdates'})
-}
 export type metadataTruncateLockRpcParam = $Exact<{
   folderID: string
 }>
 
-type metadataTruncateLockResult = boolean
-
-export function metadataTruncateLockRpc (request: $Exact<{
-  param: metadataTruncateLockRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataTruncateLockResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.truncateLock'})
-}
 export type metadataTruncateUnlockRpcParam = $Exact<{
   folderID: string
 }>
 
-type metadataTruncateUnlockResult = boolean
-
-export function metadataTruncateUnlockRpc (request: $Exact<{
-  param: metadataTruncateUnlockRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataTruncateUnlockResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.truncateUnlock'})
-}
 export type metadataUpdateFolderNeedsRekeyRpcParam = $Exact<{
   folderID: string,
   revision: long
 }>
 
-export function metadataUpdateFolderNeedsRekeyRpc (request: $Exact<{
-  param: metadataUpdateFolderNeedsRekeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadataUpdate.folderNeedsRekey'})
-}
 export type metadataUpdateMetadataUpdateRpcParam = $Exact<{
   folderID: string,
   revision: long
 }>
 
-export function metadataUpdateMetadataUpdateRpc (request: $Exact<{
-  param: metadataUpdateMetadataUpdateRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadataUpdate.metadataUpdate'})
-}
 export type notifyCtlSetNotificationsRpcParam = $Exact<{
   channels: NotificationChannels
 }>
 
-export function notifyCtlSetNotificationsRpc (request: $Exact<{
-  param: notifyCtlSetNotificationsRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'notifyCtl.setNotifications'})
-}
 export type paperprovisionPaperProvisionRpcParam = $Exact<{
   username: string,
   deviceName: string,
   paperKey: string
 }>
 
-export function paperprovisionPaperProvisionRpc (request: $Exact<{
-  param: paperprovisionPaperProvisionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'paperprovision.paperProvision'})
-}
 export type pgpPgpDecryptRpcParam = $Exact<{
   source: Stream,
   sink: Stream,
   opts: PGPDecryptOptions
 }>
 
-type pgpPgpDecryptResult = PGPSigVerification
-
-export function pgpPgpDecryptRpc (request: $Exact<{
-  param: pgpPgpDecryptRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: pgpPgpDecryptResult) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpDecrypt'})
-}
 export type pgpPgpEncryptRpcParam = $Exact<{
   source: Stream,
   sink: Stream,
   opts: PGPEncryptOptions
 }>
 
-export function pgpPgpEncryptRpc (request: $Exact<{
-  param: pgpPgpEncryptRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpEncrypt'})
-}
 export type pgpPgpExportByFingerprintRpcParam = $Exact<{
   options: PGPQuery
 }>
 
-type pgpPgpExportByFingerprintResult = ?Array<KeyInfo>
-
-export function pgpPgpExportByFingerprintRpc (request: $Exact<{
-  param: pgpPgpExportByFingerprintRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: pgpPgpExportByFingerprintResult) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpExportByFingerprint'})
-}
 export type pgpPgpExportByKIDRpcParam = $Exact<{
   options: PGPQuery
 }>
 
-type pgpPgpExportByKIDResult = ?Array<KeyInfo>
-
-export function pgpPgpExportByKIDRpc (request: $Exact<{
-  param: pgpPgpExportByKIDRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: pgpPgpExportByKIDResult) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpExportByKID'})
-}
 export type pgpPgpExportRpcParam = $Exact<{
   options: PGPQuery
 }>
 
-type pgpPgpExportResult = ?Array<KeyInfo>
-
-export function pgpPgpExportRpc (request: $Exact<{
-  param: pgpPgpExportRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: pgpPgpExportResult) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpExport'})
-}
 export type pgpPgpImportRpcParam = $Exact<{
   key: bytes,
   pushSecret: boolean
 }>
 
-export function pgpPgpImportRpc (request: $Exact<{
-  param: pgpPgpImportRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpImport'})
-}
 export type pgpPgpKeyGenDefaultRpcParam = $Exact<{
   createUids: PGPCreateUids
 }>
 
-export function pgpPgpKeyGenDefaultRpc (request: $Exact<{
-  param: pgpPgpKeyGenDefaultRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpKeyGenDefault'})
-}
 export type pgpPgpKeyGenRpcParam = $Exact<{
   primaryBits: int,
   subkeyBits: int,
@@ -2967,37 +2961,14 @@ export type pgpPgpKeyGenRpcParam = $Exact<{
   pushSecret: boolean
 }>
 
-export function pgpPgpKeyGenRpc (request: $Exact<{
-  param: pgpPgpKeyGenRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpKeyGen'})
-}
 export type pgpPgpPullRpcParam = $Exact<{
   userAsserts?: ?Array<string>
 }>
 
-export function pgpPgpPullRpc (request: $Exact<{
-  param: pgpPgpPullRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpPull'})
-}
 export type pgpPgpPurgeRpcParam = $Exact<{
   doPurge: boolean
 }>
 
-type pgpPgpPurgeResult = PGPPurgeRes
-
-export function pgpPgpPurgeRpc (request: $Exact<{
-  param: pgpPgpPurgeRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: pgpPgpPurgeResult) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpPurge'})
-}
 export type pgpPgpSelectRpcParam = $Exact<{
   fingerprintQuery: string,
   allowMulti: boolean,
@@ -3005,90 +2976,37 @@ export type pgpPgpSelectRpcParam = $Exact<{
   onlyImport: boolean
 }>
 
-export function pgpPgpSelectRpc (request: $Exact<{
-  param: pgpPgpSelectRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpSelect'})
-}
 export type pgpPgpSignRpcParam = $Exact<{
   source: Stream,
   sink: Stream,
   opts: PGPSignOptions
 }>
 
-export function pgpPgpSignRpc (request: $Exact<{
-  param: pgpPgpSignRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpSign'})
-}
 export type pgpPgpUpdateRpcParam = $Exact<{
   all: boolean,
   fingerprints?: ?Array<string>
 }>
 
-export function pgpPgpUpdateRpc (request: $Exact<{
-  param: pgpPgpUpdateRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpUpdate'})
-}
 export type pgpPgpVerifyRpcParam = $Exact<{
   source: Stream,
   opts: PGPVerifyOptions
 }>
 
-type pgpPgpVerifyResult = PGPSigVerification
-
-export function pgpPgpVerifyRpc (request: $Exact<{
-  param: pgpPgpVerifyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: pgpPgpVerifyResult) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpVerify'})
-}
 export type pgpUiKeyGeneratedRpcParam = $Exact<{
   kid: KID,
   key: KeyInfo
 }>
 
-export function pgpUiKeyGeneratedRpc (request: $Exact<{
-  param: pgpUiKeyGeneratedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgpUi.keyGenerated'})
-}
 export type pgpUiOutputSignatureSuccessRpcParam = $Exact<{
   fingerprint: string,
   username: string,
   signedAt: Time
 }>
 
-export function pgpUiOutputSignatureSuccessRpc (request: $Exact<{
-  param: pgpUiOutputSignatureSuccessRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgpUi.outputSignatureSuccess'})
-}
 export type proveCheckProofRpcParam = $Exact<{
   sigID: SigID
 }>
 
-type proveCheckProofResult = CheckProofStatus
-
-export function proveCheckProofRpc (request: $Exact<{
-  param: proveCheckProofRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: proveCheckProofResult) => void)}>) {
-  engine.rpc({...request, method: 'prove.checkProof'})
-}
 export type proveStartProofRpcParam = $Exact<{
   service: string,
   username: string,
@@ -3097,1004 +3015,51 @@ export type proveStartProofRpcParam = $Exact<{
   auto: boolean
 }>
 
-type proveStartProofResult = StartProofResult
-
-export function proveStartProofRpc (request: $Exact<{
-  param: proveStartProofRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: proveStartProofResult) => void)}>) {
-  engine.rpc({...request, method: 'prove.startProof'})
-}
 export type proveUiDisplayRecheckWarningRpcParam = $Exact<{
   text: Text
 }>
 
-export function proveUiDisplayRecheckWarningRpc (request: $Exact<{
-  param: proveUiDisplayRecheckWarningRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.displayRecheckWarning'})
-}
 export type proveUiOkToCheckRpcParam = $Exact<{
   name: string,
   attempt: int
 }>
 
-type proveUiOkToCheckResult = boolean
-
-export function proveUiOkToCheckRpc (request: $Exact<{
-  param: proveUiOkToCheckRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: proveUiOkToCheckResult) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.okToCheck'})
-}
 export type proveUiOutputInstructionsRpcParam = $Exact<{
   instructions: Text,
   proof: string
 }>
 
-export function proveUiOutputInstructionsRpc (request: $Exact<{
-  param: proveUiOutputInstructionsRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.outputInstructions'})
-}
 export type proveUiOutputPrechecksRpcParam = $Exact<{
   text: Text
 }>
 
-export function proveUiOutputPrechecksRpc (request: $Exact<{
-  param: proveUiOutputPrechecksRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.outputPrechecks'})
-}
 export type proveUiPreProofWarningRpcParam = $Exact<{
   text: Text
 }>
 
-type proveUiPreProofWarningResult = boolean
-
-export function proveUiPreProofWarningRpc (request: $Exact<{
-  param: proveUiPreProofWarningRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: proveUiPreProofWarningResult) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.preProofWarning'})
-}
 export type proveUiPromptOverwriteRpcParam = $Exact<{
   account: string,
   typ: PromptOverwriteType
 }>
 
-type proveUiPromptOverwriteResult = boolean
-
-export function proveUiPromptOverwriteRpc (request: $Exact<{
-  param: proveUiPromptOverwriteRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: proveUiPromptOverwriteResult) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.promptOverwrite'})
-}
 export type proveUiPromptUsernameRpcParam = $Exact<{
   prompt: string,
-  prevError: (null | Status)
+  prevError?: ?Status
 }>
 
-type proveUiPromptUsernameResult = string
-
-export function proveUiPromptUsernameRpc (request: $Exact<{
-  param: proveUiPromptUsernameRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: proveUiPromptUsernameResult) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.promptUsername'})
-}
 export type provisionUiChooseDeviceRpcParam = $Exact<{
   devices?: ?Array<Device>
 }>
 
-type provisionUiChooseDeviceResult = DeviceID
-
-export function provisionUiChooseDeviceRpc (request: $Exact<{
-  param: provisionUiChooseDeviceRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: provisionUiChooseDeviceResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.chooseDevice'})
-}
 export type provisionUiChooseDeviceTypeRpcParam = $Exact<{
   kind: ChooseType
 }>
 
-type provisionUiChooseDeviceTypeResult = DeviceType
-
-export function provisionUiChooseDeviceTypeRpc (request: $Exact<{
-  param: provisionUiChooseDeviceTypeRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: provisionUiChooseDeviceTypeResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.chooseDeviceType'})
-}
 export type provisionUiChooseGPGMethodRpcParam = $Exact<{
   keys?: ?Array<GPGKey>
 }>
 
-type provisionUiChooseGPGMethodResult = GPGMethod
-
-export function provisionUiChooseGPGMethodRpc (request: $Exact<{
-  param: provisionUiChooseGPGMethodRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: provisionUiChooseGPGMethodResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.chooseGPGMethod'})
-}
-export type provisionUiChooseProvisioningMethodRpcParam = $Exact<{
-  gpgOption: boolean
-}>
-
-type provisionUiChooseProvisioningMethodResult = ProvisionMethod
-
-export function provisionUiChooseProvisioningMethodRpc (request: $Exact<{
-  param: provisionUiChooseProvisioningMethodRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: provisionUiChooseProvisioningMethodResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.chooseProvisioningMethod'})
-}
-export type provisionUiDisplayAndPromptSecretRpcParam = $Exact<{
-  secret: bytes,
-  phrase: string,
-  otherDeviceType: DeviceType
-}>
-
-type provisionUiDisplayAndPromptSecretResult = SecretResponse
-
-export function provisionUiDisplayAndPromptSecretRpc (request: $Exact<{
-  param: provisionUiDisplayAndPromptSecretRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: provisionUiDisplayAndPromptSecretResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.DisplayAndPromptSecret'})
-}
-export type provisionUiPromptNewDeviceNameRpcParam = $Exact<{
-  existingDevices?: ?Array<string>,
-  errorMessage: string
-}>
-
-type provisionUiPromptNewDeviceNameResult = string
-
-export function provisionUiPromptNewDeviceNameRpc (request: $Exact<{
-  param: provisionUiPromptNewDeviceNameRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: provisionUiPromptNewDeviceNameResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.PromptNewDeviceName'})
-}
-export type provisionUiProvisioneeSuccessRpcParam = $Exact<{
-  username: string,
-  deviceName: string
-}>
-
-export function provisionUiProvisioneeSuccessRpc (request: $Exact<{
-  param: provisionUiProvisioneeSuccessRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.ProvisioneeSuccess'})
-}
-export type provisionUiProvisionerSuccessRpcParam = $Exact<{
-  deviceName: string,
-  deviceType: string
-}>
-
-export function provisionUiProvisionerSuccessRpc (request: $Exact<{
-  param: provisionUiProvisionerSuccessRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.ProvisionerSuccess'})
-}
-export type provisionUiSwitchToGPGSignOKRpcParam = $Exact<{
-  key: GPGKey,
-  importError: string
-}>
-
-type provisionUiSwitchToGPGSignOKResult = boolean
-
-export function provisionUiSwitchToGPGSignOKRpc (request: $Exact<{
-  param: provisionUiSwitchToGPGSignOKRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: provisionUiSwitchToGPGSignOKResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.switchToGPGSignOK'})
-}
-export type quotaVerifySessionRpcParam = $Exact<{
-  session: string
-}>
-
-type quotaVerifySessionResult = VerifySessionRes
-
-export function quotaVerifySessionRpc (request: $Exact<{
-  param: quotaVerifySessionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: quotaVerifySessionResult) => void)}>) {
-  engine.rpc({...request, method: 'quota.verifySession'})
-}
-export type rekeyRekeySyncRpcParam = $Exact<{
-  force: boolean
-}>
-
-export function rekeyRekeySyncRpc (request: $Exact<{
-  param: rekeyRekeySyncRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'rekey.rekeySync'})
-}
-export type rekeyUIRefreshRpcParam = $Exact<{
-  problemSetDevices: ProblemSetDevices
-}>
-
-export function rekeyUIRefreshRpc (request: $Exact<{
-  param: rekeyUIRefreshRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'rekeyUI.refresh'})
-}
-export type rekeyUIRekeySendEventRpcParam = $Exact<{
-  event: RekeyEvent
-}>
-
-export function rekeyUIRekeySendEventRpc (request: $Exact<{
-  param: rekeyUIRekeySendEventRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'rekeyUI.rekeySendEvent'})
-}
-export type revokeRevokeDeviceRpcParam = $Exact<{
-  deviceID: DeviceID,
-  force: boolean
-}>
-
-export function revokeRevokeDeviceRpc (request: $Exact<{
-  param: revokeRevokeDeviceRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'revoke.revokeDevice'})
-}
-export type revokeRevokeKeyRpcParam = $Exact<{
-  keyID: KID
-}>
-
-export function revokeRevokeKeyRpc (request: $Exact<{
-  param: revokeRevokeKeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'revoke.revokeKey'})
-}
-export type revokeRevokeSigsRpcParam = $Exact<{
-  sigIDQueries?: ?Array<string>
-}>
-
-export function revokeRevokeSigsRpc (request: $Exact<{
-  param: revokeRevokeSigsRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'revoke.revokeSigs'})
-}
-export type saltpackSaltpackDecryptRpcParam = $Exact<{
-  source: Stream,
-  sink: Stream,
-  opts: SaltpackDecryptOptions
-}>
-
-type saltpackSaltpackDecryptResult = SaltpackEncryptedMessageInfo
-
-export function saltpackSaltpackDecryptRpc (request: $Exact<{
-  param: saltpackSaltpackDecryptRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: saltpackSaltpackDecryptResult) => void)}>) {
-  engine.rpc({...request, method: 'saltpack.saltpackDecrypt'})
-}
-export type saltpackSaltpackEncryptRpcParam = $Exact<{
-  source: Stream,
-  sink: Stream,
-  opts: SaltpackEncryptOptions
-}>
-
-export function saltpackSaltpackEncryptRpc (request: $Exact<{
-  param: saltpackSaltpackEncryptRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'saltpack.saltpackEncrypt'})
-}
-export type saltpackSaltpackSignRpcParam = $Exact<{
-  source: Stream,
-  sink: Stream,
-  opts: SaltpackSignOptions
-}>
-
-export function saltpackSaltpackSignRpc (request: $Exact<{
-  param: saltpackSaltpackSignRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'saltpack.saltpackSign'})
-}
-export type saltpackSaltpackVerifyRpcParam = $Exact<{
-  source: Stream,
-  sink: Stream,
-  opts: SaltpackVerifyOptions
-}>
-
-export function saltpackSaltpackVerifyRpc (request: $Exact<{
-  param: saltpackSaltpackVerifyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'saltpack.saltpackVerify'})
-}
-export type saltpackUiSaltpackPromptForDecryptRpcParam = $Exact<{
-  sender: SaltpackSender,
-  usedDelegateUI: bool
-}>
-
-export function saltpackUiSaltpackPromptForDecryptRpc (request: $Exact<{
-  param: saltpackUiSaltpackPromptForDecryptRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'saltpackUi.saltpackPromptForDecrypt'})
-}
-export type saltpackUiSaltpackVerifySuccessRpcParam = $Exact<{
-  signingKID: KID,
-  sender: SaltpackSender
-}>
-
-export function saltpackUiSaltpackVerifySuccessRpc (request: $Exact<{
-  param: saltpackUiSaltpackVerifySuccessRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'saltpackUi.saltpackVerifySuccess'})
-}
-export type secretUiGetPassphraseRpcParam = $Exact<{
-  pinentry: GUIEntryArg,
-  terminal: (null | SecretEntryArg)
-}>
-
-type secretUiGetPassphraseResult = GetPassphraseRes
-
-export function secretUiGetPassphraseRpc (request: $Exact<{
-  param: secretUiGetPassphraseRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: secretUiGetPassphraseResult) => void)}>) {
-  engine.rpc({...request, method: 'secretUi.getPassphrase'})
-}
-export type signupCheckInvitationCodeRpcParam = $Exact<{
-  invitationCode: string
-}>
-
-export function signupCheckInvitationCodeRpc (request: $Exact<{
-  param: signupCheckInvitationCodeRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'signup.checkInvitationCode'})
-}
-export type signupCheckUsernameAvailableRpcParam = $Exact<{
-  username: string
-}>
-
-export function signupCheckUsernameAvailableRpc (request: $Exact<{
-  param: signupCheckUsernameAvailableRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'signup.checkUsernameAvailable'})
-}
-export type signupInviteRequestRpcParam = $Exact<{
-  email: string,
-  fullname: string,
-  notes: string
-}>
-
-export function signupInviteRequestRpc (request: $Exact<{
-  param: signupInviteRequestRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'signup.inviteRequest'})
-}
-export type signupSignupRpcParam = $Exact<{
-  email: string,
-  inviteCode: string,
-  passphrase: string,
-  username: string,
-  deviceName: string,
-  storeSecret: boolean,
-  skipMail: boolean,
-  genPGPBatch: boolean
-}>
-
-type signupSignupResult = SignupRes
-
-export function signupSignupRpc (request: $Exact<{
-  param: signupSignupRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: signupSignupResult) => void)}>) {
-  engine.rpc({...request, method: 'signup.signup'})
-}
-export type sigsSigListJSONRpcParam = $Exact<{
-  arg: SigListArgs
-}>
-
-type sigsSigListJSONResult = string
-
-export function sigsSigListJSONRpc (request: $Exact<{
-  param: sigsSigListJSONRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: sigsSigListJSONResult) => void)}>) {
-  engine.rpc({...request, method: 'sigs.sigListJSON'})
-}
-export type sigsSigListRpcParam = $Exact<{
-  arg: SigListArgs
-}>
-
-type sigsSigListResult = ?Array<Sig>
-
-export function sigsSigListRpc (request: $Exact<{
-  param: sigsSigListRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: sigsSigListResult) => void)}>) {
-  engine.rpc({...request, method: 'sigs.sigList'})
-}
-export type streamUiCloseRpcParam = $Exact<{
-  s: Stream
-}>
-
-export function streamUiCloseRpc (request: $Exact<{
-  param: streamUiCloseRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'streamUi.close'})
-}
-export type streamUiReadRpcParam = $Exact<{
-  s: Stream,
-  sz: int
-}>
-
-type streamUiReadResult = bytes
-
-export function streamUiReadRpc (request: $Exact<{
-  param: streamUiReadRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: streamUiReadResult) => void)}>) {
-  engine.rpc({...request, method: 'streamUi.read'})
-}
-export type streamUiWriteRpcParam = $Exact<{
-  s: Stream,
-  buf: bytes
-}>
-
-type streamUiWriteResult = int
-
-export function streamUiWriteRpc (request: $Exact<{
-  param: streamUiWriteRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: streamUiWriteResult) => void)}>) {
-  engine.rpc({...request, method: 'streamUi.write'})
-}
-export type testPanicRpcParam = $Exact<{
-  message: string
-}>
-
-export function testPanicRpc (request: $Exact<{
-  param: testPanicRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'test.panic'})
-}
-export type testTestCallbackRpcParam = $Exact<{
-  name: string
-}>
-
-type testTestCallbackResult = string
-
-export function testTestCallbackRpc (request: $Exact<{
-  param: testTestCallbackRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: testTestCallbackResult) => void)}>) {
-  engine.rpc({...request, method: 'test.testCallback'})
-}
-export type testTestRpcParam = $Exact<{
-  name: string
-}>
-
-type testTestResult = Test
-
-export function testTestRpc (request: $Exact<{
-  param: testTestRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: testTestResult) => void)}>) {
-  engine.rpc({...request, method: 'test.test'})
-}
-export type tlfCryptKeysRpcParam = $Exact<{
-  tlfName: string
-}>
-
-type tlfCryptKeysResult = TLFCryptKeys
-
-export function tlfCryptKeysRpc (request: $Exact<{
-  param: tlfCryptKeysRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: tlfCryptKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'tlf.CryptKeys'})
-}
-export type tlfKeysGetTLFCryptKeysRpcParam = $Exact<{
-  tlfName: string
-}>
-
-type tlfKeysGetTLFCryptKeysResult = TLFCryptKeys
-
-export function tlfKeysGetTLFCryptKeysRpc (request: $Exact<{
-  param: tlfKeysGetTLFCryptKeysRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'tlfKeys.getTLFCryptKeys'})
-}
-export type trackDismissWithTokenRpcParam = $Exact<{
-  trackToken: TrackToken
-}>
-
-export function trackDismissWithTokenRpc (request: $Exact<{
-  param: trackDismissWithTokenRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'track.dismissWithToken'})
-}
-export type trackFakeTrackingChangedRpcParam = $Exact<{
-  username: string
-}>
-
-export function trackFakeTrackingChangedRpc (request: $Exact<{
-  param: trackFakeTrackingChangedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'track.fakeTrackingChanged'})
-}
-export type trackTrackRpcParam = $Exact<{
-  userAssertion: string,
-  options: TrackOptions,
-  forceRemoteCheck: boolean
-}>
-
-export function trackTrackRpc (request: $Exact<{
-  param: trackTrackRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'track.track'})
-}
-export type trackTrackWithTokenRpcParam = $Exact<{
-  trackToken: TrackToken,
-  options: TrackOptions
-}>
-
-export function trackTrackWithTokenRpc (request: $Exact<{
-  param: trackTrackWithTokenRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'track.trackWithToken'})
-}
-export type trackUntrackRpcParam = $Exact<{
-  username: string
-}>
-
-export function trackUntrackRpc (request: $Exact<{
-  param: trackUntrackRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'track.untrack'})
-}
-export type uiPromptYesNoRpcParam = $Exact<{
-  text: Text,
-  promptDefault: PromptDefault
-}>
-
-type uiPromptYesNoResult = boolean
-
-export function uiPromptYesNoRpc (request: $Exact<{
-  param: uiPromptYesNoRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: uiPromptYesNoResult) => void)}>) {
-  engine.rpc({...request, method: 'ui.promptYesNo'})
-}
-export type userListTrackers2RpcParam = $Exact<{
-  assertion: string,
-  reverse: bool
-}>
-
-type userListTrackers2Result = UserSummary2Set
-
-export function userListTrackers2Rpc (request: $Exact<{
-  param: userListTrackers2RpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userListTrackers2Result) => void)}>) {
-  engine.rpc({...request, method: 'user.listTrackers2'})
-}
-export type userListTrackersByNameRpcParam = $Exact<{
-  username: string
-}>
-
-type userListTrackersByNameResult = ?Array<Tracker>
-
-export function userListTrackersByNameRpc (request: $Exact<{
-  param: userListTrackersByNameRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userListTrackersByNameResult) => void)}>) {
-  engine.rpc({...request, method: 'user.listTrackersByName'})
-}
-export type userListTrackersRpcParam = $Exact<{
-  uid: UID
-}>
-
-type userListTrackersResult = ?Array<Tracker>
-
-export function userListTrackersRpc (request: $Exact<{
-  param: userListTrackersRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userListTrackersResult) => void)}>) {
-  engine.rpc({...request, method: 'user.listTrackers'})
-}
-export type userListTrackingJSONRpcParam = $Exact<{
-  filter: string,
-  verbose: boolean,
-  assertion: string
-}>
-
-type userListTrackingJSONResult = string
-
-export function userListTrackingJSONRpc (request: $Exact<{
-  param: userListTrackingJSONRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userListTrackingJSONResult) => void)}>) {
-  engine.rpc({...request, method: 'user.listTrackingJSON'})
-}
-export type userListTrackingRpcParam = $Exact<{
-  filter: string,
-  assertion: string
-}>
-
-type userListTrackingResult = ?Array<UserSummary>
-
-export function userListTrackingRpc (request: $Exact<{
-  param: userListTrackingRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userListTrackingResult) => void)}>) {
-  engine.rpc({...request, method: 'user.listTracking'})
-}
-export type userLoadAllPublicKeysUnverifiedRpcParam = $Exact<{
-  uid: UID
-}>
-
-type userLoadAllPublicKeysUnverifiedResult = ?Array<PublicKey>
-
-export function userLoadAllPublicKeysUnverifiedRpc (request: $Exact<{
-  param: userLoadAllPublicKeysUnverifiedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadAllPublicKeysUnverified'})
-}
-export type userLoadPublicKeysRpcParam = $Exact<{
-  uid: UID
-}>
-
-type userLoadPublicKeysResult = ?Array<PublicKey>
-
-export function userLoadPublicKeysRpc (request: $Exact<{
-  param: userLoadPublicKeysRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userLoadPublicKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadPublicKeys'})
-}
-export type userLoadUncheckedUserSummariesRpcParam = $Exact<{
-  uids?: ?Array<UID>
-}>
-
-type userLoadUncheckedUserSummariesResult = ?Array<UserSummary>
-
-export function userLoadUncheckedUserSummariesRpc (request: $Exact<{
-  param: userLoadUncheckedUserSummariesRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userLoadUncheckedUserSummariesResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadUncheckedUserSummaries'})
-}
-export type userLoadUserByNameRpcParam = $Exact<{
-  username: string
-}>
-
-type userLoadUserByNameResult = User
-
-export function userLoadUserByNameRpc (request: $Exact<{
-  param: userLoadUserByNameRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userLoadUserByNameResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadUserByName'})
-}
-export type userLoadUserPlusKeysRpcParam = $Exact<{
-  uid: UID
-}>
-
-type userLoadUserPlusKeysResult = UserPlusKeys
-
-export function userLoadUserPlusKeysRpc (request: $Exact<{
-  param: userLoadUserPlusKeysRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userLoadUserPlusKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadUserPlusKeys'})
-}
-export type userLoadUserRpcParam = $Exact<{
-  uid: UID
-}>
-
-type userLoadUserResult = User
-
-export function userLoadUserRpc (request: $Exact<{
-  param: userLoadUserRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userLoadUserResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadUser'})
-}
-export type userSearchRpcParam = $Exact<{
-  query: string
-}>
-
-type userSearchResult = ?Array<SearchResult>
-
-export function userSearchRpc (request: $Exact<{
-  param: userSearchRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userSearchResult) => void)}>) {
-  engine.rpc({...request, method: 'user.search'})
-}
-type SecretKeysGetSecretKeysResult = SecretKeys
-
-export function SecretKeysGetSecretKeysRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: SecretKeysGetSecretKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'SecretKeys.getSecretKeys'})
-}
-type blockGetSessionChallengeResult = ChallengeInfo
-
-export function blockGetSessionChallengeRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: blockGetSessionChallengeResult) => void)}>) {
-  engine.rpc({...request, method: 'block.getSessionChallenge'})
-}
-type blockGetUserQuotaInfoResult = bytes
-
-export function blockGetUserQuotaInfoRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: blockGetUserQuotaInfoResult) => void)}>) {
-  engine.rpc({...request, method: 'block.getUserQuotaInfo'})
-}
-type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
-
-export function configCheckAPIServerOutOfDateWarningRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void)}>) {
-  engine.rpc({...request, method: 'config.checkAPIServerOutOfDateWarning'})
-}
-type configGetConfigResult = Config
-
-export function configGetConfigRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: configGetConfigResult) => void)}>) {
-  engine.rpc({...request, method: 'config.getConfig'})
-}
-type configGetCurrentStatusResult = GetCurrentStatusRes
-
-export function configGetCurrentStatusRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: configGetCurrentStatusResult) => void)}>) {
-  engine.rpc({...request, method: 'config.getCurrentStatus'})
-}
-type configGetExtendedStatusResult = ExtendedStatus
-
-export function configGetExtendedStatusRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: configGetExtendedStatusResult) => void)}>) {
-  engine.rpc({...request, method: 'config.getExtendedStatus'})
-}
-type deviceDeviceHistoryListResult = ?Array<DeviceDetail>
-
-export function deviceDeviceHistoryListRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: deviceDeviceHistoryListResult) => void)}>) {
-  engine.rpc({...request, method: 'device.deviceHistoryList'})
-}
-type deviceDeviceListResult = ?Array<Device>
-
-export function deviceDeviceListRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: deviceDeviceListResult) => void)}>) {
-  engine.rpc({...request, method: 'device.deviceList'})
-}
-type favoriteGetFavoritesResult = FavoritesResult
-
-export function favoriteGetFavoritesRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: favoriteGetFavoritesResult) => void)}>) {
-  engine.rpc({...request, method: 'favorite.getFavorites'})
-}
-type gpgUiConfirmDuplicateKeyChosenResult = boolean
-
-export function gpgUiConfirmDuplicateKeyChosenRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: gpgUiConfirmDuplicateKeyChosenResult) => void)}>) {
-  engine.rpc({...request, method: 'gpgUi.confirmDuplicateKeyChosen'})
-}
-type gpgUiWantToAddGPGKeyResult = boolean
-
-export function gpgUiWantToAddGPGKeyRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: gpgUiWantToAddGPGKeyResult) => void)}>) {
-  engine.rpc({...request, method: 'gpgUi.wantToAddGPGKey'})
-}
-type gregorGetStateResult = gregor1.State
-
-export function gregorGetStateRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: gregorGetStateResult) => void)}>) {
-  engine.rpc({...request, method: 'gregor.getState'})
-}
-type identifyUiDelegateIdentifyUIResult = int
-
-export function identifyUiDelegateIdentifyUIRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: identifyUiDelegateIdentifyUIResult) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.delegateIdentifyUI'})
-}
-type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
-
-export function loginGetConfiguredAccountsRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: loginGetConfiguredAccountsResult) => void)}>) {
-  engine.rpc({...request, method: 'login.getConfiguredAccounts'})
-}
-type loginUiGetEmailOrUsernameResult = string
-
-export function loginUiGetEmailOrUsernameRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: loginUiGetEmailOrUsernameResult) => void)}>) {
-  engine.rpc({...request, method: 'loginUi.getEmailOrUsername'})
-}
-type metadataGetChallengeResult = ChallengeInfo
-
-export function metadataGetChallengeRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataGetChallengeResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getChallenge'})
-}
-type metadataPing2Result = PingResponse
-
-export function metadataPing2Rpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: metadataPing2Result) => void)}>) {
-  engine.rpc({...request, method: 'metadata.ping2'})
-}
-type pgpUiShouldPushPrivateResult = bool
-
-export function pgpUiShouldPushPrivateRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: pgpUiShouldPushPrivateResult) => void)}>) {
-  engine.rpc({...request, method: 'pgpUi.shouldPushPrivate'})
-}
-type rekeyGetPendingRekeyStatusResult = ProblemSetDevices
-
-export function rekeyGetPendingRekeyStatusRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: rekeyGetPendingRekeyStatusResult) => void)}>) {
-  engine.rpc({...request, method: 'rekey.getPendingRekeyStatus'})
-}
-type rekeyRekeyStatusFinishResult = Outcome
-
-export function rekeyRekeyStatusFinishRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: rekeyRekeyStatusFinishResult) => void)}>) {
-  engine.rpc({...request, method: 'rekey.rekeyStatusFinish'})
-}
-type rekeyUIDelegateRekeyUIResult = int
-
-export function rekeyUIDelegateRekeyUIRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: rekeyUIDelegateRekeyUIResult) => void)}>) {
-  engine.rpc({...request, method: 'rekeyUI.delegateRekeyUI'})
-}
-type sessionCurrentSessionResult = Session
-
-export function sessionCurrentSessionRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: sessionCurrentSessionResult) => void)}>) {
-  engine.rpc({...request, method: 'session.currentSession'})
-}
-type userListTrackersSelfResult = ?Array<Tracker>
-
-export function userListTrackersSelfRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: userListTrackersSelfResult) => void)}>) {
-  engine.rpc({...request, method: 'user.listTrackersSelf'})
-}
-type userLoadMyPublicKeysResult = ?Array<PublicKey>
-
+<<<<<<< a13957abf3282cc50abebbf5292d8a0c9e068123
 export function userLoadMyPublicKeysRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -5874,47 +4839,958 @@ export type incomingCallMapType = $Exact<{
     }
   ) => void,
   'keybase.1.pgp.pgpDeletePrimary'?: (
+=======
+export type provisionUiChooseProvisioningMethodRpcParam = $Exact<{
+  gpgOption: boolean
+}>
+
+export type provisionUiDisplayAndPromptSecretRpcParam = $Exact<{
+  secret: bytes,
+  phrase: string,
+  otherDeviceType: DeviceType
+}>
+
+export type provisionUiPromptNewDeviceNameRpcParam = $Exact<{
+  existingDevices?: ?Array<string>,
+  errorMessage: string
+}>
+
+export type provisionUiProvisioneeSuccessRpcParam = $Exact<{
+  username: string,
+  deviceName: string
+}>
+
+export type provisionUiProvisionerSuccessRpcParam = $Exact<{
+  deviceName: string,
+  deviceType: string
+}>
+
+export type provisionUiSwitchToGPGSignOKRpcParam = $Exact<{
+  key: GPGKey,
+  importError: string
+}>
+
+export type quotaVerifySessionRpcParam = $Exact<{
+  session: string
+}>
+
+export type rekeyRekeySyncRpcParam = $Exact<{
+  force: boolean
+}>
+
+export type rekeyUIRefreshRpcParam = $Exact<{
+  problemSetDevices: ProblemSetDevices
+}>
+
+export type rekeyUIRekeySendEventRpcParam = $Exact<{
+  event: RekeyEvent
+}>
+
+export type revokeRevokeDeviceRpcParam = $Exact<{
+  deviceID: DeviceID,
+  force: boolean
+}>
+
+export type revokeRevokeKeyRpcParam = $Exact<{
+  keyID: KID
+}>
+
+export type revokeRevokeSigsRpcParam = $Exact<{
+  sigIDQueries?: ?Array<string>
+}>
+
+export type saltpackSaltpackDecryptRpcParam = $Exact<{
+  source: Stream,
+  sink: Stream,
+  opts: SaltpackDecryptOptions
+}>
+
+export type saltpackSaltpackEncryptRpcParam = $Exact<{
+  source: Stream,
+  sink: Stream,
+  opts: SaltpackEncryptOptions
+}>
+
+export type saltpackSaltpackSignRpcParam = $Exact<{
+  source: Stream,
+  sink: Stream,
+  opts: SaltpackSignOptions
+}>
+
+export type saltpackSaltpackVerifyRpcParam = $Exact<{
+  source: Stream,
+  sink: Stream,
+  opts: SaltpackVerifyOptions
+}>
+
+export type saltpackUiSaltpackPromptForDecryptRpcParam = $Exact<{
+  sender: SaltpackSender,
+  usedDelegateUI: bool
+}>
+
+export type saltpackUiSaltpackVerifySuccessRpcParam = $Exact<{
+  signingKID: KID,
+  sender: SaltpackSender
+}>
+
+export type secretUiGetPassphraseRpcParam = $Exact<{
+  pinentry: GUIEntryArg,
+  terminal?: ?SecretEntryArg
+}>
+
+export type signupCheckInvitationCodeRpcParam = $Exact<{
+  invitationCode: string
+}>
+
+export type signupCheckUsernameAvailableRpcParam = $Exact<{
+  username: string
+}>
+
+export type signupInviteRequestRpcParam = $Exact<{
+  email: string,
+  fullname: string,
+  notes: string
+}>
+
+export type signupSignupRpcParam = $Exact<{
+  email: string,
+  inviteCode: string,
+  passphrase: string,
+  username: string,
+  deviceName: string,
+  storeSecret: boolean,
+  skipMail: boolean,
+  genPGPBatch: boolean
+}>
+
+export type sigsSigListJSONRpcParam = $Exact<{
+  arg: SigListArgs
+}>
+
+export type sigsSigListRpcParam = $Exact<{
+  arg: SigListArgs
+}>
+
+export type streamUiCloseRpcParam = $Exact<{
+  s: Stream
+}>
+
+export type streamUiReadRpcParam = $Exact<{
+  s: Stream,
+  sz: int
+}>
+
+export type streamUiWriteRpcParam = $Exact<{
+  s: Stream,
+  buf: bytes
+}>
+
+export type testPanicRpcParam = $Exact<{
+  message: string
+}>
+
+export type testTestCallbackRpcParam = $Exact<{
+  name: string
+}>
+
+export type testTestRpcParam = $Exact<{
+  name: string
+}>
+
+export type tlfCryptKeysRpcParam = $Exact<{
+  tlfName: string
+}>
+
+export type tlfKeysGetTLFCryptKeysRpcParam = $Exact<{
+  tlfName: string
+}>
+
+export type trackDismissWithTokenRpcParam = $Exact<{
+  trackToken: TrackToken
+}>
+
+export type trackFakeTrackingChangedRpcParam = $Exact<{
+  username: string
+}>
+
+export type trackTrackRpcParam = $Exact<{
+  userAssertion: string,
+  options: TrackOptions,
+  forceRemoteCheck: boolean
+}>
+
+export type trackTrackWithTokenRpcParam = $Exact<{
+  trackToken: TrackToken,
+  options: TrackOptions
+}>
+
+export type trackUntrackRpcParam = $Exact<{
+  username: string
+}>
+
+export type uiPromptYesNoRpcParam = $Exact<{
+  text: Text,
+  promptDefault: PromptDefault
+}>
+
+export type userListTrackers2RpcParam = $Exact<{
+  assertion: string,
+  reverse: bool
+}>
+
+export type userListTrackersByNameRpcParam = $Exact<{
+  username: string
+}>
+
+export type userListTrackersRpcParam = $Exact<{
+  uid: UID
+}>
+
+export type userListTrackingJSONRpcParam = $Exact<{
+  filter: string,
+  verbose: boolean,
+  assertion: string
+}>
+
+export type userListTrackingRpcParam = $Exact<{
+  filter: string,
+  assertion: string
+}>
+
+export type userLoadAllPublicKeysUnverifiedRpcParam = $Exact<{
+  uid: UID
+}>
+
+export type userLoadPublicKeysRpcParam = $Exact<{
+  uid: UID
+}>
+
+export type userLoadUncheckedUserSummariesRpcParam = $Exact<{
+  uids?: ?Array<UID>
+}>
+
+export type userLoadUserByNameRpcParam = $Exact<{
+  username: string
+}>
+
+export type userLoadUserPlusKeysRpcParam = $Exact<{
+  uid: UID
+}>
+
+export type userLoadUserRpcParam = $Exact<{
+  uid: UID
+}>
+
+export type userSearchRpcParam = $Exact<{
+  query: string
+}>
+
+type Kex2ProvisioneeHelloResult = HelloRes
+
+type SecretKeysGetSecretKeysResult = SecretKeys
+
+type accountPassphrasePromptResult = GetPassphraseRes
+
+type apiserverGetResult = APIRes
+
+type apiserverPostJSONResult = APIRes
+
+type apiserverPostResult = APIRes
+
+type blockArchiveReferenceResult = ?Array<BlockReference>
+
+type blockArchiveReferenceWithCountResult = DowngradeReferenceRes
+
+type blockDelReferenceWithCountResult = DowngradeReferenceRes
+
+type blockGetBlockResult = GetBlockRes
+
+type blockGetSessionChallengeResult = ChallengeInfo
+
+type blockGetUserQuotaInfoResult = bytes
+
+type chatLocalGetInboxLocalResult = chat1.InboxView
+
+type chatLocalGetMessagesLocalResult = ?Array<Message>
+
+type chatLocalGetOrCreateTextConversationLocalResult = chat1.ConversationID
+
+type chatLocalGetThreadLocalResult = ThreadView
+
+type chatLocalNewConversationLocalResult = chat1.ConversationID
+
+type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
+
+type configGetConfigResult = Config
+
+type configGetCurrentStatusResult = GetCurrentStatusRes
+
+type configGetExtendedStatusResult = ExtendedStatus
+
+type configGetValueResult = ConfigValue
+
+type cryptoSignED25519Result = ED25519SignatureInfo
+
+type cryptoSignToStringResult = string
+
+type cryptoUnboxBytes32AnyResult = UnboxAnyRes
+
+type cryptoUnboxBytes32Result = Bytes32
+
+type debuggingFirstStepResult = FirstStepResult
+
+type debuggingIncrementResult = int
+
+type debuggingSecondStepResult = int
+
+type deviceCheckDeviceNameFormatResult = boolean
+
+type deviceDeviceHistoryListResult = ?Array<DeviceDetail>
+
+type deviceDeviceListResult = ?Array<Device>
+
+type favoriteGetFavoritesResult = FavoritesResult
+
+type fsListResult = ListResult
+
+type gpgUiConfirmDuplicateKeyChosenResult = boolean
+
+type gpgUiSelectKeyAndPushOptionResult = SelectKeyRes
+
+type gpgUiSelectKeyResult = string
+
+type gpgUiSignResult = string
+
+type gpgUiWantToAddGPGKeyResult = boolean
+
+type gregorGetStateResult = gregor1.State
+
+type identifyIdentify2Result = Identify2Res
+
+type identifyIdentifyResult = IdentifyRes
+
+type identifyResolve2Result = User
+
+type identifyResolveResult = UID
+
+type identifyUiConfirmResult = ConfirmResult
+
+type identifyUiDelegateIdentifyUIResult = int
+
+type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
+
+type loginUiGetEmailOrUsernameResult = string
+
+type loginUiPromptRevokePaperKeysResult = boolean
+
+type metadataAuthenticateResult = int
+
+type metadataGetChallengeResult = ChallengeInfo
+
+type metadataGetFolderHandleResult = bytes
+
+type metadataGetKeyResult = bytes
+
+type metadataGetLatestFolderHandleResult = bytes
+
+type metadataGetMerkleNodeResult = bytes
+
+type metadataGetMerkleRootLatestResult = MerkleRoot
+
+type metadataGetMerkleRootResult = MerkleRoot
+
+type metadataGetMerkleRootSinceResult = MerkleRoot
+
+type metadataGetMetadataResult = MetadataResponse
+
+type metadataPing2Result = PingResponse
+
+type metadataTruncateLockResult = boolean
+
+type metadataTruncateUnlockResult = boolean
+
+type pgpPgpDecryptResult = PGPSigVerification
+
+type pgpPgpExportByFingerprintResult = ?Array<KeyInfo>
+
+type pgpPgpExportByKIDResult = ?Array<KeyInfo>
+
+type pgpPgpExportResult = ?Array<KeyInfo>
+
+type pgpPgpPurgeResult = PGPPurgeRes
+
+type pgpPgpVerifyResult = PGPSigVerification
+
+type pgpUiShouldPushPrivateResult = bool
+
+type proveCheckProofResult = CheckProofStatus
+
+type proveStartProofResult = StartProofResult
+
+type proveUiOkToCheckResult = boolean
+
+type proveUiPreProofWarningResult = boolean
+
+type proveUiPromptOverwriteResult = boolean
+
+type proveUiPromptUsernameResult = string
+
+type provisionUiChooseDeviceResult = DeviceID
+
+type provisionUiChooseDeviceTypeResult = DeviceType
+
+type provisionUiChooseGPGMethodResult = GPGMethod
+
+type provisionUiChooseProvisioningMethodResult = ProvisionMethod
+
+type provisionUiDisplayAndPromptSecretResult = SecretResponse
+
+type provisionUiPromptNewDeviceNameResult = string
+
+type provisionUiSwitchToGPGSignOKResult = boolean
+
+type quotaVerifySessionResult = VerifySessionRes
+
+type rekeyGetPendingRekeyStatusResult = ProblemSetDevices
+
+type rekeyRekeyStatusFinishResult = Outcome
+
+type rekeyUIDelegateRekeyUIResult = int
+
+type saltpackSaltpackDecryptResult = SaltpackEncryptedMessageInfo
+
+type secretUiGetPassphraseResult = GetPassphraseRes
+
+type sessionCurrentSessionResult = Session
+
+type signupSignupResult = SignupRes
+
+type sigsSigListJSONResult = string
+
+type sigsSigListResult = ?Array<Sig>
+
+type streamUiReadResult = bytes
+
+type streamUiWriteResult = int
+
+type testTestCallbackResult = string
+
+type testTestResult = Test
+
+type tlfCryptKeysResult = TLFCryptKeys
+
+type tlfKeysGetTLFCryptKeysResult = TLFCryptKeys
+
+type uiPromptYesNoResult = boolean
+
+type userListTrackers2Result = UserSummary2Set
+
+type userListTrackersByNameResult = ?Array<Tracker>
+
+type userListTrackersResult = ?Array<Tracker>
+
+type userListTrackersSelfResult = ?Array<Tracker>
+
+type userListTrackingJSONResult = string
+
+type userListTrackingResult = ?Array<UserSummary>
+
+type userLoadAllPublicKeysUnverifiedResult = ?Array<PublicKey>
+
+type userLoadMyPublicKeysResult = ?Array<PublicKey>
+
+type userLoadPublicKeysResult = ?Array<PublicKey>
+
+type userLoadUncheckedUserSummariesResult = ?Array<UserSummary>
+
+type userLoadUserByNameResult = User
+
+type userLoadUserPlusKeysResult = UserPlusKeys
+
+type userLoadUserResult = User
+
+type userSearchResult = ?Array<SearchResult>
+
+export type rpc =
+    BTCRegisterBTCRpc
+  | Kex2ProvisioneeDidCounterSignRpc
+  | Kex2ProvisioneeHelloRpc
+  | Kex2ProvisionerKexStartRpc
+  | SecretKeysGetSecretKeysRpc
+  | accountPassphraseChangeRpc
+  | accountPassphrasePromptRpc
+  | apiserverGetRpc
+  | apiserverPostJSONRpc
+  | apiserverPostRpc
+  | blockAddReferenceRpc
+  | blockArchiveReferenceRpc
+  | blockArchiveReferenceWithCountRpc
+  | blockAuthenticateSessionRpc
+  | blockDelReferenceRpc
+  | blockDelReferenceWithCountRpc
+  | blockGetBlockRpc
+  | blockGetSessionChallengeRpc
+  | blockGetUserQuotaInfoRpc
+  | blockPutBlockRpc
+  | chatLocalGetInboxLocalRpc
+  | chatLocalGetMessagesLocalRpc
+  | chatLocalGetOrCreateTextConversationLocalRpc
+  | chatLocalGetThreadLocalRpc
+  | chatLocalNewConversationLocalRpc
+  | chatLocalPostLocalRpc
+  | configCheckAPIServerOutOfDateWarningRpc
+  | configClearValueRpc
+  | configGetConfigRpc
+  | configGetCurrentStatusRpc
+  | configGetExtendedStatusRpc
+  | configGetValueRpc
+  | configHelloIAmRpc
+  | configSetPathRpc
+  | configSetUserConfigRpc
+  | configSetValueRpc
+  | cryptoSignED25519Rpc
+  | cryptoSignToStringRpc
+  | cryptoUnboxBytes32AnyRpc
+  | cryptoUnboxBytes32Rpc
+  | ctlAppExitRpc
+  | ctlDbNukeRpc
+  | ctlLogRotateRpc
+  | ctlReloadRpc
+  | ctlStopRpc
+  | debuggingFirstStepRpc
+  | debuggingIncrementRpc
+  | debuggingSecondStepRpc
+  | delegateUiCtlRegisterGregorFirehoseRpc
+  | delegateUiCtlRegisterIdentifyUIRpc
+  | delegateUiCtlRegisterRekeyUIRpc
+  | delegateUiCtlRegisterSecretUIRpc
+  | delegateUiCtlRegisterUpdateUIRpc
+  | deviceCheckDeviceNameFormatRpc
+  | deviceDeviceAddRpc
+  | deviceDeviceHistoryListRpc
+  | deviceDeviceListRpc
+  | favoriteFavoriteAddRpc
+  | favoriteFavoriteIgnoreRpc
+  | favoriteGetFavoritesRpc
+  | fsListRpc
+  | gregorGetStateRpc
+  | identifyIdentify2Rpc
+  | identifyIdentifyRpc
+  | identifyResolve2Rpc
+  | identifyResolveRpc
+  | kbfsFSEditListRpc
+  | kbfsFSEventRpc
+  | logRegisterLoggerRpc
+  | loginClearStoredSecretRpc
+  | loginDeprovisionRpc
+  | loginGetConfiguredAccountsRpc
+  | loginLoginRpc
+  | loginLogoutRpc
+  | loginPaperKeyRpc
+  | loginPaperKeySubmitRpc
+  | loginPgpProvisionRpc
+  | loginRecoverAccountFromEmailAddressRpc
+  | loginUnlockRpc
+  | loginUnlockWithPassphraseRpc
+  | metadataAuthenticateRpc
+  | metadataDeleteKeyRpc
+  | metadataGetChallengeRpc
+  | metadataGetFolderHandleRpc
+  | metadataGetFoldersForRekeyRpc
+  | metadataGetKeyRpc
+  | metadataGetLatestFolderHandleRpc
+  | metadataGetMerkleNodeRpc
+  | metadataGetMerkleRootLatestRpc
+  | metadataGetMerkleRootRpc
+  | metadataGetMerkleRootSinceRpc
+  | metadataGetMetadataRpc
+  | metadataPing2Rpc
+  | metadataPingRpc
+  | metadataPruneBranchRpc
+  | metadataPutKeysRpc
+  | metadataPutMetadataRpc
+  | metadataRegisterForUpdatesRpc
+  | metadataTruncateLockRpc
+  | metadataTruncateUnlockRpc
+  | metadataUpdateFolderNeedsRekeyRpc
+  | metadataUpdateMetadataUpdateRpc
+  | notifyCtlSetNotificationsRpc
+  | paperprovisionPaperProvisionRpc
+  | pgpPgpDecryptRpc
+  | pgpPgpDeletePrimaryRpc
+  | pgpPgpEncryptRpc
+  | pgpPgpExportByFingerprintRpc
+  | pgpPgpExportByKIDRpc
+  | pgpPgpExportRpc
+  | pgpPgpImportRpc
+  | pgpPgpKeyGenDefaultRpc
+  | pgpPgpKeyGenRpc
+  | pgpPgpPullRpc
+  | pgpPgpPurgeRpc
+  | pgpPgpSelectRpc
+  | pgpPgpSignRpc
+  | pgpPgpUpdateRpc
+  | pgpPgpVerifyRpc
+  | proveCheckProofRpc
+  | proveStartProofRpc
+  | quotaVerifySessionRpc
+  | rekeyDebugShowRekeyStatusRpc
+  | rekeyGetPendingRekeyStatusRpc
+  | rekeyRekeyStatusFinishRpc
+  | rekeyRekeySyncRpc
+  | rekeyShowPendingRekeyStatusRpc
+  | revokeRevokeDeviceRpc
+  | revokeRevokeKeyRpc
+  | revokeRevokeSigsRpc
+  | saltpackSaltpackDecryptRpc
+  | saltpackSaltpackEncryptRpc
+  | saltpackSaltpackSignRpc
+  | saltpackSaltpackVerifyRpc
+  | sessionCurrentSessionRpc
+  | signupCheckInvitationCodeRpc
+  | signupCheckUsernameAvailableRpc
+  | signupInviteRequestRpc
+  | signupSignupRpc
+  | sigsSigListJSONRpc
+  | sigsSigListRpc
+  | testPanicRpc
+  | testTestCallbackRpc
+  | testTestRpc
+  | tlfCryptKeysRpc
+  | tlfKeysGetTLFCryptKeysRpc
+  | trackCheckTrackingRpc
+  | trackDismissWithTokenRpc
+  | trackFakeTrackingChangedRpc
+  | trackTrackRpc
+  | trackTrackWithTokenRpc
+  | trackUntrackRpc
+  | userListTrackers2Rpc
+  | userListTrackersByNameRpc
+  | userListTrackersRpc
+  | userListTrackersSelfRpc
+  | userListTrackingJSONRpc
+  | userListTrackingRpc
+  | userLoadAllPublicKeysUnverifiedRpc
+  | userLoadMyPublicKeysRpc
+  | userLoadPublicKeysRpc
+  | userLoadUncheckedUserSummariesRpc
+  | userLoadUserByNameRpc
+  | userLoadUserPlusKeysRpc
+  | userLoadUserRpc
+  | userSearchRpc
+export type incomingCallMapType = $Exact<{
+  'keybase.1.gpgUi.wantToAddGPGKey'?: (
+>>>>>>> Refactored engine object
     params: $Exact<{
       sessionID: int
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: () => void
+      error: RPCErrorHandler,
+      result: (result: gpgUiWantToAddGPGKeyResult) => void,
     }
   ) => void,
-  'keybase.1.pgp.pgpSelect'?: (
+  'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (
     params: $Exact<{
-      sessionID: int,
-      fingerprintQuery: string,
-      allowMulti: boolean,
-      skipImport: boolean,
-      onlyImport: boolean
+      sessionID: int
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: () => void
+      error: RPCErrorHandler,
+      result: (result: gpgUiConfirmDuplicateKeyChosenResult) => void,
     }
   ) => void,
-  'keybase.1.pgp.pgpUpdate'?: (
+  'keybase.1.gpgUi.selectKeyAndPushOption'?: (
     params: $Exact<{
       sessionID: int,
-      all: boolean,
-      fingerprints?: ?Array<string>
+      keys?: ?Array<GPGKey>
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: () => void
+      error: RPCErrorHandler,
+      result: (result: gpgUiSelectKeyAndPushOptionResult) => void,
     }
   ) => void,
-  'keybase.1.pgp.pgpPurge'?: (
+  'keybase.1.gpgUi.selectKey'?: (
     params: $Exact<{
       sessionID: int,
-      doPurge: boolean
+      keys?: ?Array<GPGKey>
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: pgpPgpPurgeResult) => void
+      error: RPCErrorHandler,
+      result: (result: gpgUiSelectKeyResult) => void,
     }
+  ) => void,
+  'keybase.1.gpgUi.sign'?: (
+    params: $Exact<{
+      msg: bytes,
+      fingerprint: bytes
+    }>,
+    response: {
+      error: RPCErrorHandler,
+      result: (result: gpgUiSignResult) => void,
+    }
+  ) => void,
+  'keybase.1.gregorUI.pushState'?: (
+    params: $Exact<{
+      state: gregor1.State,
+      reason: PushReason
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.gregorUI.pushOutOfBandMessages'?: (
+    params: $Exact<{
+      oobm?: ?Array<gregor1.OutOfBandMessage>
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (
+    params: $Exact<{
+      sessionID: int,
+      folderName: string,
+      isPrivate: boolean,
+      assertion: string,
+      socialAssertion: SocialAssertion,
+      inviteLink: string,
+      throttled: boolean
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.delegateIdentifyUI'?: (
+    params: $Exact<{}>,
+    response: {
+      error: RPCErrorHandler,
+      result: (result: identifyUiDelegateIdentifyUIResult) => void,
+    }
+  ) => void,
+  'keybase.1.identifyUi.start'?: (
+    params: $Exact<{
+      sessionID: int,
+      username: string,
+      reason: IdentifyReason
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.displayKey'?: (
+    params: $Exact<{
+      sessionID: int,
+      key: IdentifyKey
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.reportLastTrack'?: (
+    params: $Exact<{
+      sessionID: int,
+      track?: ?TrackSummary
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.launchNetworkChecks'?: (
+    params: $Exact<{
+      sessionID: int,
+      identity: Identity,
+      user: User
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.displayTrackStatement'?: (
+    params: $Exact<{
+      sessionID: int,
+      stmt: string
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.finishWebProofCheck'?: (
+    params: $Exact<{
+      sessionID: int,
+      rp: RemoteProof,
+      lcr: LinkCheckResult
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.finishSocialProofCheck'?: (
+    params: $Exact<{
+      sessionID: int,
+      rp: RemoteProof,
+      lcr: LinkCheckResult
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.displayCryptocurrency'?: (
+    params: $Exact<{
+      sessionID: int,
+      c: Cryptocurrency
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.reportTrackToken'?: (
+    params: $Exact<{
+      sessionID: int,
+      trackToken: TrackToken
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.displayUserCard'?: (
+    params: $Exact<{
+      sessionID: int,
+      card: UserCard
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.confirm'?: (
+    params: $Exact<{
+      sessionID: int,
+      outcome: IdentifyOutcome
+    }>,
+    response: {
+      error: RPCErrorHandler,
+      result: (result: identifyUiConfirmResult) => void,
+    }
+  ) => void,
+  'keybase.1.identifyUi.finish'?: (
+    params: $Exact<{
+      sessionID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.identifyUi.dismiss'?: (
+    params: $Exact<{
+      sessionID: int,
+      username: string,
+      reason: DismissReason
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.logUi.log'?: (
+    params: $Exact<{
+      sessionID: int,
+      level: LogLevel,
+      text: Text
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.loginUi.getEmailOrUsername'?: (
+    params: $Exact<{
+      sessionID: int
+    }>,
+    response: {
+      error: RPCErrorHandler,
+      result: (result: loginUiGetEmailOrUsernameResult) => void,
+    }
+  ) => void,
+  'keybase.1.loginUi.promptRevokePaperKeys'?: (
+    params: $Exact<{
+      sessionID: int,
+      device: Device,
+      index: int
+    }>,
+    response: {
+      error: RPCErrorHandler,
+      result: (result: loginUiPromptRevokePaperKeysResult) => void,
+    }
+  ) => void,
+  'keybase.1.loginUi.displayPaperKeyPhrase'?: (
+    params: $Exact<{
+      sessionID: int,
+      phrase: string
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.loginUi.displayPrimaryPaperKey'?: (
+    params: $Exact<{
+      sessionID: int,
+      phrase: string
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifyApp.exit'?: (
+    params: $Exact<{}>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifyChat.NewChatActivity'?: (
+    params: $Exact<{
+      uid: UID,
+      activity: ChatActivity
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyFavorites.favoritesChanged'?: (
+    params: $Exact<{
+      uid: UID
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyFS.FSActivity'?: (
+    params: $Exact<{
+      notification: FSNotification
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyFS.FSEditListResponse'?: (
+    params: $Exact<{
+      edits?: ?Array<FSNotification>,
+      requestID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifyFSRequest.FSEditListRequest'?: (
+    params: $Exact<{
+      req: FSEditListRequest
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyKeyfamily.keyfamilyChanged'?: (
+    params: $Exact<{
+      uid: UID
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifyPaperKey.paperKeyCached'?: (
+    params: $Exact<{
+      uid: UID,
+      encKID: KID,
+      sigKID: KID
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifyService.shutdown'?: (
+    params: $Exact<{}>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifySession.loggedOut'?: (
+    params: $Exact<{}> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifySession.loggedIn'?: (
+    params: $Exact<{
+      username: string
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifySession.clientOutOfDate'?: (
+    params: $Exact<{
+      upgradeTo: string,
+      upgradeURI: string,
+      upgradeMsg: string
+    }>,
+    response: CommonResponseHandler
+  ) => void,
+  'keybase.1.NotifyTracking.trackingChanged'?: (
+    params: $Exact<{
+      uid: UID,
+      username: string
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyUsers.userChanged'?: (
+    params: $Exact<{
+      uid: UID
+    }> /* ,
+    response: {} // Notify call
+    */
   ) => void,
   'keybase.1.pgpUi.outputSignatureSuccess'?: (
     params: $Exact<{
@@ -5923,10 +5799,7 @@ export type incomingCallMapType = $Exact<{
       username: string,
       signedAt: Time
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.pgpUi.keyGenerated'?: (
     params: $Exact<{
@@ -5934,52 +5807,22 @@ export type incomingCallMapType = $Exact<{
       kid: KID,
       key: KeyInfo
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.pgpUi.shouldPushPrivate'?: (
     params: $Exact<{
       sessionID: int
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: pgpUiShouldPushPrivateResult) => void
+      error: RPCErrorHandler,
+      result: (result: pgpUiShouldPushPrivateResult) => void,
     }
   ) => void,
   'keybase.1.pgpUi.finished'?: (
     params: $Exact<{
       sessionID: int
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.prove.startProof'?: (
-    params: $Exact<{
-      sessionID: int,
-      service: string,
-      username: string,
-      force: boolean,
-      promptPosted: boolean,
-      auto: boolean
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: proveStartProofResult) => void
-    }
-  ) => void,
-  'keybase.1.prove.checkProof'?: (
-    params: $Exact<{
-      sessionID: int,
-      sigID: SigID
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: proveCheckProofResult) => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.proveUi.promptOverwrite'?: (
     params: $Exact<{
@@ -5988,19 +5831,19 @@ export type incomingCallMapType = $Exact<{
       typ: PromptOverwriteType
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: proveUiPromptOverwriteResult) => void
+      error: RPCErrorHandler,
+      result: (result: proveUiPromptOverwriteResult) => void,
     }
   ) => void,
   'keybase.1.proveUi.promptUsername'?: (
     params: $Exact<{
       sessionID: int,
       prompt: string,
-      prevError: (null | Status)
+      prevError?: ?Status
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: proveUiPromptUsernameResult) => void
+      error: RPCErrorHandler,
+      result: (result: proveUiPromptUsernameResult) => void,
     }
   ) => void,
   'keybase.1.proveUi.outputPrechecks'?: (
@@ -6008,10 +5851,7 @@ export type incomingCallMapType = $Exact<{
       sessionID: int,
       text: Text
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.proveUi.preProofWarning'?: (
     params: $Exact<{
@@ -6019,8 +5859,8 @@ export type incomingCallMapType = $Exact<{
       text: Text
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: proveUiPreProofWarningResult) => void
+      error: RPCErrorHandler,
+      result: (result: proveUiPreProofWarningResult) => void,
     }
   ) => void,
   'keybase.1.proveUi.outputInstructions'?: (
@@ -6029,10 +5869,7 @@ export type incomingCallMapType = $Exact<{
       instructions: Text,
       proof: string
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.proveUi.okToCheck'?: (
     params: $Exact<{
@@ -6041,8 +5878,8 @@ export type incomingCallMapType = $Exact<{
       attempt: int
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: proveUiOkToCheckResult) => void
+      error: RPCErrorHandler,
+      result: (result: proveUiOkToCheckResult) => void,
     }
   ) => void,
   'keybase.1.proveUi.displayRecheckWarning'?: (
@@ -6050,10 +5887,7 @@ export type incomingCallMapType = $Exact<{
       sessionID: int,
       text: Text
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.provisionUi.chooseProvisioningMethod'?: (
     params: $Exact<{
@@ -6061,8 +5895,8 @@ export type incomingCallMapType = $Exact<{
       gpgOption: boolean
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: provisionUiChooseProvisioningMethodResult) => void
+      error: RPCErrorHandler,
+      result: (result: provisionUiChooseProvisioningMethodResult) => void,
     }
   ) => void,
   'keybase.1.provisionUi.chooseGPGMethod'?: (
@@ -6071,8 +5905,8 @@ export type incomingCallMapType = $Exact<{
       keys?: ?Array<GPGKey>
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: provisionUiChooseGPGMethodResult) => void
+      error: RPCErrorHandler,
+      result: (result: provisionUiChooseGPGMethodResult) => void,
     }
   ) => void,
   'keybase.1.provisionUi.switchToGPGSignOK'?: (
@@ -6082,8 +5916,8 @@ export type incomingCallMapType = $Exact<{
       importError: string
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: provisionUiSwitchToGPGSignOKResult) => void
+      error: RPCErrorHandler,
+      result: (result: provisionUiSwitchToGPGSignOKResult) => void,
     }
   ) => void,
   'keybase.1.provisionUi.chooseDevice'?: (
@@ -6092,8 +5926,8 @@ export type incomingCallMapType = $Exact<{
       devices?: ?Array<Device>
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: provisionUiChooseDeviceResult) => void
+      error: RPCErrorHandler,
+      result: (result: provisionUiChooseDeviceResult) => void,
     }
   ) => void,
   'keybase.1.provisionUi.chooseDeviceType'?: (
@@ -6102,8 +5936,8 @@ export type incomingCallMapType = $Exact<{
       kind: ChooseType
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: provisionUiChooseDeviceTypeResult) => void
+      error: RPCErrorHandler,
+      result: (result: provisionUiChooseDeviceTypeResult) => void,
     }
   ) => void,
   'keybase.1.provisionUi.DisplayAndPromptSecret'?: (
@@ -6114,18 +5948,15 @@ export type incomingCallMapType = $Exact<{
       otherDeviceType: DeviceType
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: provisionUiDisplayAndPromptSecretResult) => void
+      error: RPCErrorHandler,
+      result: (result: provisionUiDisplayAndPromptSecretResult) => void,
     }
   ) => void,
   'keybase.1.provisionUi.DisplaySecretExchanged'?: (
     params: $Exact<{
       sessionID: int
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.provisionUi.PromptNewDeviceName'?: (
     params: $Exact<{
@@ -6134,8 +5965,8 @@ export type incomingCallMapType = $Exact<{
       errorMessage: string
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: provisionUiPromptNewDeviceNameResult) => void
+      error: RPCErrorHandler,
+      result: (result: provisionUiPromptNewDeviceNameResult) => void,
     }
   ) => void,
   'keybase.1.provisionUi.ProvisioneeSuccess'?: (
@@ -6144,10 +5975,7 @@ export type incomingCallMapType = $Exact<{
       username: string,
       deviceName: string
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.provisionUi.ProvisionerSuccess'?: (
     params: $Exact<{
@@ -6155,71 +5983,13 @@ export type incomingCallMapType = $Exact<{
       deviceName: string,
       deviceType: string
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.quota.verifySession'?: (
-    params: $Exact<{
-      session: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: quotaVerifySessionResult) => void
-    }
-  ) => void,
-  'keybase.1.rekey.showPendingRekeyStatus'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.rekey.getPendingRekeyStatus'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: rekeyGetPendingRekeyStatusResult) => void
-    }
-  ) => void,
-  'keybase.1.rekey.debugShowRekeyStatus'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.rekey.rekeyStatusFinish'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: rekeyRekeyStatusFinishResult) => void
-    }
-  ) => void,
-  'keybase.1.rekey.rekeySync'?: (
-    params: $Exact<{
-      sessionID: int,
-      force: boolean
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.rekeyUI.delegateRekeyUI'?: (
     params: $Exact<{}>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: rekeyUIDelegateRekeyUIResult) => void
+      error: RPCErrorHandler,
+      result: (result: rekeyUIDelegateRekeyUIResult) => void,
     }
   ) => void,
   'keybase.1.rekeyUI.refresh'?: (
@@ -6227,99 +5997,14 @@ export type incomingCallMapType = $Exact<{
       sessionID: int,
       problemSetDevices: ProblemSetDevices
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.rekeyUI.rekeySendEvent'?: (
     params: $Exact<{
       sessionID: int,
       event: RekeyEvent
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.revoke.revokeKey'?: (
-    params: $Exact<{
-      sessionID: int,
-      keyID: KID
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.revoke.revokeDevice'?: (
-    params: $Exact<{
-      sessionID: int,
-      deviceID: DeviceID,
-      force: boolean
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.revoke.revokeSigs'?: (
-    params: $Exact<{
-      sessionID: int,
-      sigIDQueries?: ?Array<string>
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.saltpack.saltpackEncrypt'?: (
-    params: $Exact<{
-      sessionID: int,
-      source: Stream,
-      sink: Stream,
-      opts: SaltpackEncryptOptions
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.saltpack.saltpackDecrypt'?: (
-    params: $Exact<{
-      sessionID: int,
-      source: Stream,
-      sink: Stream,
-      opts: SaltpackDecryptOptions
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: saltpackSaltpackDecryptResult) => void
-    }
-  ) => void,
-  'keybase.1.saltpack.saltpackSign'?: (
-    params: $Exact<{
-      sessionID: int,
-      source: Stream,
-      sink: Stream,
-      opts: SaltpackSignOptions
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.saltpack.saltpackVerify'?: (
-    params: $Exact<{
-      sessionID: int,
-      source: Stream,
-      sink: Stream,
-      opts: SaltpackVerifyOptions
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.saltpackUi.saltpackPromptForDecrypt'?: (
     params: $Exact<{
@@ -6327,10 +6012,7 @@ export type incomingCallMapType = $Exact<{
       sender: SaltpackSender,
       usedDelegateUI: bool
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.saltpackUi.saltpackVerifySuccess'?: (
     params: $Exact<{
@@ -6338,107 +6020,17 @@ export type incomingCallMapType = $Exact<{
       signingKID: KID,
       sender: SaltpackSender
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.secretUi.getPassphrase'?: (
     params: $Exact<{
       sessionID: int,
       pinentry: GUIEntryArg,
-      terminal: (null | SecretEntryArg)
+      terminal?: ?SecretEntryArg
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: secretUiGetPassphraseResult) => void
-    }
-  ) => void,
-  'keybase.1.SecretKeys.getSecretKeys'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: SecretKeysGetSecretKeysResult) => void
-    }
-  ) => void,
-  'keybase.1.session.currentSession'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: sessionCurrentSessionResult) => void
-    }
-  ) => void,
-  'keybase.1.signup.checkUsernameAvailable'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.signup.signup'?: (
-    params: $Exact<{
-      sessionID: int,
-      email: string,
-      inviteCode: string,
-      passphrase: string,
-      username: string,
-      deviceName: string,
-      storeSecret: boolean,
-      skipMail: boolean,
-      genPGPBatch: boolean
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: signupSignupResult) => void
-    }
-  ) => void,
-  'keybase.1.signup.inviteRequest'?: (
-    params: $Exact<{
-      sessionID: int,
-      email: string,
-      fullname: string,
-      notes: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.signup.checkInvitationCode'?: (
-    params: $Exact<{
-      sessionID: int,
-      invitationCode: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.sigs.sigList'?: (
-    params: $Exact<{
-      sessionID: int,
-      arg: SigListArgs
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: sigsSigListResult) => void
-    }
-  ) => void,
-  'keybase.1.sigs.sigListJSON'?: (
-    params: $Exact<{
-      sessionID: int,
-      arg: SigListArgs
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: sigsSigListJSONResult) => void
+      error: RPCErrorHandler,
+      result: (result: secretUiGetPassphraseResult) => void,
     }
   ) => void,
   'keybase.1.streamUi.close'?: (
@@ -6446,10 +6038,7 @@ export type incomingCallMapType = $Exact<{
       sessionID: int,
       s: Stream
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.streamUi.read'?: (
     params: $Exact<{
@@ -6458,8 +6047,8 @@ export type incomingCallMapType = $Exact<{
       sz: int
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: streamUiReadResult) => void
+      error: RPCErrorHandler,
+      result: (result: streamUiReadResult) => void,
     }
   ) => void,
   'keybase.1.streamUi.write'?: (
@@ -6469,117 +6058,8 @@ export type incomingCallMapType = $Exact<{
       buf: bytes
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: streamUiWriteResult) => void
-    }
-  ) => void,
-  'keybase.1.test.test'?: (
-    params: $Exact<{
-      sessionID: int,
-      name: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: testTestResult) => void
-    }
-  ) => void,
-  'keybase.1.test.testCallback'?: (
-    params: $Exact<{
-      sessionID: int,
-      name: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: testTestCallbackResult) => void
-    }
-  ) => void,
-  'keybase.1.test.panic'?: (
-    params: $Exact<{
-      message: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.tlf.CryptKeys'?: (
-    params: $Exact<{
-      tlfName: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: tlfCryptKeysResult) => void
-    }
-  ) => void,
-  'keybase.1.tlfKeys.getTLFCryptKeys'?: (
-    params: $Exact<{
-      tlfName: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: tlfKeysGetTLFCryptKeysResult) => void
-    }
-  ) => void,
-  'keybase.1.track.track'?: (
-    params: $Exact<{
-      sessionID: int,
-      userAssertion: string,
-      options: TrackOptions,
-      forceRemoteCheck: boolean
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.track.trackWithToken'?: (
-    params: $Exact<{
-      sessionID: int,
-      trackToken: TrackToken,
-      options: TrackOptions
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.track.dismissWithToken'?: (
-    params: $Exact<{
-      sessionID: int,
-      trackToken: TrackToken
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.track.untrack'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.track.checkTracking'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.track.fakeTrackingChanged'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
+      error: RPCErrorHandler,
+      result: (result: streamUiWriteResult) => void,
     }
   ) => void,
   'keybase.1.ui.promptYesNo'?: (
@@ -6589,151 +6069,8 @@ export type incomingCallMapType = $Exact<{
       promptDefault: PromptDefault
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: uiPromptYesNoResult) => void
-    }
-  ) => void,
-  'keybase.1.user.listTrackers'?: (
-    params: $Exact<{
-      sessionID: int,
-      uid: UID
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userListTrackersResult) => void
-    }
-  ) => void,
-  'keybase.1.user.listTrackersByName'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userListTrackersByNameResult) => void
-    }
-  ) => void,
-  'keybase.1.user.listTrackersSelf'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userListTrackersSelfResult) => void
-    }
-  ) => void,
-  'keybase.1.user.loadUncheckedUserSummaries'?: (
-    params: $Exact<{
-      sessionID: int,
-      uids?: ?Array<UID>
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userLoadUncheckedUserSummariesResult) => void
-    }
-  ) => void,
-  'keybase.1.user.loadUser'?: (
-    params: $Exact<{
-      sessionID: int,
-      uid: UID
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userLoadUserResult) => void
-    }
-  ) => void,
-  'keybase.1.user.loadUserByName'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userLoadUserByNameResult) => void
-    }
-  ) => void,
-  'keybase.1.user.loadUserPlusKeys'?: (
-    params: $Exact<{
-      sessionID: int,
-      uid: UID
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userLoadUserPlusKeysResult) => void
-    }
-  ) => void,
-  'keybase.1.user.loadPublicKeys'?: (
-    params: $Exact<{
-      sessionID: int,
-      uid: UID
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userLoadPublicKeysResult) => void
-    }
-  ) => void,
-  'keybase.1.user.loadMyPublicKeys'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userLoadMyPublicKeysResult) => void
-    }
-  ) => void,
-  'keybase.1.user.listTracking'?: (
-    params: $Exact<{
-      sessionID: int,
-      filter: string,
-      assertion: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userListTrackingResult) => void
-    }
-  ) => void,
-  'keybase.1.user.listTrackingJSON'?: (
-    params: $Exact<{
-      sessionID: int,
-      filter: string,
-      verbose: boolean,
-      assertion: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userListTrackingJSONResult) => void
-    }
-  ) => void,
-  'keybase.1.user.search'?: (
-    params: $Exact<{
-      sessionID: int,
-      query: string
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userSearchResult) => void
-    }
-  ) => void,
-  'keybase.1.user.loadAllPublicKeysUnverified'?: (
-    params: $Exact<{
-      sessionID: int,
-      uid: UID
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userLoadAllPublicKeysUnverifiedResult) => void
-    }
-  ) => void,
-  'keybase.1.user.listTrackers2'?: (
-    params: $Exact<{
-      sessionID: int,
-      assertion: string,
-      reverse: bool
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: userListTrackers2Result) => void
+      error: RPCErrorHandler,
+      result: (result: uiPromptYesNoResult) => void,
     }
   ) => void
 }>
-

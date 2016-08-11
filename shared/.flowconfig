@@ -33,6 +33,7 @@
 munge_underscores=true
 esproposal.class_static_fields=enable
 esproposal.class_instance_fields=enable
+unsafe.enable_getters_and_setters=true
 module.system.node.resolve_dirname=../desktop/node_modules
 
 module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'

@@ -2,7 +2,7 @@
 import type {incomingRPCCallbackType, connectCallbackType} from './platform-specific'
 import {Buffer} from 'buffer'
 import {NativeModules, NativeAppEventEmitter} from 'react-native'
-import {TransportShared, sharedCreateClient} from './transport-shared'
+import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 
 // Modules from the native part of the code. Differently named on android/ios
 const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
@@ -71,4 +71,5 @@ function resetClient () {
 export {
   resetClient,
   createClient,
+  rpcLog,
 }

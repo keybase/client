@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {platformText} from './prove-enter-username.shared'
 import {Box, Icon, Text, Button, Input, PlatformIcon, StandardScreen} from '../common-adapters'
-import {constants} from '../constants/types/keybase-v1'
+import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import openURL from '../util/open-url'
 
@@ -27,8 +27,8 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
 }
 
 function customError (error: string, code: ?number) {
-  if (code === constants.StatusCode.scprofilenotpublic) {
-    return <Box>
+  if (code === ConstantsStatusCode.scprofilenotpublic) {
+    return <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
       <Text style={{...styleErrorBannerText, marginLeft: globalMargins.small, marginRight: globalMargins.small}} type='BodySmallSemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}} onClick={() => openURL('https://www.coinbase.com/settings#payment_page')}>
         <Text style={styleErrorBannerText} type='BodySmallSemibold'>Go to Coinbase</Text>
