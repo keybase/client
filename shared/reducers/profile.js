@@ -2,6 +2,7 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/profile'
 import type {Actions, State} from '../constants/profile'
+import url from 'url'
 
 const initialState: State = {
   errorText: null,
@@ -23,6 +24,16 @@ function checkBTC (address: string): boolean {
 
 function checkUsernameValid (platform, username): boolean {
   return platform !== 'btc' ? true : checkBTC(username)
+}
+
+function cleanUsername (platform, username): string {
+  if (['http', 'https'].includes(platform)) {
+    const parsedUrl = url.parse(username)
+    // Ensure that only the hostname is getting returned, with no
+    // protocal or path information
+    return parsedUrl.hostname || username
+  }
+  return username
 }
 
 export default function (state: State = initialState, action: Actions) {
@@ -49,9 +60,10 @@ export default function (state: State = initialState, action: Actions) {
       if (action.error) { break }
 
       const usernameValid = checkUsernameValid(state.platform, action.payload.username)
+      const username = cleanUsername(state.platform, action.payload.username)
       return {
         ...state,
-        username: action.payload.username,
+        username,
         usernameValid,
       }
     }

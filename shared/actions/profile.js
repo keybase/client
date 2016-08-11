@@ -79,20 +79,21 @@ function updatePlatform (platform: PlatformsExpandedType): UpdatePlatform {
   }
 }
 
-function submitUsername (): AsyncAction {
+function _updateUsername (username: string): UpdateUsername {
+  return {
+    type: Constants.updateUsername,
+    payload: {username},
+  }
+}
+
+function submitUsername (username: string): AsyncAction {
   return (dispatch, getState) => {
+    dispatch(_updateUsername(username))
     if (promptUsernameResponse) {
       dispatch(_updateErrorText(null))
       promptUsernameResponse.result(getState().profile.username)
       promptUsernameResponse = null
     }
-  }
-}
-
-function updateUsername (username: string): UpdateUsername {
-  return {
-    type: Constants.updateUsername,
-    payload: {username},
   }
 }
 
@@ -153,8 +154,9 @@ function _registerBTC (): AsyncAction {
   }
 }
 
-function submitBTCAddress (): AsyncAction {
+function submitBTCAddress (address: string): AsyncAction {
   return (dispatch, getState) => {
+    dispatch(_updateUsername(address))
     BTCRegisterBTCRpc({
       ..._makeWaitingHandler(dispatch),
       param: {
@@ -416,5 +418,4 @@ export {
   submitRevokeProof,
   submitUsername,
   updatePlatform,
-  updateUsername,
 }

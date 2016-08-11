@@ -5,7 +5,7 @@ import type {Props} from './prove-enter-username'
 import type {TypedDispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 import {TypedConnector} from '../util/typed-connect'
-import {submitUsername, cancelAddProof, updateUsername, submitBTCAddress} from '../actions/profile'
+import {submitUsername, cancelAddProof, submitBTCAddress} from '../actions/profile'
 
 class ProveEnterUsernameContainer extends Component<void, any, void> {
   static parseRoute (currentPath, uri) {
@@ -32,8 +32,9 @@ export default connector.connect(
       errorCode: profile.errorCode,
       errorText: profile.errorText,
       onCancel: () => { dispatch(cancelAddProof()) },
-      onContinue: profile.platform === 'btc' ? () => { dispatch(submitBTCAddress()) } : () => { dispatch(submitUsername()) },
-      onUsernameChange: (username: string) => { dispatch(updateUsername(username)) },
+      onContinue: profile.platform === 'btc'
+        ? (address) => { dispatch(submitBTCAddress(address)) }
+        : (username) => { dispatch(submitUsername(username)) },
       platform: profile.platform,
       username: profile.username,
       waiting: profile.waiting,
