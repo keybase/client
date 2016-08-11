@@ -16,7 +16,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                     strategy: [$class: "LogRotator",
                         numToKeepStr: "30",
                         daysToKeepStr: "10",
-                        artifactNumToKeepStr: "1",
+                        artifactNumToKeepStr: "5",
                     ]
                 ],
                 [$class: 'RebuildSettings',
