@@ -5,7 +5,7 @@ import type {Dispatch, AsyncAction} from '../constants/types/flux'
 import type {PlatformsExpandedType, ProvablePlatformsType} from '../constants/types/more'
 import type {SigID} from '../constants/types/flow-types'
 import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateErrorText, UpdateProofStatus,
-  UpdateSigID, WaitingRevokeProof, FinishRevokeProof} from '../constants/profile'
+  UpdateSigID, WaitingRevokeProof, FinishRevokeProof, CleanupUsername} from '../constants/profile'
 import {apiserverPostRpc, proveStartProofRpc, proveCheckProofRpc, revokeRevokeSigsRpc, BTCRegisterBTCRpc} from '../constants/types/flow-types'
 import {bindActionCreators} from 'redux'
 import {constants as RpcConstants, proveCommon} from '../constants/types/keybase-v1'
@@ -79,8 +79,16 @@ function updatePlatform (platform: PlatformsExpandedType): UpdatePlatform {
   }
 }
 
+function _cleanupUsername (): CleanupUsername {
+  return {
+    type: Constants.cleanupUsername,
+    payload: undefined,
+  }
+}
+
 function submitUsername (): AsyncAction {
   return (dispatch, getState) => {
+    dispatch(_cleanupUsername())
     if (promptUsernameResponse) {
       dispatch(_updateErrorText(null))
       promptUsernameResponse.result(getState().profile.username)
@@ -155,6 +163,7 @@ function _registerBTC (): AsyncAction {
 
 function submitBTCAddress (): AsyncAction {
   return (dispatch, getState) => {
+    dispatch(_cleanupUsername())
     BTCRegisterBTCRpc({
       ..._makeWaitingHandler(dispatch),
       param: {
