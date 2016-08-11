@@ -16,7 +16,7 @@
         "__SCREENSHOT__": false
     },
     "plugins": [
-        "flow-vars", "mocha", "filenames", "babel", "import"
+        "flow-vars", "mocha", "filenames", "babel"
     ],
     "settings": {
         "import/core-modules": [ electron, react-native ],
@@ -32,14 +32,6 @@
         "flow-vars/define-flow-type": 1,
         "flow-vars/use-flow-type": 1,
         "jsx-quotes": [2, "prefer-single"],
-        "import/named": 2,
-        "import/export": 2,
-        "import/no-named-as-default": 2,
-        "import/no-named-as-default-member": 2,
-        "import/no-extraneous-dependencies": 2,
-        "import/no-mutable-exports": 2,
-        "import/imports-first": 2,
-        "import/no-duplicates": 2,
         "no-duplicate-imports": 0,
         "react/jsx-boolean-value": [2, "always"],
         "react/jsx-curly-spacing": 2,

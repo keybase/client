@@ -6,37 +6,7 @@ import {Box, Icon, Text, Button, Input, PlatformIcon} from '../common-adapters'
 import {constants} from '../constants/types/keybase-v1'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import openURL from '../util/open-url'
-
-function standardText (name) {
-  return {
-    headerText: `Prove your ${name} identity`,
-    floatingLabelText: `Your ${name} username`,
-  }
-}
-
-const platformText : {[key: PlatformsExpandedType]: {headerText: string, floatingLabelText?: string, hintText?: string}} = {
-  'twitter': standardText('Twitter'),
-  'reddit': standardText('Reddit'),
-  'github': standardText('GitHub'),
-  'coinbase': standardText('Coinbase'),
-  'hackernews': standardText('Hacker News'),
-  'btc': {
-    headerText: 'Set a Bitcoin address',
-    floatingLabelText: 'Your Bitcoin address',
-  },
-  'dns': {
-    headerText: 'Prove your domain',
-    hintText: 'yourdomain.com',
-  },
-  'http': {
-    headerText: 'Prove your website',
-    hintText: 'whatever.yoursite.com',
-  },
-  'https': {
-    headerText: 'Prove your website',
-    hintText: 'whatever.yoursite.com',
-  },
-}
+import {platformText} from './prove-enter-username.shared'
 
 function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
   if (platform === 'hackernews') {
