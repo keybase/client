@@ -38,8 +38,8 @@ function createClient (incomingRPCCallback: incomingRPCCallbackType, connectCall
   return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback))
 }
 
-function resetClient () {
-}
+// Resets are handled internally by framed-msg-pack
+function resetClient () { }
 
 export {
   resetClient,
