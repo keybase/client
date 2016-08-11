@@ -702,6 +702,54 @@ export type MerkleTreeID =
   | 1 // KBFS_PUBLIC_1
   | 2 // KBFS_PRIVATE_2
 
+export type Message = {
+  serverHeader: chat1.MessageServerHeader,
+  messagePlaintext: MessagePlaintext,
+}
+
+export type MessageAttachment = {
+  path: string,
+}
+
+export type MessageBody = {
+  type: MessageType,
+  text?: ?MessageText,
+  attachment?: ?MessageAttachment,
+  edit?: ?MessageEdit,
+  delete?: ?MessageDelete,
+  conversationMetadata?: ?MessageConversationMetadata,
+}
+
+export type MessageConversationMetadata = {
+  conversationTitle: string,
+}
+
+export type MessageDelete = {
+  messageID: chat1.MessageID,
+}
+
+export type MessageEdit = {
+  messageID: chat1.MessageID,
+  body: string,
+}
+
+export type MessagePlaintext = {
+  clientHeader: chat1.MessageClientHeader,
+  messageBodies?: ?Array<MessageBody>,
+}
+
+export type MessageText = {
+  body: string,
+}
+
+export type MessageType =
+    0 // NONE_0
+  | 1 // TEXT_1
+  | 2 // ATTACHMENT_2
+  | 3 // EDIT_3
+  | 4 // DELETE_4
+  | 5 // METADATA_5
+
 export type MetadataResponse = {
   folderID: string,
   mdBlocks?: ?Array<MDBlock>,
@@ -1349,6 +1397,11 @@ export type Text = {
   markup: boolean,
 }
 
+export type ThreadView = {
+  messages?: ?Array<Message>,
+  pagination?: ?chat1.Pagination,
+}
+
 export type Time = long
 
 export type TrackDiff = {
@@ -1676,6 +1729,56 @@ export function blockPutBlockRpc (request: $Exact<{
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'block.putBlock'})
+}
+export type chatLocalGetInboxLocalRpcParam = $Exact<{
+  pagination: (null | chat1.Pagination)
+}>
+
+type chatLocalGetInboxLocalResult = chat1.InboxView
+
+export function chatLocalGetInboxLocalRpc (request: $Exact<{
+  param: chatLocalGetInboxLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatLocalGetInboxLocalResult) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.getInboxLocal'})
+}
+export type chatLocalGetThreadLocalRpcParam = $Exact<{
+  conversationID: chat1.ConversationID,
+  pagination: (null | chat1.Pagination)
+}>
+
+type chatLocalGetThreadLocalResult = ThreadView
+
+export function chatLocalGetThreadLocalRpc (request: $Exact<{
+  param: chatLocalGetThreadLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatLocalGetThreadLocalResult) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.getThreadLocal'})
+}
+export type chatLocalNewConversationLocalRpcParam = $Exact<{
+  conversationTriple: chat1.ConversationIDTriple
+}>
+
+export function chatLocalNewConversationLocalRpc (request: $Exact<{
+  param: chatLocalNewConversationLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.newConversationLocal'})
+}
+export type chatLocalPostLocalRpcParam = $Exact<{
+  conversationID: chat1.ConversationID,
+  messagePlaintext: MessagePlaintext
+}>
+
+export function chatLocalPostLocalRpc (request: $Exact<{
+  param: chatLocalPostLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.postLocal'})
 }
 export type configClearValueRpcParam = $Exact<{
   path: string
@@ -3823,6 +3926,10 @@ export type rpc =
   | blockGetSessionChallengeRpc
   | blockGetUserQuotaInfoRpc
   | blockPutBlockRpc
+  | chatLocalGetInboxLocalRpc
+  | chatLocalGetThreadLocalRpc
+  | chatLocalNewConversationLocalRpc
+  | chatLocalPostLocalRpc
   | configCheckAPIServerOutOfDateWarningRpc
   | configClearValueRpc
   | configGetConfigRpc
@@ -4174,6 +4281,44 @@ export type incomingCallMapType = $Exact<{
       sessionID: int,
       address: string,
       force: boolean
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.chatLocal.getInboxLocal'?: (
+    params: $Exact<{
+      pagination: (null | chat1.Pagination)
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: chatLocalGetInboxLocalResult) => void
+    }
+  ) => void,
+  'keybase.1.chatLocal.getThreadLocal'?: (
+    params: $Exact<{
+      conversationID: chat1.ConversationID,
+      pagination: (null | chat1.Pagination)
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: chatLocalGetThreadLocalResult) => void
+    }
+  ) => void,
+  'keybase.1.chatLocal.postLocal'?: (
+    params: $Exact<{
+      conversationID: chat1.ConversationID,
+      messagePlaintext: MessagePlaintext
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.chatLocal.newConversationLocal'?: (
+    params: $Exact<{
+      conversationTriple: chat1.ConversationIDTriple
     }>,
     response: {
       error: (err: RPCError) => void,

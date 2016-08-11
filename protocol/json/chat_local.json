@@ -1,0 +1,227 @@
+{
+  "protocol": "chatLocal",
+  "imports": [
+    {
+      "path": "github.com/keybase/gregor/protocol/chat1",
+      "type": "idl",
+      "import_as": "chat1"
+    }
+  ],
+  "types": [
+    {
+      "type": "enum",
+      "name": "MessageType",
+      "symbols": [
+        "NONE_0",
+        "TEXT_1",
+        "ATTACHMENT_2",
+        "EDIT_3",
+        "DELETE_4",
+        "METADATA_5"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageText",
+      "fields": [
+        {
+          "type": "string",
+          "name": "body"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageConversationMetadata",
+      "fields": [
+        {
+          "type": "string",
+          "name": "conversationTitle"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageEdit",
+      "fields": [
+        {
+          "type": "chat1.MessageID",
+          "name": "messageID"
+        },
+        {
+          "type": "string",
+          "name": "body"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageDelete",
+      "fields": [
+        {
+          "type": "chat1.MessageID",
+          "name": "messageID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageAttachment",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageBody",
+      "fields": [
+        {
+          "type": "MessageType",
+          "name": "type"
+        },
+        {
+          "type": [
+            null,
+            "MessageText"
+          ],
+          "name": "text"
+        },
+        {
+          "type": [
+            null,
+            "MessageAttachment"
+          ],
+          "name": "attachment"
+        },
+        {
+          "type": [
+            null,
+            "MessageEdit"
+          ],
+          "name": "edit"
+        },
+        {
+          "type": [
+            null,
+            "MessageDelete"
+          ],
+          "name": "delete"
+        },
+        {
+          "type": [
+            null,
+            "MessageConversationMetadata"
+          ],
+          "name": "conversationMetadata"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessagePlaintext",
+      "fields": [
+        {
+          "type": "chat1.MessageClientHeader",
+          "name": "clientHeader"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageBody"
+          },
+          "name": "messageBodies"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Message",
+      "fields": [
+        {
+          "type": "chat1.MessageServerHeader",
+          "name": "serverHeader"
+        },
+        {
+          "type": "MessagePlaintext",
+          "name": "messagePlaintext"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ThreadView",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Message"
+          },
+          "name": "messages"
+        },
+        {
+          "type": [
+            null,
+            "chat1.Pagination"
+          ],
+          "name": "pagination"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "getInboxLocal": {
+      "request": [
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "chat1.Pagination"
+          ]
+        }
+      ],
+      "response": "chat1.InboxView"
+    },
+    "getThreadLocal": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "chat1.ConversationID"
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "chat1.Pagination"
+          ]
+        }
+      ],
+      "response": "ThreadView"
+    },
+    "postLocal": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "chat1.ConversationID"
+        },
+        {
+          "name": "messagePlaintext",
+          "type": "MessagePlaintext"
+        }
+      ],
+      "response": null
+    },
+    "newConversationLocal": {
+      "request": [
+        {
+          "name": "conversationTriple",
+          "type": "chat1.ConversationIDTriple"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}
