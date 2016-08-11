@@ -83,6 +83,63 @@ func VolumeName(name string) MountOption {
 	return volumeName(name)
 }
 
+// NoAppleDouble makes OSXFUSE disallow files with names used by OS X
+// to store extended attributes on file systems that do not support
+// them natively.
+//
+// Such file names are:
+//
+//     ._*
+//     .DS_Store
+//
+// OS X only.  Others ignore this option.
+func NoAppleDouble() MountOption {
+	return noAppleDouble
+}
+
+// NoAppleXattr makes OSXFUSE disallow extended attributes with the
+// prefix "com.apple.". This disables persistent Finder state and
+// other such information.
+//
+// OS X only.  Others ignore this option.
+func NoAppleXattr() MountOption {
+	return noAppleXattr
+}
+
+// ExclCreate causes O_EXCL flag to be set for only "truly" exclusive creates,
+// i.e. create calls for which the initiator explicitly set the O_EXCL flag.
+//
+// OSXFUSE expects all create calls to return EEXIST in case the file
+// already exists, regardless of whether O_EXCL was specified or not.
+// To ensure this behavior, it normally sets OpenExclusive for all
+// Create calls, regardless of whether the original call had it set.
+// For distributed filesystems, that may force every file create to be
+// a distributed consensus action, causing undesirable delays.
+//
+// This option makes the FUSE filesystem see the original flag value,
+// and better decide when to ensure global consensus.
+//
+// Note that returning EEXIST on existing file create is still
+// expected with OSXFUSE, regardless of the presence of the
+// OpenExclusive flag.
+//
+// For more information, see
+// https://github.com/osxfuse/osxfuse/issues/209
+//
+// OS X only. Others ignore this options.
+// Requires OSXFUSE 3.4.1 or newer.
+func ExclCreate() MountOption {
+	return exclCreate
+}
+
+// DaemonTimeout sets the time in seconds between a request and a reply before
+// the FUSE mount is declared dead.
+//
+// OS X and FreeBSD only. Others ignore this option.
+func DaemonTimeout(name string) MountOption {
+	return daemonTimeout(name)
+}
+
 var ErrCannotCombineAllowOtherAndAllowRoot = errors.New("cannot combine AllowOther and AllowRoot")
 
 // AllowOther allows other users to access the file system.
@@ -109,6 +166,24 @@ func AllowRoot() MountOption {
 			return ErrCannotCombineAllowOtherAndAllowRoot
 		}
 		conf.options["allow_root"] = ""
+		return nil
+	}
+}
+
+// AllowDev enables interpreting character or block special devices on the
+// filesystem.
+func AllowDev() MountOption {
+	return func(conf *mountConfig) error {
+		conf.options["dev"] = ""
+		return nil
+	}
+}
+
+// AllowSUID allows set-user-identifier or set-group-identifier bits to take
+// effect.
+func AllowSUID() MountOption {
+	return func(conf *mountConfig) error {
+		conf.options["suid"] = ""
 		return nil
 	}
 }
