@@ -3,9 +3,10 @@
 	"ignore": "test solaris",
 	"package": [
 		{
+			"checksumSHA1": "SYupvmlf7Gq3GEyIqp6Ll5j3xuM=",
 			"path": "bazil.org/fuse",
-			"revision": "a8bc3b86317dc95ed28fdefcebc1dbce8baa88e9",
-			"revisionTime": "2015-12-02T10:18:56-08:00"
+			"revision": "08e592e472ded97404acd4e03e9a9e46dfd57fab",
+			"revisionTime": "2016-08-11T21:01:40Z"
 		},
 		{
 			"path": "code.google.com/p/rsc/gf256",
