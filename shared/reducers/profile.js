@@ -2,6 +2,7 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/profile'
 import type {Actions, State} from '../constants/profile'
+import {parse as parseUrl} from 'url'
 
 const initialState: State = {
   errorText: null,
@@ -25,6 +26,16 @@ function checkUsernameValid (platform, username): boolean {
   return platform !== 'btc' ? true : checkBTC(username)
 }
 
+function cleanupUsername (platform, username): string {
+  if (['http', 'https'].includes(platform)) {
+    const urlParsed = parseUrl(username)
+    // Ensure that only the hostname is getting returned, with no
+    // protocal or path information
+    return urlParsed.hostname || username
+  }
+  return username
+}
+
 export default function (state: State = initialState, action: Actions) {
   switch (action.type) {
     case CommonConstants.resetStore:
@@ -37,7 +48,6 @@ export default function (state: State = initialState, action: Actions) {
       }
     case Constants.updatePlatform: {
       if (action.error) { break }
-
       const usernameValid = checkUsernameValid(action.payload.platform, state.username)
       return {
         ...state,
@@ -45,14 +55,22 @@ export default function (state: State = initialState, action: Actions) {
         usernameValid,
       }
     }
+
     case Constants.updateUsername: {
       if (action.error) { break }
-
       const usernameValid = checkUsernameValid(state.platform, action.payload.username)
       return {
         ...state,
         username: action.payload.username,
         usernameValid,
+      }
+    }
+    case Constants.cleanupUsername: {
+      if (action.error) { break }
+      const username = cleanupUsername(state.platform, state.username)
+      return {
+        ...state,
+        username,
       }
     }
     case Constants.waitingRevokeProof:
