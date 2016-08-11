@@ -154,7 +154,7 @@ class RemoteComponentLoader extends Component {
   render () {
     const Component = this.Component
     if (!this.state.loaded) {
-      return <div style={styles.loading}></div>
+      return <div style={styles.loading} />
     }
     if (this.state.unmounted) {
       return <div />
