@@ -282,6 +282,8 @@
   [KBPaperKeyDisplayView registerDisplay:self.client sessionId:request.sessionId navigation:self.navigation];
 
   [self.navigation setProgressEnabled:YES];
+  // TODO: Protocol changed
+  /*
   [request signupWithEmail:email inviteCode:self.inviteField.text passphrase:passphrase username:username deviceName:deviceName storeSecret:NO skipMail:NO completion:^(NSError *error, KBRSignupRes *res) {
     [self.navigation setProgressEnabled:NO];
     if ([KBActivity setError:error sender:self]) return;
@@ -298,6 +300,7 @@
     [self.delegate signupViewDidSignup:self];
     if (self.completion) self.completion(self);
   }];
+   */
 }
 
 @end

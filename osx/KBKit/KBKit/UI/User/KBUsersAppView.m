@@ -198,6 +198,8 @@
 
   _listProgressView.animating = YES;
   KBRUserRequest *trackingRequest = [[KBRUserRequest alloc] initWithClient:self.client];
+  // TODO: Protocol changed
+  /*
   [trackingRequest listTrackingWithFilter:nil completion:^(NSError *error, NSArray *userSummaries) {
     gself.listProgressView.animating = NO;
     if (error) {
@@ -207,6 +209,7 @@
     }
     [self setTracking:userSummaries update:update];
   }];
+   */
 
   [self trackersUsers:^(NSError *error, NSArray *userSummaries) {
     gself.listProgressView.animating = NO;

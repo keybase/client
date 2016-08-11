@@ -99,10 +99,13 @@
   NSAssert(proofResult.proof.sigID, @"No proof sigId");
   [KBActivity setProgressEnabled:YES sender:self];
   KBRRevokeRequest *request = [[KBRRevokeRequest alloc] initWithClient:self.client];
+  // TODO: Protocol changed
+  /*
   [request revokeSigsWithSigIDs:@[proofResult.proof.sigID] completion:^(NSError *error) {
     [KBActivity setProgressEnabled:NO sender:self];
     completion(error);
   }];
+   */
 }
 
 @end
