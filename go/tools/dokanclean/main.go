@@ -71,6 +71,11 @@ func doUninstallAction(uninst string, list bool) int {
 	return retval
 }
 
+func removeKeybaseStartupShortcuts() {
+	os.Remove(os.ExpandEnv("$APPDATA\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\GUIStartup.lnk"))
+	os.Remove(os.ExpandEnv("$APPDATA\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KeybaseStartup.lnk"))
+}
+
 // Read all the uninstall subkeys and find the ones with DisplayName starting with "Dokan Library".
 // If not just listing, execute each uninstaller we find and merge return codes.
 func findDokanUninstall(list bool, wow64 bool) (result int) {
@@ -122,5 +127,8 @@ func main() {
 
 	code := findDokanUninstall(*listPtr, false)
 	code = mergeResults(code, findDokanUninstall(*listPtr, true))
+	if !*listPtr {
+		removeKeybaseStartupShortcuts()
+	}
 	os.Exit(code)
 }
