@@ -6,4 +6,5 @@ protocol NotifyFS {
   @notify("")
   void FSActivity(FSNotification notification);
 
+  void FSEditListResponse(array<FSNotification> edits, int requestID) oneway;
 }

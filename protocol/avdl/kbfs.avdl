@@ -20,4 +20,9 @@ protocol kbfs {
         */
   void FSEvent(FSNotification event);
 
+  /**
+    kbfs calls this as a response to receiving an FSEditListRequest with a
+    given requestID.
+        */
+  void FSEditList(array<FSNotification> edits, int requestID);
 }

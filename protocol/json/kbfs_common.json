@@ -21,7 +21,11 @@
         "VERIFYING_3",
         "REKEYING_4",
         "CONNECTION_5",
-        "MD_READ_SUCCESS_6"
+        "MD_READ_SUCCESS_6",
+        "FILE_CREATED_7",
+        "FILE_MODIFIED_8",
+        "FILE_DELETED_9",
+        "FILE_RENAMED_10"
       ]
     },
     {
@@ -75,6 +79,28 @@
             "values": "string"
           },
           "name": "params"
+        },
+        {
+          "type": "UID",
+          "name": "writerUid"
+        },
+        {
+          "type": "Time",
+          "name": "localTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FSEditListRequest",
+      "fields": [
+        {
+          "type": "Folder",
+          "name": "folder"
+        },
+        {
+          "type": "int",
+          "name": "requestID"
         }
       ]
     }
