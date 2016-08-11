@@ -143,10 +143,7 @@ function _updateSigID (sigID: SigID): UpdateSigID {
 
 function _askTextOrDNS (): AsyncAction {
   return (dispatch) => {
-    const replace = 'dns'
-    console.warn(`TEMP hardcoded to using ${replace} proof for all web`)
-    // really show the screen then have that do addProof
-    dispatch(addProof(replace)) // TEMP hardcoded
+    dispatch(navigateTo([{path: 'ProveWebsiteChoice'}], profileTab))
   }
 }
 

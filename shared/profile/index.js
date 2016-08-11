@@ -3,6 +3,7 @@ import ConfirmOrPending from './confirm-or-pending-container'
 import EditProfile from './edit-profile'
 import PostProof from './post-proof-container'
 import ProveEnterUsername from './prove-enter-username-container'
+import ProveWebsiteChoice from './prove-website-choice-container'
 import React, {Component} from 'react'
 import Render from './render'
 import Revoke from './revoke-container'
@@ -40,6 +41,7 @@ class Profile extends Component<void, ?Props, void> {
       subRoutes: {
         'editprofile': EditProfile,
         ProveEnterUsername,
+        ProveWebsiteChoice,
         Revoke,
         PostProof,
         ConfirmOrPending,
