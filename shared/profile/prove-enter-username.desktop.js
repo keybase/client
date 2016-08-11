@@ -81,6 +81,9 @@ class Render extends Component<void, Props, State> {
   }
 
   handleUsernameChange (username: string) {
+    if (this.props.onUsernameChange) {
+      this.props.onUsernameChange(username)
+    }
     this.setState({username})
   }
 
