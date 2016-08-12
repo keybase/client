@@ -21,6 +21,8 @@ type CoinbaseChecker struct {
 	proof libkb.RemoteProofChainLink
 }
 
+var _ libkb.ProofChecker = (*CoinbaseChecker)(nil)
+
 func NewCoinbaseChecker(p libkb.RemoteProofChainLink) (*CoinbaseChecker, libkb.ProofError) {
 	return &CoinbaseChecker{p}, nil
 }

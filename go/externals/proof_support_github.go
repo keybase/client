@@ -20,6 +20,8 @@ type GithubChecker struct {
 	proof libkb.RemoteProofChainLink
 }
 
+var _ libkb.ProofChecker = (*GithubChecker)(nil)
+
 func NewGithubChecker(p libkb.RemoteProofChainLink) (*GithubChecker, libkb.ProofError) {
 	return &GithubChecker{p}, nil
 }

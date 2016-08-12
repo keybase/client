@@ -21,6 +21,8 @@ type TwitterChecker struct {
 	proof libkb.RemoteProofChainLink
 }
 
+var _ libkb.ProofChecker = (*TwitterChecker)(nil)
+
 func NewTwitterChecker(p libkb.RemoteProofChainLink) (*TwitterChecker, libkb.ProofError) {
 	return &TwitterChecker{p}, nil
 }

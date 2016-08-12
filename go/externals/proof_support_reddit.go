@@ -21,6 +21,8 @@ type RedditChecker struct {
 	proof libkb.RemoteProofChainLink
 }
 
+var _ libkb.ProofChecker = (*RedditChecker)(nil)
+
 const (
 	RedditPrefix = "https://www.reddit.com"
 	RedditSub    = RedditPrefix + "/r/keybaseproofs"

@@ -20,6 +20,8 @@ type HackerNewsChecker struct {
 	proof libkb.RemoteProofChainLink
 }
 
+var _ libkb.ProofChecker = (*HackerNewsChecker)(nil)
+
 func (h *HackerNewsChecker) GetTorError() libkb.ProofError { return nil }
 
 func APIBase(un string) string {

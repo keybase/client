@@ -23,6 +23,8 @@ type RooterChecker struct {
 	proof libkb.RemoteProofChainLink
 }
 
+var _ libkb.ProofChecker = (*RooterChecker)(nil)
+
 func NewRooterChecker(p libkb.RemoteProofChainLink) (*RooterChecker, libkb.ProofError) {
 	return &RooterChecker{p}, nil
 }

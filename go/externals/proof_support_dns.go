@@ -20,6 +20,8 @@ type DNSChecker struct {
 	proof libkb.RemoteProofChainLink
 }
 
+var _ libkb.ProofChecker = (*DNSChecker)(nil)
+
 func NewDNSChecker(p libkb.RemoteProofChainLink) (*DNSChecker, libkb.ProofError) {
 	return &DNSChecker{p}, nil
 }
