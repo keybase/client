@@ -236,7 +236,7 @@ func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 	var lastErr error
 	for i := 0; i < 10; i++ {
 		// get the paper key from the user
-		kp, err := getPaperKey(e.G(), ctx)
+		kp, err := getPaperKey(e.G(), ctx, lastErr)
 		if err != nil {
 			e.G().Log.Debug("getValidPaperKey attempt %d: %s", i, err)
 			if _, ok := err.(libkb.InputCanceledError); ok {
@@ -831,8 +831,8 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 }
 
 // This is used by SaltpackDecrypt as well.
-func getPaperKey(g *libkb.GlobalContext, ctx *Context) (*keypair, error) {
-	passphrase, err := libkb.GetPaperKeyPassphrase(g, ctx.SecretUI, "")
+func getPaperKey(g *libkb.GlobalContext, ctx *Context, lastErr error) (*keypair, error) {
+	passphrase, err := libkb.GetPaperKeyPassphrase(g, ctx.SecretUI, "", lastErr)
 	if err != nil {
 		return nil, err
 	}
