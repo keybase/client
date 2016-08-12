@@ -5,7 +5,6 @@ import type {IconType} from '../common-adapters/icon.constants'
 import type {Props} from './post-proof'
 import {Text, Box, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import {resolve as urlResolve} from 'url'
 import {subtitle} from '../util/platforms'
 
 type MoreProps = {
@@ -85,7 +84,7 @@ export function propsForPlatform (props: Props): MoreProps {
     case 'http':
     case 'https':
       const root = `${props.platform}://${props.platformUserName}`
-      const [urlRoot, urlWellKnown] = ['/keybase.txt', '/.well-known/keybase.txt'].map(file => urlResolve(root, file))
+      const [urlRoot, urlWellKnown] = ['/keybase.txt', '/.well-known/keybase.txt'].map(file => root + file)
 
       return {
         ...base,
