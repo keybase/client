@@ -428,7 +428,9 @@ func (e MDJournalConflictError) Error() string {
 // put verifies and stores the given RootMetadata in the journal,
 // modifying it as needed. In particular, if this is an unmerged
 // RootMetadata but the branch ID isn't set, it will be set to the
-// journal's branch ID, which is assumed to be non-zero.
+// journal's branch ID, which is assumed to be non-zero. As a special
+// case, if the revision of the given RootMetadata matches that of the
+// head, the given RootMetadata will replace the head.
 func (j *mdJournal) put(
 	ctx context.Context, signer cryptoSigner, ekg encryptionKeyGetter,
 	rmd *RootMetadata, currentUID keybase1.UID,
@@ -494,10 +496,12 @@ func (j *mdJournal) put(
 		}
 
 		// Consistency checks
-		err = head.CheckValidSuccessorForServer(
-			head.mdID, &rmd.BareRootMetadata)
-		if err != nil {
-			return MdID{}, err
+		if rmd.Revision != head.Revision {
+			err = head.CheckValidSuccessorForServer(
+				head.mdID, &rmd.BareRootMetadata)
+			if err != nil {
+				return MdID{}, err
+			}
 		}
 	}
 
@@ -513,9 +517,20 @@ func (j *mdJournal) put(
 		return MdID{}, err
 	}
 
-	err = j.j.append(brmd.Revision, id)
-	if err != nil {
-		return MdID{}, err
+	if head != (ImmutableBareRootMetadata{}) &&
+		rmd.Revision == head.Revision {
+		j.log.CDebugf(
+			ctx, "Replacing head MD for TLF=%s with rev=%s bid=%s",
+			rmd.ID, rmd.Revision, rmd.BID)
+		err = j.j.replaceHead(id)
+		if err != nil {
+			return MdID{}, err
+		}
+	} else {
+		err = j.j.append(brmd.Revision, id)
+		if err != nil {
+			return MdID{}, err
+		}
 	}
 
 	// Since the journal is now non-empty, clear these fields.

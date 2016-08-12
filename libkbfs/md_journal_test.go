@@ -134,6 +134,43 @@ func TestMDJournalBasic(t *testing.T) {
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 }
 
+func TestMDJournalReplaceHead(t *testing.T) {
+	_, _, uid, id, h, signer, verifyingKey, ekg, tempdir, j :=
+		setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	// Push some new metadata blocks.
+
+	ctx := context.Background()
+
+	firstRevision := MetadataRevision(10)
+	firstPrevRoot := fakeMdID(1)
+	mdCount := 3
+
+	prevRoot := firstPrevRoot
+	for i := 0; i < mdCount; i++ {
+		revision := firstRevision + MetadataRevision(i)
+		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
+		mdID, err := j.put(ctx, signer, ekg, md, uid, verifyingKey)
+		md.DiskUsage = 500
+		require.NoError(t, err)
+		prevRoot = mdID
+	}
+
+	// Should just replace the head.
+
+	revision := firstRevision + MetadataRevision(mdCount) - 1
+	md := makeMDForTest(t, id, h, revision, uid, prevRoot)
+	md.DiskUsage = 501
+	_, err := j.put(ctx, signer, ekg, md, uid, verifyingKey)
+	require.NoError(t, err)
+
+	head, err := j.getHead(uid)
+	require.NoError(t, err)
+	require.Equal(t, md.Revision, head.Revision)
+	require.Equal(t, md.DiskUsage, head.DiskUsage)
+}
+
 func TestMDJournalBranchConversion(t *testing.T) {
 	codec, crypto, uid, id, h, signer, verifyingKey, ekg, tempdir, j :=
 		setupMDJournalTest(t)

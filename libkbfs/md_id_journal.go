@@ -17,6 +17,9 @@ import (
 // other stuff besides metadata puts. But doing so would be difficult,
 // since then we would require the ordinals to be something other than
 // MetadataRevisions.
+//
+// TODO: Write unit tests for this. For now, we're relying on
+// md_journal.go's unit tests.
 type mdIDJournal struct {
 	j diskJournal
 }
@@ -161,6 +164,14 @@ func (j mdIDJournal) getRange(
 		mdIDs = append(mdIDs, mdID)
 	}
 	return start, mdIDs, nil
+}
+
+func (j mdIDJournal) replaceHead(mdID MdID) error {
+	o, err := j.j.readLatestOrdinal()
+	if err != nil {
+		return err
+	}
+	return j.j.writeJournalEntry(o, mdID)
 }
 
 func (j mdIDJournal) append(r MetadataRevision, mdID MdID) error {

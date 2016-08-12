@@ -862,6 +862,10 @@ func (fbo *folderBranchOps) getMDForReadNeedIdentify(
 	return fbo.getMDForReadHelper(ctx, lState, mdReadNeedIdentify)
 }
 
+// getMDForWriteLocked returns a new RootMetadata object with an
+// incremented version number for modification. If the returned object
+// is put to the MDServer (via MDOps), mdWriterLock must be held until
+// then. (See comments for mdWriterLock above.)
 func (fbo *folderBranchOps) getMDForWriteLocked(
 	ctx context.Context, lState *lockState) (*RootMetadata, error) {
 	fbo.mdWriterLock.AssertLocked(lState)
