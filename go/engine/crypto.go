@@ -15,7 +15,7 @@ import (
 // for this user.
 var getKeyMu sync.Mutex
 
-func getMySecretKey(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
+func GetMySecretKey(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, secretKeyType libkb.SecretKeyType, reason string) (libkb.GenericKey, error) {
 
 	g.Log.Debug("getMySecretKey: acquiring lock")
 	getKeyMu.Lock()
@@ -58,7 +58,7 @@ func getMySecretKey(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, s
 // SignED25519 signs the given message with the current user's private
 // signing key.
 func SignED25519(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.SignED25519Arg) (ret keybase1.ED25519SignatureInfo, err error) {
-	signingKey, err := getMySecretKey(g, getSecretUI, libkb.DeviceSigningKeyType, arg.Reason)
+	signingKey, err := GetMySecretKey(g, getSecretUI, libkb.DeviceSigningKeyType, arg.Reason)
 	if err != nil {
 		return
 	}
@@ -81,7 +81,7 @@ func SignED25519(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg 
 // SignToString signs the given message with the current user's private
 // signing key and outputs the serialized NaclSigInfo string.
 func SignToString(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.SignToStringArg) (sig string, err error) {
-	signingKey, err := getMySecretKey(g, getSecretUI, libkb.DeviceSigningKeyType, arg.Reason)
+	signingKey, err := GetMySecretKey(g, getSecretUI, libkb.DeviceSigningKeyType, arg.Reason)
 	if err != nil {
 		return
 	}
@@ -99,7 +99,7 @@ func SignToString(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg
 // UnboxBytes32 decrypts the given message with the current user's
 // private encryption key and the given nonce and peer public key.
 func UnboxBytes32(g *libkb.GlobalContext, getSecretUI func() libkb.SecretUI, arg keybase1.UnboxBytes32Arg) (bytes32 keybase1.Bytes32, err error) {
-	encryptionKey, err := getMySecretKey(g, getSecretUI, libkb.DeviceEncryptionKeyType, arg.Reason)
+	encryptionKey, err := GetMySecretKey(g, getSecretUI, libkb.DeviceEncryptionKeyType, arg.Reason)
 	if err != nil {
 		return
 	}

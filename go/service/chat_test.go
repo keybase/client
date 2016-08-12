@@ -35,12 +35,12 @@ func TestChatMessageBox(t *testing.T) {
 	key := cryptKey(t)
 	msg := textMsg("hello")
 	handler := &chatLocalHandler{}
-	boxed, err := handler.sealMessageWithKey(msg, key)
+	boxed, err := handler.boxMessageWithKey(msg, key)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if len(boxed.BodyCiphertext.E) == 0 {
-		t.Error("after sealMessage, BodyCipherText.E is empty")
+		t.Error("after boxMessage, BodyCipherText.E is empty")
 	}
 }
 
@@ -49,7 +49,7 @@ func TestChatMessageUnbox(t *testing.T) {
 	text := "hi"
 	msg := textMsg(text)
 	handler := &chatLocalHandler{}
-	boxed, err := handler.sealMessageWithKey(msg, key)
+	boxed, err := handler.boxMessageWithKey(msg, key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -73,5 +73,40 @@ func TestChatMessageUnbox(t *testing.T) {
 	}
 	if body.Text.Body != text {
 		t.Errorf("body text: %q, expected %q", body.Text.Body, text)
+	}
+}
+
+func TestChatMessageSigned(t *testing.T) {
+	key := cryptKey(t)
+	msg := textMsg("sign me")
+	handler := &chatLocalHandler{}
+	boxed, err := handler.boxMessageWithKey(msg, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	kp, err := libkb.GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := handler.signMessageBoxed(&boxed, kp); err != nil {
+		t.Fatal(err)
+	}
+	if boxed.HeaderSignature.V != 1 {
+		t.Errorf("HeaderSignature.V = %d, expected 1", boxed.HeaderSignature.V)
+	}
+	if len(boxed.HeaderSignature.S) == 0 {
+		t.Error("after signMessageBoxed, HeaderSignature.S is empty")
+	}
+	if len(boxed.HeaderSignature.K) == 0 {
+		t.Error("after signMessageBoxed, HeaderSignature.K is empty")
+	}
+	if boxed.BodySignature.V != 1 {
+		t.Errorf("BodySignature.V = %d, expected 1", boxed.BodySignature.V)
+	}
+	if len(boxed.BodySignature.S) == 0 {
+		t.Error("after signMessageBoxed, BodySignature.S is empty")
+	}
+	if len(boxed.BodySignature.K) == 0 {
+		t.Error("after signMessageBoxed, BodySignature.K is empty")
 	}
 }
