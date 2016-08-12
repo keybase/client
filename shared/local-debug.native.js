@@ -39,9 +39,6 @@ if (__DEV__ && true) {
     [Tabs.settingsTab]: ['devMenu', 'dumbSheet'],
   }
   config.overrideLoggedInTab = Tabs.settingsTab
-  config.dumbFilter = ''
-  config.dumbIndex = 0
-  config.dumbFullscreen = false
   config.printRoutes = true
 }
 
