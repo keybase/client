@@ -56,7 +56,7 @@ func (a JournalAction) Execute(
 		}
 
 	case JournalDisable:
-		err := jServer.Disable(tlf)
+		err := jServer.Disable(ctx, tlf)
 		if err != nil {
 			return err
 		}

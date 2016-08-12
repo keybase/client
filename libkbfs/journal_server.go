@@ -6,6 +6,8 @@ package libkbfs
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -70,12 +72,59 @@ func (j *JournalServer) getBundle(tlfID TlfID) (*tlfJournalBundle, bool) {
 	return bundle, ok
 }
 
-// Enable turns on the write journal for the given TLF.
-func (j *JournalServer) Enable(ctx context.Context, tlfID TlfID) (err error) {
-	j.log.Debug("Enabling journal for %s", tlfID)
+// EnableExistingJournals turns on the write journal for all TLFs with
+// an existing journal. This must be the first thing done to a
+// JournalServer. Any returned error is fatal, and means that the
+// JournalServer must not be used.
+func (j *JournalServer) EnableExistingJournals(
+	ctx context.Context) (err error) {
+	j.log.CDebugf(ctx, "Enabling existing journals")
 	defer func() {
 		if err != nil {
-			j.deferLog.Debug(
+			j.deferLog.CDebugf(ctx,
+				"Error when enabling existing journals: %v",
+				err)
+		}
+	}()
+
+	fileInfos, err := ioutil.ReadDir(j.dir)
+	if os.IsNotExist(err) {
+		return nil
+	} else if err != nil {
+		return err
+	}
+
+	for _, fi := range fileInfos {
+		name := fi.Name()
+		if !fi.IsDir() {
+			j.log.CDebugf(ctx, "Skipping file %q", name)
+			continue
+		}
+		tlfID, err := ParseTlfID(fi.Name())
+		if err != nil {
+			j.log.CDebugf(ctx, "Skipping non-TLF dir %q", name)
+			continue
+		}
+
+		err = j.Enable(ctx, tlfID)
+		if err != nil {
+			// Don't treat per-TLF errors as fatal.
+			j.log.CWarningf(
+				ctx, "Error when enabling existing journal for %s: %v",
+				tlfID, err)
+			continue
+		}
+	}
+
+	return nil
+}
+
+// Enable turns on the write journal for the given TLF.
+func (j *JournalServer) Enable(ctx context.Context, tlfID TlfID) (err error) {
+	j.log.CDebugf(ctx, "Enabling journal for %s", tlfID)
+	defer func() {
+		if err != nil {
+			j.deferLog.CDebugf(ctx,
 				"Error when enabling journal for %s: %v",
 				tlfID, err)
 		}
@@ -85,12 +134,12 @@ func (j *JournalServer) Enable(ctx context.Context, tlfID TlfID) (err error) {
 	defer j.lock.Unlock()
 	_, ok := j.tlfBundles[tlfID]
 	if ok {
-		j.log.Debug("Journal already enabled for %s", tlfID)
+		j.log.CDebugf(ctx, "Journal already enabled for %s", tlfID)
 		return nil
 	}
 
 	tlfDir := filepath.Join(j.dir, tlfID.String())
-	j.log.Debug("Enabled journal for %s with path %s", tlfID, tlfDir)
+	j.log.CDebugf(ctx, "Enabled journal for %s with path %s", tlfID, tlfDir)
 
 	log := j.config.MakeLogger("")
 	bundle := &tlfJournalBundle{}
@@ -110,12 +159,12 @@ func (j *JournalServer) Enable(ctx context.Context, tlfID TlfID) (err error) {
 
 // Flush flushes the write journal for the given TLF.
 func (j *JournalServer) Flush(ctx context.Context, tlfID TlfID) (err error) {
-	j.log.Debug("Flushing journal for %s", tlfID)
+	j.log.CDebugf(ctx, "Flushing journal for %s", tlfID)
 	flushedBlockEntries := 0
 	flushedMDEntries := 0
 	defer func() {
 		if err != nil {
-			j.deferLog.Debug(
+			j.deferLog.CDebugf(ctx,
 				"Flushed %d block entries and %d MD entries "+
 					"for %s, but got error %v",
 				flushedBlockEntries, flushedMDEntries,
@@ -124,7 +173,7 @@ func (j *JournalServer) Flush(ctx context.Context, tlfID TlfID) (err error) {
 	}()
 	bundle, ok := j.getBundle(tlfID)
 	if !ok {
-		j.log.Debug("Journal not enabled for %s", tlfID)
+		j.log.CDebugf(ctx, "Journal not enabled for %s", tlfID)
 		return nil
 	}
 
@@ -176,18 +225,18 @@ func (j *JournalServer) Flush(ctx context.Context, tlfID TlfID) (err error) {
 		flushedMDEntries++
 	}
 
-	j.log.Debug("Flushed %d block entries and %d MD entries for %s",
+	j.log.CDebugf(ctx, "Flushed %d block entries and %d MD entries for %s",
 		flushedBlockEntries, flushedMDEntries, tlfID)
 
 	return nil
 }
 
 // Disable turns off the write journal for the given TLF.
-func (j *JournalServer) Disable(tlfID TlfID) (err error) {
-	j.log.Debug("Disabling journal for %s", tlfID)
+func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (err error) {
+	j.log.CDebugf(ctx, "Disabling journal for %s", tlfID)
 	defer func() {
 		if err != nil {
-			j.deferLog.Debug(
+			j.deferLog.CDebugf(ctx,
 				"Error when disabling journal for %s: %v",
 				tlfID, err)
 		}
@@ -197,7 +246,7 @@ func (j *JournalServer) Disable(tlfID TlfID) (err error) {
 	defer j.lock.Unlock()
 	bundle, ok := j.tlfBundles[tlfID]
 	if !ok {
-		j.log.Debug("Journal already disabled for %s", tlfID)
+		j.log.CDebugf(ctx, "Journal already disabled for %s", tlfID)
 		return nil
 	}
 
@@ -221,7 +270,7 @@ func (j *JournalServer) Disable(tlfID TlfID) (err error) {
 		return fmt.Errorf("Journal still has %d MD entries", length)
 	}
 
-	j.log.Debug("Disabled journal for %s", tlfID)
+	j.log.CDebugf(ctx, "Disabled journal for %s", tlfID)
 
 	delete(j.tlfBundles, tlfID)
 	return nil
