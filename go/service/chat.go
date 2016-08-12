@@ -94,8 +94,8 @@ func (h *chatLocalHandler) unboxMessage(ctx context.Context, msg chat1.MessageBo
 		},
 	}
 
-	tlfID := msg.ClientHeader.Conv.Tlfid
-	keys, err := h.tlfKeys(ctx, tlfID)
+	tlfName := msg.ClientHeader.TlfName
+	keys, err := h.tlfKeys(ctx, tlfName)
 	if err != nil {
 		return keybase1.Message{}, err
 	}
@@ -114,6 +114,6 @@ func (h *chatLocalHandler) unboxMessage(ctx context.Context, msg chat1.MessageBo
 	return unboxed, nil
 }
 
-func (h *chatLocalHandler) tlfKeys(ctx context.Context, tlfID chat1.TLFID) (keybase1.TLFCryptKeys, error) {
-	return keybase1.TLFCryptKeys{}, nil
+func (h *chatLocalHandler) tlfKeys(ctx context.Context, tlfName string) (keybase1.TLFCryptKeys, error) {
+	return h.tlfh.CryptKeys(ctx, tlfName)
 }
