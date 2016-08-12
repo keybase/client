@@ -1,0 +1,23 @@
+{
+  "protocol": "NotifyFSRequest",
+  "imports": [
+    {
+      "path": "kbfs_common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "FSEditListRequest": {
+      "request": [
+        {
+          "name": "req",
+          "type": "FSEditListRequest"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    }
+  },
+  "namespace": "keybase.1"
+}
