@@ -95,6 +95,8 @@ const (
 	LocalTrackMaxAge = 48 * time.Hour
 )
 
+const RemoteIdentifyUITimeout = 5 * time.Second
+
 var MerkleProdKIDs = []string{
 	"010159baae6c7d43c66adf8fb7bb2b8b4cbe408c062cfc369e693ccb18f85631dbcd0a",
 }
@@ -294,8 +296,17 @@ var RemoteServiceOrder = []keybase1.ProofType{
 const CanonicalHost = "keybase.io"
 
 const (
-	HTTPDefaultTimeout = 60 * time.Second
-	HTTPPollMaximum    = 5 * time.Second
+	HTTPDefaultTimeout        = 60 * time.Second
+	HTTPDefaultScraperTimeout = 10 * time.Second
+	HTTPPollMaximum           = 5 * time.Second
+)
+
+// The following constants apply to APIArg parameters for
+// critical idempotent API calls
+const (
+	HTTPRetryInitialTimeout = 1 * time.Second
+	HTTPRetryMutliplier     = 1.5
+	HTTPRetryCount          = 6
 )
 
 // Packet tags for OpenPGP and also Keybase packets

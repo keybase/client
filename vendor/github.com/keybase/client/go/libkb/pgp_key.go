@@ -642,6 +642,8 @@ func (k PGPKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id keybase
 	if ps, err = PGPOpenSig(sig); err != nil {
 		return
 	} else if err = ps.Verify(k); err != nil {
+		k.G().Log.Debug("Failing key----------\n%s", k.ArmoredPublicKey)
+		k.G().Log.Debug("Failing sig----------\n%s", sig)
 		return
 	}
 	msg = ps.LiteralData

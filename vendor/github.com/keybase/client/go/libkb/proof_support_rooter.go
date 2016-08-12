@@ -28,10 +28,10 @@ func NewRooterChecker(p RemoteProofChainLink) (*RooterChecker, ProofError) {
 
 func (rc *RooterChecker) GetTorError() ProofError { return nil }
 
-func (rc *RooterChecker) CheckHint(h SigHint) (err ProofError) {
-	G.Log.Debug("+ Rooter check hint: %v", h)
+func (rc *RooterChecker) CheckHint(g *GlobalContext, h SigHint) (err ProofError) {
+	g.Log.Debug("+ Rooter check hint: %v", h)
 	defer func() {
-		G.Log.Debug("- Rooter check hint: %v", err)
+		g.Log.Debug("- Rooter check hint: %v", err)
 	}()
 
 	u, perr := url.Parse(strings.ToLower(h.apiURL))
@@ -104,12 +104,12 @@ func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, ProofError) {
 
 }
 
-func (rc *RooterChecker) rewriteURL(s string) (string, error) {
+func (rc *RooterChecker) rewriteURL(g *GlobalContext, s string) (string, error) {
 	u1, err := url.Parse(s)
 	if err != nil {
 		return "", err
 	}
-	u2, err := url.Parse(G.Env.GetServerURI())
+	u2, err := url.Parse(g.Env.GetServerURI())
 	if err != nil {
 		return "", err
 	}
@@ -124,23 +124,21 @@ func (rc *RooterChecker) rewriteURL(s string) (string, error) {
 	return u3.String(), nil
 }
 
-func (rc *RooterChecker) CheckStatus(h SigHint) (perr ProofError) {
+func (rc *RooterChecker) CheckStatus(g *GlobalContext, h SigHint) (perr ProofError) {
 
-	G.Log.Debug("+ Checking rooter at API=%s", h.apiURL)
+	g.Log.Debug("+ Checking rooter at API=%s", h.apiURL)
 	defer func() {
-		G.Log.Debug("- Rooter -> %v", perr)
+		g.Log.Debug("- Rooter -> %v", perr)
 	}()
 
-	url, err := rc.rewriteURL(h.apiURL)
+	url, err := rc.rewriteURL(g, h.apiURL)
 	if err != nil {
 		return XapiError(err, url)
 	}
-	G.Log.Debug("| URL after rewriter is: %s", url)
+	g.Log.Debug("| URL after rewriter is: %s", url)
 
-	res, err := G.XAPI.Get(APIArg{
-		Endpoint:    url,
-		NeedSession: false,
-	})
+	res, err := g.XAPI.Get(NewAPIArg(g, url))
+
 	if err != nil {
 		perr = XapiError(err, url)
 		return perr
@@ -170,14 +168,10 @@ func (t RooterServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t RooterServiceType) NormalizeRemoteName(s string) (string, error) {
+func (t RooterServiceType) NormalizeRemoteName(g *GlobalContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
-}
-
-func (t RooterServiceType) ToChecker() Checker {
-	return t.BaseToChecker(t, "alphanumeric, up to 20 characters")
 }
 
 func (t RooterServiceType) GetPrompt() string {

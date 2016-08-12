@@ -31,7 +31,7 @@ func NewRedditChecker(p RemoteProofChainLink) (*RedditChecker, ProofError) {
 
 func (rc *RedditChecker) GetTorError() ProofError { return nil }
 
-func (rc *RedditChecker) CheckHint(h SigHint) ProofError {
+func (rc *RedditChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
 	if strings.HasPrefix(strings.ToLower(h.apiURL), RedditSub) {
 		return nil
 	}
@@ -108,11 +108,8 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 	return nil
 }
 
-func (rc *RedditChecker) CheckStatus(h SigHint) ProofError {
-	res, err := G.XAPI.Get(APIArg{
-		Endpoint:    h.apiURL,
-		NeedSession: false,
-	})
+func (rc *RedditChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
+	res, err := g.XAPI.Get(NewAPIArg(g, h.apiURL))
 	if err != nil {
 		return XapiError(err, h.apiURL)
 	}
@@ -160,12 +157,8 @@ func (t RedditServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t RedditServiceType) NormalizeRemoteName(s string) (ret string, err error) {
+func (t RedditServiceType) NormalizeRemoteName(g *GlobalContext, s string) (ret string, err error) {
 	return t.NormalizeUsername(s)
-}
-
-func (t RedditServiceType) ToChecker() Checker {
-	return t.BaseToChecker(t, "alphanumeric, up to 20 characters")
 }
 
 func (t RedditServiceType) GetTypeName() string { return "reddit" }

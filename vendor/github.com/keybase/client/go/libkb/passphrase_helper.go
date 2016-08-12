@@ -31,7 +31,7 @@ func GetSecret(g *GlobalContext, ui SecretUI, title, prompt, retryMsg string, al
 	return GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
 }
 
-func GetPaperKeyPassphrase(g *GlobalContext, ui SecretUI, username string) (string, error) {
+func GetPaperKeyPassphrase(g *GlobalContext, ui SecretUI, username string, lastErr error) (string, error) {
 	arg := DefaultPassphraseArg(g, false)
 	arg.WindowTitle = "Paper Key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
@@ -44,6 +44,9 @@ func GetPaperKeyPassphrase(g *GlobalContext, ui SecretUI, username string) (stri
 	arg.Features.StoreSecret.Readonly = true
 	arg.Features.ShowTyping.Allow = true
 	arg.Features.ShowTyping.DefaultValue = true
+	if lastErr != nil {
+		arg.RetryLabel = lastErr.Error()
+	}
 	res, err := GetPassphraseUntilCheck(g, arg, newUIPrompter(ui), &PaperChecker{})
 	if err != nil {
 		return "", err

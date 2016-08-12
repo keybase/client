@@ -619,7 +619,7 @@ func (e *Env) GetAPITimeout() time.Duration {
 }
 
 func (e *Env) GetScraperTimeout() time.Duration {
-	return e.GetDuration(HTTPDefaultTimeout,
+	return e.GetDuration(HTTPDefaultScraperTimeout,
 		func() (time.Duration, bool) { return e.cmd.GetScraperTimeout() },
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_SCRAPER_TIMEOUT") },
 		func() (time.Duration, bool) { return e.config.GetScraperTimeout() },

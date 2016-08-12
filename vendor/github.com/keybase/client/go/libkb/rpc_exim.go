@@ -342,7 +342,7 @@ func ImportStatusAsError(s *keybase1.Status) error {
 	case SCDecryptionError:
 		return DecryptionError{}
 	case SCKeyRevoked:
-		return KeyRevokedError{}
+		return KeyRevokedError{msg: s.Desc}
 	case SCGenericAPIError:
 		var code int
 		for _, field := range s.Fields {
@@ -1191,7 +1191,7 @@ func (e KeyRevokedError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCKeyRevoked,
 		Name: "SC_KEY_REVOKED_ERROR",
-		Desc: e.Error(),
+		Desc: e.msg,
 	}
 }
 

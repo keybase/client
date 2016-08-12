@@ -139,32 +139,32 @@
 		{
 			"checksumSHA1": "hajIhCr8Znf3CAx6HrkWMTzeoPE=",
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "58bf9734974215ebd99da9c18fb06eb09991cb55",
-			"revisionTime": "2016-07-11T12:37:48-07:00"
+			"revision": "a5d0ff55e20c69b9ce1ffa0ed5681e29b4f661da",
+			"revisionTime": "2016-08-12T17:31:27Z"
 		},
 		{
-			"checksumSHA1": "CzXn2I3yTTfbJrJmvWxyOnDdTxA=",
+			"checksumSHA1": "v0Wur7mWA+MgfyuSCk6F7UkL9zo=",
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "9ac76dd2b2280d7f90e953ded53ef55c6a92b556",
-			"revisionTime": "2016-06-10T22:58:26Z"
+			"revision": "a5d0ff55e20c69b9ce1ffa0ed5681e29b4f661da",
+			"revisionTime": "2016-08-12T17:31:27Z"
 		},
 		{
-			"checksumSHA1": "G6zAlO+oHfgqZGGqQGwTCQnFTSU=",
+			"checksumSHA1": "6MFlG+YnM+N/hTDK7lzyVmN+Tzc=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "58bf9734974215ebd99da9c18fb06eb09991cb55",
-			"revisionTime": "2016-07-11T12:37:48-07:00"
+			"revision": "a5d0ff55e20c69b9ce1ffa0ed5681e29b4f661da",
+			"revisionTime": "2016-08-12T17:31:27Z"
 		},
 		{
 			"checksumSHA1": "jgyp+kDYeVWZKxMqVO7cDA1FAy8=",
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "ec3ba16149ab777daf126277bdcea148af12f1b7",
-			"revisionTime": "2016-08-09T17:38:28Z"
+			"revision": "a5d0ff55e20c69b9ce1ffa0ed5681e29b4f661da",
+			"revisionTime": "2016-08-12T17:31:27Z"
 		},
 		{
-			"checksumSHA1": "mBJOT60W61+UZVkI7iccHgLOslo=",
+			"checksumSHA1": "bvhkBfa0vUX7Uvy3+RxL9f3WKDU=",
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "5ac281ce9e61821675d3916e0019a29a38146fcb",
-			"revisionTime": "2016-08-10T15:59:00Z"
+			"revision": "a5d0ff55e20c69b9ce1ffa0ed5681e29b4f661da",
+			"revisionTime": "2016-08-12T17:31:27Z"
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",
@@ -252,6 +252,12 @@
 			"path": "github.com/keybase/gregor",
 			"revision": "7ecbd47c6d7468de9c70d1211b5b08c52200d411",
 			"revisionTime": "2016-06-25T00:54:16Z"
+		},
+		{
+			"checksumSHA1": "V5FQ4JcT9qLhD67DCPUqKR3z4UM=",
+			"path": "github.com/keybase/gregor/protocol/chat1",
+			"revision": "dfb1ce56b35c131c6ff40da77ceae3c5048a6e2c",
+			"revisionTime": "2016-08-11T16:02:17Z"
 		},
 		{
 			"checksumSHA1": "mtq0oJV4kXuJ+xv01C7rWmJaB+M=",

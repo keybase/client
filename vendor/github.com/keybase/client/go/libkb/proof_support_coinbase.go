@@ -28,7 +28,7 @@ func (rc *CoinbaseChecker) ProfileURL() string {
 	return "https://coinbase.com/" + rc.proof.GetRemoteUsername() + "/public-key"
 }
 
-func (rc *CoinbaseChecker) CheckHint(h SigHint) ProofError {
+func (rc *CoinbaseChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
 	wanted := rc.ProfileURL()
 	if strings.ToLower(wanted) == strings.ToLower(h.apiURL) {
 		return nil
@@ -38,11 +38,8 @@ func (rc *CoinbaseChecker) CheckHint(h SigHint) ProofError {
 
 func (rc *CoinbaseChecker) GetTorError() ProofError { return nil }
 
-func (rc *CoinbaseChecker) CheckStatus(h SigHint) ProofError {
-	res, err := G.XAPI.GetHTML(APIArg{
-		Endpoint:    h.apiURL,
-		NeedSession: false,
-	})
+func (rc *CoinbaseChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
+	res, err := g.XAPI.GetHTML(NewAPIArg(g, h.apiURL))
 	if err != nil {
 		return XapiError(err, h.apiURL)
 	}
@@ -94,25 +91,18 @@ func (t CoinbaseServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t CoinbaseServiceType) NormalizeRemoteName(s string) (ret string, err error) {
+func (t CoinbaseServiceType) NormalizeRemoteName(_ *GlobalContext, s string) (ret string, err error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
-}
-
-func (t CoinbaseServiceType) ToChecker() Checker {
-	return t.BaseToChecker(t, "alphanumeric, between 2 and 16 characters")
 }
 
 func (t CoinbaseServiceType) GetPrompt() string {
 	return "Your username on Coinbase"
 }
 
-func (t CoinbaseServiceType) PreProofCheck(normalizedUsername string) (*Markup, error) {
-	_, err := G.XAPI.GetHTML(APIArg{
-		Endpoint:    coinbaseUserURL(normalizedUsername),
-		NeedSession: false,
-	})
+func (t CoinbaseServiceType) PreProofCheck(g *GlobalContext, normalizedUsername string) (*Markup, error) {
+	_, err := g.XAPI.GetHTML(NewAPIArg(g, coinbaseUserURL(normalizedUsername)))
 	if err != nil {
 		if ae, ok := err.(*APIError); ok && ae.Code == 404 {
 			err = ProfileNotPublicError{fmt.Sprintf("%s isn't public! Change your settings at %s",

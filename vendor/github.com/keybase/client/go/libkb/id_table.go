@@ -6,7 +6,6 @@ package libkb
 import (
 	"fmt"
 	"strings"
-	"sync"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -118,7 +117,7 @@ type RemoteProofChainLink interface {
 	GetRemoteUsername() string
 	GetHostname() string
 	GetProtocol() string
-	DisplayCheck(ui IdentifyUI, lcr LinkCheckResult)
+	DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) error
 	ToTrackingStatement(keybase1.ProofState) (*jsonw.Wrapper, error)
 	CheckDataJSON() *jsonw.Wrapper
 	ToIDString() string
@@ -165,8 +164,8 @@ func (w *WebProofChainLink) ToTrackingStatement(state keybase1.ProofState) (*jso
 	return ret, err
 }
 
-func (w *WebProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
-	ui.FinishWebProofCheck(ExportRemoteProof(w), lcr.Export())
+func (w *WebProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) error {
+	return ui.FinishWebProofCheck(ExportRemoteProof(w), lcr.Export())
 }
 
 func (w *WebProofChainLink) Type() string { return "proof" }
@@ -261,8 +260,8 @@ func (s *SocialProofChainLink) ComputeTrackDiff(tl *TrackLookup) TrackDiff {
 	}
 }
 
-func (s *SocialProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {
-	ui.FinishSocialProofCheck(ExportRemoteProof(s), lcr.Export())
+func (s *SocialProofChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) error {
+	return ui.FinishSocialProofCheck(ExportRemoteProof(s), lcr.Export())
 }
 
 func (s *SocialProofChainLink) CheckDataJSON() *jsonw.Wrapper {
@@ -840,8 +839,8 @@ func (c *CryptocurrencyChainLink) insertIntoTable(tab *IdentityTable) {
 	tab.cryptocurrency = append(tab.cryptocurrency, c)
 }
 
-func (c CryptocurrencyChainLink) Display(ui IdentifyUI) {
-	ui.DisplayCryptocurrency(c.Export())
+func (c CryptocurrencyChainLink) Display(ui IdentifyUI) error {
+	return ui.DisplayCryptocurrency(c.Export())
 }
 
 //
@@ -912,7 +911,9 @@ func (s *SelfSigChainLink) ProofText() string         { return "" }
 
 func (s *SelfSigChainLink) GetPGPFullHash() string { return s.extractPGPFullHash("key") }
 
-func (s *SelfSigChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) {}
+func (s *SelfSigChainLink) DisplayCheck(ui IdentifyUI, lcr LinkCheckResult) error {
+	return nil
+}
 
 func (s *SelfSigChainLink) CheckDataJSON() *jsonw.Wrapper { return nil }
 
@@ -1172,32 +1173,38 @@ type CheckCompletedListener interface {
 	CCLCheckCompleted(lcr *LinkCheckResult)
 }
 
-func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) {
-	var wg sync.WaitGroup
+func (idt *IdentityTable) Identify(is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) error {
+	errs := make(chan error, len(is.res.ProofChecks))
 	for _, lcr := range is.res.ProofChecks {
-		wg.Add(1)
 		go func(l *LinkCheckResult) {
-			defer wg.Done()
-			idt.identifyActiveProof(l, is, forceRemoteCheck, ui, ccl)
+			errs <- idt.identifyActiveProof(l, is, forceRemoteCheck, ui, ccl)
 		}(lcr)
 	}
 
 	if acc := idt.ActiveCryptocurrency(); acc != nil {
-		acc.Display(ui)
+		if err := acc.Display(ui); err != nil {
+			return err
+		}
 	}
 
-	// wait for all goroutines to complete before exiting
-	wg.Wait()
+	for i := 0; i < len(is.res.ProofChecks); i++ {
+		err := <-errs
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 //=========================================================================
 
-func (idt *IdentityTable) identifyActiveProof(lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) {
+func (idt *IdentityTable) identifyActiveProof(lcr *LinkCheckResult, is IdentifyState, forceRemoteCheck bool, ui IdentifyUI, ccl CheckCompletedListener) error {
 	idt.proofRemoteCheck(is.HasPreviousTrack(), forceRemoteCheck, lcr)
 	if ccl != nil {
 		ccl.CCLCheckCompleted(lcr)
 	}
-	lcr.link.DisplayCheck(ui, *lcr)
+	return lcr.link.DisplayCheck(ui, *lcr)
 }
 
 type LinkCheckResult struct {
@@ -1307,12 +1314,12 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 	// cache (in the defer above).
 	doCache = true
 
-	if res.err = pc.CheckHint(*res.hint); res.err != nil {
+	if res.err = pc.CheckHint(idt.G(), *res.hint); res.err != nil {
 		idt.G().Log.Debug("| Hint failed with error: %s", res.err.Error())
 		return
 	}
 
-	res.err = pc.CheckStatus(*res.hint)
+	res.err = pc.CheckStatus(idt.G(), *res.hint)
 
 	// If no error than all good
 	if res.err == nil {
@@ -1332,7 +1339,7 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 		return
 	}
 
-	idt.G().Log.Warning("| Check status failed with error: %s", res.err.Error())
+	idt.G().Log.Warning("| Check status (%s) failed with error: %s", p.ToDebugString(), res.err.Error())
 
 	return
 }

@@ -399,11 +399,31 @@ func (n *NotifyRouter) HandleServiceShutdown() {
 		close(done)
 	}()
 
+	// timeout after 4s (launchd will SIGKILL after 5s)
 	select {
 	case <-done:
-	case <-time.After(5 * time.Second):
+	case <-time.After(4 * time.Second):
 		n.G().Log.Warning("Timed out sending service shutdown notifications, proceeding to shutdown")
 	}
 
 	n.G().Log.Debug("- Sent service shutdown notfication")
+}
+
+// HandleAppExit is called whenever an app exit command is issued
+func (n *NotifyRouter) HandleAppExit() {
+	if n == nil {
+		return
+	}
+	n.G().Log.Debug("+ Sending app exit notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).App {
+			go func() {
+				(keybase1.NotifyAppClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).Exit(context.TODO())
+			}()
+		}
+		return true
+	})
+	n.G().Log.Debug("- Sent app exit notfication")
 }

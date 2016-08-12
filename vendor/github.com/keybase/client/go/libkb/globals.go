@@ -142,10 +142,9 @@ func (g *GlobalContext) createLoginStateLocked() {
 }
 
 func (g *GlobalContext) createLoginState() {
-	if g.loginState != nil {
-		g.loginState.Shutdown()
-	}
-	g.loginState = NewLoginState(g)
+	g.loginStateMu.Lock()
+	defer g.loginStateMu.Unlock()
+	g.createLoginStateLocked()
 }
 
 func (g *GlobalContext) LoginState() *LoginState {
@@ -163,6 +162,9 @@ func (g *GlobalContext) ResetLoginState() {
 func (g *GlobalContext) Logout() error {
 	g.loginStateMu.Lock()
 	defer g.loginStateMu.Unlock()
+
+	username := g.Env.GetUsername()
+
 	if err := g.loginState.Logout(); err != nil {
 		return err
 	}
@@ -180,6 +182,13 @@ func (g *GlobalContext) Logout() error {
 
 	// get a clean LoginState:
 	g.createLoginStateLocked()
+
+	// remove stored secret
+	if g.SecretStoreAll != nil {
+		if err := g.SecretStoreAll.ClearSecret(username); err != nil {
+			g.Log.Debug("clear stored secret error: %s", err)
+		}
+	}
 
 	return nil
 }
@@ -320,9 +329,11 @@ func (g *GlobalContext) Shutdown() error {
 		if g.LocalDb != nil {
 			epick.Push(g.LocalDb.Close())
 		}
-		if g.LoginState() != nil {
-			epick.Push(g.LoginState().Shutdown())
+		g.loginStateMu.Lock()
+		if g.loginState != nil {
+			epick.Push(g.loginState.Shutdown())
 		}
+		g.loginStateMu.Unlock()
 
 		if g.TrackCache != nil {
 			g.TrackCache.Shutdown()
@@ -545,16 +556,34 @@ func (g *GlobalContext) GetMyClientDetails() keybase1.ClientDetails {
 	}
 }
 
-func (g *GlobalContext) GetUnforwardedLogger() *logger.UnforwardedLogger {
+type UnforwardedLoggerWithLegacyInterface interface {
+	Debug(s string, args ...interface{})
+	Error(s string, args ...interface{})
+	Errorf(s string, args ...interface{})
+	Warning(s string, args ...interface{})
+	Info(s string, args ...interface{})
+	Profile(s string, args ...interface{})
+}
+
+func (g *GlobalContext) GetUnforwardedLogger() (log UnforwardedLoggerWithLegacyInterface) {
+	defer func() {
+		if log == nil {
+			// Hopefully this won't happen before we get to refactor the logger
+			// interfaces. If this happens, we really shouldn't return nil, but
+			// rather fix whatever caused it.
+			panic("can't make unforwarded logger")
+		}
+	}()
 	if g.Log == nil {
 		return nil
 	}
-	log, ok := g.Log.(*logger.Standard)
-	if !ok {
-		g.Log.Notice("Can't make Unforwarded logger from a non-standard logger")
-		return nil
+	if log, ok := g.Log.(*logger.Standard); ok {
+		return (*logger.UnforwardedLogger)(log)
 	}
-	return (*logger.UnforwardedLogger)(log)
+	if log, ok := g.Log.(*logger.TestLogger); ok {
+		return log
+	}
+	return nil
 }
 
 func (g *GlobalContext) GetLog() logger.Logger {

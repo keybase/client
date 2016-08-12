@@ -25,7 +25,7 @@ func NewGithubChecker(p RemoteProofChainLink) (*GithubChecker, ProofError) {
 
 func (rc *GithubChecker) GetTorError() ProofError { return nil }
 
-func (rc *GithubChecker) CheckHint(h SigHint) ProofError {
+func (rc *GithubChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
 	given := strings.ToLower(h.apiURL)
 	u := strings.ToLower(rc.proof.GetRemoteUsername())
 	ok1 := "https://gist.github.com/" + u + "/"
@@ -37,11 +37,8 @@ func (rc *GithubChecker) CheckHint(h SigHint) ProofError {
 		"Bad hint from server; URL start with either '%s' OR '%s'", ok1, ok2)
 }
 
-func (rc *GithubChecker) CheckStatus(h SigHint) ProofError {
-	res, err := G.XAPI.GetText(APIArg{
-		Endpoint:    h.apiURL,
-		NeedSession: false,
-	})
+func (rc *GithubChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
+	res, err := g.XAPI.GetText(NewAPIArg(g, h.apiURL))
 
 	if err != nil {
 		return XapiError(err, h.apiURL)
@@ -79,14 +76,10 @@ func (t GithubServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t GithubServiceType) NormalizeRemoteName(s string) (ret string, err error) {
+func (t GithubServiceType) NormalizeRemoteName(g *GlobalContext, s string) (ret string, err error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
-}
-
-func (t GithubServiceType) ToChecker() Checker {
-	return t.BaseToChecker(t, "alphanumeric, up to 39 characters")
 }
 
 func (t GithubServiceType) GetPrompt() string {

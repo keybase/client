@@ -183,19 +183,21 @@ func (s *LoginState) Shutdown() error {
 	var err error
 	aerr := s.Account(func(a *Account) {
 		err = a.Shutdown()
+
+		if s.loginReqs != nil {
+			close(s.loginReqs)
+			s.loginReqs = nil // block future sends to this channel
+		}
+		if s.acctReqs != nil {
+			close(s.acctReqs)
+			s.acctReqs = nil // block future sends to this channel
+		}
 	}, "LoginState - Shutdown")
 	if aerr != nil {
 		return aerr
 	}
 	if err != nil {
 		return err
-	}
-
-	if s.loginReqs != nil {
-		close(s.loginReqs)
-	}
-	if s.acctReqs != nil {
-		close(s.acctReqs)
 	}
 
 	return nil

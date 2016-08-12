@@ -25,7 +25,7 @@ func NewDNSChecker(p RemoteProofChainLink) (*DNSChecker, ProofError) {
 
 func (rc *DNSChecker) GetTorError() ProofError { return ProofErrorDNSOverTor }
 
-func (rc *DNSChecker) CheckHint(h SigHint) ProofError {
+func (rc *DNSChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
 	_, sigID, err := OpenSig(rc.proof.GetArmoredSig())
 
 	if err != nil {
@@ -43,7 +43,7 @@ func (rc *DNSChecker) CheckHint(h SigHint) ProofError {
 	return nil
 }
 
-func (rc *DNSChecker) CheckDomain(sig string, domain string) ProofError {
+func (rc *DNSChecker) CheckDomain(g *GlobalContext, sig string, domain string) ProofError {
 	txt, err := net.LookupTXT(domain)
 	if err != nil {
 		return NewProofError(keybase1.ProofStatus_DNS_ERROR,
@@ -51,7 +51,7 @@ func (rc *DNSChecker) CheckDomain(sig string, domain string) ProofError {
 	}
 
 	for _, record := range txt {
-		G.Log.Debug("For %s, got TXT record: %s", domain, record)
+		g.Log.Debug("For %s, got TXT record: %s", domain, record)
 		if record == sig {
 			return nil
 		}
@@ -61,18 +61,18 @@ func (rc *DNSChecker) CheckDomain(sig string, domain string) ProofError {
 		len(txt), domain, sig)
 }
 
-func (rc *DNSChecker) CheckStatus(h SigHint) ProofError {
+func (rc *DNSChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
 
 	wanted := h.checkText
-	G.Log.Debug("| DNS proof, want TXT value: %s", wanted)
+	g.Log.Debug("| DNS proof, want TXT value: %s", wanted)
 
 	domain := rc.proof.GetHostname()
 
 	// Try the apex first, and report its error if both
 	// attempts fail
-	pe := rc.CheckDomain(wanted, domain)
+	pe := rc.CheckDomain(g, wanted, domain)
 	if pe != nil {
-		tmp := rc.CheckDomain(wanted, "_keybase."+domain)
+		tmp := rc.CheckDomain(g, wanted, "_keybase."+domain)
 		if tmp == nil {
 			pe = nil
 		}
@@ -94,17 +94,13 @@ func (t DNSServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t DNSServiceType) NormalizeRemoteName(s string) (string, error) {
+func (t DNSServiceType) NormalizeRemoteName(g *GlobalContext, s string) (string, error) {
 	// Allow a leading 'dns://' and preserve case.
 	s = strings.TrimPrefix(s, "dns://")
 	if !IsValidHostname(s) {
 		return "", InvalidHostnameError{s}
 	}
 	return s, nil
-}
-
-func (t DNSServiceType) ToChecker() Checker {
-	return t.BaseToChecker(t, "a valid domain name")
 }
 
 func (t DNSServiceType) GetPrompt() string {

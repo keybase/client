@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/syndtr/goleveldb/leveldb"
@@ -88,6 +89,37 @@ func (l *LevelDb) close(doLock bool) error {
 	return err
 }
 
+func (l *LevelDb) isCorrupt(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	// If the error is of type ErrCorrupted, then we nuke
+	if _, ok := err.(*errors.ErrCorrupted); ok {
+		return true
+	}
+
+	// Sometimes the LevelDB library will return generic error messages about
+	// corruption, also nuke on them
+	if strings.Contains(err.Error(), "corrupt") {
+		return true
+	}
+
+	return false
+}
+
+func (l *LevelDb) nukeIfCorrupt(err error) bool {
+	if l.isCorrupt(err) {
+		l.G().Log.Debug("LevelDB file corrupted, nuking database and starting fresh")
+		if _, err := l.Nuke(); err != nil {
+			l.G().Log.Debug("Error nuking LevelDB file: %s", err)
+			return false
+		}
+		return true
+	}
+	return false
+}
+
 func (l *LevelDb) Nuke() (string, error) {
 	l.Lock()
 	defer l.Unlock()
@@ -119,6 +151,11 @@ func (l *LevelDb) Put(id DbKey, aliases []DbKey, value []byte) error {
 
 	err := l.db.Write(batch, nil)
 
+	// If the file is corrupt, just nuke and act like we didn't find anything
+	if l.nukeIfCorrupt(err) {
+		err = nil
+	}
+
 	return err
 }
 
@@ -129,6 +166,11 @@ func (l *LevelDb) get(id DbKey, which string) ([]byte, bool, error) {
 		found = true
 	} else if err == leveldb.ErrNotFound {
 		err = nil
+	} else {
+		// If the file is corrupt, just nuke and act like we didn't find anything
+		if l.nukeIfCorrupt(err) {
+			err = nil
+		}
 	}
 	return val, found, err
 }
@@ -168,5 +210,11 @@ func (l *LevelDb) Delete(id DbKey) error {
 	}
 
 	err := l.db.Delete(id.ToBytes("kv"), nil)
+
+	// If the file is corrupt, just nuke and act like we didn't find anything
+	if l.nukeIfCorrupt(err) {
+		err = nil
+	}
+
 	return err
 }

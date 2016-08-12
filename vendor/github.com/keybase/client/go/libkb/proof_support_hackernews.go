@@ -46,7 +46,7 @@ func NewHackerNewsChecker(p RemoteProofChainLink) (*HackerNewsChecker, ProofErro
 	return &HackerNewsChecker{p}, nil
 }
 
-func (h *HackerNewsChecker) CheckHint(hint SigHint) ProofError {
+func (h *HackerNewsChecker) CheckHint(g *GlobalContext, hint SigHint) ProofError {
 	wanted := h.APIURL()
 	if Cicmp(wanted, hint.apiURL) {
 		return nil
@@ -55,11 +55,9 @@ func (h *HackerNewsChecker) CheckHint(hint SigHint) ProofError {
 	return NewProofError(keybase1.ProofStatus_BAD_API_URL, "Bad hint from server; URL should start with '%s'", wanted)
 }
 
-func (h *HackerNewsChecker) CheckStatus(hint SigHint) ProofError {
-	res, err := G.XAPI.GetText(APIArg{
-		Endpoint:    hint.apiURL,
-		NeedSession: false,
-	})
+func (h *HackerNewsChecker) CheckStatus(g *GlobalContext, hint SigHint) ProofError {
+	res, err := g.XAPI.GetText(NewAPIArg(g, hint.apiURL))
+
 	if err != nil {
 		return XapiError(err, hint.apiURL)
 	}
@@ -74,8 +72,8 @@ func (h *HackerNewsChecker) CheckStatus(hint SigHint) ProofError {
 	}
 
 	wanted := sigID.ToMediumID()
-	G.Log.Debug("| HackerNews profile: %s", res.Body)
-	G.Log.Debug("| Wanted signature hash: %s", wanted)
+	g.Log.Debug("| HackerNews profile: %s", res.Body)
+	g.Log.Debug("| Wanted signature hash: %s", wanted)
 	if !strings.Contains(res.Body, wanted) {
 		ret = NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
 			"Posted text does not include signature '%s'", wanted)
@@ -84,9 +82,9 @@ func (h *HackerNewsChecker) CheckStatus(hint SigHint) ProofError {
 	return ret
 }
 
-func CheckKarma(un string) (int, error) {
+func CheckKarma(g *GlobalContext, un string) (int, error) {
 	u := KarmaURL(un)
-	res, err := G.XAPI.Get(APIArg{Endpoint: u, NeedSession: false})
+	res, err := g.XAPI.Get(NewAPIArg(g, u))
 	if err != nil {
 		return 0, XapiError(err, u)
 	}
@@ -110,14 +108,10 @@ func (t HackerNewsServiceType) NormalizeUsername(s string) (string, error) {
 	return s, nil
 }
 
-func (t HackerNewsServiceType) NormalizeRemoteName(s string) (string, error) {
+func (t HackerNewsServiceType) NormalizeRemoteName(g *GlobalContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
-}
-
-func (t HackerNewsServiceType) ToChecker() Checker {
-	return t.BaseToChecker(t, "alphanumeric, 2 to 15 characters")
 }
 
 func (t HackerNewsServiceType) GetPrompt() string {
@@ -152,8 +146,8 @@ func (t HackerNewsServiceType) CheckProofText(text string, id keybase1.SigID, si
 	return t.BaseCheckProofForURL(text, id)
 }
 
-func (t HackerNewsServiceType) PreProofCheck(un string) (markup *Markup, err error) {
-	if _, e := CheckKarma(un); e != nil {
+func (t HackerNewsServiceType) PreProofCheck(g *GlobalContext, un string) (markup *Markup, err error) {
+	if _, e := CheckKarma(g, un); e != nil {
 		markup = FmtMarkup(`
 <p><strong>ATTENTION</strong>: HackerNews only publishes users to their API who
  have <strong>karma &gt; 1</strong>.</p>

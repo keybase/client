@@ -118,14 +118,14 @@ func (s *IdentifyState) computeTrackDiffs() {
 	}
 }
 
-func (s *IdentifyState) Precompute(dhook func(keybase1.IdentifyKey)) {
+func (s *IdentifyState) Precompute(dhook func(keybase1.IdentifyKey) error) {
 	s.computeKeyDiffs(dhook)
 	s.initResultList()
 	s.computeTrackDiffs()
 	s.computeRevokedProofs()
 }
 
-func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
+func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey) error) {
 	mapify := func(v []keybase1.KID) map[keybase1.KID]bool {
 		ret := make(map[keybase1.KID]bool)
 		for _, k := range v {

@@ -15,7 +15,6 @@ package libkb
 import (
 	"io"
 	"net/http"
-	"net/url"
 	"time"
 
 	"golang.org/x/net/context"
@@ -220,18 +219,6 @@ type Command interface {
 
 type JSONPayload map[string]interface{}
 
-type APIArg struct {
-	Endpoint       string
-	uArgs          url.Values
-	Args           HTTPArgs
-	JSONPayload    JSONPayload
-	NeedSession    bool
-	SessionR       SessionReader
-	HTTPStatus     []int
-	AppStatusCodes []int
-	Contextified
-}
-
 type APIRes struct {
 	Status     *jsonw.Wrapper
 	Body       *jsonw.Wrapper
@@ -285,20 +272,20 @@ type ExternalAPI interface {
 }
 
 type IdentifyUI interface {
-	Start(string, keybase1.IdentifyReason)
-	FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)
-	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult)
+	Start(string, keybase1.IdentifyReason) error
+	FinishWebProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
+	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
 	Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
-	DisplayCryptocurrency(keybase1.Cryptocurrency)
-	DisplayKey(keybase1.IdentifyKey)
-	ReportLastTrack(*keybase1.TrackSummary)
-	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User)
+	DisplayCryptocurrency(keybase1.Cryptocurrency) error
+	DisplayKey(keybase1.IdentifyKey) error
+	ReportLastTrack(*keybase1.TrackSummary) error
+	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error
 	DisplayTrackStatement(string) error
-	DisplayUserCard(keybase1.UserCard)
+	DisplayUserCard(keybase1.UserCard) error
 	ReportTrackToken(keybase1.TrackToken) error
-	Finish()
+	Finish() error
 	DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error
-	Dismiss(string, keybase1.DismissReason)
+	Dismiss(string, keybase1.DismissReason) error
 }
 
 type Checker struct {
