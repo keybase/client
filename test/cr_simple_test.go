@@ -7,7 +7,6 @@
 package test
 
 import (
-	"runtime"
 	"testing"
 	"time"
 )
@@ -1088,14 +1087,7 @@ func TestCrUnmergedBothRmfile(t *testing.T) {
 
 // bob exclusively creates a file while on an unmerged branch.
 func TestCrCreateFileExclOnStaged(t *testing.T) {
-	var skipOp optionOp
-	if runtime.GOOS == "darwin" {
-		skipOp = skip("fuse", "osxfuse doesn't pass through O_EXCL yet")
-	} else {
-		skipOp = func(c *opt) {}
-	}
 	test(t,
-		skipOp,
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
@@ -1121,14 +1113,7 @@ func TestCrCreateFileExclOnStaged(t *testing.T) {
 // it. Since the creates are exclusive, only the winning one (alice) should
 // succeed.
 func TestCrBothCreateFileExcl(t *testing.T) {
-	var skipOp optionOp
-	if runtime.GOOS == "darwin" {
-		skipOp = skip("fuse", "osxfuse doesn't pass through O_EXCL yet")
-	} else {
-		skipOp = func(c *opt) {}
-	}
 	test(t,
-		skipOp,
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
@@ -1155,14 +1140,7 @@ func TestCrBothCreateFileExcl(t *testing.T) {
 // Put. After stall happens, alice creates the file. This makes sure Alice's
 // exclusive create happens precisely before Bob's MD Put.
 func TestCrBothCreateFileExclParallel(t *testing.T) {
-	var skipOp optionOp
-	if runtime.GOOS == "darwin" {
-		skipOp = skip("fuse", "osxfuse doesn't pass through O_EXCL yet")
-	} else {
-		skipOp = func(c *opt) {}
-	}
 	test(t,
-		skipOp,
 		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
