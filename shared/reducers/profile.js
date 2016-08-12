@@ -2,7 +2,6 @@
 import * as CommonConstants from '../constants/common'
 import * as Constants from '../constants/profile'
 import type {Actions, State} from '../constants/profile'
-import {parse as parseUrl} from 'url'
 
 const initialState: State = {
   errorText: null,
@@ -28,10 +27,12 @@ function checkUsernameValid (platform, username): boolean {
 
 function cleanupUsername (platform, username): string {
   if (['http', 'https'].includes(platform)) {
-    const urlParsed = parseUrl(username)
     // Ensure that only the hostname is getting returned, with no
-    // protocal or path information
-    return urlParsed.hostname || username
+    // protocal, port, or path information
+    return username && username
+      .replace(/^.*?:\/\//, '') // Remove protocal information (if present)
+      .replace(/:.*/, '') // Remove port information (if present)
+      .replace(/\/.*/, '') // Remove path information (if present)
   }
   return username
 }
