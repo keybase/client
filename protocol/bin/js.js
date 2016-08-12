@@ -5,7 +5,7 @@ var root = 'json'
 
 var protocols = {}
 
-fs.readdirAsync(root).map(load).each(analyze).then(write)
+fs.readdirAsync(root).filter(filter).map(load).each(analyze).then(write)
 
 function load (file) {
   return fs.readFileAsync(path.join(root, file)).then(JSON.parse)
@@ -18,6 +18,10 @@ function analyze (json) {
   }
 
   addEnums(prot, json)
+}
+
+function filter (file) {
+  return file != ".DS_Store"
 }
 
 function addEnums (prot, json) {
