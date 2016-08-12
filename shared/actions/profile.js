@@ -12,7 +12,7 @@ import {constants as RpcConstants, proveCommon} from '../constants/types/keybase
 import {getMyProfile} from './tracker'
 import {navigateUp, navigateTo} from '../actions/router'
 import {profileTab} from '../constants/tabs'
-import {shell} from 'electron'
+import openURL from '../util/open-url'
 
 const InputCancelError = {desc: 'Cancel Add Proof', code: RpcConstants.StatusCode.scinputcanceled}
 
@@ -388,16 +388,16 @@ function outputInstructionsActionLink (): AsyncAction {
     const profile = getState().profile
     switch (profile.platform) {
       case 'coinbase':
-        shell.openExternal(`https://coinbase.com/${profile.username}#settings`)
+        openURL(`https://coinbase.com/${profile.username}#settings`)
         break
       case 'twitter':
-        shell.openExternal(`https://twitter.com/home?status=${profile.proof}`)
+        openURL(`https://twitter.com/home?status=${profile.proof}`)
         break
       case 'github':
-        shell.openExternal('https://gist.github.com/')
+        openURL('https://gist.github.com/')
         break
       case 'reddit':
-        shell.openExternal(profile.proof)
+        openURL(profile.proof)
         break
       default:
         break
