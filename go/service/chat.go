@@ -57,8 +57,11 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetT
 }
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
-func (h *chatLocalHandler) NewConversationLocal(context.Context, chat1.ConversationIDTriple) error {
-	return nil
+func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, trip chat1.ConversationIDTriple) error {
+	md := chat1.ConversationMetadata{
+		IdTriple: trip,
+	}
+	return h.remoteClient().NewConversationRemote(ctx, md)
 }
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.
