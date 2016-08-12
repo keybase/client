@@ -60,18 +60,7 @@ class Engine {
       }, 10 * 1000)
     }
 
-    if (!NO_ENGINE) {
-      this.rpcClient = createClient(
-        payload => {
-          if (__DEV__ && KEYBASE_RPC_DELAY_RESULT) {
-            setTimeout(() => this._rpcIncoming(payload), KEYBASE_RPC_DELAY_RESULT)
-          } else {
-            this._rpcIncoming(payload)
-          }
-        },
-        () => this._onConnect()
-      )
-    }
+    this._setupClient()
 
     this.sessionID = 123
 
@@ -95,6 +84,21 @@ class Engine {
 
     // Throw an error and fail?
     this._failOnError = false
+  }
+
+  _setupClient () {
+    if (!NO_ENGINE) {
+      this.rpcClient = createClient(
+        payload => {
+          if (__DEV__ && KEYBASE_RPC_DELAY_RESULT) {
+            setTimeout(() => this._rpcIncoming(payload), KEYBASE_RPC_DELAY_RESULT)
+          } else {
+            this._rpcIncoming(payload)
+          }
+        },
+        () => this._onConnect()
+      )
+    }
   }
 
   _onConnect () {
@@ -410,6 +414,7 @@ class Engine {
 
   reset () {
     resetClient()
+    this._setupClient()
   }
 }
 

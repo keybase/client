@@ -7,6 +7,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import {AppContainer} from 'react-hot-loader'
 import configureStore from '../shared/store/configure-store'
+import engine from '../shared/engine'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import ListenLogUi from '../shared/native/listen-log-ui'
 import {devStoreChangingFunctions} from '../shared/local-debug.desktop'
@@ -14,6 +15,7 @@ import {listenForNotifications} from '../shared/actions/notifications'
 import {bootstrap} from '../shared/actions/config'
 import {updateDebugConfig} from '../shared/actions/dev'
 import hello from '../shared/util/hello'
+import {updateReloading} from '../shared/reducers/hmr'
 
 import Root from './container'
 import {devEditAction} from '../shared/reducers/dev-edit'
@@ -94,19 +96,20 @@ ReactDOM.render(
   appEl,
 )
 
-if (module.hot) {
-  module.hot.accept('./container', () => {
+module.hot && module.hot.accept('./container', () => {
+  try {
+    store.dispatch({type: updateReloading, payload: {reloading: true}})
     const NewRoot = require('./container').default
     ReactDOM.render(
       <AppContainer><NewRoot store={store} /></AppContainer>,
       appEl,
     )
-  })
-}
+    engine.reset()
+  } finally {
+    setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
+  }
+})
 
-// flowtype requires this to be a separate if statement
-if (module.hot) {
-  module.hot.accept('../shared/local-debug-live', () => {
-    store.dispatch(updateDebugConfig(require('../shared/local-debug-live')))
-  })
-}
+module.hot && module.hot.accept('../shared/local-debug-live', () => {
+  store.dispatch(updateDebugConfig(require('../shared/local-debug-live')))
+})

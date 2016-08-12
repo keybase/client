@@ -6,6 +6,7 @@ import RemoteStore from './remote-store'
 import {ipcLogsRenderer} from '../app/console-helper'
 import hello from '../shared/util/hello'
 import {globalColors} from '../shared/styles/style-guide'
+import engine from '../shared/engine'
 
 import tracker from '../shared/tracker'
 import pinentry from '../shared/pinentry'
@@ -18,9 +19,10 @@ import materialTheme from '../shared/styles/material-theme.desktop'
 
 ipcLogsRenderer()
 
-if (module.hot) {
-  module.hot.accept()
-}
+module.hot && module.hot.accept()
+module.hot && module.hot.dispose(() => {
+  engine.reset()
+})
 
 // Defer this since it's a sync call
 const getCurrentWindow = (function () {
