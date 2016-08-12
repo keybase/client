@@ -894,7 +894,7 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 	}
 
 	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
-	nodeMap, err := cr.fbo.blocks.SearchForNodes(
+	nodeMap, _, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs,
 		mergedChains.mostRecentMD.ReadOnly())
 	if err != nil {
@@ -1416,7 +1416,7 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 	}
 
 	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
-	nodeMap, err := cr.fbo.blocks.SearchForNodes(
+	nodeMap, _, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs,
 		mergedChains.mostRecentMD.ReadOnly())
 	if err != nil {
@@ -2397,7 +2397,7 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 				newPtrs[ptr] = true
 			}
 
-			nodeMap, err := cr.fbo.blocks.SearchForNodes(
+			nodeMap, cache, err := cr.fbo.blocks.SearchForNodes(
 				ctx, cr.fbo.nodeCache, ptrs, newPtrs,
 				unmergedChains.mostRecentMD.ReadOnly())
 			if err != nil {
@@ -2408,7 +2408,7 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 				return path{}, fmt.Errorf("resolveOnePath: Couldn't find "+
 					"merged path for %v", unmergedMostRecent)
 			}
-			p := cr.fbo.nodeCache.PathFromNode(n)
+			p := cache.PathFromNode(n)
 			ptrsToAppend = append(ptrsToAppend, next)
 			namesToAppend = append(namesToAppend, p.tailName())
 			next = p.parentPath().tailPointer()
@@ -3101,7 +3101,7 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 	// We need to get the complete set of updated merged paths, so
 	// that we can correctly order the chains from the root outward.
 	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
-	nodeMap, err := cr.fbo.blocks.SearchForNodes(
+	nodeMap, _, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs, md.ReadOnly())
 	if err != nil {
 		return nil, err

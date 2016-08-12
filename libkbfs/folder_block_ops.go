@@ -2470,16 +2470,26 @@ func (fbo *folderBlockOps) notifyErrListenersLocked(lState *lockState,
 	}
 }
 
+type searchWithOutOfDateCacheError struct {
+}
+
+func (e searchWithOutOfDateCacheError) Error() string {
+	return fmt.Sprintf("Search is using an out-of-date node cache; " +
+		"try again with a clean cache.")
+}
+
 // searchForNodesInDirLocked recursively tries to find a path, and
 // ultimately a node, to ptr, given the set of pointers that were
 // updated in a particular operation.  The keys in nodeMap make up the
 // set of BlockPointers that are being searched for, and nodeMap is
 // updated in place to include the corresponding discovered nodes.
 //
-// Returns the number of nodes found by this invocation.
+// Returns the number of nodes found by this invocation.  If the error
+// it returns is searchWithOutOfDateCache, the search should be
+// retried by the caller with a clean cache.
 func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 	lState *lockState, cache NodeCache, newPtrs map[BlockPointer]bool,
-	kmd KeyMetadata, currDir path, nodeMap map[BlockPointer]Node,
+	kmd KeyMetadata, rootNode Node, currDir path, nodeMap map[BlockPointer]Node,
 	numNodesFoundSoFar int) (int, error) {
 	fbo.blockLock.AssertAnyLocked(lState)
 
@@ -2487,6 +2497,16 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 		ctx, lState, kmd, currDir, blockRead)
 	if err != nil {
 		return 0, err
+	}
+
+	// getDirLocked may have unlocked blockLock, which means the cache
+	// could have changed out from under us.  Verify that didn't
+	// happen, so we can avoid messing it up with nodes from an old MD
+	// version.  If it did happen, return a special error that lets
+	// the caller know they should retry with a fresh cache.
+	if currDir.path[0].BlockPointer !=
+		cache.PathFromNode(rootNode).tailPointer() {
+		return 0, searchWithOutOfDateCacheError{}
 	}
 
 	if numNodesFoundSoFar >= len(nodeMap) {
@@ -2498,8 +2518,8 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 		if _, ok := nodeMap[de.BlockPointer]; ok {
 			childPath := currDir.ChildPath(name, de.BlockPointer)
 			// make a node for every pathnode
-			var n Node
-			for _, pn := range childPath.path {
+			n := rootNode
+			for _, pn := range childPath.path[1:] {
 				n, err = cache.GetOrCreate(pn.BlockPointer, pn.Name, n)
 				if err != nil {
 					return 0, err
@@ -2515,8 +2535,9 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 		// otherwise, recurse if this represents an updated block
 		if _, ok := newPtrs[de.BlockPointer]; de.Type == Dir && ok {
 			childPath := currDir.ChildPath(name, de.BlockPointer)
-			n, err := fbo.searchForNodesInDirLocked(ctx, lState, cache, newPtrs, kmd,
-				childPath, nodeMap, numNodesFoundSoFar+numNodesFound)
+			n, err := fbo.searchForNodesInDirLocked(ctx, lState, cache,
+				newPtrs, kmd, rootNode, childPath, nodeMap,
+				numNodesFoundSoFar+numNodesFound)
 			if err != nil {
 				return 0, err
 			}
@@ -2530,17 +2551,11 @@ func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
 	return numNodesFound, nil
 }
 
-// SearchForNodes tries to resolve all the given pointers to a Node
-// object, using only the updated pointers specified in newPtrs.
-// Returns an error if any subset of the pointer paths do not exist;
-// it is the caller's responsibility to decide to error on particular
-// unresolved nodes.
-func (fbo *folderBlockOps) SearchForNodes(ctx context.Context,
-	cache NodeCache, ptrs []BlockPointer, newPtrs map[BlockPointer]bool,
-	md ReadOnlyRootMetadata) (map[BlockPointer]Node, error) {
-	lState := makeFBOLockState()
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
+func (fbo *folderBlockOps) trySearchWithCacheLocked(ctx context.Context,
+	lState *lockState, cache NodeCache, ptrs []BlockPointer,
+	newPtrs map[BlockPointer]bool, md ReadOnlyRootMetadata) (
+	map[BlockPointer]Node, error) {
+	fbo.blockLock.AssertAnyLocked(lState)
 
 	nodeMap := make(map[BlockPointer]Node)
 	for _, ptr := range ptrs {
@@ -2551,12 +2566,43 @@ func (fbo *folderBlockOps) SearchForNodes(ctx context.Context,
 		return nodeMap, nil
 	}
 
-	// Start with the root node
 	rootPtr := md.data.Dir.BlockPointer
 	var node Node
+	// The node cache used by the main part of KBFS is
+	// fbo.nodeCache. This basically maps from BlockPointers to
+	// Nodes. Nodes are used by the callers of the library, but
+	// internally we need to know the series of BlockPointers and
+	// file/dir names that make up the path of the corresponding
+	// file/dir. fbo.nodeCache is long-lived and never invalidated.
+	//
+	// As folderBranchOps gets informed of new local or remote MD
+	// updates, which change the BlockPointers of some subset of the
+	// nodes in this TLF, it calls nodeCache.UpdatePointer for each
+	// change. Then, when a caller passes some old Node they have
+	// lying around into an FBO call, we can translate it to its
+	// current path using fbo.nodeCache. Note that on every TLF
+	// modification, we are guaranteed that the BlockPointer of the
+	// root directory will change (because of the merkle-ish tree of
+	// content hashes we use to assign BlockPointers).
+	//
+	// fbo.nodeCache needs to maintain the absolute latest mappings
+	// for the TLF, or else FBO calls won't see up-to-date data. The
+	// tension in search comes from the fact that we are trying to
+	// discover the BlockPointers of certain files at a specific point
+	// in the MD history, which is not necessarily the same as the
+	// most-recently-seen MD update. Specifically, some callers
+	// process a specific range of MDs, but folderBranchOps may have
+	// heard about a newer one before, or during, when the caller
+	// started processing. That means fbo.nodeCache may have been
+	// updated to reflect the newest BlockPointers, and is no longer
+	// correct as a cache for our search for the data at the old point
+	// in time.
 	if cache == fbo.nodeCache {
-		// Root node should already exist.
+		// Root node should already exist if we have an up-to-date md.
 		node = cache.Get(rootPtr.ref())
+		if node == nil {
+			return nil, searchWithOutOfDateCacheError{}
+		}
 	} else {
 		// Root node may or may not exist.
 		var err error
@@ -2587,14 +2633,95 @@ func (fbo *folderBlockOps) SearchForNodes(ctx context.Context,
 			md.data.Dir.BlockPointer, rootPath)
 	}
 
-	_, err := fbo.searchForNodesInDirLocked(ctx, lState, cache, newPtrs, md, rootPath,
-		nodeMap, numNodesFound)
+	_, err := fbo.searchForNodesInDirLocked(ctx, lState, cache, newPtrs, md,
+		node, rootPath, nodeMap, numNodesFound)
 	if err != nil {
 		return nil, err
 	}
 
-	// Return the whole map even if some nodes weren't found.
+	if rootPtr != cache.PathFromNode(node).tailPointer() {
+		return nil, searchWithOutOfDateCacheError{}
+	}
+
 	return nodeMap, nil
+}
+
+func (fbo *folderBlockOps) searchForNodesLocked(ctx context.Context,
+	lState *lockState, cache NodeCache, ptrs []BlockPointer,
+	newPtrs map[BlockPointer]bool, md ReadOnlyRootMetadata) (
+	map[BlockPointer]Node, NodeCache, error) {
+	fbo.blockLock.AssertAnyLocked(lState)
+
+	// First try the passed-in cache.  If it doesn't work because the
+	// cache is out of date, try again with a clean cache.
+	nodeMap, err := fbo.trySearchWithCacheLocked(ctx, lState, cache, ptrs,
+		newPtrs, md)
+	if _, ok := err.(searchWithOutOfDateCacheError); ok {
+		// The md is out-of-date, so use a throwaway cache so we
+		// don't pollute the real node cache with stale nodes.
+		fbo.log.CDebugf(ctx, "Root node %v doesn't exist in the node "+
+			"cache; using a throwaway node cache instead",
+			md.data.Dir.BlockPointer)
+		cache = newNodeCacheStandard(fbo.folderBranch)
+		nodeMap, err = fbo.trySearchWithCacheLocked(ctx, lState, cache, ptrs,
+			newPtrs, md)
+	}
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Return the whole map even if some nodes weren't found.
+	return nodeMap, cache, nil
+}
+
+// SearchForNodes tries to resolve all the given pointers to a Node
+// object, using only the updated pointers specified in newPtrs.
+// Returns an error if any subset of the pointer paths do not exist;
+// it is the caller's responsibility to decide to error on particular
+// unresolved nodes.  It also returns the cache that ultimately
+// contains the nodes -- this might differ from the passed-in cache if
+// another goroutine updated that cache and it no longer contains the
+// root pointer specified in md.
+func (fbo *folderBlockOps) SearchForNodes(ctx context.Context,
+	cache NodeCache, ptrs []BlockPointer, newPtrs map[BlockPointer]bool,
+	md ReadOnlyRootMetadata) (map[BlockPointer]Node, NodeCache, error) {
+	lState := makeFBOLockState()
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	return fbo.searchForNodesLocked(ctx, lState, cache, ptrs, newPtrs, md)
+}
+
+// SearchForPaths is like SearchForNodes, except it returns a
+// consistent view of all the paths of the searched-for pointers.
+func (fbo *folderBlockOps) SearchForPaths(ctx context.Context,
+	cache NodeCache, ptrs []BlockPointer, newPtrs map[BlockPointer]bool,
+	md ReadOnlyRootMetadata) (map[BlockPointer]path, error) {
+	lState := makeFBOLockState()
+	// Hold the lock while processing the paths so they can't be changed.
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	nodeMap, cache, err :=
+		fbo.searchForNodesLocked(ctx, lState, cache, ptrs, newPtrs, md)
+	if err != nil {
+		return nil, err
+	}
+
+	paths := make(map[BlockPointer]path)
+	for ptr, n := range nodeMap {
+		if n == nil {
+			paths[ptr] = path{}
+			continue
+		}
+
+		p := cache.PathFromNode(n)
+		if p.tailPointer() != ptr {
+			return nil, NodeNotFoundError{ptr}
+		}
+		paths[ptr] = p
+	}
+
+	return paths, nil
 }
 
 // getUndirtiedEntry returns the clean entry for the given path
@@ -2702,4 +2829,15 @@ func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	return len(fbo.deferredWrites)
+}
+
+// UpdatePointers updates all the pointers in the node cache
+// atomically.
+func (fbo *folderBlockOps) UpdatePointers(lState *lockState, op op) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	for _, update := range op.AllUpdates() {
+		oldRef := update.Unref.ref()
+		fbo.nodeCache.UpdatePointer(oldRef, update.Ref)
+	}
 }

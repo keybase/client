@@ -835,23 +835,18 @@ func (ccs *crChains) getPaths(ctx context.Context, blocks *folderBlockOps,
 		}
 	}
 
-	nodeMap, err := blocks.SearchForNodes(ctx, nodeCache, ptrs, newPtrs,
-		ccs.mostRecentMD.ReadOnly())
+	pathMap, err := blocks.SearchForPaths(ctx, nodeCache, ptrs,
+		newPtrs, ccs.mostRecentMD.ReadOnly())
 	if err != nil {
 		return nil, err
 	}
 
-	paths := make([]path, 0, len(nodeMap))
-	for ptr, n := range nodeMap {
-		if n == nil {
+	paths := make([]path, 0, len(pathMap))
+	for ptr, p := range pathMap {
+		if len(p.path) == 0 {
 			log.CDebugf(ctx, "Ignoring pointer with no found path: %v", ptr)
 			ccs.removeChain(ptr)
 			continue
-		}
-
-		p := nodeCache.PathFromNode(n)
-		if p.tailPointer() != ptr {
-			return nil, NodeNotFoundError{ptr}
 		}
 		paths = append(paths, p)
 

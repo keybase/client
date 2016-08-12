@@ -577,10 +577,10 @@ func (teh *TlfEditHistory) UpdateHistory(ctx context.Context,
 		teh.sends.Add(1)
 		return nil
 	}()
-	defer teh.sends.Done()
 	if err != nil {
 		return err
 	}
+	defer teh.sends.Done()
 
 	teh.wg.Add(1)
 	select {

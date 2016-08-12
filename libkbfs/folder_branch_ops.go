@@ -3275,8 +3275,8 @@ func (fbo *folderBranchOps) searchForNode(ctx context.Context,
 		}
 	}
 
-	nodeMap, err := fbo.blocks.SearchForNodes(ctx, fbo.nodeCache, []BlockPointer{ptr},
-		newPtrs, md)
+	nodeMap, _, err := fbo.blocks.SearchForNodes(ctx, fbo.nodeCache,
+		[]BlockPointer{ptr}, newPtrs, md)
 	if err != nil {
 		return nil, err
 	}
@@ -3312,18 +3312,11 @@ func (fbo *folderBranchOps) unlinkFromCache(op op, oldDir BlockPointer,
 	return nil
 }
 
-func (fbo *folderBranchOps) updatePointers(op op) {
-	for _, update := range op.AllUpdates() {
-		oldRef := update.Unref.ref()
-		fbo.nodeCache.UpdatePointer(oldRef, update.Ref)
-	}
-}
-
 func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 	lState *lockState, op op, md ImmutableRootMetadata) {
 	fbo.headLock.AssertLocked(lState)
 
-	fbo.updatePointers(op)
+	fbo.blocks.UpdatePointers(lState, op)
 
 	var changes []NodeChange
 	switch realOp := op.(type) {
@@ -3535,6 +3528,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 		return errors.New("Ignoring MD updates while writes are dirty")
 	}
 
+	appliedRevs := make([]ImmutableRootMetadata, 0, len(rmds))
 	for _, rmd := range rmds {
 		// check that we're applying the expected MD revision
 		if rmd.Revision <= fbo.getCurrMDRevisionLocked(lState) {
@@ -3556,8 +3550,11 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 		for _, op := range rmd.data.Changes.Ops {
 			fbo.notifyOneOpLocked(ctx, lState, op, rmd)
 		}
+		appliedRevs = append(appliedRevs, rmd)
 	}
-	fbo.editHistory.UpdateHistory(ctx, rmds)
+	if len(appliedRevs) > 0 {
+		fbo.editHistory.UpdateHistory(ctx, appliedRevs)
+	}
 	return nil
 }
 
