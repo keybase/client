@@ -49,6 +49,7 @@ const initialState: State = {
 function initialTrackerState (username: string): TrackerState {
   return {
     closed: true,
+    error: null,
     currentlyFollowing: false,
     eldestKidChanged: false,
     hidden: false,
@@ -125,6 +126,8 @@ function dedupeProofs (proofs: Array<Proof>): Array<Proof> {
 
 function updateUserState (state: TrackerState, action: Action): TrackerState {
   switch (action.type) {
+    case Constants.identifyStarted:
+      return {...state, error: null}
     case Constants.updateReason:
       // In case the reason is null, let's use our existing reason
       return {
@@ -348,6 +351,11 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         ...state,
         tlfs: action.payload.tlfs,
       }
+    case Constants.identifyFinished:
+      if (action.error) {
+        return {...state, error: action.payload.error}
+      }
+      return {...state, error: null}
     default:
       return state
   }
