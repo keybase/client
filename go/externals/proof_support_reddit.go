@@ -10,6 +10,7 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -112,6 +113,13 @@ func (rc *RedditChecker) CheckData(h libkb.SigHint, dat *jsonw.Wrapper) libkb.Pr
 }
 
 func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_REDDIT, rc.proof, h)
+	}
+	return rc.CheckStatusOld(ctx, h)
+}
+
+func (rc *RedditChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArg(h.GetAPIURL()))
 	if err != nil {
 		return libkb.XapiError(err, h.GetAPIURL())

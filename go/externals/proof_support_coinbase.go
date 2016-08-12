@@ -10,6 +10,7 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -43,6 +44,13 @@ func (rc *CoinbaseChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) li
 func (rc *CoinbaseChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *CoinbaseChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_COINBASE, rc.proof, h)
+	}
+	return rc.CheckStatusOld(ctx, h)
+}
+
+func (rc *CoinbaseChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	url := h.GetAPIURL()
 	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArg(url))
 	if err != nil {
