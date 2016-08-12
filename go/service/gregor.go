@@ -1034,40 +1034,6 @@ func (g *gregorHandler) InjectOutOfBandMessage(system string, body []byte) error
 	return err
 }
 
-func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {
-	g.Lock()
-	defer g.Unlock()
-
-	for _, handler := range g.ibmHandlers {
-		if !handler.IsAlive() {
-			continue
-		}
-		if handler, ok := handler.(*RekeyUIHandler); ok {
-			return handler.RekeyStatusFinish(ctx, sessionID)
-		}
-	}
-
-	return keybase1.Outcome_NONE, errors.New("no alive RekeyUIHandler found")
-}
-
-// RekeyReharass is called when a periodic recheck is done that determines
-// the user needs to be harassed again.
-func (g *gregorHandler) RekeyReharass(ctx context.Context, pset keybase1.ProblemSetDevices) error {
-	g.Lock()
-	defer g.Unlock()
-
-	for _, handler := range g.ibmHandlers {
-		if !handler.IsAlive() {
-			continue
-		}
-		if handler, ok := handler.(*RekeyUIHandler); ok {
-			return handler.RekeyReharass(ctx, pset)
-		}
-	}
-
-	return errors.New("no RekeyUIHandlers exist")
-}
-
 func (g *gregorHandler) simulateCrashForTesting() {
 	g.transportForTesting.Reset()
 	gregor1.IncomingClient{Cli: g.cli}.Ping(context.Background())

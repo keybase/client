@@ -520,3 +520,43 @@ func (r *RekeyHandler2) RekeySync(_ context.Context, arg keybase1.RekeySyncArg) 
 }
 
 var _ keybase1.RekeyInterface = (*RekeyHandler2)(nil)
+
+func keysSolveProblemTLF(keys []libkb.GenericKey, tlf keybase1.ProblemTLF) bool {
+	var ourKIDs []keybase1.KID
+	for _, key := range keys {
+		if key != nil {
+			ourKIDs = append(ourKIDs, key.GetKID())
+		}
+	}
+	for _, theirKID := range tlf.Solution_kids {
+		for _, ourKID := range ourKIDs {
+			if ourKID.Equal(theirKID) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func newProblemSetDevices(u *libkb.User, pset keybase1.ProblemSet) (keybase1.ProblemSetDevices, error) {
+	var set keybase1.ProblemSetDevices
+	set.ProblemSet = pset
+
+	ckf := u.GetComputedKeyFamily()
+
+	dset := make(map[keybase1.DeviceID]bool)
+	for _, f := range pset.Tlfs {
+		for _, kid := range f.Solution_kids {
+			dev, err := ckf.GetDeviceForKID(kid)
+			if err != nil {
+				return keybase1.ProblemSetDevices{}, err
+			}
+			if dset[dev.ID] {
+				continue
+			}
+			dset[dev.ID] = true
+			set.Devices = append(set.Devices, *(dev.ProtExport()))
+		}
+	}
+	return set, nil
+}
