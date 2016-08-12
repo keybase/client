@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -16,14 +17,15 @@ import (
 
 const (
 	// error param keys
-	errorParamTlf        = "tlf"
-	errorParamMode       = "mode"
-	errorParamFeature    = "feature"
-	errorParamUsername   = "username"
-	errorParamExternal   = "external"
-	errorParamRekeySelf  = "rekeyself"
-	errorParamUsageBytes = "usageBytes"
-	errorParamLimitBytes = "limitBytes"
+	errorParamTlf               = "tlf"
+	errorParamMode              = "mode"
+	errorParamFeature           = "feature"
+	errorParamUsername          = "username"
+	errorParamExternal          = "external"
+	errorParamRekeySelf         = "rekeyself"
+	errorParamUsageBytes        = "usageBytes"
+	errorParamLimitBytes        = "limitBytes"
+	errorParamRenameOldFilename = "oldFilename"
 
 	// error operation modes
 	errorModeRead  = "read"
@@ -222,6 +224,51 @@ func rekeyNotification(ctx context.Context, config Config, handle *TlfHandle, fi
 		StatusCode:           code,
 		NotificationType:     keybase1.FSNotificationType_REKEYING,
 	}
+}
+
+func baseFileEditNotification(file path, writer keybase1.UID,
+	localTime time.Time) *keybase1.FSNotification {
+	n := baseNotification(file, true)
+	n.WriterUid = writer
+	n.LocalTime = keybase1.ToTime(localTime)
+	return n
+}
+
+// fileCreateNotification creates FSNotifications from paths for file
+// create events.
+func fileCreateNotification(file path, writer keybase1.UID,
+	localTime time.Time) *keybase1.FSNotification {
+	n := baseFileEditNotification(file, writer, localTime)
+	n.NotificationType = keybase1.FSNotificationType_FILE_CREATED
+	return n
+}
+
+// fileModifyNotification creates FSNotifications from paths for file
+// modification events.
+func fileModifyNotification(file path, writer keybase1.UID,
+	localTime time.Time) *keybase1.FSNotification {
+	n := baseFileEditNotification(file, writer, localTime)
+	n.NotificationType = keybase1.FSNotificationType_FILE_MODIFIED
+	return n
+}
+
+// fileDeleteNotification creates FSNotifications from paths for file
+// delete events.
+func fileDeleteNotification(file path, writer keybase1.UID,
+	localTime time.Time) *keybase1.FSNotification {
+	n := baseFileEditNotification(file, writer, localTime)
+	n.NotificationType = keybase1.FSNotificationType_FILE_DELETED
+	return n
+}
+
+// fileRenameNotification creates FSNotifications from paths for file
+// rename events.
+func fileRenameNotification(oldFile path, newFile path, writer keybase1.UID,
+	localTime time.Time) *keybase1.FSNotification {
+	n := baseFileEditNotification(newFile, writer, localTime)
+	n.NotificationType = keybase1.FSNotificationType_FILE_RENAMED
+	n.Params = map[string]string{errorParamRenameOldFilename: oldFile.String()}
+	return n
 }
 
 // connectionNotification creates FSNotifications based on whether
