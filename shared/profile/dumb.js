@@ -10,15 +10,17 @@ import ProvePgpChoice from './pgp/prove-pgp-choice'
 import ProvePgpImport from './pgp/prove-pgp-import'
 import ProveWebsiteChoice from './prove-website-choice'
 import Revoke from './revoke'
-import type {DumbComponentMap} from '../constants/types/more'
-import type {Proof} from '../constants/tracker'
-import type {Props as RenderProps} from './render'
-import type {UserInfo} from '../common-adapters/user-bio'
+import pgpDumb from './pgp/dumb'
 import {constants} from '../constants/types/keybase-v1'
 import {createFolder} from '../folders/dumb'
 import {globalColors} from '../styles/style-guide'
 import {isMobile} from '../constants/platform'
 import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaPending, metaUnreachable} from '../constants/tracker'
+
+import type {DumbComponentMap} from '../constants/types/more'
+import type {Proof} from '../constants/tracker'
+import type {Props as RenderProps} from './render'
+import type {UserInfo} from '../common-adapters/user-bio'
 
 export const proofsDefault: Array<Proof> = [
   {name: 'malgorithms', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com', isTracked: false, mTime: 1469665223000},
@@ -531,4 +533,5 @@ export default {
   'New Proof: PGP import': dumbProvePgpImport,
   'New Proof: PGP generating': dumbGeneratingPgp,
   'New Proof: PGP generate finished': dumbFinishedGeneratingPgp,
+  ...pgpDumb,
 }
