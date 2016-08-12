@@ -268,7 +268,12 @@ export const metadataUpdate = {}
 
 export const NotifyApp = {}
 
-export const NotifyChat = {}
+export const NotifyChat = {
+  'ChatActivityType': {
+    'reserved': 0,
+    'incomingMessage': 1,
+  },
+}
 
 export const notifyCtl = {}
 

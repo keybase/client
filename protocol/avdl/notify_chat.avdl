@@ -4,6 +4,16 @@ protocol NotifyChat {
   import idl "common.avdl";
   import idl "chat_local.avdl";
 
+  enum ChatActivityType {
+    RESERVED_0,
+    INCOMING_MESSAGE_1
+  }
+
+  record ChatActivity {
+    ChatActivityType ActivityType;
+    union { null, Message } IncomingMessage;
+  }
+
   @notify("")
-  void newChatMessage(UID uid, Message msg);
+  void NewChatActivity(UID uid, ChatActivity activity);
 }

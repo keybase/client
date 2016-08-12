@@ -8,31 +8,43 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type NewChatMessageArg struct {
-	Uid UID     `codec:"uid" json:"uid"`
-	Msg Message `codec:"msg" json:"msg"`
+type ChatActivityType int
+
+const (
+	ChatActivityType_RESERVED         ChatActivityType = 0
+	ChatActivityType_INCOMING_MESSAGE ChatActivityType = 1
+)
+
+type ChatActivity struct {
+	ActivityType    ChatActivityType `codec:"ActivityType" json:"ActivityType"`
+	IncomingMessage *Message         `codec:"IncomingMessage,omitempty" json:"IncomingMessage,omitempty"`
+}
+
+type NewChatActivityArg struct {
+	Uid      UID          `codec:"uid" json:"uid"`
+	Activity ChatActivity `codec:"activity" json:"activity"`
 }
 
 type NotifyChatInterface interface {
-	NewChatMessage(context.Context, NewChatMessageArg) error
+	NewChatActivity(context.Context, NewChatActivityArg) error
 }
 
 func NotifyChatProtocol(i NotifyChatInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.NotifyChat",
 		Methods: map[string]rpc.ServeHandlerDescription{
-			"newChatMessage": {
+			"NewChatActivity": {
 				MakeArg: func() interface{} {
-					ret := make([]NewChatMessageArg, 1)
+					ret := make([]NewChatActivityArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]NewChatMessageArg)
+					typedArgs, ok := args.(*[]NewChatActivityArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]NewChatMessageArg)(nil), args)
+						err = rpc.NewTypeError((*[]NewChatActivityArg)(nil), args)
 						return
 					}
-					err = i.NewChatMessage(ctx, (*typedArgs)[0])
+					err = i.NewChatActivity(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodNotify,
@@ -45,7 +57,7 @@ type NotifyChatClient struct {
 	Cli rpc.GenericClient
 }
 
-func (c NotifyChatClient) NewChatMessage(ctx context.Context, __arg NewChatMessageArg) (err error) {
-	err = c.Cli.Notify(ctx, "keybase.1.NotifyChat.newChatMessage", []interface{}{__arg})
+func (c NotifyChatClient) NewChatActivity(ctx context.Context, __arg NewChatActivityArg) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyChat.NewChatActivity", []interface{}{__arg})
 	return
 }

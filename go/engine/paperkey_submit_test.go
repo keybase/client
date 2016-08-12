@@ -83,14 +83,14 @@ type nlistener struct {
 	paperEncKIDs []keybase1.KID
 }
 
-func (n *nlistener) Logout()                                               {}
-func (n *nlistener) Login(username string)                                 {}
-func (n *nlistener) ClientOutOfDate(to, uri, msg string)                   {}
-func (n *nlistener) UserChanged(uid keybase1.UID)                          {}
-func (n *nlistener) TrackingChanged(uid keybase1.UID, username string)     {}
-func (n *nlistener) FSActivity(activity keybase1.FSNotification)           {}
-func (n *nlistener) FavoritesChanged(uid keybase1.UID)                     {}
-func (n *nlistener) NewChatMessage(uid keybase1.UID, msg keybase1.Message) {}
+func (n *nlistener) Logout()                                                          {}
+func (n *nlistener) Login(username string)                                            {}
+func (n *nlistener) ClientOutOfDate(to, uri, msg string)                              {}
+func (n *nlistener) UserChanged(uid keybase1.UID)                                     {}
+func (n *nlistener) TrackingChanged(uid keybase1.UID, username string)                {}
+func (n *nlistener) FSActivity(activity keybase1.FSNotification)                      {}
+func (n *nlistener) FavoritesChanged(uid keybase1.UID)                                {}
+func (n *nlistener) NewChatActivity(uid keybase1.UID, activity keybase1.ChatActivity) {}
 func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID) {
 	n.paperEncKIDs = append(n.paperEncKIDs, encKID)
 }

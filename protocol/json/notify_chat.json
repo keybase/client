@@ -10,17 +10,43 @@
       "type": "idl"
     }
   ],
-  "types": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "ChatActivityType",
+      "symbols": [
+        "RESERVED_0",
+        "INCOMING_MESSAGE_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChatActivity",
+      "fields": [
+        {
+          "type": "ChatActivityType",
+          "name": "ActivityType"
+        },
+        {
+          "type": [
+            null,
+            "Message"
+          ],
+          "name": "IncomingMessage"
+        }
+      ]
+    }
+  ],
   "messages": {
-    "newChatMessage": {
+    "NewChatActivity": {
       "request": [
         {
           "name": "uid",
           "type": "UID"
         },
         {
-          "name": "msg",
-          "type": "Message"
+          "name": "activity",
+          "type": "ChatActivity"
         }
       ],
       "response": null,
