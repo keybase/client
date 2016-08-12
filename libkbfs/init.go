@@ -374,7 +374,9 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 		log := config.MakeLogger("")
 		jServer := makeJournalServer(
 			config, log, params.WriteJournalRoot,
+			config.BlockCache(),
 			config.BlockServer(), config.MDOps())
+		config.SetBlockCache(jServer.blockCache())
 		config.SetBlockServer(jServer.blockServer())
 		config.SetMDOps(jServer.mdOps())
 	}
