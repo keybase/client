@@ -59,6 +59,7 @@ protocol common {
 
   record MessageClientHeader {
     ConversationIDTriple conv;
+    string tlfName;
     MessageType messageType;
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
