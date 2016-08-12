@@ -1,11 +1,13 @@
 // @flow
-import React, {Component} from 'react'
-import UserInfo from './user.render'
-import NonUserInfo from './non-user.render'
+import ErrorComponent from '../../common-adapters/error-profile'
 import Help from './help'
 import Loading from './loading'
-import type {Props as UserInfoPaneProps} from './user.render'
+import NonUserInfo from './non-user.render'
+import React, {Component} from 'react'
+import UserInfo from './user.render'
+
 import type {Props as NonUserInfoProps} from './non-user.render'
+import type {Props as UserInfoPaneProps} from './user.render'
 
 export type Props = {
   mode: 'keybase',
@@ -16,6 +18,9 @@ export type Props = {
 } | {
   mode: 'loading',
   username: string,
+} | {
+  mode: 'error',
+  error: string,
 } | {
   mode: 'nothingSelected'
 }
@@ -28,6 +33,8 @@ class Render extends Component<void, Props, void> {
       return <NonUserInfo {...this.props.nonUserInfoProps} />
     } else if (this.props.mode === 'loading') {
       return <Loading username={this.props.username} />
+    } else if (this.props.mode === 'error') {
+      return <ErrorComponent error={this.props.error} />
     }
 
     return (

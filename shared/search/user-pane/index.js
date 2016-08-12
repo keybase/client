@@ -20,6 +20,12 @@ export default connector.connect(
     if (userForInfoPane && userForInfoPane.service === 'keybase') {
       const username = userForInfoPane.username
       const trackerState = trackers[username]
+      if (username && trackerState && trackerState.type === 'tracker' && !!trackerState.error) {
+        return {
+          mode: 'error',
+          error: trackerState.error,
+        }
+      }
       if (username && trackerState && trackerState.type === 'tracker') {
         const currentlyFollowing = trackerState.lastAction === 'followed' || trackerState.lastAction === 'refollowed' || trackerState.currentlyFollowing
         // TODO (mm) ideally userInfo should be null until we get a response from the server
