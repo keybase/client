@@ -358,6 +358,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 			return err
 		}
 		ro.setWriterInfo(realOp.getWriterInfo())
+		ro.setLocalTimestamp(realOp.getLocalTimestamp())
 		// realOp.OldDir.Ref may be zero if this is a
 		// post-resolution chain, so set ro.Dir.Ref manually.
 		ro.Dir.Ref = realOp.OldDir.Ref
@@ -401,6 +402,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 			return err
 		}
 		co.setWriterInfo(realOp.getWriterInfo())
+		co.setLocalTimestamp(realOp.getLocalTimestamp())
 		co.renamed = true
 		// ndr may be zero if this is a post-resolution chain,
 		// so set co.Dir.Ref manually.
