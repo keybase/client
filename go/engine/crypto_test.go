@@ -123,7 +123,7 @@ func TestCryptoUnboxBytes32(t *testing.T) {
 		return &libkb.TestSecretUI{Passphrase: u.Passphrase}
 	}
 
-	key, err := getMySecretKey(
+	key, err := GetMySecretKey(
 		tc.G, f, libkb.DeviceEncryptionKeyType, "test")
 	if err != nil {
 		t.Fatal(err)
