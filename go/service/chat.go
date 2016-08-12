@@ -4,6 +4,9 @@
 package service
 
 import (
+	"errors"
+	"fmt"
+
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
@@ -15,7 +18,8 @@ import (
 type chatLocalHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	gh *gregorHandler
+	gh   *gregorHandler
+	tlfh *tlfHandler
 }
 
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
@@ -23,6 +27,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 		gh:           gh,
+		tlfh:         newTlfHandler(xp, g),
 	}
 }
 
@@ -40,10 +45,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetT
 		return keybase1.ThreadView{}, err
 	}
 
-	// TODO: ThreadViewBoxed -> ThreadView
-	_ = boxed
-
-	return keybase1.ThreadView{}, nil
+	return h.unboxThread(ctx, boxed)
 }
 
 func (h *chatLocalHandler) NewConversationLocal(context.Context, chat1.ConversationIDTriple) error {
@@ -62,4 +64,56 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg keybase1.PostLocal
 
 func (h *chatLocalHandler) remoteClient() *chat1.RemoteClient {
 	return &chat1.RemoteClient{Cli: h.gh.cli}
+}
+
+func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed) (keybase1.ThreadView, error) {
+	thread := keybase1.ThreadView{
+		Pagination: boxed.Pagination,
+	}
+
+	for _, msg := range boxed.Messages {
+		unboxed, err := h.unboxMessage(ctx, msg)
+		if err != nil {
+			return keybase1.ThreadView{}, err
+		}
+		thread.Messages = append(thread.Messages, unboxed)
+	}
+
+	return thread, nil
+}
+
+func (h *chatLocalHandler) unboxMessage(ctx context.Context, msg chat1.MessageBoxed) (keybase1.Message, error) {
+	if msg.ServerHeader == nil {
+		return keybase1.Message{}, errors.New("nil ServerHeader in MessageBoxed")
+	}
+
+	unboxed := keybase1.Message{
+		ServerHeader: *msg.ServerHeader,
+		MessagePlaintext: keybase1.MessagePlaintext{
+			ClientHeader: msg.ClientHeader,
+		},
+	}
+
+	tlfID := msg.ClientHeader.Conv.Tlfid
+	keys, err := h.tlfKeys(ctx, tlfID)
+	if err != nil {
+		return keybase1.Message{}, err
+	}
+
+	var keyBytes *keybase1.Bytes32
+	for _, key := range keys.CryptKeys {
+		if key.KeyGeneration == msg.KeyGeneration {
+			keyBytes = &key.Key
+		}
+	}
+
+	if keyBytes == nil {
+		return keybase1.Message{}, fmt.Errorf("no key found for generation %d", msg.KeyGeneration)
+	}
+
+	return unboxed, nil
+}
+
+func (h *chatLocalHandler) tlfKeys(ctx context.Context, tlfID chat1.TLFID) (keybase1.TLFCryptKeys, error) {
+	return keybase1.TLFCryptKeys{}, nil
 }
