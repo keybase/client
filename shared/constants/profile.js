@@ -15,6 +15,9 @@ export type UpdatePlatform = TypedAction<'profile:updatePlatform', {platform: Pl
 export const updateUsername = 'profile:updateUsername'
 export type UpdateUsername = TypedAction<'profile:updateUsername', {username: string}, void>
 
+export const cleanupUsername = 'profile:cleanupUsername'
+export type CleanupUsername = TypedAction<'profile:cleanupUsername', void, void>
+
 export const waitingRevokeProof = 'profile:revoke:waiting'
 export type WaitingRevokeProof = TypedAction<'profile:revoke:waiting', {waiting: boolean}, void>
 
@@ -38,6 +41,7 @@ export const maxProfileBioChars = 256
 export type Actions = Waiting
   | UpdatePlatform
   | UpdateUsername
+  | CleanupUsername
   | WaitingRevokeProof
   | FinishRevokeProof
   | UpdateProofText
