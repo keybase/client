@@ -23,8 +23,8 @@ import (
 type chatLocalHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	gh   *gregorHandler
-	tlfh *tlfHandler
+	gh    *gregorHandler
+	boxer *chatBoxer
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
@@ -33,7 +33,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 		gh:           gh,
-		tlfh:         newTlfHandler(xp, g),
+		boxer:        &chatBoxer{tlf: newTlfHandler(xp, g)},
 	}
 }
 
@@ -67,7 +67,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, trip chat1.
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *chatLocalHandler) PostLocal(ctx context.Context, arg keybase1.PostLocalArg) error {
 	// encrypt the message
-	boxed, err := h.boxMessage(ctx, arg.MessagePlaintext)
+	boxed, err := h.boxer.boxMessage(ctx, arg.MessagePlaintext)
 	if err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadVi
 
 	finder := newKeyFinder()
 	for _, msg := range boxed.Messages {
-		unboxed, err := h.unboxMessage(ctx, finder, msg)
+		unboxed, err := h.boxer.unboxMessage(ctx, finder, msg)
 		if err != nil {
 			return keybase1.ThreadView{}, err
 		}
@@ -131,11 +131,15 @@ func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadVi
 	return thread, nil
 }
 
+type chatBoxer struct {
+	tlf keybase1.TlfInterface
+}
+
 // unboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
 // the appropriate keybase1.CryptKey.
-func (h *chatLocalHandler) unboxMessage(ctx context.Context, finder *keyFinder, msg chat1.MessageBoxed) (keybase1.Message, error) {
+func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, msg chat1.MessageBoxed) (keybase1.Message, error) {
 	tlfName := msg.ClientHeader.TlfName
-	keys, err := finder.find(ctx, h.tlfh, tlfName)
+	keys, err := finder.find(ctx, b.tlf, tlfName)
 	if err != nil {
 		return keybase1.Message{}, err
 	}
@@ -152,12 +156,12 @@ func (h *chatLocalHandler) unboxMessage(ctx context.Context, finder *keyFinder, 
 		return keybase1.Message{}, fmt.Errorf("no key found for generation %d", msg.KeyGeneration)
 	}
 
-	return h.unboxMessageWithKey(msg, matchKey)
+	return b.unboxMessageWithKey(msg, matchKey)
 }
 
 // unboxMessageWithKey unboxes a chat1.MessageBoxed into a keybase1.Message given
 // a keybase1.CryptKey.
-func (h *chatLocalHandler) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.CryptKey) (keybase1.Message, error) {
+func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.CryptKey) (keybase1.Message, error) {
 	if msg.ServerHeader == nil {
 		return keybase1.Message{}, errors.New("nil ServerHeader in MessageBoxed")
 	}
@@ -187,9 +191,9 @@ func (h *chatLocalHandler) unboxMessageWithKey(msg chat1.MessageBoxed, key *keyb
 
 // boxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
 // finds the most recent key for the TLF.
-func (h *chatLocalHandler) boxMessage(ctx context.Context, msg keybase1.MessagePlaintext) (chat1.MessageBoxed, error) {
+func (b *chatBoxer) boxMessage(ctx context.Context, msg keybase1.MessagePlaintext) (chat1.MessageBoxed, error) {
 	tlfName := msg.ClientHeader.TlfName
-	keys, err := h.tlfh.CryptKeys(ctx, tlfName)
+	keys, err := b.tlf.CryptKeys(ctx, tlfName)
 	if err != nil {
 		return chat1.MessageBoxed{}, err
 	}
@@ -205,12 +209,12 @@ func (h *chatLocalHandler) boxMessage(ctx context.Context, msg keybase1.MessageP
 		return chat1.MessageBoxed{}, fmt.Errorf("no key found for tlf %q", tlfName)
 	}
 
-	return h.boxMessageWithKey(msg, recentKey)
+	return b.boxMessageWithKey(msg, recentKey)
 }
 
 // boxMessageWithKey encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed
 // given a keybase1.CryptKey.
-func (h *chatLocalHandler) boxMessageWithKey(msg keybase1.MessagePlaintext, key *keybase1.CryptKey) (chat1.MessageBoxed, error) {
+func (b *chatBoxer) boxMessageWithKey(msg keybase1.MessagePlaintext, key *keybase1.CryptKey) (chat1.MessageBoxed, error) {
 	s, err := json.Marshal(msg)
 	if err != nil {
 		return chat1.MessageBoxed{}, err
@@ -287,13 +291,13 @@ func newKeyFinder() *keyFinder {
 
 // find finds keybase1.TLFCryptKeys for tlfName, checking for existing
 // results.
-func (k *keyFinder) find(ctx context.Context, handler *tlfHandler, tlfName string) (keybase1.TLFCryptKeys, error) {
+func (k *keyFinder) find(ctx context.Context, tlf keybase1.TlfInterface, tlfName string) (keybase1.TLFCryptKeys, error) {
 	existing, ok := k.keys[tlfName]
 	if ok {
 		return existing, nil
 	}
 
-	keys, err := handler.CryptKeys(ctx, tlfName)
+	keys, err := tlf.CryptKeys(ctx, tlfName)
 	if err != nil {
 		return keybase1.TLFCryptKeys{}, err
 	}
