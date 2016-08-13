@@ -42,11 +42,12 @@ func unmount(path string) error {
 type SID struct{}
 
 const (
-	kbfsLibdokanDebug          = 0
-	kbfsLibdokanStderr         = 0
-	kbfsLibdokanRemovable      = 0
-	kbfsLibdokanMountManager   = 0
-	kbfsLibdokanCurrentSession = 0
+	kbfsLibdokanDebug = MountFlag(0)
+	kbfsLibdokanStderr
+	kbfsLibdokanRemovable
+	kbfsLibdokanMountManager
+	kbfsLibdokanCurrentSession
+	kbfsLibdokanUseFindFilesWithPattern
 )
 
 func currentProcessUserSid() (*SID, error) {

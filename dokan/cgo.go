@@ -216,6 +216,26 @@ func kbfsLibdokanFindFiles(
 	FindData C.PFillFindData, // call this function with PWIN32_FIND_DATAW
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("FindFiles '%v' %v", d16{PathName}, *pfi)
+	return kbfsLibdokanFindFilesImpl(PathName, "", FindData, pfi)
+}
+
+//export kbfsLibdokanFindFilesWithPattern
+func kbfsLibdokanFindFilesWithPattern(
+	PathName C.LPCWSTR,
+	SearchPattern C.LPCWSTR,
+	PFillFindData uintptr, // call this function with PWIN32_FIND_DATAW
+	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pattern := lpcwstrToString(SearchPattern)
+	debugf("FindFilesWithPattern '%v' %v %q", d16{PathName}, *pfi, pattern)
+	return kbfsLibdokanFindFilesImpl(PathName, pattern, FindData, pfi)
+}
+
+func kbfsLibdokanFindFilesImpl(
+	PathName C.LPCWSTR,
+	pattern string,
+	FindData C.PFillFindData,
+	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	debugf("FindFiles '%v' %v", d16{PathName}, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
 		defer cancel()
@@ -244,21 +264,9 @@ func kbfsLibdokanFindFiles(
 		}
 		return nil
 	}
-	err := getfi(pfi).FindFiles(ctx, makeFI(PathName, pfi), fun)
+	err := getfi(pfi).FindFiles(ctx, makeFI(PathName, pfi), pattern, fun)
 	return errToNT(err)
 }
-
-/* This is disabled from the C side currently.
-//export kbfsLibdokanFindFilesWithPattern
-func kbfsLibdokanFindFilesWithPattern (
-	PathName C.LPCWSTR,
-	SearchPattern C.LPCWSTR,
-	PFillFindData uintptr, // call this function with PWIN32_FIND_DATAW
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
-
-
-}
-*/
 
 //export kbfsLibdokanSetFileAttributes
 func kbfsLibdokanSetFileAttributes(

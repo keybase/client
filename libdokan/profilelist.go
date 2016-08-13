@@ -41,7 +41,7 @@ func (pl ProfileList) open(ctx context.Context, oc *openContext, path []string) 
 }
 
 // FindFiles does readdir for dokan.
-func (ProfileList) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
+func (ProfileList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string, callback func(*dokan.NamedStat) error) (err error) {
 	profiles := pprof.Profiles()
 	var ns dokan.NamedStat
 	ns.FileAttributes = dokan.FileAttributeReadonly

@@ -34,7 +34,7 @@ func (t emptyFile) WriteFile(ctx context.Context, fi *dokan.FileInfo, bs []byte,
 func (t emptyFile) FlushFileBuffers(ctx context.Context, fi *dokan.FileInfo) error {
 	return dokan.ErrAccessDenied
 }
-func (t emptyFile) FindFiles(ctx context.Context, fi *dokan.FileInfo, cb func(*dokan.NamedStat) error) error {
+func (t emptyFile) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string, cb func(*dokan.NamedStat) error) error {
 	return dokan.ErrAccessDenied
 }
 func (t emptyFile) SetFileTime(context.Context, *dokan.FileInfo, time.Time, time.Time, time.Time) error {

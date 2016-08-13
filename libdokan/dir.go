@@ -294,7 +294,7 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		if c := lowerTranslateCandidate(oc, path[0]); c != "" {
 			var hit string
 			var nhits int
-			d.FindFiles(ctx, nil, func(ns *dokan.NamedStat) error {
+			d.FindFiles(ctx, nil, c, func(ns *dokan.NamedStat) error {
 				if strings.ToLower(ns.Name) == c {
 					hit = ns.Name
 					nhits++
@@ -453,7 +453,7 @@ func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (f *Dir, 
 }
 
 // FindFiles does readdir for dokan.
-func (d *Dir) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
+func (d *Dir) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string, callback func(*dokan.NamedStat) error) (err error) {
 	d.folder.fs.logEnter(ctx, "Dir FindFiles")
 	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
