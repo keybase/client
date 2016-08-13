@@ -208,7 +208,7 @@
           "type": "chat1.ConversationIDTriple"
         }
       ],
-      "response": null
+      "response": "chat1.ConversationID"
     }
   },
   "namespace": "keybase.1"

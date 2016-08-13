@@ -76,7 +76,7 @@ type ChatLocalInterface interface {
 	GetInboxLocal(context.Context, *chat1.Pagination) (chat1.InboxView, error)
 	GetThreadLocal(context.Context, GetThreadLocalArg) (ThreadView, error)
 	PostLocal(context.Context, PostLocalArg) error
-	NewConversationLocal(context.Context, chat1.ConversationIDTriple) error
+	NewConversationLocal(context.Context, chat1.ConversationIDTriple) (chat1.ConversationID, error)
 }
 
 func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
@@ -142,7 +142,7 @@ func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]NewConversationLocalArg)(nil), args)
 						return
 					}
-					err = i.NewConversationLocal(ctx, (*typedArgs)[0].ConversationTriple)
+					ret, err = i.NewConversationLocal(ctx, (*typedArgs)[0].ConversationTriple)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -171,8 +171,8 @@ func (c ChatLocalClient) PostLocal(ctx context.Context, __arg PostLocalArg) (err
 	return
 }
 
-func (c ChatLocalClient) NewConversationLocal(ctx context.Context, conversationTriple chat1.ConversationIDTriple) (err error) {
+func (c ChatLocalClient) NewConversationLocal(ctx context.Context, conversationTriple chat1.ConversationIDTriple) (res chat1.ConversationID, err error) {
 	__arg := NewConversationLocalArg{ConversationTriple: conversationTriple}
-	err = c.Cli.Call(ctx, "keybase.1.chatLocal.newConversationLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.chatLocal.newConversationLocal", []interface{}{__arg}, &res)
 	return
 }

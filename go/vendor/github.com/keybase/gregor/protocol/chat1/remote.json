@@ -101,11 +101,11 @@
     "newConversationRemote": {
       "request": [
         {
-          "name": "conversationMetadata",
-          "type": "ConversationMetadata"
+          "name": "idTriple",
+          "type": "ConversationIDTriple"
         }
       ],
-      "response": null
+      "response": "ConversationID"
     }
   },
   "namespace": "chat.1"

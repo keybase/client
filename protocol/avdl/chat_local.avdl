@@ -53,5 +53,5 @@ protocol chatLocal {
   chat1.InboxView getInboxLocal(union { null, chat1.Pagination } pagination);
   ThreadView getThreadLocal(chat1.ConversationID conversationID, union { null, chat1.Pagination } pagination);
   void postLocal(chat1.ConversationID conversationID, MessagePlaintext messagePlaintext);
-  void newConversationLocal(chat1.ConversationIDTriple conversationTriple);
+  chat1.ConversationID newConversationLocal(chat1.ConversationIDTriple conversationTriple);
 }

@@ -1804,11 +1804,13 @@ export type chatLocalNewConversationLocalRpcParam = $Exact<{
   conversationTriple: chat1.ConversationIDTriple
 }>
 
+type chatLocalNewConversationLocalResult = chat1.ConversationID
+
 export function chatLocalNewConversationLocalRpc (request: $Exact<{
   param: chatLocalNewConversationLocalRpcParam,
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
+  callback?: (null | (err: ?any, response: chatLocalNewConversationLocalResult) => void)}>) {
   engine.rpc({...request, method: 'chatLocal.newConversationLocal'})
 }
 export type chatLocalPostLocalRpcParam = $Exact<{
@@ -4413,7 +4415,7 @@ export type incomingCallMapType = $Exact<{
     }>,
     response: {
       error: (err: RPCError) => void,
-      result: () => void
+      result: (result: chatLocalNewConversationLocalResult) => void
     }
   ) => void,
   'keybase.1.config.getCurrentStatus'?: (

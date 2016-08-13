@@ -9,12 +9,11 @@ import (
 )
 
 type ThreadID []byte
-type MessageID []byte
+type MessageID uint
 type PaginationResourceID []byte
 type TopicID []byte
-type ConversationID int64
+type ConversationID uint64
 type TLFID []byte
-type DeviceID []byte
 type MessageType int
 
 const (
@@ -26,6 +25,13 @@ const (
 	MessageType_METADATA   MessageType = 5
 )
 
+type TopicType int
+
+const (
+	TopicType_NONE TopicType = 0
+	TopicType_CHAT TopicType = 1
+)
+
 type Pagination struct {
 	ResourceID []byte `codec:"resourceID" json:"resourceID"`
 	Last       int    `codec:"last" json:"last"`
@@ -33,9 +39,9 @@ type Pagination struct {
 }
 
 type ConversationIDTriple struct {
-	Tlfid     TLFID   `codec:"tlfid" json:"tlfid"`
-	TopicType int     `codec:"topicType" json:"topicType"`
-	TopicID   TopicID `codec:"topicID" json:"topicID"`
+	Tlfid     TLFID     `codec:"tlfid" json:"tlfid"`
+	TopicType TopicType `codec:"topicType" json:"topicType"`
+	TopicID   TopicID   `codec:"topicID" json:"topicID"`
 }
 
 type ConversationMetadata struct {
@@ -49,12 +55,12 @@ type Conversation struct {
 }
 
 type MessageServerHeader struct {
-	MessageType  MessageType  `codec:"messageType" json:"messageType"`
-	MessageID    MessageID    `codec:"messageID" json:"messageID"`
-	Sender       gregor1.UID  `codec:"sender" json:"sender"`
-	SenderDevice DeviceID     `codec:"senderDevice" json:"senderDevice"`
-	SupersededBy MessageID    `codec:"supersededBy" json:"supersededBy"`
-	Ctime        gregor1.Time `codec:"ctime" json:"ctime"`
+	MessageType  MessageType      `codec:"messageType" json:"messageType"`
+	MessageID    MessageID        `codec:"messageID" json:"messageID"`
+	Sender       gregor1.UID      `codec:"sender" json:"sender"`
+	SenderDevice gregor1.DeviceID `codec:"senderDevice" json:"senderDevice"`
+	SupersededBy MessageID        `codec:"supersededBy" json:"supersededBy"`
+	Ctime        gregor1.Time     `codec:"ctime" json:"ctime"`
 }
 
 type MessagePreviousPointer struct {
@@ -68,7 +74,7 @@ type MessageClientHeader struct {
 	MessageType  MessageType              `codec:"messageType" json:"messageType"`
 	Prev         []MessagePreviousPointer `codec:"prev" json:"prev"`
 	Sender       gregor1.UID              `codec:"sender" json:"sender"`
-	SenderDevice DeviceID                 `codec:"senderDevice" json:"senderDevice"`
+	SenderDevice gregor1.DeviceID         `codec:"senderDevice" json:"senderDevice"`
 }
 
 type EncryptedData struct {

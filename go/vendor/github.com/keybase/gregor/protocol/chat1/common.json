@@ -18,7 +18,7 @@
       "type": "record",
       "name": "MessageID",
       "fields": [],
-      "typedef": "bytes"
+      "typedef": "uint"
     },
     {
       "type": "record",
@@ -36,17 +36,11 @@
       "type": "record",
       "name": "ConversationID",
       "fields": [],
-      "typedef": "long"
+      "typedef": "uint64"
     },
     {
       "type": "record",
       "name": "TLFID",
-      "fields": [],
-      "typedef": "bytes"
-    },
-    {
-      "type": "record",
-      "name": "DeviceID",
       "fields": [],
       "typedef": "bytes"
     },
@@ -60,6 +54,14 @@
         "EDIT_3",
         "DELETE_4",
         "METADATA_5"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TopicType",
+      "symbols": [
+        "NONE_0",
+        "CHAT_1"
       ]
     },
     {
@@ -89,7 +91,7 @@
           "name": "tlfid"
         },
         {
-          "type": "int",
+          "type": "TopicType",
           "name": "topicType"
         },
         {
@@ -146,7 +148,7 @@
           "name": "sender"
         },
         {
-          "type": "DeviceID",
+          "type": "gregor1.DeviceID",
           "name": "senderDevice"
         },
         {
@@ -201,7 +203,7 @@
           "name": "sender"
         },
         {
-          "type": "DeviceID",
+          "type": "gregor1.DeviceID",
           "name": "senderDevice"
         }
       ]

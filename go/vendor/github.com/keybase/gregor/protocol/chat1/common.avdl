@@ -3,13 +3,12 @@ protocol common {
 
   import idl "github.com/keybase/gregor/protocol/gregor1" as gregor1;
 
-  @typedef("bytes") record ThreadID {}
-  @typedef("bytes") record MessageID {}
-  @typedef("bytes") record PaginationResourceID {}
-  @typedef("bytes") record TopicID {}
-  @typedef("long")  record ConversationID {}
-  @typedef("bytes") record TLFID {}
-  @typedef("bytes") record DeviceID {}
+  @typedef("bytes")  record ThreadID {}
+  @typedef("uint")   record MessageID {}
+  @typedef("bytes")  record PaginationResourceID {}
+  @typedef("bytes")  record TopicID {}
+  @typedef("uint64") record ConversationID {}
+  @typedef("bytes")  record TLFID {}
 
   enum MessageType {
     NONE_0,
@@ -20,6 +19,11 @@ protocol common {
     METADATA_5
   }
 
+  enum TopicType {
+    NONE_0,
+    CHAT_1
+  }
+
   record Pagination {
     bytes resourceID;
     int last;
@@ -28,7 +32,7 @@ protocol common {
 
   record ConversationIDTriple {
     TLFID tlfid;
-    int topicType;
+    TopicType topicType;
     TopicID topicID;
   }
 
@@ -47,7 +51,7 @@ protocol common {
     MessageType messageType;
     MessageID messageID;
     gregor1.UID sender;
-    DeviceID senderDevice;
+    gregor1.DeviceID senderDevice;
     MessageID supersededBy;
     gregor1.Time ctime;
   }
@@ -63,7 +67,7 @@ protocol common {
     MessageType messageType;
     array<MessagePreviousPointer> prev;
     gregor1.UID sender;
-    DeviceID senderDevice;
+    gregor1.DeviceID senderDevice;
   }
 
   // The same format as in KBFS (see libkbfs/data_types.go)
