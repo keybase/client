@@ -229,6 +229,9 @@ def runNixTest(prefix) {
     tests = [:]
     // Run libkbfs tests with an in-memory bserver and mdserver, and run
     // all other tests with the tempdir bserver and mdserver.
+    tests[prefix+'gofmt'] = {
+        sh 'test -z $(gofmt -l $(go list ./... 2>/dev/null | grep -v /vendor/ | sed -e s/github.com.keybase.kbfs.// ))'
+    }
     tests[prefix+'vet'] = {
         sh 'go get -u github.com/golang/lint/golint'
         sh 'go install github.com/golang/lint/golint'
