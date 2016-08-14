@@ -29,11 +29,12 @@ import (
 type SID syscall.SID
 
 const (
-	kbfsLibdokanDebug          = MountFlag(C.kbfsLibdokanDebug)
-	kbfsLibdokanStderr         = MountFlag(C.kbfsLibdokanStderr)
-	kbfsLibdokanRemovable      = MountFlag(C.kbfsLibdokanRemovable)
-	kbfsLibdokanMountManager   = MountFlag(C.kbfsLibdokanMountManager)
-	kbfsLibdokanCurrentSession = MountFlag(C.kbfsLibdokanCurrentSession)
+	kbfsLibdokanDebug                   = MountFlag(C.kbfsLibdokanDebug)
+	kbfsLibdokanStderr                  = MountFlag(C.kbfsLibdokanStderr)
+	kbfsLibdokanRemovable               = MountFlag(C.kbfsLibdokanRemovable)
+	kbfsLibdokanMountManager            = MountFlag(C.kbfsLibdokanMountManager)
+	kbfsLibdokanCurrentSession          = MountFlag(C.kbfsLibdokanCurrentSession)
+	kbfsLibdokanUseFindFilesWithPattern = MountFlag(C.kbfsLibdokanUseFindFilesWithPattern)
 )
 
 // loadDokanDLL can be called to init the system with custom Dokan location,
@@ -223,7 +224,7 @@ func kbfsLibdokanFindFiles(
 func kbfsLibdokanFindFilesWithPattern(
 	PathName C.LPCWSTR,
 	SearchPattern C.LPCWSTR,
-	PFillFindData uintptr, // call this function with PWIN32_FIND_DATAW
+	FindData C.PFillFindData, // call this function with PWIN32_FIND_DATAW
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	pattern := lpcwstrToString(SearchPattern)
 	debugf("FindFilesWithPattern '%v' %v %q", d16{PathName}, *pfi, pattern)
@@ -593,28 +594,28 @@ func (ctx *dokanCtx) Run(path string, flags MountFlag) error {
 	C.kbfsLibdokanSet_path(ctx.ptr, stringToUtf16Ptr(path))
 	ec := C.kbfsLibdokanRun(ctx.ptr)
 	if ec != 0 {
-		return fmt.Errorf("Dokan failed: code=%d %q", ec, dokanErrString(ec))
+		return fmt.Errorf("Dokan failed: code=%d %q", ec, dokanErrString(int32(ec)))
 	}
 	return nil
 }
 
 func dokanErrString(code int32) string {
 	switch code {
-	case kbfsLibDokan_ERROR:
+	case C.kbfsLibDokan_ERROR:
 		return "General error"
-	case kbfsLibDokan_DRIVE_LETTER_ERROR:
+	case C.kbfsLibDokan_DRIVE_LETTER_ERROR:
 		return "Drive letter error"
-	case kbfsLibDokan_DRIVER_INSTALL_ERROR:
+	case C.kbfsLibDokan_DRIVER_INSTALL_ERROR:
 		return "Driver install error"
-	case kbfsLibDokan_START_ERROR:
+	case C.kbfsLibDokan_START_ERROR:
 		return "Start error"
-	case kbfsLibDokan_MOUNT_ERROR:
+	case C.kbfsLibDokan_MOUNT_ERROR:
 		return "Mount error"
-	case kbfsLibDokan_MOUNT_POINT_ERROR:
+	case C.kbfsLibDokan_MOUNT_POINT_ERROR:
 		return "Mount point error"
-	case kbfsLibDokan_VERSION_ERROR:
+	case C.kbfsLibDokan_VERSION_ERROR:
 		return "Version error"
-	case kbfsLibDokan_DLL_LOAD_ERROR:
+	case C.kbfsLibDokan_DLL_LOAD_ERROR:
 		return "Error loading Dokan DLL"
 	default:
 		return "UNKNOWN"

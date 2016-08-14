@@ -52,7 +52,7 @@ enum {
   kbfsLibdokanRemovable = DOKAN_OPTION_REMOVABLE,
   kbfsLibdokanMountManager = DOKAN_OPTION_MOUNT_MANAGER,
   kbfsLibdokanCurrentSession = DOKAN_OPTION_CURRENT_SESSION,
-  kbfsLibdokanUseFindFilesWithPattern = 1<<24;
+  kbfsLibdokanUseFindFilesWithPattern = 1<<24,
 
   kbfsLibDokan_ERROR = DOKAN_ERROR,
   kbfsLibDokan_DRIVE_LETTER_ERROR = DOKAN_DRIVE_LETTER_ERROR,
