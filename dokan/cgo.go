@@ -593,9 +593,32 @@ func (ctx *dokanCtx) Run(path string, flags MountFlag) error {
 	C.kbfsLibdokanSet_path(ctx.ptr, stringToUtf16Ptr(path))
 	ec := C.kbfsLibdokanRun(ctx.ptr)
 	if ec != 0 {
-		return fmt.Errorf("Dokan failed: %d", ec)
+		return fmt.Errorf("Dokan failed: code=%d %q", ec, dokanErrString(ec))
 	}
 	return nil
+}
+
+func dokanErrString(code int32) string {
+	switch code {
+	case kbfsLibDokan_ERROR:
+		return "General error"
+	case kbfsLibDokan_DRIVE_LETTER_ERROR:
+		return "Drive letter error"
+	case kbfsLibDokan_DRIVER_INSTALL_ERROR:
+		return "Driver install error"
+	case kbfsLibDokan_START_ERROR:
+		return "Start error"
+	case kbfsLibDokan_MOUNT_ERROR:
+		return "Mount error"
+	case kbfsLibDokan_MOUNT_POINT_ERROR:
+		return "Mount point error"
+	case kbfsLibDokan_VERSION_ERROR:
+		return "Version error"
+	case kbfsLibDokan_DLL_LOAD_ERROR:
+		return "Error loading Dokan DLL"
+	default:
+		return "UNKNOWN"
+	}
 }
 
 func (ctx *dokanCtx) Free() {
