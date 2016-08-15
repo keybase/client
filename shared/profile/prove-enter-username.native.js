@@ -17,10 +17,8 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
   if (platform === 'hackernews') {
     return (
       <Box style={styleInfoBanner}>
-        <Text backgroundMode='Information' type='BodySmall'>
-          &bull; You must have karma &ge; 2{"\n"}
-          &bull; You must enter your uSeRName with exact case
-        </Text>
+        <Text backgroundMode='Information' type='BodySmallSemibold'>&bull; You must have karma &ge; 2</Text>
+        <Text backgroundMode='Information' type='BodySmallSemibold'>&bull; You must enter your uSeRName with exact case</Text>
       </Box>
     )
   }
@@ -128,7 +126,7 @@ const styleInput = {
 const styleInfoBanner = {
   ...globalStyles.flexBoxColumn,
   alignSelf: 'stretch',
-  alignItems: 'center',
+  alignItems: 'flex-start',
   backgroundColor: globalColors.yellow,
   padding: globalMargins.small,
   marginTop: globalMargins.large,
