@@ -58,6 +58,7 @@ type fakeKeybaseClient struct {
 	identifyCalled              bool
 	loadUserPlusKeysCalled      bool
 	loadAllPublicKeysUnverified bool
+	editResponse                keybase1.FSEditListArg
 }
 
 var _ rpc.GenericClient = (*fakeKeybaseClient)(nil)
@@ -123,6 +124,10 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 		*res.(*[]keybase1.PublicKey) = []keybase1.PublicKey{pk}
 
 		c.loadAllPublicKeysUnverified = true
+		return nil
+
+	case "keybase.1.kbfs.FSEditList":
+		c.editResponse = args.([]interface{})[0].(keybase1.FSEditListArg)
 		return nil
 
 	default:
@@ -346,4 +351,85 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	// This one shouldn't trigger CheckForRekeys; if it does, the mock
 	// controller will catch it during Finish.
 	err = c.KeyfamilyChanged(context.Background(), uid2)
+}
+
+func TestKeybaseDaemonRPCEditList(t *testing.T) {
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CheckConfigAndShutdown(t, config1)
+
+	clock, now := newTestClockAndTimeNow()
+	config1.SetClock(clock)
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	defer CheckConfigAndShutdown(t, config2)
+
+	name := userName1.String() + "," + userName2.String()
+
+	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+
+	// user 1 creates a file
+	kbfsOps1 := config1.KBFSOps()
+	_, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false, NoExcl)
+	require.NoError(t, err)
+
+	kbfsOps2 := config2.KBFSOps()
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false, NoExcl)
+	require.NoError(t, err)
+
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	require.NoError(t, err)
+
+	_, uid1, err := config1.KBPKI().GetCurrentUserInfo(context.Background())
+	require.NoError(t, err)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	require.NoError(t, err)
+
+	// We should see 1 create edit for each user.
+	expectedEdits := []keybase1.FSNotification{
+		{
+			PublicTopLevelFolder: false,
+			Filename:             name + "/a",
+			StatusCode:           keybase1.FSStatusCode_FINISH,
+			NotificationType:     keybase1.FSNotificationType_FILE_CREATED,
+			WriterUid:            uid1,
+			LocalTime:            keybase1.ToTime(now),
+		},
+		{
+			PublicTopLevelFolder: false,
+			Filename:             name + "/b",
+			StatusCode:           keybase1.FSStatusCode_FINISH,
+			NotificationType:     keybase1.FSNotificationType_FILE_CREATED,
+			WriterUid:            uid2,
+			LocalTime:            keybase1.ToTime(now),
+		},
+	}
+
+	users := map[keybase1.UID]UserInfo{
+		uid1: {Name: userName1},
+		uid2: {Name: userName2},
+	}
+	client1 := &fakeKeybaseClient{users: users}
+	c1 := newKeybaseDaemonRPCWithClient(
+		nil, client1, logger.NewTestLogger(t))
+	c1.config = config1
+
+	reqID := 10
+	err = c1.FSEditListRequest(ctx, keybase1.FSEditListRequest{
+		Folder:    keybase1.Folder{Name: name, Private: true},
+		RequestID: reqID,
+	})
+	require.NoError(t, err)
+	edits := client1.editResponse.Edits
+	require.Len(t, edits, 2)
+	// Order doesn't matter between writers, so swap them.
+	if edits[0].WriterUid == uid2 {
+		edits[0], edits[1] = edits[1], edits[0]
+	}
+
+	require.Equal(t, expectedEdits, edits, "User1 has unexpected edit history")
 }
