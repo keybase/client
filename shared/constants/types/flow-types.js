@@ -1113,8 +1113,8 @@ export type PushReason =
   | 2 // NEW_DATA_2
 
 export type RekeyEvent = {
-  eventType: RekeyEventType;
-  interruptType: int;
+  eventType: RekeyEventType,
+  interruptType: int,
 }
 
 export type RekeyEventType =
