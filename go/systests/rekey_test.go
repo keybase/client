@@ -789,7 +789,8 @@ func TestRekey(t *testing.T) {
 	primaryDevice := rkt.setup("rekey")
 	defer rkt.cleanup()
 
-	// 0. Start up the primary device
+	// 0. Start up the primary device; Set numClones=4, meaning we're going to clone
+	// the context 4 times (one for each client that will connect).
 	primaryDevice.start(4)
 	rkt.startUIsAndClients(primaryDevice)
 
