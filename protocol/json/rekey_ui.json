@@ -62,6 +62,7 @@
         }
       ],
       "response": null,
+      "oneway": true,
       "doc": "RekeySendEvent sends updates as to what's going on in the rekey\n   thread. This is mainly useful in testing."
     }
   },

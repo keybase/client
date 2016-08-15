@@ -94,7 +94,7 @@ func RekeyUIProtocol(i RekeyUIInterface) rpc.Protocol {
 					err = i.RekeySendEvent(ctx, (*typedArgs)[0])
 					return
 				},
-				MethodType: rpc.MethodCall,
+				MethodType: rpc.MethodNotify,
 			},
 		},
 	}
@@ -119,6 +119,6 @@ func (c RekeyUIClient) Refresh(ctx context.Context, __arg RefreshArg) (err error
 // RekeySendEvent sends updates as to what's going on in the rekey
 // thread. This is mainly useful in testing.
 func (c RekeyUIClient) RekeySendEvent(ctx context.Context, __arg RekeySendEventArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.rekeyUI.rekeySendEvent", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.rekeyUI.rekeySendEvent", []interface{}{__arg})
 	return
 }

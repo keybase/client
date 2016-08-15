@@ -30,5 +30,5 @@ protocol rekeyUI {
    RekeySendEvent sends updates as to what's going on in the rekey
    thread. This is mainly useful in testing.
    */
-  void rekeySendEvent(int sessionID, RekeyEvent event);
+  void rekeySendEvent(int sessionID, RekeyEvent event) oneway;
 }
