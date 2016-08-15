@@ -865,6 +865,9 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
 	defer CheckConfigAndShutdown(t, config1)
 
+	clock, now := newTestClockAndTimeNow()
+	config1.SetClock(clock)
+
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
@@ -934,6 +937,7 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	ro.dropThis = true
 	ro.setWriterInfo(writerInfo{name: "u2"})
 	ro.setFinalPath(unmergedPathRoot)
+	ro.setLocalTimestamp(now)
 	expectedActions := map[BlockPointer]crActionList{
 		mergedPathRoot.tailPointer(): {&dropUnmergedAction{ro}},
 		mergedPathB.tailPointer(): {&copyUnmergedEntryAction{

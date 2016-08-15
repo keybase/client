@@ -300,6 +300,14 @@ func (ccs *crChains) addOp(ptr BlockPointer, op op) error {
 }
 
 func (ccs *crChains) makeChainForOp(op op) error {
+	// Ignore gc ops -- their unref semantics differ from the other
+	// ops.  Note that this only matters for old gcOps: new gcOps
+	// only unref the block ID, and not the whole pointer, so they
+	// wouldn't confuse chain creation.
+	if _, isGCOp := op.(*gcOp); isGCOp {
+		return nil
+	}
+
 	// First set the pointers for all updates, and track what's been
 	// created and destroyed.
 	for _, update := range op.AllUpdates() {
@@ -358,6 +366,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 			return err
 		}
 		ro.setWriterInfo(realOp.getWriterInfo())
+		ro.setLocalTimestamp(realOp.getLocalTimestamp())
 		// realOp.OldDir.Ref may be zero if this is a
 		// post-resolution chain, so set ro.Dir.Ref manually.
 		ro.Dir.Ref = realOp.OldDir.Ref
@@ -401,6 +410,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 			return err
 		}
 		co.setWriterInfo(realOp.getWriterInfo())
+		co.setLocalTimestamp(realOp.getLocalTimestamp())
 		co.renamed = true
 		// ndr may be zero if this is a post-resolution chain,
 		// so set co.Dir.Ref manually.

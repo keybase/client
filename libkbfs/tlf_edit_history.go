@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"sort"
 	"sync"
 	"time"
@@ -23,10 +24,6 @@ const (
 	FileCreated TlfEditNotificationType = iota
 	// FileModified indicates an existing file that was written to.
 	FileModified
-	// FileDeleted indicates an existing file that was deleted.  It
-	// doesn't appear in the edit history, only in individual edit
-	// updates.
-	FileDeleted
 )
 
 // TlfEdit represents an individual update about a file edit within a
@@ -35,6 +32,7 @@ type TlfEdit struct {
 	Filepath  string // relative to the TLF root
 	Type      TlfEditNotificationType
 	LocalTime time.Time // reflects difference between server and local clock
+	cachedOp  op
 }
 
 const (
@@ -296,6 +294,7 @@ outer:
 					Filepath:  createdPath.String(),
 					Type:      FileCreated,
 					LocalTime: op.getLocalTimestamp(),
+					cachedOp:  op,
 				})
 			case *syncOp:
 				lastOp := op
@@ -317,6 +316,7 @@ outer:
 					Filepath:  lastOp.getFinalPath().String(),
 					Type:      t,
 					LocalTime: lastOp.getLocalTimestamp(),
+					cachedOp:  op,
 				})
 				// We know there will be no creates in this chain
 				// since it's a file, so it's safe to skip to the next
@@ -338,6 +338,11 @@ func (teh *TlfEditHistory) setEdits(ctx context.Context,
 		sort.Sort(list)
 		if len(list) > desiredEditsPerWriter {
 			list = list[len(list)-desiredEditsPerWriter:]
+		}
+		// Don't copy the ops, we don't need them anymore and we don't
+		// want shallow copies of them getting out.
+		for i := range list {
+			list[i].cachedOp = nil
 		}
 		currEdits[w] = list
 	}
@@ -467,6 +472,7 @@ func (teh *TlfEditHistory) updateHistory(ctx context.Context,
 
 	// Which paths have been removed?
 	removed := make(map[string]bool)
+	removeNotifications := make(map[string]*keybase1.FSNotification)
 	// TODO: can I used chains.deletedOriginals instead?  It's hard to
 	// get the full path that way.
 	for _, chain := range chains.byOriginal {
@@ -475,14 +481,18 @@ func (teh *TlfEditHistory) updateHistory(ctx context.Context,
 			if !ok {
 				continue
 			}
-			path := rop.getFinalPath().ChildPathNoPtr(rop.OldName).String()
+			path := rop.getFinalPath().ChildPathNoPtr(rop.OldName)
 			// A rename op might show later that this was only renamed.
-			removed[path] = true
+			removed[path.String()] = true
+			// Add notification.
+			removeNotifications[path.String()] = fileDeleteNotification(
+				path, rop.getWriterInfo().uid, rop.getLocalTimestamp())
 		}
 	}
 
 	// Which paths have been renamed?
 	renamed := make(map[string]string)
+	var notifications []*keybase1.FSNotification
 	for original, ri := range chains.renamedOriginals {
 		// Find both the old path and the new path using the old and
 		// new parents (which are each guaranteed to have at least one
@@ -493,22 +503,40 @@ func (teh *TlfEditHistory) updateHistory(ctx context.Context,
 				"op for original ptr %v", original)
 		}
 		oldPath := oldParentChain.ops[0].getFinalPath().
-			ChildPathNoPtr(ri.oldName).String()
+			ChildPathNoPtr(ri.oldName)
 
 		newParentChain, ok := chains.byOriginal[ri.originalNewParent]
 		if !ok || len(newParentChain.ops) == 0 {
 			teh.log.CDebugf(ctx, "Couldn't find new parent to a rename "+
 				"op for original ptr %v", original)
 		}
-		newPath := newParentChain.ops[0].getFinalPath().
-			ChildPathNoPtr(ri.newName).String()
+
+		var renameCreate *createOp
+		for _, op := range newParentChain.ops {
+			if cop, ok := op.(*createOp); ok && cop.renamed &&
+				cop.NewName == ri.newName {
+				renameCreate = cop
+				break
+			}
+		}
+		if renameCreate == nil {
+			return fmt.Errorf("Couldn't find the create op for the %s->%s "+
+				"rename", ri.oldName, ri.newName)
+		}
+
+		newPath := renameCreate.getFinalPath().ChildPathNoPtr(ri.newName)
 
 		// Ignore any previous rmOps.
-		delete(removed, oldPath)
+		delete(removed, oldPath.String())
+		delete(removeNotifications, oldPath.String())
 		// If a file was overwritten, ignore all the old edits.
-		removed[newPath] = true
+		removed[newPath.String()] = true
 		// Rename the file.
-		renamed[oldPath] = newPath
+		renamed[oldPath.String()] = newPath.String()
+		// Add notification.
+		notifications = append(notifications, fileRenameNotification(
+			oldPath, newPath, renameCreate.getWriterInfo().uid,
+			renameCreate.getLocalTimestamp()))
 	}
 
 	// Also, remove old edits for new file paths, because the newer
@@ -528,6 +556,38 @@ func (teh *TlfEditHistory) updateHistory(ctx context.Context,
 	}
 
 	currEdits.addNewEdits(newEdits)
+	// Send the notifications.
+	for writer, edits := range newEdits {
+		for _, edit := range edits {
+			var n *keybase1.FSNotification
+			switch edit.Type {
+			case FileCreated:
+				cop, ok := edit.cachedOp.(*createOp)
+				if !ok {
+					teh.log.CWarningf(ctx, "No create op for create "+
+						"notification, path %s", edit.Filepath)
+					continue
+				}
+				n = fileCreateNotification(
+					cop.getFinalPath().ChildPathNoPtr(cop.NewName), writer,
+					edit.LocalTime)
+			case FileModified:
+				n = fileModifyNotification(
+					edit.cachedOp.getFinalPath(), writer, edit.LocalTime)
+			default:
+				teh.log.CWarningf(ctx, "Unrecognized edit type: %v", edit.Type)
+				continue
+			}
+			notifications = append(notifications, n)
+		}
+	}
+	for _, rn := range removeNotifications {
+		teh.config.Reporter().Notify(ctx, rn)
+	}
+	for _, n := range notifications {
+		teh.config.Reporter().Notify(ctx, n)
+	}
+
 	// If we have a net negative removed, we have to search back
 	// farther in time to become complete again.
 	if !currEdits.isComplete() && wasComplete {
