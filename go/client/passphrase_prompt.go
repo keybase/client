@@ -13,7 +13,7 @@ import (
 // promptPassphrase asks the user for a passphrase.
 // Used during signup.
 func PromptPassphrase(g *libkb.GlobalContext) (keybase1.GetPassphraseRes, error) {
-	arg := libkb.DefaultPassphraseArg(g, g.SecretStoreAll != nil)
+	arg := libkb.DefaultPassphraseArg(g)
 	arg.WindowTitle = "Passphrase"
 	arg.Prompt = "Pick a strong passphrase (12+ characters)"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
@@ -23,7 +23,7 @@ func PromptPassphrase(g *libkb.GlobalContext) (keybase1.GetPassphraseRes, error)
 // promptNewPassphrase asks the user for a new passphrase.
 // Used when changing passphrases.
 func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
-	arg := libkb.DefaultPassphraseArg(g, g.SecretStoreAll != nil)
+	arg := libkb.DefaultPassphraseArg(g)
 	arg.WindowTitle = "Pick a new passphrase"
 	arg.Prompt = "Pick a new strong passphrase (12+ characters)"
 	arg.Type = keybase1.PassphraseType_VERIFY_PASS_PHRASE
@@ -37,7 +37,7 @@ func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
 // PromptPaperPhrase asks the user to enter a paper key phrase.
 // Used in `rekey paper` command.
 func PromptPaperPhrase(g *libkb.GlobalContext) (string, error) {
-	arg := libkb.DefaultPassphraseArg(g, false)
+	arg := libkb.DefaultPassphraseArg(g)
 	arg.WindowTitle = "Enter a paper key"
 	arg.Prompt = "Enter a paper key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
