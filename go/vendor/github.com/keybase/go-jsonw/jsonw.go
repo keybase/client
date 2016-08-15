@@ -351,7 +351,6 @@ func (rd *Wrapper) GetString() (ret string, err error) {
 	} else if b, ok := rd.dat.([]byte); ok {
 		ret = string(b)
 	} else {
-		//fmt.Printf("GetString [%p] %v\n", rd, rd.dat)
 		err = rd.wrongType("string", v.Kind())
 	}
 	return
@@ -456,7 +455,6 @@ func (rd *Wrapper) AtKey(s string) *Wrapper {
 			ret.err = ret.NewError("no such key: %s", s)
 		}
 	}
-	//fmt.Printf("AtKey %s -> %v\n", s, ret)
 	return ret
 }
 
@@ -506,12 +504,12 @@ func (w *Wrapper) SetIndex(i int, val *Wrapper) error {
 }
 
 func (i *Wrapper) asDictionary() (ret *Wrapper, d map[string]interface{}) {
-	ret = new(Wrapper)
 	if i.err != nil {
-		ret.err = i.err
+		ret = i
 	} else {
 		var ok bool
 		d, ok = (i.dat).(map[string]interface{})
+		ret = new(Wrapper)
 		ret.access = i.access
 		if !ok {
 			ret.err = i.wrongType("dict", reflect.ValueOf(i.dat).Kind())
@@ -533,7 +531,6 @@ func tryInt(bit string) (ret int, isInt bool) {
 }
 
 func (w *Wrapper) AtPath(path string) (ret *Wrapper) {
-	//fmt.Printf("AtPath %p %s\n", w, path)
 	bits := strings.Split(path, ".")
 	ret = w
 	for _, bit := range bits {
