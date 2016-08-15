@@ -32,7 +32,7 @@ type TlfEdit struct {
 	Filepath  string // relative to the TLF root
 	Type      TlfEditNotificationType
 	LocalTime time.Time // reflects difference between server and local clock
-	op        op
+	cachedOp  op
 }
 
 const (
@@ -294,7 +294,7 @@ outer:
 					Filepath:  createdPath.String(),
 					Type:      FileCreated,
 					LocalTime: op.getLocalTimestamp(),
-					op:        op,
+					cachedOp:  op,
 				})
 			case *syncOp:
 				lastOp := op
@@ -316,7 +316,7 @@ outer:
 					Filepath:  lastOp.getFinalPath().String(),
 					Type:      t,
 					LocalTime: lastOp.getLocalTimestamp(),
-					op:        op,
+					cachedOp:  op,
 				})
 				// We know there will be no creates in this chain
 				// since it's a file, so it's safe to skip to the next
@@ -342,7 +342,7 @@ func (teh *TlfEditHistory) setEdits(ctx context.Context,
 		// Don't copy the ops, we don't need them anymore and we don't
 		// want shallow copies of them getting out.
 		for i := range list {
-			list[i].op = nil
+			list[i].cachedOp = nil
 		}
 		currEdits[w] = list
 	}
@@ -562,19 +562,21 @@ func (teh *TlfEditHistory) updateHistory(ctx context.Context,
 			var n *keybase1.FSNotification
 			switch edit.Type {
 			case FileCreated:
-				cop, ok := edit.op.(*createOp)
+				cop, ok := edit.cachedOp.(*createOp)
 				if !ok {
-					return fmt.Errorf("No create op for create notification, "+
-						"path %s", edit.Filepath)
+					teh.log.CWarningf(ctx, "No create op for create "+
+						"notification, path %s", edit.Filepath)
+					continue
 				}
 				n = fileCreateNotification(
 					cop.getFinalPath().ChildPathNoPtr(cop.NewName), writer,
 					edit.LocalTime)
 			case FileModified:
 				n = fileModifyNotification(
-					edit.op.getFinalPath(), writer, edit.LocalTime)
+					edit.cachedOp.getFinalPath(), writer, edit.LocalTime)
 			default:
-				return fmt.Errorf("Unrecognized edit type: %v", edit.Type)
+				teh.log.CWarningf(ctx, "Unrecognized edit type: %v", edit.Type)
+				continue
 			}
 			notifications = append(notifications, n)
 		}
