@@ -4,8 +4,9 @@ protocol rekeyUI {
   // Returns a sessionID
   int delegateRekeyUI();
 
-  /** refresh is called whenever Electron should refresh the UI, either
-   * because a change came in, or because there was a timeout poll.
+  /**
+   Refresh is called whenever Electron should refresh the UI, either
+   because a change came in, or because there was a timeout poll.
    */
   void refresh(int sessionID, ProblemSetDevices problemSetDevices);
 
@@ -26,8 +27,8 @@ protocol rekeyUI {
   }
 
   /**
-   * RekeySendEvent sends updates as to what's going on in the rekey
-   * thread. This is mainly useful in testing.
+   RekeySendEvent sends updates as to what's going on in the rekey
+   thread. This is mainly useful in testing.
    */
   void rekeySendEvent(int sessionID, RekeyEvent event);
 }

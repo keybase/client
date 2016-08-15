@@ -41,11 +41,11 @@ type RekeySendEventArg struct {
 
 type RekeyUIInterface interface {
 	DelegateRekeyUI(context.Context) (int, error)
-	// refresh is called whenever Electron should refresh the UI, either
-	// * because a change came in, or because there was a timeout poll.
+	// Refresh is called whenever Electron should refresh the UI, either
+	// because a change came in, or because there was a timeout poll.
 	Refresh(context.Context, RefreshArg) error
-	// * RekeySendEvent sends updates as to what's going on in the rekey
-	// * thread. This is mainly useful in testing.
+	// RekeySendEvent sends updates as to what's going on in the rekey
+	// thread. This is mainly useful in testing.
 	RekeySendEvent(context.Context, RekeySendEventArg) error
 }
 
@@ -109,15 +109,15 @@ func (c RekeyUIClient) DelegateRekeyUI(ctx context.Context) (res int, err error)
 	return
 }
 
-// refresh is called whenever Electron should refresh the UI, either
-// * because a change came in, or because there was a timeout poll.
+// Refresh is called whenever Electron should refresh the UI, either
+// because a change came in, or because there was a timeout poll.
 func (c RekeyUIClient) Refresh(ctx context.Context, __arg RefreshArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.rekeyUI.refresh", []interface{}{__arg}, nil)
 	return
 }
 
-// * RekeySendEvent sends updates as to what's going on in the rekey
-// * thread. This is mainly useful in testing.
+// RekeySendEvent sends updates as to what's going on in the rekey
+// thread. This is mainly useful in testing.
 func (c RekeyUIClient) RekeySendEvent(ctx context.Context, __arg RekeySendEventArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.rekeyUI.rekeySendEvent", []interface{}{__arg}, nil)
 	return
