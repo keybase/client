@@ -48,7 +48,7 @@ func (s *CmdTestPassphrase) Run() (err error) {
 	}
 
 	arg := keybase1.PassphrasePromptArg{
-		GuiArg: libkb.DefaultPassphraseArg(s.G(), s.G().SecretStoreAll != nil),
+		GuiArg: libkb.DefaultPassphraseArg(s.G()),
 	}
 	res, err := cli.PassphrasePrompt(context.TODO(), arg)
 	if err != nil {
