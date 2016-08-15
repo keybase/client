@@ -53,8 +53,6 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 }
 
 func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister, g *libkb.GlobalContext) (shutdowners []Shutdowner, err error) {
-	rekeyHandler := NewRekeyHandler2(xp, g, d.rekeyMaster)
-
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewBTCHandler(xp, g)),
@@ -85,7 +83,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.UserProtocol(NewUserHandler(xp, g)),
 		keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g)),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
-		keybase1.RekeyProtocol(rekeyHandler),
+		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
 		keybase1.ChatLocalProtocol(newChatLocalHandler(xp, g)),
 	}
