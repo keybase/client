@@ -155,7 +155,7 @@ func (u *UIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) {
 	return ret, sessionID, nil
 }
 
-func (u *UIRouter) getOrReuseRekeyUI(prev *RekeyUI, remake bool) (ret *RekeyUI, err error) {
+func (u *UIRouter) getOrReuseRekeyUI(prev *RekeyUI) (ret *RekeyUI, err error) {
 	defer u.G().Trace("UIRouter#GetOrReuseRekeyUI", func() error { return err })()
 	x, cid := u.getUI(libkb.RekeyUIKind)
 
@@ -165,10 +165,6 @@ func (u *UIRouter) getOrReuseRekeyUI(prev *RekeyUI, remake bool) (ret *RekeyUI, 
 
 	if prev != nil && prev.connectionID == cid {
 		return prev, nil
-	}
-
-	if !remake {
-		return nil, nil
 	}
 
 	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
@@ -190,5 +186,5 @@ func (u *UIRouter) getOrReuseRekeyUI(prev *RekeyUI, remake bool) (ret *RekeyUI, 
 
 func (u *UIRouter) GetRekeyUINoSessionID() (ret keybase1.RekeyUIInterface, err error) {
 	defer u.G().Trace("UIRouter#GetRekeyUINoSessionID", func() error { return err })()
-	return u.getOrReuseRekeyUI(nil, true)
+	return u.getOrReuseRekeyUI(nil)
 }

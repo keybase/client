@@ -17,16 +17,38 @@ import (
 
 const TLFRekeyGregorCategory = "kbfs_tlf_rekey_needed"
 
+// rekeyMaster is the object that controls all rekey harassment in the keybase service.
+// There should only be one such object per service process.
 type rekeyMaster struct {
 	libkb.Contextified
-	interruptCh   chan interruptArg
+
+	// The rekeyMaster is usually sleeping, but its sleep can be interrupted by various
+	// exogenous and internal events. These events are sent into this channel.
+	interruptCh chan interruptArg
+
 	ui            *RekeyUI
 	uiRouter      *UIRouter
-	snoozeUntil   time.Time
+	sleepUntil    time.Time
 	plannedWakeup time.Time
 	uiNeeded      bool
 	uiVisible     bool
 }
+
+type RekeyInterrupt int
+
+const (
+	RekeyInterruptNone       RekeyInterrupt = 0
+	RekeyInterruptTimeout    RekeyInterrupt = 1
+	RekeyInterruptCreation   RekeyInterrupt = 2
+	RekeyInterruptDismissal  RekeyInterrupt = 3
+	RekeyInterruptLogout     RekeyInterrupt = 4
+	RekeyInterruptLogin      RekeyInterrupt = 5
+	RekeyInterruptUIFinished RekeyInterrupt = 6
+	RekeyInterruptShowUI     RekeyInterrupt = 7
+	RekeyInterruptNewUI      RekeyInterrupt = 8
+	RekeyInterruptSync       RekeyInterrupt = 9
+	RekeyInterruptSyncForce  RekeyInterrupt = 10
+)
 
 type interruptArg struct {
 	retCh          chan struct{}
@@ -47,6 +69,7 @@ func (r *rekeyMaster) Start() {
 func (r *rekeyMaster) IsAlive() bool {
 	return true
 }
+
 func (r *rekeyMaster) Name() string {
 	return "rekeyMaster"
 }
@@ -60,17 +83,19 @@ func (r *rekeyMaster) Create(ctx context.Context, cli gregor1.IncomingInterface,
 	return true, nil
 }
 
-func (r *rekeyMaster) handleGregorCreation() error {
-	r.interruptCh <- interruptArg{rekeyInterrupt: RekeyInterruptCreation}
-	return nil
-}
-
 func (r *rekeyMaster) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, ibm gregor.Item) (bool, error) {
 	switch category {
 	case TLFRekeyGregorCategory:
 		return true, r.handleGregorDismissal()
 	}
 	return true, nil
+}
+
+var _ libkb.GregorInBandMessageHandler = (*rekeyMaster)(nil)
+
+func (r *rekeyMaster) handleGregorCreation() error {
+	r.interruptCh <- interruptArg{rekeyInterrupt: RekeyInterruptCreation}
+	return nil
 }
 
 func (r *rekeyMaster) handleGregorDismissal() error {
@@ -94,22 +119,6 @@ func (r *rekeyMaster) newUIRegistered() {
 	r.interruptCh <- interruptArg{rekeyInterrupt: RekeyInterruptNewUI}
 }
 
-type RekeyInterrupt int
-
-const (
-	RekeyInterruptNone       RekeyInterrupt = 0
-	RekeyInterruptTimeout    RekeyInterrupt = 1
-	RekeyInterruptCreation   RekeyInterrupt = 2
-	RekeyInterruptDismissal  RekeyInterrupt = 3
-	RekeyInterruptLogout     RekeyInterrupt = 4
-	RekeyInterruptLogin      RekeyInterrupt = 5
-	RekeyInterruptUIFinished RekeyInterrupt = 6
-	RekeyInterruptShowUI     RekeyInterrupt = 7
-	RekeyInterruptNewUI      RekeyInterrupt = 8
-	RekeyInterruptSync       RekeyInterrupt = 9
-	RekeyInterruptSyncForce  RekeyInterrupt = 10
-)
-
 const (
 	rekeyTimeoutBackground      = 24 * time.Hour
 	rekeyTimeoutAPIError        = 3 * time.Minute
@@ -129,46 +138,51 @@ func (r *rekeyQueryResult) GetAppStatus() *libkb.AppStatus {
 }
 
 func queryAPIServerForRekeyInfo(g *libkb.GlobalContext) (keybase1.ProblemSet, error) {
+
+	// Calling with the clear=true boolean means the server will potentially
+	// clear all gregor messages as a side-effect of the lookup. Hence the
+	// POST rather than GET for this operation.
 	args := libkb.HTTPArgs{
 		"clear": libkb.B{Val: true},
 	}
+
 	var tmp rekeyQueryResult
-	// We have to post to use the clear=true feature
 	err := g.API.PostDecode(libkb.APIArg{
 		Contextified: libkb.NewContextified(g),
 		Endpoint:     "kbfs/problem_sets",
 		NeedSession:  true,
 		Args:         args,
 	}, &tmp)
+
 	return tmp.ProblemSet, err
 }
 
-func (r *rekeyMaster) continueLongSnooze(ri RekeyInterrupt) (ret time.Duration) {
+func (r *rekeyMaster) continueSleep(ri RekeyInterrupt) (ret time.Duration) {
 
-	r.G().Log.Debug("+ rekeyMaster#continueLongSnooze")
+	r.G().Log.Debug("+ rekeyMaster#continueSleep")
 	defer func() {
-		r.G().Log.Debug("- rekeyMaster#continueLongSnooze -> %s", ret)
+		r.G().Log.Debug("- rekeyMaster#continueSleep -> %s", ret)
 	}()
 
-	if r.snoozeUntil.IsZero() {
+	if r.sleepUntil.IsZero() {
 		return ret
 	}
 
-	dur := r.snoozeUntil.Sub(r.G().Clock().Now())
+	dur := r.sleepUntil.Sub(r.G().Clock().Now())
 
 	if dur <= 0 {
 		r.G().Log.Debug("| Snooze deadline exceeded (%s ago)", -dur)
-		r.snoozeUntil = time.Time{}
+		r.sleepUntil = time.Time{}
 		return ret
 	}
 
 	if ri == RekeyInterruptLogin {
-		r.G().Log.Debug("| resetting snooze until after new login")
-		r.snoozeUntil = time.Time{}
+		r.G().Log.Debug("| resetting sleep until after new login")
+		r.sleepUntil = time.Time{}
 		return ret
 	}
 
-	r.G().Log.Debug("| Snoozing until %s (%s more)", r.snoozeUntil, dur)
+	r.G().Log.Debug("| Sleeping until %s (%s more)", r.sleepUntil, dur)
 	return dur
 }
 
@@ -190,8 +204,8 @@ func (r *rekeyMaster) runOnce(ri RekeyInterrupt) (ret time.Duration, err error) 
 	if ri == RekeyInterruptUIFinished {
 		ret = rekeyTimeoutUIFinished
 		r.uiVisible = false
-		r.snoozeUntil = r.G().Clock().Now().Add(ret)
-		r.G().Log.Debug("| UI said finished; hard-snoozing %s [%p]", ret, r)
+		r.sleepUntil = r.G().Clock().Now().Add(ret)
+		r.G().Log.Debug("| UI said finished; sleeping %s [%p]", ret, r)
 		return ret, nil
 	}
 
@@ -201,8 +215,8 @@ func (r *rekeyMaster) runOnce(ri RekeyInterrupt) (ret time.Duration, err error) 
 	}
 
 	if ri != RekeyInterruptSyncForce {
-		if ret = r.continueLongSnooze(ri); ret > 0 {
-			r.G().Log.Debug("| Skipping compute and act due to long snooze")
+		if ret = r.continueSleep(ri); ret > 0 {
+			r.G().Log.Debug("| Skipping compute and act due to sleep state")
 			return ret, nil
 		}
 	}
@@ -212,13 +226,14 @@ func (r *rekeyMaster) runOnce(ri RekeyInterrupt) (ret time.Duration, err error) 
 	if err != nil {
 		return ret, err
 	}
+
 	event.InterruptType = int(ri)
 	err = r.actOnProblems(problemsAndDevices, event)
 	return ret, err
 }
 
 func (r *rekeyMaster) getUI() (ret *RekeyUI, err error) {
-	ret, err = r.uiRouter.getOrReuseRekeyUI(r.ui, true)
+	ret, err = r.uiRouter.getOrReuseRekeyUI(r.ui)
 	r.ui = ret
 	return ret, err
 }
@@ -267,6 +282,7 @@ func (r *rekeyMaster) spawnOrRefreshUI(problemSetDevices keybase1.ProblemSetDevi
 		r.uiNeeded = true
 		return nil
 	}
+
 	r.uiNeeded = false
 	r.uiVisible = true
 

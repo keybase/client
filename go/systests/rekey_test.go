@@ -16,6 +16,8 @@ import (
 	"time"
 )
 
+// deviceWrapper wraps a mock "device", meaning an independent running service and
+// some connected clients.
 type deviceWrapper struct {
 	tctx         *libkb.TestContext
 	clones       []*libkb.TestContext
