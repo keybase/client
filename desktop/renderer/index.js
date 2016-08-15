@@ -15,7 +15,7 @@ import {listenForNotifications} from '../shared/actions/notifications'
 import {bootstrap} from '../shared/actions/config'
 import {updateDebugConfig} from '../shared/actions/dev'
 import hello from '../shared/util/hello'
-import {updateReloading} from '../shared/reducers/hmr'
+import {updateReloading} from '../shared/constants/dev'
 
 import Root from './container'
 import {devEditAction} from '../shared/reducers/dev-edit'

@@ -125,7 +125,7 @@ export function bootstrap (): AsyncAction {
         console.log('Bootstrapping')
         dispatch(bootstrap())
       })
-    } else if (getState().hmr.reloading) {
+    } else if (getState().dev.reloading) {
       // Let's still register the listeners
       dispatch(_registerListeners())
     } else {
