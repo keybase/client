@@ -9,7 +9,7 @@ import (
 )
 
 func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
-	arg := DefaultPassphraseArg(g, true)
+	arg := DefaultPassphraseArg(g)
 	arg.WindowTitle = "Keybase passphrase"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Username = username
@@ -24,14 +24,11 @@ func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg stri
 }
 
 func GetSecret(g *GlobalContext, ui SecretUI, title, prompt, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
-	arg := DefaultPassphraseArg(g, allowSecretStore)
+	arg := DefaultPassphraseArg(g)
 	arg.WindowTitle = title
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Prompt = prompt
 	arg.RetryLabel = retryMsg
-	// apparently allowSecretStore can be true even though HasSecretStore()
-	// is false (in the case of mocked secret store tests on linux, for
-	// example). So, pass this through:
 	res, err := GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
 	if err != nil {
 		return res, err
@@ -41,7 +38,7 @@ func GetSecret(g *GlobalContext, ui SecretUI, title, prompt, retryMsg string, al
 }
 
 func GetPaperKeyPassphrase(g *GlobalContext, ui SecretUI, username string, lastErr error) (string, error) {
-	arg := DefaultPassphraseArg(g, false)
+	arg := DefaultPassphraseArg(g)
 	arg.WindowTitle = "Paper Key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	if len(username) == 0 {
@@ -65,7 +62,7 @@ func GetPaperKeyForCryptoPassphrase(g *GlobalContext, ui SecretUI, reason string
 	if len(devices) == 0 {
 		return "", errors.New("empty device list")
 	}
-	arg := DefaultPassphraseArg(g, false)
+	arg := DefaultPassphraseArg(g)
 	arg.WindowTitle = "Paper Key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	arg.Features.ShowTyping.Allow = true
@@ -133,7 +130,7 @@ func GetPassphraseUntilCheck(g *GlobalContext, arg keybase1.GUIEntryArg, prompte
 	return keybase1.GetPassphraseRes{}, RetryExhaustedError{}
 }
 
-func DefaultPassphraseArg(g *GlobalContext, allowSecretStore bool) keybase1.GUIEntryArg {
+func DefaultPassphraseArg(g *GlobalContext) keybase1.GUIEntryArg {
 	arg := keybase1.GUIEntryArg{
 		SubmitLabel: "Submit",
 		CancelLabel: "Cancel",
