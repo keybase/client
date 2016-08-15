@@ -378,6 +378,14 @@ func (j mdJournal) pushEarliestToServer(
 
 // All functions below are public functions.
 
+func (j mdJournal) readEarliestRevision() (MetadataRevision, error) {
+	return j.j.readEarliestRevision()
+}
+
+func (j mdJournal) readLatestRevision() (MetadataRevision, error) {
+	return j.j.readLatestRevision()
+}
+
 func (j mdJournal) length() (uint64, error) {
 	return j.j.length()
 }

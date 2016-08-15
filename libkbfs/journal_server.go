@@ -27,6 +27,23 @@ type tlfJournalBundle struct {
 	mdJournal    *mdJournal
 }
 
+// JournalServerStatus represents the overall status of the
+// JournalServer for display in diagnostics. It is suitable for
+// encoding directly as JSON.
+type JournalServerStatus struct {
+	RootDir      string
+	JournalCount int
+}
+
+// TLFJournalStatus represents the status of a TLF's journal for
+// display in diagnostics. It is suitable for encoding directly as
+// JSON.
+type TLFJournalStatus struct {
+	RevisionStart MetadataRevision
+	RevisionEnd   MetadataRevision
+	BlockOpCount  uint64
+}
+
 // JournalServer is the server that handles write journals. It
 // interposes itself in front of BlockServer and MDOps. It uses MDOps
 // instead of MDServer because it has to potentially modify the
@@ -286,4 +303,47 @@ func (j *JournalServer) blockServer() journalBlockServer {
 
 func (j *JournalServer) mdOps() journalMDOps {
 	return journalMDOps{j.delegateMDOps, j}
+}
+
+// Status returns a JournalServerStatus object suitable for
+// diagnostics.
+func (j *JournalServer) Status() JournalServerStatus {
+	journalCount := func() int {
+		j.lock.RLock()
+		defer j.lock.RUnlock()
+		return len(j.tlfBundles)
+	}()
+	return JournalServerStatus{
+		RootDir:      j.dir,
+		JournalCount: journalCount,
+	}
+}
+
+// JournalStatus returns a TLFServerStatus object for the given TLF
+// suitable for diagnostics.
+func (j *JournalServer) JournalStatus(tlfID TlfID) (TLFJournalStatus, error) {
+	bundle, ok := j.getBundle(tlfID)
+	if !ok {
+		return TLFJournalStatus{}, fmt.Errorf("Journal not enabled for %s", tlfID)
+	}
+
+	bundle.lock.RLock()
+	defer bundle.lock.RUnlock()
+	earliestRevision, err := bundle.mdJournal.readEarliestRevision()
+	if err != nil {
+		return TLFJournalStatus{}, err
+	}
+	latestRevision, err := bundle.mdJournal.readLatestRevision()
+	if err != nil {
+		return TLFJournalStatus{}, err
+	}
+	blockOpCount, err := bundle.blockJournal.length()
+	if err != nil {
+		return TLFJournalStatus{}, err
+	}
+	return TLFJournalStatus{
+		RevisionStart: earliestRevision,
+		RevisionEnd:   latestRevision,
+		BlockOpCount:  blockOpCount,
+	}, nil
 }

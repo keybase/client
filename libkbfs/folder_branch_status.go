@@ -32,6 +32,8 @@ type FolderBranchStatus struct {
 	// diverging operations per-file
 	Unmerged []*crChainSummary
 	Merged   []*crChainSummary
+
+	Journal *TLFJournalStatus `json:",omitempty"`
 }
 
 // KBFSStatus represents the content of the top-level status file. It is
@@ -43,6 +45,7 @@ type KBFSStatus struct {
 	UsageBytes      int64
 	LimitBytes      int64
 	FailingServices map[string]error
+	JournalServer   *JournalServerStatus `json:",omitempty"`
 }
 
 // StatusUpdate is a dummy type used to indicate status has been updated.
@@ -151,7 +154,8 @@ func (fbsk *folderBranchStatusKeeper) convertNodesToPathsLocked(
 }
 
 // getStatus returns a FolderBranchStatus-representation of the
-// current status.
+// current status. The returned channel is closed whenever the status
+// changes, except for journal status changes.
 func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context) (
 	FolderBranchStatus, <-chan StatusUpdate, error) {
 	fbsk.dataMutex.Lock()
@@ -172,11 +176,26 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context) (
 		fbs.RekeyPending = fbsk.config.RekeyQueue().IsRekeyPending(fbsk.md.ID)
 		fbs.FolderID = fbsk.md.ID.String()
 		fbs.Revision = fbsk.md.Revision
+
+		// TODO: Ideally, the journal would push status
+		// updates to this object instead, so we can notify
+		// listeners.
+		jServer, err := GetJournalServer(fbsk.config)
+		if err == nil {
+			jStatus, err := jServer.JournalStatus(fbsk.md.ID)
+			if err != nil {
+				log := fbsk.config.MakeLogger("")
+				log.CWarningf(ctx, "Error getting journal status for %s: %v", fbsk.md.ID, err)
+			} else {
+				fbs.Journal = &jStatus
+			}
+		}
 	}
 
 	fbs.DirtyPaths = fbsk.convertNodesToPathsLocked(fbsk.dirtyNodes)
 
 	fbs.Unmerged = fbsk.unmerged
 	fbs.Merged = fbsk.merged
+
 	return fbs, fbsk.updateChan, nil
 }
