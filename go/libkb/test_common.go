@@ -222,6 +222,9 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 
 	g.Env.Test = tc.Tp
 
+	// SecretStoreFile needs test home directory
+	g.SecretStoreAll = NewSecretStoreAll(g)
+
 	g.ConfigureLogging()
 
 	if err = g.ConfigureAPI(); err != nil {
