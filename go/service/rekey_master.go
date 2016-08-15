@@ -294,6 +294,12 @@ func (r *rekeyMaster) spawnOrRefreshUI(problemSetDevices keybase1.ProblemSetDevi
 // used for testing.
 func (r *rekeyMaster) sendRekeyEvent(e keybase1.RekeyEvent) (err error) {
 	defer r.G().Trace(fmt.Sprintf("rekeyMaster#sendRekeyEvent(%v)", e), func() error { return err })()
+
+	if e.InterruptType == int(RekeyInterruptSync) {
+		r.G().Log.Debug("| No need to send a rekey event on a Sync() RPC")
+		return nil
+	}
+
 	var ui *RekeyUI
 	ui, err = r.getUI()
 	if err != nil {
