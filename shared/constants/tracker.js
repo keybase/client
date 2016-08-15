@@ -100,10 +100,17 @@ export type ShowNonUser = TypedAction<'tracker:showNonUser', identifyUiDisplayTL
 export const pendingIdentify = 'tracker:pendingIdentify'
 export type PendingIdentify = TypedAction<'tracker:pendingIdentify', {username: string, pending: boolean}, void>
 
+export const identifyStarted = 'tracker:identifyStarted'
+export type IdentifyStarted = TypedAction<'tracker:identifyStarted', void, {error: string}>
+
+export const identifyFinished = 'tracker:identifyFinished'
+export type IdentifyFinished = TypedAction<'tracker:identifyFinished', void, void>
+
 export type NonUserActions = ShowNonUser | OnClose | PendingIdentify | UpdateFolders
 
 export type TrackerState = {
   type: 'tracker',
+  error: ?string,
   eldestKidChanged: boolean,
   currentlyFollowing: boolean,
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),

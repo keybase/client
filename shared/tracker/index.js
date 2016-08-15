@@ -5,6 +5,7 @@ import {connect} from 'react-redux'
 import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
+import ErrorLoadingProfile from '../common-adapters/error-profile.js'
 import {bindActionCreators} from 'redux'
 import {isLoading} from '../constants/tracker'
 
@@ -66,6 +67,10 @@ class Tracker extends Component {
   render () {
     if (this.props.closed) {
       return <div />
+    }
+
+    if (this.props.error) {
+      return <ErrorLoadingProfile error={this.props.error} />
     }
 
     const renderProps = trackerPropsToRenderProps(this.props)

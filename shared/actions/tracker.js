@@ -146,6 +146,7 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
 
     // Don't identify ourself
     if (allowSelf || myUID !== uid) {
+      dispatch({type: Constants.identifyStarted, payload: null})
       identifyIdentify2Rpc({
         param: {
           uid,
@@ -166,6 +167,12 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
         incomingCallMap,
         callback: (error, response) => {
           console.log('called identify and got back', error, response)
+          if (error) {
+            // TODO(MM) figure out why we have this discrepancy
+            // The type is supposedly error.desc, but in practice we do error.raw.desc
+            dispatch({type: Constants.identifyFinished, error: true, payload: {error: error.raw && error.raw.desc || error.desc}})
+          }
+          dispatch({type: Constants.identifyFinished, payload: null})
           clearTimeout(clearPendingTimeout)
           dispatch(pendingIdentify(userAssertion || uid, false))
           resolve()

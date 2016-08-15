@@ -1,6 +1,7 @@
 // @flow
 import ConfirmOrPending from './confirm-or-pending-container'
 import EditProfile from './edit-profile'
+import ErrorComponent from '../common-adapters/error-profile'
 import PostProof from './post-proof-container'
 import ProveEnterUsername from './prove-enter-username-container'
 import ProveWebsiteChoice from './prove-website-choice-container'
@@ -8,11 +9,6 @@ import React, {Component} from 'react'
 import Render from './render'
 import Revoke from './revoke-container'
 import flags from '../util/feature-flags'
-import type {MissingProof} from '../common-adapters/user-proofs'
-import type {Proof} from '../constants/tracker'
-import type {Props} from './render'
-import type {TypedDispatch, Action} from '../constants/types/flux'
-import type {TypedState} from '../constants/reducer'
 import {Box, Text} from '../common-adapters'
 import {TypedConnector} from '../util/typed-connect'
 import {addProof, checkSpecificProof} from '../actions/profile'
@@ -20,6 +16,12 @@ import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '..
 import {isLoading} from '../constants/tracker'
 import {openInKBFS} from '../actions/kbfs'
 import {routeAppend, navigateUp} from '../actions/router'
+
+import type {MissingProof} from '../common-adapters/user-proofs'
+import type {Proof} from '../constants/tracker'
+import type {Props} from './render'
+import type {TypedDispatch, Action} from '../constants/types/flux'
+import type {TypedState} from '../constants/reducer'
 
 type OwnProps = {
   userOverride?: {
@@ -61,6 +63,10 @@ class Profile extends Component<void, ?Props, void> {
   }
 
   render () {
+    if (this.props && this.props.error) {
+      return <ErrorComponent error={this.props.error} />
+    }
+
     return this.props ? (
       <Render
         showComingSoon={!flags.tabProfileEnabled}
