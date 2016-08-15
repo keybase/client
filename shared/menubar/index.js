@@ -12,6 +12,7 @@ import {switchTab} from '../actions/router'
 import {loginTab} from '../constants/tabs'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {defaultKBFSPath} from '../constants/config'
+import {exec} from 'child_process'
 
 import type {Props as FolderProps} from '../folders/render'
 
@@ -139,6 +140,17 @@ class Menubar extends Component<void, Props, void> {
     this._closeMenubar()
   }
 
+  _openShell () {
+    if (process.platform === 'win32') {
+      let shellCmd = 'start "Keybase Shell" "%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Keybase\\Keybase Shell.lnk"'
+      exec(shellCmd, (err) => {
+        if (err) {
+          console.log('Error starting Keybase Shell:', err)
+        }
+      })
+    }
+  }
+
   _quit () {
     executeActionsForContext('quitButton')
   }
@@ -157,6 +169,7 @@ class Menubar extends Component<void, Props, void> {
       showUser={() => this._showUser()}
       showKBFS={() => this._openFolder()}
       openApp={() => this._showMain()}
+      openShell={() => this._openShell()}
       showBug={() => this._showBug()}
       username={this.props.username}
       quit={() => this._quit()}

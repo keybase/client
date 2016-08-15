@@ -1,12 +1,10 @@
-/* @flow */
-
-import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../../../styles/style-guide'
-import {Box, Text, Button, Checkbox, Icon} from '../../../common-adapters'
-import {specialStyles as textStyles} from '../../../common-adapters/text'
+// @flow
 import Container from '../../forms/container'
-
+import React, {Component} from 'react'
 import type {Props} from './index.render'
+import {Box, Text, Button, Checkbox, Icon} from '../../../common-adapters'
+import {globalStyles, globalColors} from '../../../styles/style-guide'
+import {specialStyles as textStyles} from '../../../common-adapters/text'
 
 type State = {
   inWallet: boolean

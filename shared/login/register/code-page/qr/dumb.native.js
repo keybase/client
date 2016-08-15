@@ -1,6 +1,5 @@
 // @flow
 import QR from './index'
-
 import type {DumbComponentMap} from '../../../../constants/types/more'
 
 const map: DumbComponentMap<QR> = {

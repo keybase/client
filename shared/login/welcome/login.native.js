@@ -1,3 +1,4 @@
+// NOT FLOW - TODO redo this whole thing
 import React, {Component} from 'react'
 import {Text, TextInput, View} from 'react-native'
 import {connect} from 'react-redux'

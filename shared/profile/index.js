@@ -1,18 +1,25 @@
 // @flow
-import React, {Component} from 'react'
-import {Box, Text} from '../common-adapters'
-import Render from './render'
+import ConfirmOrPending from './confirm-or-pending-container'
 import EditProfile from './edit-profile'
+import PostProof from './post-proof-container'
+import ProveEnterUsername from './prove-enter-username-container'
+import ProveWebsiteChoice from './prove-website-choice-container'
+import React, {Component} from 'react'
+import Render from './render'
+import Revoke from './revoke-container'
 import flags from '../util/feature-flags'
-import {routeAppend, navigateUp} from '../actions/router'
-import {openInKBFS} from '../actions/kbfs'
-import * as trackerActions from '../actions/tracker'
-import {isLoading} from '../constants/tracker'
-import {TypedConnector} from '../util/typed-connect'
-
+import type {MissingProof} from '../common-adapters/user-proofs'
+import type {Proof} from '../constants/tracker'
 import type {Props} from './render'
-import type {TypedState} from '../constants/reducer'
 import type {TypedDispatch, Action} from '../constants/types/flux'
+import type {TypedState} from '../constants/reducer'
+import {Box, Text} from '../common-adapters'
+import {TypedConnector} from '../util/typed-connect'
+import {addProof, checkSpecificProof} from '../actions/profile'
+import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
+import {isLoading} from '../constants/tracker'
+import {openInKBFS} from '../actions/kbfs'
+import {routeAppend, navigateUp} from '../actions/router'
 
 type OwnProps = {
   userOverride?: {
@@ -33,6 +40,11 @@ class Profile extends Component<void, ?Props, void> {
       },
       subRoutes: {
         'editprofile': EditProfile,
+        ProveEnterUsername,
+        ProveWebsiteChoice,
+        Revoke,
+        PostProof,
+        ConfirmOrPending,
       },
     }
   }
@@ -76,8 +88,6 @@ export default connector.connect((state, dispatch, ownProps) => {
     uid: stateProps.myUid || '',
   }
 
-  const {getProfile, updateTrackers, onFollow, onUnfollow} = trackerActions
-
   const refresh = () => {
     dispatch(getProfile(username))
     dispatch(updateTrackers(username, uid))
@@ -91,9 +101,13 @@ export default connector.connect((state, dispatch, ownProps) => {
     onFollow: () => { dispatch(onFollow(username, false)) },
     onUnfollow: () => { dispatch(onUnfollow(username)) },
     onAcceptProofs: () => { dispatch(onFollow(username, false)) },
+    onMissingProofClick: (missingProof: MissingProof) => { dispatch(addProof(missingProof.type)) },
+    onRecheckProof: (proof: Proof) => { dispatch(checkSpecificProof(proof && proof.id)) },
+    onRevokeProof: (proof: Proof) => {
+      dispatch(routeAppend({path: 'Revoke', platform: proof.type, platformHandle: proof.name, proofId: proof.id}))
+    },
+    onViewProof: (proof: Proof) => { dispatch(openProofUrl(proof)) },
   }
-
-  const onMissingProofClick = () => { console.log('TODO onMissingProofClick') }
 
   const isYou = username === stateProps.myUsername
   const onEditProfile = () => { dispatchProps.onEditProfile() }
@@ -103,7 +117,6 @@ export default connector.connect((state, dispatch, ownProps) => {
     onEditProfile: onEditProfile,
     onLocationEdit: onEditProfile,
     onNameEdit: onEditProfile,
-    onMissingProofClick,
   } : null
 
   const trackerState = stateProps.trackers[username]
@@ -123,10 +136,6 @@ export default connector.connect((state, dispatch, ownProps) => {
     refresh,
     followers: trackerState ? trackerState.trackers : [],
     following: trackerState ? trackerState.tracking : [],
-    onMissingProofClick,
-    onRecheckProof: () => console.log('TODO'),
-    onRevokeProof: () => console.log('TODO'),
-    onViewProof: () => console.log('TODO'),
     loading: isLoading(trackerState),
   }
 })(Profile)

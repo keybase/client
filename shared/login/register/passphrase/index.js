@@ -1,9 +1,9 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
 import Render from './index.render'
-import {openAccountResetPage} from '../../../actions/login'
 import type {Props} from './index.render'
+import {connect} from 'react-redux'
+import {openAccountResetPage} from '../../../actions/login'
 
 type State = {
   showTyping: boolean,

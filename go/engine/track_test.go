@@ -89,7 +89,11 @@ func trackBob(tc libkb.TestContext, fu *FakeUser) {
 }
 
 func trackBobWithOptions(tc libkb.TestContext, fu *FakeUser, options keybase1.TrackOptions, secretUI libkb.SecretUI) {
-	idUI, res, err := runTrackWithOptions(tc, fu, "t_bob", options, secretUI, false)
+	// Refer to t_bob as kbtester1@twitter. This helps test a different
+	// codepath through idenfity2. (For example, in one case it triggered a
+	// race condition that aborted tracking without waiting for the UI to
+	// confirm, which wasn't present in the regular "t_bob" case.)
+	idUI, res, err := runTrackWithOptions(tc, fu, "kbtester1@twitter", options, secretUI, false)
 	if err != nil {
 		tc.T.Fatal(err)
 	}

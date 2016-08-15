@@ -2,7 +2,7 @@
 import Checkbox from './checkbox'
 import React from 'react'
 import type {DumbComponentMap} from '../constants/types/more'
-import {Avatar, Box, Button, ListItem, StandardScreen, TabBar, Text} from './index'
+import {Avatar, Box, Button, ChoiceList, ListItem, StandardScreen, TabBar, Text} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalColors} from '../styles/style-guide'
 
@@ -132,6 +132,28 @@ const listItemMap: DumbComponentMap<ListItem> = {
   },
 }
 
+const choiceListMap: DumbComponentMap<ChoiceList> = {
+  component: ChoiceList,
+  mocks: {
+    'Two Choices': {
+      options: [
+        {
+          title: 'Host a TXT file',
+          description: 'Host a text file on your site, such as yoursite.com/keybase.txt.',
+          icon: 'icon-file-txt-48',
+          onClick: () => console.log('ChoiceList: onClick TXT file'),
+        },
+        {
+          title: 'Set a DNS',
+          description: 'Place a Keybase proof in your DNS records.',
+          icon: 'icon-dns-48',
+          onClick: () => console.log('ChoiceList: onClick DNS'),
+        },
+      ],
+    },
+  },
+}
+
 const standardScreenProps = {
   onClose: () => console.log('StandardScreen: onClose'),
   children: <Text type='Header'>Whoa, look at this centered thing</Text>,
@@ -163,6 +185,7 @@ const standardScreenMap: DumbComponentMap<StandardScreen> = {
 
 export default {
   'Checkbox': checkboxMap,
+  'ChoiceList': choiceListMap,
   'ListItem': listItemMap,
   'StandardScreen': standardScreenMap,
   'TabBar': tabBarMap,

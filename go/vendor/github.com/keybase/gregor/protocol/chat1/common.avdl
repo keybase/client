@@ -1,0 +1,85 @@
+@namespace("chat.1")
+protocol common {
+
+  import idl "github.com/keybase/gregor/protocol/gregor1" as gregor1;
+
+  @typedef("bytes") record ThreadID {}
+  @typedef("bytes") record MessageID {}
+  @typedef("bytes") record PaginationResourceID {}
+  @typedef("bytes") record TopicID {}
+  @typedef("long")  record ConversationID {}
+  @typedef("bytes") record TLFID {}
+  @typedef("bytes") record DeviceID {}
+
+  enum MessageType {
+    NONE_0,
+    TEXT_1,
+    ATTACHMENT_2,
+    EDIT_3,
+    DELETE_4,
+    METADATA_5
+  }
+
+  record Pagination {
+    bytes resourceID;
+    int last;
+    int num;
+  }
+
+  record ConversationIDTriple {
+    TLFID tlfid;
+    int topicType;
+    TopicID topicID;
+  }
+
+  record ConversationMetadata  {
+    ConversationIDTriple idTriple;
+    ConversationID conversationID;
+  }
+
+  record Conversation {
+    ConversationMetadata metadata;
+    // maxHeaders is the maximum header for each messageType in the conversation.
+    array<MessageServerHeader> maxHeaders;
+  }
+
+  record MessageServerHeader {
+    MessageType messageType;
+    MessageID messageID;
+    gregor1.UID sender;
+    DeviceID senderDevice;
+    MessageID supersededBy;
+    gregor1.Time ctime;
+  }
+
+  record MessagePreviousPointer {
+    MessageID id;
+    bytes hash;
+  }
+
+  record MessageClientHeader {
+    ConversationIDTriple conv;
+    MessageType messageType;
+    array<MessagePreviousPointer> prev;
+    gregor1.UID sender;
+    DeviceID senderDevice;
+  }
+
+  // The same format as in KBFS (see libkbfs/data_types.go)
+  record EncryptedData {
+    int   v;  // version = 1
+    bytes e;  // encryptedData (output of secret box)
+    bytes n;  // nonce
+  }
+
+  record SignatureInfo {
+    int   v; // version = 1
+    bytes s; // signature; output of EdDSA
+    bytes k; // Verifying key
+  }
+
+  record InboxView {
+    array<Conversation> conversations;
+    union { null, Pagination } pagination;
+  }
+}

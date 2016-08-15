@@ -1,11 +1,10 @@
-/* @flow */
+// @flow
 import React, {Component} from 'react'
-import {globalColors, globalStyles} from '../../styles/style-guide'
-import {Text, Icon, Button, Box} from '../../common-adapters'
-
 import type {IntroProps} from './intro.render'
+import {Text, Icon, Button, Box} from '../../common-adapters'
+import {globalColors, globalStyles} from '../../styles/style-guide'
 
-export default class Intro extends Component<void, IntroProps, void> {
+class Intro extends Component<void, IntroProps, void> {
 
   _renderSplash () {
     return (
@@ -79,3 +78,5 @@ const stylesRevoked = {
   alignSelf: 'stretch',
   backgroundColor: globalColors.green,
 }
+
+export default Intro

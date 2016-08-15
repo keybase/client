@@ -9,6 +9,7 @@ import gregor from './gregor'
 import login from './login'
 import notifications from './notifications'
 import pinentry from './pinentry'
+import profile from './profile'
 import router from './router'
 import search from './search'
 import serialize from './serialize'
@@ -47,6 +48,7 @@ const combinedReducer = combineReducers({
   login,
   notifications,
   pinentry,
+  profile,
   router,
   search,
   signup,

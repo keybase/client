@@ -1,17 +1,12 @@
 // @flow
 // Handles sending requests to native mobile (then go) and back
-import NativeEventEmitter from '../common-adapters/native-event-emitter'
-import Transport from './transport'
-import nativeEngine from './index.native'
-import rpc from 'framed-msgpack-rpc'
 import setupLocalLogs from '../util/local-log'
-import {Buffer} from 'buffer'
+import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
 import {constants} from '../constants/types/keybase-v1'
 import {log} from '../native/log/logui'
+import {resetClient, createClient} from './platform-specific'
 import {printRPC, printOutstandingRPCs} from '../local-debug'
-import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
 
-const {client: {Client: RpcClient}} = rpc
 const KEYBASE_RPC_DELAY_RESULT: number = process.env.KEYBASE_RPC_DELAY_RESULT ? parseInt(process.env.KEYBASE_RPC_DELAY_RESULT) : 0
 const KEYBASE_RPC_DELAY: number = process.env.KEYBASE_RPC_DELAY ? parseInt(process.env.KEYBASE_RPC_DELAY) : 0
 
@@ -66,31 +61,16 @@ class Engine {
     }
 
     if (!NO_ENGINE) {
-      this.rpcClient = new RpcClient(
-        // $FlowIssue
-        new Transport(
-          payload => {
-            if (__DEV__ && KEYBASE_RPC_DELAY_RESULT) {
-              setTimeout(() => this._rpcIncoming(payload), KEYBASE_RPC_DELAY_RESULT)
-            } else {
-              this._rpcIncoming(payload)
-            }
-          },
-          this._rpcWrite,
-          () => this._onConnect()
-        ),
-        'keybase.1',
-      )
-
-      if (this.rpcClient.transport.needsConnect) {
-        this.rpcClient.transport.connect(err => {
-          if (err != null) {
-            console.log('Error in connecting to transport rpc:', err)
+      this.rpcClient = createClient(
+        payload => {
+          if (__DEV__ && KEYBASE_RPC_DELAY_RESULT) {
+            setTimeout(() => this._rpcIncoming(payload), KEYBASE_RPC_DELAY_RESULT)
+          } else {
+            this._rpcIncoming(payload)
           }
-        })
-      }
-
-      this._setupListener()
+        },
+        () => this._onConnect()
+      )
     }
 
     this.sessionID = 123
@@ -151,21 +131,6 @@ class Engine {
     return this.sessionID
   }
 
-  _setupListener () {
-    NativeEventEmitter.addListener(
-      nativeEngine.eventName,
-      payload => {
-        if (!payload) {
-          return
-        }
-
-        if (this.rpcClient.transport.needsBase64) {
-          this.rpcClient.transport.packetize_data(new Buffer(payload, 'base64'))
-        }
-      }
-    )
-  }
-
   // Bind a single callback to a method.
   // Newer calls to this will overwrite older listeners, and older listeners will not get called.
   listenGeneralIncomingRpc (params: {[key: MethodKey]: () => void}) {
@@ -194,10 +159,6 @@ class Engine {
       },
     }
     this.serverListeners[method](param, cbs, sid)
-  }
-
-  _rpcWrite (data: any) {
-    nativeEngine.runWithData(data)
   }
 
   _wrapResponseOnceOnly (method: MethodKey, param: Object, response: ?Object, waitingHandler: ?WaitingHandlerType) {
@@ -448,7 +409,7 @@ class Engine {
   }
 
   reset () {
-    nativeEngine.reset()
+    resetClient()
   }
 }
 

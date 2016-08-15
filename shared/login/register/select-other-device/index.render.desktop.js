@@ -1,11 +1,11 @@
 // @flow
+import Container from '../../forms/container.desktop'
 import React from 'react'
+import type {DeviceType} from '../../../constants/types/more'
+import type {IconType} from '../../../common-adapters/icon'
+import type {Props} from './index.render'
 import {Text, Icon} from '../../../common-adapters'
 import {globalStyles, globalColors} from '../../../styles/style-guide'
-import Container from '../../forms/container.desktop'
-import type {Props} from './index.render'
-import type {IconType} from '../../../common-adapters/icon'
-import type {DeviceType} from '../../../constants/types/more'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconType = ({

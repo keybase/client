@@ -17,6 +17,23 @@
       ],
       "response": null,
       "notify": ""
+    },
+    "FSEditListResponse": {
+      "request": [
+        {
+          "name": "edits",
+          "type": {
+            "type": "array",
+            "items": "FSNotification"
+          }
+        },
+        {
+          "name": "requestID",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

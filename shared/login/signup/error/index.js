@@ -1,11 +1,8 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import HiddenString from '../../../util/hidden-string'
-import {restartSignup} from '../../../actions/signup'
-
 import Render from './index.render'
+import {connect} from 'react-redux'
+import {restartSignup} from '../../../actions/signup'
 
 class SignupError extends Component {
   render () {
@@ -15,11 +12,6 @@ class SignupError extends Component {
         restartSignup={this.props.restartSignup} />
     )
   }
-}
-
-SignupError.propTypes = {
-  errorText: React.PropTypes.instanceOf(HiddenString).isRequired,
-  restartSignup: React.PropTypes.func.isRequired,
 }
 
 export default connect(

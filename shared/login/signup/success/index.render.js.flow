@@ -1,5 +1,4 @@
-/* @flow */
-
+// @flow
 import React, {Component} from 'react'
 import HiddenString from '../../../util/hidden-string'
 
@@ -11,6 +10,4 @@ export type Props = {
   title?: ?string
 }
 
-export default class Render extends Component {
-  props: Props;
-}
+export default class Render extends Component<void, Props, void> { }

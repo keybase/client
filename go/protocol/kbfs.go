@@ -12,6 +12,11 @@ type FSEventArg struct {
 	Event FSNotification `codec:"event" json:"event"`
 }
 
+type FSEditListArg struct {
+	Edits     []FSNotification `codec:"edits" json:"edits"`
+	RequestID int              `codec:"requestID" json:"requestID"`
+}
+
 type KbfsInterface interface {
 	// Idea is that kbfs would call the function below whenever these actions are
 	// performed on a file.
@@ -22,6 +27,9 @@ type KbfsInterface interface {
 	// It is just a starting point to get kbfs notifications through the daemon to
 	// the clients.
 	FSEvent(context.Context, FSNotification) error
+	// kbfs calls this as a response to receiving an FSEditListRequest with a
+	// given requestID.
+	FSEditList(context.Context, FSEditListArg) error
 }
 
 func KbfsProtocol(i KbfsInterface) rpc.Protocol {
@@ -40,6 +48,22 @@ func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 						return
 					}
 					err = i.FSEvent(ctx, (*typedArgs)[0].Event)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"FSEditList": {
+				MakeArg: func() interface{} {
+					ret := make([]FSEditListArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FSEditListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FSEditListArg)(nil), args)
+						return
+					}
+					err = i.FSEditList(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -63,5 +87,12 @@ type KbfsClient struct {
 func (c KbfsClient) FSEvent(ctx context.Context, event FSNotification) (err error) {
 	__arg := FSEventArg{Event: event}
 	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSEvent", []interface{}{__arg}, nil)
+	return
+}
+
+// kbfs calls this as a response to receiving an FSEditListRequest with a
+// given requestID.
+func (c KbfsClient) FSEditList(ctx context.Context, __arg FSEditListArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSEditList", []interface{}{__arg}, nil)
 	return
 }

@@ -4,7 +4,7 @@ import {normal as proofNormal, checking as proofChecking, revoked as proofRevoke
   error as proofError, warning as proofWarning,
   metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaIgnored} from '../constants/tracker'
 import type {IconType} from '../common-adapters/icon'
-import type {PlatformsExpanded} from '../constants/types/more.js'
+import type {PlatformsExpandedType} from '../constants/types/more.js'
 import type {Proof} from '../constants/tracker'
 
 function metaColor (proof: Proof): string {
@@ -39,7 +39,7 @@ function proofColor (proof: Proof): string {
   return color
 }
 
-function iconNameForProof ({type}: {type: PlatformsExpanded}): IconType {
+function iconNameForProof ({type}: {type: PlatformsExpandedType}): IconType {
   const types = {
     'none': 'iconfont-close',
     'keybase': 'iconfont-close',
@@ -51,7 +51,7 @@ function iconNameForProof ({type}: {type: PlatformsExpanded}): IconType {
     'hackernews': 'iconfont-identity-hn',
     'rooter': 'iconfont-thunderbolt',
     'btc': 'iconfont-identity-bitcoin',
-    'genericWebSite': 'iconfont-identity-website',
+    'dnsOrGenericWebSite': 'iconfont-identity-website',
     'http': 'iconfont-identity-website',
     'https': 'iconfont-identity-website',
     'dns': 'iconfont-identity-website',
@@ -82,6 +82,7 @@ function proofNameStyle (proof: Proof) {
   return {
     color: proofColor(proof),
     ...(proof.meta === metaDeleted ? globalStyles.textDecoration('line-through') : {}),
+    ...(['btc', 'pgp'].includes(proof.type) ? {fontSize: 13} : {}),
   }
 }
 

@@ -124,6 +124,11 @@ func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase
 	return d.printf("KBFS notification: %+v\n", notification)
 }
 
+func (d *notificationDisplay) FSEditListResponse(
+	_ context.Context, arg keybase1.FSEditListResponseArg) error {
+	return d.printf("KBFS edit list response: %+v\n", arg)
+}
+
 func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.TrackingChangedArg) error {
 	return d.printf("Tracking changed for %s (%s)\n", arg.Username, arg.Uid)
 }

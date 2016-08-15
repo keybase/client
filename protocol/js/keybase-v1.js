@@ -12,6 +12,8 @@ export const block = {}
 
 export const BTC = {}
 
+export const chatLocal = {}
+
 export const Common = {
   'LogLevel': {
     'none': 0,
@@ -228,6 +230,10 @@ export const kbfsCommon = {
     'rekeying': 4,
     'connection': 5,
     'mdReadSuccess': 6,
+    'fileCreated': 7,
+    'fileModified': 8,
+    'fileDeleted': 9,
+    'fileRenamed': 10,
   },
   'FSErrorType': {
     'accessDenied': 0,
@@ -267,6 +273,8 @@ export const notifyCtl = {}
 export const NotifyFavorites = {}
 
 export const NotifyFS = {}
+
+export const NotifyFSRequest = {}
 
 export const NotifyKeyfamily = {}
 
@@ -469,6 +477,7 @@ export default {
   backendCommon,
   block,
   BTC,
+  chatLocal,
   Common,
   config,
   constants,
@@ -501,6 +510,7 @@ export default {
   notifyCtl,
   NotifyFavorites,
   NotifyFS,
+  NotifyFSRequest,
   NotifyKeyfamily,
   NotifyPaperKey,
   NotifyService,

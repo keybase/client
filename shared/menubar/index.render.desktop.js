@@ -59,16 +59,21 @@ class Render extends Component<DefaultProps, Props, State> {
   }
 
   _menuItems () {
-    return [].concat(
-      this.props.loggedIn ? [{title: 'Open Keybase', onClick: this.props.openApp}] : [],
-      [
-        {title: 'Open folders', onClick: this.props.showKBFS},
-        {title: 'Keybase.io', onClick: this.props.showUser},
-        {title: 'Report a bug', onClick: this.props.showBug},
-        {title: 'Help/Doc', onClick: this.props.showHelp},
-        {title: 'Quit', onClick: this.props.quit},
-      ]
+    let items = []
+    if (this.props.loggedIn) {
+      items.push({title: 'Open Keybase', onClick: this.props.openApp})
+    }
+    items.push({title: 'Open folders', onClick: this.props.showKBFS})
+    if (process.platform === 'win32') {
+      items.push({title: 'Keybase Shell', onClick: this.props.openShell})
+    }
+    items.push(
+      {title: 'Keybase.io', onClick: this.props.showUser},
+      {title: 'Report a bug', onClick: this.props.showBug},
+      {title: 'Help/Doc', onClick: this.props.showHelp},
+      {title: 'Quit', onClick: this.props.quit},
     )
+    return items
   }
 
   _onAdd (path: string) {

@@ -27,3 +27,9 @@ func (h *KBFSHandler) FSEvent(_ context.Context, arg keybase1.FSNotification) er
 	h.G().NotifyRouter.HandleFSActivity(arg)
 	return nil
 }
+
+func (h *KBFSHandler) FSEditList(_ context.Context, _ keybase1.FSEditListArg) (
+	err error) {
+	// TODO: route these messages.
+	return nil
+}

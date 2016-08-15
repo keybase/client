@@ -13,6 +13,7 @@ export type Props = {
   showBug: () => void,
   onRekey: (path: string) => void,
   onFolderClick: (path: string) => void,
+  openShell: () => void,
   refresh: () => void,
   quit: () => void,
   username: ?string,

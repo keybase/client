@@ -1,12 +1,12 @@
 // @flow
-import React, {Component} from 'react'
-import {ScrollView} from 'react-native'
-import {Box, Button, Text, BackButton, Avatar, Icon, Usernames} from '../../common-adapters'
 import File from './file/render'
+import React, {Component} from 'react'
+import type {FileSection} from '../../constants/folders'
+import type {Props} from './render'
+import {Box, Button, Text, BackButton, Avatar, Icon, Usernames} from '../../common-adapters'
+import {ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import {intersperseFn} from '../../util/arrays'
-import type {Props} from './render'
-import type {FileSection} from '../../constants/folders'
 
 class Render extends Component<void, Props, void> {
   _renderSection (section: FileSection) {

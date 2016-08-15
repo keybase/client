@@ -3,9 +3,10 @@
 	"ignore": "test solaris",
 	"package": [
 		{
+			"checksumSHA1": "SYupvmlf7Gq3GEyIqp6Ll5j3xuM=",
 			"path": "bazil.org/fuse",
-			"revision": "a8bc3b86317dc95ed28fdefcebc1dbce8baa88e9",
-			"revisionTime": "2015-12-02T10:18:56-08:00"
+			"revision": "08e592e472ded97404acd4e03e9a9e46dfd57fab",
+			"revisionTime": "2016-08-11T21:01:40Z"
 		},
 		{
 			"path": "code.google.com/p/rsc/gf256",
@@ -248,6 +249,12 @@
 			"path": "github.com/keybase/gregor",
 			"revision": "a3935baeb79f89a99a1834aabfce326fc5887ed5",
 			"revisionTime": "2016-07-01T19:55:25Z"
+		},
+		{
+			"checksumSHA1": "V5FQ4JcT9qLhD67DCPUqKR3z4UM=",
+			"path": "github.com/keybase/gregor/protocol/chat1",
+			"revision": "21dd526b1037eba38085792aaa7810e8d5ceb80b",
+			"revisionTime": "2016-08-11T15:54:09Z"
 		},
 		{
 			"checksumSHA1": "62b13boBTrv4t4xnFt6FEjDoWKI=",

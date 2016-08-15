@@ -4,21 +4,21 @@
  * you're a phone/computer and if you're the existing device or the new device
  */
 
+import Container from '../../forms/container'
+import Platform, {OS} from '../../../constants/platform'
+import Qr from './qr'
 import React, {Component} from 'react'
+import type {IconType} from '../../../common-adapters/icon'
+import type {Mode, DeviceRole} from '../../../constants/login'
+import type {Props} from './index.render'
+import {Box, ProgressIndicator, Text, Icon} from '../../../common-adapters'
 import {StyleSheet, TouchableHighlight} from 'react-native'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
-        codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer,
-        codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
-import Qr from './qr'
-import {Box, ProgressIndicator, Text, Icon} from '../../../common-adapters'
-import {specialStyles} from '../../../common-adapters/text'
-import Container from '../../forms/container'
+  codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer,
+  codePageModeScanCode, codePageModeShowCode, codePageModeEnterText,
+  codePageModeShowText} from '../../../constants/login'
 import {globalStyles, globalColors} from '../../../styles/style-guide'
-import Platform, {OS} from '../../../constants/platform'
-
-import type {Props} from './index.render'
-import type {Mode, DeviceRole} from '../../../constants/login'
-import type {IconType} from '../../../common-adapters/icon'
+import {specialStyles} from '../../../common-adapters/text'
 
 const isIOS = Platform.OS_IOS === OS
 
@@ -47,7 +47,7 @@ function determineModes (myDeviceRole: DeviceRole, otherDeviceRole: DeviceRole, 
   return controls
 }
 
-export default class CodePageRender extends Component<void, Props, void> {
+class CodePageRender extends Component<void, Props, void> {
   renderMode (mode: Mode) {
     return (
       <Box style={{flex: 1, ...globalStyles.flexBoxColumn, alignItems: 'stretch'}}>
@@ -202,23 +202,6 @@ export default class CodePageRender extends Component<void, Props, void> {
   }
 }
 
-const validRoles = [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer]
-
-CodePageRender.propTypes = {
-  mode: React.PropTypes.oneOf([codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText]).isRequired,
-  textCode: React.PropTypes.string,
-  qrCode: React.PropTypes.string,
-  myDeviceRole: React.PropTypes.oneOf(validRoles).isRequired,
-  otherDeviceRole: React.PropTypes.oneOf(validRoles).isRequired,
-  cameraBrokenMode: React.PropTypes.bool.isRequired,
-  setCodePageMode: React.PropTypes.func.isRequired,
-  qrScanned: React.PropTypes.func.isRequired,
-  setCameraBrokenMode: React.PropTypes.func.isRequired,
-  textEntered: React.PropTypes.func.isRequired,
-  onChangeText: React.PropTypes.func.isRequired,
-  enterText: React.PropTypes.string,
-}
-
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
@@ -266,3 +249,5 @@ const styles = StyleSheet.create({
     width: 1,
   },
 })
+
+export default CodePageRender

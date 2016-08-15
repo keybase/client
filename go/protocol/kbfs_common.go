@@ -25,6 +25,10 @@ const (
 	FSNotificationType_REKEYING        FSNotificationType = 4
 	FSNotificationType_CONNECTION      FSNotificationType = 5
 	FSNotificationType_MD_READ_SUCCESS FSNotificationType = 6
+	FSNotificationType_FILE_CREATED    FSNotificationType = 7
+	FSNotificationType_FILE_MODIFIED   FSNotificationType = 8
+	FSNotificationType_FILE_DELETED    FSNotificationType = 9
+	FSNotificationType_FILE_RENAMED    FSNotificationType = 10
 )
 
 type FSErrorType int
@@ -51,6 +55,13 @@ type FSNotification struct {
 	NotificationType     FSNotificationType `codec:"notificationType" json:"notificationType"`
 	ErrorType            FSErrorType        `codec:"errorType" json:"errorType"`
 	Params               map[string]string  `codec:"params" json:"params"`
+	WriterUid            UID                `codec:"writerUid" json:"writerUid"`
+	LocalTime            Time               `codec:"localTime" json:"localTime"`
+}
+
+type FSEditListRequest struct {
+	Folder    Folder `codec:"folder" json:"folder"`
+	RequestID int    `codec:"requestID" json:"requestID"`
 }
 
 type KbfsCommonInterface interface {

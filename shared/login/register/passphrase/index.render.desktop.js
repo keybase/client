@@ -1,13 +1,12 @@
 // @flow
+import Container from '../../forms/container.desktop'
 import React, {Component} from 'react'
+import type {Props} from './index.render'
 import {Text, Input, Button, UserCard} from '../../../common-adapters'
 import {globalColors} from '../../../styles/style-guide'
 import {specialStyles} from '../../../common-adapters/text'
-import Container from '../../forms/container.desktop'
-import type {Props} from './index.render'
 
 class Render extends Component<void, Props, void> {
-
   render () {
     return (
       <Container

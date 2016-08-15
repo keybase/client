@@ -1,10 +1,9 @@
-/* @flow */
-import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../../styles/style-guide'
-import {UserCard, Input, Button} from '../../common-adapters'
+// @flow
 import Container from '../forms/container'
-
+import React, {Component} from 'react'
 import type {Props} from './username-email-form.render'
+import {UserCard, Input, Button} from '../../common-adapters'
+import {globalStyles, globalColors} from '../../styles/style-guide'
 
 class Render extends Component {
   props: Props;

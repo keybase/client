@@ -1,8 +1,5 @@
 // @flow
-
 import {Component} from 'react'
-import type {Platforms} from '../constants/types/more'
-import type {IconType} from '../common-adapters/icon'
 
 export type Props = {
   keybaseUsername: string,
@@ -10,5 +7,4 @@ export type Props = {
   onAck: () => void,
 }
 
-export default class Render extends Component<void, Props, void> {
-}
+export default class Render extends Component<void, Props, void> { }

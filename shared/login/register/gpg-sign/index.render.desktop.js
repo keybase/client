@@ -1,9 +1,9 @@
 // @flow
-import React, {Component} from 'react'
-import {Text} from '../../../common-adapters'
 import Container from '../../forms/container.desktop'
+import React, {Component} from 'react'
 import Row, {RowCSS} from './row'
 import type {Props} from './index.render'
+import {Text} from '../../../common-adapters'
 
 class Render extends Component<void, Props, void> {
   render () {
