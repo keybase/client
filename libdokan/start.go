@@ -25,8 +25,10 @@ type StartOptions struct {
 
 // Start the filesystem
 func Start(mounter Mounter, options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
-	// InitLog errors are non-fatal and are ignored.
-	log, _ := libkbfs.InitLog(options.KbfsParams, kbCtx)
+	log, err := libkbfs.InitLog(options.KbfsParams, kbCtx)
+	if err != nil {
+		return libfs.InitError(err.Error())
+	}
 
 	onInterruptFn := func() {
 		mounter.Unmount()
