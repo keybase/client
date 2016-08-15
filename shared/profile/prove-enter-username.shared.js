@@ -18,6 +18,7 @@ export const platformText : {[key: PlatformsExpandedType]: {headerText: string, 
   'btc': {
     headerText: 'Set a Bitcoin address',
     floatingLabelText: 'Your Bitcoin address',
+    hintText: 'Your Bitcoin address',
   },
   'dns': {
     headerText: 'Prove your domain',

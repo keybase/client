@@ -8,6 +8,7 @@ export type Props = {
   size: 48,
   overlay: IconType,
   overlayColor: string,
+  style?: Object,
 }
 
 export default class Render extends Component<void, Props, void> { }

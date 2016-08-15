@@ -35,7 +35,7 @@ const supportedPlatformsAndSizes: {[key: PlatformsExpandedType]: ?{[key: string]
   },
 }
 
-const Render = ({platform, overlay, overlayColor, size}: Props) => {
+const Render = ({platform, overlay, overlayColor, size, style}: Props) => {
   const icon: ?IconType = supportedPlatformsAndSizes[platform] && supportedPlatformsAndSizes[platform][String(size)]
   if (!icon) {
     console.warn('unsupported platform + size: ', platform, size)
@@ -43,11 +43,9 @@ const Render = ({platform, overlay, overlayColor, size}: Props) => {
   }
 
   return (
-    <Box style={{position: 'relative'}}>
+    <Box style={{...style, position: 'relative'}}>
       <Icon type={icon} />
-      <Box style={{position: 'absolute', bottom: 0, right: 0}}>
-        <Icon type={overlay} style={{position: 'absolute', bottom: -2, right: -5}} />
-      </Box>
+      <Icon type={overlay} style={{position: 'absolute', bottom: -2, right: -5}} />
     </Box>
   )
 }
