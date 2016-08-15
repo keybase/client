@@ -467,6 +467,21 @@ const (
 // enqueued rekey ID tag.
 const CtxKeybaseServiceOpID = "KSID"
 
+func (k *KeybaseServiceBase) getHandleFromFolderName(ctx context.Context,
+	tlfName string, public bool) (*TlfHandle, error) {
+	for {
+		tlfHandle, err := ParseTlfHandle(ctx, k.config.KBPKI(), tlfName, public)
+		switch e := err.(type) {
+		case TlfNameNotCanonical:
+			tlfName = e.NameToTry
+		case nil:
+			return tlfHandle, nil
+		default:
+			return nil, err
+		}
+	}
+}
+
 // FSEditListRequest implements keybase1.NotifyFSRequestInterface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
@@ -475,21 +490,10 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 		k.log)
 	k.log.CDebugf(ctx, "Edit list request for %s (public: %t)",
 		req.Folder.Name, !req.Folder.Private)
-
-	var tlfHandle *TlfHandle
-	tlfName := req.Folder.Name
-getHandle:
-	for {
-		tlfHandle, err = ParseTlfHandle(ctx, k.config.KBPKI(), tlfName,
-			!req.Folder.Private)
-		switch e := err.(type) {
-		case TlfNameNotCanonical:
-			tlfName = e.NameToTry
-		case nil:
-			break getHandle
-		default:
-			return err
-		}
+	tlfHandle, err := k.getHandleFromFolderName(ctx, req.Folder.Name,
+		!req.Folder.Private)
+	if err != nil {
+		return err
 	}
 
 	rootNode, _, err := k.config.KBFSOps().
@@ -538,23 +542,13 @@ getHandle:
 
 // GetTLFCryptKeys implements the TlfKeysInterface interface for
 // KeybaseServiceBase.
-func (k *KeybaseServiceBase) GetTLFCryptKeys(
-	ctx context.Context, tlfName string) (res keybase1.TLFCryptKeys, err error) {
+func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
+	tlfName string) (res keybase1.TLFCryptKeys, err error) {
 	ctx = ctxWithRandomID(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
 		k.log)
-	var tlfHandle *TlfHandle
-
-getHandle:
-	for {
-		tlfHandle, err = ParseTlfHandle(ctx, k.config.KBPKI(), tlfName, false)
-		switch e := err.(type) {
-		case TlfNameNotCanonical:
-			tlfName = e.NameToTry
-		case nil:
-			break getHandle
-		default:
-			return res, err
-		}
+	tlfHandle, err := k.getHandleFromFolderName(ctx, tlfName, false)
+	if err != nil {
+		return res, err
 	}
 
 	res.CanonicalName = keybase1.CanonicalTlfName(tlfHandle.GetCanonicalName())
