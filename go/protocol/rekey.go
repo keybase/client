@@ -75,10 +75,10 @@ type RekeyInterface interface {
 	// DebugShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for
 	// the current user.
 	DebugShowRekeyStatus(context.Context, int) error
-	// rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
+	// RekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
 	// can be Fixed or Ignored.
 	RekeyStatusFinish(context.Context, int) (Outcome, error)
-	// sync flushes the current rekey loop and gets to a good stopping point
+	// RekeySync flushes the current rekey loop and gets to a good stopping point
 	// to assert state. Good for race-free testing, not very useful in production.
 	// Force overrides a long-snooze.
 	RekeySync(context.Context, RekeySyncArg) error
@@ -199,7 +199,7 @@ func (c RekeyClient) DebugShowRekeyStatus(ctx context.Context, sessionID int) (e
 	return
 }
 
-// rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
+// RekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
 // can be Fixed or Ignored.
 func (c RekeyClient) RekeyStatusFinish(ctx context.Context, sessionID int) (res Outcome, err error) {
 	__arg := RekeyStatusFinishArg{SessionID: sessionID}
@@ -207,7 +207,7 @@ func (c RekeyClient) RekeyStatusFinish(ctx context.Context, sessionID int) (res 
 	return
 }
 
-// sync flushes the current rekey loop and gets to a good stopping point
+// RekeySync flushes the current rekey loop and gets to a good stopping point
 // to assert state. Good for race-free testing, not very useful in production.
 // Force overrides a long-snooze.
 func (c RekeyClient) RekeySync(ctx context.Context, __arg RekeySyncArg) (err error) {

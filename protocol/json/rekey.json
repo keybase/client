@@ -148,7 +148,7 @@
         }
       ],
       "response": "Outcome",
-      "doc": "rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome\n   can be Fixed or Ignored."
+      "doc": "RekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome\n   can be Fixed or Ignored."
     },
     "rekeySync": {
       "request": [
@@ -162,7 +162,7 @@
         }
       ],
       "response": null,
-      "doc": "sync flushes the current rekey loop and gets to a good stopping point\n   to assert state. Good for race-free testing, not very useful in production.\n   Force overrides a long-snooze."
+      "doc": "RekeySync flushes the current rekey loop and gets to a good stopping point\n   to assert state. Good for race-free testing, not very useful in production.\n   Force overrides a long-snooze."
     }
   },
   "namespace": "keybase.1"

@@ -44,7 +44,7 @@ type RekeyUIInterface interface {
 	// refresh is called whenever Electron should refresh the UI, either
 	// * because a change came in, or because there was a timeout poll.
 	Refresh(context.Context, RefreshArg) error
-	// * rekeySendEvent sends updates as to what's going on in the rekey
+	// * RekeySendEvent sends updates as to what's going on in the rekey
 	// * thread. This is mainly useful in testing.
 	RekeySendEvent(context.Context, RekeySendEventArg) error
 }
@@ -116,7 +116,7 @@ func (c RekeyUIClient) Refresh(ctx context.Context, __arg RefreshArg) (err error
 	return
 }
 
-// * rekeySendEvent sends updates as to what's going on in the rekey
+// * RekeySendEvent sends updates as to what's going on in the rekey
 // * thread. This is mainly useful in testing.
 func (c RekeyUIClient) RekeySendEvent(ctx context.Context, __arg RekeySendEventArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.rekeyUI.rekeySendEvent", []interface{}{__arg}, nil)

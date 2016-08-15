@@ -458,7 +458,7 @@ func (rkt *rekeyTester) snoozeRekeyWindow(dw *deviceWrapper) {
 	// them out, but no more once we advance the clock!
 	err = dw.rekeyClient.RekeySync(context.TODO(), keybase1.RekeySyncArg{SessionID: 0, Force: false})
 	if err != nil {
-		rkt.t.Fatal("Failed to sync: %s", err)
+		rkt.t.Fatalf("Failed to sync: %s", err)
 	}
 	rkt.clearAllEvents(dw)
 
