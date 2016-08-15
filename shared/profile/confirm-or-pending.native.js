@@ -1,7 +1,7 @@
 /* @flow */
 
 import React from 'react'
-import {Box, Text, Button, PlatformIcon} from '../common-adapters'
+import {Box, Text, Button, PlatformIcon, StandardScreen} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {propsForPlatform} from './confirm-or-pending.shared'
 
@@ -32,4 +32,8 @@ const Render = (props: Props) => {
   )
 }
 
-export default Render
+const Wrapped = (props: Props) => {
+  return <StandardScreen styleOuter={{padding: 0, paddingTop: globalMargins.small}}><Render {...props} /></StandardScreen>
+}
+
+export default Wrapped
