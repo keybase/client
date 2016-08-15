@@ -1,0 +1,11 @@
+// @flow
+import {Component} from 'react'
+
+export type Props = {
+  value: string,
+  style?: Object,
+  extras$desktop?: HTMLTextAreaElement,
+  extras$native?: Object,
+}
+
+export default class CopyableText extends Component<void, Props, void> { }
