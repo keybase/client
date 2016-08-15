@@ -14,7 +14,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/service"
-	"github.com/keybase/go-framed-msgpack-rpc"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"github.com/keybase/kbfs/fsrpc"
 	"github.com/keybase/kbfs/libkbfs"
 )
@@ -77,14 +77,17 @@ func Init(homeDir string, logFile string, runModeStr string, accessGroupOverride
 		Logs:         logs,
 	}
 
-	// FIXME (MBG): This is causing RPC responses to sometimes not be recieved
-	// on iOS. Repro by hooking up getExtendedStatus to a button in the iOS
-	// client and watching JS logs. Disabling until we have a root cause / fix.
+	// Initialize KBFS
 	kbfsParams := libkbfs.DefaultInitParams(kbCtx)
-	kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, serviceCn{}, func() {}, kbCtx.Log)
+	kbfsConfig, err = libkbfs.Init(kbCtx, kbfsParams, serviceCn{ctx: kbCtx}, func() {}, kbCtx.Log)
 	if err != nil {
 		return err
 	}
+
+	// Tell service that KBFS can handle FS protocols
+	svc.RegisterOnConnect(func(srv *rpc.Server) error {
+		return srv.Register(keybase1.FsProtocol(fsrpc.NewFS(kbfsConfig, kbCtx.Log)))
+	})
 
 	return Reset()
 }
@@ -94,15 +97,19 @@ type serviceCn struct {
 }
 
 func (s serviceCn) NewKeybaseService(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.KeybaseService, error) {
-	keybaseService := libkbfs.NewKeybaseDaemonRPC(config, ctx, log, true)
-	keybaseService.AddProtocols([]rpc.Protocol{
-		keybase1.FsProtocol(fsrpc.NewFS(config, log)),
-	})
-	return keybaseService, nil
+	// To use a local non-RPC service provider:
+	// return newServiceProvider(s.ctx, config, log), nil
+
+	// To use an RPC based service provider:
+	return newServiceRPCProvider(s.ctx, config, log), nil
 }
 
 func (s serviceCn) NewCrypto(config libkbfs.Config, params libkbfs.InitParams, ctx libkbfs.Context, log logger.Logger) (libkbfs.Crypto, error) {
-	return libkbfs.NewCryptoClientRPC(config, ctx), nil
+	// To use a local non-RPC crypto provider:
+	// return newCrypto(s.ctx, config, log), nil
+
+	// To use an RPC based crypto provider:
+	return newCryptoRPC(s.ctx, config, log), nil
 }
 
 // LogSend sends a log to Keybase

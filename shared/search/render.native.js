@@ -1,12 +1,20 @@
 /* @flow */
 import React, {Component} from 'react'
+// import {connect} from 'react-redux'
+// import {Button} from '../common-adapters'}
 import {ComingSoon} from '../common-adapters'
 import UserSearch from './user-search/render'
 import UserGroup from './user-search/user-group'
 import type {Props} from './render'
 
+// import {fsList} from '../actions/kbfs'
+
 class Render extends Component<void, Props, void> {
   _renderComingSoon () {
+    // For testing fs listing
+    // const Connected = connect(state => ({}), dispatch => ({fsList: () => dispatch(fsList('/keybase/private/gabrielh/'))}))
+    //   (props => <Button label='List /keybase' onClick={() => props.fsList()} type='Primary' />)
+    // return <Connected />
     return <ComingSoon />
   }
 

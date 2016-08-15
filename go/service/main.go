@@ -30,6 +30,7 @@ type Service struct {
 	stopCh       chan keybase1.ExitCode
 	logForwarder *logFwd
 	gregor       *gregorHandler
+	onConnect    []OnConnectFn
 }
 
 type Shutdowner interface {
@@ -66,11 +67,10 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.DebuggingProtocol(NewDebuggingHandler(xp)),
 		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
-		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
-		keybase1.FsProtocol(newFSHandler(xp, g)),
+		keybase1.FavoriteProtocol(NewFavoriteRPCHandler(xp, g)),
 		keybase1.TlfProtocol(newTlfHandler(xp, g)),
-		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
-		keybase1.KbfsProtocol(NewKBFSHandler(xp, g)),
+		keybase1.IdentifyProtocol(NewIdentifyRPCHandler(xp, g)),
+		keybase1.KbfsProtocol(NewKBFSRPCHandler(xp, g)),
 		keybase1.LogProtocol(NewLogHandler(xp, logReg, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
 		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
@@ -79,12 +79,12 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.ProveProtocol(NewProveHandler(xp, g)),
 		keybase1.SaltpackProtocol(NewSaltpackHandler(xp, g)),
 		keybase1.SecretKeysProtocol(NewSecretKeysHandler(xp, g)),
-		keybase1.SessionProtocol(NewSessionHandler(xp, g)),
+		keybase1.SessionProtocol(NewSessionRPCHandler(xp, g)),
 		keybase1.SignupProtocol(NewSignupHandler(xp, g)),
 		keybase1.SigsProtocol(NewSigsHandler(xp, g)),
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
-		keybase1.UserProtocol(NewUserHandler(xp, g)),
+		keybase1.UserProtocol(NewUserRPCHandler(xp, g)),
 		keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g)),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
 		keybase1.RekeyProtocol(rekeyHandler),
@@ -139,6 +139,11 @@ func (d *Service) Handle(c net.Conn) {
 		return
 	}
 
+	// Notify any onConnect listeners
+	for _, onConnectFn := range d.onConnect {
+		onConnectFn(server)
+	}
+
 	// Run the server and wait for it to finish.
 	<-server.Run()
 	// err is always non-nil.
@@ -149,6 +154,15 @@ func (d *Service) Handle(c net.Conn) {
 	}
 
 	d.G().Log.Debug("Handle() complete for connection %d", connID)
+}
+
+// OnConnectFn is a listener for when the service handle a new connection
+type OnConnectFn func(srv *rpc.Server) error
+
+// RegisterOnConnect registers a listener for when the service handles a
+// new connection.
+func (d *Service) RegisterOnConnect(cfn OnConnectFn) {
+	d.onConnect = append(d.onConnect, cfn)
 }
 
 func (d *Service) Run() (err error) {

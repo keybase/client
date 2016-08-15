@@ -15,17 +15,29 @@ import (
 
 var ErrNoSession = errors.New("no current session")
 
-// SessionHandler is the RPC handler for the session interface.
+// SessionHandler implements the keybase1.SessionInterface
 type SessionHandler struct {
 	libkb.Contextified
-	*BaseHandler
 }
 
-// NewSessionHandler creates a SessionHandler for the xp transport.
-func NewSessionHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SessionHandler {
+// SessionRPCHandler is the RPC handler for the keybase1.SessionInterface
+type SessionRPCHandler struct {
+	*BaseHandler
+	*SessionHandler
+}
+
+// NewSessionHandler constructs a SessionHandler
+func NewSessionHandler(g *libkb.GlobalContext) *SessionHandler {
 	return &SessionHandler{
-		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
+	}
+}
+
+// NewSessionRPCHandler creates a SessionHandler for the xp transport.
+func NewSessionRPCHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SessionRPCHandler {
+	return &SessionRPCHandler{
+		BaseHandler:    NewBaseHandler(xp),
+		SessionHandler: NewSessionHandler(g),
 	}
 }
 

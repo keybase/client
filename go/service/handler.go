@@ -100,6 +100,10 @@ func (h *BaseHandler) getLogUI(sessionID int) libkb.LogUI {
 	return &LogUI{sessionID, h.getLogUICli()}
 }
 
+func (h *BaseHandler) GetLogUI(sessionID int) libkb.LogUI {
+	return h.getLogUI(sessionID)
+}
+
 func (h *BaseHandler) getProvisionUI(sessionID int) libkb.ProvisionUI {
 	return NewRemoteProvisionUI(sessionID, h.rpcClient())
 }
