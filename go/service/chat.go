@@ -166,6 +166,10 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 		return keybase1.Message{}, errors.New("nil ServerHeader in MessageBoxed")
 	}
 
+	if err := b.verifyMessageBoxed(msg); err != nil {
+		return keybase1.Message{}, err
+	}
+
 	unboxed := keybase1.Message{
 		ServerHeader: *msg.ServerHeader,
 	}
@@ -243,13 +247,13 @@ func (b *chatBoxer) boxMessageWithKey(msg keybase1.MessagePlaintext, key *keybas
 // signMessageBoxed signs the header and encrypted body of a chat1.MessageBoxed
 // with the NaclSigningKeyPair.
 func (h *chatLocalHandler) signMessageBoxed(msg *chat1.MessageBoxed, kp libkb.NaclSigningKeyPair) error {
-	header, err := h.sign(msg.ClientHeader, kp)
+	header, err := h.signJSON(msg.ClientHeader, kp)
 	if err != nil {
 		return err
 	}
 	msg.HeaderSignature = header
 
-	body, err := h.sign(msg.BodyCiphertext, kp)
+	body, err := h.sign(msg.BodyCiphertext.E, kp)
 	if err != nil {
 		return err
 	}
@@ -258,14 +262,20 @@ func (h *chatLocalHandler) signMessageBoxed(msg *chat1.MessageBoxed, kp libkb.Na
 	return nil
 }
 
-// sign signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
-func (h *chatLocalHandler) sign(data interface{}, kp libkb.NaclSigningKeyPair) (chat1.SignatureInfo, error) {
+// signData signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
+// It encodes data to JSON before signing.
+func (h *chatLocalHandler) signJSON(data interface{}, kp libkb.NaclSigningKeyPair) (chat1.SignatureInfo, error) {
 	encoded, err := json.Marshal(data)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
 	}
 
-	sig := *kp.Private.Sign(encoded)
+	return h.sign(encoded, kp)
+}
+
+// sign signs msg with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
+func (h *chatLocalHandler) sign(msg []byte, kp libkb.NaclSigningKeyPair) (chat1.SignatureInfo, error) {
+	sig := *kp.Private.Sign(msg)
 
 	info := chat1.SignatureInfo{
 		V: 1,
@@ -274,6 +284,32 @@ func (h *chatLocalHandler) sign(data interface{}, kp libkb.NaclSigningKeyPair) (
 	}
 
 	return info, nil
+}
+
+func (b *chatBoxer) verifyMessageBoxed(msg chat1.MessageBoxed) error {
+	header, err := json.Marshal(msg.ClientHeader)
+	if err != nil {
+		return err
+	}
+	if !b.verify(header, msg.HeaderSignature) {
+		return libkb.BadSigError{E: "header signature invalid"}
+	}
+
+	if !b.verify(msg.BodyCiphertext.E, msg.BodySignature) {
+		return libkb.BadSigError{E: "body signature invalid"}
+	}
+
+	return nil
+}
+
+func (b *chatBoxer) verify(data []byte, si chat1.SignatureInfo) bool {
+	var pub libkb.NaclSigningKeyPublic
+	copy(pub[:], si.K)
+
+	var sig libkb.NaclSignature
+	copy(sig[:], si.S)
+
+	return pub.Verify(data, &sig)
 }
 
 // keyFinder remembers results from previous calls to CryptKeys().
