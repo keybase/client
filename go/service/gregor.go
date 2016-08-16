@@ -17,6 +17,7 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	jsonw "github.com/keybase/go-jsonw"
 	"github.com/keybase/gregor"
+	"github.com/keybase/gregor/protocol/chat1"
 	"github.com/keybase/gregor/protocol/gregor1"
 	grclient "github.com/keybase/gregor/rpc/client"
 	grstorage "github.com/keybase/gregor/storage"
@@ -838,20 +839,40 @@ func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.U
 
 func (g *gregorHandler) newChatActivity(ctx context.Context, m gregor.OutOfBandMessage) error {
 	if m.Body() == nil {
-		return errors.New("gregor handler for kbfs.favorites: nil message body")
+		return errors.New("gregor handler for chat.activity: nil message body")
 	}
 	body, err := jsonw.Unmarshal(m.Body().Bytes())
 	if err != nil {
 		return err
 	}
 
+	action, err := body.AtPath("action").GetString()
+	if err != nil {
+		return err
+	}
+
 	var activity keybase1.ChatActivity
 
-	// TODO: fill into activity struct and decrypt message if necessary
-	_ = body
+	switch action {
+	case "newMessage":
+		var boxed chat1.MessageBoxed
+		if err = body.AtPath("payload").UnmarshalAgain(&boxed); err != nil {
+			return err
+		}
+
+		boxer := chatBoxer{tlf: newTlfHandler(nil, g.G())}
+		msg, err := boxer.unboxMessage(ctx, newKeyFinder(), boxed)
+		if err != nil {
+			return err
+		}
+		activity.IncomingMessage = &msg
+		activity.ActivityType = keybase1.ChatActivityType_INCOMING_MESSAGE
+
+	default:
+		return fmt.Errorf("unhandled chat.activity action %q", action)
+	}
 
 	return g.notifyNewChatActivity(ctx, m.UID(), &activity)
-
 }
 
 func (g *gregorHandler) notifyNewChatActivity(ctx context.Context, uid gregor.UID, activity *keybase1.ChatActivity) error {
