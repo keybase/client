@@ -829,7 +829,8 @@ export function NotifyFSFSEditListResponseRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyFS.FSEditListResponse'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'NotifyFS.FSEditListResponse'})
 }
 export type NotifyFSRequestFSEditListRequestRpcParam = $Exact<{
   req: FSEditListRequest
@@ -840,7 +841,8 @@ export function NotifyFSRequestFSEditListRequestRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyFSRequest.FSEditListRequest'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'NotifyFSRequest.FSEditListRequest'})
 }
 export type NotifyFavoritesFavoritesChangedRpcParam = $Exact<{
   uid: UID
@@ -1833,7 +1835,8 @@ export function chatLocalGetInboxLocalRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: chatLocalGetInboxLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.getInboxLocal'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'chatLocal.getInboxLocal'})
 }
 export type chatLocalGetThreadLocalRpcParam = $Exact<{
   conversationID: chat1.ConversationID,
@@ -1847,7 +1850,8 @@ export function chatLocalGetThreadLocalRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: chatLocalGetThreadLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.getThreadLocal'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'chatLocal.getThreadLocal'})
 }
 export type chatLocalNewConversationLocalRpcParam = $Exact<{
   conversationTriple: chat1.ConversationIDTriple
@@ -1858,7 +1862,8 @@ export function chatLocalNewConversationLocalRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.newConversationLocal'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'chatLocal.newConversationLocal'})
 }
 export type chatLocalPostLocalRpcParam = $Exact<{
   conversationID: chat1.ConversationID,
@@ -1870,7 +1875,8 @@ export function chatLocalPostLocalRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.postLocal'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'chatLocal.postLocal'})
 }
 export type configClearValueRpcParam = $Exact<{
   path: string
@@ -2433,7 +2439,8 @@ export function kbfsFSEditListRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'kbfs.FSEditList'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'kbfs.FSEditList'})
 }
 export type kbfsFSEventRpcParam = $Exact<{
   event: FSNotification
@@ -3378,7 +3385,8 @@ export function rekeyRekeySyncRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'rekey.rekeySync'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'rekey.rekeySync'})
 }
 export type rekeyUIRefreshRpcParam = $Exact<{
   problemSetDevices: ProblemSetDevices
@@ -3401,7 +3409,8 @@ export function rekeyUIRekeySendEventRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'rekeyUI.rekeySendEvent'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'rekeyUI.rekeySendEvent'})
 }
 export type revokeRevokeDeviceRpcParam = $Exact<{
   deviceID: DeviceID,
@@ -4199,7 +4208,8 @@ export function userLoadMyPublicKeysRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadMyPublicKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadMyPublicKeys'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'user.loadMyPublicKeys'})
 }
 export type rpc =
     BTCRegisterBTCRpc

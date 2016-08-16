@@ -123,7 +123,8 @@ export function remoteGetInboxRemoteRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: remoteGetInboxRemoteResult) => void)}>) {
-  engine.rpc({...request, method: 'remote.getInboxRemote'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'remote.getInboxRemote'})
 }
 export type remoteGetThreadRemoteRpcParam = $Exact<{
   conversationID: ConversationID,
@@ -137,7 +138,8 @@ export function remoteGetThreadRemoteRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: remoteGetThreadRemoteResult) => void)}>) {
-  engine.rpc({...request, method: 'remote.getThreadRemote'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'remote.getThreadRemote'})
 }
 export type remoteNewConversationRemoteRpcParam = $Exact<{
   conversationMetadata: ConversationMetadata
@@ -148,7 +150,8 @@ export function remoteNewConversationRemoteRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'remote.newConversationRemote'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'remote.newConversationRemote'})
 }
 export type remotePostRemoteRpcParam = $Exact<{
   conversationID: ConversationID,
@@ -160,7 +163,8 @@ export function remotePostRemoteRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'remote.postRemote'})
+  // $FlowIssue : We're calling a protected member in engine. As designed!
+  engine._rpcOutgoing({...request, method: 'remote.postRemote'})
 }
 export type rpc =
     remoteGetInboxRemoteRpc
