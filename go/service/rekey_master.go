@@ -32,6 +32,11 @@ type rekeyMaster struct {
 	plannedWakeup time.Time
 	uiNeeded      bool
 	uiVisible     bool
+
+	// We need to be able to access the gregor full state to see if there are any
+	// TLF rekey events. We should only be running if there are (since we want to respect
+	// the 3-minute delay on rekey harassment after a new key is added).
+	gregor *gregorHandler
 }
 
 type RekeyInterrupt int
@@ -101,10 +106,6 @@ func (r *rekeyMaster) handleGregorCreation() error {
 func (r *rekeyMaster) handleGregorDismissal() error {
 	r.interruptCh <- interruptArg{rekeyInterrupt: RekeyInterruptDismissal}
 	return nil
-}
-
-func (r *rekeyMaster) gregorHandler() *rekeyMaster {
-	return r
 }
 
 func (r *rekeyMaster) Logout() {
@@ -227,7 +228,10 @@ func (r *rekeyMaster) runOnce(ri RekeyInterrupt) (ret time.Duration, err error) 
 		return ret, err
 	}
 
+	// sendRekeyEvent sends a debug message to the UI (useful only in testing)
 	event.InterruptType = int(ri)
+	r.sendRekeyEvent(event)
+
 	err = r.actOnProblems(problemsAndDevices, event)
 	return ret, err
 }
@@ -316,9 +320,6 @@ func (r *rekeyMaster) sendRekeyEvent(e keybase1.RekeyEvent) (err error) {
 func (r *rekeyMaster) actOnProblems(problemsAndDevices *keybase1.ProblemSetDevices, event keybase1.RekeyEvent) (err error) {
 	defer r.G().Trace(fmt.Sprintf("rekeyMaster#actOnProblems(%v)", problemsAndDevices != nil), func() error { return err })()
 
-	// Ignore any errors
-	r.sendRekeyEvent(event)
-
 	if problemsAndDevices == nil {
 		err = r.clearUI()
 		return err
@@ -328,6 +329,23 @@ func (r *rekeyMaster) actOnProblems(problemsAndDevices *keybase1.ProblemSetDevic
 	return err
 }
 
+func (r *rekeyMaster) hasGregorTLFRekeyMessages() (ret bool, err error) {
+	defer r.G().Trace("hasGregorTLFRekeyMessages", func() error { return err })()
+
+	var state gregor1.State
+	state, err = r.gregor.getState()
+	if err != nil {
+		return false, err
+	}
+
+	for _, item := range state.Items_ {
+		if item.Item_ != nil && string(item.Item_.Category_) == TLFRekeyGregorCategory {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevices *keybase1.ProblemSetDevices, event keybase1.RekeyEvent, err error) {
 	defer r.G().Trace("rekeyMaster#computeProblems", func() error { return err })()
 
@@ -335,6 +353,19 @@ func (r *rekeyMaster) computeProblems() (nextWait time.Duration, problemsAndDevi
 		r.G().Log.Debug("| not logged in")
 		nextWait = rekeyTimeoutBackground
 		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_NOT_LOGGED_IN}, err
+	}
+
+	hasGregor, err := r.hasGregorTLFRekeyMessages()
+	if err != nil {
+		nextWait = rekeyTimeoutAPIError
+		r.G().Log.Debug("| snoozing rekeyMaster for %ds on gregor error", nextWait)
+		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_API_ERROR}, err
+	}
+
+	if !hasGregor {
+		r.G().Log.Debug("| has gregor TLF rekey messages")
+		nextWait = rekeyTimeoutBackground
+		return nextWait, nil, keybase1.RekeyEvent{EventType: keybase1.RekeyEventType_NO_GREGOR_MESSAGES}, err
 	}
 
 	var problems keybase1.ProblemSet

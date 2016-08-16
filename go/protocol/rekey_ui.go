@@ -19,6 +19,7 @@ const (
 	RekeyEventType_CURRENT_DEVICE_CAN_REKEY RekeyEventType = 5
 	RekeyEventType_DEVICE_LOAD_ERROR        RekeyEventType = 6
 	RekeyEventType_HARASS                   RekeyEventType = 7
+	RekeyEventType_NO_GREGOR_MESSAGES       RekeyEventType = 8
 )
 
 type RekeyEvent struct {

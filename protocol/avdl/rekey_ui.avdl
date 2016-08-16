@@ -18,7 +18,8 @@ protocol rekeyUI {
     LOAD_ME_ERROR_4,
     CURRENT_DEVICE_CAN_REKEY_5,
     DEVICE_LOAD_ERROR_6,
-    HARASS_7
+    HARASS_7,
+    NO_GREGOR_MESSAGES_8
   }
 
   record RekeyEvent {

@@ -1126,6 +1126,7 @@ export type RekeyEventType =
   | 5 // CURRENT_DEVICE_CAN_REKEY_5
   | 6 // DEVICE_LOAD_ERROR_6
   | 7 // HARASS_7
+  | 8 // NO_GREGOR_MESSAGES_8
 
 export type RemoteProof = {
   proofType: ProofType,

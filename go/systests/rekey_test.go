@@ -335,6 +335,9 @@ func (rkt *rekeyTester) changeKeysOnHomeTLF(kids []keybase1.KID) {
 
 func (rkt *rekeyTester) bumpTLF(kid keybase1.KID) {
 
+	rkt.log.Debug("+ bumpTLF(%s)", kid)
+	defer rkt.log.Debug("- bumpTLF")
+
 	// Use the global context from the service for making API calls
 	// to the API server.
 	g := rkt.primaryContext()
@@ -592,13 +595,26 @@ func (rkt *rekeyTester) generateNewBackupKey(dw *deviceWrapper) {
 }
 
 func (rkt *rekeyTester) expectAlreadyKeyedNoop(dw *deviceWrapper) {
-	select {
-	case ev := <-dw.rekeyUI.events:
-		if ev.EventType != keybase1.RekeyEventType_CURRENT_DEVICE_CAN_REKEY {
-			rkt.t.Fatalf("Got wrong event type: %+v", ev)
+
+	rkt.log.Debug("+ ----------- expectAlreadyKeyedNoop ------------")
+	defer rkt.log.Debug("- ----------- expectAlreadyKeyedNoop ------------")
+
+	var done bool
+	for !done {
+		select {
+		case ev := <-dw.rekeyUI.events:
+			switch ev.EventType {
+			case keybase1.RekeyEventType_CURRENT_DEVICE_CAN_REKEY:
+				done = true
+			case keybase1.RekeyEventType_NO_GREGOR_MESSAGES, keybase1.RekeyEventType_NO_PROBLEMS:
+				rkt.log.Debug("| In waiting for 'CURRENT_DEVICE_CAN_REKEY': %+v", ev)
+			default:
+				rkt.t.Fatalf("Got wrong event type: %+v", ev)
+				done = true
+			}
+		case <-time.After(10 * time.Second):
+			rkt.t.Fatal("Didn't get an event before 10s timeout")
 		}
-	case <-time.After(10 * time.Second):
-		rkt.t.Fatal("Didn't get an event before 10s timeout")
 	}
 	rkt.confirmNoRekeyUIActivity(dw, 28, false)
 }
@@ -657,6 +673,9 @@ func (r *rekeyProvisionUI) GetPassphrase(context.Context, keybase1.GetPassphrase
 }
 
 func (rkt *rekeyTester) provisionNewDevice() *deviceWrapper {
+	rkt.log.Debug("+ ---------- provisionNewDevice ----------")
+	defer rkt.log.Debug("- ---------- provisionNewDevice ----------")
+
 	dev2 := rkt.setupDevice("rkd2")
 	dev2.start(1)
 	tctx := dev2.popClone()
@@ -722,7 +741,19 @@ func (rkt *rekeyTester) provisionNewDevice() *deviceWrapper {
 }
 
 func (rkt *rekeyTester) bumpTLFAndAssertRekeyWindowPushed(dw *deviceWrapper) {
+
+	rkt.log.Debug("+ -------- bumpTLFAndAssertRekeyWindowPushed ------------")
+	defer rkt.log.Debug("- -------- bumpTLFAndAssertRekeyWindowPushed ------------")
+
+	// We shouldn't get a rekey UI until we bump the TLF forward (and therefore get a gregor
+	// message). We're cheating here and mixing fast-forwardable time (via fake clock),
+	// and real time (on the API server).
+	rkt.confirmNoRekeyUIActivity(dw, 3, false)
+
+	// But now we're bumping this device forward in the queue. This should trigger the gregor
+	// notification and also the push of the real rekey window.
 	rkt.bumpTLF(dw.deviceKey.KID)
+
 	rkt.kickRekeyd()
 	rkt.assertRekeyWindowPushed(dw)
 }
@@ -782,6 +813,17 @@ func (rkt *rekeyTester) confirmGregorStateIsClean() {
 		rkt.log.Debug("came back dirty; trying again in %s (attempt %d)", delay, i)
 		time.Sleep(delay)
 	}
+	rkt.t.Fatal("Failed to find a clean gregor state")
+}
+
+func (rkt *rekeyTester) fullyRekeyAndAssertCleared(dw *deviceWrapper) {
+	rkt.log.Debug("+ fullyRekeyAndAssertCleared")
+	defer rkt.log.Debug("- fullyRekeyAndAssertCleared")
+
+	rkt.makeFullyKeyedHomeTLF()
+	rkt.confirmNoRekeyUIActivity(dw, 14, false)
+	rkt.confirmGregorStateIsClean()
+	rkt.confirmNoRekeyUIActivity(dw, 14, false)
 }
 
 func TestRekey(t *testing.T) {
@@ -806,10 +848,13 @@ func TestRekey(t *testing.T) {
 	// 4. Now delegate to a new paper key
 	rkt.generateNewBackupKey(primaryDevice)
 
-	// 5. Now assert that we weren't notified or something being up
+	// 5. Now assert that we weren't notified of something being up
 	// because our device is already properly keyed. And then expect
 	// no rekey activity thereafter
 	rkt.expectAlreadyKeyedNoop(primaryDevice)
+
+	// 5.5 Now rekey fully and make sure that the gregor state is clean.
+	rkt.fullyRekeyAndAssertCleared(primaryDevice)
 
 	// 6. Provision a new device.
 	secondaryDevice := rkt.provisionNewDevice()

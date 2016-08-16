@@ -434,6 +434,7 @@ export const rekeyUI = {
     'currentDeviceCanRekey': 5,
     'deviceLoadError': 6,
     'harass': 7,
+    'noGregorMessages': 8,
   },
 }
 

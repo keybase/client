@@ -214,6 +214,9 @@ func (d *Service) configureRekey(uir *UIRouter) {
 	rkm := d.rekeyMaster
 	rkm.uiRouter = uir
 	d.gregor.PushHandler(rkm)
+	// the rekey master needs to query gregor state, so we have
+	// this unfortunate dependency injection
+	rkm.gregor = d.gregor
 	rkm.Start()
 }
 
