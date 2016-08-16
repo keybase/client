@@ -11,12 +11,14 @@ const StandardScreen = (props: Props) => {
       <Box style={styleCloseContainer}>
         {!!props.onClose && <Text type='BodyPrimaryLink' style={{...styleClose, ...props.styleClose}} onClick={props.onClose}>{props.onCloseText || 'Cancel'}</Text>}
       </Box>
-      {!!props.notification &&
-        <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
-          {typeof props.notification.message === 'string' ? <Text style={styleBannerText} type='BodySmallSemibold'>{props.notification.message}</Text> : props.notification.message}
-        </Box>}
-      <ScrollView style={styleScrollContainer(!!props.notification)} contentContainerStyle={{...styleContentContainer, ...props.style}}>
-        {props.children}
+      <ScrollView style={styleScrollContainer} contentContainerStyle={styleScrollContainer}>
+        {!!props.notification &&
+          <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
+            {typeof props.notification.message === 'string' ? <Text style={styleBannerText} type='BodySmallSemibold'>{props.notification.message}</Text> : props.notification.message}
+          </Box>}
+        <Box style={{...styleContentContainer(!!props.notification), ...props.style}}>
+          {props.children}
+        </Box>
       </ScrollView>
     </Box>
   )
@@ -54,16 +56,18 @@ const styleBannerText = {
   textAlign: 'center',
 }
 
-const styleScrollContainer = (isBannerShowing: boolean) => ({
-  ...(isBannerShowing ? {marginTop: -MIN_BANNER_HEIGHT} : {}),
-})
+const styleScrollContainer = {
+  flex: 1,
+}
 
-const styleContentContainer = {
+const styleContentContainer = (isBannerShowing: boolean) => ({
   ...globalStyles.flexBoxColumn,
   alignItems: 'stretch',
   flex: 1,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
-}
+  paddingBottom: globalMargins.small,
+  ...(isBannerShowing ? {} : {marginTop: MIN_BANNER_HEIGHT}),
+})
 
 export default StandardScreen
