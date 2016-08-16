@@ -787,6 +787,7 @@ export type NotificationChannels = {
   keyfamily: boolean,
   service: boolean,
   app: boolean,
+  chat: boolean,
 }
 
 export type NotifyChatNewChatActivityRpcParam = $Exact<{

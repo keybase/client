@@ -318,11 +318,11 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 	n.G().Log.Debug("+ Sending NewChatActivity notfication")
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
-		// If the connection wants the `Favorites` notification type
-		if n.getNotificationChannels(id).Favorites {
+		// If the connection wants the `Chat` notification type
+		if n.getNotificationChannels(id).Chat {
 			// In the background do...
 			go func() {
-				// A send of a `FavoritesChanged` RPC with the user's UID
+				// A send of a `NewChatActivity` RPC with the user's UID
 				(keybase1.NotifyChatClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
 				}).NewChatActivity(ctx, keybase1.NewChatActivityArg{
