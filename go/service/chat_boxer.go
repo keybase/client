@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 
 	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
@@ -73,6 +74,10 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 
 	if err := json.Unmarshal(plaintext, &unboxed.MessagePlaintext); err != nil {
 		return keybase1.Message{}, err
+	}
+
+	if !reflect.DeepEqual(unboxed.MessagePlaintext.ClientHeader, msg.ClientHeader) {
+		return keybase1.Message{}, errors.New("unboxed ClientHeader does not match ClientHeader in MessageBoxed")
 	}
 
 	return unboxed, nil
