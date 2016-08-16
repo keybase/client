@@ -31,6 +31,7 @@ type Cryptocurrency struct {
 	RowId   int    `codec:"rowId" json:"rowId"`
 	Pkhash  []byte `codec:"pkhash" json:"pkhash"`
 	Address string `codec:"address" json:"address"`
+	SigID   SigID  `codec:"sigID" json:"sigID"`
 }
 
 type RevokedProof struct {

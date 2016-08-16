@@ -297,6 +297,7 @@ export type Cryptocurrency = {
   rowId: int,
   pkhash: bytes,
   address: string,
+  sigID: SigID,
 }
 
 export type CsrfToken = string
