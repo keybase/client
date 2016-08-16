@@ -805,13 +805,21 @@ func (rkt *rekeyTester) confirmGregorStateIsClean() {
 	rkt.log.Debug("+ confirmGregorStateIsClean")
 	defer rkt.log.Debug("- confirmGregorStateIsClean")
 
-	for i := 0; i < 20; i++ {
+	start := time.Now()
+	last := start.Add(10 * time.Second)
+	i := 0
+	var delay time.Duration
+
+	for time.Now().Before(last) {
 		if rkt.isGregorStateEmpty() {
 			return
 		}
-		delay := 50 * time.Millisecond
+		if delay < time.Second {
+			delay += 10 * time.Millisecond
+		}
 		rkt.log.Debug("came back dirty; trying again in %s (attempt %d)", delay, i)
 		time.Sleep(delay)
+		i++
 	}
 	rkt.t.Fatal("Failed to find a clean gregor state")
 }
