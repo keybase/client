@@ -1,8 +1,4 @@
-# goquery - a little like that j-thing, only in Go
-
-[![build status](https://secure.travis-ci.org/PuerkitoBio/goquery.png)](http://travis-ci.org/PuerkitoBio/goquery)
-
-[![GoDoc](https://godoc.org/github.com/PuerkitoBio/goquery?status.png)](http://godoc.org/github.com/PuerkitoBio/goquery)
+# goquery - a little like that j-thing, only in Go [![build status](https://secure.travis-ci.org/PuerkitoBio/goquery.png)](http://travis-ci.org/PuerkitoBio/goquery) [![GoDoc](https://godoc.org/github.com/PuerkitoBio/goquery?status.png)](http://godoc.org/github.com/PuerkitoBio/goquery)
 
 goquery brings a syntax and a set of features similar to [jQuery][] to the [Go language][go]. It is based on Go's [net/html package][html] and the CSS Selector library [cascadia][]. Since the net/html parser returns nodes, and not a full-featured DOM tree, jQuery's stateful manipulation functions (like height(), css(), detach()) have been left off.
 
@@ -30,6 +26,9 @@ Please note that because of the net/html dependency, goquery requires Go1.1+.
 
 **Note that goquery's API is now stable, and will not break.**
 
+*    **2016-07-27 (v1.0.0)** : Tag version 1.0.0.
+*    **2016-06-15** : Invalid selector strings internally compile to a `Matcher` implementation that never matches any node (instead of a panic). So for example, `doc.Find("~")` returns an empty `*Selection` object.
+*    **2016-02-02** : Add `NodeName` utility function similar to the DOM's `nodeName` property. It returns the tag name of the first element in a selection, and other relevant values of non-element nodes (see godoc for details). Add `OuterHtml` utility function similar to the DOM's `outerHTML` property (named `OuterHtml` in small caps for consistency with the existing `Html` method on the `Selection`).
 *    **2015-04-20** : Add `AttrOr` helper method to return the attribute's value or a default value if absent. Thanks to [piotrkowalczuk][piotr].
 *    **2015-02-04** : Add more manipulation functions - Prepend* - thanks again to [Andrew Stone][thatguystone].
 *    **2014-11-28** : Add more manipulation functions - ReplaceWith*, Wrap* and Unwrap - thanks again to [Andrew Stone][thatguystone].
@@ -56,15 +55,22 @@ jQuery often has many variants for the same function (no argument, a selector st
 *    The signatures accepting a function as argument in jQuery are defined in goquery as `XxxFunction()` and take a function as argument (e.g.: `FilterFunction()`)
 *    The goquery methods that can be called with a selector string have a corresponding version that take a `Matcher` interface and are defined as `XxxMatcher()` (e.g.: `IsMatcher()`)
 
+Utility functions that are not in jQuery but are useful in Go are implemented as functions (that take a `*Selection` as parameter), to avoid a potential naming clash on the `*Selection`'s methods (reserved for jQuery-equivalent behaviour).
+
 The complete [godoc reference documentation can be found here][doc].
 
-Please note that Cascadia's selectors do not necessarily match all supported selectors of jQuery (Sizzle). See the [cascadia project][cascadia] for details.
+Please note that Cascadia's selectors do not necessarily match all supported selectors of jQuery (Sizzle). See the [cascadia project][cascadia] for details. Invalid selector strings compile to a `Matcher` that fails to match any node. Behaviour of the various functions that take a selector string as argument follows from that fact, e.g. (where `~` is an invalid selector string):
+
+* `Find("~")` returns an empty selection because the selector string doesn't match anything.
+* `Add("~")` returns a new selection that holds the same nodes as the original selection, because it didn't add any node (selector string didn't match anything).
+* `ParentsFiltered("~")` returns an empty selection because the selector string doesn't match anything.
+* `ParentsUntil("~")` returns all parents of the selection because the selector string didn't match any element to stop before the top element.
 
 ## Examples
 
 See some tips and tricks in the [wiki][].
 
-Taken (and adapted as if executed from outside the goquery package) from example_test.go:
+Adapted from example_test.go:
 
 ```Go
 package main
@@ -82,8 +88,10 @@ func ExampleScrape() {
     log.Fatal(err)
   }
 
-  doc.Find(".reviews-wrap article .review-rhs").Each(func(i int, s *goquery.Selection) {
-    band := s.Find("h3").Text()
+  // Find the review items
+  doc.Find(".sidebar-reviews article .content-block").Each(func(i int, s *goquery.Selection) {
+    // For each item found, get the band and title
+    band := s.Find("a").Text()
     title := s.Find("i").Text()
     fmt.Printf("Review %d: %s - %s\n", i, band, title)
   })

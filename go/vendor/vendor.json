@@ -24,9 +24,10 @@
 			"revisionTime": "2014-11-30T16:07:12-05:00"
 		},
 		{
+			"checksumSHA1": "b2fhCQnbJ+xgt/4eSjmTKcMjGrM=",
 			"path": "github.com/PuerkitoBio/goquery",
-			"revision": "b4440419d81240f8451a505b2f806c853bc2befc",
-			"revisionTime": "2015-06-05T22:16:32-04:00"
+			"revision": "7f4291566cf7cac3be222a933e01a2bed97532b1",
+			"revisionTime": "2016-07-28T01:43:13Z"
 		},
 		{
 			"path": "github.com/ThomasRooney/gexpect",
@@ -59,9 +60,10 @@
 			"revisionTime": "2015-07-03T16:15:20+02:00"
 		},
 		{
+			"checksumSHA1": "YKJEHQmesxr6ExwGE4WZrpQsq4s=",
 			"path": "github.com/andybalholm/cascadia",
-			"revision": "6122e68c2642b7b75c538a63b15168c6c80fb757",
-			"revisionTime": "2015-06-01T17:10:55-07:00"
+			"revision": "3ad29d1ad1c4f2023e355603324348cf1f4b2d48",
+			"revisionTime": "2015-07-30T17:44:59Z"
 		},
 		{
 			"path": "github.com/blang/semver",
