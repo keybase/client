@@ -11,15 +11,7 @@ import (
 )
 
 func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID, err error) {
-	var lih libkb.LoggedInHelper
-	if lih = ctx.LoginContext; lih == nil {
-		lih = e.G().LoginState()
-	}
-	ret, err = lih.LoggedInLoad()
-	if ret && err == nil {
-		uid = lih.GetUID()
-	}
-	return ret, uid, err
+	return libkb.IsLoggedIn(e.G(), ctx.LoginContext)
 }
 
 func IsProvisioned(e Engine, ctx *Context) (bool, error) {

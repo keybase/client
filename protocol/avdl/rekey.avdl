@@ -61,8 +61,15 @@ protocol rekey {
   void debugShowRekeyStatus(int sessionID);
 
   /**
-   rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
+   RekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
    can be Fixed or Ignored.
    */
   Outcome rekeyStatusFinish(int sessionID);
+
+  /**
+   RekeySync flushes the current rekey loop and gets to a good stopping point
+   to assert state. Good for race-free testing, not very useful in production.
+   Force overrides a long-snooze.
+   */
+  void rekeySync(int sessionID, boolean force);
 }

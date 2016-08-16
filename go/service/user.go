@@ -134,8 +134,18 @@ func (h *UserHandler) Search(_ context.Context, arg keybase1.SearchArg) (results
 	return
 }
 
-func (h *UserHandler) LoadPublicKeys(_ context.Context, arg keybase1.LoadPublicKeysArg) (keys []keybase1.PublicKey, err error) {
-	u, err := libkb.LoadUser(libkb.LoadUserArg{UID: arg.Uid, Contextified: libkb.NewContextified(h.G())})
+func (h *UserHandler) LoadPublicKeys(ctx context.Context, arg keybase1.LoadPublicKeysArg) (keys []keybase1.PublicKey, err error) {
+	larg := libkb.LoadUserArg{UID: arg.Uid, Contextified: libkb.NewContextified(h.G())}
+	return h.loadPublicKeys(ctx, larg)
+}
+
+func (h *UserHandler) LoadMyPublicKeys(ctx context.Context, sessionID int) (keys []keybase1.PublicKey, err error) {
+	larg := libkb.LoadUserArg{Self: true, Contextified: libkb.NewContextified(h.G())}
+	return h.loadPublicKeys(ctx, larg)
+}
+
+func (h *UserHandler) loadPublicKeys(ctx context.Context, larg libkb.LoadUserArg) (keys []keybase1.PublicKey, err error) {
+	u, err := libkb.LoadUser(larg)
 	if err != nil {
 		return
 	}

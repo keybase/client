@@ -150,9 +150,10 @@ func (u *UpdateUI) UpdateQuit(ctx context.Context, arg keybase1.UpdateQuitArg) (
 }
 
 type RekeyUI struct {
-	sessionID int
-	cli       *keybase1.RekeyUIClient
 	libkb.Contextified
+	sessionID    int
+	cli          *keybase1.RekeyUIClient
+	connectionID libkb.ConnectionID
 }
 
 // DelegateRekeyUI shouldn't be called on this object since it
@@ -165,4 +166,9 @@ func (r *RekeyUI) DelegateRekeyUI(ctx context.Context) (int, error) {
 func (r *RekeyUI) Refresh(ctx context.Context, arg keybase1.RefreshArg) error {
 	arg.SessionID = r.sessionID
 	return r.cli.Refresh(ctx, arg)
+}
+
+func (r *RekeyUI) RekeySendEvent(ctx context.Context, arg keybase1.RekeySendEventArg) error {
+	arg.SessionID = r.sessionID
+	return r.cli.RekeySendEvent(ctx, arg)
 }

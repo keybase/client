@@ -61,6 +61,11 @@ type RekeyStatusFinishArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type RekeySyncArg struct {
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	Force     bool `codec:"force" json:"force"`
+}
+
 type RekeyInterface interface {
 	// ShowPendingRekeyStatus shows either pending gregor-initiated rekey harassments
 	// or nothing if none were pending.
@@ -70,9 +75,13 @@ type RekeyInterface interface {
 	// DebugShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for
 	// the current user.
 	DebugShowRekeyStatus(context.Context, int) error
-	// rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
+	// RekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
 	// can be Fixed or Ignored.
 	RekeyStatusFinish(context.Context, int) (Outcome, error)
+	// RekeySync flushes the current rekey loop and gets to a good stopping point
+	// to assert state. Good for race-free testing, not very useful in production.
+	// Force overrides a long-snooze.
+	RekeySync(context.Context, RekeySyncArg) error
 }
 
 func RekeyProtocol(i RekeyInterface) rpc.Protocol {
@@ -143,6 +152,22 @@ func RekeyProtocol(i RekeyInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"rekeySync": {
+				MakeArg: func() interface{} {
+					ret := make([]RekeySyncArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RekeySyncArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RekeySyncArg)(nil), args)
+						return
+					}
+					err = i.RekeySync(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -174,10 +199,18 @@ func (c RekeyClient) DebugShowRekeyStatus(ctx context.Context, sessionID int) (e
 	return
 }
 
-// rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
+// RekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
 // can be Fixed or Ignored.
 func (c RekeyClient) RekeyStatusFinish(ctx context.Context, sessionID int) (res Outcome, err error) {
 	__arg := RekeyStatusFinishArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.rekey.rekeyStatusFinish", []interface{}{__arg}, &res)
+	return
+}
+
+// RekeySync flushes the current rekey loop and gets to a good stopping point
+// to assert state. Good for race-free testing, not very useful in production.
+// Force overrides a long-snooze.
+func (c RekeyClient) RekeySync(ctx context.Context, __arg RekeySyncArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.rekey.rekeySync", []interface{}{__arg}, nil)
 	return
 }

@@ -30,6 +30,7 @@ type Service struct {
 	stopCh       chan keybase1.ExitCode
 	logForwarder *logFwd
 	gregor       *gregorHandler
+	rekeyMaster  *rekeyMaster
 }
 
 type Shutdowner interface {
@@ -43,6 +44,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		startCh:      make(chan struct{}),
 		stopCh:       make(chan keybase1.ExitCode),
 		logForwarder: newLogFwd(),
+		rekeyMaster:  newRekeyMaster(g),
 	}
 }
 
@@ -51,12 +53,6 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 }
 
 func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister, g *libkb.GlobalContext) (shutdowners []Shutdowner, err error) {
-	rekeyHandler := NewRekeyHandler(xp, g, d.gregor)
-
-	// The rekeyHandler implements Shutdowner interface to stop the timer
-	// properly
-	shutdowners = append(shutdowners, rekeyHandler)
-
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewBTCHandler(xp, g)),
@@ -64,7 +60,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.CryptoProtocol(NewCryptoHandler(g)),
 		keybase1.CtlProtocol(NewCtlHandler(xp, d, g)),
 		keybase1.DebuggingProtocol(NewDebuggingHandler(xp)),
-		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g)),
+		keybase1.DelegateUiCtlProtocol(NewDelegateUICtlHandler(xp, connID, g, d.rekeyMaster)),
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
 		keybase1.FsProtocol(newFSHandler(xp, g)),
@@ -87,7 +83,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.UserProtocol(NewUserHandler(xp, g)),
 		keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g)),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
-		keybase1.RekeyProtocol(rekeyHandler),
+		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
 		keybase1.ChatLocalProtocol(newChatLocalHandler(xp, g)),
 	}
@@ -166,7 +162,8 @@ func (d *Service) Run() (err error) {
 	// Sets this global context to "service" mode which will toggle a flag
 	// and will also set in motion various go-routine based managers
 	d.G().SetService()
-	d.G().SetUIRouter(NewUIRouter(d.G()))
+	uir := NewUIRouter(d.G())
+	d.G().SetUIRouter(uir)
 
 	// register the service's logForwarder as the external handler for the log module:
 	d.G().Log.SetExternalHandler(d.logForwarder)
@@ -204,11 +201,23 @@ func (d *Service) Run() (err error) {
 	d.checkTrackingEveryHour()
 	d.checkRevokedPeriodic()
 	d.startupGregor()
+	d.addGlobalHooks()
 	d.configurePath()
+	d.configureRekey(uir)
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
+}
+
+func (d *Service) configureRekey(uir *UIRouter) {
+	rkm := d.rekeyMaster
+	rkm.uiRouter = uir
+	d.gregor.PushHandler(rkm)
+	// the rekey master needs to query gregor state, so we have
+	// this unfortunate dependency injection
+	rkm.gregor = d.gregor
+	rkm.Start()
 }
 
 func (d *Service) startupGregor() {
@@ -233,15 +242,19 @@ func (d *Service) startupGregor() {
 
 		// Add default handlers
 		d.gregor.PushHandler(newUserHandler(d.G()))
+		// TODO -- get rid of this?
 		d.gregor.PushHandler(newRekeyLogHandler(d.G()))
 
 		// Connect to gregord
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
 			g.Log.Debug("error connecting to gregord: %s", gcErr)
 		}
-		g.AddLoginHook(d)
-		g.AddLogoutHook(d)
 	}
+}
+
+func (d *Service) addGlobalHooks() {
+	d.G().AddLoginHook(d)
+	d.G().AddLogoutHook(d)
 }
 
 func (d *Service) StartLoopbackServer() error {
@@ -328,6 +341,7 @@ func (d *Service) tryGregordConnect() error {
 }
 
 func (d *Service) OnLogin() error {
+	d.rekeyMaster.Login()
 	return d.gregordConnect()
 }
 
@@ -336,6 +350,7 @@ func (d *Service) OnLogout() error {
 		return nil
 	}
 	d.gregor.Shutdown()
+	d.rekeyMaster.Logout()
 	return nil
 }
 

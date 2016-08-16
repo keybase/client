@@ -347,6 +347,19 @@
       },
       "doc": "Load public keys for a user."
     },
+    "loadMyPublicKeys": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PublicKey"
+      },
+      "doc": "Load my public keys (for logged in user)."
+    },
     "listTracking": {
       "request": [
         {

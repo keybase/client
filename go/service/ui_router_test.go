@@ -9,7 +9,6 @@ type fakeUIRouter struct {
 	secretUI    libkb.SecretUI
 	identifyUI  libkb.IdentifyUI
 	secretUIErr error
-	rekeyUI     *fakeRekeyUI
 	gregorUI    keybase1.GregorUIInterface
 }
 
@@ -26,11 +25,11 @@ func (f fakeUIRouter) GetSecretUI(int) (libkb.SecretUI, error) {
 }
 
 func (f fakeUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error) {
-	return f.rekeyUI, f.rekeyUI.sessionID, nil
+	return nil, 0, nil
 }
 
 func (f fakeUIRouter) GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error) {
-	return f.rekeyUI, nil
+	return nil, nil
 }
 
 func (f fakeUIRouter) GetGregorUI() (keybase1.GregorUIInterface, error) {

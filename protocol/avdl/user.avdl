@@ -65,6 +65,11 @@ protocol user {
   array<PublicKey> loadPublicKeys(int sessionID, UID uid);
 
   /**
+    Load my public keys (for logged in user).
+    */
+  array<PublicKey> loadMyPublicKeys(int sessionID);
+
+  /**
     The list-tracking functions get verified data from the tracking statements
     in the user's sigchain.
 

@@ -35,7 +35,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdLog(cl, g),
 		NewCmdLogin(cl, g),
 		NewCmdLogout(cl, g),
-		NewCmdPaperKey(cl),
+		NewCmdPaperKey(cl, g),
 		NewCmdPassphrase(cl, g),
 		NewCmdPGP(cl, g),
 		NewCmdPing(cl, g),
