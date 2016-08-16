@@ -67,6 +67,7 @@ type LoginContext interface {
 
 	CachedSecretKey(ska SecretKeyArg) (GenericKey, error)
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error
+	SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error
 
 	SetLKSec(lksec *LKSec)
 }
