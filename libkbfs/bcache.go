@@ -160,7 +160,11 @@ func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
 	for b.cleanTotalBytes+size > b.cleanBytesCapacity {
 		// Unlock while removing, since onEvict needs the lock and
 		// cleanTransient.Len() takes the LRU mutex (which could lead
-		// to a deadlock with onEvict).
+		// to a deadlock with onEvict).  TODO: either change
+		// `cleanTransient` into an `lru.SimpleLRU` and protect it
+		// with our own lock, or build our own LRU that can evict
+		// based on total bytes.  See #250 and KBFS-1404 for a longer
+		// discussion.
 		b.bytesLock.Unlock()
 		doUnlock = false
 		if oldLen == b.cleanTransient.Len() {
