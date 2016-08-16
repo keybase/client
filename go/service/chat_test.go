@@ -35,7 +35,7 @@ func TestChatMessageBox(t *testing.T) {
 	key := cryptKey(t)
 	msg := textMsg("hello")
 	handler := &chatLocalHandler{}
-	boxed, err := handler.boxMessageWithKey(msg, key)
+	boxed, err := handler.boxer.boxMessageWithKey(msg, key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,7 +49,7 @@ func TestChatMessageUnbox(t *testing.T) {
 	text := "hi"
 	msg := textMsg(text)
 	handler := &chatLocalHandler{}
-	boxed, err := handler.boxMessageWithKey(msg, key)
+	boxed, err := handler.boxer.boxMessageWithKey(msg, key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -57,7 +57,7 @@ func TestChatMessageUnbox(t *testing.T) {
 	// need to give it a server header...
 	boxed.ServerHeader = &chat1.MessageServerHeader{}
 
-	unboxed, err := handler.unboxMessageWithKey(boxed, key)
+	unboxed, err := handler.boxer.unboxMessageWithKey(boxed, key)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,7 +80,7 @@ func TestChatMessageSigned(t *testing.T) {
 	key := cryptKey(t)
 	msg := textMsg("sign me")
 	handler := &chatLocalHandler{}
-	boxed, err := handler.boxMessageWithKey(msg, key)
+	boxed, err := handler.boxer.boxMessageWithKey(msg, key)
 	if err != nil {
 		t.Fatal(err)
 	}
