@@ -414,6 +414,7 @@ func (p *parser) parseAttributeSelector() (Selector, error) {
 
 var expectedParenthesis = errors.New("expected '(' but didn't find it")
 var expectedClosingParenthesis = errors.New("expected ')' but didn't find it")
+var unmatchedParenthesis = errors.New("unmatched '('")
 
 // parsePseudoclassSelector parses a pseudoclass selector like :not(p).
 func (p *parser) parsePseudoclassSelector() (Selector, error) {
@@ -456,6 +457,9 @@ func (p *parser) parsePseudoclassSelector() (Selector, error) {
 	case "contains", "containsown":
 		if !p.consumeParenthesis() {
 			return nil, expectedParenthesis
+		}
+		if p.i == len(p.s) {
+			return nil, unmatchedParenthesis
 		}
 		var val string
 		switch p.s[p.i] {
