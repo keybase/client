@@ -1,12 +1,12 @@
 // @flow
 import React from 'react'
-import {Box, Text, Button, Icon, PlatformIcon} from '../common-adapters'
+import {Box, Button, CopyableText, Icon, LinkWithIcon, PlatformIcon, Text} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import * as shared from './post-proof.shared'
 import type {Props} from './post-proof'
 import {clipboard} from 'electron'
 
-const Render = (props: Props) => {
+const PostProof = (props: Props) => {
   const {
     platform, platformUserName, descriptionText, proofAction, onCancel,
     onCancelText, onComplete, isOnCompleteWaiting, errorMessage,
@@ -28,10 +28,9 @@ const Render = (props: Props) => {
         <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
         {platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
         {descriptionView || (descriptionText && <Text type='Body'>{descriptionText}</Text>)}
-        {proofText && <textarea style={styleProofText} readOnly={true} value={proofText} />}
+        {proofText && <CopyableText style={styleProofText} value={proofText} />}
         {noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
-        {proofAction && proofActionText &&
-          <Text style={styleProofAction} type='BodyPrimaryLink' onClick={() => proofAction()}>{proofActionIcon && <Icon style={styleProofActionIcon} type={proofActionIcon} />}{proofActionText}</Text>}
+      {proofAction && proofActionText && proofActionIcon && <LinkWithIcon style={styleProofAction} label={proofActionText} icon={proofActionIcon} color={globalColors.blue} onClick={() => proofAction()} />}
         <Box style={styleButtonsContainer}>
           {onCancelText && <Button type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
           <Button type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
@@ -83,6 +82,7 @@ const styleContentContainer = {
   justifyContent: 'center',
   alignItems: 'center',
   margin: globalMargins.large,
+  width: '100%',
   maxWidth: 512,
   textAlign: 'center',
 }
@@ -97,26 +97,11 @@ const stylePlatformSubtitle = {
 }
 
 const styleProofText = {
-  ...globalStyles.fontTerminal,
-  marginTop: globalMargins.small,
-  padding: 10,
   width: '100%',
   minHeight: 116,
   maxHeight: 116,
-  justifyContent: 'stretch',
-  alignItems: 'flex-start',
-  backgroundColor: globalColors.lightGrey,
-  border: `solid 1px ${globalColors.black_10}`,
-  borderRadius: 3,
-  fontSize: 14,
-  lineHeight: '21px',
-  whiteSpace: 'pre-wrap',
-  wordWrap: 'break-word',
-  overflowY: 'auto',
-  overflowX: 'hidden',
-  textAlign: 'left',
-  resize: 'none',
-  color: globalColors.black_75,
+  flexGrow: 1,
+  marginTop: globalMargins.small,
 }
 
 const styleNoteText = {
@@ -127,14 +112,9 @@ const styleProofAction = {
   marginTop: globalMargins.tiny,
 }
 
-const styleProofActionIcon = {
-  color: globalColors.blue,
-  marginRight: globalMargins.xtiny,
-}
-
 const styleButtonsContainer = {
   ...globalStyles.flexBoxRow,
   marginTop: globalMargins.medium,
 }
 
-export default Render
+export default PostProof

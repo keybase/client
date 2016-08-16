@@ -416,7 +416,7 @@ const postProofBase = {
 const postProofTwitter = {
   ...postProofBase,
   platform: 'twitter',
-  platformUsername: 'alexrwendland',
+  platformUserName: 'alexrwendland',
   proofText: 'Verifying myself: I am awendland on Keybase.io. 3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB / https://keybase.io/awendland/sigs/3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB',
   proofAction: () => console.log('Open twitter to post tweet'),
 }
@@ -460,13 +460,13 @@ const dumbPostProof: DumbComponentMap<PostProof> = {
     'DNS': {
       ...postProofBase,
       platform: 'dns',
-      platformUsername: 'alexwendland.com',
+      platformUserName: 'alexwendland.com',
       proofText: 'keybase-site-verification=EgqpSziQnyApGkOO-Ylm_lJtDIQC7pi9u_xwgYppdTo',
     },
     'HTTP': {
       ...postProofBase,
       platform: 'http',
-      platformUsername: 'alexwendland.com',
+      platformUserName: 'alexwendland.com',
       proofText: '==================================================================\nhttps://keybase.io/awendland\n--------------------------------------------------------------------\n\nI hereby claim:\n\n  * I am an admin of http://www.caleyostrander.com\n  * I am cboss123 (https://keybase.io/cboss123) on keybase.',
       baseUrl: 'http://alexwendland.com',
     },
