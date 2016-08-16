@@ -500,7 +500,8 @@ func ImportWarnings(v []string) Warnings {
 func (c CryptocurrencyChainLink) Export() (ret keybase1.Cryptocurrency) {
 	ret.Pkhash = c.pkhash
 	ret.Address = c.address
-	return
+	ret.SigID = c.GetSigID()
+	return ret
 }
 
 //=============================================================================
