@@ -49,7 +49,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetT
 		return keybase1.ThreadView{}, err
 	}
 
-	return h.unboxThread(ctx, boxed)
+	return h.unboxThread(ctx, boxed, arg.ConversationID)
 }
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
@@ -110,7 +110,7 @@ func (h *chatLocalHandler) remoteClient() *chat1.RemoteClient {
 }
 
 // unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
-func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed) (keybase1.ThreadView, error) {
+func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, convID chat1.ConversationID) (keybase1.ThreadView, error) {
 	thread := keybase1.ThreadView{
 		Pagination: boxed.Pagination,
 	}
@@ -121,6 +121,7 @@ func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadVi
 		if err != nil {
 			return keybase1.ThreadView{}, err
 		}
+
 		thread.Messages = append(thread.Messages, unboxed)
 	}
 
