@@ -13,6 +13,37 @@ protocol fs {
   /**
    List files in a path. Implemented by KBFS service.
    */
-  ListResult List(int sessionID, string path);
+  ListResult list(int sessionID, string path);
+
+
+  enum FileStatus {
+    UNKNOWN_0,
+    NONE_1,
+    UNAVAILABLE_2,
+    PARTIALLY_AVAILABLE_3,
+    AVAILABLE_4,
+  }
+
+  /**
+    Begin observing a directory, receive notifications of
+    any file status changes in that directory (doesn't
+    include subdirectories).
+    */
+  void beginObserving(int sessionID, string path);
+
+  /**
+    Stop observing changes for a directory.
+    */
+  void stopObserving(int sessionID, string path);
+
+  /**
+    Notification that file changed in observed path.
+    */
+  void fileStatusChanged(string path, FileStatus status) oneway;
+
+  /**
+    Allow clients to request file status.
+    */
+  FileStatus getFileStatus(int sessionID, string path);
 
 }
