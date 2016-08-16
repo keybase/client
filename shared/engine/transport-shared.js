@@ -116,7 +116,11 @@ class TransportShared extends RobustTransport {
 
     if (payload && oldResponse) {
       const calls = ['cancel', 'error', 'result']
-      payload.response = {...oldResponse}
+      payload.response = {
+        seqid: oldResponse.seqid,
+        dispatch: oldResponse.dispatch,
+      }
+
       calls.forEach(call => {
         payload.response[call] = _wrap((...args) => {
           oldResponse[call](...args)
