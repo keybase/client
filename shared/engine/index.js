@@ -237,9 +237,7 @@ class FakeEngine {
   listenOnConnect () {}
   setIncomingHandler () {}
   createSession () {
-    return {
-      id: 0,
-    }
+    return new Session(0, {}, null, () => {}, () => {})
   }
 }
 
