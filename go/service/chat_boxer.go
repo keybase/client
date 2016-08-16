@@ -145,6 +145,10 @@ func (b *chatBoxer) verifyMessageBoxed(msg chat1.MessageBoxed) error {
 		return libkb.BadSigError{E: "body signature invalid"}
 	}
 
+	if !libkb.SecureByteArrayEq(msg.HeaderSignature.K, msg.BodySignature.K) {
+		return errors.New("header and body signature keys do not match")
+	}
+
 	return nil
 }
 
