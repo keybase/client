@@ -38,7 +38,7 @@
 
 - (void)install:(KBCompletion)completion {
   NSString *binPath = [self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath];
-  [KBTask executeForJSONWithCommand:binPath args:@[@"-d", @"--log-format=file", @"install", @"--format=json", @"--components=updater"] timeout:5 completion:^(NSError *error, id response) {
+  [KBTask executeForJSONWithCommand:binPath args:@[@"-d", @"--log-format=file", @"install", @"--format=json", @"--components=updater"] timeout:KBDefaultInstallableTimeout completion:^(NSError *error, id response) {
     if (!error) error = [KBInstallable checkForStatusErrorFromResponse:response];
     completion(error);
   }];
@@ -46,7 +46,7 @@
 
 - (void)uninstall:(KBCompletion)completion {
   NSString *binPath = [self.config serviceBinPathWithPathOptions:0 servicePath:_servicePath];
-  [KBTask execute:binPath args:@[@"-d", @"--log-format=file", @"uninstall", @"--components=updater"] timeout:5 completion:^(NSError *error, NSData *outData, NSData *errData) {
+  [KBTask execute:binPath args:@[@"-d", @"--log-format=file", @"uninstall", @"--components=updater"] timeout:KBDefaultInstallableTimeout completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
 }
