@@ -1040,7 +1040,7 @@ func (e ResolutionError) ToStatus() keybase1.Status {
 		Name: "SC_RESOLUTION_FAILED",
 		Desc: e.Msg,
 		Fields: []keybase1.StringKVPair{
-			{"input", e.Input},
+			{Key: "input", Value: e.Input},
 		},
 	}
 }
@@ -1051,7 +1051,7 @@ func (e IdentifyFailedError) ToStatus() keybase1.Status {
 		Name: "SC_IDENTIFY_FAILED",
 		Desc: e.Reason,
 		Fields: []keybase1.StringKVPair{
-			{"assertion", e.Assertion},
+			{Key: "assertion", Value: e.Assertion},
 		},
 	}
 }
@@ -1079,7 +1079,7 @@ func (e NoPGPEncryptionKeyError) ToStatus() keybase1.Status {
 	}
 	if e.HasDeviceKey {
 		ret.Fields = []keybase1.StringKVPair{
-			{"device", "1"},
+			{Key: "device", Value: "1"},
 		}
 	}
 	return ret
@@ -1093,7 +1093,7 @@ func (e NoNaClEncryptionKeyError) ToStatus() keybase1.Status {
 	}
 	if e.HasPGPKey {
 		ret.Fields = []keybase1.StringKVPair{
-			{"pgp", "1"},
+			{Key: "pgp", Value: "1"},
 		}
 	}
 	return ret
@@ -1105,8 +1105,8 @@ func (e WrongCryptoFormatError) ToStatus() keybase1.Status {
 		Name: "SC_WRONG_CRYPTO_FORMAT",
 		Desc: e.Operation,
 		Fields: []keybase1.StringKVPair{
-			{"wanted", string(e.Wanted)},
-			{"received", string(e.Received)},
+			{Key: "wanted", Value: string(e.Wanted)},
+			{Key: "received", Value: string(e.Received)},
 		},
 	}
 	return ret
@@ -1117,7 +1117,7 @@ func (e NoMatchingGPGKeysError) ToStatus() keybase1.Status {
 		Code: SCKeyNoMatchingGPG,
 		Name: "SC_KEY_NO_MATCHING_GPG",
 		Fields: []keybase1.StringKVPair{
-			{"fingerprints", strings.Join(e.Fingerprints, ",")},
+			{Key: "fingerprints", Value: strings.Join(e.Fingerprints, ",")},
 		},
 	}
 	if e.HasActiveDevice {
@@ -1201,7 +1201,7 @@ func (a *APIError) ToStatus() (s keybase1.Status) {
 	s.Name = "GENERIC_API_ERROR"
 	s.Desc = a.Msg
 	s.Fields = []keybase1.StringKVPair{
-		{"code", fmt.Sprintf("%d", a.Code)},
+		{Key: "code", Value: fmt.Sprintf("%d", a.Code)},
 	}
 	return
 }
