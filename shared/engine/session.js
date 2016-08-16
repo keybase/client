@@ -46,7 +46,7 @@ class Session {
   // and do internal bookkeeping if the request is done
   _makeWaitingHandler (isOutgoing: boolean, method: MethodKey, seqid: ?number) {
     return (waiting: boolean) => {
-      rpcLog('engineInternal', 'waiting state change', this.id, method, this, seqid)
+      rpcLog('engineInternal', 'waiting state change', this.id, waiting, method, this, seqid)
       // Call the outer handler with all the params it needs
       this._waitingHandler && this._waitingHandler(waiting, method, this._id)
 
