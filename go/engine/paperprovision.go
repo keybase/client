@@ -117,11 +117,6 @@ func (e *PaperProvisionEngine) Run(ctx *Context) (err error) {
 	if err := tx.Commit(); err != nil {
 		return err
 	}
-	if err := e.G().LoginState().Account(func(a *libkb.Account) {
-		a.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
-	}, "UnlockedPaperKey"); err != nil {
-		return err
-	}
 
 	// Zero out the TX so that we don't abort it in the defer()
 	// exit.
@@ -165,6 +160,11 @@ func (e *PaperProvisionEngine) paper(ctx *Context, kp *keypair) error {
 		}
 
 		if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
+			return err
+		}
+		if err := e.G().LoginState().Account(func(a *libkb.Account) {
+			a.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
+		}, "UnlockedPaperKey"); err != nil {
 			return err
 		}
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
