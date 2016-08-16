@@ -168,7 +168,7 @@ func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [
 
 	if (provisioneeBehavior & BadProvisioneeCancel) != 0 {
 		go func() {
-			time.Sleep(testTimeout / 2)
+			time.Sleep(testTimeout / 4)
 			cancelFn()
 		}()
 	}
