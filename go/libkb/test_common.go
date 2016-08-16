@@ -212,6 +212,8 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 		return
 	}
 
+	g.Log.Debug("SetupTest home directory: %s", tc.Tp.Home)
+
 	// might as well be the same directory...
 	tc.Tp.GPGHome = tc.Tp.Home
 	tc.Tp.GPGOptions = []string{"--homedir=" + tc.Tp.GPGHome}

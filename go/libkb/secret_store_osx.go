@@ -5,8 +5,6 @@
 
 package libkb
 
-import "github.com/keybase/go-keychain"
-
 func (k KeychainSecretStore) synchronizable() keychain.Synchronizable {
 	return keychain.SynchronizableNo
 }
