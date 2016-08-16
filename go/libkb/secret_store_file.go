@@ -37,6 +37,10 @@ func (s *SecretStoreFile) RetrieveSecret(username NormalizedUsername) ([]byte, e
 }
 
 func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret []byte) error {
+	if err := os.MkdirAll(s.dir, 0700); err != nil {
+		return err
+	}
+
 	f, err := ioutil.TempFile(s.dir, username.String())
 	if err != nil {
 		return err
@@ -53,6 +57,7 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret []byte
 	if err := f.Close(); err != nil {
 		return err
 	}
+
 	final := s.userpath(username)
 	if err := os.Rename(f.Name(), final); err != nil {
 		return err
