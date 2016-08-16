@@ -2,8 +2,15 @@
 import React from 'react'
 import type {IconType} from './icon'
 import type {PlatformsExpandedType} from '../constants/types/more'
-import type {Props} from './platform-icon'
 import {Box, Icon} from '../common-adapters'
+
+type Props = {
+  platform: PlatformsExpandedType,
+  size: 48,
+  overlay: IconType,
+  overlayColor: string,
+  style?: Object,
+}
 
 const supportedPlatformsAndSizes: {[key: PlatformsExpandedType]: ?{[key: string]: ?IconType}} = {
   'coinbase': {

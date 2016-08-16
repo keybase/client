@@ -67,7 +67,7 @@ class Render extends Component<void, Props, State> {
         <Box style={styleCancel}>
           <Text type='BodyPrimaryLink' style={{position: 'absolute', top: 0, color: globalColors.blue}} onClick={this.props.onCancel}>Cancel</Text>
         </Box>
-        {this.props.errorText && <Box style={styleErrorBanner}>{customError(this.props.errorText, this.props.errorCode)}</Box>}
+        {!!this.props.errorText && <Box style={styleErrorBanner}>{customError(this.props.errorText, this.props.errorCode)}</Box>}
         <PlatformIcon style={{marginTop: globalMargins.medium}} platform={this.props.platform} overlay={'icon-proof-pending'} overlayColor={globalColors.grey} size={48} />
         <Input
           style={styleInput}
