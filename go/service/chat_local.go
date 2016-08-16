@@ -145,7 +145,7 @@ func (h *chatLocalHandler) signMessageBoxed(msg *chat1.MessageBoxed, kp libkb.Na
 	return nil
 }
 
-// signData signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
+// signJSON signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
 // It encodes data to JSON before signing.
 func (h *chatLocalHandler) signJSON(data interface{}, kp libkb.NaclSigningKeyPair) (chat1.SignatureInfo, error) {
 	encoded, err := json.Marshal(data)
