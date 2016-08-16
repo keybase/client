@@ -139,7 +139,7 @@ function analyzeMessages (json, project) {
     const paramType = p ? `export type ${name}RpcParam = $Exact<{${p}}>` : ''
 
     const rpc = `export function ${name}Rpc (request: $Exact<{${p ? `\n  param: ${name}RpcParam,` : ''}
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any${r}) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -255,6 +255,7 @@ export type RPCError = {
   code: number,
   desc: string
 }
+export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
 `
 
   const incomingMap = `export type incomingCallMapType = $Exact<{\n` +

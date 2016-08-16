@@ -66,15 +66,15 @@ class Session {
     }
   }
 
-  end () {
+  end (): void {
     this._endHandler(this)
   }
 
   // Start the session normally. Tells engine we're done at the end
-  start (method: MethodKey, param: ?Object, callback: () => void) {
+  start (method: MethodKey, param: ?Object, callback: ?() => void) {
     // When this request is done the session is done
     const wrappedCallback = (...args) => {
-      callback(...args)
+      callback && callback(...args)
       this.end()
     }
 

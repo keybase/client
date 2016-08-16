@@ -13,6 +13,7 @@ export type RPCError = {
   code: number,
   desc: string
 }
+export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
 export type AuthResult = {
   uid: UID,
   sid: SessionID,
@@ -133,7 +134,7 @@ type authAuthenticateSessionTokenResult = AuthResult
 
 export function authAuthenticateSessionTokenRpc (request: $Exact<{
   param: authAuthenticateSessionTokenRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: authAuthenticateSessionTokenResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -145,7 +146,7 @@ export type authUpdateRevokeSessionIDsRpcParam = $Exact<{
 
 export function authUpdateRevokeSessionIDsRpc (request: $Exact<{
   param: authUpdateRevokeSessionIDsRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -157,7 +158,7 @@ export type incomingConsumeMessageRpcParam = $Exact<{
 
 export function incomingConsumeMessageRpc (request: $Exact<{
   param: incomingConsumeMessageRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -169,7 +170,7 @@ export type incomingConsumePublishMessageRpcParam = $Exact<{
 
 export function incomingConsumePublishMessageRpc (request: $Exact<{
   param: incomingConsumePublishMessageRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -186,7 +187,7 @@ type incomingStateByCategoryPrefixResult = State
 
 export function incomingStateByCategoryPrefixRpc (request: $Exact<{
   param: incomingStateByCategoryPrefixRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: incomingStateByCategoryPrefixResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -202,7 +203,7 @@ type incomingStateResult = State
 
 export function incomingStateRpc (request: $Exact<{
   param: incomingStateRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: incomingStateResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -218,7 +219,7 @@ type incomingSyncResult = SyncResult
 
 export function incomingSyncRpc (request: $Exact<{
   param: incomingSyncRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: incomingSyncResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -230,7 +231,7 @@ export type outgoingBroadcastMessageRpcParam = $Exact<{
 
 export function outgoingBroadcastMessageRpc (request: $Exact<{
   param: outgoingBroadcastMessageRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -242,7 +243,7 @@ export type remindDeleteRemindersRpcParam = $Exact<{
 
 export function remindDeleteRemindersRpc (request: $Exact<{
   param: remindDeleteRemindersRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -256,7 +257,7 @@ type remindGetRemindersResult = ReminderSet
 
 export function remindGetRemindersRpc (request: $Exact<{
   param: remindGetRemindersRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: remindGetRemindersResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -265,7 +266,7 @@ export function remindGetRemindersRpc (request: $Exact<{
 type authInternalCreateGregorSuperUserSessionTokenResult = SessionToken
 
 export function authInternalCreateGregorSuperUserSessionTokenRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -274,7 +275,7 @@ export function authInternalCreateGregorSuperUserSessionTokenRpc (request: $Exac
 type incomingPingResult = string
 
 export function incomingPingRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: incomingPingResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!

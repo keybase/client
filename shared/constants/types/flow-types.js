@@ -15,169 +15,170 @@ export type RPCError = {
   code: number,
   desc: string
 }
+export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
 export function Kex2ProvisionerKexStartRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'Kex2Provisioner.kexStart'})
 }
 export function NotifyAppExitRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'NotifyApp.exit'})
 }
 export function NotifyServiceShutdownRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'NotifyService.shutdown'})
 }
 export function NotifySessionLoggedOutRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'NotifySession.loggedOut'})
 }
 export function ctlAppExitRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'ctl.appExit'})
 }
 export function ctlDbNukeRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'ctl.dbNuke'})
 }
 export function ctlLogRotateRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'ctl.logRotate'})
 }
 export function ctlReloadRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'ctl.reload'})
 }
 export function delegateUiCtlRegisterGregorFirehoseRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'delegateUiCtl.registerGregorFirehose'})
 }
 export function delegateUiCtlRegisterIdentifyUIRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'delegateUiCtl.registerIdentifyUI'})
 }
 export function delegateUiCtlRegisterRekeyUIRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'delegateUiCtl.registerRekeyUI'})
 }
 export function delegateUiCtlRegisterSecretUIRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'delegateUiCtl.registerSecretUI'})
 }
 export function delegateUiCtlRegisterUpdateUIRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'delegateUiCtl.registerUpdateUI'})
 }
 export function deviceDeviceAddRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'device.deviceAdd'})
 }
 export function identifyUiFinishRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'identifyUi.finish'})
 }
 export function loginLogoutRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'login.logout'})
 }
 export function loginPaperKeyRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'login.paperKey'})
 }
 export function loginUnlockRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'login.unlock'})
 }
 export function metadataPingRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'metadata.ping'})
 }
 export function pgpPgpDeletePrimaryRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'pgp.pgpDeletePrimary'})
 }
 export function provisionUiDisplaySecretExchangedRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'provisionUi.DisplaySecretExchanged'})
 }
 export function rekeyDebugShowRekeyStatusRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'rekey.debugShowRekeyStatus'})
 }
 export function rekeyShowPendingRekeyStatusRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
   engine._rpcOutgoing({...request, method: 'rekey.showPendingRekeyStatus'})
 }
 export function trackCheckTrackingRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -197,7 +198,7 @@ export type BTCRegisterBTCRpcParam = $Exact<{
 
 export function BTCRegisterBTCRpc (request: $Exact<{
   param: BTCRegisterBTCRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -658,7 +659,7 @@ export type Kex2ProvisioneeDidCounterSignRpcParam = $Exact<{
 
 export function Kex2ProvisioneeDidCounterSignRpc (request: $Exact<{
   param: Kex2ProvisioneeDidCounterSignRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -676,7 +677,7 @@ type Kex2ProvisioneeHelloResult = HelloRes
 
 export function Kex2ProvisioneeHelloRpc (request: $Exact<{
   param: Kex2ProvisioneeHelloRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: Kex2ProvisioneeHelloResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -813,7 +814,7 @@ export type NotifyFSFSActivityRpcParam = $Exact<{
 
 export function NotifyFSFSActivityRpc (request: $Exact<{
   param: NotifyFSFSActivityRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -826,7 +827,7 @@ export type NotifyFSFSEditListResponseRpcParam = $Exact<{
 
 export function NotifyFSFSEditListResponseRpc (request: $Exact<{
   param: NotifyFSFSEditListResponseRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -838,7 +839,7 @@ export type NotifyFSRequestFSEditListRequestRpcParam = $Exact<{
 
 export function NotifyFSRequestFSEditListRequestRpc (request: $Exact<{
   param: NotifyFSRequestFSEditListRequestRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -850,7 +851,7 @@ export type NotifyFavoritesFavoritesChangedRpcParam = $Exact<{
 
 export function NotifyFavoritesFavoritesChangedRpc (request: $Exact<{
   param: NotifyFavoritesFavoritesChangedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -862,7 +863,7 @@ export type NotifyKeyfamilyKeyfamilyChangedRpcParam = $Exact<{
 
 export function NotifyKeyfamilyKeyfamilyChangedRpc (request: $Exact<{
   param: NotifyKeyfamilyKeyfamilyChangedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -876,7 +877,7 @@ export type NotifyPaperKeyPaperKeyCachedRpcParam = $Exact<{
 
 export function NotifyPaperKeyPaperKeyCachedRpc (request: $Exact<{
   param: NotifyPaperKeyPaperKeyCachedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -890,7 +891,7 @@ export type NotifySessionClientOutOfDateRpcParam = $Exact<{
 
 export function NotifySessionClientOutOfDateRpc (request: $Exact<{
   param: NotifySessionClientOutOfDateRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -902,7 +903,7 @@ export type NotifySessionLoggedInRpcParam = $Exact<{
 
 export function NotifySessionLoggedInRpc (request: $Exact<{
   param: NotifySessionLoggedInRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -915,7 +916,7 @@ export type NotifyTrackingTrackingChangedRpcParam = $Exact<{
 
 export function NotifyTrackingTrackingChangedRpc (request: $Exact<{
   param: NotifyTrackingTrackingChangedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -927,7 +928,7 @@ export type NotifyUsersUserChangedRpcParam = $Exact<{
 
 export function NotifyUsersUserChangedRpc (request: $Exact<{
   param: NotifyUsersUserChangedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1639,7 +1640,7 @@ export type accountPassphraseChangeRpcParam = $Exact<{
 
 export function accountPassphraseChangeRpc (request: $Exact<{
   param: accountPassphraseChangeRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1653,7 +1654,7 @@ type accountPassphrasePromptResult = GetPassphraseRes
 
 export function accountPassphrasePromptRpc (request: $Exact<{
   param: accountPassphrasePromptRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: accountPassphrasePromptResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1670,7 +1671,7 @@ type apiserverGetResult = APIRes
 
 export function apiserverGetRpc (request: $Exact<{
   param: apiserverGetRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: apiserverGetResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1688,7 +1689,7 @@ type apiserverPostJSONResult = APIRes
 
 export function apiserverPostJSONRpc (request: $Exact<{
   param: apiserverPostJSONRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: apiserverPostJSONResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1705,7 +1706,7 @@ type apiserverPostResult = APIRes
 
 export function apiserverPostRpc (request: $Exact<{
   param: apiserverPostRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: apiserverPostResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1718,7 +1719,7 @@ export type blockAddReferenceRpcParam = $Exact<{
 
 export function blockAddReferenceRpc (request: $Exact<{
   param: blockAddReferenceRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1733,7 +1734,7 @@ type blockArchiveReferenceResult = ?Array<BlockReference>
 
 export function blockArchiveReferenceRpc (request: $Exact<{
   param: blockArchiveReferenceRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: blockArchiveReferenceResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1748,7 +1749,7 @@ type blockArchiveReferenceWithCountResult = DowngradeReferenceRes
 
 export function blockArchiveReferenceWithCountRpc (request: $Exact<{
   param: blockArchiveReferenceWithCountRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: blockArchiveReferenceWithCountResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1760,7 +1761,7 @@ export type blockAuthenticateSessionRpcParam = $Exact<{
 
 export function blockAuthenticateSessionRpc (request: $Exact<{
   param: blockAuthenticateSessionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1773,7 +1774,7 @@ export type blockDelReferenceRpcParam = $Exact<{
 
 export function blockDelReferenceRpc (request: $Exact<{
   param: blockDelReferenceRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1788,7 +1789,7 @@ type blockDelReferenceWithCountResult = DowngradeReferenceRes
 
 export function blockDelReferenceWithCountRpc (request: $Exact<{
   param: blockDelReferenceWithCountRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: blockDelReferenceWithCountResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1803,7 +1804,7 @@ type blockGetBlockResult = GetBlockRes
 
 export function blockGetBlockRpc (request: $Exact<{
   param: blockGetBlockRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: blockGetBlockResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1818,7 +1819,7 @@ export type blockPutBlockRpcParam = $Exact<{
 
 export function blockPutBlockRpc (request: $Exact<{
   param: blockPutBlockRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1832,7 +1833,7 @@ type chatLocalGetInboxLocalResult = chat1.InboxView
 
 export function chatLocalGetInboxLocalRpc (request: $Exact<{
   param: chatLocalGetInboxLocalRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: chatLocalGetInboxLocalResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1847,7 +1848,7 @@ type chatLocalGetThreadLocalResult = ThreadView
 
 export function chatLocalGetThreadLocalRpc (request: $Exact<{
   param: chatLocalGetThreadLocalRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: chatLocalGetThreadLocalResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1859,7 +1860,7 @@ export type chatLocalNewConversationLocalRpcParam = $Exact<{
 
 export function chatLocalNewConversationLocalRpc (request: $Exact<{
   param: chatLocalNewConversationLocalRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1872,7 +1873,7 @@ export type chatLocalPostLocalRpcParam = $Exact<{
 
 export function chatLocalPostLocalRpc (request: $Exact<{
   param: chatLocalPostLocalRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1884,7 +1885,7 @@ export type configClearValueRpcParam = $Exact<{
 
 export function configClearValueRpc (request: $Exact<{
   param: configClearValueRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1898,7 +1899,7 @@ type configGetValueResult = ConfigValue
 
 export function configGetValueRpc (request: $Exact<{
   param: configGetValueRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: configGetValueResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1910,7 +1911,7 @@ export type configHelloIAmRpcParam = $Exact<{
 
 export function configHelloIAmRpc (request: $Exact<{
   param: configHelloIAmRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1922,7 +1923,7 @@ export type configSetPathRpcParam = $Exact<{
 
 export function configSetPathRpc (request: $Exact<{
   param: configSetPathRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1936,7 +1937,7 @@ export type configSetUserConfigRpcParam = $Exact<{
 
 export function configSetUserConfigRpc (request: $Exact<{
   param: configSetUserConfigRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1949,7 +1950,7 @@ export type configSetValueRpcParam = $Exact<{
 
 export function configSetValueRpc (request: $Exact<{
   param: configSetValueRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1964,7 +1965,7 @@ type cryptoSignED25519Result = ED25519SignatureInfo
 
 export function cryptoSignED25519Rpc (request: $Exact<{
   param: cryptoSignED25519RpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: cryptoSignED25519Result) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1979,7 +1980,7 @@ type cryptoSignToStringResult = string
 
 export function cryptoSignToStringRpc (request: $Exact<{
   param: cryptoSignToStringRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: cryptoSignToStringResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -1995,7 +1996,7 @@ type cryptoUnboxBytes32AnyResult = UnboxAnyRes
 
 export function cryptoUnboxBytes32AnyRpc (request: $Exact<{
   param: cryptoUnboxBytes32AnyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: cryptoUnboxBytes32AnyResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2012,7 +2013,7 @@ type cryptoUnboxBytes32Result = Bytes32
 
 export function cryptoUnboxBytes32Rpc (request: $Exact<{
   param: cryptoUnboxBytes32RpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: cryptoUnboxBytes32Result) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2024,7 +2025,7 @@ export type ctlStopRpcParam = $Exact<{
 
 export function ctlStopRpc (request: $Exact<{
   param: ctlStopRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2038,7 +2039,7 @@ type debuggingFirstStepResult = FirstStepResult
 
 export function debuggingFirstStepRpc (request: $Exact<{
   param: debuggingFirstStepRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: debuggingFirstStepResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2052,7 +2053,7 @@ type debuggingIncrementResult = int
 
 export function debuggingIncrementRpc (request: $Exact<{
   param: debuggingIncrementRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: debuggingIncrementResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2066,7 +2067,7 @@ type debuggingSecondStepResult = int
 
 export function debuggingSecondStepRpc (request: $Exact<{
   param: debuggingSecondStepRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: debuggingSecondStepResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2080,7 +2081,7 @@ type deviceCheckDeviceNameFormatResult = boolean
 
 export function deviceCheckDeviceNameFormatRpc (request: $Exact<{
   param: deviceCheckDeviceNameFormatRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: deviceCheckDeviceNameFormatResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2092,7 +2093,7 @@ export type favoriteFavoriteAddRpcParam = $Exact<{
 
 export function favoriteFavoriteAddRpc (request: $Exact<{
   param: favoriteFavoriteAddRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2104,7 +2105,7 @@ export type favoriteFavoriteIgnoreRpcParam = $Exact<{
 
 export function favoriteFavoriteIgnoreRpc (request: $Exact<{
   param: favoriteFavoriteIgnoreRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2118,7 +2119,7 @@ type fsListResult = ListResult
 
 export function fsListRpc (request: $Exact<{
   param: fsListRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: fsListResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2132,7 +2133,7 @@ type gpgUiSelectKeyAndPushOptionResult = SelectKeyRes
 
 export function gpgUiSelectKeyAndPushOptionRpc (request: $Exact<{
   param: gpgUiSelectKeyAndPushOptionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: gpgUiSelectKeyAndPushOptionResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2146,7 +2147,7 @@ type gpgUiSelectKeyResult = string
 
 export function gpgUiSelectKeyRpc (request: $Exact<{
   param: gpgUiSelectKeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: gpgUiSelectKeyResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2161,7 +2162,7 @@ type gpgUiSignResult = string
 
 export function gpgUiSignRpc (request: $Exact<{
   param: gpgUiSignRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: gpgUiSignResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2173,7 +2174,7 @@ export type gregorUIPushOutOfBandMessagesRpcParam = $Exact<{
 
 export function gregorUIPushOutOfBandMessagesRpc (request: $Exact<{
   param: gregorUIPushOutOfBandMessagesRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2186,7 +2187,7 @@ export type gregorUIPushStateRpcParam = $Exact<{
 
 export function gregorUIPushStateRpc (request: $Exact<{
   param: gregorUIPushStateRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2209,7 +2210,7 @@ type identifyIdentify2Result = Identify2Res
 
 export function identifyIdentify2Rpc (request: $Exact<{
   param: identifyIdentify2RpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: identifyIdentify2Result) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2227,7 +2228,7 @@ type identifyIdentifyResult = IdentifyRes
 
 export function identifyIdentifyRpc (request: $Exact<{
   param: identifyIdentifyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: identifyIdentifyResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2241,7 +2242,7 @@ type identifyResolve2Result = User
 
 export function identifyResolve2Rpc (request: $Exact<{
   param: identifyResolve2RpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: identifyResolve2Result) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2255,7 +2256,7 @@ type identifyResolveResult = UID
 
 export function identifyResolveRpc (request: $Exact<{
   param: identifyResolveRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: identifyResolveResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2269,7 +2270,7 @@ type identifyUiConfirmResult = ConfirmResult
 
 export function identifyUiConfirmRpc (request: $Exact<{
   param: identifyUiConfirmRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: identifyUiConfirmResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2282,7 +2283,7 @@ export type identifyUiDismissRpcParam = $Exact<{
 
 export function identifyUiDismissRpc (request: $Exact<{
   param: identifyUiDismissRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2294,7 +2295,7 @@ export type identifyUiDisplayCryptocurrencyRpcParam = $Exact<{
 
 export function identifyUiDisplayCryptocurrencyRpc (request: $Exact<{
   param: identifyUiDisplayCryptocurrencyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2306,7 +2307,7 @@ export type identifyUiDisplayKeyRpcParam = $Exact<{
 
 export function identifyUiDisplayKeyRpc (request: $Exact<{
   param: identifyUiDisplayKeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2323,7 +2324,7 @@ export type identifyUiDisplayTLFCreateWithInviteRpcParam = $Exact<{
 
 export function identifyUiDisplayTLFCreateWithInviteRpc (request: $Exact<{
   param: identifyUiDisplayTLFCreateWithInviteRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2335,7 +2336,7 @@ export type identifyUiDisplayTrackStatementRpcParam = $Exact<{
 
 export function identifyUiDisplayTrackStatementRpc (request: $Exact<{
   param: identifyUiDisplayTrackStatementRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2347,7 +2348,7 @@ export type identifyUiDisplayUserCardRpcParam = $Exact<{
 
 export function identifyUiDisplayUserCardRpc (request: $Exact<{
   param: identifyUiDisplayUserCardRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2360,7 +2361,7 @@ export type identifyUiFinishSocialProofCheckRpcParam = $Exact<{
 
 export function identifyUiFinishSocialProofCheckRpc (request: $Exact<{
   param: identifyUiFinishSocialProofCheckRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2373,7 +2374,7 @@ export type identifyUiFinishWebProofCheckRpcParam = $Exact<{
 
 export function identifyUiFinishWebProofCheckRpc (request: $Exact<{
   param: identifyUiFinishWebProofCheckRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2386,7 +2387,7 @@ export type identifyUiLaunchNetworkChecksRpcParam = $Exact<{
 
 export function identifyUiLaunchNetworkChecksRpc (request: $Exact<{
   param: identifyUiLaunchNetworkChecksRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2398,7 +2399,7 @@ export type identifyUiReportLastTrackRpcParam = $Exact<{
 
 export function identifyUiReportLastTrackRpc (request: $Exact<{
   param: identifyUiReportLastTrackRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2410,7 +2411,7 @@ export type identifyUiReportTrackTokenRpcParam = $Exact<{
 
 export function identifyUiReportTrackTokenRpc (request: $Exact<{
   param: identifyUiReportTrackTokenRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2423,7 +2424,7 @@ export type identifyUiStartRpcParam = $Exact<{
 
 export function identifyUiStartRpc (request: $Exact<{
   param: identifyUiStartRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2436,7 +2437,7 @@ export type kbfsFSEditListRpcParam = $Exact<{
 
 export function kbfsFSEditListRpc (request: $Exact<{
   param: kbfsFSEditListRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2448,7 +2449,7 @@ export type kbfsFSEventRpcParam = $Exact<{
 
 export function kbfsFSEventRpc (request: $Exact<{
   param: kbfsFSEventRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2461,7 +2462,7 @@ export type logRegisterLoggerRpcParam = $Exact<{
 
 export function logRegisterLoggerRpc (request: $Exact<{
   param: logRegisterLoggerRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2474,7 +2475,7 @@ export type logUiLogRpcParam = $Exact<{
 
 export function logUiLogRpc (request: $Exact<{
   param: logUiLogRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2486,7 +2487,7 @@ export type loginClearStoredSecretRpcParam = $Exact<{
 
 export function loginClearStoredSecretRpc (request: $Exact<{
   param: loginClearStoredSecretRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2499,7 +2500,7 @@ export type loginDeprovisionRpcParam = $Exact<{
 
 export function loginDeprovisionRpc (request: $Exact<{
   param: loginDeprovisionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2513,7 +2514,7 @@ export type loginLoginRpcParam = $Exact<{
 
 export function loginLoginRpc (request: $Exact<{
   param: loginLoginRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2525,7 +2526,7 @@ export type loginPaperKeySubmitRpcParam = $Exact<{
 
 export function loginPaperKeySubmitRpc (request: $Exact<{
   param: loginPaperKeySubmitRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2539,7 +2540,7 @@ export type loginPgpProvisionRpcParam = $Exact<{
 
 export function loginPgpProvisionRpc (request: $Exact<{
   param: loginPgpProvisionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2551,7 +2552,7 @@ export type loginRecoverAccountFromEmailAddressRpcParam = $Exact<{
 
 export function loginRecoverAccountFromEmailAddressRpc (request: $Exact<{
   param: loginRecoverAccountFromEmailAddressRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2563,7 +2564,7 @@ export type loginUiDisplayPaperKeyPhraseRpcParam = $Exact<{
 
 export function loginUiDisplayPaperKeyPhraseRpc (request: $Exact<{
   param: loginUiDisplayPaperKeyPhraseRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2575,7 +2576,7 @@ export type loginUiDisplayPrimaryPaperKeyRpcParam = $Exact<{
 
 export function loginUiDisplayPrimaryPaperKeyRpc (request: $Exact<{
   param: loginUiDisplayPrimaryPaperKeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2590,7 +2591,7 @@ type loginUiPromptRevokePaperKeysResult = boolean
 
 export function loginUiPromptRevokePaperKeysRpc (request: $Exact<{
   param: loginUiPromptRevokePaperKeysRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: loginUiPromptRevokePaperKeysResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2602,7 +2603,7 @@ export type loginUnlockWithPassphraseRpcParam = $Exact<{
 
 export function loginUnlockWithPassphraseRpc (request: $Exact<{
   param: loginUnlockWithPassphraseRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2616,7 +2617,7 @@ type metadataAuthenticateResult = int
 
 export function metadataAuthenticateRpc (request: $Exact<{
   param: metadataAuthenticateRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataAuthenticateResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2631,7 +2632,7 @@ export type metadataDeleteKeyRpcParam = $Exact<{
 
 export function metadataDeleteKeyRpc (request: $Exact<{
   param: metadataDeleteKeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2647,7 +2648,7 @@ type metadataGetFolderHandleResult = bytes
 
 export function metadataGetFolderHandleRpc (request: $Exact<{
   param: metadataGetFolderHandleRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetFolderHandleResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2659,7 +2660,7 @@ export type metadataGetFoldersForRekeyRpcParam = $Exact<{
 
 export function metadataGetFoldersForRekeyRpc (request: $Exact<{
   param: metadataGetFoldersForRekeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2675,7 +2676,7 @@ type metadataGetKeyResult = bytes
 
 export function metadataGetKeyRpc (request: $Exact<{
   param: metadataGetKeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetKeyResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2689,7 +2690,7 @@ type metadataGetLatestFolderHandleResult = bytes
 
 export function metadataGetLatestFolderHandleRpc (request: $Exact<{
   param: metadataGetLatestFolderHandleRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetLatestFolderHandleResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2703,7 +2704,7 @@ type metadataGetMerkleNodeResult = bytes
 
 export function metadataGetMerkleNodeRpc (request: $Exact<{
   param: metadataGetMerkleNodeRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetMerkleNodeResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2717,7 +2718,7 @@ type metadataGetMerkleRootLatestResult = MerkleRoot
 
 export function metadataGetMerkleRootLatestRpc (request: $Exact<{
   param: metadataGetMerkleRootLatestRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetMerkleRootLatestResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2732,7 +2733,7 @@ type metadataGetMerkleRootResult = MerkleRoot
 
 export function metadataGetMerkleRootRpc (request: $Exact<{
   param: metadataGetMerkleRootRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetMerkleRootResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2747,7 +2748,7 @@ type metadataGetMerkleRootSinceResult = MerkleRoot
 
 export function metadataGetMerkleRootSinceRpc (request: $Exact<{
   param: metadataGetMerkleRootSinceRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetMerkleRootSinceResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2767,7 +2768,7 @@ type metadataGetMetadataResult = MetadataResponse
 
 export function metadataGetMetadataRpc (request: $Exact<{
   param: metadataGetMetadataRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetMetadataResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2781,7 +2782,7 @@ export type metadataPruneBranchRpcParam = $Exact<{
 
 export function metadataPruneBranchRpc (request: $Exact<{
   param: metadataPruneBranchRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2794,7 +2795,7 @@ export type metadataPutKeysRpcParam = $Exact<{
 
 export function metadataPutKeysRpc (request: $Exact<{
   param: metadataPutKeysRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2807,7 +2808,7 @@ export type metadataPutMetadataRpcParam = $Exact<{
 
 export function metadataPutMetadataRpc (request: $Exact<{
   param: metadataPutMetadataRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2821,7 +2822,7 @@ export type metadataRegisterForUpdatesRpcParam = $Exact<{
 
 export function metadataRegisterForUpdatesRpc (request: $Exact<{
   param: metadataRegisterForUpdatesRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2835,7 +2836,7 @@ type metadataTruncateLockResult = boolean
 
 export function metadataTruncateLockRpc (request: $Exact<{
   param: metadataTruncateLockRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataTruncateLockResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2849,7 +2850,7 @@ type metadataTruncateUnlockResult = boolean
 
 export function metadataTruncateUnlockRpc (request: $Exact<{
   param: metadataTruncateUnlockRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataTruncateUnlockResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2862,7 +2863,7 @@ export type metadataUpdateFolderNeedsRekeyRpcParam = $Exact<{
 
 export function metadataUpdateFolderNeedsRekeyRpc (request: $Exact<{
   param: metadataUpdateFolderNeedsRekeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2875,7 +2876,7 @@ export type metadataUpdateMetadataUpdateRpcParam = $Exact<{
 
 export function metadataUpdateMetadataUpdateRpc (request: $Exact<{
   param: metadataUpdateMetadataUpdateRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2887,7 +2888,7 @@ export type notifyCtlSetNotificationsRpcParam = $Exact<{
 
 export function notifyCtlSetNotificationsRpc (request: $Exact<{
   param: notifyCtlSetNotificationsRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2901,7 +2902,7 @@ export type paperprovisionPaperProvisionRpcParam = $Exact<{
 
 export function paperprovisionPaperProvisionRpc (request: $Exact<{
   param: paperprovisionPaperProvisionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2917,7 +2918,7 @@ type pgpPgpDecryptResult = PGPSigVerification
 
 export function pgpPgpDecryptRpc (request: $Exact<{
   param: pgpPgpDecryptRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpDecryptResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2931,7 +2932,7 @@ export type pgpPgpEncryptRpcParam = $Exact<{
 
 export function pgpPgpEncryptRpc (request: $Exact<{
   param: pgpPgpEncryptRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2945,7 +2946,7 @@ type pgpPgpExportByFingerprintResult = ?Array<KeyInfo>
 
 export function pgpPgpExportByFingerprintRpc (request: $Exact<{
   param: pgpPgpExportByFingerprintRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpExportByFingerprintResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2959,7 +2960,7 @@ type pgpPgpExportByKIDResult = ?Array<KeyInfo>
 
 export function pgpPgpExportByKIDRpc (request: $Exact<{
   param: pgpPgpExportByKIDRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpExportByKIDResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2973,7 +2974,7 @@ type pgpPgpExportResult = ?Array<KeyInfo>
 
 export function pgpPgpExportRpc (request: $Exact<{
   param: pgpPgpExportRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpExportResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -2986,7 +2987,7 @@ export type pgpPgpImportRpcParam = $Exact<{
 
 export function pgpPgpImportRpc (request: $Exact<{
   param: pgpPgpImportRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3003,7 +3004,7 @@ export type pgpPgpKeyGenRpcParam = $Exact<{
 
 export function pgpPgpKeyGenRpc (request: $Exact<{
   param: pgpPgpKeyGenRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3015,7 +3016,7 @@ export type pgpPgpPullRpcParam = $Exact<{
 
 export function pgpPgpPullRpc (request: $Exact<{
   param: pgpPgpPullRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3029,7 +3030,7 @@ type pgpPgpPurgeResult = PGPPurgeRes
 
 export function pgpPgpPurgeRpc (request: $Exact<{
   param: pgpPgpPurgeRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpPurgeResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3044,7 +3045,7 @@ export type pgpPgpSelectRpcParam = $Exact<{
 
 export function pgpPgpSelectRpc (request: $Exact<{
   param: pgpPgpSelectRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3058,7 +3059,7 @@ export type pgpPgpSignRpcParam = $Exact<{
 
 export function pgpPgpSignRpc (request: $Exact<{
   param: pgpPgpSignRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3071,7 +3072,7 @@ export type pgpPgpUpdateRpcParam = $Exact<{
 
 export function pgpPgpUpdateRpc (request: $Exact<{
   param: pgpPgpUpdateRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3086,7 +3087,7 @@ type pgpPgpVerifyResult = PGPSigVerification
 
 export function pgpPgpVerifyRpc (request: $Exact<{
   param: pgpPgpVerifyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpVerifyResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3100,7 +3101,7 @@ export type pgpUiOutputSignatureSuccessRpcParam = $Exact<{
 
 export function pgpUiOutputSignatureSuccessRpc (request: $Exact<{
   param: pgpUiOutputSignatureSuccessRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3114,7 +3115,7 @@ type proveCheckProofResult = CheckProofStatus
 
 export function proveCheckProofRpc (request: $Exact<{
   param: proveCheckProofRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: proveCheckProofResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3132,7 +3133,7 @@ type proveStartProofResult = StartProofResult
 
 export function proveStartProofRpc (request: $Exact<{
   param: proveStartProofRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: proveStartProofResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3144,7 +3145,7 @@ export type proveUiDisplayRecheckWarningRpcParam = $Exact<{
 
 export function proveUiDisplayRecheckWarningRpc (request: $Exact<{
   param: proveUiDisplayRecheckWarningRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3159,7 +3160,7 @@ type proveUiOkToCheckResult = boolean
 
 export function proveUiOkToCheckRpc (request: $Exact<{
   param: proveUiOkToCheckRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: proveUiOkToCheckResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3172,7 +3173,7 @@ export type proveUiOutputInstructionsRpcParam = $Exact<{
 
 export function proveUiOutputInstructionsRpc (request: $Exact<{
   param: proveUiOutputInstructionsRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3184,7 +3185,7 @@ export type proveUiOutputPrechecksRpcParam = $Exact<{
 
 export function proveUiOutputPrechecksRpc (request: $Exact<{
   param: proveUiOutputPrechecksRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3198,7 +3199,7 @@ type proveUiPreProofWarningResult = boolean
 
 export function proveUiPreProofWarningRpc (request: $Exact<{
   param: proveUiPreProofWarningRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: proveUiPreProofWarningResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3213,7 +3214,7 @@ type proveUiPromptOverwriteResult = boolean
 
 export function proveUiPromptOverwriteRpc (request: $Exact<{
   param: proveUiPromptOverwriteRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: proveUiPromptOverwriteResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3228,7 +3229,7 @@ type proveUiPromptUsernameResult = string
 
 export function proveUiPromptUsernameRpc (request: $Exact<{
   param: proveUiPromptUsernameRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: proveUiPromptUsernameResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3242,7 +3243,7 @@ type provisionUiChooseDeviceResult = DeviceID
 
 export function provisionUiChooseDeviceRpc (request: $Exact<{
   param: provisionUiChooseDeviceRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiChooseDeviceResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3256,7 +3257,7 @@ type provisionUiChooseDeviceTypeResult = DeviceType
 
 export function provisionUiChooseDeviceTypeRpc (request: $Exact<{
   param: provisionUiChooseDeviceTypeRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiChooseDeviceTypeResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3270,7 +3271,7 @@ type provisionUiChooseGPGMethodResult = GPGMethod
 
 export function provisionUiChooseGPGMethodRpc (request: $Exact<{
   param: provisionUiChooseGPGMethodRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiChooseGPGMethodResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3284,7 +3285,7 @@ type provisionUiChooseProvisioningMethodResult = ProvisionMethod
 
 export function provisionUiChooseProvisioningMethodRpc (request: $Exact<{
   param: provisionUiChooseProvisioningMethodRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiChooseProvisioningMethodResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3300,7 +3301,7 @@ type provisionUiDisplayAndPromptSecretResult = SecretResponse
 
 export function provisionUiDisplayAndPromptSecretRpc (request: $Exact<{
   param: provisionUiDisplayAndPromptSecretRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiDisplayAndPromptSecretResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3315,7 +3316,7 @@ type provisionUiPromptNewDeviceNameResult = string
 
 export function provisionUiPromptNewDeviceNameRpc (request: $Exact<{
   param: provisionUiPromptNewDeviceNameRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiPromptNewDeviceNameResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3328,7 +3329,7 @@ export type provisionUiProvisioneeSuccessRpcParam = $Exact<{
 
 export function provisionUiProvisioneeSuccessRpc (request: $Exact<{
   param: provisionUiProvisioneeSuccessRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3341,7 +3342,7 @@ export type provisionUiProvisionerSuccessRpcParam = $Exact<{
 
 export function provisionUiProvisionerSuccessRpc (request: $Exact<{
   param: provisionUiProvisionerSuccessRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3356,7 +3357,7 @@ type provisionUiSwitchToGPGSignOKResult = boolean
 
 export function provisionUiSwitchToGPGSignOKRpc (request: $Exact<{
   param: provisionUiSwitchToGPGSignOKRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiSwitchToGPGSignOKResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3370,7 +3371,7 @@ type quotaVerifySessionResult = VerifySessionRes
 
 export function quotaVerifySessionRpc (request: $Exact<{
   param: quotaVerifySessionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: quotaVerifySessionResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3382,7 +3383,7 @@ export type rekeyRekeySyncRpcParam = $Exact<{
 
 export function rekeyRekeySyncRpc (request: $Exact<{
   param: rekeyRekeySyncRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3394,7 +3395,7 @@ export type rekeyUIRefreshRpcParam = $Exact<{
 
 export function rekeyUIRefreshRpc (request: $Exact<{
   param: rekeyUIRefreshRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3406,7 +3407,7 @@ export type rekeyUIRekeySendEventRpcParam = $Exact<{
 
 export function rekeyUIRekeySendEventRpc (request: $Exact<{
   param: rekeyUIRekeySendEventRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3419,7 +3420,7 @@ export type revokeRevokeDeviceRpcParam = $Exact<{
 
 export function revokeRevokeDeviceRpc (request: $Exact<{
   param: revokeRevokeDeviceRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3431,7 +3432,7 @@ export type revokeRevokeKeyRpcParam = $Exact<{
 
 export function revokeRevokeKeyRpc (request: $Exact<{
   param: revokeRevokeKeyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3443,7 +3444,7 @@ export type revokeRevokeSigsRpcParam = $Exact<{
 
 export function revokeRevokeSigsRpc (request: $Exact<{
   param: revokeRevokeSigsRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3459,7 +3460,7 @@ type saltpackSaltpackDecryptResult = SaltpackEncryptedMessageInfo
 
 export function saltpackSaltpackDecryptRpc (request: $Exact<{
   param: saltpackSaltpackDecryptRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: saltpackSaltpackDecryptResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3473,7 +3474,7 @@ export type saltpackSaltpackEncryptRpcParam = $Exact<{
 
 export function saltpackSaltpackEncryptRpc (request: $Exact<{
   param: saltpackSaltpackEncryptRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3487,7 +3488,7 @@ export type saltpackSaltpackSignRpcParam = $Exact<{
 
 export function saltpackSaltpackSignRpc (request: $Exact<{
   param: saltpackSaltpackSignRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3501,7 +3502,7 @@ export type saltpackSaltpackVerifyRpcParam = $Exact<{
 
 export function saltpackSaltpackVerifyRpc (request: $Exact<{
   param: saltpackSaltpackVerifyRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3514,7 +3515,7 @@ export type saltpackUiSaltpackPromptForDecryptRpcParam = $Exact<{
 
 export function saltpackUiSaltpackPromptForDecryptRpc (request: $Exact<{
   param: saltpackUiSaltpackPromptForDecryptRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3527,7 +3528,7 @@ export type saltpackUiSaltpackVerifySuccessRpcParam = $Exact<{
 
 export function saltpackUiSaltpackVerifySuccessRpc (request: $Exact<{
   param: saltpackUiSaltpackVerifySuccessRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3542,7 +3543,7 @@ type secretUiGetPassphraseResult = GetPassphraseRes
 
 export function secretUiGetPassphraseRpc (request: $Exact<{
   param: secretUiGetPassphraseRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: secretUiGetPassphraseResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3554,7 +3555,7 @@ export type signupCheckInvitationCodeRpcParam = $Exact<{
 
 export function signupCheckInvitationCodeRpc (request: $Exact<{
   param: signupCheckInvitationCodeRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3566,7 +3567,7 @@ export type signupCheckUsernameAvailableRpcParam = $Exact<{
 
 export function signupCheckUsernameAvailableRpc (request: $Exact<{
   param: signupCheckUsernameAvailableRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3580,7 +3581,7 @@ export type signupInviteRequestRpcParam = $Exact<{
 
 export function signupInviteRequestRpc (request: $Exact<{
   param: signupInviteRequestRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3601,7 +3602,7 @@ type signupSignupResult = SignupRes
 
 export function signupSignupRpc (request: $Exact<{
   param: signupSignupRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: signupSignupResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3615,7 +3616,7 @@ type sigsSigListJSONResult = string
 
 export function sigsSigListJSONRpc (request: $Exact<{
   param: sigsSigListJSONRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: sigsSigListJSONResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3629,7 +3630,7 @@ type sigsSigListResult = ?Array<Sig>
 
 export function sigsSigListRpc (request: $Exact<{
   param: sigsSigListRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: sigsSigListResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3641,7 +3642,7 @@ export type streamUiCloseRpcParam = $Exact<{
 
 export function streamUiCloseRpc (request: $Exact<{
   param: streamUiCloseRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3656,7 +3657,7 @@ type streamUiReadResult = bytes
 
 export function streamUiReadRpc (request: $Exact<{
   param: streamUiReadRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: streamUiReadResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3671,7 +3672,7 @@ type streamUiWriteResult = int
 
 export function streamUiWriteRpc (request: $Exact<{
   param: streamUiWriteRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: streamUiWriteResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3683,7 +3684,7 @@ export type testPanicRpcParam = $Exact<{
 
 export function testPanicRpc (request: $Exact<{
   param: testPanicRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3697,7 +3698,7 @@ type testTestCallbackResult = string
 
 export function testTestCallbackRpc (request: $Exact<{
   param: testTestCallbackRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: testTestCallbackResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3711,7 +3712,7 @@ type testTestResult = Test
 
 export function testTestRpc (request: $Exact<{
   param: testTestRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: testTestResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3725,7 +3726,7 @@ type tlfCryptKeysResult = TLFCryptKeys
 
 export function tlfCryptKeysRpc (request: $Exact<{
   param: tlfCryptKeysRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: tlfCryptKeysResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3739,7 +3740,7 @@ type tlfKeysGetTLFCryptKeysResult = TLFCryptKeys
 
 export function tlfKeysGetTLFCryptKeysRpc (request: $Exact<{
   param: tlfKeysGetTLFCryptKeysRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3751,7 +3752,7 @@ export type trackDismissWithTokenRpcParam = $Exact<{
 
 export function trackDismissWithTokenRpc (request: $Exact<{
   param: trackDismissWithTokenRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3763,7 +3764,7 @@ export type trackFakeTrackingChangedRpcParam = $Exact<{
 
 export function trackFakeTrackingChangedRpc (request: $Exact<{
   param: trackFakeTrackingChangedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3777,7 +3778,7 @@ export type trackTrackRpcParam = $Exact<{
 
 export function trackTrackRpc (request: $Exact<{
   param: trackTrackRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3790,7 +3791,7 @@ export type trackTrackWithTokenRpcParam = $Exact<{
 
 export function trackTrackWithTokenRpc (request: $Exact<{
   param: trackTrackWithTokenRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3802,7 +3803,7 @@ export type trackUntrackRpcParam = $Exact<{
 
 export function trackUntrackRpc (request: $Exact<{
   param: trackUntrackRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3817,7 +3818,7 @@ type uiPromptYesNoResult = boolean
 
 export function uiPromptYesNoRpc (request: $Exact<{
   param: uiPromptYesNoRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: uiPromptYesNoResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3832,7 +3833,7 @@ type userListTrackers2Result = UserSummary2Set
 
 export function userListTrackers2Rpc (request: $Exact<{
   param: userListTrackers2RpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userListTrackers2Result) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3846,7 +3847,7 @@ type userListTrackersByNameResult = ?Array<Tracker>
 
 export function userListTrackersByNameRpc (request: $Exact<{
   param: userListTrackersByNameRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userListTrackersByNameResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3860,7 +3861,7 @@ type userListTrackersResult = ?Array<Tracker>
 
 export function userListTrackersRpc (request: $Exact<{
   param: userListTrackersRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userListTrackersResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3876,7 +3877,7 @@ type userListTrackingJSONResult = string
 
 export function userListTrackingJSONRpc (request: $Exact<{
   param: userListTrackingJSONRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userListTrackingJSONResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3891,7 +3892,7 @@ type userListTrackingResult = ?Array<UserSummary>
 
 export function userListTrackingRpc (request: $Exact<{
   param: userListTrackingRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userListTrackingResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3905,7 +3906,7 @@ type userLoadAllPublicKeysUnverifiedResult = ?Array<PublicKey>
 
 export function userLoadAllPublicKeysUnverifiedRpc (request: $Exact<{
   param: userLoadAllPublicKeysUnverifiedRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3919,7 +3920,7 @@ type userLoadPublicKeysResult = ?Array<PublicKey>
 
 export function userLoadPublicKeysRpc (request: $Exact<{
   param: userLoadPublicKeysRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadPublicKeysResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3933,7 +3934,7 @@ type userLoadUncheckedUserSummariesResult = ?Array<UserSummary>
 
 export function userLoadUncheckedUserSummariesRpc (request: $Exact<{
   param: userLoadUncheckedUserSummariesRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadUncheckedUserSummariesResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3947,7 +3948,7 @@ type userLoadUserByNameResult = User
 
 export function userLoadUserByNameRpc (request: $Exact<{
   param: userLoadUserByNameRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadUserByNameResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3961,7 +3962,7 @@ type userLoadUserPlusKeysResult = UserPlusKeys
 
 export function userLoadUserPlusKeysRpc (request: $Exact<{
   param: userLoadUserPlusKeysRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadUserPlusKeysResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3975,7 +3976,7 @@ type userLoadUserResult = User
 
 export function userLoadUserRpc (request: $Exact<{
   param: userLoadUserRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadUserResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3989,7 +3990,7 @@ type userSearchResult = ?Array<SearchResult>
 
 export function userSearchRpc (request: $Exact<{
   param: userSearchRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userSearchResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -3998,7 +3999,7 @@ export function userSearchRpc (request: $Exact<{
 type SecretKeysGetSecretKeysResult = SecretKeys
 
 export function SecretKeysGetSecretKeysRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: SecretKeysGetSecretKeysResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4007,7 +4008,7 @@ export function SecretKeysGetSecretKeysRpc (request: $Exact<{
 type blockGetSessionChallengeResult = ChallengeInfo
 
 export function blockGetSessionChallengeRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: blockGetSessionChallengeResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4016,7 +4017,7 @@ export function blockGetSessionChallengeRpc (request: $Exact<{
 type blockGetUserQuotaInfoResult = bytes
 
 export function blockGetUserQuotaInfoRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: blockGetUserQuotaInfoResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4025,7 +4026,7 @@ export function blockGetUserQuotaInfoRpc (request: $Exact<{
 type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
 
 export function configCheckAPIServerOutOfDateWarningRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4034,7 +4035,7 @@ export function configCheckAPIServerOutOfDateWarningRpc (request: $Exact<{
 type configGetConfigResult = Config
 
 export function configGetConfigRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: configGetConfigResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4043,7 +4044,7 @@ export function configGetConfigRpc (request: $Exact<{
 type configGetCurrentStatusResult = GetCurrentStatusRes
 
 export function configGetCurrentStatusRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: configGetCurrentStatusResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4052,7 +4053,7 @@ export function configGetCurrentStatusRpc (request: $Exact<{
 type configGetExtendedStatusResult = ExtendedStatus
 
 export function configGetExtendedStatusRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: configGetExtendedStatusResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4061,7 +4062,7 @@ export function configGetExtendedStatusRpc (request: $Exact<{
 type deviceDeviceHistoryListResult = ?Array<DeviceDetail>
 
 export function deviceDeviceHistoryListRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: deviceDeviceHistoryListResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4070,7 +4071,7 @@ export function deviceDeviceHistoryListRpc (request: $Exact<{
 type deviceDeviceListResult = ?Array<Device>
 
 export function deviceDeviceListRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: deviceDeviceListResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4079,7 +4080,7 @@ export function deviceDeviceListRpc (request: $Exact<{
 type favoriteGetFavoritesResult = FavoritesResult
 
 export function favoriteGetFavoritesRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: favoriteGetFavoritesResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4088,7 +4089,7 @@ export function favoriteGetFavoritesRpc (request: $Exact<{
 type gpgUiConfirmDuplicateKeyChosenResult = boolean
 
 export function gpgUiConfirmDuplicateKeyChosenRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: gpgUiConfirmDuplicateKeyChosenResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4097,7 +4098,7 @@ export function gpgUiConfirmDuplicateKeyChosenRpc (request: $Exact<{
 type gpgUiWantToAddGPGKeyResult = boolean
 
 export function gpgUiWantToAddGPGKeyRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: gpgUiWantToAddGPGKeyResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4106,7 +4107,7 @@ export function gpgUiWantToAddGPGKeyRpc (request: $Exact<{
 type gregorGetStateResult = gregor1.State
 
 export function gregorGetStateRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: gregorGetStateResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4115,7 +4116,7 @@ export function gregorGetStateRpc (request: $Exact<{
 type identifyUiDelegateIdentifyUIResult = int
 
 export function identifyUiDelegateIdentifyUIRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: identifyUiDelegateIdentifyUIResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4124,7 +4125,7 @@ export function identifyUiDelegateIdentifyUIRpc (request: $Exact<{
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
 
 export function loginGetConfiguredAccountsRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: loginGetConfiguredAccountsResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4133,7 +4134,7 @@ export function loginGetConfiguredAccountsRpc (request: $Exact<{
 type loginUiGetEmailOrUsernameResult = string
 
 export function loginUiGetEmailOrUsernameRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: loginUiGetEmailOrUsernameResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4142,7 +4143,7 @@ export function loginUiGetEmailOrUsernameRpc (request: $Exact<{
 type metadataGetChallengeResult = ChallengeInfo
 
 export function metadataGetChallengeRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetChallengeResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4151,7 +4152,7 @@ export function metadataGetChallengeRpc (request: $Exact<{
 type metadataPing2Result = PingResponse
 
 export function metadataPing2Rpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataPing2Result) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4160,7 +4161,7 @@ export function metadataPing2Rpc (request: $Exact<{
 type rekeyGetPendingRekeyStatusResult = ProblemSetDevices
 
 export function rekeyGetPendingRekeyStatusRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: rekeyGetPendingRekeyStatusResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4169,7 +4170,7 @@ export function rekeyGetPendingRekeyStatusRpc (request: $Exact<{
 type rekeyRekeyStatusFinishResult = Outcome
 
 export function rekeyRekeyStatusFinishRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: rekeyRekeyStatusFinishResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4178,7 +4179,7 @@ export function rekeyRekeyStatusFinishRpc (request: $Exact<{
 type rekeyUIDelegateRekeyUIResult = int
 
 export function rekeyUIDelegateRekeyUIRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: rekeyUIDelegateRekeyUIResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4187,7 +4188,7 @@ export function rekeyUIDelegateRekeyUIRpc (request: $Exact<{
 type sessionCurrentSessionResult = Session
 
 export function sessionCurrentSessionRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: sessionCurrentSessionResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4196,7 +4197,7 @@ export function sessionCurrentSessionRpc (request: $Exact<{
 type userListTrackersSelfResult = ?Array<Tracker>
 
 export function userListTrackersSelfRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userListTrackersSelfResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -4205,7 +4206,7 @@ export function userListTrackersSelfRpc (request: $Exact<{
 type userLoadMyPublicKeysResult = ?Array<PublicKey>
 
 export function userLoadMyPublicKeysRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadMyPublicKeysResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!

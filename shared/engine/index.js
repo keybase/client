@@ -2,7 +2,6 @@
 // Handles sending requests to the daemon
 import Session from './session'
 import setupLocalLogs from '../util/local-log'
-import type {WaitingHandlerType, MethodKey, SessionIDKey} from './index'
 import type {createClientType} from './platform-specific'
 import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
 import {constants} from '../constants/types/keybase-v1'
@@ -134,7 +133,8 @@ class Engine {
     method: MethodKey,
     param: ?Object,
     incomingCallMap: incomingCallMapType,
-    callback: () => void, waitingHandler: WaitingHandlerType}) {
+    callback: ?(...args: Array<any>) => void,
+    waitingHandler: WaitingHandlerType}) {
     let {method, param, incomingCallMap, callback, waitingHandler} = params
 
     // Ensure a non-null param
@@ -143,13 +143,13 @@ class Engine {
     }
 
     // Make a new session and start the request
-    const session = this._createSession(incomingCallMap, waitingHandler)
+    const session = this.createSession(incomingCallMap, waitingHandler)
     session.start(method, param, callback)
     return session.id
   }
 
   // Make a new session
-  _createSession (incomingCallMap: incomingCallMapType, waitingHandler: ?WaitingHandlerType): Session {
+  createSession (incomingCallMap: incomingCallMapType, waitingHandler: ?WaitingHandlerType): Session {
     const sessionID = this._generateSessionID()
     rpcLog('engineInternal', `Session start ${sessionID}`)
 
@@ -171,7 +171,7 @@ class Engine {
   }
 
   // Cancel an rpc
-  cancelRPC (response: ?{error: () => void}, error: any) {
+  cancelRPC (response: ?ResponseType, error: any) {
     if (response) {
       if (response.error) {
         const cancelError = {
@@ -234,9 +234,26 @@ class FakeEngine {
   cancelRPC () {}
   rpc () {}
   setFailOnError () {}
-  listenOnConnect () { }
+  listenOnConnect () {}
+  setIncomingHandler () {}
+  createSession () {
+    return {
+      id: 0,
+    }
+  }
 }
 
 const engine = process.env.KEYBASE_NO_ENGINE ? new FakeEngine() : new Engine()
+
+export type EndHandlerType = (session: Object) => void;
+export type MethodKey = string;
+export type SessionID = number;
+export type SessionIDKey = string; // used in our maps, really converted to a string key
+export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: SessionID) => void;
+export type ResponseType = {
+  cancel: (...args: Array<any>) => void,
+  result: (...args: Array<any>) => void,
+  error: (...args: Array<any>) => void,
+}
 
 export default engine

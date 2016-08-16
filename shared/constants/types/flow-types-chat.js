@@ -14,6 +14,7 @@ export type RPCError = {
   code: number,
   desc: string
 }
+export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
 export type Conversation = {
   metadata: ConversationMetadata,
   maxHeaders?: ?Array<MessageServerHeader>,
@@ -120,7 +121,7 @@ type remoteGetInboxRemoteResult = InboxView
 
 export function remoteGetInboxRemoteRpc (request: $Exact<{
   param: remoteGetInboxRemoteRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: remoteGetInboxRemoteResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -135,7 +136,7 @@ type remoteGetThreadRemoteResult = ThreadViewBoxed
 
 export function remoteGetThreadRemoteRpc (request: $Exact<{
   param: remoteGetThreadRemoteRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: remoteGetThreadRemoteResult) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -147,7 +148,7 @@ export type remoteNewConversationRemoteRpcParam = $Exact<{
 
 export function remoteNewConversationRemoteRpc (request: $Exact<{
   param: remoteNewConversationRemoteRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!
@@ -160,7 +161,7 @@ export type remotePostRemoteRpcParam = $Exact<{
 
 export function remotePostRemoteRpc (request: $Exact<{
   param: remotePostRemoteRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  waitingHandler?: WaitingHandlerType,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   // $FlowIssue : We're calling a protected member in engine. As designed!

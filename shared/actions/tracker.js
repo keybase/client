@@ -2,6 +2,7 @@
 import * as Constants from '../constants/tracker'
 import _ from 'lodash'
 import engine from '../engine'
+import Session from '../engine/session'
 import openUrl from '../util/open-url'
 import setNotifications from '../util/set-notifications'
 import type {Action, Dispatch, AsyncAction} from '../constants/types/flux'
@@ -192,7 +193,7 @@ export function registerIdentifyUi (): TrackerActionCreator {
     })
 
     engine.setIncomingHandler('keybase.1.identifyUi.delegateIdentifyUI', (param: any, response: ?Object) => {
-      const session = engine.createSession(
+      const session: Session = engine.createSession(
         serverCallMap(dispatch, getState, false, () => {
           session.end()
         })
