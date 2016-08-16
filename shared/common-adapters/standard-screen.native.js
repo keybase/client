@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import {ScrollView} from 'react-native'
 import type {Props} from './standard-screen'
 import {Box, Text} from './'
 import {globalColors, globalMargins, globalStyles} from '../styles/style-guide'
@@ -14,21 +15,21 @@ const StandardScreen = (props: Props) => {
         <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
           {typeof props.notification.message === 'string' ? <Text style={styleBannerText} type='BodySmallSemibold'>{props.notification.message}</Text> : props.notification.message}
         </Box>}
-      <Box style={{...styleContentContainer(!!props.notification), ...props.style}}>
+      <ScrollView style={styleScrollContainer(!!props.notification)} contentContainerStyle={{...styleContentContainer, ...props.style}}>
         {props.children}
-      </Box>
+      </ScrollView>
     </Box>
   )
 }
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  padding: globalMargins.small,
   flex: 1,
 }
 
 const styleCloseContainer = {
   ...globalStyles.flexBoxRow,
+  marginLeft: globalMargins.small,
   height: globalMargins.large - globalMargins.tiny,
   alignItems: 'center',
 }
@@ -53,12 +54,16 @@ const styleBannerText = {
   textAlign: 'center',
 }
 
-const styleContentContainer = (isBannerShowing) => ({
-  ...globalStyles.flexBoxColumn,
-  alignItems: 'stretch',
-  justifyContent: 'center',
-  flex: 1,
+const styleScrollContainer = (isBannerShowing: boolean) => ({
   ...(isBannerShowing ? {marginTop: -MIN_BANNER_HEIGHT} : {}),
 })
+
+const styleContentContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'stretch',
+  flex: 1,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
+}
 
 export default StandardScreen
