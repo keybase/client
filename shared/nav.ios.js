@@ -87,7 +87,7 @@ class Nav extends Component {
     this.props.bootstrap()
     this.props.listenForNotifications()
 
-        // Introduce ourselves to the service
+    // Introduce ourselves to the service
     hello(0, 'iOS app', [], '0.0.0') // TODO real version
   }
 
