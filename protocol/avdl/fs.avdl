@@ -26,7 +26,8 @@ protocol fs {
 
   /**
     Begin observing a directory, receive notifications of
-    any file status changes in that directory.
+    any file status changes in that directory (doesn't
+    include subdirectories).
     */
   void beginObserving(int sessionID, string path);
 
