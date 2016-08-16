@@ -548,6 +548,24 @@ func (j *mdJournal) put(
 	return id, nil
 }
 
+func getMdID(ctx context.Context, mdserver MDServer, crypto cryptoPure,
+	tlfID TlfID, bid BranchID, mStatus MergeStatus,
+	revision MetadataRevision) (MdID, error) {
+	rmdses, err := mdserver.GetRange(
+		ctx, tlfID, bid, mStatus, revision, revision)
+	if err != nil {
+		return MdID{}, err
+	} else if len(rmdses) == 0 {
+		return MdID{}, nil
+	} else if len(rmdses) > 1 {
+		return MdID{}, fmt.Errorf(
+			"Got more than one object when trying to get rev=%d for branch %s of TLF %s",
+			revision, bid, tlfID)
+	}
+
+	return crypto.MakeMdID(&rmdses[0].MD)
+}
+
 // flushOne sends the earliest MD in the journal to the given MDServer
 // if one exists, and then removes it. Returns whether there was an MD
 // that was put.
@@ -564,17 +582,32 @@ func (j *mdJournal) flushOne(
 
 	earliestID, rmd, pushErr := j.pushEarliestToServer(
 		ctx, signer, mdserver)
-	if isRevisionConflict(pushErr) && rmd.MergedStatus() == Merged {
-		j.log.CDebugf(ctx, "Conflict detected %v", pushErr)
-
-		err := j.convertToBranch(
-			ctx, signer, currentUID, currentVerifyingKey)
+	if isRevisionConflict(pushErr) {
+		mdID, err := getMdID(
+			ctx, mdserver, j.crypto, rmd.ID, rmd.BID,
+			rmd.MergedStatus(), rmd.Revision)
 		if err != nil {
-			return false, err
-		}
+			j.log.CWarningf(ctx,
+				"getMdID failed for TLF %s, BID %s, and revision %d: %v",
+				rmd.ID, rmd.BID, rmd.Revision, err)
+		} else if mdID == earliestID {
+			if earliestID == (MdID{}) {
+				panic("nil earliestID and revision conflict error returned by pushEarliestToServer")
+			}
+			// We must have already flushed this MD, so continue.
+			pushErr = nil
+		} else if rmd.MergedStatus() == Merged {
+			j.log.CDebugf(ctx, "Conflict detected %v", pushErr)
 
-		earliestID, rmd, pushErr = j.pushEarliestToServer(
-			ctx, signer, mdserver)
+			err := j.convertToBranch(
+				ctx, signer, currentUID, currentVerifyingKey)
+			if err != nil {
+				return false, err
+			}
+
+			earliestID, rmd, pushErr = j.pushEarliestToServer(
+				ctx, signer, mdserver)
+		}
 	}
 	if pushErr != nil {
 		return false, pushErr

@@ -228,8 +228,17 @@ func TestMDJournalBranchConversion(t *testing.T) {
 
 type shimMDServer struct {
 	MDServer
-	rmdses  []*RootMetadataSigned
-	nextErr error
+	rmdses       []*RootMetadataSigned
+	nextGetRange []*RootMetadataSigned
+	nextErr      error
+}
+
+func (s *shimMDServer) GetRange(
+	ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus,
+	start, stop MetadataRevision) ([]*RootMetadataSigned, error) {
+	rmdses := s.nextGetRange
+	s.nextGetRange = nil
+	return rmdses, nil
 }
 
 func (s *shimMDServer) Put(
@@ -240,6 +249,13 @@ func (s *shimMDServer) Put(
 		return err
 	}
 	s.rmdses = append(s.rmdses, rmds)
+
+	// Pretend all cancels happen after the actual put.
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
 	return nil
 }
 
@@ -476,4 +492,40 @@ func TestMDJournalPreservesBranchID(t *testing.T) {
 		err = rmdses[i-1].MD.CheckValidSuccessor(prevID, &rmdses[i].MD)
 		require.NoError(t, err)
 	}
+}
+
+// TestMDJournalDoubleFlush tests that flushing handles the case where
+// the correct MD is already present.
+func TestMDJournalDoubleFlush(t *testing.T) {
+	_, _, uid, id, h, signer, verifyingKey, ekg, tempdir, j :=
+		setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+
+	prevRoot := fakeMdID(1)
+	revision := MetadataRevision(10)
+	md := makeMDForTest(t, id, h, revision, uid, prevRoot)
+	mdID, err := j.put(ctx, signer, ekg, md, uid, verifyingKey)
+	require.NoError(t, err)
+	prevRoot = mdID
+
+	var mdserver shimMDServer
+
+	// Simulate a flush that is cancelled but succeeds anyway.
+	ctx2, cancel := context.WithCancel(ctx)
+	cancel()
+	flushed, err := j.flushOne(ctx2, signer, uid, verifyingKey, &mdserver)
+	require.Equal(t, ctx2.Err(), err)
+	require.False(t, flushed)
+	require.Equal(t, 1, len(mdserver.rmdses))
+
+	// Simulate the conflict error and GetRange call resulting
+	// from the successful put.
+	mdserver.nextErr = MDServerErrorConflictRevision{}
+	mdserver.nextGetRange = mdserver.rmdses
+	flushed, err = j.flushOne(ctx, signer, uid, verifyingKey, &mdserver)
+	require.NoError(t, err)
+	require.True(t, flushed)
+	require.Equal(t, Merged, mdserver.rmdses[0].MD.MergedStatus())
 }
