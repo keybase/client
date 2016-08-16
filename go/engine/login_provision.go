@@ -236,9 +236,9 @@ func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 	var lastErr error
 	for i := 0; i < 10; i++ {
 		// get the paper key from the user
-		kp, err := getPaperKey(e.G(), ctx, lastErr)
+		kp, prefix, err := getPaperKey(e.G(), ctx, lastErr)
 		if err != nil {
-			e.G().Log.Debug("getValidPaperKey attempt %d: %s", i, err)
+			e.G().Log.Debug("getValidPaperKey attempt %d (%s): %s", i, prefix, err)
 			if _, ok := err.(libkb.InputCanceledError); ok {
 				return nil, err
 			}
@@ -249,19 +249,19 @@ func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 		// use the KID to find the uid
 		uid, err := e.uidByKID(kp.sigKey.GetKID())
 		if err != nil {
-			e.G().Log.Debug("getValidPaperKey attempt %d: %s", i, err)
+			e.G().Log.Debug("getValidPaperKey attempt %d (%s): %s", i, prefix, err)
 			lastErr = err
 			continue
 		}
 
 		if uid.NotEqual(e.arg.User.GetUID()) {
-			e.G().Log.Debug("paper key entered was for a different user")
-			lastErr = fmt.Errorf("paper key valid, but for %s, not %s", uid, e.arg.User.GetUID())
+			e.G().Log.Debug("paper key (%s) entered was for a different user", prefix)
+			lastErr = fmt.Errorf("paper key (%s) valid, but for %s, not %s", prefix, uid, e.arg.User.GetUID())
 			continue
 		}
 
 		// found a paper key that can be used for signing
-		e.G().Log.Debug("found paper key match for %s", e.arg.User.GetName())
+		e.G().Log.Debug("found paper key (%s) match for %s", prefix, e.arg.User.GetName())
 		return kp, nil
 	}
 
@@ -831,16 +831,17 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 }
 
 // This is used by SaltpackDecrypt as well.
-func getPaperKey(g *libkb.GlobalContext, ctx *Context, lastErr error) (*keypair, error) {
+func getPaperKey(g *libkb.GlobalContext, ctx *Context, lastErr error) (pair *keypair, prefix string, err error) {
 	passphrase, err := libkb.GetPaperKeyPassphrase(g, ctx.SecretUI, "", lastErr)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	paperPhrase, err := libkb.NewPaperKeyPhraseCheckVersion(g, passphrase)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
+	prefix = paperPhrase.Prefix()
 
 	bkarg := &PaperKeyGenArg{
 		Passphrase: paperPhrase,
@@ -848,17 +849,17 @@ func getPaperKey(g *libkb.GlobalContext, ctx *Context, lastErr error) (*keypair,
 	}
 	bkeng := NewPaperKeyGen(bkarg, g)
 	if err := RunEngine(bkeng, ctx); err != nil {
-		return nil, err
+		return nil, prefix, err
 	}
 
 	kp := &keypair{sigKey: bkeng.SigKey(), encKey: bkeng.EncKey()}
 	if err := g.LoginState().Account(func(a *libkb.Account) {
 		a.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
 	}, "UnlockedPaperKey"); err != nil {
-		return nil, err
+		return nil, prefix, err
 	}
 
-	return kp, nil
+	return kp, prefix, nil
 }
 
 func (e *loginProvision) uidByKID(kid keybase1.KID) (keybase1.UID, error) {
