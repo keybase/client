@@ -56,6 +56,7 @@ export type MessageBoxed = {
 
 export type MessageClientHeader = {
   conv: ConversationIDTriple,
+  tlfName: string,
   messageType: MessageType,
   prev?: ?Array<MessagePreviousPointer>,
   sender: gregor1.UID,

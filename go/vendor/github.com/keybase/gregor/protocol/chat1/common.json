@@ -182,6 +182,10 @@
           "name": "conv"
         },
         {
+          "type": "string",
+          "name": "tlfName"
+        },
+        {
           "type": "MessageType",
           "name": "messageType"
         },
