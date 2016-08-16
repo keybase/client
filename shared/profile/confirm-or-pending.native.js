@@ -18,10 +18,10 @@ const Render = (props: Props) => {
       <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', backgroundColor: titleColor, height: globalMargins.large}}>
         <Text backgroundMode='Terminal' type='BodySmallSemibold'>{title}</Text>
       </Box>
-      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', paddingTop: globalMargins.small, paddingBottom: globalMargins.medium, paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium}}>
+      <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', paddingTop: globalMargins.xlarge, paddingBottom: globalMargins.medium, paddingLeft: globalMargins.medium, paddingRight: globalMargins.medium}}>
         <PlatformIcon platform={platform} overlay={platformIconOverlay} overlayColor={platformIconOverlayColor} size={48} />
         <Text type='Header' style={{color: globalColors.blue}}>{username}</Text>
-        {!!usernameSubtitle && <Text type='Body' style={{color: globalColors.black_10}}>{usernameSubtitle}</Text>}
+        {!!usernameSubtitle && <Text type='Body' style={{color: globalColors.black_10, paddingBottom: globalMargins.large}}>{usernameSubtitle}</Text>}
         <Text type='Body' style={{marginTop: globalMargins.small, textAlign: 'center'}}>{message}</Text>
         {!!messageSubtitle && <Text type='BodySmall' style={{textAlign: 'center'}}>{messageSubtitle}</Text>}
       </Box>
