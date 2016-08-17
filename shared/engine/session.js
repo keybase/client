@@ -17,6 +17,10 @@ class Session {
   _endHandler: EndHandlerType;
   // Sequence IDs we've seen. Value is true if we've responded (often we get cancel after we've replied)
   _seqIDResponded: {[key: string]: boolean} = {};
+  // If true this session exists forever
+  _dangling: boolean;
+  // Name of the start method, just to help debug
+  _startMethod: ?MethodKey;
 
   // Allow us to make calls
   _invoke: invokeType;
@@ -31,16 +35,19 @@ class Session {
     waitingHandler: ?WaitingHandlerType,
     invoke: invokeType,
     endHandler: EndHandlerType,
+    dangling: boolean,
   ) {
     this._id = sessionID
     this._incomingCallMap = incomingCallMap
     this._waitingHandler = waitingHandler
     this._invoke = invoke
     this._endHandler = endHandler
+    this._dangling = dangling
   }
 
   set id (sessionID: SessionID) { throw new Error("Can't set sessionID") }
   get id (): SessionID { return this._id }
+  get dangling (): boolean { return this._dangling }
 
   // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
   // and do internal bookkeeping if the request is done
@@ -72,6 +79,8 @@ class Session {
 
   // Start the session normally. Tells engine we're done at the end
   start (method: MethodKey, param: ?Object, callback: ?() => void) {
+    this._startMethod = method
+
     // When this request is done the session is done
     const wrappedCallback = (...args) => {
       callback && callback(...args)

@@ -48,7 +48,7 @@ class Engine {
     // Print out any alive sessions periodically
     if (printOutstandingRPCs) {
       setInterval(() => {
-        if (Object.keys(this._sessionsMap).length) {
+        if (Object.keys(this._sessionsMap).filter(k => !this._sessionsMap[k].dangling).length) {
           logLocal('outstandingSessionDebugger: ', this._sessionsMap)
         }
       }, 10 * 1000)
@@ -123,8 +123,7 @@ class Engine {
       this._handleCancel(seqid)
     } else {
       const session = this._sessionsMap[String(sessionID)]
-      if (session) { // Part of a session?
-        session.incomingCall(method, param, response)
+      if (session && session.incomingCall(method, param, response)) { // Part of a session?
       } else if (this._incomingHandler[method]) { // General incoming
         const handler = this._incomingHandler[method]
         rpcLog('engineInternal', 'Handling incoming')
@@ -155,8 +154,8 @@ class Engine {
     return session.id
   }
 
-  // Make a new session
-  createSession (incomingCallMap: incomingCallMapType, waitingHandler: ?WaitingHandlerType): Session {
+  // Make a new session. If the session hangs around forever set dangling to true
+  createSession (incomingCallMap: incomingCallMapType, waitingHandler: ?WaitingHandlerType, dangling?: boolean = false): Session {
     const sessionID = this._generateSessionID()
     rpcLog('engineInternal', `Session start ${sessionID}`)
 
@@ -165,7 +164,8 @@ class Engine {
       incomingCallMap,
       waitingHandler,
       (method, param, cb) => this._rpcClient.invoke(method, param, cb),
-      (session: Session) => this._sessionEnded(session))
+      (session: Session) => this._sessionEnded(session),
+      dangling)
 
     this._sessionsMap[String(sessionID)] = session
     return session
@@ -248,7 +248,7 @@ class FakeEngine {
   listenOnConnect () {}
   setIncomingHandler () {}
   createSession () {
-    return new Session(0, {}, null, () => {}, () => {})
+    return new Session(0, {}, null, () => {}, () => {}, false)
   }
 }
 

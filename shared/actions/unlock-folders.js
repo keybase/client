@@ -71,9 +71,11 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
 
     // else we get this also as part of delegateRekeyUI
     engine.setIncomingHandler('keybase.1.rekeyUI.delegateRekeyUI', (param: any, response: ?Object) => {
+      // Dangling, never gets closed
       const session = engine.createSession({
         'keybase.1.rekeyUI.refresh': (params, response) => refreshHandler(params, response, dispatch),
-      })
+        'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
+      }, null, true)
       response && response.result(session.id)
     })
 
