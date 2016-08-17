@@ -488,10 +488,11 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 	// Ignore permanent errors
 	_, isPermErr := err.(BServerError)
 	_, isNonceNonExistentErr := err.(BServerErrorNonceNonExistent)
+	_, isBadRequestErr := err.(BServerErrorBadRequest)
 	if err != nil {
 		fbm.log.CWarningf(ctx, "Couldn't delete some ref in batch %v: %v",
 			toDelete.blocks, err)
-		if !isPermErr && !isNonceNonExistentErr {
+		if !isPermErr && !isNonceNonExistentErr && !isBadRequestErr {
 			fbm.enqueueBlocksToDeleteNoWait(toDelete)
 			return nil
 		}
