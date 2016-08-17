@@ -4,12 +4,8 @@
 package service
 
 import (
-	"crypto/rand"
 	"encoding/json"
-	"errors"
-	"fmt"
 
-	"golang.org/x/crypto/nacl/secretbox"
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/engine"
@@ -33,7 +29,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 		gh:           gh,
-		boxer:        &chatBoxer{tlf: newTlfHandler(xp, g)},
+		boxer:        &chatBoxer{tlf: newTlfHandler(nil, g)},
 	}
 }
 
@@ -53,7 +49,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetT
 		return keybase1.ThreadView{}, err
 	}
 
-	return h.unboxThread(ctx, boxed)
+	return h.unboxThread(ctx, boxed, arg.ConversationID)
 }
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
@@ -114,7 +110,7 @@ func (h *chatLocalHandler) remoteClient() *chat1.RemoteClient {
 }
 
 // unboxThread transforms a chat1.ThreadViewBoxed to a keybase1.ThreadView.
-func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed) (keybase1.ThreadView, error) {
+func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadViewBoxed, convID chat1.ConversationID) (keybase1.ThreadView, error) {
 	thread := keybase1.ThreadView{
 		Pagination: boxed.Pagination,
 	}
@@ -125,131 +121,23 @@ func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadVi
 		if err != nil {
 			return keybase1.ThreadView{}, err
 		}
+
 		thread.Messages = append(thread.Messages, unboxed)
 	}
 
 	return thread, nil
 }
 
-type chatBoxer struct {
-	tlf keybase1.TlfInterface
-}
-
-// unboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
-// the appropriate keybase1.CryptKey.
-func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, msg chat1.MessageBoxed) (keybase1.Message, error) {
-	tlfName := msg.ClientHeader.TlfName
-	keys, err := finder.find(ctx, b.tlf, tlfName)
-	if err != nil {
-		return keybase1.Message{}, err
-	}
-
-	var matchKey *keybase1.CryptKey
-	for _, key := range keys.CryptKeys {
-		if key.KeyGeneration == msg.KeyGeneration {
-			matchKey = &key
-			break
-		}
-	}
-
-	if matchKey == nil {
-		return keybase1.Message{}, fmt.Errorf("no key found for generation %d", msg.KeyGeneration)
-	}
-
-	return b.unboxMessageWithKey(msg, matchKey)
-}
-
-// unboxMessageWithKey unboxes a chat1.MessageBoxed into a keybase1.Message given
-// a keybase1.CryptKey.
-func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.CryptKey) (keybase1.Message, error) {
-	if msg.ServerHeader == nil {
-		return keybase1.Message{}, errors.New("nil ServerHeader in MessageBoxed")
-	}
-
-	unboxed := keybase1.Message{
-		ServerHeader: *msg.ServerHeader,
-	}
-
-	if len(msg.BodyCiphertext.N) != libkb.NaclDHNonceSize {
-		return keybase1.Message{}, libkb.DecryptBadNonceError{}
-	}
-	var nonce [libkb.NaclDHNonceSize]byte
-	copy(nonce[:], msg.BodyCiphertext.N)
-
-	plaintext, ok := secretbox.Open(nil, msg.BodyCiphertext.E, &nonce, ((*[32]byte)(&key.Key)))
-	if !ok {
-		return keybase1.Message{}, libkb.DecryptOpenError{}
-	}
-
-	if err := json.Unmarshal(plaintext, &unboxed.MessagePlaintext); err != nil {
-		return keybase1.Message{}, err
-	}
-
-	return unboxed, nil
-
-}
-
-// boxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
-// finds the most recent key for the TLF.
-func (b *chatBoxer) boxMessage(ctx context.Context, msg keybase1.MessagePlaintext) (chat1.MessageBoxed, error) {
-	tlfName := msg.ClientHeader.TlfName
-	keys, err := b.tlf.CryptKeys(ctx, tlfName)
-	if err != nil {
-		return chat1.MessageBoxed{}, err
-	}
-
-	var recentKey *keybase1.CryptKey
-	for _, key := range keys.CryptKeys {
-		if recentKey == nil || key.KeyGeneration > recentKey.KeyGeneration {
-			recentKey = &key
-		}
-	}
-
-	if recentKey == nil {
-		return chat1.MessageBoxed{}, fmt.Errorf("no key found for tlf %q", tlfName)
-	}
-
-	return b.boxMessageWithKey(msg, recentKey)
-}
-
-// boxMessageWithKey encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed
-// given a keybase1.CryptKey.
-func (b *chatBoxer) boxMessageWithKey(msg keybase1.MessagePlaintext, key *keybase1.CryptKey) (chat1.MessageBoxed, error) {
-	s, err := json.Marshal(msg)
-	if err != nil {
-		return chat1.MessageBoxed{}, err
-	}
-
-	var nonce [libkb.NaclDHNonceSize]byte
-	if _, err := rand.Read(nonce[:]); err != nil {
-		return chat1.MessageBoxed{}, err
-	}
-
-	sealed := secretbox.Seal(nil, []byte(s), &nonce, ((*[32]byte)(&key.Key)))
-
-	boxed := chat1.MessageBoxed{
-		ClientHeader: msg.ClientHeader,
-		BodyCiphertext: chat1.EncryptedData{
-			V: 1,
-			E: sealed,
-			N: nonce[:],
-		},
-		KeyGeneration: key.KeyGeneration,
-	}
-
-	return boxed, nil
-}
-
 // signMessageBoxed signs the header and encrypted body of a chat1.MessageBoxed
 // with the NaclSigningKeyPair.
 func (h *chatLocalHandler) signMessageBoxed(msg *chat1.MessageBoxed, kp libkb.NaclSigningKeyPair) error {
-	header, err := h.sign(msg.ClientHeader, kp)
+	header, err := h.signJSON(msg.ClientHeader, kp)
 	if err != nil {
 		return err
 	}
 	msg.HeaderSignature = header
 
-	body, err := h.sign(msg.BodyCiphertext, kp)
+	body, err := h.sign(msg.BodyCiphertext.E, kp)
 	if err != nil {
 		return err
 	}
@@ -258,14 +146,20 @@ func (h *chatLocalHandler) signMessageBoxed(msg *chat1.MessageBoxed, kp libkb.Na
 	return nil
 }
 
-// sign signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
-func (h *chatLocalHandler) sign(data interface{}, kp libkb.NaclSigningKeyPair) (chat1.SignatureInfo, error) {
+// signJSON signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
+// It encodes data to JSON before signing.
+func (h *chatLocalHandler) signJSON(data interface{}, kp libkb.NaclSigningKeyPair) (chat1.SignatureInfo, error) {
 	encoded, err := json.Marshal(data)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
 	}
 
-	sig := *kp.Private.Sign(encoded)
+	return h.sign(encoded, kp)
+}
+
+// sign signs msg with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
+func (h *chatLocalHandler) sign(msg []byte, kp libkb.NaclSigningKeyPair) (chat1.SignatureInfo, error) {
+	sig := *kp.Private.Sign(msg)
 
 	info := chat1.SignatureInfo{
 		V: 1,

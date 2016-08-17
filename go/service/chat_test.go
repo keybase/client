@@ -54,6 +54,15 @@ func TestChatMessageUnbox(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	signKP, err := libkb.GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := handler.signMessageBoxed(&boxed, signKP); err != nil {
+		t.Fatal(err)
+	}
+
 	// need to give it a server header...
 	boxed.ServerHeader = &chat1.MessageServerHeader{}
 
