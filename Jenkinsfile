@@ -78,7 +78,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                 checkout scm
                                 sh 'echo -n $(git rev-parse HEAD) > go/revision'
                                 sh "git add go/revision"
-                                sh 'GIT_COMMITER_EMAIL=jenkins@keybase.io git commit -am "revision file added"'
+                                sh 'git commit --author="Jenkins <ci@keybase.io>" -am "revision file added"'
                                 env.COMMIT_HASH = readFile('go/revision')
                                 sh 'echo -n $(git --no-pager show -s --format="%an" HEAD) > .author_name'
                                 sh 'echo -n $(git --no-pager show -s --format="%ae" HEAD) > .author_email'
