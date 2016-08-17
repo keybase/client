@@ -18,8 +18,8 @@ class Engine {
   _rpcClient: createClientType
   // All incoming call handlers
   _incomingHandler: {[key: MethodKey]: (param: Object, response: ?Object) => void} = {}
-  // Keyed methods that care when we reconnect
-  _onConnectHandlers: {[key: string]: () => void} = {}
+  // Keyed methods that care when we reconnect. Is null while we're handing _onConnect
+  _onConnectHandlers: ?{[key: string]: () => void} = {}
   // Set to true to throw on errors. Used in testing
   _failOnError: boolean = false
   // We generate sessionIDs monotonically
@@ -66,9 +66,16 @@ class Engine {
 
   // Called when we reconnect to the server
   _onConnected () {
-    // Make a copy so we don't mutate while calling the handlers
-    const handlers = {...this._onConnectHandlers}
+    // This should be impossible but makes flow happy
+    if (!this._onConnectHandlers) {
+      return
+    }
+
+    const handlers = this._onConnectHandlers
+    // Don't allow mutation while we're handling the handlers
+    this._onConnectHandlers = null
     Object.keys(handlers).forEach(k => handlers[k]())
+    this._onConnectHandlers = handlers
   }
 
   // Create and return the next unique session id
@@ -208,6 +215,10 @@ class Engine {
 
   // Register a named callback when we reconnect to the server. Call if we're already connected
   listenOnConnect (key: string, f: () => void) {
+    if (!this._onConnectHandlers) {
+      throw new Error('Calling listenOnConnect while in the middle of _onConnected')
+    }
+
     if (!f) {
       throw new Error('Null callback sent to listenOnConnect')
     }
