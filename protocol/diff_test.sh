@@ -19,6 +19,11 @@ git add -A ./ ../go/ ../shared/
 # This build process is idempotent. We expect there to be no changes after
 # re-running the protocol generation, because any changes should have been
 # checked in.
+
+git diff # for testing
+git diff --exit-code # for testing
+echo $? # for testing
+
 if ! git diff --quiet --exit-code HEAD -- ./ ../go/ ../shared/; then
   echo 'ERROR: `git diff` detected changes. The generated protocol files are stale.'
   exit 1
