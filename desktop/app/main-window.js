@@ -33,15 +33,8 @@ export default function () {
     mainWindow.window.setPosition(forceMainWindowPosition.x, forceMainWindowPosition.y)
   }
 
-  let isRestore = false
-  if (getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState) {
-    isRestore = true
-  }
-
-  let openHidden = false
-  if ((getenv.string('KEYBASE_START_UI', '') === 'hideWindow') || app.getLoginItemSettings().wasOpenedAsHidden) {
-    openHidden = true
-  }
+  const isRestore = getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState
+  const openHidden = (getenv.string('KEYBASE_START_UI', '') === 'hideWindow') || app.getLoginItemSettings().wasOpenedAsHidden
 
   // We show the main window on startup if:
   //  - We are not restoring the UI (after update)
