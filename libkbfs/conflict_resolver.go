@@ -676,7 +676,10 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 		if ri, ok := unmergedChains.renamedOriginals[currOriginal]; ok {
 			oldParent, ok := unmergedChains.byOriginal[ri.originalOldParent]
 			if !ok {
-				continue
+				cr.log.CDebugf(ctx, "Couldn't find chain for original "+
+					"old parent: %v", ri.originalOldParent)
+				return path{}, BlockPointer{}, nil,
+					NoChainFoundError{ri.originalOldParent}
 			}
 			for _, op := range oldParent.ops {
 				ro, ok := op.(*rmOp)
@@ -693,7 +696,10 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 			// which contains the proper refblock.
 			newParent, ok := unmergedChains.byOriginal[ri.originalNewParent]
 			if !ok {
-				continue
+				cr.log.CDebugf(ctx, "Couldn't find chain for original new "+
+					"parent: %v", ri.originalNewParent)
+				return path{}, BlockPointer{}, nil,
+					NoChainFoundError{ri.originalNewParent}
 			}
 			for i, op := range newParent.ops {
 				oldCo, ok := op.(*createOp)
