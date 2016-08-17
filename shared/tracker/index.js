@@ -92,7 +92,7 @@ export default connect(
       nonUser: trackerState && trackerState.type === 'nonUser',
       loggedIn: state.config && state.config.loggedIn,
       loading: isLoading(trackerState),
-      actionBarReady: !trackerState.serverActive && !!state.error,
+      actionBarReady: !trackerState.serverActive && !state.error,
       ...trackerState,
       ...ownProps,
     }

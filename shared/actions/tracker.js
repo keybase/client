@@ -6,11 +6,10 @@ import engine from '../engine'
 import openUrl from '../util/open-url'
 import setNotifications from '../util/set-notifications'
 import type {Action, Dispatch, AsyncAction} from '../constants/types/flux'
-import type {CallMap} from '../engine/call-map-middleware'
 import type {CancelHandlerType} from '../engine/session'
 import type {ConfigState} from '../reducers/config'
 import type {FriendshipUserInfo} from '../profile/friendships'
-import type {RemoteProof, LinkCheckResult, UserCard} from '../constants/types/flow-types'
+import type {RemoteProof, LinkCheckResult, UserCard, incomingCallMapType} from '../constants/types/flow-types'
 import type {ShowNonUser, PendingIdentify, Proof} from '../constants/tracker'
 import type {State as RootTrackerState} from '../reducers/tracker'
 import type {TypedState} from '../constants/reducer'
@@ -23,7 +22,6 @@ import {
   trackTrackWithTokenRpc,
   trackUntrackRpc,
 } from '../constants/types/flow-types'
-import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
 import {identifyCommon} from '../constants/types/keybase-v1'
 import {routeAppend} from './router'
 import {showAllTrackers} from '../local-debug'
@@ -422,9 +420,9 @@ function updatePGPKey (username: string, pgpFingerprint: Buffer): Action {
 
 const sessionIDToUsername: { [key: number]: string } = {}
 // TODO: if we get multiple tracker calls we should cancel one of the sessionIDs, now they'll clash
-function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: boolean = false, onFinish: ?() => void): CallMap {
-  const identifyUi = {
-    start: ({username, sessionID, reason}) => {
+function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: boolean = false, onFinish: ?() => void): incomingCallMapType {
+  return {
+    'keybase.1.identifyUi.start': ({username, sessionID, reason}, response) => {
       sessionIDToUsername[sessionID] = username
 
       if (reason && (reason.reason === profileReason)) {
@@ -455,11 +453,22 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         type: Constants.reportLastTrack,
         payload: {username},
       })
+
+      response.result()
     },
 
-    displayTLFCreateWithInvite: (args, response) => dispatch(({payload: args, type: Constants.showNonUser}: ShowNonUser)),
-
-    displayKey: ({sessionID, key}) => {
+    'keybase.1.identifyUi.displayTLFCreateWithInvite': (args, response) => {
+      dispatch(({payload: {
+        folderName: args.folderName,
+        isPrivate: args.isPrivate,
+        assertion: args.assertion,
+        socialAssertion: args.socialAssertion,
+        inviteLink: args.inviteLink,
+        throttled: args.throttled,
+      }, type: Constants.showNonUser}: ShowNonUser))
+      response.result()
+    },
+    'keybase.1.identifyUi.displayKey': ({sessionID, key}, response) => {
       const username = sessionIDToUsername[sessionID]
 
       if (key.breaksTracking) {
@@ -473,8 +482,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         dispatch(updatePGPKey(username, key.pgpFingerprint))
         dispatch({type: Constants.updateProofState, payload: {username}})
       }
+      response.result()
     },
-    reportLastTrack: ({sessionID, track}) => {
+    'keybase.1.identifyUi.reportLastTrack': ({sessionID, track}, response) => {
       const username = sessionIDToUsername[sessionID]
       dispatch({
         type: Constants.reportLastTrack,
@@ -484,9 +494,10 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
       if (!track && !skipPopups) {
         dispatch({type: Constants.showTracker, payload: {username}})
       }
-    },
 
-    launchNetworkChecks: ({sessionID, identity}) => {
+      response.result()
+    },
+    'keybase.1.identifyUi.launchNetworkChecks': ({sessionID, identity}, response) => {
       const username = sessionIDToUsername[sessionID]
       // This is the first spot that we have access to the user, so let's use that to get
       // The user information
@@ -499,19 +510,21 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
       if (identity.breaksTracking && !skipPopups) {
         dispatch({type: Constants.showTracker, payload: {username}})
       }
+      response.result()
+    },
+    'keybase.1.identifyUi.displayTrackStatement': (params, response) => {
+      response.result()
     },
 
-    displayTrackStatement: params => {
-    },
-
-    dismiss: ({username, reason}) => {
+    'keybase.1.identifyUi.dismiss': ({username, reason}, response) => {
       dispatch({
         type: Constants.remoteDismiss,
         payload: {username, reason},
       })
+      response.result()
     },
 
-    finishWebProofCheck: ({sessionID, rp, lcr}) => {
+    'keybase.1.identifyUi.finishWebProofCheck': ({sessionID, rp, lcr}, response) => {
       const username = sessionIDToUsername[sessionID]
       dispatch(updateProof(rp, lcr, username))
       dispatch({type: Constants.updateProofState, payload: {username}})
@@ -519,8 +532,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
       if (lcr.breaksTracking && !skipPopups) {
         dispatch({type: Constants.showTracker, payload: {username}})
       }
+      response.result()
     },
-    finishSocialProofCheck: ({sessionID, rp, lcr}) => {
+    'keybase.1.identifyUi.finishSocialProofCheck': ({sessionID, rp, lcr}, response) => {
       const username = sessionIDToUsername[sessionID]
       dispatch(updateProof(rp, lcr, username))
       dispatch({type: Constants.updateProofState, payload: {username}})
@@ -528,17 +542,20 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
       if (lcr.breaksTracking && !skipPopups) {
         dispatch({type: Constants.showTracker, payload: {username}})
       }
+      response.result()
     },
-    displayCryptocurrency: ({sessionID, c: {address}}) => {
+    'keybase.1.identifyUi.displayCryptocurrency': ({sessionID, c: {address}}, response) => {
       const username = sessionIDToUsername[sessionID]
       dispatch(updateBTC(username, address))
       dispatch({type: Constants.updateProofState, payload: {username}})
+      response.result()
     },
-    displayUserCard: ({sessionID, card}) => {
+    'keybase.1.identifyUi.displayUserCard': ({sessionID, card}, response) => {
       const username = sessionIDToUsername[sessionID]
       dispatch(updateUserInfo(card, username, getState))
+      response.result()
     },
-    reportTrackToken: ({sessionID, trackToken}) => {
+    'keybase.1.identifyUi.reportTrackToken': ({sessionID, trackToken}, response) => {
       const username = sessionIDToUsername[sessionID]
       dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
 
@@ -554,11 +571,16 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
           },
         })
       }
+      response.result()
     },
-    confirm: () => {
-      // our UI doesn't use this at all, keep this to not get an unhandled incoming msg warning
+    'keybase.1.identifyUi.confirm': (param, response) => {
+      response.result({
+        identityConfirmed: false,
+        remoteConfirmed: false,
+        expiringLocal: false,
+      })
     },
-    finish: ({sessionID}) => {
+    'keybase.1.identifyUi.finish': ({sessionID}, response) => {
       const username = sessionIDToUsername[sessionID]
       // Check if there were any errors in the proofs
       dispatch({type: Constants.updateProofState, payload: {username}})
@@ -577,10 +599,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
       })
 
       onFinish && onFinish()
+      response.result()
     },
   }
-
-  return promisifyResponses(flattenCallMap({keybase: {'1': {identifyUi}}}))
 }
 
 function updateProof (remoteProof: RemoteProof, linkCheckResult: LinkCheckResult, username: string): Action {
