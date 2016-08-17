@@ -162,6 +162,7 @@ func (e *PaperProvisionEngine) paper(ctx *Context, kp *keypair) error {
 		if err := e.makeDeviceKeysWithSigner(ctx, kp.sigKey); err != nil {
 			return err
 		}
+		lctx.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
 			// not a fatal error, session will stay in memory
 			e.G().Log.Warning("error saving session file: %s", err)

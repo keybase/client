@@ -134,7 +134,7 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(h.G()))
 	if err != nil {
-		h.G().Log.Debug("| could not load me user")
+		h.G().Log.Debug("| could not load me user: %s", err)
 	} else {
 		device, err := me.GetComputedKeyFamily().GetCurrentDevice(h.G())
 		if err != nil {

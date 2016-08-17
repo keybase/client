@@ -90,6 +90,10 @@
         {
           "type": "string",
           "name": "address"
+        },
+        {
+          "type": "SigID",
+          "name": "sigID"
         }
       ]
     },

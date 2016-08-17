@@ -124,7 +124,7 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 	if e.arg.Opts.UsePaperKey {
 		// Prompt the user for a paper key. This doesn't require you to be
 		// logged in.
-		keypair, err := getPaperKey(e.G(), ctx, nil)
+		keypair, _, err := getPaperKey(e.G(), ctx, nil)
 		if err != nil {
 			return err
 		}

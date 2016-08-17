@@ -2,6 +2,7 @@
 // Handles sending requests to native mobile (then go) and back
 import setupLocalLogs from '../util/local-log'
 import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
+import {isMobile} from '../constants/platform'
 import {constants} from '../constants/types/keybase-v1'
 import {log} from '../native/log/logui'
 import {resetClient, createClient} from './platform-specific'
@@ -60,18 +61,7 @@ class Engine {
       }, 10 * 1000)
     }
 
-    if (!NO_ENGINE) {
-      this.rpcClient = createClient(
-        payload => {
-          if (__DEV__ && KEYBASE_RPC_DELAY_RESULT) {
-            setTimeout(() => this._rpcIncoming(payload), KEYBASE_RPC_DELAY_RESULT)
-          } else {
-            this._rpcIncoming(payload)
-          }
-        },
-        () => this._onConnect()
-      )
-    }
+    this._setupClient()
 
     this.sessionID = 123
 
@@ -95,6 +85,21 @@ class Engine {
 
     // Throw an error and fail?
     this._failOnError = false
+  }
+
+  _setupClient () {
+    if (!NO_ENGINE) {
+      this.rpcClient = createClient(
+        payload => {
+          if (__DEV__ && KEYBASE_RPC_DELAY_RESULT) {
+            setTimeout(() => this._rpcIncoming(payload), KEYBASE_RPC_DELAY_RESULT)
+          } else {
+            this._rpcIncoming(payload)
+          }
+        },
+        () => this._onConnect()
+      )
+    }
   }
 
   _onConnect () {
@@ -409,7 +414,11 @@ class Engine {
   }
 
   reset () {
-    resetClient()
+    // TODO (MM): this isn't working currently on mobile
+    if (!isMobile) {
+      resetClient()
+      this._setupClient()
+    }
   }
 }
 

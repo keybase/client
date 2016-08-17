@@ -46,6 +46,10 @@
         {
           "type": "boolean",
           "name": "app"
+        },
+        {
+          "type": "boolean",
+          "name": "chat"
         }
       ]
     }

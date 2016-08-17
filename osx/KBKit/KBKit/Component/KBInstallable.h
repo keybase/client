@@ -18,6 +18,9 @@ typedef NS_ENUM (NSInteger, KBInstallRuntimeStatus) {
   KBInstallRuntimeStatusStopped,
 };
 
+// Default timeout for running (external) install (or status) commands
+extern const NSTimeInterval KBDefaultInstallableTimeout;
+
 typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
 @interface KBInstallable : KBComponent
