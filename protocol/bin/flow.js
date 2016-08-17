@@ -28,7 +28,7 @@ var projects = [
 
 projects.forEach(project => {
   fs.readdirAsync(project.root)
-  .filter(jsonOnlySkipGregor)
+  .filter(jsonOnly)
   .map(file => load(file, project))
   .map(json => analyze(json, project))
   .reduce((acc, typeDefs) => acc.concat(typeDefs), [])
@@ -37,7 +37,7 @@ projects.forEach(project => {
   .then(typeDefs => write(typeDefs, project))
 })
 
-function jsonOnlySkipGregor (file) {
+function jsonOnly (file) {
   return !!file.match(/.*\.json$/)
 }
 
@@ -149,11 +149,18 @@ function analyzeMessages (json, project) {
     p = params(false, '  ')
     if (p) { p = `\n${p}\n` }
 
+    // ui means incoming
+    const isUIProtocol = !!json.protocol.match(/.*ui$/i)
+
     const paramType = p ? `export type ${name}RpcParam = $Exact<{${p}}>` : ''
     const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'requestErrorCallback'
     const innerParamType = p ? `{param: ${name}RpcParam}` : null
 
-    const rpc = `export function ${name}Rpc (request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
+    if (m === 'getPassphrase') {
+      console.log(message)
+    }
+
+    const rpc = isUIProtocol ? '\n' : `export function ${name}Rpc (request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
   engineRpcOutgoing({...request, method: '${json.protocol}.${m}'})
 }
 `
@@ -229,16 +236,18 @@ function parseRecord (t) {
 }
 
 function makeRpcUnionType (typeDefs) {
-  const rpcTypes = typeDefs.map(t => t.match(/(\w*Rpc)/g))
-      .filter(t => t)
-      .reduce((acc, t) => {
-        const clean = t[0].trim()
-        return acc.indexOf(clean) === -1 ? acc.concat([clean]) : acc
-      }, [])
-      .sort()
-      .join('\n  | ')
-
-  console.log(rpcTypes)
+  const rpcTypes = typeDefs.map(t => {
+    const m = t.match(/(\w*Rpc) \(/)
+    return m && m[1]
+  })
+  .filter(t => t)
+  .reduce((acc, t) => {
+    const clean = t.trim()
+    console.log(clean)
+    return acc.indexOf(clean) === -1 ? acc.concat([clean]) : acc
+  }, [])
+  .sort()
+  .join('\n  | ')
 
   if (rpcTypes) {
     const unionRpcType = `export type rpc =

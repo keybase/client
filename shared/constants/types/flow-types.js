@@ -36,6 +36,8 @@ type CommonResponseHandler = {
   result: (...rest: Array<void>) => void,
 }
 
+
+
 export function Kex2ProvisionerKexStartRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisioner.kexStart'})
 }
@@ -78,9 +80,6 @@ export function delegateUiCtlRegisterUpdateUIRpc (request: $Exact<requestCommon 
 export function deviceDeviceAddRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'device.deviceAdd'})
 }
-export function identifyUiFinishRpc (request: $Exact<requestCommon & requestErrorCallback>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.finish'})
-}
 export function loginLogoutRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'login.logout'})
 }
@@ -95,9 +94,6 @@ export function metadataPingRpc (request: $Exact<requestCommon & requestErrorCal
 }
 export function pgpPgpDeletePrimaryRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpDeletePrimary'})
-}
-export function provisionUiDisplaySecretExchangedRpc (request: $Exact<requestCommon & requestErrorCallback>) {
-  engineRpcOutgoing({...request, method: 'provisionUi.DisplaySecretExchanged'})
 }
 export function rekeyDebugShowRekeyStatusRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'rekey.debugShowRekeyStatus'})
@@ -1815,18 +1811,14 @@ export type gpgUiSelectKeyAndPushOptionRpcParam = $Exact<{
 
 type gpgUiSelectKeyAndPushOptionResult = SelectKeyRes
 
-export function gpgUiSelectKeyAndPushOptionRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gpgUiSelectKeyAndPushOptionResult) => void} & {param: gpgUiSelectKeyAndPushOptionRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'gpgUi.selectKeyAndPushOption'})
-}
+
 export type gpgUiSelectKeyRpcParam = $Exact<{
   keys?: ?Array<GPGKey>
 }>
 
 type gpgUiSelectKeyResult = string
 
-export function gpgUiSelectKeyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gpgUiSelectKeyResult) => void} & {param: gpgUiSelectKeyRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'gpgUi.selectKey'})
-}
+
 export type gpgUiSignRpcParam = $Exact<{
   msg: bytes,
   fingerprint: bytes
@@ -1834,24 +1826,18 @@ export type gpgUiSignRpcParam = $Exact<{
 
 type gpgUiSignResult = string
 
-export function gpgUiSignRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gpgUiSignResult) => void} & {param: gpgUiSignRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'gpgUi.sign'})
-}
+
 export type gregorUIPushOutOfBandMessagesRpcParam = $Exact<{
   oobm?: ?Array<gregor1.OutOfBandMessage>
 }>
 
-export function gregorUIPushOutOfBandMessagesRpc (request: $Exact<requestCommon & requestErrorCallback & {param: gregorUIPushOutOfBandMessagesRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'gregorUI.pushOutOfBandMessages'})
-}
+
 export type gregorUIPushStateRpcParam = $Exact<{
   state: gregor1.State,
   reason: PushReason
 }>
 
-export function gregorUIPushStateRpc (request: $Exact<requestCommon & requestErrorCallback & {param: gregorUIPushStateRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'gregorUI.pushState'})
-}
+
 export type identifyIdentify2RpcParam = $Exact<{
   uid: UID,
   userAssertion: string,
@@ -1907,31 +1893,23 @@ export type identifyUiConfirmRpcParam = $Exact<{
 
 type identifyUiConfirmResult = ConfirmResult
 
-export function identifyUiConfirmRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyUiConfirmResult) => void} & {param: identifyUiConfirmRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.confirm'})
-}
+
 export type identifyUiDismissRpcParam = $Exact<{
   username: string,
   reason: DismissReason
 }>
 
-export function identifyUiDismissRpc (request: $Exact<requestCommon & requestErrorCallback & {param: identifyUiDismissRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.dismiss'})
-}
+
 export type identifyUiDisplayCryptocurrencyRpcParam = $Exact<{
   c: Cryptocurrency
 }>
 
-export function identifyUiDisplayCryptocurrencyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: identifyUiDisplayCryptocurrencyRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.displayCryptocurrency'})
-}
+
 export type identifyUiDisplayKeyRpcParam = $Exact<{
   key: IdentifyKey
 }>
 
-export function identifyUiDisplayKeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: identifyUiDisplayKeyRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.displayKey'})
-}
+
 export type identifyUiDisplayTLFCreateWithInviteRpcParam = $Exact<{
   folderName: string,
   isPrivate: boolean,
@@ -1941,69 +1919,51 @@ export type identifyUiDisplayTLFCreateWithInviteRpcParam = $Exact<{
   throttled: boolean
 }>
 
-export function identifyUiDisplayTLFCreateWithInviteRpc (request: $Exact<requestCommon & requestErrorCallback & {param: identifyUiDisplayTLFCreateWithInviteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.displayTLFCreateWithInvite'})
-}
+
 export type identifyUiDisplayTrackStatementRpcParam = $Exact<{
   stmt: string
 }>
 
-export function identifyUiDisplayTrackStatementRpc (request: $Exact<requestCommon & requestErrorCallback & {param: identifyUiDisplayTrackStatementRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.displayTrackStatement'})
-}
+
 export type identifyUiDisplayUserCardRpcParam = $Exact<{
   card: UserCard
 }>
 
-export function identifyUiDisplayUserCardRpc (request: $Exact<requestCommon & requestErrorCallback & {param: identifyUiDisplayUserCardRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.displayUserCard'})
-}
+
 export type identifyUiFinishSocialProofCheckRpcParam = $Exact<{
   rp: RemoteProof,
   lcr: LinkCheckResult
 }>
 
-export function identifyUiFinishSocialProofCheckRpc (request: $Exact<requestCommon & requestErrorCallback & {param: identifyUiFinishSocialProofCheckRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.finishSocialProofCheck'})
-}
+
 export type identifyUiFinishWebProofCheckRpcParam = $Exact<{
   rp: RemoteProof,
   lcr: LinkCheckResult
 }>
 
-export function identifyUiFinishWebProofCheckRpc (request: $Exact<requestCommon & requestErrorCallback & {param: identifyUiFinishWebProofCheckRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.finishWebProofCheck'})
-}
+
 export type identifyUiLaunchNetworkChecksRpcParam = $Exact<{
   identity: Identity,
   user: User
 }>
 
-export function identifyUiLaunchNetworkChecksRpc (request: $Exact<requestCommon & requestErrorCallback & {param: identifyUiLaunchNetworkChecksRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.launchNetworkChecks'})
-}
+
 export type identifyUiReportLastTrackRpcParam = $Exact<{
   track?: ?TrackSummary
 }>
 
-export function identifyUiReportLastTrackRpc (request: $Exact<requestCommon & requestErrorCallback & {param: identifyUiReportLastTrackRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.reportLastTrack'})
-}
+
 export type identifyUiReportTrackTokenRpcParam = $Exact<{
   trackToken: TrackToken
 }>
 
-export function identifyUiReportTrackTokenRpc (request: $Exact<requestCommon & requestErrorCallback & {param: identifyUiReportTrackTokenRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.reportTrackToken'})
-}
+
 export type identifyUiStartRpcParam = $Exact<{
   username: string,
   reason: IdentifyReason
 }>
 
-export function identifyUiStartRpc (request: $Exact<requestCommon & requestErrorCallback & {param: identifyUiStartRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.start'})
-}
+
 export type kbfsFSEditListRpcParam = $Exact<{
   edits?: ?Array<FSNotification>,
   requestID: int
@@ -2032,9 +1992,7 @@ export type logUiLogRpcParam = $Exact<{
   text: Text
 }>
 
-export function logUiLogRpc (request: $Exact<requestCommon & requestErrorCallback & {param: logUiLogRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'logUi.log'})
-}
+
 export type loginClearStoredSecretRpcParam = $Exact<{
   username: string
 }>
@@ -2086,16 +2044,12 @@ export type loginUiDisplayPaperKeyPhraseRpcParam = $Exact<{
   phrase: string
 }>
 
-export function loginUiDisplayPaperKeyPhraseRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginUiDisplayPaperKeyPhraseRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'loginUi.displayPaperKeyPhrase'})
-}
+
 export type loginUiDisplayPrimaryPaperKeyRpcParam = $Exact<{
   phrase: string
 }>
 
-export function loginUiDisplayPrimaryPaperKeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginUiDisplayPrimaryPaperKeyRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'loginUi.displayPrimaryPaperKey'})
-}
+
 export type loginUiPromptRevokePaperKeysRpcParam = $Exact<{
   device: Device,
   index: int
@@ -2103,9 +2057,7 @@ export type loginUiPromptRevokePaperKeysRpcParam = $Exact<{
 
 type loginUiPromptRevokePaperKeysResult = boolean
 
-export function loginUiPromptRevokePaperKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: loginUiPromptRevokePaperKeysResult) => void} & {param: loginUiPromptRevokePaperKeysRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'loginUi.promptRevokePaperKeys'})
-}
+
 export type loginUnlockWithPassphraseRpcParam = $Exact<{
   passphrase: string
 }>
@@ -2433,9 +2385,7 @@ export type pgpUiOutputSignatureSuccessRpcParam = $Exact<{
   signedAt: Time
 }>
 
-export function pgpUiOutputSignatureSuccessRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpUiOutputSignatureSuccessRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'pgpUi.outputSignatureSuccess'})
-}
+
 export type proveCheckProofRpcParam = $Exact<{
   sigID: SigID
 }>
@@ -2462,9 +2412,7 @@ export type proveUiDisplayRecheckWarningRpcParam = $Exact<{
   text: Text
 }>
 
-export function proveUiDisplayRecheckWarningRpc (request: $Exact<requestCommon & requestErrorCallback & {param: proveUiDisplayRecheckWarningRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'proveUi.displayRecheckWarning'})
-}
+
 export type proveUiOkToCheckRpcParam = $Exact<{
   name: string,
   attempt: int
@@ -2472,33 +2420,25 @@ export type proveUiOkToCheckRpcParam = $Exact<{
 
 type proveUiOkToCheckResult = boolean
 
-export function proveUiOkToCheckRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveUiOkToCheckResult) => void} & {param: proveUiOkToCheckRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'proveUi.okToCheck'})
-}
+
 export type proveUiOutputInstructionsRpcParam = $Exact<{
   instructions: Text,
   proof: string
 }>
 
-export function proveUiOutputInstructionsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: proveUiOutputInstructionsRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'proveUi.outputInstructions'})
-}
+
 export type proveUiOutputPrechecksRpcParam = $Exact<{
   text: Text
 }>
 
-export function proveUiOutputPrechecksRpc (request: $Exact<requestCommon & requestErrorCallback & {param: proveUiOutputPrechecksRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'proveUi.outputPrechecks'})
-}
+
 export type proveUiPreProofWarningRpcParam = $Exact<{
   text: Text
 }>
 
 type proveUiPreProofWarningResult = boolean
 
-export function proveUiPreProofWarningRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveUiPreProofWarningResult) => void} & {param: proveUiPreProofWarningRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'proveUi.preProofWarning'})
-}
+
 export type proveUiPromptOverwriteRpcParam = $Exact<{
   account: string,
   typ: PromptOverwriteType
@@ -2506,9 +2446,7 @@ export type proveUiPromptOverwriteRpcParam = $Exact<{
 
 type proveUiPromptOverwriteResult = boolean
 
-export function proveUiPromptOverwriteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveUiPromptOverwriteResult) => void} & {param: proveUiPromptOverwriteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'proveUi.promptOverwrite'})
-}
+
 export type proveUiPromptUsernameRpcParam = $Exact<{
   prompt: string,
   prevError?: ?Status
@@ -2516,45 +2454,35 @@ export type proveUiPromptUsernameRpcParam = $Exact<{
 
 type proveUiPromptUsernameResult = string
 
-export function proveUiPromptUsernameRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveUiPromptUsernameResult) => void} & {param: proveUiPromptUsernameRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'proveUi.promptUsername'})
-}
+
 export type provisionUiChooseDeviceRpcParam = $Exact<{
   devices?: ?Array<Device>
 }>
 
 type provisionUiChooseDeviceResult = DeviceID
 
-export function provisionUiChooseDeviceRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: provisionUiChooseDeviceResult) => void} & {param: provisionUiChooseDeviceRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'provisionUi.chooseDevice'})
-}
+
 export type provisionUiChooseDeviceTypeRpcParam = $Exact<{
   kind: ChooseType
 }>
 
 type provisionUiChooseDeviceTypeResult = DeviceType
 
-export function provisionUiChooseDeviceTypeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: provisionUiChooseDeviceTypeResult) => void} & {param: provisionUiChooseDeviceTypeRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'provisionUi.chooseDeviceType'})
-}
+
 export type provisionUiChooseGPGMethodRpcParam = $Exact<{
   keys?: ?Array<GPGKey>
 }>
 
 type provisionUiChooseGPGMethodResult = GPGMethod
 
-export function provisionUiChooseGPGMethodRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: provisionUiChooseGPGMethodResult) => void} & {param: provisionUiChooseGPGMethodRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'provisionUi.chooseGPGMethod'})
-}
+
 export type provisionUiChooseProvisioningMethodRpcParam = $Exact<{
   gpgOption: boolean
 }>
 
 type provisionUiChooseProvisioningMethodResult = ProvisionMethod
 
-export function provisionUiChooseProvisioningMethodRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: provisionUiChooseProvisioningMethodResult) => void} & {param: provisionUiChooseProvisioningMethodRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'provisionUi.chooseProvisioningMethod'})
-}
+
 export type provisionUiDisplayAndPromptSecretRpcParam = $Exact<{
   secret: bytes,
   phrase: string,
@@ -2563,9 +2491,7 @@ export type provisionUiDisplayAndPromptSecretRpcParam = $Exact<{
 
 type provisionUiDisplayAndPromptSecretResult = SecretResponse
 
-export function provisionUiDisplayAndPromptSecretRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: provisionUiDisplayAndPromptSecretResult) => void} & {param: provisionUiDisplayAndPromptSecretRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'provisionUi.DisplayAndPromptSecret'})
-}
+
 export type provisionUiPromptNewDeviceNameRpcParam = $Exact<{
   existingDevices?: ?Array<string>,
   errorMessage: string
@@ -2573,25 +2499,19 @@ export type provisionUiPromptNewDeviceNameRpcParam = $Exact<{
 
 type provisionUiPromptNewDeviceNameResult = string
 
-export function provisionUiPromptNewDeviceNameRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: provisionUiPromptNewDeviceNameResult) => void} & {param: provisionUiPromptNewDeviceNameRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'provisionUi.PromptNewDeviceName'})
-}
+
 export type provisionUiProvisioneeSuccessRpcParam = $Exact<{
   username: string,
   deviceName: string
 }>
 
-export function provisionUiProvisioneeSuccessRpc (request: $Exact<requestCommon & requestErrorCallback & {param: provisionUiProvisioneeSuccessRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'provisionUi.ProvisioneeSuccess'})
-}
+
 export type provisionUiProvisionerSuccessRpcParam = $Exact<{
   deviceName: string,
   deviceType: string
 }>
 
-export function provisionUiProvisionerSuccessRpc (request: $Exact<requestCommon & requestErrorCallback & {param: provisionUiProvisionerSuccessRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'provisionUi.ProvisionerSuccess'})
-}
+
 export type provisionUiSwitchToGPGSignOKRpcParam = $Exact<{
   key: GPGKey,
   importError: string
@@ -2599,9 +2519,7 @@ export type provisionUiSwitchToGPGSignOKRpcParam = $Exact<{
 
 type provisionUiSwitchToGPGSignOKResult = boolean
 
-export function provisionUiSwitchToGPGSignOKRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: provisionUiSwitchToGPGSignOKResult) => void} & {param: provisionUiSwitchToGPGSignOKRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'provisionUi.switchToGPGSignOK'})
-}
+
 export type quotaVerifySessionRpcParam = $Exact<{
   session: string
 }>
@@ -2622,16 +2540,12 @@ export type rekeyUIRefreshRpcParam = $Exact<{
   problemSetDevices: ProblemSetDevices
 }>
 
-export function rekeyUIRefreshRpc (request: $Exact<requestCommon & requestErrorCallback & {param: rekeyUIRefreshRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'rekeyUI.refresh'})
-}
+
 export type rekeyUIRekeySendEventRpcParam = $Exact<{
   event: RekeyEvent
 }>
 
-export function rekeyUIRekeySendEventRpc (request: $Exact<requestCommon & requestErrorCallback & {param: rekeyUIRekeySendEventRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'rekeyUI.rekeySendEvent'})
-}
+
 export type revokeRevokeDeviceRpcParam = $Exact<{
   deviceID: DeviceID,
   force: boolean
@@ -2697,17 +2611,13 @@ export type saltpackUiSaltpackPromptForDecryptRpcParam = $Exact<{
   usedDelegateUI: bool
 }>
 
-export function saltpackUiSaltpackPromptForDecryptRpc (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackUiSaltpackPromptForDecryptRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'saltpackUi.saltpackPromptForDecrypt'})
-}
+
 export type saltpackUiSaltpackVerifySuccessRpcParam = $Exact<{
   signingKID: KID,
   sender: SaltpackSender
 }>
 
-export function saltpackUiSaltpackVerifySuccessRpc (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackUiSaltpackVerifySuccessRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'saltpackUi.saltpackVerifySuccess'})
-}
+
 export type secretUiGetPassphraseRpcParam = $Exact<{
   pinentry: GUIEntryArg,
   terminal?: ?SecretEntryArg
@@ -2715,9 +2625,7 @@ export type secretUiGetPassphraseRpcParam = $Exact<{
 
 type secretUiGetPassphraseResult = GetPassphraseRes
 
-export function secretUiGetPassphraseRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: secretUiGetPassphraseResult) => void} & {param: secretUiGetPassphraseRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'secretUi.getPassphrase'})
-}
+
 export type signupCheckInvitationCodeRpcParam = $Exact<{
   invitationCode: string
 }>
@@ -2779,9 +2687,7 @@ export type streamUiCloseRpcParam = $Exact<{
   s: Stream
 }>
 
-export function streamUiCloseRpc (request: $Exact<requestCommon & requestErrorCallback & {param: streamUiCloseRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'streamUi.close'})
-}
+
 export type streamUiReadRpcParam = $Exact<{
   s: Stream,
   sz: int
@@ -2789,9 +2695,7 @@ export type streamUiReadRpcParam = $Exact<{
 
 type streamUiReadResult = bytes
 
-export function streamUiReadRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: streamUiReadResult) => void} & {param: streamUiReadRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'streamUi.read'})
-}
+
 export type streamUiWriteRpcParam = $Exact<{
   s: Stream,
   buf: bytes
@@ -2799,9 +2703,7 @@ export type streamUiWriteRpcParam = $Exact<{
 
 type streamUiWriteResult = int
 
-export function streamUiWriteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: streamUiWriteResult) => void} & {param: streamUiWriteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'streamUi.write'})
-}
+
 export type testPanicRpcParam = $Exact<{
   message: string
 }>
@@ -2890,9 +2792,7 @@ export type uiPromptYesNoRpcParam = $Exact<{
 
 type uiPromptYesNoResult = boolean
 
-export function uiPromptYesNoRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: uiPromptYesNoResult) => void} & {param: uiPromptYesNoRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'ui.promptYesNo'})
-}
+
 export type userListTrackers2RpcParam = $Exact<{
   assertion: string,
   reverse: bool
@@ -3057,14 +2957,10 @@ export function favoriteGetFavoritesRpc (request: $Exact<requestCommon & {callba
 }
 type gpgUiConfirmDuplicateKeyChosenResult = boolean
 
-export function gpgUiConfirmDuplicateKeyChosenRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gpgUiConfirmDuplicateKeyChosenResult) => void}>) {
-  engineRpcOutgoing({...request, method: 'gpgUi.confirmDuplicateKeyChosen'})
-}
+
 type gpgUiWantToAddGPGKeyResult = boolean
 
-export function gpgUiWantToAddGPGKeyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gpgUiWantToAddGPGKeyResult) => void}>) {
-  engineRpcOutgoing({...request, method: 'gpgUi.wantToAddGPGKey'})
-}
+
 type gregorGetStateResult = gregor1.State
 
 export function gregorGetStateRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}>) {
@@ -3072,9 +2968,7 @@ export function gregorGetStateRpc (request: $Exact<requestCommon & {callback?: ?
 }
 type identifyUiDelegateIdentifyUIResult = int
 
-export function identifyUiDelegateIdentifyUIRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyUiDelegateIdentifyUIResult) => void}>) {
-  engineRpcOutgoing({...request, method: 'identifyUi.delegateIdentifyUI'})
-}
+
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
 
 export function loginGetConfiguredAccountsRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: loginGetConfiguredAccountsResult) => void}>) {
@@ -3082,9 +2976,7 @@ export function loginGetConfiguredAccountsRpc (request: $Exact<requestCommon & {
 }
 type loginUiGetEmailOrUsernameResult = string
 
-export function loginUiGetEmailOrUsernameRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: loginUiGetEmailOrUsernameResult) => void}>) {
-  engineRpcOutgoing({...request, method: 'loginUi.getEmailOrUsername'})
-}
+
 type metadataGetChallengeResult = ChallengeInfo
 
 export function metadataGetChallengeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetChallengeResult) => void}>) {
@@ -3107,9 +2999,7 @@ export function rekeyRekeyStatusFinishRpc (request: $Exact<requestCommon & {call
 }
 type rekeyUIDelegateRekeyUIResult = int
 
-export function rekeyUIDelegateRekeyUIRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyUIDelegateRekeyUIResult) => void}>) {
-  engineRpcOutgoing({...request, method: 'rekeyUI.delegateRekeyUI'})
-}
+
 type sessionCurrentSessionResult = Session
 
 export function sessionCurrentSessionRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sessionCurrentSessionResult) => void}>) {
@@ -3198,37 +3088,14 @@ export type rpc =
   | favoriteFavoriteIgnoreRpc
   | favoriteGetFavoritesRpc
   | fsListRpc
-  | gpgUiConfirmDuplicateKeyChosenRpc
-  | gpgUiSelectKeyAndPushOptionRpc
-  | gpgUiSelectKeyRpc
-  | gpgUiSignRpc
-  | gpgUiWantToAddGPGKeyRpc
   | gregorGetStateRpc
-  | gregorUIPushOutOfBandMessagesRpc
-  | gregorUIPushStateRpc
   | identifyIdentify2Rpc
   | identifyIdentifyRpc
   | identifyResolve2Rpc
   | identifyResolveRpc
-  | identifyUiConfirmRpc
-  | identifyUiDelegateIdentifyUIRpc
-  | identifyUiDismissRpc
-  | identifyUiDisplayCryptocurrencyRpc
-  | identifyUiDisplayKeyRpc
-  | identifyUiDisplayTLFCreateWithInviteRpc
-  | identifyUiDisplayTrackStatementRpc
-  | identifyUiDisplayUserCardRpc
-  | identifyUiFinishRpc
-  | identifyUiFinishSocialProofCheckRpc
-  | identifyUiFinishWebProofCheckRpc
-  | identifyUiLaunchNetworkChecksRpc
-  | identifyUiReportLastTrackRpc
-  | identifyUiReportTrackTokenRpc
-  | identifyUiStartRpc
   | kbfsFSEditListRpc
   | kbfsFSEventRpc
   | logRegisterLoggerRpc
-  | logUiLogRpc
   | loginClearStoredSecretRpc
   | loginDeprovisionRpc
   | loginGetConfiguredAccountsRpc
@@ -3238,10 +3105,6 @@ export type rpc =
   | loginPaperKeySubmitRpc
   | loginPgpProvisionRpc
   | loginRecoverAccountFromEmailAddressRpc
-  | loginUiDisplayPaperKeyPhraseRpc
-  | loginUiDisplayPrimaryPaperKeyRpc
-  | loginUiGetEmailOrUsernameRpc
-  | loginUiPromptRevokePaperKeysRpc
   | loginUnlockRpc
   | loginUnlockWithPassphraseRpc
   | metadataAuthenticateRpc
@@ -3282,35 +3145,14 @@ export type rpc =
   | pgpPgpSignRpc
   | pgpPgpUpdateRpc
   | pgpPgpVerifyRpc
-  | pgpUiOutputSignatureSuccessRpc
   | proveCheckProofRpc
   | proveStartProofRpc
-  | proveUiDisplayRecheckWarningRpc
-  | proveUiOkToCheckRpc
-  | proveUiOutputInstructionsRpc
-  | proveUiOutputPrechecksRpc
-  | proveUiPreProofWarningRpc
-  | proveUiPromptOverwriteRpc
-  | proveUiPromptUsernameRpc
-  | provisionUiChooseDeviceRpc
-  | provisionUiChooseDeviceTypeRpc
-  | provisionUiChooseGPGMethodRpc
-  | provisionUiChooseProvisioningMethodRpc
-  | provisionUiDisplayAndPromptSecretRpc
-  | provisionUiDisplaySecretExchangedRpc
-  | provisionUiPromptNewDeviceNameRpc
-  | provisionUiProvisioneeSuccessRpc
-  | provisionUiProvisionerSuccessRpc
-  | provisionUiSwitchToGPGSignOKRpc
   | quotaVerifySessionRpc
   | rekeyDebugShowRekeyStatusRpc
   | rekeyGetPendingRekeyStatusRpc
   | rekeyRekeyStatusFinishRpc
   | rekeyRekeySyncRpc
   | rekeyShowPendingRekeyStatusRpc
-  | rekeyUIDelegateRekeyUIRpc
-  | rekeyUIRefreshRpc
-  | rekeyUIRekeySendEventRpc
   | revokeRevokeDeviceRpc
   | revokeRevokeKeyRpc
   | revokeRevokeSigsRpc
@@ -3318,9 +3160,6 @@ export type rpc =
   | saltpackSaltpackEncryptRpc
   | saltpackSaltpackSignRpc
   | saltpackSaltpackVerifyRpc
-  | saltpackUiSaltpackPromptForDecryptRpc
-  | saltpackUiSaltpackVerifySuccessRpc
-  | secretUiGetPassphraseRpc
   | sessionCurrentSessionRpc
   | signupCheckInvitationCodeRpc
   | signupCheckUsernameAvailableRpc
@@ -3328,9 +3167,6 @@ export type rpc =
   | signupSignupRpc
   | sigsSigListJSONRpc
   | sigsSigListRpc
-  | streamUiCloseRpc
-  | streamUiReadRpc
-  | streamUiWriteRpc
   | testPanicRpc
   | testTestCallbackRpc
   | testTestRpc
@@ -3342,7 +3178,6 @@ export type rpc =
   | trackTrackRpc
   | trackTrackWithTokenRpc
   | trackUntrackRpc
-  | uiPromptYesNoRpc
   | userListTrackers2Rpc
   | userListTrackersByNameRpc
   | userListTrackersRpc
