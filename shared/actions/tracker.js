@@ -1,12 +1,13 @@
 // @flow
 import * as Constants from '../constants/tracker'
+import Session from '../engine/session'
 import _ from 'lodash'
 import engine from '../engine'
-import Session from '../engine/session'
 import openUrl from '../util/open-url'
 import setNotifications from '../util/set-notifications'
 import type {Action, Dispatch, AsyncAction} from '../constants/types/flux'
 import type {CallMap} from '../engine/call-map-middleware'
+import type {CancelHandlerType} from '../engine/session'
 import type {ConfigState} from '../reducers/config'
 import type {FriendshipUserInfo} from '../profile/friendships'
 import type {RemoteProof, LinkCheckResult, UserCard} from '../constants/types/flow-types'
@@ -192,12 +193,22 @@ export function registerIdentifyUi (): TrackerActionCreator {
       })
     })
 
+    const cancelHandler: CancelHandlerType = (session) => {
+      const username = sessionIDToUsername[session.id]
+
+      if (username) {
+        dispatch({type: Constants.identifyFinished, error: true, payload: {
+          username,
+          error: 'Identify timed out',
+        }})
+      }
+    }
+
     engine.setIncomingHandler('keybase.1.identifyUi.delegateIdentifyUI', (param: any, response: ?Object) => {
       const session: Session = engine.createSession(
         serverCallMap(dispatch, getState, false, () => {
           session.end()
-        })
-      )
+        }), null, cancelHandler)
       response && response.result(session.id)
     })
 
@@ -409,9 +420,9 @@ function updatePGPKey (username: string, pgpFingerprint: Buffer): Action {
   }
 }
 
+const sessionIDToUsername: { [key: number]: string } = {}
 // TODO: if we get multiple tracker calls we should cancel one of the sessionIDs, now they'll clash
 function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: boolean = false, onFinish: ?() => void): CallMap {
-  const sessionIDToUsername: { [key: number]: string } = {}
   const identifyUi = {
     start: ({username, sessionID, reason}) => {
       sessionIDToUsername[sessionID] = username

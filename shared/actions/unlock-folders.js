@@ -75,7 +75,7 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
       const session = engine.createSession({
         'keybase.1.rekeyUI.refresh': (params, response) => refreshHandler(params, response, dispatch),
         'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
-      }, null, true)
+      }, null, null, true)
       response && response.result(session.id)
     })
 

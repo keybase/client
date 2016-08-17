@@ -2,6 +2,7 @@
 // Handles sending requests to the daemon
 import Session from './session'
 import setupLocalLogs from '../util/local-log'
+import type {CancelHandlerType} from './session'
 import type {createClientType} from './platform-specific'
 import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
 import {constants} from '../constants/types/keybase-v1'
@@ -62,6 +63,7 @@ class Engine {
       log(logParam)
       response && response.result && response.result()
     })
+    this.setIncomingHandler('keybase.1.NotifyUsers.userChanged', () => {})
   }
 
   // Called when we reconnect to the server
@@ -89,7 +91,7 @@ class Engine {
     const cancelledSessionID = Object.keys(this._sessionsMap).find(key => this._sessionsMap[key].hasSeqID(seqid))
     if (cancelledSessionID) {
       rpcLog('engineInternal', 'Received cancel for session', cancelledSessionID)
-      this._sessionsMap[cancelledSessionID].end()
+      this._sessionsMap[cancelledSessionID].cancel()
     } else {
       rpcLog('engineInternal', "Received cancel but couldn't find session", cancelledSessionID)
     }
@@ -155,7 +157,11 @@ class Engine {
   }
 
   // Make a new session. If the session hangs around forever set dangling to true
-  createSession (incomingCallMap: incomingCallMapType, waitingHandler: ?WaitingHandlerType, dangling?: boolean = false): Session {
+  createSession (
+    incomingCallMap: incomingCallMapType,
+    waitingHandler: ?WaitingHandlerType,
+    cancelHandler: ?CancelHandlerType,
+    dangling?: boolean = false): Session {
     const sessionID = this._generateSessionID()
     rpcLog('engineInternal', `Session start ${sessionID}`)
 
@@ -165,6 +171,7 @@ class Engine {
       waitingHandler,
       (method, param, cb) => this._rpcClient.invoke(method, param, cb),
       (session: Session) => this._sessionEnded(session),
+      cancelHandler,
       dangling)
 
     this._sessionsMap[String(sessionID)] = session
@@ -248,7 +255,7 @@ class FakeEngine {
   listenOnConnect () {}
   setIncomingHandler () {}
   createSession () {
-    return new Session(0, {}, null, () => {}, () => {}, false)
+    return new Session(0, {}, null, () => {}, () => {})
   }
 }
 

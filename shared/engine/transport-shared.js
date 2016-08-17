@@ -116,10 +116,12 @@ class TransportShared extends RobustTransport {
 
     if (payload && oldResponse) {
       const calls = ['cancel', 'error', 'result']
-      payload.response = {
-        seqid: oldResponse.seqid,
-        dispatch: oldResponse.dispatch,
-      }
+
+      // Can't use {...} here due to react-native not doing object.assign on objects w/ proto chains
+      payload.response = {}
+      Object.keys(oldResponse).forEach(key => {
+        payload.response[key] = oldResponse[key]
+      })
 
       calls.forEach(call => {
         payload.response[call] = _wrap((...args) => {

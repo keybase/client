@@ -353,7 +353,14 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       }
     case Constants.identifyFinished:
       if (action.error) {
-        return {...state, error: action.payload.error}
+        const error = action.payload.error
+        return {
+          ...state,
+          serverActive: false,
+          trackerState: Constants.error,
+          reason: error,
+          error,
+        }
       }
       return {...state, error: null}
     default:

@@ -1,9 +1,10 @@
 // @flow
-import {IncomingRequest, OutgoingRequest} from './request'
-import {rpcLog} from './platform-specific'
 import type {SessionID, WaitingHandlerType, EndHandlerType, MethodKey} from './index'
-import type {incomingCallMapType} from '../constants/types/flow-types'
+import type {incomingCallMapType, RPCError} from '../constants/types/flow-types'
 import type {invokeType} from './platform-specific'
+import {IncomingRequest, OutgoingRequest} from './request'
+import {constants} from '../constants/types/keybase-v1'
+import {rpcLog} from './platform-specific'
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
@@ -14,13 +15,17 @@ class Session {
   // Let the outside know we're waiting
   _waitingHandler: ?WaitingHandlerType;
   // Tell engine we're done
-  _endHandler: EndHandlerType;
+  _endHandler: ?EndHandlerType;
   // Sequence IDs we've seen. Value is true if we've responded (often we get cancel after we've replied)
   _seqIDResponded: {[key: string]: boolean} = {};
+  // If you want to know about being cancelled
+  _cancelHandler: ?CancelHandlerType;
   // If true this session exists forever
   _dangling: boolean;
   // Name of the start method, just to help debug
   _startMethod: ?MethodKey;
+  // Start callback so we can cancel our own callback
+  _startCallback: ?(err: RPCError, ...args: Array<any>) => void;
 
   // Allow us to make calls
   _invoke: invokeType;
@@ -35,13 +40,15 @@ class Session {
     waitingHandler: ?WaitingHandlerType,
     invoke: invokeType,
     endHandler: EndHandlerType,
-    dangling: boolean,
+    cancelHandler?: ?CancelHandlerType,
+    dangling?: boolean = false,
   ) {
     this._id = sessionID
     this._incomingCallMap = incomingCallMap
     this._waitingHandler = waitingHandler
     this._invoke = invoke
     this._endHandler = endHandler
+    this._cancelHandler = cancelHandler
     this._dangling = dangling
   }
 
@@ -73,17 +80,32 @@ class Session {
     }
   }
 
-  end (): void {
-    this._endHandler(this)
+  cancel () {
+    if (this._cancelHandler) {
+      this._cancelHandler(this)
+    } else if (this._startCallback) {
+      this._startCallback({
+        code: constants.StatusCode.sccanceled,
+        desc: 'Received RPC cancel for session',
+      })
+    }
+
+    this.end()
+  }
+
+  end () {
+    this._endHandler && this._endHandler(this)
   }
 
   // Start the session normally. Tells engine we're done at the end
   start (method: MethodKey, param: ?Object, callback: ?() => void) {
     this._startMethod = method
+    this._startCallback = callback
 
     // When this request is done the session is done
     const wrappedCallback = (...args) => {
-      callback && callback(...args)
+      this._startCallback && this._startCallback(...args)
+      this._startCallback = null
       this.end()
     }
 
@@ -131,4 +153,5 @@ class Session {
   }
 }
 
+export type CancelHandlerType = (session: Session) => void;
 export default Session
