@@ -53,6 +53,7 @@ class Menubar extends Component<void, Props, void> {
     if (module.hot) {
       module.hot.dispose(() => {
         try {
+          engine.reset()
           ipcRenderer.send('unsubscribeMenubar')
           ipcRenderer.removeListener('menubarShow', onMenubarShow)
           ipcRenderer.removeListener('menubarHide', onMenubarHide)

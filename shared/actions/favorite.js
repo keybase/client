@@ -164,6 +164,11 @@ const jsonToFolders = (json: Object, myKID: any) => {
 
 export function favoriteList (): (dispatch: Dispatch, getState: () => Object) => void {
   return (dispatch, getState) => {
+    // Ignore any messages we receive while reloading
+    if (getState().dev.reloading) {
+      return
+    }
+
     apiserverGetRpc({
       param: {
         endpoint: 'kbfs/favorite/list',
