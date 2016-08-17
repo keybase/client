@@ -2,6 +2,7 @@
 import * as Constants from '../constants/tracker'
 import _ from 'lodash'
 import engine from '../engine'
+import Session from '../engine/session'
 import openUrl from '../util/open-url'
 import setNotifications from '../util/set-notifications'
 import type {Action, Dispatch, AsyncAction} from '../constants/types/flux'
@@ -12,7 +13,6 @@ import type {RemoteProof, LinkCheckResult, UserCard} from '../constants/types/fl
 import type {ShowNonUser, PendingIdentify, Proof} from '../constants/tracker'
 import type {State as RootTrackerState} from '../reducers/tracker'
 import type {TypedState} from '../constants/reducer'
-import {createServer} from '../engine/server'
 import {
   apiserverGetRpc,
   delegateUiCtlRegisterIdentifyUIRpc,
@@ -59,16 +59,12 @@ export function stopTimer (): Action {
 
 export function registerTrackerChangeListener (): TrackerActionCreator {
   return (dispatch, getState) => {
-    const params = {
-      'keybase.1.NotifyTracking.trackingChanged': ({username}) => {
-        const trackerState = getState().tracker.trackers[username]
-        if (trackerState && trackerState.type === 'tracker') {
-          dispatch(getProfile(username))
-        }
-      },
-    }
-
-    engine.listenGeneralIncomingRpc(params)
+    engine.setIncomingHandler('keybase.1.NotifyTracking.trackingChanged', ({username}) => {
+      const trackerState = getState().tracker.trackers[username]
+      if (trackerState && trackerState.type === 'tracker') {
+        dispatch(getProfile(username))
+      }
+    })
     setNotifications({tracking: true})
   }
 }
@@ -196,12 +192,14 @@ export function registerIdentifyUi (): TrackerActionCreator {
       })
     })
 
-    createServer(
-      engine,
-      'keybase.1.identifyUi.delegateIdentifyUI',
-      'keybase.1.identifyUi.finish',
-      () => serverCallMap(dispatch, getState)
-    )
+    engine.setIncomingHandler('keybase.1.identifyUi.delegateIdentifyUI', (param: any, response: ?Object) => {
+      const session: Session = engine.createSession(
+        serverCallMap(dispatch, getState, false, () => {
+          session.end()
+        })
+      )
+      response && response.result(session.id)
+    })
 
     dispatch({
       type: Constants.registerIdentifyUi,
@@ -412,7 +410,7 @@ function updatePGPKey (username: string, pgpFingerprint: Buffer): Action {
 }
 
 // TODO: if we get multiple tracker calls we should cancel one of the sessionIDs, now they'll clash
-function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: boolean = false): CallMap {
+function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: boolean = false, onFinish: ?() => void): CallMap {
   const sessionIDToUsername: { [key: number]: string } = {}
   const identifyUi = {
     start: ({username, sessionID, reason}) => {
@@ -566,6 +564,8 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
           username,
         },
       })
+
+      onFinish && onFinish()
     },
   }
 

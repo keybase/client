@@ -306,9 +306,9 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
             onDisplayPaperKey && onDisplayPaperKey()
             dispatch(nextPhase())
           },
-          'keybase.1.gpgUi.wantToAddGPGKey': (params, {error, result}) => {
+          'keybase.1.gpgUi.wantToAddGPGKey': (params, response) => {
             // Do not add a gpg key for now
-            result(false)
+            response.result(false)
           },
         },
         callback: (err, {passphraseOk, postOk, writeOk}) => {

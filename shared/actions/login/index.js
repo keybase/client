@@ -9,7 +9,7 @@ import type {DeviceRole} from '../../constants/login'
 import type {DeviceType} from '../../constants/types/more'
 import type {Dispatch, GetState, AsyncAction, TypedAction, Action} from '../../constants/types/flux'
 import type {incomingCallMapType} from '../../constants/types/flow-types'
-import type {responseError} from '../../engine'
+import type {ResponseType} from '../../engine'
 import {Common, constants, provisionUi, passphraseCommon} from '../../constants/types/keybase-v1'
 import {Map} from 'immutable'
 import {bindActionCreators} from 'redux'
@@ -345,7 +345,7 @@ export function saveInKeychainChanged (username: string, saveInKeychain: bool) :
   }
 }
 
-function cancelLogin (response: ?responseError) : AsyncAction {
+function cancelLogin (response: ?ResponseType) : AsyncAction {
   return (dispatch, getState) => {
     dispatch(navBasedOnLoginState())
     if (response) {

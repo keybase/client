@@ -5,12 +5,7 @@ import engine from '../engine'
 import type {ToPaperKeyInput, OnBackFromPaperKey, CheckPaperKey, Finish,
   Waiting, RegisterRekeyListenerAction, NewRekeyPopupAction} from '../constants/unlock-folders'
 import type {TypedAsyncAction, AsyncAction, Dispatch} from '../constants/types/flux'
-import {createServer} from '../engine/server'
-import {delegateUiCtlRegisterRekeyUIRpc, loginPaperKeySubmitRpc, rekeyRekeyStatusFinishRpc,
-  rekeyShowPendingRekeyStatusRpc} from '../constants/types/flow-types'
-
-// We need the sessionID of the delegateRekeyUI sessions
-let rekeyServer = null
+import {delegateUiCtlRegisterRekeyUIRpc, loginPaperKeySubmitRpc, rekeyShowPendingRekeyStatusRpc, rekeyRekeyStatusFinishRpc} from '../constants/types/flow-types'
 
 export function toPaperKeyInput (): ToPaperKeyInput {
   return {type: Constants.toPaperKeyInput, payload: {}}
@@ -46,21 +41,13 @@ export function finish (): Finish {
 
 export function openDialog (): AsyncAction {
   return dispatch => {
-    const params: rekeyShowPendingRekeyStatusRpc = {
-      method: 'rekey.showPendingRekeyStatus',
-      callback: null,
-    }
-    engine.rpc(params)
+    rekeyShowPendingRekeyStatusRpc({})
   }
 }
 
 export function close (): AsyncAction {
   return (dispatch, getState) => {
-    // waiting for cleanupRPC to get merged in so i can make param / sessionID optional
-    // $FlowIssue
-    rekeyRekeyStatusFinishRpc({
-      param: {sessionID: rekeyServer && rekeyServer.sessionID},
-    })
+    rekeyRekeyStatusFinishRpc({})
     dispatch({type: Constants.close, payload: {}})
   }
 }
@@ -80,19 +67,17 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
     })
 
     // we get this with sessionID == 0 if we call openDialog
-    engine.listenGeneralIncomingRpc({
-      'keybase.1.rekeyUI.refresh': (params, response) => refreshHandler(params, response, dispatch),
-    })
+    engine.setIncomingHandler('keybase.1.rekeyUI.refresh', (params, response) => refreshHandler(params, response, dispatch))
+
     // else we get this also as part of delegateRekeyUI
-    rekeyServer = createServer(
-      engine,
-      'keybase.1.rekeyUI.delegateRekeyUI',
-      null,
-      () => ({
-        'keybase.1.rekeyUI.delegateRekeyUI': (params, response) => { },
+    engine.setIncomingHandler('keybase.1.rekeyUI.delegateRekeyUI', (param: any, response: ?Object) => {
+      // Dangling, never gets closed
+      const session = engine.createSession({
         'keybase.1.rekeyUI.refresh': (params, response) => refreshHandler(params, response, dispatch),
-      })
-    )
+        'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
+      }, null, true)
+      response && response.result(session.id)
+    })
 
     dispatch(({type: Constants.registerRekeyListener, payload: {started: true}}: RegisterRekeyListenerAction))
   }
@@ -102,5 +87,5 @@ const refreshHandler = ({sessionID, problemSetDevices}, response, dispatch) => {
   console.log('Asked for rekey')
   dispatch(({type: Constants.newRekeyPopup,
     payload: {devices: problemSetDevices.devices || [], sessionID, problemSet: problemSetDevices.problemSet}}: NewRekeyPopupAction))
-  response.result()
+  response && response.result()
 }
