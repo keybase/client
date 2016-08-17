@@ -11,6 +11,7 @@ export type State = {
   displayBounds: ?any,
   tab: ?string,
   dockHidden: boolean,
+  openAtLoginSet: boolean,
 }
 
 export type Config = {

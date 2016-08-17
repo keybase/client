@@ -36,11 +36,6 @@ func updaterBinName() (string, error) {
 	return "upd.exe", nil
 }
 
-// RunAfterStartup is not supported on Windows
-func RunAfterStartup(context Context, isService bool, log Log) error {
-	return nil
-}
-
 // RunApp starts the app
 func RunApp(context Context, log Log) error {
 	// TODO: Start the app

@@ -7,6 +7,7 @@
 import {app, screen} from 'electron'
 import fs from 'fs'
 import path from 'path'
+import {appBundlePath} from './paths'
 import jsonfile from 'jsonfile'
 import deepEqual from 'deep-equal'
 import type {State, Options, Config, Managed} from './app-state'
@@ -28,6 +29,7 @@ export default class AppState {
       displayBounds: null,
       tab: null,
       dockHidden: false,
+      openAtLoginSet: false,
     }
 
     this.config = {
@@ -58,6 +60,17 @@ export default class AppState {
         console.log('Error saving file:', err)
       }
     })
+  }
+
+  checkOpenAtLogin () {
+    if (!this.state.openAtLoginSet && appBundlePath() === '/Applications/Keybase.app') {
+      console.log('Setting open at login')
+      app.setLoginItemSettings({
+        openAtLogin: true,
+      })
+      this.state.openAtLoginSet = true
+      this.saveState()
+    }
   }
 
   manageWindow (win: any) {
