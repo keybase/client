@@ -1,0 +1,19 @@
+
+@namespace("keybase.1")
+protocol NotifyChat {
+  import idl "common.avdl";
+  import idl "chat_local.avdl";
+
+  enum ChatActivityType {
+    RESERVED_0,
+    INCOMING_MESSAGE_1
+  }
+
+  record ChatActivity {
+    ChatActivityType ActivityType;
+    union { null, Message } IncomingMessage;
+  }
+
+  @notify("")
+  void NewChatActivity(UID uid, ChatActivity activity);
+}

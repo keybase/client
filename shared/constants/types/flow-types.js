@@ -209,6 +209,15 @@ export type ChallengeInfo = {
   challenge: string,
 }
 
+export type ChatActivity = {
+  ActivityType: ChatActivityType,
+  IncomingMessage?: ?Message,
+}
+
+export type ChatActivityType =
+    0 // RESERVED_0
+  | 1 // INCOMING_MESSAGE_1
+
 export type CheckProofStatus = {
   found: boolean,
   status: ProofStatus,
@@ -778,8 +787,21 @@ export type NotificationChannels = {
   keyfamily: boolean,
   service: boolean,
   app: boolean,
+  chat: boolean,
 }
 
+export type NotifyChatNewChatActivityRpcParam = $Exact<{
+  uid: UID,
+  activity: ChatActivity
+}>
+
+export function NotifyChatNewChatActivityRpc (request: $Exact<{
+  param: NotifyChatNewChatActivityRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'NotifyChat.NewChatActivity'})
+}
 export type NotifyFSFSActivityRpcParam = $Exact<{
   notification: FSNotification
 }>
@@ -3986,6 +4008,7 @@ export type rpc =
   | Kex2ProvisioneeHelloRpc
   | Kex2ProvisionerKexStartRpc
   | NotifyAppExitRpc
+  | NotifyChatNewChatActivityRpc
   | NotifyFSFSActivityRpc
   | NotifyFSFSEditListResponseRpc
   | NotifyFSRequestFSEditListRequestRpc
@@ -5464,6 +5487,14 @@ export type incomingCallMapType = $Exact<{
       error: (err: RPCError) => void,
       result: () => void
     }
+  ) => void,
+  'keybase.1.NotifyChat.NewChatActivity'?: (
+    params: $Exact<{
+      uid: UID,
+      activity: ChatActivity
+    }> /* ,
+    response: {} // Notify call
+    */
   ) => void,
   'keybase.1.notifyCtl.setNotifications'?: (
     params: $Exact<{
