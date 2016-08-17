@@ -6,6 +6,7 @@ package libdokan
 
 import (
 	"errors"
+	"os"
 	"strings"
 	"time"
 
@@ -285,6 +286,8 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		return &SpecialReadFile{
 			read: f.remoteStatus.NewSpecialReadFunc,
 			fs:   f}, false, nil
+	case ".kbfs_unmount" == ps[0]:
+		os.Exit(0)
 	}
 	return nil, false, dokan.ErrObjectNameNotFound
 }
