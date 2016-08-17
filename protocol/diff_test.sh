@@ -20,7 +20,7 @@ git add -A ./ ../go/ ../shared/
 # re-running the protocol generation, because any changes should have been
 # checked in.
 
-git diff # for testing
+git diff HEAD -- ./ ../go/ ../shared/ # for testing
 git diff --exit-code # for testing
 echo $? # for testing
 
