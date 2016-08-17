@@ -311,7 +311,7 @@ func TestReadDelayedWrite(t *testing.T) {
 	c2.SetReadDeadline(time.Now().Add(wait))
 	text := "hello friend"
 	go func() {
-		time.Sleep(wait / 2)
+		time.Sleep(wait / 4)
 		c1.Write([]byte(text))
 	}()
 	buf := make([]byte, 100)
@@ -462,7 +462,7 @@ func TestErrAgain(t *testing.T) {
 
 func TestPollLoopSuccess(t *testing.T) {
 
-	wait := time.Duration(16) * time.Millisecond
+	wait := time.Duration(50) * time.Millisecond
 	r := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, wait/32)
 	s := genSecret(t)
 	d1 := genDeviceID(t)
