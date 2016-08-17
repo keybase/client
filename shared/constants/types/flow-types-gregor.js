@@ -14,6 +14,26 @@ export type RPCError = {
   desc: string
 }
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
+
+// $FlowIssue we're calling an internal method on engine that's there just for us
+const engineRpcOutgoing = (...args) => engine._rpcOutgoing(...args)
+
+type requestCommon = {
+  waitingHandler?: WaitingHandlerType,
+  incomingCallMap?: incomingCallMapType,
+}
+
+type requestErrorCallback = {
+  callback?: ?(err: ?any) => void
+}
+
+type RPCErrorHandler = (err: RPCError) => void
+
+type CommonResponseHandler = {
+  error: RPCErrorHandler,
+  result: (...rest: Array<void>) => void,
+}
+
 export type AuthResult = {
   uid: UID,
   sid: SessionID,
@@ -132,49 +152,29 @@ export type authAuthenticateSessionTokenRpcParam = $Exact<{
 
 type authAuthenticateSessionTokenResult = AuthResult
 
-export function authAuthenticateSessionTokenRpc (request: $Exact<{
-  param: authAuthenticateSessionTokenRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: authAuthenticateSessionTokenResult) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'auth.authenticateSessionToken'})
+export function authAuthenticateSessionTokenRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: authAuthenticateSessionTokenResult) => void} & {param: authAuthenticateSessionTokenRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'auth.authenticateSessionToken'})
 }
 export type authUpdateRevokeSessionIDsRpcParam = $Exact<{
   sessionIDs?: ?Array<SessionID>
 }>
 
-export function authUpdateRevokeSessionIDsRpc (request: $Exact<{
-  param: authUpdateRevokeSessionIDsRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'authUpdate.revokeSessionIDs'})
+export function authUpdateRevokeSessionIDsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: authUpdateRevokeSessionIDsRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'authUpdate.revokeSessionIDs'})
 }
 export type incomingConsumeMessageRpcParam = $Exact<{
   m: Message
 }>
 
-export function incomingConsumeMessageRpc (request: $Exact<{
-  param: incomingConsumeMessageRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'incoming.consumeMessage'})
+export function incomingConsumeMessageRpc (request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumeMessageRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'incoming.consumeMessage'})
 }
 export type incomingConsumePublishMessageRpcParam = $Exact<{
   m: Message
 }>
 
-export function incomingConsumePublishMessageRpc (request: $Exact<{
-  param: incomingConsumePublishMessageRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'incoming.consumePublishMessage'})
+export function incomingConsumePublishMessageRpc (request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumePublishMessageRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'incoming.consumePublishMessage'})
 }
 export type incomingStateByCategoryPrefixRpcParam = $Exact<{
   uid: UID,
@@ -185,13 +185,8 @@ export type incomingStateByCategoryPrefixRpcParam = $Exact<{
 
 type incomingStateByCategoryPrefixResult = State
 
-export function incomingStateByCategoryPrefixRpc (request: $Exact<{
-  param: incomingStateByCategoryPrefixRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: incomingStateByCategoryPrefixResult) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'incoming.stateByCategoryPrefix'})
+export function incomingStateByCategoryPrefixRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateByCategoryPrefixResult) => void} & {param: incomingStateByCategoryPrefixRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'incoming.stateByCategoryPrefix'})
 }
 export type incomingStateRpcParam = $Exact<{
   uid: UID,
@@ -201,13 +196,8 @@ export type incomingStateRpcParam = $Exact<{
 
 type incomingStateResult = State
 
-export function incomingStateRpc (request: $Exact<{
-  param: incomingStateRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: incomingStateResult) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'incoming.state'})
+export function incomingStateRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateResult) => void} & {param: incomingStateRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'incoming.state'})
 }
 export type incomingSyncRpcParam = $Exact<{
   uid: UID,
@@ -217,37 +207,22 @@ export type incomingSyncRpcParam = $Exact<{
 
 type incomingSyncResult = SyncResult
 
-export function incomingSyncRpc (request: $Exact<{
-  param: incomingSyncRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: incomingSyncResult) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'incoming.sync'})
+export function incomingSyncRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingSyncResult) => void} & {param: incomingSyncRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'incoming.sync'})
 }
 export type outgoingBroadcastMessageRpcParam = $Exact<{
   m: Message
 }>
 
-export function outgoingBroadcastMessageRpc (request: $Exact<{
-  param: outgoingBroadcastMessageRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'outgoing.broadcastMessage'})
+export function outgoingBroadcastMessageRpc (request: $Exact<requestCommon & requestErrorCallback & {param: outgoingBroadcastMessageRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'outgoing.broadcastMessage'})
 }
 export type remindDeleteRemindersRpcParam = $Exact<{
   reminderIDs?: ?Array<ReminderID>
 }>
 
-export function remindDeleteRemindersRpc (request: $Exact<{
-  param: remindDeleteRemindersRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'remind.deleteReminders'})
+export function remindDeleteRemindersRpc (request: $Exact<requestCommon & requestErrorCallback & {param: remindDeleteRemindersRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remind.deleteReminders'})
 }
 export type remindGetRemindersRpcParam = $Exact<{
   maxReminders: int
@@ -255,31 +230,18 @@ export type remindGetRemindersRpcParam = $Exact<{
 
 type remindGetRemindersResult = ReminderSet
 
-export function remindGetRemindersRpc (request: $Exact<{
-  param: remindGetRemindersRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: remindGetRemindersResult) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'remind.getReminders'})
+export function remindGetRemindersRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remindGetRemindersResult) => void} & {param: remindGetRemindersRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remind.getReminders'})
 }
 type authInternalCreateGregorSuperUserSessionTokenResult = SessionToken
 
-export function authInternalCreateGregorSuperUserSessionTokenRpc (request: $Exact<{
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'authInternal.createGregorSuperUserSessionToken'})
+export function authInternalCreateGregorSuperUserSessionTokenRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'authInternal.createGregorSuperUserSessionToken'})
 }
 type incomingPingResult = string
 
-export function incomingPingRpc (request: $Exact<{
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: incomingPingResult) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'incoming.ping'})
+export function incomingPingRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingPingResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'incoming.ping'})
 }
 export type rpc =
     authAuthenticateSessionTokenRpc
@@ -301,25 +263,22 @@ export type incomingCallMapType = $Exact<{
       session: SessionToken
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: authAuthenticateSessionTokenResult) => void
+      error: RPCErrorHandler,
+      result: (result: authAuthenticateSessionTokenResult) => void,
     }
   ) => void,
   'keybase.1.authInternal.createGregorSuperUserSessionToken'?: (
     params: $Exact<{}>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: authInternalCreateGregorSuperUserSessionTokenResult) => void
+      error: RPCErrorHandler,
+      result: (result: authInternalCreateGregorSuperUserSessionTokenResult) => void,
     }
   ) => void,
   'keybase.1.authUpdate.revokeSessionIDs'?: (
     params: $Exact<{
       sessionIDs?: ?Array<SessionID>
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.incoming.sync'?: (
     params: $Exact<{
@@ -328,33 +287,27 @@ export type incomingCallMapType = $Exact<{
       ctime: Time
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: incomingSyncResult) => void
+      error: RPCErrorHandler,
+      result: (result: incomingSyncResult) => void,
     }
   ) => void,
   'keybase.1.incoming.consumeMessage'?: (
     params: $Exact<{
       m: Message
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.incoming.consumePublishMessage'?: (
     params: $Exact<{
       m: Message
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.incoming.ping'?: (
     params: $Exact<{}>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: incomingPingResult) => void
+      error: RPCErrorHandler,
+      result: (result: incomingPingResult) => void,
     }
   ) => void,
   'keybase.1.incoming.state'?: (
@@ -364,8 +317,8 @@ export type incomingCallMapType = $Exact<{
       timeOrOffset: TimeOrOffset
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: incomingStateResult) => void
+      error: RPCErrorHandler,
+      result: (result: incomingStateResult) => void,
     }
   ) => void,
   'keybase.1.incoming.stateByCategoryPrefix'?: (
@@ -376,36 +329,30 @@ export type incomingCallMapType = $Exact<{
       categoryPrefix: Category
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: incomingStateByCategoryPrefixResult) => void
+      error: RPCErrorHandler,
+      result: (result: incomingStateByCategoryPrefixResult) => void,
     }
   ) => void,
   'keybase.1.outgoing.broadcastMessage'?: (
     params: $Exact<{
       m: Message
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.remind.getReminders'?: (
     params: $Exact<{
       maxReminders: int
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: remindGetRemindersResult) => void
+      error: RPCErrorHandler,
+      result: (result: remindGetRemindersResult) => void,
     }
   ) => void,
   'keybase.1.remind.deleteReminders'?: (
     params: $Exact<{
       reminderIDs?: ?Array<ReminderID>
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void
 }>
 

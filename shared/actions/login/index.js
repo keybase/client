@@ -8,7 +8,7 @@ import openURL from '../../util/open-url'
 import type {DeviceRole} from '../../constants/login'
 import type {DeviceType} from '../../constants/types/more'
 import type {Dispatch, GetState, AsyncAction, TypedAction, Action} from '../../constants/types/flux'
-import type {incomingCallMapType} from '../../constants/types/flow-types'
+import type {incomingCallMapType, DeviceType as RPCDeviceType} from '../../constants/types/flow-types'
 import type {ResponseType} from '../../engine'
 import {Common, constants, provisionUi, passphraseCommon} from '../../constants/types/keybase-v1'
 import {Map} from 'immutable'
@@ -386,7 +386,7 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
     }
 
     const incomingCallMap = makeKex2IncomingMap(dispatch, getState, onBack, onBack)
-    incomingCallMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response) => {
+    incomingCallMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response: {result: (type: RPCDeviceType) => void}) => {
       const deviceTypeMap: {[key: string]: any} = {
         [Constants.codePageDeviceRoleNewComputer]: provisionUi.DeviceType.desktop,
         [Constants.codePageDeviceRoleNewPhone]: provisionUi.DeviceType.mobile,

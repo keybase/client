@@ -71,6 +71,15 @@ function figureType (type) {
     type = 'null' // keep backwards compat with old script
   }
   if (type instanceof Array) {
+    if (type.length === 2) {
+      if (type[0] === null) {
+        return `?${type[1]}`
+      }
+      if (type[1] === null) {
+        return `?${type[0]}`
+      }
+    }
+
     return `(${type.map(t => t || 'null').join(' | ')})`
   } else if (typeof type === 'object') {
     switch (type.type) {
@@ -112,10 +121,14 @@ function analyzeMessages (json, project) {
     let r = null
     if (!isNotify) {
       const type = (responseType === 'null') ? '' : `result: ${name}Result`
-      r = `,\n    response: {
-      error: (err: RPCError) => void,
-      result: (${type}) => void
+      if (type) {
+        r = `,\n    response: {
+      error: RPCErrorHandler,
+      result: (${type}) => void,
     }`
+      } else {
+        r = `,\n    response: CommonResponseHandler`
+      }
     } else {
       r = ` /* ,\n    response: {} // Notify call
     */`
@@ -137,13 +150,11 @@ function analyzeMessages (json, project) {
     if (p) { p = `\n${p}\n` }
 
     const paramType = p ? `export type ${name}RpcParam = $Exact<{${p}}>` : ''
+    const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'requestErrorCallback'
+    const innerParamType = p ? `{param: ${name}RpcParam}` : null
 
-    const rpc = `export function ${name}Rpc (request: $Exact<{${p ? `\n  param: ${name}RpcParam,` : ''}
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any${r}) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: '${json.protocol}.${m}'})
+    const rpc = `export function ${name}Rpc (request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
+  engineRpcOutgoing({...request, method: '${json.protocol}.${m}'})
 }
 `
     return [paramType, response, rpc].filter(i => !!i).join('\n\n')
@@ -256,6 +267,26 @@ export type RPCError = {
   desc: string
 }
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
+
+// $FlowIssue we're calling an internal method on engine that's there just for us
+const engineRpcOutgoing = (...args) => engine._rpcOutgoing(...args)
+
+type requestCommon = {
+  waitingHandler?: WaitingHandlerType,
+  incomingCallMap?: incomingCallMapType,
+}
+
+type requestErrorCallback = {
+  callback?: ?(err: ?any) => void
+}
+
+type RPCErrorHandler = (err: RPCError) => void
+
+type CommonResponseHandler = {
+  error: RPCErrorHandler,
+  result: (...rest: Array<void>) => void,
+}
+
 `
 
   const incomingMap = `export type incomingCallMapType = $Exact<{\n` +

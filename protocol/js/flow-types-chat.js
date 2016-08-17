@@ -15,6 +15,26 @@ export type RPCError = {
   desc: string
 }
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
+
+// $FlowIssue we're calling an internal method on engine that's there just for us
+const engineRpcOutgoing = (...args) => engine._rpcOutgoing(...args)
+
+type requestCommon = {
+  waitingHandler?: WaitingHandlerType,
+  incomingCallMap?: incomingCallMapType,
+}
+
+type requestErrorCallback = {
+  callback?: ?(err: ?any) => void
+}
+
+type RPCErrorHandler = (err: RPCError) => void
+
+type CommonResponseHandler = {
+  error: RPCErrorHandler,
+  result: (...rest: Array<void>) => void,
+}
+
 export type Conversation = {
   metadata: ConversationMetadata,
   maxHeaders?: ?Array<MessageServerHeader>,
@@ -114,58 +134,38 @@ export type ThreadViewBoxed = {
 export type TopicID = bytes
 
 export type remoteGetInboxRemoteRpcParam = $Exact<{
-  pagination: (null | Pagination)
+  pagination?: ?Pagination
 }>
 
 type remoteGetInboxRemoteResult = InboxView
 
-export function remoteGetInboxRemoteRpc (request: $Exact<{
-  param: remoteGetInboxRemoteRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: remoteGetInboxRemoteResult) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'remote.getInboxRemote'})
+export function remoteGetInboxRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.getInboxRemote'})
 }
 export type remoteGetThreadRemoteRpcParam = $Exact<{
   conversationID: ConversationID,
-  pagination: (null | Pagination)
+  pagination?: ?Pagination
 }>
 
 type remoteGetThreadRemoteResult = ThreadViewBoxed
 
-export function remoteGetThreadRemoteRpc (request: $Exact<{
-  param: remoteGetThreadRemoteRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: remoteGetThreadRemoteResult) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'remote.getThreadRemote'})
+export function remoteGetThreadRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.getThreadRemote'})
 }
 export type remoteNewConversationRemoteRpcParam = $Exact<{
   conversationMetadata: ConversationMetadata
 }>
 
-export function remoteNewConversationRemoteRpc (request: $Exact<{
-  param: remoteNewConversationRemoteRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'remote.newConversationRemote'})
+export function remoteNewConversationRemoteRpc (request: $Exact<requestCommon & requestErrorCallback & {param: remoteNewConversationRemoteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.newConversationRemote'})
 }
 export type remotePostRemoteRpcParam = $Exact<{
   conversationID: ConversationID,
   messageBoxed: MessageBoxed
 }>
 
-export function remotePostRemoteRpc (request: $Exact<{
-  param: remotePostRemoteRpcParam,
-  waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  // $FlowIssue : We're calling a protected member in engine. As designed!
-  engine._rpcOutgoing({...request, method: 'remote.postRemote'})
+export function remotePostRemoteRpc (request: $Exact<requestCommon & requestErrorCallback & {param: remotePostRemoteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.postRemote'})
 }
 export type rpc =
     remoteGetInboxRemoteRpc
@@ -176,21 +176,21 @@ export type rpc =
 export type incomingCallMapType = $Exact<{
   'keybase.1.remote.getInboxRemote'?: (
     params: $Exact<{
-      pagination: (null | Pagination)
+      pagination?: ?Pagination
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: remoteGetInboxRemoteResult) => void
+      error: RPCErrorHandler,
+      result: (result: remoteGetInboxRemoteResult) => void,
     }
   ) => void,
   'keybase.1.remote.getThreadRemote'?: (
     params: $Exact<{
       conversationID: ConversationID,
-      pagination: (null | Pagination)
+      pagination?: ?Pagination
     }>,
     response: {
-      error: (err: RPCError) => void,
-      result: (result: remoteGetThreadRemoteResult) => void
+      error: RPCErrorHandler,
+      result: (result: remoteGetThreadRemoteResult) => void,
     }
   ) => void,
   'keybase.1.remote.postRemote'?: (
@@ -198,19 +198,13 @@ export type incomingCallMapType = $Exact<{
       conversationID: ConversationID,
       messageBoxed: MessageBoxed
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void,
   'keybase.1.remote.newConversationRemote'?: (
     params: $Exact<{
       conversationMetadata: ConversationMetadata
     }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
+    response: CommonResponseHandler
   ) => void
 }>
 

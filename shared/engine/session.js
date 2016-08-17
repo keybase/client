@@ -36,7 +36,7 @@ class Session {
 
   constructor (
     sessionID: SessionID,
-    incomingCallMap: incomingCallMapType,
+    incomingCallMap: ?incomingCallMapType,
     waitingHandler: ?WaitingHandlerType,
     invoke: invokeType,
     endHandler: EndHandlerType,
@@ -44,7 +44,7 @@ class Session {
     dangling?: boolean = false,
   ) {
     this._id = sessionID
-    this._incomingCallMap = incomingCallMap
+    this._incomingCallMap = incomingCallMap || {}
     this._waitingHandler = waitingHandler
     this._invoke = invoke
     this._endHandler = endHandler

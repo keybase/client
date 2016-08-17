@@ -139,10 +139,10 @@ class Engine {
   // An outgoing call. ONLY called by the flow-type rpc helpers
   _rpcOutgoing (params: {
     method: MethodKey,
-    param: ?Object,
-    incomingCallMap: incomingCallMapType,
-    callback: ?(...args: Array<any>) => void,
-    waitingHandler: WaitingHandlerType}) {
+    param?: ?Object,
+    incomingCallMap?: incomingCallMapType,
+    callback?: ?(...args: Array<any>) => void,
+    waitingHandler?: WaitingHandlerType}) {
     let {method, param, incomingCallMap, callback, waitingHandler} = params
 
     // Ensure a non-null param
@@ -158,7 +158,7 @@ class Engine {
 
   // Make a new session. If the session hangs around forever set dangling to true
   createSession (
-    incomingCallMap: incomingCallMapType,
+    incomingCallMap: ?incomingCallMapType,
     waitingHandler: ?WaitingHandlerType,
     cancelHandler: ?CancelHandlerType,
     dangling?: boolean = false): Session {
