@@ -529,3 +529,49 @@ func TestMDJournalDoubleFlush(t *testing.T) {
 	require.True(t, flushed)
 	require.Equal(t, Merged, mdserver.rmdses[0].MD.MergedStatus())
 }
+
+func TestMDJournalClear(t *testing.T) {
+	_, _, uid, id, h, signer, verifyingKey, ekg, tempdir, j :=
+		setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+
+	firstRevision := MetadataRevision(10)
+	firstPrevRoot := fakeMdID(1)
+	mdCount := 10
+
+	prevRoot := firstPrevRoot
+	for i := 0; i < mdCount; i++ {
+		revision := firstRevision + MetadataRevision(i)
+		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
+		mdID, err := j.put(ctx, signer, ekg, md, uid, verifyingKey)
+		require.NoError(t, err)
+		prevRoot = mdID
+	}
+
+	// Clearing a different branch ID should do nothing.
+
+	j.clear(ctx, uid, FakeBranchID(1))
+
+	head, err := j.getHead(uid)
+	require.NoError(t, err)
+	require.NotEqual(t, ImmutableBareRootMetadata{}, head)
+
+	// Clearing the correct branch ID should clear the entire
+	// journal.
+
+	j.clear(ctx, uid, NullBranchID)
+
+	head, err = j.getHead(uid)
+	require.NoError(t, err)
+	require.Equal(t, ImmutableBareRootMetadata{}, head)
+
+	// Clearing twice should do nothing.
+
+	j.clear(ctx, uid, NullBranchID)
+
+	head, err = j.getHead(uid)
+	require.NoError(t, err)
+	require.Equal(t, ImmutableBareRootMetadata{}, head)
+}

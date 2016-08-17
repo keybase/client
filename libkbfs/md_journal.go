@@ -650,7 +650,7 @@ func (j mdJournal) clear(
 		return err
 	}
 
-	if head.BID != bid {
+	if head == (ImmutableBareRootMetadata{}) || head.BID != bid {
 		// Nothing to do.
 		return nil
 	}
