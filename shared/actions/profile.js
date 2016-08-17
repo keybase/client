@@ -1,18 +1,20 @@
 // @flow
 import * as Constants from '../constants/profile'
 import engine from '../engine'
-import type {Dispatch, AsyncAction} from '../constants/types/flux'
-import type {PlatformsExpandedType, ProvablePlatformsType} from '../constants/types/more'
-import type {SigID} from '../constants/types/flow-types'
-import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateErrorText, UpdateProofStatus,
-  UpdateSigID, WaitingRevokeProof, FinishRevokeProof, CleanupUsername} from '../constants/profile'
+import openURL from '../util/open-url'
 import {apiserverPostRpc, proveStartProofRpc, proveCheckProofRpc, revokeRevokeSigsRpc, BTCRegisterBTCRpc} from '../constants/types/flow-types'
 import {bindActionCreators} from 'redux'
 import {constants as RpcConstants, proveCommon} from '../constants/types/keybase-v1'
 import {getMyProfile} from './tracker'
 import {navigateUp, navigateTo} from '../actions/router'
 import {profileTab} from '../constants/tabs'
-import openURL from '../util/open-url'
+import {routeAppend} from './router'
+
+import type {Dispatch, AsyncAction} from '../constants/types/flux'
+import type {PlatformsExpandedType, ProvablePlatformsType} from '../constants/types/more'
+import type {SigID} from '../constants/types/flow-types'
+import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateErrorText, UpdateProofStatus,
+  UpdateSigID, WaitingRevokeProof, FinishRevokeProof, CleanupUsername} from '../constants/profile'
 
 const InputCancelError = {desc: 'Cancel Add Proof', code: RpcConstants.StatusCode.scinputcanceled}
 
@@ -261,6 +263,9 @@ function addProof (platform: PlatformsExpandedType): AsyncAction {
       case 'hackernews':
       case 'dns':
         dispatch(_addServiceProof(platform))
+        break
+      case 'pgp':
+        dispatch(routeAppend(['pgp', 'choice']))
     }
   }
 }
