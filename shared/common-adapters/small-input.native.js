@@ -39,4 +39,5 @@ const styleLabel = (hasError: boolean) => ({
 const styleInput = {
   textAlign: 'left',
   flex: 1,
+  padding: 0,
 }
