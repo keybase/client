@@ -1475,6 +1475,28 @@ func (fbo *folderBranchOps) Stat(ctx context.Context, node Node) (
 	return de.EntryInfo, nil
 }
 
+func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
+	ei NodeMetadata, err error) {
+	fbo.log.CDebugf(ctx, "GetNodeMetadata %p", node.GetID())
+	defer func() { fbo.deferLog.CDebugf(ctx, "Done: %v", err) }()
+
+	var de DirEntry
+	err = runUnlessCanceled(ctx, func() error {
+		de, err = fbo.statEntry(ctx, node)
+		return err
+	})
+	var res NodeMetadata
+	if err != nil {
+		return res, err
+	}
+	if de.Writer != keybase1.UID("") {
+		res.LastWriter = de.Writer
+	} else {
+		res.LastWriter = de.Creator
+	}
+	return res, nil
+}
+
 // blockPutState is an internal structure to track data when putting blocks
 type blockPutState struct {
 	blockStates []blockState

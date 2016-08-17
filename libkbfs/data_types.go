@@ -960,3 +960,8 @@ func SessionInfoFromProtocol(session keybase1.Session) (SessionInfo, error) {
 		VerifyingKey:   verifyingKey,
 	}, nil
 }
+
+// NodeMetadata has metadata about a node needed for higher level operations.
+type NodeMetadata struct {
+	LastWriter keybase1.UID
+}
