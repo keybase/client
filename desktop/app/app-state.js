@@ -63,7 +63,6 @@ export default class AppState {
   }
 
   checkOpenAtLogin () {
-    console.log('Checking open at login')
     if (!this.state.openAtLoginSet && appBundlePath() === '/Applications/Keybase.app') {
       console.log('Setting open at login')
       app.setLoginItemSettings({
