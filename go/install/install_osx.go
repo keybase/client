@@ -401,7 +401,7 @@ func Install(context Context, binPath string, components []string, force bool, l
 	log.Debug("Installing components: %s", components)
 
 	if libkb.IsIn(string(ComponentNameUpdater), components, false) {
-		err = installUpdater(context, binPath, force, log)
+		err = InstallUpdater(context, binPath, force, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameUpdater), err))
 	}
 
@@ -411,12 +411,12 @@ func Install(context Context, binPath string, components []string, force bool, l
 	}
 
 	if libkb.IsIn(string(ComponentNameService), components, false) {
-		err = installService(context, binPath, force, log)
+		err = InstallService(context, binPath, force, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameService), err))
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		err = KBFS(context, binPath, force, log)
+		err = InstallKBFS(context, binPath, force, log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 	}
 
@@ -471,7 +471,7 @@ func installCommandLineForBinPath(binPath string, linkPath string, force bool) e
 	return nil
 }
 
-func installService(context Context, binPath string, force bool, log Log) error {
+func InstallService(context Context, binPath string, force bool, log Log) error {
 	resolvedBinPath, err := chooseBinPath(binPath)
 	if err != nil {
 		return err
@@ -513,8 +513,8 @@ func installService(context Context, binPath string, force bool, log Log) error 
 	return nil
 }
 
-// KBFS installs the KBFS service
-func KBFS(context Context, binPath string, force bool, log Log) error {
+// InstallKBFS installs the KBFS service
+func InstallKBFS(context Context, binPath string, force bool, log Log) error {
 	runMode := context.GetRunMode()
 	label := DefaultKBFSLabel(runMode)
 	kbfsService := launchd.NewService(label)
@@ -670,7 +670,7 @@ func autoInstall(context Context, binPath string, force bool, log Log) (newProc 
 		return
 	}
 
-	err = installService(context, binPath, true, log)
+	err = InstallService(context, binPath, true, log)
 	componentResults = append(componentResults, componentResult(string(ComponentNameService), err))
 	if err != nil {
 		return
@@ -826,35 +826,7 @@ func OSVersion() (semver.Version, error) {
 	return semver.Make(swver)
 }
 
-// RunAfterStartup runs after service startup
-func RunAfterStartup(context Context, isService bool, log Log) {
-	// Ensure the app is running (if it exists and is supported on the platform)
-	if libkb.IsBrewBuild {
-		return
-	}
-	if context.GetRunMode() != libkb.ProductionRunMode {
-		return
-	}
-	mode, err := context.GetAppStartMode()
-	if err != nil {
-		log.Errorf("Error getting app start mode: %s", err)
-	}
-	log.Debug("App start mode: %s", mode)
-	switch mode {
-	case libkb.AppStartModeService:
-		if !isService {
-			return
-		}
-	case libkb.AppStartModeDisabled:
-		return
-	}
-
-	if err := RunApp(context, log); err != nil {
-		log.Errorf("Error starting the app: %s", err)
-	}
-}
-
-func installUpdater(context Context, keybaseBinPath string, force bool, log Log) error {
+func InstallUpdater(context Context, keybaseBinPath string, force bool, log Log) error {
 	if context.GetRunMode() != libkb.ProductionRunMode {
 		return fmt.Errorf("Updater not supported in this run mode")
 	}

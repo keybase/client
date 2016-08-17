@@ -36,12 +36,17 @@ func (s *CmdCtlAppExit) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (s *CmdCtlAppExit) Run() (err error) {
-	cli, err := GetCtlClient(s.G())
+func appExit(g *libkb.GlobalContext) error {
+	cli, err := GetCtlClient(g)
 	if err != nil {
 		return err
 	}
+	g.Log.Info("Exiting Keybase app")
 	return cli.AppExit(context.TODO(), 0)
+}
+
+func (s *CmdCtlAppExit) Run() (err error) {
+	return appExit(s.G())
 }
 
 func (s *CmdCtlAppExit) GetUsage() libkb.Usage {

@@ -67,6 +67,13 @@ func ctlBrewStop(g *libkb.GlobalContext) error {
 	return err
 }
 
+func appExitOrTerminate(g *libkb.GlobalContext) error {
+	if err := appExit(g); err != nil {
+		return install.TerminateApp(g, g.Log)
+	}
+	return nil
+}
+
 func ctlStop(g *libkb.GlobalContext, components map[string]bool, wait time.Duration) error {
 	if libkb.IsBrewBuild {
 		return ctlBrewStop(g)
@@ -75,22 +82,22 @@ func ctlStop(g *libkb.GlobalContext, components map[string]bool, wait time.Durat
 	g.Log.Debug("Components: %v", components)
 	errs := []error{}
 	if ok := components[install.ComponentNameApp.String()]; ok {
-		if err := install.TerminateApp(g, g.Log); err != nil {
+		if err := appExitOrTerminate(g); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	if ok := components[install.ComponentNameService.String()]; ok {
-		if _, err := launchd.Stop(install.DefaultServiceLabel(runMode), wait, g.Log); err != nil {
+		if err := launchd.Uninstall(install.DefaultServiceLabel(runMode), wait, g.Log); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	if ok := components[install.ComponentNameKBFS.String()]; ok {
-		if _, err := launchd.Stop(install.DefaultKBFSLabel(runMode), wait, g.Log); err != nil {
+		if err := launchd.Uninstall(install.DefaultKBFSLabel(runMode), wait, g.Log); err != nil {
 			errs = append(errs, err)
 		}
 	}
 	if ok := components[install.ComponentNameUpdater.String()]; ok {
-		if _, err := launchd.Stop(install.DefaultUpdaterLabel(runMode), wait, g.Log); err != nil {
+		if err := launchd.Uninstall(install.DefaultUpdaterLabel(runMode), wait, g.Log); err != nil {
 			errs = append(errs, err)
 		}
 	}
