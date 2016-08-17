@@ -107,7 +107,7 @@ const floatingLabelStyle = {
   textAlign: 'center',
   position: 'relative',
   height: 21,
-  top: -21,
+  top: -12,
 }
 
 const errorText = {
