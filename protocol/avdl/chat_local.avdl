@@ -54,4 +54,7 @@ protocol chatLocal {
   ThreadView getThreadLocal(chat1.ConversationID conversationID, union { null, chat1.Pagination } pagination);
   void postLocal(chat1.ConversationID conversationID, MessagePlaintext messagePlaintext);
   chat1.ConversationID newConversationLocal(chat1.ConversationIDTriple conversationTriple);
+
+  // temporary method before we support multiple topics per TLF
+  chat1.ConversationID getOrCreateTextConversationLocal(string tlfName);
 }

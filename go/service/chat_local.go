@@ -4,6 +4,7 @@
 package service
 
 import (
+	"encoding/hex"
 	"encoding/json"
 
 	"golang.org/x/net/context"
@@ -56,6 +57,57 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetT
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, trip chat1.ConversationIDTriple) (id chat1.ConversationID, err error) {
 	id, err = h.remoteClient().NewConversationRemote(ctx, trip)
 	return id, err
+}
+
+// GetOrCreateTextConversationLocal implements
+// keybase.chatLocal.GetOrCreateTextConversationLocal protocol. It returns the
+// most recent conversation's ConversationID for given TLF ID, or creates a new
+// conversation and returns its ID if none exists yet.
+//
+// TODO: after we implement multiple conversations per TLF and topic names,
+// replace this with something that looks up by topic name
+func (h *chatLocalHandler) GetOrCreateTextConversationLocal(ctx context.Context, tlfName string) (id chat1.ConversationID, err error) {
+	res, err := h.boxer.tlf.CryptKeys(ctx, tlfName)
+	if err != nil {
+		return id, err
+	}
+	tlfIDb, err := hex.DecodeString(string(res.TlfID))
+	if err != nil {
+		return id, err
+	}
+	tlfID := chat1.TLFID(tlfIDb)
+
+	ipagination := &chat1.Pagination{}
+getinbox:
+	for {
+		ipagination.Num = 32
+		iview, err := h.GetInboxLocal(ctx, ipagination)
+		if err != nil {
+			return id, err
+		}
+		for _, conv := range iview.Conversations {
+			if conv.Metadata.IdTriple.Tlfid.Eq(tlfID) {
+				return conv.Metadata.ConversationID, nil
+			}
+		}
+
+		if iview.Pagination == nil || iview.Pagination.Last != 0 {
+			break getinbox
+		} else {
+			ipagination = iview.Pagination
+		}
+	}
+
+	id, err = h.NewConversationLocal(ctx, chat1.ConversationIDTriple{
+		Tlfid:     tlfID,
+		TopicType: chat1.TopicType_CHAT,
+		// TopicID filled by server?
+	})
+	if err != nil {
+		return id, err
+	}
+
+	return id, nil
 }
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.

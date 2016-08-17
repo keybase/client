@@ -5,6 +5,7 @@ package client
 
 import (
 	"encoding/hex"
+	"fmt"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -40,28 +41,28 @@ func (m uidUsernameMapper) getUsername(g *libkb.GlobalContext, uid keybase1.UID)
 	return username, err
 }
 
-type cmdInbox struct {
+type cmdChatInbox struct {
 	libkb.Contextified
 	chatLocalClient keybase1.ChatLocalInterface // for testing only
 }
 
-func newCmdInbox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdChatInbox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "inbox",
 		Usage:        "Show new messages in inbox",
 		ArgumentHelp: "",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&cmdInbox{Contextified: libkb.NewContextified(g)}, "inbox", c)
+			cl.ChooseCommand(&cmdChatInbox{Contextified: libkb.NewContextified(g)}, "inbox", c)
 		},
 	}
 }
 
-func (c *cmdInbox) getMessagesFlattened() (messages cliChatMessages, err error) {
+func (c *cmdChatInbox) getMessagesFlattened() (messages cliChatMessages, err error) {
 	chatClient := c.chatLocalClient // should be nil unless in test
 	if chatClient == nil {
 		chatClient, err = GetChatLocalClient(c.G())
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Getting chat service client error: %s", err)
 		}
 	}
 
@@ -94,11 +95,13 @@ getinbox:
 				}
 
 				var body string
-				if m.MessagePlaintext.MessageBodies[0].Type == chat1.MessageType_TEXT {
+				switch t := m.MessagePlaintext.MessageBodies[0].Type; t {
+				case chat1.MessageType_TEXT:
 					body = formatChatText(m.MessagePlaintext.MessageBodies[0].Text)
-				} else if m.MessagePlaintext.MessageBodies[0].Type == chat1.MessageType_ATTACHMENT {
+				case chat1.MessageType_ATTACHMENT:
 					body = formatChatAttachment(m.MessagePlaintext.MessageBodies[0].Attachment)
-				} else {
+				default:
+					c.G().Log.Debug("unsurported MessageType: %s", t)
 					continue
 				}
 
@@ -134,7 +137,7 @@ getinbox:
 	return messages, nil
 }
 
-func (c *cmdInbox) Run() error {
+func (c *cmdChatInbox) Run() error {
 	messages, err := c.getMessagesFlattened()
 	if err != nil {
 		return err
@@ -144,11 +147,11 @@ func (c *cmdInbox) Run() error {
 	return nil
 }
 
-func (c *cmdInbox) ParseArgv(ctx *cli.Context) error {
+func (c *cmdChatInbox) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *cmdInbox) GetUsage() libkb.Usage {
+func (c *cmdChatInbox) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,

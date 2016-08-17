@@ -209,6 +209,15 @@
         }
       ],
       "response": "chat1.ConversationID"
+    },
+    "getOrCreateTextConversationLocal": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        }
+      ],
+      "response": "chat1.ConversationID"
     }
   },
   "namespace": "keybase.1"

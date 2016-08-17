@@ -1809,6 +1809,19 @@ export function chatLocalGetInboxLocalRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: chatLocalGetInboxLocalResult) => void)}>) {
   engine.rpc({...request, method: 'chatLocal.getInboxLocal'})
 }
+export type chatLocalGetOrCreateTextConversationLocalRpcParam = $Exact<{
+  tlfName: string
+}>
+
+type chatLocalGetOrCreateTextConversationLocalResult = chat1.ConversationID
+
+export function chatLocalGetOrCreateTextConversationLocalRpc (request: $Exact<{
+  param: chatLocalGetOrCreateTextConversationLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatLocalGetOrCreateTextConversationLocalResult) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.getOrCreateTextConversationLocal'})
+}
 export type chatLocalGetThreadLocalRpcParam = $Exact<{
   conversationID: chat1.ConversationID,
   pagination: (null | chat1.Pagination)
@@ -4040,6 +4053,7 @@ export type rpc =
   | blockGetUserQuotaInfoRpc
   | blockPutBlockRpc
   | chatLocalGetInboxLocalRpc
+  | chatLocalGetOrCreateTextConversationLocalRpc
   | chatLocalGetThreadLocalRpc
   | chatLocalNewConversationLocalRpc
   | chatLocalPostLocalRpc
@@ -4440,6 +4454,15 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: (err: RPCError) => void,
       result: (result: chatLocalNewConversationLocalResult) => void
+    }
+  ) => void,
+  'keybase.1.chatLocal.getOrCreateTextConversationLocal'?: (
+    params: $Exact<{
+      tlfName: string
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: chatLocalGetOrCreateTextConversationLocalResult) => void
     }
   ) => void,
   'keybase.1.config.getCurrentStatus'?: (
