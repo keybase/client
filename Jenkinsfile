@@ -275,7 +275,10 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             }
 
                                         println "Test OS X"
-                                            testNixGo("OS X")
+                                            // Retry to protect against flakes
+                                            retry(3) {
+                                                testNixGo("OS X")
+                                            }
                                     }}
                                 }
                             },
