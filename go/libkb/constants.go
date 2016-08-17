@@ -436,12 +436,3 @@ const (
 const (
 	PGPAssertionKey = "pgp"
 )
-
-type AppStartMode string
-
-const (
-	AppStartModeError    AppStartMode = "error"
-	AppStartModeDefault  AppStartMode = "default" // It will be "service" in most cases
-	AppStartModeDisabled AppStartMode = "disabled"
-	AppStartModeService  AppStartMode = "service" // Open app after service start
-)

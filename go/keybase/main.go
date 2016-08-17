@@ -125,9 +125,6 @@ func mainInner(g *libkb.GlobalContext) error {
 		return err
 	}
 
-	// Install hook for after startup
-	install.RunAfterStartup(g, cl.IsService(), g.Log)
-
 	err = cmd.Run()
 	if !cl.IsService() {
 		// Errors that come up in printing this warning are logged but ignored.

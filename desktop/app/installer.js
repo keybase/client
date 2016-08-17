@@ -24,6 +24,7 @@ export default callback => {
       quit()
       return
     }
+
     callback(err)
   })
 }

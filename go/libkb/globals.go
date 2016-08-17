@@ -627,10 +627,6 @@ func (g *GlobalContext) CallLogoutHooks() {
 	}
 }
 
-func (g *GlobalContext) GetAppStartMode() (AppStartMode, error) {
-	return g.Env.GetAppStartMode()
-}
-
 func (g *GlobalContext) GetConfigDir() string {
 	return g.Env.GetConfigDir()
 }

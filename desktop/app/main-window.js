@@ -1,5 +1,5 @@
 import Window from './window'
-import {ipcMain} from 'electron'
+import {app, ipcMain} from 'electron'
 import {resolveRoot} from '../resolve-root'
 import hotPath from '../hot-path'
 import {windowStyle} from '../shared/styles/style-guide'
@@ -13,6 +13,7 @@ export default function () {
     defaultWidth: windowStyle.width,
     defaultHeight: windowStyle.height,
   })
+  appState.checkOpenAtLogin()
 
   const mainWindow = new Window(
     resolveRoot('renderer', `index.html?src=${hotPath('index.bundle.js')}`), {
@@ -32,15 +33,21 @@ export default function () {
     mainWindow.window.setPosition(forceMainWindowPosition.x, forceMainWindowPosition.y)
   }
 
-  const isRestore = getenv.boolish('KEYBASE_RESTORE_UI', false)
-  const startUI = getenv.string('KEYBASE_START_UI', '')
-  console.log('Main window, isRestore: %s, startUI: %s', isRestore, startUI)
+  let isRestore = false
+  if (getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState) {
+    isRestore = true
+  }
+
+  let openHidden = false
+  if ((getenv.string('KEYBASE_START_UI', '') === 'hideWindow') || app.getLoginItemSettings().wasOpenedAsHidden) {
+    openHidden = true
+  }
 
   // We show the main window on startup if:
-  //  - We are not restoring the UI (after update, or boot)
+  //  - We are not restoring the UI (after update)
   //    Or, we are restoring UI and the window was previously visible (in app state)
-  //  - And, startUI is not set to 'hideWindow'.
-  const showMainWindow = (!isRestore || (isRestore && !appState.state.windowHidden)) && (startUI !== 'hideWindow')
+  //  - We are not set to open hidden
+  const showMainWindow = (!isRestore || (isRestore && !appState.state.windowHidden)) && !openHidden
   console.log('Show main window: %s', showMainWindow)
   if (showMainWindow) {
     // On Windows we can try showing before Windows is ready
@@ -53,7 +60,10 @@ export default function () {
     })
   }
 
-  const shouldHideDockIcon = (isRestore && appState.state.dockHidden)
+  // Hide the dock icon if:
+  // - We are restoring and dock was hidden
+  // - We are set to open hidden
+  const shouldHideDockIcon = (isRestore && appState.state.dockHidden) || openHidden
   console.log('Hide dock icon: %s', shouldHideDockIcon)
   if (shouldHideDockIcon) {
     hideDockIcon()
