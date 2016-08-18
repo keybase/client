@@ -12,26 +12,43 @@ import (
 )
 
 func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
-	if err = MakeParentDirs(s.file); err != nil {
+	if err = MakeParentDirs(s.bindFile); err != nil {
 		return
 	}
-	s.G().Log.Info("Binding to unix:%s", s.file)
-	return net.Listen("unix", s.file)
+	s.G().Log.Info("Binding to unix:%s", s.bindFile)
+	return net.Listen("unix", s.bindFile)
 }
 
 func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
-	s.G().Log.Debug("Dialing unix:%s", s.file)
-	return net.Dial("unix", s.file)
+	for _, file := range s.dialFiles {
+		ret, err = s.dialSocket(file)
+		if err == nil {
+			return ret, nil
+		}
+	}
+	return ret, err
+}
+
+func (s SocketInfo) dialSocket(file string) (ret net.Conn, err error) {
+	s.G().Log.Debug("Dialing unix:%s", file)
+	return net.Dial("unix", file)
 }
 
 func NewSocket(g *GlobalContext) (ret Socket, err error) {
-	var s string
-	s, err = g.Env.GetSocketFile()
-	if err == nil {
-		ret = SocketInfo{
-			Contextified: NewContextified(g),
-			file:         s,
-		}
+	var dialFiles []string
+	dialFiles, err = g.Env.GetSocketDialFiles()
+	if err != nil {
+		return
+	}
+	var bindFile string
+	bindFile, err = g.Env.GetSocketBindFile()
+	if err != nil {
+		return
+	}
+	ret = SocketInfo{
+		Contextified: NewContextified(g),
+		dialFiles:    dialFiles,
+		bindFile:     bindFile,
 	}
 	return
 }

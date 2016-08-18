@@ -18,7 +18,7 @@ import (
 
 func NewSocket(g *GlobalContext) (ret Socket, err error) {
 	var s string
-	s, err = g.Env.GetSocketFile()
+	s, err = g.Env.GetSocketBindFile()
 	if err != nil {
 		return
 	}
@@ -26,10 +26,11 @@ func NewSocket(g *GlobalContext) (ret Socket, err error) {
 		err = errors.New("Empty SocketFile, can't make pipe")
 		return
 	}
-	s = strings.TrimPrefix(s, filepath.VolumeName(s))
+	s = `\\.\pipe\kbservice` + strings.TrimPrefix(s, filepath.VolumeName(s))
 	return SocketInfo{
 		Contextified: NewContextified(g),
-		file:         `\\.\pipe\kbservice` + s,
+		bindFile:     bindFile,
+		dialFiles:    []string{bindFile},
 	}, nil
 }
 

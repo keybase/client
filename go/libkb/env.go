@@ -481,16 +481,46 @@ func (e *Env) GetUsername() NormalizedUsername {
 	return e.config.GetUsername()
 }
 
-func (e *Env) GetSocketFile() (ret string, err error) {
-	ret = e.GetString(
+func (e *Env) GetSocketBindFile() (string, error) {
+	// Switch to e.sandboxSocketFile() when all clients have been updated to dial sandbox first
+	return e.defaultSocketFile()
+}
+
+func (e *Env) defaultSocketFile() (string, error) {
+	socketFile := e.GetString(
 		func() string { return e.cmd.GetSocketFile() },
 		func() string { return os.Getenv("KEYBASE_SOCKET_FILE") },
 		func() string { return e.config.GetSocketFile() },
 	)
-	if len(ret) == 0 {
-		ret = filepath.Join(e.GetRuntimeDir(), SocketFile)
+	if socketFile == "" {
+		socketFile = filepath.Join(e.GetRuntimeDir(), SocketFile)
 	}
-	return
+	return socketFile, nil
+}
+
+// sandboxSocketFile is socket file location for sandbox (macOS only)
+func (e *Env) sandboxSocketFile() (string, error) {
+	return e.GetString(
+		func() string {
+			sandboxCacheDir := e.homeFinder.SandboxCacheDir()
+			if sandboxCacheDir != "" {
+				return filepath.Join(sandboxCacheDir, SocketFile)
+			}
+			return ""
+		},
+	), nil
+}
+
+func (e *Env) GetSocketDialFiles() ([]string, error) {
+	defaultSocketFile, err := e.defaultSocketFile()
+	if err != nil {
+		return nil, err
+	}
+	sandboxSocketFile, err := e.sandboxSocketFile()
+	if err != nil {
+		return nil, err
+	}
+	return []string{sandboxSocketFile, defaultSocketFile}, nil
 }
 
 func (e *Env) GetGregorURI() string {
