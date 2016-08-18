@@ -452,3 +452,119 @@ func (k *KeybaseServiceBase) FlushUserUnverifiedKeysFromLocalCache(ctx context.C
 	k.log.CDebugf(ctx, "Flushing cache of unverified keys for user %s", uid)
 	k.clearCachedUnverifiedKeys(uid)
 }
+
+// CtxKeybaseServiceTagKey is the type used for unique context tags
+// used while servicing incoming keybase requests.
+type CtxKeybaseServiceTagKey int
+
+const (
+	// CtxKeybaseServiceIDKey is the type of the tag for unique
+	// operation IDs used while servicing incoming keybase requests.
+	CtxKeybaseServiceIDKey CtxKeybaseServiceTagKey = iota
+)
+
+// CtxKeybaseServiceOpID is the display name for the unique operation
+// enqueued rekey ID tag.
+const CtxKeybaseServiceOpID = "KSID"
+
+func (k *KeybaseServiceBase) getHandleFromFolderName(ctx context.Context,
+	tlfName string, public bool) (*TlfHandle, error) {
+	for {
+		tlfHandle, err := ParseTlfHandle(ctx, k.config.KBPKI(), tlfName, public)
+		switch e := err.(type) {
+		case TlfNameNotCanonical:
+			tlfName = e.NameToTry
+		case nil:
+			return tlfHandle, nil
+		default:
+			return nil, err
+		}
+	}
+}
+
+// FSEditListRequest implements keybase1.NotifyFSRequestInterface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
+	req keybase1.FSEditListRequest) (err error) {
+	ctx = ctxWithRandomID(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
+		k.log)
+	k.log.CDebugf(ctx, "Edit list request for %s (public: %t)",
+		req.Folder.Name, !req.Folder.Private)
+	tlfHandle, err := k.getHandleFromFolderName(ctx, req.Folder.Name,
+		!req.Folder.Private)
+	if err != nil {
+		return err
+	}
+
+	rootNode, _, err := k.config.KBFSOps().
+		GetOrCreateRootNode(ctx, tlfHandle, MasterBranch)
+	if err != nil {
+		return err
+	}
+	editHistory, err := k.config.KBFSOps().GetEditHistory(ctx,
+		rootNode.GetFolderBranch())
+	if err != nil {
+		return err
+	}
+
+	// Convert the edits to an RPC response.
+	var resp keybase1.FSEditListArg
+	for writer, edits := range editHistory {
+		for _, edit := range edits {
+			var nType keybase1.FSNotificationType
+			switch edit.Type {
+			case FileCreated:
+				nType = keybase1.FSNotificationType_FILE_CREATED
+			case FileModified:
+				nType = keybase1.FSNotificationType_FILE_MODIFIED
+			default:
+				k.log.CDebugf(ctx, "Bad notification type in edit history: %v",
+					edit.Type)
+				continue
+			}
+			n := keybase1.FSNotification{
+				PublicTopLevelFolder: !req.Folder.Private,
+				Filename:             edit.Filepath,
+				StatusCode:           keybase1.FSStatusCode_FINISH,
+				NotificationType:     nType,
+				WriterUid:            writer,
+				LocalTime:            keybase1.ToTime(edit.LocalTime),
+			}
+			resp.Edits = append(resp.Edits, n)
+		}
+	}
+	resp.RequestID = req.RequestID
+
+	k.log.CDebugf(ctx, "Sending edit history response with %d edits",
+		len(resp.Edits))
+	return k.kbfsClient.FSEditList(ctx, resp)
+}
+
+// GetTLFCryptKeys implements the TlfKeysInterface interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
+	tlfName string) (res keybase1.TLFCryptKeys, err error) {
+	ctx = ctxWithRandomID(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
+		k.log)
+	tlfHandle, err := k.getHandleFromFolderName(ctx, tlfName, false)
+	if err != nil {
+		return res, err
+	}
+
+	res.CanonicalName = keybase1.CanonicalTlfName(tlfHandle.GetCanonicalName())
+
+	keys, id, err := k.config.KBFSOps().GetTLFCryptKeys(ctx, tlfHandle)
+	if err != nil {
+		return res, err
+	}
+	res.TlfID = keybase1.TLFID(id.String())
+
+	for i, key := range keys {
+		res.CryptKeys = append(res.CryptKeys, keybase1.CryptKey{
+			KeyGeneration: FirstValidKeyGen + i,
+			Key:           keybase1.Bytes32(key.data),
+		})
+	}
+
+	return res, nil
+}
