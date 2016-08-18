@@ -91,13 +91,17 @@ func (c *chatLocalMock) PostLocal(ctx context.Context, arg keybase1.PostLocalArg
 	return errors.New("not implemented")
 }
 
+func (c *chatLocalMock) GetOrCreateTextConversationLocal(ctx context.Context, tlfName string) (id chat1.ConversationID, err error) {
+	return id, errors.New("not implemented")
+}
+
 func (c *chatLocalMock) NewConversationLocal(ctx context.Context, cID chat1.ConversationIDTriple) (id chat1.ConversationID, err error) {
 	return id, errors.New("not implemented")
 }
 
 func TestCliInbox(t *testing.T) {
 	g := libkb.NewGlobalContextInit()
-	c := &cmdInbox{
+	c := &cmdChatInbox{
 		Contextified:    libkb.NewContextified(g),
 		chatLocalClient: &chatLocalMock{},
 	}
