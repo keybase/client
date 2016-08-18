@@ -436,3 +436,9 @@ const (
 const (
 	PGPAssertionKey = "pgp"
 )
+
+const (
+	SignaturePrefixKBFS     SignaturePrefix = "KEYBASE-KBFS-0"
+	SignaturePrefixChat     SignaturePrefix = "KEYBASE-CHAT-0"
+	SignaturePrefixSigchain SignaturePrefix = "KEYBASE-SIGCHAIN-0"
+)

@@ -100,7 +100,7 @@ func TestChatMessageSigned(t *testing.T) {
 	if err := handler.signMessageBoxed(&boxed, kp); err != nil {
 		t.Fatal(err)
 	}
-	if boxed.HeaderSignature.V != 1 {
+	if boxed.HeaderSignature.V != 2 {
 		t.Errorf("HeaderSignature.V = %d, expected 1", boxed.HeaderSignature.V)
 	}
 	if len(boxed.HeaderSignature.S) == 0 {
@@ -109,7 +109,7 @@ func TestChatMessageSigned(t *testing.T) {
 	if len(boxed.HeaderSignature.K) == 0 {
 		t.Error("after signMessageBoxed, HeaderSignature.K is empty")
 	}
-	if boxed.BodySignature.V != 1 {
+	if boxed.BodySignature.V != 2 {
 		t.Errorf("BodySignature.V = %d, expected 1", boxed.BodySignature.V)
 	}
 	if len(boxed.BodySignature.S) == 0 {

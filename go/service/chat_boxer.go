@@ -159,11 +159,13 @@ func (b *chatBoxer) verifyMessageBoxed(msg chat1.MessageBoxed) error {
 
 // verify verifies the signature of data using SignatureInfo.
 func (b *chatBoxer) verify(data []byte, si chat1.SignatureInfo) bool {
-	var pub libkb.NaclSigningKeyPublic
-	copy(pub[:], si.K)
-
-	var sig libkb.NaclSignature
-	copy(sig[:], si.S)
-
-	return pub.Verify(data, &sig)
+	sigInfo := libkb.NaclSigInfo{
+		Version: si.V,
+		Prefix:  libkb.SignaturePrefixChat,
+		Kid:     si.K,
+		Payload: data,
+	}
+	copy(sigInfo.Sig[:], si.S)
+	_, err := sigInfo.Verify()
+	return (err == nil)
 }

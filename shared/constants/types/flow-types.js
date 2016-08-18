@@ -178,6 +178,8 @@ export function BTCRegisterBTCRpc (request: $Exact<{
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'BTC.registerBTC'})
 }
+export type BinaryKID = bytes
+
 export type BlockIdCombo = {
   blockHash: string,
   chargedTo: UID,

@@ -157,17 +157,21 @@ func (h *chatLocalHandler) signJSON(data interface{}, kp libkb.NaclSigningKeyPai
 	return h.sign(encoded, kp)
 }
 
+func exportSigInfo(si *libkb.NaclSigInfo) chat1.SignatureInfo {
+	return chat1.SignatureInfo{
+		V: si.Version,
+		S: si.Sig[:],
+		K: si.Kid,
+	}
+}
+
 // sign signs msg with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
 func (h *chatLocalHandler) sign(msg []byte, kp libkb.NaclSigningKeyPair) (chat1.SignatureInfo, error) {
-	sig := *kp.Private.Sign(msg)
-
-	info := chat1.SignatureInfo{
-		V: 1,
-		S: sig[:],
-		K: kp.Public[:],
+	sig, err := kp.SignV2(msg, libkb.SignaturePrefixChat)
+	if err != nil {
+		return chat1.SignatureInfo{}, err
 	}
-
-	return info, nil
+	return exportSigInfo(sig), nil
 }
 
 // keyFinder remembers results from previous calls to CryptKeys().

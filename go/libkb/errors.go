@@ -1415,3 +1415,19 @@ func IsExecError(err error) bool {
 	}
 	return false
 }
+
+//=============================================================================
+
+type BadSignaturePrefixError struct{}
+
+func (e BadSignaturePrefixError) Error() string { return "bad signature prefix" }
+
+//=============================================================================
+
+type UnhandledSignatureError struct {
+	version int
+}
+
+func (e UnhandledSignatureError) Error() string {
+	return fmt.Sprintf("unhandled signature version: %d", e.version)
+}
