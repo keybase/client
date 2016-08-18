@@ -28,15 +28,16 @@ func (u *RemotePgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.O
 }
 
 func (u *RemotePgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGeneratedArg) error {
-	return nil
+	arg.SessionID = u.sessionID
+	return u.cli.KeyGenerated(ctx, arg)
 }
 
 func (u *RemotePgpUI) ShouldPushPrivate(ctx context.Context, sessionID int) (bool, error) {
-	return false, nil
+	return u.cli.ShouldPushPrivate(ctx, u.sessionID)
 }
 
 func (u *RemotePgpUI) Finished(ctx context.Context, sessionID int) error {
-	return nil
+	return u.cli.Finished(ctx, u.sessionID)
 }
 
 type PGPHandler struct {
@@ -223,7 +224,15 @@ func (h *PGPHandler) PGPKeyGen(_ context.Context, arg keybase1.PGPKeyGenArg) err
 }
 
 func (h *PGPHandler) PGPKeyGenDefault(ctx context.Context, arg keybase1.PGPKeyGenDefaultArg) error {
-	return nil
+	ectx := &engine.Context{
+		LogUI:      h.getLogUI(arg.SessionID),
+		PgpUI:      h.getPgpUI(arg.SessionID),
+		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
+		SessionID:  arg.SessionID,
+		NetContext: ctx,
+	}
+	eng := engine.NewPGPKeyGen(h.G(), arg)
+	return engine.RunEngine(eng, ectx)
 }
 
 func (h *PGPHandler) PGPDeletePrimary(_ context.Context, sessionID int) (err error) {
