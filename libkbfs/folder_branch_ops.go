@@ -3951,7 +3951,13 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		}
 		// Clear the rekey bit if any.
 		md.Flags &= ^MetadataFlagRekey
-		md.clearLastRevision()
+		_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+		if err != nil {
+			return err
+		}
+		if md.GetTlfHandle().IsWriter(uid) {
+			md.clearLastRevision()
+		}
 
 	case RekeyIncompleteError:
 		if !rekeyDone && rekeyWasSet {
