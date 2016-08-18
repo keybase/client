@@ -54,6 +54,13 @@ type ThreadView struct {
 	Pagination *chat1.Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
+type MessageSelector struct {
+	MessageTypes []chat1.MessageType `codec:"MessageTypes" json:"MessageTypes"`
+	After        *Time               `codec:"After,omitempty" json:"After,omitempty"`
+	Before       *Time               `codec:"Before,omitempty" json:"Before,omitempty"`
+	OnlyNew      bool                `codec:"onlyNew" json:"onlyNew"`
+}
+
 type GetInboxLocalArg struct {
 	Pagination *chat1.Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
@@ -78,12 +85,17 @@ type GetOrCreateTextConversationLocalArg struct {
 	TopicType chat1.TopicType `codec:"topicType" json:"topicType"`
 }
 
+type GetMessagesLocalArg struct {
+	Selector MessageSelector `codec:"selector" json:"selector"`
+}
+
 type ChatLocalInterface interface {
 	GetInboxLocal(context.Context, *chat1.Pagination) (chat1.InboxView, error)
 	GetThreadLocal(context.Context, GetThreadLocalArg) (ThreadView, error)
 	PostLocal(context.Context, PostLocalArg) error
 	NewConversationLocal(context.Context, chat1.ConversationIDTriple) (chat1.ConversationID, error)
 	GetOrCreateTextConversationLocal(context.Context, GetOrCreateTextConversationLocalArg) (chat1.ConversationID, error)
+	GetMessagesLocal(context.Context, MessageSelector) ([]Message, error)
 }
 
 func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
@@ -170,6 +182,22 @@ func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getMessagesLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMessagesLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMessagesLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMessagesLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMessagesLocal(ctx, (*typedArgs)[0].Selector)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -202,5 +230,11 @@ func (c ChatLocalClient) NewConversationLocal(ctx context.Context, conversationT
 
 func (c ChatLocalClient) GetOrCreateTextConversationLocal(ctx context.Context, __arg GetOrCreateTextConversationLocalArg) (res chat1.ConversationID, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getOrCreateTextConversationLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ChatLocalClient) GetMessagesLocal(ctx context.Context, selector MessageSelector) (res []Message, err error) {
+	__arg := GetMessagesLocalArg{Selector: selector}
+	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getMessagesLocal", []interface{}{__arg}, &res)
 	return
 }

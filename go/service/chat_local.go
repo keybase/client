@@ -14,6 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"github.com/keybase/gregor/protocol/chat1"
+	"github.com/keybase/gregor/protocol/gregor1"
 )
 
 // chatLocalHandler implements keybase1.chatLocal.
@@ -67,7 +68,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, trip chat1.
 // conversation and returns its ID if none exists yet.
 //
 // TODO: after we implement multiple conversations per TLF and topic names,
-// replace this with something that looks up by topic name
+// change this to look up by topic name
 func (h *chatLocalHandler) GetOrCreateTextConversationLocal(ctx context.Context, arg keybase1.GetOrCreateTextConversationLocalArg) (id chat1.ConversationID, err error) {
 	res, err := h.boxer.tlf.CryptKeys(ctx, arg.TlfName)
 	if err != nil {
@@ -112,6 +113,79 @@ getinbox:
 	}
 
 	return id, nil
+}
+
+func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.Message, err error) {
+	var messageTypes map[chat1.MessageType]bool
+	if len(arg.MessageTypes) > 0 {
+		messageTypes := make(map[chat1.MessageType]bool)
+		for _, t := range arg.MessageTypes {
+			messageTypes[t] = true
+		}
+	}
+
+	ipagination := &chat1.Pagination{}
+getinbox:
+	for {
+		iview, err := h.GetInboxLocal(ctx, ipagination)
+		if err != nil {
+			return nil, err
+		}
+
+		tpagination := &chat1.Pagination{}
+	getthread:
+		for _, conv := range iview.Conversations {
+			tview, err := h.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
+				ConversationID: conv.Metadata.ConversationID,
+				Pagination:     tpagination,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			for _, m := range tview.Messages {
+				if len(m.MessagePlaintext.MessageBodies) == 0 {
+					continue
+				}
+
+				if messageTypes != nil && !messageTypes[m.MessagePlaintext.MessageBodies[0].Type] {
+					continue
+				}
+
+				if arg.OnlyNew {
+					// TODO
+				}
+
+				if arg.Before != nil && gregor1.FromTime(m.ServerHeader.Ctime).Before(keybase1.FromTime(*arg.Before)) {
+					continue
+				}
+
+				if arg.After != nil && gregor1.FromTime(m.ServerHeader.Ctime).After(keybase1.FromTime(*arg.After)) {
+					continue
+				}
+
+				messages = append(messages)
+			}
+
+			// TODO: replace pgination check with something sane when Mike's PR's merged
+			// TODO: determine whether need to continue according to the MessageSelector
+			if tview.Pagination == nil {
+				break getthread
+			} else {
+				tpagination = tview.Pagination
+			}
+		}
+
+		// TODO: replace pgination check with something sane when Mike's PR's merged
+		// TODO: determine whether need to continue according to the MessageSelector
+		if iview.Pagination == nil {
+			break getinbox
+		} else {
+			ipagination = iview.Pagination
+		}
+	}
+
+	return messages, nil
 }
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.

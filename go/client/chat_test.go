@@ -17,7 +17,8 @@ const (
 	chatLocalMockConversationID chat1.ConversationID = 42
 )
 
-type chatLocalMock struct{}
+type chatLocalMock struct {
+}
 
 func (c *chatLocalMock) GetInboxLocal(ctx context.Context, p *chat1.Pagination) (iview chat1.InboxView, err error) {
 	iview.Conversations = append(iview.Conversations, chat1.Conversation{
@@ -93,6 +94,16 @@ func (c *chatLocalMock) PostLocal(ctx context.Context, arg keybase1.PostLocalArg
 
 func (c *chatLocalMock) GetOrCreateTextConversationLocal(ctx context.Context, arg keybase1.GetOrCreateTextConversationLocalArg) (id chat1.ConversationID, err error) {
 	return id, errors.New("not implemented")
+}
+
+func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.Message, err error) {
+	tview, err := c.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
+		ConversationID: chatLocalMockConversationID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return tview.Messages, nil
 }
 
 func (c *chatLocalMock) NewConversationLocal(ctx context.Context, cID chat1.ConversationIDTriple) (id chat1.ConversationID, err error) {

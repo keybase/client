@@ -67,71 +67,39 @@ func (c *cmdChatInbox) getMessagesFlattened() (messages cliChatMessages, err err
 	}
 
 	var mapper uidUsernameMapper
+	msgs, err := chatClient.GetMessagesLocal(context.TODO(), keybase1.MessageSelector{
+		// TODO: shoudl populate After/Before be dynamic when we have flag like --since
+		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("GetMessagesLocal error: %s", err)
+	}
 
-	ipagination := &chat1.Pagination{}
-getinbox:
-	for {
-		ipagination.Num = 32
-		iview, err := chatClient.GetInboxLocal(context.TODO(), ipagination)
+	for _, m := range msgs {
+		var body string
+		switch t := m.MessagePlaintext.MessageBodies[0].Type; t {
+		case chat1.MessageType_TEXT:
+			body = formatChatText(m.MessagePlaintext.MessageBodies[0].Text)
+		case chat1.MessageType_ATTACHMENT:
+			body = formatChatAttachment(m.MessagePlaintext.MessageBodies[0].Attachment)
+		default:
+			c.G().Log.Debug("unsurported MessageType: %s", t)
+			continue
+		}
+
+		username, err := mapper.getUsername(c.G(), keybase1.UID(m.MessagePlaintext.ClientHeader.Sender.String()))
 		if err != nil {
-			return messages, err
+			username = "<getting username error>" // TODO: return error here when/if we have integrated tests
 		}
 
-		tpagination := &chat1.Pagination{}
-	getthread:
-		for _, conv := range iview.Conversations {
-			tpagination.Num = 32
-			tview, err := chatClient.GetThreadLocal(context.TODO(), keybase1.GetThreadLocalArg{
-				ConversationID: conv.Metadata.ConversationID,
-				Pagination:     tpagination,
-			})
-			if err != nil {
-				return nil, err
-			}
-
-			for _, m := range tview.Messages {
-				if len(m.MessagePlaintext.MessageBodies) == 0 {
-					continue
-				}
-
-				var body string
-				switch t := m.MessagePlaintext.MessageBodies[0].Type; t {
-				case chat1.MessageType_TEXT:
-					body = formatChatText(m.MessagePlaintext.MessageBodies[0].Text)
-				case chat1.MessageType_ATTACHMENT:
-					body = formatChatAttachment(m.MessagePlaintext.MessageBodies[0].Attachment)
-				default:
-					c.G().Log.Debug("unsurported MessageType: %s", t)
-					continue
-				}
-
-				username, err := mapper.getUsername(c.G(), keybase1.UID(m.MessagePlaintext.ClientHeader.Sender.String()))
-				if err != nil {
-					username = "<getting username error>" // TODO: return error here when/if we have integrated tests
-				}
-
-				messages = append(messages, cliChatMessage{
-					isNew:         true, // TODO: pupulate this properly after we implement message new/read
-					with:          strings.Split(m.MessagePlaintext.ClientHeader.TlfName, ","),
-					topic:         hex.EncodeToString([]byte(m.MessagePlaintext.ClientHeader.Conv.TopicID)[:4]), // TODO: populate this properly after we implement topic names
-					author:        string(username),
-					timestamp:     gregor1.FromTime(m.ServerHeader.Ctime),
-					formattedBody: body,
-				})
-			}
-
-			if tview.Pagination == nil || tview.Pagination.Last != 0 {
-				break getthread
-			} else {
-				tpagination = tview.Pagination
-			}
-		}
-
-		if iview.Pagination == nil || iview.Pagination.Last != 0 {
-			break getinbox
-		} else {
-			ipagination = iview.Pagination
-		}
+		messages = append(messages, cliChatMessage{
+			isNew:         true, // TODO: pupulate this properly after we implement message new/read
+			with:          strings.Split(m.MessagePlaintext.ClientHeader.TlfName, ","),
+			topic:         hex.EncodeToString([]byte(m.MessagePlaintext.ClientHeader.Conv.TopicID)[:4]), // TODO: populate this properly after we implement topic names
+			author:        string(username),
+			timestamp:     gregor1.FromTime(m.ServerHeader.Ctime),
+			formattedBody: body,
+		})
 	}
 
 	return messages, nil

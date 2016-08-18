@@ -5,6 +5,10 @@
       "path": "github.com/keybase/gregor/protocol/chat1",
       "type": "idl",
       "import_as": "chat1"
+    },
+    {
+      "path": "common.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -157,6 +161,37 @@
           "name": "pagination"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "MessageSelector",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "chat1.MessageType"
+          },
+          "name": "MessageTypes"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "After"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "Before"
+        },
+        {
+          "type": "bool",
+          "name": "onlyNew"
+        }
+      ]
     }
   ],
   "messages": {
@@ -226,6 +261,18 @@
         }
       ],
       "response": "chat1.ConversationID"
+    },
+    "getMessagesLocal": {
+      "request": [
+        {
+          "name": "selector",
+          "type": "MessageSelector"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Message"
+      }
     }
   },
   "namespace": "keybase.1"
