@@ -20,14 +20,14 @@ const styleContainer = {
 }
 
 const styleHeaderIcon = {
-  marginTop: globalMargins.large,
   alignSelf: 'center',
+  marginTop: globalMargins.large,
 }
 
 const styleBody = {
-  marginTop: globalMargins.large,
   textAlign: 'center',
   margin: globalMargins.medium,
+  marginTop: globalMargins.large,
 }
 
 export default ProvePgpImport
