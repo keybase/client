@@ -88,6 +88,13 @@ type GlobalContext struct {
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
 }
 
+func (g *GlobalContext) GetLog() logger.Logger       { return g.Log }
+func (g *GlobalContext) GetAPI() API                 { return g.API }
+func (g *GlobalContext) GetExternalAPI() ExternalAPI { return g.XAPI }
+func (g *GlobalContext) GetServerURI() string        { return g.Env.GetServerURI() }
+
+var _ GlobalContextLite = (*GlobalContext)(nil)
+
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	return &GlobalContext{
@@ -493,7 +500,7 @@ func NewContextified(gc *GlobalContext) Contextified {
 	return Contextified{g: gc}
 }
 
-type Contexitifier interface {
+type Contextifier interface {
 	G() *GlobalContext
 }
 
@@ -584,10 +591,6 @@ func (g *GlobalContext) GetUnforwardedLogger() (log UnforwardedLoggerWithLegacyI
 		return log
 	}
 	return nil
-}
-
-func (g *GlobalContext) GetLog() logger.Logger {
-	return g.Log
 }
 
 // GetLogf returns a logger with a minimal formatter style interface

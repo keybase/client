@@ -316,10 +316,9 @@ func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret
 	defer g.Trace("getUserCard", func() error { return err })()
 
 	arg := libkb.APIArg{
-		Endpoint:     "user/card",
-		NeedSession:  useSession,
-		Contextified: libkb.NewContextified(g),
-		Args:         libkb.HTTPArgs{"uid": libkb.S{Val: uid.String()}},
+		Endpoint:    "user/card",
+		NeedSession: useSession,
+		Args:        libkb.HTTPArgs{"uid": libkb.S{Val: uid.String()}},
 	}
 
 	var card card

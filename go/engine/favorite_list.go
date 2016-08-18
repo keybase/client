@@ -56,7 +56,7 @@ func (f *FavoritesAPIResult) GetAppStatus() *libkb.AppStatus {
 
 // Run starts the engine.
 func (e *FavoriteList) Run(ctx *Context) error {
-	arg := libkb.NewRetryAPIArg(e.G(), "kbfs/favorite/list")
+	arg := libkb.NewRetryAPIArg("kbfs/favorite/list")
 	arg.NeedSession = true
 	return e.G().API.GetDecode(arg, &e.result)
 }

@@ -166,7 +166,7 @@ func (p *Parser) parseFactor() (ret AssertionExpression) {
 	tok := p.lexer.Get()
 	switch tok.Typ {
 	case URL:
-		url, err := ParseAssertionURL(tok.getString(), false)
+		url, err := ParseAssertionURL(AllServices{}, tok.getString(), false)
 		if err != nil {
 			p.err = err
 		} else {

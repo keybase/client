@@ -25,7 +25,7 @@ func NewDNSChecker(p RemoteProofChainLink) (*DNSChecker, ProofError) {
 
 func (rc *DNSChecker) GetTorError() ProofError { return ProofErrorDNSOverTor }
 
-func (rc *DNSChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
+func (rc *DNSChecker) CheckHint(g GlobalContextLite, h SigHint) ProofError {
 	_, sigID, err := OpenSig(rc.proof.GetArmoredSig())
 
 	if err != nil {
@@ -43,7 +43,7 @@ func (rc *DNSChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
 	return nil
 }
 
-func (rc *DNSChecker) CheckDomain(g *GlobalContext, sig string, domain string) ProofError {
+func (rc *DNSChecker) CheckDomain(g GlobalContextLite, sig string, domain string) ProofError {
 	txt, err := net.LookupTXT(domain)
 	if err != nil {
 		return NewProofError(keybase1.ProofStatus_DNS_ERROR,
@@ -51,7 +51,7 @@ func (rc *DNSChecker) CheckDomain(g *GlobalContext, sig string, domain string) P
 	}
 
 	for _, record := range txt {
-		g.Log.Debug("For %s, got TXT record: %s", domain, record)
+		g.GetLog().Debug("For %s, got TXT record: %s", domain, record)
 		if record == sig {
 			return nil
 		}
@@ -61,10 +61,10 @@ func (rc *DNSChecker) CheckDomain(g *GlobalContext, sig string, domain string) P
 		len(txt), domain, sig)
 }
 
-func (rc *DNSChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
+func (rc *DNSChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError {
 
 	wanted := h.checkText
-	g.Log.Debug("| DNS proof, want TXT value: %s", wanted)
+	g.GetLog().Debug("| DNS proof, want TXT value: %s", wanted)
 
 	domain := rc.proof.GetHostname()
 
@@ -94,7 +94,7 @@ func (t DNSServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t DNSServiceType) NormalizeRemoteName(g *GlobalContext, s string) (string, error) {
+func (t DNSServiceType) NormalizeRemoteName(_ GlobalContextLite, s string) (string, error) {
 	// Allow a leading 'dns://' and preserve case.
 	s = strings.TrimPrefix(s, "dns://")
 	if !IsValidHostname(s) {
@@ -145,7 +145,6 @@ func (t DNSServiceType) LastWriterWins() bool { return false }
 
 func init() {
 	RegisterServiceType(DNSServiceType{})
-	RegisterSocialNetwork("dns")
 	RegisterMakeProofCheckerFunc("dns",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewDNSChecker(l)

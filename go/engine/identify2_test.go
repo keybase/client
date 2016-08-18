@@ -71,11 +71,11 @@ func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) 
 	return i, nil
 }
 
-func (i *Identify2WithUIDTester) CheckHint(_ *libkb.GlobalContext, h libkb.SigHint) libkb.ProofError {
+func (i *Identify2WithUIDTester) CheckHint(_ libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
 	return nil
 }
 
-func (i *Identify2WithUIDTester) CheckStatus(_ *libkb.GlobalContext, h libkb.SigHint) libkb.ProofError {
+func (i *Identify2WithUIDTester) CheckStatus(_ libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
 	if i.checkStatusHook != nil {
 		return i.checkStatusHook(h)
 	}

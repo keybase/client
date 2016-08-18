@@ -251,7 +251,7 @@ func (s *Session) check() error {
 		return nil
 	}
 
-	arg := NewRetryAPIArg(s.G(), "sesscheck")
+	arg := NewRetryAPIArg("sesscheck")
 	arg.SessionR = s
 	arg.NeedSession = true
 	arg.AppStatusCodes = []int{SCOk, SCBadSession}

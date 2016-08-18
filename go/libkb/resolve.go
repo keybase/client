@@ -68,7 +68,7 @@ func (r *Resolver) resolve(input string, withBody bool) (res ResolveResult) {
 	defer r.G().Trace(fmt.Sprintf("Resolving username %q", input), func() error { return res.err })()
 
 	var au AssertionURL
-	if au, res.err = ParseAssertionURL(input, false); res.err != nil {
+	if au, res.err = ParseAssertionURL(AllServices{}, input, false); res.err != nil {
 		return res
 	}
 	res = r.resolveURL(au, input, withBody, false)
@@ -157,7 +157,6 @@ func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, with
 		NeedSession:    false,
 		Args:           ha,
 		AppStatusCodes: []int{SCOk, SCNotFound},
-		Contextified:   NewContextified(r.G()),
 	})
 
 	if res.err != nil {

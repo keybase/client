@@ -417,11 +417,10 @@ func (e *Kex2Provisionee) postSigs(signingArgs, encryptArgs *libkb.HTTPArgs) err
 	payload["sigs"] = []map[string]string{firstValues(signingArgs.ToValues()), firstValues(encryptArgs.ToValues())}
 
 	arg := libkb.APIArg{
-		Endpoint:     "key/multi",
-		NeedSession:  true,
-		JSONPayload:  payload,
-		SessionR:     e,
-		Contextified: libkb.NewContextified(e.G()),
+		Endpoint:    "key/multi",
+		NeedSession: true,
+		JSONPayload: payload,
+		SessionR:    e,
 	}
 
 	_, err := e.G().API.PostJSON(arg)

@@ -31,7 +31,7 @@ func NewRedditChecker(p RemoteProofChainLink) (*RedditChecker, ProofError) {
 
 func (rc *RedditChecker) GetTorError() ProofError { return nil }
 
-func (rc *RedditChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
+func (rc *RedditChecker) CheckHint(g GlobalContextLite, h SigHint) ProofError {
 	if strings.HasPrefix(strings.ToLower(h.apiURL), RedditSub) {
 		return nil
 	}
@@ -108,8 +108,8 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 	return nil
 }
 
-func (rc *RedditChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
-	res, err := g.XAPI.Get(NewAPIArg(g, h.apiURL))
+func (rc *RedditChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError {
+	res, err := g.GetExternalAPI().Get(NewAPIArg(h.apiURL))
 	if err != nil {
 		return XapiError(err, h.apiURL)
 	}
@@ -157,7 +157,7 @@ func (t RedditServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t RedditServiceType) NormalizeRemoteName(g *GlobalContext, s string) (ret string, err error) {
+func (t RedditServiceType) NormalizeRemoteName(g GlobalContextLite, s string) (ret string, err error) {
 	return t.NormalizeUsername(s)
 }
 
@@ -210,7 +210,6 @@ func (t RedditServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 
 func init() {
 	RegisterServiceType(RedditServiceType{})
-	RegisterSocialNetwork("reddit")
 	RegisterMakeProofCheckerFunc("reddit",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewRedditChecker(l)

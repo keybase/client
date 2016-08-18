@@ -55,7 +55,6 @@ func callSendInvitation(g *GlobalContext, params HTTPArgs) (*Invitation, error) 
 	arg := APIArg{
 		Endpoint:       "send_invitation",
 		NeedSession:    true,
-		Contextified:   NewContextified(g),
 		Args:           params,
 		AppStatusCodes: []int{SCOk, SCThrottleControl},
 	}

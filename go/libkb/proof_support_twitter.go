@@ -26,7 +26,7 @@ func NewTwitterChecker(p RemoteProofChainLink) (*TwitterChecker, ProofError) {
 
 func (rc *TwitterChecker) GetTorError() ProofError { return nil }
 
-func (rc *TwitterChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
+func (rc *TwitterChecker) CheckHint(g GlobalContextLite, h SigHint) ProofError {
 	wantedURL := ("https://twitter.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/")
 	wantedShortID := (" " + rc.proof.GetSigID().ToShortID() + " /")
 
@@ -47,7 +47,7 @@ func (rc *TwitterChecker) ScreenNameCompare(s1, s2 string) bool {
 	return Cicmp(s1, s2)
 }
 
-func (rc *TwitterChecker) findSigInTweet(g *GlobalContext, h SigHint, s *goquery.Selection) ProofError {
+func (rc *TwitterChecker) findSigInTweet(g GlobalContextLite, h SigHint, s *goquery.Selection) ProofError {
 
 	inside := s.Text()
 	html, err := s.Html()
@@ -58,8 +58,8 @@ func (rc *TwitterChecker) findSigInTweet(g *GlobalContext, h SigHint, s *goquery
 		return NewProofError(keybase1.ProofStatus_CONTENT_FAILURE, "No HTML tweet found: %s", err)
 	}
 
-	g.Log.Debug("+ Checking tweet '%s' for signature '%s'", inside, checkText)
-	g.Log.Debug("| HTML is: %s", html)
+	g.GetLog().Debug("+ Checking tweet '%s' for signature '%s'", inside, checkText)
+	g.GetLog().Debug("| HTML is: %s", html)
 
 	rxx := regexp.MustCompile(`^(@[a-zA-Z0-9_-]+\s+)`)
 	for {
@@ -68,7 +68,7 @@ func (rc *TwitterChecker) findSigInTweet(g *GlobalContext, h SigHint, s *goquery
 		} else {
 			prefix := inside[m[2]:m[3]]
 			inside = inside[m[3]:]
-			g.Log.Debug("| Stripping off @prefx: %s", prefix)
+			g.GetLog().Debug("| Stripping off @prefx: %s", prefix)
 		}
 	}
 	inside = WhitespaceNormalize(inside)
@@ -81,8 +81,8 @@ func (rc *TwitterChecker) findSigInTweet(g *GlobalContext, h SigHint, s *goquery
 		checkText, inside)
 }
 
-func (rc *TwitterChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
-	res, err := g.XAPI.GetHTML(NewAPIArg(g, h.apiURL))
+func (rc *TwitterChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError {
+	res, err := g.GetExternalAPI().GetHTML(NewAPIArg(h.apiURL))
 	if err != nil {
 		return XapiError(err, h.apiURL)
 	}
@@ -129,7 +129,7 @@ func (t TwitterServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t TwitterServiceType) NormalizeRemoteName(g *GlobalContext, s string) (string, error) {
+func (t TwitterServiceType) NormalizeRemoteName(g GlobalContextLite, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
@@ -168,7 +168,6 @@ func (t TwitterServiceType) CheckProofText(text string, id keybase1.SigID, sig s
 
 func init() {
 	RegisterServiceType(TwitterServiceType{})
-	RegisterSocialNetwork("twitter")
 	RegisterMakeProofCheckerFunc("twitter",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewTwitterChecker(l)

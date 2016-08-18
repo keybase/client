@@ -28,7 +28,7 @@ func (rc *CoinbaseChecker) ProfileURL() string {
 	return "https://coinbase.com/" + rc.proof.GetRemoteUsername() + "/public-key"
 }
 
-func (rc *CoinbaseChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
+func (rc *CoinbaseChecker) CheckHint(g GlobalContextLite, h SigHint) ProofError {
 	wanted := rc.ProfileURL()
 	if strings.ToLower(wanted) == strings.ToLower(h.apiURL) {
 		return nil
@@ -38,8 +38,8 @@ func (rc *CoinbaseChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
 
 func (rc *CoinbaseChecker) GetTorError() ProofError { return nil }
 
-func (rc *CoinbaseChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
-	res, err := g.XAPI.GetHTML(NewAPIArg(g, h.apiURL))
+func (rc *CoinbaseChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError {
+	res, err := g.GetExternalAPI().GetHTML(NewAPIArg(h.apiURL))
 	if err != nil {
 		return XapiError(err, h.apiURL)
 	}
@@ -91,7 +91,7 @@ func (t CoinbaseServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t CoinbaseServiceType) NormalizeRemoteName(_ *GlobalContext, s string) (ret string, err error) {
+func (t CoinbaseServiceType) NormalizeRemoteName(_ GlobalContextLite, s string) (ret string, err error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
@@ -101,8 +101,8 @@ func (t CoinbaseServiceType) GetPrompt() string {
 	return "Your username on Coinbase"
 }
 
-func (t CoinbaseServiceType) PreProofCheck(g *GlobalContext, normalizedUsername string) (*Markup, error) {
-	_, err := g.XAPI.GetHTML(NewAPIArg(g, coinbaseUserURL(normalizedUsername)))
+func (t CoinbaseServiceType) PreProofCheck(g GlobalContextLite, normalizedUsername string) (*Markup, error) {
+	_, err := g.GetExternalAPI().GetHTML(NewAPIArg(coinbaseUserURL(normalizedUsername)))
 	if err != nil {
 		if ae, ok := err.(*APIError); ok && ae.Code == 404 {
 			err = ProfileNotPublicError{fmt.Sprintf("%s isn't public! Change your settings at %s",
@@ -141,7 +141,6 @@ func (t CoinbaseServiceType) CheckProofText(text string, id keybase1.SigID, sig 
 
 func init() {
 	RegisterServiceType(CoinbaseServiceType{})
-	RegisterSocialNetwork("coinbase")
 	RegisterMakeProofCheckerFunc("coinbase",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewCoinbaseChecker(l)
