@@ -90,7 +90,7 @@ function logFileName () {
   return paths[process.platform]
 }
 
-const dialSocketPaths = findDialSocketPaths()
+const socketPath = findDialSocketPaths()[0]
 const dataRoot = findDataRoot()
 const splashRoot = process.platform === 'darwin' ? darwinCacheRoot : dataRoot
 
@@ -100,6 +100,6 @@ export {
   isMobile,
   logFileName,
   runMode,
-  dialSocketPaths,
+  socketPath,
   splashRoot,
 }

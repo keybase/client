@@ -2,11 +2,11 @@
 import net from 'net'
 import type {incomingRPCCallbackType, connectCallbackType} from './platform-specific'
 import {TransportShared, sharedCreateClient} from './transport-shared'
-import {dialSocketPaths} from '../constants/platform.native.desktop'
+import {socketPath} from '../constants/platform.native.desktop'
 
 class NativeTransport extends TransportShared {
   constructor (incomingRPCCallback, connectCallback) {
-    super({path: dialSocketPaths[0]}, connectCallback, incomingRPCCallback)
+    super({path: socketPath}, connectCallback, incomingRPCCallback)
     this.needsConnect = true
   }
 
