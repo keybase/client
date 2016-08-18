@@ -4,7 +4,9 @@ const baseConfig = require('./webpack.config.base')
 const config = Object.assign({}, baseConfig)
 const getenv = require('getenv')
 const UnusedFilesWebpackPlugin = require('unused-files-webpack-plugin').default
+const DashboardPlugin = require('webpack-dashboard/plugin')
 
+const NO_SERVER = getenv.boolish('NO_SERVER', false)
 const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', false)
 const defines = {
   '__DEV__': true,
@@ -43,6 +45,11 @@ config.plugins.push(new UnusedFilesWebpackPlugin({
     ],
   },
 }))
+
+if (!NO_SERVER) {
+  config.plugins.push(new DashboardPlugin())
+}
+
 config.plugins.push(new webpack.optimize.OccurenceOrderPlugin())
 
 if (getenv.boolish('HOT', false)) {
