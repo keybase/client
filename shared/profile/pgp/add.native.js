@@ -20,7 +20,6 @@ class PgpAdd extends Component<void, Props, void> {
         <PlatformIcon
           platform='pgp'
           overlay='icon-proof-unfinished'
-          size={48}
           style={styleIcon} />
         <Text
           style={styleHeader}

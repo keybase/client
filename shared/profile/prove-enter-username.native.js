@@ -65,7 +65,7 @@ class Render extends Component<void, Props, State> {
     const notification = this.props.errorText ? {notification: {type: 'error', message: customError(this.props.errorText, this.props.errorCode)}} : {}
     return (
       <StandardScreen {...notification}>
-        <PlatformIcon style={styleIcon} platform={this.props.platform} overlay={'icon-proof-pending'} overlayColor={globalColors.grey} size={48} />
+        <PlatformIcon style={styleIcon} platform={this.props.platform} overlay={'icon-proof-pending'} overlayColor={globalColors.grey} />
         <Input
           style={styleInput}
           autoFocus={true}

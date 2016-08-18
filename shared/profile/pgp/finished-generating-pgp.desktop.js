@@ -26,7 +26,7 @@ class FinishedGeneratedPgp extends Component<void, Props, State> {
   render () {
     return (
       <StandardScreen notification={{type: 'success', message: 'Your PGP key was generated!'}}>
-        <PlatformIcon style={styleIcon} platform='pgp' overlay='icon-proof-success' size={48} />
+        <PlatformIcon style={styleIcon} platform='pgp' overlay='icon-proof-success' />
         <Text style={styleTitle} type='Header'>Here is your unique public key!</Text>
         <textInput style={stylePgpKeyString} readOnly={true}>{this.props.pgpKeyString}</textInput>
         <Box style={styleUploadContainer}>
