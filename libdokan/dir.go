@@ -167,6 +167,26 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 	})
 }
 
+func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {
+	// In case there were any unresolved assertions, try them again on
+	// the first load.  Otherwise, since we haven't subscribed to
+	// updates yet for this folder, we might have missed a name
+	// change.
+	handle, err := f.h.ResolveAgain(ctx, f.fs.config.KBPKI())
+	if err != nil {
+		return nil, err
+	}
+	eq, err := f.h.Equals(f.fs.config.Codec(), *handle)
+	if err != nil {
+		return nil, err
+	}
+	if !eq {
+		// Make sure the name changes in the folder and the folder list
+		f.TlfHandleChange(ctx, handle)
+	}
+	return handle, nil
+}
+
 // Dir represents KBFS subdirectories.
 type Dir struct {
 	FSO
@@ -212,63 +232,67 @@ func lastStr(strs []string) string {
 	return strs[len(strs)-1]
 }
 
-// open tries to open a file. This handles special files and defaults to openDir for the common case.
-func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.File, bool, error) {
+func openSpecialFile(name string, folder *Folder) dokan.File {
 	// Error and metrics file already handled in fs.go.
-	switch lastStr(path) {
+	switch name {
 
 	case libfs.StatusFileName:
-		folderBranch := d.folder.getFolderBranch()
-		return NewStatusFile(d.folder.fs, &folderBranch), false, nil
+		folderBranch := folder.getFolderBranch()
+		return NewStatusFile(folder.fs, &folderBranch)
 
 	case libfs.EditHistoryName:
-		folderBranch := d.folder.getFolderBranch()
-		return NewTlfEditHistoryFile(d.folder.fs, folderBranch), false, nil
+		folderBranch := folder.getFolderBranch()
+		return NewTlfEditHistoryFile(folder.fs, folderBranch)
 
 	case libfs.UnstageFileName:
 		child := &UnstageFile{
-			folder: d.folder,
+			folder: folder,
 		}
-		return child, false, nil
+		return child
 
 	case libfs.DisableUpdatesFileName:
 		child := &UpdatesFile{
-			folder: d.folder,
+			folder: folder,
 		}
-		return child, false, nil
+		return child
 
 	case libfs.EnableUpdatesFileName:
 		child := &UpdatesFile{
-			folder: d.folder,
+			folder: folder,
 			enable: true,
 		}
-		return child, false, nil
+		return child
 
 	case libfs.RekeyFileName:
 		child := &RekeyFile{
-			folder: d.folder,
+			folder: folder,
 		}
-		return child, false, nil
+		return child
 
 	case libfs.ReclaimQuotaFileName:
 		child := &ReclaimQuotaFile{
-			folder: d.folder,
+			folder: folder,
 		}
-		return child, false, nil
+		return child
 
 	case libfs.SyncFromServerFileName:
 		child := &SyncFromServerFile{
-			folder: d.folder,
+			folder: folder,
 		}
-		return child, false, nil
+		return child
 	}
 
-	return openDir(ctx, d, oc, path)
+	return nil
 }
 
-// openDir is the complex path lookup procedure.
-func openDir(ctx context.Context, d *Dir, oc *openContext, path []string) (dokan.File, bool, error) {
+// open tries to open a file.
+func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.File, bool, error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir openDir %v", path)
+
+	if node := openSpecialFile(lastStr(path), d.folder); node != nil {
+		return node, false, nil
+	}
+
 	origPath := path
 	rootDir := d
 	for len(path) > 0 {

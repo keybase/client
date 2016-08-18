@@ -1052,16 +1052,19 @@ func (fbo *folderBranchOps) initMDLocked(
 
 func (fbo *folderBranchOps) GetTLFCryptKeys(ctx context.Context,
 	h *TlfHandle) (keys []TLFCryptKey, id TlfID, err error) {
-	err = errors.New("GetTLFCryptKeys is not supported by folderBranchOps")
-	return
+	return nil, TlfID{}, errors.New("GetTLFCryptKeys is not supported by folderBranchOps")
 }
 
 func (fbo *folderBranchOps) GetOrCreateRootNode(
 	ctx context.Context, h *TlfHandle, branch BranchName) (
 	node Node, ei EntryInfo, err error) {
-	err = errors.New("GetOrCreateRootNode is not supported by " +
-		"folderBranchOps")
-	return
+	return nil, EntryInfo{}, errors.New("GetOrCreateRootNode is not supported by folderBranchOps")
+}
+
+func (fbo *folderBranchOps) GetRootNode(
+	ctx context.Context, h *TlfHandle, branch BranchName) (
+	node Node, ei EntryInfo, err error) {
+	return nil, EntryInfo{}, errors.New("GetRootNode is not supported by folderBranchOps")
 }
 
 func (fbo *folderBranchOps) checkNode(node Node) error {

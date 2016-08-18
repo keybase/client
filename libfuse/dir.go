@@ -134,6 +134,26 @@ func (f *Folder) forgetNode(node libkbfs.Node) {
 
 var _ libkbfs.Observer = (*Folder)(nil)
 
+func (f *Folder) resolve(ctx context.Context) (*libkbfs.TlfHandle, error) {
+	// In case there were any unresolved assertions, try them again on
+	// the first load.  Otherwise, since we haven't subscribed to
+	// updates yet for this folder, we might have missed a name
+	// change.
+	handle, err := f.h.ResolveAgain(ctx, f.fs.config.KBPKI())
+	if err != nil {
+		return nil, err
+	}
+	eq, err := f.h.Equals(f.fs.config.Codec(), *handle)
+	if err != nil {
+		return nil, err
+	}
+	if !eq {
+		// Make sure the name changes in the folder and the folder list
+		f.TlfHandleChange(ctx, handle)
+	}
+	return handle, nil
+}
+
 // invalidateNodeDataRange notifies the kernel to invalidate cached data for node.
 //
 // The arguments follow KBFS semantics:
@@ -260,6 +280,7 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 // TlfHandleChange is called when the name of a folder changes.
 func (f *Folder) TlfHandleChange(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
+	f.fs.log.CDebugf(ctx, "TlfHandleChange called %v", newHandle.GetCanonicalName())
 	// Handle in the background because we shouldn't lock during the
 	// notification
 	f.fs.queueNotification(func() {
@@ -342,91 +363,98 @@ func (d *Dir) attr(ctx context.Context, a *fuse.Attr) (err error) {
 	return nil
 }
 
+func openSpecialInFolder(name string, folder *Folder, resp *fuse.LookupResponse) fs.Node {
+	specialNode := handleSpecialFile(name, folder.fs, resp)
+	if specialNode != nil {
+		return specialNode
+	}
+
+	switch name {
+	case libfs.StatusFileName:
+		folderBranch := folder.getFolderBranch()
+		return NewStatusFile(folder.fs, &folderBranch, resp)
+
+	case UpdateHistoryFileName:
+		return NewUpdateHistoryFile(folder, resp)
+
+	case libfs.EditHistoryName:
+		folderBranch := folder.getFolderBranch()
+		return NewTlfEditHistoryFile(folder.fs, folderBranch, resp)
+
+	case libfs.UnstageFileName:
+		resp.EntryValid = 0
+		child := &UnstageFile{
+			folder: folder,
+		}
+		return child
+
+	case libfs.DisableUpdatesFileName:
+		resp.EntryValid = 0
+		child := &UpdatesFile{
+			folder: folder,
+		}
+		return child
+
+	case libfs.EnableUpdatesFileName:
+		resp.EntryValid = 0
+		child := &UpdatesFile{
+			folder: folder,
+			enable: true,
+		}
+		return child
+
+	case libfs.RekeyFileName:
+		resp.EntryValid = 0
+		child := &RekeyFile{
+			folder: folder,
+		}
+		return child
+
+	case libfs.ReclaimQuotaFileName:
+		resp.EntryValid = 0
+		child := &ReclaimQuotaFile{
+			folder: folder,
+		}
+		return child
+
+	case libfs.SyncFromServerFileName:
+		resp.EntryValid = 0
+		child := &SyncFromServerFile{
+			folder: folder,
+		}
+		return child
+
+	case libfs.EnableJournalFileName:
+		child := &JournalControlFile{
+			folder: folder,
+			action: libfs.JournalEnable,
+		}
+		return child
+
+	case libfs.FlushJournalFileName:
+		child := &JournalControlFile{
+			folder: folder,
+			action: libfs.JournalFlush,
+		}
+		return child
+
+	case libfs.DisableJournalFileName:
+		child := &JournalControlFile{
+			folder: folder,
+			action: libfs.JournalDisable,
+		}
+		return child
+	}
+	return nil
+}
+
 // Lookup implements the fs.NodeRequestLookuper interface for Dir.
 func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Lookup %s", req.Name)
 	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
-	specialNode := handleSpecialFile(req.Name, d.folder.fs, resp)
-	if specialNode != nil {
-		return specialNode, nil
-	}
-
-	switch req.Name {
-	case libfs.StatusFileName:
-		folderBranch := d.folder.getFolderBranch()
-		return NewStatusFile(d.folder.fs, &folderBranch, resp), nil
-
-	case UpdateHistoryFileName:
-		return NewUpdateHistoryFile(d.folder, resp), nil
-
-	case libfs.EditHistoryName:
-		folderBranch := d.folder.getFolderBranch()
-		return NewTlfEditHistoryFile(d.folder.fs, folderBranch, resp), nil
-
-	case libfs.UnstageFileName:
-		resp.EntryValid = 0
-		child := &UnstageFile{
-			folder: d.folder,
-		}
-		return child, nil
-
-	case libfs.DisableUpdatesFileName:
-		resp.EntryValid = 0
-		child := &UpdatesFile{
-			folder: d.folder,
-		}
-		return child, nil
-
-	case libfs.EnableUpdatesFileName:
-		resp.EntryValid = 0
-		child := &UpdatesFile{
-			folder: d.folder,
-			enable: true,
-		}
-		return child, nil
-
-	case libfs.RekeyFileName:
-		resp.EntryValid = 0
-		child := &RekeyFile{
-			folder: d.folder,
-		}
-		return child, nil
-
-	case libfs.ReclaimQuotaFileName:
-		resp.EntryValid = 0
-		child := &ReclaimQuotaFile{
-			folder: d.folder,
-		}
-		return child, nil
-
-	case libfs.SyncFromServerFileName:
-		resp.EntryValid = 0
-		child := &SyncFromServerFile{
-			folder: d.folder,
-		}
-		return child, nil
-
-	case libfs.EnableJournalFileName:
-		child := &JournalControlFile{
-			folder: d.folder,
-			action: libfs.JournalEnable,
-		}
-		return child, nil
-
-	case libfs.FlushJournalFileName:
-		child := &JournalControlFile{
-			folder: d.folder,
-			action: libfs.JournalFlush,
-		}
-		return child, nil
-
-	case libfs.DisableJournalFileName:
-		child := &JournalControlFile{
-			folder: d.folder,
-			action: libfs.JournalDisable,
-		}
-		return child, nil
+	if node := openSpecialInFolder(req.Name, d.folder, resp); node != nil {
+		return node, nil
 	}
 
 	newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name)
@@ -760,28 +788,28 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 		tlf.folder.reportErr(ctx, libkbfs.ReadMode, err)
 	}()
 
-	// In case there were any unresolved assertions, try them again on
-	// the first load.  Otherwise, since we haven't subscribed to
-	// updates yet for this folder, we might have missed a name
-	// change.
-	handle, err := tlf.folder.h.ResolveAgain(ctx, tlf.folder.fs.config.KBPKI())
+	handle, err := tlf.folder.resolve(ctx)
 	if err != nil {
 		return nil, false, err
-	}
-	eq, err := tlf.folder.h.Equals(tlf.folder.fs.config.Codec(), *handle)
-	if err != nil {
-		return nil, false, err
-	}
-	if !eq {
-		// Make sure the name changes in the folder and the folder list
-		tlf.folder.TlfHandleChange(ctx, handle)
 	}
 
-	rootNode, _, err :=
-		tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
+	var rootNode libkbfs.Node
+	if filterErr {
+		rootNode, _, err = tlf.folder.fs.config.KBFSOps().GetRootNode(
 			ctx, handle, libkbfs.MasterBranch)
-	if err != nil {
-		return nil, false, err
+		if err != nil {
+			return nil, false, err
+		}
+		// If not fake an empty directory.
+		if rootNode == nil {
+			return nil, false, libfs.TlfDoesNotExist{}
+		}
+	} else {
+		rootNode, _, err = tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
+			ctx, handle, libkbfs.MasterBranch)
+		if err != nil {
+			return nil, false, err
+		}
 	}
 
 	err = tlf.folder.setFolderBranch(rootNode.GetFolderBranch())
@@ -837,6 +865,9 @@ func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.
 		return nil, err
 	}
 	if exitEarly {
+		if node := openSpecialInFolder(req.Name, tlf.folder, resp); node != nil {
+			return node, nil
+		}
 		return nil, fuse.ENOENT
 	}
 	return dir.Lookup(ctx, req, resp)
@@ -893,11 +924,8 @@ func (tlf *TLF) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 // ReadDirAll implements the fs.NodeReadDirAller interface for TLF.
 func (tlf *TLF) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 	dir, exitEarly, err := tlf.loadDirAllowNonexistent(ctx)
-	if err != nil {
+	if err != nil || exitEarly {
 		return nil, err
-	}
-	if exitEarly {
-		return nil, nil
 	}
 	return dir.ReadDirAll(ctx)
 }

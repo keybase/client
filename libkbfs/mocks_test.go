@@ -4,15 +4,14 @@
 package libkbfs
 
 import (
-	reflect "reflect"
-	time "time"
-
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	protocol "github.com/keybase/client/go/protocol"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
+	reflect "reflect"
+	time "time"
 )
 
 // Mock of AuthTokenRefreshHandler interface
@@ -235,14 +234,16 @@ func (_mr *_MockKBFSOpsRecorder) DeleteFavorite(arg0, arg1 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteFavorite", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) GetTLFCryptKeys(
-	ctx context.Context, h *TlfHandle) (
-	[]TLFCryptKey, TlfID, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeys", ctx, h)
+func (_m *MockKBFSOps) GetTLFCryptKeys(ctx context.Context, tlfHandle *TlfHandle) ([]TLFCryptKey, TlfID, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeys", ctx, tlfHandle)
 	ret0, _ := ret[0].([]TLFCryptKey)
 	ret1, _ := ret[1].(TlfID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
+}
+
+func (_mr *_MockKBFSOpsRecorder) GetTLFCryptKeys(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeys", arg0, arg1)
 }
 
 func (_m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, h *TlfHandle, branch BranchName) (Node, EntryInfo, error) {
@@ -255,6 +256,18 @@ func (_m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, h *TlfHandle, br
 
 func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootNode(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootNode", arg0, arg1, arg2)
+}
+
+func (_m *MockKBFSOps) GetRootNode(ctx context.Context, h *TlfHandle, branch BranchName) (Node, EntryInfo, error) {
+	ret := _m.ctrl.Call(_m, "GetRootNode", ctx, h, branch)
+	ret0, _ := ret[0].(Node)
+	ret1, _ := ret[1].(EntryInfo)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockKBFSOpsRecorder) GetRootNode(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRootNode", arg0, arg1, arg2)
 }
 
 func (_m *MockKBFSOps) GetDirChildren(ctx context.Context, dir Node) (map[string]EntryInfo, error) {
@@ -651,6 +664,49 @@ func (_m *MockKeybaseService) Shutdown() {
 
 func (_mr *_MockKeybaseServiceRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
+}
+
+// Mock of KeybaseServiceCn interface
+type MockKeybaseServiceCn struct {
+	ctrl     *gomock.Controller
+	recorder *_MockKeybaseServiceCnRecorder
+}
+
+// Recorder for MockKeybaseServiceCn (not exported)
+type _MockKeybaseServiceCnRecorder struct {
+	mock *MockKeybaseServiceCn
+}
+
+func NewMockKeybaseServiceCn(ctrl *gomock.Controller) *MockKeybaseServiceCn {
+	mock := &MockKeybaseServiceCn{ctrl: ctrl}
+	mock.recorder = &_MockKeybaseServiceCnRecorder{mock}
+	return mock
+}
+
+func (_m *MockKeybaseServiceCn) EXPECT() *_MockKeybaseServiceCnRecorder {
+	return _m.recorder
+}
+
+func (_m *MockKeybaseServiceCn) NewKeybaseService(config Config, params InitParams, ctx Context, log logger.Logger) (KeybaseService, error) {
+	ret := _m.ctrl.Call(_m, "NewKeybaseService", config, params, ctx, log)
+	ret0, _ := ret[0].(KeybaseService)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeybaseServiceCnRecorder) NewKeybaseService(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewKeybaseService", arg0, arg1, arg2, arg3)
+}
+
+func (_m *MockKeybaseServiceCn) NewCrypto(config Config, params InitParams, ctx Context, log logger.Logger) (Crypto, error) {
+	ret := _m.ctrl.Call(_m, "NewCrypto", config, params, ctx, log)
+	ret0, _ := ret[0].(Crypto)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeybaseServiceCnRecorder) NewCrypto(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NewCrypto", arg0, arg1, arg2, arg3)
 }
 
 // Mock of resolver interface
@@ -1079,16 +1135,19 @@ func (_m *MockKeyManager) GetTLFCryptKeyForBlockDecryption(ctx context.Context, 
 	return ret0, ret1
 }
 
-func (_m *MockKeyManager) GetTLFCryptKeyOfAllGenerations(
-	ctx context.Context, kmd KeyMetadata) (keys []TLFCryptKey, err error) {
+func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForBlockDecryption(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForBlockDecryption", arg0, arg1, arg2)
+}
+
+func (_m *MockKeyManager) GetTLFCryptKeyOfAllGenerations(ctx context.Context, kmd KeyMetadata) ([]TLFCryptKey, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyOfAllGenerations", ctx, kmd)
 	ret0, _ := ret[0].([]TLFCryptKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForBlockDecryption(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForBlockDecryption", arg0, arg1, arg2)
+func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyOfAllGenerations(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyOfAllGenerations", arg0, arg1)
 }
 
 func (_m *MockKeyManager) Rekey(ctx context.Context, md *RootMetadata, promptPaper bool) (bool, *TLFCryptKey, error) {

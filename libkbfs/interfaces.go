@@ -123,6 +123,11 @@ type KBFSOps interface {
 	GetOrCreateRootNode(
 		ctx context.Context, h *TlfHandle, branch BranchName) (
 		node Node, ei EntryInfo, err error)
+	// GetRootNode is like GetOrCreateRootNode but if the root node
+	// does not exist it will return a nil Node and not create it.
+	GetRootNode(
+		ctx context.Context, h *TlfHandle, branch BranchName) (
+		node Node, ei EntryInfo, err error)
 	// GetDirChildren returns a map of children in the directory,
 	// mapped to their EntryInfo, if the logged-in user has read
 	// permission for the top-level folder.  This is a remote-access
