@@ -52,14 +52,15 @@ protocol config {
     boolean storedSecret;
     boolean secretPromptSkip;
     union { null, Device } device;
-    union { null, LoadDeviceErr } deviceErr;
+    union { null, LoadDeviceErr } deviceErr; /* if err getting device, this will describe it */
     string logDir;
     union { null, SessionStatus } session;
     string defaultUsername;
     array<string> provisionedUsernames;
     array<ClientDetails> Clients;
     PlatformInfo platformInfo;
-    DeviceID defaultDeviceID;
+    DeviceID defaultDeviceID;               /* this contains the device ID for defaultUsername
+                                               in the config file. */
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);
