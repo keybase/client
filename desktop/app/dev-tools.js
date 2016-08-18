@@ -16,11 +16,7 @@ function setupOpenDevtools () {
 
   globalShortcut.register('CommandOrControl+Alt+k+b', () => {
     devToolsState = !devToolsState
-    if (devToolsState) {
-      BrowserWindow.getAllWindows().map(bw => bw.webContents.openDevTools())
-    } else {
-      BrowserWindow.getAllWindows().map(bw => bw.webContents.closeDevTools())
-    })
+    BrowserWindow.getAllWindows().map(bw => devToolsState ? bw.webContents.openDevTools() : bw.webContents.closeDevTools())
   })
 }
 
