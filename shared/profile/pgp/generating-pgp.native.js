@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Text, StandardScreen, Icon} from '../../common-adapters'
+import {PlatformIcon, Text, StandardScreen, Icon} from '../../common-adapters'
 import {globalMargins} from '../../styles/style-guide'
 import type {Props} from './generating-pgp'
 
@@ -8,7 +8,7 @@ class GeneratingPgp extends Component<void, Props, void> {
   render () {
     return (
       <StandardScreen onClose={this.props.onCancel} style={styleContainer}>
-        <Icon style={styleHeaderIcon} type='icon-pgp-key-48' />
+        <PlatformIcon style={styleHeaderIcon} platform='pgp' overlay='icon-proof-unfinished' size={48} />
         <Text style={styleHeader} type='Header'>Generating your unique key...</Text>
         <Text style={styleBody} type='BodySmall'>Math time! You are about to discover a <Text type='BodySmallItalic'>4096-bit</Text> key pair. This could take as long as a couple minutes.</Text>
         <Icon style={styleLoadingIcon} type='icon-loader-infinity-64' />
