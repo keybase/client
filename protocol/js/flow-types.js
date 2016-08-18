@@ -382,12 +382,14 @@ export type ExtendedStatus = {
   storedSecret: boolean,
   secretPromptSkip: boolean,
   device?: ?Device,
+  deviceErr?: ?LoadDeviceErr,
   logDir: string,
   session?: ?SessionStatus,
   defaultUsername: string,
   provisionedUsernames?: ?Array<string>,
   Clients?: ?Array<ClientDetails>,
   platformInfo: PlatformInfo,
+  defaultDeviceID: DeviceID,
 }
 
 export type FSEditListRequest = {
@@ -696,6 +698,11 @@ export type LinkCheckResult = {
 
 export type ListResult = {
   files?: ?Array<File>,
+}
+
+export type LoadDeviceErr = {
+  where: string,
+  desc: string,
 }
 
 export type LogLevel =

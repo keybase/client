@@ -36,6 +36,11 @@ protocol config {
     string goVersion;
   }
 
+  record LoadDeviceErr {
+    string where;
+    string desc;
+  }
+
   record ExtendedStatus {
     boolean standalone;
     boolean passphraseStreamCached;
@@ -47,12 +52,14 @@ protocol config {
     boolean storedSecret;
     boolean secretPromptSkip;
     union { null, Device } device;
+    union { null, LoadDeviceErr } deviceErr;
     string logDir;
     union { null, SessionStatus } session;
     string defaultUsername;
     array<string> provisionedUsernames;
     array<ClientDetails> Clients;
     PlatformInfo platformInfo;
+    DeviceID defaultDeviceID;
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);
