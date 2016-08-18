@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"testing"
@@ -55,7 +56,8 @@ func setupMDJournalTest(t *testing.T) (
 	require.NoError(t, err)
 
 	log := logger.NewTestLogger(t)
-	j = makeMDJournal(codec, crypto, tempdir, log)
+	j, err = makeMDJournal(codec, crypto, tempdir, log)
+	require.NoError(t, err)
 
 	return codec, crypto, uid, id, h, signer, verifyingKey, ekg, tempdir, j
 }
@@ -211,6 +213,77 @@ func TestMDJournalBranchConversion(t *testing.T) {
 	for i := 1; i < len(ibrmds); i++ {
 		require.Equal(t, Unmerged, ibrmds[i].MergedStatus())
 		require.Equal(t, bid, ibrmds[i].BID)
+		err := ibrmds[i].IsValidAndSigned(
+			codec, crypto, uid, verifyingKey)
+		require.NoError(t, err)
+		err = ibrmds[i-1].CheckValidSuccessor(
+			ibrmds[i-1].mdID, ibrmds[i].BareRootMetadata)
+		require.NoError(t, err)
+	}
+
+	require.Equal(t, 10, getTlfJournalLength(t, j))
+
+	head, err := j.getHead(uid)
+	require.NoError(t, err)
+	require.Equal(t, ibrmds[len(ibrmds)-1], head)
+}
+
+type limitedCryptoSigner struct {
+	cryptoSigner
+	remaining int
+}
+
+func (s *limitedCryptoSigner) Sign(ctx context.Context, msg []byte) (
+	SignatureInfo, error) {
+	if s.remaining <= 0 {
+		return SignatureInfo{}, errors.New("No more Sign calls left")
+	}
+	s.remaining--
+	return s.cryptoSigner.Sign(ctx, msg)
+}
+
+func TestMDJournalBranchConversionAtomic(t *testing.T) {
+	codec, crypto, uid, id, h, signer, verifyingKey, ekg, tempdir, j :=
+		setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+
+	firstRevision := MetadataRevision(10)
+	firstPrevRoot := fakeMdID(1)
+	mdCount := 10
+
+	prevRoot := firstPrevRoot
+	for i := 0; i < mdCount; i++ {
+		revision := firstRevision + MetadataRevision(i)
+		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
+		mdID, err := j.put(ctx, signer, ekg, md, uid, verifyingKey)
+		require.NoError(t, err)
+		prevRoot = mdID
+	}
+
+	limitedSigner := limitedCryptoSigner{signer, 5}
+
+	err := j.convertToBranch(ctx, &limitedSigner, uid, verifyingKey)
+	require.NotNil(t, err)
+
+	// All entries should remain unchanged, since the conversion
+	// encountered an error.
+
+	ibrmds, err := j.getRange(
+		uid, 1, firstRevision+MetadataRevision(2*mdCount))
+	require.NoError(t, err)
+	require.Equal(t, mdCount, len(ibrmds))
+
+	require.Equal(t, firstRevision, ibrmds[0].Revision)
+	require.Equal(t, firstPrevRoot, ibrmds[0].PrevRoot)
+	require.Equal(t, Merged, ibrmds[0].MergedStatus())
+	err = ibrmds[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
+	require.NoError(t, err)
+
+	for i := 1; i < len(ibrmds); i++ {
+		require.Equal(t, Merged, ibrmds[i].MergedStatus())
+		require.Equal(t, NullBranchID, ibrmds[i].BID)
 		err := ibrmds[i].IsValidAndSigned(
 			codec, crypto, uid, verifyingKey)
 		require.NoError(t, err)
@@ -550,18 +623,32 @@ func TestMDJournalClear(t *testing.T) {
 		prevRoot = mdID
 	}
 
+	err := j.convertToBranch(ctx, signer, uid, verifyingKey)
+	require.NoError(t, err)
+	require.NotEqual(t, NullBranchID, j.branchID)
+
+	bid := j.branchID
+
+	// Clearing the master branch shouldn't work.
+	err = j.clear(ctx, uid, NullBranchID)
+	require.Error(t, err)
+
 	// Clearing a different branch ID should do nothing.
 
-	j.clear(ctx, uid, FakeBranchID(1))
+	err = j.clear(ctx, uid, FakeBranchID(1))
+	require.NoError(t, err)
+	require.Equal(t, bid, j.branchID)
 
 	head, err := j.getHead(uid)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableBareRootMetadata{}, head)
 
 	// Clearing the correct branch ID should clear the entire
-	// journal.
+	// journal, and reset the branch ID.
 
-	j.clear(ctx, uid, NullBranchID)
+	err = j.clear(ctx, uid, bid)
+	require.NoError(t, err)
+	require.Equal(t, NullBranchID, j.branchID)
 
 	head, err = j.getHead(uid)
 	require.NoError(t, err)
@@ -569,7 +656,9 @@ func TestMDJournalClear(t *testing.T) {
 
 	// Clearing twice should do nothing.
 
-	j.clear(ctx, uid, NullBranchID)
+	err = j.clear(ctx, uid, bid)
+	require.NoError(t, err)
+	require.Equal(t, NullBranchID, j.branchID)
 
 	head, err = j.getHead(uid)
 	require.NoError(t, err)

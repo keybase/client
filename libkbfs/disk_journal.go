@@ -245,6 +245,16 @@ func (j diskJournal) appendJournalEntry(
 	return j.writeLatestOrdinal(next)
 }
 
+func (j *diskJournal) move(newDir string) (oldDir string, err error) {
+	err = os.Rename(j.dir, newDir)
+	if err != nil {
+		return "", err
+	}
+	oldDir = j.dir
+	j.dir = newDir
+	return oldDir, nil
+}
+
 func (j diskJournal) length() (uint64, error) {
 	first, err := j.readEarliestOrdinal()
 	if os.IsNotExist(err) {

@@ -189,3 +189,7 @@ func (j mdIDJournal) removeEarliest() (empty bool, err error) {
 func (j mdIDJournal) clear() error {
 	return j.j.clearOrdinals()
 }
+
+func (j *mdIDJournal) move(newDir string) (oldDir string, err error) {
+	return j.j.move(newDir)
+}

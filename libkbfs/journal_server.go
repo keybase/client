@@ -167,8 +167,12 @@ func (j *JournalServer) Enable(ctx context.Context, tlfID TlfID) (err error) {
 	}
 
 	bundle.blockJournal = blockJournal
-	mdJournal := makeMDJournal(
+	mdJournal, err := makeMDJournal(
 		j.config.Codec(), j.config.Crypto(), tlfDir, log)
+	if err != nil {
+		return err
+	}
+
 	bundle.mdJournal = mdJournal
 	j.tlfBundles[tlfID] = bundle
 	return nil
