@@ -21,7 +21,7 @@ const engineRpcOutgoing = (...args) => engine._rpcOutgoing(...args)
 
 type requestCommon = {
   waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
+  incomingCallMap?: any,
 }
 
 type requestErrorCallback = {
@@ -174,37 +174,6 @@ export type rpc =
   | remotePostRemoteRpc
 
 export type incomingCallMapType = $Exact<{
-  'keybase.1.remote.getInboxRemote'?: (
-    params: $Exact<{
-      pagination?: ?Pagination
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: remoteGetInboxRemoteResult) => void,
-    }
-  ) => void,
-  'keybase.1.remote.getThreadRemote'?: (
-    params: $Exact<{
-      conversationID: ConversationID,
-      pagination?: ?Pagination
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: remoteGetThreadRemoteResult) => void,
-    }
-  ) => void,
-  'keybase.1.remote.postRemote'?: (
-    params: $Exact<{
-      conversationID: ConversationID,
-      messageBoxed: MessageBoxed
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.remote.newConversationRemote'?: (
-    params: $Exact<{
-      conversationMetadata: ConversationMetadata
-    }>,
-    response: CommonResponseHandler
-  ) => void
+
 }>
 

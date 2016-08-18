@@ -38,17 +38,11 @@ type CommonResponseHandler = {
 
 
 
+
+
+
 export function Kex2ProvisionerKexStartRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisioner.kexStart'})
-}
-export function NotifyAppExitRpc (request: $Exact<requestCommon & requestErrorCallback>) {
-  engineRpcOutgoing({...request, method: 'NotifyApp.exit'})
-}
-export function NotifyServiceShutdownRpc (request: $Exact<requestCommon & requestErrorCallback>) {
-  engineRpcOutgoing({...request, method: 'NotifyService.shutdown'})
-}
-export function NotifySessionLoggedOutRpc (request: $Exact<requestCommon & requestErrorCallback>) {
-  engineRpcOutgoing({...request, method: 'NotifySession.loggedOut'})
 }
 export function ctlAppExitRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'ctl.appExit'})
@@ -717,78 +711,58 @@ export type NotifyFSFSActivityRpcParam = $Exact<{
   notification: FSNotification
 }>
 
-export function NotifyFSFSActivityRpc (request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSFSActivityRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'NotifyFS.FSActivity'})
-}
+
 export type NotifyFSFSEditListResponseRpcParam = $Exact<{
   edits?: ?Array<FSNotification>,
   requestID: int
 }>
 
-export function NotifyFSFSEditListResponseRpc (request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSFSEditListResponseRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'NotifyFS.FSEditListResponse'})
-}
+
 export type NotifyFSRequestFSEditListRequestRpcParam = $Exact<{
   req: FSEditListRequest
 }>
 
-export function NotifyFSRequestFSEditListRequestRpc (request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFSRequestFSEditListRequestRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'NotifyFSRequest.FSEditListRequest'})
-}
+
 export type NotifyFavoritesFavoritesChangedRpcParam = $Exact<{
   uid: UID
 }>
 
-export function NotifyFavoritesFavoritesChangedRpc (request: $Exact<requestCommon & requestErrorCallback & {param: NotifyFavoritesFavoritesChangedRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'NotifyFavorites.favoritesChanged'})
-}
+
 export type NotifyKeyfamilyKeyfamilyChangedRpcParam = $Exact<{
   uid: UID
 }>
 
-export function NotifyKeyfamilyKeyfamilyChangedRpc (request: $Exact<requestCommon & requestErrorCallback & {param: NotifyKeyfamilyKeyfamilyChangedRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'NotifyKeyfamily.keyfamilyChanged'})
-}
+
 export type NotifyPaperKeyPaperKeyCachedRpcParam = $Exact<{
   uid: UID,
   encKID: KID,
   sigKID: KID
 }>
 
-export function NotifyPaperKeyPaperKeyCachedRpc (request: $Exact<requestCommon & requestErrorCallback & {param: NotifyPaperKeyPaperKeyCachedRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'NotifyPaperKey.paperKeyCached'})
-}
+
 export type NotifySessionClientOutOfDateRpcParam = $Exact<{
   upgradeTo: string,
   upgradeURI: string,
   upgradeMsg: string
 }>
 
-export function NotifySessionClientOutOfDateRpc (request: $Exact<requestCommon & requestErrorCallback & {param: NotifySessionClientOutOfDateRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'NotifySession.clientOutOfDate'})
-}
+
 export type NotifySessionLoggedInRpcParam = $Exact<{
   username: string
 }>
 
-export function NotifySessionLoggedInRpc (request: $Exact<requestCommon & requestErrorCallback & {param: NotifySessionLoggedInRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'NotifySession.loggedIn'})
-}
+
 export type NotifyTrackingTrackingChangedRpcParam = $Exact<{
   uid: UID,
   username: string
 }>
 
-export function NotifyTrackingTrackingChangedRpc (request: $Exact<requestCommon & requestErrorCallback & {param: NotifyTrackingTrackingChangedRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'NotifyTracking.trackingChanged'})
-}
+
 export type NotifyUsersUserChangedRpcParam = $Exact<{
   uid: UID
 }>
 
-export function NotifyUsersUserChangedRpc (request: $Exact<requestCommon & requestErrorCallback & {param: NotifyUsersUserChangedRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'NotifyUsers.userChanged'})
-}
+
 export type OutOfDateInfo = {
   upgradeTo: string,
   upgradeURI: string,
@@ -3020,19 +2994,6 @@ export type rpc =
   | Kex2ProvisioneeDidCounterSignRpc
   | Kex2ProvisioneeHelloRpc
   | Kex2ProvisionerKexStartRpc
-  | NotifyAppExitRpc
-  | NotifyFSFSActivityRpc
-  | NotifyFSFSEditListResponseRpc
-  | NotifyFSRequestFSEditListRequestRpc
-  | NotifyFavoritesFavoritesChangedRpc
-  | NotifyKeyfamilyKeyfamilyChangedRpc
-  | NotifyPaperKeyPaperKeyCachedRpc
-  | NotifyServiceShutdownRpc
-  | NotifySessionClientOutOfDateRpc
-  | NotifySessionLoggedInRpc
-  | NotifySessionLoggedOutRpc
-  | NotifyTrackingTrackingChangedRpc
-  | NotifyUsersUserChangedRpc
   | SecretKeysGetSecretKeysRpc
   | accountPassphraseChangeRpc
   | accountPassphrasePromptRpc
@@ -3194,458 +3155,6 @@ export type rpc =
   | userSearchRpc
 
 export type incomingCallMapType = $Exact<{
-  'keybase.1.account.passphraseChange'?: (
-    params: $Exact<{
-      sessionID: int,
-      oldPassphrase: string,
-      passphrase: string,
-      force: boolean
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.account.passphrasePrompt'?: (
-    params: $Exact<{
-      sessionID: int,
-      guiArg: GUIEntryArg
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: accountPassphrasePromptResult) => void,
-    }
-  ) => void,
-  'keybase.1.apiserver.Get'?: (
-    params: $Exact<{
-      endpoint: string,
-      args?: ?Array<StringKVPair>,
-      httpStatus?: ?Array<int>,
-      appStatusCode?: ?Array<int>
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: apiserverGetResult) => void,
-    }
-  ) => void,
-  'keybase.1.apiserver.Post'?: (
-    params: $Exact<{
-      endpoint: string,
-      args?: ?Array<StringKVPair>,
-      httpStatus?: ?Array<int>,
-      appStatusCode?: ?Array<int>
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: apiserverPostResult) => void,
-    }
-  ) => void,
-  'keybase.1.apiserver.PostJSON'?: (
-    params: $Exact<{
-      endpoint: string,
-      args?: ?Array<StringKVPair>,
-      JSONPayload?: ?Array<StringKVPair>,
-      httpStatus?: ?Array<int>,
-      appStatusCode?: ?Array<int>
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: apiserverPostJSONResult) => void,
-    }
-  ) => void,
-  'keybase.1.block.getSessionChallenge'?: (
-    params: $Exact<{}>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: blockGetSessionChallengeResult) => void,
-    }
-  ) => void,
-  'keybase.1.block.authenticateSession'?: (
-    params: $Exact<{
-      signature: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.block.putBlock'?: (
-    params: $Exact<{
-      bid: BlockIdCombo,
-      folder: string,
-      blockKey: string,
-      buf: bytes
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.block.getBlock'?: (
-    params: $Exact<{
-      bid: BlockIdCombo,
-      folder: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: blockGetBlockResult) => void,
-    }
-  ) => void,
-  'keybase.1.block.addReference'?: (
-    params: $Exact<{
-      folder: string,
-      ref: BlockReference
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.block.delReference'?: (
-    params: $Exact<{
-      folder: string,
-      ref: BlockReference
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.block.archiveReference'?: (
-    params: $Exact<{
-      folder: string,
-      refs?: ?Array<BlockReference>
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: blockArchiveReferenceResult) => void,
-    }
-  ) => void,
-  'keybase.1.block.delReferenceWithCount'?: (
-    params: $Exact<{
-      folder: string,
-      refs?: ?Array<BlockReference>
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: blockDelReferenceWithCountResult) => void,
-    }
-  ) => void,
-  'keybase.1.block.archiveReferenceWithCount'?: (
-    params: $Exact<{
-      folder: string,
-      refs?: ?Array<BlockReference>
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: blockArchiveReferenceWithCountResult) => void,
-    }
-  ) => void,
-  'keybase.1.block.getUserQuotaInfo'?: (
-    params: $Exact<{}>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: blockGetUserQuotaInfoResult) => void,
-    }
-  ) => void,
-  'keybase.1.BTC.registerBTC'?: (
-    params: $Exact<{
-      sessionID: int,
-      address: string,
-      force: boolean
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.chatLocal.getInboxLocal'?: (
-    params: $Exact<{
-      pagination?: ?chat1.Pagination
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: chatLocalGetInboxLocalResult) => void,
-    }
-  ) => void,
-  'keybase.1.chatLocal.getThreadLocal'?: (
-    params: $Exact<{
-      conversationID: chat1.ConversationID,
-      pagination?: ?chat1.Pagination
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: chatLocalGetThreadLocalResult) => void,
-    }
-  ) => void,
-  'keybase.1.chatLocal.postLocal'?: (
-    params: $Exact<{
-      conversationID: chat1.ConversationID,
-      messagePlaintext: MessagePlaintext
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.chatLocal.newConversationLocal'?: (
-    params: $Exact<{
-      conversationTriple: chat1.ConversationIDTriple
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.config.getCurrentStatus'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: configGetCurrentStatusResult) => void,
-    }
-  ) => void,
-  'keybase.1.config.getExtendedStatus'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: configGetExtendedStatusResult) => void,
-    }
-  ) => void,
-  'keybase.1.config.getConfig'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: configGetConfigResult) => void,
-    }
-  ) => void,
-  'keybase.1.config.setUserConfig'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string,
-      key: string,
-      value: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.config.setPath'?: (
-    params: $Exact<{
-      sessionID: int,
-      path: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.config.helloIAm'?: (
-    params: $Exact<{
-      details: ClientDetails
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.config.setValue'?: (
-    params: $Exact<{
-      path: string,
-      value: ConfigValue
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.config.clearValue'?: (
-    params: $Exact<{
-      path: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.config.getValue'?: (
-    params: $Exact<{
-      path: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: configGetValueResult) => void,
-    }
-  ) => void,
-  'keybase.1.config.checkAPIServerOutOfDateWarning'?: (
-    params: $Exact<{}>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: configCheckAPIServerOutOfDateWarningResult) => void,
-    }
-  ) => void,
-  'keybase.1.crypto.signED25519'?: (
-    params: $Exact<{
-      sessionID: int,
-      msg: bytes,
-      reason: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: cryptoSignED25519Result) => void,
-    }
-  ) => void,
-  'keybase.1.crypto.signToString'?: (
-    params: $Exact<{
-      sessionID: int,
-      msg: bytes,
-      reason: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: cryptoSignToStringResult) => void,
-    }
-  ) => void,
-  'keybase.1.crypto.unboxBytes32'?: (
-    params: $Exact<{
-      sessionID: int,
-      encryptedBytes32: EncryptedBytes32,
-      nonce: BoxNonce,
-      peersPublicKey: BoxPublicKey,
-      reason: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: cryptoUnboxBytes32Result) => void,
-    }
-  ) => void,
-  'keybase.1.crypto.unboxBytes32Any'?: (
-    params: $Exact<{
-      sessionID: int,
-      bundles?: ?Array<CiphertextBundle>,
-      reason: string,
-      promptPaper: boolean
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: cryptoUnboxBytes32AnyResult) => void,
-    }
-  ) => void,
-  'keybase.1.ctl.stop'?: (
-    params: $Exact<{
-      sessionID: int,
-      exitCode: ExitCode
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.ctl.logRotate'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.ctl.reload'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.ctl.dbNuke'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.ctl.appExit'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.debugging.firstStep'?: (
-    params: $Exact<{
-      sessionID: int,
-      val: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: debuggingFirstStepResult) => void,
-    }
-  ) => void,
-  'keybase.1.debugging.secondStep'?: (
-    params: $Exact<{
-      sessionID: int,
-      val: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: debuggingSecondStepResult) => void,
-    }
-  ) => void,
-  'keybase.1.debugging.increment'?: (
-    params: $Exact<{
-      sessionID: int,
-      val: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: debuggingIncrementResult) => void,
-    }
-  ) => void,
-  'keybase.1.delegateUiCtl.registerIdentifyUI'?: (
-    params: $Exact<{}>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.delegateUiCtl.registerSecretUI'?: (
-    params: $Exact<{}>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.delegateUiCtl.registerUpdateUI'?: (
-    params: $Exact<{}>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.delegateUiCtl.registerRekeyUI'?: (
-    params: $Exact<{}>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.delegateUiCtl.registerGregorFirehose'?: (
-    params: $Exact<{}>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.device.deviceList'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: deviceDeviceListResult) => void,
-    }
-  ) => void,
-  'keybase.1.device.deviceHistoryList'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: deviceDeviceHistoryListResult) => void,
-    }
-  ) => void,
-  'keybase.1.device.deviceAdd'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.device.checkDeviceNameFormat'?: (
-    params: $Exact<{
-      sessionID: int,
-      name: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: deviceCheckDeviceNameFormatResult) => void,
-    }
-  ) => void,
-  'keybase.1.favorite.favoriteAdd'?: (
-    params: $Exact<{
-      sessionID: int,
-      folder: Folder
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.favorite.favoriteIgnore'?: (
-    params: $Exact<{
-      sessionID: int,
-      folder: Folder
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.favorite.getFavorites'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: favoriteGetFavoritesResult) => void,
-    }
-  ) => void,
-  'keybase.1.fs.List'?: (
-    params: $Exact<{
-      sessionID: int,
-      path: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: fsListResult) => void,
-    }
-  ) => void,
   'keybase.1.gpgUi.wantToAddGPGKey'?: (
     params: $Exact<{
       sessionID: int
@@ -3694,13 +3203,6 @@ export type incomingCallMapType = $Exact<{
       result: (result: gpgUiSignResult) => void,
     }
   ) => void,
-  'keybase.1.gregor.getState'?: (
-    params: $Exact<{}>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: gregorGetStateResult) => void,
-    }
-  ) => void,
   'keybase.1.gregorUI.pushState'?: (
     params: $Exact<{
       state: gregor1.State,
@@ -3713,57 +3215,6 @@ export type incomingCallMapType = $Exact<{
       oobm?: ?Array<gregor1.OutOfBandMessage>
     }>,
     response: CommonResponseHandler
-  ) => void,
-  'keybase.1.identify.Resolve'?: (
-    params: $Exact<{
-      assertion: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: identifyResolveResult) => void,
-    }
-  ) => void,
-  'keybase.1.identify.Resolve2'?: (
-    params: $Exact<{
-      assertion: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: identifyResolve2Result) => void,
-    }
-  ) => void,
-  'keybase.1.identify.identify'?: (
-    params: $Exact<{
-      sessionID: int,
-      userAssertion: string,
-      forceRemoteCheck?: boolean,
-      useDelegateUI?: boolean,
-      reason: IdentifyReason,
-      source: ClientType
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: identifyIdentifyResult) => void,
-    }
-  ) => void,
-  'keybase.1.identify.identify2'?: (
-    params: $Exact<{
-      sessionID: int,
-      uid: UID,
-      userAssertion: string,
-      reason: IdentifyReason,
-      useDelegateUI?: boolean,
-      alwaysBlock?: boolean,
-      noErrorOnTrackFailure?: boolean,
-      forceRemoteCheck?: boolean,
-      needProofSet?: boolean,
-      allowEmptySelfID?: boolean,
-      noSkipSelf?: boolean
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: identifyIdentify2Result) => void,
-    }
   ) => void,
   'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (
     params: $Exact<{
@@ -3882,136 +3333,11 @@ export type incomingCallMapType = $Exact<{
     }>,
     response: CommonResponseHandler
   ) => void,
-  'keybase.1.kbfs.FSEvent'?: (
-    params: $Exact<{
-      event: FSNotification
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.kbfs.FSEditList'?: (
-    params: $Exact<{
-      edits?: ?Array<FSNotification>,
-      requestID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.Kex2Provisionee.hello'?: (
-    params: $Exact<{
-      uid: UID,
-      token: SessionToken,
-      csrf: CsrfToken,
-      pps: PassphraseStream,
-      sigBody: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: Kex2ProvisioneeHelloResult) => void,
-    }
-  ) => void,
-  'keybase.1.Kex2Provisionee.didCounterSign'?: (
-    params: $Exact<{
-      sig: bytes
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.Kex2Provisioner.kexStart'?: (
-    params: $Exact<{}> /* ,
-    response: {} // Notify call
-    */
-  ) => void,
-  'keybase.1.log.registerLogger'?: (
-    params: $Exact<{
-      sessionID: int,
-      name: string,
-      level: LogLevel
-    }>,
-    response: CommonResponseHandler
-  ) => void,
   'keybase.1.logUi.log'?: (
     params: $Exact<{
       sessionID: int,
       level: LogLevel,
       text: Text
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.login.getConfiguredAccounts'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: loginGetConfiguredAccountsResult) => void,
-    }
-  ) => void,
-  'keybase.1.login.login'?: (
-    params: $Exact<{
-      sessionID: int,
-      deviceType: string,
-      usernameOrEmail: string,
-      clientType: ClientType
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.login.clearStoredSecret'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.login.logout'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.login.deprovision'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string,
-      doRevoke: boolean
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.login.recoverAccountFromEmailAddress'?: (
-    params: $Exact<{
-      email: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.login.paperKey'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.login.paperKeySubmit'?: (
-    params: $Exact<{
-      sessionID: int,
-      paperPhrase: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.login.unlock'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.login.unlockWithPassphrase'?: (
-    params: $Exact<{
-      sessionID: int,
-      passphrase: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.login.pgpProvision'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string,
-      passphrase: string,
-      deviceName: string
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -4049,202 +3375,8 @@ export type incomingCallMapType = $Exact<{
     }>,
     response: CommonResponseHandler
   ) => void,
-  'keybase.1.metadata.getChallenge'?: (
-    params: $Exact<{}>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataGetChallengeResult) => void,
-    }
-  ) => void,
-  'keybase.1.metadata.authenticate'?: (
-    params: $Exact<{
-      signature: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataAuthenticateResult) => void,
-    }
-  ) => void,
-  'keybase.1.metadata.putMetadata'?: (
-    params: $Exact<{
-      mdBlock: MDBlock,
-      logTags: {[key: string]: string}
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.metadata.getMetadata'?: (
-    params: $Exact<{
-      folderID: string,
-      folderHandle: bytes,
-      branchID: string,
-      unmerged: boolean,
-      startRevision: long,
-      stopRevision: long,
-      logTags: {[key: string]: string}
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataGetMetadataResult) => void,
-    }
-  ) => void,
-  'keybase.1.metadata.registerForUpdates'?: (
-    params: $Exact<{
-      folderID: string,
-      currRevision: long,
-      logTags: {[key: string]: string}
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.metadata.pruneBranch'?: (
-    params: $Exact<{
-      folderID: string,
-      branchID: string,
-      logTags: {[key: string]: string}
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.metadata.putKeys'?: (
-    params: $Exact<{
-      keyHalves?: ?Array<KeyHalf>,
-      logTags: {[key: string]: string}
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.metadata.getKey'?: (
-    params: $Exact<{
-      keyHalfID: bytes,
-      deviceKID: string,
-      logTags: {[key: string]: string}
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataGetKeyResult) => void,
-    }
-  ) => void,
-  'keybase.1.metadata.deleteKey'?: (
-    params: $Exact<{
-      uid: UID,
-      deviceKID: KID,
-      keyHalfID: bytes,
-      logTags: {[key: string]: string}
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.metadata.truncateLock'?: (
-    params: $Exact<{
-      folderID: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataTruncateLockResult) => void,
-    }
-  ) => void,
-  'keybase.1.metadata.truncateUnlock'?: (
-    params: $Exact<{
-      folderID: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataTruncateUnlockResult) => void,
-    }
-  ) => void,
-  'keybase.1.metadata.getFolderHandle'?: (
-    params: $Exact<{
-      folderID: string,
-      signature: string,
-      challenge: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataGetFolderHandleResult) => void,
-    }
-  ) => void,
-  'keybase.1.metadata.getFoldersForRekey'?: (
-    params: $Exact<{
-      deviceKID: KID
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.metadata.ping'?: (
-    params: $Exact<{}>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.metadata.ping2'?: (
-    params: $Exact<{}>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataPing2Result) => void,
-    }
-  ) => void,
-  'keybase.1.metadata.getLatestFolderHandle'?: (
-    params: $Exact<{
-      folderID: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataGetLatestFolderHandleResult) => void,
-    }
-  ) => void,
-  'keybase.1.metadata.getMerkleRoot'?: (
-    params: $Exact<{
-      treeID: MerkleTreeID,
-      seqNo: long
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataGetMerkleRootResult) => void,
-    }
-  ) => void,
-  'keybase.1.metadata.getMerkleRootLatest'?: (
-    params: $Exact<{
-      treeID: MerkleTreeID
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataGetMerkleRootLatestResult) => void,
-    }
-  ) => void,
-  'keybase.1.metadata.getMerkleRootSince'?: (
-    params: $Exact<{
-      treeID: MerkleTreeID,
-      when: Time
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataGetMerkleRootSinceResult) => void,
-    }
-  ) => void,
-  'keybase.1.metadata.getMerkleNode'?: (
-    params: $Exact<{
-      hash: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: metadataGetMerkleNodeResult) => void,
-    }
-  ) => void,
-  'keybase.1.metadataUpdate.metadataUpdate'?: (
-    params: $Exact<{
-      folderID: string,
-      revision: long
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.metadataUpdate.folderNeedsRekey'?: (
-    params: $Exact<{
-      folderID: string,
-      revision: long
-    }>,
-    response: CommonResponseHandler
-  ) => void,
   'keybase.1.NotifyApp.exit'?: (
     params: $Exact<{}>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.notifyCtl.setNotifications'?: (
-    params: $Exact<{
-      channels: NotificationChannels
-    }>,
     response: CommonResponseHandler
   ) => void,
   'keybase.1.NotifyFavorites.favoritesChanged'?: (
@@ -4327,147 +3459,6 @@ export type incomingCallMapType = $Exact<{
     response: {} // Notify call
     */
   ) => void,
-  'keybase.1.paperprovision.paperProvision'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string,
-      deviceName: string,
-      paperKey: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.pgp.pgpSign'?: (
-    params: $Exact<{
-      sessionID: int,
-      source: Stream,
-      sink: Stream,
-      opts: PGPSignOptions
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.pgp.pgpPull'?: (
-    params: $Exact<{
-      sessionID: int,
-      userAsserts?: ?Array<string>
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.pgp.pgpEncrypt'?: (
-    params: $Exact<{
-      sessionID: int,
-      source: Stream,
-      sink: Stream,
-      opts: PGPEncryptOptions
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.pgp.pgpDecrypt'?: (
-    params: $Exact<{
-      sessionID: int,
-      source: Stream,
-      sink: Stream,
-      opts: PGPDecryptOptions
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: pgpPgpDecryptResult) => void,
-    }
-  ) => void,
-  'keybase.1.pgp.pgpVerify'?: (
-    params: $Exact<{
-      sessionID: int,
-      source: Stream,
-      opts: PGPVerifyOptions
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: pgpPgpVerifyResult) => void,
-    }
-  ) => void,
-  'keybase.1.pgp.pgpImport'?: (
-    params: $Exact<{
-      sessionID: int,
-      key: bytes,
-      pushSecret: boolean
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.pgp.pgpExport'?: (
-    params: $Exact<{
-      sessionID: int,
-      options: PGPQuery
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: pgpPgpExportResult) => void,
-    }
-  ) => void,
-  'keybase.1.pgp.pgpExportByFingerprint'?: (
-    params: $Exact<{
-      sessionID: int,
-      options: PGPQuery
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: pgpPgpExportByFingerprintResult) => void,
-    }
-  ) => void,
-  'keybase.1.pgp.pgpExportByKID'?: (
-    params: $Exact<{
-      sessionID: int,
-      options: PGPQuery
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: pgpPgpExportByKIDResult) => void,
-    }
-  ) => void,
-  'keybase.1.pgp.pgpKeyGen'?: (
-    params: $Exact<{
-      sessionID: int,
-      primaryBits: int,
-      subkeyBits: int,
-      createUids: PGPCreateUids,
-      allowMulti: boolean,
-      doExport: boolean,
-      pushSecret: boolean
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.pgp.pgpDeletePrimary'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.pgp.pgpSelect'?: (
-    params: $Exact<{
-      sessionID: int,
-      fingerprintQuery: string,
-      allowMulti: boolean,
-      skipImport: boolean,
-      onlyImport: boolean
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.pgp.pgpUpdate'?: (
-    params: $Exact<{
-      sessionID: int,
-      all: boolean,
-      fingerprints?: ?Array<string>
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.pgp.pgpPurge'?: (
-    params: $Exact<{
-      sessionID: int,
-      doPurge: boolean
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: pgpPgpPurgeResult) => void,
-    }
-  ) => void,
   'keybase.1.pgpUi.outputSignatureSuccess'?: (
     params: $Exact<{
       sessionID: int,
@@ -4476,30 +3467,6 @@ export type incomingCallMapType = $Exact<{
       signedAt: Time
     }>,
     response: CommonResponseHandler
-  ) => void,
-  'keybase.1.prove.startProof'?: (
-    params: $Exact<{
-      sessionID: int,
-      service: string,
-      username: string,
-      force: boolean,
-      promptPosted: boolean,
-      auto: boolean
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: proveStartProofResult) => void,
-    }
-  ) => void,
-  'keybase.1.prove.checkProof'?: (
-    params: $Exact<{
-      sessionID: int,
-      sigID: SigID
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: proveCheckProofResult) => void,
-    }
   ) => void,
   'keybase.1.proveUi.promptOverwrite'?: (
     params: $Exact<{
@@ -4662,52 +3629,6 @@ export type incomingCallMapType = $Exact<{
     }>,
     response: CommonResponseHandler
   ) => void,
-  'keybase.1.quota.verifySession'?: (
-    params: $Exact<{
-      session: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: quotaVerifySessionResult) => void,
-    }
-  ) => void,
-  'keybase.1.rekey.showPendingRekeyStatus'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.rekey.getPendingRekeyStatus'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: rekeyGetPendingRekeyStatusResult) => void,
-    }
-  ) => void,
-  'keybase.1.rekey.debugShowRekeyStatus'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.rekey.rekeyStatusFinish'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: rekeyRekeyStatusFinishResult) => void,
-    }
-  ) => void,
-  'keybase.1.rekey.rekeySync'?: (
-    params: $Exact<{
-      sessionID: int,
-      force: boolean
-    }>,
-    response: CommonResponseHandler
-  ) => void,
   'keybase.1.rekeyUI.delegateRekeyUI'?: (
     params: $Exact<{}>,
     response: {
@@ -4726,67 +3647,6 @@ export type incomingCallMapType = $Exact<{
     params: $Exact<{
       sessionID: int,
       event: RekeyEvent
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.revoke.revokeKey'?: (
-    params: $Exact<{
-      sessionID: int,
-      keyID: KID
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.revoke.revokeDevice'?: (
-    params: $Exact<{
-      sessionID: int,
-      deviceID: DeviceID,
-      force: boolean
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.revoke.revokeSigs'?: (
-    params: $Exact<{
-      sessionID: int,
-      sigIDQueries?: ?Array<string>
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.saltpack.saltpackEncrypt'?: (
-    params: $Exact<{
-      sessionID: int,
-      source: Stream,
-      sink: Stream,
-      opts: SaltpackEncryptOptions
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.saltpack.saltpackDecrypt'?: (
-    params: $Exact<{
-      sessionID: int,
-      source: Stream,
-      sink: Stream,
-      opts: SaltpackDecryptOptions
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: saltpackSaltpackDecryptResult) => void,
-    }
-  ) => void,
-  'keybase.1.saltpack.saltpackSign'?: (
-    params: $Exact<{
-      sessionID: int,
-      source: Stream,
-      sink: Stream,
-      opts: SaltpackSignOptions
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.saltpack.saltpackVerify'?: (
-    params: $Exact<{
-      sessionID: int,
-      source: Stream,
-      sink: Stream,
-      opts: SaltpackVerifyOptions
     }>,
     response: CommonResponseHandler
   ) => void,
@@ -4815,84 +3675,6 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: RPCErrorHandler,
       result: (result: secretUiGetPassphraseResult) => void,
-    }
-  ) => void,
-  'keybase.1.SecretKeys.getSecretKeys'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: SecretKeysGetSecretKeysResult) => void,
-    }
-  ) => void,
-  'keybase.1.session.currentSession'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: sessionCurrentSessionResult) => void,
-    }
-  ) => void,
-  'keybase.1.signup.checkUsernameAvailable'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.signup.signup'?: (
-    params: $Exact<{
-      sessionID: int,
-      email: string,
-      inviteCode: string,
-      passphrase: string,
-      username: string,
-      deviceName: string,
-      storeSecret: boolean,
-      skipMail: boolean,
-      genPGPBatch: boolean
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: signupSignupResult) => void,
-    }
-  ) => void,
-  'keybase.1.signup.inviteRequest'?: (
-    params: $Exact<{
-      sessionID: int,
-      email: string,
-      fullname: string,
-      notes: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.signup.checkInvitationCode'?: (
-    params: $Exact<{
-      sessionID: int,
-      invitationCode: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.sigs.sigList'?: (
-    params: $Exact<{
-      sessionID: int,
-      arg: SigListArgs
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: sigsSigListResult) => void,
-    }
-  ) => void,
-  'keybase.1.sigs.sigListJSON'?: (
-    params: $Exact<{
-      sessionID: int,
-      arg: SigListArgs
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: sigsSigListJSONResult) => void,
     }
   ) => void,
   'keybase.1.streamUi.close'?: (
@@ -4924,94 +3706,6 @@ export type incomingCallMapType = $Exact<{
       result: (result: streamUiWriteResult) => void,
     }
   ) => void,
-  'keybase.1.test.test'?: (
-    params: $Exact<{
-      sessionID: int,
-      name: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: testTestResult) => void,
-    }
-  ) => void,
-  'keybase.1.test.testCallback'?: (
-    params: $Exact<{
-      sessionID: int,
-      name: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: testTestCallbackResult) => void,
-    }
-  ) => void,
-  'keybase.1.test.panic'?: (
-    params: $Exact<{
-      message: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.tlf.CryptKeys'?: (
-    params: $Exact<{
-      tlfName: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: tlfCryptKeysResult) => void,
-    }
-  ) => void,
-  'keybase.1.tlfKeys.getTLFCryptKeys'?: (
-    params: $Exact<{
-      tlfName: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: tlfKeysGetTLFCryptKeysResult) => void,
-    }
-  ) => void,
-  'keybase.1.track.track'?: (
-    params: $Exact<{
-      sessionID: int,
-      userAssertion: string,
-      options: TrackOptions,
-      forceRemoteCheck: boolean
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.track.trackWithToken'?: (
-    params: $Exact<{
-      sessionID: int,
-      trackToken: TrackToken,
-      options: TrackOptions
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.track.dismissWithToken'?: (
-    params: $Exact<{
-      sessionID: int,
-      trackToken: TrackToken
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.track.untrack'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.track.checkTracking'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.track.fakeTrackingChanged'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string
-    }>,
-    response: CommonResponseHandler
-  ) => void,
   'keybase.1.ui.promptYesNo'?: (
     params: $Exact<{
       sessionID: int,
@@ -5021,148 +3715,6 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: RPCErrorHandler,
       result: (result: uiPromptYesNoResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.listTrackers'?: (
-    params: $Exact<{
-      sessionID: int,
-      uid: UID
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userListTrackersResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.listTrackersByName'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userListTrackersByNameResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.listTrackersSelf'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userListTrackersSelfResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.loadUncheckedUserSummaries'?: (
-    params: $Exact<{
-      sessionID: int,
-      uids?: ?Array<UID>
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userLoadUncheckedUserSummariesResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.loadUser'?: (
-    params: $Exact<{
-      sessionID: int,
-      uid: UID
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userLoadUserResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.loadUserByName'?: (
-    params: $Exact<{
-      sessionID: int,
-      username: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userLoadUserByNameResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.loadUserPlusKeys'?: (
-    params: $Exact<{
-      sessionID: int,
-      uid: UID
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userLoadUserPlusKeysResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.loadPublicKeys'?: (
-    params: $Exact<{
-      sessionID: int,
-      uid: UID
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userLoadPublicKeysResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.loadMyPublicKeys'?: (
-    params: $Exact<{
-      sessionID: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userLoadMyPublicKeysResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.listTracking'?: (
-    params: $Exact<{
-      sessionID: int,
-      filter: string,
-      assertion: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userListTrackingResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.listTrackingJSON'?: (
-    params: $Exact<{
-      sessionID: int,
-      filter: string,
-      verbose: boolean,
-      assertion: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userListTrackingJSONResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.search'?: (
-    params: $Exact<{
-      sessionID: int,
-      query: string
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userSearchResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.loadAllPublicKeysUnverified'?: (
-    params: $Exact<{
-      sessionID: int,
-      uid: UID
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userLoadAllPublicKeysUnverifiedResult) => void,
-    }
-  ) => void,
-  'keybase.1.user.listTrackers2'?: (
-    params: $Exact<{
-      sessionID: int,
-      assertion: string,
-      reverse: bool
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: userListTrackers2Result) => void,
     }
   ) => void
 }>

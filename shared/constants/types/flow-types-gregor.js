@@ -20,7 +20,7 @@ const engineRpcOutgoing = (...args) => engine._rpcOutgoing(...args)
 
 type requestCommon = {
   waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: incomingCallMapType,
+  incomingCallMap?: any,
 }
 
 type requestErrorCallback = {
@@ -258,101 +258,6 @@ export type rpc =
   | remindGetRemindersRpc
 
 export type incomingCallMapType = $Exact<{
-  'keybase.1.auth.authenticateSessionToken'?: (
-    params: $Exact<{
-      session: SessionToken
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: authAuthenticateSessionTokenResult) => void,
-    }
-  ) => void,
-  'keybase.1.authInternal.createGregorSuperUserSessionToken'?: (
-    params: $Exact<{}>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: authInternalCreateGregorSuperUserSessionTokenResult) => void,
-    }
-  ) => void,
-  'keybase.1.authUpdate.revokeSessionIDs'?: (
-    params: $Exact<{
-      sessionIDs?: ?Array<SessionID>
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.incoming.sync'?: (
-    params: $Exact<{
-      uid: UID,
-      deviceid: DeviceID,
-      ctime: Time
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: incomingSyncResult) => void,
-    }
-  ) => void,
-  'keybase.1.incoming.consumeMessage'?: (
-    params: $Exact<{
-      m: Message
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.incoming.consumePublishMessage'?: (
-    params: $Exact<{
-      m: Message
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.incoming.ping'?: (
-    params: $Exact<{}>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: incomingPingResult) => void,
-    }
-  ) => void,
-  'keybase.1.incoming.state'?: (
-    params: $Exact<{
-      uid: UID,
-      deviceid: DeviceID,
-      timeOrOffset: TimeOrOffset
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: incomingStateResult) => void,
-    }
-  ) => void,
-  'keybase.1.incoming.stateByCategoryPrefix'?: (
-    params: $Exact<{
-      uid: UID,
-      deviceid: DeviceID,
-      timeOrOffset: TimeOrOffset,
-      categoryPrefix: Category
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: incomingStateByCategoryPrefixResult) => void,
-    }
-  ) => void,
-  'keybase.1.outgoing.broadcastMessage'?: (
-    params: $Exact<{
-      m: Message
-    }>,
-    response: CommonResponseHandler
-  ) => void,
-  'keybase.1.remind.getReminders'?: (
-    params: $Exact<{
-      maxReminders: int
-    }>,
-    response: {
-      error: RPCErrorHandler,
-      result: (result: remindGetRemindersResult) => void,
-    }
-  ) => void,
-  'keybase.1.remind.deleteReminders'?: (
-    params: $Exact<{
-      reminderIDs?: ?Array<ReminderID>
-    }>,
-    response: CommonResponseHandler
-  ) => void
+
 }>
 
