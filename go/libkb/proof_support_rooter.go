@@ -28,10 +28,10 @@ func NewRooterChecker(p RemoteProofChainLink) (*RooterChecker, ProofError) {
 
 func (rc *RooterChecker) GetTorError() ProofError { return nil }
 
-func (rc *RooterChecker) CheckHint(g *GlobalContext, h SigHint) (err ProofError) {
-	g.Log.Debug("+ Rooter check hint: %v", h)
+func (rc *RooterChecker) CheckHint(g GlobalContextLite, h SigHint) (err ProofError) {
+	g.GetLog().Debug("+ Rooter check hint: %v", h)
 	defer func() {
-		g.Log.Debug("- Rooter check hint: %v", err)
+		g.GetLog().Debug("- Rooter check hint: %v", err)
 	}()
 
 	u, perr := url.Parse(strings.ToLower(h.apiURL))
@@ -104,12 +104,12 @@ func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, ProofError) {
 
 }
 
-func (rc *RooterChecker) rewriteURL(g *GlobalContext, s string) (string, error) {
+func (rc *RooterChecker) rewriteURL(g GlobalContextLite, s string) (string, error) {
 	u1, err := url.Parse(s)
 	if err != nil {
 		return "", err
 	}
-	u2, err := url.Parse(g.Env.GetServerURI())
+	u2, err := url.Parse(g.GetServerURI())
 	if err != nil {
 		return "", err
 	}
@@ -124,20 +124,20 @@ func (rc *RooterChecker) rewriteURL(g *GlobalContext, s string) (string, error) 
 	return u3.String(), nil
 }
 
-func (rc *RooterChecker) CheckStatus(g *GlobalContext, h SigHint) (perr ProofError) {
+func (rc *RooterChecker) CheckStatus(g GlobalContextLite, h SigHint) (perr ProofError) {
 
-	g.Log.Debug("+ Checking rooter at API=%s", h.apiURL)
+	g.GetLog().Debug("+ Checking rooter at API=%s", h.apiURL)
 	defer func() {
-		g.Log.Debug("- Rooter -> %v", perr)
+		g.GetLog().Debug("- Rooter -> %v", perr)
 	}()
 
 	url, err := rc.rewriteURL(g, h.apiURL)
 	if err != nil {
 		return XapiError(err, url)
 	}
-	g.Log.Debug("| URL after rewriter is: %s", url)
+	g.GetLog().Debug("| URL after rewriter is: %s", url)
 
-	res, err := g.XAPI.Get(NewAPIArg(g, url))
+	res, err := g.GetExternalAPI().Get(NewAPIArg(url))
 
 	if err != nil {
 		perr = XapiError(err, url)
@@ -168,7 +168,7 @@ func (t RooterServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t RooterServiceType) NormalizeRemoteName(g *GlobalContext, s string) (string, error) {
+func (t RooterServiceType) NormalizeRemoteName(_ GlobalContextLite, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
@@ -201,7 +201,6 @@ func (t RooterServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 
 func init() {
 	RegisterServiceType(RooterServiceType{})
-	RegisterSocialNetwork("rooter")
 	RegisterMakeProofCheckerFunc("rooter",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewRooterChecker(l)

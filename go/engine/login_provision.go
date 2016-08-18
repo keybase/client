@@ -865,10 +865,9 @@ func getPaperKey(g *libkb.GlobalContext, ctx *Context, lastErr error) (pair *key
 func (e *loginProvision) uidByKID(kid keybase1.KID) (keybase1.UID, error) {
 	var nilUID keybase1.UID
 	arg := libkb.APIArg{
-		Endpoint:     "key/owner",
-		NeedSession:  false,
-		Contextified: libkb.NewContextified(e.G()),
-		Args:         libkb.HTTPArgs{"kid": libkb.S{Val: kid.String()}},
+		Endpoint:    "key/owner",
+		NeedSession: false,
+		Args:        libkb.HTTPArgs{"kid": libkb.S{Val: kid.String()}},
 	}
 	res, err := e.G().API.Get(arg)
 	if err != nil {

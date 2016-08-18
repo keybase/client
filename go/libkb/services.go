@@ -4,39 +4,13 @@
 package libkb
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 )
-
-type ServiceType interface {
-	AllStringKeys() []string
-
-	// NormalizeUsername normalizes the given username, assuming
-	// that it's free of any leading strings like '@' or 'dns://'.
-	NormalizeUsername(string) (string, error)
-
-	// NormalizeRemote normalizes the given remote username, which
-	// is usually but not always the same as the username. It also
-	// allows leaders like '@' and 'dns://'.
-	NormalizeRemoteName(*GlobalContext, string) (string, error)
-
-	GetPrompt() string
-	LastWriterWins() bool
-	PreProofCheck(g *GlobalContext, remotename string) (*Markup, error)
-	PreProofWarning(remotename string) *Markup
-	ToServiceJSON(remotename string) *jsonw.Wrapper
-	PostInstructions(remotename string) *Markup
-	DisplayName(remotename string) string
-	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, remotename string) (warning *Markup, err error)
-	GetProofType() string
-	GetTypeName() string
-	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(*PostProofRes) (string, error)
-	GetAPIArgKey() string
-}
 
 var _stDispatch = make(map[string]ServiceType)
 
@@ -95,9 +69,9 @@ func (t BaseServiceType) BaseAllStringKeys(st ServiceType) []string {
 	return []string{st.GetTypeName()}
 }
 
-func (t BaseServiceType) LastWriterWins() bool                                  { return true }
-func (t BaseServiceType) PreProofCheck(*GlobalContext, string) (*Markup, error) { return nil, nil }
-func (t BaseServiceType) PreProofWarning(remotename string) *Markup             { return nil }
+func (t BaseServiceType) LastWriterWins() bool                                     { return true }
+func (t BaseServiceType) PreProofCheck(GlobalContextLite, string) (*Markup, error) { return nil, nil }
+func (t BaseServiceType) PreProofWarning(remotename string) *Markup                { return nil }
 
 func (t BaseServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
 	return ppr.Text, nil
@@ -146,6 +120,18 @@ func (t BaseServiceType) BaseCheckProofForURL(text string, id keybase1.SigID) (e
 
 func (t BaseServiceType) GetAPIArgKey() string {
 	return "remote_username"
+}
+
+//=============================================================================
+
+type AllServices struct{}
+
+func (a AllServices) NormalizeSocialName(service string, username string) (string, error) {
+	st := GetServiceType(service)
+	if st == nil {
+		return "", fmt.Errorf("Unknown social network: %s", service)
+	}
+	return st.NormalizeUsername(username)
 }
 
 //=============================================================================

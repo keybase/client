@@ -234,7 +234,6 @@ func (p *Prove) checkAutoPost(ctx *Context, txt string) error {
 			"post":     libkb.S{Val: txt},
 			"username": libkb.S{Val: p.arg.Username},
 		},
-		Contextified: libkb.NewContextified(p.G()),
 	}
 	_, err := p.G().API.Post(apiArg)
 	if err != nil {

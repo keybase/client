@@ -42,6 +42,7 @@ type ExternalAPIEngine struct {
 // Internal and External APIs both implement these methods,
 // allowing us to share the request-making code below in doRequest
 type Requester interface {
+	Contextifier
 	fixHeaders(arg APIArg, req *http.Request)
 	getCli(needSession bool) *Client
 	consumeHeaders(resp *http.Response) error
@@ -186,13 +187,13 @@ func (api *BaseAPIEngine) PreparePost(url url.URL, arg APIArg, sendJSON bool) (*
 // DiscardAndCloseBody() called on it.
 func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (
 	_ *http.Response, jw *jsonw.Wrapper, err error) {
-	if !arg.G().Env.GetTorMode().UseSession() && arg.NeedSession {
+	if !api.G().Env.GetTorMode().UseSession() && arg.NeedSession {
 		err = TorSessionRequiredError{}
 		return
 	}
 
 	dbg := func(s string) {
-		arg.G().Log.Debug(fmt.Sprintf("| doRequestShared(%s) for %s", s, arg.Endpoint))
+		api.G().Log.Debug(fmt.Sprintf("| doRequestShared(%s) for %s", s, arg.Endpoint))
 	}
 
 	dbg("fixHeaders")
@@ -206,16 +207,16 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		timerType = TimerXAPI
 	}
 
-	if arg.G().Env.GetAPIDump() {
+	if api.G().Env.GetAPIDump() {
 		jpStr, _ := json.MarshalIndent(arg.JSONPayload, "", "  ")
 		argStr, _ := json.MarshalIndent(arg.getHTTPArgs(), "", "  ")
-		arg.G().Log.Debug(fmt.Sprintf("| full request: json:%s querystring:%s", jpStr, argStr))
+		api.G().Log.Debug(fmt.Sprintf("| full request: json:%s querystring:%s", jpStr, argStr))
 	}
 
-	timer := arg.G().Timers.Start(timerType)
+	timer := api.G().Timers.Start(timerType)
 	dbg("Do")
 
-	internalResp, err := doRetry(arg, cli, req)
+	internalResp, err := doRetry(api, arg, cli, req)
 
 	dbg("Done")
 	defer func() {
@@ -229,7 +230,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	if err != nil {
 		return nil, nil, APINetError{err: err}
 	}
-	arg.G().Log.Debug(fmt.Sprintf("| Result is: %s", internalResp.Status))
+	api.G().Log.Debug(fmt.Sprintf("| Result is: %s", internalResp.Status))
 
 	// The server sends "client version out of date" messages through the API
 	// headers. If the client is *really* out of date, the request status will
@@ -257,9 +258,9 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		}
 
 		jw = jsonw.NewWrapper(obj)
-		if arg.G().Env.GetAPIDump() {
+		if api.G().Env.GetAPIDump() {
 			b, _ := json.MarshalIndent(obj, "", "  ")
-			arg.G().Log.Debug(fmt.Sprintf("| full reply: %s", b))
+			api.G().Log.Debug(fmt.Sprintf("| full reply: %s", b))
 		}
 	}
 
@@ -269,7 +270,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 // doRetry will just call cli.cli.Do if arg.Timeout and arg.RetryCount aren't set.
 // If they are set, it will cancel requests that last longer than arg.Timeout and
 // retry them arg.RetryCount times.
-func doRetry(arg APIArg, cli *Client, req *http.Request) (*http.Response, error) {
+func doRetry(g Contextifier, arg APIArg, cli *Client, req *http.Request) (*http.Response, error) {
 	if arg.InitialTimeout == 0 && arg.RetryCount == 0 {
 		return cli.cli.Do(req)
 	}
@@ -292,7 +293,7 @@ func doRetry(arg APIArg, cli *Client, req *http.Request) (*http.Response, error)
 	var lastErr error
 	for i := 0; i < retries; i++ {
 		if i > 0 {
-			arg.G().Log.Debug("retry attempt %d of %d for %s", i, retries, arg.Endpoint)
+			g.G().Log.Debug("retry attempt %d of %d for %s", i, retries, arg.Endpoint)
 		}
 		resp, err := doTimeout(cli, req, timeout)
 		if err == nil {

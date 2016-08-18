@@ -7,13 +7,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-// ProofChecker is an interface for performing a remote check for a proof
-type ProofChecker interface {
-	CheckHint(g *GlobalContext, h SigHint) ProofError
-	CheckStatus(g *GlobalContext, h SigHint) ProofError
-	GetTorError() ProofError
-}
-
 // MakeProofCheckFunc is a function that given a remoteProofChainLink
 // will make a ProofChecker.
 type MakeProofCheckerFunc func(l RemoteProofChainLink) (ProofChecker, ProofError)

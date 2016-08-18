@@ -125,7 +125,7 @@ func (a AssertionAnd) String() string {
 type AssertionURL interface {
 	AssertionExpression
 	Keys() []string
-	CheckAndNormalize() (AssertionURL, error)
+	CheckAndNormalize(ctx AssertionContext) (AssertionURL, error)
 	IsKeybase() bool
 	IsUID() bool
 	ToUID() keybase1.UID
@@ -232,32 +232,32 @@ type AssertionHTTPS struct{ AssertionURLBase }
 type AssertionDNS struct{ AssertionURLBase }
 type AssertionFingerprint struct{ AssertionURLBase }
 
-func (a AssertionHTTP) CheckAndNormalize() (AssertionURL, error) {
+func (a AssertionHTTP) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
 		return nil, err
 	}
 	return a, nil
 }
-func (a AssertionHTTPS) CheckAndNormalize() (AssertionURL, error) {
+func (a AssertionHTTPS) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
 		return nil, err
 	}
 	return a, nil
 }
-func (a AssertionDNS) CheckAndNormalize() (AssertionURL, error) {
+func (a AssertionDNS) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
 		return nil, err
 	}
 	return a, nil
 }
-func (a AssertionWeb) CheckAndNormalize() (AssertionURL, error) {
+func (a AssertionWeb) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	if err := a.checkAndNormalizeHost(); err != nil {
 		return nil, err
 	}
 	return a, nil
 }
 
-func (a AssertionKeybase) CheckAndNormalize() (AssertionURL, error) {
+func (a AssertionKeybase) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	a.Value = strings.ToLower(a.Value)
 	if !CheckUsername.F(a.Value) {
 		return nil, fmt.Errorf("bad keybase username '%s': %s", a.Value, CheckUsername.Hint)
@@ -265,7 +265,7 @@ func (a AssertionKeybase) CheckAndNormalize() (AssertionURL, error) {
 	return a, nil
 }
 
-func (a AssertionFingerprint) CheckAndNormalize() (AssertionURL, error) {
+func (a AssertionFingerprint) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	a.Value = strings.ToLower(a.Value)
 	if _, err := hex.DecodeString(a.Value); err != nil {
 		return nil, fmt.Errorf("bad hex string: '%s'", a.Value)
@@ -375,20 +375,16 @@ func (a AssertionUID) ToLookup() (key, value string, err error) {
 	return "uid", a.Value, nil
 }
 
-func (a AssertionUID) CheckAndNormalize() (AssertionURL, error) {
+func (a AssertionUID) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	var err error
 	a.uid, err = UIDFromHex(a.Value)
 	a.Value = strings.ToLower(a.Value)
 	return a, err
 }
 
-func (a AssertionSocial) CheckAndNormalize() (AssertionURL, error) {
-	st := GetServiceType(a.Key)
-	if ok, found := _socialNetworks[a.Key]; !ok || !found || st == nil {
-		return nil, fmt.Errorf("Unknown social network: %s", a.Key)
-	}
+func (a AssertionSocial) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
 	var err error
-	a.Value, err = st.NormalizeUsername(a.Value)
+	a.Value, err = ctx.NormalizeSocialName(a.Key, a.Value)
 	return a, err
 }
 
@@ -396,16 +392,16 @@ func (a AssertionSocial) ToLookup() (key, value string, err error) {
 	return a.Key, a.Value, nil
 }
 
-func ParseAssertionURL(s string, strict bool) (ret AssertionURL, err error) {
+func ParseAssertionURL(ctx AssertionContext, s string, strict bool) (ret AssertionURL, err error) {
 	key, val, err := parseToKVPair(s)
 
 	if err != nil {
 		return
 	}
-	return ParseAssertionURLKeyValue(key, val, strict)
+	return ParseAssertionURLKeyValue(ctx, key, val, strict)
 }
 
-func ParseAssertionURLKeyValue(key, val string, strict bool) (ret AssertionURL, err error) {
+func ParseAssertionURLKeyValue(ctx AssertionContext, key string, val string, strict bool) (ret AssertionURL, err error) {
 
 	if len(key) == 0 {
 		if strict {
@@ -434,7 +430,7 @@ func ParseAssertionURLKeyValue(key, val string, strict bool) (ret AssertionURL, 
 	default:
 		ret = AssertionSocial{base}
 	}
-	return ret.CheckAndNormalize()
+	return ret.CheckAndNormalize(ctx)
 }
 
 type Proof struct {
@@ -466,19 +462,6 @@ func (ps ProofSet) Get(keys []string) (ret []Proof) {
 		}
 	}
 	return ret
-}
-
-var _socialNetworks map[string]bool
-
-func RegisterSocialNetwork(s string) {
-	if _socialNetworks == nil {
-		_socialNetworks = make(map[string]bool)
-	}
-	_socialNetworks[s] = true
-}
-
-func ValidSocialNetwork(s string) bool {
-	return _socialNetworks[s]
 }
 
 func FindBestIdentifyComponentURL(e AssertionExpression) AssertionURL {

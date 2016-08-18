@@ -38,7 +38,7 @@ func (rc *WebChecker) GetTorError() ProofError {
 	return nil
 }
 
-func (rc *WebChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
+func (rc *WebChecker) CheckHint(g GlobalContextLite, h SigHint) ProofError {
 
 	files := webKeybaseFiles
 	urlBase := rc.proof.ToDisplayString()
@@ -57,8 +57,8 @@ func (rc *WebChecker) CheckHint(g *GlobalContext, h SigHint) ProofError {
 
 }
 
-func (rc *WebChecker) CheckStatus(g *GlobalContext, h SigHint) ProofError {
-	res, err := g.XAPI.GetText(NewAPIArg(g, h.apiURL))
+func (rc *WebChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError {
+	res, err := g.GetExternalAPI().GetText(NewAPIArg(h.apiURL))
 
 	if err != nil {
 		return XapiError(err, h.apiURL)
@@ -110,20 +110,19 @@ func ParseWeb(s string) (hostname string, prot string, err error) {
 	return
 }
 
-func (t WebServiceType) NormalizeRemoteName(g *GlobalContext, s string) (ret string, err error) {
+func (t WebServiceType) NormalizeRemoteName(g GlobalContextLite, s string) (ret string, err error) {
 	// The remote name is a full (case-preserved) URL.
 	var prot, host string
 	if host, prot, err = ParseWeb(s); err != nil {
 		return
 	}
 	var res *APIRes
-	res, err = g.API.Get(APIArg{
+	res, err = g.GetAPI().Get(APIArg{
 		Endpoint:    "remotes/check",
 		NeedSession: true,
 		Args: HTTPArgs{
 			"hostname": S{host},
 		},
-		Contextified: NewContextified(g),
 	})
 	if err != nil {
 		return
@@ -208,7 +207,6 @@ func (t WebServiceType) LastWriterWins() bool { return false }
 
 func init() {
 	RegisterServiceType(WebServiceType{})
-	RegisterSocialNetwork("web")
 	RegisterMakeProofCheckerFunc("http",
 		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
 			return NewWebChecker(l)
