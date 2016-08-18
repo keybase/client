@@ -29,7 +29,9 @@ func (e *PGPKeyGen) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *PGPKeyGen) Prereqs() Prereqs {
-	return Prereqs{}
+	return Prereqs{
+		Device: true,
+	}
 }
 
 // RequiredUIs returns the required UIs.
