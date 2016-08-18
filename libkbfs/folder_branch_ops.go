@@ -3954,7 +3954,19 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		}
 		// Clear the rekey bit if any.
 		md.Flags &= ^MetadataFlagRekey
-		md.clearLastRevision()
+		_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+		if err != nil {
+			return err
+		}
+		// Readers can't clear the last revision, because:
+		// 1) They don't have access to the writer metadata, so can't clear the
+		//    block changes.
+		// 2) Readers need the MetadataFlagWriterMetadataCopied bit set for
+		//	  MDServer to authorize the write.
+		// Without this check, MDServer returns an Unauthorized error.
+		if md.GetTlfHandle().IsWriter(uid) {
+			md.clearLastRevision()
+		}
 
 	case RekeyIncompleteError:
 		if !rekeyDone && rekeyWasSet {
