@@ -19,14 +19,19 @@ import (
 var version = flag.Bool("version", false, "Print version")
 
 const usageFormatStr = `Usage:
-  kbfs -version
+  kbfstool -version
 
 To run against remote KBFS servers:
-  kbfs [-debug] [-cpuprofile=path/to/dir] [-bserver=%s] [-mdserver=%s]
+  env KEYBASE_RUN_MODE=[staging|prod] kbfstool [-debug]
+    [-cpuprofile=path/to/dir] <command> [<args>]
+
+or
+
+  kbfstool [-debug] [-cpuprofile=path/to/dir] [-bserver=%s] [-mdserver=%s]
     <command> [<args>]
 
 To run in a local testing environment:
-  kbfs [-debug] [-cpuprofile=path/to/dir]
+  kbfstool [-debug] [-cpuprofile=path/to/dir]
     [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
     <command> [<args>]
 
@@ -36,6 +41,7 @@ The possible commands are:
   mkdir		Make directories
   read		Dump file to stdout
   write		Write stdin to file
+  md            Operate on metadata objects
 
 `
 
@@ -70,6 +76,8 @@ func realMain() (exitStatus int) {
 
 	log := logger.NewWithCallDepth("", 1)
 
+	// TODO: Turn off the rekey queue and other background tasks.
+
 	config, err := libkbfs.Init(kbCtx, *kbfsParams, nil, nil, log)
 	if err != nil {
 		printError("kbfs", err)
@@ -98,6 +106,8 @@ func realMain() (exitStatus int) {
 		return read(ctx, config, args)
 	case "write":
 		return write(ctx, config, args)
+	case "md":
+		return mdMain(ctx, config, args)
 	default:
 		printError("kbfs", fmt.Errorf("unknown command '%s'", cmd))
 		return 1

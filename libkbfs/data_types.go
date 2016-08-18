@@ -350,6 +350,11 @@ type BlockInfo struct {
 	EncodedSize uint32 `codec:"e"`
 }
 
+func (bi BlockInfo) String() string {
+	return fmt.Sprintf("BlockInfo{BlockPointer: %s, EncodedSize: %d}",
+		bi.BlockPointer, bi.EncodedSize)
+}
+
 var bpSize = uint64(reflect.TypeOf(BlockPointer{}).Size())
 
 // ReadyBlockData is a block that has been encoded (and encrypted).

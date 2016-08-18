@@ -43,6 +43,11 @@ func (p PrivateMetadata) checkValid() error {
 	return nil
 }
 
+// ChangesBlockInfo returns the block info for any unembedded changes.
+func (p PrivateMetadata) ChangesBlockInfo() BlockInfo {
+	return p.cachedChanges.Info
+}
+
 // A RootMetadata is a BareRootMetadata but with a deserialized
 // PrivateMetadata. However, note that it is possible that the
 // PrivateMetadata has to be left serialized due to not having the
@@ -341,6 +346,12 @@ func MakeImmutableRootMetadata(
 		panic("zero localTimestamp passed to MakeImmutableRootMetadata")
 	}
 	return ImmutableRootMetadata{rmd.ReadOnly(), mdID, localTimestamp}
+}
+
+// MdID returns the pre-computed MdID of the contained RootMetadata
+// object.
+func (irmd ImmutableRootMetadata) MdID() MdID {
+	return irmd.mdID
 }
 
 // RootMetadataSigned is the top-level MD object stored in MD server

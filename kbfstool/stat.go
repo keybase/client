@@ -56,16 +56,16 @@ func stat(ctx context.Context, config libkbfs.Config, args []string) (exitStatus
 	nodePaths := flags.Args()
 	if len(nodePaths) == 0 {
 		printError("stat", errAtLeastOnePath)
-		exitStatus = 1
-		return
+		return 1
 	}
 
 	for _, nodePath := range nodePaths {
 		err := statNode(ctx, config, nodePath)
 		if err != nil {
 			printError("stat", err)
-			exitStatus = 1
+			return 1
 		}
 	}
-	return
+
+	return 0
 }

@@ -728,6 +728,16 @@ func (e InvalidTlfID) Error() string {
 	return fmt.Sprintf("Invalid TLF ID %q", e.id)
 }
 
+// InvalidBranchID indicates whether the branch ID string is not
+// parseable or invalid.
+type InvalidBranchID struct {
+	id string
+}
+
+func (e InvalidBranchID) Error() string {
+	return fmt.Sprintf("Invalid branch ID %q", e.id)
+}
+
 // UnknownHashTypeError is returned whenever a hash with an unknown
 // hash type is attempted to be used for verification.
 type UnknownHashTypeError struct {

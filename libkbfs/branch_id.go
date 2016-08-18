@@ -14,7 +14,7 @@ const (
 	// BranchIDByteLen is the number of bytes in a per-device per-TLF branch ID.
 	BranchIDByteLen = 16
 	// BranchIDStringLen is the number of characters in the string
-	// representation of a per-device pr-TLF branch ID.
+	// representation of a per-device per-TLF branch ID.
 	BranchIDStringLen = 2 * BranchIDByteLen
 )
 
@@ -54,19 +54,20 @@ func (id *BranchID) UnmarshalBinary(data []byte) error {
 	return nil
 }
 
-// ParseBranchID parses a hex encoded BranchID. Returns NullBranchID on failure.
-func ParseBranchID(s string) BranchID {
+// ParseBranchID parses a hex encoded BranchID. Returns NullBranchID
+// and an InvalidBranchID on falire.
+func ParseBranchID(s string) (BranchID, error) {
 	if len(s) != BranchIDStringLen {
-		return NullBranchID
+		return NullBranchID, InvalidBranchID{s}
 	}
 	bytes, err := hex.DecodeString(s)
 	if err != nil {
-		return NullBranchID
+		return NullBranchID, InvalidBranchID{s}
 	}
 	var id BranchID
 	err = id.UnmarshalBinary(bytes)
 	if err != nil {
-		id = NullBranchID
+		return NullBranchID, InvalidBranchID{s}
 	}
-	return id
+	return id, nil
 }
