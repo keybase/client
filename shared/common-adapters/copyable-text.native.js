@@ -6,19 +6,18 @@ import Box from './box'
 import Text from './text'
 import HOCTimers from './hoc-timers'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import type {Props} from './copyable-text'
-import type {ClearTimerFunc, TimerFunc} from './hoc-timers'
+import type {Props as PropsCommon} from './copyable-text'
+import type {TimerProps} from './hoc-timers'
 
-type PropsNative = Props & {
-  setTimeout: TimerFunc,
-  clearTimeout: ClearTimerFunc,
+export type Props = PropsCommon & {
+  extras: Object,
 }
 
 type State = {
   hasCopied: boolean,
 }
 
-class CopyableText extends Component<void, PropsNative, State> {
+class CopyableText extends Component<void, Props & TimerProps, State> {
   state: State;
   lastCopyTimeoutId: ?number
 
@@ -39,11 +38,11 @@ class CopyableText extends Component<void, PropsNative, State> {
   }
 
   render () {
-    const {value, style, extras$native} = this.props
+    const {value, style, extras} = this.props
     return (
       <TouchableHighlight activeOpacity={0.6} underlayColor={globalColors.white} onPress={() => this._handleCopy()}style={style}>
         <Box style={styleBase}>
-          <Text style={{...styleText, ..._.get(extras$native, 'style')}} type='BodySmall' {..._.omit(extras$native, ['style'])}>{value}</Text>
+          <Text style={{...styleText, ..._.get(extras, 'style')}} type='BodySmall' {..._.omit(extras, ['style'])}>{value}</Text>
           <Box style={styleCopyToastContainer}>
             <Box style={styleCopyToast}>
               <Text style={styleCopyToastText} type='Body'>{this.state.hasCopied ? 'Copied!' : 'Tap to copy'}</Text>

@@ -1,6 +1,7 @@
 // @flow
 import React from 'react'
-import {Button, CopyableText, LinkWithIcon, PlatformIcon, StandardScreen, Text} from '../common-adapters'
+import {Button, LinkWithIcon, PlatformIcon, StandardScreen, Text} from '../common-adapters'
+import CopyableText from '../common-adapters/copyable-text.native'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import * as shared from './post-proof.shared'
 import type {Props} from './post-proof'
@@ -27,7 +28,7 @@ const PostProof = (props: Props) => {
       <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
       {platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
       {descriptionView || (descriptionText && <Text style={styleDescriptionText} type='Body'>{descriptionText}</Text>)}
-      {proofText && <CopyableText style={styleProofContainer} value={proofText} extras$native={{style: styleProofText}} />}
+      {proofText && <CopyableText style={styleProofContainer} value={proofText} extras={{style: styleProofText}} />}
       {noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
       {proofAction && proofActionText && proofActionIcon && <LinkWithIcon style={styleProofAction} label={proofActionText} icon={proofActionIcon} color={globalColors.blue} onClick={() => proofAction()} />}
       <Button style={styleContinueButton} type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
