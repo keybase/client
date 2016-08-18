@@ -2761,7 +2761,7 @@ func TestSimpleCRNoConflict(t *testing.T) {
 
 	root1 := path.Join(mnt1.Dir, PrivateName, "user1,user2")
 	root2 := path.Join(mnt2.Dir, PrivateName, "user1,user2")
-	// both users should mutate the dir first
+	// Please create TLF here first
 	d1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "D")
 	d2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "E")
 	if err := os.Mkdir(d1, 0755); err != nil {

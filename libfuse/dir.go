@@ -280,7 +280,7 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 // TlfHandleChange is called when the name of a folder changes.
 func (f *Folder) TlfHandleChange(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
-	f.fs.log.CDebugf(ctx, "TlfHandleChange called")
+	f.fs.log.CDebugf(ctx, "TlfHandleChange called %v", newHandle.GetCanonicalName())
 	// Handle in the background because we shouldn't lock during the
 	// notification
 	f.fs.queueNotification(func() {
