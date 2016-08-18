@@ -40,7 +40,7 @@ const actionStatSink: StatSink = {
 
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
   const shouldRunActionStats = shouldRunStats(actionStatFrequency)
-  if (true || action.skipLogging && allowSkipLogging) {
+  if (action.skipLogging && allowSkipLogging) {
     startTiming(shouldRunActionStats, actionStatSink)
     const result = next(action)
     endTiming(shouldRunActionStats, actionStatSink)

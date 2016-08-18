@@ -1,9 +1,10 @@
 // @flow
 import React, {Component} from 'react'
-import {StandardScreen, Box, Text, Button, Icon, Checkbox} from '../../common-adapters'
+import {StandardScreen, Text, Button, Icon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles/style-guide'
-import {CHECKBOX_SIZE, CHECKBOX_MARGIN} from '../../common-adapters/checkbox.desktop'
 import type {Props} from './finished-generating-pgp'
+
+// import {CHECKBOX_SIZE, CHECKBOX_MARGIN} from '../../common-adapters/checkbox.desktop'
 
 type State = {
   shouldStoreKeyOnServer: boolean,
@@ -29,11 +30,12 @@ class FinishedGeneratedPgp extends Component<void, Props, State> {
         <Icon style={styleIcon} type='icon-pgp-key-48' />
         <Text style={styleTitle} type='Header'>Here is your unique public key!</Text>
         <textInput style={stylePgpKeyString} readOnly={true}>{this.props.pgpKeyString}</textInput>
+          {/* TODO(mm): this doesn't work yet
         <Box style={styleUploadContainer}>
-          {/* TODO(mm): this doesn't work yet */}
-          <Checkbox onCheck={(newVal) => this._onCheckToggle(newVal)} disabled={true} checked={this.state.shouldStoreKeyOnServer} label='Store encrypted private key on Keybase’s server (recommended)' />
+          <Checkbox onCheck={(newVal) => this._onCheckToggle(newVal)} checked={this.state.shouldStoreKeyOnServer} label='Store encrypted private key on Keybase’s server (recommended)' />
           <Text style={styleUploadTextSublabel} type='BodySmall'>{'Allows you to download & import your key to other devices.'}</Text>
         </Box>
+          */}
         <Button style={styleDoneButton} type='Primary' onClick={() => this.props.onDone(this.state.shouldStoreKeyOnServer)} label={this.state.shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'} />
       </StandardScreen>
     )
@@ -67,6 +69,7 @@ const stylePgpKeyString = {
   color: globalColors.black_75,
 }
 
+/*
 const styleUploadContainer = {
   ...globalStyles.flexBoxColumn,
   textAlign: 'left',
@@ -77,6 +80,7 @@ const styleUploadTextSublabel = {
   color: globalColors.black_40,
   marginLeft: CHECKBOX_SIZE + CHECKBOX_MARGIN,
 }
+*/
 
 const styleDoneButton = {
   marginTop: globalMargins.medium,

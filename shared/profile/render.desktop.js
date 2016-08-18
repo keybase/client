@@ -79,7 +79,7 @@ class Render extends Component<void, Props, State> {
         items: [
           ...(proof.humanUrl ? [{title: 'View proof', onClick: () => this.props.onViewProof(proof)}] : []),
           {title: 'I fixed it - recheck', onClick: () => this.props.onRecheckProof(proof)},
-          {title: 'Revoke proof', danger: true, onClick: () => this.props.onRevokeProof(proof)},
+          {title: shared.revokeProofLanguage(proof.type), danger: true, onClick: () => this.props.onRevokeProof(proof)},
         ],
       }
     } else if (proof.meta === metaPending) {
@@ -100,7 +100,7 @@ class Render extends Component<void, Props, State> {
           }}
         >{pendingMessage}</Text>,
         items: [
-          {title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)},
+          {title: shared.revokeProofLanguage(proof.type), danger: true, onClick: () => this.props.onRevokeProof(proof)},
         ],
       }
     } else {
@@ -114,11 +114,11 @@ class Render extends Component<void, Props, State> {
           }}
         >
           <PlatformIcon platform={proof.type} overlay='icon-proof-success' overlayColor={globalColors.blue} size={48} />
-          <Text type='Body' style={{textAlign: 'center', color: globalColors.black_40}}>Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>
+          {!!proof.mTime && <Text type='Body' style={{textAlign: 'center', color: globalColors.black_40}}>Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
         </Box>,
         items: [
           {title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`, onClick: () => this.props.onViewProof(proof)},
-          {title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)},
+          {title: shared.revokeProofLanguage(proof.type), danger: true, onClick: () => this.props.onRevokeProof(proof)},
         ],
       }
     }

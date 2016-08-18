@@ -40,6 +40,9 @@ const supportedPlatformsAndSizes: {[key: PlatformsExpandedType]: ?{[key: string]
   'btc': {
     '48': 'icon-bitcoin-logo-48',
   },
+  'pgp': {
+    '48': 'icon-pgp-key-48',
+  },
 }
 
 const Render = ({platform, overlay, overlayColor, size, style}: Props) => {
