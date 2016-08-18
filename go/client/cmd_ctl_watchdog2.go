@@ -73,6 +73,7 @@ func (c *CmdWatchdog2) Run() error {
 			"-log-to-file",
 			mountDir,
 		},
+		ExitOn: watchdog.ExitOnSuccess,
 	}
 	programs = append(programs, kbfsProgram)
 

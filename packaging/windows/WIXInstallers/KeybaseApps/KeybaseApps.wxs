@@ -191,11 +191,12 @@
   <Fragment>
     <CustomAction Id="StopMainApp"
               Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [INSTALLFOLDER]keybase.exe ctl stop"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [INSTALLFOLDER]keybase.exe ctl stop --kill-kbfs"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
   <Fragment>
+    <!-- This is just in case --kill-kbfs doesn't work -->
     <CustomAction Id="StopKBFS"
               Directory="INSTALLFOLDER"
               ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM kbfsdokan.exe"
