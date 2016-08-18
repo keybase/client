@@ -1,15 +1,11 @@
 // @flow
 import React from 'react'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import type {Props as PropsCommon} from './copyable-text'
+import type {Props} from './copyable-text'
 
-export type Props= PropsCommon & {
-  extras: HTMLTextAreaElement,
-}
-
-const CopyableText = ({value, style, extras}: Props) => {
+const CopyableText = ({value, style}: Props) => {
   return (
-    <textarea style={{...styleBase, ...style}} readOnly={true} value={value} onClick={(e) => { e.target.focus(); e.target.select() }} {...extras} />
+    <textarea style={{...styleBase, ...style}} readOnly={true} value={value} onClick={(e) => { e.target.focus(); e.target.select() }} />
   )
 }
 

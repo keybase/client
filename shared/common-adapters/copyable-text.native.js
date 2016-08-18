@@ -1,5 +1,4 @@
 // @flow
-import _ from 'lodash'
 import React, {Component} from 'react'
 import {Clipboard, TouchableHighlight} from 'react-native'
 import Box from './box'
@@ -10,7 +9,7 @@ import type {Props as PropsCommon} from './copyable-text'
 import type {TimerProps} from './hoc-timers'
 
 export type Props = PropsCommon & {
-  extras: Object,
+  textStyle: Object,
 }
 
 type State = {
@@ -38,11 +37,11 @@ class CopyableText extends Component<void, Props & TimerProps, State> {
   }
 
   render () {
-    const {value, style, extras} = this.props
+    const {value, style, textStyle} = this.props
     return (
       <TouchableHighlight activeOpacity={0.6} underlayColor={globalColors.white} onPress={() => this._handleCopy()}style={style}>
         <Box style={styleBase}>
-          <Text style={{...styleText, ..._.get(extras, 'style')}} type='BodySmall' {..._.omit(extras, ['style'])}>{value}</Text>
+          <Text style={{...styleText, ...textStyle}} type='BodySmall'>{value}</Text>
           <Box style={styleCopyToastContainer}>
             <Box style={styleCopyToast}>
               <Text style={styleCopyToastText} type='Body'>{this.state.hasCopied ? 'Copied!' : 'Tap to copy'}</Text>

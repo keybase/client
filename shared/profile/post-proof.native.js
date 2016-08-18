@@ -28,7 +28,7 @@ const PostProof = (props: Props) => {
       <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
       {!!platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
       {descriptionView || (descriptionText && <Text style={styleDescriptionText} type='Body'>{descriptionText}</Text>)}
-      {!!proofText && <CopyableText style={styleProofContainer} value={proofText} extras={{style: styleProofText}} />}
+      {!!proofText && <CopyableText style={styleProofContainer} value={proofText} textStyle={styleProofText} />}
       {!!noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
       {!!proofAction && !!proofActionText && !!proofActionIcon && <LinkWithIcon style={styleProofAction} label={proofActionText} icon={proofActionIcon} color={globalColors.blue} onClick={() => proofAction()} />}
       <Button style={styleContinueButton} type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
