@@ -14,6 +14,17 @@ const initialState: State = {
   proofFound: false,
   proofStatus: null,
   sigID: null,
+  pgpInfo: {
+    fullName: null,
+    errorText: null,
+    email1: null,
+    email2: null,
+    email3: null,
+    errorEmail1: false,
+    errorEmail2: false,
+    errorEmail3: false,
+  },
+  pgpPublicKey: null,
 }
 
 // A simple check, the server does a fuller check
@@ -117,6 +128,20 @@ export default function (state: State = initialState, action: Actions) {
       return {
         ...state,
         sigID: action.payload.sigID,
+      }
+    case Constants.updatePgpInfo:
+      return {
+        ...state,
+        pgpInfo: {
+          ...state.pgpInfo,
+          ...action.payload,
+        },
+      }
+    case Constants.updatePgpPublicKey:
+      if (action.error) { break }
+      return {
+        ...state,
+        pgpPublicKey: action.payload.publicKey,
       }
   }
 

@@ -36,6 +36,20 @@ export type UpdateProofStatus = TypedAction<'profile:updateProofStatus', {found:
 export const updateSigID = 'profile:updateSigID'
 export type UpdateSigID = TypedAction<'profile:updateSigID', {sigID: SigID}, void>
 
+// $Shape is meant here instead of exact, because you can supply only the
+// parts you want to update
+export const updatePgpInfo = 'profile:updatePgpInfo'
+export type UpdatePgpInfo = TypedAction<'profile:updatePgpInfo', $Shape<PgpInfo>, PgpInfoError>
+
+export const generatePgp = 'profile:generatePgp'
+export type GeneratePgp = TypedAction<'profile:generatePgp', void, void>
+
+export const updatePgpPublicKey = 'profile:updatePgpPublicKey'
+export type UpdatePgpPublicKey = TypedAction<'profile:updatePgpPublicKey', {publicKey: string}, {}>
+
+export const finishedWithKeyGen = 'profile:FinishedWithKeyGen'
+export type FinishedWithKeyGen = TypedAction<'profile:FinishedWithKeyGen', {shouldStoreKeyOnServer: boolean}, {}>
+
 export const maxProfileBioChars = 256
 
 export type Actions = Waiting
@@ -48,6 +62,21 @@ export type Actions = Waiting
   | UpdateErrorText
   | UpdateProofStatus
   | UpdateSigID
+
+export type PgpInfo = {
+  fullName: ?string,
+  errorText: ?string,
+  email1: ?string,
+  email2: ?string,
+  email3: ?string,
+}
+
+export type PgpInfoError = {
+  errorText: ?string,
+  errorEmail1: boolean,
+  errorEmail2: boolean,
+  errorEmail3: boolean,
+}
 
 export type State = {
   errorText: ?string,
@@ -63,4 +92,6 @@ export type State = {
   proofFound: boolean,
   proofStatus: ?ProofStatus,
   sigID: ?SigID,
+  pgpInfo: PgpInfo & PgpInfoError,
+  pgpPublicKey: ?string,
 }

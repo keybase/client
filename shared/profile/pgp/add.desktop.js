@@ -7,7 +7,7 @@ import type {Props} from './add'
 
 class PgpAdd extends Component<void, Props, void> {
   render () {
-    const nextDisabled = !this.props.email1 || !this.props.fullName
+    const nextDisabled = !this.props.email1 || !this.props.fullName || !!this.props.errorText
     return (
       <Box style={containerStyle}>
         {/* TODO(MM) when we get the pgp icon, put it in here */}

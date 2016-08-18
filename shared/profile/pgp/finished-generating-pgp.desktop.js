@@ -15,7 +15,7 @@ class FinishedGeneratedPgp extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     this.state = {
-      shouldStoreKeyOnServer: true,
+      shouldStoreKeyOnServer: false,
     }
   }
 
@@ -30,10 +30,11 @@ class FinishedGeneratedPgp extends Component<void, Props, State> {
         <Text style={styleTitle} type='Header'>Here is your unique public key!</Text>
         <textInput style={stylePgpKeyString} readOnly={true}>{this.props.pgpKeyString}</textInput>
         <Box style={styleUploadContainer}>
-          <Checkbox onCheck={(newVal) => this._onCheckToggle(newVal)} checked={this.state.shouldStoreKeyOnServer} label='Store encrypted private key on Keybase’s server (recommended)' />
+          {/* TODO(mm): this doesn't work yet */}
+          <Checkbox onCheck={(newVal) => this._onCheckToggle(newVal)} disabled={true} checked={this.state.shouldStoreKeyOnServer} label='Store encrypted private key on Keybase’s server (recommended)' />
           <Text style={styleUploadTextSublabel} type='BodySmall'>{'Allows you to download & import your key to other devices.'}</Text>
         </Box>
-        <Button style={styleDoneButton} type='Primary' onClick={() => this.props.onDone(this.state.shouldStoreKeyOnServer)} label={'Done, post to Keybase'} />
+        <Button style={styleDoneButton} type='Primary' onClick={() => this.props.onDone(this.state.shouldStoreKeyOnServer)} label={this.state.shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'} />
       </StandardScreen>
     )
   }

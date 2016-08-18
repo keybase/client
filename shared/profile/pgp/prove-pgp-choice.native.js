@@ -15,7 +15,7 @@ class ProvePgpChoice extends Component<void, Props, void> {
               title: 'Get a new PGP key',
               description: 'Keybase will generate a new PGP key and add it to your profile.',
               icon: 'icon-pgp-key-48',
-              onClick: () => this.props.onOptionClick('generate'),
+              onClick: () => this.props.onOptionClick('provideInfo'),
             },
             {
               title: 'I have one already',
