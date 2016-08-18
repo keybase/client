@@ -1,6 +1,8 @@
 import {BrowserWindow, app, globalShortcut} from 'electron'
 import {showDevTools, skipSecondaryDevtools} from '../shared/local-debug.desktop'
 
+let devToolsState = showDevTools
+
 function setupDevToolsExtensions () {
   if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
     if (process.env.KEYBASE_DEV_TOOL_EXTENSIONS) {
@@ -13,8 +15,13 @@ function setupDevToolsExtensions () {
 
 function setupOpenDevtools () {
   globalShortcut.register('CommandOrControl+Alt+k+b', () => {
+    devToolsState = !devToolsState
     BrowserWindow.getAllWindows().map(bw => {
-      bw.openDevTools()
+      if (devToolsState) {
+        bw.webContents.openDevTools()
+      } else {
+        bw.webContents.closeDevTools()
+      }
     })
   })
 }
