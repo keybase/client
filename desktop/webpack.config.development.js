@@ -3,6 +3,7 @@ const webpackTargetElectronRenderer = require('webpack-target-electron-renderer'
 const baseConfig = require('./webpack.config.base')
 const config = Object.assign({}, baseConfig)
 const getenv = require('getenv')
+const UnusedFilesWebpackPlugin = require('unused-files-webpack-plugin').default
 
 const NO_SOURCE_MAPS = getenv.boolish('NO_SOURCE_MAPS', false)
 const defines = {
@@ -22,6 +23,26 @@ config.output.publicPath = 'http://localhost:4000/dist/'
 // Uncomment below to figure out packaging bugs
 // config.bail = true
 
+config.plugins.push(new UnusedFilesWebpackPlugin({
+  pattern: '../shared/**/*.js',
+  globOptions: {
+    ignore: [
+      // Mobile stuff
+      '../**/*.native.js',
+      '../**/*.ios.js',
+      '../**/*.android.js',
+      // Flow stuff
+      '../shared/constants/folders.js',
+      '../shared/constants/types/flux.js',
+      '../shared/constants/types/saga.js',
+      '../shared/constants/reducer.js',
+      // Tests
+      '../shared/test/**',
+      // Misc
+      '../shared/packager/wipe-cache.js',
+    ],
+  },
+}))
 config.plugins.push(new webpack.optimize.OccurenceOrderPlugin())
 
 if (getenv.boolish('HOT', false)) {
