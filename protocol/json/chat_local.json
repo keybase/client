@@ -215,6 +215,14 @@
         {
           "name": "tlfName",
           "type": "string"
+        },
+        {
+          "name": "topicName",
+          "type": "string"
+        },
+        {
+          "name": "topicType",
+          "type": "chat1.TopicType"
         }
       ],
       "response": "chat1.ConversationID"

@@ -49,7 +49,10 @@ func (c *cmdChatSend) Run() (err error) {
 	}
 
 	var args keybase1.PostLocalArg
-	if args.ConversationID, err = chatClient.GetOrCreateTextConversationLocal(context.TODO(), c.tlfName); err != nil {
+	if args.ConversationID, err = chatClient.GetOrCreateTextConversationLocal(context.TODO(), keybase1.GetOrCreateTextConversationLocalArg{
+		TlfName:   c.tlfName,
+		TopicType: chat1.TopicType_CHAT,
+	}); err != nil {
 		return err
 	}
 	// args.MessagePlaintext.ClientHeader.Conv omitted

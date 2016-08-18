@@ -56,5 +56,5 @@ protocol chatLocal {
   chat1.ConversationID newConversationLocal(chat1.ConversationIDTriple conversationTriple);
 
   // temporary method before we support multiple topics per TLF
-  chat1.ConversationID getOrCreateTextConversationLocal(string tlfName);
+  chat1.ConversationID getOrCreateTextConversationLocal(string tlfName, string topicName, chat1.TopicType topicType);
 }

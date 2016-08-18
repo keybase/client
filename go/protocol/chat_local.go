@@ -73,7 +73,9 @@ type NewConversationLocalArg struct {
 }
 
 type GetOrCreateTextConversationLocalArg struct {
-	TlfName string `codec:"tlfName" json:"tlfName"`
+	TlfName   string          `codec:"tlfName" json:"tlfName"`
+	TopicName string          `codec:"topicName" json:"topicName"`
+	TopicType chat1.TopicType `codec:"topicType" json:"topicType"`
 }
 
 type ChatLocalInterface interface {
@@ -81,7 +83,7 @@ type ChatLocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (ThreadView, error)
 	PostLocal(context.Context, PostLocalArg) error
 	NewConversationLocal(context.Context, chat1.ConversationIDTriple) (chat1.ConversationID, error)
-	GetOrCreateTextConversationLocal(context.Context, string) (chat1.ConversationID, error)
+	GetOrCreateTextConversationLocal(context.Context, GetOrCreateTextConversationLocalArg) (chat1.ConversationID, error)
 }
 
 func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
@@ -163,7 +165,7 @@ func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]GetOrCreateTextConversationLocalArg)(nil), args)
 						return
 					}
-					ret, err = i.GetOrCreateTextConversationLocal(ctx, (*typedArgs)[0].TlfName)
+					ret, err = i.GetOrCreateTextConversationLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -198,8 +200,7 @@ func (c ChatLocalClient) NewConversationLocal(ctx context.Context, conversationT
 	return
 }
 
-func (c ChatLocalClient) GetOrCreateTextConversationLocal(ctx context.Context, tlfName string) (res chat1.ConversationID, err error) {
-	__arg := GetOrCreateTextConversationLocalArg{TlfName: tlfName}
+func (c ChatLocalClient) GetOrCreateTextConversationLocal(ctx context.Context, __arg GetOrCreateTextConversationLocalArg) (res chat1.ConversationID, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getOrCreateTextConversationLocal", []interface{}{__arg}, &res)
 	return
 }

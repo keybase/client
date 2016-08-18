@@ -1812,7 +1812,9 @@ export function chatLocalGetInboxLocalRpc (request: $Exact<{
   engine.rpc({...request, method: 'chatLocal.getInboxLocal'})
 }
 export type chatLocalGetOrCreateTextConversationLocalRpcParam = $Exact<{
-  tlfName: string
+  tlfName: string,
+  topicName: string,
+  topicType: chat1.TopicType
 }>
 
 type chatLocalGetOrCreateTextConversationLocalResult = chat1.ConversationID
@@ -4460,7 +4462,9 @@ export type incomingCallMapType = $Exact<{
   ) => void,
   'keybase.1.chatLocal.getOrCreateTextConversationLocal'?: (
     params: $Exact<{
-      tlfName: string
+      tlfName: string,
+      topicName: string,
+      topicType: chat1.TopicType
     }>,
     response: {
       error: (err: RPCError) => void,

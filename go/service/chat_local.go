@@ -55,6 +55,8 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetT
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, trip chat1.ConversationIDTriple) (id chat1.ConversationID, err error) {
+	// TODO: change rpc to take a topic name, and follow up with a message with
+	// MessageType=TOPIC_NAME to set the topic name for the conversation
 	id, err = h.remoteClient().NewConversationRemote(ctx, trip)
 	return id, err
 }
@@ -66,8 +68,8 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, trip chat1.
 //
 // TODO: after we implement multiple conversations per TLF and topic names,
 // replace this with something that looks up by topic name
-func (h *chatLocalHandler) GetOrCreateTextConversationLocal(ctx context.Context, tlfName string) (id chat1.ConversationID, err error) {
-	res, err := h.boxer.tlf.CryptKeys(ctx, tlfName)
+func (h *chatLocalHandler) GetOrCreateTextConversationLocal(ctx context.Context, arg keybase1.GetOrCreateTextConversationLocalArg) (id chat1.ConversationID, err error) {
+	res, err := h.boxer.tlf.CryptKeys(ctx, arg.TlfName)
 	if err != nil {
 		return id, err
 	}
@@ -87,6 +89,8 @@ getinbox:
 		}
 		for _, conv := range iview.Conversations {
 			if conv.Metadata.IdTriple.Tlfid.Eq(tlfID) {
+				// TODO: check topic name and topic ID here when we support multiple
+				// topics per TLF
 				return conv.Metadata.ConversationID, nil
 			}
 		}
@@ -100,7 +104,7 @@ getinbox:
 
 	id, err = h.NewConversationLocal(ctx, chat1.ConversationIDTriple{
 		Tlfid:     tlfID,
-		TopicType: chat1.TopicType_CHAT,
+		TopicType: arg.TopicType,
 		// TopicID filled by server?
 	})
 	if err != nil {
