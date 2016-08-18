@@ -238,6 +238,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         id: action.payload.fingerPrint,
         meta: null,
         type: 'pgp',
+        kid: action.payload.kid,
         mTime: 0,
         color: 'green',
         name: action.payload.fingerPrint,
