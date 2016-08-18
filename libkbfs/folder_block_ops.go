@@ -944,6 +944,8 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableErrorLocked(
 			lState, newPtr, file, b); err != nil {
 			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
 		}
+		fbo.log.CDebugf(ctx, "Deleting dirty ptr %v after recoverable error",
+			oldPtr)
 		err = dirtyBcache.Delete(oldPtr, fbo.branch())
 		if err != nil {
 			fbo.log.CDebugf(ctx, "Couldn't del-dirty %v: %v", oldPtr, err)
@@ -1245,6 +1247,13 @@ func (fbo *folderBlockOps) writeDataLocked(
 	ctx context.Context, lState *lockState, kmd KeyMetadata, file path,
 	data []byte, off int64) (latestWrite WriteRange, dirtyPtrs []BlockPointer,
 	newlyDirtiedChildBytes int64, err error) {
+	fbo.blockLock.AssertLocked(lState)
+	fbo.log.CDebugf(ctx, "writeDataLocked on file pointer %v",
+		file.tailPointer())
+	defer func() {
+		fbo.log.CDebugf(ctx, "writeDataLocked done: %v", err)
+	}()
+
 	if sz := off + int64(len(data)); uint64(sz) > fbo.config.MaxFileBytes() {
 		return WriteRange{}, nil, 0,
 			FileTooBigError{file, sz, fbo.config.MaxFileBytes()}
@@ -1279,6 +1288,10 @@ func (fbo *folderBlockOps) writeDataLocked(
 	de, err := fbo.getDirtyEntryLocked(ctx, lState, kmd, file)
 	if err != nil {
 		return WriteRange{}, nil, 0, err
+	}
+	if de.BlockPointer != file.tailPointer() {
+		fbo.log.CDebugf(ctx, "DirEntry and file tail pointer don't match: "+
+			"%v vs %v", de.BlockPointer, file.tailPointer())
 	}
 	oldSizeWithoutHoles := de.Size
 
@@ -2392,6 +2405,7 @@ func (fbo *folderBlockOps) FinishSync(
 
 	dirtyBcache := fbo.config.DirtyBlockCache()
 	for _, ptr := range syncState.oldFileBlockPtrs {
+		fbo.log.CDebugf(ctx, "Deleting dirty ptr %v", ptr)
 		if err := dirtyBcache.Delete(ptr, fbo.branch()); err != nil {
 			return true, err
 		}
@@ -2417,6 +2431,7 @@ func (fbo *folderBlockOps) FinishSync(
 	// Clear any dirty blocks that resulted from a write/truncate
 	// happening during the sync, since we're redoing them below.
 	for _, ptr := range deletes {
+		fbo.log.CDebugf(ctx, "Deleting deferred dirty ptr %v", ptr)
 		if err := dirtyBcache.Delete(ptr, fbo.branch()); err != nil {
 			return true, err
 		}
