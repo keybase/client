@@ -391,12 +391,13 @@ function updateUserInfo (userCard: UserCard, username: string, getState: () => {
   }
 }
 
-function updateBTC (username: string, address: string): Action {
+function updateBTC (username: string, address: string, sigID: string): Action {
   return {
     type: Constants.updateBTC,
     payload: {
       username,
       address,
+      sigID,
     },
   }
 }
@@ -520,9 +521,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         dispatch({type: Constants.showTracker, payload: {username}})
       }
     },
-    displayCryptocurrency: ({sessionID, c: {address}}) => {
+    displayCryptocurrency: ({sessionID, c: {address, sigID}}) => {
       const username = sessionIDToUsername[sessionID]
-      dispatch(updateBTC(username, address))
+      dispatch(updateBTC(username, address, sigID))
       dispatch({type: Constants.updateProofState, payload: {username}})
     },
     displayUserCard: ({sessionID, card}) => {
