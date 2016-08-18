@@ -432,9 +432,6 @@ func (rmea *rmMergedEntryAction) swapUnmergedBlock(
 func (rmea *rmMergedEntryAction) do(ctx context.Context,
 	unmergedCopier fileBlockDeepCopier, mergedCopier fileBlockDeepCopier,
 	unmergedBlock *DirBlock, mergedBlock *DirBlock) error {
-	if _, ok := mergedBlock.Children[rmea.name]; !ok {
-		return NoSuchNameError{rmea.name}
-	}
 	delete(mergedBlock.Children, rmea.name)
 	return nil
 }
