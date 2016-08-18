@@ -21,8 +21,8 @@ import {
   trackDismissWithTokenRpc,
   trackTrackWithTokenRpc,
   trackUntrackRpc,
+  IdentifyCommonIdentifyReasonType,
 } from '../constants/types/flow-types'
-import {identifyCommon} from '../constants/types/keybase-v1'
 import {routeAppend} from './router'
 import {showAllTrackers} from '../local-debug'
 
@@ -152,7 +152,7 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
           useDelegateUI,
           needProofSet: true,
           reason: {
-            type: identifyCommon.IdentifyReasonType.id,
+            type: IdentifyCommonIdentifyReasonType.id,
             reason,
             resource: '',
           },
@@ -163,9 +163,7 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
         callback: (error, response) => {
           console.log('called identify and got back', error, response)
           if (error) {
-            // TODO(MM) figure out why we have this discrepancy
-            // The type is supposedly error.desc, but in practice we do error.raw.desc
-            dispatch({type: Constants.identifyFinished, error: true, payload: {error: error.raw && error.raw.desc || error.desc}})
+            dispatch({type: Constants.identifyFinished, error: true, payload: {error: error.desc}})
           }
           dispatch({type: Constants.identifyFinished, payload: null})
           clearTimeout(clearPendingTimeout)

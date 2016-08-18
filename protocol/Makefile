@@ -33,11 +33,6 @@ js/flow-types.js: build-stamp | config
 	node --harmony ./bin/flow.js
 	cp ./js/flow-types* ../shared/constants/types
 
-js/keybase_v1.js: build-stamp | config
-	@mkdir -p js/
-	node --harmony ./bin/js.js
-	cp ./js/keybase-v1.js ../shared/constants/types
-
 clean:
 	rm -rf json/*.json js/*.js *build-stamp
 	$(AVDLC) -c -b -l go -o ../go/protocol avdl/*.avdl
@@ -45,6 +40,6 @@ clean:
 fmt:
 	@./fmt.sh
 
-build: fmt build-stamp go-build-stamp js/keybase_v1.js js/flow-types.js
+build: fmt build-stamp go-build-stamp js/flow-types.js
 
 .PHONY: test config

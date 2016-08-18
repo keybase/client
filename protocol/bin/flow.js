@@ -26,12 +26,15 @@ var projects = [
   },
 ]
 
+const reduceArray = arr => arr.reduce((acc, cur) => acc.concat(cur), [])
+
 projects.forEach(project => {
   fs.readdirAsync(project.root)
   .filter(jsonOnly)
   .map(file => load(file, project))
   .map(json => analyze(json, project))
   .reduce((acc, typeDefs) => acc.concat(typeDefs), [])
+  .then(t => t.filter(key => key && key.length))
   .then(t => t.sort())
   .then(makeRpcUnionType)
   .then(typeDefs => write(typeDefs, project))
@@ -46,24 +49,58 @@ function load (file, project) {
 }
 
 function analyze (json, project) {
+  return reduceArray([].concat(analyzeTypes(json, project), analyzeMessages(json, project), analyzeEnums(json, project)))
+}
+
+function fixCase (s) {
+  return s.toLowerCase().replace(/(_\w)/g, s => capitalize(s[1]))
+}
+
+function analyzeEnums (json, project) {
+  return json.types.filter(t => t.type === 'enum').map(t => {
+    var en = {}
+
+    t.symbols.forEach(function (s) {
+      const parts = s.split('_')
+      const val = parseInt(parts.pop(), 10)
+      const name = fixCase(parts.join('_'))
+      en[name] = val
+    })
+
+    return {
+      name: `${capitalize(json.protocol)}${t.name}`,
+      map: en,
+    }
+  }).reduce((acc, t) => {
+    return acc.concat([
+      `export const ${t.name} = {
+  ${Object.keys(t.map).map(k => {
+    return `${k}: ${t.map[k]}` // eslint-disable-line
+  }).join(',\n  ')},
+}`,
+    ])
+  }, [])
+}
+
+function analyzeTypes (json, project) {
   return json.types.map(t => {
     if (project.seenTypes[t.name]) {
-      return ''
+      return null
     }
 
     project.seenTypes[t.name] = true
 
     switch (t.type) {
       case 'record':
-        return `export type ${t.name} = ${parseRecord(t)}\n\n`
+        return [`export type ${t.name} = ${parseRecord(t)}`]
       case 'enum':
-        return `export type ${t.name} =${parseEnum(t)}\n\n`
+        return [`export type ${t.name} =${parseEnum(t)}`]
       case 'fixed':
-        return `export type ${t.name} = any\n\n`
+        return [`export type ${t.name} = any`]
       default:
-        return ''
+        return null
     }
-  }).concat(analyzeMessages(json, project))
+  })
 }
 
 function figureType (type) {
@@ -157,16 +194,10 @@ function analyzeMessages (json, project) {
     const paramType = p ? `export type ${name}RpcParam = $Exact<{${p}}>` : ''
     const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'requestErrorCallback'
     const innerParamType = p ? `{param: ${name}RpcParam}` : null
-
-    if (m === 'getPassphrase') {
-      console.log(message)
-    }
-
-    const rpc = isUIProtocol ? '\n' : `export function ${name}Rpc (request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
+    const rpc = isUIProtocol ? '' : `export function ${name}Rpc (request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
   engineRpcOutgoing({...request, method: '${json.protocol}.${m}'})
-}
-`
-    return [paramType, response, rpc].filter(i => !!i).join('\n\n')
+}`
+    return [paramType, response, rpc]//.join('\n')
   })
 }
 
@@ -238,6 +269,7 @@ function parseRecord (t) {
 }
 
 function makeRpcUnionType (typeDefs) {
+  // console.log(typeDefs)
   const rpcTypes = typeDefs.map(t => {
     const m = t.match(/(\w*Rpc) \(/)
     return m && m[1]
@@ -245,7 +277,6 @@ function makeRpcUnionType (typeDefs) {
   .filter(t => t)
   .reduce((acc, t) => {
     const clean = t.trim()
-    console.log(clean)
     return acc.indexOf(clean) === -1 ? acc.concat([clean]) : acc
   }, [])
   .sort()
@@ -253,9 +284,10 @@ function makeRpcUnionType (typeDefs) {
 
   if (rpcTypes) {
     const unionRpcType = `export type rpc =
-    ${rpcTypes}\n\n`
+    ${rpcTypes}`
     return typeDefs.concat(unionRpcType)
   }
+
   return typeDefs
 }
 
@@ -287,7 +319,7 @@ const engineRpcOutgoing = (...args) => engine._rpcOutgoing(...args)
 
 type requestCommon = {
   waitingHandler?: WaitingHandlerType,
-  incomingCallMap?: ${callMayType},
+  incomingCallMap?: ${callMapType},
 }
 
 type requestErrorCallback = {
@@ -299,12 +331,12 @@ type RPCErrorHandler = (err: RPCError) => void
 type CommonResponseHandler = {
   error: RPCErrorHandler,
   result: (...rest: Array<void>) => void,
-}
-
-`
+}`
 
   const incomingMap = `export type incomingCallMapType = $Exact<{\n` +
-  Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',\n') + '\n}>\n\n'
-  s.write(typePrelude + typeDefs.join('') + incomingMap)
+  Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',\n') + '\n}>\n'
+  const toWrite = [typePrelude, typeDefs.join('\n\n'), incomingMap].join('\n')
+  // console.log(toWrite)
+  s.write(toWrite)
   s.close()
 }

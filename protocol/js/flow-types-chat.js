@@ -34,6 +34,30 @@ type CommonResponseHandler = {
   error: RPCErrorHandler,
   result: (...rest: Array<void>) => void,
 }
+export const CommonMessageType = {
+  none: 0,
+  text: 1,
+  attachment: 2,
+  edit: 3,
+  delete: 4,
+  metadata: 5,
+}
+
+export function remoteGetInboxRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.getInboxRemote'})
+}
+
+export function remoteGetThreadRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.getThreadRemote'})
+}
+
+export function remoteNewConversationRemoteRpc (request: $Exact<requestCommon & requestErrorCallback & {param: remoteNewConversationRemoteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.newConversationRemote'})
+}
+
+export function remotePostRemoteRpc (request: $Exact<requestCommon & requestErrorCallback & {param: remotePostRemoteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.postRemote'})
+}
 
 export type Conversation = {
   metadata: ConversationMetadata,
@@ -137,43 +161,29 @@ export type remoteGetInboxRemoteRpcParam = $Exact<{
   pagination?: ?Pagination
 }>
 
-type remoteGetInboxRemoteResult = InboxView
-
-export function remoteGetInboxRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.getInboxRemote'})
-}
 export type remoteGetThreadRemoteRpcParam = $Exact<{
   conversationID: ConversationID,
   pagination?: ?Pagination
 }>
 
-type remoteGetThreadRemoteResult = ThreadViewBoxed
-
-export function remoteGetThreadRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetThreadRemoteResult) => void} & {param: remoteGetThreadRemoteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.getThreadRemote'})
-}
 export type remoteNewConversationRemoteRpcParam = $Exact<{
   conversationMetadata: ConversationMetadata
 }>
 
-export function remoteNewConversationRemoteRpc (request: $Exact<requestCommon & requestErrorCallback & {param: remoteNewConversationRemoteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.newConversationRemote'})
-}
 export type remotePostRemoteRpcParam = $Exact<{
   conversationID: ConversationID,
   messageBoxed: MessageBoxed
 }>
 
-export function remotePostRemoteRpc (request: $Exact<requestCommon & requestErrorCallback & {param: remotePostRemoteRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.postRemote'})
-}
+type remoteGetInboxRemoteResult = InboxView
+
+type remoteGetThreadRemoteResult = ThreadViewBoxed
+
 export type rpc =
     remoteGetInboxRemoteRpc
   | remoteGetThreadRemoteRpc
   | remoteNewConversationRemoteRpc
   | remotePostRemoteRpc
-
 export type incomingCallMapType = $Exact<{
 
 }>
-

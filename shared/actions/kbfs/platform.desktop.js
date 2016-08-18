@@ -2,7 +2,7 @@
 import * as Constants from '../../constants/config'
 import path from 'path'
 import type {AsyncAction} from '../../constants/types/flux'
-import {Common} from '../../constants/types/keybase-v1'
+import {CommonClientType} from '../../constants/types/flow-types'
 import {getExtendedStatus} from '../config'
 import {ipcRenderer} from 'electron'
 
@@ -28,7 +28,7 @@ function openInDefault (openPath: string): AsyncAction {
 }
 
 function formKbfsPathWindows (extendedConfig: ExtendedStatus): string {
-  const kbfsClients = extendedConfig.Clients && extendedConfig.Clients.length && extendedConfig.Clients.filter(c => c.clientType === Common.ClientType.kbfs) || []
+  const kbfsClients = extendedConfig.Clients && extendedConfig.Clients.length && extendedConfig.Clients.filter(c => c.clientType === CommonClientType.kbfs) || []
 
   if (kbfsClients.length > 1) {
     throw new Error('There is more than one kbfs client')

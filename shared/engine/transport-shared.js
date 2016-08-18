@@ -1,6 +1,5 @@
 // @flow
 // Classes used to handle RPCs. Ability to inject delays into calls to/from server
-import EngineError from './errors'
 import rpc from 'framed-msgpack-rpc'
 import setupLocalLogs from '../util/local-log'
 import type {rpcLogType} from './platform-specific'
@@ -137,7 +136,7 @@ class TransportShared extends RobustTransport {
     }
 
     if (typeof (err) === 'object') {
-      return new EngineError(err)
+      return err
     } else {
       return new Error(JSON.stringify(err))
     }

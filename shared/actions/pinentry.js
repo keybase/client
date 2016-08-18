@@ -4,8 +4,7 @@ import engine from '../engine'
 import type {AsyncAction} from '../constants/types/flux'
 import type {GUIEntryFeatures} from '../constants/types/flow-types'
 import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
-import {constants} from '../constants/types/keybase-v1'
-import {delegateUiCtlRegisterSecretUIRpc} from '../constants/types/flow-types'
+import {ConstantsStatusCode, delegateUiCtlRegisterSecretUIRpc} from '../constants/types/flow-types'
 
 const uglySessionIDResponseMapper: {[key: number]: any} = {}
 
@@ -68,7 +67,7 @@ export function onCancel (sessionID: number): AsyncAction {
   return dispatch => {
     dispatch({type: Constants.onCancel, payload: {sessionID}})
     uglyResponse(sessionID, null, {
-      code: constants.StatusCode.scinputcanceled,
+      code: ConstantsStatusCode.scinputcanceled,
       desc: 'Input canceled',
     })
   }

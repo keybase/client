@@ -11,7 +11,7 @@ import ProvePgpImport from './pgp/prove-pgp-import'
 import ProveWebsiteChoice from './prove-website-choice'
 import Revoke from './revoke'
 import pgpDumb from './pgp/dumb'
-import {constants} from '../constants/types/keybase-v1'
+import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {createFolder} from '../folders/dumb'
 import {globalColors} from '../styles/style-guide'
 import {isMobile} from '../constants/platform'
@@ -354,7 +354,7 @@ const dumbProveEnterUsername: DumbComponentMap<ProveEnterUsername> = {
     'Reddit': {...proveEnterUsernameBase, platform: 'reddit'},
     'GitHub': {...proveEnterUsernameBase, platform: 'github'},
     'Coinbase': {...proveEnterUsernameBase, platform: 'coinbase'},
-    'Coinbase with Error': {...proveEnterUsernameBase, platform: 'coinbase', errorText: 'Coinbase specific error', errorCode: constants.StatusCode.scprofilenotpublic},
+    'Coinbase with Error': {...proveEnterUsernameBase, platform: 'coinbase', errorText: 'Coinbase specific error', errorCode: ConstantsStatusCode.scprofilenotpublic},
     'Hacker News': {...proveEnterUsernameBase, platform: 'hackernews'},
     'Bitcoin': {...proveEnterUsernameBase, platform: 'btc'},
     'Bitcoin - Disabled': {...proveEnterUsernameBase, platform: 'btc', canContinue: false},

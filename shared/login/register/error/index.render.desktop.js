@@ -3,16 +3,17 @@ import Container from '../../forms/container.desktop'
 import React from 'react'
 import openURL from '../../../util/open-url'
 import type {Props} from './index.render'
+import type {RPCError} from '../../../constants/types/flow-types'
+import {ConstantsStatusCode} from '../../../constants/types/flow-types'
 import {Text} from '../../../common-adapters'
-import {errorMap} from '../../../engine/errors'
 
-const renderError = (error: Object) => {
-  const fields = (error.raw && error.raw.fields || []).reduce((acc, f) => {
+const renderError = (error: RPCError) => {
+  const fields = (error.fields || []).reduce((acc, f) => {
     acc[f.key] = f.value
     return acc
   }, {})
   switch (error.code) {
-    case errorMap['scdevicenoprovision']:
+    case ConstantsStatusCode.scdevicenoprovision:
       return (
         <div>
           <p style={{marginBottom: 10}}><Text type='Body'>Sorry!</Text></p>
@@ -23,9 +24,9 @@ const renderError = (error: Object) => {
             <Text type='Body'> - Reset your account entirely: </Text><Text type='BodyPrimaryLink' onClick={() => openURL('https://keybase.io/#account-reset')}>https://keybase.io/#account-reset</Text>
           </p>
         </div>)
-    case errorMap['scdeviceprevprovisioned']:
+    case ConstantsStatusCode.scdeviceprevprovisioned:
       return <Text type='Body'>You have already provisioned this device. Please use 'keybase login [username]' to log in.</Text>
-    case errorMap['sckeynomatchinggpg']:
+    case ConstantsStatusCode.sckeynomatchinggpg:
       if (fields.has_active_device) {
         return (
           <div>
@@ -53,13 +54,13 @@ const renderError = (error: Object) => {
             </p>
           </div>)
       }
-    case errorMap['scbadloginpassword']:
+    case ConstantsStatusCode.scbadloginpassword:
       return (
         <p>
           <Text type='Body'>The server rejected your login attempt.  If you'd like to reset your passphrase, go to </Text>
           <Text type='BodyPrimaryLink' onClick={() => openURL('https://keybase.io/#password-reset')}>https://keybase.io/#password-reset</Text>
         </p>)
-    case errorMap['sckeysyncedpgpnotfound']:
+    case ConstantsStatusCode.sckeysyncedpgpnotfound:
       return (
         <p>
           <Text type='Body'>Sorry, your account is already established with a PGP public key, but this we can't access the corresponding private key. </Text>

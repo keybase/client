@@ -5,7 +5,7 @@ import setupLocalLogs from '../util/local-log'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './platform-specific'
 import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
-import {constants} from '../constants/types/keybase-v1'
+import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {log} from '../native/log/logui'
 import {printOutstandingRPCs} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './platform-specific'
@@ -109,7 +109,7 @@ class Engine {
     }
 
     response && response.error && response.error({
-      code: constants.StatusCode.scgeneric,
+      code: ConstantsStatusCode.scgeneric,
       desc: `Unhandled incoming RPC ${sessionID} ${method}`,
     })
   }
@@ -189,7 +189,7 @@ class Engine {
     if (response) {
       if (response.error) {
         const cancelError = {
-          code: constants.StatusCode.scgeneric,
+          code: ConstantsStatusCode.scgeneric,
           desc: 'Canceling RPC',
         }
 
