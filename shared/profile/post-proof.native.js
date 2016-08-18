@@ -26,11 +26,11 @@ const PostProof = (props: Props) => {
     <StandardScreen {...notification} onClose={onCancel}>
       <PlatformIcon style={stylePlatformIcon} platform={platform} overlay='icon-proof-unfinished' overlayColor={globalColors.grey} size={48} />
       <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
-      {platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
+      {!!platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
       {descriptionView || (descriptionText && <Text style={styleDescriptionText} type='Body'>{descriptionText}</Text>)}
-      {proofText && <CopyableText style={styleProofContainer} value={proofText} extras={{style: styleProofText}} />}
-      {noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
-      {proofAction && proofActionText && proofActionIcon && <LinkWithIcon style={styleProofAction} label={proofActionText} icon={proofActionIcon} color={globalColors.blue} onClick={() => proofAction()} />}
+      {!!proofText && <CopyableText style={styleProofContainer} value={proofText} extras={{style: styleProofText}} />}
+      {!!noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
+      {!!proofAction && !!proofActionText && !!proofActionIcon && <LinkWithIcon style={styleProofAction} label={proofActionText} icon={proofActionIcon} color={globalColors.blue} onClick={() => proofAction()} />}
       <Button style={styleContinueButton} type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
     </StandardScreen>
   )

@@ -22,17 +22,17 @@ const PostProof = (props: Props) => {
       clipboard.writeText(proofText)
     }}>
       <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />
-      {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
+      {!!errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
         <PlatformIcon platform={platform} overlay='icon-proof-unfinished' overlayColor={globalColors.grey} size={48} />
         <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
-        {platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
+        {!!platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
         {descriptionView || (descriptionText && <Text type='Body'>{descriptionText}</Text>)}
-        {proofText && <CopyableText style={styleProofText} value={proofText} />}
-        {noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
-      {proofAction && proofActionText && proofActionIcon && <LinkWithIcon style={styleProofAction} label={proofActionText} icon={proofActionIcon} color={globalColors.blue} onClick={() => proofAction()} />}
+        {!!proofText && <CopyableText style={styleProofText} value={proofText} />}
+        {!!noteText && <Text style={styleNoteText} type='BodySmall'>{noteText}</Text>}
+        {!!proofAction && !!proofActionText && !!proofActionIcon && <LinkWithIcon style={styleProofAction} label={proofActionText} icon={proofActionIcon} color={globalColors.blue} onClick={() => proofAction()} />}
         <Box style={styleButtonsContainer}>
-          {onCancelText && <Button type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
+          {!!onCancelText && <Button type='Secondary' onClick={() => onCancel()} label={onCancelText || 'Cancel'} />}
           <Button type='Primary' onClick={() => onComplete()} label={onCompleteText} waiting={isOnCompleteWaiting} />
         </Box>
       </Box>
