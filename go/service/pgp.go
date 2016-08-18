@@ -27,6 +27,18 @@ func (u *RemotePgpUI) OutputSignatureSuccess(ctx context.Context, arg keybase1.O
 	return u.cli.OutputSignatureSuccess(ctx, arg)
 }
 
+func (u *RemotePgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGeneratedArg) error {
+	return nil
+}
+
+func (u *RemotePgpUI) ShouldPushPrivate(ctx context.Context, sessionID int) (bool, error) {
+	return false, nil
+}
+
+func (u *RemotePgpUI) Finished(ctx context.Context, sessionID int) error {
+	return nil
+}
+
 type PGPHandler struct {
 	*BaseHandler
 	libkb.Contextified
@@ -198,6 +210,7 @@ func (h *PGPHandler) PGPExportByKID(_ context.Context, arg keybase1.PGPExportByK
 func (h *PGPHandler) PGPExportByFingerprint(_ context.Context, arg keybase1.PGPExportByFingerprintArg) (ret []keybase1.KeyInfo, err error) {
 	return h.export(arg.SessionID, engine.NewPGPKeyExportByFingerprintEngine(arg, h.G()))
 }
+
 func (h *PGPHandler) PGPKeyGen(_ context.Context, arg keybase1.PGPKeyGenArg) error {
 	ctx := &engine.Context{
 		LogUI:     h.getLogUI(arg.SessionID),
@@ -207,6 +220,10 @@ func (h *PGPHandler) PGPKeyGen(_ context.Context, arg keybase1.PGPKeyGenArg) err
 	earg := engine.ImportPGPKeyImportEngineArg(arg)
 	eng := engine.NewPGPKeyImportEngine(earg)
 	return engine.RunEngine(eng, ctx)
+}
+
+func (h *PGPHandler) PGPKeyGenDefault(ctx context.Context, arg keybase1.PGPKeyGenDefaultArg) error {
+	return nil
 }
 
 func (h *PGPHandler) PGPDeletePrimary(_ context.Context, sessionID int) (err error) {
