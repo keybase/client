@@ -111,6 +111,20 @@
     },
     {
       "type": "record",
+      "name": "LoadDeviceErr",
+      "fields": [
+        {
+          "type": "string",
+          "name": "where"
+        },
+        {
+          "type": "string",
+          "name": "desc"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ExtendedStatus",
       "fields": [
         {
@@ -157,6 +171,13 @@
           "name": "device"
         },
         {
+          "type": [
+            null,
+            "LoadDeviceErr"
+          ],
+          "name": "deviceErr"
+        },
+        {
           "type": "string",
           "name": "logDir"
         },
@@ -188,6 +209,10 @@
         {
           "type": "PlatformInfo",
           "name": "platformInfo"
+        },
+        {
+          "type": "DeviceID",
+          "name": "defaultDeviceID"
         }
       ]
     },
