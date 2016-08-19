@@ -947,6 +947,41 @@ func (fbo *folderBranchOps) putBlockCheckQuota(
 	return err
 }
 
+func (fbo *folderBranchOps) maybeUnembedAndPutOneBlock(ctx context.Context,
+	md *RootMetadata) error {
+	if fbo.config.BlockSplitter().ShouldEmbedBlockChanges(&md.data.Changes) {
+		return nil
+	}
+
+	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return err
+	}
+
+	bps := newBlockPutState(1)
+	err = fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes, uid)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		if err != nil {
+			fbo.fbm.cleanUpBlockState(md.ReadOnly(), bps, blockDeleteOnMDFail)
+		}
+	}()
+
+	ptrsToDelete, err := fbo.doBlockPuts(
+		ctx, md.TlfID(), md.GetTlfHandle().GetCanonicalName(), *bps)
+	if err != nil {
+		return err
+	}
+	if len(ptrsToDelete) > 0 {
+		return fmt.Errorf("Unexpected pointers to delete after "+
+			"unembedding block changes in gc op: %v", ptrsToDelete)
+	}
+	return nil
+}
+
 func (fbo *folderBranchOps) initMDLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata) error {
 	fbo.mdWriterLock.AssertLocked(lState)
@@ -989,8 +1024,7 @@ func (fbo *folderBranchOps) initMDLocked(
 		return InvalidKeyGenerationError{md.TlfID(), keyGen}
 	}
 	info, plainSize, readyBlockData, err :=
-		fbo.blocks.ReadyBlock(
-			ctx, md.ReadOnly(), newDblock, uid)
+		fbo.blocks.ReadyBlock(ctx, md.ReadOnly(), newDblock, uid)
 	if err != nil {
 		return err
 	}
@@ -1017,6 +1051,10 @@ func (fbo *folderBranchOps) initMDLocked(
 	}
 	if err = fbo.config.BlockCache().Put(
 		info.BlockPointer, fbo.id(), newDblock, TransientEntry); err != nil {
+		return err
+	}
+
+	if err := fbo.maybeUnembedAndPutOneBlock(ctx, md); err != nil {
 		return err
 	}
 
@@ -2059,37 +2097,9 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 
 	md.AddOp(gco)
 
-	if !fbo.config.BlockSplitter().ShouldEmbedBlockChanges(&md.data.Changes) {
-		var uid keybase1.UID
-		_, uid, err = fbo.config.KBPKI().GetCurrentUserInfo(ctx)
-		if err != nil {
-			return err
-		}
-
-		bps := newBlockPutState(1)
-		err = fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes, uid)
-		if err != nil {
-			return err
-		}
-
-		defer func() {
-			if err != nil {
-				fbo.fbm.cleanUpBlockState(
-					md.ReadOnly(), bps, blockDeleteOnMDFail)
-			}
-		}()
-
-		ptrsToDelete, err := fbo.doBlockPuts(
-			ctx, md.TlfID(), md.GetTlfHandle().GetCanonicalName(), *bps)
-		if err != nil {
-			return err
-		}
-		if len(ptrsToDelete) > 0 {
-			return fmt.Errorf("Unexpected pointers to delete after "+
-				"unembedding block changes in gc op: %v", ptrsToDelete)
-		}
+	if err := fbo.maybeUnembedAndPutOneBlock(ctx, md); err != nil {
+		return err
 	}
-
 	oldPrevRoot := md.PrevRoot()
 
 	// finally, write out the new metadata
