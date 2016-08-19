@@ -8,7 +8,7 @@ import React, {Component} from 'react'
 import {Map} from 'immutable'
 import {TypedConnector} from '../../util/typed-connect'
 import {updatePgpInfo, generatePgp} from '../../actions/profile'
-import {navigateUp, routeAppend} from '../../actions/router'
+import {navigateUp, navigateTo, routeAppend} from '../../actions/router'
 import * as Constants from '../../constants/profile'
 
 import type {Props as ProvePgpChoiceProps} from './prove-pgp-choice'
@@ -100,7 +100,7 @@ const ConnectedPgpFlowContainer = connector.connect(
         return {
           phase: 'choice',
           props: {
-            onCancel: () => { dispatch(navigateUp()) },
+            onCancel: () => { dispatch(navigateTo([])) },
             onOptionClick: type => { dispatch(routeAppend(type)) },
           },
         }
