@@ -17,6 +17,7 @@ import (
 // op represents a single file-system remote-sync operation
 type op interface {
 	AddRefBlock(ptr BlockPointer)
+	DelRefBlock(ptr BlockPointer)
 	AddUnrefBlock(ptr BlockPointer)
 	AddUpdate(oldPtr BlockPointer, newPtr BlockPointer)
 	SizeExceptUpdates() uint64
@@ -140,6 +141,17 @@ type OpCommon struct {
 // for this op.
 func (oc *OpCommon) AddRefBlock(ptr BlockPointer) {
 	oc.RefBlocks = append(oc.RefBlocks, ptr)
+}
+
+// DelRefBlock removes the first reference of the given block from the
+// list of newly-referenced blocks for this op.
+func (oc *OpCommon) DelRefBlock(ptr BlockPointer) {
+	for i, ref := range oc.RefBlocks {
+		if ptr == ref {
+			oc.RefBlocks = append(oc.RefBlocks[:i], oc.RefBlocks[i+1:]...)
+			break
+		}
+	}
 }
 
 // AddUnrefBlock adds this block to the list of newly-unreferenced blocks

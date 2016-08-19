@@ -2619,8 +2619,12 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 	unrefs := make(map[BlockPointer]bool)
 	for _, op := range md.data.Changes.Ops {
 		for _, ptr := range op.Refs() {
-			// Don't add usage if it's an unembedded block change pointer.
-			if _, ok := unmergedChains.blockChangePointers[ptr]; !ok {
+			// Don't add usage if it's an unembedded block change
+			// pointer.  Also, we shouldn't be referencing this
+			// anymore!
+			if _, ok := unmergedChains.blockChangePointers[ptr]; ok {
+				op.DelRefBlock(ptr)
+			} else {
 				refs[ptr] = true
 			}
 		}
