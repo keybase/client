@@ -437,11 +437,9 @@ const (
 	PGPAssertionKey = "pgp"
 )
 
-type AppStartMode string
-
 const (
-	AppStartModeError    AppStartMode = "error"
-	AppStartModeDefault  AppStartMode = "default" // It will be "service" in most cases
-	AppStartModeDisabled AppStartMode = "disabled"
-	AppStartModeService  AppStartMode = "service" // Open app after service start
+	SignaturePrefixKBFS       SignaturePrefix = "Keybase-KBFS-1"
+	SignaturePrefixChatHeader SignaturePrefix = "Keybase-Chat-Body-1"
+	SignaturePrefixChatBody   SignaturePrefix = "Keybase-Chat-Header-1"
+	SignaturePrefixSigchain   SignaturePrefix = "Keybase-Sigchain-1"
 )

@@ -509,6 +509,11 @@ func (a *Account) ClearCachedSecretKeys() {
 	a.G().Log.Debug("clearing cached secret keys")
 	a.secSigKey = nil
 	a.secEncKey = nil
+	a.ClearPaperKeys()
+}
+
+func (a *Account) ClearPaperKeys() {
+	a.G().Log.Debug("clearing cached paper keys")
 	a.paperEncKey = nil
 	a.paperSigKey = nil
 }

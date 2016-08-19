@@ -594,6 +594,16 @@ func (s *SibkeyChainLink) insertIntoTable(tab *IdentityTable) {
 
 //-------------------------------------
 
+func makeDeepCopy(w *jsonw.Wrapper) (ret *jsonw.Wrapper, err error) {
+	var b []byte
+	if b, err = w.Marshal(); err != nil {
+		return nil, err
+	}
+	return jsonw.Unmarshal(b)
+}
+
+//-------------------------------------
+
 // VerifyReverseSig checks a SibkeyChainLink's reverse signature using the ComputedKeyFamily provided.
 func (s *SibkeyChainLink) VerifyReverseSig(ckf ComputedKeyFamily) (err error) {
 	var key GenericKey
@@ -605,31 +615,39 @@ func (s *SibkeyChainLink) VerifyReverseSig(ckf ComputedKeyFamily) (err error) {
 	var p1, p2 []byte
 	if p1, _, err = key.VerifyStringAndExtract(s.reverseSig); err != nil {
 		err = ReverseSigError{fmt.Sprintf("Failed to verify/extract sig: %s", err)}
-		return
+		return err
 	}
 
 	if p1, err = jsonw.Canonicalize(p1); err != nil {
 		err = ReverseSigError{fmt.Sprintf("Failed to canonicalize json: %s", err)}
-		return
+		return err
 	}
 
 	// Null-out the reverse sig on the parent
 	path := "body.sibkey.reverse_sig"
-	s.payloadJSON.SetValueAtPath(path, jsonw.NewNil())
-	if p2, err = s.payloadJSON.Marshal(); err != nil {
+
+	// Make a deep copy. It's dangerous to try to mutate this thing
+	// since other goroutines might be accessing it at the same time.
+	var jsonCopy *jsonw.Wrapper
+	if jsonCopy, err = makeDeepCopy(s.payloadJSON); err != nil {
+		err = ReverseSigError{fmt.Sprintf("Failed to copy payload json: %s", err)}
+		return err
+	}
+
+	jsonCopy.SetValueAtPath(path, jsonw.NewNil())
+	if p2, err = jsonCopy.Marshal(); err != nil {
 		err = ReverseSigError{fmt.Sprintf("Can't remarshal JSON statement: %s", err)}
-		return
+		return err
 	}
 
 	eq := FastByteArrayEq(p1, p2)
-	s.payloadJSON.SetValueAtPath(path, jsonw.NewString(s.reverseSig))
 
 	if !eq {
 		err = ReverseSigError{fmt.Sprintf("JSON mismatch: %s != %s",
 			string(p1), string(p2))}
-		return
+		return err
 	}
-	return
+	return nil
 }
 
 //
@@ -1291,7 +1309,7 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 
 	// Call the Global context's version of what a proof checker is. We might want to stub it out
 	// for the purposes of testing.
-	pc, res.err = idt.G().NewProofChecker(p)
+	pc, res.err = makeProofChecker(idt.G().Services, p)
 
 	if res.err != nil {
 		return

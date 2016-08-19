@@ -67,6 +67,7 @@ type LoginContext interface {
 
 	CachedSecretKey(ska SecretKeyArg) (GenericKey, error)
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error
+	SetUnlockedPaperKey(sig GenericKey, enc GenericKey) error
 
 	SetLKSec(lksec *LKSec)
 }
@@ -1129,4 +1130,15 @@ func (s *LoginState) AccountDump() {
 	if err != nil {
 		s.G().Log.Warning("error getting account for AccountDump: %s", err)
 	}
+}
+
+func IsLoggedIn(g *GlobalContext, lih LoggedInHelper) (ret bool, uid keybase1.UID, err error) {
+	if lih == nil {
+		lih = g.LoginState()
+	}
+	ret, err = lih.LoggedInLoad()
+	if ret && err == nil {
+		uid = lih.GetUID()
+	}
+	return ret, uid, err
 }

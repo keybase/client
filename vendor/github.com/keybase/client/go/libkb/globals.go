@@ -70,32 +70,38 @@ type GlobalContext struct {
 	NotifyRouter      *NotifyRouter      // How to route notifications
 	// How to route UIs. Nil if we're in standalone mode or in
 	// tests, and non-nil in service mode.
-	UIRouter            UIRouter               // How to route UIs
-	ProofCheckerFactory ProofCheckerFactory    // Makes new ProofCheckers
-	ExitCode            keybase1.ExitCode      // Value to return to OS on Exit()
-	RateLimits          *RateLimits            // tracks the last time certain actions were taken
-	clockMu             sync.Mutex             // protects Clock
-	clock               clockwork.Clock        // RealClock unless we're testing
-	SecretStoreAll      SecretStoreAll         // nil except for tests and supported platforms
-	hookMu              sync.RWMutex           // protects loginHooks, logoutHooks
-	loginHooks          []LoginHook            // call these on login
-	logoutHooks         []LogoutHook           // call these on logout
-	GregorDismisser     GregorDismisser        // for dismissing gregor items that we've handled
-	GregorListener      GregorListener         // for alerting about clients connecting and registering UI protocols
-	OutOfDateInfo       keybase1.OutOfDateInfo // Stores out of date messages we got from API server headers.
+	UIRouter        UIRouter                  // How to route UIs
+	Services        ExternalServicesCollector // All known external services
+	ExitCode        keybase1.ExitCode         // Value to return to OS on Exit()
+	RateLimits      *RateLimits               // tracks the last time certain actions were taken
+	clockMu         sync.Mutex                // protects Clock
+	clock           clockwork.Clock           // RealClock unless we're testing
+	SecretStoreAll  SecretStoreAll            // nil except for tests and supported platforms
+	hookMu          sync.RWMutex              // protects loginHooks, logoutHooks
+	loginHooks      []LoginHook               // call these on login
+	logoutHooks     []LogoutHook              // call these on logout
+	GregorDismisser GregorDismisser           // for dismissing gregor items that we've handled
+	GregorListener  GregorListener            // for alerting about clients connecting and registering UI protocols
+	OutOfDateInfo   keybase1.OutOfDateInfo    // Stores out of date messages we got from API server headers.
 
 	// Can be overloaded by tests to get an improvement in performance
 	NewTriplesec func(pw []byte, salt []byte) (Triplesec, error)
 }
 
+func (g *GlobalContext) GetLog() logger.Logger       { return g.Log }
+func (g *GlobalContext) GetAPI() API                 { return g.API }
+func (g *GlobalContext) GetExternalAPI() ExternalAPI { return g.XAPI }
+func (g *GlobalContext) GetServerURI() string        { return g.Env.GetServerURI() }
+
+var _ GlobalContextLite = (*GlobalContext)(nil)
+
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	return &GlobalContext{
-		Log:                 log,
-		VDL:                 NewVDebugLog(log),
-		ProofCheckerFactory: defaultProofCheckerFactory,
-		clock:               clockwork.NewRealClock(),
-		NewTriplesec:        NewSecureTriplesec,
+		Log:          log,
+		VDL:          NewVDebugLog(log),
+		clock:        clockwork.NewRealClock(),
+		NewTriplesec: NewSecureTriplesec,
 	}
 }
 
@@ -384,10 +390,6 @@ func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 	return g.ConfigureUsage(usage)
 }
 
-func (g *GlobalContext) NewProofChecker(l RemoteProofChainLink) (ProofChecker, ProofError) {
-	return g.ProofCheckerFactory.MakeProofChecker(l)
-}
-
 func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	var err error
 
@@ -493,7 +495,7 @@ func NewContextified(gc *GlobalContext) Contextified {
 	return Contextified{g: gc}
 }
 
-type Contexitifier interface {
+type Contextifier interface {
 	G() *GlobalContext
 }
 
@@ -586,10 +588,6 @@ func (g *GlobalContext) GetUnforwardedLogger() (log UnforwardedLoggerWithLegacyI
 	return nil
 }
 
-func (g *GlobalContext) GetLog() logger.Logger {
-	return g.Log
-}
-
 // GetLogf returns a logger with a minimal formatter style interface
 func (g *GlobalContext) GetLogf() logger.Loggerf {
 	return logger.NewLoggerf(g.Log)
@@ -625,10 +623,6 @@ func (g *GlobalContext) CallLogoutHooks() {
 			g.Log.Warning("OnLogout hook error: %s", err)
 		}
 	}
-}
-
-func (g *GlobalContext) GetAppStartMode() (AppStartMode, error) {
-	return g.Env.GetAppStartMode()
 }
 
 func (g *GlobalContext) GetConfigDir() string {
@@ -682,4 +676,15 @@ func (g *GlobalContext) LogoutIfRevoked() error {
 	g.Log.Debug("LogoutIfRevoked: current device ok")
 
 	return nil
+}
+
+func (g *GlobalContext) MakeAssertionContext() AssertionContext {
+	if g.Services == nil {
+		return nil
+	}
+	return MakeAssertionContext(g.Services)
+}
+
+func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
+	g.Services = s
 }

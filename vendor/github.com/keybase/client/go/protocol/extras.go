@@ -60,6 +60,14 @@ func KIDFromSlice(b []byte) KID {
 	return KID(hex.EncodeToString(b))
 }
 
+func (b BinaryKID) ToKID() KID {
+	return KIDFromSlice([]byte(b))
+}
+
+func (k KID) ToBinaryKID() BinaryKID {
+	return BinaryKID(k.ToBytes())
+}
+
 func KIDFromStringChecked(s string) (KID, error) {
 
 	// It's OK to have a 0-length KID. That means, no such key

@@ -142,7 +142,6 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 			"uid": UIDArg(sc.uid),
 			"low": I{int(low)},
 		},
-		Contextified: NewContextified(sc.G()),
 	})
 
 	if err != nil {

@@ -90,7 +90,6 @@ func (sk *SpecialKeyRing) Load(kid keybase1.KID) (GenericKey, error) {
 			Args: HTTPArgs{
 				"kid": S{kid.String()},
 			},
-			Contextified: NewContextified(sk.G()),
 		})
 		var w *Warnings
 		if err == nil {
