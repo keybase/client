@@ -190,6 +190,10 @@
         {
           "type": "bool",
           "name": "onlyNew"
+        },
+        {
+          "type": "int",
+          "name": "limitNumber"
         }
       ]
     }

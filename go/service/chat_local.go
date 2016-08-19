@@ -167,6 +167,10 @@ getinbox:
 				}
 
 				messages = append(messages)
+
+				if arg.LimitNumber > 0 && len(messages) >= arg.LimitNumber {
+					return messages, nil
+				}
 			}
 
 			// TODO: replace pgination check with something sane when Mike's PR's merged

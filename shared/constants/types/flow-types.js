@@ -767,6 +767,7 @@ export type MessageSelector = {
   After?: ?Time,
   Before?: ?Time,
   onlyNew: bool,
+  limitNumber: int,
 }
 
 export type MessageText = {

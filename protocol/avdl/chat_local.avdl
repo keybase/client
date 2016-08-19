@@ -57,6 +57,7 @@ protocol chatLocal {
     union { null, Time } After;
     union { null, Time } Before;
     bool onlyNew;
+    int limitNumber;
   }
 
   chat1.InboxView getInboxLocal(union { null, chat1.Pagination } pagination);

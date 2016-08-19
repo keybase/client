@@ -59,6 +59,7 @@ type MessageSelector struct {
 	After        *Time               `codec:"After,omitempty" json:"After,omitempty"`
 	Before       *Time               `codec:"Before,omitempty" json:"Before,omitempty"`
 	OnlyNew      bool                `codec:"onlyNew" json:"onlyNew"`
+	LimitNumber  int                 `codec:"limitNumber" json:"limitNumber"`
 }
 
 type GetInboxLocalArg struct {
