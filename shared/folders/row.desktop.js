@@ -34,8 +34,11 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar, ignored, is
 
 const Modified = ({smallMode, styles, modified}) => {
   const iconColor = Text._colorStyleBackgroundMode(styles.modifiedMode, 'BodyXSmall')
-  const boltStyle = {fontSize: smallMode ? 12 : 14, alignSelf: 'center',
-    ...(smallMode ? {marginTop: 2} : {marginLeft: -2, marginRight: 1, marginTop: 2}), ...iconColor}
+  const boltStyle = {
+    fontSize: smallMode ? 12 : 14,
+    alignSelf: 'center',
+    ...(smallMode ? {marginTop: 2} : {marginLeft: -2, marginRight: 1, marginTop: 2}),
+    ...iconColor}
   return (
     <Box style={stylesModified}>
       <Icon type='iconfont-thunderbolt' style={boltStyle} hint='Modified' />

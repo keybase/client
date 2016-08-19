@@ -47,9 +47,28 @@ export function trackerPropsToRenderProps ({currentlyFollowing, inviteLink, isPr
     proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading, actionBarReady}:
 TrackerProps): RenderPropsUnshaped {
   return {
-    currentlyFollowing, inviteLink, isPrivate, lastAction,
-    loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
-    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading, actionBarReady,
+    actionBarReady,
+    currentlyFollowing,
+    inviteLink,
+    isPrivate,
+    lastAction,
+    loading,
+    loggedIn,
+    name,
+    nonUser,
+    onClose,
+    onFollow,
+    onIgnore,
+    onRefollow,
+    onUnfollow,
+    parentProps,
+    proofs,
+    reason,
+    serviceName,
+    trackerState,
+    userInfo,
+    username,
+    waiting,
   }
 }
 
