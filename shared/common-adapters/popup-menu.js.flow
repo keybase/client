@@ -3,18 +3,24 @@ import {Component} from 'react'
 
 export type MenuItem = {
   title: string,
-  subTitle?: string,
+  subTitle?: string, // subTitle is not used on native
   danger?: boolean,
-  onClick: () => void,
+  onClick?: () => void,
   style?: Object
 }
 
 export type Props = {
-  items: Array<MenuItem | 'Divider'>,
-  header?: React$Element<*>,
+  items: Array<MenuItem | 'Divider'>, // Divider is not used on native
+  header?: React$Element<*> | (MenuItem & {isMenuItem: true}),
   onHidden: () => void,
   visible: boolean,
   style?: Object
 }
 
-declare export default class PopupMenu extends Component<void, Props, void> { }
+export type DefaultProps = {
+  visible: boolean,
+}
+
+declare export default class PopupMenu extends Component<DefaultProps, Props, void> {
+  static defaultProps: DefaultProps;
+}
