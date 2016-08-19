@@ -7,6 +7,7 @@ export type Props = {
   icon: IconType,
   color: string,
   onClick: () => void,
+  onPress?: void,
   style?: Object,
 }
 
