@@ -98,7 +98,7 @@ func (s *mdServerTlfStorage) getMDReadLocked(id MdID) (
 		return nil, err
 	}
 
-	var rmds RootMetadataSigned
+	rmds := RootMetadataSigned{MD: &BareRootMetadataV2{}}
 	err = s.codec.Decode(data, &rmds)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (s *mdServerTlfStorage) getMDReadLocked(id MdID) (
 
 	// Check integrity.
 
-	mdID, err := s.crypto.MakeMdID(&rmds.MD)
+	mdID, err := s.crypto.MakeMdID(rmds.MD)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (s *mdServerTlfStorage) getMDReadLocked(id MdID) (
 }
 
 func (s *mdServerTlfStorage) putMDLocked(rmds *RootMetadataSigned) (MdID, error) {
-	id, err := s.crypto.MakeMdID(&rmds.MD)
+	id, err := s.crypto.MakeMdID(rmds.MD)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -204,7 +204,7 @@ func (s *mdServerTlfStorage) checkGetParamsReadLocked(
 	}
 
 	if mergedMasterHead != nil {
-		ok, err := isReader(currentUID, &mergedMasterHead.MD)
+		ok, err := isReader(currentUID, mergedMasterHead.MD)
 		if err != nil {
 			return MDServerError{err}
 		}
@@ -240,9 +240,9 @@ func (s *mdServerTlfStorage) getRangeReadLocked(
 		if err != nil {
 			return nil, MDServerError{err}
 		}
-		if expectedRevision != rmds.MD.Revision {
+		if expectedRevision != rmds.MD.RevisionNumber() {
 			panic(fmt.Errorf("expected revision %v, got %v",
-				expectedRevision, rmds.MD.Revision))
+				expectedRevision, rmds.MD.RevisionNumber()))
 		}
 		rmdses = append(rmdses, rmds)
 	}
@@ -335,7 +335,7 @@ func (s *mdServerTlfStorage) put(
 	// TODO: Figure out nil case.
 	if mergedMasterHead != nil {
 		ok, err := isWriterOrValidRekey(
-			s.codec, currentUID, &mergedMasterHead.MD, &rmds.MD)
+			s.codec, currentUID, mergedMasterHead.MD, rmds.MD)
 		if err != nil {
 			return false, MDServerError{err}
 		}
@@ -344,7 +344,7 @@ func (s *mdServerTlfStorage) put(
 		}
 	}
 
-	bid := rmds.MD.BID
+	bid := rmds.MD.BID()
 	mStatus := rmds.MD.MergedStatus()
 
 	head, err := s.getHeadForTLFReadLocked(bid)
@@ -354,7 +354,7 @@ func (s *mdServerTlfStorage) put(
 
 	if mStatus == Unmerged && head == nil {
 		// currHead for unmerged history might be on the main branch
-		prevRev := rmds.MD.Revision - 1
+		prevRev := rmds.MD.RevisionNumber() - 1
 		rmdses, err := s.getRangeReadLocked(
 			currentUID, NullBranchID, prevRev, prevRev)
 		if err != nil {
@@ -371,12 +371,12 @@ func (s *mdServerTlfStorage) put(
 
 	// Consistency checks
 	if head != nil {
-		headID, err := s.crypto.MakeMdID(&head.MD)
+		headID, err := s.crypto.MakeMdID(head.MD)
 		if err != nil {
 			return false, MDServerError{err}
 		}
 
-		err = head.MD.CheckValidSuccessorForServer(headID, &rmds.MD)
+		err = head.MD.CheckValidSuccessorForServer(headID, rmds.MD)
 		if err != nil {
 			return false, err
 		}
@@ -392,7 +392,7 @@ func (s *mdServerTlfStorage) put(
 		return false, err
 	}
 
-	err = j.append(rmds.MD.Revision, id)
+	err = j.append(rmds.MD.RevisionNumber(), id)
 	if err != nil {
 		return false, MDServerError{err}
 	}

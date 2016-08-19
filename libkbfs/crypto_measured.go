@@ -25,7 +25,7 @@ func NewCryptoMeasured(delegate Crypto, r metrics.Registry) CryptoMeasured {
 }
 
 // MakeMdID implements the Crypto interface for CryptoMeasured.
-func (c CryptoMeasured) MakeMdID(md *BareRootMetadata) (mdID MdID, err error) {
+func (c CryptoMeasured) MakeMdID(md BareRootMetadata) (mdID MdID, err error) {
 	c.makeMdIDTimer.Time(func() {
 		mdID, err = c.Crypto.MakeMdID(md)
 	})

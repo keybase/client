@@ -206,7 +206,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 						// indicates a failed and retried sync), the
 						// corresponding block should already be
 						// cleaned up.
-						if rmd.Revision <= gcRevision || opRefs[ptr] {
+						if rmd.Revision() <= gcRevision || opRefs[ptr] {
 							delete(archivedBlocks, ptr)
 						} else {
 							archivedBlocks[ptr] = true
@@ -217,7 +217,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 			for _, update := range op.AllUpdates() {
 				delete(expectedLiveBlocks, update.Unref)
 				if update.Unref != zeroPtr && update.Ref != update.Unref {
-					if rmd.Revision <= gcRevision {
+					if rmd.Revision() <= gcRevision {
 						delete(archivedBlocks, update.Unref)
 					} else {
 						archivedBlocks[update.Unref] = true
@@ -228,8 +228,8 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 				}
 			}
 		}
-		expectedRef += rmd.RefBytes
-		expectedRef -= rmd.UnrefBytes
+		expectedRef += rmd.RefBytes()
+		expectedRef -= rmd.UnrefBytes()
 
 		if len(rmd.data.Changes.Ops) == 1 && hasGCOp {
 			// Don't check GC status for GC revisions
@@ -242,10 +242,10 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 		// to there being too many pointers to collect in one sweep.
 		mtime := time.Unix(0, rmd.data.Dir.Mtime)
 		if !lastGCRevisionTime.Before(mtime) {
-			if rmd.Revision > gcRevision {
+			if rmd.Revision() > gcRevision {
 				return fmt.Errorf("Revision %d happened before the last "+
 					"gc time %s, but was not included in the latest gc op "+
-					"revision %d", rmd.Revision, lastGCRevisionTime, gcRevision)
+					"revision %d", rmd.Revision(), lastGCRevisionTime, gcRevision)
 			}
 		}
 	}
@@ -253,7 +253,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 		tlf, len(expectedLiveBlocks), expectedRef)
 
 	currMD := rmds[len(rmds)-1]
-	expectedUsage := currMD.DiskUsage
+	expectedUsage := currMD.DiskUsage()
 	if expectedUsage != expectedRef {
 		return fmt.Errorf("Expected ref bytes %d doesn't match latest disk "+
 			"usage %d", expectedRef, expectedUsage)

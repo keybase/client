@@ -45,7 +45,7 @@ func (md *MDCacheStandard) Get(tlf TlfID, rev MetadataRevision, bid BranchID) (
 
 // Put implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Put(rmd ImmutableRootMetadata) error {
-	key := mdCacheKey{rmd.ID, rmd.Revision, rmd.BID}
+	key := mdCacheKey{rmd.TlfID(), rmd.Revision(), rmd.BID()}
 	md.lru.Add(key, rmd)
 	return nil
 }

@@ -275,7 +275,7 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 	}()
 
 	if len(unmerged) > 0 {
-		rev := unmerged[len(unmerged)-1].Revision
+		rev := unmerged[len(unmerged)-1].bareMd.RevisionNumber()
 		if rev < cr.currInput.unmerged {
 			return fmt.Errorf("Unmerged revision %d is lower than the "+
 				"expected unmerged revision %d", rev, cr.currInput.unmerged)
@@ -283,7 +283,7 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 		cr.currInput.unmerged = rev
 	}
 	if len(merged) > 0 {
-		rev := merged[len(merged)-1].Revision
+		rev := merged[len(merged)-1].bareMd.RevisionNumber()
 		if rev < cr.currInput.merged {
 			return fmt.Errorf("Merged revision %d is lower than the "+
 				"expected merged revision %d", rev, cr.currInput.merged)
@@ -1046,7 +1046,7 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	winfo, err := newWriterInfo(ctx, cr.config, uid, unmergedChains.mostRecentMD.writerKID())
+	winfo, err := newWriterInfo(ctx, cr.config, uid, unmergedChains.mostRecentMD.LastModifyingWriterKID())
 	if err != nil {
 		return nil, err
 	}
@@ -1588,8 +1588,8 @@ func (cr *ConflictResolver) addMergedRecreates(ctx context.Context,
 					}
 					co.AddRefBlock(c.mostRecent)
 					winfo, err := newWriterInfo(ctx, cr.config,
-						mergedChains.mostRecentMD.LastModifyingWriter,
-						mergedChains.mostRecentMD.writerKID())
+						mergedChains.mostRecentMD.LastModifyingWriter(),
+						mergedChains.mostRecentMD.LastModifyingWriterKID())
 					if err != nil {
 						return err
 					}
@@ -2176,7 +2176,7 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 	lState *lockState, unmergedPaths []path, unmergedChains *crChains,
 	mergedChains *crChains) (*RootMetadata, error) {
 	currMD := mergedChains.mostRecentMD
-	currMDID, err := cr.config.Crypto().MakeMdID(&currMD.BareRootMetadata)
+	currMDID, err := cr.config.Crypto().MakeMdID(currMD.bareMd)
 	if err != nil {
 		return nil, err
 	}
@@ -2610,9 +2610,9 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState,
 	unmergedChains *crChains, mergedChains *crChains) error {
-	md.RefBytes = 0
-	md.UnrefBytes = 0
-	md.DiskUsage = mergedChains.mostRecentMD.DiskUsage
+	md.SetRefBytes(0)
+	md.SetUnrefBytes(0)
+	md.SetDiskUsage(mergedChains.mostRecentMD.DiskUsage())
 
 	// Track the refs and unrefs in a set, to ensure no duplicates
 	refs := make(map[BlockPointer]bool)
@@ -2668,8 +2668,8 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 
 		cr.log.CDebugf(ctx, "Ref'ing block %v", ptr)
 		size := uint64(block.GetEncodedSize())
-		md.RefBytes += size
-		md.DiskUsage += size
+		md.AddRefBytes(size)
+		md.AddDiskUsage(size)
 	}
 
 	// Subtract bytes for every unref'd block that wasn't created in
@@ -2703,8 +2703,8 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 
 		cr.log.CDebugf(ctx, "Unref'ing block %v", ptr)
 		size := uint64(block.GetEncodedSize())
-		md.UnrefBytes += size
-		md.DiskUsage -= size
+		md.AddUnrefBytes(size)
+		md.SetDiskUsage(md.DiskUsage() - size)
 	}
 
 	// Any blocks that were created on the unmerged branch, but didn't
@@ -3197,7 +3197,7 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 
 	// Put all the blocks.  TODO: deal with recoverable block errors?
 	_, err = cr.fbo.doBlockPuts(
-		ctx, md.ID, md.GetTlfHandle().GetCanonicalName(), *bps)
+		ctx, md.TlfID(), md.GetTlfHandle().GetCanonicalName(), *bps)
 	if err != nil {
 		return err
 	}

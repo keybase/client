@@ -166,26 +166,26 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context) (
 	var fbs FolderBranchStatus
 
 	if fbsk.md != (ImmutableRootMetadata{}) {
-		fbs.Staged = (fbsk.md.WFlags & MetadataFlagUnmerged) != 0
-		name, err := fbsk.config.KBPKI().GetNormalizedUsername(ctx, fbsk.md.LastModifyingWriter)
+		fbs.Staged = fbsk.md.IsUnmergedSet()
+		name, err := fbsk.config.KBPKI().GetNormalizedUsername(ctx, fbsk.md.LastModifyingWriter())
 		if err != nil {
 			return FolderBranchStatus{}, nil, err
 		}
 		fbs.HeadWriter = name
-		fbs.DiskUsage = fbsk.md.DiskUsage
-		fbs.RekeyPending = fbsk.config.RekeyQueue().IsRekeyPending(fbsk.md.ID)
-		fbs.FolderID = fbsk.md.ID.String()
-		fbs.Revision = fbsk.md.Revision
+		fbs.DiskUsage = fbsk.md.DiskUsage()
+		fbs.RekeyPending = fbsk.config.RekeyQueue().IsRekeyPending(fbsk.md.TlfID())
+		fbs.FolderID = fbsk.md.TlfID().String()
+		fbs.Revision = fbsk.md.Revision()
 
 		// TODO: Ideally, the journal would push status
 		// updates to this object instead, so we can notify
 		// listeners.
 		jServer, err := GetJournalServer(fbsk.config)
 		if err == nil {
-			jStatus, err := jServer.JournalStatus(fbsk.md.ID)
+			jStatus, err := jServer.JournalStatus(fbsk.md.TlfID())
 			if err != nil {
 				log := fbsk.config.MakeLogger("")
-				log.CWarningf(ctx, "Error getting journal status for %s: %v", fbsk.md.ID, err)
+				log.CWarningf(ctx, "Error getting journal status for %s: %v", fbsk.md.TlfID(), err)
 			} else {
 				fbs.Journal = &jStatus
 			}

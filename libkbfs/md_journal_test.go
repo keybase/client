@@ -70,13 +70,13 @@ func teardownMDJournalTest(t *testing.T, tempdir string) {
 func makeMDForTest(t *testing.T, id TlfID, h BareTlfHandle,
 	revision MetadataRevision, uid keybase1.UID,
 	prevRoot MdID) *RootMetadata {
-	var md RootMetadata
-	err := updateNewBareRootMetadata(&md.BareRootMetadata, id, h)
+	md := NewRootMetadata()
+	err := md.Update(id, h)
 	require.NoError(t, err)
-	md.Revision = revision
-	FakeInitialRekey(&md.BareRootMetadata, h)
-	md.PrevRoot = prevRoot
-	return &md
+	md.SetRevision(revision)
+	md.FakeInitialRekey(h)
+	md.SetPrevRoot(prevRoot)
+	return md
 }
 
 func TestMDJournalBasic(t *testing.T) {
@@ -117,8 +117,8 @@ func TestMDJournalBasic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
-	require.Equal(t, firstRevision, ibrmds[0].Revision)
-	require.Equal(t, firstPrevRoot, ibrmds[0].PrevRoot)
+	require.Equal(t, firstRevision, ibrmds[0].RevisionNumber())
+	require.Equal(t, firstPrevRoot, ibrmds[0].GetPrevRoot())
 	err = ibrmds[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
 	require.NoError(t, err)
 
@@ -154,7 +154,7 @@ func TestMDJournalReplaceHead(t *testing.T) {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
 		mdID, err := j.put(ctx, signer, ekg, md, uid, verifyingKey)
-		md.DiskUsage = 500
+		md.SetDiskUsage(500)
 		require.NoError(t, err)
 		prevRoot = mdID
 	}
@@ -163,14 +163,14 @@ func TestMDJournalReplaceHead(t *testing.T) {
 
 	revision := firstRevision + MetadataRevision(mdCount) - 1
 	md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-	md.DiskUsage = 501
+	md.SetDiskUsage(501)
 	_, err := j.put(ctx, signer, ekg, md, uid, verifyingKey)
 	require.NoError(t, err)
 
 	head, err := j.getHead(uid)
 	require.NoError(t, err)
-	require.Equal(t, md.Revision, head.Revision)
-	require.Equal(t, md.DiskUsage, head.DiskUsage)
+	require.Equal(t, md.Revision(), head.RevisionNumber())
+	require.Equal(t, md.DiskUsage(), head.DiskUsage())
 }
 
 func TestMDJournalBranchConversion(t *testing.T) {
@@ -201,18 +201,18 @@ func TestMDJournalBranchConversion(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
-	require.Equal(t, firstRevision, ibrmds[0].Revision)
-	require.Equal(t, firstPrevRoot, ibrmds[0].PrevRoot)
+	require.Equal(t, firstRevision, ibrmds[0].RevisionNumber())
+	require.Equal(t, firstPrevRoot, ibrmds[0].GetPrevRoot())
 	require.Equal(t, Unmerged, ibrmds[0].MergedStatus())
 	err = ibrmds[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
 	require.NoError(t, err)
 
-	bid := ibrmds[0].BID
+	bid := ibrmds[0].BID()
 	require.NotEqual(t, NullBranchID, bid)
 
 	for i := 1; i < len(ibrmds); i++ {
 		require.Equal(t, Unmerged, ibrmds[i].MergedStatus())
-		require.Equal(t, bid, ibrmds[i].BID)
+		require.Equal(t, bid, ibrmds[i].BID())
 		err := ibrmds[i].IsValidAndSigned(
 			codec, crypto, uid, verifyingKey)
 		require.NoError(t, err)
@@ -275,15 +275,15 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
-	require.Equal(t, firstRevision, ibrmds[0].Revision)
-	require.Equal(t, firstPrevRoot, ibrmds[0].PrevRoot)
+	require.Equal(t, firstRevision, ibrmds[0].RevisionNumber())
+	require.Equal(t, firstPrevRoot, ibrmds[0].GetPrevRoot())
 	require.Equal(t, Merged, ibrmds[0].MergedStatus())
 	err = ibrmds[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
 	require.NoError(t, err)
 
 	for i := 1; i < len(ibrmds); i++ {
 		require.Equal(t, Merged, ibrmds[i].MergedStatus())
-		require.Equal(t, NullBranchID, ibrmds[i].BID)
+		require.Equal(t, NullBranchID, ibrmds[i].BID())
 		err := ibrmds[i].IsValidAndSigned(
 			codec, crypto, uid, verifyingKey)
 		require.NoError(t, err)
@@ -370,8 +370,8 @@ func TestMDJournalFlushBasic(t *testing.T) {
 
 	// Check RMDSes on the server.
 
-	require.Equal(t, firstRevision, rmdses[0].MD.Revision)
-	require.Equal(t, firstPrevRoot, rmdses[0].MD.PrevRoot)
+	require.Equal(t, firstRevision, rmdses[0].MD.RevisionNumber())
+	require.Equal(t, firstPrevRoot, rmdses[0].MD.GetPrevRoot())
 	err = rmdses[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
 	require.NoError(t, err)
 
@@ -379,9 +379,9 @@ func TestMDJournalFlushBasic(t *testing.T) {
 		err := rmdses[i].IsValidAndSigned(
 			codec, crypto, uid, verifyingKey)
 		require.NoError(t, err)
-		prevID, err := crypto.MakeMdID(&rmdses[i-1].MD)
+		prevID, err := crypto.MakeMdID(rmdses[i-1].MD)
 		require.NoError(t, err)
-		err = rmdses[i-1].MD.CheckValidSuccessor(prevID, &rmdses[i].MD)
+		err = rmdses[i-1].MD.CheckValidSuccessor(prevID, rmdses[i].MD)
 		require.NoError(t, err)
 	}
 }
@@ -421,7 +421,7 @@ func TestMDJournalFlushConflict(t *testing.T) {
 		_, err = j.put(ctx, signer, ekg, md, uid, verifyingKey)
 		require.IsType(t, MDJournalConflictError{}, err)
 
-		md.WFlags |= MetadataFlagUnmerged
+		md.SetUnmerged()
 		mdID, err := j.put(ctx, signer, ekg, md, uid, verifyingKey)
 		require.NoError(t, err)
 		prevRoot = mdID
@@ -430,7 +430,7 @@ func TestMDJournalFlushConflict(t *testing.T) {
 	for i := mdCount/2 + 1; i < mdCount; i++ {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-		md.WFlags |= MetadataFlagUnmerged
+		md.SetUnmerged()
 		mdID, err := j.put(ctx, signer, ekg, md, uid, verifyingKey)
 		require.NoError(t, err)
 		prevRoot = mdID
@@ -453,24 +453,24 @@ func TestMDJournalFlushConflict(t *testing.T) {
 
 	// Check RMDSes on the server.
 
-	require.Equal(t, firstRevision, rmdses[0].MD.Revision)
-	require.Equal(t, firstPrevRoot, rmdses[0].MD.PrevRoot)
+	require.Equal(t, firstRevision, rmdses[0].MD.RevisionNumber())
+	require.Equal(t, firstPrevRoot, rmdses[0].MD.GetPrevRoot())
 	require.Equal(t, Unmerged, rmdses[0].MD.MergedStatus())
 	err = rmdses[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
 	require.NoError(t, err)
 
-	bid := rmdses[0].MD.BID
+	bid := rmdses[0].MD.BID()
 	require.NotEqual(t, NullBranchID, bid)
 
 	for i := 1; i < len(rmdses); i++ {
 		require.Equal(t, Unmerged, rmdses[i].MD.MergedStatus())
-		require.Equal(t, bid, rmdses[i].MD.BID)
+		require.Equal(t, bid, rmdses[i].MD.BID())
 		err := rmdses[i].IsValidAndSigned(
 			codec, crypto, uid, verifyingKey)
 		require.NoError(t, err)
-		prevID, err := crypto.MakeMdID(&rmdses[i-1].MD)
+		prevID, err := crypto.MakeMdID(rmdses[i-1].MD)
 		require.NoError(t, err)
-		err = rmdses[i-1].MD.CheckValidSuccessor(prevID, &rmdses[i].MD)
+		err = rmdses[i-1].MD.CheckValidSuccessor(prevID, rmdses[i].MD)
 		require.NoError(t, err)
 	}
 }
@@ -522,7 +522,7 @@ func TestMDJournalPreservesBranchID(t *testing.T) {
 		mdID, err := j.put(ctx, signer, ekg, md, uid, verifyingKey)
 		require.IsType(t, MDJournalConflictError{}, err)
 
-		md.WFlags |= MetadataFlagUnmerged
+		md.SetUnmerged()
 		mdID, err = j.put(ctx, signer, ekg, md, uid, verifyingKey)
 		require.NoError(t, err)
 		prevRoot = mdID
@@ -545,24 +545,24 @@ func TestMDJournalPreservesBranchID(t *testing.T) {
 	// Check RMDSes on the server. In particular, the BranchID of
 	// the last put MD should match the rest.
 
-	require.Equal(t, firstRevision, rmdses[0].MD.Revision)
-	require.Equal(t, firstPrevRoot, rmdses[0].MD.PrevRoot)
+	require.Equal(t, firstRevision, rmdses[0].MD.RevisionNumber())
+	require.Equal(t, firstPrevRoot, rmdses[0].MD.GetPrevRoot())
 	require.Equal(t, Unmerged, rmdses[0].MD.MergedStatus())
 	err = rmdses[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
 	require.NoError(t, err)
 
-	bid := rmdses[0].MD.BID
+	bid := rmdses[0].MD.BID()
 	require.NotEqual(t, NullBranchID, bid)
 
 	for i := 1; i < len(rmdses); i++ {
 		require.Equal(t, Unmerged, rmdses[i].MD.MergedStatus())
-		require.Equal(t, bid, rmdses[i].MD.BID)
+		require.Equal(t, bid, rmdses[i].MD.BID())
 		err := rmdses[i].IsValidAndSigned(
 			codec, crypto, uid, verifyingKey)
 		require.NoError(t, err)
-		prevID, err := crypto.MakeMdID(&rmdses[i-1].MD)
+		prevID, err := crypto.MakeMdID(rmdses[i-1].MD)
 		require.NoError(t, err)
-		err = rmdses[i-1].MD.CheckValidSuccessor(prevID, &rmdses[i].MD)
+		err = rmdses[i-1].MD.CheckValidSuccessor(prevID, rmdses[i].MD)
 		require.NoError(t, err)
 	}
 }

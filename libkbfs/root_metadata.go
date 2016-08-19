@@ -8,10 +8,52 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-codec/codec"
+)
+
+// MetadataFlags bitfield.
+type MetadataFlags byte
+
+// Possible flags set in the MetadataFlags bitfield.
+const (
+	MetadataFlagRekey MetadataFlags = 1 << iota
+	MetadataFlagWriterMetadataCopied
+	MetadataFlagFinal
+)
+
+// WriterFlags bitfield.
+type WriterFlags byte
+
+// Possible flags set in the WriterFlags bitfield.
+const (
+	MetadataFlagUnmerged WriterFlags = 1 << iota
+)
+
+// MetadataRevision is the type for the revision number.
+// This is currently int64 since that's the type of Avro's long.
+type MetadataRevision int64
+
+// String converts a MetadataRevision to its string form.
+func (mr MetadataRevision) String() string {
+	return strconv.FormatInt(mr.Number(), 10)
+}
+
+// Number casts a MetadataRevision to it's primitive type.
+func (mr MetadataRevision) Number() int64 {
+	return int64(mr)
+}
+
+const (
+	// MetadataRevisionUninitialized indicates that a top-level folder has
+	// not yet been initialized.
+	MetadataRevisionUninitialized = MetadataRevision(0)
+	// MetadataRevisionInitial is always the first revision for an
+	// initialized top-level folder.
+	MetadataRevisionInitial = MetadataRevision(1)
 )
 
 // PrivateMetadata contains the portion of metadata that's secret for private
@@ -53,7 +95,7 @@ func (p PrivateMetadata) ChangesBlockInfo() BlockInfo {
 // PrivateMetadata has to be left serialized due to not having the
 // right keys.
 type RootMetadata struct {
-	BareRootMetadata
+	bareMd MutableBareRootMetadata
 
 	// The plaintext, deserialized PrivateMetadata
 	//
@@ -68,6 +110,11 @@ type RootMetadata struct {
 
 var _ KeyMetadata = (*RootMetadata)(nil)
 
+// NewRootMetadata returns a new RootMetadata object at the latest known version.
+func NewRootMetadata() *RootMetadata {
+	return &RootMetadata{bareMd: &BareRootMetadataV2{}}
+}
+
 // Data returns the private metadata of this RootMetadata.
 func (md *RootMetadata) Data() *PrivateMetadata {
 	return &md.data
@@ -75,13 +122,13 @@ func (md *RootMetadata) Data() *PrivateMetadata {
 
 // IsReadable returns true if the private metadata can be read.
 func (md *RootMetadata) IsReadable() bool {
-	return md.ID.IsPublic() || md.data.Dir.IsInitialized()
+	return md.TlfID().IsPublic() || md.data.Dir.IsInitialized()
 }
 
 func (md *RootMetadata) clearLastRevision() {
 	md.ClearBlockChanges()
 	// remove the copied flag (if any.)
-	md.Flags &= ^MetadataFlagWriterMetadataCopied
+	md.clearWriterMetadataCopiedBit()
 }
 
 func (md *RootMetadata) deepCopy(codec Codec, copyHandle bool) (*RootMetadata, error) {
@@ -100,6 +147,17 @@ func (md *RootMetadata) deepCopyInPlace(codec Codec, copyHandle bool,
 	if err := CodecUpdate(codec, &newMd.data, md.data); err != nil {
 		return err
 	}
+
+	brmdCopy, err := md.bareMd.DeepCopy(codec)
+	if err != nil {
+		return err
+	}
+
+	mutableBrmdCopy, ok := brmdCopy.(MutableBareRootMetadata)
+	if !ok {
+		return MutableBareRootMetadataNoImplError{}
+	}
+	newMd.bareMd = mutableBrmdCopy
 
 	if copyHandle {
 		newMd.tlfHandle = md.tlfHandle.deepCopy()
@@ -129,20 +187,20 @@ func (md *RootMetadata) MakeSuccessor(
 	if md.IsReadable() && isWriter {
 		newMd.clearLastRevision()
 		// clear the serialized data.
-		newMd.SerializedPrivateMetadata = nil
+		newMd.SetSerializedPrivateMetadata(nil)
 	} else {
 		// if we can't read it it means we're simply setting the rekey bit
 		// and copying the previous data.
-		newMd.Flags |= MetadataFlagRekey
-		newMd.Flags |= MetadataFlagWriterMetadataCopied
+		newMd.SetRekeyBit()
+		newMd.SetWriterMetadataCopiedBit()
 	}
 
-	newMd.PrevRoot = mdID
+	newMd.SetPrevRoot(mdID)
 	// bump revision
-	if md.Revision < MetadataRevisionInitial {
+	if md.Revision() < MetadataRevisionInitial {
 		return nil, errors.New("MD with invalid revision")
 	}
-	newMd.Revision = md.Revision + 1
+	newMd.SetRevision(md.Revision() + 1)
 	return newMd, nil
 }
 
@@ -150,11 +208,10 @@ func (md *RootMetadata) MakeSuccessor(
 // given TLF key bundles.
 func (md *RootMetadata) AddNewKeys(
 	wkb TLFWriterKeyBundle, rkb TLFReaderKeyBundle) error {
-	if md.ID.IsPublic() {
-		return InvalidPublicTLFOperation{md.ID, "AddNewKeys"}
+	if md.TlfID().IsPublic() {
+		return InvalidPublicTLFOperation{md.TlfID(), "AddNewKeys"}
 	}
-	md.WKeys = append(md.WKeys, wkb)
-	md.RKeys = append(md.RKeys, rkb)
+	md.bareMd.AddNewKeys(wkb, rkb)
 	return nil
 }
 
@@ -174,13 +231,13 @@ func (md *RootMetadata) MakeBareTlfHandle() (BareTlfHandle, error) {
 		panic(errors.New("MakeBareTlfHandle called when md.tlfHandle exists"))
 	}
 
-	return md.BareRootMetadata.MakeBareTlfHandle()
+	return md.bareMd.MakeBareTlfHandle()
 }
 
 // IsInitialized returns whether or not this RootMetadata has been initialized
 func (md *RootMetadata) IsInitialized() bool {
 	keyGen := md.LatestKeyGeneration()
-	if md.ID.IsPublic() {
+	if md.TlfID().IsPublic() {
 		return keyGen == PublicKeyGen
 	}
 	// The data is only initialized once we have at least one set of keys
@@ -189,16 +246,16 @@ func (md *RootMetadata) IsInitialized() bool {
 
 // AddRefBlock adds the newly-referenced block to the add block change list.
 func (md *RootMetadata) AddRefBlock(info BlockInfo) {
-	md.RefBytes += uint64(info.EncodedSize)
-	md.DiskUsage += uint64(info.EncodedSize)
+	md.AddRefBytes(uint64(info.EncodedSize))
+	md.AddDiskUsage(uint64(info.EncodedSize))
 	md.data.Changes.AddRefBlock(info.BlockPointer)
 }
 
 // AddUnrefBlock adds the newly-unreferenced block to the add block change list.
 func (md *RootMetadata) AddUnrefBlock(info BlockInfo) {
 	if info.EncodedSize > 0 {
-		md.UnrefBytes += uint64(info.EncodedSize)
-		md.DiskUsage -= uint64(info.EncodedSize)
+		md.AddUnrefBytes(uint64(info.EncodedSize))
+		md.SetDiskUsage(md.DiskUsage() - uint64(info.EncodedSize))
 		md.data.Changes.AddUnrefBlock(info.BlockPointer)
 	}
 }
@@ -206,10 +263,10 @@ func (md *RootMetadata) AddUnrefBlock(info BlockInfo) {
 // AddUpdate adds the newly-updated block to the add block change list.
 func (md *RootMetadata) AddUpdate(oldInfo BlockInfo, newInfo BlockInfo) {
 	if oldInfo.EncodedSize > 0 {
-		md.UnrefBytes += uint64(oldInfo.EncodedSize)
-		md.RefBytes += uint64(newInfo.EncodedSize)
-		md.DiskUsage += uint64(newInfo.EncodedSize)
-		md.DiskUsage -= uint64(oldInfo.EncodedSize)
+		md.AddUnrefBytes(uint64(oldInfo.EncodedSize))
+		md.AddRefBytes(uint64(newInfo.EncodedSize))
+		md.AddDiskUsage(uint64(newInfo.EncodedSize))
+		md.SetDiskUsage(md.DiskUsage() - uint64(oldInfo.EncodedSize))
 		md.data.Changes.AddUpdate(oldInfo.BlockPointer, newInfo.BlockPointer)
 	}
 }
@@ -224,8 +281,8 @@ func (md *RootMetadata) AddOp(o op) {
 // ClearBlockChanges resets the block change lists to empty for this
 // RootMetadata.
 func (md *RootMetadata) ClearBlockChanges() {
-	md.RefBytes = 0
-	md.UnrefBytes = 0
+	md.SetRefBytes(0)
+	md.SetUnrefBytes(0)
 	md.data.Changes.sizeEstimate = 0
 	md.data.Changes.Info = BlockInfo{}
 	md.data.Changes.Ops = nil
@@ -238,23 +295,23 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
 	// TODO: Strengthen check, e.g. make sure every writer/reader
 	// in the old handle is also a writer/reader of the new
 	// handle.
-	if md.ID.IsPublic() != newHandle.IsPublic() {
+	if md.TlfID().IsPublic() != newHandle.IsPublic() {
 		return fmt.Errorf(
 			"Trying to update public=%t rmd with public=%t handle",
-			md.ID.IsPublic(), newHandle.IsPublic())
+			md.TlfID().IsPublic(), newHandle.IsPublic())
 	}
 
 	if newHandle.IsPublic() {
-		md.Writers = newHandle.ResolvedWriters()
+		md.SetWriters(newHandle.ResolvedWriters())
 	} else {
-		md.UnresolvedReaders = newHandle.UnresolvedReaders()
+		md.SetUnresolvedReaders(newHandle.UnresolvedReaders())
 	}
 
-	md.Extra.UnresolvedWriters = newHandle.UnresolvedWriters()
-	md.ConflictInfo = newHandle.ConflictInfo()
-	md.FinalizedInfo = newHandle.FinalizedInfo()
+	md.SetUnresolvedWriters(newHandle.UnresolvedWriters())
+	md.SetConflictInfo(newHandle.ConflictInfo())
+	md.SetFinalizedInfo(newHandle.FinalizedInfo())
 
-	bareHandle, err := md.makeBareTlfHandle()
+	bareHandle, err := md.bareMd.MakeBareTlfHandle()
 	if err != nil {
 		return err
 	}
@@ -285,6 +342,252 @@ func (md *RootMetadata) swapCachedBlockChanges() {
 	}
 }
 
+// GetTLFCryptKeyParams wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) GetTLFCryptKeyParams(
+	keyGen KeyGen, user keybase1.UID, key CryptPublicKey) (
+	TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
+	TLFCryptKeyServerHalfID, bool, error) {
+	return md.bareMd.GetTLFCryptKeyParams(keyGen, user, key)
+}
+
+// LatestKeyGeneration wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) LatestKeyGeneration() KeyGen {
+	return md.bareMd.LatestKeyGeneration()
+}
+
+// TlfID wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) TlfID() TlfID {
+	return md.bareMd.TlfID()
+}
+
+// LastModifyingWriterKID wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) LastModifyingWriterKID() keybase1.KID {
+	return md.bareMd.LastModifyingWriterKID()
+}
+
+// LastModifyingWriter wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) LastModifyingWriter() keybase1.UID {
+	return md.bareMd.LastModifyingWriter()
+}
+
+// LastModifyingUser wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) LastModifyingUser() keybase1.UID {
+	return md.bareMd.GetLastModifyingUser()
+}
+
+// RefBytes wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) RefBytes() uint64 {
+	return md.bareMd.RefBytes()
+}
+
+// UnrefBytes wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) UnrefBytes() uint64 {
+	return md.bareMd.UnrefBytes()
+}
+
+// DiskUsage wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) DiskUsage() uint64 {
+	return md.bareMd.DiskUsage()
+}
+
+// SetRefBytes wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetRefBytes(refBytes uint64) {
+	md.bareMd.SetRefBytes(refBytes)
+}
+
+// SetUnrefBytes wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetUnrefBytes(unrefBytes uint64) {
+	md.bareMd.SetUnrefBytes(unrefBytes)
+}
+
+// SetDiskUsage wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetDiskUsage(diskUsage uint64) {
+	md.bareMd.SetDiskUsage(diskUsage)
+}
+
+// AddRefBytes wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) AddRefBytes(refBytes uint64) {
+	md.bareMd.AddRefBytes(refBytes)
+}
+
+// AddUnrefBytes wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) AddUnrefBytes(unrefBytes uint64) {
+	md.bareMd.AddUnrefBytes(unrefBytes)
+}
+
+// AddDiskUsage wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) AddDiskUsage(diskUsage uint64) {
+	md.bareMd.AddDiskUsage(diskUsage)
+}
+
+// IsWriterMetadataCopiedSet wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) IsWriterMetadataCopiedSet() bool {
+	return md.bareMd.IsWriterMetadataCopiedSet()
+}
+
+// IsRekeySet wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) IsRekeySet() bool {
+	return md.bareMd.IsRekeySet()
+}
+
+// IsUnmergedSet wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) IsUnmergedSet() bool {
+	return md.bareMd.IsUnmergedSet()
+}
+
+// Revision wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) Revision() MetadataRevision {
+	return md.bareMd.RevisionNumber()
+}
+
+// MergedStatus wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) MergedStatus() MergeStatus {
+	return md.bareMd.MergedStatus()
+}
+
+// BID wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) BID() BranchID {
+	return md.bareMd.BID()
+}
+
+// PrevRoot wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) PrevRoot() MdID {
+	return md.bareMd.GetPrevRoot()
+}
+
+func (md *RootMetadata) clearRekeyBit() {
+	md.bareMd.ClearRekeyBit()
+}
+
+func (md *RootMetadata) clearWriterMetadataCopiedBit() {
+	md.bareMd.ClearWriterMetadataCopiedBit()
+}
+
+// SetUnmerged wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetUnmerged() {
+	md.bareMd.SetUnmerged()
+}
+
+// SetBranchID wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetBranchID(bid BranchID) {
+	md.bareMd.SetBranchID(bid)
+}
+
+// SetPrevRoot wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetPrevRoot(mdID MdID) {
+	md.bareMd.SetPrevRoot(mdID)
+}
+
+// GetSerializedPrivateMetadata wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) GetSerializedPrivateMetadata() []byte {
+	return md.bareMd.GetSerializedPrivateMetadata()
+}
+
+// GetSerializedWriterMetadata wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) GetSerializedWriterMetadata(codec Codec) ([]byte, error) {
+	return md.bareMd.GetSerializedWriterMetadata(codec)
+}
+
+// GetWriterMetadataSigInfo wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) GetWriterMetadataSigInfo() SignatureInfo {
+	return md.bareMd.GetWriterMetadataSigInfo()
+}
+
+// SetWriterMetadataSigInfo wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetWriterMetadataSigInfo(sigInfo SignatureInfo) {
+	md.bareMd.SetWriterMetadataSigInfo(sigInfo)
+}
+
+// IsFinal wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) IsFinal() bool {
+	return md.bareMd.IsFinal()
+}
+
+// SetSerializedPrivateMetadata wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetSerializedPrivateMetadata(spmd []byte) {
+	md.bareMd.SetSerializedPrivateMetadata(spmd)
+}
+
+// SetRekeyBit wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetRekeyBit() {
+	md.bareMd.SetRekeyBit()
+}
+
+// SetFinalBit wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetFinalBit() {
+	md.bareMd.SetFinalBit()
+}
+
+// SetWriterMetadataCopiedBit wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetWriterMetadataCopiedBit() {
+	md.bareMd.SetWriterMetadataCopiedBit()
+}
+
+// SetRevision wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetRevision(revision MetadataRevision) {
+	md.bareMd.SetRevision(revision)
+}
+
+// SetWriters wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetWriters(writers []keybase1.UID) {
+	md.bareMd.SetWriters(writers)
+}
+
+// SetUnresolvedReaders wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetUnresolvedReaders(readers []keybase1.SocialAssertion) {
+	md.bareMd.SetUnresolvedReaders(readers)
+}
+
+// SetUnresolvedWriters wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetUnresolvedWriters(writers []keybase1.SocialAssertion) {
+	md.bareMd.SetUnresolvedWriters(writers)
+}
+
+// SetConflictInfo wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetConflictInfo(ci *TlfHandleExtension) {
+	md.bareMd.SetConflictInfo(ci)
+}
+
+// SetFinalizedInfo wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetFinalizedInfo(fi *TlfHandleExtension) {
+	md.bareMd.SetFinalizedInfo(fi)
+}
+
+// SetLastModifyingWriter wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetLastModifyingWriter(user keybase1.UID) {
+	md.bareMd.SetLastModifyingWriter(user)
+}
+
+// SetLastModifyingUser wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetLastModifyingUser(user keybase1.UID) {
+	md.bareMd.SetLastModifyingUser(user)
+}
+
+// SetTlfID wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) SetTlfID(tlf TlfID) {
+	md.bareMd.SetTlfID(tlf)
+}
+
+// HasKeyForUser wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) HasKeyForUser(keyGen KeyGen, user keybase1.UID) bool {
+	return md.bareMd.HasKeyForUser(keyGen, user)
+}
+
+// FakeInitialRekey wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) FakeInitialRekey(h BareTlfHandle) {
+	md.bareMd.FakeInitialRekey(h)
+}
+
+// Update wraps the respective method of the underlying BareRootMetadata for convenience.
+func (md *RootMetadata) Update(id TlfID, h BareTlfHandle) error {
+	return md.bareMd.Update(id, h)
+}
+
+// GetBareRootMetadata returns an interface to the underlying serializeable metadata.
+func (md *RootMetadata) GetBareRootMetadata() BareRootMetadata {
+	return md.bareMd
+}
+
 // A ReadOnlyRootMetadata is a thin wrapper around a
 // *RootMetadata. Functions that take a ReadOnlyRootMetadata parameter
 // must not modify it, and therefore code that passes a
@@ -304,8 +607,7 @@ type ReadOnlyRootMetadata struct {
 // valid successor to the current one, and returns an error otherwise.
 func (md ReadOnlyRootMetadata) CheckValidSuccessor(
 	currID MdID, nextMd ReadOnlyRootMetadata) error {
-	return md.BareRootMetadata.CheckValidSuccessor(
-		currID, &nextMd.BareRootMetadata)
+	return md.bareMd.CheckValidSuccessor(currID, nextMd.bareMd)
 }
 
 // ReadOnly makes a ReadOnlyRootMetadata from the current
@@ -359,10 +661,15 @@ type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key
 	SigInfo SignatureInfo `codec:",omitempty"`
 	// all the metadata
-	MD BareRootMetadata
+	MD MutableBareRootMetadata
 	// When does the server say this MD update was received?  (This is
 	// not necessarily trustworthy, just for informational purposes.)
 	untrustedServerTimestamp time.Time
+}
+
+// NewRootMetadataSigned returns a new RootMetadataSigned object at the latest known version.
+func NewRootMetadataSigned() *RootMetadataSigned {
+	return &RootMetadataSigned{MD: &BareRootMetadataV2{}}
 }
 
 // IsInitialized returns whether or not this RootMetadataSigned object
@@ -376,20 +683,23 @@ func (rmds *RootMetadataSigned) IsInitialized() bool {
 // assuming the verifying key there is valid.
 func (rmds *RootMetadataSigned) VerifyRootMetadata(
 	codec Codec, crypto cryptoPure) error {
-	md := &rmds.MD
+	md := rmds.MD
 	if rmds.MD.IsFinal() {
-		// Since we're just working with the immediate fields
-		// of RootMetadata, we can get away with a shallow
-		// copy here.
-		mdCopy := rmds.MD
-
+		mdCopy, err := md.DeepCopy(codec)
+		if err != nil {
+			return err
+		}
+		mutableMdCopy, ok := mdCopy.(MutableBareRootMetadata)
+		if !ok {
+			return MutableBareRootMetadataNoImplError{}
+		}
 		// Mask out finalized additions.  These are the only
 		// things allowed to change in the finalized metadata
 		// block.
-		mdCopy.Flags &= ^MetadataFlagFinal
-		mdCopy.Revision--
-		mdCopy.FinalizedInfo = nil
-		md = &mdCopy
+		mutableMdCopy.ClearFinalBit()
+		mutableMdCopy.SetRevision(md.RevisionNumber() - 1)
+		mutableMdCopy.SetFinalizedInfo(nil)
+		md = mutableMdCopy
 	}
 	// Re-marshal the whole RootMetadata. This is not avoidable
 	// without support from ugorji/codec.
@@ -415,17 +725,7 @@ func (rmds *RootMetadataSigned) MerkleHash(config Config) (MerkleHash, error) {
 // Version returns the metadata version of this MD block, depending on
 // which features it uses.
 func (rmds *RootMetadataSigned) Version() MetadataVer {
-	// Only folders with unresolved assertions orconflict info get the
-	// new version.
-	if len(rmds.MD.Extra.UnresolvedWriters) > 0 ||
-		len(rmds.MD.UnresolvedReaders) > 0 ||
-		rmds.MD.ConflictInfo != nil ||
-		rmds.MD.FinalizedInfo != nil {
-		return InitialExtraMetadataVer
-	}
-	// Let other types of MD objects use the older version since they
-	// are still compatible with older clients.
-	return PreExtraMetadataVer
+	return rmds.MD.Version()
 }
 
 // MakeFinalCopy returns a complete copy of this RootMetadataSigned (but with
@@ -435,15 +735,21 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 	if rmds.MD.IsFinal() {
 		return nil, MetadataIsFinalError{}
 	}
-	var newRmds RootMetadataSigned
-	err := rmds.MD.deepCopyInPlace(config.Codec(), &newRmds.MD)
+	newRmds := RootMetadataSigned{}
+	newBareMd, err := rmds.MD.DeepCopy(config.Codec())
 	if err != nil {
 		return nil, err
 	}
+	newMutableBareMd, ok := newBareMd.(MutableBareRootMetadata)
+	if !ok {
+		return nil, MutableBareRootMetadataNoImplError{}
+	}
+	// Set the bare metadata.
+	newRmds.MD = newMutableBareMd
 	// Copy the signature.
 	newRmds.SigInfo = rmds.SigInfo.deepCopy()
 	// Set the final flag.
-	newRmds.MD.Flags |= MetadataFlagFinal
+	newRmds.MD.SetFinalBit()
 	// Increment revision but keep the PrevRoot --
 	// We want the client to be able to verify the signature by masking out the final
 	// bit, decrementing the revision, and nulling out the finalized extension info.
@@ -451,7 +757,7 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 	// creating the final metadata block. Note that PrevRoot isn't being updated. This
 	// is to make verification easier for the client as otherwise it'd need to request
 	// the head revision - 1.
-	newRmds.MD.Revision = rmds.MD.Revision + 1
+	newRmds.MD.SetRevision(rmds.MD.RevisionNumber() + 1)
 	return &newRmds, nil
 }
 
@@ -477,4 +783,27 @@ func (rmds *RootMetadataSigned) IsValidAndSigned(
 	}
 
 	return nil
+}
+
+// DecodeRootMetadataSigned deserializes a metaddata block into the specified versioned structure.
+func DecodeRootMetadataSigned(codec Codec, tlf TlfID, ver, max MetadataVer, buf []byte) (
+	*RootMetadataSigned, error) {
+	if ver < FirstValidMetadataVer {
+		return nil, InvalidMetadataVersionError{tlf, ver}
+	} else if ver > max {
+		return nil, NewMetadataVersionError{tlf, ver}
+	}
+	// For now only v1 & v2 are supported (both by the same BareRootMetadataSignedV2 struct)
+	if ver > InitialExtraMetadataVer {
+		// Shouldn't be possible at the moment.
+		panic("Invalid metadata version")
+	}
+	var brmds BareRootMetadataSignedV2
+	if err := codec.Decode(buf, &brmds); err != nil {
+		return nil, err
+	}
+	return &RootMetadataSigned{
+		MD:      &brmds.MD,
+		SigInfo: brmds.SigInfo,
+	}, nil
 }

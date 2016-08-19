@@ -243,12 +243,12 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 			EncodedSize: 1,
 		},
 	}
-	FakeInitialRekey(&rmd.BareRootMetadata, h.ToBareHandleOrBust())
+	rmd.FakeInitialRekey(h.ToBareHandleOrBust())
 
 	ops := getOps(config, id)
 	ops.head = MakeImmutableRootMetadata(rmd, fakeMdID(fakeTlfIDByte(id)),
 		time.Now())
-	rmd.SerializedPrivateMetadata = make([]byte, 1)
+	rmd.SetSerializedPrivateMetadata(make([]byte, 1))
 	config.Notifier().RegisterForChanges(
 		[]FolderBranch{{id, MasterBranch}}, config.observer)
 	uid := h.FirstResolvedWriter()
@@ -401,8 +401,8 @@ func (p ptrMatcher) String() string {
 }
 
 func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) {
-	if !rmd.ID.IsPublic() {
-		FakeInitialRekey(&rmd.BareRootMetadata, rmd.GetTlfHandle().ToBareHandleOrBust())
+	if !rmd.TlfID().IsPublic() {
+		rmd.FakeInitialRekey(rmd.GetTlfHandle().ToBareHandleOrBust())
 	}
 	rootPtr := BlockPointer{
 		ID:      fakeBlockID(42),
@@ -938,16 +938,16 @@ func (s shimMDOps) Put(ctx context.Context, rmd *RootMetadata) (MdID, error) {
 	if s.isUnmerged {
 		return MdID{}, MDServerErrorConflictRevision{}
 	}
-	rmd.SerializedPrivateMetadata = []byte{0x1}
-	return s.crypto.MakeMdID(&rmd.BareRootMetadata)
+	rmd.SetSerializedPrivateMetadata([]byte{0x1})
+	return s.crypto.MakeMdID(rmd.bareMd)
 }
 
 func (s shimMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (MdID, error) {
 	if !s.isUnmerged {
 		panic("Unexpected PutUnmerged call")
 	}
-	rmd.SerializedPrivateMetadata = []byte{0x2}
-	return s.crypto.MakeMdID(&rmd.BareRootMetadata)
+	rmd.SetSerializedPrivateMetadata([]byte{0x2})
+	return s.crypto.MakeMdID(rmd.bareMd)
 }
 
 func expectSyncBlockHelper(
@@ -1013,13 +1013,13 @@ func expectSyncBlockHelper(
 			Do(func(rmd ImmutableRootMetadata) {
 				*newRmd = rmd
 				// Check that the ref bytes are correct.
-				if rmd.RefBytes != refBytes {
+				if rmd.RefBytes() != refBytes {
 					t.Errorf("Unexpected refbytes: %d vs %d",
-						rmd.RefBytes, refBytes)
+						rmd.RefBytes(), refBytes)
 				}
-				if rmd.UnrefBytes != unrefBytes {
+				if rmd.UnrefBytes() != unrefBytes {
 					t.Errorf("Unexpected unrefbytes: %d vs %d",
-						rmd.UnrefBytes, unrefBytes)
+						rmd.UnrefBytes(), unrefBytes)
 				}
 			}).Return(nil)
 	}
@@ -3678,10 +3678,10 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 		t.Errorf("Wrote bad contents for block 2: %v", newBlock2.Contents)
 	} else if len(newPBlock.IPtrs) != 2 {
 		t.Errorf("Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
-	} else if rmd.UnrefBytes != 0+6 {
+	} else if rmd.UnrefBytes() != 0+6 {
 		// The fileid and the last block was all modified and marked dirty
 		t.Errorf("Truncated block not correctly unref'd, unrefBytes = %d",
-			rmd.UnrefBytes)
+			rmd.UnrefBytes())
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID, id1, id2},
 		map[BlockPointer]BranchName{
@@ -3759,10 +3759,10 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 		t.Errorf("Wrote bad contents: %v", newBlock1.Contents)
 	} else if len(newPBlock.IPtrs) != 1 {
 		t.Errorf("Wrong number of indirect pointers: %d", len(newPBlock.IPtrs))
-	} else if rmd.UnrefBytes != 0+5+6 {
+	} else if rmd.UnrefBytes() != 0+5+6 {
 		// The fileid and both blocks were all modified and marked dirty
 		t.Errorf("Truncated block not correctly unref'd, unrefBytes = %d",
-			rmd.UnrefBytes)
+			rmd.UnrefBytes())
 	}
 	checkBlockCache(t, config, []BlockID{rootID, fileID, id1},
 		map[BlockPointer]BranchName{
@@ -4496,7 +4496,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	// manually add b
 	expectedPath.path = append(expectedPath.path,
 		pathNode{BlockPointer{ID: aID, BlockContext: BlockContext{RefNonce: refNonce}}, "b"})
-	config.mockBops.EXPECT().Put(gomock.Any(), rmd.ID,
+	config.mockBops.EXPECT().Put(gomock.Any(), rmd.TlfID(),
 		ptrMatcher{expectedPath.path[1].BlockPointer}, readyBlockData).
 		Return(nil)
 
@@ -4989,7 +4989,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), kmdMatcher{rmd},
 		gomock.Any()).Return(changeBlockID, changePlainSize,
 		changeReadyBlockData, nil).After(lastCall)
-	config.mockBops.EXPECT().Put(gomock.Any(), rmd.ID,
+	config.mockBops.EXPECT().Put(gomock.Any(), rmd.TlfID(),
 		ptrMatcher{BlockPointer{ID: changeBlockID}}, changeReadyBlockData).
 		Return(nil)
 

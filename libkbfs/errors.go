@@ -1181,3 +1181,13 @@ type UnmergedSelfConflictError struct {
 func (e UnmergedSelfConflictError) Error() string {
 	return fmt.Sprintf("Unmerged self conflict: %v", e.Err)
 }
+
+// MutableBareRootMetadataNoImplError is returned when an interface expected
+// to implement MutableBareRootMetadata does not do so.
+type MutableBareRootMetadataNoImplError struct {
+}
+
+// Error implements the error interface for MutableBareRootMetadataNoImplError
+func (e MutableBareRootMetadataNoImplError) Error() string {
+	return "Does not implement MutableBareRootMetadata"
+}

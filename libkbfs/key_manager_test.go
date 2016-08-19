@@ -220,7 +220,7 @@ func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), makeDirRKeyBundle(uid, subkey))
 
-	expectUncachedGetTLFCryptKey(config, rmd.ID, rmd.LatestKeyGeneration(), uid, subkey, true)
+	expectUncachedGetTLFCryptKey(config, rmd.TlfID(), rmd.LatestKeyGeneration(), uid, subkey, true)
 
 	if _, err := config.KeyManager().
 		GetTLFCryptKeyForEncryption(ctx, rmd.ReadOnly()); err != nil {
@@ -240,7 +240,7 @@ func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), makeDirRKeyBundle(uid, subkey))
 
-	expectUncachedGetTLFCryptKeyAnyDevice(config, rmd.ID, rmd.LatestKeyGeneration(), uid, subkey, false)
+	expectUncachedGetTLFCryptKeyAnyDevice(config, rmd.TlfID(), rmd.LatestKeyGeneration(), uid, subkey, false)
 
 	if _, err := config.KeyManager().
 		GetTLFCryptKeyForMDDecryption(ctx, rmd.ReadOnly(), rmd.ReadOnly()); err != nil {
@@ -262,7 +262,7 @@ func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), makeDirRKeyBundle(uid, subkey))
 
 	keyGen := rmd.LatestKeyGeneration() - 1
-	expectUncachedGetTLFCryptKey(config, rmd.ID, keyGen, uid, subkey, false)
+	expectUncachedGetTLFCryptKey(config, rmd.TlfID(), keyGen, uid, subkey, false)
 
 	if _, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(
 		ctx, rmd.ReadOnly(), BlockPointer{KeyGen: keyGen}); err != nil {
@@ -406,7 +406,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	// generation number.
 	daemon.addNewAssertionForTestOrBust("dave", "dave@twitter")
 	oldKeyGen = rmd.LatestKeyGeneration()
-	expectCachedGetTLFCryptKey(config, rmd.ID, oldKeyGen)
+	expectCachedGetTLFCryptKey(config, rmd.TlfID(), oldKeyGen)
 	expectRekey(config, oldHandle.ToBareHandleOrBust(), 1, true)
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
@@ -509,7 +509,7 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	oldKeyGen = rmd.LatestKeyGeneration()
 	// Pretend bob has the key in the cache (in reality it would be
 	// decrypted via bob's paper key)
-	expectCachedGetTLFCryptKey(config, rmd.ID, oldKeyGen)
+	expectCachedGetTLFCryptKey(config, rmd.TlfID(), oldKeyGen)
 	expectRekey(config, h.ToBareHandleOrBust(), 1, false)
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
@@ -1144,13 +1144,13 @@ func TestKeyManagerReaderRekeyAndRevoke(t *testing.T) {
 	// rekey is still needed (due to the revoke, which has to be
 	// rekeyed by a writer).
 	ops := getOps(config2Dev2, root2Dev2.GetFolderBranch().Tlf)
-	rev1 := ops.head.Revision
+	rev1 := ops.head.Revision()
 	err = kbfsOps2Dev2.Rekey(ctx, root2Dev2.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Expected reader rekey to partially complete. "+
 			"Actual error: %#v", err)
 	}
-	rev2 := ops.head.Revision
+	rev2 := ops.head.Revision()
 	if rev1 != rev2 {
 		t.Fatalf("Reader rekey made two incomplete rekeys in a row.")
 	}
@@ -1499,7 +1499,7 @@ func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 	}
 
 	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
-	rev1 := ops.head.Revision
+	rev1 := ops.head.Revision()
 
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.  This shouldn't increase the MD version.
@@ -1507,7 +1507,7 @@ func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Second rekey failed %v", err)
 	}
-	rev2 := ops.head.Revision
+	rev2 := ops.head.Revision()
 
 	if rev1 != rev2 {
 		t.Errorf("Revision changed after second rekey: %v vs %v", rev1, rev2)
@@ -1610,7 +1610,7 @@ func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 	}
 
 	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
-	rev1 := ops.head.Revision
+	rev1 := ops.head.Revision()
 
 	// Do it again, to simulate the mdserver sending back this node's
 	// own rekey request.  This shouldn't increase the MD version.
@@ -1618,7 +1618,7 @@ func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Second rekey failed %v", err)
 	}
-	rev2 := ops.head.Revision
+	rev2 := ops.head.Revision()
 
 	if rev1 != rev2 {
 		t.Errorf("Revision changed after second rekey: %v vs %v", rev1, rev2)
