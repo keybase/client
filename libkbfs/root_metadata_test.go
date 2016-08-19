@@ -9,6 +9,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-codec/codec"
@@ -244,8 +245,8 @@ func TestWriterMetadataUnchangedEncoding(t *testing.T) {
 
 // Test that WriterMetadata has only a fixed (frozen) set of fields.
 func TestWriterMetadataEncodedFields(t *testing.T) {
-	sa1, _ := libkb.NormalizeSocialAssertion("uid1@twitter")
-	sa2, _ := libkb.NormalizeSocialAssertion("uid2@twitter")
+	sa1, _ := externals.NormalizeSocialAssertion("uid1@twitter")
+	sa2, _ := externals.NormalizeSocialAssertion("uid2@twitter")
 	// Usually exactly one of Writers/WKeys is filled in, but we
 	// fill in both here for testing.
 	wm := WriterMetadataV2{
@@ -345,7 +346,7 @@ func makeFakeWriterMetadataFuture(t *testing.T) writerMetadataFuture {
 		WriterMetadataExtra{},
 	}
 	wkb := makeFakeTLFWriterKeyBundleFuture(t)
-	sa, _ := libkb.NormalizeSocialAssertion("foo@twitter")
+	sa, _ := externals.NormalizeSocialAssertion("foo@twitter")
 	return writerMetadataFuture{
 		wmd,
 		tlfWriterKeyGenerationsFuture{&wkb},
@@ -413,7 +414,7 @@ func makeFakeBareRootMetadataFuture(t *testing.T) *bareRootMetadataFuture {
 	rkb := makeFakeTLFReaderKeyBundleFuture(t)
 	h, err := DefaultHash([]byte("fake buf"))
 	require.NoError(t, err)
-	sa, _ := libkb.NormalizeSocialAssertion("bar@github")
+	sa, _ := externals.NormalizeSocialAssertion("bar@github")
 	rmf := bareRootMetadataFuture{
 		wmf,
 		bareRootMetadataWrapper{

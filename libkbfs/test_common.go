@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -395,7 +396,7 @@ func AddNewAssertionForTest(
 	// configs, it may end up invoking the following call more than
 	// once on the shared md databases.  That's ok though, it's an
 	// idempotent call.
-	newSocialAssertion, ok := libkb.NormalizeSocialAssertion(newAssertion)
+	newSocialAssertion, ok := externals.NormalizeSocialAssertion(newAssertion)
 	if !ok {
 		return fmt.Errorf("%s couldn't be parsed as a social assertion", newAssertion)
 	}

@@ -11,6 +11,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -741,12 +742,12 @@ func normalizeAssertionOrName(s string) (string, error) {
 	}
 
 	// TODO: this fails for http and https right now (see CORE-2968).
-	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(s)
+	socialAssertion, isSocialAssertion := externals.NormalizeSocialAssertion(s)
 	if isSocialAssertion {
 		return socialAssertion.String(), nil
 	}
 
-	if expr, err := libkb.AssertionParseAndOnly(s); err == nil {
+	if expr, err := externals.AssertionParseAndOnly(s); err == nil {
 		// If the expression only contains a single url, make sure
 		// it's not a just considered a single keybase username.  If
 		// it is, then some non-username slipped into the default
@@ -827,7 +828,7 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 			uid:  uid,
 		}, keybase1.SocialAssertion{}, nil
 	case NoSuchUserError:
-		socialAssertion, ok := libkb.NormalizeSocialAssertion(ra.assertion)
+		socialAssertion, ok := externals.NormalizeSocialAssertion(ra.assertion)
 		if !ok {
 			return nameUIDPair{}, keybase1.SocialAssertion{}, err
 		}

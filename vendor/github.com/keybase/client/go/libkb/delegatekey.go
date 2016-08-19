@@ -262,10 +262,9 @@ func (d *Delegator) post(lctx LoginContext) (err error) {
 	}
 
 	arg := APIArg{
-		Endpoint:     "key/add",
-		NeedSession:  true,
-		Args:         hargs,
-		Contextified: NewContextified(d.G()),
+		Endpoint:    "key/add",
+		NeedSession: true,
+		Args:        hargs,
 	}
 	if lctx != nil {
 		arg.SessionR = lctx.LocalSession()

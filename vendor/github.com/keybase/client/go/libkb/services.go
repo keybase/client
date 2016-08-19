@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 
@@ -11,43 +12,21 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-type ServiceType interface {
-	AllStringKeys() []string
+//=============================================================================
 
-	// NormalizeUsername normalizes the given username, assuming
-	// that it's free of any leading strings like '@' or 'dns://'.
-	NormalizeUsername(string) (string, error)
-
-	// NormalizeRemote normalizes the given remote username, which
-	// is usually but not always the same as the username. It also
-	// allows leaders like '@' and 'dns://'.
-	NormalizeRemoteName(*GlobalContext, string) (string, error)
-
-	GetPrompt() string
-	LastWriterWins() bool
-	PreProofCheck(g *GlobalContext, remotename string) (*Markup, error)
-	PreProofWarning(remotename string) *Markup
-	ToServiceJSON(remotename string) *jsonw.Wrapper
-	PostInstructions(remotename string) *Markup
-	DisplayName(remotename string) string
-	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, remotename string) (warning *Markup, err error)
-	GetProofType() string
-	GetTypeName() string
-	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(*PostProofRes) (string, error)
-	GetAPIArgKey() string
-}
-
-var _stDispatch = make(map[string]ServiceType)
-
-func RegisterServiceType(st ServiceType) {
-	for _, k := range st.AllStringKeys() {
-		_stDispatch[k] = st
+func makeProofChecker(c ExternalServicesCollector, l RemoteProofChainLink) (ProofChecker, ProofError) {
+	k := l.TableKey()
+	st := c.GetServiceType(k)
+	if st == nil {
+		return nil, NewProofError(keybase1.ProofStatus_UNKNOWN_TYPE,
+			"No proof service for type: %s", k)
 	}
-}
-
-func GetServiceType(s string) ServiceType {
-	return _stDispatch[strings.ToLower(s)]
+	pc := st.MakeProofChecker(l)
+	if pc == nil {
+		return nil, NewProofError(keybase1.ProofStatus_UNKNOWN_TYPE,
+			"No proof checker for type: %s", k)
+	}
+	return pc, nil
 }
 
 //=============================================================================
@@ -95,9 +74,9 @@ func (t BaseServiceType) BaseAllStringKeys(st ServiceType) []string {
 	return []string{st.GetTypeName()}
 }
 
-func (t BaseServiceType) LastWriterWins() bool                                  { return true }
-func (t BaseServiceType) PreProofCheck(*GlobalContext, string) (*Markup, error) { return nil, nil }
-func (t BaseServiceType) PreProofWarning(remotename string) *Markup             { return nil }
+func (t BaseServiceType) LastWriterWins() bool                                     { return true }
+func (t BaseServiceType) PreProofCheck(GlobalContextLite, string) (*Markup, error) { return nil, nil }
+func (t BaseServiceType) PreProofWarning(remotename string) *Markup                { return nil }
 
 func (t BaseServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
 	return ppr.Text, nil
@@ -146,6 +125,26 @@ func (t BaseServiceType) BaseCheckProofForURL(text string, id keybase1.SigID) (e
 
 func (t BaseServiceType) GetAPIArgKey() string {
 	return "remote_username"
+}
+
+func (t BaseServiceType) IsDevelOnly() bool { return false }
+
+//=============================================================================
+
+type assertionContext struct {
+	esc ExternalServicesCollector
+}
+
+func MakeAssertionContext(s ExternalServicesCollector) AssertionContext {
+	return assertionContext{esc: s}
+}
+
+func (a assertionContext) NormalizeSocialName(service string, username string) (string, error) {
+	st := a.esc.GetServiceType(service)
+	if st == nil {
+		return "", fmt.Errorf("Unknown social network: %s", service)
+	}
+	return st.NormalizeUsername(username)
 }
 
 //=============================================================================

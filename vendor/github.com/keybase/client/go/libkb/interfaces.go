@@ -20,6 +20,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/PuerkitoBio/goquery"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 	gregor "github.com/keybase/gregor"
@@ -62,7 +63,6 @@ type CommandLine interface {
 	GetLocalRPCDebug() string
 	GetTimers() string
 	GetRunMode() (RunMode, error)
-	GetAppStartMode() string
 
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)
@@ -165,7 +165,6 @@ type ConfigReader interface {
 	GetUpdateURL() string
 	GetUpdateDisabled() (bool, bool)
 	GetLocalTrackMaxAge() (time.Duration, bool)
-	GetAppStartMode() string
 	IsAdmin() (bool, bool)
 
 	GetTorMode() (TorMode, error)
@@ -442,4 +441,59 @@ type GregorFirehoseHandler interface {
 type GregorListener interface {
 	PushHandler(handler GregorInBandMessageHandler)
 	PushFirehoseHandler(handler GregorFirehoseHandler)
+}
+
+type GlobalContextLite interface {
+	GetLog() logger.Logger
+	GetAPI() API
+	GetExternalAPI() ExternalAPI
+	GetServerURI() string
+}
+
+type AssertionContext interface {
+	NormalizeSocialName(service string, username string) (string, error)
+}
+
+// ProofChecker is an interface for performing a remote check for a proof
+type ProofChecker interface {
+	CheckHint(g GlobalContextLite, h SigHint) ProofError
+	CheckStatus(g GlobalContextLite, h SigHint) ProofError
+	GetTorError() ProofError
+}
+
+// ServiceType is an interface for describing an external proof service, like 'Twitter'
+// or 'GitHub', etc.
+type ServiceType interface {
+	AllStringKeys() []string
+
+	// NormalizeUsername normalizes the given username, assuming
+	// that it's free of any leading strings like '@' or 'dns://'.
+	NormalizeUsername(string) (string, error)
+
+	// NormalizeRemote normalizes the given remote username, which
+	// is usually but not always the same as the username. It also
+	// allows leaders like '@' and 'dns://'.
+	NormalizeRemoteName(g GlobalContextLite, name string) (string, error)
+
+	GetPrompt() string
+	LastWriterWins() bool
+	PreProofCheck(g GlobalContextLite, remotename string) (*Markup, error)
+	PreProofWarning(remotename string) *Markup
+	ToServiceJSON(remotename string) *jsonw.Wrapper
+	PostInstructions(remotename string) *Markup
+	DisplayName(remotename string) string
+	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, remotename string) (warning *Markup, err error)
+	GetProofType() string
+	GetTypeName() string
+	CheckProofText(text string, id keybase1.SigID, sig string) error
+	FormatProofText(*PostProofRes) (string, error)
+	GetAPIArgKey() string
+	IsDevelOnly() bool
+
+	MakeProofChecker(l RemoteProofChainLink) ProofChecker
+}
+
+type ExternalServicesCollector interface {
+	GetServiceType(n string) ServiceType
+	ListProofCheckers() []string
 }
