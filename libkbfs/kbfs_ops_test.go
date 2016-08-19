@@ -3939,32 +3939,8 @@ func TestSetExFileSuccess(t *testing.T) {
 	testSetExSuccess(t, File, true)
 }
 
-func TestSetNoExFileSuccess(t *testing.T) {
-	testSetExSuccess(t, File, false)
-}
-
-func TestSetExExecSuccess(t *testing.T) {
-	testSetExSuccess(t, Exec, true)
-}
-
 func TestSetNoExExecSuccess(t *testing.T) {
 	testSetExSuccess(t, Exec, false)
-}
-
-func TestSetExDirSuccess(t *testing.T) {
-	testSetExSuccess(t, Dir, true)
-}
-
-func TestSetNoExDirSuccess(t *testing.T) {
-	testSetExSuccess(t, Dir, false)
-}
-
-func TestSetExSymSuccess(t *testing.T) {
-	testSetExSuccess(t, Sym, true)
-}
-
-func TestSetNoExSymSuccess(t *testing.T) {
-	testSetExSuccess(t, Sym, false)
 }
 
 func TestSetExFailNoSuchName(t *testing.T) {
