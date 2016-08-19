@@ -1,17 +1,14 @@
 // @flow
 import React from 'react'
-import {TextInput} from 'react-native'
-import Box from './box'
-import Text from './text.native'
-import {globalColors, globalMargins, globalStyles} from '../styles/style-guide'
-
 import type {SmallInputProps} from './small-input'
+import {Box, Text, NativeTextInput} from './index'
+import {globalColors, globalMargins, globalStyles} from '../styles/style-guide'
 
 export default function SmallInput ({autoCapitalize, autoCorrect, errorState, hintText, label, onChange, style, value}: SmallInputProps) {
   return (
     <Box style={{...styleContainer(errorState), ...style}}>
       <Text type='BodySmall' style={styleLabel(errorState)}>{label}</Text>
-      <TextInput
+      <NativeTextInput
         style={{...Text.textStyle({type: 'BodySemibold'}, {}), ...styleInput}}
         placeholder={hintText}
         placeholderTextColor={globalColors.black_10}

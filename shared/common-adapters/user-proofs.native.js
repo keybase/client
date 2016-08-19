@@ -4,8 +4,7 @@ import React, {Component} from 'react'
 import openUrl from '../util/open-url'
 import type {Proof} from '../constants/tracker'
 import type {Props, MissingProof} from './user-proofs'
-import {Box, Icon, Meta, Text} from '../common-adapters/index'
-import {TouchableHighlight} from 'react-native'
+import {Box, Icon, Meta, Text, NativeTouchableHighlight} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
@@ -13,7 +12,7 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
   const missingColor = globalColors.black_20
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
-    <TouchableHighlight style={{...stylesRow, flex: 1, ...style}} key={missingProof.type} onPress={() => missingProof.onClick(missingProof)}>
+    <NativeTouchableHighlight style={{...stylesRow, flex: 1, ...style}} key={missingProof.type} onPress={() => missingProof.onClick(missingProof)}>
       <Box style={stylesRow}>
         <Icon style={{...stylesService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
         <Box style={stylesProofNameSection}>
@@ -25,7 +24,7 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
         </Box>
         <Icon type={'iconfont-proof-placeholder'} style={{...stylesStatusIcon, color: missingColor}} />
       </Box>
-    </TouchableHighlight>
+    </NativeTouchableHighlight>
   )
 }
 

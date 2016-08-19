@@ -3,7 +3,7 @@ import * as shared from './icon.shared'
 import React, {Component} from 'react'
 import type {$Exact} from '../constants/types/more'
 import type {Props} from './icon'
-import {TouchableHighlight, Text, Image} from 'react-native'
+import {NativeTouchableHighlight, NativeText, NativeImage} from './index'
 import {globalColors} from '../styles/style-guide'
 import {iconMeta} from './icon.constants'
 
@@ -39,19 +39,19 @@ class Icon extends Component<void, $Exact<Props>, void> {
     }
 
     const icon = iconMeta[iconType].isFont
-      ? <Text style={{color, textAlign, fontFamily: 'kb', fontSize: fontSize, ...width}}>{
-        String.fromCharCode(iconMeta[iconType].charCode || 0)}</Text>
-      : <Image source={iconMeta[iconType].require} style={{resizeMode: 'contain', ...width, ...height}} />
+      ? <NativeText style={{color, textAlign, fontFamily: 'kb', fontSize: fontSize, ...width}}>{
+        String.fromCharCode(iconMeta[iconType].charCode || 0)}</NativeText>
+      : <NativeImage source={iconMeta[iconType].require} style={{resizeMode: 'contain', ...width, ...height}} />
 
     return (
-      <TouchableHighlight
+      <NativeTouchableHighlight
         activeOpacity={0.8}
         underlayColor={this.props.underlayColor || globalColors.white}
         onPress={this.props.onClick || (() => {})}
         disabled={!(this.props.onClick)}
         style={{...containerProps}}>
         {icon}
-      </TouchableHighlight>
+      </NativeTouchableHighlight>
     )
   }
 }

@@ -1,9 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import _ from 'lodash'
-import {ScrollView} from 'react-native'
 import {normal as proofNormal} from '../constants/tracker'
-import {BackButton, Box, ComingSoon, Icon, Text, UserActions, UserBio, UserProofs} from '../common-adapters'
+import {BackButton, Box, ComingSoon, Icon, Text, UserActions, UserBio, UserProofs, NativeScrollView} from '../common-adapters'
 import {usernameText} from '../common-adapters/usernames'
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
@@ -66,7 +65,7 @@ class Render extends Component<void, Props, State> {
         <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}}>
           {this.props.onBack && <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: 16}} iconStyle={{color: globalColors.white}} />}
         </Box>
-        <ScrollView style={{flex: 1, backgroundColor: trackerStateColors.header.background}} contentContainerStyle={{backgroundColor: globalColors.white}}>
+        <NativeScrollView style={{flex: 1, backgroundColor: trackerStateColors.header.background}} contentContainerStyle={{backgroundColor: globalColors.white}}>
           {proofNotice && (
             <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
               <Text type='BodySmallSemibold' style={{color: globalColors.white}}>{proofNotice}</Text>
@@ -111,7 +110,7 @@ class Render extends Component<void, Props, State> {
             followers={this.props.followers}
             following={this.props.following}
           />
-        </ScrollView>
+        </NativeScrollView>
       </Box>
     )
   }

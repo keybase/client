@@ -1,8 +1,7 @@
 // @flow
 import React from 'react'
-import {ScrollView} from 'react-native'
 import type {Props} from './standard-screen'
-import {Box, Text} from './'
+import {Box, Text, NativeScrollView} from './index'
 import {globalColors, globalMargins, globalStyles} from '../styles/style-guide'
 
 const StandardScreen = (props: Props) => {
@@ -11,7 +10,7 @@ const StandardScreen = (props: Props) => {
       <Box style={styleCloseContainer}>
         {!!props.onClose && <Text type='BodyPrimaryLink' style={{...styleClose, ...props.styleClose}} onClick={props.onClose}>{props.onCloseText || 'Cancel'}</Text>}
       </Box>
-      <ScrollView style={styleScrollContainer} contentContainerStyle={styleScrollContainer}>
+      <NativeScrollView style={styleScrollContainer} contentContainerStyle={styleScrollContainer}>
         {!!props.notification &&
           <Box style={{...styleBanner(props.notification.type), ...props.styleBanner}}>
             {typeof props.notification.message === 'string' ? <Text style={styleBannerText} type='BodySmallSemibold'>{props.notification.message}</Text> : props.notification.message}
@@ -19,7 +18,7 @@ const StandardScreen = (props: Props) => {
         <Box style={{...styleContentContainer(!!props.notification), ...props.style}}>
           {props.children}
         </Box>
-      </ScrollView>
+      </NativeScrollView>
     </Box>
   )
 }

@@ -1,12 +1,11 @@
 // @flow
 import React from 'react'
-import {TouchableHighlight} from 'react-native'
-import {Box, Text, Icon} from '../common-adapters'
+import {NativeTouchableHighlight, Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import type {Props} from './link-with-icon'
 
 const LinkWithIcon = ({label, icon, color, onClick, style}: Props) => (
-  <TouchableHighlight
+  <NativeTouchableHighlight
     style={{...styleTouchable, ...style}}
     underlayColor={globalColors.black_10}
     onPress={onClick}>
@@ -14,7 +13,7 @@ const LinkWithIcon = ({label, icon, color, onClick, style}: Props) => (
       <Icon style={{...styleIcon, color}} type={icon} />
       <Text style={{...styleLabel, color}} type='BodyPrimaryLink'>{label}</Text>
     </Box>
-  </TouchableHighlight>
+  </NativeTouchableHighlight>
 )
 
 const styleTouchable = {

@@ -1,13 +1,11 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './index.render'
-import {View} from 'react-native'
+import {Box} from '../../../common-adapters'
 
-class Render extends Component {
-  props: Props;
-
+class Render extends Component<void, Props, void> {
   render () {
-    return <View />
+    return <Box />
   }
 }
 

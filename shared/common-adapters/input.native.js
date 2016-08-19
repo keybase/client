@@ -1,10 +1,8 @@
 // @flow
-import Box from './box'
 import Platform, {OS} from '../constants/platform'
 import React, {Component} from 'react'
-import Text from './text.native'
 import type {Props} from './input'
-import {TextInput} from 'react-native'
+import {Box, Text, NativeTextInput} from './index'
 import {globalColors, globalStyles} from '../styles/style-guide'
 
 type State = {
@@ -46,7 +44,7 @@ class Input extends Component<void, Props, State> {
     return (
       <Box style={{...containerStyle, ...this.props.style}}>
         {this.state.text.length > 0 && <Text type='BodySmall' style={{...floatingLabelStyle}}>{this.props.floatingLabelText}</Text>}
-        <TextInput
+        <NativeTextInput
           style={{...inputStyle, ...textInputStyle, ...(IOS && this.props.multiLine && IOSMultilineTextInputStyle || {})}}
           keyboardType={this.props.keyboardType}
           ref={component => { this._textInput = component }}

@@ -3,7 +3,7 @@ import Platform, {OS} from '../constants/platform'
 import React, {Component} from 'react'
 import type {Context} from './terminal'
 import type {Props, Background} from './text'
-import {Text as RNText} from 'react-native'
+import {NativeText} from './index'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 const isAndroid = Platform.OS_ANDROID === OS
@@ -14,9 +14,9 @@ class Text extends Component {
 
   _terminalPrefix (type: Props.type): ?React$Element<*> {
     return ({
-      'TerminalEmpty': <RNText>&nbsp;</RNText>,
-      'TerminalCommand': <RNText>> </RNText>,
-      'TerminalComment': <RNText># </RNText>,
+      'TerminalEmpty': <NativeText>&nbsp;</NativeText>,
+      'TerminalCommand': <NativeText>> </NativeText>,
+      'TerminalComment': <NativeText># </NativeText>,
     }: {[key: string]: React$Element<*>})[type]
   }
 
@@ -134,7 +134,7 @@ class Text extends Component {
 
     if (this.props.contentEditable) {
       return (
-        <RNText
+        <NativeText
           ref='text'
           style={style}
           contentEditable={true}
@@ -145,10 +145,10 @@ class Text extends Component {
     }
 
     return (
-      <RNText
+      <NativeText
         style={style}
         {...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {})}
-        onPress={this.props.onClick}>{terminalPrefix}{this.props.children}</RNText>)
+        onPress={this.props.onClick}>{terminalPrefix}{this.props.children}</NativeText>)
   }
 }
 

@@ -1,16 +1,16 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './progress-indicator'
-import {ProgressBarAndroid} from 'react-native'
+import {NativeActivityIndicator} from './index'
 import {globalColors} from '../styles/style-guide'
 
 class ProgressIndicator extends Component<void, Props, void> {
   render () {
-    const styleAttr = (this.props.type === 'Large') ? 'Normal' : 'Small'
+    const size = (this.props.type === 'Large') ? 'large' : 'small'
 
-    return <ProgressBarAndroid
+    return <NativeActivityIndicator
       color={this.props.white ? globalColors.white : globalColors.black}
-      styleAttr={styleAttr}
+      size={size}
       style={{...style, ...this.props.style}} />
   }
 }
