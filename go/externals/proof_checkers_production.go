@@ -3,6 +3,6 @@
 
 // +build production staging
 
-package libkb
+package externals
 
 const useDevelProofCheckers = false

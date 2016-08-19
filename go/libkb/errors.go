@@ -534,6 +534,10 @@ func (e InsufficientKarmaError) Error() string {
 	return "Bad karma"
 }
 
+func NewInsufficientKarmaError(un string) InsufficientKarmaError {
+	return InsufficientKarmaError{un: un}
+}
+
 //=============================================================================
 
 type InvalidHostnameError struct {
@@ -542,6 +546,9 @@ type InvalidHostnameError struct {
 
 func (e InvalidHostnameError) Error() string {
 	return "Invalid hostname: " + e.h
+}
+func NewInvalidHostnameError(h string) InvalidHostnameError {
+	return InvalidHostnameError{h: h}
 }
 
 //=============================================================================
@@ -554,6 +561,10 @@ func (h WebUnreachableError) Error() string {
 	return "Host " + h.h + " is down; tried both HTTPS and HTTP protocols"
 }
 
+func NewWebUnreachableError(h string) WebUnreachableError {
+	return WebUnreachableError{h: h}
+}
+
 //=============================================================================
 
 type ProtocolDowngradeError struct {
@@ -562,6 +573,9 @@ type ProtocolDowngradeError struct {
 
 func (h ProtocolDowngradeError) Error() string {
 	return h.msg
+}
+func NewProtocolDowngradeError(msg string) ProtocolDowngradeError {
+	return ProtocolDowngradeError{msg: msg}
 }
 
 //=============================================================================
@@ -574,6 +588,10 @@ func (p ProfileNotPublicError) Error() string {
 	return p.msg
 }
 
+func NewProfileNotPublicError(s string) ProfileNotPublicError {
+	return ProfileNotPublicError{msg: s}
+}
+
 //=============================================================================
 
 type BadUsernameError struct {
@@ -582,6 +600,10 @@ type BadUsernameError struct {
 
 func (e BadUsernameError) Error() string {
 	return "Bad username: '" + e.N + "'"
+}
+
+func NewBadUsernameError(n string) BadUsernameError {
+	return BadUsernameError{N: n}
 }
 
 //=============================================================================

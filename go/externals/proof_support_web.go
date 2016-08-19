@@ -1,7 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package externals
 
 import (
 	"fmt"
@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -18,31 +19,31 @@ import (
 //
 
 type WebChecker struct {
-	proof RemoteProofChainLink
+	proof libkb.RemoteProofChainLink
 }
 
 var webKeybaseFiles = []string{".well-known/keybase.txt", "keybase.txt"}
 
-func NewWebChecker(p RemoteProofChainLink) (*WebChecker, ProofError) {
+func NewWebChecker(p libkb.RemoteProofChainLink) (*WebChecker, libkb.ProofError) {
 	return &WebChecker{p}, nil
 }
 
-func (rc *WebChecker) GetTorError() ProofError {
+func (rc *WebChecker) GetTorError() libkb.ProofError {
 	urlBase := rc.proof.ToDisplayString()
 
 	u, err := url.Parse(urlBase)
 	if err != nil || u.Scheme != "https" {
-		return ProofErrorHTTPOverTor
+		return libkb.ProofErrorHTTPOverTor
 	}
 
 	return nil
 }
 
-func (rc *WebChecker) CheckHint(g GlobalContextLite, h SigHint) ProofError {
+func (rc *WebChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
 
 	files := webKeybaseFiles
 	urlBase := rc.proof.ToDisplayString()
-	theirURL := strings.ToLower(h.apiURL)
+	theirURL := strings.ToLower(h.GetAPIURL())
 
 	for _, file := range files {
 		ourURL := urlBase + "/" + file
@@ -51,30 +52,29 @@ func (rc *WebChecker) CheckHint(g GlobalContextLite, h SigHint) ProofError {
 		}
 	}
 
-	return NewProofError(keybase1.ProofStatus_BAD_API_URL,
+	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
 		"Bad hint from server; didn't recognize API url: %s",
-		h.apiURL)
-
+		h.GetAPIURL())
 }
 
-func (rc *WebChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError {
-	res, err := g.GetExternalAPI().GetText(NewAPIArg(h.apiURL))
+func (rc *WebChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+	res, err := g.GetExternalAPI().GetText(libkb.NewAPIArg(h.GetAPIURL()))
 
 	if err != nil {
-		return XapiError(err, h.apiURL)
+		return libkb.XapiError(err, h.GetAPIURL())
 	}
 
 	var sigBody []byte
-	sigBody, _, err = OpenSig(rc.proof.GetArmoredSig())
-	var ret ProofError
+	sigBody, _, err = libkb.OpenSig(rc.proof.GetArmoredSig())
+	var ret libkb.ProofError
 
 	if err != nil {
-		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
+		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err)
 	}
 
-	if !FindBase64Block(res.Body, sigBody, false) {
-		ret = NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
+	if !libkb.FindBase64Block(res.Body, sigBody, false) {
+		ret = libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
 	}
 
 	return ret
@@ -83,15 +83,15 @@ func (rc *WebChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError {
 //
 //=============================================================================
 
-type WebServiceType struct{ BaseServiceType }
+type WebServiceType struct{ libkb.BaseServiceType }
 
 func (t WebServiceType) AllStringKeys() []string     { return []string{"web", "http", "https"} }
 func (t WebServiceType) PrimaryStringKeys() []string { return []string{"https", "http"} }
 
 func (t WebServiceType) NormalizeUsername(s string) (ret string, err error) {
 	// The username is just the (lowercased) hostname.
-	if !IsValidHostname(s) {
-		return "", InvalidHostnameError{s}
+	if !libkb.IsValidHostname(s) {
+		return "", libkb.NewInvalidHostnameError(s)
 	}
 	return strings.ToLower(s), nil
 }
@@ -102,26 +102,26 @@ func ParseWeb(s string) (hostname string, prot string, err error) {
 		s = v[3]
 		prot = v[1]
 	}
-	if !IsValidHostname(s) {
-		err = InvalidHostnameError{s}
+	if !libkb.IsValidHostname(s) {
+		err = libkb.NewInvalidHostnameError(s)
 	} else {
 		hostname = s
 	}
 	return
 }
 
-func (t WebServiceType) NormalizeRemoteName(g GlobalContextLite, s string) (ret string, err error) {
+func (t WebServiceType) NormalizeRemoteName(g libkb.GlobalContextLite, s string) (ret string, err error) {
 	// The remote name is a full (case-preserved) URL.
 	var prot, host string
 	if host, prot, err = ParseWeb(s); err != nil {
 		return
 	}
-	var res *APIRes
-	res, err = g.GetAPI().Get(APIArg{
+	var res *libkb.APIRes
+	res, err = g.GetAPI().Get(libkb.APIArg{
 		Endpoint:    "remotes/check",
 		NeedSession: true,
-		Args: HTTPArgs{
-			"hostname": S{host},
+		Args: libkb.HTTPArgs{
+			"hostname": libkb.S{Val: host},
 		},
 	})
 	if err != nil {
@@ -130,12 +130,12 @@ func (t WebServiceType) NormalizeRemoteName(g GlobalContextLite, s string) (ret 
 	var found string
 	found, err = res.Body.AtPath("results.first").GetString()
 	if err != nil {
-		err = WebUnreachableError{host}
+		err = libkb.NewWebUnreachableError(host)
 		return
 	}
 	if len(prot) > 0 && prot == "https" && found != "https:" {
 		msg := fmt.Sprintf("You specified HTTPS for %s but only HTTP is available", host)
-		err = ProtocolDowngradeError{msg}
+		err = libkb.NewProtocolDowngradeError(msg)
 		return
 	}
 	ret = found + "//" + host
@@ -155,7 +155,7 @@ func (t WebServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return ret
 }
 
-func (t WebServiceType) MarkupFilenames(un string, mkp *Markup) {
+func (t WebServiceType) MarkupFilenames(un string, mkp *libkb.Markup) {
 	mkp.Append(`<ul>`)
 	first := true
 	for _, f := range webKeybaseFiles {
@@ -171,14 +171,14 @@ func (t WebServiceType) MarkupFilenames(un string, mkp *Markup) {
 	mkp.Append(`</ul>`)
 }
 
-func (t WebServiceType) PreProofWarning(un string) *Markup {
-	mkp := FmtMarkup(`<p>You will be asked to post a file to:</p>`)
+func (t WebServiceType) PreProofWarning(un string) *libkb.Markup {
+	mkp := libkb.FmtMarkup(`<p>You will be asked to post a file to:</p>`)
 	t.MarkupFilenames(un, mkp)
 	return mkp
 }
 
-func (t WebServiceType) PostInstructions(un string) *Markup {
-	mkp := FmtMarkup(`<p>Make the following file available at:</p>`)
+func (t WebServiceType) PostInstructions(un string) *libkb.Markup {
+	mkp := libkb.FmtMarkup(`<p>Make the following file available at:</p>`)
 	t.MarkupFilenames(un, mkp)
 	return mkp
 }
@@ -186,9 +186,9 @@ func (t WebServiceType) PostInstructions(un string) *Markup {
 func (t WebServiceType) DisplayName(un string) string { return "Web" }
 func (t WebServiceType) GetTypeName() string          { return "web" }
 
-func (t WebServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *Markup, err error) {
+func (t WebServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {
-		warning = FmtMarkup("Permission denied! Make sure your proof page is <strong>public</strong>.")
+		warning = libkb.FmtMarkup("Permission denied! Make sure your proof page is <strong>public</strong>.")
 	} else {
 		warning, err = t.BaseRecheckProofPosting(tryNumber, status)
 	}
@@ -203,7 +203,7 @@ func (t WebServiceType) CheckProofText(text string, id keybase1.SigID, sig strin
 func (t WebServiceType) GetAPIArgKey() string { return "remote_host" }
 func (t WebServiceType) LastWriterWins() bool { return false }
 
-func (t WebServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+func (t WebServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &WebChecker{l}
 }
 

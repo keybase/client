@@ -14,6 +14,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/client"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -41,6 +42,9 @@ func main() {
 
 	g := G
 	g.Init()
+
+	// Set our panel of external services.
+	g.SetServices(externals.GetServices())
 
 	// Don't abort here. This should not happen on any known version of Windows, but
 	// new MS platforms may create regressions.

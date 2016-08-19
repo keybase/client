@@ -1,12 +1,13 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package externals
 
 import (
 	"regexp"
 	"strings"
 
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -16,10 +17,10 @@ import (
 //
 
 type HackerNewsChecker struct {
-	proof RemoteProofChainLink
+	proof libkb.RemoteProofChainLink
 }
 
-func (h *HackerNewsChecker) GetTorError() ProofError { return nil }
+func (h *HackerNewsChecker) GetTorError() libkb.ProofError { return nil }
 
 func APIBase(un string) string {
 	return "https://hacker-news.firebaseio.com/v0/user/" + un
@@ -42,32 +43,32 @@ func (h *HackerNewsChecker) HumanURL() string {
 	return "https://news.ycombinator.com/user?id=" + h.proof.GetRemoteUsername()
 }
 
-func NewHackerNewsChecker(p RemoteProofChainLink) (*HackerNewsChecker, ProofError) {
+func NewHackerNewsChecker(p libkb.RemoteProofChainLink) (*HackerNewsChecker, libkb.ProofError) {
 	return &HackerNewsChecker{p}, nil
 }
 
-func (h *HackerNewsChecker) CheckHint(g GlobalContextLite, hint SigHint) ProofError {
+func (h *HackerNewsChecker) CheckHint(g libkb.GlobalContextLite, hint libkb.SigHint) libkb.ProofError {
 	wanted := h.APIURL()
-	if Cicmp(wanted, hint.apiURL) {
+	if libkb.Cicmp(wanted, hint.GetAPIURL()) {
 		return nil
 	}
 
-	return NewProofError(keybase1.ProofStatus_BAD_API_URL, "Bad hint from server; URL should start with '%s'", wanted)
+	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL, "Bad hint from server; URL should start with '%s'", wanted)
 }
 
-func (h *HackerNewsChecker) CheckStatus(g GlobalContextLite, hint SigHint) ProofError {
-	res, err := g.GetExternalAPI().GetText(NewAPIArg(hint.apiURL))
+func (h *HackerNewsChecker) CheckStatus(g libkb.GlobalContextLite, hint libkb.SigHint) libkb.ProofError {
+	res, err := g.GetExternalAPI().GetText(libkb.NewAPIArg(hint.GetAPIURL()))
 
 	if err != nil {
-		return XapiError(err, hint.apiURL)
+		return libkb.XapiError(err, hint.GetAPIURL())
 	}
 
 	var sigID keybase1.SigID
-	_, sigID, err = OpenSig(h.proof.GetArmoredSig())
-	var ret ProofError
+	_, sigID, err = libkb.OpenSig(h.proof.GetArmoredSig())
+	var ret libkb.ProofError
 
 	if err != nil {
-		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
+		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err)
 	}
 
@@ -75,18 +76,18 @@ func (h *HackerNewsChecker) CheckStatus(g GlobalContextLite, hint SigHint) Proof
 	g.GetLog().Debug("| HackerNews profile: %s", res.Body)
 	g.GetLog().Debug("| Wanted signature hash: %s", wanted)
 	if !strings.Contains(res.Body, wanted) {
-		ret = NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
+		ret = libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
 			"Posted text does not include signature '%s'", wanted)
 	}
 
 	return ret
 }
 
-func CheckKarma(g GlobalContextLite, un string) (int, error) {
+func CheckKarma(g libkb.GlobalContextLite, un string) (int, error) {
 	u := KarmaURL(un)
-	res, err := g.GetExternalAPI().Get(NewAPIArg(u))
+	res, err := g.GetExternalAPI().Get(libkb.NewAPIArg(u))
 	if err != nil {
-		return 0, XapiError(err, u)
+		return 0, libkb.XapiError(err, u)
 	}
 	return res.Body.GetInt()
 }
@@ -94,7 +95,7 @@ func CheckKarma(g GlobalContextLite, un string) (int, error) {
 //
 //=============================================================================
 
-type HackerNewsServiceType struct{ BaseServiceType }
+type HackerNewsServiceType struct{ libkb.BaseServiceType }
 
 func (t HackerNewsServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
@@ -102,13 +103,13 @@ var hackerNewsUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_-]{2,15})$`)
 
 func (t HackerNewsServiceType) NormalizeUsername(s string) (string, error) {
 	if !hackerNewsUsernameRegexp.MatchString(s) {
-		return "", BadUsernameError{s}
+		return "", libkb.NewBadUsernameError(s)
 	}
 	// HackerNews names are case-sensitive
 	return s, nil
 }
 
-func (t HackerNewsServiceType) NormalizeRemoteName(g GlobalContextLite, s string) (string, error) {
+func (t HackerNewsServiceType) NormalizeRemoteName(g libkb.GlobalContextLite, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
@@ -122,21 +123,21 @@ func (t HackerNewsServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }
 
-func (t HackerNewsServiceType) PostInstructions(un string) *Markup {
-	return FmtMarkup(`Please edit your HackerNews profile to contain the
+func (t HackerNewsServiceType) PostInstructions(un string) *libkb.Markup {
+	return libkb.FmtMarkup(`Please edit your HackerNews profile to contain the
 following text. Click here: https://news.ycombinator.com/user?id=` + un)
 }
 
 func (t HackerNewsServiceType) DisplayName(un string) string { return "HackerNews" }
 func (t HackerNewsServiceType) GetTypeName() string          { return "hackernews" }
 
-func (t HackerNewsServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *Markup, err error) {
-	warning = FmtMarkup(`<p>We couldn't find a posted proof...<strong>yet</strong></p>`)
+func (t HackerNewsServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
+	warning = libkb.FmtMarkup(`<p>We couldn't find a posted proof...<strong>yet</strong></p>`)
 	if tryNumber < 3 {
 		warning.Append(`<p>HackerNews's API is slow to update, so be patient...try again?</p>`)
 	} else {
 		warning.Append(`<p>We'll keep trying and let you know.</p>`)
-		err = WaitForItError{}
+		err = libkb.WaitForItError{}
 	}
 	return
 }
@@ -146,21 +147,21 @@ func (t HackerNewsServiceType) CheckProofText(text string, id keybase1.SigID, si
 	return t.BaseCheckProofForURL(text, id)
 }
 
-func (t HackerNewsServiceType) PreProofCheck(g GlobalContextLite, un string) (markup *Markup, err error) {
+func (t HackerNewsServiceType) PreProofCheck(g libkb.GlobalContextLite, un string) (markup *libkb.Markup, err error) {
 	if _, e := CheckKarma(g, un); e != nil {
-		markup = FmtMarkup(`
+		markup = libkb.FmtMarkup(`
 <p><strong>ATTENTION</strong>: HackerNews only publishes users to their API who
  have <strong>karma &gt; 1</strong>.</p>
 <p>Your account <strong>` + un + `</strong> doesn't qualify or doesn't exist.</p>`)
 		if e != nil {
 			g.GetLog().Debug("Error from HN: %s", e)
 		}
-		err = InsufficientKarmaError{un}
+		err = libkb.NewInsufficientKarmaError(un)
 	}
 	return
 }
 
-func (t HackerNewsServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+func (t HackerNewsServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &HackerNewsChecker{l}
 }
 

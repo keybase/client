@@ -1,12 +1,13 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package externals
 
 import (
 	"regexp"
 	"strings"
 
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -16,45 +17,45 @@ import (
 //
 
 type GithubChecker struct {
-	proof RemoteProofChainLink
+	proof libkb.RemoteProofChainLink
 }
 
-func NewGithubChecker(p RemoteProofChainLink) (*GithubChecker, ProofError) {
+func NewGithubChecker(p libkb.RemoteProofChainLink) (*GithubChecker, libkb.ProofError) {
 	return &GithubChecker{p}, nil
 }
 
-func (rc *GithubChecker) GetTorError() ProofError { return nil }
+func (rc *GithubChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *GithubChecker) CheckHint(g GlobalContextLite, h SigHint) ProofError {
-	given := strings.ToLower(h.apiURL)
+func (rc *GithubChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+	given := strings.ToLower(h.GetAPIURL())
 	u := strings.ToLower(rc.proof.GetRemoteUsername())
 	ok1 := "https://gist.github.com/" + u + "/"
 	ok2 := "https://gist.githubusercontent.com/" + u + "/"
 	if strings.HasPrefix(given, ok1) || strings.HasPrefix(given, ok2) {
 		return nil
 	}
-	return NewProofError(keybase1.ProofStatus_BAD_API_URL,
+	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
 		"Bad hint from server; URL start with either '%s' OR '%s'", ok1, ok2)
 }
 
-func (rc *GithubChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError {
-	res, err := g.GetExternalAPI().GetText(NewAPIArg(h.apiURL))
+func (rc *GithubChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+	res, err := g.GetExternalAPI().GetText(libkb.NewAPIArg(h.GetAPIURL()))
 
 	if err != nil {
-		return XapiError(err, h.apiURL)
+		return libkb.XapiError(err, h.GetAPIURL())
 	}
 
 	var sigBody []byte
-	sigBody, _, err = OpenSig(rc.proof.GetArmoredSig())
-	var ret ProofError
+	sigBody, _, err = libkb.OpenSig(rc.proof.GetArmoredSig())
+	var ret libkb.ProofError
 
 	if err != nil {
-		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
+		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err)
 	}
 
-	if !FindBase64Block(res.Body, sigBody, false) {
-		ret = NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
+	if !libkb.FindBase64Block(res.Body, sigBody, false) {
+		ret = libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
 	}
 
 	return ret
@@ -63,7 +64,7 @@ func (rc *GithubChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError 
 //
 //=============================================================================
 
-type GithubServiceType struct{ BaseServiceType }
+type GithubServiceType struct{ libkb.BaseServiceType }
 
 func (t GithubServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
@@ -71,12 +72,12 @@ var githubUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9][a-z0-9-]{0,38})$`)
 
 func (t GithubServiceType) NormalizeUsername(s string) (string, error) {
 	if !githubUsernameRegexp.MatchString(s) {
-		return "", BadUsernameError{s}
+		return "", libkb.NewBadUsernameError(s)
 	}
 	return strings.ToLower(s), nil
 }
 
-func (t GithubServiceType) NormalizeRemoteName(g GlobalContextLite, s string) (ret string, err error) {
+func (t GithubServiceType) NormalizeRemoteName(g libkb.GlobalContextLite, s string) (ret string, err error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
@@ -90,17 +91,17 @@ func (t GithubServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }
 
-func (t GithubServiceType) PostInstructions(un string) *Markup {
-	return FmtMarkup(`Please <strong>publicly</strong> post the following Gist,
+func (t GithubServiceType) PostInstructions(un string) *libkb.Markup {
+	return libkb.FmtMarkup(`Please <strong>publicly</strong> post the following Gist,
 and name it <strong><color name="red">keybase.md</color></strong>`)
 }
 
 func (t GithubServiceType) DisplayName(un string) string { return "Github" }
 func (t GithubServiceType) GetTypeName() string          { return "github" }
 
-func (t GithubServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *Markup, err error) {
+func (t GithubServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {
-		warning = FmtMarkup("Permission denied! Make sure your gist is <strong>public</strong>.")
+		warning = libkb.FmtMarkup("Permission denied! Make sure your gist is <strong>public</strong>.")
 	} else {
 		warning, err = t.BaseRecheckProofPosting(tryNumber, status)
 	}
@@ -112,7 +113,7 @@ func (t GithubServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 	return t.BaseCheckProofTextFull(text, id, sig)
 }
 
-func (t GithubServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+func (t GithubServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &GithubChecker{l}
 }
 

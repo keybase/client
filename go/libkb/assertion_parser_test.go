@@ -57,7 +57,7 @@ func TestLexer2(t *testing.T) {
 func TestParser1(t *testing.T) {
 	inp := "  aa ||   bb   && cc ||\n dd ||\n ee && ff || gg && (hh ||\nii)"
 	outp := "aa,bb+cc,dd,ee+ff,gg+(hh,ii)"
-	expr, err := AssertionParse(inp)
+	expr, err := AssertionParse(testAssertionContext{}, inp)
 	if err != nil {
 		t.Error(err)
 	} else if expr.String() != outp {
@@ -68,7 +68,7 @@ func TestParser1(t *testing.T) {
 func TestParser2(t *testing.T) {
 	inp := "  web://a.aa ||   http://b.bb   && dns://c.cc ||\n dd ||\n pgp:ee && reddit:foo || twitter:goo && (https:h.in ||\ndns:i.co)"
 	outp := "a.aa@web,b.bb@http+c.cc@dns,dd,ee@pgp+foo@reddit,goo@twitter+(h.in@https,i.co@dns)"
-	expr, err := AssertionParse(inp)
+	expr, err := AssertionParse(testAssertionContext{}, inp)
 	if err != nil {
 		t.Error(err)
 	} else if expr.String() != outp {
@@ -77,14 +77,7 @@ func TestParser2(t *testing.T) {
 }
 
 func TestNormalization(t *testing.T) {
-	inp := "Web://A.AA || HttP://B.bb && dnS://C.cc || MaxFactor@reddit || zQueal@keyBASE || XanxA@hackernews || foO@TWITTER || 0123456789ABCDEF0123456789abcd19@uid"
-	outp := "a.aa@web,b.bb@http+c.cc@dns,maxfactor@reddit,zqueal,XanxA@hackernews,foo@twitter,0123456789abcdef0123456789abcd19@uid"
-	expr, err := AssertionParse(inp)
-	if err != nil {
-		t.Error(err)
-	} else if expr.String() != outp {
-		t.Errorf("Wrong parse result: %s v %s", expr.String(), outp)
-	}
+	// Test moved to externals/ since it requires knowledge of social networks
 }
 
 type Pair struct {
@@ -97,20 +90,17 @@ func TestParserFail1(t *testing.T) {
 		{"aa &&", "Unexpected EOF"},
 		{"(aa", "Unbalanced parentheses"},
 		{"aa && dns:", "Bad assertion, no value given (key=dns)"},
-		{"bb && foo:a", "Unknown social network: foo"},
 		{"&& aa", "Unexpected token: &&"},
 		{"|| aa", "Unexpected token: ||"},
 		{"aa)", "Found junk at end of input: )"},
 		{"()", "Illegal parenthetical expression"},
-		{"dns://a", "Invalid hostname: a"},
-		{"f@reddit", "Bad username: 'f'"},
 		{"a@pgp", "bad hex string: 'a'"},
 		{"aBCP@pgp", "bad hex string: 'abcp'"},
 		{"jj@pgp", "bad hex string: 'jj'"},
 	}
 
 	for _, bad := range bads {
-		expr, err := AssertionParse(bad.k)
+		expr, err := AssertionParse(testAssertionContext{}, bad.k)
 		if err == nil {
 			t.Errorf("Expected a parse error in %s (got %v)", bad, expr)
 		} else if err.Error() != bad.v {
