@@ -967,6 +967,30 @@ const iconMeta_ = {
     // $FlowIssue
     require: require('../images/icons/icon-pgp-key-64.png'),
   },
+  'icon-pgp-key-import-48': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue
+    require: require('../images/icons/icon-pgp-key-import-48.png'),
+  },
+  'icon-pgp-key-import-64': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue
+    require: require('../images/icons/icon-pgp-key-import-64.png'),
+  },
+  'icon-pgp-key-new-48': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue
+    require: require('../images/icons/icon-pgp-key-new-48.png'),
+  },
+  'icon-pgp-key-new-64': {
+    isFont: false,
+    extension: 'png',
+    // $FlowIssue
+    require: require('../images/icons/icon-pgp-key-new-64.png'),
+  },
   'icon-phone-bw-24': {
     isFont: false,
     extension: 'png',

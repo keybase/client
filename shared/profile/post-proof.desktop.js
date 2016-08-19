@@ -24,7 +24,7 @@ const PostProof = (props: Props) => {
       <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />
       {!!errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
-        <PlatformIcon platform={platform} overlay='icon-proof-unfinished' overlayColor={globalColors.grey} size={48} />
+        <PlatformIcon platform={platform} overlay='icon-proof-unfinished' overlayColor={globalColors.grey} />
         <Text style={{...stylePlatformUsername, ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.medium})}} type='Header'>{platformUserName}</Text>
         {!!platformSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformSubtitle}</Text>}
         {descriptionView || (descriptionText && <Text type='Body'>{descriptionText}</Text>)}

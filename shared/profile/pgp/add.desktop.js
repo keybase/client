@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Button, Icon, Input, SmallInput, StandardScreen, Text} from '../../common-adapters'
+import {Box, Button, Input, PlatformIcon, SmallInput, StandardScreen, Text} from '../../common-adapters'
 import {globalStyles, globalMargins, globalColors} from '../../styles/style-guide'
 import type {Props} from './add'
 
@@ -12,8 +12,9 @@ class PgpAdd extends Component<void, Props, void> {
         style={styleContainer}
         onClose={this.props.onCancel}>
         {/* TODO(MM) when we get the pgp icon, put it in here */}
-        <Icon
-          type={'iconfont-identity-pgp'}
+        <PlatformIcon
+          platform='pgp'
+          overlay='icon-proof-unfinished'
           style={styleIcon} />
         <Text
           style={styleHeader}
@@ -71,9 +72,6 @@ const styleContainer = {
 }
 
 const styleIcon = {
-  width: 48,
-  height: 48,
-  fontSize: 48,
   alignSelf: 'center',
 }
 
