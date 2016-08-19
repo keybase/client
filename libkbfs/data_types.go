@@ -573,47 +573,61 @@ type BlockChanges struct {
 // operation level.
 func (bc BlockChanges) Equals(other BlockChanges) bool {
 	if bc.Info != other.Info || len(bc.Ops) != len(other.Ops) ||
-		bc.sizeEstimate != other.sizeEstimate {
+		(bc.sizeEstimate != 0 && other.sizeEstimate != 0 &&
+			bc.sizeEstimate != other.sizeEstimate) {
 		return false
 	}
 	// TODO: check for op equality?
 	return true
 }
 
-func (bc *BlockChanges) addBPSize() {
-	// We want an estimate of the codec-encoded size, but the
-	// in-memory size is good enough.
-	bc.sizeEstimate += bpSize
-}
-
 // AddRefBlock adds the newly-referenced block to this BlockChanges
 // and updates the size estimate.
 func (bc *BlockChanges) AddRefBlock(ptr BlockPointer) {
+	if bc.sizeEstimate != 0 {
+		panic("Can't alter block changes after the size is estimated")
+	}
 	bc.Ops[len(bc.Ops)-1].AddRefBlock(ptr)
-	bc.addBPSize()
 }
 
 // AddUnrefBlock adds the newly unreferenced block to this BlockChanges
 // and updates the size estimate.
 func (bc *BlockChanges) AddUnrefBlock(ptr BlockPointer) {
+	if bc.sizeEstimate != 0 {
+		panic("Can't alter block changes after the size is estimated")
+	}
 	bc.Ops[len(bc.Ops)-1].AddUnrefBlock(ptr)
-	bc.addBPSize()
 }
 
 // AddUpdate adds the newly updated block to this BlockChanges
 // and updates the size estimate.
 func (bc *BlockChanges) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+	if bc.sizeEstimate != 0 {
+		panic("Can't alter block changes after the size is estimated")
+	}
 	bc.Ops[len(bc.Ops)-1].AddUpdate(oldPtr, newPtr)
-	// add sizes for both block pointers
-	bc.addBPSize()
-	bc.addBPSize()
 }
 
 // AddOp starts a new operation for this BlockChanges.  Subsequent
 // Add* calls will populate this operation.
 func (bc *BlockChanges) AddOp(o op) {
+	if bc.sizeEstimate != 0 {
+		panic("Can't alter block changes after the size is estimated")
+	}
 	bc.Ops = append(bc.Ops, o)
-	bc.sizeEstimate += o.SizeExceptUpdates()
+}
+
+// SizeEstimate calculates the estimated size of the encoded version
+// of this BlockChanges.
+func (bc *BlockChanges) SizeEstimate() uint64 {
+	if bc.sizeEstimate == 0 {
+		for _, op := range bc.Ops {
+			numPtrs := len(op.Refs()) + len(op.Unrefs()) +
+				2*len(op.AllUpdates())
+			bc.sizeEstimate += uint64(numPtrs)*bpSize + op.SizeExceptUpdates()
+		}
+	}
+	return bc.sizeEstimate
 }
 
 // EntryType is the type of a directory entry.
