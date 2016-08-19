@@ -318,8 +318,6 @@ func (p SignaturePrefix) hasNullByte() bool {
 	return false
 }
 
-type SignaturePrefix string
-
 func (p SignaturePrefix) Prefix(msg []byte) []byte {
 	prefix := append([]byte(p), 0)
 	return append(prefix, msg...)
