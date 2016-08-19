@@ -5,6 +5,7 @@
 package libkbfs
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
@@ -467,6 +468,13 @@ func (md *MDOpsStandard) put(
 	_, me, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return MdID{}, err
+	}
+
+	// Ensure that the block changes are properly unembedded.
+	if rmd.data.Changes.Info.BlockPointer == zeroPtr &&
+		!md.config.BlockSplitter().ShouldEmbedBlockChanges(&rmd.data.Changes) {
+		return MdID{},
+			errors.New("MD has embedded block changes, but shouldn't")
 	}
 
 	brmd, err := encryptMDPrivateData(

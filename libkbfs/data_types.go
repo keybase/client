@@ -572,7 +572,9 @@ type BlockChanges struct {
 // BlockChanges.  Currently does not check for equality at the
 // operation level.
 func (bc BlockChanges) Equals(other BlockChanges) bool {
-	if bc.Info != other.Info || len(bc.Ops) != len(other.Ops) {
+	if bc.Info != other.Info || len(bc.Ops) != len(other.Ops) ||
+		(bc.sizeEstimate != 0 && other.sizeEstimate != 0 &&
+			bc.sizeEstimate != other.sizeEstimate) {
 		return false
 	}
 	// TODO: check for op equality?

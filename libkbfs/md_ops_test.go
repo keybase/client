@@ -189,7 +189,8 @@ func putMDForPrivate(config *ConfigMock, rmd *RootMetadata) {
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
 		&rmd.data, TLFCryptKey{}).Return(EncryptedPrivateMetadata{}, nil)
 	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).Times(2).Return(SignatureInfo{}, nil)
-
+	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
+		Return(true)
 	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil)
 }
 
@@ -662,6 +663,8 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 	expectGetTLFCryptKeyForEncryption(config, rmd)
 	config.mockCrypto.EXPECT().EncryptPrivateMetadata(
 		&rmd.data, TLFCryptKey{}).Return(EncryptedPrivateMetadata{}, nil)
+	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
+		Return(true)
 
 	err := errors.New("Fake fail")
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, err)
