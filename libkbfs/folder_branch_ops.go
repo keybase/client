@@ -3504,6 +3504,59 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 					"Couldn't delete transient entry for %v: %v", ptr, err)
 			}
 		}
+	case *resolutionOp:
+		// If there are any unrefs of blocks that have a node, this is an
+		// implied rmOp (see KBFS-1424).
+		reverseUpdates := make(map[BlockPointer]BlockPointer)
+		for _, unref := range op.Unrefs() {
+			// TODO: I will add logic here to unlink and invalidate any
+			// corresponding unref'd nodes.
+			node := fbo.nodeCache.Get(unref.ref())
+			if node == nil {
+				// TODO: even if we don't have the node that was
+				// unreferenced, we might have its parent, and that
+				// parent might need an invalidation.
+				continue
+			}
+
+			// If there is a node, unlink and invalidate.
+			p, err := fbo.pathFromNodeForRead(node)
+			if err != nil {
+				fbo.log.CErrorf(ctx, "Couldn't get path: %v", err)
+				continue
+			}
+			if !p.hasValidParent() {
+				fbo.log.CErrorf(ctx, "Removed node %s has no parent", p)
+				continue
+			}
+			parentPath := p.parentPath()
+			parentNode := fbo.nodeCache.Get(parentPath.tailPointer().ref())
+			if parentNode != nil {
+				changes = append(changes, NodeChange{
+					Node:       parentNode,
+					DirUpdated: []string{p.tailName()},
+				})
+			}
+
+			fbo.log.CDebugf(ctx, "resolutionOp: remove %s, node %p",
+				p.tailPointer(), node.GetID())
+			// Revert the path back to the original BlockPointers,
+			// before the updates were applied.
+			if len(reverseUpdates) == 0 {
+				for _, update := range op.AllUpdates() {
+					reverseUpdates[update.Ref] = update.Unref
+				}
+			}
+			for i, pNode := range p.path {
+				if oldPtr, ok := reverseUpdates[pNode.BlockPointer]; ok {
+					p.path[i].BlockPointer = oldPtr
+				}
+			}
+			fbo.nodeCache.Unlink(p.tailPointer().ref(), p)
+		}
+		if len(changes) == 0 {
+			return
+		}
 	}
 
 	fbo.observers.batchChanges(ctx, changes)

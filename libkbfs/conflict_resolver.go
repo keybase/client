@@ -619,33 +619,38 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 
 		// Drop the merged rmOp since we're recreating it, and we
 		// don't want to replay that notification locally.
-		mergedChain, ok := mergedChains.byOriginal[parentOriginal]
-		if !ok {
-			continue
-		}
-		mergedMostRecent, err :=
-			mergedChains.mostRecentFromOriginalOrSame(currOriginal)
-		if err != nil {
-			return path{}, BlockPointer{}, nil, err
-		}
-	outer:
-		for i, op := range mergedChain.ops {
-			ro, ok := op.(*rmOp)
-			if !ok {
-				continue
+		if mergedChain, ok := mergedChains.byOriginal[parentOriginal]; ok {
+			mergedMostRecent, err :=
+				mergedChains.mostRecentFromOriginalOrSame(currOriginal)
+			if err != nil {
+				return path{}, BlockPointer{}, nil, err
 			}
-			// Use the unref'd pointer, and not the name, to identify
-			// the operation, since renames might have happened on the
-			// merged branch.
-			for _, unref := range ro.Unrefs() {
-				if unref != mergedMostRecent {
+		outer:
+			for i, op := range mergedChain.ops {
+				ro, ok := op.(*rmOp)
+				if !ok {
 					continue
 				}
+				// Use the unref'd pointer, and not the name, to identify
+				// the operation, since renames might have happened on the
+				// merged branch.
+				for _, unref := range ro.Unrefs() {
+					if unref != mergedMostRecent {
+						continue
+					}
 
-				mergedChain.ops =
-					append(mergedChain.ops[:i], mergedChain.ops[i+1:]...)
-				break outer
+					mergedChain.ops =
+						append(mergedChain.ops[:i], mergedChain.ops[i+1:]...)
+					break outer
+				}
 			}
+		} else {
+			// If there's no chain, then likely a previous resolution
+			// removed an entire directory tree, and so the individual
+			// rm operations aren't listed.  In that case, there's no
+			// rm op to remove.
+			cr.log.CDebugf(ctx, "No corresponding merged chain for parent "+
+				"%v; skipping rm removal", parentOriginal)
 		}
 
 		de, err := cr.fbo.blocks.GetDirtyEntry(ctx, lState,
@@ -676,7 +681,10 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 		if ri, ok := unmergedChains.renamedOriginals[currOriginal]; ok {
 			oldParent, ok := unmergedChains.byOriginal[ri.originalOldParent]
 			if !ok {
-				continue
+				cr.log.CDebugf(ctx, "Couldn't find chain for original "+
+					"old parent: %v", ri.originalOldParent)
+				return path{}, BlockPointer{}, nil,
+					NoChainFoundError{ri.originalOldParent}
 			}
 			for _, op := range oldParent.ops {
 				ro, ok := op.(*rmOp)
@@ -693,7 +701,10 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 			// which contains the proper refblock.
 			newParent, ok := unmergedChains.byOriginal[ri.originalNewParent]
 			if !ok {
-				continue
+				cr.log.CDebugf(ctx, "Couldn't find chain for original new "+
+					"parent: %v", ri.originalNewParent)
+				return path{}, BlockPointer{}, nil,
+					NoChainFoundError{ri.originalNewParent}
 			}
 			for i, op := range newParent.ops {
 				oldCo, ok := op.(*createOp)

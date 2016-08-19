@@ -523,6 +523,76 @@ func TestCrDoubleResolution(t *testing.T) {
 	)
 }
 
+// Charlie has a resolution that touches a subdirectory that has been
+// deleted in Bob's resolution.
+func TestCrDoubleResolutionRmTree(t *testing.T) {
+	test(t,
+		users("alice", "bob", "charlie"),
+		as(alice,
+			write("a/b/c/d/e", "test1"),
+			write("a/b/c/d/f", "test2"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(charlie,
+			disableUpdates(),
+		),
+		as(alice,
+			write("g", "hello"),
+		),
+		as(bob, noSync(),
+			// Remove a tree of files.
+			rm("a/b/c/d/e"),
+			rm("a/b/c/d/f"),
+			rm("a/b/c/d"),
+			rm("a/b/c"),
+			reenableUpdates(),
+			lsdir("", m{"a": "DIR", "g": "FILE"}),
+			lsdir("a", m{"b": "DIR"}),
+			lsdir("a/b", m{}),
+			read("g", "hello"),
+		),
+		as(alice,
+			lsdir("", m{"a": "DIR", "g": "FILE"}),
+			lsdir("a", m{"b": "DIR"}),
+			lsdir("a/b", m{}),
+			read("g", "hello"),
+		),
+		as(charlie, noSync(),
+			// Touch a subdirectory that was removed by bob.
+			// Unfortunately even though these are just rmOps, they
+			// still re-create "c/d".  Tracking a fix for that in
+			// KBFS-1423.
+			rm("a/b/c/d/e"),
+			rm("a/b/c/d/f"),
+			reenableUpdates(),
+			lsdir("", m{"a": "DIR", "g": "FILE"}),
+			lsdir("a", m{"b": "DIR"}),
+			lsdir("a/b", m{"c": "DIR"}),
+			lsdir("a/b/c", m{"d": "DIR"}),
+			lsdir("a/b/c/d", m{}),
+			read("g", "hello"),
+		),
+		as(alice,
+			lsdir("", m{"a": "DIR", "g": "FILE"}),
+			lsdir("a", m{"b": "DIR"}),
+			lsdir("a/b", m{"c": "DIR"}),
+			lsdir("a/b/c", m{"d": "DIR"}),
+			lsdir("a/b/c/d", m{}),
+			read("g", "hello"),
+		),
+		as(bob,
+			lsdir("", m{"a": "DIR", "g": "FILE"}),
+			lsdir("a", m{"b": "DIR"}),
+			lsdir("a/b", m{"c": "DIR"}),
+			lsdir("a/b/c", m{"d": "DIR"}),
+			lsdir("a/b/c/d", m{}),
+			read("g", "hello"),
+		),
+	)
+}
+
 // bob makes files in a directory renamed by alice
 func TestCrUnmergedMakeFilesInRenamedDir(t *testing.T) {
 	test(t,
