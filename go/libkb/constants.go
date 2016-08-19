@@ -438,7 +438,8 @@ const (
 )
 
 const (
-	SignaturePrefixKBFS     SignaturePrefix = "Keybase-KBFS-1"
-	SignaturePrefixChat     SignaturePrefix = "Keybase-Chat-1"
-	SignaturePrefixSigchain SignaturePrefix = "Keybase-Sigchain-1"
+	SignaturePrefixKBFS       SignaturePrefix = "Keybase-KBFS-1"
+	SignaturePrefixChatHeader SignaturePrefix = "Keybase-Chat-Body-1"
+	SignaturePrefixChatBody   SignaturePrefix = "Keybase-Chat-Header-1"
+	SignaturePrefixSigchain   SignaturePrefix = "Keybase-Sigchain-1"
 )

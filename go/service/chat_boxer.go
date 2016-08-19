@@ -142,11 +142,11 @@ func (b *chatBoxer) verifyMessageBoxed(msg chat1.MessageBoxed) error {
 	if err != nil {
 		return err
 	}
-	if !b.verify(header, msg.HeaderSignature) {
+	if !b.verify(header, msg.HeaderSignature, libkb.SignaturePrefixChatHeader) {
 		return libkb.BadSigError{E: "header signature invalid"}
 	}
 
-	if !b.verify(msg.BodyCiphertext.E, msg.BodySignature) {
+	if !b.verify(msg.BodyCiphertext.E, msg.BodySignature, libkb.SignaturePrefixChatBody) {
 		return libkb.BadSigError{E: "body signature invalid"}
 	}
 
@@ -158,10 +158,10 @@ func (b *chatBoxer) verifyMessageBoxed(msg chat1.MessageBoxed) error {
 }
 
 // verify verifies the signature of data using SignatureInfo.
-func (b *chatBoxer) verify(data []byte, si chat1.SignatureInfo) bool {
+func (b *chatBoxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.SignaturePrefix) bool {
 	sigInfo := libkb.NaclSigInfo{
 		Version: si.V,
-		Prefix:  libkb.SignaturePrefixChat,
+		Prefix:  prefix,
 		Kid:     si.K,
 		Payload: data,
 	}

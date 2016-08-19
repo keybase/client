@@ -131,13 +131,13 @@ func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadVi
 // signMessageBoxed signs the header and encrypted body of a chat1.MessageBoxed
 // with the NaclSigningKeyPair.
 func (h *chatLocalHandler) signMessageBoxed(msg *chat1.MessageBoxed, kp libkb.NaclSigningKeyPair) error {
-	header, err := h.signJSON(msg.ClientHeader, kp)
+	header, err := h.signJSON(msg.ClientHeader, kp, libkb.SignaturePrefixChatHeader)
 	if err != nil {
 		return err
 	}
 	msg.HeaderSignature = header
 
-	body, err := h.sign(msg.BodyCiphertext.E, kp)
+	body, err := h.sign(msg.BodyCiphertext.E, kp, libkb.SignaturePrefixChatBody)
 	if err != nil {
 		return err
 	}
@@ -148,13 +148,13 @@ func (h *chatLocalHandler) signMessageBoxed(msg *chat1.MessageBoxed, kp libkb.Na
 
 // signJSON signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
 // It encodes data to JSON before signing.
-func (h *chatLocalHandler) signJSON(data interface{}, kp libkb.NaclSigningKeyPair) (chat1.SignatureInfo, error) {
+func (h *chatLocalHandler) signJSON(data interface{}, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
 	encoded, err := json.Marshal(data)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
 	}
 
-	return h.sign(encoded, kp)
+	return h.sign(encoded, kp, prefix)
 }
 
 func exportSigInfo(si *libkb.NaclSigInfo) chat1.SignatureInfo {
@@ -166,8 +166,8 @@ func exportSigInfo(si *libkb.NaclSigInfo) chat1.SignatureInfo {
 }
 
 // sign signs msg with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
-func (h *chatLocalHandler) sign(msg []byte, kp libkb.NaclSigningKeyPair) (chat1.SignatureInfo, error) {
-	sig, err := kp.SignV2(msg, libkb.SignaturePrefixChat)
+func (h *chatLocalHandler) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
+	sig, err := kp.SignV2(msg, prefix)
 	if err != nil {
 		return chat1.SignatureInfo{}, err
 	}

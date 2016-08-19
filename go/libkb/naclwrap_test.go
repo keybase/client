@@ -234,7 +234,7 @@ func TestNaclPrefixedSigs(t *testing.T) {
 
 	msg := []byte("test message")
 
-	sig, err := keyPair.SignV2(msg, SignaturePrefixChat)
+	sig, err := keyPair.SignV2(msg, SignaturePrefixChatHeader)
 	if err != nil {
 		t.Fatal(err)
 	}
