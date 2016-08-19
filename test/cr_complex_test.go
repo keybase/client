@@ -320,6 +320,40 @@ func TestCrUnmergedWriteToRemovedFile(t *testing.T) {
 	)
 }
 
+// bob writes to a file while alice renamed then removes it
+func TestCrUnmergedWriteToRenamedAndRemovedFile(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b/c", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkdir("d"),
+			rename("a/b/c", "d/c"),
+			rm("d/c"),
+		),
+		as(bob, noSync(),
+			write("a/b/c", "goodbye"),
+			reenableUpdates(),
+			lsdir("", m{"a": "DIR", "d": "DIR"}),
+			lsdir("a/", m{"b": "DIR"}),
+			lsdir("a/b/", m{"c": "FILE"}),
+			read("a/b/c", "goodbye"),
+			lsdir("d/", m{}),
+		),
+		as(alice,
+			lsdir("", m{"a": "DIR", "d": "DIR"}),
+			lsdir("a/", m{"b": "DIR"}),
+			lsdir("a/b/", m{"c": "FILE"}),
+			read("a/b/c", "goodbye"),
+			lsdir("d/", m{}),
+		),
+	)
+}
+
 // bob removes a file while alice writes to it
 func TestCrMergedWriteToRemovedFile(t *testing.T) {
 	test(t,
