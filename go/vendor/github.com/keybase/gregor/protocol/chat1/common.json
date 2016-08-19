@@ -70,15 +70,19 @@
       "fields": [
         {
           "type": "bytes",
-          "name": "resourceID"
+          "name": "next"
         },
         {
-          "type": "int",
-          "name": "last"
+          "type": "bytes",
+          "name": "previous"
         },
         {
           "type": "int",
           "name": "num"
+        },
+        {
+          "type": "boolean",
+          "name": "last"
         }
       ]
     },
@@ -121,6 +125,14 @@
         {
           "type": "ConversationMetadata",
           "name": "metadata"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "mtime"
+        },
+        {
+          "type": "MessageID",
+          "name": "readMsgid"
         },
         {
           "type": {

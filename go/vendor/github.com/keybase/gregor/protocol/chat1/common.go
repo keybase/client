@@ -33,9 +33,10 @@ const (
 )
 
 type Pagination struct {
-	ResourceID []byte `codec:"resourceID" json:"resourceID"`
-	Last       int    `codec:"last" json:"last"`
-	Num        int    `codec:"num" json:"num"`
+	Next     []byte `codec:"next" json:"next"`
+	Previous []byte `codec:"previous" json:"previous"`
+	Num      int    `codec:"num" json:"num"`
+	Last     bool   `codec:"last" json:"last"`
 }
 
 type ConversationIDTriple struct {
@@ -51,6 +52,8 @@ type ConversationMetadata struct {
 
 type Conversation struct {
 	Metadata   ConversationMetadata  `codec:"metadata" json:"metadata"`
+	Mtime      gregor1.Time          `codec:"mtime" json:"mtime"`
+	ReadMsgid  MessageID             `codec:"readMsgid" json:"readMsgid"`
 	MaxHeaders []MessageServerHeader `codec:"maxHeaders" json:"maxHeaders"`
 }
 

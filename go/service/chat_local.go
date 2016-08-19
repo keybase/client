@@ -84,7 +84,6 @@ func (h *chatLocalHandler) GetOrCreateTextConversationLocal(ctx context.Context,
 	ipagination := &chat1.Pagination{}
 getinbox:
 	for {
-		ipagination.Num = 32
 		iview, err := h.GetInboxLocal(ctx, ipagination)
 		if err != nil {
 			return id, err
@@ -97,7 +96,7 @@ getinbox:
 			}
 		}
 
-		if iview.Pagination == nil || iview.Pagination.Last != 0 {
+		if iview.Pagination == nil || iview.Pagination.Last {
 			break getinbox
 		} else {
 			ipagination = iview.Pagination
@@ -173,18 +172,16 @@ getinbox:
 				}
 			}
 
-			// TODO: replace pgination check with something sane when Mike's PR's merged
 			// TODO: determine whether need to continue according to the MessageSelector
-			if tview.Pagination == nil {
+			if tview.Pagination == nil || tview.Pagination.Last {
 				break getthread
 			} else {
 				tpagination = tview.Pagination
 			}
 		}
 
-		// TODO: replace pgination check with something sane when Mike's PR's merged
 		// TODO: determine whether need to continue according to the MessageSelector
-		if iview.Pagination == nil {
+		if iview.Pagination == nil || iview.Pagination.Last {
 			break getinbox
 		} else {
 			ipagination = iview.Pagination
@@ -242,7 +239,8 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg keybase1.PostLocal
 		MessageBoxed:   boxed,
 	}
 
-	return h.remoteClient().PostRemote(ctx, rarg)
+	_, err = h.remoteClient().PostRemote(ctx, rarg)
+	return err
 }
 
 // getSecretUI returns a SecretUI, preferring a delegated SecretUI if

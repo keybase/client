@@ -25,6 +25,6 @@ protocol remote {
   InboxView getInboxRemote(union { null, Pagination } pagination);
   ThreadViewBoxed getThreadRemote(ConversationID conversationID, union { null, Pagination } pagination);
 
-  void postRemote(ConversationID conversationID, MessageBoxed messageBoxed);
+  MessageID postRemote(ConversationID conversationID, MessageBoxed messageBoxed);
   ConversationID newConversationRemote(ConversationIDTriple idTriple);
 }

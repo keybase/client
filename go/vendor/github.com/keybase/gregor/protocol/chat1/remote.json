@@ -96,7 +96,7 @@
           "type": "MessageBoxed"
         }
       ],
-      "response": null
+      "response": "MessageID"
     },
     "newConversationRemote": {
       "request": [

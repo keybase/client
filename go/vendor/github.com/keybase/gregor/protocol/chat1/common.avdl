@@ -25,9 +25,10 @@ protocol common {
   }
 
   record Pagination {
-    bytes resourceID;
-    int last;
-    int num;
+    bytes next;
+    bytes previous;
+    int num; // Number of items requested when argument, and number returned when result
+    boolean last; // Will be true if the number of results is less than requested
   }
 
   record ConversationIDTriple {
@@ -43,6 +44,10 @@ protocol common {
 
   record Conversation {
     ConversationMetadata metadata;
+
+    gregor1.Time mtime; // The last time the convo was modified from the user perspective
+    MessageID readMsgid; // The message ID the user has read up to in the convo
+
     // maxHeaders is the maximum header for each messageType in the conversation.
     array<MessageServerHeader> maxHeaders;
   }

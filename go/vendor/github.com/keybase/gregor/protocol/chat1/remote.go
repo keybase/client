@@ -43,7 +43,7 @@ type NewConversationRemoteArg struct {
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, *Pagination) (InboxView, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (ThreadViewBoxed, error)
-	PostRemote(context.Context, PostRemoteArg) error
+	PostRemote(context.Context, PostRemoteArg) (MessageID, error)
 	NewConversationRemote(context.Context, ConversationIDTriple) (ConversationID, error)
 }
 
@@ -94,7 +94,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PostRemoteArg)(nil), args)
 						return
 					}
-					err = i.PostRemote(ctx, (*typedArgs)[0])
+					ret, err = i.PostRemote(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -134,8 +134,8 @@ func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemote
 	return
 }
 
-func (c RemoteClient) PostRemote(ctx context.Context, __arg PostRemoteArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.remote.postRemote", []interface{}{__arg}, nil)
+func (c RemoteClient) PostRemote(ctx context.Context, __arg PostRemoteArg) (res MessageID, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.postRemote", []interface{}{__arg}, &res)
 	return
 }
 
