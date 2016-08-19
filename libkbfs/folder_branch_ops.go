@@ -2032,6 +2032,8 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 		fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
 	}
 
+	md.swapCachedBlockChanges()
+
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
 	return fbo.setHeadSuccessorLocked(ctx, lState,
@@ -4411,6 +4413,8 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	if md.IsRekeySet() {
 		defer fbo.config.RekeyQueue().Enqueue(md.TlfID())
 	}
+
+	md.swapCachedBlockChanges()
 
 	// Set the head to the new MD.
 	fbo.headLock.Lock(lState)
