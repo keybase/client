@@ -26,10 +26,8 @@
       <Custom Action="StopGUI" Before="InstallValidate"/>
       <Custom Action="StopMainApp" Before="InstallValidate"/>
       <Custom Action="StopKBFS" Before="InstallValidate"/>
-      <!-- Force reboot for this version until everyone has kill-kbfs -->
-      <ScheduleReboot Before="InstallFinalize">UPGRADINGPRODUCTCODE</ScheduleReboot>
-      <Custom Action="RunMainApp" Before="InstallFinalize">NOT REBOOT AND NOT (REMOVE ~= "ALL")</Custom>
-      <Custom Action="RunGUI" Before="InstallFinalize">NOT REBOOT AND NOT (REMOVE ~= "ALL")</Custom>
+      <Custom Action="RunMainApp" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
+      <Custom Action="RunGUI" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
     </InstallExecuteSequence>
 
 
@@ -193,7 +191,7 @@
   <Fragment>
     <CustomAction Id="StopMainApp"
               Directory="INSTALLFOLDER"
-              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [INSTALLFOLDER]keybase.exe ctl stop --kill-kbfs"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [INSTALLFOLDER]keybase.exe ctl stop"
               Execute="immediate"
               Return="ignore"/>
   </Fragment>
