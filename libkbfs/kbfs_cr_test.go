@@ -427,9 +427,7 @@ func TestMultiUserWrite(t *testing.T) {
 	readAndCompareData(t, config1, ctx, name, data3, userName2)
 }
 
-// Tests that two users can make independent writes while forked, and
-// conflict resolution will merge them correctly.
-func TestBasicCRNoConflict(t *testing.T) {
+func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
@@ -437,6 +435,16 @@ func TestBasicCRNoConflict(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
+
+	if unembedChanges {
+		bss1, ok1 := config1.BlockSplitter().(*BlockSplitterSimple)
+		bss2, ok2 := config2.BlockSplitter().(*BlockSplitterSimple)
+		if !ok1 || !ok2 {
+			t.Fatalf("Couldn't convert BlockSplitters!")
+		}
+		bss1.blockChangeEmbedMaxSize = 256
+		bss2.blockChangeEmbedMaxSize = 256
+	}
 
 	name := userName1.String() + "," + userName2.String()
 
@@ -523,6 +531,29 @@ func TestBasicCRNoConflict(t *testing.T) {
 		t.Fatalf("Users 1 and 2 see different children: %v vs %v",
 			children1, children2)
 	}
+
+	if unembedChanges {
+		// Make sure the MD has an unembedded change block.
+		md, err := config1.MDOps().GetForTLF(ctx,
+			rootNode1.GetFolderBranch().Tlf)
+		if err != nil {
+			t.Fatalf("Couldn't get MD: %v", err)
+		}
+		if md.data.cachedChanges.Info.BlockPointer == zeroPtr {
+			t.Fatalf("No unembedded changes for ops %v", md.data.Changes.Ops)
+		}
+	}
+}
+
+// Tests that two users can make independent writes while forked, and
+// conflict resolution will merge them correctly.
+func TestBasicCRNoConflict(t *testing.T) {
+	testBasicCRNoConflict(t, false)
+}
+
+// Tests same as above, with unembedded block changes
+func TestBasicCRNoConflictWithUnembeddedBlockChanges(t *testing.T) {
+	testBasicCRNoConflict(t, true)
 }
 
 type registerForUpdateRecord struct {
