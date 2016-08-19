@@ -44,7 +44,7 @@ export function navBasedOnLoginState () :AsyncAction {
 
     // No status?
     if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length ||
-      !extendedConfig.device) { // Not provisioned?
+      !extendedConfig.defaultDeviceID) { // Not provisioned?
       dispatch(navigateTo([], loginTab))
       dispatch(switchTab(loginTab))
     } else {

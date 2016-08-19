@@ -25,8 +25,8 @@ type ResolveResult struct {
 
 const (
 	resolveCacheTTL           = 12 * time.Hour
-	resolveCacheMaxAge        = 12 * time.Hour
-	resolveCacheMaxAgeMutable = 20 * time.Minute
+	ResolveCacheMaxAge        = 12 * time.Hour
+	ResolveCacheMaxAgeMutable = 20 * time.Minute
 	resolveCacheMaxAgeErrored = 5 * time.Second
 )
 
@@ -68,7 +68,7 @@ func (r *Resolver) resolve(input string, withBody bool) (res ResolveResult) {
 	defer r.G().Trace(fmt.Sprintf("Resolving username %q", input), func() error { return res.err })()
 
 	var au AssertionURL
-	if au, res.err = ParseAssertionURL(AllServices{}, input, false); res.err != nil {
+	if au, res.err = ParseAssertionURL(r.G().MakeAssertionContext(), input, false); res.err != nil {
 		return res
 	}
 	res = r.resolveURL(au, input, withBody, false)
@@ -91,7 +91,7 @@ func (r *Resolver) resolveFullExpression(input string, withBody bool, needUserna
 	defer r.G().Trace(fmt.Sprintf("Resolving full expression %q", input), func() error { return res.err })()
 
 	var expr AssertionExpression
-	expr, res.err = AssertionParseAndOnly(input)
+	expr, res.err = AssertionParseAndOnly(r.G().MakeAssertionContext(), input)
 	if res.err != nil {
 		return res
 	}
@@ -193,7 +193,7 @@ func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, with
 	return
 }
 
-type resolveCacheStats struct {
+type ResolveCacheStats struct {
 	misses          int
 	timeouts        int
 	mutableTimeouts int
@@ -204,11 +204,11 @@ type resolveCacheStats struct {
 type Resolver struct {
 	Contextified
 	cache   *ramcache.Ramcache
-	stats   resolveCacheStats
-	nowFunc func() time.Time
+	Stats   ResolveCacheStats
+	NowFunc func() time.Time
 }
 
-func (s resolveCacheStats) eq(m, t, mt, et, h int) bool {
+func (s ResolveCacheStats) Eq(m, t, mt, et, h int) bool {
 	return (s.misses == m) && (s.timeouts == t) && (s.mutableTimeouts == mt) && (s.errorTimeouts == et) && (s.hits == h)
 }
 
@@ -216,13 +216,13 @@ func NewResolver(g *GlobalContext) *Resolver {
 	return &Resolver{
 		Contextified: NewContextified(g),
 		cache:        nil,
-		nowFunc:      func() time.Time { return time.Now() },
+		NowFunc:      func() time.Time { return time.Now() },
 	}
 }
 
 func (r *Resolver) EnableCaching() {
 	cache := ramcache.New()
-	cache.MaxAge = resolveCacheMaxAge
+	cache.MaxAge = ResolveCacheMaxAge
 	cache.TTL = resolveCacheTTL
 	r.cache = cache
 }
@@ -240,28 +240,28 @@ func (r *Resolver) getCache(key string) *ResolveResult {
 	}
 	res, _ := r.cache.Get(key)
 	if res == nil {
-		r.stats.misses++
+		r.Stats.misses++
 		return nil
 	}
 	rres, ok := res.(*ResolveResult)
 	if !ok {
-		r.stats.misses++
+		r.Stats.misses++
 		return nil
 	}
-	now := r.nowFunc()
-	if now.Sub(rres.cachedAt) > resolveCacheMaxAge {
-		r.stats.timeouts++
+	now := r.NowFunc()
+	if now.Sub(rres.cachedAt) > ResolveCacheMaxAge {
+		r.Stats.timeouts++
 		return nil
 	}
-	if rres.mutable && now.Sub(rres.cachedAt) > resolveCacheMaxAgeMutable {
-		r.stats.mutableTimeouts++
+	if rres.mutable && now.Sub(rres.cachedAt) > ResolveCacheMaxAgeMutable {
+		r.Stats.mutableTimeouts++
 		return nil
 	}
 	if rres.err != nil && now.Sub(rres.cachedAt) > resolveCacheMaxAgeErrored {
-		r.stats.errorTimeouts++
+		r.Stats.errorTimeouts++
 		return nil
 	}
-	r.stats.hits++
+	r.Stats.hits++
 	return rres
 }
 
@@ -271,7 +271,7 @@ func (r *Resolver) putCache(key string, res ResolveResult) {
 	if r.cache == nil {
 		return
 	}
-	res.cachedAt = r.nowFunc()
+	res.cachedAt = r.NowFunc()
 	res.body = nil // Don't cache body
 	r.cache.Set(key, &res)
 }

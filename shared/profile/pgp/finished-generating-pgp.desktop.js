@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {StandardScreen, Box, Text, Button, Icon, Checkbox} from '../../common-adapters'
+import {StandardScreen, Box, Text, Button, PlatformIcon, Checkbox} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles/style-guide'
 import {CHECKBOX_SIZE, CHECKBOX_MARGIN} from '../../common-adapters/checkbox.desktop'
 import type {Props} from './finished-generating-pgp'
@@ -26,7 +26,7 @@ class FinishedGeneratedPgp extends Component<void, Props, State> {
   render () {
     return (
       <StandardScreen notification={{type: 'success', message: 'Your PGP key was generated!'}}>
-        <Icon style={styleIcon} type='icon-pgp-key-48' />
+        <PlatformIcon style={styleIcon} platform='pgp' overlay='icon-proof-success' />
         <Text style={styleTitle} type='Header'>Here is your unique public key!</Text>
         <textInput style={stylePgpKeyString} readOnly={true}>{this.props.pgpKeyString}</textInput>
         <Box style={styleUploadContainer}>

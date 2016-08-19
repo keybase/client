@@ -387,6 +387,19 @@
       ],
       "response": null
     },
+    "pgpKeyGenDefault": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "createUids",
+          "type": "PGPCreateUids"
+        }
+      ],
+      "response": null
+    },
     "pgpDeletePrimary": {
       "request": [
         {

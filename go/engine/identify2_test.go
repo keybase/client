@@ -48,6 +48,7 @@ func (c cacheStats) eq(h, t, m, n int) bool {
 
 type Identify2WithUIDTester struct {
 	libkb.Contextified
+	libkb.BaseServiceType
 	finishCh        chan struct{}
 	startCh         chan struct{}
 	checkStatusHook func(libkb.SigHint) libkb.ProofError
@@ -67,13 +68,32 @@ func newIdentify2WithUIDTester(g *libkb.GlobalContext) *Identify2WithUIDTester {
 	}
 }
 
-func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) (libkb.ProofChecker, libkb.ProofError) {
-	return i, nil
+func (i *Identify2WithUIDTester) ListProofCheckers() []string { return nil }
+func (i *Identify2WithUIDTester) AllStringKeys() []string     { return nil }
+func (i *Identify2WithUIDTester) CheckProofText(text string, id keybase1.SigID, sig string) error {
+	return nil
 }
-
+func (i *Identify2WithUIDTester) DisplayName(n string) string { return n }
+func (i *Identify2WithUIDTester) GetPrompt() string           { return "" }
+func (i *Identify2WithUIDTester) GetProofType() string        { return "" }
+func (i *Identify2WithUIDTester) GetTypeName() string         { return "" }
 func (i *Identify2WithUIDTester) CheckHint(_ libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
 	return nil
 }
+func (i *Identify2WithUIDTester) NormalizeRemoteName(_ libkb.GlobalContextLite, name string) (string, error) {
+	return name, nil
+}
+func (i *Identify2WithUIDTester) NormalizeUsername(name string) (string, error)    { return name, nil }
+func (i *Identify2WithUIDTester) PostInstructions(remotename string) *libkb.Markup { return nil }
+func (i *Identify2WithUIDTester) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, remotename string) (*libkb.Markup, error) {
+	return nil, nil
+}
+func (i *Identify2WithUIDTester) ToServiceJSON(remotename string) *jsonw.Wrapper { return nil }
+
+func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) libkb.ProofChecker {
+	return i
+}
+func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
 
 func (i *Identify2WithUIDTester) CheckStatus(_ libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
 	if i.checkStatusHook != nil {
@@ -182,7 +202,7 @@ func TestIdentify2WithUIDWithoutTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithoutTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.ProofCheckerFactory = i
+	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
 		Uid: tracyUID,
 	}
@@ -200,7 +220,7 @@ func TestIdentify2WithUIDWithTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.ProofCheckerFactory = i
+	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
 		Uid: tracyUID,
 	}
@@ -226,7 +246,7 @@ func TestIdentify2WithUIDWithBrokenTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithBrokenTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.ProofCheckerFactory = i
+	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
 		Uid: tracyUID,
 	}
@@ -259,7 +279,7 @@ func TestIdentify2WithUIDWithAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.ProofCheckerFactory = i
+	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
 		Uid:           tracyUID,
 		UserAssertion: "tacovontaco@twitter",
@@ -284,7 +304,7 @@ func TestIdentify2WithUIDWithAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.ProofCheckerFactory = i
+	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
 		Uid:           tracyUID,
 		UserAssertion: "tacovontaco@twitter+t_tracy@rooter",
@@ -309,7 +329,7 @@ func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithNonExistentAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.ProofCheckerFactory = i
+	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
 		Uid:           tracyUID,
 		UserAssertion: "beyonce@twitter",
@@ -351,7 +371,7 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithFailedAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.ProofCheckerFactory = i
+	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
 		Uid:           tracyUID,
 		UserAssertion: "tacovontaco@twitter",
@@ -402,7 +422,7 @@ func TestIdentify2WithUIDWithFailedAncillaryAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithFailedAncillaryAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.ProofCheckerFactory = i
+	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
 		Uid:           tracyUID,
 		UserAssertion: "tacoplusplus@github+t_tracy@rooter",
@@ -452,7 +472,7 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithoutTrack")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.ProofCheckerFactory = i
+	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
 		Uid: tracyUID,
 	}
@@ -524,7 +544,7 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDLocalAssertions")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.ProofCheckerFactory = i
+	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
 		Uid: tracyUID,
 	}
@@ -588,7 +608,7 @@ func TestResolveAndIdentify2WithUIDWithAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.ProofCheckerFactory = i
+	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
 		UserAssertion: "tacovontaco@twitter+t_tracy@rooter",
 	}
@@ -613,7 +633,7 @@ func TestIdentify2NoSigchain(t *testing.T) {
 	Logout(tc)
 
 	i := newIdentify2WithUIDTester(tc.G)
-	tc.G.ProofCheckerFactory = i
+	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
 		UserAssertion: u,
 	}

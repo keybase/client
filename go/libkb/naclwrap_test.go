@@ -221,3 +221,60 @@ func TestNaclDecryptFromIced(t *testing.T) {
 		t.Error("failed to match plaintext")
 	}
 }
+
+// In V2, Nacl sigs are prefixed....
+func TestNaclPrefixedSigs(t *testing.T) {
+
+	keyPair, err := GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("keyPair: Public: %+v, Private: %+v", keyPair.Public, keyPair.Private)
+
+	msg := []byte("test message")
+
+	sig, err := keyPair.SignV2(msg, SignaturePrefixChatHeader)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = sig.Verify()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	sig.Version = 1
+	_, err = sig.Verify()
+	if err == nil {
+		t.Fatal("expected an error after we jiggled the version to 1")
+	}
+	if _, ok := err.(VerificationError); !ok {
+		t.Fatal("expected a VerificationError")
+	}
+
+	sig.Version = 2
+	sig.Prefix = SignaturePrefixKBFS
+	_, err = sig.Verify()
+	if err == nil {
+		t.Fatal("expected an error after we jiggled the prefix to the wrong one")
+	}
+	if _, ok := err.(VerificationError); !ok {
+		t.Fatal("expected a VerificationError")
+	}
+
+	_, err = keyPair.SignV2(msg, SignaturePrefix("a\x00b"))
+	if err == nil {
+		t.Fatal("expected a BadSignaturePrefixError")
+	}
+	if _, ok := err.(BadSignaturePrefixError); !ok {
+		t.Fatal("expected a BadSignaturePrefixError")
+	}
+	_, err = keyPair.SignV2(msg, SignaturePrefix(""))
+	if err == nil {
+		t.Fatal("expected a BadSignaturePrefixError")
+	}
+	if _, ok := err.(BadSignaturePrefixError); !ok {
+		t.Fatal("expected a BadSignaturePrefixError")
+	}
+}

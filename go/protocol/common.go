@@ -24,6 +24,7 @@ type UID string
 type DeviceID string
 type SigID string
 type KID string
+type BinaryKID []byte
 type TLFID string
 type Bytes32 [32]byte
 type Text struct {

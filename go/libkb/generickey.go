@@ -14,6 +14,7 @@ type AlgoType int
 
 type GenericKey interface {
 	GetKID() keybase1.KID
+	GetBinaryKID() keybase1.BinaryKID
 	GetFingerprintP() *PGPFingerprint
 	GetAlgoType() AlgoType
 

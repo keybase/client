@@ -505,7 +505,7 @@ func (k *PGPKeyBundle) CanSign() bool {
 	return (k.PrivateKey != nil && !k.PrivateKey.Encrypted) || k.GPGFallbackKey != nil
 }
 
-func (k *PGPKeyBundle) GetKID() keybase1.KID {
+func (k *PGPKeyBundle) GetBinaryKID() keybase1.BinaryKID {
 
 	prefix := []byte{
 		byte(KeybaseKIDV1),
@@ -531,7 +531,11 @@ func (k *PGPKeyBundle) GetKID() keybase1.KID {
 	out := append(prefix, sum[:]...)
 	out = append(out, byte(IDSuffixKID))
 
-	return keybase1.KIDFromSlice(out)
+	return keybase1.BinaryKID(out)
+}
+
+func (k *PGPKeyBundle) GetKID() keybase1.KID {
+	return k.GetBinaryKID().ToKID()
 }
 
 func (k PGPKeyBundle) GetAlgoType() AlgoType {

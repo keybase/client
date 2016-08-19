@@ -90,7 +90,7 @@ func (e *PGPPullEngine) getTrackedUserSummaries(ctx *Context) ([]keybase1.UserSu
 	// First parse all the assertion expressions.
 	parsedAsserts := make(map[string]libkb.AssertionExpression)
 	for _, assertString := range e.userAsserts {
-		assertExpr, err := libkb.AssertionParseAndOnly(assertString)
+		assertExpr, err := libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(), assertString)
 		if err != nil {
 			return nil, err
 		}

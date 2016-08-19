@@ -27,7 +27,7 @@
 ../desktop
 
 [libs]
-./libs/flow-interface.js
+./libs/flow-interface.js.flow
 
 [options]
 munge_underscores=true
