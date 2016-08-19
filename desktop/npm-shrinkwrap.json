@@ -686,6 +686,11 @@
         }
       }
     },
+    "blessed": {
+      "version": "0.1.81",
+      "from": "blessed@>=0.1.81 <0.2.0",
+      "resolved": "https://registry.npmjs.org/blessed/-/blessed-0.1.81.tgz"
+    },
     "bluebird": {
       "version": "2.10.2",
       "from": "bluebird@>=2.9.30 <3.0.0",
@@ -1473,6 +1478,11 @@
       "from": "filename-regex@>=2.0.0 <3.0.0",
       "resolved": "https://registry.npmjs.org/filename-regex/-/filename-regex-2.0.0.tgz"
     },
+    "filesize": {
+      "version": "3.3.0",
+      "from": "filesize@>=3.3.0 <4.0.0",
+      "resolved": "https://registry.npmjs.org/filesize/-/filesize-3.3.0.tgz"
+    },
     "fill-range": {
       "version": "2.2.3",
       "from": "fill-range@>=2.1.0 <3.0.0",
@@ -1991,6 +2001,18 @@
       "from": "json-schema@0.2.2",
       "resolved": "https://registry.npmjs.org/json-schema/-/json-schema-0.2.2.tgz"
     },
+    "json-socket": {
+      "version": "0.1.2",
+      "from": "json-socket@>=0.1.2 <0.2.0",
+      "resolved": "https://registry.npmjs.org/json-socket/-/json-socket-0.1.2.tgz",
+      "dependencies": {
+        "async": {
+          "version": "0.1.22",
+          "from": "async@>=0.1.0 <0.2.0",
+          "resolved": "https://registry.npmjs.org/async/-/async-0.1.22.tgz"
+        }
+      }
+    },
     "json-stable-stringify": {
       "version": "1.0.1",
       "from": "json-stable-stringify@>=1.0.0 <2.0.0",
@@ -2301,7 +2323,14 @@
     "mkdirp": {
       "version": "0.5.1",
       "from": "mkdirp@0.5.1",
-      "resolved": "https://registry.npmjs.org/mkdirp/-/mkdirp-0.5.1.tgz"
+      "resolved": "https://registry.npmjs.org/mkdirp/-/mkdirp-0.5.1.tgz",
+      "dependencies": {
+        "minimist": {
+          "version": "0.0.8",
+          "from": "minimist@0.0.8",
+          "resolved": "https://registry.npmjs.org/minimist/-/minimist-0.0.8.tgz"
+        }
+      }
     },
     "mkpath": {
       "version": "0.1.0",
@@ -3590,6 +3619,18 @@
       "from": "unpipe@>=1.0.0 <1.1.0",
       "resolved": "https://registry.npmjs.org/unpipe/-/unpipe-1.0.0.tgz"
     },
+    "unused-files-webpack-plugin": {
+      "version": "2.0.4",
+      "from": "unused-files-webpack-plugin@2.0.4",
+      "resolved": "https://registry.npmjs.org/unused-files-webpack-plugin/-/unused-files-webpack-plugin-2.0.4.tgz",
+      "dependencies": {
+        "glob": {
+          "version": "7.0.5",
+          "from": "glob@>=7.0.3 <8.0.0",
+          "resolved": "https://registry.npmjs.org/glob/-/glob-7.0.5.tgz"
+        }
+      }
+    },
     "url": {
       "version": "0.10.3",
       "from": "url@>=0.10.1 <0.11.0",
@@ -3697,6 +3738,11 @@
           "resolved": "https://registry.npmjs.org/source-map/-/source-map-0.4.4.tgz"
         }
       }
+    },
+    "webpack-dashboard": {
+      "version": "0.1.1",
+      "from": "webpack-dashboard@0.1.1",
+      "resolved": "https://registry.npmjs.org/webpack-dashboard/-/webpack-dashboard-0.1.1.tgz"
     },
     "webpack-dev-middleware": {
       "version": "1.6.1",

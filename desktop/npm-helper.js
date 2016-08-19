@@ -75,7 +75,7 @@ const commands = {
     help: 'Start electron with no hot reloading',
   },
   'build-dev': {
-    env: {NO_SERVER: 'true', DEBUG: 'express:*'},
+    env: {NO_SERVER: 'true'},
     nodeEnv: 'production',
     nodePathDesktop: true,
     shell: 'node server.js',
@@ -108,10 +108,10 @@ const commands = {
     help: 'Package up the production js code',
   },
   'hot-server': {
-    env: {HOT: 'true', DEBUG: 'express:*'},
+    env: {HOT: 'true'},
     nodeEnv: 'development',
     nodePathDesktop: true,
-    shell: 'node server.js',
+    shell: 'webpack-dashboard -- node server.js',
     help: 'Start the webpack hot reloading code server (needed by npm run start-hot)',
   },
   'inject-sourcemaps-prod': {

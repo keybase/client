@@ -1,5 +1,6 @@
 // @flow
 import CommonMap from '../common-adapters/dumb.desktop'
+import RegisterMap from '../login/register/dumb'
 import DevicesMap from '../devices/dumb'
 import LoginMap from '../login/dumb.desktop'
 import SignupMap from '../login/signup/dumb.desktop'
@@ -35,6 +36,7 @@ const map: any = {
   ...SearchMap,
   ...SearchUserPaneMap,
   ...UnlockFoldersMap,
+  ...RegisterMap,
 }
 
 export default map
