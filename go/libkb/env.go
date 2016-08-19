@@ -230,11 +230,12 @@ func (e *Env) getHomeFromCmdOrConfig() string {
 	)
 }
 
-func (e *Env) GetHome() string      { return e.homeFinder.Home(false) }
-func (e *Env) GetConfigDir() string { return e.homeFinder.ConfigDir() }
-func (e *Env) GetCacheDir() string  { return e.homeFinder.CacheDir() }
-func (e *Env) GetDataDir() string   { return e.homeFinder.DataDir() }
-func (e *Env) GetLogDir() string    { return e.homeFinder.LogDir() }
+func (e *Env) GetHome() string            { return e.homeFinder.Home(false) }
+func (e *Env) GetConfigDir() string       { return e.homeFinder.ConfigDir() }
+func (e *Env) GetCacheDir() string        { return e.homeFinder.CacheDir() }
+func (e *Env) GetSandboxCacheDir() string { return e.homeFinder.SandboxCacheDir() }
+func (e *Env) GetDataDir() string         { return e.homeFinder.DataDir() }
+func (e *Env) GetLogDir() string          { return e.homeFinder.LogDir() }
 
 func (e *Env) GetRuntimeDir() string {
 	return e.GetString(
