@@ -14,20 +14,6 @@ import (
 
 //=============================================================================
 
-type externalServicesCollection map[string]ServiceType
-
-var externalServices = externalServicesCollection(make(map[string]ServiceType))
-
-func (e externalServicesCollection) Register(st ServiceType) {
-	for _, k := range st.AllStringKeys() {
-		e[k] = st
-	}
-}
-
-func (e externalServicesCollection) GetServiceType(s string) ServiceType {
-	return e[strings.ToLower(s)]
-}
-
 func makeProofChecker(c ExternalServicesCollector, l RemoteProofChainLink) (ProofChecker, ProofError) {
 	k := l.TableKey()
 	st := c.GetServiceType(k)
@@ -42,18 +28,6 @@ func makeProofChecker(c ExternalServicesCollector, l RemoteProofChainLink) (Proo
 	}
 	return pc, nil
 }
-
-func (e externalServicesCollection) ListProofCheckers() []string {
-	var ret []string
-	for k, v := range e {
-		if useDevelProofCheckers || !v.IsDevelOnly() {
-			ret = append(ret, k)
-		}
-	}
-	return ret
-}
-
-var _ ExternalServicesCollector = externalServices
 
 //=============================================================================
 
@@ -157,10 +131,16 @@ func (t BaseServiceType) IsDevelOnly() bool { return false }
 
 //=============================================================================
 
-type AllServices struct{}
+type assertionContext struct {
+	esc ExternalServicesCollector
+}
 
-func (a AllServices) NormalizeSocialName(service string, username string) (string, error) {
-	st := externalServices.GetServiceType(service)
+func MakeAssertionContext(s ExternalServicesCollector) AssertionContext {
+	return assertionContext{esc: s}
+}
+
+func (a assertionContext) NormalizeSocialName(service string, username string) (string, error) {
+	st := a.esc.GetServiceType(service)
 	if st == nil {
 		return "", fmt.Errorf("Unknown social network: %s", service)
 	}

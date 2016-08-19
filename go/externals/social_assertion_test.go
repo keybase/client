@@ -1,12 +1,11 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package externals
 
 import (
-	"testing"
-
 	keybase1 "github.com/keybase/client/go/protocol"
+	"testing"
 )
 
 type nsatest struct {

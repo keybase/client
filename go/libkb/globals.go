@@ -100,7 +100,6 @@ func NewGlobalContext() *GlobalContext {
 	return &GlobalContext{
 		Log:          log,
 		VDL:          NewVDebugLog(log),
-		Services:     externalServices,
 		clock:        clockwork.NewRealClock(),
 		NewTriplesec: NewSecureTriplesec,
 	}
@@ -677,4 +676,15 @@ func (g *GlobalContext) LogoutIfRevoked() error {
 	g.Log.Debug("LogoutIfRevoked: current device ok")
 
 	return nil
+}
+
+func (g *GlobalContext) MakeAssertionContext() AssertionContext {
+	if g.Services == nil {
+		return nil
+	}
+	return MakeAssertionContext(g.Services)
+}
+
+func (g *GlobalContext) SetServices(s ExternalServicesCollector) {
+	g.Services = s
 }

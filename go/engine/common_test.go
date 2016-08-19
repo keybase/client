@@ -10,13 +10,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 )
 
 func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
-	tc := libkb.SetupTest(tb, name, 2)
+	tc := externals.SetupTest(tb, name, 2)
 	tc.G.NewTriplesec = func(passphrase []byte, salt []byte) (libkb.Triplesec, error) {
 		warner := func() { tc.G.Log.Warning("Installing insecure Triplesec with weak stretch parameters") }
 		isProduction := func() bool {
@@ -28,7 +29,7 @@ func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
 }
 
 func SetupEngineTestRealTriplesec(tb testing.TB, name string) libkb.TestContext {
-	tc := libkb.SetupTest(tb, name, 2)
+	tc := externals.SetupTest(tb, name, 2)
 	tc.G.NewTriplesec = libkb.NewSecureTriplesec
 	return tc
 }

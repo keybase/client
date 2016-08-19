@@ -11,8 +11,8 @@ import (
 // social assertions.  They do not need to be normalized, so
 // user@twitter and twitter:user will work, as will
 // USER@Twitter.
-func IsSocialAssertion(s string) bool {
-	_, ok := NormalizeSocialAssertion(s)
+func IsSocialAssertion(ctx AssertionContext, s string) bool {
+	_, ok := NormalizeSocialAssertion(ctx, s)
 	return ok
 }
 
@@ -22,8 +22,8 @@ func IsSocialAssertion(s string) bool {
 // be lowercased.  Colon assertions (twitter:user) will be
 // transformed to the user@twitter format.  Only registered
 // services are allowed.
-func NormalizeSocialAssertion(s string) (keybase1.SocialAssertion, bool) {
-	url, err := ParseAssertionURL(AllServices{}, s, true)
+func NormalizeSocialAssertion(ctx AssertionContext, s string) (keybase1.SocialAssertion, bool) {
+	url, err := ParseAssertionURL(ctx, s, true)
 	if err != nil || !url.IsRemote() {
 		return keybase1.SocialAssertion{}, false
 	}

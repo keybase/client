@@ -3,13 +3,14 @@
 
 // +build !production
 
-package libkb
+package externals
 
 import (
 	"net/url"
 	"regexp"
 	"strings"
 
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -19,61 +20,61 @@ import (
 //
 
 type RooterChecker struct {
-	proof RemoteProofChainLink
+	proof libkb.RemoteProofChainLink
 }
 
-func NewRooterChecker(p RemoteProofChainLink) (*RooterChecker, ProofError) {
+func NewRooterChecker(p libkb.RemoteProofChainLink) (*RooterChecker, libkb.ProofError) {
 	return &RooterChecker{p}, nil
 }
 
-func (rc *RooterChecker) GetTorError() ProofError { return nil }
+func (rc *RooterChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *RooterChecker) CheckHint(g GlobalContextLite, h SigHint) (err ProofError) {
+func (rc *RooterChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) (err libkb.ProofError) {
 	g.GetLog().Debug("+ Rooter check hint: %v", h)
 	defer func() {
 		g.GetLog().Debug("- Rooter check hint: %v", err)
 	}()
 
-	u, perr := url.Parse(strings.ToLower(h.apiURL))
+	u, perr := url.Parse(strings.ToLower(h.GetAPIURL()))
 	if perr != nil {
-		err = NewProofError(keybase1.ProofStatus_BAD_API_URL,
-			"Bad hint from server (%s): %v", h.apiURL, perr)
+		err = libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
+			"Bad hint from server (%s): %v", h.GetAPIURL(), perr)
 		return
 	}
 	wantedMedID := rc.proof.GetSigID().ToMediumID()
-	wantedPathPrefix := APIURIPathPrefix + "/rooter/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/"
+	wantedPathPrefix := libkb.APIURIPathPrefix + "/rooter/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/"
 	if !strings.HasPrefix(u.Path, wantedPathPrefix) {
-		err = NewProofError(keybase1.ProofStatus_BAD_API_URL,
+		err = libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should have path prefix '%s'; got %v", wantedPathPrefix, u)
-	} else if !strings.Contains(h.checkText, wantedMedID) {
-		err = NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
+	} else if !strings.Contains(h.GetCheckText(), wantedMedID) {
+		err = libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad proof-check text from server; need '%s' as a substring", wantedMedID)
 	}
 	return err
 }
 
 func (rc *RooterChecker) ScreenNameCompare(s1, s2 string) bool {
-	return Cicmp(s1, s2)
+	return libkb.Cicmp(s1, s2)
 }
 
-func (rc *RooterChecker) CheckData(h SigHint, dat string) ProofError {
-	_, sigID, err := OpenSig(rc.proof.GetArmoredSig())
+func (rc *RooterChecker) CheckData(h libkb.SigHint, dat string) libkb.ProofError {
+	_, sigID, err := libkb.OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {
-		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
+		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err)
 	} else if !strings.Contains(dat, sigID.ToMediumID()) {
-		return NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
+		return libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
 			"Missing signature ID (%s) in post title ('%s')",
 			sigID.ToMediumID(), dat)
 	}
 	return nil
 }
 
-func (rc *RooterChecker) contentMissing(err error) ProofError {
-	return NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "Bad proof JSON: %s", err)
+func (rc *RooterChecker) contentMissing(err error) libkb.ProofError {
+	return libkb.NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "Bad proof JSON: %s", err)
 }
 
-func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, ProofError) {
+func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, libkb.ProofError) {
 	var status, post string
 	var err error
 
@@ -89,10 +90,10 @@ func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, ProofError) {
 		if err != nil {
 			return "", rc.contentMissing(err)
 		}
-		if code == SCNotFound {
-			return "", NewProofError(keybase1.ProofStatus_NOT_FOUND, status)
+		if code == libkb.SCNotFound {
+			return "", libkb.NewProofError(keybase1.ProofStatus_NOT_FOUND, status)
 		}
-		return "", NewProofError(cf, "Rooter: Non-OK status: %s", status)
+		return "", libkb.NewProofError(cf, "Rooter: Non-OK status: %s", status)
 	}
 
 	inp.AtPath("toot.post").GetStringVoid(&post, &err)
@@ -104,7 +105,7 @@ func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, ProofError) {
 
 }
 
-func (rc *RooterChecker) rewriteURL(g GlobalContextLite, s string) (string, error) {
+func (rc *RooterChecker) rewriteURL(g libkb.GlobalContextLite, s string) (string, error) {
 	u1, err := url.Parse(s)
 	if err != nil {
 		return "", err
@@ -124,23 +125,23 @@ func (rc *RooterChecker) rewriteURL(g GlobalContextLite, s string) (string, erro
 	return u3.String(), nil
 }
 
-func (rc *RooterChecker) CheckStatus(g GlobalContextLite, h SigHint) (perr ProofError) {
+func (rc *RooterChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) (perr libkb.ProofError) {
 
-	g.GetLog().Debug("+ Checking rooter at API=%s", h.apiURL)
+	g.GetLog().Debug("+ Checking rooter at API=%s", h.GetAPIURL())
 	defer func() {
 		g.GetLog().Debug("- Rooter -> %v", perr)
 	}()
 
-	url, err := rc.rewriteURL(g, h.apiURL)
+	url, err := rc.rewriteURL(g, h.GetAPIURL())
 	if err != nil {
-		return XapiError(err, url)
+		return libkb.XapiError(err, url)
 	}
 	g.GetLog().Debug("| URL after rewriter is: %s", url)
 
-	res, err := g.GetExternalAPI().Get(NewAPIArg(url))
+	res, err := g.GetExternalAPI().Get(libkb.NewAPIArg(url))
 
 	if err != nil {
-		perr = XapiError(err, url)
+		perr = libkb.XapiError(err, url)
 		return perr
 	}
 	dat, perr := rc.UnpackData(res.Body)
@@ -155,7 +156,7 @@ func (rc *RooterChecker) CheckStatus(g GlobalContextLite, h SigHint) (perr Proof
 //
 //=============================================================================
 
-type RooterServiceType struct{ BaseServiceType }
+type RooterServiceType struct{ libkb.BaseServiceType }
 
 func (t RooterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
@@ -163,12 +164,12 @@ var rooterUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_]{1,20})$`)
 
 func (t RooterServiceType) NormalizeUsername(s string) (string, error) {
 	if !rooterUsernameRegexp.MatchString(s) {
-		return "", BadUsernameError{s}
+		return "", libkb.NewBadUsernameError(s)
 	}
 	return strings.ToLower(s), nil
 }
 
-func (t RooterServiceType) NormalizeRemoteName(_ GlobalContextLite, s string) (string, error) {
+func (t RooterServiceType) NormalizeRemoteName(_ libkb.GlobalContextLite, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
@@ -182,13 +183,13 @@ func (t RooterServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }
 
-func (t RooterServiceType) PostInstructions(un string) *Markup {
-	return FmtMarkup(`Please toot the following, and don't delete it:`)
+func (t RooterServiceType) PostInstructions(un string) *libkb.Markup {
+	return libkb.FmtMarkup(`Please toot the following, and don't delete it:`)
 }
 
 func (t RooterServiceType) DisplayName(un string) string { return "Rooter" }
 func (t RooterServiceType) GetTypeName() string          { return "rooter" }
-func (t RooterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *Markup, err error) {
+func (t RooterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	return t.BaseRecheckProofPosting(tryNumber, status)
 }
 func (t RooterServiceType) GetProofType() string { return "test.web_service_binding.rooter" }
@@ -197,7 +198,7 @@ func (t RooterServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 	return t.BaseCheckProofTextShort(text, id, true)
 }
 
-func (t RooterServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+func (t RooterServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &RooterChecker{l}
 }
 

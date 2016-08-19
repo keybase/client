@@ -100,7 +100,7 @@ func (e *FavoriteAdd) checkInviteNeeded(ctx *Context) error {
 	}
 
 	for _, user := range strings.Split(e.arg.Folder.Name, ",") {
-		assertion, ok := libkb.NormalizeSocialAssertion(user)
+		assertion, ok := libkb.NormalizeSocialAssertion(e.G().MakeAssertionContext(), user)
 		if !ok {
 			e.G().Log.Debug("not a social assertion: %s", user)
 			continue

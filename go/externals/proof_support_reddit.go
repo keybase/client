@@ -1,13 +1,14 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package externals
 
 import (
 	"net/url"
 	"regexp"
 	"strings"
 
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -17,7 +18,7 @@ import (
 //
 
 type RedditChecker struct {
-	proof RemoteProofChainLink
+	proof libkb.RemoteProofChainLink
 }
 
 const (
@@ -25,21 +26,21 @@ const (
 	RedditSub    = RedditPrefix + "/r/keybaseproofs"
 )
 
-func NewRedditChecker(p RemoteProofChainLink) (*RedditChecker, ProofError) {
+func NewRedditChecker(p libkb.RemoteProofChainLink) (*RedditChecker, libkb.ProofError) {
 	return &RedditChecker{p}, nil
 }
 
-func (rc *RedditChecker) GetTorError() ProofError { return nil }
+func (rc *RedditChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *RedditChecker) CheckHint(g GlobalContextLite, h SigHint) ProofError {
-	if strings.HasPrefix(strings.ToLower(h.apiURL), RedditSub) {
+func (rc *RedditChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+	if strings.HasPrefix(strings.ToLower(h.GetAPIURL()), RedditSub) {
 		return nil
 	}
-	return NewProofError(keybase1.ProofStatus_BAD_API_URL,
+	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
 		"Bad hint from server; URL should start with '%s'", RedditSub)
 }
 
-func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) (*jsonw.Wrapper, ProofError) {
+func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) (*jsonw.Wrapper, libkb.ProofError) {
 	var k1, k2 string
 	var err error
 
@@ -48,19 +49,19 @@ func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) (*jsonw.Wrapper, ProofEr
 	parent.AtKey("kind").GetStringVoid(&k2, &err)
 	var ret *jsonw.Wrapper
 
-	var pe ProofError
+	var pe libkb.ProofError
 	cf := keybase1.ProofStatus_CONTENT_FAILURE
 	cm := keybase1.ProofStatus_CONTENT_MISSING
 
 	if err != nil {
-		pe = NewProofError(cm, "Bad proof JSON: %s", err)
+		pe = libkb.NewProofError(cm, "Bad proof JSON: %s", err)
 	} else if k1 != "Listing" {
-		pe = NewProofError(cf,
+		pe = libkb.NewProofError(cf,
 			"Reddit: Wanted a post of type 'Listing', but got %s", k1)
 	} else if k2 != "t3" {
-		pe = NewProofError(cf, "Wanted a child of type 't3' but got %s", k2)
+		pe = libkb.NewProofError(cf, "Wanted a child of type 't3' but got %s", k2)
 	} else if ret = parent.AtKey("data"); ret.IsNil() {
-		pe = NewProofError(cm, "Couldn't get child data for post")
+		pe = libkb.NewProofError(cm, "Couldn't get child data for post")
 	}
 
 	return ret, pe
@@ -68,13 +69,13 @@ func (rc *RedditChecker) UnpackData(inp *jsonw.Wrapper) (*jsonw.Wrapper, ProofEr
 }
 
 func (rc *RedditChecker) ScreenNameCompare(s1, s2 string) bool {
-	return Cicmp(s1, s2)
+	return libkb.Cicmp(s1, s2)
 }
 
-func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
-	sigBody, sigID, err := OpenSig(rc.proof.GetArmoredSig())
+func (rc *RedditChecker) CheckData(h libkb.SigHint, dat *jsonw.Wrapper) libkb.ProofError {
+	sigBody, sigID, err := libkb.OpenSig(rc.proof.GetArmoredSig())
 	if err != nil {
-		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE, "Bad signature: %s", err)
+		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE, "Bad signature: %s", err)
 	}
 
 	var subreddit, author, selftext, title string
@@ -85,33 +86,33 @@ func (rc *RedditChecker) CheckData(h SigHint, dat *jsonw.Wrapper) ProofError {
 	dat.AtKey("title").GetStringVoid(&title, &err)
 
 	if err != nil {
-		return NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "content missing: %s", err)
+		return libkb.NewProofError(keybase1.ProofStatus_CONTENT_MISSING, "content missing: %s", err)
 	}
 
 	if strings.ToLower(subreddit) != "keybaseproofs" {
-		return NewProofError(keybase1.ProofStatus_SERVICE_ERROR, "the post must be to /r/KeybaseProofs")
+		return libkb.NewProofError(keybase1.ProofStatus_SERVICE_ERROR, "the post must be to /r/KeybaseProofs")
 	}
 
 	if wanted := rc.proof.GetRemoteUsername(); !rc.ScreenNameCompare(author, wanted) {
-		return NewProofError(keybase1.ProofStatus_BAD_USERNAME,
+		return libkb.NewProofError(keybase1.ProofStatus_BAD_USERNAME,
 			"Bad post author; wanted '%s' but got '%s'", wanted, author)
 	}
 
 	if psid := sigID.ToMediumID(); !strings.Contains(title, psid) {
-		return NewProofError(keybase1.ProofStatus_TITLE_NOT_FOUND, "Missing signature ID (%s) in post title ('%s')", psid, title)
+		return libkb.NewProofError(keybase1.ProofStatus_TITLE_NOT_FOUND, "Missing signature ID (%s) in post title ('%s')", psid, title)
 	}
 
-	if !FindBase64Block(selftext, sigBody, false) {
-		return NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
+	if !libkb.FindBase64Block(selftext, sigBody, false) {
+		return libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
 	}
 
 	return nil
 }
 
-func (rc *RedditChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError {
-	res, err := g.GetExternalAPI().Get(NewAPIArg(h.apiURL))
+func (rc *RedditChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+	res, err := g.GetExternalAPI().Get(libkb.NewAPIArg(h.GetAPIURL()))
 	if err != nil {
-		return XapiError(err, h.apiURL)
+		return libkb.XapiError(err, h.GetAPIURL())
 	}
 
 	dat, perr := rc.UnpackData(res.Body)
@@ -144,7 +145,7 @@ func urlReencode(s string) string {
 	return s
 }
 
-type RedditServiceType struct{ BaseServiceType }
+type RedditServiceType struct{ libkb.BaseServiceType }
 
 func (t RedditServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
@@ -152,12 +153,12 @@ var redditUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_-]{3,20})$`)
 
 func (t RedditServiceType) NormalizeUsername(s string) (string, error) {
 	if !redditUsernameRegexp.MatchString(s) {
-		return "", BadUsernameError{s}
+		return "", libkb.NewBadUsernameError(s)
 	}
 	return strings.ToLower(s), nil
 }
 
-func (t RedditServiceType) NormalizeRemoteName(g GlobalContextLite, s string) (ret string, err error) {
+func (t RedditServiceType) NormalizeRemoteName(g libkb.GlobalContextLite, s string) (ret string, err error) {
 	return t.NormalizeUsername(s)
 }
 
@@ -169,18 +170,18 @@ func (t RedditServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }
 
-func (t RedditServiceType) PostInstructions(un string) *Markup {
-	return FmtMarkup(`Please click on the following link to post to Reddit:`)
+func (t RedditServiceType) PostInstructions(un string) *libkb.Markup {
+	return libkb.FmtMarkup(`Please click on the following link to post to Reddit:`)
 }
 
-func (t RedditServiceType) FormatProofText(ppr *PostProofRes) (res string, err error) {
+func (t RedditServiceType) FormatProofText(ppr *libkb.PostProofRes) (res string, err error) {
 
 	var title string
 	if title, err = ppr.Metadata.AtKey("title").GetString(); err != nil {
 		return
 	}
 
-	q := urlReencode(HTTPArgs{"title": S{title}, "text": S{ppr.Text}}.EncodeToString())
+	q := urlReencode(libkb.HTTPArgs{"title": libkb.S{Val: title}, "text": libkb.S{Val: ppr.Text}}.EncodeToString())
 
 	u := url.URL{
 		Scheme:   "https",
@@ -195,7 +196,7 @@ func (t RedditServiceType) FormatProofText(ppr *PostProofRes) (res string, err e
 
 func (t RedditServiceType) DisplayName(un string) string { return "Reddit" }
 
-func (t RedditServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *Markup, err error) {
+func (t RedditServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	warning, err = t.BaseRecheckProofPosting(tryNumber, status)
 	return
 }
@@ -206,7 +207,7 @@ func (t RedditServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 	return t.BaseCheckProofTextFull(text, id, sig)
 }
 
-func (t RedditServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+func (t RedditServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &RedditChecker{l}
 }
 

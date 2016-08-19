@@ -267,7 +267,7 @@ func (e *Identify) loadUserArg() (*libkb.LoadUserArg, error) {
 
 func (e *Identify) loadExpr(assertion string) error {
 	// Parse assertion but don't allow OR operators, only AND operators
-	expr, err := libkb.AssertionParseAndOnly(assertion)
+	expr, err := libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(), assertion)
 	if err != nil {
 		return fmt.Errorf("assertion parse error: %s", err)
 	}

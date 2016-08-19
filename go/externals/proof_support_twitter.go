@@ -1,13 +1,14 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package externals
 
 import (
 	"regexp"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -17,26 +18,26 @@ import (
 //
 
 type TwitterChecker struct {
-	proof RemoteProofChainLink
+	proof libkb.RemoteProofChainLink
 }
 
-func NewTwitterChecker(p RemoteProofChainLink) (*TwitterChecker, ProofError) {
+func NewTwitterChecker(p libkb.RemoteProofChainLink) (*TwitterChecker, libkb.ProofError) {
 	return &TwitterChecker{p}, nil
 }
 
-func (rc *TwitterChecker) GetTorError() ProofError { return nil }
+func (rc *TwitterChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *TwitterChecker) CheckHint(g GlobalContextLite, h SigHint) ProofError {
+func (rc *TwitterChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
 	wantedURL := ("https://twitter.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/")
 	wantedShortID := (" " + rc.proof.GetSigID().ToShortID() + " /")
 
-	if !strings.HasPrefix(strings.ToLower(h.apiURL), wantedURL) {
-		return NewProofError(keybase1.ProofStatus_BAD_API_URL,
+	if !strings.HasPrefix(strings.ToLower(h.GetAPIURL()), wantedURL) {
+		return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should start with '%s'", wantedURL)
 	}
 
-	if !strings.Contains(h.checkText, wantedShortID) {
-		return NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
+	if !strings.Contains(h.GetCheckText(), wantedShortID) {
+		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad proof-check text from server; need '%s' as a substring", wantedShortID)
 	}
 
@@ -44,18 +45,18 @@ func (rc *TwitterChecker) CheckHint(g GlobalContextLite, h SigHint) ProofError {
 }
 
 func (rc *TwitterChecker) ScreenNameCompare(s1, s2 string) bool {
-	return Cicmp(s1, s2)
+	return libkb.Cicmp(s1, s2)
 }
 
-func (rc *TwitterChecker) findSigInTweet(g GlobalContextLite, h SigHint, s *goquery.Selection) ProofError {
+func (rc *TwitterChecker) findSigInTweet(g libkb.GlobalContextLite, h libkb.SigHint, s *goquery.Selection) libkb.ProofError {
 
 	inside := s.Text()
 	html, err := s.Html()
 
-	checkText := h.checkText
+	checkText := h.GetCheckText()
 
 	if err != nil {
-		return NewProofError(keybase1.ProofStatus_CONTENT_FAILURE, "No HTML tweet found: %s", err)
+		return libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE, "No HTML tweet found: %s", err)
 	}
 
 	g.GetLog().Debug("+ Checking tweet '%s' for signature '%s'", inside, checkText)
@@ -71,25 +72,26 @@ func (rc *TwitterChecker) findSigInTweet(g GlobalContextLite, h SigHint, s *goqu
 			g.GetLog().Debug("| Stripping off @prefx: %s", prefix)
 		}
 	}
-	inside = WhitespaceNormalize(inside)
-	checkText = WhitespaceNormalize(checkText)
+	inside = libkb.WhitespaceNormalize(inside)
+	checkText = libkb.WhitespaceNormalize(checkText)
 	if strings.HasPrefix(inside, checkText) {
 		return nil
 	}
 
-	return NewProofError(keybase1.ProofStatus_DELETED, "Could not find '%s' in '%s'",
+	return libkb.NewProofError(keybase1.ProofStatus_DELETED, "Could not find '%s' in '%s'",
 		checkText, inside)
 }
 
-func (rc *TwitterChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError {
-	res, err := g.GetExternalAPI().GetHTML(NewAPIArg(h.apiURL))
+func (rc *TwitterChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+	url := h.GetAPIURL()
+	res, err := g.GetExternalAPI().GetHTML(libkb.NewAPIArg(url))
 	if err != nil {
-		return XapiError(err, h.apiURL)
+		return libkb.XapiError(err, url)
 	}
 	csssel := "div.permalink-tweet-container div.permalink-tweet"
 	div := res.GoQuery.Find(csssel)
 	if div.Length() == 0 {
-		return NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find a div $(%s)", csssel)
+		return libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find a div $(%s)", csssel)
 	}
 
 	// Only consider the first
@@ -97,16 +99,16 @@ func (rc *TwitterChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError
 
 	author, ok := div.Attr("data-screen-name")
 	if !ok {
-		return NewProofError(keybase1.ProofStatus_BAD_USERNAME, "Username not found in DOM")
+		return libkb.NewProofError(keybase1.ProofStatus_BAD_USERNAME, "Username not found in DOM")
 	}
 	wanted := rc.proof.GetRemoteUsername()
 	if !rc.ScreenNameCompare(wanted, author) {
-		return NewProofError(keybase1.ProofStatus_BAD_USERNAME,
+		return libkb.NewProofError(keybase1.ProofStatus_BAD_USERNAME,
 			"Bad post authored; wanted %q but got %q", wanted, author)
 	}
 	p := div.Find("p.tweet-text")
 	if p.Length() == 0 {
-		return NewProofError(keybase1.ProofStatus_CONTENT_MISSING,
+		return libkb.NewProofError(keybase1.ProofStatus_CONTENT_MISSING,
 			"Missing <div class='tweet-text'> container for tweet")
 	}
 
@@ -116,7 +118,7 @@ func (rc *TwitterChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError
 //
 //=============================================================================
 
-type TwitterServiceType struct{ BaseServiceType }
+type TwitterServiceType struct{ libkb.BaseServiceType }
 
 func (t TwitterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
@@ -124,12 +126,12 @@ var twitterUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_]{1,20})$`)
 
 func (t TwitterServiceType) NormalizeUsername(s string) (string, error) {
 	if !twitterUsernameRegexp.MatchString(s) {
-		return "", BadUsernameError{s}
+		return "", libkb.NewBadUsernameError(s)
 	}
 	return strings.ToLower(s), nil
 }
 
-func (t TwitterServiceType) NormalizeRemoteName(g GlobalContextLite, s string) (string, error) {
+func (t TwitterServiceType) NormalizeRemoteName(g libkb.GlobalContextLite, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
@@ -143,16 +145,16 @@ func (t TwitterServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }
 
-func (t TwitterServiceType) PostInstructions(un string) *Markup {
-	return FmtMarkup(`Please <strong>publicly</strong> tweet the following, and don't delete it:`)
+func (t TwitterServiceType) PostInstructions(un string) *libkb.Markup {
+	return libkb.FmtMarkup(`Please <strong>publicly</strong> tweet the following, and don't delete it:`)
 }
 
 func (t TwitterServiceType) DisplayName(un string) string { return "Twitter" }
 func (t TwitterServiceType) GetTypeName() string          { return "twitter" }
 
-func (t TwitterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *Markup, err error) {
+func (t TwitterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {
-		warning = FmtMarkup("Permission denied! We can't support <strong>private</strong> feeds.")
+		warning = libkb.FmtMarkup("Permission denied! We can't support <strong>private</strong> feeds.")
 	} else {
 		warning, err = t.BaseRecheckProofPosting(tryNumber, status)
 	}
@@ -164,7 +166,7 @@ func (t TwitterServiceType) CheckProofText(text string, id keybase1.SigID, sig s
 	return t.BaseCheckProofTextShort(text, id, false)
 }
 
-func (t TwitterServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+func (t TwitterServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &TwitterChecker{l}
 }
 

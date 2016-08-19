@@ -1,13 +1,14 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-package libkb
+package externals
 
 import (
 	"fmt"
 	"regexp"
 	"strings"
 
+	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -17,10 +18,10 @@ import (
 //
 
 type CoinbaseChecker struct {
-	proof RemoteProofChainLink
+	proof libkb.RemoteProofChainLink
 }
 
-func NewCoinbaseChecker(p RemoteProofChainLink) (*CoinbaseChecker, ProofError) {
+func NewCoinbaseChecker(p libkb.RemoteProofChainLink) (*CoinbaseChecker, libkb.ProofError) {
 	return &CoinbaseChecker{p}, nil
 }
 
@@ -28,40 +29,42 @@ func (rc *CoinbaseChecker) ProfileURL() string {
 	return "https://coinbase.com/" + rc.proof.GetRemoteUsername() + "/public-key"
 }
 
-func (rc *CoinbaseChecker) CheckHint(g GlobalContextLite, h SigHint) ProofError {
+func (rc *CoinbaseChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
 	wanted := rc.ProfileURL()
-	if strings.ToLower(wanted) == strings.ToLower(h.apiURL) {
+	url := h.GetAPIURL()
+	if strings.ToLower(wanted) == url {
 		return nil
 	}
-	return NewProofError(keybase1.ProofStatus_BAD_API_URL, "Bad hint from server; URL should be %q; got %q", wanted, h.apiURL)
+	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL, "Bad hint from server; URL should be %q; got %q", wanted, url)
 }
 
-func (rc *CoinbaseChecker) GetTorError() ProofError { return nil }
+func (rc *CoinbaseChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *CoinbaseChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofError {
-	res, err := g.GetExternalAPI().GetHTML(NewAPIArg(h.apiURL))
+func (rc *CoinbaseChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+	url := h.GetAPIURL()
+	res, err := g.GetExternalAPI().GetHTML(libkb.NewAPIArg(url))
 	if err != nil {
-		return XapiError(err, h.apiURL)
+		return libkb.XapiError(err, url)
 	}
 	csssel := "pre.statement"
 	div := res.GoQuery.Find(csssel)
 	if div.Length() == 0 {
-		return NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find a div $(%s)", csssel)
+		return libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find a div $(%s)", csssel)
 	}
 
 	// Only consider the first
 	div = div.First()
 
-	var ret ProofError
+	var ret libkb.ProofError
 
 	if html, err := div.Html(); err != nil {
-		ret = NewProofError(keybase1.ProofStatus_CONTENT_MISSING,
+		ret = libkb.NewProofError(keybase1.ProofStatus_CONTENT_MISSING,
 			"Missing proof HTML content: %s", err)
-	} else if sigBody, _, err := OpenSig(rc.proof.GetArmoredSig()); err != nil {
-		ret = NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
+	} else if sigBody, _, err := libkb.OpenSig(rc.proof.GetArmoredSig()); err != nil {
+		ret = libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
 			"Bad signature: %s", err)
-	} else if !FindBase64Block(html, sigBody, false) {
-		ret = NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
+	} else if !libkb.FindBase64Block(html, sigBody, false) {
+		ret = libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND, "signature not found in body")
 	}
 
 	return ret
@@ -70,7 +73,7 @@ func (rc *CoinbaseChecker) CheckStatus(g GlobalContextLite, h SigHint) ProofErro
 //
 //=============================================================================
 
-type CoinbaseServiceType struct{ BaseServiceType }
+type CoinbaseServiceType struct{ libkb.BaseServiceType }
 
 func (t CoinbaseServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
@@ -86,12 +89,12 @@ var coinbaseUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_]{2,16})$`)
 
 func (t CoinbaseServiceType) NormalizeUsername(s string) (string, error) {
 	if !coinbaseUsernameRegexp.MatchString(s) {
-		return "", BadUsernameError{s}
+		return "", libkb.NewBadUsernameError(s)
 	}
 	return strings.ToLower(s), nil
 }
 
-func (t CoinbaseServiceType) NormalizeRemoteName(_ GlobalContextLite, s string) (ret string, err error) {
+func (t CoinbaseServiceType) NormalizeRemoteName(_ libkb.GlobalContextLite, s string) (ret string, err error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
@@ -101,13 +104,13 @@ func (t CoinbaseServiceType) GetPrompt() string {
 	return "Your username on Coinbase"
 }
 
-func (t CoinbaseServiceType) PreProofCheck(g GlobalContextLite, normalizedUsername string) (*Markup, error) {
-	_, err := g.GetExternalAPI().GetHTML(NewAPIArg(coinbaseUserURL(normalizedUsername)))
+func (t CoinbaseServiceType) PreProofCheck(g libkb.GlobalContextLite, normalizedUsername string) (*libkb.Markup, error) {
+	_, err := g.GetExternalAPI().GetHTML(libkb.NewAPIArg(coinbaseUserURL(normalizedUsername)))
 	if err != nil {
-		if ae, ok := err.(*APIError); ok && ae.Code == 404 {
-			err = ProfileNotPublicError{fmt.Sprintf("%s isn't public! Change your settings at %s",
+		if ae, ok := err.(*libkb.APIError); ok && ae.Code == 404 {
+			err = libkb.NewProfileNotPublicError(fmt.Sprintf("%s isn't public! Change your settings at %s",
 				coinbaseUserURL(normalizedUsername),
-				coinbaseSettingsURL(normalizedUsername))}
+				coinbaseSettingsURL(normalizedUsername)))
 		}
 		return nil, err
 	}
@@ -118,8 +121,8 @@ func (t CoinbaseServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
 }
 
-func (t CoinbaseServiceType) PostInstructions(un string) *Markup {
-	return FmtMarkup(`Please update your Coinbase profile to show this proof.
+func (t CoinbaseServiceType) PostInstructions(un string) *libkb.Markup {
+	return libkb.FmtMarkup(`Please update your Coinbase profile to show this proof.
 Click here: ` + coinbaseSettingsURL(un))
 
 }
@@ -127,7 +130,7 @@ Click here: ` + coinbaseSettingsURL(un))
 func (t CoinbaseServiceType) DisplayName(un string) string { return "Coinbase" }
 func (t CoinbaseServiceType) GetTypeName() string          { return "coinbase" }
 
-func (t CoinbaseServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *Markup, err error) {
+func (t CoinbaseServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	warning, err = t.BaseRecheckProofPosting(tryNumber, status)
 	return
 }
@@ -137,7 +140,7 @@ func (t CoinbaseServiceType) CheckProofText(text string, id keybase1.SigID, sig 
 	return t.BaseCheckProofTextFull(text, id, sig)
 }
 
-func (t CoinbaseServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+func (t CoinbaseServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &CoinbaseChecker{l}
 }
 
