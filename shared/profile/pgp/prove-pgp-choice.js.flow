@@ -3,7 +3,7 @@ import {Component} from 'react'
 
 export type Options =
     'import'
-  | 'generate'
+  | 'provideInfo'
 
 export type Props = {
   onOptionClick: (type: Options) => void,

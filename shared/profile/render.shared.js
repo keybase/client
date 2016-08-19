@@ -1,8 +1,10 @@
 import _ from 'lodash'
 import {globalColors} from '../styles/style-guide'
-import type {Proof, MissingProof} from './render'
 import {proveMessage} from '../util/platforms.js'
 import {PlatformsExpanded} from '../constants/types/more'
+
+import type {Proof, MissingProof} from './render'
+import type {PlatformsExpandedType} from '../constants/types/more'
 
 export function folderIconProps (folder, style = {}) {
   const type = folder.isPublic
@@ -32,4 +34,16 @@ export function missingProofs (userProofs: Array<Proof>, onClick: (missingProof:
 
   // always ensure you can add a web site
   return missingRegular.concat({type: 'dnsOrGenericWebSite', message: proveMessage('dnsOrGenericWebSite'), onClick})
+}
+
+export function revokeProofLanguage (platform: PlatformsExpandedType) {
+  let msg
+  switch (platform) {
+    case 'pgp':
+      msg = 'Drop key'
+      break
+    default:
+      msg = 'Revoke proof'
+  }
+  return msg
 }
