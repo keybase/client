@@ -35,7 +35,6 @@
 		DBDCF3541B8D04FD00BA95D8 /* ReactBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3511B8D04FD00BA95D8 /* ReactBridge.m */; };
 		DBDCF3551B8D04FD00BA95D8 /* SwiftTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3521B8D04FD00BA95D8 /* SwiftTest.swift */; };
 		DBF20EC41BB34AF00048BC26 /* libRCTCamera.a in Frameworks */ = {isa = PBXBuildFile; fileRef = DBF20EBA1BB34AD00048BC26 /* libRCTCamera.a */; };
-		E876C72EE14F0E162D5A30C5 /* Pods_Keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FF5A2CB8124F5B2C177F82E5 /* Pods_Keybase.framework */; };
 		E94938C71BCC082C00137015 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94938C61BCC082C00137015 /* App.swift */; };
 		E94939001BCC1E4300137015 /* AppDefault.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94938FF1BCC1E4300137015 /* AppDefault.swift */; };
 		E964581D1BC8542000902F39 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E964581C1BC8542000902F39 /* AppDelegate.swift */; };
@@ -143,12 +142,10 @@
 		139FDEE61B06529A00C62182 /* RCTWebSocket.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTWebSocket.xcodeproj; path = "../node_modules/react-native/Libraries/WebSocket/RCTWebSocket.xcodeproj"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		146833FF1AC3E56700842450 /* React.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = React.xcodeproj; path = "../node_modules/react-native/React/React.xcodeproj"; sourceTree = "<group>"; };
-		29E8042104BFC61155FEE956 /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
 		78C398B01ACF4ADC00677621 /* RCTLinking.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTLinking.xcodeproj; path = "../node_modules/react-native/Libraries/LinkingIOS/RCTLinking.xcodeproj"; sourceTree = "<group>"; };
 		832341B01AAA6A8300B99B32 /* RCTText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTText.xcodeproj; path = "../node_modules/react-native/Libraries/Text/RCTText.xcodeproj"; sourceTree = "<group>"; };
 		A969A4091CF65C9C00F273F2 /* LogSend.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LogSend.m; sourceTree = "<group>"; };
 		A969A4161CF65CB200F273F2 /* LogSend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogSend.h; sourceTree = "<group>"; };
-		B01B0A0DD7B9A98B314CE2FB /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
 		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
 		DB1D5FE21CA99E67006DC784 /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = kb.ttf; path = ../../../desktop/renderer/fonts/kb.ttf; sourceTree = "<group>"; };
 		DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Lato_bold.ttf; path = ../../../desktop/renderer/fonts/Lato_bold.ttf; sourceTree = "<group>"; };
@@ -171,7 +168,6 @@
 		E94938C61BCC082C00137015 /* App.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		E94938FF1BCC1E4300137015 /* AppDefault.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDefault.swift; sourceTree = "<group>"; };
 		E964581C1BC8542000902F39 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		FF5A2CB8124F5B2C177F82E5 /* Pods_Keybase.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Keybase.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -198,7 +194,6 @@
 				00C302EA1ABCBA2D00DB3ED1 /* libRCTVibration.a in Frameworks */,
 				DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */,
 				139FDEF61B0652A700C62182 /* libRCTWebSocket.a in Frameworks */,
-				E876C72EE14F0E162D5A30C5 /* Pods_Keybase.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -286,15 +281,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		770B670887FB62277387D209 /* Pods */ = {
-			isa = PBXGroup;
-			children = (
-				B01B0A0DD7B9A98B314CE2FB /* Pods-Keybase.debug.xcconfig */,
-				29E8042104BFC61155FEE956 /* Pods-Keybase.release.xcconfig */,
-			);
-			name = Pods;
-			sourceTree = "<group>";
-		};
 		78C398B11ACF4ADC00677621 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -337,7 +323,6 @@
 				00E356EF1AD99517003FC87E /* KeybaseTests */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				8B23D2F59C5F2B2FA28E899F /* Frameworks */,
-				770B670887FB62277387D209 /* Pods */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -356,7 +341,6 @@
 			isa = PBXGroup;
 			children = (
 				DB0846041BA75DC800F54960 /* keybase.framework */,
-				FF5A2CB8124F5B2C177F82E5 /* Pods_Keybase.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -748,7 +732,6 @@
 		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = B01B0A0DD7B9A98B314CE2FB /* Pods-Keybase.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -786,7 +769,6 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 29E8042104BFC61155FEE956 /* Pods-Keybase.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;

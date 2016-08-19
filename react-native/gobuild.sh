@@ -5,6 +5,9 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
+local_client=${LOCAL_CLIENT:-"1"}
+local_kbfs=${LOCAL_KBFS:-}
+
 # Original sources
 client_go_dir="$GOPATH/src/github.com/keybase/client/go"
 kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
@@ -20,12 +23,28 @@ rm -rf "$GOPATH/src/github.com/keybase"
 go_client_dir="$GOPATH/src/github.com/keybase/client/go"
 mkdir -p "$go_client_dir"
 
-echo "Copying client..."
-cp -R "$client_go_dir"/* "$go_client_dir"
-echo "Getting KBFS..."
-go get github.com/keybase/kbfs/libkbfs
-go get github.com/keybase/kbfs/fsrpc
+if [ ! "$local_client" = "1" ]; then
+  echo "Getting client (via go get)..."
+  go get github.com/keybase/client
+else
+  echo "Getting client (using local GOPATH)..."
+  cp -R "$client_go_dir"/* "$go_client_dir"
+fi
+
 go_kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
+if [ ! "$local_kbfs" = "1" ]; then
+  echo "Getting KBFS (via go get)..."
+  go get github.com/keybase/kbfs/libkbfs
+  go get github.com/keybase/kbfs/fsrpc
+else
+  # For testing local KBFS changes
+  echo "Gettings KBFS (using local GOPATH)..."
+  mkdir -p "$go_kbfs_dir"
+  cp -R "$kbfs_dir"/libkbfs "$go_kbfs_dir"/libkbfs
+  cp -R "$kbfs_dir"/fsrpc "$go_kbfs_dir"/fsrpc
+  cp -R "$kbfs_dir"/env "$go_kbfs_dir"/env
+  cp -R "$kbfs_dir"/vendor "$go_kbfs_dir"/vendor
+fi
 
 # Move all vendoring up a directory to github.com/keybase/vendor
 echo "Re-vendoring..."
