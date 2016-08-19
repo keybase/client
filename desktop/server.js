@@ -21,10 +21,12 @@ if (NO_SERVER) {
     if (jsonStats.errors.length > 0) {
       throw jsonStats.errors.join('\n')
     }
-    if (jsonStats.warnings.length > 0) {
-      throw jsonStats.warnings.join('\n')
-    }
+
     console.log(stats)
+
+    if (jsonStats.warnings.length > 0) {
+      console.log('Warnings: ', jsonStats.warnings.join('\n'))
+    }
   })
 } else {
   const app = express()

@@ -135,6 +135,12 @@ export function pgpPgpDeletePrimaryRpc (request: $Exact<{
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'pgp.pgpDeletePrimary'})
 }
+export function pgpUiFinishedRpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'pgpUi.finished'})
+}
 export function provisionUiDisplaySecretExchangedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -178,6 +184,8 @@ export function BTCRegisterBTCRpc (request: $Exact<{
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'BTC.registerBTC'})
 }
+export type BinaryKID = bytes
+
 export type BlockIdCombo = {
   blockHash: string,
   chargedTo: UID,
@@ -208,6 +216,15 @@ export type ChallengeInfo = {
   now: long,
   challenge: string,
 }
+
+export type ChatActivity = {
+  ActivityType: ChatActivityType,
+  IncomingMessage?: ?Message,
+}
+
+export type ChatActivityType =
+    0 // RESERVED_0
+  | 1 // INCOMING_MESSAGE_1
 
 export type CheckProofStatus = {
   found: boolean,
@@ -297,6 +314,7 @@ export type Cryptocurrency = {
   rowId: int,
   pkhash: bytes,
   address: string,
+  sigID: SigID,
 }
 
 export type CsrfToken = string
@@ -372,12 +390,14 @@ export type ExtendedStatus = {
   storedSecret: boolean,
   secretPromptSkip: boolean,
   device?: ?Device,
+  deviceErr?: ?LoadDeviceErr,
   logDir: string,
   session?: ?SessionStatus,
   defaultUsername: string,
   provisionedUsernames?: ?Array<string>,
   Clients?: ?Array<ClientDetails>,
   platformInfo: PlatformInfo,
+  defaultDeviceID: DeviceID,
 }
 
 export type FSEditListRequest = {
@@ -688,6 +708,11 @@ export type ListResult = {
   files?: ?Array<File>,
 }
 
+export type LoadDeviceErr = {
+  where: string,
+  desc: string,
+}
+
 export type LogLevel =
     0 // NONE_0
   | 1 // DEBUG_1
@@ -777,8 +802,21 @@ export type NotificationChannels = {
   keyfamily: boolean,
   service: boolean,
   app: boolean,
+  chat: boolean,
 }
 
+export type NotifyChatNewChatActivityRpcParam = $Exact<{
+  uid: UID,
+  activity: ChatActivity
+}>
+
+export function NotifyChatNewChatActivityRpc (request: $Exact<{
+  param: NotifyChatNewChatActivityRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'NotifyChat.NewChatActivity'})
+}
 export type NotifyFSFSActivityRpcParam = $Exact<{
   notification: FSNotification
 }>
@@ -2856,6 +2894,17 @@ export function pgpPgpImportRpc (request: $Exact<{
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'pgp.pgpImport'})
 }
+export type pgpPgpKeyGenDefaultRpcParam = $Exact<{
+  createUids: PGPCreateUids
+}>
+
+export function pgpPgpKeyGenDefaultRpc (request: $Exact<{
+  param: pgpPgpKeyGenDefaultRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'pgp.pgpKeyGenDefault'})
+}
 export type pgpPgpKeyGenRpcParam = $Exact<{
   primaryBits: int,
   subkeyBits: int,
@@ -2948,6 +2997,18 @@ export function pgpPgpVerifyRpc (request: $Exact<{
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpVerifyResult) => void)}>) {
   engine.rpc({...request, method: 'pgp.pgpVerify'})
+}
+export type pgpUiKeyGeneratedRpcParam = $Exact<{
+  kid: KID,
+  key: KeyInfo
+}>
+
+export function pgpUiKeyGeneratedRpc (request: $Exact<{
+  param: pgpUiKeyGeneratedRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'pgpUi.keyGenerated'})
 }
 export type pgpUiOutputSignatureSuccessRpcParam = $Exact<{
   fingerprint: string,
@@ -3931,6 +3992,14 @@ export function metadataPing2Rpc (request: $Exact<{
   callback?: (null | (err: ?any, response: metadataPing2Result) => void)}>) {
   engine.rpc({...request, method: 'metadata.ping2'})
 }
+type pgpUiShouldPushPrivateResult = bool
+
+export function pgpUiShouldPushPrivateRpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: pgpUiShouldPushPrivateResult) => void)}>) {
+  engine.rpc({...request, method: 'pgpUi.shouldPushPrivate'})
+}
 type rekeyGetPendingRekeyStatusResult = ProblemSetDevices
 
 export function rekeyGetPendingRekeyStatusRpc (request: $Exact<{
@@ -3985,6 +4054,7 @@ export type rpc =
   | Kex2ProvisioneeHelloRpc
   | Kex2ProvisionerKexStartRpc
   | NotifyAppExitRpc
+  | NotifyChatNewChatActivityRpc
   | NotifyFSFSActivityRpc
   | NotifyFSFSEditListResponseRpc
   | NotifyFSRequestFSEditListRequestRpc
@@ -4129,6 +4199,7 @@ export type rpc =
   | pgpPgpExportByKIDRpc
   | pgpPgpExportRpc
   | pgpPgpImportRpc
+  | pgpPgpKeyGenDefaultRpc
   | pgpPgpKeyGenRpc
   | pgpPgpPullRpc
   | pgpPgpPurgeRpc
@@ -4136,7 +4207,10 @@ export type rpc =
   | pgpPgpSignRpc
   | pgpPgpUpdateRpc
   | pgpPgpVerifyRpc
+  | pgpUiFinishedRpc
+  | pgpUiKeyGeneratedRpc
   | pgpUiOutputSignatureSuccessRpc
+  | pgpUiShouldPushPrivateRpc
   | proveCheckProofRpc
   | proveStartProofRpc
   | proveUiDisplayRecheckWarningRpc
@@ -5464,6 +5538,14 @@ export type incomingCallMapType = $Exact<{
       result: () => void
     }
   ) => void,
+  'keybase.1.NotifyChat.NewChatActivity'?: (
+    params: $Exact<{
+      uid: UID,
+      activity: ChatActivity
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
   'keybase.1.notifyCtl.setNotifications'?: (
     params: $Exact<{
       channels: NotificationChannels
@@ -5696,6 +5778,16 @@ export type incomingCallMapType = $Exact<{
       result: () => void
     }
   ) => void,
+  'keybase.1.pgp.pgpKeyGenDefault'?: (
+    params: $Exact<{
+      sessionID: int,
+      createUids: PGPCreateUids
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.pgp.pgpDeletePrimary'?: (
     params: $Exact<{
       sessionID: int
@@ -5745,6 +5837,35 @@ export type incomingCallMapType = $Exact<{
       fingerprint: string,
       username: string,
       signedAt: Time
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.pgpUi.keyGenerated'?: (
+    params: $Exact<{
+      sessionID: int,
+      kid: KID,
+      key: KeyInfo
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.pgpUi.shouldPushPrivate'?: (
+    params: $Exact<{
+      sessionID: int
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: pgpUiShouldPushPrivateResult) => void
+    }
+  ) => void,
+  'keybase.1.pgpUi.finished'?: (
+    params: $Exact<{
+      sessionID: int
     }>,
     response: {
       error: (err: RPCError) => void,

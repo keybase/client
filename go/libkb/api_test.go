@@ -5,10 +5,11 @@ package libkb
 
 import (
 	"crypto/x509"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"net/http"
 	"net/url"
 	"testing"
+
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func TestIsReddit(t *testing.T) {
@@ -54,7 +55,7 @@ func TestProductionCA(t *testing.T) {
 	}
 	url := internal.getURL(arg)
 	if url.String() != pingExpected {
-		t.Fatalf("api url: %s, expected %s", url, pingExpected)
+		t.Fatalf("api url: %s, expected %s", url.String(), pingExpected)
 	}
 
 	_, err := tc.G.API.Post(arg)
@@ -95,7 +96,7 @@ func TestProductionBadCA(t *testing.T) {
 	}
 	iurl := internal.getURL(arg)
 	if iurl.String() != pingExpected {
-		t.Fatalf("api url: %s, expected %s", iurl, pingExpected)
+		t.Fatalf("api url: %s, expected %s", iurl.String(), pingExpected)
 	}
 
 	_, err := tc.G.API.Post(arg)
@@ -202,10 +203,9 @@ func TestInstallIDHeaders(t *testing.T) {
 		t.Fatal(err)
 	}
 	res, err := api.Get(APIArg{
-		Endpoint:     "pkg/show",
-		NeedSession:  false,
-		Args:         HTTPArgs{},
-		Contextified: NewContextified(tc.G),
+		Endpoint:    "pkg/show",
+		NeedSession: false,
+		Args:        HTTPArgs{},
 	})
 	if err != nil {
 		t.Fatal(err)

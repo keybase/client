@@ -136,8 +136,8 @@ func NewAssertionOr(left, right AssertionExpression) AssertionOr {
 	return AssertionOr{terms}
 }
 
-func (p *Parser) Parse() AssertionExpression {
-	ret := p.parseExpr()
+func (p *Parser) Parse(ctx AssertionContext) AssertionExpression {
+	ret := p.parseExpr(ctx)
 	if ret != nil {
 		tok := p.lexer.Get()
 		if tok.Typ != EOF {
@@ -149,11 +149,11 @@ func (p *Parser) Parse() AssertionExpression {
 	return ret
 }
 
-func (p *Parser) parseTerm() (ret AssertionExpression) {
-	factor := p.parseFactor()
+func (p *Parser) parseTerm(ctx AssertionContext) (ret AssertionExpression) {
+	factor := p.parseFactor(ctx)
 	tok := p.lexer.Get()
 	if tok.Typ == AND {
-		term := p.parseTerm()
+		term := p.parseTerm(ctx)
 		ret = NewAssertionAnd(factor, term)
 	} else {
 		ret = factor
@@ -162,18 +162,18 @@ func (p *Parser) parseTerm() (ret AssertionExpression) {
 	return ret
 }
 
-func (p *Parser) parseFactor() (ret AssertionExpression) {
+func (p *Parser) parseFactor(ctx AssertionContext) (ret AssertionExpression) {
 	tok := p.lexer.Get()
 	switch tok.Typ {
 	case URL:
-		url, err := ParseAssertionURL(tok.getString(), false)
+		url, err := ParseAssertionURL(ctx, tok.getString(), false)
 		if err != nil {
 			p.err = err
 		} else {
 			ret = url
 		}
 	case LPAREN:
-		if ex := p.parseExpr(); ex == nil {
+		if ex := p.parseExpr(ctx); ex == nil {
 			ret = nil
 			p.err = NewAssertionParseError("Illegal parenthetical expression")
 		} else {
@@ -191,8 +191,8 @@ func (p *Parser) parseFactor() (ret AssertionExpression) {
 	return ret
 }
 
-func (p *Parser) parseExpr() (ret AssertionExpression) {
-	term := p.parseTerm()
+func (p *Parser) parseExpr(ctx AssertionContext) (ret AssertionExpression) {
+	term := p.parseTerm(ctx)
 	tok := p.lexer.Get()
 	if tok.Typ != OR {
 		ret = term
@@ -200,22 +200,22 @@ func (p *Parser) parseExpr() (ret AssertionExpression) {
 	} else if p.andOnly {
 		p.err = NewAssertionParseError("Unexpected 'OR' operator")
 	} else {
-		ex := p.parseExpr()
+		ex := p.parseExpr(ctx)
 		ret = NewAssertionOr(term, ex)
 	}
 	return ret
 }
 
-func AssertionParse(s string) (AssertionExpression, error) {
+func AssertionParse(ctx AssertionContext, s string) (AssertionExpression, error) {
 	lexer := NewLexer(s)
 	parser := Parser{lexer, nil, false}
-	ret := parser.Parse()
+	ret := parser.Parse(ctx)
 	return ret, parser.err
 }
 
-func AssertionParseAndOnly(s string) (AssertionExpression, error) {
+func AssertionParseAndOnly(ctx AssertionContext, s string) (AssertionExpression, error) {
 	lexer := NewLexer(s)
 	parser := Parser{lexer, nil, true}
-	ret := parser.Parse()
+	ret := parser.Parse(ctx)
 	return ret, parser.err
 }

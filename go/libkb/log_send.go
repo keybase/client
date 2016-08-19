@@ -86,8 +86,7 @@ func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, s
 	l.G().Log.Debug("body size: %d\n", body.Len())
 
 	arg := APIArg{
-		Contextified: NewContextified(l.G()),
-		Endpoint:     "logdump/send",
+		Endpoint: "logdump/send",
 	}
 
 	resp, err := l.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)

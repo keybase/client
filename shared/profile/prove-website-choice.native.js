@@ -7,7 +7,7 @@ import type {Props} from './prove-website-choice'
 class ProveWebsiteChoice extends Component<void, Props, void> {
   render () {
     return (
-      <StandardScreen onClose={this.props.onCancel}>
+      <StandardScreen style={styleContainer} onClose={this.props.onCancel}>
         <Text style={styleTitle} type='Header'>Prove your website in two ways:</Text>
         <ChoiceList
           options={[
@@ -28,6 +28,10 @@ class ProveWebsiteChoice extends Component<void, Props, void> {
       </StandardScreen>
     )
   }
+}
+
+const styleContainer = {
+  justifyContent: 'center',
 }
 
 const styleTitle = {

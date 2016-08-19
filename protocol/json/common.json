@@ -73,6 +73,12 @@
     },
     {
       "type": "record",
+      "name": "BinaryKID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
       "name": "TLFID",
       "fields": [],
       "typedef": "string"

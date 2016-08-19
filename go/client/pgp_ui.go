@@ -5,12 +5,13 @@ package client
 
 import (
 	"fmt"
+	"io"
+
 	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
-	"io"
 )
 
 type PgpUI struct {
@@ -36,5 +37,17 @@ func (p PgpUI) OutputSignatureSuccess(_ context.Context, arg keybase1.OutputSign
 		output("Signature verified. Signed by %s %s (%s).\n", un, humanize.Time(signedAt), signedAt)
 	}
 	output("PGP Fingerprint: %s.\n", arg.Fingerprint)
+	return nil
+}
+
+func (p PgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGeneratedArg) error {
+	return nil
+}
+
+func (p PgpUI) ShouldPushPrivate(ctx context.Context, sessionID int) (bool, error) {
+	return false, nil
+}
+
+func (p PgpUI) Finished(ctx context.Context, sessionID int) error {
 	return nil
 }

@@ -45,6 +45,8 @@ func main() {
 	printCustomBuildPtr := flag.Bool("cb", false, "print custom build number to console (no .syso output)")
 	printWinVerPtr := flag.Bool("w", false, "print windows format version to console (no .syso output)")
 	iconPtr := flag.String("i", "../../media/icons/Keybase.ico", "icon pathname")
+	fileDescriptionPtr := flag.String("d", "Keybase utility", "File Description")
+	originalFilenamePtr := flag.String("n", "keybase.exe", "File name")
 
 	flag.Parse()
 
@@ -94,12 +96,13 @@ func main() {
 			FileType:       "01",
 			FileSubType:    "00",
 		},
+
 		StringFileInfo: goversioninfo.StringFileInfo{
 			CompanyName:      "Keybase, Inc.",
-			FileDescription:  "Keybase utility",
+			FileDescription:  *fileDescriptionPtr,
 			InternalName:     "Keybase",
 			LegalCopyright:   "Copyright (c) 2015, Keybase",
-			OriginalFilename: "keybase.exe",
+			OriginalFilename: *originalFilenamePtr,
 			ProductName:      "Keybase",
 			ProductVersion:   libkb.VersionString(),
 		},

@@ -27,6 +27,7 @@ protocol identifyUi {
     int rowId;
     bytes pkhash;
     string address;
+    SigID sigID;
   }
 
   record RevokedProof {

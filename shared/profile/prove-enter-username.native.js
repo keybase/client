@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {platformText} from './prove-enter-username.shared'
-import {Box, Icon, Text, Button, Input, PlatformIcon} from '../common-adapters'
+import {Box, Icon, Text, Button, Input, PlatformIcon, StandardScreen} from '../common-adapters'
 import {constants} from '../constants/types/keybase-v1'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import openURL from '../util/open-url'
@@ -28,7 +28,7 @@ function UsernameTips ({platform}: {platform: PlatformsExpandedType}) {
 
 function customError (error: string, code: ?number) {
   if (code === constants.StatusCode.scprofilenotpublic) {
-    return <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center'}}>
+    return <Box>
       <Text style={{...styleErrorBannerText, marginLeft: globalMargins.small, marginRight: globalMargins.small}} type='BodySmallSemibold'>You haven't set a public "Coinbase URL". You need to do that now.</Text>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}} onClick={() => openURL('https://www.coinbase.com/settings#payment_page')}>
         <Text style={styleErrorBannerText} type='BodySmallSemibold'>Go to Coinbase</Text>
@@ -62,13 +62,10 @@ class Render extends Component<void, Props, State> {
 
   render () {
     const {floatingLabelText, hintText} = platformText[this.props.platform]
+    const notification = this.props.errorText ? {notification: {type: 'error', message: customError(this.props.errorText, this.props.errorCode)}} : {}
     return (
-      <Box style={styleContainer}>
-        <Box style={styleCancel}>
-          <Text type='BodyPrimaryLink' style={{position: 'absolute', top: 0, color: globalColors.blue}} onClick={this.props.onCancel}>Cancel</Text>
-        </Box>
-        {!!this.props.errorText && <Box style={styleErrorBanner}>{customError(this.props.errorText, this.props.errorCode)}</Box>}
-        <PlatformIcon style={{marginTop: globalMargins.medium}} platform={this.props.platform} overlay={'icon-proof-pending'} overlayColor={globalColors.grey} size={48} />
+      <StandardScreen {...notification}>
+        <PlatformIcon style={styleIcon} platform={this.props.platform} overlay={'icon-proof-pending'} overlayColor={globalColors.grey} />
         <Input
           style={styleInput}
           autoFocus={true}
@@ -80,52 +77,30 @@ class Render extends Component<void, Props, State> {
         <UsernameTips platform={this.props.platform} />
         <Button
           style={styleButton}
-          fullWidth={true}
           type='Primary'
           disabled={!this.props.canContinue}
           onClick={() => this.handleContinue()}
           label='Continue' />
-      </Box>
+      </StandardScreen>
     )
   }
-}
-
-const styleContainer = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-  alignItems: 'center',
-}
-
-const styleCancel = {
-  ...globalStyles.flexBoxRow,
-  alignSelf: 'flex-start',
-  marginLeft: globalMargins.small,
-  marginBottom: globalMargins.medium,
-}
-
-const styleErrorBanner = {
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
-  alignItems: 'center',
-  minHeight: globalMargins.large,
-  backgroundColor: globalColors.red,
 }
 
 const styleErrorBannerText = {
   color: globalColors.white,
 }
 
+const styleIcon = {
+  alignSelf: 'center',
+}
+
 const styleInput = {
-  alignSelf: 'stretch',
   marginBottom: 0,
-  marginLeft: globalMargins.small,
-  marginRight: globalMargins.small,
   marginTop: globalMargins.large,
 }
 
 const styleInfoBanner = {
   ...globalStyles.flexBoxColumn,
-  alignSelf: 'stretch',
   alignItems: 'flex-start',
   backgroundColor: globalColors.yellow,
   padding: globalMargins.small,
@@ -133,9 +108,6 @@ const styleInfoBanner = {
 }
 
 const styleButton = {
-  alignSelf: 'stretch',
-  marginLeft: globalMargins.small,
-  marginRight: globalMargins.small,
   marginTop: globalMargins.large,
 }
 

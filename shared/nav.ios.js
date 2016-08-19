@@ -186,7 +186,7 @@ export default connect(
   ({router, favorite: {privateBadge, publicBadge}, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({
     router,
     bootstrapped,
-    provisioned: extendedConfig && !!extendedConfig.device,
+    provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
     username,
     dumbFullscreen,
     folderBadge: flags.tabFoldersEnabled ? privateBadge + publicBadge : 0,

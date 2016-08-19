@@ -46,7 +46,7 @@ func TestInvitationArgs(t *testing.T) {
 
 	rec.Reset()
 
-	assertion, ok := NormalizeSocialAssertion("twitter:KeyBase")
+	assertion, ok := NormalizeSocialAssertion(testAssertionContext{}, "twitter:KeyBase")
 	if !ok {
 		t.Fatal("invalid social assertion")
 	}

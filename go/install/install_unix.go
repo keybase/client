@@ -82,11 +82,6 @@ func KBFSBinPath(runMode libkb.RunMode, binPath string) (string, error) {
 	return kbfsBinPathDefault(runMode, binPath)
 }
 
-// RunAfterStartup is not used on unix
-func RunAfterStartup(context Context, isService bool, log Log) error {
-	return nil
-}
-
 // kbfsBinName returns the name for the KBFS executable
 func kbfsBinName() string {
 	return "kbfsfuse"

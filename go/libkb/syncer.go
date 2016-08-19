@@ -10,7 +10,7 @@ import (
 )
 
 type Syncer interface {
-	Contexitifier
+	Contextifier
 	sync.Locker
 	loadFromStorage(keybase1.UID) error
 	syncFromServer(keybase1.UID, SessionReader) error

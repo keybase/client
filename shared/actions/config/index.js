@@ -109,9 +109,15 @@ function getExtendedStatus (): AsyncAction {
   }
 }
 
+function _registerListeners (): AsyncAction {
+  return dispatch => {
+    dispatch(registerGregorListeners())
+  }
+}
+
 let bootstrapSetup = false
 export function bootstrap (): AsyncAction {
-  return dispatch => {
+  return (dispatch, getState) => {
     if (!bootstrapSetup) {
       bootstrapSetup = true
       console.log('Registered bootstrap')
@@ -119,6 +125,9 @@ export function bootstrap (): AsyncAction {
         console.log('Bootstrapping')
         dispatch(bootstrap())
       })
+    } else if (getState().dev.reloading) {
+      // Let's still register the listeners
+      dispatch(_registerListeners())
     } else {
       Promise.all(
         [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(([username]) => {
@@ -129,7 +138,7 @@ export function bootstrap (): AsyncAction {
           dispatch({type: Constants.bootstrapped, payload: null})
           dispatch(navBasedOnLoginState())
           dispatch((resetSignup(): Action))
-          dispatch(registerGregorListeners())
+          dispatch(_registerListeners())
         }).catch(error => {
           console.warn('Error bootstrapping: ', error)
         })
