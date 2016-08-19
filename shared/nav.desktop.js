@@ -194,7 +194,7 @@ export default connect(
     favorite: {publicBadge, privateBadge},
     notifications: {menuBadge}}) => ({
       router,
-      provisioned: extendedConfig && !!extendedConfig.device,
+      provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,
       username,
       menuBadge,
       folderBadge: flags.tabFoldersEnabled ? publicBadge + privateBadge : 0,
