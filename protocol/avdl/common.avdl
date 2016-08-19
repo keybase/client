@@ -26,8 +26,13 @@ protocol Common {
   @typedef("string")
   record SigID {}
 
+  // Most appearances of KIDs in protocol are in hex....
   @typedef("string")
   record KID {}
+
+  // But sometimes we need binary kids...
+  @typedef("bytes")
+  record BinaryKID {}
 
   @typedef("string")
   record TLFID {}

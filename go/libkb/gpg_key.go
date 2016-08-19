@@ -32,6 +32,10 @@ func (g *GPGKey) GetKID() keybase1.KID {
 	return g.kid
 }
 
+func (g *GPGKey) GetBinaryKID() keybase1.BinaryKID {
+	return g.GetKID().ToBinaryKID()
+}
+
 func (g *GPGKey) GetFingerprintP() *PGPFingerprint {
 	return g.fp
 }
