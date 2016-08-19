@@ -12,7 +12,7 @@ func TestEnvDarwin(t *testing.T) {
 	env := newEnv(nil, nil, "darwin")
 
 	runtimeDir := env.GetRuntimeDir()
-	sockFile, err := env.GetSocketFile()
+	sockFile, err := env.GetSocketBindFile()
 	if err != nil {
 		t.Fatal(err)
 	}
