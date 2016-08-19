@@ -5,7 +5,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"fmt"
 	"sync"
 
@@ -123,60 +122,32 @@ func (md *MDOpsStandard) verifyWriterKey(
 func (md *MDOpsStandard) processMetadata(
 	ctx context.Context, handle *TlfHandle, rmds *RootMetadataSigned) (
 	ImmutableRootMetadata, error) {
-	// A blank sig means this is a brand new MD object, and
-	// there's nothing to do.
-	if !rmds.IsInitialized() {
-		return ImmutableRootMetadata{}, errors.New(
-			"Missing RootMetadata signature")
-	}
-
-	// Otherwise, verify signatures and deserialize private data.
-
-	// Make sure the last writer is really a valid writer
-	writer := rmds.MD.LastModifyingWriter()
-	if !handle.IsWriter(writer) {
+	// First, verify validity and signatures.
+	err := rmds.IsValidAndSigned(md.config.Codec(), md.config.Crypto())
+	if err != nil {
 		return ImmutableRootMetadata{}, MDMismatchError{
-			handle.GetCanonicalPath(),
-			fmt.Errorf("Writer MD (id=%s) was written by a non-writer %s",
-				rmds.MD.TlfID(), writer)}
-	}
-
-	// Make sure the last user to change the blob is really a valid reader
-	user := rmds.MD.GetLastModifyingUser()
-	if !handle.IsReader(user) {
-		return ImmutableRootMetadata{}, MDMismatchError{
-			handle.GetCanonicalPath(),
-			fmt.Errorf("MD (id=%s) was changed by a non-reader %s",
-				rmds.MD.TlfID(), user),
+			rmds.MD.RevisionNumber(), handle.GetCanonicalPath(),
+			rmds.MD.TlfID(), err,
 		}
 	}
 
+	// Then, verify the verifying keys.
 	if err := md.verifyWriterKey(ctx, rmds, handle); err != nil {
 		return ImmutableRootMetadata{}, err
 	}
 
-	codec := md.config.Codec()
-	crypto := md.config.Crypto()
-
-	err := rmds.MD.VerifyWriterMetadata(codec, crypto)
-	if err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-
 	if handle.IsFinal() {
-		err = md.config.KBPKI().HasUnverifiedVerifyingKey(ctx, user,
+		err = md.config.KBPKI().HasUnverifiedVerifyingKey(
+			ctx, rmds.MD.GetLastModifyingUser(),
 			rmds.SigInfo.VerifyingKey)
 	} else {
-		err = md.config.KBPKI().HasVerifyingKey(ctx, user,
-			rmds.SigInfo.VerifyingKey, rmds.untrustedServerTimestamp)
+		err = md.config.KBPKI().HasVerifyingKey(
+			ctx, rmds.MD.GetLastModifyingUser(),
+			rmds.SigInfo.VerifyingKey,
+			rmds.untrustedServerTimestamp)
 	}
 	if err != nil {
 		return ImmutableRootMetadata{}, md.convertVerifyingKeyError(ctx, rmds, handle, err)
-	}
-
-	err = rmds.VerifyRootMetadata(codec, crypto)
-	if err != nil {
-		return ImmutableRootMetadata{}, err
 	}
 
 	rmd := RootMetadata{
@@ -258,10 +229,11 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 	mdHandlePath := mdHandle.GetCanonicalPath()
 	if !handleResolvesToMdHandle && !mdHandleResolvesToHandle {
 		return TlfID{}, ImmutableRootMetadata{}, MDMismatchError{
-			handle.GetCanonicalPath(),
+			rmds.MD.RevisionNumber(), handle.GetCanonicalPath(),
+			rmds.MD.TlfID(),
 			fmt.Errorf(
-				"MD (id=%s) contained unexpected handle path %s (%s -> %s) (%s -> %s)",
-				rmds.MD.TlfID(), mdHandlePath,
+				"MD contained unexpected handle path %s (%s -> %s) (%s -> %s)",
+				mdHandlePath,
 				handle.GetCanonicalPath(),
 				partialResolvedHandle.GetCanonicalPath(),
 				mdHandle.GetCanonicalPath(),
@@ -292,7 +264,7 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	// Make sure the signed-over ID matches
 	if id != rmds.MD.TlfID() {
 		return ImmutableRootMetadata{}, MDMismatchError{
-			id.String(),
+			rmds.MD.RevisionNumber(), id.String(), rmds.MD.TlfID(),
 			fmt.Errorf("MD contained unexpected folder id %s, expected %s",
 				rmds.MD.TlfID().String(), id.String()),
 		}
@@ -300,7 +272,7 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 	// Make sure the signed-over branch ID matches
 	if bid != NullBranchID && bid != rmds.MD.BID() {
 		return ImmutableRootMetadata{}, MDMismatchError{
-			id.String(),
+			rmds.MD.RevisionNumber(), id.String(), rmds.MD.TlfID(),
 			fmt.Errorf("MD contained unexpected branch id %s, expected %s, "+
 				"folder id %s", rmds.MD.BID().String(), bid.String(), id.String()),
 		}
@@ -445,8 +417,9 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 				prevIRMD.mdID, irmd.bareMd)
 			if err != nil {
 				return nil, MDMismatchError{
+					prevIRMD.Revision(),
 					irmd.GetTlfHandle().GetCanonicalPath(),
-					err,
+					prevIRMD.TlfID(), err,
 				}
 			}
 		}

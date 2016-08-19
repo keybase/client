@@ -406,24 +406,6 @@ func (md *BareRootMetadataV2) MakeBareTlfHandle() (BareTlfHandle, error) {
 		md.TlfHandleExtensions())
 }
 
-// VerifyWriterMetadata implements the BareRootMetadata interface for BareRootMetadataV2.
-func (md *BareRootMetadataV2) VerifyWriterMetadata(
-	codec Codec, crypto cryptoPure) error {
-	// We have to re-marshal the WriterMetadata, since it's
-	// embedded.
-	buf, err := codec.Encode(md.WriterMetadataV2)
-	if err != nil {
-		return err
-	}
-
-	err = crypto.Verify(buf, md.WriterMetadataSigInfo)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // TlfHandleExtensions implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) TlfHandleExtensions() (
 	extensions []TlfHandleExtension) {
@@ -541,19 +523,40 @@ func (md *BareRootMetadataV2) GetTLFCryptKeyParams(
 
 // IsValidAndSigned implements the BareRootMetadata interface for BareRootMetadataV2.
 func (md *BareRootMetadataV2) IsValidAndSigned(
-	codec Codec, crypto cryptoPure,
-	currentUID keybase1.UID, currentVerifyingKey VerifyingKey) error {
-	if md.Revision < MetadataRevisionInitial {
-		return errors.New("Invalid revision")
+	codec Codec, crypto cryptoPure) error {
+	// Optimization -- if the WriterMetadata signature is nil, it
+	// will fail verification.
+	if md.WriterMetadataSigInfo.IsNil() {
+		return errors.New("Missing WriterMetadata signature")
 	}
 
-	if md.Revision == MetadataRevisionInitial {
-		if md.PrevRoot != (MdID{}) {
-			return errors.New("Invalid PrevRoot for initial revision")
+	if md.IsFinal() {
+		if md.Revision < MetadataRevisionInitial+1 {
+			return fmt.Errorf("Invalid final revision %d", md.Revision)
+		}
+
+		if md.Revision == (MetadataRevisionInitial + 1) {
+			if md.PrevRoot != (MdID{}) {
+				return fmt.Errorf("Invalid PrevRoot %s for initial final revision", md.PrevRoot)
+			}
+		} else {
+			if md.PrevRoot == (MdID{}) {
+				return errors.New("No PrevRoot for non-initial final revision")
+			}
 		}
 	} else {
-		if md.PrevRoot == (MdID{}) {
-			return errors.New("No PrevRoot for non-initial revision")
+		if md.Revision < MetadataRevisionInitial {
+			return fmt.Errorf("Invalid revision %d", md.Revision)
+		}
+
+		if md.Revision == MetadataRevisionInitial {
+			if md.PrevRoot != (MdID{}) {
+				return fmt.Errorf("Invalid PrevRoot %s for initial revision", md.PrevRoot)
+			}
+		} else {
+			if md.PrevRoot == (MdID{}) {
+				return errors.New("No PrevRoot for non-initial revision")
+			}
 		}
 	}
 
@@ -562,7 +565,8 @@ func (md *BareRootMetadataV2) IsValidAndSigned(
 	}
 
 	if (md.MergedStatus() == Merged) != (md.BID() == NullBranchID) {
-		return errors.New("Branch ID doesn't match merged status")
+		return fmt.Errorf("Branch ID %s doesn't match merged status %s",
+			md.BID(), md.MergedStatus())
 	}
 
 	handle, err := md.MakeBareTlfHandle()
@@ -570,32 +574,54 @@ func (md *BareRootMetadataV2) IsValidAndSigned(
 		return err
 	}
 
-	writer := md.LastModifyingWriter()
-
 	// Make sure the last writer is valid.
+	writer := md.LastModifyingWriter()
 	if !handle.IsWriter(writer) {
-		return errors.New("Invalid modifying writer")
+		return fmt.Errorf("Invalid modifying writer %s", writer)
 	}
 
+	// Make sure the last modifier is valid.
+	user := md.LastModifyingUser
+	if !handle.IsReader(user) {
+		return fmt.Errorf("Invalid modifying user %s", user)
+	}
+
+	// Verify signature. We have to re-marshal the WriterMetadata,
+	// since it's embedded.
+	buf, err := codec.Encode(md.WriterMetadataV2)
+	if err != nil {
+		return err
+	}
+
+	err = crypto.Verify(buf, md.WriterMetadataSigInfo)
+	if err != nil {
+		return fmt.Errorf("Could not verify writer metadata: %v", err)
+	}
+
+	return nil
+}
+
+// IsLastModifiedBy implements the BareRootMetadata interface for
+// BareRootMetadataV2.
+func (md *BareRootMetadataV2) IsLastModifiedBy(
+	uid keybase1.UID, key VerifyingKey) error {
 	// Verify the user and device are the writer.
+	writer := md.LastModifyingWriter()
 	if !md.IsWriterMetadataCopiedSet() {
-		if writer != currentUID {
-			return errors.New("Last writer and current user mismatch")
+		if writer != uid {
+			return fmt.Errorf("Last writer %s != %s", writer, uid)
 		}
-		if md.WriterMetadataSigInfo.VerifyingKey != currentVerifyingKey {
-			return errors.New("Last writer verifying key and current verifying key mismatch")
+		if md.WriterMetadataSigInfo.VerifyingKey != key {
+			return fmt.Errorf(
+				"Last writer verifying key %v != %v",
+				md.WriterMetadataSigInfo.VerifyingKey, key)
 		}
 	}
 
 	// Verify the user and device are the last modifier.
-	if md.GetLastModifyingUser() != currentUID {
-		return errors.New("Last modifier and current user mismatch")
-	}
-
-	// Verify signature.
-	err = md.VerifyWriterMetadata(codec, crypto)
-	if err != nil {
-		return fmt.Errorf("Could not verify writer metadata: %v", err)
+	user := md.GetLastModifyingUser()
+	if user != uid {
+		return fmt.Errorf("Last modifier %s != %s", user, uid)
 	}
 
 	return nil

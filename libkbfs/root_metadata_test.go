@@ -195,7 +195,7 @@ func TestRootMetadataLatestKeyGenerationPublic(t *testing.T) {
 
 // Test that old encoded WriterMetadata objects (i.e., without any
 // extra fields) can be deserialized and serialized to the same form,
-// which is important for RootMetadata.VerifyWriterMetadata().
+// which is important for RootMetadata.IsValidAndSigned().
 func TestWriterMetadataUnchangedEncoding(t *testing.T) {
 	encodedWm := []byte{
 		0x89, 0xa3, 0x42, 0x49, 0x44, 0xc4, 0x10, 0x0,
@@ -646,6 +646,10 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 		t.Fatal(err)
 	}
 	rmds.MD.FakeInitialRekey(h)
+	rmds.MD.SetLastModifyingWriter(h.Writers[0])
+	rmds.MD.SetLastModifyingUser(h.Writers[0])
+	rmds.MD.SetSerializedPrivateMetadata([]byte{42})
+
 	buf, err := rmds.MD.GetSerializedWriterMetadata(config.Codec())
 	if err != nil {
 		t.Fatal(err)
@@ -666,7 +670,7 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 	rmds.SigInfo = sigInfo
 
 	// verify it
-	err = rmds.VerifyRootMetadata(config.Codec(), config.Crypto())
+	err = rmds.IsValidAndSigned(config.Codec(), config.Crypto())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -685,13 +689,7 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 	rmds2.MD.SetFinalizedInfo(fi)
 
 	// verify the finalized copy
-	err = rmds2.VerifyRootMetadata(config.Codec(), config.Crypto())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// verify the writer metadata too for good measure
-	err = rmds2.MD.VerifyWriterMetadata(config.Codec(), config.Crypto())
+	err = rmds2.IsValidAndSigned(config.Codec(), config.Crypto())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -699,7 +697,7 @@ func TestRootMetadataFinalVerify(t *testing.T) {
 	// touch something the server shouldn't be allowed to edit for finalized metadata
 	// and verify verification failure.
 	rmds2.MD.SetRekeyBit()
-	err = rmds2.VerifyRootMetadata(config.Codec(), config.Crypto())
+	err = rmds2.IsValidAndSigned(config.Codec(), config.Crypto())
 	if err == nil {
 		t.Fatalf("expected error")
 	}

@@ -119,12 +119,15 @@ func TestMDJournalBasic(t *testing.T) {
 
 	require.Equal(t, firstRevision, ibrmds[0].RevisionNumber())
 	require.Equal(t, firstPrevRoot, ibrmds[0].GetPrevRoot())
-	err = ibrmds[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
+	err = ibrmds[0].IsValidAndSigned(codec, crypto)
+	require.NoError(t, err)
+	err = ibrmds[0].IsLastModifiedBy(uid, verifyingKey)
 	require.NoError(t, err)
 
 	for i := 1; i < len(ibrmds); i++ {
-		err := ibrmds[i].IsValidAndSigned(
-			codec, crypto, uid, verifyingKey)
+		err := ibrmds[i].IsValidAndSigned(codec, crypto)
+		require.NoError(t, err)
+		err = ibrmds[i].IsLastModifiedBy(uid, verifyingKey)
 		require.NoError(t, err)
 		err = ibrmds[i-1].CheckValidSuccessor(
 			ibrmds[i-1].mdID, ibrmds[i].BareRootMetadata)
@@ -204,7 +207,9 @@ func TestMDJournalBranchConversion(t *testing.T) {
 	require.Equal(t, firstRevision, ibrmds[0].RevisionNumber())
 	require.Equal(t, firstPrevRoot, ibrmds[0].GetPrevRoot())
 	require.Equal(t, Unmerged, ibrmds[0].MergedStatus())
-	err = ibrmds[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
+	err = ibrmds[0].IsValidAndSigned(codec, crypto)
+	require.NoError(t, err)
+	err = ibrmds[0].IsLastModifiedBy(uid, verifyingKey)
 	require.NoError(t, err)
 
 	bid := ibrmds[0].BID()
@@ -213,8 +218,9 @@ func TestMDJournalBranchConversion(t *testing.T) {
 	for i := 1; i < len(ibrmds); i++ {
 		require.Equal(t, Unmerged, ibrmds[i].MergedStatus())
 		require.Equal(t, bid, ibrmds[i].BID())
-		err := ibrmds[i].IsValidAndSigned(
-			codec, crypto, uid, verifyingKey)
+		err := ibrmds[i].IsValidAndSigned(codec, crypto)
+		require.NoError(t, err)
+		err = ibrmds[i].IsLastModifiedBy(uid, verifyingKey)
 		require.NoError(t, err)
 		err = ibrmds[i-1].CheckValidSuccessor(
 			ibrmds[i-1].mdID, ibrmds[i].BareRootMetadata)
@@ -278,14 +284,17 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	require.Equal(t, firstRevision, ibrmds[0].RevisionNumber())
 	require.Equal(t, firstPrevRoot, ibrmds[0].GetPrevRoot())
 	require.Equal(t, Merged, ibrmds[0].MergedStatus())
-	err = ibrmds[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
+	err = ibrmds[0].IsValidAndSigned(codec, crypto)
+	require.NoError(t, err)
+	err = ibrmds[0].IsLastModifiedBy(uid, verifyingKey)
 	require.NoError(t, err)
 
 	for i := 1; i < len(ibrmds); i++ {
 		require.Equal(t, Merged, ibrmds[i].MergedStatus())
 		require.Equal(t, NullBranchID, ibrmds[i].BID())
-		err := ibrmds[i].IsValidAndSigned(
-			codec, crypto, uid, verifyingKey)
+		err := ibrmds[i].IsValidAndSigned(codec, crypto)
+		require.NoError(t, err)
+		err = ibrmds[i].IsLastModifiedBy(uid, verifyingKey)
 		require.NoError(t, err)
 		err = ibrmds[i-1].CheckValidSuccessor(
 			ibrmds[i-1].mdID, ibrmds[i].BareRootMetadata)
@@ -372,12 +381,15 @@ func TestMDJournalFlushBasic(t *testing.T) {
 
 	require.Equal(t, firstRevision, rmdses[0].MD.RevisionNumber())
 	require.Equal(t, firstPrevRoot, rmdses[0].MD.GetPrevRoot())
-	err = rmdses[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
+	err = rmdses[0].IsValidAndSigned(codec, crypto)
+	require.NoError(t, err)
+	err = rmdses[0].IsLastModifiedBy(uid, verifyingKey)
 	require.NoError(t, err)
 
 	for i := 1; i < len(rmdses); i++ {
-		err := rmdses[i].IsValidAndSigned(
-			codec, crypto, uid, verifyingKey)
+		err := rmdses[i].IsValidAndSigned(codec, crypto)
+		require.NoError(t, err)
+		err = rmdses[i].IsLastModifiedBy(uid, verifyingKey)
 		require.NoError(t, err)
 		prevID, err := crypto.MakeMdID(rmdses[i-1].MD)
 		require.NoError(t, err)
@@ -456,7 +468,9 @@ func TestMDJournalFlushConflict(t *testing.T) {
 	require.Equal(t, firstRevision, rmdses[0].MD.RevisionNumber())
 	require.Equal(t, firstPrevRoot, rmdses[0].MD.GetPrevRoot())
 	require.Equal(t, Unmerged, rmdses[0].MD.MergedStatus())
-	err = rmdses[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
+	err = rmdses[0].IsValidAndSigned(codec, crypto)
+	require.NoError(t, err)
+	err = rmdses[0].IsLastModifiedBy(uid, verifyingKey)
 	require.NoError(t, err)
 
 	bid := rmdses[0].MD.BID()
@@ -465,8 +479,9 @@ func TestMDJournalFlushConflict(t *testing.T) {
 	for i := 1; i < len(rmdses); i++ {
 		require.Equal(t, Unmerged, rmdses[i].MD.MergedStatus())
 		require.Equal(t, bid, rmdses[i].MD.BID())
-		err := rmdses[i].IsValidAndSigned(
-			codec, crypto, uid, verifyingKey)
+		err := rmdses[i].IsValidAndSigned(codec, crypto)
+		require.NoError(t, err)
+		err = rmdses[i].IsLastModifiedBy(uid, verifyingKey)
 		require.NoError(t, err)
 		prevID, err := crypto.MakeMdID(rmdses[i-1].MD)
 		require.NoError(t, err)
@@ -548,7 +563,9 @@ func TestMDJournalPreservesBranchID(t *testing.T) {
 	require.Equal(t, firstRevision, rmdses[0].MD.RevisionNumber())
 	require.Equal(t, firstPrevRoot, rmdses[0].MD.GetPrevRoot())
 	require.Equal(t, Unmerged, rmdses[0].MD.MergedStatus())
-	err = rmdses[0].IsValidAndSigned(codec, crypto, uid, verifyingKey)
+	err = rmdses[0].IsValidAndSigned(codec, crypto)
+	require.NoError(t, err)
+	err = rmdses[0].IsLastModifiedBy(uid, verifyingKey)
 	require.NoError(t, err)
 
 	bid := rmdses[0].MD.BID()
@@ -557,8 +574,9 @@ func TestMDJournalPreservesBranchID(t *testing.T) {
 	for i := 1; i < len(rmdses); i++ {
 		require.Equal(t, Unmerged, rmdses[i].MD.MergedStatus())
 		require.Equal(t, bid, rmdses[i].MD.BID())
-		err := rmdses[i].IsValidAndSigned(
-			codec, crypto, uid, verifyingKey)
+		err := rmdses[i].IsValidAndSigned(codec, crypto)
+		require.NoError(t, err)
+		err = rmdses[i].IsLastModifiedBy(uid, verifyingKey)
 		require.NoError(t, err)
 		prevID, err := crypto.MakeMdID(rmdses[i-1].MD)
 		require.NoError(t, err)

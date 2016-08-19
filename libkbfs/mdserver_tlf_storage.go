@@ -319,8 +319,12 @@ func (s *mdServerTlfStorage) put(
 		return false, errMDServerTlfStorageShutdown
 	}
 
-	err = rmds.IsValidAndSigned(
-		s.codec, s.crypto, currentUID, currentVerifyingKey)
+	err = rmds.IsValidAndSigned(s.codec, s.crypto)
+	if err != nil {
+		return false, MDServerErrorBadRequest{Reason: err.Error()}
+	}
+
+	err = rmds.IsLastModifiedBy(currentUID, currentVerifyingKey)
 	if err != nil {
 		return false, MDServerErrorBadRequest{Reason: err.Error()}
 	}

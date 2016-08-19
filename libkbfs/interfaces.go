@@ -1494,9 +1494,6 @@ type BareRootMetadata interface {
 	// MakeBareTlfHandle makes a BareTlfHandle for this
 	// BareRootMetadata. Should be used only by servers and MDOps.
 	MakeBareTlfHandle() (BareTlfHandle, error)
-	// VerifyWriterMetadata verifies md's WriterMetadata against md's
-	// WriterMetadataSigInfo, assuming the verifying key there is valid.
-	VerifyWriterMetadata(codec Codec, crypto cryptoPure) error
 	// TlfHandleExtensions returns a list of handle extensions associated with the TLf.
 	TlfHandleExtensions() (extensions []TlfHandleExtension)
 	// GetDeviceKIDs returns the KIDs (of CryptPublicKeys) for all known
@@ -1518,12 +1515,18 @@ type BareRootMetadata interface {
 	GetTLFCryptKeyParams(keyGen KeyGen, user keybase1.UID, key CryptPublicKey) (
 		TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf,
 		TLFCryptKeyServerHalfID, bool, error)
-	// IsValidAndSigned verifies the BareRootMetadata given the current
-	// user and device (identified by the KID of the device verifying
-	// key), checks the writer signature, and returns an error if a
-	// problem was found.
-	IsValidAndSigned(codec Codec, crypto cryptoPure,
-		currentUID keybase1.UID, currentVerifyingKey VerifyingKey) error
+	// IsValidAndSigned verifies the BareRootMetadata, checks the
+	// writer signature, and returns an error if a problem was
+	// found. This should be the first thing checked on a BRMD
+	// retrieved from an untrusted source, and then the signing
+	// user and key should be validated, either by comparing to
+	// the current device key (using IsLastModifiedBy), or by
+	// checking with KBPKI.
+	IsValidAndSigned(codec Codec, crypto cryptoPure) error
+	// IsLastModifiedBy verifies that the BareRootMetadata is
+	// written by the given user and device (identified by the KID
+	// of the device verifying key), and returns an error if not.
+	IsLastModifiedBy(uid keybase1.UID, key VerifyingKey) error
 	// LastModifyingWriter return the UID of the last user to modify the writer metadata.
 	LastModifyingWriter() keybase1.UID
 	// LastModifyingWriterKID returns the KID of the last device to modify the writer metadata.

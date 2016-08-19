@@ -4314,16 +4314,6 @@ func (_mr *_MockBareRootMetadataRecorder) MakeBareTlfHandle() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeBareTlfHandle")
 }
 
-func (_m *MockBareRootMetadata) VerifyWriterMetadata(codec Codec, crypto cryptoPure) error {
-	ret := _m.ctrl.Call(_m, "VerifyWriterMetadata", codec, crypto)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockBareRootMetadataRecorder) VerifyWriterMetadata(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "VerifyWriterMetadata", arg0, arg1)
-}
-
 func (_m *MockBareRootMetadata) TlfHandleExtensions() []TlfHandleExtension {
 	ret := _m.ctrl.Call(_m, "TlfHandleExtensions")
 	ret0, _ := ret[0].([]TlfHandleExtension)
@@ -4369,14 +4359,24 @@ func (_mr *_MockBareRootMetadataRecorder) GetTLFCryptKeyParams(arg0, arg1, arg2 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyParams", arg0, arg1, arg2)
 }
 
-func (_m *MockBareRootMetadata) IsValidAndSigned(codec Codec, crypto cryptoPure, currentUID protocol.UID, currentVerifyingKey VerifyingKey) error {
-	ret := _m.ctrl.Call(_m, "IsValidAndSigned", codec, crypto, currentUID, currentVerifyingKey)
+func (_m *MockBareRootMetadata) IsValidAndSigned(codec Codec, crypto cryptoPure) error {
+	ret := _m.ctrl.Call(_m, "IsValidAndSigned", codec, crypto)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockBareRootMetadataRecorder) IsValidAndSigned(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidAndSigned", arg0, arg1, arg2, arg3)
+func (_mr *_MockBareRootMetadataRecorder) IsValidAndSigned(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidAndSigned", arg0, arg1)
+}
+
+func (_m *MockBareRootMetadata) IsLastModifiedBy(uid protocol.UID, key VerifyingKey) error {
+	ret := _m.ctrl.Call(_m, "IsLastModifiedBy", uid, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBareRootMetadataRecorder) IsLastModifiedBy(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsLastModifiedBy", arg0, arg1)
 }
 
 func (_m *MockBareRootMetadata) LastModifyingWriter() protocol.UID {
@@ -4674,16 +4674,6 @@ func (_mr *_MockMutableBareRootMetadataRecorder) MakeBareTlfHandle() *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeBareTlfHandle")
 }
 
-func (_m *MockMutableBareRootMetadata) VerifyWriterMetadata(codec Codec, crypto cryptoPure) error {
-	ret := _m.ctrl.Call(_m, "VerifyWriterMetadata", codec, crypto)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockMutableBareRootMetadataRecorder) VerifyWriterMetadata(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "VerifyWriterMetadata", arg0, arg1)
-}
-
 func (_m *MockMutableBareRootMetadata) TlfHandleExtensions() []TlfHandleExtension {
 	ret := _m.ctrl.Call(_m, "TlfHandleExtensions")
 	ret0, _ := ret[0].([]TlfHandleExtension)
@@ -4729,14 +4719,24 @@ func (_mr *_MockMutableBareRootMetadataRecorder) GetTLFCryptKeyParams(arg0, arg1
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyParams", arg0, arg1, arg2)
 }
 
-func (_m *MockMutableBareRootMetadata) IsValidAndSigned(codec Codec, crypto cryptoPure, currentUID protocol.UID, currentVerifyingKey VerifyingKey) error {
-	ret := _m.ctrl.Call(_m, "IsValidAndSigned", codec, crypto, currentUID, currentVerifyingKey)
+func (_m *MockMutableBareRootMetadata) IsValidAndSigned(codec Codec, crypto cryptoPure) error {
+	ret := _m.ctrl.Call(_m, "IsValidAndSigned", codec, crypto)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockMutableBareRootMetadataRecorder) IsValidAndSigned(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidAndSigned", arg0, arg1, arg2, arg3)
+func (_mr *_MockMutableBareRootMetadataRecorder) IsValidAndSigned(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidAndSigned", arg0, arg1)
+}
+
+func (_m *MockMutableBareRootMetadata) IsLastModifiedBy(uid protocol.UID, key VerifyingKey) error {
+	ret := _m.ctrl.Call(_m, "IsLastModifiedBy", uid, key)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) IsLastModifiedBy(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsLastModifiedBy", arg0, arg1)
 }
 
 func (_m *MockMutableBareRootMetadata) LastModifyingWriter() protocol.UID {

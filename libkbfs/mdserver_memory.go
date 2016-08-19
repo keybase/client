@@ -328,14 +328,18 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 		return MDServerError{err}
 	}
 
-	currentVerifyingKey, err := md.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	currentVerifyingKey, err :=
+		md.config.KBPKI().GetCurrentVerifyingKey(ctx)
 	if err != nil {
 		return MDServerError{err}
 	}
 
-	err = rmds.IsValidAndSigned(
-		md.config.Codec(), md.config.Crypto(),
-		currentUID, currentVerifyingKey)
+	err = rmds.IsValidAndSigned(md.config.Codec(), md.config.Crypto())
+	if err != nil {
+		return MDServerErrorBadRequest{Reason: err.Error()}
+	}
+
+	err = rmds.IsLastModifiedBy(currentUID, currentVerifyingKey)
 	if err != nil {
 		return MDServerErrorBadRequest{Reason: err.Error()}
 	}

@@ -672,50 +672,6 @@ func NewRootMetadataSigned() *RootMetadataSigned {
 	return &RootMetadataSigned{MD: &BareRootMetadataV2{}}
 }
 
-// IsInitialized returns whether or not this RootMetadataSigned object
-// has been finalized by some writer.
-func (rmds *RootMetadataSigned) IsInitialized() bool {
-	// The data is initialized only if there is a signature.
-	return !rmds.SigInfo.IsNil()
-}
-
-// VerifyRootMetadata verifies rmd's MD against rmd's SigInfo,
-// assuming the verifying key there is valid.
-func (rmds *RootMetadataSigned) VerifyRootMetadata(
-	codec Codec, crypto cryptoPure) error {
-	md := rmds.MD
-	if rmds.MD.IsFinal() {
-		mdCopy, err := md.DeepCopy(codec)
-		if err != nil {
-			return err
-		}
-		mutableMdCopy, ok := mdCopy.(MutableBareRootMetadata)
-		if !ok {
-			return MutableBareRootMetadataNoImplError{}
-		}
-		// Mask out finalized additions.  These are the only
-		// things allowed to change in the finalized metadata
-		// block.
-		mutableMdCopy.ClearFinalBit()
-		mutableMdCopy.SetRevision(md.RevisionNumber() - 1)
-		mutableMdCopy.SetFinalizedInfo(nil)
-		md = mutableMdCopy
-	}
-	// Re-marshal the whole RootMetadata. This is not avoidable
-	// without support from ugorji/codec.
-	buf, err := codec.Encode(md)
-	if err != nil {
-		return err
-	}
-
-	err = crypto.Verify(buf, rmds.SigInfo)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // MerkleHash computes a hash of this RootMetadataSigned object for inclusion
 // into the KBFS Merkle tree.
 func (rmds *RootMetadataSigned) MerkleHash(config Config) (MerkleHash, error) {
@@ -728,8 +684,8 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 	return rmds.MD.Version()
 }
 
-// MakeFinalCopy returns a complete copy of this RootMetadataSigned (but with
-// cleared serialized metadata), with the revision incremented and the final bit set.
+// MakeFinalCopy returns a complete copy of this RootMetadataSigned
+// with the revision incremented and the final bit set.
 func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 	*RootMetadataSigned, error) {
 	if rmds.MD.IsFinal() {
@@ -761,25 +717,71 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 	return &newRmds, nil
 }
 
-// IsValidAndSigned verifies the RootMetadataSigned given the current
-// user and device, checks the writer signature, and returns an error
-// if a problem was found.
+// IsValidAndSigned verifies the RootMetadataSigned, checks the root
+// signature, and returns an error if a problem was found.  This
+// should be the first thing checked on an RMDS retrieved from an
+// untrusted source, and then the signing users and keys should be
+// validated, either by comparing to the current device key (using
+// IsLastModifiedBy), or by checking with KBPKI.
 func (rmds *RootMetadataSigned) IsValidAndSigned(
-	codec Codec, crypto cryptoPure,
-	currentUID keybase1.UID, currentVerifyingKey VerifyingKey) error {
-	err := rmds.MD.IsValidAndSigned(
-		codec, crypto, currentUID, currentVerifyingKey)
+	codec Codec, crypto cryptoPure) error {
+	// Optimization -- if the RootMetadata signature is nil, it
+	// will fail verification.
+	if rmds.SigInfo.IsNil() {
+		return errors.New("Missing RootMetadata signature")
+	}
+
+	err := rmds.MD.IsValidAndSigned(codec, crypto)
 	if err != nil {
 		return err
 	}
 
-	if rmds.SigInfo.VerifyingKey != currentVerifyingKey {
-		return errors.New("Last modifier verifying key and current verifying key mismatch")
+	md := rmds.MD
+	if rmds.MD.IsFinal() {
+		mdCopy, err := md.DeepCopy(codec)
+		if err != nil {
+			return err
+		}
+		mutableMdCopy, ok := mdCopy.(MutableBareRootMetadata)
+		if !ok {
+			return MutableBareRootMetadataNoImplError{}
+		}
+		// Mask out finalized additions.  These are the only
+		// things allowed to change in the finalized metadata
+		// block.
+		mutableMdCopy.ClearFinalBit()
+		mutableMdCopy.SetRevision(md.RevisionNumber() - 1)
+		mutableMdCopy.SetFinalizedInfo(nil)
+		md = mutableMdCopy
+	}
+	// Re-marshal the whole RootMetadata. This is not avoidable
+	// without support from ugorji/codec.
+	buf, err := codec.Encode(md)
+	if err != nil {
+		return err
 	}
 
-	err = rmds.VerifyRootMetadata(codec, crypto)
+	err = crypto.Verify(buf, rmds.SigInfo)
 	if err != nil {
 		return fmt.Errorf("Could not verify root metadata: %v", err)
+	}
+
+	return nil
+}
+
+// IsLastModifiedBy verifies that the RootMetadataSigned is written by
+// the given user and device (identified by the KID of the device
+// verifying key), and returns an error if not.
+func (rmds *RootMetadataSigned) IsLastModifiedBy(
+	uid keybase1.UID, key VerifyingKey) error {
+	err := rmds.MD.IsLastModifiedBy(uid, key)
+	if err != nil {
+		return err
+	}
+
+	if rmds.SigInfo.VerifyingKey != key {
+		return fmt.Errorf("Last modifier verifying key %v != %v",
+			rmds.SigInfo.VerifyingKey, key)
 	}
 
 	return nil
