@@ -1,18 +1,23 @@
 // @flow
 import * as Constants from '../constants/profile'
 import engine from '../engine'
-import type {Dispatch, AsyncAction} from '../constants/types/flux'
-import type {PlatformsExpandedType, ProvablePlatformsType} from '../constants/types/more'
-import type {SigID} from '../constants/types/flow-types'
-import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateErrorText, UpdateProofStatus,
-  UpdateSigID, WaitingRevokeProof, FinishRevokeProof, CleanupUsername} from '../constants/profile'
-import {apiserverPostRpc, proveStartProofRpc, proveCheckProofRpc, revokeRevokeSigsRpc, BTCRegisterBTCRpc} from '../constants/types/flow-types'
+import openURL from '../util/open-url'
+import {apiserverPostRpc, proveStartProofRpc, proveCheckProofRpc, revokeRevokeSigsRpc, BTCRegisterBTCRpc, pgpPgpKeyGenRpc, revokeRevokeKeyRpc} from '../constants/types/flow-types'
 import {bindActionCreators} from 'redux'
 import {constants as RpcConstants, proveCommon} from '../constants/types/keybase-v1'
 import {getMyProfile} from './tracker'
-import {navigateUp, navigateTo} from '../actions/router'
+import {navigateUp, navigateTo, routeAppend} from '../actions/router'
 import {profileTab} from '../constants/tabs'
-import openURL from '../util/open-url'
+import {call, put, take, select} from 'redux-saga/effects'
+import {takeLatest, takeEvery} from 'redux-saga'
+
+import type {SagaGenerator} from '../constants/types/saga'
+import type {Dispatch, AsyncAction} from '../constants/types/flux'
+import type {PlatformsExpandedType, ProvablePlatformsType} from '../constants/types/more'
+import type {SigID, KID} from '../constants/types/flow-types'
+import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateErrorText, UpdateProofStatus,
+  UpdateSigID, WaitingRevokeProof, FinishRevokeProof, CleanupUsername, UpdatePgpInfo, PgpInfo, GeneratePgp, FinishedWithKeyGen, DropPgp} from '../constants/profile'
+import {isValidEmail, isValidName} from '../util/simple-validators'
 
 const InputCancelError = {desc: 'Cancel Add Proof', code: RpcConstants.StatusCode.scinputcanceled}
 
@@ -161,6 +166,13 @@ function _registerBTC (): AsyncAction {
   }
 }
 
+function updatePgpInfo (pgpInfo: $Shape<PgpInfo>): UpdatePgpInfo {
+  return {
+    type: Constants.updatePgpInfo,
+    payload: pgpInfo,
+  }
+}
+
 function submitBTCAddress (): AsyncAction {
   return (dispatch, getState) => {
     dispatch(_cleanupUsername())
@@ -261,6 +273,9 @@ function addProof (platform: PlatformsExpandedType): AsyncAction {
       case 'hackernews':
       case 'dns':
         dispatch(_addServiceProof(platform))
+        break
+      case 'pgp':
+        dispatch(routeAppend(['pgp', 'choice']))
     }
   }
 }
@@ -412,18 +427,177 @@ function backToProfile (): AsyncAction {
   }
 }
 
+type PgpInfoError = {
+  errorText: ?string,
+  errorEmail1: boolean,
+  errorEmail2: boolean,
+  errorEmail3: boolean,
+}
+
+function generatePgp (): GeneratePgp {
+  return {
+    type: Constants.generatePgp,
+    payload: undefined,
+  }
+}
+
+function dropPgp (kid: KID): DropPgp {
+  return {
+    type: Constants.dropPgp,
+    payload: {kid},
+  }
+}
+
+// This can be replaced with something that makes a call to service to validate
+function checkPgpInfoForErrors (pgpInfo: PgpInfo): PgpInfoError {
+  const errorEmail1 = (pgpInfo.email1 && isValidEmail(pgpInfo.email1))
+  const errorEmail2 = (pgpInfo.email2 && isValidEmail(pgpInfo.email2))
+  const errorEmail3 = (pgpInfo.email3 && isValidEmail(pgpInfo.email3))
+
+  return {
+    errorText: isValidName(pgpInfo.fullName) || errorEmail1 || errorEmail2 || errorEmail3,
+    errorEmail1: !!errorEmail1,
+    errorEmail2: !!errorEmail2,
+    errorEmail3: !!errorEmail3,
+  }
+}
+
+// Returns the promise of the string that represents the public key
+function generatePgpKey (pgpInfo: PgpInfo): Promise<string> {
+  const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].map(email => ({
+    username: pgpInfo.fullName || '',
+    comment: '',
+    email: email || '',
+  }))
+
+  return new Promise((resolve, reject) => {
+    pgpPgpKeyGenRpc({
+      param: {
+        // TODO (mm) we shouldn't be setting these values...
+        primaryBits: 4096,
+        subkeyBits: 4096,
+        createUids: {
+          useDefault: false,
+          ids: identities,
+        },
+        allowMulti: false,
+        doExport: false,
+        pushSecret: false,
+      },
+      callback: (err) => {
+        // TODO handle error
+        if (err) {
+          reject(err)
+          return
+        }
+        resolve('TODO')
+      },
+    })
+  })
+}
+
+// Resolves if the pgp key was dropped successfully
+function dropPgpWithService (keyID: KID): Promise<void> {
+  return new Promise((resolve, reject) => {
+    revokeRevokeKeyRpc({
+      param: {keyID},
+      callback: (err) => {
+        if (err) {
+          reject(err)
+        } else {
+          resolve()
+        }
+      },
+    })
+  })
+}
+
+function * checkPgpInfo (action: UpdatePgpInfo): SagaGenerator<any, any> {
+  if (action.error) { return }
+
+  // $ForceType
+  const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
+
+  const errorUpdateAction: UpdatePgpInfo = {
+    type: Constants.updatePgpInfo,
+    error: true,
+    payload: checkPgpInfoForErrors(pgpInfo),
+  }
+
+  yield put(errorUpdateAction)
+}
+
+// TODO(mm) handle error
+function * dropPgpSaga (action: DropPgp): SagaGenerator<any, any> {
+  if (action.error) { return }
+
+  const kid = action.payload.kid
+
+  try {
+    yield put(_revokedWaitingForResponse(true))
+    yield call(dropPgpWithService, kid)
+    yield put(_revokedWaitingForResponse(false))
+    yield put(navigateTo([]))
+  } catch (e) {
+    yield put(_revokedWaitingForResponse(false))
+    yield put(_revokedErrorResponse(`Error in dropping Pgp Key: ${e}`))
+    console.log('error in dropping pgp key', e)
+  }
+}
+
+// TODO(mm) handle error
+function * generatePgpSaga (): SagaGenerator<any, any> {
+  yield put(routeAppend('generate'))
+
+  // $ForceType
+  const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
+
+  try {
+    const publicKey = yield call(generatePgpKey, pgpInfo)
+    yield put({type: Constants.updatePgpPublicKey, payload: {publicKey}})
+    yield put(routeAppend('finished'))
+
+    // $ForceType
+    const finishedAction: FinishedWithKeyGen = yield take(Constants.finishedWithKeyGen)
+
+    yield put(navigateTo([]))
+    console.log('TODO: do something with:', finishedAction.payload)
+  } catch (e) {
+    console.log('error in generating pgp key', e)
+  }
+}
+
+function * pgpSaga (): SagaGenerator<any, any> {
+  yield [
+    takeLatest(a => (a && a.type === Constants.updatePgpInfo && !a.error), checkPgpInfo),
+    takeLatest(Constants.generatePgp, generatePgpSaga),
+    takeEvery(Constants.dropPgp, dropPgpSaga),
+  ]
+}
+
+function * profileSaga (): SagaGenerator<any, any> {
+  yield [
+    call(pgpSaga),
+  ]
+}
+
 export {
   addProof,
   backToProfile,
   cancelAddProof,
   checkProof,
   checkSpecificProof,
+  dropPgp,
   editProfile,
   finishRevoking,
+  generatePgp,
   outputInstructionsActionLink,
   submitBTCAddress,
   submitRevokeProof,
   submitUsername,
+  updatePgpInfo,
   updatePlatform,
   updateUsername,
 }
+
+export default profileSaga

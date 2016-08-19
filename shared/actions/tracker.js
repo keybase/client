@@ -401,11 +401,12 @@ function updateBTC (username: string, address: string): Action {
   }
 }
 
-function updatePGPKey (username: string, pgpFingerprint: Buffer): Action {
+function updatePGPKey (username: string, pgpFingerprint: Buffer, kid: string): Action {
   return {
     type: Constants.updatePGPKey,
     payload: {
       username,
+      kid,
       fingerPrint: bufferToNiceHexString(pgpFingerprint),
     },
   }
@@ -461,7 +462,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
           dispatch({type: Constants.showTracker, payload: {username}})
         }
       } else if (key.pgpFingerprint) {
-        dispatch(updatePGPKey(username, key.pgpFingerprint))
+        dispatch(updatePGPKey(username, key.pgpFingerprint, key.KID))
         dispatch({type: Constants.updateProofState, payload: {username}})
       }
     },

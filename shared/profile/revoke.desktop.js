@@ -3,7 +3,7 @@
 import React from 'react'
 import {Box, Text, Icon, Button, PlatformIcon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import {formatMessage} from './revoke.shared'
+import {formatMessage, formatConfirmButton} from './revoke.shared'
 import {subtitle as platformSubtitle} from '../util/platforms'
 
 import type {Props} from './revoke'
@@ -23,7 +23,7 @@ const Render = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
         <Text style={styleReminderText} type='Body'>You can add it again later, if you change your mind.</Text>
         <Box style={styleButtonsContainer}>
           <Button type='Secondary' onClick={onCancel} label='Cancel' disabled={isWaiting} />
-          <Button type='Danger' onClick={onRevoke} label='Yes, revoke it' waiting={isWaiting} />
+          <Button type='Danger' onClick={onRevoke} label={formatConfirmButton(platform)} waiting={isWaiting} />
         </Box>
       </Box>
     </Box>

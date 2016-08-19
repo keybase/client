@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import Revoke from './revoke'
 import {TypedConnector} from '../util/typed-connect'
-import {submitRevokeProof, finishRevoking} from '../actions/profile'
+import {submitRevokeProof, finishRevoking, dropPgp} from '../actions/profile'
 
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Props} from './revoke'
@@ -41,7 +41,13 @@ export default connector.connect(
     isWaiting: state.profile.revoke.waiting,
     errorMessage: state.profile.revoke.error,
     onCancel: () => { dispatch(finishRevoking()) },
-    onRevoke: () => { dispatch(submitRevokeProof(ownProps.proofId)) },
+    onRevoke: () => {
+      if (ownProps.platform === 'pgp') {
+        dispatch(dropPgp(ownProps.proofId))
+      } else {
+        dispatch(submitRevokeProof(ownProps.proofId))
+      }
+    },
     platform: ownProps.platform,
     platformHandle: ownProps.platformHandle,
   })

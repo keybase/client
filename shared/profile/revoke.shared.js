@@ -4,7 +4,15 @@ import {capitalize} from 'lodash'
 import type {PlatformsExpandedType} from '../constants/types/more'
 
 export function formatMessage (platform: PlatformsExpandedType) {
-  const prefix = 'Are you sure you want to revoke your'
+  let prefix
+  switch (platform) {
+    case 'pgp':
+      prefix = 'Are you sure you want to drop your'
+      break
+    default:
+      prefix = 'Are you sure you want to revoke your'
+  }
+
   let body
   switch (platform) {
     case 'btc':
@@ -22,5 +30,17 @@ export function formatMessage (platform: PlatformsExpandedType) {
       body = `${capitalize(platform)} identity`
   }
   return `${prefix} ${body}?`
+}
+
+export function formatConfirmButton (platform: PlatformsExpandedType) {
+  let msg
+  switch (platform) {
+    case 'pgp':
+      msg = 'Yes, drop it'
+      break
+    default:
+      msg = 'Yes, revoke it'
+  }
+  return msg
 }
 
