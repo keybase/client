@@ -4,10 +4,10 @@ import type {SmallInputProps} from './small-input'
 import {Box, Text, NativeTextInput} from './index.native'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 
-export default function SmallInput ({autoCapitalize, autoCorrect, errorState, hintText, label, onChange, style, value}: SmallInputProps) {
+export default function SmallInput ({autoCapitalize, autoCorrect, errorState, hintText, label, onChange, style, value, autoFocus}: SmallInputProps) {
   return (
-    <Box style={{...styleContainer(errorState), ...style}}>
-      <Text type='BodySmall' style={styleLabel(errorState)}>{label}</Text>
+    <Box style={{...styleContainer(!!errorState), ...style}}>
+      <Text type='BodySmall' style={styleLabel(!!errorState)}>{label}</Text>
       <NativeTextInput
         style={{...Text.textStyle({type: 'BodySemibold'}, {}), ...styleInput}}
         placeholder={hintText}
@@ -15,6 +15,7 @@ export default function SmallInput ({autoCapitalize, autoCorrect, errorState, hi
         underlineColorAndroid={'transparent'}
         autoCapitalize={autoCapitalize}
         autoCorrect={autoCorrect}
+        autoFocus={autoFocus}
         value={value}
         onChangeText={onChange} />
     </Box>

@@ -5,9 +5,8 @@ import openUrl from '../util/open-url'
 import type {IconType} from '../common-adapters/icon.constants'
 import type {Proof} from '../constants/tracker'
 import type {Props, MissingProof} from './user-proofs'
-import {Box, Icon, Meta, Text, NativeTouchableHighlight} from '../common-adapters/index.native'
-import {TouchableHighlight} from 'react-native'
 import {defaultColor} from '../common-adapters/icon.shared'
+import {Box, Icon, Meta, Text, ClickableBox} from '../common-adapters/index'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
@@ -15,7 +14,7 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
   const missingColor = globalColors.black_20
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
-    <NativeTouchableHighlight style={{...stylesRow, flex: 1, ...style}} key={missingProof.type} onPress={() => missingProof.onClick(missingProof)}>
+    <ClickableBox style={{...stylesRow, flex: 1, ...style}} key={missingProof.type} onClick={() => missingProof.onClick(missingProof)}>
       <Box style={stylesRow}>
         <Icon style={{...stylesService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
         <Box style={stylesProofNameSection}>
@@ -29,7 +28,7 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
           <Icon type={'iconfont-proof-placeholder'} style={{...stylesStatusIcon('iconfont-proof-placeholder'), color: missingColor}} />
         </Box>
       </Box>
-    </NativeTouchableHighlight>
+    </ClickableBox>
   )
 }
 
@@ -56,12 +55,12 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
           {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
         </Box>
       </Box>
-      <TouchableHighlight style={stylesStatusIconTouchable} activeOpacity={0.8} underlayColor={globalColors.white} onPress={() => onClickStatus(proof)}>
+      <ClickableBox style={stylesStatusIconTouchable} activeOpacity={0.8} underlayColor={globalColors.white} onPress={() => onClickStatus(proof)}>
         <Box style={stylesStatusIconContainer} onClick={() => onClickStatus(proof)}>
           {proofStatusIconType && <Icon type={proofStatusIconType} style={stylesStatusIcon(proofStatusIconType)} onClick={() => onClickStatus(proof)} />}
           {proofStatusIconType && hasMenu && <Icon type='iconfont-caret-down' style={stylesStatusIconCaret(proofStatusIconType)} />}
         </Box>
-      </TouchableHighlight>
+      </ClickableBox>
     </Box>
   )
 }

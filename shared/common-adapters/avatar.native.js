@@ -3,7 +3,8 @@ import * as shared from './avatar.shared'
 import React, {Component} from 'react'
 import _ from 'lodash'
 import type {Props} from './avatar'
-import {NativeImage, NativeTouchableOpacity, Box} from './index.native'
+import {Box} from './index.native'
+import {TouchableOpacity, Image} from 'react-native'
 import {globalStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 
@@ -35,7 +36,7 @@ class Avatar extends Component<void, Props, State> {
     const opacity = this.state.avatarLoaded ? propsOpacity : 0
 
     return (
-      <NativeTouchableOpacity
+      <TouchableOpacity
         style={{...stylesContainer(size), ...this.props.style}}
         disabled={!this.props.onClick}
         onPress={this.props.onClick}
@@ -46,16 +47,16 @@ class Avatar extends Component<void, Props, State> {
               style={_.omit({...stylesImage(size),
                 backgroundColor: this.props.backgroundColor,
               }, 'resizeMode')} />}
-          {!!uri.uri && <NativeImage
+          {!!uri.uri && <Image
             style={{...stylesImage(size), opacity}}
             onLoad={() => this.setState({avatarLoaded: true})}
             source={uri} />}
           {(!this.state.avatarLoaded || !uri.uri) &&
-            <NativeImage
+            <Image
               style={stylesPlaceholderImage(size)}
               source={placeholder(size)} />}
         </Box>
-      </NativeTouchableOpacity>
+      </TouchableOpacity>
     )
   }
 }

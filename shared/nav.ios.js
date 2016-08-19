@@ -14,12 +14,12 @@ import flags from './util/feature-flags'
 import globalRoutes from './router/global-routes'
 import hello from './util/hello'
 import type {VisibleTab} from './constants/tabs'
-import {Box, NativeNavigator, Text, NativeTouchableOpacity} from './common-adapters'
+import {Box, NativeNavigator, Text, ClickableBox, Icon} from './common-adapters'
 import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
-import {navBarHeight} from './styles'
+import {globalStyles, globalColors, navBarHeight} from './styles'
 import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 
@@ -43,16 +43,20 @@ function NavigationBarRouteMapper (navigateTo, navigateUp) {
         return null
       }
 
-      const previousRoute = navState.routeStack[index - 1]
-
       return (
-        <NativeTouchableOpacity
-          onPress={() => route.upLink ? navigateTo(route.upLink) : navigateUp()}
-          style={styles.navBarLeftButton}>
-          <Text type='Body' style={{...styles.navBarText, ...styles.navBarButtonText}}>
-            {route.upTitle || route.leftButtonTitle || previousRoute.title || 'Back'}
-          </Text>
-        </NativeTouchableOpacity>
+        <ClickableBox
+          onClick={() => route.upLink ? navigateTo(route.upLink) : navigateUp()}
+          style={styles.navBarLeftButton}
+          underlayColor={globalColors.white}>
+          <Box>
+            {(route.upTitle || route.leftButtonTitle)
+              ? <Text type='Body' style={styles.navBarButtonText}>{route.upTitle || route.leftButtonTitle}</Text>
+              : <Box style={{...globalStyles.flexBoxRow, justifyContent: 'flex-start', alignItems: 'center', marginLeft: 8}}>
+                <Icon type='iconfont-back' />
+                <Text type='Body' style={{...styles.navBarButtonText, marginTop: 0, marginLeft: 5}}>Back</Text>
+              </Box>}
+          </Box>
+        </ClickableBox>
       )
     },
 
@@ -61,22 +65,23 @@ function NavigationBarRouteMapper (navigateTo, navigateUp) {
         return null
       }
       return (
-        <NativeTouchableOpacity
-          onPress={() => route.rightButtonAction()}
-          style={styles.navBarRightButton}>
-          <Text type='Body' style={{...styles.navBarText, ...styles.navBarButtonText}}>
-            {route.rightButtonTitle || 'Done'}
-          </Text>
-        </NativeTouchableOpacity>
+        <ClickableBox onClick={() => route.rightButtonAction()} style={styles.navBarRightButton}>
+          <Box>
+            <Text type='Body' style={{...styles.navBarButtonText}}>
+              {route.rightButtonTitle || 'Done'}
+            </Text>
+          </Box>
+        </ClickableBox>
       )
     },
 
     Title: function (route, navigator, index, navState) {
-      return (
-        <Text type='Body' style={{...styles.navBarText, ...styles.navBarTitleText}}>
-          {route.title || ''}
-        </Text>
-      )
+      return !!route.title &&
+        <Box style={styles.navBarTitleText}>
+          <Text type='BodySmallSemibold' style={styles.navBarTitleTextText}>
+            {route.title.toUpperCase()}
+          </Text>
+        </Box>
     },
   }
 }
@@ -98,7 +103,6 @@ class Nav extends Component {
   navBar () {
     return (
       <NativeNavigator.NavigationBar
-        style={styles.navBar}
         routeMapper={NavigationBarRouteMapper(this.props.navigateTo, this.props.navigateUp)} />
     )
   }
@@ -158,27 +162,33 @@ class Nav extends Component {
   }
 }
 
+const commonStyles = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  height: 24,
+}
+
 const styles = {
-  navBar: {
-    backgroundColor: 'white',
-  },
-  navBarText: {
-    fontSize: 16,
-    marginVertical: 10,
+  navBarTitleTextText: {
+    fontSize: 15,
+    color: globalColors.black_75,
   },
   navBarTitleText: {
-    color: 'blue',
-    fontWeight: '500',
-    marginVertical: 9,
+    ...commonStyles,
   },
   navBarLeftButton: {
+    ...commonStyles,
     paddingLeft: 10,
+    paddingRight: 10,
   },
   navBarRightButton: {
+    ...commonStyles,
+    paddingLeft: 10,
     paddingRight: 10,
   },
   navBarButtonText: {
-    color: 'blue',
+    ...commonStyles,
+    color: globalColors.blue,
   },
 }
 

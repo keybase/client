@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
-import {Box, Text, Icon, PopupMenu, NativeTouchableHighlight, NativeScrollView} from '../common-adapters/index.native'
+import {Box, Text, Icon, ClickableBox} from '../common-adapters/index'
 import {globalStyles, globalColors} from '../styles'
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
@@ -23,18 +23,18 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
   }
 
   return (
-    <NativeTouchableHighlight onPress={() => showExistingDevicePage(device)} style={{...stylesCommonRow, alignItems: 'center', ...(revoked ? {backgroundColor: globalColors.white_40} : {})}}>
+    <ClickableBox onClick={() => showExistingDevicePage(device)} style={{...stylesCommonRow, alignItems: 'center', ...(revoked ? {backgroundColor: globalColors.white_40} : {})}}>
       <Box key={device.name} style={{...globalStyles.flexBoxRow, flex: 1, alignItems: 'center'}}>
         <Icon type={icon} style={revoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
         <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start', flex: 1}}>
           <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
           {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
         </Box>
-        <NativeTouchableHighlight onPress={() => showRemoveDevicePage(device)}>
+        <ClickableBox onClick={() => showRemoveDevicePage(device)}>
           <Box>{!revoked && <Text style={{color: globalColors.red, paddingLeft: 16}} type='BodyPrimaryLink'>Revoke</Text>}</Box>
-        </NativeTouchableHighlight>
+        </ClickableBox>
       </Box>
-    </NativeTouchableHighlight>
+    </ClickableBox>
   )
 }
 
@@ -66,12 +66,12 @@ class RevokedDevices extends Component<void, {revokedDevices: Array<Object>}, Re
 
     return (
       <Box>
-        <NativeTouchableHighlight onPress={e => this._toggleHeader(e)}>
+        <ClickableBox onClick={e => this._toggleHeader(e)}>
           <Box style={stylesRevokedRow}>
             <Text type='BodySemibold'>Revoked devices</Text>
             <Icon type={iconType} style={{padding: 5}} />
           </Box>
-        </NativeTouchableHighlight>
+        </ClickableBox>
         {this.state.expanded && <RevokedDescription />}
         {this.state.expanded && this.props.revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked={true} />)}
       </Box>)
@@ -79,12 +79,12 @@ class RevokedDevices extends Component<void, {revokedDevices: Array<Object>}, Re
 }
 
 const DeviceHeader = ({onAddNew}) => (
-  <NativeTouchableHighlight onPress={onAddNew}>
+  <ClickableBox onClick={onAddNew}>
     <Box style={{...stylesCommonRow, alignItems: 'center'}}>
       <Icon type='icon-devices-add-64-x-48' style={{padding: 5}} />
       <Text type='BodyPrimaryLink' style={{padding: 5}}>Add new...</Text>
     </Box>
-  </NativeTouchableHighlight>
+  </ClickableBox>
 )
 
 type State = {
