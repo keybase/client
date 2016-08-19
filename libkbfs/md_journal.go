@@ -531,7 +531,7 @@ func (e MDJournalConflictError) Error() string {
 // head, the given RootMetadata will replace the head.
 func (j *mdJournal) put(
 	ctx context.Context, signer cryptoSigner, ekg encryptionKeyGetter,
-	rmd *RootMetadata, currentUID keybase1.UID,
+	bsplit BlockSplitter, rmd *RootMetadata, currentUID keybase1.UID,
 	currentVerifyingKey VerifyingKey) (mdID MdID, err error) {
 	j.log.CDebugf(ctx, "Putting MD for TLF=%s with rev=%s bid=%s",
 		rmd.TlfID(), rmd.Revision(), rmd.BID())
@@ -603,6 +603,13 @@ func (j *mdJournal) put(
 				return MdID{}, err
 			}
 		}
+	}
+
+	// Ensure that the block changes are properly unembedded.
+	if rmd.data.Changes.Info.BlockPointer == zeroPtr &&
+		!bsplit.ShouldEmbedBlockChanges(&rmd.data.Changes) {
+		return MdID{},
+			errors.New("MD has embedded block changes, but shouldn't")
 	}
 
 	brmd, err := encryptMDPrivateData(
