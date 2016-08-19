@@ -2,11 +2,12 @@ package client
 
 import (
 	"fmt"
-	"math"
 	"sort"
 	"strings"
 	"time"
 
+	humanize "github.com/dustin/go-humanize"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
@@ -34,8 +35,7 @@ func (m *cliChatMessage) formatTopic() (formatted string) {
 }
 
 func (m *cliChatMessage) formatTimestamp() (formatted string) {
-	d := time.Since(m.timestamp)
-	return (time.Duration(math.Floor(d.Minutes())) * time.Minute).String()
+	return humanize.Time(m.timestamp)
 }
 
 func (m *cliChatMessage) formatFields() (fields []string) {
@@ -82,7 +82,7 @@ func (a byUnreadThenLatest) Less(i, j int) bool {
 	return a[i].timestamp.After(a[j].timestamp)
 }
 
-func (c cliChatMessages) printUnreadByLatest() {
+func (c cliChatMessages) printByUnreadThenLatest(ui libkb.TerminalUI) {
 	if len(c) == 0 {
 		return
 	}
@@ -93,40 +93,18 @@ func (c cliChatMessages) printUnreadByLatest() {
 	}
 
 	if unreadCount == 0 {
-		fmt.Println("0 new messages.")
+		ui.Printf("0 new messages.\n")
 	} else {
-		fmt.Printf("%d new messages:\n", unreadCount)
+		ui.Printf("%d new messages:\n", unreadCount)
 		for _, m := range c[:unreadCount] {
-			fmt.Printf("  %s\n", m.formatSpace())
-		}
-	}
-}
-
-func (c cliChatMessages) printByUnreadThenLatest() {
-	if len(c) == 0 {
-		return
-	}
-	sort.Sort(byUnreadThenLatest(c))
-
-	unreadCount := 0
-	for ; unreadCount < len(c) && c[unreadCount].isNew; unreadCount++ {
-	}
-
-	if unreadCount == 0 {
-		fmt.Println("0 new messages.")
-	} else {
-		fmt.Printf("%d new messages:\n", unreadCount)
-		for _, m := range c[:unreadCount] {
-			fmt.Printf("  %s\n", m.formatSpace())
+			ui.Printf("  %s\n", m.formatSpace())
 		}
 	}
 
-	if unreadCount == len(c) {
-		fmt.Println("0 old messages.")
-	} else {
-		fmt.Printf("%d old messages:\n", len(c)-unreadCount)
+	if unreadCount != len(c) {
+		ui.Printf("%d old messages:\n", len(c)-unreadCount)
 		for _, m := range c[unreadCount:] {
-			fmt.Printf("  %s\n", m.formatSpace())
+			ui.Printf("  %s\n", m.formatSpace())
 		}
 	}
 }

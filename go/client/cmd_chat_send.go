@@ -13,7 +13,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/gregor/protocol/chat1"
-	"github.com/keybase/gregor/protocol/gregor1"
 )
 
 type cmdChatSend struct {
@@ -34,15 +33,6 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 }
 
 func (c *cmdChatSend) Run() (err error) {
-	uid := c.G().Env.GetUID()
-	if uid.IsNil() {
-		return fmt.Errorf("Can't send message without a current UID. Are you logged in?")
-	}
-	did := c.G().Env.GetDeviceID()
-	if did.IsNil() {
-		return fmt.Errorf("Can't send message without a current DeviceID. Are you logged in?")
-	}
-
 	chatClient, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return err
@@ -56,11 +46,10 @@ func (c *cmdChatSend) Run() (err error) {
 		return err
 	}
 	// args.MessagePlaintext.ClientHeader.Conv omitted
+	// args.MessagePlaintext.ClientHeader.{Sender,SenderDevice} are filled by service
 	args.MessagePlaintext.ClientHeader.MessageType = chat1.MessageType_TEXT
 	args.MessagePlaintext.ClientHeader.TlfName = c.tlfName
 	args.MessagePlaintext.ClientHeader.Prev = nil
-	args.MessagePlaintext.ClientHeader.Sender = gregor1.UID(uid)
-	args.MessagePlaintext.ClientHeader.SenderDevice = gregor1.DeviceID(did)
 	args.MessagePlaintext.MessageBodies = append(args.MessagePlaintext.MessageBodies, keybase1.MessageBody{
 		Type: chat1.MessageType_TEXT,
 		Text: &keybase1.MessageText{Body: c.message},
@@ -77,7 +66,7 @@ func (c *cmdChatSend) Run() (err error) {
 
 func (c *cmdChatSend) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 2 {
-		return fmt.Errorf("chat send takes 2 arg")
+		return fmt.Errorf("chat send takes 2 args")
 	}
 	c.tlfName = ctx.Args().Get(0)
 	c.message = ctx.Args().Get(1)

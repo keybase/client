@@ -112,12 +112,17 @@ func (c *chatLocalMock) NewConversationLocal(ctx context.Context, cID chat1.Conv
 
 func TestCliInbox(t *testing.T) {
 	g := libkb.NewGlobalContextInit()
+	term, err := NewTerminal(g)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.UI = &UI{Terminal: term}
 	c := &cmdChatInbox{
 		Contextified:    libkb.NewContextified(g),
 		chatLocalClient: &chatLocalMock{},
 	}
 	g.ConfigureUsage(c.GetUsage())
-	err := c.Run()
+	err = c.Run()
 	if err != nil {
 		t.Fatal(err)
 	}

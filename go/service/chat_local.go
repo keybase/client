@@ -6,6 +6,7 @@ package service
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -115,6 +116,7 @@ getinbox:
 	return id, nil
 }
 
+// GetMessagesLocal implements keybase.chatLocal.GetMessagesLocal protocol.
 func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.Message, err error) {
 	var messageTypes map[chat1.MessageType]bool
 	if len(arg.MessageTypes) > 0 {
@@ -188,8 +190,27 @@ getinbox:
 	return messages, nil
 }
 
+func (h *chatLocalHandler) fillSenderIDsForPostLocal(arg *keybase1.PostLocalArg) error {
+	uid := h.G().Env.GetUID()
+	if uid.IsNil() {
+		return fmt.Errorf("Can't send message without a current UID. Are you logged in?")
+	}
+	did := h.G().Env.GetDeviceID()
+	if did.IsNil() {
+		return fmt.Errorf("Can't send message without a current DeviceID. Are you logged in?")
+	}
+
+	arg.MessagePlaintext.ClientHeader.Sender = gregor1.UID(uid)
+	arg.MessagePlaintext.ClientHeader.SenderDevice = gregor1.DeviceID(did)
+
+	return nil
+}
+
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *chatLocalHandler) PostLocal(ctx context.Context, arg keybase1.PostLocalArg) error {
+	if err := h.fillSenderIDsForPostLocal(&arg); err != nil {
+		return err
+	}
 	// encrypt the message
 	boxed, err := h.boxer.boxMessage(ctx, arg.MessagePlaintext)
 	if err != nil {
