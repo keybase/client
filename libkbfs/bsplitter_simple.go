@@ -123,5 +123,5 @@ func (b *BlockSplitterSimple) CheckSplit(block *FileBlock) int64 {
 // BlockSplitterSimple.
 func (b *BlockSplitterSimple) ShouldEmbedBlockChanges(
 	bc *BlockChanges) bool {
-	return bc.sizeEstimate <= b.blockChangeEmbedMaxSize
+	return bc.SizeEstimate() <= b.blockChangeEmbedMaxSize
 }

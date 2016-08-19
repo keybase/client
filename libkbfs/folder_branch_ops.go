@@ -1723,13 +1723,16 @@ func (fbo *folderBranchOps) syncBlockAndCheckEmbedLocked(ctx context.Context,
 		return path{}, DirEntry{}, nil, err
 	}
 
-	// do the block changes need their own blocks?
-	bsplit := fbo.config.BlockSplitter()
-	if !bsplit.ShouldEmbedBlockChanges(&md.data.Changes) {
-		err = fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes,
-			uid)
-		if err != nil {
-			return path{}, DirEntry{}, nil, err
+	// Do the block changes need their own blocks?  Unembed only if
+	// this is the final call to this function with this MD.
+	if stopAt == zeroPtr {
+		bsplit := fbo.config.BlockSplitter()
+		if !bsplit.ShouldEmbedBlockChanges(&md.data.Changes) {
+			err = fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes,
+				uid)
+			if err != nil {
+				return path{}, DirEntry{}, nil, err
+			}
 		}
 	}
 

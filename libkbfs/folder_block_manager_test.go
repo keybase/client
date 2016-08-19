@@ -151,6 +151,10 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	clock.Set(now)
 	config.SetClock(&clock)
 
+	// Allow for big embedded block changes, so they don't confuse our
+	// block-checking logic.
+	config.bsplit.(*BlockSplitterSimple).blockChangeEmbedMaxSize = 16 << 20
+
 	rootNode := GetRootNodeOrBust(t, config, userName.String(), false)
 	// Do a bunch of operations.
 	kbfsOps := config.KBFSOps()
