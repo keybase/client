@@ -142,6 +142,11 @@ type PGPKeyGenArg struct {
 	PushSecret  bool          `codec:"pushSecret" json:"pushSecret"`
 }
 
+type PGPKeyGenDefaultArg struct {
+	SessionID  int           `codec:"sessionID" json:"sessionID"`
+	CreateUids PGPCreateUids `codec:"createUids" json:"createUids"`
+}
+
 type PGPDeletePrimaryArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -179,6 +184,7 @@ type PGPInterface interface {
 	PGPExportByFingerprint(context.Context, PGPExportByFingerprintArg) ([]KeyInfo, error)
 	PGPExportByKID(context.Context, PGPExportByKIDArg) ([]KeyInfo, error)
 	PGPKeyGen(context.Context, PGPKeyGenArg) error
+	PGPKeyGenDefault(context.Context, PGPKeyGenDefaultArg) error
 	PGPDeletePrimary(context.Context, int) error
 	// Select an existing key and add to Keybase.
 	PGPSelect(context.Context, PGPSelectArg) error
@@ -351,6 +357,22 @@ func PGPProtocol(i PGPInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"pgpKeyGenDefault": {
+				MakeArg: func() interface{} {
+					ret := make([]PGPKeyGenDefaultArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]PGPKeyGenDefaultArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]PGPKeyGenDefaultArg)(nil), args)
+						return
+					}
+					err = i.PGPKeyGenDefault(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"pgpDeletePrimary": {
 				MakeArg: func() interface{} {
 					ret := make([]PGPDeletePrimaryArg, 1)
@@ -473,6 +495,11 @@ func (c PGPClient) PGPExportByKID(ctx context.Context, __arg PGPExportByKIDArg) 
 
 func (c PGPClient) PGPKeyGen(ctx context.Context, __arg PGPKeyGenArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpKeyGen", []interface{}{__arg}, nil)
+	return
+}
+
+func (c PGPClient) PGPKeyGenDefault(ctx context.Context, __arg PGPKeyGenDefaultArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.pgp.pgpKeyGenDefault", []interface{}{__arg}, nil)
 	return
 }
 

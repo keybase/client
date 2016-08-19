@@ -4,4 +4,9 @@ protocol pgpUi {
   import idl "common.avdl";
 
   void outputSignatureSuccess(int sessionID, string fingerprint, string username, Time signedAt);
+
+  // pgpKeyGenDefault calls these:
+  void keyGenerated(int sessionID, KID kid, KeyInfo key);
+  bool shouldPushPrivate(int sessionID);
+  void finished(int sessionID);
 }
