@@ -11,7 +11,7 @@ import React, {Component} from 'react'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Mode, DeviceRole} from '../../../constants/login'
 import type {Props} from './index.render'
-import {Box, ProgressIndicator, Text, Icon, NativeStyleSheet, NativeTouchableHighlight} from '../../../common-adapters'
+import {Box, ProgressIndicator, Text, Icon, NativeStyleSheet, ClickableBox} from '../../../common-adapters/index.native'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
   codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer,
   codePageModeScanCode, codePageModeShowCode, codePageModeEnterText,
@@ -83,16 +83,15 @@ class CodePageRender extends Component<void, Props, void> {
     return (
       <Box style={{...globalStyles.flexBoxRow, ...stylesSwitch}}>
         {inactiveModes.map(mode => (
-          <NativeTouchableHighlight
+          <ClickableBox
             key={mode}
-            activeOpacity={0.8}
             underlayColor={globalColors.white}
-            onPress={() => this.props.setCodePageMode(mode)}>
+            onClick={() => this.props.setCodePageMode(mode)}>
             <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginLeft: 10, marginRight: 10}}>
               <Icon type={iconTypeFn(mode)} />
               <Text type='Body' style={{marginLeft: 15, textAlign: 'center'}}>{modeTextFn(mode)}</Text>
             </Box>
-          </NativeTouchableHighlight>
+          </ClickableBox>
         ))}
       </Box>
     )

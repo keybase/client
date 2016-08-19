@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {NativeNavigator, NativeTextInput, Box, Text} from '../common-adapters'
+import {NativeNavigator, NativeTextInput, Box, Text} from '../common-adapters/index.native'
 import {connect} from 'react-redux'
 import {getDevSettings, saveDevSettings, updateDevSettings} from '../actions/config'
 

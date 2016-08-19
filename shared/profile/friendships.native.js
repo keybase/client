@@ -1,6 +1,6 @@
 /* @flow */
 import React, {Component} from 'react'
-import {Box, Avatar, Text, NativeTouchableHighlight, TabBar} from '../common-adapters'
+import {Box, Avatar, Text, ClickableBox, TabBar} from '../common-adapters/index'
 import {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props, FriendshipUserInfo} from './friendships'
@@ -12,12 +12,12 @@ type UserEntryProps = FriendshipUserInfo & {
 }
 
 const UserEntry = ({onClick, username, followsYou, following}: UserEntryProps) => (
-  <NativeTouchableHighlight onPress={() => { onClick && onClick(username) }}>
+  <ClickableBox onClick={() => { onClick && onClick(username) }}>
     <Box style={userEntryContainerStyle}>
       <Avatar style={userEntryAvatarStyle} size={64} username={username} followsYou={followsYou} following={following} />
       <Text type='BodySmall' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
     </Box>
-  </NativeTouchableHighlight>
+  </ClickableBox>
 )
 
 // Pad an array of grid entries with enough placeholders to fill the final row

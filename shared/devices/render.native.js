@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
-import {Box, Text, Icon, NativeTouchableHighlight} from '../common-adapters'
+import {Box, Text, Icon, ClickableBox} from '../common-adapters/index'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 type RevokedHeaderProps = {children?: Array<any>}
@@ -26,12 +26,12 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
     const iconType = this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'
     return (
       <Box>
-        <NativeTouchableHighlight onPress={e => this._toggleHeader(e)}>
+        <ClickableBox onClick={e => this._toggleHeader(e)}>
           <Box style={stylesRevokedRow}>
             <Text type='BodySemibold'>Revoked devices</Text>
             <Icon type={iconType} style={{padding: 5}} />
           </Box>
-        </NativeTouchableHighlight>
+        </ClickableBox>
         {this.state.expanded && this.props.children}
       </Box>
     )
@@ -60,7 +60,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
       <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
         <Icon type={icon} />
       </Box>
-      <NativeTouchableHighlight onPress={() => showExistingDevicePage(device)} style={stylesCommonColumn}>
+      <ClickableBox onClick={() => showExistingDevicePage(device)} style={stylesCommonColumn}>
         <Box>
           <Box style={{...globalStyles.flexBoxRow}}>
             <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
@@ -69,12 +69,12 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
             {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
           </Box>
         </Box>
-      </NativeTouchableHighlight>
-      <NativeTouchableHighlight onPress={() => showRemoveDevicePage(device)} style={stylesRevokedColumn}>
+      </ClickableBox>
+      <ClickableBox onClick={() => showRemoveDevicePage(device)} style={stylesRevokedColumn}>
         <Box>
           {!revoked && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
         </Box>
-      </NativeTouchableHighlight>
+      </ClickableBox>
     </Box>
   )
 }

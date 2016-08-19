@@ -3,7 +3,7 @@ import File from './file/render'
 import React, {Component} from 'react'
 import type {FileSection} from '../../constants/folders'
 import type {Props} from './render'
-import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView} from '../../common-adapters'
+import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView} from '../../common-adapters/index.native'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import {intersperseFn} from '../../util/arrays'
 

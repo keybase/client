@@ -3,7 +3,7 @@ import * as shared from './icon.shared'
 import React, {Component} from 'react'
 import type {$Exact} from '../constants/types/more'
 import type {Props} from './icon'
-import {NativeTouchableHighlight, NativeText, NativeImage} from './index'
+import {NativeTouchableHighlight, NativeText, NativeImage} from './index.native'
 import {globalColors} from '../styles/style-guide'
 import {iconMeta} from './icon.constants'
 

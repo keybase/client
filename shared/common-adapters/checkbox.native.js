@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './checkbox'
-import {Text, NativeTouchableWithoutFeedback, NativeAnimated, NativeEasing, Box} from './index'
+import {Text, NativeTouchableWithoutFeedback, NativeAnimated, NativeEasing, Box} from './index.native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 const checkedOffset = 14

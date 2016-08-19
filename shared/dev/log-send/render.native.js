@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './render'
-import {Box, Text, Button, NativeLinking, NativeClipboard} from '../../common-adapters'
+import {Box, Text, Button, NativeLinking, NativeClipboard} from '../../common-adapters/index.native'
 import {globalStyles} from '../../styles/style-guide'
 
 type State = {

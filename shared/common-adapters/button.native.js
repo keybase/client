@@ -2,7 +2,7 @@
 import ProgressIndicator from './progress-indicator'
 import React, {Component} from 'react'
 import type {Props} from './button'
-import {Text, NativeTouchableHighlight, Box} from './index'
+import {Text, ClickableBox, Box} from './index'
 import {globalColors, globalStyles} from '../styles/style-guide'
 
 const Progress = () => (
@@ -50,17 +50,15 @@ class Button extends Component<void, Props, void> {
 
     // Need this nested view to get around this RN issue: https://github.com/facebook/react-native/issues/1040
     return (
-      <NativeTouchableHighlight
-        disabled={!onPress}
-        onPress={onPress || (() => {})}
-        activeOpacity={0.2}
+      <ClickableBox
+        onClick={onPress}
         underlayColor={style.backgroundColor}
         style={{...style, ...this.props.style}}>
         <Box style={{alignItems: 'center', justifyContent: 'center'}}>
           <Text type='BodySemibold' style={{...labelStyle, ...this.props.labelStyle}}>{this.props.label}</Text>
           {this.props.waiting && <Progress />}
         </Box>
-      </NativeTouchableHighlight>
+      </ClickableBox>
     )
   }
 }
