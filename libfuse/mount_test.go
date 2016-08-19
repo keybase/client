@@ -2767,11 +2767,11 @@ func TestSimpleCRNoConflict(t *testing.T) {
 	if err := os.Mkdir(d1, 0755); err != nil {
 		t.Fatal("Mkdir failed")
 	}
-	syncFolderToServer(t, "user1,user2", fs1)
+	syncFolderToServer(t, "user1,user2", fs2)
 	if err := os.Mkdir(d2, 0755); err != nil {
 		t.Fatal("Mkdir failed")
 	}
-	syncFolderToServer(t, "user1,user2", fs2)
+	syncFolderToServer(t, "user1,user2", fs1)
 
 	// disable updates for user 2
 	disableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
@@ -2943,11 +2943,11 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 	if err := os.Mkdir(d1, 0755); err != nil {
 		t.Fatal("Mkdir failed")
 	}
-	syncFolderToServer(t, "user1,user2", fs1)
+	syncFolderToServer(t, "user1,user2", fs2)
 	if err := os.Mkdir(d2, 0755); err != nil {
 		t.Fatal("Mkdir failed")
 	}
-	syncFolderToServer(t, "user1,user2", fs2)
+	syncFolderToServer(t, "user1,user2", fs1)
 
 	// disable updates for user 2
 	disableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
@@ -3141,11 +3141,11 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	if err := os.Mkdir(d1, 0755); err != nil {
 		t.Fatal("Mkdir failed")
 	}
-	syncFolderToServer(t, "user1,user2", fs1)
+	syncFolderToServer(t, "user1,user2", fs2)
 	if err := os.Mkdir(d2, 0755); err != nil {
 		t.Fatal("Mkdir failed")
 	}
-	syncFolderToServer(t, "user1,user2", fs2)
+	syncFolderToServer(t, "user1,user2", fs1)
 
 	// disable updates for user 2
 	disableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
