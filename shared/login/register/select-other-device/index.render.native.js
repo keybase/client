@@ -4,8 +4,7 @@ import React from 'react'
 import type {DeviceType} from '../../../constants/types/more'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Props} from './index.render'
-import {Box, Text, Icon} from '../../../common-adapters'
-import {TouchableHighlight, View} from 'react-native'
+import {Box, Text, Icon, NativeTouchableHighlight} from '../../../common-adapters/index.native'
 import {globalStyles, globalColors} from '../../../styles'
 
 const Row = ({deviceID, name, type, onSelect}) => {
@@ -21,14 +20,14 @@ const Row = ({deviceID, name, type, onSelect}) => {
   }
 
   return (
-    <TouchableHighlight style={stylesRow} onPress={onPress}>
-      <View style={stylesIconName}>
-        <View style={stylesIconContainer}>
+    <NativeTouchableHighlight style={stylesRow} onPress={onPress}>
+      <Box style={stylesIconName}>
+        <Box style={stylesIconContainer}>
           <Icon style={stylesIcon} type={iconType} />
-        </View>
+        </Box>
         <Text type='BodySemiboldItalic' onPress={onPress}>{name}</Text>
-      </View>
-    </TouchableHighlight>)
+      </Box>
+    </NativeTouchableHighlight>)
 }
 
 const Render = ({onBack, devices, onWont, onSelect}: Props) => (

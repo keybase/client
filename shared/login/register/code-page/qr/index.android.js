@@ -2,7 +2,7 @@
 import BarcodeScanner from 'react-native-barcodescanner'
 import React, {Component} from 'react'
 import type {Props} from './index'
-import {Image, View} from 'react-native'
+import {NativeImage, Box} from '../../../../common-adapters/index.native'
 import {globalStyles} from '../../../../styles'
 import {requestPermission} from 'react-native-android-permissions'
 
@@ -37,10 +37,10 @@ class QR extends Component<void, Props, State> {
       )
     } else {
       return (
-        <View style={{flex: 1, ...globalStyles.flexBoxColumn, ...this.props.style}}>
+        <Box style={{flex: 1, ...globalStyles.flexBoxColumn, ...this.props.style}}>
           {this.props.children}
-          <Image style={[{width: 300, height: 300}, this.props.imageStyle]} source={{uri: this.props.qrCode}} />
-        </View>
+          <NativeImage style={[{width: 300, height: 300}, this.props.imageStyle]} source={{uri: this.props.qrCode}} />
+        </Box>
       )
     }
   }

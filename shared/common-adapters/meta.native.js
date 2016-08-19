@@ -1,16 +1,15 @@
 // @flow
 import Platform, {OS} from '../constants/platform'
 import React from 'react'
-import Text from './text'
 import _ from 'lodash'
 import type {Props} from './meta'
-import {View} from 'react-native'
+import {Text, Box} from './index'
 import {globalColors} from '../styles'
 
 const isAndroid = Platform.OS_ANDROID === OS
 
 const Meta = ({title, style}: Props) => (
-  <View style={{
+  <Box style={{
     borderRadius: 1,
     paddingLeft: 2,
     paddingRight: 2,
@@ -25,7 +24,7 @@ const Meta = ({title, style}: Props) => (
       height: 11,
       lineHeight: 11,
     }}>{title && title.toUpperCase()}</Text>
-  </View>
+  </Box>
 )
 
 export default Meta

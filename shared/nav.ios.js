@@ -14,7 +14,7 @@ import flags from './util/feature-flags'
 import globalRoutes from './router/global-routes'
 import hello from './util/hello'
 import type {VisibleTab} from './constants/tabs'
-import {View, Navigator, Text, TouchableOpacity, StyleSheet} from 'react-native'
+import {Box, NativeNavigator, Text, NativeTouchableOpacity} from './common-adapters'
 import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {listenForNotifications} from './actions/notifications'
@@ -46,13 +46,13 @@ function NavigationBarRouteMapper (navigateTo, navigateUp) {
       const previousRoute = navState.routeStack[index - 1]
 
       return (
-        <TouchableOpacity
+        <NativeTouchableOpacity
           onPress={() => route.upLink ? navigateTo(route.upLink) : navigateUp()}
           style={styles.navBarLeftButton}>
-          <Text style={[styles.navBarText, styles.navBarButtonText]}>
+          <Text type='Body' style={{...styles.navBarText, ...styles.navBarButtonText}}>
             {route.upTitle || route.leftButtonTitle || previousRoute.title || 'Back'}
           </Text>
-        </TouchableOpacity>
+        </NativeTouchableOpacity>
       )
     },
 
@@ -61,19 +61,19 @@ function NavigationBarRouteMapper (navigateTo, navigateUp) {
         return null
       }
       return (
-        <TouchableOpacity
+        <NativeTouchableOpacity
           onPress={() => route.rightButtonAction()}
           style={styles.navBarRightButton}>
-          <Text style={[styles.navBarText, styles.navBarButtonText]}>
+          <Text type='Body' style={{...styles.navBarText, ...styles.navBarButtonText}}>
             {route.rightButtonTitle || 'Done'}
           </Text>
-        </TouchableOpacity>
+        </NativeTouchableOpacity>
       )
     },
 
     Title: function (route, navigator, index, navState) {
       return (
-        <Text style={[styles.navBarText, styles.navBarTitleText]}>
+        <Text type='Body' style={{...styles.navBarText, ...styles.navBarTitleText}}>
           {route.title || ''}
         </Text>
       )
@@ -97,7 +97,7 @@ class Nav extends Component {
 
   navBar () {
     return (
-      <Navigator.NavigationBar
+      <NativeNavigator.NavigationBar
         style={styles.navBar}
         routeMapper={NavigationBarRouteMapper(this.props.navigateTo, this.props.navigateUp)} />
     )
@@ -110,16 +110,16 @@ class Nav extends Component {
     }
 
     return (
-      <View style={tabStyle}>
+      <Box style={tabStyle}>
         <MetaNavigator
           tab={tab}
           globalRoutes={globalRoutes}
           rootComponent={module || NoTab}
-          Navigator={Navigator}
+          Navigator={NativeNavigator}
           NavBar={this.navBar()}
           navBarHeight={navBarHeight}
         />
-      </View>
+      </Box>
     )
   }
 
@@ -151,14 +151,14 @@ class Nav extends Component {
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
 
     return (
-      <View style={{flex: 1}}>
+      <Box style={{flex: 1}}>
         <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{[folderTab]: this.props.folderBadge}} tabContent={tabContent} />
-      </View>
+      </Box>
     )
   }
 }
 
-const styles = StyleSheet.create({
+const styles = {
   navBar: {
     backgroundColor: 'white',
   },
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   navBarButtonText: {
     color: 'blue',
   },
-})
+}
 
 export default connect(
   ({router, favorite: {privateBadge, publicBadge}, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({

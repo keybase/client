@@ -1,8 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import Text from './text'
 import type {Props} from './checkbox'
-import {View, TouchableWithoutFeedback, Animated, Easing} from 'react-native'
+import {Text, NativeTouchableWithoutFeedback, NativeAnimated, NativeEasing, Box} from './index.native'
 import {globalStyles, globalColors} from '../styles'
 
 const checkedOffset = 14
@@ -20,14 +19,14 @@ class Checkbox extends Component<void, Props, State> {
 
   constructor (props: Props) {
     super(props)
-    this.state = {left: new Animated.Value(this._getOffset(props))}
+    this.state = {left: new NativeAnimated.Value(this._getOffset(props))}
   }
 
   componentWillReceiveProps (nextProps: Props) {
     if (this.props.checked !== nextProps.checked) {
-      Animated.timing(this.state.left, {
+      NativeAnimated.timing(this.state.left, {
         toValue: this._getOffset(nextProps),
-        easing: Easing.linear,
+        easing: NativeEasing.linear,
       }).start()
     }
   }
@@ -62,14 +61,14 @@ class Checkbox extends Component<void, Props, State> {
     }
 
     return (
-      <TouchableWithoutFeedback onPressIn={onClick} delayPressIn={0}>
-        <View style={{...styleContainer, ...containerStyle, ...this.props.style}}>
-          <Animated.View style={{...styleOuter, ...outerOverride}}>
-            <Animated.View style={{...styleInner, ...innerOverride, left: this.state.left}} />
-          </Animated.View>
+      <NativeTouchableWithoutFeedback onPressIn={onClick} delayPressIn={0}>
+        <Box style={{...styleContainer, ...containerStyle, ...this.props.style}}>
+          <NativeAnimated.View style={{...styleOuter, ...outerOverride}}>
+            <NativeAnimated.View style={{...styleInner, ...innerOverride, left: this.state.left}} />
+          </NativeAnimated.View>
           <Text type='BodySmall' small={true} style={styleText}>{this.props.label}</Text>
-        </View>
-      </TouchableWithoutFeedback>
+        </Box>
+      </NativeTouchableWithoutFeedback>
     )
   }
 }
