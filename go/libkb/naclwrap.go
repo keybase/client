@@ -312,12 +312,7 @@ func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSigInfo, err error) {
 type SignaturePrefix string
 
 func (p SignaturePrefix) hasNullByte() bool {
-	for _, b := range []byte(p) {
-		if b == 0 {
-			return true
-		}
-	}
-	return false
+	return bytes.IndexByte([]byte(p), byte(0)) != -1
 }
 
 func (p SignaturePrefix) Prefix(msg []byte) []byte {

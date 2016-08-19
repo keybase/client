@@ -437,8 +437,6 @@ const (
 	PGPAssertionKey = "pgp"
 )
 
-type SignaturePrefix string
-
 const (
 	SignaturePrefixKBFS     SignaturePrefix = "Keybase-KBFS-1"
 	SignaturePrefixChat     SignaturePrefix = "Keybase-Chat-1"
