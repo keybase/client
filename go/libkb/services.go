@@ -12,17 +12,48 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-var _stDispatch = make(map[string]ServiceType)
+//=============================================================================
 
-func RegisterServiceType(st ServiceType) {
+type externalServicesCollection map[string]ServiceType
+
+var externalServices = externalServicesCollection(make(map[string]ServiceType))
+
+func (e externalServicesCollection) Register(st ServiceType) {
 	for _, k := range st.AllStringKeys() {
-		_stDispatch[k] = st
+		e[k] = st
 	}
 }
 
-func GetServiceType(s string) ServiceType {
-	return _stDispatch[strings.ToLower(s)]
+func (e externalServicesCollection) GetServiceType(s string) ServiceType {
+	return e[strings.ToLower(s)]
 }
+
+func makeProofChecker(c ExternalServicesCollector, l RemoteProofChainLink) (ProofChecker, ProofError) {
+	k := l.TableKey()
+	st := c.GetServiceType(k)
+	if st == nil {
+		return nil, NewProofError(keybase1.ProofStatus_UNKNOWN_TYPE,
+			"No proof service for type: %s", k)
+	}
+	pc := st.MakeProofChecker(l)
+	if pc == nil {
+		return nil, NewProofError(keybase1.ProofStatus_UNKNOWN_TYPE,
+			"No proof checker for type: %s", k)
+	}
+	return pc, nil
+}
+
+func (e externalServicesCollection) ListProofCheckers() []string {
+	var ret []string
+	for k, v := range e {
+		if useDevelProofCheckers || !v.IsDevelOnly() {
+			ret = append(ret, k)
+		}
+	}
+	return ret
+}
+
+var _ ExternalServicesCollector = externalServices
 
 //=============================================================================
 
@@ -122,12 +153,14 @@ func (t BaseServiceType) GetAPIArgKey() string {
 	return "remote_username"
 }
 
+func (t BaseServiceType) IsDevelOnly() bool { return false }
+
 //=============================================================================
 
 type AllServices struct{}
 
 func (a AllServices) NormalizeSocialName(service string, username string) (string, error) {
-	st := GetServiceType(service)
+	st := externalServices.GetServiceType(service)
 	if st == nil {
 		return "", fmt.Errorf("Unknown social network: %s", service)
 	}

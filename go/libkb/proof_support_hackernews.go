@@ -160,14 +160,14 @@ func (t HackerNewsServiceType) PreProofCheck(g GlobalContextLite, un string) (ma
 	return
 }
 
+func (t HackerNewsServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+	return &HackerNewsChecker{l}
+}
+
 //=============================================================================
 
 func init() {
-	RegisterServiceType(HackerNewsServiceType{})
-	RegisterMakeProofCheckerFunc("hackernews",
-		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-			return NewHackerNewsChecker(l)
-		})
+	externalServices.Register(HackerNewsServiceType{})
 }
 
 //=============================================================================

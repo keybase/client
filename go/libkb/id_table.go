@@ -1309,7 +1309,7 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 
 	// Call the Global context's version of what a proof checker is. We might want to stub it out
 	// for the purposes of testing.
-	pc, res.err = idt.G().NewProofChecker(p)
+	pc, res.err = makeProofChecker(idt.G().Services, p)
 
 	if res.err != nil {
 		return

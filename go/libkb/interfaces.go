@@ -488,4 +488,12 @@ type ServiceType interface {
 	CheckProofText(text string, id keybase1.SigID, sig string) error
 	FormatProofText(*PostProofRes) (string, error)
 	GetAPIArgKey() string
+	IsDevelOnly() bool
+
+	MakeProofChecker(l RemoteProofChainLink) ProofChecker
+}
+
+type ExternalServicesCollector interface {
+	GetServiceType(n string) ServiceType
+	ListProofCheckers() []string
 }

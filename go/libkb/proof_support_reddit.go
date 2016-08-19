@@ -206,14 +206,14 @@ func (t RedditServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 	return t.BaseCheckProofTextFull(text, id, sig)
 }
 
+func (t RedditServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+	return &RedditChecker{l}
+}
+
 //=============================================================================
 
 func init() {
-	RegisterServiceType(RedditServiceType{})
-	RegisterMakeProofCheckerFunc("reddit",
-		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-			return NewRedditChecker(l)
-		})
+	externalServices.Register(RedditServiceType{})
 }
 
 //=============================================================================

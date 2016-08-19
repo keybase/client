@@ -141,14 +141,14 @@ func (t DNSServiceType) CheckProofText(text string, id keybase1.SigID, sig strin
 func (t DNSServiceType) GetAPIArgKey() string { return "remote_host" }
 func (t DNSServiceType) LastWriterWins() bool { return false }
 
+func (t DNSServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+	return &DNSChecker{l}
+}
+
 //=============================================================================
 
 func init() {
-	RegisterServiceType(DNSServiceType{})
-	RegisterMakeProofCheckerFunc("dns",
-		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-			return NewDNSChecker(l)
-		})
+	externalServices.Register(DNSServiceType{})
 }
 
 //=============================================================================
