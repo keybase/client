@@ -207,14 +207,16 @@
 			"revisionTime": "2016-03-09T18:35:02Z"
 		},
 		{
+			"checksumSHA1": "07FctQiwHCBvhiXp2mTLc8e0ll8=",
 			"path": "github.com/keybase/go-ps",
-			"revision": "a56a1a84b3b72e5685e6f97c27b352b2ccec99c1",
-			"revisionTime": "2016-07-11T15:06:55Z"
+			"revision": "9c11ca40a47944f49e0784b77a66636cb098445a",
+			"revisionTime": "2016-08-09T20:56:21Z"
 		},
 		{
+			"checksumSHA1": "KNf4CdZexyFjpEugzBv3b7YJs4U=",
 			"path": "github.com/keybase/go-ps/darwincgo",
-			"revision": "a56a1a84b3b72e5685e6f97c27b352b2ccec99c1",
-			"revisionTime": "2016-07-11T15:06:55Z"
+			"revision": "9c11ca40a47944f49e0784b77a66636cb098445a",
+			"revisionTime": "2016-08-09T20:56:21Z"
 		},
 		{
 			"path": "github.com/keybase/go-triplesec",
@@ -297,6 +299,10 @@
 			"path": "github.com/keybase/npipe",
 			"revision": "1f399aeffbab7364397986a1b531b6f02b15cd3e",
 			"revisionTime": "2016-07-08T16:39:56-04:00"
+		},
+		{
+			"path": "github.com/keybase/ps-go",
+			"revision": ""
 		},
 		{
 			"path": "github.com/keybase/saltpack",

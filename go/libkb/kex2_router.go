@@ -35,7 +35,6 @@ func (k *KexRouter) Post(sessID kex2.SessionID, sender kex2.DeviceID, seqno kex2
 			"seqno":  I{Val: int(seqno)},
 			"msg":    B64Arg(msg),
 		},
-		Contextified: NewContextified(k.G()),
 	})
 
 	return err
@@ -71,7 +70,6 @@ func (k *KexRouter) Get(sessID kex2.SessionID, receiver kex2.DeviceID, low kex2.
 			"low":      I{Val: int(low)},
 			"poll":     I{Val: int(poll / time.Millisecond)},
 		},
-		Contextified: NewContextified(k.G()),
 	}
 	var j kexResp
 

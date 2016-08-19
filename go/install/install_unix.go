@@ -1,7 +1,7 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// +build linux freebsd
+// +build linux freebsd openbsd
 
 package install
 
@@ -80,11 +80,6 @@ func CheckIfValidLocation() error {
 // KBFSBinPath returns the path to the KBFS executable
 func KBFSBinPath(runMode libkb.RunMode, binPath string) (string, error) {
 	return kbfsBinPathDefault(runMode, binPath)
-}
-
-// RunAfterStartup is not used on unix
-func RunAfterStartup(context Context, isService bool, log Log) error {
-	return nil
 }
 
 // kbfsBinName returns the name for the KBFS executable

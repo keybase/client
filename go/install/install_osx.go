@@ -826,34 +826,6 @@ func OSVersion() (semver.Version, error) {
 	return semver.Make(swver)
 }
 
-// RunAfterStartup runs after service startup
-func RunAfterStartup(context Context, isService bool, log Log) {
-	// Ensure the app is running (if it exists and is supported on the platform)
-	if libkb.IsBrewBuild {
-		return
-	}
-	if context.GetRunMode() != libkb.ProductionRunMode {
-		return
-	}
-	mode, err := context.GetAppStartMode()
-	if err != nil {
-		log.Errorf("Error getting app start mode: %s", err)
-	}
-	log.Debug("App start mode: %s", mode)
-	switch mode {
-	case libkb.AppStartModeService:
-		if !isService {
-			return
-		}
-	case libkb.AppStartModeDisabled:
-		return
-	}
-
-	if err := RunApp(context, log); err != nil {
-		log.Errorf("Error starting the app: %s", err)
-	}
-}
-
 func installUpdater(context Context, keybaseBinPath string, force bool, log Log) error {
 	if context.GetRunMode() != libkb.ProductionRunMode {
 		return fmt.Errorf("Updater not supported in this run mode")

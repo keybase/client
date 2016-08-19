@@ -18,7 +18,7 @@ const Render = (props: Props) => {
         <Text backgroundMode='Terminal' type='BodySmallSemibold'>{title}</Text>
       </Box>
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: globalMargins.large}}>
-        <PlatformIcon platform={platform} overlay={platformIconOverlay} overlayColor={platformIconOverlayColor} size={48} />
+        <PlatformIcon platform={platform} overlay={platformIconOverlay} overlayColor={platformIconOverlayColor} />
         <Text type='Header' style={{color: globalColors.blue}}>{username}</Text>
         {!!usernameSubtitle && <Text type='Body' style={{color: globalColors.black_10}}>{usernameSubtitle}</Text>}
         <Text type='Body' style={{marginTop: globalMargins.xlarge, textAlign: 'center'}}>{message}</Text>

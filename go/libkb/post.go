@@ -188,9 +188,8 @@ func PostDeviceLKS(g *GlobalContext, sr SessionReader, deviceID keybase1.DeviceI
 		debug.PrintStack()
 	}
 	arg := APIArg{
-		Contextified: NewContextified(g),
-		Endpoint:     "device/update",
-		NeedSession:  true,
+		Endpoint:    "device/update",
+		NeedSession: true,
 		Args: HTTPArgs{
 			"device_id":       S{Val: deviceID.String()},
 			"type":            S{Val: deviceType},

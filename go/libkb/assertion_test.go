@@ -4,12 +4,19 @@
 package libkb
 
 import (
+	"strings"
 	"testing"
 )
 
+type testAssertionContext struct{}
+
+func (t testAssertionContext) NormalizeSocialName(service string, username string) (string, error) {
+	return strings.ToLower(username), nil
+}
+
 func TestSuccess1(t *testing.T) {
 	a := "web://maxk.org && twitter://maxtaco"
-	expr, err := AssertionParse(a)
+	expr, err := AssertionParse(testAssertionContext{}, a)
 	proofs := NewProofSet([]Proof{
 		{"http", "maxk.org"},
 		{"reddit", "maxtaco"},
@@ -77,7 +84,7 @@ func TestAssertions1(t *testing.T) {
 			{"pgp", "00aabbcce"},
 		}),
 	}
-	expr, err := AssertionParse(a)
+	expr, err := AssertionParse(testAssertionContext{}, a)
 	if err != nil {
 		t.Errorf("Error parsing %s: %s", a, err)
 	} else {
@@ -112,7 +119,7 @@ func TestAssertions2(t *testing.T) {
 			{"dns", "match.com"},
 		}),
 	}
-	expr, err := AssertionParse(a)
+	expr, err := AssertionParse(testAssertionContext{}, a)
 	if err != nil {
 		t.Errorf("Error parsing %s: %s", a, err)
 	} else {
@@ -132,7 +139,7 @@ func TestAssertions3(t *testing.T) {
 			{"keybase", "t_bob"},
 		}),
 	}
-	expr, err := AssertionParseAndOnly(a)
+	expr, err := AssertionParseAndOnly(testAssertionContext{}, a)
 	if err != nil {
 		t.Errorf("Error parsing %s: %s", a, err)
 	} else {
@@ -158,7 +165,7 @@ func TestNeedsParans(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		expr, err := AssertionParse(test.expr)
+		expr, err := AssertionParse(testAssertionContext{}, test.expr)
 		if err != nil {
 			t.Errorf("Error parsing %s: %s", test.expr, err)
 		} else if expr.NeedsParens() != test.needsParens {

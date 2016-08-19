@@ -3,7 +3,7 @@
 import React from 'react'
 import {Box, Text, Icon, Button, PlatformIcon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import {formatMessage} from './revoke.shared'
+import {formatMessage, formatConfirmButton} from './revoke.shared'
 import {subtitle as platformSubtitle} from '../util/platforms'
 
 import type {Props} from './revoke'
@@ -16,14 +16,14 @@ const Render = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isW
       {!isWaiting && <Icon style={styleClose} type='iconfont-close' onClick={() => onCancel()} />}
       {errorMessage && <Box style={styleErrorBanner}><Text style={styleErrorBannerText} type='BodySmallSemibold'>{errorMessage}</Text></Box>}
       <Box style={styleContentContainer}>
-        <PlatformIcon platform={platform} overlay={'icon-proof-broken'} overlayColor={globalColors.red} size={48} />
+        <PlatformIcon platform={platform} overlay={'icon-proof-broken'} overlayColor={globalColors.red} />
         <Text style={stylePlatformUsername} type='Header'>{platformHandle}</Text>
         {!!platformHandleSubtitle && <Text style={stylePlatformSubtitle} type='Body'>{platformHandleSubtitle}</Text>}
         <Text style={styleDescriptionText} type='Header'>{formatMessage(platform)}</Text>
         <Text style={styleReminderText} type='Body'>You can add it again later, if you change your mind.</Text>
         <Box style={styleButtonsContainer}>
           <Button type='Secondary' onClick={onCancel} label='Cancel' disabled={isWaiting} />
-          <Button type='Danger' onClick={onRevoke} label='Yes, revoke it' waiting={isWaiting} />
+          <Button type='Danger' onClick={onRevoke} label={formatConfirmButton(platform)} waiting={isWaiting} />
         </Box>
       </Box>
     </Box>

@@ -3,6 +3,7 @@
 import {ipcMain, shell} from 'electron'
 import fs from 'fs'
 import {pathToURL} from './paths'
+import exec from './exec'
 
 function openDirectory (path) {
   if (process.platform === 'win32') {
@@ -32,7 +33,25 @@ function openDirectoryDefault (path) {
     // native API on macOS.
     const url = pathToURL(resolvedPath)
     console.log('Open URL (directory):', url)
-    shell.openExternal(url)
+
+    // OpenExternal is blocking on macOS.
+    // Here is a discussion to make it asynchronous:
+    // https://github.com/electron/electron/issues/6889
+    // When this is resolved we should switch back to openExternal
+    // instead of exec'ing with open.
+    if (process.platform === 'darwin') {
+      openURLWithExecInMacOS(url)
+    } else {
+      shell.openExternal(url)
+    }
+  })
+}
+
+function openURLWithExecInMacOS (url) {
+  exec('/usr/bin/open', [url], 'darwin', null, false, (err) => {
+    if (err) {
+      console.log('Error opening URL:', err)
+    }
   })
 }
 

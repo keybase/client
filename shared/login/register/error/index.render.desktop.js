@@ -11,7 +11,7 @@ const renderError = (error: Object) => {
     acc[f.key] = f.value
     return acc
   }, {})
-  switch (error.code) {
+  switch (error.raw.code) {
     case errorMap['scdevicenoprovision']:
       return (
         <div>
@@ -62,7 +62,7 @@ const renderError = (error: Object) => {
     case errorMap['sckeysyncedpgpnotfound']:
       return (
         <p>
-          <Text type='Body'>Sorry, your account is already established with a PGP public key, but this we can't access the corresponding private key. </Text>
+          <Text type='Body'>Sorry, your account is already established with a PGP public key, but we can't access the corresponding private key.</Text>
           <Text type='Body' style={{display: 'inline-block', marginTop: 10, marginBottom: 10}}>You need to prove you're you. We suggest one of the following:</Text>
           <Text type='BodySmall' style={{display: 'inline-block'}}> - Install GPG and put your PGP private key on this machine and try again</Text>
           <Text type='BodySmall' style={{display: 'inline-block'}}> - Reset your account and start fresh: </Text>

@@ -1,8 +1,0 @@
-// @flow
-import {Component} from 'react'
-
-export type Props = {
-  onBack: () => void
-}
-
-export default class GPGMissingPinentry extends Component<void, Props, void> { }

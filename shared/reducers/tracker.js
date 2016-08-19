@@ -235,7 +235,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       const url = `https://keybase.io/${state.username}/sigchain`
       const proof = {
         state: 'normal',
-        id: action.payload.fingerPrint,
+        id: action.payload.kid,
         meta: null,
         type: 'pgp',
         mTime: 0,

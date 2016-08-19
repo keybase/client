@@ -149,10 +149,9 @@ func queryAPIServerForRekeyInfo(g *libkb.GlobalContext) (keybase1.ProblemSet, er
 
 	var tmp rekeyQueryResult
 	err := g.API.PostDecode(libkb.APIArg{
-		Contextified: libkb.NewContextified(g),
-		Endpoint:     "kbfs/problem_sets",
-		NeedSession:  true,
-		Args:         args,
+		Endpoint:    "kbfs/problem_sets",
+		NeedSession: true,
+		Args:        args,
 	}, &tmp)
 
 	return tmp.ProblemSet, err

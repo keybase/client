@@ -11,7 +11,7 @@ cache_go_lib=${CACHE_GO_LIB:-}
 
 "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
 
-cd $rn_dir
+cd "$rn_dir"
 
 if [ ! "$cache_npm" = "1" ]; then
   ../packaging/npm_mess.sh
@@ -28,13 +28,15 @@ fi
 # android update sdk --all --no-ui --filter "build-tools-23.0.2,android-23,extra-android-support,extra-android-m2repository"
 
 # Build and publish the apk
-cd $android_dir
+cd "$android_dir"
 
-RN_DIR="$rn_dir" $client_dir/packaging/manage_react_native_packager.sh &
-rn_packager_pid=$!
+RN_DIR="$rn_dir" "$client_dir/packaging/manage_react_native_packager.sh" &
+rn_packager_pid="$!"
+echo "Packager running with PID $rn_packager_pid"
 
 cleanup() {
-  pkill -P $rn_packager_pid
+  echo "Killing packager $rn_packager_pid"
+  pkill -P $rn_packager_pid || true
 }
 
 trap 'cleanup' ERR
@@ -45,3 +47,5 @@ trap 'cleanup' ERR
 cleanup
 
 "$client_dir/packaging/slack/send.sh" "Finished releasing android"
+
+echo "Done"

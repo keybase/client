@@ -70,7 +70,6 @@ func (a *APIServerHandler) setupArg(arg GenericArg) libkb.APIArg {
 		Args:           kbargs,
 		HTTPStatus:     httpStatuses,
 		AppStatusCodes: appStatusCodes,
-		Contextified:   libkb.NewContextified(a.G()),
 	}
 
 	return kbarg

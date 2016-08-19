@@ -267,7 +267,7 @@ func (e *Identify) loadUserArg() (*libkb.LoadUserArg, error) {
 
 func (e *Identify) loadExpr(assertion string) error {
 	// Parse assertion but don't allow OR operators, only AND operators
-	expr, err := libkb.AssertionParseAndOnly(assertion)
+	expr, err := libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(), assertion)
 	if err != nil {
 		return fmt.Errorf("assertion parse error: %s", err)
 	}
@@ -316,10 +316,9 @@ func getUserCard(g *libkb.GlobalContext, uid keybase1.UID, useSession bool) (ret
 	defer g.Trace("getUserCard", func() error { return err })()
 
 	arg := libkb.APIArg{
-		Endpoint:     "user/card",
-		NeedSession:  useSession,
-		Contextified: libkb.NewContextified(g),
-		Args:         libkb.HTTPArgs{"uid": libkb.S{Val: uid.String()}},
+		Endpoint:    "user/card",
+		NeedSession: useSession,
+		Args:        libkb.HTTPArgs{"uid": libkb.S{Val: uid.String()}},
 	}
 
 	var card card

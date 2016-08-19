@@ -299,7 +299,6 @@ func LoadUserFromServer(g *GlobalContext, uid keybase1.UID, body *jsonw.Wrapper)
 			Args: HTTPArgs{
 				"uid": UIDArg(uid),
 			},
-			Contextified: NewContextified(g),
 		})
 
 		if err != nil {

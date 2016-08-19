@@ -1,13 +1,9 @@
 /* @flow */
 import ConfirmOrPending from './confirm-or-pending'
 import EditAvatar from './edit-avatar'
-import FinishedGeneratedPgp from './pgp/finished-generating-pgp'
-import GeneratingPgp from './pgp/generating-pgp'
 import PostProof from './post-proof'
 import Profile from './render'
 import ProveEnterUsername from './prove-enter-username'
-import ProvePgpChoice from './pgp/prove-pgp-choice'
-import ProvePgpImport from './pgp/prove-pgp-import'
 import ProveWebsiteChoice from './prove-website-choice'
 import Revoke from './revoke'
 import pgpDumb from './pgp/dumb'
@@ -416,7 +412,7 @@ const postProofBase = {
 const postProofTwitter = {
   ...postProofBase,
   platform: 'twitter',
-  platformUsername: 'alexrwendland',
+  platformUserName: 'alexrwendland',
   proofText: 'Verifying myself: I am awendland on Keybase.io. 3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB / https://keybase.io/awendland/sigs/3EF5fSCRVw1UZpjzLgDQ5IAxIVpf6XfHuRAB',
   proofAction: () => console.log('Open twitter to post tweet'),
 }
@@ -460,13 +456,13 @@ const dumbPostProof: DumbComponentMap<PostProof> = {
     'DNS': {
       ...postProofBase,
       platform: 'dns',
-      platformUsername: 'alexwendland.com',
+      platformUserName: 'alexwendland.com',
       proofText: 'keybase-site-verification=EgqpSziQnyApGkOO-Ylm_lJtDIQC7pi9u_xwgYppdTo',
     },
     'HTTP': {
       ...postProofBase,
       platform: 'http',
-      platformUsername: 'alexwendland.com',
+      platformUserName: 'alexwendland.com',
       proofText: '==================================================================\nhttps://keybase.io/awendland\n--------------------------------------------------------------------\n\nI hereby claim:\n\n  * I am an admin of http://www.caleyostrander.com\n  * I am cboss123 (https://keybase.io/cboss123) on keybase.',
       baseUrl: 'http://alexwendland.com',
     },
@@ -483,44 +479,6 @@ const dumbProveWebsiteChoice: DumbComponentMap<ProveWebsiteChoice> = {
   },
 }
 
-const dumbProvePgpChoice: DumbComponentMap<ProvePgpChoice> = {
-  component: ProvePgpChoice,
-  mocks: {
-    'Import or Generate': {
-      onCancel: () => console.log('ProvePgpChoice: onCancel'),
-      onOptionClick: op => console.log(`ProvePgpChoice: onOptionClick = ${op}`),
-    },
-  },
-}
-
-const dumbProvePgpImport: DumbComponentMap<ProvePgpImport> = {
-  component: ProvePgpImport,
-  mocks: {
-    'Import PGP': {
-      onCancel: () => console.log('ProvePgpImport: onCancel'),
-    },
-  },
-}
-
-const dumbFinishedGeneratingPgp: DumbComponentMap<FinishedGeneratedPgp> = {
-  component: FinishedGeneratedPgp,
-  mocks: {
-    ' ': {
-      onDone: shouldStoreKeyOnServer => console.log(`FinishedGeneratedPgp: onDone [shouldStoreKeyOnServer: ${String(shouldStoreKeyOnServer)}]`),
-      pgpKeyString: '-----BEGIN PGP PUBLIC KEY BLOCK-----\nComment: GPGTools - https://gpgtools.org\n\nmQINBFWtLwEBEADLvrTe/bzrKVL0Z4bofdrLACmwC8PGXk3iD6t+1uTBKVMpfqkH\nQxGVECp598wS8XI6ZC+sMUM+AGTROi+HUsfn2cFk6y6pYl/z9A7lgctoX5xKXYTt\nE4xAZBeN1mn+x2YTjHW2lga/SZmh5qpSn5AMeNe42R0EtZ9FrCwD+IiOlw/LqGoh\n7DHKVDHmqK//mfK/lFTJck+HPkgmLyC4iYjpGuqXKqODUtMFT4+bHYfowG8WkvVX\ncf59Z6Fc7PA+rSFy9QXt7TP1po5Mnxxr9jcqQzzy3BSrAhHxAPj3F9rWBLUG0yGJ\nmAy6c1yTsbSgviiA0n4gjqPVj3iD3aiOx/KGxCdN/vru37Gp5q4KiBz7yHIqvg3B\nSeCBEOremB3gZG24OIVncpr0U6qITaFIe6iHmx53sID9JAKwfxAIwcktXe+aGtWp\n',
-    },
-  },
-}
-
-const dumbGeneratingPgp: DumbComponentMap<GeneratingPgp> = {
-  component: GeneratingPgp,
-  mocks: {
-    'Generating PGP': {
-      onCancel: () => console.log('GeneratingPgp: onCancel'),
-    },
-  },
-}
-
 export default {
   'Profile': dumbMap,
   'Edit Avatar': dumbEditAvatar,
@@ -529,9 +487,5 @@ export default {
   'New Proof: Enter Username': dumbProveEnterUsername,
   'New Proof: Post': dumbPostProof,
   'New Proof: Website': dumbProveWebsiteChoice,
-  'New Proof: PGP': dumbProvePgpChoice,
-  'New Proof: PGP import': dumbProvePgpImport,
-  'New Proof: PGP generating': dumbGeneratingPgp,
-  'New Proof: PGP generate finished': dumbFinishedGeneratingPgp,
   ...pgpDumb,
 }

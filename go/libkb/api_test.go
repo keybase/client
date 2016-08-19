@@ -203,10 +203,9 @@ func TestInstallIDHeaders(t *testing.T) {
 		t.Fatal(err)
 	}
 	res, err := api.Get(APIArg{
-		Endpoint:     "pkg/show",
-		NeedSession:  false,
-		Args:         HTTPArgs{},
-		Contextified: NewContextified(tc.G),
+		Endpoint:    "pkg/show",
+		NeedSession: false,
+		Args:        HTTPArgs{},
 	})
 	if err != nil {
 		t.Fatal(err)

@@ -405,9 +405,24 @@ func TestPGPDecryptClearsign(t *testing.T) {
 
 type TestPgpUI struct {
 	OutputCount int
+	ShouldPush  bool
+	Generated   keybase1.KeyGeneratedArg
 }
 
 func (t *TestPgpUI) OutputSignatureSuccess(context.Context, keybase1.OutputSignatureSuccessArg) error {
 	t.OutputCount++
+	return nil
+}
+
+func (t *TestPgpUI) KeyGenerated(ctx context.Context, arg keybase1.KeyGeneratedArg) error {
+	t.Generated = arg
+	return nil
+}
+
+func (t *TestPgpUI) ShouldPushPrivate(context.Context, int) (bool, error) {
+	return t.ShouldPush, nil
+}
+
+func (t *TestPgpUI) Finished(context.Context, int) error {
 	return nil
 }

@@ -214,9 +214,8 @@ func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err 
 // API server.
 func (e *Kex2Provisioner) sessionForY() (token, csrf string, err error) {
 	resp, err := e.G().API.Post(libkb.APIArg{
-		Endpoint:     "new_session",
-		NeedSession:  true,
-		Contextified: libkb.NewContextified(e.G()),
+		Endpoint:    "new_session",
+		NeedSession: true,
 	})
 	if err != nil {
 		return "", "", err

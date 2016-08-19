@@ -3,11 +3,11 @@
 export type TypedAction<T, P, E> = {
   error?: false,
   type: T,
-  payload: P
+  payload: P,
 } | {
   error: true,
   type: T,
-  payload: E
+  payload: E,
 }
 
 export type Action = TypedAction<any, any, any>

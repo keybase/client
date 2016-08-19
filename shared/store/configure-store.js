@@ -11,6 +11,7 @@ import {closureCheck} from './closure-check'
 import createSagaMiddleware from 'redux-saga'
 import {call} from 'redux-saga/effects'
 import gregorSaga from '../actions/gregor'
+import profileSaga from '../actions/profile'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
@@ -37,6 +38,7 @@ const loggerMiddleware = enableStoreLogging ? createLogger({
 function * mainSaga (getState) {
   yield [
     call(gregorSaga),
+    call(profileSaga),
   ]
 }
 

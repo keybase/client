@@ -16,6 +16,7 @@ import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '..
 import {isLoading} from '../constants/tracker'
 import {openInKBFS} from '../actions/kbfs'
 import {routeAppend, navigateUp} from '../actions/router'
+import pgpRouter from './pgp'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/tracker'
@@ -47,6 +48,9 @@ class Profile extends Component<void, ?Props, void> {
         Revoke,
         PostProof,
         ConfirmOrPending,
+        pgp: {
+          parseRoute: () => ({parseNextRoute: pgpRouter}),
+        },
       },
     }
   }

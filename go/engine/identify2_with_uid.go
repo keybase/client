@@ -313,7 +313,7 @@ func (e *Identify2WithUID) checkRemoteAssertions(okStates []keybase1.ProofState)
 }
 
 func (e *Identify2WithUID) loadAssertion() (err error) {
-	e.themAssertion, err = libkb.AssertionParseAndOnly(e.arg.UserAssertion)
+	e.themAssertion, err = libkb.AssertionParseAndOnly(e.G().MakeAssertionContext(), e.arg.UserAssertion)
 	if err == nil {
 		e.remoteAssertion, e.localAssertion = libkb.CollectAssertions(e.themAssertion)
 	}

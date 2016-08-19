@@ -260,10 +260,6 @@ func (p CommandLine) GetMountDir() string {
 	return p.GetGString("mountdir")
 }
 
-func (p CommandLine) GetAppStartMode() string {
-	return p.GetGString("app-start-mode")
-}
-
 func (p CommandLine) GetBool(s string, glbl bool) (bool, bool) {
 	var v bool
 	if glbl {

@@ -234,7 +234,6 @@ func (p *Prove) checkAutoPost(ctx *Context, txt string) error {
 			"post":     libkb.S{Val: txt},
 			"username": libkb.S{Val: p.arg.Username},
 		},
-		Contextified: libkb.NewContextified(p.G()),
 	}
 	_, err := p.G().API.Post(apiArg)
 	if err != nil {
@@ -288,7 +287,7 @@ func (p *Prove) checkProofText() error {
 }
 
 func (p *Prove) getServiceType() (err error) {
-	if p.st = libkb.GetServiceType(p.arg.Service); p.st == nil {
+	if p.st = p.G().Services.GetServiceType(p.arg.Service); p.st == nil {
 		err = libkb.BadServiceError{Service: p.arg.Service}
 	}
 	return
