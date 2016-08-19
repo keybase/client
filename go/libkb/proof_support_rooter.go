@@ -197,14 +197,16 @@ func (t RooterServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 	return t.BaseCheckProofTextShort(text, id, true)
 }
 
+func (t RooterServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+	return &RooterChecker{l}
+}
+
+func (t RooterServiceType) IsDevelOnly() bool { return true }
+
 //=============================================================================
 
 func init() {
-	RegisterServiceType(RooterServiceType{})
-	RegisterMakeProofCheckerFunc("rooter",
-		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-			return NewRooterChecker(l)
-		})
+	externalServices.Register(RooterServiceType{})
 }
 
 //=============================================================================

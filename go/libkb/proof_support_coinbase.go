@@ -137,14 +137,14 @@ func (t CoinbaseServiceType) CheckProofText(text string, id keybase1.SigID, sig 
 	return t.BaseCheckProofTextFull(text, id, sig)
 }
 
+func (t CoinbaseServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+	return &CoinbaseChecker{l}
+}
+
 //=============================================================================
 
 func init() {
-	RegisterServiceType(CoinbaseServiceType{})
-	RegisterMakeProofCheckerFunc("coinbase",
-		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-			return NewCoinbaseChecker(l)
-		})
+	externalServices.Register(CoinbaseServiceType{})
 }
 
 //=============================================================================

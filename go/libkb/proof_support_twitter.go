@@ -164,14 +164,14 @@ func (t TwitterServiceType) CheckProofText(text string, id keybase1.SigID, sig s
 	return t.BaseCheckProofTextShort(text, id, false)
 }
 
+func (t TwitterServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+	return &TwitterChecker{l}
+}
+
 //=============================================================================
 
 func init() {
-	RegisterServiceType(TwitterServiceType{})
-	RegisterMakeProofCheckerFunc("twitter",
-		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-			return NewTwitterChecker(l)
-		})
+	externalServices.Register(TwitterServiceType{})
 }
 
 //=============================================================================

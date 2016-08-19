@@ -112,14 +112,14 @@ func (t GithubServiceType) CheckProofText(text string, id keybase1.SigID, sig st
 	return t.BaseCheckProofTextFull(text, id, sig)
 }
 
+func (t GithubServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+	return &GithubChecker{l}
+}
+
 //=============================================================================
 
 func init() {
-	RegisterServiceType(GithubServiceType{})
-	RegisterMakeProofCheckerFunc("github",
-		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-			return NewGithubChecker(l)
-		})
+	externalServices.Register(GithubServiceType{})
 }
 
 //=============================================================================

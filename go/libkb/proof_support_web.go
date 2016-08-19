@@ -203,14 +203,14 @@ func (t WebServiceType) CheckProofText(text string, id keybase1.SigID, sig strin
 func (t WebServiceType) GetAPIArgKey() string { return "remote_host" }
 func (t WebServiceType) LastWriterWins() bool { return false }
 
+func (t WebServiceType) MakeProofChecker(l RemoteProofChainLink) ProofChecker {
+	return &WebChecker{l}
+}
+
 //=============================================================================
 
 func init() {
-	RegisterServiceType(WebServiceType{})
-	RegisterMakeProofCheckerFunc("http",
-		func(l RemoteProofChainLink) (ProofChecker, ProofError) {
-			return NewWebChecker(l)
-		})
+	externalServices.Register(WebServiceType{})
 }
 
 //=============================================================================
