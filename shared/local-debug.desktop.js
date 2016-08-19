@@ -30,7 +30,6 @@ let config: {[key:string]: any} = {
   searchActive: false,
   logStatFrequency: 0,
   actionStatFrequency: 0,
-  allowSkipLogging: false,
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -85,7 +84,6 @@ export const {
   searchActive,
   logStatFrequency,
   actionStatFrequency,
-  allowSkipLogging,
 } = config
 
 export function initTabbedRouterState () {

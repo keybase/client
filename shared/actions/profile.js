@@ -170,7 +170,6 @@ function updatePgpInfo (pgpInfo: $Shape<PgpInfo>): UpdatePgpInfo {
   return {
     type: Constants.updatePgpInfo,
     payload: pgpInfo,
-    skipLogging: true,
   }
 }
 
@@ -522,7 +521,6 @@ function * checkPgpInfo (action: UpdatePgpInfo): SagaGenerator<any, any> {
   const errorUpdateAction: UpdatePgpInfo = {
     type: Constants.updatePgpInfo,
     error: true,
-    skipLogging: true,
     payload: checkPgpInfoForErrors(pgpInfo),
   }
 

@@ -2,7 +2,7 @@
 
 import {Iterable} from 'immutable'
 import deep from 'deep-diff'
-import {logStatFrequency, actionStatFrequency, forwardLogs, allowSkipLogging} from '../local-debug'
+import {logStatFrequency, actionStatFrequency, forwardLogs} from '../local-debug'
 import {startTiming, endTiming, printTimingStats, shouldRunStats} from '../util/stats'
 
 import type {StatSink} from '../util/stats'
@@ -39,19 +39,11 @@ const actionStatSink: StatSink = {
 }
 
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
-  const shouldRunActionStats = shouldRunStats(actionStatFrequency)
-  if (action.skipLogging && allowSkipLogging) {
-    startTiming(shouldRunActionStats, actionStatSink)
-    const result = next(action)
-    endTiming(shouldRunActionStats, actionStatSink)
-    printTimingStats(shouldRunActionStats, actionStatSink, true, 3)
-    return result
-  }
-
   console.groupCollapsed && console.groupCollapsed(`Dispatching action: ${action.type}`)
 
   console.log(`Dispatching action: ${action.type}: `, forwardLogs ? JSON.stringify(action) : action)
 
+  const shouldRunActionStats = shouldRunStats(actionStatFrequency)
   const shouldRunLogStats = shouldRunStats(logStatFrequency)
 
   const oldState = store.getState()

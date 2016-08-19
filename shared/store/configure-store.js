@@ -33,7 +33,6 @@ const loggerMiddleware = enableStoreLogging ? createLogger({
   stateTransformer: objToJS,
   actionTransformer: objToJS,
   collapsed: true,
-  predicate: (getState, action) => !action.skipLogging,
 }) : null
 
 function * mainSaga (getState) {
