@@ -56,6 +56,11 @@ pushd %GOPATH%\src\github.com\keybase\client\go\tools\runquiet
 go build -ldflags "-H windowsgui"
 popd
 
+:: dokanclean
+pushd %GOPATH%\src\github.com\keybase\client\go\tools\dokanclean
+go build
+popd
+
 :: Then the desktop:
 pushd  %GOPATH%\src\github.com\keybase\client\desktop
 :: rmdir /s /q node_modules
