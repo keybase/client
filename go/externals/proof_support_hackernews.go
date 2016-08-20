@@ -83,7 +83,7 @@ func (h *HackerNewsChecker) CheckStatus(ctx libkb.ProofContext, hint libkb.SigHi
 	return ret
 }
 
-func CheckKarma(ctx ProofContext, un string) (int, error) {
+func CheckKarma(ctx libkb.ProofContext, un string) (int, error) {
 	u := KarmaURL(un)
 	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArg(u))
 	if err != nil {

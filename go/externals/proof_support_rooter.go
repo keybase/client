@@ -105,7 +105,7 @@ func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, libkb.ProofErro
 
 }
 
-func (rc *RooterChecker) rewriteURL(ctx ProofContext, s string) (string, error) {
+func (rc *RooterChecker) rewriteURL(ctx libkb.ProofContext, s string) (string, error) {
 	u1, err := url.Parse(s)
 	if err != nil {
 		return "", err

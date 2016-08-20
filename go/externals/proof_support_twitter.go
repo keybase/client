@@ -48,7 +48,7 @@ func (rc *TwitterChecker) ScreenNameCompare(s1, s2 string) bool {
 	return libkb.Cicmp(s1, s2)
 }
 
-func (rc *TwitterChecker) findSigInTweet(ctx ProofContext, h libkb.SigHint, s *goquery.Selection) libkb.ProofError {
+func (rc *TwitterChecker) findSigInTweet(ctx libkb.ProofContext, h libkb.SigHint, s *goquery.Selection) libkb.ProofError {
 
 	inside := s.Text()
 	html, err := s.Html()

@@ -44,7 +44,7 @@ func (rc *DNSChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.P
 	return nil
 }
 
-func (rc *DNSChecker) CheckDomain(ctx ProofContext, sig string, domain string) libkb.ProofError {
+func (rc *DNSChecker) CheckDomain(ctx libkb.ProofContext, sig string, domain string) libkb.ProofError {
 	txt, err := net.LookupTXT(domain)
 	if err != nil {
 		return libkb.NewProofError(keybase1.ProofStatus_DNS_ERROR,
