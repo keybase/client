@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"runtime"
 	"syscall"
 	"time"
 	"unicode/utf16"
@@ -666,6 +667,8 @@ func (fi *FileInfo) isRequestorUserSidEqualTo(sid *SID) bool {
 		u2, _ := tokUser.User.Sid.String()
 		debugf("IsRequestorUserSidEqualTo: EqualSID(%q,%q) => %v (expecting non-zero)\n", u1, u2, res)
 	}
+	runtime.KeepAlive(sid)
+	runtime.KeepAlive(tokUser.User.Sid)
 	return res != 0
 }
 
