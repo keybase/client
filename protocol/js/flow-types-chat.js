@@ -18,6 +18,8 @@ export type RPCError = {
 }
 export type Conversation = {
   metadata: ConversationMetadata,
+  mtime: gregor1.Time,
+  readMsgid: MessageID,
   maxHeaders?: ?Array<MessageServerHeader>,
 }
 
@@ -88,9 +90,10 @@ export type MessageType =
   | 5 // METADATA_5
 
 export type Pagination = {
-  resourceID: bytes,
-  last: int,
+  next: bytes,
+  previous: bytes,
   num: int,
+  last: boolean,
 }
 
 export type PaginationResourceID = bytes
@@ -161,11 +164,13 @@ export type remotePostRemoteRpcParam = $Exact<{
   messageBoxed: MessageBoxed
 }>
 
+type remotePostRemoteResult = MessageID
+
 export function remotePostRemoteRpc (request: $Exact<{
   param: remotePostRemoteRpcParam,
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
+  callback?: (null | (err: ?any, response: remotePostRemoteResult) => void)}>) {
   engine.rpc({...request, method: 'remote.postRemote'})
 }
 export type rpc =
@@ -201,7 +206,7 @@ export type incomingCallMapType = $Exact<{
     }>,
     response: {
       error: (err: RPCError) => void,
-      result: () => void
+      result: (result: remotePostRemoteResult) => void
     }
   ) => void,
   'keybase.1.remote.newConversationRemote'?: (
