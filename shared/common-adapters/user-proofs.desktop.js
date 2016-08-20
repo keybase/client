@@ -1,7 +1,7 @@
 // @flow
-import * as shared from './user-proofs.shared'
 import React, {Component} from 'react'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
+import * as shared from './user-proofs.shared'
 import openUrl from '../util/open-url'
 import type {Props, MissingProof} from './user-proofs'
 import type {Proof} from '../constants/tracker'
@@ -27,20 +27,22 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
   )
 }
 
-class ProofRow extends Component {
-  props: {
-    proof: Proof,
-    hasMenu: boolean,
-    showingMenu: boolean,
-    onClickProof: (proof: Proof) => void,
-    onClickProfile: (proof: Proof) => void,
-    style: Object,
-  };
+type ProofRowProps = {
+  proof: Proof,
+  hasMenu: boolean,
+  showingMenu: boolean,
+  onClickStatus: (proof: Proof) => void,
+  onClickProfile: (proof: Proof) => void,
+  style: Object,
+}
 
-  state: {
-    hovering: boolean,
-    popupMenuPosition: {},
-  };
+type ProofRowState = {
+  hovering: boolean,
+  popupMenuPosition: {},
+}
+
+class ProofRow extends Component<void, ProofRowProps, ProofRowState> {
+  state: ProofRowState;
 
   constructor (props: Props) {
     super(props)
@@ -52,7 +54,7 @@ class ProofRow extends Component {
   }
 
   render () {
-    const {proof, hasMenu, showingMenu, onClickProof, onClickProfile, style} = this.props
+    const {proof, hasMenu, showingMenu, onClickProfile, onClickStatus, style} = this.props
     const proofStatusIconType = shared.proofStatusIcon(proof)
     const menuButtonVisible = this.state.hovering || showingMenu
 
@@ -68,7 +70,7 @@ class ProofRow extends Component {
             {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
           </Box>
         </Box>
-        <Box style={styleProofMenuButton} onClick={() => onClickProof(proof)}>
+        <Box style={styleProofMenuButton} onClick={() => onClickStatus(proof)}>
           {proofStatusIconType && <Icon type={proofStatusIconType} />}
           {hasMenu &&
             <Icon
@@ -120,7 +122,6 @@ class ProofsRender extends Component<void, Props, void> {
   }
 
   _onClickProfile (proof: Proof): void {
-    console.log('Opening profile link:', proof)
     if (proof.state !== proofChecking) {
       proof.profileUrl && openUrl(proof.profileUrl)
     }
@@ -158,7 +159,7 @@ class ProofsRender extends Component<void, Props, void> {
                   key={`${p.id || ''}${p.type}`}
                   ref={c => { this._rows[idx] = c }}
                   proof={p}
-                  onClickProof={onClickProofMenu ? () => onClickProofMenu(idx) : this._onClickProof}
+                  onClickStatus={onClickProofMenu ? () => onClickProofMenu(idx) : this._onClickProof}
                   onClickProfile={this._onClickProfile}
                   hasMenu={!!onClickProofMenu}
                   showingMenu={idx === showingMenuIndex}

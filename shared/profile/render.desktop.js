@@ -264,7 +264,7 @@ class Render extends Component<void, Props, State> {
               onUserClick={this.props.onUserClick}
               followers={this.props.followers}
               following={this.props.following} />}
-          {proofMenuContent && <PopupMenu style={{...styleProofMenu, ...this.state.popupMenuPosition}} visible={true} {...proofMenuContent} onHidden={() => this.handleHideMenu()} />}
+          {proofMenuContent && <PopupMenu style={{...styleProofMenu, ...this.state.popupMenuPosition}} {...proofMenuContent} onHidden={() => this.handleHideMenu()} />}
         </Box>
       </Box>
     )
