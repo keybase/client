@@ -443,7 +443,7 @@ type GregorListener interface {
 	PushFirehoseHandler(handler GregorFirehoseHandler)
 }
 
-type GlobalContextLite interface {
+type ProofContext interface {
 	GetLog() logger.Logger
 	GetAPI() API
 	GetExternalAPI() ExternalAPI
@@ -456,8 +456,8 @@ type AssertionContext interface {
 
 // ProofChecker is an interface for performing a remote check for a proof
 type ProofChecker interface {
-	CheckHint(g GlobalContextLite, h SigHint) ProofError
-	CheckStatus(g GlobalContextLite, h SigHint) ProofError
+	CheckHint(ctx ProofContext, h SigHint) ProofError
+	CheckStatus(ctx ProofContext, h SigHint) ProofError
 	GetTorError() ProofError
 }
 
@@ -473,11 +473,11 @@ type ServiceType interface {
 	// NormalizeRemote normalizes the given remote username, which
 	// is usually but not always the same as the username. It also
 	// allows leaders like '@' and 'dns://'.
-	NormalizeRemoteName(g GlobalContextLite, name string) (string, error)
+	NormalizeRemoteName(ctx ProofContext, name string) (string, error)
 
 	GetPrompt() string
 	LastWriterWins() bool
-	PreProofCheck(g GlobalContextLite, remotename string) (*Markup, error)
+	PreProofCheck(ctx ProofContext, remotename string) (*Markup, error)
 	PreProofWarning(remotename string) *Markup
 	ToServiceJSON(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
