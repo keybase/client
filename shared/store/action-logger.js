@@ -1,11 +1,10 @@
 // @flow
-
-import {Iterable} from 'immutable'
 import deep from 'deep-diff'
-import {logStatFrequency, actionStatFrequency, forwardLogs} from '../local-debug'
-import {startTiming, endTiming, printTimingStats, shouldRunStats} from '../util/stats'
-
 import type {StatSink} from '../util/stats'
+import {Iterable} from 'immutable'
+import {logStatFrequency, actionStatFrequency, forwardLogs} from '../local-debug'
+import {requestIdleCallback} from '../util/idle-callback'
+import {startTiming, endTiming, printTimingStats, shouldRunStats} from '../util/stats'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
@@ -39,9 +38,7 @@ const actionStatSink: StatSink = {
 }
 
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
-  console.groupCollapsed && console.groupCollapsed(`Dispatching action: ${action.type}`)
-
-  console.log(`Dispatching action: ${action.type}: `, forwardLogs ? JSON.stringify(action) : action)
+  const log1 = `Dispatching action: ${action.type}: ${forwardLogs ? JSON.stringify(action) : action}`
 
   const shouldRunActionStats = shouldRunStats(actionStatFrequency)
   const shouldRunLogStats = shouldRunStats(logStatFrequency)
@@ -56,13 +53,19 @@ export const actionLogger = (store: any) => (next: any) => (action: any) => {
 
   startTiming(shouldRunLogStats, loggingStatSink)
   const diff = deep.diff(objToJS(oldState), objToJS(newState))
-  console.log('Diff:', forwardLogs ? JSON.stringify(diff) : diff)
+  const log2 = `Diff: ${forwardLogs ? JSON.stringify(diff) : diff}`
   endTiming(shouldRunLogStats, loggingStatSink)
 
-  console.groupEnd && console.groupEnd()
+  requestIdleCallback(() => {
+    console.groupCollapsed && console.groupCollapsed(`Dispatching action: ${action.type}`)
+    console.log(log1)
+    console.log(log2)
+    console.groupEnd && console.groupEnd()
+  })
 
   // Make sure to print these after the groupEnd
   printTimingStats(shouldRunLogStats, loggingStatSink, true, 3)
   printTimingStats(shouldRunActionStats, actionStatSink, true, 3)
+
   return result
 }

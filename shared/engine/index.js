@@ -7,6 +7,7 @@ import {constants} from '../constants/types/keybase-v1'
 import {log} from '../native/log/logui'
 import {resetClient, createClient} from './platform-specific'
 import {printRPC, printOutstandingRPCs} from '../local-debug'
+import {requestIdleCallback} from '../util/idle-callback'
 
 const KEYBASE_RPC_DELAY_RESULT: number = process.env.KEYBASE_RPC_DELAY_RESULT ? parseInt(process.env.KEYBASE_RPC_DELAY_RESULT) : 0
 const KEYBASE_RPC_DELAY: number = process.env.KEYBASE_RPC_DELAY ? parseInt(process.env.KEYBASE_RPC_DELAY) : 0
@@ -43,7 +44,11 @@ class Engine {
 
   constructor () {
     const {logLocal} = setupLocalLogs()
-    this.logLocal = logLocal
+    this.logLocal = (...args) => {
+      requestIdleCallback(() => {
+        logLocal(...args)
+      })
+    }
 
     // Keep some meta data from session ID to response meta
     // To help debug outstanding requests
