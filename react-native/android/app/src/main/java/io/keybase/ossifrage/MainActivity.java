@@ -10,20 +10,15 @@ import android.util.Log;
 import android.view.KeyEvent;
 
 import com.burnweb.rnpermissions.RNPermissionsPackage;
-import com.eguma.barcodescanner.BarcodeScannerPackage;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
-import com.facebook.react.ReactPackage;
 import com.facebook.react.ReactRootView;
-import com.facebook.react.shell.MainReactPackage;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.util.Arrays;
-import java.util.List;
 
 import go.keybase.Keybase;
 
@@ -32,8 +27,6 @@ import static go.keybase.Keybase.LogSend;
 
 public class MainActivity extends ReactActivity {
     private static final String TAG = MainActivity.class.getName();
-    private ReactInstanceManager mReactInstanceManager;
-    private ReactRootView mReactRootView;
     private File logFile;
 
     @Override
