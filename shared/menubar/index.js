@@ -200,6 +200,9 @@ export function selector (): (store: Object) => Object {
         extendedConfig: store.config.extendedConfig,
       },
       favorite: store.favorite,
+      dev: {
+        reloading: store.dev.reloading,
+      },
     }
   }
 }

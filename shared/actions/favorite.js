@@ -165,7 +165,7 @@ const jsonToFolders = (json: Object, myKID: any) => {
 export function favoriteList (): (dispatch: Dispatch, getState: () => Object) => void {
   return (dispatch, getState) => {
     // Ignore any messages we receive while reloading
-    if (getState().dev.reloading) {
+    if (getState().dev && getState().dev.reloading) {
       return
     }
 
@@ -188,7 +188,8 @@ export function favoriteList (): (dispatch: Dispatch, getState: () => Object) =>
           return
         }
 
-        const myUsername = getState().config && getState().config.username
+        const config = getState().config
+        const myUsername = config && config.username
         const myKID = _.findKey(json.users, name => name === myUsername)
 
         // inject our meta tag
@@ -198,7 +199,6 @@ export function favoriteList (): (dispatch: Dispatch, getState: () => Object) =>
 
         // figure out who can solve the rekey
         const folders: Array<FolderWithMeta> = jsonToFolders(json, myKID)
-        const config = getState && getState().config
         const currentUser = config && config.username
         const loggedIn = config && config.loggedIn
 
