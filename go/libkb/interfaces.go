@@ -443,11 +443,21 @@ type GregorListener interface {
 	PushFirehoseHandler(handler GregorFirehoseHandler)
 }
 
-type ProofContext interface {
+type LogContext interface {
 	GetLog() logger.Logger
+}
+
+// APIContext defines methods for accessing API server
+type APIContext interface {
 	GetAPI() API
 	GetExternalAPI() ExternalAPI
 	GetServerURI() string
+}
+
+// ProofContext defines features needed by the proof system
+type ProofContext interface {
+	LogContext
+	APIContext
 }
 
 type AssertionContext interface {
