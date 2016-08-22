@@ -21,6 +21,7 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 		NewCmdCompatDir(cl),
 		NewCmdCompatPush(cl),
 		NewCmdDecrypt(cl, g),
+		NewCmdChat(cl, g),
 		NewCmdConfig(cl, g),
 		NewCmdCtl(cl, g),
 		NewCmdDb(cl, g),

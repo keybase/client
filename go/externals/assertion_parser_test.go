@@ -4,8 +4,9 @@
 package externals
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 func testAssertionContext() libkb.AssertionContext {

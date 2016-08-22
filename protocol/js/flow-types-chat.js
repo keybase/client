@@ -7,6 +7,8 @@ import engine from '../../engine'
 import type {$Exact} from './more'
 export type int = number
 export type int64 = number
+export type uint = number
+export type uint64 = number
 export type long = number
 export type double = number
 export type bytes = any
@@ -16,14 +18,16 @@ export type RPCError = {
 }
 export type Conversation = {
   metadata: ConversationMetadata,
+  mtime: gregor1.Time,
+  readMsgid: MessageID,
   maxHeaders?: ?Array<MessageServerHeader>,
 }
 
-export type ConversationID = long
+export type ConversationID = uint64
 
 export type ConversationIDTriple = {
   tlfid: TLFID,
-  topicType: int,
+  topicType: TopicType,
   topicID: TopicID,
 }
 
@@ -31,8 +35,6 @@ export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
 }
-
-export type DeviceID = bytes
 
 export type EncryptedData = {
   v: int,
@@ -60,10 +62,10 @@ export type MessageClientHeader = {
   messageType: MessageType,
   prev?: ?Array<MessagePreviousPointer>,
   sender: gregor1.UID,
-  senderDevice: DeviceID,
+  senderDevice: gregor1.DeviceID,
 }
 
-export type MessageID = bytes
+export type MessageID = uint
 
 export type MessagePreviousPointer = {
   id: MessageID,
@@ -74,7 +76,7 @@ export type MessageServerHeader = {
   messageType: MessageType,
   messageID: MessageID,
   sender: gregor1.UID,
-  senderDevice: DeviceID,
+  senderDevice: gregor1.DeviceID,
   supersededBy: MessageID,
   ctime: gregor1.Time,
 }
@@ -88,9 +90,10 @@ export type MessageType =
   | 5 // METADATA_5
 
 export type Pagination = {
-  resourceID: bytes,
-  last: int,
+  next: bytes,
+  previous: bytes,
   num: int,
+  last: boolean,
 }
 
 export type PaginationResourceID = bytes
@@ -112,6 +115,10 @@ export type ThreadViewBoxed = {
 
 export type TopicID = bytes
 
+export type TopicType =
+    0 // NONE_0
+  | 1 // CHAT_1
+
 export type remoteGetInboxRemoteRpcParam = $Exact<{
   pagination: (null | Pagination)
 }>
@@ -127,6 +134,7 @@ export function remoteGetInboxRemoteRpc (request: $Exact<{
 }
 export type remoteGetThreadRemoteRpcParam = $Exact<{
   conversationID: ConversationID,
+  markAsRead: boolean,
   pagination: (null | Pagination)
 }>
 
@@ -139,15 +147,29 @@ export function remoteGetThreadRemoteRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: remoteGetThreadRemoteResult) => void)}>) {
   engine.rpc({...request, method: 'remote.getThreadRemote'})
 }
-export type remoteNewConversationRemoteRpcParam = $Exact<{
-  conversationMetadata: ConversationMetadata
+export type remoteMarkAsReadRpcParam = $Exact<{
+  conversationID: ConversationID,
+  msgID: MessageID
 }>
+
+export function remoteMarkAsReadRpc (request: $Exact<{
+  param: remoteMarkAsReadRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'remote.markAsRead'})
+}
+export type remoteNewConversationRemoteRpcParam = $Exact<{
+  idTriple: ConversationIDTriple
+}>
+
+type remoteNewConversationRemoteResult = ConversationID
 
 export function remoteNewConversationRemoteRpc (request: $Exact<{
   param: remoteNewConversationRemoteRpcParam,
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
+  callback?: (null | (err: ?any, response: remoteNewConversationRemoteResult) => void)}>) {
   engine.rpc({...request, method: 'remote.newConversationRemote'})
 }
 export type remotePostRemoteRpcParam = $Exact<{
@@ -155,16 +177,19 @@ export type remotePostRemoteRpcParam = $Exact<{
   messageBoxed: MessageBoxed
 }>
 
+type remotePostRemoteResult = MessageID
+
 export function remotePostRemoteRpc (request: $Exact<{
   param: remotePostRemoteRpcParam,
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
+  callback?: (null | (err: ?any, response: remotePostRemoteResult) => void)}>) {
   engine.rpc({...request, method: 'remote.postRemote'})
 }
 export type rpc =
     remoteGetInboxRemoteRpc
   | remoteGetThreadRemoteRpc
+  | remoteMarkAsReadRpc
   | remoteNewConversationRemoteRpc
   | remotePostRemoteRpc
 
@@ -181,6 +206,7 @@ export type incomingCallMapType = $Exact<{
   'keybase.1.remote.getThreadRemote'?: (
     params: $Exact<{
       conversationID: ConversationID,
+      markAsRead: boolean,
       pagination: (null | Pagination)
     }>,
     response: {
@@ -195,12 +221,22 @@ export type incomingCallMapType = $Exact<{
     }>,
     response: {
       error: (err: RPCError) => void,
-      result: () => void
+      result: (result: remotePostRemoteResult) => void
     }
   ) => void,
   'keybase.1.remote.newConversationRemote'?: (
     params: $Exact<{
-      conversationMetadata: ConversationMetadata
+      idTriple: ConversationIDTriple
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: remoteNewConversationRemoteResult) => void
+    }
+  ) => void,
+  'keybase.1.remote.markAsRead'?: (
+    params: $Exact<{
+      conversationID: ConversationID,
+      msgID: MessageID
     }>,
     response: {
       error: (err: RPCError) => void,

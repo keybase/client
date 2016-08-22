@@ -3,6 +3,7 @@
 protocol chatLocal {
 
   import idl "github.com/keybase/gregor/protocol/chat1" as chat1;
+  import idl "common.avdl";
 
   record MessageText {
     string body;
@@ -50,8 +51,20 @@ protocol chatLocal {
     union { null, chat1.Pagination } pagination;
   }
 
+  record MessageSelector {
+    array<chat1.MessageType> MessageTypes;
+
+    union { null, Time } After;
+    union { null, Time } Before;
+    bool onlyNew;
+    int limitNumber;
+  }
+
   chat1.InboxView getInboxLocal(union { null, chat1.Pagination } pagination);
   ThreadView getThreadLocal(chat1.ConversationID conversationID, union { null, chat1.Pagination } pagination);
   void postLocal(chat1.ConversationID conversationID, MessagePlaintext messagePlaintext);
-  void newConversationLocal(chat1.ConversationIDTriple conversationTriple);
+  chat1.ConversationID newConversationLocal(chat1.ConversationIDTriple conversationTriple);
+
+  chat1.ConversationID getOrCreateTextConversationLocal(string tlfName, string topicName, chat1.TopicType topicType);
+  array<Message> getMessagesLocal(MessageSelector selector);
 }

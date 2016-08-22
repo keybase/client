@@ -8,6 +8,8 @@ import engine from '../../engine'
 import type {$Exact} from './more'
 export type int = number
 export type int64 = number
+export type uint = number
+export type uint64 = number
 export type long = number
 export type double = number
 export type bytes = any
@@ -773,6 +775,14 @@ export type MessageEdit = {
 export type MessagePlaintext = {
   clientHeader: chat1.MessageClientHeader,
   messageBodies?: ?Array<MessageBody>,
+}
+
+export type MessageSelector = {
+  MessageTypes?: ?Array<chat1.MessageType>,
+  After?: ?Time,
+  Before?: ?Time,
+  onlyNew: bool,
+  limitNumber: int,
 }
 
 export type MessageText = {
@@ -1824,6 +1834,34 @@ export function chatLocalGetInboxLocalRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: chatLocalGetInboxLocalResult) => void)}>) {
   engine.rpc({...request, method: 'chatLocal.getInboxLocal'})
 }
+export type chatLocalGetMessagesLocalRpcParam = $Exact<{
+  selector: MessageSelector
+}>
+
+type chatLocalGetMessagesLocalResult = ?Array<Message>
+
+export function chatLocalGetMessagesLocalRpc (request: $Exact<{
+  param: chatLocalGetMessagesLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatLocalGetMessagesLocalResult) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.getMessagesLocal'})
+}
+export type chatLocalGetOrCreateTextConversationLocalRpcParam = $Exact<{
+  tlfName: string,
+  topicName: string,
+  topicType: chat1.TopicType
+}>
+
+type chatLocalGetOrCreateTextConversationLocalResult = chat1.ConversationID
+
+export function chatLocalGetOrCreateTextConversationLocalRpc (request: $Exact<{
+  param: chatLocalGetOrCreateTextConversationLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatLocalGetOrCreateTextConversationLocalResult) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.getOrCreateTextConversationLocal'})
+}
 export type chatLocalGetThreadLocalRpcParam = $Exact<{
   conversationID: chat1.ConversationID,
   pagination: (null | chat1.Pagination)
@@ -1842,11 +1880,13 @@ export type chatLocalNewConversationLocalRpcParam = $Exact<{
   conversationTriple: chat1.ConversationIDTriple
 }>
 
+type chatLocalNewConversationLocalResult = chat1.ConversationID
+
 export function chatLocalNewConversationLocalRpc (request: $Exact<{
   param: chatLocalNewConversationLocalRpcParam,
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
+  callback?: (null | (err: ?any, response: chatLocalNewConversationLocalResult) => void)}>) {
   engine.rpc({...request, method: 'chatLocal.newConversationLocal'})
 }
 export type chatLocalPostLocalRpcParam = $Exact<{
@@ -4084,6 +4124,8 @@ export type rpc =
   | blockGetUserQuotaInfoRpc
   | blockPutBlockRpc
   | chatLocalGetInboxLocalRpc
+  | chatLocalGetMessagesLocalRpc
+  | chatLocalGetOrCreateTextConversationLocalRpc
   | chatLocalGetThreadLocalRpc
   | chatLocalNewConversationLocalRpc
   | chatLocalPostLocalRpc
@@ -4487,7 +4529,27 @@ export type incomingCallMapType = $Exact<{
     }>,
     response: {
       error: (err: RPCError) => void,
-      result: () => void
+      result: (result: chatLocalNewConversationLocalResult) => void
+    }
+  ) => void,
+  'keybase.1.chatLocal.getOrCreateTextConversationLocal'?: (
+    params: $Exact<{
+      tlfName: string,
+      topicName: string,
+      topicType: chat1.TopicType
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: chatLocalGetOrCreateTextConversationLocalResult) => void
+    }
+  ) => void,
+  'keybase.1.chatLocal.getMessagesLocal'?: (
+    params: $Exact<{
+      selector: MessageSelector
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: chatLocalGetMessagesLocalResult) => void
     }
   ) => void,
   'keybase.1.config.getCurrentStatus'?: (

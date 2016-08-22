@@ -5,6 +5,10 @@
       "path": "github.com/keybase/gregor/protocol/chat1",
       "type": "idl",
       "import_as": "chat1"
+    },
+    {
+      "path": "common.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -157,6 +161,41 @@
           "name": "pagination"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "MessageSelector",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "chat1.MessageType"
+          },
+          "name": "MessageTypes"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "After"
+        },
+        {
+          "type": [
+            null,
+            "Time"
+          ],
+          "name": "Before"
+        },
+        {
+          "type": "bool",
+          "name": "onlyNew"
+        },
+        {
+          "type": "int",
+          "name": "limitNumber"
+        }
+      ]
     }
   ],
   "messages": {
@@ -208,7 +247,36 @@
           "type": "chat1.ConversationIDTriple"
         }
       ],
-      "response": null
+      "response": "chat1.ConversationID"
+    },
+    "getOrCreateTextConversationLocal": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        },
+        {
+          "name": "topicName",
+          "type": "string"
+        },
+        {
+          "name": "topicType",
+          "type": "chat1.TopicType"
+        }
+      ],
+      "response": "chat1.ConversationID"
+    },
+    "getMessagesLocal": {
+      "request": [
+        {
+          "name": "selector",
+          "type": "MessageSelector"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Message"
+      }
     }
   },
   "namespace": "keybase.1"
