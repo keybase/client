@@ -174,6 +174,10 @@ const popupMenuMap: DumbComponentMap<PopupMenu> = {
       ...popupMenuProps,
       header: {title: 'Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?', danger: true, isMenuItem: true},
     },
+    'Header w/ Custom View': {
+      ...popupMenuProps,
+      header: {title: 'header', view: <Text type='BodySemiboldItalic' style={{textAlign: 'center'}}>Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?</Text>, danger: true, isMenuItem: true},
+    },
   },
 }
 

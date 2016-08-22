@@ -9,6 +9,7 @@ import {usernameText} from '../common-adapters/usernames'
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {stateColors} from '../util/tracker'
+import {friendlyName as platformFriendlyName} from '../util/platforms'
 import * as shared from './render.shared'
 import type {Tab as FriendshipsTab} from './friendships'
 import type {Proof} from '../constants/tracker'
@@ -48,7 +49,7 @@ class Render extends Component<void, Props, State> {
   _proofMenuContent (proof: Proof) {
     if (proof.meta === metaUnreachable) {
       return {
-        header: {title: 'Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?', isMenuItem: true},
+        header: {title: 'Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?', danger: true},
         items: [
           ...(proof.humanUrl ? [{title: 'View proof', onClick: () => this.props.onViewProof(proof)}] : []),
           {title: 'I fixed it - recheck', onClick: () => this.props.onRecheckProof(proof)},
@@ -64,14 +65,18 @@ class Render extends Component<void, Props, State> {
         pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
       }
       return {
-        header: pendingMessage && {title: pendingMessage, isMenuItem: true},
+        header: pendingMessage && {title: pendingMessage},
         items: [
           {title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)},
         ],
       }
     }
     return {
-      header: {title: `Posted on ${moment(proof.mTime).format('ddd MMM D, YYYY')}`, isMenuItem: true},
+      header: {title: 'header', view:
+        <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.flexBoxCenter}}>
+          <Text type='BodySmallItalic' style={{textAlign: 'center', color: globalColors.white}}>{platformFriendlyName(proof.type)}</Text>
+          {!!proof.mTime && <Text type='BodySmall' style={{textAlign: 'center', color: globalColors.white}}>Posted on {moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
+        </Box>},
       items: [
         {title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`, onClick: () => this.props.onViewProof(proof)},
         {title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)},

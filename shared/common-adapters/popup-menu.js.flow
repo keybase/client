@@ -2,19 +2,20 @@
 import {Component} from 'react'
 
 export type MenuItem = {
-  title: string,
+  title: string, // Only used as ID if view is provided for Header
+  view?: React$Element<*>, // Only used for Header
   subTitle?: string, // subTitle is not used on native
   danger?: boolean,
   onClick?: () => void,
-  style?: Object
+  style?: Object,
 }
 
 export type Props = {
   items: Array<MenuItem | 'Divider'>, // Divider is not used on native
-  header?: React$Element<*> | (MenuItem & {isMenuItem: true}),
+  header?: MenuItem,
   onHidden: () => void,
   visible: boolean,
-  style?: Object
+  style?: Object,
 }
 
 export type DefaultProps = {

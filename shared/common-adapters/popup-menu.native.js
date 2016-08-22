@@ -13,8 +13,8 @@ type MenuItemProps = MenuItem & {
 }
 
 const MenuRow = (props: MenuItemProps) => (
-  <TouchableOpacity activeOpacity={props.onClick ? 0.8 : 1} onPress={props.onClick} style={{...styleRow(props), ...props.style}}>
-    <Text type={props.isHeader ? 'BodySmall' : 'Body'} style={styleRowText(props)}>{props.title}</Text>
+  <TouchableOpacity activeOpacity={0.8} disabled={!props.onClick} onPress={props.onClick} style={{...styleRow(props), ...props.style}}>
+  {props.view || <Text type={props.isHeader ? 'BodySmall' : 'Body'} style={styleRowText(props)}>{props.title}</Text>}
   </TouchableOpacity>
 )
 
@@ -64,15 +64,14 @@ class PopupMenu extends Component<DefaultProps, Props, void> {
     }
     // $ForceType
     const menuItemsNoDividers: Array<MenuItem> = this.props.items.filter((mi) => mi !== 'Divider')
-    const menuItemsWithHeader = [].concat(menuItemsNoDividers)
-    if (this.props.header && this.props.header.isMenuItem) {
+    const menuItemsWithHeader: Array<MenuItem> = [].concat(menuItemsNoDividers)
+    if (this.props.header) {
       menuItemsWithHeader.unshift({...this.props.header, isHeader: true})
     }
     return (
       <TouchableWithoutFeedback style={styleOverlayContainer} onPress={this.props.onHidden}>
         <Box style={styleOverlay}>
           <Box style={{...styleMenu, ...this.props.style}}>
-            {!!this.props.header && !this.props.header.isMenuItem && this.props.header}
             <Box style={styleMenuGroup}>
               {menuItemsWithHeader.map((mi, idx) => <MenuRow key={mi.title} {...mi} index={idx} numItems={menuItemsWithHeader.length} />)}
             </Box>
