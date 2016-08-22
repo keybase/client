@@ -2,7 +2,7 @@
 import Camera from 'react-native-camera'
 import React, {Component} from 'react'
 import type {Props} from './index'
-import {NativeImage, Box} from '../../../../common-adapters'
+import {NativeImage, Box} from '../../../../common-adapters/index.native'
 import {globalStyles} from '../../../../styles/style-guide'
 
 class QR extends Component<void, Props, void> {

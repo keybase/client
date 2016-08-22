@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import debounce from 'lodash/debounce'
 import dumbComponentMap from './dumb-component-map.native'
 import type {Props} from './dumb-sheet.render'
-import {Box, Text, Input, Button, NativeScrollView} from '../common-adapters'
+import {Box, Text, Input, Button, NativeScrollView} from '../common-adapters/index.native'
 import {globalStyles} from '../styles/style-guide'
 
 class Render extends Component<void, Props, any> {

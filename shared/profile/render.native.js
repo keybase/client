@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import _ from 'lodash'
 import {normal as proofNormal} from '../constants/tracker'
-import {BackButton, Box, ComingSoon, Icon, Text, UserActions, UserBio, UserProofs, NativeScrollView} from '../common-adapters'
+import {BackButton, Box, ComingSoon, Icon, Text, UserActions, UserBio, UserProofs, NativeScrollView} from '../common-adapters/index.native'
 import {usernameText} from '../common-adapters/usernames'
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'

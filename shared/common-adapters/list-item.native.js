@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './list-item'
-import {Box, NativeTouchableHighlight} from './index'
+import {Box, NativeTouchableHighlight} from './index.native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 // TODO Add swipe for action

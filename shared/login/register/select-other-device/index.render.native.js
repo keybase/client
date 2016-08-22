@@ -4,7 +4,7 @@ import React from 'react'
 import type {DeviceType} from '../../../constants/types/more'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Props} from './index.render'
-import {Box, Text, Icon, NativeTouchableHighlight} from '../../../common-adapters'
+import {Box, Text, Icon, NativeTouchableHighlight} from '../../../common-adapters/index.native'
 import {globalStyles, globalColors} from '../../../styles/style-guide'
 
 const Row = ({deviceID, name, type, onSelect}) => {

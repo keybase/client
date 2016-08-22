@@ -2,7 +2,7 @@
 import Platform, {OS} from '../constants/platform'
 import React, {Component} from 'react'
 import type {Props} from './input'
-import {Box, Text, NativeTextInput} from './index'
+import {Box, Text, NativeTextInput} from './index.native'
 import {globalColors, globalStyles} from '../styles/style-guide'
 
 type State = {

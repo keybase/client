@@ -3,7 +3,7 @@ import * as shared from './avatar.shared'
 import React, {Component} from 'react'
 import _ from 'lodash'
 import type {Props} from './avatar'
-import {NativeImage, NativeTouchableOpacity, Box} from './index'
+import {NativeImage, NativeTouchableOpacity, Box} from './index.native'
 import {globalStyles} from '../styles/style-guide'
 import {iconMeta} from './icon.constants'
 

@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './choice-list'
-import {Box, Text, Icon, NativeTouchableHighlight} from './index'
+import {Box, Text, Icon, NativeTouchableHighlight} from './index.native'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 
 type State = {

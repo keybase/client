@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {NativeStyleSheet, Text, NativeTouchableHighlight, Box} from '../../common-adapters'
+import {NativeStyleSheet, Text, NativeTouchableHighlight, Box} from '../../common-adapters/index.native'
 
 // TODO redo this screen with style guide
 const commonStyles = {}

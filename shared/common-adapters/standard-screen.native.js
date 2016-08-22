@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import type {Props} from './standard-screen'
-import {Box, Text, NativeScrollView} from './index'
+import {Box, Text, NativeScrollView} from './index.native'
 import {globalColors, globalMargins, globalStyles} from '../styles/style-guide'
 
 const StandardScreen = (props: Props) => {

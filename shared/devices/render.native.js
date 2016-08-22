@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
-import {Box, Text, Icon, NativeTouchableHighlight} from '../common-adapters'
+import {Box, Text, Icon, NativeTouchableHighlight} from '../common-adapters/index.native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 type RevokedHeaderProps = {children?: Array<any>}

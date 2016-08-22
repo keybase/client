@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import openUrl from '../util/open-url'
 import type {Proof} from '../constants/tracker'
 import type {Props, MissingProof} from './user-proofs'
-import {Box, Icon, Meta, Text, NativeTouchableHighlight} from '../common-adapters'
+import {Box, Icon, Meta, Text, NativeTouchableHighlight} from '../common-adapters/index.native'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 

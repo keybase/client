@@ -1,6 +1,6 @@
 /* @flow */
 import React, {Component} from 'react'
-import {Box, Avatar, Text, NativeTouchableHighlight, TabBar} from '../common-adapters'
+import {Box, Avatar, Text, NativeTouchableHighlight, TabBar} from '../common-adapters/index.native'
 import {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props, FriendshipUserInfo} from './friendships'

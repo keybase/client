@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import type {SmallInputProps} from './small-input'
-import {Box, Text, NativeTextInput} from './index'
+import {Box, Text, NativeTextInput} from './index.native'
 import {globalColors, globalMargins, globalStyles} from '../styles/style-guide'
 
 export default function SmallInput ({autoCapitalize, autoCorrect, errorState, hintText, label, onChange, style, value}: SmallInputProps) {

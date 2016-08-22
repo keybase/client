@@ -3,7 +3,7 @@ import Platform, {OS} from '../constants/platform'
 import React, {Component} from 'react'
 import type {Context} from './terminal'
 import type {Props, Background} from './text'
-import {NativeText} from './index'
+import {NativeText} from './index.native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 const isAndroid = Platform.OS_ANDROID === OS

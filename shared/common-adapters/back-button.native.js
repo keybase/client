@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {Box, NativeTouchableWithoutFeedback, Text, Icon} from './index'
+import {Box, NativeTouchableWithoutFeedback, Text, Icon} from './index.native'
 import {globalStyles} from '../styles/style-guide'
 import type {Props} from './back-button'
 

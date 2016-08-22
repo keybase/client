@@ -2,7 +2,7 @@
 import React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
-import {Box, Text, Icon, Avatar, Meta, NativeImage, NativeTouchableHighlight} from '../common-adapters'
+import {Box, Text, Icon, Avatar, Meta, NativeImage, NativeTouchableHighlight} from '../common-adapters/index.native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {iconMeta} from '../common-adapters/icon.constants'
 

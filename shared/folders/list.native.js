@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import Row from './row'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './list'
-import {Box, Text, Icon, NativeTouchableWithoutFeedback} from '../common-adapters'
+import {Box, Text, Icon, NativeTouchableWithoutFeedback} from '../common-adapters/index.native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 const rowKey = users => users && users.map(u => u.username).join('-')

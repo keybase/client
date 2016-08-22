@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, Icon, Text, NativeTouchableHighlight} from '../../common-adapters'
+import {Avatar, Box, Icon, Text, NativeTouchableHighlight} from '../../common-adapters/index.native'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
 import type {IconType} from '../../common-adapters/icon'

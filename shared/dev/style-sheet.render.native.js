@@ -1,7 +1,7 @@
 // @flow
 import Container from './dev-container.native'
 import React, {Component} from 'react'
-import {Dropdown, Checkbox, Button, Box, Text, Terminal, Input, FormWithCheckbox, TabBar, NativeSwitch, NativeScrollView} from '../common-adapters'
+import {Dropdown, Checkbox, Button, Box, Text, Terminal, Input, FormWithCheckbox, TabBar, NativeSwitch, NativeScrollView} from '../common-adapters/index.native'
 import {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 

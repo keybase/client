@@ -2,7 +2,7 @@
 import Platform, {OS} from '../constants/platform'
 import React, {Component} from 'react'
 import type {Props} from './dropdown'
-import {Box, Icon, Text, NativeTouchableWithoutFeedback, NativePicker, NativeModal} from './index'
+import {Box, Icon, Text, NativeTouchableWithoutFeedback, NativePicker, NativeModal} from './index.native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 /*

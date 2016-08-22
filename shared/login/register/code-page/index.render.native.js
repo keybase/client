@@ -11,7 +11,7 @@ import React, {Component} from 'react'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Mode, DeviceRole} from '../../../constants/login'
 import type {Props} from './index.render'
-import {Box, ProgressIndicator, Text, Icon, NativeStyleSheet, NativeTouchableHighlight} from '../../../common-adapters'
+import {Box, ProgressIndicator, Text, Icon, NativeStyleSheet, NativeTouchableHighlight} from '../../../common-adapters/index.native'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
   codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer,
   codePageModeScanCode, codePageModeShowCode, codePageModeEnterText,

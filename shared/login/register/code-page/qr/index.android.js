@@ -2,7 +2,7 @@
 import BarcodeScanner from 'react-native-barcodescanner'
 import React, {Component} from 'react'
 import type {Props} from './index'
-import {NativeImage, Box} from '../../../../common-adapters'
+import {NativeImage, Box} from '../../../../common-adapters/index.native'
 import {globalStyles} from '../../../../styles/style-guide'
 import {requestPermission} from 'react-native-android-permissions'
 
