@@ -259,6 +259,15 @@ func GetSecretKeysClient(g *libkb.GlobalContext) (cli keybase1.SecretKeysClient,
 	return cli, nil
 }
 
+func GetChatLocalClient(g *libkb.GlobalContext) (cli keybase1.ChatLocalClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.ChatLocalClient{Cli: rcli}
+	return cli, nil
+}
+
 func introduceMyself(g *libkb.GlobalContext, xp rpc.Transporter) error {
 	cli := rpc.NewClient(xp, libkb.ErrorUnwrapper{})
 	ccli := keybase1.ConfigClient{Cli: cli}

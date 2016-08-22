@@ -28,6 +28,7 @@ type GetInboxRemoteArg struct {
 
 type GetThreadRemoteArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	MarkAsRead     bool           `codec:"markAsRead" json:"markAsRead"`
 	Pagination     *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
@@ -37,14 +38,20 @@ type PostRemoteArg struct {
 }
 
 type NewConversationRemoteArg struct {
-	ConversationMetadata ConversationMetadata `codec:"conversationMetadata" json:"conversationMetadata"`
+	IdTriple ConversationIDTriple `codec:"idTriple" json:"idTriple"`
+}
+
+type MarkAsReadArg struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	MsgID          MessageID      `codec:"msgID" json:"msgID"`
 }
 
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, *Pagination) (InboxView, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (ThreadViewBoxed, error)
-	PostRemote(context.Context, PostRemoteArg) error
-	NewConversationRemote(context.Context, ConversationMetadata) error
+	PostRemote(context.Context, PostRemoteArg) (MessageID, error)
+	NewConversationRemote(context.Context, ConversationIDTriple) (ConversationID, error)
+	MarkAsRead(context.Context, MarkAsReadArg) error
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -94,7 +101,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]PostRemoteArg)(nil), args)
 						return
 					}
-					err = i.PostRemote(ctx, (*typedArgs)[0])
+					ret, err = i.PostRemote(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -110,7 +117,23 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]NewConversationRemoteArg)(nil), args)
 						return
 					}
-					err = i.NewConversationRemote(ctx, (*typedArgs)[0].ConversationMetadata)
+					ret, err = i.NewConversationRemote(ctx, (*typedArgs)[0].IdTriple)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"markAsRead": {
+				MakeArg: func() interface{} {
+					ret := make([]MarkAsReadArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]MarkAsReadArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]MarkAsReadArg)(nil), args)
+						return
+					}
+					err = i.MarkAsRead(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -134,13 +157,18 @@ func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemote
 	return
 }
 
-func (c RemoteClient) PostRemote(ctx context.Context, __arg PostRemoteArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.remote.postRemote", []interface{}{__arg}, nil)
+func (c RemoteClient) PostRemote(ctx context.Context, __arg PostRemoteArg) (res MessageID, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.postRemote", []interface{}{__arg}, &res)
 	return
 }
 
-func (c RemoteClient) NewConversationRemote(ctx context.Context, conversationMetadata ConversationMetadata) (err error) {
-	__arg := NewConversationRemoteArg{ConversationMetadata: conversationMetadata}
-	err = c.Cli.Call(ctx, "chat.1.remote.newConversationRemote", []interface{}{__arg}, nil)
+func (c RemoteClient) NewConversationRemote(ctx context.Context, idTriple ConversationIDTriple) (res ConversationID, err error) {
+	__arg := NewConversationRemoteArg{IdTriple: idTriple}
+	err = c.Cli.Call(ctx, "chat.1.remote.newConversationRemote", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) MarkAsRead(ctx context.Context, __arg MarkAsReadArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.markAsRead", []interface{}{__arg}, nil)
 	return
 }

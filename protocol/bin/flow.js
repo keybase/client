@@ -247,6 +247,8 @@ import engine from '../../engine'
 import type {$Exact} from './more'
 export type int = number
 export type int64 = number
+export type uint = number
+export type uint64 = number
 export type long = number
 export type double = number
 export type bytes = any

@@ -4,7 +4,9 @@
 package service
 
 import (
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 
 	"golang.org/x/net/context"
 
@@ -13,6 +15,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"github.com/keybase/gregor/protocol/chat1"
+	"github.com/keybase/gregor/protocol/gregor1"
 )
 
 // chatLocalHandler implements keybase1.chatLocal.
@@ -53,15 +56,162 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetT
 }
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
-func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, trip chat1.ConversationIDTriple) error {
-	md := chat1.ConversationMetadata{
-		IdTriple: trip,
+func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, trip chat1.ConversationIDTriple) (id chat1.ConversationID, err error) {
+	// TODO: change rpc to take a topic name, and follow up with a message with
+	// MessageType=TOPIC_NAME to set the topic name for the conversation
+	id, err = h.remoteClient().NewConversationRemote(ctx, trip)
+	return id, err
+}
+
+// GetOrCreateTextConversationLocal implements
+// keybase.chatLocal.GetOrCreateTextConversationLocal protocol. It returns the
+// most recent conversation's ConversationID for given TLF ID, or creates a new
+// conversation and returns its ID if none exists yet.
+//
+// TODO: after we implement multiple conversations per TLF and topic names,
+// change this to look up by topic name
+func (h *chatLocalHandler) GetOrCreateTextConversationLocal(ctx context.Context, arg keybase1.GetOrCreateTextConversationLocalArg) (id chat1.ConversationID, err error) {
+	res, err := h.boxer.tlf.CryptKeys(ctx, arg.TlfName)
+	if err != nil {
+		return id, err
 	}
-	return h.remoteClient().NewConversationRemote(ctx, md)
+	tlfIDb, err := hex.DecodeString(string(res.TlfID))
+	if err != nil {
+		return id, err
+	}
+	tlfID := chat1.TLFID(tlfIDb)
+
+	ipagination := &chat1.Pagination{}
+getinbox:
+	for {
+		iview, err := h.GetInboxLocal(ctx, ipagination)
+		if err != nil {
+			return id, err
+		}
+		for _, conv := range iview.Conversations {
+			if conv.Metadata.IdTriple.Tlfid.Eq(tlfID) {
+				// TODO: check topic name and topic ID here when we support multiple
+				// topics per TLF
+				return conv.Metadata.ConversationID, nil
+			}
+		}
+
+		if iview.Pagination == nil || iview.Pagination.Last {
+			break getinbox
+		} else {
+			ipagination = iview.Pagination
+		}
+	}
+
+	id, err = h.NewConversationLocal(ctx, chat1.ConversationIDTriple{
+		Tlfid:     tlfID,
+		TopicType: arg.TopicType,
+		// TopicID filled by server?
+	})
+	if err != nil {
+		return id, err
+	}
+
+	return id, nil
+}
+
+// GetMessagesLocal implements keybase.chatLocal.GetMessagesLocal protocol.
+func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.Message, err error) {
+	var messageTypes map[chat1.MessageType]bool
+	if len(arg.MessageTypes) > 0 {
+		messageTypes := make(map[chat1.MessageType]bool)
+		for _, t := range arg.MessageTypes {
+			messageTypes[t] = true
+		}
+	}
+
+	ipagination := &chat1.Pagination{}
+getinbox:
+	for {
+		iview, err := h.GetInboxLocal(ctx, ipagination)
+		if err != nil {
+			return nil, err
+		}
+
+		tpagination := &chat1.Pagination{}
+	getthread:
+		for _, conv := range iview.Conversations {
+			tview, err := h.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
+				ConversationID: conv.Metadata.ConversationID,
+				Pagination:     tpagination,
+			})
+			if err != nil {
+				return nil, err
+			}
+
+			for _, m := range tview.Messages {
+				if len(m.MessagePlaintext.MessageBodies) == 0 {
+					continue
+				}
+
+				if messageTypes != nil && !messageTypes[m.MessagePlaintext.MessageBodies[0].Type] {
+					continue
+				}
+
+				if arg.OnlyNew {
+					// TODO
+				}
+
+				if arg.Before != nil && gregor1.FromTime(m.ServerHeader.Ctime).Before(keybase1.FromTime(*arg.Before)) {
+					continue
+				}
+
+				if arg.After != nil && gregor1.FromTime(m.ServerHeader.Ctime).After(keybase1.FromTime(*arg.After)) {
+					continue
+				}
+
+				messages = append(messages)
+
+				if arg.LimitNumber > 0 && len(messages) >= arg.LimitNumber {
+					return messages, nil
+				}
+			}
+
+			// TODO: determine whether need to continue according to the MessageSelector
+			if tview.Pagination == nil || tview.Pagination.Last {
+				break getthread
+			} else {
+				tpagination = tview.Pagination
+			}
+		}
+
+		// TODO: determine whether need to continue according to the MessageSelector
+		if iview.Pagination == nil || iview.Pagination.Last {
+			break getinbox
+		} else {
+			ipagination = iview.Pagination
+		}
+	}
+
+	return messages, nil
+}
+
+func (h *chatLocalHandler) fillSenderIDsForPostLocal(arg *keybase1.PostLocalArg) error {
+	uid := h.G().Env.GetUID()
+	if uid.IsNil() {
+		return fmt.Errorf("Can't send message without a current UID. Are you logged in?")
+	}
+	did := h.G().Env.GetDeviceID()
+	if did.IsNil() {
+		return fmt.Errorf("Can't send message without a current DeviceID. Are you logged in?")
+	}
+
+	arg.MessagePlaintext.ClientHeader.Sender = gregor1.UID(uid)
+	arg.MessagePlaintext.ClientHeader.SenderDevice = gregor1.DeviceID(did)
+
+	return nil
 }
 
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *chatLocalHandler) PostLocal(ctx context.Context, arg keybase1.PostLocalArg) error {
+	if err := h.fillSenderIDsForPostLocal(&arg); err != nil {
+		return err
+	}
 	// encrypt the message
 	boxed, err := h.boxer.boxMessage(ctx, arg.MessagePlaintext)
 	if err != nil {
@@ -89,7 +239,8 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg keybase1.PostLocal
 		MessageBoxed:   boxed,
 	}
 
-	return h.remoteClient().PostRemote(ctx, rarg)
+	_, err = h.remoteClient().PostRemote(ctx, rarg)
+	return err
 }
 
 // getSecretUI returns a SecretUI, preferring a delegated SecretUI if
