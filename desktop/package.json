@@ -111,5 +111,5 @@
   "optionalDependencies": {
     "fsevents": "1.0.14"
   },
-  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#ce0cee924c3124f82ed75147eae662b595025b41"
+  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#2c016997c78878b73a083ee223a6920e5cde39dd"
 }
