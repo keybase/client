@@ -11,7 +11,7 @@ cache_go_lib=${CACHE_GO_LIB:-}
 
 "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
 
-cd $rn_dir
+cd "$rn_dir"
 
 if [ ! "$cache_npm" = "1" ]; then
   ../packaging/npm_mess.sh
@@ -25,19 +25,20 @@ if [ ! "$cache_go_lib" = "1" ]; then
 fi
 
 # Build and publish the apk
-cd $ios_dir
+cd "$ios_dir"
 
 cleanup() {
-  cd $client_dir
+  cd "$client_dir"
   git co .
-  pkill -P $rn_packager_pid
+  echo "Killing packager $rn_packager_pid"
+  pkill -P $rn_packager_pid || true
 }
 
 trap 'cleanup' ERR
 
 RN_DIR="$rn_dir" "$client_dir/packaging/manage_react_native_packager.sh" &
 rn_packager_pid=$!
-
+echo "Packager running with PID $rn_packager_pid"
 
 fastlane ios beta
 cleanup
