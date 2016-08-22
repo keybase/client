@@ -1,5 +1,5 @@
 // @flow
-
+import {requestIdleCallback} from './idle-callback'
 // Print stats. Useful for perf analysis
 
 export type StatSink = {
@@ -31,16 +31,18 @@ export function printTimingStats (shouldRun: boolean, statSink: StatSink, warnOn
     const stdDev = Math.sqrt(variance)
     const lastTiming = statSink.timings[statSink.timings.length - 1]
 
-    console.groupCollapsed && console.groupCollapsed(`Stats on ${statSink.label}`)
-    console.log('Total Time:', statSink.totalTime)
-    console.log('Total Actions:', statSink.totalActions)
-    console.log('Average Time/Actions:', mean)
-    console.log('Std Dev:', stdDev)
-    console.groupEnd && console.groupEnd()
+    requestIdleCallback(() => {
+      console.groupCollapsed && console.groupCollapsed(`Stats on ${statSink.label}`)
+      console.log('Total Time:', statSink.totalTime)
+      console.log('Total Actions:', statSink.totalActions)
+      console.log('Average Time/Actions:', mean)
+      console.log('Std Dev:', stdDev)
+      console.groupEnd && console.groupEnd()
 
-    if (warnOnSlowPokes && stdDevThreshold && (lastTiming - mean) > (stdDevThreshold * stdDev)) {
-      console.log('Last timing was super slow!!')
-    }
+      if (warnOnSlowPokes && stdDevThreshold && (lastTiming - mean) > (stdDevThreshold * stdDev)) {
+        console.log('Last timing was super slow!!')
+      }
+    })
   }
 }
 

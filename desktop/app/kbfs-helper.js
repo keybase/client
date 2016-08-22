@@ -48,7 +48,7 @@ function openDirectoryDefault (path) {
 }
 
 function openURLWithExecInMacOS (url) {
-  exec('/usr/bin/open', [url], 'darwin', null, false, (err) => {
+  exec('/usr/bin/open', [`"${url}"`], 'darwin', null, false, (err) => {
     if (err) {
       console.log('Error opening URL:', err)
     }
