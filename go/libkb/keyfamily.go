@@ -396,25 +396,46 @@ func (ckf ComputedKeyFamily) FindKeyWithKIDUnsafe(kid keybase1.KID) (GenericKey,
 	return nil, KeyFamilyError{fmt.Sprintf("No key found for %s", kid)}
 }
 
-func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(kid keybase1.KID, t time.Time) (ret *ComputedKeyInfo, err error) {
+func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(kid keybase1.KID, t time.Time, laxEtimeCheck bool) (ret *ComputedKeyInfo, err error) {
 	unixTime := t.Unix()
-	if ki := ckf.cki.Infos[kid]; ki == nil {
+	formatStr := "Mon Jan 2 15:04:05 -0700 MST 2006"
+
+	ki := ckf.cki.Infos[kid]
+	if ki == nil {
 		err = NoKeyError{fmt.Sprintf("The key '%s' wasn't found", kid)}
-	} else if ki.Status != KeyUncancelled {
-		err = KeyRevokedError{fmt.Sprintf("The key '%s' is no longer active", kid)}
-	} else if ki.ETime > 0 && unixTime > ki.ETime {
-		formatStr := "Mon Jan 2 15:04:05 -0700 MST 2006"
-		ckf.G().Log.Warning("Checking status of key %s\n    with respect to time [%s],\n    found it had expired at [%s].",
-			kid, t.Format(formatStr), time.Unix(ki.ETime, 0).Format(formatStr))
-		err = KeyExpiredError{fmt.Sprintf("The key '%s' expired at %s", kid, time.Unix(ki.ETime, 0))}
-	} else {
-		ret = ki
+		return nil, err
 	}
-	return
+
+	if ki.Status != KeyUncancelled {
+		err = KeyRevokedError{fmt.Sprintf("The key '%s' is no longer active", kid)}
+		return nil, err
+	}
+
+	if ki.ETime == 0 || unixTime <= ki.ETime {
+		return ki, nil
+	}
+
+	if laxEtimeCheck && unixTime > ki.CTime {
+		ckf.G().Log.Debug("Lax checking of expiration time for key %s", kid)
+		ckf.G().Log.Debug("  Original Key Etime: %s", time.Unix(ki.ETime, 0).Format(formatStr))
+		ckf.G().Log.Debug("  Using Key Ctime   : %s", time.Unix(ki.CTime, 0).Format(formatStr))
+		ckf.G().Log.Debug("  Versus now        : %s", t.Format(formatStr))
+		return ki, nil
+	}
+
+	ckf.G().Log.Warning("Checking status of key %s\n    with respect to time [%s],\n    found it had expired at [%s].",
+		kid, t.Format(formatStr), time.Unix(ki.ETime, 0).Format(formatStr))
+
+	if laxEtimeCheck {
+		ckf.G().Log.Info("Failure was despite lax expire-time checking")
+	}
+
+	err = KeyExpiredError{fmt.Sprintf("The key '%s' expired at %s", kid, time.Unix(ki.ETime, 0))}
+	return nil, err
 }
 
 func (ckf ComputedKeyFamily) getCkiIfActiveNow(kid keybase1.KID) (ret *ComputedKeyInfo, err error) {
-	return ckf.getCkiIfActiveAtTime(kid, time.Now())
+	return ckf.getCkiIfActiveAtTime(kid, time.Now(), false)
 }
 
 // FindActiveSibkey takes a given KID and finds the corresponding active sibkey
@@ -423,15 +444,15 @@ func (ckf ComputedKeyFamily) getCkiIfActiveNow(kid keybase1.KID) (ret *ComputedK
 // error saying why. Otherwise, it will return the key.  In this case either
 // key is non-nil, or err is non-nil.
 func (ckf ComputedKeyFamily) FindActiveSibkey(kid keybase1.KID) (key GenericKey, cki ComputedKeyInfo, err error) {
-	return ckf.FindActiveSibkeyAtTime(kid, time.Now())
+	return ckf.FindActiveSibkeyAtTime(kid, time.Now(), false)
 }
 
 // As FindActiveSibkey, but for a specific time. Note that going back in time
 // only affects expiration, not revocation. Thus this function is mainly useful
 // for validating the sigchain, when each delegation and revocation is getting
 // replayed in order.
-func (ckf ComputedKeyFamily) FindActiveSibkeyAtTime(kid keybase1.KID, t time.Time) (key GenericKey, cki ComputedKeyInfo, err error) {
-	liveCki, err := ckf.getCkiIfActiveAtTime(kid, t)
+func (ckf ComputedKeyFamily) FindActiveSibkeyAtTime(kid keybase1.KID, t time.Time, laxEtimeCheck bool) (key GenericKey, cki ComputedKeyInfo, err error) {
+	liveCki, err := ckf.getCkiIfActiveAtTime(kid, t, laxEtimeCheck)
 	if liveCki == nil || err != nil {
 		// err gets returned.
 	} else if !liveCki.Sibkey {
@@ -638,7 +659,7 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey) (err error) {
 // GetKeyRoleAtTime returns the KeyRole (sibkey/subkey/none), taking into
 // account whether the key has been cancelled at time t.
 func (ckf ComputedKeyFamily) GetKeyRoleAtTime(kid keybase1.KID, t time.Time) (ret KeyRole) {
-	if info, err := ckf.getCkiIfActiveAtTime(kid, t); err != nil {
+	if info, err := ckf.getCkiIfActiveAtTime(kid, t, false); err != nil {
 		ret = DLGNone
 	} else if info.Sibkey {
 		ret = DLGSibkey

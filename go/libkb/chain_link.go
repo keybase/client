@@ -535,7 +535,7 @@ func (c *ChainLink) PutSigCheckCache(cki *ComputedKeyInfos) {
 	return
 }
 
-func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, err error) {
+func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily, laxEtimeCheck bool) (cached bool, err error) {
 
 	var key GenericKey
 	var sigID keybase1.SigID
@@ -545,7 +545,7 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 		return cached, err
 	}
 
-	if key, _, err = ckf.FindActiveSibkeyAtTime(c.GetKID(), c.GetCTime()); err != nil {
+	if key, _, err = ckf.FindActiveSibkeyAtTime(c.GetKID(), c.GetCTime(), laxEtimeCheck); err != nil {
 		return
 	}
 

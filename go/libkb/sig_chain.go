@@ -436,15 +436,21 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		isFinalLink := (linkIndex == len(links)-1)
 		isLastLinkInSameKeyRun := (isFinalLink || newKID != links[linkIndex+1].GetKID())
 
+		laxEtimeCheck := false
+
 		if pgpcl, ok := tcl.(*PGPUpdateChainLink); ok {
 			if hash := pgpcl.GetPGPFullHash(); hash != "" {
 				sc.G().Log.Debug("| Setting active PGP hash for %s: %s", pgpcl.kid, hash)
 				ckf.SetActivePGPHash(pgpcl.kid, hash)
+				if pgpcl.kid == link.GetKID() {
+					laxEtimeCheck = true
+					sc.G().Log.Debug("| Activated lax expire time check")
+				}
 			}
 		}
 
 		if isModifyingKeys || isFinalLink || isLastLinkInSameKeyRun {
-			_, err = link.VerifySigWithKeyFamily(ckf)
+			_, err = link.VerifySigWithKeyFamily(ckf, laxEtimeCheck)
 			if err != nil {
 				sc.G().Log.Debug("| Failure in VerifySigWithKeyFamily: %s", err)
 				return
