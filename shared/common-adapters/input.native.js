@@ -45,7 +45,7 @@ class Input extends Component<void, Props, State> {
       <Box style={{...containerStyle, ...this.props.style}}>
         {this.state.text.length > 0 && <Text type='BodySmall' style={{...floatingLabelStyle}}>{this.props.floatingLabelText}</Text>}
         <NativeTextInput
-          style={{...inputStyle, ...textInputStyle, ...(IOS && this.props.multiLine && IOSMultilineTextInputStyle || {})}}
+          style={{...inputStyle, ...textInputStyle, ...(IOS && this.props.multiline && IOSMultilineTextInputStyle || {})}}
           keyboardType={this.props.keyboardType}
           ref={component => { this._textInput = component }}
           autoCorrect={!(password || passwordVisible)}
@@ -55,7 +55,7 @@ class Input extends Component<void, Props, State> {
           placeholder={this.props.hintText}
           placeholderColor={globalColors.black_10}
           underlineColorAndroid={this.state.inputFocused ? globalColors.blue : globalColors.black_10}
-          multiline={this.props.multiLine}
+          multiline={this.props.multiline}
           numberOfLines={this.props.rows}
           autoCapitalize={this.props.autoCapitalize || 'none'}
           onFocus={() => this.setState({inputFocused: true})}
