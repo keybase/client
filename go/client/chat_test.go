@@ -92,6 +92,10 @@ func (c *chatLocalMock) PostLocal(ctx context.Context, arg keybase1.PostLocalArg
 	return errors.New("not implemented")
 }
 
+func (h *chatLocalMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
+	return res, errors.New("not implemented")
+}
+
 func (c *chatLocalMock) GetOrCreateTextConversationLocal(ctx context.Context, arg keybase1.GetOrCreateTextConversationLocalArg) (id chat1.ConversationID, err error) {
 	return id, errors.New("not implemented")
 }
