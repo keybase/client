@@ -4,15 +4,16 @@ import engine from '../engine'
 import {notifyCtlSetNotificationsRpc} from '../constants/types/flow-types'
 
 type NotificationChannels = {
-  session?: true,
-  users?: true,
-  kbfs?: true,
-  tracking?: true,
-  favorites?: true,
-  paperkeys?: true,
-  keyfamily?: true,
-  service?: true,
   chat?: true,
+  favorites?: true,
+  kbfs?: true,
+  keyfamily?: true,
+  paperkeys?: true,
+  pgp?: true,
+  service?: true,
+  session?: true,
+  tracking?: true,
+  users?: true,
 }
 
 let channelsSet = {}
@@ -22,16 +23,17 @@ export default function (channels: NotificationChannels): Promise<void> {
     channelsSet = {...channelsSet, ...channels}
 
     const toSend = {
-      session: !!channelsSet.session,
-      users: !!channelsSet.users,
-      kbfs: !!channelsSet.kbfs,
-      tracking: !!channelsSet.tracking,
-      favorites: !!channelsSet.favorites,
-      paperkeys: !!channelsSet.paperkeys,
-      keyfamily: !!channelsSet.keyfamily,
-      service: !!channelsSet.service,
       app: !!channelsSet.app,
       chat: !!channelsSet.chat,
+      favorites: !!channelsSet.favorites,
+      kbfs: !!channelsSet.kbfs,
+      keyfamily: !!channelsSet.keyfamily,
+      paperkeys: !!channelsSet.paperkeys,
+      pgp: !!channelsSet.pgp,
+      service: !!channelsSet.service,
+      session: !!channelsSet.session,
+      tracking: !!channelsSet.tracking,
+      users: !!channelsSet.users,
     }
 
     engine.listenOnConnect('setNotifications', () => {
