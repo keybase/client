@@ -1,24 +1,25 @@
+// @flow
+import {Iterable} from 'immutable'
 import configureStoreNative from './configure-store.native'
-import {applyMiddleware} from 'redux'
-import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
-import rootReducer from '../reducers'
-import Immutable from 'immutable'
-import {enableStoreLogging, enableActionLogging, closureStoreCheck} from '../local-debug'
-import {actionLogger} from './action-logger'
-import {closureCheck} from './closure-check'
-
 import createSagaMiddleware from 'redux-saga'
-import {call} from 'redux-saga/effects'
 import gregorSaga from '../actions/gregor'
 import profileSaga from '../actions/profile'
+import rootReducer from '../reducers'
+import thunkMiddleware from 'redux-thunk'
+import {actionLogger} from './action-logger'
+import {applyMiddleware} from 'redux'
+import {call} from 'redux-saga/effects'
+import {closureCheck} from './closure-check'
+import {enableStoreLogging, enableActionLogging, closureStoreCheck} from '../local-debug'
+import {requestIdleCallback} from '../util/idle-callback'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
   var newState = {}
 
   Object.keys(state).forEach(i => {
-    if (Immutable.Iterable.isIterable(state[i])) {
+    if (Iterable.isIterable(state[i])) {
       newState[i] = state[i].toJS()
     } else {
       newState[i] = state[i]
@@ -28,11 +29,24 @@ const objToJS = state => {
   return newState
 }
 
+const logger = {}
+
+for (const method in console) {
+  if (typeof console[method] === 'function') {
+    logger[method] = (...args) => {
+      requestIdleCallback(() => {
+        console[method](...args)
+      })
+    }
+  }
+}
+
 const loggerMiddleware = enableStoreLogging ? createLogger({
   duration: true,
   stateTransformer: objToJS,
   actionTransformer: objToJS,
   collapsed: true,
+  logger,
 }) : null
 
 function * mainSaga (getState) {
@@ -57,7 +71,7 @@ if (closureStoreCheck) {
 
 const createStoreWithMiddleware = applyMiddleware.apply(null, middlewares)
 
-export default function configureStore (initialState) {
+export default function configureStore (initialState: any) {
   const s = configureStoreNative(createStoreWithMiddleware)(rootReducer, initialState)
   sagaMiddleware.run(mainSaga)
   return s

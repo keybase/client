@@ -92,7 +92,8 @@ export default function (state: State = initialState, action: UnlockFolderAction
       if (state.started && action.payload) {
         const devices = action.payload.devices.map(({name, type, deviceID}) => ({
           type: toDeviceType(type),
-          name, deviceID,
+          name,
+          deviceID,
         }))
 
         return {

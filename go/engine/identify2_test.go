@@ -77,10 +77,10 @@ func (i *Identify2WithUIDTester) DisplayName(n string) string { return n }
 func (i *Identify2WithUIDTester) GetPrompt() string           { return "" }
 func (i *Identify2WithUIDTester) GetProofType() string        { return "" }
 func (i *Identify2WithUIDTester) GetTypeName() string         { return "" }
-func (i *Identify2WithUIDTester) CheckHint(_ libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+func (i *Identify2WithUIDTester) CheckHint(_ libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	return nil
 }
-func (i *Identify2WithUIDTester) NormalizeRemoteName(_ libkb.GlobalContextLite, name string) (string, error) {
+func (i *Identify2WithUIDTester) NormalizeRemoteName(_ libkb.ProofContext, name string) (string, error) {
 	return name, nil
 }
 func (i *Identify2WithUIDTester) NormalizeUsername(name string) (string, error)    { return name, nil }
@@ -95,7 +95,7 @@ func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) 
 }
 func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
 
-func (i *Identify2WithUIDTester) CheckStatus(_ libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+func (i *Identify2WithUIDTester) CheckStatus(_ libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	if i.checkStatusHook != nil {
 		return i.checkStatusHook(h)
 	}

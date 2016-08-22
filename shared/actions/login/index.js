@@ -112,10 +112,10 @@ export function login (): AsyncAction {
 
               if (!(error.raw && error.raw.code === InputCancelError.code)) {
                 dispatch(routeAppend({
-                  parseRoute: {componentAtTop: {component: Error, props: {
-                    error,
-                    onBack: () => dispatch(cancelLogin()),
-                  }}},
+                  parseRoute: {
+                    componentAtTop: {
+                      component: Error,
+                      props: {error, onBack: () => dispatch(cancelLogin())}}},
                 }))
               }
             } else {

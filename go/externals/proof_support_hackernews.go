@@ -47,7 +47,7 @@ func NewHackerNewsChecker(p libkb.RemoteProofChainLink) (*HackerNewsChecker, lib
 	return &HackerNewsChecker{p}, nil
 }
 
-func (h *HackerNewsChecker) CheckHint(g libkb.GlobalContextLite, hint libkb.SigHint) libkb.ProofError {
+func (h *HackerNewsChecker) CheckHint(ctx libkb.ProofContext, hint libkb.SigHint) libkb.ProofError {
 	wanted := h.APIURL()
 	if libkb.Cicmp(wanted, hint.GetAPIURL()) {
 		return nil
@@ -56,8 +56,8 @@ func (h *HackerNewsChecker) CheckHint(g libkb.GlobalContextLite, hint libkb.SigH
 	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL, "Bad hint from server; URL should start with '%s'", wanted)
 }
 
-func (h *HackerNewsChecker) CheckStatus(g libkb.GlobalContextLite, hint libkb.SigHint) libkb.ProofError {
-	res, err := g.GetExternalAPI().GetText(libkb.NewAPIArg(hint.GetAPIURL()))
+func (h *HackerNewsChecker) CheckStatus(ctx libkb.ProofContext, hint libkb.SigHint) libkb.ProofError {
+	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArg(hint.GetAPIURL()))
 
 	if err != nil {
 		return libkb.XapiError(err, hint.GetAPIURL())
@@ -73,8 +73,8 @@ func (h *HackerNewsChecker) CheckStatus(g libkb.GlobalContextLite, hint libkb.Si
 	}
 
 	wanted := sigID.ToMediumID()
-	g.GetLog().Debug("| HackerNews profile: %s", res.Body)
-	g.GetLog().Debug("| Wanted signature hash: %s", wanted)
+	ctx.GetLog().Debug("| HackerNews profile: %s", res.Body)
+	ctx.GetLog().Debug("| Wanted signature hash: %s", wanted)
 	if !strings.Contains(res.Body, wanted) {
 		ret = libkb.NewProofError(keybase1.ProofStatus_TEXT_NOT_FOUND,
 			"Posted text does not include signature '%s'", wanted)
@@ -83,9 +83,9 @@ func (h *HackerNewsChecker) CheckStatus(g libkb.GlobalContextLite, hint libkb.Si
 	return ret
 }
 
-func CheckKarma(g libkb.GlobalContextLite, un string) (int, error) {
+func CheckKarma(ctx libkb.ProofContext, un string) (int, error) {
 	u := KarmaURL(un)
-	res, err := g.GetExternalAPI().Get(libkb.NewAPIArg(u))
+	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArg(u))
 	if err != nil {
 		return 0, libkb.XapiError(err, u)
 	}
@@ -109,7 +109,7 @@ func (t HackerNewsServiceType) NormalizeUsername(s string) (string, error) {
 	return s, nil
 }
 
-func (t HackerNewsServiceType) NormalizeRemoteName(g libkb.GlobalContextLite, s string) (string, error) {
+func (t HackerNewsServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
@@ -147,14 +147,14 @@ func (t HackerNewsServiceType) CheckProofText(text string, id keybase1.SigID, si
 	return t.BaseCheckProofForURL(text, id)
 }
 
-func (t HackerNewsServiceType) PreProofCheck(g libkb.GlobalContextLite, un string) (markup *libkb.Markup, err error) {
-	if _, e := CheckKarma(g, un); e != nil {
+func (t HackerNewsServiceType) PreProofCheck(ctx libkb.ProofContext, un string) (markup *libkb.Markup, err error) {
+	if _, e := CheckKarma(ctx, un); e != nil {
 		markup = libkb.FmtMarkup(`
 <p><strong>ATTENTION</strong>: HackerNews only publishes users to their API who
  have <strong>karma &gt; 1</strong>.</p>
 <p>Your account <strong>` + un + `</strong> doesn't qualify or doesn't exist.</p>`)
 		if e != nil {
-			g.GetLog().Debug("Error from HN: %s", e)
+			ctx.GetLog().Debug("Error from HN: %s", e)
 		}
 		err = libkb.NewInsufficientKarmaError(un)
 	}

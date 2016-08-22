@@ -93,8 +93,6 @@ func (g *GlobalContext) GetAPI() API                 { return g.API }
 func (g *GlobalContext) GetExternalAPI() ExternalAPI { return g.XAPI }
 func (g *GlobalContext) GetServerURI() string        { return g.Env.GetServerURI() }
 
-var _ GlobalContextLite = (*GlobalContext)(nil)
-
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
 	return &GlobalContext{
