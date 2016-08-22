@@ -166,9 +166,19 @@ func (j *JournalServer) Enable(ctx context.Context, tlfID TlfID) (err error) {
 		return err
 	}
 
+	_, uid, err := j.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return err
+	}
+
+	key, err := j.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	if err != nil {
+		return err
+	}
+
 	bundle.blockJournal = blockJournal
 	mdJournal, err := makeMDJournal(
-		j.config.Codec(), j.config.Crypto(), tlfDir, log)
+		uid, key, j.config.Codec(), j.config.Crypto(), tlfDir, log)
 	if err != nil {
 		return err
 	}
@@ -234,7 +244,7 @@ func (j *JournalServer) Flush(ctx context.Context, tlfID TlfID) (err error) {
 			bundle.lock.Lock()
 			defer bundle.lock.Unlock()
 			return bundle.mdJournal.flushOne(
-				ctx, j.config.Crypto(), uid, key,
+				ctx, uid, key, j.config.Crypto(),
 				j.config.MDServer())
 		}()
 		if err != nil {

@@ -52,10 +52,15 @@ func (j journalMDOps) getHeadFromJournal(
 		return ImmutableRootMetadata{}, err
 	}
 
+	key, err := j.jServer.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+
 	bundle.lock.RLock()
 	defer bundle.lock.RUnlock()
 
-	head, err := bundle.mdJournal.getHead(uid)
+	head, err := bundle.mdJournal.getHead(uid, key)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -140,10 +145,15 @@ func (j journalMDOps) getRangeFromJournal(
 		return nil, err
 	}
 
+	key, err := j.jServer.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	bundle.lock.RLock()
 	defer bundle.lock.RUnlock()
 
-	ibrmds, err := bundle.mdJournal.getRange(uid, start, stop)
+	ibrmds, err := bundle.mdJournal.getRange(uid, key, start, stop)
 	if err != nil {
 		return nil, err
 	}
@@ -350,9 +360,10 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 
 		bundle.lock.Lock()
 		defer bundle.lock.Unlock()
-		return bundle.mdJournal.put(ctx, j.jServer.config.Crypto(),
-			j.jServer.config.KeyManager(), j.jServer.config.BlockSplitter(),
-			rmd, uid, key)
+		return bundle.mdJournal.put(ctx, uid, key,
+			j.jServer.config.Crypto(),
+			j.jServer.config.KeyManager(),
+			j.jServer.config.BlockSplitter(), rmd)
 	}
 
 	return j.MDOps.Put(ctx, rmd)
@@ -396,9 +407,10 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 
 		bundle.lock.Lock()
 		defer bundle.lock.Unlock()
-		return bundle.mdJournal.put(ctx, j.jServer.config.Crypto(),
-			j.jServer.config.KeyManager(), j.jServer.config.BlockSplitter(),
-			rmd, uid, key)
+		return bundle.mdJournal.put(ctx, uid, key,
+			j.jServer.config.Crypto(),
+			j.jServer.config.KeyManager(),
+			j.jServer.config.BlockSplitter(), rmd)
 	}
 
 	return j.MDOps.PutUnmerged(ctx, rmd)
@@ -413,11 +425,16 @@ func (j journalMDOps) PruneBranch(
 			return err
 		}
 
+		key, err := j.jServer.config.KBPKI().GetCurrentVerifyingKey(ctx)
+		if err != nil {
+			return err
+		}
+
 		// Prune the journal, too.
 		err = func() error {
 			bundle.lock.Lock()
 			defer bundle.lock.Unlock()
-			return bundle.mdJournal.clear(ctx, uid, bid)
+			return bundle.mdJournal.clear(ctx, uid, key, bid)
 		}()
 		if err != nil {
 			return err

@@ -57,7 +57,7 @@ func setupMDJournalTest(t *testing.T) (
 	require.NoError(t, err)
 
 	log := logger.NewTestLogger(t)
-	j, err = makeMDJournal(codec, crypto, tempdir, log)
+	j, err = makeMDJournal(uid, verifyingKey, codec, crypto, tempdir, log)
 	require.NoError(t, err)
 
 	bsplit = &BlockSplitterSimple{64 * 1024, 8 * 1024}
@@ -84,13 +84,13 @@ func makeMDForTest(t *testing.T, id TlfID, h BareTlfHandle,
 }
 
 func TestMDJournalBasic(t *testing.T) {
-	codec, crypto, uid, id, h, signer, verifyingKey, ekg, bsplit, tempdir, j :=
-		setupMDJournalTest(t)
+	codec, crypto, uid, id, h, signer, verifyingKey, ekg,
+		bsplit, tempdir, j := setupMDJournalTest(t)
 	defer teardownMDJournalTest(t, tempdir)
 
 	// Should start off as empty.
 
-	head, err := j.getHead(uid)
+	head, err := j.getHead(uid, verifyingKey)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableBareRootMetadata{}, head)
 	require.Equal(t, 0, getTlfJournalLength(t, j))
@@ -107,7 +107,8 @@ func TestMDJournalBasic(t *testing.T) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		mdID, err := j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		require.NoError(t, err)
 		prevRoot = mdID
 	}
@@ -117,7 +118,7 @@ func TestMDJournalBasic(t *testing.T) {
 	// Should now be non-empty.
 
 	ibrmds, err := j.getRange(
-		uid, 1, firstRevision+MetadataRevision(2*mdCount))
+		uid, verifyingKey, 1, firstRevision+MetadataRevision(2*mdCount))
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
@@ -138,7 +139,7 @@ func TestMDJournalBasic(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	head, err = j.getHead(uid)
+	head, err = j.getHead(uid, verifyingKey)
 	require.NoError(t, err)
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 }
@@ -160,7 +161,8 @@ func TestMDJournalReplaceHead(t *testing.T) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		mdID, err := j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		md.SetDiskUsage(500)
 		require.NoError(t, err)
 		prevRoot = mdID
@@ -171,10 +173,11 @@ func TestMDJournalReplaceHead(t *testing.T) {
 	revision := firstRevision + MetadataRevision(mdCount) - 1
 	md := makeMDForTest(t, id, h, revision, uid, prevRoot)
 	md.SetDiskUsage(501)
-	_, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+	_, err := j.put(
+		ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 
-	head, err := j.getHead(uid)
+	head, err := j.getHead(uid, verifyingKey)
 	require.NoError(t, err)
 	require.Equal(t, md.Revision(), head.RevisionNumber())
 	require.Equal(t, md.DiskUsage(), head.DiskUsage())
@@ -195,16 +198,17 @@ func TestMDJournalBranchConversion(t *testing.T) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		mdID, err := j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		require.NoError(t, err)
 		prevRoot = mdID
 	}
 
-	err := j.convertToBranch(ctx, signer, uid, verifyingKey)
+	err := j.convertToBranch(ctx, uid, verifyingKey, signer)
 	require.NoError(t, err)
 
 	ibrmds, err := j.getRange(
-		uid, 1, firstRevision+MetadataRevision(2*mdCount))
+		uid, verifyingKey, 1, firstRevision+MetadataRevision(2*mdCount))
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
@@ -233,7 +237,7 @@ func TestMDJournalBranchConversion(t *testing.T) {
 
 	require.Equal(t, 10, getTlfJournalLength(t, j))
 
-	head, err := j.getHead(uid)
+	head, err := j.getHead(uid, verifyingKey)
 	require.NoError(t, err)
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 }
@@ -267,21 +271,22 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		mdID, err := j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		require.NoError(t, err)
 		prevRoot = mdID
 	}
 
 	limitedSigner := limitedCryptoSigner{signer, 5}
 
-	err := j.convertToBranch(ctx, &limitedSigner, uid, verifyingKey)
+	err := j.convertToBranch(ctx, uid, verifyingKey, &limitedSigner)
 	require.NotNil(t, err)
 
 	// All entries should remain unchanged, since the conversion
 	// encountered an error.
 
 	ibrmds, err := j.getRange(
-		uid, 1, firstRevision+MetadataRevision(2*mdCount))
+		uid, verifyingKey, 1, firstRevision+MetadataRevision(2*mdCount))
 	require.NoError(t, err)
 	require.Equal(t, mdCount, len(ibrmds))
 
@@ -307,7 +312,7 @@ func TestMDJournalBranchConversionAtomic(t *testing.T) {
 
 	require.Equal(t, 10, getTlfJournalLength(t, j))
 
-	head, err := j.getHead(uid)
+	head, err := j.getHead(uid, verifyingKey)
 	require.NoError(t, err)
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 }
@@ -360,7 +365,8 @@ func TestMDJournalFlushBasic(t *testing.T) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		mdID, err := j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		require.NoError(t, err)
 		prevRoot = mdID
 	}
@@ -369,11 +375,11 @@ func TestMDJournalFlushBasic(t *testing.T) {
 	var mdserver shimMDServer
 	for i := 0; i < mdCount; i++ {
 		flushed, err := j.flushOne(
-			ctx, signer, uid, verifyingKey, &mdserver)
+			ctx, uid, verifyingKey, signer, &mdserver)
 		require.NoError(t, err)
 		require.True(t, flushed)
 	}
-	flushed, err := j.flushOne(ctx, signer, uid, verifyingKey, &mdserver)
+	flushed, err := j.flushOne(ctx, uid, verifyingKey, signer, &mdserver)
 	require.NoError(t, err)
 	require.False(t, flushed)
 	require.Equal(t, 0, getTlfJournalLength(t, j))
@@ -417,7 +423,8 @@ func TestMDJournalFlushConflict(t *testing.T) {
 	for i := 0; i < mdCount/2; i++ {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		mdID, err := j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		require.NoError(t, err)
 		prevRoot = mdID
 	}
@@ -428,17 +435,19 @@ func TestMDJournalFlushConflict(t *testing.T) {
 	// Simulate a flush with a conflict error halfway through.
 	{
 		flushed, err := j.flushOne(
-			ctx, signer, uid, verifyingKey, &mdserver)
+			ctx, uid, verifyingKey, signer, &mdserver)
 		require.NoError(t, err)
 		require.True(t, flushed)
 
 		revision := firstRevision + MetadataRevision(mdCount/2)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-		_, err = j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		_, err = j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		require.IsType(t, MDJournalConflictError{}, err)
 
 		md.SetUnmerged()
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		mdID, err := j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		require.NoError(t, err)
 		prevRoot = mdID
 	}
@@ -447,7 +456,8 @@ func TestMDJournalFlushConflict(t *testing.T) {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
 		md.SetUnmerged()
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		mdID, err := j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		require.NoError(t, err)
 		prevRoot = mdID
 	}
@@ -455,11 +465,11 @@ func TestMDJournalFlushConflict(t *testing.T) {
 	// Flush remaining entries.
 	for i := 0; i < mdCount-1; i++ {
 		flushed, err := j.flushOne(
-			ctx, signer, uid, verifyingKey, &mdserver)
+			ctx, uid, verifyingKey, signer, &mdserver)
 		require.NoError(t, err)
 		require.True(t, flushed)
 	}
-	flushed, err := j.flushOne(ctx, signer, uid, verifyingKey, &mdserver)
+	flushed, err := j.flushOne(ctx, uid, verifyingKey, signer, &mdserver)
 	require.NoError(t, err)
 	require.False(t, flushed)
 	require.Equal(t, 0, getTlfJournalLength(t, j))
@@ -512,7 +522,8 @@ func TestMDJournalPreservesBranchID(t *testing.T) {
 	for i := 0; i < mdCount-1; i++ {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		mdID, err := j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		require.NoError(t, err)
 		prevRoot = mdID
 	}
@@ -524,12 +535,12 @@ func TestMDJournalPreservesBranchID(t *testing.T) {
 	// conflict error.
 	for i := 0; i < mdCount-1; i++ {
 		flushed, err := j.flushOne(
-			ctx, signer, uid, verifyingKey, &mdserver)
+			ctx, uid, verifyingKey, signer, &mdserver)
 		require.NoError(t, err)
 		require.True(t, flushed)
 	}
 
-	flushed, err := j.flushOne(ctx, signer, uid, verifyingKey, &mdserver)
+	flushed, err := j.flushOne(ctx, uid, verifyingKey, signer, &mdserver)
 	require.NoError(t, err)
 	require.False(t, flushed)
 	require.Equal(t, 0, getTlfJournalLength(t, j))
@@ -538,21 +549,23 @@ func TestMDJournalPreservesBranchID(t *testing.T) {
 	{
 		revision := firstRevision + MetadataRevision(mdCount-1)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		mdID, err := j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		require.IsType(t, MDJournalConflictError{}, err)
 
 		md.SetUnmerged()
-		mdID, err = j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		mdID, err = j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		require.NoError(t, err)
 		prevRoot = mdID
 
 		flushed, err := j.flushOne(
-			ctx, signer, uid, verifyingKey, &mdserver)
+			ctx, uid, verifyingKey, signer, &mdserver)
 		require.NoError(t, err)
 		require.True(t, flushed)
 
 		flushed, err = j.flushOne(
-			ctx, signer, uid, verifyingKey, &mdserver)
+			ctx, uid, verifyingKey, signer, &mdserver)
 		require.NoError(t, err)
 		require.False(t, flushed)
 		require.Equal(t, 0, getTlfJournalLength(t, j))
@@ -601,7 +614,8 @@ func TestMDJournalDoubleFlush(t *testing.T) {
 	prevRoot := fakeMdID(1)
 	revision := MetadataRevision(10)
 	md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-	mdID, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+	mdID, err := j.put(
+		ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 	require.NoError(t, err)
 	prevRoot = mdID
 
@@ -610,7 +624,7 @@ func TestMDJournalDoubleFlush(t *testing.T) {
 	// Simulate a flush that is cancelled but succeeds anyway.
 	ctx2, cancel := context.WithCancel(ctx)
 	cancel()
-	flushed, err := j.flushOne(ctx2, signer, uid, verifyingKey, &mdserver)
+	flushed, err := j.flushOne(ctx2, uid, verifyingKey, signer, &mdserver)
 	require.Equal(t, ctx2.Err(), err)
 	require.False(t, flushed)
 	require.Equal(t, 1, len(mdserver.rmdses))
@@ -619,7 +633,7 @@ func TestMDJournalDoubleFlush(t *testing.T) {
 	// from the successful put.
 	mdserver.nextErr = MDServerErrorConflictRevision{}
 	mdserver.nextGetRange = mdserver.rmdses
-	flushed, err = j.flushOne(ctx, signer, uid, verifyingKey, &mdserver)
+	flushed, err = j.flushOne(ctx, uid, verifyingKey, signer, &mdserver)
 	require.NoError(t, err)
 	require.True(t, flushed)
 	require.Equal(t, Merged, mdserver.rmdses[0].MD.MergedStatus())
@@ -640,49 +654,50 @@ func TestMDJournalClear(t *testing.T) {
 	for i := 0; i < mdCount; i++ {
 		revision := firstRevision + MetadataRevision(i)
 		md := makeMDForTest(t, id, h, revision, uid, prevRoot)
-		mdID, err := j.put(ctx, signer, ekg, bsplit, md, uid, verifyingKey)
+		mdID, err := j.put(
+			ctx, uid, verifyingKey, signer, ekg, bsplit, md)
 		require.NoError(t, err)
 		prevRoot = mdID
 	}
 
-	err := j.convertToBranch(ctx, signer, uid, verifyingKey)
+	err := j.convertToBranch(ctx, uid, verifyingKey, signer)
 	require.NoError(t, err)
 	require.NotEqual(t, NullBranchID, j.branchID)
 
 	bid := j.branchID
 
 	// Clearing the master branch shouldn't work.
-	err = j.clear(ctx, uid, NullBranchID)
+	err = j.clear(ctx, uid, verifyingKey, NullBranchID)
 	require.Error(t, err)
 
 	// Clearing a different branch ID should do nothing.
 
-	err = j.clear(ctx, uid, FakeBranchID(1))
+	err = j.clear(ctx, uid, verifyingKey, FakeBranchID(1))
 	require.NoError(t, err)
 	require.Equal(t, bid, j.branchID)
 
-	head, err := j.getHead(uid)
+	head, err := j.getHead(uid, verifyingKey)
 	require.NoError(t, err)
 	require.NotEqual(t, ImmutableBareRootMetadata{}, head)
 
 	// Clearing the correct branch ID should clear the entire
 	// journal, and reset the branch ID.
 
-	err = j.clear(ctx, uid, bid)
+	err = j.clear(ctx, uid, verifyingKey, bid)
 	require.NoError(t, err)
 	require.Equal(t, NullBranchID, j.branchID)
 
-	head, err = j.getHead(uid)
+	head, err = j.getHead(uid, verifyingKey)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableBareRootMetadata{}, head)
 
 	// Clearing twice should do nothing.
 
-	err = j.clear(ctx, uid, bid)
+	err = j.clear(ctx, uid, verifyingKey, bid)
 	require.NoError(t, err)
 	require.Equal(t, NullBranchID, j.branchID)
 
-	head, err = j.getHead(uid)
+	head, err = j.getHead(uid, verifyingKey)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableBareRootMetadata{}, head)
 }
