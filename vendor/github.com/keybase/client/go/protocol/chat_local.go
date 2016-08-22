@@ -54,6 +54,14 @@ type ThreadView struct {
 	Pagination *chat1.Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
+type MessageSelector struct {
+	MessageTypes []chat1.MessageType `codec:"MessageTypes" json:"MessageTypes"`
+	After        *Time               `codec:"After,omitempty" json:"After,omitempty"`
+	Before       *Time               `codec:"Before,omitempty" json:"Before,omitempty"`
+	OnlyNew      bool                `codec:"onlyNew" json:"onlyNew"`
+	LimitNumber  int                 `codec:"limitNumber" json:"limitNumber"`
+}
+
 type GetInboxLocalArg struct {
 	Pagination *chat1.Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
@@ -72,11 +80,23 @@ type NewConversationLocalArg struct {
 	ConversationTriple chat1.ConversationIDTriple `codec:"conversationTriple" json:"conversationTriple"`
 }
 
+type GetOrCreateTextConversationLocalArg struct {
+	TlfName   string          `codec:"tlfName" json:"tlfName"`
+	TopicName string          `codec:"topicName" json:"topicName"`
+	TopicType chat1.TopicType `codec:"topicType" json:"topicType"`
+}
+
+type GetMessagesLocalArg struct {
+	Selector MessageSelector `codec:"selector" json:"selector"`
+}
+
 type ChatLocalInterface interface {
 	GetInboxLocal(context.Context, *chat1.Pagination) (chat1.InboxView, error)
 	GetThreadLocal(context.Context, GetThreadLocalArg) (ThreadView, error)
 	PostLocal(context.Context, PostLocalArg) error
-	NewConversationLocal(context.Context, chat1.ConversationIDTriple) error
+	NewConversationLocal(context.Context, chat1.ConversationIDTriple) (chat1.ConversationID, error)
+	GetOrCreateTextConversationLocal(context.Context, GetOrCreateTextConversationLocalArg) (chat1.ConversationID, error)
+	GetMessagesLocal(context.Context, MessageSelector) ([]Message, error)
 }
 
 func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
@@ -142,7 +162,39 @@ func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]NewConversationLocalArg)(nil), args)
 						return
 					}
-					err = i.NewConversationLocal(ctx, (*typedArgs)[0].ConversationTriple)
+					ret, err = i.NewConversationLocal(ctx, (*typedArgs)[0].ConversationTriple)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getOrCreateTextConversationLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetOrCreateTextConversationLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetOrCreateTextConversationLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetOrCreateTextConversationLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetOrCreateTextConversationLocal(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getMessagesLocal": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMessagesLocalArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMessagesLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMessagesLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMessagesLocal(ctx, (*typedArgs)[0].Selector)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -171,8 +223,19 @@ func (c ChatLocalClient) PostLocal(ctx context.Context, __arg PostLocalArg) (err
 	return
 }
 
-func (c ChatLocalClient) NewConversationLocal(ctx context.Context, conversationTriple chat1.ConversationIDTriple) (err error) {
+func (c ChatLocalClient) NewConversationLocal(ctx context.Context, conversationTriple chat1.ConversationIDTriple) (res chat1.ConversationID, err error) {
 	__arg := NewConversationLocalArg{ConversationTriple: conversationTriple}
-	err = c.Cli.Call(ctx, "keybase.1.chatLocal.newConversationLocal", []interface{}{__arg}, nil)
+	err = c.Cli.Call(ctx, "keybase.1.chatLocal.newConversationLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ChatLocalClient) GetOrCreateTextConversationLocal(ctx context.Context, __arg GetOrCreateTextConversationLocalArg) (res chat1.ConversationID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getOrCreateTextConversationLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ChatLocalClient) GetMessagesLocal(ctx context.Context, selector MessageSelector) (res []Message, err error) {
+	__arg := GetMessagesLocalArg{Selector: selector}
+	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getMessagesLocal", []interface{}{__arg}, &res)
 	return
 }

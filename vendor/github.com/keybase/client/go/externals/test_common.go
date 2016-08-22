@@ -1,8 +1,14 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
+// +build !production
+
 package externals
 
 import (
-	"github.com/keybase/client/go/libkb"
 	"testing"
+
+	"github.com/keybase/client/go/libkb"
 )
 
 func SetupTest(tb testing.TB, name string, depth int) (tc libkb.TestContext) {

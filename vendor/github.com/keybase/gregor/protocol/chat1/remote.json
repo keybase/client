@@ -76,6 +76,10 @@
           "type": "ConversationID"
         },
         {
+          "name": "markAsRead",
+          "type": "boolean"
+        },
+        {
           "name": "pagination",
           "type": [
             null,
@@ -96,13 +100,26 @@
           "type": "MessageBoxed"
         }
       ],
-      "response": null
+      "response": "MessageID"
     },
     "newConversationRemote": {
       "request": [
         {
-          "name": "conversationMetadata",
-          "type": "ConversationMetadata"
+          "name": "idTriple",
+          "type": "ConversationIDTriple"
+        }
+      ],
+      "response": "ConversationID"
+    },
+    "markAsRead": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
         }
       ],
       "response": null

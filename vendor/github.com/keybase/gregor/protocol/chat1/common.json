@@ -18,7 +18,7 @@
       "type": "record",
       "name": "MessageID",
       "fields": [],
-      "typedef": "bytes"
+      "typedef": "uint"
     },
     {
       "type": "record",
@@ -36,17 +36,11 @@
       "type": "record",
       "name": "ConversationID",
       "fields": [],
-      "typedef": "long"
+      "typedef": "uint64"
     },
     {
       "type": "record",
       "name": "TLFID",
-      "fields": [],
-      "typedef": "bytes"
-    },
-    {
-      "type": "record",
-      "name": "DeviceID",
       "fields": [],
       "typedef": "bytes"
     },
@@ -63,20 +57,32 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "TopicType",
+      "symbols": [
+        "NONE_0",
+        "CHAT_1"
+      ]
+    },
+    {
       "type": "record",
       "name": "Pagination",
       "fields": [
         {
           "type": "bytes",
-          "name": "resourceID"
+          "name": "next"
         },
         {
-          "type": "int",
-          "name": "last"
+          "type": "bytes",
+          "name": "previous"
         },
         {
           "type": "int",
           "name": "num"
+        },
+        {
+          "type": "boolean",
+          "name": "last"
         }
       ]
     },
@@ -89,7 +95,7 @@
           "name": "tlfid"
         },
         {
-          "type": "int",
+          "type": "TopicType",
           "name": "topicType"
         },
         {
@@ -121,6 +127,14 @@
           "name": "metadata"
         },
         {
+          "type": "gregor1.Time",
+          "name": "mtime"
+        },
+        {
+          "type": "MessageID",
+          "name": "readMsgid"
+        },
+        {
           "type": {
             "type": "array",
             "items": "MessageServerHeader"
@@ -146,7 +160,7 @@
           "name": "sender"
         },
         {
-          "type": "DeviceID",
+          "type": "gregor1.DeviceID",
           "name": "senderDevice"
         },
         {
@@ -182,6 +196,10 @@
           "name": "conv"
         },
         {
+          "type": "string",
+          "name": "tlfName"
+        },
+        {
           "type": "MessageType",
           "name": "messageType"
         },
@@ -197,7 +215,7 @@
           "name": "sender"
         },
         {
-          "type": "DeviceID",
+          "type": "gregor1.DeviceID",
           "name": "senderDevice"
         }
       ]
