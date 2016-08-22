@@ -8,8 +8,14 @@ import type {Proof} from '../constants/tracker'
 import type {DumbComponentMap} from '../constants/types/more'
 
 const proofMaker = (type, id = 'id-') => ({
-  name: type + 'user', type, id: String(id), state: normal,
-  meta: metaNone, humanUrl: '', profileUrl: '', isTracked: false,
+  name: type + 'user',
+  type,
+  id: String(id),
+  state: normal,
+  meta: metaNone,
+  humanUrl: '',
+  profileUrl: '',
+  isTracked: false,
   mTime: 1469665223000,
 })
 
@@ -19,7 +25,8 @@ const proofWeb: Proof = {...proofMaker('http'),
 }
 const proofWeb1: Proof = {...proofMaker('http', '1'),
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmor.com',
-  meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
+  meta: metaNone,
+  humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
 }
 const proofWeb2: Proof = {...proofMaker('http', '2'),
   name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmo.com',

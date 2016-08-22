@@ -37,38 +37,29 @@ class Foo extends Component {
 class DevMenu extends Component {
   render () {
     const menuItems = [
-      {name: 'Login', onClick: () => {
-        this.props.switchTab(loginTab)
-      }},
-      {name: 'Register', onClick: () => {
-        this.props.switchTab(loginTab)
-        this.props.routeAppend(['register'])
-      }},
-      {name: 'reset', onClick: () => {
-        engine.reset()
-        console.log('Engine reset!')
-      }},
-      {name: 'Sign Out', onClick: () => {
-        this.props.logout()
-      }},
-      {name: 'Passphrase entry', onClick: () => {
-        this.props.routeAppend('pinentry')
-      }},
-      {name: 'Developer', hasChildren: true, onClick: () => {
-        this.props.routeAppend('developer')
-      }},
-      {name: 'Tracker Listener', hasChildren: true, onClick: () => {
-        this.props.showTrackerListener('max')
-      }},
-      {name: 'Remote Window', hasChildren: true, onClick: () => {
-        this.props.routeAppend([{parseRoute: {componentAtTop: {component: Foo}}}])
-      }},
-      {name: 'Dumb components', hasChildren: true, onClick: () => {
-        this.props.routeAppend(['dumbSheet'])
-      }},
-      {name: 'Stylesheet', hasChildren: true, onClick: () => {
-        this.props.routeAppend(['styleSheet'])
-      }},
+      {name: 'Login',
+        onClick: () => { this.props.switchTab(loginTab) }},
+      {name: 'Register',
+        onClick: () => {
+          this.props.switchTab(loginTab)
+          this.props.routeAppend(['register'])
+        },
+      },
+      {name: 'reset',
+        onClick: () => {
+          engine.reset()
+          console.log('Engine reset!')
+        },
+      },
+      {name: 'Sign Out', onClick: () => { this.props.logout() }},
+      {name: 'Passphrase entry', onClick: () => { this.props.routeAppend('pinentry') }},
+      {name: 'Developer', hasChildren: true, onClick: () => { this.props.routeAppend('developer') }},
+      {name: 'Tracker Listener', hasChildren: true, onClick: () => { this.props.showTrackerListener('max') }},
+      {name: 'Remote Window',
+        hasChildren: true,
+        onClick: () => { this.props.routeAppend([{parseRoute: {componentAtTop: {component: Foo}}}]) }},
+      {name: 'Dumb components', hasChildren: true, onClick: () => { this.props.routeAppend(['dumbSheet']) }},
+      {name: 'Stylesheet', hasChildren: true, onClick: () => { this.props.routeAppend(['styleSheet']) }},
     ]
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>

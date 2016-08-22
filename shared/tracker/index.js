@@ -14,43 +14,36 @@ import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof, SimpleProofState} from '../constants/tracker'
 
 export type TrackerProps = {
-  currentlyFollowing: boolean,
-  loggedIn: boolean,
-  trackerState: SimpleProofState,
-  username: string,
-  reason: string,
-  waiting: boolean,
-  userInfo: ?UserInfo,
-  nonUser: ?boolean,
-  parentProps?: Object,
-  proofs: Array<Proof>,
-  onClose: () => void,
-  onRefollow: () => void,
-  onIgnore: () => void,
-  onUnfollow: () => void,
-  onFollow: () => void,
+  actionBarReady: boolean,
   closed: boolean,
-  startTimer: () => void,
-  stopTimer: () => void,
   currentlyFollowing: boolean,
-  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
-  name?: string,
-  serviceName?: string,
+  currentlyFollowing: boolean,
   inviteLink?: ?string,
   isPrivate?: boolean,
+  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   loading: boolean,
-  actionBarReady: boolean,
+  loggedIn: boolean,
+  name?: string,
+  nonUser: ?boolean,
+  onClose: () => void,
+  onFollow: () => void,
+  onIgnore: () => void,
+  onRefollow: () => void,
+  onUnfollow: () => void,
+  parentProps?: Object,
+  proofs: Array<Proof>,
+  reason: string,
+  serviceName?: string,
+  startTimer: () => void,
+  stopTimer: () => void,
+  trackerState: SimpleProofState,
+  userInfo: ?UserInfo,
+  username: string,
+  waiting: boolean,
 }
 
-export function trackerPropsToRenderProps ({currentlyFollowing, inviteLink, isPrivate, lastAction,
-    loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
-    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading, actionBarReady}:
-TrackerProps): RenderPropsUnshaped {
-  return {
-    currentlyFollowing, inviteLink, isPrivate, lastAction,
-    loggedIn, name, nonUser, onClose, onFollow, onIgnore, onRefollow, onUnfollow, parentProps,
-    proofs, reason, serviceName, trackerState, userInfo, username, waiting, loading, actionBarReady,
-  }
+export function trackerPropsToRenderProps (tprops: TrackerProps): RenderPropsUnshaped {
+  return {...tprops}
 }
 
 class Tracker extends Component {

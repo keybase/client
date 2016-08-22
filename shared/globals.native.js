@@ -1,4 +1,4 @@
-/* eslint-disable no-native-reassign */
+/* eslint-disable no-native-reassign, no-global-assign */
 
 // __DEV__
 //  set by react-native to true if the app is being run in a simulator, false otherwise

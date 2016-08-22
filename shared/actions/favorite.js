@@ -206,8 +206,15 @@ export function favoriteList (): (dispatch: Dispatch, getState: () => Object) =>
         if (currentUser && loggedIn) {
           [true, false].forEach(isPrivate => {
             const idx = folders.findIndex(f => f.name === currentUser && f.private === isPrivate)
-            let toAdd = {meta: null, name: currentUser, private: isPrivate, notificationsOn: false, created: false,
-            waitingForParticipantUnlock: [], youCanUnlock: []}
+            let toAdd = {
+              meta: null,
+              name: currentUser,
+              private: isPrivate,
+              notificationsOn: false,
+              created: false,
+              waitingForParticipantUnlock: [],
+              youCanUnlock: [],
+            }
 
             if (idx !== -1) {
               toAdd = folders[idx]
