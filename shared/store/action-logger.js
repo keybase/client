@@ -1,10 +1,11 @@
 // @flow
 import deep from 'deep-diff'
-import type {StatSink} from '../util/stats'
 import {Iterable} from 'immutable'
 import {logStatFrequency, actionStatFrequency, forwardLogs} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
 import {startTiming, endTiming, printTimingStats, shouldRunStats} from '../util/stats'
+
+import type {StatSink} from '../util/stats'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
@@ -38,7 +39,7 @@ const actionStatSink: StatSink = {
 }
 
 export const actionLogger = (store: any) => (next: any) => (action: any) => {
-  const log1 = `Dispatching action: ${action.type}: ${forwardLogs ? JSON.stringify(action) : action}`
+  const log1 = [`Dispatching action: ${action.type}: `, forwardLogs ? JSON.stringify(action) : action]
 
   const shouldRunActionStats = shouldRunStats(actionStatFrequency)
   const shouldRunLogStats = shouldRunStats(logStatFrequency)
@@ -53,13 +54,13 @@ export const actionLogger = (store: any) => (next: any) => (action: any) => {
 
   startTiming(shouldRunLogStats, loggingStatSink)
   const diff = deep.diff(objToJS(oldState), objToJS(newState))
-  const log2 = `Diff: ${forwardLogs ? JSON.stringify(diff) : diff}`
+  const log2 = ['Diff: ', forwardLogs ? JSON.stringify(diff) : diff]
   endTiming(shouldRunLogStats, loggingStatSink)
 
   requestIdleCallback(() => {
     console.groupCollapsed && console.groupCollapsed(`Dispatching action: ${action.type}`)
-    console.log(log1)
-    console.log(log2)
+    console.log.apply(console, log1)
+    console.log.apply(console, log2)
     console.groupEnd && console.groupEnd()
   })
 
