@@ -144,7 +144,7 @@ func DbKeyUID(t ObjType, uid keybase1.UID) DbKey {
 func DbKeyNotificationDismiss(prefix string, username NormalizedUsername) DbKey {
 	return DbKey{
 		Typ: DBNotificationDismiss,
-		Key: fmt.Sprintf("%s|%s", prefix, username),
+		Key: fmt.Sprintf("%s:%s", prefix, username),
 	}
 
 }

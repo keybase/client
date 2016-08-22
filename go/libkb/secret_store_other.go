@@ -17,11 +17,11 @@ func notifySecretStoreCreate(g *GlobalContext, username NormalizedUsername) {
 	// check leveldb for existence of notification dismissal
 	dbobj, found, err := g.LocalDb.GetRaw(DbKeyNotificationDismiss(NotificationDismissPGPPrefix, username))
 	if err != nil {
-		g.Log.Debug("notifySecretStoreCreate:  localDb.GetRaw error: %s", err)
+		g.Log.Debug("notifySecretStoreCreate: localDb.GetRaw error: %s", err)
 		return
 	}
 	if found && string(dbobj) == NotificationDismissPGPValue {
-		g.Log.Debug("notifySecretStoreCreate:  %s already dismissed", NotificationDismissPGPPrefix)
+		g.Log.Debug("notifySecretStoreCreate: %s already dismissed", NotificationDismissPGPPrefix)
 		return
 	}
 
@@ -40,7 +40,7 @@ func notifySecretStoreCreate(g *GlobalContext, username NormalizedUsername) {
 	}
 
 	if len(blocks) == 0 {
-		g.Log.Debug("notifySecretStoreCreate:  no pgp blocks in keyring")
+		g.Log.Debug("notifySecretStoreCreate: no pgp blocks in keyring")
 		return
 	}
 
@@ -53,7 +53,7 @@ func notifySecretStoreCreate(g *GlobalContext, username NormalizedUsername) {
 	// also log a warning (so CLI users see it)
 	g.Log.Info(pgpStorageWarningText)
 
-	// Note:  a separate RPC, callable by CLI or electron, will dismiss
+	// Note: a separate RPC, callable by CLI or electron, will dismiss
 	// this warning by inserting into leveldb.
 }
 
