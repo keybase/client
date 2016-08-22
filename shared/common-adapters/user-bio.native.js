@@ -1,14 +1,51 @@
 // @flow
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import type {Props} from './user-bio'
 import {Box, Avatar, Text} from './'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {stateColors} from '../util/tracker'
 
+import type {AvatarSize} from './avatar'
+import type {Props} from './user-bio'
+
+class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize, loading: boolean}, void> {
+  render () {
+    return (
+      <Box style={{position: 'absolute', top: 0, left: 0, right: 0}}>
+        <Box style={stylesContainer}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', zIndex: 2, position: 'relative', opacity: this.props.loading ? 1 : 0, alignSelf: 'center'}}>
+            <Avatar
+              url={''}
+              loadingColor={globalColors.lightGrey}
+              forceLoading={true}
+              size={this.props.avatarSize}
+              following={false}
+              followsYou={false} />
+          </Box>
+          <Box style={{...stylesContent, opacity: this.props.loading ? 1 : 0}}>
+            <Box style={{...globalStyles.loadingTextStyle, width: 157, marginTop: 10, height: 26}} />
+            <Box style={{...globalStyles.loadingTextStyle, width: 100, marginTop: 12, height: 16}} />
+            <Box style={{...globalStyles.loadingTextStyle, width: 117, marginTop: globalMargins.tiny, marginBottom: 0}} />
+            <Box style={{...globalStyles.flexBoxRow, marginTop: 6}}>
+              <Box style={{...globalStyles.loadingTextStyle, width: 127, marginRight: 20}} />
+              <Box style={{...globalStyles.loadingTextStyle, width: 117}} />
+            </Box>
+            <Box style={{...globalStyles.flexBoxColumn, position: 'absolute', left: globalMargins.medium, right: globalMargins.medium}}>
+              <Box style={{...globalStyles.loadingTextStyle, marginTop: 14, height: 16}} />
+              <Box style={{...globalStyles.loadingTextStyle, marginTop: globalMargins.tiny, height: 16}} />
+              <Box style={{...globalStyles.loadingTextStyle, marginTop: globalMargins.tiny, height: 16, marginLeft: globalMargins.small, marginRight: globalMargins.small}} />
+              <Box style={{...globalStyles.loadingTextStyle, width: 117, marginTop: 10, alignSelf: 'center'}} />
+            </Box>
+          </Box>
+        </Box>
+      </Box>
+    )
+  }
+}
+
 class BioRender extends Component<void, Props, void> {
   render () {
-    const {avatarSize, username, userInfo, currentlyFollowing} = this.props
+    const {avatarSize, username, userInfo, currentlyFollowing, loading} = this.props
     if (!userInfo) {
       return null
     }
@@ -63,6 +100,7 @@ class BioRender extends Component<void, Props, void> {
           {!!userInfo.location &&
             <Text type='BodySmall' style={stylesLocation} {...locationLineClamp}>{userInfo.location}</Text>}
         </Box>
+        {loading && <BioLoading loading={loading} style={this.props.style} avatarSize={this.props.avatarSize} />}
       </Box>
     )
   }

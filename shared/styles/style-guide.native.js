@@ -1,11 +1,21 @@
 /* @flow */
 // Styles from our designers
 
+import globalColors from './style-guide-colors'
 import {OS} from '../constants/platform'
 import {OS_IOS, OS_ANDROID} from '../constants/platform.shared'
 import NavigatorNavigationBarStyles from 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS'
 
 export {default as globalColors} from './style-guide-colors'
+
+const globalMargins = {
+  xtiny: 4,
+  tiny: 8,
+  small: 16,
+  medium: 32,
+  large: 48,
+  xlarge: 64,
+}
 
 const fontCommon = {
   letterSpacing: 0.3,
@@ -90,24 +100,30 @@ const util = {
   textDecoration: (type: string) => ({
     textDecorationLine: type,
   }),
+  loadingTextStyle: {
+    backgroundColor: globalColors.lightGrey,
+    // borderColor: 'red',
+    // borderWidth: 1,
+    height: 16,
+  },
 }
 
-export const globalStyles = {
+const globalStyles = {
   ...font,
   ...util,
 }
 
-export const globalMargins = {
-  xtiny: 4,
-  tiny: 8,
-  small: 16,
-  medium: 32,
-  large: 48,
-  xlarge: 64,
+const navBarHeight = OS === OS_ANDROID ? 60 : NavigatorNavigationBarStyles.General.TotalNavHeight
+const tabBarHeight = 48
+
+function backgroundURL (...path: Array<string>): Object {
+  return {}
 }
 
-export const navBarHeight = OS === OS_ANDROID ? 60 : NavigatorNavigationBarStyles.General.TotalNavHeight
-export const tabBarHeight = 48
-export function backgroundURL (...path: Array<string>): Object {
-  return {}
+export {
+  backgroundURL,
+  globalMargins,
+  globalStyles,
+  navBarHeight,
+  tabBarHeight,
 }
