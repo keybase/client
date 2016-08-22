@@ -76,6 +76,10 @@
           "type": "ConversationID"
         },
         {
+          "name": "markAsRead",
+          "type": "boolean"
+        },
+        {
           "name": "pagination",
           "type": [
             null,
@@ -106,6 +110,19 @@
         }
       ],
       "response": "ConversationID"
+    },
+    "markAsRead": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"
