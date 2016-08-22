@@ -36,6 +36,7 @@ type NotifyListener interface {
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
 	NewChatActivity(uid keybase1.UID, activity keybase1.ChatActivity)
+	PGPKeyInSecretStoreFile()
 }
 
 // NotifyRouter routes notifications to the various active RPC
@@ -456,4 +457,24 @@ func (n *NotifyRouter) HandleAppExit() {
 		return true
 	})
 	n.G().Log.Debug("- Sent app exit notfication")
+}
+
+// HandlePGPKeyInSecretStoreFile is called to notify a user that they have a PGP
+// key that is unlockable by a secret stored in a file in their home directory.
+func (n *NotifyRouter) HandlePGPKeyInSecretStoreFile() {
+	n.G().Log.Debug("+ Sending pgpKeyInSecretStoreFile notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).PGP {
+			go func() {
+				(keybase1.NotifyPGPClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).PGPKeyInSecretStoreFile(context.TODO())
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.PGPKeyInSecretStoreFile()
+	}
+	n.G().Log.Debug("- Sent pgpKeyInSecretStoreFile notification")
 }
