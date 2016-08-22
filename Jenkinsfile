@@ -190,13 +190,13 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             },
                             test_windows: {
                                 helpers.nodeWithCleanup('windows', {}, {}) {
-                                    def BASEDIR=pwd()
-                                    def GOPATH="${BASEDIR}/go"
+                                    def BASEDIR="${pwd()}\\${env.BUILD_NUMBER}"
+                                    def GOPATH="${BASEDIR}\\go"
                                     withEnv([
                                         'GOROOT=C:\\tools\\go',
                                         "GOPATH=\"${GOPATH}\"",
                                         "PATH=\"C:\\tools\\go\\bin\";\"C:\\Program Files (x86)\\GNU\\GnuPG\";\"C:\\Program Files\\nodejs\";\"C:\\tools\\python\";\"C:\\Program Files\\graphicsmagick-1.3.24-q8\";${env.PATH}",
-                                        "KEYBASE_JS_VENDOR_DIR=${env.BASEDIR}\\js-vendor-desktop",
+                                        "KEYBASE_JS_VENDOR_DIR=${BASEDIR}\\js-vendor-desktop",
                                         "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
                                         "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePrivateIP}:9911",
                                     ]) {
@@ -263,7 +263,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                             },
                             test_osx: {
                                 helpers.nodeWithCleanup('osx', {}, {}) {
-                                    def BASEDIR=pwd()
+                                    def BASEDIR="${pwd()}/${env.BUILD_NUMBER}"
                                     def GOPATH="${BASEDIR}/go"
                                     withEnv([
                                         "GOPATH=${GOPATH}",
