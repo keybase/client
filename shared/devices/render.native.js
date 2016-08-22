@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
 import {Box, Text, Icon} from '../common-adapters'
-import {View, TouchableHighlight} from 'react-native'
+import {View, TouchableHighlight, ActionSheetIOS} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 type RevokedHeaderProps = {children?: Array<any>}
@@ -87,29 +87,40 @@ const RevokedDescription = () => (
 )
 
 const RevokedDevices = ({revokedDevices}) => (
-  <RevokedHeader>
+  revokedDevices && <RevokedHeader>
     <RevokedDescription />
     {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked={true} />)}
   </RevokedHeader>
 )
 
-const DeviceHeader = ({addNewDevice}) => (
-  <Box style={stylesCommonRow}>
+const DeviceHeader = ({addNewPhone, addNewComputer, addNewPaperKey}) => {
+  const items = [
+    {title: 'New Phone', onClick: () => addNewPhone()},
+    {title: 'New Computer', onClick: () => addNewComputer()},
+    {title: 'New Paper Key', onClick: () => addNewPaperKey()},
+    {title: 'Cancel', onClick: () => {}},
+  ]
+
+  return <Box style={stylesCommonRow}>
     <Box style={stylesCommonColumn}>
       <Icon type='icon-devices-add-64-x-48' />
     </Box>
     <Box style={stylesCommonColumn}>
-      <Text type='BodyPrimaryLink' onPress={addNewDevice}>Add new...</Text>
+      <Text type='BodyPrimaryLink' onClick={() => ActionSheetIOS.showActionSheetWithOptions({
+        title: 'Add a new device',
+        options: items.map(i => i.title),
+        cancelButtonIndex: items.length - 1,
+      }, idx => idx !== -1 && items[idx].onClick()
+      )}>Add new...</Text>
     </Box>
   </Box>
-)
+}
 
-// TODO native popup
-const Render = ({devices, revokedDevices, waitingForServer, showRemoveDevicePage, showExistingDevicePage}: Props) => (
+const Render = ({devices, revokedDevices, waitingForServer, showRemoveDevicePage, showExistingDevicePage, addNewPhone, addNewComputer, addNewPaperKey}: Props) => (
   <Box style={stylesContainer}>
-    {<DeviceHeader addNewDevice={() => {}} />}
+    <DeviceHeader addNewPhone={addNewPhone} addNewComputer={addNewComputer} addNewPaperKey={addNewPaperKey} />
     {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage} />)}
-    {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} />}
+    <RevokedDevices revokedDevices={revokedDevices} />
   </Box>
 )
 
