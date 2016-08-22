@@ -16,12 +16,12 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-func NewCmdPGPExport(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPExport(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "export",
 		Usage: "Export a PGP key from keybase",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPGPExport{}, "export", c)
+			cl.ChooseCommand(&CmdPGPExport{Contextified: libkb.NewContextified(g)}, "export", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -47,6 +47,7 @@ type CmdPGPExport struct {
 	UnixFilter
 	arg     keybase1.PGPExportArg
 	outfile string
+	libkb.Contextified
 }
 
 func (s *CmdPGPExport) ParseArgv(ctx *cli.Context) error {
@@ -66,14 +67,14 @@ func (s *CmdPGPExport) ParseArgv(ctx *cli.Context) error {
 
 func (s *CmdPGPExport) Run() (err error) {
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(G),
+		NewSecretUIProtocol(s.G()),
 	}
 
-	cli, err := GetPGPClient()
+	cli, err := GetPGPClient(s.G())
 	if err != nil {
 		return err
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, s.G()); err != nil {
 		return err
 	}
 	return s.finish(cli.PGPExport(context.TODO(), s.arg))
@@ -84,7 +85,7 @@ func (s *CmdPGPExport) finish(res []keybase1.KeyInfo, inErr error) error {
 		return inErr
 	}
 	if len(res) > 1 {
-		G.Log.Warning("Found several matches:")
+		s.G().Log.Warning("Found several matches:")
 		for _, k := range res {
 			// XXX os.Stderr?  why not Log?
 			os.Stderr.Write([]byte(k.Desc + "\n\n"))

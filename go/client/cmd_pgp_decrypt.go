@@ -55,7 +55,7 @@ type CmdPGPDecrypt struct {
 }
 
 func (c *CmdPGPDecrypt) Run() error {
-	cli, err := GetPGPClient()
+	cli, err := GetPGPClient(c.G())
 	if err != nil {
 		return err
 	}

@@ -58,7 +58,7 @@ func (c *CmdDismiss) GetUsage() libkb.Usage {
 func (c *CmdDismiss) Run() error {
 	switch c.name {
 	case PGPStorage:
-		cli, err := GetPGPClient()
+		cli, err := GetPGPClient(c.G())
 		if err != nil {
 			return err
 		}

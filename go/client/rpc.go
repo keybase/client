@@ -157,9 +157,9 @@ func GetSigsClient(g *libkb.GlobalContext) (cli keybase1.SigsClient, err error) 
 	return
 }
 
-func GetPGPClient() (cli keybase1.PGPClient, err error) {
+func GetPGPClient(g *libkb.GlobalContext) (cli keybase1.PGPClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.PGPClient{Cli: rcli}
 	}
 	return

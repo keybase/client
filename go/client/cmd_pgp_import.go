@@ -17,12 +17,12 @@ import (
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
-func NewCmdPGPImport(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPImport(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "import",
 		Usage: "Import a PGP key into keybase",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPGPImport{}, "import", c)
+			cl.ChooseCommand(&CmdPGPImport{Contextified: libkb.NewContextified(g)}, "import", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -52,6 +52,7 @@ type CmdPGPImport struct {
 	UnixFilter
 	arg    keybase1.PGPImportArg
 	infile string
+	libkb.Contextified
 }
 
 func (s *CmdPGPImport) ParseArgv(ctx *cli.Context) error {
@@ -70,14 +71,14 @@ func (s *CmdPGPImport) Run() error {
 	}
 
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(G),
+		NewSecretUIProtocol(s.G()),
 	}
 
-	cli, err := GetPGPClient()
+	cli, err := GetPGPClient(s.G())
 	if err != nil {
 		return err
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, s.G()); err != nil {
 		return err
 	}
 	return cli.PGPImport(context.TODO(), s.arg)

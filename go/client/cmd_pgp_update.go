@@ -15,6 +15,7 @@ import (
 type CmdPGPUpdate struct {
 	fingerprints []string
 	all          bool
+	libkb.Contextified
 }
 
 func (v *CmdPGPUpdate) ParseArgv(ctx *cli.Context) error {
@@ -24,15 +25,15 @@ func (v *CmdPGPUpdate) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdPGPUpdate) Run() (err error) {
-	cli, err := GetPGPClient()
+	cli, err := GetPGPClient(v.G())
 	if err != nil {
 		return err
 	}
 
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(G),
+		NewSecretUIProtocol(v.G()),
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
 		return err
 	}
 
@@ -42,7 +43,7 @@ func (v *CmdPGPUpdate) Run() (err error) {
 	})
 }
 
-func NewCmdPGPUpdate(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "update",
 		ArgumentHelp: "[fingerprints...]",
@@ -54,7 +55,7 @@ func NewCmdPGPUpdate(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPGPUpdate{}, "update", c)
+			cl.ChooseCommand(&CmdPGPUpdate{Contextified: libkb.NewContextified(g)}, "update", c)
 		},
 		Description: `'keybase pgp update' pushes updated PGP public keys to the server.
    Public PGP keys are exported from your local GPG keyring and sent

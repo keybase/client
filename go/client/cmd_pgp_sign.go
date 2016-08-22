@@ -113,7 +113,7 @@ func (s *CmdPGPSign) Run() (err error) {
 		NewSecretUIProtocol(s.G()),
 	}
 
-	cli, err := GetPGPClient()
+	cli, err := GetPGPClient(s.G())
 	if err != nil {
 		return err
 	}
