@@ -25,7 +25,9 @@ class GenPaperKey extends Component<void, Props, State> {
     this.state = {
       loading: true,
     }
+  }
 
+  componentWillMount () {
     this.props.generatePaperKey()
   }
 
