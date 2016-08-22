@@ -483,8 +483,7 @@ func (e *Env) GetUsername() NormalizedUsername {
 }
 
 func (e *Env) GetSocketBindFile() (string, error) {
-	// Switch to e.sandboxSocketFile() when all clients have been updated to dial sandbox first
-	return e.defaultSocketFile()
+	return e.sandboxSocketFile()
 }
 
 func (e *Env) defaultSocketFile() (string, error) {
@@ -513,11 +512,11 @@ func (e *Env) sandboxSocketFile() (string, error) {
 }
 
 func (e *Env) GetSocketDialFiles() ([]string, error) {
-	defaultSocketFile, err := e.defaultSocketFile()
+	sandboxSocketFile, err := e.sandboxSocketFile()
 	if err != nil {
 		return nil, err
 	}
-	sandboxSocketFile, err := e.sandboxSocketFile()
+	defaultSocketFile, err := e.defaultSocketFile()
 	if err != nil {
 		return nil, err
 	}
