@@ -9,8 +9,7 @@ import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
 import {log} from '../native/log/logui'
 import {resetClient, createClient, rpcLog} from './platform-specific'
-import {printRPC, printOutstandingRPCs} from '../local-debug'
-import {requestIdleCallback} from '../util/idle-callback'
+import {printOutstandingRPCs} from '../local-debug'
 
 const {logLocal} = setupLocalLogs()
 

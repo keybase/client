@@ -2,6 +2,7 @@
 // Classes used to handle RPCs. Ability to inject delays into calls to/from server
 import rpc from 'framed-msgpack-rpc'
 import setupLocalLogs from '../util/local-log'
+import {requestIdleCallback} from '../util/idle-callback'
 import type {rpcLogType} from './platform-specific'
 import {intersperse} from '../util/arrays'
 import {printRPC} from '../local-debug'
@@ -75,7 +76,9 @@ function rpcLog (type: rpcLogType, ...args: Array<any>): void {
     'engineInternal': 'color: purple',
   }[type]
 
-  logLocal(`%c${prefix} `, style, '\n  ', ...intersperse('\n  ', args))
+  requestIdleCallback(() => {
+    logLocal(`%c${prefix} `, style, '\n  ', ...intersperse('\n  ', args))
+  })
 }
 
 class TransportShared extends RobustTransport {
