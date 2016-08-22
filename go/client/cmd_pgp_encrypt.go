@@ -70,7 +70,7 @@ type CmdPGPEncrypt struct {
 }
 
 func (c *CmdPGPEncrypt) Run() error {
-	cli, err := GetPGPClient()
+	cli, err := GetPGPClient(c.G())
 	if err != nil {
 		return err
 	}
