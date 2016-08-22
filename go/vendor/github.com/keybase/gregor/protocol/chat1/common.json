@@ -22,12 +22,6 @@
     },
     {
       "type": "record",
-      "name": "PaginationResourceID",
-      "fields": [],
-      "typedef": "bytes"
-    },
-    {
-      "type": "record",
       "name": "TopicID",
       "fields": [],
       "typedef": "bytes"

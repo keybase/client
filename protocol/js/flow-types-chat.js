@@ -96,8 +96,6 @@ export type Pagination = {
   last: boolean,
 }
 
-export type PaginationResourceID = bytes
-
 export type SignatureInfo = {
   v: int,
   s: bytes,

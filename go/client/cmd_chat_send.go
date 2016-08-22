@@ -38,8 +38,17 @@ func (c *cmdChatSend) Run() (err error) {
 		return err
 	}
 
+	ctx := context.TODO()
+
+	if cName, err := chatClient.CompleteAndCanonicalizeTlfName(ctx, c.tlfName); err != nil {
+		return err
+	} else if c.tlfName != string(cName) {
+		c.G().UI.GetTerminalUI().Printf("Using TLF name %s instead of %s ...\n", cName, c.tlfName)
+		c.tlfName = string(cName)
+	}
+
 	var args keybase1.PostLocalArg
-	if args.ConversationID, err = chatClient.GetOrCreateTextConversationLocal(context.TODO(), keybase1.GetOrCreateTextConversationLocalArg{
+	if args.ConversationID, err = chatClient.GetOrCreateTextConversationLocal(ctx, keybase1.GetOrCreateTextConversationLocalArg{
 		TlfName:   c.tlfName,
 		TopicType: chat1.TopicType_CHAT,
 	}); err != nil {
@@ -57,7 +66,7 @@ func (c *cmdChatSend) Run() (err error) {
 
 	if chatClient, err := GetChatLocalClient(c.G()); err != nil {
 		return err
-	} else if err = chatClient.PostLocal(context.TODO(), args); err != nil {
+	} else if err = chatClient.PostLocal(ctx, args); err != nil {
 		return err
 	}
 

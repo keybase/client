@@ -90,6 +90,10 @@ type GetMessagesLocalArg struct {
 	Selector MessageSelector `codec:"selector" json:"selector"`
 }
 
+type CompleteAndCanonicalizeTlfNameArg struct {
+	TlfName string `codec:"tlfName" json:"tlfName"`
+}
+
 type ChatLocalInterface interface {
 	GetInboxLocal(context.Context, *chat1.Pagination) (chat1.InboxView, error)
 	GetThreadLocal(context.Context, GetThreadLocalArg) (ThreadView, error)
@@ -97,6 +101,7 @@ type ChatLocalInterface interface {
 	NewConversationLocal(context.Context, chat1.ConversationIDTriple) (chat1.ConversationID, error)
 	GetOrCreateTextConversationLocal(context.Context, GetOrCreateTextConversationLocalArg) (chat1.ConversationID, error)
 	GetMessagesLocal(context.Context, MessageSelector) ([]Message, error)
+	CompleteAndCanonicalizeTlfName(context.Context, string) (CanonicalTlfName, error)
 }
 
 func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
@@ -199,6 +204,22 @@ func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"completeAndCanonicalizeTlfName": {
+				MakeArg: func() interface{} {
+					ret := make([]CompleteAndCanonicalizeTlfNameArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CompleteAndCanonicalizeTlfNameArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CompleteAndCanonicalizeTlfNameArg)(nil), args)
+						return
+					}
+					ret, err = i.CompleteAndCanonicalizeTlfName(ctx, (*typedArgs)[0].TlfName)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -237,5 +258,11 @@ func (c ChatLocalClient) GetOrCreateTextConversationLocal(ctx context.Context, _
 func (c ChatLocalClient) GetMessagesLocal(ctx context.Context, selector MessageSelector) (res []Message, err error) {
 	__arg := GetMessagesLocalArg{Selector: selector}
 	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getMessagesLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ChatLocalClient) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res CanonicalTlfName, err error) {
+	__arg := CompleteAndCanonicalizeTlfNameArg{TlfName: tlfName}
+	err = c.Cli.Call(ctx, "keybase.1.chatLocal.completeAndCanonicalizeTlfName", []interface{}{__arg}, &res)
 	return
 }
