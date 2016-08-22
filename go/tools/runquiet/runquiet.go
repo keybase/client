@@ -50,20 +50,35 @@ func main() {
 		},
 	}
 	fmt.Printf("Launching %s with args %v\n", os.Args[argsIndex], os.Args[argsIndex:])
-	pid, handle, err := syscall.StartProcess(os.Args[argsIndex], os.Args[argsIndex:], attr)
-	fmt.Printf("%v, %v, %v\n", pid, handle, err)
-	if doWait {
+	pid, _, err := syscall.StartProcess(os.Args[argsIndex], os.Args[argsIndex:], attr)
+	if err != nil {
+		fmt.Printf("StartProcess error: %s\n", err.Error())
+	} else if doWait {
 		p, err := os.FindProcess(pid)
 		if err != nil {
 			fmt.Printf("Launcher can't find %d\n", pid)
 		}
 
-		pstate, err := p.Wait()
+		timeout := make(chan time.Time, 1)
 
-		if err == nil && pstate.Success() {
-			time.Sleep(100 * time.Millisecond)
-		} else {
-			fmt.Printf("Unsuccessful wait: Error %v, pstate %v\n", err, *pstate)
+		go func() {
+			pstate, err := p.Wait()
+
+			if err == nil && pstate.Success() {
+				time.Sleep(100 * time.Millisecond)
+			} else {
+				fmt.Printf("Unsuccessful wait: Error %v, pstate %v\n", err, *pstate)
+			}
+			timeout <- time.Now()
+		}()
+
+		// Only wait 15 seconds because an erroring command was shown to hang
+		// up an installer on Win7
+		select {
+		case _ = <-timeout:
+			// success
+		case <-time.After(15 * time.Second):
+			fmt.Println("timed out")
 		}
 	}
 }
