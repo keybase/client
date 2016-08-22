@@ -871,6 +871,40 @@ func (md *BareRootMetadataV2) FakeInitialRekey(h BareTlfHandle) {
 	md.RKeys = TLFReaderKeyGenerations{rkb}
 }
 
+// GetTLFPublicKey implements the BareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) GetTLFPublicKey(keyGen KeyGen) (TLFPublicKey, bool) {
+	if keyGen > md.LatestKeyGeneration() {
+		return TLFPublicKey{}, false
+	}
+	return md.WKeys[keyGen].TLFPublicKey, true
+}
+
+// AreKeyGenerationsEqual implements the BareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) AreKeyGenerationsEqual(codec Codec, other BareRootMetadata) (bool, error) {
+	md2, ok := other.(*BareRootMetadataV2)
+	if !ok {
+		// No idea what this is.
+		return false, errors.New("Unknown metadata version")
+	}
+	ok, err := CodecEqual(codec, md.WKeys, md2.WKeys)
+	if err != nil {
+		return false, err
+	}
+	if !ok {
+		return false, nil
+	}
+	ok, err = CodecEqual(codec, md.RKeys, md2.RKeys)
+	if err != nil {
+		return false, err
+	}
+	return ok, nil
+}
+
+// GetUnresolvedParticipants implements the BareRootMetadata interface for BareRootMetadataV2.
+func (md *BareRootMetadataV2) GetUnresolvedParticipants() (readers, writers []keybase1.SocialAssertion) {
+	return md.UnresolvedReaders, md.WriterMetadataV2.Extra.UnresolvedWriters
+}
+
 // BareRootMetadataSignedV2 is the MD that is signed by the reader or
 // writer including the signature info. Unlike RootMetadataSigned,
 // it contains exactly the serializable metadata and signature info.
