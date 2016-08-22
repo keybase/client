@@ -3859,15 +3859,16 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	testPutBlockInCache(t, config, node.BlockPointer, id, rootBlock)
 
 	expectedChanges := 1
-	// SetEx() should do nothing for symlinks.
-	if entryType == Sym {
+	// SetEx() should do nothing when the exec status doesn't change.
+	if entryType == Sym || entryType == Dir || (entryType == File && !ex) ||
+		(entryType == Exec && ex) {
 		expectedChanges = 0
 	}
 
 	var expectedPath path
 	var newRmd ImmutableRootMetadata
 	var blocks []BlockID
-	if entryType != Sym {
+	if expectedChanges > 0 {
 		// sync block
 		blocks = make([]BlockID, 2)
 		expectedPath, _ = expectSyncBlock(t, config, nil, uid, id, "",
@@ -3902,7 +3903,7 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 		if rootBlock.Children["a"].Type != expectedType {
 			t.Errorf("a has type %s, expected %s",
 				rootBlock.Children["a"].Type, expectedType)
-		} else if entryType != Sym {
+		} else if expectedChanges > 0 {
 			// SetEx() should always change the ctime of
 			// non-symlinks.
 			// pretend it's a rename so only ctime gets checked
@@ -3910,12 +3911,12 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 				expectedType, "", true)
 		}
 	}
-	if entryType != Sym {
+	if expectedChanges > 0 {
 		blocks = blocks[:len(blocks)-1] // last block is never in the cache
 	}
 	checkBlockCache(t, config, append(blocks, rootID), nil)
 
-	if entryType != Sym {
+	if expectedChanges > 0 {
 		// make sure the setAttrOp is correct
 		sao, ok := newRmd.data.Changes.Ops[0].(*setAttrOp)
 		if !ok {
@@ -3939,8 +3940,32 @@ func TestSetExFileSuccess(t *testing.T) {
 	testSetExSuccess(t, File, true)
 }
 
+func TestSetNoExFileSuccess(t *testing.T) {
+	testSetExSuccess(t, File, false)
+}
+
+func TestSetExExecSuccess(t *testing.T) {
+	testSetExSuccess(t, Exec, true)
+}
+
 func TestSetNoExExecSuccess(t *testing.T) {
 	testSetExSuccess(t, Exec, false)
+}
+
+func TestSetExDirSuccess(t *testing.T) {
+	testSetExSuccess(t, Dir, true)
+}
+
+func TestSetNoExDirSuccess(t *testing.T) {
+	testSetExSuccess(t, Dir, false)
+}
+
+func TestSetExSymSuccess(t *testing.T) {
+	testSetExSuccess(t, Sym, true)
+}
+
+func TestSetNoExSymSuccess(t *testing.T) {
+	testSetExSuccess(t, Sym, false)
 }
 
 func TestSetExFailNoSuchName(t *testing.T) {
