@@ -29,10 +29,10 @@ func NewRooterChecker(p libkb.RemoteProofChainLink) (*RooterChecker, libkb.Proof
 
 func (rc *RooterChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *RooterChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) (err libkb.ProofError) {
-	g.GetLog().Debug("+ Rooter check hint: %v", h)
+func (rc *RooterChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) (err libkb.ProofError) {
+	ctx.GetLog().Debug("+ Rooter check hint: %v", h)
 	defer func() {
-		g.GetLog().Debug("- Rooter check hint: %v", err)
+		ctx.GetLog().Debug("- Rooter check hint: %v", err)
 	}()
 
 	u, perr := url.Parse(strings.ToLower(h.GetAPIURL()))
@@ -105,12 +105,12 @@ func (rc *RooterChecker) UnpackData(inp *jsonw.Wrapper) (string, libkb.ProofErro
 
 }
 
-func (rc *RooterChecker) rewriteURL(g libkb.GlobalContextLite, s string) (string, error) {
+func (rc *RooterChecker) rewriteURL(ctx libkb.ProofContext, s string) (string, error) {
 	u1, err := url.Parse(s)
 	if err != nil {
 		return "", err
 	}
-	u2, err := url.Parse(g.GetServerURI())
+	u2, err := url.Parse(ctx.GetServerURI())
 	if err != nil {
 		return "", err
 	}
@@ -125,20 +125,20 @@ func (rc *RooterChecker) rewriteURL(g libkb.GlobalContextLite, s string) (string
 	return u3.String(), nil
 }
 
-func (rc *RooterChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) (perr libkb.ProofError) {
+func (rc *RooterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) (perr libkb.ProofError) {
 
-	g.GetLog().Debug("+ Checking rooter at API=%s", h.GetAPIURL())
+	ctx.GetLog().Debug("+ Checking rooter at API=%s", h.GetAPIURL())
 	defer func() {
-		g.GetLog().Debug("- Rooter -> %v", perr)
+		ctx.GetLog().Debug("- Rooter -> %v", perr)
 	}()
 
-	url, err := rc.rewriteURL(g, h.GetAPIURL())
+	url, err := rc.rewriteURL(ctx, h.GetAPIURL())
 	if err != nil {
 		return libkb.XapiError(err, url)
 	}
-	g.GetLog().Debug("| URL after rewriter is: %s", url)
+	ctx.GetLog().Debug("| URL after rewriter is: %s", url)
 
-	res, err := g.GetExternalAPI().Get(libkb.NewAPIArg(url))
+	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArg(url))
 
 	if err != nil {
 		perr = libkb.XapiError(err, url)
@@ -169,7 +169,7 @@ func (t RooterServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t RooterServiceType) NormalizeRemoteName(_ libkb.GlobalContextLite, s string) (string, error) {
+func (t RooterServiceType) NormalizeRemoteName(_ libkb.ProofContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)

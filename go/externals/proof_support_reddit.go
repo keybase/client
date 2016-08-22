@@ -32,7 +32,7 @@ func NewRedditChecker(p libkb.RemoteProofChainLink) (*RedditChecker, libkb.Proof
 
 func (rc *RedditChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *RedditChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+func (rc *RedditChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	if strings.HasPrefix(strings.ToLower(h.GetAPIURL()), RedditSub) {
 		return nil
 	}
@@ -109,8 +109,8 @@ func (rc *RedditChecker) CheckData(h libkb.SigHint, dat *jsonw.Wrapper) libkb.Pr
 	return nil
 }
 
-func (rc *RedditChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
-	res, err := g.GetExternalAPI().Get(libkb.NewAPIArg(h.GetAPIURL()))
+func (rc *RedditChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	res, err := ctx.GetExternalAPI().Get(libkb.NewAPIArg(h.GetAPIURL()))
 	if err != nil {
 		return libkb.XapiError(err, h.GetAPIURL())
 	}
@@ -158,7 +158,7 @@ func (t RedditServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t RedditServiceType) NormalizeRemoteName(g libkb.GlobalContextLite, s string) (ret string, err error) {
+func (t RedditServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (ret string, err error) {
 	return t.NormalizeUsername(s)
 }
 
