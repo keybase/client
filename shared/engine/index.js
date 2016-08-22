@@ -3,14 +3,13 @@
 import Session from './session'
 import setupLocalLogs from '../util/local-log'
 import type {CancelHandlerType} from './session'
-import type {createClientType} from './platform-specific'
+import type {createClientType} from './index.platform'
 import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flow-types'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
 import {log} from '../native/log/logui'
 import {resetClient, createClient, rpcLog} from './index.platform'
-import {printRPC, printOutstandingRPCs} from '../local-debug'
-import {requestIdleCallback} from '../util/idle-callback'
+import {printOutstandingRPCs} from '../local-debug'
 
 const {logLocal} = setupLocalLogs()
 
