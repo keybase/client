@@ -29,6 +29,12 @@ export function NotifyAppExitRpc (request: $Exact<{
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'NotifyApp.exit'})
 }
+export function NotifyPGPPgpKeyInSecretStoreFileRpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'NotifyPGP.pgpKeyInSecretStoreFile'})
+}
 export function NotifyServiceShutdownRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -136,6 +142,12 @@ export function pgpPgpDeletePrimaryRpc (request: $Exact<{
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'pgp.pgpDeletePrimary'})
+}
+export function pgpPgpStorageDismissRpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'pgp.pgpStorageDismiss'})
 }
 export function pgpUiFinishedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
@@ -812,6 +824,7 @@ export type NotificationChannels = {
   service: boolean,
   app: boolean,
   chat: boolean,
+  pgp: boolean,
 }
 
 export type NotifyChatNewChatActivityRpcParam = $Exact<{
@@ -4098,6 +4111,7 @@ export type rpc =
   | NotifyFSRequestFSEditListRequestRpc
   | NotifyFavoritesFavoritesChangedRpc
   | NotifyKeyfamilyKeyfamilyChangedRpc
+  | NotifyPGPPgpKeyInSecretStoreFileRpc
   | NotifyPaperKeyPaperKeyCachedRpc
   | NotifyServiceShutdownRpc
   | NotifySessionClientOutOfDateRpc
@@ -4245,6 +4259,7 @@ export type rpc =
   | pgpPgpPurgeRpc
   | pgpPgpSelectRpc
   | pgpPgpSignRpc
+  | pgpPgpStorageDismissRpc
   | pgpPgpUpdateRpc
   | pgpPgpVerifyRpc
   | pgpUiFinishedRpc
@@ -5666,6 +5681,13 @@ export type incomingCallMapType = $Exact<{
       result: () => void
     }
   ) => void,
+  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (
+    params: $Exact<{}>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.NotifyService.shutdown'?: (
     params: $Exact<{}>,
     response: {
@@ -5889,6 +5911,15 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: (err: RPCError) => void,
       result: (result: pgpPgpPurgeResult) => void
+    }
+  ) => void,
+  'keybase.1.pgp.pgpStorageDismiss'?: (
+    params: $Exact<{
+      sessionID: int
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
     }
   ) => void,
   'keybase.1.pgpUi.outputSignatureSuccess'?: (

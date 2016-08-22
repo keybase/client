@@ -14,7 +14,8 @@ import (
 var ErrSecretForUserNotFound = NotFoundError{Msg: "No secret found for user"}
 
 type SecretStoreFile struct {
-	dir string
+	dir          string
+	notifyCreate func(NormalizedUsername)
 }
 
 var _ SecretStoreAll = (*SecretStoreFile)(nil)
@@ -59,10 +60,27 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret []byte
 	}
 
 	final := s.userpath(username)
+
+	exists, err := FileExists(final)
+	if err != nil {
+		return err
+	}
+
 	if err := os.Rename(f.Name(), final); err != nil {
 		return err
 	}
-	return os.Chmod(final, 0600)
+
+	if err := os.Chmod(final, 0600); err != nil {
+		return err
+	}
+
+	// if we just created the secret store file for the
+	// first time, notify anyone interested.
+	if !exists && s.notifyCreate != nil {
+		s.notifyCreate(username)
+	}
+
+	return nil
 }
 
 func (s *SecretStoreFile) ClearSecret(username NormalizedUsername) error {
