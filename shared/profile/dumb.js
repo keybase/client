@@ -324,7 +324,7 @@ const dumbConfirmOrPendingMap: DumbComponentMap<ConfirmOrPending> = {
     'Confirm Bitcoin': {...confirmBase,
       platform: 'btc',
       usernameSubtitle: undefined,
-      message: 'You Bitcoin address has now been signed onto your profile.',
+      message: 'Your Bitcoin address has now been signed onto your profile.',
       title: 'Verified'},
     'Pending dns': {...confirmBase,
       ...pending,

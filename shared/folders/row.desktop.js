@@ -38,7 +38,9 @@ const Modified = ({smallMode, styles, modified}) => {
     fontSize: smallMode ? 12 : 14,
     alignSelf: 'center',
     ...(smallMode ? {marginTop: 2} : {marginLeft: -2, marginRight: 1, marginTop: 2}),
-    ...iconColor}
+    ...iconColor,
+  }
+
   return (
     <Box style={stylesModified}>
       <Icon type='iconfont-thunderbolt' style={boltStyle} hint='Modified' />
