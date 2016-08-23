@@ -16,18 +16,19 @@ import (
 func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		NewCmdAPICall(cl, g),
+		NewCmdChat(cl, g),
 		NewCmdCheckTracking(cl, g),
-		NewCmdFavorite(cl, g),
 		NewCmdFakeTrackingChanged(cl, g),
+		NewCmdFavorite(cl, g),
 		newCmdFS(cl, g),
-		newCmdTlf(cl, g),
+		NewCmdPaperProvision(cl, g),
+		NewCmdPGPProvision(cl, g),
 		NewCmdSecretKey(cl, g),
 		NewCmdShowNotifications(cl, g),
 		NewCmdStress(cl),
 		NewCmdTestPassphrase(cl, g),
 		NewCmdTestFSNotify(cl, g),
-		NewCmdPaperProvision(cl, g),
-		NewCmdPGPProvision(cl, g),
+		newCmdTlf(cl, g),
 	}
 }
 
