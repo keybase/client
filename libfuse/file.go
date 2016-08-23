@@ -30,7 +30,7 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 func (f *File) attr(ctx context.Context, a *fuse.Attr) (err error) {
 	de, err := f.folder.fs.config.KBFSOps().Stat(ctx, f.node)
 	if err != nil {
-		if _, ok := err.(libkbfs.NoSuchNameError); ok {
+		if isNoSuchNameError(err) {
 			return fuse.ESTALE
 		}
 		return err

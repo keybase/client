@@ -245,41 +245,35 @@ func openSpecialFile(name string, folder *Folder) dokan.File {
 		return NewTlfEditHistoryFile(folder.fs, folderBranch)
 
 	case libfs.UnstageFileName:
-		child := &UnstageFile{
+		return &UnstageFile{
 			folder: folder,
 		}
-		return child
 
 	case libfs.DisableUpdatesFileName:
-		child := &UpdatesFile{
+		return &UpdatesFile{
 			folder: folder,
 		}
-		return child
 
 	case libfs.EnableUpdatesFileName:
-		child := &UpdatesFile{
+		return &UpdatesFile{
 			folder: folder,
 			enable: true,
 		}
-		return child
 
 	case libfs.RekeyFileName:
-		child := &RekeyFile{
+		return &RekeyFile{
 			folder: folder,
 		}
-		return child
 
 	case libfs.ReclaimQuotaFileName:
-		child := &ReclaimQuotaFile{
+		return &ReclaimQuotaFile{
 			folder: folder,
 		}
-		return child
 
 	case libfs.SyncFromServerFileName:
-		child := &SyncFromServerFile{
+		return &SyncFromServerFile{
 			folder: folder,
 		}
-		return child
 	}
 
 	return nil

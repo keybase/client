@@ -72,8 +72,7 @@ func (f *File) FlushFileBuffers(ctx context.Context, fi *dokan.FileInfo) (err er
 	f.folder.fs.logEnter(ctx, "File FlushFileBuffers")
 	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
-	err = f.folder.fs.config.KBFSOps().Sync(ctx, f.node)
-	return err
+	return f.folder.fs.config.KBFSOps().Sync(ctx, f.node)
 }
 
 // ReadFile for dokan reads.
@@ -101,8 +100,7 @@ func (f *File) WriteFile(ctx context.Context, fi *dokan.FileInfo, bs []byte, off
 		offset = int64(ei.Size)
 	}
 
-	err = f.folder.fs.config.KBFSOps().Write(
-		ctx, f.node, bs, offset)
+	err = f.folder.fs.config.KBFSOps().Write(ctx, f.node, bs, offset)
 	return len(bs), err
 }
 
@@ -125,10 +123,9 @@ func (f *File) SetAllocationSize(ctx context.Context, fi *dokan.FileInfo, newSiz
 	if err != nil {
 		return err
 	}
-	current := int64(ei.Size)
 
 	// Refuse to grow the file.
-	if current <= newSize {
+	if int64(ei.Size) <= newSize {
 		return nil
 	}
 
