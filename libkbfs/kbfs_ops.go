@@ -239,7 +239,7 @@ func (fs *KBFSOpsStandard) GetTLFCryptKeys(ctx context.Context,
 	tlfHandle *TlfHandle) (keys []TLFCryptKey, id TlfID, err error) {
 	var rmd ImmutableRootMetadata
 	_, rmd, id, err = fs.getOrInitializeNewMDMaster(
-		ctx, fs.config.MDOps(), tlfHandle)
+		ctx, fs.config.MDOps(), tlfHandle, true)
 	if err != nil {
 		return keys, id, err
 	}
@@ -249,9 +249,10 @@ func (fs *KBFSOpsStandard) GetTLFCryptKeys(ctx context.Context,
 }
 
 func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
-	ctx context.Context, mdops MDOps, h *TlfHandle) (initialized bool,
+	ctx context.Context, mdops MDOps, h *TlfHandle, create bool) (initialized bool,
 	md ImmutableRootMetadata, id TlfID, err error) {
 	id, md, err = mdops.GetForHandle(ctx, h, Merged)
+	fs.log.CDebugf(ctx, "mdops.GetForHandle: %v, %v, %v", id, md, err)
 	if err != nil {
 		return false, ImmutableRootMetadata{}, id, err
 	}
@@ -261,6 +262,10 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
 
 	if id == (TlfID{}) {
 		return false, ImmutableRootMetadata{}, id, errors.New("No ID or MD")
+	}
+
+	if !create {
+		return false, ImmutableRootMetadata{}, id, nil
 	}
 
 	// Init new MD.
@@ -299,10 +304,9 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 	}
 
 	if md == (ImmutableRootMetadata{}) {
-		var initialized bool
 		var id TlfID
-		initialized, md, id, err = fs.getOrInitializeNewMDMaster(
-			ctx, mdops, h)
+		var initialized bool
+		initialized, md, id, err = fs.getOrInitializeNewMDMaster(ctx, mdops, h, create)
 		if err != nil {
 			return nil, EntryInfo{}, err
 		}
@@ -315,7 +319,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 				return nil, EntryInfo{}, err
 			}
 
-			if err := fops.addToFavorites(ctx, fs.favs, true); err != nil {
+			if err := fops.addToFavoritesByHandle(ctx, fs.favs, h, true); err != nil {
 				// Failure to favorite shouldn't cause a failure.  Just log
 				// and move on.
 				fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
@@ -323,11 +327,21 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 
 			return node, ei, nil
 		}
-	}
-
-	if !create && md.data.Dir.Type != Dir {
-		kbpki := fs.config.KBPKI()
-		return nil, EntryInfo{}, identifyHandle(ctx, kbpki, kbpki, h)
+		if !create && md == (ImmutableRootMetadata{}) {
+			kbpki := fs.config.KBPKI()
+			err := identifyHandle(ctx, kbpki, kbpki, h)
+			if err != nil {
+				return nil, EntryInfo{}, err
+			}
+			fb := FolderBranch{Tlf: id, Branch: MasterBranch}
+			fops := fs.getOpsByHandle(ctx, h, fb)
+			if err := fops.addToFavoritesByHandle(ctx, fs.favs, h, true); err != nil {
+				// Failure to favorite shouldn't cause a failure.  Just log
+				// and move on.
+				fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
+			}
+			return nil, EntryInfo{}, nil
+		}
 	}
 
 	fb := FolderBranch{Tlf: md.TlfID(), Branch: branch}
@@ -359,7 +373,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 		return nil, EntryInfo{}, err
 	}
 
-	if err := ops.addToFavorites(ctx, fs.favs, false); err != nil {
+	if err := ops.addToFavoritesByHandle(ctx, fs.favs, h, false); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
 		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
