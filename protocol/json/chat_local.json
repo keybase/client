@@ -139,6 +139,10 @@
         {
           "type": "MessagePlaintext",
           "name": "messagePlaintext"
+        },
+        {
+          "type": "boolean",
+          "name": "isNew"
         }
       ]
     },
@@ -188,12 +192,44 @@
           "name": "Before"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "onlyNew"
         },
         {
           "type": "int",
-          "name": "limitNumber"
+          "name": "limitPerConversation"
+        },
+        {
+          "type": "int",
+          "name": "limitOfConversations"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "chat1.ConversationID"
+          },
+          "name": "conversations"
+        },
+        {
+          "type": "boolean",
+          "name": "markAsRead"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationMessagesLocal",
+      "fields": [
+        {
+          "type": "chat1.ConversationID",
+          "name": "id"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Message"
+          },
+          "name": "messages"
         }
       ]
     }
@@ -216,6 +252,10 @@
         {
           "name": "conversationID",
           "type": "chat1.ConversationID"
+        },
+        {
+          "name": "markAsRead",
+          "type": "boolean"
         },
         {
           "name": "pagination",
@@ -275,7 +315,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "Message"
+        "items": "ConversationMessagesLocal"
       }
     },
     "completeAndCanonicalizeTlfName": {

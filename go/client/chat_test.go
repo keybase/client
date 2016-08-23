@@ -100,14 +100,19 @@ func (c *chatLocalMock) GetOrCreateTextConversationLocal(ctx context.Context, ar
 	return id, errors.New("not implemented")
 }
 
-func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.Message, err error) {
+func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationMessagesLocal, err error) {
 	tview, err := c.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
 		ConversationID: chatLocalMockConversationID,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return tview.Messages, nil
+	return []keybase1.ConversationMessagesLocal{
+		keybase1.ConversationMessagesLocal{
+			Id:       chatLocalMockConversationID,
+			Messages: tview.Messages,
+		},
+	}, nil
 }
 
 func (c *chatLocalMock) NewConversationLocal(ctx context.Context, cID chat1.ConversationIDTriple) (id chat1.ConversationID, err error) {

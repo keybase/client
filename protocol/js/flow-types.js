@@ -307,6 +307,11 @@ export type ConfirmResult = {
   expiringLocal: boolean,
 }
 
+export type ConversationMessagesLocal = {
+  id: chat1.ConversationID,
+  messages?: ?Array<Message>,
+}
+
 export type CryptKey = {
   KeyGeneration: int,
   Key: Bytes32,
@@ -744,6 +749,7 @@ export type MerkleTreeID =
 export type Message = {
   serverHeader: chat1.MessageServerHeader,
   messagePlaintext: MessagePlaintext,
+  isNew: boolean,
 }
 
 export type MessageAttachment = {
@@ -781,8 +787,11 @@ export type MessageSelector = {
   MessageTypes?: ?Array<chat1.MessageType>,
   After?: ?Time,
   Before?: ?Time,
-  onlyNew: bool,
-  limitNumber: int,
+  onlyNew: boolean,
+  limitPerConversation: int,
+  limitOfConversations: int,
+  conversations?: ?Array<chat1.ConversationID>,
+  markAsRead: boolean,
 }
 
 export type MessageText = {
@@ -1851,7 +1860,7 @@ export type chatLocalGetMessagesLocalRpcParam = $Exact<{
   selector: MessageSelector
 }>
 
-type chatLocalGetMessagesLocalResult = ?Array<Message>
+type chatLocalGetMessagesLocalResult = ?Array<ConversationMessagesLocal>
 
 export function chatLocalGetMessagesLocalRpc (request: $Exact<{
   param: chatLocalGetMessagesLocalRpcParam,
@@ -1877,6 +1886,7 @@ export function chatLocalGetOrCreateTextConversationLocalRpc (request: $Exact<{
 }
 export type chatLocalGetThreadLocalRpcParam = $Exact<{
   conversationID: chat1.ConversationID,
+  markAsRead: boolean,
   pagination: (null | chat1.Pagination)
 }>
 
@@ -4520,6 +4530,7 @@ export type incomingCallMapType = $Exact<{
   'keybase.1.chatLocal.getThreadLocal'?: (
     params: $Exact<{
       conversationID: chat1.ConversationID,
+      markAsRead: boolean,
       pagination: (null | chat1.Pagination)
     }>,
     response: {
