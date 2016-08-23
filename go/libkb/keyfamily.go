@@ -639,6 +639,7 @@ func (kf *KeyFamily) LocalDelegate(key GenericKey) (err error) {
 // account whether the key has been cancelled at time t.
 func (ckf ComputedKeyFamily) GetKeyRoleAtTime(kid keybase1.KID, t time.Time) (ret KeyRole) {
 	if info, err := ckf.getCkiIfActiveAtTime(kid, t); err != nil {
+		ckf.G().Log.Debug("GetKeyRoleAtTime %s, %s => err %s", kid, t, err)
 		ret = DLGNone
 	} else if info.Sibkey {
 		ret = DLGSibkey
