@@ -56,6 +56,7 @@ export const constants = {
     'scbadloginpassword': 204,
     'scnotfound': 205,
     'scthrottlecontrol': 210,
+    'scdeleted': 216,
     'scgeneric': 218,
     'scalreadyloggedin': 235,
     'sccanceled': 237,
