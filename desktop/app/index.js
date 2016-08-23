@@ -67,6 +67,8 @@ function start () {
   ListenLogUi()
   windowHelper(app)
 
+  console.log('Version:', app.getVersion())
+
   installer(err => {
     if (err) {
       console.log('Error: ', err)
