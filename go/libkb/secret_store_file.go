@@ -46,6 +46,10 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret []byte
 	if err != nil {
 		return err
 	}
+
+	// remove the temp file if it still exists at the end of this function
+	defer os.Remove(f.Name())
+
 	if runtime.GOOS != "windows" {
 		// os.Fchmod not supported on windows
 		if err := f.Chmod(0600); err != nil {
