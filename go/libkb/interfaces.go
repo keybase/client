@@ -335,6 +335,8 @@ type LogUI interface {
 	Critical(format string, args ...interface{})
 }
 
+type LogFunc func(format string, args ...interface{})
+
 type GPGUI interface {
 	keybase1.GpgUiInterface
 }

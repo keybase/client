@@ -783,7 +783,7 @@ func (e *loginProvision) gpgImportKey(ctx *Context, fp *libkb.PGPFingerprint) (l
 	}
 
 	// unlock it
-	if err := bundle.Unlock("sign new device", ctx.SecretUI); err != nil {
+	if err := bundle.Unlock(e.G(), "sign new device", ctx.SecretUI); err != nil {
 		return nil, err
 	}
 

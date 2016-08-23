@@ -413,7 +413,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 // encodePrivatePGPKey encrypts key with tsec and armor-encodes it.
 // It includes the passphrase generation in the data.
 func (c *PassphraseChange) encodePrivatePGPKey(key libkb.GenericKey, tsec libkb.Triplesec, gen libkb.PassphraseGeneration) (string, error) {
-	skb, err := key.ToServerSKB(c.G(), tsec, gen)
+	skb, err := libkb.ToServerSKB(c.G(), key, tsec, gen)
 	if err != nil {
 		return "", err
 	}

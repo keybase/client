@@ -88,7 +88,7 @@ func makeTestSKB(t *testing.T, lks *LKSec, g *GlobalContext) *SKB {
 		t.Fatal(err)
 	}
 
-	skb, err := (NewGeneratedPGPKeyBundle(g, entity)).ToLksSKB(lks)
+	skb, err := lks.ToSKB(NewGeneratedPGPKeyBundle(entity))
 	if err != nil {
 		t.Fatal(err)
 	}

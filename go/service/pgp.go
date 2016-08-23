@@ -162,7 +162,7 @@ func sigVer(g *libkb.GlobalContext, ss *libkb.SignatureStatus, owner *libkb.User
 			}
 		}
 		if ss.Entity != nil {
-			bundle := libkb.NewPGPKeyBundle(g, ss.Entity)
+			bundle := libkb.NewPGPKeyBundle(ss.Entity)
 			res.SignKey = bundle.Export()
 		}
 	}

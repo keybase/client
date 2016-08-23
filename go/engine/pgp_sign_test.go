@@ -66,7 +66,7 @@ func TestPGPSign(t *testing.T) {
 
 		sig := sink.String()
 
-		_, err = key.VerifyString(sig, []byte(test.input))
+		_, err = key.VerifyString(tc.G.Log, sig, []byte(test.input))
 		if err != nil {
 			t.Errorf("%s: verify error: %s", test.name, err)
 			continue
