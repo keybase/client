@@ -252,7 +252,6 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(
 	ctx context.Context, mdops MDOps, h *TlfHandle, create bool) (initialized bool,
 	md ImmutableRootMetadata, id TlfID, err error) {
 	id, md, err = mdops.GetForHandle(ctx, h, Merged)
-	fs.log.CDebugf(ctx, "mdops.GetForHandle: %v, %v, %v", id, md, err)
 	if err != nil {
 		return false, ImmutableRootMetadata{}, id, err
 	}
