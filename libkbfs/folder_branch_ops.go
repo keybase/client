@@ -433,19 +433,23 @@ func (fbo *folderBranchOps) AddFavorite(ctx context.Context,
 
 func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 	favorites *Favorites, created bool) (err error) {
-	if _, _, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx); err != nil {
-		// Can't favorite while not logged in
-		return nil
-	}
-
 	lState := makeFBOLockState()
 	head := fbo.getHead(lState)
 	if head == (ImmutableRootMetadata{}) {
 		return OpsCantHandleFavorite{"Can't add a favorite without a handle"}
 	}
 
-	h := head.GetTlfHandle()
-	favorites.AddAsync(ctx, h.toFavToAdd(created))
+	return fbo.addToFavoritesByHandle(ctx, favorites, head.GetTlfHandle(), created)
+}
+
+func (fbo *folderBranchOps) addToFavoritesByHandle(ctx context.Context,
+	favorites *Favorites, handle *TlfHandle, created bool) (err error) {
+	if _, _, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx); err != nil {
+		// Can't favorite while not logged in
+		return nil
+	}
+
+	favorites.AddAsync(ctx, handle.toFavToAdd(created))
 	return nil
 }
 
