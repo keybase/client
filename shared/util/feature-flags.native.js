@@ -4,12 +4,12 @@ import type {FeatureFlags} from './feature-flags'
 
 const ff: FeatureFlags = {
   admin: __DEV__,
-  mobileAppsExist: true,
-  tabPeopleEnabled: true,
-  tabFoldersEnabled: true,
+  mobileAppsExist: __DEV__,
+  tabPeopleEnabled: __DEV__,
+  tabFoldersEnabled: __DEV__,
   tabSettingsEnabled: __DEV__,
-  tabProfileEnabled: true,
-  searchEnabled: true,
+  tabProfileEnabled: __DEV__,
+  searchEnabled: __DEV__,
 }
 
 if (__DEV__) {
