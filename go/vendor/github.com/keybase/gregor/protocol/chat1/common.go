@@ -10,7 +10,6 @@ import (
 
 type ThreadID []byte
 type MessageID uint
-type PaginationResourceID []byte
 type TopicID []byte
 type ConversationID uint64
 type TLFID []byte

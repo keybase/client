@@ -1821,6 +1821,19 @@ export function blockPutBlockRpc (request: $Exact<{
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'block.putBlock'})
 }
+export type chatLocalCompleteAndCanonicalizeTlfNameRpcParam = $Exact<{
+  tlfName: string
+}>
+
+type chatLocalCompleteAndCanonicalizeTlfNameResult = CanonicalTlfName
+
+export function chatLocalCompleteAndCanonicalizeTlfNameRpc (request: $Exact<{
+  param: chatLocalCompleteAndCanonicalizeTlfNameRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatLocalCompleteAndCanonicalizeTlfNameResult) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.completeAndCanonicalizeTlfName'})
+}
 export type chatLocalGetInboxLocalRpcParam = $Exact<{
   pagination: (null | chat1.Pagination)
 }>
@@ -4123,6 +4136,7 @@ export type rpc =
   | blockGetSessionChallengeRpc
   | blockGetUserQuotaInfoRpc
   | blockPutBlockRpc
+  | chatLocalCompleteAndCanonicalizeTlfNameRpc
   | chatLocalGetInboxLocalRpc
   | chatLocalGetMessagesLocalRpc
   | chatLocalGetOrCreateTextConversationLocalRpc
@@ -4550,6 +4564,15 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: (err: RPCError) => void,
       result: (result: chatLocalGetMessagesLocalResult) => void
+    }
+  ) => void,
+  'keybase.1.chatLocal.completeAndCanonicalizeTlfName'?: (
+    params: $Exact<{
+      tlfName: string
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: chatLocalCompleteAndCanonicalizeTlfNameResult) => void
     }
   ) => void,
   'keybase.1.config.getCurrentStatus'?: (

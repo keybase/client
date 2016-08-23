@@ -63,6 +63,27 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, trip chat1.
 	return id, err
 }
 
+func (h *chatLocalHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
+	username := h.G().Env.GetUsername()
+	if len(username) == 0 {
+		return res, fmt.Errorf("Username is empty. Are you logged in?")
+	}
+
+	// Append username in case it's not present. We don't need to check if it
+	// exists already since CryptKeys calls below transforms the TLF name into a
+	// canonical one.
+	tlfName = tlfName + "," + string(username)
+
+	// TODO: do some caching in boxer so we don't end up calling this RPC
+	// unnecessarily too often
+	resp, err := h.boxer.tlf.CryptKeys(ctx, tlfName)
+	if err != nil {
+		return "", err
+	}
+
+	return resp.CanonicalName, nil
+}
+
 // GetOrCreateTextConversationLocal implements
 // keybase.chatLocal.GetOrCreateTextConversationLocal protocol. It returns the
 // most recent conversation's ConversationID for given TLF ID, or creates a new
@@ -81,7 +102,7 @@ func (h *chatLocalHandler) GetOrCreateTextConversationLocal(ctx context.Context,
 	}
 	tlfID := chat1.TLFID(tlfIDb)
 
-	ipagination := &chat1.Pagination{}
+	ipagination := &chat1.Pagination{Num: 20}
 getinbox:
 	for {
 		iview, err := h.GetInboxLocal(ctx, ipagination)
@@ -125,7 +146,7 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.Me
 		}
 	}
 
-	ipagination := &chat1.Pagination{}
+	ipagination := &chat1.Pagination{Num: 20}
 getinbox:
 	for {
 		iview, err := h.GetInboxLocal(ctx, ipagination)
@@ -133,7 +154,7 @@ getinbox:
 			return nil, err
 		}
 
-		tpagination := &chat1.Pagination{}
+		tpagination := &chat1.Pagination{Num: 20}
 	getthread:
 		for _, conv := range iview.Conversations {
 			tview, err := h.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{

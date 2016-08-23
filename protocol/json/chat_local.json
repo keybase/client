@@ -277,6 +277,15 @@
         "type": "array",
         "items": "Message"
       }
+    },
+    "completeAndCanonicalizeTlfName": {
+      "request": [
+        {
+          "name": "tlfName",
+          "type": "string"
+        }
+      ],
+      "response": "CanonicalTlfName"
     }
   },
   "namespace": "keybase.1"
