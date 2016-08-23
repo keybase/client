@@ -1,3 +1,7 @@
+## 1.0.18
+- Some people (like @brentmaxwell) had broken sigchains due to bad 
+  short signature IDs. Ignore those. (via vendored PR: keybase/go-crypto#36)
+
 ## 1.0.17
 - Allow signatures with DSA keys without needing to specify explicit signing flags
   in the Public key. Also, better tie-breaking if there are two self-signatures
