@@ -15,7 +15,6 @@ type AlgoType int
 type GenericKey interface {
 	GetKID() keybase1.KID
 	GetBinaryKID() keybase1.BinaryKID
-	GetFingerprintP() *PGPFingerprint
 	GetAlgoType() AlgoType
 
 	// Sign to an ASCII signature (which includes the message
@@ -98,7 +97,7 @@ func KeyMatchesQuery(key GenericKey, q string, exact bool) bool {
 	if key.GetKID().Match(q, exact) {
 		return true
 	}
-	return key.GetFingerprintP().Match(q, exact)
+	return GetPGPFingerprintFromGenericKey(key).Match(q, exact)
 }
 
 func IsPGP(key GenericKey) bool {

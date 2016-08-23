@@ -504,7 +504,7 @@ func (k *SKBKeyringFile) addToIndex(g GenericKey, b *SKB) {
 	if g == nil {
 		return
 	}
-	if fp := g.GetFingerprintP(); fp != nil {
+	if fp := GetPGPFingerprintFromGenericKey(g); fp != nil {
 		k.fpIndex[*fp] = b
 	}
 	k.kidIndex[g.GetKID()] = b
@@ -514,7 +514,7 @@ func (k *SKBKeyringFile) removeFromIndex(g GenericKey) {
 	if g == nil {
 		return
 	}
-	if fp := g.GetFingerprintP(); fp != nil {
+	if fp := GetPGPFingerprintFromGenericKey(g); fp != nil {
 		delete(k.fpIndex, *fp)
 	}
 	delete(k.kidIndex, g.GetKID())
@@ -825,7 +825,7 @@ func (k *SKBKeyringFile) AllPGPBlocks() ([]*SKB, error) {
 		if err != nil {
 			return nil, err
 		}
-		if fp := k.GetFingerprintP(); fp != nil {
+		if fp := GetPGPFingerprintFromGenericKey(k); fp != nil {
 			pgpBlocks = append(pgpBlocks, block)
 		}
 	}
@@ -839,7 +839,7 @@ func (k *SKBKeyringFile) RemoveAllPGPBlocks() error {
 		if err != nil {
 			return err
 		}
-		if fp := k.GetFingerprintP(); fp == nil {
+		if fp := GetPGPFingerprintFromGenericKey(k); fp == nil {
 			blocks = append(blocks, block)
 		}
 	}

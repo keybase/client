@@ -639,8 +639,8 @@ func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) error {
 	if c.unpacked.pgpFingerprint != nil {
 		payloadFingerprintStr := c.unpacked.pgpFingerprint.String()
 		serverFingerprintStr := ""
-		if serverKey.GetFingerprintP() != nil {
-			serverFingerprintStr = serverKey.GetFingerprintP().String()
+		if fp := GetPGPFingerprintFromGenericKey(serverKey); fp != nil {
+			serverFingerprintStr = fp.String()
 		}
 		if payloadFingerprintStr != serverFingerprintStr {
 			return ChainLinkFingerprintMismatchError{

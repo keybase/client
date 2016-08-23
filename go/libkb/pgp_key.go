@@ -213,6 +213,15 @@ func (k PGPKeyBundle) GetFingerprintP() *PGPFingerprint {
 	return &fp
 }
 
+func GetPGPFingerprintFromGenericKey(k GenericKey) *PGPFingerprint {
+	switch pgp := k.(type) {
+	case *PGPKeyBundle:
+		return pgp.GetFingerprintP()
+	default:
+		return nil
+	}
+}
+
 func (k PGPKeyBundle) KeysById(id uint64) []openpgp.Key {
 	return k.toList().KeysById(id)
 }
