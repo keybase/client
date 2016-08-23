@@ -291,8 +291,6 @@ function makeRpcUnionType (typeDefs) {
 }
 
 function write (typeDefs, project) {
-  const s = fs.createWriteStream(project.out)
-
   // Need any for weird flow issue where it gets confused by multiple
   // incoming call map types
   const callMapType = Object.keys(project.incomingMaps).length ? 'incomingCallMapType' : 'any'
@@ -337,6 +335,5 @@ type CommonResponseHandler = {
   const incomingMap = `export type incomingCallMapType = $Exact<{\n` +
   Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',\n') + '\n}>\n'
   const toWrite = [typePrelude, typeDefs.join('\n\n'), incomingMap].join('\n')
-  s.write(toWrite)
-  s.close()
+  fs.writeFileSync(project.out, toWrite)
 }
