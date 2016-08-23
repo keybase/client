@@ -65,7 +65,7 @@ func addFakeRMDData(rmd *RootMetadata, h *TlfHandle) {
 	})
 
 	if !h.IsPublic() {
-		rmd.FakeInitialRekey(h.ToBareHandleOrBust())
+		rmd.FakeInitialRekey(NewCodecMsgpack(), h.ToBareHandleOrBust())
 	}
 }
 
@@ -104,7 +104,7 @@ func addFakeRMDSData(rmds *RootMetadataSigned, h *TlfHandle) {
 	rmds.untrustedServerTimestamp = time.Now()
 
 	if !h.IsPublic() {
-		rmds.MD.FakeInitialRekey(h.ToBareHandleOrBust())
+		rmds.MD.FakeInitialRekey(NewCodecMsgpack(), h.ToBareHandleOrBust())
 	}
 }
 
@@ -191,7 +191,7 @@ func putMDForPrivate(config *ConfigMock, rmd *RootMetadata) {
 	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).Times(2).Return(SignatureInfo{}, nil)
 	config.mockBsplit.EXPECT().ShouldEmbedBlockChanges(gomock.Any()).
 		Return(true)
-	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil)
+	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 }
 
 func TestMDOpsGetForHandlePublicSuccess(t *testing.T) {
@@ -558,7 +558,8 @@ type fakeMDServerPut struct {
 	lastRmds     *RootMetadataSigned
 }
 
-func (s *fakeMDServerPut) Put(ctx context.Context, rmds *RootMetadataSigned) error {
+func (s *fakeMDServerPut) Put(ctx context.Context, rmds *RootMetadataSigned,
+	_ ExtraMetadata) error {
 	s.lastRmdsLock.Lock()
 	defer s.lastRmdsLock.Unlock()
 	s.lastRmds = rmds

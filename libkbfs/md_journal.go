@@ -196,7 +196,8 @@ func (j mdJournal) getMD(currentUID keybase1.UID,
 		return nil, time.Time{}, err
 	}
 
-	err = rmd.IsValidAndSigned(j.codec, j.crypto)
+	// MDv3 TODO: pass key bundles when needed
+	err = rmd.IsValidAndSigned(j.codec, j.crypto, nil)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
@@ -220,7 +221,8 @@ func (j mdJournal) getMD(currentUID keybase1.UID,
 func (j mdJournal) putMD(
 	currentUID keybase1.UID, currentVerifyingKey VerifyingKey,
 	rmd BareRootMetadata) (MdID, error) {
-	err := rmd.IsValidAndSigned(j.codec, j.crypto)
+	// MDv3 TODO: pass key bundles when needed
+	err := rmd.IsValidAndSigned(j.codec, j.crypto, nil)
 	if err != nil {
 		return MdID{}, err
 	}
@@ -301,15 +303,15 @@ func (j mdJournal) getLatest(currentUID keybase1.UID,
 	return MakeImmutableBareRootMetadata(latest, latestID, ts), nil
 }
 
-func (j mdJournal) checkGetParams(currentUID keybase1.UID,
-	currentVerifyingKey VerifyingKey) (ImmutableBareRootMetadata, error) {
+func (j mdJournal) checkGetParams(currentUID keybase1.UID, currentVerifyingKey VerifyingKey,
+	extra ExtraMetadata) (ImmutableBareRootMetadata, error) {
 	head, err := j.getLatest(currentUID, currentVerifyingKey, true)
 	if err != nil {
 		return ImmutableBareRootMetadata{}, err
 	}
 
 	if head != (ImmutableBareRootMetadata{}) {
-		ok, err := isReader(currentUID, head.BareRootMetadata)
+		ok, err := isReader(currentUID, head.BareRootMetadata, extra)
 		if err != nil {
 			return ImmutableBareRootMetadata{}, err
 		}
@@ -579,16 +581,16 @@ func (j mdJournal) getBranchID() BranchID {
 }
 
 func (j mdJournal) getHead(
-	currentUID keybase1.UID, currentVerifyingKey VerifyingKey) (
-	ImmutableBareRootMetadata, error) {
-	return j.checkGetParams(currentUID, currentVerifyingKey)
+	currentUID keybase1.UID, currentVerifyingKey VerifyingKey,
+	extra ExtraMetadata) (ImmutableBareRootMetadata, error) {
+	return j.checkGetParams(currentUID, currentVerifyingKey, extra)
 }
 
 func (j mdJournal) getRange(
 	currentUID keybase1.UID, currentVerifyingKey VerifyingKey,
-	start, stop MetadataRevision) (
+	extra ExtraMetadata, start, stop MetadataRevision) (
 	[]ImmutableBareRootMetadata, error) {
-	_, err := j.checkGetParams(currentUID, currentVerifyingKey)
+	_, err := j.checkGetParams(currentUID, currentVerifyingKey, extra)
 	if err != nil {
 		return nil, err
 	}
@@ -815,7 +817,8 @@ func (j *mdJournal) put(
 
 func (j *mdJournal) clear(
 	ctx context.Context, currentUID keybase1.UID,
-	currentVerifyingKey VerifyingKey, bid BranchID) (err error) {
+	currentVerifyingKey VerifyingKey, bid BranchID,
+	extra ExtraMetadata) (err error) {
 	j.log.CDebugf(ctx, "Clearing journal for branch %s", bid)
 	defer func() {
 		if err != nil {
@@ -829,7 +832,7 @@ func (j *mdJournal) clear(
 		return errors.New("Cannot clear master branch")
 	}
 
-	head, err := j.getHead(currentUID, currentVerifyingKey)
+	head, err := j.getHead(currentUID, currentVerifyingKey, extra)
 	if err != nil {
 		return err
 	}

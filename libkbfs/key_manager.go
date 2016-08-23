@@ -229,14 +229,9 @@ func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
 	md *RootMetadata, keyGen KeyGen, wKeys map[keybase1.UID][]CryptPublicKey,
 	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
 	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) error {
-	wkb, rkb, err := md.bareMd.GetTLFKeyBundles(keyGen)
-	if err != nil {
-		return err
-	}
 
-	newServerKeys, err := fillInDevices(km.config.Crypto(),
-		wkb, rkb, wKeys, rKeys,
-		ePubKey, ePrivKey, tlfCryptKey)
+	newServerKeys, err := md.fillInDevices(km.config.Crypto(),
+		keyGen, wKeys, rKeys, ePubKey, ePrivKey, tlfCryptKey)
 	if err != nil {
 		return err
 	}
@@ -509,18 +504,19 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	if !incKeyGen {
 		// See if there is at least one new device in relation to the
 		// current key bundle
-		wkb, rkb, err := md.bareMd.GetTLFKeyBundles(currKeyGen)
+		// MDv3 TODO: pass key bundles
+		rDkim, wDkim, err := md.bareMd.GetUserDeviceKeyInfoMaps(currKeyGen, nil)
 		if err != nil {
 			return false, nil, err
 		}
 
-		newWriterUsers = km.usersWithNewDevices(ctx, md.TlfID(), wkb.WKeys, wKeys)
-		newReaderUsers = km.usersWithNewDevices(ctx, md.TlfID(), rkb.RKeys, rKeys)
+		newWriterUsers = km.usersWithNewDevices(ctx, md.TlfID(), wDkim, wKeys)
+		newReaderUsers = km.usersWithNewDevices(ctx, md.TlfID(), rDkim, rKeys)
 		addNewWriterDevice = len(newWriterUsers) > 0
 		addNewReaderDevice = len(newReaderUsers) > 0
 
-		wRemoved := km.usersWithRemovedDevices(ctx, md.TlfID(), wkb.WKeys, wKeys)
-		rRemoved := km.usersWithRemovedDevices(ctx, md.TlfID(), rkb.RKeys, rKeys)
+		wRemoved := km.usersWithRemovedDevices(ctx, md.TlfID(), wDkim, wKeys)
+		rRemoved := km.usersWithRemovedDevices(ctx, md.TlfID(), rDkim, rKeys)
 		incKeyGen = len(wRemoved) > 0 || len(rRemoved) > 0
 
 		promotedReaders = make(map[keybase1.UID]bool, len(rRemoved))
@@ -599,13 +595,14 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 			// If there are readers that need to be promoted to writers, do
 			// that here.
-			wkb, rkb, err := md.bareMd.GetTLFKeyBundles(keyGen)
+			// MDv3 TODO: pass key bundles
+			rDkim, wDkim, err := md.bareMd.GetUserDeviceKeyInfoMaps(keyGen, nil)
 			if err != nil {
 				return false, nil, err
 			}
 			for u := range promotedReaders {
-				wkb.WKeys[u] = rkb.RKeys[u]
-				delete(rkb.RKeys, u)
+				wDkim[u] = rDkim[u]
+				delete(rDkim, u)
 			}
 
 			err = km.updateKeyBundle(ctx, md, keyGen, wKeys, rKeys,
@@ -656,19 +653,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	km.config.Reporter().Notify(ctx, rekeyNotification(ctx, km.config, resolvedHandle,
 		false))
 
-	newWriterKeys := TLFWriterKeyBundle{
-		WKeys:        make(UserDeviceKeyInfoMap),
-		TLFPublicKey: pubKey,
-		// TLFEphemeralPublicKeys will be filled in by updateKeyBundle
-	}
-	newReaderKeys := TLFReaderKeyBundle{
-		RKeys: make(UserDeviceKeyInfoMap),
-		// TLFReaderEphemeralPublicKeys will be filled in by updateKeyBundle
-	}
-	err = md.AddNewKeys(newWriterKeys, newReaderKeys)
-	if err != nil {
-		return false, nil, err
-	}
+	md.NewKeyGeneration(pubKey)
 	currKeyGen = md.LatestKeyGeneration()
 	err = km.updateKeyBundle(ctx, md, currKeyGen, wKeys, rKeys, ePubKey,
 		ePrivKey, tlfCryptKey)
@@ -679,16 +664,16 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 
 	// Delete server-side key halves for any revoked devices.
 	for keygen := KeyGen(FirstValidKeyGen); keygen <= currKeyGen; keygen++ {
-		wkb, rkb, err := md.bareMd.GetTLFKeyBundles(keygen)
+		rDkim, wDkim, err := md.bareMd.GetUserDeviceKeyInfoMaps(keygen, md.extra)
 		if err != nil {
 			return false, nil, err
 		}
 
-		err = km.deleteKeysForRemovedDevices(ctx, md, wkb.WKeys, wKeys)
+		err = km.deleteKeysForRemovedDevices(ctx, md, wDkim, wKeys)
 		if err != nil {
 			return false, nil, err
 		}
-		err = km.deleteKeysForRemovedDevices(ctx, md, rkb.RKeys, rKeys)
+		err = km.deleteKeysForRemovedDevices(ctx, md, rDkim, rKeys)
 		if err != nil {
 			return false, nil, err
 		}

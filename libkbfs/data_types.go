@@ -175,6 +175,9 @@ const (
 	// InitialExtraMetadataVer is the first metadata version that did
 	// include support for extra MD fields.
 	InitialExtraMetadataVer = 2
+	// SegregatedKeyBundlesVer is the first metadata version to allow separate
+	// storage of key bundles.
+	SegregatedKeyBundlesVer = 3
 )
 
 // DataVer is the type of a version for marshalled KBFS data

@@ -68,7 +68,8 @@ func (j journalMDOps) getHeadFromJournal(
 				bid, head.BID())
 	}
 
-	headBareHandle, err := head.MakeBareTlfHandle()
+	// MDv3 TODO: pass key bundles when needed
+	headBareHandle, err := head.MakeBareTlfHandle(nil)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -149,7 +150,8 @@ func (j journalMDOps) getRangeFromJournal(
 			bid, head.BID())
 	}
 
-	bareHandle, err := head.MakeBareTlfHandle()
+	// MDv3 TODO: pass key bundles when needed
+	bareHandle, err := head.MakeBareTlfHandle(nil)
 	if err != nil {
 		return nil, err
 	}

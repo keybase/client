@@ -359,7 +359,9 @@ func (md *MDServerDisk) GetRange(ctx context.Context, id TlfID,
 }
 
 // Put implements the MDServer interface for MDServerDisk.
-func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned) error {
+func (md *MDServerDisk) Put(ctx context.Context, rmds *RootMetadataSigned,
+	extra ExtraMetadata) error {
+
 	currentUID, currentVerifyingKey, err :=
 		getCurrentUIDAndVerifyingKey(ctx, md.config.currentInfoGetter())
 	if err != nil {
