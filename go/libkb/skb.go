@@ -69,6 +69,13 @@ type SKBPriv struct {
 	PassphraseGeneration int    `codec:"passphrase_generation,omitempty"`
 }
 
+func ToServerSKB(gc *GlobalContext, key GenericKey, tsec Triplesec, gen PassphraseGeneration) (ret *SKB, err error) {
+	if pgp, ok := key.(*PGPKeyBundle); ok {
+		return pgp.ToServerSKB(gc, tsec, gen)
+	}
+	return nil, errors.New("Only PGP keys can be encrypted for server sync")
+}
+
 func (key *PGPKeyBundle) ToServerSKB(gc *GlobalContext, tsec Triplesec, gen PassphraseGeneration) (ret *SKB, err error) {
 
 	ret = NewSKB(gc)

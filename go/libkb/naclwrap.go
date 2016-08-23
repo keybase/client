@@ -496,14 +496,6 @@ func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
 
-// NaCl keys are never wrapped for the server.
-func (k NaclSigningKeyPair) ToServerSKB(gc *GlobalContext, t Triplesec, gen PassphraseGeneration) (*SKB, error) {
-	return nil, fmt.Errorf("NaCl keys should never be encrypted for the server.")
-}
-func (k NaclDHKeyPair) ToServerSKB(gc *GlobalContext, t Triplesec, gen PassphraseGeneration) (*SKB, error) {
-	return nil, fmt.Errorf("NaCl keys should never be encrypted for the server.")
-}
-
 func (k NaclSigningKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
 	data, err := lks.Encrypt(k.Private[:])
 	if err != nil {
