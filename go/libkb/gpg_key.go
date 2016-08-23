@@ -89,8 +89,8 @@ func (g *GPGKey) DecryptFromString(ciphertext string) (msg []byte, sender keybas
 	return msg, sender, errors.New("DecryptFromString not implemented")
 }
 
-func (g *GPGKey) ToLksSKB(lks *LKSec) (*SKB, error) {
-	return nil, errors.New("ToLksSKB not implemented")
+func (g *GPGKey) ExportPublicAndPrivate() (RawPublicKey, RawPrivateKey, error) {
+	return nil, nil, errors.New("ExportPublicAndPrivate not implemented for GPGKey")
 }
 
 func (g *GPGKey) VerboseDescription() string {

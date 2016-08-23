@@ -4,10 +4,8 @@
 package libkb
 
 import (
-	"fmt"
-	"strings"
-
 	keybase1 "github.com/keybase/client/go/protocol"
+	"strings"
 )
 
 type AlgoType int
@@ -15,6 +13,9 @@ type AlgoType int
 type VerifyContext interface {
 	Debug(format string, args ...interface{})
 }
+
+type RawPublicKey []byte
+type RawPrivateKey []byte
 
 type GenericKey interface {
 	GetKID() keybase1.KID
@@ -42,7 +43,6 @@ type GenericKey interface {
 	// the KID of the key that sent the message (if applicable).
 	DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error)
 
-	ToLksSKB(lks *LKSec) (*SKB, error)
 	VerboseDescription() string
 	CheckSecretKey() error
 	CanSign() bool
@@ -50,6 +50,10 @@ type GenericKey interface {
 	CanDecrypt() bool
 	HasSecretKey() bool
 	Encode() (string, error) // encode public key to string
+
+	// ExportPublicAndPrivate to special-purpose types so there is no way we can
+	// accidentally reverse them.
+	ExportPublicAndPrivate() (public RawPublicKey, private RawPrivateKey, err error)
 }
 
 func CanEncrypt(key GenericKey) bool {
@@ -61,17 +65,6 @@ func CanEncrypt(key GenericKey) bool {
 	default:
 		return false
 	}
-}
-
-func WriteLksSKBToKeyring(g *GlobalContext, k GenericKey, lks *LKSec, lctx LoginContext) (*SKB, error) {
-	skb, err := k.ToLksSKB(lks)
-	if err != nil {
-		return nil, fmt.Errorf("k.ToLksSKB() error: %s", err)
-	}
-	if err := skbPushAndSave(g, skb, lctx); err != nil {
-		return nil, err
-	}
-	return skb, nil
 }
 
 func skbPushAndSave(g *GlobalContext, skb *SKB, lctx LoginContext) error {

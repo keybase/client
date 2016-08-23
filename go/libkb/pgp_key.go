@@ -748,6 +748,41 @@ func (k *PGPKeyBundle) CanEncrypt() bool { return false }
 // for metadata operations
 func (k *PGPKeyBundle) CanDecrypt() bool { return false }
 
+func (k *PGPKeyBundle) ExportPublicAndPrivate() (public RawPublicKey, private RawPrivateKey, err error) {
+	var publicKey, privateKey bytes.Buffer
+
+	serializePublic := func() error { return k.Entity.Serialize(&publicKey) }
+	serializePrivate := func() error { return k.SerializePrivate(&privateKey) }
+
+	// NOTE(maxtaco): For imported keys, it is crucial to serialize the public key
+	// **before** the private key, since the latter operation destructively
+	// removes signature subpackets from the key serialization.
+	// This was the cause of keybase/keybase-issues#1906.
+	//
+	// Urg, there's still more.  For generated keys, it's the opposite.
+	// We have to sign the key components first (via SerializePrivate)
+	// so we can export them publicly.
+
+	if k.Generated {
+		err = serializePrivate()
+		if err == nil {
+			err = serializePublic()
+		}
+	} else {
+		err = serializePublic()
+
+		if err == nil {
+			err = serializePrivate()
+		}
+	}
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return RawPublicKey(publicKey.Bytes()), RawPrivateKey(privateKey.Bytes()), nil
+}
+
 //===================================================
 
 // Fulfill the TrackIdComponent interface

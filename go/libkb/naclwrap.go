@@ -496,32 +496,12 @@ func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
 
-func (k NaclSigningKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
-	data, err := lks.Encrypt(k.Private[:])
-	if err != nil {
-		return nil, err
-	}
-	ret := NewSKB(lks.G())
-	ret.Pub = k.GetKID().ToBytes()
-	ret.Type = KIDNaclEddsa
-	ret.Priv.Encryption = LKSecVersion
-	ret.Priv.Data = data
-	ret.Priv.PassphraseGeneration = int(lks.Generation())
-	return ret, nil
+func (k NaclSigningKeyPair) ExportPublicAndPrivate() (RawPublicKey, RawPrivateKey, error) {
+	return RawPublicKey(k.GetKID().ToBytes()), RawPrivateKey(k.Private[:]), nil
 }
 
-func (k NaclDHKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
-	data, err := lks.Encrypt(k.Private[:])
-	if err != nil {
-		return nil, err
-	}
-	ret := NewSKB(lks.G())
-	ret.Pub = k.GetKID().ToBytes()
-	ret.Type = KIDNaclDH
-	ret.Priv.Encryption = LKSecVersion
-	ret.Priv.Data = data
-	ret.Priv.PassphraseGeneration = int(lks.Generation())
-	return ret, nil
+func (k NaclDHKeyPair) ExportPublicAndPrivate() (RawPublicKey, RawPrivateKey, error) {
+	return RawPublicKey(k.GetKID().ToBytes()), RawPrivateKey(k.Private[:]), nil
 }
 
 func makeNaclSigningKeyPair(reader io.Reader) (NaclSigningKeyPair, error) {
