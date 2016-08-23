@@ -1,4 +1,4 @@
-package storage
+package gregor
 
 import (
 	"bytes"
@@ -242,7 +242,7 @@ func (u *user) replayLog(now time.Time, d gregor.DeviceID, t time.Time) (msgs []
 
 		msgs = append(msgs, msg.m)
 	}
-	msgs = filterFutureDismissals(msgs, allmsgs, t)
+	msgs = FilterFutureDismissals(msgs, allmsgs, t)
 	return
 }
 

@@ -1,4 +1,4 @@
-package storage
+package gregor
 
 import (
 	"bytes"
@@ -73,7 +73,11 @@ func (c *Client) Restore() error {
 		return err
 	}
 
-	return c.sm.InitState(state)
+	if err := c.sm.InitState(state); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type errHashMismatch struct{}

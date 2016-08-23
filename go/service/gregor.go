@@ -12,6 +12,7 @@ import (
 
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/engine"
+	grclient "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -19,8 +20,6 @@ import (
 	"github.com/keybase/gregor"
 	"github.com/keybase/gregor/protocol/chat1"
 	"github.com/keybase/gregor/protocol/gregor1"
-	grclient "github.com/keybase/gregor/rpc/client"
-	grstorage "github.com/keybase/gregor/storage"
 )
 
 type IdentifyUIHandler struct {
@@ -153,7 +152,7 @@ func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
 func (g *gregorHandler) resetGregorClient() (err error) {
 	defer g.G().Trace("gregorHandler#newGregorClient", func() error { return err })()
 	of := gregor1.ObjFactory{}
-	sm := grstorage.NewMemEngine(of, clockwork.NewRealClock())
+	sm := grclient.NewMemEngine(of, clockwork.NewRealClock())
 
 	var guid gregor.UID
 	var gdid gregor.DeviceID

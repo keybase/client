@@ -1,12 +1,13 @@
-package storage
+package gregor
 
 import (
-	"github.com/keybase/gregor"
 	"time"
+
+	"github.com/keybase/gregor"
 )
 
-func filterFutureDismissals(msgs []gregor.InBandMessage, allmsgs map[string]gregor.InBandMessage,
-	cutoff time.Time) []gregor.InBandMessage {
+func FilterFutureDismissals(msgs []gregor.InBandMessage,
+	allmsgs map[string]gregor.InBandMessage, cutoff time.Time) []gregor.InBandMessage {
 
 	var res []gregor.InBandMessage
 	for _, m := range msgs {
