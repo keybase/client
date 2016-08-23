@@ -7,31 +7,58 @@
 package libkb
 
 import (
+	"fmt"
 	"net"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
-func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
-	if err = MakeParentDirs(s.bindFile); err != nil {
-		return
+func (s SocketInfo) BindToSocket() (net.Listener, error) {
+	bindFile := s.bindFile
+	if err := MakeParentDirs(bindFile); err != nil {
+		return nil, err
 	}
-	s.G().Log.Info("Binding to unix:%s", s.bindFile)
-	return net.Listen("unix", s.bindFile)
+
+	// Path can't be longer than 108 characters.
+	// In this case Chdir to the file dir first.
+	// https://github.com/golang/go/issues/6895#issuecomment-98006662
+	if len(bindFile) >= 108 {
+		if err := os.Chdir(filepath.Dir(bindFile)); err != nil {
+			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
+		}
+		bindFile = filepath.Base(bindFile)
+	}
+
+	s.G().Log.Info("Binding to unix:%s", bindFile)
+	return net.Listen("unix", bindFile)
 }
 
-func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
+func (s SocketInfo) DialSocket() (net.Conn, error) {
+	errs := []error{}
 	for _, file := range s.dialFiles {
-		ret, err = s.dialSocket(file)
+		ret, err := s.dialSocket(file)
 		if err == nil {
 			return ret, nil
 		}
+		errs = append(errs, err)
 	}
-	return ret, err
+	return nil, CombineErrors(errs...)
 }
 
-func (s SocketInfo) dialSocket(file string) (ret net.Conn, err error) {
-	s.G().Log.Debug("Dialing unix:%s", file)
-	return net.Dial("unix", file)
+func (s SocketInfo) dialSocket(dialFile string) (net.Conn, error) {
+	// Path can't be longer than 108 characters.
+	// In this case Chdir to the file dir first.
+	// https://github.com/golang/go/issues/6895#issuecomment-98006662
+	if len(dialFile) >= 108 {
+		if err := os.Chdir(filepath.Dir(dialFile)); err != nil {
+			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
+		}
+		dialFile = filepath.Base(dialFile)
+	}
+
+	s.G().Log.Debug("Dialing unix:%s", dialFile)
+	return net.Dial("unix", dialFile)
 }
 
 func NewSocket(g *GlobalContext) (ret Socket, err error) {

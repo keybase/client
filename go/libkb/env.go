@@ -506,10 +506,10 @@ func (e *Env) sandboxSocketFile() string {
 	return e.GetString(
 		func() string {
 			sandboxCacheDir := e.homeFinder.SandboxCacheDir()
-			if sandboxCacheDir != "" {
-				return filepath.Join(sandboxCacheDir, SocketFile)
+			if sandboxCacheDir == "" {
+				return ""
 			}
-			return ""
+			return filepath.Join(sandboxCacheDir, SocketFile)
 		},
 	)
 }
