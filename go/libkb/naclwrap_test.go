@@ -26,7 +26,7 @@ func TestVerifyStringAccept(t *testing.T) {
 
 	t.Logf("sig: %+v", sig)
 
-	_, err = keyPair.VerifyString(sig, msg)
+	_, err = keyPair.VerifyString(nil, sig, msg)
 	if err != nil {
 		t.Error(err)
 	}
@@ -52,14 +52,14 @@ func TestVerifyStringReject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = keyPair.VerifyString(base64.StdEncoding.EncodeToString(append(sigBytes, []byte("corruption")...)), msg)
+	_, err = keyPair.VerifyString(nil, base64.StdEncoding.EncodeToString(append(sigBytes, []byte("corruption")...)), msg)
 	if err == nil {
 		t.Error("Corrupt signature unexpectedly passes")
 	}
 
 	// Corrupt message.
 
-	_, err = keyPair.VerifyString(sig, append(msg, []byte("corruption")...))
+	_, err = keyPair.VerifyString(nil, sig, append(msg, []byte("corruption")...))
 	if err == nil {
 		t.Error("Signature for corrupt message unexpectedly passes")
 	}
@@ -76,21 +76,21 @@ func TestVerifyStringReject(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = keyPair.VerifyString(sig2, msg)
+	_, err = keyPair.VerifyString(nil, sig2, msg)
 	if err == nil {
 		t.Error("Signature with different key unexpectedly passes")
 	}
 
 	// Append different signature.
 
-	_, err = keyPair.VerifyString(sig+sig2, msg)
+	_, err = keyPair.VerifyString(nil, sig+sig2, msg)
 	if err == nil {
 		t.Error("Signature with appended different signature unexpectedly passes")
 	}
 
 	// Prepend invalid signature.
 
-	_, err = keyPair.VerifyString(sig2+sig, msg)
+	_, err = keyPair.VerifyString(nil, sig2+sig, msg)
 	if err == nil {
 		t.Error("Signature with prepended invalid signature unexpectedly passes")
 	}

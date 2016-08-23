@@ -185,7 +185,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 		return fmt.Errorf("ImportKey error: %s", err)
 	}
 
-	if err := bundle.Unlock("Import of key into keybase keyring", ctx.SecretUI); err != nil {
+	if err := bundle.Unlock(e.G(), "Import of key into keybase keyring", ctx.SecretUI); err != nil {
 		return err
 	}
 

@@ -367,7 +367,7 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.Si
 	return
 }
 
-func (k NaclSigningKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
+func (k NaclSigningKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
 	var keyInSignature GenericKey
 	var fullSigBody []byte
 	keyInSignature, msg, fullSigBody, err = NaclVerifyAndExtract(sig)
@@ -418,8 +418,8 @@ func NaclVerifyAndExtract(s string) (key GenericKey, payload []byte, fullBody []
 	return key, payload, fullBody, nil
 }
 
-func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
-	extractedMsg, resID, err := k.VerifyStringAndExtract(sig)
+func (k NaclSigningKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
+	extractedMsg, resID, err := k.VerifyStringAndExtract(ctx, sig)
 	if err != nil {
 		return
 	}
@@ -436,12 +436,12 @@ func (k NaclDHKeyPair) SignToString(msg []byte) (sig string, id keybase1.SigID, 
 	return
 }
 
-func (k NaclDHKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
+func (k NaclDHKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
 	err = KeyCannotVerifyError{}
 	return
 }
 
-func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
+func (k NaclDHKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
 	err = KeyCannotVerifyError{}
 	return
 }

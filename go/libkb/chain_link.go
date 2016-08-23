@@ -553,7 +553,7 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 		return
 	}
 
-	if sigID, err = key.VerifyString(c.unpacked.sig, c.getFixedPayload()); err != nil {
+	if sigID, err = key.VerifyString(c.G().Log, c.unpacked.sig, c.getFixedPayload()); err != nil {
 		return cached, BadSigError{err.Error()}
 	}
 	c.unpacked.sigID = sigID

@@ -278,7 +278,7 @@ func (e *Kex2Provisioner) checkReverseSig(jw *jsonw.Wrapper) error {
 	if err != nil {
 		return err
 	}
-	_, err = keypair.VerifyString(revsig, msg)
+	_, err = keypair.VerifyString(e.G().Log, revsig, msg)
 	if err != nil {
 		return err
 	}

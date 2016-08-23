@@ -73,11 +73,11 @@ func (g *GPGKey) SignToString(msg []byte) (sig string, id keybase1.SigID, err er
 	return sig, id, nil
 }
 
-func (g *GPGKey) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
+func (g *GPGKey) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
 	return msg, id, errors.New("VerifyStringAndExtract not implemented")
 }
 
-func (g *GPGKey) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
+func (g *GPGKey) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
 	return id, errors.New("VerifyString not implemented")
 }
 
@@ -87,10 +87,6 @@ func (g *GPGKey) EncryptToString(plaintext []byte, sender GenericKey) (ciphertex
 
 func (g *GPGKey) DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error) {
 	return msg, sender, errors.New("DecryptFromString not implemented")
-}
-
-func (g *GPGKey) ToServerSKB(gc *GlobalContext, ts Triplesec, gen PassphraseGeneration) (*SKB, error) {
-	return nil, errors.New("ToServerSKB not implemented")
 }
 
 func (g *GPGKey) ToLksSKB(lks *LKSec) (*SKB, error) {

@@ -254,7 +254,7 @@ func (e *PGPKeyImportEngine) unlock(ctx *Context) (err error) {
 	if e.arg.Pregen == nil || !e.arg.DoUnlock || !e.arg.Pregen.HasSecretKey() {
 		e.G().Log.Debug("| short circuit unlock function")
 	} else {
-		err = e.arg.Pregen.Unlock("import into private keychain", ctx.SecretUI)
+		err = e.arg.Pregen.Unlock(e.G(), "import into private keychain", ctx.SecretUI)
 	}
 	return
 
