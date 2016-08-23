@@ -16,8 +16,7 @@ func TestEnvDarwin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Switch to env.GetSandboxCacheDir() when we change locations
-	cacheDir := env.GetCacheDir()
+	cacheDir := env.GetSandboxCacheDir()
 	expectedSockFile := filepath.Join(cacheDir, "keybased.sock")
 	if sockFile != expectedSockFile {
 		t.Fatalf("Clients expect sock file to be %s", expectedSockFile)
