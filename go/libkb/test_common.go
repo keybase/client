@@ -21,7 +21,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/gregor"
+	"github.com/keybase/client/go/gregor"
 )
 
 // TestConfig tracks libkb config during a test

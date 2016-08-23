@@ -2,7 +2,7 @@
   "protocol": "gregor",
   "imports": [
     {
-      "path": "github.com/keybase/gregor/protocol/gregor1",
+      "path": "github.com/keybase/client/go/protocol/gregor1",
       "type": "idl",
       "import_as": "gregor1"
     }

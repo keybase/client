@@ -14,7 +14,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	gregor1 "github.com/keybase/gregor/protocol/gregor1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
 )
 

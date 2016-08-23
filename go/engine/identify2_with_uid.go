@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
+	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
-	gregor "github.com/keybase/gregor"
 )
 
 var locktab libkb.LockTable

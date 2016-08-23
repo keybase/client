@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/gregor"
 )
 
 type ObjFactory struct{}
@@ -16,6 +16,7 @@ func (o ObjFactory) MakeUID(b []byte) (gregor.UID, error)           { return UID
 func (o ObjFactory) MakeMsgID(b []byte) (gregor.MsgID, error)       { return MsgID(b), nil }
 func (o ObjFactory) MakeDeviceID(b []byte) (gregor.DeviceID, error) { return DeviceID(b), nil }
 func (o ObjFactory) MakeBody(b []byte) (gregor.Body, error)         { return Body(b), nil }
+func (o ObjFactory) MakeSystem(s string) (gregor.System, error)     { return System(s), nil }
 func (o ObjFactory) MakeCategory(s string) (gregor.Category, error) { return Category(s), nil }
 
 func castUID(uid gregor.UID) (ret UID, err error) {
@@ -261,6 +262,12 @@ func (o ObjFactory) MakeReminderSetFromReminders(reminders []gregor.Reminder, mo
 		}
 	}
 	return ret, nil
+}
+
+func (o ObjFactory) MakeOutOfBandMessage(uid gregor.UID, system gregor.System, body gregor.Body) gregor.Message {
+	return Message{
+		Oobm_: &OutOfBandMessage{Uid_: uid.Bytes(), System_: System(system.String()), Body_: body.Bytes()},
+	}
 }
 
 var _ gregor.ObjFactory = ObjFactory{}

@@ -4,8 +4,8 @@
 package keybase1
 
 import (
+	chat1 "github.com/keybase/client/go/protocol/chat1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	chat1 "github.com/keybase/gregor/protocol/chat1"
 	context "golang.org/x/net/context"
 )
 

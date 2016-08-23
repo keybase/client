@@ -9,8 +9,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	gregor "github.com/keybase/gregor"
-	gregor1 "github.com/keybase/gregor/protocol/gregor1"
+	gregor "github.com/keybase/client/go/gregor"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	context "golang.org/x/net/context"
 	"time"
 )

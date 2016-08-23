@@ -7,7 +7,7 @@ AVDLC=node_modules/.bin/avdlc
 
 $(AVDL2JSON): config
 
-json/%.json: avdl/%.avdl
+json/%.json: avdl/%.avdl avdl/gregor1/%.avdl avdl/chat1/%.avdl
 	$(AVDL2JSON) -i $< -o $@~ && mv $@~ $@
 
 config:
@@ -24,7 +24,11 @@ build-stamp: avdl/*.avdl $(AVDL2JSON) | config
 
 go-build-stamp: avdl/*.avdl $(AVDLC) | config
 	@mkdir -p ../go/protocol
+	@mkdir -p ../go/protocol/gregor1
+	@mkdir -p ../go/protocol/chat1
 	$(AVDLC) -b -l go -o ../go/protocol avdl/*.avdl
+	$(AVDLC) -b -l go -o ../go/protocol/gregor1 avdl/gregor1/*.avdl
+	$(AVDLC) -b -l go -o ../go/protocol/chat1 avdl/chat1/*.avdl
 	(cd ../go/protocol && go fmt ./...)
 	date > $@
 
@@ -41,6 +45,8 @@ js/keybase_v1.js: build-stamp | config
 clean:
 	rm -rf json/*.json js/*.js *build-stamp
 	$(AVDLC) -c -b -l go -o ../go/protocol avdl/*.avdl
+	$(AVDLC) -c -b -l go -o ../go/protocol/gregor1 avdl/gregor1/*.avdl
+	$(AVDLC) -c -b -l go -o ../go/protocol/chat1 avdl/chat1/*.avdl
 
 fmt:
 	@./fmt.sh

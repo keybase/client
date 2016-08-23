@@ -1,12 +1,12 @@
-package gregor
+package storage
 
 import (
 	"bytes"
 	"errors"
 	"time"
 
-	"github.com/keybase/gregor"
-	"github.com/keybase/gregor/protocol/gregor1"
+	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"golang.org/x/net/context"
 
 	rpc "github.com/keybase/go-framed-msgpack-rpc"

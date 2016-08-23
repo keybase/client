@@ -5,7 +5,7 @@ package libkb
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/gregor"
+	"github.com/keybase/client/go/gregor"
 )
 
 type IdentifyState struct {

@@ -23,8 +23,8 @@ import (
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
-	gregor "github.com/keybase/gregor"
-	gregor1 "github.com/keybase/gregor/protocol/gregor1"
+	gregor "github.com/keybase/client/go/gregor"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
 type CommandLine interface {

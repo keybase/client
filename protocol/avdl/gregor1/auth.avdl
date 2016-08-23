@@ -6,6 +6,7 @@ protocol auth {
 	record AuthResult {
 		UID uid;
 		SessionID sid;
+		bool isAdmin;
 	}
 	AuthResult authenticateSessionToken(SessionToken session);
 }

@@ -2,7 +2,7 @@
   "protocol": "chatLocal",
   "imports": [
     {
-      "path": "github.com/keybase/gregor/protocol/chat1",
+      "path": "github.com/keybase/client/go/protocol/chat1",
       "type": "idl",
       "import_as": "chat1"
     },

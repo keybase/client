@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/go-codec/codec"
-	"github.com/keybase/gregor"
 )
 
 func (u UID) Bytes() []byte                   { return []byte(u) }
@@ -37,6 +37,9 @@ func (t TimeOrOffset) Offset() *time.Duration {
 	}
 	d := time.Duration(t.Offset_) * time.Millisecond
 	return &d
+}
+func (t TimeOrOffset) IsZero() bool {
+	return t.Time_.IsZero() && t.Offset_ == 0
 }
 
 func (t TimeOrOffset) Before(t2 time.Time) bool {
@@ -98,7 +101,7 @@ func (m Metadata) DeviceID() gregor.DeviceID {
 func (m Metadata) InBandMsgType() gregor.InBandMsgType { return gregor.InBandMsgType(m.InBandMsgType_) }
 
 func (m Metadata) String() string {
-	return fmt.Sprintf("[ CTime: %s Type: %s ID: %s UID: %s ]", m.CTime(),
+	return fmt.Sprintf("[ CTime: %s Type: %d ID: %s UID: %s ]", m.CTime(),
 		m.InBandMsgType(), m.MsgID(), m.UID())
 }
 

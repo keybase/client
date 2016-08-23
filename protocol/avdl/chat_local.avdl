@@ -2,7 +2,7 @@
 
 protocol chatLocal {
 
-  import idl "github.com/keybase/gregor/protocol/chat1" as chat1;
+  import idl "github.com/keybase/client/go/protocol/chat1" as chat1;
   import idl "common.avdl";
 
   record MessageText {

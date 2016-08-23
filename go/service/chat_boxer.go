@@ -15,7 +15,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/gregor/protocol/chat1"
+	"github.com/keybase/client/go/protocol/chat1"
 )
 
 type chatBoxer struct {

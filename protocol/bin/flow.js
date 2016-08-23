@@ -12,13 +12,13 @@ var projects = [
     incomingMaps: {},
     seenTypes: {}},
   {
-    root: '../go/vendor/github.com/keybase/gregor/protocol/gregor1',
+    root: './avdl/gregor1',
     out: 'js/flow-types-gregor.js',
     incomingMaps: {},
     seenTypes: {},
   },
   {
-    root: '../go/vendor/github.com/keybase/gregor/protocol/chat1',
+    root: './avdl/chat1',
     import: "import * as gregor1 from './flow-types-gregor'\n",
     out: 'js/flow-types-chat.js',
     incomingMaps: {},

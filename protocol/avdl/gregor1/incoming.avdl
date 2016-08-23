@@ -9,6 +9,7 @@ protocol incoming {
 	void consumeMessage(Message m);
 	void consumePublishMessage(Message m);
 	string ping();
+	string version(UID uid);
 
 	State state(UID uid, DeviceID deviceid, TimeOrOffset timeOrOffset);
 	/**

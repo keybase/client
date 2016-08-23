@@ -1,7 +1,7 @@
 @namespace("chat.1")
 protocol common {
 
-  import idl "github.com/keybase/gregor/protocol/gregor1" as gregor1;
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
 
   @typedef("bytes")  record ThreadID {}
   @typedef("uint")   record MessageID {}
@@ -41,11 +41,15 @@ protocol common {
     ConversationID conversationID;
   }
 
-  record Conversation {
-    ConversationMetadata metadata;
-
+  record ConversationReaderInfo {
     gregor1.Time mtime; // The last time the convo was modified from the user perspective
     MessageID readMsgid; // The message ID the user has read up to in the convo
+    MessageID maxMsgid; // The max message ID in the convo
+  }
+
+  record Conversation {
+    ConversationMetadata metadata;
+    union { null, ConversationReaderInfo } readerInfo; // information about the convo from a user perspective
 
     // maxHeaders is the maximum header for each messageType in the conversation.
     array<MessageServerHeader> maxHeaders;

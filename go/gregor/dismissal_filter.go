@@ -1,15 +1,11 @@
 package gregor
 
-import (
-	"time"
+import "time"
 
-	"github.com/keybase/gregor"
-)
+func FilterFutureDismissals(msgs []InBandMessage,
+	allmsgs map[string]InBandMessage, cutoff time.Time) []InBandMessage {
 
-func FilterFutureDismissals(msgs []gregor.InBandMessage,
-	allmsgs map[string]gregor.InBandMessage, cutoff time.Time) []gregor.InBandMessage {
-
-	var res []gregor.InBandMessage
+	var res []InBandMessage
 	for _, m := range msgs {
 		update := m.ToStateUpdateMessage()
 		if update == nil {

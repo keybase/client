@@ -17,7 +17,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	"github.com/keybase/gregor"
+	"github.com/keybase/client/go/gregor"
 )
 
 type Service struct {

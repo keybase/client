@@ -11,13 +11,13 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/gregor"
-	"github.com/keybase/gregor/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/gregor1"
 )
 
 func TestGregorHandler(t *testing.T) {
@@ -250,6 +250,9 @@ func (m mockGregord) State(_ context.Context, arg gregor1.StateArg) (gregor1.Sta
 }
 func (m mockGregord) StateByCategoryPrefix(_ context.Context, _ gregor1.StateByCategoryPrefixArg) (gregor1.State, error) {
 	return gregor1.State{}, errors.New("unimplemented")
+}
+func (m mockGregord) Version(_ context.Context, _ gregor1.UID) (string, error) {
+	return "mock", nil
 }
 
 func (m mockGregord) newIbm(uid gregor1.UID) gregor1.Message {

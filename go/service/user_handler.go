@@ -9,8 +9,8 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/gregor"
-	gregor1 "github.com/keybase/gregor/protocol/gregor1"
+	"github.com/keybase/client/go/gregor"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
 const userHandlerName = "userHandler"
