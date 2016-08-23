@@ -10,7 +10,7 @@ import type {CancelHandlerType} from '../engine/session'
 import type {ConfigState} from '../reducers/config'
 import type {FriendshipUserInfo} from '../profile/friendships'
 import type {RemoteProof, LinkCheckResult, UserCard, incomingCallMapType} from '../constants/types/flow-types'
-import type {ShowNonUser, PendingIdentify, Proof} from '../constants/tracker'
+import type {PendingIdentify, Proof} from '../constants/tracker'
 import type {State as RootTrackerState} from '../reducers/tracker'
 import type {TypedState} from '../constants/reducer'
 import {
@@ -193,10 +193,13 @@ export function registerIdentifyUi (): TrackerActionCreator {
       const username = sessionIDToUsername[session.id]
 
       if (username) {
-        dispatch({type: Constants.identifyFinished, error: true, payload: {
-          username,
-          error: 'Identify timed out',
-        }})
+        dispatch({
+          type: Constants.identifyFinished,
+          error: true,
+          payload: {
+            username,
+            error: 'Identify timed out',
+          }})
       }
     }
 
@@ -458,14 +461,16 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
     },
 
     'keybase.1.identifyUi.displayTLFCreateWithInvite': (args, response) => {
-      dispatch(({payload: {
-        folderName: args.folderName,
-        isPrivate: args.isPrivate,
-        assertion: args.assertion,
-        socialAssertion: args.socialAssertion,
-        inviteLink: args.inviteLink,
-        throttled: args.throttled,
-      }, type: Constants.showNonUser}: ShowNonUser))
+      dispatch({
+        type: Constants.showNonUser,
+        payload: {
+          folderName: args.folderName,
+          isPrivate: args.isPrivate,
+          assertion: args.assertion,
+          socialAssertion: args.socialAssertion,
+          inviteLink: args.inviteLink,
+          throttled: args.throttled,
+        }})
       response.result()
     },
     'keybase.1.identifyUi.displayKey': ({sessionID, key}, response) => {
