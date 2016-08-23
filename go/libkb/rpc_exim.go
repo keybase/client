@@ -339,6 +339,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return GPGUnavailableError{}
 	case SCNotFound:
 		return NotFoundError{Msg: s.Desc}
+	case SCDeleted:
+		return DeletedError{Msg: s.Desc}
 	case SCDecryptionError:
 		return DecryptionError{}
 	case SCKeyRevoked:
