@@ -2,7 +2,7 @@
 import React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
-import {Box, Text, Icon, Avatar, Meta, NativeImage, NativeTouchableHighlight} from '../common-adapters/index.native'
+import {Box, Text, Icon, Avatar, Meta, NativeImage, ClickableBox} from '../common-adapters/index.native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {iconMeta} from '../common-adapters/icon.constants'
 
@@ -96,9 +96,10 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, path, onClick}:
   }
 
   const icon: IconType = styles.hasStuffIcon
+  const clickHandler = onClick ? () => onClick(path) : null
 
   return (
-    <NativeTouchableHighlight onPress={() => { onClick && onClick(path) }}>
+    <ClickableBox onClick={clickHandler}>
       <Box style={containerStyle}>
         <Box style={{...globalStyles.flexBoxRow}}>
           <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
@@ -113,7 +114,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, path, onClick}:
         </Box>
         <Box style={stylesLine} />
       </Box>
-    </NativeTouchableHighlight>
+    </ClickableBox>
   )
 }
 
