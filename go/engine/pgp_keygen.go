@@ -82,37 +82,25 @@ func (e *PGPKeyGen) Run(ctx *Context) error {
 		return err
 	}
 
-	// ask if we should push it to api server
-	push, err := ctx.PgpUI.ShouldPushPrivate(ctx.NetContext, ctx.SessionID)
+	// ask if we should push private key to api server
+	pushPrivate, err := ctx.PgpUI.ShouldPushPrivate(ctx.NetContext, ctx.SessionID)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("push private generated pgp key to API server? %v", push)
-	if push {
-		if err := e.push(ctx, eng.bundle); err != nil {
-			return err
-		}
+	e.G().Log.Debug("push private generated pgp key to API server? %v", pushPrivate)
+	if err := e.push(ctx, eng.bundle, pushPrivate); err != nil {
+		return err
 	}
 
 	// tell ui everything finished
 	return ctx.PgpUI.Finished(ctx.NetContext, ctx.SessionID)
 }
 
-func (e *PGPKeyGen) push(ctx *Context, bundle *libkb.PGPKeyBundle) (err error) {
+func (e *PGPKeyGen) push(ctx *Context, bundle *libkb.PGPKeyBundle, pushPrivate bool) (err error) {
 	e.G().Trace("PGPKeyGen.push", func() error { return err })()
 
 	tsec, gen, err := e.G().LoginState().GetVerifiedTriplesec(ctx.SecretUI)
-	if err != nil {
-		return err
-	}
-
-	skb, err := bundle.ToServerSKB(e.G(), tsec, gen)
-	if err != nil {
-		return err
-	}
-
-	armored, err := skb.ArmoredEncode()
 	if err != nil {
 		return err
 	}
@@ -132,7 +120,20 @@ func (e *PGPKeyGen) push(ctx *Context, bundle *libkb.PGPKeyBundle) (err error) {
 		return err
 	}
 	del.NewKey = bundle
-	del.EncodedPrivateKey = armored
+
+	if pushPrivate {
+		skb, err := bundle.ToServerSKB(e.G(), tsec, gen)
+		if err != nil {
+			return err
+		}
+
+		armored, err := skb.ArmoredEncode()
+		if err != nil {
+			return err
+		}
+		del.EncodedPrivateKey = armored
+	}
+
 	if err := del.Run(ctx.LoginContext); err != nil {
 		return err
 	}
