@@ -35,7 +35,7 @@
   "dependencies": {
     "deep-diff": "0.3.4",
     "deep-equal": "1.0.1",
-    "framed-msgpack-rpc": "git://github.com/keybase/node-framed-msgpack-rpc#f3e1a3eb410e0bcde950bae14ceef7015c7315c8",
+    "framed-msgpack-rpc": "1.1.13",
     "getenv": "0.6.0",
     "immutable": "3.8.1",
     "jsonfile": "2.3.1",
@@ -99,6 +99,7 @@
     "redux-devtools-dock-monitor": "1.1.1",
     "redux-devtools-log-monitor": "1.0.11",
     "redux-logger": "2.6.1",
+    "shrinkpack": "0.13.1",
     "source-map-support": "0.4.2",
     "unused-files-webpack-plugin": "2.0.4",
     "webpack": "1.13.2",
@@ -111,5 +112,5 @@
   "optionalDependencies": {
     "fsevents": "1.0.14"
   },
-  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#2c016997c78878b73a083ee223a6920e5cde39dd"
+  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#84059fd26a54f902ea1fe24804cbf1a69141c8ea"
 }
