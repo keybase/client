@@ -1555,6 +1555,13 @@ type BareRootMetadata interface {
 	GetWriterMetadataSigInfo() SignatureInfo
 	// Version returns the metadata version.
 	Version() MetadataVer
+	// GetTLFPublicKey returns the TLF public key for the give key generation.
+	GetTLFPublicKey(KeyGen) (TLFPublicKey, bool)
+	// AreKeyGenerationsEqual returns true if all key generations in the passed metadata are equal to those
+	// in this revision.
+	AreKeyGenerationsEqual(Codec, BareRootMetadata) (bool, error)
+	// GetUnresolvedParticipants returns any unresolved readers and writers present in this revision of metadata.
+	GetUnresolvedParticipants() (readers, writers []keybase1.SocialAssertion)
 }
 
 // MutableBareRootMetadata is a mutable interface to the bare serializeable MD that is signed by the reader or writer.
