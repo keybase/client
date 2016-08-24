@@ -669,11 +669,14 @@ func TestIdentify2NoSigchain(t *testing.T) {
 // error
 func TestIdentify2Deleted(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2Deleted")
-	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUserWithUser(tc, "login")
 	userId := u.User.GetUID()
 	DeleteAccount(tc, u)
+
+	tc.Cleanup()
+	tc = SetupEngineTest(t, "Identify2Deleted2")
+	defer tc.Cleanup()
 
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
