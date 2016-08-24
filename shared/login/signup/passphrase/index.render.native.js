@@ -29,8 +29,8 @@ const stylesOuter = {
 }
 
 const stylesSecond = {
-  marginTop: globalMargins.large,
-  marginBottom: globalMargins.large,
+  marginTop: globalMargins.medium,
+  marginBottom: globalMargins.small,
 }
 
 const stylesCard = {
