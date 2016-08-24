@@ -187,11 +187,15 @@ func (s *LoginState) Shutdown() error {
 
 		if s.loginReqs != nil {
 			close(s.loginReqs)
+
+			// block future sends to this channel; we have observed this in some
+			// tests every now and then do to races in shutdown. It shouldn't be a
+			// problem in production.
 			s.loginReqs = nil
 		}
 		if s.acctReqs != nil {
 			close(s.acctReqs)
-			s.acctReqs = nil
+			s.acctReqs = nil // block future sends to this channel
 		}
 	}, "LoginState - Shutdown")
 	if aerr != nil {
