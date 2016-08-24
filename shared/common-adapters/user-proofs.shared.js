@@ -60,6 +60,7 @@ function iconNameForProof ({type}: {type: PlatformsExpandedType}): IconType {
   return types[type]
 }
 
+// TODO (AW): either make this guaranteed to statisfy all potential proof states, or return a default IconType instead of null
 function proofStatusIcon (proof: Proof): ?IconType {
   switch (proof.state) {
     case proofChecking:

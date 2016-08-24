@@ -4,12 +4,8 @@ import type {Props} from './popup-menu'
 import {Box, Text} from '../common-adapters/index'
 import {globalColors, globalStyles} from '../styles/style-guide'
 
-class Menu extends Component<void, Props, void> {
+class PopupMenu extends Component<void, Props, void> {
   render () {
-    if (!this.props.visible) {
-      return null
-    }
-
     const realCSS = `
     .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) || globalColors.blue4}; }
     .menu-hover-danger:hover { background-color: ${globalColors.red}; }
@@ -28,7 +24,7 @@ class Menu extends Component<void, Props, void> {
       }}>
         <style>{realCSS}</style>
         <Box style={{...stylesMenu, ...this.props.style}}>
-          {this.props.header}
+          {this.props.header && this.props.header.view}
           <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0, paddingTop: 7, paddingBottom: 7}} >
             {
               this.props.items.map((i, idx) => {
@@ -89,4 +85,4 @@ const stylesMenuText = {
   color: undefined,
 }
 
-export default Menu
+export default PopupMenu

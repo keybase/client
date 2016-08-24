@@ -1,11 +1,13 @@
 // @flow
-import * as shared from './user-proofs.shared'
 import React, {Component} from 'react'
+import {TouchableHighlight} from 'react-native'
+import * as shared from './user-proofs.shared'
 import openUrl from '../util/open-url'
 import type {Proof} from '../constants/tracker'
 import type {Props, MissingProof} from './user-proofs'
 import {Box, Icon, Meta, Text} from '../common-adapters/index'
-import {TouchableHighlight} from 'react-native'
+import type {IconType} from '../common-adapters/icon.constants'
+import {defaultColor} from '../common-adapters/icon.shared'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
@@ -23,13 +25,23 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
             </Text>
           </Box>
         </Box>
-        <Icon type={'iconfont-proof-placeholder'} style={{...stylesStatusIcon, color: missingColor}} />
+        <Box style={stylesStatusIconContainer}>
+          <Icon type={'iconfont-proof-placeholder'} style={{...stylesStatusIcon('iconfont-proof-placeholder'), color: missingColor}} />
+        </Box>
       </Box>
     </TouchableHighlight>
   )
 }
 
-function ProofRow ({proof, onClickProof, onClickProfile, style}: {proof: Proof, onClickProof: (proof: Proof) => void, onClickProfile: (proof: Proof) => void, style: Object}): React$Element<*> {
+type ProofRowProps = {
+  proof: Proof,
+  onClickStatus: (proof: Proof) => void,
+  onClickProfile: (proof: Proof) => void,
+  hasMenu: boolean,
+  style: Object
+}
+
+function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofRowProps): React$Element<*> {
   const proofStatusIconType = shared.proofStatusIcon(proof)
 
   return (
@@ -44,7 +56,12 @@ function ProofRow ({proof, onClickProof, onClickProfile, style}: {proof: Proof, 
           {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
         </Box>
       </Box>
-      {proofStatusIconType && <Icon type={proofStatusIconType} style={stylesStatusIcon} onClick={() => onClickProof(proof)} />}
+      <TouchableHighlight style={stylesStatusIconTouchable} activeOpacity={0.8} underlayColor={globalColors.white} onPress={() => onClickStatus(proof)}>
+        <Box style={stylesStatusIconContainer} onClick={() => onClickStatus(proof)}>
+          {proofStatusIconType && <Icon type={proofStatusIconType} style={stylesStatusIcon(proofStatusIconType)} onClick={() => onClickStatus(proof)} />}
+          {proofStatusIconType && hasMenu && <Icon type='iconfont-caret-down' style={stylesStatusIconCaret(proofStatusIconType)} />}
+        </Box>
+      </TouchableHighlight>
     </Box>
   )
 }
@@ -67,11 +84,25 @@ class ProofsRender extends Component<void, Props, void> {
   }
 
   render () {
+    const {onClickProofMenu} = this.props
     const pad = idx => idx > 0 ? {paddingTop: globalMargins.tiny} : {}
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
-        {this.props.proofs && this.props.proofs.map((p, idx) => <ProofRow key={`${p.id || ''}${p.type}`} proof={p} onClickProof={this._onClickProof} onClickProfile={this._onClickProfile} style={pad(idx)} />)}
-        {this.props.missingProofs && this.props.missingProofs.map((mp, idx) => <MissingProofRow key={mp.type} missingProof={mp} style={pad(idx)} />)}
+        {this.props.proofs && this.props.proofs.map((p, idx) =>
+          <ProofRow
+            key={`${p.id || ''}${p.type}`}
+            proof={p}
+            onClickStatus={onClickProofMenu ? () => onClickProofMenu(idx) : this._onClickProof}
+            onClickProfile={this._onClickProfile}
+            hasMenu={!!onClickProofMenu}
+            style={pad(idx)} />
+        )}
+        {this.props.missingProofs && this.props.missingProofs.map((mp, idx) =>
+          <MissingProofRow
+            key={mp.type}
+            missingProof={mp}
+            style={pad(idx)} />
+        )}
       </Box>
     )
   }
@@ -96,11 +127,26 @@ const stylesService = {
   color: globalColors.black_75,
   marginRight: globalMargins.small,
 }
-const stylesStatusIcon = {
-  ...globalStyles.clickable,
-  fontSize: 24,
-  marginLeft: globalMargins.small,
+const stylesStatusIconTouchable = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'flex-end',
 }
+const stylesStatusIconContainer = {
+  ...stylesStatusIconTouchable,
+}
+const stylesStatusIcon = (statusIcon: IconType) => ({
+  color: defaultColor(statusIcon),
+  marginLeft: globalMargins.xtiny,
+  fontSize: 24,
+})
+const stylesStatusIconCaret = (statusIcon: IconType) => ({
+  ...globalStyles.clickable,
+  color: defaultColor(statusIcon),
+  fontSize: globalMargins.tiny,
+  marginLeft: globalMargins.xtiny / 2,
+  marginRight: -2 * globalMargins.tiny,
+})
 const stylesProofNameSection = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',

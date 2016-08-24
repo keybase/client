@@ -67,15 +67,16 @@ class Render extends Component<void, Props, State> {
 
     if (proof.meta === metaUnreachable) {
       return {
-        header: <Text
-          key='header'
-          type='BodySmall'
-          style={{
-            ...headerStyle,
-            color: globalColors.white,
-            backgroundColor: globalColors.red,
-          }}
-        >Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?</Text>,
+        header: {
+          title: 'header',
+          view: <Text
+            type='BodySmall'
+            style={{
+              ...headerStyle,
+              color: globalColors.white,
+              backgroundColor: globalColors.red,
+            }}>Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?</Text>,
+        },
         items: [
           ...(proof.humanUrl ? [{title: 'View proof', onClick: () => this.props.onViewProof(proof)}] : []),
           {title: 'I fixed it - recheck', onClick: () => this.props.onRecheckProof(proof)},
@@ -90,32 +91,36 @@ class Render extends Component<void, Props, State> {
         pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
       }
       return {
-        header: pendingMessage && <Text
-          key='header'
-          type='BodySmall'
-          style={{
-            ...headerStyle,
-            color: globalColors.white,
-            backgroundColor: globalColors.blue,
-          }}
-        >{pendingMessage}</Text>,
+        header: pendingMessage && {
+          title: 'header',
+          view: <Text
+            key='header'
+            type='BodySmall'
+            style={{
+              ...headerStyle,
+              color: globalColors.white,
+              backgroundColor: globalColors.blue,
+            }}>{pendingMessage}</Text>,
+        },
         items: [
           {title: shared.revokeProofLanguage(proof.type), danger: true, onClick: () => this.props.onRevokeProof(proof)},
         ],
       }
     } else {
       return {
-        header: <Box onClick={() => this.props.onViewProof(proof)}
-          style={{
-            ...globalStyles.flexBoxColumn,
-            padding: globalMargins.small,
-            alignItems: 'center',
-            borderBottom: `1px solid ${globalColors.black_05}`,
-          }}
-        >
-          <PlatformIcon platform={proof.type} overlay='icon-proof-success' overlayColor={globalColors.blue} />
-          {!!proof.mTime && <Text type='Body' style={{textAlign: 'center', color: globalColors.black_40}}>Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
-        </Box>,
+        header: {
+          title: 'header',
+          view: <Box onClick={() => this.props.onViewProof(proof)}
+            style={{
+              ...globalStyles.flexBoxColumn,
+              padding: globalMargins.small,
+              alignItems: 'center',
+              borderBottom: `1px solid ${globalColors.black_05}`,
+            }}>
+            <PlatformIcon platform={proof.type} overlay='icon-proof-success' overlayColor={globalColors.blue} />
+            {!!proof.mTime && <Text type='Body' style={{textAlign: 'center', color: globalColors.black_40}}>Posted on<br />{moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
+          </Box>,
+        },
         items: [
           {title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`, onClick: () => this.props.onViewProof(proof)},
           {title: shared.revokeProofLanguage(proof.type), danger: true, onClick: () => this.props.onRevokeProof(proof)},
@@ -264,7 +269,7 @@ class Render extends Component<void, Props, State> {
               onUserClick={this.props.onUserClick}
               followers={this.props.followers}
               following={this.props.following} />}
-          {proofMenuContent && <PopupMenu style={{...styleProofMenu, ...this.state.popupMenuPosition}} visible={true} {...proofMenuContent} onHidden={() => this.handleHideMenu()} />}
+          {proofMenuContent && <PopupMenu style={{...styleProofMenu, ...this.state.popupMenuPosition}} {...proofMenuContent} onHidden={() => this.handleHideMenu()} />}
         </Box>
       </Box>
     )

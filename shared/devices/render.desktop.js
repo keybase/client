@@ -96,7 +96,7 @@ const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
   <Box style={{...stylesCommonRow, ...globalStyles.clickable, backgroundColor: globalColors.white, height: globalMargins.xlarge}} onClick={addNewDevice}>
     <Icon type='icon-devices-add-64-x-48' />
     <Text type='BodyPrimaryLink' onClick={addNewDevice} style={{marginLeft: globalMargins.tiny}}>Add new...</Text>
-    <PopupMenu style={stylesPopup} visible={showingMenu} items={menuItems} onHidden={onHidden} />
+    {showingMenu && <PopupMenu style={stylesPopup} items={menuItems} onHidden={onHidden} />}
   </Box>
 )
 

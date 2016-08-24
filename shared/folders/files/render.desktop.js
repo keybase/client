@@ -150,7 +150,7 @@ class Render extends Component<void, Props, void> {
             <Usernames users={this.props.users} type='BodySemibold' style={tlfTextStyle} />
           </Box>
         </Box>
-        <PopupMenu style={{marginLeft: 'auto', marginRight: 8, marginTop: 36, width: 320}} items={this.props.popupMenuItems} visible={this.props.visiblePopupMenu} onHidden={this.props.onTogglePopupMenu} />
+        {this.props.visiblePopupMenu && <PopupMenu style={{marginLeft: 'auto', marginRight: 8, marginTop: 36, width: 320}} items={this.props.popupMenuItems} onHidden={this.props.onTogglePopupMenu} />}
         {this._renderContents(isPrivate, this.props.ignored, this.props.allowIgnore)}
       </Box>
     )
