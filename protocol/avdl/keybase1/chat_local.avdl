@@ -44,6 +44,7 @@ protocol chatLocal {
   record Message {
     chat1.MessageServerHeader serverHeader;
     MessagePlaintext messagePlaintext;
+    boolean isNew;
   }
 
   record ThreadView {
@@ -56,17 +57,28 @@ protocol chatLocal {
 
     union { null, Time } After;
     union { null, Time } Before;
-    bool onlyNew;
-    int limitNumber;
+    boolean onlyNew;
+    
+    int limitPerConversation;
+    int limitOfConversations;
+
+    array<chat1.ConversationID> conversations;
+
+    boolean markAsRead;
+  }
+
+  record ConversationMessagesLocal {
+    chat1.ConversationID id;
+    array<Message> messages;
   }
 
   chat1.InboxView getInboxLocal(union { null, chat1.Pagination } pagination);
-  ThreadView getThreadLocal(chat1.ConversationID conversationID, union { null, chat1.Pagination } pagination);
+  ThreadView getThreadLocal(chat1.ConversationID conversationID, boolean markAsRead, union { null, chat1.Pagination } pagination);
   void postLocal(chat1.ConversationID conversationID, MessagePlaintext messagePlaintext);
   chat1.ConversationID newConversationLocal(chat1.ConversationIDTriple conversationTriple);
 
   chat1.ConversationID getOrCreateTextConversationLocal(string tlfName, string topicName, chat1.TopicType topicType);
-  array<Message> getMessagesLocal(MessageSelector selector);
+  array<ConversationMessagesLocal> getMessagesLocal(MessageSelector selector);
 
   // The tlfName can be either complete or partial. If the user's username is
   // not present in tlfName, it gets appended automatically. The canonical TLF

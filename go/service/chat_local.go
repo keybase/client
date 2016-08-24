@@ -12,9 +12,9 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
@@ -45,6 +45,7 @@ func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, p *chat1.Paginatio
 func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetThreadLocalArg) (keybase1.ThreadView, error) {
 	rarg := chat1.GetThreadRemoteArg{
 		ConversationID: arg.ConversationID,
+		MarkAsRead:     arg.MarkAsRead,
 		Pagination:     arg.Pagination,
 	}
 	boxed, err := h.remoteClient().GetThreadRemote(ctx, rarg)
@@ -91,6 +92,8 @@ func (h *chatLocalHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, t
 //
 // TODO: after we implement multiple conversations per TLF and topic names,
 // change this to look up by topic name
+//
+// TODO: cache ConversationIDs and conversations in service
 func (h *chatLocalHandler) GetOrCreateTextConversationLocal(ctx context.Context, arg keybase1.GetOrCreateTextConversationLocalArg) (id chat1.ConversationID, err error) {
 	res, err := h.boxer.tlf.CryptKeys(ctx, arg.TlfName)
 	if err != nil {
@@ -104,7 +107,7 @@ func (h *chatLocalHandler) GetOrCreateTextConversationLocal(ctx context.Context,
 
 	ipagination := &chat1.Pagination{Num: 20}
 getinbox:
-	for {
+	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
 		iview, err := h.GetInboxLocal(ctx, ipagination)
 		if err != nil {
 			return id, err
@@ -136,8 +139,68 @@ getinbox:
 	return id, nil
 }
 
+func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversation *chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *keybase1.MessageSelector) (conv keybase1.ConversationMessagesLocal, err error) {
+	tpagination := &chat1.Pagination{Num: 20}
+	tcount := 0
+getthread:
+	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
+		tview, err := h.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
+			ConversationID: conversation.Metadata.ConversationID,
+			MarkAsRead:     selector.MarkAsRead,
+			Pagination:     tpagination,
+		})
+		if err != nil {
+			return conv, err
+		}
+
+		for _, m := range tview.Messages {
+			if len(m.MessagePlaintext.MessageBodies) == 0 {
+				continue
+			}
+
+			if messageTypes != nil && !messageTypes[m.MessagePlaintext.MessageBodies[0].Type] {
+				continue
+			}
+
+			if selector.Before != nil && gregor1.FromTime(m.ServerHeader.Ctime).Before(keybase1.FromTime(*selector.Before)) {
+				continue
+			}
+
+			if selector.After != nil && gregor1.FromTime(m.ServerHeader.Ctime).After(keybase1.FromTime(*selector.After)) {
+				// messages are sorted DESC by time, so at this point we can stop fetching
+				break getthread
+			}
+
+			if conversation.ReaderInfo != nil && m.ServerHeader.MessageID > conversation.ReaderInfo.ReadMsgid {
+				m.IsNew = true
+			}
+
+			if selector.OnlyNew && !m.IsNew {
+				// new messages are in front, so at this point we can stop fetching
+				break getthread
+			}
+
+			conv.Messages = append(conv.Messages, m)
+
+			tcount++
+			if selector.LimitPerConversation > 0 && tcount >= selector.LimitPerConversation {
+				break getthread
+			}
+		}
+
+		if tview.Pagination == nil || tview.Pagination.Last {
+			break getthread
+		} else {
+			tpagination = tview.Pagination
+		}
+	}
+
+	conv.Id = conversation.Metadata.ConversationID
+	return conv, nil
+}
+
 // GetMessagesLocal implements keybase.chatLocal.GetMessagesLocal protocol.
-func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.Message, err error) {
+func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationMessagesLocal, err error) {
 	var messageTypes map[chat1.MessageType]bool
 	if len(arg.MessageTypes) > 0 {
 		messageTypes := make(map[chat1.MessageType]bool)
@@ -146,58 +209,38 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.Me
 		}
 	}
 
+	var conversations map[chat1.ConversationID]bool
+	if len(arg.Conversations) > 0 {
+		conversations := make(map[chat1.ConversationID]bool)
+		for _, c := range arg.Conversations {
+			conversations[c] = true
+		}
+	}
+
 	ipagination := &chat1.Pagination{Num: 20}
+	icount := 0
 getinbox:
-	for {
+	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
 		iview, err := h.GetInboxLocal(ctx, ipagination)
 		if err != nil {
 			return nil, err
 		}
 
-		tpagination := &chat1.Pagination{Num: 20}
-	getthread:
-		for _, conv := range iview.Conversations {
-			tview, err := h.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
-				ConversationID: conv.Metadata.ConversationID,
-				Pagination:     tpagination,
-			})
+		for _, conversation := range iview.Conversations {
+			if conversations != nil && !conversations[conversation.Metadata.ConversationID] {
+				continue
+			}
+			conv, err := h.getConversationMessages(ctx, &conversation, messageTypes, &arg)
 			if err != nil {
 				return nil, err
 			}
+			if len(conv.Messages) != 0 {
+				messages = append(messages, conv)
 
-			for _, m := range tview.Messages {
-				if len(m.MessagePlaintext.MessageBodies) == 0 {
-					continue
+				icount++
+				if arg.LimitOfConversations > 0 && icount >= arg.LimitOfConversations {
+					break getinbox
 				}
-
-				if messageTypes != nil && !messageTypes[m.MessagePlaintext.MessageBodies[0].Type] {
-					continue
-				}
-
-				if arg.OnlyNew {
-					// TODO
-				}
-
-				if arg.Before != nil && gregor1.FromTime(m.ServerHeader.Ctime).Before(keybase1.FromTime(*arg.Before)) {
-					continue
-				}
-
-				if arg.After != nil && gregor1.FromTime(m.ServerHeader.Ctime).After(keybase1.FromTime(*arg.After)) {
-					continue
-				}
-
-				messages = append(messages)
-
-				if arg.LimitNumber > 0 && len(messages) >= arg.LimitNumber {
-					return messages, nil
-				}
-			}
-
-			// TODO: determine whether need to continue according to the MessageSelector
-			if tview.Pagination == nil || tview.Pagination.Last {
-				break getthread
-			} else {
-				tpagination = tview.Pagination
 			}
 		}
 

@@ -47,6 +47,7 @@ type MessagePlaintext struct {
 type Message struct {
 	ServerHeader     chat1.MessageServerHeader `codec:"serverHeader" json:"serverHeader"`
 	MessagePlaintext MessagePlaintext          `codec:"messagePlaintext" json:"messagePlaintext"`
+	IsNew            bool                      `codec:"isNew" json:"isNew"`
 }
 
 type ThreadView struct {
@@ -55,11 +56,19 @@ type ThreadView struct {
 }
 
 type MessageSelector struct {
-	MessageTypes []chat1.MessageType `codec:"MessageTypes" json:"MessageTypes"`
-	After        *Time               `codec:"After,omitempty" json:"After,omitempty"`
-	Before       *Time               `codec:"Before,omitempty" json:"Before,omitempty"`
-	OnlyNew      bool                `codec:"onlyNew" json:"onlyNew"`
-	LimitNumber  int                 `codec:"limitNumber" json:"limitNumber"`
+	MessageTypes         []chat1.MessageType    `codec:"MessageTypes" json:"MessageTypes"`
+	After                *Time                  `codec:"After,omitempty" json:"After,omitempty"`
+	Before               *Time                  `codec:"Before,omitempty" json:"Before,omitempty"`
+	OnlyNew              bool                   `codec:"onlyNew" json:"onlyNew"`
+	LimitPerConversation int                    `codec:"limitPerConversation" json:"limitPerConversation"`
+	LimitOfConversations int                    `codec:"limitOfConversations" json:"limitOfConversations"`
+	Conversations        []chat1.ConversationID `codec:"conversations" json:"conversations"`
+	MarkAsRead           bool                   `codec:"markAsRead" json:"markAsRead"`
+}
+
+type ConversationMessagesLocal struct {
+	Id       chat1.ConversationID `codec:"id" json:"id"`
+	Messages []Message            `codec:"messages" json:"messages"`
 }
 
 type GetInboxLocalArg struct {
@@ -68,6 +77,7 @@ type GetInboxLocalArg struct {
 
 type GetThreadLocalArg struct {
 	ConversationID chat1.ConversationID `codec:"conversationID" json:"conversationID"`
+	MarkAsRead     bool                 `codec:"markAsRead" json:"markAsRead"`
 	Pagination     *chat1.Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
@@ -100,7 +110,7 @@ type ChatLocalInterface interface {
 	PostLocal(context.Context, PostLocalArg) error
 	NewConversationLocal(context.Context, chat1.ConversationIDTriple) (chat1.ConversationID, error)
 	GetOrCreateTextConversationLocal(context.Context, GetOrCreateTextConversationLocalArg) (chat1.ConversationID, error)
-	GetMessagesLocal(context.Context, MessageSelector) ([]Message, error)
+	GetMessagesLocal(context.Context, MessageSelector) ([]ConversationMessagesLocal, error)
 	CompleteAndCanonicalizeTlfName(context.Context, string) (CanonicalTlfName, error)
 }
 
@@ -255,7 +265,7 @@ func (c ChatLocalClient) GetOrCreateTextConversationLocal(ctx context.Context, _
 	return
 }
 
-func (c ChatLocalClient) GetMessagesLocal(ctx context.Context, selector MessageSelector) (res []Message, err error) {
+func (c ChatLocalClient) GetMessagesLocal(ctx context.Context, selector MessageSelector) (res []ConversationMessagesLocal, err error) {
 	__arg := GetMessagesLocalArg{Selector: selector}
 	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getMessagesLocal", []interface{}{__arg}, &res)
 	return

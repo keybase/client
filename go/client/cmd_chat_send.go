@@ -75,7 +75,7 @@ func (c *cmdChatSend) Run() (err error) {
 
 func (c *cmdChatSend) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 2 {
-		return fmt.Errorf("chat send takes 2 args")
+		return fmt.Errorf("keybase chat send takes 2 args")
 	}
 	c.tlfName = ctx.Args().Get(0)
 	c.message = ctx.Args().Get(1)

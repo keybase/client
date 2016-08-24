@@ -15,26 +15,26 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-type cmdChatInbox struct {
+type cmdChatRead struct {
 	libkb.Contextified
 	chatLocalClient keybase1.ChatLocalInterface // for testing only
 
 	selector keybase1.MessageSelector
+	tlfName  string
 }
 
-func newCmdChatInbox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func newCmdChatRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:         "inbox",
-		Usage:        "Show new messages in inbox.",
-		Aliases:      []string{"list", "ls"},
-		ArgumentHelp: "",
+		Name:         "read",
+		Usage:        "Show new messages in a conversation and mark as read.",
+		ArgumentHelp: "<conversation>",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&cmdChatInbox{Contextified: libkb.NewContextified(g)}, "inbox", c)
+			cl.ChooseCommand(&cmdChatRead{Contextified: libkb.NewContextified(g)}, "read", c)
 		},
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -51,11 +51,11 @@ func newCmdChatInbox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 				Value: 5,
 			},
 		},
-		Description: `"keybase chat inbox" display an inbox view of chat messages. --since/--after and --before can be used to specify a time range of messages displayed. Duration (e.g. "2d" meaning 2 days ago) and RFC3339 Time (e.g. "2006-01-02T15:04:05Z07:00") are both supported. Using --before requires a --since/--after to pair with.  Using --since/--after alone implies "--before 0s". If none of time range flags are specified, this command only shows new messages.`,
+		Description: `"keybase chat read" displays shows and read chat messages from a conversation. --since/--after and --before can be used to specify a time range of messages displayed. Duration (e.g. "2d" meaning 2 days ago) and RFC3339 Time (e.g. "2006-01-02T15:04:05Z07:00") are both supported. Using --before requires a --since/--after to pair with.  Using --since/--after alone implies "--before 0s". If none of time range flags are specified, this command only shows new messages.`,
 	}
 }
 
-func (c *cmdChatInbox) getMessagesFlattened(ctx context.Context) (messages cliChatMessages, err error) {
+func (c *cmdChatRead) getMessagesFlattened(ctx context.Context) (messages cliChatMessages, err error) {
 	chatClient := c.chatLocalClient // should be nil unless in test
 	if chatClient == nil {
 		chatClient, err = GetChatLocalClient(c.G())
@@ -63,6 +63,14 @@ func (c *cmdChatInbox) getMessagesFlattened(ctx context.Context) (messages cliCh
 			return nil, fmt.Errorf("Getting chat service client error: %s", err)
 		}
 	}
+
+	conversationID, err := chatClient.GetOrCreateTextConversationLocal(ctx, keybase1.GetOrCreateTextConversationLocalArg{
+		TlfName: c.tlfName,
+	})
+	if err != nil {
+		return nil, err
+	}
+	c.selector.Conversations = []chat1.ConversationID{conversationID}
 
 	var mapper uidUsernameMapper
 	conversations, err := chatClient.GetMessagesLocal(ctx, c.selector)
@@ -104,7 +112,7 @@ func (c *cmdChatInbox) getMessagesFlattened(ctx context.Context) (messages cliCh
 	return messages, nil
 }
 
-func (c *cmdChatInbox) Run() error {
+func (c *cmdChatRead) Run() error {
 	messages, err := c.getMessagesFlattened(context.TODO())
 	if err != nil {
 		return err
@@ -114,7 +122,18 @@ func (c *cmdChatInbox) Run() error {
 	return nil
 }
 
-func (c *cmdChatInbox) ParseArgv(ctx *cli.Context) (err error) {
+func (c *cmdChatRead) ParseArgv(ctx *cli.Context) (err error) {
+	if len(ctx.Args()) != 1 {
+		return fmt.Errorf("keybase chat read current takes exactly 1 arg")
+	}
+	c.tlfName = ctx.Args().Get(0)
+
+	c.selector = keybase1.MessageSelector{
+		MessageTypes:         []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT},
+		LimitPerConversation: ctx.Int("limit"),
+		MarkAsRead:           true,
+	}
+
 	var before, after time.Time
 	if before, err = parseTimeFromRFC3339OrDurationFromPast(ctx.String("before")); err != nil {
 		err = fmt.Errorf("parsing --before flag error: %s", err)
@@ -123,11 +142,6 @@ func (c *cmdChatInbox) ParseArgv(ctx *cli.Context) (err error) {
 	if after, err = parseTimeFromRFC3339OrDurationFromPast(ctx.String("after")); err != nil {
 		err = fmt.Errorf("parsing --after/--since flag error: %s", err)
 		return err
-	}
-
-	c.selector = keybase1.MessageSelector{
-		MessageTypes:         []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT},
-		LimitPerConversation: ctx.Int("limit"),
 	}
 
 	switch {
@@ -152,7 +166,7 @@ func (c *cmdChatInbox) ParseArgv(ctx *cli.Context) (err error) {
 	return nil
 }
 
-func (c *cmdChatInbox) GetUsage() libkb.Usage {
+func (c *cmdChatRead) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,
