@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
+	"github.com/keybase/client/go/gregor/storage"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -152,7 +153,7 @@ func newGregorHandler(g *libkb.GlobalContext) (*gregorHandler, error) {
 func (g *gregorHandler) resetGregorClient() (err error) {
 	defer g.G().Trace("gregorHandler#newGregorClient", func() error { return err })()
 	of := gregor1.ObjFactory{}
-	sm := gregor.NewMemEngine(of, clockwork.NewRealClock())
+	sm := storage.NewMemEngine(of, clockwork.NewRealClock())
 
 	var guid gregor.UID
 	var gdid gregor.DeviceID

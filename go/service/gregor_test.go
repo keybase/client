@@ -12,7 +12,7 @@ import (
 
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/gregor"
-	grclient "github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/gregor/storage"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -297,7 +297,7 @@ func newGregordMock(logger logger.Logger) mockGregord {
 	var of gregor1.ObjFactory
 	fc := clockwork.NewFakeClock()
 
-	sm := grclient.NewMemEngine(of, fc)
+	sm := storage.NewMemEngine(of, fc)
 
 	return mockGregord{sm: sm, fc: fc, log: logger}
 }

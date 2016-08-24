@@ -1,4 +1,4 @@
-package gregor
+package storage
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/gregor"
 )
 
 // MemEngine is an implementation of a gregor StateMachine that just keeps
@@ -16,14 +17,14 @@ import (
 // when SQLite isn't available.
 type MemEngine struct {
 	sync.Mutex
-	objFactory ObjFactory
+	objFactory gregor.ObjFactory
 	clock      clockwork.Clock
 	users      map[string](*user)
 }
 
 // NewMemEngine makes a new MemEngine with the given object factory and the
 // potentially fake clock (or a real clock if not testing).
-func NewMemEngine(f ObjFactory, cl clockwork.Clock) *MemEngine {
+func NewMemEngine(f gregor.ObjFactory, cl clockwork.Clock) *MemEngine {
 	return &MemEngine{
 		objFactory: f,
 		clock:      cl,
@@ -31,14 +32,14 @@ func NewMemEngine(f ObjFactory, cl clockwork.Clock) *MemEngine {
 	}
 }
 
-var _ StateMachine = (*MemEngine)(nil)
+var _ gregor.StateMachine = (*MemEngine)(nil)
 
 // item is a wrapper around a Gregor item interface, with the ctime
 // it arrived at, and the optional dtime at which it was dismissed. Note there's
 // another Dtime internal to item that can be interpreted relative to the ctime
 // of the wrapper object.
 type item struct {
-	item  Item
+	item  gregor.Item
 	ctime time.Time
 	dtime *time.Time
 }
@@ -47,7 +48,7 @@ type item struct {
 // store. When it comes in, we stamp it with the current time, and also associate
 // it with an item if there's one to speak of.
 type loggedMsg struct {
-	m     InBandMessage
+	m     gregor.InBandMessage
 	ctime time.Time
 	i     *item
 }
@@ -76,16 +77,16 @@ func (m loggedMsg) isDismissedAt(t time.Time) bool {
 	return m.i != nil && m.i.isDismissedAt(t)
 }
 
-// export the item i to a generic Item interface. Basically just return
+// export the item i to a generic gregor.Item interface. Basically just return
 // the object we got, but if there was no CTime() on the incoming message,
 // then use the ctime we stamped on the message when it arrived.
-func (i item) export(f ObjFactory) (Item, error) {
+func (i item) export(f gregor.ObjFactory) (gregor.Item, error) {
 	md := i.item.Metadata()
 	return f.MakeItem(md.UID(), md.MsgID(), md.DeviceID(), i.ctime, i.item.Category(), i.dtime, i.item.Body())
 }
 
 // addItem adds an item for this user
-func (u *user) addItem(now time.Time, i Item) *item {
+func (u *user) addItem(now time.Time, i gregor.Item) *item {
 	msgID := i.Metadata().MsgID().Bytes()
 	for _, it := range u.items {
 		if bytes.Equal(msgID, it.item.Metadata().MsgID().Bytes()) {
@@ -97,14 +98,14 @@ func (u *user) addItem(now time.Time, i Item) *item {
 	return newItem
 }
 
-func (u *user) addItems(items []Item) {
+func (u *user) addItems(items []gregor.Item) {
 	for _, it := range items {
 		u.addItem(time.Now(), it)
 	}
 }
 
 // logMessage logs a message for this user and potentially associates an item
-func (u *user) logMessage(t time.Time, m InBandMessage, i *item) {
+func (u *user) logMessage(t time.Time, m gregor.InBandMessage, i *item) {
 	for _, l := range u.log {
 		if bytes.Equal(l.m.Metadata().MsgID().Bytes(), m.Metadata().MsgID().Bytes()) {
 			return
@@ -113,11 +114,11 @@ func (u *user) logMessage(t time.Time, m InBandMessage, i *item) {
 	u.log = append(u.log, loggedMsg{m, t, i})
 }
 
-func msgIDtoString(m MsgID) string {
+func msgIDtoString(m gregor.MsgID) string {
 	return hex.EncodeToString(m.Bytes())
 }
 
-func (u *user) dismissMsgIDs(now time.Time, ids []MsgID) {
+func (u *user) dismissMsgIDs(now time.Time, ids []gregor.MsgID) {
 	set := make(map[string]bool)
 	for _, i := range ids {
 		set[msgIDtoString(i)] = true
@@ -136,7 +137,7 @@ func nowIfZero(now, t time.Time) time.Time {
 	return t
 }
 
-func toTime(now time.Time, t TimeOrOffset) time.Time {
+func toTime(now time.Time, t gregor.TimeOrOffset) time.Time {
 	if t == nil {
 		return now
 	}
@@ -149,7 +150,7 @@ func toTime(now time.Time, t TimeOrOffset) time.Time {
 	return now
 }
 
-func (u *user) dismissRanges(now time.Time, rs []MsgRange) {
+func (u *user) dismissRanges(now time.Time, rs []gregor.MsgRange) {
 	for _, i := range u.items {
 		for _, r := range rs {
 			if r.Category().String() == i.item.Category().String() &&
@@ -172,15 +173,15 @@ func (t timeOrOffset) Before(t2 time.Time) bool {
 	return time.Time(t).Before(t2)
 }
 
-var _ TimeOrOffset = timeOrOffset{}
+var _ gregor.TimeOrOffset = timeOrOffset{}
 
 func isBeforeOrSame(a, b time.Time) bool {
 	return !b.Before(a)
 }
 
-func (u *user) state(now time.Time, f ObjFactory, d DeviceID, t TimeOrOffset) (State, error) {
-	var items []Item
-	table := make(map[string]Item)
+func (u *user) state(now time.Time, f gregor.ObjFactory, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
+	var items []gregor.Item
+	table := make(map[string]gregor.Item)
 	for _, i := range u.items {
 		md := i.item.Metadata()
 		did := md.DeviceID()
@@ -203,7 +204,7 @@ func (u *user) state(now time.Time, f ObjFactory, d DeviceID, t TimeOrOffset) (S
 	return f.MakeStateWithLookupTable(items, table)
 }
 
-func isMessageForDevice(m InBandMessage, d DeviceID) bool {
+func isMessageForDevice(m gregor.InBandMessage, d gregor.DeviceID) bool {
 	sum := m.ToStateUpdateMessage()
 	if sum == nil {
 		return true
@@ -221,8 +222,8 @@ func isMessageForDevice(m InBandMessage, d DeviceID) bool {
 	return false
 }
 
-func (u *user) replayLog(now time.Time, d DeviceID, t time.Time) (msgs []InBandMessage, latestCTime *time.Time) {
-	allmsgs := make(map[string]InBandMessage)
+func (u *user) replayLog(now time.Time, d gregor.DeviceID, t time.Time) (msgs []gregor.InBandMessage, latestCTime *time.Time) {
+	allmsgs := make(map[string]gregor.InBandMessage)
 	for _, msg := range u.log {
 		if latestCTime == nil || msg.ctime.After(*latestCTime) {
 			latestCTime = &msg.ctime
@@ -245,7 +246,7 @@ func (u *user) replayLog(now time.Time, d DeviceID, t time.Time) (msgs []InBandM
 	return
 }
 
-func (m *MemEngine) consumeInBandMessage(uid UID, msg InBandMessage) (time.Time, error) {
+func (m *MemEngine) consumeInBandMessage(uid gregor.UID, msg gregor.InBandMessage) (time.Time, error) {
 	user := m.getUser(uid)
 	now := m.clock.Now()
 	var i *item
@@ -266,24 +267,24 @@ func (m *MemEngine) consumeInBandMessage(uid UID, msg InBandMessage) (time.Time,
 	return retTime, err
 }
 
-func (m *MemEngine) ConsumeMessage(msg Message) (time.Time, error) {
+func (m *MemEngine) ConsumeMessage(msg gregor.Message) (time.Time, error) {
 	m.Lock()
 	defer m.Unlock()
 
 	switch {
 	case msg.ToInBandMessage() != nil:
-		return m.consumeInBandMessage(UIDFromMessage(msg), msg.ToInBandMessage())
+		return m.consumeInBandMessage(gregor.UIDFromMessage(msg), msg.ToInBandMessage())
 	default:
 		return m.clock.Now(), nil
 	}
 }
 
-func uidToString(u UID) string {
+func uidToString(u gregor.UID) string {
 	return hex.EncodeToString(u.Bytes())
 }
 
 // getUser gets or makes a new user object for the given UID.
-func (m *MemEngine) getUser(uid UID) *user {
+func (m *MemEngine) getUser(uid gregor.UID) *user {
 	uidHex := uidToString(uid)
 	if u, ok := m.users[uidHex]; ok {
 		return u
@@ -293,12 +294,12 @@ func (m *MemEngine) getUser(uid UID) *user {
 	return u
 }
 
-func (m *MemEngine) consumeCreation(u *user, now time.Time, i Item) (*item, error) {
+func (m *MemEngine) consumeCreation(u *user, now time.Time, i gregor.Item) (*item, error) {
 	newItem := u.addItem(now, i)
 	return newItem, nil
 }
 
-func (m *MemEngine) consumeDismissal(u *user, now time.Time, d Dismissal, ctime time.Time) error {
+func (m *MemEngine) consumeDismissal(u *user, now time.Time, d gregor.Dismissal, ctime time.Time) error {
 	dtime := nowIfZero(now, ctime)
 	if ids := d.MsgIDsToDismiss(); ids != nil {
 		u.dismissMsgIDs(dtime, ids)
@@ -309,7 +310,7 @@ func (m *MemEngine) consumeDismissal(u *user, now time.Time, d Dismissal, ctime 
 	return nil
 }
 
-func (m *MemEngine) consumeStateUpdateMessage(u *user, now time.Time, msg StateUpdateMessage) (*item, error) {
+func (m *MemEngine) consumeStateUpdateMessage(u *user, now time.Time, msg gregor.StateUpdateMessage) (*item, error) {
 	var err error
 	var i *item
 	if msg.Creation() != nil {
@@ -326,14 +327,14 @@ func (m *MemEngine) consumeStateUpdateMessage(u *user, now time.Time, msg StateU
 	return i, nil
 }
 
-func (m *MemEngine) State(u UID, d DeviceID, t TimeOrOffset) (State, error) {
+func (m *MemEngine) State(u gregor.UID, d gregor.DeviceID, t gregor.TimeOrOffset) (gregor.State, error) {
 	m.Lock()
 	defer m.Unlock()
 	user := m.getUser(u)
 	return user.state(m.clock.Now(), m.objFactory, d, t)
 }
 
-func (m *MemEngine) StateByCategoryPrefix(u UID, d DeviceID, t TimeOrOffset, cp Category) (State, error) {
+func (m *MemEngine) StateByCategoryPrefix(u gregor.UID, d gregor.DeviceID, t gregor.TimeOrOffset, cp gregor.Category) (gregor.State, error) {
 	state, err := m.State(u, d, t)
 	if err != nil {
 		return nil, err
@@ -350,7 +351,7 @@ func (m *MemEngine) Clear() error {
 	return nil
 }
 
-func (m *MemEngine) LatestCTime(u UID, d DeviceID) *time.Time {
+func (m *MemEngine) LatestCTime(u gregor.UID, d gregor.DeviceID) *time.Time {
 	m.Lock()
 	defer m.Unlock()
 	log := m.getUser(u).log
@@ -366,7 +367,7 @@ func (m *MemEngine) LatestCTime(u UID, d DeviceID) *time.Time {
 	return nil
 }
 
-func (m *MemEngine) InBandMessagesSince(u UID, d DeviceID, t time.Time) ([]InBandMessage, error) {
+func (m *MemEngine) InBandMessagesSince(u gregor.UID, d gregor.DeviceID, t time.Time) ([]gregor.InBandMessage, error) {
 	m.Lock()
 	defer m.Unlock()
 	msgs, _ := m.getUser(u).replayLog(m.clock.Now(), d, t)
@@ -374,12 +375,12 @@ func (m *MemEngine) InBandMessagesSince(u UID, d DeviceID, t time.Time) ([]InBan
 	return msgs, nil
 }
 
-func (m *MemEngine) Reminders(maxReminders int) (ReminderSet, error) {
+func (m *MemEngine) Reminders(maxReminders int) (gregor.ReminderSet, error) {
 	// Unimplemented for MemEngine
 	return nil, nil
 }
 
-func (m *MemEngine) DeleteReminder(r ReminderID) error {
+func (m *MemEngine) DeleteReminder(r gregor.ReminderID) error {
 	// Unimplemented for MemEngine
 	return nil
 }
@@ -388,7 +389,7 @@ func (m *MemEngine) IsEphemeral() bool {
 	return true
 }
 
-func (m *MemEngine) InitState(s State) error {
+func (m *MemEngine) InitState(s gregor.State) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -412,7 +413,7 @@ func (m *MemEngine) InitState(s State) error {
 	return nil
 }
 
-func (m *MemEngine) ObjFactory() ObjFactory {
+func (m *MemEngine) ObjFactory() gregor.ObjFactory {
 	return m.objFactory
 }
 
