@@ -228,7 +228,7 @@ func (fbm *folderBlockManager) shutdown() {
 // this should be called when the operation finally succeeds.
 func (fbm *folderBlockManager) cleanUpBlockState(
 	md ReadOnlyRootMetadata, bps *blockPutState, bdType blockDeleteType) {
-	fbm.log.CDebugf(nil, "Clean up md %d %s, bdType=%d", md.Revision,
+	fbm.log.CDebugf(nil, "Clean up md %d %s, bdType=%d", md.Revision(),
 		md.MergedStatus(), bdType)
 	toDelete := blocksToDelete{
 		md:     md,
@@ -432,7 +432,7 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 	defer fbm.blocksToDeleteWaitGroup.Done()
 
 	fbm.log.CDebugf(ctx, "Checking deleted blocks for revision %d",
-		toDelete.md.Revision)
+		toDelete.md.Revision())
 	// Make sure that the MD didn't actually become
 	// part of the folder history.  (This could happen
 	// if the Sync was canceled while the MD put was
@@ -456,7 +456,7 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 			}
 			fbm.log.CDebugf(ctx, "Giving up on waiting for a new %d "+
 				"revision, and proceeding with the cleanup",
-				toDelete.md.Revision)
+				toDelete.md.Revision())
 		} else {
 			dirsEqual, err := CodecEqual(fbm.config.Codec(),
 				rmds[0].data.Dir, toDelete.md.data.Dir)
@@ -478,10 +478,10 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 		// Otherwise something else has been written over
 		// this MD, so get rid of the blocks.
 		fbm.log.CDebugf(ctx, "Cleaning up blocks for failed revision %d",
-			toDelete.md.Revision)
+			toDelete.md.Revision())
 	} else {
 		fbm.log.CDebugf(ctx, "Cleaning up blocks for revision %d",
-			toDelete.md.Revision)
+			toDelete.md.Revision())
 	}
 
 	_, err := fbm.deleteBlockRefs(ctx, toDelete.md.TlfID(), toDelete.blocks)

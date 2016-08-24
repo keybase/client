@@ -1129,7 +1129,7 @@ func (fbo *folderBranchOps) checkNode(node Node) error {
 func (fbo *folderBranchOps) SetInitialHeadFromServer(
 	ctx context.Context, md ImmutableRootMetadata) (err error) {
 	fbo.log.CDebugf(ctx, "SetInitialHeadFromServer, revision=%d (%s)",
-		md.Revision, md.MergedStatus())
+		md.Revision(), md.MergedStatus())
 	defer func() {
 		fbo.deferLog.CDebugf(ctx, "Done: %v", err)
 	}()

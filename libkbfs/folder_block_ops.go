@@ -2382,7 +2382,7 @@ func (fbo *folderBlockOps) cleanUpUnusedBlocks(ctx context.Context,
 			failedBps.blockStates = append(failedBps.blockStates,
 				blockState{blockPtr: bs.blockPtr})
 			fbo.log.CDebugf(ctx, "Cleaning up block %v from a previous "+
-				"failed revision %d", bs.blockPtr, oldMD.md.Revision)
+				"failed revision %d", bs.blockPtr, oldMD.md.Revision())
 		}
 
 		if len(failedBps.blockStates) > 0 {
