@@ -93,8 +93,7 @@ func (h *chatLocalHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, t
 // TODO: after we implement multiple conversations per TLF and topic names,
 // change this to look up by topic name
 //
-// TODO: list all conversations for given TLF from server so that we don't have
-// to go through the entire inbox
+// TODO: cache ConversationIDs and conversations in service
 func (h *chatLocalHandler) GetOrCreateTextConversationLocal(ctx context.Context, arg keybase1.GetOrCreateTextConversationLocalArg) (id chat1.ConversationID, err error) {
 	res, err := h.boxer.tlf.CryptKeys(ctx, arg.TlfName)
 	if err != nil {
