@@ -3,8 +3,8 @@ import React, {Component} from 'react'
 import debounce from 'lodash/debounce'
 import dumbComponentMap from './dumb-component-map.native'
 import type {Props} from './dumb-sheet.render'
-import {Box, Text, SmallInput, Button, NativeScrollView} from '../common-adapters/index.native'
-import {globalStyles} from '../styles/style-guide'
+import {Box, Text, SmallInput, Button, NativeScrollView, Icon} from '../common-adapters/index.native'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 class Render extends Component<void, Props, any> {
   state: any;
@@ -73,6 +73,9 @@ class Render extends Component<void, Props, any> {
       return (
         <Box style={{flex: 1}} {...parentPropsOnly[this.props.dumbIndex % components.length]}>
           {componentsOnly[this.props.dumbIndex % components.length]}
+          <Icon type='iconfont-import' style={{position: 'absolute', top: 20, right: 0}} onClick={() => {
+            this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})
+          }} />
         </Box>
       )
     }
@@ -101,6 +104,9 @@ class Render extends Component<void, Props, any> {
             autoCapitalize='none'
           />
           <Button type='Primary' style={stylesButton} label='+' onClick={() => { this._incremement(true) }} />
+          <Icon type='iconfont-device' style={{color: globalColors.blue}} onClick={() => {
+            this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})
+          }} />
         </Box>
         <NativeScrollView>
           {ToShow}
