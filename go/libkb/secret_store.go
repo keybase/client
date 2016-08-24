@@ -140,5 +140,8 @@ func (s *SecretStoreLocked) ClearSecret(username NormalizedUsername) error {
 func (s *SecretStoreLocked) GetUsersWithStoredSecrets() ([]string, error) {
 	s.Lock()
 	defer s.Unlock()
+	if s.SecretStoreAll == nil {
+		return []string{}, nil
+	}
 	return s.SecretStoreAll.GetUsersWithStoredSecrets()
 }
