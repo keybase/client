@@ -32,7 +32,7 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		BaseHandler:  NewBaseHandler(xp),
 		Contextified: libkb.NewContextified(g),
 		gh:           gh,
-		boxer:        &chatBoxer{tlf: newTlfHandler(nil, g)},
+		boxer:        newChatBoxer(g),
 	}
 }
 

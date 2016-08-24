@@ -5,6 +5,7 @@ package service
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,12 +15,21 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type chatBoxer struct {
 	tlf keybase1.TlfInterface
+	libkb.Contextified
+}
+
+func newChatBoxer(g *libkb.GlobalContext) *chatBoxer {
+	return &chatBoxer{
+		tlf:          newTlfHandler(nil, g),
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 // unboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
@@ -154,6 +164,14 @@ func (b *chatBoxer) verifyMessageBoxed(msg chat1.MessageBoxed) error {
 		return errors.New("header and body signature keys do not match")
 	}
 
+	valid, err := b.validSenderKey(msg.ClientHeader.Sender, msg.HeaderSignature.K, msg.ServerHeader.Ctime)
+	if err != nil {
+		return err
+	}
+	if !valid {
+		return errors.New("key invalid for sender at message ctime")
+	}
+
 	return nil
 }
 
@@ -168,4 +186,32 @@ func (b *chatBoxer) verify(data []byte, si chat1.SignatureInfo, prefix libkb.Sig
 	copy(sigInfo.Sig[:], si.S)
 	_, err := sigInfo.Verify()
 	return (err == nil)
+}
+
+// validSenderKey checks that the key is active for sender at ctime.
+func (b *chatBoxer) validSenderKey(sender gregor1.UID, key []byte, ctime gregor1.Time) (bool, error) {
+	kbSender, err := keybase1.UIDFromString(hex.EncodeToString(sender.Bytes()))
+	if err != nil {
+		return false, err
+	}
+	kid := keybase1.KIDFromSlice(key)
+	t := gregor1.FromTime(ctime)
+
+	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(b.G(), kbSender))
+	if err != nil {
+		return false, err
+	}
+	ckf := user.GetComputedKeyFamily()
+	if ckf == nil {
+		return false, errors.New("no computed key family")
+	}
+	activeKey, _, err := ckf.FindActiveSibkeyAtTime(kid, t)
+	if err != nil {
+		return false, err
+	}
+	if activeKey == nil {
+		return false, nil
+	}
+
+	return true, nil
 }
