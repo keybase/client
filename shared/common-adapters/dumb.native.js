@@ -156,7 +156,6 @@ const choiceListMap: DumbComponentMap<ChoiceList> = {
 
 const popupMenuProps = {
   onHidden: () => console.log('PopupMenu: onHidden'),
-  visible: true, // Not normally required, but needed here due to the implementation of PropsOf<C>
   items: [
     {title: 'View proof', onClick: () => console.log('PopupMenu: onItemClick: View Proof')},
     {title: 'I fixed it - recheck', onClick: () => console.log('PopupMenu: onItemClick: Recheck Proof')},

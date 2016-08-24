@@ -1,17 +1,11 @@
 // @flow
 import React, {Component} from 'react'
-import type {DefaultProps, Props} from './popup-menu'
+import type {Props} from './popup-menu'
 import {Box, Text} from '../common-adapters/index'
 import {globalColors, globalStyles} from '../styles/style-guide'
 
-class PopupMenu extends Component<DefaultProps, Props, void> {
-  static defaultProps: DefaultProps;
-
+class PopupMenu extends Component<void, Props, void> {
   render () {
-    if (!this.props.visible) {
-      return null
-    }
-
     const realCSS = `
     .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) || globalColors.blue4}; }
     .menu-hover-danger:hover { background-color: ${globalColors.red}; }
@@ -51,10 +45,6 @@ class PopupMenu extends Component<DefaultProps, Props, void> {
       </Box>
     )
   }
-}
-
-PopupMenu.defaultProps = {
-  visible: true,
 }
 
 const Divider = () => <Box style={{height: 1, backgroundColor: globalColors.black_10, marginTop: 8, marginBottom: 8}} />

@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
-import type {DefaultProps, Props, MenuItem} from './popup-menu'
+import type {Props, MenuItem} from './popup-menu'
 import {Box, Text} from '../common-adapters/index'
 import {globalColors, globalMargins, globalStyles} from '../styles/style-guide'
 
@@ -55,13 +55,8 @@ const styleRowText = ({isHeader, danger}: {isHeader?: boolean, danger?: boolean}
 }
 
 // Popup Menu
-class PopupMenu extends Component<DefaultProps, Props, void> {
-  static defaultProps: DefaultProps;
-
+class PopupMenu extends Component<void, Props, void> {
   render () {
-    if (!this.props.visible) {
-      return null
-    }
     // $ForceType
     const menuItemsNoDividers: Array<MenuItem> = this.props.items.filter((mi) => mi !== 'Divider')
     const menuItemsWithHeader: Array<MenuItem> = [].concat(menuItemsNoDividers)
@@ -83,10 +78,6 @@ class PopupMenu extends Component<DefaultProps, Props, void> {
       </TouchableWithoutFeedback>
     )
   }
-}
-
-PopupMenu.defaultProps = {
-  visible: true,
 }
 
 const styleOverlayContainer = {

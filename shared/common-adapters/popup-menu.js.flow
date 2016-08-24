@@ -14,14 +14,7 @@ export type Props = {
   items: Array<MenuItem | 'Divider'>, // Divider is not used on native
   header?: MenuItem,
   onHidden: () => void,
-  visible: boolean,
   style?: Object,
 }
 
-export type DefaultProps = {
-  visible: boolean,
-}
-
-declare export default class PopupMenu extends Component<DefaultProps, Props, void> {
-  static defaultProps: DefaultProps;
-}
+declare export default class PopupMenu extends Component<void, Props, void> {}

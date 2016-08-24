@@ -72,11 +72,14 @@ class Render extends Component<void, Props, State> {
       }
     }
     return {
-      header: {title: 'header', view:
-        <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.flexBoxCenter}}>
-          <Text type='BodySmallItalic' style={{textAlign: 'center', color: globalColors.white}}>{platformFriendlyName(proof.type)}</Text>
-          {!!proof.mTime && <Text type='BodySmall' style={{textAlign: 'center', color: globalColors.white}}>Posted on {moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
-        </Box>},
+      header: {
+        title: 'header',
+        view:
+          <Box style={{...globalStyles.flexBoxColumn, ...globalStyles.flexBoxCenter}}>
+            <Text type='BodySmallItalic' style={{textAlign: 'center', color: globalColors.white}}>{platformFriendlyName(proof.type)}</Text>
+            {!!proof.mTime && <Text type='BodySmall' style={{textAlign: 'center', color: globalColors.white}}>Posted on {moment(proof.mTime).format('ddd MMM D, YYYY')}</Text>}
+          </Box>,
+      },
       items: [
         {title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`, onClick: () => this.props.onViewProof(proof)},
         {title: 'Revoke', danger: true, onClick: () => this.props.onRevokeProof(proof)},
