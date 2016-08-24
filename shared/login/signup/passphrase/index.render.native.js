@@ -28,9 +28,8 @@ const stylesOuter = {
   backgroundColor: globalColors.black_10,
 }
 
-
 const stylesSecond = {
-  marginTop: globalMargins.medium,
+  marginTop: globalMargins.small,
   marginBottom: globalMargins.medium,
 }
 
