@@ -19,9 +19,9 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/gregor"
 )
 
 // TestConfig tracks libkb config during a test
@@ -259,7 +259,7 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	tc.T = tb
 
 	if G.SecretStoreAll == nil {
-		G.SecretStoreAll = NewTestSecretStoreAll(G, G)
+		G.SecretStoreAll = &SecretStoreLocked{SecretStoreAll: NewTestSecretStoreAll(G, G)}
 	}
 
 	return

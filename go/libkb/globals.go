@@ -76,7 +76,7 @@ type GlobalContext struct {
 	RateLimits      *RateLimits               // tracks the last time certain actions were taken
 	clockMu         sync.Mutex                // protects Clock
 	clock           clockwork.Clock           // RealClock unless we're testing
-	SecretStoreAll  SecretStoreAll            // nil except for tests and supported platforms
+	SecretStoreAll  *SecretStoreLocked        // nil except for tests and supported platforms
 	hookMu          sync.RWMutex              // protects loginHooks, logoutHooks
 	loginHooks      []LoginHook               // call these on login
 	logoutHooks     []LogoutHook              // call these on logout
@@ -119,7 +119,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.createLoginState()
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
-	g.SecretStoreAll = NewSecretStoreAll(g)
+	g.SecretStoreAll = NewSecretStoreLocked(g)
 	return g
 }
 
