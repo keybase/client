@@ -30,7 +30,7 @@ const stylesOuter = {
 
 const stylesSecond = {
   marginTop: globalMargins.small,
-  marginBottom: globalMargins.medium,
+  marginBottom: globalMargins.small,
 }
 
 const stylesCard = {
