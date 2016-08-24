@@ -3,7 +3,7 @@ import Container from '../../forms/container'
 import React from 'react'
 import type {Props} from './index.render'
 import {Box, Button, Icon, Input, Text} from '../../../common-adapters'
-import {globalStyles} from '../../../styles/style-guide'
+import {globalMargins, globalStyles} from '../../../styles/style-guide'
 
 const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting, submitEnabled}: Props) => {
   submitEnabled = submitEnabled == null ? true : submitEnabled
@@ -45,6 +45,10 @@ const stylesContainer = {
   alignItems: 'center',
 }
 
+const stylesHeader = {
+  marginTop: globalMargins.medium,
+}
+
 const stylesButton = {
   marginTop: 20,
   marginBottom: 20,
@@ -57,12 +61,8 @@ const stylesInput = {
 }
 
 const stylesIcon = {
-  marginTop: 30,
-  marginBottom: 30,
-}
-
-const stylesHeader = {
-  marginTop: 45,
+  marginTop: globalMargins.small,
+  marginBottom: globalMargins.small,
 }
 
 export default SetPublicName

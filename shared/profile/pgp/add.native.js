@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import {Button, Input, PlatformIcon, SmallInput, StandardScreen, Text} from '../../common-adapters'
 import {globalMargins, globalColors} from '../../styles/style-guide'
+import {KeyboardAvoidingView} from 'react-native'
 import type {Props} from './add'
 
 class PgpAdd extends Component<void, Props, void> {
@@ -13,57 +14,59 @@ class PgpAdd extends Component<void, Props, void> {
       autoCorrect: false,
     }
     return (
-      <StandardScreen
-        style={styleContainer}
-        onClose={this.props.onCancel}>
-        {/* TODO(MM) when we get the pgp icon, put it in here */}
-        <PlatformIcon
-          platform='pgp'
-          overlay='icon-proof-unfinished'
-          style={styleIcon} />
-        <Text
-          style={styleHeader}
-          type='Body'>
-          Fill in your public info.
-        </Text>
-        <Input
-          floatingLabelText='Your full name'
-          value={this.props.fullName}
-          onChangeText={this.props.onChangeFullName}
-          textStyle={{height: undefined}} />
-        <SmallInput
-          {...emailInputProps}
-          label='Email 1:'
-          hintText='(required)'
-          onChange={this.props.onChangeEmail1}
-          value={this.props.email1}
-          errorState={this.props.errorEmail1} />
-        <SmallInput
-          {...emailInputProps}
-          label='Email 2:'
-          hintText='(optional)'
-          onChange={this.props.onChangeEmail2}
-          value={this.props.email2}
-          errorState={this.props.errorEmail2} />
-        <SmallInput
-          {...emailInputProps}
-          label='Email 3:'
-          hintText='(optional)'
-          onChange={this.props.onChangeEmail3}
-          value={this.props.email3}
-          errorState={this.props.errorEmail3} />
-        <Text
-          style={styleInfoMessage(!!this.props.errorText)}
-          type='BodySmall'>
-          {this.props.errorText || 'Include any addresses you plan to use for PGP encrypted email.'}
-        </Text>
-        <Button
-          style={styleAction}
-          type='Primary'
-          label='Let the math begin'
-          disabled={nextDisabled}
-          onClick={this.props.onNext} />
-      </StandardScreen>
+      <KeyboardAvoidingView behavior='position'>
+        <StandardScreen
+          style={styleContainer}
+          onClose={this.props.onCancel}>
+          {/* TODO(MM) when we get the pgp icon, put it in here */}
+          <PlatformIcon
+            platform='pgp'
+            overlay='icon-proof-unfinished'
+            style={styleIcon} />
+          <Text
+            style={styleHeader}
+            type='Header'>
+            Fill in your public info
+          </Text>
+          <Input
+            floatingLabelText='Your full name'
+            value={this.props.fullName}
+            onChangeText={this.props.onChangeFullName}
+            textStyle={{height: undefined}} />
+          <SmallInput
+            {...emailInputProps}
+            label='Email 1:'
+            hintText='(required)'
+            onChange={this.props.onChangeEmail1}
+            value={this.props.email1}
+            errorState={this.props.errorEmail1} />
+          <SmallInput
+            {...emailInputProps}
+            label='Email 2:'
+            hintText='(optional)'
+            onChange={this.props.onChangeEmail2}
+            value={this.props.email2}
+            errorState={this.props.errorEmail2} />
+          <SmallInput
+            {...emailInputProps}
+            label='Email 3:'
+            hintText='(optional)'
+            onChange={this.props.onChangeEmail3}
+            value={this.props.email3}
+            errorState={this.props.errorEmail3} />
+          <Text
+            style={styleInfoMessage(!!this.props.errorText)}
+            type='BodySmall'>
+            {this.props.errorText || 'Include any addresses you plan to use for PGP encrypted email.'}
+          </Text>
+          <Button
+            style={styleAction}
+            type='Primary'
+            label='Let the math begin'
+            disabled={nextDisabled}
+            onClick={this.props.onNext} />
+        </StandardScreen>
+      </KeyboardAvoidingView>
     )
   }
 }

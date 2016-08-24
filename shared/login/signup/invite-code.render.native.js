@@ -3,7 +3,7 @@ import Container from '../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './invite-code.render'
 import {Text, Input, Button, Icon, Box} from '../../common-adapters'
-import {globalStyles} from '../../styles/style-guide'
+import {globalMargins, globalStyles} from '../../styles/style-guide'
 
 class Render extends Component {
   props: Props;
@@ -48,7 +48,7 @@ const styles = {
     alignItems: 'center',
   },
   header: {
-    marginTop: 74,
+    marginTop: globalMargins.medium,
   },
   icon: {
     marginTop: 22,

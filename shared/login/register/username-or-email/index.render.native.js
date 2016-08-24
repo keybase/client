@@ -60,11 +60,11 @@ const stylesContainer = {
 }
 const stylesInput = {
   flex: 1,
-  marginTop: 55,
+  marginTop: 25,
   marginBottom: 55,
 }
 const stylesOuterCard = {
-  marginTop: 40,
+  marginTop: 0,
 }
 const stylesCard = {
   alignItems: 'stretch',

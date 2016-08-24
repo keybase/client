@@ -3,7 +3,7 @@ import Container from '../../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {Box, Button, Icon, Input, Text} from '../../../common-adapters'
-import {globalStyles} from '../../../styles/style-guide'
+import {globalMargins, globalStyles} from '../../../styles/style-guide'
 
 class PaperKeyRender extends Component<void, Props, void> {
   render () {
@@ -48,24 +48,21 @@ const stylesContainer = {
 }
 
 const stylesButton = {
-  marginTop: 20,
+  marginTop: globalMargins.medium,
   marginBottom: 20,
 }
 
 const stylesInput = {
-  marginTop: 20,
-  marginBottom: 20,
   alignSelf: 'stretch',
   height: 80,
 }
 
 const stylesIcon = {
   marginTop: 30,
-  marginBottom: 30,
 }
 
 const stylesHeader = {
-  marginTop: 45,
+  marginTop: globalMargins.small,
 }
 
 export default PaperKeyRender
