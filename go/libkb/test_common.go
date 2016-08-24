@@ -89,10 +89,9 @@ type TestContext struct {
 }
 
 func (tc *TestContext) Cleanup() {
+	tc.G.Log.Debug("global context shutdown:")
+	tc.G.Shutdown()
 	if len(tc.Tp.Home) > 0 {
-		tc.G.Log.Debug("global context shutdown:")
-		tc.G.Log.Debug("cleaning up %s", tc.Tp.Home)
-		tc.G.Shutdown()
 		tc.G.Log.Debug("cleaning up %s", tc.Tp.Home)
 		os.RemoveAll(tc.Tp.Home)
 		tc.G.Log.Debug("clearing stored secrets:")

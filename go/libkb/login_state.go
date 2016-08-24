@@ -187,11 +187,9 @@ func (s *LoginState) Shutdown() error {
 
 		if s.loginReqs != nil {
 			close(s.loginReqs)
-			s.loginReqs = nil // block future sends to this channel
 		}
 		if s.acctReqs != nil {
 			close(s.acctReqs)
-			s.acctReqs = nil // block future sends to this channel
 		}
 	}, "LoginState - Shutdown")
 	if aerr != nil {
@@ -882,7 +880,7 @@ func (s *LoginState) requests() {
 	// We're supposed to timeout & cleanup Paper Keys after an hour of inactivity.
 	maketimer := func() <-chan time.Time { return s.G().Clock().After(1 * time.Minute) }
 	timer := maketimer()
-	s.G().Log.Debug("LoginState: Running request loop")
+	s.G().Log.Debug("+ LoginState: Running request loop")
 
 	for {
 		select {
@@ -916,6 +914,7 @@ func (s *LoginState) requests() {
 			break
 		}
 	}
+	s.G().Log.Debug("- LoginState: Leaving request loop")
 }
 
 func (s *LoginState) loginWithStoredSecret(lctx LoginContext, username string) error {

@@ -92,7 +92,7 @@ func (c *chatLocalMock) PostLocal(ctx context.Context, arg keybase1.PostLocalArg
 	return errors.New("not implemented")
 }
 
-func (h *chatLocalMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
+func (c *chatLocalMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
 	return res, errors.New("not implemented")
 }
 
