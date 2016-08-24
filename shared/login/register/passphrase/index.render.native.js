@@ -49,12 +49,9 @@ class Render extends Component<void, Props, void> {
 
 const stylesContainer = {
   flex: 1,
-  marginTop: 40,
 }
 const stylesInput = {
   flex: 1,
-  marginTop: 40,
-  paddingBottom: 30,
 }
 const stylesForgot = {
   marginTop: 20,
@@ -64,7 +61,6 @@ const stylesCard = {
 }
 
 const usernameStyle = {
-  marginTop: 30,
   textAlign: 'center',
 }
 

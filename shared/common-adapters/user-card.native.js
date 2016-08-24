@@ -28,7 +28,6 @@ const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'stretch',
-    marginTop: 37,
   },
   inside: {
     ...globalStyles.flexBoxColumn,

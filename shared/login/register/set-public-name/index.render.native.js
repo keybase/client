@@ -3,7 +3,7 @@ import Container from '../../forms/container'
 import React from 'react'
 import type {Props} from './index.render'
 import {Box, Button, Icon, Input, Text} from '../../../common-adapters'
-import {globalStyles} from '../../../styles/style-guide'
+import {globalMargins, globalStyles} from '../../../styles/style-guide'
 
 const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting, submitEnabled}: Props) => {
   submitEnabled = submitEnabled == null ? true : submitEnabled
@@ -13,10 +13,11 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
         style={stylesContainer}
         onBack={onBack}>
         <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
-        <Icon type='icon-phone-colors-64' style={stylesIcon} />
+        <Icon type='icon-phone-colors-32' style={stylesIcon} />
         <Input
           autoFocus={true}
           style={stylesInput}
+          errorText={deviceNameError}
           floatingLabelText='Device name'
           hintText='Device name'
           onEnterKeyDown={() => onSubmit()}
@@ -45,6 +46,10 @@ const stylesContainer = {
   alignItems: 'center',
 }
 
+const stylesHeader = {
+  marginTop: globalMargins.small,
+}
+
 const stylesButton = {
   marginTop: 20,
   marginBottom: 20,
@@ -57,12 +62,8 @@ const stylesInput = {
 }
 
 const stylesIcon = {
-  marginTop: 30,
-  marginBottom: 30,
-}
-
-const stylesHeader = {
-  marginTop: 45,
+  marginTop: globalMargins.small,
+  marginBottom: globalMargins.small,
 }
 
 export default SetPublicName
