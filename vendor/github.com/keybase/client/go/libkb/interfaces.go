@@ -21,10 +21,10 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
-	gregor "github.com/keybase/gregor"
-	gregor1 "github.com/keybase/gregor/protocol/gregor1"
+	gregor "github.com/keybase/client/go/gregor"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
 type CommandLine interface {
@@ -335,6 +335,8 @@ type LogUI interface {
 	Critical(format string, args ...interface{})
 }
 
+type LogFunc func(format string, args ...interface{})
+
 type GPGUI interface {
 	keybase1.GpgUiInterface
 }
@@ -443,11 +445,21 @@ type GregorListener interface {
 	PushFirehoseHandler(handler GregorFirehoseHandler)
 }
 
-type GlobalContextLite interface {
+type LogContext interface {
 	GetLog() logger.Logger
+}
+
+// APIContext defines methods for accessing API server
+type APIContext interface {
 	GetAPI() API
 	GetExternalAPI() ExternalAPI
 	GetServerURI() string
+}
+
+// ProofContext defines features needed by the proof system
+type ProofContext interface {
+	LogContext
+	APIContext
 }
 
 type AssertionContext interface {
@@ -456,8 +468,8 @@ type AssertionContext interface {
 
 // ProofChecker is an interface for performing a remote check for a proof
 type ProofChecker interface {
-	CheckHint(g GlobalContextLite, h SigHint) ProofError
-	CheckStatus(g GlobalContextLite, h SigHint) ProofError
+	CheckHint(ctx ProofContext, h SigHint) ProofError
+	CheckStatus(ctx ProofContext, h SigHint) ProofError
 	GetTorError() ProofError
 }
 
@@ -473,11 +485,11 @@ type ServiceType interface {
 	// NormalizeRemote normalizes the given remote username, which
 	// is usually but not always the same as the username. It also
 	// allows leaders like '@' and 'dns://'.
-	NormalizeRemoteName(g GlobalContextLite, name string) (string, error)
+	NormalizeRemoteName(ctx ProofContext, name string) (string, error)
 
 	GetPrompt() string
 	LastWriterWins() bool
-	PreProofCheck(g GlobalContextLite, remotename string) (*Markup, error)
+	PreProofCheck(ctx ProofContext, remotename string) (*Markup, error)
 	PreProofWarning(remotename string) *Markup
 	ToServiceJSON(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup

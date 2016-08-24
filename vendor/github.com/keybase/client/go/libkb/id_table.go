@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -613,7 +613,7 @@ func (s *SibkeyChainLink) VerifyReverseSig(ckf ComputedKeyFamily) (err error) {
 	}
 
 	var p1, p2 []byte
-	if p1, _, err = key.VerifyStringAndExtract(s.reverseSig); err != nil {
+	if p1, _, err = key.VerifyStringAndExtract(s.G().Log, s.reverseSig); err != nil {
 		err = ReverseSigError{fmt.Sprintf("Failed to verify/extract sig: %s", err)}
 		return err
 	}

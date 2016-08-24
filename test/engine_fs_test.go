@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"

@@ -139,37 +139,51 @@
 		{
 			"checksumSHA1": "hajIhCr8Znf3CAx6HrkWMTzeoPE=",
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "a49bc9e6eb4a3165ca43f03fb0321fcf9b5be0a7",
-			"revisionTime": "2016-08-22T12:28:47-07:00"
+			"revision": "55d9d492c07457931a3ff9e9d513124cc430af34",
+			"revisionTime": "2016-08-24T12:44:35-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/externals",
-			"revision": "a49bc9e6eb4a3165ca43f03fb0321fcf9b5be0a7",
-			"revisionTime": "2016-08-22T12:28:47-07:00"
+			"revision": "55d9d492c07457931a3ff9e9d513124cc430af34",
+			"revisionTime": "2016-08-24T12:44:35-05:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/gregor",
+			"revision": "55d9d492c07457931a3ff9e9d513124cc430af34",
+			"revisionTime": "2016-08-24T12:44:35-05:00"
 		},
 		{
 			"checksumSHA1": "v0Wur7mWA+MgfyuSCk6F7UkL9zo=",
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "a49bc9e6eb4a3165ca43f03fb0321fcf9b5be0a7",
-			"revisionTime": "2016-08-22T12:28:47-07:00"
+			"revision": "55d9d492c07457931a3ff9e9d513124cc430af34",
+			"revisionTime": "2016-08-24T12:44:35-05:00"
 		},
 		{
 			"checksumSHA1": "6MFlG+YnM+N/hTDK7lzyVmN+Tzc=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "a49bc9e6eb4a3165ca43f03fb0321fcf9b5be0a7",
-			"revisionTime": "2016-08-22T12:28:47-07:00"
+			"revision": "55d9d492c07457931a3ff9e9d513124cc430af34",
+			"revisionTime": "2016-08-24T12:44:35-05:00"
 		},
 		{
 			"checksumSHA1": "jgyp+kDYeVWZKxMqVO7cDA1FAy8=",
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "a49bc9e6eb4a3165ca43f03fb0321fcf9b5be0a7",
-			"revisionTime": "2016-08-22T12:28:47-07:00"
+			"revision": "55d9d492c07457931a3ff9e9d513124cc430af34",
+			"revisionTime": "2016-08-24T12:44:35-05:00"
 		},
 		{
-			"checksumSHA1": "bvhkBfa0vUX7Uvy3+RxL9f3WKDU=",
-			"path": "github.com/keybase/client/go/protocol",
-			"revision": "a49bc9e6eb4a3165ca43f03fb0321fcf9b5be0a7",
-			"revisionTime": "2016-08-22T12:28:47-07:00"
+			"path": "github.com/keybase/client/go/protocol/chat1",
+			"revision": "55d9d492c07457931a3ff9e9d513124cc430af34",
+			"revisionTime": "2016-08-24T12:44:35-05:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/protocol/gregor1",
+			"revision": "55d9d492c07457931a3ff9e9d513124cc430af34",
+			"revisionTime": "2016-08-24T12:44:35-05:00"
+		},
+		{
+			"path": "github.com/keybase/client/go/protocol/keybase1",
+			"revision": "55d9d492c07457931a3ff9e9d513124cc430af34",
+			"revisionTime": "2016-08-24T12:44:35-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",

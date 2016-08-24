@@ -6,7 +6,7 @@ package libkb
 import (
 	"time"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 

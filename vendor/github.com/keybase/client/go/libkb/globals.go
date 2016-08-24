@@ -25,7 +25,7 @@ import (
 
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type ShutdownHook func() error
@@ -92,8 +92,6 @@ func (g *GlobalContext) GetLog() logger.Logger       { return g.Log }
 func (g *GlobalContext) GetAPI() API                 { return g.API }
 func (g *GlobalContext) GetExternalAPI() ExternalAPI { return g.XAPI }
 func (g *GlobalContext) GetServerURI() string        { return g.Env.GetServerURI() }
-
-var _ GlobalContextLite = (*GlobalContext)(nil)
 
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")

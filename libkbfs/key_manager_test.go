@@ -10,7 +10,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )

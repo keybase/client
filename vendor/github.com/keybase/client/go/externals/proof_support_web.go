@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	libkb "github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -39,7 +39,7 @@ func (rc *WebChecker) GetTorError() libkb.ProofError {
 	return nil
 }
 
-func (rc *WebChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+func (rc *WebChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 
 	files := webKeybaseFiles
 	urlBase := rc.proof.ToDisplayString()
@@ -57,8 +57,8 @@ func (rc *WebChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libk
 		h.GetAPIURL())
 }
 
-func (rc *WebChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
-	res, err := g.GetExternalAPI().GetText(libkb.NewAPIArg(h.GetAPIURL()))
+func (rc *WebChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArg(h.GetAPIURL()))
 
 	if err != nil {
 		return libkb.XapiError(err, h.GetAPIURL())
@@ -110,14 +110,14 @@ func ParseWeb(s string) (hostname string, prot string, err error) {
 	return
 }
 
-func (t WebServiceType) NormalizeRemoteName(g libkb.GlobalContextLite, s string) (ret string, err error) {
+func (t WebServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (ret string, err error) {
 	// The remote name is a full (case-preserved) URL.
 	var prot, host string
 	if host, prot, err = ParseWeb(s); err != nil {
 		return
 	}
 	var res *libkb.APIRes
-	res, err = g.GetAPI().Get(libkb.APIArg{
+	res, err = ctx.GetAPI().Get(libkb.APIArg{
 		Endpoint:    "remotes/check",
 		NeedSession: true,
 		Args: libkb.HTTPArgs{

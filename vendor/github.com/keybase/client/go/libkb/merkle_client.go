@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -418,7 +418,7 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 	}
 
 	// Actually run the PGP verification over the signature
-	_, err = key.VerifyString(sig, []byte(root.payloadJSONString))
+	_, err = key.VerifyString(mc.G().Log, sig, []byte(root.payloadJSONString))
 	if err != nil {
 		return err
 	}

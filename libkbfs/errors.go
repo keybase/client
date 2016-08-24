@@ -8,7 +8,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // ErrorFile is the name of the virtual file in KBFS that should

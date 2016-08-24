@@ -24,7 +24,7 @@ import (
 	"unicode"
 
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // PrereleaseBuild can be set at compile time for prerelease builds.

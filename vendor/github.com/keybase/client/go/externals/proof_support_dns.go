@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	libkb "github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -26,7 +26,7 @@ func NewDNSChecker(p libkb.RemoteProofChainLink) (*DNSChecker, libkb.ProofError)
 
 func (rc *DNSChecker) GetTorError() libkb.ProofError { return libkb.ProofErrorDNSOverTor }
 
-func (rc *DNSChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+func (rc *DNSChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	_, sigID, err := libkb.OpenSig(rc.proof.GetArmoredSig())
 
 	if err != nil {
@@ -44,7 +44,7 @@ func (rc *DNSChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libk
 	return nil
 }
 
-func (rc *DNSChecker) CheckDomain(g libkb.GlobalContextLite, sig string, domain string) libkb.ProofError {
+func (rc *DNSChecker) CheckDomain(ctx libkb.ProofContext, sig string, domain string) libkb.ProofError {
 	txt, err := net.LookupTXT(domain)
 	if err != nil {
 		return libkb.NewProofError(keybase1.ProofStatus_DNS_ERROR,
@@ -52,7 +52,7 @@ func (rc *DNSChecker) CheckDomain(g libkb.GlobalContextLite, sig string, domain 
 	}
 
 	for _, record := range txt {
-		g.GetLog().Debug("For %s, got TXT record: %s", domain, record)
+		ctx.GetLog().Debug("For %s, got TXT record: %s", domain, record)
 		if record == sig {
 			return nil
 		}
@@ -62,18 +62,18 @@ func (rc *DNSChecker) CheckDomain(g libkb.GlobalContextLite, sig string, domain 
 		len(txt), domain, sig)
 }
 
-func (rc *DNSChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+func (rc *DNSChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 
 	wanted := h.GetCheckText()
-	g.GetLog().Debug("| DNS proof, want TXT value: %s", wanted)
+	ctx.GetLog().Debug("| DNS proof, want TXT value: %s", wanted)
 
 	domain := rc.proof.GetHostname()
 
 	// Try the apex first, and report its error if both
 	// attempts fail
-	pe := rc.CheckDomain(g, wanted, domain)
+	pe := rc.CheckDomain(ctx, wanted, domain)
 	if pe != nil {
-		tmp := rc.CheckDomain(g, wanted, "_keybase."+domain)
+		tmp := rc.CheckDomain(ctx, wanted, "_keybase."+domain)
 		if tmp == nil {
 			pe = nil
 		}
@@ -95,7 +95,7 @@ func (t DNSServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t DNSServiceType) NormalizeRemoteName(_ libkb.GlobalContextLite, s string) (string, error) {
+func (t DNSServiceType) NormalizeRemoteName(_ libkb.ProofContext, s string) (string, error) {
 	// Allow a leading 'dns://' and preserve case.
 	s = strings.TrimPrefix(s, "dns://")
 	if !libkb.IsValidHostname(s) {

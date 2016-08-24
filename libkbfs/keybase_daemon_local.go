@@ -13,7 +13,7 @@ import (
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
 )

@@ -12,7 +12,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

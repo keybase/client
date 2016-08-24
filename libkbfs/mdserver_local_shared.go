@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sync"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // Helper to aid in enforcement that only specified public keys can

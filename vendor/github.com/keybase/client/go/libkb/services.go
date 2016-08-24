@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -74,9 +74,9 @@ func (t BaseServiceType) BaseAllStringKeys(st ServiceType) []string {
 	return []string{st.GetTypeName()}
 }
 
-func (t BaseServiceType) LastWriterWins() bool                                     { return true }
-func (t BaseServiceType) PreProofCheck(GlobalContextLite, string) (*Markup, error) { return nil, nil }
-func (t BaseServiceType) PreProofWarning(remotename string) *Markup                { return nil }
+func (t BaseServiceType) LastWriterWins() bool                                { return true }
+func (t BaseServiceType) PreProofCheck(ProofContext, string) (*Markup, error) { return nil, nil }
+func (t BaseServiceType) PreProofWarning(remotename string) *Markup           { return nil }
 
 func (t BaseServiceType) FormatProofText(ppr *PostProofRes) (string, error) {
 	return ppr.Text, nil

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // BareTlfHandle uniquely identifies top-level folders by readers and

@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // mdServerTlfStorage stores an ordered list of metadata IDs for each

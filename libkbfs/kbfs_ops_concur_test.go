@@ -14,7 +14,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )

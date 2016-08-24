@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	libkb "github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -26,7 +26,7 @@ func NewGithubChecker(p libkb.RemoteProofChainLink) (*GithubChecker, libkb.Proof
 
 func (rc *GithubChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *GithubChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+func (rc *GithubChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	given := strings.ToLower(h.GetAPIURL())
 	u := strings.ToLower(rc.proof.GetRemoteUsername())
 	ok1 := "https://gist.github.com/" + u + "/"
@@ -38,8 +38,8 @@ func (rc *GithubChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) l
 		"Bad hint from server; URL start with either '%s' OR '%s'", ok1, ok2)
 }
 
-func (rc *GithubChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
-	res, err := g.GetExternalAPI().GetText(libkb.NewAPIArg(h.GetAPIURL()))
+func (rc *GithubChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArg(h.GetAPIURL()))
 
 	if err != nil {
 		return libkb.XapiError(err, h.GetAPIURL())
@@ -77,7 +77,7 @@ func (t GithubServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t GithubServiceType) NormalizeRemoteName(g libkb.GlobalContextLite, s string) (ret string, err error) {
+func (t GithubServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (ret string, err error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)

@@ -7,7 +7,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
-	protocol "github.com/keybase/client/go/protocol"
+	protocol "github.com/keybase/client/go/protocol/keybase1"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
 	reflect "reflect"

@@ -9,7 +9,7 @@ import (
 
 	"github.com/agl/ed25519"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
 )
 

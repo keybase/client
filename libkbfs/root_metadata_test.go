@@ -11,7 +11,7 @@ import (
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"

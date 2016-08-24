@@ -9,7 +9,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	libkb "github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -27,7 +27,7 @@ func NewTwitterChecker(p libkb.RemoteProofChainLink) (*TwitterChecker, libkb.Pro
 
 func (rc *TwitterChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *TwitterChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+func (rc *TwitterChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	wantedURL := ("https://twitter.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/")
 	wantedShortID := (" " + rc.proof.GetSigID().ToShortID() + " /")
 
@@ -48,7 +48,7 @@ func (rc *TwitterChecker) ScreenNameCompare(s1, s2 string) bool {
 	return libkb.Cicmp(s1, s2)
 }
 
-func (rc *TwitterChecker) findSigInTweet(g libkb.GlobalContextLite, h libkb.SigHint, s *goquery.Selection) libkb.ProofError {
+func (rc *TwitterChecker) findSigInTweet(ctx libkb.ProofContext, h libkb.SigHint, s *goquery.Selection) libkb.ProofError {
 
 	inside := s.Text()
 	html, err := s.Html()
@@ -59,8 +59,8 @@ func (rc *TwitterChecker) findSigInTweet(g libkb.GlobalContextLite, h libkb.SigH
 		return libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE, "No HTML tweet found: %s", err)
 	}
 
-	g.GetLog().Debug("+ Checking tweet '%s' for signature '%s'", inside, checkText)
-	g.GetLog().Debug("| HTML is: %s", html)
+	ctx.GetLog().Debug("+ Checking tweet '%s' for signature '%s'", inside, checkText)
+	ctx.GetLog().Debug("| HTML is: %s", html)
 
 	rxx := regexp.MustCompile(`^(@[a-zA-Z0-9_-]+\s+)`)
 	for {
@@ -69,7 +69,7 @@ func (rc *TwitterChecker) findSigInTweet(g libkb.GlobalContextLite, h libkb.SigH
 		} else {
 			prefix := inside[m[2]:m[3]]
 			inside = inside[m[3]:]
-			g.GetLog().Debug("| Stripping off @prefx: %s", prefix)
+			ctx.GetLog().Debug("| Stripping off @prefx: %s", prefix)
 		}
 	}
 	inside = libkb.WhitespaceNormalize(inside)
@@ -82,9 +82,9 @@ func (rc *TwitterChecker) findSigInTweet(g libkb.GlobalContextLite, h libkb.SigH
 		checkText, inside)
 }
 
-func (rc *TwitterChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+func (rc *TwitterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	url := h.GetAPIURL()
-	res, err := g.GetExternalAPI().GetHTML(libkb.NewAPIArg(url))
+	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArg(url))
 	if err != nil {
 		return libkb.XapiError(err, url)
 	}
@@ -112,7 +112,7 @@ func (rc *TwitterChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint
 			"Missing <div class='tweet-text'> container for tweet")
 	}
 
-	return rc.findSigInTweet(g, h, p.First())
+	return rc.findSigInTweet(ctx, h, p.First())
 }
 
 //
@@ -131,7 +131,7 @@ func (t TwitterServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t TwitterServiceType) NormalizeRemoteName(g libkb.GlobalContextLite, s string) (string, error) {
+func (t TwitterServiceType) NormalizeRemoteName(ctx libkb.ProofContext, s string) (string, error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)

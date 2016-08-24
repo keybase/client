@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/golang/mock/gomock"
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 func mdCacheInit(t *testing.T, cap int) (

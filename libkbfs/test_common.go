@@ -15,7 +15,7 @@ import (
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/kbfs/env"
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"

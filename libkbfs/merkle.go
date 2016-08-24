@@ -7,7 +7,7 @@ package libkbfs
 import (
 	"encoding"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 	merkle "github.com/keybase/go-merkle-tree"
 )
 

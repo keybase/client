@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	libkb "github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -29,7 +29,7 @@ func (rc *CoinbaseChecker) ProfileURL() string {
 	return "https://coinbase.com/" + rc.proof.GetRemoteUsername() + "/public-key"
 }
 
-func (rc *CoinbaseChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+func (rc *CoinbaseChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	wanted := rc.ProfileURL()
 	url := h.GetAPIURL()
 	if strings.ToLower(wanted) == url {
@@ -40,9 +40,9 @@ func (rc *CoinbaseChecker) CheckHint(g libkb.GlobalContextLite, h libkb.SigHint)
 
 func (rc *CoinbaseChecker) GetTorError() libkb.ProofError { return nil }
 
-func (rc *CoinbaseChecker) CheckStatus(g libkb.GlobalContextLite, h libkb.SigHint) libkb.ProofError {
+func (rc *CoinbaseChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	url := h.GetAPIURL()
-	res, err := g.GetExternalAPI().GetHTML(libkb.NewAPIArg(url))
+	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArg(url))
 	if err != nil {
 		return libkb.XapiError(err, url)
 	}
@@ -94,7 +94,7 @@ func (t CoinbaseServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-func (t CoinbaseServiceType) NormalizeRemoteName(_ libkb.GlobalContextLite, s string) (ret string, err error) {
+func (t CoinbaseServiceType) NormalizeRemoteName(_ libkb.ProofContext, s string) (ret string, err error) {
 	// Allow a leading '@'.
 	s = strings.TrimPrefix(s, "@")
 	return t.NormalizeUsername(s)
@@ -104,8 +104,8 @@ func (t CoinbaseServiceType) GetPrompt() string {
 	return "Your username on Coinbase"
 }
 
-func (t CoinbaseServiceType) PreProofCheck(g libkb.GlobalContextLite, normalizedUsername string) (*libkb.Markup, error) {
-	_, err := g.GetExternalAPI().GetHTML(libkb.NewAPIArg(coinbaseUserURL(normalizedUsername)))
+func (t CoinbaseServiceType) PreProofCheck(ctx libkb.ProofContext, normalizedUsername string) (*libkb.Markup, error) {
+	_, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArg(coinbaseUserURL(normalizedUsername)))
 	if err != nil {
 		if ae, ok := err.(*libkb.APIError); ok && ae.Code == 404 {
 			err = libkb.NewProfileNotPublicError(fmt.Sprintf("%s isn't public! Change your settings at %s",

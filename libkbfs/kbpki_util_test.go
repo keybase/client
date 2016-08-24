@@ -8,7 +8,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 

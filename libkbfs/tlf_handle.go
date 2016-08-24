@@ -13,7 +13,7 @@ import (
 
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
