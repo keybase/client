@@ -20,7 +20,7 @@ import (
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/mounter"
-	"github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 // defaultLaunchdWait is how long we should wait after install, start, etc

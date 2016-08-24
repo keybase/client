@@ -6,7 +6,7 @@ package libkb
 import (
 	"bytes"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
 	"golang.org/x/crypto/nacl/box"
 )

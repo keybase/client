@@ -8,7 +8,7 @@ import (
 	"github.com/keybase/client/go/auth"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	context "golang.org/x/net/context"
 	"regexp"
 	"strings"

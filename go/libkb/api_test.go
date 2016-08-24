@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"testing"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 func TestIsReddit(t *testing.T) {

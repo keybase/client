@@ -6,7 +6,7 @@ package service
 import (
 	"fmt"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type BadTrackSessionError struct {

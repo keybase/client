@@ -6,7 +6,7 @@ package engine
 import (
 	"testing"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 func TestSearch(t *testing.T) {
