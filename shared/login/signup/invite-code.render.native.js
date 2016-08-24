@@ -20,17 +20,16 @@ class Render extends Component {
   }
 
   render () {
-    const submitInviteCode = () => {
-      this.props.onInviteCodeSubmit(this.state.inviteCode)
+    const submitInviteCode = () => { this.props.onInviteCodeSubmit(this.state.inviteCode)
     }
 
     return (
-      <Container onBack={this.props.onBack} style={styles.container}>
-        <Text style={styles.header} type='Header'>Type in your invite code:</Text>
-        <Icon style={styles.icon} type='icon-invite-code-48' />
-        <Input autoFocus={true} style={styles.input} hintText='goddess brown result reject' value={this.state.inviteCode} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode} onChangeText={inviteCode => this.setState({inviteCode})} />
-        <Button style={styles.button} waiting={this.props.waiting} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode} />
-        <Text style={styles.text} type='BodySmall'>Not invited?</Text>
+      <Container onBack={this.props.onBack} style={stylesContainer}>
+        <Text style={stylesHeader} type='Header'>Type in your invite code:</Text>
+        <Icon style={stylesIcon} type='icon-invite-code-48' />
+        <Input autoFocus={true} style={stylesInput} hintText='goddess brown result reject' value={this.state.inviteCode} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode} onChangeText={inviteCode => this.setState({inviteCode})} />
+        <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode} />
+        <Text style={stylesText} type='BodySmall'>Not invited?</Text>
         <Text type='BodySmallSecondaryLink' onClick={this.props.onRequestInvite}>Request an invite</Text>
         <Box style={{flex: 1}} />
       </Container>
@@ -38,28 +37,24 @@ class Render extends Component {
   }
 }
 
-const styles = {
-  button: {
-    marginTop: 35,
-    alignSelf: 'stretch',
-  },
-  container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-  },
-  header: {
-    marginTop: globalMargins.medium,
-  },
-  icon: {
-    marginTop: 22,
-  },
-  input: {
-    alignSelf: 'stretch',
-    marginTop: 0,
-  },
-  text: {
-    marginTop: globalMargins.small,
-  },
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
 }
-
+const stylesHeader = {
+  marginTop: globalMargins.medium,
+}
+const stylesIcon = {
+  marginTop: globalMargins.small,
+}
+const stylesInput = {
+  alignSelf: 'stretch',
+}
+const stylesText = {
+  marginTop: globalMargins.small,
+}
+const stylesButton = {
+  marginTop: globalMargins.small,
+  marginBottom: globalMargins.small,
+}
 export default Render
