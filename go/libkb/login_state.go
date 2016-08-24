@@ -14,7 +14,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // PassphraseGeneration represents which generation of the passphrase is
@@ -187,7 +187,11 @@ func (s *LoginState) Shutdown() error {
 
 		if s.loginReqs != nil {
 			close(s.loginReqs)
-			s.loginReqs = nil // block future sends to this channel
+
+			// block future sends to this channel; we have observed this in some
+			// tests every now and then do to races in shutdown. It shouldn't be a
+			// problem in production.
+			s.loginReqs = nil
 		}
 		if s.acctReqs != nil {
 			close(s.acctReqs)
@@ -882,11 +886,16 @@ func (s *LoginState) requests() {
 	// We're supposed to timeout & cleanup Paper Keys after an hour of inactivity.
 	maketimer := func() <-chan time.Time { return s.G().Clock().After(1 * time.Minute) }
 	timer := maketimer()
-	s.G().Log.Debug("LoginState: Running request loop")
+	s.G().Log.Debug("+ LoginState: Running request loop")
+
+	// Make local copies of these channels so that we won't get nil'ed
+	// out when Shutdown is called
+	loginReqs := s.loginReqs
+	acctReqs := s.acctReqs
 
 	for {
 		select {
-		case req, ok := <-s.loginReqs:
+		case req, ok := <-loginReqs:
 			if ok {
 				s.activeReq = fmt.Sprintf("Login Request: %q", req.name)
 				err := req.f(s.account)
@@ -900,7 +909,7 @@ func (s *LoginState) requests() {
 			} else {
 				loginReqsClosed = true
 			}
-		case req, ok := <-s.acctReqs:
+		case req, ok := <-acctReqs:
 			if ok {
 				s.activeReq = fmt.Sprintf("Account Request: %q", req.name)
 				req.f(s.account)
@@ -916,6 +925,7 @@ func (s *LoginState) requests() {
 			break
 		}
 	}
+	s.G().Log.Debug("- LoginState: Leaving request loop")
 }
 
 func (s *LoginState) loginWithStoredSecret(lctx LoginContext, username string) error {

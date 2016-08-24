@@ -6,7 +6,7 @@ package libkb
 import (
 	"path"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // InviteArg contains optional invitation arguments.

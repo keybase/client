@@ -4,7 +4,7 @@
 package engine
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"testing"
 )
 

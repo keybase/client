@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/openpgp"
 	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"

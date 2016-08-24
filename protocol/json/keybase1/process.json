@@ -1,0 +1,52 @@
+{
+  "protocol": "process",
+  "imports": [],
+  "types": [
+    {
+      "type": "enum",
+      "name": "FileType",
+      "symbols": [
+        "UNKNOWN_0",
+        "DIRECTORY_1",
+        "FILE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FileDescriptor",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "FileType",
+          "name": "type"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Process",
+      "fields": [
+        {
+          "type": "string",
+          "name": "pid"
+        },
+        {
+          "type": "string",
+          "name": "command"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "FileDescriptor"
+          },
+          "name": "fileDescriptors"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

@@ -1,0 +1,41 @@
+{
+  "protocol": "backendCommon",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "BlockIdCombo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "blockHash"
+        },
+        {
+          "type": "UID",
+          "name": "chargedTo"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ChallengeInfo",
+      "fields": [
+        {
+          "type": "long",
+          "name": "now"
+        },
+        {
+          "type": "string",
+          "name": "challenge"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "keybase.1"
+}

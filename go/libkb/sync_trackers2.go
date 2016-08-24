@@ -5,7 +5,7 @@ package libkb
 
 import (
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"sync"
 	"time"
 )

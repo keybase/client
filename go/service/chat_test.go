@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/gregor/protocol/chat1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/chat1"
 )
 
 func cryptKey(t *testing.T) *keybase1.CryptKey {

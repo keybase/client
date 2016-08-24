@@ -1,0 +1,26 @@
+{
+  "protocol": "gregor",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "NewMessagePayload",
+      "fields": [
+        {
+          "type": "string",
+          "name": "Action"
+        },
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "MessageBoxed",
+          "name": "message"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "chat.1"
+}

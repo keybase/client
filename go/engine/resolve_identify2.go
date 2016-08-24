@@ -4,9 +4,9 @@
 package engine
 
 import (
+	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
-	gregor "github.com/keybase/gregor"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type ResolveThenIdentify2 struct {

@@ -8,9 +8,9 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/gregor/protocol/chat1"
-	"github.com/keybase/gregor/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 )
 
 const (
@@ -92,7 +92,7 @@ func (c *chatLocalMock) PostLocal(ctx context.Context, arg keybase1.PostLocalArg
 	return errors.New("not implemented")
 }
 
-func (h *chatLocalMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
+func (c *chatLocalMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
 	return res, errors.New("not implemented")
 }
 
