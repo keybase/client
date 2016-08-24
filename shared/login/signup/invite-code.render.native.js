@@ -20,8 +20,7 @@ class Render extends Component {
   }
 
   render () {
-    const submitInviteCode = () => { this.props.onInviteCodeSubmit(this.state.inviteCode)
-    }
+    const submitInviteCode = () => { this.props.onInviteCodeSubmit(this.state.inviteCode) }
 
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
@@ -29,7 +28,7 @@ class Render extends Component {
         <Icon style={stylesIcon} type='icon-invite-code-48' />
         <Input autoFocus={true} style={stylesInput} hintText='goddess brown result reject' value={this.state.inviteCode} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode} onChangeText={inviteCode => this.setState({inviteCode})} />
         <Button style={stylesButton} waiting={this.props.waiting} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode} />
-        <Text style={stylesText} type='BodySmall'>Not invited?</Text>
+        <Text type='BodySmall'>Not invited?</Text>
         <Text type='BodySmallSecondaryLink' onClick={this.props.onRequestInvite}>Request an invite</Text>
         <Box style={{flex: 1}} />
       </Container>
@@ -42,19 +41,17 @@ const stylesContainer = {
   alignItems: 'center',
 }
 const stylesHeader = {
-  marginTop: globalMargins.medium,
+  marginTop: globalMargins.small,
 }
 const stylesIcon = {
   marginTop: globalMargins.small,
+  marginBottom: globalMargins.small,
 }
 const stylesInput = {
   alignSelf: 'stretch',
 }
-const stylesText = {
-  marginTop: globalMargins.small,
-}
 const stylesButton = {
-  marginTop: globalMargins.small,
+  marginTop: globalMargins.medium,
   marginBottom: globalMargins.small,
 }
 export default Render
