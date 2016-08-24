@@ -175,11 +175,9 @@ const styles = {
   },
   navBarTitleText: {
     ...commonStyles,
-    // backgroundColor: 'red',
   },
   navBarLeftButton: {
     ...commonStyles,
-    // backgroundColor: 'blue',
     paddingLeft: 10,
     paddingRight: 10,
   },
@@ -190,7 +188,6 @@ const styles = {
   },
   navBarButtonText: {
     ...commonStyles,
-    // backgroundColor: 'green',
     color: globalColors.blue,
   },
 }
