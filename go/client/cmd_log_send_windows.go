@@ -60,8 +60,8 @@ func GetInstallLogPath() (string, error) {
 	keybaseLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Keybase*.log")))
 	sort.Sort(sort.Reverse(sort.StringSlice(keybaseLogFiles)))
 
-	if len(keybaseLogFiles) > 3 {
-		keybaseLogFiles = keybaseLogFiles[:3]
+	if len(keybaseLogFiles) > 6 {
+		keybaseLogFiles = keybaseLogFiles[:6]
 	}
 	// Get the 2 newest dokan logs - sorting by name works because timestamp
 	dokanLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Dokan*.log")))
