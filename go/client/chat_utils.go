@@ -1,11 +1,12 @@
 package client
 
 import (
-	"context"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
