@@ -5,10 +5,14 @@ package service
 
 import (
 	"testing"
+	"time"
 
+	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 func cryptKey(t *testing.T) *keybase1.CryptKey {
@@ -22,19 +26,35 @@ func cryptKey(t *testing.T) *keybase1.CryptKey {
 	}
 }
 
-func textMsg(text string) keybase1.MessagePlaintext {
+func textMsg(t *testing.T, text string) keybase1.MessagePlaintext {
+	uid, err := libkb.RandBytes(16)
+	if err != nil {
+		t.Fatal(err)
+	}
+	uid[15] = keybase1.UID_SUFFIX_2
 	return keybase1.MessagePlaintext{
-		ClientHeader: chat1.MessageClientHeader{},
+		ClientHeader: chat1.MessageClientHeader{
+			Sender: gregor1.UID(uid),
+		},
 		MessageBodies: []keybase1.MessageBody{
 			{Type: chat1.MessageType_TEXT, Text: &keybase1.MessageText{Body: text}},
 		},
 	}
 }
 
+func setupChatTest(t *testing.T, name string) (libkb.TestContext, *chatLocalHandler) {
+	tc := externals.SetupTest(t, name, 2)
+	handler := &chatLocalHandler{
+		boxer: newChatBoxer(tc.G),
+	}
+	return tc, handler
+}
+
 func TestChatMessageBox(t *testing.T) {
 	key := cryptKey(t)
-	msg := textMsg("hello")
-	handler := &chatLocalHandler{}
+	msg := textMsg(t, "hello")
+	tc, handler := setupChatTest(t, "box")
+	defer tc.Cleanup()
 	boxed, err := handler.boxer.boxMessageWithKey(msg, key)
 	if err != nil {
 		t.Fatal(err)
@@ -47,16 +67,31 @@ func TestChatMessageBox(t *testing.T) {
 func TestChatMessageUnbox(t *testing.T) {
 	key := cryptKey(t)
 	text := "hi"
-	msg := textMsg(text)
-	handler := &chatLocalHandler{}
+	msg := textMsg(t, text)
+	tc, handler := setupChatTest(t, "unbox")
+	defer tc.Cleanup()
+
+	// need a real user
+	u, err := kbtest.CreateAndSignupFakeUser("unbox", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+	msg.ClientHeader.Sender = gregor1.UID(u.User.GetUID().ToBytes())
+
+	ctime := time.Now()
 	boxed, err := handler.boxer.boxMessageWithKey(msg, key)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	signKP, err := libkb.GenerateNaclSigningKeyPair()
+	// get user's signing key
+	kp, err := tc.G.Keyrings.GetSecretKeyWithPassphrase(nil, u.User, u.Passphrase, nil)
 	if err != nil {
 		t.Fatal(err)
+	}
+	signKP, ok := kp.(libkb.NaclSigningKeyPair)
+	if !ok {
+		t.Fatal("signing key not nacl")
 	}
 
 	if err := handler.signMessageBoxed(&boxed, signKP); err != nil {
@@ -64,7 +99,9 @@ func TestChatMessageUnbox(t *testing.T) {
 	}
 
 	// need to give it a server header...
-	boxed.ServerHeader = &chat1.MessageServerHeader{}
+	boxed.ServerHeader = &chat1.MessageServerHeader{
+		Ctime: gregor1.ToTime(ctime),
+	}
 
 	unboxed, err := handler.boxer.unboxMessageWithKey(boxed, key)
 	if err != nil {
@@ -87,8 +124,9 @@ func TestChatMessageUnbox(t *testing.T) {
 
 func TestChatMessageSigned(t *testing.T) {
 	key := cryptKey(t)
-	msg := textMsg("sign me")
-	handler := &chatLocalHandler{}
+	msg := textMsg(t, "sign me")
+	tc, handler := setupChatTest(t, "signed")
+	defer tc.Cleanup()
 	boxed, err := handler.boxer.boxMessageWithKey(msg, key)
 	if err != nil {
 		t.Fatal(err)
