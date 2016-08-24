@@ -18,7 +18,6 @@ type Props = {
 
 type State = {
   opacity: any,
-  opacityInv: any,
   loadingActive: boolean,
   loadingActiveTimeoutId: ?number,
 }
@@ -29,8 +28,7 @@ class LoadingWrapper extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
     this.state = {
-      opacity: new Animated.Value(0),
-      opacityInv: new Animated.Value(1),
+      opacity: new Animated.Value(1),
       loadingActive: this.props.loading,
       loadingActiveTimeoutId: null,
     }
@@ -41,10 +39,9 @@ class LoadingWrapper extends Component<void, Props, State> {
     this.setState({loadingActive: true})
     this.props.clearTimeout(this.state.loadingActiveTimeoutId)
 
-    this.state.opacity.setValue(0)
-    this.state.opacityInv.setValue(1)
+    this.state.opacity.setValue(1)
     Animated.parallel(
-      [[this.state.opacity, 1], [this.state.opacityInv, 0]].map(
+      [[this.state.opacity, 0]].map(
         ([a, toValue]) => Animated.timing(a, {duration, toValue})
       )
     ).start()
@@ -64,7 +61,7 @@ class LoadingWrapper extends Component<void, Props, State> {
               top: 0,
               left: 0,
               right: 0,
-              opacity: this.state.opacityInv,
+              opacity: this.state.opacity,
             }}>
             {this.props.loadingComponent}
           </ Animated.View>}
