@@ -61,7 +61,7 @@ function updateVendored () {
 
   console.log('\nShrinkpacking...')
   ensureSymlink('./node_shrinkwrap', path.join(VENDOR_DIR, 'node_shrinkwrap'))
-  spawn('shrinkpack')
+  spawn('shrinkpack', ['-c'])
 
   console.log('\nCommitting deps to js vendor repo...')
   fs.renameSync('./npm-shrinkwrap.json', path.join(VENDOR_DIR, 'npm-shrinkwrap.json'))
