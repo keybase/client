@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 const LoginSessionMemoryTimeout time.Duration = time.Minute * 5

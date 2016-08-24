@@ -13,7 +13,7 @@ import (
 	logging "github.com/keybase/go-logging"
 	"golang.org/x/net/context"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 const permDir os.FileMode = 0700

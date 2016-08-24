@@ -5,7 +5,7 @@ package engine
 
 import (
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // DeviceWrap is an engine that wraps DeviceRegister and

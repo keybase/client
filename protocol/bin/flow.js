@@ -6,19 +6,19 @@ var path = require('path')
 
 var projects = [
   {
-    root: 'json',
+    root: 'json/keybase1',
     out: 'js/flow-types.js',
     import: "import * as gregor1 from './flow-types-gregor'\nimport * as chat1 from './flow-types-chat'\n",
     incomingMaps: {},
     seenTypes: {}},
   {
-    root: '../go/vendor/github.com/keybase/gregor/protocol/gregor1',
+    root: './json/gregor1',
     out: 'js/flow-types-gregor.js',
     incomingMaps: {},
     seenTypes: {},
   },
   {
-    root: '../go/vendor/github.com/keybase/gregor/protocol/chat1',
+    root: './json/chat1',
     import: "import * as gregor1 from './flow-types-gregor'\n",
     out: 'js/flow-types-chat.js',
     incomingMaps: {},

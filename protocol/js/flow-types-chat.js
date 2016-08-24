@@ -18,8 +18,7 @@ export type RPCError = {
 }
 export type Conversation = {
   metadata: ConversationMetadata,
-  mtime: gregor1.Time,
-  readMsgid: MessageID,
+  readerInfo?: ?ConversationReaderInfo,
   maxHeaders?: ?Array<MessageServerHeader>,
 }
 
@@ -34,6 +33,12 @@ export type ConversationIDTriple = {
 export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
+}
+
+export type ConversationReaderInfo = {
+  mtime: gregor1.Time,
+  readMsgid: MessageID,
+  maxMsgid: MessageID,
 }
 
 export type EncryptedData = {
@@ -88,6 +93,12 @@ export type MessageType =
   | 3 // EDIT_3
   | 4 // DELETE_4
   | 5 // METADATA_5
+
+export type NewMessagePayload = {
+  Action: string,
+  convID: ConversationID,
+  message: MessageBoxed,
+}
 
 export type Pagination = {
   next: bytes,

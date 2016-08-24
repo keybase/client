@@ -1,0 +1,10 @@
+@namespace("chat.1")
+protocol gregor {
+
+    record NewMessagePayload {
+        string Action;
+        ConversationID convID;
+        MessageBoxed message;
+    }
+
+}

@@ -9,7 +9,7 @@ import (
 	"time"
 
 	libkb "github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 const testMaxTokenExpireIn = 60
