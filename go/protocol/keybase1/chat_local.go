@@ -56,14 +56,12 @@ type ThreadView struct {
 }
 
 type MessageSelector struct {
-	MessageTypes         []chat1.MessageType    `codec:"MessageTypes" json:"MessageTypes"`
-	After                *Time                  `codec:"After,omitempty" json:"After,omitempty"`
-	Before               *Time                  `codec:"Before,omitempty" json:"Before,omitempty"`
-	OnlyNew              bool                   `codec:"onlyNew" json:"onlyNew"`
-	LimitPerConversation int                    `codec:"limitPerConversation" json:"limitPerConversation"`
-	LimitOfConversations int                    `codec:"limitOfConversations" json:"limitOfConversations"`
-	Conversations        []chat1.ConversationID `codec:"conversations" json:"conversations"`
-	MarkAsRead           bool                   `codec:"markAsRead" json:"markAsRead"`
+	MessageTypes  []chat1.MessageType    `codec:"MessageTypes" json:"MessageTypes"`
+	Since         *string                `codec:"Since,omitempty" json:"Since,omitempty"`
+	OnlyNew       bool                   `codec:"onlyNew" json:"onlyNew"`
+	Limit         int                    `codec:"limit" json:"limit"`
+	Conversations []chat1.ConversationID `codec:"conversations" json:"conversations"`
+	MarkAsRead    bool                   `codec:"markAsRead" json:"markAsRead"`
 }
 
 type ConversationMessagesLocal struct {

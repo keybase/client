@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -140,8 +141,15 @@ getinbox:
 }
 
 func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversation *chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *keybase1.MessageSelector) (conv keybase1.ConversationMessagesLocal, err error) {
+	var since time.Time
+	if selector.Since != nil {
+		since, err := parseTimeFromRFC3339OrDurationFromPast(*selector.Since)
+		if err != nil {
+			return conv, fmt.Errorf("parsing time or duration (%s) error: %s", *selector.Since, since)
+		}
+	}
+
 	tpagination := &chat1.Pagination{Num: 20}
-	tcount := 0
 getthread:
 	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
 		tview, err := h.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
@@ -162,11 +170,7 @@ getthread:
 				continue
 			}
 
-			if selector.Before != nil && gregor1.FromTime(m.ServerHeader.Ctime).Before(keybase1.FromTime(*selector.Before)) {
-				continue
-			}
-
-			if selector.After != nil && gregor1.FromTime(m.ServerHeader.Ctime).After(keybase1.FromTime(*selector.After)) {
+			if !since.IsZero() && gregor1.FromTime(m.ServerHeader.Ctime).Before(since) {
 				// messages are sorted DESC by time, so at this point we can stop fetching
 				break getthread
 			}
@@ -182,8 +186,8 @@ getthread:
 
 			conv.Messages = append(conv.Messages, m)
 
-			tcount++
-			if selector.LimitPerConversation > 0 && tcount >= selector.LimitPerConversation {
+			selector.Limit--
+			if selector.Limit <= 0 {
 				break getthread
 			}
 		}
@@ -217,8 +221,11 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.Me
 		}
 	}
 
+	if arg.Limit <= 0 {
+		arg.Limit = int(^uint(0) >> 1) // maximum int
+	}
+
 	ipagination := &chat1.Pagination{Num: 20}
-	icount := 0
 getinbox:
 	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
 		iview, err := h.GetInboxLocal(ctx, ipagination)
@@ -237,8 +244,7 @@ getinbox:
 			if len(conv.Messages) != 0 {
 				messages = append(messages, conv)
 
-				icount++
-				if arg.LimitOfConversations > 0 && icount >= arg.LimitOfConversations {
+				if arg.Limit <= 0 {
 					break getinbox
 				}
 			}

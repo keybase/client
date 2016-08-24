@@ -785,11 +785,9 @@ export type MessagePlaintext = {
 
 export type MessageSelector = {
   MessageTypes?: ?Array<chat1.MessageType>,
-  After?: ?Time,
-  Before?: ?Time,
+  Since?: ?string,
   onlyNew: boolean,
-  limitPerConversation: int,
-  limitOfConversations: int,
+  limit: int,
   conversations?: ?Array<chat1.ConversationID>,
   markAsRead: boolean,
 }
