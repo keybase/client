@@ -1,0 +1,20 @@
+{
+  "protocol": "authUpdate",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "revokeSessionIDs": {
+      "request": [
+        {
+          "name": "sessionIDs",
+          "type": {
+            "type": "array",
+            "items": "SessionID"
+          }
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "gregor.1"
+}

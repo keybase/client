@@ -7,7 +7,7 @@ AVDLC=node_modules/.bin/avdlc
 
 $(AVDL2JSON): config
 
-json/%.json: avdl/%.avdl avdl/gregor1/%.avdl avdl/chat1/%.avdl
+json/%.json: avdl/%.avdl
 	$(AVDL2JSON) -i $< -o $@~ && mv $@~ $@
 
 config:
@@ -17,16 +17,20 @@ config:
 # as long as they have messages in them. BUT you can override this
 # check via -f. So the two files specified here via -f don't have
 # messages but should be made into .json's...
-build-stamp: avdl/*.avdl $(AVDL2JSON) | config
-	@mkdir -p json
-	$(AVDL2JSON) -2 -b -o json -f avdl/constants.avdl -f avdl/install.avdl  avdl/*.avdl
+build-stamp: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl $(AVDL2JSON) | config
+	@mkdir -p json/keybase1
+	@mkdir -p json/gregor1
+	@mkdir -p json/chat1
+	$(AVDL2JSON) -2 -b -o json/keybase1 -f avdl/keybase1/constants.avdl -f avdl/keybase1/install.avdl  avdl/keybase1/*.avdl
+	$(AVDL2JSON) -2 -b -o json/gregor1 -f workaround avdl/gregor1/*.avdl
+	$(AVDL2JSON) -2 -b -o json/chat1 -f workaround avdl/chat1/*.avdl
 	date > $@
 
-go-build-stamp: avdl/*.avdl $(AVDLC) | config
-	@mkdir -p ../go/protocol
+go-build-stamp: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl $(AVDLC) | config
+	@mkdir -p ../go/protocol/keybase1
 	@mkdir -p ../go/protocol/gregor1
 	@mkdir -p ../go/protocol/chat1
-	$(AVDLC) -b -l go -o ../go/protocol avdl/*.avdl
+	$(AVDLC) -b -l go -o ../go/protocol/keybase1 avdl/keybase1/*.avdl
 	$(AVDLC) -b -l go -o ../go/protocol/gregor1 avdl/gregor1/*.avdl
 	$(AVDLC) -b -l go -o ../go/protocol/chat1 avdl/chat1/*.avdl
 	(cd ../go/protocol && go fmt ./...)
@@ -43,8 +47,8 @@ js/keybase_v1.js: build-stamp | config
 	cp ./js/keybase-v1.js ../shared/constants/types
 
 clean:
-	rm -rf json/*.json js/*.js *build-stamp
-	$(AVDLC) -c -b -l go -o ../go/protocol avdl/*.avdl
+	rm -rf json/*/*.json js/*.js *build-stamp
+	$(AVDLC) -c -b -l go -o ../go/protocol/keybase1 avdl/keybase1/*.avdl
 	$(AVDLC) -c -b -l go -o ../go/protocol/gregor1 avdl/gregor1/*.avdl
 	$(AVDLC) -c -b -l go -o ../go/protocol/chat1 avdl/chat1/*.avdl
 

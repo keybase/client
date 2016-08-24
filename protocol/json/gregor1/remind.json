@@ -1,0 +1,31 @@
+{
+  "protocol": "remind",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "getReminders": {
+      "request": [
+        {
+          "name": "maxReminders",
+          "type": "int"
+        }
+      ],
+      "response": "ReminderSet",
+      "doc": "getReminders gets the reminders waiting to be sent out as a batch. Get at most\n\t maxReminders back."
+    },
+    "deleteReminders": {
+      "request": [
+        {
+          "name": "reminderIDs",
+          "type": {
+            "type": "array",
+            "items": "ReminderID"
+          }
+        }
+      ],
+      "response": null,
+      "doc": "deleteReminders deletes all of the reminders by ReminderID"
+    }
+  },
+  "namespace": "gregor.1"
+}

@@ -1,0 +1,346 @@
+{
+  "protocol": "common",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "TimeOrOffset",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "time"
+        },
+        {
+          "type": "DurationMsec",
+          "name": "offset"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Metadata",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "MsgID",
+          "name": "msgID"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "int",
+          "name": "inBandMsgType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "InBandMessage",
+      "fields": [
+        {
+          "type": [
+            null,
+            "StateUpdateMessage"
+          ],
+          "name": "stateUpdate"
+        },
+        {
+          "type": [
+            null,
+            "StateSyncMessage"
+          ],
+          "name": "stateSync"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "State",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ItemAndMetadata"
+          },
+          "name": "items"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "StateUpdateMessage",
+      "fields": [
+        {
+          "type": "Metadata",
+          "name": "md"
+        },
+        {
+          "type": [
+            null,
+            "Item"
+          ],
+          "name": "creation"
+        },
+        {
+          "type": [
+            null,
+            "Dismissal"
+          ],
+          "name": "dismissal"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "StateSyncMessage",
+      "fields": [
+        {
+          "type": "Metadata",
+          "name": "md"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MsgRange",
+      "fields": [
+        {
+          "type": "TimeOrOffset",
+          "name": "endTime"
+        },
+        {
+          "type": "Category",
+          "name": "category"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Dismissal",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "MsgID"
+          },
+          "name": "msgIDs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MsgRange"
+          },
+          "name": "ranges"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Item",
+      "fields": [
+        {
+          "type": "Category",
+          "name": "category"
+        },
+        {
+          "type": "TimeOrOffset",
+          "name": "dtime"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TimeOrOffset"
+          },
+          "name": "remindTimes"
+        },
+        {
+          "type": "Body",
+          "name": "body"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ItemAndMetadata",
+      "fields": [
+        {
+          "type": [
+            null,
+            "Metadata"
+          ],
+          "name": "md"
+        },
+        {
+          "type": [
+            null,
+            "Item"
+          ],
+          "name": "item"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Reminder",
+      "fields": [
+        {
+          "type": "ItemAndMetadata",
+          "name": "item"
+        },
+        {
+          "type": "int",
+          "name": "seqno"
+        },
+        {
+          "type": "Time",
+          "name": "remindTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReminderID",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "MsgID",
+          "name": "msgID"
+        },
+        {
+          "type": "int",
+          "name": "seqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "OutOfBandMessage",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "System",
+          "name": "system"
+        },
+        {
+          "type": "Body",
+          "name": "body"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ReminderSet",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Reminder"
+          },
+          "name": "reminders"
+        },
+        {
+          "type": "bool",
+          "name": "moreRemindersReady"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Message",
+      "fields": [
+        {
+          "type": [
+            null,
+            "OutOfBandMessage"
+          ],
+          "name": "oobm"
+        },
+        {
+          "type": [
+            null,
+            "InBandMessage"
+          ],
+          "name": "ibm"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DurationMsec",
+      "fields": [],
+      "typedef": "int64"
+    },
+    {
+      "type": "record",
+      "name": "Category",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "System",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "UID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "MsgID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "DeviceID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "Body",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "Time",
+      "fields": [],
+      "typedef": "long"
+    },
+    {
+      "type": "record",
+      "name": "SessionID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "SessionToken",
+      "fields": [],
+      "typedef": "string"
+    }
+  ],
+  "messages": {},
+  "namespace": "gregor.1",
+  "go_field_suffix": "_"
+}
