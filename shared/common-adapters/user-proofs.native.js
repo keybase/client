@@ -83,7 +83,7 @@ function LoadingProofRow ({width, style}: {width: number, style: Object}): React
 
 function LoadingProofs ({pad}: {pad: (i: number) => Object}) {
   return (
-    <Box style={{position: 'absolute', top: 0, left: 0, right: 0}}>
+    <Box>
       {[117, 147, 97].map((width, idx) => <LoadingProofRow key={idx} width={width} style={pad(idx)} />)}
     </Box>
   )
@@ -109,6 +109,14 @@ class ProofsRender extends Component<void, Props, void> {
   render () {
     const {onClickProofMenu} = this.props
     const pad = idx => idx > 0 ? {paddingTop: globalMargins.tiny} : {}
+    if (this.props.loading) {
+      return (
+        <Box style={{...stylesContainer, backgroundColor: 'transparent', ...this.props.style}}>
+          <LoadingProofs pad={pad} />
+        </Box>
+      )
+    }
+
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
         {this.props.proofs && this.props.proofs.map((p, idx) =>
@@ -126,7 +134,6 @@ class ProofsRender extends Component<void, Props, void> {
             missingProof={mp}
             style={pad(idx)} />
         )}
-        {this.props.loading && <LoadingProofs pad={pad} />}
       </Box>
     )
   }
