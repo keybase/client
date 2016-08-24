@@ -124,6 +124,21 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                     ]) {
                                         testNixGo("Linux")
                                     }},
+								    test_linux_gofmt: {
+								        sh 'test -z $(gofmt -l $(go list ./... 2>/dev/null | grep -v /vendor/ | sed -e s/github.com.keybase.kbfs.// ))'
+									},
+								    test_linux_govet: { withEnv([
+										"PATH=${env.PATH}:${env.GOPATH}/bin",
+									]) {
+								        sh 'go get -u github.com/golang/lint/golint'
+										sh 'go install github.com/golang/lint/golint'
+										sh '''
+											lint=$(make -s -C go lint);
+											echo 2>&1 "$lint";
+											[ -z "$lint" -o "$lint" = "Lint-free!" ]
+									        '''
+									    sh 'go vet $(go list ./... 2>/dev/null | grep -v /vendor/)'
+									}},
                                     test_linux_js: { withEnv([
                                         "PATH=${env.HOME}/.node/bin:${env.PATH}",
                                         "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
