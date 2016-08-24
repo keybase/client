@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -4383,6 +4384,8 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 	ticker := time.NewTicker(betweenFlushes)
 	defer ticker.Stop()
 	lState := makeFBOLockState()
+	var prevDirtyRefMap map[blockRef]bool
+	sameDirtyRefCount := 0
 	for {
 		doSelect := true
 		if fbo.blocks.GetState(lState) == dirtyState &&
@@ -4401,7 +4404,24 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 				return
 			}
 		}
+
+		// Make sure we are making some progress
 		dirtyRefs := fbo.blocks.GetDirtyRefs(lState)
+		currDirtyRefMap := make(map[blockRef]bool)
+		for _, ref := range dirtyRefs {
+			currDirtyRefMap[ref] = true
+		}
+		if reflect.DeepEqual(currDirtyRefMap, prevDirtyRefMap) {
+			sameDirtyRefCount++
+		} else {
+			sameDirtyRefCount = 0
+		}
+		if sameDirtyRefCount >= 10 {
+			panic(fmt.Sprintf("Making no Sync progress on dirty refs: %v",
+				dirtyRefs))
+		}
+		prevDirtyRefMap = currDirtyRefMap
+
 		fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
 			// Denote that these are coming from a background
 			// goroutine, not directly from any user.
