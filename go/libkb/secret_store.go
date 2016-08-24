@@ -114,43 +114,36 @@ type SecretStoreLocked struct {
 }
 
 func NewSecretStoreLocked(g *GlobalContext) *SecretStoreLocked {
+	ss := NewSecretStoreAll(g)
+	if ss == nil {
+		// right now, some stuff depends on g.SecretStoreAll being nil or not
+		return nil
+	}
 	return &SecretStoreLocked{
-		SecretStoreAll: NewSecretStoreAll(g),
+		SecretStoreAll: ss,
 	}
 }
 
 func (s *SecretStoreLocked) RetrieveSecret(username NormalizedUsername) ([]byte, error) {
 	s.Lock()
 	defer s.Unlock()
-	if s.SecretStoreAll == nil {
-		return nil, nil
-	}
 	return s.SecretStoreAll.RetrieveSecret(username)
 }
 
 func (s *SecretStoreLocked) StoreSecret(username NormalizedUsername, secret []byte) error {
 	s.Lock()
 	defer s.Unlock()
-	if s.SecretStoreAll == nil {
-		return nil
-	}
 	return s.SecretStoreAll.StoreSecret(username, secret)
 }
 
 func (s *SecretStoreLocked) ClearSecret(username NormalizedUsername) error {
 	s.Lock()
 	defer s.Unlock()
-	if s.SecretStoreAll == nil {
-		return nil
-	}
 	return s.SecretStoreAll.ClearSecret(username)
 }
 
 func (s *SecretStoreLocked) GetUsersWithStoredSecrets() ([]string, error) {
 	s.Lock()
 	defer s.Unlock()
-	if s.SecretStoreAll == nil {
-		return []string{}, nil
-	}
 	return s.SecretStoreAll.GetUsersWithStoredSecrets()
 }
