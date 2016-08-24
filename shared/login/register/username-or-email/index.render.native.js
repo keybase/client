@@ -32,7 +32,7 @@ class Render extends Component<void, Props, State> {
         style={stylesContainer}
         outerStyle={{backgroundColor: globalColors.lightGrey, padding: 20}}
         onBack={this.props.onBack}>
-        <UserCard style={stylesCard} outerStyle={stylesOuterCard}>
+        <UserCard style={stylesCard}>
           <Input
             autoFocus={true}
             style={stylesInput}
@@ -62,9 +62,6 @@ const stylesInput = {
   flex: 1,
   marginTop: 25,
   marginBottom: 55,
-}
-const stylesOuterCard = {
-  marginTop: 0,
 }
 const stylesCard = {
   alignItems: 'stretch',
