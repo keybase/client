@@ -2,10 +2,12 @@
 import React, {Component} from 'react'
 
 export type Props = {
+  children?: any,
   style?: Object,
-  onClick: () => void,
-  hoverColor?: ?string,
-  backgroundColor?: ?string,
+  onClick?: ?() => void,
+  underlayColor?: any,
+  onPressIn?: ?() => void,
+  onPressOut?: ?() => void,
 }
 
-declare export default class Box extends Component<void, Props, void> { }
+declare export default class ClickableBox extends Component<void, Props, void> { }

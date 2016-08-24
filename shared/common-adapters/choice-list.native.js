@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './choice-list'
-import {Box, Text, Icon, NativeTouchableHighlight} from './index.native'
+import {Box, Text, Icon, ClickableBox} from './index'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 
 type State = {
@@ -31,10 +31,10 @@ class ChoiceList extends Component<void, Props, State> {
     return (
       <Box>
         {options.map((op, idx) => (
-          <NativeTouchableHighlight
+          <ClickableBox
             key={idx}
             underlayColor={globalColors.blue4}
-            onPress={op.onClick}
+            onClick={op.onClick}
             onPressIn={() => this.setState({activeIndex: idx})}
             onPressOut={() => this.setState({activeIndex: null})}>
             <Box style={styleEntry}>
@@ -48,7 +48,7 @@ class ChoiceList extends Component<void, Props, State> {
                 <Text style={styleInfoDescription} type='BodySmall'>{op.description}</Text>
               </Box>
             </Box>
-          </NativeTouchableHighlight>
+          </ClickableBox>
         ))}
       </Box>
     )
