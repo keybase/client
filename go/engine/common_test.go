@@ -104,6 +104,15 @@ func SignupFakeUserWithArg(tc libkb.TestContext, fu *FakeUser, arg SignupEngineR
 	return s
 }
 
+func CreateAndSignupFakeUserWithUser(tc libkb.TestContext, prefix string) *FakeUser {
+	fu := NewFakeUserOrBust(tc.T, prefix)
+	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
+	arg := MakeTestSignupEngineRunArg(fu)
+	s := SignupFakeUserWithArg(tc, fu, arg)
+	fu.User = s.GetMe()
+	return fu
+}
+
 func CreateAndSignupFakeUser(tc libkb.TestContext, prefix string) *FakeUser {
 	fu := NewFakeUserOrBust(tc.T, prefix)
 	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
@@ -384,5 +393,36 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 		tc.T.Fatal(err)
 	}
 	tc.T.Logf("nuke api result: %+v", res)
+	Logout(tc)
+}
+
+func DeleteAccount(tc libkb.TestContext, u *FakeUser) {
+	pps, err := tc.G.LoginState().GetPassphraseStreamWithPassphrase(u.Passphrase)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	var session string
+	err = tc.G.LoginState().LoginSession(func(s *libkb.LoginSession) {
+		session, err = s.SessionEncoded()
+		if err != nil {
+			tc.T.Fatal(err)
+		}
+	}, "DeleteAccount")
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	arg := libkb.APIArg{
+		Endpoint:    "delete",
+		NeedSession: true,
+		Args: libkb.HTTPArgs{
+			"hmac_pwh":      libkb.HexArg(pps.PWHash()),
+			"login_session": libkb.S{session},
+		},
+	}
+	res, err := tc.G.API.Post(arg)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	tc.T.Logf("delete api result: %+v", res)
 	Logout(tc)
 }
