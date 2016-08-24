@@ -37,10 +37,9 @@ export default function () {
   const openHidden = (getenv.string('KEYBASE_START_UI', '') === 'hideWindow') || app.getLoginItemSettings().wasOpenedAsHidden
 
   // We show the main window on startup if:
-  //  - We are not restoring the UI (after update)
-  //    Or, we are restoring UI and the window was previously visible (in app state)
-  //  - We are not set to open hidden
-  const showMainWindow = (!isRestore || (isRestore && !appState.state.windowHidden)) && !openHidden
+  //  - We are restoring UI and the window was previously visible (in app state)
+  //  - and, we are not set to open hidden
+  const showMainWindow = (isRestore && !appState.state.windowHidden) && !openHidden
   console.log('Show main window: %s', showMainWindow)
   if (showMainWindow) {
     // On Windows we can try showing before Windows is ready
@@ -54,9 +53,10 @@ export default function () {
   }
 
   // Hide the dock icon if:
-  // - We are restoring and dock was hidden
-  // - We are set to open hidden
-  const shouldHideDockIcon = (isRestore && appState.state.dockHidden) || openHidden
+  // - We are not restoring
+  // - or, we are restoring and dock was hidden
+  // - or, we are set to open hidden
+  const shouldHideDockIcon = !isRestore || (isRestore && appState.state.dockHidden) || openHidden
   console.log('Hide dock icon: %s', shouldHideDockIcon)
   if (shouldHideDockIcon) {
     hideDockIcon()
