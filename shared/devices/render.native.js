@@ -2,8 +2,8 @@
 import React, {Component} from 'react'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
-import {Box, Text, Icon} from '../common-adapters'
-import {View, TouchableHighlight, ActionSheetIOS, ScrollView} from 'react-native'
+import {Box, Text, Icon, PopupMenu} from '../common-adapters'
+import {View, TouchableHighlight, ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
@@ -79,38 +79,49 @@ class RevokedDevices extends Component<void, {revokedDevices: Array<Object>}, Re
   }
 }
 
-const DeviceHeader = ({addNewPhone, addNewComputer, addNewPaperKey}) => {
-  const items = [
-    {title: 'New Phone', onClick: () => addNewPhone()},
-    {title: 'New Computer', onClick: () => addNewComputer()},
-    {title: 'New Paper Key', onClick: () => addNewPaperKey()},
-    {title: 'Cancel', onClick: () => {}},
-  ]
-
-  return <Box style={{...stylesCommonRow, alignItems: 'center'}}>
-    <Box style={stylesCommonColumn}>
-      <Icon type='icon-devices-add-64-x-48' />
+const DeviceHeader = ({onAddNew}) => (
+  <TouchableHighlight onPress={onAddNew}>
+    <Box style={{...stylesCommonRow, alignItems: 'center'}}>
+      <Icon type='icon-devices-add-64-x-48' style={{padding: 5}} />
+      <Text type='BodyPrimaryLink' style={{padding: 5}}>Add new...</Text>
     </Box>
-    <Box style={stylesCommonColumn}>
-      <Text type='BodyPrimaryLink' onClick={() => ActionSheetIOS.showActionSheetWithOptions({
-        title: 'Add a new device',
-        options: items.map(i => i.title),
-        cancelButtonIndex: items.length - 1,
-      }, idx => idx !== -1 && setImmediate(items[idx].onClick)
-      )}>Add new...</Text>
-    </Box>
-  </Box>
-}
-
-const Render = ({devices, revokedDevices, waitingForServer, showRemoveDevicePage, showExistingDevicePage, addNewPhone, addNewComputer, addNewPaperKey}: Props) => (
-  <Box style={stylesContainer}>
-    <DeviceHeader addNewPhone={addNewPhone} addNewComputer={addNewComputer} addNewPaperKey={addNewPaperKey} />
-    <ScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
-      {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage} />)}
-      <RevokedDevices revokedDevices={revokedDevices} />
-    </ScrollView>
-  </Box>
+  </TouchableHighlight>
 )
+
+type State = {
+  menuVisible: boolean,
+}
+class Render extends Component<void, Props, State> {
+  state: State;
+
+  constructor (props: Props) {
+    super(props)
+    this.state = {menuVisible: false}
+  }
+
+  render () {
+    const items = [
+      {title: 'New Phone', onClick: () => this.props.addNewPhone()},
+      {title: 'New Computer', onClick: () => this.props.addNewComputer()},
+      {title: 'New Paper Key', onClick: () => this.props.addNewPaperKey()},
+    ]
+    return (
+      <Box style={stylesContainer}>
+        <DeviceHeader onAddNew={() => this.setState({menuVisible: true})} />
+        <ScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
+          {this.props.devices && this.props.devices.map(device =>
+            <DeviceRow
+              key={device.name}
+              device={device}
+              showRemoveDevicePage={this.props.showRemoveDevicePage}
+              showExistingDevicePage={this.props.showExistingDevicePage} />)}
+          <RevokedDevices revokedDevices={this.props.revokedDevices} />
+        </ScrollView>
+        {this.state.menuVisible && <PopupMenu items={items} onHidden={() => this.setState({menuVisible: false})} />}
+      </Box>
+    )
+  }
+}
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
@@ -147,10 +158,6 @@ const stylesRevokedDescription = {
   paddingLeft: 32,
   paddingRight: 32,
   backgroundColor: globalColors.lightGrey,
-}
-
-const stylesCommonColumn = {
-  padding: 5,
 }
 
 export default Render
