@@ -187,9 +187,11 @@ func (s *LoginState) Shutdown() error {
 
 		if s.loginReqs != nil {
 			close(s.loginReqs)
+			s.loginReqs = nil
 		}
 		if s.acctReqs != nil {
 			close(s.acctReqs)
+			s.acctReqs = nil
 		}
 	}, "LoginState - Shutdown")
 	if aerr != nil {
@@ -882,9 +884,14 @@ func (s *LoginState) requests() {
 	timer := maketimer()
 	s.G().Log.Debug("+ LoginState: Running request loop")
 
+	// Make local copies of these channels so that we won't get nil'ed
+	// out when Shutdown is called
+	loginReqs := s.loginReqs
+	acctReqs := s.acctReqs
+
 	for {
 		select {
-		case req, ok := <-s.loginReqs:
+		case req, ok := <-loginReqs:
 			if ok {
 				s.activeReq = fmt.Sprintf("Login Request: %q", req.name)
 				err := req.f(s.account)
@@ -898,7 +905,7 @@ func (s *LoginState) requests() {
 			} else {
 				loginReqsClosed = true
 			}
-		case req, ok := <-s.acctReqs:
+		case req, ok := <-acctReqs:
 			if ok {
 				s.activeReq = fmt.Sprintf("Account Request: %q", req.name)
 				req.f(s.account)
