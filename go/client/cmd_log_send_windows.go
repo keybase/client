@@ -58,7 +58,8 @@ func newScannerUTF16or8(filename string) (utfScanner, error) {
 func GetInstallLogPath() (string, error) {
 	// Get the 3 newest keybase logs - sorting by name works because timestamp
 	keybaseLogFiles, err := filepath.Glob(os.ExpandEnv(filepath.Join("${TEMP}", "Keybase*.log")))
-	sort.Strings(keybaseLogFiles)
+	sort.Sort(sort.Reverse(sort.StringSlice(keybaseLogFiles)))
+
 	if len(keybaseLogFiles) > 3 {
 		keybaseLogFiles = keybaseLogFiles[:3]
 	}
