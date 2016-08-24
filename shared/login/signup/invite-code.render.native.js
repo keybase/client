@@ -58,7 +58,7 @@ const styles = {
     marginTop: 0,
   },
   text: {
-    marginTop: 32,
+    marginTop: globalMargins.small,
   },
 }
 
