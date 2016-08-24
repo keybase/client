@@ -20,7 +20,9 @@ class Render extends Component {
   }
 
   render () {
-    const submitInviteCode = () => { this.props.onInviteCodeSubmit(this.state.inviteCode) }
+    const submitInviteCode = () => {
+      this.props.onInviteCodeSubmit(this.state.inviteCode)
+    }
 
     return (
       <Container onBack={this.props.onBack} style={stylesContainer}>
