@@ -36,8 +36,6 @@ type RemoteStatus struct {
 // Init a RemoteStatus and register it with libkbfs.
 func (r *RemoteStatus) Init(ctx context.Context, log logger.Logger, config libkbfs.Config) {
 	r.failingServices = map[string]error{}
-	// A time in the far past that is not IsZero
-	r.failingSince.Add(time.Second)
 	go r.loop(ctx, log, config)
 }
 
@@ -48,7 +46,7 @@ func (r *RemoteStatus) loop(ctx context.Context, log logger.Logger, config libkb
 		// No deferring inside loops, and no panics either here.
 		cancel()
 		if err != nil {
-			log.Warning("KBFS Status failed: %v", err)
+			log.Warning("KBFS Status failed: %v,%v", st, err)
 		}
 		r.update(st)
 		// Block on the channel or shutdown.
@@ -109,7 +107,7 @@ func (r *RemoteStatus) ExtraFileName() string {
 	r.Lock()
 	defer r.Unlock()
 
-	if r.extraFileName == "" || time.Since(r.failingSince) > failureDisplayThreshold {
+	if r.extraFileName == "" || time.Since(r.failingSince) < failureDisplayThreshold {
 		return ""
 	}
 
