@@ -16,6 +16,7 @@ type cliChatMessage struct {
 	with          []string // private msg if len == 2
 	topic         string
 	author        string
+	device        string
 	timestamp     time.Time
 	formattedBody string
 }

@@ -44,10 +44,17 @@ type MessagePlaintext struct {
 	MessageBodies []MessageBody             `codec:"messageBodies" json:"messageBodies"`
 }
 
+type MessageInfoLocal struct {
+	IsNew            bool   `codec:"isNew" json:"isNew"`
+	SenderUsername   string `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName string `codec:"senderDeviceName" json:"senderDeviceName"`
+	TopicName        string `codec:"topicName" json:"topicName"`
+}
+
 type Message struct {
 	ServerHeader     chat1.MessageServerHeader `codec:"serverHeader" json:"serverHeader"`
 	MessagePlaintext MessagePlaintext          `codec:"messagePlaintext" json:"messagePlaintext"`
-	IsNew            bool                      `codec:"isNew" json:"isNew"`
+	Info             *MessageInfoLocal         `codec:"info,omitempty" json:"info,omitempty"`
 }
 
 type ThreadView struct {

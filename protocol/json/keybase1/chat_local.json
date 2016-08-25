@@ -130,6 +130,28 @@
     },
     {
       "type": "record",
+      "name": "MessageInfoLocal",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isNew"
+        },
+        {
+          "type": "string",
+          "name": "senderUsername"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceName"
+        },
+        {
+          "type": "string",
+          "name": "topicName"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Message",
       "fields": [
         {
@@ -141,8 +163,11 @@
           "name": "messagePlaintext"
         },
         {
-          "type": "boolean",
-          "name": "isNew"
+          "type": [
+            null,
+            "MessageInfoLocal"
+          ],
+          "name": "info"
         }
       ]
     },

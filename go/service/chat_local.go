@@ -23,17 +23,19 @@ import (
 type chatLocalHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	gh    *gregorHandler
-	boxer *chatBoxer
+	gh             *gregorHandler
+	boxer          *chatBoxer
+	userInfoMapper userInfoMapper
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
 	return &chatLocalHandler{
-		BaseHandler:  NewBaseHandler(xp),
-		Contextified: libkb.NewContextified(g),
-		gh:           gh,
-		boxer:        newChatBoxer(g),
+		BaseHandler:    NewBaseHandler(xp),
+		Contextified:   libkb.NewContextified(g),
+		gh:             gh,
+		boxer:          newChatBoxer(g),
+		userInfoMapper: userInfoMapper{g: g},
 	}
 }
 
@@ -141,6 +143,21 @@ getinbox:
 	return ids, nil
 }
 
+func (h *chatLocalHandler) fillMessageInfoLocal(ctx context.Context, m *keybase1.Message, isNew bool) (err error) {
+	m.Info = &keybase1.MessageInfoLocal{
+		IsNew: isNew,
+	}
+	if m.Info.SenderUsername, err = h.userInfoMapper.getUsername(ctx, keybase1.UID(m.MessagePlaintext.ClientHeader.Sender.String())); err != nil {
+		return err
+	}
+	if m.Info.SenderDeviceName, err = h.userInfoMapper.getDeviceName(ctx, keybase1.DeviceID(m.MessagePlaintext.ClientHeader.SenderDevice.String())); err != nil {
+		return err
+	}
+	// TODO: populate this properly after we implement topic names
+	m.Info.TopicName = hex.EncodeToString([]byte(m.MessagePlaintext.ClientHeader.Conv.TopicID)[:4])
+	return nil
+}
+
 func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversation *chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *keybase1.MessageSelector) (conv keybase1.ConversationMessagesLocal, err error) {
 	var since time.Time
 	if selector.Since != nil {
@@ -176,14 +193,17 @@ getthread:
 				break getthread
 			}
 
+			isNew := false
 			if conversation.ReaderInfo != nil && m.ServerHeader.MessageID > conversation.ReaderInfo.ReadMsgid {
-				m.IsNew = true
+				isNew = true
 			}
 
-			if selector.OnlyNew && !m.IsNew {
+			if selector.OnlyNew && !isNew {
 				// new messages are in front, so at this point we can stop fetching
 				break getthread
 			}
+
+			h.fillMessageInfoLocal(ctx, &m, isNew)
 
 			conv.Messages = append(conv.Messages, m)
 

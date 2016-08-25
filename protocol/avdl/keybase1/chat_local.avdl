@@ -41,10 +41,18 @@ protocol chatLocal {
     array<MessageBody> messageBodies;
   }
 
+  record MessageInfoLocal {
+    boolean isNew;
+    string senderUsername;
+    string senderDeviceName;
+    string topicName;
+  }
+
   record Message {
     chat1.MessageServerHeader serverHeader;
     MessagePlaintext messagePlaintext;
-    boolean isNew;
+
+    union { null, MessageInfoLocal } info;
   }
 
   record ThreadView {

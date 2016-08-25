@@ -749,7 +749,7 @@ export type MerkleTreeID =
 export type Message = {
   serverHeader: chat1.MessageServerHeader,
   messagePlaintext: MessagePlaintext,
-  isNew: boolean,
+  info?: ?MessageInfoLocal,
 }
 
 export type MessageAttachment = {
@@ -776,6 +776,13 @@ export type MessageDelete = {
 export type MessageEdit = {
   messageID: chat1.MessageID,
   body: string,
+}
+
+export type MessageInfoLocal = {
+  isNew: boolean,
+  senderUsername: string,
+  senderDeviceName: string,
+  topicName: string,
 }
 
 export type MessagePlaintext = {
