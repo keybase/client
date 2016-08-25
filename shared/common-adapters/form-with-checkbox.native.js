@@ -5,7 +5,7 @@ import Input from './input'
 import React, {Component} from 'react'
 import type {Props as CheckboxProps} from './checkbox'
 import type {Props} from './form-with-checkbox'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 
 class FormWithCheckbox extends Component<void, Props, void> {
   render () {

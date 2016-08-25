@@ -6,7 +6,7 @@ import React, {Component} from 'react'
 import Text from './text'
 import type {Props} from './dropdown'
 import {TouchableWithoutFeedback, Picker, Modal} from 'react-native'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 /*
  * A dropdown on ios and android.

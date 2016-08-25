@@ -1,12 +1,10 @@
 /* @flow */
 // Styles from our designers
-
-import globalColors from './style-guide-colors'
+import globalColors from './colors'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 import path from 'path'
-export {default as globalColors} from './style-guide-colors'
 
-export const windowStyle = {
+const windowStyle = {
   minWidth: 800,
   minHeight: 600,
   width: 800, // Default width
@@ -53,7 +51,7 @@ const flexBoxCommon = {
   display: 'flex',
 }
 
-export const globalMargins = {
+const globalMargins = {
   xtiny: 4,
   tiny: 8,
   small: 16,
@@ -114,24 +112,24 @@ const util = {
   },
 }
 
-export const globalStyles = {
+const globalStyles = {
   ...font,
   ...util,
 }
 
-export function transition (...properties: Array<string>) : Object {
+function transition (...properties: Array<string>) : Object {
   return {
     transition: properties.map(p => `${p} 0.2s ease-out`).join(', '),
   }
 }
 
-export function transitionColor () : Object {
+function transitionColor () : Object {
   return {
     transition: 'background 0.2s linear',
   }
 }
 
-export function backgroundURL (...to: Array<string>): string {
+function backgroundURL (...to: Array<string>): string {
   const goodPath = [...to]
 
   if (goodPath && goodPath.length) {
@@ -145,4 +143,14 @@ export function backgroundURL (...to: Array<string>): string {
   }
 
   return ''
+}
+
+export {
+  backgroundURL,
+  transitionColor,
+  transition,
+  globalStyles,
+  globalMargins,
+  windowStyle,
+  globalColors,
 }

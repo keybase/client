@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import Text from './text'
 import type {Props} from './checkbox'
 import {View, TouchableWithoutFeedback, Animated, Easing} from 'react-native'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 const checkedOffset = 14
 

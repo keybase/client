@@ -3,7 +3,7 @@ import Container from '../../login/forms/container'
 import React from 'react'
 import type {Props} from './render'
 import {Box, Text, Icon} from '../../common-adapters'
-import {globalStyles, globalColors, transition} from '../../styles/style-guide'
+import {globalStyles, globalColors, transition} from '../../styles'
 
 const Item = ({onClick, icon, title}) => {
   return (

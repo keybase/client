@@ -5,7 +5,7 @@ import _ from 'lodash'
 import type {Props} from './avatar'
 import {Box} from '../common-adapters'
 import {Image, TouchableOpacity, View} from 'react-native'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 
 type State = {

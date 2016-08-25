@@ -2,7 +2,7 @@
 import Tracker from './render'
 import {trackerPropsToRenderProps} from './index'
 import {normal, checking, revoked, error, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 import type {TrackerProps} from '../tracker'
 import type {Proof} from '../constants/tracker'
 import type {DumbComponentMap} from '../constants/types/more'

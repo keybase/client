@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {TouchableWithoutFeedback} from 'react-native'
 import {Box} from '../common-adapters'
 import {Text, Icon} from './index'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 import type {Props} from './back-button'
 
 export default class BackButton extends Component {

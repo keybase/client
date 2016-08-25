@@ -7,7 +7,7 @@ import {normal as proofNormal, checking as proofChecking, metaUnreachable, metaP
 import {Box, Icon, PlatformIcon, PopupMenu, Text, UserBio, UserActions, UserProofs, Usernames, BackButton} from '../common-adapters'
 import {stateColors} from '../util/tracker'
 import Friendships from './friendships'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import ProfileHelp from './help.desktop'
 import * as shared from './render.shared'
 import type {Tab as FriendshipsTab} from './friendships'

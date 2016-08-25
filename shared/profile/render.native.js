@@ -7,7 +7,7 @@ import {normal as proofNormal, metaPending, metaUnreachable} from '../constants/
 import {BackButton, Box, ComingSoon, Icon, PopupMenu, Text, UserActions, UserBio, UserProofs} from '../common-adapters'
 import {usernameText} from '../common-adapters/usernames'
 import Friendships from './friendships'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
 import {friendlyName as platformFriendlyName} from '../util/platforms'
 import * as shared from './render.shared'

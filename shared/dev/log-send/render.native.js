@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {Props} from './render'
 import {Box, Text, Button} from '../../common-adapters'
 import {Linking, Clipboard} from 'react-native'
-import {globalStyles} from '../../styles/style-guide'
+import {globalStyles} from '../../styles'
 
 type State = {
   copiedToClipboard: boolean

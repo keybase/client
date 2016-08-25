@@ -6,7 +6,7 @@ import type {TypedDispatch} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 import {TypedConnector} from '../util/typed-connect'
 import {cancelAddProof, backToProfile} from '../actions/profile'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 import {proveCommon} from '../constants/types/keybase-v1'
 
 class ConfirmOrPendingContainer extends Component<void, any, void> {

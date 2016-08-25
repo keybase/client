@@ -5,7 +5,7 @@ import dumbComponentMap from './dumb-component-map.native'
 import type {Props} from './dumb-sheet.render'
 import {Box, Text, Input, Button} from '../common-adapters'
 import {ScrollView} from 'react-native'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 
 class Render extends Component<void, Props, any> {
   state: any;

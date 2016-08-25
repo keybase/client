@@ -19,7 +19,7 @@ import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
-import {navBarHeight} from './styles/style-guide'
+import {navBarHeight} from './styles'
 import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 

@@ -17,7 +17,7 @@ import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
   codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer,
   codePageModeScanCode, codePageModeShowCode, codePageModeEnterText,
   codePageModeShowText} from '../../../constants/login'
-import {globalStyles, globalColors} from '../../../styles/style-guide'
+import {globalStyles, globalColors} from '../../../styles'
 import {specialStyles} from '../../../common-adapters/text'
 
 const isIOS = Platform.OS_IOS === OS

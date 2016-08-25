@@ -3,7 +3,7 @@ import {remote, ipcRenderer} from 'electron'
 
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {globalStyles} from './styles/style-guide'
+import {globalStyles} from './styles'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
 import Folders from './folders'

@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {Avatar, Box, Icon, Text} from '../../common-adapters'
-import {globalColors, globalStyles, globalMargins} from '../../styles/style-guide'
+import {globalColors, globalStyles, globalMargins} from '../../styles'
 import {capitalize} from 'lodash'
 import {platformToLogo24} from '../../constants/search'
 import {AVATAR_SIZE, HEADER_TOP_SPACE, HEADER_SIZE} from '../../profile/render.desktop'

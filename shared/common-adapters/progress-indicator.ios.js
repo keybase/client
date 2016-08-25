@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './progress-indicator'
 import {ActivityIndicator} from 'react-native'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 
 class ProgressIndicator extends Component<void, Props, void> {
   render () {

@@ -1,6 +1,6 @@
 // @flow
 import {Iterable} from 'immutable'
-import configureStoreNative from './configure-store.native'
+import configureStoreNative from './configure-store.platform'
 import createLogger from 'redux-logger'
 import createSagaMiddleware from 'redux-saga'
 import gregorSaga from '../actions/gregor'

@@ -8,7 +8,7 @@ import type {Props, MissingProof} from './user-proofs'
 import {Box, Icon, Meta, Text} from '../common-adapters/index'
 import type {IconType} from '../common-adapters/icon.constants'
 import {defaultColor} from '../common-adapters/icon.shared'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
 
 function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {

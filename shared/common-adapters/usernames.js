@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './usernames'
 import {Box, Text} from './'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
 
 function usernameText ({type, users, style, inline, redColor}: Props) {

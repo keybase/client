@@ -1,5 +1,5 @@
 // @flow
-import type {incomingRPCCallbackType, connectCallbackType} from './platform-specific'
+import type {incomingRPCCallbackType, connectCallbackType} from './index.platform'
 import {Buffer} from 'buffer'
 import {NativeModules, NativeAppEventEmitter} from 'react-native'
 import {TransportShared, sharedCreateClient} from './transport-shared'

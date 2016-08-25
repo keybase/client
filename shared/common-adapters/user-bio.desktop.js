@@ -5,7 +5,7 @@ import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import type {AvatarSize} from './avatar'
 import type {Props} from './user-bio'
 import {Avatar, Box, Button, Icon, Text} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
 
 class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize, loading: boolean}, void> {

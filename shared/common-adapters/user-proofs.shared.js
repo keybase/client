@@ -1,5 +1,5 @@
 // @flow
-import {globalColors, globalStyles} from '../styles/style-guide'
+import {globalColors, globalStyles} from '../styles'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked,
   error as proofError, warning as proofWarning,
   metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaIgnored} from '../constants/tracker'

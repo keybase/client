@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Avatar, Box, ClickableBox, Icon, Text} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles/style-guide'
+import {globalStyles, globalColors} from '../../styles'
 import {fullName, platformToLogo16} from '../../constants/search'
 
 import type {IconType} from '../../common-adapters/icon'

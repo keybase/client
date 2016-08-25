@@ -9,7 +9,7 @@ import Revoke from './revoke'
 import pgpDumb from './pgp/dumb'
 import {constants} from '../constants/types/keybase-v1'
 import {createFolder} from '../folders/dumb'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
 import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaPending, metaUnreachable} from '../constants/tracker'
 

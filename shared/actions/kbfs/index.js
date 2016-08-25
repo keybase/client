@@ -2,7 +2,7 @@
 import * as Constants from '../../constants/kbfs'
 import type {AsyncAction} from '../../constants/types/flux'
 import {fsListRpc} from '../../constants/types/flow-types'
-import {openInKBFS as platformOpenInKBFS} from './platform'
+import {openInKBFS as platformOpenInKBFS} from './index.platform'
 
 export function fsList (path: string) : AsyncAction {
   return (dispatch) => {

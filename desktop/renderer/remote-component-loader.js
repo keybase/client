@@ -1,21 +1,19 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
-import {Provider} from 'react-redux'
-import {remote, ipcRenderer} from 'electron'
 import RemoteStore from './remote-store'
-import {ipcLogsRenderer} from '../app/console-helper'
-import hello from '../shared/util/hello'
-import {globalColors} from '../shared/styles/style-guide'
 import engine from '../shared/engine'
-
-import tracker from '../shared/tracker'
-import pinentry from '../shared/pinentry'
-import unlockFolders from '../shared/unlock-folders'
-
-import {setupContextMenu} from '../app/menu-helper'
+import hello from '../shared/util/hello'
 import loadPerf from '../shared/util/load-perf'
-import {MuiThemeProvider} from 'material-ui/styles'
 import materialTheme from '../shared/styles/material-theme.desktop'
+import pinentry from '../shared/pinentry'
+import tracker from '../shared/tracker'
+import unlockFolders from '../shared/unlock-folders'
+import {MuiThemeProvider} from 'material-ui/styles'
+import {Provider} from 'react-redux'
+import {globalColors} from '../shared/styles'
+import {ipcLogsRenderer} from '../app/console-helper'
+import {remote, ipcRenderer} from 'electron'
+import {setupContextMenu} from '../app/menu-helper'
 
 ipcLogsRenderer()
 

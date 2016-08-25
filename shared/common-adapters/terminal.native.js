@@ -2,7 +2,7 @@
 import Box from './box'
 import React, {Component} from 'react'
 import type {Props, Context} from './terminal'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 class Terminal extends Component<void, Props, void> {
   getChildContext (): Context {
