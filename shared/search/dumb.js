@@ -125,7 +125,6 @@ const commonProps = {
   onGroupChat: () => console.log('onGroupChat'),
   onAddUser: () => console.log('onAddUser'),
   chatEnabled: false,
-  showComingSoon: false,
   selectedUsers: commonUsers,
   userForInfoPane: commonUsers[0],
 }
@@ -133,10 +132,6 @@ const commonProps = {
 const searchMap: DumbComponentMap<Search> = {
   component: Search,
   mocks: {
-    'Coming soon': {
-      ...commonProps,
-      showComingSoon: true,
-    },
     'Waiting': {
       ...commonProps,
       waiting: true,

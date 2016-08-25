@@ -1,7 +1,7 @@
 /* @flow */
 
 export type FeatureKeys = 'admin' | 'mobileAppsExist' | 'tabPeopleEnabled' | 'tabFoldersEnabled'
-| 'tabSettingsEnabled' | 'tabProfileEnabled' | 'searchEnabled' | 'recentFilesEnabled'
+| 'tabSettingsEnabled' | 'tabProfileEnabled' | 'recentFilesEnabled'
 
 export type FeatureFlags = {[key: FeatureKeys]: boolean}
 
