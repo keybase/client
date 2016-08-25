@@ -68,6 +68,10 @@ type PGPProvisionArg struct {
 	DeviceName string `codec:"deviceName" json:"deviceName"`
 }
 
+type AccountDeleteArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type LoginInterface interface {
 	// Returns an array of information about accounts configured on the local
 	// machine. Currently configured accounts are defined as those that have stored
@@ -100,6 +104,8 @@ type LoginInterface interface {
 	// pgpProvision is for devel/testing to provision a device via pgp using CLI
 	// with no user interaction.
 	PGPProvision(context.Context, PGPProvisionArg) error
+	// accountDelete is for devel/testing to delete the current user's account.
+	AccountDelete(context.Context, int) error
 }
 
 func LoginProtocol(i LoginInterface) rpc.Protocol {
@@ -282,6 +288,22 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"accountDelete": {
+				MakeArg: func() interface{} {
+					ret := make([]AccountDeleteArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]AccountDeleteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]AccountDeleteArg)(nil), args)
+						return
+					}
+					err = i.AccountDelete(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -367,5 +389,12 @@ func (c LoginClient) UnlockWithPassphrase(ctx context.Context, __arg UnlockWithP
 // with no user interaction.
 func (c LoginClient) PGPProvision(ctx context.Context, __arg PGPProvisionArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.pgpProvision", []interface{}{__arg}, nil)
+	return
+}
+
+// accountDelete is for devel/testing to delete the current user's account.
+func (c LoginClient) AccountDelete(ctx context.Context, sessionID int) (err error) {
+	__arg := AccountDeleteArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.login.accountDelete", []interface{}{__arg}, nil)
 	return
 }

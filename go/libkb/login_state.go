@@ -378,7 +378,7 @@ func (s *LoginState) VerifyPlaintextPassphrase(pp string) (ppStream *PassphraseS
 	return
 }
 
-func (s *LoginState) computeLoginPw(lctx LoginContext) (macSum []byte, err error) {
+func (s *LoginState) ComputeLoginPw(lctx LoginContext) (macSum []byte, err error) {
 	loginSession, e := lctx.LoginSession().Session()
 	if e != nil {
 		err = e
@@ -703,7 +703,7 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 		return err
 	}
 
-	lgpw, err := s.computeLoginPw(lctx)
+	lgpw, err := s.ComputeLoginPw(lctx)
 	if err != nil {
 		return err
 	}

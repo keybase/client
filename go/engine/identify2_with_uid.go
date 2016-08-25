@@ -477,9 +477,14 @@ func (e *Identify2WithUID) loadThem(ctx *Context) (err error) {
 	arg.ResolveBody = e.ResolveBody
 	e.them, err = libkb.LoadUser(arg)
 	if err != nil {
-		if _, ok := err.(libkb.NoKeyError); ok {
+		switch err.(type) {
+		case libkb.NoKeyError:
 			// convert this error to NoSigChainError
 			return libkb.NoSigChainError{}
+		case libkb.DeletedError:
+			return err
+		case libkb.NotFoundError:
+			return libkb.UserNotFoundError{UID: arg.UID, Msg: "in Identify2WithUID"}
 		}
 	}
 	if e.them == nil {

@@ -62,4 +62,9 @@ protocol login {
     with no user interaction.
     */
   void pgpProvision(int sessionID, string username, string passphrase, string deviceName);
+
+  /**
+    accountDelete is for devel/testing to delete the current user's account.
+    */
+  void accountDelete(int sessionID);
 }
