@@ -10,7 +10,7 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 const rowKey = users => users && users.map(u => u.username).join('-')
 
 const Ignored = ({rows, showIgnored, ignored, styles, onToggle, isPublic}) => {
-  const caretIcon: IconType = showIgnored ? 'iconfont-caret-down' : 'iconfont-caret-down'
+  const caretIcon: IconType = showIgnored ? 'iconfont-caret-down' : 'iconfont-caret-right'
 
   return (
     <Box style={stylesIgnoreContainer}>
