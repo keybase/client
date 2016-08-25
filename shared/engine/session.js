@@ -1,10 +1,10 @@
 // @flow
 import type {SessionID, WaitingHandlerType, EndHandlerType, MethodKey} from './index'
 import type {incomingCallMapType, RPCError} from '../constants/types/flow-types'
-import type {invokeType} from './platform-specific'
+import type {invokeType} from './index.platform'
 import {IncomingRequest, OutgoingRequest} from './request'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
-import {rpcLog} from './platform-specific'
+import {rpcLog} from './index.platform'
 
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
