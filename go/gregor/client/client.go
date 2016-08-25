@@ -155,7 +155,8 @@ func (c *Client) Sync(cli gregor1.IncomingInterface) ([]gregor.InBandMessage, er
 	}
 
 	c.Log.Debug("Sync(): incremental server sync: using Sync()")
-	if msgs, err := c.SyncFromTime(cli, latestCtime); err != nil {
+	msgs, err := c.SyncFromTime(cli, latestCtime)
+	if err != nil {
 		if _, ok := err.(ErrHashMismatch); ok {
 			c.Log.Info("Sync failure: %v\nResetting StateMachine and retrying", err)
 			return c.freshSync(cli)
