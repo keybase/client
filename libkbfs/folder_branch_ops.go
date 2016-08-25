@@ -4405,8 +4405,13 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 			}
 		}
 
-		// Make sure we are making some progress
 		dirtyRefs := fbo.blocks.GetDirtyRefs(lState)
+		if len(dirtyRefs) == 0 {
+			sameDirtyRefCount = 0
+			continue
+		}
+
+		// Make sure we are making some progress
 		currDirtyRefMap := make(map[blockRef]bool)
 		for _, ref := range dirtyRefs {
 			currDirtyRefMap[ref] = true
