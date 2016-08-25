@@ -1405,6 +1405,7 @@ export type Status = {
 
 export type StatusCode =
     0 // SCOk_0
+  | 100 // SCInputError_100
   | 201 // SCLoginRequired_201
   | 202 // SCBadSession_202
   | 203 // SCBadLoginUserNotFound_203
@@ -1445,6 +1446,8 @@ export type StatusCode =
   | 930 // SCKeyNoMatchingGPG_930
   | 931 // SCKeyRevoked_931
   | 1301 // SCBadTrackSession_1301
+  | 1404 // SCDeviceBadName_1404
+  | 1408 // SCDeviceNameInUse_1408
   | 1409 // SCDeviceNotFound_1409
   | 1410 // SCDeviceMismatch_1410
   | 1411 // SCDeviceRequired_1411
@@ -2110,6 +2113,18 @@ export function debuggingSecondStepRpc (request: $Exact<{
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: debuggingSecondStepResult) => void)}>) {
   engine.rpc({...request, method: 'debugging.secondStep'})
+}
+export type deviceCheckDeviceNameForUserRpcParam = $Exact<{
+  username: string,
+  devicename: string
+}>
+
+export function deviceCheckDeviceNameForUserRpc (request: $Exact<{
+  param: deviceCheckDeviceNameForUserRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'device.checkDeviceNameForUser'})
 }
 export type deviceCheckDeviceNameFormatRpcParam = $Exact<{
   name: string
@@ -4187,6 +4202,7 @@ export type rpc =
   | delegateUiCtlRegisterRekeyUIRpc
   | delegateUiCtlRegisterSecretUIRpc
   | delegateUiCtlRegisterUpdateUIRpc
+  | deviceCheckDeviceNameForUserRpc
   | deviceCheckDeviceNameFormatRpc
   | deviceDeviceAddRpc
   | deviceDeviceHistoryListRpc
@@ -4880,6 +4896,17 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: (err: RPCError) => void,
       result: (result: deviceCheckDeviceNameFormatResult) => void
+    }
+  ) => void,
+  'keybase.1.device.checkDeviceNameForUser'?: (
+    params: $Exact<{
+      sessionID: int,
+      username: string,
+      devicename: string
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
     }
   ) => void,
   'keybase.1.favorite.favoriteAdd'?: (

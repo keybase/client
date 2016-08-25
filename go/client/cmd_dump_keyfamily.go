@@ -86,7 +86,7 @@ func (v *CmdDumpKeyfamily) Run() (err error) {
 		return fmt.Errorf("error loading keys: %s", err)
 	}
 
-	devCli, err := GetDeviceClient()
+	devCli, err := GetDeviceClient(v.G())
 	if err != nil {
 		return err
 	}

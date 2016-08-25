@@ -16,9 +16,9 @@ import (
 	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/gregor/storage"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )

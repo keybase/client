@@ -82,7 +82,7 @@ func (c *CmdPGPEncrypt) Run() error {
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
-	snk, src, err := c.ClientFilterOpen()
+	snk, src, err := c.ClientFilterOpen(c.G())
 	if err != nil {
 		return err
 	}

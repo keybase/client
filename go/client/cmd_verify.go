@@ -112,7 +112,7 @@ func (c *CmdVerify) Run() (err error) {
 	if err = RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
-	snk, src, err := c.ClientFilterOpen()
+	snk, src, err := c.ClientFilterOpen(c.G())
 	if err == nil {
 		arg := keybase1.SaltpackVerifyArg{
 			Source: src,

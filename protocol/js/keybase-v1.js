@@ -50,6 +50,7 @@ export const config = {
 export const constants = {
   'StatusCode': {
     'scok': 0,
+    'scinputerror': 100,
     'scloginrequired': 201,
     'scbadsession': 202,
     'scbadloginusernotfound': 203,
@@ -90,6 +91,8 @@ export const constants = {
     'sckeynomatchinggpg': 930,
     'sckeyrevoked': 931,
     'scbadtracksession': 1301,
+    'scdevicebadname': 1404,
+    'scdevicenameinuse': 1408,
     'scdevicenotfound': 1409,
     'scdevicemismatch': 1410,
     'scdevicerequired': 1411,

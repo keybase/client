@@ -10,8 +10,8 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 func TestTrackToken(t *testing.T) {

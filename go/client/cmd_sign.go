@@ -80,7 +80,7 @@ func (s *CmdSign) Run() (err error) {
 	if err = RegisterProtocolsWithContext(protocols, s.G()); err != nil {
 		return err
 	}
-	snk, src, err := s.ClientFilterOpen()
+	snk, src, err := s.ClientFilterOpen(s.G())
 	if err == nil {
 		arg := keybase1.SaltpackSignArg{
 			Source: src,

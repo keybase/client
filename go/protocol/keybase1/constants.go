@@ -11,6 +11,7 @@ type StatusCode int
 
 const (
 	StatusCode_SCOk                     StatusCode = 0
+	StatusCode_SCInputError             StatusCode = 100
 	StatusCode_SCLoginRequired          StatusCode = 201
 	StatusCode_SCBadSession             StatusCode = 202
 	StatusCode_SCBadLoginUserNotFound   StatusCode = 203
@@ -51,6 +52,8 @@ const (
 	StatusCode_SCKeyNoMatchingGPG       StatusCode = 930
 	StatusCode_SCKeyRevoked             StatusCode = 931
 	StatusCode_SCBadTrackSession        StatusCode = 1301
+	StatusCode_SCDeviceBadName          StatusCode = 1404
+	StatusCode_SCDeviceNameInUse        StatusCode = 1408
 	StatusCode_SCDeviceNotFound         StatusCode = 1409
 	StatusCode_SCDeviceMismatch         StatusCode = 1410
 	StatusCode_SCDeviceRequired         StatusCode = 1411
@@ -79,6 +82,7 @@ const (
 
 var StatusCodeMap = map[string]StatusCode{
 	"SCOk":                     0,
+	"SCInputError":             100,
 	"SCLoginRequired":          201,
 	"SCBadSession":             202,
 	"SCBadLoginUserNotFound":   203,
@@ -119,6 +123,8 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCKeyNoMatchingGPG":       930,
 	"SCKeyRevoked":             931,
 	"SCBadTrackSession":        1301,
+	"SCDeviceBadName":          1404,
+	"SCDeviceNameInUse":        1408,
 	"SCDeviceNotFound":         1409,
 	"SCDeviceMismatch":         1410,
 	"SCDeviceRequired":         1411,

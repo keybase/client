@@ -77,3 +77,29 @@ func (h *DeviceHandler) CheckDeviceNameFormat(_ context.Context, arg keybase1.Ch
 	}
 	return false, errors.New(libkb.CheckDeviceName.Hint)
 }
+
+func (h *DeviceHandler) CheckDeviceNameForUser(_ context.Context, arg keybase1.CheckDeviceNameForUserArg) error {
+	_, err := h.G().API.Get(libkb.APIArg{
+		Endpoint:    "device/check_name",
+		NeedSession: false,
+		Args: libkb.HTTPArgs{
+			"username":   libkb.S{Val: arg.Username},
+			"devicename": libkb.S{Val: arg.Devicename},
+		},
+	})
+
+	if err == nil {
+		return err
+	}
+
+	if apiErr, ok := err.(*libkb.APIError); ok {
+		switch apiErr.Code {
+		case libkb.SCDeviceNameInUse:
+			return libkb.DeviceNameInUseError{}
+		case libkb.SCInputError:
+			return libkb.DeviceBadNameError{}
+		}
+	}
+
+	return err
+}
