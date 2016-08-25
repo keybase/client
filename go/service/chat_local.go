@@ -95,14 +95,14 @@ func (h *chatLocalHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, t
 // change this to look up by topic name
 //
 // TODO: cache ConversationIDs and conversations in service
-func (h *chatLocalHandler) GetOrCreateTextConversationLocal(ctx context.Context, arg keybase1.GetOrCreateTextConversationLocalArg) (id chat1.ConversationID, err error) {
+func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg keybase1.ResolveConversationLocalArg) (ids []chat1.ConversationID, err error) {
 	res, err := h.boxer.tlf.CryptKeys(ctx, arg.TlfName)
 	if err != nil {
-		return id, err
+		return ids, err
 	}
 	tlfIDb, err := hex.DecodeString(string(res.TlfID))
 	if err != nil {
-		return id, err
+		return ids, err
 	}
 	tlfID := chat1.TLFID(tlfIDb)
 
@@ -111,13 +111,13 @@ getinbox:
 	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
 		iview, err := h.GetInboxLocal(ctx, ipagination)
 		if err != nil {
-			return id, err
+			return ids, err
 		}
 		for _, conv := range iview.Conversations {
 			if conv.Metadata.IdTriple.Tlfid.Eq(tlfID) {
 				// TODO: check topic name and topic ID here when we support multiple
 				// topics per TLF
-				return conv.Metadata.ConversationID, nil
+				ids = append(ids, conv.Metadata.ConversationID)
 			}
 		}
 
@@ -128,16 +128,17 @@ getinbox:
 		}
 	}
 
-	id, err = h.NewConversationLocal(ctx, chat1.ConversationIDTriple{
+	id, err := h.NewConversationLocal(ctx, chat1.ConversationIDTriple{
 		Tlfid:     tlfID,
 		TopicType: arg.TopicType,
 		// TopicID filled by server?
 	})
 	if err != nil {
-		return id, err
+		return ids, err
 	}
+	ids = append(ids, id)
 
-	return id, nil
+	return ids, nil
 }
 
 func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversation *chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *keybase1.MessageSelector) (conv keybase1.ConversationMessagesLocal, err error) {

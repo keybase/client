@@ -278,7 +278,7 @@
       ],
       "response": "chat1.ConversationID"
     },
-    "getOrCreateTextConversationLocal": {
+    "resolveConversationLocal": {
       "request": [
         {
           "name": "tlfName",
@@ -293,7 +293,10 @@
           "type": "chat1.TopicType"
         }
       ],
-      "response": "chat1.ConversationID"
+      "response": {
+        "type": "array",
+        "items": "chat1.ConversationID"
+      }
     },
     "getMessagesLocal": {
       "request": [

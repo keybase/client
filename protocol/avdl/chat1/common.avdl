@@ -20,7 +20,8 @@ protocol common {
 
   enum TopicType {
     NONE_0,
-    CHAT_1
+    CHAT_1,
+    DEV_2
   }
 
   record Pagination {

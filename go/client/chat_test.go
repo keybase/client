@@ -89,15 +89,16 @@ func (c *chatLocalMock) GetThreadLocal(ctx context.Context, arg keybase1.GetThre
 }
 
 func (c *chatLocalMock) PostLocal(ctx context.Context, arg keybase1.PostLocalArg) error {
-	return errors.New("not implemented")
+	return errors.New("PostLocal not implemented")
 }
 
 func (c *chatLocalMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
-	return res, errors.New("not implemented")
+	return res, errors.New("CompleteAndCanonicalizeTlfName not implemented")
 }
 
-func (c *chatLocalMock) GetOrCreateTextConversationLocal(ctx context.Context, arg keybase1.GetOrCreateTextConversationLocalArg) (id chat1.ConversationID, err error) {
-	return id, errors.New("not implemented")
+func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg keybase1.ResolveConversationLocalArg) (ids []chat1.ConversationID, err error) {
+	ids = append(ids, chatLocalMockConversationID)
+	return ids, nil
 }
 
 func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationMessagesLocal, err error) {
@@ -116,7 +117,7 @@ func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.Messa
 }
 
 func (c *chatLocalMock) NewConversationLocal(ctx context.Context, cID chat1.ConversationIDTriple) (id chat1.ConversationID, err error) {
-	return id, errors.New("not implemented")
+	return id, errors.New("NewConversationLocal not implemented")
 }
 
 func TestCliInbox(t *testing.T) {
@@ -127,10 +128,10 @@ func TestCliInbox(t *testing.T) {
 	}
 	g.UI = &UI{Terminal: term}
 	c := &cmdChatInbox{
-		Contextified:    libkb.NewContextified(g),
-		chatLocalClient: &chatLocalMock{},
+		Contextified: libkb.NewContextified(g),
 	}
 	g.ConfigureUsage(c.GetUsage())
+	c.fetcher.chatClient = &chatLocalMock{}
 	err = c.Run()
 	if err != nil {
 		t.Fatal(err)

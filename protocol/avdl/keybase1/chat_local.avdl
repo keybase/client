@@ -75,7 +75,7 @@ protocol chatLocal {
   void postLocal(chat1.ConversationID conversationID, MessagePlaintext messagePlaintext);
   chat1.ConversationID newConversationLocal(chat1.ConversationIDTriple conversationTriple);
 
-  chat1.ConversationID getOrCreateTextConversationLocal(string tlfName, string topicName, chat1.TopicType topicType);
+  array<chat1.ConversationID> resolveConversationLocal(string tlfName, string topicName, chat1.TopicType topicType);
   array<ConversationMessagesLocal> getMessagesLocal(MessageSelector selector);
 
   // The tlfName can be either complete or partial. If the user's username is
