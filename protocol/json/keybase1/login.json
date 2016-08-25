@@ -175,6 +175,16 @@
       ],
       "response": null,
       "doc": "pgpProvision is for devel/testing to provision a device via pgp using CLI\n    with no user interaction."
+    },
+    "accountDelete": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "doc": "accountDelete is for devel/testing to delete the current user's account."
     }
   },
   "namespace": "keybase.1"

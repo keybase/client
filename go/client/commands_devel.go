@@ -15,6 +15,7 @@ import (
 
 func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
+		NewCmdAccountDelete(cl, g),
 		NewCmdAPICall(cl, g),
 		NewCmdChat(cl, g),
 		NewCmdCheckTracking(cl, g),
