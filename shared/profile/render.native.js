@@ -48,6 +48,30 @@ class Render extends Component<void, Props, State> {
     })
   }
 
+  _makeUserBio (loading: boolean) {
+    return (
+      <UserBio
+        type='Profile'
+        avatarSize={AVATAR_SIZE}
+        loading={loading}
+        username={this.props.username}
+        userInfo={this.props.userInfo}
+        currentlyFollowing={this.props.currentlyFollowing}
+        trackerState={this.props.trackerState} />
+    )
+  }
+
+  _makeUserProofs (loading: boolean) {
+    return (
+      <UserProofs
+        username={this.props.username}
+        loading={loading}
+        proofs={this.props.loading ? [] : this.props.proofs}
+        onClickProofMenu={(this.props.isYou && !this.props.loading) ? idx => this._handleToggleMenu(idx) : null}
+        currentlyFollowing={this.props.currentlyFollowing} />
+    )
+  }
+
   _proofMenuContent (proof: Proof) {
     if (proof.meta === metaUnreachable) {
       return {
@@ -135,26 +159,8 @@ class Render extends Component<void, Props, State> {
               style={{minHeight: 220}}
               duration={500}
               loading={this.props.loading}
-              loadingComponent={(
-                <UserBio
-                  type='Profile'
-                  avatarSize={AVATAR_SIZE}
-                  loading={true}
-                  username={this.props.username}
-                  userInfo={this.props.userInfo}
-                  currentlyFollowing={this.props.currentlyFollowing}
-                  trackerState={this.props.trackerState} />
-              )}
-              doneLoadingComponent={(
-                <UserBio
-                  type='Profile'
-                  avatarSize={AVATAR_SIZE}
-                  loading={false}
-                  username={this.props.username}
-                  userInfo={this.props.userInfo}
-                  currentlyFollowing={this.props.currentlyFollowing}
-                  trackerState={this.props.trackerState} />
-              )} />
+              loadingComponent={this._makeUserBio(true)}
+              doneLoadingComponent={this._makeUserBio(false)} />
           </Box>
           {!this.props.loading &&
             <UserActions
@@ -169,21 +175,8 @@ class Render extends Component<void, Props, State> {
               duration={500}
               style={{minHeight: 100, marginTop: globalMargins.medium}}
               loading={this.props.loading}
-              loadingComponent={(
-                <UserProofs
-                  username={this.props.username}
-                  loading={true}
-                  proofs={[]}
-                  currentlyFollowing={this.props.currentlyFollowing} />
-              )}
-              doneLoadingComponent={(
-                <UserProofs
-                  username={this.props.username}
-                  loading={false}
-                  proofs={this.props.proofs}
-                  onClickProofMenu={this.props.isYou ? idx => this._handleToggleMenu(idx) : null}
-                  currentlyFollowing={this.props.currentlyFollowing} />
-              )} />
+              loadingComponent={this._makeUserProofs(true)}
+              doneLoadingComponent={this._makeUserProofs(false)} />
             {!this.props.loading &&
               <UserProofs
                 style={styleMissingProofs}
