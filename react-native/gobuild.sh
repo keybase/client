@@ -7,13 +7,14 @@ cd $dir
 
 local_client=${LOCAL_CLIENT:-"1"}
 local_kbfs=${LOCAL_KBFS:-}
+tmp_gopath=${TMP_GOPATH:-"/tmp/go"}
 
 # Original sources
 client_go_dir="$GOPATH/src/github.com/keybase/client/go"
 kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
 
 # Our custom gopath for iOS build
-GOPATH="/tmp/go"
+GOPATH="$tmp_gopath"
 echo "Using temp GOPATH: $GOPATH"
 
 # Clear source
