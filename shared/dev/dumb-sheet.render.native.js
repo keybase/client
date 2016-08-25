@@ -5,6 +5,9 @@ import dumbComponentMap from './dumb-component-map.native'
 import type {Props} from './dumb-sheet.render'
 import {Box, Text, SmallInput, Button, NativeScrollView, Icon} from '../common-adapters/index.native'
 import {globalStyles, globalColors} from '../styles'
+import {isTesting} from '../local-debug'
+
+const TEST_RENDER_NUMBER = 1
 
 class Render extends Component<void, Props, any> {
   state: any;
@@ -18,6 +21,7 @@ class Render extends Component<void, Props, any> {
     this.state = {
       filterShow: false,
       localFilter: props.dumbFilter || '',
+      testIndex: 0,
     }
 
     this._onFilterChangeProp = debounce(filter => {
@@ -36,8 +40,35 @@ class Render extends Component<void, Props, any> {
     }, 0)
   }
 
+  _continueTest () {
+    if (isTesting && this.state.testIndex !== -1) {
+      const {componentsOnly} = this._getComponents()
+      if (this.state.testIndex >= componentsOnly.length) {
+        this.setState({testIndex: -1})
+      } else {
+        this.setState({testIndex: this.state.testIndex + TEST_RENDER_NUMBER})
+      }
+    }
+  }
+
+  componentDidMount () {
+    if (isTesting) {
+      this._continueTest()
+    }
+  }
+
+  componentDidUpdate () {
+    setTimeout(() => {
+      this._continueTest()
+    }, 1)
+  }
+
   render () {
-    const filter = this.props.dumbFilter.toLowerCase()
+    // return isTesting ? this.renderAll() : this.renderSingle()
+    return this.renderAll()
+  }
+
+  _getComponents (filter: ?string) {
     const components = []
     const componentsOnly = []
     const parentPropsOnly = []
@@ -66,6 +97,27 @@ class Render extends Component<void, Props, any> {
         parentPropsOnly.push(parentProps)
       })
     })
+
+    return {
+      components,
+      componentsOnly,
+      parentPropsOnly,
+    }
+  }
+
+  renderAll () {
+    if (this.state.testIndex === -1) {
+      return <Text type='Body'>DONE TESTING</Text>
+    }
+    const {componentsOnly} = this._getComponents()
+    const sub = componentsOnly.slice(this.state.testIndex, this.state.testIndex + TEST_RENDER_NUMBER)
+    console.log('test render idx', this.state.testIndex)
+    return <Box>{sub}</Box>
+  }
+
+  renderSingle () {
+    const filter = this.props.dumbFilter.toLowerCase()
+    const {components, componentsOnly, parentPropsOnly} = this._getComponents(filter)
 
     const ToShow = components[this.props.dumbIndex % components.length]
 

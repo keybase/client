@@ -22,6 +22,7 @@
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DB1D5FEC1CA99E67006DC784 /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FE21CA99E67006DC784 /* kb.ttf */; };
+		DB27DE571D747A6C003DE8BC /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = DB27DE561D747A6C003DE8BC /* Utils.m */; };
 		DBC44FCE1CD3AF9400A226BC /* Lato_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */; };
 		DBC44FCF1CD3AF9400A226BC /* Lato_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC81CD3AA1000A226BC /* Lato_italic.ttf */; };
 		DBC44FD01CD3AF9400A226BC /* Lato-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC91CD3AA1000A226BC /* Lato-Semi_bold.ttf */; };
@@ -148,6 +149,8 @@
 		A969A4161CF65CB200F273F2 /* LogSend.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LogSend.h; sourceTree = "<group>"; };
 		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
 		DB1D5FE21CA99E67006DC784 /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = kb.ttf; path = ../../../desktop/renderer/fonts/kb.ttf; sourceTree = "<group>"; };
+		DB27DE551D747A6B003DE8BC /* Utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
+		DB27DE561D747A6C003DE8BC /* Utils.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
 		DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Lato_bold.ttf; path = ../../../desktop/renderer/fonts/Lato_bold.ttf; sourceTree = "<group>"; };
 		DBC44FC81CD3AA1000A226BC /* Lato_italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Lato_italic.ttf; path = ../../../desktop/renderer/fonts/Lato_italic.ttf; sourceTree = "<group>"; };
 		DBC44FC91CD3AA1000A226BC /* Lato-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Lato-Semi_bold.ttf"; path = "../../../desktop/renderer/fonts/Lato-Semi_bold.ttf"; sourceTree = "<group>"; };
@@ -375,6 +378,8 @@
 				DBDCF34F1B8D04FD00BA95D8 /* ObjcTest.h */,
 				DBDCF3501B8D04FD00BA95D8 /* ObjcTest.m */,
 				DBDCF3511B8D04FD00BA95D8 /* ReactBridge.m */,
+				DB27DE551D747A6B003DE8BC /* Utils.h */,
+				DB27DE561D747A6C003DE8BC /* Utils.m */,
 				DBDCF3521B8D04FD00BA95D8 /* SwiftTest.swift */,
 				A969A4091CF65C9C00F273F2 /* LogSend.m */,
 				A969A4161CF65CB200F273F2 /* LogSend.h */,
@@ -669,6 +674,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB27DE571D747A6C003DE8BC /* Utils.m in Sources */,
 				A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */,
 				DBDCF3531B8D04FD00BA95D8 /* ObjcTest.m in Sources */,
 				DBCE36251B90F14800ECADDE /* Engine.m in Sources */,

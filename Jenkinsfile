@@ -269,7 +269,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                     def GOPATH="${BASEDIR}/go"
                                     withEnv([
                                         "GOPATH=${GOPATH}",
-                                        "PATH=${env.PATH}:${GOPATH}/bin",
+                                        "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                                        "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
                                         "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
                                         "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
                                     ]) {
@@ -278,6 +279,14 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             retry(3) {
                                                 checkout scm
                                             }
+
+                                        println "Test React Native"
+                                        dir("react-native") {
+                                            sh "npm i"
+                                            sh "npm run gobuild-ios"
+                                            sh "(npm run start &) ; npm run test-ios"
+                                            sh "killall 'Simulator'"
+                                        }
 
                                         println "Test OS X"
                                             // Retry to protect against flakes

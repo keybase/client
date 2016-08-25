@@ -9,7 +9,7 @@ import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
 import {log} from '../native/log/logui'
 import {resetClient, createClient, rpcLog} from './index.platform'
-import {printOutstandingRPCs} from '../local-debug'
+import {printOutstandingRPCs, isTesting} from '../local-debug'
 
 const {logLocal} = setupLocalLogs()
 
@@ -294,7 +294,7 @@ const makeEngine = () => {
   }
 
   if (!engine) {
-    engine = process.env.KEYBASE_NO_ENGINE ? new FakeEngine() : new Engine()
+    engine = (process.env.KEYBASE_NO_ENGINE || isTesting) ? new FakeEngine() : new Engine()
   }
   return engine
 }
