@@ -92,8 +92,8 @@ class ProofsRender extends Component<void, Props, void> {
           <ProofRow
             key={`${p.id || ''}${p.type}`}
             proof={p}
-            onClickStatus={onClickProofMenu ? () => onClickProofMenu(idx) : this._onClickProof}
-            onClickProfile={this._onClickProfile}
+            onClickStatus={onClickProofMenu ? () => onClickProofMenu(idx) : (p) => this._onClickProof(p)}
+            onClickProfile={(p) => this._onClickProfile(p)}
             hasMenu={!!onClickProofMenu}
             style={pad(idx)} />
         )}
