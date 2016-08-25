@@ -16,6 +16,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"runtime"
 	"syscall"
 	"time"
 	"unicode/utf16"
@@ -29,11 +30,12 @@ import (
 type SID syscall.SID
 
 const (
-	kbfsLibdokanDebug          = MountFlag(C.kbfsLibdokanDebug)
-	kbfsLibdokanStderr         = MountFlag(C.kbfsLibdokanStderr)
-	kbfsLibdokanRemovable      = MountFlag(C.kbfsLibdokanRemovable)
-	kbfsLibdokanMountManager   = MountFlag(C.kbfsLibdokanMountManager)
-	kbfsLibdokanCurrentSession = MountFlag(C.kbfsLibdokanCurrentSession)
+	kbfsLibdokanDebug                   = MountFlag(C.kbfsLibdokanDebug)
+	kbfsLibdokanStderr                  = MountFlag(C.kbfsLibdokanStderr)
+	kbfsLibdokanRemovable               = MountFlag(C.kbfsLibdokanRemovable)
+	kbfsLibdokanMountManager            = MountFlag(C.kbfsLibdokanMountManager)
+	kbfsLibdokanCurrentSession          = MountFlag(C.kbfsLibdokanCurrentSession)
+	kbfsLibdokanUseFindFilesWithPattern = MountFlag(C.kbfsLibdokanUseFindFilesWithPattern)
 )
 
 // loadDokanDLL can be called to init the system with custom Dokan location,
@@ -216,6 +218,26 @@ func kbfsLibdokanFindFiles(
 	FindData C.PFillFindData, // call this function with PWIN32_FIND_DATAW
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("FindFiles '%v' %v", d16{PathName}, *pfi)
+	return kbfsLibdokanFindFilesImpl(PathName, "", FindData, pfi)
+}
+
+//export kbfsLibdokanFindFilesWithPattern
+func kbfsLibdokanFindFilesWithPattern(
+	PathName C.LPCWSTR,
+	SearchPattern C.LPCWSTR,
+	FindData C.PFillFindData, // call this function with PWIN32_FIND_DATAW
+	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	pattern := lpcwstrToString(SearchPattern)
+	debugf("FindFilesWithPattern '%v' %v %q", d16{PathName}, *pfi, pattern)
+	return kbfsLibdokanFindFilesImpl(PathName, pattern, FindData, pfi)
+}
+
+func kbfsLibdokanFindFilesImpl(
+	PathName C.LPCWSTR,
+	pattern string,
+	FindData C.PFillFindData,
+	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+	debugf("FindFiles '%v' %v", d16{PathName}, *pfi)
 	ctx, cancel := getContext(pfi)
 	if cancel != nil {
 		defer cancel()
@@ -244,21 +266,9 @@ func kbfsLibdokanFindFiles(
 		}
 		return nil
 	}
-	err := getfi(pfi).FindFiles(ctx, makeFI(PathName, pfi), fun)
+	err := getfi(pfi).FindFiles(ctx, makeFI(PathName, pfi), pattern, fun)
 	return errToNT(err)
 }
-
-/* This is disabled from the C side currently.
-//export kbfsLibdokanFindFilesWithPattern
-func kbfsLibdokanFindFilesWithPattern (
-	PathName C.LPCWSTR,
-	SearchPattern C.LPCWSTR,
-	PFillFindData uintptr, // call this function with PWIN32_FIND_DATAW
-	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
-
-
-}
-*/
 
 //export kbfsLibdokanSetFileAttributes
 func kbfsLibdokanSetFileAttributes(
@@ -585,9 +595,32 @@ func (ctx *dokanCtx) Run(path string, flags MountFlag) error {
 	C.kbfsLibdokanSet_path(ctx.ptr, stringToUtf16Ptr(path))
 	ec := C.kbfsLibdokanRun(ctx.ptr)
 	if ec != 0 {
-		return fmt.Errorf("Dokan failed: %d", ec)
+		return fmt.Errorf("Dokan failed: code=%d %q", ec, dokanErrString(int32(ec)))
 	}
 	return nil
+}
+
+func dokanErrString(code int32) string {
+	switch code {
+	case C.kbfsLibDokan_ERROR:
+		return "General error"
+	case C.kbfsLibDokan_DRIVE_LETTER_ERROR:
+		return "Drive letter error"
+	case C.kbfsLibDokan_DRIVER_INSTALL_ERROR:
+		return "Driver install error"
+	case C.kbfsLibDokan_START_ERROR:
+		return "Start error"
+	case C.kbfsLibDokan_MOUNT_ERROR:
+		return "Mount error"
+	case C.kbfsLibDokan_MOUNT_POINT_ERROR:
+		return "Mount point error"
+	case C.kbfsLibDokan_VERSION_ERROR:
+		return "Version error"
+	case C.kbfsLibDokan_DLL_LOAD_ERROR:
+		return "Error loading Dokan DLL"
+	default:
+		return "UNKNOWN"
+	}
 }
 
 func (ctx *dokanCtx) Free() {
@@ -634,6 +667,8 @@ func (fi *FileInfo) isRequestorUserSidEqualTo(sid *SID) bool {
 		u2, _ := tokUser.User.Sid.String()
 		debugf("IsRequestorUserSidEqualTo: EqualSID(%q,%q) => %v (expecting non-zero)\n", u1, u2, res)
 	}
+	runtime.KeepAlive(sid)
+	runtime.KeepAlive(tokUser.User.Sid)
 	return res != 0
 }
 

@@ -173,7 +173,7 @@ func (fl *FolderList) forgetFolder(folderName string) {
 }
 
 // FindFiles for dokan.
-func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
+func (fl *FolderList) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string, callback func(*dokan.NamedStat) error) (err error) {
 	fl.fs.logEnter(ctx, "FL FindFiles")
 	defer func() { fl.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
 

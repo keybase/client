@@ -175,7 +175,7 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (dokan
 }
 
 // FindFiles does readdir for dokan.
-func (tlf *TLF) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
+func (tlf *TLF) FindFiles(ctx context.Context, fi *dokan.FileInfo, pattern string, callback func(*dokan.NamedStat) error) (err error) {
 	tlf.folder.fs.logEnter(ctx, "TLF FindFiles")
 	dir, exitEarly, err := tlf.loadDirAllowNonexistent(ctx, "FindFiles")
 	if err != nil {
@@ -184,7 +184,7 @@ func (tlf *TLF) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func
 	if exitEarly {
 		return dokan.ErrObjectNameNotFound
 	}
-	return dir.FindFiles(ctx, fi, callback)
+	return dir.FindFiles(ctx, fi, pattern, callback)
 }
 
 // CanDeleteDirectory - return just nil because tlfs

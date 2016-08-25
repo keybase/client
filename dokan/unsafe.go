@@ -12,7 +12,7 @@ import (
 // bufToSlice returns a byte slice aliasing the pointer and length given as arguments.
 func bufToSlice(ptr unsafe.Pointer, nbytes uint32) []byte {
 	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(ptr)),
+		Data: uintptr(ptr),
 		Len:  int(nbytes),
 		Cap:  int(nbytes)}))
 }

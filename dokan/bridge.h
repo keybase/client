@@ -52,6 +52,16 @@ enum {
   kbfsLibdokanRemovable = DOKAN_OPTION_REMOVABLE,
   kbfsLibdokanMountManager = DOKAN_OPTION_MOUNT_MANAGER,
   kbfsLibdokanCurrentSession = DOKAN_OPTION_CURRENT_SESSION,
+  kbfsLibdokanUseFindFilesWithPattern = 1<<24,
+
+  kbfsLibDokan_ERROR = DOKAN_ERROR,
+  kbfsLibDokan_DRIVE_LETTER_ERROR = DOKAN_DRIVE_LETTER_ERROR,
+  kbfsLibDokan_DRIVER_INSTALL_ERROR = DOKAN_DRIVER_INSTALL_ERROR,
+  kbfsLibDokan_START_ERROR = DOKAN_START_ERROR,
+  kbfsLibDokan_MOUNT_ERROR = DOKAN_MOUNT_ERROR,
+  kbfsLibDokan_MOUNT_POINT_ERROR = DOKAN_MOUNT_POINT_ERROR,
+  kbfsLibDokan_VERSION_ERROR = DOKAN_VERSION_ERROR,
+  kbfsLibDokan_DLL_LOAD_ERROR = -99,
 };
 
 #endif /* windows check */

@@ -59,6 +59,9 @@ const (
 	Removable      = MountFlag(kbfsLibdokanRemovable)
 	MountManager   = MountFlag(kbfsLibdokanMountManager)
 	CurrentSession = MountFlag(kbfsLibdokanCurrentSession)
+	// UseFindFilesWithPattern enables FindFiles calls to be with a search
+	// pattern string. Otherwise the string will be empty in all calls.
+	UseFindFilesWithPattern = MountFlag(kbfsLibdokanUseFindFilesWithPattern)
 )
 
 // CreateData contains all the info needed to create a file.
@@ -116,12 +119,14 @@ type File interface {
 
 	// GetFileInformation - corresponds to stat.
 	GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat, error)
-	// FindFiles is the readdir. The function is a callback that
-	// should be called with each file. The same NamedStat may
-	// be reused for subsequent calls.
-	FindFiles(ctx context.Context, fi *FileInfo, fillStatCallback func(*NamedStat) error) error
 
-	//FindFilesWithPattern
+	// FindFiles is the readdir. The function is a callback that should be called
+	// with each file. The same NamedStat may be reused for subsequent calls.
+	//
+	// Pattern will be an empty string unless UseFindFilesWithPattern is enabled - then
+	// it may be a pattern like `*.png` to match. All implementations must be prepared
+	// to handle empty strings as patterns.
+	FindFiles(ctx context.Context, fi *FileInfo, pattern string, fillStatCallback func(*NamedStat) error) error
 
 	// SetFileTime sets the file time. Test times with .IsZero
 	// whether they should be set.

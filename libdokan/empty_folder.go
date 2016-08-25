@@ -28,6 +28,6 @@ func (*EmptyFolder) GetFileInformation(context.Context, *dokan.FileInfo) (a *dok
 }
 
 // FindFiles for dokan.
-func (*EmptyFolder) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
+func (*EmptyFolder) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string, callback func(*dokan.NamedStat) error) (err error) {
 	return nil
 }

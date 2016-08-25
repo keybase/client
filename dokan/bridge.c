@@ -125,12 +125,17 @@ static DOKAN_CALLBACK  NTSTATUS kbfsLibdokanC_FindFiles(LPCWSTR PathName,
   return kbfsLibdokanFindFiles(PathName, FindData, FileInfo);
 }
 
-/*
 extern NTSTATUS kbfsLibdokanFindFilesWithPattern(LPCWSTR PathName,
 						   LPCWSTR SearchPattern,
 						   PFillFindData FindData, // call this function with PWIN32_FIND_DATAW
 						   PDOKAN_FILE_INFO FileInfo);
-*/
+static DOKAN_CALLBACK  NTSTATUS kbfsLibdokanC_FindFilesWithPattern(LPCWSTR PathName,
+								   LPCWSTR SearchPattern,
+								   PFillFindData FindData,	// call this function with PWIN32_FIND_DATAW
+								   PDOKAN_FILE_INFO FileInfo) {
+  return kbfsLibdokanFindFilesWithPattern(PathName, SearchPattern, FindData, FileInfo);
+}
+
 extern NTSTATUS kbfsLibdokanSetFileAttributes(LPCWSTR FileName,
 						DWORD FileAttributes,
 						PDOKAN_FILE_INFO FileInfo);
@@ -314,8 +319,6 @@ struct kbfsLibdokanCtx* kbfsLibdokanAllocCtx(ULONG64 slot) {
   ctx->dokan_operations.FlushFileBuffers = kbfsLibdokanC_FlushFileBuffers;
   ctx->dokan_operations.GetFileInformation = kbfsLibdokanC_GetFileInformation;
   ctx->dokan_operations.FindFiles = kbfsLibdokanC_FindFiles;
-  //FIXME: perhaps switch to FindFilesWithPattern later?
-  //  ctx->dokan_operations.FindFilesWithPattern = kbfsLibdokanC_FindFilesWithPattern;
   ctx->dokan_operations.SetFileAttributes = kbfsLibdokanC_SetFileAttributes;
   ctx->dokan_operations.SetFileTime = kbfsLibdokanC_SetFileTime;
   ctx->dokan_operations.DeleteFile = kbfsLibdokanC_DeleteFile;
@@ -354,7 +357,11 @@ error_t kbfsLibdokanRun(struct kbfsLibdokanCtx* ctx) {
 	if(!kbfsLibdokanPtr_Main)
 		kbfsLibdokanLoadLibrary(L"DOKAN" DOKAN_MAJOR_API_VERSION L".DLL");
 	if(!kbfsLibdokanPtr_Main)
-		return -99;
+		return kbfsLibDokan_DLL_LOAD_ERROR;
+	if(ctx->dokan_options.Options & kbfsLibdokanUseFindFilesWithPattern != 0) {
+	  ctx->dokan_options.Options &= ~kbfsLibdokanUseFindFilesWithPattern;
+	  ctx->dokan_operations.FindFilesWithPattern = kbfsLibdokanC_FindFilesWithPattern;
+	}
 	int status = (*kbfsLibdokanPtr_Main)(&ctx->dokan_options, &ctx->dokan_operations);
 	return status;
 }

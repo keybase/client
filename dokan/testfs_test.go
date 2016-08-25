@@ -285,7 +285,7 @@ func (t emptyFile) GetFileInformation(ctx context.Context, fi *FileInfo) (*Stat,
 	st.FileAttributes = FileAttributeNormal
 	return &st, nil
 }
-func (t emptyFile) FindFiles(context.Context, *FileInfo, func(*NamedStat) error) error {
+func (t emptyFile) FindFiles(context.Context, *FileInfo, string, func(*NamedStat) error) error {
 	debug("emptyFile.FindFiles")
 	return nil
 }
@@ -358,7 +358,7 @@ type testDir struct {
 
 const helloStr = "hello world\r\n"
 
-func (t testDir) FindFiles(ctx context.Context, fi *FileInfo, cb func(*NamedStat) error) error {
+func (t testDir) FindFiles(ctx context.Context, fi *FileInfo, p string, cb func(*NamedStat) error) error {
 	debug("testDir.FindFiles")
 	st := NamedStat{}
 	st.Name = "hello.txt"

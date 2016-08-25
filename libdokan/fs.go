@@ -496,7 +496,7 @@ func (r *Root) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (*dok
 }
 
 // FindFiles for dokan readdir.
-func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) error {
+func (r *Root) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string, callback func(*dokan.NamedStat) error) error {
 	var ns dokan.NamedStat
 	var err error
 	ns.FileAttributes = dokan.FileAttributeDirectory
