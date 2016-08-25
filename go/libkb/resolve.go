@@ -163,10 +163,16 @@ func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, with
 		r.G().Log.Debug("API user/lookup %q error: %s", input, res.err)
 		return
 	}
-	if ares.AppStatus.Code == SCNotFound {
+	switch ares.AppStatus.Code {
+	case SCNotFound:
 		r.G().Log.Debug("API user/lookup %q not found", input)
 		res.err = NotFoundError{}
 		return
+	case SCDeleted:
+		r.G().Log.Debug("API user/lookup %q deleted", input)
+		res.err = DeletedError{}
+		return
+	default:
 	}
 
 	var them *jsonw.Wrapper

@@ -236,6 +236,19 @@ func (e NotFoundError) Error() string {
 
 //=============================================================================
 
+type DeletedError struct {
+	Msg string
+}
+
+func (e DeletedError) Error() string {
+	if len(e.Msg) == 0 {
+		return "Deleted"
+	}
+	return e.Msg
+}
+
+//=============================================================================
+
 type MissingDelegationTypeError struct{}
 
 func (e MissingDelegationTypeError) Error() string {
