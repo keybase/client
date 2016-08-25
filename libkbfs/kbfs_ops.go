@@ -544,8 +544,8 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	}
 	failures, ch := fs.currentStatus.CurrentStatus()
 	var jServerStatus *JournalServerStatus
-	jServer, err := GetJournalServer(fs.config)
-	if err == nil {
+	jServer, jErr := GetJournalServer(fs.config)
+	if jErr == nil {
 		status := jServer.Status()
 		jServerStatus = &status
 	}
