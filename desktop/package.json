@@ -99,7 +99,7 @@
     "redux-devtools-dock-monitor": "1.1.1",
     "redux-devtools-log-monitor": "1.0.11",
     "redux-logger": "2.6.1",
-    "shrinkpack": "0.13.1",
+    "shrinkpack": "0.16.3",
     "source-map-support": "0.4.2",
     "unused-files-webpack-plugin": "2.0.4",
     "webpack": "1.13.2",
@@ -112,5 +112,5 @@
   "optionalDependencies": {
     "fsevents": "1.0.14"
   },
-  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#84059fd26a54f902ea1fe24804cbf1a69141c8ea"
+  "keybaseVendoredDependencies": "https://github.com/keybase/js-vendor-desktop.git#29b40046a3c170ff1263a8db3db705d898cd4921"
 }
