@@ -1453,3 +1453,14 @@ type UnhandledSignatureError struct {
 func (e UnhandledSignatureError) Error() string {
 	return fmt.Sprintf("unhandled signature version: %d", e.version)
 }
+
+type DeletedError struct {
+	Msg string
+}
+
+func (e DeletedError) Error() string {
+	if len(e.Msg) == 0 {
+		return "Deleted"
+	}
+	return e.Msg
+}

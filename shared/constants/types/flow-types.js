@@ -107,6 +107,12 @@ export function identifyUiFinishRpc (request: $Exact<{
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'identifyUi.finish'})
 }
+export function loginAccountDeleteRpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'login.accountDelete'})
+}
 export function loginLogoutRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -1410,6 +1416,7 @@ export type StatusCode =
   | 204 // SCBadLoginPassword_204
   | 205 // SCNotFound_205
   | 210 // SCThrottleControl_210
+  | 216 // SCDeleted_216
   | 218 // SCGeneric_218
   | 235 // SCAlreadyLoggedIn_235
   | 237 // SCCanceled_237
@@ -4224,6 +4231,7 @@ export type rpc =
   | kbfsFSEventRpc
   | logRegisterLoggerRpc
   | logUiLogRpc
+  | loginAccountDeleteRpc
   | loginClearStoredSecretRpc
   | loginDeprovisionRpc
   | loginGetConfiguredAccountsRpc
@@ -5371,6 +5379,15 @@ export type incomingCallMapType = $Exact<{
       username: string,
       passphrase: string,
       deviceName: string
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.login.accountDelete'?: (
+    params: $Exact<{
+      sessionID: int
     }>,
     response: {
       error: (err: RPCError) => void,

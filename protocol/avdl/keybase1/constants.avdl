@@ -9,6 +9,7 @@ protocol constants {
     SCBadLoginPassword_204,
     SCNotFound_205,
     SCThrottleControl_210,
+    SCDeleted_216,
     SCGeneric_218,
     SCAlreadyLoggedIn_235,
     SCCanceled_237,

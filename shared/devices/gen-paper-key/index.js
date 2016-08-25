@@ -25,7 +25,9 @@ class GenPaperKey extends Component<void, Props, State> {
     this.state = {
       loading: true,
     }
+  }
 
+  componentWillMount () {
     this.props.generatePaperKey()
   }
 
@@ -44,6 +46,7 @@ class GenPaperKey extends Component<void, Props, State> {
       <Render
         paperkey={this.props.paperKey}
         waiting={false}
+        onFinish={this.props.onBack}
         onBack={this.props.onBack}
         title='Paper key generated!'
       />

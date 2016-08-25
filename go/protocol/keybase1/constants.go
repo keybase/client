@@ -17,6 +17,7 @@ const (
 	StatusCode_SCBadLoginPassword       StatusCode = 204
 	StatusCode_SCNotFound               StatusCode = 205
 	StatusCode_SCThrottleControl        StatusCode = 210
+	StatusCode_SCDeleted                StatusCode = 216
 	StatusCode_SCGeneric                StatusCode = 218
 	StatusCode_SCAlreadyLoggedIn        StatusCode = 235
 	StatusCode_SCCanceled               StatusCode = 237
@@ -84,6 +85,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCBadLoginPassword":       204,
 	"SCNotFound":               205,
 	"SCThrottleControl":        210,
+	"SCDeleted":                216,
 	"SCGeneric":                218,
 	"SCAlreadyLoggedIn":        235,
 	"SCCanceled":               237,

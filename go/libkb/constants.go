@@ -140,6 +140,7 @@ const (
 	SCBadLoginUserNotFound   = int(keybase1.StatusCode_SCBadLoginUserNotFound)
 	SCBadLoginPassword       = int(keybase1.StatusCode_SCBadLoginPassword)
 	SCNotFound               = int(keybase1.StatusCode_SCNotFound)
+	SCDeleted                = int(keybase1.StatusCode_SCDeleted)
 	SCThrottleControl        = int(keybase1.StatusCode_SCThrottleControl)
 	SCGeneric                = int(keybase1.StatusCode_SCGeneric)
 	SCAlreadyLoggedIn        = int(keybase1.StatusCode_SCAlreadyLoggedIn)
