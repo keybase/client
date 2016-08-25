@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {TouchableHighlight} from 'react-native'
 import {Box, Text, Icon} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props} from './choice-list'
 
 type State = {

@@ -1,11 +1,8 @@
 /* @flow */
-// Styles from our designers
-
 import {OS} from '../constants/platform'
 import {OS_IOS, OS_ANDROID} from '../constants/platform.shared'
 import NavigatorNavigationBarStyles from 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS'
-
-export {default as globalColors} from './style-guide-colors'
+import globalColors from './colors'
 
 const fontCommon = {
   letterSpacing: 0.3,
@@ -92,12 +89,12 @@ const util = {
   }),
 }
 
-export const globalStyles = {
+const globalStyles = {
   ...font,
   ...util,
 }
 
-export const globalMargins = {
+const globalMargins = {
   xtiny: 4,
   tiny: 8,
   small: 16,
@@ -106,8 +103,17 @@ export const globalMargins = {
   xlarge: 64,
 }
 
-export const navBarHeight = OS === OS_ANDROID ? 60 : NavigatorNavigationBarStyles.General.TotalNavHeight
-export const tabBarHeight = 48
-export function backgroundURL (...path: Array<string>): Object {
+const navBarHeight = OS === OS_ANDROID ? 60 : NavigatorNavigationBarStyles.General.TotalNavHeight
+const tabBarHeight = 48
+function backgroundURL (...path: Array<string>): Object {
   return {}
+}
+
+export {
+  globalColors,
+  backgroundURL,
+  navBarHeight,
+  tabBarHeight,
+  globalStyles,
+  globalMargins,
 }

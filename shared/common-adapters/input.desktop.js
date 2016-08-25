@@ -3,7 +3,7 @@ import MultiLineInput from './multi-line-input.desktop'
 import React, {Component} from 'react'
 import type {Props} from './input'
 import {TextField} from 'material-ui'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import {styles as TextStyles, specialStyles} from './text'
 
 type State = {

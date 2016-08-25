@@ -2,7 +2,7 @@
 import React from 'react'
 import type {Props} from './row'
 import {Icon, Text} from '../../../common-adapters'
-import {globalStyles, globalColors, transition} from '../../../styles/style-guide'
+import {globalStyles, globalColors, transition} from '../../../styles'
 
 const realCSS = `
   .register-row { background-color: ${globalColors.white}; }

@@ -1,5 +1,5 @@
 import _ from 'lodash'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 import {proveMessage} from '../util/platforms.js'
 import {PlatformsExpanded} from '../constants/types/more'
 

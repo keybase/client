@@ -3,9 +3,9 @@
  */
 
 import Search from '../search'
-import Profile from '../profile'
+import ProfileContainer from '../profile/container'
 
 export default {
   search: Search,
-  profile: Profile,
+  profile: ProfileContainer,
 }

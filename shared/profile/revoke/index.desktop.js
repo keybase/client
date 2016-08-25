@@ -1,14 +1,14 @@
 /* @flow */
 
 import React from 'react'
-import {Box, Text, Icon, Button, PlatformIcon} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
-import {formatMessage, formatConfirmButton} from './revoke.shared'
-import {subtitle as platformSubtitle} from '../util/platforms'
+import {Box, Text, Icon, Button, PlatformIcon} from '../../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
+import {formatMessage, formatConfirmButton} from './index.shared'
+import {subtitle as platformSubtitle} from '../../util/platforms'
 
-import type {Props} from './revoke'
+import type {Props} from './index'
 
-const Render = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isWaiting}: Props) => {
+const Revoke = ({platform, platformHandle, errorMessage, onCancel, onRevoke, isWaiting}: Props) => {
   const platformHandleSubtitle = platformSubtitle(platform)
 
   return (
@@ -100,4 +100,4 @@ const styleButtonsContainer = {
   marginTop: globalMargins.medium,
 }
 
-export default Render
+export default Revoke

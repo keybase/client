@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {TouchableOpacity, TouchableWithoutFeedback} from 'react-native'
 import type {Props, MenuItem} from './popup-menu'
 import {Box, Text} from '../common-adapters/index'
-import {globalColors, globalMargins, globalStyles} from '../styles/style-guide'
+import {globalColors, globalMargins, globalStyles} from '../styles'
 
 // Menu Item
 type MenuItemProps = MenuItem & {

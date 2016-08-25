@@ -4,7 +4,7 @@ import {forwardLogs} from '../shared/local-debug'
 import fs from 'fs'
 import path from 'path'
 import mkdirp from 'mkdirp'
-import {logFileName} from '../shared/constants/platform.native.desktop.js'
+import {logFileName} from '../shared/constants/platform.specific.desktop.js'
 import setupLocalLogs from '../shared/util/local-log'
 
 const methods = ['log', 'error', 'info']

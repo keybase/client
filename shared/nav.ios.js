@@ -5,7 +5,7 @@ import ListenLogUi from './native/listen-log-ui'
 import Login from './login'
 import MetaNavigator from './router/meta-navigator'
 import NoTab from './no-tab'
-import Profile from './profile'
+import ProfileContainer from './profile/container'
 import React, {Component} from 'react'
 import Search from './search'
 import Settings from './settings'
@@ -19,13 +19,13 @@ import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
-import {navBarHeight} from './styles/style-guide'
+import {navBarHeight} from './styles'
 import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
-  [profileTab]: {module: Profile, name: 'Profile'},
+  [profileTab]: {module: ProfileContainer, name: 'Profile'},
   [folderTab]: {module: Folders, name: 'Folders'},
   [chatTab]: {module: Settings, name: 'Chat'},
   [peopleTab]: {module: Search, name: 'People'},

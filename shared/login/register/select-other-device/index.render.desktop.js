@@ -5,7 +5,7 @@ import type {DeviceType} from '../../../constants/types/more'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Props} from './index.render'
 import {Text, Icon} from '../../../common-adapters'
-import {globalStyles, globalColors} from '../../../styles/style-guide'
+import {globalStyles, globalColors} from '../../../styles'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconType = ({

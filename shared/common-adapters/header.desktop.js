@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import Text from './text'
 import type {Props, DefaultProps} from './header'
 import {Icon} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 class Header extends Component<DefaultProps, Props, void> {
   static defaultProps: DefaultProps;

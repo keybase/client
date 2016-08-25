@@ -1,9 +1,9 @@
 // @flow
 
 import {Component} from 'react'
-import type {PlatformsExpandedType} from '../constants/types/more'
-import type {IconType} from '../common-adapters/icon'
-import type {$Exact} from '../constants/types/more'
+import type {PlatformsExpandedType} from '../../constants/types/more'
+import type {IconType} from '../../common-adapters/icon'
+import type {$Exact} from '../../constants/types/more'
 
 export type PropsLoose = {
   platform: PlatformsExpandedType,

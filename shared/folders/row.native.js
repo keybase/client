@@ -4,7 +4,7 @@ import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
 import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
 import {Image, TouchableHighlight} from 'react-native'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from '../common-adapters/icon.constants'
 
 const Avatars = ({styles, users, isPublic, ignored}) => {

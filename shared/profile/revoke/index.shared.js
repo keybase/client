@@ -1,9 +1,8 @@
 /* @flow */
-
 import {capitalize} from 'lodash'
-import type {PlatformsExpandedType} from '../constants/types/more'
+import type {PlatformsExpandedType} from '../../constants/types/more'
 
-export function formatMessage (platform: PlatformsExpandedType) {
+function formatMessage (platform: PlatformsExpandedType) {
   let prefix
   switch (platform) {
     case 'pgp':
@@ -32,7 +31,7 @@ export function formatMessage (platform: PlatformsExpandedType) {
   return `${prefix} ${body}?`
 }
 
-export function formatConfirmButton (platform: PlatformsExpandedType) {
+function formatConfirmButton (platform: PlatformsExpandedType) {
   let msg
   switch (platform) {
     case 'pgp':
@@ -44,3 +43,7 @@ export function formatConfirmButton (platform: PlatformsExpandedType) {
   return msg
 }
 
+export {
+  formatMessage,
+  formatConfirmButton,
+}

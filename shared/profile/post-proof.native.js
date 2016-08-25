@@ -2,7 +2,7 @@
 import React from 'react'
 import {Button, LinkWithIcon, PlatformIcon, StandardScreen, Text} from '../common-adapters'
 import CopyableText from '../common-adapters/copyable-text.native'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import * as shared from './post-proof.shared'
 import type {Props} from './post-proof'
 

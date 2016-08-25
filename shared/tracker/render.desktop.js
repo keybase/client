@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import Header from './header.render.desktop'
 import Action, {calcFooterHeight} from './action.render.desktop'
 import {UserProofs, UserBio} from '../common-adapters'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 import NonUser from './non-user'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
 

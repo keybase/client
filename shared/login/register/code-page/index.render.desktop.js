@@ -10,7 +10,7 @@ import type {Props} from './index.render'
 import {Text, Icon, Input, Button} from '../../../common-adapters'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
   codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
-import {globalStyles, globalColors} from '../../../styles/style-guide'
+import {globalStyles, globalColors} from '../../../styles'
 import {specialStyles as textStyles} from '../../../common-adapters/text'
 
 const SubTitle = ({usePhone}) => (

@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import Text from './text'
 import type {Props} from './button'
 import {TouchableHighlight, View} from 'react-native'
-import {globalColors, globalStyles} from '../styles/style-guide'
+import {globalColors, globalStyles} from '../styles'
 
 const Progress = () => (
   <View style={{...progress}}>

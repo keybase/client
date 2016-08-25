@@ -3,7 +3,7 @@ import React from 'react'
 import {TextInput} from 'react-native'
 import Box from './box'
 import Text from './text.native'
-import {globalColors, globalMargins, globalStyles} from '../styles/style-guide'
+import {globalColors, globalMargins, globalStyles} from '../styles'
 
 import type {SmallInputProps} from './small-input'
 

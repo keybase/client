@@ -3,7 +3,7 @@
 import React from 'react'
 import type {Props} from './confirm-or-pending'
 import {Box, Text, Button, PlatformIcon} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {propsForPlatform} from './confirm-or-pending.shared'
 
 const Render = (props: Props) => {
