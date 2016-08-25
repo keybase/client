@@ -152,18 +152,18 @@ func (c *Client) Sync(cli gregor1.IncomingInterface) ([]gregor.InBandMessage, er
 	if latestCtime == nil || latestCtime.IsZero() {
 		c.Log.Debug("Sync(): fresh server sync: using State()")
 		return c.freshSync(cli)
-	} else {
-		c.Log.Debug("Sync(): incremental server sync: using Sync()")
-		if msgs, err := c.SyncFromTime(cli, latestCtime); err != nil {
-			if _, ok := err.(ErrHashMismatch); ok {
-				c.Log.Info("Sync failure: %v\nResetting StateMachine and retrying", err)
-				return c.freshSync(cli)
-			}
-			return msgs, err
-		} else {
-			return msgs, nil
-		}
 	}
+
+	c.Log.Debug("Sync(): incremental server sync: using Sync()")
+	msgs, err := c.SyncFromTime(cli, latestCtime)
+	if err != nil {
+		if _, ok := err.(ErrHashMismatch); ok {
+			c.Log.Info("Sync failure: %v\nResetting StateMachine and retrying", err)
+			return c.freshSync(cli)
+		}
+		return msgs, err
+	}
+	return msgs, nil
 }
 
 func (c *Client) InBandMessagesFromState(s gregor.State) ([]gregor.InBandMessage, error) {
