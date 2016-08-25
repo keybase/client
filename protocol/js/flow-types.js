@@ -1411,6 +1411,7 @@ export type StatusCode =
   | 204 // SCBadLoginPassword_204
   | 205 // SCNotFound_205
   | 210 // SCThrottleControl_210
+  | 216 // SCDeleted_216
   | 218 // SCGeneric_218
   | 235 // SCAlreadyLoggedIn_235
   | 237 // SCCanceled_237
