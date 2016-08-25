@@ -1,15 +1,13 @@
 // @flow
 import ConfirmOrPending from './confirm-or-pending-container'
 import EditProfile from './edit-profile'
-import ErrorComponent from '../common-adapters/error-profile'
 import PostProof from './post-proof-container'
 import ProveEnterUsername from './prove-enter-username-container'
 import ProveWebsiteChoice from './prove-website-choice-container'
 import React, {Component} from 'react'
-import Render from './render'
-import Revoke from './revoke-container'
+import Profile from './index'
+import RevokeContainer from './revoke/container'
 import flags from '../util/feature-flags'
-import {Box, Text} from '../common-adapters'
 import {TypedConnector} from '../util/typed-connect'
 import {addProof, checkSpecificProof} from '../actions/profile'
 import {getProfile, updateTrackers, onFollow, onUnfollow, openProofUrl} from '../actions/tracker'
@@ -20,7 +18,7 @@ import pgpRouter from './pgp'
 
 import type {MissingProof} from '../common-adapters/user-proofs'
 import type {Proof} from '../constants/tracker'
-import type {Props} from './render'
+import type {Props} from './index'
 import type {TypedDispatch, Action} from '../constants/types/flux'
 import type {TypedState} from '../constants/reducer'
 
@@ -31,7 +29,7 @@ type OwnProps = {
   }
 }
 
-class Profile extends Component<void, ?Props, void> {
+class ProfileContainer extends Component<void, ?Props, void> {
   static parseRoute (currentPath, uri) {
     return {
       componentAtTop: {
@@ -45,7 +43,7 @@ class Profile extends Component<void, ?Props, void> {
         'editprofile': EditProfile,
         ProveEnterUsername,
         ProveWebsiteChoice,
-        Revoke,
+        Revoke: RevokeContainer,
         PostProof,
         ConfirmOrPending,
         pgp: {
@@ -55,32 +53,8 @@ class Profile extends Component<void, ?Props, void> {
     }
   }
 
-  componentDidMount () {
-    this.props && this.props.refresh()
-  }
-
-  componentWillReceiveProps (nextProps) {
-    const oldUsername = this.props && this.props.username
-    if (nextProps && nextProps.username !== oldUsername) {
-      nextProps.refresh()
-    }
-  }
-
   render () {
-    if (this.props && this.props.error) {
-      return <ErrorComponent error={this.props.error} />
-    }
-
-    return this.props ? (
-      <Render
-        showComingSoon={!flags.tabProfileEnabled}
-        {...this.props}
-        proofs={this.props.proofs || []}
-        onBack={!this.props.profileIsRoot ? this.props.onBack : undefined}
-      />
-    ) : (
-      <Box><Text type='Error'>Could not derive props; check the log</Text></Box>
-    )
+    return <Profile {...this.props} />
   }
 }
 
@@ -105,7 +79,7 @@ export default connector.connect((state, dispatch, ownProps) => {
 
   const dispatchProps = {
     onUserClick: (username, uid) => { dispatch(routeAppend({path: 'profile', userOverride: {username, uid}})) },
-    onBack: () => { dispatch(navigateUp()) },
+    onBack: ownProps.profileIsRoot ? null : () => { dispatch(navigateUp()) },
     onFolderClick: folder => { dispatch(openInKBFS(folder.path)) },
     onEditProfile: () => { dispatch(routeAppend({path: 'editprofile'})) },
     onFollow: () => { dispatch(onFollow(username, false)) },
@@ -147,5 +121,7 @@ export default connector.connect((state, dispatch, ownProps) => {
     followers: trackerState ? trackerState.trackers : [],
     following: trackerState ? trackerState.tracking : [],
     loading: isLoading(trackerState),
+    showComingSoon: !flags.tabProfileEnabled,
+    proofs: trackerState && trackerState.proofs || [],
   }
-})(Profile)
+})(ProfileContainer)

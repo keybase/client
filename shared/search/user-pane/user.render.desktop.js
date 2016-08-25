@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import {Box, UserProofs, UserBio, UserActions} from '../../common-adapters'
 import {globalColors, globalStyles, globalMargins} from '../../styles'
-import {AVATAR_SIZE, HEADER_TOP_SPACE, HEADER_SIZE} from '../../profile/render.desktop'
+import {AVATAR_SIZE, HEADER_TOP_SPACE, HEADER_SIZE} from '../../profile/index.desktop'
 import {stateColors} from '../../util/tracker'
 import type {Props} from './user.render'
 

@@ -9,10 +9,11 @@ import {stateColors} from '../util/tracker'
 import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import ProfileHelp from './help.desktop'
-import * as shared from './render.shared'
+import * as shared from './index.shared'
+import ErrorComponent from '../common-adapters/error-profile'
 import type {Tab as FriendshipsTab} from './friendships'
 import type {Proof} from '../constants/tracker'
-import type {Props} from './render'
+import type {Props} from './index'
 
 export const AVATAR_SIZE = 112
 export const HEADER_TOP_SPACE = 48
@@ -28,7 +29,7 @@ type State = {
   }
 }
 
-class Render extends Component<void, Props, State> {
+class Profile extends Component<void, Props, State> {
   state: State;
   _proofList: ?UserProofs;
   _scrollContainer: ?React$Component<*, *, *>;
@@ -159,12 +160,27 @@ class Render extends Component<void, Props, State> {
     })
   }
 
+  componentDidMount () {
+    this.props && this.props.refresh()
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    const oldUsername = this.props && this.props.username
+    if (nextProps && nextProps.username !== oldUsername) {
+      nextProps.refresh()
+    }
+  }
+
   render () {
-    const {loading} = this.props
     if (this.props.showComingSoon) {
       return this._renderComingSoon()
     }
 
+    if (this.props && this.props.error) {
+      return <ErrorComponent error={this.props.error} />
+    }
+
+    const {loading} = this.props
     const trackerStateColors = stateColors(this.props)
 
     let proofNotice
@@ -375,4 +391,4 @@ const styleProofMenu = {
   zIndex: 5,
 }
 
-export default Render
+export default Profile

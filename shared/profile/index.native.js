@@ -10,10 +10,11 @@ import Friendships from './friendships'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
 import {friendlyName as platformFriendlyName} from '../util/platforms'
-import * as shared from './render.shared'
+import * as shared from './index.shared'
+import ErrorComponent from '../common-adapters/error-profile'
 import type {Tab as FriendshipsTab} from './friendships'
 import type {Proof} from '../constants/tracker'
-import type {Props} from './render'
+import type {Props} from './index'
 
 export const AVATAR_SIZE = 112
 export const HEADER_TOP_SPACE = 48
@@ -24,7 +25,7 @@ type State = {
   activeMenuProof: ?Proof,
 }
 
-class Render extends Component<void, Props, State> {
+class Profile extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -87,9 +88,24 @@ class Render extends Component<void, Props, State> {
     }
   }
 
+  componentDidMount () {
+    this.props && this.props.refresh()
+  }
+
+  componentWillReceiveProps (nextProps: Props) {
+    const oldUsername = this.props && this.props.username
+    if (nextProps && nextProps.username !== oldUsername) {
+      nextProps.refresh()
+    }
+  }
+
   render () {
     if (this.props.showComingSoon) {
       return this._renderComingSoon()
+    }
+
+    if (this.props.error) {
+      return <ErrorComponent error={this.props.error} />
     }
 
     const trackerStateColors = stateColors(this.props)
@@ -228,4 +244,4 @@ const styleFolderIcon = {
   marginRight: globalMargins.small,
 }
 
-export default Render
+export default Profile
