@@ -108,6 +108,24 @@
       ],
       "response": "boolean",
       "doc": "Checks the device name format."
+    },
+    "checkDeviceNameForUser": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "devicename",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "doc": "Checks a given device against all of user's past devices,\n    including those that predate a reset. It will also check a device name\n    for proper formatting. Return null error on success, and a non-null\n    error otherwise."
     }
   },
   "namespace": "keybase.1"

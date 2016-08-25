@@ -20,11 +20,11 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/PuerkitoBio/goquery"
+	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
-	gregor "github.com/keybase/client/go/gregor"
-	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
 type CommandLine interface {
