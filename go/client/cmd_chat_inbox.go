@@ -5,19 +5,17 @@ package client
 
 import (
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type cmdChatInbox struct {
@@ -37,21 +35,21 @@ func newCmdChatInbox(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			cl.ChooseCommand(&cmdChatInbox{Contextified: libkb.NewContextified(g)}, "inbox", c)
 		},
 		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name:  "since,after",
-				Usage: `Only show messages after certain time.`,
-			},
-			cli.StringFlag{
-				Name:  "before",
-				Usage: `Only show messages before certain time.`,
+			cli.BoolFlag{
+				Name:  "a,all",
+				Usage: `Do not limit number of messages shown. This has same effect as "--number 0"`,
 			},
 			cli.IntFlag{
-				Name:  "limit,n",
-				Usage: `Limit the number of messages shown per conversation. Only effective when > 0.`,
+				Name:  "number,n",
+				Usage: `Limit the number of messages shown. Only effective when > 0.`,
 				Value: 5,
 			},
+			cli.StringFlag{
+				Name:  "time,since",
+				Usage: `Only show messages after certain time.`,
+			},
 		},
-		Description: `"keybase chat inbox" display an inbox view of chat messages. --since/--after and --before can be used to specify a time range of messages displayed. Duration (e.g. "2d" meaning 2 days ago) and RFC3339 Time (e.g. "2006-01-02T15:04:05Z07:00") are both supported. Using --before requires a --since/--after to pair with.  Using --since/--after alone implies "--before 0s". If none of time range flags are specified, this command only shows new messages.`,
+		Description: `"keybase chat inbox" display an inbox view of chat messages. --time/--since can be used to specify a time range of messages displayed. Duration (e.g. "2d" meaning 2 days ago) and RFC3339 Time (e.g. "2006-01-02T15:04:05Z07:00") are both supported.`,
 	}
 }
 
@@ -115,38 +113,17 @@ func (c *cmdChatInbox) Run() error {
 }
 
 func (c *cmdChatInbox) ParseArgv(ctx *cli.Context) (err error) {
-	var before, after time.Time
-	if before, err = parseTimeFromRFC3339OrDurationFromPast(ctx.String("before")); err != nil {
-		err = fmt.Errorf("parsing --before flag error: %s", err)
-		return err
-	}
-	if after, err = parseTimeFromRFC3339OrDurationFromPast(ctx.String("after")); err != nil {
-		err = fmt.Errorf("parsing --after/--since flag error: %s", err)
-		return err
-	}
-
 	c.selector = keybase1.MessageSelector{
-		MessageTypes:         []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT},
-		LimitPerConversation: ctx.Int("limit"),
+		MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT, chat1.MessageType_ATTACHMENT},
+		Limit:        ctx.Int("number"),
 	}
 
-	switch {
-	case before.IsZero() && after.IsZero():
-		c.selector.OnlyNew = true
-	case !before.IsZero() && !after.IsZero():
-		kbefore := keybase1.ToTime(before)
-		kafter := keybase1.ToTime(after)
-		c.selector.Before = &kbefore
-		c.selector.After = &kafter
-	case before.IsZero() && !after.IsZero():
-		kbefore := keybase1.ToTime(time.Now())
-		kafter := keybase1.ToTime(after)
-		c.selector.Before = &kbefore
-		c.selector.After = &kafter
-	case !before.IsZero() && after.IsZero():
-		return errors.New(`--before is set but no pairing --after/--since is found. If you really want messages from the very begining, just use "--since 10000d"`)
-	default:
-		panic("incorrect switch/case!")
+	if timeStr := ctx.String("time"); len(timeStr) > 0 {
+		c.selector.Since = &timeStr
+	}
+
+	if ctx.Bool("all") {
+		c.selector.Limit = 0
 	}
 
 	return nil

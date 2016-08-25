@@ -180,16 +180,9 @@
         {
           "type": [
             null,
-            "Time"
+            "string"
           ],
-          "name": "After"
-        },
-        {
-          "type": [
-            null,
-            "Time"
-          ],
-          "name": "Before"
+          "name": "Since"
         },
         {
           "type": "boolean",
@@ -197,11 +190,7 @@
         },
         {
           "type": "int",
-          "name": "limitPerConversation"
-        },
-        {
-          "type": "int",
-          "name": "limitOfConversations"
+          "name": "limit"
         },
         {
           "type": {

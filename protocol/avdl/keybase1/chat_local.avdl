@@ -55,12 +55,10 @@ protocol chatLocal {
   record MessageSelector {
     array<chat1.MessageType> MessageTypes;
 
-    union { null, Time } After;
-    union { null, Time } Before;
+    union { null, string } Since;
     boolean onlyNew;
     
-    int limitPerConversation;
-    int limitOfConversations;
+    int limit;
 
     array<chat1.ConversationID> conversations;
 

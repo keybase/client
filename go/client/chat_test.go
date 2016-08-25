@@ -8,9 +8,9 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 const (
@@ -134,16 +134,5 @@ func TestCliInbox(t *testing.T) {
 	err = c.Run()
 	if err != nil {
 		t.Fatal(err)
-	}
-}
-
-func TestParseDurationExtended(t *testing.T) {
-	d, err := parseDurationExtended("123d12h2ns")
-	if err != nil {
-		t.Fatal(err)
-	}
-	expected := 123*24*time.Hour + 12*time.Hour + 2*time.Nanosecond
-	if d != expected {
-		t.Fatalf("wrong parsed duration. Expected %v, got %v\n", expected, d)
 	}
 }
