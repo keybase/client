@@ -21,6 +21,12 @@ const (
 	JournalEnable JournalAction = iota
 	// JournalFlush is to flush the journal.
 	JournalFlush
+	// JournalPauseBackgroundWork is to pause journal background
+	// work.
+	JournalPauseBackgroundWork
+	// JournalResumeBackgroundWork is to resume journal background
+	// work.
+	JournalResumeBackgroundWork
 	// JournalDisable is to disable the journal.
 	JournalDisable
 )
@@ -31,6 +37,10 @@ func (a JournalAction) String() string {
 		return "Enable journal"
 	case JournalFlush:
 		return "Flush journal"
+	case JournalPauseBackgroundWork:
+		return "Pause journal background work"
+	case JournalResumeBackgroundWork:
+		return "Resume journal background work"
 	case JournalDisable:
 		return "Disable journal"
 	}
@@ -44,7 +54,8 @@ func (a JournalAction) Execute(
 	tlf libkbfs.TlfID) error {
 	switch a {
 	case JournalEnable:
-		err := jServer.Enable(ctx, tlf)
+		err := jServer.Enable(
+			ctx, tlf, libkbfs.TLFJournalBackgroundWorkEnabled)
 		if err != nil {
 			return err
 		}
@@ -54,6 +65,12 @@ func (a JournalAction) Execute(
 		if err != nil {
 			return err
 		}
+
+	case JournalPauseBackgroundWork:
+		jServer.PauseBackgroundWork(ctx, tlf)
+
+	case JournalResumeBackgroundWork:
+		jServer.ResumeBackgroundWork(ctx, tlf)
 
 	case JournalDisable:
 		err := jServer.Disable(ctx, tlf)

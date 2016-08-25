@@ -42,25 +42,12 @@ func (j journalMDOps) getHeadFromJournal(
 	ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus,
 	handle *TlfHandle) (
 	ImmutableRootMetadata, error) {
-	bundle, ok := j.jServer.getBundle(id)
+	tlfJournal, ok := j.jServer.getTLFJournal(id)
 	if !ok {
 		return ImmutableRootMetadata{}, nil
 	}
 
-	_, uid, err := j.jServer.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-
-	key, err := j.jServer.config.KBPKI().GetCurrentVerifyingKey(ctx)
-	if err != nil {
-		return ImmutableRootMetadata{}, err
-	}
-
-	bundle.lock.RLock()
-	defer bundle.lock.RUnlock()
-
-	head, err := bundle.mdJournal.getHead(uid, key)
+	head, err := tlfJournal.getMDHead(ctx)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -135,25 +122,12 @@ func (j journalMDOps) getRangeFromJournal(
 	ctx context.Context, id TlfID, bid BranchID, mStatus MergeStatus,
 	start, stop MetadataRevision) (
 	[]ImmutableRootMetadata, error) {
-	bundle, ok := j.jServer.getBundle(id)
+	tlfJournal, ok := j.jServer.getTLFJournal(id)
 	if !ok {
 		return nil, nil
 	}
 
-	_, uid, err := j.jServer.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	key, err := j.jServer.config.KBPKI().GetCurrentVerifyingKey(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	bundle.lock.RLock()
-	defer bundle.lock.RUnlock()
-
-	ibrmds, err := bundle.mdJournal.getRange(uid, key, start, stop)
+	ibrmds, err := tlfJournal.getMDRange(ctx, start, stop)
 	if err != nil {
 		return nil, err
 	}
@@ -345,22 +319,10 @@ func (j journalMDOps) GetUnmergedRange(
 
 func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
-	bundle, ok := j.jServer.getBundle(rmd.TlfID())
+	tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID())
 	if ok {
 		// Just route to the journal.
-		_, uid, err := j.jServer.config.KBPKI().GetCurrentUserInfo(ctx)
-		if err != nil {
-			return MdID{}, err
-		}
-
-		key, err := j.jServer.config.KBPKI().GetCurrentVerifyingKey(ctx)
-		if err != nil {
-			return MdID{}, err
-		}
-
-		bundle.lock.Lock()
-		defer bundle.lock.Unlock()
-		return bundle.mdJournal.put(ctx, uid, key,
+		return tlfJournal.putMD(ctx,
 			j.jServer.config.Crypto(),
 			j.jServer.config.KeyManager(),
 			j.jServer.config.BlockSplitter(), rmd)
@@ -371,20 +333,12 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 
 func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
-	bundle, ok := j.jServer.getBundle(rmd.TlfID())
+	tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID())
 	if ok {
-		_, uid, err := j.jServer.config.KBPKI().GetCurrentUserInfo(ctx)
-		if err != nil {
-			return MdID{}, err
-		}
-
-		key, err := j.jServer.config.KBPKI().GetCurrentVerifyingKey(ctx)
-		if err != nil {
-			return MdID{}, err
-		}
-
-		// TODO: The code below races with PruneBranch. Fix
-		// this.
+		// TODO: The code below races with PruneBranch, since
+		// the branch may get prunes after the
+		// GerUnmergedForTLF call and before the putMD
+		// call. Fix this.
 
 		rmd.SetUnmerged()
 		if rmd.BID() == NullBranchID {
@@ -405,9 +359,7 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 			}
 		}
 
-		bundle.lock.Lock()
-		defer bundle.lock.Unlock()
-		return bundle.mdJournal.put(ctx, uid, key,
+		return tlfJournal.putMD(ctx,
 			j.jServer.config.Crypto(),
 			j.jServer.config.KeyManager(),
 			j.jServer.config.BlockSplitter(), rmd)
@@ -418,7 +370,7 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 
 func (j journalMDOps) PruneBranch(
 	ctx context.Context, id TlfID, bid BranchID) error {
-	bundle, ok := j.jServer.getBundle(id)
+	tlfJournal, ok := j.jServer.getTLFJournal(id)
 	if ok {
 		_, uid, err := j.jServer.config.KBPKI().GetCurrentUserInfo(ctx)
 		if err != nil {
@@ -431,11 +383,7 @@ func (j journalMDOps) PruneBranch(
 		}
 
 		// Prune the journal, too.
-		err = func() error {
-			bundle.lock.Lock()
-			defer bundle.lock.Unlock()
-			return bundle.mdJournal.clear(ctx, uid, key, bid)
-		}()
+		tlfJournal.clearMDs(ctx, uid, key, bid)
 		if err != nil {
 			return err
 		}

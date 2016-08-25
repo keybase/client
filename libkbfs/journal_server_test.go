@@ -24,7 +24,8 @@ func setupJournalServerTest(t *testing.T) (
 		config, log, tempdir, config.BlockCache(),
 		config.BlockServer(), config.MDOps())
 	ctx := context.Background()
-	err = jServer.EnableExistingJournals(ctx)
+	err = jServer.EnableExistingJournals(
+		ctx, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 	config.SetBlockCache(jServer.blockCache())
 	config.SetBlockServer(jServer.blockServer())
@@ -34,9 +35,9 @@ func setupJournalServerTest(t *testing.T) (
 
 func teardownJournalServerTest(
 	t *testing.T, tempdir string, config Config) {
+	CheckConfigAndShutdown(t, config)
 	err := os.RemoveAll(tempdir)
 	require.NoError(t, err)
-	CheckConfigAndShutdown(t, config)
 }
 
 func TestJournalServerRestart(t *testing.T) {
@@ -50,7 +51,7 @@ func TestJournalServerRestart(t *testing.T) {
 	ctx := context.Background()
 
 	tlfID := FakeTlfID(2, false)
-	err := jServer.Enable(ctx, tlfID)
+	err := jServer.Enable(ctx, tlfID, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	blockServer := config.BlockServer()
@@ -95,7 +96,8 @@ func TestJournalServerRestart(t *testing.T) {
 	jServer = makeJournalServer(
 		config, jServer.log, tempdir, jServer.delegateBlockCache,
 		jServer.delegateBlockServer, jServer.delegateMDOps)
-	err = jServer.EnableExistingJournals(ctx)
+	err = jServer.EnableExistingJournals(
+		ctx, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 	config.SetBlockCache(jServer.blockCache())
 	config.SetBlockServer(jServer.blockServer())

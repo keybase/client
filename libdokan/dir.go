@@ -274,6 +274,36 @@ func openSpecialFile(name string, folder *Folder) dokan.File {
 		return &SyncFromServerFile{
 			folder: folder,
 		}
+
+	case libfs.EnableJournalFileName:
+		return &JournalControlFile{
+			folder: folder,
+			action: libfs.JournalEnable,
+		}
+
+	case libfs.FlushJournalFileName:
+		return &JournalControlFile{
+			folder: folder,
+			action: libfs.JournalFlush,
+		}
+
+	case libfs.PauseJournalBackgroundWorkFileName:
+		return &JournalControlFile{
+			folder: folder,
+			action: libfs.JournalPauseBackgroundWork,
+		}
+
+	case libfs.ResumeJournalBackgroundWorkFileName:
+		return &JournalControlFile{
+			folder: folder,
+			action: libfs.JournalResumeBackgroundWork,
+		}
+
+	case libfs.DisableJournalFileName:
+		return &JournalControlFile{
+			folder: folder,
+			action: libfs.JournalDisable,
+		}
 	}
 
 	return nil
