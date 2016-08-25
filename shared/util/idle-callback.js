@@ -1,4 +1,5 @@
 // @flow
+
 const requestIdleCallback = typeof window !== 'undefined' && window.requestIdleCallback ||
   function (cb: any) {
     var start = Date.now()

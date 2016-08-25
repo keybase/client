@@ -1,15 +1,13 @@
 /* @flow */
 
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {Button, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import {normal} from '../constants/tracker'
 
 import type {ActionProps} from './action.render'
 
-export default class ActionRender extends Component {
-  props: ActionProps;
-
+export default class ActionRender extends PureComponent<void, ActionProps, void> {
   render () {
     const {loggedIn} = this.props
 

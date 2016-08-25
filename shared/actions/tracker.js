@@ -23,6 +23,7 @@ import {
   trackUntrackRpc,
   IdentifyCommonIdentifyReasonType,
 } from '../constants/types/flow-types'
+import {requestIdleCallback} from '../util/idle-callback'
 import {routeAppend} from './router'
 import {showAllTrackers} from '../local-debug'
 
@@ -426,157 +427,177 @@ const sessionIDToUsername: { [key: number]: string } = {}
 function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: boolean = false, onFinish: ?() => void): incomingCallMapType {
   return {
     'keybase.1.identifyUi.start': ({username, sessionID, reason}, response) => {
+      response.result()
       sessionIDToUsername[sessionID] = username
 
       if (reason && (reason.reason === profileReason)) {
         skipPopups = true
       }
 
-      dispatch({
-        type: Constants.updateUsername,
-        payload: {username},
-      })
+      requestIdleCallback(() => {
+        dispatch({
+          type: Constants.updateUsername,
+          payload: {username},
+        })
 
-      dispatch({
-        type: Constants.resetProofs,
-        payload: {username},
-      })
+        dispatch({
+          type: Constants.resetProofs,
+          payload: {username},
+        })
 
-      dispatch({
-        type: Constants.updateReason,
-        payload: {username, reason: reason && reason.reason},
-      })
+        dispatch({
+          type: Constants.updateReason,
+          payload: {username, reason: reason && reason.reason},
+        })
 
-      dispatch({
-        type: Constants.markActiveIdentifyUi,
-        payload: {username, active: true},
-      })
+        dispatch({
+          type: Constants.markActiveIdentifyUi,
+          payload: {username, active: true},
+        })
 
-      dispatch({
-        type: Constants.reportLastTrack,
-        payload: {username},
+        dispatch({
+          type: Constants.reportLastTrack,
+          payload: {username},
+        })
       })
-
-      response.result()
     },
 
     'keybase.1.identifyUi.displayTLFCreateWithInvite': (args, response) => {
-      dispatch({
-        type: Constants.showNonUser,
-        payload: {
-          folderName: args.folderName,
-          isPrivate: args.isPrivate,
-          assertion: args.assertion,
-          socialAssertion: args.socialAssertion,
-          inviteLink: args.inviteLink,
-          throttled: args.throttled,
-        }})
       response.result()
+      requestIdleCallback(() => {
+        dispatch({
+          type: Constants.showNonUser,
+          payload: {
+            folderName: args.folderName,
+            isPrivate: args.isPrivate,
+            assertion: args.assertion,
+            socialAssertion: args.socialAssertion,
+            inviteLink: args.inviteLink,
+            throttled: args.throttled,
+          }})
+      })
     },
     'keybase.1.identifyUi.displayKey': ({sessionID, key}, response) => {
-      const username = sessionIDToUsername[sessionID]
-
-      if (key.breaksTracking) {
-        dispatch({type: Constants.updateEldestKidChanged, payload: {username}})
-        dispatch({type: Constants.updateReason, payload: {username, reason: `${username} has reset their account!`}})
-        dispatch({type: Constants.updateProofState, payload: {username}})
-        if (!skipPopups) {
-          dispatch({type: Constants.showTracker, payload: {username}})
-        }
-      } else if (key.pgpFingerprint) {
-        dispatch(updatePGPKey(username, key.pgpFingerprint, key.KID))
-        dispatch({type: Constants.updateProofState, payload: {username}})
-      }
       response.result()
+      requestIdleCallback(() => {
+        const username = sessionIDToUsername[sessionID]
+
+        if (key.breaksTracking) {
+          dispatch({type: Constants.updateEldestKidChanged, payload: {username}})
+          dispatch({type: Constants.updateReason, payload: {username, reason: `${username} has reset their account!`}})
+          dispatch({type: Constants.updateProofState, payload: {username}})
+          if (!skipPopups) {
+            dispatch({type: Constants.showTracker, payload: {username}})
+          }
+        } else if (key.pgpFingerprint) {
+          dispatch(updatePGPKey(username, key.pgpFingerprint, key.KID))
+          dispatch({type: Constants.updateProofState, payload: {username}})
+        }
+      })
     },
     'keybase.1.identifyUi.reportLastTrack': ({sessionID, track}, response) => {
-      const username = sessionIDToUsername[sessionID]
-      dispatch({
-        type: Constants.reportLastTrack,
-        payload: {username, track},
-      })
-
-      if (!track && !skipPopups) {
-        dispatch({type: Constants.showTracker, payload: {username}})
-      }
-
       response.result()
+      requestIdleCallback(() => {
+        const username = sessionIDToUsername[sessionID]
+        dispatch({
+          type: Constants.reportLastTrack,
+          payload: {username, track},
+        })
+
+        if (!track && !skipPopups) {
+          dispatch({type: Constants.showTracker, payload: {username}})
+        }
+      })
     },
     'keybase.1.identifyUi.launchNetworkChecks': ({sessionID, identity}, response) => {
-      const username = sessionIDToUsername[sessionID]
-      // This is the first spot that we have access to the user, so let's use that to get
-      // The user information
-
-      dispatch({
-        type: Constants.setProofs,
-        payload: {username, identity},
-      })
-      dispatch({type: Constants.updateProofState, payload: {username}})
-      if (identity.breaksTracking && !skipPopups) {
-        dispatch({type: Constants.showTracker, payload: {username}})
-      }
       response.result()
+      requestIdleCallback(() => {
+        const username = sessionIDToUsername[sessionID]
+        // This is the first spot that we have access to the user, so let's use that to get
+        // The user information
+
+        dispatch({
+          type: Constants.setProofs,
+          payload: {username, identity},
+        })
+        dispatch({type: Constants.updateProofState, payload: {username}})
+        if (identity.breaksTracking && !skipPopups) {
+          dispatch({type: Constants.showTracker, payload: {username}})
+        }
+      })
     },
     'keybase.1.identifyUi.displayTrackStatement': (params, response) => {
       response.result()
     },
 
     'keybase.1.identifyUi.dismiss': ({username, reason}, response) => {
-      dispatch({
-        type: Constants.remoteDismiss,
-        payload: {username, reason},
-      })
       response.result()
+      requestIdleCallback(() => {
+        dispatch({
+          type: Constants.remoteDismiss,
+          payload: {username, reason},
+        })
+      })
     },
 
     'keybase.1.identifyUi.finishWebProofCheck': ({sessionID, rp, lcr}, response) => {
-      const username = sessionIDToUsername[sessionID]
-      dispatch(updateProof(rp, lcr, username))
-      dispatch({type: Constants.updateProofState, payload: {username}})
-
-      if (lcr.breaksTracking && !skipPopups) {
-        dispatch({type: Constants.showTracker, payload: {username}})
-      }
       response.result()
+      requestIdleCallback(() => {
+        const username = sessionIDToUsername[sessionID]
+        dispatch(updateProof(rp, lcr, username))
+        dispatch({type: Constants.updateProofState, payload: {username}})
+
+        if (lcr.breaksTracking && !skipPopups) {
+          dispatch({type: Constants.showTracker, payload: {username}})
+        }
+      })
     },
     'keybase.1.identifyUi.finishSocialProofCheck': ({sessionID, rp, lcr}, response) => {
-      const username = sessionIDToUsername[sessionID]
-      dispatch(updateProof(rp, lcr, username))
-      dispatch({type: Constants.updateProofState, payload: {username}})
-
-      if (lcr.breaksTracking && !skipPopups) {
-        dispatch({type: Constants.showTracker, payload: {username}})
-      }
       response.result()
+      requestIdleCallback(() => {
+        const username = sessionIDToUsername[sessionID]
+        dispatch(updateProof(rp, lcr, username))
+        dispatch({type: Constants.updateProofState, payload: {username}})
+
+        if (lcr.breaksTracking && !skipPopups) {
+          dispatch({type: Constants.showTracker, payload: {username}})
+        }
+      })
     },
     'keybase.1.identifyUi.displayCryptocurrency': ({sessionID, c: {address, sigID}}, response) => {
-      const username = sessionIDToUsername[sessionID]
-      dispatch(updateBTC(username, address, sigID))
-      dispatch({type: Constants.updateProofState, payload: {username}})
       response.result()
+      requestIdleCallback(() => {
+        const username = sessionIDToUsername[sessionID]
+        dispatch(updateBTC(username, address, sigID))
+        dispatch({type: Constants.updateProofState, payload: {username}})
+      })
     },
     'keybase.1.identifyUi.displayUserCard': ({sessionID, card}, response) => {
-      const username = sessionIDToUsername[sessionID]
-      dispatch(updateUserInfo(card, username, getState))
       response.result()
+      requestIdleCallback(() => {
+        const username = sessionIDToUsername[sessionID]
+        dispatch(updateUserInfo(card, username, getState))
+      })
     },
     'keybase.1.identifyUi.reportTrackToken': ({sessionID, trackToken}, response) => {
-      const username = sessionIDToUsername[sessionID]
-      dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
-
-      const userState = getState().tracker.trackers[username]
-      if (userState && userState.needTrackTokenDismiss) {
-        _dismissWithToken(trackToken)
-
-        dispatch({
-          type: Constants.setNeedTrackTokenDismiss,
-          payload: {
-            username,
-            needTrackTokenDismiss: false,
-          },
-        })
-      }
       response.result()
+      requestIdleCallback(() => {
+        const username = sessionIDToUsername[sessionID]
+        dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
+
+        const userState = getState().tracker.trackers[username]
+        if (userState && userState.needTrackTokenDismiss) {
+          _dismissWithToken(trackToken)
+
+          dispatch({
+            type: Constants.setNeedTrackTokenDismiss,
+            payload: {
+              username,
+              needTrackTokenDismiss: false,
+            },
+          })
+        }
+      })
     },
     'keybase.1.identifyUi.confirm': (param, response) => {
       response.result({
@@ -586,25 +607,27 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
       })
     },
     'keybase.1.identifyUi.finish': ({sessionID}, response) => {
-      const username = sessionIDToUsername[sessionID]
-      // Check if there were any errors in the proofs
-      dispatch({type: Constants.updateProofState, payload: {username}})
-
-      if (showAllTrackers && !skipPopups) {
-        console.log('showAllTrackers is on, so showing tracker')
-        dispatch({type: Constants.showTracker, payload: {username}})
-      }
-
-      dispatch({
-        type: Constants.markActiveIdentifyUi,
-        payload: {
-          active: false,
-          username,
-        },
-      })
-
-      onFinish && onFinish()
       response.result()
+      requestIdleCallback(() => {
+        const username = sessionIDToUsername[sessionID]
+        // Check if there were any errors in the proofs
+        dispatch({type: Constants.updateProofState, payload: {username}})
+
+        if (showAllTrackers && !skipPopups) {
+          console.log('showAllTrackers is on, so showing tracker')
+          dispatch({type: Constants.showTracker, payload: {username}})
+        }
+
+        dispatch({
+          type: Constants.markActiveIdentifyUi,
+          payload: {
+            active: false,
+            username,
+          },
+        })
+
+        onFinish && onFinish()
+      })
     },
   }
 }
