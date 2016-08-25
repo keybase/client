@@ -2247,7 +2247,8 @@ export type identifyIdentify2RpcParam = $Exact<{
   forceRemoteCheck?: boolean,
   needProofSet?: boolean,
   allowEmptySelfID?: boolean,
-  noSkipSelf?: boolean
+  noSkipSelf?: boolean,
+  canSuppressUI?: bool
 }>
 
 type identifyIdentify2Result = Identify2Res
@@ -5066,7 +5067,8 @@ export type incomingCallMapType = $Exact<{
       forceRemoteCheck?: boolean,
       needProofSet?: boolean,
       allowEmptySelfID?: boolean,
-      noSkipSelf?: boolean
+      noSkipSelf?: boolean,
+      canSuppressUI?: bool
     }>,
     response: {
       error: (err: RPCError) => void,
