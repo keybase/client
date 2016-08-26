@@ -1,6 +1,6 @@
 // @flow
 import type {PlatformsExpandedType} from '../constants/types/more'
-import type {TypedAction} from '../constants/types/flux'
+import type {TypedAction, NoErrorTypedAction} from '../constants/types/flux'
 import type {ProofStatus, SigID, KID} from '../constants/types/flow-types'
 
 export const editingProfile = 'profile:editingProfile'
@@ -48,7 +48,10 @@ export const updatePgpPublicKey = 'profile:updatePgpPublicKey'
 export type UpdatePgpPublicKey = TypedAction<'profile:updatePgpPublicKey', {publicKey: string}, {}>
 
 export const finishedWithKeyGen = 'profile:FinishedWithKeyGen'
-export type FinishedWithKeyGen = TypedAction<'profile:FinishedWithKeyGen', {shouldStoreKeyOnServer: boolean}, {}>
+export type FinishedWithKeyGen = NoErrorTypedAction<'profile:FinishedWithKeyGen', {shouldStoreKeyOnServer: boolean}>
+
+export const cancelPgpGen = 'profile:cancelPgpGen'
+export type CancelPgpGen = NoErrorTypedAction<'profile:cancelPgpGen', {}>
 
 export const dropPgp = 'profile:dropPgp'
 export type DropPgp = TypedAction<'profile:dropPgp', {kid: KID}, {}>

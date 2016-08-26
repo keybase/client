@@ -1,10 +1,10 @@
 // @flow
 import React, {Component} from 'react'
-import {StandardScreen, Text, Button, PlatformIcon} from '../../common-adapters'
+import {Box, Button, Checkbox, PlatformIcon, StandardScreen, Text} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../styles/style-guide'
 import type {Props} from './finished-generating-pgp'
 
-// import {CHECKBOX_SIZE, CHECKBOX_MARGIN} from '../../common-adapters/checkbox.desktop'
+import {CHECKBOX_SIZE, CHECKBOX_MARGIN} from '../../common-adapters/checkbox.desktop'
 
 type State = {
   shouldStoreKeyOnServer: boolean,
@@ -26,16 +26,16 @@ class FinishedGeneratedPgp extends Component<void, Props, State> {
 
   render () {
     return (
-      <StandardScreen notification={{type: 'success', message: 'Your PGP key was generated!'}}>
+      <StandardScreen notification={{type: 'success', message: 'Your PGP key was generated!'}} style={{alignSelf: 'stretch'}}>
         <PlatformIcon style={styleIcon} platform='pgp' overlay='icon-proof-success' />
         <Text style={styleTitle} type='Header'>Here is your unique public key!</Text>
-        <textInput style={stylePgpKeyString} readOnly={true}>{this.props.pgpKeyString}</textInput>
-          {/* TODO(mm): this doesn't work yet
+        <Box style={{...globalStyles.flexBoxRow, alignSelf: 'stretch'}}>
+          <textInput style={stylePgpKeyString} readOnly={true}>{this.props.pgpKeyString}</textInput>
+        </Box>
         <Box style={styleUploadContainer}>
           <Checkbox onCheck={(newVal) => this._onCheckToggle(newVal)} checked={this.state.shouldStoreKeyOnServer} label='Store encrypted private key on Keybase’s server (recommended)' />
           <Text style={styleUploadTextSublabel} type='BodySmall'>{'Allows you to download & import your key to other devices.'}</Text>
         </Box>
-          */}
         <Button style={styleDoneButton} type='Primary' onClick={() => this.props.onDone(this.state.shouldStoreKeyOnServer)} label={this.state.shouldStoreKeyOnServer ? 'Done, post to Keybase' : 'Done'} />
       </StandardScreen>
     )
@@ -52,9 +52,7 @@ const styleTitle = {
 
 const stylePgpKeyString = {
   padding: 10,
-  width: '100%',
-  maxWidth: 512,
-  maxHeight: 116,
+  minHeight: 116,
   backgroundColor: globalColors.lightGrey,
   border: `solid 1px ${globalColors.black_10}`,
   borderRadius: 3,
@@ -66,10 +64,10 @@ const stylePgpKeyString = {
   overflowY: 'auto',
   overflowX: 'hidden',
   textAlign: 'left',
+  flex: 1,
   color: globalColors.black_75,
 }
 
-/*
 const styleUploadContainer = {
   ...globalStyles.flexBoxColumn,
   textAlign: 'left',
@@ -77,10 +75,10 @@ const styleUploadContainer = {
 }
 
 const styleUploadTextSublabel = {
+  marginTop: globalMargins.tiny,
   color: globalColors.black_40,
   marginLeft: CHECKBOX_SIZE + CHECKBOX_MARGIN,
 }
-*/
 
 const styleDoneButton = {
   marginTop: globalMargins.medium,
