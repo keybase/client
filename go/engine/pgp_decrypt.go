@@ -127,7 +127,7 @@ func (e *PGPDecrypt) Run(ctx *Context) (err error) {
 		return libkb.NoKeyError{Msg: fmt.Sprintf("In signature verification: no public key found for PGP ID %x", e.signStatus.KeyID)}
 	}
 
-	bundle := libkb.NewPGPKeyBundle(e.G(), e.signStatus.Entity)
+	bundle := libkb.NewPGPKeyBundle(e.signStatus.Entity)
 	OutputSignatureSuccess(ctx, bundle.GetFingerprint(), e.owner, e.signStatus.SignatureTime)
 	return nil
 }

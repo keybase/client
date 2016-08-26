@@ -8,7 +8,7 @@ import (
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type cliChatMessage struct {
@@ -16,6 +16,7 @@ type cliChatMessage struct {
 	with          []string // private msg if len == 2
 	topic         string
 	author        string
+	device        string
 	timestamp     time.Time
 	formattedBody string
 }

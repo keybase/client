@@ -1,0 +1,34 @@
+@namespace("keybase.1")
+
+protocol identify {
+  import idl "common.avdl";
+  import idl "identify_common.avdl";
+
+
+  /**
+    Resolve an assertion to a UID. On failure, resolves to an empty UID and returns
+    an error.
+   */
+  UID Resolve(string assertion);
+
+  /**
+    Resolve an assertion to a (UID,username). On failure, returns an error.
+   */
+  User Resolve2(string assertion);
+
+  /**
+    Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).
+    If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).
+    */
+  IdentifyRes identify(int sessionID, string userAssertion, boolean forceRemoteCheck=false, boolean useDelegateUI=false, IdentifyReason reason, ClientType source);
+
+  record Identify2Res {
+    UserPlusKeys upk;
+  }
+
+  /*
+   * Note that UID can be empty, in which case a resolution is also forced.
+   */
+  Identify2Res identify2(int sessionID, UID uid, string userAssertion, IdentifyReason reason, boolean useDelegateUI=false, boolean alwaysBlock=false, boolean noErrorOnTrackFailure=false, boolean forceRemoteCheck=false, boolean needProofSet=false, boolean allowEmptySelfID=false, boolean noSkipSelf=true, bool canSuppressUI=false);
+
+}

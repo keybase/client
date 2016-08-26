@@ -61,7 +61,7 @@ function updateVendored () {
 
   console.log('\nShrinkpacking...')
   ensureSymlink('./node_shrinkwrap', path.join(VENDOR_DIR, 'node_shrinkwrap'))
-  spawn('shrinkpack')
+  spawn('shrinkpack', ['-c'])
 
   console.log('\nCommitting deps to js vendor repo...')
   fs.renameSync('./npm-shrinkwrap.json', path.join(VENDOR_DIR, 'npm-shrinkwrap.json'))
@@ -82,7 +82,7 @@ function updateVendored () {
     return
   }
 
-  spawn('git', ['commit', '-m', 'Update desktop deps'], {cwd: VENDOR_DIR})
+  spawn('git', ['commit', '-n', '-m', 'Update desktop deps'], {cwd: VENDOR_DIR})
 
   console.log('\nCommitting vendor update in client repo...')
   var vendorURL = spawn('git', ['config', '--get', 'remote.origin.url'], {cwd: VENDOR_DIR, stdio: 'pipe'}).stdout.trim()
@@ -93,7 +93,7 @@ function updateVendored () {
   packageInfo.keybaseVendoredDependencies = `${vendorURL}#${vendorCommit}`
   fs.writeFileSync('./package.json', JSON.stringify(packageInfo, 2, 2))
   spawn('git', ['add', './package.json'])
-  spawn('git', ['commit', '-m', 'Update vendored deps'])
+  spawn('git', ['commit', '-n', '-m', 'Update vendored deps'])
 
   cleanup()
 

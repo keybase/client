@@ -2,7 +2,7 @@
 import Checkbox from './checkbox'
 import React from 'react'
 import type {DumbComponentMap} from '../constants/types/more'
-import {Avatar, Box, Button, ChoiceList, ListItem, StandardScreen, TabBar, Text} from './index'
+import {Avatar, Box, Button, ChoiceList, ListItem, PopupMenu, StandardScreen, TabBar, Text} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalColors} from '../styles/style-guide'
 
@@ -154,6 +154,32 @@ const choiceListMap: DumbComponentMap<ChoiceList> = {
   },
 }
 
+const popupMenuProps = {
+  onHidden: () => console.log('PopupMenu: onHidden'),
+  items: [
+    {title: 'View proof', onClick: () => console.log('PopupMenu: onItemClick: View Proof')},
+    {title: 'I fixed it - recheck', onClick: () => console.log('PopupMenu: onItemClick: Recheck Proof')},
+    {title: 'Revoke proof', danger: true, onClick: () => console.log('PopupMenu: onItemClick: Revoke Proof')},
+  ],
+}
+
+const popupMenuMap: DumbComponentMap<PopupMenu> = {
+  component: PopupMenu,
+  mocks: {
+    'Normal': {
+      ...popupMenuProps,
+    },
+    'Header': {
+      ...popupMenuProps,
+      header: {title: 'Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?', danger: true, isMenuItem: true},
+    },
+    'Header w/ Custom View': {
+      ...popupMenuProps,
+      header: {title: 'header', view: <Text type='BodySemiboldItalic' style={{textAlign: 'center'}}>Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?</Text>, danger: true, isMenuItem: true},
+    },
+  },
+}
+
 const standardScreenProps = {
   onClose: () => console.log('StandardScreen: onClose'),
   children: <Text type='Header'>Whoa, look at this centered thing</Text>,
@@ -187,6 +213,7 @@ export default {
   'Checkbox': checkboxMap,
   'ChoiceList': choiceListMap,
   'ListItem': listItemMap,
+  'PopupMenu': popupMenuMap,
   'StandardScreen': standardScreenMap,
   'TabBar': tabBarMap,
   'TabBarButton': tabBarButtonMap,

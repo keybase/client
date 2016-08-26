@@ -11,15 +11,13 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/gregor/storage"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	"github.com/keybase/gregor"
-	"github.com/keybase/gregor/protocol/gregor1"
-	grpc "github.com/keybase/gregor/rpc"
-	"github.com/keybase/gregor/storage"
+	"github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 func TestGregorHandler(t *testing.T) {
@@ -207,8 +205,30 @@ type mockGregord struct {
 }
 
 func (m mockGregord) Sync(_ context.Context, arg gregor1.SyncArg) (gregor1.SyncResult, error) {
-	return grpc.Sync(m.sm, rpc.SimpleLogOutput{}, arg)
+	var res gregor1.SyncResult
+	msgs, err := m.sm.InBandMessagesSince(arg.UID(), arg.DeviceID(), arg.CTime())
+	if err != nil {
+		return res, err
+	}
+	state, err := m.sm.State(arg.UID(), arg.DeviceID(), nil)
+	if err != nil {
+		return res, err
+	}
+	hash, err := state.Hash()
+	if err != nil {
+		return res, err
+	}
+	for _, msg := range msgs {
+		if msg, ok := msg.(gregor1.InBandMessage); ok {
+			res.Msgs = append(res.Msgs, msg)
+		} else {
+			m.log.Warning("Bad cast in serveSync (type=%T): %+v", msg)
+		}
+	}
+	res.Hash = hash
+	return res, nil
 }
+
 func (m mockGregord) ConsumeMessage(_ context.Context, msg gregor1.Message) error {
 	m.log.Debug("mockGregord: ConsumeMessage: msgID: %s Ctime: %s", msg.ToInBandMessage().Metadata().MsgID(),
 		msg.ToInBandMessage().Metadata().CTime())
@@ -230,6 +250,9 @@ func (m mockGregord) State(_ context.Context, arg gregor1.StateArg) (gregor1.Sta
 }
 func (m mockGregord) StateByCategoryPrefix(_ context.Context, _ gregor1.StateByCategoryPrefixArg) (gregor1.State, error) {
 	return gregor1.State{}, errors.New("unimplemented")
+}
+func (m mockGregord) Version(_ context.Context, _ gregor1.UID) (string, error) {
+	return "mock", nil
 }
 
 func (m mockGregord) newIbm(uid gregor1.UID) gregor1.Message {

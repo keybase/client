@@ -3,7 +3,7 @@ import Container from '../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './request-invite.render'
 import {Text, Icon, Input, Button, Box} from '../../common-adapters'
-import {globalStyles} from '../../styles/style-guide'
+import {globalMargins, globalStyles} from '../../styles/style-guide'
 
 class Render extends Component {
   props: Props;
@@ -15,12 +15,14 @@ class Render extends Component {
         <Icon style={stylesIcon} type='icon-invite-code-48' />
         <Input
           hintText='Your email address'
+          floatingLabelText='Your email address'
           value={this.props.email}
           errorText={this.props.emailErrorText}
           onChangeText={email => this.props.emailChange(email)}
           autoFocus={true} />
         <Input
           hintText='Your name'
+          floatingLabelText='Your name'
           value={this.props.name}
           errorText={this.props.nameErrorText}
           onChangeText={name => this.props.nameChange(name)} />
@@ -39,7 +41,7 @@ class Render extends Component {
 }
 
 const stylesButton = {
-  marginTop: 50,
+  marginTop: globalMargins.medium,
 }
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
@@ -47,11 +49,11 @@ const stylesContainer = {
   alignItems: 'stretch',
 }
 const stylesHeader = {
-  marginTop: 30,
+  marginTop: globalMargins.small,
   alignSelf: 'center',
 }
 const stylesIcon = {
-  marginTop: 40,
+  marginTop: globalMargins.small,
   alignSelf: 'center',
 }
 

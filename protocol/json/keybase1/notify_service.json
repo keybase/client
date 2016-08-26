@@ -1,0 +1,17 @@
+{
+  "protocol": "NotifyService",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "shutdown": {
+      "request": [],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

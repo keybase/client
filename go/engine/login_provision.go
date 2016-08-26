@@ -12,7 +12,7 @@ import (
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // loginProvision is an engine that will provision the current
@@ -783,7 +783,7 @@ func (e *loginProvision) gpgImportKey(ctx *Context, fp *libkb.PGPFingerprint) (l
 	}
 
 	// unlock it
-	if err := bundle.Unlock("sign new device", ctx.SecretUI); err != nil {
+	if err := bundle.Unlock(e.G(), "sign new device", ctx.SecretUI); err != nil {
 		return nil, err
 	}
 

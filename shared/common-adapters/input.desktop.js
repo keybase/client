@@ -83,7 +83,8 @@ class Input extends Component<void, Props, State> {
 
     // HACK: We can't reset the text area style, so we need to counteract it by moving the wrapper up
     const multiLineStyleFix = {
-      height: 'auto', position: 'relative',
+      height: 'auto',
+      position: 'relative',
       // Other HACK: having a floating label affects position, but only in multiline
       bottom: (this.props.floatingLabelText ? 30 : 5),
       marginTop: 6,

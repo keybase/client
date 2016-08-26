@@ -73,7 +73,7 @@ const paperKeyContainerStyle = {
   position: 'relative',
   alignSelf: 'center',
   marginTop: 32,
-  marginBottom: 65,
+  marginBottom: 32,
   padding: 32,
   borderRadius: 1,
   backgroundColor: globalColors.white,

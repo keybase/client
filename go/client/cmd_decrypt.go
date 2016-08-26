@@ -12,7 +12,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
@@ -117,7 +117,7 @@ func (c *CmdDecrypt) Run() error {
 		return err
 	}
 
-	snk, src, err := c.filter.ClientFilterOpen()
+	snk, src, err := c.filter.ClientFilterOpen(c.G())
 	if err != nil {
 		return err
 	}

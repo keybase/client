@@ -12,7 +12,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 const spacesPerIndent = 4
@@ -86,7 +86,7 @@ func (v *CmdDumpKeyfamily) Run() (err error) {
 		return fmt.Errorf("error loading keys: %s", err)
 	}
 
-	devCli, err := GetDeviceClient()
+	devCli, err := GetDeviceClient(v.G())
 	if err != nil {
 		return err
 	}

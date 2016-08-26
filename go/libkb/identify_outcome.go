@@ -8,9 +8,9 @@ import (
 	"sort"
 	"strings"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/gregor"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
-	"github.com/keybase/gregor"
 )
 
 type IdentifyOutcome struct {

@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type AssertionExpression interface {

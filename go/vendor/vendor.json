@@ -162,8 +162,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "24795fd7db28eb65a498ff3cb0ce21ab59702c53",
-			"revisionTime": "2016-06-10T21:37:45-04:00"
+			"revision": "ba409f9a785a2517b7d10d9afc85cea9f665a2b3",
+			"revisionTime": "2016-08-22T17:27:46-04:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
@@ -248,49 +248,7 @@
 			"revision": "a05bfa6382513c15afde21392f07617f4ad68de9",
 			"revisionTime": "2016-06-28T16:50:19-07:00"
 		},
-		{
-			"checksumSHA1": "3cvCvIldWIFdbS+7GZOzFmSE6QI=",
-			"path": "github.com/keybase/gregor",
-			"revision": "a3935baeb79f89a99a1834aabfce326fc5887ed5",
-			"revisionTime": "2016-07-01T19:55:25Z"
-		},
-		{
-			"checksumSHA1": "wxULrHEUN/IjGL8y/F6Jcd9Wec0=",
-			"path": "github.com/keybase/gregor/protocol/chat1",
-			"revision": "c67924e4c643ba712a8c2a90917001ffd3cf94b8",
-			"revisionTime": "2016-08-22T14:57:49Z"
-		},
-		{
-			"checksumSHA1": "62b13boBTrv4t4xnFt6FEjDoWKI=",
-			"path": "github.com/keybase/gregor/protocol/gregor1",
-			"revision": "a3935baeb79f89a99a1834aabfce326fc5887ed5",
-			"revisionTime": "2016-07-01T19:55:25Z"
-		},
-		{
-			"checksumSHA1": "Q4pK+kqEWiQ0s5MzyjV60snUeeQ=",
-			"path": "github.com/keybase/gregor/rpc",
-			"revision": "9e1b9e04cf84360846a31f7e63abafe2ec7f1045",
-			"revisionTime": "2016-06-17T17:27:17-04:00"
-		},
-		{
-			"checksumSHA1": "J2MatY8cSZE7d/bMt7YUwU8Xd48=",
-			"path": "github.com/keybase/gregor/rpc/client",
-			"revision": "edaf9a667521e4917b1b579fe6f0e1fba9306ba5",
-			"revisionTime": "2016-07-05T15:22:35Z"
-		},
-		{
-			"checksumSHA1": "VWEcKH3xzrRYdR+oOkSvUByjrJM=",
-			"path": "github.com/keybase/gregor/schema",
-			"revision": "2c526d0b7cf258316fdc47c984c4bd17d3713dcf",
-			"revisionTime": "2016-05-19T16:00:52Z"
-		},
-		{
-			"checksumSHA1": "ylp2ozbnxUomk3YZl7YJ4QYYroE=",
-			"path": "github.com/keybase/gregor/storage",
-			"revision": "a3935baeb79f89a99a1834aabfce326fc5887ed5",
-			"revisionTime": "2016-07-01T19:55:25Z"
-		},
-		{
+        {
 			"path": "github.com/keybase/keybase-test-vectors/go",
 			"revision": "a5147a659b4a69f77e027e301e726e05492474d6",
 			"revisionTime": "2015-10-20T11:39:53-04:00"

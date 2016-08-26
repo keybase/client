@@ -139,7 +139,6 @@ const popupCommon = {
   parentProps: {style: {border: 'solid 1px black', position: 'relative', height: 300}},
   onHidden: () => console.log('popup hidden'),
   style: {marginLeft: 100, maxWidth: 320},
-  visible: true,
 }
 
 const popupItemCommon = {

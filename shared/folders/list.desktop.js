@@ -81,12 +81,14 @@ class Render extends Component<void, Props, void> {
           {...this.props}
           isIgnored={false}
           tlfs={this.props.tlfs || []} />
-        <Ignored
-          isPublic={this.props.isPublic}
-          showIgnored={this.props.showIgnored}
-          styles={styles}
-          onToggle={this.props.onToggleShowIgnored}
-          rows={ignoredRows} />
+        {!this.props.smallMode &&
+          <Ignored
+            isPublic={this.props.isPublic}
+            showIgnored={this.props.showIgnored}
+            styles={styles}
+            onToggle={this.props.onToggleShowIgnored}
+            rows={ignoredRows} />
+        }
       </Box>
     )
   }

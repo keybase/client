@@ -12,7 +12,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
@@ -120,7 +120,7 @@ func (s *CmdPGPSign) Run() (err error) {
 	if err = RegisterProtocolsWithContext(protocols, s.G()); err != nil {
 		return err
 	}
-	snk, src, err := s.ClientFilterOpen()
+	snk, src, err := s.ClientFilterOpen(s.G())
 	if err == nil {
 		arg := keybase1.PGPSignArg{Source: src, Sink: snk, Opts: s.opts}
 		err = cli.PGPSign(context.TODO(), arg)

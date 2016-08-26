@@ -20,11 +20,11 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/PuerkitoBio/goquery"
+	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
-	gregor "github.com/keybase/gregor"
-	gregor1 "github.com/keybase/gregor/protocol/gregor1"
 )
 
 type CommandLine interface {
@@ -334,6 +334,8 @@ type LogUI interface {
 	Errorf(format string, args ...interface{})
 	Critical(format string, args ...interface{})
 }
+
+type LogFunc func(format string, args ...interface{})
 
 type GPGUI interface {
 	keybase1.GpgUiInterface

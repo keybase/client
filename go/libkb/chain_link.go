@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"time"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -553,7 +553,7 @@ func (c *ChainLink) VerifySigWithKeyFamily(ckf ComputedKeyFamily) (cached bool, 
 		return
 	}
 
-	if sigID, err = key.VerifyString(c.unpacked.sig, c.getFixedPayload()); err != nil {
+	if sigID, err = key.VerifyString(c.G().Log, c.unpacked.sig, c.getFixedPayload()); err != nil {
 		return cached, BadSigError{err.Error()}
 	}
 	c.unpacked.sigID = sigID
@@ -639,8 +639,8 @@ func (c *ChainLink) checkServerSignatureMetadata(ckf ComputedKeyFamily) error {
 	if c.unpacked.pgpFingerprint != nil {
 		payloadFingerprintStr := c.unpacked.pgpFingerprint.String()
 		serverFingerprintStr := ""
-		if serverKey.GetFingerprintP() != nil {
-			serverFingerprintStr = serverKey.GetFingerprintP().String()
+		if fp := GetPGPFingerprintFromGenericKey(serverKey); fp != nil {
+			serverFingerprintStr = fp.String()
 		}
 		if payloadFingerprintStr != serverFingerprintStr {
 			return ChainLinkFingerprintMismatchError{

@@ -12,7 +12,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type queryType int
@@ -97,7 +97,9 @@ func (e *PGPKeyExportEngine) queryMatch(k libkb.GenericKey) bool {
 	case either:
 		match = libkb.KeyMatchesQuery(k, e.arg.Query, e.arg.ExactMatch)
 	case fingerprint:
-		match = k.GetFingerprintP().Match(e.arg.Query, e.arg.ExactMatch)
+		if fp := libkb.GetPGPFingerprintFromGenericKey(k); fp != nil {
+			match = fp.Match(e.arg.Query, e.arg.ExactMatch)
+		}
 	case kid:
 		match = k.GetKID().Match(e.arg.Query, e.arg.ExactMatch)
 	}
@@ -136,7 +138,7 @@ func (e *PGPKeyExportEngine) exportSecret(ctx *Context) error {
 		}
 		return err
 	}
-	fp := key.GetFingerprintP()
+	fp := libkb.GetPGPFingerprintFromGenericKey(key)
 	if fp == nil {
 		return libkb.BadKeyError{Msg: "no fingerprint found"}
 	}

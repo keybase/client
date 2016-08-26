@@ -8,9 +8,9 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/gregor/protocol/chat1"
-	"github.com/keybase/gregor/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 const (
@@ -89,25 +89,35 @@ func (c *chatLocalMock) GetThreadLocal(ctx context.Context, arg keybase1.GetThre
 }
 
 func (c *chatLocalMock) PostLocal(ctx context.Context, arg keybase1.PostLocalArg) error {
-	return errors.New("not implemented")
+	return errors.New("PostLocal not implemented")
 }
 
-func (c *chatLocalMock) GetOrCreateTextConversationLocal(ctx context.Context, arg keybase1.GetOrCreateTextConversationLocalArg) (id chat1.ConversationID, err error) {
-	return id, errors.New("not implemented")
+func (c *chatLocalMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
+	return res, errors.New("CompleteAndCanonicalizeTlfName not implemented")
 }
 
-func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.Message, err error) {
+func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg keybase1.ResolveConversationLocalArg) (ids []chat1.ConversationID, err error) {
+	ids = append(ids, chatLocalMockConversationID)
+	return ids, nil
+}
+
+func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationMessagesLocal, err error) {
 	tview, err := c.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
 		ConversationID: chatLocalMockConversationID,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return tview.Messages, nil
+	return []keybase1.ConversationMessagesLocal{
+		keybase1.ConversationMessagesLocal{
+			Id:       chatLocalMockConversationID,
+			Messages: tview.Messages,
+		},
+	}, nil
 }
 
 func (c *chatLocalMock) NewConversationLocal(ctx context.Context, cID chat1.ConversationIDTriple) (id chat1.ConversationID, err error) {
-	return id, errors.New("not implemented")
+	return id, errors.New("NewConversationLocal not implemented")
 }
 
 func TestCliInbox(t *testing.T) {
@@ -118,23 +128,12 @@ func TestCliInbox(t *testing.T) {
 	}
 	g.UI = &UI{Terminal: term}
 	c := &cmdChatInbox{
-		Contextified:    libkb.NewContextified(g),
-		chatLocalClient: &chatLocalMock{},
+		Contextified: libkb.NewContextified(g),
 	}
 	g.ConfigureUsage(c.GetUsage())
+	c.fetcher.chatClient = &chatLocalMock{}
 	err = c.Run()
 	if err != nil {
 		t.Fatal(err)
-	}
-}
-
-func TestParseDurationExtended(t *testing.T) {
-	d, err := parseDurationExtended("123d12h2ns")
-	if err != nil {
-		t.Fatal(err)
-	}
-	expected := 123*24*time.Hour + 12*time.Hour + 2*time.Nanosecond
-	if d != expected {
-		t.Fatalf("wrong parsed duration. Expected %v, got %v\n", expected, d)
 	}
 }

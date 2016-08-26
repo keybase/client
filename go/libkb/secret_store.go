@@ -3,7 +3,11 @@
 
 package libkb
 
-import keybase1 "github.com/keybase/client/go/protocol"
+import (
+	"sync"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+)
 
 type SecretRetriever interface {
 	RetrieveSecret() ([]byte, error)
@@ -35,20 +39,23 @@ type SecretStoreContext interface {
 
 type SecretStoreImp struct {
 	username NormalizedUsername
-	store    SecretStoreAll
+	store    *SecretStoreLocked
 }
 
-func (s SecretStoreImp) RetrieveSecret() ([]byte, error) {
+func (s *SecretStoreImp) RetrieveSecret() ([]byte, error) {
 	return s.store.RetrieveSecret(s.username)
 }
 
-func (s SecretStoreImp) StoreSecret(secret []byte) error {
+func (s *SecretStoreImp) StoreSecret(secret []byte) error {
 	return s.store.StoreSecret(s.username, secret)
 }
 
 func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
 	if g.SecretStoreAll != nil {
-		return SecretStoreImp{username, g.SecretStoreAll}
+		return &SecretStoreImp{
+			username: username,
+			store:    g.SecretStoreAll,
+		}
 	}
 	return nil
 }
@@ -98,4 +105,45 @@ func ClearStoredSecret(g *GlobalContext, username NormalizedUsername) error {
 		return nil
 	}
 	return g.SecretStoreAll.ClearSecret(username)
+}
+
+// SecretStoreLocked protects a SecretStoreAll with a mutex.
+type SecretStoreLocked struct {
+	SecretStoreAll
+	sync.Mutex
+}
+
+func NewSecretStoreLocked(g *GlobalContext) *SecretStoreLocked {
+	ss := NewSecretStoreAll(g)
+	if ss == nil {
+		// right now, some stuff depends on g.SecretStoreAll being nil or not
+		return nil
+	}
+	return &SecretStoreLocked{
+		SecretStoreAll: ss,
+	}
+}
+
+func (s *SecretStoreLocked) RetrieveSecret(username NormalizedUsername) ([]byte, error) {
+	s.Lock()
+	defer s.Unlock()
+	return s.SecretStoreAll.RetrieveSecret(username)
+}
+
+func (s *SecretStoreLocked) StoreSecret(username NormalizedUsername, secret []byte) error {
+	s.Lock()
+	defer s.Unlock()
+	return s.SecretStoreAll.StoreSecret(username, secret)
+}
+
+func (s *SecretStoreLocked) ClearSecret(username NormalizedUsername) error {
+	s.Lock()
+	defer s.Unlock()
+	return s.SecretStoreAll.ClearSecret(username)
+}
+
+func (s *SecretStoreLocked) GetUsersWithStoredSecrets() ([]string, error) {
+	s.Lock()
+	defer s.Unlock()
+	return s.SecretStoreAll.GetUsersWithStoredSecrets()
 }

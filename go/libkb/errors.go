@@ -10,7 +10,7 @@ import (
 	"os/exec"
 	"strings"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 //=============================================================================
@@ -1452,4 +1452,31 @@ type UnhandledSignatureError struct {
 
 func (e UnhandledSignatureError) Error() string {
 	return fmt.Sprintf("unhandled signature version: %d", e.version)
+}
+
+type DeletedError struct {
+	Msg string
+}
+
+func (e DeletedError) Error() string {
+	if len(e.Msg) == 0 {
+		return "Deleted"
+	}
+	return e.Msg
+}
+
+//=============================================================================
+
+type DeviceNameInUseError struct{}
+
+func (e DeviceNameInUseError) Error() string {
+	return "device name already in use"
+}
+
+//=============================================================================
+
+type DeviceBadNameError struct{}
+
+func (e DeviceBadNameError) Error() string {
+	return "device name is malformed"
 }

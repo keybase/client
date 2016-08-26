@@ -8,7 +8,7 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
@@ -132,5 +132,18 @@ func (h *LoginHandler) PGPProvision(ctx context.Context, arg keybase1.PGPProvisi
 		SessionID:  arg.SessionID,
 	}
 	eng := engine.NewPGPProvision(h.G(), arg.Username, arg.DeviceName, arg.Passphrase)
+	return engine.RunEngine(eng, ectx)
+}
+
+func (h *LoginHandler) AccountDelete(ctx context.Context, sessionID int) error {
+	if h.G().Env.GetRunMode() == libkb.ProductionRunMode {
+		return errors.New("AccountDelete is a devel-only RPC")
+	}
+	ectx := &engine.Context{
+		LogUI:      h.getLogUI(sessionID),
+		NetContext: ctx,
+		SessionID:  sessionID,
+	}
+	eng := engine.NewAccountDelete(h.G())
 	return engine.RunEngine(eng, ectx)
 }

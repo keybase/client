@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/secretbox"
 )
 
@@ -259,4 +259,38 @@ func NewLKSecForEncrypt(ui SecretUI, uid keybase1.UID, gc *GlobalContext) (ret *
 // on device recovery operations.
 func (s *LKSec) EncryptClientHalfRecovery(key GenericKey) (string, error) {
 	return key.EncryptToString(s.clientHalf, nil)
+}
+
+// ToSKB exports a generic key with the given LKSec to a SecretKeyBundle,
+// performing all necessary encryption.
+func (s *LKSec) ToSKB(key GenericKey) (ret *SKB, err error) {
+	if s == nil {
+		return nil, errors.New("nil lks")
+	}
+	ret = NewSKB(s.G())
+
+	var publicKey RawPublicKey
+	var privateKey RawPrivateKey
+
+	publicKey, privateKey, err = key.ExportPublicAndPrivate()
+	ret.Priv.Data, err = s.Encrypt([]byte(privateKey))
+	if err != nil {
+		return nil, err
+	}
+	ret.Priv.Encryption = LKSecVersion
+	ret.Priv.PassphraseGeneration = int(s.Generation())
+	ret.Pub = []byte(publicKey)
+	ret.Type = key.GetAlgoType()
+	return ret, nil
+}
+
+func WriteLksSKBToKeyring(g *GlobalContext, k GenericKey, lks *LKSec, lctx LoginContext) (*SKB, error) {
+	skb, err := lks.ToSKB(k)
+	if err != nil {
+		return nil, fmt.Errorf("k.ToLksSKB() error: %s", err)
+	}
+	if err := skbPushAndSave(g, skb, lctx); err != nil {
+		return nil, err
+	}
+	return skb, nil
 }

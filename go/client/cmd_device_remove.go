@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
@@ -59,7 +59,7 @@ func (c *CmdDeviceRemove) Run() (err error) {
 }
 
 func (c *CmdDeviceRemove) lookup(name string) (keybase1.DeviceID, error) {
-	cli, err := GetDeviceClient()
+	cli, err := GetDeviceClient(c.G())
 	if err != nil {
 		return "", err
 	}

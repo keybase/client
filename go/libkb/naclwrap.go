@@ -11,7 +11,7 @@ import (
 	"io"
 
 	"github.com/agl/ed25519"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/crypto/nacl/box"
 )
 
@@ -367,7 +367,7 @@ func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.Si
 	return
 }
 
-func (k NaclSigningKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
+func (k NaclSigningKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
 	var keyInSignature GenericKey
 	var fullSigBody []byte
 	keyInSignature, msg, fullSigBody, err = NaclVerifyAndExtract(sig)
@@ -418,8 +418,8 @@ func NaclVerifyAndExtract(s string) (key GenericKey, payload []byte, fullBody []
 	return key, payload, fullBody, nil
 }
 
-func (k NaclSigningKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
-	extractedMsg, resID, err := k.VerifyStringAndExtract(sig)
+func (k NaclSigningKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
+	extractedMsg, resID, err := k.VerifyStringAndExtract(ctx, sig)
 	if err != nil {
 		return
 	}
@@ -436,12 +436,12 @@ func (k NaclDHKeyPair) SignToString(msg []byte) (sig string, id keybase1.SigID, 
 	return
 }
 
-func (k NaclDHKeyPair) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
+func (k NaclDHKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
 	err = KeyCannotVerifyError{}
 	return
 }
 
-func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, err error) {
+func (k NaclDHKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
 	err = KeyCannotVerifyError{}
 	return
 }
@@ -496,40 +496,12 @@ func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
 	return PacketArmoredEncode(s)
 }
 
-// NaCl keys are never wrapped for the server.
-func (k NaclSigningKeyPair) ToServerSKB(gc *GlobalContext, t Triplesec, gen PassphraseGeneration) (*SKB, error) {
-	return nil, fmt.Errorf("NaCl keys should never be encrypted for the server.")
-}
-func (k NaclDHKeyPair) ToServerSKB(gc *GlobalContext, t Triplesec, gen PassphraseGeneration) (*SKB, error) {
-	return nil, fmt.Errorf("NaCl keys should never be encrypted for the server.")
+func (k NaclSigningKeyPair) ExportPublicAndPrivate() (RawPublicKey, RawPrivateKey, error) {
+	return RawPublicKey(k.GetKID().ToBytes()), RawPrivateKey(k.Private[:]), nil
 }
 
-func (k NaclSigningKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
-	data, err := lks.Encrypt(k.Private[:])
-	if err != nil {
-		return nil, err
-	}
-	ret := NewSKB(lks.G())
-	ret.Pub = k.GetKID().ToBytes()
-	ret.Type = KIDNaclEddsa
-	ret.Priv.Encryption = LKSecVersion
-	ret.Priv.Data = data
-	ret.Priv.PassphraseGeneration = int(lks.Generation())
-	return ret, nil
-}
-
-func (k NaclDHKeyPair) ToLksSKB(lks *LKSec) (*SKB, error) {
-	data, err := lks.Encrypt(k.Private[:])
-	if err != nil {
-		return nil, err
-	}
-	ret := NewSKB(lks.G())
-	ret.Pub = k.GetKID().ToBytes()
-	ret.Type = KIDNaclDH
-	ret.Priv.Encryption = LKSecVersion
-	ret.Priv.Data = data
-	ret.Priv.PassphraseGeneration = int(lks.Generation())
-	return ret, nil
+func (k NaclDHKeyPair) ExportPublicAndPrivate() (RawPublicKey, RawPrivateKey, error) {
+	return RawPublicKey(k.GetKID().ToBytes()), RawPrivateKey(k.Private[:]), nil
 }
 
 func makeNaclSigningKeyPair(reader io.Reader) (NaclSigningKeyPair, error) {

@@ -5,7 +5,7 @@ package client
 
 import (
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
@@ -133,9 +133,9 @@ func GetTrackClient(g *libkb.GlobalContext) (cli keybase1.TrackClient, err error
 	return
 }
 
-func GetDeviceClient() (cli keybase1.DeviceClient, err error) {
+func GetDeviceClient(g *libkb.GlobalContext) (cli keybase1.DeviceClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.DeviceClient{Cli: rcli}
 	}
 	return

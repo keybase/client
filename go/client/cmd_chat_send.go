@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -11,8 +12,8 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/gregor/protocol/chat1"
+	"github.com/keybase/client/go/protocol/chat1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type cmdChatSend struct {
@@ -38,13 +39,28 @@ func (c *cmdChatSend) Run() (err error) {
 		return err
 	}
 
+	ctx := context.TODO()
+
+	if cName, err := chatClient.CompleteAndCanonicalizeTlfName(ctx, c.tlfName); err != nil {
+		return err
+	} else if c.tlfName != string(cName) {
+		c.G().UI.GetTerminalUI().Printf("Using TLF name %s instead of %s ...\n", cName, c.tlfName)
+		c.tlfName = string(cName)
+	}
+
 	var args keybase1.PostLocalArg
-	if args.ConversationID, err = chatClient.GetOrCreateTextConversationLocal(context.TODO(), keybase1.GetOrCreateTextConversationLocalArg{
+	conversationIDs, err := chatClient.ResolveConversationLocal(ctx, keybase1.ResolveConversationLocalArg{
 		TlfName:   c.tlfName,
 		TopicType: chat1.TopicType_CHAT,
-	}); err != nil {
+	})
+	if err != nil {
 		return err
 	}
+	if len(conversationIDs) == 0 {
+		return errors.New("empty response from ResolveConversationLocal. This must be a bug")
+	}
+	// TODO: prompt user to choose one if multiple exist
+	args.ConversationID = conversationIDs[0]
 	// args.MessagePlaintext.ClientHeader.Conv omitted
 	// args.MessagePlaintext.ClientHeader.{Sender,SenderDevice} are filled by service
 	args.MessagePlaintext.ClientHeader.MessageType = chat1.MessageType_TEXT
@@ -57,7 +73,7 @@ func (c *cmdChatSend) Run() (err error) {
 
 	if chatClient, err := GetChatLocalClient(c.G()); err != nil {
 		return err
-	} else if err = chatClient.PostLocal(context.TODO(), args); err != nil {
+	} else if err = chatClient.PostLocal(ctx, args); err != nil {
 		return err
 	}
 
@@ -66,7 +82,7 @@ func (c *cmdChatSend) Run() (err error) {
 
 func (c *cmdChatSend) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 2 {
-		return fmt.Errorf("chat send takes 2 args")
+		return fmt.Errorf("keybase chat send takes 2 args")
 	}
 	c.tlfName = ctx.Args().Get(0)
 	c.message = ctx.Args().Get(1)

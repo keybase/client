@@ -18,8 +18,7 @@ export type RPCError = {
 }
 export type Conversation = {
   metadata: ConversationMetadata,
-  mtime: gregor1.Time,
-  readMsgid: MessageID,
+  readerInfo?: ?ConversationReaderInfo,
   maxHeaders?: ?Array<MessageServerHeader>,
 }
 
@@ -34,6 +33,12 @@ export type ConversationIDTriple = {
 export type ConversationMetadata = {
   idTriple: ConversationIDTriple,
   conversationID: ConversationID,
+}
+
+export type ConversationReaderInfo = {
+  mtime: gregor1.Time,
+  readMsgid: MessageID,
+  maxMsgid: MessageID,
 }
 
 export type EncryptedData = {
@@ -89,14 +94,18 @@ export type MessageType =
   | 4 // DELETE_4
   | 5 // METADATA_5
 
+export type NewMessagePayload = {
+  Action: string,
+  convID: ConversationID,
+  message: MessageBoxed,
+}
+
 export type Pagination = {
   next: bytes,
   previous: bytes,
   num: int,
   last: boolean,
 }
-
-export type PaginationResourceID = bytes
 
 export type SignatureInfo = {
   v: int,
@@ -118,6 +127,7 @@ export type TopicID = bytes
 export type TopicType =
     0 // NONE_0
   | 1 // CHAT_1
+  | 2 // DEV_2
 
 export type remoteGetInboxRemoteRpcParam = $Exact<{
   pagination: (null | Pagination)

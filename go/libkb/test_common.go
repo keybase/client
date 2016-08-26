@@ -19,9 +19,9 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/gregor"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // TestConfig tracks libkb config during a test
@@ -89,10 +89,9 @@ type TestContext struct {
 }
 
 func (tc *TestContext) Cleanup() {
+	tc.G.Log.Debug("global context shutdown:")
+	tc.G.Shutdown()
 	if len(tc.Tp.Home) > 0 {
-		tc.G.Log.Debug("global context shutdown:")
-		tc.G.Log.Debug("cleaning up %s", tc.Tp.Home)
-		tc.G.Shutdown()
 		tc.G.Log.Debug("cleaning up %s", tc.Tp.Home)
 		os.RemoveAll(tc.Tp.Home)
 		tc.G.Log.Debug("clearing stored secrets:")
@@ -260,7 +259,7 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	tc.T = tb
 
 	if G.SecretStoreAll == nil {
-		G.SecretStoreAll = NewTestSecretStoreAll(G, G)
+		G.SecretStoreAll = &SecretStoreLocked{SecretStoreAll: NewTestSecretStoreAll(G, G)}
 	}
 
 	return

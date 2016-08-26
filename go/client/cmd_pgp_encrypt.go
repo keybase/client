@@ -11,7 +11,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
@@ -82,7 +82,7 @@ func (c *CmdPGPEncrypt) Run() error {
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
-	snk, src, err := c.ClientFilterOpen()
+	snk, src, err := c.ClientFilterOpen(c.G())
 	if err != nil {
 		return err
 	}

@@ -4,18 +4,22 @@
 package libkb
 
 import (
-	"fmt"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"strings"
-
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type AlgoType int
 
+type VerifyContext interface {
+	Debug(format string, args ...interface{})
+}
+
+type RawPublicKey []byte
+type RawPrivateKey []byte
+
 type GenericKey interface {
 	GetKID() keybase1.KID
 	GetBinaryKID() keybase1.BinaryKID
-	GetFingerprintP() *PGPFingerprint
 	GetAlgoType() AlgoType
 
 	// Sign to an ASCII signature (which includes the message
@@ -24,12 +28,12 @@ type GenericKey interface {
 
 	// Verify that the given signature is valid and extracts the
 	// embedded message from it. Also returns the signature ID.
-	VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error)
+	VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error)
 
 	// Verify that the given signature is valid and that its
 	// embedded message matches the given one. Also returns the
 	// signature ID.
-	VerifyString(sig string, msg []byte) (id keybase1.SigID, err error)
+	VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error)
 
 	// Encrypt to an ASCII armored encryption; optionally include a sender's
 	// (private) key so that we can provably see who sent the message.
@@ -39,8 +43,6 @@ type GenericKey interface {
 	// the KID of the key that sent the message (if applicable).
 	DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error)
 
-	ToServerSKB(gc *GlobalContext, tsec Triplesec, gen PassphraseGeneration) (*SKB, error)
-	ToLksSKB(lks *LKSec) (*SKB, error)
 	VerboseDescription() string
 	CheckSecretKey() error
 	CanSign() bool
@@ -48,6 +50,10 @@ type GenericKey interface {
 	CanDecrypt() bool
 	HasSecretKey() bool
 	Encode() (string, error) // encode public key to string
+
+	// ExportPublicAndPrivate to special-purpose types so there is no way we can
+	// accidentally reverse them.
+	ExportPublicAndPrivate() (public RawPublicKey, private RawPrivateKey, err error)
 }
 
 func CanEncrypt(key GenericKey) bool {
@@ -59,17 +65,6 @@ func CanEncrypt(key GenericKey) bool {
 	default:
 		return false
 	}
-}
-
-func WriteLksSKBToKeyring(g *GlobalContext, k GenericKey, lks *LKSec, lctx LoginContext) (*SKB, error) {
-	skb, err := k.ToLksSKB(lks)
-	if err != nil {
-		return nil, fmt.Errorf("k.ToLksSKB() error: %s", err)
-	}
-	if err := skbPushAndSave(g, skb, lctx); err != nil {
-		return nil, err
-	}
-	return skb, nil
 }
 
 func skbPushAndSave(g *GlobalContext, skb *SKB, lctx LoginContext) error {
@@ -98,7 +93,7 @@ func KeyMatchesQuery(key GenericKey, q string, exact bool) bool {
 	if key.GetKID().Match(q, exact) {
 		return true
 	}
-	return key.GetFingerprintP().Match(q, exact)
+	return GetPGPFingerprintFromGenericKey(key).Match(q, exact)
 }
 
 func IsPGP(key GenericKey) bool {

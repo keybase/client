@@ -1,0 +1,50 @@
+@namespace("keybase.1")
+
+protocol device {
+  import idl "common.avdl";
+
+  /**
+    List devices for the user.
+    */
+  array<Device> deviceList(int sessionID);
+
+  record DeviceDetail {
+    Device device;
+    boolean eldest;
+    union {null, Device} provisioner;
+    union {null, Time} provisionedAt;
+    // not possible to determine revoker without major code change
+    // union {null, Device} revoker;
+    union {null, Time} revokedAt;
+    KID revokedBy;
+    union {null, Device} revokedByDevice;
+    boolean currentDevice;
+  }
+
+  /**
+    List all devices with detailed history and status information.
+    */
+  array<DeviceDetail> deviceHistoryList(int sessionID);
+
+  /**
+    Starts the process of adding a new device using an existing
+    device.  It is called on the existing device.
+    This is for kex2.
+    */
+  void deviceAdd(int sessionID);
+
+  /**
+    Checks the device name format.
+    */
+  boolean checkDeviceNameFormat(int sessionID, string name);
+
+
+  /**
+    Checks a given device against all of user's past devices,
+    including those that predate a reset. It will also check a device name
+    for proper formatting. Return null error on success, and a non-null
+    error otherwise.
+   */
+  void checkDeviceNameForUser(int sessionID, string username, string devicename);
+}
+

@@ -12,7 +12,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // CmdDeviceList is the 'device list' command.  It displays all
@@ -35,7 +35,7 @@ func NewCmdDeviceList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 
 // RunClient runs the command in client/server mode.
 func (c *CmdDeviceList) Run() error {
-	cli, err := GetDeviceClient()
+	cli, err := GetDeviceClient(c.G())
 	if err != nil {
 		return err
 	}

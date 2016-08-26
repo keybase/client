@@ -10,7 +10,7 @@ import (
 
 	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/service"
 	context "golang.org/x/net/context"
 )
@@ -41,6 +41,7 @@ func TestRPCs(t *testing.T) {
 	testCheckInvitationCode(t, tc2.G)
 	testLoadAllPublicKeysUnverified(t, tc2.G)
 	testLoadUserWithNoKeys(t, tc2.G)
+	testCheckDevicesForUser(t, tc2.G)
 
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
@@ -162,5 +163,26 @@ func testLoadUserWithNoKeys(t *testing.T, g *libkb.GlobalContext) {
 	}
 	if tEllen2.Username != "t_ellen" {
 		t.Fatalf("expected t_ellen, saw %s", tEllen2.Username)
+	}
+}
+
+func testCheckDevicesForUser(t *testing.T, g *libkb.GlobalContext) {
+	cli, err := client.GetDeviceClient(g)
+	if err != nil {
+		t.Fatalf("failed to get a device client: %v", err)
+	}
+	err = cli.CheckDeviceNameForUser(context.TODO(), keybase1.CheckDeviceNameForUserArg{
+		Username:   "t_frank",
+		Devicename: "bad $ device $ name",
+	})
+	if _, ok := err.(libkb.DeviceBadNameError); !ok {
+		t.Fatalf("wanted a bad device name error; got %v", err)
+	}
+	err = cli.CheckDeviceNameForUser(context.TODO(), keybase1.CheckDeviceNameForUserArg{
+		Username:   "t_frank",
+		Devicename: "go c lient",
+	})
+	if _, ok := err.(libkb.DeviceNameInUseError); !ok {
+		t.Fatalf("wanted a name in use error; got %v", err)
 	}
 }

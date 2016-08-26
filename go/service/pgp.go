@@ -6,7 +6,7 @@ package service
 import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
@@ -162,7 +162,7 @@ func sigVer(g *libkb.GlobalContext, ss *libkb.SignatureStatus, owner *libkb.User
 			}
 		}
 		if ss.Entity != nil {
-			bundle := libkb.NewPGPKeyBundle(g, ss.Entity)
+			bundle := libkb.NewPGPKeyBundle(ss.Entity)
 			res.SignKey = bundle.Export()
 		}
 	}

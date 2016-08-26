@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -281,12 +281,21 @@ func (mc *MerkleClient) LookupPath(q HTTPArgs) (vp *VerificationPath, err error)
 	q.Add("poll", I{10})
 
 	res, err := mc.G().API.Get(APIArg{
-		Endpoint:    "merkle/path",
-		NeedSession: false,
-		Args:        q,
+		Endpoint:       "merkle/path",
+		NeedSession:    false,
+		Args:           q,
+		AppStatusCodes: []int{SCOk, SCNotFound, SCDeleted},
 	})
 
 	if err != nil {
+		return
+	}
+	switch res.AppStatus.Code {
+	case SCNotFound:
+		err = NotFoundError{}
+		return
+	case SCDeleted:
+		err = DeletedError{}
 		return
 	}
 
@@ -418,7 +427,7 @@ func (mc *MerkleClient) VerifyRoot(root *MerkleRoot) error {
 	}
 
 	// Actually run the PGP verification over the signature
-	_, err = key.VerifyString(sig, []byte(root.payloadJSONString))
+	_, err = key.VerifyString(mc.G().Log, sig, []byte(root.payloadJSONString))
 	if err != nil {
 		return err
 	}

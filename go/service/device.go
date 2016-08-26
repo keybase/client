@@ -8,7 +8,7 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
@@ -76,4 +76,30 @@ func (h *DeviceHandler) CheckDeviceNameFormat(_ context.Context, arg keybase1.Ch
 		return ok, nil
 	}
 	return false, errors.New(libkb.CheckDeviceName.Hint)
+}
+
+func (h *DeviceHandler) CheckDeviceNameForUser(_ context.Context, arg keybase1.CheckDeviceNameForUserArg) error {
+	_, err := h.G().API.Get(libkb.APIArg{
+		Endpoint:    "device/check_name",
+		NeedSession: false,
+		Args: libkb.HTTPArgs{
+			"username":   libkb.S{Val: arg.Username},
+			"devicename": libkb.S{Val: arg.Devicename},
+		},
+	})
+
+	if err == nil {
+		return err
+	}
+
+	if apiErr, ok := err.(*libkb.APIError); ok {
+		switch apiErr.Code {
+		case libkb.SCDeviceNameInUse:
+			return libkb.DeviceNameInUseError{}
+		case libkb.SCInputError:
+			return libkb.DeviceBadNameError{}
+		}
+	}
+
+	return err
 }

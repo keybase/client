@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"time"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 const LoginSessionMemoryTimeout time.Duration = time.Minute * 5
@@ -147,7 +147,7 @@ func (s *LoginSession) Dump() {
 }
 
 func (s *LoginSession) Load() error {
-	if s.loaded {
+	if s.loaded && !s.cleared {
 		return fmt.Errorf("LoginSession already loaded for %s", s.sessionFor)
 	}
 

@@ -8,7 +8,7 @@ import (
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
@@ -278,7 +278,7 @@ func (e *Kex2Provisioner) checkReverseSig(jw *jsonw.Wrapper) error {
 	if err != nil {
 		return err
 	}
-	_, err = keypair.VerifyString(revsig, msg)
+	_, err = keypair.VerifyString(e.G().Log, revsig, msg)
 	if err != nil {
 		return err
 	}

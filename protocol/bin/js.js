@@ -1,7 +1,7 @@
 var promise = require('bluebird')
 var fs = promise.promisifyAll(require('fs'))
 var path = require('path')
-var root = 'json'
+var root = 'json/keybase1'
 
 var protocols = {}
 

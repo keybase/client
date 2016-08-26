@@ -53,7 +53,7 @@ class Render extends Component<DefaultProps, Props, State> {
           <Text type='Body' small={true} style={{alignSelf: 'center', marginTop: 6}}>You're logged out of Keybase!</Text>
           <Button type='Primary' label='Log In' onClick={this.props.logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12}} />
         </Box>
-        <PopupMenu style={styleMenu} visible={this.state.showingMenu} items={this._menuItems()} onHidden={() => this.setState({showingMenu: false})} />
+        {this.state.showingMenu && <PopupMenu style={styleMenu} items={this._menuItems()} onHidden={() => this.setState({showingMenu: false})} />}
       </Box>
     )
   }
@@ -131,7 +131,7 @@ class Render extends Component<DefaultProps, Props, State> {
             onClick={() => this.setState({showingMenu: !this.state.showingMenu})} />
         </Box>
         <Folders {...mergedProps} />
-        <PopupMenu style={styleMenu} visible={this.state.showingMenu} items={this._menuItems()} onHidden={() => this.setState({showingMenu: false})} />
+        {this.state.showingMenu && <PopupMenu style={styleMenu} items={this._menuItems()} onHidden={() => this.setState({showingMenu: false})} />}
       </Box>
     )
   }

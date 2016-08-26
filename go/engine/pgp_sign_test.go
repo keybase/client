@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type signTest struct {
@@ -66,7 +66,7 @@ func TestPGPSign(t *testing.T) {
 
 		sig := sink.String()
 
-		_, err = key.VerifyString(sig, []byte(test.input))
+		_, err = key.VerifyString(tc.G.Log, sig, []byte(test.input))
 		if err != nil {
 			t.Errorf("%s: verify error: %s", test.name, err)
 			continue

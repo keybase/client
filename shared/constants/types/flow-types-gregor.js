@@ -18,6 +18,7 @@ export type RPCError = {
 export type AuthResult = {
   uid: UID,
   sid: SessionID,
+  isAdmin: bool,
 }
 
 export type Body = bytes
@@ -219,6 +220,19 @@ export function incomingSyncRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: incomingSyncResult) => void)}>) {
   engine.rpc({...request, method: 'incoming.sync'})
 }
+export type incomingVersionRpcParam = $Exact<{
+  uid: UID
+}>
+
+type incomingVersionResult = string
+
+export function incomingVersionRpc (request: $Exact<{
+  param: incomingVersionRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: incomingVersionResult) => void)}>) {
+  engine.rpc({...request, method: 'incoming.version'})
+}
 export type outgoingBroadcastMessageRpcParam = $Exact<{
   m: Message
 }>
@@ -280,6 +294,7 @@ export type rpc =
   | incomingStateByCategoryPrefixRpc
   | incomingStateRpc
   | incomingSyncRpc
+  | incomingVersionRpc
   | outgoingBroadcastMessageRpc
   | remindDeleteRemindersRpc
   | remindGetRemindersRpc
@@ -344,6 +359,15 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: (err: RPCError) => void,
       result: (result: incomingPingResult) => void
+    }
+  ) => void,
+  'keybase.1.incoming.version'?: (
+    params: $Exact<{
+      uid: UID
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: incomingVersionResult) => void
     }
   ) => void,
   'keybase.1.incoming.state'?: (
