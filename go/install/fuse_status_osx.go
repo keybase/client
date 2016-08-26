@@ -128,7 +128,7 @@ func KeybaseFuseStatusForAppBundle(appPath string, log Log) (keybase1.FuseStatus
 
 func findStringInPlist(key string, plistData []byte, log Log) string {
 	// Hack to parse plist, instead of parsing we'll use a regex
-	res := fmt.Sprintf(`<key>%s<\/key>\s*<string>(\S+)<\/string>`, key)
+	res := fmt.Sprintf(`<key>%s<\/key>\s*<string>([\S ]+)<\/string>`, key)
 	re := regexp.MustCompile(res)
 	submatch := re.FindStringSubmatch(string(plistData))
 	if len(submatch) == 2 {
