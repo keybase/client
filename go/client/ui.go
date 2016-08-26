@@ -971,8 +971,18 @@ func PromptSelectionOrCancel(pd libkb.PromptDescriptor, ui libkb.TerminalUI, pro
 	return
 }
 
+func (ui *UI) TerminalSize() (width int, height int) {
+	return ui.Terminal.GetSize()
+}
+
 func (ui *UI) Tablify(headings []string, rowfunc func() []string) {
 	libkb.Tablify(ui.OutputWriter(), headings, rowfunc)
+}
+
+func (ui *UI) TablifyAlignRight(headings []string, rowfunc func() []string) {
+	w := new(tabwriter.Writer)
+	w.Init(ui.OutputWriter(), 0, 0, 1, ' ', tabwriter.AlignRight)
+	libkb.TablifyWithTabWriter(w, headings, rowfunc)
 }
 
 func (ui *UI) NewTabWriter(minwidth, tabwidth, padding int, padchar byte, flags uint) *tabwriter.Writer {

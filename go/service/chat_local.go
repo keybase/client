@@ -97,7 +97,7 @@ func (h *chatLocalHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, t
 // change this to look up by topic name
 //
 // TODO: cache ConversationIDs and conversations in service
-func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg keybase1.ResolveConversationLocalArg) (ids []chat1.ConversationID, err error) {
+func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg keybase1.ConversationInfoLocal) (ids []chat1.ConversationID, err error) {
 	res, err := h.boxer.tlf.CryptKeys(ctx, arg.TlfName)
 	if err != nil {
 		return ids, err
@@ -153,12 +153,24 @@ func (h *chatLocalHandler) fillMessageInfoLocal(ctx context.Context, m *keybase1
 	if m.Info.SenderDeviceName, err = h.userInfoMapper.getDeviceName(ctx, keybase1.DeviceID(m.MessagePlaintext.ClientHeader.SenderDevice.String())); err != nil {
 		return err
 	}
-	// TODO: populate this properly after we implement topic names
-	m.Info.TopicName = hex.EncodeToString([]byte(m.MessagePlaintext.ClientHeader.Conv.TopicID)[:4])
 	return nil
 }
 
-func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversation *chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *keybase1.MessageSelector) (conv keybase1.ConversationMessagesLocal, err error) {
+func (h chatLocalHandler) fillConversationInfoLocal(ctx context.Context, c *keybase1.ConversationLocal) (err error) {
+	if len(c.Messages) > 0 {
+		m := c.Messages[0]
+		c.Info = &keybase1.ConversationInfoLocal{
+			TlfName: m.MessagePlaintext.ClientHeader.TlfName,
+
+			// TODO: populate following two fields properly
+			TopicName: hex.EncodeToString([]byte(m.MessagePlaintext.ClientHeader.Conv.TopicID)[:4]),
+			TopicType: chat1.TopicType_CHAT,
+		}
+	}
+	return nil
+}
+
+func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversation *chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *keybase1.MessageSelector) (conv keybase1.ConversationLocal, err error) {
 	var since time.Time
 	if selector.Since != nil {
 		since, err := parseTimeFromRFC3339OrDurationFromPast(*selector.Since)
@@ -221,11 +233,14 @@ getthread:
 	}
 
 	conv.Id = conversation.Metadata.ConversationID
+	if err = h.fillConversationInfoLocal(ctx, &conv); err != nil {
+		return conv, err
+	}
 	return conv, nil
 }
 
 // GetMessagesLocal implements keybase.chatLocal.GetMessagesLocal protocol.
-func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationMessagesLocal, err error) {
+func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationLocal, err error) {
 	var messageTypes map[chat1.MessageType]bool
 	if len(arg.MessageTypes) > 0 {
 		messageTypes := make(map[chat1.MessageType]bool)

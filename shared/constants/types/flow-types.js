@@ -313,8 +313,15 @@ export type ConfirmResult = {
   expiringLocal: boolean,
 }
 
-export type ConversationMessagesLocal = {
+export type ConversationInfoLocal = {
+  tlfName: string,
+  topicName: string,
+  topicType: chat1.TopicType,
+}
+
+export type ConversationLocal = {
   id: chat1.ConversationID,
+  info?: ?ConversationInfoLocal,
   messages?: ?Array<Message>,
 }
 
@@ -788,7 +795,6 @@ export type MessageInfoLocal = {
   isNew: boolean,
   senderUsername: string,
   senderDeviceName: string,
-  topicName: string,
 }
 
 export type MessagePlaintext = {
@@ -1876,7 +1882,7 @@ export type chatLocalGetMessagesLocalRpcParam = $Exact<{
   selector: MessageSelector
 }>
 
-type chatLocalGetMessagesLocalResult = ?Array<ConversationMessagesLocal>
+type chatLocalGetMessagesLocalResult = ?Array<ConversationLocal>
 
 export function chatLocalGetMessagesLocalRpc (request: $Exact<{
   param: chatLocalGetMessagesLocalRpcParam,
@@ -1926,9 +1932,7 @@ export function chatLocalPostLocalRpc (request: $Exact<{
   engine.rpc({...request, method: 'chatLocal.postLocal'})
 }
 export type chatLocalResolveConversationLocalRpcParam = $Exact<{
-  tlfName: string,
-  topicName: string,
-  topicType: chat1.TopicType
+  conversation: ConversationInfoLocal
 }>
 
 type chatLocalResolveConversationLocalResult = ?Array<chat1.ConversationID>
@@ -4590,9 +4594,7 @@ export type incomingCallMapType = $Exact<{
   ) => void,
   'keybase.1.chatLocal.resolveConversationLocal'?: (
     params: $Exact<{
-      tlfName: string,
-      topicName: string,
-      topicType: chat1.TopicType
+      conversation: ConversationInfoLocal
     }>,
     response: {
       error: (err: RPCError) => void,
