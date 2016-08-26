@@ -133,6 +133,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             sh "npm run vendor-install"
                                             sh "unzip ${env.KEYBASE_JS_VENDOR_DIR}/flow/flow-linux64*.zip -d ${env.BASEDIR}"
                                             sh "${env.BASEDIR}/flow/flow status shared"
+                                            sh "npm run shrinkwrap-audit"
+                                            sh "npm run shrinkwrap-audit -- ../react-native"
                                         }
                                         sh "desktop/node_modules/.bin/eslint ."
                                         // Only run visdiff for PRs

@@ -15,7 +15,7 @@
   "dependencies": {
     "buffer": "4.7.1",
     "deep-diff": "0.3.4",
-    "framed-msgpack-rpc": "git://github.com/keybase/node-framed-msgpack-rpc#e3c96a2ebb8350836f5bae9710b89d04fb1fc87a",
+    "framed-msgpack-rpc": "git://github.com/keybase/node-framed-msgpack-rpc.git#e3c96a2ebb8350836f5bae9710b89d04fb1fc87a",
     "getenv": "0.6.0",
     "iced-runtime": "1.0.3",
     "immutable": "3.8.1",
