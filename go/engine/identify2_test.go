@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"strings"
 	"sync"
 	"testing"
@@ -216,6 +217,24 @@ func TestIdentify2WithUIDWithoutTrack(t *testing.T) {
 	<-i.finishCh
 }
 
+func launchWaiter(t *testing.T, ch chan struct{}) func() {
+	waitCh := make(chan error)
+	go func() {
+		select {
+		case <-ch:
+			waitCh <- nil
+		case <-time.After(10 * time.Second):
+			waitCh <- errors.New("failed to get a finish after timeout")
+		}
+	}()
+	return func() {
+		err := <-waitCh
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
 func TestIdentify2WithUIDWithTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithTrack")
 	defer tc.Cleanup()
@@ -232,24 +251,60 @@ func TestIdentify2WithUIDWithTrack(t *testing.T) {
 	}
 
 	ctx := Context{IdentifyUI: i}
-	go func() {
-		<-i.finishCh
-	}()
+	waiter := launchWaiter(t, i.finishCh)
 
 	err := eng.Run(&ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	waiter()
 }
 
-func TestIdentify2WithUIDWithBrokenTrack(t *testing.T) {
-	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithBrokenTrack")
+func TestIdentify2WithUIDWithTrackAndSuppress(t *testing.T) {
+	tc := SetupEngineTest(t, "Identify2WithUIDWithTrackAndSuppress")
 	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.Services = i
 	arg := &keybase1.Identify2Arg{
-		Uid: tracyUID,
+		Uid:           tracyUID,
+		CanSuppressUI: true,
 	}
+	eng := NewIdentify2WithUID(tc.G, arg)
+
+	eng.testArgs = &Identify2WithUIDTestArgs{
+		noMe: true,
+		tcl:  importTrackingLink(t, tc.G),
+	}
+
+	ctx := Context{IdentifyUI: i}
+	err := eng.Run(&ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	select {
+	case <-i.startCh:
+		t.Fatalf("did not expect the identify to start")
+	default:
+	}
+
+	select {
+	case <-i.finishCh:
+		t.Fatalf("did not expect the identify to end")
+	default:
+	}
+}
+
+func testIdentify2WithUIDWithBrokenTrack(t *testing.T, suppress bool) {
+	arg := &keybase1.Identify2Arg{
+		Uid:           tracyUID,
+		CanSuppressUI: suppress,
+	}
+	tc := SetupEngineTest(t, "testIdentify2WithUIDWithBrokenTrack")
+	defer tc.Cleanup()
+	i := newIdentify2WithUIDTester(tc.G)
+	tc.G.Services = i
 	eng := NewIdentify2WithUID(tc.G, arg)
 
 	eng.testArgs = &Identify2WithUIDTestArgs{
@@ -265,14 +320,21 @@ func TestIdentify2WithUIDWithBrokenTrack(t *testing.T) {
 	}
 
 	ctx := Context{IdentifyUI: i}
-	go func() {
-		<-i.finishCh
-	}()
+	waiter := launchWaiter(t, i.finishCh)
 
 	err := eng.Run(&ctx)
 	if err == nil {
 		t.Fatal("expected an ID2 error since twitter proof failed")
 	}
+	waiter()
+}
+
+func TestIdentify2WithUIDWithBrokenTrack(t *testing.T) {
+	testIdentify2WithUIDWithBrokenTrack(t, false)
+}
+
+func TestIdentify2WithUIDWithBrokenTrackWithSuppressUI(t *testing.T) {
+	testIdentify2WithUIDWithBrokenTrack(t, true)
 }
 
 func TestIdentify2WithUIDWithAssertion(t *testing.T) {

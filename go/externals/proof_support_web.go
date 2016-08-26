@@ -11,6 +11,7 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -21,6 +22,8 @@ import (
 type WebChecker struct {
 	proof libkb.RemoteProofChainLink
 }
+
+var _ libkb.ProofChecker = (*WebChecker)(nil)
 
 var webKeybaseFiles = []string{".well-known/keybase.txt", "keybase.txt"}
 
@@ -58,6 +61,13 @@ func (rc *WebChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.P
 }
 
 func (rc *WebChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_GENERIC_WEB_SITE, rc.proof, h)
+	}
+	return rc.CheckStatusOld(ctx, h)
+}
+
+func (rc *WebChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	res, err := ctx.GetExternalAPI().GetText(libkb.NewAPIArg(h.GetAPIURL()))
 
 	if err != nil {

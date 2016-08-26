@@ -41,6 +41,7 @@ type Identify2Arg struct {
 	NeedProofSet          bool           `codec:"needProofSet" json:"needProofSet"`
 	AllowEmptySelfID      bool           `codec:"allowEmptySelfID" json:"allowEmptySelfID"`
 	NoSkipSelf            bool           `codec:"noSkipSelf" json:"noSkipSelf"`
+	CanSuppressUI         bool           `codec:"canSuppressUI" json:"canSuppressUI"`
 }
 
 type IdentifyInterface interface {

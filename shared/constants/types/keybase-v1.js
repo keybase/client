@@ -379,6 +379,7 @@ export const proveCommon = {
     'unknownType': 305,
     'noHint': 306,
     'badHintText': 307,
+    'invalidPvl': 308,
   },
   'ProofType': {
     'none': 0,

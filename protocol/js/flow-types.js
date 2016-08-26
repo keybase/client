@@ -1140,6 +1140,7 @@ export type ProofStatus =
   | 305 // UNKNOWN_TYPE_305
   | 306 // NO_HINT_306
   | 307 // BAD_HINT_TEXT_307
+  | 308 // INVALID_PVL_308
 
 export type ProofType =
     0 // NONE_0
@@ -2256,7 +2257,8 @@ export type identifyIdentify2RpcParam = $Exact<{
   forceRemoteCheck?: boolean,
   needProofSet?: boolean,
   allowEmptySelfID?: boolean,
-  noSkipSelf?: boolean
+  noSkipSelf?: boolean,
+  canSuppressUI?: bool
 }>
 
 type identifyIdentify2Result = Identify2Res
@@ -5073,7 +5075,8 @@ export type incomingCallMapType = $Exact<{
       forceRemoteCheck?: boolean,
       needProofSet?: boolean,
       allowEmptySelfID?: boolean,
-      noSkipSelf?: boolean
+      noSkipSelf?: boolean,
+      canSuppressUI?: bool
     }>,
     response: {
       error: (err: RPCError) => void,
