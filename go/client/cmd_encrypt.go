@@ -84,7 +84,7 @@ func (c *CmdEncrypt) Run() error {
 		return err
 	}
 
-	snk, src, err := c.filter.ClientFilterOpen()
+	snk, src, err := c.filter.ClientFilterOpen(c.G())
 	if err != nil {
 		return err
 	}

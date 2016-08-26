@@ -280,11 +280,11 @@ func (u *UnixFilter) Close(inerr error) error {
 	return libkb.PickFirstError(e1, e2, e3)
 }
 
-func (u *UnixFilter) ClientFilterOpen() (snk, src keybase1.Stream, err error) {
+func (u *UnixFilter) ClientFilterOpen(g *libkb.GlobalContext) (snk, src keybase1.Stream, err error) {
 	if err = u.FilterOpen(); err != nil {
 		return
 	}
-	snk = G.XStreams.ExportWriter(u.sink)
-	src = G.XStreams.ExportReader(u.source)
+	snk = g.XStreams.ExportWriter(u.sink)
+	src = g.XStreams.ExportReader(u.source)
 	return
 }

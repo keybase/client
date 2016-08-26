@@ -65,7 +65,7 @@ func (c *CmdPGPVerify) Run() error {
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
-	_, src, err := c.ClientFilterOpen()
+	_, src, err := c.ClientFilterOpen(c.G())
 	if err != nil {
 		return err
 	}

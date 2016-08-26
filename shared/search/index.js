@@ -15,8 +15,6 @@ import type {Props} from './render'
 import type {SearchActions} from '../constants/search'
 import type {TypedDispatch} from '../constants/types/flux'
 
-import flags from '../util/feature-flags'
-
 type OwnProps = {}
 
 class Search extends Component<void, Props, void> {
@@ -47,7 +45,6 @@ export default connector.connect(
      userForInfoPane,
      results,
      waiting,
-     showComingSoon: !flags.searchEnabled,
      onClickResult: user => { dispatch(addUserToGroup(user)) },
      selectedService: searchPlatform,
      onSearch: (term, selectedPlatform) => { dispatch(search(term, selectedPlatform || searchPlatform)) },

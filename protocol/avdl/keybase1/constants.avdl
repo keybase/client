@@ -3,6 +3,7 @@ protocol constants {
 
   enum StatusCode {
     SCOk_0,
+    SCInputError_100,
     SCLoginRequired_201,
     SCBadSession_202,
     SCBadLoginUserNotFound_203,
@@ -43,6 +44,8 @@ protocol constants {
     SCKeyNoMatchingGPG_930,
     SCKeyRevoked_931,
     SCBadTrackSession_1301,
+    SCDeviceBadName_1404,
+    SCDeviceNameInUse_1408,
     SCDeviceNotFound_1409,
     SCDeviceMismatch_1410,
     SCDeviceRequired_1411,

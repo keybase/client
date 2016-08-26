@@ -1464,3 +1464,19 @@ func (e DeletedError) Error() string {
 	}
 	return e.Msg
 }
+
+//=============================================================================
+
+type DeviceNameInUseError struct{}
+
+func (e DeviceNameInUseError) Error() string {
+	return "device name already in use"
+}
+
+//=============================================================================
+
+type DeviceBadNameError struct{}
+
+func (e DeviceBadNameError) Error() string {
+	return "device name is malformed"
+}

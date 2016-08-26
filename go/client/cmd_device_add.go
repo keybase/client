@@ -20,7 +20,7 @@ type CmdDeviceAdd struct {
 	libkb.Contextified
 }
 
-const cmdDevAddDesc = `When you are adding a new device to your account and you have an 
+const cmdDevAddDesc = `When you are adding a new device to your account and you have an
 existing device, you will be prompted to use this command on your
 existing device to authorize the new device.`
 
@@ -39,7 +39,7 @@ func NewCmdDeviceAdd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 // RunClient runs the command in client/server mode.
 func (c *CmdDeviceAdd) Run() error {
 	var err error
-	cli, err := GetDeviceClient()
+	cli, err := GetDeviceClient(c.G())
 	if err != nil {
 		return err
 	}
