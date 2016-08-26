@@ -370,6 +370,7 @@ type TerminalUI interface {
 	Prompt(PromptDescriptor, string) (string, error)
 	PromptPassword(PromptDescriptor, string) (string, error)
 	PromptForConfirmation(prompt string) error
+	GetSize() (width int, height int, err error)
 }
 
 type DumbOutputUI interface {
