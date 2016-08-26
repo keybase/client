@@ -21,12 +21,18 @@ func (s SocketInfo) BindToSocket() (net.Listener, error) {
 	}
 
 	// Path can't be longer than 108 characters.
-	// In this case Chdir to the file dir first.
+	// In this case Chdir to the file directory first.
 	// https://github.com/golang/go/issues/6895#issuecomment-98006662
 	if len(bindFile) >= 108 {
+		prevWd, err := os.Getwd()
+		if err != nil {
+			return nil, fmt.Errorf("Error getting working directory: %s", err)
+		}
+		s.G().Log.Warning("Changing current working directory because path for binding is too long")
 		if err := os.Chdir(filepath.Dir(bindFile)); err != nil {
 			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
 		}
+		defer os.Chdir(prevWd)
 		bindFile = filepath.Base(bindFile)
 	}
 
@@ -47,13 +53,22 @@ func (s SocketInfo) DialSocket() (net.Conn, error) {
 }
 
 func (s SocketInfo) dialSocket(dialFile string) (net.Conn, error) {
+	if dialFile == "" {
+		return nil, fmt.Errorf("Can't dial empty path")
+	}
 	// Path can't be longer than 108 characters.
-	// In this case Chdir to the file dir first.
+	// In this case Chdir to the file directory first.
 	// https://github.com/golang/go/issues/6895#issuecomment-98006662
 	if len(dialFile) >= 108 {
+		prevWd, err := os.Getwd()
+		if err != nil {
+			return nil, fmt.Errorf("Error getting working directory: %s", err)
+		}
+		s.G().Log.Warning("Changing current working directory because path for dialing is too long")
 		if err := os.Chdir(filepath.Dir(dialFile)); err != nil {
 			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
 		}
+		defer os.Chdir(prevWd)
 		dialFile = filepath.Base(dialFile)
 	}
 

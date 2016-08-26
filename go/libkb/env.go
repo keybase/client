@@ -503,21 +503,21 @@ func (e *Env) defaultSocketFile() string {
 
 // sandboxSocketFile is socket file location for sandbox (macOS only)
 func (e *Env) sandboxSocketFile() string {
-	return e.GetString(
-		func() string {
-			sandboxCacheDir := e.homeFinder.SandboxCacheDir()
-			if sandboxCacheDir == "" {
-				return ""
-			}
-			return filepath.Join(sandboxCacheDir, SocketFile)
-		},
-	)
+	sandboxCacheDir := e.homeFinder.SandboxCacheDir()
+	if sandboxCacheDir == "" {
+		return ""
+	}
+	return filepath.Join(sandboxCacheDir, SocketFile)
 }
 
 func (e *Env) GetSocketDialFiles() ([]string, error) {
+	dialFiles := []string{}
 	sandboxSocketFile := e.sandboxSocketFile()
-	defaultSocketFile := e.defaultSocketFile()
-	return []string{sandboxSocketFile, defaultSocketFile}, nil
+	if sandboxSocketFile != "" {
+		dialFiles = append(dialFiles, sandboxSocketFile)
+	}
+	dialFiles = append(dialFiles, e.defaultSocketFile())
+	return dialFiles, nil
 }
 
 func (e *Env) GetGregorURI() string {
