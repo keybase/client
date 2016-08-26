@@ -458,6 +458,14 @@ func pvlStepInstruction(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptSt
 		newstate, err := step(g, ins, state)
 		if err != nil {
 			debugWithStateError(g, state, err)
+
+			// Replace error with custom error.
+			customerr, swap := pvlCustomError(g, ins, state, err)
+			if swap {
+				err = customerr
+				debugWithState(g, state, "Replacing error with custom error")
+				debugWithStateError(g, state, err)
+			}
 		}
 		return newstate, err
 	} else if n > 1 {
@@ -917,4 +925,60 @@ func pvlSubstitute(template string, state PvlScriptState, match []string) (strin
 		return template, outerr
 	}
 	return res, nil
+}
+
+// Take an instruction and if it specifies a custom error via an "error" key, replace the error.
+// Always returns an error because that's its job. The second return argument is true if a different error is returned.
+// If there is an issue with the "error" spec, this just returns the unmodfied err1.
+// It would be just too harsh to report INVALID_PVL for that.
+func pvlCustomError(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState, err1 libkb.ProofError) (libkb.ProofError, bool) {
+	if err1 == nil {
+		return err1, false
+	}
+	if !pvlJSONHasKey(ins, "error") {
+		return err1, false
+	}
+
+	var ename string
+	edesc := err1.GetDesc()
+
+	ar, err := ins.AtKey("error").ToArray()
+	if err != nil {
+		// "error": "name"
+		name, err := ins.AtKey("error").GetString()
+		if err != nil {
+			debugWithState(g, state, "Invalid error spec: %v", err)
+			return err1, false
+		}
+		ename = name
+	} else {
+		// "error": ["name", "desc"]
+		name, err := ar.AtIndex(0).GetString()
+		if err != nil {
+			debugWithState(g, state, "Invalid error spec: %v", err)
+		} else {
+			ename = name
+		}
+
+		desc, err := ar.AtIndex(1).GetString()
+		if err == nil {
+			edesc = desc
+		}
+	}
+
+	estatus := err1.GetProofStatus()
+
+	if ename != "" {
+		status, ok := keybase1.ProofStatusMap[ename]
+		if !ok {
+			debugWithState(g, state, "Invalid error spec: %v", ename)
+		} else {
+			estatus = status
+		}
+	}
+
+	if estatus != err1.GetProofStatus() || edesc != err1.GetDesc() {
+		return libkb.NewProofError(estatus, edesc), true
+	}
+	return err1, false
 }
