@@ -15,7 +15,7 @@ declare class Engine {
   listenGeneralIncomingRpc (m: incomingCallMapType): void;
 }
 
-var engine = new Engine()
+declare function engine(): Engine
 
 export function isRPCCancelError (err: Object) : bool { return false }
 export default engine
