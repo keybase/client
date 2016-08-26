@@ -165,14 +165,13 @@ func (b *bufferedIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l ke
 func (b *bufferedIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	b.Lock()
 	defer b.Unlock()
-	bt := false
-	if b.bufferedMode && !bt {
+	if b.bufferedMode {
 		b.G().Log.Debug("| bufferedIdentifyUI#Confirm: suppressing output")
 		b.suppressed = true
 		return b.confirmIfSuppressed, nil
 	}
 	b.G().Log.Debug("| bufferedIdentifyUI#Confirm: enabling output")
-	b.flush(bt)
+	b.flush(true)
 	return b.raw.Confirm(o)
 }
 
