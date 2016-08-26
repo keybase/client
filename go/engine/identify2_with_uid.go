@@ -351,7 +351,7 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 
 	iui := ctx.IdentifyUI
 	if e.useTracking && e.arg.CanSuppressUI {
-		iui = newBufferedIdentifyUI(iui, keybase1.ConfirmResult{
+		iui = newBufferedIdentifyUI(e.G(), iui, keybase1.ConfirmResult{
 			IdentityConfirmed: true,
 		})
 	}

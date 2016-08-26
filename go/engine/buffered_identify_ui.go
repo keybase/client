@@ -6,6 +6,8 @@ package engine
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"path"
+	"runtime"
 	"sync"
 )
 
@@ -26,6 +28,7 @@ type launchNetworkChecks struct {
 }
 
 type bufferedIdentifyUI struct {
+	libkb.Contextified
 	sync.Mutex
 	raw                 libkb.IdentifyUI
 	confirmIfSuppressed keybase1.ConfirmResult
@@ -41,8 +44,13 @@ type bufferedIdentifyUI struct {
 	userCard            *keybase1.UserCard
 }
 
-func newBufferedIdentifyUI(u libkb.IdentifyUI, c keybase1.ConfirmResult) *bufferedIdentifyUI {
-	return &bufferedIdentifyUI{raw: u, confirmIfSuppressed: c, bufferedMode: true}
+func newBufferedIdentifyUI(g *libkb.GlobalContext, u libkb.IdentifyUI, c keybase1.ConfirmResult) *bufferedIdentifyUI {
+	return &bufferedIdentifyUI{
+		Contextified:        libkb.NewContextified(g),
+		raw:                 u,
+		confirmIfSuppressed: c,
+		bufferedMode:        true,
+	}
 }
 
 func (b *bufferedIdentifyUI) Start(s string, r keybase1.IdentifyReason) error {
@@ -52,43 +60,56 @@ func (b *bufferedIdentifyUI) Start(s string, r keybase1.IdentifyReason) error {
 	return b.flush(false)
 }
 
-func (b *bufferedIdentifyUI) flush(trackingBroke bool) error {
+func (b *bufferedIdentifyUI) flush(trackingBroke bool) (err error) {
+
+	// Look up the calling function for debugging purposes
+	pc := make([]uintptr, 10) // at least 1 entry needed
+	runtime.Callers(2, pc)
+	f := runtime.FuncForPC(pc[0])
+	caller := path.Base(f.Name())
+
+	b.G().Log.Debug("+ bufferedIdentifyUI#flush(%v) [caller=%s, buffered=%v, suppressed=%v]", trackingBroke, caller, b.bufferedMode, b.suppressed)
+
 	if !trackingBroke && b.bufferedMode {
+		b.G().Log.Debug("- bufferedIdentifyUI#flush: short-circuit")
 		return nil
 	}
 
-	defer b.flushCleanup()
+	defer func() {
+		b.flushCleanup()
+		b.G().Log.Debug("- bufferedIdentifyUI#flush -> %v", err)
+	}()
 
 	if b.start != nil {
-		err := b.raw.Start(b.start.s, b.start.r)
+		err = b.raw.Start(b.start.s, b.start.r)
 		if err != nil {
 			return err
 		}
 	}
 
 	for _, k := range b.keys {
-		err := b.raw.DisplayKey(k)
+		err = b.raw.DisplayKey(k)
 		if err != nil {
 			return err
 		}
 	}
 
 	if b.lastTrack != nil {
-		err := b.raw.ReportLastTrack(*b.lastTrack)
+		err = b.raw.ReportLastTrack(*b.lastTrack)
 		if err != nil {
 			return err
 		}
 	}
 
 	if b.launchNetworkChecks != nil {
-		err := b.raw.LaunchNetworkChecks(b.launchNetworkChecks.i, b.launchNetworkChecks.u)
+		err = b.raw.LaunchNetworkChecks(b.launchNetworkChecks.i, b.launchNetworkChecks.u)
 		if err != nil {
 			return err
 		}
 	}
 
 	if b.userCard != nil {
-		err := b.raw.DisplayUserCard(*b.userCard)
+		err = b.raw.DisplayUserCard(*b.userCard)
 		if err != nil {
 			return err
 		}
@@ -107,7 +128,7 @@ func (b *bufferedIdentifyUI) flush(trackingBroke bool) error {
 	}
 
 	for _, c := range b.cryptocurrency {
-		err := b.raw.DisplayCryptocurrency(c)
+		err = b.raw.DisplayCryptocurrency(c)
 		if err != nil {
 			return err
 		}
@@ -146,9 +167,11 @@ func (b *bufferedIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.Conf
 	defer b.Unlock()
 	bt := false
 	if b.bufferedMode && !bt {
+		b.G().Log.Debug("| bufferedIdentifyUI#Confirm: suppressing output")
 		b.suppressed = true
 		return b.confirmIfSuppressed, nil
 	}
+	b.G().Log.Debug("| bufferedIdentifyUI#Confirm: enabling output")
 	b.flush(bt)
 	return b.raw.Confirm(o)
 }
@@ -205,13 +228,17 @@ func (b *bufferedIdentifyUI) Finish() error {
 	b.Lock()
 	defer b.Unlock()
 	if b.suppressed {
+		b.G().Log.Debug("| bufferedIdentifyUI#Finish: suppressed")
 		return nil
 	}
+	b.G().Log.Debug("| bufferedIdentifyUI#Finish: went through to UI")
 	return b.raw.Finish()
 }
+
 func (b *bufferedIdentifyUI) DisplayTLFCreateWithInvite(d keybase1.DisplayTLFCreateWithInviteArg) error {
 	return b.raw.DisplayTLFCreateWithInvite(d)
 }
+
 func (b *bufferedIdentifyUI) Dismiss(s string, r keybase1.DismissReason) error {
 	return b.raw.Dismiss(s, r)
 }
