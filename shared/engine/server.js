@@ -74,7 +74,7 @@ export default class Server {
   }
 
   listen () {
-    this.engine.listenServerInit(this.startMethodName, (param, cbs, sessionID) => this.init(param, cbs, sessionID))
+    this.engine().listenServerInit(this.startMethodName, (param, cbs, sessionID) => this.init(param, cbs, sessionID))
   }
 
   init (params: any, {start, end}: {start: (endpoints: CallMap) => void, end: () => void}, sessionID: number) {

@@ -432,4 +432,11 @@ const cancelError = {
   desc: 'Canceling RPC',
 }
 
-export default new Engine()
+let engine: ?Engine = null
+
+export default function (): Engine {
+  if (!engine) {
+    engine = new Engine()
+  }
+  return engine
+}

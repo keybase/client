@@ -47,7 +47,7 @@ class DevMenu extends Component {
       },
       {name: 'reset',
         onClick: () => {
-          engine.reset()
+          engine().reset()
           console.log('Engine reset!')
         },
       },

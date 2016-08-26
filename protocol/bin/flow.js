@@ -142,7 +142,7 @@ function analyzeMessages (json, project) {
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any${r}) => void)}>) {
-  engine.rpc({...request, method: '${json.protocol}.${m}'})
+  engine().rpc({...request, method: '${json.protocol}.${m}'})
 }
 `
     return [paramType, response, rpc].filter(i => !!i).join('\n\n')

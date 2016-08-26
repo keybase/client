@@ -34,7 +34,7 @@ export default function (channels: NotificationChannels): Promise<void> {
       chat: !!channelsSet.chat,
     }
 
-    engine.listenOnConnect('setNotifications', () => {
+    engine().listenOnConnect('setNotifications', () => {
       notifyCtlSetNotificationsRpc({
         param: {channels: toSend},
         callback: (error, response) => {
