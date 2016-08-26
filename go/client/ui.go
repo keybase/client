@@ -917,6 +917,14 @@ func (ui *UI) PromptYesNo(_ libkb.PromptDescriptor, p string, def libkb.PromptDe
 	return ui.Terminal.PromptYesNo(p, def)
 }
 
+func (ui *UI) GetSize() (width int, height int, error error) {
+	w, h := ui.Terminal.GetSize()
+	return w, h, nil
+}
+
+var _ libkb.TerminalUI = (*UI)(nil)
+var _ libkb.DumbOutputUI = (*UI)(nil)
+
 var ErrInputCanceled libkb.InputCanceledError
 
 func (ui *UI) PromptSelection(prompt string, low, hi int) (ret int, err error) {

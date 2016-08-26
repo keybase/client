@@ -146,6 +146,10 @@ func (n *signupTerminalUI) PromptYesNo(pd libkb.PromptDescriptor, s string, def 
 	return ret, err
 }
 
+func (n *signupTerminalUI) GetSize() (int, int, error) {
+	return 80, 24, nil
+}
+
 func (n *signupTerminalUI) PromptForConfirmation(prompt string) error {
 	return nil
 }
