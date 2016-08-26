@@ -96,21 +96,29 @@ func (c *chatLocalMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfN
 	return res, errors.New("CompleteAndCanonicalizeTlfName not implemented")
 }
 
-func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg keybase1.ResolveConversationLocalArg) (ids []chat1.ConversationID, err error) {
+func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg keybase1.ConversationInfoLocal) (ids []chat1.ConversationID, err error) {
 	ids = append(ids, chatLocalMockConversationID)
 	return ids, nil
 }
 
-func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationMessagesLocal, err error) {
+func (c *chatLocalMock) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationLocal, err error) {
 	tview, err := c.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
 		ConversationID: chatLocalMockConversationID,
 	})
 	if err != nil {
 		return nil, err
 	}
-	return []keybase1.ConversationMessagesLocal{
-		keybase1.ConversationMessagesLocal{
-			Id:       chatLocalMockConversationID,
+	tview.Messages[0].Info = &keybase1.MessageInfoLocal{IsNew: true, SenderUsername: "songgao", SenderDeviceName: "MacBook"}
+	tview.Messages[1].Info = &keybase1.MessageInfoLocal{IsNew: true, SenderUsername: "rick", SenderDeviceName: "bottle-opener"}
+	tview.Messages[2].Info = &keybase1.MessageInfoLocal{IsNew: false, SenderUsername: "morty", SenderDeviceName: "toothbrush"}
+	return []keybase1.ConversationLocal{
+		keybase1.ConversationLocal{
+			Id: chatLocalMockConversationID,
+			Info: &keybase1.ConversationInfoLocal{
+				TlfName:   "morty,rick,songgao",
+				TopicName: "",
+				TopicType: chat1.TopicType_CHAT,
+			},
 			Messages: tview.Messages,
 		},
 	}, nil
@@ -120,18 +128,45 @@ func (c *chatLocalMock) NewConversationLocal(ctx context.Context, cID chat1.Conv
 	return id, errors.New("NewConversationLocal not implemented")
 }
 
-func TestCliInbox(t *testing.T) {
+func TestCliList(t *testing.T) {
 	g := libkb.NewGlobalContextInit()
 	term, err := NewTerminal(g)
 	if err != nil {
 		t.Fatal(err)
 	}
 	g.UI = &UI{Terminal: term}
-	c := &cmdChatInbox{
+	c := &cmdChatList{
 		Contextified: libkb.NewContextified(g),
 	}
 	g.ConfigureUsage(c.GetUsage())
 	c.fetcher.chatClient = &chatLocalMock{}
+	err = c.Run()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestCliRead(t *testing.T) {
+	g := libkb.NewGlobalContextInit()
+	term, err := NewTerminal(g)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g.UI = &UI{Terminal: term}
+	c := &cmdChatRead{
+		Contextified: libkb.NewContextified(g),
+		fetcher: messageFetcher{
+			selector: keybase1.MessageSelector{
+				MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
+				Limit:        0,
+			},
+			resolver: conversationResolver{
+				TlfName: "morty,rick,songgao",
+			},
+			chatClient: &chatLocalMock{},
+		},
+	}
+	g.ConfigureUsage(c.GetUsage())
 	err = c.Run()
 	if err != nil {
 		t.Fatal(err)

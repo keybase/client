@@ -14,6 +14,10 @@ func Tablify(writer io.Writer, headings []string, rowfunc func() []string) {
 	w := new(tabwriter.Writer)
 	w.Init(writer, 5, 0, 3, ' ', 0)
 
+	TablifyWithTabWriter(w, headings, rowfunc)
+}
+
+func TablifyWithTabWriter(w *tabwriter.Writer, headings []string, rowfunc func() []string) {
 	dorow := func(cells []string) {
 		fmt.Fprintln(w, strings.Join(cells, "\t"))
 	}
