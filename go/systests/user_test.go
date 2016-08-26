@@ -161,6 +161,10 @@ func (n *signupTerminalUI) TablifyAlignRight(headings []string, rowfunc func() [
 	libkb.TablifyWithTabWriter(w, headings, rowfunc)
 }
 
+func (n *signupTerminalUI) TerminalSize() (width int, height int) {
+	return 80, 24
+}
+
 func randomUser(prefix string) *signupInfo {
 	b := make([]byte, 5)
 	rand.Read(b)

@@ -62,7 +62,7 @@ func (c *chatLocalMock) GetThreadLocal(ctx context.Context, arg keybase1.GetThre
 	msg.MessagePlaintext.MessageBodies = append(msg.MessagePlaintext.MessageBodies, keybase1.MessageBody{
 		Type: chat1.MessageType_TEXT,
 		Text: &keybase1.MessageText{
-			Body: "O_O",
+			Body: "O_O blah blah blah this is a really long line and I don't know what I'm talking about hahahahaha OK long enough",
 		},
 	})
 	tview.Messages = append(tview.Messages, msg)

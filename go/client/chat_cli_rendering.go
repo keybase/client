@@ -31,6 +31,7 @@ func (v conversationListView) show(ui libkb.TerminalUI) {
 	if len(v) == 0 {
 		return
 	}
+	w, _ := ui.TerminalSize()
 	iConversation := 0
 	ui.TablifyAlignRight(nil, func() []string {
 		for ; iConversation < len(v) && len(v[iConversation].Messages) == 0; iConversation++ {
@@ -38,11 +39,25 @@ func (v conversationListView) show(ui libkb.TerminalUI) {
 		if iConversation == len(v) {
 			return nil
 		}
+		headings := w/2 - 2 // headings shouldn't exceed half of terminal size
+		conversationNumber := fmt.Sprintf("[%d]", iConversation)
+		headings -= len(conversationNumber)
+		authorAndTime := messageFormatter(v[iConversation].Messages[0]).renderAuthorAndTime()
+		headings -= len(authorAndTime)
+		if headings < 3 {
+			ui.Printf("terminal too small!\n")
+			return nil
+		}
+		conversationName := v.renderConversationName(headings, iConversation)
 		ret := []string{
-			fmt.Sprintf("[%d]", iConversation),
-			v.renderConversationName(20, iConversation),
-			messageFormatter(v[iConversation].Messages[0]).renderAuthorAndTime(),
-			messageFormatter(v[iConversation].Messages[0]).renderMessage(40),
+			conversationNumber,
+			conversationName,
+			authorAndTime,
+			// This is actually incorrect since the headings may not take as much as
+			// w/2 space, in which case messages should be able to be longer.
+			//
+			// TODO: need a more beefy tablifier
+			messageFormatter(v[iConversation].Messages[0]).renderMessage(w - w/2 - 2),
 		}
 		iConversation++
 		return ret
@@ -55,6 +70,7 @@ func (v conversationView) show(ui libkb.TerminalUI) {
 	if len(v.Messages) == 0 {
 		return
 	}
+	w, _ := ui.TerminalSize()
 	ch := make(chan []string)
 	go func() {
 		for _, m := range v.Messages {
@@ -63,7 +79,12 @@ func (v conversationView) show(ui libkb.TerminalUI) {
 				unread = "*"
 			}
 			authorAndTime := messageFormatter(m).renderAuthorAndTime()
-			lines := messageFormatter(m).renderMessageWrap(60)
+			rest := w - len(unread) - len(authorAndTime) - 2 /* 2 extra spaces added by tablify */
+			if rest < 3 {
+				ui.Printf("terminal too small!\n")
+				break
+			}
+			lines := messageFormatter(m).renderMessageWrap(rest)
 			for i, l := range lines {
 				if i == 0 {
 					ch <- []string{unread, authorAndTime, lines[0]}
@@ -74,6 +95,7 @@ func (v conversationView) show(ui libkb.TerminalUI) {
 		}
 		close(ch)
 	}()
+	// TODO: need better tablifier!
 	ui.TablifyAlignRight(nil, func() []string {
 		return <-ch
 	})

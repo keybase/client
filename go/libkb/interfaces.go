@@ -362,16 +362,17 @@ type OutputDescriptor int
 
 type TerminalUI interface {
 	ErrorWriter() io.Writer
-	OutputWriter() io.Writer
 	Output(string) error
 	OutputDesc(OutputDescriptor, string) error
+	OutputWriter() io.Writer
 	Printf(fmt string, args ...interface{}) (int, error)
-	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
 	Prompt(PromptDescriptor, string) (string, error)
-	PromptPassword(PromptDescriptor, string) (string, error)
 	PromptForConfirmation(prompt string) error
+	PromptPassword(PromptDescriptor, string) (string, error)
+	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
 	Tablify(headings []string, rowfunc func() []string)
 	TablifyAlignRight(headings []string, rowfunc func() []string)
+	TerminalSize() (width int, height int)
 }
 
 type DumbOutputUI interface {
