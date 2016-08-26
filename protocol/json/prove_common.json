@@ -56,7 +56,8 @@
         "BAD_API_URL_304",
         "UNKNOWN_TYPE_305",
         "NO_HINT_306",
-        "BAD_HINT_TEXT_307"
+        "BAD_HINT_TEXT_307",
+        "INVALID_PVL_308"
       ],
       "doc": "3: It's been found in the hunt, but not proven yet\n    1xx: Retryable soft errors\n    2xx: Will likely result in a hard error, if repeated enough\n    3xx: Hard final errors"
     },
