@@ -17,14 +17,12 @@ class Render extends Component<void, Props, void> {
             value={this.props.fullname}
             onEnterKeyDown={this.props.onSubmit}
             onChangeText={fullname => this.props.onFullnameChange(fullname)} />
-
           <Input
             style={styleEditProfile}
             floatingLabelText='Location'
             value={this.props.location}
             onEnterKeyDown={this.props.onSubmit}
             onChangeText={location => this.props.onLocationChange(location)} />
-
           <Input
             style={styleEditProfile}
             floatingLabelText='Bio'
@@ -32,7 +30,6 @@ class Render extends Component<void, Props, void> {
             errorText={this.props.bioLengthLeft <= 5 ? this.props.bioLengthLeft + ' characters left.' : ''}
             onEnterKeyDown={this.props.onSubmit}
             onChangeText={bio => this.props.onBioChange(bio)} />
-
           <Box style={styleButtonContainer}>
             <Button type='Secondary' onClick={this.props.onCancel} label='Cancel' />
             <Button type='Primary' onClick={this.props.onSubmit} label='Save' />
