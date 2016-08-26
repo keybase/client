@@ -41,6 +41,11 @@ type NewConversationRemoteArg struct {
 	IdTriple ConversationIDTriple `codec:"idTriple" json:"idTriple"`
 }
 
+type RetrieveMessagesRemoteArg struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	MessageIDs     []MessageID    `codec:"messageIDs" json:"messageIDs"`
+}
+
 type MarkAsReadArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	MsgID          MessageID      `codec:"msgID" json:"msgID"`
@@ -51,6 +56,7 @@ type RemoteInterface interface {
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (ThreadViewBoxed, error)
 	PostRemote(context.Context, PostRemoteArg) (MessageID, error)
 	NewConversationRemote(context.Context, ConversationIDTriple) (ConversationID, error)
+	RetrieveMessagesRemote(context.Context, RetrieveMessagesRemoteArg) ([]MessageBoxed, error)
 	MarkAsRead(context.Context, MarkAsReadArg) error
 }
 
@@ -122,6 +128,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"retrieveMessagesRemote": {
+				MakeArg: func() interface{} {
+					ret := make([]RetrieveMessagesRemoteArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RetrieveMessagesRemoteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RetrieveMessagesRemoteArg)(nil), args)
+						return
+					}
+					ret, err = i.RetrieveMessagesRemote(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"markAsRead": {
 				MakeArg: func() interface{} {
 					ret := make([]MarkAsReadArg, 1)
@@ -165,6 +187,11 @@ func (c RemoteClient) PostRemote(ctx context.Context, __arg PostRemoteArg) (res 
 func (c RemoteClient) NewConversationRemote(ctx context.Context, idTriple ConversationIDTriple) (res ConversationID, err error) {
 	__arg := NewConversationRemoteArg{IdTriple: idTriple}
 	err = c.Cli.Call(ctx, "chat.1.remote.newConversationRemote", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) RetrieveMessagesRemote(ctx context.Context, __arg RetrieveMessagesRemoteArg) (res []MessageBoxed, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.retrieveMessagesRemote", []interface{}{__arg}, &res)
 	return
 }
 
