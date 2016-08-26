@@ -36,6 +36,12 @@ type CheckDeviceNameFormatArg struct {
 	Name      string `codec:"name" json:"name"`
 }
 
+type CheckDeviceNameForUserArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Username   string `codec:"username" json:"username"`
+	Devicename string `codec:"devicename" json:"devicename"`
+}
+
 type DeviceInterface interface {
 	// List devices for the user.
 	DeviceList(context.Context, int) ([]Device, error)
@@ -47,6 +53,11 @@ type DeviceInterface interface {
 	DeviceAdd(context.Context, int) error
 	// Checks the device name format.
 	CheckDeviceNameFormat(context.Context, CheckDeviceNameFormatArg) (bool, error)
+	// Checks a given device against all of user's past devices,
+	// including those that predate a reset. It will also check a device name
+	// for proper formatting. Return null error on success, and a non-null
+	// error otherwise.
+	CheckDeviceNameForUser(context.Context, CheckDeviceNameForUserArg) error
 }
 
 func DeviceProtocol(i DeviceInterface) rpc.Protocol {
@@ -117,6 +128,22 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"checkDeviceNameForUser": {
+				MakeArg: func() interface{} {
+					ret := make([]CheckDeviceNameForUserArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CheckDeviceNameForUserArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CheckDeviceNameForUserArg)(nil), args)
+						return
+					}
+					err = i.CheckDeviceNameForUser(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -151,5 +178,14 @@ func (c DeviceClient) DeviceAdd(ctx context.Context, sessionID int) (err error) 
 // Checks the device name format.
 func (c DeviceClient) CheckDeviceNameFormat(ctx context.Context, __arg CheckDeviceNameFormatArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.device.checkDeviceNameFormat", []interface{}{__arg}, &res)
+	return
+}
+
+// Checks a given device against all of user's past devices,
+// including those that predate a reset. It will also check a device name
+// for proper formatting. Return null error on success, and a non-null
+// error otherwise.
+func (c DeviceClient) CheckDeviceNameForUser(ctx context.Context, __arg CheckDeviceNameForUserArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.device.checkDeviceNameForUser", []interface{}{__arg}, nil)
 	return
 }

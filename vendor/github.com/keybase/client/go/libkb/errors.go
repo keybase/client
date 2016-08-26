@@ -45,6 +45,11 @@ type ProofErrorImpl struct {
 }
 
 func NewProofError(s keybase1.ProofStatus, d string, a ...interface{}) *ProofErrorImpl {
+	// Don't do string interpolation if there are no substitution arguments.
+	// Fixes double-interpolation when deserializing an object.
+	if len(a) == 0 {
+		return &ProofErrorImpl{s, d}
+	}
 	return &ProofErrorImpl{s, fmt.Sprintf(d, a...)}
 }
 
@@ -1452,4 +1457,31 @@ type UnhandledSignatureError struct {
 
 func (e UnhandledSignatureError) Error() string {
 	return fmt.Sprintf("unhandled signature version: %d", e.version)
+}
+
+type DeletedError struct {
+	Msg string
+}
+
+func (e DeletedError) Error() string {
+	if len(e.Msg) == 0 {
+		return "Deleted"
+	}
+	return e.Msg
+}
+
+//=============================================================================
+
+type DeviceNameInUseError struct{}
+
+func (e DeviceNameInUseError) Error() string {
+	return "device name already in use"
+}
+
+//=============================================================================
+
+type DeviceBadNameError struct{}
+
+func (e DeviceBadNameError) Error() string {
+	return "device name is malformed"
 }
