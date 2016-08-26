@@ -235,7 +235,7 @@ func (e *Identify2WithUID) maybeCacheResult() {
 	}
 }
 
-func (e *Identify2WithUID) insertTrackToken(ctx *Context, outcome *libkb.IdentifyOutcome) (err error) {
+func (e *Identify2WithUID) insertTrackToken(ctx *Context, outcome *libkb.IdentifyOutcome, ui libkb.IdentifyUI) (err error) {
 	e.G().Log.Debug("+ insertTrackToken")
 	defer func() {
 		e.G().Log.Debug("- insertTrackToken -> %v", err)
@@ -244,7 +244,7 @@ func (e *Identify2WithUID) insertTrackToken(ctx *Context, outcome *libkb.Identif
 	if err != nil {
 		return err
 	}
-	if err = ctx.IdentifyUI.ReportTrackToken(e.trackToken); err != nil {
+	if err = ui.ReportTrackToken(e.trackToken); err != nil {
 		return err
 	}
 	return nil
@@ -349,27 +349,34 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	// fingerprints and the user's UID and username.
 	e.remotesReceived = e.them.BaseProofSet()
 
+	iui := ctx.IdentifyUI
+	if e.useTracking && e.arg.CanSuppressUI {
+		iui = newBufferedIdentifyUI(e.G(), iui, keybase1.ConfirmResult{
+			IdentityConfirmed: true,
+		})
+	}
+
 	e.G().Log.Debug("| IdentifyUI.Start(%s)", e.them.GetName())
-	if err = ctx.IdentifyUI.Start(e.them.GetName(), e.arg.Reason); err != nil {
+	if err = iui.Start(e.them.GetName(), e.arg.Reason); err != nil {
 		return err
 	}
 	for _, k := range e.identifyKeys {
-		if err = ctx.IdentifyUI.DisplayKey(k); err != nil {
+		if err = iui.DisplayKey(k); err != nil {
 			return err
 		}
 	}
 	e.G().Log.Debug("| IdentifyUI.ReportLastTrack(%s)", e.them.GetName())
-	if err = ctx.IdentifyUI.ReportLastTrack(libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName())); err != nil {
+	if err = iui.ReportLastTrack(libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName())); err != nil {
 		return err
 	}
 	e.G().Log.Debug("| IdentifyUI.LaunchNetworkChecks(%s)", e.them.GetName())
-	if err = ctx.IdentifyUI.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export()); err != nil {
+	if err = iui.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(), e.them.Export()); err != nil {
 		return err
 	}
 
 	waiter := displayUserCardAsync(e.G(), ctx, e.them.GetUID(), (e.me != nil))
 	e.G().Log.Debug("| IdentifyUI.Identify(%s)", e.them.GetName())
-	if err = e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, ctx.IdentifyUI, e); err != nil {
+	if err = e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, iui, e); err != nil {
 		return err
 	}
 
@@ -381,14 +388,14 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	// use Confirm to display the IdentifyOutcome
 	outcome := e.state.Result()
 	outcome.TrackOptions = e.trackOptions
-	e.confirmResult, err = ctx.IdentifyUI.Confirm(outcome.Export())
+	e.confirmResult, err = iui.Confirm(outcome.Export())
 	if err != nil {
 		return err
 	}
 
-	e.insertTrackToken(ctx, outcome)
+	e.insertTrackToken(ctx, outcome, iui)
 
-	if err = ctx.IdentifyUI.Finish(); err != nil {
+	if err = iui.Finish(); err != nil {
 		return err
 	}
 	e.G().Log.Debug("| IdentifyUI.Finished(%s)", e.them.GetName())

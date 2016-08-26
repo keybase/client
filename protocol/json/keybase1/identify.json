@@ -127,6 +127,11 @@
           "name": "noSkipSelf",
           "type": "boolean",
           "default": true
+        },
+        {
+          "name": "canSuppressUI",
+          "type": "bool",
+          "default": false
         }
       ],
       "response": "Identify2Res"
