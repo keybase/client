@@ -33,3 +33,9 @@ func TestFindStringInPlistWithWhitespace(t *testing.T) {
 	value := findStringInPlist(" test ", []byte(plistTestData), testLog)
 	assert.Equal(t, " value ", value)
 }
+
+func TestFindStringInPlistWithNoWhitespace(t *testing.T) {
+	const plistTestData = `<key>test</key><string>value</string>`
+	value := findStringInPlist("test", []byte(plistTestData), testLog)
+	assert.Equal(t, "value", value)
+}
