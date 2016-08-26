@@ -197,10 +197,11 @@ func (tlf *TLF) CanDeleteDirectory(ctx context.Context, fi *dokan.FileInfo) (err
 func (tlf *TLF) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	var err error
 	if fi != nil && fi.IsDeleteOnClose() {
-		tlf.folder.fs.logEnter(ctx, "TLF Cleanup")
+		name := string(tlf.folder.name())
+		tlf.folder.fs.log.CDebugf(ctx, "TLF Removing favorite %q", name)
 		defer tlf.folder.reportErr(ctx, libkbfs.WriteMode, err)
 		err = tlf.folder.fs.config.KBFSOps().DeleteFavorite(ctx, libkbfs.Favorite{
-			Name:   string(tlf.folder.name()),
+			Name:   name,
 			Public: tlf.isPublic(),
 		})
 	}
