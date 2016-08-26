@@ -9,7 +9,7 @@ export type State = {
 }
 
 const initialState: State = {
-  open: true,
+  open: false,
 }
 
 export default function (state: State = initialState, action: Actions): State {
