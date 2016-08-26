@@ -231,6 +231,12 @@ func (b *bufferedIdentifyUI) Finish() error {
 		return nil
 	}
 	b.G().Log.Debug("| bufferedIdentifyUI#Finish: went through to UI")
+
+	// This is likely a noop since we already covered this case in the `Confirm` step
+	// above. However, if due a bug we forgot to call `Confirm` from the UI, this
+	// is still useful.
+	b.flush(true)
+
 	return b.raw.Finish()
 }
 
