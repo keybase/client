@@ -127,6 +127,7 @@ export type TopicID = bytes
 export type TopicType =
     0 // NONE_0
   | 1 // CHAT_1
+  | 2 // DEV_2
 
 export type remoteGetInboxRemoteRpcParam = $Exact<{
   pagination: (null | Pagination)

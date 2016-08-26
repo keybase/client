@@ -755,7 +755,7 @@ export type MerkleTreeID =
 export type Message = {
   serverHeader: chat1.MessageServerHeader,
   messagePlaintext: MessagePlaintext,
-  isNew: boolean,
+  info?: ?MessageInfoLocal,
 }
 
 export type MessageAttachment = {
@@ -784,6 +784,13 @@ export type MessageEdit = {
   body: string,
 }
 
+export type MessageInfoLocal = {
+  isNew: boolean,
+  senderUsername: string,
+  senderDeviceName: string,
+  topicName: string,
+}
+
 export type MessagePlaintext = {
   clientHeader: chat1.MessageClientHeader,
   messageBodies?: ?Array<MessageBody>,
@@ -791,11 +798,9 @@ export type MessagePlaintext = {
 
 export type MessageSelector = {
   MessageTypes?: ?Array<chat1.MessageType>,
-  After?: ?Time,
-  Before?: ?Time,
+  Since?: ?string,
   onlyNew: boolean,
-  limitPerConversation: int,
-  limitOfConversations: int,
+  limit: int,
   conversations?: ?Array<chat1.ConversationID>,
   markAsRead: boolean,
 }
@@ -1879,21 +1884,6 @@ export function chatLocalGetMessagesLocalRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: chatLocalGetMessagesLocalResult) => void)}>) {
   engine.rpc({...request, method: 'chatLocal.getMessagesLocal'})
 }
-export type chatLocalGetOrCreateTextConversationLocalRpcParam = $Exact<{
-  tlfName: string,
-  topicName: string,
-  topicType: chat1.TopicType
-}>
-
-type chatLocalGetOrCreateTextConversationLocalResult = chat1.ConversationID
-
-export function chatLocalGetOrCreateTextConversationLocalRpc (request: $Exact<{
-  param: chatLocalGetOrCreateTextConversationLocalRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: chatLocalGetOrCreateTextConversationLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.getOrCreateTextConversationLocal'})
-}
 export type chatLocalGetThreadLocalRpcParam = $Exact<{
   conversationID: chat1.ConversationID,
   markAsRead: boolean,
@@ -1933,6 +1923,21 @@ export function chatLocalPostLocalRpc (request: $Exact<{
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'chatLocal.postLocal'})
+}
+export type chatLocalResolveConversationLocalRpcParam = $Exact<{
+  tlfName: string,
+  topicName: string,
+  topicType: chat1.TopicType
+}>
+
+type chatLocalResolveConversationLocalResult = ?Array<chat1.ConversationID>
+
+export function chatLocalResolveConversationLocalRpc (request: $Exact<{
+  param: chatLocalResolveConversationLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatLocalResolveConversationLocalResult) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.resolveConversationLocal'})
 }
 export type configClearValueRpcParam = $Exact<{
   path: string
@@ -4171,10 +4176,10 @@ export type rpc =
   | chatLocalCompleteAndCanonicalizeTlfNameRpc
   | chatLocalGetInboxLocalRpc
   | chatLocalGetMessagesLocalRpc
-  | chatLocalGetOrCreateTextConversationLocalRpc
   | chatLocalGetThreadLocalRpc
   | chatLocalNewConversationLocalRpc
   | chatLocalPostLocalRpc
+  | chatLocalResolveConversationLocalRpc
   | configCheckAPIServerOutOfDateWarningRpc
   | configClearValueRpc
   | configGetConfigRpc
@@ -4581,7 +4586,7 @@ export type incomingCallMapType = $Exact<{
       result: (result: chatLocalNewConversationLocalResult) => void
     }
   ) => void,
-  'keybase.1.chatLocal.getOrCreateTextConversationLocal'?: (
+  'keybase.1.chatLocal.resolveConversationLocal'?: (
     params: $Exact<{
       tlfName: string,
       topicName: string,
@@ -4589,7 +4594,7 @@ export type incomingCallMapType = $Exact<{
     }>,
     response: {
       error: (err: RPCError) => void,
-      result: (result: chatLocalGetOrCreateTextConversationLocalResult) => void
+      result: (result: chatLocalResolveConversationLocalResult) => void
     }
   ) => void,
   'keybase.1.chatLocal.getMessagesLocal'?: (

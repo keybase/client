@@ -44,10 +44,17 @@ type MessagePlaintext struct {
 	MessageBodies []MessageBody             `codec:"messageBodies" json:"messageBodies"`
 }
 
+type MessageInfoLocal struct {
+	IsNew            bool   `codec:"isNew" json:"isNew"`
+	SenderUsername   string `codec:"senderUsername" json:"senderUsername"`
+	SenderDeviceName string `codec:"senderDeviceName" json:"senderDeviceName"`
+	TopicName        string `codec:"topicName" json:"topicName"`
+}
+
 type Message struct {
 	ServerHeader     chat1.MessageServerHeader `codec:"serverHeader" json:"serverHeader"`
 	MessagePlaintext MessagePlaintext          `codec:"messagePlaintext" json:"messagePlaintext"`
-	IsNew            bool                      `codec:"isNew" json:"isNew"`
+	Info             *MessageInfoLocal         `codec:"info,omitempty" json:"info,omitempty"`
 }
 
 type ThreadView struct {
@@ -56,14 +63,12 @@ type ThreadView struct {
 }
 
 type MessageSelector struct {
-	MessageTypes         []chat1.MessageType    `codec:"MessageTypes" json:"MessageTypes"`
-	After                *Time                  `codec:"After,omitempty" json:"After,omitempty"`
-	Before               *Time                  `codec:"Before,omitempty" json:"Before,omitempty"`
-	OnlyNew              bool                   `codec:"onlyNew" json:"onlyNew"`
-	LimitPerConversation int                    `codec:"limitPerConversation" json:"limitPerConversation"`
-	LimitOfConversations int                    `codec:"limitOfConversations" json:"limitOfConversations"`
-	Conversations        []chat1.ConversationID `codec:"conversations" json:"conversations"`
-	MarkAsRead           bool                   `codec:"markAsRead" json:"markAsRead"`
+	MessageTypes  []chat1.MessageType    `codec:"MessageTypes" json:"MessageTypes"`
+	Since         *string                `codec:"Since,omitempty" json:"Since,omitempty"`
+	OnlyNew       bool                   `codec:"onlyNew" json:"onlyNew"`
+	Limit         int                    `codec:"limit" json:"limit"`
+	Conversations []chat1.ConversationID `codec:"conversations" json:"conversations"`
+	MarkAsRead    bool                   `codec:"markAsRead" json:"markAsRead"`
 }
 
 type ConversationMessagesLocal struct {
@@ -90,7 +95,7 @@ type NewConversationLocalArg struct {
 	ConversationTriple chat1.ConversationIDTriple `codec:"conversationTriple" json:"conversationTriple"`
 }
 
-type GetOrCreateTextConversationLocalArg struct {
+type ResolveConversationLocalArg struct {
 	TlfName   string          `codec:"tlfName" json:"tlfName"`
 	TopicName string          `codec:"topicName" json:"topicName"`
 	TopicType chat1.TopicType `codec:"topicType" json:"topicType"`
@@ -109,7 +114,7 @@ type ChatLocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (ThreadView, error)
 	PostLocal(context.Context, PostLocalArg) error
 	NewConversationLocal(context.Context, chat1.ConversationIDTriple) (chat1.ConversationID, error)
-	GetOrCreateTextConversationLocal(context.Context, GetOrCreateTextConversationLocalArg) (chat1.ConversationID, error)
+	ResolveConversationLocal(context.Context, ResolveConversationLocalArg) ([]chat1.ConversationID, error)
 	GetMessagesLocal(context.Context, MessageSelector) ([]ConversationMessagesLocal, error)
 	CompleteAndCanonicalizeTlfName(context.Context, string) (CanonicalTlfName, error)
 }
@@ -182,18 +187,18 @@ func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getOrCreateTextConversationLocal": {
+			"resolveConversationLocal": {
 				MakeArg: func() interface{} {
-					ret := make([]GetOrCreateTextConversationLocalArg, 1)
+					ret := make([]ResolveConversationLocalArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetOrCreateTextConversationLocalArg)
+					typedArgs, ok := args.(*[]ResolveConversationLocalArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]GetOrCreateTextConversationLocalArg)(nil), args)
+						err = rpc.NewTypeError((*[]ResolveConversationLocalArg)(nil), args)
 						return
 					}
-					ret, err = i.GetOrCreateTextConversationLocal(ctx, (*typedArgs)[0])
+					ret, err = i.ResolveConversationLocal(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -260,8 +265,8 @@ func (c ChatLocalClient) NewConversationLocal(ctx context.Context, conversationT
 	return
 }
 
-func (c ChatLocalClient) GetOrCreateTextConversationLocal(ctx context.Context, __arg GetOrCreateTextConversationLocalArg) (res chat1.ConversationID, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getOrCreateTextConversationLocal", []interface{}{__arg}, &res)
+func (c ChatLocalClient) ResolveConversationLocal(ctx context.Context, __arg ResolveConversationLocalArg) (res []chat1.ConversationID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.chatLocal.resolveConversationLocal", []interface{}{__arg}, &res)
 	return
 }
 

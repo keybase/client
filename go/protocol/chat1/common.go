@@ -38,11 +38,13 @@ type TopicType int
 const (
 	TopicType_NONE TopicType = 0
 	TopicType_CHAT TopicType = 1
+	TopicType_DEV  TopicType = 2
 )
 
 var TopicTypeMap = map[string]TopicType{
 	"NONE": 0,
 	"CHAT": 1,
+	"DEV":  2,
 }
 
 type Pagination struct {
