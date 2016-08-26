@@ -5,6 +5,7 @@ import createLogger from 'redux-logger'
 import createSagaMiddleware from 'redux-saga'
 import gregorSaga from '../actions/gregor'
 import profileSaga from '../actions/profile'
+import pgpSaga from '../actions/pgp'
 import rootReducer from '../reducers'
 import thunkMiddleware from 'redux-thunk'
 import {actionLogger} from './action-logger'
@@ -53,6 +54,7 @@ function * mainSaga (getState) {
   yield [
     call(gregorSaga),
     call(profileSaga),
+    call(pgpSaga),
   ]
 }
 

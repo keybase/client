@@ -11,6 +11,7 @@ import engine from '../shared/engine'
 import tracker from '../shared/tracker'
 import pinentry from '../shared/pinentry'
 import unlockFolders from '../shared/unlock-folders'
+import purgeMessage from '../shared/pgp/container.desktop'
 
 import {setupContextMenu} from '../app/menu-helper'
 import loadPerf from '../shared/util/load-perf'
@@ -81,7 +82,7 @@ class RemoteComponentLoader extends Component {
 
     hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__) // eslint-disable-line no-undef
 
-    const component = {tracker, pinentry, unlockFolders}
+    const component = {tracker, pinentry, unlockFolders, purgeMessage}
 
     if (!componentToLoad || !component[componentToLoad]) {
       throw new TypeError('Invalid Remote Component passed through')

@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import RemoteTracker from './remote-tracker'
 import RemotePinentry from './remote-pinentry'
 import RemoteUnlockFolders from './remote-unlock-folders'
+import RemotePurgeMessage from './remote-purge-message'
 
 class RemoteManager extends Component<void, {}, void> {
   render () {
@@ -12,6 +13,7 @@ class RemoteManager extends Component<void, {}, void> {
         <RemoteTracker />
         <RemotePinentry />
         <RemoteUnlockFolders />
+        <RemotePurgeMessage />
       </div>
     )
   }

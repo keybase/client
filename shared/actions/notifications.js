@@ -27,6 +27,7 @@ export function listenForNotifications (): (dispatch: Dispatch) => void {
       kbfs: true,
       service: true,
       app: true,
+      pgp: true,
     })
 
     const listeners = ListenerCreator(dispatch, getState, NotifyPopup)
