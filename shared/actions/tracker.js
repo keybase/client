@@ -68,7 +68,7 @@ export function registerTrackerChangeListener (): TrackerActionCreator {
       },
     }
 
-    engine.listenGeneralIncomingRpc(params)
+    engine().listenGeneralIncomingRpc(params)
     setNotifications({tracking: true})
   }
 }
@@ -184,7 +184,7 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
 
 export function registerIdentifyUi (): TrackerActionCreator {
   return (dispatch, getState) => {
-    engine.listenOnConnect('registerIdentifyUi', () => {
+    engine().listenOnConnect('registerIdentifyUi', () => {
       delegateUiCtlRegisterIdentifyUIRpc({
         callback: (error, response) => {
           if (error != null) {

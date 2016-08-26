@@ -15,7 +15,7 @@ export default function (pid: number, desc: string, argv: Array<string>, version
   }
 
   return new Promise((resolve, reject) => {
-    engine.listenOnConnect('hello', () => {
+    engine().listenOnConnect('hello', () => {
       configHelloIAmRpc({
         param: {details},
         callback: (err, resp) => {

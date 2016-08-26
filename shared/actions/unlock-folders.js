@@ -50,7 +50,7 @@ export function openDialog (): AsyncAction {
       method: 'rekey.showPendingRekeyStatus',
       callback: null,
     }
-    engine.rpc(params)
+    engine().rpc(params)
   }
 }
 
@@ -67,7 +67,7 @@ export function close (): AsyncAction {
 
 export function registerRekeyListener (): (dispatch: Dispatch) => void {
   return dispatch => {
-    engine.listenOnConnect('registerRekeyUI', () => {
+    engine().listenOnConnect('registerRekeyUI', () => {
       delegateUiCtlRegisterRekeyUIRpc({
         callback: (error, response) => {
           if (error != null) {
@@ -80,7 +80,7 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
     })
 
     // we get this with sessionID == 0 if we call openDialog
-    engine.listenGeneralIncomingRpc({
+    engine().listenGeneralIncomingRpc({
       'keybase.1.rekeyUI.refresh': (params, response) => refreshHandler(params, response, dispatch),
     })
     // else we get this also as part of delegateRekeyUI

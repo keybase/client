@@ -11,7 +11,7 @@ const uglySessionIDResponseMapper: {[key: number]: any} = {}
 
 export function registerPinentryListener (): AsyncAction {
   return dispatch => {
-    engine.listenOnConnect('registerSecretUI', () => {
+    engine().listenOnConnect('registerSecretUI', () => {
       delegateUiCtlRegisterSecretUIRpc({
         callback: (error, response) => {
           if (error != null) {
@@ -29,7 +29,7 @@ export function registerPinentryListener (): AsyncAction {
     }: RegisterPinentryListenerAction))
 
     const pinentryListeners = pinentryListenersCreator(dispatch)
-    engine.listenGeneralIncomingRpc(pinentryListeners)
+    engine().listenGeneralIncomingRpc(pinentryListeners)
   }
 }
 

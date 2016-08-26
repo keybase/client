@@ -38,7 +38,7 @@ class Menubar extends Component<void, Props, void> {
 
     const onMenubarShow = () => {
       setImmediate(() => {
-        engine.listenOnConnect('menubar', () => {
+        engine().listenOnConnect('menubar', () => {
           this._checkForFolders(true)
         })
       })
@@ -46,14 +46,14 @@ class Menubar extends Component<void, Props, void> {
 
     const onMenubarHide = () => {
       setImmediate(() => {
-        engine.listenOnConnect('menubar', () => { })
+        engine().listenOnConnect('menubar', () => { })
       })
     }
 
     if (module.hot) {
       module.hot.dispose(() => {
         try {
-          engine.reset()
+          engine().reset()
           ipcRenderer.send('unsubscribeMenubar')
           ipcRenderer.removeListener('menubarShow', onMenubarShow)
           ipcRenderer.removeListener('menubarHide', onMenubarHide)

@@ -30,7 +30,7 @@ export function listenForNotifications (): (dispatch: Dispatch) => void {
     })
 
     const listeners = ListenerCreator(dispatch, getState, NotifyPopup)
-    engine.listenGeneralIncomingRpc(listeners)
+    engine().listenGeneralIncomingRpc(listeners)
     initialized = true
   }
 }

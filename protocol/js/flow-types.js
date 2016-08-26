@@ -21,157 +21,157 @@ export function Kex2ProvisionerKexStartRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'Kex2Provisioner.kexStart'})
+  engine().rpc({...request, method: 'Kex2Provisioner.kexStart'})
 }
 export function NotifyAppExitRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyApp.exit'})
+  engine().rpc({...request, method: 'NotifyApp.exit'})
 }
 export function NotifyServiceShutdownRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyService.shutdown'})
+  engine().rpc({...request, method: 'NotifyService.shutdown'})
 }
 export function NotifySessionLoggedOutRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifySession.loggedOut'})
+  engine().rpc({...request, method: 'NotifySession.loggedOut'})
 }
 export function ctlAppExitRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'ctl.appExit'})
+  engine().rpc({...request, method: 'ctl.appExit'})
 }
 export function ctlDbNukeRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'ctl.dbNuke'})
+  engine().rpc({...request, method: 'ctl.dbNuke'})
 }
 export function ctlLogRotateRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'ctl.logRotate'})
+  engine().rpc({...request, method: 'ctl.logRotate'})
 }
 export function ctlReloadRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'ctl.reload'})
+  engine().rpc({...request, method: 'ctl.reload'})
 }
 export function delegateUiCtlRegisterGregorFirehoseRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'delegateUiCtl.registerGregorFirehose'})
+  engine().rpc({...request, method: 'delegateUiCtl.registerGregorFirehose'})
 }
 export function delegateUiCtlRegisterIdentifyUIRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'delegateUiCtl.registerIdentifyUI'})
+  engine().rpc({...request, method: 'delegateUiCtl.registerIdentifyUI'})
 }
 export function delegateUiCtlRegisterRekeyUIRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'delegateUiCtl.registerRekeyUI'})
+  engine().rpc({...request, method: 'delegateUiCtl.registerRekeyUI'})
 }
 export function delegateUiCtlRegisterSecretUIRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'delegateUiCtl.registerSecretUI'})
+  engine().rpc({...request, method: 'delegateUiCtl.registerSecretUI'})
 }
 export function delegateUiCtlRegisterUpdateUIRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'delegateUiCtl.registerUpdateUI'})
+  engine().rpc({...request, method: 'delegateUiCtl.registerUpdateUI'})
 }
 export function deviceDeviceAddRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'device.deviceAdd'})
+  engine().rpc({...request, method: 'device.deviceAdd'})
 }
 export function identifyUiFinishRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.finish'})
+  engine().rpc({...request, method: 'identifyUi.finish'})
 }
 export function loginAccountDeleteRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.accountDelete'})
+  engine().rpc({...request, method: 'login.accountDelete'})
 }
 export function loginLogoutRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.logout'})
+  engine().rpc({...request, method: 'login.logout'})
 }
 export function loginPaperKeyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.paperKey'})
+  engine().rpc({...request, method: 'login.paperKey'})
 }
 export function loginUnlockRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.unlock'})
+  engine().rpc({...request, method: 'login.unlock'})
 }
 export function metadataPingRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.ping'})
+  engine().rpc({...request, method: 'metadata.ping'})
 }
 export function pgpPgpDeletePrimaryRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpDeletePrimary'})
+  engine().rpc({...request, method: 'pgp.pgpDeletePrimary'})
 }
 export function pgpUiFinishedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgpUi.finished'})
+  engine().rpc({...request, method: 'pgpUi.finished'})
 }
 export function provisionUiDisplaySecretExchangedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.DisplaySecretExchanged'})
+  engine().rpc({...request, method: 'provisionUi.DisplaySecretExchanged'})
 }
 export function rekeyDebugShowRekeyStatusRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'rekey.debugShowRekeyStatus'})
+  engine().rpc({...request, method: 'rekey.debugShowRekeyStatus'})
 }
 export function rekeyShowPendingRekeyStatusRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'rekey.showPendingRekeyStatus'})
+  engine().rpc({...request, method: 'rekey.showPendingRekeyStatus'})
 }
 export function trackCheckTrackingRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'track.checkTracking'})
+  engine().rpc({...request, method: 'track.checkTracking'})
 }
 export type APIRes = {
   status: string,
@@ -190,7 +190,7 @@ export function BTCRegisterBTCRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'BTC.registerBTC'})
+  engine().rpc({...request, method: 'BTC.registerBTC'})
 }
 export type BinaryKID = bytes
 
@@ -668,7 +668,7 @@ export function Kex2ProvisioneeDidCounterSignRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'Kex2Provisionee.didCounterSign'})
+  engine().rpc({...request, method: 'Kex2Provisionee.didCounterSign'})
 }
 export type Kex2ProvisioneeHelloRpcParam = $Exact<{
   uid: UID,
@@ -685,7 +685,7 @@ export function Kex2ProvisioneeHelloRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: Kex2ProvisioneeHelloResult) => void)}>) {
-  engine.rpc({...request, method: 'Kex2Provisionee.hello'})
+  engine().rpc({...request, method: 'Kex2Provisionee.hello'})
 }
 export type KeyHalf = {
   user: UID,
@@ -840,7 +840,7 @@ export function NotifyChatNewChatActivityRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyChat.NewChatActivity'})
+  engine().rpc({...request, method: 'NotifyChat.NewChatActivity'})
 }
 export type NotifyFSFSActivityRpcParam = $Exact<{
   notification: FSNotification
@@ -851,7 +851,7 @@ export function NotifyFSFSActivityRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyFS.FSActivity'})
+  engine().rpc({...request, method: 'NotifyFS.FSActivity'})
 }
 export type NotifyFSFSEditListResponseRpcParam = $Exact<{
   edits?: ?Array<FSNotification>,
@@ -863,7 +863,7 @@ export function NotifyFSFSEditListResponseRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyFS.FSEditListResponse'})
+  engine().rpc({...request, method: 'NotifyFS.FSEditListResponse'})
 }
 export type NotifyFSRequestFSEditListRequestRpcParam = $Exact<{
   req: FSEditListRequest
@@ -874,7 +874,7 @@ export function NotifyFSRequestFSEditListRequestRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyFSRequest.FSEditListRequest'})
+  engine().rpc({...request, method: 'NotifyFSRequest.FSEditListRequest'})
 }
 export type NotifyFavoritesFavoritesChangedRpcParam = $Exact<{
   uid: UID
@@ -885,7 +885,7 @@ export function NotifyFavoritesFavoritesChangedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyFavorites.favoritesChanged'})
+  engine().rpc({...request, method: 'NotifyFavorites.favoritesChanged'})
 }
 export type NotifyKeyfamilyKeyfamilyChangedRpcParam = $Exact<{
   uid: UID
@@ -896,7 +896,7 @@ export function NotifyKeyfamilyKeyfamilyChangedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyKeyfamily.keyfamilyChanged'})
+  engine().rpc({...request, method: 'NotifyKeyfamily.keyfamilyChanged'})
 }
 export type NotifyPaperKeyPaperKeyCachedRpcParam = $Exact<{
   uid: UID,
@@ -909,7 +909,7 @@ export function NotifyPaperKeyPaperKeyCachedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyPaperKey.paperKeyCached'})
+  engine().rpc({...request, method: 'NotifyPaperKey.paperKeyCached'})
 }
 export type NotifySessionClientOutOfDateRpcParam = $Exact<{
   upgradeTo: string,
@@ -922,7 +922,7 @@ export function NotifySessionClientOutOfDateRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifySession.clientOutOfDate'})
+  engine().rpc({...request, method: 'NotifySession.clientOutOfDate'})
 }
 export type NotifySessionLoggedInRpcParam = $Exact<{
   username: string
@@ -933,7 +933,7 @@ export function NotifySessionLoggedInRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifySession.loggedIn'})
+  engine().rpc({...request, method: 'NotifySession.loggedIn'})
 }
 export type NotifyTrackingTrackingChangedRpcParam = $Exact<{
   uid: UID,
@@ -945,7 +945,7 @@ export function NotifyTrackingTrackingChangedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyTracking.trackingChanged'})
+  engine().rpc({...request, method: 'NotifyTracking.trackingChanged'})
 }
 export type NotifyUsersUserChangedRpcParam = $Exact<{
   uid: UID
@@ -956,7 +956,7 @@ export function NotifyUsersUserChangedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'NotifyUsers.userChanged'})
+  engine().rpc({...request, method: 'NotifyUsers.userChanged'})
 }
 export type OutOfDateInfo = {
   upgradeTo: string,
@@ -1671,7 +1671,7 @@ export function accountPassphraseChangeRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'account.passphraseChange'})
+  engine().rpc({...request, method: 'account.passphraseChange'})
 }
 export type accountPassphrasePromptRpcParam = $Exact<{
   guiArg: GUIEntryArg
@@ -1684,7 +1684,7 @@ export function accountPassphrasePromptRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: accountPassphrasePromptResult) => void)}>) {
-  engine.rpc({...request, method: 'account.passphrasePrompt'})
+  engine().rpc({...request, method: 'account.passphrasePrompt'})
 }
 export type apiserverGetRpcParam = $Exact<{
   endpoint: string,
@@ -1700,7 +1700,7 @@ export function apiserverGetRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: apiserverGetResult) => void)}>) {
-  engine.rpc({...request, method: 'apiserver.Get'})
+  engine().rpc({...request, method: 'apiserver.Get'})
 }
 export type apiserverPostJSONRpcParam = $Exact<{
   endpoint: string,
@@ -1717,7 +1717,7 @@ export function apiserverPostJSONRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: apiserverPostJSONResult) => void)}>) {
-  engine.rpc({...request, method: 'apiserver.PostJSON'})
+  engine().rpc({...request, method: 'apiserver.PostJSON'})
 }
 export type apiserverPostRpcParam = $Exact<{
   endpoint: string,
@@ -1733,7 +1733,7 @@ export function apiserverPostRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: apiserverPostResult) => void)}>) {
-  engine.rpc({...request, method: 'apiserver.Post'})
+  engine().rpc({...request, method: 'apiserver.Post'})
 }
 export type blockAddReferenceRpcParam = $Exact<{
   folder: string,
@@ -1745,7 +1745,7 @@ export function blockAddReferenceRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'block.addReference'})
+  engine().rpc({...request, method: 'block.addReference'})
 }
 export type blockArchiveReferenceRpcParam = $Exact<{
   folder: string,
@@ -1759,7 +1759,7 @@ export function blockArchiveReferenceRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: blockArchiveReferenceResult) => void)}>) {
-  engine.rpc({...request, method: 'block.archiveReference'})
+  engine().rpc({...request, method: 'block.archiveReference'})
 }
 export type blockArchiveReferenceWithCountRpcParam = $Exact<{
   folder: string,
@@ -1773,7 +1773,7 @@ export function blockArchiveReferenceWithCountRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: blockArchiveReferenceWithCountResult) => void)}>) {
-  engine.rpc({...request, method: 'block.archiveReferenceWithCount'})
+  engine().rpc({...request, method: 'block.archiveReferenceWithCount'})
 }
 export type blockAuthenticateSessionRpcParam = $Exact<{
   signature: string
@@ -1784,7 +1784,7 @@ export function blockAuthenticateSessionRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'block.authenticateSession'})
+  engine().rpc({...request, method: 'block.authenticateSession'})
 }
 export type blockDelReferenceRpcParam = $Exact<{
   folder: string,
@@ -1796,7 +1796,7 @@ export function blockDelReferenceRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'block.delReference'})
+  engine().rpc({...request, method: 'block.delReference'})
 }
 export type blockDelReferenceWithCountRpcParam = $Exact<{
   folder: string,
@@ -1810,7 +1810,7 @@ export function blockDelReferenceWithCountRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: blockDelReferenceWithCountResult) => void)}>) {
-  engine.rpc({...request, method: 'block.delReferenceWithCount'})
+  engine().rpc({...request, method: 'block.delReferenceWithCount'})
 }
 export type blockGetBlockRpcParam = $Exact<{
   bid: BlockIdCombo,
@@ -1824,7 +1824,7 @@ export function blockGetBlockRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: blockGetBlockResult) => void)}>) {
-  engine.rpc({...request, method: 'block.getBlock'})
+  engine().rpc({...request, method: 'block.getBlock'})
 }
 export type blockPutBlockRpcParam = $Exact<{
   bid: BlockIdCombo,
@@ -1838,7 +1838,7 @@ export function blockPutBlockRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'block.putBlock'})
+  engine().rpc({...request, method: 'block.putBlock'})
 }
 export type chatLocalCompleteAndCanonicalizeTlfNameRpcParam = $Exact<{
   tlfName: string
@@ -1851,7 +1851,7 @@ export function chatLocalCompleteAndCanonicalizeTlfNameRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: chatLocalCompleteAndCanonicalizeTlfNameResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.completeAndCanonicalizeTlfName'})
+  engine().rpc({...request, method: 'chatLocal.completeAndCanonicalizeTlfName'})
 }
 export type chatLocalGetInboxLocalRpcParam = $Exact<{
   pagination: (null | chat1.Pagination)
@@ -1864,7 +1864,7 @@ export function chatLocalGetInboxLocalRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: chatLocalGetInboxLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.getInboxLocal'})
+  engine().rpc({...request, method: 'chatLocal.getInboxLocal'})
 }
 export type chatLocalGetMessagesLocalRpcParam = $Exact<{
   selector: MessageSelector
@@ -1877,7 +1877,7 @@ export function chatLocalGetMessagesLocalRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: chatLocalGetMessagesLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.getMessagesLocal'})
+  engine().rpc({...request, method: 'chatLocal.getMessagesLocal'})
 }
 export type chatLocalGetOrCreateTextConversationLocalRpcParam = $Exact<{
   tlfName: string,
@@ -1892,7 +1892,7 @@ export function chatLocalGetOrCreateTextConversationLocalRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: chatLocalGetOrCreateTextConversationLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.getOrCreateTextConversationLocal'})
+  engine().rpc({...request, method: 'chatLocal.getOrCreateTextConversationLocal'})
 }
 export type chatLocalGetThreadLocalRpcParam = $Exact<{
   conversationID: chat1.ConversationID,
@@ -1907,7 +1907,7 @@ export function chatLocalGetThreadLocalRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: chatLocalGetThreadLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.getThreadLocal'})
+  engine().rpc({...request, method: 'chatLocal.getThreadLocal'})
 }
 export type chatLocalNewConversationLocalRpcParam = $Exact<{
   conversationTriple: chat1.ConversationIDTriple
@@ -1920,7 +1920,7 @@ export function chatLocalNewConversationLocalRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: chatLocalNewConversationLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.newConversationLocal'})
+  engine().rpc({...request, method: 'chatLocal.newConversationLocal'})
 }
 export type chatLocalPostLocalRpcParam = $Exact<{
   conversationID: chat1.ConversationID,
@@ -1932,7 +1932,7 @@ export function chatLocalPostLocalRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.postLocal'})
+  engine().rpc({...request, method: 'chatLocal.postLocal'})
 }
 export type configClearValueRpcParam = $Exact<{
   path: string
@@ -1943,7 +1943,7 @@ export function configClearValueRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'config.clearValue'})
+  engine().rpc({...request, method: 'config.clearValue'})
 }
 export type configGetValueRpcParam = $Exact<{
   path: string
@@ -1956,7 +1956,7 @@ export function configGetValueRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: configGetValueResult) => void)}>) {
-  engine.rpc({...request, method: 'config.getValue'})
+  engine().rpc({...request, method: 'config.getValue'})
 }
 export type configHelloIAmRpcParam = $Exact<{
   details: ClientDetails
@@ -1967,7 +1967,7 @@ export function configHelloIAmRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'config.helloIAm'})
+  engine().rpc({...request, method: 'config.helloIAm'})
 }
 export type configSetPathRpcParam = $Exact<{
   path: string
@@ -1978,7 +1978,7 @@ export function configSetPathRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'config.setPath'})
+  engine().rpc({...request, method: 'config.setPath'})
 }
 export type configSetUserConfigRpcParam = $Exact<{
   username: string,
@@ -1991,7 +1991,7 @@ export function configSetUserConfigRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'config.setUserConfig'})
+  engine().rpc({...request, method: 'config.setUserConfig'})
 }
 export type configSetValueRpcParam = $Exact<{
   path: string,
@@ -2003,7 +2003,7 @@ export function configSetValueRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'config.setValue'})
+  engine().rpc({...request, method: 'config.setValue'})
 }
 export type cryptoSignED25519RpcParam = $Exact<{
   msg: bytes,
@@ -2017,7 +2017,7 @@ export function cryptoSignED25519Rpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: cryptoSignED25519Result) => void)}>) {
-  engine.rpc({...request, method: 'crypto.signED25519'})
+  engine().rpc({...request, method: 'crypto.signED25519'})
 }
 export type cryptoSignToStringRpcParam = $Exact<{
   msg: bytes,
@@ -2031,7 +2031,7 @@ export function cryptoSignToStringRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: cryptoSignToStringResult) => void)}>) {
-  engine.rpc({...request, method: 'crypto.signToString'})
+  engine().rpc({...request, method: 'crypto.signToString'})
 }
 export type cryptoUnboxBytes32AnyRpcParam = $Exact<{
   bundles?: ?Array<CiphertextBundle>,
@@ -2046,7 +2046,7 @@ export function cryptoUnboxBytes32AnyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: cryptoUnboxBytes32AnyResult) => void)}>) {
-  engine.rpc({...request, method: 'crypto.unboxBytes32Any'})
+  engine().rpc({...request, method: 'crypto.unboxBytes32Any'})
 }
 export type cryptoUnboxBytes32RpcParam = $Exact<{
   encryptedBytes32: EncryptedBytes32,
@@ -2062,7 +2062,7 @@ export function cryptoUnboxBytes32Rpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: cryptoUnboxBytes32Result) => void)}>) {
-  engine.rpc({...request, method: 'crypto.unboxBytes32'})
+  engine().rpc({...request, method: 'crypto.unboxBytes32'})
 }
 export type ctlStopRpcParam = $Exact<{
   exitCode: ExitCode
@@ -2073,7 +2073,7 @@ export function ctlStopRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'ctl.stop'})
+  engine().rpc({...request, method: 'ctl.stop'})
 }
 export type debuggingFirstStepRpcParam = $Exact<{
   val: int
@@ -2086,7 +2086,7 @@ export function debuggingFirstStepRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: debuggingFirstStepResult) => void)}>) {
-  engine.rpc({...request, method: 'debugging.firstStep'})
+  engine().rpc({...request, method: 'debugging.firstStep'})
 }
 export type debuggingIncrementRpcParam = $Exact<{
   val: int
@@ -2099,7 +2099,7 @@ export function debuggingIncrementRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: debuggingIncrementResult) => void)}>) {
-  engine.rpc({...request, method: 'debugging.increment'})
+  engine().rpc({...request, method: 'debugging.increment'})
 }
 export type debuggingSecondStepRpcParam = $Exact<{
   val: int
@@ -2112,7 +2112,7 @@ export function debuggingSecondStepRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: debuggingSecondStepResult) => void)}>) {
-  engine.rpc({...request, method: 'debugging.secondStep'})
+  engine().rpc({...request, method: 'debugging.secondStep'})
 }
 export type deviceCheckDeviceNameForUserRpcParam = $Exact<{
   username: string,
@@ -2124,7 +2124,7 @@ export function deviceCheckDeviceNameForUserRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'device.checkDeviceNameForUser'})
+  engine().rpc({...request, method: 'device.checkDeviceNameForUser'})
 }
 export type deviceCheckDeviceNameFormatRpcParam = $Exact<{
   name: string
@@ -2137,7 +2137,7 @@ export function deviceCheckDeviceNameFormatRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: deviceCheckDeviceNameFormatResult) => void)}>) {
-  engine.rpc({...request, method: 'device.checkDeviceNameFormat'})
+  engine().rpc({...request, method: 'device.checkDeviceNameFormat'})
 }
 export type favoriteFavoriteAddRpcParam = $Exact<{
   folder: Folder
@@ -2148,7 +2148,7 @@ export function favoriteFavoriteAddRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'favorite.favoriteAdd'})
+  engine().rpc({...request, method: 'favorite.favoriteAdd'})
 }
 export type favoriteFavoriteIgnoreRpcParam = $Exact<{
   folder: Folder
@@ -2159,7 +2159,7 @@ export function favoriteFavoriteIgnoreRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'favorite.favoriteIgnore'})
+  engine().rpc({...request, method: 'favorite.favoriteIgnore'})
 }
 export type fsListRpcParam = $Exact<{
   path: string
@@ -2172,7 +2172,7 @@ export function fsListRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: fsListResult) => void)}>) {
-  engine.rpc({...request, method: 'fs.List'})
+  engine().rpc({...request, method: 'fs.List'})
 }
 export type gpgUiSelectKeyAndPushOptionRpcParam = $Exact<{
   keys?: ?Array<GPGKey>
@@ -2185,7 +2185,7 @@ export function gpgUiSelectKeyAndPushOptionRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: gpgUiSelectKeyAndPushOptionResult) => void)}>) {
-  engine.rpc({...request, method: 'gpgUi.selectKeyAndPushOption'})
+  engine().rpc({...request, method: 'gpgUi.selectKeyAndPushOption'})
 }
 export type gpgUiSelectKeyRpcParam = $Exact<{
   keys?: ?Array<GPGKey>
@@ -2198,7 +2198,7 @@ export function gpgUiSelectKeyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: gpgUiSelectKeyResult) => void)}>) {
-  engine.rpc({...request, method: 'gpgUi.selectKey'})
+  engine().rpc({...request, method: 'gpgUi.selectKey'})
 }
 export type gpgUiSignRpcParam = $Exact<{
   msg: bytes,
@@ -2212,7 +2212,7 @@ export function gpgUiSignRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: gpgUiSignResult) => void)}>) {
-  engine.rpc({...request, method: 'gpgUi.sign'})
+  engine().rpc({...request, method: 'gpgUi.sign'})
 }
 export type gregorUIPushOutOfBandMessagesRpcParam = $Exact<{
   oobm?: ?Array<gregor1.OutOfBandMessage>
@@ -2223,7 +2223,7 @@ export function gregorUIPushOutOfBandMessagesRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'gregorUI.pushOutOfBandMessages'})
+  engine().rpc({...request, method: 'gregorUI.pushOutOfBandMessages'})
 }
 export type gregorUIPushStateRpcParam = $Exact<{
   state: gregor1.State,
@@ -2235,7 +2235,7 @@ export function gregorUIPushStateRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'gregorUI.pushState'})
+  engine().rpc({...request, method: 'gregorUI.pushState'})
 }
 export type identifyIdentify2RpcParam = $Exact<{
   uid: UID,
@@ -2257,7 +2257,7 @@ export function identifyIdentify2Rpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: identifyIdentify2Result) => void)}>) {
-  engine.rpc({...request, method: 'identify.identify2'})
+  engine().rpc({...request, method: 'identify.identify2'})
 }
 export type identifyIdentifyRpcParam = $Exact<{
   userAssertion: string,
@@ -2274,7 +2274,7 @@ export function identifyIdentifyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: identifyIdentifyResult) => void)}>) {
-  engine.rpc({...request, method: 'identify.identify'})
+  engine().rpc({...request, method: 'identify.identify'})
 }
 export type identifyResolve2RpcParam = $Exact<{
   assertion: string
@@ -2287,7 +2287,7 @@ export function identifyResolve2Rpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: identifyResolve2Result) => void)}>) {
-  engine.rpc({...request, method: 'identify.Resolve2'})
+  engine().rpc({...request, method: 'identify.Resolve2'})
 }
 export type identifyResolveRpcParam = $Exact<{
   assertion: string
@@ -2300,7 +2300,7 @@ export function identifyResolveRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: identifyResolveResult) => void)}>) {
-  engine.rpc({...request, method: 'identify.Resolve'})
+  engine().rpc({...request, method: 'identify.Resolve'})
 }
 export type identifyUiConfirmRpcParam = $Exact<{
   outcome: IdentifyOutcome
@@ -2313,7 +2313,7 @@ export function identifyUiConfirmRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: identifyUiConfirmResult) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.confirm'})
+  engine().rpc({...request, method: 'identifyUi.confirm'})
 }
 export type identifyUiDismissRpcParam = $Exact<{
   username: string,
@@ -2325,7 +2325,7 @@ export function identifyUiDismissRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.dismiss'})
+  engine().rpc({...request, method: 'identifyUi.dismiss'})
 }
 export type identifyUiDisplayCryptocurrencyRpcParam = $Exact<{
   c: Cryptocurrency
@@ -2336,7 +2336,7 @@ export function identifyUiDisplayCryptocurrencyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.displayCryptocurrency'})
+  engine().rpc({...request, method: 'identifyUi.displayCryptocurrency'})
 }
 export type identifyUiDisplayKeyRpcParam = $Exact<{
   key: IdentifyKey
@@ -2347,7 +2347,7 @@ export function identifyUiDisplayKeyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.displayKey'})
+  engine().rpc({...request, method: 'identifyUi.displayKey'})
 }
 export type identifyUiDisplayTLFCreateWithInviteRpcParam = $Exact<{
   folderName: string,
@@ -2363,7 +2363,7 @@ export function identifyUiDisplayTLFCreateWithInviteRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.displayTLFCreateWithInvite'})
+  engine().rpc({...request, method: 'identifyUi.displayTLFCreateWithInvite'})
 }
 export type identifyUiDisplayTrackStatementRpcParam = $Exact<{
   stmt: string
@@ -2374,7 +2374,7 @@ export function identifyUiDisplayTrackStatementRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.displayTrackStatement'})
+  engine().rpc({...request, method: 'identifyUi.displayTrackStatement'})
 }
 export type identifyUiDisplayUserCardRpcParam = $Exact<{
   card: UserCard
@@ -2385,7 +2385,7 @@ export function identifyUiDisplayUserCardRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.displayUserCard'})
+  engine().rpc({...request, method: 'identifyUi.displayUserCard'})
 }
 export type identifyUiFinishSocialProofCheckRpcParam = $Exact<{
   rp: RemoteProof,
@@ -2397,7 +2397,7 @@ export function identifyUiFinishSocialProofCheckRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.finishSocialProofCheck'})
+  engine().rpc({...request, method: 'identifyUi.finishSocialProofCheck'})
 }
 export type identifyUiFinishWebProofCheckRpcParam = $Exact<{
   rp: RemoteProof,
@@ -2409,7 +2409,7 @@ export function identifyUiFinishWebProofCheckRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.finishWebProofCheck'})
+  engine().rpc({...request, method: 'identifyUi.finishWebProofCheck'})
 }
 export type identifyUiLaunchNetworkChecksRpcParam = $Exact<{
   identity: Identity,
@@ -2421,7 +2421,7 @@ export function identifyUiLaunchNetworkChecksRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.launchNetworkChecks'})
+  engine().rpc({...request, method: 'identifyUi.launchNetworkChecks'})
 }
 export type identifyUiReportLastTrackRpcParam = $Exact<{
   track: (null | TrackSummary)
@@ -2432,7 +2432,7 @@ export function identifyUiReportLastTrackRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.reportLastTrack'})
+  engine().rpc({...request, method: 'identifyUi.reportLastTrack'})
 }
 export type identifyUiReportTrackTokenRpcParam = $Exact<{
   trackToken: TrackToken
@@ -2443,7 +2443,7 @@ export function identifyUiReportTrackTokenRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.reportTrackToken'})
+  engine().rpc({...request, method: 'identifyUi.reportTrackToken'})
 }
 export type identifyUiStartRpcParam = $Exact<{
   username: string,
@@ -2455,7 +2455,7 @@ export function identifyUiStartRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.start'})
+  engine().rpc({...request, method: 'identifyUi.start'})
 }
 export type kbfsFSEditListRpcParam = $Exact<{
   edits?: ?Array<FSNotification>,
@@ -2467,7 +2467,7 @@ export function kbfsFSEditListRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'kbfs.FSEditList'})
+  engine().rpc({...request, method: 'kbfs.FSEditList'})
 }
 export type kbfsFSEventRpcParam = $Exact<{
   event: FSNotification
@@ -2478,7 +2478,7 @@ export function kbfsFSEventRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'kbfs.FSEvent'})
+  engine().rpc({...request, method: 'kbfs.FSEvent'})
 }
 export type logRegisterLoggerRpcParam = $Exact<{
   name: string,
@@ -2490,7 +2490,7 @@ export function logRegisterLoggerRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'log.registerLogger'})
+  engine().rpc({...request, method: 'log.registerLogger'})
 }
 export type logUiLogRpcParam = $Exact<{
   level: LogLevel,
@@ -2502,7 +2502,7 @@ export function logUiLogRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'logUi.log'})
+  engine().rpc({...request, method: 'logUi.log'})
 }
 export type loginClearStoredSecretRpcParam = $Exact<{
   username: string
@@ -2513,7 +2513,7 @@ export function loginClearStoredSecretRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.clearStoredSecret'})
+  engine().rpc({...request, method: 'login.clearStoredSecret'})
 }
 export type loginDeprovisionRpcParam = $Exact<{
   username: string,
@@ -2525,7 +2525,7 @@ export function loginDeprovisionRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.deprovision'})
+  engine().rpc({...request, method: 'login.deprovision'})
 }
 export type loginLoginRpcParam = $Exact<{
   deviceType: string,
@@ -2538,7 +2538,7 @@ export function loginLoginRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.login'})
+  engine().rpc({...request, method: 'login.login'})
 }
 export type loginPaperKeySubmitRpcParam = $Exact<{
   paperPhrase: string
@@ -2549,7 +2549,7 @@ export function loginPaperKeySubmitRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.paperKeySubmit'})
+  engine().rpc({...request, method: 'login.paperKeySubmit'})
 }
 export type loginPgpProvisionRpcParam = $Exact<{
   username: string,
@@ -2562,7 +2562,7 @@ export function loginPgpProvisionRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.pgpProvision'})
+  engine().rpc({...request, method: 'login.pgpProvision'})
 }
 export type loginRecoverAccountFromEmailAddressRpcParam = $Exact<{
   email: string
@@ -2573,7 +2573,7 @@ export function loginRecoverAccountFromEmailAddressRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.recoverAccountFromEmailAddress'})
+  engine().rpc({...request, method: 'login.recoverAccountFromEmailAddress'})
 }
 export type loginUiDisplayPaperKeyPhraseRpcParam = $Exact<{
   phrase: string
@@ -2584,7 +2584,7 @@ export function loginUiDisplayPaperKeyPhraseRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'loginUi.displayPaperKeyPhrase'})
+  engine().rpc({...request, method: 'loginUi.displayPaperKeyPhrase'})
 }
 export type loginUiDisplayPrimaryPaperKeyRpcParam = $Exact<{
   phrase: string
@@ -2595,7 +2595,7 @@ export function loginUiDisplayPrimaryPaperKeyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'loginUi.displayPrimaryPaperKey'})
+  engine().rpc({...request, method: 'loginUi.displayPrimaryPaperKey'})
 }
 export type loginUiPromptRevokePaperKeysRpcParam = $Exact<{
   device: Device,
@@ -2609,7 +2609,7 @@ export function loginUiPromptRevokePaperKeysRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: loginUiPromptRevokePaperKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'loginUi.promptRevokePaperKeys'})
+  engine().rpc({...request, method: 'loginUi.promptRevokePaperKeys'})
 }
 export type loginUnlockWithPassphraseRpcParam = $Exact<{
   passphrase: string
@@ -2620,7 +2620,7 @@ export function loginUnlockWithPassphraseRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'login.unlockWithPassphrase'})
+  engine().rpc({...request, method: 'login.unlockWithPassphrase'})
 }
 export type metadataAuthenticateRpcParam = $Exact<{
   signature: string
@@ -2633,7 +2633,7 @@ export function metadataAuthenticateRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataAuthenticateResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.authenticate'})
+  engine().rpc({...request, method: 'metadata.authenticate'})
 }
 export type metadataDeleteKeyRpcParam = $Exact<{
   uid: UID,
@@ -2647,7 +2647,7 @@ export function metadataDeleteKeyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.deleteKey'})
+  engine().rpc({...request, method: 'metadata.deleteKey'})
 }
 export type metadataGetFolderHandleRpcParam = $Exact<{
   folderID: string,
@@ -2662,7 +2662,7 @@ export function metadataGetFolderHandleRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetFolderHandleResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getFolderHandle'})
+  engine().rpc({...request, method: 'metadata.getFolderHandle'})
 }
 export type metadataGetFoldersForRekeyRpcParam = $Exact<{
   deviceKID: KID
@@ -2673,7 +2673,7 @@ export function metadataGetFoldersForRekeyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getFoldersForRekey'})
+  engine().rpc({...request, method: 'metadata.getFoldersForRekey'})
 }
 export type metadataGetKeyRpcParam = $Exact<{
   keyHalfID: bytes,
@@ -2688,7 +2688,7 @@ export function metadataGetKeyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetKeyResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getKey'})
+  engine().rpc({...request, method: 'metadata.getKey'})
 }
 export type metadataGetLatestFolderHandleRpcParam = $Exact<{
   folderID: string
@@ -2701,7 +2701,7 @@ export function metadataGetLatestFolderHandleRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetLatestFolderHandleResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getLatestFolderHandle'})
+  engine().rpc({...request, method: 'metadata.getLatestFolderHandle'})
 }
 export type metadataGetMerkleNodeRpcParam = $Exact<{
   hash: string
@@ -2714,7 +2714,7 @@ export function metadataGetMerkleNodeRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetMerkleNodeResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getMerkleNode'})
+  engine().rpc({...request, method: 'metadata.getMerkleNode'})
 }
 export type metadataGetMerkleRootLatestRpcParam = $Exact<{
   treeID: MerkleTreeID
@@ -2727,7 +2727,7 @@ export function metadataGetMerkleRootLatestRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetMerkleRootLatestResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getMerkleRootLatest'})
+  engine().rpc({...request, method: 'metadata.getMerkleRootLatest'})
 }
 export type metadataGetMerkleRootRpcParam = $Exact<{
   treeID: MerkleTreeID,
@@ -2741,7 +2741,7 @@ export function metadataGetMerkleRootRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetMerkleRootResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getMerkleRoot'})
+  engine().rpc({...request, method: 'metadata.getMerkleRoot'})
 }
 export type metadataGetMerkleRootSinceRpcParam = $Exact<{
   treeID: MerkleTreeID,
@@ -2755,7 +2755,7 @@ export function metadataGetMerkleRootSinceRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetMerkleRootSinceResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getMerkleRootSince'})
+  engine().rpc({...request, method: 'metadata.getMerkleRootSince'})
 }
 export type metadataGetMetadataRpcParam = $Exact<{
   folderID: string,
@@ -2774,7 +2774,7 @@ export function metadataGetMetadataRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetMetadataResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getMetadata'})
+  engine().rpc({...request, method: 'metadata.getMetadata'})
 }
 export type metadataPruneBranchRpcParam = $Exact<{
   folderID: string,
@@ -2787,7 +2787,7 @@ export function metadataPruneBranchRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.pruneBranch'})
+  engine().rpc({...request, method: 'metadata.pruneBranch'})
 }
 export type metadataPutKeysRpcParam = $Exact<{
   keyHalves?: ?Array<KeyHalf>,
@@ -2799,7 +2799,7 @@ export function metadataPutKeysRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.putKeys'})
+  engine().rpc({...request, method: 'metadata.putKeys'})
 }
 export type metadataPutMetadataRpcParam = $Exact<{
   mdBlock: MDBlock,
@@ -2811,7 +2811,7 @@ export function metadataPutMetadataRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.putMetadata'})
+  engine().rpc({...request, method: 'metadata.putMetadata'})
 }
 export type metadataRegisterForUpdatesRpcParam = $Exact<{
   folderID: string,
@@ -2824,7 +2824,7 @@ export function metadataRegisterForUpdatesRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadata.registerForUpdates'})
+  engine().rpc({...request, method: 'metadata.registerForUpdates'})
 }
 export type metadataTruncateLockRpcParam = $Exact<{
   folderID: string
@@ -2837,7 +2837,7 @@ export function metadataTruncateLockRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataTruncateLockResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.truncateLock'})
+  engine().rpc({...request, method: 'metadata.truncateLock'})
 }
 export type metadataTruncateUnlockRpcParam = $Exact<{
   folderID: string
@@ -2850,7 +2850,7 @@ export function metadataTruncateUnlockRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataTruncateUnlockResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.truncateUnlock'})
+  engine().rpc({...request, method: 'metadata.truncateUnlock'})
 }
 export type metadataUpdateFolderNeedsRekeyRpcParam = $Exact<{
   folderID: string,
@@ -2862,7 +2862,7 @@ export function metadataUpdateFolderNeedsRekeyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadataUpdate.folderNeedsRekey'})
+  engine().rpc({...request, method: 'metadataUpdate.folderNeedsRekey'})
 }
 export type metadataUpdateMetadataUpdateRpcParam = $Exact<{
   folderID: string,
@@ -2874,7 +2874,7 @@ export function metadataUpdateMetadataUpdateRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'metadataUpdate.metadataUpdate'})
+  engine().rpc({...request, method: 'metadataUpdate.metadataUpdate'})
 }
 export type notifyCtlSetNotificationsRpcParam = $Exact<{
   channels: NotificationChannels
@@ -2885,7 +2885,7 @@ export function notifyCtlSetNotificationsRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'notifyCtl.setNotifications'})
+  engine().rpc({...request, method: 'notifyCtl.setNotifications'})
 }
 export type paperprovisionPaperProvisionRpcParam = $Exact<{
   username: string,
@@ -2898,7 +2898,7 @@ export function paperprovisionPaperProvisionRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'paperprovision.paperProvision'})
+  engine().rpc({...request, method: 'paperprovision.paperProvision'})
 }
 export type pgpPgpDecryptRpcParam = $Exact<{
   source: Stream,
@@ -2913,7 +2913,7 @@ export function pgpPgpDecryptRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpDecryptResult) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpDecrypt'})
+  engine().rpc({...request, method: 'pgp.pgpDecrypt'})
 }
 export type pgpPgpEncryptRpcParam = $Exact<{
   source: Stream,
@@ -2926,7 +2926,7 @@ export function pgpPgpEncryptRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpEncrypt'})
+  engine().rpc({...request, method: 'pgp.pgpEncrypt'})
 }
 export type pgpPgpExportByFingerprintRpcParam = $Exact<{
   options: PGPQuery
@@ -2939,7 +2939,7 @@ export function pgpPgpExportByFingerprintRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpExportByFingerprintResult) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpExportByFingerprint'})
+  engine().rpc({...request, method: 'pgp.pgpExportByFingerprint'})
 }
 export type pgpPgpExportByKIDRpcParam = $Exact<{
   options: PGPQuery
@@ -2952,7 +2952,7 @@ export function pgpPgpExportByKIDRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpExportByKIDResult) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpExportByKID'})
+  engine().rpc({...request, method: 'pgp.pgpExportByKID'})
 }
 export type pgpPgpExportRpcParam = $Exact<{
   options: PGPQuery
@@ -2965,7 +2965,7 @@ export function pgpPgpExportRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpExportResult) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpExport'})
+  engine().rpc({...request, method: 'pgp.pgpExport'})
 }
 export type pgpPgpImportRpcParam = $Exact<{
   key: bytes,
@@ -2977,7 +2977,7 @@ export function pgpPgpImportRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpImport'})
+  engine().rpc({...request, method: 'pgp.pgpImport'})
 }
 export type pgpPgpKeyGenDefaultRpcParam = $Exact<{
   createUids: PGPCreateUids
@@ -2988,7 +2988,7 @@ export function pgpPgpKeyGenDefaultRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpKeyGenDefault'})
+  engine().rpc({...request, method: 'pgp.pgpKeyGenDefault'})
 }
 export type pgpPgpKeyGenRpcParam = $Exact<{
   primaryBits: int,
@@ -3004,7 +3004,7 @@ export function pgpPgpKeyGenRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpKeyGen'})
+  engine().rpc({...request, method: 'pgp.pgpKeyGen'})
 }
 export type pgpPgpPullRpcParam = $Exact<{
   userAsserts?: ?Array<string>
@@ -3015,7 +3015,7 @@ export function pgpPgpPullRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpPull'})
+  engine().rpc({...request, method: 'pgp.pgpPull'})
 }
 export type pgpPgpPurgeRpcParam = $Exact<{
   doPurge: boolean
@@ -3028,7 +3028,7 @@ export function pgpPgpPurgeRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpPurgeResult) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpPurge'})
+  engine().rpc({...request, method: 'pgp.pgpPurge'})
 }
 export type pgpPgpSelectRpcParam = $Exact<{
   fingerprintQuery: string,
@@ -3042,7 +3042,7 @@ export function pgpPgpSelectRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpSelect'})
+  engine().rpc({...request, method: 'pgp.pgpSelect'})
 }
 export type pgpPgpSignRpcParam = $Exact<{
   source: Stream,
@@ -3055,7 +3055,7 @@ export function pgpPgpSignRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpSign'})
+  engine().rpc({...request, method: 'pgp.pgpSign'})
 }
 export type pgpPgpUpdateRpcParam = $Exact<{
   all: boolean,
@@ -3067,7 +3067,7 @@ export function pgpPgpUpdateRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpUpdate'})
+  engine().rpc({...request, method: 'pgp.pgpUpdate'})
 }
 export type pgpPgpVerifyRpcParam = $Exact<{
   source: Stream,
@@ -3081,7 +3081,7 @@ export function pgpPgpVerifyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpPgpVerifyResult) => void)}>) {
-  engine.rpc({...request, method: 'pgp.pgpVerify'})
+  engine().rpc({...request, method: 'pgp.pgpVerify'})
 }
 export type pgpUiKeyGeneratedRpcParam = $Exact<{
   kid: KID,
@@ -3093,7 +3093,7 @@ export function pgpUiKeyGeneratedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgpUi.keyGenerated'})
+  engine().rpc({...request, method: 'pgpUi.keyGenerated'})
 }
 export type pgpUiOutputSignatureSuccessRpcParam = $Exact<{
   fingerprint: string,
@@ -3106,7 +3106,7 @@ export function pgpUiOutputSignatureSuccessRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'pgpUi.outputSignatureSuccess'})
+  engine().rpc({...request, method: 'pgpUi.outputSignatureSuccess'})
 }
 export type proveCheckProofRpcParam = $Exact<{
   sigID: SigID
@@ -3119,7 +3119,7 @@ export function proveCheckProofRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: proveCheckProofResult) => void)}>) {
-  engine.rpc({...request, method: 'prove.checkProof'})
+  engine().rpc({...request, method: 'prove.checkProof'})
 }
 export type proveStartProofRpcParam = $Exact<{
   service: string,
@@ -3136,7 +3136,7 @@ export function proveStartProofRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: proveStartProofResult) => void)}>) {
-  engine.rpc({...request, method: 'prove.startProof'})
+  engine().rpc({...request, method: 'prove.startProof'})
 }
 export type proveUiDisplayRecheckWarningRpcParam = $Exact<{
   text: Text
@@ -3147,7 +3147,7 @@ export function proveUiDisplayRecheckWarningRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.displayRecheckWarning'})
+  engine().rpc({...request, method: 'proveUi.displayRecheckWarning'})
 }
 export type proveUiOkToCheckRpcParam = $Exact<{
   name: string,
@@ -3161,7 +3161,7 @@ export function proveUiOkToCheckRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: proveUiOkToCheckResult) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.okToCheck'})
+  engine().rpc({...request, method: 'proveUi.okToCheck'})
 }
 export type proveUiOutputInstructionsRpcParam = $Exact<{
   instructions: Text,
@@ -3173,7 +3173,7 @@ export function proveUiOutputInstructionsRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.outputInstructions'})
+  engine().rpc({...request, method: 'proveUi.outputInstructions'})
 }
 export type proveUiOutputPrechecksRpcParam = $Exact<{
   text: Text
@@ -3184,7 +3184,7 @@ export function proveUiOutputPrechecksRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.outputPrechecks'})
+  engine().rpc({...request, method: 'proveUi.outputPrechecks'})
 }
 export type proveUiPreProofWarningRpcParam = $Exact<{
   text: Text
@@ -3197,7 +3197,7 @@ export function proveUiPreProofWarningRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: proveUiPreProofWarningResult) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.preProofWarning'})
+  engine().rpc({...request, method: 'proveUi.preProofWarning'})
 }
 export type proveUiPromptOverwriteRpcParam = $Exact<{
   account: string,
@@ -3211,7 +3211,7 @@ export function proveUiPromptOverwriteRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: proveUiPromptOverwriteResult) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.promptOverwrite'})
+  engine().rpc({...request, method: 'proveUi.promptOverwrite'})
 }
 export type proveUiPromptUsernameRpcParam = $Exact<{
   prompt: string,
@@ -3225,7 +3225,7 @@ export function proveUiPromptUsernameRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: proveUiPromptUsernameResult) => void)}>) {
-  engine.rpc({...request, method: 'proveUi.promptUsername'})
+  engine().rpc({...request, method: 'proveUi.promptUsername'})
 }
 export type provisionUiChooseDeviceRpcParam = $Exact<{
   devices?: ?Array<Device>
@@ -3238,7 +3238,7 @@ export function provisionUiChooseDeviceRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiChooseDeviceResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.chooseDevice'})
+  engine().rpc({...request, method: 'provisionUi.chooseDevice'})
 }
 export type provisionUiChooseDeviceTypeRpcParam = $Exact<{
   kind: ChooseType
@@ -3251,7 +3251,7 @@ export function provisionUiChooseDeviceTypeRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiChooseDeviceTypeResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.chooseDeviceType'})
+  engine().rpc({...request, method: 'provisionUi.chooseDeviceType'})
 }
 export type provisionUiChooseGPGMethodRpcParam = $Exact<{
   keys?: ?Array<GPGKey>
@@ -3264,7 +3264,7 @@ export function provisionUiChooseGPGMethodRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiChooseGPGMethodResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.chooseGPGMethod'})
+  engine().rpc({...request, method: 'provisionUi.chooseGPGMethod'})
 }
 export type provisionUiChooseProvisioningMethodRpcParam = $Exact<{
   gpgOption: boolean
@@ -3277,7 +3277,7 @@ export function provisionUiChooseProvisioningMethodRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiChooseProvisioningMethodResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.chooseProvisioningMethod'})
+  engine().rpc({...request, method: 'provisionUi.chooseProvisioningMethod'})
 }
 export type provisionUiDisplayAndPromptSecretRpcParam = $Exact<{
   secret: bytes,
@@ -3292,7 +3292,7 @@ export function provisionUiDisplayAndPromptSecretRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiDisplayAndPromptSecretResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.DisplayAndPromptSecret'})
+  engine().rpc({...request, method: 'provisionUi.DisplayAndPromptSecret'})
 }
 export type provisionUiPromptNewDeviceNameRpcParam = $Exact<{
   existingDevices?: ?Array<string>,
@@ -3306,7 +3306,7 @@ export function provisionUiPromptNewDeviceNameRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiPromptNewDeviceNameResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.PromptNewDeviceName'})
+  engine().rpc({...request, method: 'provisionUi.PromptNewDeviceName'})
 }
 export type provisionUiProvisioneeSuccessRpcParam = $Exact<{
   username: string,
@@ -3318,7 +3318,7 @@ export function provisionUiProvisioneeSuccessRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.ProvisioneeSuccess'})
+  engine().rpc({...request, method: 'provisionUi.ProvisioneeSuccess'})
 }
 export type provisionUiProvisionerSuccessRpcParam = $Exact<{
   deviceName: string,
@@ -3330,7 +3330,7 @@ export function provisionUiProvisionerSuccessRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.ProvisionerSuccess'})
+  engine().rpc({...request, method: 'provisionUi.ProvisionerSuccess'})
 }
 export type provisionUiSwitchToGPGSignOKRpcParam = $Exact<{
   key: GPGKey,
@@ -3344,7 +3344,7 @@ export function provisionUiSwitchToGPGSignOKRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: provisionUiSwitchToGPGSignOKResult) => void)}>) {
-  engine.rpc({...request, method: 'provisionUi.switchToGPGSignOK'})
+  engine().rpc({...request, method: 'provisionUi.switchToGPGSignOK'})
 }
 export type quotaVerifySessionRpcParam = $Exact<{
   session: string
@@ -3357,7 +3357,7 @@ export function quotaVerifySessionRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: quotaVerifySessionResult) => void)}>) {
-  engine.rpc({...request, method: 'quota.verifySession'})
+  engine().rpc({...request, method: 'quota.verifySession'})
 }
 export type rekeyRekeySyncRpcParam = $Exact<{
   force: boolean
@@ -3368,7 +3368,7 @@ export function rekeyRekeySyncRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'rekey.rekeySync'})
+  engine().rpc({...request, method: 'rekey.rekeySync'})
 }
 export type rekeyUIRefreshRpcParam = $Exact<{
   problemSetDevices: ProblemSetDevices
@@ -3379,7 +3379,7 @@ export function rekeyUIRefreshRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'rekeyUI.refresh'})
+  engine().rpc({...request, method: 'rekeyUI.refresh'})
 }
 export type rekeyUIRekeySendEventRpcParam = $Exact<{
   event: RekeyEvent
@@ -3390,7 +3390,7 @@ export function rekeyUIRekeySendEventRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'rekeyUI.rekeySendEvent'})
+  engine().rpc({...request, method: 'rekeyUI.rekeySendEvent'})
 }
 export type revokeRevokeDeviceRpcParam = $Exact<{
   deviceID: DeviceID,
@@ -3402,7 +3402,7 @@ export function revokeRevokeDeviceRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'revoke.revokeDevice'})
+  engine().rpc({...request, method: 'revoke.revokeDevice'})
 }
 export type revokeRevokeKeyRpcParam = $Exact<{
   keyID: KID
@@ -3413,7 +3413,7 @@ export function revokeRevokeKeyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'revoke.revokeKey'})
+  engine().rpc({...request, method: 'revoke.revokeKey'})
 }
 export type revokeRevokeSigsRpcParam = $Exact<{
   sigIDQueries?: ?Array<string>
@@ -3424,7 +3424,7 @@ export function revokeRevokeSigsRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'revoke.revokeSigs'})
+  engine().rpc({...request, method: 'revoke.revokeSigs'})
 }
 export type saltpackSaltpackDecryptRpcParam = $Exact<{
   source: Stream,
@@ -3439,7 +3439,7 @@ export function saltpackSaltpackDecryptRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: saltpackSaltpackDecryptResult) => void)}>) {
-  engine.rpc({...request, method: 'saltpack.saltpackDecrypt'})
+  engine().rpc({...request, method: 'saltpack.saltpackDecrypt'})
 }
 export type saltpackSaltpackEncryptRpcParam = $Exact<{
   source: Stream,
@@ -3452,7 +3452,7 @@ export function saltpackSaltpackEncryptRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'saltpack.saltpackEncrypt'})
+  engine().rpc({...request, method: 'saltpack.saltpackEncrypt'})
 }
 export type saltpackSaltpackSignRpcParam = $Exact<{
   source: Stream,
@@ -3465,7 +3465,7 @@ export function saltpackSaltpackSignRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'saltpack.saltpackSign'})
+  engine().rpc({...request, method: 'saltpack.saltpackSign'})
 }
 export type saltpackSaltpackVerifyRpcParam = $Exact<{
   source: Stream,
@@ -3478,7 +3478,7 @@ export function saltpackSaltpackVerifyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'saltpack.saltpackVerify'})
+  engine().rpc({...request, method: 'saltpack.saltpackVerify'})
 }
 export type saltpackUiSaltpackPromptForDecryptRpcParam = $Exact<{
   sender: SaltpackSender,
@@ -3490,7 +3490,7 @@ export function saltpackUiSaltpackPromptForDecryptRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'saltpackUi.saltpackPromptForDecrypt'})
+  engine().rpc({...request, method: 'saltpackUi.saltpackPromptForDecrypt'})
 }
 export type saltpackUiSaltpackVerifySuccessRpcParam = $Exact<{
   signingKID: KID,
@@ -3502,7 +3502,7 @@ export function saltpackUiSaltpackVerifySuccessRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'saltpackUi.saltpackVerifySuccess'})
+  engine().rpc({...request, method: 'saltpackUi.saltpackVerifySuccess'})
 }
 export type secretUiGetPassphraseRpcParam = $Exact<{
   pinentry: GUIEntryArg,
@@ -3516,7 +3516,7 @@ export function secretUiGetPassphraseRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: secretUiGetPassphraseResult) => void)}>) {
-  engine.rpc({...request, method: 'secretUi.getPassphrase'})
+  engine().rpc({...request, method: 'secretUi.getPassphrase'})
 }
 export type signupCheckInvitationCodeRpcParam = $Exact<{
   invitationCode: string
@@ -3527,7 +3527,7 @@ export function signupCheckInvitationCodeRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'signup.checkInvitationCode'})
+  engine().rpc({...request, method: 'signup.checkInvitationCode'})
 }
 export type signupCheckUsernameAvailableRpcParam = $Exact<{
   username: string
@@ -3538,7 +3538,7 @@ export function signupCheckUsernameAvailableRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'signup.checkUsernameAvailable'})
+  engine().rpc({...request, method: 'signup.checkUsernameAvailable'})
 }
 export type signupInviteRequestRpcParam = $Exact<{
   email: string,
@@ -3551,7 +3551,7 @@ export function signupInviteRequestRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'signup.inviteRequest'})
+  engine().rpc({...request, method: 'signup.inviteRequest'})
 }
 export type signupSignupRpcParam = $Exact<{
   email: string,
@@ -3571,7 +3571,7 @@ export function signupSignupRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: signupSignupResult) => void)}>) {
-  engine.rpc({...request, method: 'signup.signup'})
+  engine().rpc({...request, method: 'signup.signup'})
 }
 export type sigsSigListJSONRpcParam = $Exact<{
   arg: SigListArgs
@@ -3584,7 +3584,7 @@ export function sigsSigListJSONRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: sigsSigListJSONResult) => void)}>) {
-  engine.rpc({...request, method: 'sigs.sigListJSON'})
+  engine().rpc({...request, method: 'sigs.sigListJSON'})
 }
 export type sigsSigListRpcParam = $Exact<{
   arg: SigListArgs
@@ -3597,7 +3597,7 @@ export function sigsSigListRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: sigsSigListResult) => void)}>) {
-  engine.rpc({...request, method: 'sigs.sigList'})
+  engine().rpc({...request, method: 'sigs.sigList'})
 }
 export type streamUiCloseRpcParam = $Exact<{
   s: Stream
@@ -3608,7 +3608,7 @@ export function streamUiCloseRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'streamUi.close'})
+  engine().rpc({...request, method: 'streamUi.close'})
 }
 export type streamUiReadRpcParam = $Exact<{
   s: Stream,
@@ -3622,7 +3622,7 @@ export function streamUiReadRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: streamUiReadResult) => void)}>) {
-  engine.rpc({...request, method: 'streamUi.read'})
+  engine().rpc({...request, method: 'streamUi.read'})
 }
 export type streamUiWriteRpcParam = $Exact<{
   s: Stream,
@@ -3636,7 +3636,7 @@ export function streamUiWriteRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: streamUiWriteResult) => void)}>) {
-  engine.rpc({...request, method: 'streamUi.write'})
+  engine().rpc({...request, method: 'streamUi.write'})
 }
 export type testPanicRpcParam = $Exact<{
   message: string
@@ -3647,7 +3647,7 @@ export function testPanicRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'test.panic'})
+  engine().rpc({...request, method: 'test.panic'})
 }
 export type testTestCallbackRpcParam = $Exact<{
   name: string
@@ -3660,7 +3660,7 @@ export function testTestCallbackRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: testTestCallbackResult) => void)}>) {
-  engine.rpc({...request, method: 'test.testCallback'})
+  engine().rpc({...request, method: 'test.testCallback'})
 }
 export type testTestRpcParam = $Exact<{
   name: string
@@ -3673,7 +3673,7 @@ export function testTestRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: testTestResult) => void)}>) {
-  engine.rpc({...request, method: 'test.test'})
+  engine().rpc({...request, method: 'test.test'})
 }
 export type tlfCryptKeysRpcParam = $Exact<{
   tlfName: string
@@ -3686,7 +3686,7 @@ export function tlfCryptKeysRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: tlfCryptKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'tlf.CryptKeys'})
+  engine().rpc({...request, method: 'tlf.CryptKeys'})
 }
 export type tlfKeysGetTLFCryptKeysRpcParam = $Exact<{
   tlfName: string
@@ -3699,7 +3699,7 @@ export function tlfKeysGetTLFCryptKeysRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'tlfKeys.getTLFCryptKeys'})
+  engine().rpc({...request, method: 'tlfKeys.getTLFCryptKeys'})
 }
 export type trackDismissWithTokenRpcParam = $Exact<{
   trackToken: TrackToken
@@ -3710,7 +3710,7 @@ export function trackDismissWithTokenRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'track.dismissWithToken'})
+  engine().rpc({...request, method: 'track.dismissWithToken'})
 }
 export type trackFakeTrackingChangedRpcParam = $Exact<{
   username: string
@@ -3721,7 +3721,7 @@ export function trackFakeTrackingChangedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'track.fakeTrackingChanged'})
+  engine().rpc({...request, method: 'track.fakeTrackingChanged'})
 }
 export type trackTrackRpcParam = $Exact<{
   userAssertion: string,
@@ -3734,7 +3734,7 @@ export function trackTrackRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'track.track'})
+  engine().rpc({...request, method: 'track.track'})
 }
 export type trackTrackWithTokenRpcParam = $Exact<{
   trackToken: TrackToken,
@@ -3746,7 +3746,7 @@ export function trackTrackWithTokenRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'track.trackWithToken'})
+  engine().rpc({...request, method: 'track.trackWithToken'})
 }
 export type trackUntrackRpcParam = $Exact<{
   username: string
@@ -3757,7 +3757,7 @@ export function trackUntrackRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'track.untrack'})
+  engine().rpc({...request, method: 'track.untrack'})
 }
 export type uiPromptYesNoRpcParam = $Exact<{
   text: Text,
@@ -3771,7 +3771,7 @@ export function uiPromptYesNoRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: uiPromptYesNoResult) => void)}>) {
-  engine.rpc({...request, method: 'ui.promptYesNo'})
+  engine().rpc({...request, method: 'ui.promptYesNo'})
 }
 export type userListTrackers2RpcParam = $Exact<{
   assertion: string,
@@ -3785,7 +3785,7 @@ export function userListTrackers2Rpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userListTrackers2Result) => void)}>) {
-  engine.rpc({...request, method: 'user.listTrackers2'})
+  engine().rpc({...request, method: 'user.listTrackers2'})
 }
 export type userListTrackersByNameRpcParam = $Exact<{
   username: string
@@ -3798,7 +3798,7 @@ export function userListTrackersByNameRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userListTrackersByNameResult) => void)}>) {
-  engine.rpc({...request, method: 'user.listTrackersByName'})
+  engine().rpc({...request, method: 'user.listTrackersByName'})
 }
 export type userListTrackersRpcParam = $Exact<{
   uid: UID
@@ -3811,7 +3811,7 @@ export function userListTrackersRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userListTrackersResult) => void)}>) {
-  engine.rpc({...request, method: 'user.listTrackers'})
+  engine().rpc({...request, method: 'user.listTrackers'})
 }
 export type userListTrackingJSONRpcParam = $Exact<{
   filter: string,
@@ -3826,7 +3826,7 @@ export function userListTrackingJSONRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userListTrackingJSONResult) => void)}>) {
-  engine.rpc({...request, method: 'user.listTrackingJSON'})
+  engine().rpc({...request, method: 'user.listTrackingJSON'})
 }
 export type userListTrackingRpcParam = $Exact<{
   filter: string,
@@ -3840,7 +3840,7 @@ export function userListTrackingRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userListTrackingResult) => void)}>) {
-  engine.rpc({...request, method: 'user.listTracking'})
+  engine().rpc({...request, method: 'user.listTracking'})
 }
 export type userLoadAllPublicKeysUnverifiedRpcParam = $Exact<{
   uid: UID
@@ -3853,7 +3853,7 @@ export function userLoadAllPublicKeysUnverifiedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadAllPublicKeysUnverified'})
+  engine().rpc({...request, method: 'user.loadAllPublicKeysUnverified'})
 }
 export type userLoadPublicKeysRpcParam = $Exact<{
   uid: UID
@@ -3866,7 +3866,7 @@ export function userLoadPublicKeysRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadPublicKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadPublicKeys'})
+  engine().rpc({...request, method: 'user.loadPublicKeys'})
 }
 export type userLoadUncheckedUserSummariesRpcParam = $Exact<{
   uids?: ?Array<UID>
@@ -3879,7 +3879,7 @@ export function userLoadUncheckedUserSummariesRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadUncheckedUserSummariesResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadUncheckedUserSummaries'})
+  engine().rpc({...request, method: 'user.loadUncheckedUserSummaries'})
 }
 export type userLoadUserByNameRpcParam = $Exact<{
   username: string
@@ -3892,7 +3892,7 @@ export function userLoadUserByNameRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadUserByNameResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadUserByName'})
+  engine().rpc({...request, method: 'user.loadUserByName'})
 }
 export type userLoadUserPlusKeysRpcParam = $Exact<{
   uid: UID
@@ -3905,7 +3905,7 @@ export function userLoadUserPlusKeysRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadUserPlusKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadUserPlusKeys'})
+  engine().rpc({...request, method: 'user.loadUserPlusKeys'})
 }
 export type userLoadUserRpcParam = $Exact<{
   uid: UID
@@ -3918,7 +3918,7 @@ export function userLoadUserRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadUserResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadUser'})
+  engine().rpc({...request, method: 'user.loadUser'})
 }
 export type userSearchRpcParam = $Exact<{
   query: string
@@ -3931,7 +3931,7 @@ export function userSearchRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userSearchResult) => void)}>) {
-  engine.rpc({...request, method: 'user.search'})
+  engine().rpc({...request, method: 'user.search'})
 }
 type SecretKeysGetSecretKeysResult = SecretKeys
 
@@ -3939,7 +3939,7 @@ export function SecretKeysGetSecretKeysRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: SecretKeysGetSecretKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'SecretKeys.getSecretKeys'})
+  engine().rpc({...request, method: 'SecretKeys.getSecretKeys'})
 }
 type blockGetSessionChallengeResult = ChallengeInfo
 
@@ -3947,7 +3947,7 @@ export function blockGetSessionChallengeRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: blockGetSessionChallengeResult) => void)}>) {
-  engine.rpc({...request, method: 'block.getSessionChallenge'})
+  engine().rpc({...request, method: 'block.getSessionChallenge'})
 }
 type blockGetUserQuotaInfoResult = bytes
 
@@ -3955,7 +3955,7 @@ export function blockGetUserQuotaInfoRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: blockGetUserQuotaInfoResult) => void)}>) {
-  engine.rpc({...request, method: 'block.getUserQuotaInfo'})
+  engine().rpc({...request, method: 'block.getUserQuotaInfo'})
 }
 type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
 
@@ -3963,7 +3963,7 @@ export function configCheckAPIServerOutOfDateWarningRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void)}>) {
-  engine.rpc({...request, method: 'config.checkAPIServerOutOfDateWarning'})
+  engine().rpc({...request, method: 'config.checkAPIServerOutOfDateWarning'})
 }
 type configGetConfigResult = Config
 
@@ -3971,7 +3971,7 @@ export function configGetConfigRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: configGetConfigResult) => void)}>) {
-  engine.rpc({...request, method: 'config.getConfig'})
+  engine().rpc({...request, method: 'config.getConfig'})
 }
 type configGetCurrentStatusResult = GetCurrentStatusRes
 
@@ -3979,7 +3979,7 @@ export function configGetCurrentStatusRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: configGetCurrentStatusResult) => void)}>) {
-  engine.rpc({...request, method: 'config.getCurrentStatus'})
+  engine().rpc({...request, method: 'config.getCurrentStatus'})
 }
 type configGetExtendedStatusResult = ExtendedStatus
 
@@ -3987,7 +3987,7 @@ export function configGetExtendedStatusRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: configGetExtendedStatusResult) => void)}>) {
-  engine.rpc({...request, method: 'config.getExtendedStatus'})
+  engine().rpc({...request, method: 'config.getExtendedStatus'})
 }
 type deviceDeviceHistoryListResult = ?Array<DeviceDetail>
 
@@ -3995,7 +3995,7 @@ export function deviceDeviceHistoryListRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: deviceDeviceHistoryListResult) => void)}>) {
-  engine.rpc({...request, method: 'device.deviceHistoryList'})
+  engine().rpc({...request, method: 'device.deviceHistoryList'})
 }
 type deviceDeviceListResult = ?Array<Device>
 
@@ -4003,7 +4003,7 @@ export function deviceDeviceListRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: deviceDeviceListResult) => void)}>) {
-  engine.rpc({...request, method: 'device.deviceList'})
+  engine().rpc({...request, method: 'device.deviceList'})
 }
 type favoriteGetFavoritesResult = FavoritesResult
 
@@ -4011,7 +4011,7 @@ export function favoriteGetFavoritesRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: favoriteGetFavoritesResult) => void)}>) {
-  engine.rpc({...request, method: 'favorite.getFavorites'})
+  engine().rpc({...request, method: 'favorite.getFavorites'})
 }
 type gpgUiConfirmDuplicateKeyChosenResult = boolean
 
@@ -4019,7 +4019,7 @@ export function gpgUiConfirmDuplicateKeyChosenRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: gpgUiConfirmDuplicateKeyChosenResult) => void)}>) {
-  engine.rpc({...request, method: 'gpgUi.confirmDuplicateKeyChosen'})
+  engine().rpc({...request, method: 'gpgUi.confirmDuplicateKeyChosen'})
 }
 type gpgUiWantToAddGPGKeyResult = boolean
 
@@ -4027,7 +4027,7 @@ export function gpgUiWantToAddGPGKeyRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: gpgUiWantToAddGPGKeyResult) => void)}>) {
-  engine.rpc({...request, method: 'gpgUi.wantToAddGPGKey'})
+  engine().rpc({...request, method: 'gpgUi.wantToAddGPGKey'})
 }
 type gregorGetStateResult = gregor1.State
 
@@ -4035,7 +4035,7 @@ export function gregorGetStateRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: gregorGetStateResult) => void)}>) {
-  engine.rpc({...request, method: 'gregor.getState'})
+  engine().rpc({...request, method: 'gregor.getState'})
 }
 type identifyUiDelegateIdentifyUIResult = int
 
@@ -4043,7 +4043,7 @@ export function identifyUiDelegateIdentifyUIRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: identifyUiDelegateIdentifyUIResult) => void)}>) {
-  engine.rpc({...request, method: 'identifyUi.delegateIdentifyUI'})
+  engine().rpc({...request, method: 'identifyUi.delegateIdentifyUI'})
 }
 type loginGetConfiguredAccountsResult = ?Array<ConfiguredAccount>
 
@@ -4051,7 +4051,7 @@ export function loginGetConfiguredAccountsRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: loginGetConfiguredAccountsResult) => void)}>) {
-  engine.rpc({...request, method: 'login.getConfiguredAccounts'})
+  engine().rpc({...request, method: 'login.getConfiguredAccounts'})
 }
 type loginUiGetEmailOrUsernameResult = string
 
@@ -4059,7 +4059,7 @@ export function loginUiGetEmailOrUsernameRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: loginUiGetEmailOrUsernameResult) => void)}>) {
-  engine.rpc({...request, method: 'loginUi.getEmailOrUsername'})
+  engine().rpc({...request, method: 'loginUi.getEmailOrUsername'})
 }
 type metadataGetChallengeResult = ChallengeInfo
 
@@ -4067,7 +4067,7 @@ export function metadataGetChallengeRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataGetChallengeResult) => void)}>) {
-  engine.rpc({...request, method: 'metadata.getChallenge'})
+  engine().rpc({...request, method: 'metadata.getChallenge'})
 }
 type metadataPing2Result = PingResponse
 
@@ -4075,7 +4075,7 @@ export function metadataPing2Rpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: metadataPing2Result) => void)}>) {
-  engine.rpc({...request, method: 'metadata.ping2'})
+  engine().rpc({...request, method: 'metadata.ping2'})
 }
 type pgpUiShouldPushPrivateResult = bool
 
@@ -4083,7 +4083,7 @@ export function pgpUiShouldPushPrivateRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: pgpUiShouldPushPrivateResult) => void)}>) {
-  engine.rpc({...request, method: 'pgpUi.shouldPushPrivate'})
+  engine().rpc({...request, method: 'pgpUi.shouldPushPrivate'})
 }
 type rekeyGetPendingRekeyStatusResult = ProblemSetDevices
 
@@ -4091,7 +4091,7 @@ export function rekeyGetPendingRekeyStatusRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: rekeyGetPendingRekeyStatusResult) => void)}>) {
-  engine.rpc({...request, method: 'rekey.getPendingRekeyStatus'})
+  engine().rpc({...request, method: 'rekey.getPendingRekeyStatus'})
 }
 type rekeyRekeyStatusFinishResult = Outcome
 
@@ -4099,7 +4099,7 @@ export function rekeyRekeyStatusFinishRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: rekeyRekeyStatusFinishResult) => void)}>) {
-  engine.rpc({...request, method: 'rekey.rekeyStatusFinish'})
+  engine().rpc({...request, method: 'rekey.rekeyStatusFinish'})
 }
 type rekeyUIDelegateRekeyUIResult = int
 
@@ -4107,7 +4107,7 @@ export function rekeyUIDelegateRekeyUIRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: rekeyUIDelegateRekeyUIResult) => void)}>) {
-  engine.rpc({...request, method: 'rekeyUI.delegateRekeyUI'})
+  engine().rpc({...request, method: 'rekeyUI.delegateRekeyUI'})
 }
 type sessionCurrentSessionResult = Session
 
@@ -4115,7 +4115,7 @@ export function sessionCurrentSessionRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: sessionCurrentSessionResult) => void)}>) {
-  engine.rpc({...request, method: 'session.currentSession'})
+  engine().rpc({...request, method: 'session.currentSession'})
 }
 type userListTrackersSelfResult = ?Array<Tracker>
 
@@ -4123,7 +4123,7 @@ export function userListTrackersSelfRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userListTrackersSelfResult) => void)}>) {
-  engine.rpc({...request, method: 'user.listTrackersSelf'})
+  engine().rpc({...request, method: 'user.listTrackersSelf'})
 }
 type userLoadMyPublicKeysResult = ?Array<PublicKey>
 
@@ -4131,7 +4131,7 @@ export function userLoadMyPublicKeysRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: userLoadMyPublicKeysResult) => void)}>) {
-  engine.rpc({...request, method: 'user.loadMyPublicKeys'})
+  engine().rpc({...request, method: 'user.loadMyPublicKeys'})
 }
 export type rpc =
     BTCRegisterBTCRpc
