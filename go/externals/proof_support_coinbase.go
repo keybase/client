@@ -35,7 +35,7 @@ func (rc *CoinbaseChecker) ProfileURL() string {
 func (rc *CoinbaseChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	wanted := rc.ProfileURL()
 	url := h.GetAPIURL()
-	if strings.ToLower(wanted) == url {
+	if strings.ToLower(wanted) == strings.ToLower(url) {
 		return nil
 	}
 	return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL, "Bad hint from server; URL should be %q; got %q", wanted, url)
