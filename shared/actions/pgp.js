@@ -18,9 +18,7 @@ function pgpStorageDismiss () {
 }
 
 function * pgpSecurityModelChangeMessageSaga ({payload: {hitOk}}: PgpAckedMessage): any {
-  if (hitOk) {
-    pgpStorageDismiss()
-  }
+  pgpStorageDismiss()
 }
 
 function * saga (): any {
