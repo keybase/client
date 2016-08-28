@@ -334,7 +334,7 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 			}
 			fb := FolderBranch{Tlf: id, Branch: MasterBranch}
 			fops := fs.getOpsByHandle(ctx, h, fb)
-			if err := fops.addToFavoritesByHandle(ctx, fs.favs, h, true); err != nil {
+			if err := fops.addToFavoritesByHandle(ctx, fs.favs, h, false); err != nil {
 				// Failure to favorite shouldn't cause a failure.  Just log
 				// and move on.
 				fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
