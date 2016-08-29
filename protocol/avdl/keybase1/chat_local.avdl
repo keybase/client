@@ -37,8 +37,13 @@ protocol chatLocal {
 
   // This is what is encrypted and sent over as bodyCiphertext.
   record MessagePlaintext {
+    chat1.PlaintextVersion version;
+    union { null, MessagePlaintextV1 } v1;
+  }
+
+  record MessagePlaintextV1 {
     chat1.MessageClientHeader clientHeader;
-    array<MessageBody> messageBodies;
+    MessageBody messageBodies;
   }
 
   record MessageInfoLocal {
@@ -64,7 +69,7 @@ protocol chatLocal {
 
     union { null, string } Since;
     boolean onlyNew;
-    
+
     int limit;
 
     array<chat1.ConversationID> conversations;
