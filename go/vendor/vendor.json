@@ -248,7 +248,7 @@
 			"revision": "a05bfa6382513c15afde21392f07617f4ad68de9",
 			"revisionTime": "2016-06-28T16:50:19-07:00"
 		},
-        {
+		{
 			"path": "github.com/keybase/keybase-test-vectors/go",
 			"revision": "a5147a659b4a69f77e027e301e726e05492474d6",
 			"revisionTime": "2015-10-20T11:39:53-04:00"
@@ -409,8 +409,8 @@
 		},
 		{
 			"path": "golang.org/x/net/context",
-			"revision": "dfcbca9c45aeabb8971affa4f76b2d40f6f72328",
-			"revisionTime": "2015-06-09T11:52:15-07:00"
+			"revision": "7c71ca708c71bcbd0e6c856b01468ee07fe24557",
+			"revisionTime": "2016-06-20T16:30:30-04:00"
 		},
 		{
 			"path": "golang.org/x/net/html",
