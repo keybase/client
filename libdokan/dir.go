@@ -513,7 +513,7 @@ func (d *Dir) FindFiles(ctx context.Context, fi *dokan.FileInfo, ignored string,
 // CanDeleteDirectory - return just nil
 // TODO check for permissions here.
 func (d *Dir) CanDeleteDirectory(ctx context.Context, fi *dokan.FileInfo) (err error) {
-	d.folder.fs.logEnter(ctx, "Dir CanDeleteDirectory")
+	d.folder.fs.logEnterf(ctx, "Dir CanDeleteDirectory %q", d.name)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
@@ -530,11 +530,11 @@ func (d *Dir) CanDeleteDirectory(ctx context.Context, fi *dokan.FileInfo) (err e
 // Cleanup - forget references, perform deletions etc.
 func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	var err error
-	d.folder.fs.logEnter(ctx, "Dir Cleanup")
+	d.folder.fs.logEnterf(ctx, "Dir Cleanup %q delete=%v", d.name, fi.IsDeleteOnClose())
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	if fi != nil && fi.IsDeleteOnClose() && d.parent != nil {
-		d.folder.fs.log.CDebugf(ctx, "Removing dir in cleanup %s", d.name)
+		d.folder.fs.log.CDebugf(ctx, "Removing (Delete) dir in cleanup %s", d.name)
 
 		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.parent, d.name)
 	}
