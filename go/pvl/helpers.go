@@ -78,13 +78,13 @@ func pvlJSONGetChildren(w *jsonw.Wrapper) ([]*jsonw.Wrapper, error) {
 // Simple objects are those that are not arrays or objects.
 // Non-simple objects result in an error.
 func pvlJSONStringSimple(object *jsonw.Wrapper) (string, error) {
-	x, err := object.GetString()
+	x, err := object.GetInt()
 	if err == nil {
-		return x, nil
+		return fmt.Sprintf("%d", x), nil
 	}
-	y, err := object.GetInt()
+	y, err := object.GetString()
 	if err == nil {
-		return string(y), nil
+		return y, nil
 	}
 	z, err := object.GetBool()
 	if err == nil {
