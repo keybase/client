@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import type {Context} from './terminal'
 import type {Props, Background} from './text'
 import {Text as RNText} from 'react-native'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 const isAndroid = Platform.OS_ANDROID === OS
 

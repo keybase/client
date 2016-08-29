@@ -1,13 +1,13 @@
 // @flow
 import React, {Component} from 'react'
-import Revoke from './revoke'
-import {TypedConnector} from '../util/typed-connect'
-import {submitRevokeProof, finishRevoking, dropPgp} from '../actions/profile'
+import Revoke from './index'
+import {TypedConnector} from '../../util/typed-connect'
+import {submitRevokeProof, finishRevoking, dropPgp} from '../../actions/profile'
 
-import type {PlatformsExpandedType} from '../constants/types/more'
-import type {Props} from './revoke'
-import type {TypedState} from '../constants/reducer'
-import type {TypedDispatch} from '../constants/types/flux'
+import type {PlatformsExpandedType} from '../../constants/types/more'
+import type {Props} from './index'
+import type {TypedState} from '../../constants/reducer'
+import type {TypedDispatch} from '../../constants/types/flux'
 
 type OwnProps = {
   platform: PlatformsExpandedType,

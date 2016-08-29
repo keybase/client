@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
 import {Box, Text, Icon, PopupMenu} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 type RevokedHeaderProps = {children?: Array<any>}
 type RevokedHeaderState = {expanded: boolean}

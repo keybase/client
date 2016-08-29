@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import {TouchableWithoutFeedback, ListView} from 'react-native'
 import {Box, Text} from '../common-adapters'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 
 export default class MenuList extends Component {
   componentWillMount () {

@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {platformText} from './prove-enter-username.shared'
 import {Box, Icon, Text, Button, Input, PlatformIcon, StandardScreen} from '../common-adapters'
 import {constants} from '../constants/types/keybase-v1'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import openURL from '../util/open-url'
 
 import type {PlatformsExpandedType} from '../constants/types/more'

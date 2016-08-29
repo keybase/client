@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {TouchableHighlight} from 'react-native'
 import {Box, Avatar, Text} from '../common-adapters'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import type {Props, FriendshipUserInfo} from './friendships'
 
 const ITEM_WIDTH = 105

@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {Button, Text, Icon} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {normal} from '../constants/tracker'
 
 import type {ActionProps} from './action.render'

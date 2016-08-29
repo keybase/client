@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import Box from './box'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 import type {Props} from './list-item'
 
 class ListItem extends Component<void, Props, void> {

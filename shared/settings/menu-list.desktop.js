@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import {List, ListItem} from 'material-ui'
 import {Box} from '../common-adapters'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 
 export default class MenuList extends Component {
   render () {

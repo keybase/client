@@ -4,7 +4,7 @@ import React from 'react'
 import type {DumbComponentMap} from '../constants/types/more'
 import {Avatar, Box, Button, ChoiceList, ListItem, PopupMenu, StandardScreen, TabBar, Text} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 
 const tabBarButtonMap: DumbComponentMap<TabBarButton> = {
   // $FlowIssue

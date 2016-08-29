@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {Context} from './terminal'
 import type {Props, Background} from './text'
 import {findDOMNode} from 'react-dom'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 const LinkTypes = {
   'HeaderLink': true,

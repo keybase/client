@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 
 import {Avatar, Box, ClickableBox, Icon, Text, ProgressIndicator} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles/style-guide'
+import {globalStyles, globalColors} from '../../styles'
 
 import type {SearchResult} from '../../constants/search'
 import type {Props, SearchResultFn} from './render'

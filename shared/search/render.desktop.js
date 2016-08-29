@@ -1,7 +1,7 @@
 /* @flow */
 import React, {Component} from 'react'
 import {Box, Text} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import UserSearch from './user-search/render.desktop'
 import UserGroup from './user-search/user-group'
 import SearchBar from './user-search/search-bar.desktop'

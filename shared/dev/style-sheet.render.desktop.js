@@ -3,7 +3,7 @@ import Container from './dev-container.desktop.js'
 import DropdownDemo from './components/dropdown.desktop'
 import React, {Component} from 'react'
 import {Box, Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 const Space = () => <Box style={{minHeight: 20, minWidth: 20}} />
 

@@ -1,5 +1,5 @@
 // @flow
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 import type {IconType} from './icon'
 import {iconMeta} from './icon.constants'
 

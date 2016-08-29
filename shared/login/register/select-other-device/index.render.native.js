@@ -6,7 +6,7 @@ import type {IconType} from '../../../common-adapters/icon'
 import type {Props} from './index.render'
 import {Box, Text, Icon} from '../../../common-adapters'
 import {TouchableHighlight, View} from 'react-native'
-import {globalStyles, globalColors} from '../../../styles/style-guide'
+import {globalStyles, globalColors} from '../../../styles'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconType = ({

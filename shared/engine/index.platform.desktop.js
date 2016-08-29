@@ -1,8 +1,8 @@
 // @flow
 import net from 'net'
-import type {incomingRPCCallbackType, connectCallbackType} from './platform-specific'
+import type {incomingRPCCallbackType, connectCallbackType} from './index.platform'
 import {TransportShared, sharedCreateClient} from './transport-shared'
-import {socketPath} from '../constants/platform.native.desktop'
+import {socketPath} from '../constants/platform.specific.desktop'
 
 class NativeTransport extends TransportShared {
   constructor (incomingRPCCallback, connectCallback) {

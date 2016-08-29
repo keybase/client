@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './popup-menu'
 import {Box, Text} from '../common-adapters/index'
-import {globalColors, globalStyles} from '../styles/style-guide'
+import {globalColors, globalStyles} from '../styles'
 
 class PopupMenu extends Component<void, Props, void> {
   render () {

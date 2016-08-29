@@ -3,7 +3,7 @@ import ProgressIndicator from './progress-indicator'
 import React, {Component} from 'react'
 import type {Props} from './button'
 import {FlatButton} from 'material-ui'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 class Button extends Component<void, Props, void> {
   _styles (type: Props.type): Object {

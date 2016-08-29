@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {Box, UserCard, Text, Button, FormWithCheckbox, Dropdown} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles/style-guide'
+import {globalStyles, globalColors} from '../../styles'
 
 class LoginRender extends Component<void, Props, void> {
   render () {
