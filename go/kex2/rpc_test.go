@@ -86,9 +86,18 @@ func (mp *mockProvisioner) CounterSign(input keybase1.HelloRes) (output []byte, 
 	return
 }
 
+func (mp *mockProvisioner) CounterSign2(input keybase1.Hello2Res) (output keybase1.DidCounterSign2Arg, err error) {
+	output.Sig, err = mp.CounterSign(input.SigPayload)
+	return
+}
+
 func (mp *mockProvisioner) GetHelloArg() (res keybase1.HelloArg, err error) {
 	res.Uid = mp.uid
-	return
+	return res, err
+}
+func (mp *mockProvisioner) GetHello2Arg() (res keybase1.Hello2Arg, err error) {
+	res.Uid = mp.uid
+	return res, err
 }
 
 func (mp *mockProvisionee) GetLogFactory() rpc.LogFactory {
@@ -98,6 +107,15 @@ func (mp *mockProvisionee) GetLogFactory() rpc.LogFactory {
 var ErrHandleHello = errors.New("handle hello failure")
 var ErrHandleDidCounterSign = errors.New("handle didCounterSign failure")
 var testTimeout = time.Duration(50) * time.Millisecond
+
+func (mp *mockProvisionee) HandleHello2(arg2 keybase1.Hello2Arg) (res keybase1.Hello2Res, err error) {
+	arg1 := keybase1.HelloArg{
+		Uid:     arg2.Uid,
+		SigBody: arg2.SigBody,
+	}
+	res.SigPayload, err = mp.HandleHello(arg1)
+	return res, err
+}
 
 func (mp *mockProvisionee) HandleHello(arg keybase1.HelloArg) (res keybase1.HelloRes, err error) {
 	if (mp.behavior & BadProvisioneeSlowHello) != 0 {
@@ -119,6 +137,10 @@ func (mp *mockProvisionee) HandleDidCounterSign([]byte) error {
 		return ErrHandleDidCounterSign
 	}
 	return nil
+}
+
+func (mp *mockProvisionee) HandleDidCounterSign2(arg keybase1.DidCounterSign2Arg) error {
+	return mp.HandleDidCounterSign(arg.Sig)
 }
 
 func testProtocolXWithBehavior(t *testing.T, provisioneeBehavior int) (results [2]error) {

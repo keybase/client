@@ -256,6 +256,8 @@ export const kbfsCommon = {
 
 export const Kex2Provisionee = {}
 
+export const Kex2Provisionee2 = {}
+
 export const Kex2Provisioner = {}
 
 export const log = {}
@@ -523,6 +525,7 @@ export default {
   kbfs,
   kbfsCommon,
   Kex2Provisionee,
+  Kex2Provisionee2,
   Kex2Provisioner,
   log,
   logUi,
