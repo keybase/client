@@ -20,11 +20,11 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/PuerkitoBio/goquery"
+	gregor "github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/logger"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
-	gregor "github.com/keybase/client/go/gregor"
-	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
 type CommandLine interface {
@@ -361,15 +361,18 @@ type PromptDescriptor int
 type OutputDescriptor int
 
 type TerminalUI interface {
-	OutputWriter() io.Writer
+	ErrorWriter() io.Writer
 	Output(string) error
 	OutputDesc(OutputDescriptor, string) error
-	ErrorWriter() io.Writer
+	OutputWriter() io.Writer
 	Printf(fmt string, args ...interface{}) (int, error)
-	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
 	Prompt(PromptDescriptor, string) (string, error)
-	PromptPassword(PromptDescriptor, string) (string, error)
 	PromptForConfirmation(prompt string) error
+	PromptPassword(PromptDescriptor, string) (string, error)
+	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
+	Tablify(headings []string, rowfunc func() []string)
+	TablifyAlignRight(headings []string, rowfunc func() []string)
+	TerminalSize() (width int, height int)
 }
 
 type DumbOutputUI interface {

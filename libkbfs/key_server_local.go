@@ -53,7 +53,7 @@ func newKeyServerDisk(
 	config Config, dirPath string, shutdownFunc func(logger.Logger)) (
 	*KeyServerLocal, error) {
 	keyPath := filepath.Join(dirPath, "keys")
-	storage, err := storage.OpenFile(keyPath)
+	storage, err := storage.OpenFile(keyPath, false)
 	if err != nil {
 		return nil, err
 	}

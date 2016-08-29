@@ -12,6 +12,7 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -22,6 +23,8 @@ import (
 type RooterChecker struct {
 	proof libkb.RemoteProofChainLink
 }
+
+var _ libkb.ProofChecker = (*RooterChecker)(nil)
 
 func NewRooterChecker(p libkb.RemoteProofChainLink) (*RooterChecker, libkb.ProofError) {
 	return &RooterChecker{p}, nil
@@ -126,7 +129,13 @@ func (rc *RooterChecker) rewriteURL(ctx libkb.ProofContext, s string) (string, e
 }
 
 func (rc *RooterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) (perr libkb.ProofError) {
+	if pvl.UsePvl {
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_ROOTER, rc.proof, h)
+	}
+	return rc.CheckStatusOld(ctx, h)
+}
 
+func (rc *RooterChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) (perr libkb.ProofError) {
 	ctx.GetLog().Debug("+ Checking rooter at API=%s", h.GetAPIURL())
 	defer func() {
 		ctx.GetLog().Debug("- Rooter -> %v", perr)

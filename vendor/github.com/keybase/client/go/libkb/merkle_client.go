@@ -281,12 +281,21 @@ func (mc *MerkleClient) LookupPath(q HTTPArgs) (vp *VerificationPath, err error)
 	q.Add("poll", I{10})
 
 	res, err := mc.G().API.Get(APIArg{
-		Endpoint:    "merkle/path",
-		NeedSession: false,
-		Args:        q,
+		Endpoint:       "merkle/path",
+		NeedSession:    false,
+		Args:           q,
+		AppStatusCodes: []int{SCOk, SCNotFound, SCDeleted},
 	})
 
 	if err != nil {
+		return
+	}
+	switch res.AppStatus.Code {
+	case SCNotFound:
+		err = NotFoundError{}
+		return
+	case SCDeleted:
+		err = DeletedError{}
 		return
 	}
 

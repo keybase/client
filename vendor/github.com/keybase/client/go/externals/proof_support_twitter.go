@@ -10,6 +10,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -20,6 +21,8 @@ import (
 type TwitterChecker struct {
 	proof libkb.RemoteProofChainLink
 }
+
+var _ libkb.ProofChecker = (*TwitterChecker)(nil)
 
 func NewTwitterChecker(p libkb.RemoteProofChainLink) (*TwitterChecker, libkb.ProofError) {
 	return &TwitterChecker{p}, nil
@@ -83,6 +86,13 @@ func (rc *TwitterChecker) findSigInTweet(ctx libkb.ProofContext, h libkb.SigHint
 }
 
 func (rc *TwitterChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_TWITTER, rc.proof, h)
+	}
+	return rc.CheckStatusOld(ctx, h)
+}
+
+func (rc *TwitterChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	url := h.GetAPIURL()
 	res, err := ctx.GetExternalAPI().GetHTML(libkb.NewAPIArg(url))
 	if err != nil {
