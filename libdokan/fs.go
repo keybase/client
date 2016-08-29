@@ -483,6 +483,10 @@ func (f *FS) logEnter(ctx context.Context, s string) {
 	f.log.CDebugf(ctx, "=> %s", s)
 }
 
+func (f *FS) logEnterf(ctx context.Context, fmt string, args ...interface{}) {
+	f.log.CDebugf(ctx, "=> "+fmt, args...)
+}
+
 // Root represents the root of the KBFS file system.
 type Root struct {
 	emptyFile

@@ -42,7 +42,8 @@ func (f *File) GetFileInformation(ctx context.Context, fi *dokan.FileInfo) (a *d
 
 // CanDeleteFile - return just nil
 // TODO check for permissions here.
-func (*File) CanDeleteFile(context.Context, *dokan.FileInfo) error {
+func (f *File) CanDeleteFile(ctx context.Context, fi *dokan.FileInfo) error {
+	f.folder.fs.logEnterf(ctx, "File CanDeleteFile for %q", f.name)
 	return nil
 }
 
@@ -54,7 +55,7 @@ func (f *File) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 
 	f.folder.fs.log.CDebugf(ctx, "Cleanup %v", *f)
 	if fi != nil && fi.IsDeleteOnClose() {
-		f.folder.fs.log.CDebugf(ctx, "Removing file in cleanup %s", f.name)
+		f.folder.fs.log.CDebugf(ctx, "Removing (Delete) file in cleanup %s", f.name)
 
 		err = f.folder.fs.config.KBFSOps().RemoveEntry(ctx, f.parent, f.name)
 	}
