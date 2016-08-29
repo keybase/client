@@ -6,6 +6,7 @@ import hello from '../shared/util/hello'
 import loadPerf from '../shared/util/load-perf'
 import materialTheme from '../shared/styles/material-theme.desktop'
 import pinentry from '../shared/pinentry'
+import purgeMessage from '../shared/pgp/container.desktop'
 import tracker from '../shared/tracker'
 import unlockFolders from '../shared/unlock-folders'
 import {MuiThemeProvider} from 'material-ui/styles'
@@ -79,7 +80,7 @@ class RemoteComponentLoader extends Component {
 
     hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__) // eslint-disable-line no-undef
 
-    const component = {tracker, pinentry, unlockFolders}
+    const component = {tracker, pinentry, unlockFolders, purgeMessage}
 
     if (!componentToLoad || !component[componentToLoad]) {
       throw new TypeError('Invalid Remote Component passed through')
