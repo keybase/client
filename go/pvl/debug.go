@@ -57,7 +57,7 @@ func debug(g ProofContextExt, format string, arg ...interface{}) {
 
 // debugServiceToString returns the name of a service or number string if it is invalid.
 func debugServiceToString(service keybase1.ProofType) string {
-	s, err := pvlServiceToString(service)
+	s, err := serviceToString(service)
 	if err != nil {
 		return string(service)
 	}

@@ -74,14 +74,14 @@ const (
 type PvlStep func(ProofContextExt, *jsonw.Wrapper, PvlScriptState) (PvlScriptState, libkb.ProofError)
 
 var PvlSteps = map[PvlCommandName]PvlStep{
-	PvlAssertRegexMatch:    pvlStepAssertRegexMatch,
-	PvlAssertFindBase64:    pvlStepAssertFindBase64,
-	PvlWhitespaceNormalize: pvlStepWhitespaceNormalize,
-	PvlRegexCapture:        pvlStepRegexCapture,
-	PvlFetch:               pvlStepFetch,
-	PvlSelectorJSON:        pvlStepSelectorJSON,
-	PvlSelectorCSS:         pvlStepSelectorCSS,
-	PvlTransformURL:        pvlStepTransformURL,
+	PvlAssertRegexMatch:    stepAssertRegexMatch,
+	PvlAssertFindBase64:    stepAssertFindBase64,
+	PvlWhitespaceNormalize: stepWhitespaceNormalize,
+	PvlRegexCapture:        stepRegexCapture,
+	PvlFetch:               stepFetch,
+	PvlSelectorJSON:        stepSelectorJSON,
+	PvlSelectorCSS:         stepSelectorCSS,
+	PvlTransformURL:        stepTransformURL,
 }
 
 // Checkproof verifies one proof by running the pvl on the provided proof information.
@@ -95,7 +95,7 @@ func CheckProof(g1 libkb.ProofContext, pvl *jsonw.Wrapper, service keybase1.Proo
 }
 
 func CheckProofInner(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.ProofType, link libkb.RemoteProofChainLink, h libkb.SigHint) libkb.ProofError {
-	if perr := pvlValidateChunk(g, pvl, service); perr != nil {
+	if perr := validateChunk(g, pvl, service); perr != nil {
 		return perr
 	}
 
@@ -105,7 +105,7 @@ func CheckProofInner(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.Pro
 			"Bad signature: %v", err)
 	}
 
-	scripts, perr := pvlChunkGetScripts(pvl, service)
+	scripts, perr := chunkGetScripts(pvl, service)
 	if perr != nil {
 		return perr
 	}
@@ -143,14 +143,14 @@ func CheckProofInner(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.Pro
 
 	var errs []libkb.ProofError
 	if service == keybase1.ProofType_DNS {
-		errs = pvlRunDNS(g, scripts, newstate(0))
+		errs = runDNS(g, scripts, newstate(0))
 	} else {
 		// Run the scripts in order.
 		// If any succeed, the proof succeeds.
 		// If one fails, the next takes over.
 		// If all fail, log and report errors.
 		for i, script := range scripts {
-			perr = pvlRunScript(g, script, newstate(i))
+			perr = runScript(g, script, newstate(i))
 			if perr == nil {
 				return nil
 			}
@@ -172,8 +172,8 @@ func CheckProofInner(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.Pro
 }
 
 // Get the list of scripts for a given service.
-func pvlChunkGetScripts(pvl *jsonw.Wrapper, service keybase1.ProofType) ([]*jsonw.Wrapper, libkb.ProofError) {
-	serviceString, perr := pvlServiceToString(service)
+func chunkGetScripts(pvl *jsonw.Wrapper, service keybase1.ProofType) ([]*jsonw.Wrapper, libkb.ProofError) {
+	serviceString, perr := serviceToString(service)
 	if perr != nil {
 		return nil, perr
 	}
@@ -188,7 +188,7 @@ func pvlChunkGetScripts(pvl *jsonw.Wrapper, service keybase1.ProofType) ([]*json
 	multiscript := err == nil
 	var scripts []*jsonw.Wrapper
 	if multiscript {
-		scripts, err = pvlJSONUnpackArray(scriptsw)
+		scripts, err = jsonUnpackArray(scriptsw)
 		if err != nil {
 			return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 				"Could not unpack PVL multiscript: %v", err)
@@ -205,7 +205,7 @@ func pvlChunkGetScripts(pvl *jsonw.Wrapper, service keybase1.ProofType) ([]*json
 
 // Check that a chunk of PVL is valid code.
 // Will always accept valid code, but may not always notice invalidities.
-func pvlValidateChunk(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.ProofType) libkb.ProofError {
+func validateChunk(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.ProofType) libkb.ProofError {
 	// Check the version.
 	version, err := pvl.AtKey("pvl_version").GetInt()
 	if err != nil {
@@ -226,7 +226,7 @@ func pvlValidateChunk(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.Pr
 
 	debug(g, "valid version:%v revision:%v", version, revision)
 
-	scripts, perr := pvlChunkGetScripts(pvl, service)
+	scripts, perr := chunkGetScripts(pvl, service)
 	if perr != nil {
 		return perr
 	}
@@ -234,13 +234,13 @@ func pvlValidateChunk(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.Pr
 	// Scan all the scripts (for this service) for errors. Report the first error.
 	var errs []libkb.ProofError
 	for whichscript, script := range scripts {
-		perr = pvlValidateScript(g, script, service, whichscript)
+		perr = validateScript(g, script, service, whichscript)
 		errs = append(errs, perr)
 	}
 	return errs[0]
 }
 
-func pvlValidateScript(g ProofContextExt, script *jsonw.Wrapper, service keybase1.ProofType, whichscript int) libkb.ProofError {
+func validateScript(g ProofContextExt, script *jsonw.Wrapper, service keybase1.ProofType, whichscript int) libkb.ProofError {
 	// Scan the script.
 	// Does not validate each instruction's format. (That is done when running it)
 
@@ -268,12 +268,12 @@ func pvlValidateScript(g ProofContextExt, script *jsonw.Wrapper, service keybase
 		switch {
 
 		// These can always run, but must be cases so that the default case works.
-		case pvlJSONHasKeyCommand(ins, PvlAssertRegexMatch):
-		case pvlJSONHasKeyCommand(ins, PvlAssertFindBase64):
-		case pvlJSONHasKeyCommand(ins, PvlWhitespaceNormalize):
-		case pvlJSONHasKeyCommand(ins, PvlRegexCapture):
+		case jsonHasKeyCommand(ins, PvlAssertRegexMatch):
+		case jsonHasKeyCommand(ins, PvlAssertFindBase64):
+		case jsonHasKeyCommand(ins, PvlWhitespaceNormalize):
+		case jsonHasKeyCommand(ins, PvlRegexCapture):
 
-		case pvlJSONHasKeyCommand(ins, PvlFetch):
+		case jsonHasKeyCommand(ins, PvlFetch):
 			// A script can contain only <=1 fetches.
 			// A DNS script cannot contain fetches.
 
@@ -305,7 +305,7 @@ func pvlValidateScript(g ProofContextExt, script *jsonw.Wrapper, service keybase
 				return logerr(g, service, whichscript, i,
 					"Unsupported fetch type: %v", fetchType)
 			}
-		case pvlJSONHasKeyCommand(ins, PvlSelectorJSON):
+		case jsonHasKeyCommand(ins, PvlSelectorJSON):
 			// Can only select after fetching.
 			switch {
 			case service == keybase1.ProofType_DNS:
@@ -318,7 +318,7 @@ func pvlValidateScript(g ProofContextExt, script *jsonw.Wrapper, service keybase
 				return logerr(g, service, whichscript, i,
 					"Script contains json selector in non-html mode")
 			}
-		case pvlJSONHasKeyCommand(ins, PvlSelectorCSS):
+		case jsonHasKeyCommand(ins, PvlSelectorCSS):
 			// Can only select after fetching.
 			switch {
 			case service == keybase1.ProofType_DNS:
@@ -331,7 +331,7 @@ func pvlValidateScript(g ProofContextExt, script *jsonw.Wrapper, service keybase
 				return logerr(g, service, whichscript, i,
 					"Script contains css selector in non-html mode")
 			}
-		case pvlJSONHasKeyCommand(ins, PvlTransformURL):
+		case jsonHasKeyCommand(ins, PvlTransformURL):
 			// Can only transform before fetching.
 			switch {
 			case service == keybase1.ProofType_DNS:
@@ -352,14 +352,14 @@ func pvlValidateScript(g ProofContextExt, script *jsonw.Wrapper, service keybase
 
 // Run each script on each TXT record of each domain.
 // Succeed if any succeed.
-func pvlRunDNS(g ProofContextExt, scripts []*jsonw.Wrapper, startstate PvlScriptState) []libkb.ProofError {
+func runDNS(g ProofContextExt, scripts []*jsonw.Wrapper, startstate PvlScriptState) []libkb.ProofError {
 	userdomain := startstate.Vars.Hostname
 	domains := []string{userdomain, "_keybase." + userdomain}
 	var errs []libkb.ProofError
 	for _, d := range domains {
 		debugWithState(g, startstate, "Trying DNS: %v", d)
 
-		err := pvlRunDNSOne(g, scripts, startstate, d)
+		err := runDNSOne(g, scripts, startstate, d)
 		if err != nil {
 			errs = append(errs, err)
 		} else {
@@ -371,7 +371,7 @@ func pvlRunDNS(g ProofContextExt, scripts []*jsonw.Wrapper, startstate PvlScript
 }
 
 // Run each script on each TXT record of the domain.
-func pvlRunDNSOne(g ProofContextExt, scripts []*jsonw.Wrapper, startstate PvlScriptState, domain string) libkb.ProofError {
+func runDNSOne(g ProofContextExt, scripts []*jsonw.Wrapper, startstate PvlScriptState, domain string) libkb.ProofError {
 	txts, err := net.LookupTXT(domain)
 	if err != nil {
 		return libkb.NewProofError(keybase1.ProofStatus_DNS_ERROR,
@@ -386,11 +386,11 @@ func pvlRunDNSOne(g ProofContextExt, scripts []*jsonw.Wrapper, startstate PvlScr
 			state := startstate
 			state.WhichScript = i
 			state.ActiveString = record
-			err = pvlRunScript(g, script, state)
+			err = runScript(g, script, state)
 			if err == nil {
 				return nil
 			}
-			// Discard error, it has already been reported by pvlStepInstruction.
+			// Discard error, it has already been reported by stepInstruction.
 		}
 	}
 
@@ -399,7 +399,7 @@ func pvlRunDNSOne(g ProofContextExt, scripts []*jsonw.Wrapper, startstate PvlScr
 		len(txts), domain)
 }
 
-func pvlRunScript(g ProofContextExt, script *jsonw.Wrapper, startstate PvlScriptState) libkb.ProofError {
+func runScript(g ProofContextExt, script *jsonw.Wrapper, startstate PvlScriptState) libkb.ProofError {
 	var state = startstate
 	scriptlen, err := script.Len()
 	if err != nil {
@@ -425,7 +425,7 @@ func pvlRunScript(g ProofContextExt, script *jsonw.Wrapper, startstate PvlScript
 			return perr
 		}
 
-		newstate, perr := pvlStepInstruction(g, ins, state)
+		newstate, perr := stepInstruction(g, ins, state)
 		if perr != nil {
 			return perr
 		}
@@ -437,14 +437,14 @@ func pvlRunScript(g ProofContextExt, script *jsonw.Wrapper, startstate PvlScript
 	return nil
 }
 
-// pvlStepInstruction decides which instruction to run.
-func pvlStepInstruction(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
+// stepInstruction decides which instruction to run.
+func stepInstruction(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
 	var name PvlCommandName
 	var step PvlStep
 	n := 0
 
 	for iname, istep := range PvlSteps {
-		if pvlJSONHasKeyCommand(ins, iname) {
+		if jsonHasKeyCommand(ins, iname) {
 			step = istep
 			name = iname
 			n++
@@ -458,7 +458,7 @@ func pvlStepInstruction(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptSt
 			debugWithStateError(g, state, err)
 
 			// Replace error with custom error.
-			customerr, swap := pvlCustomError(g, ins, state, err)
+			customerr, swap := customError(g, ins, state, err)
 			if swap {
 				err = customerr
 				debugWithState(g, state, "Replacing error with custom error")
@@ -477,13 +477,13 @@ func pvlStepInstruction(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptSt
 		"Unsupported PVL instruction")
 }
 
-func pvlStepAssertRegexMatch(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
+func stepAssertRegexMatch(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
 	template, err := ins.AtKey(string(PvlAssertRegexMatch)).GetString()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not get regex template")
 	}
-	re, perr := pvlInterpretRegex(g, template, state)
+	re, perr := interpretRegex(g, template, state)
 	if perr != nil {
 		return state, perr
 	}
@@ -496,7 +496,7 @@ func pvlStepAssertRegexMatch(g ProofContextExt, ins *jsonw.Wrapper, state PvlScr
 	return state, nil
 }
 
-func pvlStepAssertFindBase64(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
+func stepAssertFindBase64(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
 	target, err := ins.AtKey(string(PvlAssertFindBase64)).GetString()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
@@ -513,18 +513,18 @@ func pvlStepAssertFindBase64(g ProofContextExt, ins *jsonw.Wrapper, state PvlScr
 		"Can only assert_find_base64 for sig")
 }
 
-func pvlStepWhitespaceNormalize(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
+func stepWhitespaceNormalize(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
 	state.ActiveString = libkb.WhitespaceNormalize(state.ActiveString)
 	return state, nil
 }
 
-func pvlStepRegexCapture(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
+func stepRegexCapture(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
 	template, err := ins.AtKey(string(PvlRegexCapture)).GetString()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"not get regex template")
 	}
-	re, perr := pvlInterpretRegex(g, template, state)
+	re, perr := interpretRegex(g, template, state)
 	if perr != nil {
 		return state, perr
 	}
@@ -540,7 +540,7 @@ func pvlStepRegexCapture(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptS
 	return state, nil
 }
 
-func pvlStepFetch(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
+func stepFetch(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
 	fetchType, err := ins.AtKey(string(PvlFetch)).GetString()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
@@ -595,7 +595,7 @@ func pvlStepFetch(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (
 	}
 }
 
-func pvlStepSelectorJSON(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
+func stepSelectorJSON(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
 	if state.FetchResult == nil || state.FetchResult.Mode != PvlModeJSON {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Cannot use json selector with non-json fetch result")
@@ -607,7 +607,7 @@ func pvlStepSelectorJSON(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptS
 			"Cannot use css selector with non-html fetch result")
 	}
 
-	selectors, err := pvlJSONUnpackArray(selectorsw)
+	selectors, err := jsonUnpackArray(selectorsw)
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not unpack json selector list: %v", err)
@@ -617,7 +617,7 @@ func pvlStepSelectorJSON(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptS
 			"Json selector list must contain at least 1 element")
 	}
 
-	results, perr := pvlRunSelectorJSONInner(g, state, state.FetchResult.JSON, selectors)
+	results, perr := runSelectorJSONInner(g, state, state.FetchResult.JSON, selectors)
 	if perr != nil {
 		return state, perr
 	}
@@ -631,7 +631,7 @@ func pvlStepSelectorJSON(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptS
 	return state, nil
 }
 
-func pvlStepSelectorCSS(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
+func stepSelectorCSS(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
 	if state.FetchResult == nil || state.FetchResult.Mode != PvlModeHTML {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Cannot use css selector with non-html fetch result")
@@ -651,7 +651,7 @@ func pvlStepSelectorCSS(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptSt
 	multi, err := ins.AtKey("multi").GetBool()
 	multi = multi && err == nil
 
-	selection, perr := pvlRunCSSSelectorInner(g, state.FetchResult.HTML.Selection, selectors)
+	selection, perr := runCSSSelectorInner(g, state.FetchResult.HTML.Selection, selectors)
 	if perr != nil {
 		return state, perr
 	}
@@ -666,13 +666,13 @@ func pvlStepSelectorCSS(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptSt
 			"CSS selector matched too many elements")
 	}
 
-	res := pvlSelectionContents(selection, useAttr, attr)
+	res := selectionContents(selection, useAttr, attr)
 
 	state.ActiveString = res
 	return state, nil
 }
 
-func pvlStepTransformURL(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
+func stepTransformURL(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState) (PvlScriptState, libkb.ProofError) {
 	sourceTemplate, err := ins.AtKey(string(PvlTransformURL)).GetString()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
@@ -684,7 +684,7 @@ func pvlStepTransformURL(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptS
 			"Could not get dest pattern for transformation")
 	}
 
-	re, perr := pvlInterpretRegex(g, sourceTemplate, state)
+	re, perr := interpretRegex(g, sourceTemplate, state)
 	if perr != nil {
 		return state, perr
 	}
@@ -698,7 +698,7 @@ func pvlStepTransformURL(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptS
 			"Regex transform did not match: %v", sourceTemplate)
 	}
 
-	newURL, err := pvlSubstitute(destTemplate, state, match)
+	newURL, err := substitute(destTemplate, state, match)
 	if err != nil {
 		debugWithState(g, state, "Regex transform did not substitute:\n  %v\n  %v\n  %v\n  %v",
 			destTemplate, re, state.FetchURL, match)
@@ -714,7 +714,7 @@ func pvlStepTransformURL(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptS
 // Run a PVL CSS selector.
 // selectors is a list like [ "div .foo", 0, ".bar"] ].
 // Each string runs a selector, each integer runs a Eq.
-func pvlRunCSSSelectorInner(g ProofContextExt, html *goquery.Selection, selectors *jsonw.Wrapper) (*goquery.Selection, libkb.ProofError) {
+func runCSSSelectorInner(g ProofContextExt, html *goquery.Selection, selectors *jsonw.Wrapper) (*goquery.Selection, libkb.ProofError) {
 	nselectors, err := selectors.Len()
 	if err != nil {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
@@ -752,10 +752,10 @@ func pvlRunCSSSelectorInner(g ProofContextExt, html *goquery.Selection, selector
 
 // Most failures here log instead of returning an error. If an error occurs, ([], nil) will be returned.
 // This is because a selector may descend into many subtrees and fail in all but one.
-func pvlRunSelectorJSONInner(g ProofContextExt, state PvlScriptState, object *jsonw.Wrapper, selectors []*jsonw.Wrapper) ([]string, libkb.ProofError) {
+func runSelectorJSONInner(g ProofContextExt, state PvlScriptState, object *jsonw.Wrapper, selectors []*jsonw.Wrapper) ([]string, libkb.ProofError) {
 	// The terminating condition is when we've consumed all the selectors.
 	if len(selectors) == 0 {
-		s, err := pvlJSONStringSimple(object)
+		s, err := jsonStringSimple(object)
 		if err != nil {
 			debugWithState(g, state, "JSON could not read object: %v (%v)", err, object)
 			return make([]string, 0), nil
@@ -782,7 +782,7 @@ func pvlRunSelectorJSONInner(g ProofContextExt, state PvlScriptState, object *js
 		}
 
 		nextobject := object.AtIndex(selectorIndex)
-		return pvlRunSelectorJSONInner(g, state, nextobject, nextselectors)
+		return runSelectorJSONInner(g, state, nextobject, nextselectors)
 	case selectorIsKey:
 		object, err := object.ToDictionary()
 		if err != nil {
@@ -791,16 +791,16 @@ func pvlRunSelectorJSONInner(g ProofContextExt, state PvlScriptState, object *js
 		}
 
 		nextobject := object.AtKey(selectorKey)
-		return pvlRunSelectorJSONInner(g, state, nextobject, nextselectors)
+		return runSelectorJSONInner(g, state, nextobject, nextselectors)
 	case selectorIsAll:
-		children, err := pvlJSONGetChildren(object)
+		children, err := jsonGetChildren(object)
 		if err != nil {
 			debugWithState(g, state, "JSON select could not get children: %v (%v)", err, object)
 			return []string{}, nil
 		}
 		var results []string
 		for _, child := range children {
-			innerresults, perr := pvlRunSelectorJSONInner(g, state, child, nextselectors)
+			innerresults, perr := runSelectorJSONInner(g, state, child, nextselectors)
 			if perr != nil {
 				return nil, perr
 			}
@@ -812,7 +812,7 @@ func pvlRunSelectorJSONInner(g ProofContextExt, state PvlScriptState, object *js
 }
 
 // Take a template, substitute variables, and build the Regexp.
-func pvlInterpretRegex(g ProofContextExt, template string, state PvlScriptState) (*regexp.Regexp, libkb.ProofError) {
+func interpretRegex(g ProofContextExt, template string, state PvlScriptState) (*regexp.Regexp, libkb.ProofError) {
 	var perr libkb.ProofError = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 		"Could not build regex %v", template)
 
@@ -843,7 +843,7 @@ func pvlInterpretRegex(g ProofContextExt, template string, state PvlScriptState)
 	}
 
 	// Do variable interpolation.
-	prepattern, perr := pvlSubstitute(template[1:lastSlash], state, nil)
+	prepattern, perr := substitute(template[1:lastSlash], state, nil)
 	if perr != nil {
 		return nil, perr
 	}
@@ -863,11 +863,11 @@ func pvlInterpretRegex(g ProofContextExt, template string, state PvlScriptState)
 // Always returns an error because that's its job. The second return argument is true if a different error is returned.
 // If there is an issue with the "error" spec, this just returns the unmodfied err1.
 // It would be just too harsh to report INVALID_PVL for that.
-func pvlCustomError(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState, err1 libkb.ProofError) (libkb.ProofError, bool) {
+func customError(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptState, err1 libkb.ProofError) (libkb.ProofError, bool) {
 	if err1 == nil {
 		return err1, false
 	}
-	if !pvlJSONHasKey(ins, "error") {
+	if !jsonHasKey(ins, "error") {
 		return err1, false
 	}
 
