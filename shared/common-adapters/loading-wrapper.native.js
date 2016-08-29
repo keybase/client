@@ -2,9 +2,6 @@
 import React, {Component} from 'react'
 import {Animated} from 'react-native'
 import Box from './box'
-import HOCTimers from './hoc-timers'
-
-import type {TimerProps} from './hoc-timers'
 
 type Props = {
   loading: boolean,
@@ -12,7 +9,7 @@ type Props = {
   doneLoadingComponent: React$Element<*>,
   loadingComponent: React$Element<*>,
   duration: number,
-} & TimerProps
+}
 
 type State = {
   opacity: any,
@@ -74,4 +71,4 @@ class LoadingWrapper extends Component<void, Props, State> {
   }
 }
 
-export default HOCTimers(LoadingWrapper)
+export default LoadingWrapper

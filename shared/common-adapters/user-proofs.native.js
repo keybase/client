@@ -76,7 +76,7 @@ function LoadingProofRow ({width, style}: {width: number, style: Object}): React
           <Box style={{...globalStyles.loadingTextStyle, width, marginTop: 8, height: 16}} />
         </Box>
       </Box>
-      <Icon type={'iconfont-proof-placeholder'} style={{...stylesStatusIcon, color: globalColors.lightGrey}} />
+      <Icon type={'iconfont-proof-placeholder'} style={{...stylesStatusIcon('iconfont-proof-placeholder'), color: globalColors.lightGrey}} />
     </Box>
   )
 }
