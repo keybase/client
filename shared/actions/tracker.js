@@ -59,7 +59,7 @@ export function stopTimer (): Action {
 
 export function registerTrackerChangeListener (): TrackerActionCreator {
   return (dispatch, getState) => {
-    engine.setIncomingHandler('keybase.1.NotifyTracking.trackingChanged', ({username}) => {
+    engine().setIncomingHandler('keybase.1.NotifyTracking.trackingChanged', ({username}) => {
       const trackerState = getState().tracker.trackers[username]
       if (trackerState && trackerState.type === 'tracker') {
         dispatch(getProfile(username))
@@ -178,7 +178,7 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
 
 export function registerIdentifyUi (): TrackerActionCreator {
   return (dispatch, getState) => {
-    engine.listenOnConnect('registerIdentifyUi', () => {
+    engine().listenOnConnect('registerIdentifyUi', () => {
       delegateUiCtlRegisterIdentifyUIRpc({
         callback: (error, response) => {
           if (error != null) {
@@ -204,8 +204,8 @@ export function registerIdentifyUi (): TrackerActionCreator {
       }
     }
 
-    engine.setIncomingHandler('keybase.1.identifyUi.delegateIdentifyUI', (param: any, response: ?Object) => {
-      const session: Session = engine.createSession(
+    engine().setIncomingHandler('keybase.1.identifyUi.delegateIdentifyUI', (param: any, response: ?Object) => {
+      const session: Session = engine().createSession(
         serverCallMap(dispatch, getState, false, () => {
           session.end()
         }), null, cancelHandler)

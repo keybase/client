@@ -54,7 +54,7 @@ export function close (): AsyncAction {
 
 export function registerRekeyListener (): (dispatch: Dispatch) => void {
   return dispatch => {
-    engine.listenOnConnect('registerRekeyUI', () => {
+    engine().listenOnConnect('registerRekeyUI', () => {
       delegateUiCtlRegisterRekeyUIRpc({
         callback: (error, response) => {
           if (error != null) {
@@ -67,12 +67,12 @@ export function registerRekeyListener (): (dispatch: Dispatch) => void {
     })
 
     // we get this with sessionID == 0 if we call openDialog
-    engine.setIncomingHandler('keybase.1.rekeyUI.refresh', (params, response) => refreshHandler(params, response, dispatch))
+    engine().setIncomingHandler('keybase.1.rekeyUI.refresh', (params, response) => refreshHandler(params, response, dispatch))
 
     // else we get this also as part of delegateRekeyUI
-    engine.setIncomingHandler('keybase.1.rekeyUI.delegateRekeyUI', (param: any, response: ?Object) => {
+    engine().setIncomingHandler('keybase.1.rekeyUI.delegateRekeyUI', (param: any, response: ?Object) => {
       // Dangling, never gets closed
-      const session = engine.createSession({
+      const session = engine().createSession({
         'keybase.1.rekeyUI.refresh': (params, response) => refreshHandler(params, response, dispatch),
         'keybase.1.rekeyUI.rekeySendEvent': () => {}, // ignored debug call from daemon
       }, null, null, true)

@@ -10,7 +10,7 @@ const uglySessionIDResponseMapper: {[key: number]: any} = {}
 
 export function registerPinentryListener (): AsyncAction {
   return dispatch => {
-    engine.listenOnConnect('registerSecretUI', () => {
+    engine().listenOnConnect('registerSecretUI', () => {
       delegateUiCtlRegisterSecretUIRpc({
         callback: (error, response) => {
           if (error != null) {
@@ -27,7 +27,7 @@ export function registerPinentryListener (): AsyncAction {
       payload: {started: true},
     }: RegisterPinentryListenerAction))
 
-    engine.setIncomingHandler('keybase.1.secretUi.getPassphrase', (payload, response) => {
+    engine().setIncomingHandler('keybase.1.secretUi.getPassphrase', (payload, response) => {
       console.log('Asked for passphrase')
 
       const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = payload.pinentry

@@ -20,7 +20,7 @@ ipcLogsRenderer()
 
 module.hot && module.hot.accept()
 module.hot && module.hot.dispose(() => {
-  engine.reset()
+  engine().reset()
 })
 
 // Defer this since it's a sync call

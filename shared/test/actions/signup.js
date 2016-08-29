@@ -18,7 +18,7 @@ describe('Signup', function () {
   this.timeout(5e3)
 
   before(() => {
-    engine.setFailOnError()
+    engine().setFailOnError()
   })
 
   describe('Check valid invite code', () => {
@@ -132,7 +132,7 @@ describe('Signup', function () {
     })
 
     it('has no outstanding rpc responses', () => {
-      assert.deepEqual(Object.keys(engine.sessionIDToResponse).filter(k => engine.sessionIDToResponse[k]), [])
+      assert.deepEqual(Object.keys(engine().sessionIDToResponse).filter(k => engine().sessionIDToResponse[k]), [])
     })
   })
 })

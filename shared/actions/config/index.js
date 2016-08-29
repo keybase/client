@@ -121,7 +121,7 @@ export function bootstrap (): AsyncAction {
     if (!bootstrapSetup) {
       bootstrapSetup = true
       console.log('Registered bootstrap')
-      engine.listenOnConnect('bootstrap', () => {
+      engine().listenOnConnect('bootstrap', () => {
         console.log('Bootstrapping')
         dispatch(bootstrap())
       })

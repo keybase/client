@@ -110,12 +110,12 @@ function cancelAddProof (): AsyncAction {
   return (dispatch) => {
     dispatch(_updateErrorText(null))
     if (promptUsernameResponse) {
-      engine.cancelRPC(promptUsernameResponse, InputCancelError)
+      engine().cancelRPC(promptUsernameResponse, InputCancelError)
       promptUsernameResponse = null
     }
 
     if (outputInstructionsResponse) {
-      engine.cancelRPC(outputInstructionsResponse, InputCancelError)
+      engine().cancelRPC(outputInstructionsResponse, InputCancelError)
       outputInstructionsResponse = null
     }
 

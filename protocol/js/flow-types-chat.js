@@ -19,7 +19,7 @@ export type RPCError = {
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
 
 // $FlowIssue we're calling an internal method on engine that's there just for us
-const engineRpcOutgoing = (...args) => engine._rpcOutgoing(...args)
+const engineRpcOutgoing = (...args) => engine()._rpcOutgoing(...args)
 
 type requestCommon = {
   waitingHandler?: WaitingHandlerType,

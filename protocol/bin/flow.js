@@ -138,7 +138,8 @@ function capitalize (s) {
 }
 
 function analyzeMessages (json, project) {
-  // ui means incoming
+  // ui means an incoming rpc. simple regexp to filter this but it might break in the future if
+  // the core side doesn't have a consisten naming convention. (must be case insensitive to pass correctly)
   const isUIProtocol = ['notifyCtl'].indexOf(json.protocol) === -1 && !!json.protocol.match(/^notify.*|.*ui$/i)
 
   return Object.keys(json.messages).map(m => {
@@ -314,7 +315,7 @@ export type RPCError = {
 export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
 
 // $FlowIssue we're calling an internal method on engine that's there just for us
-const engineRpcOutgoing = (...args) => engine._rpcOutgoing(...args)
+const engineRpcOutgoing = (...args) => engine()._rpcOutgoing(...args)
 
 type requestCommon = {
   waitingHandler?: WaitingHandlerType,

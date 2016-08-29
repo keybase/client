@@ -32,7 +32,7 @@ export function listenForNotifications (): (dispatch: Dispatch) => void {
 
     const listeners = ListenerCreator(dispatch, getState, NotifyPopup)
     Object.keys(listeners).forEach(key => {
-      engine.setIncomingHandler(key, listeners[key])
+      engine().setIncomingHandler(key, listeners[key])
     })
     initialized = true
   }

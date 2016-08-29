@@ -268,8 +268,6 @@ class FakeEngine {
   }
 }
 
-const engine = process.env.KEYBASE_NO_ENGINE ? new FakeEngine() : new Engine()
-
 export type EndHandlerType = (session: Object) => void;
 export type MethodKey = string;
 export type SessionID = number;
@@ -281,4 +279,12 @@ export type ResponseType = {
   error: (...args: Array<any>) => void,
 }
 
-export default engine
+let engine
+const makeEngine = () => {
+  if (!engine) {
+    engine = process.env.KEYBASE_NO_ENGINE ? new FakeEngine() : new Engine()
+  }
+  return engine
+}
+
+export default makeEngine

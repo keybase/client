@@ -100,7 +100,7 @@ module.hot && module.hot.accept('./container', () => {
       <AppContainer><NewRoot store={store} /></AppContainer>,
       appEl,
     )
-    engine.reset()
+    engine().reset()
   } finally {
     setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
   }

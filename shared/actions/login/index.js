@@ -350,7 +350,7 @@ function cancelLogin (response: ?ResponseType) : AsyncAction {
   return (dispatch, getState) => {
     dispatch(navBasedOnLoginState())
     if (response) {
-      engine.cancelRPC(response, InputCancelError)
+      engine().cancelRPC(response, InputCancelError)
     }
   }
 }
@@ -382,7 +382,7 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
       dispatch(loadDevices())
       dispatch(navigateUp(devicesTab, Map({path: 'root'})))
       if (response) {
-        engine.cancelRPC(response, InputCancelError)
+        engine().cancelRPC(response, InputCancelError)
       }
     }
 

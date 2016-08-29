@@ -48,7 +48,7 @@ function registerGregorListeners () {
     })
 
     // we get this with sessionID == 0 if we call openDialog
-    engine.setIncomingHandler('keybase.1.gregorUI.pushState', ({state, reason}, response) => {
+    engine().setIncomingHandler('keybase.1.gregorUI.pushState', ({state, reason}, response) => {
       dispatch(pushState(state, reason))
       response && response.result()
     })

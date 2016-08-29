@@ -36,7 +36,7 @@ export default function (channels: NotificationChannels): Promise<void> {
       users: !!channelsSet.users,
     }
 
-    engine.listenOnConnect('setNotifications', () => {
+    engine().listenOnConnect('setNotifications', () => {
       notifyCtlSetNotificationsRpc({
         param: {channels: toSend},
         callback: (error, response) => {
