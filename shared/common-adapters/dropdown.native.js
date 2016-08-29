@@ -111,10 +111,11 @@ class Dropdown extends Component<void, Props, State> {
         return
       }
 
-      this.setState({value})
-      if (selectOnChange) {
-        this._selected()
-      }
+      this.setState({value}, () => {
+        if (selectOnChange) {
+          this._selected()
+        }
+      })
     }
 
     return (
