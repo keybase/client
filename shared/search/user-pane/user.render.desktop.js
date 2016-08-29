@@ -33,7 +33,7 @@ export default class Render extends Component<void, Props, void> {
             currentlyFollowing={this.props.currentlyFollowing}
           />
         </Box>
-        {!this.props.loading &&
+        {!this.props.loading && !this.props.isYou &&
           <UserActions
             style={styleActionBox}
             trackerState={this.props.trackerState}
