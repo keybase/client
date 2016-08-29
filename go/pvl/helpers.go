@@ -21,7 +21,7 @@ import (
 // Only substitutes whitelisted variables.
 // It is an error to refer to an unknown variable or undefined numbered group.
 // Match is an optional slice which is a regex match.
-func substitute(template string, state PvlScriptState, match []string) (string, libkb.ProofError) {
+func substitute(template string, state ScriptState, match []string) (string, libkb.ProofError) {
 	vars := state.Vars
 	webish := (state.Service == keybase1.ProofType_DNS || state.Service == keybase1.ProofType_GENERIC_WEB_SITE)
 
@@ -94,7 +94,7 @@ func jsonHasKey(w *jsonw.Wrapper, key string) bool {
 	return !w.AtKey(key).IsNil()
 }
 
-func jsonHasKeyCommand(w *jsonw.Wrapper, key PvlCommandName) bool {
+func jsonHasKeyCommand(w *jsonw.Wrapper, key CommandName) bool {
 	return !w.AtKey(string(key)).IsNil()
 }
 

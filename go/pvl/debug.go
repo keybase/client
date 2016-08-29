@@ -33,13 +33,13 @@ func (ctx *ProofContextExtImpl) GetLogPvl() logger.Logger {
 	return ctx.pvlLogger
 }
 
-func debugWithState(g ProofContextExt, state PvlScriptState, format string, arg ...interface{}) {
+func debugWithState(g ProofContextExt, state ScriptState, format string, arg ...interface{}) {
 	s := fmt.Sprintf(format, arg...)
 	g.GetLogPvl().Debug("PVL @(service:%v script:%v pc:%v) %v",
 		debugServiceToString(state.Service), state.WhichScript, state.PC, s)
 }
 
-func debugWithStateError(g ProofContextExt, state PvlScriptState, err libkb.ProofError) {
+func debugWithStateError(g ProofContextExt, state ScriptState, err libkb.ProofError) {
 	g.GetLogPvl().Debug("PVL @(service:%v script:%v pc:%v) Error code=%v: %v",
 		debugServiceToString(state.Service), state.WhichScript, state.PC, err.GetProofStatus(), err.GetDesc())
 }

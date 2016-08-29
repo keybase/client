@@ -15,8 +15,8 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func sampleState() PvlScriptState {
-	var sampleVars = PvlScriptVariables{
+func sampleState() ScriptState {
+	var sampleVars = ScriptVariables{
 		UsernameService: "kronk",
 		UsernameKeybase: "kronk_on_kb",
 		Sig:             []byte{1, 2, 3, 4, 5},
@@ -25,7 +25,7 @@ func sampleState() PvlScriptState {
 		Hostname:        "%{sig_id_medium}",
 	}
 
-	var sampleState = PvlScriptState{
+	var sampleState = ScriptState{
 		WhichScript:  0,
 		PC:           0,
 		Service:      keybase1.ProofType_TWITTER,
@@ -84,7 +84,7 @@ func TestPvlJSONHasKey(t *testing.T) {
 		if jsonHasKey(test.json, test.key) != test.has {
 			t.Fatalf("%v %v", i, !test.has)
 		}
-		if jsonHasKeyCommand(test.json, PvlCommandName(test.key)) != test.has {
+		if jsonHasKeyCommand(test.json, CommandName(test.key)) != test.has {
 			t.Fatalf("%v %v", i, !test.has)
 		}
 	}
