@@ -36,6 +36,8 @@ type RemoteStatus struct {
 // Init a RemoteStatus and register it with libkbfs.
 func (r *RemoteStatus) Init(ctx context.Context, log logger.Logger, config libkbfs.Config) {
 	r.failingServices = map[string]error{}
+	// A time in the far past that is not IsZero
+	r.failingSince.Add(time.Second)
 	go r.loop(ctx, log, config)
 }
 
