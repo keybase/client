@@ -43,7 +43,7 @@ protocol chatLocal {
 
   record MessagePlaintextV1 {
     chat1.MessageClientHeader clientHeader;
-    MessageBody messageBodies;
+    MessageBody messageBody;
   }
 
   record MessageInfoLocal {
