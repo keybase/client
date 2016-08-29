@@ -4,8 +4,11 @@
 package pvl
 
 import (
+	b64 "encoding/base64"
 	"errors"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -13,6 +16,68 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
+
+// Substitute vars for %{name} in the string.
+// Only substitutes whitelisted variables.
+// It is an error to refer to an unknown variable or undefined numbered group.
+// Match is an optional slice which is a regex match.
+func pvlSubstitute(template string, state PvlScriptState, match []string) (string, libkb.ProofError) {
+	vars := state.Vars
+	webish := (state.Service == keybase1.ProofType_DNS || state.Service == keybase1.ProofType_GENERIC_WEB_SITE)
+
+	var outerr libkb.ProofError
+	// Regex to find %{name} occurrences.
+	re := regexp.MustCompile("%\\{[\\w]+\\}")
+	pvlSubstituteOne := func(vartag string) string {
+		// Strip off the %, {, and }
+		varname := vartag[2 : len(vartag)-1]
+		var value string
+		switch varname {
+		case "username_service":
+			if !webish {
+				value = vars.UsernameService
+			} else {
+				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+					"Cannot use username_service in proof type %v", state.Service)
+			}
+		case "username_keybase":
+			value = vars.UsernameKeybase
+		case "sig":
+			value = b64.StdEncoding.EncodeToString(vars.Sig)
+		case "sig_id_medium":
+			value = vars.SigIDMedium
+		case "sig_id_short":
+			value = vars.SigIDShort
+		case "hostname":
+			if webish {
+				value = vars.Hostname
+			} else {
+				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+					"Cannot use username_service in proof type %v", state.Service)
+			}
+		default:
+			var i int
+			i, err := strconv.Atoi(varname)
+			if err == nil {
+				if i >= 0 && i < len(match) {
+					value = match[i]
+				} else {
+					outerr = libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
+						"Substitution argument %v out of range of match", i)
+				}
+			} else {
+				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+					"Unrecognized variable: %v", varname)
+			}
+		}
+		return regexp.QuoteMeta(value)
+	}
+	res := re.ReplaceAllStringFunc(template, pvlSubstituteOne)
+	if outerr != nil {
+		return template, outerr
+	}
+	return res, nil
+}
 
 func pvlServiceToString(service keybase1.ProofType) (string, libkb.ProofError) {
 	for name, stat := range keybase1.ProofTypeMap {
@@ -78,13 +143,13 @@ func pvlJSONGetChildren(w *jsonw.Wrapper) ([]*jsonw.Wrapper, error) {
 // Simple objects are those that are not arrays or objects.
 // Non-simple objects result in an error.
 func pvlJSONStringSimple(object *jsonw.Wrapper) (string, error) {
-	x, err := object.GetString()
+	x, err := object.GetInt()
 	if err == nil {
-		return x, nil
+		return fmt.Sprintf("%d", x), nil
 	}
-	y, err := object.GetInt()
+	y, err := object.GetString()
 	if err == nil {
-		return string(y), nil
+		return y, nil
 	}
 	z, err := object.GetBool()
 	if err == nil {
@@ -102,26 +167,20 @@ func pvlJSONStringSimple(object *jsonw.Wrapper) (string, error) {
 }
 
 // pvlSelectionContents gets the HTML contents of all elements in a selection, concatenated by a space.
-func pvlSelectionContents(selection *goquery.Selection, useAttr bool, attr string) (string, error) {
-	len := selection.Length()
-	results := make([]string, len)
-	errs := make([]error, len)
+// If getting the contents/attr value of any elements fails, that does not cause an error.
+// The result can be an empty string.
+func pvlSelectionContents(selection *goquery.Selection, useAttr bool, attr string) string {
+	var results []string
 	selection.Each(func(i int, element *goquery.Selection) {
 		if useAttr {
 			res, ok := element.Attr(attr)
-			results[i] = res
-			if !ok {
-				errs[i] = fmt.Errorf("Could not get attr %v of element", attr)
+			if ok {
+				results = append(results, res)
 			}
 		} else {
-			results[i] = element.Text()
-			errs[i] = nil
+			results = append(results, element.Text())
 		}
 	})
-	for _, err := range errs {
-		if err != nil {
-			return "", err
-		}
-	}
-	return strings.Join(results, " "), nil
+
+	return strings.Join(results, " ")
 }

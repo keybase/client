@@ -4,10 +4,8 @@
 package pvl
 
 import (
-	b64 "encoding/base64"
 	"net"
 	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -668,11 +666,7 @@ func pvlStepSelectorCSS(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptSt
 			"CSS selector matched too many elements")
 	}
 
-	res, err := pvlSelectionContents(selection, useAttr, attr)
-	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
-			"Could not get html for selection: %v", err)
-	}
+	res := pvlSelectionContents(selection, useAttr, attr)
 
 	state.ActiveString = res
 	return state, nil
@@ -749,7 +743,7 @@ func pvlRunCSSSelectorInner(g ProofContextExt, html *goquery.Selection, selector
 			selection = selection.Find(selectorString)
 		default:
 			return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"Selector entry string or int %v", selector)
+				"Selector entry must be a string or int %v", selector)
 		}
 	}
 
@@ -863,68 +857,6 @@ func pvlInterpretRegex(g ProofContextExt, template string, state PvlScriptState)
 			"Could not compile regex: %v (%v)", err, template)
 	}
 	return re, nil
-}
-
-// Substitute vars for %{name} in the string.
-// Only substitutes whitelisted variables.
-// It is an error to refer to an unknown variable or undefined numbered group.
-// Match is an optional slice which is a regex match.
-func pvlSubstitute(template string, state PvlScriptState, match []string) (string, libkb.ProofError) {
-	vars := state.Vars
-	webish := (state.Service == keybase1.ProofType_DNS || state.Service == keybase1.ProofType_GENERIC_WEB_SITE)
-
-	var outerr libkb.ProofError
-	// Regex to find %{name} occurrences.
-	re := regexp.MustCompile("%\\{[\\w]+\\}")
-	pvlSubstituteOne := func(vartag string) string {
-		// Strip off the %, {, and }
-		varname := vartag[2 : len(vartag)-1]
-		var value string
-		switch varname {
-		case "username_service":
-			if !webish {
-				value = vars.UsernameService
-			} else {
-				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Cannot use username_service in proof type %v", state.Service)
-			}
-		case "username_keybase":
-			value = vars.UsernameKeybase
-		case "sig":
-			value = b64.StdEncoding.EncodeToString(vars.Sig)
-		case "sig_id_medium":
-			value = vars.SigIDMedium
-		case "sig_id_short":
-			value = vars.SigIDShort
-		case "hostname":
-			if webish {
-				value = vars.Hostname
-			} else {
-				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Cannot use username_service in proof type %v", state.Service)
-			}
-		default:
-			var i int
-			i, err := strconv.Atoi(varname)
-			if err == nil {
-				if i >= 0 && i < len(match) {
-					value = match[i]
-				} else {
-					outerr = libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
-						"Substitution argument %v out of range of match", i)
-				}
-			} else {
-				outerr = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-					"Unrecognized variable: %v", varname)
-			}
-		}
-		return regexp.QuoteMeta(value)
-	}
-	res := re.ReplaceAllStringFunc(template, pvlSubstituteOne)
-	if outerr != nil {
-		return template, outerr
-	}
-	return res, nil
 }
 
 // Take an instruction and if it specifies a custom error via an "error" key, replace the error.

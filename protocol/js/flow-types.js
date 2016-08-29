@@ -577,6 +577,11 @@ export type GetPassphraseRes = {
   storeSecret: boolean,
 }
 
+export type Hello2Res = {
+  encryptionKey: KID,
+  sigPayload: HelloRes,
+}
+
 export type HelloRes = string
 
 export type Identify2Res = {
@@ -666,6 +671,34 @@ export type InstallStatus =
 
 export type KID = string
 
+export type Kex2Provisionee2DidCounterSign2RpcParam = $Exact<{
+  sig: bytes,
+  ppsEncrypted: string
+}>
+
+export function Kex2Provisionee2DidCounterSign2Rpc (request: $Exact<{
+  param: Kex2Provisionee2DidCounterSign2RpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'Kex2Provisionee2.didCounterSign2'})
+}
+export type Kex2Provisionee2Hello2RpcParam = $Exact<{
+  uid: UID,
+  token: SessionToken,
+  csrf: CsrfToken,
+  sigBody: string
+}>
+
+type Kex2Provisionee2Hello2Result = Hello2Res
+
+export function Kex2Provisionee2Hello2Rpc (request: $Exact<{
+  param: Kex2Provisionee2Hello2RpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: Kex2Provisionee2Hello2Result) => void)}>) {
+  engine.rpc({...request, method: 'Kex2Provisionee2.hello2'})
+}
 export type Kex2ProvisioneeDidCounterSignRpcParam = $Exact<{
   sig: bytes
 }>
@@ -4146,6 +4179,8 @@ export function userLoadMyPublicKeysRpc (request: $Exact<{
 }
 export type rpc =
     BTCRegisterBTCRpc
+  | Kex2Provisionee2DidCounterSign2Rpc
+  | Kex2Provisionee2Hello2Rpc
   | Kex2ProvisioneeDidCounterSignRpc
   | Kex2ProvisioneeHelloRpc
   | Kex2ProvisionerKexStartRpc
@@ -5274,6 +5309,28 @@ export type incomingCallMapType = $Exact<{
   'keybase.1.Kex2Provisionee.didCounterSign'?: (
     params: $Exact<{
       sig: bytes
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.Kex2Provisionee2.hello2'?: (
+    params: $Exact<{
+      uid: UID,
+      token: SessionToken,
+      csrf: CsrfToken,
+      sigBody: string
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: Kex2Provisionee2Hello2Result) => void
+    }
+  ) => void,
+  'keybase.1.Kex2Provisionee2.didCounterSign2'?: (
+    params: $Exact<{
+      sig: bytes,
+      ppsEncrypted: string
     }>,
     response: {
       error: (err: RPCError) => void,
