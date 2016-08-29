@@ -422,6 +422,10 @@ export function Kex2ProvisionerKexStartRpc (request: $Exact<requestCommon & requ
   engineRpcOutgoing({...request, method: 'Kex2Provisioner.kexStart'})
 }
 
+export function ScanProofsScanProofsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: ScanProofsScanProofsRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'ScanProofs.scanProofs'})
+}
+
 export function SecretKeysGetSecretKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>) {
   engineRpcOutgoing({...request, method: 'SecretKeys.getSecretKeys'})
 }
@@ -2099,6 +2103,15 @@ export type SaltpackVerifyOptions = {
   signature: bytes,
 }
 
+export type ScanProofsScanProofsRpcParam = $Exact<{
+  infile: string,
+  indices: string,
+  sigid: string,
+  ratelimit: int,
+  cachefile: string,
+  ignorefile: string
+}>
+
 export type SearchComponent = {
   key: string,
   value: string,
@@ -3603,6 +3616,7 @@ export type rpc =
   | Kex2ProvisioneeDidCounterSignRpc
   | Kex2ProvisioneeHelloRpc
   | Kex2ProvisionerKexStartRpc
+  | ScanProofsScanProofsRpc
   | SecretKeysGetSecretKeysRpc
   | accountPassphraseChangeRpc
   | accountPassphrasePromptRpc

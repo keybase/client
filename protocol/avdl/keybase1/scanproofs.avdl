@@ -1,0 +1,7 @@
+@namespace("keybase.1")
+
+protocol ScanProofs {
+  import idl "common.avdl";
+
+  void scanProofs(int sessionID, string infile, string indices, string sigid, int ratelimit, string cachefile, string ignorefile);
+}
