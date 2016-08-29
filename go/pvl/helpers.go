@@ -102,26 +102,20 @@ func pvlJSONStringSimple(object *jsonw.Wrapper) (string, error) {
 }
 
 // pvlSelectionContents gets the HTML contents of all elements in a selection, concatenated by a space.
-func pvlSelectionContents(selection *goquery.Selection, useAttr bool, attr string) (string, error) {
-	len := selection.Length()
-	results := make([]string, len)
-	errs := make([]error, len)
+// If getting the contents/attr value of any elements fails, that does not cause an error.
+// The result can be an empty string.
+func pvlSelectionContents(selection *goquery.Selection, useAttr bool, attr string) string {
+	var results []string
 	selection.Each(func(i int, element *goquery.Selection) {
 		if useAttr {
 			res, ok := element.Attr(attr)
-			results[i] = res
-			if !ok {
-				errs[i] = fmt.Errorf("Could not get attr %v of element", attr)
+			if ok {
+				results = append(results, res)
 			}
 		} else {
-			results[i] = element.Text()
-			errs[i] = nil
+			results = append(results, element.Text())
 		}
 	})
-	for _, err := range errs {
-		if err != nil {
-			return "", err
-		}
-	}
-	return strings.Join(results, " "), nil
+
+	return strings.Join(results, " ")
 }

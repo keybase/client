@@ -668,11 +668,7 @@ func pvlStepSelectorCSS(g ProofContextExt, ins *jsonw.Wrapper, state PvlScriptSt
 			"CSS selector matched too many elements")
 	}
 
-	res, err := pvlSelectionContents(selection, useAttr, attr)
-	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
-			"Could not get html for selection: %v", err)
-	}
+	res := pvlSelectionContents(selection, useAttr, attr)
 
 	state.ActiveString = res
 	return state, nil
@@ -749,7 +745,7 @@ func pvlRunCSSSelectorInner(g ProofContextExt, html *goquery.Selection, selector
 			selection = selection.Find(selectorString)
 		default:
 			return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-				"Selector entry string or int %v", selector)
+				"Selector entry must be a string or int %v", selector)
 		}
 	}
 
