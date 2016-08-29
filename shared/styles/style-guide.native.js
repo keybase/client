@@ -102,8 +102,6 @@ const util = {
   }),
   loadingTextStyle: {
     backgroundColor: globalColors.lightGrey,
-    // borderColor: 'red',
-    // borderWidth: 1,
     height: 16,
   },
 }

@@ -36,9 +36,8 @@ class Avatar extends Component<void, Props, State> {
     const propsOpacity = this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0
     const opacity = this.state.avatarLoaded ? propsOpacity : 0
 
-    const showNoAvatar = (!this.props.loadingColor && (!this.state.avatarLoaded || !uri)) ||
-      (this.state.avatarLoaded && this.state.errored)
     const showLoadingColor = (this.props.loadingColor && !this.state.avatarLoaded) || this.props.forceLoading
+    const showNoAvatar = (!showLoadingColor && (!this.state.avatarLoaded || !uri || this.state.errored))
 
     return (
       <TouchableOpacity

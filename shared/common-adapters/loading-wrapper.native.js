@@ -2,7 +2,6 @@
 import React, {Component} from 'react'
 import {Animated} from 'react-native'
 import Box from './box'
-import Button from './button'
 import HOCTimers from './hoc-timers'
 
 import type {TimerProps} from './hoc-timers'
@@ -13,13 +12,11 @@ type Props = {
   doneLoadingComponent: React$Element<*>,
   loadingComponent: React$Element<*>,
   duration: number,
-  debugAnim?: boolean,
 } & TimerProps
 
 type State = {
   opacity: any,
   loadingActive: boolean,
-  loadingActiveTimeoutId: ?number,
 }
 
 class LoadingWrapper extends Component<void, Props, State> {
@@ -30,24 +27,19 @@ class LoadingWrapper extends Component<void, Props, State> {
     this.state = {
       opacity: new Animated.Value(1),
       loadingActive: this.props.loading,
-      loadingActiveTimeoutId: null,
     }
   }
 
   _doAnimation () {
     const {duration} = this.props
     this.setState({loadingActive: true})
-    this.props.clearTimeout(this.state.loadingActiveTimeoutId)
 
     this.state.opacity.setValue(1)
     Animated.parallel(
       [[this.state.opacity, 0]].map(
         ([a, toValue]) => Animated.timing(a, {duration, toValue})
       )
-    ).start()
-
-    const loadingActiveTimeoutId = this.props.setTimeout(() => this.setState({loadingActive: false}), this.props.duration)
-    this.setState({loadingActiveTimeoutId})
+    ).start(({finished}) => finished && this.setState({loadingActive: false}))
   }
 
   render () {
@@ -65,7 +57,6 @@ class LoadingWrapper extends Component<void, Props, State> {
             }}>
             {this.props.loadingComponent}
           </ Animated.View>}
-        {this.props.debugAnim && <Button label={'Redo animation'} type='Primary' onClick={() => this._doAnimation()} />}
       </Box>
     )
   }
