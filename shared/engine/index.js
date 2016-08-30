@@ -30,6 +30,7 @@ class Engine {
   constructor () {
     this._setupClient()
     this._setupCoreHandlers()
+    this._setupIgnoredHanlders()
     this._setupDebugging()
   }
 
@@ -67,6 +68,11 @@ class Engine {
       log(logParam)
       response && response.result && response.result()
     })
+  }
+
+  _setupIgnoredHanlders () {
+    // The ui doesn't do anything with these calls currently. We handle it so we don't
+    // get an unhandled rpc warning.
     this.setIncomingHandler('keybase.1.NotifyUsers.userChanged', () => {})
   }
 
