@@ -816,15 +816,15 @@ func interpretRegex(g ProofContextExt, template string, state ScriptState) (*reg
 	var perr libkb.ProofError = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 		"Could not build regex %v", template)
 
-	// Parse out side bars and option letters.
-	if !strings.HasPrefix(template, "/") {
+	// Parse out bookends (^$) and option letters.
+	if !strings.HasPrefix(template, "^") {
 		return nil, perr
 	}
-	lastSlash := strings.LastIndex(template, "/")
-	if lastSlash == -1 {
+	lastDollar := strings.LastIndex(template, "$")
+	if lastDollar == -1 {
 		return nil, perr
 	}
-	opts := template[lastSlash+1:]
+	opts := template[lastDollar+1:]
 	if !regexp.MustCompile("[imsU]*").MatchString(opts) {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not build regex: %v (%v)", "invalid options", template)
@@ -843,7 +843,7 @@ func interpretRegex(g ProofContextExt, template string, state ScriptState) (*reg
 	}
 
 	// Do variable interpolation.
-	prepattern, perr := substitute(template[1:lastSlash], state, nil)
+	prepattern, perr := substitute(template[0:lastDollar+1], state, nil)
 	if perr != nil {
 		return nil, perr
 	}
