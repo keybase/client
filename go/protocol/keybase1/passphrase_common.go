@@ -15,8 +15,7 @@ type Feature struct {
 }
 
 type GUIEntryFeatures struct {
-	StoreSecret Feature `codec:"storeSecret" json:"storeSecret"`
-	ShowTyping  Feature `codec:"showTyping" json:"showTyping"`
+	ShowTyping Feature `codec:"showTyping" json:"showTyping"`
 }
 
 type PassphraseType int

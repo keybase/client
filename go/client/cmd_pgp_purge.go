@@ -45,7 +45,7 @@ func (s *CmdPGPPurge) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdPGPPurge) Run() error {
-	cli, err := GetPGPClient()
+	cli, err := GetPGPClient(s.G())
 	if err != nil {
 		return err
 	}

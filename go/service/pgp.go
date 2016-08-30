@@ -283,3 +283,14 @@ func (h *PGPHandler) PGPPurge(ctx context.Context, arg keybase1.PGPPurgeArg) (ke
 	res.Filenames = eng.KeyFiles()
 	return res, nil
 }
+
+// Set the PGP storage notification dismiss flag in the local DB.
+func (h *PGPHandler) PGPStorageDismiss(ctx context.Context, sessionID int) error {
+	username := h.G().Env.GetUsername()
+	if username.IsNil() {
+		return libkb.NoUsernameError{}
+	}
+
+	key := libkb.DbKeyNotificationDismiss(libkb.NotificationDismissPGPPrefix, username)
+	return h.G().LocalDb.PutRaw(key, []byte(libkb.NotificationDismissPGPValue))
+}

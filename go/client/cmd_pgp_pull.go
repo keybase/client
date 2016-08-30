@@ -23,14 +23,14 @@ func (v *CmdPGPPull) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdPGPPull) Run() (err error) {
-	cli, err := GetPGPClient()
+	cli, err := GetPGPClient(v.G())
 	if err != nil {
 		return err
 	}
 	protocols := []rpc.Protocol{
 		NewIdentifyTrackUIProtocol(v.G()),
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
 		return err
 	}
 
