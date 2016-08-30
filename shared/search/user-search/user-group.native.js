@@ -2,7 +2,7 @@
 import React from 'react'
 import {TouchableHighlight} from 'react-native'
 import {Avatar, Box, Icon, Text} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles/style-guide'
+import {globalStyles, globalColors} from '../../styles'
 
 import type {IconType} from '../../common-adapters/icon'
 import type {Props, UserFn} from './user-group'

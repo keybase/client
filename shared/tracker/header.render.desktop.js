@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {Icon, Text} from '../common-adapters/index'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import {stateColors} from '../util/tracker'
 
 import type {HeaderProps} from './header.render'

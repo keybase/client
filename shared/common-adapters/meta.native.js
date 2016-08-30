@@ -5,7 +5,7 @@ import Text from './text'
 import _ from 'lodash'
 import type {Props} from './meta'
 import {View} from 'react-native'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 
 const isAndroid = Platform.OS_ANDROID === OS
 

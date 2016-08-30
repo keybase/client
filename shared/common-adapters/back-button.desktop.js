@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './back-button'
 import {Text, Icon} from './index'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 
 class BackButton extends Component<void, Props, void> {
   onClick (event: SyntheticEvent) {

@@ -4,7 +4,7 @@ import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
 import {Box, Text, Icon, PopupMenu} from '../common-adapters'
 import {View, TouchableHighlight, ScrollView} from 'react-native'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
   const icon: IconType = {

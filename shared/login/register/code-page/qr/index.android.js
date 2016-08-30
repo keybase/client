@@ -3,7 +3,7 @@ import BarcodeScanner from 'react-native-barcodescanner'
 import React, {Component} from 'react'
 import type {Props} from './index'
 import {Image, View} from 'react-native'
-import {globalStyles} from '../../../../styles/style-guide'
+import {globalStyles} from '../../../../styles'
 import {requestPermission} from 'react-native-android-permissions'
 
 type State = {

@@ -2,7 +2,7 @@
 
 import React from 'react'
 import {Box, Text, Button, PlatformIcon, StandardScreen} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {propsForPlatform} from './confirm-or-pending.shared'
 
 import type {Props} from './confirm-or-pending'

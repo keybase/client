@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import Text from './text'
 import type {Props} from './multi-line-input'
-import {globalStyles, globalColors, transition} from '../styles/style-guide'
+import {globalStyles, globalColors, transition} from '../styles'
 
 type State = {textContent: string}
 

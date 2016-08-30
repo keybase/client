@@ -2,20 +2,20 @@
 import ConfirmOrPending from './confirm-or-pending'
 import EditAvatar from './edit-avatar'
 import PostProof from './post-proof'
-import Profile from './render'
+import Profile from './index'
 import ProveEnterUsername from './prove-enter-username'
 import ProveWebsiteChoice from './prove-website-choice'
 import Revoke from './revoke'
 import pgpDumb from './pgp/dumb'
 import {constants} from '../constants/types/keybase-v1'
 import {createFolder} from '../folders/dumb'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 import {isMobile} from '../constants/platform'
 import {normal, checking, revoked, error, metaNone, metaNew, metaDeleted, metaPending, metaUnreachable} from '../constants/tracker'
 
 import type {DumbComponentMap} from '../constants/types/more'
 import type {Proof} from '../constants/tracker'
-import type {Props as RenderProps} from './render'
+import type {Props as RenderProps} from './index'
 import type {UserInfo} from '../common-adapters/user-bio'
 
 export const proofsDefault: Array<Proof> = [

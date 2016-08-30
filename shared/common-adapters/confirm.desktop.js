@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './confirm'
 import {Box, Button, StandardScreen} from './'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 class Confirm extends Component<void, Props, void> {
   render () {

@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import type {$Exact} from '../constants/types/more'
 import type {Props} from './icon'
 import {TouchableHighlight, Text, Image} from 'react-native'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 
 class Icon extends Component<void, $Exact<Props>, void> {

@@ -3,7 +3,7 @@ import Camera from 'react-native-camera'
 import React, {Component} from 'react'
 import type {Props} from './index'
 import {Image, View} from 'react-native'
-import {globalStyles} from '../../../../styles/style-guide'
+import {globalStyles} from '../../../../styles'
 
 class QR extends Component<void, Props, void> {
   render () {

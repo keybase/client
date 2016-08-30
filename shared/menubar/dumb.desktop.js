@@ -3,7 +3,7 @@
 import Menubar from './index.render'
 import type {DumbComponentMap} from '../constants/types/more'
 import {map} from '../folders/dumb'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 
 const propsNormal = {
   folderProps: map.mocks['Normal Private'],

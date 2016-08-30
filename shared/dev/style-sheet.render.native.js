@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {Dropdown, Checkbox, Button, Box, Text, Terminal, Input, FormWithCheckbox, TabBar} from '../common-adapters'
 import {Switch, ScrollView} from 'react-native'
 import {TabBarItem} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 const Space = () => <Box style={{height: 20, width: 20}} />
 

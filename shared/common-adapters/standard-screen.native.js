@@ -3,7 +3,7 @@ import React from 'react'
 import {ScrollView} from 'react-native'
 import type {Props} from './standard-screen'
 import {Box, Text} from './'
-import {globalColors, globalMargins, globalStyles} from '../styles/style-guide'
+import {globalColors, globalMargins, globalStyles} from '../styles'
 
 const StandardScreen = (props: Props) => {
   return (

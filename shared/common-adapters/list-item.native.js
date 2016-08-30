@@ -3,7 +3,7 @@ import Box from './box'
 import React, {Component} from 'react'
 import type {Props} from './list-item'
 import {TouchableHighlight} from 'react-native'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 // TODO Add swipe for action
 class ListItem extends Component<void, Props, void> {

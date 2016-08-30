@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import Text from './text.native'
 import type {Props} from './input'
 import {TextInput} from 'react-native'
-import {globalColors, globalStyles} from '../styles/style-guide'
+import {globalColors, globalStyles} from '../styles'
 
 type State = {
   inputFocused: boolean,

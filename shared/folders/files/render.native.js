@@ -5,7 +5,7 @@ import type {FileSection} from '../../constants/folders'
 import type {Props} from './render'
 import {Box, Button, Text, BackButton, Avatar, Icon, Usernames} from '../../common-adapters'
 import {ScrollView} from 'react-native'
-import {globalStyles, globalColors} from '../../styles/style-guide'
+import {globalStyles, globalColors} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 class Render extends Component<void, Props, void> {

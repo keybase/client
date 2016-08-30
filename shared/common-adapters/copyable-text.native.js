@@ -4,7 +4,7 @@ import {Clipboard, TouchableHighlight} from 'react-native'
 import Box from './box'
 import Text from './text'
 import HOCTimers from './hoc-timers'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props as PropsCommon} from './copyable-text'
 import type {TimerProps} from './hoc-timers'
 
