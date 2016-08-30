@@ -2,13 +2,13 @@
 import * as Constants from '../constants/profile'
 import engine from '../engine'
 import openURL from '../util/open-url'
-import {apiserverPostRpc, proveStartProofRpc, proveCheckProofRpc, revokeRevokeSigsRpc, BTCRegisterBTCRpc, pgpPgpKeyGenDefaultRpc, revokeRevokeKeyRpc} from '../constants/types/flow-types'
+import {BTCRegisterBTCRpc, ConstantsStatusCode, ProveCommonProofStatus, apiserverPostRpc, pgpPgpKeyGenDefaultRpc, proveCheckProofRpc, proveStartProofRpc, revokeRevokeKeyRpc, revokeRevokeSigsRpc} from '../constants/types/flow-types'
 import {bindActionCreators} from 'redux'
-import {constants as RpcConstants, proveCommon} from '../constants/types/keybase-v1'
+import {call, put, take, race, select} from 'redux-saga/effects'
 import {getMyProfile} from './tracker'
+import {isValidEmail, isValidName} from '../util/simple-validators'
 import {navigateUp, navigateTo, routeAppend} from '../actions/router'
 import {profileTab} from '../constants/tabs'
-import {call, put, take, race, select} from 'redux-saga/effects'
 import {takeLatest, takeEvery, eventChannel, END, buffers} from 'redux-saga'
 
 import type {SagaGenerator} from '../constants/types/saga'
@@ -17,9 +17,8 @@ import type {PlatformsExpandedType, ProvablePlatformsType} from '../constants/ty
 import type {SigID, KID, KeyInfo} from '../constants/types/flow-types'
 import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateErrorText, UpdateProofStatus,
   UpdateSigID, WaitingRevokeProof, FinishRevokeProof, CleanupUsername, UpdatePgpInfo, PgpInfo, GeneratePgp, FinishedWithKeyGen, DropPgp} from '../constants/profile'
-import {isValidEmail, isValidName} from '../util/simple-validators'
 
-const InputCancelError = {desc: 'Cancel Add Proof', code: RpcConstants.StatusCode.scinputcanceled}
+const InputCancelError = {desc: 'Cancel Add Proof', code: ConstantsStatusCode.scinputcanceled}
 
 // Soon to be saga-ed away. We bookkeep the respsonse object in the incomingCallMap so we can call it in our actions
 let promptUsernameResponse: ?Object = null
@@ -113,12 +112,12 @@ function cancelAddProof (): AsyncAction {
   return (dispatch) => {
     dispatch(_updateErrorText(null))
     if (promptUsernameResponse) {
-      engine.cancelRPC(promptUsernameResponse, InputCancelError)
+      engine().cancelRPC(promptUsernameResponse, InputCancelError)
       promptUsernameResponse = null
     }
 
     if (outputInstructionsResponse) {
-      engine.cancelRPC(outputInstructionsResponse, InputCancelError)
+      engine().cancelRPC(outputInstructionsResponse, InputCancelError)
       outputInstructionsResponse = null
     }
 
@@ -185,9 +184,9 @@ function submitBTCAddress (): AsyncAction {
       callback: (error) => {
         if (error) {
           console.warn('Error making proof')
-          dispatch(_updateErrorText(error.raw.desc, error.raw.code))
+          dispatch(_updateErrorText(error.desc, error.code))
         } else {
-          dispatch(_updateProofStatus(true, proveCommon.ProofStatus.ok))
+          dispatch(_updateProofStatus(true, ProveCommonProofStatus.ok))
           dispatch(navigateTo([{path: 'ConfirmOrPending'}], profileTab))
         }
       },
@@ -240,7 +239,7 @@ function _addServiceProof (service: ProvablePlatformsType): AsyncAction {
 
         if (error) {
           console.warn('Error making proof')
-          dispatch(_updateErrorText(error.raw.desc, error.raw.code))
+          dispatch(_updateErrorText(error.desc, error.code))
         } else {
           console.log('Start Proof done: ', sigID)
           dispatch(checkProof())
@@ -385,7 +384,7 @@ function _checkProof (sigID: string, currentlyAdding: boolean): AsyncAction {
         } else {
           if (currentlyAdding) {
             // this enum value is the divider between soft and hard errors
-            if (!found && status >= proveCommon.ProofStatus.baseHardError) {
+            if (!found && status >= ProveCommonProofStatus.baseHardError) {
               dispatch(_updateErrorText("We couldn't find your proof. Please retry!"))
             } else {
               dispatch(_updateProofStatus(found, status))

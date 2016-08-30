@@ -129,6 +129,7 @@ const (
 	DBGregor                  = 0xf2
 	DBTrackers2               = 0xf3
 	DBTrackers2Reverse        = 0xf4
+	DBNotificationDismiss     = 0xf5
 )
 
 const (
@@ -138,4 +139,12 @@ const (
 
 func DbKeyUID(t ObjType, uid keybase1.UID) DbKey {
 	return DbKey{Typ: t, Key: uid.String()}
+}
+
+func DbKeyNotificationDismiss(prefix string, username NormalizedUsername) DbKey {
+	return DbKey{
+		Typ: DBNotificationDismiss,
+		Key: fmt.Sprintf("%s:%s", prefix, username),
+	}
+
 }

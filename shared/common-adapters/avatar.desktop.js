@@ -2,7 +2,7 @@
 import * as shared from './avatar.shared'
 import React, {Component} from 'react'
 import type {Props} from './avatar'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
 const noAvatar = resolveImageAsURL('icons', 'icon-placeholder-avatar-112-x-112@2x.png')
@@ -36,9 +36,8 @@ class Avatar extends Component<void, Props, State> {
     const url = shared.createAvatarUrl(this.props) || noAvatar
     const avatarStyle = {width, height, borderRadius: size / 2, position: 'absolute'}
 
-    const showNoAvatar = (!this.props.loadingColor && !this.state.avatarLoaded) ||
-      (this.state.avatarLoaded && this.state.errored)
     const showLoadingColor = (this.props.loadingColor && !this.state.avatarLoaded) || this.props.forceLoading
+    const showNoAvatar = !showLoadingColor && (!this.state.avatarLoaded || this.state.errored)
 
     return (
       <div onClick={this.props.onClick} style={{...globalStyles.noSelect, position: 'relative', width, height, ...this.props.style}}>

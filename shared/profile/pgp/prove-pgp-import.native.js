@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {StandardScreen, Icon, Text} from '../../common-adapters'
-import {globalMargins} from '../../styles/style-guide'
+import {globalMargins} from '../../styles'
 import type {Props} from './prove-pgp-import'
 
 class ProvePgpImport extends Component<void, Props, void> {

@@ -15,6 +15,78 @@ export type RPCError = {
   code: number,
   desc: string
 }
+export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
+
+// $FlowIssue we're calling an internal method on engine that's there just for us
+const engineRpcOutgoing = (...args) => engine()._rpcOutgoing(...args)
+
+type requestCommon = {
+  waitingHandler?: WaitingHandlerType,
+  incomingCallMap?: any,
+}
+
+type requestErrorCallback = {
+  callback?: ?(err: ?any) => void
+}
+
+type RPCErrorHandler = (err: RPCError) => void
+
+type CommonResponseHandler = {
+  error: RPCErrorHandler,
+  result: (...rest: Array<void>) => void,
+}
+export function authAuthenticateSessionTokenRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: authAuthenticateSessionTokenResult) => void} & {param: authAuthenticateSessionTokenRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'auth.authenticateSessionToken'})
+}
+
+export function authInternalCreateGregorSuperUserSessionTokenRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'authInternal.createGregorSuperUserSessionToken'})
+}
+
+export function authUpdateRevokeSessionIDsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: authUpdateRevokeSessionIDsRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'authUpdate.revokeSessionIDs'})
+}
+
+export function incomingConsumeMessageRpc (request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumeMessageRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'incoming.consumeMessage'})
+}
+
+export function incomingConsumePublishMessageRpc (request: $Exact<requestCommon & requestErrorCallback & {param: incomingConsumePublishMessageRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'incoming.consumePublishMessage'})
+}
+
+export function incomingPingRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingPingResult) => void}>) {
+  engineRpcOutgoing({...request, method: 'incoming.ping'})
+}
+
+export function incomingStateByCategoryPrefixRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateByCategoryPrefixResult) => void} & {param: incomingStateByCategoryPrefixRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'incoming.stateByCategoryPrefix'})
+}
+
+export function incomingStateRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingStateResult) => void} & {param: incomingStateRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'incoming.state'})
+}
+
+export function incomingSyncRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingSyncResult) => void} & {param: incomingSyncRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'incoming.sync'})
+}
+
+export function incomingVersionRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: incomingVersionResult) => void} & {param: incomingVersionRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'incoming.version'})
+}
+
+export function outgoingBroadcastMessageRpc (request: $Exact<requestCommon & requestErrorCallback & {param: outgoingBroadcastMessageRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'outgoing.broadcastMessage'})
+}
+
+export function remindDeleteRemindersRpc (request: $Exact<requestCommon & requestErrorCallback & {param: remindDeleteRemindersRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remind.deleteReminders'})
+}
+
+export function remindGetRemindersRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remindGetRemindersResult) => void} & {param: remindGetRemindersRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remind.getReminders'})
+}
+
 export type AuthResult = {
   uid: UID,
   sid: SessionID,
@@ -132,48 +204,18 @@ export type authAuthenticateSessionTokenRpcParam = $Exact<{
   session: SessionToken
 }>
 
-type authAuthenticateSessionTokenResult = AuthResult
-
-export function authAuthenticateSessionTokenRpc (request: $Exact<{
-  param: authAuthenticateSessionTokenRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: authAuthenticateSessionTokenResult) => void)}>) {
-  engine.rpc({...request, method: 'auth.authenticateSessionToken'})
-}
 export type authUpdateRevokeSessionIDsRpcParam = $Exact<{
   sessionIDs?: ?Array<SessionID>
 }>
 
-export function authUpdateRevokeSessionIDsRpc (request: $Exact<{
-  param: authUpdateRevokeSessionIDsRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'authUpdate.revokeSessionIDs'})
-}
 export type incomingConsumeMessageRpcParam = $Exact<{
   m: Message
 }>
 
-export function incomingConsumeMessageRpc (request: $Exact<{
-  param: incomingConsumeMessageRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'incoming.consumeMessage'})
-}
 export type incomingConsumePublishMessageRpcParam = $Exact<{
   m: Message
 }>
 
-export function incomingConsumePublishMessageRpc (request: $Exact<{
-  param: incomingConsumePublishMessageRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'incoming.consumePublishMessage'})
-}
 export type incomingStateByCategoryPrefixRpcParam = $Exact<{
   uid: UID,
   deviceid: DeviceID,
@@ -181,109 +223,50 @@ export type incomingStateByCategoryPrefixRpcParam = $Exact<{
   categoryPrefix: Category
 }>
 
-type incomingStateByCategoryPrefixResult = State
-
-export function incomingStateByCategoryPrefixRpc (request: $Exact<{
-  param: incomingStateByCategoryPrefixRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: incomingStateByCategoryPrefixResult) => void)}>) {
-  engine.rpc({...request, method: 'incoming.stateByCategoryPrefix'})
-}
 export type incomingStateRpcParam = $Exact<{
   uid: UID,
   deviceid: DeviceID,
   timeOrOffset: TimeOrOffset
 }>
 
-type incomingStateResult = State
-
-export function incomingStateRpc (request: $Exact<{
-  param: incomingStateRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: incomingStateResult) => void)}>) {
-  engine.rpc({...request, method: 'incoming.state'})
-}
 export type incomingSyncRpcParam = $Exact<{
   uid: UID,
   deviceid: DeviceID,
   ctime: Time
 }>
 
-type incomingSyncResult = SyncResult
-
-export function incomingSyncRpc (request: $Exact<{
-  param: incomingSyncRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: incomingSyncResult) => void)}>) {
-  engine.rpc({...request, method: 'incoming.sync'})
-}
 export type incomingVersionRpcParam = $Exact<{
   uid: UID
 }>
 
-type incomingVersionResult = string
-
-export function incomingVersionRpc (request: $Exact<{
-  param: incomingVersionRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: incomingVersionResult) => void)}>) {
-  engine.rpc({...request, method: 'incoming.version'})
-}
 export type outgoingBroadcastMessageRpcParam = $Exact<{
   m: Message
 }>
 
-export function outgoingBroadcastMessageRpc (request: $Exact<{
-  param: outgoingBroadcastMessageRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'outgoing.broadcastMessage'})
-}
 export type remindDeleteRemindersRpcParam = $Exact<{
   reminderIDs?: ?Array<ReminderID>
 }>
 
-export function remindDeleteRemindersRpc (request: $Exact<{
-  param: remindDeleteRemindersRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any) => void)}>) {
-  engine.rpc({...request, method: 'remind.deleteReminders'})
-}
 export type remindGetRemindersRpcParam = $Exact<{
   maxReminders: int
 }>
 
-type remindGetRemindersResult = ReminderSet
+type authAuthenticateSessionTokenResult = AuthResult
 
-export function remindGetRemindersRpc (request: $Exact<{
-  param: remindGetRemindersRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: remindGetRemindersResult) => void)}>) {
-  engine.rpc({...request, method: 'remind.getReminders'})
-}
 type authInternalCreateGregorSuperUserSessionTokenResult = SessionToken
 
-export function authInternalCreateGregorSuperUserSessionTokenRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: authInternalCreateGregorSuperUserSessionTokenResult) => void)}>) {
-  engine.rpc({...request, method: 'authInternal.createGregorSuperUserSessionToken'})
-}
 type incomingPingResult = string
 
-export function incomingPingRpc (request: $Exact<{
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: incomingPingResult) => void)}>) {
-  engine.rpc({...request, method: 'incoming.ping'})
-}
+type incomingStateByCategoryPrefixResult = State
+
+type incomingStateResult = State
+
+type incomingSyncResult = SyncResult
+
+type incomingVersionResult = string
+
+type remindGetRemindersResult = ReminderSet
+
 export type rpc =
     authAuthenticateSessionTokenRpc
   | authInternalCreateGregorSuperUserSessionTokenRpc
@@ -298,127 +281,6 @@ export type rpc =
   | outgoingBroadcastMessageRpc
   | remindDeleteRemindersRpc
   | remindGetRemindersRpc
-
 export type incomingCallMapType = $Exact<{
-  'keybase.1.auth.authenticateSessionToken'?: (
-    params: $Exact<{
-      session: SessionToken
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: authAuthenticateSessionTokenResult) => void
-    }
-  ) => void,
-  'keybase.1.authInternal.createGregorSuperUserSessionToken'?: (
-    params: $Exact<{}>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: authInternalCreateGregorSuperUserSessionTokenResult) => void
-    }
-  ) => void,
-  'keybase.1.authUpdate.revokeSessionIDs'?: (
-    params: $Exact<{
-      sessionIDs?: ?Array<SessionID>
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.incoming.sync'?: (
-    params: $Exact<{
-      uid: UID,
-      deviceid: DeviceID,
-      ctime: Time
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: incomingSyncResult) => void
-    }
-  ) => void,
-  'keybase.1.incoming.consumeMessage'?: (
-    params: $Exact<{
-      m: Message
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.incoming.consumePublishMessage'?: (
-    params: $Exact<{
-      m: Message
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.incoming.ping'?: (
-    params: $Exact<{}>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: incomingPingResult) => void
-    }
-  ) => void,
-  'keybase.1.incoming.version'?: (
-    params: $Exact<{
-      uid: UID
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: incomingVersionResult) => void
-    }
-  ) => void,
-  'keybase.1.incoming.state'?: (
-    params: $Exact<{
-      uid: UID,
-      deviceid: DeviceID,
-      timeOrOffset: TimeOrOffset
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: incomingStateResult) => void
-    }
-  ) => void,
-  'keybase.1.incoming.stateByCategoryPrefix'?: (
-    params: $Exact<{
-      uid: UID,
-      deviceid: DeviceID,
-      timeOrOffset: TimeOrOffset,
-      categoryPrefix: Category
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: incomingStateByCategoryPrefixResult) => void
-    }
-  ) => void,
-  'keybase.1.outgoing.broadcastMessage'?: (
-    params: $Exact<{
-      m: Message
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.remind.getReminders'?: (
-    params: $Exact<{
-      maxReminders: int
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: (result: remindGetRemindersResult) => void
-    }
-  ) => void,
-  'keybase.1.remind.deleteReminders'?: (
-    params: $Exact<{
-      reminderIDs?: ?Array<ReminderID>
-    }>,
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void
-}>
 
+}>

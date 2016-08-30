@@ -3,9 +3,8 @@ import File from './file/render'
 import React, {Component} from 'react'
 import type {FileSection} from '../../constants/folders'
 import type {Props} from './render'
-import {Box, Button, Text, BackButton, Avatar, Icon, Usernames} from '../../common-adapters'
-import {ScrollView} from 'react-native'
-import {globalStyles, globalColors} from '../../styles/style-guide'
+import {Box, Button, Text, BackButton, Avatar, Icon, Usernames, NativeScrollView} from '../../common-adapters/index.native'
+import {globalStyles, globalColors} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 class Render extends Component<void, Props, void> {
@@ -54,7 +53,7 @@ class Render extends Component<void, Props, void> {
         </Box>
       )
     } else {
-      return <ScrollView>{this.props.recentFilesSection.map(s => this._renderSection(s))}</ScrollView>
+      return <NativeScrollView>{this.props.recentFilesSection.map(s => this._renderSection(s))}</NativeScrollView>
     }
   }
 

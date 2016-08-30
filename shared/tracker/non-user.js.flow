@@ -1,10 +1,5 @@
 // @flow
-
-import React, {Component} from 'react'
-
-import React from 'react'
-import {Box, Text, Button, Icon} from '../common-adapters'
-import {globalColors, globalStyles} from '../styles/style-guide'
+import {Component} from 'react'
 
 export type Props = $Shape<{
   name: string,

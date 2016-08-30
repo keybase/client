@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Text} from '../common-adapters'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 
 class Container extends Component {
   render () {

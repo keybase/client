@@ -1,9 +1,9 @@
 // @flow
 import {Component} from 'react'
-import type {EngineErrorType} from '../../../engine/errors'
+import type {RPCError} from '../../../constants/types/flow-types'
 
 export type Props = {
-  error: EngineErrorType,
+  error: RPCError,
   onBack: () => void
 }
 

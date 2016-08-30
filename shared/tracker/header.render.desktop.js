@@ -1,15 +1,17 @@
 /* @flow */
-
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {Icon, Text} from '../common-adapters/index'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
 
 import type {HeaderProps} from './header.render'
 
-export default class HeaderRender extends Component {
-  props: HeaderProps;
-  state: {showCloseWarning: boolean};
+type State = {
+  showCloseWarning: boolean,
+}
+
+export default class HeaderRender extends PureComponent<void, HeaderProps, State> {
+  state: State;
 
   constructor (props: HeaderProps) {
     super(props)
@@ -27,7 +29,7 @@ export default class HeaderRender extends Component {
     return (
       <div style={styleOuter}>
         <div style={{...styleHeader, backgroundColor: headerBackgroundColor}}>
-          <Text type='BodySemibold' lineClamp={2} style={{...styleText, color: headerTextColor, ...(isWarningAboutTrackerShowingUpLater ? {zIndex: 2} : {})}}>{headerText}</Text>
+          <Text type='BodySemibold' lineClamp={2} style={{...styleText, backgroundColor: headerBackgroundColor, color: headerTextColor, ...(isWarningAboutTrackerShowingUpLater ? {zIndex: 2} : {})}}>{headerText}</Text>
           <Icon type='iconfont-close' style={styleClose}
             onClick={() => this.props.onClose()}
             onMouseEnter={() => this.closeMouseEnter()}
@@ -75,9 +77,9 @@ const styleText = {
   alignItems: 'center',
   justifyContent: 'center',
   color: globalColors.white,
-  marginLeft: 30,
-  marginRight: 30,
-  marginBottom: 32,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  marginBottom: globalMargins.medium,
   fontSize: 14,
   textAlign: 'center',
   lineHeight: 'normal',

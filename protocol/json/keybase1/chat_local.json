@@ -130,6 +130,24 @@
     },
     {
       "type": "record",
+      "name": "MessageInfoLocal",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isNew"
+        },
+        {
+          "type": "string",
+          "name": "senderUsername"
+        },
+        {
+          "type": "string",
+          "name": "senderDeviceName"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Message",
       "fields": [
         {
@@ -141,8 +159,11 @@
           "name": "messagePlaintext"
         },
         {
-          "type": "boolean",
-          "name": "isNew"
+          "type": [
+            null,
+            "MessageInfoLocal"
+          ],
+          "name": "info"
         }
       ]
     },
@@ -180,16 +201,9 @@
         {
           "type": [
             null,
-            "Time"
+            "string"
           ],
-          "name": "After"
-        },
-        {
-          "type": [
-            null,
-            "Time"
-          ],
-          "name": "Before"
+          "name": "Since"
         },
         {
           "type": "boolean",
@@ -197,11 +211,7 @@
         },
         {
           "type": "int",
-          "name": "limitPerConversation"
-        },
-        {
-          "type": "int",
-          "name": "limitOfConversations"
+          "name": "limit"
         },
         {
           "type": {
@@ -218,11 +228,36 @@
     },
     {
       "type": "record",
-      "name": "ConversationMessagesLocal",
+      "name": "ConversationInfoLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "tlfName"
+        },
+        {
+          "type": "string",
+          "name": "topicName"
+        },
+        {
+          "type": "chat1.TopicType",
+          "name": "topicType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationLocal",
       "fields": [
         {
           "type": "chat1.ConversationID",
           "name": "id"
+        },
+        {
+          "type": [
+            null,
+            "ConversationInfoLocal"
+          ],
+          "name": "info"
         },
         {
           "type": {
@@ -289,22 +324,17 @@
       ],
       "response": "chat1.ConversationID"
     },
-    "getOrCreateTextConversationLocal": {
+    "resolveConversationLocal": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
-        },
-        {
-          "name": "topicName",
-          "type": "string"
-        },
-        {
-          "name": "topicType",
-          "type": "chat1.TopicType"
+          "name": "conversation",
+          "type": "ConversationInfoLocal"
         }
       ],
-      "response": "chat1.ConversationID"
+      "response": {
+        "type": "array",
+        "items": "chat1.ConversationID"
+      }
     },
     "getMessagesLocal": {
       "request": [
@@ -315,7 +345,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "ConversationMessagesLocal"
+        "items": "ConversationLocal"
       }
     },
     "completeAndCanonicalizeTlfName": {

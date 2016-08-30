@@ -1,7 +1,7 @@
 // @flow
 
 import React, {Component} from 'react'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 import {Text, Button, BackButton, Icon, Input} from '../common-adapters'
 import HiddenString from '../util/hidden-string'
 

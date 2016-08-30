@@ -5,7 +5,7 @@ import type {DumbComponentMap} from '../constants/types/more'
 import type {IconType} from './icon.constants'
 import {Avatar, Button, Box, Checkbox, ChoiceList, Icon, ListItem, PopupMenu, StandardScreen, TabBar, Text} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 
 const onCheck = () => console.log('on check!')

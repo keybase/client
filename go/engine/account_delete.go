@@ -1,10 +1,7 @@
 // Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// +build !production
-//
-// This engine deletes the user's account.  Currently not
-// enabled in production.
+// This engine deletes the user's account.
 
 package engine
 
@@ -29,7 +26,7 @@ func (e *AccountDelete) Name() string {
 	return "AccountDelete"
 }
 
-// GetPrereqs returns the engine prereqs.
+// Prereqs returns the engine prereqs.
 func (e *AccountDelete) Prereqs() Prereqs {
 	return Prereqs{
 		Device: true,

@@ -9,7 +9,6 @@ const ff: FeatureFlags = {
   tabFoldersEnabled: false,
   tabSettingsEnabled: __DEV__,
   tabProfileEnabled: false,
-  searchEnabled: false,
 }
 
 if (__DEV__) {

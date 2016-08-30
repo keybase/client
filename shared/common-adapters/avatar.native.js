@@ -3,13 +3,13 @@ import * as shared from './avatar.shared'
 import React, {Component} from 'react'
 import _ from 'lodash'
 import type {Props} from './avatar'
-import {Box} from '../common-adapters'
-import {Image, TouchableOpacity, View} from 'react-native'
-import {globalStyles} from '../styles/style-guide'
+import {NativeImage, NativeTouchableOpacity, Box} from './index.native'
+import {globalStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 
 type State = {
   avatarLoaded: boolean,
+  errored: boolean,
 }
 
 class Avatar extends Component<void, Props, State> {
@@ -17,7 +17,7 @@ class Avatar extends Component<void, Props, State> {
 
   constructor (props: Props) {
     super(props)
-    this.state = {avatarLoaded: false}
+    this.state = {avatarLoaded: false, errored: false}
   }
 
   componentWillReceiveProps (nextProps: Props) {
@@ -25,38 +25,44 @@ class Avatar extends Component<void, Props, State> {
     const nextUrl = shared.createAvatarUrl(nextProps)
 
     if (url !== nextUrl) {
-      this.setState({avatarLoaded: false})
+      this.setState({avatarLoaded: false, errored: false})
     }
   }
 
   render () {
     const {size} = this.props
-    const uri = {uri: shared.createAvatarUrl(this.props)}
+    const uri = shared.createAvatarUrl(this.props)
     const propsOpacity = this.props.hasOwnProperty('opacity') ? this.props.opacity : 1.0
     const opacity = this.state.avatarLoaded ? propsOpacity : 0
 
+    const showLoadingColor = (this.props.loadingColor && !this.state.avatarLoaded) || this.props.forceLoading
+    const showNoAvatar = !showLoadingColor && (!this.state.avatarLoaded || !uri || this.state.errored)
+
     return (
-      <TouchableOpacity
+      <NativeTouchableOpacity
         style={{...stylesContainer(size), ...this.props.style}}
         disabled={!this.props.onClick}
         onPress={this.props.onClick}
         activeOpacity={0.8}>
         <Box style={stylesContainer(size)}>
           {this.props.backgroundColor &&
-            <View
+            <Box
               style={_.omit({...stylesImage(size),
                 backgroundColor: this.props.backgroundColor,
               }, 'resizeMode')} />}
-          {!!uri.uri && <Image
+          {!!uri && <NativeImage
             style={{...stylesImage(size), opacity}}
+            onError={() => this.setState({errored: true})}
             onLoad={() => this.setState({avatarLoaded: true})}
-            source={uri} />}
-          {(!this.state.avatarLoaded || !uri.uri) &&
-            <Image
+            source={{uri}} />}
+          {showNoAvatar &&
+            <NativeImage
               style={stylesPlaceholderImage(size)}
               source={placeholder(size)} />}
+          {showLoadingColor && <Box style={{...(_.omit(stylesImage(size), 'resizeMode')), backgroundColor: this.props.loadingColor}} />}
+
         </Box>
-      </TouchableOpacity>
+      </NativeTouchableOpacity>
     )
   }
 }

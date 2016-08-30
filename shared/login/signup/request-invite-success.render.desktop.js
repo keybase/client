@@ -3,7 +3,7 @@ import Container from '../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './request-invite-success.render'
 import {Text, Icon} from '../../common-adapters'
-import {globalStyles} from '../../styles/style-guide'
+import {globalStyles} from '../../styles'
 
 class Render extends Component<void, Props, void> {
   render () {

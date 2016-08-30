@@ -4,7 +4,7 @@ import openUrl from '../util/open-url'
 import type {IconType} from '../common-adapters/icon.constants'
 import type {Props} from './post-proof'
 import {Box, LinkWithIcon, Text} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import {subtitle} from '../util/platforms'
 
 type MoreProps = {

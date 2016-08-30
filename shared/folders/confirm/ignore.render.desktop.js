@@ -2,7 +2,7 @@
 import React from 'react'
 import type {Props} from './ignore.render'
 import {Confirm, Box, Text, Icon, Avatar, Usernames} from '../../common-adapters'
-import {globalColors} from '../../styles/style-guide'
+import {globalColors} from '../../styles'
 
 const Render = ({isPrivate, users, avatar, onSubmit, onCancel}: Props) => {
   const theme = isPrivate ? 'private' : 'public'

@@ -5,6 +5,7 @@ package kex2
 
 import (
 	"net"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -23,7 +24,9 @@ type provisioner struct {
 // management that a provisioner needs to do as part of the protocol.
 type Provisioner interface {
 	GetHelloArg() (keybase1.HelloArg, error)
+	GetHello2Arg() (keybase1.Hello2Arg, error)
 	CounterSign(keybase1.HelloRes) ([]byte, error)
+	CounterSign2(keybase1.Hello2Res) (keybase1.DidCounterSign2Arg, error)
 	GetLogFactory() rpc.LogFactory
 }
 
@@ -46,6 +49,14 @@ func newProvisioner(arg ProvisionerArg) *provisioner {
 		arg: arg,
 	}
 	return ret
+}
+
+func (p *provisioner) debug(fmtString string, args ...interface{}) {
+	if p.arg.ProvisionCtx != nil {
+		if log := p.arg.ProvisionCtx.GetLog(); log != nil {
+			log.Debug(fmtString, args...)
+		}
+	}
 }
 
 // RunProvisioner runs a provisioner given the necessary arguments.
@@ -162,6 +173,47 @@ func (p *provisioner) runProtocolWithCancel() (err error) {
 }
 
 func (p *provisioner) runProtocol() (err error) {
+	var fallback bool
+	p.debug("+ provisioner#runProtocol: try V2")
+	fallback, err = p.runProtocolV2()
+	p.debug("- provisioner#runProtocol -> %v, %v", fallback, err)
+	if fallback {
+		p.debug("+ provisioner#runProtocol: fallback to V1")
+		err = p.runProtocolV1()
+		p.debug("- provisioner#runProtocol V1 -> %v", err)
+	}
+	return err
+}
+
+func (p *provisioner) runProtocolV2() (fallback bool, err error) {
+	cli := keybase1.Kex2Provisionee2Client{Cli: rpc.NewClient(p.xp, nil)}
+	var helloArg keybase1.Hello2Arg
+	helloArg, err = p.arg.Provisioner.GetHello2Arg()
+	if err != nil {
+		return false, err
+	}
+	var res keybase1.Hello2Res
+	if res, err = cli.Hello2(context.TODO(), helloArg); err != nil {
+		if strings.Contains(err.Error(), "protocol not found: keybase.1.Kex2Provisionee2") {
+			return true, nil
+		}
+		return false, err
+	}
+	if p.canceled {
+		return false, ErrCanceled
+	}
+	p.helloReceived = true
+	var counterSign2Arg keybase1.DidCounterSign2Arg
+	if counterSign2Arg, err = p.arg.Provisioner.CounterSign2(res); err != nil {
+		return false, err
+	}
+	if err = cli.DidCounterSign2(context.TODO(), counterSign2Arg); err != nil {
+		return false, err
+	}
+	return false, nil
+}
+
+func (p *provisioner) runProtocolV1() (err error) {
 	cli := keybase1.Kex2ProvisioneeClient{Cli: rpc.NewClient(p.xp, nil)}
 	var helloArg keybase1.HelloArg
 	helloArg, err = p.arg.Provisioner.GetHelloArg()

@@ -5,10 +5,12 @@ import {AppRegistry, NativeAppEventEmitter, AsyncStorage} from 'react-native'
 import {Provider} from 'react-redux'
 import configureStore from './store/configure-store'
 import Nav from './nav'
+import {makeEngine} from './engine'
 
 import {stateKey} from './constants/reducer'
 import {serializeRestore, serializeSave, timeTravel, timeTravelForward, timeTravelBack} from './constants/dev'
 
+makeEngine()
 const store = configureStore()
 
 setupLocalDebug(store)

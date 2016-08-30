@@ -1,12 +1,12 @@
 // @flow
 // $FlowIssue
-import * as native from './platform.native'
+import * as specific from './platform.specific'
 import * as shared from './platform.shared'
 import type {OSType} from './platform.shared'
 
-const OS: OSType = native.OS
-const isMobile = native.isMobile
-const runMode = native.runMode
+const OS: OSType = specific.OS
+const isMobile = specific.isMobile
+const runMode = specific.runMode
 
 export default shared
 

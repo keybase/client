@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import Text from './text'
 import _ from 'lodash'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 class TabBarItem extends Component<void, ItemProps, void> {
   render () {

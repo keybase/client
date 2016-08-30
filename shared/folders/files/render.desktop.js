@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import type {IconType} from '../../common-adapters/icon'
 import type {Props} from './render'
 import {Box, Text, BackButton, Avatar, PopupMenu, Icon, Usernames, ListItem, Button} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, backgroundURL} from '../../styles/style-guide'
+import {globalStyles, globalColors, globalMargins, backgroundURL} from '../../styles'
 import {intersperseFn} from '../../util/arrays'
 
 const Section = ({section, theme}) => (

@@ -8,9 +8,8 @@ import openURL from '../../util/open-url'
 import type {DeviceRole} from '../../constants/login'
 import type {DeviceType} from '../../constants/types/more'
 import type {Dispatch, GetState, AsyncAction, TypedAction, Action} from '../../constants/types/flux'
-import type {incomingCallMapType} from '../../constants/types/flow-types'
-import type {responseError} from '../../engine'
-import {Common, constants, provisionUi, passphraseCommon} from '../../constants/types/keybase-v1'
+import type {incomingCallMapType, DeviceType as RPCDeviceType} from '../../constants/types/flow-types'
+import type {ResponseType} from '../../engine'
 import {Map} from 'immutable'
 import {bindActionCreators} from 'redux'
 import {bootstrap} from '../config'
@@ -19,11 +18,13 @@ import {devicesTab, loginTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {loadDevices} from '../devices'
 import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
-  deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, loginClearStoredSecretRpc} from '../../constants/types/flow-types'
+  deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, loginClearStoredSecretRpc,
+  CommonClientType, ConstantsStatusCode, ProvisionUiGPGMethod, ProvisionUiDeviceType, PassphraseCommonPassphraseType,
+} from '../../constants/types/flow-types'
 import {navigateTo, routeAppend, navigateUp, switchTab} from '../router'
 import {overrideLoggedInTab} from '../../local-debug'
 
-const InputCancelError = {desc: 'Cancel Login', code: constants.StatusCode.scinputcanceled}
+const InputCancelError = {desc: 'Cancel Login', code: ConstantsStatusCode.scinputcanceled}
 
 function makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
   return {
@@ -99,7 +100,7 @@ export function login (): AsyncAction {
           param: {
             deviceType,
             usernameOrEmail: usernameOrEmail,
-            clientType: Common.ClientType.gui,
+            clientType: CommonClientType.gui,
           },
           incomingCallMap,
           callback: (error, response) => {
@@ -110,7 +111,7 @@ export function login (): AsyncAction {
                 payload: error,
               })
 
-              if (!(error.raw && error.raw.code === InputCancelError.code)) {
+              if (!(error.code === InputCancelError.code)) {
                 dispatch(routeAppend({
                   parseRoute: {
                     componentAtTop: {
@@ -241,7 +242,7 @@ export function autoLogin () : AsyncAction {
       incomingCallMap: {
         'keybase.1.loginUi.getEmailOrUsername': (_, response) => {
           response.error({
-            code: constants.StatusCode.scnoui,
+            code: ConstantsStatusCode.scnoui,
             desc: 'Attempting auto login',
           })
         },
@@ -267,7 +268,7 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
       param: {
         deviceType,
         usernameOrEmail: user,
-        clientType: Common.ClientType.gui,
+        clientType: CommonClientType.gui,
       },
       incomingCallMap: {
         'keybase.1.secretUi.getPassphrase': ({pinentry: {type}}, response) => {
@@ -279,7 +280,7 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
         'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
           const message = 'This device is no longer provisioned.'
           response.error({
-            code: constants.StatusCode.scgeneric,
+            code: ConstantsStatusCode.scgeneric,
             desc: message,
           })
           dispatch({
@@ -345,11 +346,11 @@ export function saveInKeychainChanged (username: string, saveInKeychain: bool) :
   }
 }
 
-function cancelLogin (response: ?responseError) : AsyncAction {
+function cancelLogin (response: ?ResponseType) : AsyncAction {
   return (dispatch, getState) => {
     dispatch(navBasedOnLoginState())
     if (response) {
-      engine.cancelRPC(response, InputCancelError)
+      engine().cancelRPC(response, InputCancelError)
     }
   }
 }
@@ -381,15 +382,15 @@ function addNewDevice (kind: DeviceRole) : AsyncAction {
       dispatch(loadDevices())
       dispatch(navigateUp(devicesTab, Map({path: 'root'})))
       if (response) {
-        engine.cancelRPC(response, InputCancelError)
+        engine().cancelRPC(response, InputCancelError)
       }
     }
 
     const incomingCallMap = makeKex2IncomingMap(dispatch, getState, onBack, onBack)
-    incomingCallMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response) => {
+    incomingCallMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response: {result: (type: RPCDeviceType) => void}) => {
       const deviceTypeMap: {[key: string]: any} = {
-        [Constants.codePageDeviceRoleNewComputer]: provisionUi.DeviceType.desktop,
-        [Constants.codePageDeviceRoleNewPhone]: provisionUi.DeviceType.mobile,
+        [Constants.codePageDeviceRoleNewComputer]: ProvisionUiDeviceType.desktop,
+        [Constants.codePageDeviceRoleNewPhone]: ProvisionUiDeviceType.mobile,
       }
       let deviceType = deviceTypeMap[kind]
 
@@ -503,7 +504,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
     },
     'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, username, retryLabel}}, response) => {
       switch (type) {
-        case passphraseCommon.PassphraseType.paperKey:
+        case PassphraseCommonPassphraseType.paperKey:
           appendRouteElement((
             <PaperKey
               mapStateToProps={state => ({})}
@@ -511,7 +512,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
               onBack={() => onBack(response)}
               error={retryLabel} />))
           break
-        case passphraseCommon.PassphraseType.passPhrase:
+        case PassphraseCommonPassphraseType.passPhrase:
           appendRouteElement((
             <Passphrase
               prompt={prompt}
@@ -525,7 +526,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
           break
         default:
           response.error({
-            code: constants.StatusCode.scnotfound,
+            code: ConstantsStatusCode.scnotfound,
             desc: 'Unknown getPassphrase type',
           })
       }
@@ -544,10 +545,10 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
             let deviceType
             switch (kind) {
               case Constants.codePageDeviceRoleNewComputer:
-                deviceType = provisionUi.DeviceType.desktop
+                deviceType = ProvisionUiDeviceType.desktop
                 break
               case Constants.codePageDeviceRoleNewPhone:
-                deviceType = provisionUi.DeviceType.mobile
+                deviceType = ProvisionUiDeviceType.mobile
                 break
               default:
                 console.warn(`DeviceType not recognized: ${kind}`)
@@ -570,7 +571,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
     'keybase.1.provisionUi.chooseGPGMethod': (param, response) => {
       appendRouteElement((
         <GPGSign
-          onSubmit={exportKey => response.result(exportKey ? provisionUi.GPGMethod.gpgImport : provisionUi.GPGMethod.gpgSign)}
+          onSubmit={exportKey => response.result(exportKey ? ProvisionUiGPGMethod.gpgImport : ProvisionUiGPGMethod.gpgSign)}
           onBack={() => onBack(response)} />))
     },
     'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {

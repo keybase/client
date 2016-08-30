@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import type {Props} from './copyable-text'
 
 const CopyableText = ({value, style}: Props) => {

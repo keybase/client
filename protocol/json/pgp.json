@@ -468,6 +468,16 @@
         }
       ],
       "response": "PGPPurgeRes"
+    },
+    "pgpStorageDismiss": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "doc": "Dismiss the PGP unlock via secret_store_file notification."
     }
   },
   "namespace": "keybase.1"

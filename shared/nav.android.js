@@ -1,11 +1,10 @@
 import Devices from './devices'
 import DumbSheet from './dev/dumb-sheet'
 import Folders from './folders'
-import ListenLogUi from './native/listen-log-ui'
 import Login from './login'
 import MetaNavigator from './router/meta-navigator'
 import NoTab from './no-tab'
-import Profile from './profile'
+import ProfileContainer from './profile/container'
 import React, {Component} from 'react'
 import Search from './search'
 import Settings from './settings'
@@ -14,7 +13,7 @@ import flags from './util/feature-flags'
 import forwardLogs from './native/forward-logs'
 import globalRoutes from './router/global-routes'
 import hello from './util/hello'
-import {Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback} from 'react-native'
+import {Text, Box, NativeBackAndroid, NativeDrawerLayoutAndroid, NativeImage, NativeTouchableNativeFeedback} from './common-adapters'
 import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {listenForNotifications} from './actions/notifications'
@@ -24,7 +23,7 @@ import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, logi
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
-  [profileTab]: {module: Profile, name: 'Profile'},
+  [profileTab]: {module: ProfileContainer, name: 'Profile'},
   [folderTab]: {module: Folders, name: 'Folders'},
   [chatTab]: {module: Settings, name: 'Chat'},
   [peopleTab]: {module: Search, name: 'People'},
@@ -67,30 +66,27 @@ class Nav extends Component {
     this.props.bootstrap()
     this.props.listenForNotifications()
 
-    // Handle logUi.log
-    ListenLogUi()
-
     // Introduce ourselves to the service
     hello(0, 'Android app', [], '0.0.0') // TODO real version
   }
 
   _renderContent (activeTab, module) {
     return (
-      <View style={styles.tabContent} collapsable={false}>
+      <Box style={styles.tabContent} collapsable={false}>
         <MetaNavigator
           rootComponent={module || NoTab}
           tab={activeTab}
           globalRoutes={globalRoutes}
           navBarHeight={0}
           Navigator={AndroidNavigator}
-          NavBar={<View />}
+          NavBar={<Box />}
         />
-      </View>
+      </Box>
     )
   }
 
   componentWillMount () {
-    BackAndroid.addEventListener('hardwareBackPress', () => {
+    NativeBackAndroid.addEventListener('hardwareBackPress', () => {
       // TODO Properly handle android back button press
       const currentRoute = this.props.router.getIn(['tabs', this.props.router.get('activeTab'), 'uri'])
       if (currentRoute == null || currentRoute.count() <= 1) {
@@ -113,63 +109,63 @@ class Nav extends Component {
     }
 
     const drawerContent = (
-      <View style={{flex: 1, backgroundColor: '#fff'}}>
+      <Box style={{flex: 1, backgroundColor: '#fff'}}>
         <Text style={{margin: 10, fontSize: 15, textAlign: 'left'}}>I'm in the Drawer!</Text>
-      </View>
+      </Box>
     )
 
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
     const username = this.props.username
 
     return (
-      <DrawerLayoutAndroid
+      <NativeDrawerLayoutAndroid
         drawerWidth={300}
         ref='drawer'
-        drawerPosition={DrawerLayoutAndroid.positions.Left}
+        drawerPosition={NativeDrawerLayoutAndroid.positions.Left}
         renderNavigationView={() => drawerContent}>
-        <View collapsable={false} style={{flex: 1}}>
-          <View
+        <Box collapsable={false} style={{flex: 1}}>
+          <Box
             title={''}
             style={styles.toolbar}>
-            <View collapsable={false} style={styles.toolbarContent}>
-              <View style={{flex: 0}}>
-                <TouchableNativeFeedback
+            <Box collapsable={false} style={styles.toolbarContent}>
+              <Box style={{flex: 0}}>
+                <NativeTouchableNativeFeedback
                   onPress={() => this.refs.drawer && this.refs.drawer.openDrawer()}
                   delayPressIn={0}
-                  background={TouchableNativeFeedback.SelectableBackground()} >
-                  <View>
-                    <Image style={[styles.toolbarImage, {marginTop: 4}]} resizeMode={'contain'} source={require('./images/nav/ic_menu_black_24dp.png')} />
-                  </View>
-                </TouchableNativeFeedback>
-              </View>
+                  background={NativeTouchableNativeFeedback.SelectableBackground()} >
+                  <Box>
+                    <NativeImage style={{...styles.toolbarImage, ...{marginTop: 4}}} resizeMode={'contain'} source={require('./images/nav/ic_menu_black_24dp.png')} />
+                  </Box>
+                </NativeTouchableNativeFeedback>
+              </Box>
 
-              <View style={{marginLeft: 40}}>
+              <Box style={{marginLeft: 40}}>
                 <Text style={styles.toolbarName}>{prettify(activeTab)}</Text>
-              </View>
+              </Box>
 
-              <View style={styles.toolbarSearchWrapper}>
-                <TouchableNativeFeedback
+              <Box style={styles.toolbarSearchWrapper}>
+                <NativeTouchableNativeFeedback
                   onPress={() => console.log('todo: show search')}
                   delayPressIn={0}
-                  background={TouchableNativeFeedback.SelectableBackground()}>
-                  <View>
-                    <Image style={styles.toolbarImage} resizeMode={'contain'} source={require('./images/nav/ic_search_black_24dp.png')} />
-                  </View>
-                </TouchableNativeFeedback>
-              </View>
-            </View>
-          </View>
-          <View collapsable={false} style={{flex: 2}}>
+                  background={NativeTouchableNativeFeedback.SelectableBackground()}>
+                  <Box>
+                    <NativeImage style={styles.toolbarImage} resizeMode={'contain'} source={require('./images/nav/ic_search_black_24dp.png')} />
+                  </Box>
+                </NativeTouchableNativeFeedback>
+              </Box>
+            </Box>
+          </Box>
+          <Box collapsable={false} style={{flex: 2}}>
             <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={username} badgeNumbers={{[folderTab]: this.props.folderBadge}} tabContent={tabContent} />
-          </View>
-        </View>
-      </DrawerLayoutAndroid>
+          </Box>
+        </Box>
+      </NativeDrawerLayoutAndroid>
 
     )
   }
 }
 
-const styles = StyleSheet.create({
+const styles = {
   tabContent: {
     flex: 1,
   },
@@ -202,7 +198,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
   },
-})
+}
 
 export default connect(
   ({

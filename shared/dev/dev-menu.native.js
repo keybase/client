@@ -18,7 +18,7 @@ class DevMenu extends Component {
     const menuItems = [
       {name: 'Login', onClick: () => { this.props.switchTab(loginTab) }},
       {name: 'Register', onClick: () => { this.props.routeAppend(['login', {path: 'register', upLink: ['']}]) }},
-      {name: 'reset', onClick: () => { engine.reset() }},
+      {name: 'reset', onClick: () => { engine().reset() }},
       {name: 'Sign Out', onClick: () => { this.props.logout() }},
       {name: 'Developer', hasChildren: true, onClick: () => { this.props.routeAppend('developer') }},
       {name: 'Search', hasChildren: true, onClick: () => { this.props.routeAppend('search') }},

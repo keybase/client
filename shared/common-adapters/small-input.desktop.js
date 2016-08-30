@@ -3,7 +3,7 @@ import React from 'react'
 import Box from './box'
 import Input from './input'
 import Text from './text'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 import type {SmallInputProps} from './small-input'
 

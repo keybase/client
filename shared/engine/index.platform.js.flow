@@ -1,0 +1,22 @@
+// @flow
+type payloadType = {
+  method: string,
+  param: Array<Object>,
+  response: ?Object
+};
+
+export type invokeType = (method: string, param: ?Object, cb: (err: any, data: any) => void) => void
+export type createClientType = {
+  transport: {
+    needsConnect: boolean,
+  },
+  invoke: invokeType,
+};
+
+export type incomingRPCCallbackType = (payload: payloadType) => void
+export type connectCallbackType = () => void
+export type rpcLogType = 'engineToServer' | 'serverToEngine' | 'engineInternal'
+
+declare export var createClient: (incomingRPCCallback: incomingRPCCallbackType, connectCallback: connectCallbackType) => createClientType;
+declare export var resetClient: () => void;
+declare export var rpcLog: (type: rpcLogType, ...args: Array<any>) => void;

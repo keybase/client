@@ -5,7 +5,7 @@ import type {Props as TextProps} from './text'
 import type {Props, MenuItemProps} from './dropdown'
 import {NavigationArrowDropDown} from 'material-ui/svg-icons'
 import {Popover, PopoverAnimationVertical} from 'material-ui/Popover'
-import {transition, globalColors, globalStyles} from '../styles/style-guide'
+import {transition, globalColors, globalStyles} from '../styles'
 
 type State = {
   popoverOpen: boolean

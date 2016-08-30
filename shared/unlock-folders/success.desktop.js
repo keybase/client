@@ -1,7 +1,7 @@
 // @flow
 
 import React from 'react'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 import {Text, Button, Icon} from '../common-adapters'
 
 const PaperKeyInput = ({onClose}: {onClose: () => void}) => (

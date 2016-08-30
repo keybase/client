@@ -4,6 +4,7 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -48,12 +49,18 @@ func (c *cmdChatSend) Run() (err error) {
 	}
 
 	var args keybase1.PostLocalArg
-	if args.ConversationID, err = chatClient.GetOrCreateTextConversationLocal(ctx, keybase1.GetOrCreateTextConversationLocalArg{
+	conversationIDs, err := chatClient.ResolveConversationLocal(ctx, keybase1.ConversationInfoLocal{
 		TlfName:   c.tlfName,
 		TopicType: chat1.TopicType_CHAT,
-	}); err != nil {
+	})
+	if err != nil {
 		return err
 	}
+	if len(conversationIDs) == 0 {
+		return errors.New("empty response from ResolveConversationLocal. This must be a bug")
+	}
+	// TODO: prompt user to choose one if multiple exist
+	args.ConversationID = conversationIDs[0]
 	// args.MessagePlaintext.ClientHeader.Conv omitted
 	// args.MessagePlaintext.ClientHeader.{Sender,SenderDevice} are filled by service
 	args.MessagePlaintext.ClientHeader.MessageType = chat1.MessageType_TEXT

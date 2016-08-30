@@ -5,17 +5,21 @@ import menubar from 'menubar'
 
 let iconType: 'regular' | 'update' | 'badged' = 'regular'
 
-const getIcon = () => {
+const isMacOS = process.platform === 'darwin'
+
+const getIcon = (invertColors) => {
   const devMode = __DEV__ ? '-dev' : ''
   let color = 'white'
   let platform = ''
 
-  if (process.platform === 'darwin') {
+  if (isMacOS) {
     color = (systemPreferences && systemPreferences.isDarkMode()) ? 'white' : 'black'
   } else if (process.platform === 'win32') {
     color = 'black'
     platform = 'windows-'
   }
+
+  color = invertColors ? ({black: 'white', white: 'black'})[color] : color
 
   return resolveImage('menubarIcon', `icon-${platform}keybase-dog-${iconType}-${color}-22${devMode}@2x.png`)
 }
@@ -28,36 +32,36 @@ export default function () {
     frame: false,
     resizable: false,
     preloadWindow: true,
-    icon: getIcon(),
+    icon: getIcon(false),
     // Without this flag set, menubar will hide the dock icon when the app
     // ready event fires. We manage the dock icon ourselves, so this flag
     // prevents menubar from changing the state.
     showDockIcon: true,
   })
 
-  const updateIcon = () => {
-    mb.tray.setImage(getIcon())
+  const updateIcon = (invertColors) => {
+    mb.tray.setImage(getIcon(invertColors))
   }
 
-  if (process.platform === 'darwin' && systemPreferences && systemPreferences.subscribeNotification) {
+  if (isMacOS && systemPreferences && systemPreferences.subscribeNotification) {
     systemPreferences.subscribeNotification('AppleInterfaceThemeChangedNotification', () => {
-      updateIcon()
+      updateIcon(false)
     })
   }
 
   ipcMain.on('showTrayLoading', () => {
     iconType = 'update'
-    updateIcon()
+    updateIcon(false)
   })
 
   ipcMain.on('showTrayRegular', () => {
     iconType = 'regular'
-    updateIcon()
+    updateIcon(false)
   })
 
   ipcMain.on('showTrayBadged', () => {
     iconType = 'badged'
-    updateIcon()
+    updateIcon(false)
   })
 
   // We keep the listeners so we can cleanup on hot-reload
@@ -100,15 +104,17 @@ export default function () {
 
     mb.on('show', () => {
       menubarListeners.forEach(l => l.send('menubarShow'))
+      isMacOS && updateIcon(true)
     })
     mb.on('hide', () => {
       menubarListeners.forEach(l => l.send('menubarHide'))
+      isMacOS && updateIcon(false)
     })
   })
 
   // Work around an OS X bug that leaves a gap in the status bar if you exit
   // without removing your status bar icon.
-  if (process.platform === 'darwin') {
+  if (isMacOS) {
     mb.app.on('before-quit', () => {
       mb.tray && mb.tray.destroy()
     })

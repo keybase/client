@@ -1,7 +1,7 @@
 /* @flow */
 
 import _ from 'lodash'
-import {kbfsCommon} from '../constants/types/keybase-v1'
+import {KbfsCommonFSErrorType, KbfsCommonFSNotificationType, KbfsCommonFSStatusCode} from '../constants/types/flow-types'
 import {getTLF} from '../util/kbfs'
 import path from 'path'
 import type {FSNotification} from '../constants/types/flow-types'
@@ -15,37 +15,37 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
   const basedir = notification.filename.split(path.sep)[0]
   const tlf = `/keybase${getTLF(notification.publicTopLevelFolder, basedir)}`
   switch (notification.errorType) {
-    case kbfsCommon.FSErrorType.accessDenied:
+    case KbfsCommonFSErrorType.accessDenied:
       return {
         title: 'Keybase: Access denied',
         body: `${user} does not have ${notification.params.mode} access to ${tlf}`,
       }
 
-    case kbfsCommon.FSErrorType.userNotFound:
+    case KbfsCommonFSErrorType.userNotFound:
       return {
         title: 'Keybase: User not found',
         body: `${notification.params.username} is not a Keybase user`,
       }
 
-    case kbfsCommon.FSErrorType.revokedDataDetected:
+    case KbfsCommonFSErrorType.revokedDataDetected:
       return {
         title: 'Keybase: Possibly revoked data detected',
         body: `${tlf} was modified by a revoked or bad device. Use 'keybase log send' to file an issue with the Keybase admins.`,
       }
 
-    case kbfsCommon.FSErrorType.notLoggedIn:
+    case KbfsCommonFSErrorType.notLoggedIn:
       return {
         title: `Keybase: Permission denied in ${tlf}`,
         body: "You are not logged into Keybase. Try 'keybase login'.",
       }
 
-    case kbfsCommon.FSErrorType.timeout:
+    case KbfsCommonFSErrorType.timeout:
       return {
         title: `Keybase: ${_.capitalize(notification.params.mode)} timeout in ${tlf}`,
         body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`,
       }
 
-    case kbfsCommon.FSErrorType.rekeyNeeded:
+    case KbfsCommonFSErrorType.rekeyNeeded:
       return notification.params.rekeyself ? {
         title: 'Keybase: Files need to be rekeyed',
         body: `Please open one of your other computers to unlock ${tlf}`,
@@ -54,13 +54,13 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
         body: `Please ask another member of ${tlf} to open Keybase on one of their computers to unlock it for you.`,
       }
 
-    case kbfsCommon.FSErrorType.badFolder:
+    case KbfsCommonFSErrorType.badFolder:
       return {
         title: 'Keybase: Bad folder',
         body: `${notification.params.tlf} is not a Keybase folder. All folders begin with /keybase/private or /keybase/public.`,
       }
 
-    case kbfsCommon.FSErrorType.overQuota:
+    case KbfsCommonFSErrorType.overQuota:
       const usageBytes = parseInt(notification.params.usageBytes, 10)
       const limitBytes = parseInt(notification.params.limitBytes, 10)
       const usedGB = (usageBytes / 1e9).toFixed(1)
@@ -78,7 +78,7 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
   }
 
   // This code came from the kbfs team but this isn't plumbed through the protocol. Leaving this for now
-  // if (notification.errorType === kbfsCommon.FSErrorType.notImplemented) {
+  // if (notification.errorType === KbfsCommonFSErrorType.notImplemented) {
     // if (notification.feature === '2gbFileLimit') {
       // return ({
         // title: 'Keybase: Not yet implemented',
@@ -139,11 +139,11 @@ function rateLimitAllowsNotify (action, state, tlf, isError) {
 
 export function kbfsNotification (notification: FSNotification, notify: any, getState: any) {
   const action = {
-    [kbfsCommon.FSNotificationType.encrypting]: 'Encrypting and uploading',
-    [kbfsCommon.FSNotificationType.decrypting]: 'Decrypting, verifying, and downloading',
-    [kbfsCommon.FSNotificationType.signing]: 'Signing and uploading',
-    [kbfsCommon.FSNotificationType.verifying]: 'Verifying and downloading',
-    [kbfsCommon.FSNotificationType.rekeying]: 'Rekeying',
+    [KbfsCommonFSNotificationType.encrypting]: 'Encrypting and uploading',
+    [KbfsCommonFSNotificationType.decrypting]: 'Decrypting, verifying, and downloading',
+    [KbfsCommonFSNotificationType.signing]: 'Signing and uploading',
+    [KbfsCommonFSNotificationType.verifying]: 'Verifying and downloading',
+    [KbfsCommonFSNotificationType.rekeying]: 'Rekeying',
   }[notification.notificationType]
 
   if (action === undefined) {
@@ -152,20 +152,20 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
   }
 
   const state = {
-    [kbfsCommon.FSStatusCode.start]: 'starting',
-    [kbfsCommon.FSStatusCode.finish]: 'finished',
-    [kbfsCommon.FSStatusCode.error]: 'errored',
+    [KbfsCommonFSStatusCode.start]: 'starting',
+    [KbfsCommonFSStatusCode.finish]: 'finished',
+    [KbfsCommonFSStatusCode.error]: 'errored',
   }[notification.statusCode]
 
   // KBFS fires a notification when it changes state between connected
   // and disconnected (to the mdserver).  For now we just log it.
-  if (notification.notificationType === kbfsCommon.FSNotificationType.connection) {
-    const state = (notification.statusCode === kbfsCommon.FSStatusCode.start) ? 'connected' : 'disconnected'
+  if (notification.notificationType === KbfsCommonFSNotificationType.connection) {
+    const state = (notification.statusCode === KbfsCommonFSStatusCode.start) ? 'connected' : 'disconnected'
     console.log(`KBFS is ${state}`)
     return
   }
 
-  if (notification.statusCode === kbfsCommon.FSStatusCode.finish) {
+  if (notification.statusCode === KbfsCommonFSStatusCode.finish) {
     // Since we're aggregating dir operations and not showing state,
     // let's ignore file-finished notifications.
     return
@@ -178,7 +178,7 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
   let body = `Files in ${tlf} ${notification.status}`
   let user = 'You' || getState().config.username
 
-  const isError = notification.statusCode === kbfsCommon.FSStatusCode.error
+  const isError = notification.statusCode === KbfsCommonFSStatusCode.error
   // Don't show starting or finished, but do show error.
   if (isError) {
     ({title, body} = decodeKBFSError(user, notification))

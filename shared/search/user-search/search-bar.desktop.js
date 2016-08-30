@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import _ from 'lodash'
 
 import {Box, Icon, Input, Text} from '../../common-adapters'
-import {globalStyles, globalColors, transition} from '../../styles/style-guide'
+import {globalStyles, globalColors, transition} from '../../styles'
 import {platformToLogo24} from '../../constants/search'
 
 import type {SearchPlatforms} from '../../constants/search'

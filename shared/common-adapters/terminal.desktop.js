@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import Box from './box'
 
 import type {Props, Context} from './terminal'
@@ -30,6 +30,6 @@ const styleContainer = {
   color: globalColors.white,
   backgroundColor: globalColors.midnightBlue,
   padding: 10,
-  justifyContent: 'stretch',
-  alignItems: 'flex-start',
+  alignItems: 'stretch',
+  textAlign: 'left',
 }

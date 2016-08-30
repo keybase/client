@@ -1,8 +1,7 @@
 /* @flow */
 import React, {Component} from 'react'
 import {Box, Text} from '../common-adapters'
-import SearchHelp from './help.desktop'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import UserSearch from './user-search/render.desktop'
 import UserGroup from './user-search/user-group'
 import SearchBar from './user-search/search-bar.desktop'
@@ -19,15 +18,7 @@ const ClearSearch = ({onReset, showUserGroup}) => (
 )
 
 class Render extends Component<void, Props, void> {
-  _renderComingSoon () {
-    return <SearchHelp username={this.props.username} />
-  }
-
   render () {
-    if (this.props.showComingSoon) {
-      return this._renderComingSoon()
-    }
-
     const userSearchProps: UserSearchProps = this.props
     const userGroupProps: UserGroupProps = this.props
     const searchBarProps: SearchBarProps = this.props

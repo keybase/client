@@ -1,10 +1,8 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {TouchableWithoutFeedback} from 'react-native'
-import {Box} from '../common-adapters'
-import {Text, Icon} from './index'
-import {globalStyles} from '../styles/style-guide'
+import {Box, NativeTouchableWithoutFeedback, Text, Icon} from './index.native'
+import {globalStyles} from '../styles'
 import type {Props} from './back-button'
 
 export default class BackButton extends Component {
@@ -20,12 +18,12 @@ export default class BackButton extends Component {
 
   render () {
     return (
-      <TouchableWithoutFeedback onPress={e => this.onClick(e)}>
+      <NativeTouchableWithoutFeedback onPress={e => this.onClick(e)}>
         <Box style={{...styles.container, ...this.props.style}} >
           <Icon type='iconfont-back' style={{...styles.icon, ...this.props.iconStyle}} />
           {this.props.title !== null && <Text type='BodyPrimaryLink' style={this.props.textStyle} onClick={e => this.onClick(e)}>{this.props.title || 'Back'}</Text>}
         </Box>
-      </TouchableWithoutFeedback>
+      </NativeTouchableWithoutFeedback>
     )
   }
 }
