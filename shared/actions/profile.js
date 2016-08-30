@@ -2,19 +2,21 @@
 import * as Constants from '../constants/profile'
 import engine from '../engine'
 import openURL from '../util/open-url'
-import type {Dispatch, AsyncAction} from '../constants/types/flux'
-import type {PlatformsExpandedType, ProvablePlatformsType} from '../constants/types/more'
-import type {SagaGenerator} from '../constants/types/saga'
-import type {SigID, KID} from '../constants/types/flow-types'
-import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateErrorText, UpdateProofStatus, UpdateSigID, WaitingRevokeProof, FinishRevokeProof, CleanupUsername, UpdatePgpInfo, PgpInfo, GeneratePgp, FinishedWithKeyGen, DropPgp} from '../constants/profile'
-import {BTCRegisterBTCRpc, ConstantsStatusCode, ProveCommonProofStatus, apiserverPostRpc, pgpPgpKeyGenRpc, proveCheckProofRpc, proveStartProofRpc, revokeRevokeKeyRpc, revokeRevokeSigsRpc} from '../constants/types/flow-types'
+import {BTCRegisterBTCRpc, ConstantsStatusCode, ProveCommonProofStatus, apiserverPostRpc, pgpPgpKeyGenDefaultRpc, proveCheckProofRpc, proveStartProofRpc, revokeRevokeKeyRpc, revokeRevokeSigsRpc} from '../constants/types/flow-types'
 import {bindActionCreators} from 'redux'
-import {call, put, take, select} from 'redux-saga/effects'
+import {call, put, take, race, select} from 'redux-saga/effects'
 import {getMyProfile} from './tracker'
 import {isValidEmail, isValidName} from '../util/simple-validators'
 import {navigateUp, navigateTo, routeAppend} from '../actions/router'
 import {profileTab} from '../constants/tabs'
-import {takeLatest, takeEvery} from 'redux-saga'
+import {takeLatest, takeEvery, eventChannel, END, buffers} from 'redux-saga'
+
+import type {SagaGenerator} from '../constants/types/saga'
+import type {Dispatch, AsyncAction, NoErrorTypedAction} from '../constants/types/flux'
+import type {PlatformsExpandedType, ProvablePlatformsType} from '../constants/types/more'
+import type {SigID, KID, KeyInfo} from '../constants/types/flow-types'
+import type {UpdateUsername, UpdatePlatform, Waiting, UpdateProofText, UpdateErrorText, UpdateProofStatus,
+  UpdateSigID, WaitingRevokeProof, FinishRevokeProof, CleanupUsername, UpdatePgpInfo, PgpInfo, GeneratePgp, FinishedWithKeyGen, DropPgp} from '../constants/profile'
 
 const InputCancelError = {desc: 'Cancel Add Proof', code: ConstantsStatusCode.scinputcanceled}
 
@@ -459,38 +461,62 @@ function checkPgpInfoForErrors (pgpInfo: PgpInfo): PgpInfoError {
   }
 }
 
-// Returns the promise of the string that represents the public key
-function generatePgpKey (pgpInfo: PgpInfo): Promise<string> {
-  const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].map(email => ({
+// If we like this we can auto build this and the following way of calling rpc methods
+// so that they return a channel of these actions
+type IncomingKeyGenerated = NoErrorTypedAction<'keybase.1.pgpUi.keyGenerated', {params: {key: KeyInfo}, response: {result: () => void}}>
+type IncomingShouldPush = NoErrorTypedAction<'keybase.1.pgpUi.shouldPushPrivate', {response: {result: (shouldPush: boolean) => void}}>
+
+// Returns a channel that represents the feedback from the rpc service
+// Things in the channel look like actions
+// If the service expects a reply, a response will be attached to the payload
+function generatePgpKey (pgpInfo: PgpInfo): any {
+  const identities = [pgpInfo.email1, pgpInfo.email2, pgpInfo.email3].filter(email => !!email).map(email => ({
     username: pgpInfo.fullName || '',
     comment: '',
     email: email || '',
   }))
 
-  return new Promise((resolve, reject) => {
-    pgpPgpKeyGenRpc({
+  return eventChannel(emit => {
+    pgpPgpKeyGenDefaultRpc({
       param: {
-        // TODO (mm) we shouldn't be setting these values...
-        primaryBits: 4096,
-        subkeyBits: 4096,
         createUids: {
           useDefault: false,
           ids: identities,
         },
-        allowMulti: false,
-        doExport: false,
-        pushSecret: false,
       },
-      callback: (err) => {
-        // TODO handle error
-        if (err) {
-          reject(err)
-          return
-        }
-        resolve('TODO')
+      incomingCallMap: {
+        'keybase.1.pgpUi.keyGenerated': ({kid, key}, response) => {
+          emit(({
+            type: 'keybase.1.pgpUi.keyGenerated',
+            payload: {params: {kid, key}, response},
+          }: IncomingKeyGenerated))
+        },
+        'keybase.1.pgpUi.shouldPushPrivate': (p, response) => {
+          emit(({
+            type: 'keybase.1.pgpUi.shouldPushPrivate',
+            payload: {response},
+          }: IncomingShouldPush))
+        },
+        'keybase.1.pgpUi.finished': (p, response) => {
+          emit({
+            type: 'keybase.1.pgpUi.finished',
+            payload: {response},
+          })
+        },
+      },
+      callback: (error) => {
+        emit({
+          type: 'finished',
+          payload: {error},
+        })
+        emit(END)
       },
     })
-  })
+
+    // TODO(MM) this is the unsubscribe function, not sure what we can do here,
+    // maybe cancel ongoing rpc requests?
+    return () => {}
+  }, buffers.fixed())
 }
 
 // Resolves if the pgp key was dropped successfully
@@ -524,7 +550,6 @@ function * checkPgpInfo (action: UpdatePgpInfo): SagaGenerator<any, any> {
   yield put(errorUpdateAction)
 }
 
-// TODO(mm) handle error
 function * dropPgpSaga (action: DropPgp): SagaGenerator<any, any> {
   if (action.error) { return }
 
@@ -542,24 +567,48 @@ function * dropPgpSaga (action: DropPgp): SagaGenerator<any, any> {
   }
 }
 
-// TODO(mm) handle error
+// TODO(mm) handle error better
 function * generatePgpSaga (): SagaGenerator<any, any> {
   yield put(routeAppend('generate'))
 
   // $ForceType
   const pgpInfo: PgpInfo = yield select(({profile: {pgpInfo}}: TypedState) => pgpInfo)
+  const generatePgpKeyChan = yield call(generatePgpKey, pgpInfo)
 
   try {
-    const publicKey = yield call(generatePgpKey, pgpInfo)
+    // $ForceType
+    const {cancel, keyGenerated}: {keyGenerated: IncomingKeyGenerated, cancel: ?any} = yield race({
+      keyGenerated: take(generatePgpKeyChan, 'keybase.1.pgpUi.keyGenerated'),
+      cancel: take(Constants.cancelPgpGen),
+    })
+
+    if (cancel) {
+      generatePgpKeyChan && generatePgpKeyChan.close()
+      yield put(navigateTo([]))
+    }
+
+    keyGenerated.payload.response.result()
+    yield call([keyGenerated.payload.response, keyGenerated.payload.response.result])
+    const publicKey = keyGenerated.payload.params.key.key
+
     yield put({type: Constants.updatePgpPublicKey, payload: {publicKey}})
     yield put(routeAppend('finished'))
 
     // $ForceType
     const finishedAction: FinishedWithKeyGen = yield take(Constants.finishedWithKeyGen)
+    const {shouldStoreKeyOnServer} = finishedAction.payload
+
+    // $ForceType
+    const {payload: {response}}: IncomingShouldPush = yield take(generatePgpKeyChan, 'keybase.1.pgpUi.shouldPushPrivate')
+    yield call([response, response.result], shouldStoreKeyOnServer)
+
+    // $FlowIssue
+    const {payload: {response: finishedResponse}} = yield take(generatePgpKeyChan, 'keybase.1.pgpUi.finished')
+    yield call([finishedResponse, finishedResponse.result])
 
     yield put(navigateTo([]))
-    console.log('TODO: do something with:', finishedAction.payload)
   } catch (e) {
+    generatePgpKeyChan && generatePgpKeyChan.close()
     console.log('error in generating pgp key', e)
   }
 }
