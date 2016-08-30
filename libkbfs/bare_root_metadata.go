@@ -418,7 +418,10 @@ func (md *BareRootMetadataV2) TlfHandleExtensions() (
 	return extensions
 }
 
-// GetTLFKeyBundles implements the BareRootMetadata interface for BareRootMetadataV2.
+// GetTLFKeyBundles implements the BareRootMetadata interface for
+// BareRootMetadataV2.  Note that it is legal a writer or a reader to
+// have no keys in their bundle, if they only have a Keybase username
+// with no device keys yet.
 func (md *BareRootMetadataV2) GetTLFKeyBundles(keyGen KeyGen) (
 	*TLFWriterKeyBundle, *TLFReaderKeyBundle, error) {
 	if md.ID.IsPublic() {
@@ -435,7 +438,10 @@ func (md *BareRootMetadataV2) GetTLFKeyBundles(keyGen KeyGen) (
 	return &md.WKeys[i], &md.RKeys[i], nil
 }
 
-// GetDeviceKIDs implements the BareRootMetadata interface for BareRootMetadataV2.
+// GetDeviceKIDs implements the BareRootMetadata interface for
+// BareRootMetadataV2.  Note that it is legal for the returned slice
+// to be empty, if they only have a Keybase username with no device
+// keys yet.
 func (md *BareRootMetadataV2) GetDeviceKIDs(
 	keyGen KeyGen, user keybase1.UID) ([]keybase1.KID, error) {
 	wkb, rkb, err := md.GetTLFKeyBundles(keyGen)
