@@ -191,7 +191,7 @@ export default connect(
   ({
     router,
     config: {extendedConfig, username},
-    favorite: {publicBadge, privateBadge},
+    favorite: {publicBadge = 0, privateBadge = 0},
     notifications: {menuBadge}}) => ({
       router,
       provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,

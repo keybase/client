@@ -1,7 +1,5 @@
 /* @flow */
-
-import React, {Component} from 'react'
-
+import React, {PureComponent} from 'react'
 import Header from './header.render.desktop'
 import Action, {calcFooterHeight} from './action.render.desktop'
 import {UserProofs, UserBio} from '../common-adapters'
@@ -11,9 +9,7 @@ import {autoResize} from '../../desktop/renderer/remote-component-helper'
 
 import type {RenderProps} from './render'
 
-export default class Render extends Component<void, RenderProps, void> {
-  props: RenderProps;
-
+export default class Render extends PureComponent<void, RenderProps, void> {
   componentDidMount () {
     autoResize()
   }

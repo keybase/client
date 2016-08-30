@@ -1,15 +1,17 @@
 /* @flow */
-
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {Icon, Text} from '../common-adapters/index'
 import {globalStyles, globalColors} from '../styles'
 import {stateColors} from '../util/tracker'
 
 import type {HeaderProps} from './header.render'
 
-export default class HeaderRender extends Component {
-  props: HeaderProps;
-  state: {showCloseWarning: boolean};
+type State = {
+  showCloseWarning: boolean,
+}
+
+export default class HeaderRender extends PureComponent<void, HeaderProps, State> {
+  state: State;
 
   constructor (props: HeaderProps) {
     super(props)

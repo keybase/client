@@ -7,7 +7,7 @@ import type {TypedState} from '../constants/reducer'
 import {TypedConnector} from '../util/typed-connect'
 import {cancelAddProof, backToProfile} from '../actions/profile'
 import {globalColors} from '../styles'
-import {proveCommon} from '../constants/types/keybase-v1'
+import {ProveCommonProofStatus} from '../constants/types/flow-types'
 
 class ConfirmOrPendingContainer extends Component<void, any, void> {
   static parseRoute (currentPath, uri) {
@@ -24,8 +24,8 @@ const connector: TypedConnector<TypedState, TypedDispatch<{}>, {}, Props> = new 
 export default connector.connect(
   (state, dispatch, ownProps) => {
     const profile = state.profile
-    const isGood = profile.proofFound && profile.proofStatus === proveCommon.ProofStatus.ok
-    const isPending = !isGood && !profile.proofFound && !!profile.proofStatus && profile.proofStatus <= proveCommon.ProofStatus.baseHardError
+    const isGood = profile.proofFound && profile.proofStatus === ProveCommonProofStatus.ok
+    const isPending = !isGood && !profile.proofFound && !!profile.proofStatus && profile.proofStatus <= ProveCommonProofStatus.baseHardError
 
     if (!profile.platform) {
       throw new Error('No platform passed to confirm or pending container')

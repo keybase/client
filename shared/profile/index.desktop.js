@@ -1,5 +1,5 @@
 /* @flow */
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {findDOMNode} from 'react-dom'
 import _ from 'lodash'
 import moment from 'moment'
@@ -29,7 +29,7 @@ type State = {
   }
 }
 
-class Profile extends Component<void, Props, State> {
+class ProfileRender extends PureComponent<void, Props, State> {
   state: State;
   _proofList: ?UserProofs;
   _scrollContainer: ?React$Component<*, *, *>;
@@ -391,4 +391,4 @@ const styleProofMenu = {
   zIndex: 5,
 }
 
-export default Profile
+export default ProfileRender

@@ -26,18 +26,21 @@ var projects = [
   },
 ]
 
+const reduceArray = arr => arr.reduce((acc, cur) => acc.concat(cur), [])
+
 projects.forEach(project => {
   fs.readdirAsync(project.root)
-  .filter(jsonOnlySkipGregor)
+  .filter(jsonOnly)
   .map(file => load(file, project))
   .map(json => analyze(json, project))
   .reduce((acc, typeDefs) => acc.concat(typeDefs), [])
+  .then(t => t.filter(key => key && key.length))
   .then(t => t.sort())
   .then(makeRpcUnionType)
   .then(typeDefs => write(typeDefs, project))
 })
 
-function jsonOnlySkipGregor (file) {
+function jsonOnly (file) {
   return !!file.match(/.*\.json$/)
 }
 
@@ -46,24 +49,58 @@ function load (file, project) {
 }
 
 function analyze (json, project) {
+  return reduceArray([].concat(analyzeTypes(json, project), analyzeMessages(json, project), analyzeEnums(json, project)))
+}
+
+function fixCase (s) {
+  return s.toLowerCase().replace(/(_\w)/g, s => capitalize(s[1]))
+}
+
+function analyzeEnums (json, project) {
+  return json.types.filter(t => t.type === 'enum').map(t => {
+    var en = {}
+
+    t.symbols.forEach(function (s) {
+      const parts = s.split('_')
+      const val = parseInt(parts.pop(), 10)
+      const name = fixCase(parts.join('_'))
+      en[name] = val
+    })
+
+    return {
+      name: `${capitalize(json.protocol)}${t.name}`,
+      map: en,
+    }
+  }).reduce((acc, t) => {
+    return acc.concat([
+      `export const ${t.name} = {
+  ${Object.keys(t.map).map(k => {
+    return `${k}: ${t.map[k]}` // eslint-disable-line
+  }).join(',\n  ')},
+}`,
+    ])
+  }, [])
+}
+
+function analyzeTypes (json, project) {
   return json.types.map(t => {
     if (project.seenTypes[t.name]) {
-      return ''
+      return null
     }
 
     project.seenTypes[t.name] = true
 
     switch (t.type) {
       case 'record':
-        return `export type ${t.name} = ${parseRecord(t)}\n\n`
+        return [`export type ${t.name} = ${parseRecord(t)}`]
       case 'enum':
-        return `export type ${t.name} =${parseEnum(t)}\n\n`
+        return [`export type ${t.name} =${parseEnum(t)}`]
       case 'fixed':
-        return `export type ${t.name} = any\n\n`
+        return [`export type ${t.name} = any`]
       default:
-        return ''
+        return null
     }
-  }).concat(analyzeMessages(json, project))
+  })
 }
 
 function figureType (type) {
@@ -71,6 +108,15 @@ function figureType (type) {
     type = 'null' // keep backwards compat with old script
   }
   if (type instanceof Array) {
+    if (type.length === 2) {
+      if (type[0] === null) {
+        return `?${type[1]}`
+      }
+      if (type[1] === null) {
+        return `?${type[0]}`
+      }
+    }
+
     return `(${type.map(t => t || 'null').join(' | ')})`
   } else if (typeof type === 'object') {
     switch (type.type) {
@@ -92,6 +138,10 @@ function capitalize (s) {
 }
 
 function analyzeMessages (json, project) {
+  // ui means an incoming rpc. simple regexp to filter this but it might break in the future if
+  // the core side doesn't have a consisten naming convention. (must be case insensitive to pass correctly)
+  const isUIProtocol = ['notifyCtl'].indexOf(json.protocol) === -1 && !!json.protocol.match(/^notify.*|.*ui$/i)
+
   return Object.keys(json.messages).map(m => {
     const message = json.messages[m]
 
@@ -112,10 +162,14 @@ function analyzeMessages (json, project) {
     let r = null
     if (!isNotify) {
       const type = (responseType === 'null') ? '' : `result: ${name}Result`
-      r = `,\n    response: {
-      error: (err: RPCError) => void,
-      result: (${type}) => void
+      if (type) {
+        r = `,\n    response: {
+      error: RPCErrorHandler,
+      result: (${type}) => void,
     }`
+      } else {
+        r = `,\n    response: CommonResponseHandler`
+      }
     } else {
       r = ` /* ,\n    response: {} // Notify call
     */`
@@ -124,9 +178,11 @@ function analyzeMessages (json, project) {
     let p = params(true, '      ')
     if (p) { p = `\n${p}\n    ` }
 
-    project.incomingMaps[`keybase.1.${json.protocol}.${m}`] = `(
+    if (isUIProtocol) {
+      project.incomingMaps[`keybase.1.${json.protocol}.${m}`] = `(
     params: $Exact<{${p}}>${r}
   ) => void`
+    }
 
     r = ''
     if (responseType !== 'null') {
@@ -137,15 +193,12 @@ function analyzeMessages (json, project) {
     if (p) { p = `\n${p}\n` }
 
     const paramType = p ? `export type ${name}RpcParam = $Exact<{${p}}>` : ''
-
-    const rpc = `export function ${name}Rpc (request: $Exact<{${p ? `\n  param: ${name}RpcParam,` : ''}
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any${r}) => void)}>) {
-  engine.rpc({...request, method: '${json.protocol}.${m}'})
-}
-`
-    return [paramType, response, rpc].filter(i => !!i).join('\n\n')
+    const callbackType = r ? `{callback?: ?(err: ?any${r}) => void}` : 'requestErrorCallback'
+    const innerParamType = p ? `{param: ${name}RpcParam}` : null
+    const rpc = isUIProtocol ? '' : `export function ${name}Rpc (request: $Exact<${['requestCommon', callbackType, innerParamType].filter(t => t).join(' & ')}>) {
+  engineRpcOutgoing({...request, method: '${json.protocol}.${m}'})
+}`
+    return [paramType, response, rpc]
   })
 }
 
@@ -217,28 +270,31 @@ function parseRecord (t) {
 }
 
 function makeRpcUnionType (typeDefs) {
-  const rpcTypes = typeDefs.map(t => t.match(/(\w*Rpc)/g))
-      .filter(t => t)
-      .reduce((acc, t) => {
-        const clean = t[0].trim()
-        return acc.indexOf(clean) === -1 ? acc.concat([clean]) : acc
-      }, [])
-      .sort()
-      .join('\n  | ')
-
-  console.log(rpcTypes)
+  const rpcTypes = typeDefs.map(t => {
+    const m = t.match(/(\w*Rpc) \(/)
+    return m && m[1]
+  })
+  .filter(t => t)
+  .reduce((acc, t) => {
+    const clean = t.trim()
+    return acc.indexOf(clean) === -1 ? acc.concat([clean]) : acc
+  }, [])
+  .sort()
+  .join('\n  | ')
 
   if (rpcTypes) {
     const unionRpcType = `export type rpc =
-    ${rpcTypes}\n\n`
+    ${rpcTypes}`
     return typeDefs.concat(unionRpcType)
   }
+
   return typeDefs
 }
 
 function write (typeDefs, project) {
-  const s = fs.createWriteStream(project.out)
-
+  // Need any for weird flow issue where it gets confused by multiple
+  // incoming call map types
+  const callMapType = Object.keys(project.incomingMaps).length ? 'incomingCallMapType' : 'any'
   const typePrelude = `// @flow
 
 // This file is auto-generated by client/protocol/Makefile.
@@ -256,10 +312,29 @@ export type RPCError = {
   code: number,
   desc: string
 }
-`
+export type WaitingHandlerType = (waiting: boolean, method: string, sessionID: number) => void
+
+// $FlowIssue we're calling an internal method on engine that's there just for us
+const engineRpcOutgoing = (...args) => engine()._rpcOutgoing(...args)
+
+type requestCommon = {
+  waitingHandler?: WaitingHandlerType,
+  incomingCallMap?: ${callMapType},
+}
+
+type requestErrorCallback = {
+  callback?: ?(err: ?any) => void
+}
+
+type RPCErrorHandler = (err: RPCError) => void
+
+type CommonResponseHandler = {
+  error: RPCErrorHandler,
+  result: (...rest: Array<void>) => void,
+}`
 
   const incomingMap = `export type incomingCallMapType = $Exact<{\n` +
-  Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',\n') + '\n}>\n\n'
-  s.write(typePrelude + typeDefs.join('') + incomingMap)
-  s.close()
+  Object.keys(project.incomingMaps).map(im => `  '${im}'?: ${project.incomingMaps[im]}`).join(',\n') + '\n}>\n'
+  const toWrite = [typePrelude, typeDefs.join('\n\n'), incomingMap].join('\n')
+  fs.writeFileSync(project.out, toWrite)
 }

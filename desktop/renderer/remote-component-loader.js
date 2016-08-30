@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import RemoteStore from './remote-store'
-import engine from '../shared/engine'
+import engine, {makeEngine} from '../shared/engine'
 import hello from '../shared/util/hello'
 import loadPerf from '../shared/util/load-perf'
 import materialTheme from '../shared/styles/material-theme.desktop'
@@ -17,10 +17,11 @@ import {remote, ipcRenderer} from 'electron'
 import {setupContextMenu} from '../app/menu-helper'
 
 ipcLogsRenderer()
+makeEngine()
 
 module.hot && module.hot.accept()
 module.hot && module.hot.dispose(() => {
-  engine.reset()
+  engine().reset()
 })
 
 // Defer this since it's a sync call

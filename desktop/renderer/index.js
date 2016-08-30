@@ -7,16 +7,14 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import {AppContainer} from 'react-hot-loader'
 import configureStore from '../shared/store/configure-store'
-import engine from '../shared/engine'
+import engine, {makeEngine} from '../shared/engine'
 import injectTapEventPlugin from 'react-tap-event-plugin'
-import ListenLogUi from '../shared/native/listen-log-ui'
 import {devStoreChangingFunctions} from '../shared/local-debug.desktop'
 import {listenForNotifications} from '../shared/actions/notifications'
 import {bootstrap} from '../shared/actions/config'
 import {updateDebugConfig} from '../shared/actions/dev'
 import hello from '../shared/util/hello'
 import {updateReloading} from '../shared/constants/dev'
-
 import Root from './container'
 import {devEditAction} from '../shared/reducers/dev-edit'
 import {setupContextMenu} from '../app/menu-helper'
@@ -29,6 +27,7 @@ import merge from 'lodash/merge'
 
 function setupApp (store) {
   ipcLogsRenderer()
+  makeEngine()
 
   loadPerf()
 
@@ -71,9 +70,6 @@ function setupApp (store) {
   // Handle notifications from the service
   store.dispatch(listenForNotifications())
 
-  // Handle logUi.log
-  ListenLogUi()
-
   // Introduce ourselves to the service
   hello(process.pid, 'Main Renderer', process.argv, __VERSION__) // eslint-disable-line no-undef
 
@@ -104,7 +100,7 @@ module.hot && module.hot.accept('./container', () => {
       <AppContainer><NewRoot store={store} /></AppContainer>,
       appEl,
     )
-    engine.reset()
+    engine().reset()
   } finally {
     setTimeout(() => store.dispatch({type: updateReloading, payload: {reloading: false}}), 10e3)
   }
