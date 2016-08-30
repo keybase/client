@@ -37,7 +37,7 @@ func textMsg(t *testing.T, text string) keybase1.MessagePlaintext {
 			Sender: gregor1.UID(uid),
 		},
 		MessageBodies: []keybase1.MessageBody{
-			{Type: chat1.MessageType_TEXT, Text: &keybase1.MessageText{Body: text}},
+			keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: text}),
 		},
 	}
 }
@@ -111,14 +111,11 @@ func TestChatMessageUnbox(t *testing.T) {
 		t.Fatalf("unboxed message bodies: %d, expected 1", len(unboxed.MessagePlaintext.MessageBodies))
 	}
 	body := unboxed.MessagePlaintext.MessageBodies[0]
-	if body.Type != chat1.MessageType_TEXT {
-		t.Errorf("body type: %d, expected %d", body.Type, chat1.MessageType_TEXT)
+	if body.Typ() != chat1.MessageType_TEXT {
+		t.Errorf("body type: %d, expected %d", body.Typ(), chat1.MessageType_TEXT)
 	}
-	if body.Text == nil {
-		t.Fatal("body.Text is nil")
-	}
-	if body.Text.Body != text {
-		t.Errorf("body text: %q, expected %q", body.Text.Body, text)
+	if body.Text().Body != text {
+		t.Errorf("body text: %q, expected %q", body.Text().Body, text)
 	}
 }
 

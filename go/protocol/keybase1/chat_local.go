@@ -31,12 +31,86 @@ type MessageAttachment struct {
 }
 
 type MessageBody struct {
-	Type                 chat1.MessageType            `codec:"type" json:"type"`
-	Text                 *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
-	Attachment           *MessageAttachment           `codec:"attachment,omitempty" json:"attachment,omitempty"`
-	Edit                 *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
-	Delete               *MessageDelete               `codec:"delete,omitempty" json:"delete,omitempty"`
-	ConversationMetadata *MessageConversationMetadata `codec:"conversationMetadata,omitempty" json:"conversationMetadata,omitempty"`
+	Typ__        chat1.MessageType            `codec:"typ" json:"typ"`
+	Text__       *MessageText                 `codec:"Text,omitempty" json:"Text,omitempty"`
+	Attachment__ *MessageAttachment           `codec:"Attachment,omitempty" json:"Attachment,omitempty"`
+	Edit__       *MessageEdit                 `codec:"Edit,omitempty" json:"Edit,omitempty"`
+	Delete__     *MessageDelete               `codec:"Delete,omitempty" json:"Delete,omitempty"`
+	Metadata__   *MessageConversationMetadata `codec:"Metadata,omitempty" json:"Metadata,omitempty"`
+}
+
+func (o *MessageBody) Typ() chat1.MessageType {
+	return o.Typ__
+}
+
+func (o MessageBody) Text() MessageText {
+	if o.Typ__ != chat1.MessageType_TEXT {
+		panic("wrong case accessed")
+	}
+	return *o.Text__
+}
+
+func (o MessageBody) Attachment() MessageAttachment {
+	if o.Typ__ != chat1.MessageType_ATTACHMENT {
+		panic("wrong case accessed")
+	}
+	return *o.Attachment__
+}
+
+func (o MessageBody) Edit() MessageEdit {
+	if o.Typ__ != chat1.MessageType_EDIT {
+		panic("wrong case accessed")
+	}
+	return *o.Edit__
+}
+
+func (o MessageBody) Delete() MessageDelete {
+	if o.Typ__ != chat1.MessageType_DELETE {
+		panic("wrong case accessed")
+	}
+	return *o.Delete__
+}
+
+func (o MessageBody) Metadata() MessageConversationMetadata {
+	if o.Typ__ != chat1.MessageType_METADATA {
+		panic("wrong case accessed")
+	}
+	return *o.Metadata__
+}
+
+func NewMessageBodyWithText(v MessageText) MessageBody {
+	return MessageBody{
+		Typ__:  chat1.MessageType_TEXT,
+		Text__: &v,
+	}
+}
+
+func NewMessageBodyWithAttachment(v MessageAttachment) MessageBody {
+	return MessageBody{
+		Typ__:        chat1.MessageType_ATTACHMENT,
+		Attachment__: &v,
+	}
+}
+
+func NewMessageBodyWithEdit(v MessageEdit) MessageBody {
+	return MessageBody{
+		Typ__:  chat1.MessageType_EDIT,
+		Edit__: &v,
+	}
+}
+
+func NewMessageBodyWithDelete(v MessageDelete) MessageBody {
+	return MessageBody{
+		Typ__:    chat1.MessageType_DELETE,
+		Delete__: &v,
+	}
+}
+
+func NewMessageBodyWithMetadata(v MessageConversationMetadata) MessageBody {
+	return MessageBody{
+		Typ__:      chat1.MessageType_METADATA,
+		Metadata__: &v,
+	}
 }
 
 type MessagePlaintext struct {

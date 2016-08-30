@@ -94,7 +94,9 @@ function analyzeTypes (json, project) {
       case 'record':
         return [`export type ${t.name} = ${parseRecord(t)}`]
       case 'enum':
-        return [`export type ${t.name} =${parseEnum(t)}`]
+        return [`export type ${t.name} = ${parseEnum(t)}`]
+      case 'variant':
+        return [`export type ${t.name} = ${parseVariant(t)}`]
       case 'fixed':
         return [`export type ${t.name} = any`]
       default:
@@ -264,6 +266,15 @@ function parseRecord (t) {
     // If we have a maybe type, let's also make the key optional
     objectMapType += `  ${f.name}${(innerType[0] === '?') ? '?' : ''}: ${innerType},\n`
   })
+  objectMapType += '}'
+
+  return objectMapType
+}
+
+function parseVariant (t) {
+
+  var objectMapType = '{'
+
   objectMapType += '}'
 
   return objectMapType
