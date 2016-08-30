@@ -284,7 +284,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             dir("react-native") {
                                                 sh "npm i"
                                                 sh "npm run gobuild-ios"
-                                                lock('iossimulator') {
+
+                                                lock("iossimulator_${env.NODE_NAME}") {
                                                     sh "(npm run start &) ; npm run test-ios"
                                                     sh "killall 'Simulator'"
                                                 }
