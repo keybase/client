@@ -152,7 +152,8 @@ class Engine {
     param?: ?Object,
     incomingCallMap?: incomingCallMapType,
     callback?: ?(...args: Array<any>) => void,
-    waitingHandler?: WaitingHandlerType}) {
+    waitingHandler?: WaitingHandlerType}
+  ) {
     let {method, param, incomingCallMap, callback, waitingHandler} = params
 
     // Ensure a non-null param
@@ -171,7 +172,8 @@ class Engine {
     incomingCallMap: ?incomingCallMapType,
     waitingHandler: ?WaitingHandlerType,
     cancelHandler: ?CancelHandlerType,
-    dangling?: boolean = false): Session {
+    dangling?: boolean = false
+  ): Session {
     const sessionID = this._generateSessionID()
     rpcLog('engineInternal', `Session start ${sessionID}`)
 
@@ -287,10 +289,30 @@ export type ResponseType = {
 
 let engine
 const makeEngine = () => {
+  if (__DEV__ && engine) {
+    throw new Error('makeEngine called multiple times')
+  }
+
   if (!engine) {
     engine = process.env.KEYBASE_NO_ENGINE ? new FakeEngine() : new Engine()
   }
   return engine
 }
 
-export default makeEngine
+const getEngine = () => {
+  if (__DEV__ && !engine) {
+    throw new Error('Engine needs to be initialized first')
+  }
+
+  // This is just a sanity check so we don't break old code. Should never happen in practice
+  if (!engine) {
+    makeEngine()
+  }
+  return engine
+}
+
+export default getEngine
+export {
+  getEngine,
+  makeEngine,
+}

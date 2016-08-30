@@ -7,7 +7,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import {AppContainer} from 'react-hot-loader'
 import configureStore from '../shared/store/configure-store'
-import engine from '../shared/engine'
+import engine, {makeEngine} from '../shared/engine'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import {devStoreChangingFunctions} from '../shared/local-debug.desktop'
 import {listenForNotifications} from '../shared/actions/notifications'
@@ -15,7 +15,6 @@ import {bootstrap} from '../shared/actions/config'
 import {updateDebugConfig} from '../shared/actions/dev'
 import hello from '../shared/util/hello'
 import {updateReloading} from '../shared/constants/dev'
-
 import Root from './container'
 import {devEditAction} from '../shared/reducers/dev-edit'
 import {setupContextMenu} from '../app/menu-helper'
@@ -28,6 +27,7 @@ import merge from 'lodash/merge'
 
 function setupApp (store) {
   ipcLogsRenderer()
+  makeEngine()
 
   loadPerf()
 
