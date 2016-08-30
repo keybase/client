@@ -36,6 +36,7 @@ export type Props = {
 declare export default class Text extends Component<void, Props, void> {
   static _colorStyleBackgroundMode: (backgroundMode: Background, type: Props.type) => {color?: string};
   static _inlineStyle: (type: Props.type, context: Context) => Object;
+  static textStyle: (props: Props, context: Context) => Object;
 }
 
 declare export var styles: Object

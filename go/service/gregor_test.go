@@ -80,6 +80,7 @@ func (n *nlistener) FavoritesChanged(uid keybase1.UID) {
 }
 func (n *nlistener) NewChatActivity(uid keybase1.UID, activity keybase1.ChatActivity) {}
 func (n *nlistener) KeyfamilyChanged(uid keybase1.UID)                                {}
+func (n *nlistener) PGPKeyInSecretStoreFile()                                         {}
 
 type showTrackerPopupIdentifyUI struct {
 	kbtest.FakeIdentifyUI

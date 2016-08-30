@@ -2,9 +2,8 @@
 import React, {Component} from 'react'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
-import {Box, Text, Icon, PopupMenu} from '../common-adapters'
-import {View, TouchableHighlight, ScrollView} from 'react-native'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {Box, Text, Icon, PopupMenu, NativeTouchableHighlight, NativeScrollView} from '../common-adapters/index.native'
+import {globalStyles, globalColors} from '../styles'
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
   const icon: IconType = {
@@ -24,18 +23,18 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
   }
 
   return (
-    <TouchableHighlight onPress={() => showExistingDevicePage(device)} style={{...stylesCommonRow, alignItems: 'center', ...(revoked ? {backgroundColor: globalColors.white_40} : {})}}>
+    <NativeTouchableHighlight onPress={() => showExistingDevicePage(device)} style={{...stylesCommonRow, alignItems: 'center', ...(revoked ? {backgroundColor: globalColors.white_40} : {})}}>
       <Box key={device.name} style={{...globalStyles.flexBoxRow, flex: 1, alignItems: 'center'}}>
         <Icon type={icon} style={revoked ? {marginRight: 16, opacity: 0.2} : {marginRight: 16}} />
-        <View style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start', flex: 1}}>
+        <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start', flex: 1}}>
           <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
           {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
-        </View>
-        <TouchableHighlight onPress={() => showRemoveDevicePage(device)}>
-          <View>{!revoked && <Text style={{color: globalColors.red, paddingLeft: 16}} type='BodyPrimaryLink'>Revoke</Text>}</View>
-        </TouchableHighlight>
+        </Box>
+        <NativeTouchableHighlight onPress={() => showRemoveDevicePage(device)}>
+          <Box>{!revoked && <Text style={{color: globalColors.red, paddingLeft: 16}} type='BodyPrimaryLink'>Revoke</Text>}</Box>
+        </NativeTouchableHighlight>
       </Box>
-    </TouchableHighlight>
+    </NativeTouchableHighlight>
   )
 }
 
@@ -67,12 +66,12 @@ class RevokedDevices extends Component<void, {revokedDevices: Array<Object>}, Re
 
     return (
       <Box>
-        <TouchableHighlight onPress={e => this._toggleHeader(e)}>
+        <NativeTouchableHighlight onPress={e => this._toggleHeader(e)}>
           <Box style={stylesRevokedRow}>
             <Text type='BodySemibold'>Revoked devices</Text>
             <Icon type={iconType} style={{padding: 5}} />
           </Box>
-        </TouchableHighlight>
+        </NativeTouchableHighlight>
         {this.state.expanded && <RevokedDescription />}
         {this.state.expanded && this.props.revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked={true} />)}
       </Box>)
@@ -80,12 +79,12 @@ class RevokedDevices extends Component<void, {revokedDevices: Array<Object>}, Re
 }
 
 const DeviceHeader = ({onAddNew}) => (
-  <TouchableHighlight onPress={onAddNew}>
+  <NativeTouchableHighlight onPress={onAddNew}>
     <Box style={{...stylesCommonRow, alignItems: 'center'}}>
       <Icon type='icon-devices-add-64-x-48' style={{padding: 5}} />
       <Text type='BodyPrimaryLink' style={{padding: 5}}>Add new...</Text>
     </Box>
-  </TouchableHighlight>
+  </NativeTouchableHighlight>
 )
 
 type State = {
@@ -108,7 +107,7 @@ class Render extends Component<void, Props, State> {
     return (
       <Box style={stylesContainer}>
         <DeviceHeader onAddNew={() => this.setState({menuVisible: true})} />
-        <ScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <NativeScrollView style={{...globalStyles.flexBoxColumn, flex: 1}}>
           {this.props.devices && this.props.devices.map(device =>
             <DeviceRow
               key={device.name}
@@ -116,7 +115,7 @@ class Render extends Component<void, Props, State> {
               showRemoveDevicePage={this.props.showRemoveDevicePage}
               showExistingDevicePage={this.props.showExistingDevicePage} />)}
           <RevokedDevices revokedDevices={this.props.revokedDevices} />
-        </ScrollView>
+        </NativeScrollView>
         {this.state.menuVisible && <PopupMenu items={items} onHidden={() => this.setState({menuVisible: false})} />}
       </Box>
     )

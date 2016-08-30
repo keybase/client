@@ -237,6 +237,9 @@ func (s *SocialProofChainLink) ToKeyValuePair() (string, string) {
 }
 func (s *SocialProofChainLink) GetService() string { return s.service }
 
+var _ RemoteProofChainLink = (*SocialProofChainLink)(nil)
+var _ RemoteProofChainLink = (*WebProofChainLink)(nil)
+
 func NewWebProofChainLink(b GenericChainLink, p, h, proofText string) *WebProofChainLink {
 	return &WebProofChainLink{b, p, h, proofText}
 }

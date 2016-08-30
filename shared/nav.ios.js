@@ -1,11 +1,10 @@
 import Devices from './devices'
 import DumbSheet from './dev/dumb-sheet'
 import Folders from './folders'
-import ListenLogUi from './native/listen-log-ui'
 import Login from './login'
 import MetaNavigator from './router/meta-navigator'
 import NoTab from './no-tab'
-import Profile from './profile'
+import ProfileContainer from './profile/container'
 import React, {Component} from 'react'
 import Search from './search'
 import Settings from './settings'
@@ -14,18 +13,18 @@ import flags from './util/feature-flags'
 import globalRoutes from './router/global-routes'
 import hello from './util/hello'
 import type {VisibleTab} from './constants/tabs'
-import {View, Navigator, Text, TouchableOpacity, StyleSheet} from 'react-native'
+import {Box, NativeNavigator, Text, NativeTouchableOpacity} from './common-adapters'
 import {bootstrap} from './actions/config'
 import {connect} from 'react-redux'
 import {listenForNotifications} from './actions/notifications'
 import {mapValues} from 'lodash'
-import {navBarHeight} from './styles/style-guide'
+import {navBarHeight} from './styles'
 import {navigateTo, navigateUp, switchTab} from './actions/router'
 import {startupTab, profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [settingsTab]: {module: Settings, name: 'Settings'},
-  [profileTab]: {module: Profile, name: 'Profile'},
+  [profileTab]: {module: ProfileContainer, name: 'Profile'},
   [folderTab]: {module: Folders, name: 'Folders'},
   [chatTab]: {module: Settings, name: 'Chat'},
   [peopleTab]: {module: Search, name: 'People'},
@@ -46,13 +45,13 @@ function NavigationBarRouteMapper (navigateTo, navigateUp) {
       const previousRoute = navState.routeStack[index - 1]
 
       return (
-        <TouchableOpacity
+        <NativeTouchableOpacity
           onPress={() => route.upLink ? navigateTo(route.upLink) : navigateUp()}
           style={styles.navBarLeftButton}>
-          <Text style={[styles.navBarText, styles.navBarButtonText]}>
+          <Text type='Body' style={{...styles.navBarText, ...styles.navBarButtonText}}>
             {route.upTitle || route.leftButtonTitle || previousRoute.title || 'Back'}
           </Text>
-        </TouchableOpacity>
+        </NativeTouchableOpacity>
       )
     },
 
@@ -61,19 +60,19 @@ function NavigationBarRouteMapper (navigateTo, navigateUp) {
         return null
       }
       return (
-        <TouchableOpacity
+        <NativeTouchableOpacity
           onPress={() => route.rightButtonAction()}
           style={styles.navBarRightButton}>
-          <Text style={[styles.navBarText, styles.navBarButtonText]}>
+          <Text type='Body' style={{...styles.navBarText, ...styles.navBarButtonText}}>
             {route.rightButtonTitle || 'Done'}
           </Text>
-        </TouchableOpacity>
+        </NativeTouchableOpacity>
       )
     },
 
     Title: function (route, navigator, index, navState) {
       return (
-        <Text style={[styles.navBarText, styles.navBarTitleText]}>
+        <Text type='Body' style={{...styles.navBarText, ...styles.navBarTitleText}}>
           {route.title || ''}
         </Text>
       )
@@ -88,16 +87,13 @@ class Nav extends Component {
     this.props.bootstrap()
     this.props.listenForNotifications()
 
-    // Handle logUi.log
-    ListenLogUi()
-
     // Introduce ourselves to the service
     hello(0, 'iOS app', [], '0.0.0') // TODO real version
   }
 
   navBar () {
     return (
-      <Navigator.NavigationBar
+      <NativeNavigator.NavigationBar
         style={styles.navBar}
         routeMapper={NavigationBarRouteMapper(this.props.navigateTo, this.props.navigateUp)} />
     )
@@ -110,16 +106,16 @@ class Nav extends Component {
     }
 
     return (
-      <View style={tabStyle}>
+      <Box style={tabStyle}>
         <MetaNavigator
           tab={tab}
           globalRoutes={globalRoutes}
           rootComponent={module || NoTab}
-          Navigator={Navigator}
+          Navigator={NativeNavigator}
           NavBar={this.navBar()}
           navBarHeight={navBarHeight}
         />
-      </View>
+      </Box>
     )
   }
 
@@ -151,14 +147,14 @@ class Nav extends Component {
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
 
     return (
-      <View style={{flex: 1}}>
+      <Box style={{flex: 1}}>
         <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{[folderTab]: this.props.folderBadge}} tabContent={tabContent} />
-      </View>
+      </Box>
     )
   }
 }
 
-const styles = StyleSheet.create({
+const styles = {
   navBar: {
     backgroundColor: 'white',
   },
@@ -180,7 +176,7 @@ const styles = StyleSheet.create({
   navBarButtonText: {
     color: 'blue',
   },
-})
+}
 
 export default connect(
   ({router, favorite: {privateBadge, publicBadge}, config: {bootstrapped, extendedConfig, username}, dev: {debugConfig: {dumbFullscreen}}}) => ({

@@ -9,14 +9,13 @@ import (
 )
 
 type SecretEntryArg struct {
-	Desc           string `codec:"desc" json:"desc"`
-	Prompt         string `codec:"prompt" json:"prompt"`
-	Err            string `codec:"err" json:"err"`
-	Cancel         string `codec:"cancel" json:"cancel"`
-	Ok             string `codec:"ok" json:"ok"`
-	Reason         string `codec:"reason" json:"reason"`
-	UseSecretStore bool   `codec:"useSecretStore" json:"useSecretStore"`
-	ShowTyping     bool   `codec:"showTyping" json:"showTyping"`
+	Desc       string `codec:"desc" json:"desc"`
+	Prompt     string `codec:"prompt" json:"prompt"`
+	Err        string `codec:"err" json:"err"`
+	Cancel     string `codec:"cancel" json:"cancel"`
+	Ok         string `codec:"ok" json:"ok"`
+	Reason     string `codec:"reason" json:"reason"`
+	ShowTyping bool   `codec:"showTyping" json:"showTyping"`
 }
 
 type SecretEntryRes struct {

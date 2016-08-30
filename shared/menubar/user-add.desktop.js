@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import type {Props} from './user-add'
 import type {IconType} from '../common-adapters/icon'
 import {Box, Button, Input, Icon, Text} from '../common-adapters'
-import {globalColors, globalStyles} from '../styles/style-guide'
+import {globalColors, globalStyles} from '../styles'
 import {defaultKBFSPath} from '../constants/config'
 
 type State = {

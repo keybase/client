@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {View} from 'react-native'
+import {Box} from '../common-adapters'
 
 export default class MetaNavigatorRender extends Component {
   render () {
@@ -16,10 +16,10 @@ export default class MetaNavigatorRender extends Component {
           const element = route.element
           const Module = route.component
           return (
-            <View style={{flex: 1, marginTop: route.hideNavBar ? 0 : this.props.navBarHeight}}>
+            <Box style={{flex: 1, marginTop: route.hideNavBar ? 0 : this.props.navBarHeight}}>
               {element}
               {!element && Module && <Module {...route.props} />}
-            </View>
+            </Box>
           )
         }}
         navigationBar={componentAtTop.hideNavBar ? null : NavBar}

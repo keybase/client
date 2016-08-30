@@ -11,6 +11,7 @@
 /shared/constants/types/keybase-v1.js
 /shared/constants/types/flow-types.js
 /shared/constants/types/flow-types-gregor.js
+/shared/constants/types/flow-types-chat.js
 /visdiff/node_modules
 /visdiff/dist
 /git-hooks

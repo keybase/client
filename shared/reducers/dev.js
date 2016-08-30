@@ -28,6 +28,7 @@ export default function (state: DevState = initialState, action: DevAction): Sta
 
   if (action.type === updateReloading && !action.error) {
     return {
+      ...state,
       reloading: action.payload.reloading,
     }
   }

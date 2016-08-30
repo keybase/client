@@ -10,7 +10,11 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/keybase/client/go/logger"
 )
+
+var testLog = logger.New("test")
 
 func TestCommandLine(t *testing.T) {
 	testDir, err := ioutil.TempDir("", "kbbin")

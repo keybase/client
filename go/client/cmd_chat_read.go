@@ -27,17 +27,28 @@ func newCmdChatRead(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatRead{Contextified: libkb.NewContextified(g)}, "read", c)
 		},
-		Flags:       makeChatInboxAndReadFlags(nil),
+		Flags:       makeChatListAndReadFlags(nil),
 		Description: `"keybase chat read" displays shows and read chat messages from a conversation. --time/--since can be used to specify a time range of messages displayed. Duration (e.g. "2d" meaning 2 days ago) and RFC3339 Time (e.g. "2006-01-02T15:04:05Z07:00") are both supported.`,
 	}
 }
 
 func (c *cmdChatRead) Run() error {
-	messages, err := c.fetcher.fetch(context.TODO(), c.G())
+	ui := c.G().UI.GetTerminalUI()
+
+	conversations, err := c.fetcher.fetch(context.TODO(), c.G())
 	if err != nil {
 		return err
 	}
-	messages.printByUnreadThenLatest(c.G().UI.GetTerminalUI())
+
+	switch len(conversations) {
+	case 0:
+		ui.Printf("no conversation is found\n")
+	case 1:
+		conversationView(conversations[0]).show(ui)
+	default:
+		// TODO: prompt user to choose one
+		ui.Printf("multiple conversations found\n")
+	}
 
 	return nil
 }

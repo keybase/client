@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {StandardScreen, Text, Button, PlatformIcon} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../../styles'
 import type {Props} from './finished-generating-pgp'
 
 // import {CHECKBOX_SIZE, CHECKBOX_MARGIN} from '../../common-adapters/checkbox.desktop'

@@ -212,6 +212,8 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 		return
 	}
 
+	g.Log.Debug("SetupTest home directory: %s", tc.Tp.Home)
+
 	// might as well be the same directory...
 	tc.Tp.GPGHome = tc.Tp.Home
 	tc.Tp.GPGOptions = []string{"--homedir=" + tc.Tp.GPGHome}
@@ -221,6 +223,9 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	tc.Tp.DevelName = name
 
 	g.Env.Test = tc.Tp
+
+	// SecretStoreFile needs test home directory
+	g.SecretStoreAll = NewSecretStoreLocked(g)
 
 	g.ConfigureLogging()
 
@@ -364,7 +369,7 @@ func (t *TestSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.
 	t.CalledGetPassphrase = true
 	return keybase1.GetPassphraseRes{
 		Passphrase:  t.Passphrase,
-		StoreSecret: p.Features.StoreSecret.Allow && t.StoreSecret,
+		StoreSecret: t.StoreSecret,
 	}, nil
 }
 

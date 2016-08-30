@@ -11,13 +11,12 @@ import React, {Component} from 'react'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Mode, DeviceRole} from '../../../constants/login'
 import type {Props} from './index.render'
-import {Box, ProgressIndicator, Text, Icon} from '../../../common-adapters'
-import {StyleSheet, TouchableHighlight} from 'react-native'
+import {Box, ProgressIndicator, Text, Icon, NativeStyleSheet, NativeTouchableHighlight} from '../../../common-adapters/index.native'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
   codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer,
   codePageModeScanCode, codePageModeShowCode, codePageModeEnterText,
   codePageModeShowText} from '../../../constants/login'
-import {globalStyles, globalColors} from '../../../styles/style-guide'
+import {globalStyles, globalColors} from '../../../styles'
 import {specialStyles} from '../../../common-adapters/text'
 
 const isIOS = Platform.OS_IOS === OS
@@ -84,7 +83,7 @@ class CodePageRender extends Component<void, Props, void> {
     return (
       <Box style={{...globalStyles.flexBoxRow, ...stylesSwitch}}>
         {inactiveModes.map(mode => (
-          <TouchableHighlight
+          <NativeTouchableHighlight
             key={mode}
             activeOpacity={0.8}
             underlayColor={globalColors.white}
@@ -93,7 +92,7 @@ class CodePageRender extends Component<void, Props, void> {
               <Icon type={iconTypeFn(mode)} />
               <Text type='Body' style={{marginLeft: 15, textAlign: 'center'}}>{modeTextFn(mode)}</Text>
             </Box>
-          </TouchableHighlight>
+          </NativeTouchableHighlight>
         ))}
       </Box>
     )
@@ -234,7 +233,7 @@ const stylesSpinner = {
   alignSelf: 'center',
 }
 
-const styles = StyleSheet.create({
+const styles = NativeStyleSheet.create({
   box: {
     backgroundColor: 'red',
     position: 'absolute',

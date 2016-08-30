@@ -48,7 +48,6 @@ type MessageInfoLocal struct {
 	IsNew            bool   `codec:"isNew" json:"isNew"`
 	SenderUsername   string `codec:"senderUsername" json:"senderUsername"`
 	SenderDeviceName string `codec:"senderDeviceName" json:"senderDeviceName"`
-	TopicName        string `codec:"topicName" json:"topicName"`
 }
 
 type Message struct {
@@ -71,9 +70,16 @@ type MessageSelector struct {
 	MarkAsRead    bool                   `codec:"markAsRead" json:"markAsRead"`
 }
 
-type ConversationMessagesLocal struct {
-	Id       chat1.ConversationID `codec:"id" json:"id"`
-	Messages []Message            `codec:"messages" json:"messages"`
+type ConversationInfoLocal struct {
+	TlfName   string          `codec:"tlfName" json:"tlfName"`
+	TopicName string          `codec:"topicName" json:"topicName"`
+	TopicType chat1.TopicType `codec:"topicType" json:"topicType"`
+}
+
+type ConversationLocal struct {
+	Id       chat1.ConversationID   `codec:"id" json:"id"`
+	Info     *ConversationInfoLocal `codec:"info,omitempty" json:"info,omitempty"`
+	Messages []Message              `codec:"messages" json:"messages"`
 }
 
 type GetInboxLocalArg struct {
@@ -96,9 +102,7 @@ type NewConversationLocalArg struct {
 }
 
 type ResolveConversationLocalArg struct {
-	TlfName   string          `codec:"tlfName" json:"tlfName"`
-	TopicName string          `codec:"topicName" json:"topicName"`
-	TopicType chat1.TopicType `codec:"topicType" json:"topicType"`
+	Conversation ConversationInfoLocal `codec:"conversation" json:"conversation"`
 }
 
 type GetMessagesLocalArg struct {
@@ -114,8 +118,8 @@ type ChatLocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (ThreadView, error)
 	PostLocal(context.Context, PostLocalArg) error
 	NewConversationLocal(context.Context, chat1.ConversationIDTriple) (chat1.ConversationID, error)
-	ResolveConversationLocal(context.Context, ResolveConversationLocalArg) ([]chat1.ConversationID, error)
-	GetMessagesLocal(context.Context, MessageSelector) ([]ConversationMessagesLocal, error)
+	ResolveConversationLocal(context.Context, ConversationInfoLocal) ([]chat1.ConversationID, error)
+	GetMessagesLocal(context.Context, MessageSelector) ([]ConversationLocal, error)
 	CompleteAndCanonicalizeTlfName(context.Context, string) (CanonicalTlfName, error)
 }
 
@@ -198,7 +202,7 @@ func ChatLocalProtocol(i ChatLocalInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[]ResolveConversationLocalArg)(nil), args)
 						return
 					}
-					ret, err = i.ResolveConversationLocal(ctx, (*typedArgs)[0])
+					ret, err = i.ResolveConversationLocal(ctx, (*typedArgs)[0].Conversation)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -265,12 +269,13 @@ func (c ChatLocalClient) NewConversationLocal(ctx context.Context, conversationT
 	return
 }
 
-func (c ChatLocalClient) ResolveConversationLocal(ctx context.Context, __arg ResolveConversationLocalArg) (res []chat1.ConversationID, err error) {
+func (c ChatLocalClient) ResolveConversationLocal(ctx context.Context, conversation ConversationInfoLocal) (res []chat1.ConversationID, err error) {
+	__arg := ResolveConversationLocalArg{Conversation: conversation}
 	err = c.Cli.Call(ctx, "keybase.1.chatLocal.resolveConversationLocal", []interface{}{__arg}, &res)
 	return
 }
 
-func (c ChatLocalClient) GetMessagesLocal(ctx context.Context, selector MessageSelector) (res []ConversationMessagesLocal, err error) {
+func (c ChatLocalClient) GetMessagesLocal(ctx context.Context, selector MessageSelector) (res []ConversationLocal, err error) {
 	__arg := GetMessagesLocalArg{Selector: selector}
 	err = c.Cli.Call(ctx, "keybase.1.chatLocal.getMessagesLocal", []interface{}{__arg}, &res)
 	return

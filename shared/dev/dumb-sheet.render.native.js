@@ -3,9 +3,8 @@ import React, {Component} from 'react'
 import debounce from 'lodash/debounce'
 import dumbComponentMap from './dumb-component-map.native'
 import type {Props} from './dumb-sheet.render'
-import {Box, Text, Input, Button} from '../common-adapters'
-import {ScrollView} from 'react-native'
-import {globalStyles} from '../styles/style-guide'
+import {Box, Text, Input, Button, NativeScrollView} from '../common-adapters/index.native'
+import {globalStyles} from '../styles'
 
 class Render extends Component<void, Props, any> {
   state: any;
@@ -68,9 +67,9 @@ class Render extends Component<void, Props, any> {
 
     return (
       <Box style={{flex: 1}}>
-        <ScrollView style={{flex: 1}}>
+        <NativeScrollView style={{flex: 1}}>
           {ToShow}
-        </ScrollView>
+        </NativeScrollView>
         <Box style={stylesControls}>
           <Text type='BodySmall'>{this.props.dumbIndex}</Text>
           {this.state.filterShow && <Box style={{...globalStyles.flexBoxColumn, backgroundColor: 'red', width: 200}}><Input style={inputStyle} value={filter} onChangeText={filter => this._onFilterChange(filter.toLowerCase())} /></Box>}

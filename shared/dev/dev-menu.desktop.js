@@ -11,7 +11,7 @@ import styleSheet from './style-sheet'
 import tracker from '../tracker'
 import {BackButton, Box} from '../common-adapters'
 import {connect} from 'react-redux'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 import {loginTab} from '../constants/tabs'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
@@ -47,7 +47,7 @@ class DevMenu extends Component {
       },
       {name: 'reset',
         onClick: () => {
-          engine.reset()
+          engine().reset()
           console.log('Engine reset!')
         },
       },

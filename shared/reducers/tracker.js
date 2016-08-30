@@ -6,7 +6,7 @@ import type {Proof, OverviewProofState, SimpleProofState, SimpleProofMeta, NonUs
 import type {Action} from '../constants/types/flux'
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, ProofResult} from '../constants/types/flow-types'
 import type {PlatformsExpandedType} from '../constants/types/more'
-import {identifyCommon, proveCommon} from '../constants/types/keybase-v1'
+import {IdentifyCommonTrackDiffType, ProveCommonProofState, ProveCommonProofType, ProveCommonProofStatus} from '../constants/types/flow-types'
 
 const {metaNone, metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored, metaPending,
   normal, warning, error, checking} = Constants
@@ -352,7 +352,14 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       }
     case Constants.identifyFinished:
       if (action.error) {
-        return {...state, error: action.payload.error}
+        const error = action.payload.error
+        return {
+          ...state,
+          serverActive: false,
+          trackerState: Constants.error,
+          reason: error,
+          error,
+        }
       }
       return {...state, error: null}
     default:
@@ -476,11 +483,11 @@ function stateToColor (state: SimpleProofState): string {
 
 function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff, remoteDiff: ?TrackDiff): ?SimpleProofState {
   // If there is no difference in what we've tracked from the server or remote resource it's good.
-  if (diff && remoteDiff && diff.type === identifyCommon.TrackDiffType.none && remoteDiff.type === identifyCommon.TrackDiffType.none) {
+  if (diff && remoteDiff && diff.type === IdentifyCommonTrackDiffType.none && remoteDiff.type === IdentifyCommonTrackDiffType.none) {
     return normal
   }
 
-  const statusName: ?string = mapValueToKey(proveCommon.ProofState, proofState)
+  const statusName: ?string = mapValueToKey(ProveCommonProofState, proofState)
   switch (statusName) {
     case 'ok':
       return normal
@@ -502,7 +509,7 @@ function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff,
 function diffAndStatusMeta (diff: ?TrackDiffType, proofResult: ?ProofResult, isTracked: bool) : {diffMeta: ?SimpleProofMeta, statusMeta: ?SimpleProofMeta} {
   const {status, state} = proofResult || {}
 
-  if (status && status !== proveCommon.ProofStatus.ok && isTracked) {
+  if (status && status !== ProveCommonProofStatus.ok && isTracked) {
     return {
       diffMeta: metaIgnored,
       statusMeta: null,
@@ -520,16 +527,16 @@ function diffAndStatusMeta (diff: ?TrackDiffType, proofResult: ?ProofResult, isT
     }
 
     return {
-      [identifyCommon.TrackDiffType.none]: null,
-      [identifyCommon.TrackDiffType.error]: null,
-      [identifyCommon.TrackDiffType.clash]: null,
-      [identifyCommon.TrackDiffType.revoked]: metaDeleted,
-      [identifyCommon.TrackDiffType.upgraded]: metaUpgraded,
-      [identifyCommon.TrackDiffType.new]: metaNew,
-      [identifyCommon.TrackDiffType.remoteFail]: null,
-      [identifyCommon.TrackDiffType.remoteWorking]: null,
-      [identifyCommon.TrackDiffType.remoteChanged]: null,
-      [identifyCommon.TrackDiffType.newEldest]: null,
+      [IdentifyCommonTrackDiffType.none]: null,
+      [IdentifyCommonTrackDiffType.error]: null,
+      [IdentifyCommonTrackDiffType.clash]: null,
+      [IdentifyCommonTrackDiffType.revoked]: metaDeleted,
+      [IdentifyCommonTrackDiffType.upgraded]: metaUpgraded,
+      [IdentifyCommonTrackDiffType.new]: metaNew,
+      [IdentifyCommonTrackDiffType.remoteFail]: null,
+      [IdentifyCommonTrackDiffType.remoteWorking]: null,
+      [IdentifyCommonTrackDiffType.remoteChanged]: null,
+      [IdentifyCommonTrackDiffType.newEldest]: null,
     }[diff]
   }
 
@@ -538,49 +545,49 @@ function diffAndStatusMeta (diff: ?TrackDiffType, proofResult: ?ProofResult, isT
       return null
     }
 
-    if (state === proveCommon.ProofState.tempFailure) {
+    if (state === ProveCommonProofState.tempFailure) {
       return metaPending
     }
 
     // The full mapping between the proof status we get back from the server
     // and a simplified representation that we show the users.
     return {
-      [proveCommon.ProofStatus.none]: null,
-      [proveCommon.ProofStatus.ok]: null,
-      [proveCommon.ProofStatus.local]: null,
-      [proveCommon.ProofStatus.found]: null,
-      [proveCommon.ProofStatus.baseError]: metaUnreachable,
-      [proveCommon.ProofStatus.hostUnreachable]: metaUnreachable,
-      [proveCommon.ProofStatus.permissionDenied]: metaUnreachable,
-      [proveCommon.ProofStatus.failedParse]: metaUnreachable,
-      [proveCommon.ProofStatus.dnsError]: metaUnreachable,
-      [proveCommon.ProofStatus.authFailed]: metaUnreachable,
-      [proveCommon.ProofStatus.http500]: metaUnreachable,
-      [proveCommon.ProofStatus.timeout]: metaUnreachable,
-      [proveCommon.ProofStatus.internalError]: metaUnreachable,
-      [proveCommon.ProofStatus.baseHardError]: metaUnreachable,
-      [proveCommon.ProofStatus.notFound]: metaUnreachable,
-      [proveCommon.ProofStatus.contentFailure]: metaUnreachable,
-      [proveCommon.ProofStatus.badUsername]: metaUnreachable,
-      [proveCommon.ProofStatus.badRemoteId]: metaUnreachable,
-      [proveCommon.ProofStatus.textNotFound]: metaUnreachable,
-      [proveCommon.ProofStatus.badArgs]: metaUnreachable,
-      [proveCommon.ProofStatus.contentMissing]: metaUnreachable,
-      [proveCommon.ProofStatus.titleNotFound]: metaUnreachable,
-      [proveCommon.ProofStatus.serviceError]: metaUnreachable,
-      [proveCommon.ProofStatus.torSkipped]: null,
-      [proveCommon.ProofStatus.torIncompatible]: null,
-      [proveCommon.ProofStatus.http300]: metaUnreachable,
-      [proveCommon.ProofStatus.http400]: metaUnreachable,
-      [proveCommon.ProofStatus.httpOther]: metaUnreachable,
-      [proveCommon.ProofStatus.emptyJson]: metaUnreachable,
-      [proveCommon.ProofStatus.deleted]: metaDeleted,
-      [proveCommon.ProofStatus.serviceDead]: metaUnreachable,
-      [proveCommon.ProofStatus.badSignature]: metaUnreachable,
-      [proveCommon.ProofStatus.badApiUrl]: metaUnreachable,
-      [proveCommon.ProofStatus.unknownType]: metaUnreachable,
-      [proveCommon.ProofStatus.noHint]: metaUnreachable,
-      [proveCommon.ProofStatus.badHintText]: metaUnreachable,
+      [ProveCommonProofStatus.none]: null,
+      [ProveCommonProofStatus.ok]: null,
+      [ProveCommonProofStatus.local]: null,
+      [ProveCommonProofStatus.found]: null,
+      [ProveCommonProofStatus.baseError]: metaUnreachable,
+      [ProveCommonProofStatus.hostUnreachable]: metaUnreachable,
+      [ProveCommonProofStatus.permissionDenied]: metaUnreachable,
+      [ProveCommonProofStatus.failedParse]: metaUnreachable,
+      [ProveCommonProofStatus.dnsError]: metaUnreachable,
+      [ProveCommonProofStatus.authFailed]: metaUnreachable,
+      [ProveCommonProofStatus.http500]: metaUnreachable,
+      [ProveCommonProofStatus.timeout]: metaUnreachable,
+      [ProveCommonProofStatus.internalError]: metaUnreachable,
+      [ProveCommonProofStatus.baseHardError]: metaUnreachable,
+      [ProveCommonProofStatus.notFound]: metaUnreachable,
+      [ProveCommonProofStatus.contentFailure]: metaUnreachable,
+      [ProveCommonProofStatus.badUsername]: metaUnreachable,
+      [ProveCommonProofStatus.badRemoteId]: metaUnreachable,
+      [ProveCommonProofStatus.textNotFound]: metaUnreachable,
+      [ProveCommonProofStatus.badArgs]: metaUnreachable,
+      [ProveCommonProofStatus.contentMissing]: metaUnreachable,
+      [ProveCommonProofStatus.titleNotFound]: metaUnreachable,
+      [ProveCommonProofStatus.serviceError]: metaUnreachable,
+      [ProveCommonProofStatus.torSkipped]: null,
+      [ProveCommonProofStatus.torIncompatible]: null,
+      [ProveCommonProofStatus.http300]: metaUnreachable,
+      [ProveCommonProofStatus.http400]: metaUnreachable,
+      [ProveCommonProofStatus.httpOther]: metaUnreachable,
+      [ProveCommonProofStatus.emptyJson]: metaUnreachable,
+      [ProveCommonProofStatus.deleted]: metaDeleted,
+      [ProveCommonProofStatus.serviceDead]: metaUnreachable,
+      [ProveCommonProofStatus.badSignature]: metaUnreachable,
+      [ProveCommonProofStatus.badApiUrl]: metaUnreachable,
+      [ProveCommonProofStatus.unknownType]: metaUnreachable,
+      [ProveCommonProofStatus.noHint]: metaUnreachable,
+      [ProveCommonProofStatus.badHintText]: metaUnreachable,
     }[status]
   }
 }
@@ -590,23 +597,23 @@ function diffAndStatusMeta (diff: ?TrackDiffType, proofResult: ?ProofResult, isT
 function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, humanUrl: ?string): string {
   key = key || ''
   switch (proofType) {
-    case proveCommon.ProofType.dns: return `http://${name}`
-    case proveCommon.ProofType.genericWebSite: return `${key}://${name}`
-    case proveCommon.ProofType.twitter: return `https://twitter.com/${name}`
-    case proveCommon.ProofType.github: return `https://github.com/${name}`
-    case proveCommon.ProofType.reddit: return `https://reddit.com/user/${name}`
-    case proveCommon.ProofType.coinbase: return `https://coinbase.com/${name}`
-    case proveCommon.ProofType.hackernews: return `https://news.ycombinator.com/user?id=${name}`
+    case ProveCommonProofType.dns: return `http://${name}`
+    case ProveCommonProofType.genericWebSite: return `${key}://${name}`
+    case ProveCommonProofType.twitter: return `https://twitter.com/${name}`
+    case ProveCommonProofType.github: return `https://github.com/${name}`
+    case ProveCommonProofType.reddit: return `https://reddit.com/user/${name}`
+    case ProveCommonProofType.coinbase: return `https://coinbase.com/${name}`
+    case ProveCommonProofType.hackernews: return `https://news.ycombinator.com/user?id=${name}`
     default: return humanUrl || ''
   }
 }
 
 function remoteProofToProofType (rp: RemoteProof): PlatformsExpandedType {
-  if (rp.proofType === proveCommon.ProofType.genericWebSite) {
+  if (rp.proofType === ProveCommonProofType.genericWebSite) {
     return rp.key === 'http' ? 'http' : 'https'
   } else {
     // $FlowIssue
-    return mapValueToKey(proveCommon.ProofType, rp.proofType)
+    return mapValueToKey(ProveCommonProofType, rp.proofType)
   }
 }
 
@@ -627,7 +634,7 @@ function revokedProofToProof (rv: RevokedProof): Proof {
 
 function remoteProofToProof (oldProofState: SimpleProofState, rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
   const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || oldProofState
-  const isTracked = !!(lcr && lcr.diff && lcr.diff.type === identifyCommon.TrackDiffType.none && !lcr.breaksTracking)
+  const isTracked = !!(lcr && lcr.diff && lcr.diff.type === IdentifyCommonTrackDiffType.none && !lcr.breaksTracking)
   const {diffMeta, statusMeta} = diffAndStatusMeta(lcr && lcr.diff && lcr.diff.type, lcr && lcr.proofResult, isTracked)
   const humanUrl = (lcr && lcr.hint && lcr.hint.humanUrl)
 

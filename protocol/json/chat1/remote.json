@@ -111,6 +111,25 @@
       ],
       "response": "ConversationID"
     },
+    "getMessagesRemote": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "messageIDs",
+          "type": {
+            "type": "array",
+            "items": "MessageID"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "MessageBoxed"
+      }
+    },
     "markAsRead": {
       "request": [
         {

@@ -49,7 +49,7 @@ func (c *cmdChatSend) Run() (err error) {
 	}
 
 	var args keybase1.PostLocalArg
-	conversationIDs, err := chatClient.ResolveConversationLocal(ctx, keybase1.ResolveConversationLocalArg{
+	conversationIDs, err := chatClient.ResolveConversationLocal(ctx, keybase1.ConversationInfoLocal{
 		TlfName:   c.tlfName,
 		TopicType: chat1.TopicType_CHAT,
 	})
