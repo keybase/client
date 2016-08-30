@@ -1,10 +1,10 @@
 // @flow
 import * as shared from './icon.shared'
 import React, {Component} from 'react'
+import {ClickableBox} from '../common-adapters'
 import type {$Exact} from '../constants/types/more'
 import type {Props} from './icon'
 import {NativeText, NativeImage} from './index.native'
-import {TouchableHighlight} from 'react-native'
 import {globalColors} from '../styles'
 import {iconMeta} from './icon.constants'
 
@@ -45,14 +45,14 @@ class Icon extends Component<void, $Exact<Props>, void> {
       : <NativeImage source={iconMeta[iconType].require} style={{resizeMode: 'contain', ...width, ...height}} />
 
     return (
-      <TouchableHighlight
+      <ClickableBox
         activeOpacity={0.8}
         underlayColor={this.props.underlayColor || globalColors.white}
         onPress={this.props.onClick || (() => {})}
         disabled={!(this.props.onClick)}
         style={{...containerProps}}>
         {icon}
-      </TouchableHighlight>
+      </ClickableBox>
     )
   }
 }
