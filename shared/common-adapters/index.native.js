@@ -1,4 +1,5 @@
 // @flow
+import KeyboardAvoidingBox from './keyboard-avoiding-box'
 import {
   ActivityIndicator as NativeActivityIndicator,
   Animated as NativeAnimated,
@@ -23,9 +24,8 @@ import {
 
 export * from './index.js'
 
-export {KeyboardAvoidingBox} from './keyboard-avoiding-view'
-
 export {
+  KeyboardAvoidingBox,
   NativeActivityIndicator,
   NativeAnimated,
   NativeBackAndroid,

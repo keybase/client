@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import type {Props} from './keyboard-avoiding-view'
+import type {Props} from './keyboard-avoiding-box'
 import {KeyboardAvoidingView} from 'react-native'
 
 const KeyboardAvoidingBox = ({behavior, children, style}: Props) => (
