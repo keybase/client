@@ -282,29 +282,27 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
 
                                             println "Test React Native"
                                             dir("react-native") {
-                                                // sh "npm i"
-                                                // sh "npm run gobuild-ios"
+                                                sh "npm i"
+                                                sh "npm run gobuild-ios"
 
                                                 lock("iossimulator_${env.NODE_NAME}") {
                                                     // Make sure simulator is clean for us
-                                                    sh "killall 'Simulator'"
+                                                    sh "killall 'Simulator' || echo 'No simulator'"
 
-                                                    sh 'echo aaaa'
                                                     sh 'npm run start& pid=$! ; echo $pid > pidfile'
                                                     def pid = readFile('pidfile')
                                                     sh 'rm pidfile'
-                                                    sh "echo bbb $pid"
-                                                    // sh "(npm run start &) ; npm run test-ios"
+                                                    sh "npm run test-ios"
                                                     sh "kill $pid"
                                                     // Make sure simulator is clean for others
-                                                    // sh "killall 'Simulator'"
+                                                    sh "killall 'Simulator' || echo 'No simulator'"
                                                 }
                                             }
-                                            // println "Test OS X"
-                                            // // Retry to protect against flakes
-                                            // retry(3) {
-                                                // testNixGo("OS X")
-                                            // }
+                                            println "Test OS X"
+                                            // Retry to protect against flakes
+                                            retry(3) {
+                                                testNixGo("OS X")
+                                            }
                                     }}
                                 }
                             },
