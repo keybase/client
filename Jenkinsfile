@@ -280,26 +280,20 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                 checkout scm
                                             }
 
-                                        parallel(
-                                            test_RN: {
-                                                println "Test React Native"
-                                                dir("react-native") {
-                                                    sh "npm i"
-                                                    sh "npm run gobuild-ios"
-                                                    lock('iossimulator') {
-                                                        sh "(npm run start &) ; npm run test-ios"
-                                                        sh "killall 'Simulator'"
-                                                    }
-                                                }
-                                            },
-                                            test_nix: {
-                                                println "Test OS X"
-                                                // Retry to protect against flakes
-                                                retry(3) {
-                                                    testNixGo("OS X")
+                                            println "Test React Native"
+                                            dir("react-native") {
+                                                sh "npm i"
+                                                sh "npm run gobuild-ios"
+                                                lock('iossimulator') {
+                                                    sh "(npm run start &) ; npm run test-ios"
+                                                    sh "killall 'Simulator'"
                                                 }
                                             }
-                                        )
+                                            println "Test OS X"
+                                            // Retry to protect against flakes
+                                            retry(3) {
+                                                testNixGo("OS X")
+                                            }
                                     }}
                                 }
                             },
