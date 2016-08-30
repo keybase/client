@@ -288,7 +288,12 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                 lock("iossimulator_${env.NODE_NAME}") {
                                                     // Make sure simulator is clean for us
                                                     sh "killall 'Simulator'"
+
+                                                    sh '(npm run start&); (pid=$!) ; echo -n $pid > pidfile'
+                                                    def pid = readFile('pidfile')
+                                                    sh 'rm pidfile'
                                                     sh "(npm run start &) ; npm run test-ios"
+                                                    sh "kill $pid"
                                                     // Make sure simulator is clean for others
                                                     sh "killall 'Simulator'"
                                                 }
