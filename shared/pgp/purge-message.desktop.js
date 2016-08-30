@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Button, Header, Text} from '../common-adapters'
-import {globalStyles, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalMargins} from '../styles'
 
 export type Props = {
   onClose: () => void,
