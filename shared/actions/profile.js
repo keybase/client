@@ -464,7 +464,7 @@ function checkPgpInfoForErrors (pgpInfo: PgpInfo): PgpInfoError {
 
 // If we like this we can auto build this and the following way of calling rpc methods
 // so that they return a channel of these actions
-type IncomingKeyGenerated = NoErrorTypedAction<'keybase.1.pgpUi.keyGenerated', {key: KeyInfo}>
+type IncomingKeyGenerated = NoErrorTypedAction<'keybase.1.pgpUi.keyGenerated', {params: {key: KeyInfo}, response: {result: () => void}}>
 type IncomingShouldPush = NoErrorTypedAction<'keybase.1.pgpUi.shouldPushPrivate', {response: {result: (shouldPush: boolean) => void}}>
 
 // Returns a channel that represents the feedback from the rpc service
@@ -487,10 +487,9 @@ function generatePgpKey (pgpInfo: PgpInfo): any {
       },
       incomingCallMap: {
         'keybase.1.pgpUi.keyGenerated': ({kid, key}, response) => {
-          response.result()
           emit(({
             type: 'keybase.1.pgpUi.keyGenerated',
-            payload: {key},
+            payload: {params: {kid, key}, response},
           }: IncomingKeyGenerated))
         },
         'keybase.1.pgpUi.shouldPushPrivate': (p, response) => {
@@ -500,9 +499,9 @@ function generatePgpKey (pgpInfo: PgpInfo): any {
           }: IncomingShouldPush))
         },
         'keybase.1.pgpUi.finished': (p, response) => {
-          response.result()
           emit({
             type: 'keybase.1.pgpUi.finished',
+            payload: {response},
           })
         },
       },
@@ -589,7 +588,9 @@ function * generatePgpSaga (): SagaGenerator<any, any> {
       yield put(navigateTo([]))
     }
 
-    const publicKey = keyGenerated.payload.key.key
+    keyGenerated.payload.response.result()
+    yield call([keyGenerated.payload.response, keyGenerated.payload.response.result])
+    const publicKey = keyGenerated.payload.params.key.key
 
     yield put({type: Constants.updatePgpPublicKey, payload: {publicKey}})
     yield put(routeAppend('finished'))
@@ -601,6 +602,10 @@ function * generatePgpSaga (): SagaGenerator<any, any> {
     // $ForceType
     const {payload: {response}}: IncomingShouldPush = yield take(generatePgpKeyChan, 'keybase.1.pgpUi.shouldPushPrivate')
     yield call([response, response.result], shouldStoreKeyOnServer)
+
+    // $FlowIssue
+    const {payload: {response: finishedResponse}} = yield take(generatePgpKeyChan, 'keybase.1.pgpUi.finished')
+    yield call([finishedResponse, finishedResponse.result])
 
     yield put(navigateTo([]))
   } catch (e) {
