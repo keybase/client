@@ -142,6 +142,20 @@ export function remoteGetInboxRemoteRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: remoteGetInboxRemoteResult) => void)}>) {
   engine.rpc({...request, method: 'remote.getInboxRemote'})
 }
+export type remoteGetMessagesRemoteRpcParam = $Exact<{
+  conversationID: ConversationID,
+  messageIDs?: ?Array<MessageID>
+}>
+
+type remoteGetMessagesRemoteResult = ?Array<MessageBoxed>
+
+export function remoteGetMessagesRemoteRpc (request: $Exact<{
+  param: remoteGetMessagesRemoteRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: remoteGetMessagesRemoteResult) => void)}>) {
+  engine.rpc({...request, method: 'remote.getMessagesRemote'})
+}
 export type remoteGetThreadRemoteRpcParam = $Exact<{
   conversationID: ConversationID,
   markAsRead: boolean,
@@ -198,6 +212,7 @@ export function remotePostRemoteRpc (request: $Exact<{
 }
 export type rpc =
     remoteGetInboxRemoteRpc
+  | remoteGetMessagesRemoteRpc
   | remoteGetThreadRemoteRpc
   | remoteMarkAsReadRpc
   | remoteNewConversationRemoteRpc
@@ -241,6 +256,16 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: (err: RPCError) => void,
       result: (result: remoteNewConversationRemoteResult) => void
+    }
+  ) => void,
+  'keybase.1.remote.getMessagesRemote'?: (
+    params: $Exact<{
+      conversationID: ConversationID,
+      messageIDs?: ?Array<MessageID>
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: remoteGetMessagesRemoteResult) => void
     }
   ) => void,
   'keybase.1.remote.markAsRead'?: (
