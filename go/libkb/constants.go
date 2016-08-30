@@ -135,11 +135,13 @@ const (
 // Status codes.  This list should match keybase/lib/status_codes.iced.
 const (
 	SCOk                     = int(keybase1.StatusCode_SCOk)
+	SCInputError             = int(keybase1.StatusCode_SCInputError)
 	SCLoginRequired          = int(keybase1.StatusCode_SCLoginRequired)
 	SCBadSession             = int(keybase1.StatusCode_SCBadSession)
 	SCBadLoginUserNotFound   = int(keybase1.StatusCode_SCBadLoginUserNotFound)
 	SCBadLoginPassword       = int(keybase1.StatusCode_SCBadLoginPassword)
 	SCNotFound               = int(keybase1.StatusCode_SCNotFound)
+	SCDeleted                = int(keybase1.StatusCode_SCDeleted)
 	SCThrottleControl        = int(keybase1.StatusCode_SCThrottleControl)
 	SCGeneric                = int(keybase1.StatusCode_SCGeneric)
 	SCAlreadyLoggedIn        = int(keybase1.StatusCode_SCAlreadyLoggedIn)
@@ -168,6 +170,8 @@ const (
 	SCSibkeyAlreadyExists    = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
 	SCDecryptionKeyNotFound  = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
 	SCBadTrackSession        = int(keybase1.StatusCode_SCBadTrackSession)
+	SCDeviceBadName          = int(keybase1.StatusCode_SCDeviceBadName)
+	SCDeviceNameInUse        = int(keybase1.StatusCode_SCDeviceNameInUse)
 	SCDeviceNotFound         = int(keybase1.StatusCode_SCDeviceNotFound)
 	SCDeviceMismatch         = int(keybase1.StatusCode_SCDeviceMismatch)
 	SCDeviceRequired         = int(keybase1.StatusCode_SCDeviceRequired)
@@ -442,4 +446,9 @@ const (
 	SignaturePrefixChatHeader SignaturePrefix = "Keybase-Chat-Body-1"
 	SignaturePrefixChatBody   SignaturePrefix = "Keybase-Chat-Header-1"
 	SignaturePrefixSigchain   SignaturePrefix = "Keybase-Sigchain-1"
+)
+
+const (
+	NotificationDismissPGPPrefix = "pgp_secret_store"
+	NotificationDismissPGPValue  = "dismissed"
 )

@@ -6,7 +6,7 @@ import debounce from 'lodash/debounce'
 import dumbComponentMap from './dumb-component-map.desktop'
 import type {Props} from './dumb-sheet.render'
 import {Box, Text, Input, BackButton} from '../common-adapters'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../styles'
 
 class Render extends Component<void, Props, any> {
   _onFilterChange: (a: any) => void;

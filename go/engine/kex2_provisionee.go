@@ -33,6 +33,7 @@ type Kex2Provisionee struct {
 	lks          *libkb.LKSec
 	kex2Cancel   func()
 	ctx          *Context
+	v1Only       bool // only support protocol v1 (for testing)
 }
 
 // Kex2Provisionee implements kex2.Provisionee, libkb.UserBasic,
@@ -100,6 +101,7 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 
 	karg := kex2.KexBaseArg{
 		Ctx:           nctx,
+		ProvisionCtx:  e.G(),
 		Mr:            libkb.NewKexRouter(e.G()),
 		DeviceID:      e.device.ID,
 		Secret:        e.secret,
@@ -109,6 +111,9 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 	parg := kex2.ProvisioneeArg{
 		KexBaseArg:  karg,
 		Provisionee: e,
+	}
+	if e.v1Only {
+		parg.V1Only = true
 	}
 	if err := kex2.RunProvisionee(parg); err != nil {
 		return err
@@ -140,14 +145,19 @@ func (e *Kex2Provisionee) GetLogFactory() rpc.LogFactory {
 func (e *Kex2Provisionee) HandleHello(harg keybase1.HelloArg) (res keybase1.HelloRes, err error) {
 	e.G().Log.Debug("+ HandleHello()")
 	defer func() { e.G().Log.Debug("- HandleHello() -> %s", libkb.ErrToOk(err)) }()
+	e.pps = harg.Pps
+	res, err = e.handleHello(harg.Uid, harg.Token, harg.Csrf, harg.SigBody)
+	return res, err
+}
+
+func (e *Kex2Provisionee) handleHello(uid keybase1.UID, token keybase1.SessionToken, csrf keybase1.CsrfToken, sigBody string) (res keybase1.HelloRes, err error) {
 
 	// save parts of the hello arg for later:
-	e.uid = harg.Uid
-	e.sessionToken = harg.Token
-	e.csrfToken = harg.Csrf
-	e.pps = harg.Pps
+	e.uid = uid
+	e.sessionToken = token
+	e.csrfToken = csrf
 
-	jw, err := jsonw.Unmarshal([]byte(harg.SigBody))
+	jw, err := jsonw.Unmarshal([]byte(sigBody))
 	if err != nil {
 		return res, err
 	}
@@ -159,6 +169,11 @@ func (e *Kex2Provisionee) HandleHello(harg keybase1.HelloArg) (res keybase1.Hell
 	}
 
 	e.eddsa, err = libkb.GenerateNaclSigningKeyPair()
+	if err != nil {
+		return res, err
+	}
+
+	e.dh, err = libkb.GenerateNaclDHKeyPair()
 	if err != nil {
 		return res, err
 	}
@@ -179,6 +194,37 @@ func (e *Kex2Provisionee) HandleHello(harg keybase1.HelloArg) (res keybase1.Hell
 	return keybase1.HelloRes(out), err
 }
 
+// HandleHello2 implements HandleHello2 in kex2.Provisionee.
+func (e *Kex2Provisionee) HandleHello2(harg keybase1.Hello2Arg) (res keybase1.Hello2Res, err error) {
+	e.G().Log.Debug("+ HandleHello2()")
+	defer func() { e.G().Log.Debug("- HandleHello2() -> %s", libkb.ErrToOk(err)) }()
+	var res1 keybase1.HelloRes
+	res1, err = e.handleHello(harg.Uid, harg.Token, harg.Csrf, harg.SigBody)
+	if err != nil {
+		return res, err
+	}
+	res.SigPayload = res1
+	res.EncryptionKey = e.dh.GetKID()
+	return res, err
+}
+
+func (e *Kex2Provisionee) HandleDidCounterSign2(arg keybase1.DidCounterSign2Arg) (err error) {
+	e.G().Log.Debug("+ HandleDidCounterSign()")
+	defer func() { e.G().Log.Debug("- HandleDidCounterSign() -> %s", libkb.ErrToOk(err)) }()
+	var ppsBytes []byte
+	ppsBytes, _, err = e.dh.DecryptFromString(arg.PpsEncrypted)
+	if err != nil {
+		e.G().Log.Debug("| Failed to decrypt pps: %s", err)
+		return err
+	}
+	err = libkb.MsgpackDecode(&e.pps, ppsBytes)
+	if err != nil {
+		e.G().Log.Debug("| Failed to unpack pps: %s", err)
+		return err
+	}
+	return e.HandleDidCounterSign(arg.Sig)
+}
+
 // HandleDidCounterSign implements HandleDidCounterSign in
 // kex2.Provisionee interface.
 func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
@@ -196,11 +242,6 @@ func (e *Kex2Provisionee) HandleDidCounterSign(sig []byte) (err error) {
 
 	// decode sig
 	decSig, err := e.decodeSig(sig)
-	if err != nil {
-		return err
-	}
-
-	e.dh, err = libkb.GenerateNaclDHKeyPair()
 	if err != nil {
 		return err
 	}

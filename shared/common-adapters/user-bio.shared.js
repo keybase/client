@@ -4,7 +4,7 @@ import openUrl from '../util/open-url'
 import type {SimpleProofState} from '../constants/tracker'
 import type {UserInfo} from './user-bio'
 import {error as proofError} from '../constants/tracker'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 
 function onClickAvatar (username: ?string) {
   username && openUrl(`${keybaseUrl}/${username}`)

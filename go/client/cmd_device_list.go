@@ -35,7 +35,7 @@ func NewCmdDeviceList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 
 // RunClient runs the command in client/server mode.
 func (c *CmdDeviceList) Run() error {
-	cli, err := GetDeviceClient()
+	cli, err := GetDeviceClient(c.G())
 	if err != nil {
 		return err
 	}

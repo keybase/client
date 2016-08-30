@@ -59,7 +59,7 @@ func (c *CmdDeviceRemove) Run() (err error) {
 }
 
 func (c *CmdDeviceRemove) lookup(name string) (keybase1.DeviceID, error) {
-	cli, err := GetDeviceClient()
+	cli, err := GetDeviceClient(c.G())
 	if err != nil {
 		return "", err
 	}

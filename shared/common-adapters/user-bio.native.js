@@ -2,7 +2,7 @@
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
 import {Box, Avatar, Text} from './'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
 
 import type {AvatarSize} from './avatar'

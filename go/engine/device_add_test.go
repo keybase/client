@@ -16,7 +16,16 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func TestDeviceAdd(t *testing.T) {
+func TestDeviceAddV1(t *testing.T) {
+	testDeviceAdd(t, true)
+}
+
+func TestDeviceAddV2(t *testing.T) {
+	testDeviceAdd(t, false)
+}
+
+func testDeviceAdd(t *testing.T, v1Only bool) {
+
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
@@ -66,6 +75,9 @@ func TestDeviceAdd(t *testing.T) {
 				Type:        libkb.DeviceTypeDesktop,
 			}
 			provisionee := NewKex2Provisionee(tcY.G, device, secretY)
+			if v1Only {
+				provisionee.v1Only = true
+			}
 			if err := RunEngine(provisionee, ctx); err != nil {
 				t.Errorf("provisionee error: %s", err)
 				return err

@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Button, Input, PlatformIcon, SmallInput, StandardScreen, Text} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors} from '../../styles/style-guide'
+import {globalStyles, globalMargins, globalColors} from '../../styles'
 import type {Props} from './add'
 
 class PgpAdd extends Component<void, Props, void> {

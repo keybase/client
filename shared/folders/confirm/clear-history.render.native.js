@@ -2,7 +2,7 @@
 import React from 'react'
 import type {Props} from './clear-history.render'
 import {Confirm, Box, Text, Icon} from '../../common-adapters'
-import {globalColors} from '../../styles/style-guide'
+import {globalColors} from '../../styles'
 import {usernameText} from '../../common-adapters/usernames'
 
 const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {

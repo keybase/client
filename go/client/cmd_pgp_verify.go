@@ -52,7 +52,7 @@ type CmdPGPVerify struct {
 }
 
 func (c *CmdPGPVerify) Run() error {
-	cli, err := GetPGPClient()
+	cli, err := GetPGPClient(c.G())
 	if err != nil {
 		return err
 	}
@@ -65,7 +65,7 @@ func (c *CmdPGPVerify) Run() error {
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
 		return err
 	}
-	_, src, err := c.ClientFilterOpen()
+	_, src, err := c.ClientFilterOpen(c.G())
 	if err != nil {
 		return err
 	}

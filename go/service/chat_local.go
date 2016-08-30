@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -22,17 +23,19 @@ import (
 type chatLocalHandler struct {
 	*BaseHandler
 	libkb.Contextified
-	gh    *gregorHandler
-	boxer *chatBoxer
+	gh             *gregorHandler
+	boxer          *chatBoxer
+	userInfoMapper userInfoMapper
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
 func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorHandler) *chatLocalHandler {
 	return &chatLocalHandler{
-		BaseHandler:  NewBaseHandler(xp),
-		Contextified: libkb.NewContextified(g),
-		gh:           gh,
-		boxer:        newChatBoxer(g),
+		BaseHandler:    NewBaseHandler(xp),
+		Contextified:   libkb.NewContextified(g),
+		gh:             gh,
+		boxer:          newChatBoxer(g),
+		userInfoMapper: userInfoMapper{g: g},
 	}
 }
 
@@ -94,14 +97,14 @@ func (h *chatLocalHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, t
 // change this to look up by topic name
 //
 // TODO: cache ConversationIDs and conversations in service
-func (h *chatLocalHandler) GetOrCreateTextConversationLocal(ctx context.Context, arg keybase1.GetOrCreateTextConversationLocalArg) (id chat1.ConversationID, err error) {
+func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg keybase1.ConversationInfoLocal) (ids []chat1.ConversationID, err error) {
 	res, err := h.boxer.tlf.CryptKeys(ctx, arg.TlfName)
 	if err != nil {
-		return id, err
+		return ids, err
 	}
 	tlfIDb, err := hex.DecodeString(string(res.TlfID))
 	if err != nil {
-		return id, err
+		return ids, err
 	}
 	tlfID := chat1.TLFID(tlfIDb)
 
@@ -110,13 +113,13 @@ getinbox:
 	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
 		iview, err := h.GetInboxLocal(ctx, ipagination)
 		if err != nil {
-			return id, err
+			return ids, err
 		}
 		for _, conv := range iview.Conversations {
 			if conv.Metadata.IdTriple.Tlfid.Eq(tlfID) {
 				// TODO: check topic name and topic ID here when we support multiple
 				// topics per TLF
-				return conv.Metadata.ConversationID, nil
+				ids = append(ids, conv.Metadata.ConversationID)
 			}
 		}
 
@@ -127,21 +130,56 @@ getinbox:
 		}
 	}
 
-	id, err = h.NewConversationLocal(ctx, chat1.ConversationIDTriple{
+	id, err := h.NewConversationLocal(ctx, chat1.ConversationIDTriple{
 		Tlfid:     tlfID,
 		TopicType: arg.TopicType,
 		// TopicID filled by server?
 	})
 	if err != nil {
-		return id, err
+		return ids, err
 	}
+	ids = append(ids, id)
 
-	return id, nil
+	return ids, nil
 }
 
-func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversation *chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *keybase1.MessageSelector) (conv keybase1.ConversationMessagesLocal, err error) {
+func (h *chatLocalHandler) fillMessageInfoLocal(ctx context.Context, m *keybase1.Message, isNew bool) (err error) {
+	m.Info = &keybase1.MessageInfoLocal{
+		IsNew: isNew,
+	}
+	if m.Info.SenderUsername, err = h.userInfoMapper.getUsername(ctx, keybase1.UID(m.MessagePlaintext.ClientHeader.Sender.String())); err != nil {
+		return err
+	}
+	if m.Info.SenderDeviceName, err = h.userInfoMapper.getDeviceName(ctx, keybase1.DeviceID(m.MessagePlaintext.ClientHeader.SenderDevice.String())); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h chatLocalHandler) fillConversationInfoLocal(ctx context.Context, c *keybase1.ConversationLocal) (err error) {
+	if len(c.Messages) > 0 {
+		m := c.Messages[0]
+		c.Info = &keybase1.ConversationInfoLocal{
+			TlfName: m.MessagePlaintext.ClientHeader.TlfName,
+
+			// TODO: populate following two fields properly
+			TopicName: hex.EncodeToString([]byte(m.MessagePlaintext.ClientHeader.Conv.TopicID)[:4]),
+			TopicType: chat1.TopicType_CHAT,
+		}
+	}
+	return nil
+}
+
+func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversation *chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *keybase1.MessageSelector) (conv keybase1.ConversationLocal, err error) {
+	var since time.Time
+	if selector.Since != nil {
+		since, err := parseTimeFromRFC3339OrDurationFromPast(*selector.Since)
+		if err != nil {
+			return conv, fmt.Errorf("parsing time or duration (%s) error: %s", *selector.Since, since)
+		}
+	}
+
 	tpagination := &chat1.Pagination{Num: 20}
-	tcount := 0
 getthread:
 	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
 		tview, err := h.GetThreadLocal(ctx, keybase1.GetThreadLocalArg{
@@ -162,28 +200,27 @@ getthread:
 				continue
 			}
 
-			if selector.Before != nil && gregor1.FromTime(m.ServerHeader.Ctime).Before(keybase1.FromTime(*selector.Before)) {
-				continue
-			}
-
-			if selector.After != nil && gregor1.FromTime(m.ServerHeader.Ctime).After(keybase1.FromTime(*selector.After)) {
+			if !since.IsZero() && gregor1.FromTime(m.ServerHeader.Ctime).Before(since) {
 				// messages are sorted DESC by time, so at this point we can stop fetching
 				break getthread
 			}
 
+			isNew := false
 			if conversation.ReaderInfo != nil && m.ServerHeader.MessageID > conversation.ReaderInfo.ReadMsgid {
-				m.IsNew = true
+				isNew = true
 			}
 
-			if selector.OnlyNew && !m.IsNew {
+			if selector.OnlyNew && !isNew {
 				// new messages are in front, so at this point we can stop fetching
 				break getthread
 			}
 
+			h.fillMessageInfoLocal(ctx, &m, isNew)
+
 			conv.Messages = append(conv.Messages, m)
 
-			tcount++
-			if selector.LimitPerConversation > 0 && tcount >= selector.LimitPerConversation {
+			selector.Limit--
+			if selector.Limit <= 0 {
 				break getthread
 			}
 		}
@@ -196,11 +233,14 @@ getthread:
 	}
 
 	conv.Id = conversation.Metadata.ConversationID
+	if err = h.fillConversationInfoLocal(ctx, &conv); err != nil {
+		return conv, err
+	}
 	return conv, nil
 }
 
 // GetMessagesLocal implements keybase.chatLocal.GetMessagesLocal protocol.
-func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationMessagesLocal, err error) {
+func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationLocal, err error) {
 	var messageTypes map[chat1.MessageType]bool
 	if len(arg.MessageTypes) > 0 {
 		messageTypes := make(map[chat1.MessageType]bool)
@@ -217,8 +257,11 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.Me
 		}
 	}
 
+	if arg.Limit <= 0 {
+		arg.Limit = int(^uint(0) >> 1) // maximum int
+	}
+
 	ipagination := &chat1.Pagination{Num: 20}
-	icount := 0
 getinbox:
 	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
 		iview, err := h.GetInboxLocal(ctx, ipagination)
@@ -237,8 +280,7 @@ getinbox:
 			if len(conv.Messages) != 0 {
 				messages = append(messages, conv)
 
-				icount++
-				if arg.LimitOfConversations > 0 && icount >= arg.LimitOfConversations {
+				if arg.Limit <= 0 {
 					break getinbox
 				}
 			}

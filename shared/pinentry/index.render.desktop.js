@@ -1,7 +1,7 @@
 // @flow
 
 import React, {Component} from 'react'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
 import {Button, FormWithCheckbox, Header, Text, Box, Icon} from '../common-adapters'
 import {passphraseCommon} from '../constants/types/keybase-v1'

@@ -5,7 +5,7 @@ import Row from './row'
 import type {IconType} from '../common-adapters/icon'
 import type {Props, Folder} from './list'
 import {Box, Text, Icon} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 const rowKey = users => users && users.map(u => u.username).join('-')
 

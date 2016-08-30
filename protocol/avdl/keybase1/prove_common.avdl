@@ -58,7 +58,8 @@ protocol proveCommon {
     BAD_API_URL_304,
     UNKNOWN_TYPE_305,
     NO_HINT_306,
-    BAD_HINT_TEXT_307
+    BAD_HINT_TEXT_307,
+    INVALID_PVL_308
   }
 
   enum ProofType {

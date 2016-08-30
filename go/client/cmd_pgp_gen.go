@@ -43,13 +43,13 @@ func (v *CmdPGPGen) ParseArgv(ctx *cli.Context) (err error) {
 // Why use CreatePGPIDs rather than MakeAllIds?
 func (v *CmdPGPGen) Run() (err error) {
 	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(G),
+		NewSecretUIProtocol(v.G()),
 	}
-	cli, err := GetPGPClient()
+	cli, err := GetPGPClient(v.G())
 	if err != nil {
 		return err
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
 		return err
 	}
 

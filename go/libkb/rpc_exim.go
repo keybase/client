@@ -339,10 +339,16 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return GPGUnavailableError{}
 	case SCNotFound:
 		return NotFoundError{Msg: s.Desc}
+	case SCDeleted:
+		return DeletedError{Msg: s.Desc}
 	case SCDecryptionError:
 		return DecryptionError{}
 	case SCKeyRevoked:
 		return KeyRevokedError{msg: s.Desc}
+	case SCDeviceNameInUse:
+		return DeviceNameInUseError{}
+	case SCDeviceBadName:
+		return DeviceBadNameError{}
 	case SCGenericAPIError:
 		var code int
 		for _, field := range s.Fields {
@@ -1172,6 +1178,14 @@ func (e NotFoundError) ToStatus() keybase1.Status {
 	}
 }
 
+func (e DeletedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCDeleted,
+		Name: "SC_DELETED",
+		Desc: e.Error(),
+	}
+}
+
 func (e DecryptionError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDecryptionError,
@@ -1204,4 +1218,12 @@ func (a *APIError) ToStatus() (s keybase1.Status) {
 		{Key: "code", Value: fmt.Sprintf("%d", a.Code)},
 	}
 	return
+}
+
+func (e DeviceNameInUseError) ToStatus() (s keybase1.Status) {
+	return keybase1.Status{
+		Code: SCDeviceNameInUse,
+		Name: "SC_DEVICE_NAME_IN_USE",
+		Desc: e.Error(),
+	}
 }

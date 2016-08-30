@@ -9,6 +9,7 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	pvl "github.com/keybase/client/go/pvl"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -19,6 +20,8 @@ import (
 type DNSChecker struct {
 	proof libkb.RemoteProofChainLink
 }
+
+var _ libkb.ProofChecker = (*DNSChecker)(nil)
 
 func NewDNSChecker(p libkb.RemoteProofChainLink) (*DNSChecker, libkb.ProofError) {
 	return &DNSChecker{p}, nil
@@ -63,7 +66,13 @@ func (rc *DNSChecker) CheckDomain(ctx libkb.ProofContext, sig string, domain str
 }
 
 func (rc *DNSChecker) CheckStatus(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
+	if pvl.UsePvl {
+		return pvl.CheckProof(ctx, pvl.GetHardcodedPvl(), keybase1.ProofType_DNS, rc.proof, h)
+	}
+	return rc.CheckStatusOld(ctx, h)
+}
 
+func (rc *DNSChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
 	wanted := h.GetCheckText()
 	ctx.GetLog().Debug("| DNS proof, want TXT value: %s", wanted)
 

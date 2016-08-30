@@ -133,9 +133,9 @@ func GetTrackClient(g *libkb.GlobalContext) (cli keybase1.TrackClient, err error
 	return
 }
 
-func GetDeviceClient() (cli keybase1.DeviceClient, err error) {
+func GetDeviceClient(g *libkb.GlobalContext) (cli keybase1.DeviceClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.DeviceClient{Cli: rcli}
 	}
 	return
@@ -157,9 +157,9 @@ func GetSigsClient(g *libkb.GlobalContext) (cli keybase1.SigsClient, err error) 
 	return
 }
 
-func GetPGPClient() (cli keybase1.PGPClient, err error) {
+func GetPGPClient(g *libkb.GlobalContext) (cli keybase1.PGPClient, err error) {
 	var rcli *rpc.Client
-	if rcli, _, err = GetRPCClient(); err == nil {
+	if rcli, _, err = GetRPCClientWithContext(g); err == nil {
 		cli = keybase1.PGPClient{Cli: rcli}
 	}
 	return

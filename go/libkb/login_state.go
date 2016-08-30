@@ -378,7 +378,7 @@ func (s *LoginState) VerifyPlaintextPassphrase(pp string) (ppStream *PassphraseS
 	return
 }
 
-func (s *LoginState) computeLoginPw(lctx LoginContext) (macSum []byte, err error) {
+func (s *LoginState) ComputeLoginPw(lctx LoginContext) (macSum []byte, err error) {
 	loginSession, e := lctx.LoginSession().Session()
 	if e != nil {
 		err = e
@@ -703,7 +703,7 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 		return err
 	}
 
-	lgpw, err := s.computeLoginPw(lctx)
+	lgpw, err := s.ComputeLoginPw(lctx)
 	if err != nil {
 		return err
 	}
@@ -772,7 +772,7 @@ func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, 
 		}
 
 		s.G().Log.Debug("| stretchPassphraseIfNecessary: getting keybase passphrase via ui")
-		res, err := GetKeybasePassphrase(s.G(), ui, un, retry, s.G().SecretStoreAll != nil)
+		res, err := GetKeybasePassphrase(s.G(), ui, un, retry)
 		if err != nil {
 			return false, err
 		}

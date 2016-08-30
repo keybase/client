@@ -2,7 +2,7 @@ import {appInstallerPath, appBundlePath} from './paths'
 import exec from './exec'
 import {quit} from './ctl'
 
-import {runMode} from '../shared/constants/platform.native.desktop'
+import {runMode} from '../shared/constants/platform.specific.desktop'
 
 export default callback => {
   const installerPath = appInstallerPath()

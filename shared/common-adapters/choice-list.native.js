@@ -1,9 +1,8 @@
 // @flow
 import React, {Component} from 'react'
-import {TouchableHighlight} from 'react-native'
-import {Box, Text, Icon} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
 import type {Props} from './choice-list'
+import {Box, Text, Icon, NativeTouchableHighlight} from './index.native'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 type State = {
   activeIndex: ?number,
@@ -32,7 +31,7 @@ class ChoiceList extends Component<void, Props, State> {
     return (
       <Box>
         {options.map((op, idx) => (
-          <TouchableHighlight
+          <NativeTouchableHighlight
             key={idx}
             underlayColor={globalColors.blue4}
             onPress={op.onClick}
@@ -49,7 +48,7 @@ class ChoiceList extends Component<void, Props, State> {
                 <Text style={styleInfoDescription} type='BodySmall'>{op.description}</Text>
               </Box>
             </Box>
-          </TouchableHighlight>
+          </NativeTouchableHighlight>
         ))}
       </Box>
     )

@@ -41,10 +41,17 @@ protocol chatLocal {
     array<MessageBody> messageBodies;
   }
 
+  record MessageInfoLocal {
+    boolean isNew;
+    string senderUsername;
+    string senderDeviceName;
+  }
+
   record Message {
     chat1.MessageServerHeader serverHeader;
     MessagePlaintext messagePlaintext;
-    boolean isNew;
+
+    union { null, MessageInfoLocal } info;
   }
 
   record ThreadView {
@@ -55,20 +62,25 @@ protocol chatLocal {
   record MessageSelector {
     array<chat1.MessageType> MessageTypes;
 
-    union { null, Time } After;
-    union { null, Time } Before;
+    union { null, string } Since;
     boolean onlyNew;
     
-    int limitPerConversation;
-    int limitOfConversations;
+    int limit;
 
     array<chat1.ConversationID> conversations;
 
     boolean markAsRead;
   }
 
-  record ConversationMessagesLocal {
+  record ConversationInfoLocal {
+    string tlfName;
+    string topicName;
+    chat1.TopicType topicType;
+  }
+
+  record ConversationLocal {
     chat1.ConversationID id;
+    union { null, ConversationInfoLocal } info;
     array<Message> messages;
   }
 
@@ -77,8 +89,8 @@ protocol chatLocal {
   void postLocal(chat1.ConversationID conversationID, MessagePlaintext messagePlaintext);
   chat1.ConversationID newConversationLocal(chat1.ConversationIDTriple conversationTriple);
 
-  chat1.ConversationID getOrCreateTextConversationLocal(string tlfName, string topicName, chat1.TopicType topicType);
-  array<ConversationMessagesLocal> getMessagesLocal(MessageSelector selector);
+  array<chat1.ConversationID> resolveConversationLocal(ConversationInfoLocal conversation);
+  array<ConversationLocal> getMessagesLocal(MessageSelector selector);
 
   // The tlfName can be either complete or partial. If the user's username is
   // not present in tlfName, it gets appended automatically. The canonical TLF

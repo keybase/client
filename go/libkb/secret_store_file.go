@@ -14,7 +14,8 @@ import (
 var ErrSecretForUserNotFound = NotFoundError{Msg: "No secret found for user"}
 
 type SecretStoreFile struct {
-	dir string
+	dir          string
+	notifyCreate func(NormalizedUsername)
 }
 
 var _ SecretStoreAll = (*SecretStoreFile)(nil)
@@ -37,10 +38,18 @@ func (s *SecretStoreFile) RetrieveSecret(username NormalizedUsername) ([]byte, e
 }
 
 func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret []byte) error {
+	if err := os.MkdirAll(s.dir, 0700); err != nil {
+		return err
+	}
+
 	f, err := ioutil.TempFile(s.dir, username.String())
 	if err != nil {
 		return err
 	}
+
+	// remove the temp file if it still exists at the end of this function
+	defer os.Remove(f.Name())
+
 	if runtime.GOOS != "windows" {
 		// os.Fchmod not supported on windows
 		if err := f.Chmod(0600); err != nil {
@@ -53,11 +62,29 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret []byte
 	if err := f.Close(); err != nil {
 		return err
 	}
+
 	final := s.userpath(username)
+
+	exists, err := FileExists(final)
+	if err != nil {
+		return err
+	}
+
 	if err := os.Rename(f.Name(), final); err != nil {
 		return err
 	}
-	return os.Chmod(final, 0600)
+
+	if err := os.Chmod(final, 0600); err != nil {
+		return err
+	}
+
+	// if we just created the secret store file for the
+	// first time, notify anyone interested.
+	if !exists && s.notifyCreate != nil {
+		s.notifyCreate(username)
+	}
+
+	return nil
 }
 
 func (s *SecretStoreFile) ClearSecret(username NormalizedUsername) error {

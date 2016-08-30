@@ -112,4 +112,9 @@ protocol pgp {
     array<string> filenames;
   }
   PGPPurgeRes pgpPurge(int sessionID, boolean doPurge);
+
+  /**
+    Dismiss the PGP unlock via secret_store_file notification.
+    */
+  void pgpStorageDismiss(int sessionID);
 }

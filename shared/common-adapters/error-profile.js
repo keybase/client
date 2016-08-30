@@ -2,7 +2,7 @@
 import React from 'react'
 import Box from './box'
 import Text from './text'
-import {globalColors, globalMargins} from '../styles/style-guide'
+import {globalColors, globalMargins} from '../styles'
 
 export type Props = {
   error: string

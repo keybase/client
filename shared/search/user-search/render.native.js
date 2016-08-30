@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Avatar, Box, Icon, Input, Text, ListItem} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles/style-guide'
+import {globalStyles, globalColors} from '../../styles'
 
 import type {Props} from './render'
 import type {SearchResult} from '../../constants/search'

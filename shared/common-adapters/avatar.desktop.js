@@ -2,7 +2,7 @@
 import * as shared from './avatar.shared'
 import React, {Component} from 'react'
 import type {Props} from './avatar'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
 const noAvatar = resolveImageAsURL('icons', 'icon-placeholder-avatar-112-x-112@2x.png')

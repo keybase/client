@@ -29,6 +29,12 @@ export function NotifyAppExitRpc (request: $Exact<{
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'NotifyApp.exit'})
 }
+export function NotifyPGPPgpKeyInSecretStoreFileRpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'NotifyPGP.pgpKeyInSecretStoreFile'})
+}
 export function NotifyServiceShutdownRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -107,6 +113,12 @@ export function identifyUiFinishRpc (request: $Exact<{
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'identifyUi.finish'})
 }
+export function loginAccountDeleteRpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'login.accountDelete'})
+}
 export function loginLogoutRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -136,6 +148,12 @@ export function pgpPgpDeletePrimaryRpc (request: $Exact<{
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'pgp.pgpDeletePrimary'})
+}
+export function pgpPgpStorageDismissRpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'pgp.pgpStorageDismiss'})
 }
 export function pgpUiFinishedRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
@@ -307,8 +325,15 @@ export type ConfirmResult = {
   expiringLocal: boolean,
 }
 
-export type ConversationMessagesLocal = {
+export type ConversationInfoLocal = {
+  tlfName: string,
+  topicName: string,
+  topicType: chat1.TopicType,
+}
+
+export type ConversationLocal = {
   id: chat1.ConversationID,
+  info?: ?ConversationInfoLocal,
   messages?: ?Array<Message>,
 }
 
@@ -542,7 +567,6 @@ export type GUIEntryArg = {
 }
 
 export type GUIEntryFeatures = {
-  storeSecret: Feature,
   showTyping: Feature,
 }
 
@@ -562,6 +586,11 @@ export type GetCurrentStatusRes = {
 export type GetPassphraseRes = {
   passphrase: string,
   storeSecret: boolean,
+}
+
+export type Hello2Res = {
+  encryptionKey: KID,
+  sigPayload: HelloRes,
 }
 
 export type HelloRes = string
@@ -653,6 +682,34 @@ export type InstallStatus =
 
 export type KID = string
 
+export type Kex2Provisionee2DidCounterSign2RpcParam = $Exact<{
+  sig: bytes,
+  ppsEncrypted: string
+}>
+
+export function Kex2Provisionee2DidCounterSign2Rpc (request: $Exact<{
+  param: Kex2Provisionee2DidCounterSign2RpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'Kex2Provisionee2.didCounterSign2'})
+}
+export type Kex2Provisionee2Hello2RpcParam = $Exact<{
+  uid: UID,
+  token: SessionToken,
+  csrf: CsrfToken,
+  sigBody: string
+}>
+
+type Kex2Provisionee2Hello2Result = Hello2Res
+
+export function Kex2Provisionee2Hello2Rpc (request: $Exact<{
+  param: Kex2Provisionee2Hello2RpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: Kex2Provisionee2Hello2Result) => void)}>) {
+  engine.rpc({...request, method: 'Kex2Provisionee2.hello2'})
+}
 export type Kex2ProvisioneeDidCounterSignRpcParam = $Exact<{
   sig: bytes
 }>
@@ -749,7 +806,7 @@ export type MerkleTreeID =
 export type Message = {
   serverHeader: chat1.MessageServerHeader,
   messagePlaintext: MessagePlaintext,
-  isNew: boolean,
+  info?: ?MessageInfoLocal,
 }
 
 export type MessageAttachment = {
@@ -778,6 +835,12 @@ export type MessageEdit = {
   body: string,
 }
 
+export type MessageInfoLocal = {
+  isNew: boolean,
+  senderUsername: string,
+  senderDeviceName: string,
+}
+
 export type MessagePlaintext = {
   clientHeader: chat1.MessageClientHeader,
   messageBodies?: ?Array<MessageBody>,
@@ -785,11 +848,9 @@ export type MessagePlaintext = {
 
 export type MessageSelector = {
   MessageTypes?: ?Array<chat1.MessageType>,
-  After?: ?Time,
-  Before?: ?Time,
+  Since?: ?string,
   onlyNew: boolean,
-  limitPerConversation: int,
-  limitOfConversations: int,
+  limit: int,
   conversations?: ?Array<chat1.ConversationID>,
   markAsRead: boolean,
 }
@@ -822,6 +883,7 @@ export type NotificationChannels = {
   service: boolean,
   app: boolean,
   chat: boolean,
+  pgp: boolean,
 }
 
 export type NotifyChatNewChatActivityRpcParam = $Exact<{
@@ -1123,6 +1185,7 @@ export type ProofStatus =
   | 305 // UNKNOWN_TYPE_305
   | 306 // NO_HINT_306
   | 307 // BAD_HINT_TEXT_307
+  | 308 // INVALID_PVL_308
 
 export type ProofType =
     0 // NONE_0
@@ -1270,7 +1333,6 @@ export type SecretEntryArg = {
   cancel: string,
   ok: string,
   reason: string,
-  useSecretStore: boolean,
   showTyping: boolean,
 }
 
@@ -1399,12 +1461,14 @@ export type Status = {
 
 export type StatusCode =
     0 // SCOk_0
+  | 100 // SCInputError_100
   | 201 // SCLoginRequired_201
   | 202 // SCBadSession_202
   | 203 // SCBadLoginUserNotFound_203
   | 204 // SCBadLoginPassword_204
   | 205 // SCNotFound_205
   | 210 // SCThrottleControl_210
+  | 216 // SCDeleted_216
   | 218 // SCGeneric_218
   | 235 // SCAlreadyLoggedIn_235
   | 237 // SCCanceled_237
@@ -1438,6 +1502,8 @@ export type StatusCode =
   | 930 // SCKeyNoMatchingGPG_930
   | 931 // SCKeyRevoked_931
   | 1301 // SCBadTrackSession_1301
+  | 1404 // SCDeviceBadName_1404
+  | 1408 // SCDeviceNameInUse_1408
   | 1409 // SCDeviceNotFound_1409
   | 1410 // SCDeviceMismatch_1410
   | 1411 // SCDeviceRequired_1411
@@ -1860,7 +1926,7 @@ export type chatLocalGetMessagesLocalRpcParam = $Exact<{
   selector: MessageSelector
 }>
 
-type chatLocalGetMessagesLocalResult = ?Array<ConversationMessagesLocal>
+type chatLocalGetMessagesLocalResult = ?Array<ConversationLocal>
 
 export function chatLocalGetMessagesLocalRpc (request: $Exact<{
   param: chatLocalGetMessagesLocalRpcParam,
@@ -1868,21 +1934,6 @@ export function chatLocalGetMessagesLocalRpc (request: $Exact<{
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any, response: chatLocalGetMessagesLocalResult) => void)}>) {
   engine.rpc({...request, method: 'chatLocal.getMessagesLocal'})
-}
-export type chatLocalGetOrCreateTextConversationLocalRpcParam = $Exact<{
-  tlfName: string,
-  topicName: string,
-  topicType: chat1.TopicType
-}>
-
-type chatLocalGetOrCreateTextConversationLocalResult = chat1.ConversationID
-
-export function chatLocalGetOrCreateTextConversationLocalRpc (request: $Exact<{
-  param: chatLocalGetOrCreateTextConversationLocalRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: chatLocalGetOrCreateTextConversationLocalResult) => void)}>) {
-  engine.rpc({...request, method: 'chatLocal.getOrCreateTextConversationLocal'})
 }
 export type chatLocalGetThreadLocalRpcParam = $Exact<{
   conversationID: chat1.ConversationID,
@@ -1923,6 +1974,19 @@ export function chatLocalPostLocalRpc (request: $Exact<{
   incomingCallMap?: incomingCallMapType,
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'chatLocal.postLocal'})
+}
+export type chatLocalResolveConversationLocalRpcParam = $Exact<{
+  conversation: ConversationInfoLocal
+}>
+
+type chatLocalResolveConversationLocalResult = ?Array<chat1.ConversationID>
+
+export function chatLocalResolveConversationLocalRpc (request: $Exact<{
+  param: chatLocalResolveConversationLocalRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: chatLocalResolveConversationLocalResult) => void)}>) {
+  engine.rpc({...request, method: 'chatLocal.resolveConversationLocal'})
 }
 export type configClearValueRpcParam = $Exact<{
   path: string
@@ -2104,6 +2168,18 @@ export function debuggingSecondStepRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: debuggingSecondStepResult) => void)}>) {
   engine.rpc({...request, method: 'debugging.secondStep'})
 }
+export type deviceCheckDeviceNameForUserRpcParam = $Exact<{
+  username: string,
+  devicename: string
+}>
+
+export function deviceCheckDeviceNameForUserRpc (request: $Exact<{
+  param: deviceCheckDeviceNameForUserRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'device.checkDeviceNameForUser'})
+}
 export type deviceCheckDeviceNameFormatRpcParam = $Exact<{
   name: string
 }>
@@ -2225,7 +2301,8 @@ export type identifyIdentify2RpcParam = $Exact<{
   forceRemoteCheck?: boolean,
   needProofSet?: boolean,
   allowEmptySelfID?: boolean,
-  noSkipSelf?: boolean
+  noSkipSelf?: boolean,
+  canSuppressUI?: bool
 }>
 
 type identifyIdentify2Result = Identify2Res
@@ -4113,6 +4190,8 @@ export function userLoadMyPublicKeysRpc (request: $Exact<{
 }
 export type rpc =
     BTCRegisterBTCRpc
+  | Kex2Provisionee2DidCounterSign2Rpc
+  | Kex2Provisionee2Hello2Rpc
   | Kex2ProvisioneeDidCounterSignRpc
   | Kex2ProvisioneeHelloRpc
   | Kex2ProvisionerKexStartRpc
@@ -4123,6 +4202,7 @@ export type rpc =
   | NotifyFSRequestFSEditListRequestRpc
   | NotifyFavoritesFavoritesChangedRpc
   | NotifyKeyfamilyKeyfamilyChangedRpc
+  | NotifyPGPPgpKeyInSecretStoreFileRpc
   | NotifyPaperKeyPaperKeyCachedRpc
   | NotifyServiceShutdownRpc
   | NotifySessionClientOutOfDateRpc
@@ -4149,10 +4229,10 @@ export type rpc =
   | chatLocalCompleteAndCanonicalizeTlfNameRpc
   | chatLocalGetInboxLocalRpc
   | chatLocalGetMessagesLocalRpc
-  | chatLocalGetOrCreateTextConversationLocalRpc
   | chatLocalGetThreadLocalRpc
   | chatLocalNewConversationLocalRpc
   | chatLocalPostLocalRpc
+  | chatLocalResolveConversationLocalRpc
   | configCheckAPIServerOutOfDateWarningRpc
   | configClearValueRpc
   | configGetConfigRpc
@@ -4180,6 +4260,7 @@ export type rpc =
   | delegateUiCtlRegisterRekeyUIRpc
   | delegateUiCtlRegisterSecretUIRpc
   | delegateUiCtlRegisterUpdateUIRpc
+  | deviceCheckDeviceNameForUserRpc
   | deviceCheckDeviceNameFormatRpc
   | deviceDeviceAddRpc
   | deviceDeviceHistoryListRpc
@@ -4219,6 +4300,7 @@ export type rpc =
   | kbfsFSEventRpc
   | logRegisterLoggerRpc
   | logUiLogRpc
+  | loginAccountDeleteRpc
   | loginClearStoredSecretRpc
   | loginDeprovisionRpc
   | loginGetConfiguredAccountsRpc
@@ -4271,6 +4353,7 @@ export type rpc =
   | pgpPgpPurgeRpc
   | pgpPgpSelectRpc
   | pgpPgpSignRpc
+  | pgpPgpStorageDismissRpc
   | pgpPgpUpdateRpc
   | pgpPgpVerifyRpc
   | pgpUiFinishedRpc
@@ -4557,15 +4640,13 @@ export type incomingCallMapType = $Exact<{
       result: (result: chatLocalNewConversationLocalResult) => void
     }
   ) => void,
-  'keybase.1.chatLocal.getOrCreateTextConversationLocal'?: (
+  'keybase.1.chatLocal.resolveConversationLocal'?: (
     params: $Exact<{
-      tlfName: string,
-      topicName: string,
-      topicType: chat1.TopicType
+      conversation: ConversationInfoLocal
     }>,
     response: {
       error: (err: RPCError) => void,
-      result: (result: chatLocalGetOrCreateTextConversationLocalResult) => void
+      result: (result: chatLocalResolveConversationLocalResult) => void
     }
   ) => void,
   'keybase.1.chatLocal.getMessagesLocal'?: (
@@ -4874,6 +4955,17 @@ export type incomingCallMapType = $Exact<{
       result: (result: deviceCheckDeviceNameFormatResult) => void
     }
   ) => void,
+  'keybase.1.device.checkDeviceNameForUser'?: (
+    params: $Exact<{
+      sessionID: int,
+      username: string,
+      devicename: string
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.favorite.favoriteAdd'?: (
     params: $Exact<{
       sessionID: int,
@@ -5031,7 +5123,8 @@ export type incomingCallMapType = $Exact<{
       forceRemoteCheck?: boolean,
       needProofSet?: boolean,
       allowEmptySelfID?: boolean,
-      noSkipSelf?: boolean
+      noSkipSelf?: boolean,
+      canSuppressUI?: bool
     }>,
     response: {
       error: (err: RPCError) => void,
@@ -5235,6 +5328,28 @@ export type incomingCallMapType = $Exact<{
       result: () => void
     }
   ) => void,
+  'keybase.1.Kex2Provisionee2.hello2'?: (
+    params: $Exact<{
+      uid: UID,
+      token: SessionToken,
+      csrf: CsrfToken,
+      sigBody: string
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: Kex2Provisionee2Hello2Result) => void
+    }
+  ) => void,
+  'keybase.1.Kex2Provisionee2.didCounterSign2'?: (
+    params: $Exact<{
+      sig: bytes,
+      ppsEncrypted: string
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.Kex2Provisioner.kexStart'?: (
     params: $Exact<{}> /* ,
     response: {} // Notify call
@@ -5366,6 +5481,15 @@ export type incomingCallMapType = $Exact<{
       username: string,
       passphrase: string,
       deviceName: string
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.login.accountDelete'?: (
+    params: $Exact<{
+      sessionID: int
     }>,
     response: {
       error: (err: RPCError) => void,
@@ -5702,6 +5826,13 @@ export type incomingCallMapType = $Exact<{
       result: () => void
     }
   ) => void,
+  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (
+    params: $Exact<{}>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.NotifyService.shutdown'?: (
     params: $Exact<{}>,
     response: {
@@ -5925,6 +6056,15 @@ export type incomingCallMapType = $Exact<{
     response: {
       error: (err: RPCError) => void,
       result: (result: pgpPgpPurgeResult) => void
+    }
+  ) => void,
+  'keybase.1.pgp.pgpStorageDismiss'?: (
+    params: $Exact<{
+      sessionID: int
+    }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
     }
   ) => void,
   'keybase.1.pgpUi.outputSignatureSuccess'?: (

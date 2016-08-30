@@ -5,7 +5,7 @@ import type {incomingCallMapType, logUiLogRpcParam} from '../constants/types/flo
 import {isMobile} from '../constants/platform'
 import {constants} from '../constants/types/keybase-v1'
 import {log} from '../native/log/logui'
-import {resetClient, createClient} from './platform-specific'
+import {resetClient, createClient} from './index.platform'
 import {printRPC, printOutstandingRPCs} from '../local-debug'
 import {requestIdleCallback} from '../util/idle-callback'
 

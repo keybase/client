@@ -8,31 +8,37 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
-	arg := DefaultPassphraseArg(g, allowSecretStore)
+func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
+	arg := DefaultPassphraseArg(g)
 	arg.WindowTitle = "Keybase passphrase"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Username = username
 	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", username)
 	arg.RetryLabel = retryMsg
-	return GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+	res, err := GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+	if err != nil {
+		return res, err
+	}
+	res.StoreSecret = true
+	return res, nil
 }
 
 func GetSecret(g *GlobalContext, ui SecretUI, title, prompt, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
-	arg := DefaultPassphraseArg(g, allowSecretStore)
+	arg := DefaultPassphraseArg(g)
 	arg.WindowTitle = title
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Prompt = prompt
 	arg.RetryLabel = retryMsg
-	// apparently allowSecretStore can be true even though HasSecretStore()
-	// is false (in the case of mocked secret store tests on linux, for
-	// example). So, pass this through:
-	arg.Features.StoreSecret.Allow = allowSecretStore
-	return GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+	res, err := GetPassphraseUntilCheckWithChecker(g, arg, newUIPrompter(ui), &CheckPassphraseSimple)
+	if err != nil {
+		return res, err
+	}
+	res.StoreSecret = allowSecretStore
+	return res, nil
 }
 
 func GetPaperKeyPassphrase(g *GlobalContext, ui SecretUI, username string, lastErr error) (string, error) {
-	arg := DefaultPassphraseArg(g, false)
+	arg := DefaultPassphraseArg(g)
 	arg.WindowTitle = "Paper Key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	if len(username) == 0 {
@@ -40,8 +46,6 @@ func GetPaperKeyPassphrase(g *GlobalContext, ui SecretUI, username string, lastE
 	}
 	arg.Prompt = fmt.Sprintf("Please enter a paper key for %s", username)
 	arg.Username = username
-	arg.Features.StoreSecret.Allow = false
-	arg.Features.StoreSecret.Readonly = true
 	arg.Features.ShowTyping.Allow = true
 	arg.Features.ShowTyping.DefaultValue = true
 	if lastErr != nil {
@@ -58,11 +62,9 @@ func GetPaperKeyForCryptoPassphrase(g *GlobalContext, ui SecretUI, reason string
 	if len(devices) == 0 {
 		return "", errors.New("empty device list")
 	}
-	arg := DefaultPassphraseArg(g, false)
+	arg := DefaultPassphraseArg(g)
 	arg.WindowTitle = "Paper Key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
-	arg.Features.StoreSecret.Allow = false
-	arg.Features.StoreSecret.Readonly = true
 	arg.Features.ShowTyping.Allow = true
 	arg.Features.ShowTyping.DefaultValue = true
 	if len(devices) == 1 {
@@ -128,7 +130,7 @@ func GetPassphraseUntilCheck(g *GlobalContext, arg keybase1.GUIEntryArg, prompte
 	return keybase1.GetPassphraseRes{}, RetryExhaustedError{}
 }
 
-func DefaultPassphraseArg(g *GlobalContext, allowSecretStore bool) keybase1.GUIEntryArg {
+func DefaultPassphraseArg(g *GlobalContext) keybase1.GUIEntryArg {
 	arg := keybase1.GUIEntryArg{
 		SubmitLabel: "Submit",
 		CancelLabel: "Cancel",
@@ -139,17 +141,7 @@ func DefaultPassphraseArg(g *GlobalContext, allowSecretStore bool) keybase1.GUIE
 				Readonly:     true,
 				Label:        "Show typing",
 			},
-			StoreSecret: keybase1.Feature{
-				Allow:        allowSecretStore,
-				DefaultValue: false,
-				Readonly:     false,
-				Label:        "Save in Keychain",
-			},
 		},
-	}
-
-	if g.SecretStoreAll != nil {
-		arg.Features.StoreSecret.Label = g.SecretStoreAll.GetApprovalPrompt()
 	}
 
 	return arg

@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import {Box, TabBar, Avatar, Icon} from '../common-adapters'
 import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import flags from '../util/feature-flags'
 
 import {profileTab, peopleTab, folderTab, devicesTab, settingsTab} from '../constants/tabs'

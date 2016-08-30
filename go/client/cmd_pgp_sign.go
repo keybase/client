@@ -113,14 +113,14 @@ func (s *CmdPGPSign) Run() (err error) {
 		NewSecretUIProtocol(s.G()),
 	}
 
-	cli, err := GetPGPClient()
+	cli, err := GetPGPClient(s.G())
 	if err != nil {
 		return err
 	}
 	if err = RegisterProtocolsWithContext(protocols, s.G()); err != nil {
 		return err
 	}
-	snk, src, err := s.ClientFilterOpen()
+	snk, src, err := s.ClientFilterOpen(s.G())
 	if err == nil {
 		arg := keybase1.PGPSignArg{Source: src, Sink: snk, Opts: s.opts}
 		err = cli.PGPSign(context.TODO(), arg)

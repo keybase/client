@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 
 import {Box, Icon, Text, Button, PopupMenu} from '../common-adapters/index'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import Folders from '../folders/render'
 import type {Props} from './index.render'
 import UserAdd from './user-add'

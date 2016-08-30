@@ -8,7 +8,6 @@ import type {UserFn} from './user-search/user-group'
 import type {SearchResult} from '../constants/search'
 
 export type RootProps = {
-  showComingSoon: boolean,
   username: string,
   userForInfoPane: ?SearchResult,
   showUserGroup: boolean,

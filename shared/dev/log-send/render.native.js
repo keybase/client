@@ -1,9 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './render'
-import {Box, Text, Button} from '../../common-adapters'
-import {Linking, Clipboard} from 'react-native'
-import {globalStyles} from '../../styles/style-guide'
+import {Box, Text, Button, NativeLinking, NativeClipboard} from '../../common-adapters/index.native'
+import {globalStyles} from '../../styles'
 
 type State = {
   copiedToClipboard: boolean
@@ -18,13 +17,13 @@ class Render extends Component<void, Props, State> {
   }
 
   _copyToClipboard () {
-    Clipboard.setString(this.props.logSendId || '')
+    NativeClipboard.setString(this.props.logSendId || '')
     this.setState({copiedToClipboard: true})
   }
 
   render () {
     const onSubmitIssue = () => {
-      Linking.openURL(`https://github.com/keybase/client/issues/new?body=[write%20something%20useful%20and%20descriptive%20here]%0A%0Amy%20log%20id:%20${this.props.logSendId || ''}`)
+      NativeLinking.openURL(`https://github.com/keybase/client/issues/new?body=[write%20something%20useful%20and%20descriptive%20here]%0A%0Amy%20log%20id:%20${this.props.logSendId || ''}`)
     }
 
     if (!this.props.logSendId) {

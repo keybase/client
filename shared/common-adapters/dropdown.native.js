@@ -1,12 +1,9 @@
 // @flow
-import Box from './box'
-import Icon from './icon'
 import Platform, {OS} from '../constants/platform'
 import React, {Component} from 'react'
-import Text from './text'
 import type {Props} from './dropdown'
-import {TouchableWithoutFeedback, Picker, Modal} from 'react-native'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {Box, Icon, Text, NativeTouchableWithoutFeedback, NativePicker, NativeModal} from './index.native'
+import {globalStyles, globalColors} from '../styles'
 
 /*
  * A dropdown on ios and android.
@@ -111,16 +108,17 @@ class Dropdown extends Component<void, Props, State> {
         return
       }
 
-      this.setState({value})
-      if (selectOnChange) {
-        this._selected()
-      }
+      this.setState({value}, () => {
+        if (selectOnChange) {
+          this._selected()
+        }
+      })
     }
 
     return (
-      <Picker style={style} selectedValue={this.state.value} onValueChange={onValueChange}>
-        {items.map(i => <Picker.Item key={i.label} {...i} />)}
-      </Picker>
+      <NativePicker style={style} selectedValue={this.state.value} onValueChange={onValueChange}>
+        {items.map(i => <NativePicker.Item key={i.label} {...i} />)}
+      </NativePicker>
     )
   }
 
@@ -135,19 +133,19 @@ class Dropdown extends Component<void, Props, State> {
 
   _renderIOS (): React$Element<*> {
     return (
-      <TouchableWithoutFeedback onPress={() => this._showModal(true)}>
+      <NativeTouchableWithoutFeedback onPress={() => this._showModal(true)}>
         <Box style={{...styleContainer, ...this.props.style}}>
-          <Modal animationType={'slide'} transparent={true} visible={this.state.modalVisible} onRequestClose={() => this._showModal(false)}>
+          <NativeModal animationType={'slide'} transparent={true} visible={this.state.modalVisible} onRequestClose={() => this._showModal(false)}>
             <Box style={stylePickerContainer}>
-              <TouchableWithoutFeedback onPress={() => this._showModal(false)}>
+              <NativeTouchableWithoutFeedback onPress={() => this._showModal(false)}>
                 <Box style={{flex: 1}} />
-              </TouchableWithoutFeedback>
+              </NativeTouchableWithoutFeedback>
               {this._renderPicker(stylePickerIOS, false)}
             </Box>
-          </Modal>
+          </NativeModal>
           {this._renderLabelAndCaret()}
         </Box>
-      </TouchableWithoutFeedback>
+      </NativeTouchableWithoutFeedback>
     )
   }
 

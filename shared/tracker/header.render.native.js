@@ -1,12 +1,7 @@
-import React, {Component} from 'react'
-import {View, Text} from 'react-native'
+import {Component} from 'react'
 
 export default class HeaderRender extends Component {
   render () {
-    return (
-      <View style={{flexDirection: 'row'}}>
-        <Text>You accessed /private/cecile</Text>
-      </View>
-    )
+    return null
   }
 }

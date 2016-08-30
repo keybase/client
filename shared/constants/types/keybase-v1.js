@@ -50,12 +50,14 @@ export const config = {
 export const constants = {
   'StatusCode': {
     'scok': 0,
+    'scinputerror': 100,
     'scloginrequired': 201,
     'scbadsession': 202,
     'scbadloginusernotfound': 203,
     'scbadloginpassword': 204,
     'scnotfound': 205,
     'scthrottlecontrol': 210,
+    'scdeleted': 216,
     'scgeneric': 218,
     'scalreadyloggedin': 235,
     'sccanceled': 237,
@@ -89,6 +91,8 @@ export const constants = {
     'sckeynomatchinggpg': 930,
     'sckeyrevoked': 931,
     'scbadtracksession': 1301,
+    'scdevicebadname': 1404,
+    'scdevicenameinuse': 1408,
     'scdevicenotfound': 1409,
     'scdevicemismatch': 1410,
     'scdevicerequired': 1411,
@@ -252,6 +256,8 @@ export const kbfsCommon = {
 
 export const Kex2Provisionee = {}
 
+export const Kex2Provisionee2 = {}
+
 export const Kex2Provisioner = {}
 
 export const log = {}
@@ -286,6 +292,8 @@ export const NotifyFSRequest = {}
 export const NotifyKeyfamily = {}
 
 export const NotifyPaperKey = {}
+
+export const NotifyPGP = {}
 
 export const NotifyService = {}
 
@@ -375,6 +383,7 @@ export const proveCommon = {
     'unknownType': 305,
     'noHint': 306,
     'badHintText': 307,
+    'invalidPvl': 308,
   },
   'ProofType': {
     'none': 0,
@@ -518,6 +527,7 @@ export default {
   kbfs,
   kbfsCommon,
   Kex2Provisionee,
+  Kex2Provisionee2,
   Kex2Provisioner,
   log,
   logUi,
@@ -533,6 +543,7 @@ export default {
   NotifyFSRequest,
   NotifyKeyfamily,
   NotifyPaperKey,
+  NotifyPGP,
   NotifyService,
   NotifySession,
   NotifyTracking,

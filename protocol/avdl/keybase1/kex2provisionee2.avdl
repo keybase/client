@@ -1,0 +1,13 @@
+
+@namespace("keybase.1")
+protocol Kex2Provisionee2 {
+  import idl "common.avdl";
+
+  record Hello2Res {
+    KID encryptionKey;
+    HelloRes sigPayload;
+  }
+
+  Hello2Res hello2(UID uid, SessionToken token, CsrfToken csrf, string sigBody);
+  void didCounterSign2(bytes sig, string ppsEncrypted);
+}

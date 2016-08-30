@@ -20,6 +20,7 @@ type CmdPGPSelect struct {
 	multi      bool
 	skipImport bool
 	onlyImport bool
+	libkb.Contextified
 }
 
 func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
@@ -40,15 +41,15 @@ func (v *CmdPGPSelect) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (v *CmdPGPSelect) Run() error {
-	c, err := GetPGPClient()
+	c, err := GetPGPClient(v.G())
 	if err != nil {
 		return err
 	}
 	protocols := []rpc.Protocol{
-		NewGPGUIProtocol(G),
-		NewSecretUIProtocol(G),
+		NewGPGUIProtocol(v.G()),
+		NewSecretUIProtocol(v.G()),
 	}
-	if err = RegisterProtocols(protocols); err != nil {
+	if err = RegisterProtocolsWithContext(protocols, v.G()); err != nil {
 		return err
 	}
 
@@ -62,13 +63,13 @@ func (v *CmdPGPSelect) Run() error {
 	return err
 }
 
-func NewCmdPGPSelect(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdPGPSelect(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "select",
 		ArgumentHelp: "[key query]",
 		Usage:        "Select a key as your own and register the public half with the server",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPGPSelect{}, "select", c)
+			cl.ChooseCommand(&CmdPGPSelect{Contextified: libkb.NewContextified(g)}, "select", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{

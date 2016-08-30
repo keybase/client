@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from './index.render'
 import {Box, Checkbox, Button, Text, Icon} from '../../../common-adapters'
-import {globalColors, globalStyles} from '../../../styles/style-guide'
+import {globalColors, globalStyles} from '../../../styles'
 import {specialStyles} from '../../../common-adapters/text'
 
 /* types:

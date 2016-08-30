@@ -1,0 +1,18 @@
+{
+  "protocol": "NotifyPGP",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [],
+  "messages": {
+    "pgpKeyInSecretStoreFile": {
+      "request": [],
+      "response": null,
+      "oneway": true
+    }
+  },
+  "namespace": "keybase.1"
+}

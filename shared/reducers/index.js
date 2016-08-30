@@ -8,6 +8,7 @@ import favorite from './favorite'
 import gregor from './gregor'
 import login from './login'
 import notifications from './notifications'
+import pgp from './pgp'
 import pinentry from './pinentry'
 import profile from './profile'
 import router from './router'
@@ -47,6 +48,7 @@ const combinedReducer = combineReducers({
   gregor,
   login,
   notifications,
+  pgp,
   pinentry,
   profile,
   router,

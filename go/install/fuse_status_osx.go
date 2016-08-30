@@ -19,6 +19,8 @@ import (
 	"github.com/keybase/go-kext"
 )
 
+const installPath = "/Library/Filesystems/kbfuse.fs"
+
 // KeybaseFuseStatus returns Fuse status
 func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 	st := keybase1.FuseStatus{
@@ -29,31 +31,39 @@ func KeybaseFuseStatus(bundleVersion string, log Log) keybase1.FuseStatus {
 
 	var kextInfo *kext.Info
 
-	// Check kbfuse 3.x
-	path := "/Library/Filesystems/kbfuse.fs"
-	if _, err := os.Stat(path); err == nil {
-		st.Path = path
+	if _, err := os.Stat(installPath); err == nil {
+		st.Path = installPath
 		kextID := "com.github.kbfuse.filesystems.kbfuse"
-		info, err := kext.LoadInfo(kextID)
-		if err != nil {
+		var loadErr error
+		kextInfo, loadErr = kext.LoadInfo(kextID)
+		if loadErr != nil {
 			st.InstallStatus = keybase1.InstallStatus_ERROR
 			st.InstallAction = keybase1.InstallAction_REINSTALL
-			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: err.Error()}
+			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Error loading kext info: %s", loadErr)}
 			return st
 		}
-		if info == nil {
-			// This means the kext isn't loaded. If kext isn't loaded then kbfs will
-			// load it when it start up by calling load_kbfuse (in the kext bundle).
-			// TODO: Go ahead and load the kext ahead of time?
-			st.InstallStatus = keybase1.InstallStatus_INSTALLED
-			st.InstallAction = keybase1.InstallAction_NONE
-			st.Status = keybase1.StatusOK(fmt.Sprintf("Fuse installed (%s) but kext was not loaded (%s)", st.Path, kextID))
-			return st
+		if kextInfo == nil {
+			log.Debug("No kext info available (kext not loaded)")
+			// This means the kext isn't loaded, which is ok, kbfs will call
+			// load_kbfuse when it starts up.
+			// We have to get the version from the installed plist.
+			installedVersion, fivErr := fuseInstallVersion(log)
+			if fivErr != nil {
+				st.InstallStatus = keybase1.InstallStatus_ERROR
+				st.InstallAction = keybase1.InstallAction_REINSTALL
+				st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Error loading (plist) info: %s", fivErr)}
+				return st
+			}
+			if installedVersion != "" {
+				kextInfo = &kext.Info{
+					Version: installedVersion,
+					Started: false,
+				}
+			}
 		}
 
 		// Installed
 		st.KextID = kextID
-		kextInfo = info
 	}
 
 	// If neither is found, we have no install
@@ -108,7 +118,7 @@ func mountInfo(fstype string) ([]keybase1.FuseMountInfo, error) {
 
 // KeybaseFuseStatusForAppBundle returns Fuse status for application at appPath
 func KeybaseFuseStatusForAppBundle(appPath string, log Log) (keybase1.FuseStatus, error) {
-	bundleVersion, err := fuseBundleVersion(appPath)
+	bundleVersion, err := fuseBundleVersion(appPath, log)
 	if err != nil {
 		return keybase1.FuseStatus{}, err
 	}
@@ -116,29 +126,48 @@ func KeybaseFuseStatusForAppBundle(appPath string, log Log) (keybase1.FuseStatus
 	return fuseStatus, err
 }
 
-func fuseBundleVersion(appPath string) (string, error) {
-	plistPath := filepath.Join(appPath, "Contents/Resources/KeybaseInstaller.app/Contents/Info.plist")
-
-	if _, err := os.Stat(plistPath); os.IsNotExist(err) {
-		return "", nil
-	}
-
-	f, err := os.Open(plistPath)
-	if err != nil {
-		return "", err
-	}
-	data, err := ioutil.ReadAll(f)
-	if err != nil {
-		return "", err
-	}
-
-	// Hack to parse plist
-	re := regexp.MustCompile(`<key>KBFuseVersion<\/key>\s*<string>(\S+)<\/string>`)
-	submatch := re.FindStringSubmatch(string(data))
+func findStringInPlist(key string, plistData []byte, log Log) string {
+	// Hack to parse plist, instead of parsing we'll use a regex
+	res := fmt.Sprintf(`<key>%s<\/key>\s*<string>([\S ]+)<\/string>`, key)
+	re := regexp.MustCompile(res)
+	submatch := re.FindStringSubmatch(string(plistData))
 	if len(submatch) == 2 {
-		return submatch[1], nil
+		return submatch[1]
 	}
-	return "", nil
+	log.Debug("No key (%s) found", key)
+	return ""
+}
+
+func loadPlist(plistPath string, log Log) ([]byte, error) {
+	if _, err := os.Stat(plistPath); os.IsNotExist(err) {
+		log.Debug("No plist found: %s", plistPath)
+		return nil, err
+	}
+	log.Debug("Loading plist: %s", plistPath)
+	plistFile, err := os.Open(plistPath)
+	defer plistFile.Close()
+	if err != nil {
+		return nil, err
+	}
+	return ioutil.ReadAll(plistFile)
+}
+
+func fuseBundleVersion(appPath string, log Log) (string, error) {
+	plistPath := filepath.Join(appPath, "Contents/Resources/KeybaseInstaller.app/Contents/Info.plist")
+	plistData, err := loadPlist(plistPath, log)
+	if err != nil {
+		return "", err
+	}
+	return findStringInPlist("KBFuseVersion", plistData, log), nil
+}
+
+func fuseInstallVersion(log Log) (string, error) {
+	plistPath := filepath.Join(installPath, "Contents/Info.plist")
+	plistData, err := loadPlist(plistPath, log)
+	if err != nil {
+		return "", err
+	}
+	return findStringInPlist("CFBundleVersion", plistData, log), nil
 }
 
 // checkFuseUpgrade will see if the Fuse version in the Keybase.app bundle

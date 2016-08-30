@@ -2,7 +2,7 @@
 
 import React from 'react'
 import {Box, Text, Button, Icon} from '../common-adapters'
-import {globalColors, globalStyles} from '../styles/style-guide'
+import {globalColors, globalStyles} from '../styles'
 import type {Props} from './non-user'
 
 const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
