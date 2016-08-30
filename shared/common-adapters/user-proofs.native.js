@@ -48,14 +48,14 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
       <Icon style={stylesService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
       <Box style={stylesProofNameSection}>
         <Box style={stylesProofNameLabelContainer}>
-          <Text inline={true} type='Body' onPress={() => onClickProfile(proof)} style={stylesProofName}>
+          <Text inline={true} type='Body' onClick={() => onClickProfile(proof)} style={stylesProofName}>
             <Text inline={true} type='Body' style={shared.proofNameStyle(proof)}>{proof.name}</Text>
             <Text inline={true} type='Body' style={stylesProofType}>@{proof.type}</Text>
           </Text>
           {proof.meta && proof.meta !== metaNone && <Meta title={proof.meta} style={{backgroundColor: shared.metaColor(proof)}} />}
         </Box>
       </Box>
-      <ClickableBox style={stylesStatusIconTouchable} activeOpacity={0.8} underlayColor={globalColors.white} onPress={() => onClickStatus(proof)}>
+      <ClickableBox style={stylesStatusIconTouchable} activeOpacity={0.8} underlayColor={globalColors.white} onClick={() => onClickStatus(proof)}>
         <Box style={stylesStatusIconContainer} onClick={() => onClickStatus(proof)}>
           {proofStatusIconType && <Icon type={proofStatusIconType} style={stylesStatusIcon(proofStatusIconType)} onClick={() => onClickStatus(proof)} />}
           {proofStatusIconType && hasMenu && <Icon type='iconfont-caret-down' style={stylesStatusIconCaret(proofStatusIconType)} />}

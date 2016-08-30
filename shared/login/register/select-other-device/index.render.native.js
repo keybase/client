@@ -25,7 +25,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
         <Box style={stylesIconContainer}>
           <Icon style={stylesIcon} type={iconType} />
         </Box>
-        <Text type='BodySemiboldItalic' onPress={onPress}>{name}</Text>
+        <Text type='BodySemiboldItalic' onClick={onPress}>{name}</Text>
       </Box>
     </ClickableBox>)
 }
