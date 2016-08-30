@@ -23,6 +23,8 @@ import {
 
 export * from './index.js'
 
+export {KeyboardAvoidingBox} from './keyboard-avoiding-view'
+
 export {
   NativeActivityIndicator,
   NativeAnimated,

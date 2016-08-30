@@ -1,6 +1,5 @@
 // @flow
 import CodePage from '../login/register/code-page'
-import ExistingDevice from './existing-device'
 import GenPaperKey from './gen-paper-key'
 import React, {Component} from 'react'
 import RemoveDevice from './device-revoke'
@@ -27,7 +26,6 @@ class Devices extends Component {
       subRoutes: {
         codePage: CodePage,
         genPaperKey: GenPaperKey,
-        regExistingDevice: ExistingDevice,
         showDevice: ShowDevice,
         removeDevice: RemoveDevice,
       },
