@@ -286,7 +286,10 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                 sh "npm run gobuild-ios"
 
                                                 lock("iossimulator_${env.NODE_NAME}") {
+                                                    // Make sure simulator is clean for us
+                                                    sh "killall 'Simulator'"
                                                     sh "(npm run start &) ; npm run test-ios"
+                                                    // Make sure simulator is clean for others
                                                     sh "killall 'Simulator'"
                                                 }
                                             }
