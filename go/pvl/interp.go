@@ -17,8 +17,8 @@ import (
 // UsePvl says whether to use PVL for verifying proofs.
 const UsePvl = false
 
-// PvlSupportedVersion is which version of PVL is supported by this client.
-const PvlSupportedVersion int = 1
+// SupportedVersion is which version of PVL is supported by this client.
+const SupportedVersion int = 1
 
 type ScriptState struct {
 	WhichScript  int
@@ -61,27 +61,27 @@ const (
 type CommandName string
 
 const (
-	PvlAssertRegexMatch    CommandName = "assert_regex_match"
-	PvlAssertFindBase64    CommandName = "assert_find_base64"
-	PvlWhitespaceNormalize CommandName = "whitespace_normalize"
-	PvlRegexCapture        CommandName = "regex_capture"
-	PvlFetch               CommandName = "fetch"
-	PvlSelectorJSON        CommandName = "selector_json"
-	PvlSelectorCSS         CommandName = "selector_css"
-	PvlTransformURL        CommandName = "transform_url"
+	CmdAssertRegexMatch    CommandName = "assert_regex_match"
+	CmdAssertFindBase64    CommandName = "assert_find_base64"
+	CmdWhitespaceNormalize CommandName = "whitespace_normalize"
+	CmdRegexCapture        CommandName = "regex_capture"
+	CmdFetch               CommandName = "fetch"
+	CmdSelectorJSON        CommandName = "selector_json"
+	CmdSelectorCSS         CommandName = "selector_css"
+	CmdTransformURL        CommandName = "transform_url"
 )
 
 type Step func(ProofContextExt, *jsonw.Wrapper, ScriptState) (ScriptState, libkb.ProofError)
 
 var Steps = map[CommandName]Step{
-	PvlAssertRegexMatch:    stepAssertRegexMatch,
-	PvlAssertFindBase64:    stepAssertFindBase64,
-	PvlWhitespaceNormalize: stepWhitespaceNormalize,
-	PvlRegexCapture:        stepRegexCapture,
-	PvlFetch:               stepFetch,
-	PvlSelectorJSON:        stepSelectorJSON,
-	PvlSelectorCSS:         stepSelectorCSS,
-	PvlTransformURL:        stepTransformURL,
+	CmdAssertRegexMatch:    stepAssertRegexMatch,
+	CmdAssertFindBase64:    stepAssertFindBase64,
+	CmdWhitespaceNormalize: stepWhitespaceNormalize,
+	CmdRegexCapture:        stepRegexCapture,
+	CmdFetch:               stepFetch,
+	CmdSelectorJSON:        stepSelectorJSON,
+	CmdSelectorCSS:         stepSelectorCSS,
+	CmdTransformURL:        stepTransformURL,
 }
 
 // Checkproof verifies one proof by running the pvl on the provided proof information.
@@ -212,9 +212,9 @@ func validateChunk(g ProofContextExt, pvl *jsonw.Wrapper, service keybase1.Proof
 		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"missing version number: %v", err)
 	}
-	if version != PvlSupportedVersion {
+	if version != SupportedVersion {
 		return libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"PVL is for the wrong version %v != %v", version, PvlSupportedVersion)
+			"PVL is for the wrong version %v != %v", version, SupportedVersion)
 	}
 
 	// Check that revision is there.
@@ -268,16 +268,16 @@ func validateScript(g ProofContextExt, script *jsonw.Wrapper, service keybase1.P
 		switch {
 
 		// These can always run, but must be cases so that the default case works.
-		case jsonHasKeyCommand(ins, PvlAssertRegexMatch):
-		case jsonHasKeyCommand(ins, PvlAssertFindBase64):
-		case jsonHasKeyCommand(ins, PvlWhitespaceNormalize):
-		case jsonHasKeyCommand(ins, PvlRegexCapture):
+		case jsonHasKeyCommand(ins, CmdAssertRegexMatch):
+		case jsonHasKeyCommand(ins, CmdAssertFindBase64):
+		case jsonHasKeyCommand(ins, CmdWhitespaceNormalize):
+		case jsonHasKeyCommand(ins, CmdRegexCapture):
 
-		case jsonHasKeyCommand(ins, PvlFetch):
+		case jsonHasKeyCommand(ins, CmdFetch):
 			// A script can contain only <=1 fetches.
 			// A DNS script cannot contain fetches.
 
-			fetchType, err := ins.AtKey(string(PvlFetch)).GetString()
+			fetchType, err := ins.AtKey(string(CmdFetch)).GetString()
 			if err != nil {
 				return logerr(g, service, whichscript, i,
 					"Could not get fetch type")
@@ -305,7 +305,7 @@ func validateScript(g ProofContextExt, script *jsonw.Wrapper, service keybase1.P
 				return logerr(g, service, whichscript, i,
 					"Unsupported fetch type: %v", fetchType)
 			}
-		case jsonHasKeyCommand(ins, PvlSelectorJSON):
+		case jsonHasKeyCommand(ins, CmdSelectorJSON):
 			// Can only select after fetching.
 			switch {
 			case service == keybase1.ProofType_DNS:
@@ -318,7 +318,7 @@ func validateScript(g ProofContextExt, script *jsonw.Wrapper, service keybase1.P
 				return logerr(g, service, whichscript, i,
 					"Script contains json selector in non-html mode")
 			}
-		case jsonHasKeyCommand(ins, PvlSelectorCSS):
+		case jsonHasKeyCommand(ins, CmdSelectorCSS):
 			// Can only select after fetching.
 			switch {
 			case service == keybase1.ProofType_DNS:
@@ -331,7 +331,7 @@ func validateScript(g ProofContextExt, script *jsonw.Wrapper, service keybase1.P
 				return logerr(g, service, whichscript, i,
 					"Script contains css selector in non-html mode")
 			}
-		case jsonHasKeyCommand(ins, PvlTransformURL):
+		case jsonHasKeyCommand(ins, CmdTransformURL):
 			// Can only transform before fetching.
 			switch {
 			case service == keybase1.ProofType_DNS:
@@ -478,7 +478,7 @@ func stepInstruction(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (
 }
 
 func stepAssertRegexMatch(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (ScriptState, libkb.ProofError) {
-	template, err := ins.AtKey(string(PvlAssertRegexMatch)).GetString()
+	template, err := ins.AtKey(string(CmdAssertRegexMatch)).GetString()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not get regex template")
@@ -497,7 +497,7 @@ func stepAssertRegexMatch(g ProofContextExt, ins *jsonw.Wrapper, state ScriptSta
 }
 
 func stepAssertFindBase64(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (ScriptState, libkb.ProofError) {
-	target, err := ins.AtKey(string(PvlAssertFindBase64)).GetString()
+	target, err := ins.AtKey(string(CmdAssertFindBase64)).GetString()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Bad assert-findbase64 instruction")
@@ -519,7 +519,7 @@ func stepWhitespaceNormalize(g ProofContextExt, ins *jsonw.Wrapper, state Script
 }
 
 func stepRegexCapture(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (ScriptState, libkb.ProofError) {
-	template, err := ins.AtKey(string(PvlRegexCapture)).GetString()
+	template, err := ins.AtKey(string(CmdRegexCapture)).GetString()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"not get regex template")
@@ -541,7 +541,7 @@ func stepRegexCapture(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) 
 }
 
 func stepFetch(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (ScriptState, libkb.ProofError) {
-	fetchType, err := ins.AtKey(string(PvlFetch)).GetString()
+	fetchType, err := ins.AtKey(string(CmdFetch)).GetString()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not get fetch type")
@@ -601,7 +601,7 @@ func stepSelectorJSON(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) 
 			"Cannot use json selector with non-json fetch result")
 	}
 
-	selectorsw, err := ins.AtKey(string(PvlSelectorJSON)).ToArray()
+	selectorsw, err := ins.AtKey(string(CmdSelectorJSON)).ToArray()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Cannot use css selector with non-html fetch result")
@@ -637,7 +637,7 @@ func stepSelectorCSS(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (
 			"Cannot use css selector with non-html fetch result")
 	}
 
-	selectors, err := ins.AtKey(string(PvlSelectorCSS)).ToArray()
+	selectors, err := ins.AtKey(string(CmdSelectorCSS)).ToArray()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"CSS selectors must be an array: %v", err)
@@ -673,7 +673,7 @@ func stepSelectorCSS(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (
 }
 
 func stepTransformURL(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (ScriptState, libkb.ProofError) {
-	sourceTemplate, err := ins.AtKey(string(PvlTransformURL)).GetString()
+	sourceTemplate, err := ins.AtKey(string(CmdTransformURL)).GetString()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not get regex template for transformation")
