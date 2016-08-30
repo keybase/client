@@ -111,7 +111,7 @@
       ],
       "response": "ConversationID"
     },
-    "retrieveMessagesRemote": {
+    "getMessagesRemote": {
       "request": [
         {
           "name": "conversationID",

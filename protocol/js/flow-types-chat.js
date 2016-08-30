@@ -142,6 +142,20 @@ export function remoteGetInboxRemoteRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: remoteGetInboxRemoteResult) => void)}>) {
   engine.rpc({...request, method: 'remote.getInboxRemote'})
 }
+export type remoteGetMessagesRemoteRpcParam = $Exact<{
+  conversationID: ConversationID,
+  messageIDs?: ?Array<MessageID>
+}>
+
+type remoteGetMessagesRemoteResult = ?Array<MessageBoxed>
+
+export function remoteGetMessagesRemoteRpc (request: $Exact<{
+  param: remoteGetMessagesRemoteRpcParam,
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any, response: remoteGetMessagesRemoteResult) => void)}>) {
+  engine.rpc({...request, method: 'remote.getMessagesRemote'})
+}
 export type remoteGetThreadRemoteRpcParam = $Exact<{
   conversationID: ConversationID,
   markAsRead: boolean,
@@ -196,27 +210,13 @@ export function remotePostRemoteRpc (request: $Exact<{
   callback?: (null | (err: ?any, response: remotePostRemoteResult) => void)}>) {
   engine.rpc({...request, method: 'remote.postRemote'})
 }
-export type remoteRetrieveMessagesRemoteRpcParam = $Exact<{
-  conversationID: ConversationID,
-  messageIDs?: ?Array<MessageID>
-}>
-
-type remoteRetrieveMessagesRemoteResult = ?Array<MessageBoxed>
-
-export function remoteRetrieveMessagesRemoteRpc (request: $Exact<{
-  param: remoteRetrieveMessagesRemoteRpcParam,
-  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
-  incomingCallMap?: incomingCallMapType,
-  callback?: (null | (err: ?any, response: remoteRetrieveMessagesRemoteResult) => void)}>) {
-  engine.rpc({...request, method: 'remote.retrieveMessagesRemote'})
-}
 export type rpc =
     remoteGetInboxRemoteRpc
+  | remoteGetMessagesRemoteRpc
   | remoteGetThreadRemoteRpc
   | remoteMarkAsReadRpc
   | remoteNewConversationRemoteRpc
   | remotePostRemoteRpc
-  | remoteRetrieveMessagesRemoteRpc
 
 export type incomingCallMapType = $Exact<{
   'keybase.1.remote.getInboxRemote'?: (
@@ -258,14 +258,14 @@ export type incomingCallMapType = $Exact<{
       result: (result: remoteNewConversationRemoteResult) => void
     }
   ) => void,
-  'keybase.1.remote.retrieveMessagesRemote'?: (
+  'keybase.1.remote.getMessagesRemote'?: (
     params: $Exact<{
       conversationID: ConversationID,
       messageIDs?: ?Array<MessageID>
     }>,
     response: {
       error: (err: RPCError) => void,
-      result: (result: remoteRetrieveMessagesRemoteResult) => void
+      result: (result: remoteGetMessagesRemoteResult) => void
     }
   ) => void,
   'keybase.1.remote.markAsRead'?: (
