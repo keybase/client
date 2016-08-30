@@ -33,17 +33,20 @@ export default function () {
     mainWindow.window.setPosition(forceMainWindowPosition.x, forceMainWindowPosition.y)
   }
 
-  const openedAtLogin = app.getLoginItemSettings().openAtLogin
+  const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
   const isRestore = getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState
   const openHidden = (getenv.string('KEYBASE_START_UI', '') === 'hideWindow') || app.getLoginItemSettings().wasOpenedAsHidden
+  console.log('Opened at login:', openedAtLogin)
+  console.log('Is restore:', isRestore)
+  console.log('Open hidden:', openHidden)
 
   // Don't show main window:
   // - If we are set to open hidden,
   // - or, if we are restoring and window was hidden
-  // - or, if we are opening from login (but not restoring)
+  // - or, if we were opened from login (but not restoring)
   const hideMainWindow = openHidden || (isRestore && appState.state.windowHidden) || (openedAtLogin && !isRestore)
 
-  console.log('Hide main window: %s', hideMainWindow)
+  console.log('Hide main window:', hideMainWindow)
   if (!hideMainWindow) {
     // On Windows we can try showing before Windows is ready
     // This will result in a dropped .show request
@@ -58,7 +61,7 @@ export default function () {
   // Don't show dock:
   // - If we are set to open hidden,
   // - or, if we are restoring and dock was hidden
-  // - or, if we are opening from login (but not restoring)
+  // - or, if we were opened from login (but not restoring)
   const shouldHideDockIcon = openHidden || (isRestore && appState.state.dockHidden) || (openedAtLogin && !isRestore)
   console.log('Hide dock icon: %s', shouldHideDockIcon)
   if (shouldHideDockIcon) {
