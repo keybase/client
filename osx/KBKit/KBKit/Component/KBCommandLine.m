@@ -37,7 +37,7 @@
   // If there is no /usr/local/bin or /etc/paths.d then we don't have anywhere to install
   // the command line.
   // On macOS Sierra, /etc/paths.d may not exists on a fresh install.
-  if (![NSFileManager.defaultManager fileExistsAtPath:@"/usr/local/bin"] ||
+  if (![NSFileManager.defaultManager fileExistsAtPath:@"/usr/local/bin"] &&
       ![NSFileManager.defaultManager fileExistsAtPath:@"/etc/paths.d"]) {
     completion(KBMakeWarning(@"There isn't anywhere to install the command line."));
     return;
