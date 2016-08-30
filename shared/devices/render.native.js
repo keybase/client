@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './render'
-import {Box, Text, Icon, ClickableBox} from '../common-adapters/index'
+import {Box, Text, PopupMenu, Icon, ClickableBox, NativeScrollView} from '../common-adapters/index.native'
 import {globalStyles, globalColors} from '../styles'
 
 const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {

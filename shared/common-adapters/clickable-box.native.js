@@ -1,11 +1,11 @@
 // @flow
 import React from 'react'
 import type {Props} from './clickable-box'
-import {NativeTouchableHighlight} from './index.native'
+import {TouchableHighlight} from 'react-native'
 import {globalColors} from '../styles'
 
 const ClickableBox = ({onClick, style, children, underlayColor, onPressIn, onPressOut}: Props) => (
-  <NativeTouchableHighlight
+  <TouchableHighlight
     disabled={!onClick}
     onPress={onClick}
     onPressIn={onPressIn}
@@ -13,7 +13,7 @@ const ClickableBox = ({onClick, style, children, underlayColor, onPressIn, onPre
     style={{...boxStyle, ...style}}
     underlayColor={underlayColor || globalColors.black_10}>
     {children}
-  </NativeTouchableHighlight>
+  </TouchableHighlight>
 )
 
 const boxStyle = {
