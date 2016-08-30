@@ -690,6 +690,14 @@ export function kbfsFSEventRpc (request: $Exact<requestCommon & requestErrorCall
   engineRpcOutgoing({...request, method: 'kbfs.FSEvent'})
 }
 
+export function kbfsFSSyncEventRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncEventRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'kbfs.FSSyncEvent'})
+}
+
+export function kbfsFSSyncStatusRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSSyncStatusRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'kbfs.FSSyncStatus'})
+}
+
 export function logRegisterLoggerRpc (request: $Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>) {
   engineRpcOutgoing({...request, method: 'log.registerLogger'})
 }
@@ -1373,10 +1381,28 @@ export type FSNotificationType =
   | 9 // FILE_DELETED_9
   | 10 // FILE_RENAMED_10
 
+export type FSPathSyncStatus = {
+  publicTopLevelFolder: boolean,
+  path: string,
+  syncingBytes: int64,
+  syncingOps: int64,
+  syncedBytes: int64,
+}
+
 export type FSStatusCode = 
     0 // START_0
   | 1 // FINISH_1
   | 2 // ERROR_2
+
+export type FSSyncStatus = {
+  totalSyncingBytes: int64,
+  totalSyncingOps: int64,
+  pathStatuses?: ?Array<FSPathSyncStatus>,
+}
+
+export type FSSyncStatusRequest = {
+  requestID: int,
+}
 
 export type FavoritesResult = {
   favoriteFolders?: ?Array<Folder>,
@@ -1765,8 +1791,21 @@ export type NotifyFSFSEditListResponseRpcParam = $Exact<{
   requestID: int
 }>
 
+export type NotifyFSFSSyncActivityRpcParam = $Exact<{
+  status: FSPathSyncStatus
+}>
+
+export type NotifyFSFSSyncStatusResponseRpcParam = $Exact<{
+  status: FSSyncStatus,
+  requestID: int
+}>
+
 export type NotifyFSRequestFSEditListRequestRpcParam = $Exact<{
   req: FSEditListRequest
+}>
+
+export type NotifyFSRequestFSSyncStatusRequestRpcParam = $Exact<{
+  req: FSSyncStatusRequest
 }>
 
 export type NotifyFavoritesFavoritesChangedRpcParam = $Exact<{
@@ -2828,6 +2867,15 @@ export type kbfsFSEventRpcParam = $Exact<{
   event: FSNotification
 }>
 
+export type kbfsFSSyncEventRpcParam = $Exact<{
+  event: FSPathSyncStatus
+}>
+
+export type kbfsFSSyncStatusRpcParam = $Exact<{
+  status: FSSyncStatus,
+  requestID: int
+}>
+
 export type logRegisterLoggerRpcParam = $Exact<{
   name: string,
   level: LogLevel
@@ -3682,6 +3730,8 @@ export type rpc =
   | identifyResolveRpc
   | kbfsFSEditListRpc
   | kbfsFSEventRpc
+  | kbfsFSSyncEventRpc
+  | kbfsFSSyncStatusRpc
   | logRegisterLoggerRpc
   | loginAccountDeleteRpc
   | loginClearStoredSecretRpc
@@ -4029,6 +4079,12 @@ export type incomingCallMapType = $Exact<{
     response: {} // Notify call
     */
   ) => void,
+  'keybase.1.NotifyFS.FSSyncActivity'?: (
+    params: $Exact<{
+      status: FSPathSyncStatus
+    }>,
+    response: CommonResponseHandler
+  ) => void,
   'keybase.1.NotifyFS.FSEditListResponse'?: (
     params: $Exact<{
       edits?: ?Array<FSNotification>,
@@ -4036,9 +4092,23 @@ export type incomingCallMapType = $Exact<{
     }>,
     response: CommonResponseHandler
   ) => void,
+  'keybase.1.NotifyFS.FSSyncStatusResponse'?: (
+    params: $Exact<{
+      status: FSSyncStatus,
+      requestID: int
+    }>,
+    response: CommonResponseHandler
+  ) => void,
   'keybase.1.NotifyFSRequest.FSEditListRequest'?: (
     params: $Exact<{
       req: FSEditListRequest
+    }> /* ,
+    response: {} // Notify call
+    */
+  ) => void,
+  'keybase.1.NotifyFSRequest.FSSyncStatusRequest'?: (
+    params: $Exact<{
+      req: FSSyncStatusRequest
     }> /* ,
     response: {} // Notify call
     */

@@ -98,6 +98,24 @@ type FSEditListRequest struct {
 	RequestID int    `codec:"requestID" json:"requestID"`
 }
 
+type FSSyncStatusRequest struct {
+	RequestID int `codec:"requestID" json:"requestID"`
+}
+
+type FSPathSyncStatus struct {
+	PublicTopLevelFolder bool   `codec:"publicTopLevelFolder" json:"publicTopLevelFolder"`
+	Path                 string `codec:"path" json:"path"`
+	SyncingBytes         int64  `codec:"syncingBytes" json:"syncingBytes"`
+	SyncingOps           int64  `codec:"syncingOps" json:"syncingOps"`
+	SyncedBytes          int64  `codec:"syncedBytes" json:"syncedBytes"`
+}
+
+type FSSyncStatus struct {
+	TotalSyncingBytes int64              `codec:"totalSyncingBytes" json:"totalSyncingBytes"`
+	TotalSyncingOps   int64              `codec:"totalSyncingOps" json:"totalSyncingOps"`
+	PathStatuses      []FSPathSyncStatus `codec:"pathStatuses" json:"pathStatuses"`
+}
+
 type KbfsCommonInterface interface {
 }
 
