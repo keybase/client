@@ -125,24 +125,36 @@ func NewSecretStoreLocked(g *GlobalContext) *SecretStoreLocked {
 }
 
 func (s *SecretStoreLocked) RetrieveSecret(username NormalizedUsername) ([]byte, error) {
+	if s == nil || s.SecretStoreAll == nil {
+		return nil, nil
+	}
 	s.Lock()
 	defer s.Unlock()
 	return s.SecretStoreAll.RetrieveSecret(username)
 }
 
 func (s *SecretStoreLocked) StoreSecret(username NormalizedUsername, secret []byte) error {
+	if s == nil || s.SecretStoreAll == nil {
+		return nil
+	}
 	s.Lock()
 	defer s.Unlock()
 	return s.SecretStoreAll.StoreSecret(username, secret)
 }
 
 func (s *SecretStoreLocked) ClearSecret(username NormalizedUsername) error {
+	if s == nil || s.SecretStoreAll == nil {
+		return nil
+	}
 	s.Lock()
 	defer s.Unlock()
 	return s.SecretStoreAll.ClearSecret(username)
 }
 
 func (s *SecretStoreLocked) GetUsersWithStoredSecrets() ([]string, error) {
+	if s == nil || s.SecretStoreAll == nil {
+		return nil, nil
+	}
 	s.Lock()
 	defer s.Unlock()
 	return s.SecretStoreAll.GetUsersWithStoredSecrets()
