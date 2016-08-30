@@ -3,7 +3,7 @@
 import rpc from 'framed-msgpack-rpc'
 import setupLocalLogs from '../util/local-log'
 import {requestIdleCallback} from '../util/idle-callback'
-import type {rpcLogType} from './platform-specific'
+import type {rpcLogType} from './index.platform'
 import {intersperse} from '../util/arrays'
 import {printRPC} from '../local-debug'
 
