@@ -29,6 +29,12 @@ export function NotifyAppExitRpc (request: $Exact<{
   callback?: (null | (err: ?any) => void)}>) {
   engine.rpc({...request, method: 'NotifyApp.exit'})
 }
+export function NotifyPGPPgpKeyInSecretStoreFileRpc (request: $Exact<{
+  waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
+  incomingCallMap?: incomingCallMapType,
+  callback?: (null | (err: ?any) => void)}>) {
+  engine.rpc({...request, method: 'NotifyPGP.pgpKeyInSecretStoreFile'})
+}
 export function NotifyServiceShutdownRpc (request: $Exact<{
   waitingHandler?: (waiting: boolean, method: string, sessionID: string) => void,
   incomingCallMap?: incomingCallMapType,
@@ -4196,6 +4202,7 @@ export type rpc =
   | NotifyFSRequestFSEditListRequestRpc
   | NotifyFavoritesFavoritesChangedRpc
   | NotifyKeyfamilyKeyfamilyChangedRpc
+  | NotifyPGPPgpKeyInSecretStoreFileRpc
   | NotifyPaperKeyPaperKeyCachedRpc
   | NotifyServiceShutdownRpc
   | NotifySessionClientOutOfDateRpc
@@ -5814,6 +5821,13 @@ export type incomingCallMapType = $Exact<{
       encKID: KID,
       sigKID: KID
     }>,
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'?: (
+    params: $Exact<{}>,
     response: {
       error: (err: RPCError) => void,
       result: () => void
