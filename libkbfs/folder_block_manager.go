@@ -776,7 +776,14 @@ outer:
 				if _, ok := op.(*gcOp); ok {
 					continue
 				}
-				ptrs = append(ptrs, op.Unrefs()...)
+				for _, ptr := range op.Unrefs() {
+					// Can be zeroPtr in weird failed sync scenarios.
+					// See syncInfo.replaceRemovedBlock for an example
+					// of how this can happen.
+					if ptr != zeroPtr {
+						ptrs = append(ptrs, ptr)
+					}
+				}
 				for _, update := range op.AllUpdates() {
 					// It's legal for there to be an "update" between
 					// two identical pointers (usually because of
