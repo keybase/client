@@ -381,8 +381,7 @@ type normalizedUsernameGetter interface {
 	GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)
 }
 
-// KBPKI interacts with the Keybase daemon to fetch user info.
-type KBPKI interface {
+type currentInfoGetter interface {
 	// GetCurrentToken gets the current keybase session token.
 	GetCurrentToken(ctx context.Context) (string, error)
 	// GetCurrentUserInfo gets the name and UID of the current
@@ -395,7 +394,11 @@ type KBPKI interface {
 	// GetCurrentVerifyingKey gets the public key used for signing for the
 	// currently-active device.
 	GetCurrentVerifyingKey(ctx context.Context) (VerifyingKey, error)
+}
 
+// KBPKI interacts with the Keybase daemon to fetch user info.
+type KBPKI interface {
+	currentInfoGetter
 	resolver
 	identifier
 	normalizedUsernameGetter
@@ -1060,7 +1063,7 @@ type mdServerLocal interface {
 	getCurrentMergedHeadRevision(ctx context.Context, id TlfID) (
 		rev MetadataRevision, err error)
 	isShutdown() bool
-	copy(config Config) mdServerLocal
+	copy(config mdServerLocalConfig) mdServerLocal
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation

@@ -95,7 +95,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 
 	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser.Name)
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser.Name)
-	crypto := NewCryptoLocal(config, signingKey, cryptPrivateKey)
+	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 
 	// see if a local remote server is specified
@@ -104,7 +104,8 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	switch {
 	case bserverAddr == TempdirServerAddr:
 		var err error
-		blockServer, err = NewBlockServerTempDir(config)
+		blockServer, err = NewBlockServerTempDir(
+			blockServerLocalConfigAdapter{config})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -113,7 +114,8 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 		blockServer = NewBlockServerRemote(config, bserverAddr, env.NewContext())
 
 	default:
-		blockServer = NewBlockServerMemory(config)
+		blockServer = NewBlockServerMemory(
+			blockServerLocalConfigAdapter{config})
 	}
 	config.SetBlockServer(blockServer)
 
@@ -124,11 +126,13 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	switch {
 	case mdServerAddr == TempdirServerAddr:
 		var err error
-		mdServer, err = NewMDServerTempDir(config)
+		mdServer, err = NewMDServerTempDir(
+			mdServerLocalConfigAdapter{config})
 		if err != nil {
 			t.Fatal(err)
 		}
-		keyServer, err = NewKeyServerTempDir(config)
+		keyServer, err = NewKeyServerTempDir(
+			mdServerLocalConfigAdapter{config})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -156,12 +160,14 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	default:
 		var err error
 		// create in-memory server shim
-		mdServer, err = NewMDServerMemory(config)
+		mdServer, err = NewMDServerMemory(
+			mdServerLocalConfigAdapter{config})
 		if err != nil {
 			t.Fatal(err)
 		}
 		// shim for the key server too
-		keyServer, err = NewKeyServerMemory(config)
+		keyServer, err = NewKeyServerMemory(
+			mdServerLocalConfigAdapter{config})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -212,7 +218,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 
 	signingKey := MakeLocalUserSigningKeyOrBust(loggedInUser)
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(loggedInUser)
-	crypto := NewCryptoLocal(config, signingKey, cryptPrivateKey)
+	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
 	c.SetCrypto(crypto)
 	c.noBGFlush = config.noBGFlush
 
@@ -235,11 +241,11 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 		// this way the current device KID is paired with
 		// the proper user yet the DB state is all shared.
 		mdServerToCopy := config.MDServer().(mdServerLocal)
-		mdServer = mdServerToCopy.copy(c)
+		mdServer = mdServerToCopy.copy(mdServerLocalConfigAdapter{c})
 
 		// use the same db but swap configs
 		keyServerToCopy := config.KeyServer().(*KeyServerLocal)
-		keyServer = keyServerToCopy.copy(c)
+		keyServer = keyServerToCopy.copy(mdServerLocalConfigAdapter{c})
 	}
 	c.SetMDServer(mdServer)
 	c.SetKeyServer(keyServer)
@@ -367,7 +373,8 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 	keySalt := keySaltForUserDevice(name, index)
 	signingKey := MakeLocalUserSigningKeyOrBust(keySalt)
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(keySalt)
-	config.SetCrypto(NewCryptoLocal(config, signingKey, cryptPrivateKey))
+	config.SetCrypto(
+		NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey))
 }
 
 // AddNewAssertionForTest makes newAssertion, which should be a single

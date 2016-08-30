@@ -73,10 +73,10 @@ const (
 	archiveRefsOp bserverOpName = "archiveReferences"
 )
 
-// A bserverJournalEntry is just the name of the operation and the
+// A blockJournalEntry is just the name of the operation and the
 // associated block ID and contexts. Fields are exported only for
 // serialization.
-type bserverJournalEntry struct {
+type blockJournalEntry struct {
 	// Must be one of the four ops above.
 	Op bserverOpName
 	// Must have exactly one entry with one context for blockPutOp
@@ -86,7 +86,7 @@ type bserverJournalEntry struct {
 
 // Get the single context stored in this entry. Only applicable to
 // blockPutOp and addRefOp.
-func (e bserverJournalEntry) getSingleContext() (
+func (e blockJournalEntry) getSingleContext() (
 	BlockID, BlockContext, error) {
 	switch e.Op {
 	case blockPutOp, addRefOp:
@@ -117,7 +117,7 @@ func makeBlockJournal(
 	journalPath := filepath.Join(dir, "block_journal")
 	deferLog := log.CloneWithAddedDepth(1)
 	j := makeDiskJournal(
-		codec, journalPath, reflect.TypeOf(bserverJournalEntry{}))
+		codec, journalPath, reflect.TypeOf(blockJournalEntry{}))
 	journal := &blockJournal{
 		codec:    codec,
 		crypto:   crypto,
@@ -157,14 +157,14 @@ func (j *blockJournal) keyServerHalfPath(id BlockID) string {
 
 // The functions below are for reading and writing journal entries.
 
-func (j *blockJournal) readJournalEntry(o journalOrdinal) (
-	bserverJournalEntry, error) {
-	entry, err := j.j.readJournalEntry(o)
+func (j *blockJournal) readJournalEntry(ordinal journalOrdinal) (
+	blockJournalEntry, error) {
+	entry, err := j.j.readJournalEntry(ordinal)
 	if err != nil {
-		return bserverJournalEntry{}, err
+		return blockJournalEntry{}, err
 	}
 
-	return entry.(bserverJournalEntry), nil
+	return entry.(blockJournalEntry), nil
 }
 
 // readJournal reads the journal and returns a map of all the block
@@ -258,13 +258,13 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 }
 
 func (j *blockJournal) writeJournalEntry(
-	o journalOrdinal, entry bserverJournalEntry) error {
-	return j.j.writeJournalEntry(o, entry)
+	ordinal journalOrdinal, entry blockJournalEntry) error {
+	return j.j.writeJournalEntry(ordinal, entry)
 }
 
 func (j *blockJournal) appendJournalEntry(
 	op bserverOpName, contexts map[BlockID][]BlockContext) error {
-	return j.j.appendJournalEntry(nil, bserverJournalEntry{
+	return j.j.appendJournalEntry(nil, blockJournalEntry{
 		Op:       op,
 		Contexts: contexts,
 	})
@@ -640,47 +640,68 @@ func (j *blockJournal) archiveReferences(
 	return j.appendJournalEntry(archiveRefsOp, contexts)
 }
 
-func (j *blockJournal) flushOne(
-	ctx context.Context, bserver BlockServer, tlfID TlfID) (bool, error) {
+// getNextEntryToFlush returns the info for the next journal entry to
+// flush, if any. If there is no next journal entry to flush, the
+// returned *blockJournalEntry will be nil.
+func (j *blockJournal) getNextEntryToFlush(ctx context.Context) (
+	journalOrdinal, *blockJournalEntry, []byte,
+	BlockCryptKeyServerHalf, error) {
 	if j.isShutdown {
-		return false, errBlockJournalShutdown
+		return 0, nil, nil, BlockCryptKeyServerHalf{},
+			errBlockJournalShutdown
 	}
 
 	earliestOrdinal, err := j.j.readEarliestOrdinal()
 	if os.IsNotExist(err) {
-		return false, nil
+		return 0, nil, nil, BlockCryptKeyServerHalf{}, nil
 	} else if err != nil {
-		return false, err
+		return 0, nil, nil, BlockCryptKeyServerHalf{}, err
 	}
 
 	e, err := j.readJournalEntry(earliestOrdinal)
 	if err != nil {
-		return false, err
+		return 0, nil, nil, BlockCryptKeyServerHalf{}, err
 	}
 
-	j.log.CDebugf(ctx, "Flushing block op %v", e)
-
-	switch e.Op {
-	case blockPutOp:
-		id, context, err := e.getSingleContext()
+	var data []byte
+	var serverHalf BlockCryptKeyServerHalf
+	if e.Op == blockPutOp {
+		id, _, err := e.getSingleContext()
 		if err != nil {
-			return false, err
+			return 0, nil, nil, BlockCryptKeyServerHalf{}, err
 		}
 
-		data, serverHalf, err := j.getData(id)
+		data, serverHalf, err = j.getData(id)
 		if err != nil {
-			return false, err
+			return 0, nil, nil, BlockCryptKeyServerHalf{}, err
+		}
+	}
+
+	return earliestOrdinal, &e, data, serverHalf, nil
+}
+
+func flushBlockJournalEntry(
+	ctx context.Context, log logger.Logger,
+	bserver BlockServer, tlfID TlfID, entry blockJournalEntry, data []byte,
+	serverHalf BlockCryptKeyServerHalf) error {
+	log.CDebugf(ctx, "Flushing block op %v", entry)
+
+	switch entry.Op {
+	case blockPutOp:
+		id, context, err := entry.getSingleContext()
+		if err != nil {
+			return err
 		}
 
 		err = bserver.Put(ctx, tlfID, id, context, data, serverHalf)
 		if err != nil {
-			return false, err
+			return err
 		}
 
 	case addRefOp:
-		id, context, err := e.getSingleContext()
+		id, context, err := entry.getSingleContext()
 		if err != nil {
-			return false, err
+			return err
 		}
 
 		// TODO: If the reference add fails, retry with a
@@ -688,34 +709,67 @@ func (j *blockJournal) flushOne(
 		err = bserver.AddBlockReference(ctx, tlfID, id, context)
 		if err != nil {
 			if isRecoverableBlockError(err) {
-				j.log.CWarningf(ctx,
+				log.CWarningf(ctx,
 					"Recoverable block error encountered on AddBlockReference: %v", err)
 			}
-			return false, err
+			return err
 		}
 
 	case removeRefsOp:
-		_, err = bserver.RemoveBlockReferences(ctx, tlfID, e.Contexts)
+		_, err := bserver.RemoveBlockReferences(
+			ctx, tlfID, entry.Contexts)
 		if err != nil {
-			return false, err
+			return err
 		}
 
 	case archiveRefsOp:
-		err = bserver.ArchiveBlockReferences(ctx, tlfID, e.Contexts)
+		err := bserver.ArchiveBlockReferences(
+			ctx, tlfID, entry.Contexts)
 		if err != nil {
-			return false, err
+			return err
 		}
 
 	default:
-		return false, fmt.Errorf("Unknown op %s", e.Op)
+		return fmt.Errorf("Unknown op %s", entry.Op)
+	}
+
+	return nil
+}
+
+func (j *blockJournal) removeFlushedEntry(ctx context.Context,
+	ordinal journalOrdinal, _ blockJournalEntry) error {
+	if j.isShutdown {
+		// TODO: This creates a race condition if we shut down
+		// after we've flushed an op but before we remove
+		// it. Make sure we handle re-flushed ops
+		// idempotently.
+		return errBlockJournalShutdown
+	}
+
+	earliestOrdinal, err := j.j.readEarliestOrdinal()
+	if err != nil {
+		return err
+	}
+
+	if ordinal != earliestOrdinal {
+		return fmt.Errorf("Expected ordinal %d, got %d",
+			ordinal, earliestOrdinal)
 	}
 
 	_, err = j.j.removeEarliest()
 	if err != nil {
-		return false, err
+		return err
 	}
 
-	return true, nil
+	// TODO: This is a hack to work around KBFS-1439. Figure out a
+	// better way to update j.refs to reflect the removed entry.
+	refs, err := j.readJournal(ctx)
+	if err != nil {
+		return err
+	}
+	j.refs = refs
+
+	return nil
 }
 
 func (j *blockJournal) shutdown() {

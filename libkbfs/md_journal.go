@@ -442,38 +442,74 @@ func (j *mdJournal) convertToBranch(
 	return err
 }
 
-func (j mdJournal) pushEarliestToServer(
+// getNextEntryToFlush returns the info for the next journal entry to
+// flush, if any. If there is no next journal entry to flush, the
+// returned MdID will be zero, and the returned *RootMetadataSigned
+// will be nil.
+func (j mdJournal) getNextEntryToFlush(
 	ctx context.Context, currentUID keybase1.UID,
-	currentVerifyingKey VerifyingKey, signer cryptoSigner,
-	mdserver MDServer) (ImmutableBareRootMetadata, error) {
+	currentVerifyingKey VerifyingKey, signer cryptoSigner) (
+	MdID, *RootMetadataSigned, error) {
 	rmd, err := j.getEarliest(currentUID, currentVerifyingKey)
 	if err != nil {
-		return ImmutableBareRootMetadata{}, err
+		return MdID{}, nil, err
 	}
 	if rmd == (ImmutableBareRootMetadata{}) {
-		return ImmutableBareRootMetadata{}, nil
+		return MdID{}, nil, nil
 	}
-
-	j.log.CDebugf(ctx, "Flushing MD for TLF=%s with id=%s, rev=%s, bid=%s",
-		rmd.TlfID(), rmd.mdID, rmd.RevisionNumber(), rmd.BID)
 
 	mbrmd, ok := rmd.BareRootMetadata.(MutableBareRootMetadata)
 	if !ok {
-		return ImmutableBareRootMetadata{}, MutableBareRootMetadataNoImplError{}
+		return MdID{}, nil, MutableBareRootMetadataNoImplError{}
 	}
 
 	rmds := RootMetadataSigned{MD: mbrmd}
 	err = signMD(ctx, j.codec, signer, &rmds)
 	if err != nil {
-		return ImmutableBareRootMetadata{}, err
-	}
-	err = mdserver.Put(ctx, &rmds)
-	if err != nil {
-		// Still return the RMD so that it can be consulted.
-		return rmd, err
+		return MdID{}, nil, err
 	}
 
-	return rmd, nil
+	return rmd.mdID, &rmds, nil
+}
+
+func (j *mdJournal) removeFlushedEntry(
+	ctx context.Context, currentUID keybase1.UID,
+	currentVerifyingKey VerifyingKey, mdID MdID,
+	rmds *RootMetadataSigned) error {
+	rmd, err := j.getEarliest(currentUID, currentVerifyingKey)
+	if err != nil {
+		return err
+	}
+	if rmd == (ImmutableBareRootMetadata{}) {
+		return errors.New("mdJournal unexpectedly empty")
+	}
+
+	if mdID != rmd.mdID {
+		return fmt.Errorf("Expected mdID %s, got %s", mdID, rmd.mdID)
+	}
+
+	eq, err := CodecEqual(j.codec, rmd.BareRootMetadata, rmds.MD)
+	if err != nil {
+		return err
+	}
+	if !eq {
+		return errors.New(
+			"Given RootMetadataSigned doesn't match earliest")
+	}
+
+	empty, err := j.j.removeEarliest()
+	if err != nil {
+		return err
+	}
+
+	// Since the journal is now empty, set lastMdID.
+	if empty {
+		j.log.CDebugf(ctx,
+			"Journal is now empty; saving last MdID=%s", mdID)
+		j.lastMdID = mdID
+	}
+
+	return nil
 }
 
 func getMdID(ctx context.Context, mdserver MDServer, crypto cryptoPure,
@@ -675,72 +711,6 @@ func (j *mdJournal) put(
 	j.lastMdID = MdID{}
 
 	return id, nil
-}
-
-// flushOne sends the earliest MD in the journal to the given MDServer
-// if one exists, and then removes it. Returns whether there was an MD
-// that was put.
-func (j *mdJournal) flushOne(
-	ctx context.Context, currentUID keybase1.UID,
-	currentVerifyingKey VerifyingKey, signer cryptoSigner,
-	mdserver MDServer) (flushed bool, err error) {
-	j.log.CDebugf(ctx, "Flushing one MD to server")
-	defer func() {
-		if err != nil {
-			j.deferLog.CDebugf(ctx, "Flush failed with %v", err)
-		}
-	}()
-
-	rmd, pushErr := j.pushEarliestToServer(
-		ctx, currentUID, currentVerifyingKey, signer, mdserver)
-	if isRevisionConflict(pushErr) {
-		mdID, err := getMdID(
-			ctx, mdserver, j.crypto, rmd.TlfID(), rmd.BID(),
-			rmd.MergedStatus(), rmd.RevisionNumber())
-		if err != nil {
-			j.log.CWarningf(ctx,
-				"getMdID failed for TLF %s, BID %s, and revision %d: %v",
-				rmd.TlfID(), rmd.BID(), rmd.RevisionNumber(), err)
-		} else if mdID == rmd.mdID {
-			if rmd.mdID == (MdID{}) {
-				panic("nil earliestID and revision conflict error returned by pushEarliestToServer")
-			}
-			// We must have already flushed this MD, so continue.
-			pushErr = nil
-		} else if rmd.MergedStatus() == Merged {
-			j.log.CDebugf(ctx, "Conflict detected %v", pushErr)
-
-			err := j.convertToBranch(
-				ctx, currentUID, currentVerifyingKey, signer)
-			if err != nil {
-				return false, err
-			}
-
-			rmd, pushErr = j.pushEarliestToServer(
-				ctx, currentUID, currentVerifyingKey,
-				signer, mdserver)
-		}
-	}
-	if pushErr != nil {
-		return false, pushErr
-	}
-	if rmd.mdID == (MdID{}) {
-		return false, nil
-	}
-
-	empty, err := j.j.removeEarliest()
-	if err != nil {
-		return false, err
-	}
-
-	// Since the journal is now empty, set lastMdID.
-	if empty {
-		j.log.CDebugf(ctx,
-			"Journal is now empty; saving last MdID=%s", rmd.mdID)
-		j.lastMdID = rmd.mdID
-	}
-
-	return true, nil
 }
 
 func (j *mdJournal) clear(

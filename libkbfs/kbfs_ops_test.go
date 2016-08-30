@@ -5435,7 +5435,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	config2 := ConfigAsUser(config1, "mallory")
 	crypto2 := cryptoFixedTlf{config2.Crypto(), fb1.Tlf}
 	config2.SetCrypto(crypto2)
-	mdserver2, err := NewMDServerMemory(config2)
+	mdserver2, err := NewMDServerMemory(mdServerLocalConfigAdapter{config2})
 	require.NoError(t, err)
 	config2.MDServer().Shutdown()
 	config2.SetMDServer(mdserver2)
@@ -5455,7 +5455,7 @@ func TestKBFSOpsMaliciousMDServerRange(t *testing.T) {
 	require.NoError(t, err)
 
 	// Now route alice's TLF to mallory's MD server.
-	config1.SetMDServer(mdserver2.copy(config1))
+	config1.SetMDServer(mdserver2.copy(mdServerLocalConfigAdapter{config1}))
 
 	// Simulate the server triggering alice to update.
 	config1.SetKeyCache(NewKeyCacheStandard(1))

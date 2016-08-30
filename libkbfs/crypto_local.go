@@ -106,9 +106,9 @@ var _ Crypto = CryptoLocal{}
 
 // NewCryptoLocal constructs a new CryptoLocal instance with the given
 // signing key.
-func NewCryptoLocal(config Config, signingKey SigningKey, cryptPrivateKey CryptPrivateKey) CryptoLocal {
+func NewCryptoLocal(codec Codec, signingKey SigningKey, cryptPrivateKey CryptPrivateKey) CryptoLocal {
 	return CryptoLocal{
-		MakeCryptoCommon(config.Codec()),
+		MakeCryptoCommon(codec),
 		cryptoSignerLocal{signingKey},
 		cryptPrivateKey,
 	}

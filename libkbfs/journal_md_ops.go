@@ -319,13 +319,9 @@ func (j journalMDOps) GetUnmergedRange(
 
 func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
-	tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID())
-	if ok {
+	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		// Just route to the journal.
-		return tlfJournal.putMD(ctx,
-			j.jServer.config.Crypto(),
-			j.jServer.config.KeyManager(),
-			j.jServer.config.BlockSplitter(), rmd)
+		return tlfJournal.putMD(ctx, rmd)
 	}
 
 	return j.MDOps.Put(ctx, rmd)
@@ -333,8 +329,7 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 
 func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
-	tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID())
-	if ok {
+	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
 		// TODO: The code below races with PruneBranch, since
 		// the branch may get prunes after the
 		// GerUnmergedForTLF call and before the putMD
@@ -359,10 +354,7 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 			}
 		}
 
-		return tlfJournal.putMD(ctx,
-			j.jServer.config.Crypto(),
-			j.jServer.config.KeyManager(),
-			j.jServer.config.BlockSplitter(), rmd)
+		return tlfJournal.putMD(ctx, rmd)
 	}
 
 	return j.MDOps.PutUnmerged(ctx, rmd)
@@ -370,20 +362,9 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 
 func (j journalMDOps) PruneBranch(
 	ctx context.Context, id TlfID, bid BranchID) error {
-	tlfJournal, ok := j.jServer.getTLFJournal(id)
-	if ok {
-		_, uid, err := j.jServer.config.KBPKI().GetCurrentUserInfo(ctx)
-		if err != nil {
-			return err
-		}
-
-		key, err := j.jServer.config.KBPKI().GetCurrentVerifyingKey(ctx)
-		if err != nil {
-			return err
-		}
-
+	if tlfJournal, ok := j.jServer.getTLFJournal(id); ok {
 		// Prune the journal, too.
-		tlfJournal.clearMDs(ctx, uid, key, bid)
+		err := tlfJournal.clearMDs(ctx, bid)
 		if err != nil {
 			return err
 		}

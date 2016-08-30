@@ -26,7 +26,8 @@ func NewFakeCryptoClient(config Config, signingKey SigningKey,
 	readyChan chan<- struct{},
 	goChan <-chan struct{}) *FakeCryptoClient {
 	return &FakeCryptoClient{
-		Local:     NewCryptoLocal(config, signingKey, cryptPrivateKey),
+		Local: NewCryptoLocal(
+			config.Codec(), signingKey, cryptPrivateKey),
 		readyChan: readyChan,
 		goChan:    goChan,
 	}

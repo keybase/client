@@ -61,7 +61,7 @@ type mdServerMemShared struct {
 
 // MDServerMemory just stores metadata objects in memory.
 type MDServerMemory struct {
-	config Config
+	config mdServerLocalConfig
 	log    logger.Logger
 
 	*mdServerMemShared
@@ -71,12 +71,12 @@ var _ mdServerLocal = (*MDServerMemory)(nil)
 
 // NewMDServerMemory constructs a new MDServerMemory object that stores
 // all data in-memory.
-func NewMDServerMemory(config Config) (*MDServerMemory, error) {
+func NewMDServerMemory(config mdServerLocalConfig) (*MDServerMemory, error) {
 	handleDb := make(map[mdHandleKey]TlfID)
 	latestHandleDb := make(map[TlfID]BareTlfHandle)
 	mdDb := make(map[mdBlockKey]mdBlockMemList)
 	branchDb := make(map[mdBranchKey]BranchID)
-	log := config.MakeLogger("")
+	log := config.MakeLogger("MDSM")
 	truncateLockManager := newMDServerLocalTruncatedLockManager()
 	shared := mdServerMemShared{
 		handleDb:            handleDb,
@@ -111,7 +111,7 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle BareTlfHandle,
 	}
 
 	// Non-readers shouldn't be able to create the dir.
-	_, uid, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
+	_, uid, err := md.config.currentInfoGetter().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return NullTlfID, false, MDServerError{err}
 	}
@@ -120,7 +120,7 @@ func (md *MDServerMemory) getHandleID(ctx context.Context, handle BareTlfHandle,
 	}
 
 	// Allocate a new random ID.
-	id, err = md.config.Crypto().MakeRandomTlfID(handle.IsPublic())
+	id, err = md.config.cryptoPure().MakeRandomTlfID(handle.IsPublic())
 	if err != nil {
 		return NullTlfID, false, MDServerError{err}
 	}
@@ -164,7 +164,7 @@ func (md *MDServerMemory) checkGetParams(
 		return NullBranchID, MDServerError{err}
 	}
 
-	_, currentUID, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
+	_, currentUID, err := md.config.currentInfoGetter().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return NullBranchID, MDServerError{err}
 	}
@@ -254,7 +254,7 @@ func (md *MDServerMemory) getBranchKey(ctx context.Context, id TlfID) (
 }
 
 func (md *MDServerMemory) getCurrentDeviceKID(ctx context.Context) (keybase1.KID, error) {
-	key, err := md.config.KBPKI().GetCurrentCryptPublicKey(ctx)
+	key, err := md.config.currentInfoGetter().GetCurrentCryptPublicKey(ctx)
 	if err != nil {
 		return keybase1.KID(""), err
 	}
@@ -323,18 +323,13 @@ func (md *MDServerMemory) GetRange(ctx context.Context, id TlfID,
 
 // Put implements the MDServer interface for MDServerMemory.
 func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) error {
-	_, currentUID, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
+	currentUID, currentVerifyingKey, err :=
+		getCurrentUIDAndVerifyingKey(ctx, md.config.currentInfoGetter())
 	if err != nil {
 		return MDServerError{err}
 	}
 
-	currentVerifyingKey, err :=
-		md.config.KBPKI().GetCurrentVerifyingKey(ctx)
-	if err != nil {
-		return MDServerError{err}
-	}
-
-	err = rmds.IsValidAndSigned(md.config.Codec(), md.config.Crypto())
+	err = rmds.IsValidAndSigned(md.config.Codec(), md.config.cryptoPure())
 	if err != nil {
 		return MDServerErrorBadRequest{Reason: err.Error()}
 	}
@@ -395,7 +390,7 @@ func (md *MDServerMemory) Put(ctx context.Context, rmds *RootMetadataSigned) err
 
 	// Consistency checks
 	if head != nil {
-		id, err := md.config.Crypto().MakeMdID(head.MD)
+		id, err := md.config.cryptoPure().MakeMdID(head.MD)
 		if err != nil {
 			return err
 		}
@@ -595,7 +590,7 @@ func (md *MDServerMemory) IsConnected() bool {
 func (md *MDServerMemory) RefreshAuthToken(ctx context.Context) {}
 
 // This should only be used for testing with an in-memory server.
-func (md *MDServerMemory) copy(config Config) mdServerLocal {
+func (md *MDServerMemory) copy(config mdServerLocalConfig) mdServerLocal {
 	// NOTE: observers and sessionHeads are copied shallowly on
 	// purpose, so that the MD server that gets a Put will notify all
 	// observers correctly no matter where they got on the list.

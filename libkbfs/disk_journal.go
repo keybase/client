@@ -155,12 +155,11 @@ func (j diskJournal) removeEarliest() (empty bool, err error) {
 
 // The functions below are for reading and writing journal entries.
 
-func (j diskJournal) readJournalEntry(o journalOrdinal) (
-	interface{}, error) {
+func (j diskJournal) readJournalEntry(o journalOrdinal) (interface{}, error) {
 	p := j.journalEntryPath(o)
 	buf, err := ioutil.ReadFile(p)
 	if err != nil {
-		return bserverJournalEntry{}, err
+		return nil, err
 	}
 
 	entry := reflect.New(j.entryType)

@@ -7,7 +7,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
-	protocol "github.com/keybase/client/go/protocol/keybase1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
 	reflect "reflect"
@@ -545,10 +545,10 @@ func (_m *MockKeybaseService) EXPECT() *_MockKeybaseServiceRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeybaseService) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, protocol.UID, error) {
+func (_m *MockKeybaseService) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, keybase1.UID, error) {
 	ret := _m.ctrl.Call(_m, "Resolve", ctx, assertion)
 	ret0, _ := ret[0].(libkb.NormalizedUsername)
-	ret1, _ := ret[1].(protocol.UID)
+	ret1, _ := ret[1].(keybase1.UID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -568,7 +568,7 @@ func (_mr *_MockKeybaseServiceRecorder) Identify(arg0, arg1, arg2 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Identify", arg0, arg1, arg2)
 }
 
-func (_m *MockKeybaseService) LoadUserPlusKeys(ctx context.Context, uid protocol.UID) (UserInfo, error) {
+func (_m *MockKeybaseService) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (UserInfo, error) {
 	ret := _m.ctrl.Call(_m, "LoadUserPlusKeys", ctx, uid)
 	ret0, _ := ret[0].(UserInfo)
 	ret1, _ := ret[1].(error)
@@ -579,9 +579,9 @@ func (_mr *_MockKeybaseServiceRecorder) LoadUserPlusKeys(arg0, arg1 interface{})
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LoadUserPlusKeys", arg0, arg1)
 }
 
-func (_m *MockKeybaseService) LoadUnverifiedKeys(ctx context.Context, uid protocol.UID) ([]protocol.PublicKey, error) {
+func (_m *MockKeybaseService) LoadUnverifiedKeys(ctx context.Context, uid keybase1.UID) ([]keybase1.PublicKey, error) {
 	ret := _m.ctrl.Call(_m, "LoadUnverifiedKeys", ctx, uid)
-	ret0, _ := ret[0].([]protocol.PublicKey)
+	ret0, _ := ret[0].([]keybase1.PublicKey)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -601,7 +601,7 @@ func (_mr *_MockKeybaseServiceRecorder) CurrentSession(arg0, arg1 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "CurrentSession", arg0, arg1)
 }
 
-func (_m *MockKeybaseService) FavoriteAdd(ctx context.Context, folder protocol.Folder) error {
+func (_m *MockKeybaseService) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
 	ret := _m.ctrl.Call(_m, "FavoriteAdd", ctx, folder)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -611,7 +611,7 @@ func (_mr *_MockKeybaseServiceRecorder) FavoriteAdd(arg0, arg1 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteAdd", arg0, arg1)
 }
 
-func (_m *MockKeybaseService) FavoriteDelete(ctx context.Context, folder protocol.Folder) error {
+func (_m *MockKeybaseService) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
 	ret := _m.ctrl.Call(_m, "FavoriteDelete", ctx, folder)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -621,9 +621,9 @@ func (_mr *_MockKeybaseServiceRecorder) FavoriteDelete(arg0, arg1 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteDelete", arg0, arg1)
 }
 
-func (_m *MockKeybaseService) FavoriteList(ctx context.Context, sessionID int) ([]protocol.Folder, error) {
+func (_m *MockKeybaseService) FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
 	ret := _m.ctrl.Call(_m, "FavoriteList", ctx, sessionID)
-	ret0, _ := ret[0].([]protocol.Folder)
+	ret0, _ := ret[0].([]keybase1.Folder)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -632,7 +632,7 @@ func (_mr *_MockKeybaseServiceRecorder) FavoriteList(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteList", arg0, arg1)
 }
 
-func (_m *MockKeybaseService) Notify(ctx context.Context, notification *protocol.FSNotification) error {
+func (_m *MockKeybaseService) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	ret := _m.ctrl.Call(_m, "Notify", ctx, notification)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -642,7 +642,7 @@ func (_mr *_MockKeybaseServiceRecorder) Notify(arg0, arg1 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0, arg1)
 }
 
-func (_m *MockKeybaseService) FlushUserFromLocalCache(ctx context.Context, uid protocol.UID) {
+func (_m *MockKeybaseService) FlushUserFromLocalCache(ctx context.Context, uid keybase1.UID) {
 	_m.ctrl.Call(_m, "FlushUserFromLocalCache", ctx, uid)
 }
 
@@ -650,7 +650,7 @@ func (_mr *_MockKeybaseServiceRecorder) FlushUserFromLocalCache(arg0, arg1 inter
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FlushUserFromLocalCache", arg0, arg1)
 }
 
-func (_m *MockKeybaseService) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context, uid protocol.UID) {
+func (_m *MockKeybaseService) FlushUserUnverifiedKeysFromLocalCache(ctx context.Context, uid keybase1.UID) {
 	_m.ctrl.Call(_m, "FlushUserUnverifiedKeysFromLocalCache", ctx, uid)
 }
 
@@ -730,10 +730,10 @@ func (_m *Mockresolver) EXPECT() *_MockresolverRecorder {
 	return _m.recorder
 }
 
-func (_m *Mockresolver) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, protocol.UID, error) {
+func (_m *Mockresolver) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, keybase1.UID, error) {
 	ret := _m.ctrl.Call(_m, "Resolve", ctx, assertion)
 	ret0, _ := ret[0].(libkb.NormalizedUsername)
-	ret1, _ := ret[1].(protocol.UID)
+	ret1, _ := ret[1].(keybase1.UID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -795,7 +795,7 @@ func (_m *MocknormalizedUsernameGetter) EXPECT() *_MocknormalizedUsernameGetterR
 	return _m.recorder
 }
 
-func (_m *MocknormalizedUsernameGetter) GetNormalizedUsername(ctx context.Context, uid protocol.UID) (libkb.NormalizedUsername, error) {
+func (_m *MocknormalizedUsernameGetter) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
 	ret := _m.ctrl.Call(_m, "GetNormalizedUsername", ctx, uid)
 	ret0, _ := ret[0].(libkb.NormalizedUsername)
 	ret1, _ := ret[1].(error)
@@ -804,6 +804,72 @@ func (_m *MocknormalizedUsernameGetter) GetNormalizedUsername(ctx context.Contex
 
 func (_mr *_MocknormalizedUsernameGetterRecorder) GetNormalizedUsername(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetNormalizedUsername", arg0, arg1)
+}
+
+// Mock of currentInfoGetter interface
+type MockcurrentInfoGetter struct {
+	ctrl     *gomock.Controller
+	recorder *_MockcurrentInfoGetterRecorder
+}
+
+// Recorder for MockcurrentInfoGetter (not exported)
+type _MockcurrentInfoGetterRecorder struct {
+	mock *MockcurrentInfoGetter
+}
+
+func NewMockcurrentInfoGetter(ctrl *gomock.Controller) *MockcurrentInfoGetter {
+	mock := &MockcurrentInfoGetter{ctrl: ctrl}
+	mock.recorder = &_MockcurrentInfoGetterRecorder{mock}
+	return mock
+}
+
+func (_m *MockcurrentInfoGetter) EXPECT() *_MockcurrentInfoGetterRecorder {
+	return _m.recorder
+}
+
+func (_m *MockcurrentInfoGetter) GetCurrentToken(ctx context.Context) (string, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentToken", ctx)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockcurrentInfoGetterRecorder) GetCurrentToken(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentToken", arg0)
+}
+
+func (_m *MockcurrentInfoGetter) GetCurrentUserInfo(ctx context.Context) (libkb.NormalizedUsername, keybase1.UID, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentUserInfo", ctx)
+	ret0, _ := ret[0].(libkb.NormalizedUsername)
+	ret1, _ := ret[1].(keybase1.UID)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockcurrentInfoGetterRecorder) GetCurrentUserInfo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentUserInfo", arg0)
+}
+
+func (_m *MockcurrentInfoGetter) GetCurrentCryptPublicKey(ctx context.Context) (CryptPublicKey, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentCryptPublicKey", ctx)
+	ret0, _ := ret[0].(CryptPublicKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockcurrentInfoGetterRecorder) GetCurrentCryptPublicKey(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentCryptPublicKey", arg0)
+}
+
+func (_m *MockcurrentInfoGetter) GetCurrentVerifyingKey(ctx context.Context) (VerifyingKey, error) {
+	ret := _m.ctrl.Call(_m, "GetCurrentVerifyingKey", ctx)
+	ret0, _ := ret[0].(VerifyingKey)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockcurrentInfoGetterRecorder) GetCurrentVerifyingKey(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentVerifyingKey", arg0)
 }
 
 // Mock of KBPKI interface
@@ -838,10 +904,10 @@ func (_mr *_MockKBPKIRecorder) GetCurrentToken(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentToken", arg0)
 }
 
-func (_m *MockKBPKI) GetCurrentUserInfo(ctx context.Context) (libkb.NormalizedUsername, protocol.UID, error) {
+func (_m *MockKBPKI) GetCurrentUserInfo(ctx context.Context) (libkb.NormalizedUsername, keybase1.UID, error) {
 	ret := _m.ctrl.Call(_m, "GetCurrentUserInfo", ctx)
 	ret0, _ := ret[0].(libkb.NormalizedUsername)
-	ret1, _ := ret[1].(protocol.UID)
+	ret1, _ := ret[1].(keybase1.UID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -872,10 +938,10 @@ func (_mr *_MockKBPKIRecorder) GetCurrentVerifyingKey(arg0 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentVerifyingKey", arg0)
 }
 
-func (_m *MockKBPKI) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, protocol.UID, error) {
+func (_m *MockKBPKI) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, keybase1.UID, error) {
 	ret := _m.ctrl.Call(_m, "Resolve", ctx, assertion)
 	ret0, _ := ret[0].(libkb.NormalizedUsername)
-	ret1, _ := ret[1].(protocol.UID)
+	ret1, _ := ret[1].(keybase1.UID)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
@@ -895,7 +961,7 @@ func (_mr *_MockKBPKIRecorder) Identify(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Identify", arg0, arg1, arg2)
 }
 
-func (_m *MockKBPKI) GetNormalizedUsername(ctx context.Context, uid protocol.UID) (libkb.NormalizedUsername, error) {
+func (_m *MockKBPKI) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
 	ret := _m.ctrl.Call(_m, "GetNormalizedUsername", ctx, uid)
 	ret0, _ := ret[0].(libkb.NormalizedUsername)
 	ret1, _ := ret[1].(error)
@@ -906,7 +972,7 @@ func (_mr *_MockKBPKIRecorder) GetNormalizedUsername(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetNormalizedUsername", arg0, arg1)
 }
 
-func (_m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid protocol.UID, verifyingKey VerifyingKey, atServerTime time.Time) error {
+func (_m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid keybase1.UID, verifyingKey VerifyingKey, atServerTime time.Time) error {
 	ret := _m.ctrl.Call(_m, "HasVerifyingKey", ctx, uid, verifyingKey, atServerTime)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -916,7 +982,7 @@ func (_mr *_MockKBPKIRecorder) HasVerifyingKey(arg0, arg1, arg2, arg3 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasVerifyingKey", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockKBPKI) HasUnverifiedVerifyingKey(ctx context.Context, uid protocol.UID, verifyingKey VerifyingKey) error {
+func (_m *MockKBPKI) HasUnverifiedVerifyingKey(ctx context.Context, uid keybase1.UID, verifyingKey VerifyingKey) error {
 	ret := _m.ctrl.Call(_m, "HasUnverifiedVerifyingKey", ctx, uid, verifyingKey)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -926,7 +992,7 @@ func (_mr *_MockKBPKIRecorder) HasUnverifiedVerifyingKey(arg0, arg1, arg2 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasUnverifiedVerifyingKey", arg0, arg1, arg2)
 }
 
-func (_m *MockKBPKI) GetCryptPublicKeys(ctx context.Context, uid protocol.UID) ([]CryptPublicKey, error) {
+func (_m *MockKBPKI) GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) ([]CryptPublicKey, error) {
 	ret := _m.ctrl.Call(_m, "GetCryptPublicKeys", ctx, uid)
 	ret0, _ := ret[0].([]CryptPublicKey)
 	ret1, _ := ret[1].(error)
@@ -937,7 +1003,7 @@ func (_mr *_MockKBPKIRecorder) GetCryptPublicKeys(arg0, arg1 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCryptPublicKeys", arg0, arg1)
 }
 
-func (_m *MockKBPKI) FavoriteAdd(ctx context.Context, folder protocol.Folder) error {
+func (_m *MockKBPKI) FavoriteAdd(ctx context.Context, folder keybase1.Folder) error {
 	ret := _m.ctrl.Call(_m, "FavoriteAdd", ctx, folder)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -947,7 +1013,7 @@ func (_mr *_MockKBPKIRecorder) FavoriteAdd(arg0, arg1 interface{}) *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteAdd", arg0, arg1)
 }
 
-func (_m *MockKBPKI) FavoriteDelete(ctx context.Context, folder protocol.Folder) error {
+func (_m *MockKBPKI) FavoriteDelete(ctx context.Context, folder keybase1.Folder) error {
 	ret := _m.ctrl.Call(_m, "FavoriteDelete", ctx, folder)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -957,9 +1023,9 @@ func (_mr *_MockKBPKIRecorder) FavoriteDelete(arg0, arg1 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteDelete", arg0, arg1)
 }
 
-func (_m *MockKBPKI) FavoriteList(ctx context.Context) ([]protocol.Folder, error) {
+func (_m *MockKBPKI) FavoriteList(ctx context.Context) ([]keybase1.Folder, error) {
 	ret := _m.ctrl.Call(_m, "FavoriteList", ctx)
-	ret0, _ := ret[0].([]protocol.Folder)
+	ret0, _ := ret[0].([]keybase1.Folder)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -968,7 +1034,7 @@ func (_mr *_MockKBPKIRecorder) FavoriteList(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "FavoriteList", arg0)
 }
 
-func (_m *MockKBPKI) Notify(ctx context.Context, notification *protocol.FSNotification) error {
+func (_m *MockKBPKI) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	ret := _m.ctrl.Call(_m, "Notify", ctx, notification)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -1029,7 +1095,7 @@ func (_mr *_MockKeyMetadataRecorder) GetTlfHandle() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTlfHandle")
 }
 
-func (_m *MockKeyMetadata) HasKeyForUser(keyGen KeyGen, user protocol.UID) bool {
+func (_m *MockKeyMetadata) HasKeyForUser(keyGen KeyGen, user keybase1.UID) bool {
 	ret := _m.ctrl.Call(_m, "HasKeyForUser", keyGen, user)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -1039,7 +1105,7 @@ func (_mr *_MockKeyMetadataRecorder) HasKeyForUser(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasKeyForUser", arg0, arg1)
 }
 
-func (_m *MockKeyMetadata) GetTLFCryptKeyParams(keyGen KeyGen, user protocol.UID, key CryptPublicKey) (TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf, TLFCryptKeyServerHalfID, bool, error) {
+func (_m *MockKeyMetadata) GetTLFCryptKeyParams(keyGen KeyGen, user keybase1.UID, key CryptPublicKey) (TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf, TLFCryptKeyServerHalfID, bool, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyParams", keyGen, user, key)
 	ret0, _ := ret[0].(TLFEphemeralPublicKey)
 	ret1, _ := ret[1].(EncryptedTLFCryptKeyClientHalf)
@@ -1201,7 +1267,7 @@ func (_mr *_MockReporterRecorder) AllKnownErrors() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AllKnownErrors")
 }
 
-func (_m *MockReporter) Notify(ctx context.Context, notification *protocol.FSNotification) {
+func (_m *MockReporter) Notify(ctx context.Context, notification *keybase1.FSNotification) {
 	_m.ctrl.Call(_m, "Notify", ctx, notification)
 }
 
@@ -1752,7 +1818,7 @@ func (_mr *_MockcryptoPureRecorder) DecryptBlock(arg0, arg1, arg2 interface{}) *
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptBlock", arg0, arg1, arg2)
 }
 
-func (_m *MockcryptoPure) GetTLFCryptKeyServerHalfID(user protocol.UID, deviceKID protocol.KID, serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error) {
+func (_m *MockcryptoPure) GetTLFCryptKeyServerHalfID(user keybase1.UID, deviceKID keybase1.KID, serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalfID", user, deviceKID, serverHalf)
 	ret0, _ := ret[0].(TLFCryptKeyServerHalfID)
 	ret1, _ := ret[1].(error)
@@ -1763,7 +1829,7 @@ func (_mr *_MockcryptoPureRecorder) GetTLFCryptKeyServerHalfID(arg0, arg1, arg2 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalfID", arg0, arg1, arg2)
 }
 
-func (_m *MockcryptoPure) VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID, user protocol.UID, deviceKID protocol.KID, serverHalf TLFCryptKeyServerHalf) error {
+func (_m *MockcryptoPure) VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID, user keybase1.UID, deviceKID keybase1.KID, serverHalf TLFCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "VerifyTLFCryptKeyServerHalfID", serverHalfID, user, deviceKID, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -2081,7 +2147,7 @@ func (_mr *_MockCryptoRecorder) DecryptBlock(arg0, arg1, arg2 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptBlock", arg0, arg1, arg2)
 }
 
-func (_m *MockCrypto) GetTLFCryptKeyServerHalfID(user protocol.UID, deviceKID protocol.KID, serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error) {
+func (_m *MockCrypto) GetTLFCryptKeyServerHalfID(user keybase1.UID, deviceKID keybase1.KID, serverHalf TLFCryptKeyServerHalf) (TLFCryptKeyServerHalfID, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalfID", user, deviceKID, serverHalf)
 	ret0, _ := ret[0].(TLFCryptKeyServerHalfID)
 	ret1, _ := ret[1].(error)
@@ -2092,7 +2158,7 @@ func (_mr *_MockCryptoRecorder) GetTLFCryptKeyServerHalfID(arg0, arg1, arg2 inte
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalfID", arg0, arg1, arg2)
 }
 
-func (_m *MockCrypto) VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID, user protocol.UID, deviceKID protocol.KID, serverHalf TLFCryptKeyServerHalf) error {
+func (_m *MockCrypto) VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeyServerHalfID, user keybase1.UID, deviceKID keybase1.KID, serverHalf TLFCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "VerifyTLFCryptKeyServerHalfID", serverHalfID, user, deviceKID, serverHalf)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -2387,7 +2453,7 @@ func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1, arg2 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyOps) PutTLFCryptKeyServerHalves(ctx context.Context, serverKeyHalves map[protocol.UID]map[protocol.KID]TLFCryptKeyServerHalf) error {
+func (_m *MockKeyOps) PutTLFCryptKeyServerHalves(ctx context.Context, serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalves", ctx, serverKeyHalves)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -2397,7 +2463,7 @@ func (_mr *_MockKeyOpsRecorder) PutTLFCryptKeyServerHalves(arg0, arg1 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalves", arg0, arg1)
 }
 
-func (_m *MockKeyOps) DeleteTLFCryptKeyServerHalf(ctx context.Context, uid protocol.UID, kid protocol.KID, serverHalfID TLFCryptKeyServerHalfID) error {
+func (_m *MockKeyOps) DeleteTLFCryptKeyServerHalf(ctx context.Context, uid keybase1.UID, kid keybase1.KID, serverHalfID TLFCryptKeyServerHalfID) error {
 	ret := _m.ctrl.Call(_m, "DeleteTLFCryptKeyServerHalf", ctx, uid, kid, serverHalfID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -2830,7 +2896,7 @@ func (_mr *_MockmdServerLocalRecorder) OffsetFromServerTime() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "OffsetFromServerTime")
 }
 
-func (_m *MockmdServerLocal) addNewAssertionForTest(uid protocol.UID, newAssertion protocol.SocialAssertion) error {
+func (_m *MockmdServerLocal) addNewAssertionForTest(uid keybase1.UID, newAssertion keybase1.SocialAssertion) error {
 	ret := _m.ctrl.Call(_m, "addNewAssertionForTest", uid, newAssertion)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -3167,7 +3233,7 @@ func (_mr *_MockKeyServerRecorder) GetTLFCryptKeyServerHalf(arg0, arg1, arg2 int
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyServer) PutTLFCryptKeyServerHalves(ctx context.Context, serverKeyHalves map[protocol.UID]map[protocol.KID]TLFCryptKeyServerHalf) error {
+func (_m *MockKeyServer) PutTLFCryptKeyServerHalves(ctx context.Context, serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error {
 	ret := _m.ctrl.Call(_m, "PutTLFCryptKeyServerHalves", ctx, serverKeyHalves)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -3177,7 +3243,7 @@ func (_mr *_MockKeyServerRecorder) PutTLFCryptKeyServerHalves(arg0, arg1 interfa
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutTLFCryptKeyServerHalves", arg0, arg1)
 }
 
-func (_m *MockKeyServer) DeleteTLFCryptKeyServerHalf(ctx context.Context, uid protocol.UID, kid protocol.KID, serverHalfID TLFCryptKeyServerHalfID) error {
+func (_m *MockKeyServer) DeleteTLFCryptKeyServerHalf(ctx context.Context, uid keybase1.UID, kid keybase1.KID, serverHalfID TLFCryptKeyServerHalfID) error {
 	ret := _m.ctrl.Call(_m, "DeleteTLFCryptKeyServerHalf", ctx, uid, kid, serverHalfID)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -4201,7 +4267,7 @@ func (_mr *_MockBareRootMetadataRecorder) LatestKeyGeneration() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LatestKeyGeneration")
 }
 
-func (_m *MockBareRootMetadata) IsValidRekeyRequest(codec Codec, prevMd BareRootMetadata, user protocol.UID) (bool, error) {
+func (_m *MockBareRootMetadata) IsValidRekeyRequest(codec Codec, prevMd BareRootMetadata, user keybase1.UID) (bool, error) {
 	ret := _m.ctrl.Call(_m, "IsValidRekeyRequest", codec, prevMd, user)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
@@ -4252,7 +4318,7 @@ func (_mr *_MockBareRootMetadataRecorder) IsFinal() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsFinal")
 }
 
-func (_m *MockBareRootMetadata) IsWriter(user protocol.UID, deviceKID protocol.KID) bool {
+func (_m *MockBareRootMetadata) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
 	ret := _m.ctrl.Call(_m, "IsWriter", user, deviceKID)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -4262,7 +4328,7 @@ func (_mr *_MockBareRootMetadataRecorder) IsWriter(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriter", arg0, arg1)
 }
 
-func (_m *MockBareRootMetadata) IsReader(user protocol.UID, deviceKID protocol.KID) bool {
+func (_m *MockBareRootMetadata) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
 	ret := _m.ctrl.Call(_m, "IsReader", user, deviceKID)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -4324,9 +4390,9 @@ func (_mr *_MockBareRootMetadataRecorder) TlfHandleExtensions() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "TlfHandleExtensions")
 }
 
-func (_m *MockBareRootMetadata) GetDeviceKIDs(keyGen KeyGen, user protocol.UID) ([]protocol.KID, error) {
+func (_m *MockBareRootMetadata) GetDeviceKIDs(keyGen KeyGen, user keybase1.UID) ([]keybase1.KID, error) {
 	ret := _m.ctrl.Call(_m, "GetDeviceKIDs", keyGen, user)
-	ret0, _ := ret[0].([]protocol.KID)
+	ret0, _ := ret[0].([]keybase1.KID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -4335,7 +4401,7 @@ func (_mr *_MockBareRootMetadataRecorder) GetDeviceKIDs(arg0, arg1 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceKIDs", arg0, arg1)
 }
 
-func (_m *MockBareRootMetadata) HasKeyForUser(keyGen KeyGen, user protocol.UID) bool {
+func (_m *MockBareRootMetadata) HasKeyForUser(keyGen KeyGen, user keybase1.UID) bool {
 	ret := _m.ctrl.Call(_m, "HasKeyForUser", keyGen, user)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -4345,7 +4411,7 @@ func (_mr *_MockBareRootMetadataRecorder) HasKeyForUser(arg0, arg1 interface{}) 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasKeyForUser", arg0, arg1)
 }
 
-func (_m *MockBareRootMetadata) GetTLFCryptKeyParams(keyGen KeyGen, user protocol.UID, key CryptPublicKey) (TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf, TLFCryptKeyServerHalfID, bool, error) {
+func (_m *MockBareRootMetadata) GetTLFCryptKeyParams(keyGen KeyGen, user keybase1.UID, key CryptPublicKey) (TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf, TLFCryptKeyServerHalfID, bool, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyParams", keyGen, user, key)
 	ret0, _ := ret[0].(TLFEphemeralPublicKey)
 	ret1, _ := ret[1].(EncryptedTLFCryptKeyClientHalf)
@@ -4369,7 +4435,7 @@ func (_mr *_MockBareRootMetadataRecorder) IsValidAndSigned(arg0, arg1 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidAndSigned", arg0, arg1)
 }
 
-func (_m *MockBareRootMetadata) IsLastModifiedBy(uid protocol.UID, key VerifyingKey) error {
+func (_m *MockBareRootMetadata) IsLastModifiedBy(uid keybase1.UID, key VerifyingKey) error {
 	ret := _m.ctrl.Call(_m, "IsLastModifiedBy", uid, key)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -4379,9 +4445,9 @@ func (_mr *_MockBareRootMetadataRecorder) IsLastModifiedBy(arg0, arg1 interface{
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsLastModifiedBy", arg0, arg1)
 }
 
-func (_m *MockBareRootMetadata) LastModifyingWriter() protocol.UID {
+func (_m *MockBareRootMetadata) LastModifyingWriter() keybase1.UID {
 	ret := _m.ctrl.Call(_m, "LastModifyingWriter")
-	ret0, _ := ret[0].(protocol.UID)
+	ret0, _ := ret[0].(keybase1.UID)
 	return ret0
 }
 
@@ -4389,9 +4455,9 @@ func (_mr *_MockBareRootMetadataRecorder) LastModifyingWriter() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastModifyingWriter")
 }
 
-func (_m *MockBareRootMetadata) LastModifyingWriterKID() protocol.KID {
+func (_m *MockBareRootMetadata) LastModifyingWriterKID() keybase1.KID {
 	ret := _m.ctrl.Call(_m, "LastModifyingWriterKID")
-	ret0, _ := ret[0].(protocol.KID)
+	ret0, _ := ret[0].(keybase1.KID)
 	return ret0
 }
 
@@ -4399,9 +4465,9 @@ func (_mr *_MockBareRootMetadataRecorder) LastModifyingWriterKID() *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastModifyingWriterKID")
 }
 
-func (_m *MockBareRootMetadata) GetLastModifyingUser() protocol.UID {
+func (_m *MockBareRootMetadata) GetLastModifyingUser() keybase1.UID {
 	ret := _m.ctrl.Call(_m, "GetLastModifyingUser")
-	ret0, _ := ret[0].(protocol.UID)
+	ret0, _ := ret[0].(keybase1.UID)
 	return ret0
 }
 
@@ -4520,6 +4586,39 @@ func (_mr *_MockBareRootMetadataRecorder) Version() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Version")
 }
 
+func (_m *MockBareRootMetadata) GetTLFPublicKey(_param0 KeyGen) (TLFPublicKey, bool) {
+	ret := _m.ctrl.Call(_m, "GetTLFPublicKey", _param0)
+	ret0, _ := ret[0].(TLFPublicKey)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+func (_mr *_MockBareRootMetadataRecorder) GetTLFPublicKey(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFPublicKey", arg0)
+}
+
+func (_m *MockBareRootMetadata) AreKeyGenerationsEqual(_param0 Codec, _param1 BareRootMetadata) (bool, error) {
+	ret := _m.ctrl.Call(_m, "AreKeyGenerationsEqual", _param0, _param1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockBareRootMetadataRecorder) AreKeyGenerationsEqual(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "AreKeyGenerationsEqual", arg0, arg1)
+}
+
+func (_m *MockBareRootMetadata) GetUnresolvedParticipants() ([]keybase1.SocialAssertion, []keybase1.SocialAssertion) {
+	ret := _m.ctrl.Call(_m, "GetUnresolvedParticipants")
+	ret0, _ := ret[0].([]keybase1.SocialAssertion)
+	ret1, _ := ret[1].([]keybase1.SocialAssertion)
+	return ret0, ret1
+}
+
+func (_mr *_MockBareRootMetadataRecorder) GetUnresolvedParticipants() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnresolvedParticipants")
+}
+
 // Mock of MutableBareRootMetadata interface
 type MockMutableBareRootMetadata struct {
 	ctrl     *gomock.Controller
@@ -4561,7 +4660,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) LatestKeyGeneration() *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LatestKeyGeneration")
 }
 
-func (_m *MockMutableBareRootMetadata) IsValidRekeyRequest(codec Codec, prevMd BareRootMetadata, user protocol.UID) (bool, error) {
+func (_m *MockMutableBareRootMetadata) IsValidRekeyRequest(codec Codec, prevMd BareRootMetadata, user keybase1.UID) (bool, error) {
 	ret := _m.ctrl.Call(_m, "IsValidRekeyRequest", codec, prevMd, user)
 	ret0, _ := ret[0].(bool)
 	ret1, _ := ret[1].(error)
@@ -4612,7 +4711,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) IsFinal() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsFinal")
 }
 
-func (_m *MockMutableBareRootMetadata) IsWriter(user protocol.UID, deviceKID protocol.KID) bool {
+func (_m *MockMutableBareRootMetadata) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
 	ret := _m.ctrl.Call(_m, "IsWriter", user, deviceKID)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -4622,7 +4721,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) IsWriter(arg0, arg1 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsWriter", arg0, arg1)
 }
 
-func (_m *MockMutableBareRootMetadata) IsReader(user protocol.UID, deviceKID protocol.KID) bool {
+func (_m *MockMutableBareRootMetadata) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool {
 	ret := _m.ctrl.Call(_m, "IsReader", user, deviceKID)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -4684,9 +4783,9 @@ func (_mr *_MockMutableBareRootMetadataRecorder) TlfHandleExtensions() *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "TlfHandleExtensions")
 }
 
-func (_m *MockMutableBareRootMetadata) GetDeviceKIDs(keyGen KeyGen, user protocol.UID) ([]protocol.KID, error) {
+func (_m *MockMutableBareRootMetadata) GetDeviceKIDs(keyGen KeyGen, user keybase1.UID) ([]keybase1.KID, error) {
 	ret := _m.ctrl.Call(_m, "GetDeviceKIDs", keyGen, user)
-	ret0, _ := ret[0].([]protocol.KID)
+	ret0, _ := ret[0].([]keybase1.KID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -4695,7 +4794,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) GetDeviceKIDs(arg0, arg1 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetDeviceKIDs", arg0, arg1)
 }
 
-func (_m *MockMutableBareRootMetadata) HasKeyForUser(keyGen KeyGen, user protocol.UID) bool {
+func (_m *MockMutableBareRootMetadata) HasKeyForUser(keyGen KeyGen, user keybase1.UID) bool {
 	ret := _m.ctrl.Call(_m, "HasKeyForUser", keyGen, user)
 	ret0, _ := ret[0].(bool)
 	return ret0
@@ -4705,7 +4804,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) HasKeyForUser(arg0, arg1 interf
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasKeyForUser", arg0, arg1)
 }
 
-func (_m *MockMutableBareRootMetadata) GetTLFCryptKeyParams(keyGen KeyGen, user protocol.UID, key CryptPublicKey) (TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf, TLFCryptKeyServerHalfID, bool, error) {
+func (_m *MockMutableBareRootMetadata) GetTLFCryptKeyParams(keyGen KeyGen, user keybase1.UID, key CryptPublicKey) (TLFEphemeralPublicKey, EncryptedTLFCryptKeyClientHalf, TLFCryptKeyServerHalfID, bool, error) {
 	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyParams", keyGen, user, key)
 	ret0, _ := ret[0].(TLFEphemeralPublicKey)
 	ret1, _ := ret[1].(EncryptedTLFCryptKeyClientHalf)
@@ -4729,7 +4828,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) IsValidAndSigned(arg0, arg1 int
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsValidAndSigned", arg0, arg1)
 }
 
-func (_m *MockMutableBareRootMetadata) IsLastModifiedBy(uid protocol.UID, key VerifyingKey) error {
+func (_m *MockMutableBareRootMetadata) IsLastModifiedBy(uid keybase1.UID, key VerifyingKey) error {
 	ret := _m.ctrl.Call(_m, "IsLastModifiedBy", uid, key)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -4739,9 +4838,9 @@ func (_mr *_MockMutableBareRootMetadataRecorder) IsLastModifiedBy(arg0, arg1 int
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsLastModifiedBy", arg0, arg1)
 }
 
-func (_m *MockMutableBareRootMetadata) LastModifyingWriter() protocol.UID {
+func (_m *MockMutableBareRootMetadata) LastModifyingWriter() keybase1.UID {
 	ret := _m.ctrl.Call(_m, "LastModifyingWriter")
-	ret0, _ := ret[0].(protocol.UID)
+	ret0, _ := ret[0].(keybase1.UID)
 	return ret0
 }
 
@@ -4749,9 +4848,9 @@ func (_mr *_MockMutableBareRootMetadataRecorder) LastModifyingWriter() *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastModifyingWriter")
 }
 
-func (_m *MockMutableBareRootMetadata) LastModifyingWriterKID() protocol.KID {
+func (_m *MockMutableBareRootMetadata) LastModifyingWriterKID() keybase1.KID {
 	ret := _m.ctrl.Call(_m, "LastModifyingWriterKID")
-	ret0, _ := ret[0].(protocol.KID)
+	ret0, _ := ret[0].(keybase1.KID)
 	return ret0
 }
 
@@ -4759,9 +4858,9 @@ func (_mr *_MockMutableBareRootMetadataRecorder) LastModifyingWriterKID() *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "LastModifyingWriterKID")
 }
 
-func (_m *MockMutableBareRootMetadata) GetLastModifyingUser() protocol.UID {
+func (_m *MockMutableBareRootMetadata) GetLastModifyingUser() keybase1.UID {
 	ret := _m.ctrl.Call(_m, "GetLastModifyingUser")
-	ret0, _ := ret[0].(protocol.UID)
+	ret0, _ := ret[0].(keybase1.UID)
 	return ret0
 }
 
@@ -4880,6 +4979,39 @@ func (_mr *_MockMutableBareRootMetadataRecorder) Version() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Version")
 }
 
+func (_m *MockMutableBareRootMetadata) GetTLFPublicKey(_param0 KeyGen) (TLFPublicKey, bool) {
+	ret := _m.ctrl.Call(_m, "GetTLFPublicKey", _param0)
+	ret0, _ := ret[0].(TLFPublicKey)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetTLFPublicKey(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFPublicKey", arg0)
+}
+
+func (_m *MockMutableBareRootMetadata) AreKeyGenerationsEqual(_param0 Codec, _param1 BareRootMetadata) (bool, error) {
+	ret := _m.ctrl.Call(_m, "AreKeyGenerationsEqual", _param0, _param1)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) AreKeyGenerationsEqual(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "AreKeyGenerationsEqual", arg0, arg1)
+}
+
+func (_m *MockMutableBareRootMetadata) GetUnresolvedParticipants() ([]keybase1.SocialAssertion, []keybase1.SocialAssertion) {
+	ret := _m.ctrl.Call(_m, "GetUnresolvedParticipants")
+	ret0, _ := ret[0].([]keybase1.SocialAssertion)
+	ret1, _ := ret[1].([]keybase1.SocialAssertion)
+	return ret0, ret1
+}
+
+func (_mr *_MockMutableBareRootMetadataRecorder) GetUnresolvedParticipants() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUnresolvedParticipants")
+}
+
 func (_m *MockMutableBareRootMetadata) SetRefBytes(refBytes uint64) {
 	_m.ctrl.Call(_m, "SetRefBytes", refBytes)
 }
@@ -4992,7 +5124,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetWriterMetadataSigInfo(arg0 i
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetWriterMetadataSigInfo", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SetLastModifyingWriter(user protocol.UID) {
+func (_m *MockMutableBareRootMetadata) SetLastModifyingWriter(user keybase1.UID) {
 	_m.ctrl.Call(_m, "SetLastModifyingWriter", user)
 }
 
@@ -5000,7 +5132,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetLastModifyingWriter(arg0 int
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetLastModifyingWriter", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SetLastModifyingUser(user protocol.UID) {
+func (_m *MockMutableBareRootMetadata) SetLastModifyingUser(user keybase1.UID) {
 	_m.ctrl.Call(_m, "SetLastModifyingUser", user)
 }
 
@@ -5048,7 +5180,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) AddNewKeys(arg0, arg1 interface
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddNewKeys", arg0, arg1)
 }
 
-func (_m *MockMutableBareRootMetadata) SetUnresolvedReaders(readers []protocol.SocialAssertion) {
+func (_m *MockMutableBareRootMetadata) SetUnresolvedReaders(readers []keybase1.SocialAssertion) {
 	_m.ctrl.Call(_m, "SetUnresolvedReaders", readers)
 }
 
@@ -5056,7 +5188,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetUnresolvedReaders(arg0 inter
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetUnresolvedReaders", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SetUnresolvedWriters(writers []protocol.SocialAssertion) {
+func (_m *MockMutableBareRootMetadata) SetUnresolvedWriters(writers []keybase1.SocialAssertion) {
 	_m.ctrl.Call(_m, "SetUnresolvedWriters", writers)
 }
 
@@ -5080,7 +5212,7 @@ func (_mr *_MockMutableBareRootMetadataRecorder) SetFinalizedInfo(arg0 interface
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetFinalizedInfo", arg0)
 }
 
-func (_m *MockMutableBareRootMetadata) SetWriters(writers []protocol.UID) {
+func (_m *MockMutableBareRootMetadata) SetWriters(writers []keybase1.UID) {
 	_m.ctrl.Call(_m, "SetWriters", writers)
 }
 

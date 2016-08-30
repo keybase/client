@@ -138,8 +138,9 @@ func (j *JournalServer) Enable(
 		return nil
 	}
 
-	tlfJournal, err := makeTLFJournal(ctx, j.dir, tlfID, j.config,
-		j.delegateBlockServer, j.log, bws, nil)
+	tlfJournal, err := makeTLFJournal(ctx, j.dir, tlfID,
+		tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
+		bws, nil)
 	if err != nil {
 		return err
 	}

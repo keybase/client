@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func getMDJournalLength(t *testing.T, s *mdServerTlfStorage, bid BranchID) int {
+func getMDStorageLength(t *testing.T, s *mdServerTlfStorage, bid BranchID) int {
 	len, err := s.journalLength(bid)
 	require.NoError(t, err)
 	return int(len)
@@ -38,7 +38,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	s := makeMDServerTlfStorage(codec, crypto, tempdir)
 	defer s.shutdown()
 
-	require.Equal(t, 0, getMDJournalLength(t, s, NullBranchID))
+	require.Equal(t, 0, getMDStorageLength(t, s, NullBranchID))
 
 	uid := keybase1.MakeTestUID(1)
 	id := FakeTlfID(1, false)
@@ -51,7 +51,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	require.NoError(t, err)
 	require.Nil(t, head)
 
-	require.Equal(t, 0, getMDJournalLength(t, s, NullBranchID))
+	require.Equal(t, 0, getMDStorageLength(t, s, NullBranchID))
 
 	// (2) Push some new metadata blocks.
 
@@ -70,7 +70,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		}
 	}
 
-	require.Equal(t, 10, getMDJournalLength(t, s, NullBranchID))
+	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
 
 	// (3) Trigger a conflict.
 
@@ -79,7 +79,7 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	_, err = s.put(uid, verifyingKey, rmds)
 	require.IsType(t, MDServerErrorConflictRevision{}, err)
 
-	require.Equal(t, 10, getMDJournalLength(t, s, NullBranchID))
+	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
 
 	// (4) Push some new unmerged metadata blocks linking to the
 	// middle merged block.
@@ -98,8 +98,8 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	require.Equal(t, 10, getMDJournalLength(t, s, NullBranchID))
-	require.Equal(t, 35, getMDJournalLength(t, s, bid))
+	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
+	require.Equal(t, 35, getMDStorageLength(t, s, bid))
 
 	// (5) Check for proper unmerged head.
 
@@ -108,8 +108,8 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 	require.NotNil(t, head)
 	require.Equal(t, MetadataRevision(40), head.MD.RevisionNumber())
 
-	require.Equal(t, 10, getMDJournalLength(t, s, NullBranchID))
-	require.Equal(t, 35, getMDJournalLength(t, s, bid))
+	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
+	require.Equal(t, 35, getMDStorageLength(t, s, bid))
 
 	// (6) Try to get unmerged range.
 
@@ -138,6 +138,6 @@ func TestMDServerTlfStorageBasic(t *testing.T) {
 		require.Equal(t, i, rmdses[i-1].MD.RevisionNumber())
 	}
 
-	require.Equal(t, 10, getMDJournalLength(t, s, NullBranchID))
-	require.Equal(t, 35, getMDJournalLength(t, s, bid))
+	require.Equal(t, 10, getMDStorageLength(t, s, NullBranchID))
+	require.Equal(t, 35, getMDStorageLength(t, s, bid))
 }

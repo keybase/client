@@ -651,7 +651,7 @@ func NewConfigLocalWithCryptoForSigning(signingKey SigningKey) *ConfigLocal {
 		return logger.NewNull()
 	})
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust("nobody")
-	crypto := NewCryptoLocal(config, signingKey, cryptPrivateKey)
+	crypto := NewCryptoLocal(config.Codec(), signingKey, cryptPrivateKey)
 	config.SetCrypto(crypto)
 	return config
 }

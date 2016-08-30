@@ -25,7 +25,7 @@ type blockServerDiskTlfStorage struct {
 // storing blocks in a local leveldb instance.
 type BlockServerDisk struct {
 	codec        Codec
-	crypto       Crypto
+	crypto       cryptoPure
 	log          logger.Logger
 	dirPath      string
 	shutdownFunc func(logger.Logger)
@@ -40,10 +40,11 @@ var _ blockServerLocal = (*BlockServerDisk)(nil)
 // newBlockServerDisk constructs a new BlockServerDisk that stores
 // its data in the given directory.
 func newBlockServerDisk(
-	config Config, dirPath string, shutdownFunc func(logger.Logger)) *BlockServerDisk {
+	config blockServerLocalConfig,
+	dirPath string, shutdownFunc func(logger.Logger)) *BlockServerDisk {
 	bserv := &BlockServerDisk{
 		config.Codec(),
-		config.Crypto(),
+		config.cryptoPure(),
 		config.MakeLogger("BSD"),
 		dirPath,
 		shutdownFunc,
@@ -55,13 +56,15 @@ func newBlockServerDisk(
 
 // NewBlockServerDir constructs a new BlockServerDisk that stores
 // its data in the given directory.
-func NewBlockServerDir(config Config, dirPath string) *BlockServerDisk {
+func NewBlockServerDir(
+	config blockServerLocalConfig, dirPath string) *BlockServerDisk {
 	return newBlockServerDisk(config, dirPath, nil)
 }
 
 // NewBlockServerTempDir constructs a new BlockServerDisk that stores its
 // data in a temp directory which is cleaned up on shutdown.
-func NewBlockServerTempDir(config Config) (*BlockServerDisk, error) {
+func NewBlockServerTempDir(
+	config blockServerLocalConfig) (*BlockServerDisk, error) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "kbfs_bserver_tmp")
 	if err != nil {
 		return nil, err
