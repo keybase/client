@@ -115,7 +115,7 @@ const styleTerminal = {
 
 const styleTerminalGroups = {
   ...globalStyles.flexBoxColumn,
-  alignItems: 'flex-start',
+  flex: 1,
   textAlign: 'left',
 }
 

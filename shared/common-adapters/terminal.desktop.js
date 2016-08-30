@@ -30,6 +30,6 @@ const styleContainer = {
   color: globalColors.white,
   backgroundColor: globalColors.midnightBlue,
   padding: 10,
-  justifyContent: 'stretch',
-  alignItems: 'flex-start',
+  alignItems: 'stretch',
+  textAlign: 'left',
 }
