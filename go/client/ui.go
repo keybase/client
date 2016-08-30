@@ -779,7 +779,6 @@ func (ui SecretUI) GetPassphrase(pin keybase1.GUIEntryArg, term *keybase1.Secret
 		PinentryDesc:   pin.Prompt,
 		Checker:        &libkb.CheckPassphraseSimple,
 		RetryMessage:   pin.RetryLabel,
-		UseSecretStore: pin.Features.StoreSecret.Allow,
 		ShowTyping:     pin.Features.ShowTyping.DefaultValue,
 	})
 	return res, err
@@ -805,11 +804,10 @@ func (ui SecretUI) passphrasePrompt(arg libkb.PromptArg) (text string, storeSecr
 		tp = tp + ": "
 
 		res, err = ui.getSecret(keybase1.SecretEntryArg{
-			Err:            emp,
-			Desc:           arg.PinentryDesc,
-			Prompt:         arg.PinentryPrompt,
-			UseSecretStore: arg.UseSecretStore,
-			ShowTyping:     arg.ShowTyping,
+			Err:        emp,
+			Desc:       arg.PinentryDesc,
+			Prompt:     arg.PinentryPrompt,
+			ShowTyping: arg.ShowTyping,
 		}, &keybase1.SecretEntryArg{
 			Err:        emt,
 			Prompt:     tp,
@@ -971,8 +969,18 @@ func PromptSelectionOrCancel(pd libkb.PromptDescriptor, ui libkb.TerminalUI, pro
 	return
 }
 
+func (ui *UI) TerminalSize() (width int, height int) {
+	return ui.Terminal.GetSize()
+}
+
 func (ui *UI) Tablify(headings []string, rowfunc func() []string) {
 	libkb.Tablify(ui.OutputWriter(), headings, rowfunc)
+}
+
+func (ui *UI) TablifyAlignRight(headings []string, rowfunc func() []string) {
+	w := new(tabwriter.Writer)
+	w.Init(ui.OutputWriter(), 0, 0, 1, ' ', tabwriter.AlignRight)
+	libkb.TablifyWithTabWriter(w, headings, rowfunc)
 }
 
 func (ui *UI) NewTabWriter(minwidth, tabwidth, padding int, padchar byte, flags uint) *tabwriter.Writer {

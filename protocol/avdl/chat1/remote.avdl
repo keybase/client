@@ -27,6 +27,7 @@ protocol remote {
 
   MessageID postRemote(ConversationID conversationID, MessageBoxed messageBoxed);
   ConversationID newConversationRemote(ConversationIDTriple idTriple);
+  array<MessageBoxed> getMessagesRemote(ConversationID conversationID, array<MessageID> messageIDs);
 
   void markAsRead(ConversationID conversationID, MessageID msgID);
 }

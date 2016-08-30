@@ -3,7 +3,7 @@ import Container from '../forms/container'
 import React, {Component} from 'react'
 import type {Props} from './invite-code.render'
 import {Box, Text, Input, Button, Icon} from '../../common-adapters'
-import {globalStyles} from '../../styles/style-guide'
+import {globalStyles} from '../../styles'
 
 type State = {
   inviteCode: ?string

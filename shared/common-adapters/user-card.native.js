@@ -3,7 +3,7 @@ import Avatar from './avatar'
 import React, {Component} from 'react'
 import type {Props} from './user-card'
 import {Box} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 const avatarSize = 112
 

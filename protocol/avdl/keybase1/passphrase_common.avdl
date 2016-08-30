@@ -9,7 +9,6 @@ protocol passphraseCommon {
   }
 
   record GUIEntryFeatures {
-    Feature storeSecret;
     Feature showTyping;
   }
 

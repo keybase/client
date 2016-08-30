@@ -3,7 +3,7 @@ import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
 import type {Props} from './user-bio'
 import {Box, Avatar, Text} from './'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
 
 class BioRender extends Component<void, Props, void> {

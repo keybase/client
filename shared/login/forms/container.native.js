@@ -2,7 +2,7 @@
 import React from 'react'
 import type {Props} from './container'
 import {Box, BackButton} from '../../common-adapters'
-import {globalStyles} from '../../styles/style-guide'
+import {globalStyles} from '../../styles'
 
 const Container = ({children, onBack, style, outerStyle}: Props) => {
   return (

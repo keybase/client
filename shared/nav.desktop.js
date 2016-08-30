@@ -3,7 +3,7 @@ import {remote, ipcRenderer} from 'electron'
 
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {globalStyles} from './styles/style-guide'
+import {globalStyles} from './styles'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
 import Folders from './folders'
@@ -11,7 +11,7 @@ import Chat from './chat'
 import People from './people'
 import Devices from './devices'
 import NoTab from './no-tab'
-import Profile from './profile'
+import Profile from './profile/container'
 import Search from './search'
 import Settings from './settings'
 import Login from './login'
@@ -191,7 +191,7 @@ export default connect(
   ({
     router,
     config: {extendedConfig, username},
-    favorite: {publicBadge, privateBadge},
+    favorite: {publicBadge = 0, privateBadge = 0},
     notifications: {menuBadge}}) => ({
       router,
       provisioned: extendedConfig && !!extendedConfig.defaultDeviceID,

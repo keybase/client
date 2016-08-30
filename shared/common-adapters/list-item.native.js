@@ -1,9 +1,8 @@
 // @flow
-import Box from './box'
 import React, {Component} from 'react'
 import type {Props} from './list-item'
-import {TouchableHighlight} from 'react-native'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {Box, NativeTouchableHighlight} from './index.native'
+import {globalStyles, globalColors} from '../styles'
 
 // TODO Add swipe for action
 class ListItem extends Component<void, Props, void> {
@@ -28,13 +27,13 @@ class ListItem extends Component<void, Props, void> {
     )
 
     return (
-      <TouchableHighlight
+      <NativeTouchableHighlight
         activeOpacity={0.8}
         underlayColor={globalColors.white}
         onPress={this.props.onClick || (() => {})}
         disabled={!(this.props.onClick)}>
         {listItem}
-      </TouchableHighlight>
+      </NativeTouchableHighlight>
 
     )
   }

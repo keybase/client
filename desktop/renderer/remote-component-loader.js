@@ -1,27 +1,27 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
-import {Provider} from 'react-redux'
-import {remote, ipcRenderer} from 'electron'
 import RemoteStore from './remote-store'
-import {ipcLogsRenderer} from '../app/console-helper'
+import engine, {makeEngine} from '../shared/engine'
 import hello from '../shared/util/hello'
-import {globalColors} from '../shared/styles/style-guide'
-import engine from '../shared/engine'
-
-import tracker from '../shared/tracker'
-import pinentry from '../shared/pinentry'
-import unlockFolders from '../shared/unlock-folders'
-
-import {setupContextMenu} from '../app/menu-helper'
 import loadPerf from '../shared/util/load-perf'
-import {MuiThemeProvider} from 'material-ui/styles'
 import materialTheme from '../shared/styles/material-theme.desktop'
+import pinentry from '../shared/pinentry'
+import purgeMessage from '../shared/pgp/container.desktop'
+import tracker from '../shared/tracker'
+import unlockFolders from '../shared/unlock-folders'
+import {MuiThemeProvider} from 'material-ui/styles'
+import {Provider} from 'react-redux'
+import {globalColors} from '../shared/styles'
+import {ipcLogsRenderer} from '../app/console-helper'
+import {remote, ipcRenderer} from 'electron'
+import {setupContextMenu} from '../app/menu-helper'
 
 ipcLogsRenderer()
+makeEngine()
 
 module.hot && module.hot.accept()
 module.hot && module.hot.dispose(() => {
-  engine.reset()
+  engine().reset()
 })
 
 // Defer this since it's a sync call
@@ -81,7 +81,7 @@ class RemoteComponentLoader extends Component {
 
     hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__) // eslint-disable-line no-undef
 
-    const component = {tracker, pinentry, unlockFolders}
+    const component = {tracker, pinentry, unlockFolders, purgeMessage}
 
     if (!componentToLoad || !component[componentToLoad]) {
       throw new TypeError('Invalid Remote Component passed through')

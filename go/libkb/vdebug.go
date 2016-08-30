@@ -5,8 +5,9 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/keybase/client/go/logger"
 	"strings"
+
+	"github.com/keybase/client/go/logger"
 )
 
 // VDebugLog is a "Verbose" debug logger; enable it if you really

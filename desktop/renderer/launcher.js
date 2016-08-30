@@ -1,6 +1,7 @@
 import reactDOM from 'react-dom'
 import React, {Component} from 'react'
 import {Provider} from 'react-redux'
+import {makeEngine} from '../shared/engine'
 import RemoteStore from './remote-store.desktop'
 import Menubar from '../shared/menubar'
 import {ipcLogsRenderer} from '../app/console-helper'
@@ -12,6 +13,7 @@ import {MuiThemeProvider} from 'material-ui/styles'
 import materialTheme from '../shared/styles/material-theme.desktop'
 
 ipcLogsRenderer()
+makeEngine()
 hello(process.pid, 'Menubar', process.argv, __VERSION__) // eslint-disable-line no-undef
 
 if (module.hot) {

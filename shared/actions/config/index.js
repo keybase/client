@@ -7,7 +7,7 @@ import {resetSignup} from '../../actions/signup'
 import {registerGregorListeners} from '../../actions/gregor'
 
 // $FlowFixMe
-import * as native from './index.native'
+import * as platform from './index.platform'
 
 import type {AsyncAction, Action} from '../../constants/types/flux'
 import {configGetConfigRpc, configGetExtendedStatusRpc, configGetCurrentStatusRpc,
@@ -121,7 +121,7 @@ export function bootstrap (): AsyncAction {
     if (!bootstrapSetup) {
       bootstrapSetup = true
       console.log('Registered bootstrap')
-      engine.listenOnConnect('bootstrap', () => {
+      engine().listenOnConnect('bootstrap', () => {
         console.log('Bootstrapping')
         dispatch(bootstrap())
       })
@@ -169,15 +169,15 @@ function getCurrentStatus (): AsyncAction {
 }
 
 export function getDevSettings () {
-  return native.getDevSettings()
+  return platform.getDevSettings()
 }
 
 export function saveDevSettings () {
-  return native.saveDevSettings()
+  return platform.saveDevSettings()
 }
 
 export function updateDevSettings (updates: any) {
-  return native.updateDevSettings(updates)
+  return platform.updateDevSettings(updates)
 }
 
 export {getExtendedStatus}

@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Button, Input, PlatformIcon, SmallInput, StandardScreen, Text} from '../../common-adapters'
-import {globalMargins, globalColors} from '../../styles/style-guide'
+import {globalMargins, globalColors} from '../../styles'
 import {KeyboardAvoidingView} from 'react-native'
 import type {Props} from './add'
 

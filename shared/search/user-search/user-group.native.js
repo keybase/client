@@ -1,8 +1,7 @@
 // @flow
 import React from 'react'
-import {TouchableHighlight} from 'react-native'
-import {Avatar, Box, Icon, Text} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles/style-guide'
+import {Avatar, Box, Icon, Text, NativeTouchableHighlight} from '../../common-adapters/index.native'
+import {globalStyles, globalColors} from '../../styles'
 
 import type {IconType} from '../../common-adapters/icon'
 import type {Props, UserFn} from './user-group'
@@ -52,7 +51,7 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {selected: boolean,
   }
 
   return (
-    <TouchableHighlight
+    <NativeTouchableHighlight
       onPress={() => onClickUser(user)}
       activeOpacity={0.8}>
       <Box style={{...globalStyles.flexBoxColumn}}>
@@ -65,33 +64,33 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {selected: boolean,
         </Box>
         {insertSpacing && <Box style={{height: 1}} />}
       </Box>
-    </TouchableHighlight>
+    </NativeTouchableHighlight>
   )
 }
 
 function AddUser ({onClick}) {
   return (
-    <TouchableHighlight
+    <NativeTouchableHighlight
       onPress={onClick}
       activeOpacity={0.8}>
       <Box style={{...globalStyles.flexBoxRow, height: 48, alignItems: 'center', justifyContent: 'center', backgroundColor: globalColors.blue}}>
         <Icon type='icon-people-add-32' />
         <Text style={{marginLeft: 12, color: globalColors.white}} type='Body'>Add a user...</Text>
       </Box>
-    </TouchableHighlight>
+    </NativeTouchableHighlight>
   )
 }
 
 function RowButton ({icon, text, onClick}: {icon: IconType, text: string, onClick: () => void}) {
   return (
-    <TouchableHighlight
+    <NativeTouchableHighlight
       onPress={onClick}
       activeOpacity={0.8}>
       <Box style={rowButtonStyle}>
         <Icon type={icon} />
         <Text type='Body' style={{marginLeft: 8, color: globalColors.blue}}>{text}</Text>
       </Box>
-    </TouchableHighlight>
+    </NativeTouchableHighlight>
   )
 }
 

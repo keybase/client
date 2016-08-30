@@ -1,11 +1,9 @@
 // @flow
-
-import React, {Component} from 'react'
-import {View} from 'react-native'
+import {Component} from 'react'
 
 export class Render extends Component {
   render () {
-    return <View />
+    return null
   }
 }
 

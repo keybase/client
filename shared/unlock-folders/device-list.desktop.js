@@ -1,7 +1,7 @@
 // @flow
 
 import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import {Text, Button, Icon} from '../common-adapters'
 
 import type {Device} from '../constants/unlock-folders'

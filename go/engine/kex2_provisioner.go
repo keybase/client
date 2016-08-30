@@ -111,6 +111,7 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 	// all set:  start provisioner
 	karg := kex2.KexBaseArg{
 		Ctx:           nctx,
+		ProvisionCtx:  e.G(),
 		Mr:            libkb.NewKexRouter(e.G()),
 		DeviceID:      deviceID,
 		Secret:        e.secret,
@@ -179,6 +180,21 @@ func (e *Kex2Provisioner) GetHelloArg() (arg keybase1.HelloArg, err error) {
 	return arg, nil
 }
 
+// GetHello2Arg implements GetHello2Arg in kex2.Provisioner.
+func (e *Kex2Provisioner) GetHello2Arg() (arg2 keybase1.Hello2Arg, err error) {
+	e.G().Log.Debug("+ GetHello2Arg()")
+	defer func() { e.G().Log.Debug("- GetHello2Arg() -> %s", libkb.ErrToOk(err)) }()
+	var arg1 keybase1.HelloArg
+	arg1, err = e.GetHelloArg()
+	arg2 = keybase1.Hello2Arg{
+		Uid:     arg1.Uid,
+		Token:   arg1.Token,
+		Csrf:    arg1.Csrf,
+		SigBody: arg1.SigBody,
+	}
+	return arg2, nil
+}
+
 // CounterSign implements CounterSign in kex2.Provisioner.
 func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err error) {
 	e.G().Log.Debug("+ CounterSign()")
@@ -208,6 +224,27 @@ func (e *Kex2Provisioner) CounterSign(input keybase1.HelloRes) (sig []byte, err 
 	}
 
 	return []byte(s), nil
+}
+
+// CounterSign2 implements CounterSign in kex2.Provisioner.
+func (e *Kex2Provisioner) CounterSign2(input keybase1.Hello2Res) (output keybase1.DidCounterSign2Arg, err error) {
+	defer e.G().Trace("CounterSign2()", func() error { return err })()
+	var key libkb.GenericKey
+	key, err = libkb.ImportKeypairFromKID(input.EncryptionKey)
+	if err != nil {
+		return output, err
+	}
+	output.Sig, err = e.CounterSign(input.SigPayload)
+	if err != nil {
+		return output, err
+	}
+	var ppsPacked []byte
+	ppsPacked, err = libkb.MsgpackEncode(e.pps)
+	if err != nil {
+		return output, err
+	}
+	output.PpsEncrypted, err = key.EncryptToString(ppsPacked, nil)
+	return output, err
 }
 
 // sessionForY gets session tokens that Y can use to interact with

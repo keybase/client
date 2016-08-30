@@ -5,6 +5,8 @@ import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
 // import {favoriteList} from '../actions/favorite'
 import {kbfsNotification} from '../util/kbfs-notifications'
+import {pgpKeyInSecretStoreFile} from '../constants/pgp'
+
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
 
@@ -49,6 +51,9 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     'keybase.1.NotifyApp.exit': () => {
       console.log('App exit requested')
       remote.app.exit(0)
+    },
+    'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
+      dispatch({type: pgpKeyInSecretStoreFile, payload: undefined})
     },
   }
 }
