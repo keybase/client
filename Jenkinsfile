@@ -293,7 +293,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                     sh 'npm run start& pid=$! ; echo $pid > pidfile'
                                                     def pid = readFile('pidfile')
                                                     sh 'rm pidfile'
-                                                    sh 'echo bbb $pid'
+                                                    sh "echo bbb $pid"
                                                     // sh "(npm run start &) ; npm run test-ios"
                                                     sh "kill $pid"
                                                     // Make sure simulator is clean for others
