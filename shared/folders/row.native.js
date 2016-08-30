@@ -2,8 +2,7 @@
 import React from 'react'
 import type {Folder} from './list'
 import type {IconType} from '../common-adapters/icon'
-import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
-import {Image, TouchableHighlight} from 'react-native'
+import {Box, Text, Icon, Avatar, Meta, NativeImage, NativeTouchableHighlight} from '../common-adapters/index.native'
 import {globalStyles, globalColors} from '../styles'
 import {iconMeta} from '../common-adapters/icon.constants'
 
@@ -23,11 +22,11 @@ const Avatars = ({styles, users, isPublic, ignored}) => {
 
   return (
     <Box style={{width: 48, height: 1}}>
-      <Image
+      <NativeImage
         style={stylesAvatarContainerPrivate}
         source={source}
         resizeMode='contain'>{contents}
-      </Image>
+      </NativeImage>
     </Box>
   )
 }
@@ -99,7 +98,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, path, onClick}:
   const icon: IconType = styles.hasStuffIcon
 
   return (
-    <TouchableHighlight onPress={() => { onClick && onClick(path) }}>
+    <NativeTouchableHighlight onPress={() => { onClick && onClick(path) }}>
       <Box style={containerStyle}>
         <Box style={{...globalStyles.flexBoxRow}}>
           <Avatars users={users} styles={styles} isPublic={isPublic} ignored={ignored} />
@@ -114,7 +113,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, path, onClick}:
         </Box>
         <Box style={stylesLine} />
       </Box>
-    </TouchableHighlight>
+    </NativeTouchableHighlight>
   )
 }
 

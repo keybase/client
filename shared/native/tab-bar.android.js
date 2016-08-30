@@ -1,25 +1,13 @@
-import React, {requireNativeComponent} from 'react'
-import {PropTypes, Component} from 'react-native'
+import React, {Component, requireNativeComponent} from 'react'
 
 const tabBarProps = {
   name: 'TabBar',
-  propTypes: {
-    titles: PropTypes.array,
-    selectedStates: PropTypes.array,
-  },
 }
 
 class TabBarItem extends Component {
   render () {
     return this.props.children
   }
-}
-
-TabBarItem.propTypes = {
-  title: PropTypes.string.isRequired,
-  selected: PropTypes.bool.isRequired,
-  onPress: PropTypes.func.isRequired,
-  children: PropTypes.element.isRequired,
 }
 
 const NativeTabBar = requireNativeComponent(
@@ -79,10 +67,6 @@ export default class TabBar extends Component {
       </NativeTabBar>
     )
   }
-}
-
-TabBar.propTypes = {
-  children: PropTypes.array.isRequired,
 }
 
 TabBar.Item = TabBarItem

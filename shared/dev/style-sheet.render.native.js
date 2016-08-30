@@ -1,8 +1,7 @@
 // @flow
 import Container from './dev-container.native'
 import React, {Component} from 'react'
-import {Dropdown, Checkbox, Button, Box, Text, Terminal, Input, FormWithCheckbox, TabBar} from '../common-adapters'
-import {Switch, ScrollView} from 'react-native'
+import {Dropdown, Checkbox, Button, Box, Text, Terminal, Input, FormWithCheckbox, TabBar, NativeSwitch, NativeScrollView} from '../common-adapters/index.native'
 import {TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles'
 
@@ -257,8 +256,8 @@ const Dropdowns = ({selectedUser, selectUser, selectedOption, selectOption, user
 const Checkboxes = ({check, flip}) => {
   return (
     <Box>
-      {false && <Row><Switch onTintColor={globalColors.blue} value={check[0]} onValueChange={() => flip(0)} /></Row>}
-      {false && <Row><Switch onTintColor={globalColors.blue} value={check[1]} onValueChange={() => flip(1)} /></Row>}
+      {false && <Row><NativeSwitch onTintColor={globalColors.blue} value={check[0]} onValueChange={() => flip(0)} /></Row>}
+      {false && <Row><NativeSwitch onTintColor={globalColors.blue} value={check[1]} onValueChange={() => flip(1)} /></Row>}
       <Row><Checkbox label='Switch unswitched' onCheck={() => flip(2)} checked={check[2]} disabled={false} /></Row>
       <Row><Checkbox label='Switch switched' onCheck={() => flip(3)} checked={check[3]} disabled={false} /></Row>
       <Row><Checkbox label='Switch unswitched disabled' onCheck={() => flip(4)} checked={check[4]} disabled={true} /></Row>
@@ -331,7 +330,7 @@ class Render extends Component {
   render () {
     // TODO: remove Success from here when dumb components sheet is in
     return (
-      <ScrollView>
+      <NativeScrollView>
         <Container title='Buttons'><Buttons /></Container>
         <Container title='Text'><Fonts /></Container>
         <Container title='TabBar'>
@@ -350,7 +349,7 @@ class Render extends Component {
         <Container title='Inputs'><Inputs /></Container>
         <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check} /></Container>
         <Container title='Colors'><Colors /></Container>
-      </ScrollView>
+      </NativeScrollView>
     )
   }
 }

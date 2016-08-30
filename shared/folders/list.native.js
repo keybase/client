@@ -3,8 +3,7 @@ import React, {Component} from 'react'
 import Row from './row'
 import type {IconType} from '../common-adapters/icon'
 import type {Props} from './list'
-import {Box, Text, Icon} from '../common-adapters'
-import {TouchableWithoutFeedback} from 'react-native'
+import {Box, Text, Icon, NativeTouchableWithoutFeedback} from '../common-adapters/index.native'
 import {globalStyles, globalColors} from '../styles'
 
 const rowKey = users => users && users.map(u => u.username).join('-')
@@ -14,12 +13,12 @@ const Ignored = ({rows, showIgnored, ignored, styles, onToggle, isPublic}) => {
 
   return (
     <Box style={stylesIgnoreContainer}>
-      <TouchableWithoutFeedback onPress={onToggle}>
+      <NativeTouchableWithoutFeedback onPress={onToggle}>
         <Box style={styles.topBox}>
           <Text type='BodySmallSemibold' style={styles.dividerText}>Ignored folders</Text>
           <Icon type={caretIcon} style={{...stylesIgnoreCaret, color: isPublic ? globalColors.black_40 : globalColors.white_40}} />
         </Box>
-      </TouchableWithoutFeedback>
+      </NativeTouchableWithoutFeedback>
       {showIgnored && <Box style={styles.bottomBox}>
         <Text type='BodySmallSemibold' style={styles.dividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
       </Box>}

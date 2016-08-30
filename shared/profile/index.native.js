@@ -1,20 +1,19 @@
 // @flow
-import React, {Component} from 'react'
-import _ from 'lodash'
-import {ScrollView} from 'react-native'
-import moment from 'moment'
-import {normal as proofNormal, metaPending, metaUnreachable} from '../constants/tracker'
-import {BackButton, Box, ComingSoon, Icon, PopupMenu, Text, UserActions, UserBio, UserProofs} from '../common-adapters'
-import {usernameText} from '../common-adapters/usernames'
-import Friendships from './friendships'
-import {globalStyles, globalColors, globalMargins} from '../styles'
-import {stateColors} from '../util/tracker'
-import {friendlyName as platformFriendlyName} from '../util/platforms'
 import * as shared from './index.shared'
 import ErrorComponent from '../common-adapters/error-profile'
-import type {Tab as FriendshipsTab} from './friendships'
+import Friendships from './friendships'
+import React, {Component} from 'react'
+import _ from 'lodash'
+import moment from 'moment'
 import type {Proof} from '../constants/tracker'
 import type {Props} from './index'
+import type {Tab as FriendshipsTab} from './friendships'
+import {BackButton, Box, ComingSoon, Icon, PopupMenu, Text, UserActions, UserBio, UserProofs, NativeScrollView} from '../common-adapters/index.native'
+import {friendlyName as platformFriendlyName} from '../util/platforms'
+import {globalStyles, globalColors, globalMargins} from '../styles'
+import {normal as proofNormal, metaPending, metaUnreachable} from '../constants/tracker'
+import {stateColors} from '../util/tracker'
+import {usernameText} from '../common-adapters/usernames'
 
 export const AVATAR_SIZE = 112
 export const HEADER_TOP_SPACE = 48
@@ -137,7 +136,7 @@ class Profile extends Component<void, Props, State> {
         <Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}}>
           {this.props.onBack && <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: 16}} iconStyle={{color: globalColors.white}} />}
         </Box>
-        <ScrollView style={{flex: 1, backgroundColor: trackerStateColors.header.background}} contentContainerStyle={{backgroundColor: globalColors.white}}>
+        <NativeScrollView style={{flex: 1, backgroundColor: trackerStateColors.header.background}} contentContainerStyle={{backgroundColor: globalColors.white}}>
           {proofNotice && (
             <Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
               <Text type='BodySmallSemibold' style={{color: globalColors.white}}>{proofNotice}</Text>
@@ -182,7 +181,7 @@ class Profile extends Component<void, Props, State> {
             followers={this.props.followers}
             following={this.props.following}
           />
-        </ScrollView>
+        </NativeScrollView>
         {!!activeMenuProof &&
           <PopupMenu
             {...this._proofMenuContent(activeMenuProof)}
