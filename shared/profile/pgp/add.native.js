@@ -30,6 +30,7 @@ class PgpAdd extends Component<void, Props, void> {
           </Text>
           <Input
             floatingLabelText='Your full name'
+            hintText='Your full name'
             value={this.props.fullName}
             onChangeText={this.props.onChangeFullName}
             textStyle={{height: undefined}} />
