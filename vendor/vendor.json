@@ -1,6 +1,6 @@
 {
 	"comment": "",
-	"ignore": "test appengine appenginevm",
+	"ignore": "test appenginevm",
 	"package": [
 		{
 			"checksumSHA1": "68e5AeuAwK7lLjVXWYhkZYsIAZs=",
@@ -47,7 +47,6 @@
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		},
 		{
-			"origin": "github.com/keybase/kbfs/vendor/github.com/bitly/go-simplejson",
 			"path": "github.com/bitly/go-simplejson",
 			"revision": "aabad6e819789e569bd6aabf444c935aa9ba1e44",
 			"revisionTime": "2015-09-15T16:53:35Z"
@@ -65,7 +64,6 @@
 			"revisionTime": "2016-08-26T20:58:34Z"
 		},
 		{
-			"origin": "github.com/keybase/kbfs/vendor/github.com/davecgh/go-spew/spew",
 			"path": "github.com/davecgh/go-spew/spew",
 			"revision": "5215b55f46b2b919f50a1df0eaa5886afe4e3b3d",
 			"revisionTime": "2015-11-05T21:09:06Z"
@@ -103,22 +101,15 @@
 		},
 		{
 			"checksumSHA1": "JSHl8b3nI8EWvzm+uyrIqj2Hiu4=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/golang/mock/gomock",
 			"path": "github.com/golang/mock/gomock",
 			"revision": "bd3c8e81be01eef76d4b503f5e687d2d1354d2d9",
 			"revisionTime": "2016-01-21T18:51:14Z"
 		},
 		{
-			"checksumSHA1": "74s6+WFhn0Zx23S82Hva6J30JTc=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/golang/snappy",
+			"checksumSHA1": "UsY6N958JNjS0qzLTAtER7+tVPY=",
 			"path": "github.com/golang/snappy",
-			"revision": "774a97396f7bfa4165e9dcf4bfa0747ea3edcc02",
-			"revisionTime": "2016-04-16T05:15:34Z"
-		},
-		{
-			"path": "github.com/google/go-snappy/snappy",
-			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
-			"revisionTime": "2016-03-16T16:25:20-04:00"
+			"revision": "d6668316e43571d7dde95be6fd077f96de002f8b",
+			"revisionTime": "2016-05-19T03:34:20Z"
 		},
 		{
 			"checksumSHA1": "d9PxF1XQGLMJZRct2R8qVM/eYlE=",
@@ -152,70 +143,60 @@
 		},
 		{
 			"checksumSHA1": "5FZdIGpE5Mi16d6cIDiZb4x50Xo=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/auth",
 			"path": "github.com/keybase/client/go/auth",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
 		},
 		{
 			"checksumSHA1": "BBoE7a1isW6cm2DG6svijg5j/Ow=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/externals",
 			"path": "github.com/keybase/client/go/externals",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
 		},
 		{
 			"checksumSHA1": "rdcKP+jl83p6ADXpatEmxEKKL1k=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/gregor",
 			"path": "github.com/keybase/client/go/gregor",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
 		},
 		{
 			"checksumSHA1": "oLQtPQ9EcRjv7o25zvvZAW1g0O0=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/kex2",
 			"path": "github.com/keybase/client/go/kex2",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
 		},
 		{
 			"checksumSHA1": "i7lHc9fcYarOzTxJktTwyl0dtac=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/libkb",
 			"path": "github.com/keybase/client/go/libkb",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
 		},
 		{
 			"checksumSHA1": "R5txWiGu8cVcWof6Z0iyTvI8t0E=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/logger",
 			"path": "github.com/keybase/client/go/logger",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
 		},
 		{
 			"checksumSHA1": "qweEbmZVOpCzlZdsa4DlchuoZNo=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/protocol/chat1",
 			"path": "github.com/keybase/client/go/protocol/chat1",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
 		},
 		{
 			"checksumSHA1": "3MI35Ojrei9cSG8qPl/7vMmYXRY=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/protocol/gregor1",
 			"path": "github.com/keybase/client/go/protocol/gregor1",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
 		},
 		{
 			"checksumSHA1": "UDySeq33ORb1pNcBioxvdTpZq28=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/protocol/keybase1",
 			"path": "github.com/keybase/client/go/protocol/keybase1",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
 		},
 		{
 			"checksumSHA1": "2n5dwCHHjauPjnd9/8LgRL31eLU=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/pvl",
 			"path": "github.com/keybase/client/go/pvl",
 			"revision": "a7c5ee4a843ee6e4ccf898ae9e5ad1dd301a358e",
 			"revisionTime": "2016-08-26T20:58:34Z"
@@ -283,7 +264,6 @@
 		},
 		{
 			"checksumSHA1": "wjZgw3Uk/a6hIeLltwi2N1awOvI=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/go-framed-msgpack-rpc",
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
 			"revision": "0a70c4c69a35782a1e3011d33503c6625567bb69",
 			"revisionTime": "2016-08-09T17:17:08Z"
@@ -306,7 +286,6 @@
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		},
 		{
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/go-merkle-tree",
 			"path": "github.com/keybase/go-merkle-tree",
 			"revision": "94090372642a4b6fcac21e6f1e71f4050c19d908",
 			"revisionTime": "2016-02-04T22:18:14Z"
@@ -323,7 +302,6 @@
 		},
 		{
 			"checksumSHA1": "hHp8I8SAgS/Xm3UyYzIrfSNbjtQ=",
-			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/gregor",
 			"path": "github.com/keybase/gregor",
 			"revision": "409b09827daf496149d98108464ec159e0f70289",
 			"revisionTime": "2016-08-24T19:33:35Z"
@@ -361,7 +339,6 @@
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		},
 		{
-			"origin": "github.com/keybase/kbfs/vendor/github.com/pmezard/go-difflib/difflib",
 			"path": "github.com/pmezard/go-difflib/difflib",
 			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
 			"revisionTime": "2016-01-10T10:55:54Z"
@@ -378,13 +355,11 @@
 			"revisionTime": "2015-01-10T16:24:53Z"
 		},
 		{
-			"origin": "github.com/keybase/kbfs/vendor/github.com/stretchr/testify/assert",
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "c5d7a69bf8a2c9c374798160849c071093e41dd1",
 			"revisionTime": "2016-04-18T22:58:27Z"
 		},
 		{
-			"origin": "github.com/keybase/kbfs/vendor/github.com/stretchr/testify/require",
 			"path": "github.com/stretchr/testify/require",
 			"revision": "c5d7a69bf8a2c9c374798160849c071093e41dd1",
 			"revisionTime": "2016-04-18T22:58:27Z"
