@@ -8,6 +8,7 @@ export type Props = {
   type: IconType,
   hint?: string,
   onClick?: (event: SyntheticMouseEvent) => void,
+  onPress?: void,
   onMouseEnter?: () => void,
   onMouseLeave?: () => void,
   style?: Object,

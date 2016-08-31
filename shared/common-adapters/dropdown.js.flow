@@ -6,6 +6,7 @@ export type Props = {
   type: 'Username' | 'General',
   options: Array<string>,
   onClick: (option: string, index: number) => void,
+  onPress?: void,
   onOther?: () => void,
   value?: ?string,
   style?: Object
@@ -17,6 +18,7 @@ export type MenuItemProps = {
   value?: any, // The value of the menu item.
   type?: 'Normal' | 'Username' | 'Other' | 'Pick',
   onClick: () => void,
+  onPress?: void,
   style?: Object,
   textStyle?: Object,
   children?: any

@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {NativeTouchableWithoutFeedback, NativeListView, Box, Text} from '../common-adapters'
+import {ClickableBox, NativeListView, Box, Text} from '../common-adapters'
 import {globalStyles} from '../styles'
 
 export default class MenuList extends Component {
@@ -12,12 +12,12 @@ export default class MenuList extends Component {
 
   renderRow (rowData, sectionID, rowID) {
     return (
-      <NativeTouchableWithoutFeedback onPress={rowData.onClick || (() => {})}>
+      <ClickableBox onClick={rowData.onClick}>
         <Box style={{margin: 10, ...globalStyles.flexBoxRow, flex: 1}}>
           <Text type='BodySmall'>{rowData.name}</Text>
           <Text type='BodySmall' style={{flex: 1}}>{rowData.hasChildren ? '>' : ''}</Text>
         </Box>
-      </NativeTouchableWithoutFeedback>
+      </ClickableBox>
     )
   }
 
