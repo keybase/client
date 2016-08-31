@@ -3,7 +3,7 @@ import Icon from './icon'
 import React, {Component} from 'react'
 import Text from './text'
 import type {Props} from './checkbox'
-import {globalStyles, globalColors, transition} from '../styles/style-guide'
+import {globalStyles, globalColors, transition} from '../styles'
 
 export const CHECKBOX_SIZE = 13
 export const CHECKBOX_MARGIN = 6

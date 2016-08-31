@@ -1,12 +1,9 @@
 // @flow
-import Box from './box'
-import Icon from './icon'
 import React, {Component} from 'react'
-import Text from './text'
 import _ from 'lodash'
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
-import {TouchableWithoutFeedback} from 'react-native'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {Box, Icon, Text, NativeTouchableWithoutFeedback} from './index.native'
+import {globalStyles, globalColors} from '../styles'
 
 class TabBarItem extends Component<void, ItemProps, void> {
   render () {
@@ -79,11 +76,11 @@ class TabBar extends Component {
     return (this.props.children || []).map((item: {props: ItemProps}, i) => {
       const key = item.props.label || _.get(item, 'props.tabBarButton.props.label') || i
       return (
-        <TouchableWithoutFeedback key={key} onPress={item.props.onClick || (() => {})}>
+        <NativeTouchableWithoutFeedback key={key} onPress={item.props.onClick || (() => {})}>
           <Box style={item.props.styleContainer}>
             {item.props.tabBarButton || <SimpleTabBarButton {...item.props} />}
           </Box>
-        </TouchableWithoutFeedback>
+        </NativeTouchableWithoutFeedback>
       )
     })
   }

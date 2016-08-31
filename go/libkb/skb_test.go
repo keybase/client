@@ -119,7 +119,11 @@ func testPromptAndUnlock(t *testing.T, skb *SKB) {
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true},
 	}
-	key, err := skb.PromptAndUnlock(parg, NewSecretStore(skb.G(), "testusername"), nil)
+	ss := NewSecretStore(skb.G(), "testusername")
+	if ss == nil {
+		t.Fatal("NewSecretStore returned nil")
+	}
+	key, err := skb.PromptAndUnlock(parg, ss, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -140,6 +144,7 @@ func TestBasicSecretStore(t *testing.T) {
 	}
 
 	skb := makeTestSKB(t, lks, tc.G)
+
 	testPromptAndUnlock(t, skb)
 
 	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")

@@ -16,7 +16,7 @@ type OwnProps = { }
 const connector: TypedConnector<TypedState, TypedDispatch<SearchActions>, OwnProps, Props> = new TypedConnector()
 
 export default connector.connect(
-  ({search: {userForInfoPane}, tracker: {trackers}}, dispatch, ownProps) => {
+  ({search: {userForInfoPane}, tracker: {trackers}, config: {username: myUsername}}, dispatch, ownProps) => {
     if (userForInfoPane && userForInfoPane.service === 'keybase') {
       const username = userForInfoPane.username
       const trackerState = trackers[username]
@@ -37,6 +37,7 @@ export default connector.connect(
           userInfoProps: {
             username: username,
             userInfo: trackerState.userInfo,
+            isYou: username === myUsername,
             proofs: trackerState.proofs,
             loading: loading,
             currentlyFollowing: currentlyFollowing,

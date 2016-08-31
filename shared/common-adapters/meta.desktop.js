@@ -2,7 +2,7 @@
 import React from 'react'
 import Text from './text'
 import type {Props} from './meta'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 
 const Meta = ({title, style}: Props) => (
   <Text type='Header' style={{

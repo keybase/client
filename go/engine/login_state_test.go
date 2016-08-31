@@ -91,8 +91,7 @@ func (m *GetPassphraseMock) GetPassphrase(p keybase1.GUIEntryArg, terminal *keyb
 		return res, m.LastErr
 	}
 	m.Called = true
-	storeSecret := p.Features.StoreSecret.Allow && m.StoreSecret
-	return keybase1.GetPassphraseRes{Passphrase: m.Passphrase, StoreSecret: storeSecret}, nil
+	return keybase1.GetPassphraseRes{Passphrase: m.Passphrase, StoreSecret: m.StoreSecret}, nil
 }
 
 func (m *GetPassphraseMock) CheckLastErr(t *testing.T) {

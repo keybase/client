@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Box, Button, Icon, Text} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles/style-guide'
+import {globalStyles, globalColors} from '../../styles'
 
 class Render extends Component {
   render () {

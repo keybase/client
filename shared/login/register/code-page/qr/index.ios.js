@@ -2,8 +2,8 @@
 import Camera from 'react-native-camera'
 import React, {Component} from 'react'
 import type {Props} from './index'
-import {Image, View} from 'react-native'
-import {globalStyles} from '../../../../styles/style-guide'
+import {NativeImage, Box} from '../../../../common-adapters/index.native'
+import {globalStyles} from '../../../../styles'
 
 class QR extends Component<void, Props, void> {
   render () {
@@ -18,10 +18,10 @@ class QR extends Component<void, Props, void> {
       )
     } else {
       return (
-        <View style={{...cameraStyle, ...this.props.style}}>
+        <Box style={{...cameraStyle, ...this.props.style}}>
           {this.props.children}
-          <Image style={[{width: 300, height: 300}, this.props.imageStyle]} source={{uri: this.props.qrCode}} />
-        </View>
+          <NativeImage style={[{width: 300, height: 300}, this.props.imageStyle]} source={{uri: this.props.qrCode}} />
+        </Box>
       )
     }
   }

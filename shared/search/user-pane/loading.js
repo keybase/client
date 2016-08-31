@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Box, Text} from '../../common-adapters'
-import {globalColors, globalMargins} from '../../styles/style-guide'
+import {globalColors, globalMargins} from '../../styles'
 
 export type Props = {
   username: string

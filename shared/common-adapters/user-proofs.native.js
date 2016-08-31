@@ -1,21 +1,22 @@
 // @flow
-import React, {Component} from 'react'
-import {TouchableHighlight} from 'react-native'
 import * as shared from './user-proofs.shared'
+import React, {Component} from 'react'
 import openUrl from '../util/open-url'
+import type {IconType} from '../common-adapters/icon.constants'
 import type {Proof} from '../constants/tracker'
 import type {Props, MissingProof} from './user-proofs'
-import {Box, Icon, Meta, Text} from '../common-adapters/index'
-import type {IconType} from '../common-adapters/icon.constants'
+import {Box, Icon, Meta, Text, NativeTouchableHighlight} from '../common-adapters/index.native'
+import {TouchableHighlight} from 'react-native'
 import {defaultColor} from '../common-adapters/icon.shared'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import {metaNone, checking as proofChecking} from '../constants/tracker'
+import {omit} from 'lodash'
 
 function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, style: Object}): React$Element<*> {
   const missingColor = globalColors.black_20
   // TODO (AW): this is copied from desktop as a starting point for mobile
   return (
-    <TouchableHighlight style={{...stylesRow, flex: 1, ...style}} key={missingProof.type} onPress={() => missingProof.onClick(missingProof)}>
+    <NativeTouchableHighlight style={{...stylesRow, flex: 1, ...style}} key={missingProof.type} onPress={() => missingProof.onClick(missingProof)}>
       <Box style={stylesRow}>
         <Icon style={{...stylesService, color: missingColor}} type={shared.iconNameForProof(missingProof)} hint={missingProof.type} />
         <Box style={stylesProofNameSection}>
@@ -29,7 +30,7 @@ function MissingProofRow ({missingProof, style}: {missingProof: MissingProof, st
           <Icon type={'iconfont-proof-placeholder'} style={{...stylesStatusIcon('iconfont-proof-placeholder'), color: missingColor}} />
         </Box>
       </Box>
-    </TouchableHighlight>
+    </NativeTouchableHighlight>
   )
 }
 
@@ -66,6 +67,28 @@ function ProofRow ({proof, onClickStatus, onClickProfile, hasMenu, style}: Proof
   )
 }
 
+function LoadingProofRow ({width, style}: {width: number, style: Object}): React$Element<*> {
+  return (
+    <Box style={{...stylesRow, ...style}}>
+      <Box style={{...(omit(stylesService, ['fontSize', 'textAlign', 'color']))}} />
+      <Box style={stylesProofNameSection}>
+        <Box style={stylesProofNameLabelContainer}>
+          <Box style={{...globalStyles.loadingTextStyle, width, marginTop: 8, height: 16}} />
+        </Box>
+      </Box>
+      <Icon type={'iconfont-proof-placeholder'} style={{...stylesStatusIcon('iconfont-proof-placeholder'), color: globalColors.lightGrey}} />
+    </Box>
+  )
+}
+
+function LoadingProofs ({pad}: {pad: (i: number) => Object}) {
+  return (
+    <Box>
+      {[117, 147, 97].map((width, idx) => <LoadingProofRow key={idx} width={width} style={pad(idx)} />)}
+    </Box>
+  )
+}
+
 class ProofsRender extends Component<void, Props, void> {
   _ensureUrlProtocal (url: string): string {
     return url && (url.indexOf('://') === -1 ? 'http://' : '') + url
@@ -86,6 +109,14 @@ class ProofsRender extends Component<void, Props, void> {
   render () {
     const {onClickProofMenu} = this.props
     const pad = idx => idx > 0 ? {paddingTop: globalMargins.tiny} : {}
+    if (this.props.loading) {
+      return (
+        <Box style={{...stylesContainer, backgroundColor: 'transparent', ...this.props.style}}>
+          <LoadingProofs pad={pad} />
+        </Box>
+      )
+    }
+
     return (
       <Box style={{...stylesContainer, ...this.props.style}}>
         {this.props.proofs && this.props.proofs.map((p, idx) =>

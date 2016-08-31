@@ -52,7 +52,7 @@ type CmdPGPVerify struct {
 }
 
 func (c *CmdPGPVerify) Run() error {
-	cli, err := GetPGPClient()
+	cli, err := GetPGPClient(c.G())
 	if err != nil {
 		return err
 	}

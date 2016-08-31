@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import type {Props} from './render'
 import {Box, TabBar} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 
 class Render extends Component<void, Props, void> {
   _renderComingSoon () {

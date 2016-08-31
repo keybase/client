@@ -1,0 +1,62 @@
+{
+  "protocol": "Kex2Provisionee2",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "Hello2Res",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "encryptionKey"
+        },
+        {
+          "type": "HelloRes",
+          "name": "sigPayload"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "hello2": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "token",
+          "type": "SessionToken"
+        },
+        {
+          "name": "csrf",
+          "type": "CsrfToken"
+        },
+        {
+          "name": "sigBody",
+          "type": "string"
+        }
+      ],
+      "response": "Hello2Res"
+    },
+    "didCounterSign2": {
+      "request": [
+        {
+          "name": "sig",
+          "type": "bytes"
+        },
+        {
+          "name": "ppsEncrypted",
+          "type": "string"
+        }
+      ],
+      "response": null
+    }
+  },
+  "namespace": "keybase.1"
+}

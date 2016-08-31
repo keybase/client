@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './divider'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 
 class Divider extends Component<void, Props, void> {
   render () {

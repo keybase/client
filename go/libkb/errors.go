@@ -45,6 +45,11 @@ type ProofErrorImpl struct {
 }
 
 func NewProofError(s keybase1.ProofStatus, d string, a ...interface{}) *ProofErrorImpl {
+	// Don't do string interpolation if there are no substitution arguments.
+	// Fixes double-interpolation when deserializing an object.
+	if len(a) == 0 {
+		return &ProofErrorImpl{s, d}
+	}
 	return &ProofErrorImpl{s, fmt.Sprintf(d, a...)}
 }
 

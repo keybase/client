@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Box, Text, Icon} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../styles/style-guide'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props} from './choice-list'
 
 const ChoiceList = ({options}: Props) => {

@@ -18,6 +18,7 @@ const defaultParentProps = {
 const userPaneBase: UserRenderProps = {
   ...mockUserInfo,
   loading: false,
+  isYou: false,
   proofs: proofsDefault,
   trackerState: normal,
   currentlyFollowing: false,

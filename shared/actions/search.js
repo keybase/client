@@ -81,13 +81,9 @@ function parseExtraInfo (platform: SearchPlatforms, rr: RawResult, isFollowing: 
   }
 }
 
-function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean, myself: ?string, added: Object): ?SearchResult {
+function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: (username: string) => boolean, added: Object): ?SearchResult {
   const extraInfo = parseExtraInfo(platform, rr, isFollowing)
   const serviceName = rr.service && rr.service.service_name && capitalize(rr.service.service_name)
-
-  if (rr.keybase && rr.keybase.username === myself) { // filter out myself
-    return null
-  }
 
   let searchResult = null
   if (platform === 'Keybase' && rr.keybase) {
@@ -107,7 +103,7 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: 
       serviceName,
       profileUrl: 'TODO',
       extraInfo,
-      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', toUpgrade, isFollowing, null, {}) : null,
+      keybaseSearchResult: rr.keybase ? parseRawResult('Keybase', toUpgrade, isFollowing, {}) : null,
     }
   } else {
     return null
@@ -121,8 +117,8 @@ function parseRawResult (platform: SearchPlatforms, rr: RawResult, isFollowing: 
 }
 
 function rawResults (term: string, platform: SearchPlatforms, rresults: Array<RawResult>,
-  requestTimestamp: Date, isFollowing: (username: string) => boolean, myself: ?string, added: Object): Results {
-  const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr, isFollowing, myself, added)))
+  requestTimestamp: Date, isFollowing: (username: string) => boolean, added: Object): Results {
+  const results: Array<SearchResult> = filterNull(rresults.map(rr => parseRawResult(platform, rr, isFollowing, added)))
 
   return {
     type: Constants.results,
@@ -177,13 +173,12 @@ export function search (term: string, maybePlatform: ?SearchPlatforms) : TypedAs
           try {
             const json = JSON.parse(results.body)
             const isFollowing = (username: string) => isFollowing_(getState, username)
-            const myself = getState().config.username
             // map of service+username
             const added = getState().search.selectedUsers.reduce((m, cur) => {
               searchResultKeys(cur).forEach(key => { m[key] = true })
               return m
             }, {})
-            dispatch(rawResults(term, platform, json.list || [], requestTimestamp, isFollowing, myself, added))
+            dispatch(rawResults(term, platform, json.list || [], requestTimestamp, isFollowing, added))
           } catch (_) {
             console.log('Error searching (json). Not handling this error')
           }

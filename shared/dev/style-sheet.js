@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import Render from './style-sheet.render'
-import {globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles'
 
 class StyleSheet extends Component {
   render () {

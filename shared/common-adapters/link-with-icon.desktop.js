@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Text, Icon} from '../common-adapters'
-import {globalMargins} from '../styles/style-guide'
+import {globalMargins} from '../styles'
 import type {Props} from './link-with-icon'
 
 const LinkWithIcon = ({label, icon, color, onClick, style}: Props) => (

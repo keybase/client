@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {StyleSheet, Navigator, TextInput, View, Text} from 'react-native'
+import {NativeNavigator, NativeTextInput, Box, Text} from '../common-adapters/index.native'
 import {connect} from 'react-redux'
 import {getDevSettings, saveDevSettings, updateDevSettings} from '../actions/config'
 
@@ -16,50 +16,43 @@ class Developer extends Component {
   render () {
     if (!this.props.devConfig) {
       return (
-        <View
+        <Box
           style={{
             flex: 1,
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-          <Text>Loading…</Text>
-        </View>
+          <Text type='Body'>Loading…</Text>
+        </Box>
       )
     }
     let settingNodes = this.props.devConfig.keys.map(key => {
       return (
-        <View style={styles.group} key={key}>
-          <Text style={styles.label}>{key.replace(/(?!^)(?=[A-Z][a-z])/g, ' ')}</Text>
-          <TextInput
+        <Box style={styles.group} key={key}>
+          <Text type='Body' style={styles.label}>{key.replace(/(?!^)(?=[A-Z][a-z])/g, ' ')}</Text>
+          <NativeTextInput
             placeholder={this.props.devConfig.defaults[key]}
             value={this.props.devConfig.configured[key]}
             style={styles.input}
             clearButtonMode='always'
             onChangeText={val => this.props.updateDevSettings({[key]: val || null})}
           />
-        </View>
+        </Box>
       )
     })
     return (
-      <View style={styles.container}>
+      <Box style={styles.container}>
         {settingNodes}
-      </View>
+      </Box>
     )
   }
 
   static parseRoute () {
-    return {componentAtTop: {title: 'Developer', sceneConfig: Navigator.SceneConfigs.FloatFromBottom}}
+    return {componentAtTop: {title: 'Developer', sceneConfig: NativeNavigator.SceneConfigs.FloatFromBottom}}
   }
 }
 
-Developer.propTypes = {
-  devConfig: React.PropTypes.object,
-  getDevSettings: React.PropTypes.func.isRequired,
-  saveDevSettings: React.PropTypes.func.isRequired,
-  updateDevSettings: React.PropTypes.func.isRequired,
-}
-
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -90,7 +83,7 @@ const styles = StyleSheet.create({
     paddingRight: 10,
     color: 'blue',
   },
-})
+}
 
 export default connect(
   state => {

@@ -143,10 +143,6 @@
         {
           "type": "string",
           "name": "senderDeviceName"
-        },
-        {
-          "type": "string",
-          "name": "topicName"
         }
       ]
     },
@@ -232,11 +228,36 @@
     },
     {
       "type": "record",
-      "name": "ConversationMessagesLocal",
+      "name": "ConversationInfoLocal",
+      "fields": [
+        {
+          "type": "string",
+          "name": "tlfName"
+        },
+        {
+          "type": "string",
+          "name": "topicName"
+        },
+        {
+          "type": "chat1.TopicType",
+          "name": "topicType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationLocal",
       "fields": [
         {
           "type": "chat1.ConversationID",
           "name": "id"
+        },
+        {
+          "type": [
+            null,
+            "ConversationInfoLocal"
+          ],
+          "name": "info"
         },
         {
           "type": {
@@ -306,16 +327,8 @@
     "resolveConversationLocal": {
       "request": [
         {
-          "name": "tlfName",
-          "type": "string"
-        },
-        {
-          "name": "topicName",
-          "type": "string"
-        },
-        {
-          "name": "topicType",
-          "type": "chat1.TopicType"
+          "name": "conversation",
+          "type": "ConversationInfoLocal"
         }
       ],
       "response": {
@@ -332,7 +345,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "ConversationMessagesLocal"
+        "items": "ConversationLocal"
       }
     },
     "completeAndCanonicalizeTlfName": {

@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import type {$Exact} from '../constants/types/more'
 import type {Props} from './icon'
 import {FontIcon} from 'material-ui'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
 class Icon extends Component<void, $Exact<Props>, void> {

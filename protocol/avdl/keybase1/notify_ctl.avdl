@@ -15,6 +15,7 @@ protocol notifyCtl {
     boolean service;
     boolean app;
     boolean chat;
+    boolean pgp;
   }
 
   void setNotifications(NotificationChannels channels);

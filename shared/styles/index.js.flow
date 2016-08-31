@@ -1,0 +1,16 @@
+/* @flow */
+// Styles from our designers
+
+export {default as globalColors} from './colors'
+
+declare export var transition: (...properties: Array<string>) => Object
+declare export var globalStyles: Object
+declare export var globalMargins: {
+  xtiny: number,
+  tiny: number,
+  small: number,
+  medium: number,
+  large: number,
+  xlarge: number
+}
+declare export function backgroundURL (...path: Array<string>): string

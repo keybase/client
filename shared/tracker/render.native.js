@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {UserBio, UserProofs, Box} from '../common-adapters'
 import Header from './header.render'
 import Action from './action.render'
-import {globalColors, globalMargins} from '../styles/style-guide'
+import {globalColors, globalMargins} from '../styles'
 
 import type {RenderProps} from './render'
 

@@ -119,7 +119,6 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.createLoginState()
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
-	g.SecretStoreAll = NewSecretStoreLocked(g)
 	return g
 }
 
@@ -385,6 +384,11 @@ func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 	if err != nil {
 		return err
 	}
+
+	// SecretStoreAll must be created after SetCommandLine in order
+	// to correctly use -H,-home flag.
+	g.SecretStoreAll = NewSecretStoreLocked(g)
+
 	return g.ConfigureUsage(usage)
 }
 

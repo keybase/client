@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Box, Text, Terminal, Icon, Avatar} from '../common-adapters'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles'
 import {shell} from 'electron'
 
 type Props = {
@@ -115,7 +115,7 @@ const styleTerminal = {
 
 const styleTerminalGroups = {
   ...globalStyles.flexBoxColumn,
-  alignItems: 'flex-start',
+  flex: 1,
   textAlign: 'left',
 }
 
