@@ -5,9 +5,6 @@ import dumbComponentMap from './dumb-component-map.native'
 import type {Props} from './dumb-sheet.render'
 import {Box, Text, SmallInput, Button, NativeScrollView, Icon} from '../common-adapters/index.native'
 import {globalStyles, globalColors} from '../styles'
-import {isTesting} from '../local-debug'
-
-const TEST_RENDER_NUMBER = 1
 
 class Render extends Component<void, Props, any> {
   state: any;
@@ -40,32 +37,33 @@ class Render extends Component<void, Props, any> {
     }, 0)
   }
 
-  _continueTest () {
-    if (isTesting && this.state.testIndex !== -1) {
+  _increment () {
+    if (this.props.autoIncrement && this.state.testIndex !== -1) {
       const {componentsOnly} = this._getComponents()
       if (this.state.testIndex >= componentsOnly.length) {
         this.setState({testIndex: -1})
       } else {
-        this.setState({testIndex: this.state.testIndex + TEST_RENDER_NUMBER})
+        this.setState({testIndex: this.state.testIndex + 1})
       }
     }
   }
 
   componentDidMount () {
-    if (isTesting) {
-      this._continueTest()
+    if (this.props.autoIncrement) {
+      this._increment()
     }
   }
 
   componentDidUpdate () {
-    setTimeout(() => {
-      this._continueTest()
-    }, 1)
+    if (this.props.autoIncrement) {
+      setTimeout(() => {
+        this._increment()
+      }, 1)
+    }
   }
 
   render () {
-    // return isTesting ? this.renderAll() : this.renderSingle()
-    return this.renderAll()
+    return this.props.autoIncrement ? this.renderIncrement() : this.renderSingle()
   }
 
   _getComponents (filter: ?string) {
@@ -105,12 +103,12 @@ class Render extends Component<void, Props, any> {
     }
   }
 
-  renderAll () {
+  renderIncrement () {
     if (this.state.testIndex === -1) {
       return <Text type='Body'>DONE TESTING</Text>
     }
     const {componentsOnly} = this._getComponents()
-    const sub = componentsOnly.slice(this.state.testIndex, this.state.testIndex + TEST_RENDER_NUMBER)
+    const sub = componentsOnly.slice(this.state.testIndex, this.state.testIndex + 1)
     console.log('test render idx', this.state.testIndex)
     return <Box>{sub}</Box>
   }
