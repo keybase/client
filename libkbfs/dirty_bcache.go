@@ -26,6 +26,10 @@ type dirtyReq struct {
 	deadline time.Time
 }
 
+const (
+	resetBufferCapTimeDefault = 5 * time.Minute
+)
+
 // DirtyBlockCacheStandard implements the DirtyBlockCache interface by
 // storing blocks in an in-memory cache.  Dirty blocks are identified
 // by their block ID, branch name, and reference nonce, since the same
@@ -96,6 +100,13 @@ type dirtyReq struct {
 // capacity(syncBuf) and 2*capacity(syncBuf).  As soon as the sync
 // completes, any delayed write is unblocked and gets to start filling
 // up the buffers again.
+//
+// To avoid keeping the buffer capacity large when network conditions
+// suddenly worsen (say after a laptop sleep when it comes back online
+// on a new, worse network), the capacity is reset back to the minimum
+// if resetBufferCapTime passes without any large syncs.  TODO: in the
+// future it might make sense to decrease the buffer capacity, rather
+// than resetting it to the minimum?
 type DirtyBlockCacheStandard struct {
 	clock   Clock
 	makeLog func(string) logger.Logger
@@ -123,6 +134,11 @@ type DirtyBlockCacheStandard struct {
 	// sync buffer), the more write requests will be delayed.
 	maxSyncBufCap int64
 
+	// After how long without a syncBufferCap-sized sync will
+	// syncBufferCap be reset automatically back down to the minimum,
+	// to avoid keeping it too high as network conditions change?
+	resetBufferCapTime time.Duration
+
 	shutdownLock sync.RWMutex
 	isShutdown   bool
 
@@ -133,6 +149,7 @@ type DirtyBlockCacheStandard struct {
 	syncBufferCap   int64
 	ignoreSyncBytes int64 // these bytes have "timed out"
 	syncStarted     time.Time
+	resetter        *time.Timer
 }
 
 // NewDirtyBlockCacheStandard constructs a new BlockCacheStandard
@@ -155,6 +172,7 @@ func NewDirtyBlockCacheStandard(clock Clock,
 		minSyncBufCap:      minSyncBufCap,
 		maxSyncBufCap:      maxSyncBufCap,
 		syncBufferCap:      startSyncBufCap,
+		resetBufferCapTime: resetBufferCapTimeDefault,
 	}
 	d.reqWg.Add(1)
 	go d.processPermission()
@@ -350,6 +368,12 @@ func (d *DirtyBlockCacheStandard) getSyncStarted() time.Time {
 	return d.syncStarted
 }
 
+func (d *DirtyBlockCacheStandard) getSyncBufferCap() int64 {
+	d.lock.RLock()
+	defer d.lock.RUnlock()
+	return d.syncBufferCap
+}
+
 func (d *DirtyBlockCacheStandard) processPermission() {
 	defer d.reqWg.Done()
 	// Keep track of the most-recently seen request across loop
@@ -533,6 +557,18 @@ func (d *DirtyBlockCacheStandard) BlockSyncFinished(size int64) {
 	}
 }
 
+func (d *DirtyBlockCacheStandard) resetBufferCap() {
+	d.lock.Lock()
+	defer d.lock.Unlock()
+	d.logLocked("Resetting syncBufferCap from %d to %d", d.syncBufferCap,
+		d.minSyncBufCap)
+	d.syncBufferCap = d.minSyncBufCap
+	d.resetter = nil
+	if d.blockedChanForTesting != nil {
+		d.blockedChanForTesting <- -1
+	}
+}
+
 // SyncFinished implements the DirtyBlockCache interface for
 // DirtyBlockCacheStandard.
 func (d *DirtyBlockCacheStandard) SyncFinished(size int64) {
@@ -551,6 +587,15 @@ func (d *DirtyBlockCacheStandard) SyncFinished(size int64) {
 	}
 	bufferIncrease := size - ignore
 	d.ignoreSyncBytes -= ignore
+
+	// If the sync was a reasonably large fraction of the current
+	// buffer capacity, restart the reset timer.
+	if size >= d.syncBufferCap/2 {
+		if d.resetter != nil {
+			d.resetter.Stop()
+		}
+		d.resetter = time.AfterFunc(d.resetBufferCapTime, d.resetBufferCap)
+	}
 
 	// Only increase the buffer size if we sent over a lot of bytes.
 	// We don't want a series of small writes to increase the buffer

@@ -231,3 +231,43 @@ func TestDirtyBcacheCalcBackpressure(t *testing.T) {
 		t.Fatalf("Got backpressure %s, expected %s", g, e)
 	}
 }
+
+func TestDirtyBcacheResetBufferCap(t *testing.T) {
+	bufSize := int64(5)
+	dirtyBcache := NewDirtyBlockCacheStandard(&wallClock{}, testLoggerMaker(t),
+		bufSize, bufSize*2, bufSize)
+	defer dirtyBcache.Shutdown()
+	dirtyBcache.resetBufferCapTime = 1 * time.Millisecond
+	blockedChan := make(chan int64, 1)
+	dirtyBcache.blockedChanForTesting = blockedChan
+	ctx := context.Background()
+
+	// The first write should get immediate permission.
+	c1, err := dirtyBcache.RequestPermissionToDirty(ctx, bufSize*2+1)
+	if err != nil {
+		t.Fatalf("Request permission error: %v", err)
+	}
+	<-c1
+	// Now the unsynced buffer is full
+	if !dirtyBcache.ShouldForceSync() {
+		t.Fatalf("Unsynced not full after a request")
+	}
+	// Not blocked
+	if blockedSize := <-blockedChan; blockedSize != -1 {
+		t.Fatalf("Wrong blocked size: %d", blockedSize)
+	}
+
+	// Finish it
+	dirtyBcache.UpdateSyncingBytes(2*bufSize + 1)
+	dirtyBcache.BlockSyncFinished(2*bufSize + 1)
+	dirtyBcache.SyncFinished(2*bufSize + 1)
+
+	// Wait for the reset
+	if blockedSize := <-blockedChan; blockedSize != -1 {
+		t.Fatalf("Wrong blocked size: %d", blockedSize)
+	}
+
+	if curr := dirtyBcache.getSyncBufferCap(); curr != bufSize {
+		t.Fatalf("Sync buffer cap was not reset, now %d", curr)
+	}
+}
