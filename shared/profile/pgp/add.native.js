@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Button, Input, KeyboardAvoidingBox, PlatformIcon, SmallInput, StandardScreen, Text} from '../../common-adapters/index.native'
+import {Button, Input, NativeKeyboardAvoidingView, PlatformIcon, SmallInput, StandardScreen, Text} from '../../common-adapters/index'
 import {globalMargins, globalColors} from '../../styles'
 import type {Props} from './add'
 
@@ -13,7 +13,7 @@ class PgpAdd extends Component<void, Props, void> {
       autoCorrect: false,
     }
     return (
-      <KeyboardAvoidingBox behavior='position'>
+      <NativeKeyboardAvoidingView behavior='position'>
         <StandardScreen
           style={styleContainer}
           onClose={this.props.onCancel}>
@@ -65,7 +65,7 @@ class PgpAdd extends Component<void, Props, void> {
             disabled={nextDisabled}
             onClick={this.props.onNext} />
         </StandardScreen>
-      </KeyboardAvoidingBox>
+      </NativeKeyboardAvoidingView>
     )
   }
 }
