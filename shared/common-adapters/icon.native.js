@@ -48,7 +48,7 @@ class Icon extends Component<void, $Exact<Props>, void> {
       <ClickableBox
         activeOpacity={0.8}
         underlayColor={this.props.underlayColor || globalColors.white}
-        onPress={this.props.onClick || (() => {})}
+        onClick={this.props.onClick || (() => {})}
         disabled={!(this.props.onClick)}
         style={{...containerProps}}>
         {icon}
