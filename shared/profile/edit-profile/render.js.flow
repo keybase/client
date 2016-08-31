@@ -13,7 +13,7 @@ export type Props = {
   onEditProfile: () => void,
   onFullnameChange: () => void,
   onLocationChange: () => void,
-  onSubmit: () => void
+  onSubmit: () => void,
 }
 
 export default class Render extends Component<void, Props, void> { }

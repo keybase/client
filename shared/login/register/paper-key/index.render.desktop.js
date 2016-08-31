@@ -13,7 +13,7 @@ const Render = ({onBack, onSubmit, onChangePaperKey, error, paperKey, waitingFor
       <Icon type='icon-paper-key-48' style={styles.icon} />
       <Input
         autoFocus={true}
-        multiLine={true}
+        multiline={true}
         style={styles.input}
         errorText={error}
         hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'

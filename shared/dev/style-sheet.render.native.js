@@ -56,7 +56,7 @@ const Inputs = () => (
       <Input type='password' hintText='Secure Passphrase Input' floatingLabelText='Passphrase' />
     </Row>
 
-    <Input multiLine={true} type='passwordVisible' floatingLabelText='Multiline' style={{height: 80}} hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' />
+    <Input multiline={true} type='passwordVisible' floatingLabelText='Multiline' style={{height: 80}} hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' />
 
     <ShowTypingDemo />
 
