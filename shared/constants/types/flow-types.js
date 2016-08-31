@@ -1750,6 +1750,7 @@ export type NotificationChannels = {
   app: boolean,
   chat: boolean,
   pgp: boolean,
+  kbfsrequest: boolean,
 }
 
 export type NotifyChatNewChatActivityRpcParam = $Exact<{
