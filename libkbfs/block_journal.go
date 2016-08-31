@@ -62,6 +62,14 @@ type blockJournal struct {
 	j          diskJournal
 	refs       map[BlockID]blockRefMap
 	isShutdown bool
+
+	// Tracks the total size of on-disk blocks that will be put to the
+	// server (i.e., does not count reference adds).  It is only
+	// accurate for users of this journal that properly flush entries;
+	// in particular, direct calls to `removeReferences` can cause
+	// this count to deviate from the actual disk usage of the
+	// journal.
+	blockBytes int64
 }
 
 type bserverOpName string
@@ -186,6 +194,7 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 
 	j.log.CDebugf(ctx, "Reading journal entries %d to %d", first, last)
 
+	var blockBytes int64
 	for i := first; i <= last; i++ {
 		e, err := j.readJournalEntry(i)
 		if err != nil {
@@ -210,6 +219,22 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 			if err != nil {
 				return nil, err
 			}
+
+			// Only puts count as bytes, on the assumption that the
+			// refs won't have to upload any new bytes.  (This might
+			// be wrong if all references to a block were deleted
+			// since the addref entry was appended.)
+			if e.Op == blockPutOp {
+				b, err := j.getDataSize(id)
+				// Ignore ENOENT errors, since users like
+				// BlockServerDisk can remove block data without
+				// deleting the corresponding addRef.
+				if err != nil && !os.IsNotExist(err) {
+					return nil, err
+				}
+				blockBytes += b
+			}
+
 			continue
 		}
 
@@ -254,6 +279,8 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 			}
 		}
 	}
+	j.log.CDebugf(ctx, "Found %d block bytes in the journal", blockBytes)
+	j.blockBytes = blockBytes
 	return refs, nil
 }
 
@@ -315,6 +342,14 @@ func (j *blockJournal) putRefEntry(
 	}
 
 	return j.refs[id].put(refEntry.Context, refEntry.Status)
+}
+
+func (j *blockJournal) getDataSize(id BlockID) (int64, error) {
+	fi, err := os.Stat(j.blockDataPath(id))
+	if err != nil {
+		return 0, err
+	}
+	return fi.Size(), nil
 }
 
 func (j *blockJournal) getData(id BlockID) (
@@ -462,6 +497,7 @@ func (j *blockJournal) putData(
 	if err != nil {
 		return err
 	}
+	j.blockBytes += int64(len(buf))
 
 	// TODO: Add integrity-checking for key server half?
 
@@ -574,6 +610,8 @@ func (j *blockJournal) removeReferences(
 		if count == 0 {
 			delete(j.refs, id)
 			if removeUnreferencedBlocks {
+				// TODO: Decrement j.blockBytes, but only if the block
+				// was part of a blockPutOp, not an addRefOp.
 				err := os.RemoveAll(j.blockPath(id))
 				if err != nil {
 					return nil, err
@@ -737,13 +775,31 @@ func flushBlockJournalEntry(
 }
 
 func (j *blockJournal) removeFlushedEntry(ctx context.Context,
-	ordinal journalOrdinal, _ blockJournalEntry) error {
+	ordinal journalOrdinal, entry blockJournalEntry) error {
 	if j.isShutdown {
 		// TODO: This creates a race condition if we shut down
 		// after we've flushed an op but before we remove
 		// it. Make sure we handle re-flushed ops
 		// idempotently.
 		return errBlockJournalShutdown
+	}
+
+	// Fix up the block byte count if we've finished a Put.
+	if entry.Op == blockPutOp {
+		id, _, err := entry.getSingleContext()
+		if err != nil {
+			return err
+		}
+		b, err := j.getDataSize(id)
+		if err != nil {
+			return err
+		}
+
+		if b > j.blockBytes {
+			return fmt.Errorf("Block %v is bigger than our current count "+
+				"of journal block bytes (%d > %d)", id, b, j.blockBytes)
+		}
+		j.blockBytes -= b
 	}
 
 	earliestOrdinal, err := j.j.readEarliestOrdinal()

@@ -49,6 +49,7 @@ type TLFJournalStatus struct {
 	RevisionEnd   MetadataRevision
 	BranchID      string
 	BlockOpCount  uint64
+	BlockBytes    int64 // (signed because os.FileInfo.Size() is signed)
 }
 
 // TLFJournalBackgroundWorkStatus indicates whether a journal should
@@ -602,7 +603,14 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 		RevisionStart: earliestRevision,
 		RevisionEnd:   latestRevision,
 		BlockOpCount:  blockEntryCount,
+		BlockBytes:    j.blockJournal.blockBytes,
 	}, nil
+}
+
+func (j *tlfJournal) getBlockBytes() int64 {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	return j.blockJournal.blockBytes
 }
 
 func (j *tlfJournal) shutdown() {

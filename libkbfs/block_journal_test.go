@@ -79,10 +79,14 @@ func TestBlockJournalBasic(t *testing.T) {
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
+	blockBytes := j.blockBytes
+	require.Equal(t, blockBytes, int64(len(data)))
+
 	// Shutdown and restart.
 	j.shutdown()
 	j, err = makeBlockJournal(ctx, codec, crypto, tempdir, log)
 	require.NoError(t, err)
+	require.Equal(t, blockBytes, j.blockBytes)
 
 	require.Equal(t, 2, getBlockJournalLength(t, j))
 
@@ -146,7 +150,7 @@ func TestBlockJournalRemoveReferences(t *testing.T) {
 
 	// Remove references.
 	liveCounts, err := j.removeReferences(
-		ctx, map[BlockID][]BlockContext{bID: {bCtx, bCtx2}}, true)
+		ctx, map[BlockID][]BlockContext{bID: {bCtx, bCtx2}}, false)
 	require.NoError(t, err)
 	require.Equal(t, map[BlockID]int{bID: 0}, liveCounts)
 	require.Equal(t, 3, getBlockJournalLength(t, j))

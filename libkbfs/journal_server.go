@@ -21,6 +21,7 @@ import (
 type JournalServerStatus struct {
 	RootDir      string
 	JournalCount int
+	BlockBytes   int64 // (signed because os.FileInfo.Size() is signed)
 }
 
 // TODO: JournalServer isn't really a server, although it can create
@@ -241,14 +242,19 @@ func (j *JournalServer) mdOps() journalMDOps {
 // Status returns a JournalServerStatus object suitable for
 // diagnostics.
 func (j *JournalServer) Status() JournalServerStatus {
-	journalCount := func() int {
+	journalCount, blockBytes := func() (int, int64) {
 		j.lock.RLock()
 		defer j.lock.RUnlock()
-		return len(j.tlfJournals)
+		var blockBytes int64
+		for _, tlfJournal := range j.tlfJournals {
+			blockBytes += tlfJournal.getBlockBytes()
+		}
+		return len(j.tlfJournals), blockBytes
 	}()
 	return JournalServerStatus{
 		RootDir:      j.dir,
 		JournalCount: journalCount,
+		BlockBytes:   blockBytes,
 	}
 }
 

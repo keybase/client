@@ -485,6 +485,7 @@ func TestTLFJournalFlushBlock(t *testing.T) {
 	bID, bCtx, serverHalf := config.makeBlock(data)
 	err := tlfJournal.putBlockData(ctx, bID, bCtx, data, serverHalf)
 	require.NoError(t, err)
+	require.NotZero(t, tlfJournal.blockJournal.blockBytes)
 
 	// Add some references.
 
@@ -597,6 +598,7 @@ func TestTLFJournalFlushBlock(t *testing.T) {
 	_, e, _, _, err := tlfJournal.blockJournal.getNextEntryToFlush(ctx)
 	require.NoError(t, err)
 	require.Nil(t, e)
+	require.Zero(t, tlfJournal.blockJournal.blockBytes)
 }
 
 type shimMDServer struct {
