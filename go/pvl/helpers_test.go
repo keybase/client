@@ -52,7 +52,7 @@ var serviceToStringTests = []serviceToStringTest{
 	{keybase1.ProofType(-12), "", false, keybase1.ProofStatus_INVALID_PVL},
 }
 
-func TestPvlServiceToString(t *testing.T) {
+func TestServiceToString(t *testing.T) {
 	for i, test := range serviceToStringTests {
 		name, err := serviceToString(test.service)
 		switch {
@@ -79,7 +79,7 @@ var jsonHasKeyTests = []jsonHasKeyTest{
 	{makeJSONDangerous(`[0, 1, 2]`), "0", false},
 }
 
-func TestPvlJSONHasKey(t *testing.T) {
+func TestJSONHasKey(t *testing.T) {
 	for i, test := range jsonHasKeyTests {
 		if jsonHasKey(test.json, test.key) != test.has {
 			t.Fatalf("%v %v", i, !test.has)
@@ -139,7 +139,7 @@ var substituteTests = []substituteTest{
 		"%{1}", ""},
 }
 
-func TestPvlSubstitute(t *testing.T) {
+func TestSubstitute(t *testing.T) {
 	for i, test := range substituteTests {
 		state := sampleState()
 		state.Service = test.service
@@ -170,7 +170,7 @@ var jsonUnpackArrayTests = []jsonUnpackArrayTest{
 	}},
 }
 
-func TestPvlJSONUnpackArray(t *testing.T) {
+func TestJSONUnpackArray(t *testing.T) {
 	for i, test := range jsonUnpackArrayTests {
 		ar, err := jsonUnpackArray(test.json)
 		if (err == nil) != test.shouldwork {
@@ -213,7 +213,7 @@ var jsonGetChildrenTests = []jsonGetChildrenTest{
 	}},
 }
 
-func TestPvlJSONGetChildren(t *testing.T) {
+func TestJSONGetChildren(t *testing.T) {
 	for i, test := range jsonGetChildrenTests {
 		ar, err := jsonGetChildren(test.json)
 		if (err == nil) != test.shouldwork {
@@ -280,7 +280,7 @@ var jsonStringSimpleTests = []jsonStringSimpleTest{
 	{false, makeJSONDangerous(`[1, {"a": "b"}, "three"]`), ""},
 }
 
-func TestPvlJSONStringSimple(t *testing.T) {
+func TestJSONStringSimple(t *testing.T) {
 	for i, test := range jsonStringSimpleTests {
 		out, err := jsonStringSimple(test.json)
 		if (err == nil) != test.shouldwork {
@@ -315,7 +315,7 @@ var selectionContentsTests = []selectionContentsTest{
 	{selectionContentsDocument, "div", true, "data-baz", ""},
 }
 
-func TestPvlSelectionContents(t *testing.T) {
+func TestSelectionContents(t *testing.T) {
 	for i, test := range selectionContentsTests {
 		sel := test.html.Find(test.selector)
 		out := selectionContents(sel, test.useAttr, test.attr)
