@@ -39,7 +39,7 @@ function waitingForResponse (waiting: boolean) : TypedAction<'login:waitingForRe
   }
 }
 
-export function navBasedOnLoginState () :AsyncAction {
+export function navBasedOnLoginState (): AsyncAction {
   return (dispatch, getState) => {
     const {config: {status, extendedConfig}} = getState()
 

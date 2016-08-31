@@ -223,7 +223,7 @@ class Engine {
   }
 
   // Setup a handler for a rpc w/o a session (id = 0)
-  setIncomingHandler (method:MethodKey, handler: (param: Object, response: ?Object) => void) {
+  setIncomingHandler (method: MethodKey, handler: (param: Object, response: ?Object) => void) {
     if (this._incomingHandler[method]) {
       rpcLog('engineInternal', "Duplicate incoming handler!!!! This isn't allowed", method)
       return
