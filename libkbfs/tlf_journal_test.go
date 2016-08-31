@@ -123,18 +123,13 @@ func (c testTLFJournalConfig) checkMD(rmds *RootMetadataSigned,
 	expectedMergeStatus MergeStatus, expectedBranchID BranchID) {
 	uid := c.cig.uid
 	verifyingKey := c.crypto.signingKey.GetVerifyingKey()
-
-	require.Equal(c.t, expectedRevision, rmds.MD.RevisionNumber())
-	require.Equal(c.t, expectedPrevRoot, rmds.MD.GetPrevRoot())
-	require.Equal(c.t, expectedMergeStatus, rmds.MD.MergedStatus())
+	checkBRMD(c.t, uid, verifyingKey, c.Codec(), c.Crypto(),
+		rmds.MD, expectedRevision, expectedPrevRoot,
+		expectedMergeStatus, expectedBranchID)
 	err := rmds.IsValidAndSigned(c.Codec(), c.Crypto())
 	require.NoError(c.t, err)
 	err = rmds.IsLastModifiedBy(uid, verifyingKey)
 	require.NoError(c.t, err)
-
-	require.Equal(c.t, expectedMergeStatus == Merged,
-		expectedBranchID == NullBranchID)
-	require.Equal(c.t, expectedBranchID, rmds.MD.BID())
 }
 
 func (c testTLFJournalConfig) checkRange(rmdses []*RootMetadataSigned,
