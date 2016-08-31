@@ -12,12 +12,13 @@ import (
 func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "chat",
-		Usage:        "Comandline interface to Keybase Chat",
+		Usage:        "Chat securely with other Keybase users",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
-			newCmdChatSend(cl, g),
+			newCmdChatAPI(cl, g),
 			newCmdChatList(cl, g),
 			newCmdChatRead(cl, g),
+			newCmdChatSend(cl, g),
 		},
 	}
 }
