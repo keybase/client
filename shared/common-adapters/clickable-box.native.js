@@ -4,8 +4,9 @@ import type {Props} from './clickable-box'
 import {TouchableHighlight} from 'react-native'
 import {globalColors} from '../styles'
 
-const ClickableBox = ({onClick, style, children, underlayColor, onPressIn, onPressOut}: Props) => (
+const ClickableBox = ({activeOpacity, children, onClick, onPressIn, onPressOut, style, underlayColor}: Props) => (
   <TouchableHighlight
+    activeOpacity={activeOpacity || 0.2}
     disabled={!onClick}
     onPress={onClick}
     onPressIn={onPressIn}

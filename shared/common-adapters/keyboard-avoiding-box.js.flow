@@ -1,0 +1,10 @@
+// @flow
+import React, {Component} from 'react'
+
+export type Props = {
+  children?: any,
+  style?: Object,
+  behavior: 'height' | 'position' | 'padding'
+}
+
+declare export default class KeyboardAvoidingView extends Component<void, Props, void> { }
