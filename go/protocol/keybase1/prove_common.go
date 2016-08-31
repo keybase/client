@@ -18,6 +18,7 @@ const (
 	ProofState_SUPERSEDED   ProofState = 5
 	ProofState_POSTED       ProofState = 6
 	ProofState_REVOKED      ProofState = 7
+	ProofState_DELETED      ProofState = 8
 )
 
 var ProofStateMap = map[string]ProofState{
@@ -29,6 +30,7 @@ var ProofStateMap = map[string]ProofState{
 	"SUPERSEDED":   5,
 	"POSTED":       6,
 	"REVOKED":      7,
+	"DELETED":      8,
 }
 
 // 3: It's been found in the hunt, but not proven yet
