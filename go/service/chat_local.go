@@ -103,11 +103,11 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 
 	created = info
 
-	if len(info.TopicName) > 0 {
-		// topic name specified, so we follow up with a call to update topic name for the conversation.
-		if err = h.updateTopicName(ctx, info, triple); err != nil {
-			return created, fmt.Errorf("creating conversaion succeeded but update topic name failed: %v", err)
-		}
+	// No matter topic name is specified or not, we follow up with a call to
+	// update topic name for the conversation. This makes sure a Message is
+	// inserted into the conversation, making TlfName available.
+	if err = h.updateTopicName(ctx, info, triple); err != nil {
+		return created, fmt.Errorf("creating conversaion succeeded but update topic name failed: %v", err)
 	}
 
 	return created, nil
@@ -116,6 +116,7 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 // UpdateTopicNameLocal implements keybase.chatLocal.updateTopicNameLocal protocol.
 func (h *chatLocalHandler) UpdateTopicNameLocal(ctx context.Context, arg keybase1.UpdateTopicNameLocalArg) (err error) {
 	info, triple, _, err := h.getConversationInfo(ctx, arg.ConversationID)
+	info.TopicName = arg.NewTopicName
 	return h.updateTopicName(ctx, info, triple)
 }
 
