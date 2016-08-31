@@ -214,6 +214,7 @@ func (k *KeybaseServiceBase) LoggedOut(ctx context.Context) error {
 	k.log.CDebugf(ctx, "Current session logged out")
 	k.setCachedCurrentSession(SessionInfo{})
 	if k.config != nil {
+		k.config.ResetCaches()
 		k.config.MDServer().RefreshAuthToken(ctx)
 		k.config.BlockServer().RefreshAuthToken(ctx)
 		k.config.KBFSOps().RefreshCachedFavorites(ctx)
