@@ -91,7 +91,7 @@ class TabBar extends Component {
 
   render () {
     const tabBarButtons = (
-      <Box style={{...globalStyles.flexBoxRow, ...this.props.styleTabBar}}>
+      <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.midnightBlue, ...this.props.styleTabBar}}>
         {this._labels()}
       </Box>
     )
