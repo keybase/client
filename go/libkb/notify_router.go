@@ -32,6 +32,7 @@ type NotifyListener interface {
 	UserChanged(uid keybase1.UID)
 	TrackingChanged(uid keybase1.UID, username string)
 	FSActivity(activity keybase1.FSNotification)
+	FSEditListResponse(edits []keybase1.FSNotification, requestID int)
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
@@ -279,6 +280,33 @@ func (n *NotifyRouter) HandleFSActivity(activity keybase1.FSNotification) {
 	})
 	if n.listener != nil {
 		n.listener.FSActivity(activity)
+	}
+}
+
+// HandleFSEditListResponse is called for KBFS edit list notifications.
+func (n *NotifyRouter) HandleFSEditListResponse(ctx context.Context, edits []keybase1.FSNotification, requestID int) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Kbfs` notification type
+		if n.getNotificationChannels(id).Kbfs {
+			// In the background do...
+			go func() {
+				// A send of a `FSEditListResponse` RPC with the notification
+				(keybase1.NotifyFSClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).FSEditListResponse(ctx, keybase1.FSEditListResponseArg{
+					Edits:     edits,
+					RequestID: requestID,
+				})
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.FSEditListResponse(edits, requestID)
 	}
 }
 
