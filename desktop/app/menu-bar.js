@@ -106,7 +106,7 @@ export default function () {
 
     mb.on('show', () => {
       menubarListeners.forEach(l => l.send('menubarShow'))
-      isMacOS && updateIcon(true && !isDarkMode())
+      isMacOS && updateIcon(!isDarkMode())
     })
     mb.on('hide', () => {
       menubarListeners.forEach(l => l.send('menubarHide'))
