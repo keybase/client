@@ -278,6 +278,7 @@ export const ProveCommonProofState = {
   superseded: 5,
   posted: 6,
   revoked: 7,
+  deleted: 8,
 }
 
 export const ProveCommonProofStatus = {
@@ -1930,6 +1931,7 @@ export type ProofState =
   | 5 // SUPERSEDED_5
   | 6 // POSTED_6
   | 7 // REVOKED_7
+  | 8 // DELETED_8
 
 export type ProofStatus =
     0 // NONE_0
