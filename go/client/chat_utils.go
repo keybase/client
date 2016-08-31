@@ -16,6 +16,7 @@ func makeChatFlags(extras []cli.Flag) []cli.Flag {
 	return append(extras, []cli.Flag{
 		cli.StringFlag{
 			Name:  "topic-name",
+			Value: "default",
 			Usage: `Specify topic name of the conversation.`,
 		},
 		cli.StringFlag{
@@ -56,11 +57,17 @@ func (r conversationResolver) Resolve(ctx context.Context, chatClient keybase1.C
 		return nil, err
 	}
 	r.TlfName = string(cname)
-	conversations, err = chatClient.ResolveConversationLocal(ctx, keybase1.ConversationInfoLocal{
+	resp, err := chatClient.ResolveConversationLocal(ctx, keybase1.ConversationInfoLocal{
 		TlfName:   r.TlfName,
 		TopicName: r.TopicName,
 		TopicType: r.TopicType,
 	})
+	if err != nil {
+		return nil, err
+	}
+	for _, c := range resp {
+		conversations = append(conversations, c.Conversation)
+	}
 	return conversations, err
 }
 

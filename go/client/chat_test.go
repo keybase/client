@@ -97,12 +97,15 @@ func (c *chatLocalMock) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfN
 	return keybase1.CanonicalTlfName(tlfName), nil
 }
 
-func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg keybase1.ConversationInfoLocal) (conversations []keybase1.ConversationInfoLocal, err error) {
-	conversations = append(conversations, keybase1.ConversationInfoLocal{
-		TlfName:   "morty,rick,songgao",
-		TopicName: "random",
-		TopicType: chat1.TopicType_CHAT,
-		Id:        chatLocalMockConversationID,
+func (c *chatLocalMock) ResolveConversationLocal(ctx context.Context, arg keybase1.ConversationInfoLocal) (conversations []keybase1.ResolvedConversationLocal, err error) {
+	conversations = append(conversations, keybase1.ResolvedConversationLocal{
+		Conversation: keybase1.ConversationInfoLocal{
+			TlfName:   "morty,rick,songgao",
+			TopicName: "random",
+			TopicType: chat1.TopicType_CHAT,
+			Id:        chatLocalMockConversationID,
+		},
+		Timestamp: keybase1.ToTime(time.Now().Add(-time.Minute * 2)),
 	})
 	return conversations, nil
 }

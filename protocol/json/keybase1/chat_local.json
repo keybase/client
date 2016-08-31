@@ -250,6 +250,20 @@
     },
     {
       "type": "record",
+      "name": "ResolvedConversationLocal",
+      "fields": [
+        {
+          "type": "ConversationInfoLocal",
+          "name": "conversation"
+        },
+        {
+          "type": "Time",
+          "name": "timestamp"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationLocal",
       "fields": [
         {
@@ -328,7 +342,7 @@
       ],
       "response": {
         "type": "array",
-        "items": "ConversationInfoLocal"
+        "items": "ResolvedConversationLocal"
       }
     },
     "newConversationLocal": {
