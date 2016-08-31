@@ -442,8 +442,10 @@ func testBasicCRNoConflict(t *testing.T, unembedChanges bool) {
 		if !ok1 || !ok2 {
 			t.Fatalf("Couldn't convert BlockSplitters!")
 		}
-		bss1.blockChangeEmbedMaxSize = 256
-		bss2.blockChangeEmbedMaxSize = 256
+		// 128 seems to be a good size that works on both 386 and x64
+		// platforms.
+		bss1.blockChangeEmbedMaxSize = 128
+		bss2.blockChangeEmbedMaxSize = 128
 	}
 
 	name := userName1.String() + "," + userName2.String()
