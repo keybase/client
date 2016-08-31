@@ -140,7 +140,7 @@ function rateLimitAllowsNotify (action, state, tlf, isError) {
 export function kbfsNotification (notification: FSNotification, notify: any, getState: any) {
   const action = {
     [KbfsCommonFSNotificationType.encrypting]: 'Encrypting and uploading',
-    [KbfsCommonFSNotificationType.decrypting]: 'Decrypting, verifying, and downloading',
+    [KbfsCommonFSNotificationType.decrypting]: 'Decrypting',
     [KbfsCommonFSNotificationType.signing]: 'Signing and uploading',
     [KbfsCommonFSNotificationType.verifying]: 'Verifying and downloading',
     [KbfsCommonFSNotificationType.rekeying]: 'Rekeying',
