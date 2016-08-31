@@ -10,6 +10,8 @@
 	<string>Helper</string>
 	<key>CFBundleVersion</key>
 	<string>1.0.29</string>
+	<key>KBBuild</key>
+	<string>2</string>
 	<key>CFBundleShortVersionString</key>
 	<string>1.0.29</string>
 	<key>SMAuthorizedClients</key>

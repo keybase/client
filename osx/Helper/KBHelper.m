@@ -16,8 +16,9 @@
 
 + (int)run {
   NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
+  NSString *build = NSBundle.mainBundle.infoDictionary[@"KBBuild"];
 
-  KBLog(@"Starting keybase.Helper: %@", version);
+  KBLog(@"Starting keybase.Helper: %@ (%@)", version, build);
 
   xpc_connection_t service = xpc_connection_create_mach_service("keybase.Helper", dispatch_get_main_queue(), XPC_CONNECTION_MACH_SERVICE_LISTENER);
   if (!service) {
@@ -100,8 +101,10 @@
 
 - (void)version:(void (^)(NSError *error, id value))completion {
   NSString *version = NSBundle.mainBundle.infoDictionary[@"CFBundleShortVersionString"];
+  NSString *build = NSBundle.mainBundle.infoDictionary[@"KBBuild"];
   NSDictionary *response = @{
                              @"version": version,
+                             @"build": build,
                              };
   completion(nil, response);
 }
@@ -184,8 +187,24 @@
     }
   }
 
-  // Fall back to using /etc/paths.d/
-  NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", appName];
+
+  // If we don't have a /usr/local/bin then fall back to /etc/paths.d.
+  // Terminal will load /etc/profile, which uses /usr/libexec/path_helper which loads paths from /etc/paths.d.
+  // Some users will override the default usage of /etc/profile in Terminal though so this isn't guaranteed to
+  // include keybase in the path on those systems, however, these two cases should handle most of our users.
+
+  NSString *pathsd = @"/etc/paths.d";
+
+  // On fresh Sierra install, /etc/paths.d doesn't exist
+  if (![NSFileManager.defaultManager fileExistsAtPath:pathsd]) {
+    NSError *error = nil;
+    if (![NSFileManager.defaultManager createDirectoryAtPath:pathsd withIntermediateDirectories:NO attributes:nil error:&error]) {
+      completion(error, nil);
+      return;
+    }
+  }
+
+  NSString *pathsdPath = [NSString stringWithFormat:@"%@/%@", pathsd, appName];
   if ([NSFileManager.defaultManager fileExistsAtPath:pathsdPath]) {
     completion(nil, nil);
     return;
