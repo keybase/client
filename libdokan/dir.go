@@ -530,7 +530,12 @@ func (d *Dir) CanDeleteDirectory(ctx context.Context, fi *dokan.FileInfo) (err e
 // Cleanup - forget references, perform deletions etc.
 func (d *Dir) Cleanup(ctx context.Context, fi *dokan.FileInfo) {
 	var err error
-	d.folder.fs.logEnterf(ctx, "Dir Cleanup %q delete=%v", d.name, fi.IsDeleteOnClose())
+	if fi != nil {
+		d.folder.fs.logEnterf(ctx, "Dir Cleanup %q delete=%v", d.name,
+			fi.IsDeleteOnClose())
+	} else {
+		d.folder.fs.logEnterf(ctx, "Dir Cleanup %q", d.name)
+	}
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	if fi != nil && fi.IsDeleteOnClose() && d.parent != nil {
