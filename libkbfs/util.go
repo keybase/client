@@ -97,21 +97,21 @@ const (
 	CtxBackgroundSyncKey = "kbfs-background"
 )
 
-func ctxWithRandomID(ctx context.Context, tagKey interface{},
+func ctxWithRandomIDReplayable(ctx context.Context, tagKey interface{},
 	tagName string, log logger.Logger) context.Context {
-	// Tag each request with a unique ID
-	logTags := make(logger.CtxLogTags)
-	logTags[tagKey] = tagName
-	newCtx := logger.NewContextWithLogTags(ctx, logTags)
 	id, err := MakeRandomRequestID()
-	if err != nil {
-		if log != nil {
-			log.Warning("Couldn't generate a random request ID: %v", err)
-		}
-	} else {
-		newCtx = context.WithValue(newCtx, tagKey, id)
+	if err != nil && log != nil {
+		log.Warning("Couldn't generate a random request ID: %v", err)
 	}
-	return newCtx
+	return NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+		logTags := make(logger.CtxLogTags)
+		logTags[tagKey] = tagName
+		newCtx := logger.NewContextWithLogTags(ctx, logTags)
+		if err == nil {
+			newCtx = context.WithValue(newCtx, tagKey, id)
+		}
+		return newCtx
+	})
 }
 
 // LogTagsFromContext is a wrapper around logger.LogTagsFromContext

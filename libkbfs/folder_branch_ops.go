@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"strings"
 	"sync"
@@ -1967,6 +1968,37 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 	var mdID MdID
 
+	// This puts on a delay on any cancellations arriving to ctx. It is intended
+	// to work sort of like a critical section, except that there isn't an
+	// explicit call to exit the critical section. The cancellation, if any, is
+	// triggered after a timeout (i.e.
+	// fbo.config.DelayedCancellationGracePeriod()).
+	//
+	// The purpose of trying to avoid cancellation once we start MD write is to
+	// avoid having an unpredictable perceived MD state. That is, when
+	// runUnlessCanceled returns Canceled on cancellation, application receives
+	// an EINTR, and would assume the operation didn't succeed. But the MD write
+	// continues, and there's a chance the write will succeed, meaning the
+	// operation succeeds. This contradicts with the application's perception
+	// through error code and can lead to horrible situations. An easily caught
+	// situation is when application calls Create with O_EXCL set, gets an EINTR
+	// while MD write succeeds, retries and gets an EEXIST error. If users hit
+	// Ctrl-C, this might not be a big deal. However, it also happens for other
+	// interrupts.  For applications that use signals to communicate, e.g.
+	// SIGALRM and SIGUSR1, this can happen pretty often, which renders broken.
+	if err = EnableDelayedCancellationWithGracePeriod(
+		ctx, fbo.config.DelayedCancellationGracePeriod()); err != nil {
+		return err
+	}
+	// we don't explicitly clean up (by using a defer) CancellationDelayer here
+	// because sometimes fuse makes another call using the same ctx.  For example, in
+	// fuse's Create call handler, a dir.Create is followed by an Attr call. If
+	// we do a deferred cleanup here, if an interrupt has been received, it can
+	// cause ctx to be canceled before Attr call finishes, which causes FUSE to
+	// return EINTR for the Create request. But at this point, the request may
+	// have already succeeded. Returning EINTR makes application thinks the file
+	// is not created successfully.
+
 	if fbo.isMasterBranchLocked(lState) {
 		// only do a normal Put if we're not already staged.
 		mdID, err = mdops.Put(ctx, md)
@@ -2872,6 +2904,32 @@ func (fbo *folderBranchOps) Read(
 		return 0, err
 	}
 
+	filePath, err := fbo.pathFromNodeForRead(file)
+	if err != nil {
+		return 0, err
+	}
+
+	{
+		// It seems git isn't handling EINTR from some of its read calls (likely
+		// fread), which causes it to get corrupted data (which leads to coredumps
+		// later) when a read system call on pack files gets interrupted. This
+		// enables delayed cancellation for Read if the file path contains `.git`.
+		//
+		// TODO: get a patch in git, wait for sufficiently long time for people to
+		// upgrade, and remove this.
+
+		// allow turning this feature off by env var to make life easier when we
+		// try to fix git.
+		if _, isSet := os.LookupEnv("KBFS_DISABLE_GIT_SPECIAL_CASE"); !isSet {
+			for _, n := range filePath.path {
+				if n.Name == ".git" {
+					EnableDelayedCancellationWithGracePeriod(ctx, fbo.config.DelayedCancellationGracePeriod())
+					break
+				}
+			}
+		}
+	}
+
 	// Don't let the goroutine below write directly to the return
 	// variable, since if the context is canceled the goroutine might
 	// outlast this function call, and end up in a read/write race
@@ -2882,11 +2940,6 @@ func (fbo *folderBranchOps) Read(
 
 		// verify we have permission to read
 		md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
-		if err != nil {
-			return err
-		}
-
-		filePath, err := fbo.pathFromNodeForRead(file)
 		if err != nil {
 			return err
 		}
@@ -3957,8 +4010,7 @@ func (fbo *folderBranchOps) UnstageForTesting(
 		// notifications if we do.  But we still want to wait for the
 		// context to cancel.
 		c := make(chan error, 1)
-		ctxWithTags := fbo.ctxWithFBOID(context.Background())
-		freshCtx, cancel := context.WithCancel(ctxWithTags)
+		freshCtx, cancel := fbo.newCtxWithFBOID()
 		defer cancel()
 		fbo.log.CDebugf(freshCtx, "Launching new context for UnstageForTesting")
 		go func() {
@@ -4142,14 +4194,16 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 
 func (fbo *folderBranchOps) rekeyWithPrompt() {
 	var err error
-	ctx := ctxWithRandomID(context.Background(), CtxRekeyIDKey, CtxRekeyOpID,
-		fbo.log)
-
+	ctx := ctxWithRandomIDReplayable(
+		context.Background(), CtxRekeyIDKey, CtxRekeyOpID, fbo.log)
 	// Only give the user limited time to enter their paper key, so we
 	// don't wait around forever.
 	d := fbo.config.RekeyWithPromptWaitTime()
 	ctx, cancel := context.WithTimeout(ctx, d)
 	defer cancel()
+	if ctx, err = NewContextWithCancellationDelayer(ctx); err != nil {
+		panic(err)
+	}
 
 	fbo.log.CDebugf(ctx, "rekeyWithPrompt")
 	defer func() { fbo.deferLog.CDebugf(ctx, "Done: %v", err) }()
@@ -4246,13 +4300,24 @@ const (
 const CtxFBOOpID = "FBOID"
 
 func (fbo *folderBranchOps) ctxWithFBOID(ctx context.Context) context.Context {
-	return ctxWithRandomID(ctx, CtxFBOIDKey, CtxFBOOpID, fbo.log)
+	return ctxWithRandomIDReplayable(ctx, CtxFBOIDKey, CtxFBOOpID, fbo.log)
+}
+
+func (fbo *folderBranchOps) newCtxWithFBOID() (context.Context, context.CancelFunc) {
+	// No need to call NewContextReplayable since ctxWithFBOID calls
+	// ctxWithRandomIDReplayable, which attaches replayably.
+	ctx := fbo.ctxWithFBOID(context.Background())
+	ctx, cancelFunc := context.WithCancel(ctx)
+	ctx, err := NewContextWithCancellationDelayer(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return ctx, cancelFunc
 }
 
 // Run the passed function with a context that's canceled on shutdown.
 func (fbo *folderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error) error {
-	ctx := fbo.ctxWithFBOID(context.Background())
-	ctx, cancelFunc := context.WithCancel(ctx)
+	ctx, cancelFunc := fbo.newCtxWithFBOID()
 	defer cancelFunc()
 	errChan := make(chan error, 1)
 	go func() {
@@ -4430,7 +4495,10 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 		fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
 			// Denote that these are coming from a background
 			// goroutine, not directly from any user.
-			ctx = context.WithValue(ctx, CtxBackgroundSyncKey, "1")
+			ctx = NewContextReplayable(ctx,
+				func(ctx context.Context) context.Context {
+					return context.WithValue(ctx, CtxBackgroundSyncKey, "1")
+				})
 			// Just in case network access or a bug gets stuck for a
 			// long time, time out the sync eventually.
 			longCtx, longCancel :=

@@ -46,11 +46,11 @@ func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 	options := libfuse.GetPlatformSpecificMountOptionsForTest()
 	mnt, err := fstestutil.MountedFuncT(t, fn, &fs.Config{
 		WithContext: func(ctx context.Context, req fuse.Request) context.Context {
-			ctx = filesys.WithContext(ctx)
 			if int(opTimeout) > 0 {
 				// Safe to ignore cancel since fuse should clean up the parent
 				ctx, _ = context.WithTimeout(ctx, opTimeout)
 			}
+			ctx = filesys.WithContext(ctx)
 			return ctx
 		},
 	}, options...)
@@ -61,8 +61,8 @@ func createUserFuse(t testing.TB, ith int, config *libkbfs.ConfigLocal,
 	// the fsUser.cancel will cancel notification processing; the FUSE
 	// serve loop is terminated by unmounting the filesystem
 	ctx := context.Background()
-	ctx = filesys.WithContext(ctx)
 	ctx, cancelFn := context.WithCancel(ctx)
+	ctx = filesys.WithContext(ctx)
 	filesys.LaunchNotificationProcessor(ctx)
 	return &fsUser{
 		mntDir: mnt.Dir,

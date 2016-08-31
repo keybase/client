@@ -82,33 +82,51 @@ func (f *FS) LaunchNotificationProcessor(ctx context.Context) {
 }
 
 // WithContext adds app- and request-specific values to the context.
-// It is called by FUSE for normal runs, but may be called explicitly
-// in other settings, such as tests.
+// libkbfs.NewContextWithCancellationDelayer is called before returning the
+// context to ensure the cancellation is controllable.
+//
+// It is called by FUSE for normal runs, but may be called explicitly in other
+// settings, such as tests.
 func (f *FS) WithContext(ctx context.Context) context.Context {
-	ctx = context.WithValue(ctx, CtxAppIDKey, f)
-	logTags := make(logger.CtxLogTags)
-	logTags[CtxIDKey] = CtxOpID
-	ctx = logger.NewContextWithLogTags(ctx, logTags)
-
-	// Add a unique ID to this context, identifying a particular
-	// request.
-	id, err := libkbfs.MakeRandomRequestID()
-	if err != nil {
-		f.log.Errorf("Couldn't make request ID: %v", err)
-	} else {
-		ctx = context.WithValue(ctx, CtxIDKey, id)
+	id, errRandomReqID := libkbfs.MakeRandomRequestID()
+	if errRandomReqID != nil {
+		f.log.Errorf("Couldn't make request ID: %v", errRandomReqID)
 	}
 
-	if runtime.GOOS == "darwin" {
-		// Timeout operations before they hit the osxfuse time limit,
-		// so we don't hose the entire mount (Fixed in OSXFUSE 3.2.0).
-		// The timeout is 60 seconds, but it looks like sometimes it
-		// tries multiple attempts within that 60 seconds, so let's go
-		// a little under 60/3 to be safe.
-		//
-		// It should be safe to ignore the CancelFunc here because our
-		// parent context will be canceled by the FUSE serve loop.
-		ctx, _ = context.WithTimeout(ctx, 19*time.Second)
+	// context.WithDeadline uses clock from `time` package, so we are not using
+	// f.config.Clock() here
+	start := time.Now()
+	ctx, err := libkbfs.NewContextWithCancellationDelayer(
+		libkbfs.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+			ctx = context.WithValue(ctx, CtxAppIDKey, f)
+			logTags := make(logger.CtxLogTags)
+			logTags[CtxIDKey] = CtxOpID
+			ctx = logger.NewContextWithLogTags(ctx, logTags)
+
+			if errRandomReqID == nil {
+				// Add a unique ID to this context, identifying a particular
+				// request.
+				ctx = context.WithValue(ctx, CtxIDKey, id)
+			}
+
+			if runtime.GOOS == "darwin" {
+				// Timeout operations before they hit the osxfuse time limit,
+				// so we don't hose the entire mount (Fixed in OSXFUSE 3.2.0).
+				// The timeout is 60 seconds, but it looks like sometimes it
+				// tries multiple attempts within that 60 seconds, so let's go
+				// a little under 60/3 to be safe.
+				//
+				// It should be safe to ignore the CancelFunc here because our
+				// parent context will be canceled by the FUSE serve loop.
+				ctx, _ = context.WithDeadline(ctx, start.Add(19*time.Second))
+			}
+
+			return ctx
+
+		}))
+
+	if err != nil {
+		panic(err) // this should never happen
 	}
 
 	return ctx

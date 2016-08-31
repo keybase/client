@@ -101,16 +101,25 @@ func (k *LibKBFS) newContext() (context.Context, context.CancelFunc) {
 		cancel = func() {}
 	}
 
-	logTags := make(logger.CtxLogTags)
-	logTags[CtxIDKey] = CtxOpID
-	ctx = logger.NewContextWithLogTags(ctx, logTags)
+	id, errRandomRequestID := libkbfs.MakeRandomRequestID()
+	ctx, err := libkbfs.NewContextWithCancellationDelayer(libkbfs.NewContextReplayable(
+		ctx, func(ctx context.Context) context.Context {
+			logTags := make(logger.CtxLogTags)
+			logTags[CtxIDKey] = CtxOpID
+			ctx = logger.NewContextWithLogTags(ctx, logTags)
 
-	// Add a unique ID to this context, identifying a particular
-	// request.
-	id, err := libkbfs.MakeRandomRequestID()
-	if err == nil {
-		ctx = context.WithValue(ctx, CtxIDKey, id)
+			// Add a unique ID to this context, identifying a particular
+			// request.
+			if errRandomRequestID == nil {
+				ctx = context.WithValue(ctx, CtxIDKey, id)
+			}
+
+			return ctx
+		}))
+	if err != nil {
+		panic(err)
 	}
+
 	return ctx, cancel
 }
 
@@ -230,7 +239,9 @@ func (k *LibKBFS) CreateFile(u User, parentDir Node, name string) (file Node, er
 func (k *LibKBFS) CreateFileExcl(u User, parentDir Node, name string) (file Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	kbfsOps := config.KBFSOps()
-	file, _, err = kbfsOps.CreateFile(context.Background(), parentDir.(libkbfs.Node), name, false, libkbfs.WithExcl)
+	ctx, cancel := k.newContext()
+	defer cancel()
+	file, _, err = kbfsOps.CreateFile(ctx, parentDir.(libkbfs.Node), name, false, libkbfs.WithExcl)
 	if err != nil {
 		return nil, err
 	}

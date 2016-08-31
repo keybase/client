@@ -1331,6 +1331,22 @@ type Config interface {
 	// setting the rekey bit, before prompting for a paper key.
 	RekeyWithPromptWaitTime() time.Duration
 
+	// GracePeriod specifies a grace period for which a delayed cancellation
+	// waits before actual cancels the context. This is useful for giving
+	// critical portion of a slow remote operation some extra time to finish as
+	// an effort to avoid conflicting. Example include an O_EXCL Create call
+	// interrupted by ALRM signal actually makes it to the server, while
+	// application assumes not since EINTR is returned. A delayed cancellation
+	// allows us to distinguish between successful cancel (where remote operation
+	// didn't make to server) or failed cancel (where remote operation made to
+	// the server). However, the optimal value of this depends on the network
+	// conditions. A long grace period for really good network condition would
+	// just unnecessarily slow down Ctrl-C.
+	//
+	// TODO: make this adaptive and self-change over time based on network
+	// conditions.
+	DelayedCancellationGracePeriod() time.Duration
+	SetDelayedCancellationGracePeriod(time.Duration)
 	// QuotaReclamationPeriod indicates how often should each TLF
 	// should check for quota to reclaim.  If the Duration.Seconds()
 	// == 0, quota reclamation should not run automatically.

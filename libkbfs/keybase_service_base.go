@@ -494,7 +494,7 @@ func (k *KeybaseServiceBase) getHandleFromFolderName(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 	req keybase1.FSEditListRequest) (err error) {
-	ctx = ctxWithRandomID(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
+	ctx = ctxWithRandomIDReplayable(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
 		k.log)
 	k.log.CDebugf(ctx, "Edit list request for %s (public: %t)",
 		req.Folder.Name, !req.Folder.Private)
@@ -552,7 +552,7 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,
 	tlfName string) (res keybase1.TLFCryptKeys, err error) {
-	ctx = ctxWithRandomID(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
+	ctx = ctxWithRandomIDReplayable(ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID,
 		k.log)
 	tlfHandle, err := k.getHandleFromFolderName(ctx, tlfName, false)
 	if err != nil {

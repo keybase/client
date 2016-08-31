@@ -805,7 +805,7 @@ func (md *MDServerRemote) backgroundRekeyChecker(ctx context.Context) {
 			}
 
 			// Assign an ID to this rekey check so we can track it.
-			newCtx := ctxWithRandomID(ctx, CtxMDSRIDKey, CtxMDSROpID, md.log)
+			newCtx := ctxWithRandomIDReplayable(ctx, CtxMDSRIDKey, CtxMDSROpID, md.log)
 			md.log.CDebugf(newCtx, "Checking for rekey folders")
 			if err := md.getFoldersForRekey(newCtx, md.client); err != nil {
 				md.log.CWarningf(newCtx, "MDServerRemote: getFoldersForRekey "+

@@ -3914,6 +3914,24 @@ func (_mr *_MockConfigRecorder) RekeyWithPromptWaitTime() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RekeyWithPromptWaitTime")
 }
 
+func (_m *MockConfig) DelayedCancellationGracePeriod() time.Duration {
+	ret := _m.ctrl.Call(_m, "DelayedCancellationGracePeriod")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) DelayedCancellationGracePeriod() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DelayedCancellationGracePeriod")
+}
+
+func (_m *MockConfig) SetDelayedCancellationGracePeriod(_param0 time.Duration) {
+	_m.ctrl.Call(_m, "SetDelayedCancellationGracePeriod", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetDelayedCancellationGracePeriod(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetDelayedCancellationGracePeriod", arg0)
+}
+
 func (_m *MockConfig) QuotaReclamationPeriod() time.Duration {
 	ret := _m.ctrl.Call(_m, "QuotaReclamationPeriod")
 	ret0, _ := ret[0].(time.Duration)

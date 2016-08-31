@@ -140,7 +140,7 @@ func (rkq *RekeyQueueStandard) processRekeys(ctx context.Context, hasWorkCh chan
 				func() {
 					defer rkq.wg.Done()
 					// Assign an ID to this rekey operation so we can track it.
-					newCtx := ctxWithRandomID(ctx, CtxRekeyIDKey,
+					newCtx := ctxWithRandomIDReplayable(ctx, CtxRekeyIDKey,
 						CtxRekeyOpID, nil)
 					err := rkq.config.KBFSOps().Rekey(newCtx, id)
 					if ch := rkq.dequeue(); ch != nil {

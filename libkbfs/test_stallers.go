@@ -227,7 +227,9 @@ func StallBlockOp(ctx context.Context, config Config, stalledOp StallableBlockOp
 		},
 		delegate: config.BlockOps(),
 	})
-	newCtx = context.WithValue(ctx, stallKey, true)
+	newCtx = NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, stallKey, true)
+	})
 	return onStalledCh, unstallCh, newCtx
 }
 
@@ -250,7 +252,9 @@ func StallMDOp(ctx context.Context, config Config, stalledOp StallableMDOp) (
 		},
 		delegate: config.MDOps(),
 	})
-	newCtx = context.WithValue(ctx, stallKey, true)
+	newCtx = NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, stallKey, true)
+	})
 	return onStalledCh, unstallCh, newCtx
 }
 

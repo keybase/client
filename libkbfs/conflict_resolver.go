@@ -90,7 +90,7 @@ func NewConflictResolver(
 		},
 	}
 
-	cr.startProcessing(context.Background())
+	cr.startProcessing(BackgroundContextWithCancellationDelayer())
 	return cr
 }
 
@@ -130,7 +130,7 @@ func (cr *ConflictResolver) processInput(baseCtx context.Context,
 		}
 	}()
 	for ci := range inputChan {
-		ctx := ctxWithRandomID(baseCtx, CtxCRIDKey, CtxCROpID, cr.log)
+		ctx := ctxWithRandomIDReplayable(baseCtx, CtxCRIDKey, CtxCROpID, cr.log)
 
 		valid := func() bool {
 			cr.inputLock.Lock()

@@ -126,7 +126,7 @@ func (f *Folder) forgetNode(node libkbfs.Node) {
 
 	delete(f.nodes, node.GetID())
 	if len(f.nodes) == 0 {
-		ctx := context.Background()
+		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 		f.unsetFolderBranch(ctx)
 		f.list.forgetFolder(string(f.name()))
 	}
@@ -343,6 +343,13 @@ func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Attr")
 	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
+	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
+	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
+		ctx, d.folder.fs.config.DelayedCancellationGracePeriod())
+	if err != nil {
+		return err
+	}
+
 	return d.attr(ctx, a)
 }
 
@@ -450,6 +457,13 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	d.folder.fs.log.CDebugf(ctx, "Dir Lookup %s", req.Name)
 	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
+	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
+	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
+		ctx, d.folder.fs.config.DelayedCancellationGracePeriod())
+	if err != nil {
+		return nil, err
+	}
+
 	if node := openSpecialInFolder(req.Name, d.folder, resp); node != nil {
 		resp.EntryValid = 0
 		return node, nil
@@ -537,6 +551,13 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 	d.folder.fs.log.CDebugf(ctx, "Dir Mkdir %s", req.Name)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
+	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
+	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
+		ctx, d.folder.fs.config.DelayedCancellationGracePeriod())
+	if err != nil {
+		return nil, err
+	}
+
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateDir(
 		ctx, d.node, req.Name)
 	if err != nil {
@@ -556,6 +577,13 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	d.folder.fs.log.CDebugf(ctx, "Dir Symlink %s -> %s",
 		req.NewName, req.Target)
 	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+
+	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
+	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
+		ctx, d.folder.fs.config.DelayedCancellationGracePeriod())
+	if err != nil {
+		return nil, err
+	}
 
 	if _, err := d.folder.fs.config.KBFSOps().CreateLink(
 		ctx, d.node, req.NewName, req.Target); err != nil {

@@ -101,7 +101,14 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 
 	// make the context identifiable, to verify that it is passed
 	// correctly to the observer
-	ctx = context.WithValue(context.Background(), tCtxID, rand.Int())
+	id := rand.Int()
+	var err error
+	if ctx, err = NewContextWithCancellationDelayer(NewContextReplayable(
+		context.Background(), func(ctx context.Context) context.Context {
+			return context.WithValue(ctx, tCtxID, id)
+		})); err != nil {
+		panic(err)
+	}
 	return
 }
 
@@ -122,7 +129,7 @@ func kbfsOpsInitNoMocks(t *testing.T, users ...libkb.NormalizedUsername) (
 		t.Fatal(err)
 	}
 
-	ctx := context.Background()
+	ctx := BackgroundContextWithCancellationDelayer()
 	return config, currentUID, ctx
 }
 

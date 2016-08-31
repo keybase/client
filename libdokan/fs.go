@@ -88,8 +88,22 @@ func (f *FS) WithContext(ctx context.Context) (context.Context, context.CancelFu
 		f.log.Errorf("Couldn't make request ID: %v", err)
 		return ctx, func() {}
 	}
-	ctx = wrapContext(context.WithValue(ctx, CtxIDKey, id), f)
-	return context.WithTimeout(ctx, 29*time.Second)
+
+	ctx, cancel := context.WithCancel(ctx)
+
+	// context.WithDeadline uses clock from `time` package, so we are not using
+	// f.config.Clock() here
+	start := time.Now()
+	ctx, err = libkbfs.NewContextWithCancellationDelayer(
+		libkbfs.NewContextReplayable(ctx, func(ctx context.Context) context.Context {
+			ctx = wrapContext(context.WithValue(ctx, CtxIDKey, id), f)
+			ctx, _ = context.WithDeadline(ctx, start.Add(29*time.Second))
+			return ctx
+		}))
+	if err != nil {
+		panic(err)
+	}
+	return ctx, cancel
 }
 
 var vinfo = dokan.VolumeInformation{

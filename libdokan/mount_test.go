@@ -54,7 +54,7 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (*compatMount, *FS, func(
 
 func makeFSE(t testing.TB, config *libkbfs.ConfigLocal, driveLetter byte) (*compatMount, *FS, func()) {
 	getDriveLetterLock(driveLetter).Lock()
-	ctx := context.Background()
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	ctx, cancelFn := context.WithCancel(ctx)
 	filesys, err := NewFS(ctx, config, logger.NewTestLogger(t))
 	if err != nil {
@@ -1608,7 +1608,7 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 }
 
 func syncFolderToServerHelper(t *testing.T, tlf string, public bool, fs *FS) {
-	ctx := context.Background()
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	root := libkbfs.GetRootNodeOrBust(t, fs.config, tlf, public)
 	err := fs.config.KBFSOps().SyncFromServerForTesting(ctx, root.GetFolderBranch())
 	if err != nil {
@@ -1813,7 +1813,7 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 	{
 		jdoe := libkbfs.GetRootNodeOrBust(t, config, "jdoe", false)
 
-		ctx := context.Background()
+		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 		ops := config.KBFSOps()
 		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
 		if err != nil {
@@ -2069,7 +2069,7 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 	{
 		jdoe := libkbfs.GetRootNodeOrBust(t, config1, "user1,user2", false)
 
-		ctx := context.Background()
+		ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 		ops := config1.KBFSOps()
 		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
 		if err != nil {
@@ -2179,7 +2179,7 @@ func TestStatusFile(t *testing.T) {
 
 	jdoe := libkbfs.GetRootNodeOrBust(t, config, "jdoe", true)
 
-	ctx := context.Background()
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	ops := config.KBFSOps()
 	status, _, err := ops.FolderStatus(ctx, jdoe.GetFolderBranch())
 	if err != nil {

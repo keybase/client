@@ -24,6 +24,13 @@ func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	f.folder.fs.log.CDebugf(ctx, "File Attr")
 	defer func() { f.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
+	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
+	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
+		ctx, f.folder.fs.config.DelayedCancellationGracePeriod())
+	if err != nil {
+		return err
+	}
+
 	return f.attr(ctx, a)
 }
 
@@ -59,6 +66,14 @@ func (f *File) sync(ctx context.Context) error {
 func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
 	f.folder.fs.log.CDebugf(ctx, "File Fsync")
 	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+
+	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
+	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
+		ctx, f.folder.fs.config.DelayedCancellationGracePeriod())
+	if err != nil {
+		return err
+	}
+
 	return f.sync(ctx)
 }
 
@@ -105,6 +120,14 @@ func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) (err error) {
 	// I'm not sure about the guarantees from KBFSOps, so we don't
 	// differentiate between Flush and Fsync.
 	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+
+	// This fits in situation 1 as described in libkbfs/delayed_cancellation.go
+	err = libkbfs.EnableDelayedCancellationWithGracePeriod(
+		ctx, f.folder.fs.config.DelayedCancellationGracePeriod())
+	if err != nil {
+		return err
+	}
+
 	return f.sync(ctx)
 }
 

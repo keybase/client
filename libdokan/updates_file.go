@@ -37,7 +37,8 @@ func (f *UpdatesFile) WriteFile(ctx context.Context, fi *dokan.FileInfo, bs []by
 		if f.folder.updateChan == nil {
 			return 0, errors.New("Updates are already enabled")
 		}
-		err = libkbfs.RestartCRForTesting(context.Background(),
+		err = libkbfs.RestartCRForTesting(
+			libkbfs.BackgroundContextWithCancellationDelayer(),
 			f.folder.fs.config, f.folder.getFolderBranch())
 		if err != nil {
 			return 0, err

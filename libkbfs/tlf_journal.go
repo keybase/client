@@ -206,7 +206,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(bws TLFJournalBackgroundWorkStatus) {
 	if j.bwDelegate != nil {
 		ctx = j.bwDelegate.GetBackgroundContext()
 	}
-	ctx = ctxWithRandomID(ctx, "journal-auto-flush", "1", j.log)
+	ctx = ctxWithRandomIDReplayable(ctx, "journal-auto-flush", "1", j.log)
 	defer func() {
 		if j.bwDelegate != nil {
 			j.bwDelegate.OnShutdown(ctx)
