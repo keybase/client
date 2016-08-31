@@ -4,7 +4,8 @@ import React, {Component} from 'react'
 export type Props = {
   children?: any,
   style?: Object,
-  onClick?: ?() => void,
+  onClick: ?(event: SyntheticEvent) => void,
+  onPress?: void,
   underlayColor?: any,
   onPressIn?: ?() => void,
   onPressOut?: ?() => void,
