@@ -280,30 +280,37 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                 checkout scm
                                             }
 
-                                            println "Test React Native"
-                                            dir("react-native") {
-                                                sh "npm i"
-                                                sh "npm run gobuild-ios"
+                                            parallel (
+                                                test_react_native: {
+                                                    println "Test React Native"
+                                                    dir("react-native") {
+                                                        sh "npm i"
+                                                        sh "npm run gobuild-ios"
 
-                                                lock("iossimulator_${env.NODE_NAME}") {
-                                                    // Make sure simulator is clean for us
-                                                    sh "killall 'Simulator' || echo 'No simulator'"
+                                                        lock("iossimulator_${env.NODE_NAME}") {
+                                                            // Make sure simulator is clean for us
+                                                            sh "killall 'Simulator' || echo 'No simulator'"
 
-                                                    sh 'npm run start& pid=$! ; echo $pid > pidfile'
-                                                    def pid = readFile('pidfile')
-                                                    sh 'rm pidfile'
-                                                    sh "npm run test-ios"
-                                                    sh "kill $pid"
-                                                    // Make sure simulator is clean for others
-                                                    sh "killall 'Simulator' || echo 'No simulator'"
+                                                            sh 'npm run start& pid=$! ; echo $pid > pidfile'
+                                                            def pid = readFile('pidfile')
+                                                            sh 'rm pidfile'
+                                                            sh "npm run test-ios"
+                                                            sh "kill $pid"
+                                                            // Make sure simulator is clean for others
+                                                            sh "killall 'Simulator' || echo 'No simulator'"
+                                                        }
+                                                    }
+                                                },
+                                                test_osx: {
+                                                    println "Test OS X"
+                                                    // Retry to protect against flakes
+                                                    retry(3) {
+                                                        testNixGo("OS X")
+                                                    }
                                                 }
-                                            }
-                                            println "Test OS X"
-                                            // Retry to protect against flakes
-                                            retry(3) {
-                                                testNixGo("OS X")
-                                            }
-                                    }}
+                                            )
+                                        }
+                                    }
                                 }
                             },
                         )
