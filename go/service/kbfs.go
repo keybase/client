@@ -29,6 +29,11 @@ func (h *KBFSHandler) FSEvent(_ context.Context, arg keybase1.FSNotification) er
 }
 
 func (h *KBFSHandler) FSEditList(ctx context.Context, arg keybase1.FSEditListArg) error {
-	h.G().NotifyRouter.HandleFSEditListResponse(ctx, arg.Edits, arg.RequestID)
+	h.G().NotifyRouter.HandleFSEditListResponse(ctx, arg)
+	return nil
+}
+
+func (h *KBFSHandler) FSEditListRequest(ctx context.Context, arg keybase1.FSEditListRequest) error {
+	h.G().NotifyRouter.HandleFSEditListRequest(ctx, arg)
 	return nil
 }

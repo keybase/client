@@ -32,7 +32,8 @@ type NotifyListener interface {
 	UserChanged(uid keybase1.UID)
 	TrackingChanged(uid keybase1.UID, username string)
 	FSActivity(activity keybase1.FSNotification)
-	FSEditListResponse(edits []keybase1.FSNotification, requestID int)
+	FSEditListResponse(arg keybase1.FSEditListArg)
+	FSEditListRequest(arg keybase1.FSEditListRequest)
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
@@ -283,8 +284,8 @@ func (n *NotifyRouter) HandleFSActivity(activity keybase1.FSNotification) {
 	}
 }
 
-// HandleFSEditListResponse is called for KBFS edit list notifications.
-func (n *NotifyRouter) HandleFSEditListResponse(ctx context.Context, edits []keybase1.FSNotification, requestID int) {
+// HandleFSEditListResponse is called for KBFS edit list response notifications.
+func (n *NotifyRouter) HandleFSEditListResponse(ctx context.Context, arg keybase1.FSEditListArg) {
 	if n == nil {
 		return
 	}
@@ -298,15 +299,39 @@ func (n *NotifyRouter) HandleFSEditListResponse(ctx context.Context, edits []key
 				(keybase1.NotifyFSClient{
 					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
 				}).FSEditListResponse(ctx, keybase1.FSEditListResponseArg{
-					Edits:     edits,
-					RequestID: requestID,
+					Edits:     arg.Edits,
+					RequestID: arg.RequestID,
 				})
 			}()
 		}
 		return true
 	})
 	if n.listener != nil {
-		n.listener.FSEditListResponse(edits, requestID)
+		n.listener.FSEditListResponse(arg)
+	}
+}
+
+// HandleFSEditListRequest is called for KBFS edit list request notifications.
+func (n *NotifyRouter) HandleFSEditListRequest(ctx context.Context, arg keybase1.FSEditListRequest) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Kbfsrequest` notification type
+		if n.getNotificationChannels(id).Kbfsrequest {
+			// In the background do...
+			go func() {
+				// A send of a `FSEditListRequest` RPC with the notification
+				(keybase1.NotifyFSRequestClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).FSEditListRequest(ctx, arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.FSEditListRequest(arg)
 	}
 }
 

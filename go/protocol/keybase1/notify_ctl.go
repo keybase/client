@@ -9,17 +9,18 @@ import (
 )
 
 type NotificationChannels struct {
-	Session   bool `codec:"session" json:"session"`
-	Users     bool `codec:"users" json:"users"`
-	Kbfs      bool `codec:"kbfs" json:"kbfs"`
-	Tracking  bool `codec:"tracking" json:"tracking"`
-	Favorites bool `codec:"favorites" json:"favorites"`
-	Paperkeys bool `codec:"paperkeys" json:"paperkeys"`
-	Keyfamily bool `codec:"keyfamily" json:"keyfamily"`
-	Service   bool `codec:"service" json:"service"`
-	App       bool `codec:"app" json:"app"`
-	Chat      bool `codec:"chat" json:"chat"`
-	PGP       bool `codec:"pgp" json:"pgp"`
+	Session     bool `codec:"session" json:"session"`
+	Users       bool `codec:"users" json:"users"`
+	Kbfs        bool `codec:"kbfs" json:"kbfs"`
+	Tracking    bool `codec:"tracking" json:"tracking"`
+	Favorites   bool `codec:"favorites" json:"favorites"`
+	Paperkeys   bool `codec:"paperkeys" json:"paperkeys"`
+	Keyfamily   bool `codec:"keyfamily" json:"keyfamily"`
+	Service     bool `codec:"service" json:"service"`
+	App         bool `codec:"app" json:"app"`
+	Chat        bool `codec:"chat" json:"chat"`
+	PGP         bool `codec:"pgp" json:"pgp"`
+	Kbfsrequest bool `codec:"kbfsrequest" json:"kbfsrequest"`
 }
 
 type SetNotificationsArg struct {
