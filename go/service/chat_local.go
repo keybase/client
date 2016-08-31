@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"golang.org/x/net/context"
@@ -28,7 +27,6 @@ type chatLocalHandler struct {
 	gh             *gregorHandler
 	boxer          *chatBoxer
 	userInfoMapper userInfoMapper
-	r              *rand.Rand
 }
 
 // newChatLocalHandler creates a chatLocalHandler.
@@ -39,7 +37,6 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 		gh:             gh,
 		boxer:          newChatBoxer(g),
 		userInfoMapper: userInfoMapper{g: g},
-		r:              rand.New(rand.NewSource(time.Now().Unix())),
 	}
 }
 
@@ -92,11 +89,8 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 	}
 	info.TlfName = string(res.CanonicalName)
 
-	if err = retryUpToNTimesUntilNoError(16, func() error {
-		if n, err := h.r.Read(triple.TopicID); err != nil || n != 16 {
-			if err == nil {
-				err = errors.New("less than 16 bytes read into TopicID from random generator")
-			}
+	if err = retryUpToNTimesUntilNoError(3, func() (err error) {
+		if triple.TopicID, err = libkb.NewChatTopicID(); err != nil {
 			return err
 		}
 		if info.Id, err = h.remoteClient().NewConversationRemote(ctx, triple); err != nil {
