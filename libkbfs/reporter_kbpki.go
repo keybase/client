@@ -65,19 +65,21 @@ var noErrorNames = map[string]bool{
 // tracking.  Notify will make RPCs to the keybase daemon.
 type ReporterKBPKI struct {
 	*ReporterSimple
-	config       Config
-	log          logger.Logger
-	notifyBuffer chan *keybase1.FSNotification
-	canceler     func()
+	config           Config
+	log              logger.Logger
+	notifyBuffer     chan *keybase1.FSNotification
+	notifySyncBuffer chan *keybase1.FSPathSyncStatus
+	canceler         func()
 }
 
 // NewReporterKBPKI creates a new ReporterKBPKI.
 func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 	r := &ReporterKBPKI{
-		ReporterSimple: NewReporterSimple(config.Clock(), maxErrors),
-		config:         config,
-		log:            config.MakeLogger(""),
-		notifyBuffer:   make(chan *keybase1.FSNotification, bufSize),
+		ReporterSimple:   NewReporterSimple(config.Clock(), maxErrors),
+		config:           config,
+		log:              config.MakeLogger(""),
+		notifyBuffer:     make(chan *keybase1.FSNotification, bufSize),
+		notifySyncBuffer: make(chan *keybase1.FSPathSyncStatus, bufSize),
 	}
 	var ctx context.Context
 	ctx, r.canceler = context.WithCancel(context.Background())
@@ -169,19 +171,51 @@ func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNot
 	}
 }
 
+// NotifySyncStatus implements the Reporter interface for ReporterKBPKI.
+//
+// TODO: might be useful to get the debug tags out of ctx and store
+//       them in the notifyBuffer as well so that send() can put
+//       them back in its context.
+func (r *ReporterKBPKI) NotifySyncStatus(ctx context.Context,
+	status *keybase1.FSPathSyncStatus) {
+	select {
+	case r.notifySyncBuffer <- status:
+	default:
+		r.log.CDebugf(ctx, "ReporterKBPKI: notify sync buffer full, "+
+			"dropping %+v", status)
+	}
+}
+
 // Shutdown implements the Reporter interface for ReporterKBPKI.
 func (r *ReporterKBPKI) Shutdown() {
 	r.canceler()
 	close(r.notifyBuffer)
+	close(r.notifySyncBuffer)
 }
 
-// send takes notifications out of notifyBuffer and sends them to
-// the keybase daemon.
+// send takes notifications out of notifyBuffer and notifySyncBuffer
+// and sends them to the keybase daemon.
 func (r *ReporterKBPKI) send(ctx context.Context) {
-	for notification := range r.notifyBuffer {
-		if err := r.config.KeybaseService().Notify(ctx, notification); err != nil {
-			r.log.CDebugf(ctx, "ReporterDaemon: error sending notification: %s",
-				err)
+	for {
+		select {
+		case notification, ok := <-r.notifyBuffer:
+			if !ok {
+				return
+			}
+			if err := r.config.KeybaseService().Notify(ctx,
+				notification); err != nil {
+				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+					"notification: %s", err)
+			}
+		case status, ok := <-r.notifySyncBuffer:
+			if !ok {
+				return
+			}
+			if err := r.config.KeybaseService().NotifySyncStatus(ctx,
+				status); err != nil {
+				r.log.CDebugf(ctx, "ReporterDaemon: error sending "+
+					"sync status: %s", err)
+			}
 		}
 	}
 }

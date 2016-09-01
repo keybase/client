@@ -91,6 +91,12 @@ func (r *ReporterSimple) Notify(_ context.Context, _ *keybase1.FSNotification) {
 	// ignore notifications
 }
 
+// NotifySyncStatus implements the Reporter interface for ReporterSimple.
+func (r *ReporterSimple) NotifySyncStatus(_ context.Context,
+	_ *keybase1.FSPathSyncStatus) {
+	// ignore notifications
+}
+
 // Shutdown implements the Reporter interface for ReporterSimple.
 func (r *ReporterSimple) Shutdown() {
 

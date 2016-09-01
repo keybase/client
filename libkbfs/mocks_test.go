@@ -642,6 +642,16 @@ func (_mr *_MockKeybaseServiceRecorder) Notify(arg0, arg1 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0, arg1)
 }
 
+func (_m *MockKeybaseService) NotifySyncStatus(ctx context.Context, status *keybase1.FSPathSyncStatus) error {
+	ret := _m.ctrl.Call(_m, "NotifySyncStatus", ctx, status)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKeybaseServiceRecorder) NotifySyncStatus(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NotifySyncStatus", arg0, arg1)
+}
+
 func (_m *MockKeybaseService) FlushUserFromLocalCache(ctx context.Context, uid keybase1.UID) {
 	_m.ctrl.Call(_m, "FlushUserFromLocalCache", ctx, uid)
 }
@@ -1273,6 +1283,14 @@ func (_m *MockReporter) Notify(ctx context.Context, notification *keybase1.FSNot
 
 func (_mr *_MockReporterRecorder) Notify(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0, arg1)
+}
+
+func (_m *MockReporter) NotifySyncStatus(ctx context.Context, status *keybase1.FSPathSyncStatus) {
+	_m.ctrl.Call(_m, "NotifySyncStatus", ctx, status)
+}
+
+func (_mr *_MockReporterRecorder) NotifySyncStatus(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "NotifySyncStatus", arg0, arg1)
 }
 
 func (_m *MockReporter) Shutdown() {

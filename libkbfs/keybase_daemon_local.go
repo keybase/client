@@ -400,6 +400,12 @@ func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.
 	return nil
 }
 
+// NotifySyncStatus implements KeybaseDaemon for KeybaseDeamonLocal.
+func (k *KeybaseDaemonLocal) NotifySyncStatus(ctx context.Context,
+	_ *keybase1.FSPathSyncStatus) error {
+	return nil
+}
+
 // FlushUserFromLocalCache implements the KeybaseDaemon interface for
 // KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FlushUserFromLocalCache(ctx context.Context,
