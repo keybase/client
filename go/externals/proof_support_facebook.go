@@ -31,24 +31,27 @@ func NewFacebookChecker(p libkb.RemoteProofChainLink) (*FacebookChecker, libkb.P
 func (rc *FacebookChecker) GetTorError() libkb.ProofError { return nil }
 
 func (rc *FacebookChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.ProofError {
-	wantedURL := ("https://facebook.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/")
-	wantedShortID := (" " + rc.proof.GetSigID().ToShortID() + " /")
+	wantedURL := ("https://m.facebook.com/" + strings.ToLower(rc.proof.GetRemoteUsername()) + "/posts/")
+	wantedMediumID := "on Keybase.io. " + rc.proof.GetSigID().ToMediumID()
 
 	if !strings.HasPrefix(strings.ToLower(h.GetAPIURL()), wantedURL) {
 		return libkb.NewProofError(keybase1.ProofStatus_BAD_API_URL,
 			"Bad hint from server; URL should start with '%s'", wantedURL)
 	}
 
-	if !strings.Contains(h.GetCheckText(), wantedShortID) {
+	// TODO: We could ignore this portion of the server's hint. Should we?
+	if !strings.Contains(h.GetCheckText(), wantedMediumID) {
 		return libkb.NewProofError(keybase1.ProofStatus_BAD_SIGNATURE,
-			"Bad proof-check text from server; need '%s' as a substring", wantedShortID)
+			"Bad proof-check text from server; need '%s' as a substring", wantedMediumID)
 	}
 
 	return nil
 }
 
 func (rc *FacebookChecker) ScreenNameCompare(s1, s2 string) bool {
-	return libkb.Cicmp(s1, s2)
+	s1NoDots := strings.Replace(s1, ".", "", -1)
+	s2NoDots := strings.Replace(s2, ".", "", -1)
+	return libkb.Cicmp(s1NoDots, s2NoDots)
 }
 
 func (rc *FacebookChecker) findSigInTweet(ctx libkb.ProofContext, h libkb.SigHint, s *goquery.Selection) libkb.ProofError {
