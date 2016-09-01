@@ -167,7 +167,7 @@ func Reset() error {
 	return nil
 }
 
-// Version returns semating version string
+// Version returns semantic version string
 func Version() string {
 	return libkb.VersionString()
 }
