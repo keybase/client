@@ -29,4 +29,5 @@ protocol tlfKeys {
    getTLFCryptKeys returns TLF crypt keys from all generations.
    */
   TLFCryptKeys getTLFCryptKeys(string tlfName);
+
 }
