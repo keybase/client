@@ -289,7 +289,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                             sh "npm run test-ios"
                                                         }
                                                     }
-                                                }
+                                                },
                                                 test_osx: {
                                                     println "Test OS X"
                                                     // Retry to protect against flakes
