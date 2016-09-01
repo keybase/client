@@ -447,3 +447,8 @@ const (
 	SignaturePrefixChatBody   SignaturePrefix = "Keybase-Chat-Header-1"
 	SignaturePrefixSigchain   SignaturePrefix = "Keybase-Sigchain-1"
 )
+
+const (
+	NotificationDismissPGPPrefix = "pgp_secret_store"
+	NotificationDismissPGPValue  = "dismissed"
+)

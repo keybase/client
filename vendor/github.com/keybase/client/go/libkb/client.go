@@ -7,7 +7,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"net"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -137,31 +136,11 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 		jar, _ = cookiejar.New(nil)
 	}
 
+	var xprt *http.Transport
 	var timeout time.Duration
 
-	// from http.DefaultTransport;
-	//
-	// TODO: change this back (see comment below) to allow
-	// shared Transport after we switch to go1.7
-	xprt := http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		Dial: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-		}).Dial,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-	}
-
-	// This disables HTTP/2. There's a bug introduced between (go1.6, go1.6.3]
-	// that makes client.Get hang on certain HTTP/2 servers. See CORE-3441 for
-	// details.
-	//
-	// TODO: remove this after the bug is fixed.
-	xprt.TLSNextProto = make(
-		map[string]func(authority string, c *tls.Conn) http.RoundTripper)
-
 	if (config != nil && config.RootCAs != nil) || e.GetTorMode().Enabled() {
+		xprt = &http.Transport{}
 		if config != nil && config.RootCAs != nil {
 			xprt.TLSClientConfig = &tls.Config{RootCAs: config.RootCAs}
 		}
@@ -185,6 +164,8 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 	if jar != nil {
 		ret.cli.Jar = jar
 	}
-	ret.cli.Transport = &xprt
+	if xprt != nil {
+		ret.cli.Transport = xprt
+	}
 	return ret
 }
