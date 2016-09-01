@@ -32,8 +32,6 @@ go/revision
 *-fuzz.zip
 
 # Xcode
-xcshareddata
-
 build
 
 npm-debug.log
