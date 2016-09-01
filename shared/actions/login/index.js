@@ -420,8 +420,6 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
     dispatch(routeAppend({parseRoute: {componentAtTop: {element}}}))
   }
 
-  let username = null
-
   // FIXME (mbg): The above usage of React components in the action code causes
   // a module dependency which prevents HMR. We can't hot reload action code,
   // so when these views (or more likely, their subcomponents from
@@ -479,10 +477,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
     'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
       appendRouteElement((
         <UsernameOrEmail
-          onSubmit={usernameOrEmail => {
-            username = usernameOrEmail
-            response.result(usernameOrEmail)
-          }}
+          onSubmit={usernameOrEmail => response.result(usernameOrEmail)}
           onBack={() => onBack(response)} />))
     },
     'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
