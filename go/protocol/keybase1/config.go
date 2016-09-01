@@ -34,6 +34,7 @@ type ClientDetails struct {
 
 type PlatformInfo struct {
 	Os        string `codec:"os" json:"os"`
+	OsVersion string `codec:"osVersion" json:"osVersion"`
 	Arch      string `codec:"arch" json:"arch"`
 	GoVersion string `codec:"goVersion" json:"goVersion"`
 }

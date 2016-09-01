@@ -273,6 +273,8 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    log:       %s\n", status.Updater.Log)
 	dui.Printf("\nPlatform Information:\n")
 	dui.Printf("    OS:        %s\n", status.PlatformInfo.Os)
+	dui.Printf("    OS vers:   %s\n", status.PlatformInfo.OsVersion)
+
 	dui.Printf("    Runtime:   %s\n", status.PlatformInfo.GoVersion)
 	dui.Printf("    Arch:      %s\n", status.PlatformInfo.Arch)
 	dui.Printf("\nClient:\n")

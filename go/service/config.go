@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -46,9 +47,35 @@ func (h ConfigHandler) GetCurrentStatus(_ context.Context, sessionID int) (res k
 	return
 }
 
-func getPlatformInfo() keybase1.PlatformInfo {
+func (h ConfigHandler) getOsVersion() string {
+	var cmd string
+	var args []string
+	var result []byte
+	var err error
+
+	if runtime.GOOS == "windows" {
+		cmd = "cmd"
+		args = []string{"/c", "ver"}
+	} else if runtime.GOOS == "darwin" {
+		cmd = "/usr/bin/sw_vers"
+		args = []string{"-productVersion"}
+	} else if runtime.GOOS == "linux" {
+		cmd = "uname"
+		args = []string{"-mrs"}
+	}
+	if result, err = exec.Command(cmd, args...).Output(); err != nil {
+		h.G().Log.Error("Error trying to determine OS version: %s (%s)", err, result)
+		return ""
+	}
+	return strings.TrimSpace(string(result))
+}
+
+func (h ConfigHandler) getPlatformInfo() keybase1.PlatformInfo {
+	osversion := h.getOsVersion()
+
 	return keybase1.PlatformInfo{
 		Os:        runtime.GOOS,
+		OsVersion: osversion,
 		Arch:      runtime.GOARCH,
 		GoVersion: runtime.Version(),
 	}
@@ -184,7 +211,7 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 		p[i] = u.String()
 	}
 	res.ProvisionedUsernames = p
-	res.PlatformInfo = getPlatformInfo()
+	res.PlatformInfo = h.getPlatformInfo()
 	res.DefaultDeviceID = h.G().Env.GetDeviceID()
 
 	if me != nil && h.G().SecretStoreAll != nil {
