@@ -564,6 +564,10 @@ func (j mdJournal) length() (uint64, error) {
 	return j.j.length()
 }
 
+func (j mdJournal) getBranchID() BranchID {
+	return j.branchID
+}
+
 func (j mdJournal) getHead(
 	currentUID keybase1.UID, currentVerifyingKey VerifyingKey) (
 	ImmutableBareRootMetadata, error) {

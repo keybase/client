@@ -47,6 +47,7 @@ func (ca tlfJournalConfigAdapter) encryptionKeyGetter() encryptionKeyGetter {
 type TLFJournalStatus struct {
 	RevisionStart MetadataRevision
 	RevisionEnd   MetadataRevision
+	BranchID      string
 	BlockOpCount  uint64
 }
 
@@ -597,6 +598,7 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 		return TLFJournalStatus{}, err
 	}
 	return TLFJournalStatus{
+		BranchID:      j.mdJournal.getBranchID().String(),
 		RevisionStart: earliestRevision,
 		RevisionEnd:   latestRevision,
 		BlockOpCount:  blockEntryCount,
