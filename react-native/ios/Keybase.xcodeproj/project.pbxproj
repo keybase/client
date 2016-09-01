@@ -37,7 +37,6 @@
 		DB75390E1D776CC400AFA61B /* libRCTSettings.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 139105C11AF99BAD00B5F7CC /* libRCTSettings.a */; };
 		DB75390F1D776CC400AFA61B /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		DB7539101D776CC400AFA61B /* libRCTVibration.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00C302E41ABCB9EE00DB3ED1 /* libRCTVibration.a */; };
-		DB7539111D776CC400AFA61B /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DB7539121D776CC400AFA61B /* libRCTWebSocket.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 139FDEF41B06529B00C62182 /* libRCTWebSocket.a */; };
 		DB7539141D776CC400AFA61B /* Lato_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC71CD3AA1000A226BC /* Lato_bold.ttf */; };
 		DB7539151D776CC400AFA61B /* Lato_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBC44FC81CD3AA1000A226BC /* Lato_italic.ttf */; };
@@ -246,7 +245,6 @@
 				DB75390E1D776CC400AFA61B /* libRCTSettings.a in Frameworks */,
 				DB75390F1D776CC400AFA61B /* libRCTText.a in Frameworks */,
 				DB7539101D776CC400AFA61B /* libRCTVibration.a in Frameworks */,
-				DB7539111D776CC400AFA61B /* keybase.framework in Frameworks */,
 				DB7539121D776CC400AFA61B /* libRCTWebSocket.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

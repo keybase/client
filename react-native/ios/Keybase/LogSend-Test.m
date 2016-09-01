@@ -1,4 +1,10 @@
-#import "LogSend.h"
+#import "RCTBridgeModule.h"
+
+@interface LogSend : NSObject <RCTBridgeModule>
+- (instancetype)initWithPath:(NSString *)uiLogPath;
+
+@end
+
 
 @implementation LogSend
 
