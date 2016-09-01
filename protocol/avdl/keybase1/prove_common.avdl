@@ -71,6 +71,9 @@ protocol proveCommon {
     REDDIT_4,
     COINBASE_5,
     HACKERNEWS_6,
+    // Reserved (in line with keybase/proofs) but not yet implemented.
+    // BITBUCKET_7,
+    FACEBOOK_8,
     GENERIC_WEB_SITE_1000,
     DNS_1001,
     PGP_1002,
