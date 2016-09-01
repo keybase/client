@@ -58,7 +58,7 @@ class Render extends Component<void, Props, any> {
     if (this.props.autoIncrement) {
       setTimeout(() => {
         this._increment()
-      }, 250) // tests are a little flakey with rn 0.32 due to image caching issues i think so we have to sleep a bit
+      }, 100)
     }
   }
 
