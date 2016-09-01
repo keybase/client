@@ -549,6 +549,28 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 	return k.kbfsClient.FSEditList(ctx, resp)
 }
 
+// FSSyncStatusRequest implements keybase1.NotifyFSRequestInterface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) FSSyncStatusRequest(ctx context.Context,
+	req keybase1.FSSyncStatusRequest) (err error) {
+	k.log.CDebugf(ctx, "Got sync status request: %v", req)
+
+	resp := keybase1.FSSyncStatusArg{RequestID: req.RequestID}
+
+	// For now, just return the number of syncing bytes.
+	jServer, err := GetJournalServer(k.config)
+	if err == nil {
+		status := jServer.Status()
+		resp.Status.TotalSyncingBytes = status.UnflushedBytes
+		k.log.CDebugf(ctx, "Sending sync status response with %d syncing bytes",
+			status.UnflushedBytes)
+	} else {
+		k.log.CDebugf(ctx, "No journal server, sending empty response")
+	}
+
+	return k.kbfsClient.FSSyncStatus(ctx, resp)
+}
+
 // GetTLFCryptKeys implements the TlfKeysInterface interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) GetTLFCryptKeys(ctx context.Context,

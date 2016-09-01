@@ -223,6 +223,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		keybase1.NotifySessionProtocol(k),
 		keybase1.NotifyKeyfamilyProtocol(k),
 		keybase1.NotifyPaperKeyProtocol(k),
+		keybase1.NotifyFSRequestProtocol(k),
 		keybase1.TlfKeysProtocol(k),
 	}
 
@@ -243,9 +244,10 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	// recursion.
 	c := keybase1.NotifyCtlClient{Cli: rawClient}
 	err := c.SetNotifications(ctx, keybase1.NotificationChannels{
-		Session:   true,
-		Paperkeys: true,
-		Keyfamily: true,
+		Session:     true,
+		Paperkeys:   true,
+		Keyfamily:   true,
+		Kbfsrequest: true,
 	})
 	if err != nil {
 		return err
