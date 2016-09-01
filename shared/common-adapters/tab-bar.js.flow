@@ -21,6 +21,7 @@ export type ItemProps = $Exact<{
   selected: boolean,
   selectedColor?: string,
   onClick?: () => void,
+  onPress?: void,
   style?: Object,
   styleContainer?: Object,
   children?: React$Element<*>,

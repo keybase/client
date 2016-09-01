@@ -115,6 +115,7 @@ func (k *KeyringFile) Load() error {
 		return err
 	}
 	if file != nil {
+		defer file.Close()
 		k.Entities, err = openpgp.ReadKeyRing(file)
 		if err != nil {
 			G.Log.Errorf("Cannot parse keyring %s: %s\n", k.filename, err)

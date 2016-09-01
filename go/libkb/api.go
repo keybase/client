@@ -651,8 +651,10 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 //===========================================================================
 // ExternalApiEngine
 
+type XAPIResType int
+
 const (
-	XAPIResJSON = iota
+	XAPIResJSON XAPIResType = iota
 	XAPIResHTML
 	XAPIResText
 )
@@ -686,7 +688,7 @@ func (api *ExternalAPIEngine) consumeHeaders(resp *http.Response) error {
 func (api *ExternalAPIEngine) isExternal() bool { return true }
 
 func (api *ExternalAPIEngine) DoRequest(
-	arg APIArg, req *http.Request, restype int) (
+	arg APIArg, req *http.Request, restype XAPIResType) (
 	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error) {
 
 	var resp *http.Response
@@ -719,7 +721,7 @@ func (api *ExternalAPIEngine) DoRequest(
 	return
 }
 
-func (api *ExternalAPIEngine) getCommon(arg APIArg, restype int) (
+func (api *ExternalAPIEngine) getCommon(arg APIArg, restype XAPIResType) (
 	ar *ExternalAPIRes, hr *ExternalHTMLRes, tr *ExternalTextRes, err error) {
 
 	var url *url.URL
@@ -753,7 +755,7 @@ func (api *ExternalAPIEngine) GetText(arg APIArg) (res *ExternalTextRes, err err
 	return
 }
 
-func (api *ExternalAPIEngine) postCommon(arg APIArg, restype int) (
+func (api *ExternalAPIEngine) postCommon(arg APIArg, restype XAPIResType) (
 	ar *ExternalAPIRes, hr *ExternalHTMLRes, err error) {
 
 	var url *url.URL

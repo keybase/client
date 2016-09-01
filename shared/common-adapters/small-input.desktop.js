@@ -10,7 +10,7 @@ import type {SmallInputProps} from './small-input'
 export default function SmallInput ({errorState, hintText, label, onChange, style, value}: SmallInputProps) {
   return (
     <Box style={{...styleContainer, ...style}}>
-      <Text type='BodySmall' style={styleLabel(errorState)}>{label}</Text>
+      <Text type='BodySmall' style={styleLabel(!!errorState)}>{label}</Text>
       <Box style={styleInputContainer}>
         <Input hintText={hintText}
           hintStyle={styleInputHint}

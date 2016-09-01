@@ -1,8 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 import {Button, Input, PlatformIcon, SmallInput, StandardScreen, Text} from '../../common-adapters'
+import {NativeKeyboardAvoidingView} from '../../common-adapters/index.native'
 import {globalMargins, globalColors} from '../../styles'
-import {KeyboardAvoidingView} from 'react-native'
 import type {Props} from './add'
 
 class PgpAdd extends Component<void, Props, void> {
@@ -14,7 +14,7 @@ class PgpAdd extends Component<void, Props, void> {
       autoCorrect: false,
     }
     return (
-      <KeyboardAvoidingView behavior='position'>
+      <NativeKeyboardAvoidingView behavior='position'>
         <StandardScreen
           style={styleContainer}
           onClose={this.props.onCancel}>
@@ -30,6 +30,7 @@ class PgpAdd extends Component<void, Props, void> {
           </Text>
           <Input
             floatingLabelText='Your full name'
+            hintText='Your full name'
             value={this.props.fullName}
             onChangeText={this.props.onChangeFullName}
             textStyle={{height: undefined}} />
@@ -66,7 +67,7 @@ class PgpAdd extends Component<void, Props, void> {
             disabled={nextDisabled}
             onClick={this.props.onNext} />
         </StandardScreen>
-      </KeyboardAvoidingView>
+      </NativeKeyboardAvoidingView>
     )
   }
 }

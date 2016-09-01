@@ -3,7 +3,8 @@ import * as shared from './avatar.shared'
 import React, {Component} from 'react'
 import _ from 'lodash'
 import type {Props} from './avatar'
-import {NativeImage, NativeTouchableOpacity, Box} from './index.native'
+import {Box} from './index.native'
+import {TouchableOpacity, Image} from 'react-native'
 import {globalStyles} from '../styles'
 import {iconMeta} from './icon.constants'
 
@@ -39,7 +40,7 @@ class Avatar extends Component<void, Props, State> {
     const showNoAvatar = !showLoadingColor && (!this.state.avatarLoaded || !uri || this.state.errored)
 
     return (
-      <NativeTouchableOpacity
+      <TouchableOpacity
         style={{...stylesContainer(size), ...this.props.style}}
         disabled={!this.props.onClick}
         onPress={this.props.onClick}
@@ -50,19 +51,19 @@ class Avatar extends Component<void, Props, State> {
               style={_.omit({...stylesImage(size),
                 backgroundColor: this.props.backgroundColor,
               }, 'resizeMode')} />}
-          {!!uri && <NativeImage
+          {!!uri && <Image
             style={{...stylesImage(size), opacity}}
             onError={() => this.setState({errored: true})}
             onLoad={() => this.setState({avatarLoaded: true})}
             source={{uri}} />}
           {showNoAvatar &&
-            <NativeImage
+            <Image
               style={stylesPlaceholderImage(size)}
               source={placeholder(size)} />}
           {showLoadingColor && <Box style={{...(_.omit(stylesImage(size), 'resizeMode')), backgroundColor: this.props.loadingColor}} />}
 
         </Box>
-      </NativeTouchableOpacity>
+      </TouchableOpacity>
     )
   }
 }

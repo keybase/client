@@ -7,6 +7,7 @@ import ProveEnterUsername from './prove-enter-username'
 import ProveWebsiteChoice from './prove-website-choice'
 import Revoke from './revoke'
 import pgpDumb from './pgp/dumb'
+import editProfileDumb from './edit-profile/dumb'
 import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {createFolder} from '../folders/dumb'
 import {globalColors} from '../styles'
@@ -496,4 +497,5 @@ export default {
   'New Proof: Post': dumbPostProof,
   'New Proof: Website': dumbProveWebsiteChoice,
   ...pgpDumb,
+  ...editProfileDumb,
 }

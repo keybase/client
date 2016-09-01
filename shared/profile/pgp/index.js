@@ -98,7 +98,7 @@ const ConnectedPgpInfo = pgpInfoConnector.connect(
 
 const generatePgpConnector: TypedConnector<TypedState, TypedDispatch<{}>, {}, GenerateProps> = new TypedConnector()
 const ConnectedGeneratePgp = generatePgpConnector.connect(
-  (state, dispatch, ownProps) => ({onCancel: () => { dispatch(navigateUp()) }})
+  (state, dispatch, ownProps) => ({onCancel: () => { dispatch({type: Constants.cancelPgpGen, payload: {}}) }})
 )(GeneratePgp)
 
 const finishedConnector: TypedConnector<TypedState, TypedDispatch<{}>, {}, FinishedProps> = new TypedConnector()

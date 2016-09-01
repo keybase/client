@@ -65,7 +65,7 @@ class Input extends Component<void, Props, State> {
   }
 
   render () {
-    if (this.props.multiLine) {
+    if (this.props.multiline) {
       return (
         <MultiLineInput
           autoFocus={this.props.autoFocus}
@@ -82,14 +82,14 @@ class Input extends Component<void, Props, State> {
     const textStyle = this.props.small ? styles.inputSmall : styles.input
 
     // HACK: We can't reset the text area style, so we need to counteract it by moving the wrapper up
-    const multiLineStyleFix = {
+    const multilineStyleFix = {
       height: 'auto',
       position: 'relative',
       // Other HACK: having a floating label affects position, but only in multiline
       bottom: (this.props.floatingLabelText ? 30 : 5),
       marginTop: 6,
     }
-    const inputStyle = this.props.multiLine ? multiLineStyleFix : {height: 'auto'}
+    const inputStyle = this.props.multiline ? multilineStyleFix : {height: 'auto'}
     const alignStyle = this.props.style && this.props.style.textAlign ? {textAlign: this.props.style.textAlign} : {textAlign: 'center'}
 
     const passwordVisible = this.props.type === 'passwordVisible'
@@ -106,10 +106,10 @@ class Input extends Component<void, Props, State> {
           floatingLabelStyle={styles.floatingLabelStyle}
           floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
           fullWidth={true}
-          hintStyle={{...styles.hintStyle, ...(this.props.multiLine ? {textAlign: 'center'} : {top: 3, bottom: 'auto'}), ...this.props.hintStyle}}
+          hintStyle={{...styles.hintStyle, ...(this.props.multiline ? {textAlign: 'center'} : {top: 3, bottom: 'auto'}), ...this.props.hintStyle}}
           hintText={this.props.hintText}
           inputStyle={{...(this.props.small ? {} : {marginTop: 6}), ...inputStyle, ...alignStyle, ...this.props.inputStyle}}
-          multiLine={this.props.multiLine}
+          multiline={this.props.multiline}
           name='name'
           onBlur={() => this.setState({focused: false})}
           onChange={event => this.onChange(event)}

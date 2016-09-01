@@ -215,12 +215,12 @@ const Inputs = () => (
   <Box style={{...globalStyles.flexBoxColumn, maxWidth: 250}}>
     <Input floatingLabelText='Label' />
     <Input floatingLabelText='Label' errorText='Error lorem ipsum dolor sit amet.' />
-    <Input multiLine={true} floatingLabelText='Multiline' />
-    <Input multiLine={true} floatingLabelText='Multiline' errorText='Error lorem ipsum dolor sit amet.' />
+    <Input multiline={true} floatingLabelText='Multiline' />
+    <Input multiline={true} floatingLabelText='Multiline' errorText='Error lorem ipsum dolor sit amet.' />
     <Input floatingLabelText='Label' />
-    <Input floatingLabelText='foo' rows={1} rowsMax={3} multiLine={true} />
-    <Input hintText='foo' rows={1} rowsMax={3} multiLine={true} />
-    <Input multiLine={true} hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' style={{marginTop: 30}} />
+    <Input floatingLabelText='foo' rows={1} rowsMax={3} multiline={true} />
+    <Input hintText='foo' rows={1} rowsMax={3} multiline={true} />
+    <Input multiline={true} hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' style={{marginTop: 30}} />
     <Input small={true} hintText='user1,user2,etc' style={{width: '100%', marginLeft: 2}} />
     <FormWithCheckbox
       inputProps={{floatingLabelText: 'Passphrase', style: {marginBottom: 0}, errorText: 'Error Message'}}
