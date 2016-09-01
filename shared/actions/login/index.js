@@ -260,7 +260,7 @@ export function autoLogin () : AsyncAction {
   }
 }
 
-export function relogin (user: string, passphrase: string, store: boolean) : AsyncAction {
+export function relogin (user: string, passphrase: string) : AsyncAction {
   return dispatch => {
     const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
     loginLoginRpc({
@@ -274,7 +274,7 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
         'keybase.1.secretUi.getPassphrase': ({pinentry: {type}}, response) => {
           response.result({
             passphrase,
-            storeSecret: store,
+            storeSecret: true,
           })
         },
         'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
@@ -330,19 +330,6 @@ export function logoutDone () : AsyncAction {
     dispatch(switchTab(loginTab))
     dispatch(navBasedOnLoginState())
     dispatch(bootstrap())
-  }
-}
-
-export function saveInKeychainChanged (username: string, saveInKeychain: bool) : AsyncAction {
-  return (dispatch, getState) => {
-    if (saveInKeychain) {
-      return
-    }
-
-    loginClearStoredSecretRpc({
-      param: {username},
-      callback: error => { error && console.log(error) },
-    })
   }
 }
 
