@@ -289,15 +289,15 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
 
                                                         lock("iossimulator_${env.NODE_NAME}") {
                                                             // Make sure simulator is clean for us
-                                                            sh "killall 'Simulator' || echo 'No simulator'"
+                                                            // sh "killall 'Simulator' || echo 'No simulator'"
 
-                                                            sh 'npm run start& pid=$! ; echo $pid > pidfile'
-                                                            def pid = readFile('pidfile')
-                                                            sh 'rm pidfile'
+                                                            // sh 'npm run start& pid=$! ; echo $pid > pidfile'
+                                                            // def pid = readFile('pidfile')
+                                                            // sh 'rm pidfile'
                                                             sh "npm run test-ios"
-                                                            sh "kill $pid"
+                                                            // sh "kill $pid || echo 'no start'"
                                                             // Make sure simulator is clean for others
-                                                            sh "killall 'Simulator' || echo 'No simulator'"
+                                                            // sh "killall 'Simulator' || echo 'No simulator'"
                                                         }
                                                     }
                                                 }//,
