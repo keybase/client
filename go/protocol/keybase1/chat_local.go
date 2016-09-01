@@ -77,6 +77,11 @@ type ConversationInfoLocal struct {
 	TopicType chat1.TopicType      `codec:"topicType" json:"topicType"`
 }
 
+type ResolvedConversationLocal struct {
+	Conversation ConversationInfoLocal `codec:"conversation" json:"conversation"`
+	Timestamp    Time                  `codec:"timestamp" json:"timestamp"`
+}
+
 type ConversationLocal struct {
 	Id       chat1.ConversationID   `codec:"id" json:"id"`
 	Info     *ConversationInfoLocal `codec:"info,omitempty" json:"info,omitempty"`
@@ -123,7 +128,7 @@ type ChatLocalInterface interface {
 	GetInboxLocal(context.Context, *chat1.Pagination) (chat1.InboxView, error)
 	GetThreadLocal(context.Context, GetThreadLocalArg) (ThreadView, error)
 	PostLocal(context.Context, PostLocalArg) error
-	ResolveConversationLocal(context.Context, ConversationInfoLocal) ([]ConversationInfoLocal, error)
+	ResolveConversationLocal(context.Context, ConversationInfoLocal) ([]ResolvedConversationLocal, error)
 	NewConversationLocal(context.Context, ConversationInfoLocal) (ConversationInfoLocal, error)
 	UpdateTopicNameLocal(context.Context, UpdateTopicNameLocalArg) error
 	GetMessagesLocal(context.Context, MessageSelector) ([]ConversationLocal, error)
@@ -286,7 +291,7 @@ func (c ChatLocalClient) PostLocal(ctx context.Context, __arg PostLocalArg) (err
 	return
 }
 
-func (c ChatLocalClient) ResolveConversationLocal(ctx context.Context, conversation ConversationInfoLocal) (res []ConversationInfoLocal, err error) {
+func (c ChatLocalClient) ResolveConversationLocal(ctx context.Context, conversation ConversationInfoLocal) (res []ResolvedConversationLocal, err error) {
 	__arg := ResolveConversationLocalArg{Conversation: conversation}
 	err = c.Cli.Call(ctx, "keybase.1.chatLocal.resolveConversationLocal", []interface{}{__arg}, &res)
 	return

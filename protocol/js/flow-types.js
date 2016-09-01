@@ -2053,6 +2053,11 @@ export type RemoteProof = {
   mTime: Time,
 }
 
+export type ResolvedConversationLocal = {
+  conversation: ConversationInfoLocal,
+  timestamp: Time,
+}
+
 export type RevokedKey = {
   key: PublicKey,
   time: KeybaseTime,
@@ -3426,7 +3431,7 @@ type chatLocalGetThreadLocalResult = ThreadView
 
 type chatLocalNewConversationLocalResult = ConversationInfoLocal
 
-type chatLocalResolveConversationLocalResult = ?Array<ConversationInfoLocal>
+type chatLocalResolveConversationLocalResult = ?Array<ResolvedConversationLocal>
 
 type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
 

@@ -4,7 +4,6 @@
 package client
 
 import (
-	"errors"
 	"fmt"
 
 	"golang.org/x/net/context"
@@ -48,20 +47,31 @@ func (c *cmdChatSend) Run() (err error) {
 
 	ctx := context.TODO()
 
-	conversationInfos, err := c.resolver.Resolve(context.TODO(), chatClient)
+	var conversationInfo keybase1.ConversationInfoLocal
+	conversationInfos, err := c.resolver.Resolve(ctx, chatClient)
 	if err != nil {
 		return err
 	}
 	if len(conversationInfos) == 0 {
-		return errors.New("empty response from ResolveConversationLocal. TODO: create new conversation here or new subcommand?")
+		conversationInfo, err = chatClient.NewConversationLocal(ctx, keybase1.ConversationInfoLocal{
+			TlfName:   c.resolver.TlfName,
+			TopicName: c.resolver.TopicName,
+			TopicType: c.resolver.TopicType,
+		})
+		if err != nil {
+			return fmt.Errorf("creating conversation error: %v\n", err)
+		}
+	} else {
+		// TODO: prompt user to choose one
+		conversationInfo = conversationInfos[0]
 	}
 
 	var args keybase1.PostLocalArg
 	// TODO: prompt user to choose one if multiple exist
-	args.ConversationID = conversationInfos[0].Id
+	args.ConversationID = conversationInfo.Id
 	// args.MessagePlaintext.ClientHeader.Conv omitted
 	// args.MessagePlaintext.ClientHeader.{Sender,SenderDevice} are filled by service
-	args.MessagePlaintext.ClientHeader.TlfName = conversationInfos[0].TlfName
+	args.MessagePlaintext.ClientHeader.TlfName = conversationInfo.TlfName
 
 	args.MessagePlaintext.ClientHeader.MessageType = chat1.MessageType_TEXT
 	args.MessagePlaintext.ClientHeader.Prev = nil // TODO

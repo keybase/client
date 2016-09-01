@@ -103,11 +103,11 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 
 	created = info
 
-	if len(info.TopicName) > 0 {
-		// topic name specified, so we follow up with a call to update topic name for the conversation.
-		if err = h.updateTopicName(ctx, info, triple); err != nil {
-			return created, fmt.Errorf("creating conversaion succeeded but update topic name failed: %v", err)
-		}
+	// No matter topic name is specified or not, we follow up with a call to
+	// update topic name for the conversation. This makes sure a Message is
+	// inserted into the conversation, making TlfName available.
+	if err = h.updateTopicName(ctx, info, triple); err != nil {
+		return created, fmt.Errorf("creating conversaion succeeded but update topic name failed: %v", err)
 	}
 
 	return created, nil
@@ -115,7 +115,8 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 
 // UpdateTopicNameLocal implements keybase.chatLocal.updateTopicNameLocal protocol.
 func (h *chatLocalHandler) UpdateTopicNameLocal(ctx context.Context, arg keybase1.UpdateTopicNameLocalArg) (err error) {
-	info, triple, err := h.getConversationInfo(ctx, arg.ConversationID)
+	info, triple, _, err := h.getConversationInfo(ctx, arg.ConversationID)
+	info.TopicName = arg.NewTopicName
 	return h.updateTopicName(ctx, info, triple)
 }
 
@@ -162,15 +163,30 @@ func (h *chatLocalHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, t
 	return resp.CanonicalName, nil
 }
 
+func latestTimestampFromConversation(conv chat1.Conversation) (t time.Time) {
+	for _, h := range conv.MaxHeaders {
+		ct := gregor1.FromTime(h.Ctime)
+		if ct.After(t) {
+			t = ct
+		}
+	}
+	return t
+}
+
 // GetOrCreateTextConversationLocal implements
 // keybase.chatLocal.GetOrCreateTextConversationLocal protocol.
-func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg keybase1.ConversationInfoLocal) (conversations []keybase1.ConversationInfoLocal, err error) {
+func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg keybase1.ConversationInfoLocal) (conversations []keybase1.ResolvedConversationLocal, err error) {
 	if arg.Id != 0 {
-		info, _, err := h.getConversationInfo(ctx, arg.Id)
+		info, _, lastUpdated, err := h.getConversationInfo(ctx, arg.Id)
 		if err != nil {
 			return nil, err
 		}
-		return []keybase1.ConversationInfoLocal{info}, nil
+		return []keybase1.ResolvedConversationLocal{
+			keybase1.ResolvedConversationLocal{
+				Conversation: info,
+				Timestamp:    keybase1.ToTime(lastUpdated),
+			},
+		}, nil
 	}
 	return h.searchForConversations(ctx, arg)
 }
@@ -178,7 +194,7 @@ func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg key
 // searchForConversations searches for conversations using tlfName, topicName,
 // and topicType fields in criteria, and returns all matching conversations.
 // Conversation IDs are populated in returned conversations.
-func (h *chatLocalHandler) searchForConversations(ctx context.Context, criteria keybase1.ConversationInfoLocal) (conversations []keybase1.ConversationInfoLocal, err error) {
+func (h *chatLocalHandler) searchForConversations(ctx context.Context, criteria keybase1.ConversationInfoLocal) (conversations []keybase1.ResolvedConversationLocal, err error) {
 	ipagination := &chat1.Pagination{Num: 20}
 getinbox:
 	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
@@ -187,7 +203,7 @@ getinbox:
 			return conversations, err
 		}
 		for _, conv := range iview.Conversations {
-			info, _, err := h.getConversationInfo(ctx, conv.Metadata.ConversationID)
+			info, _, lastUpdated, err := h.getConversationInfo(ctx, conv.Metadata.ConversationID)
 			if err != nil {
 				return conversations, err
 			}
@@ -200,7 +216,10 @@ getinbox:
 			if criteria.TopicType != chat1.TopicType_NONE && criteria.TopicType != info.TopicType {
 				continue
 			}
-			conversations = append(conversations, info)
+			conversations = append(conversations, keybase1.ResolvedConversationLocal{
+				Conversation: info,
+				Timestamp:    keybase1.ToTime(lastUpdated),
+			})
 		}
 
 		if iview.Pagination == nil || iview.Pagination.Last {
@@ -217,13 +236,13 @@ getinbox:
 // all fields filled in conversationInfo, along with a ConversationIDTriple
 //
 // TODO: cache
-func (h *chatLocalHandler) getConversationInfo(ctx context.Context, id chat1.ConversationID) (conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple, err error) {
+func (h *chatLocalHandler) getConversationInfo(ctx context.Context, id chat1.ConversationID) (conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple, lastUpdated time.Time, err error) {
 	ipagination := &chat1.Pagination{Num: 20}
 getinbox:
 	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
 		iview, err := h.GetInboxLocal(ctx, ipagination)
 		if err != nil {
-			return conversationInfo, triple, err
+			return conversationInfo, triple, lastUpdated, err
 		}
 
 		for _, conversation := range iview.Conversations {
@@ -233,7 +252,7 @@ getinbox:
 				conversationInfo.TopicType = triple.TopicType
 
 				if len(conversation.MaxHeaders) == 0 {
-					return conversationInfo, triple, errors.New("empty conversation found")
+					return conversationInfo, triple, lastUpdated, errors.New("empty conversation found")
 				}
 
 				// if no METADATA message exists, just use the first one to get TLF Name
@@ -250,17 +269,17 @@ getinbox:
 					MessageIDs:     []chat1.MessageID{messageID},
 				})
 				if err != nil {
-					return conversationInfo, triple, err
+					return conversationInfo, triple, lastUpdated, err
 				}
 				if len(boxed) != 1 {
-					return conversationInfo, triple, fmt.Errorf("unexpected number of messages (got %d, expected 1) from GetMessagesRemote", len(boxed))
+					return conversationInfo, triple, lastUpdated, fmt.Errorf("unexpected number of messages (got %d, expected 1) from GetMessagesRemote", len(boxed))
 				}
 				unboxed, err := h.boxer.unboxMessage(ctx, newKeyFinder(), boxed[0])
 				if err != nil {
 					continue
 				}
 				if len(unboxed.MessagePlaintext.MessageBodies) < 1 {
-					return conversationInfo, triple, errors.New("empty MessageBodies")
+					return conversationInfo, triple, lastUpdated, errors.New("empty MessageBodies")
 				}
 				body := unboxed.MessagePlaintext.MessageBodies[0]
 				conversationInfo.TlfName = unboxed.MessagePlaintext.ClientHeader.TlfName
@@ -268,7 +287,9 @@ getinbox:
 					conversationInfo.TopicName = body.ConversationMetadata.ConversationTitle
 				}
 
-				return conversationInfo, triple, nil
+				lastUpdated = latestTimestampFromConversation(conversation)
+
+				return conversationInfo, triple, lastUpdated, nil
 			}
 		}
 
@@ -279,7 +300,7 @@ getinbox:
 		}
 	}
 
-	return conversationInfo, triple, errors.New("conversation not found")
+	return conversationInfo, triple, lastUpdated, errors.New("conversation not found")
 }
 
 func (h *chatLocalHandler) fillMessageInfoLocal(ctx context.Context, m *keybase1.Message, isNew bool) (err error) {
@@ -299,7 +320,7 @@ func (h *chatLocalHandler) makeConversationLocal(ctx context.Context, conversati
 	if len(messages) == 0 {
 		return conversation, errors.New("empty messages")
 	}
-	info, _, err := h.getConversationInfo(ctx, conversationMetadata.ConversationID)
+	info, _, _, err := h.getConversationInfo(ctx, conversationMetadata.ConversationID)
 	if err != nil {
 		return conversation, err
 	}
