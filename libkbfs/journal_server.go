@@ -19,9 +19,9 @@ import (
 // JournalServer for display in diagnostics. It is suitable for
 // encoding directly as JSON.
 type JournalServerStatus struct {
-	RootDir      string
-	JournalCount int
-	BlockBytes   int64 // (signed because os.FileInfo.Size() is signed)
+	RootDir        string
+	JournalCount   int
+	UnflushedBytes int64 // (signed because os.FileInfo.Size() is signed)
 }
 
 // TODO: JournalServer isn't really a server, although it can create
@@ -242,19 +242,19 @@ func (j *JournalServer) mdOps() journalMDOps {
 // Status returns a JournalServerStatus object suitable for
 // diagnostics.
 func (j *JournalServer) Status() JournalServerStatus {
-	journalCount, blockBytes := func() (int, int64) {
+	journalCount, unflushedBytes := func() (int, int64) {
 		j.lock.RLock()
 		defer j.lock.RUnlock()
-		var blockBytes int64
+		var unflushedBytes int64
 		for _, tlfJournal := range j.tlfJournals {
-			blockBytes += tlfJournal.getBlockBytes()
+			unflushedBytes += tlfJournal.getUnflushedBytes()
 		}
-		return len(j.tlfJournals), blockBytes
+		return len(j.tlfJournals), unflushedBytes
 	}()
 	return JournalServerStatus{
-		RootDir:      j.dir,
-		JournalCount: journalCount,
-		BlockBytes:   blockBytes,
+		RootDir:        j.dir,
+		JournalCount:   journalCount,
+		UnflushedBytes: unflushedBytes,
 	}
 }
 
