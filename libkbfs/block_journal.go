@@ -117,6 +117,33 @@ func (e blockJournalEntry) getSingleContext() (
 		"getSingleContext() erroneously called on op %s", e.Op)
 }
 
+// classifyIntoBPS either puts the given block op entry into the given
+// "Put" blockPutState or the "addRef" blockPutState, depending on the
+// op type, or it returns false.
+func (e blockJournalEntry) classifyIntoBPS(buf []byte,
+	serverHalf BlockCryptKeyServerHalf, putBps *blockPutState,
+	addRefBps *blockPutState) (bool, error) {
+	switch e.Op {
+	case blockPutOp, addRefOp:
+		id, bctx, err := e.getSingleContext()
+		if err != nil {
+			return false, err
+		}
+
+		bps := putBps
+		if e.Op == addRefOp {
+			bps = addRefBps
+		}
+
+		bps.addNewBlock(BlockPointer{ID: id, BlockContext: bctx},
+			nil, /* only used by folderBranchOps */
+			ReadyBlockData{buf, serverHalf}, nil)
+		return true, nil
+	default:
+		return false, nil
+	}
+}
+
 // makeBlockJournal returns a new blockJournal for the given
 // directory. Any existing journal entries are read.
 func makeBlockJournal(
@@ -300,6 +327,23 @@ func (j *blockJournal) appendJournalEntry(
 
 func (j *blockJournal) length() (uint64, error) {
 	return j.j.length()
+}
+
+// ordinalRange returns the inclusive range of ordinals for the
+// journal.  If it is called on an empty journal, it returns an error.
+func (j *blockJournal) ordinalRange() (first journalOrdinal,
+	last journalOrdinal, err error) {
+	first, err = j.j.readEarliestOrdinal()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	last, err = j.j.readLatestOrdinal()
+	if err != nil {
+		return 0, 0, err
+	}
+
+	return first, last, nil
 }
 
 func (j *blockJournal) getRefEntry(
@@ -682,27 +726,31 @@ func (j *blockJournal) archiveReferences(
 	return j.appendJournalEntry(archiveRefsOp, contexts)
 }
 
-// getNextEntryToFlush returns the info for the next journal entry to
-// flush, if any. If there is no next journal entry to flush, the
+// getEntryToFlush returns the info for the given journal entry to
+// flush, if any. If there is no matching journal entry to flush, the
 // returned *blockJournalEntry will be nil.
-func (j *blockJournal) getNextEntryToFlush(ctx context.Context) (
-	journalOrdinal, *blockJournalEntry, []byte,
+func (j *blockJournal) getEntryToFlush(ctx context.Context,
+	ordinal journalOrdinal) (*blockJournalEntry, []byte,
 	BlockCryptKeyServerHalf, error) {
 	if j.isShutdown {
-		return 0, nil, nil, BlockCryptKeyServerHalf{},
+		return nil, nil, BlockCryptKeyServerHalf{},
 			errBlockJournalShutdown
 	}
 
-	earliestOrdinal, err := j.j.readEarliestOrdinal()
+	last, err := j.j.readLatestOrdinal()
 	if os.IsNotExist(err) {
-		return 0, nil, nil, BlockCryptKeyServerHalf{}, nil
+		// The journal is empty.
+		return nil, nil, BlockCryptKeyServerHalf{}, nil
 	} else if err != nil {
-		return 0, nil, nil, BlockCryptKeyServerHalf{}, err
+		return nil, nil, BlockCryptKeyServerHalf{}, err
+	} else if last < ordinal {
+		// The given ordinal is past the end of the journal.
+		return nil, nil, BlockCryptKeyServerHalf{}, nil
 	}
 
-	e, err := j.readJournalEntry(earliestOrdinal)
+	e, err := j.readJournalEntry(ordinal)
 	if err != nil {
-		return 0, nil, nil, BlockCryptKeyServerHalf{}, err
+		return nil, nil, BlockCryptKeyServerHalf{}, err
 	}
 
 	var data []byte
@@ -710,53 +758,26 @@ func (j *blockJournal) getNextEntryToFlush(ctx context.Context) (
 	if e.Op == blockPutOp {
 		id, _, err := e.getSingleContext()
 		if err != nil {
-			return 0, nil, nil, BlockCryptKeyServerHalf{}, err
+			return nil, nil, BlockCryptKeyServerHalf{}, err
 		}
 
 		data, serverHalf, err = j.getData(id)
 		if err != nil {
-			return 0, nil, nil, BlockCryptKeyServerHalf{}, err
+			return nil, nil, BlockCryptKeyServerHalf{}, err
 		}
 	}
 
-	return earliestOrdinal, &e, data, serverHalf, nil
+	return &e, data, serverHalf, nil
 }
 
-func flushBlockJournalEntry(
+// flushNonBPSBlockJournalEntry flushes journal entries that can't be
+// parallelized via a blockPutState.
+func flushNonBPSBlockJournalEntry(
 	ctx context.Context, log logger.Logger,
-	bserver BlockServer, tlfID TlfID, entry blockJournalEntry, data []byte,
-	serverHalf BlockCryptKeyServerHalf) error {
-	log.CDebugf(ctx, "Flushing block op %v", entry)
+	bserver BlockServer, tlfID TlfID, entry blockJournalEntry) error {
+	log.CDebugf(ctx, "Flushing other block op %v", entry)
 
 	switch entry.Op {
-	case blockPutOp:
-		id, context, err := entry.getSingleContext()
-		if err != nil {
-			return err
-		}
-
-		err = bserver.Put(ctx, tlfID, id, context, data, serverHalf)
-		if err != nil {
-			return err
-		}
-
-	case addRefOp:
-		id, context, err := entry.getSingleContext()
-		if err != nil {
-			return err
-		}
-
-		// TODO: If the reference add fails, retry with a
-		// Put. This is tricky: see KBFS-1148 and KBFS-1255.
-		err = bserver.AddBlockReference(ctx, tlfID, id, context)
-		if err != nil {
-			if isRecoverableBlockError(err) {
-				log.CWarningf(ctx,
-					"Recoverable block error encountered on AddBlockReference: %v", err)
-			}
-			return err
-		}
-
 	case removeRefsOp:
 		_, err := bserver.RemoveBlockReferences(
 			ctx, tlfID, entry.Contexts)
