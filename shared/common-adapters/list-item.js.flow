@@ -13,6 +13,7 @@ export type Props = {
   action: Element<*>,
   extraRightMarginAction?: boolean, // Spacing is different if the action is just text (for example)
   onClick?: () => void,
+  onPress?: void,
   containerStyle?: Object,
   bodyContainerStyle?: Object,
   swipeToAction?: boolean // Do you have to swipe the list item to reveal an action?

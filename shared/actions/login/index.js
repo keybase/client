@@ -427,7 +427,6 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
   // this by dynamically requiring these views as below, but they probably
   // won't hot reload properly until we decouple these action effects from the
   // view class implementations.
-  const ExistingDevice = require('../../devices/existing-device').default
   const SelectOtherDevice = require('../../login/register/select-other-device').default
   const UsernameOrEmail = require('../../login/register/username-or-email').default
   const GPGSign = require('../../login/register/gpg-sign').default
@@ -530,30 +529,6 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
       dispatch({type: Constants.setTextCode, payload: {textCode: new HiddenString(phrase)}})
       generateQRCode(dispatch, getState)
       dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }, () => onBack(response)))
-    },
-    'keybase.1.provisionUi.chooseDeviceType': ({sessionID, kind}, response) => {
-      const store = getState().login.codePage
-      appendRouteElement((
-        <ExistingDevice
-          myDeviceRole={store.myDeviceRole}
-          onSubmit={kind => {
-            let deviceType
-            switch (kind) {
-              case Constants.codePageDeviceRoleNewComputer:
-                deviceType = ProvisionUiDeviceType.desktop
-                break
-              case Constants.codePageDeviceRoleNewPhone:
-                deviceType = ProvisionUiDeviceType.mobile
-                break
-              default:
-                console.warn(`DeviceType not recognized: ${kind}`)
-                return
-            }
-            dispatch(setCodePageOtherDeviceRole(kind))
-            response.result(deviceType)
-          }}
-
-          onBack={() => onBack(response)} />))
     },
     'keybase.1.provisionUi.PromptNewDeviceName': ({existingDevices, errorMessage}, response) => {
       appendRouteElement((

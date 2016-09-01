@@ -27,7 +27,8 @@ func pvlSubstitute(template string, state PvlScriptState, match []string) (strin
 
 	var outerr libkb.ProofError
 	// Regex to find %{name} occurrences.
-	re := regexp.MustCompile("%\\{[\\w]+\\}")
+	// Match broadly here so that even %{} is sent to the default case and reported as invalid.
+	re := regexp.MustCompile("%\\{[\\w]*\\}")
 	pvlSubstituteOne := func(vartag string) string {
 		// Strip off the %, {, and }
 		varname := vartag[2 : len(vartag)-1]

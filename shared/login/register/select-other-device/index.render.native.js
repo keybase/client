@@ -4,7 +4,7 @@ import React from 'react'
 import type {DeviceType} from '../../../constants/types/more'
 import type {IconType} from '../../../common-adapters/icon'
 import type {Props} from './index.render'
-import {Box, Text, Icon, NativeTouchableHighlight} from '../../../common-adapters/index.native'
+import {Box, Text, Icon, ClickableBox, NativeScrollView} from '../../../common-adapters/index.native'
 import {globalStyles, globalColors} from '../../../styles'
 
 const Row = ({deviceID, name, type, onSelect}) => {
@@ -20,14 +20,14 @@ const Row = ({deviceID, name, type, onSelect}) => {
   }
 
   return (
-    <NativeTouchableHighlight style={stylesRow} onPress={onPress}>
+    <ClickableBox style={stylesRow} onClick={onPress}>
       <Box style={stylesIconName}>
         <Box style={stylesIconContainer}>
           <Icon style={stylesIcon} type={iconType} />
         </Box>
-        <Text type='BodySemiboldItalic' onPress={onPress}>{name}</Text>
+        <Text type='BodySemiboldItalic' onClick={onPress}>{name}</Text>
       </Box>
-    </NativeTouchableHighlight>)
+    </ClickableBox>)
 }
 
 const Render = ({onBack, devices, onWont, onSelect}: Props) => (
@@ -35,9 +35,9 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
     style={stylesContainer}
     onBack={onBack}>
     <Text type='Header' style={stylesHeader}>Which device would you like to connect with?</Text>
-    <Box style={stylesDevicesContainer}>
+    <NativeScrollView style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
-    </Box>
+    </NativeScrollView>
     <Text style={stylesWont} type='BodySmallSecondaryLink' onClick={onWont}>Log in with your passphrase</Text>
   </Container>
 )

@@ -86,10 +86,10 @@
 			"revisionTime": "2015-01-25T10:08:32-08:00"
 		},
 		{
-			"checksumSHA1": "imgdbnirk7WG7YBw06DJOKRabcY=",
+			"checksumSHA1": "UsY6N958JNjS0qzLTAtER7+tVPY=",
 			"path": "github.com/golang/snappy",
-			"revision": "5f1c01d9f64b941dd9582c638279d046eda6ca31",
-			"revisionTime": "2016-03-04T05:48:22Z"
+			"revision": "d6668316e43571d7dde95be6fd077f96de002f8b",
+			"revisionTime": "2016-05-19T03:34:20Z"
 		},
 		{
 			"path": "github.com/google/go-snappy/snappy",

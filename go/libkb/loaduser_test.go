@@ -35,6 +35,20 @@ func TestLoadUserPlusKeys(t *testing.T) {
 	}
 }
 
+func TestLoadUserPlusKeysNoKeys(t *testing.T) {
+	tc := SetupTest(t, "user plus keys", 1)
+	defer tc.Cleanup()
+
+	// t_ellen has no keys.  There should be no error loading her.
+	u, err := LoadUserPlusKeys(tc.G, "561247eb1cc3b0f5dc9d9bf299da5e19")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if u.Username != "t_ellen" {
+		t.Errorf("username: %s, expected t_ellen", u.Username)
+	}
+}
+
 func TestRevokedKeys(t *testing.T) {
 	tc := SetupTest(t, "revoked keys", 1)
 	defer tc.Cleanup()

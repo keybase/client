@@ -9,7 +9,8 @@ protocol proveCommon {
     LOOKING_4,
     SUPERSEDED_5,
     POSTED_6,
-    REVOKED_7
+    REVOKED_7,
+    DELETED_8
   }
 
   /**

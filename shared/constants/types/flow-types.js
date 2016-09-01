@@ -278,6 +278,7 @@ export const ProveCommonProofState = {
   superseded: 5,
   posted: 6,
   revoked: 7,
+  deleted: 8,
 }
 
 export const ProveCommonProofStatus = {
@@ -419,6 +420,10 @@ export function Kex2ProvisioneeHelloRpc (request: $Exact<requestCommon & {callba
 
 export function Kex2ProvisionerKexStartRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisioner.kexStart'})
+}
+
+export function ScanProofsScanProofsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: ScanProofsScanProofsRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'ScanProofs.scanProofs'})
 }
 
 export function SecretKeysGetSecretKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>) {
@@ -1745,6 +1750,7 @@ export type NotificationChannels = {
   app: boolean,
   chat: boolean,
   pgp: boolean,
+  kbfsrequest: boolean,
 }
 
 export type NotifyChatNewChatActivityRpcParam = $Exact<{
@@ -1930,6 +1936,7 @@ export type ProofState =
   | 5 // SUPERSEDED_5
   | 6 // POSTED_6
   | 7 // REVOKED_7
+  | 8 // DELETED_8
 
 export type ProofStatus =
     0 // NONE_0
@@ -2096,6 +2103,15 @@ export type SaltpackVerifyOptions = {
   signedBy: string,
   signature: bytes,
 }
+
+export type ScanProofsScanProofsRpcParam = $Exact<{
+  infile: string,
+  indices: string,
+  sigid: string,
+  ratelimit: int,
+  cachefile: string,
+  ignorefile: string
+}>
 
 export type SearchComponent = {
   key: string,
@@ -3601,6 +3617,7 @@ export type rpc =
   | Kex2ProvisioneeDidCounterSignRpc
   | Kex2ProvisioneeHelloRpc
   | Kex2ProvisionerKexStartRpc
+  | ScanProofsScanProofsRpc
   | SecretKeysGetSecretKeysRpc
   | accountPassphraseChangeRpc
   | accountPassphrasePromptRpc
