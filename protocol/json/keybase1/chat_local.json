@@ -231,10 +231,6 @@
       "name": "ConversationInfoLocal",
       "fields": [
         {
-          "type": "chat1.ConversationID",
-          "name": "id"
-        },
-        {
           "type": "string",
           "name": "tlfName"
         },
@@ -319,6 +315,15 @@
       ],
       "response": null
     },
+    "newConversationLocal": {
+      "request": [
+        {
+          "name": "conversationTriple",
+          "type": "chat1.ConversationIDTriple"
+        }
+      ],
+      "response": "chat1.ConversationID"
+    },
     "resolveConversationLocal": {
       "request": [
         {
@@ -328,30 +333,8 @@
       ],
       "response": {
         "type": "array",
-        "items": "ConversationInfoLocal"
+        "items": "chat1.ConversationID"
       }
-    },
-    "newConversationLocal": {
-      "request": [
-        {
-          "name": "conversation",
-          "type": "ConversationInfoLocal"
-        }
-      ],
-      "response": "ConversationInfoLocal"
-    },
-    "updateTopicNameLocal": {
-      "request": [
-        {
-          "name": "conversationID",
-          "type": "chat1.ConversationID"
-        },
-        {
-          "name": "newTopicName",
-          "type": "string"
-        }
-      ],
-      "response": null
     },
     "getMessagesLocal": {
       "request": [

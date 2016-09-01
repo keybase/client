@@ -73,7 +73,6 @@ protocol chatLocal {
   }
 
   record ConversationInfoLocal {
-    chat1.ConversationID id;
     string tlfName;
     string topicName;
     chat1.TopicType topicType;
@@ -88,24 +87,9 @@ protocol chatLocal {
   chat1.InboxView getInboxLocal(union { null, chat1.Pagination } pagination);
   ThreadView getThreadLocal(chat1.ConversationID conversationID, boolean markAsRead, union { null, chat1.Pagination } pagination);
   void postLocal(chat1.ConversationID conversationID, MessagePlaintext messagePlaintext);
+  chat1.ConversationID newConversationLocal(chat1.ConversationIDTriple conversationTriple);
 
-  // resolveConversationLocal resolves information related to a conversation.
-  // If conversation.id is given (non-zero), it is used to locate the
-  // conversation. Otherwise, tlfName, topicName, and topicType, if any of
-  // which are non zero value, are used to search for conversation. Any
-  // matching conversation is added to a list and returned to the caller.
-  array<ConversationInfoLocal> resolveConversationLocal(ConversationInfoLocal conversation);
-
-  // newConversationLocal creates a new conversation. conversation.id field is
-  // ignored. tlfName and topicType fields are required. topicName, if not
-  // empty, causes a follow-up call to set the topic name for the conversation.
-  // Calling newConversationLocal with a topic name is same to calling with an
-  // empty topic name and following-up with an updateTopicName call. The
-  // returned ConversationInfoLocal has all fields populated.
-  ConversationInfoLocal newConversationLocal(ConversationInfoLocal conversation);
-
-  void updateTopicNameLocal(chat1.ConversationID conversationID, string newTopicName);
-
+  array<chat1.ConversationID> resolveConversationLocal(ConversationInfoLocal conversation);
   array<ConversationLocal> getMessagesLocal(MessageSelector selector);
 
   // The tlfName can be either complete or partial. If the user's username is
