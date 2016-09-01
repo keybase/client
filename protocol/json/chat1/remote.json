@@ -69,6 +69,18 @@
       ],
       "response": "InboxView"
     },
+    "getInboxRemoteByTLFID": {
+      "request": [
+        {
+          "name": "TLFID",
+          "type": "TLFID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Conversation"
+      }
+    },
     "getThreadRemote": {
       "request": [
         {
@@ -89,6 +101,15 @@
       ],
       "response": "ThreadViewBoxed"
     },
+    "getConversationMetadataRemote": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        }
+      ],
+      "response": "Conversation"
+    },
     "postRemote": {
       "request": [
         {
@@ -107,6 +128,19 @@
         {
           "name": "idTriple",
           "type": "ConversationIDTriple"
+        }
+      ],
+      "response": "ConversationID"
+    },
+    "newConversationRemote2": {
+      "request": [
+        {
+          "name": "idTriple",
+          "type": "ConversationIDTriple"
+        },
+        {
+          "name": "TLFMessage",
+          "type": "MessageBoxed"
         }
       ],
       "response": "ConversationID"

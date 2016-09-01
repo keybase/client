@@ -43,12 +43,21 @@ export const CommonMessageType = {
   edit: 3,
   delete: 4,
   metadata: 5,
+  tlfname: 6,
 }
 
 export const CommonTopicType = {
   none: 0,
   chat: 1,
   dev: 2,
+}
+
+export function remoteGetConversationMetadataRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetConversationMetadataRemoteResult) => void} & {param: remoteGetConversationMetadataRemoteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.getConversationMetadataRemote'})
+}
+
+export function remoteGetInboxRemoteByTLFIDRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteByTLFIDResult) => void} & {param: remoteGetInboxRemoteByTLFIDRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.getInboxRemoteByTLFID'})
 }
 
 export function remoteGetInboxRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
@@ -65,6 +74,10 @@ export function remoteGetThreadRemoteRpc (request: $Exact<requestCommon & {callb
 
 export function remoteMarkAsReadRpc (request: $Exact<requestCommon & requestErrorCallback & {param: remoteMarkAsReadRpcParam}>) {
   engineRpcOutgoing({...request, method: 'remote.markAsRead'})
+}
+
+export function remoteNewConversationRemote2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemote2Result) => void} & {param: remoteNewConversationRemote2RpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.newConversationRemote2'})
 }
 
 export function remoteNewConversationRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteNewConversationRemoteResult) => void} & {param: remoteNewConversationRemoteRpcParam}>) {
@@ -152,6 +165,7 @@ export type MessageType =
   | 3 // EDIT_3
   | 4 // DELETE_4
   | 5 // METADATA_5
+  | 6 // TLFNAME_6
 
 export type NewMessagePayload = {
   Action: string,
@@ -188,6 +202,14 @@ export type TopicType =
   | 1 // CHAT_1
   | 2 // DEV_2
 
+export type remoteGetConversationMetadataRemoteRpcParam = $Exact<{
+  conversationID: ConversationID
+}>
+
+export type remoteGetInboxRemoteByTLFIDRpcParam = $Exact<{
+  TLFID: TLFID
+}>
+
 export type remoteGetInboxRemoteRpcParam = $Exact<{
   pagination?: ?Pagination
 }>
@@ -208,6 +230,11 @@ export type remoteMarkAsReadRpcParam = $Exact<{
   msgID: MessageID
 }>
 
+export type remoteNewConversationRemote2RpcParam = $Exact<{
+  idTriple: ConversationIDTriple,
+  TLFMessage: MessageBoxed
+}>
+
 export type remoteNewConversationRemoteRpcParam = $Exact<{
   idTriple: ConversationIDTriple
 }>
@@ -217,21 +244,30 @@ export type remotePostRemoteRpcParam = $Exact<{
   messageBoxed: MessageBoxed
 }>
 
+type remoteGetConversationMetadataRemoteResult = Conversation
+
+type remoteGetInboxRemoteByTLFIDResult = ?Array<Conversation>
+
 type remoteGetInboxRemoteResult = InboxView
 
 type remoteGetMessagesRemoteResult = ?Array<MessageBoxed>
 
 type remoteGetThreadRemoteResult = ThreadViewBoxed
 
+type remoteNewConversationRemote2Result = ConversationID
+
 type remoteNewConversationRemoteResult = ConversationID
 
 type remotePostRemoteResult = MessageID
 
 export type rpc =
-    remoteGetInboxRemoteRpc
+    remoteGetConversationMetadataRemoteRpc
+  | remoteGetInboxRemoteByTLFIDRpc
+  | remoteGetInboxRemoteRpc
   | remoteGetMessagesRemoteRpc
   | remoteGetThreadRemoteRpc
   | remoteMarkAsReadRpc
+  | remoteNewConversationRemote2Rpc
   | remoteNewConversationRemoteRpc
   | remotePostRemoteRpc
 export type incomingCallMapType = $Exact<{

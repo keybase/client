@@ -13,6 +13,10 @@ protocol chatLocal {
     string conversationTitle;
   }
 
+  record MessageTLFName {
+    string TLFName;
+  }
+
   record MessageEdit {
     chat1.MessageID messageID;
     string body;

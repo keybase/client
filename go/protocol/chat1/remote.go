@@ -26,10 +26,18 @@ type GetInboxRemoteArg struct {
 	Pagination *Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
+type GetInboxRemoteByTLFIDArg struct {
+	TLFID TLFID `codec:"TLFID" json:"TLFID"`
+}
+
 type GetThreadRemoteArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	MarkAsRead     bool           `codec:"markAsRead" json:"markAsRead"`
 	Pagination     *Pagination    `codec:"pagination,omitempty" json:"pagination,omitempty"`
+}
+
+type GetConversationMetadataRemoteArg struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 }
 
 type PostRemoteArg struct {
@@ -39,6 +47,11 @@ type PostRemoteArg struct {
 
 type NewConversationRemoteArg struct {
 	IdTriple ConversationIDTriple `codec:"idTriple" json:"idTriple"`
+}
+
+type NewConversationRemote2Arg struct {
+	IdTriple   ConversationIDTriple `codec:"idTriple" json:"idTriple"`
+	TLFMessage MessageBoxed         `codec:"TLFMessage" json:"TLFMessage"`
 }
 
 type GetMessagesRemoteArg struct {
@@ -53,9 +66,12 @@ type MarkAsReadArg struct {
 
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, *Pagination) (InboxView, error)
+	GetInboxRemoteByTLFID(context.Context, TLFID) ([]Conversation, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (ThreadViewBoxed, error)
+	GetConversationMetadataRemote(context.Context, ConversationID) (Conversation, error)
 	PostRemote(context.Context, PostRemoteArg) (MessageID, error)
 	NewConversationRemote(context.Context, ConversationIDTriple) (ConversationID, error)
+	NewConversationRemote2(context.Context, NewConversationRemote2Arg) (ConversationID, error)
 	GetMessagesRemote(context.Context, GetMessagesRemoteArg) ([]MessageBoxed, error)
 	MarkAsRead(context.Context, MarkAsReadArg) error
 }
@@ -80,6 +96,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getInboxRemoteByTLFID": {
+				MakeArg: func() interface{} {
+					ret := make([]GetInboxRemoteByTLFIDArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetInboxRemoteByTLFIDArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetInboxRemoteByTLFIDArg)(nil), args)
+						return
+					}
+					ret, err = i.GetInboxRemoteByTLFID(ctx, (*typedArgs)[0].TLFID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getThreadRemote": {
 				MakeArg: func() interface{} {
 					ret := make([]GetThreadRemoteArg, 1)
@@ -92,6 +124,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadRemote(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getConversationMetadataRemote": {
+				MakeArg: func() interface{} {
+					ret := make([]GetConversationMetadataRemoteArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetConversationMetadataRemoteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetConversationMetadataRemoteArg)(nil), args)
+						return
+					}
+					ret, err = i.GetConversationMetadataRemote(ctx, (*typedArgs)[0].ConversationID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -124,6 +172,22 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.NewConversationRemote(ctx, (*typedArgs)[0].IdTriple)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"newConversationRemote2": {
+				MakeArg: func() interface{} {
+					ret := make([]NewConversationRemote2Arg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]NewConversationRemote2Arg)
+					if !ok {
+						err = rpc.NewTypeError((*[]NewConversationRemote2Arg)(nil), args)
+						return
+					}
+					ret, err = i.NewConversationRemote2(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -174,8 +238,20 @@ func (c RemoteClient) GetInboxRemote(ctx context.Context, pagination *Pagination
 	return
 }
 
+func (c RemoteClient) GetInboxRemoteByTLFID(ctx context.Context, TLFID TLFID) (res []Conversation, err error) {
+	__arg := GetInboxRemoteByTLFIDArg{TLFID: TLFID}
+	err = c.Cli.Call(ctx, "chat.1.remote.getInboxRemoteByTLFID", []interface{}{__arg}, &res)
+	return
+}
+
 func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemoteArg) (res ThreadViewBoxed, err error) {
 	err = c.Cli.Call(ctx, "chat.1.remote.getThreadRemote", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) GetConversationMetadataRemote(ctx context.Context, conversationID ConversationID) (res Conversation, err error) {
+	__arg := GetConversationMetadataRemoteArg{ConversationID: conversationID}
+	err = c.Cli.Call(ctx, "chat.1.remote.getConversationMetadataRemote", []interface{}{__arg}, &res)
 	return
 }
 
@@ -187,6 +263,11 @@ func (c RemoteClient) PostRemote(ctx context.Context, __arg PostRemoteArg) (res 
 func (c RemoteClient) NewConversationRemote(ctx context.Context, idTriple ConversationIDTriple) (res ConversationID, err error) {
 	__arg := NewConversationRemoteArg{IdTriple: idTriple}
 	err = c.Cli.Call(ctx, "chat.1.remote.newConversationRemote", []interface{}{__arg}, &res)
+	return
+}
+
+func (c RemoteClient) NewConversationRemote2(ctx context.Context, __arg NewConversationRemote2Arg) (res ConversationID, err error) {
+	err = c.Cli.Call(ctx, "chat.1.remote.newConversationRemote2", []interface{}{__arg}, &res)
 	return
 }
 
