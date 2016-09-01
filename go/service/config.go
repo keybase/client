@@ -62,7 +62,11 @@ func (h ConfigHandler) getOsVersion() string {
 	} else if runtime.GOOS == "linux" {
 		cmd = "uname"
 		args = []string{"-mrs"}
+	} else {
+		h.G().Log.Errorf("Your runtime.GOOS isn't supported: %s", runtime.GOOS)
+		return ""
 	}
+
 	if result, err = exec.Command(cmd, args...).Output(); err != nil {
 		h.G().Log.Errorf("Error trying to determine OS version: %s (%s)", err, result)
 		return ""
