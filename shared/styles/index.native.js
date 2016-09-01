@@ -4,6 +4,15 @@ import {OS_IOS, OS_ANDROID} from '../constants/platform.shared'
 import NavigatorNavigationBarStyles from 'react-native/Libraries/CustomComponents/Navigator/NavigatorNavigationBarStylesIOS'
 import globalColors from './colors'
 
+const globalMargins = {
+  xtiny: 4,
+  tiny: 8,
+  small: 16,
+  medium: 32,
+  large: 48,
+  xlarge: 64,
+}
+
 const fontCommon = {
   letterSpacing: 0.3,
 }
@@ -87,20 +96,15 @@ const util = {
   textDecoration: (type: string) => ({
     textDecorationLine: type,
   }),
+  loadingTextStyle: {
+    backgroundColor: globalColors.lightGrey,
+    height: 16,
+  },
 }
 
 const globalStyles = {
   ...font,
   ...util,
-}
-
-const globalMargins = {
-  xtiny: 4,
-  tiny: 8,
-  small: 16,
-  medium: 32,
-  large: 48,
-  xlarge: 64,
 }
 
 const navBarHeight = OS === OS_ANDROID ? 60 : NavigatorNavigationBarStyles.General.TotalNavHeight

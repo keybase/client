@@ -1,14 +1,50 @@
 // @flow
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import type {Props} from './user-bio'
 import {Box, Avatar, Text} from './'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
 
+import type {AvatarSize} from './avatar'
+import type {Props} from './user-bio'
+
+class BioLoading extends Component<void, {style: Object, avatarSize: AvatarSize, loading: boolean}, void> {
+  render () {
+    const {avatarSize, loading} = this.props
+
+    return (
+      <Box style={stylesContainer}>
+        <Box style={{...globalStyles.flexBoxRow, alignItems: 'flex-end', zIndex: 2, position: 'relative', opacity: loading ? 1 : 0, alignSelf: 'center'}}>
+          <Avatar
+            url={''}
+            loadingColor={globalColors.lightGrey}
+            forceLoading={true}
+            size={avatarSize}
+            following={false}
+            followsYou={false} />
+        </Box>
+        <Box style={{...stylesContent, opacity: this.props.loading ? 1 : 0}}>
+          <Box style={{...globalStyles.loadingTextStyle, width: 157, marginTop: 10, height: 26}} />
+          <Box style={{...globalStyles.loadingTextStyle, width: 100, marginTop: 12, height: 18}} />
+          <Box style={{...globalStyles.loadingTextStyle, width: 117, marginTop: globalMargins.tiny, marginBottom: 0}} />
+          <Box style={{...globalStyles.loadingTextStyle, width: 247, marginTop: 6, marginBottom: 0}} />
+        </Box>
+      </Box>
+    )
+  }
+}
+
 class BioRender extends Component<void, Props, void> {
   render () {
-    const {avatarSize, username, userInfo, currentlyFollowing} = this.props
+    const {avatarSize, username, userInfo, currentlyFollowing, loading} = this.props
+    if (loading) {
+      return (
+        <Box style={{...stylesContainer, ...this.props.style}}>
+          <BioLoading loading={loading} style={this.props.style} avatarSize={avatarSize} />
+        </Box>
+      )
+    }
+
     if (!userInfo) {
       return null
     }

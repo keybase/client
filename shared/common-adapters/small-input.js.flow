@@ -7,10 +7,11 @@ export type SmallInputProps = {
   label: string,
   value: ?string,
   onChange: (next: string) => void,
-  errorState: boolean,
+  errorState?: boolean,
   style?: Object,
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters', // Native only
   autoCorrect?: boolean, // Native only
+  autoFocus?: boolean,
 }
 
 declare export default class Icon extends Component<void, SmallInputProps, void> {}

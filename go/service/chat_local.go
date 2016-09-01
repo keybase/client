@@ -196,7 +196,13 @@ getthread:
 				continue
 			}
 
-			if messageTypes != nil && !messageTypes[m.MessagePlaintext.MessageBodies[0].Type] {
+			typ, err := m.MessagePlaintext.MessageBodies[0].MessageType()
+
+			if err != nil {
+				return conv, err
+			}
+
+			if messageTypes != nil && !messageTypes[typ] {
 				continue
 			}
 

@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Avatar, Box, Icon, Text, NativeTouchableHighlight} from '../../common-adapters/index.native'
+import {Avatar, Box, Icon, Text, ClickableBox} from '../../common-adapters/index'
 import {globalStyles, globalColors} from '../../styles'
 
 import type {IconType} from '../../common-adapters/icon'
@@ -51,9 +51,7 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {selected: boolean,
   }
 
   return (
-    <NativeTouchableHighlight
-      onPress={() => onClickUser(user)}
-      activeOpacity={0.8}>
+    <ClickableBox onClick={() => onClickUser(user)}>
       <Box style={{...globalStyles.flexBoxColumn}}>
         <Box style={{...globalStyles.flexBoxRow, height: 64, alignItems: 'center', backgroundColor: globalColors.white}}>
           {avatar}
@@ -64,33 +62,29 @@ function User ({user, insertSpacing, onRemove, onClickUser}: {selected: boolean,
         </Box>
         {insertSpacing && <Box style={{height: 1}} />}
       </Box>
-    </NativeTouchableHighlight>
+    </ClickableBox>
   )
 }
 
 function AddUser ({onClick}) {
   return (
-    <NativeTouchableHighlight
-      onPress={onClick}
-      activeOpacity={0.8}>
+    <ClickableBox onClick={onClick}>
       <Box style={{...globalStyles.flexBoxRow, height: 48, alignItems: 'center', justifyContent: 'center', backgroundColor: globalColors.blue}}>
         <Icon type='icon-people-add-32' />
         <Text style={{marginLeft: 12, color: globalColors.white}} type='Body'>Add a user...</Text>
       </Box>
-    </NativeTouchableHighlight>
+    </ClickableBox>
   )
 }
 
 function RowButton ({icon, text, onClick}: {icon: IconType, text: string, onClick: () => void}) {
   return (
-    <NativeTouchableHighlight
-      onPress={onClick}
-      activeOpacity={0.8}>
+    <ClickableBox onClick={onClick}>
       <Box style={rowButtonStyle}>
         <Icon type={icon} />
         <Text type='Body' style={{marginLeft: 8, color: globalColors.blue}}>{text}</Text>
       </Box>
-    </NativeTouchableHighlight>
+    </ClickableBox>
   )
 }
 

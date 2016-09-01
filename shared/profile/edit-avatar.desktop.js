@@ -3,12 +3,12 @@
 import React from 'react'
 import {Avatar, Box, Text, Button} from '../common-adapters'
 import {globalStyles, globalMargins} from '../styles'
+import {noAvatarMessage, hasAvatarMessage} from './edit-avatar.shared'
 
 import type {Props} from './edit-avatar'
 
 const Render = ({keybaseUsername, hasAvatar, onAck}: Props) => {
-  const text = !hasAvatar ? 'Keybase shows your profile photo from your Twitter or Github proofs. Please add a proof to your profile.'
-    : "For now, Keybase shows your profile photo from your Twitter or Github proofs. If you'd like to prioritize one service, you can change that setting on the Keybase website."
+  const text = !hasAvatar ? noAvatarMessage : hasAvatarMessage
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>

@@ -77,7 +77,7 @@ class CodePageRender extends Component<void, Props, void> {
           style={{alignSelf: 'stretch'}}
           hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
           floatingLabelText='Text code'
-          multiLine={true}
+          multiline={true}
           value={this.props.enterText}
           onChange={event => this.props.onChangeText(event.target.value)}
         />

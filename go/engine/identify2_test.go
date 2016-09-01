@@ -725,6 +725,15 @@ func TestIdentify2NoSigchain(t *testing.T) {
 	if _, ok := ierr.(libkb.NoSigChainError); !ok {
 		t.Errorf("imported status error: %T, expected libkb.NoSigChainError", ierr)
 	}
+
+	// kbfs would like to have some info about the user
+	result := eng.Result()
+	if result == nil {
+		t.Fatal("no result on id2 w/ no sigchain")
+	}
+	if result.Upk.Username != u {
+		t.Errorf("result username: %q, expected %q", result.Upk.Username, u)
+	}
 }
 
 var tracyUID = keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")

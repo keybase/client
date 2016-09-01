@@ -3,25 +3,37 @@ import React, {Component} from 'react'
 import debounce from 'lodash/debounce'
 import dumbComponentMap from './dumb-component-map.native'
 import type {Props} from './dumb-sheet.render'
-import {Box, Text, Input, Button, NativeScrollView} from '../common-adapters/index.native'
-import {globalStyles} from '../styles'
+import {Box, Text, SmallInput, Button, NativeScrollView, Icon} from '../common-adapters/index.native'
+import {globalStyles, globalColors} from '../styles'
 
 class Render extends Component<void, Props, any> {
   state: any;
   _onFilterChange: (a: any) => void;
+  _onFilterChangeProp: (a: any) => void;
+  _max: number;
 
   constructor (props: Props) {
     super(props)
 
     this.state = {
       filterShow: false,
+      localFilter: props.dumbFilter || '',
     }
 
-    this._onFilterChange = debounce(filter => {
+    this._onFilterChangeProp = debounce(filter => {
       this.props.onDebugConfigChange({
         dumbFilter: filter,
       })
     }, 300)
+
+    this._onFilterChange = filter => {
+      this.setState({localFilter: filter})
+      this._onFilterChangeProp(filter)
+    }
+
+    this._max = Object.keys(dumbComponentMap).reduce((acc, cur) => {
+      return acc + Object.keys(dumbComponentMap[cur].mocks).length
+    }, 0)
   }
 
   render () {
@@ -44,8 +56,8 @@ class Render extends Component<void, Props, any> {
 
         components.push(
           <Box key={mockKey} style={styleBox}>
-            <Text type='Body' style={{marginBottom: 5}}>{key}: {mockKey}</Text>
-            <Box style={{flex: 1}} {...parentProps}>
+            <Text type='BodyXSmall'>{key}: {mockKey}</Text>
+            <Box {...parentProps}>
               <Component key={mockKey} {...mock} />
             </Box>
           </Box>
@@ -61,28 +73,55 @@ class Render extends Component<void, Props, any> {
       return (
         <Box style={{flex: 1}} {...parentPropsOnly[this.props.dumbIndex % components.length]}>
           {componentsOnly[this.props.dumbIndex % components.length]}
+          <Icon type='iconfont-import' style={{position: 'absolute', top: 20, right: 0}} onClick={() => {
+            this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})
+          }} />
         </Box>
       )
     }
 
     return (
-      <Box style={{flex: 1}}>
-        <NativeScrollView style={{flex: 1}}>
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+        <Box style={stylesControls}>
+          <SmallInput
+            label='Filter:'
+            style={inputStyle}
+            onChange={filter => this._onFilterChange(filter.toLowerCase())}
+            hintText=''
+            autoCorrect={false}
+            autoCapitalize='none'
+            value={this.state.localFilter} />
+          <Button type='Primary' style={stylesButton} label='-' onClick={() => { this._incremement(false) }} />
+          <SmallInput
+            label=''
+            style={{width: 50}}
+            value={String(this.props.dumbIndex)}
+            onChange={filter => this.props.onDebugConfigChange({
+              dumbIndex: parseInt(filter, 10) || 0,
+            })}
+            hintText=''
+            autoCorrect={false}
+            autoCapitalize='none'
+          />
+          <Button type='Primary' style={stylesButton} label='+' onClick={() => { this._incremement(true) }} />
+          <Icon type='iconfont-device' style={{color: globalColors.blue}} onClick={() => {
+            this.props.onDebugConfigChange({dumbFullscreen: !this.props.dumbFullscreen})
+          }} />
+        </Box>
+        <NativeScrollView>
           {ToShow}
         </NativeScrollView>
-        <Box style={stylesControls}>
-          <Text type='BodySmall'>{this.props.dumbIndex}</Text>
-          {this.state.filterShow && <Box style={{...globalStyles.flexBoxColumn, backgroundColor: 'red', width: 200}}><Input style={inputStyle} value={filter} onChangeText={filter => this._onFilterChange(filter.toLowerCase())} /></Box>}
-          <Button type='Primary' style={stylesButton} label='...' onClick={() => { this.setState({filterShow: !this.state.filterShow}) }} />
-          <Button type='Primary' style={stylesButton} label='<' onClick={() => { this._incremement(false) }} />
-          <Button type='Primary' style={stylesButton} label='>' onClick={() => { this._incremement(true) }} />
-        </Box>
       </Box>
     )
   }
 
   _incremement (up: boolean) {
-    let next = Math.max(0, this.props.dumbIndex + (up ? 1 : -1))
+    let next = this.props.dumbIndex + (up ? 1 : -1)
+    if (next < 0) {
+      next = this._max - 1
+    }
+    next = next % (this._max)
+
     this.props.onDebugConfigChange({
       dumbIndex: next,
     })
@@ -92,21 +131,18 @@ class Render extends Component<void, Props, any> {
 const styleBox = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  height: 800,
-  paddingTop: 20,
-  marginTop: 10,
 }
 
 const inputStyle = {
-  height: 40,
-  marginTop: 0,
+  marginLeft: 10,
+  marginRight: 10,
+  flex: 1,
+  backgroundColor: '#eeeeee',
+  borderWidth: 1,
 }
 
 const stylesControls = {
   ...globalStyles.flexBoxRow,
-  position: 'absolute',
-  top: 0,
-  right: 0,
 }
 
 const stylesButton = {
@@ -118,7 +154,7 @@ const stylesButton = {
   paddingTop: 0,
   paddingLeft: 0,
   paddingRight: 0,
-  paddingBottom: 20,
+  paddingBottom: 0,
   borderRadius: 10,
 }
 

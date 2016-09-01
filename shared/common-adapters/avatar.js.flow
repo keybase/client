@@ -7,6 +7,7 @@ type CommonProps = {
   size: AvatarSize,
   style?: ?Object,
   onClick?: ?(() => void),
+  onPress?: void,
   // Use a solid color instead of a noAvatar image initially
   loadingColor?: string,
   forceLoading?: boolean,

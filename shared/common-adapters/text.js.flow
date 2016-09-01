@@ -24,6 +24,7 @@ export type Props = {
   link?: boolean,
   reversed?: boolean,
   onClick?: ?(e: SyntheticEvent) => void,
+  onPress?: void,
   lineClamp?: number,
   style?: Object,
   children?: React$Element<*>,

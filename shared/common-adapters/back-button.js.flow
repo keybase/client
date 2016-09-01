@@ -2,7 +2,8 @@
 import {Component} from 'react'
 
 export type Props = {
-  onClick: Function,
+  onClick: () => void,
+  onPress?: void,
   iconStyle?: Object,
   textStyle?: Object,
   style?: ?Object,

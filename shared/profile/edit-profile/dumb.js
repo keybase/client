@@ -35,5 +35,5 @@ const dumbMap: DumbComponentMap<EditProfile> = {
 }
 
 export default {
-  'EditProfile': dumbMap,
+  'Edit Profile': dumbMap,
 }

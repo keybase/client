@@ -16,7 +16,7 @@ const ff: FeatureFlags = {
   admin: featureOn('admin'),
   mobileAppsExist: featureOn('mobileAppsExist'),
   tabPeopleEnabled: featureOn('tabPeopleEnabled'),
-  tabFoldersEnabled: featureOn('tabFoldersEnabled'),
+  tabFoldersEnabled: true,
   tabSettingsEnabled: featureOn('tabSettingsEnabled'),
   tabProfileEnabled: featureOn('tabProfileEnabled', true),
   recentFilesEnabled: featureOn('recentFilesEnabled'),

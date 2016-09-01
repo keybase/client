@@ -11,11 +11,10 @@ import {navigateUp} from '../../actions/router'
 type State = {
   bio: string,
   fullname: string,
-  location: string
+  location: string,
 }
 
 class EditProfile extends Component<void, Props, State> {
-  props: Props;
   state: State;
 
   static parseRoute (currentPath, uri) {

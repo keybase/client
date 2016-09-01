@@ -4,6 +4,7 @@ import {Component} from 'react'
 export type Props = $Shape<{
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
   autoFocus?: bool,
+  autoGrow?: bool,
   blur: () => void,
   errorStyle?: ?Object,
   errorStyle?: Object,
@@ -15,12 +16,12 @@ export type Props = $Shape<{
   inputStyle?: Object,
   iosOmitUnderline?: boolean,
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'ascii-capable' | 'numbers-and-punctuation' | 'url' | 'number-pad' | 'name-phone-pad' | 'decimal-pad' | 'twitter' | 'web-search',
-  multiLine?: bool,
+  multiline?: bool,
   onChange?: (event: Object) => void,
   onChangeText?: (text: string) => void,
   onEnterKeyDown?: (event: Object) => void,
   onKeyDown?: (event: Object) => void,
-  rows?: number,
+  rows?: number, // Will be overridden if autoGrow is active
   rowsMax?: number,
   select: () => void,
   small?: bool,

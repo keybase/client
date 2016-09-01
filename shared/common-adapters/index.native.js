@@ -7,6 +7,7 @@ import {
   DrawerLayoutAndroid as NativeDrawerLayoutAndroid,
   Easing as NativeEasing,
   Image as NativeImage,
+  KeyboardAvoidingView as NativeKeyboardAvoidingView,
   Linking as NativeLinking,
   ListView as NativeListView,
   Modal as NativeModal,
@@ -17,9 +18,7 @@ import {
   Switch as NativeSwitch,
   Text as NativeText,
   TextInput as NativeTextInput,
-  TouchableHighlight as NativeTouchableHighlight,
   TouchableNativeFeedback as NativeTouchableNativeFeedback,
-  TouchableOpacity as NativeTouchableOpacity,
   TouchableWithoutFeedback as NativeTouchableWithoutFeedback,
 } from 'react-native'
 
@@ -33,6 +32,7 @@ export {
   NativeDrawerLayoutAndroid,
   NativeEasing,
   NativeImage,
+  NativeKeyboardAvoidingView,
   NativeLinking,
   NativeListView,
   NativeModal,
@@ -43,8 +43,6 @@ export {
   NativeSwitch,
   NativeText,
   NativeTextInput,
-  NativeTouchableHighlight,
   NativeTouchableNativeFeedback,
-  NativeTouchableOpacity,
   NativeTouchableWithoutFeedback,
 }
