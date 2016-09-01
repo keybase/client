@@ -70,10 +70,6 @@
   }];
 }
 
-- (NSError *)statusError {
-  return nil;
-}
-
 - (void)install:(KBCompletion)completion {
   if (![self checkMountDirExists]) {
     [self createMountDir:^(NSError *err) {
