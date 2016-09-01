@@ -5,7 +5,6 @@ package service
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"time"
@@ -93,21 +92,20 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 		if triple.TopicID, err = libkb.NewChatTopicID(); err != nil {
 			return err
 		}
-		if info.Id, err = h.remoteClient().NewConversationRemote(ctx, triple); err != nil {
+		firstMessageBoxed, err := h.prepareMessageForRemote(ctx, makeFirstMessage(ctx, info, triple))
+		if err != nil {
 			return err
 		}
+		if info.Id, err = h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
+			IdTriple:   triple,
+			TLFMessage: firstMessageBoxed,
+		}); err != nil {
+			return err
+		}
+		created = info
 		return nil
 	}); err != nil {
 		return created, err
-	}
-
-	created = info
-
-	if len(info.TopicName) > 0 {
-		// topic name specified, so we follow up with a call to update topic name for the conversation.
-		if err = h.updateTopicName(ctx, info, triple); err != nil {
-			return created, fmt.Errorf("creating conversaion succeeded but update topic name failed: %v", err)
-		}
 	}
 
 	return created, nil
@@ -116,28 +114,43 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 // UpdateTopicNameLocal implements keybase.chatLocal.updateTopicNameLocal protocol.
 func (h *chatLocalHandler) UpdateTopicNameLocal(ctx context.Context, arg keybase1.UpdateTopicNameLocalArg) (err error) {
 	info, triple, err := h.getConversationInfo(ctx, arg.ConversationID)
-	return h.updateTopicName(ctx, info, triple)
+	return h.PostLocal(ctx, keybase1.PostLocalArg{
+		ConversationID:   info.Id,
+		MessagePlaintext: makeUnboxedMessageToUpdateTopicName(ctx, info, triple),
+	})
 }
 
-func (h *chatLocalHandler) updateTopicName(ctx context.Context, conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple) (err error) {
-	err = h.PostLocal(ctx, keybase1.PostLocalArg{
-		ConversationID: conversationInfo.Id,
-		MessagePlaintext: keybase1.MessagePlaintext{
-			ClientHeader: chat1.MessageClientHeader{
-				Conv:        triple,
-				TlfName:     conversationInfo.TlfName,
-				MessageType: chat1.MessageType_METADATA,
-				Prev:        nil, // TODO
-				// Sender and SenderDevice filled by PostLocal
-			},
-			MessageBodies: []keybase1.MessageBody{keybase1.NewMessageBodyWithMetadata(
-				keybase1.MessageConversationMetadata{
-					ConversationTitle: conversationInfo.TopicName,
-				}),
-			},
+func makeFirstMessage(ctx context.Context, conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple) (unboxed keybase1.MessagePlaintext) {
+	if len(conversationInfo.TopicName) > 0 {
+		return makeUnboxedMessageToUpdateTopicName(ctx, conversationInfo, triple)
+	}
+	return keybase1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        triple,
+			TlfName:     conversationInfo.TlfName,
+			MessageType: chat1.MessageType_TLFNAME,
+			Prev:        nil, // TODO
+			// Sender and SenderDevice filled by PostLocal
 		},
-	})
-	return err
+		MessageBodies: nil,
+	}
+}
+
+func makeUnboxedMessageToUpdateTopicName(ctx context.Context, conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple) (unboxed keybase1.MessagePlaintext) {
+	return keybase1.MessagePlaintext{
+		ClientHeader: chat1.MessageClientHeader{
+			Conv:        triple,
+			TlfName:     conversationInfo.TlfName,
+			MessageType: chat1.MessageType_METADATA,
+			Prev:        nil, // TODO
+			// Sender and SenderDevice filled by PostLocal
+		},
+		MessageBodies: []keybase1.MessageBody{keybase1.NewMessageBodyWithMetadata(
+			keybase1.MessageConversationMetadata{
+				ConversationTitle: conversationInfo.TopicName,
+			}),
+		},
+	}
 }
 
 func (h *chatLocalHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {
@@ -178,34 +191,64 @@ func (h *chatLocalHandler) ResolveConversationLocal(ctx context.Context, arg key
 // and topicType fields in criteria, and returns all matching conversations.
 // Conversation IDs are populated in returned conversations.
 func (h *chatLocalHandler) searchForConversations(ctx context.Context, criteria keybase1.ConversationInfoLocal) (conversations []keybase1.ConversationInfoLocal, err error) {
-	ipagination := &chat1.Pagination{Num: 20}
-getinbox:
-	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
-		iview, err := h.GetInboxLocal(ctx, ipagination)
-		if err != nil {
-			return conversations, err
+	appendMaybe := func(info keybase1.ConversationInfoLocal) {
+		if len(criteria.TopicName) > 0 && criteria.TopicName != info.TopicName {
+			return
 		}
-		for _, conv := range iview.Conversations {
-			info, _, err := h.getConversationInfo(ctx, conv.Metadata.ConversationID)
+		if criteria.TopicType != chat1.TopicType_NONE && criteria.TopicType != info.TopicType {
+			return
+		}
+		conversations = append(conversations, info)
+	}
+
+	if len(criteria.TlfName) > 0 { // fast case
+		// TODO: do some caching in boxer so we don't end up calling this RPC
+		// unnecessarily too often
+		resp, err := h.boxer.tlf.CryptKeys(ctx, criteria.TlfName)
+		if err != nil {
+			return nil, err
+		}
+		tlfIDb, err := hex.DecodeString(string(resp.TlfID))
+		if err != nil {
+			return nil, err
+		}
+		conversationsRemote, err := h.remoteClient().GetInboxByTLFIDRemote(ctx, tlfIDb)
+		if err != nil {
+			return nil, err
+		}
+		for _, cr := range conversationsRemote {
+			info, _, err := h.getConversationInfo(ctx, cr.Metadata.ConversationID)
+			if err != nil {
+				return nil, err
+			}
+			if info.TlfName != criteria.TlfName {
+				// check again using signed information to make sure it's the correct
+				// conversation
+				return nil, fmt.Errorf("Unexpected data is returned from server. We asked for %v, but got conversation for %v. TODO: handle tlfName changes properly for SBS case", criteria.TlfName, info.TlfName)
+			}
+			appendMaybe(info)
+		}
+	} else { // slow case: tlfName not specified; need to search through inbox
+		ipagination := &chat1.Pagination{Num: 20}
+	getinbox:
+		for i := 0; i < 10000; /* in case we have a server bug */ i++ {
+			iview, err := h.GetInboxLocal(ctx, ipagination)
 			if err != nil {
 				return conversations, err
 			}
-			if len(criteria.TlfName) > 0 && criteria.TlfName != info.TlfName {
-				continue
+			for _, conv := range iview.Conversations {
+				info, _, err := h.getConversationInfo(ctx, conv.Metadata.ConversationID)
+				if err != nil {
+					return conversations, err
+				}
+				appendMaybe(info)
 			}
-			if len(criteria.TopicName) > 0 && criteria.TopicName != info.TopicName {
-				continue
-			}
-			if criteria.TopicType != chat1.TopicType_NONE && criteria.TopicType != info.TopicType {
-				continue
-			}
-			conversations = append(conversations, info)
-		}
 
-		if iview.Pagination == nil || iview.Pagination.Last {
-			break getinbox
-		} else {
-			ipagination = iview.Pagination
+			if iview.Pagination == nil || iview.Pagination.Last {
+				break getinbox
+			} else {
+				ipagination = iview.Pagination
+			}
 		}
 	}
 
@@ -217,72 +260,48 @@ getinbox:
 //
 // TODO: cache
 func (h *chatLocalHandler) getConversationInfo(ctx context.Context, id chat1.ConversationID) (conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple, err error) {
-	ipagination := &chat1.Pagination{Num: 20}
-getinbox:
-	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
-		iview, err := h.GetInboxLocal(ctx, ipagination)
-		if err != nil {
-			return conversationInfo, triple, err
-		}
-
-		for _, conversation := range iview.Conversations {
-			if id == conversation.Metadata.ConversationID {
-				triple = conversation.Metadata.IdTriple
-				conversationInfo.Id = id
-				conversationInfo.TopicType = triple.TopicType
-
-				if len(conversation.MaxHeaders) == 0 {
-					return conversationInfo, triple, errors.New("empty conversation found")
-				}
-
-				// if no METADATA message exists, just use the first one to get TLF Name
-				messageID := conversation.MaxHeaders[0].MessageID
-				for _, header := range conversation.MaxHeaders {
-					if header.MessageType == chat1.MessageType_METADATA {
-						messageID = header.MessageID
-						break
-					}
-				}
-
-				boxed, err := h.remoteClient().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
-					ConversationID: id,
-					MessageIDs:     []chat1.MessageID{messageID},
-				})
-				if err != nil {
-					return conversationInfo, triple, err
-				}
-				if len(boxed) != 1 {
-					return conversationInfo, triple, fmt.Errorf("unexpected number of messages (got %d, expected 1) from GetMessagesRemote", len(boxed))
-				}
-				unboxed, err := h.boxer.unboxMessage(ctx, newKeyFinder(), boxed[0])
-				if err != nil {
-					continue
-				}
-				if len(unboxed.MessagePlaintext.MessageBodies) < 1 {
-					return conversationInfo, triple, errors.New("empty MessageBodies")
-				}
-				body := unboxed.MessagePlaintext.MessageBodies[0]
-				conversationInfo.TlfName = unboxed.MessagePlaintext.ClientHeader.TlfName
-				t, err := body.MessageType()
-				if err != nil {
-					return conversationInfo, triple, err
-				}
-				if t == chat1.MessageType_METADATA {
-					conversationInfo.TopicName = body.Metadata().ConversationTitle
-				}
-
-				return conversationInfo, triple, nil
-			}
-		}
-
-		if iview.Pagination == nil || iview.Pagination.Last {
-			break getinbox
-		} else {
-			ipagination = iview.Pagination
+	conversationRemote, err := h.remoteClient().GetConversationMetadataRemote(ctx, id)
+	if err != nil {
+		return conversationInfo, triple, err
+	}
+	if len(conversationRemote.MaxHeaders) == 0 {
+		return conversationInfo, triple, errors.New("empty conversation found")
+	}
+	// if no METADATA message exists, just use the newest one to get TLF Name
+	messageID := conversationRemote.MaxHeaders[0].MessageID
+	for _, header := range conversationRemote.MaxHeaders {
+		if header.MessageType == chat1.MessageType_METADATA {
+			messageID = header.MessageID
+			break
 		}
 	}
 
-	return conversationInfo, triple, errors.New("conversation not found")
+	boxed, err := h.remoteClient().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
+		ConversationID: id,
+		MessageIDs:     []chat1.MessageID{messageID},
+	})
+	if err != nil {
+		return conversationInfo, triple, err
+	}
+	if len(boxed) != 1 {
+		return conversationInfo, triple, fmt.Errorf("unexpected number of messages (got %d, expected 1) from GetMessagesRemote", len(boxed))
+	}
+	unboxed, err := h.boxer.unboxMessage(ctx, newKeyFinder(), boxed[0])
+	if err != nil {
+		return conversationInfo, triple, fmt.Errorf("unboxing message error: %v", err)
+	}
+	if len(unboxed.MessagePlaintext.MessageBodies) < 1 {
+		return conversationInfo, triple, errors.New("empty MessageBodies")
+	}
+	body := unboxed.MessagePlaintext.MessageBodies[0]
+	conversationInfo.TlfName = unboxed.MessagePlaintext.ClientHeader.TlfName
+	if t, err := body.MessageType(); err != nil {
+		return conversationInfo, triple, err
+	} else if t == chat1.MessageType_METADATA {
+		conversationInfo.TopicName = body.Metadata().ConversationTitle
+	}
+
+	return conversationInfo, triple, nil
 }
 
 func (h *chatLocalHandler) fillMessageInfoLocal(ctx context.Context, m *keybase1.Message, isNew bool) (err error) {
@@ -316,7 +335,7 @@ func (h *chatLocalHandler) makeConversationLocal(ctx context.Context, conversati
 	return conversation, err
 }
 
-func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversation *chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *keybase1.MessageSelector) (conv keybase1.ConversationLocal, err error) {
+func (h *chatLocalHandler) getConversationMessages(ctx context.Context, conversation chat1.Conversation, messageTypes map[chat1.MessageType]bool, selector *keybase1.MessageSelector) (conv keybase1.ConversationLocal, err error) {
 	var since time.Time
 	if selector.Since != nil {
 		since, err := parseTimeFromRFC3339OrDurationFromPast(*selector.Since)
@@ -394,7 +413,7 @@ getthread:
 }
 
 // GetMessagesLocal implements keybase.chatLocal.GetMessagesLocal protocol.
-func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (messages []keybase1.ConversationLocal, err error) {
+func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.MessageSelector) (conversations []keybase1.ConversationLocal, err error) {
 	var messageTypes map[chat1.MessageType]bool
 	if len(arg.MessageTypes) > 0 {
 		messageTypes := make(map[chat1.MessageType]bool)
@@ -403,56 +422,36 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.Me
 		}
 	}
 
-	// conversations, if non-nil, is derived from arg
-	var conversations map[chat1.ConversationID]bool
-	if len(arg.Conversations) > 0 {
-		conversations := make(map[chat1.ConversationID]bool)
-		for _, c := range arg.Conversations {
-			conversations[c] = true
-		}
+	if len(arg.Conversations) == 0 {
+		return nil, errors.New("At least 1 conversation ID is required")
 	}
 
 	if arg.Limit <= 0 {
 		arg.Limit = int(^uint(0) >> 1) // maximum int
 	}
 
-	ipagination := &chat1.Pagination{Num: 20}
-getinbox:
-	for i := 0; i < 10000; /* in case we have a server bug */ i++ {
-		iview, err := h.GetInboxLocal(ctx, ipagination)
+	for _, cid := range arg.Conversations {
+		conversationRemote, err := h.remoteClient().GetConversationMetadataRemote(ctx, cid)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("getting conversation %v error: %v", cid, err)
 		}
-
-		for _, conversation := range iview.Conversations {
-			if conversations != nil && !conversations[conversation.Metadata.ConversationID] {
-				continue
-			}
-			conv, err := h.getConversationMessages(ctx, &conversation, messageTypes, &arg)
-			if err != nil {
-				return nil, err
-			}
-			if len(conv.Messages) != 0 {
-				messages = append(messages, conv)
-
-				if arg.Limit <= 0 {
-					break getinbox
-				}
-			}
+		conversationLocal, err := h.getConversationMessages(ctx, conversationRemote, messageTypes, &arg)
+		if err != nil {
+			return nil, fmt.Errorf("getting messages for conversation %v error: %v", cid, err)
 		}
-
-		// TODO: determine whether need to continue according to the MessageSelector
-		if iview.Pagination == nil || iview.Pagination.Last {
-			break getinbox
-		} else {
-			ipagination = iview.Pagination
+		if len(conversationLocal.Messages) != 0 {
+			conversations = append(conversations, conversationLocal)
+			arg.Limit -= len(conversationLocal.Messages)
+			if arg.Limit <= 0 {
+				break
+			}
 		}
 	}
 
-	return messages, nil
+	return conversations, nil
 }
 
-func (h *chatLocalHandler) fillSenderIDsForPostLocal(arg *keybase1.PostLocalArg) error {
+func (h *chatLocalHandler) fillSenderIDsForPostLocal(arg *keybase1.MessagePlaintext) error {
 	uid := h.G().Env.GetUID()
 	if uid.IsNil() {
 		return fmt.Errorf("Can't send message without a current UID. Are you logged in?")
@@ -462,35 +461,33 @@ func (h *chatLocalHandler) fillSenderIDsForPostLocal(arg *keybase1.PostLocalArg)
 		return fmt.Errorf("Can't send message without a current DeviceID. Are you logged in?")
 	}
 
-	arg.MessagePlaintext.ClientHeader.Sender = gregor1.UID(uid)
-	arg.MessagePlaintext.ClientHeader.SenderDevice = gregor1.DeviceID(did)
+	arg.ClientHeader.Sender = gregor1.UID(uid)
+	arg.ClientHeader.SenderDevice = gregor1.DeviceID(did)
 
 	return nil
 }
 
-// PostLocal implements keybase.chatLocal.postLocal protocol.
-func (h *chatLocalHandler) PostLocal(ctx context.Context, arg keybase1.PostLocalArg) error {
-	if err := h.fillSenderIDsForPostLocal(&arg); err != nil {
-		return err
+func (h *chatLocalHandler) prepareMessageForRemote(ctx context.Context, plaintext keybase1.MessagePlaintext) (boxed chat1.MessageBoxed, err error) {
+	if err := h.fillSenderIDsForPostLocal(&plaintext); err != nil {
+		return boxed, err
 	}
 	// encrypt the message
-	boxed, err := h.boxer.boxMessage(ctx, arg.MessagePlaintext)
+	skp, err := h.getSigningKeyPair()
 	if err != nil {
-		return err
+		return boxed, err
+	}
+	boxed, err = h.boxer.boxMessage(ctx, plaintext, skp)
+	if err != nil {
+		return boxed, err
 	}
 
-	// get device signing key for this user
-	signingKey, err := engine.GetMySecretKey(h.G(), h.getSecretUI, libkb.DeviceSigningKeyType, "sign chat message")
-	if err != nil {
-		return err
-	}
-	kp, ok := signingKey.(libkb.NaclSigningKeyPair)
-	if !ok || kp.Private == nil {
-		return libkb.KeyCannotSignError{}
-	}
+	return boxed, nil
+}
 
-	// sign the header, encrypted body
-	if err := h.signMessageBoxed(&boxed, kp); err != nil {
+// PostLocal implements keybase.chatLocal.postLocal protocol.
+func (h *chatLocalHandler) PostLocal(ctx context.Context, arg keybase1.PostLocalArg) error {
+	boxed, err := h.prepareMessageForRemote(ctx, arg.MessagePlaintext)
+	if err != nil {
 		return err
 	}
 
@@ -502,6 +499,20 @@ func (h *chatLocalHandler) PostLocal(ctx context.Context, arg keybase1.PostLocal
 
 	_, err = h.remoteClient().PostRemote(ctx, rarg)
 	return err
+}
+
+func (h *chatLocalHandler) getSigningKeyPair() (kp libkb.NaclSigningKeyPair, err error) {
+	// get device signing key for this user
+	signingKey, err := engine.GetMySecretKey(h.G(), h.getSecretUI, libkb.DeviceSigningKeyType, "sign chat message")
+	if err != nil {
+		return kp, err
+	}
+	kp, ok := signingKey.(libkb.NaclSigningKeyPair)
+	if !ok || kp.Private == nil {
+		return kp, libkb.KeyCannotSignError{}
+	}
+
+	return kp, nil
 }
 
 // getSecretUI returns a SecretUI, preferring a delegated SecretUI if
@@ -538,52 +549,6 @@ func (h *chatLocalHandler) unboxThread(ctx context.Context, boxed chat1.ThreadVi
 	}
 
 	return thread, nil
-}
-
-// signMessageBoxed signs the header and encrypted body of a chat1.MessageBoxed
-// with the NaclSigningKeyPair.
-func (h *chatLocalHandler) signMessageBoxed(msg *chat1.MessageBoxed, kp libkb.NaclSigningKeyPair) error {
-	header, err := h.signJSON(msg.ClientHeader, kp, libkb.SignaturePrefixChatHeader)
-	if err != nil {
-		return err
-	}
-	msg.HeaderSignature = header
-
-	body, err := h.sign(msg.BodyCiphertext.E, kp, libkb.SignaturePrefixChatBody)
-	if err != nil {
-		return err
-	}
-	msg.BodySignature = body
-
-	return nil
-}
-
-// signJSON signs data with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
-// It encodes data to JSON before signing.
-func (h *chatLocalHandler) signJSON(data interface{}, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
-	encoded, err := json.Marshal(data)
-	if err != nil {
-		return chat1.SignatureInfo{}, err
-	}
-
-	return h.sign(encoded, kp, prefix)
-}
-
-func exportSigInfo(si *libkb.NaclSigInfo) chat1.SignatureInfo {
-	return chat1.SignatureInfo{
-		V: si.Version,
-		S: si.Sig[:],
-		K: si.Kid,
-	}
-}
-
-// sign signs msg with a NaclSigningKeyPair, returning a chat1.SignatureInfo.
-func (h *chatLocalHandler) sign(msg []byte, kp libkb.NaclSigningKeyPair, prefix libkb.SignaturePrefix) (chat1.SignatureInfo, error) {
-	sig, err := kp.SignV2(msg, prefix)
-	if err != nil {
-		return chat1.SignatureInfo{}, err
-	}
-	return exportSigInfo(sig), nil
 }
 
 // keyFinder remembers results from previous calls to CryptKeys().

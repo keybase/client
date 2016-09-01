@@ -105,6 +105,7 @@ protocol chatLocal {
 
   void updateTopicNameLocal(chat1.ConversationID conversationID, string newTopicName);
 
+  // selector.conversations is required
   array<ConversationLocal> getMessagesLocal(MessageSelector selector);
 
   // The tlfName can be either complete or partial. If the user's username is
