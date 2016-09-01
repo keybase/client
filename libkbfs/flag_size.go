@@ -20,7 +20,12 @@ func (sf SizeFlag) Get() interface{} { return *sf.v }
 
 // String for flag interface.
 func (sf SizeFlag) String() string {
-	v := int64(*sf.v)
+	// This happens when izZeroValue() from flag.go makes a zero
+	// value from the type of a flag.
+	if sf.v == nil {
+		return "0"
+	}
+	v := *sf.v
 	var suffix string
 	const units = "kmgt"
 	var c byte

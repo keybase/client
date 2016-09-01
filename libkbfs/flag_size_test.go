@@ -36,3 +36,11 @@ func TestSizeFlag(t *testing.T) {
 		mult *= 1024
 	}
 }
+
+func TestSizeFlagZero(t *testing.T) {
+	var f SizeFlag
+	s := f.String()
+	if s != "0" {
+		t.Errorf("Expected 0, got %s", s)
+	}
+}

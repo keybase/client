@@ -124,9 +124,9 @@ func AddFlags(flags *flag.FlagSet, ctx Context) *InitParams {
 	flags.StringVar(&params.LogFileConfig.Path, "log-file", "", "Path to log file")
 	flags.DurationVar(&params.LogFileConfig.MaxAge, "log-file-max-age", defaultParams.LogFileConfig.MaxAge, "Maximum age of a log file before rotation")
 	params.LogFileConfig.MaxSize = defaultParams.LogFileConfig.MaxSize
-	flag.Var(SizeFlag{&params.LogFileConfig.MaxSize}, "log-file-max-size", "Maximum size of a log file before rotation")
+	flags.Var(SizeFlag{&params.LogFileConfig.MaxSize}, "log-file-max-size", "Maximum size of a log file before rotation")
 	// The default is to *DELETE* old log files for kbfs.
-	flag.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files", defaultParams.LogFileConfig.MaxKeepFiles, "Maximum number of log files for this service, older ones are deleted. 0 for infinite.")
+	flags.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files", defaultParams.LogFileConfig.MaxKeepFiles, "Maximum number of log files for this service, older ones are deleted. 0 for infinite.")
 	flags.StringVar(&params.WriteJournalRoot, "write-journal-root-this-may-lose-data", "", "(EXPERIMENTAL) If non-empty, permits write journals to be turned on for TLFs which will be put in the given directory")
 	return &params
 }
