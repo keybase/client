@@ -381,6 +381,8 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 
 	// Stall the puts that comes as part of the sync call.
+	oldBServer := config2.BlockServer()
+	defer config2.SetBlockServer(oldBServer)
 	onWriteStalledCh, writeUnstallCh, ctxStall := StallBlockOp(
 		ctx, config2, StallableBlockPut)
 

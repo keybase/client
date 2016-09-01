@@ -3211,8 +3211,9 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	}()
 
 	// Put all the blocks.  TODO: deal with recoverable block errors?
-	_, err = cr.fbo.doBlockPuts(
-		ctx, md.TlfID(), md.GetTlfHandle().GetCanonicalName(), *bps)
+	_, err = doBlockPuts(ctx, cr.config.BlockServer(), cr.config.BlockCache(),
+		cr.config.Reporter(), cr.log, md.TlfID(),
+		md.GetTlfHandle().GetCanonicalName(), *bps)
 	if err != nil {
 		return err
 	}

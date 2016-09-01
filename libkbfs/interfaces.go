@@ -942,12 +942,6 @@ type BlockOps interface {
 	Ready(ctx context.Context, kmd KeyMetadata, block Block) (
 		id BlockID, plainSize int, readyBlockData ReadyBlockData, err error)
 
-	// Put stores the readied block data under the given block
-	// pointer (which belongs to the TLF with the given ID) on the
-	// server.
-	Put(ctx context.Context, tlfID TlfID, blockPtr BlockPointer,
-		readyBlockData ReadyBlockData) error
-
 	// Delete instructs the server to delete the given block references.
 	// It returns the number of not-yet deleted references to
 	// each block reference

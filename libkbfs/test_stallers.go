@@ -21,11 +21,8 @@ type StallableMDOp stallableOp
 
 // stallable Block Ops and MD Ops
 const (
-	StallableBlockGet     StallableBlockOp = "Get"
-	StallableBlockReady   StallableBlockOp = "Ready"
-	StallableBlockPut     StallableBlockOp = "Put"
-	StallableBlockDelete  StallableBlockOp = "Delete"
-	StallableBlockArchive StallableBlockOp = "Archive"
+	StallableBlockGet StallableBlockOp = "Get"
+	StallableBlockPut StallableBlockOp = "Put"
 
 	StallableMDGetForHandle          StallableMDOp = "GetForHandle"
 	StallableMDGetForTLF             StallableMDOp = "GetForTLF"
@@ -43,16 +40,17 @@ const (
 const stallKeyStallEverything = ""
 
 type naïveStallInfo struct {
-	onStalled   <-chan struct{}
-	unstall     chan<- struct{}
-	oldBlockOps BlockOps
-	oldMDOps    MDOps
+	onStalled      <-chan struct{}
+	unstall        chan<- struct{}
+	oldBlockServer BlockServer
+	oldMDOps       MDOps
 }
 
-// NaïveStaller is used to stall certain ops in BlockOps or MDOps. Unlike
-// StallBlockOp and StallMDOp which provides a way to precisely control which
-// particular op is stalled by passing in ctx with corresponding stallKey,
-// NaïveStaller simply stalls all instances of specified op.
+// NaïveStaller is used to stall certain ops in BlockServer or
+// MDOps. Unlike StallBlockOp and StallMDOp which provides a way to
+// precisely control which particular op is stalled by passing in ctx
+// with corresponding stallKey, NaïveStaller simply stalls all
+// instances of specified op.
 type NaïveStaller struct {
 	config Config
 
@@ -100,7 +98,7 @@ func (s *NaïveStaller) getNaïveStallInfoForMDOpOrBust(
 	return info
 }
 
-// StallBlockOp wraps the internal BlockOps so that all subsequent stalledOp
+// StallBlockOp wraps the internal BlockServer so that all subsequent stalledOp
 // will be stalled. This can be undone by calling UndoStallBlockOp.
 func (s *NaïveStaller) StallBlockOp(stalledOp StallableBlockOp) {
 	s.mu.Lock()
@@ -111,21 +109,21 @@ func (s *NaïveStaller) StallBlockOp(stalledOp StallableBlockOp) {
 	}
 	onStalledCh := make(chan struct{}, 1)
 	unstallCh := make(chan struct{})
-	oldBlockOps := s.config.BlockOps()
-	s.config.SetBlockOps(&stallingBlockOps{
+	oldBlockServer := s.config.BlockServer()
+	s.config.SetBlockServer(&stallingBlockServer{
 		stallOpName: stalledOp,
 		stallKey:    stallKeyStallEverything,
 		staller: staller{
 			stalled: onStalledCh,
 			unstall: unstallCh,
 		},
-		delegate: oldBlockOps,
+		delegate: oldBlockServer,
 	})
 	s.blockStalled = true
 	s.blockOpsStalls[stalledOp] = &naïveStallInfo{
-		onStalled:   onStalledCh,
-		unstall:     unstallCh,
-		oldBlockOps: oldBlockOps,
+		onStalled:      onStalledCh,
+		unstall:        unstallCh,
+		oldBlockServer: oldBlockServer,
 	}
 }
 
@@ -187,7 +185,7 @@ func (s *NaïveStaller) UnstallOneMDOp(stalledOp StallableMDOp) {
 // should have been called upon stalledOp, otherwise this would panic.
 func (s *NaïveStaller) UndoStallBlockOp(stalledOp StallableBlockOp) {
 	ns := s.getNaïveStallInfoForBlockOpOrBust(stalledOp)
-	s.config.SetBlockOps(ns.oldBlockOps)
+	s.config.SetBlockServer(ns.oldBlockServer)
 	close(ns.unstall)
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -218,14 +216,14 @@ func StallBlockOp(ctx context.Context, config Config, stalledOp StallableBlockOp
 	onStalledCh := make(chan struct{}, 1)
 	unstallCh := make(chan struct{})
 	stallKey := newStallKey()
-	config.SetBlockOps(&stallingBlockOps{
+	config.SetBlockServer(&stallingBlockServer{
 		stallOpName: stalledOp,
 		stallKey:    stallKey,
 		staller: staller{
 			stalled: onStalledCh,
 			unstall: unstallCh,
 		},
-		delegate: config.BlockOps(),
+		delegate: config.BlockServer(),
 	})
 	newCtx = NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, stallKey, true)
@@ -311,75 +309,74 @@ func runWithContextCheck(ctx context.Context, action func(ctx context.Context) e
 	return err
 }
 
-// stallingBlockOps is an implementation of BlockOps whose operations
-// sometimes stall. In particular, if the operation name matches
-// stallOpName, and ctx.Value(stallKey) is a key in the corresponding
-// staller is used to stall the operation.
-type stallingBlockOps struct {
+// stallingBlockServer is an implementation of BlockServer whose
+// operations sometimes stall. In particular, if the operation name
+// matches stallOpName, and ctx.Value(stallKey) is a key in the
+// corresponding staller is used to stall the operation.
+type stallingBlockServer struct {
 	stallOpName StallableBlockOp
 	// stallKey is a key for switching on/off stalling. If it's present in ctx,
 	// and equal to `true`, the operation is stalled. This allows us to use the
 	// ctx to control stallings
 	stallKey string
 	staller  staller
-	delegate BlockOps
+	delegate BlockServer
 }
 
-var _ BlockOps = (*stallingBlockOps)(nil)
+var _ BlockServer = (*stallingBlockServer)(nil)
 
-func (f *stallingBlockOps) maybeStall(ctx context.Context, opName StallableBlockOp) {
+func (f *stallingBlockServer) maybeStall(ctx context.Context, opName StallableBlockOp) {
 	maybeStall(ctx, stallableOp(opName), stallableOp(f.stallOpName),
 		f.stallKey, f.staller)
 }
 
-func (f *stallingBlockOps) Get(
-	ctx context.Context, kmd KeyMetadata, blockPtr BlockPointer,
-	block Block) error {
+func (f *stallingBlockServer) Get(ctx context.Context, tlfID TlfID, id BlockID,
+	bctx BlockContext) (
+	buf []byte, serverHalf BlockCryptKeyServerHalf, err error) {
 	f.maybeStall(ctx, StallableBlockGet)
-	return runWithContextCheck(ctx, func(ctx context.Context) error {
-		return f.delegate.Get(ctx, kmd, blockPtr, block)
-	})
-}
-
-func (f *stallingBlockOps) Ready(
-	ctx context.Context, kmd KeyMetadata, block Block) (
-	id BlockID, plainSize int, readyBlockData ReadyBlockData, err error) {
-	f.maybeStall(ctx, StallableBlockReady)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
-		var errReady error
-		id, plainSize, readyBlockData, errReady = f.delegate.Ready(ctx, kmd, block)
-		return errReady
+		var errGet error
+		buf, serverHalf, errGet = f.delegate.Get(ctx, tlfID, id, bctx)
+		return errGet
 	})
-	return id, plainSize, readyBlockData, err
+	return buf, serverHalf, err
 }
 
-func (f *stallingBlockOps) Put(
-	ctx context.Context, tlfID TlfID, blockPtr BlockPointer,
-	readyBlockData ReadyBlockData) error {
+func (f *stallingBlockServer) Put(ctx context.Context, tlfID TlfID, id BlockID,
+	bctx BlockContext, buf []byte,
+	serverHalf BlockCryptKeyServerHalf) error {
 	f.maybeStall(ctx, StallableBlockPut)
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
-		return f.delegate.Put(ctx, tlfID, blockPtr, readyBlockData)
+		return f.delegate.Put(ctx, tlfID, id, bctx, buf, serverHalf)
 	})
 }
 
-func (f *stallingBlockOps) Delete(
-	ctx context.Context, tlfID TlfID,
-	ptrs []BlockPointer) (notDeleted map[BlockID]int, err error) {
-	f.maybeStall(ctx, StallableBlockDelete)
-	err = runWithContextCheck(ctx, func(ctx context.Context) error {
-		var errDelete error
-		notDeleted, errDelete = f.delegate.Delete(ctx, tlfID, ptrs)
-		return errDelete
-	})
-	return notDeleted, err
+func (f *stallingBlockServer) AddBlockReference(ctx context.Context,
+	tlfID TlfID, id BlockID, context BlockContext) error {
+	return f.delegate.AddBlockReference(ctx, tlfID, id, context)
 }
 
-func (f *stallingBlockOps) Archive(
-	ctx context.Context, tlfID TlfID, ptrs []BlockPointer) error {
-	f.maybeStall(ctx, StallableBlockArchive)
-	return runWithContextCheck(ctx, func(ctx context.Context) error {
-		return f.delegate.Archive(ctx, tlfID, ptrs)
-	})
+func (f *stallingBlockServer) RemoveBlockReferences(ctx context.Context,
+	tlfID TlfID, contexts map[BlockID][]BlockContext) (map[BlockID]int, error) {
+	return f.delegate.RemoveBlockReferences(ctx, tlfID, contexts)
+}
+
+func (f *stallingBlockServer) ArchiveBlockReferences(ctx context.Context,
+	tlfID TlfID, contexts map[BlockID][]BlockContext) error {
+	return f.delegate.ArchiveBlockReferences(ctx, tlfID, contexts)
+}
+
+func (f *stallingBlockServer) Shutdown() {
+	f.delegate.Shutdown()
+}
+
+func (f *stallingBlockServer) GetUserQuotaInfo(ctx context.Context) (
+	*UserQuotaInfo, error) {
+	return f.delegate.GetUserQuotaInfo(ctx)
+}
+
+func (f *stallingBlockServer) RefreshAuthToken(ctx context.Context) {
+	f.delegate.RefreshAuthToken(ctx)
 }
 
 // stallingMDOps is an implementation of MDOps whose operations
