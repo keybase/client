@@ -32,16 +32,16 @@ type MessageAttachment struct {
 }
 
 type MessageBody struct {
-	Typ__        chat1.MessageType            `codec:"typ" json:"typ"`
-	Text__       *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
-	Attachment__ *MessageAttachment           `codec:"attachment,omitempty" json:"attachment,omitempty"`
-	Edit__       *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
-	Delete__     *MessageDelete               `codec:"delete,omitempty" json:"delete,omitempty"`
-	Metadata__   *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
+	MessageType__ chat1.MessageType            `codec:"messageType" json:"messageType"`
+	Text__        *MessageText                 `codec:"text,omitempty" json:"text,omitempty"`
+	Attachment__  *MessageAttachment           `codec:"attachment,omitempty" json:"attachment,omitempty"`
+	Edit__        *MessageEdit                 `codec:"edit,omitempty" json:"edit,omitempty"`
+	Delete__      *MessageDelete               `codec:"delete,omitempty" json:"delete,omitempty"`
+	Metadata__    *MessageConversationMetadata `codec:"metadata,omitempty" json:"metadata,omitempty"`
 }
 
-func (o *MessageBody) Typ() (ret chat1.MessageType, err error) {
-	switch o.Typ__ {
+func (o *MessageBody) MessageType() (ret chat1.MessageType, err error) {
+	switch o.MessageType__ {
 	case chat1.MessageType_TEXT:
 		if o.Text__ == nil {
 			err = errors.New("unexpected nil value for Text__")
@@ -68,11 +68,11 @@ func (o *MessageBody) Typ() (ret chat1.MessageType, err error) {
 			return ret, err
 		}
 	}
-	return o.Typ__, nil
+	return o.MessageType__, nil
 }
 
 func (o MessageBody) Text() MessageText {
-	if o.Typ__ != chat1.MessageType_TEXT {
+	if o.MessageType__ != chat1.MessageType_TEXT {
 		panic("wrong case accessed")
 	}
 	if o.Text__ == nil {
@@ -82,7 +82,7 @@ func (o MessageBody) Text() MessageText {
 }
 
 func (o MessageBody) Attachment() MessageAttachment {
-	if o.Typ__ != chat1.MessageType_ATTACHMENT {
+	if o.MessageType__ != chat1.MessageType_ATTACHMENT {
 		panic("wrong case accessed")
 	}
 	if o.Attachment__ == nil {
@@ -92,7 +92,7 @@ func (o MessageBody) Attachment() MessageAttachment {
 }
 
 func (o MessageBody) Edit() MessageEdit {
-	if o.Typ__ != chat1.MessageType_EDIT {
+	if o.MessageType__ != chat1.MessageType_EDIT {
 		panic("wrong case accessed")
 	}
 	if o.Edit__ == nil {
@@ -102,7 +102,7 @@ func (o MessageBody) Edit() MessageEdit {
 }
 
 func (o MessageBody) Delete() MessageDelete {
-	if o.Typ__ != chat1.MessageType_DELETE {
+	if o.MessageType__ != chat1.MessageType_DELETE {
 		panic("wrong case accessed")
 	}
 	if o.Delete__ == nil {
@@ -112,7 +112,7 @@ func (o MessageBody) Delete() MessageDelete {
 }
 
 func (o MessageBody) Metadata() MessageConversationMetadata {
-	if o.Typ__ != chat1.MessageType_METADATA {
+	if o.MessageType__ != chat1.MessageType_METADATA {
 		panic("wrong case accessed")
 	}
 	if o.Metadata__ == nil {
@@ -123,36 +123,36 @@ func (o MessageBody) Metadata() MessageConversationMetadata {
 
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
-		Typ__:  chat1.MessageType_TEXT,
-		Text__: &v,
+		MessageType__: chat1.MessageType_TEXT,
+		Text__:        &v,
 	}
 }
 
 func NewMessageBodyWithAttachment(v MessageAttachment) MessageBody {
 	return MessageBody{
-		Typ__:        chat1.MessageType_ATTACHMENT,
-		Attachment__: &v,
+		MessageType__: chat1.MessageType_ATTACHMENT,
+		Attachment__:  &v,
 	}
 }
 
 func NewMessageBodyWithEdit(v MessageEdit) MessageBody {
 	return MessageBody{
-		Typ__:  chat1.MessageType_EDIT,
-		Edit__: &v,
+		MessageType__: chat1.MessageType_EDIT,
+		Edit__:        &v,
 	}
 }
 
 func NewMessageBodyWithDelete(v MessageDelete) MessageBody {
 	return MessageBody{
-		Typ__:    chat1.MessageType_DELETE,
-		Delete__: &v,
+		MessageType__: chat1.MessageType_DELETE,
+		Delete__:      &v,
 	}
 }
 
 func NewMessageBodyWithMetadata(v MessageConversationMetadata) MessageBody {
 	return MessageBody{
-		Typ__:      chat1.MessageType_METADATA,
-		Metadata__: &v,
+		MessageType__: chat1.MessageType_METADATA,
+		Metadata__:    &v,
 	}
 }
 

@@ -1680,11 +1680,11 @@ export type MessageAttachment = {
 }
 
 export type MessageBody = 
-    { typ : 1, text : ?MessageText }
-  | { typ : 2, attachment : ?MessageAttachment }
-  | { typ : 3, edit : ?MessageEdit }
-  | { typ : 4, delete : ?MessageDelete }
-  | { typ : 5, metadata : ?MessageConversationMetadata }
+    { messageType : 1, text : ?MessageText }
+  | { messageType : 2, attachment : ?MessageAttachment }
+  | { messageType : 3, edit : ?MessageEdit }
+  | { messageType : 4, delete : ?MessageDelete }
+  | { messageType : 5, metadata : ?MessageConversationMetadata }
 
 export type MessageConversationMetadata = {
   conversationTitle: string,

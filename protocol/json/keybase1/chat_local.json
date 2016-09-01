@@ -71,7 +71,7 @@
       "name": "MessageBody",
       "switch": {
         "type": "chat1.MessageType",
-        "name": "typ"
+        "name": "messageType"
       },
       "cases": [
         {
