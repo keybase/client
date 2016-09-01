@@ -779,58 +779,60 @@ func flushBlockJournalEntry(
 }
 
 func (j *blockJournal) removeFlushedEntry(ctx context.Context,
-	ordinal journalOrdinal, entry blockJournalEntry) error {
+	ordinal journalOrdinal, entry blockJournalEntry) (
+	flushedBytes int64, err error) {
 	if j.isShutdown {
 		// TODO: This creates a race condition if we shut down
 		// after we've flushed an op but before we remove
 		// it. Make sure we handle re-flushed ops
 		// idempotently.
-		return errBlockJournalShutdown
+		return 0, errBlockJournalShutdown
 	}
 
 	// Fix up the block byte count if we've finished a Put.
 	if entry.Op == blockPutOp {
 		id, _, err := entry.getSingleContext()
 		if err != nil {
-			return err
+			return 0, err
 		}
-		b, err := j.getDataSize(id)
+		flushedBytes, err = j.getDataSize(id)
 		if err != nil {
-			return err
+			return 0, err
 		}
 
-		if b > j.unflushedBytes {
-			return fmt.Errorf("Block %v is bigger than our current count "+
-				"of journal block bytes (%d > %d)", id, b, j.unflushedBytes)
+		if flushedBytes > j.unflushedBytes {
+			return 0, fmt.Errorf("Block %v is bigger than our current count "+
+				"of journal block bytes (%d > %d)", id,
+				flushedBytes, j.unflushedBytes)
 		}
-		j.unflushedBytes -= b
+		j.unflushedBytes -= flushedBytes
 	}
 
 	earliestOrdinal, err := j.j.readEarliestOrdinal()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	if ordinal != earliestOrdinal {
-		return fmt.Errorf("Expected ordinal %d, got %d",
+		return 0, fmt.Errorf("Expected ordinal %d, got %d",
 			ordinal, earliestOrdinal)
 	}
 
 	_, err = j.j.removeEarliest()
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// TODO: This is a hack to work around KBFS-1439. Figure out a
 	// better way to update j.refs to reflect the removed entry.
 	refs, unflushedBytes, err := j.readJournal(ctx)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	j.refs = refs
 	j.unflushedBytes = unflushedBytes
 
-	return nil
+	return flushedBytes, nil
 }
 
 func (j *blockJournal) shutdown() {
