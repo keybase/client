@@ -56,9 +56,9 @@ class Render extends Component<void, Props, any> {
 
   componentDidUpdate () {
     if (this.props.autoIncrement) {
-      setTimeout(() => {
+      setImmediate(() => {
         this._increment()
-      }, 100)
+      })
     }
   }
 
