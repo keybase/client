@@ -129,6 +129,7 @@ export function bootstrap (): AsyncAction {
       // Let's still register the listeners
       dispatch(_registerListeners())
     } else {
+      console.log('Performing bootstrap...')
       Promise.all(
         [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(([username]) => {
           if (username) {
@@ -141,6 +142,15 @@ export function bootstrap (): AsyncAction {
           dispatch(_registerListeners())
         }).catch(error => {
           console.warn('Error bootstrapping: ', error)
+          const triesRemaining = getState().config.bootstrapTriesRemaining
+          dispatch({type: Constants.bootstrapFailed, payload: null})
+          if (triesRemaining > 0) {
+            const retryDelay = Constants.bootstrapRetryDelay / triesRemaining
+            console.log(`Retrying bootstrap in ${retryDelay / 1000}s (${triesRemaining} tries left)`)
+            setTimeout(() => dispatch(bootstrap()), retryDelay)
+          } else {
+            console.error('Exhausted bootstrap retries')
+          }
         })
     }
   }
