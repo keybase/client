@@ -26,7 +26,7 @@ type GetInboxRemoteArg struct {
 	Pagination *Pagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
-type GetInboxRemoteByTLFIDArg struct {
+type GetInboxByTLFIDRemoteArg struct {
 	TLFID TLFID `codec:"TLFID" json:"TLFID"`
 }
 
@@ -66,7 +66,7 @@ type MarkAsReadArg struct {
 
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, *Pagination) (InboxView, error)
-	GetInboxRemoteByTLFID(context.Context, TLFID) ([]Conversation, error)
+	GetInboxByTLFIDRemote(context.Context, TLFID) ([]Conversation, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (ThreadViewBoxed, error)
 	GetConversationMetadataRemote(context.Context, ConversationID) (Conversation, error)
 	PostRemote(context.Context, PostRemoteArg) (MessageID, error)
@@ -96,18 +96,18 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getInboxRemoteByTLFID": {
+			"getInboxByTLFIDRemote": {
 				MakeArg: func() interface{} {
-					ret := make([]GetInboxRemoteByTLFIDArg, 1)
+					ret := make([]GetInboxByTLFIDRemoteArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetInboxRemoteByTLFIDArg)
+					typedArgs, ok := args.(*[]GetInboxByTLFIDRemoteArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]GetInboxRemoteByTLFIDArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetInboxByTLFIDRemoteArg)(nil), args)
 						return
 					}
-					ret, err = i.GetInboxRemoteByTLFID(ctx, (*typedArgs)[0].TLFID)
+					ret, err = i.GetInboxByTLFIDRemote(ctx, (*typedArgs)[0].TLFID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -238,9 +238,9 @@ func (c RemoteClient) GetInboxRemote(ctx context.Context, pagination *Pagination
 	return
 }
 
-func (c RemoteClient) GetInboxRemoteByTLFID(ctx context.Context, TLFID TLFID) (res []Conversation, err error) {
-	__arg := GetInboxRemoteByTLFIDArg{TLFID: TLFID}
-	err = c.Cli.Call(ctx, "chat.1.remote.getInboxRemoteByTLFID", []interface{}{__arg}, &res)
+func (c RemoteClient) GetInboxByTLFIDRemote(ctx context.Context, TLFID TLFID) (res []Conversation, err error) {
+	__arg := GetInboxByTLFIDRemoteArg{TLFID: TLFID}
+	err = c.Cli.Call(ctx, "chat.1.remote.getInboxByTLFIDRemote", []interface{}{__arg}, &res)
 	return
 }
 

@@ -56,8 +56,8 @@ export function remoteGetConversationMetadataRemoteRpc (request: $Exact<requestC
   engineRpcOutgoing({...request, method: 'remote.getConversationMetadataRemote'})
 }
 
-export function remoteGetInboxRemoteByTLFIDRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteByTLFIDResult) => void} & {param: remoteGetInboxRemoteByTLFIDRpcParam}>) {
-  engineRpcOutgoing({...request, method: 'remote.getInboxRemoteByTLFID'})
+export function remoteGetInboxByTLFIDRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxByTLFIDRemoteResult) => void} & {param: remoteGetInboxByTLFIDRemoteRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'remote.getInboxByTLFIDRemote'})
 }
 
 export function remoteGetInboxRemoteRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: remoteGetInboxRemoteResult) => void} & {param: remoteGetInboxRemoteRpcParam}>) {
@@ -206,7 +206,7 @@ export type remoteGetConversationMetadataRemoteRpcParam = $Exact<{
   conversationID: ConversationID
 }>
 
-export type remoteGetInboxRemoteByTLFIDRpcParam = $Exact<{
+export type remoteGetInboxByTLFIDRemoteRpcParam = $Exact<{
   TLFID: TLFID
 }>
 
@@ -246,7 +246,7 @@ export type remotePostRemoteRpcParam = $Exact<{
 
 type remoteGetConversationMetadataRemoteResult = Conversation
 
-type remoteGetInboxRemoteByTLFIDResult = ?Array<Conversation>
+type remoteGetInboxByTLFIDRemoteResult = ?Array<Conversation>
 
 type remoteGetInboxRemoteResult = InboxView
 
@@ -262,7 +262,7 @@ type remotePostRemoteResult = MessageID
 
 export type rpc =
     remoteGetConversationMetadataRemoteRpc
-  | remoteGetInboxRemoteByTLFIDRpc
+  | remoteGetInboxByTLFIDRemoteRpc
   | remoteGetInboxRemoteRpc
   | remoteGetMessagesRemoteRpc
   | remoteGetThreadRemoteRpc

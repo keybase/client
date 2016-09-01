@@ -69,7 +69,7 @@
       ],
       "response": "InboxView"
     },
-    "getInboxRemoteByTLFID": {
+    "getInboxByTLFIDRemote": {
       "request": [
         {
           "name": "TLFID",

@@ -23,7 +23,7 @@ protocol remote {
   }
 
   InboxView getInboxRemote(union { null, Pagination } pagination);
-  array<Conversation> getInboxRemoteByTLFID(TLFID TLFID);
+  array<Conversation> getInboxByTLFIDRemote(TLFID TLFID);
   ThreadViewBoxed getThreadRemote(ConversationID conversationID, boolean markAsRead, union { null, Pagination } pagination);
   Conversation getConversationMetadataRemote(ConversationID conversationID);
 
