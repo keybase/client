@@ -12,8 +12,22 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func makeChatListAndReadFlags(extras []cli.Flag) []cli.Flag {
+func makeChatFlags(extras []cli.Flag) []cli.Flag {
 	return append(extras, []cli.Flag{
+		cli.StringFlag{
+			Name:  "topic-name",
+			Usage: `Specify topic name of the conversation.`,
+		},
+		cli.StringFlag{
+			Name:  "topic-type",
+			Value: "chat",
+			Usage: `Specify topic name of the conversation. Has to be chat or dev`,
+		},
+	}...)
+}
+
+func makeChatListAndReadFlags(extras []cli.Flag) []cli.Flag {
+	return makeChatFlags(append(extras, []cli.Flag{
 		cli.BoolFlag{
 			Name:  "a,all",
 			Usage: `Do not limit number of messages shown. This has same effect as "--number 0"`,
@@ -27,16 +41,7 @@ func makeChatListAndReadFlags(extras []cli.Flag) []cli.Flag {
 			Name:  "time,since",
 			Usage: `Only show messages after certain time.`,
 		},
-		cli.StringFlag{
-			Name:  "topic-name",
-			Usage: `Specify topic name of the conversation.`,
-		},
-		cli.StringFlag{
-			Name:  "topic-type",
-			Value: "chat",
-			Usage: `Specify topic name of the conversation. Has to be chat or dev`,
-		},
-	}...)
+	}...))
 }
 
 type conversationResolver struct {
@@ -45,13 +50,18 @@ type conversationResolver struct {
 	TopicType chat1.TopicType
 }
 
-func (r conversationResolver) Resolve(ctx context.Context, chatClient keybase1.ChatLocalInterface) (ids []chat1.ConversationID, err error) {
-	ids, err = chatClient.ResolveConversationLocal(ctx, keybase1.ConversationInfoLocal{
+func (r conversationResolver) Resolve(ctx context.Context, chatClient keybase1.ChatLocalInterface) (conversations []keybase1.ConversationInfoLocal, err error) {
+	cname, err := chatClient.CompleteAndCanonicalizeTlfName(ctx, r.TlfName)
+	if err != nil {
+		return nil, err
+	}
+	r.TlfName = string(cname)
+	conversations, err = chatClient.ResolveConversationLocal(ctx, keybase1.ConversationInfoLocal{
 		TlfName:   r.TlfName,
 		TopicName: r.TopicName,
 		TopicType: r.TopicType,
 	})
-	return ids, err
+	return conversations, err
 }
 
 type messageFetcher struct {
@@ -59,6 +69,22 @@ type messageFetcher struct {
 	resolver conversationResolver
 
 	chatClient keybase1.ChatLocalInterface // for testing only
+}
+
+func parseConversationResolver(ctx *cli.Context, tlfName string) (resolver conversationResolver, err error) {
+	resolver.TopicName = ctx.String("topic-name")
+	switch t := strings.ToLower(ctx.String("topic-type")); t {
+	case "chat":
+		resolver.TopicType = chat1.TopicType_CHAT
+	case "dev":
+		resolver.TopicType = chat1.TopicType_DEV
+	default:
+		err = fmt.Errorf("invalid topic-type %s. Has to be one of %v", t, []string{"chat", "dev"})
+		return resolver, err
+	}
+	resolver.TlfName = tlfName
+
+	return resolver, err
 }
 
 func makeMessageFetcherFromCliCtx(ctx *cli.Context, tlfName string, markAsRead bool) (fetcher messageFetcher, err error) {
@@ -72,20 +98,11 @@ func makeMessageFetcherFromCliCtx(ctx *cli.Context, tlfName string, markAsRead b
 	if ctx.Bool("all") {
 		fetcher.selector.Limit = 0
 	}
+	fetcher.selector.MarkAsRead = markAsRead
 
-	fetcher.resolver.TopicName = ctx.String("topic-name")
-	switch t := strings.ToLower(ctx.String("topic-type")); t {
-	case "chat":
-		fetcher.resolver.TopicType = chat1.TopicType_CHAT
-	case "dev":
-		fetcher.resolver.TopicType = chat1.TopicType_DEV
-	default:
-		err = fmt.Errorf("invalid topic-type %s. Has to be one of %v", t, []string{"chat", "dev"})
+	if fetcher.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
 		return fetcher, err
 	}
-
-	fetcher.selector.MarkAsRead = markAsRead
-	fetcher.resolver.TlfName = tlfName
 
 	return fetcher, nil
 }
@@ -99,12 +116,14 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 		}
 	}
 
-	conversationIDs, err := f.resolver.Resolve(ctx, chatClient)
+	conversationInfos, err := f.resolver.Resolve(ctx, chatClient)
 	if err != nil {
 		return nil, err
 	}
 	// TODO: prompt user to choose conversation(s)
-	f.selector.Conversations = conversationIDs
+	for _, conv := range conversationInfos {
+		f.selector.Conversations = append(f.selector.Conversations, conv.Id)
+	}
 
 	conversations, err = chatClient.GetMessagesLocal(ctx, f.selector)
 	if err != nil {
