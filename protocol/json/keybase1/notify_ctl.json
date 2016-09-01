@@ -54,6 +54,10 @@
         {
           "type": "boolean",
           "name": "pgp"
+        },
+        {
+          "type": "boolean",
+          "name": "kbfsrequest"
         }
       ]
     }

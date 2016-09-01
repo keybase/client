@@ -48,5 +48,5 @@ export function pathToURL (path) {
     path = '/' + path
   }
 
-  return encodeURI('file://' + path)
+  return encodeURI('file://' + path).replace(/#/g, '%23')
 }

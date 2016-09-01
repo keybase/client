@@ -14,7 +14,7 @@ import (
 
 //=============================================================================
 
-func makeProofChecker(c ExternalServicesCollector, l RemoteProofChainLink) (ProofChecker, ProofError) {
+func MakeProofChecker(c ExternalServicesCollector, l RemoteProofChainLink) (ProofChecker, ProofError) {
 	k := l.TableKey()
 	st := c.GetServiceType(k)
 	if st == nil {

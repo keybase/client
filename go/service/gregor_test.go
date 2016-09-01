@@ -74,6 +74,8 @@ func (n *nlistener) ClientOutOfDate(to, uri, msg string)                        
 func (n *nlistener) UserChanged(uid keybase1.UID)                                 {}
 func (n *nlistener) TrackingChanged(uid keybase1.UID, username string)            {}
 func (n *nlistener) FSActivity(activity keybase1.FSNotification)                  {}
+func (n *nlistener) FSEditListResponse(arg keybase1.FSEditListArg)                {}
+func (n *nlistener) FSEditListRequest(arg keybase1.FSEditListRequest)             {}
 func (n *nlistener) PaperKeyCached(uid keybase1.UID, encKID, sigKID keybase1.KID) {}
 func (n *nlistener) FavoritesChanged(uid keybase1.UID) {
 	n.favoritesChanged = append(n.favoritesChanged, uid)
