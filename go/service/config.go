@@ -64,18 +64,16 @@ func (h ConfigHandler) getOsVersion() string {
 		args = []string{"-mrs"}
 	}
 	if result, err = exec.Command(cmd, args...).Output(); err != nil {
-		h.G().Log.Error("Error trying to determine OS version: %s (%s)", err, result)
+		h.G().Log.Errorf("Error trying to determine OS version: %s (%s)", err, result)
 		return ""
 	}
 	return strings.TrimSpace(string(result))
 }
 
 func (h ConfigHandler) getPlatformInfo() keybase1.PlatformInfo {
-	osversion := h.getOsVersion()
-
 	return keybase1.PlatformInfo{
 		Os:        runtime.GOOS,
-		OsVersion: osversion,
+		OsVersion: h.getOsVersion(),
 		Arch:      runtime.GOARCH,
 		GoVersion: runtime.Version(),
 	}
