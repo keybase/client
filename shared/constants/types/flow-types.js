@@ -1719,10 +1719,6 @@ export type MessageSelector = {
   markAsRead: boolean,
 }
 
-export type MessageTLFName = {
-  TLFName: string,
-}
-
 export type MessageText = {
   body: string,
 }

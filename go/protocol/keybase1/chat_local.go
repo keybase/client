@@ -18,10 +18,6 @@ type MessageConversationMetadata struct {
 	ConversationTitle string `codec:"conversationTitle" json:"conversationTitle"`
 }
 
-type MessageTLFName struct {
-	TLFName string `codec:"TLFName" json:"TLFName"`
-}
-
 type MessageEdit struct {
 	MessageID chat1.MessageID `codec:"messageID" json:"messageID"`
 	Body      string          `codec:"body" json:"body"`

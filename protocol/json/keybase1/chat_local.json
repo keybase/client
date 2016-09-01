@@ -34,16 +34,6 @@
     },
     {
       "type": "record",
-      "name": "MessageTLFName",
-      "fields": [
-        {
-          "type": "string",
-          "name": "TLFName"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "MessageEdit",
       "fields": [
         {
