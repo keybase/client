@@ -111,8 +111,8 @@ func TestChatMessageUnbox(t *testing.T) {
 		t.Fatalf("unboxed message bodies: %d, expected 1", len(unboxed.MessagePlaintext.MessageBodies))
 	}
 	body := unboxed.MessagePlaintext.MessageBodies[0]
-	if body.Typ() != chat1.MessageType_TEXT {
-		t.Errorf("body type: %d, expected %d", body.Typ(), chat1.MessageType_TEXT)
+	if typ, _ := body.MessageType(); typ != chat1.MessageType_TEXT {
+		t.Errorf("body type: %d, expected %d", typ, chat1.MessageType_TEXT)
 	}
 	if body.Text().Body != text {
 		t.Errorf("body text: %q, expected %q", body.Text().Body, text)
