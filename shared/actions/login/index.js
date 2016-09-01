@@ -17,9 +17,10 @@ import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {devicesTab, loginTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {loadDevices} from '../devices'
-import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
-  deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, loginClearStoredSecretRpc,
-  CommonClientType, ConstantsStatusCode, ProvisionUiGPGMethod, ProvisionUiDeviceType, PassphraseCommonPassphraseType,
+import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc,  loginLogoutRpc,
+  deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, CommonClientType,
+  ConstantsStatusCode, ProvisionUiGPGMethod, ProvisionUiDeviceType,
+  PassphraseCommonPassphraseType
 } from '../../constants/types/flow-types'
 import {navigateTo, routeAppend, navigateUp, switchTab} from '../router'
 import {overrideLoggedInTab} from '../../local-debug'
