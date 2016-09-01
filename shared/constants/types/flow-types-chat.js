@@ -145,7 +145,7 @@ export type MessageServerHeader = {
   ctime: gregor1.Time,
 }
 
-export type MessageType =
+export type MessageType = 
     0 // NONE_0
   | 1 // TEXT_1
   | 2 // ATTACHMENT_2
@@ -183,7 +183,7 @@ export type ThreadViewBoxed = {
 
 export type TopicID = bytes
 
-export type TopicType =
+export type TopicType = 
     0 // NONE_0
   | 1 // CHAT_1
   | 2 // DEV_2
