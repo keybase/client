@@ -124,6 +124,9 @@ func (d Darwin) homeDir(dirs ...string) string {
 
 func (d Darwin) CacheDir() string { return d.homeDir(d.Home(false), "Library", "Caches") }
 func (d Darwin) SandboxCacheDir() string {
+	if isIOS {
+		return ""
+	}
 	// The container name "keybase" is the group name specified in the entitlement for sandboxed extensions
 	return d.homeDir(d.Home(false), "Library", "Group Containers", "keybase", "Library", "Caches")
 }
