@@ -23,10 +23,13 @@ protocol remote {
   }
 
   InboxView getInboxRemote(union { null, Pagination } pagination);
+  array<Conversation> getInboxByTLFIDRemote(TLFID TLFID);
   ThreadViewBoxed getThreadRemote(ConversationID conversationID, boolean markAsRead, union { null, Pagination } pagination);
+  Conversation getConversationMetadataRemote(ConversationID conversationID);
 
   MessageID postRemote(ConversationID conversationID, MessageBoxed messageBoxed);
   ConversationID newConversationRemote(ConversationIDTriple idTriple);
+  ConversationID newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed TLFMessage);
   array<MessageBoxed> getMessagesRemote(ConversationID conversationID, array<MessageID> messageIDs);
 
   void markAsRead(ConversationID conversationID, MessageID msgID);
