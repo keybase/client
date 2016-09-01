@@ -4,7 +4,7 @@ import EditProfile from './edit-profile'
 import PostProof from './post-proof-container'
 import ProveEnterUsername from './prove-enter-username-container'
 import ProveWebsiteChoice from './prove-website-choice-container'
-import React, {PureComponent} from 'react'
+import React, {Component} from 'react'
 import Profile from './index'
 import RevokeContainer from './revoke/container'
 import pgpRouter from './pgp'
@@ -26,7 +26,7 @@ type OwnProps = {
   }
 }
 
-class ProfileContainer extends PureComponent<void, ?Props, void> {
+class ProfileContainer extends Component<void, ?Props, void> {
   static parseRoute (currentPath, uri) {
     return {
       componentAtTop: {

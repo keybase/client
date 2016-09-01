@@ -112,7 +112,8 @@ RCT_EXPORT_METHOD(reset) {
 }
 
 - (NSDictionary *)constantsToExport {
-  return @{ @"eventName": eventName };
+  return @{ @"eventName": eventName,
+            @"version": GoKeybaseVersion()};
 }
 
 @end

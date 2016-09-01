@@ -166,3 +166,8 @@ func Reset() error {
 	}
 	return nil
 }
+
+// Version returns semating version string
+func Version() string {
+	return libkb.VersionString()
+}
