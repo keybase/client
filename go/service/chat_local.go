@@ -271,37 +271,50 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 	if len(conversationRemote.MaxHeaders) == 0 {
 		return conversationInfo, triple, libkb.UnexpectedChatDataFromServer{Msg: "conversation has an empty MaxHeaders field"}
 	}
-	// if no METADATA message exists, just use the newest one to get TLF Name
-	messageID := conversationRemote.MaxHeaders[0].MessageID
+	messageIDs := []chat1.MessageID{conversationRemote.ReaderInfo.MaxMsgid}
 	for _, header := range conversationRemote.MaxHeaders {
 		if header.MessageType == chat1.MessageType_METADATA {
-			messageID = header.MessageID
+			// if METADATA message exists, retrieve it (which is the newest one) to
+			// get topic name
+			messageIDs = append(messageIDs, header.MessageID)
 			break
 		}
 	}
 
 	boxed, err := h.remoteClient().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
-		ConversationID: id,
-		MessageIDs:     []chat1.MessageID{messageID},
+		ConversationID: conversationRemote.Metadata.ConversationID,
+
+		// Now we definitely have the maximum message ID in the conversation no
+		// matter the type; we also might have the maximum message ID of message
+		// type METADATA. The former one is used for latest TLF name and the latter
+		// one is used to set topic name. So we retrieve both.
+		MessageIDs: messageIDs,
 	})
 	if err != nil {
 		return conversationInfo, triple, err
 	}
-	if len(boxed) != 1 {
-		return conversationInfo, triple, libkb.UnexpectedChatDataFromServer{Msg: fmt.Sprintf("unexpected number of messages (got %d, expected 1) from GetMessagesRemote", len(boxed))}
+	if len(boxed) != len(messageIDs) {
+		return conversationInfo, triple, libkb.UnexpectedChatDataFromServer{Msg: fmt.Sprintf("unexpected number of messages (got %d, expected %d) from GetMessagesRemote", len(boxed), len(messageIDs))}
 	}
-	unboxed, err := h.boxer.unboxMessage(ctx, newKeyFinder(), boxed[0])
-	if err != nil {
-		return conversationInfo, triple, err
-	}
-	conversationInfo.TlfName = unboxed.MessagePlaintext.ClientHeader.TlfName
-	if len(unboxed.MessagePlaintext.MessageBodies) > 0 {
-		body := unboxed.MessagePlaintext.MessageBodies[0]
-		if t, err := body.MessageType(); err != nil {
+
+	for _, b := range boxed {
+		unboxed, err := h.boxer.unboxMessage(ctx, newKeyFinder(), b)
+		if err != nil {
 			return conversationInfo, triple, err
-		} else if t == chat1.MessageType_METADATA {
-			conversationInfo.TopicName = body.Metadata().ConversationTitle
 		}
+
+		if len(unboxed.MessagePlaintext.MessageBodies) > 0 {
+			body := unboxed.MessagePlaintext.MessageBodies[0]
+			if t, err := body.MessageType(); err != nil {
+				return conversationInfo, triple, err
+			} else if t == chat1.MessageType_METADATA {
+				conversationInfo.TopicName = body.Metadata().ConversationTitle
+			}
+		}
+
+		// at this point, this has to be the newest message across the
+		// conversation. Use this for TLF name
+		conversationInfo.TlfName = unboxed.MessagePlaintext.ClientHeader.TlfName
 	}
 
 	return conversationInfo, triple, nil

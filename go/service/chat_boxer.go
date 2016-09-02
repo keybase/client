@@ -34,30 +34,30 @@ func newChatBoxer(g *libkb.GlobalContext) *chatBoxer {
 
 // unboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
 // the appropriate keybase1.CryptKey.
-func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, msg chat1.MessageBoxed) (msg keybase1.Message, err error) {
-	tlfName := msg.ClientHeader.TlfName
+func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, boxed chat1.MessageBoxed) (unboxed keybase1.Message, err error) {
+	tlfName := boxed.ClientHeader.TlfName
 	keys, err := finder.find(ctx, b.tlf, tlfName)
 	if err != nil {
-		return msg, libkb.ChatUnboxingError{Msg: err.Error()}
+		return unboxed, libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
 	var matchKey *keybase1.CryptKey
 	for _, key := range keys.CryptKeys {
-		if key.KeyGeneration == msg.KeyGeneration {
+		if key.KeyGeneration == boxed.KeyGeneration {
 			matchKey = &key
 			break
 		}
 	}
 
 	if matchKey == nil {
-		return msg, libkb.ChatUnboxingError{Msg: fmt.Sprintf("no key found for generation %d", msg.KeyGeneration)}
+		return unboxed, libkb.ChatUnboxingError{Msg: fmt.Sprintf("no key found for generation %d", boxed.KeyGeneration)}
 	}
 
-	if msg, err = b.unboxMessageWithKey(msg, matchKey); err != nil {
-		return msg, libkb.ChatUnboxingError{Msg: err.Error()}
+	if unboxed, err = b.unboxMessageWithKey(boxed, matchKey); err != nil {
+		return unboxed, libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
-	return msg, nil
+	return unboxed, nil
 }
 
 // unboxMessageWithKey unboxes a chat1.MessageBoxed into a keybase1.Message given

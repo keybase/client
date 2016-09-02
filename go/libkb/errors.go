@@ -1503,7 +1503,7 @@ type ChatBoxingError struct {
 }
 
 func (e ChatBoxingError) Error() string {
-	return fmt.Sprintf("error boxing chat message: %s", Msg)
+	return fmt.Sprintf("error boxing chat message: %s", e.Msg)
 }
 
 //=============================================================================
@@ -1513,5 +1513,5 @@ type ChatUnboxingError struct {
 }
 
 func (e ChatUnboxingError) Error() string {
-	return fmt.Sprintf("error unboxing chat message: %s", Msg)
+	return fmt.Sprintf("error unboxing chat message: %s", e.Msg)
 }
