@@ -20,7 +20,7 @@
 #define PLIST_DEST (@"/Library/LaunchDaemons/keybase.Helper.plist")
 #define HELPER_LOCATION (@"/Library/PrivilegedHelperTools/keybase.Helper")
 
-@interface KBHelperTool ()
+@interface KBHelperTool () <MPLog>
 @property KBDebugPropertiesView *infoView;
 @property (nonatomic) MPXPCClient *helper;
 @end
@@ -44,13 +44,18 @@
 }
 
 + (MPXPCClient *)helper {
-  return [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
+  MPXPCClient *client = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
+  client.retryMaxAttempts = 4;
+  client.retryDelay = 0.5;
+  client.timeout = 10.0;
+  return client;
 }
 
 - (MPXPCClient *)helper {
-  // Always use a new helper tool since it can be interrupted if stale or updated.
-  [_helper close];
-  _helper = [KBHelperTool helper];
+  if (!_helper) {
+    _helper = [KBHelperTool helper];
+    _helper.logDelegate = self;
+  }
   return _helper;
 }
 
@@ -65,6 +70,13 @@
   [_infoView setProperties:info];
 }
 
+- (void)log:(MPLogLevel)level format:(NSString *)format, ... {
+  va_list args;
+  va_start(args, format);
+  DDLogInfo(@"%@", [[NSString alloc] initWithFormat:format arguments:args]);
+  va_end(args);
+}
+
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
   GHODictionary *info = [GHODictionary dictionary];
   KBSemVersion *bundleVersion = [self bundleVersion];
@@ -77,7 +89,7 @@
     return;
   }
 
-  [self.helper sendRequest:@"version" params:nil maxAttempts:4 completion:^(NSError *error, NSDictionary *versions) {
+  [self.helper sendRequest:@"version" params:nil completion:^(NSError *error, NSDictionary *versions) {
     if (error) {
       self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusError installAction:KBRInstallActionReinstall info:info error:error];
       completion(self.componentStatus);
