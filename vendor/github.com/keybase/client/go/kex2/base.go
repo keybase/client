@@ -8,10 +8,15 @@ import (
 	"net"
 	"time"
 
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
+
+type ProvisionContext interface {
+	GetLog() logger.Logger
+}
 
 type baseDevice struct {
 	conn     net.Conn
@@ -24,6 +29,7 @@ type baseDevice struct {
 // KexBaseArg are arguments common to both Provisioner and Provisionee
 type KexBaseArg struct {
 	Ctx           context.Context
+	ProvisionCtx  ProvisionContext
 	Mr            MessageRouter
 	Secret        Secret
 	DeviceID      keybase1.DeviceID // For now, this deviceID is different from the one in the transport
