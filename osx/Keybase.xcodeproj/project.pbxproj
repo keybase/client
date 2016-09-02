@@ -12,8 +12,13 @@
 		0005BCA11C445AFF0062EF1D /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 003608111C442EB100B3300E /* MainMenu.xib */; };
 		0005BCA21C445BA20062EF1D /* Status.m in Sources */ = {isa = PBXBuildFile; fileRef = 0036080E1C442E7D00B3300E /* Status.m */; };
 		001392751B06B18A0082DEA8 /* Fuse.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392711B06B18A0082DEA8 /* Fuse.icns */; };
+		0015A0071D5C0A1500DD62BC /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0015A0061D5C0A1500DD62BC /* AppDelegate.m */; };
+		0015A00A1D5C0A1500DD62BC /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0015A0091D5C0A1500DD62BC /* main.m */; };
+		0015A00C1D5C0A1500DD62BC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0015A00B1D5C0A1500DD62BC /* Assets.xcassets */; };
+		0015A00F1D5C0A1500DD62BC /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0015A00D1D5C0A1500DD62BC /* MainMenu.xib */; };
 		001C6B3C1B24F8630048F086 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001C6B3B1B24F8630048F086 /* icon.icns */; };
 		001C6B401B24F8630048F086 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 001C6B3F1B24F8630048F086 /* ShareViewController.m */; };
+		002E2F6B1D62855A006B9ADF /* FinderSync.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 004624B11B2917AB00E218AC /* FinderSync.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		003634081C6039770089465B /* Uninstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 003634071C6039770089465B /* Uninstaller.m */; };
 		003B40451B265F7B000B7D3B /* KBHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */; };
 		003B40471B265F7B000B7D3B /* KBKext.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454C1AE6CECD00431829 /* KBKext.m */; };
@@ -38,10 +43,18 @@
 		00E1CEF61C4432F900ED3A35 /* Settings.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E1CEF41C4432F900ED3A35 /* Settings.m */; };
 		140F37DCFE61D8AA9A83FF5C /* libPods-keybase.Helper.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AF01BC4A44FA5C6796C1C820 /* libPods-keybase.Helper.a */; };
 		2B53DDCDBBFA7E3B74F64EE3 /* libPods-Status.a in Frameworks */ = {isa = PBXBuildFile; fileRef = ECBDAE14DC630518EBC27C76 /* libPods-Status.a */; };
+		B2F71C62B551EA849BFF4079 /* libPods-FinderSync.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 2C4D8072668634E53BD7BAEB /* libPods-FinderSync.a */; };
 		E144464761C164A1896A2D78 /* libPods-Installer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C3C8C0FAD444743EC88E6FF1 /* libPods-Installer.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		0015A0151D5C0A2C00DD62BC /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 004624B01B2917AB00E218AC;
+			remoteInfo = FinderSync;
+		};
 		0036082D1C442EED00B3300E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 00CC43411A3A9E6C006118A9 /* Project object */;
@@ -66,6 +79,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		0015A0171D5C0A2C00DD62BC /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				002E2F6B1D62855A006B9ADF /* FinderSync.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		0043D1051B28ED290036C532 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -103,6 +127,13 @@
 		001392701B06B18A0082DEA8 /* DmgBackground.pxm */ = {isa = PBXFileReference; lastKnownFileType = file; path = DmgBackground.pxm; sourceTree = "<group>"; };
 		001392711B06B18A0082DEA8 /* Fuse.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Fuse.icns; sourceTree = "<group>"; };
 		001392731B06B18A0082DEA8 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		0015A0031D5C0A1500DD62BC /* Extensions.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Extensions.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0015A0051D5C0A1500DD62BC /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		0015A0061D5C0A1500DD62BC /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		0015A0091D5C0A1500DD62BC /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		0015A00B1D5C0A1500DD62BC /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0015A00E1D5C0A1500DD62BC /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		0015A0101D5C0A1500DD62BC /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		001C6B371B24F8630048F086 /* Share.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = Share.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		001C6B3A1B24F8630048F086 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		001C6B3B1B24F8630048F086 /* icon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = icon.icns; sourceTree = "<group>"; };
@@ -137,6 +168,7 @@
 		0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBHelper.m; sourceTree = "<group>"; };
 		0057B0C11AE57A7A00BFB0E7 /* keybase.Helper.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = keybase.Helper.plist; sourceTree = "<group>"; };
 		0057B0C21AE57A7A00BFB0E7 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		006833EE1D626F62001CADDE /* Extensions.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Extensions.entitlements; sourceTree = "<group>"; };
 		00938E2E1D3D9938003BB1EC /* kbfuse.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; name = kbfuse.bundle; path = Fuse/kbfuse.bundle; sourceTree = "<group>"; };
 		009E135B1B27654200C72B28 /* ShareViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ShareViewController.xib; sourceTree = "<group>"; };
 		009E13611B2794CF00C72B28 /* Installer.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = Installer.entitlements; sourceTree = "<group>"; };
@@ -163,20 +195,28 @@
 		00E1CEF41C4432F900ED3A35 /* Settings.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Settings.m; sourceTree = "<group>"; };
 		00F808061A4A5F600038BC63 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		10F5D4AFBFC1E22180FEFFCD /* Pods-Installer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Installer.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Installer/Pods-Installer.debug.xcconfig"; sourceTree = "<group>"; };
+		2C4D8072668634E53BD7BAEB /* libPods-FinderSync.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-FinderSync.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		398CF2F9A9EB653FFE008EB6 /* Pods-Installer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Installer.release.xcconfig"; path = "Pods/Target Support Files/Pods-Installer/Pods-Installer.release.xcconfig"; sourceTree = "<group>"; };
 		50CECECF69AD315C4D376EB8 /* Pods-keybase.Helper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.release.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.release.xcconfig"; sourceTree = "<group>"; };
+		51B2260D8BE792500B365297 /* Pods-FinderSync.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FinderSync.release.xcconfig"; path = "Pods/Target Support Files/Pods-FinderSync/Pods-FinderSync.release.xcconfig"; sourceTree = "<group>"; };
 		8A6B4620AD7904EFA1B59736 /* Pods-Status.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Status.release.xcconfig"; path = "Pods/Target Support Files/Pods-Status/Pods-Status.release.xcconfig"; sourceTree = "<group>"; };
+		922071013AE14BBF5ECA36A3 /* Pods-FinderSync.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FinderSync.debug.xcconfig"; path = "Pods/Target Support Files/Pods-FinderSync/Pods-FinderSync.debug.xcconfig"; sourceTree = "<group>"; };
 		A15A4EEA7C37D549AE45695A /* Pods-Status.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Status.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Status/Pods-Status.debug.xcconfig"; sourceTree = "<group>"; };
 		AF01BC4A44FA5C6796C1C820 /* libPods-keybase.Helper.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-keybase.Helper.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C3C8C0FAD444743EC88E6FF1 /* libPods-Installer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Installer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		D2BEDB094F7E7A69C2DD1031 /* Pods-Keybase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.release.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.release.xcconfig"; sourceTree = "<group>"; };
 		DA5BD47C7019FB979DD332FE /* libPods-Keybase.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Keybase.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		DF54D7C94B2D7756B784F46B /* Pods-keybase.Helper.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-keybase.Helper.debug.xcconfig"; path = "Pods/Target Support Files/Pods-keybase.Helper/Pods-keybase.Helper.debug.xcconfig"; sourceTree = "<group>"; };
 		ECBDAE14DC630518EBC27C76 /* libPods-Status.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Status.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		FEBE5DD9D5816FD9CB306E1D /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		0015A0001D5C0A1500DD62BC /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		001C6B341B24F8630048F086 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -198,6 +238,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				004624CE1B2A3BE300E218AC /* FinderSync.framework in Frameworks */,
+				B2F71C62B551EA849BFF4079 /* libPods-FinderSync.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -243,6 +284,28 @@
 				001392731B06B18A0082DEA8 /* README.md */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		0015A0041D5C0A1500DD62BC /* Extensions (App) */ = {
+			isa = PBXGroup;
+			children = (
+				0015A0051D5C0A1500DD62BC /* AppDelegate.h */,
+				0015A0061D5C0A1500DD62BC /* AppDelegate.m */,
+				0015A00B1D5C0A1500DD62BC /* Assets.xcassets */,
+				0015A00D1D5C0A1500DD62BC /* MainMenu.xib */,
+				0015A0101D5C0A1500DD62BC /* Info.plist */,
+				0015A0081D5C0A1500DD62BC /* Supporting Files */,
+			);
+			name = "Extensions (App)";
+			path = Extensions;
+			sourceTree = "<group>";
+		};
+		0015A0081D5C0A1500DD62BC /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				0015A0091D5C0A1500DD62BC /* main.m */,
+			);
+			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
 		001C6B381B24F8630048F086 /* Share */ = {
@@ -329,6 +392,7 @@
 		00734B291B263FB500F3B714 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				006833EE1D626F62001CADDE /* Extensions.entitlements */,
 				009E13671B27B39300C72B28 /* Action */,
 				001C6B381B24F8630048F086 /* Share */,
 				004624B21B2917AB00E218AC /* FinderSync */,
@@ -378,6 +442,7 @@
 				0013926F1B06B18A0082DEA8 /* Resources */,
 				0057B0BB1AE57A7A00BFB0E7 /* Helper */,
 				4A1398D8A1B7A96F0CD7F917 /* Tests */,
+				0015A0041D5C0A1500DD62BC /* Extensions (App) */,
 				00CC434A1A3A9E6C006118A9 /* Products */,
 				468C135BF6D934E5DFBB8513 /* Frameworks */,
 				8470D57F499F34CBF2C57F18 /* Pods */,
@@ -394,6 +459,7 @@
 				009E13661B27B39300C72B28 /* Action.appex */,
 				004624B11B2917AB00E218AC /* FinderSync.appex */,
 				0036081C1C442ED200B3300E /* KeybaseStatus.app */,
+				0015A0031D5C0A1500DD62BC /* Extensions.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -439,6 +505,7 @@
 				AF01BC4A44FA5C6796C1C820 /* libPods-keybase.Helper.a */,
 				C3C8C0FAD444743EC88E6FF1 /* libPods-Installer.a */,
 				ECBDAE14DC630518EBC27C76 /* libPods-Status.a */,
+				2C4D8072668634E53BD7BAEB /* libPods-FinderSync.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -455,14 +522,14 @@
 		8470D57F499F34CBF2C57F18 /* Pods */ = {
 			isa = PBXGroup;
 			children = (
-				FEBE5DD9D5816FD9CB306E1D /* Pods-Keybase.debug.xcconfig */,
-				D2BEDB094F7E7A69C2DD1031 /* Pods-Keybase.release.xcconfig */,
 				DF54D7C94B2D7756B784F46B /* Pods-keybase.Helper.debug.xcconfig */,
 				50CECECF69AD315C4D376EB8 /* Pods-keybase.Helper.release.xcconfig */,
 				10F5D4AFBFC1E22180FEFFCD /* Pods-Installer.debug.xcconfig */,
 				398CF2F9A9EB653FFE008EB6 /* Pods-Installer.release.xcconfig */,
 				A15A4EEA7C37D549AE45695A /* Pods-Status.debug.xcconfig */,
 				8A6B4620AD7904EFA1B59736 /* Pods-Status.release.xcconfig */,
+				922071013AE14BBF5ECA36A3 /* Pods-FinderSync.debug.xcconfig */,
+				51B2260D8BE792500B365297 /* Pods-FinderSync.release.xcconfig */,
 			);
 			name = Pods;
 			sourceTree = "<group>";
@@ -470,6 +537,25 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0015A0021D5C0A1500DD62BC /* Extensions */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0015A0111D5C0A1500DD62BC /* Build configuration list for PBXNativeTarget "Extensions" */;
+			buildPhases = (
+				00159FFF1D5C0A1500DD62BC /* Sources */,
+				0015A0001D5C0A1500DD62BC /* Frameworks */,
+				0015A0011D5C0A1500DD62BC /* Resources */,
+				0015A0171D5C0A2C00DD62BC /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0015A0161D5C0A2C00DD62BC /* PBXTargetDependency */,
+			);
+			name = Extensions;
+			productName = Extensions;
+			productReference = 0015A0031D5C0A1500DD62BC /* Extensions.app */;
+			productType = "com.apple.product-type.application";
+		};
 		001C6B361B24F8630048F086 /* Share */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 001C6B461B24F8630048F086 /* Build configuration list for PBXNativeTarget "Share" */;
@@ -511,9 +597,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 004624BE1B2917AB00E218AC /* Build configuration list for PBXNativeTarget "FinderSync" */;
 			buildPhases = (
+				8B03B5C818A019B5776825F9 /* [CP] Check Pods Manifest.lock */,
 				004624AD1B2917AB00E218AC /* Sources */,
 				004624AE1B2917AB00E218AC /* Frameworks */,
 				004624AF1B2917AB00E218AC /* Resources */,
+				BEE834EA7533DA9910C7476D /* [CP] Embed Pods Frameworks */,
+				DAE629871868FD5E5AEE1714 /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -614,6 +703,18 @@
 				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = Keybase;
 				TargetAttributes = {
+					0015A0021D5C0A1500DD62BC = {
+						CreatedOnToolsVersion = 7.3.1;
+						DevelopmentTeam = 99229SGT5K;
+						SystemCapabilities = {
+							com.apple.ApplicationGroups.Mac = {
+								enabled = 1;
+							};
+							com.apple.Keychain = {
+								enabled = 0;
+							};
+						};
+					};
 					001C6B361B24F8630048F086 = {
 						CreatedOnToolsVersion = 6.3.2;
 						DevelopmentTeam = 99229SGT5K;
@@ -649,6 +750,9 @@
 								enabled = 1;
 							};
 							com.apple.Keychain = {
+								enabled = 0;
+							};
+							com.apple.Sandbox = {
 								enabled = 1;
 							};
 						};
@@ -710,12 +814,22 @@
 				001C6B361B24F8630048F086 /* Share */,
 				009E13651B27B39300C72B28 /* Action */,
 				004624B01B2917AB00E218AC /* FinderSync */,
+				0015A0021D5C0A1500DD62BC /* Extensions */,
 				00AA750E1B27635D0069A6CC /* Tests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		0015A0011D5C0A1500DD62BC /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0015A00C1D5C0A1500DD62BC /* Assets.xcassets in Resources */,
+				0015A00F1D5C0A1500DD62BC /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		001C6B351B24F8630048F086 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -890,6 +1004,21 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Installer/Pods-Installer-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		8B03B5C818A019B5776825F9 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_ROOT}/../Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [[ $? != 0 ]] ; then\n    cat << EOM\nerror: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\nEOM\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
 		BC1C8B68EFC6983159FD7C76 /* [CP] Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -905,9 +1034,48 @@
 			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Installer/Pods-Installer-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
+		BEE834EA7533DA9910C7476D /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-FinderSync/Pods-FinderSync-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		DAE629871868FD5E5AEE1714 /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-FinderSync/Pods-FinderSync-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		00159FFF1D5C0A1500DD62BC /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0015A00A1D5C0A1500DD62BC /* main.m in Sources */,
+				0015A0071D5C0A1500DD62BC /* AppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		001C6B331B24F8630048F086 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -976,6 +1144,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		0015A0161D5C0A2C00DD62BC /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 004624B01B2917AB00E218AC /* FinderSync */;
+			targetProxy = 0015A0151D5C0A2C00DD62BC /* PBXContainerItemProxy */;
+		};
 		0036082E1C442EED00B3300E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 0036081B1C442ED200B3300E /* Status */;
@@ -994,6 +1167,14 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
+		0015A00D1D5C0A1500DD62BC /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				0015A00E1D5C0A1500DD62BC /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
 		003608111C442EB100B3300E /* MainMenu.xib */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -1014,6 +1195,42 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		0015A0121D5C0A1500DD62BC /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CODE_SIGN_ENTITLEMENTS = Extensions/Extensions.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				COMBINE_HIDPI_IMAGES = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = Extensions/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.Electron;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		0015A0131D5C0A1500DD62BC /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ANALYZER_NONNULL = YES;
+				CODE_SIGN_ENTITLEMENTS = Extensions/Extensions.entitlements;
+				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				INFOPLIST_FILE = Extensions/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.Electron;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		001C6B471B24F8630048F086 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1058,7 +1275,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Status/Status.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -1077,7 +1294,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Status/Status.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -1092,9 +1309,10 @@
 		};
 		004624BC1B2917AB00E218AC /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 922071013AE14BBF5ECA36A3 /* Pods-FinderSync.debug.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/FinderSync/FinderSync.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1104,26 +1322,25 @@
 				);
 				INFOPLIST_FILE = Extensions/FinderSync/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "keybase.Keybase.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.Electron.FinderSync;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
 		004624BD1B2917AB00E218AC /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 51B2260D8BE792500B365297 /* Pods-FinderSync.release.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/FinderSync/FinderSync.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Extensions/FinderSync/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = "keybase.Keybase.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_BUNDLE_IDENTIFIER = keybase.Electron.FinderSync;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE = "";
 				SKIP_INSTALL = YES;
 			};
 			name = Release;
@@ -1184,7 +1401,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Action/Action.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1205,7 +1422,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Action/Action.entitlements;
-				CODE_SIGN_IDENTITY = "Mac Developer";
+				CODE_SIGN_IDENTITY = "Developer ID Application";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1386,6 +1603,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		0015A0111D5C0A1500DD62BC /* Build configuration list for PBXNativeTarget "Extensions" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0015A0121D5C0A1500DD62BC /* Debug */,
+				0015A0131D5C0A1500DD62BC /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		001C6B461B24F8630048F086 /* Build configuration list for PBXNativeTarget "Share" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

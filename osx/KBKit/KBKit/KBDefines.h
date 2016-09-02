@@ -12,7 +12,7 @@
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
 #import <CocoaLumberjack/CocoaLumberjack.h>
-static const int ddLogLevel = DDLogLevelDebug;
+static const DDLogLevel ddLogLevel = DDLogLevelDebug;
 
 typedef void (^KBCompletion)(NSError *error);
 typedef void (^KBOnCompletion)(NSError *error, id value);
@@ -61,7 +61,8 @@ typedef NS_ENUM (NSInteger, KBErrorResponse) {
 
 #define KBMap(ARRAY, PROPERTY) [ARRAY map:^(id obj) { return [obj PROPERTY]; }]
 
-#define KBAppGroupId (@"keybase")
+#define KBAppGroupId (@"99229SGT5K.keybase")
+#define KBAppGroupName (@"keybase")
 
 NSNumber *KBNumberFromString(NSString *s);
 

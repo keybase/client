@@ -27,8 +27,6 @@ typedef NS_ENUM (NSInteger, KBRunMode) {
 @property (readonly) KBRunMode runMode;
 @property (readonly, getter=isInstallDisabled) BOOL installDisabled;
 
-- (instancetype)initWithRunMode:(KBRunMode)runMode;
-
 + (instancetype)envConfigWithHomeDir:(NSString *)homeDir mountDir:(NSString *)mountDir runMode:(KBRunMode)runMode;
 + (instancetype)envConfigWithRunMode:(KBRunMode)runMode;
 + (instancetype)envConfigFromUserDefaults:(NSUserDefaults *)userDefaults;

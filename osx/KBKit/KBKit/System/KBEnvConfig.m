@@ -63,7 +63,8 @@
 }
 
 + (NSString *)groupContainer:(NSString *)path {
-  NSString *dir = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:KBAppGroupId].path;
+  NSString *dir = [[NSFileManager defaultManager] containerURLForSecurityApplicationGroupIdentifier:KBAppGroupName].path;
+  if (!path) return dir;
   return [KBPath pathInDir:dir path:path options:0];
 }
 
@@ -132,8 +133,10 @@
 }
 
 - (NSString *)homeDir {
-  NSString *homeDir = _homeDir ? _homeDir : @"~";
-  return [KBPath path:homeDir options:0];
+  if (_homeDir) {
+    return _homeDir;
+  }
+  return [KBEnvConfig groupContainer:nil];
 }
 
 - (NSString *)sockFile {

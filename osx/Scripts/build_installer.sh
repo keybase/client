@@ -7,4 +7,8 @@ cd "$dir"
 
 app_name="KeybaseInstaller"
 plist="$dir/../Installer/Info.plist"
-APP_NAME=$app_name SCHEME="Installer" PLIST="$plist" ./build.sh
+helper="$app_name.app/Contents/Library/LaunchServices/keybase.Helper"
+APP_NAME=$app_name SCHEME="Installer" PLIST="$plist" HELPER="$helper" ./build.sh
+
+build_dest="$dir/build"
+open $build_dest

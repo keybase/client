@@ -23,14 +23,6 @@
 
 - (instancetype)initWithFinderSyncController:(FIFinderSyncController *)finderSyncController {
   if ((self = [super init])) {
-    NSString *mountDir = [KBWorkspace.userDefaults objectForKey:@"MountDir"];
-    if (mountDir) {
-      DDLogDebug(@"Finder sync using: %@", mountDir);
-      finderSyncController.directoryURLs = [NSSet setWithObject:[NSURL fileURLWithPath:mountDir]];
-    } else {
-      DDLogDebug(@"No mount for finder sync");
-    }
-
     // Configure badge images for file fileStatuses
     for (id s in @[@(KBFSFileStatusNone), @(KBFSFileStatusUnavailable), @(KBFSFileStatusPartiallyAvailable), @(KBFSFileStatusAvailable)]) {
       KBFSFileStatus fileStatus = [s integerValue];

@@ -8,6 +8,7 @@ cd "$dir"
 app_name=${APP_NAME:-}
 scheme=${SCHEME:-}
 plist=${PLIST:-}
+helper=${HELPER:-}
 
 build_dest=$dir/build
 mkdir -p $build_dest
@@ -58,8 +59,6 @@ echo ""
 
 cd $build_dest
 
-helper="$app_name.app/Contents/Library/LaunchServices/keybase.Helper"
-
 if [ -f "$helper" ]; then
   echo "
 
@@ -74,8 +73,8 @@ if [ -f "$helper" ]; then
 
   "
 
-  codesign --verbose --force --preserve-metadata=identifier,entitlements --timestamp=none --sign "$code_sign_identity" $app_name.app/Contents/Library/LaunchServices/keybase.Helper
-  codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" $app_name.app
+  codesign --verbose --force --preserve-metadata=identifier,entitlements --sign "$code_sign_identity" $app_name.app/Contents/Library/LaunchServices/keybase.Helper
+  codesign --verbose --force --deep --sign "$code_sign_identity" $app_name.app
 
   # Verify
   #codesign --verify --verbose=4 Keybase.app
@@ -90,6 +89,15 @@ if [ -f "$helper" ]; then
   # You don't spctl assess binaries anymore (only bundles)
   # http://www.openradar.me/25618668
   #spctl --assess --verbose=4 $app_name.app/Contents/Library/LaunchServices/keybase.Helper
+else
+  codesign --verbose --force --preserve-metadata=identifier,entitlements --sign "$code_sign_identity" "$app_name.app/Contents/PlugIns/FinderSync.appex"
+  codesign --verbose --force --sign "$code_sign_identity" $app_name.app
+  echo "Checking app..."
+  codesign -dvvvv $app_name.app
+  echo " "
+  spctl --assess --verbose=4 $app_name.app
+  echo "Checking FinderSync..."
+  codesign -dvvvv "$app_name.app/Contents/PlugIns/FinderSync.appex"
 fi
 
 tar zcvpf $app_name-$app_version-darwin.tgz $app_name.app
