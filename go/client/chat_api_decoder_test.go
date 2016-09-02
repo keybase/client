@@ -32,7 +32,7 @@ func (h *handlerTracker) SendV1(Call, io.Writer) error {
 	return nil
 }
 
-type decodeTest struct {
+type topTest struct {
 	input  string
 	err    error
 	listV1 int
@@ -40,7 +40,7 @@ type decodeTest struct {
 	sendV1 int
 }
 
-var decodeTests = []decodeTest{
+var topTests = []topTest{
 	{input: "{}", err: ErrInvalidMethod{}},
 	{input: `{"params":{"version": 2}}`, err: ErrInvalidVersion{}},
 	{input: `{"params":{"version": 1}}`, err: ErrInvalidMethod{}},
@@ -58,8 +58,10 @@ var decodeTests = []decodeTest{
 	{input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1}}`, listV1: 1, readV1: 1},
 }
 
-func TestChatAPIDecoder(t *testing.T) {
-	for i, test := range decodeTests {
+// TestChatAPIDecoderTop tests that the "top-level" of the chat json makes it to
+// the correct functions in a ChatAPIHandler.
+func TestChatAPIDecoderTop(t *testing.T) {
+	for i, test := range topTests {
 		h := new(handlerTracker)
 		d := NewChatAPIDecoder(h)
 		var buf bytes.Buffer
@@ -81,6 +83,38 @@ func TestChatAPIDecoder(t *testing.T) {
 		}
 		if h.sendV1 != test.sendV1 {
 			t.Errorf("test %d: input %s => sendV1 = %d, expected %d", i, test.input, h.sendV1, test.sendV1)
+		}
+	}
+}
+
+type optTest struct {
+	input string
+	err   error
+}
+
+var optTests = []optTest{
+	{input: `{"method": "list", "params":{"version": 1}}`},
+	{input: `{"method": "read", "params":{"version": 1}}`},
+	{input: `{"method": "send", "params":{"version": 1}}`},
+	{input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`},
+	{input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1}}`},
+}
+
+// TestChatAPIDecoderOptions tests the option decoding.
+func TestChatAPIDecoderOptions(t *testing.T) {
+	for i, test := range optTests {
+		h := new(handlerTracker)
+		d := NewChatAPIDecoder(h)
+		var buf bytes.Buffer
+		err := d.Decode(strings.NewReader(test.input), &buf)
+		if test.err != nil {
+			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
+				t.Errorf("test %d: error type %T, expected %T", i, err, test.err)
+				continue
+			}
+		} else if err != nil {
+			t.Errorf("test %d: input %s => error %s", i, test.input, err)
+			continue
 		}
 	}
 }
