@@ -54,7 +54,7 @@ func (rc *FacebookChecker) ScreenNameCompare(s1, s2 string) bool {
 	return libkb.Cicmp(s1NoDots, s2NoDots)
 }
 
-func (rc *FacebookChecker) findSigInTweet(ctx libkb.ProofContext, h libkb.SigHint, s *goquery.Selection) libkb.ProofError {
+func (rc *FacebookChecker) findSigInPost(ctx libkb.ProofContext, h libkb.SigHint, s *goquery.Selection) libkb.ProofError {
 
 	inside := s.Text()
 	html, err := s.Html()
@@ -62,10 +62,10 @@ func (rc *FacebookChecker) findSigInTweet(ctx libkb.ProofContext, h libkb.SigHin
 	checkText := h.GetCheckText()
 
 	if err != nil {
-		return libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE, "No HTML tweet found: %s", err)
+		return libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE, "No HTML post found: %s", err)
 	}
 
-	ctx.GetLog().Debug("+ Checking tweet '%s' for signature '%s'", inside, checkText)
+	ctx.GetLog().Debug("+ Checking post '%s' for signature '%s'", inside, checkText)
 	ctx.GetLog().Debug("| HTML is: %s", html)
 
 	rxx := regexp.MustCompile(`^(@[a-zA-Z0-9_-]+\s+)`)
@@ -122,10 +122,10 @@ func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHin
 	p := div.Find("p.tweet-text")
 	if p.Length() == 0 {
 		return libkb.NewProofError(keybase1.ProofStatus_CONTENT_MISSING,
-			"Missing <div class='tweet-text'> container for tweet")
+			"Missing <div class='tweet-text'> container for post")
 	}
 
-	return rc.findSigInTweet(ctx, h, p.First())
+	return rc.findSigInPost(ctx, h, p.First())
 }
 
 //
@@ -159,7 +159,7 @@ func (t FacebookServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 }
 
 func (t FacebookServiceType) PostInstructions(un string) *libkb.Markup {
-	return libkb.FmtMarkup(`Please <strong>publicly</strong> tweet the following, and don't delete it:`)
+	return libkb.FmtMarkup(`Please <strong>publicly</strong> post the following, and don't delete it:`)
 }
 
 func (t FacebookServiceType) DisplayName(un string) string { return "Facebook" }
