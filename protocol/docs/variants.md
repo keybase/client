@@ -13,7 +13,7 @@ explicit and type-safe-r.
 ## Example
 
 Consider this AVDL input example. We're declaring a new data type
-called `Foo` which can act as an `int`, a `string`, or a `Bar`, depending
+called `Foo` which can act as an `int`, or a `Zap`, depending
 on what the `FooType` selector says:
 
 ```
@@ -37,7 +37,7 @@ variant Foo switch (FooType fooType) {
 
 
 The key idea is that we have a new
-`struct` called `Foo`, which maintains the invariant that `Foo` takes the shape of an `int` when `fooType == BOO`, and take the shape of a `Bar` when `fooType == BOP`. These
+`struct` called `Foo`, which maintains the invariant that `Foo` takes the shape of an `int` when `fooType == BOO`, and take the shape of a `Zap` when `fooType == ZAP`. These
 structures are also immutable and can't be change once they've been constructed:
 
 ```go
