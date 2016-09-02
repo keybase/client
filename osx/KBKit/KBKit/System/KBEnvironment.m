@@ -20,14 +20,12 @@
 
 @interface KBEnvironment ()
 @property KBEnvConfig *config;
-@property KBService *service;
-@property KBFSService *kbfs;
-@property KBUpdaterService *updater;
 @property KBFuseComponent *fuse;
 @property NSMutableArray */*of id<KBComponent>*/components;
 @property NSMutableArray */*of KBInstallable*/installables;
-@property NSArray *services;
+@property NSString *servicePath;
 @property (nonatomic) NSDictionary *appConfig;
+@property (nonatomic) KBService *service;
 @end
 
 @implementation KBEnvironment
@@ -35,22 +33,13 @@
 - (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath options:(KBInstallOptions)options {
   if ((self = [super init])) {
     _config = config;
+    _servicePath = servicePath;
 
     _installables = [NSMutableArray array];
 
     _helperTool = [[KBHelperTool alloc] initWithConfig:config];
     if (options&KBInstallOptionHelper) {
       [_installables addObject:_helperTool];
-    }
-
-    _updater = [[KBUpdaterService alloc] initWithConfig:config label:[config launchdUpdaterLabel] servicePath:servicePath];
-    if (options&KBInstallOptionUpdater) {
-      [_installables addObject:_updater];
-    }
-
-    _service = [[KBService alloc] initWithConfig:config label:[config launchdServiceLabel] servicePath:servicePath];
-    if (options&KBInstallOptionService) {
-      [_installables addObject:_service];
     }
 
     _fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
@@ -63,18 +52,12 @@
       [_installables addObject:mountDir];
     }
 
-    _kbfs = [[KBFSService alloc] initWithConfig:config label:[config launchdKBFSLabel] servicePath:servicePath];
-    if (options&KBInstallOptionKBFS) {
-      [_installables addObject:_kbfs];
-    }
-
     if (options&KBInstallOptionCLI) {
       KBCommandLine *cli = [[KBCommandLine alloc] initWithConfig:config helperTool:_helperTool servicePath:servicePath];
       [_installables addObject:cli];
     }
 
-    _services = [NSArray arrayWithObjects:_service, _kbfs, _updater, nil];
-    _components = [NSMutableArray arrayWithObjects:_service, _kbfs, _helperTool, _fuse, _updater, nil];
+    _components = [NSMutableArray arrayWithObjects:_helperTool, _fuse, nil];
   }
   return self;
 }
@@ -92,6 +75,13 @@
     return [[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeDevel] servicePath:servicePath options:options];
   }
   return nil;
+}
+
+- (KBService *)service {
+  if (!_service) {
+    _service = [[KBService alloc] initWithConfig:_config label:[_config launchdServiceLabel] servicePath:_servicePath];
+  }
+  return _service;
 }
 
 - (NSString *)debugInstallables {

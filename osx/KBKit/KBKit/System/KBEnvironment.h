@@ -15,25 +15,21 @@
 
 typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
   KBInstallOptionNone = 0,
-  KBInstallOptionService = 1 << 1,
   KBInstallOptionHelper = 1 << 2,
   KBInstallOptionFuse = 1 << 3,
-  KBInstallOptionKBFS = 1 << 4,
-  KBInstallOptionUpdater = 1 << 5,
   KBInstallOptionMountDir = 1 << 6,
   KBInstallOptionCLI = 1 << 10,
 
-  KBInstallOptionAll = KBInstallOptionService | KBInstallOptionHelper | KBInstallOptionFuse | KBInstallOptionMountDir | KBInstallOptionKBFS | KBInstallOptionUpdater | KBInstallOptionCLI,
+  KBInstallOptionAll = KBInstallOptionHelper | KBInstallOptionFuse | KBInstallOptionMountDir | KBInstallOptionCLI,
 };
 
 @interface KBEnvironment : NSObject
 
 @property (readonly) KBHelperTool *helperTool;
 @property (readonly) KBEnvConfig *config;
-@property (readonly) KBService *service;
-@property (readonly) KBFSService *kbfs;
 @property (readonly) KBFuseComponent *fuse;
 @property (readonly) NSArray */*of KBInstallable*/installables;
+@property (readonly) NSString *servicePath;
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config servicePath:(NSString *)servicePath options:(KBInstallOptions)options;
 
@@ -42,6 +38,8 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 - (NSArray *)componentsForControlPanel;
 
 - (NSString *)debugInstallables;
+
+- (KBService *)service;
 
 - (id)configValueForKey:(NSString *)keyPath defaultValue:(id)defaultValue error:(NSError **)error;
 

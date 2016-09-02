@@ -12,10 +12,18 @@
 #import "KBInstallable.h"
 #import "KBHelperTool.h"
 
+@interface KBFuseStatus : NSObject
+@property NSString *version;
+@property NSString *bundleVersion;
+@property KBRInstallStatus installStatus;
+@property KBRInstallAction installAction;
+@property BOOL hasMounts;
+@end
+
 @interface KBFuseComponent : KBInstallable
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config helperTool:(KBHelperTool *)helperTool servicePath:(NSString *)servicePath;
 
-- (void)refreshFuseComponent:(void (^)(KBRFuseStatus *fuseStatus, KBComponentStatus *componentStatus))completion;
+- (void)refreshFuseComponent:(void (^)(KBFuseStatus *fuseStatus, KBComponentStatus *componentStatus))completion;
 
 @end
