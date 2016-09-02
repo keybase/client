@@ -136,6 +136,16 @@ func (k KeybaseServiceMeasured) Notify(ctx context.Context, notification *keybas
 	return err
 }
 
+// NotifySyncStatus implements the KeybaseService interface for
+// KeybaseServiceMeasured.
+func (k KeybaseServiceMeasured) NotifySyncStatus(ctx context.Context,
+	status *keybase1.FSPathSyncStatus) (err error) {
+	k.notifyTimer.Time(func() {
+		err = k.delegate.NotifySyncStatus(ctx, status)
+	})
+	return err
+}
+
 // FlushUserFromLocalCache implements the KeybaseService interface for
 // KeybaseServiceMeasured.
 func (k KeybaseServiceMeasured) FlushUserFromLocalCache(

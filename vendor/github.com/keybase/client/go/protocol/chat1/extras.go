@@ -22,6 +22,10 @@ func (cid ConversationID) String() string {
 	return strconv.FormatUint(uint64(cid), 10)
 }
 
+func (mid MessageID) String() string {
+	return strconv.FormatUint(uint64(mid), 10)
+}
+
 func (t MessageType) String() string {
 	switch t {
 	case MessageType_NONE:

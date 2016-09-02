@@ -32,10 +32,13 @@ type NotifyListener interface {
 	UserChanged(uid keybase1.UID)
 	TrackingChanged(uid keybase1.UID, username string)
 	FSActivity(activity keybase1.FSNotification)
+	FSEditListResponse(arg keybase1.FSEditListArg)
+	FSEditListRequest(arg keybase1.FSEditListRequest)
 	FavoritesChanged(uid keybase1.UID)
 	PaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID)
 	KeyfamilyChanged(uid keybase1.UID)
 	NewChatActivity(uid keybase1.UID, activity keybase1.ChatActivity)
+	PGPKeyInSecretStoreFile()
 }
 
 // NotifyRouter routes notifications to the various active RPC
@@ -281,6 +284,57 @@ func (n *NotifyRouter) HandleFSActivity(activity keybase1.FSNotification) {
 	}
 }
 
+// HandleFSEditListResponse is called for KBFS edit list response notifications.
+func (n *NotifyRouter) HandleFSEditListResponse(ctx context.Context, arg keybase1.FSEditListArg) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Kbfs` notification type
+		if n.getNotificationChannels(id).Kbfs {
+			// In the background do...
+			go func() {
+				// A send of a `FSEditListResponse` RPC with the notification
+				(keybase1.NotifyFSClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).FSEditListResponse(ctx, keybase1.FSEditListResponseArg{
+					Edits:     arg.Edits,
+					RequestID: arg.RequestID,
+				})
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.FSEditListResponse(arg)
+	}
+}
+
+// HandleFSEditListRequest is called for KBFS edit list request notifications.
+func (n *NotifyRouter) HandleFSEditListRequest(ctx context.Context, arg keybase1.FSEditListRequest) {
+	if n == nil {
+		return
+	}
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Kbfsrequest` notification type
+		if n.getNotificationChannels(id).Kbfsrequest {
+			// In the background do...
+			go func() {
+				// A send of a `FSEditListRequest` RPC with the notification
+				(keybase1.NotifyFSRequestClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).FSEditListRequest(ctx, arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.FSEditListRequest(arg)
+	}
+}
+
 // HandleFavoritesChanged is called whenever the kbfs favorites change
 // for a user (and caches should be invalidated). It will broadcast the
 // messages to all curious listeners.
@@ -456,4 +510,24 @@ func (n *NotifyRouter) HandleAppExit() {
 		return true
 	})
 	n.G().Log.Debug("- Sent app exit notfication")
+}
+
+// HandlePGPKeyInSecretStoreFile is called to notify a user that they have a PGP
+// key that is unlockable by a secret stored in a file in their home directory.
+func (n *NotifyRouter) HandlePGPKeyInSecretStoreFile() {
+	n.G().Log.Debug("+ Sending pgpKeyInSecretStoreFile notification")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).PGP {
+			go func() {
+				(keybase1.NotifyPGPClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).PGPKeyInSecretStoreFile(context.TODO())
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.PGPKeyInSecretStoreFile()
+	}
+	n.G().Log.Debug("- Sent pgpKeyInSecretStoreFile notification")
 }

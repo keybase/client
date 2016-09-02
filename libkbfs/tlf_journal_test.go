@@ -66,6 +66,7 @@ type testTLFJournalConfig struct {
 	splitter BlockSplitter
 	codec    Codec
 	crypto   CryptoLocal
+	reporter Reporter
 	cig      singleCurrentInfoGetter
 	ekg      singleEncryptionKeyGetter
 	mdserver MDServer
@@ -81,6 +82,10 @@ func (c testTLFJournalConfig) Codec() Codec {
 
 func (c testTLFJournalConfig) Crypto() Crypto {
 	return c.crypto
+}
+
+func (c testTLFJournalConfig) Reporter() Reporter {
+	return c.reporter
 }
 
 func (c testTLFJournalConfig) cryptoPure() cryptoPure {
@@ -169,7 +174,7 @@ func setupTLFJournalTest(
 
 	config = &testTLFJournalConfig{
 		t, FakeTlfID(1, false), bsplitter, codec, crypto,
-		cig, ekg, mdserver,
+		NewReporterSimple(newTestClockNow(), 10), cig, ekg, mdserver,
 	}
 
 	// Time out individual tests after 10 seconds.

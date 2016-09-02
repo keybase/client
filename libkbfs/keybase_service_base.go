@@ -37,6 +37,7 @@ type KeybaseServiceBase struct {
 
 	lastNotificationFilenameLock sync.Mutex
 	lastNotificationFilename     string
+	lastSyncNotificationPath     string
 }
 
 // NewKeybaseServiceBase makes a new KeybaseService.
@@ -446,6 +447,25 @@ func (k *KeybaseServiceBase) Notify(ctx context.Context, notification *keybase1.
 	return k.kbfsClient.FSEvent(ctx, *notification)
 }
 
+// NotifySyncStatus implements the KeybaseService interface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) NotifySyncStatus(ctx context.Context,
+	status *keybase1.FSPathSyncStatus) error {
+	// Reduce log spam by not repeating log lines for
+	// notifications with the same pathname.
+	//
+	// TODO: Only do this in debug mode.
+	func() {
+		k.lastNotificationFilenameLock.Lock()
+		defer k.lastNotificationFilenameLock.Unlock()
+		if status.Path != k.lastSyncNotificationPath {
+			k.lastSyncNotificationPath = status.Path
+			k.log.CDebugf(ctx, "Sending notification for %s", status.Path)
+		}
+	}()
+	return k.kbfsClient.FSSyncEvent(ctx, *status)
+}
+
 // FlushUserFromLocalCache implements the KeybaseService interface for
 // KeybaseServiceBase.
 func (k *KeybaseServiceBase) FlushUserFromLocalCache(ctx context.Context,
@@ -547,6 +567,28 @@ func (k *KeybaseServiceBase) FSEditListRequest(ctx context.Context,
 	k.log.CDebugf(ctx, "Sending edit history response with %d edits",
 		len(resp.Edits))
 	return k.kbfsClient.FSEditList(ctx, resp)
+}
+
+// FSSyncStatusRequest implements keybase1.NotifyFSRequestInterface for
+// KeybaseServiceBase.
+func (k *KeybaseServiceBase) FSSyncStatusRequest(ctx context.Context,
+	req keybase1.FSSyncStatusRequest) (err error) {
+	k.log.CDebugf(ctx, "Got sync status request: %v", req)
+
+	resp := keybase1.FSSyncStatusArg{RequestID: req.RequestID}
+
+	// For now, just return the number of syncing bytes.
+	jServer, err := GetJournalServer(k.config)
+	if err == nil {
+		status := jServer.Status()
+		resp.Status.TotalSyncingBytes = status.UnflushedBytes
+		k.log.CDebugf(ctx, "Sending sync status response with %d syncing bytes",
+			status.UnflushedBytes)
+	} else {
+		k.log.CDebugf(ctx, "No journal server, sending empty response")
+	}
+
+	return k.kbfsClient.FSSyncStatus(ctx, resp)
 }
 
 // GetTLFCryptKeys implements the TlfKeysInterface interface for

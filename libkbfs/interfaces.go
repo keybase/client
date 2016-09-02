@@ -327,6 +327,10 @@ type KeybaseService interface {
 	// Notify sends a filesystem notification.
 	Notify(ctx context.Context, notification *keybase1.FSNotification) error
 
+	// NotifySyncStatus sends a sync status notification.
+	NotifySyncStatus(ctx context.Context,
+		status *keybase1.FSPathSyncStatus) error
+
 	// FlushUserFromLocalCache instructs this layer to clear any
 	// KBFS-side, locally-cached information about the given user.
 	// This does NOT involve communication with the daemon, this is
@@ -541,6 +545,8 @@ type Reporter interface {
 	AllKnownErrors() []ReportedError
 	// Notify sends the given notification to any sink.
 	Notify(ctx context.Context, notification *keybase1.FSNotification)
+	// NotifySyncStatus sends the given path sync status to any sink.
+	NotifySyncStatus(ctx context.Context, status *keybase1.FSPathSyncStatus)
 	// Shutdown frees any resources allocated by a Reporter.
 	Shutdown()
 }

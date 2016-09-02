@@ -136,6 +136,18 @@ func (p KeybasePackets) EncodeTo(w io.Writer) error {
 	return err
 }
 
+func MsgpackDecode(dst interface{}, src []byte) (err error) {
+	buf := bytes.NewBuffer(src)
+	ch := codecHandle()
+	return codec.NewDecoder(buf, ch).Decode(dst)
+}
+
+func MsgpackEncode(src interface{}) (dst []byte, err error) {
+	ch := codecHandle()
+	err = codec.NewEncoderBytes(&dst, ch).Encode(src)
+	return dst, err
+}
+
 // DecodePacketsUnchecked decodes an array of packets from `reader`. It does *not*
 // check that the stream was canonical msgpack.
 func DecodePacketsUnchecked(reader io.Reader) (ret KeybasePackets, err error) {
