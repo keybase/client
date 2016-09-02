@@ -11,13 +11,13 @@ import (
 func TestEnvDarwin(t *testing.T) {
 	env := newEnv(nil, nil, "darwin")
 
-	runtimeDir := env.GetRuntimeDir()
-	sockFile, err := env.GetSocketFile()
+	sockFile, err := env.GetSocketBindFile()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	expectedSockFile := filepath.Join(runtimeDir, "keybased.sock")
+	cacheDir := env.GetSandboxCacheDir()
+	expectedSockFile := filepath.Join(cacheDir, "keybased.sock")
 	if sockFile != expectedSockFile {
 		t.Fatalf("Clients expect sock file to be %s", expectedSockFile)
 	}
