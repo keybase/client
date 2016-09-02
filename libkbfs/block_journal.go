@@ -62,6 +62,14 @@ type blockJournal struct {
 	j          diskJournal
 	refs       map[BlockID]blockRefMap
 	isShutdown bool
+
+	// Tracks the total size of on-disk blocks that will be flushed to
+	// the server (i.e., does not count reference adds).  It is only
+	// accurate for users of this journal that properly flush entries;
+	// in particular, calls to `removeReferences` with
+	// removeUnreferencedBlocks set to true can cause this count to
+	// deviate from the actual disk usage of the journal.
+	unflushedBytes int64
 }
 
 type bserverOpName string
@@ -127,12 +135,13 @@ func makeBlockJournal(
 		j:        j,
 	}
 
-	refs, err := journal.readJournal(ctx)
+	refs, unflushedBytes, err := journal.readJournal(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	journal.refs = refs
+	journal.unflushedBytes = unflushedBytes
 	return journal, nil
 }
 
@@ -168,28 +177,30 @@ func (j *blockJournal) readJournalEntry(ordinal journalOrdinal) (
 }
 
 // readJournal reads the journal and returns a map of all the block
-// references in the journal.
+// references in the journal and the total number of bytes that need
+// flushing.
 func (j *blockJournal) readJournal(ctx context.Context) (
-	map[BlockID]blockRefMap, error) {
+	map[BlockID]blockRefMap, int64, error) {
 	refs := make(map[BlockID]blockRefMap)
 
 	first, err := j.j.readEarliestOrdinal()
 	if os.IsNotExist(err) {
-		return refs, nil
+		return refs, 0, nil
 	} else if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	last, err := j.j.readLatestOrdinal()
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	j.log.CDebugf(ctx, "Reading journal entries %d to %d", first, last)
 
+	var unflushedBytes int64
 	for i := first; i <= last; i++ {
 		e, err := j.readJournalEntry(i)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		// Handle single ops separately.
@@ -197,7 +208,7 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 		case blockPutOp, addRefOp:
 			id, context, err := e.getSingleContext()
 			if err != nil {
-				return nil, err
+				return nil, 0, err
 			}
 
 			blockRefs := refs[id]
@@ -208,8 +219,24 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 
 			err = blockRefs.put(context, liveBlockRef)
 			if err != nil {
-				return nil, err
+				return nil, 0, err
 			}
+
+			// Only puts count as bytes, on the assumption that the
+			// refs won't have to upload any new bytes.  (This might
+			// be wrong if all references to a block were deleted
+			// since the addref entry was appended.)
+			if e.Op == blockPutOp {
+				b, err := j.getDataSize(id)
+				// Ignore ENOENT errors, since users like
+				// BlockServerDisk can remove block data without
+				// deleting the corresponding addRef.
+				if err != nil && !os.IsNotExist(err) {
+					return nil, 0, err
+				}
+				unflushedBytes += b
+			}
+
 			continue
 		}
 
@@ -227,7 +254,7 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 				for _, context := range idContexts {
 					err := blockRefs.remove(context)
 					if err != nil {
-						return nil, err
+						return nil, 0, err
 					}
 				}
 
@@ -245,16 +272,17 @@ func (j *blockJournal) readJournal(ctx context.Context) (
 					err := blockRefs.put(
 						context, archivedBlockRef)
 					if err != nil {
-						return nil, err
+						return nil, 0, err
 					}
 				}
 
 			default:
-				return nil, fmt.Errorf("Unknown op %s", e.Op)
+				return nil, 0, fmt.Errorf("Unknown op %s", e.Op)
 			}
 		}
 	}
-	return refs, nil
+	j.log.CDebugf(ctx, "Found %d block bytes in the journal", unflushedBytes)
+	return refs, unflushedBytes, nil
 }
 
 func (j *blockJournal) writeJournalEntry(
@@ -315,6 +343,14 @@ func (j *blockJournal) putRefEntry(
 	}
 
 	return j.refs[id].put(refEntry.Context, refEntry.Status)
+}
+
+func (j *blockJournal) getDataSize(id BlockID) (int64, error) {
+	fi, err := os.Stat(j.blockDataPath(id))
+	if err != nil {
+		return 0, err
+	}
+	return fi.Size(), nil
 }
 
 func (j *blockJournal) getData(id BlockID) (
@@ -462,6 +498,7 @@ func (j *blockJournal) putData(
 	if err != nil {
 		return err
 	}
+	j.unflushedBytes += int64(len(buf))
 
 	// TODO: Add integrity-checking for key server half?
 
@@ -537,6 +574,11 @@ func (j *blockJournal) addReference(
 		addRefOp, map[BlockID][]BlockContext{id: {context}})
 }
 
+// removeReferences fixes up the in-memory reference map to delete the
+// given references.  If removeUnreferencedBlocks is true, it will
+// also delete the corresponding blocks from the disk.  However, in
+// that case, j.unflushedBytes will no longer be accurate and
+// shouldn't be relied upon.
 func (j *blockJournal) removeReferences(
 	ctx context.Context, contexts map[BlockID][]BlockContext,
 	removeUnreferencedBlocks bool) (liveCounts map[BlockID]int, err error) {
@@ -737,13 +779,31 @@ func flushBlockJournalEntry(
 }
 
 func (j *blockJournal) removeFlushedEntry(ctx context.Context,
-	ordinal journalOrdinal, _ blockJournalEntry) error {
+	ordinal journalOrdinal, entry blockJournalEntry) error {
 	if j.isShutdown {
 		// TODO: This creates a race condition if we shut down
 		// after we've flushed an op but before we remove
 		// it. Make sure we handle re-flushed ops
 		// idempotently.
 		return errBlockJournalShutdown
+	}
+
+	// Fix up the block byte count if we've finished a Put.
+	if entry.Op == blockPutOp {
+		id, _, err := entry.getSingleContext()
+		if err != nil {
+			return err
+		}
+		b, err := j.getDataSize(id)
+		if err != nil {
+			return err
+		}
+
+		if b > j.unflushedBytes {
+			return fmt.Errorf("Block %v is bigger than our current count "+
+				"of journal block bytes (%d > %d)", id, b, j.unflushedBytes)
+		}
+		j.unflushedBytes -= b
 	}
 
 	earliestOrdinal, err := j.j.readEarliestOrdinal()
@@ -763,11 +823,12 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 
 	// TODO: This is a hack to work around KBFS-1439. Figure out a
 	// better way to update j.refs to reflect the removed entry.
-	refs, err := j.readJournal(ctx)
+	refs, unflushedBytes, err := j.readJournal(ctx)
 	if err != nil {
 		return err
 	}
 	j.refs = refs
+	j.unflushedBytes = unflushedBytes
 
 	return nil
 }
@@ -777,7 +838,7 @@ func (j *blockJournal) shutdown() {
 
 	// Double-check the on-disk journal with the in-memory one.
 	ctx := context.Background()
-	refs, err := j.readJournal(ctx)
+	refs, _, err := j.readJournal(ctx)
 	if err != nil {
 		panic(err)
 	}

@@ -79,10 +79,14 @@ func TestBlockJournalBasic(t *testing.T) {
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
+	unflushedBytes := j.unflushedBytes
+	require.Equal(t, unflushedBytes, int64(len(data)))
+
 	// Shutdown and restart.
 	j.shutdown()
 	j, err = makeBlockJournal(ctx, codec, crypto, tempdir, log)
 	require.NoError(t, err)
+	require.Equal(t, unflushedBytes, j.unflushedBytes)
 
 	require.Equal(t, 2, getBlockJournalLength(t, j))
 

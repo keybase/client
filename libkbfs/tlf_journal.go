@@ -45,10 +45,11 @@ func (ca tlfJournalConfigAdapter) encryptionKeyGetter() encryptionKeyGetter {
 // display in diagnostics. It is suitable for encoding directly as
 // JSON.
 type TLFJournalStatus struct {
-	RevisionStart MetadataRevision
-	RevisionEnd   MetadataRevision
-	BranchID      string
-	BlockOpCount  uint64
+	RevisionStart  MetadataRevision
+	RevisionEnd    MetadataRevision
+	BranchID       string
+	BlockOpCount   uint64
+	UnflushedBytes int64 // (signed because os.FileInfo.Size() is signed)
 }
 
 // TLFJournalBackgroundWorkStatus indicates whether a journal should
@@ -598,11 +599,18 @@ func (j *tlfJournal) getJournalStatus() (TLFJournalStatus, error) {
 		return TLFJournalStatus{}, err
 	}
 	return TLFJournalStatus{
-		BranchID:      j.mdJournal.getBranchID().String(),
-		RevisionStart: earliestRevision,
-		RevisionEnd:   latestRevision,
-		BlockOpCount:  blockEntryCount,
+		BranchID:       j.mdJournal.getBranchID().String(),
+		RevisionStart:  earliestRevision,
+		RevisionEnd:    latestRevision,
+		BlockOpCount:   blockEntryCount,
+		UnflushedBytes: j.blockJournal.unflushedBytes,
 	}, nil
+}
+
+func (j *tlfJournal) getUnflushedBytes() int64 {
+	j.journalLock.RLock()
+	defer j.journalLock.RUnlock()
+	return j.blockJournal.unflushedBytes
 }
 
 func (j *tlfJournal) shutdown() {
