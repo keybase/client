@@ -3,12 +3,11 @@ import React, {Component} from 'react'
 import Render from './index.render'
 import type {Props} from './index.render'
 import {connect} from 'react-redux'
-import {openAccountResetPage, relogin, login, saveInKeychainChanged} from '../../actions/login'
+import {openAccountResetPage, relogin, login} from '../../actions/login'
 import {routeAppend} from '../../actions/router'
 
 type State = {
   selectedUser: ?string,
-  saveInKeychain: boolean,
   showTyping: boolean,
   passphrase: string
 }
@@ -21,7 +20,6 @@ class Login extends Component {
 
     this.state = {
       selectedUser: props.lastUser,
-      saveInKeychain: true,
       showTyping: false,
       passphrase: '',
     }
@@ -29,13 +27,8 @@ class Login extends Component {
 
   _onSubmit () {
     if (this.state.selectedUser) {
-      this.props.onLogin(this.state.selectedUser, this.state.passphrase, this.state.saveInKeychain)
+      this.props.onLogin(this.state.selectedUser, this.state.passphrase)
     }
-  }
-
-  _onSaveInKeychainChange (saveInKeychain) {
-    this.props.onSaveInKeychainChange(this.state.selectedUser, saveInKeychain)
-    this.setState({saveInKeychain})
   }
 
   render () {
@@ -43,11 +36,9 @@ class Login extends Component {
       onSubmit={() => this._onSubmit()}
       passphrase={this.state.passphrase}
       showTyping={this.state.showTyping}
-      saveInKeychain={this.state.saveInKeychain}
       selectedUser={this.state.selectedUser}
       passphraseChange={passphrase => this.setState({passphrase})}
       showTypingChange={showTyping => this.setState({showTyping})}
-      saveInKeychainChange={saveInKeychain => this._onSaveInKeychainChange(saveInKeychain)}
       selectedUserChange={selectedUser => this.setState({selectedUser})}
     />
   }
@@ -76,9 +67,8 @@ export default connect(
   },
   dispatch => ({
     onForgotPassphrase: () => dispatch(openAccountResetPage()),
-    onLogin: (user, passphrase, store) => dispatch(relogin(user, passphrase, store)),
+    onLogin: (user, passphrase) => dispatch(relogin(user, passphrase)),
     onSignup: () => dispatch(routeAppend(['signup'])),
     onSomeoneElse: () => { dispatch(login()) },
-    onSaveInKeychainChange: (user, saveInKeychain) => { dispatch(saveInKeychainChanged(user, saveInKeychain)) },
   })
 )(Login)

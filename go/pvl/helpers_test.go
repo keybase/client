@@ -15,8 +15,8 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
-func sampleState() PvlScriptState {
-	var sampleVars = PvlScriptVariables{
+func sampleState() ScriptState {
+	var sampleVars = ScriptVariables{
 		UsernameService: "kronk",
 		UsernameKeybase: "kronk_on_kb",
 		Sig:             []byte{1, 2, 3, 4, 5},
@@ -25,7 +25,7 @@ func sampleState() PvlScriptState {
 		Hostname:        "%{sig_id_medium}",
 	}
 
-	var sampleState = PvlScriptState{
+	var sampleState = ScriptState{
 		WhichScript:  0,
 		PC:           0,
 		Service:      keybase1.ProofType_TWITTER,
@@ -52,9 +52,9 @@ var serviceToStringTests = []serviceToStringTest{
 	{keybase1.ProofType(-12), "", false, keybase1.ProofStatus_INVALID_PVL},
 }
 
-func TestPvlServiceToString(t *testing.T) {
+func TestServiceToString(t *testing.T) {
 	for i, test := range serviceToStringTests {
-		name, err := pvlServiceToString(test.service)
+		name, err := serviceToString(test.service)
 		switch {
 		case (err == nil) != test.shouldwork:
 			t.Fatalf("%v err %v", i, err)
@@ -66,38 +66,38 @@ func TestPvlServiceToString(t *testing.T) {
 	}
 }
 
-type pvlJSONHasKeyTest struct {
+type jsonHasKeyTest struct {
 	json *jsonw.Wrapper
 	key  string
 	has  bool
 }
 
-var pvlJSONHasKeyTests = []pvlJSONHasKeyTest{
+var jsonHasKeyTests = []jsonHasKeyTest{
 	{jsonw.NewBool(true), "foo", false},
 	{makeJSONDangerous(`{"foo": "bar"}`), "foo", true},
 	{makeJSONDangerous(`{"baz": "bar"}`), "foo", false},
 	{makeJSONDangerous(`[0, 1, 2]`), "0", false},
 }
 
-func TestPvlJSONHasKey(t *testing.T) {
-	for i, test := range pvlJSONHasKeyTests {
-		if pvlJSONHasKey(test.json, test.key) != test.has {
+func TestJSONHasKey(t *testing.T) {
+	for i, test := range jsonHasKeyTests {
+		if jsonHasKey(test.json, test.key) != test.has {
 			t.Fatalf("%v %v", i, !test.has)
 		}
-		if pvlJSONHasKeyCommand(test.json, PvlCommandName(test.key)) != test.has {
+		if jsonHasKeyCommand(test.json, CommandName(test.key)) != test.has {
 			t.Fatalf("%v %v", i, !test.has)
 		}
 	}
 }
 
-type pvlSubstituteTest struct {
+type substituteTest struct {
 	shouldwork bool
 	service    keybase1.ProofType
 	numbered   []string
 	a, b       string
 }
 
-var pvlSubstituteTests = []pvlSubstituteTest{
+var substituteTests = []substituteTest{
 	{true, keybase1.ProofType_TWITTER, nil,
 		"%{username_service}", "kronk"},
 	{true, keybase1.ProofType_GENERIC_WEB_SITE, nil,
@@ -139,11 +139,11 @@ var pvlSubstituteTests = []pvlSubstituteTest{
 		"%{1}", ""},
 }
 
-func TestPvlSubstitute(t *testing.T) {
-	for i, test := range pvlSubstituteTests {
+func TestSubstitute(t *testing.T) {
+	for i, test := range substituteTests {
 		state := sampleState()
 		state.Service = test.service
-		res, err := pvlSubstitute(test.a, state, test.numbered)
+		res, err := substitute(test.a, state, test.numbered)
 		if (err == nil) != test.shouldwork {
 			t.Fatalf("%v error mismatch: %v %v %v", i, test.shouldwork, err, res)
 		}
@@ -155,13 +155,13 @@ func TestPvlSubstitute(t *testing.T) {
 	}
 }
 
-type pvlJSONUnpackArrayTest struct {
+type jsonUnpackArrayTest struct {
 	json       *jsonw.Wrapper
 	shouldwork bool
 	out        []*jsonw.Wrapper
 }
 
-var pvlJSONUnpackArrayTests = []pvlJSONUnpackArrayTest{
+var jsonUnpackArrayTests = []jsonUnpackArrayTest{
 	{makeJSONDangerous("1"), false, nil},
 	{makeJSONDangerous(`"hey"`), false, nil},
 	{makeJSONDangerous(`{"a": "b"}`), false, nil},
@@ -170,9 +170,9 @@ var pvlJSONUnpackArrayTests = []pvlJSONUnpackArrayTest{
 	}},
 }
 
-func TestPvlJSONUnpackArray(t *testing.T) {
-	for i, test := range pvlJSONUnpackArrayTests {
-		ar, err := pvlJSONUnpackArray(test.json)
+func TestJSONUnpackArray(t *testing.T) {
+	for i, test := range jsonUnpackArrayTests {
+		ar, err := jsonUnpackArray(test.json)
 		if (err == nil) != test.shouldwork {
 			t.Fatalf("%v err %v", i, err)
 		}
@@ -196,13 +196,13 @@ func TestPvlJSONUnpackArray(t *testing.T) {
 	}
 }
 
-type pvlJSONGetChildrenTest struct {
+type jsonGetChildrenTest struct {
 	json       *jsonw.Wrapper
 	shouldwork bool
 	out        []*jsonw.Wrapper
 }
 
-var pvlJSONGetChildrenTests = []pvlJSONGetChildrenTest{
+var jsonGetChildrenTests = []jsonGetChildrenTest{
 	{makeJSONDangerous("1"), false, nil},
 	{makeJSONDangerous(`"hey"`), false, nil},
 	{makeJSONDangerous(`{"a": "b", "1": 2}`), true, []*jsonw.Wrapper{
@@ -213,9 +213,9 @@ var pvlJSONGetChildrenTests = []pvlJSONGetChildrenTest{
 	}},
 }
 
-func TestPvlJSONGetChildren(t *testing.T) {
-	for i, test := range pvlJSONGetChildrenTests {
-		ar, err := pvlJSONGetChildren(test.json)
+func TestJSONGetChildren(t *testing.T) {
+	for i, test := range jsonGetChildrenTests {
+		ar, err := jsonGetChildren(test.json)
 		if (err == nil) != test.shouldwork {
 			t.Fatalf("%v err %v", i, err)
 		}
@@ -264,13 +264,13 @@ func getJSONStringList(xs []*jsonw.Wrapper) ([]string, error) {
 	return ret, nil
 }
 
-type pvlJSONStringSimpleTest struct {
+type jsonStringSimpleTest struct {
 	shouldwork bool
 	json       *jsonw.Wrapper
 	out        string
 }
 
-var pvlJSONStringSimpleTests = []pvlJSONStringSimpleTest{
+var jsonStringSimpleTests = []jsonStringSimpleTest{
 	{true, makeJSONDangerous("1"), "1"},
 	{true, makeJSONDangerous(`"hey"`), "hey"},
 	{true, makeJSONDangerous("true"), "true"},
@@ -280,9 +280,9 @@ var pvlJSONStringSimpleTests = []pvlJSONStringSimpleTest{
 	{false, makeJSONDangerous(`[1, {"a": "b"}, "three"]`), ""},
 }
 
-func TestPvlJSONStringSimple(t *testing.T) {
-	for i, test := range pvlJSONStringSimpleTests {
-		out, err := pvlJSONStringSimple(test.json)
+func TestJSONStringSimple(t *testing.T) {
+	for i, test := range jsonStringSimpleTests {
+		out, err := jsonStringSimple(test.json)
 		if (err == nil) != test.shouldwork {
 			t.Fatalf("%v err %v", i, err)
 		}
@@ -292,7 +292,7 @@ func TestPvlJSONStringSimple(t *testing.T) {
 	}
 }
 
-type pvlSelectionContentsTest struct {
+type selectionContentsTest struct {
 	html     *goquery.Document
 	selector string
 	useAttr  bool
@@ -300,25 +300,25 @@ type pvlSelectionContentsTest struct {
 	out      string
 }
 
-var pvlSelectionContentsDocument = makeHTMLDangerous(`
+var selectionContentsDocument = makeHTMLDangerous(`
 <html>
 <head></head><div>a<span class="x" data-foo="y">b</span></div><div data-foo="z">c</div>
 </html>
 `)
 
-var pvlSelectionContentsTests = []pvlSelectionContentsTest{
-	{pvlSelectionContentsDocument, "div", false, "", "ab c"},
-	{pvlSelectionContentsDocument, "span", false, "", "b"},
-	{pvlSelectionContentsDocument, "span", true, "data-foo", "y"},
-	{pvlSelectionContentsDocument, "div", true, "data-foo", "z"},
-	{pvlSelectionContentsDocument, "span", true, "data-bar", ""},
-	{pvlSelectionContentsDocument, "div", true, "data-baz", ""},
+var selectionContentsTests = []selectionContentsTest{
+	{selectionContentsDocument, "div", false, "", "ab c"},
+	{selectionContentsDocument, "span", false, "", "b"},
+	{selectionContentsDocument, "span", true, "data-foo", "y"},
+	{selectionContentsDocument, "div", true, "data-foo", "z"},
+	{selectionContentsDocument, "span", true, "data-bar", ""},
+	{selectionContentsDocument, "div", true, "data-baz", ""},
 }
 
-func TestPvlSelectionContents(t *testing.T) {
-	for i, test := range pvlSelectionContentsTests {
+func TestSelectionContents(t *testing.T) {
+	for i, test := range selectionContentsTests {
 		sel := test.html.Find(test.selector)
-		out := pvlSelectionContents(sel, test.useAttr, test.attr)
+		out := selectionContents(sel, test.useAttr, test.attr)
 		if out != test.out {
 			t.Fatalf("%v mismatch\n%v\n%v", i, out, test.out)
 		}
