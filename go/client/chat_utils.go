@@ -51,11 +51,13 @@ type conversationResolver struct {
 }
 
 func (r conversationResolver) Resolve(ctx context.Context, chatClient keybase1.ChatLocalInterface) (conversations []keybase1.ConversationInfoLocal, err error) {
-	cname, err := chatClient.CompleteAndCanonicalizeTlfName(ctx, r.TlfName)
-	if err != nil {
-		return nil, err
+	if len(r.TlfName) > 0 {
+		cname, err := chatClient.CompleteAndCanonicalizeTlfName(ctx, r.TlfName)
+		if err != nil {
+			return nil, fmt.Errorf("completing TLF name error: %v", err)
+		}
+		r.TlfName = string(cname)
 	}
-	r.TlfName = string(cname)
 	conversations, err = chatClient.ResolveConversationLocal(ctx, keybase1.ConversationInfoLocal{
 		TlfName:   r.TlfName,
 		TopicName: r.TopicName,
@@ -118,11 +120,15 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 
 	conversationInfos, err := f.resolver.Resolve(ctx, chatClient)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("resolving conversation error: %v\n", err)
 	}
-	// TODO: prompt user to choose conversation(s)
+	// TODO: prompt user to choose conversation(s) if called by `keybase chat read` (rather than `keybase chat list`)
 	for _, conv := range conversationInfos {
 		f.selector.Conversations = append(f.selector.Conversations, conv.Id)
+	}
+
+	if len(f.selector.Conversations) == 0 {
+		return conversations, nil
 	}
 
 	conversations, err = chatClient.GetMessagesLocal(ctx, f.selector)
