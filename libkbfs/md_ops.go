@@ -46,8 +46,9 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 	return UnverifiableTlfUpdateError{tlf, writer, err}
 }
 
-func (md *MDOpsStandard) verifyWriterKey(
-	ctx context.Context, rmds *RootMetadataSigned, handle *TlfHandle) error {
+func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
+	rmds *RootMetadataSigned, handle *TlfHandle,
+	getRangeLock *sync.Mutex) error {
 	if !rmds.MD.IsWriterMetadataCopiedSet() {
 		var err error
 		if handle.IsFinal() {
@@ -65,6 +66,25 @@ func (md *MDOpsStandard) verifyWriterKey(
 		}
 		return nil
 
+	}
+
+	if getRangeLock != nil {
+		// If there are multiple goroutines, we don't want to risk
+		// several concurrent requests to the MD server, just in case
+		// there are several revisions with copied writer MD in this
+		// range.
+		//
+		// TODO: bugs could result in thousands (or more) copied MD
+		// updates in a row (i.e., too many to fit in the cache).  We
+		// could do something more sophisticated here where once one
+		// goroutine finds the copied MD, it stores it somewhere so
+		// the other goroutines don't have to also search through all
+		// the same MD updates (which may have been evicted from the
+		// cache in the meantime).  Also, maybe copied writer MDs
+		// should include the original revision number so we don't
+		// have to search like this.
+		getRangeLock.Lock()
+		defer getRangeLock.Unlock()
 	}
 
 	// The server timestamp on rmds does not reflect when the
@@ -120,8 +140,8 @@ func (md *MDOpsStandard) verifyWriterKey(
 	}
 }
 
-func (md *MDOpsStandard) processMetadata(
-	ctx context.Context, handle *TlfHandle, rmds *RootMetadataSigned) (
+func (md *MDOpsStandard) processMetadata(ctx context.Context,
+	handle *TlfHandle, rmds *RootMetadataSigned, getRangeLock *sync.Mutex) (
 	ImmutableRootMetadata, error) {
 	// First, verify validity and signatures.
 	err := rmds.IsValidAndSigned(md.config.Codec(), md.config.Crypto())
@@ -133,7 +153,7 @@ func (md *MDOpsStandard) processMetadata(
 	}
 
 	// Then, verify the verifying keys.
-	if err := md.verifyWriterKey(ctx, rmds, handle); err != nil {
+	if err := md.verifyWriterKey(ctx, rmds, handle, getRangeLock); err != nil {
 		return ImmutableRootMetadata{}, err
 	}
 
@@ -251,7 +271,7 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 	// consistency. In the future, we'd want to eventually notify
 	// the upper layers of the new name, either directly, or
 	// through a rekey.
-	rmd, err := md.processMetadata(ctx, mdHandle, rmds)
+	rmd, err := md.processMetadata(ctx, mdHandle, rmds, nil)
 	if err != nil {
 		return TlfID{}, ImmutableRootMetadata{}, err
 	}
@@ -260,7 +280,8 @@ func (md *MDOpsStandard) GetForHandle(ctx context.Context, handle *TlfHandle,
 }
 
 func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
-	id TlfID, bid BranchID, handle *TlfHandle, rmds *RootMetadataSigned) (
+	id TlfID, bid BranchID, handle *TlfHandle, rmds *RootMetadataSigned,
+	getRangeLock *sync.Mutex) (
 	ImmutableRootMetadata, error) {
 	// Make sure the signed-over ID matches
 	if id != rmds.MD.TlfID() {
@@ -279,7 +300,7 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 		}
 	}
 
-	return md.processMetadata(ctx, handle, rmds)
+	return md.processMetadata(ctx, handle, rmds, getRangeLock)
 }
 
 func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID,
@@ -300,7 +321,7 @@ func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID,
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
-	rmd, err := md.processMetadataWithID(ctx, id, bid, handle, rmds)
+	rmd, err := md.processMetadataWithID(ctx, id, bid, handle, rmds, nil)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -339,6 +360,7 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 	rmdsChan := make(chan *RootMetadataSigned, len(rmdses))
 	irmdChan := make(chan ImmutableRootMetadata, len(rmdses))
 	errChan := make(chan error, 1)
+	var getRangeLock sync.Mutex
 	worker := func() {
 		defer wg.Done()
 		for rmds := range rmdsChan {
@@ -358,7 +380,8 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 				}
 				return
 			}
-			irmd, err := md.processMetadataWithID(ctx, id, bid, handle, rmds)
+			irmd, err := md.processMetadataWithID(ctx, id, bid, handle, rmds,
+				&getRangeLock)
 			if err != nil {
 				select {
 				case errChan <- err:
