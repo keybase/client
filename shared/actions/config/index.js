@@ -122,7 +122,7 @@ export function bootstrap (): AsyncAction {
       bootstrapSetup = true
       console.log('[bootstrap] registered bootstrap')
       engine().listenOnConnect('bootstrap', () => {
-        console.log('[bootstrap] bootstrapping')
+        console.log('[bootstrap] bootstrapping on connect')
         dispatch(bootstrap())
       })
     } else if (getState().dev.reloading) {
