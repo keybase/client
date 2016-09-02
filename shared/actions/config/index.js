@@ -146,8 +146,8 @@ export function bootstrap (): AsyncAction {
           dispatch({type: Constants.bootstrapFailed, payload: null})
           if (triesRemaining > 0) {
             const retryDelay = Constants.bootstrapRetryDelay / triesRemaining
-            console.log(`Retrying bootstrap in ${retryDelay / 1000}s (${triesRemaining} tries left)`)
-            setTimeout(() => dispatch(bootstrap()), retryDelay)
+            console.log(`Resetting engine in ${retryDelay / 1000}s (${triesRemaining} tries left)`)
+            setTimeout(() => engine().reset(), retryDelay)
           } else {
             console.error('Exhausted bootstrap retries')
           }
