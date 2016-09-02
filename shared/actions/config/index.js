@@ -120,16 +120,16 @@ export function bootstrap (): AsyncAction {
   return (dispatch, getState) => {
     if (!bootstrapSetup) {
       bootstrapSetup = true
-      console.log('Registered bootstrap')
+      console.log('[bootstrap] registered bootstrap')
       engine().listenOnConnect('bootstrap', () => {
-        console.log('Bootstrapping')
+        console.log('[bootstrap] bootstrapping')
         dispatch(bootstrap())
       })
     } else if (getState().dev.reloading) {
       // Let's still register the listeners
       dispatch(_registerListeners())
     } else {
-      console.log('Performing bootstrap...')
+      console.log('[bootstrap] performing bootstrap...')
       Promise.all(
         [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(([username]) => {
           if (username) {
@@ -141,15 +141,15 @@ export function bootstrap (): AsyncAction {
           dispatch((resetSignup(): Action))
           dispatch(_registerListeners())
         }).catch(error => {
-          console.warn('Error bootstrapping: ', error)
+          console.warn('[bootstrap] error bootstrapping: ', error)
           const triesRemaining = getState().config.bootstrapTriesRemaining
           dispatch({type: Constants.bootstrapFailed, payload: null})
           if (triesRemaining > 0) {
             const retryDelay = Constants.bootstrapRetryDelay / triesRemaining
-            console.log(`Resetting engine in ${retryDelay / 1000}s (${triesRemaining} tries left)`)
+            console.log(`[bootstrap] resetting engine in ${retryDelay / 1000}s (${triesRemaining} tries left)`)
             setTimeout(() => engine().reset(), retryDelay)
           } else {
-            console.error('Exhausted bootstrap retries')
+            console.error('[bootstrap] exhausted bootstrap retries')
           }
         })
     }
