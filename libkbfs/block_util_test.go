@@ -3,11 +3,28 @@ package libkbfs
 import (
 	"errors"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"golang.org/x/net/context"
 )
 
+func blockUtilInit(t *testing.T) (mockCtrl *gomock.Controller,
+	ctr *SafeTestReporter, bserver *MockBlockServer, ctx context.Context) {
+	ctr = NewSafeTestReporter(t)
+	mockCtrl = gomock.NewController(ctr)
+	bserver = NewMockBlockServer(mockCtrl)
+	ctx = context.Background()
+	return mockCtrl, ctr, bserver, ctx
+}
+
+func blockUtilShutdown(mockCtrl *gomock.Controller, ctr *SafeTestReporter) {
+	ctr.CheckForFailures()
+	mockCtrl.Finish()
+}
+
 func TestBlockUtilPutNewBlockSuccess(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
+	mockCtrl, ctr, bserver, ctx := blockUtilInit(t)
+	defer blockUtilShutdown(mockCtrl, ctr)
 
 	// expect one call to put a block
 	id := fakeBlockID(1)
@@ -20,18 +37,18 @@ func TestBlockUtilPutNewBlockSuccess(t *testing.T) {
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().Put(ctx, tlfID, id, blockPtr.BlockContext,
+	bserver.EXPECT().Put(ctx, tlfID, id, blockPtr.BlockContext,
 		readyBlockData.buf, readyBlockData.serverHalf).Return(nil)
 
-	if err := putBlockToServer(ctx, config.BlockServer(), tlfID, blockPtr,
+	if err := putBlockToServer(ctx, bserver, tlfID, blockPtr,
 		readyBlockData); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
 
 func TestBlockUtilPutIncRefSuccess(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
+	mockCtrl, ctr, bserver, ctx := blockUtilInit(t)
+	defer blockUtilShutdown(mockCtrl, ctr)
 
 	// expect one call to put a block
 	id := fakeBlockID(1)
@@ -50,18 +67,18 @@ func TestBlockUtilPutIncRefSuccess(t *testing.T) {
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().AddBlockReference(ctx, kmd.TlfID(), id, blockPtr.BlockContext).
-		Return(nil)
+	bserver.EXPECT().AddBlockReference(ctx, kmd.TlfID(), id,
+		blockPtr.BlockContext).Return(nil)
 
-	if err := putBlockToServer(ctx, config.BlockServer(), kmd.TlfID(),
-		blockPtr, readyBlockData); err != nil {
+	if err := putBlockToServer(ctx, bserver, kmd.TlfID(), blockPtr,
+		readyBlockData); err != nil {
 		t.Errorf("Got error on put: %v", err)
 	}
 }
 
 func TestBlockUtilPutFail(t *testing.T) {
-	mockCtrl, config, ctx := blockOpsInit(t)
-	defer blockOpsShutdown(mockCtrl, config)
+	mockCtrl, ctr, bserver, ctx := blockUtilInit(t)
+	defer blockUtilShutdown(mockCtrl, ctr)
 
 	// fail the put call
 	id := fakeBlockID(1)
@@ -76,10 +93,10 @@ func TestBlockUtilPutFail(t *testing.T) {
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().Put(ctx, tlfID, id, blockPtr.BlockContext,
+	bserver.EXPECT().Put(ctx, tlfID, id, blockPtr.BlockContext,
 		readyBlockData.buf, readyBlockData.serverHalf).Return(err)
 
-	if err2 := putBlockToServer(ctx, config.BlockServer(), tlfID, blockPtr,
+	if err2 := putBlockToServer(ctx, bserver, tlfID, blockPtr,
 		readyBlockData); err2 != err {
 		t.Errorf("Got bad error on put: %v", err2)
 	}

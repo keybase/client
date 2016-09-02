@@ -19,7 +19,8 @@ func isRecoverableBlockError(err error) bool {
 	return isArchiveError || isDeleteError || isRefError || isMaxExceededError
 }
 
-// Put implements the BlockOps interface for BlockOpsStandard.
+// putBlockToServer either puts the full block to the block server, or
+// just adds a reference, depending on the refnonce in blockPtr.
 func putBlockToServer(ctx context.Context, bserv BlockServer, tlfID TlfID,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	var err error

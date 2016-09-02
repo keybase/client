@@ -111,13 +111,13 @@ func (s *NaïveStaller) StallBlockOp(stalledOp StallableBlockOp) {
 	unstallCh := make(chan struct{})
 	oldBlockServer := s.config.BlockServer()
 	s.config.SetBlockServer(&stallingBlockServer{
+		BlockServer: oldBlockServer,
 		stallOpName: stalledOp,
 		stallKey:    stallKeyStallEverything,
 		staller: staller{
 			stalled: onStalledCh,
 			unstall: unstallCh,
 		},
-		delegate: oldBlockServer,
 	})
 	s.blockStalled = true
 	s.blockOpsStalls[stalledOp] = &naïveStallInfo{
@@ -217,13 +217,13 @@ func StallBlockOp(ctx context.Context, config Config, stalledOp StallableBlockOp
 	unstallCh := make(chan struct{})
 	stallKey := newStallKey()
 	config.SetBlockServer(&stallingBlockServer{
+		BlockServer: config.BlockServer(),
 		stallOpName: stalledOp,
 		stallKey:    stallKey,
 		staller: staller{
 			stalled: onStalledCh,
 			unstall: unstallCh,
 		},
-		delegate: config.BlockServer(),
 	})
 	newCtx = NewContextReplayable(ctx, func(ctx context.Context) context.Context {
 		return context.WithValue(ctx, stallKey, true)
@@ -314,13 +314,13 @@ func runWithContextCheck(ctx context.Context, action func(ctx context.Context) e
 // matches stallOpName, and ctx.Value(stallKey) is a key in the
 // corresponding staller is used to stall the operation.
 type stallingBlockServer struct {
+	BlockServer
 	stallOpName StallableBlockOp
 	// stallKey is a key for switching on/off stalling. If it's present in ctx,
 	// and equal to `true`, the operation is stalled. This allows us to use the
 	// ctx to control stallings
 	stallKey string
 	staller  staller
-	delegate BlockServer
 }
 
 var _ BlockServer = (*stallingBlockServer)(nil)
@@ -336,7 +336,7 @@ func (f *stallingBlockServer) Get(ctx context.Context, tlfID TlfID, id BlockID,
 	f.maybeStall(ctx, StallableBlockGet)
 	err = runWithContextCheck(ctx, func(ctx context.Context) error {
 		var errGet error
-		buf, serverHalf, errGet = f.delegate.Get(ctx, tlfID, id, bctx)
+		buf, serverHalf, errGet = f.BlockServer.Get(ctx, tlfID, id, bctx)
 		return errGet
 	})
 	return buf, serverHalf, err
@@ -347,36 +347,8 @@ func (f *stallingBlockServer) Put(ctx context.Context, tlfID TlfID, id BlockID,
 	serverHalf BlockCryptKeyServerHalf) error {
 	f.maybeStall(ctx, StallableBlockPut)
 	return runWithContextCheck(ctx, func(ctx context.Context) error {
-		return f.delegate.Put(ctx, tlfID, id, bctx, buf, serverHalf)
+		return f.BlockServer.Put(ctx, tlfID, id, bctx, buf, serverHalf)
 	})
-}
-
-func (f *stallingBlockServer) AddBlockReference(ctx context.Context,
-	tlfID TlfID, id BlockID, context BlockContext) error {
-	return f.delegate.AddBlockReference(ctx, tlfID, id, context)
-}
-
-func (f *stallingBlockServer) RemoveBlockReferences(ctx context.Context,
-	tlfID TlfID, contexts map[BlockID][]BlockContext) (map[BlockID]int, error) {
-	return f.delegate.RemoveBlockReferences(ctx, tlfID, contexts)
-}
-
-func (f *stallingBlockServer) ArchiveBlockReferences(ctx context.Context,
-	tlfID TlfID, contexts map[BlockID][]BlockContext) error {
-	return f.delegate.ArchiveBlockReferences(ctx, tlfID, contexts)
-}
-
-func (f *stallingBlockServer) Shutdown() {
-	f.delegate.Shutdown()
-}
-
-func (f *stallingBlockServer) GetUserQuotaInfo(ctx context.Context) (
-	*UserQuotaInfo, error) {
-	return f.delegate.GetUserQuotaInfo(ctx)
-}
-
-func (f *stallingBlockServer) RefreshAuthToken(ctx context.Context) {
-	f.delegate.RefreshAuthToken(ctx)
 }
 
 // stallingMDOps is an implementation of MDOps whose operations
