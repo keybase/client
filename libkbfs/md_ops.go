@@ -471,7 +471,8 @@ func (md *MDOpsStandard) put(
 	}
 
 	// Ensure that the block changes are properly unembedded.
-	if rmd.data.Changes.Info.BlockPointer == zeroPtr &&
+	if !rmd.IsWriterMetadataCopiedSet() &&
+		rmd.data.Changes.Info.BlockPointer == zeroPtr &&
 		!md.config.BlockSplitter().ShouldEmbedBlockChanges(&rmd.data.Changes) {
 		return MdID{},
 			errors.New("MD has embedded block changes, but shouldn't")
