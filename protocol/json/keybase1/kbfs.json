@@ -34,6 +34,30 @@
       ],
       "response": null,
       "doc": "kbfs calls this as a response to receiving an FSEditListRequest with a\n    given requestID."
+    },
+    "FSSyncStatus": {
+      "request": [
+        {
+          "name": "status",
+          "type": "FSSyncStatus"
+        },
+        {
+          "name": "requestID",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "doc": "FSSyncStatus is called by KBFS as a response to receiving an\n    FSSyncStatusRequest with a given requestID."
+    },
+    "FSSyncEvent": {
+      "request": [
+        {
+          "name": "event",
+          "type": "FSPathSyncStatus"
+        }
+      ],
+      "response": null,
+      "doc": "FSSyncEvent is called by KBFS when the sync status of an individual path\n    changes."
     }
   },
   "namespace": "keybase.1"

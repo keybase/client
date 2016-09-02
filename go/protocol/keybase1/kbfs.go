@@ -17,6 +17,15 @@ type FSEditListArg struct {
 	RequestID int              `codec:"requestID" json:"requestID"`
 }
 
+type FSSyncStatusArg struct {
+	Status    FSSyncStatus `codec:"status" json:"status"`
+	RequestID int          `codec:"requestID" json:"requestID"`
+}
+
+type FSSyncEventArg struct {
+	Event FSPathSyncStatus `codec:"event" json:"event"`
+}
+
 type KbfsInterface interface {
 	// Idea is that kbfs would call the function below whenever these actions are
 	// performed on a file.
@@ -30,6 +39,12 @@ type KbfsInterface interface {
 	// kbfs calls this as a response to receiving an FSEditListRequest with a
 	// given requestID.
 	FSEditList(context.Context, FSEditListArg) error
+	// FSSyncStatus is called by KBFS as a response to receiving an
+	// FSSyncStatusRequest with a given requestID.
+	FSSyncStatus(context.Context, FSSyncStatusArg) error
+	// FSSyncEvent is called by KBFS when the sync status of an individual path
+	// changes.
+	FSSyncEvent(context.Context, FSPathSyncStatus) error
 }
 
 func KbfsProtocol(i KbfsInterface) rpc.Protocol {
@@ -68,6 +83,38 @@ func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"FSSyncStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]FSSyncStatusArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FSSyncStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FSSyncStatusArg)(nil), args)
+						return
+					}
+					err = i.FSSyncStatus(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"FSSyncEvent": {
+				MakeArg: func() interface{} {
+					ret := make([]FSSyncEventArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]FSSyncEventArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]FSSyncEventArg)(nil), args)
+						return
+					}
+					err = i.FSSyncEvent(ctx, (*typedArgs)[0].Event)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -94,5 +141,20 @@ func (c KbfsClient) FSEvent(ctx context.Context, event FSNotification) (err erro
 // given requestID.
 func (c KbfsClient) FSEditList(ctx context.Context, __arg FSEditListArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSEditList", []interface{}{__arg}, nil)
+	return
+}
+
+// FSSyncStatus is called by KBFS as a response to receiving an
+// FSSyncStatusRequest with a given requestID.
+func (c KbfsClient) FSSyncStatus(ctx context.Context, __arg FSSyncStatusArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSSyncStatus", []interface{}{__arg}, nil)
+	return
+}
+
+// FSSyncEvent is called by KBFS when the sync status of an individual path
+// changes.
+func (c KbfsClient) FSSyncEvent(ctx context.Context, event FSPathSyncStatus) (err error) {
+	__arg := FSSyncEventArg{Event: event}
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSSyncEvent", []interface{}{__arg}, nil)
 	return
 }
