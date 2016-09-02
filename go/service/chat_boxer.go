@@ -34,11 +34,11 @@ func newChatBoxer(g *libkb.GlobalContext) *chatBoxer {
 
 // unboxMessage unboxes a chat1.MessageBoxed into a keybase1.Message.  It finds
 // the appropriate keybase1.CryptKey.
-func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, msg chat1.MessageBoxed) (keybase1.Message, error) {
+func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, msg chat1.MessageBoxed) (msg keybase1.Message, err error) {
 	tlfName := msg.ClientHeader.TlfName
 	keys, err := finder.find(ctx, b.tlf, tlfName)
 	if err != nil {
-		return keybase1.Message{}, err
+		return msg, libkb.ChatUnboxingError{Msg: err.Error()}
 	}
 
 	var matchKey *keybase1.CryptKey
@@ -50,10 +50,14 @@ func (b *chatBoxer) unboxMessage(ctx context.Context, finder *keyFinder, msg cha
 	}
 
 	if matchKey == nil {
-		return keybase1.Message{}, fmt.Errorf("no key found for generation %d", msg.KeyGeneration)
+		return msg, libkb.ChatUnboxingError{Msg: fmt.Sprintf("no key found for generation %d", msg.KeyGeneration)}
 	}
 
-	return b.unboxMessageWithKey(msg, matchKey)
+	if msg, err = b.unboxMessageWithKey(msg, matchKey); err != nil {
+		return msg, libkb.ChatUnboxingError{Msg: err.Error()}
+	}
+
+	return msg, nil
 }
 
 // unboxMessageWithKey unboxes a chat1.MessageBoxed into a keybase1.Message given
@@ -96,11 +100,11 @@ func (b *chatBoxer) unboxMessageWithKey(msg chat1.MessageBoxed, key *keybase1.Cr
 
 // boxMessage encrypts a keybase1.MessagePlaintext into a chat1.MessageBoxed.  It
 // finds the most recent key for the TLF.
-func (b *chatBoxer) boxMessage(ctx context.Context, msg keybase1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (chat1.MessageBoxed, error) {
+func (b *chatBoxer) boxMessage(ctx context.Context, msg keybase1.MessagePlaintext, signingKeyPair libkb.NaclSigningKeyPair) (boxed chat1.MessageBoxed, err error) {
 	tlfName := msg.ClientHeader.TlfName
 	keys, err := b.tlf.CryptKeys(ctx, tlfName)
 	if err != nil {
-		return chat1.MessageBoxed{}, err
+		return boxed, libkb.ChatBoxingError{Msg: err.Error()}
 	}
 
 	var recentKey *keybase1.CryptKey
@@ -111,10 +115,13 @@ func (b *chatBoxer) boxMessage(ctx context.Context, msg keybase1.MessagePlaintex
 	}
 
 	if recentKey == nil {
-		return chat1.MessageBoxed{}, fmt.Errorf("no key found for tlf %q", tlfName)
+		return boxed, libkb.ChatBoxingError{Msg: fmt.Sprintf("no key found for tlf %q", tlfName)}
 	}
 
-	return b.boxMessageWithKeys(msg, recentKey, signingKeyPair)
+	if boxed, err = b.boxMessageWithKeys(msg, recentKey, signingKeyPair); err != nil {
+		return boxed, libkb.ChatBoxingError{Msg: err.Error()}
+	}
+	return boxed, nil
 }
 
 // boxMessageWithKey encrypts and signs a keybase1.MessagePlaintext into a
