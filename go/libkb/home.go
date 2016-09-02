@@ -31,6 +31,7 @@ type HomeFinder interface {
 	Normalize(s string) string
 	LogDir() string
 	ServiceSpawnDir() (string, error)
+	SandboxCacheDir() string // For macOS
 }
 
 func (b Base) Unsplit(v []string) string {
@@ -76,9 +77,10 @@ func (x XdgPosix) dirHelper(env string, prefixDirs ...string) string {
 	return x.Join(prfx, appName)
 }
 
-func (x XdgPosix) ConfigDir() string { return x.dirHelper("XDG_CONFIG_HOME", ".config") }
-func (x XdgPosix) CacheDir() string  { return x.dirHelper("XDG_CACHE_HOME", ".cache") }
-func (x XdgPosix) DataDir() string   { return x.dirHelper("XDG_DATA_HOME", ".local", "share") }
+func (x XdgPosix) ConfigDir() string       { return x.dirHelper("XDG_CONFIG_HOME", ".config") }
+func (x XdgPosix) CacheDir() string        { return x.dirHelper("XDG_CACHE_HOME", ".cache") }
+func (x XdgPosix) SandboxCacheDir() string { return "" } // Unsupported
+func (x XdgPosix) DataDir() string         { return x.dirHelper("XDG_DATA_HOME", ".local", "share") }
 
 func (x XdgPosix) RuntimeDir() string { return x.dirHelper("XDG_RUNTIME_DIR", ".config") }
 
@@ -120,7 +122,14 @@ func (d Darwin) homeDir(dirs ...string) string {
 	return filepath.Join(dirs...)
 }
 
-func (d Darwin) CacheDir() string                 { return d.homeDir(d.Home(false), "Library", "Caches") }
+func (d Darwin) CacheDir() string { return d.homeDir(d.Home(false), "Library", "Caches") }
+func (d Darwin) SandboxCacheDir() string {
+	if isIOS {
+		return ""
+	}
+	// The container name "keybase" is the group name specified in the entitlement for sandboxed extensions
+	return d.homeDir(d.Home(false), "Library", "Group Containers", "keybase", "Library", "Caches")
+}
 func (d Darwin) ConfigDir() string                { return d.homeDir(d.Home(false), "Library", "Application Support") }
 func (d Darwin) DataDir() string                  { return d.ConfigDir() }
 func (d Darwin) RuntimeDir() string               { return d.CacheDir() }
@@ -162,6 +171,7 @@ func (w Win32) Normalize(s string) string {
 }
 
 func (w Win32) CacheDir() string                 { return w.Home(false) }
+func (w Win32) SandboxCacheDir() string          { return "" } // Unsupported
 func (w Win32) ConfigDir() string                { return w.Home(false) }
 func (w Win32) DataDir() string                  { return w.Home(false) }
 func (w Win32) RuntimeDir() string               { return w.Home(false) }

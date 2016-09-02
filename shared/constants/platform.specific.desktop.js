@@ -30,7 +30,9 @@ const envedPathWin32 = {
   prod: 'Keybase',
 }
 
-function buildWin32SocketRoot () {
+const socketName = 'keybased.sock'
+
+function win32SocketDialPath (): string {
   let appdata = getenv('APPDATA', '')
   // Remove leading drive letter e.g. C:
   if (/^[a-zA-Z]:/.test(appdata)) {
@@ -41,21 +43,31 @@ function buildWin32SocketRoot () {
   if (runMode !== 'prod') {
     extension = runMode.charAt(0).toUpperCase() + runMode.substr(1)
   }
-  let path = `\\\\.\\pipe\\kbservice${appdata}\\Keybase${extension}`
-  return path
+  let dir = `\\\\.\\pipe\\kbservice${appdata}\\Keybase${extension}`
+  return path.join(dir, socketName)
 }
 
-function findSocketRoot () {
-  const paths = {
-    'darwin': `${getenv('HOME', '')}/Library/Caches/${envedPathOSX[runMode]}/`,
-    'linux': runMode === 'prod' ? `${getenv('XDG_RUNTIME_DIR', '')}/keybase/` : `${getenv('XDG_RUNTIME_DIR', '')}/keybase.${runMode}/`,
-    'win32': buildWin32SocketRoot(),
+function linuxSocketDialPath (): string {
+  if (runMode === 'prod') {
+    return path.join(`${getenv('XDG_RUNTIME_DIR', '')}/keybase/`, socketName)
   }
+  return path.join(`${getenv('XDG_RUNTIME_DIR', '')}/keybase.${runMode}/`, socketName)
+}
 
+const darwinCacheRoot = `${getenv('HOME', '')}/Library/Caches/${envedPathOSX[runMode]}/`
+const darwinSandboxCacheRoot = `${getenv('HOME', '')}/Library/Group Containers/keybase/Library/Caches/${envedPathOSX[runMode]}/`
+const darwinSandboxSocketPath = path.join(darwinSandboxCacheRoot, socketName)
+
+function findSocketDialPath (): Array<string> {
+  const paths = {
+    'darwin': darwinSandboxSocketPath,
+    'linux': linuxSocketDialPath(),
+    'win32': win32SocketDialPath(),
+  }
   return paths[process.platform]
 }
 
-function findDataRoot () {
+function findDataRoot (): string {
   const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Application Support/${envedPathOSX[runMode]}/`,
@@ -66,7 +78,7 @@ function findDataRoot () {
   return paths[process.platform]
 }
 
-function logFileName () {
+function logFileName (): string {
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.log`,
     'linux': null, // linux is null because we can redirect stdout
@@ -76,11 +88,9 @@ function logFileName () {
   return paths[process.platform]
 }
 
-const socketRoot = findSocketRoot()
-const socketName = 'keybased.sock'
-const socketPath = path.join(socketRoot, socketName)
+const socketPath = findSocketDialPath()
 const dataRoot = findDataRoot()
-const splashRoot = process.platform === 'darwin' ? socketRoot : dataRoot
+const splashRoot = process.platform === 'darwin' ? darwinCacheRoot : dataRoot
 
 export {
   OS,
@@ -88,8 +98,6 @@ export {
   isMobile,
   logFileName,
   runMode,
-  socketName,
   socketPath,
-  socketRoot,
   splashRoot,
 }

@@ -7,31 +7,90 @@
 package libkb
 
 import (
+	"fmt"
 	"net"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
-func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
-	if err = MakeParentDirs(s.file); err != nil {
-		return
+func (s SocketInfo) BindToSocket() (net.Listener, error) {
+	bindFile := s.bindFile
+	if err := MakeParentDirs(bindFile); err != nil {
+		return nil, err
 	}
-	s.G().Log.Info("Binding to unix:%s", s.file)
-	return net.Listen("unix", s.file)
+
+	// Path can't be longer than 108 characters.
+	// In this case Chdir to the file directory first.
+	// https://github.com/golang/go/issues/6895#issuecomment-98006662
+	if len(bindFile) >= 108 {
+		prevWd, err := os.Getwd()
+		if err != nil {
+			return nil, fmt.Errorf("Error getting working directory: %s", err)
+		}
+		s.G().Log.Warning("Changing current working directory because path for binding is too long")
+		if err := os.Chdir(filepath.Dir(bindFile)); err != nil {
+			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
+		}
+		defer os.Chdir(prevWd)
+		bindFile = filepath.Base(bindFile)
+	}
+
+	s.G().Log.Info("Binding to unix:%s", bindFile)
+	return net.Listen("unix", bindFile)
 }
 
-func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
-	s.G().Log.Debug("Dialing unix:%s", s.file)
-	return net.Dial("unix", s.file)
+func (s SocketInfo) DialSocket() (net.Conn, error) {
+	errs := []error{}
+	for _, file := range s.dialFiles {
+		ret, err := s.dialSocket(file)
+		if err == nil {
+			return ret, nil
+		}
+		errs = append(errs, err)
+	}
+	return nil, CombineErrors(errs...)
+}
+
+func (s SocketInfo) dialSocket(dialFile string) (net.Conn, error) {
+	if dialFile == "" {
+		return nil, fmt.Errorf("Can't dial empty path")
+	}
+	// Path can't be longer than 108 characters.
+	// In this case Chdir to the file directory first.
+	// https://github.com/golang/go/issues/6895#issuecomment-98006662
+	if len(dialFile) >= 108 {
+		prevWd, err := os.Getwd()
+		if err != nil {
+			return nil, fmt.Errorf("Error getting working directory: %s", err)
+		}
+		s.G().Log.Warning("Changing current working directory because path for dialing is too long")
+		if err := os.Chdir(filepath.Dir(dialFile)); err != nil {
+			return nil, fmt.Errorf("Path can't be longer than 108 characters (failed to chdir): %s", err)
+		}
+		defer os.Chdir(prevWd)
+		dialFile = filepath.Base(dialFile)
+	}
+
+	s.G().Log.Debug("Dialing unix:%s", dialFile)
+	return net.Dial("unix", dialFile)
 }
 
 func NewSocket(g *GlobalContext) (ret Socket, err error) {
-	var s string
-	s, err = g.Env.GetSocketFile()
-	if err == nil {
-		ret = SocketInfo{
-			Contextified: NewContextified(g),
-			file:         s,
-		}
+	var dialFiles []string
+	dialFiles, err = g.Env.GetSocketDialFiles()
+	if err != nil {
+		return
+	}
+	var bindFile string
+	bindFile, err = g.Env.GetSocketBindFile()
+	if err != nil {
+		return
+	}
+	ret = SocketInfo{
+		Contextified: NewContextified(g),
+		dialFiles:    dialFiles,
+		bindFile:     bindFile,
 	}
 	return
 }
