@@ -46,12 +46,3 @@ func (b *BlockOpsConstrained) delay(ctx context.Context, size int) error {
 	}
 	return nil
 }
-
-// Put implements the BlockOps interface for BlockOpsConstrained.
-func (b *BlockOpsConstrained) Put(ctx context.Context, tlfID TlfID,
-	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	if err := b.delay(ctx, len(readyBlockData.buf)); err != nil {
-		return err
-	}
-	return b.BlockOps.Put(ctx, tlfID, blockPtr, readyBlockData)
-}

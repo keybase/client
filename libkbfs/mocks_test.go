@@ -2517,16 +2517,6 @@ func (_mr *_MockBlockOpsRecorder) Ready(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Ready", arg0, arg1, arg2)
 }
 
-func (_m *MockBlockOps) Put(ctx context.Context, tlfID TlfID, blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	ret := _m.ctrl.Call(_m, "Put", ctx, tlfID, blockPtr, readyBlockData)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-func (_mr *_MockBlockOpsRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
-}
-
 func (_m *MockBlockOps) Delete(ctx context.Context, tlfID TlfID, ptrs []BlockPointer) (map[BlockID]int, error) {
 	ret := _m.ctrl.Call(_m, "Delete", ctx, tlfID, ptrs)
 	ret0, _ := ret[0].(map[BlockID]int)
@@ -2927,7 +2917,7 @@ func (_mr *_MockmdServerLocalRecorder) isShutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "isShutdown")
 }
 
-func (_m *MockmdServerLocal) copy(config Config) mdServerLocal {
+func (_m *MockmdServerLocal) copy(config mdServerLocalConfig) mdServerLocal {
 	ret := _m.ctrl.Call(_m, "copy", config)
 	ret0, _ := ret[0].(mdServerLocal)
 	return ret0

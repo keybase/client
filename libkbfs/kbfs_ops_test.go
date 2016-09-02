@@ -1001,8 +1001,8 @@ func expectSyncBlockHelper(
 		lastCall = call
 		newPath.path[i].ID = newID
 		newBlockIDs[i] = newID
-		config.mockBops.EXPECT().Put(gomock.Any(), kmd.TlfID(),
-			ptrMatcher{newPath.path[i].BlockPointer}, readyBlockData).
+		config.mockBserv.EXPECT().Put(gomock.Any(), kmd.TlfID(), newID,
+			gomock.Any(), readyBlockData.buf, readyBlockData.serverHalf).
 			Return(nil)
 	}
 	if skipSync == 0 {
@@ -4309,8 +4309,8 @@ func expectSyncDirtyBlock(config *ConfigMock, kmd KeyMetadata,
 		// removed.
 	}
 
-	config.mockBops.EXPECT().Put(gomock.Any(), kmd.TlfID(),
-		ptrMatcher{newPtr}, gomock.Any()).Return(nil)
+	config.mockBserv.EXPECT().Put(gomock.Any(), kmd.TlfID(), newID,
+		gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
 	return c2
 }
 
@@ -4504,9 +4504,9 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	// manually add b
 	expectedPath.path = append(expectedPath.path,
 		pathNode{BlockPointer{ID: aID, BlockContext: BlockContext{RefNonce: refNonce}}, "b"})
-	config.mockBops.EXPECT().Put(gomock.Any(), rmd.TlfID(),
-		ptrMatcher{expectedPath.path[1].BlockPointer}, readyBlockData).
-		Return(nil)
+	// TODO: build a context matcher that can check the refnonce.
+	config.mockBserv.EXPECT().AddBlockReference(gomock.Any(), rmd.TlfID(),
+		expectedPath.path[1].ID, gomock.Any()).Return(nil)
 
 	// fsync b
 	err = config.KBFSOps().Sync(ctx, n)
@@ -4997,9 +4997,9 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	lastCall = config.mockBops.EXPECT().Ready(gomock.Any(), kmdMatcher{rmd},
 		gomock.Any()).Return(changeBlockID, changePlainSize,
 		changeReadyBlockData, nil).After(lastCall)
-	config.mockBops.EXPECT().Put(gomock.Any(), rmd.TlfID(),
-		ptrMatcher{BlockPointer{ID: changeBlockID}}, changeReadyBlockData).
-		Return(nil)
+	config.mockBserv.EXPECT().Put(gomock.Any(), rmd.TlfID(), changeBlockID,
+		gomock.Any(), changeReadyBlockData.buf,
+		changeReadyBlockData.serverHalf).Return(nil)
 
 	if err := config.KBFSOps().Sync(ctx, n); err != nil {
 		t.Errorf("Got unexpected error on sync: %v", err)

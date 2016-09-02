@@ -135,23 +135,6 @@ func (b *BlockOpsStandard) Ready(ctx context.Context, kmd KeyMetadata,
 	return
 }
 
-// Put implements the BlockOps interface for BlockOpsStandard.
-func (b *BlockOpsStandard) Put(ctx context.Context, tlfID TlfID,
-	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	bserv := b.config.BlockServer()
-	var err error
-	if blockPtr.RefNonce == zeroBlockRefNonce {
-		err = bserv.Put(ctx, tlfID, blockPtr.ID, blockPtr.BlockContext,
-			readyBlockData.buf, readyBlockData.serverHalf)
-	} else {
-		// non-zero block refnonce means this is a new reference to an
-		// existing block.
-		err = bserv.AddBlockReference(ctx, tlfID, blockPtr.ID,
-			blockPtr.BlockContext)
-	}
-	return err
-}
-
 // Delete implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Delete(ctx context.Context, tlfID TlfID,
 	ptrs []BlockPointer) (liveCounts map[BlockID]int, err error) {

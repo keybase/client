@@ -948,18 +948,6 @@ func (fbo *folderBranchOps) nowUnixNano() int64 {
 	return fbo.config.Clock().Now().UnixNano()
 }
 
-func (fbo *folderBranchOps) putBlockCheckQuota(
-	ctx context.Context, tlfID TlfID, blockPtr BlockPointer,
-	readyBlockData ReadyBlockData, tlfName CanonicalTlfName) error {
-	err := fbo.config.BlockOps().Put(ctx, tlfID, blockPtr, readyBlockData)
-	if qe, ok := err.(BServerErrorOverQuota); ok && !qe.Throttled {
-		fbo.config.Reporter().ReportErr(ctx, tlfName, tlfID.IsPublic(),
-			WriteMode, OverQuotaWarning{qe.Usage, qe.Limit})
-		return nil
-	}
-	return err
-}
-
 func (fbo *folderBranchOps) maybeUnembedAndPutOneBlock(ctx context.Context,
 	md *RootMetadata) error {
 	if fbo.config.BlockSplitter().ShouldEmbedBlockChanges(&md.data.Changes) {
@@ -983,8 +971,9 @@ func (fbo *folderBranchOps) maybeUnembedAndPutOneBlock(ctx context.Context,
 		}
 	}()
 
-	ptrsToDelete, err := fbo.doBlockPuts(
-		ctx, md.TlfID(), md.GetTlfHandle().GetCanonicalName(), *bps)
+	ptrsToDelete, err := doBlockPuts(ctx, fbo.config.BlockServer(),
+		fbo.config.BlockCache(), fbo.config.Reporter(), fbo.log, md.TlfID(),
+		md.GetTlfHandle().GetCanonicalName(), *bps)
 	if err != nil {
 		return err
 	}
@@ -1057,8 +1046,8 @@ func (fbo *folderBranchOps) initMDLocked(
 	md.AddRefBlock(md.data.Dir.BlockInfo)
 	md.SetUnrefBytes(0)
 
-	if err = fbo.putBlockCheckQuota(
-		ctx, md.TlfID(), info.BlockPointer, readyBlockData,
+	if err = putBlockCheckQuota(ctx, fbo.config.BlockServer(),
+		fbo.config.Reporter(), md.TlfID(), info.BlockPointer, readyBlockData,
 		md.GetTlfHandle().GetCanonicalName()); err != nil {
 		return err
 	}
@@ -1790,14 +1779,6 @@ func (fbo *folderBranchOps) syncBlockAndCheckEmbedLocked(ctx context.Context,
 	return newPath, newDe, bps, nil
 }
 
-func isRecoverableBlockError(err error) bool {
-	_, isArchiveError := err.(BServerErrorBlockArchived)
-	_, isDeleteError := err.(BServerErrorBlockDeleted)
-	_, isRefError := err.(BServerErrorBlockNonExistent)
-	_, isMaxExceededError := err.(BServerErrorMaxRefExceeded)
-	return isArchiveError || isDeleteError || isRefError || isMaxExceededError
-}
-
 // Returns whether the given error is one that shouldn't block the
 // removal of a file or directory.
 //
@@ -1813,112 +1794,6 @@ func isRetriableError(err error, retries int) bool {
 	recoverable := isExclOnUnmergedError || isUnmergedSelfConflictError ||
 		isRecoverableBlockError(err)
 	return recoverable && retries < maxRetriesOnRecoverableErrors
-}
-
-func (fbo *folderBranchOps) doOneBlockPut(ctx context.Context,
-	tlfID TlfID, tlfName CanonicalTlfName, blockState blockState,
-	errChan chan error, blocksToRemoveChan chan *FileBlock) {
-	err := fbo.putBlockCheckQuota(
-		ctx, tlfID, blockState.blockPtr, blockState.readyBlockData,
-		tlfName)
-	if err == nil && blockState.syncedCb != nil {
-		err = blockState.syncedCb()
-	}
-	if err != nil {
-		if isRecoverableBlockError(err) {
-			fblock, ok := blockState.block.(*FileBlock)
-			if ok && !fblock.IsInd {
-				blocksToRemoveChan <- fblock
-			}
-		}
-
-		// one error causes everything else to cancel
-		select {
-		case errChan <- err:
-		default:
-			return
-		}
-	}
-}
-
-// doBlockPuts writes all the pending block puts to the cache and
-// server. If the err returned by this function satisfies
-// isRecoverableBlockError(err), the caller should retry its entire
-// operation, starting from when the MD successor was created.
-//
-// Returns a slice of block pointers that resulted in recoverable
-// errors and should be removed by the caller from any saved state.
-func (fbo *folderBranchOps) doBlockPuts(ctx context.Context,
-	tlfID TlfID, tlfName CanonicalTlfName, bps blockPutState) (
-	[]BlockPointer, error) {
-	errChan := make(chan error, 1)
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	blocks := make(chan blockState, len(bps.blockStates))
-	var wg sync.WaitGroup
-
-	numWorkers := len(bps.blockStates)
-	if numWorkers > maxParallelBlockPuts {
-		numWorkers = maxParallelBlockPuts
-	}
-	wg.Add(numWorkers)
-	// A channel to list any blocks that have been archived or
-	// deleted.  Any of these will result in an error, so the maximum
-	// we'll get is the same as the number of workers.
-	blocksToRemoveChan := make(chan *FileBlock, numWorkers)
-
-	worker := func() {
-		defer wg.Done()
-		for blockState := range blocks {
-			fbo.doOneBlockPut(ctx, tlfID, tlfName,
-				blockState, errChan, blocksToRemoveChan)
-			select {
-			// return early if the context has been canceled
-			case <-ctx.Done():
-				return
-			default:
-			}
-		}
-	}
-	for i := 0; i < numWorkers; i++ {
-		go worker()
-	}
-
-	for _, blockState := range bps.blockStates {
-		blocks <- blockState
-	}
-	close(blocks)
-
-	go func() {
-		wg.Wait()
-		close(errChan)
-		close(blocksToRemoveChan)
-	}()
-	err := <-errChan
-	var blocksToRemove []BlockPointer
-	if isRecoverableBlockError(err) {
-		bcache := fbo.config.BlockCache()
-		// Wait for all the outstanding puts to finish, to amortize
-		// the work of re-doing the put.
-		for fblock := range blocksToRemoveChan {
-			for i, bs := range bps.blockStates {
-				if bs.block == fblock {
-					// Let the caller know which blocks shouldn't be
-					// retried.
-					blocksToRemove = append(blocksToRemove,
-						bps.blockStates[i].blockPtr)
-				}
-			}
-
-			// Remove each problematic block from the cache so the
-			// redo can just make a new block instead.
-			if err := bcache.DeleteKnownPtr(fbo.id(), fblock); err != nil {
-				fbo.log.CWarningf(ctx, "Couldn't delete ptr for a block: %v",
-					err)
-			}
-		}
-	}
-	return blocksToRemove, err
 }
 
 func (fbo *folderBranchOps) finalizeBlocks(bps *blockPutState) error {
@@ -2195,8 +2070,9 @@ func (fbo *folderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 		}
 	}()
 
-	_, err = fbo.doBlockPuts(
-		ctx, md.TlfID(), md.GetTlfHandle().GetCanonicalName(), *bps)
+	_, err = doBlockPuts(ctx, fbo.config.BlockServer(),
+		fbo.config.BlockCache(), fbo.config.Reporter(), fbo.log, md.TlfID(),
+		md.GetTlfHandle().GetCanonicalName(), *bps)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -2851,7 +2727,9 @@ func (fbo *folderBranchOps) renameLocked(
 		}
 	}()
 
-	_, err = fbo.doBlockPuts(ctx, md.TlfID(), md.GetTlfHandle().GetCanonicalName(), *newBps)
+	_, err = doBlockPuts(ctx, fbo.config.BlockServer(), fbo.config.BlockCache(),
+		fbo.config.Reporter(), fbo.log, md.TlfID(),
+		md.GetTlfHandle().GetCanonicalName(), *newBps)
 	if err != nil {
 		return err
 	}
@@ -3247,8 +3125,9 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	// don't want them cleaned up in that case.  Instead, the
 	// FinishSync call below will take care of that.
 
-	blocksToRemove, err = fbo.doBlockPuts(
-		ctx, md.TlfID(), md.GetTlfHandle().GetCanonicalName(), *bps)
+	blocksToRemove, err = doBlockPuts(ctx, fbo.config.BlockServer(),
+		fbo.config.BlockCache(), fbo.config.Reporter(), fbo.log, md.TlfID(),
+		md.GetTlfHandle().GetCanonicalName(), *bps)
 	if err != nil {
 		return true, err
 	}

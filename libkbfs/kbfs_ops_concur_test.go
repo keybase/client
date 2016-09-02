@@ -1131,6 +1131,8 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 	}
 	config.SetBlockSplitter(bsplitter)
 
+	oldBServer := config.BlockServer()
+	defer config.SetBlockServer(oldBServer)
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
 		StallBlockOp(ctx, config, StallableBlockPut)
 
@@ -1467,6 +1469,8 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 	// start the sync
 	cancelCtx, cancel := context.WithCancel(ctx)
 
+	oldBServer := config.BlockServer()
+	defer config.SetBlockServer(oldBServer)
 	onSyncStalledCh, syncUnstallCh, ctxStallSync :=
 		StallBlockOp(cancelCtx, config, StallableBlockPut)
 
