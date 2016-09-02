@@ -4,7 +4,6 @@ import rpc from 'framed-msgpack-rpc'
 import setupLocalLogs from '../util/local-log'
 import {requestIdleCallback} from '../util/idle-callback'
 import type {rpcLogType} from './index.platform'
-import {intersperse} from '../util/arrays'
 import {printRPC} from '../local-debug'
 
 const {logLocal} = setupLocalLogs()
@@ -17,7 +16,7 @@ function _makeOnceOnly (f: () => void): () => void {
   let once = false
   return (...args) => {
     if (once) {
-      rpcLog('engineInternal', 'Ignoring multiple result calls', ...args)
+      rpcLog('engineInternal', 'ignoring multiple result calls', {args})
     } else {
       once = true
       f(...args)
@@ -26,10 +25,10 @@ function _makeOnceOnly (f: () => void): () => void {
 }
 
 // Wrapped to add logging
-function _makeLogged (f: () => void, type: rpcLogType, ...extraArgs: Array<any>): () => void {
+function _makeLogged (f: () => void, type: rpcLogType, logTitle: string, extraInfo?: Object): () => void {
   if (printRPC) {
     return (...args) => {
-      rpcLog(type, ...args, ...extraArgs)
+      rpcLog(type, logTitle, {...extraInfo, args})
       f(...args)
     }
   } else {
@@ -52,23 +51,23 @@ function _makeDelayed (f: () => void, amount: number): () => void {
 }
 
 // We basically always delay/log/ensure once all the calls back and forth
-function _wrap (f: () => void, logType: rpcLogType, amount: number, ...logArgs: Array<any>): () => void {
-  const logged = _makeLogged(f, logType, ...logArgs)
+function _wrap (f: () => void, logType: rpcLogType, amount: number, logTitle: string, logInfo?: Object): () => void {
+  const logged = _makeLogged(f, logType, logTitle, logInfo)
   const delayed = _makeDelayed(logged, amount)
   const onceOnly = _makeOnceOnly(delayed)
   return onceOnly
 }
 
 // Logging for rpcs
-function rpcLog (type: rpcLogType, ...args: Array<any>): void {
+function rpcLog (type: rpcLogType, title: string, info?: Object): void {
   if (!printRPC) {
     return
   }
 
   const prefix = {
-    'engineToServer': '  us ▶▶ server',
-    'serverToEngine': '  us ◀◀ server',
-    'engineInternal': '  [ engine ]',
+    'engineToServer': '[engine] ->',
+    'serverToEngine': '[engine] <-',
+    'engineInternal': '[engine]',
   }[type]
   const style = {
     'engineToServer': 'color: blue',
@@ -77,7 +76,7 @@ function rpcLog (type: rpcLogType, ...args: Array<any>): void {
   }[type]
 
   requestIdleCallback(() => {
-    logLocal(`%c${prefix} `, style, '\n  ', ...intersperse('\n  ', args))
+    logLocal(`%c${prefix}`, style, title, info)
   })
 }
 
@@ -104,7 +103,7 @@ class TransportShared extends RobustTransport {
         incomingRPCCallback(payload)
       }
 
-      this.set_generic_handler(_makeDelayed(_makeLogged(handler, 'serverToEngine'), KEYBASE_RPC_DELAY_RESULT))
+      this.set_generic_handler(_makeDelayed(_makeLogged(handler, 'serverToEngine', 'incoming'), KEYBASE_RPC_DELAY_RESULT))
     }
   }
 
@@ -128,7 +127,7 @@ class TransportShared extends RobustTransport {
       calls.forEach(call => {
         payload.response[call] = _wrap((...args) => {
           oldResponse[call](...args)
-        }, 'engineToServer', KEYBASE_RPC_DELAY, payload)
+        }, 'engineToServer', KEYBASE_RPC_DELAY, call, {payload})
       })
     }
   }
@@ -155,8 +154,8 @@ class TransportShared extends RobustTransport {
     const wrappedInvoke = _wrap((args) => {
       super.invoke(args, _wrap((err, data) => {
         cb(err, data)
-      }, 'serverToEngine', KEYBASE_RPC_DELAY_RESULT, args))
-    }, 'engineToServer', KEYBASE_RPC_DELAY)
+      }, 'serverToEngine', KEYBASE_RPC_DELAY_RESULT, 'received'))
+    }, 'engineToServer', KEYBASE_RPC_DELAY, 'sent')
 
     wrappedInvoke(wrappedArgs)
   }
