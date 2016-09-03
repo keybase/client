@@ -10,6 +10,7 @@ import (
 	"runtime"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
@@ -1311,6 +1312,17 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	// cancellation should have been enabled.
 	<-onPutStalledCh
 	cancel()
+
+	select {
+	case <-ctx.Done():
+		// The cancellation delayer makes cancellation become async. This makes
+		// sure ctx is actually canceled before unstalling.
+	case <-time.After(time.Second):
+		// We have a grace period of 0s. This is too long; something must have gone
+		// wrong!
+		t.Fatalf("it took too long for cancellation to happen")
+	}
+
 	close(putUnstallCh)
 
 	// We expect a canceled error
@@ -1318,6 +1330,13 @@ func TestKBFSOpsCanceledCreateDelayTimeoutErrors(t *testing.T) {
 	if err != context.Canceled {
 		t.Fatalf("Create didn't fail after grace period after cancellation."+
 			" Got %v; expecting context.Canceled", err)
+	}
+
+	// do another Op, which generates a new revision, to make sure
+	// CheckConfigAndShutdown doesn't get stuck
+	if _, _, err = kbfsOps.CreateFile(BackgroundContextWithCancellationDelayer(),
+		rootNode, "b", false, NoExcl); err != nil {
+		t.Fatalf("throwaway op failed: %v", err)
 	}
 }
 
