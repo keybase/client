@@ -189,6 +189,20 @@ func (j *JournalServer) Flush(ctx context.Context, tlfID TlfID) (err error) {
 	return nil
 }
 
+// Wait blocks until the write journal has finished flushing
+// everything.  It is essentially the same as Flush() when the journal
+// is enabled and unpaused, except that it is safe to cancel the
+// context without leaving the journal in a partially-flushed state.
+func (j *JournalServer) Wait(ctx context.Context, tlfID TlfID) (err error) {
+	j.log.CDebugf(ctx, "Waiting on journal for %s", tlfID)
+	if tlfJournal, ok := j.getTLFJournal(tlfID); ok {
+		return tlfJournal.wait(ctx)
+	}
+
+	j.log.CDebugf(ctx, "Journal not enabled for %s", tlfID)
+	return nil
+}
+
 // Disable turns off the write journal for the given TLF.
 func (j *JournalServer) Disable(ctx context.Context, tlfID TlfID) (err error) {
 	j.log.CDebugf(ctx, "Disabling journal for %s", tlfID)

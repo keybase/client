@@ -727,7 +727,7 @@ func (c *ConfigLocal) Shutdown() error {
 					return err
 				}
 				if jServer, err := GetJournalServer(config); err == nil {
-					if err := jServer.Flush(context.Background(),
+					if err := jServer.Wait(context.Background(),
 						fbo.id()); err != nil {
 						return err
 					}

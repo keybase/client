@@ -4168,8 +4168,9 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 		return errors.New("Can't sync from server while dirty.")
 	}
 
+	// A journal flush, if needed.
 	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		if err := jServer.Flush(context.Background(),
+		if err := jServer.Wait(context.Background(),
 			fbo.id()); err != nil {
 			return err
 		}
