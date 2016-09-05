@@ -46,7 +46,7 @@ func (rc *WebChecker) CheckHint(ctx libkb.ProofContext, h libkb.SigHint) libkb.P
 
 	files := webKeybaseFiles
 	urlBase := rc.proof.ToDisplayString()
-	theirURL := strings.ToLower(h.GetAPIURL())
+	theirURL := h.GetAPIURL()
 
 	for _, file := range files {
 		ourURL := urlBase + "/" + file
