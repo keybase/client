@@ -479,7 +479,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		if err != nil {
 			return nil, err
 		}
-		return &SpecialReadFile{fileInfo{nmd}.read}, nil
+		return &SpecialReadFile{fileInfo(nmd).read}, nil
 	}
 
 	newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name)
@@ -531,12 +531,10 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	}
 }
 
-type fileInfo struct {
-	nmd libkbfs.NodeMetadata
-}
+type fileInfo libkbfs.NodeMetadata
 
 func (fi fileInfo) read(ctx context.Context) ([]byte, time.Time, error) {
-	bs, err := libfs.PrettyJSON(fi.nmd)
+	bs, err := libfs.PrettyJSON(fi)
 	return bs, time.Time{}, err
 }
 
