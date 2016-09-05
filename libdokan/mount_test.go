@@ -2867,6 +2867,6 @@ func TestKbfsFileInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 	if dst.LastWriterAccordingToTLFLastWriter != libkb.NormalizedUsername("user1") {
-		t.Fatal("Expected user1, %v raw %X", dst, bs)
+		t.Fatalf("Expected user1, %v raw %X", dst, bs)
 	}
 }
