@@ -64,3 +64,6 @@ const DisableJournalFileName = ".kbfs_disable_journal"
 // EditHistoryName is the name of the KBFS TLF edit history file --
 // it can be reached anywhere within a top-level folder.
 const EditHistoryName = ".kbfs_edit_history"
+
+// FileInfoPrefix is the prefix of the per-file metadata files.
+const FileInfoPrefix = ".kbfs_fileinfo_"

@@ -5,7 +5,6 @@
 package libfuse
 
 import (
-	"encoding/json"
 	"fmt"
 	"math"
 	"os"
@@ -471,8 +470,8 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		return node, nil
 	}
 
-	if strings.HasPrefix(req.Name, ".kbfs_fileinfo_") {
-		node, _, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name[15:])
+	if strings.HasPrefix(req.Name, libfs.FileInfoPrefix) {
+		node, _, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name[len(libfs.FileInfoPrefix):])
 		if err != nil {
 			return nil, err
 		}
@@ -537,8 +536,8 @@ type fileInfo struct {
 }
 
 func (fi fileInfo) read(ctx context.Context) ([]byte, time.Time, error) {
-	bs, err := json.Marshal(fi.nmd)
-	return bs, time.Now(), err
+	bs, err := libfs.PrettyJSON(fi.nmd)
+	return bs, time.Time{}, err
 }
 
 func getEXCLFromCreateRequest(req *fuse.CreateRequest) libkbfs.Excl {

@@ -1489,10 +1489,15 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 	if err != nil {
 		return res, err
 	}
-	if de.Writer != keybase1.UID("") {
-		res.LastWriter = de.Writer
-	} else {
-		res.LastWriter = de.Creator
+	res.BlockInfo = de.BlockInfo
+	uid := de.Writer
+	if uid == keybase1.UID("") {
+		uid = de.Creator
+	}
+	res.LastWriterAccordingToTLFLastWriter, err =
+		fbo.config.KBPKI().GetNormalizedUsername(ctx, uid)
+	if err != nil {
+		return res, err
 	}
 	return res, nil
 }
