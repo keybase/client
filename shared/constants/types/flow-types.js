@@ -518,6 +518,10 @@ export function chatLocalResolveConversationLocalRpc (request: $Exact<requestCom
   engineRpcOutgoing({...request, method: 'chatLocal.resolveConversationLocal'})
 }
 
+export function chatLocalUpdateTopicNameLocalRpc (request: $Exact<requestCommon & requestErrorCallback & {param: chatLocalUpdateTopicNameLocalRpcParam}>) {
+  engineRpcOutgoing({...request, method: 'chatLocal.updateTopicNameLocal'})
+}
+
 export function configCheckAPIServerOutOfDateWarningRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>) {
   engineRpcOutgoing({...request, method: 'config.checkAPIServerOutOfDateWarning'})
 }
@@ -1232,6 +1236,7 @@ export type ConfirmResult = {
 }
 
 export type ConversationInfoLocal = {
+  id: chat1.ConversationID,
   tlfName: string,
   topicName: string,
   topicType: chat1.TopicType,
@@ -2645,7 +2650,7 @@ export type chatLocalGetThreadLocalRpcParam = $Exact<{
 }>
 
 export type chatLocalNewConversationLocalRpcParam = $Exact<{
-  conversationTriple: chat1.ConversationIDTriple
+  conversation: ConversationInfoLocal
 }>
 
 export type chatLocalPostLocalRpcParam = $Exact<{
@@ -2655,6 +2660,11 @@ export type chatLocalPostLocalRpcParam = $Exact<{
 
 export type chatLocalResolveConversationLocalRpcParam = $Exact<{
   conversation: ConversationInfoLocal
+}>
+
+export type chatLocalUpdateTopicNameLocalRpcParam = $Exact<{
+  conversationID: chat1.ConversationID,
+  newTopicName: string
 }>
 
 export type configClearValueRpcParam = $Exact<{
@@ -3460,9 +3470,9 @@ type chatLocalGetMessagesLocalResult = ?Array<ConversationLocal>
 
 type chatLocalGetThreadLocalResult = ThreadView
 
-type chatLocalNewConversationLocalResult = chat1.ConversationID
+type chatLocalNewConversationLocalResult = ConversationInfoLocal
 
-type chatLocalResolveConversationLocalResult = ?Array<chat1.ConversationID>
+type chatLocalResolveConversationLocalResult = ?Array<ConversationInfoLocal>
 
 type configCheckAPIServerOutOfDateWarningResult = OutOfDateInfo
 
@@ -3687,6 +3697,7 @@ export type rpc =
   | chatLocalNewConversationLocalRpc
   | chatLocalPostLocalRpc
   | chatLocalResolveConversationLocalRpc
+  | chatLocalUpdateTopicNameLocalRpc
   | configCheckAPIServerOutOfDateWarningRpc
   | configClearValueRpc
   | configGetConfigRpc
