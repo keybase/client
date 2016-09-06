@@ -1,7 +1,11 @@
 // @flow
-import type {TypedAction} from '../constants/types/flux'
-import type {$Exact} from '../constants/types/more'
-import type {Folder} from '../constants/folders'
+import {defaultKBFSPath} from './config'
+
+import type {$Exact} from './types/more'
+import type {Folder as FolderRPC} from '../constants/types/flow-types'
+import type {Folder, ParticipantUnlock, Device, MetaType} from './folders'
+import type {TypedAction} from './types/flux'
+import type {UserList} from '../common-adapters/usernames'
 
 type ListState = $Exact<{
   tlfs?: Array<Folder>,
@@ -33,6 +37,9 @@ export type FavoriteState = $Exact<{
   viewState: ViewState,
 }>
 
+export const favoriteGet = 'favorite:favoriteGet'
+export type FavoriteGet = TypedAction<'favorite:favoriteGet', void, void>
+
 export const favoriteAdd = 'favorite:favoriteAdd'
 export type FavoriteAdd = TypedAction<'favorite:favoriteAdd', void, {errorText: string}>
 
@@ -48,4 +55,41 @@ export type FavoriteSwitchTab = TypedAction<'favorite:favoriteSwitchTab', {showi
 export const favoriteToggleIgnored = 'favorite:favoriteToggleIgnored'
 export type FavoriteToggleIgnored = TypedAction<'favorite:favoriteToggleIgnored', {isPrivate: boolean}, void>
 
-export type FavoriteAction = FavoriteAdd | FavoriteList | FavoriteIgnore | FavoriteSwitchTab | FavoriteToggleIgnored
+export type FavoriteAction = FavoriteGet | FavoriteAdd | FavoriteList | FavoriteIgnore | FavoriteSwitchTab | FavoriteToggleIgnored
+
+function pathFromFolder ({isPublic, users}: {isPublic: boolean, users: UserList}) {
+  const sortName = users.map(u => u.username).join(',')
+  const path = `${defaultKBFSPath}/${isPublic ? 'public' : 'private'}/${sortName}`
+  return {sortName, path}
+}
+
+export type FolderWithMeta = {
+  meta: MetaType,
+  waitingForParticipantUnlock: Array<ParticipantUnlock>,
+  youCanUnlock: Array<Device>,
+} & FolderRPC
+
+function folderFromPath (path: string): ?FolderRPC {
+  if (path.startsWith(`${defaultKBFSPath}/private/`)) {
+    return {
+      name: path.replace(`${defaultKBFSPath}/private/`, ''),
+      private: true,
+      notificationsOn: false,
+      created: false,
+    }
+  } else if (path.startsWith(`${defaultKBFSPath}/public/`)) {
+    return {
+      name: path.replace(`${defaultKBFSPath}/public/`, ''),
+      private: false,
+      notificationsOn: false,
+      created: false,
+    }
+  } else {
+    return null
+  }
+}
+
+export {
+  folderFromPath,
+  pathFromFolder,
+}
