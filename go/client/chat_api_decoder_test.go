@@ -93,17 +93,58 @@ type optTest struct {
 }
 
 var optTests = []optTest{
-	{input: `{"method": "list", "params":{"version": 1}}`},
-	{input: `{"method": "read", "params":{"version": 1}}`},
-	{input: `{"method": "send", "params":{"version": 1}}`},
-	{input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`},
-	{input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1}}`},
+	{
+		input: `{"method": "list", "params":{"version": 1}}`,
+	},
+	{
+		input: `{"method": "list", "params":{"version": 1, "options": {"filter": "all"}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "read", "params":{"version": 1}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "read", "params":{"version": 1, "options": {}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+	},
+	{
+		input: `{"method": "read", "params":{"version": 1, "options": {"conversation_id": "abc123"}}}`,
+	},
+	{
+		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "conversation_id": "afaf111"}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "send", "params":{"version": 1}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "send", "params":{"version": 1, "options": {} }}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		err:   ErrInvalidOptions{},
+	},
+	{
+		input: `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
+	},
+	{
+		input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
+	},
+	{
+		input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "abcd123"}}}`,
+	},
 }
 
 // TestChatAPIDecoderOptions tests the option decoding.
 func TestChatAPIDecoderOptions(t *testing.T) {
 	for i, test := range optTests {
-		h := new(handlerTracker)
+		h := new(ChatAPI)
 		d := NewChatAPIDecoder(h)
 		var buf bytes.Buffer
 		err := d.Decode(strings.NewReader(test.input), &buf)

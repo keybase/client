@@ -26,24 +26,6 @@ func (e ErrInvalidVersion) Error() string {
 	return fmt.Sprintf("invalid version %d", e.version)
 }
 
-type Call struct {
-	Jsonrpc string
-	ID      int
-	Method  string
-	Params  Params
-}
-
-type Params struct {
-	Version int
-	Options json.RawMessage
-}
-
-type ChatAPIHandler interface {
-	ListV1(Call, io.Writer) error
-	ReadV1(Call, io.Writer) error
-	SendV1(Call, io.Writer) error
-}
-
 type ChatAPIDecoder struct {
 	handler ChatAPIHandler
 }
