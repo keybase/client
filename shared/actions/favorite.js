@@ -2,7 +2,7 @@
 import * as Constants from '../constants/favorite'
 import _ from 'lodash'
 import {NotifyPopup} from '../native/notifications'
-import {apiserverGetRpc, favoriteFavoriteAddRpc, favoriteFavoriteIgnoreRpc} from '../constants/types/flow-types'
+import {apiserverGetRpcPromise, favoriteFavoriteAddRpcPromise, favoriteFavoriteIgnoreRpcPromise} from '../constants/types/flow-types'
 import {badgeApp} from './notifications'
 import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
 import {navigateBack} from '../actions/router'
@@ -10,7 +10,7 @@ import {call, put, select} from 'redux-saga/effects'
 import {takeLatest} from 'redux-saga'
 
 import type {Action} from '../constants/types/flux'
-import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, FolderWithMeta, FolderRPC} from '../constants/favorite'
+import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, FolderWithMeta} from '../constants/favorite'
 import type {Folder as FoldersFolder, MetaType} from '../constants/folders'
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -75,24 +75,6 @@ const _jsonToFolders = (json: Object, myKID: any) => {
 
   folderSets.forEach(folders => folders.forEach(fillFolder))
   return _.flatten(folderSets)
-}
-
-function _getFavoritesRPC (): Promise<any> {
-  return new Promise((resolve, reject) => {
-    apiserverGetRpc({
-      param: {
-        endpoint: 'kbfs/favorite/list',
-        args: [{key: 'problems', value: '1'}],
-      },
-      callback: (error, result) => {
-        if (error) {
-          reject(error)
-        } else {
-          resolve(result)
-        }
-      },
-    })
-  })
 }
 
 function _folderSort (username, a, b) {
@@ -214,37 +196,6 @@ function _getFavoritesRPCToFolders (txt: string, username: string = '', loggedIn
   return folders
 }
 
-// TODO gen this in the flow-types
-function _favoriteAddRPC (folder: FolderRPC): Promise<any> {
-  return new Promise((resolve, reject) => {
-    favoriteFavoriteAddRpc({
-      param: {folder},
-      callback: (error, result) => {
-        if (error) {
-          reject(error)
-        } else {
-          resolve(result)
-        }
-      },
-    })
-  })
-}
-
-function _favoriteIgnoreRPC (folder: FolderRPC): Promise<any> {
-  return new Promise((resolve, reject) => {
-    favoriteFavoriteIgnoreRpc({
-      param: {folder},
-      callback: (error, result) => {
-        if (error) {
-          reject(error)
-        } else {
-          resolve(result)
-        }
-      },
-    })
-  })
-}
-
 function * _addSaga (action: FavoriteAdd): SagaGenerator<any, any> {
   const folder = folderFromPath(action.payload.path)
   if (!folder) {
@@ -253,7 +204,7 @@ function * _addSaga (action: FavoriteAdd): SagaGenerator<any, any> {
     return
   } else {
     try {
-      yield call(_favoriteAddRPC, folder)
+      yield call(favoriteFavoriteAddRpcPromise, {param: {folder}})
       const action: FavoriteAdded = {type: Constants.favoriteAdded, payload: undefined}
       yield put(action)
       yield put(navigateBack())
@@ -272,7 +223,7 @@ function * _ignoreSaga (action: FavoriteAdd): SagaGenerator<any, any> {
     return
   } else {
     try {
-      yield call(_favoriteIgnoreRPC, folder)
+      yield call(favoriteFavoriteIgnoreRpcPromise, {param: {folder}})
       const action: FavoriteIgnored = {type: Constants.favoriteIgnored, payload: undefined}
       yield put(action)
       yield put(navigateBack())
@@ -289,7 +240,13 @@ function * _listSaga (): SagaGenerator<any, any> {
     return
   }
 
-  const results = yield call(_getFavoritesRPC)
+  const results = yield call(apiserverGetRpcPromise, {
+    param: {
+      endpoint: 'kbfs/favorite/list',
+      args: [{key: 'problems', value: '1'}],
+    },
+  })
+
   // $ForceType
   const {username, loggedIn} = yield select(
     ({config: {username = null, loggedIn = false} = {}}) => ({username, loggedIn}))

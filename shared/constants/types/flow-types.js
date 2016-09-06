@@ -402,692 +402,1384 @@ export function BTCRegisterBTCRpc (request: $Exact<requestCommon & requestErrorC
   engineRpcOutgoing({...request, method: 'BTC.registerBTC'})
 }
 
+export function BTCRegisterBTCRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: BTCRegisterBTCRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { BTCRegisterBTCRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function Kex2Provisionee2DidCounterSign2Rpc (request: $Exact<requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisionee2.didCounterSign2'})
+}
+
+export function Kex2Provisionee2DidCounterSign2RpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: Kex2Provisionee2DidCounterSign2RpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { Kex2Provisionee2DidCounterSign2Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function Kex2Provisionee2Hello2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2Provisionee2Hello2Result) => void} & {param: Kex2Provisionee2Hello2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisionee2.hello2'})
 }
 
+export function Kex2Provisionee2Hello2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2Provisionee2Hello2Result) => void} & {param: Kex2Provisionee2Hello2RpcParam}>): Promise<Kex2Provisionee2Hello2Result> {
+  return new Promise((resolve, reject) => { Kex2Provisionee2Hello2Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function Kex2ProvisioneeDidCounterSignRpc (request: $Exact<requestCommon & requestErrorCallback & {param: Kex2ProvisioneeDidCounterSignRpcParam}>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisionee.didCounterSign'})
+}
+
+export function Kex2ProvisioneeDidCounterSignRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: Kex2ProvisioneeDidCounterSignRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { Kex2ProvisioneeDidCounterSignRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function Kex2ProvisioneeHelloRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2ProvisioneeHelloResult) => void} & {param: Kex2ProvisioneeHelloRpcParam}>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisionee.hello'})
 }
 
+export function Kex2ProvisioneeHelloRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: Kex2ProvisioneeHelloResult) => void} & {param: Kex2ProvisioneeHelloRpcParam}>): Promise<Kex2ProvisioneeHelloResult> {
+  return new Promise((resolve, reject) => { Kex2ProvisioneeHelloRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function Kex2ProvisionerKexStartRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'Kex2Provisioner.kexStart'})
+}
+
+export function Kex2ProvisionerKexStartRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { Kex2ProvisionerKexStartRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function ScanProofsScanProofsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: ScanProofsScanProofsRpcParam}>) {
   engineRpcOutgoing({...request, method: 'ScanProofs.scanProofs'})
 }
 
+export function ScanProofsScanProofsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: ScanProofsScanProofsRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { ScanProofsScanProofsRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function SecretKeysGetSecretKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>) {
   engineRpcOutgoing({...request, method: 'SecretKeys.getSecretKeys'})
+}
+
+export function SecretKeysGetSecretKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: SecretKeysGetSecretKeysResult) => void}>): Promise<SecretKeysGetSecretKeysResult> {
+  return new Promise((resolve, reject) => { SecretKeysGetSecretKeysRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function accountPassphraseChangeRpc (request: $Exact<requestCommon & requestErrorCallback & {param: accountPassphraseChangeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'account.passphraseChange'})
 }
 
+export function accountPassphraseChangeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: accountPassphraseChangeRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { accountPassphraseChangeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function accountPassphrasePromptRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountPassphrasePromptResult) => void} & {param: accountPassphrasePromptRpcParam}>) {
   engineRpcOutgoing({...request, method: 'account.passphrasePrompt'})
+}
+
+export function accountPassphrasePromptRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: accountPassphrasePromptResult) => void} & {param: accountPassphrasePromptRpcParam}>): Promise<accountPassphrasePromptResult> {
+  return new Promise((resolve, reject) => { accountPassphrasePromptRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function apiserverGetRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetResult) => void} & {param: apiserverGetRpcParam}>) {
   engineRpcOutgoing({...request, method: 'apiserver.Get'})
 }
 
+export function apiserverGetRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverGetResult) => void} & {param: apiserverGetRpcParam}>): Promise<apiserverGetResult> {
+  return new Promise((resolve, reject) => { apiserverGetRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function apiserverPostJSONRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostJSONResult) => void} & {param: apiserverPostJSONRpcParam}>) {
   engineRpcOutgoing({...request, method: 'apiserver.PostJSON'})
+}
+
+export function apiserverPostJSONRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostJSONResult) => void} & {param: apiserverPostJSONRpcParam}>): Promise<apiserverPostJSONResult> {
+  return new Promise((resolve, reject) => { apiserverPostJSONRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function apiserverPostRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostResult) => void} & {param: apiserverPostRpcParam}>) {
   engineRpcOutgoing({...request, method: 'apiserver.Post'})
 }
 
+export function apiserverPostRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: apiserverPostResult) => void} & {param: apiserverPostRpcParam}>): Promise<apiserverPostResult> {
+  return new Promise((resolve, reject) => { apiserverPostRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function blockAddReferenceRpc (request: $Exact<requestCommon & requestErrorCallback & {param: blockAddReferenceRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.addReference'})
+}
+
+export function blockAddReferenceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockAddReferenceRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { blockAddReferenceRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function blockArchiveReferenceRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceResult) => void} & {param: blockArchiveReferenceRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.archiveReference'})
 }
 
+export function blockArchiveReferenceRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceResult) => void} & {param: blockArchiveReferenceRpcParam}>): Promise<blockArchiveReferenceResult> {
+  return new Promise((resolve, reject) => { blockArchiveReferenceRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function blockArchiveReferenceWithCountRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceWithCountResult) => void} & {param: blockArchiveReferenceWithCountRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.archiveReferenceWithCount'})
+}
+
+export function blockArchiveReferenceWithCountRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockArchiveReferenceWithCountResult) => void} & {param: blockArchiveReferenceWithCountRpcParam}>): Promise<blockArchiveReferenceWithCountResult> {
+  return new Promise((resolve, reject) => { blockArchiveReferenceWithCountRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function blockAuthenticateSessionRpc (request: $Exact<requestCommon & requestErrorCallback & {param: blockAuthenticateSessionRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.authenticateSession'})
 }
 
+export function blockAuthenticateSessionRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockAuthenticateSessionRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { blockAuthenticateSessionRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function blockDelReferenceRpc (request: $Exact<requestCommon & requestErrorCallback & {param: blockDelReferenceRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.delReference'})
+}
+
+export function blockDelReferenceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockDelReferenceRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { blockDelReferenceRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function blockDelReferenceWithCountRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockDelReferenceWithCountResult) => void} & {param: blockDelReferenceWithCountRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.delReferenceWithCount'})
 }
 
+export function blockDelReferenceWithCountRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockDelReferenceWithCountResult) => void} & {param: blockDelReferenceWithCountRpcParam}>): Promise<blockDelReferenceWithCountResult> {
+  return new Promise((resolve, reject) => { blockDelReferenceWithCountRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function blockGetBlockRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetBlockResult) => void} & {param: blockGetBlockRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.getBlock'})
+}
+
+export function blockGetBlockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetBlockResult) => void} & {param: blockGetBlockRpcParam}>): Promise<blockGetBlockResult> {
+  return new Promise((resolve, reject) => { blockGetBlockRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function blockGetSessionChallengeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetSessionChallengeResult) => void}>) {
   engineRpcOutgoing({...request, method: 'block.getSessionChallenge'})
 }
 
+export function blockGetSessionChallengeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetSessionChallengeResult) => void}>): Promise<blockGetSessionChallengeResult> {
+  return new Promise((resolve, reject) => { blockGetSessionChallengeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function blockGetUserQuotaInfoRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>) {
   engineRpcOutgoing({...request, method: 'block.getUserQuotaInfo'})
+}
+
+export function blockGetUserQuotaInfoRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: blockGetUserQuotaInfoResult) => void}>): Promise<blockGetUserQuotaInfoResult> {
+  return new Promise((resolve, reject) => { blockGetUserQuotaInfoRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function blockPutBlockRpc (request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockRpcParam}>) {
   engineRpcOutgoing({...request, method: 'block.putBlock'})
 }
 
+export function blockPutBlockRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: blockPutBlockRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { blockPutBlockRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function chatLocalCompleteAndCanonicalizeTlfNameRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalCompleteAndCanonicalizeTlfNameResult) => void} & {param: chatLocalCompleteAndCanonicalizeTlfNameRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.completeAndCanonicalizeTlfName'})
+}
+
+export function chatLocalCompleteAndCanonicalizeTlfNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalCompleteAndCanonicalizeTlfNameResult) => void} & {param: chatLocalCompleteAndCanonicalizeTlfNameRpcParam}>): Promise<chatLocalCompleteAndCanonicalizeTlfNameResult> {
+  return new Promise((resolve, reject) => { chatLocalCompleteAndCanonicalizeTlfNameRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function chatLocalGetInboxLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxLocalResult) => void} & {param: chatLocalGetInboxLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.getInboxLocal'})
 }
 
+export function chatLocalGetInboxLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetInboxLocalResult) => void} & {param: chatLocalGetInboxLocalRpcParam}>): Promise<chatLocalGetInboxLocalResult> {
+  return new Promise((resolve, reject) => { chatLocalGetInboxLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function chatLocalGetMessagesLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetMessagesLocalResult) => void} & {param: chatLocalGetMessagesLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.getMessagesLocal'})
+}
+
+export function chatLocalGetMessagesLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetMessagesLocalResult) => void} & {param: chatLocalGetMessagesLocalRpcParam}>): Promise<chatLocalGetMessagesLocalResult> {
+  return new Promise((resolve, reject) => { chatLocalGetMessagesLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function chatLocalGetThreadLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetThreadLocalResult) => void} & {param: chatLocalGetThreadLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.getThreadLocal'})
 }
 
+export function chatLocalGetThreadLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalGetThreadLocalResult) => void} & {param: chatLocalGetThreadLocalRpcParam}>): Promise<chatLocalGetThreadLocalResult> {
+  return new Promise((resolve, reject) => { chatLocalGetThreadLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function chatLocalNewConversationLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalNewConversationLocalResult) => void} & {param: chatLocalNewConversationLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.newConversationLocal'})
+}
+
+export function chatLocalNewConversationLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalNewConversationLocalResult) => void} & {param: chatLocalNewConversationLocalRpcParam}>): Promise<chatLocalNewConversationLocalResult> {
+  return new Promise((resolve, reject) => { chatLocalNewConversationLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function chatLocalPostLocalRpc (request: $Exact<requestCommon & requestErrorCallback & {param: chatLocalPostLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.postLocal'})
 }
 
+export function chatLocalPostLocalRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: chatLocalPostLocalRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { chatLocalPostLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function chatLocalResolveConversationLocalRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalResolveConversationLocalResult) => void} & {param: chatLocalResolveConversationLocalRpcParam}>) {
   engineRpcOutgoing({...request, method: 'chatLocal.resolveConversationLocal'})
+}
+
+export function chatLocalResolveConversationLocalRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: chatLocalResolveConversationLocalResult) => void} & {param: chatLocalResolveConversationLocalRpcParam}>): Promise<chatLocalResolveConversationLocalResult> {
+  return new Promise((resolve, reject) => { chatLocalResolveConversationLocalRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function configCheckAPIServerOutOfDateWarningRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>) {
   engineRpcOutgoing({...request, method: 'config.checkAPIServerOutOfDateWarning'})
 }
 
+export function configCheckAPIServerOutOfDateWarningRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configCheckAPIServerOutOfDateWarningResult) => void}>): Promise<configCheckAPIServerOutOfDateWarningResult> {
+  return new Promise((resolve, reject) => { configCheckAPIServerOutOfDateWarningRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function configClearValueRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configClearValueRpcParam}>) {
   engineRpcOutgoing({...request, method: 'config.clearValue'})
+}
+
+export function configClearValueRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configClearValueRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { configClearValueRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function configGetConfigRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetConfigResult) => void}>) {
   engineRpcOutgoing({...request, method: 'config.getConfig'})
 }
 
+export function configGetConfigRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetConfigResult) => void}>): Promise<configGetConfigResult> {
+  return new Promise((resolve, reject) => { configGetConfigRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function configGetCurrentStatusRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetCurrentStatusResult) => void}>) {
   engineRpcOutgoing({...request, method: 'config.getCurrentStatus'})
+}
+
+export function configGetCurrentStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetCurrentStatusResult) => void}>): Promise<configGetCurrentStatusResult> {
+  return new Promise((resolve, reject) => { configGetCurrentStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function configGetExtendedStatusRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetExtendedStatusResult) => void}>) {
   engineRpcOutgoing({...request, method: 'config.getExtendedStatus'})
 }
 
+export function configGetExtendedStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetExtendedStatusResult) => void}>): Promise<configGetExtendedStatusResult> {
+  return new Promise((resolve, reject) => { configGetExtendedStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function configGetValueRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetValueResult) => void} & {param: configGetValueRpcParam}>) {
   engineRpcOutgoing({...request, method: 'config.getValue'})
+}
+
+export function configGetValueRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: configGetValueResult) => void} & {param: configGetValueRpcParam}>): Promise<configGetValueResult> {
+  return new Promise((resolve, reject) => { configGetValueRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function configHelloIAmRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configHelloIAmRpcParam}>) {
   engineRpcOutgoing({...request, method: 'config.helloIAm'})
 }
 
+export function configHelloIAmRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configHelloIAmRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { configHelloIAmRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function configSetPathRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configSetPathRpcParam}>) {
   engineRpcOutgoing({...request, method: 'config.setPath'})
+}
+
+export function configSetPathRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configSetPathRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { configSetPathRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function configSetUserConfigRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configSetUserConfigRpcParam}>) {
   engineRpcOutgoing({...request, method: 'config.setUserConfig'})
 }
 
+export function configSetUserConfigRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configSetUserConfigRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { configSetUserConfigRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function configSetValueRpc (request: $Exact<requestCommon & requestErrorCallback & {param: configSetValueRpcParam}>) {
   engineRpcOutgoing({...request, method: 'config.setValue'})
+}
+
+export function configSetValueRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: configSetValueRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { configSetValueRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function cryptoSignED25519Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519Result) => void} & {param: cryptoSignED25519RpcParam}>) {
   engineRpcOutgoing({...request, method: 'crypto.signED25519'})
 }
 
+export function cryptoSignED25519RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignED25519Result) => void} & {param: cryptoSignED25519RpcParam}>): Promise<cryptoSignED25519Result> {
+  return new Promise((resolve, reject) => { cryptoSignED25519Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function cryptoSignToStringRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignToStringResult) => void} & {param: cryptoSignToStringRpcParam}>) {
   engineRpcOutgoing({...request, method: 'crypto.signToString'})
+}
+
+export function cryptoSignToStringRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoSignToStringResult) => void} & {param: cryptoSignToStringRpcParam}>): Promise<cryptoSignToStringResult> {
+  return new Promise((resolve, reject) => { cryptoSignToStringRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function cryptoUnboxBytes32AnyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32AnyResult) => void} & {param: cryptoUnboxBytes32AnyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'crypto.unboxBytes32Any'})
 }
 
+export function cryptoUnboxBytes32AnyRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32AnyResult) => void} & {param: cryptoUnboxBytes32AnyRpcParam}>): Promise<cryptoUnboxBytes32AnyResult> {
+  return new Promise((resolve, reject) => { cryptoUnboxBytes32AnyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function cryptoUnboxBytes32Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32Result) => void} & {param: cryptoUnboxBytes32RpcParam}>) {
   engineRpcOutgoing({...request, method: 'crypto.unboxBytes32'})
+}
+
+export function cryptoUnboxBytes32RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: cryptoUnboxBytes32Result) => void} & {param: cryptoUnboxBytes32RpcParam}>): Promise<cryptoUnboxBytes32Result> {
+  return new Promise((resolve, reject) => { cryptoUnboxBytes32Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function ctlAppExitRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'ctl.appExit'})
 }
 
+export function ctlAppExitRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { ctlAppExitRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function ctlDbNukeRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'ctl.dbNuke'})
+}
+
+export function ctlDbNukeRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { ctlDbNukeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function ctlLogRotateRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'ctl.logRotate'})
 }
 
+export function ctlLogRotateRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { ctlLogRotateRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function ctlReloadRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'ctl.reload'})
+}
+
+export function ctlReloadRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { ctlReloadRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function ctlStopRpc (request: $Exact<requestCommon & requestErrorCallback & {param: ctlStopRpcParam}>) {
   engineRpcOutgoing({...request, method: 'ctl.stop'})
 }
 
+export function ctlStopRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: ctlStopRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { ctlStopRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function debuggingFirstStepRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingFirstStepResult) => void} & {param: debuggingFirstStepRpcParam}>) {
   engineRpcOutgoing({...request, method: 'debugging.firstStep'})
+}
+
+export function debuggingFirstStepRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingFirstStepResult) => void} & {param: debuggingFirstStepRpcParam}>): Promise<debuggingFirstStepResult> {
+  return new Promise((resolve, reject) => { debuggingFirstStepRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function debuggingIncrementRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingIncrementResult) => void} & {param: debuggingIncrementRpcParam}>) {
   engineRpcOutgoing({...request, method: 'debugging.increment'})
 }
 
+export function debuggingIncrementRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingIncrementResult) => void} & {param: debuggingIncrementRpcParam}>): Promise<debuggingIncrementResult> {
+  return new Promise((resolve, reject) => { debuggingIncrementRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function debuggingSecondStepRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingSecondStepResult) => void} & {param: debuggingSecondStepRpcParam}>) {
   engineRpcOutgoing({...request, method: 'debugging.secondStep'})
+}
+
+export function debuggingSecondStepRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: debuggingSecondStepResult) => void} & {param: debuggingSecondStepRpcParam}>): Promise<debuggingSecondStepResult> {
+  return new Promise((resolve, reject) => { debuggingSecondStepRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function delegateUiCtlRegisterGregorFirehoseRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'delegateUiCtl.registerGregorFirehose'})
 }
 
+export function delegateUiCtlRegisterGregorFirehoseRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { delegateUiCtlRegisterGregorFirehoseRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function delegateUiCtlRegisterIdentifyUIRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'delegateUiCtl.registerIdentifyUI'})
+}
+
+export function delegateUiCtlRegisterIdentifyUIRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { delegateUiCtlRegisterIdentifyUIRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function delegateUiCtlRegisterRekeyUIRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'delegateUiCtl.registerRekeyUI'})
 }
 
+export function delegateUiCtlRegisterRekeyUIRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { delegateUiCtlRegisterRekeyUIRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function delegateUiCtlRegisterSecretUIRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'delegateUiCtl.registerSecretUI'})
+}
+
+export function delegateUiCtlRegisterSecretUIRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { delegateUiCtlRegisterSecretUIRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function delegateUiCtlRegisterUpdateUIRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'delegateUiCtl.registerUpdateUI'})
 }
 
+export function delegateUiCtlRegisterUpdateUIRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { delegateUiCtlRegisterUpdateUIRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function deviceCheckDeviceNameForUserRpc (request: $Exact<requestCommon & requestErrorCallback & {param: deviceCheckDeviceNameForUserRpcParam}>) {
   engineRpcOutgoing({...request, method: 'device.checkDeviceNameForUser'})
+}
+
+export function deviceCheckDeviceNameForUserRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: deviceCheckDeviceNameForUserRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { deviceCheckDeviceNameForUserRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function deviceCheckDeviceNameFormatRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceCheckDeviceNameFormatResult) => void} & {param: deviceCheckDeviceNameFormatRpcParam}>) {
   engineRpcOutgoing({...request, method: 'device.checkDeviceNameFormat'})
 }
 
+export function deviceCheckDeviceNameFormatRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceCheckDeviceNameFormatResult) => void} & {param: deviceCheckDeviceNameFormatRpcParam}>): Promise<deviceCheckDeviceNameFormatResult> {
+  return new Promise((resolve, reject) => { deviceCheckDeviceNameFormatRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function deviceDeviceAddRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'device.deviceAdd'})
+}
+
+export function deviceDeviceAddRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { deviceDeviceAddRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function deviceDeviceHistoryListRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceHistoryListResult) => void}>) {
   engineRpcOutgoing({...request, method: 'device.deviceHistoryList'})
 }
 
+export function deviceDeviceHistoryListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceHistoryListResult) => void}>): Promise<deviceDeviceHistoryListResult> {
+  return new Promise((resolve, reject) => { deviceDeviceHistoryListRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function deviceDeviceListRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceListResult) => void}>) {
   engineRpcOutgoing({...request, method: 'device.deviceList'})
+}
+
+export function deviceDeviceListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: deviceDeviceListResult) => void}>): Promise<deviceDeviceListResult> {
+  return new Promise((resolve, reject) => { deviceDeviceListRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function favoriteFavoriteAddRpc (request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteAddRpcParam}>) {
   engineRpcOutgoing({...request, method: 'favorite.favoriteAdd'})
 }
 
+export function favoriteFavoriteAddRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteAddRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { favoriteFavoriteAddRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function favoriteFavoriteIgnoreRpc (request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteIgnoreRpcParam}>) {
   engineRpcOutgoing({...request, method: 'favorite.favoriteIgnore'})
+}
+
+export function favoriteFavoriteIgnoreRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: favoriteFavoriteIgnoreRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { favoriteFavoriteIgnoreRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function favoriteGetFavoritesRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: favoriteGetFavoritesResult) => void}>) {
   engineRpcOutgoing({...request, method: 'favorite.getFavorites'})
 }
 
+export function favoriteGetFavoritesRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: favoriteGetFavoritesResult) => void}>): Promise<favoriteGetFavoritesResult> {
+  return new Promise((resolve, reject) => { favoriteGetFavoritesRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function fsListRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: fsListResult) => void} & {param: fsListRpcParam}>) {
   engineRpcOutgoing({...request, method: 'fs.List'})
+}
+
+export function fsListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: fsListResult) => void} & {param: fsListRpcParam}>): Promise<fsListResult> {
+  return new Promise((resolve, reject) => { fsListRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function gregorGetStateRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}>) {
   engineRpcOutgoing({...request, method: 'gregor.getState'})
 }
 
+export function gregorGetStateRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: gregorGetStateResult) => void}>): Promise<gregorGetStateResult> {
+  return new Promise((resolve, reject) => { gregorGetStateRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function identifyIdentify2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'identify.identify2'})
+}
+
+export function identifyIdentify2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentify2Result) => void} & {param: identifyIdentify2RpcParam}>): Promise<identifyIdentify2Result> {
+  return new Promise((resolve, reject) => { identifyIdentify2Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function identifyIdentifyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'identify.identify'})
 }
 
+export function identifyIdentifyRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyIdentifyResult) => void} & {param: identifyIdentifyRpcParam}>): Promise<identifyIdentifyResult> {
+  return new Promise((resolve, reject) => { identifyIdentifyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function identifyResolve2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'identify.Resolve2'})
+}
+
+export function identifyResolve2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolve2Result) => void} & {param: identifyResolve2RpcParam}>): Promise<identifyResolve2Result> {
+  return new Promise((resolve, reject) => { identifyResolve2Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function identifyResolveRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}>) {
   engineRpcOutgoing({...request, method: 'identify.Resolve'})
 }
 
+export function identifyResolveRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: identifyResolveResult) => void} & {param: identifyResolveRpcParam}>): Promise<identifyResolveResult> {
+  return new Promise((resolve, reject) => { identifyResolveRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function kbfsFSEditListRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>) {
   engineRpcOutgoing({...request, method: 'kbfs.FSEditList'})
+}
+
+export function kbfsFSEditListRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEditListRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { kbfsFSEditListRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function kbfsFSEventRpc (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEventRpcParam}>) {
   engineRpcOutgoing({...request, method: 'kbfs.FSEvent'})
 }
 
+export function kbfsFSEventRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: kbfsFSEventRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { kbfsFSEventRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function logRegisterLoggerRpc (request: $Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>) {
   engineRpcOutgoing({...request, method: 'log.registerLogger'})
+}
+
+export function logRegisterLoggerRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: logRegisterLoggerRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { logRegisterLoggerRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function loginAccountDeleteRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'login.accountDelete'})
 }
 
+export function loginAccountDeleteRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { loginAccountDeleteRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function loginClearStoredSecretRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginClearStoredSecretRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.clearStoredSecret'})
+}
+
+export function loginClearStoredSecretRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginClearStoredSecretRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginClearStoredSecretRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function loginDeprovisionRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginDeprovisionRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.deprovision'})
 }
 
+export function loginDeprovisionRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginDeprovisionRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginDeprovisionRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function loginGetConfiguredAccountsRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: loginGetConfiguredAccountsResult) => void}>) {
   engineRpcOutgoing({...request, method: 'login.getConfiguredAccounts'})
+}
+
+export function loginGetConfiguredAccountsRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: loginGetConfiguredAccountsResult) => void}>): Promise<loginGetConfiguredAccountsResult> {
+  return new Promise((resolve, reject) => { loginGetConfiguredAccountsRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function loginLoginRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.login'})
 }
 
+export function loginLoginRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginLoginRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginLoginRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function loginLogoutRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'login.logout'})
+}
+
+export function loginLogoutRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { loginLogoutRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function loginPaperKeyRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'login.paperKey'})
 }
 
+export function loginPaperKeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { loginPaperKeyRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function loginPaperKeySubmitRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginPaperKeySubmitRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.paperKeySubmit'})
+}
+
+export function loginPaperKeySubmitRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginPaperKeySubmitRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginPaperKeySubmitRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function loginPgpProvisionRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginPgpProvisionRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.pgpProvision'})
 }
 
+export function loginPgpProvisionRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginPgpProvisionRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginPgpProvisionRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function loginRecoverAccountFromEmailAddressRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginRecoverAccountFromEmailAddressRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.recoverAccountFromEmailAddress'})
+}
+
+export function loginRecoverAccountFromEmailAddressRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginRecoverAccountFromEmailAddressRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginRecoverAccountFromEmailAddressRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function loginUnlockRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'login.unlock'})
 }
 
+export function loginUnlockRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { loginUnlockRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function loginUnlockWithPassphraseRpc (request: $Exact<requestCommon & requestErrorCallback & {param: loginUnlockWithPassphraseRpcParam}>) {
   engineRpcOutgoing({...request, method: 'login.unlockWithPassphrase'})
+}
+
+export function loginUnlockWithPassphraseRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: loginUnlockWithPassphraseRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { loginUnlockWithPassphraseRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataAuthenticateRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.authenticate'})
 }
 
+export function metadataAuthenticateRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataAuthenticateResult) => void} & {param: metadataAuthenticateRpcParam}>): Promise<metadataAuthenticateResult> {
+  return new Promise((resolve, reject) => { metadataAuthenticateRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataDeleteKeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataDeleteKeyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.deleteKey'})
+}
+
+export function metadataDeleteKeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataDeleteKeyRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataDeleteKeyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataGetChallengeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetChallengeResult) => void}>) {
   engineRpcOutgoing({...request, method: 'metadata.getChallenge'})
 }
 
+export function metadataGetChallengeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetChallengeResult) => void}>): Promise<metadataGetChallengeResult> {
+  return new Promise((resolve, reject) => { metadataGetChallengeRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataGetFolderHandleRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetFolderHandleResult) => void} & {param: metadataGetFolderHandleRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getFolderHandle'})
+}
+
+export function metadataGetFolderHandleRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetFolderHandleResult) => void} & {param: metadataGetFolderHandleRpcParam}>): Promise<metadataGetFolderHandleResult> {
+  return new Promise((resolve, reject) => { metadataGetFolderHandleRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataGetFoldersForRekeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataGetFoldersForRekeyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getFoldersForRekey'})
 }
 
+export function metadataGetFoldersForRekeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataGetFoldersForRekeyRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataGetFoldersForRekeyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataGetKeyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyResult) => void} & {param: metadataGetKeyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getKey'})
+}
+
+export function metadataGetKeyRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetKeyResult) => void} & {param: metadataGetKeyRpcParam}>): Promise<metadataGetKeyResult> {
+  return new Promise((resolve, reject) => { metadataGetKeyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataGetLatestFolderHandleRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetLatestFolderHandleResult) => void} & {param: metadataGetLatestFolderHandleRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getLatestFolderHandle'})
 }
 
+export function metadataGetLatestFolderHandleRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetLatestFolderHandleResult) => void} & {param: metadataGetLatestFolderHandleRpcParam}>): Promise<metadataGetLatestFolderHandleResult> {
+  return new Promise((resolve, reject) => { metadataGetLatestFolderHandleRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataGetMerkleNodeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleNodeResult) => void} & {param: metadataGetMerkleNodeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getMerkleNode'})
+}
+
+export function metadataGetMerkleNodeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleNodeResult) => void} & {param: metadataGetMerkleNodeRpcParam}>): Promise<metadataGetMerkleNodeResult> {
+  return new Promise((resolve, reject) => { metadataGetMerkleNodeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataGetMerkleRootLatestRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootLatestResult) => void} & {param: metadataGetMerkleRootLatestRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getMerkleRootLatest'})
 }
 
+export function metadataGetMerkleRootLatestRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootLatestResult) => void} & {param: metadataGetMerkleRootLatestRpcParam}>): Promise<metadataGetMerkleRootLatestResult> {
+  return new Promise((resolve, reject) => { metadataGetMerkleRootLatestRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataGetMerkleRootRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootResult) => void} & {param: metadataGetMerkleRootRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getMerkleRoot'})
+}
+
+export function metadataGetMerkleRootRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootResult) => void} & {param: metadataGetMerkleRootRpcParam}>): Promise<metadataGetMerkleRootResult> {
+  return new Promise((resolve, reject) => { metadataGetMerkleRootRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataGetMerkleRootSinceRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootSinceResult) => void} & {param: metadataGetMerkleRootSinceRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getMerkleRootSince'})
 }
 
+export function metadataGetMerkleRootSinceRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMerkleRootSinceResult) => void} & {param: metadataGetMerkleRootSinceRpcParam}>): Promise<metadataGetMerkleRootSinceResult> {
+  return new Promise((resolve, reject) => { metadataGetMerkleRootSinceRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataGetMetadataRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMetadataResult) => void} & {param: metadataGetMetadataRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.getMetadata'})
+}
+
+export function metadataGetMetadataRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataGetMetadataResult) => void} & {param: metadataGetMetadataRpcParam}>): Promise<metadataGetMetadataResult> {
+  return new Promise((resolve, reject) => { metadataGetMetadataRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataPing2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataPing2Result) => void}>) {
   engineRpcOutgoing({...request, method: 'metadata.ping2'})
 }
 
+export function metadataPing2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataPing2Result) => void}>): Promise<metadataPing2Result> {
+  return new Promise((resolve, reject) => { metadataPing2Rpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataPingRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'metadata.ping'})
+}
+
+export function metadataPingRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataPingRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataPruneBranchRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPruneBranchRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.pruneBranch'})
 }
 
+export function metadataPruneBranchRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPruneBranchRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataPruneBranchRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataPutKeysRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.putKeys'})
+}
+
+export function metadataPutKeysRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutKeysRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataPutKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataPutMetadataRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.putMetadata'})
 }
 
+export function metadataPutMetadataRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataPutMetadataRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataPutMetadataRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataRegisterForUpdatesRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.registerForUpdates'})
+}
+
+export function metadataRegisterForUpdatesRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataRegisterForUpdatesRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataRegisterForUpdatesRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataTruncateLockRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateLockResult) => void} & {param: metadataTruncateLockRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.truncateLock'})
 }
 
+export function metadataTruncateLockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateLockResult) => void} & {param: metadataTruncateLockRpcParam}>): Promise<metadataTruncateLockResult> {
+  return new Promise((resolve, reject) => { metadataTruncateLockRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataTruncateUnlockRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateUnlockResult) => void} & {param: metadataTruncateUnlockRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadata.truncateUnlock'})
+}
+
+export function metadataTruncateUnlockRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: metadataTruncateUnlockResult) => void} & {param: metadataTruncateUnlockRpcParam}>): Promise<metadataTruncateUnlockResult> {
+  return new Promise((resolve, reject) => { metadataTruncateUnlockRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function metadataUpdateFolderNeedsRekeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFolderNeedsRekeyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadataUpdate.folderNeedsRekey'})
 }
 
+export function metadataUpdateFolderNeedsRekeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateFolderNeedsRekeyRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataUpdateFolderNeedsRekeyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function metadataUpdateMetadataUpdateRpc (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateMetadataUpdateRpcParam}>) {
   engineRpcOutgoing({...request, method: 'metadataUpdate.metadataUpdate'})
+}
+
+export function metadataUpdateMetadataUpdateRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: metadataUpdateMetadataUpdateRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { metadataUpdateMetadataUpdateRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function notifyCtlSetNotificationsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: notifyCtlSetNotificationsRpcParam}>) {
   engineRpcOutgoing({...request, method: 'notifyCtl.setNotifications'})
 }
 
+export function notifyCtlSetNotificationsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: notifyCtlSetNotificationsRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { notifyCtlSetNotificationsRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function paperprovisionPaperProvisionRpc (request: $Exact<requestCommon & requestErrorCallback & {param: paperprovisionPaperProvisionRpcParam}>) {
   engineRpcOutgoing({...request, method: 'paperprovision.paperProvision'})
+}
+
+export function paperprovisionPaperProvisionRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: paperprovisionPaperProvisionRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { paperprovisionPaperProvisionRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function pgpPgpDecryptRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpDecryptResult) => void} & {param: pgpPgpDecryptRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpDecrypt'})
 }
 
+export function pgpPgpDecryptRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpDecryptResult) => void} & {param: pgpPgpDecryptRpcParam}>): Promise<pgpPgpDecryptResult> {
+  return new Promise((resolve, reject) => { pgpPgpDecryptRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function pgpPgpDeletePrimaryRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpDeletePrimary'})
+}
+
+export function pgpPgpDeletePrimaryRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpDeletePrimaryRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function pgpPgpEncryptRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpEncryptRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpEncrypt'})
 }
 
+export function pgpPgpEncryptRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpEncryptRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpEncryptRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function pgpPgpExportByFingerprintRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByFingerprintResult) => void} & {param: pgpPgpExportByFingerprintRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpExportByFingerprint'})
+}
+
+export function pgpPgpExportByFingerprintRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByFingerprintResult) => void} & {param: pgpPgpExportByFingerprintRpcParam}>): Promise<pgpPgpExportByFingerprintResult> {
+  return new Promise((resolve, reject) => { pgpPgpExportByFingerprintRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function pgpPgpExportByKIDRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByKIDResult) => void} & {param: pgpPgpExportByKIDRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpExportByKID'})
 }
 
+export function pgpPgpExportByKIDRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportByKIDResult) => void} & {param: pgpPgpExportByKIDRpcParam}>): Promise<pgpPgpExportByKIDResult> {
+  return new Promise((resolve, reject) => { pgpPgpExportByKIDRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function pgpPgpExportRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportResult) => void} & {param: pgpPgpExportRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpExport'})
+}
+
+export function pgpPgpExportRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpExportResult) => void} & {param: pgpPgpExportRpcParam}>): Promise<pgpPgpExportResult> {
+  return new Promise((resolve, reject) => { pgpPgpExportRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function pgpPgpImportRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpImportRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpImport'})
 }
 
+export function pgpPgpImportRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpImportRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpImportRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function pgpPgpKeyGenDefaultRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenDefaultRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpKeyGenDefault'})
+}
+
+export function pgpPgpKeyGenDefaultRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenDefaultRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpKeyGenDefaultRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function pgpPgpKeyGenRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpKeyGen'})
 }
 
+export function pgpPgpKeyGenRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpKeyGenRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpKeyGenRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function pgpPgpPullRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpPullRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpPull'})
+}
+
+export function pgpPgpPullRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpPullRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpPullRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function pgpPgpPurgeRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpPurgeResult) => void} & {param: pgpPgpPurgeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpPurge'})
 }
 
+export function pgpPgpPurgeRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpPurgeResult) => void} & {param: pgpPgpPurgeRpcParam}>): Promise<pgpPgpPurgeResult> {
+  return new Promise((resolve, reject) => { pgpPgpPurgeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function pgpPgpSelectRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSelectRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpSelect'})
+}
+
+export function pgpPgpSelectRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSelectRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpSelectRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function pgpPgpSignRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSignRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpSign'})
 }
 
+export function pgpPgpSignRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpSignRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpSignRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function pgpPgpStorageDismissRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpStorageDismiss'})
+}
+
+export function pgpPgpStorageDismissRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpStorageDismissRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function pgpPgpUpdateRpc (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpUpdateRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpUpdate'})
 }
 
+export function pgpPgpUpdateRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: pgpPgpUpdateRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { pgpPgpUpdateRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function pgpPgpVerifyRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpVerifyResult) => void} & {param: pgpPgpVerifyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'pgp.pgpVerify'})
+}
+
+export function pgpPgpVerifyRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: pgpPgpVerifyResult) => void} & {param: pgpPgpVerifyRpcParam}>): Promise<pgpPgpVerifyResult> {
+  return new Promise((resolve, reject) => { pgpPgpVerifyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function proveCheckProofRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveCheckProofResult) => void} & {param: proveCheckProofRpcParam}>) {
   engineRpcOutgoing({...request, method: 'prove.checkProof'})
 }
 
+export function proveCheckProofRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveCheckProofResult) => void} & {param: proveCheckProofRpcParam}>): Promise<proveCheckProofResult> {
+  return new Promise((resolve, reject) => { proveCheckProofRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function proveStartProofRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveStartProofResult) => void} & {param: proveStartProofRpcParam}>) {
   engineRpcOutgoing({...request, method: 'prove.startProof'})
+}
+
+export function proveStartProofRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: proveStartProofResult) => void} & {param: proveStartProofRpcParam}>): Promise<proveStartProofResult> {
+  return new Promise((resolve, reject) => { proveStartProofRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function quotaVerifySessionRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: quotaVerifySessionResult) => void} & {param: quotaVerifySessionRpcParam}>) {
   engineRpcOutgoing({...request, method: 'quota.verifySession'})
 }
 
+export function quotaVerifySessionRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: quotaVerifySessionResult) => void} & {param: quotaVerifySessionRpcParam}>): Promise<quotaVerifySessionResult> {
+  return new Promise((resolve, reject) => { quotaVerifySessionRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function rekeyDebugShowRekeyStatusRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'rekey.debugShowRekeyStatus'})
+}
+
+export function rekeyDebugShowRekeyStatusRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { rekeyDebugShowRekeyStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function rekeyGetPendingRekeyStatusRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetPendingRekeyStatusResult) => void}>) {
   engineRpcOutgoing({...request, method: 'rekey.getPendingRekeyStatus'})
 }
 
+export function rekeyGetPendingRekeyStatusRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyGetPendingRekeyStatusResult) => void}>): Promise<rekeyGetPendingRekeyStatusResult> {
+  return new Promise((resolve, reject) => { rekeyGetPendingRekeyStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function rekeyRekeyStatusFinishRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyRekeyStatusFinishResult) => void}>) {
   engineRpcOutgoing({...request, method: 'rekey.rekeyStatusFinish'})
+}
+
+export function rekeyRekeyStatusFinishRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: rekeyRekeyStatusFinishResult) => void}>): Promise<rekeyRekeyStatusFinishResult> {
+  return new Promise((resolve, reject) => { rekeyRekeyStatusFinishRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function rekeyRekeySyncRpc (request: $Exact<requestCommon & requestErrorCallback & {param: rekeyRekeySyncRpcParam}>) {
   engineRpcOutgoing({...request, method: 'rekey.rekeySync'})
 }
 
+export function rekeyRekeySyncRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: rekeyRekeySyncRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { rekeyRekeySyncRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function rekeyShowPendingRekeyStatusRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'rekey.showPendingRekeyStatus'})
+}
+
+export function rekeyShowPendingRekeyStatusRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { rekeyShowPendingRekeyStatusRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function revokeRevokeDeviceRpc (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeDeviceRpcParam}>) {
   engineRpcOutgoing({...request, method: 'revoke.revokeDevice'})
 }
 
+export function revokeRevokeDeviceRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeDeviceRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { revokeRevokeDeviceRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function revokeRevokeKeyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeKeyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'revoke.revokeKey'})
+}
+
+export function revokeRevokeKeyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeKeyRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { revokeRevokeKeyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function revokeRevokeSigsRpc (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeSigsRpcParam}>) {
   engineRpcOutgoing({...request, method: 'revoke.revokeSigs'})
 }
 
+export function revokeRevokeSigsRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: revokeRevokeSigsRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { revokeRevokeSigsRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function saltpackSaltpackDecryptRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: saltpackSaltpackDecryptResult) => void} & {param: saltpackSaltpackDecryptRpcParam}>) {
   engineRpcOutgoing({...request, method: 'saltpack.saltpackDecrypt'})
+}
+
+export function saltpackSaltpackDecryptRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: saltpackSaltpackDecryptResult) => void} & {param: saltpackSaltpackDecryptRpcParam}>): Promise<saltpackSaltpackDecryptResult> {
+  return new Promise((resolve, reject) => { saltpackSaltpackDecryptRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function saltpackSaltpackEncryptRpc (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackEncryptRpcParam}>) {
   engineRpcOutgoing({...request, method: 'saltpack.saltpackEncrypt'})
 }
 
+export function saltpackSaltpackEncryptRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackEncryptRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { saltpackSaltpackEncryptRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function saltpackSaltpackSignRpc (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackSignRpcParam}>) {
   engineRpcOutgoing({...request, method: 'saltpack.saltpackSign'})
+}
+
+export function saltpackSaltpackSignRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackSignRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { saltpackSaltpackSignRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function saltpackSaltpackVerifyRpc (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackVerifyRpcParam}>) {
   engineRpcOutgoing({...request, method: 'saltpack.saltpackVerify'})
 }
 
+export function saltpackSaltpackVerifyRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: saltpackSaltpackVerifyRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { saltpackSaltpackVerifyRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function sessionCurrentSessionRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sessionCurrentSessionResult) => void}>) {
   engineRpcOutgoing({...request, method: 'session.currentSession'})
+}
+
+export function sessionCurrentSessionRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sessionCurrentSessionResult) => void}>): Promise<sessionCurrentSessionResult> {
+  return new Promise((resolve, reject) => { sessionCurrentSessionRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function signupCheckInvitationCodeRpc (request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckInvitationCodeRpcParam}>) {
   engineRpcOutgoing({...request, method: 'signup.checkInvitationCode'})
 }
 
+export function signupCheckInvitationCodeRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckInvitationCodeRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { signupCheckInvitationCodeRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function signupCheckUsernameAvailableRpc (request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckUsernameAvailableRpcParam}>) {
   engineRpcOutgoing({...request, method: 'signup.checkUsernameAvailable'})
+}
+
+export function signupCheckUsernameAvailableRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: signupCheckUsernameAvailableRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { signupCheckUsernameAvailableRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function signupInviteRequestRpc (request: $Exact<requestCommon & requestErrorCallback & {param: signupInviteRequestRpcParam}>) {
   engineRpcOutgoing({...request, method: 'signup.inviteRequest'})
 }
 
+export function signupInviteRequestRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: signupInviteRequestRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { signupInviteRequestRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function signupSignupRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupSignupResult) => void} & {param: signupSignupRpcParam}>) {
   engineRpcOutgoing({...request, method: 'signup.signup'})
+}
+
+export function signupSignupRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: signupSignupResult) => void} & {param: signupSignupRpcParam}>): Promise<signupSignupResult> {
+  return new Promise((resolve, reject) => { signupSignupRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function sigsSigListJSONRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListJSONResult) => void} & {param: sigsSigListJSONRpcParam}>) {
   engineRpcOutgoing({...request, method: 'sigs.sigListJSON'})
 }
 
+export function sigsSigListJSONRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListJSONResult) => void} & {param: sigsSigListJSONRpcParam}>): Promise<sigsSigListJSONResult> {
+  return new Promise((resolve, reject) => { sigsSigListJSONRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function sigsSigListRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListResult) => void} & {param: sigsSigListRpcParam}>) {
   engineRpcOutgoing({...request, method: 'sigs.sigList'})
+}
+
+export function sigsSigListRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: sigsSigListResult) => void} & {param: sigsSigListRpcParam}>): Promise<sigsSigListResult> {
+  return new Promise((resolve, reject) => { sigsSigListRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function testPanicRpc (request: $Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>) {
   engineRpcOutgoing({...request, method: 'test.panic'})
 }
 
+export function testPanicRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: testPanicRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { testPanicRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function testTestCallbackRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestCallbackResult) => void} & {param: testTestCallbackRpcParam}>) {
   engineRpcOutgoing({...request, method: 'test.testCallback'})
+}
+
+export function testTestCallbackRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestCallbackResult) => void} & {param: testTestCallbackRpcParam}>): Promise<testTestCallbackResult> {
+  return new Promise((resolve, reject) => { testTestCallbackRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function testTestRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestResult) => void} & {param: testTestRpcParam}>) {
   engineRpcOutgoing({...request, method: 'test.test'})
 }
 
+export function testTestRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: testTestResult) => void} & {param: testTestRpcParam}>): Promise<testTestResult> {
+  return new Promise((resolve, reject) => { testTestRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function tlfCryptKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'tlf.CryptKeys'})
+}
+
+export function tlfCryptKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfCryptKeysResult) => void} & {param: tlfCryptKeysRpcParam}>): Promise<tlfCryptKeysResult> {
+  return new Promise((resolve, reject) => { tlfCryptKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function tlfKeysGetTLFCryptKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'tlfKeys.getTLFCryptKeys'})
 }
 
+export function tlfKeysGetTLFCryptKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: tlfKeysGetTLFCryptKeysResult) => void} & {param: tlfKeysGetTLFCryptKeysRpcParam}>): Promise<tlfKeysGetTLFCryptKeysResult> {
+  return new Promise((resolve, reject) => { tlfKeysGetTLFCryptKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function trackCheckTrackingRpc (request: $Exact<requestCommon & requestErrorCallback>) {
   engineRpcOutgoing({...request, method: 'track.checkTracking'})
+}
+
+export function trackCheckTrackingRpcPromise (request: $Exact<requestCommon & requestErrorCallback>): Promise<any> {
+  return new Promise((resolve, reject) => { trackCheckTrackingRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function trackDismissWithTokenRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackDismissWithTokenRpcParam}>) {
   engineRpcOutgoing({...request, method: 'track.dismissWithToken'})
 }
 
+export function trackDismissWithTokenRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackDismissWithTokenRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { trackDismissWithTokenRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function trackFakeTrackingChangedRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackFakeTrackingChangedRpcParam}>) {
   engineRpcOutgoing({...request, method: 'track.fakeTrackingChanged'})
+}
+
+export function trackFakeTrackingChangedRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackFakeTrackingChangedRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { trackFakeTrackingChangedRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function trackTrackRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackRpcParam}>) {
   engineRpcOutgoing({...request, method: 'track.track'})
 }
 
+export function trackTrackRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { trackTrackRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function trackTrackWithTokenRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackWithTokenRpcParam}>) {
   engineRpcOutgoing({...request, method: 'track.trackWithToken'})
+}
+
+export function trackTrackWithTokenRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackTrackWithTokenRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { trackTrackWithTokenRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function trackUntrackRpc (request: $Exact<requestCommon & requestErrorCallback & {param: trackUntrackRpcParam}>) {
   engineRpcOutgoing({...request, method: 'track.untrack'})
 }
 
+export function trackUntrackRpcPromise (request: $Exact<requestCommon & requestErrorCallback & {param: trackUntrackRpcParam}>): Promise<any> {
+  return new Promise((resolve, reject) => { trackUntrackRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function userListTrackers2Rpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackers2Result) => void} & {param: userListTrackers2RpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.listTrackers2'})
+}
+
+export function userListTrackers2RpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackers2Result) => void} & {param: userListTrackers2RpcParam}>): Promise<userListTrackers2Result> {
+  return new Promise((resolve, reject) => { userListTrackers2Rpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function userListTrackersByNameRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersByNameResult) => void} & {param: userListTrackersByNameRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.listTrackersByName'})
 }
 
+export function userListTrackersByNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersByNameResult) => void} & {param: userListTrackersByNameRpcParam}>): Promise<userListTrackersByNameResult> {
+  return new Promise((resolve, reject) => { userListTrackersByNameRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function userListTrackersRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersResult) => void} & {param: userListTrackersRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.listTrackers'})
+}
+
+export function userListTrackersRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersResult) => void} & {param: userListTrackersRpcParam}>): Promise<userListTrackersResult> {
+  return new Promise((resolve, reject) => { userListTrackersRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function userListTrackersSelfRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersSelfResult) => void}>) {
   engineRpcOutgoing({...request, method: 'user.listTrackersSelf'})
 }
 
+export function userListTrackersSelfRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackersSelfResult) => void}>): Promise<userListTrackersSelfResult> {
+  return new Promise((resolve, reject) => { userListTrackersSelfRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function userListTrackingJSONRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingJSONResult) => void} & {param: userListTrackingJSONRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.listTrackingJSON'})
+}
+
+export function userListTrackingJSONRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingJSONResult) => void} & {param: userListTrackingJSONRpcParam}>): Promise<userListTrackingJSONResult> {
+  return new Promise((resolve, reject) => { userListTrackingJSONRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function userListTrackingRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingResult) => void} & {param: userListTrackingRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.listTracking'})
 }
 
+export function userListTrackingRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userListTrackingResult) => void} & {param: userListTrackingRpcParam}>): Promise<userListTrackingResult> {
+  return new Promise((resolve, reject) => { userListTrackingRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function userLoadAllPublicKeysUnverifiedRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void} & {param: userLoadAllPublicKeysUnverifiedRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadAllPublicKeysUnverified'})
+}
+
+export function userLoadAllPublicKeysUnverifiedRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadAllPublicKeysUnverifiedResult) => void} & {param: userLoadAllPublicKeysUnverifiedRpcParam}>): Promise<userLoadAllPublicKeysUnverifiedResult> {
+  return new Promise((resolve, reject) => { userLoadAllPublicKeysUnverifiedRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function userLoadMyPublicKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMyPublicKeysResult) => void}>) {
   engineRpcOutgoing({...request, method: 'user.loadMyPublicKeys'})
 }
 
+export function userLoadMyPublicKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadMyPublicKeysResult) => void}>): Promise<userLoadMyPublicKeysResult> {
+  return new Promise((resolve, reject) => { userLoadMyPublicKeysRpc({...request, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function userLoadPublicKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadPublicKeysResult) => void} & {param: userLoadPublicKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadPublicKeys'})
+}
+
+export function userLoadPublicKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadPublicKeysResult) => void} & {param: userLoadPublicKeysRpcParam}>): Promise<userLoadPublicKeysResult> {
+  return new Promise((resolve, reject) => { userLoadPublicKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function userLoadUncheckedUserSummariesRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUncheckedUserSummariesResult) => void} & {param: userLoadUncheckedUserSummariesRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadUncheckedUserSummaries'})
 }
 
+export function userLoadUncheckedUserSummariesRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUncheckedUserSummariesResult) => void} & {param: userLoadUncheckedUserSummariesRpcParam}>): Promise<userLoadUncheckedUserSummariesResult> {
+  return new Promise((resolve, reject) => { userLoadUncheckedUserSummariesRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function userLoadUserByNameRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserByNameResult) => void} & {param: userLoadUserByNameRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadUserByName'})
+}
+
+export function userLoadUserByNameRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserByNameResult) => void} & {param: userLoadUserByNameRpcParam}>): Promise<userLoadUserByNameResult> {
+  return new Promise((resolve, reject) => { userLoadUserByNameRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export function userLoadUserPlusKeysRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserPlusKeysResult) => void} & {param: userLoadUserPlusKeysRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadUserPlusKeys'})
 }
 
+export function userLoadUserPlusKeysRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserPlusKeysResult) => void} & {param: userLoadUserPlusKeysRpcParam}>): Promise<userLoadUserPlusKeysResult> {
+  return new Promise((resolve, reject) => { userLoadUserPlusKeysRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function userLoadUserRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserResult) => void} & {param: userLoadUserRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.loadUser'})
 }
 
+export function userLoadUserRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userLoadUserResult) => void} & {param: userLoadUserRpcParam}>): Promise<userLoadUserResult> {
+  return new Promise((resolve, reject) => { userLoadUserRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
+}
+
 export function userSearchRpc (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>) {
   engineRpcOutgoing({...request, method: 'user.search'})
+}
+
+export function userSearchRpcPromise (request: $Exact<requestCommon & {callback?: ?(err: ?any, response: userSearchResult) => void} & {param: userSearchRpcParam}>): Promise<userSearchResult> {
+  return new Promise((resolve, reject) => { userSearchRpc({...request, param: request.param, callback: (error, result) => { if (error) { reject(error) } else { resolve(result) } }}) })
 }
 
 export type APIRes = {
