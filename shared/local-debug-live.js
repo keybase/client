@@ -1,5 +1,5 @@
 // @flow
-import {envVarDebugJson} from './local-debug'
+import {envVarDebugJson, isTesting} from './local-debug'
 
 /*
  * This file is used for setting the dumbFilter & related settings
@@ -14,4 +14,4 @@ export const dumbFilter = dumbFilterOverride || dumbFilterJson
 
 // Mobile only settings
 export const dumbIndex = 0
-export const dumbFullscreen = false
+export const dumbFullscreen = isTesting

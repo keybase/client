@@ -32,6 +32,12 @@ protocol common {
     boolean last; // Will be true if the number of results is less than requested
   }
 
+  record RateLimit {
+    int callsRemaining; // Number of calls remaining for the given RPC in the current window
+    int windowReset; // Amount of time (in seconds) until the window resets for this rate limit bucket
+    int maxCalls; // Max amount of calls allowed in a window for the given RPC
+  }
+
   record ConversationIDTriple {
     TLFID tlfid;
     TopicType topicType;

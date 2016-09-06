@@ -203,7 +203,7 @@ func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Con
 	c.ServerURI = h.G().Env.GetServerURI()
 	c.RunMode = string(h.G().Env.GetRunMode())
 	var err error
-	c.SocketFile, err = h.G().Env.GetSocketFile()
+	c.SocketFile, err = h.G().Env.GetSocketBindFile()
 	if err != nil {
 		return c, err
 	}

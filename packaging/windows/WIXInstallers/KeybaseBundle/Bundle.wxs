@@ -251,9 +251,10 @@
                      Variable="WINTRUSTVERSION"
                      Result="version"
                      />
+    <!-- check for GDR/LDR version. See https://github.com/dokan-dev/dokany/commit/9782a6491775ef3660a71f40f381d3f48e511f14 -->
     <bal:Condition
       Message="Microsoft patch KB3033929 is not installed. A reboot is needed between the installation of said patch and the installation of Keybase. https://support.microsoft.com/en-us/kb/3033929">
-      <![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND WINTRUSTVERSION >= v6.1.7601.18741)]]>
+      <![CDATA[Installed OR VersionNT > v6.1 OR (VersionNT = v6.1 AND ((WINTRUSTVERSION >= v6.1.7601.18741 AND WINTRUSTVERSION <= v6.1.7601.22000) OR WINTRUSTVERSION >= v6.1.7601.22947))]]>
     </bal:Condition>
   </Fragment>
   <Fragment>

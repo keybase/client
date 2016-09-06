@@ -41,7 +41,8 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 
 // GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
 func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, p *chat1.Pagination) (chat1.InboxView, error) {
-	return h.remoteClient().GetInboxRemote(ctx, p)
+	ib, err := h.remoteClient().GetInboxRemote(ctx, p)
+	return ib.Inbox, err
 }
 
 // GetThreadLocal implements keybase.chatLocal.getThreadLocal protocol.
@@ -56,7 +57,7 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetT
 		return keybase1.ThreadView{}, err
 	}
 
-	return h.unboxThread(ctx, boxed, arg.ConversationID)
+	return h.unboxThread(ctx, boxed.Thread, arg.ConversationID)
 }
 
 func retryWithoutBackoffUpToNTimesUntilNoError(n int, action func() error) (err error) {
@@ -96,12 +97,14 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 		if err != nil {
 			return err
 		}
-		if info.Id, err = h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
+		res, err := h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:   triple,
 			TLFMessage: firstMessageBoxed,
-		}); err != nil {
+		})
+		if err != nil {
 			return err
 		}
+		info.Id = res.ConvID
 		created = info
 		return nil
 	}); err != nil {
@@ -216,7 +219,7 @@ func (h *chatLocalHandler) searchForConversations(ctx context.Context, criteria 
 		if err != nil {
 			return nil, err
 		}
-		for _, cr := range conversationsRemote {
+		for _, cr := range conversationsRemote.Convs {
 			info, _, err := h.getConversationInfo(ctx, cr)
 			if err != nil {
 				return nil, err
@@ -256,11 +259,11 @@ func (h *chatLocalHandler) searchForConversations(ctx context.Context, criteria 
 }
 
 func (h *chatLocalHandler) getConversationInfoByID(ctx context.Context, id chat1.ConversationID) (conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple, err error) {
-	conversationRemote, err := h.remoteClient().GetConversationMetadataRemote(ctx, id)
+	res, err := h.remoteClient().GetConversationMetadataRemote(ctx, id)
 	if err != nil {
 		return conversationInfo, triple, err
 	}
-	return h.getConversationInfo(ctx, conversationRemote)
+	return h.getConversationInfo(ctx, res.Conv)
 }
 
 // getConversationInfo locates the conversation by using id, and returns with
@@ -281,7 +284,7 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 		}
 	}
 
-	boxed, err := h.remoteClient().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
+	res, err := h.remoteClient().GetMessagesRemote(ctx, chat1.GetMessagesRemoteArg{
 		ConversationID: conversationRemote.Metadata.ConversationID,
 
 		// Now we definitely have the maximum message ID in the conversation no
@@ -293,11 +296,11 @@ func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversation
 	if err != nil {
 		return conversationInfo, triple, err
 	}
-	if len(boxed) != len(messageIDs) {
-		return conversationInfo, triple, libkb.UnexpectedChatDataFromServer{Msg: fmt.Sprintf("unexpected number of messages (got %d, expected %d) from GetMessagesRemote", len(boxed), len(messageIDs))}
+	if len(res.Msgs) != len(messageIDs) {
+		return conversationInfo, triple, libkb.UnexpectedChatDataFromServer{Msg: fmt.Sprintf("unexpected number of messages (got %d, expected %d) from GetMessagesRemote", len(res.Msgs), len(messageIDs))}
 	}
 
-	for _, b := range boxed {
+	for _, b := range res.Msgs {
 		unboxed, err := h.boxer.unboxMessage(ctx, newKeyFinder(), b)
 		if err != nil {
 			return conversationInfo, triple, err
@@ -447,11 +450,11 @@ func (h *chatLocalHandler) GetMessagesLocal(ctx context.Context, arg keybase1.Me
 	}
 
 	for _, cid := range arg.Conversations {
-		conversationRemote, err := h.remoteClient().GetConversationMetadataRemote(ctx, cid)
+		res, err := h.remoteClient().GetConversationMetadataRemote(ctx, cid)
 		if err != nil {
 			return nil, fmt.Errorf("getting conversation %v error: %v", cid, err)
 		}
-		conversationLocal, err := h.getConversationMessages(ctx, conversationRemote, messageTypes, &arg)
+		conversationLocal, err := h.getConversationMessages(ctx, res.Conv, messageTypes, &arg)
 		if err != nil {
 			return nil, fmt.Errorf("getting messages for conversation %v error: %v", cid, err)
 		}

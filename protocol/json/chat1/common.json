@@ -84,6 +84,24 @@
     },
     {
       "type": "record",
+      "name": "RateLimit",
+      "fields": [
+        {
+          "type": "int",
+          "name": "callsRemaining"
+        },
+        {
+          "type": "int",
+          "name": "windowReset"
+        },
+        {
+          "type": "int",
+          "name": "maxCalls"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ConversationIDTriple",
       "fields": [
         {
