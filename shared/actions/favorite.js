@@ -9,8 +9,8 @@ import {navigateBack} from '../actions/router'
 import {call, put, select} from 'redux-saga/effects'
 import {takeLatest} from 'redux-saga'
 
-import type {Dispatch, Action} from '../constants/types/flux'
-import type {FavoriteAdd, FavoriteList, FavoriteIgnore, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, FavoriteGet, FolderWithMeta} from '../constants/favorite'
+import type {Action} from '../constants/types/flux'
+import type {FavoriteAdd, FavoriteAdded, FavoriteList, FavoriteListed, FavoriteIgnore, FavoriteIgnored, FolderState, FavoriteSwitchTab, FavoriteToggleIgnored, FolderWithMeta, FolderRPC} from '../constants/favorite'
 import type {Folder as FoldersFolder, MetaType} from '../constants/folders'
 import type {SagaGenerator} from '../constants/types/saga'
 
@@ -24,53 +24,57 @@ function toggleShowIgnored (isPrivate: boolean): FavoriteToggleIgnored {
   return {type: Constants.favoriteToggleIgnored, payload: {isPrivate}, error: false}
 }
 
+function favoriteList (): FavoriteList {
+  return {type: Constants.favoriteList, payload: undefined}
+}
+
+function favoriteFolder (path: string): FavoriteAdd {
+  return {type: Constants.favoriteAdd, payload: {path}}
+}
+
+function ignoreFolder (path: string): FavoriteIgnore {
+  return {type: Constants.favoriteIgnore, payload: {path}}
+}
+
 const injectMeta = type => f => { f.meta = type }
 
 const _jsonToFolders = (json: Object, myKID: any) => {
   const folderSets = [json.favorites, json.ignored, json.new]
+  const fillFolder = folder => {
+    folder.waitingForParticipantUnlock = []
+    folder.youCanUnlock = []
 
-  folderSets.forEach(folders => {
-    folders.forEach(folder => {
-      folder.waitingForParticipantUnlock = []
-      folder.youCanUnlock = []
+    if (!folder.problem_set) {
+      return
+    }
 
-      if (!folder.problem_set) {
-        return
-      }
+    const solutions = folder.problem_set.solution_kids || {}
+    if (Object.keys(solutions).length) {
+      folder.meta = 'rekey'
+    }
 
-      const solutions = folder.problem_set.solution_kids || {}
-      if (Object.keys(solutions).length) {
-        folder.meta = 'rekey'
-      }
+    if (folder.problem_set.can_self_help) {
+      const mySolutions = solutions[myKID] || []
+      folder.youCanUnlock = mySolutions.map(kid => {
+        const device = json.devices[kid]
+        return {...device, deviceID: kid}
+      })
+    } else {
+      folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
+        const devices = solutions[userID].map(kid => json.devices[kid].name)
+        const numDevices = devices.length
+        const last = numDevices > 1 ? devices.pop() : null
 
-      if (folder.problem_set.can_self_help) {
-        const mySolutions = solutions[myKID] || []
-        folder.youCanUnlock = mySolutions.map(kid => {
-          const device = json.devices[kid]
-          return {...device, deviceID: kid}
-        })
-      } else {
-        folder.waitingForParticipantUnlock = Object.keys(solutions).map(userID => {
-          const devices = solutions[userID].map(kid => json.devices[kid].name)
-          const numDevices = devices.length
-          const last = numDevices > 1 ? devices.pop() : null
-
-          return {
-            name: json.users[userID],
-            devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${last ? ` or ${last}` : ''}.`,
-          }
-        })
-      }
-    })
-  })
-  return _.flatten(folderSets)
-}
-
-function favoriteList (): FavoriteGet {
-  return {
-    type: Constants.favoriteGet,
-    payload: undefined,
+        return {
+          name: json.users[userID],
+          devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${last ? ` or ${last}` : ''}.`,
+        }
+      })
+    }
   }
+
+  folderSets.forEach(folders => folders.forEach(fillFolder))
+  return _.flatten(folderSets)
 }
 
 function _getFavoritesRPC (): Promise<any> {
@@ -89,6 +93,20 @@ function _getFavoritesRPC (): Promise<any> {
       },
     })
   })
+}
+
+function _folderSort (username, a, b) {
+  // New first
+  if (a.meta !== b.meta) {
+    if (a.meta === 'new') return -1
+    if (b.meta === 'new') return 1
+  }
+
+  // You next
+  if (a.sortName === username) return -1
+  if (b.sortName === username) return 1
+
+  return a.sortName.localeCompare(b.sortName)
 }
 
 function _folderToState (txt: string = '', username: string = '', loggedIn: boolean): FolderState {
@@ -130,19 +148,7 @@ function _folderToState (txt: string = '', username: string = '', loggedIn: bool
       waitingForParticipantUnlock: f.waitingForParticipantUnlock,
       youCanUnlock: f.youCanUnlock,
     }
-  }).sort((a, b) => {
-    // New first
-    if (a.meta !== b.meta) {
-      if (a.meta === 'new') return -1
-      if (b.meta === 'new') return 1
-    }
-
-    // You next
-    if (a.sortName === username) return -1
-    if (b.sortName === username) return 1
-
-    return a.sortName.localeCompare(b.sortName)
-  })
+  }).sort((a, b) => _folderSort(username, a, b))
 
   const [priFolders, pubFolders] = _.partition(converted, {isPublic: false})
   const [privIgnored, priv] = _.partition(priFolders, {ignored: true})
@@ -208,7 +214,76 @@ function _getFavoritesRPCToFolders (txt: string, username: string = '', loggedIn
   return folders
 }
 
-function * getFavoritesListSaga (): SagaGenerator<any, any> {
+// TODO gen this in the flow-types
+function _favoriteAddRPC (folder: FolderRPC): Promise<any> {
+  return new Promise((resolve, reject) => {
+    favoriteFavoriteAddRpc({
+      param: {folder},
+      callback: (error, result) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(result)
+        }
+      },
+    })
+  })
+}
+
+function _favoriteIgnoreRPC (folder: FolderRPC): Promise<any> {
+  return new Promise((resolve, reject) => {
+    favoriteFavoriteIgnoreRpc({
+      param: {folder},
+      callback: (error, result) => {
+        if (error) {
+          reject(error)
+        } else {
+          resolve(result)
+        }
+      },
+    })
+  })
+}
+
+function * _addSaga (action: FavoriteAdd): SagaGenerator<any, any> {
+  const folder = folderFromPath(action.payload.path)
+  if (!folder) {
+    const action: FavoriteAdded = {type: Constants.favoriteAdded, error: true, payload: {errorText: 'No folder specified'}}
+    yield put(action)
+    return
+  } else {
+    try {
+      yield call(_favoriteAddRPC, folder)
+      const action: FavoriteAdded = {type: Constants.favoriteAdded, payload: undefined}
+      yield put(action)
+      yield put(navigateBack())
+    } catch (error) {
+      console.warn('Err in favorite.favoriteAdd', error)
+      yield put(navigateBack())
+    }
+  }
+}
+
+function * _ignoreSaga (action: FavoriteAdd): SagaGenerator<any, any> {
+  const folder = folderFromPath(action.payload.path)
+  if (!folder) {
+    const action: FavoriteIgnored = {type: Constants.favoriteIgnored, error: true, payload: {errorText: 'No folder specified'}}
+    yield put(action)
+    return
+  } else {
+    try {
+      yield call(_favoriteIgnoreRPC, folder)
+      const action: FavoriteIgnored = {type: Constants.favoriteIgnored, payload: undefined}
+      yield put(action)
+      yield put(navigateBack())
+    } catch (error) {
+      console.warn('Err in favorite.favoriteIgnore', error)
+      yield put(navigateBack())
+    }
+  }
+}
+
+function * _listSaga (): SagaGenerator<any, any> {
   const bail = yield select(({dev: {reloading = false} = {}}) => reloading)
   if (bail) {
     return
@@ -222,8 +297,8 @@ function * getFavoritesListSaga (): SagaGenerator<any, any> {
   // $ForceType
   const state: FolderState = yield call(_folderToState, results && results.body, username, loggedIn)
 
-  const listAction: FavoriteList = {type: Constants.favoriteList, payload: {folders: state}}
-  yield put(listAction)
+  const listedAction: FavoriteListed = {type: Constants.favoriteListed, payload: {folders: state}}
+  yield put(listedAction)
 
   const badgeAction: Action = badgeApp('newTLFs', !!(state.publicBadge || state.privateBadge))
   yield put(badgeAction)
@@ -258,59 +333,11 @@ function _notify (state) {
   previousNotifyState = newNotifyState
 }
 
-function ignoreFolder (path: string): (dispatch: Dispatch) => void {
-  return (dispatch, getState) => {
-    const folder = folderFromPath(path)
-    if (!folder) {
-      const action: FavoriteIgnore = {type: Constants.favoriteIgnore, error: true, payload: {errorText: 'No folder specified'}}
-      dispatch(action)
-      return
-    }
-
-    favoriteFavoriteIgnoreRpc({
-      param: {folder},
-      callback: error => {
-        if (error) {
-          console.warn('Err in favorite.favoriteIgnore', error)
-          dispatch(navigateBack())
-          return
-        }
-        const action: FavoriteIgnore = {type: Constants.favoriteIgnore, payload: undefined}
-        dispatch(action)
-        dispatch(navigateBack())
-      },
-    })
-  }
-}
-
-function favoriteFolder (path: string): (dispatch: Dispatch) => void {
-  return (dispatch, getState) => {
-    const folder = folderFromPath(path)
-    if (!folder) {
-      const action: FavoriteAdd = {type: Constants.favoriteAdd, error: true, payload: {errorText: 'No folder specified'}}
-      dispatch(action)
-      return
-    }
-
-    favoriteFavoriteAddRpc({
-      param: {folder},
-      callback: error => {
-        if (error) {
-          console.warn('Err in favorite.favoriteAdd', error)
-          dispatch(navigateBack())
-          return
-        }
-        const action: FavoriteAdd = {type: Constants.favoriteAdd, payload: undefined}
-        dispatch(action)
-        dispatch(navigateBack())
-      },
-    })
-  }
-}
-
 function * _favoriteSaga (): SagaGenerator<any, any> {
   yield [
-    takeLatest(Constants.favoriteGet, getFavoritesListSaga),
+    takeLatest(Constants.favoriteList, _listSaga),
+    takeLatest(Constants.favoriteAdd, _addSaga),
+    takeLatest(Constants.favoriteIgnore, _ignoreSaga),
   ]
 }
 
