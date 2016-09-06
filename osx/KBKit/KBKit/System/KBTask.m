@@ -80,7 +80,7 @@
   @try {
     DDLogDebug(@"Task: %@ %@", command, [args join:@" "]);
     [task launch];
-    //[task waitUntilExit];
+    [task waitUntilExit];
   } @catch (NSException *e) {
     NSString *errorMessage = NSStringWithFormat(@"%@ (%@ %@)", e.reason, command, [args join:@" "]);
     DDLogError(@"Error running task: %@", errorMessage);
