@@ -124,9 +124,18 @@ func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase
 	return d.printf("KBFS notification: %+v\n", notification)
 }
 
+func (d *notificationDisplay) FSSyncActivity(_ context.Context, status keybase1.FSPathSyncStatus) error {
+	return d.printf("KBFS path sync status: %+v\n", status)
+}
+
 func (d *notificationDisplay) FSEditListResponse(
 	_ context.Context, arg keybase1.FSEditListResponseArg) error {
 	return d.printf("KBFS edit list response: %+v\n", arg)
+}
+
+func (d *notificationDisplay) FSSyncStatusResponse(
+	_ context.Context, arg keybase1.FSSyncStatusResponseArg) error {
+	return d.printf("KBFS sync status response: %+v\n", arg)
 }
 
 func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.TrackingChangedArg) error {

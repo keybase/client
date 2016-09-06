@@ -82,7 +82,6 @@ const stylesDividerText = {
 }
 
 const stylesDividerBodyText = {
-  width: 360,
   padding: 7,
   textAlign: 'center',
 }

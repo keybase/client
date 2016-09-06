@@ -109,11 +109,20 @@ func (r *rekeyMaster) handleGregorDismissal() error {
 }
 
 func (r *rekeyMaster) Logout() {
-	r.interruptCh <- interruptArg{rekeyInterrupt: RekeyInterruptLogout}
+	// Beware deadlocks here! See CORE-3690 for an example. We sometimes
+	// block on login state to make an API call. But we don't want
+	// LoginState to block on us during a logout call, so send this one
+	// async
+	go func() {
+		r.interruptCh <- interruptArg{rekeyInterrupt: RekeyInterruptLogout}
+	}()
 }
 
 func (r *rekeyMaster) Login() {
-	r.interruptCh <- interruptArg{rekeyInterrupt: RekeyInterruptLogin}
+	// See comment about Logout() for deadlock avoidance.
+	go func() {
+		r.interruptCh <- interruptArg{rekeyInterrupt: RekeyInterruptLogin}
+	}()
 }
 
 func (r *rekeyMaster) newUIRegistered() {

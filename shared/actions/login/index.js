@@ -18,8 +18,9 @@ import {devicesTab, loginTab} from '../../constants/tabs'
 import {isMobile} from '../../constants/platform'
 import {loadDevices} from '../devices'
 import {loginRecoverAccountFromEmailAddressRpc, loginLoginRpc, loginLogoutRpc,
-  deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, loginClearStoredSecretRpc,
-  CommonClientType, ConstantsStatusCode, ProvisionUiGPGMethod, ProvisionUiDeviceType, PassphraseCommonPassphraseType,
+  deviceDeviceAddRpc, loginGetConfiguredAccountsRpc, CommonClientType,
+  ConstantsStatusCode, ProvisionUiGPGMethod, ProvisionUiDeviceType,
+  PassphraseCommonPassphraseType,
 } from '../../constants/types/flow-types'
 import {navigateTo, routeAppend, navigateUp, switchTab} from '../router'
 import {overrideLoggedInTab} from '../../local-debug'
@@ -39,7 +40,7 @@ function waitingForResponse (waiting: boolean) : TypedAction<'login:waitingForRe
   }
 }
 
-export function navBasedOnLoginState () :AsyncAction {
+export function navBasedOnLoginState (): AsyncAction {
   return (dispatch, getState) => {
     const {config: {status, extendedConfig}} = getState()
 
@@ -260,7 +261,7 @@ export function autoLogin () : AsyncAction {
   }
 }
 
-export function relogin (user: string, passphrase: string, store: boolean) : AsyncAction {
+export function relogin (user: string, passphrase: string) : AsyncAction {
   return dispatch => {
     const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
     loginLoginRpc({
@@ -274,7 +275,7 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
         'keybase.1.secretUi.getPassphrase': ({pinentry: {type}}, response) => {
           response.result({
             passphrase,
-            storeSecret: store,
+            storeSecret: true,
           })
         },
         'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
@@ -330,19 +331,6 @@ export function logoutDone () : AsyncAction {
     dispatch(switchTab(loginTab))
     dispatch(navBasedOnLoginState())
     dispatch(bootstrap())
-  }
-}
-
-export function saveInKeychainChanged (username: string, saveInKeychain: bool) : AsyncAction {
-  return (dispatch, getState) => {
-    if (saveInKeychain) {
-      return
-    }
-
-    loginClearStoredSecretRpc({
-      param: {username},
-      callback: error => { error && console.log(error) },
-    })
   }
 }
 
@@ -420,8 +408,6 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
     dispatch(routeAppend({parseRoute: {componentAtTop: {element}}}))
   }
 
-  let username = null
-
   // FIXME (mbg): The above usage of React components in the action code causes
   // a module dependency which prevents HMR. We can't hot reload action code,
   // so when these views (or more likely, their subcomponents from
@@ -478,10 +464,7 @@ function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisione
     'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
       appendRouteElement((
         <UsernameOrEmail
-          onSubmit={usernameOrEmail => {
-            username = usernameOrEmail
-            response.result(usernameOrEmail)
-          }}
+          onSubmit={usernameOrEmail => response.result(usernameOrEmail)}
           onBack={() => onBack(response)} />))
     },
     'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
