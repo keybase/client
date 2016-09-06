@@ -17,8 +17,8 @@
   },
   "homepage": "https://github.com/keybase/protocol",
   "dependencies": {
-    "avdl-compiler": "^1.3.4",
-    "avdl2json": "2.2.0",
+    "avdl-compiler": "1.3.6",
+    "avdl2json": "2.2.3",
     "bluebird": "^2.10.0",
     "iced-coffee-script": "^108.0.9",
     "iced-error": "0.0.9",

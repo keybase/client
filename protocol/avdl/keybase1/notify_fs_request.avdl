@@ -5,4 +5,7 @@ protocol NotifyFSRequest {
 
   @notify("")
   void FSEditListRequest(FSEditListRequest req);
+
+  @notify("")
+  void FSSyncStatusRequest(FSSyncStatusRequest req);
 }
