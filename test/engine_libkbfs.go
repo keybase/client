@@ -6,6 +6,9 @@ package test
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -26,6 +29,8 @@ type LibKBFS struct {
 	t testing.TB
 	// timeout for all KBFS calls
 	opTimeout time.Duration
+	// journal directory
+	journalDir string
 }
 
 // Check that LibKBFS fully implements the Engine interface.
@@ -47,13 +52,23 @@ func (k *LibKBFS) Init() {
 // InitTest implements the Engine interface.
 func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 	bwKBps int, opTimeout time.Duration, users []libkb.NormalizedUsername,
-	clock libkbfs.Clock) map[libkb.NormalizedUsername]User {
+	clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User {
 	// Start a new log for this test.
 	k.t = t
 	k.t.Log("\n------------------------------------------")
 	userMap := make(map[libkb.NormalizedUsername]User)
 	// create the first user specially
 	config := libkbfs.MakeTestConfigOrBust(t, users...)
+
+	if journal {
+		jdir, err := ioutil.TempDir(os.TempDir(), "kbfs_journal")
+		if err != nil {
+			k.t.Fatalf("Couldn't enable journaling: %v", err)
+		}
+		k.journalDir = jdir
+		k.t.Logf("Journal directory: %s", k.journalDir)
+		config.EnableJournaling(filepath.Join(jdir, users[0].String()))
+	}
 
 	setBlockSizes(t, config, blockSize, blockChangeSize)
 	maybeSetBw(t, config, bwKBps)
@@ -75,6 +90,9 @@ func (k *LibKBFS) InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 		userMap[name] = c
 		k.refs[c] = make(map[libkbfs.Node]bool)
 		k.updateChannels[c] = make(map[libkbfs.FolderBranch]chan<- struct{})
+		if journal && k.journalDir != "" {
+			c.EnableJournaling(filepath.Join(k.journalDir, name.String()))
+		}
 	}
 	return userMap
 }
@@ -551,6 +569,45 @@ func (k *LibKBFS) Rekey(u User, tlfName string, isPublic bool) error {
 	return config.KBFSOps().Rekey(ctx, dir.GetFolderBranch().Tlf)
 }
 
+// EnableJournal implements the Engine interface.
+func (k *LibKBFS) EnableJournal(u User, tlfName string, isPublic bool) error {
+	config := u.(*libkbfs.ConfigLocal)
+
+	ctx, cancel := k.newContext()
+	defer cancel()
+	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	if err != nil {
+		return err
+	}
+
+	jServer, err := libkbfs.GetJournalServer(config)
+	if err != nil {
+		return err
+	}
+
+	return jServer.Enable(ctx, dir.GetFolderBranch().Tlf,
+		libkbfs.TLFJournalBackgroundWorkEnabled)
+}
+
+// FlushJournal implements the Engine interface.
+func (k *LibKBFS) FlushJournal(u User, tlfName string, isPublic bool) error {
+	config := u.(*libkbfs.ConfigLocal)
+
+	ctx, cancel := k.newContext()
+	defer cancel()
+	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	if err != nil {
+		return err
+	}
+
+	jServer, err := libkbfs.GetJournalServer(config)
+	if err != nil {
+		return err
+	}
+
+	return jServer.Flush(ctx, dir.GetFolderBranch().Tlf)
+}
+
 // Shutdown implements the Engine interface.
 func (k *LibKBFS) Shutdown(u User) error {
 	config := u.(*libkbfs.ConfigLocal)
@@ -560,9 +617,33 @@ func (k *LibKBFS) Shutdown(u User) error {
 	// clear update channels
 	k.updateChannels[config] = make(map[libkbfs.FolderBranch]chan<- struct{})
 	delete(k.updateChannels, config)
+
+	// Get the user name before shutting everything down.
+	var userName libkb.NormalizedUsername
+	if k.journalDir != "" {
+		var err error
+		userName, _, err =
+			config.KBPKI().GetCurrentUserInfo(context.Background())
+		if err != nil {
+			return err
+		}
+	}
+
 	// shutdown
 	if err := config.Shutdown(); err != nil {
 		return err
+	}
+
+	if k.journalDir != "" {
+		// Remove the user journal.
+		if err := os.RemoveAll(
+			filepath.Join(k.journalDir, userName.String())); err != nil {
+			return err
+		}
+		// Remove the overall journal dir if it's empty.
+		if err := os.Remove(k.journalDir); err != nil {
+			k.t.Logf("Journal dir %s not empty yet", k.journalDir)
+		}
 	}
 	return nil
 }

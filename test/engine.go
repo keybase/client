@@ -41,7 +41,7 @@ type Engine interface {
 	// default engine timeout, or if it is zero, it has no effect.
 	InitTest(t testing.TB, blockSize int64, blockChangeSize int64,
 		bwKBps int, opTimeout time.Duration, users []libkb.NormalizedUsername,
-		clock libkbfs.Clock) map[libkb.NormalizedUsername]User
+		clock libkbfs.Clock, journal bool) map[libkb.NormalizedUsername]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
 	GetUID(u User) keybase1.UID
 	// GetFavorites returns the set of all public or private
@@ -118,6 +118,12 @@ type Engine interface {
 	AddNewAssertion(u User, oldAssertion, newAssertion string) (err error)
 	// Rekey rekeys the given TLF under the given user.
 	Rekey(u User, tlfName string, isPublic bool) (err error)
+	// EnableJournal is called by the test harness as the given
+	// user to enable journaling.
+	EnableJournal(u User, tlfName string, isPublic bool) (err error)
+	// FlushJournal is called by the test harness as the given
+	// user to wait for the journal to flush, if enabled.
+	FlushJournal(u User, tlfName string, isPublic bool) (err error)
 	// Shutdown is called by the test harness when it is done with the
 	// given user.
 	Shutdown(u User) error

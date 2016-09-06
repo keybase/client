@@ -14,8 +14,6 @@ import (
 	"runtime/pprof"
 	"time"
 
-	"golang.org/x/net/context"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 )
@@ -372,24 +370,7 @@ func Init(ctx Context, params InitParams, keybaseServiceCn KeybaseServiceCn, onI
 	// used.
 
 	if len(params.WriteJournalRoot) > 0 {
-		// TODO: Sanity-check the root directory, e.g. create
-		// it if it doesn't exist, make sure that it doesn't
-		// point to /keybase itself, etc.
-		log := config.MakeLogger("")
-		jServer := makeJournalServer(
-			config, log, params.WriteJournalRoot,
-			config.BlockCache(),
-			config.BlockServer(), config.MDOps())
-		ctx := context.Background()
-		err := jServer.EnableExistingJournals(
-			ctx, TLFJournalBackgroundWorkEnabled)
-		if err == nil {
-			config.SetBlockCache(jServer.blockCache())
-			config.SetBlockServer(jServer.blockServer())
-			config.SetMDOps(jServer.mdOps())
-		} else {
-			log.Warning("Failed to enable existing journals: %v", err)
-		}
+		config.EnableJournaling(params.WriteJournalRoot)
 	}
 
 	return config, nil

@@ -711,7 +711,8 @@ func (c *ConfigLocal) Shutdown() error {
 	c.RekeyQueue().Clear()
 	c.RekeyQueue().Wait(context.Background())
 	if c.CheckStateOnShutdown() {
-		// Before we do anything, wait for all archiving to finish.
+		// Before we do anything, wait for all archiving and
+		// journaling to finish.
 		for _, config := range *c.allKnownConfigsForTesting {
 			kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 			if !ok {
@@ -724,6 +725,12 @@ func (c *ConfigLocal) Shutdown() error {
 				if err := fbo.fbm.waitForDeletingBlocks(
 					context.Background()); err != nil {
 					return err
+				}
+				if jServer, err := GetJournalServer(config); err == nil {
+					if err := jServer.Flush(context.Background(),
+						fbo.id()); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -761,4 +768,25 @@ func (c *ConfigLocal) CheckStateOnShutdown() bool {
 		return !md.isShutdown()
 	}
 	return false
+}
+
+// EnableJournaling creates a JournalServer, but journaling must still
+// be enabled manually for individual folders.
+func (c *ConfigLocal) EnableJournaling(journalRoot string) {
+	// TODO: Sanity-check the root directory, e.g. create
+	// it if it doesn't exist, make sure that it doesn't
+	// point to /keybase itself, etc.
+	log := c.MakeLogger("")
+	jServer := makeJournalServer(c, log, journalRoot, c.BlockCache(),
+		c.BlockServer(), c.MDOps())
+	ctx := context.Background()
+	err := jServer.EnableExistingJournals(
+		ctx, TLFJournalBackgroundWorkEnabled)
+	if err == nil {
+		c.SetBlockCache(jServer.blockCache())
+		c.SetBlockServer(jServer.blockServer())
+		c.SetMDOps(jServer.mdOps())
+	} else {
+		log.Warning("Failed to enable existing journals: %v", err)
+	}
 }
