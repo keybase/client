@@ -268,6 +268,9 @@ type KBFSOps interface {
 	GetEditHistory(ctx context.Context, folderBranch FolderBranch) (
 		edits TlfWriterEdits, err error)
 
+	// GetNodeMetadata gets metadata associated with a Node.
+	GetNodeMetadata(ctx context.Context, node Node) (NodeMetadata, error)
+
 	// Shutdown is called to clean up any resources associated with
 	// this KBFSOps instance.
 	Shutdown() error

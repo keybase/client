@@ -5,7 +5,6 @@
 package libfs
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/keybase/kbfs/libkbfs"
@@ -24,13 +23,8 @@ func GetEncodedFolderStatus(ctx context.Context, config libkbfs.Config,
 		return nil, time.Time{}, err
 	}
 
-	data, err = json.MarshalIndent(status, "", "  ")
-	if err != nil {
-		return nil, time.Time{}, err
-	}
-
-	data = append(data, '\n')
-	return data, time.Time{}, err
+	data, err = PrettyJSON(status)
+	return
 }
 
 // GetEncodedStatus returns serialized JSON containing top-level KBFS status
@@ -41,10 +35,6 @@ func GetEncodedStatus(ctx context.Context, config libkbfs.Config) (
 	if err != nil {
 		config.Reporter().ReportErr(ctx, "", false, libkbfs.ReadMode, err)
 	}
-	data, err = json.MarshalIndent(status, "", "  ")
-	if err != nil {
-		return nil, t, err
-	}
-	data = append(data, '\n')
-	return data, t, err
+	data, err = PrettyJSON(status)
+	return
 }

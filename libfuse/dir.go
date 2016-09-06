@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -469,6 +470,20 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		return node, nil
 	}
 
+	// Check if this is a per-file metainformation file, if so
+	// return the corresponding SpecialReadFile.
+	if strings.HasPrefix(req.Name, libfs.FileInfoPrefix) {
+		node, _, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name[len(libfs.FileInfoPrefix):])
+		if err != nil {
+			return nil, err
+		}
+		nmd, err := d.folder.fs.config.KBFSOps().GetNodeMetadata(ctx, node)
+		if err != nil {
+			return nil, err
+		}
+		return &SpecialReadFile{fileInfo(nmd).read}, nil
+	}
+
 	newNode, de, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name)
 	if err != nil {
 		if _, ok := err.(libkbfs.NoSuchNameError); ok {
@@ -516,6 +531,13 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		// have a libkbfs.Node to keep track of renames.
 		return child, nil
 	}
+}
+
+type fileInfo libkbfs.NodeMetadata
+
+func (fi fileInfo) read(ctx context.Context) ([]byte, time.Time, error) {
+	bs, err := libfs.PrettyJSON(fi)
+	return bs, time.Time{}, err
 }
 
 func getEXCLFromCreateRequest(req *fuse.CreateRequest) libkbfs.Excl {

@@ -5,7 +5,6 @@
 package libfs
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/keybase/kbfs/libkbfs"
@@ -22,11 +21,6 @@ func GetEncodedTlfEditHistory(ctx context.Context, config libkbfs.Config,
 		return nil, time.Time{}, err
 	}
 
-	data, err = json.MarshalIndent(edits, "", "  ")
-	if err != nil {
-		return nil, time.Time{}, err
-	}
-
-	data = append(data, '\n')
+	data, err = PrettyJSON(edits)
 	return data, time.Time{}, err
 }

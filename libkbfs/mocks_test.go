@@ -506,6 +506,17 @@ func (_mr *_MockKBFSOpsRecorder) GetEditHistory(arg0, arg1 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetEditHistory", arg0, arg1)
 }
 
+func (_m *MockKBFSOps) GetNodeMetadata(ctx context.Context, node Node) (NodeMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetNodeMetadata", ctx, node)
+	ret0, _ := ret[0].(NodeMetadata)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBFSOpsRecorder) GetNodeMetadata(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetNodeMetadata", arg0, arg1)
+}
+
 func (_m *MockKBFSOps) Shutdown() error {
 	ret := _m.ctrl.Call(_m, "Shutdown")
 	ret0, _ := ret[0].(error)

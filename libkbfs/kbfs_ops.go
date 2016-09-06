@@ -595,6 +595,13 @@ func (fs *KBFSOpsStandard) GetEditHistory(ctx context.Context,
 	return ops.GetEditHistory(ctx, folderBranch)
 }
 
+// GetNodeMetadata implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) GetNodeMetadata(ctx context.Context, node Node) (
+	NodeMetadata, error) {
+	ops := fs.getOpsByNode(ctx, node)
+	return ops.GetNodeMetadata(ctx, node)
+}
+
 // Notifier:
 var _ Notifier = (*KBFSOpsStandard)(nil)
 

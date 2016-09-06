@@ -5,7 +5,6 @@
 package libfs
 
 import (
-	"encoding/json"
 	"time"
 
 	"github.com/go-errors/errors"
@@ -41,11 +40,7 @@ func GetEncodedErrors(config libkbfs.Config) func(context.Context) ([]byte, time
 			jsonErrors[i].Error = e.Error.Error()
 			jsonErrors[i].Stack = convertStack(e.Stack)
 		}
-		data, err := json.MarshalIndent(jsonErrors, "", "  ")
-		if err != nil {
-			return nil, time.Time{}, err
-		}
-		data = append(data, '\n')
+		data, err := PrettyJSON(jsonErrors)
 		var t time.Time
 		if len(errors) > 0 {
 			t = errors[len(errors)-1].Time

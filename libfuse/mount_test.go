@@ -22,6 +22,7 @@ import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
@@ -3307,5 +3308,42 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	}
 	if g, e := string(buf), input1+input3; g != e {
 		t.Errorf("wrong content: %q != %q", g, e)
+	}
+}
+
+func TestKbfsFileInfo(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
+	mnt1, fs1, cancelFn1 := makeFS(t, config1)
+	defer mnt1.Close()
+	defer cancelFn1()
+	defer libkbfs.CheckConfigAndShutdown(t, config1)
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	mnt2, _, cancelFn2 := makeFS(t, config2)
+	defer mnt2.Close()
+	defer cancelFn2()
+	defer libkbfs.CheckConfigAndShutdown(t, config2)
+
+	mydir1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "mydir")
+	if err := os.Mkdir(mydir1, 0755); err != nil {
+		t.Fatal(err)
+	}
+	myfile1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", "mydir", "myfile")
+	if err := ioutil.WriteFile(myfile1, []byte("foo"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	syncFolderToServer(t, "user1,user2", fs1)
+	fi2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "mydir", libfs.FileInfoPrefix+"myfile")
+	bs, err := ioutil.ReadFile(fi2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var dst libkbfs.NodeMetadata
+	err = json.Unmarshal(bs, &dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dst.LastWriterUnverified != libkb.NormalizedUsername("user1") {
+		t.Fatalf("Expected user1, %v raw %X", dst, bs)
 	}
 }

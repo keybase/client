@@ -20,6 +20,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libfs"
@@ -2831,4 +2832,41 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 			t.Errorf("wrong content: %q != %q", g, e)
 		}
 	*/
+}
+
+func TestKbfsFileInfo(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
+	defer libkbfs.CheckConfigAndShutdown(t, config1)
+	mnt1, fs1, cancelFn1 := makeFS(t, config1)
+	defer mnt1.Close()
+	defer cancelFn1()
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	defer libkbfs.CheckConfigAndShutdown(t, config2)
+	mnt2, _, cancelFn2 := makeFSE(t, config2, 'U')
+	defer mnt2.Close()
+	defer cancelFn2()
+
+	mydir1 := filepath.Join(mnt1.Dir, PrivateName, "user1,user2", "mydir")
+	if err := os.Mkdir(mydir1, 0755); err != nil {
+		t.Fatal(err)
+	}
+	myfile1 := filepath.Join(mnt1.Dir, PrivateName, "user1,user2", "mydir", "myfile")
+	if err := ioutil.WriteFile(myfile1, []byte("foo"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	syncFolderToServer(t, "user1,user2", fs1)
+	fi2 := filepath.Join(mnt2.Dir, PrivateName, "user1,user2", "mydir", libfs.FileInfoPrefix+"myfile")
+	bs, err := ioutil.ReadFile(fi2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var dst libkbfs.NodeMetadata
+	err = json.Unmarshal(bs, &dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if dst.LastWriterUnverified != libkb.NormalizedUsername("user1") {
+		t.Fatalf("Expected user1, %v raw %X", dst, bs)
+	}
 }
