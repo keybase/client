@@ -38,7 +38,7 @@ export const PlatformsExpanded = Object.keys(PlatformsExpandedMap)
 export type PlatformsExpandedType = $Keys<typeof PlatformsExpandedMap>
 
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
-export type $Exact<X> = $Shape<X> & X
+export type Exact<X> = $Shape<X> & X
 
 export type Device = {
   name: string,

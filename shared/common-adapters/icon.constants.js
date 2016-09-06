@@ -208,1111 +208,926 @@ const iconMeta_ = {
   'icon-GPG-export': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-GPG-export.png'),
   },
   'icon-bitcoin-logo-16': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-bitcoin-logo-16.png'),
   },
   'icon-bitcoin-logo-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-bitcoin-logo-24.png'),
   },
   'icon-bitcoin-logo-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-bitcoin-logo-32.png'),
   },
   'icon-bitcoin-logo-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-bitcoin-logo-48.png'),
   },
   'icon-bitcoin-logo-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-bitcoin-logo-64.png'),
   },
   'icon-coinbase-logo-16': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-coinbase-logo-16.png'),
   },
   'icon-coinbase-logo-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-coinbase-logo-24.png'),
   },
   'icon-coinbase-logo-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-coinbase-logo-32.png'),
   },
   'icon-coinbase-logo-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-coinbase-logo-48.png'),
   },
   'icon-coinbase-logo-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-coinbase-logo-64.png'),
   },
   'icon-computer-bw-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-computer-bw-32.png'),
   },
   'icon-computer-bw-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-computer-bw-48.png'),
   },
   'icon-computer-bw-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-computer-bw-64.png'),
   },
   'icon-computer-bw-revoke-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-computer-bw-revoke-48.png'),
   },
   'icon-computer-bw-revoke-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-computer-bw-revoke-64.png'),
   },
   'icon-computer-bw-success-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-computer-bw-success-48.png'),
   },
   'icon-computer-colors-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-computer-colors-32.png'),
   },
   'icon-computer-colors-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-computer-colors-48.png'),
   },
   'icon-computer-colors-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-computer-colors-64.png'),
   },
   'icon-computer-dark-blue-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-computer-dark-blue-32.png'),
   },
   'icon-computer-text-code-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-computer-text-code-32.png'),
   },
   'icon-computer-text-code-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-computer-text-code-48.png'),
   },
   'icon-damier-pattern-good-open-48-1000': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-damier-pattern-good-open-48-1000.png'),
   },
   'icon-damier-pattern-good-open': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-damier-pattern-good-open.png'),
   },
   'icon-damier-pattern-ignored-locked-48-1000': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-damier-pattern-ignored-locked-48-1000.png'),
   },
   'icon-damier-pattern-ignored-locked': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-damier-pattern-ignored-locked.png'),
   },
   'icon-devices-add-64-x-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-devices-add-64-x-48.png'),
   },
   'icon-dns-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-dns-48.png'),
   },
   'icon-dns-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-dns-64.png'),
   },
   'icon-fancy-bubbles-123-x-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-fancy-bubbles-123-x-64.png'),
   },
   'icon-fancy-email-sent-144-x-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-fancy-email-sent-144-x-48.png'),
   },
   'icon-fancy-folders-138-x-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-fancy-folders-138-x-48.png'),
   },
   'icon-fancy-people-search-80': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-fancy-people-search-80.png'),
   },
   'icon-fancy-settings-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-fancy-settings-64.png'),
   },
   'icon-file-private-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-private-32.png'),
   },
   'icon-file-private-code-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-private-code-32.png'),
   },
   'icon-file-private-image-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-private-image-32.png'),
   },
   'icon-file-private-table-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-private-table-32.png'),
   },
   'icon-file-private-text-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-private-text-32.png'),
   },
   'icon-file-private-video-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-private-video-32.png'),
   },
   'icon-file-public-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-public-32.png'),
   },
   'icon-file-public-code-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-public-code-32.png'),
   },
   'icon-file-public-image-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-public-image-32.png'),
   },
   'icon-file-public-table-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-public-table-32.png'),
   },
   'icon-file-public-text-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-public-text-32.png'),
   },
   'icon-file-public-video-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-public-video-32.png'),
   },
   'icon-file-txt-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-txt-48.png'),
   },
   'icon-file-txt-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-file-txt-64.png'),
   },
   'icon-files-private-delete-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-files-private-delete-48.png'),
   },
   'icon-files-private-delete-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-files-private-delete-64.png'),
   },
   'icon-files-public-delete-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-files-public-delete-48.png'),
   },
   'icon-files-public-delete-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-files-public-delete-64.png'),
   },
   'icon-folder-private-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-24.png'),
   },
   'icon-folder-private-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-32.png'),
   },
   'icon-folder-private-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-48.png'),
   },
   'icon-folder-private-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-64.png'),
   },
   'icon-folder-private-group-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-group-24.png'),
   },
   'icon-folder-private-group-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-group-32.png'),
   },
   'icon-folder-private-group-ignored-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-group-ignored-24.png'),
   },
   'icon-folder-private-group-ignored-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-group-ignored-32.png'),
   },
   'icon-folder-private-has-stuff-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-has-stuff-24.png'),
   },
   'icon-folder-private-has-stuff-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-has-stuff-32.png'),
   },
   'icon-folder-private-has-stuff-ignored-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-has-stuff-ignored-24.png'),
   },
   'icon-folder-private-has-stuff-ignored-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-has-stuff-ignored-32.png'),
   },
   'icon-folder-private-open-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-open-24.png'),
   },
   'icon-folder-private-open-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-open-32.png'),
   },
   'icon-folder-private-success-negative-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-private-success-negative-48.png'),
   },
   'icon-folder-public-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-24.png'),
   },
   'icon-folder-public-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-32.png'),
   },
   'icon-folder-public-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-48.png'),
   },
   'icon-folder-public-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-64.png'),
   },
   'icon-folder-public-group-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-group-24.png'),
   },
   'icon-folder-public-group-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-group-32.png'),
   },
   'icon-folder-public-group-ignored-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-group-ignored-24.png'),
   },
   'icon-folder-public-group-ignored-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-group-ignored-32.png'),
   },
   'icon-folder-public-has-stuff-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-has-stuff-24.png'),
   },
   'icon-folder-public-has-stuff-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-has-stuff-32.png'),
   },
   'icon-folder-public-has-stuff-ignored-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-has-stuff-ignored-24.png'),
   },
   'icon-folder-public-has-stuff-ignored-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-has-stuff-ignored-32.png'),
   },
   'icon-folder-public-open-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-open-24.png'),
   },
   'icon-folder-public-open-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-open-32.png'),
   },
   'icon-folder-public-success-negative-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folder-public-success-negative-48.png'),
   },
   'icon-folders-private-success-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-folders-private-success-48.png'),
   },
   'icon-github-logo-16': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-github-logo-16.png'),
   },
   'icon-github-logo-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-github-logo-24.png'),
   },
   'icon-github-logo-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-github-logo-32.png'),
   },
   'icon-github-logo-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-github-logo-48.png'),
   },
   'icon-github-logo-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-github-logo-64.png'),
   },
   'icon-hacker-news-logo-16': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-hacker-news-logo-16.png'),
   },
   'icon-hacker-news-logo-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-hacker-news-logo-24.png'),
   },
   'icon-hacker-news-logo-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-hacker-news-logo-32.png'),
   },
   'icon-hacker-news-logo-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-hacker-news-logo-48.png'),
   },
   'icon-hacker-news-logo-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-hacker-news-logo-64.png'),
   },
   'icon-history-clear-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-history-clear-48.png'),
   },
   'icon-history-clear-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-history-clear-64.png'),
   },
   'icon-invite-code-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-invite-code-48.png'),
   },
   'icon-invite-code-no-more-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-invite-code-no-more-48.png'),
   },
   'icon-invite-link-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-invite-link-24.png'),
   },
   'icon-invite-link-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-invite-link-32.png'),
   },
   'icon-invite-link-negative-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-invite-link-negative-48.png'),
   },
   'icon-invite-link-negative-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-invite-link-negative-64.png'),
   },
   'icon-keybase-logo-128': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-keybase-logo-128.png'),
   },
   'icon-keybase-logo-16': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-keybase-logo-16.png'),
   },
   'icon-keybase-logo-160': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-keybase-logo-160.png'),
   },
   'icon-keybase-logo-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-keybase-logo-24.png'),
   },
   'icon-keybase-logo-256': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-keybase-logo-256.png'),
   },
   'icon-keybase-logo-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-keybase-logo-32.png'),
   },
   'icon-keybase-logo-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-keybase-logo-48.png'),
   },
   'icon-keybase-logo-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-keybase-logo-64.png'),
   },
   'icon-loader-infinity-64': {
     isFont: false,
     extension: 'gif',
-    // $FlowIssue
     require: require('../images/icons/icon-loader-infinity-64.gif'),
   },
   'icon-loader-infinity-80': {
     isFont: false,
     extension: 'gif',
-    // $FlowIssue
     require: require('../images/icons/icon-loader-infinity-80.gif'),
   },
   'icon-no-gpg': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-no-gpg.png'),
   },
   'icon-paper-key-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-paper-key-32.png'),
   },
   'icon-paper-key-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-paper-key-48.png'),
   },
   'icon-paper-key-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-paper-key-64.png'),
   },
   'icon-paper-key-corner': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-paper-key-corner.png'),
   },
   'icon-paper-key-dark-blue-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-paper-key-dark-blue-32.png'),
   },
   'icon-paper-key-revoke-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-paper-key-revoke-48.png'),
   },
   'icon-paper-key-revoke-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-paper-key-revoke-64.png'),
   },
   'icon-paper-key-success-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-paper-key-success-48.png'),
   },
   'icon-people-add-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-people-add-32.png'),
   },
   'icon-pgp-key-16': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-pgp-key-16.png'),
   },
   'icon-pgp-key-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-pgp-key-24.png'),
   },
   'icon-pgp-key-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-pgp-key-32.png'),
   },
   'icon-pgp-key-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-pgp-key-48.png'),
   },
   'icon-pgp-key-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-pgp-key-64.png'),
   },
   'icon-pgp-key-import-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-pgp-key-import-48.png'),
   },
   'icon-pgp-key-import-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-pgp-key-import-64.png'),
   },
   'icon-pgp-key-new-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-pgp-key-new-48.png'),
   },
   'icon-pgp-key-new-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-pgp-key-new-64.png'),
   },
   'icon-phone-bw-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-bw-24.png'),
   },
   'icon-phone-bw-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-bw-32.png'),
   },
   'icon-phone-bw-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-bw-48.png'),
   },
   'icon-phone-bw-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-bw-64.png'),
   },
   'icon-phone-bw-revoke-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-bw-revoke-48.png'),
   },
   'icon-phone-bw-revoke-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-bw-revoke-64.png'),
   },
   'icon-phone-bw-success-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-bw-success-48.png'),
   },
   'icon-phone-colors-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-colors-24.png'),
   },
   'icon-phone-colors-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-colors-32.png'),
   },
   'icon-phone-colors-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-colors-48.png'),
   },
   'icon-phone-colors-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-colors-64.png'),
   },
   'icon-phone-dark-blue-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-dark-blue-32.png'),
   },
   'icon-phone-qr-code-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-qr-code-32.png'),
   },
   'icon-phone-qr-code-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-qr-code-48.png'),
   },
   'icon-phone-text-code-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-text-code-32.png'),
   },
   'icon-phone-text-code-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-phone-text-code-48.png'),
   },
   'icon-placeholder-avatar-112-x-112': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-placeholder-avatar-112-x-112.png'),
   },
   'icon-placeholder-avatar-176-x-176': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-placeholder-avatar-176-x-176.png'),
   },
   'icon-placeholder-avatar-24-x-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-placeholder-avatar-24-x-24.png'),
   },
   'icon-placeholder-avatar-32-x-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-placeholder-avatar-32-x-32.png'),
   },
   'icon-placeholder-avatar-48-x-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-placeholder-avatar-48-x-48.png'),
   },
   'icon-placeholder-avatar-64-x-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-placeholder-avatar-64-x-64.png'),
   },
   'icon-placeholder-avatar-80-x-80': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-placeholder-avatar-80-x-80.png'),
   },
   'icon-progress-grey-animated': {
     isFont: false,
     extension: 'gif',
-    // $FlowIssue
     require: require('../images/icons/icon-progress-grey-animated.gif'),
   },
   'icon-progress-grey-static': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-progress-grey-static.png'),
   },
   'icon-progress-white-animated': {
     isFont: false,
     extension: 'gif',
-    // $FlowIssue
     require: require('../images/icons/icon-progress-white-animated.gif'),
   },
   'icon-progress-white-static': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-progress-white-static.png'),
   },
   'icon-proof-broken': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-proof-broken.png'),
   },
   'icon-proof-pending': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-proof-pending.png'),
   },
   'icon-proof-published': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-proof-published.png'),
   },
   'icon-proof-success': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-proof-success.png'),
   },
   'icon-proof-unfinished': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-proof-unfinished.png'),
   },
   'icon-reddit-logo-16': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-reddit-logo-16.png'),
   },
   'icon-reddit-logo-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-reddit-logo-24.png'),
   },
   'icon-reddit-logo-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-reddit-logo-32.png'),
   },
   'icon-reddit-logo-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-reddit-logo-48.png'),
   },
   'icon-reddit-logo-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-reddit-logo-64.png'),
   },
   'icon-subnav-folders-all': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-subnav-folders-all.png'),
   },
   'icon-subnav-folders-private': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-subnav-folders-private.png'),
   },
   'icon-subnav-folders-public': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-subnav-folders-public.png'),
   },
   'icon-terminal-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-terminal-32.png'),
   },
   'icon-terminal-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-terminal-48.png'),
   },
   'icon-twitter-logo-16': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-twitter-logo-16.png'),
   },
   'icon-twitter-logo-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-twitter-logo-24.png'),
   },
   'icon-twitter-logo-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-twitter-logo-32.png'),
   },
   'icon-twitter-logo-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-twitter-logo-48.png'),
   },
   'icon-twitter-logo-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-twitter-logo-64.png'),
   },
   'icon-update-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-update-64.png'),
   },
   'icon-update-pause-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-update-pause-64.png'),
   },
   'icon-website-16': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-website-16.png'),
   },
   'icon-website-24': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-website-24.png'),
   },
   'icon-website-32': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-website-32.png'),
   },
   'icon-website-48': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-website-48.png'),
   },
   'icon-website-64': {
     isFont: false,
     extension: 'png',
-    // $FlowIssue
     require: require('../images/icons/icon-website-64.png'),
   },
   'iconfont-proof-new': {
