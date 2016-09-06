@@ -264,12 +264,14 @@ class ProfileRender extends PureComponent<void, Props, State> {
                   style={styleProofs}
                   username={this.props.username}
                   loading={loading}
+                  tag={'proofs'}
                   proofs={this.props.proofs}
                   onClickProofMenu={this.props.isYou ? idx => this.handleShowMenu(idx) : null}
                   showingMenuIndex={this.state.proofMenuIndex}
                 />}
               {!loading && missingProofs.length > 0 &&
                 <UserProofs
+                  tag={'missingProofs'}
                   style={styleMissingProofs(this.props.proofs.length > 0)}
                   username={this.props.username}
                   missingProofs={missingProofs}

@@ -146,6 +146,7 @@ const propsBase: RenderProps = {
   tlfs: folders,
   followers,
   following,
+  error: null,
   trackerState: normal,
   currentlyFollowing: false,
   onPushProfile: username => console.log('onpush', username),

@@ -6,7 +6,7 @@ import type {Device} from '../constants/unlock-folders'
 import HiddenString from '../util/hidden-string'
 
 export type Props = {
-  phase: State.phase,
+  phase: $PropertyType<State, 'phase'>,
   devices: ?Array<Device>,
   onClose: () => void,
   toPaperKeyInput: () => void,

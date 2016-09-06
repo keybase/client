@@ -64,6 +64,7 @@ class Profile extends Component<void, Props, State> {
   _makeUserProofs (loading: boolean) {
     return (
       <UserProofs
+        tag={'proofs'}
         username={this.props.username}
         loading={loading}
         proofs={this.props.loading ? [] : this.props.proofs}
@@ -194,6 +195,7 @@ class Profile extends Component<void, Props, State> {
               doneLoadingComponent={this._makeUserProofs(false)} />
             {!this.props.loading &&
               <UserProofs
+                tag={'missingProofs'}
                 style={styleMissingProofs}
                 username={this.props.username}
                 missingProofs={missingProofs}

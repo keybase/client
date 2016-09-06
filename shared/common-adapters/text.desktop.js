@@ -17,7 +17,7 @@ const LinkTypes = {
 class Text extends Component<void, Props, void> {
   context: Context;
 
-  _terminalPrefix (type: Props.type): ?React$Element<*> {
+  _terminalPrefix (type: $PropertyType<Props, 'type'>): ?React$Element<*> {
     return ({
       'TerminalEmpty': <span>&nbsp;</span>,
       'TerminalCommand': <span>> </span>,
@@ -25,7 +25,7 @@ class Text extends Component<void, Props, void> {
     }: {[key: string]: React$Element<*>})[type]
   }
 
-  static _inlineStyle (type: Props.type, context: Context): Object {
+  static _inlineStyle (type: $PropertyType<Props, 'type'>, context: Context): Object {
     switch (type) {
       case 'Terminal':
       case 'TerminalCommand':
@@ -40,7 +40,7 @@ class Text extends Component<void, Props, void> {
     }
   }
 
-  static _colorStyleBackgroundMode (backgroundMode: Background, type: Props.type): Object {
+  static _colorStyleBackgroundMode (backgroundMode: Background, type: $PropertyType<Props, 'type'>): Object {
     if (backgroundMode === 'Information') {
       return {color: globalColors.brown_60}
     }

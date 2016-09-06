@@ -32,6 +32,7 @@ export default class Render extends Component<void, RenderProps, void> {
             trackerState={this.props.trackerState}
           />
           <UserProofs
+            tag='proofs'
             style={stylesProofs}
             username={this.props.username}
             loading={this.props.loading}

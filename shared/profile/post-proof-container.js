@@ -43,7 +43,7 @@ export default connector.connect(
       platform,
       platformUserName: profile.username,
       proofAction: () => { dispatch(outputInstructionsActionLink()) },
-      proofText: profile.proof || '',
+      proofText: profile.proofText || '',
     }
   }
 )(PostProofContainer)

@@ -128,7 +128,7 @@ class ProofsRender extends Component<void, Props, void> {
   }
 
   render () {
-    const {loading, onClickProofMenu, showingMenuIndex} = this.props
+    const {loading, onClickProofMenu, showingMenuIndex, style} = this.props
     const pad = idx => idx > 0 ? {marginTop: globalMargins.tiny} : {}
     const missingProofsRealCSS = `
       .user-proof-row .user-proof-row__name {
@@ -145,7 +145,7 @@ class ProofsRender extends Component<void, Props, void> {
       }
     `
     return (
-      <Box style={{...styleContainer(loading), ...this.props.style}}>
+      <Box style={{...styleContainer(loading), ...style}}>
         <ReactCSSTransitionGroup transitionName='fade-anim' transitionEnterTimeout={250} transitionLeaveTimeout={250}>
           {loading
           ? (
@@ -154,7 +154,7 @@ class ProofsRender extends Component<void, Props, void> {
             </Box>)
           : (
             <Box key='non-loading'>
-              {this.props.proofs && this.props.proofs.map((p, idx) =>
+              {this.props.tag === 'proofs' && this.props.proofs.map((p, idx) =>
                 <ProofRow
                   key={`${p.id || ''}${p.type}`}
                   ref={c => { this._rows[idx] = c }}
@@ -166,8 +166,8 @@ class ProofsRender extends Component<void, Props, void> {
                   style={pad(idx)}
                 />
               )}
-              {this.props.missingProofs && this.props.missingProofs.map((mp, idx) => <MissingProofRow key={mp.type} missingProof={mp} style={pad(idx)} />)}
-              {this.props.missingProofs && <style>{missingProofsRealCSS}</style>}
+              {this.props.tag === 'missingProofs' && this.props.missingProofs.map((mp, idx) => <MissingProofRow key={mp.type} missingProof={mp} style={pad(idx)} />)}
+              {this.props.tag === 'missingProofs' && <style>{missingProofsRealCSS}</style>}
             </Box>)}
         </ReactCSSTransitionGroup>
       </Box>

@@ -25,6 +25,7 @@ const initialState: State = {
     errorEmail3: false,
   },
   pgpPublicKey: null,
+  proofText: null,
 }
 
 // A simple check, the server does a fuller check
@@ -107,7 +108,7 @@ export default function (state: State = initialState, action: Actions) {
       if (action.error) { break }
       return {
         ...state,
-        proof: action.payload.proof,
+        proofText: action.payload.proof,
       }
     case Constants.updateProofStatus:
       if (action.error) { break }

@@ -14,7 +14,7 @@ type Props = {
   onBack: () => void,
   onBackFromPaperKey: () => void,
   toPaperKeyInput: () => void,
-  phase: StoreState.phase,
+  phase: $PropertyType<StoreState, 'phase'>,
   checkPaperKey: (paperKey: HiddenString) => void,
 }
 

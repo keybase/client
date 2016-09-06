@@ -5,7 +5,7 @@ import {Component} from 'react'
 import type {SimpleProofState} from '../constants/tracker'
 import type {UserInfo} from '../common-adapters/user-bio'
 import type {Proof} from '../constants/tracker'
-import type {$Exact} from '../constants/types/more'
+import type {Exact} from '../constants/types/more'
 
 export type RenderPropsUnshaped = {
   loading: boolean,
@@ -33,6 +33,6 @@ export type RenderPropsUnshaped = {
   actionBarReady: boolean,
 }
 
-export type RenderProps = $Exact<RenderPropsUnshaped>
+export type RenderProps = Exact<RenderPropsUnshaped>
 
 export default class Render extends Component<void, RenderProps, void> { }
