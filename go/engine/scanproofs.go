@@ -263,7 +263,8 @@ func (e *ScanProofsEngine) ProcessOne(i int, rec map[string]string, cache *ScanP
 		skip = true
 		skipreason = "server REVOKED"
 	case keybase1.ProofState_DELETED:
-		shouldsucceed = false
+		skip = true
+		skipreason = "server DELETED"
 	default:
 		badstate = true
 	}
