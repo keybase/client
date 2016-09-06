@@ -13,6 +13,7 @@ import (
 	"reflect"
 
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -327,23 +328,6 @@ func (j *blockJournal) appendJournalEntry(
 
 func (j *blockJournal) length() (uint64, error) {
 	return j.j.length()
-}
-
-// ordinalRange returns the inclusive range of ordinals for the
-// journal.  If it is called on an empty journal, it returns an error.
-func (j *blockJournal) ordinalRange() (first journalOrdinal,
-	last journalOrdinal, err error) {
-	first, err = j.j.readEarliestOrdinal()
-	if err != nil {
-		return 0, 0, err
-	}
-
-	last, err = j.j.readLatestOrdinal()
-	if err != nil {
-		return 0, 0, err
-	}
-
-	return first, last, nil
 }
 
 func (j *blockJournal) getRefEntry(
@@ -770,6 +754,70 @@ func (j *blockJournal) getEntryToFlush(ctx context.Context,
 	return &e, data, serverHalf, nil
 }
 
+// blockEntriesToFlush is an internal data structure for blockJournal;
+// its fields shouldn't be accessed outside this file.
+type blockEntriesToFlush struct {
+	all   []*blockJournalEntry
+	first journalOrdinal
+	last  journalOrdinal
+
+	puts  *blockPutState
+	adds  *blockPutState
+	other []*blockJournalEntry
+}
+
+func (be blockEntriesToFlush) length() int {
+	return len(be.all)
+}
+
+func (be blockEntriesToFlush) flushNeeded() bool {
+	return be.length() > 0
+}
+
+func (j *blockJournal) getNextEntriesToFlush(ctx context.Context) (
+	entries blockEntriesToFlush, err error) {
+	if j.isShutdown {
+		return blockEntriesToFlush{}, errBlockJournalShutdown
+	}
+
+	first, err := j.j.readEarliestOrdinal()
+	if os.IsNotExist(err) {
+		return blockEntriesToFlush{}, nil
+	} else if err != nil {
+		return blockEntriesToFlush{}, err
+	}
+	last, err := j.j.readLatestOrdinal()
+	if err != nil {
+		return blockEntriesToFlush{}, err
+	}
+
+	entries.puts = newBlockPutState(int(last-first) + 1)
+	entries.adds = newBlockPutState(int(last-first) + 1)
+	for ordinal := first; ordinal <= last; ordinal++ {
+		entry, buf, serverHalf, err := j.getEntryToFlush(ctx, ordinal)
+		if err != nil {
+			return blockEntriesToFlush{}, err
+		}
+
+		isPut, err := entry.classifyIntoBPS(buf, serverHalf,
+			entries.puts, entries.adds)
+		if err != nil {
+			return blockEntriesToFlush{}, err
+		}
+		if !isPut {
+			entries.other = append(entries.other, entry)
+		}
+		entries.all = append(entries.all, entry)
+
+		// TODO: return early if we have hit some maximum number of
+		// entries (along revision boundaries) -- we don't want
+		// earlier MD puts being blocked for too long.
+	}
+	entries.first = first
+	entries.last = last
+	return entries, nil
+}
+
 // flushNonBPSBlockJournalEntry flushes journal entries that can't be
 // parallelized via a blockPutState.
 func flushNonBPSBlockJournalEntry(
@@ -794,6 +842,55 @@ func flushNonBPSBlockJournalEntry(
 
 	default:
 		return fmt.Errorf("Unknown op %s", entry.Op)
+	}
+
+	return nil
+}
+
+func flushBlockEntries(ctx context.Context, log logger.Logger,
+	bserver BlockServer, bcache BlockCache, reporter Reporter, tlfID TlfID,
+	tlfName CanonicalTlfName, entries blockEntriesToFlush) error {
+	if !entries.flushNeeded() {
+		// Avoid logging anything when there's nothing to flush.
+		return nil
+	}
+
+	// Do all the put state stuff first, in parallel.  We need to do
+	// the puts strictly before the addRefs, since the latter might
+	// reference the former.
+	log.CDebugf(ctx, "Putting %d blocks", len(entries.puts.blockStates))
+	blocksToRemove, err := doBlockPuts(ctx, bserver, bcache, reporter,
+		log, tlfID, tlfName, *entries.puts)
+	if err != nil {
+		if isRecoverableBlockError(err) {
+			log.CWarningf(ctx,
+				"Recoverable block error encountered on puts: %v, ptrs=%v",
+				err, blocksToRemove)
+		}
+		return err
+	}
+
+	// Next, do the addrefs.
+	log.CDebugf(ctx, "Adding %d block references",
+		len(entries.adds.blockStates))
+	blocksToRemove, err = doBlockPuts(ctx, bserver, bcache, reporter,
+		log, tlfID, tlfName, *entries.adds)
+	if err != nil {
+		if isRecoverableBlockError(err) {
+			log.CWarningf(ctx,
+				"Recoverable block error encountered on addRefs: %v, ptrs=%v",
+				err, blocksToRemove)
+		}
+		return err
+	}
+
+	// Now do all the other, non-put/addref entries.  TODO:
+	// parallelize these as well.
+	for _, entry := range entries.other {
+		err := flushNonBPSBlockJournalEntry(ctx, log, bserver, tlfID, *entry)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -854,6 +951,31 @@ func (j *blockJournal) removeFlushedEntry(ctx context.Context,
 	j.unflushedBytes = unflushedBytes
 
 	return flushedBytes, nil
+}
+
+func (j *blockJournal) removeFlushedEntries(ctx context.Context,
+	entries blockEntriesToFlush, tlfID TlfID, reporter Reporter) error {
+	if j.isShutdown {
+		return errBlockJournalShutdown
+	}
+
+	// Remove them all!
+	for ordinal := entries.first; ordinal <= entries.last; ordinal++ {
+		entry := entries.all[ordinal-entries.first]
+		flushedBytes, err := j.removeFlushedEntry(ctx, ordinal, *entry)
+		if err != nil {
+			return err
+		}
+
+		reporter.NotifySyncStatus(ctx, &keybase1.FSPathSyncStatus{
+			PublicTopLevelFolder: tlfID.IsPublic(),
+			// Path: TODO,
+			// SyncingBytes: TODO,
+			// SyncingOps: TODO,
+			SyncedBytes: flushedBytes,
+		})
+	}
+	return nil
 }
 
 func (j *blockJournal) shutdown() {

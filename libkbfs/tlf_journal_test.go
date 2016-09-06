@@ -517,12 +517,9 @@ func TestTLFJournalFlushBlock(t *testing.T) {
 	require.NoError(t, err)
 
 	flush := func() {
-		doFlush, first, last, err := tlfJournal.getBlockRangeToFlush(ctx)
+		numFlushed, err := tlfJournal.flushBlockEntries(ctx)
 		require.NoError(t, err)
-		require.True(t, doFlush)
-
-		err = tlfJournal.flushBlocks(ctx, first, last)
-		require.NoError(t, err)
+		require.NotZero(t, numFlushed)
 	}
 
 	flush()
