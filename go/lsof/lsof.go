@@ -48,6 +48,9 @@ func (e ExecError) Error() string {
 
 // MountPoint returns processes using the mountpoint "lsof /dir"
 func MountPoint(dir string) ([]Process, error) {
+	// TODO: Fix lsof to not return error on exit status 1 since it isn't
+	// really any error, only an indication that there was no use of the
+	// mount.
 	return run([]string{"-F", "pcuftn", dir})
 }
 
