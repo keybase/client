@@ -32,6 +32,26 @@ func (h *handlerTracker) SendV1(Call, io.Writer) error {
 	return nil
 }
 
+type echoResult struct {
+	Status APICallStatus `json:"status"`
+}
+
+var echoOK = echoResult{Status: APICallStatus{Code: 200, Desc: "OK"}}
+
+type chatEcho struct{}
+
+func (c *chatEcho) ListV1() Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) ReadV1(opts readOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) SendV1(opts sendOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 type topTest struct {
 	input  string
 	err    error
@@ -144,7 +164,7 @@ var optTests = []optTest{
 // TestChatAPIDecoderOptions tests the option decoding.
 func TestChatAPIDecoderOptions(t *testing.T) {
 	for i, test := range optTests {
-		h := new(ChatAPI)
+		h := &ChatAPI{svcHandler: new(chatEcho)}
 		d := NewChatAPIDecoder(h)
 		var buf bytes.Buffer
 		err := d.Decode(strings.NewReader(test.input), &buf)
@@ -155,6 +175,71 @@ func TestChatAPIDecoderOptions(t *testing.T) {
 			}
 		} else if err != nil {
 			t.Errorf("test %d: input %s => error %s", i, test.input, err)
+			continue
+		}
+	}
+}
+
+type echoTest struct {
+	input  string
+	output string
+	err    error
+}
+
+var echoTests = []echoTest{
+	{
+		input:  `{"method": "list", "params":{"version": 1}}`,
+		output: `{"result":{"status":{"code":200,"desc":"OK"}}}`,
+	},
+	{
+		input:  `{"id": 1, "method": "list", "params":{"version": 1}}`,
+		output: `{"id":1,"result":{"status":{"code":200,"desc":"OK"}}}`,
+	},
+	{
+		input:  `{"jsonrpc": "2.0", "id": 3, "method": "list", "params":{"version": 1}}`,
+		output: `{"jsonrpc":"2.0","id":3,"result":{"status":{"code":200,"desc":"OK"}}}`,
+	},
+	{
+		input:  `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
+		output: `{"result":{"status":{"code":200,"desc":"OK"}}}`,
+	},
+	{
+		input:  `{"method": "read", "params":{"version": 1, "options": {"conversation_id": "abc123"}}}`,
+		output: `{"result":{"status":{"code":200,"desc":"OK"}}}`,
+	},
+	{
+		input:  `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
+		output: `{"result":{"status":{"code":200,"desc":"OK"}}}`,
+	},
+	{
+		input:  `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
+		output: `{"result":{"status":{"code":200,"desc":"OK"}}}` + "\n" + `{"result":{"status":{"code":200,"desc":"OK"}}}`,
+	},
+	{
+		input:  `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "abcd123"}}}`,
+		output: `{"result":{"status":{"code":200,"desc":"OK"}}}` + "\n" + `{"result":{"status":{"code":200,"desc":"OK"}}}`,
+	},
+}
+
+// TestChatAPIEcho tests an echo handler that replies with empty responses.
+func TestChatAPIEcho(t *testing.T) {
+	for i, test := range echoTests {
+		h := &ChatAPI{svcHandler: new(chatEcho)}
+		d := NewChatAPIDecoder(h)
+		var buf bytes.Buffer
+		err := d.Decode(strings.NewReader(test.input), &buf)
+		if test.err != nil {
+			if reflect.TypeOf(err) != reflect.TypeOf(test.err) {
+				t.Errorf("test %d: error type %T, expected %T", i, err, test.err)
+				continue
+			}
+		} else if err != nil {
+			t.Errorf("test %d: input %s => error %s", i, test.input, err)
+			continue
+		}
+
+		if strings.TrimSpace(buf.String()) != strings.TrimSpace(test.output) {
+			t.Errorf("test %d: input %s => output %s, expected %s", i, test.input, strings.TrimSpace(buf.String()), strings.TrimSpace(test.output))
 			continue
 		}
 	}

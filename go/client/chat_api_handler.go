@@ -32,13 +32,38 @@ type Params struct {
 	Options json.RawMessage
 }
 
+type CallError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+type Reply struct {
+	Jsonrpc string      `json:"jsonrpc,omitempty"`
+	ID      int         `json:"id,omitempty"`
+	Error   *CallError  `json:"error,omitempty"`
+	Result  interface{} `json:"result,omitempty"`
+}
+
+type APICallStatus struct {
+	Code int    `json:"code"`
+	Desc string `json:"desc,omitempty"`
+}
+
 type ChatAPIHandler interface {
 	ListV1(Call, io.Writer) error
 	ReadV1(Call, io.Writer) error
 	SendV1(Call, io.Writer) error
 }
 
-type ChatAPI struct{}
+type ChatServiceHandler interface {
+	ListV1() Reply
+	ReadV1(opts readOptionsV1) Reply
+	SendV1(opts sendOptionsV1) Reply
+}
+
+type ChatAPI struct {
+	svcHandler ChatServiceHandler
+}
 
 type ChatChannel struct {
 	Name   string
@@ -80,7 +105,6 @@ type readOptionsV1 struct {
 }
 
 func (r readOptionsV1) Check() error {
-	fmt.Printf("read opts: %+v\n", r)
 	if !r.Channel.Valid() && len(r.ConversationID) == 0 {
 		return ErrInvalidOptions{version: 1, method: "read", err: errors.New("need channel or conversation_id")}
 	}
@@ -95,7 +119,8 @@ func (a *ChatAPI) ListV1(c Call, w io.Writer) error {
 	if len(c.Params.Options) != 0 {
 		return ErrInvalidOptions{version: 1, method: "list", err: errors.New("unexpected options, should be empty")}
 	}
-	return nil
+
+	return a.encodeReply(c, a.svcHandler.ListV1(), w)
 }
 
 func (a *ChatAPI) ReadV1(c Call, w io.Writer) error {
@@ -112,7 +137,7 @@ func (a *ChatAPI) ReadV1(c Call, w io.Writer) error {
 
 	// opts are valid for read v1
 
-	return nil
+	return a.encodeReply(c, a.svcHandler.ReadV1(opts), w)
 }
 
 func (a *ChatAPI) SendV1(c Call, w io.Writer) error {
@@ -129,5 +154,14 @@ func (a *ChatAPI) SendV1(c Call, w io.Writer) error {
 
 	// opts are valid for send v1
 
-	return nil
+	return a.encodeReply(c, a.svcHandler.SendV1(opts), w)
+}
+
+func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
+	// copy jsonrpc fields from call to reply
+	reply.Jsonrpc = call.Jsonrpc
+	reply.ID = call.ID
+
+	enc := json.NewEncoder(w)
+	return enc.Encode(reply)
 }
