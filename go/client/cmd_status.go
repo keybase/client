@@ -336,8 +336,8 @@ func (c *CmdStatus) sessionStatus(s *keybase1.SessionStatus) string {
 	return fmt.Sprintf("%s [loaded: %s, cleared: %s, expired: %s]", s.SessionFor, BoolString(s.Loaded, "yes", "no"), BoolString(s.Cleared, "yes", "no"), BoolString(s.Expired, "yes", "no"))
 }
 
-// ExecToString returns the space-trimmed output of a command or an error.
-func (c *CmdStatus) ExecToString(bin string, args []string) (string, error) {
+// execToString returns the space-trimmed output of a command or an error.
+func (c *CmdStatus) execToString(bin string, args []string) (string, error) {
 	result, err := exec.Command(bin, args...).Output()
 	if err != nil {
 		return "", err

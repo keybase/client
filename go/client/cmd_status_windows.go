@@ -13,7 +13,7 @@ func (c *CmdStatus) osSpecific(status *fstatus) error {
 	// it.
 	productVersion, buildVersion, err := c.osVersionAndBuild()
 	if err != nil {
-		c.G().Log.Debug("Error determining OS version: %s", err)
+		c.G().Log.Warning("Error determining OS version: %s", err)
 	}
 	status.OSVersion = strings.Join([]string{productVersion, buildVersion}, "-")
 
@@ -22,7 +22,7 @@ func (c *CmdStatus) osSpecific(status *fstatus) error {
 
 // osVersionAndBuild returns OS version, and build too on some platforms
 func (c *CmdStatus) osVersionAndBuild() (string, string, error) {
-	productVersion, err := c.ExecToString("cmd", []string{"/c", "ver"})
+	productVersion, err := c.execToString("cmd", []string{"/c", "ver"})
 	if err != nil {
 		return "", "", err
 	}
