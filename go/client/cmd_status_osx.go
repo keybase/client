@@ -5,11 +5,7 @@
 
 package client
 
-import (
-	"strings"
-
-	"github.com/keybase/client/go/install"
-)
+import "strings"
 
 func (c *CmdStatus) osSpecific(status *fstatus) error {
 	serviceStatus := install.KeybaseServiceStatus(c.G(), "service", 0, c.G().Log)
