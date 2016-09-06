@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import React, {Component, PureComponent} from 'react'
 import ReactCSSTransitionGroup from 'react-addons-css-transition-group'
 import * as shared from './user-proofs.shared'
 import openUrl from '../util/open-url'
@@ -41,8 +41,10 @@ type ProofRowState = {
   popupMenuPosition: {},
 }
 
-class ProofRow extends Component<void, ProofRowProps, ProofRowState> {
+class ProofRow extends PureComponent<void, ProofRowProps, ProofRowState> {
   state: ProofRowState;
+  _onMouseEnter: () => void;
+  _onMouseLeave: () => void;
 
   constructor (props: Props) {
     super(props)
@@ -51,6 +53,9 @@ class ProofRow extends Component<void, ProofRowProps, ProofRowState> {
       hovering: false,
       popupMenuPosition: {},
     }
+
+    this._onMouseEnter = () => this.setState({hovering: true})
+    this._onMouseLeave = () => this.setState({hovering: false})
   }
 
   render () {
@@ -59,7 +64,7 @@ class ProofRow extends Component<void, ProofRowProps, ProofRowState> {
     const menuButtonVisible = this.state.hovering || showingMenu
 
     return (
-      <Box style={{...styleRow, ...style}} onMouseEnter={() => this.setState({hovering: true})} onMouseLeave={() => this.setState({hovering: false})}>
+      <Box style={{...styleRow, ...style}} onMouseEnter={this._onMouseEnter} onMouseLeave={this._onMouseLeave}>
         <Icon style={styleService} type={shared.iconNameForProof(proof)} hint={proof.type} onClick={() => onClickProfile(proof)} />
         <Box style={styleProofNameSection}>
           <Box style={styleProofNameLabelContainer}>

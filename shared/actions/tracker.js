@@ -79,6 +79,7 @@ export function getProfile (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     // If we have a pending identify no point in firing off another one
     if (getState().tracker.pendingIdentifies[username]) {
+      console.log('Bailing on simultaneous getProfile', username)
       return
     }
 
@@ -130,19 +131,13 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
   }
 
   return (dispatch, getState) => new Promise((resolve, reject) => {
-    dispatch(pendingIdentify(userAssertion || uid, true))
-
-    // In case something explodes, we'll clear the pending Identify after 1 minute
-    const clearPendingTimeout = setTimeout(() => {
-      dispatch(pendingIdentify(userAssertion || uid, false))
-    }, 60e3)
-
     const status = getState().config.status
     const myUID = status && status.user && status.user.uid
 
     // Don't identify ourself
     if (allowSelf || myUID !== uid) {
       dispatch({type: Constants.identifyStarted, payload: null})
+      console.log('aaaaaa1', uid, userAssertion)
       identifyIdentify2Rpc({
         param: {
           uid,
@@ -167,8 +162,6 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
             dispatch({type: Constants.identifyFinished, error: true, payload: {error: error.desc}})
           }
           dispatch({type: Constants.identifyFinished, payload: null})
-          clearTimeout(clearPendingTimeout)
-          dispatch(pendingIdentify(userAssertion || uid, false))
           resolve()
         },
       })
@@ -209,6 +202,7 @@ export function registerIdentifyUi (): TrackerActionCreator {
         serverCallMap(dispatch, getState, false, () => {
           session.end()
         }), null, cancelHandler)
+
       response && response.result(session.id)
     })
 
@@ -425,16 +419,43 @@ function updatePGPKey (username: string, pgpFingerprint: Buffer, kid: string): A
 const sessionIDToUsername: { [key: number]: string } = {}
 // TODO: if we get multiple tracker calls we should cancel one of the sessionIDs, now they'll clash
 function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: boolean = false, onFinish: ?() => void): incomingCallMapType {
+  // if true we already have a pending call so lets skip a ton of work
+  let username
+  let clearPendingTimeout
+  let alreadyPending = false
+
+  const requestIdle = f => {
+    if (!alreadyPending) {
+      requestIdleCallback(f)
+    } else {
+      console.log('skipped idle call due to already pending')
+    }
+  }
+
   return {
-    'keybase.1.identifyUi.start': ({username, sessionID, reason}, response) => {
+    'keybase.1.identifyUi.start': ({username: currentUsername, sessionID, reason}, response) => {
       response.result()
+      username = currentUsername
       sessionIDToUsername[sessionID] = username
+
+      if (getState().tracker.pendingIdentifies[username]) {
+        console.log('Bailing on idenitifies in time window', username)
+        alreadyPending = true
+        return
+      }
+
+      dispatch(pendingIdentify(username, true))
+
+      // We clear the pending timeout after a minute. Gives us some breathing room
+      clearPendingTimeout = setTimeout(() => {
+        dispatch(pendingIdentify(username, false))
+      }, 60e3)
 
       if (reason && (reason.reason === profileReason)) {
         skipPopups = true
       }
 
-      requestIdleCallback(() => {
+      requestIdle(() => {
         dispatch({
           type: Constants.updateUsername,
           payload: {username},
@@ -464,7 +485,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
 
     'keybase.1.identifyUi.displayTLFCreateWithInvite': (args, response) => {
       response.result()
-      requestIdleCallback(() => {
+      requestIdle(() => {
         dispatch({
           type: Constants.showNonUser,
           payload: {
@@ -477,11 +498,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
           }})
       })
     },
-    'keybase.1.identifyUi.displayKey': ({sessionID, key}, response) => {
+    'keybase.1.identifyUi.displayKey': ({key}, response) => {
       response.result()
-      requestIdleCallback(() => {
-        const username = sessionIDToUsername[sessionID]
-
+      requestIdle(() => {
         if (key.breaksTracking) {
           dispatch({type: Constants.updateEldestKidChanged, payload: {username}})
           dispatch({type: Constants.updateReason, payload: {username, reason: `${username} has reset their account!`}})
@@ -495,10 +514,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         }
       })
     },
-    'keybase.1.identifyUi.reportLastTrack': ({sessionID, track}, response) => {
+    'keybase.1.identifyUi.reportLastTrack': ({track}, response) => {
       response.result()
-      requestIdleCallback(() => {
-        const username = sessionIDToUsername[sessionID]
+      requestIdle(() => {
         dispatch({
           type: Constants.reportLastTrack,
           payload: {username, track},
@@ -509,10 +527,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         }
       })
     },
-    'keybase.1.identifyUi.launchNetworkChecks': ({sessionID, identity}, response) => {
+    'keybase.1.identifyUi.launchNetworkChecks': ({identity}, response) => {
       response.result()
-      requestIdleCallback(() => {
-        const username = sessionIDToUsername[sessionID]
+      requestIdle(() => {
         // This is the first spot that we have access to the user, so let's use that to get
         // The user information
 
@@ -532,7 +549,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
 
     'keybase.1.identifyUi.dismiss': ({username, reason}, response) => {
       response.result()
-      requestIdleCallback(() => {
+      requestIdle(() => {
         dispatch({
           type: Constants.remoteDismiss,
           payload: {username, reason},
@@ -540,10 +557,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
       })
     },
 
-    'keybase.1.identifyUi.finishWebProofCheck': ({sessionID, rp, lcr}, response) => {
+    'keybase.1.identifyUi.finishWebProofCheck': ({rp, lcr}, response) => {
       response.result()
-      requestIdleCallback(() => {
-        const username = sessionIDToUsername[sessionID]
+      requestIdle(() => {
         dispatch(updateProof(rp, lcr, username))
         dispatch({type: Constants.updateProofState, payload: {username}})
 
@@ -552,10 +568,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         }
       })
     },
-    'keybase.1.identifyUi.finishSocialProofCheck': ({sessionID, rp, lcr}, response) => {
+    'keybase.1.identifyUi.finishSocialProofCheck': ({rp, lcr}, response) => {
       response.result()
-      requestIdleCallback(() => {
-        const username = sessionIDToUsername[sessionID]
+      requestIdle(() => {
         dispatch(updateProof(rp, lcr, username))
         dispatch({type: Constants.updateProofState, payload: {username}})
 
@@ -564,25 +579,22 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         }
       })
     },
-    'keybase.1.identifyUi.displayCryptocurrency': ({sessionID, c: {address, sigID}}, response) => {
+    'keybase.1.identifyUi.displayCryptocurrency': ({c: {address, sigID}}, response) => {
       response.result()
-      requestIdleCallback(() => {
-        const username = sessionIDToUsername[sessionID]
+      requestIdle(() => {
         dispatch(updateBTC(username, address, sigID))
         dispatch({type: Constants.updateProofState, payload: {username}})
       })
     },
-    'keybase.1.identifyUi.displayUserCard': ({sessionID, card}, response) => {
+    'keybase.1.identifyUi.displayUserCard': ({card}, response) => {
       response.result()
-      requestIdleCallback(() => {
-        const username = sessionIDToUsername[sessionID]
+      requestIdle(() => {
         dispatch(updateUserInfo(card, username, getState))
       })
     },
-    'keybase.1.identifyUi.reportTrackToken': ({sessionID, trackToken}, response) => {
+    'keybase.1.identifyUi.reportTrackToken': ({trackToken}, response) => {
       response.result()
-      requestIdleCallback(() => {
-        const username = sessionIDToUsername[sessionID]
+      requestIdle(() => {
         dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
 
         const userState = getState().tracker.trackers[username]
@@ -606,10 +618,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
         expiringLocal: false,
       })
     },
-    'keybase.1.identifyUi.finish': ({sessionID}, response) => {
+    'keybase.1.identifyUi.finish': (param, response) => {
       response.result()
       requestIdleCallback(() => {
-        const username = sessionIDToUsername[sessionID]
         // Check if there were any errors in the proofs
         dispatch({type: Constants.updateProofState, payload: {username}})
 
@@ -626,8 +637,19 @@ function serverCallMap (dispatch: Dispatch, getState: Function, skipPopups: bool
           },
         })
 
+        // Doing a non-tracker so explicitly cleanup instead of using the timeout
+        if (skipPopups) {
+          dispatch(pendingIdentify(username, false))
+          clearTimeout(clearPendingTimeout)
+        }
+
         onFinish && onFinish()
       })
+
+      // if we're pending we still want to call onFinish
+      if (alreadyPending) {
+        onFinish && onFinish()
+      }
     },
   }
 }
