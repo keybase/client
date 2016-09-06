@@ -22,12 +22,12 @@ func (c *CmdStatus) osSpecific(status *fstatus) error {
 
 // osVersionAndBuild returns OS version, and build too on some platforms)
 func (c *CmdStatus) osVersionAndBuild() (string, string, error) {
-	productVersion, err := c.ExecToString("lsb_release", []string{"-sd"})
+	productVersion, err := c.ExecToString("uname", []string{"-mrs"})
 	if err != nil {
 		return "", "", err
 	}
 
-	buildVersion, err := c.ExecToString("uname", []string{"-mrs"})
+	buildVersion, err := c.ExecToString("lsb_release", []string{"-sd"})
 	if err != nil {
 		return productVersion, "", err
 	}
