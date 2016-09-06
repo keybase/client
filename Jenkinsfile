@@ -269,7 +269,8 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                     def GOPATH="${BASEDIR}/go"
                                     withEnv([
                                         "GOPATH=${GOPATH}",
-                                        "PATH=${env.PATH}:${GOPATH}/bin",
+                                        "NODE_PATH=${env.HOME}/.node/lib/node_modules:${env.NODE_PATH}",
+                                        "PATH=${env.PATH}:${GOPATH}/bin:${env.HOME}/.node/bin",
                                         "KEYBASE_SERVER_URI=http://${kbwebNodePublicIP}:3000",
                                         "KEYBASE_PUSH_SERVER_URI=fmprpc://${kbwebNodePublicIP}:9911",
                                     ]) {
@@ -279,12 +280,26 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                 checkout scm
                                             }
 
-                                        println "Test OS X"
-                                            // Retry to protect against flakes
-                                            retry(3) {
-                                                testNixGo("OS X")
-                                            }
-                                    }}
+                                            parallel (
+                                                test_react_native: {
+                                                    println "Test React Native"
+                                                    dir("react-native") {
+                                                        sh "npm i"
+                                                        lock("iossimulator_${env.NODE_NAME}") {
+                                                            sh "npm run test-ios"
+                                                        }
+                                                    }
+                                                },
+                                                test_osx: {
+                                                    println "Test OS X"
+                                                    // Retry to protect against flakes
+                                                    retry(3) {
+                                                        testNixGo("OS X")
+                                                    }
+                                                }
+                                            )
+                                        }
+                                    }
                                 }
                             },
                         )

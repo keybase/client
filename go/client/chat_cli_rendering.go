@@ -118,13 +118,17 @@ func (f messageFormatter) body() []string {
 	if len(bodies) == 0 {
 		return nil
 	}
-	switch t := bodies[0].Type; t {
+	typ, err := bodies[0].MessageType()
+	if err != nil {
+		return nil
+	}
+	switch typ {
 	case chat1.MessageType_TEXT:
-		return []string{bodies[0].Text.Body}
+		return []string{bodies[0].Text().Body}
 	case chat1.MessageType_ATTACHMENT:
-		return []string{"{Attachment}", "Caption: <unimplemented>", fmt.Sprintf("KBFS: %s", bodies[0].Attachment.Path)}
+		return []string{"{Attachment}", "Caption: <unimplemented>", fmt.Sprintf("KBFS: %s", bodies[0].Attachment().Path)}
 	default:
-		return []string{fmt.Sprintf("unsupported MessageType: %s", t.String())}
+		return []string{fmt.Sprintf("unsupported MessageType: %s", typ.String())}
 	}
 }
 

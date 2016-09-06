@@ -18,9 +18,8 @@ import (
 
 type cmdChatSend struct {
 	libkb.Contextified
-	message      string
-	resolver     conversationResolver
-	setTopicName string
+	tlfName string
+	message string
 }
 
 func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -31,12 +30,6 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatSend{Contextified: libkb.NewContextified(g)}, "send", c)
 		},
-		Flags: makeChatFlags([]cli.Flag{
-			cli.StringFlag{
-				Name:  "set-topic-name",
-				Usage: `set topic name for the conversation`,
-			},
-		}),
 	}
 }
 
@@ -48,58 +41,51 @@ func (c *cmdChatSend) Run() (err error) {
 
 	ctx := context.TODO()
 
-	conversationInfos, err := c.resolver.Resolve(context.TODO(), chatClient)
-	if err != nil {
+	if cName, err := chatClient.CompleteAndCanonicalizeTlfName(ctx, c.tlfName); err != nil {
 		return err
-	}
-	if len(conversationInfos) == 0 {
-		return errors.New("empty response from ResolveConversationLocal. TODO: create new conversation here or new subcommand?")
+	} else if c.tlfName != string(cName) {
+		c.G().UI.GetTerminalUI().Printf("Using TLF name %s instead of %s ...\n", cName, c.tlfName)
+		c.tlfName = string(cName)
 	}
 
 	var args keybase1.PostLocalArg
-	// TODO: prompt user to choose one if multiple exist
-	args.ConversationID = conversationInfos[0].Id
-	// args.MessagePlaintext.ClientHeader.Conv omitted
-	// args.MessagePlaintext.ClientHeader.{Sender,SenderDevice} are filled by service
-	args.MessagePlaintext.ClientHeader.TlfName = conversationInfos[0].TlfName
-
-	args.MessagePlaintext.ClientHeader.MessageType = chat1.MessageType_TEXT
-	args.MessagePlaintext.ClientHeader.Prev = nil // TODO
-	args.MessagePlaintext.MessageBodies = append([]keybase1.MessageBody(nil), keybase1.MessageBody{
-		Type: chat1.MessageType_TEXT,
-		Text: &keybase1.MessageText{Body: c.message},
+	conversationIDs, err := chatClient.ResolveConversationLocal(ctx, keybase1.ConversationInfoLocal{
+		TlfName:   c.tlfName,
+		TopicType: chat1.TopicType_CHAT,
 	})
-	if err = chatClient.PostLocal(ctx, args); err != nil {
+	if err != nil {
 		return err
 	}
+	if len(conversationIDs) == 0 {
+		return errors.New("empty response from ResolveConversationLocal. This must be a bug")
+	}
+	// TODO: prompt user to choose one if multiple exist
+	args.ConversationID = conversationIDs[0]
+	// args.MessagePlaintext.ClientHeader.Conv omitted
+	// args.MessagePlaintext.ClientHeader.{Sender,SenderDevice} are filled by service
+	args.MessagePlaintext.ClientHeader.MessageType = chat1.MessageType_TEXT
+	args.MessagePlaintext.ClientHeader.TlfName = c.tlfName
+	args.MessagePlaintext.ClientHeader.Prev = nil
 
-	if len(c.setTopicName) > 0 {
-		args.MessagePlaintext.ClientHeader.MessageType = chat1.MessageType_METADATA
-		args.MessagePlaintext.ClientHeader.Prev = nil // TODO
-		args.MessagePlaintext.MessageBodies = append([]keybase1.MessageBody(nil), keybase1.MessageBody{
-			Type: chat1.MessageType_METADATA,
-			ConversationMetadata: &keybase1.MessageConversationMetadata{
-				ConversationTitle: c.setTopicName,
-			},
-		})
-		if err = chatClient.PostLocal(ctx, args); err != nil {
-			return err
-		}
+	body := keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: c.message})
+
+	args.MessagePlaintext.MessageBodies = append(args.MessagePlaintext.MessageBodies, body)
+
+	if chatClient, err := GetChatLocalClient(c.G()); err != nil {
+		return err
+	} else if err = chatClient.PostLocal(ctx, args); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func (c *cmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
+func (c *cmdChatSend) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 2 {
 		return fmt.Errorf("keybase chat send takes 2 args")
 	}
-	tlfName := ctx.Args().Get(0)
-	if c.resolver, err = parseConversationResolver(ctx, tlfName); err != nil {
-		return err
-	}
+	c.tlfName = ctx.Args().Get(0)
 	c.message = ctx.Args().Get(1)
-	c.setTopicName = ctx.String("set-topic-name")
 	return nil
 }
 

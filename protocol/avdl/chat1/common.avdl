@@ -15,7 +15,8 @@ protocol common {
     ATTACHMENT_2,
     EDIT_3,
     DELETE_4,
-    METADATA_5
+    METADATA_5,
+    TLFNAME_6
   }
 
   enum TopicType {
@@ -29,6 +30,12 @@ protocol common {
     bytes previous;
     int num; // Number of items requested when argument, and number returned when result
     boolean last; // Will be true if the number of results is less than requested
+  }
+
+  record RateLimit {
+    int callsRemaining; // Number of calls remaining for the given RPC in the current window
+    int windowReset; // Amount of time (in seconds) until the window resets for this rate limit bucket
+    int maxCalls; // Max amount of calls allowed in a window for the given RPC
   }
 
   record ConversationIDTriple {

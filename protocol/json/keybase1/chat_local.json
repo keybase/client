@@ -67,47 +67,47 @@
       ]
     },
     {
-      "type": "record",
+      "type": "variant",
       "name": "MessageBody",
-      "fields": [
+      "switch": {
+        "type": "chat1.MessageType",
+        "name": "messageType"
+      },
+      "cases": [
         {
-          "type": "chat1.MessageType",
-          "name": "type"
+          "label": {
+            "name": "TEXT",
+            "def": false
+          },
+          "body": "MessageText"
         },
         {
-          "type": [
-            null,
-            "MessageText"
-          ],
-          "name": "text"
+          "label": {
+            "name": "ATTACHMENT",
+            "def": false
+          },
+          "body": "MessageAttachment"
         },
         {
-          "type": [
-            null,
-            "MessageAttachment"
-          ],
-          "name": "attachment"
+          "label": {
+            "name": "EDIT",
+            "def": false
+          },
+          "body": "MessageEdit"
         },
         {
-          "type": [
-            null,
-            "MessageEdit"
-          ],
-          "name": "edit"
+          "label": {
+            "name": "DELETE",
+            "def": false
+          },
+          "body": "MessageDelete"
         },
         {
-          "type": [
-            null,
-            "MessageDelete"
-          ],
-          "name": "delete"
-        },
-        {
-          "type": [
-            null,
-            "MessageConversationMetadata"
-          ],
-          "name": "conversationMetadata"
+          "label": {
+            "name": "METADATA",
+            "def": false
+          },
+          "body": "MessageConversationMetadata"
         }
       ]
     },
@@ -231,10 +231,6 @@
       "name": "ConversationInfoLocal",
       "fields": [
         {
-          "type": "chat1.ConversationID",
-          "name": "id"
-        },
-        {
           "type": "string",
           "name": "tlfName"
         },
@@ -319,6 +315,15 @@
       ],
       "response": null
     },
+    "newConversationLocal": {
+      "request": [
+        {
+          "name": "conversationTriple",
+          "type": "chat1.ConversationIDTriple"
+        }
+      ],
+      "response": "chat1.ConversationID"
+    },
     "resolveConversationLocal": {
       "request": [
         {
@@ -328,30 +333,8 @@
       ],
       "response": {
         "type": "array",
-        "items": "ConversationInfoLocal"
+        "items": "chat1.ConversationID"
       }
-    },
-    "newConversationLocal": {
-      "request": [
-        {
-          "name": "conversation",
-          "type": "ConversationInfoLocal"
-        }
-      ],
-      "response": "ConversationInfoLocal"
-    },
-    "updateTopicNameLocal": {
-      "request": [
-        {
-          "name": "conversationID",
-          "type": "chat1.ConversationID"
-        },
-        {
-          "name": "newTopicName",
-          "type": "string"
-        }
-      ],
-      "response": null
     },
     "getMessagesLocal": {
       "request": [

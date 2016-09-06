@@ -230,11 +230,12 @@ func (e *Env) getHomeFromCmdOrConfig() string {
 	)
 }
 
-func (e *Env) GetHome() string      { return e.homeFinder.Home(false) }
-func (e *Env) GetConfigDir() string { return e.homeFinder.ConfigDir() }
-func (e *Env) GetCacheDir() string  { return e.homeFinder.CacheDir() }
-func (e *Env) GetDataDir() string   { return e.homeFinder.DataDir() }
-func (e *Env) GetLogDir() string    { return e.homeFinder.LogDir() }
+func (e *Env) GetHome() string            { return e.homeFinder.Home(false) }
+func (e *Env) GetConfigDir() string       { return e.homeFinder.ConfigDir() }
+func (e *Env) GetCacheDir() string        { return e.homeFinder.CacheDir() }
+func (e *Env) GetSandboxCacheDir() string { return e.homeFinder.SandboxCacheDir() }
+func (e *Env) GetDataDir() string         { return e.homeFinder.DataDir() }
+func (e *Env) GetLogDir() string          { return e.homeFinder.LogDir() }
 
 func (e *Env) GetRuntimeDir() string {
 	return e.GetString(
@@ -481,16 +482,42 @@ func (e *Env) GetUsername() NormalizedUsername {
 	return e.config.GetUsername()
 }
 
-func (e *Env) GetSocketFile() (ret string, err error) {
-	ret = e.GetString(
+func (e *Env) GetSocketBindFile() (string, error) {
+	return e.GetString(
+		func() string { return e.sandboxSocketFile() },
+		func() string { return e.defaultSocketFile() },
+	), nil
+}
+
+func (e *Env) defaultSocketFile() string {
+	socketFile := e.GetString(
 		func() string { return e.cmd.GetSocketFile() },
 		func() string { return os.Getenv("KEYBASE_SOCKET_FILE") },
 		func() string { return e.config.GetSocketFile() },
 	)
-	if len(ret) == 0 {
-		ret = filepath.Join(e.GetRuntimeDir(), SocketFile)
+	if socketFile == "" {
+		socketFile = filepath.Join(e.GetRuntimeDir(), SocketFile)
 	}
-	return
+	return socketFile
+}
+
+// sandboxSocketFile is socket file location for sandbox (macOS only)
+func (e *Env) sandboxSocketFile() string {
+	sandboxCacheDir := e.homeFinder.SandboxCacheDir()
+	if sandboxCacheDir == "" {
+		return ""
+	}
+	return filepath.Join(sandboxCacheDir, SocketFile)
+}
+
+func (e *Env) GetSocketDialFiles() ([]string, error) {
+	dialFiles := []string{}
+	sandboxSocketFile := e.sandboxSocketFile()
+	if sandboxSocketFile != "" {
+		dialFiles = append(dialFiles, sandboxSocketFile)
+	}
+	dialFiles = append(dialFiles, e.defaultSocketFile())
+	return dialFiles, nil
 }
 
 func (e *Env) GetGregorURI() string {

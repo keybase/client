@@ -51,4 +51,32 @@ protocol kbfsCommon {
     Folder folder;
     int requestID;
   }
+
+  record FSSyncStatusRequest {
+    int requestID;
+  }
+
+  record FSPathSyncStatus {
+    boolean publicTopLevelFolder;
+    string path;  // could be a file or directory
+    // How many total encrypted, padded bytes are still syncing, as part of
+    // operations on this path.
+    int64 syncingBytes;
+    // How many outstanding operations are there for this path?
+    int64 syncingOps;
+
+    // If this notification happened due to a completed sync for this
+    // path, how many bytes just finished syncing?
+    int64 syncedBytes;
+  }
+
+  record FSSyncStatus {
+    // How many total encrypted, padded bytes are still syncing, across
+    // all TLFs?
+    int64 totalSyncingBytes;
+    // How many outstanding operations are there across all TLFs?
+    int64 totalSyncingOps;
+    // Individual status for each path without standing operations.
+    array<FSPathSyncStatus> pathStatuses;
+  }
 }

@@ -6,6 +6,7 @@ import {socketPath} from '../constants/platform.specific.desktop'
 
 class NativeTransport extends TransportShared {
   constructor (incomingRPCCallback, connectCallback) {
+    console.log('Transport using', socketPath)
     super({path: socketPath}, connectCallback, incomingRPCCallback)
     this.needsConnect = true
   }

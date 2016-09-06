@@ -11,6 +11,7 @@
 #import <keybase/keybase.h>
 #import "RCTEventDispatcher.h"
 #import "Keybase-Swift.h"
+#import "Utils.h"
 
 @interface Engine ()
 
@@ -112,7 +113,9 @@ RCT_EXPORT_METHOD(reset) {
 }
 
 - (NSDictionary *)constantsToExport {
+  NSString * testVal = [Utils areWeBeingUnitTested] ? @"1" : @"";
   return @{ @"eventName": eventName,
+            @"test": testVal, 
             @"version": GoKeybaseVersion()};
 }
 

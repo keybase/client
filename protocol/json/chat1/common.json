@@ -47,7 +47,8 @@
         "ATTACHMENT_2",
         "EDIT_3",
         "DELETE_4",
-        "METADATA_5"
+        "METADATA_5",
+        "TLFNAME_6"
       ]
     },
     {
@@ -78,6 +79,24 @@
         {
           "type": "boolean",
           "name": "last"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RateLimit",
+      "fields": [
+        {
+          "type": "int",
+          "name": "callsRemaining"
+        },
+        {
+          "type": "int",
+          "name": "windowReset"
+        },
+        {
+          "type": "int",
+          "name": "maxCalls"
         }
       ]
     },

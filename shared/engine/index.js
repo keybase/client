@@ -9,7 +9,7 @@ import {ConstantsStatusCode} from '../constants/types/flow-types'
 import {isMobile} from '../constants/platform'
 import {log} from '../native/log/logui'
 import {resetClient, createClient, rpcLog} from './index.platform'
-import {printOutstandingRPCs} from '../local-debug'
+import {printOutstandingRPCs, isTesting} from '../local-debug'
 
 const {logLocal} = setupLocalLogs()
 
@@ -223,7 +223,7 @@ class Engine {
   }
 
   // Setup a handler for a rpc w/o a session (id = 0)
-  setIncomingHandler (method:MethodKey, handler: (param: Object, response: ?Object) => void) {
+  setIncomingHandler (method: MethodKey, handler: (param: Object, response: ?Object) => void) {
     if (this._incomingHandler[method]) {
       rpcLog('engineInternal', "Duplicate incoming handler!!!! This isn't allowed", method)
       return
@@ -294,7 +294,7 @@ const makeEngine = () => {
   }
 
   if (!engine) {
-    engine = process.env.KEYBASE_NO_ENGINE ? new FakeEngine() : new Engine()
+    engine = (process.env.KEYBASE_NO_ENGINE || isTesting) ? new FakeEngine() : new Engine()
   }
   return engine
 }
