@@ -41,7 +41,8 @@ func newChatLocalHandler(xp rpc.Transporter, g *libkb.GlobalContext, gh *gregorH
 
 // GetInboxLocal implements keybase.chatLocal.getInboxLocal protocol.
 func (h *chatLocalHandler) GetInboxLocal(ctx context.Context, p *chat1.Pagination) (chat1.InboxView, error) {
-	return h.remoteClient().GetInboxRemote(ctx, p)
+	ib, err := h.remoteClient().GetInboxRemote(ctx, p)
+	return ib.Inbox, err
 }
 
 // GetThreadLocal implements keybase.chatLocal.getThreadLocal protocol.
@@ -56,15 +57,15 @@ func (h *chatLocalHandler) GetThreadLocal(ctx context.Context, arg keybase1.GetT
 		return keybase1.ThreadView{}, err
 	}
 
-	return h.unboxThread(ctx, boxed, arg.ConversationID)
+	return h.unboxThread(ctx, boxed.Thread, arg.ConversationID)
 }
 
 // NewConversationLocal implements keybase.chatLocal.newConversationLocal protocol.
-func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, trip chat1.ConversationIDTriple) (id chat1.ConversationID, err error) {
+func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, trip chat1.ConversationIDTriple) (chat1.ConversationID, error) {
 	// TODO: change rpc to take a topic name, and follow up with a message with
 	// MessageType=TOPIC_NAME to set the topic name for the conversation
-	id, err = h.remoteClient().NewConversationRemote(ctx, trip)
-	return id, err
+	res, err := h.remoteClient().NewConversationRemote(ctx, trip)
+	return res.ConvID, err
 }
 
 func (h *chatLocalHandler) CompleteAndCanonicalizeTlfName(ctx context.Context, tlfName string) (res keybase1.CanonicalTlfName, err error) {

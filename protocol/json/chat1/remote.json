@@ -54,6 +54,144 @@
           "name": "pagination"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxRemoteRes",
+      "fields": [
+        {
+          "type": "InboxView",
+          "name": "inbox"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxByTLFIDRemoteRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "Conversation"
+          },
+          "name": "convs"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetThreadRemoteRes",
+      "fields": [
+        {
+          "type": "ThreadViewBoxed",
+          "name": "thread"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetConversationMetadataRemoteRes",
+      "fields": [
+        {
+          "type": "Conversation",
+          "name": "conv"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PostRemoteRes",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "msgID"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "NewConversationRemoteRes",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetMessagesRemoteRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "MessageBoxed"
+          },
+          "name": "msgs"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MarkAsReadRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -67,7 +205,7 @@
           ]
         }
       ],
-      "response": "InboxView"
+      "response": "GetInboxRemoteRes"
     },
     "getInboxByTLFIDRemote": {
       "request": [
@@ -76,10 +214,7 @@
           "type": "TLFID"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "Conversation"
-      }
+      "response": "GetInboxByTLFIDRemoteRes"
     },
     "getThreadRemote": {
       "request": [
@@ -99,7 +234,7 @@
           ]
         }
       ],
-      "response": "ThreadViewBoxed"
+      "response": "GetThreadRemoteRes"
     },
     "getConversationMetadataRemote": {
       "request": [
@@ -108,7 +243,7 @@
           "type": "ConversationID"
         }
       ],
-      "response": "Conversation"
+      "response": "GetConversationMetadataRemoteRes"
     },
     "postRemote": {
       "request": [
@@ -121,7 +256,7 @@
           "type": "MessageBoxed"
         }
       ],
-      "response": "MessageID"
+      "response": "PostRemoteRes"
     },
     "newConversationRemote": {
       "request": [
@@ -130,7 +265,7 @@
           "type": "ConversationIDTriple"
         }
       ],
-      "response": "ConversationID"
+      "response": "NewConversationRemoteRes"
     },
     "newConversationRemote2": {
       "request": [
@@ -143,7 +278,7 @@
           "type": "MessageBoxed"
         }
       ],
-      "response": "ConversationID"
+      "response": "NewConversationRemoteRes"
     },
     "getMessagesRemote": {
       "request": [
@@ -159,10 +294,7 @@
           }
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "MessageBoxed"
-      }
+      "response": "GetMessagesRemoteRes"
     },
     "markAsRead": {
       "request": [
@@ -175,7 +307,7 @@
           "type": "MessageID"
         }
       ],
-      "response": null
+      "response": "MarkAsReadRes"
     }
   },
   "namespace": "chat.1"
