@@ -218,6 +218,7 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                                     dir ("keybase") {
                                                         bat "go build -a 2>&1 || exit /B 1"
                                                         bat "echo %errorlevel%"
+                                                        bat "keybase status"
                                                     }
                                                     bat "go list ./... | find /V \"vendor\" | find /V \"/go/bind\" > testlist.txt"
                                                     bat "choco install -y curl"
