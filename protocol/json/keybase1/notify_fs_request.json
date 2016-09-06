@@ -17,6 +17,16 @@
       ],
       "response": null,
       "notify": ""
+    },
+    "FSSyncStatusRequest": {
+      "request": [
+        {
+          "name": "req",
+          "type": "FSSyncStatusRequest"
+        }
+      ],
+      "response": null,
+      "notify": ""
     }
   },
   "namespace": "keybase.1"

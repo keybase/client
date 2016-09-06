@@ -66,10 +66,10 @@ func (c *cmdChatSend) Run() (err error) {
 	args.MessagePlaintext.ClientHeader.MessageType = chat1.MessageType_TEXT
 	args.MessagePlaintext.ClientHeader.TlfName = c.tlfName
 	args.MessagePlaintext.ClientHeader.Prev = nil
-	args.MessagePlaintext.MessageBodies = append(args.MessagePlaintext.MessageBodies, keybase1.MessageBody{
-		Type: chat1.MessageType_TEXT,
-		Text: &keybase1.MessageText{Body: c.message},
-	})
+
+	body := keybase1.NewMessageBodyWithText(keybase1.MessageText{Body: c.message})
+
+	args.MessagePlaintext.MessageBodies = append(args.MessagePlaintext.MessageBodies, body)
 
 	if chatClient, err := GetChatLocalClient(c.G()); err != nil {
 		return err
