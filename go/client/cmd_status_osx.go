@@ -5,11 +5,21 @@
 
 package client
 
-import "github.com/keybase/client/go/install"
+import (
+	"strings"
+
+	"github.com/keybase/client/go/install"
+)
 
 func (c *CmdStatus) osSpecific(status *fstatus) error {
 	serviceStatus := install.KeybaseServiceStatus(c.G(), "service", 0, c.G().Log)
 	kbfsStatus := install.KeybaseServiceStatus(c.G(), "kbfs", 0, c.G().Log)
+
+	productVersion, buildVersion, err := c.osVersionAndBuild()
+	if err != nil {
+		c.G().Log.Debug("Error determining OS version: %s", err)
+	}
+	status.OSVersion = strings.Join([]string{productVersion, buildVersion}, " ")
 
 	if len(serviceStatus.Pid) > 0 {
 		status.Service.Running = true
@@ -22,4 +32,19 @@ func (c *CmdStatus) osSpecific(status *fstatus) error {
 	}
 
 	return nil
+}
+
+// osVersionAndBuild returns OS version, and build too on some platforms)
+func (c *CmdStatus) osVersionAndBuild() (string, string, error) {
+	productVersion, err := c.ExecToString("/usr/bin/sw_vers", []string{"-productVersion"})
+	if err != nil {
+		return "", "", err
+	}
+
+	buildVersion, err := c.ExecToString("/usr/bin/sw_vers", []string{"-buildVersion"})
+	if err != nil {
+		return productVersion, "", err
+	}
+
+	return productVersion, buildVersion, nil
 }

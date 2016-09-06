@@ -5,9 +5,27 @@
 
 package client
 
+import "strings"
+
 func (c *CmdStatus) osSpecific(status *fstatus) error {
 	// TODO: on darwin, install.KeybaseServiceStatus() is implemented to get pid for service and kbfs.
 	// This is currently the best way to determine if KBFS is running, so other OS's should implement
 	// it.
+	productVersion, buildVersion, err := c.osVersionAndBuild()
+	if err != nil {
+		c.G().Log.Debug("Error determining OS version: %s", err)
+	}
+	status.OSVersion = strings.Join([]string{productVersion, buildVersion}, " ")
+
 	return nil
+}
+
+// osVersionAndBuild returns OS version, and build too on some platforms)
+func (c *CmdStatus) osVersionAndBuild() (string, string, error) {
+	productVersion, err := c.ExecToString("cmd", []string{"/c", "ver"})
+	if err != nil {
+		return "", "", err
+	}
+
+	return productVersion, "", nil
 }

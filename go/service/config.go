@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -47,37 +46,9 @@ func (h ConfigHandler) GetCurrentStatus(_ context.Context, sessionID int) (res k
 	return
 }
 
-func (h ConfigHandler) getOsVersion() string {
-	var cmd string
-	var args []string
-	var result []byte
-	var err error
-
-	if runtime.GOOS == "windows" {
-		cmd = "cmd"
-		args = []string{"/c", "ver"}
-	} else if runtime.GOOS == "darwin" {
-		cmd = "/usr/bin/sw_vers"
-		args = []string{"-productVersion"}
-	} else if runtime.GOOS == "linux" {
-		cmd = "uname"
-		args = []string{"-mrs"}
-	} else {
-		h.G().Log.Errorf("Your runtime.GOOS isn't supported: %s", runtime.GOOS)
-		return ""
-	}
-
-	if result, err = exec.Command(cmd, args...).Output(); err != nil {
-		h.G().Log.Errorf("Error trying to determine OS version: %s (%s)", err, result)
-		return ""
-	}
-	return strings.TrimSpace(string(result))
-}
-
 func (h ConfigHandler) getPlatformInfo() keybase1.PlatformInfo {
 	return keybase1.PlatformInfo{
 		Os:        runtime.GOOS,
-		OsVersion: h.getOsVersion(),
 		Arch:      runtime.GOARCH,
 		GoVersion: runtime.Version(),
 	}

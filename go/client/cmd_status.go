@@ -6,6 +6,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -95,6 +96,7 @@ type fstatus struct {
 	ProvisionedUsernames []string
 	Clients              []keybase1.ClientDetails
 	PlatformInfo         keybase1.PlatformInfo
+	OSVersion            string
 }
 
 func (c *CmdStatus) Run() error {
@@ -273,7 +275,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    log:       %s\n", status.Updater.Log)
 	dui.Printf("\nPlatform Information:\n")
 	dui.Printf("    OS:        %s\n", status.PlatformInfo.Os)
-	dui.Printf("    OS vers:   %s\n", status.PlatformInfo.OsVersion)
+	dui.Printf("    OS vers:   %s\n", status.OSVersion)
 
 	dui.Printf("    Runtime:   %s\n", status.PlatformInfo.GoVersion)
 	dui.Printf("    Arch:      %s\n", status.PlatformInfo.Arch)
@@ -332,4 +334,16 @@ func (c *CmdStatus) sessionStatus(s *keybase1.SessionStatus) string {
 	}
 
 	return fmt.Sprintf("%s [loaded: %s, cleared: %s, expired: %s]", s.SessionFor, BoolString(s.Loaded, "yes", "no"), BoolString(s.Cleared, "yes", "no"), BoolString(s.Expired, "yes", "no"))
+}
+
+// ExecToString returns the space-trimmed output of a command or an error.
+func (c *CmdStatus) ExecToString(bin string, args []string) (string, error) {
+	result, err := exec.Command(bin, args...).Output()
+	if err != nil {
+		return "", err
+	}
+	if result == nil {
+		return "", fmt.Errorf("Nil result")
+	}
+	return strings.TrimSpace(string(result)), nil
 }
