@@ -19,7 +19,7 @@ func (c *CmdStatus) osSpecific(status *fstatus) error {
 	if err != nil {
 		c.G().Log.Debug("Error determining OS version: %s", err)
 	}
-	status.OSVersion = strings.Join([]string{productVersion, buildVersion}, " ")
+	status.OSVersion = strings.Join([]string{productVersion, buildVersion}, "-")
 
 	if len(serviceStatus.Pid) > 0 {
 		status.Service.Running = true

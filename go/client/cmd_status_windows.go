@@ -15,7 +15,7 @@ func (c *CmdStatus) osSpecific(status *fstatus) error {
 	if err != nil {
 		c.G().Log.Debug("Error determining OS version: %s", err)
 	}
-	status.OSVersion = strings.Join([]string{productVersion, buildVersion}, " ")
+	status.OSVersion = strings.Join([]string{productVersion, buildVersion}, "-")
 
 	return nil
 }
