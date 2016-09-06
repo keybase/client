@@ -275,7 +275,7 @@ var jsonStringSimpleTests = []jsonStringSimpleTest{
 	{true, makeJSONDangerous(`"hey"`), "hey"},
 	{true, makeJSONDangerous("true"), "true"},
 	{true, makeJSONDangerous("false"), "false"},
-	{true, makeJSONDangerous("null"), "null"},
+	{false, makeJSONDangerous("null"), ""},
 	{false, makeJSONDangerous(`{"a": "b", "1": 2}`), ""},
 	{false, makeJSONDangerous(`[1, {"a": "b"}, "three"]`), ""},
 }
@@ -321,6 +321,34 @@ func TestSelectionContents(t *testing.T) {
 		out := selectionContents(sel, test.useAttr, test.attr)
 		if out != test.out {
 			t.Fatalf("%v mismatch\n%v\n%v", i, out, test.out)
+		}
+	}
+}
+
+func TestPyindex(t *testing.T) {
+	tests := []struct {
+		index int
+		len   int
+		x     int
+		ok    bool
+	}{
+		{0, 0, 0, false},
+		{0, -1, 0, false},
+		{0, 4, 0, true},
+		{3, 4, 3, true},
+		{4, 4, 0, false},
+		{5, 4, 0, false},
+		{-1, 4, 3, true},
+		{-2, 4, 2, true},
+		{-4, 4, 0, true},
+		{-5, 4, 0, false},
+	}
+
+	for i, test := range tests {
+		x, ok := pyindex(test.index, test.len)
+		if (x != test.x) || (ok != test.ok) {
+			t.Fatalf("%v mismatch (%v, %v):\n  expected %v %v\n  got %v %v",
+				i, test.index, test.len, test.x, test.ok, x, ok)
 		}
 	}
 }

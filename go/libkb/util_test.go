@@ -49,6 +49,8 @@ func TestWhitespaceNormalize(t *testing.T) {
 	}{
 		{" ab   cd    ef   gh ", "ab cd ef gh"},
 		{"a\nb  c\nd", "a b c d"},
+		{" a ", "a"},
+		{"\na\nb ", "a b"},
 		{
 			" Verifying myself: I am pomf on Keybase.io. 8a6cewzit2o7zuLKGbDqQADhzfOlGerGuBpq\n/ https://keybase.io/pomf/sigs/8a6cewzit2o7zuLKGbDqQADhzfOlGerGuBpq ",
 			"Verifying myself: I am pomf on Keybase.io. 8a6cewzit2o7zuLKGbDqQADhzfOlGerGuBpq / https://keybase.io/pomf/sigs/8a6cewzit2o7zuLKGbDqQADhzfOlGerGuBpq",

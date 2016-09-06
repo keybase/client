@@ -159,10 +159,6 @@ func jsonStringSimple(object *jsonw.Wrapper) (string, error) {
 		}
 		return "false", nil
 	}
-	isnil := object.IsNil()
-	if isnil {
-		return "null", nil
-	}
 
 	return "", fmt.Errorf("Non-simple object: %v", object)
 }
@@ -184,4 +180,20 @@ func selectionContents(selection *goquery.Selection, useAttr bool, attr string) 
 	})
 
 	return strings.Join(results, " ")
+}
+
+// pyindex converts an index into a real index like python.
+// Returns an index to use and whether the index is safe to use.
+func pyindex(index, len int) (int, bool) {
+	if len <= 0 {
+		return 0, false
+	}
+	// wrap from the end
+	if index < 0 {
+		index = len + index
+	}
+	if index < 0 || index >= len {
+		return 0, false
+	}
+	return index, true
 }
