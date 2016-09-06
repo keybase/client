@@ -200,6 +200,20 @@ func (j *tlfJournal) signalWork() {
 	}
 }
 
+// CtxJournalTagKey is the type used for unique context tags within
+// background journal work.
+type CtxJournalTagKey int
+
+const (
+	// CtxJournalIDKey is the type of the tag for unique operation IDs
+	// within background journal work.
+	CtxJournalIDKey CtxJournalTagKey = iota
+)
+
+// CtxJournalOpID is the display name for the unique operation
+// enqueued journal ID tag.
+const CtxJournalOpID = "JID"
+
 // doBackgroundWorkLoop is the main function for the background
 // goroutine. It spawns off a worker goroutine to call
 // doBackgroundWork whenever there is work, and can be paused and
@@ -209,7 +223,7 @@ func (j *tlfJournal) doBackgroundWorkLoop(bws TLFJournalBackgroundWorkStatus) {
 	if j.bwDelegate != nil {
 		ctx = j.bwDelegate.GetBackgroundContext()
 	}
-	ctx = ctxWithRandomIDReplayable(ctx, "journal-auto-flush", "1", j.log)
+
 	defer func() {
 		if j.bwDelegate != nil {
 			j.bwDelegate.OnShutdown(ctx)
@@ -243,6 +257,8 @@ func (j *tlfJournal) doBackgroundWorkLoop(bws TLFJournalBackgroundWorkStatus) {
 	}()
 
 	for {
+		ctx := ctxWithRandomIDReplayable(ctx, CtxJournalIDKey, CtxJournalOpID,
+			j.log)
 		switch {
 		case bws == TLFJournalBackgroundWorkEnabled && errCh == nil:
 			// 1) Idle.
