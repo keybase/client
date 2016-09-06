@@ -49,6 +49,17 @@ type FetchResult struct {
 	JSON   *jsonw.Wrapper
 }
 
+type RegexDescriptor struct {
+	Template        string
+	CaseInsensitive bool
+	MultiLine       bool
+}
+
+const (
+	RegexKeyCaseInsensitive string = "case_insensitive"
+	RegexKeyMultiLine       string = "multiline"
+)
+
 type Mode string
 
 const (
@@ -478,19 +489,18 @@ func stepInstruction(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (
 }
 
 func stepAssertRegexMatch(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (ScriptState, libkb.ProofError) {
-	template, err := ins.AtKey(string(CmdAssertRegexMatch)).GetString()
+	rdesc, err := extractRegexDescriptor(g, state, ins, string(CmdAssertRegexMatch))
 	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not get regex template")
+		return state, err
 	}
-	re, perr := interpretRegex(g, template, state)
-	if perr != nil {
-		return state, perr
+	re, err := interpretRegex(g, state, rdesc)
+	if err != nil {
+		return state, err
 	}
 	if !re.MatchString(state.ActiveString) {
-		debugWithState(g, state, "Regex did not match:\n  %v\n  %v\n  %v", template, re, state.ActiveString)
+		debugWithState(g, state, "Regex did not match:\n  %v\n  %v\n  %v", rdesc.Template, re, state.ActiveString)
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
-			"Regex did not match (%v)", template)
+			"Regex did not match (%v)", rdesc.Template)
 	}
 
 	return state, nil
@@ -519,22 +529,21 @@ func stepWhitespaceNormalize(g ProofContextExt, ins *jsonw.Wrapper, state Script
 }
 
 func stepRegexCapture(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (ScriptState, libkb.ProofError) {
-	template, err := ins.AtKey(string(CmdRegexCapture)).GetString()
+	rdesc, err := extractRegexDescriptor(g, state, ins, string(CmdRegexCapture))
 	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"not get regex template")
+		return state, err
 	}
-	re, perr := interpretRegex(g, template, state)
-	if perr != nil {
-		return state, perr
+	re, err := interpretRegex(g, state, rdesc)
+	if err != nil {
+		return state, err
 	}
 	match := re.FindStringSubmatch(state.ActiveString)
 	// Assert that the match matched and has at least one capture group.
 	if len(match) < 2 {
 		debugWithState(g, state, "Regex capture did not match enough:\n  %v\n  %v\n  %v\n  %v",
-			template, re, state.ActiveString, match)
+			rdesc.Template, re, state.ActiveString, match)
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
-			"Regex capture did not match (%v)", template)
+			"Regex capture did not match (%v)", rdesc.Template)
 	}
 	state.ActiveString = match[1]
 	return state, nil
@@ -673,29 +682,28 @@ func stepSelectorCSS(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (
 }
 
 func stepTransformURL(g ProofContextExt, ins *jsonw.Wrapper, state ScriptState) (ScriptState, libkb.ProofError) {
-	sourceTemplate, err := ins.AtKey(string(CmdTransformURL)).GetString()
-	if err != nil {
-		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not get regex template for transformation")
+	sourceRdesc, perr := extractRegexDescriptor(g, state, ins, string(CmdTransformURL))
+	if perr != nil {
+		return state, perr
 	}
+	re, perr := interpretRegex(g, state, sourceRdesc)
+	if perr != nil {
+		return state, perr
+	}
+
 	destTemplate, err := ins.AtKey("to").GetString()
 	if err != nil {
 		return state, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Could not get dest pattern for transformation")
 	}
 
-	re, perr := interpretRegex(g, sourceTemplate, state)
-	if perr != nil {
-		return state, perr
-	}
-
 	match := re.FindStringSubmatch(state.FetchURL)
 	if len(match) < 1 {
 		libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
 			"Regex transform did not match:\n  %v\n  %v\n  %v",
-			sourceTemplate, re, state.FetchURL)
+			sourceRdesc.Template, re, state.FetchURL)
 		return state, libkb.NewProofError(keybase1.ProofStatus_CONTENT_FAILURE,
-			"Regex transform did not match: %v", sourceTemplate)
+			"Regex transform did not match: %v", sourceRdesc.Template)
 	}
 
 	newURL, err := substitute(destTemplate, state, match)
@@ -811,39 +819,65 @@ func runSelectorJSONInner(g ProofContextExt, state ScriptState, object *jsonw.Wr
 		"Selector entry not recognized: %v", selector)
 }
 
-// Take a template, substitute variables, and build the Regexp.
-func interpretRegex(g ProofContextExt, template string, state ScriptState) (*regexp.Regexp, libkb.ProofError) {
-	var perr libkb.ProofError = libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-		"Could not build regex %v", template)
+func extractRegexDescriptor(g ProofContextExt, state ScriptState, obj *jsonw.Wrapper, templatekey string) (RegexDescriptor, libkb.ProofError) {
+	var desc RegexDescriptor
 
-	// Parse out bookends (^$) and option letters.
-	if !strings.HasPrefix(template, "^") {
-		return nil, perr
+	template, err := obj.AtKey(templatekey).GetString()
+	if err != nil {
+		debugWithState(g, state, "Could not get regex template: %v", err)
+		return RegexDescriptor{}, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+			"Could not get regex template")
 	}
-	lastDollar := strings.LastIndex(template, "$")
-	if lastDollar == -1 {
-		return nil, perr
+	desc.Template = template
+
+	if !obj.AtKey(RegexKeyCaseInsensitive).IsNil() {
+		caseinsensitive, err := obj.AtKey(RegexKeyCaseInsensitive).GetBool()
+		if err != nil {
+			return RegexDescriptor{}, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Regex option '%v' must be a bool", RegexKeyCaseInsensitive)
+		}
+		desc.CaseInsensitive = caseinsensitive
 	}
-	opts := template[lastDollar+1:]
-	if !regexp.MustCompile("[imsU]*").MatchString(opts) {
+
+	if !obj.AtKey(RegexKeyMultiLine).IsNil() {
+		multiline, err := obj.AtKey(RegexKeyMultiLine).GetBool()
+		if err != nil {
+			return RegexDescriptor{}, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+				"Regex option '%v' must be a bool", RegexKeyMultiLine)
+		}
+		desc.MultiLine = multiline
+	}
+
+	return desc, nil
+}
+
+// Take a regex descriptor, do variable substitution, and build a regex.
+func interpretRegex(g ProofContextExt, state ScriptState, rdesc RegexDescriptor) (*regexp.Regexp, libkb.ProofError) {
+	// Check that regex is bounded by "^" and "$".
+	if !strings.HasPrefix(rdesc.Template, "^") {
 		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not build regex: %v (%v)", "invalid options", template)
+			"Could not build regex: %v (%v)", "must start with '^'", rdesc.Template)
 	}
+	if !strings.HasSuffix(rdesc.Template, "$") {
+		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
+			"Could not build regex: %v (%v)", "must end with '$'", rdesc.Template)
+	}
+
+	var optstring = ""
+	if rdesc.CaseInsensitive {
+		optstring += "i"
+	}
+	if rdesc.MultiLine {
+		optstring += "m"
+	}
+
 	var prefix = ""
-	optmap := make(map[rune]bool)
-	for _, opt := range opts {
-		optmap[opt] = true
-	}
-	if len(opts) != len(optmap) {
-		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not build regex: %v (%v)", "duplicate options", template)
-	}
-	if len(opts) > 0 {
-		prefix = "(?" + opts + ")"
+	if len(optstring) > 0 {
+		prefix = "(?" + optstring + ")"
 	}
 
 	// Do variable interpolation.
-	prepattern, perr := substitute(template[0:lastDollar+1], state, nil)
+	prepattern, perr := substitute(rdesc.Template, state, nil)
 	if perr != nil {
 		return nil, perr
 	}
@@ -852,9 +886,9 @@ func interpretRegex(g ProofContextExt, template string, state ScriptState) (*reg
 	// Build the regex.
 	re, err := regexp.Compile(pattern)
 	if err != nil {
-		debugWithState(g, state, "Could not compile regex: %v\n  %v\n  %v", err, template, pattern)
+		debugWithState(g, state, "Could not compile regex: %v\n  %v\n  %v", err, rdesc.Template, pattern)
 		return nil, libkb.NewProofError(keybase1.ProofStatus_INVALID_PVL,
-			"Could not compile regex: %v (%v)", err, template)
+			"Could not compile regex: %v (%v)", err, rdesc.Template)
 	}
 	return re, nil
 }
