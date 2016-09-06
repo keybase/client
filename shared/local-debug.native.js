@@ -4,6 +4,9 @@
 
 import {updateDebugConfig} from './actions/dev'
 import * as Tabs from './constants/tabs'
+import {NativeModules} from 'react-native'
+
+const nativeBridge = NativeModules.KeybaseEngine || NativeModules.ObjcEngine
 
 let config = {
   allowStartupFailure: false,
@@ -21,6 +24,7 @@ let config = {
   printRoutes: false,
   logStatFrequency: 0,
   actionStatFrequency: 0,
+  isTesting: nativeBridge.test === '1',
 }
 
 if (__DEV__ && true) {
@@ -58,6 +62,7 @@ export const {
   printRoutes,
   logStatFrequency,
   actionStatFrequency,
+  isTesting,
 } = config
 
 export function initTabbedRouterState () {

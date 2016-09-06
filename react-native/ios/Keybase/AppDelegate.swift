@@ -9,8 +9,11 @@ func appDelegate() -> AppDelegate {
 class AppDelegate: UIResponder {
 
   var window: UIWindow?
+#if TESTING
+#else
   var engine: Engine!
   var logSender: LogSend!
+#endif
 
   private func setupReactWithOptions(launchOptions: [NSObject: AnyObject]?) -> RCTRootView {
     return RCTRootView(bundleURL: {
@@ -42,6 +45,8 @@ class AppDelegate: UIResponder {
       home = (root as NSString).stringByAppendingPathComponent(home)
     }
 
+#if TESTING
+#else
     let logFile = (home as NSString).stringByAppendingPathComponent("ios.log");
 
     engine = try! Engine(settings: [
@@ -53,6 +58,7 @@ class AppDelegate: UIResponder {
     ])
 
     logSender = LogSend(path: logFile);
+#endif
   }
 
 }
