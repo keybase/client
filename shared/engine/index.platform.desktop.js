@@ -1,6 +1,6 @@
 // @flow
 import net from 'net'
-import type {incomingRPCCallbackType, connectCallbackType} from './index.platform'
+import type {createClientType, incomingRPCCallbackType, connectCallbackType} from './index.platform'
 import {TransportShared, sharedCreateClient, rpcLog} from './transport-shared'
 import {socketPath} from '../constants/platform.specific.desktop'
 
@@ -39,8 +39,9 @@ function createClient (incomingRPCCallback: incomingRPCCallbackType, connectCall
   return sharedCreateClient(new NativeTransport(incomingRPCCallback, connectCallback))
 }
 
-// Resets are handled internally by framed-msg-pack
-function resetClient () { }
+function resetClient (client: createClientType) {
+  client.transport.reset()
+}
 
 export {
   resetClient,
