@@ -340,6 +340,8 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 
 		leaf := len(path) == 1
 
+		// Check if this is a per-file metainformation file, if so
+		// return the corresponding SpecialReadFile.
 		if leaf && strings.HasPrefix(path[0], libfs.FileInfoPrefix) {
 			node, _, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, path[0][len(libfs.FileInfoPrefix):])
 			if err != nil {

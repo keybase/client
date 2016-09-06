@@ -963,6 +963,9 @@ func SessionInfoFromProtocol(session keybase1.Session) (SessionInfo, error) {
 
 // NodeMetadata has metadata about a node needed for higher level operations.
 type NodeMetadata struct {
-	LastWriterAccordingToTLFLastWriter libkb.NormalizedUsername
-	BlockInfo                          BlockInfo
+	// LastWriterUnverified is the last writer of this
+	// node according to the last writer of the TLF.
+	// A more thorough check is possible in the future.
+	LastWriterUnverified libkb.NormalizedUsername
+	BlockInfo            BlockInfo
 }

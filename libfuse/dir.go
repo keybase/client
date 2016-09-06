@@ -470,6 +470,8 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		return node, nil
 	}
 
+	// Check if this is a per-file metainformation file, if so
+	// return the corresponding SpecialReadFile.
 	if strings.HasPrefix(req.Name, libfs.FileInfoPrefix) {
 		node, _, err := d.folder.fs.config.KBFSOps().Lookup(ctx, d.node, req.Name[len(libfs.FileInfoPrefix):])
 		if err != nil {
