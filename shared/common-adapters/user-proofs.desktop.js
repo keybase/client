@@ -154,7 +154,7 @@ class ProofsRender extends Component<void, Props, void> {
             </Box>)
           : (
             <Box key='non-loading'>
-              {this.props.tag === 'proofs' && this.props.proofs.map((p, idx) =>
+              {this.props.type === 'proofs' && this.props.proofs.map((p, idx) =>
                 <ProofRow
                   key={`${p.id || ''}${p.type}`}
                   ref={c => { this._rows[idx] = c }}
@@ -166,8 +166,8 @@ class ProofsRender extends Component<void, Props, void> {
                   style={pad(idx)}
                 />
               )}
-              {this.props.tag === 'missingProofs' && this.props.missingProofs.map((mp, idx) => <MissingProofRow key={mp.type} missingProof={mp} style={pad(idx)} />)}
-              {this.props.tag === 'missingProofs' && <style>{missingProofsRealCSS}</style>}
+              {this.props.type === 'missingProofs' && this.props.missingProofs.map((mp, idx) => <MissingProofRow key={mp.type} missingProof={mp} style={pad(idx)} />)}
+              {this.props.type === 'missingProofs' && <style>{missingProofsRealCSS}</style>}
             </Box>)}
         </ReactCSSTransitionGroup>
       </Box>

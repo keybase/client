@@ -26,7 +26,7 @@ export default class Render extends Component<void, Props, void> {
             currentlyFollowing={this.props.currentlyFollowing}
           />
           <UserProofs
-            tag={'proofs'}
+            type={'proofs'}
             style={{marginTop: globalMargins.small, marginLeft: globalMargins.medium, marginRight: globalMargins.medium}}
             username={this.props.username}
             loading={this.props.loading}

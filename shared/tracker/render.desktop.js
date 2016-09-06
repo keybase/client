@@ -51,7 +51,7 @@ export default class Render extends PureComponent<void, RenderProps, void> {
             trackerState={this.props.trackerState}
           />
           <UserProofs
-            tag='proofs'
+            type='proofs'
             style={{
               paddingTop: 8,
               paddingLeft: 30,

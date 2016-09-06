@@ -18,10 +18,10 @@ type CommonProps = {
 }
 
 export type Props = ({
-  tag: 'proofs',
+  type: 'proofs',
   proofs: Array<Proof>,
 } & CommonProps) | ({
-  tag: 'missingProofs',
+  type: 'missingProofs',
   missingProofs: Array<MissingProof>,
 } & CommonProps)
 
