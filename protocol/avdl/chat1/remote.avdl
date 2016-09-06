@@ -22,15 +22,54 @@ protocol remote {
     union { null, Pagination } pagination;
   }
 
-  InboxView getInboxRemote(union { null, Pagination } pagination);
-  array<Conversation> getInboxByTLFIDRemote(TLFID TLFID);
-  ThreadViewBoxed getThreadRemote(ConversationID conversationID, boolean markAsRead, union { null, Pagination } pagination);
-  Conversation getConversationMetadataRemote(ConversationID conversationID);
+  record GetInboxRemoteRes {
+    InboxView inbox;
+    union { null, RateLimit } rateLimit;
+  }
 
-  MessageID postRemote(ConversationID conversationID, MessageBoxed messageBoxed);
-  ConversationID newConversationRemote(ConversationIDTriple idTriple);
-  ConversationID newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed TLFMessage);
-  array<MessageBoxed> getMessagesRemote(ConversationID conversationID, array<MessageID> messageIDs);
+  record GetInboxByTLFIDRemoteRes {
+    array<Conversation> convs;
+    union { null, RateLimit } rateLimit;
+  }
 
-  void markAsRead(ConversationID conversationID, MessageID msgID);
+  record GetThreadRemoteRes {
+    ThreadViewBoxed thread;
+    union { null, RateLimit } rateLimit;
+  }
+
+  record GetConversationMetadataRemoteRes {
+    Conversation conv;
+    union { null, RateLimit } rateLimit;
+  }
+
+  record PostRemoteRes {
+    MessageID msgID;
+    union { null, RateLimit } rateLimit;
+  }
+
+  record NewConversationRemoteRes {
+    ConversationID convID;
+    union { null, RateLimit } rateLimit;
+  }
+
+  record GetMessagesRemoteRes {
+    array<MessageBoxed> msgs;
+    union { null, RateLimit } rateLimit;
+  }
+
+  record MarkAsReadRes {
+    union { null, RateLimit } rateLimit;
+  }
+
+  GetInboxRemoteRes getInboxRemote(union { null, Pagination } pagination);
+  GetInboxByTLFIDRemoteRes getInboxByTLFIDRemote(TLFID TLFID);
+  GetThreadRemoteRes getThreadRemote(ConversationID conversationID, boolean markAsRead, union { null, Pagination } pagination);
+  GetConversationMetadataRemoteRes getConversationMetadataRemote(ConversationID conversationID);
+
+  PostRemoteRes postRemote(ConversationID conversationID, MessageBoxed messageBoxed);
+  NewConversationRemoteRes newConversationRemote(ConversationIDTriple idTriple);
+  NewConversationRemoteRes newConversationRemote2(ConversationIDTriple idTriple, MessageBoxed TLFMessage);
+  GetMessagesRemoteRes getMessagesRemote(ConversationID conversationID, array<MessageID> messageIDs);
+
+  MarkAsReadRes markAsRead(ConversationID conversationID, MessageID msgID);
 }
