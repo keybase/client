@@ -46,7 +46,7 @@ func (h ConfigHandler) GetCurrentStatus(_ context.Context, sessionID int) (res k
 	return
 }
 
-func (h ConfigHandler) getPlatformInfo() keybase1.PlatformInfo {
+func getPlatformInfo() keybase1.PlatformInfo {
 	return keybase1.PlatformInfo{
 		Os:        runtime.GOOS,
 		Arch:      runtime.GOARCH,
@@ -184,7 +184,7 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 		p[i] = u.String()
 	}
 	res.ProvisionedUsernames = p
-	res.PlatformInfo = h.getPlatformInfo()
+	res.PlatformInfo = getPlatformInfo()
 	res.DefaultDeviceID = h.G().Env.GetDeviceID()
 
 	if me != nil && h.G().SecretStoreAll != nil {
