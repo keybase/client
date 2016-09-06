@@ -190,7 +190,7 @@ func (d *Service) Run() (err error) {
 	if err = d.GetExclusiveLock(); err != nil {
 		return
 	}
-	if err = d.OpenSocket(); err != nil {
+	if err = d.cleanupSocketFile(); err != nil {
 		return
 	}
 
@@ -414,8 +414,8 @@ func (d *Service) GetExclusiveLock() error {
 	return nil
 }
 
-func (d *Service) OpenSocket() error {
-	sf, err := d.G().Env.GetSocketFile()
+func (d *Service) cleanupSocketFile() error {
+	sf, err := d.G().Env.GetSocketBindFile()
 	if err != nil {
 		return err
 	}

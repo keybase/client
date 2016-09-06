@@ -4,31 +4,36 @@ var promise = require('bluebird')
 var fs = promise.promisifyAll(require('fs'))
 var path = require('path')
 
-var projects = [
-  {
-    root: 'json/keybase1',
-    out: 'js/flow-types.js',
-    import: "import * as gregor1 from './flow-types-gregor'\nimport * as chat1 from './flow-types-chat'\n",
-    incomingMaps: {},
-    seenTypes: {}},
-  {
-    root: './json/gregor1',
-    out: 'js/flow-types-gregor.js',
-    incomingMaps: {},
-    seenTypes: {},
-  },
-  {
+var projects = {
+  "chat1" : {
     root: './json/chat1',
     import: "import * as gregor1 from './flow-types-gregor'\n",
     out: 'js/flow-types-chat.js',
     incomingMaps: {},
     seenTypes: {},
+    enums : {},
   },
-]
+  "keybase1" : {
+    root: 'json/keybase1',
+    out: 'js/flow-types.js',
+    import: "import * as gregor1 from './flow-types-gregor'\nimport * as chat1 from './flow-types-chat'\n",
+    incomingMaps: {},
+    seenTypes: {},
+    enums : {},
+  },
+  "gregor1" : {
+    root: './json/gregor1',
+    out: 'js/flow-types-gregor.js',
+    incomingMaps: {},
+    seenTypes: {},
+    enums : {},
+  },
+}
 
 const reduceArray = arr => arr.reduce((acc, cur) => acc.concat(cur), [])
 
-projects.forEach(project => {
+Object.keys(projects).forEach( key => {
+  const project = projects[key]
   fs.readdirAsync(project.root)
   .filter(jsonOnly)
   .map(file => load(file, project))
@@ -49,7 +54,11 @@ function load (file, project) {
 }
 
 function analyze (json, project) {
-  return reduceArray([].concat(analyzeTypes(json, project), analyzeMessages(json, project), analyzeEnums(json, project)))
+  return reduceArray([].concat(
+    analyzeEnums(json, project),
+    analyzeTypes(json, project),
+    analyzeMessages(json, project)
+  ))
 }
 
 function fixCase (s) {
@@ -66,6 +75,8 @@ function analyzeEnums (json, project) {
       const name = fixCase(parts.join('_'))
       en[name] = val
     })
+
+    project.enums[t.name] = en
 
     return {
       name: `${capitalize(json.protocol)}${t.name}`,
@@ -94,7 +105,9 @@ function analyzeTypes (json, project) {
       case 'record':
         return [`export type ${t.name} = ${parseRecord(t)}`]
       case 'enum':
-        return [`export type ${t.name} =${parseEnum(t)}`]
+        return [`export type ${t.name} = ${parseEnum(t)}`]
+      case 'variant':
+        return [`export type ${t.name} = ${parseVariant(t, project)}`]
       case 'fixed':
         return [`export type ${t.name} = any`]
       default:
@@ -271,6 +284,24 @@ function parseRecord (t) {
   objectMapType += '}'
 
   return objectMapType
+}
+
+function parseVariant (t, project) {
+
+  var parts = t.switch.type.split(".")
+  if (parts.length > 1) {
+    project = projects[parts.shift()]
+  }
+  var type = parts.shift()
+  return "\n    " + t.cases.map(c => {
+    var label = c.label.name.toLowerCase()
+    var out = `{ ${t.switch.name} : ${project.enums[type][label]}`
+    if (c.body !== null) {
+      out += `, ${label} : ?${c.body}`
+    }
+    out += ` }`
+    return out
+  }).join("\n  | ")
 }
 
 function makeRpcUnionType (typeDefs) {

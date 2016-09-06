@@ -14,16 +14,20 @@ import (
 type Socket interface {
 	BindToSocket() (net.Listener, error)
 	DialSocket() (net.Conn, error)
-	GetFile() string
 }
 
 type SocketInfo struct {
 	Contextified
-	file string
+	bindFile  string
+	dialFiles []string
 }
 
-func (s SocketInfo) GetFile() string {
-	return s.file
+func (s SocketInfo) GetBindFile() string {
+	return s.bindFile
+}
+
+func (s SocketInfo) GetDialFiles() []string {
+	return s.dialFiles
 }
 
 type SocketWrapper struct {
