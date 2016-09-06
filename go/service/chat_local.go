@@ -4,7 +4,6 @@
 package service
 
 import (
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -76,9 +75,9 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 	if err != nil {
 		return created, err
 	}
-	tlfIDb, err := hex.DecodeString(string(res.TlfID))
-	if err != nil {
-		return created, err
+	tlfIDb := res.TlfID.ToBytes()
+	if tlfIDb == nil {
+		return created, errors.New("invalid TlfID acquired")
 	}
 	tlfID := chat1.TLFID(tlfIDb)
 
@@ -211,9 +210,9 @@ func (h *chatLocalHandler) searchForConversations(ctx context.Context, criteria 
 		if err != nil {
 			return nil, err
 		}
-		tlfIDb, err := hex.DecodeString(string(resp.TlfID))
-		if err != nil {
-			return nil, err
+		tlfIDb := resp.TlfID.ToBytes()
+		if tlfIDb == nil {
+			return nil, errors.New("invalid TLF ID acquired")
 		}
 		conversationsRemote, err := h.remoteClient().GetInboxByTLFIDRemote(ctx, tlfIDb)
 		if err != nil {
@@ -488,12 +487,13 @@ func (h *chatLocalHandler) fillSenderIDsForPostLocal(arg *keybase1.MessagePlaint
 		return libkb.DeviceRequiredError{}
 	}
 
-	if huid, err := hex.DecodeString(string(uid)); err != nil {
-		return err
+	if huid := uid.ToBytes(); huid == nil {
+		return errors.New("invalid UID")
 	} else {
 		arg.ClientHeader.Sender = gregor1.UID(huid)
 	}
-	if hdid, err := hex.DecodeString(string(did)); err != nil {
+	var hdid []byte
+	if err = did.ToBytes(hdid); err != nil {
 		return err
 	} else {
 		arg.ClientHeader.SenderDevice = gregor1.DeviceID(hdid)
