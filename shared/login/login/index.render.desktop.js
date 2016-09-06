@@ -17,7 +17,6 @@ class LoginRender extends Component<void, Props, void> {
     }
 
     const checkboxProps = [
-      {label: 'Save in Keychain', checked: this.props.saveInKeychain, onCheck: check => { this.props.saveInKeychainChange(check) }, style: {marginRight: 13}},
       {label: 'Show Typing', checked: this.props.showTyping, onCheck: check => { this.props.showTypingChange(check) }},
     ]
 

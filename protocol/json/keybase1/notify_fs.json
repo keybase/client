@@ -18,6 +18,16 @@
       "response": null,
       "notify": ""
     },
+    "FSSyncActivity": {
+      "request": [
+        {
+          "name": "status",
+          "type": "FSPathSyncStatus"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
     "FSEditListResponse": {
       "request": [
         {
@@ -26,6 +36,20 @@
             "type": "array",
             "items": "FSNotification"
           }
+        },
+        {
+          "name": "requestID",
+          "type": "int"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "FSSyncStatusResponse": {
+      "request": [
+        {
+          "name": "status",
+          "type": "FSSyncStatus"
         },
         {
           "name": "requestID",

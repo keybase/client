@@ -26,13 +26,12 @@ protocol chatLocal {
     string path;
   }
 
-  record MessageBody {
-    chat1.MessageType type;
-    union { null, MessageText } text;
-    union { null, MessageAttachment } attachment;
-    union { null, MessageEdit } edit;
-    union { null, MessageDelete } delete;
-    union { null, MessageConversationMetadata } conversationMetadata;
+  variant MessageBody switch (chat1.MessageType messageType) {
+    case TEXT: MessageText;
+    case ATTACHMENT: MessageAttachment;
+    case EDIT: MessageEdit;
+    case DELETE: MessageDelete;
+    case METADATA: MessageConversationMetadata;
   }
 
   // This is what is encrypted and sent over as bodyCiphertext.
@@ -64,7 +63,7 @@ protocol chatLocal {
 
     union { null, string } Since;
     boolean onlyNew;
-    
+
     int limit;
 
     array<chat1.ConversationID> conversations;

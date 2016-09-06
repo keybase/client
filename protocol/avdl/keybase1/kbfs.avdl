@@ -25,4 +25,16 @@ protocol kbfs {
     given requestID.
         */
   void FSEditList(array<FSNotification> edits, int requestID);
+
+  /**
+    FSSyncStatus is called by KBFS as a response to receiving an
+    FSSyncStatusRequest with a given requestID.
+        */
+  void FSSyncStatus(FSSyncStatus status, int requestID);
+
+  /**
+    FSSyncEvent is called by KBFS when the sync status of an individual path
+    changes.
+        */
+  void FSSyncEvent(FSPathSyncStatus event);
 }
