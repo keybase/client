@@ -114,7 +114,9 @@ RCT_EXPORT_METHOD(reset) {
 
 - (NSDictionary *)constantsToExport {
   NSString * testVal = [Utils areWeBeingUnitTested] ? @"1" : @"";
-  return @{ @"eventName": eventName, @"test": testVal };
+  return @{ @"eventName": eventName,
+            @"test": testVal, 
+            @"version": GoKeybaseVersion()};
 }
 
 @end

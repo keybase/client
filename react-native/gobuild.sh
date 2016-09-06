@@ -71,14 +71,22 @@ package="github.com/keybase/client/go/bind"
 
 arg=${1:-}
 
+## TODO(mm) consolidate this with packaging/prerelease/
+current_date=`date -u +%Y%m%d%H%M%S` # UTC
+commit_short=`git log -1 --pretty=format:%h`
+build="$current_date+$commit_short"
+keybase_build=${KEYBASE_BUILD:-$build}
+tags=${TAGS:-"prerelease production"}
+ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
+
 if [ "$arg" = "ios" ]; then
   ios_dest="$dir/ios/keybase.framework"
   echo "Building for iOS ($ios_dest)..."
-  "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -o "$ios_dest" "$package"
+  "$GOPATH/bin/gomobile" bind -target=ios -tags="ios" -ldflags "$ldflags" -o "$ios_dest" "$package"
 elif [ "$arg" = "android" ]; then
   android_dest="$dir/android/keybaselib/keybaselib.aar"
   echo "Building for Android ($android_dest)..."
-  "$GOPATH/bin/gomobile" bind -target=android -tags="android" -o "$android_dest" "$package"
+  "$GOPATH/bin/gomobile" bind -target=android -tags="android" -ldflags "$ldflags" -o "$android_dest" "$package"
 else
   echo "Nothing to build, you need to specify 'ios' or 'android'"
 fi
