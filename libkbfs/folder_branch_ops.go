@@ -4520,6 +4520,27 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 	default:
 	}
 
+	if jServer, err := GetJournalServer(fbo.config); err == nil {
+		// Disable journal writes after flushing all the resolution
+		// block writes -- resolutions must go straight through to the
+		// server or else the journal will get confused.
+		if err = jServer.Wait(ctx, fbo.id()); err != nil {
+			return err
+		}
+		wasEnabled, err := jServer.Disable(ctx, fbo.id())
+		if err != nil {
+			return err
+		}
+		if wasEnabled {
+			defer func() {
+				if err := jServer.Enable(ctx, fbo.id(),
+					TLFJournalBackgroundWorkEnabled); err != nil {
+					fbo.log.CDebugf(ctx, "Couldn't re-enable journal: %v", err)
+				}
+			}()
+		}
+	}
+
 	// Put the MD.  If there's a conflict, abort the whole process and
 	// let CR restart itself.
 	mdID, err := fbo.config.MDOps().Put(ctx, md)
@@ -4605,6 +4626,11 @@ func (fbo *folderBranchOps) journalBranchChange(newBID BranchID) {
 
 	ctx, cancelFunc := fbo.newCtxWithFBOID()
 	defer cancelFunc()
+
+	lState := makeFBOLockState()
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+
 	fbo.log.CDebugf(ctx, "Journal branch change: %s", newBID)
 
 	if !fbo.isMasterBranchLocked(lState) {
@@ -4631,12 +4657,17 @@ func (fbo *folderBranchOps) journalBranchChange(newBID BranchID) {
 	}
 
 	// Kick off conflict resolution and set the head to the correct branch.
-	lState := makeFBOLockState()
 	fbo.setBranchIDLocked(lState, newBID)
 	fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
+	// We don't currently know the latest merged revision, because we
+	// may have been journaled for a while.  We will know it once we
+	// get the latest merged update or when conflict resolution
+	// completes.
+	fbo.setLatestMergedRevisionLocked(ctx, lState,
+		MetadataRevisionUninitialized, true)
 	err = fbo.setHeadSuccessorLocked(ctx, lState, md, true /*rebased*/)
 	if err != nil {
 		fbo.log.CWarningf(ctx,
