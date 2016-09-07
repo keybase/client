@@ -119,6 +119,10 @@ func (j *JournalServer) EnableExistingJournals(
 	return nil
 }
 
+func (j *JournalServer) branchChange(tlfID TlfID, newBID BranchID) {
+
+}
+
 // Enable turns on the write journal for the given TLF.
 func (j *JournalServer) Enable(
 	ctx context.Context, tlfID TlfID,
@@ -139,9 +143,13 @@ func (j *JournalServer) Enable(
 		return nil
 	}
 
+	branchFn := func(bid BranchID) {
+		j.branchChange(tlfID, bid)
+	}
+
 	tlfJournal, err := makeTLFJournal(ctx, j.dir, tlfID,
 		tlfJournalConfigAdapter{j.config}, j.delegateBlockServer,
-		bws, nil)
+		bws, nil, branchFn)
 	if err != nil {
 		return err
 	}

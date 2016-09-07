@@ -325,20 +325,21 @@ func (j mdJournal) checkGetParams(currentUID keybase1.UID,
 
 func (j *mdJournal) convertToBranch(
 	ctx context.Context, currentUID keybase1.UID,
-	currentVerifyingKey VerifyingKey, signer cryptoSigner) (err error) {
+	currentVerifyingKey VerifyingKey, signer cryptoSigner) (
+	bid BranchID, err error) {
 	if j.branchID != NullBranchID {
-		return fmt.Errorf(
+		return NullBranchID, fmt.Errorf(
 			"convertToBranch called with BID=%s", j.branchID)
 	}
 
 	earliestRevision, err := j.j.readEarliestRevision()
 	if err != nil {
-		return err
+		return NullBranchID, err
 	}
 
 	latestRevision, err := j.j.readLatestRevision()
 	if err != nil {
-		return err
+		return NullBranchID, err
 	}
 
 	j.log.CDebugf(
@@ -346,19 +347,19 @@ func (j *mdJournal) convertToBranch(
 
 	_, allMdIDs, err := j.j.getRange(earliestRevision, latestRevision)
 	if err != nil {
-		return err
+		return NullBranchID, err
 	}
 
-	bid, err := j.crypto.MakeRandomBranchID()
+	bid, err = j.crypto.MakeRandomBranchID()
 	if err != nil {
-		return err
+		return NullBranchID, err
 	}
 
 	j.log.CDebugf(ctx, "New branch ID=%s", bid)
 
 	journalTempDir, err := ioutil.TempDir(j.dir, "md_journal")
 	if err != nil {
-		return err
+		return NullBranchID, err
 	}
 	j.log.CDebugf(ctx, "Using temp dir %s for rewriting", journalTempDir)
 	defer func() {
@@ -379,11 +380,11 @@ func (j *mdJournal) convertToBranch(
 		ibrmd, _, err := j.getMD(
 			currentUID, currentVerifyingKey, id, true)
 		if err != nil {
-			return err
+			return NullBranchID, err
 		}
 		brmd, ok := ibrmd.(MutableBareRootMetadata)
 		if !ok {
-			return MutableBareRootMetadataNoImplError{}
+			return NullBranchID, MutableBareRootMetadataNoImplError{}
 		}
 		brmd.SetUnmerged()
 		brmd.SetBranchID(bid)
@@ -391,12 +392,12 @@ func (j *mdJournal) convertToBranch(
 		// Re-sign the writer metadata.
 		buf, err := brmd.GetSerializedWriterMetadata(j.codec)
 		if err != nil {
-			return err
+			return NullBranchID, err
 		}
 
 		sigInfo, err := signer.Sign(ctx, buf)
 		if err != nil {
-			return err
+			return NullBranchID, err
 		}
 		brmd.SetWriterMetadataSigInfo(sigInfo)
 
@@ -417,12 +418,12 @@ func (j *mdJournal) convertToBranch(
 		// os.Chtimes() on the file after writing it.
 		newID, err := j.putMD(currentUID, currentVerifyingKey, brmd)
 		if err != nil {
-			return err
+			return NullBranchID, err
 		}
 
 		err = tempJournal.append(brmd.RevisionNumber(), newID)
 		if err != nil {
-			return err
+			return NullBranchID, err
 		}
 
 		prevID = newID
@@ -439,7 +440,7 @@ func (j *mdJournal) convertToBranch(
 	oldJournalTempDir := journalTempDir + ".old"
 	dir, err := j.j.move(oldJournalTempDir)
 	if err != nil {
-		return err
+		return NullBranchID, err
 	}
 
 	j.log.CDebugf(ctx, "Moved old journal from %s to %s",
@@ -447,7 +448,7 @@ func (j *mdJournal) convertToBranch(
 
 	newJournalOldDir, err := tempJournal.move(dir)
 	if err != nil {
-		return err
+		return NullBranchID, err
 	}
 
 	j.log.CDebugf(ctx, "Moved new journal from %s to %s",
@@ -459,7 +460,7 @@ func (j *mdJournal) convertToBranch(
 	j.j = tempJournal
 	j.branchID = bid
 
-	return nil
+	return bid, nil
 }
 
 // getNextEntryToFlush returns the info for the next journal entry to
