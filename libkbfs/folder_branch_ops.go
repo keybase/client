@@ -355,6 +355,11 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 	if config.DoBackgroundFlushes() {
 		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
 	}
+
+	if jServer, err := GetJournalServer(fbo.config); err == nil {
+		jServer.RegisterBranchChange(fbo.id(), fbo.journalBranchChange)
+	}
+
 	return fbo
 }
 
@@ -4591,6 +4596,53 @@ func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
 	fbo.log.CWarningf(ctx, "Unstaging branch %s after a resolution failure",
 		fbo.bid)
 	return fbo.unstageLocked(ctx, lState)
+}
+
+func (fbo *folderBranchOps) journalBranchChange(newBID BranchID) {
+	if newBID == NullBranchID {
+		return
+	}
+
+	ctx, cancelFunc := fbo.newCtxWithFBOID()
+	defer cancelFunc()
+	fbo.log.CDebugf(ctx, "Journal branch change: %s", newBID)
+
+	if !fbo.isMasterBranchLocked(lState) {
+		if fbo.bid == newBID {
+			fbo.log.CDebugf(ctx, "Already on branch %s", newBID)
+			return
+		}
+		panic(fmt.Sprintf("Cannot switch to branch %s while on branch %s",
+			newBID, fbo.bid))
+	}
+
+	md, err := fbo.config.MDOps().GetUnmergedForTLF(ctx, fbo.id(), newBID)
+	if err != nil {
+		fbo.log.CWarningf(ctx,
+			"No unmerged head on journal branch change (bid=%s)", newBID)
+		return
+	}
+
+	if md == (ImmutableRootMetadata{}) || md.MergedStatus() != Unmerged ||
+		md.BID() != newBID {
+		fbo.log.CWarningf(ctx, "Unexpected md on journal "+
+			"branch change: %v", md)
+		return
+	}
+
+	// Kick off conflict resolution and set the head to the correct branch.
+	lState := makeFBOLockState()
+	fbo.setBranchIDLocked(lState, newBID)
+	fbo.cr.Resolve(md.Revision(), MetadataRevisionUninitialized)
+
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+	err = fbo.setHeadSuccessorLocked(ctx, lState, md, true /*rebased*/)
+	if err != nil {
+		fbo.log.CWarningf(ctx,
+			"Could not set head on journal branch change: %v", err)
+		return
+	}
 }
 
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps

@@ -45,8 +45,9 @@ type JournalServer struct {
 	delegateBlockServer BlockServer
 	delegateMDOps       MDOps
 
-	lock        sync.RWMutex
-	tlfJournals map[TlfID]*tlfJournal
+	lock            sync.RWMutex
+	tlfJournals     map[TlfID]*tlfJournal
+	branchChangeFns map[TlfID][]branchChangeNotifier
 }
 
 func makeJournalServer(
@@ -61,6 +62,7 @@ func makeJournalServer(
 		delegateBlockServer: bserver,
 		delegateMDOps:       mdOps,
 		tlfJournals:         make(map[TlfID]*tlfJournal),
+		branchChangeFns:     make(map[TlfID][]branchChangeNotifier),
 	}
 	return &jServer
 }
@@ -117,10 +119,6 @@ func (j *JournalServer) EnableExistingJournals(
 	}
 
 	return nil
-}
-
-func (j *JournalServer) branchChange(tlfID TlfID, newBID BranchID) {
-
 }
 
 // Enable turns on the write journal for the given TLF.
@@ -291,6 +289,27 @@ func (j *JournalServer) JournalStatus(tlfID TlfID) (TLFJournalStatus, error) {
 	}
 
 	return tlfJournal.getJournalStatus()
+}
+
+func (j *JournalServer) branchChange(tlfID TlfID, newBID BranchID) {
+	j.lock.RLock()
+	defer j.lock.RUnlock()
+	for _, f := range j.branchChangeFns[tlfID] {
+		// Call in a separate goroutine so we don't block journal
+		// operations or block any locks.
+		go f(newBID)
+	}
+}
+
+// RegisterBranchChange allows a caller to be notified (via a call of
+// `branchFn`) whenever the branch ID for `tlfID` changes in the
+// journal.  `branchFn` will be called in a new goroutine each time it
+// is called.
+func (j *JournalServer) RegisterBranchChange(tlfID TlfID,
+	branchFn branchChangeNotifier) {
+	j.lock.Lock()
+	defer j.lock.Unlock()
+	j.branchChangeFns[tlfID] = append(j.branchChangeFns[tlfID], branchFn)
 }
 
 func (j *JournalServer) shutdown() {
