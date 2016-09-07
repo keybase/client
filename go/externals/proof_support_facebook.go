@@ -96,7 +96,7 @@ func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHin
 }
 
 func extractUsername(doc *goquery.Document) (string, libkb.ProofError) {
-	selector := "#m_story_permalink_view  a"
+	selector := "#m_story_permalink_view > div:first-child > div:first-child > div:first-child a"
 	usernameAnchor := doc.Find(selector)
 	if usernameAnchor.Length() == 0 {
 		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find username anchor tag $(%s)", selector)
@@ -122,7 +122,7 @@ func extractUsername(doc *goquery.Document) (string, libkb.ProofError) {
 }
 
 func extractProofText(doc *goquery.Document) (string, libkb.ProofError) {
-	selector := "#m_story_permalink_view h3"
+	selector := "#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3"
 	proofHeader := doc.Find(selector)
 	if proofHeader.Length() < 2 {
 		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find proof text header $(%s)", selector)
