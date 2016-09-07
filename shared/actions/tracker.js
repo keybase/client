@@ -137,7 +137,6 @@ export function triggerIdentify (uid: string = '', userAssertion: string = ''
     // Don't identify ourself
     if (allowSelf || myUID !== uid) {
       dispatch({type: Constants.identifyStarted, payload: null})
-      console.log('aaaaaa1', uid, userAssertion)
       identifyIdentify2Rpc({
         param: {
           uid,
