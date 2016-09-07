@@ -98,7 +98,16 @@
         </RegistryKey>
         <File Id="upd.exe" Source="$(env.GOPATH)\src\github.com\keybase\go-updater\service\upd.exe" Checksum="yes"/>
       </Component>
-
+      
+      <Component Id="RegistryEntries" Guid="{753F8CE7-57CF-4824-865F-55B1FA520C48}">
+        <RegistryKey Root="HKCU"
+                     Key="Software\Keybase\Keybase"
+              Action="createAndRemoveOnUninstall">
+          <RegistryValue Type="string" Name="DOKANPRODUCT86" Value="[DOKANPRODUCT86]"/>
+          <RegistryValue Type="string" Name="DOKANPRODUCT64" Value="[DOKANPRODUCT64]"/>
+        </RegistryKey>
+      </Component>
+      
     </ComponentGroup>
   </Fragment>
   <Fragment>

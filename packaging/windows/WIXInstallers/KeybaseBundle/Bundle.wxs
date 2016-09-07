@@ -6,6 +6,9 @@
   <Bundle Name="Keybase" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="418432ab-0366-40fd-a396-8cc0c4200252">
 
     <Variable Name="DokanInstallFolder" Type="string" Value="[ProgramFiles6432Folder]Dokan\Dokan Library-1.0.0"/>
+    <!-- These match Keybase's Dokany Build 70 Sept 7 2016 -->
+    <Variable Name="DokanProduct86" Type="string" Value="{65A3A986-3DC3-0100-0000-160907160859}"/>
+    <Variable Name="DokanProduct64" Type="string" Value="{65A3A964-3DC3-0100-0000-160907160859}"/>
 
     <Log PathVariable="LOGPATH_PROP"/>
     <util:FileSearchRef Id='WINTRUST_FileSearch' />
@@ -31,7 +34,7 @@
     <util:RegistrySearch Id="DokanUninstall"
              Variable="DokanUninstallString"
              Root="HKLM"
-             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A986-3DC3-0100-0000-160803110110}"
+             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[DokanProduct86]"
              Value="UninstallString"
              Format="raw"
              />
@@ -40,7 +43,7 @@
                  Condition="NOT DokanUninstallString"
                  Variable="DokanUninstallString"
                  Root="HKLM"
-                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160803110110}"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\[DokanProduct64]"
                  Value="UninstallString"
                  Format="raw"
                  Win64="yes"
@@ -241,6 +244,8 @@
                   SourceFile="$(var.KeybaseApps.TargetPath)"
                   DisplayInternalUI='no'
                   Permanent="no">
+        <MsiProperty Name="DOKANPRODUCT86" Value="[DokanProduct86]" />
+        <MsiProperty Name="DOKANPRODUCT64" Value="[DokanProduct64]" />
       </MsiPackage>
 
     </Chain>
@@ -277,7 +282,7 @@
           Value="UninstallString" 
           Win64="yes"/>
 
-    <!-- These two are for the most recent KBFS -->
+    <!-- These two are for the older inno based KBFS -->
     <util:RegistrySearch Id="InnoKBFSUninstall"
                  Variable="InnoKBFSUninstallString"
                  Root="HKLM"
