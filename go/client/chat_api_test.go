@@ -132,10 +132,10 @@ var optTests = []optTest{
 		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"conversation_id": "abc123"}}}`,
+		input: `{"method": "read", "params":{"version": 1, "options": {"conversation_id": 123}}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "conversation_id": "afaf111"}}}`,
+		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "conversation_id": 999111}}}`,
 		err:   ErrInvalidOptions{},
 	},
 	{
@@ -157,7 +157,7 @@ var optTests = []optTest{
 		input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
 	},
 	{
-		input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "abcd123"}}}`,
+		input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": 7777}}}`,
 	},
 }
 
@@ -204,7 +204,7 @@ var echoTests = []echoTest{
 		output: `{"result":{"status":{"code":200,"desc":"OK"}}}`,
 	},
 	{
-		input:  `{"method": "read", "params":{"version": 1, "options": {"conversation_id": "abc123"}}}`,
+		input:  `{"method": "read", "params":{"version": 1, "options": {"conversation_id": 123}}}`,
 		output: `{"result":{"status":{"code":200,"desc":"OK"}}}`,
 	},
 	{
@@ -216,7 +216,7 @@ var echoTests = []echoTest{
 		output: `{"result":{"status":{"code":200,"desc":"OK"}}}` + "\n" + `{"result":{"status":{"code":200,"desc":"OK"}}}`,
 	},
 	{
-		input:  `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "abcd123"}}}`,
+		input:  `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": 123}}}`,
 		output: `{"result":{"status":{"code":200,"desc":"OK"}}}` + "\n" + `{"result":{"status":{"code":200,"desc":"OK"}}}`,
 	},
 }

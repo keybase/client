@@ -5,11 +5,14 @@ package client
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"golang.org/x/net/context"
 )
 
 type CmdChatAPI struct {
@@ -53,12 +56,62 @@ func (c *CmdChatAPI) GetUsage() libkb.Usage {
 		Config:    true,
 	}
 }
+
 func (c *CmdChatAPI) ListV1() Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	// XXX plumb context through?
+	inbox, err := client.GetInboxLocal(context.Background(), nil)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	fmt.Printf("inbox: %+v\n", inbox)
+
+	// XXX convert inbox to something else...
+
 	return Reply{}
 }
+
 func (c *CmdChatAPI) ReadV1(opts readOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	if opts.ConversationID == 0 {
+		// resolve conversation id
+	}
+
+	arg := keybase1.GetThreadLocalArg{
+		ConversationID: opts.ConversationID,
+		MarkAsRead:     true,
+	}
+	// XXX plumb context through?
+	thread, err := client.GetThreadLocal(context.Background(), arg)
+	if err != nil {
+		return c.errReply(err)
+	}
+
+	// XXX convert thread to something else...
+	fmt.Printf("thread: %+v\n", thread)
+
 	return Reply{}
 }
+
 func (c *CmdChatAPI) SendV1(opts sendOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	_ = client
+
 	return Reply{}
+}
+
+func (c *CmdChatAPI) errReply(err error) Reply {
+	return Reply{Error: &CallError{Message: err.Error()}}
 }

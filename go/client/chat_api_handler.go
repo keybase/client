@@ -8,6 +8,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+
+	"github.com/keybase/client/go/protocol/chat1"
 )
 
 type ErrInvalidOptions struct {
@@ -100,15 +102,15 @@ func (s sendOptionsV1) Check() error {
 
 type readOptionsV1 struct {
 	Channel        ChatChannel
-	ConversationID string `json:"conversation_id"`
+	ConversationID chat1.ConversationID `json:"conversation_id"`
 	Limit          string
 }
 
 func (r readOptionsV1) Check() error {
-	if !r.Channel.Valid() && len(r.ConversationID) == 0 {
+	if !r.Channel.Valid() && r.ConversationID == 0 {
 		return ErrInvalidOptions{version: 1, method: "read", err: errors.New("need channel or conversation_id")}
 	}
-	if r.Channel.Valid() && len(r.ConversationID) > 0 {
+	if r.Channel.Valid() && r.ConversationID > 0 {
 		return ErrInvalidOptions{version: 1, method: "read", err: errors.New("include channel or conversation_id, not both")}
 	}
 
