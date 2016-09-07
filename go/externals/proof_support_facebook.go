@@ -93,11 +93,13 @@ func (rc *FacebookChecker) CheckStatusOld(ctx libkb.ProofContext, h libkb.SigHin
 	return nil
 }
 
+const POST_HEADERS_SELECTOR = "#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3"
+
 func extractUsername(doc *goquery.Document) (string, libkb.ProofError) {
-	selector := "#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3 a"
-	usernameAnchor := doc.Find(selector)
+	// Get the anchor tag from inside the first header.
+	usernameAnchor := doc.Find(POST_HEADERS_SELECTOR).Eq(0).Find("a")
 	if usernameAnchor.Length() == 0 {
-		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find username anchor tag $(%s)", selector)
+		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find username anchor tag")
 	}
 	// Only consider the first
 	usernameAnchor = usernameAnchor.First()
@@ -120,13 +122,11 @@ func extractUsername(doc *goquery.Document) (string, libkb.ProofError) {
 }
 
 func extractProofText(doc *goquery.Document) (string, libkb.ProofError) {
-	selector := "#m_story_permalink_view > div:first-child > div:first-child > div:first-child h3"
-	proofHeader := doc.Find(selector)
-	if proofHeader.Length() < 2 {
-		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find proof text header $(%s)", selector)
+	// Get the second header.
+	proofHeader := doc.Find(POST_HEADERS_SELECTOR).Eq(1)
+	if proofHeader.Length() == 0 {
+		return "", libkb.NewProofError(keybase1.ProofStatus_FAILED_PARSE, "Couldn't find proof text header")
 	}
-	// Only consider the second (the first contains the username, see extractUsername).
-	proofHeader = proofHeader.Eq(1)
 	return proofHeader.Text(), nil
 }
 
