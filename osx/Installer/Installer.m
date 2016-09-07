@@ -149,6 +149,9 @@ typedef NS_ENUM (NSInteger, KBExit) {
   NSModalResponse response = [alert runModal];
   if (response == NSAlertFirstButtonReturn) {
     completion(error, KBExitError);
+  } else {
+    DDLogError(@"Unknown error dialog return button");
+    completion(error, KBExitError);
   }
 }
 
@@ -168,6 +171,9 @@ typedef NS_ENUM (NSInteger, KBExit) {
     completion(error, KBExitIgnoreError);
   } else if (response == NSAlertThirdButtonReturn) {
     [self showMoreDetails:error environment:environment completion:completion];
+  } else {
+    DDLogError(@"Unknown error dialog return button");
+    completion(error, KBExitError);
   }
 }
 
