@@ -35,16 +35,18 @@ export default function () {
 
   const openedAtLogin = app.getLoginItemSettings().wasOpenedAtLogin
   const isRestore = getenv.boolish('KEYBASE_RESTORE_UI', false) || app.getLoginItemSettings().restoreState
-  const openHidden = (getenv.string('KEYBASE_START_UI', '') === 'hideWindow') || app.getLoginItemSettings().wasOpenedAsHidden
+  const hideWindowOnStart = getenv.string('KEYBASE_START_UI', '') === 'hideWindow'
+  const openHidden = app.getLoginItemSettings().wasOpenedAsHidden
   console.log('Opened at login:', openedAtLogin)
   console.log('Is restore:', isRestore)
   console.log('Open hidden:', openHidden)
 
   // Don't show main window:
   // - If we are set to open hidden,
+  // - or, if we hide window on start,
   // - or, if we are restoring and window was hidden
   // - or, if we were opened from login (but not restoring)
-  const hideMainWindow = openHidden || (isRestore && appState.state.windowHidden) || (openedAtLogin && !isRestore)
+  const hideMainWindow = openHidden || hideWindowOnStart || (isRestore && appState.state.windowHidden) || (openedAtLogin && !isRestore)
 
   console.log('Hide main window:', hideMainWindow)
   if (!hideMainWindow) {
