@@ -30,9 +30,6 @@ import java.util.List;
 
 import go.keybase.Keybase;
 
-import static go.keybase.Keybase.InitOnce;
-import static go.keybase.Keybase.LogSend;
-
 public class MainApplication extends Application implements ReactApplication {
   private File logFile;
 
