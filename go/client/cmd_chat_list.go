@@ -14,7 +14,7 @@ import (
 type cmdChatList struct {
 	libkb.Contextified
 
-	fetcher messageFetcher
+	fetcher inboxFetcher
 }
 
 func newCmdChatList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -34,17 +34,18 @@ func newCmdChatList(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 func (c *cmdChatList) Run() error {
 	ui := c.G().UI.GetTerminalUI()
 
-	conversations, err := c.fetcher.fetch(context.TODO(), c.G())
+	conversations, more, moreTotal, err := c.fetcher.fetch(context.TODO(), c.G())
 	if err != nil {
 		return err
 	}
 
-	if len(conversations) == 0 {
+	if len(conversations) == 0 && len(more) == 0 {
 		ui.Printf("no conversation is found\n")
 		return nil
 	}
 
 	conversationListView(conversations).show(ui)
+	conversationListView(more).showSummaryOnMore(ui, moreTotal)
 	// TODO: print summary of inbox. e.g.
 	//		+44 older chats (--time=7d to see 25 more)
 
@@ -52,7 +53,7 @@ func (c *cmdChatList) Run() error {
 }
 
 func (c *cmdChatList) ParseArgv(ctx *cli.Context) (err error) {
-	if c.fetcher, err = makeMessageFetcherFromCliCtx(ctx, "", false); err != nil {
+	if c.fetcher, err = makeInboxFetcherFromCli(ctx); err != nil {
 		return err
 	}
 	return nil

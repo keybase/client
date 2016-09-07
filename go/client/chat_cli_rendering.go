@@ -2,6 +2,8 @@ package client
 
 import (
 	"fmt"
+	"math"
+	"time"
 
 	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/libkb"
@@ -62,6 +64,17 @@ func (v conversationListView) show(ui libkb.TerminalUI) {
 		iConversation++
 		return ret
 	})
+}
+
+func (v conversationListView) showSummaryOnMore(ui libkb.TerminalUI, totalMore int) {
+	for i := len(v) - 1; i >= 0; i++ {
+		if len(v[i].Messages) == 0 {
+			continue
+		}
+		days := int(math.Ceil(time.Since(gregor1.FromTime(v[i].Messages[0].ServerHeader.Ctime)).Hours() / 24))
+		ui.Printf(" +%d older chats (--time=%dd to see %d more)\n", totalMore, days, len(v))
+		return
+	}
 }
 
 type conversationView keybase1.ConversationLocal
