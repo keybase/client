@@ -330,30 +330,7 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata) (
 func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata) (
 	MdID, error) {
 	if tlfJournal, ok := j.jServer.getTLFJournal(rmd.TlfID()); ok {
-		// TODO: The code below races with PruneBranch, since
-		// the branch may get prunes after the
-		// GerUnmergedForTLF call and before the putMD
-		// call. Fix this.
-
 		rmd.SetUnmerged()
-		if rmd.BID() == NullBranchID {
-			head, err := j.GetUnmergedForTLF(
-				ctx, rmd.TlfID(), NullBranchID)
-			if err != nil {
-				return MdID{}, err
-			}
-			if head == (ImmutableRootMetadata{}) {
-				// new branch ID
-				bid, err := j.jServer.config.Crypto().MakeRandomBranchID()
-				if err != nil {
-					return MdID{}, err
-				}
-				rmd.SetBranchID(bid)
-			} else {
-				rmd.SetBranchID(head.BID())
-			}
-		}
-
 		return tlfJournal.putMD(ctx, rmd)
 	}
 

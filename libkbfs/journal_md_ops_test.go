@@ -15,22 +15,25 @@ import (
 	"golang.org/x/net/context"
 )
 
-// TODO: Clean up the test below.
+func setupJournalMDOpsTest(t *testing.T) (
+	tempdir string, config Config, oldMDOps MDOps, jServer *JournalServer) {
+	config = MakeTestConfigOrBust(t, "test_user")
 
-func TestJournalMDOpsBasics(t *testing.T) {
-	// setup
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_md_ops")
 	require.NoError(t, err)
+	// Clean up the tempdir if anything in the setup fails/panics.
 	defer func() {
-		err := os.RemoveAll(tempdir)
-		require.NoError(t, err)
+		if r := recover(); r != nil {
+			CheckConfigAndShutdown(t, config)
+			err := os.RemoveAll(tempdir)
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+		}
 	}()
 
-	config := MakeTestConfigOrBust(t, "test_user")
-	defer CheckConfigAndShutdown(t, config)
-
 	log := config.MakeLogger("")
-	jServer := makeJournalServer(
+	jServer = makeJournalServer(
 		config, log, tempdir, config.BlockCache(),
 		config.BlockServer(), config.MDOps())
 
@@ -41,11 +44,42 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	config.SetBlockCache(jServer.blockCache())
 	config.SetBlockServer(jServer.blockServer())
 
-	oldMDOps := config.MDOps()
+	oldMDOps = config.MDOps()
 	config.SetMDOps(jServer.mdOps())
 
-	mdOps := config.MDOps()
+	return tempdir, config, oldMDOps, jServer
+}
 
+func teardownJournalMDOpsTest(t *testing.T, tempdir string, config Config) {
+	CheckConfigAndShutdown(t, config)
+	err := os.RemoveAll(tempdir)
+	require.NoError(t, err)
+}
+
+func makeMDForJournalMDOpsTest(
+	t *testing.T, config Config, tlfID TlfID, h *TlfHandle,
+	revision MetadataRevision) *RootMetadata {
+	rmd := NewRootMetadata()
+	bh, err := h.ToBareHandle()
+	require.NoError(t, err)
+	err = rmd.Update(tlfID, bh)
+	require.NoError(t, err)
+	rmd.tlfHandle = h
+	rmd.SetRevision(revision)
+	ctx := context.Background()
+	rekeyDone, _, err := config.KeyManager().Rekey(ctx, rmd, false)
+	require.NoError(t, err)
+	require.True(t, rekeyDone)
+	return rmd
+}
+
+// TODO: Clean up the test below.
+
+func TestJournalMDOpsBasics(t *testing.T) {
+	tempdir, config, oldMDOps, jServer := setupJournalMDOpsTest(t)
+	defer teardownJournalMDOpsTest(t, tempdir, config)
+
+	ctx := context.Background()
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	require.NoError(t, err)
 
@@ -56,6 +90,8 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
 	require.NoError(t, err)
 
+	mdOps := jServer.mdOps()
+
 	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
@@ -63,14 +99,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
-	rmd := NewRootMetadata()
-	err = rmd.Update(id, bh)
-	require.NoError(t, err)
-	rmd.tlfHandle = h
-	rmd.SetRevision(MetadataRevision(1))
-	rekeyDone, _, err := config.KeyManager().Rekey(ctx, rmd, false)
-	require.NoError(t, err)
-	require.True(t, rekeyDone)
+	rmd := makeMDForJournalMDOpsTest(t, config, id, h, MetadataRevision(1))
 
 	mdID, err := mdOps.Put(ctx, rmd)
 	require.NoError(t, err)
@@ -215,3 +244,62 @@ func TestJournalMDOpsBasics(t *testing.T) {
 
 // TODO: Add a test for GetRange where the server has an overlapping
 // range with the journal.
+
+func TestJournalMDOpsPutUnmerged(t *testing.T) {
+	tempdir, config, _, jServer := setupJournalMDOpsTest(t)
+	defer teardownJournalMDOpsTest(t, tempdir, config)
+
+	ctx := context.Background()
+	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	require.NoError(t, err)
+
+	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	require.NoError(t, err)
+
+	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
+	require.NoError(t, err)
+
+	mdOps := jServer.mdOps()
+
+	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged)
+	require.NoError(t, err)
+	require.Equal(t, ImmutableRootMetadata{}, irmd)
+
+	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+
+	rmd := makeMDForJournalMDOpsTest(t, config, id, h, MetadataRevision(1))
+	rmd.SetBranchID(FakeBranchID(1))
+
+	_, err = mdOps.PutUnmerged(ctx, rmd)
+	require.NoError(t, err)
+}
+
+func TestJournalMDOpsPutUnmergedError(t *testing.T) {
+	tempdir, config, _, jServer := setupJournalMDOpsTest(t)
+	defer teardownJournalMDOpsTest(t, tempdir, config)
+
+	ctx := context.Background()
+	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	require.NoError(t, err)
+
+	bh, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
+	require.NoError(t, err)
+
+	h, err := MakeTlfHandle(ctx, bh, config.KBPKI())
+	require.NoError(t, err)
+
+	mdOps := jServer.mdOps()
+
+	id, irmd, err := mdOps.GetForHandle(ctx, h, Merged)
+	require.NoError(t, err)
+	require.Equal(t, ImmutableRootMetadata{}, irmd)
+
+	err = jServer.Enable(ctx, id, TLFJournalBackgroundWorkPaused)
+	require.NoError(t, err)
+
+	rmd := makeMDForJournalMDOpsTest(t, config, id, h, MetadataRevision(1))
+
+	_, err = mdOps.PutUnmerged(ctx, rmd)
+	require.Error(t, err, "Unmerged put with rmd.BID() == j.branchID == NullBranchID")
+}

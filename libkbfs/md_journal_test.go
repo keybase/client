@@ -176,7 +176,41 @@ func TestMDJournalBasic(t *testing.T) {
 	require.Equal(t, ibrmds[len(ibrmds)-1], head)
 }
 
-func TestMDJournalReplaceHead(t *testing.T) {
+func TestMDJournalPutCase1Empty(t *testing.T) {
+	uid, verifyingKey, _, _, id, signer, ekg,
+		bsplit, tempdir, j := setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+	md := makeMDForTest(t, id, MetadataRevision(10), uid, fakeMdID(1))
+	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.NoError(t, err)
+
+	head, err := j.getHead(uid, verifyingKey)
+	require.NoError(t, err)
+	require.Equal(t, md.bareMd, head.BareRootMetadata)
+}
+
+func TestMDJournalPutCase1Conflict(t *testing.T) {
+	uid, verifyingKey, _, _, id, signer, ekg,
+		bsplit, tempdir, j := setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+	md := makeMDForTest(t, id, MetadataRevision(10), uid, fakeMdID(1))
+	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.NoError(t, err)
+
+	err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	require.NoError(t, err)
+
+	_, err = j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.Equal(t, MDJournalConflictError{}, err)
+}
+
+// The append portion of case 1 is covered by TestMDJournalBasic.
+
+func TestMDJournalPutCase1ReplaceHead(t *testing.T) {
 	uid, verifyingKey, _, _, id, signer, ekg, bsplit, tempdir, j :=
 		setupMDJournalTest(t)
 	defer teardownMDJournalTest(t, tempdir)
@@ -204,6 +238,150 @@ func TestMDJournalReplaceHead(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, md.Revision(), head.RevisionNumber())
 	require.Equal(t, md.DiskUsage(), head.DiskUsage())
+}
+
+func TestMDJournalPutCase2NonEmptyReplace(t *testing.T) {
+	uid, verifyingKey, _, _, id, signer, ekg,
+		bsplit, tempdir, j := setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+	md := makeMDForTest(t, id, MetadataRevision(10), uid, fakeMdID(1))
+	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.NoError(t, err)
+
+	err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	require.NoError(t, err)
+
+	md.SetUnmerged()
+	_, err = j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.NoError(t, err)
+}
+
+func TestMDJournalPutCase2NonEmptyAppend(t *testing.T) {
+	uid, verifyingKey, _, _, id, signer, ekg,
+		bsplit, tempdir, j := setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+	md := makeMDForTest(t, id, MetadataRevision(10), uid, fakeMdID(1))
+	mdID, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.NoError(t, err)
+
+	err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	require.NoError(t, err)
+
+	md2 := makeMDForTest(t, id, MetadataRevision(11), uid, mdID)
+	md2.SetUnmerged()
+	_, err = j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md2)
+	require.NoError(t, err)
+}
+
+func TestMDJournalPutCase2Empty(t *testing.T) {
+	uid, verifyingKey, _, _, id, signer, ekg,
+		bsplit, tempdir, j := setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+	md := makeMDForTest(t, id, MetadataRevision(10), uid, fakeMdID(1))
+	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.NoError(t, err)
+
+	err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	require.NoError(t, err)
+
+	// Flush.
+	mdID, rmds, err := j.getNextEntryToFlush(ctx, uid, verifyingKey, signer)
+	require.NoError(t, err)
+	j.removeFlushedEntry(ctx, uid, verifyingKey, mdID, rmds)
+
+	md2 := makeMDForTest(t, id, MetadataRevision(11), uid, mdID)
+	md2.SetUnmerged()
+	_, err = j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md2)
+	require.NoError(t, err)
+}
+
+func TestMDJournalPutCase3NonEmptyAppend(t *testing.T) {
+	uid, verifyingKey, _, _, id, signer, ekg,
+		bsplit, tempdir, j := setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+	md := makeMDForTest(t, id, MetadataRevision(10), uid, fakeMdID(1))
+	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.NoError(t, err)
+
+	err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	require.NoError(t, err)
+
+	head, err := j.getHead(uid, verifyingKey)
+	require.NoError(t, err)
+
+	md2 := makeMDForTest(t, id, MetadataRevision(11), uid, head.mdID)
+	md2.SetUnmerged()
+	md2.SetBranchID(head.BID())
+	_, err = j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md2)
+	require.NoError(t, err)
+}
+
+func TestMDJournalPutCase3NonEmptyReplace(t *testing.T) {
+	uid, verifyingKey, _, _, id, signer, ekg,
+		bsplit, tempdir, j := setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+	md := makeMDForTest(t, id, MetadataRevision(10), uid, fakeMdID(1))
+	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.NoError(t, err)
+
+	err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	require.NoError(t, err)
+
+	head, err := j.getHead(uid, verifyingKey)
+	require.NoError(t, err)
+
+	md.SetUnmerged()
+	md.SetBranchID(head.BID())
+	_, err = j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.NoError(t, err)
+}
+
+func TestMDJournalPutCase3EmptyAppend(t *testing.T) {
+	uid, verifyingKey, _, _, id, signer, ekg,
+		bsplit, tempdir, j := setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+	md := makeMDForTest(t, id, MetadataRevision(10), uid, fakeMdID(1))
+	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.NoError(t, err)
+
+	err = j.convertToBranch(ctx, uid, verifyingKey, signer)
+	require.NoError(t, err)
+
+	// Flush.
+	mdID, rmds, err := j.getNextEntryToFlush(ctx, uid, verifyingKey, signer)
+	require.NoError(t, err)
+	j.removeFlushedEntry(ctx, uid, verifyingKey, mdID, rmds)
+
+	md2 := makeMDForTest(t, id, MetadataRevision(11), uid, mdID)
+	md2.SetUnmerged()
+	md2.SetBranchID(j.branchID)
+	_, err = j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md2)
+	require.NoError(t, err)
+}
+
+func TestMDJournalPutCase4(t *testing.T) {
+	uid, verifyingKey, _, _, id, signer, ekg,
+		bsplit, tempdir, j := setupMDJournalTest(t)
+	defer teardownMDJournalTest(t, tempdir)
+
+	ctx := context.Background()
+	md := makeMDForTest(t, id, MetadataRevision(10), uid, fakeMdID(1))
+	md.SetUnmerged()
+	md.SetBranchID(FakeBranchID(1))
+	_, err := j.put(ctx, uid, verifyingKey, signer, ekg, bsplit, md)
+	require.NoError(t, err)
 }
 
 func TestMDJournalBranchConversion(t *testing.T) {
