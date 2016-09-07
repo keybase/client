@@ -281,15 +281,15 @@ if (env.CHANGE_TITLE && env.CHANGE_TITLE.contains('[ci-skip]')) {
                                             }
 
                                             parallel (
-                                                test_react_native: {
-                                                    println "Test React Native"
-                                                    dir("react-native") {
-                                                        sh "npm i"
-                                                        lock("iossimulator_${env.NODE_NAME}") {
-                                                            sh "npm run test-ios"
-                                                        }
-                                                    }
-                                                },
+                                                //test_react_native: {
+                                                //    println "Test React Native"
+                                                //    dir("react-native") {
+                                                //        sh "npm i"
+                                                //        lock("iossimulator_${env.NODE_NAME}") {
+                                                //            sh "npm run test-ios"
+                                                //        }
+                                                //    }
+                                                //},
                                                 test_osx: {
                                                     println "Test OS X"
                                                     // Retry to protect against flakes
