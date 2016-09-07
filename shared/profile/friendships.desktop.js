@@ -1,28 +1,51 @@
 /* @flow */
-import React, {Component} from 'react'
-import {Box, Avatar, Text} from '../common-adapters'
+import React, {Component, PureComponent} from 'react'
+import ReactList from 'react-list'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
-import {globalStyles, globalColors, globalMargins} from '../styles'
 import type {Props, FriendshipUserInfo} from './friendships'
+import {Box, Avatar, Text} from '../common-adapters'
+import {globalStyles, globalColors, globalMargins} from '../styles'
 
 type UserEntryProps = FriendshipUserInfo & {
   onClick?: (username: string) => void
 };
 
-const UserEntry = ({onClick, username, uid, followsYou, following, thumbnailUrl}: UserEntryProps) => (
-  <Box style={userEntryContainerStyle} onClick={() => { onClick && onClick(username, uid) }}>
-    <Avatar style={userEntryAvatarStyle} size={64} url={thumbnailUrl} followsYou={followsYou} following={following} />
-    <Text type='BodySmall' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
-  </Box>
-)
+class UserEntry extends PureComponent<void, UserEntryProps, void> {
+  _onClick: () => void;
+
+  constructor (props: UserEntryProps) {
+    super(props)
+
+    this._updateOnClick(props)
+  }
+
+  _updateOnClick (p: UserEntryProps) {
+    const {onClick, username, uid} = p
+    this._onClick = () => { onClick && onClick(username, uid) }
+  }
+
+  componentWillReceiveProps (nextProps: UserEntryProps) {
+    this._updateOnClick(nextProps)
+  }
+
+  render () {
+    const {username, followsYou, following, thumbnailUrl} = this.props
+
+    return <Box style={userEntryContainerStyle} onClick={this._onClick}>
+      <Avatar style={userEntryAvatarStyle} size={64} url={thumbnailUrl} followsYou={followsYou} following={following} />
+      <Text type='BodySmall' style={userEntryUsernameStyle(followsYou)}>{username}</Text>
+    </Box>
+  }
+}
 
 const userEntryContainerStyle = {
   ...globalStyles.clickable,
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',
-  width: '25%',
+  width: 155,
   height: 96,
+  display: 'inline-flex',
 }
 
 const userEntryAvatarStyle = {
@@ -35,6 +58,11 @@ const userEntryUsernameStyle = followsYou => ({
 })
 
 class Render extends Component<void, Props, void> {
+  _itemRenderer (followers: boolean, index: number) {
+    const user = this.props.followers[index]
+    return <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />
+  }
+
   render () {
     return (
       <TabBar style={this.props.style}>
@@ -42,27 +70,33 @@ class Render extends Component<void, Props, void> {
           selected={this.props.currentTab === 'Followers'}
           label={`FOLLOWERS (${this.props.followers.length})`}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Followers') }}>
-          <Box style={tabItemContainerStyle}>
-            {this.props.followers.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />)}
-          </Box>
+          <ReactList
+            style={tabItemContainerStyle}
+            useTranslate3d={true}
+            useStaticSize={true}
+            itemRenderer={(index, key) => this._itemRenderer(true, index)}
+            length={this.props.followers.length}
+            type='uniform' />
         </TabBarItem>
         <TabBarItem
           selected={this.props.currentTab === 'Following'}
           label={`FOLLOWING (${this.props.following.length})`}
           onClick={() => { this.props.onSwitchTab && this.props.onSwitchTab('Following') }}>
-          <Box style={tabItemContainerStyle}>
-            {this.props.following.map(user => <UserEntry key={user.username} {...user} onClick={this.props.onUserClick} />)}
-          </Box>
+          <ReactList
+            style={reactListStyle }
+            useTranslate3d={true}
+            useStaticSize={true}
+            itemRenderer={(index, key) => this._itemRenderer(false, index)}
+            length={this.props.followers.length}
+            type='uniform' />
         </TabBarItem>
       </TabBar>
     )
   }
 }
 
-const tabItemContainerStyle = {
-  ...globalStyles.flexBoxRow,
+const reactListStyle = {
   flex: 1,
-  flexWrap: 'wrap',
   paddingTop: globalMargins.small,
   paddingBottom: globalMargins.small,
   paddingLeft: globalMargins.medium,
