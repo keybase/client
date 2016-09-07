@@ -532,13 +532,13 @@ func TestTLFJournalFlushBlock(t *testing.T) {
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
-	// Check the AddReference
+	// Check the AddReference.
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx2)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
 	require.Equal(t, serverHalf, key)
 
-	// Check the archival
+	// Check the archiving.
 	buf, key, err = blockServer.Get(ctx, tlfID, bID, bCtx3)
 	require.NoError(t, err)
 	require.Equal(t, data, buf)
