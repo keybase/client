@@ -220,6 +220,8 @@ func (t FacebookServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libk
 	return &FacebookChecker{l}
 }
 
+func (t FacebookServiceType) IsDevelOnly() bool { return true }
+
 //=============================================================================
 
 func init() {
