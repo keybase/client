@@ -73,7 +73,7 @@ func retryWithoutBackoffUpToNTimesUntilNoError(n int, action func() error) (err 
 func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybase1.ConversationInfoLocal) (created keybase1.ConversationInfoLocal, err error) {
 	res, err := h.boxer.tlf.CryptKeys(ctx, info.TlfName)
 	if err != nil {
-		return created, err
+		return created, fmt.Errorf("error getting crypt keys %s", err)
 	}
 	tlfIDb := res.TlfID.ToBytes()
 	if tlfIDb == nil {
@@ -90,11 +90,11 @@ func (h *chatLocalHandler) NewConversationLocal(ctx context.Context, info keybas
 
 	if err = retryWithoutBackoffUpToNTimesUntilNoError(3, func() (err error) {
 		if triple.TopicID, err = libkb.NewChatTopicID(); err != nil {
-			return err
+			return fmt.Errorf("error creating topic ID: %s", err)
 		}
 		firstMessageBoxed, err := h.prepareMessageForRemote(ctx, makeFirstMessage(ctx, info, triple))
 		if err != nil {
-			return err
+			return fmt.Errorf("error preparing message: %s", err)
 		}
 		res, err := h.remoteClient().NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 			IdTriple:   triple,
@@ -216,7 +216,7 @@ func (h *chatLocalHandler) searchForConversations(ctx context.Context, criteria 
 		}
 		conversationsRemote, err := h.remoteClient().GetInboxByTLFIDRemote(ctx, tlfIDb)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to get inbox by TLF ID: %s", err)
 		}
 		for _, cr := range conversationsRemote.Convs {
 			info, _, err := h.getConversationInfo(ctx, cr)
@@ -487,17 +487,17 @@ func (h *chatLocalHandler) fillSenderIDsForPostLocal(arg *keybase1.MessagePlaint
 		return libkb.DeviceRequiredError{}
 	}
 
-	if huid := uid.ToBytes(); huid == nil {
+	huid := uid.ToBytes()
+	if huid == nil {
 		return errors.New("invalid UID")
-	} else {
-		arg.ClientHeader.Sender = gregor1.UID(huid)
 	}
-	var hdid []byte
+	arg.ClientHeader.Sender = gregor1.UID(huid)
+
+	hdid := make([]byte, libkb.DeviceIDLen)
 	if err = did.ToBytes(hdid); err != nil {
 		return err
-	} else {
-		arg.ClientHeader.SenderDevice = gregor1.DeviceID(hdid)
 	}
+	arg.ClientHeader.SenderDevice = gregor1.DeviceID(hdid)
 
 	return nil
 }
