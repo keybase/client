@@ -50,7 +50,7 @@ class Menubar extends Component<void, Props, void> {
       })
     }
 
-    if (typeof module.hot === 'function') {
+    if (module.hot && typeof module.hot.dispose === 'function') {
       module.hot.dispose(() => {
         try {
           engine().reset()

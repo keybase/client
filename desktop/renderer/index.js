@@ -92,7 +92,7 @@ ReactDOM.render(
   appEl,
 )
 
-typeof module.hot === 'function' && module.hot.accept('./container', () => {
+module.hot && typeof module.hot.accept === 'function' && module.hot.accept('./container', () => {
   try {
     store.dispatch({type: updateReloading, payload: {reloading: true}})
     const NewRoot = require('./container').default
@@ -106,6 +106,6 @@ typeof module.hot === 'function' && module.hot.accept('./container', () => {
   }
 })
 
-typeof module.hot === 'function' && module.hot.accept('../shared/local-debug-live', () => {
+module.hot && typeof module.hot.accept === 'function' && module.hot.accept('../shared/local-debug-live', () => {
   store.dispatch(updateDebugConfig(require('../shared/local-debug-live')))
 })
