@@ -129,6 +129,7 @@ func (f messageFetcher) fetch(ctx context.Context, g *libkb.GlobalContext) (conv
 	}
 
 	if len(f.selector.Conversations) == 0 {
+		g.Log.Debug("no conversatins in fetch?")
 		return conversations, nil
 	}
 

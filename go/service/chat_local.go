@@ -299,9 +299,11 @@ getinbox:
 func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria keybase1.ConversationInfoLocal) (conversations []keybase1.ConversationInfoLocal, err error) {
 	appendMaybe := func(info keybase1.ConversationInfoLocal) {
 		if len(criteria.TopicName) > 0 && criteria.TopicName != info.TopicName {
+			h.G().Log.Debug("+ resolveConversations: FAILED TOPIC NAME, %s != %s", criteria.TopicName, info.TopicName)
 			return
 		}
 		if criteria.TopicType != chat1.TopicType_NONE && criteria.TopicType != info.TopicType {
+			h.G().Log.Debug("+ resolveConversations: FAILED TOPIC TYPE, %d != %d", criteria.TopicType, info.TopicType)
 			return
 		}
 		conversations = append(conversations, info)
@@ -337,6 +339,7 @@ func (h *chatLocalHandler) resolveConversations(ctx context.Context, criteria ke
 		appendMaybe(info)
 	}
 
+	h.G().Log.Debug("- resolveConversations: returning: %d messages", len(conversations))
 	return conversations, nil
 }
 
@@ -353,6 +356,10 @@ func (h *chatLocalHandler) getConversationInfoByID(ctx context.Context, id chat1
 //
 // TODO: cache
 func (h *chatLocalHandler) getConversationInfo(ctx context.Context, conversationRemote chat1.Conversation) (conversationInfo keybase1.ConversationInfoLocal, triple chat1.ConversationIDTriple, maxMessages []keybase1.Message, err error) {
+
+	conversationInfo.Id = conversationRemote.Metadata.ConversationID
+	conversationInfo.TopicType = conversationRemote.Metadata.IdTriple.TopicType
+
 	if len(conversationRemote.MaxHeaders) == 0 {
 		return conversationInfo, triple, maxMessages, libkb.UnexpectedChatDataFromServer{Msg: "conversation has an empty MaxHeaders field"}
 	}
@@ -464,14 +471,20 @@ getthread:
 			typ, err := m.MessagePlaintext.MessageBodies[0].MessageType()
 
 			if err != nil {
+				h.G().Log.Debug("+ getConversationMessages(): failed on message type cast: %d",
+					m.ServerHeader.MessageID)
 				return conv, err
 			}
 
 			if messageTypes != nil && !messageTypes[typ] {
+				h.G().Log.Debug("+ getConversationMessages(): failed on message type check: %d",
+					m.ServerHeader.MessageID)
 				continue
 			}
 
 			if !since.IsZero() && gregor1.FromTime(m.ServerHeader.Ctime).Before(since) {
+				h.G().Log.Debug("+ getConversationMessages(): failed on time check: %d",
+					m.ServerHeader.MessageID)
 				// messages are sorted DESC by time, so at this point we can stop fetching
 				break getthread
 			}
