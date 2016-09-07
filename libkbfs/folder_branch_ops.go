@@ -861,11 +861,54 @@ func (fbo *folderBranchOps) getMDForReadHelper(
 	return md, nil
 }
 
-// getMDForFBM is a helper method for the folderBlockManager only.
-func (fbo *folderBranchOps) getMDForFBM(ctx context.Context) (
+// getMostRecentFullyMergedMD is a helper method that returns the most
+// recent merged MD that has been flushed to the server.  This could
+// be different from the current local head if journaling is on.  If
+// the journal is on a branch, it returns an error.
+func (fbo *folderBranchOps) getMostRecentFullyMergedMD(ctx context.Context) (
 	ImmutableRootMetadata, error) {
 	lState := makeFBOLockState()
-	return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
+
+	jServer, err := GetJournalServer(fbo.config)
+	if err != nil {
+		// Journaling is disabled entirely, so use the local head.
+		return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
+	}
+
+	jStatus, err := jServer.JournalStatus(fbo.id())
+	if err != nil {
+		// Journaling is disabled for this TLF, so use the local head.
+		// TODO: JournalStatus could return other errors (likely
+		// file/disk corruption) that indicate a real problem, so it
+		// might be nice to type those errors so we can distinguish
+		// them.
+		return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
+	}
+
+	if jStatus.BranchID != NullBranchID.String() {
+		return ImmutableRootMetadata{},
+			errors.New("Cannot find most recent merged revision while staged")
+	}
+
+	if jStatus.RevisionStart == MetadataRevisionUninitialized {
+		// The journal is empty, so the local head must be the most recent.
+		return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
+	} else if jStatus.RevisionStart == MetadataRevisionInitial {
+		// Nothing has been flushed to the servers yet, so don't
+		// return anything.
+		return ImmutableRootMetadata{}, errors.New("No flushed MDs yet")
+	}
+
+	// Otherwise, use the revision from before the start of the journal.
+	mergedRev := jStatus.RevisionStart - 1
+	rmds, err := getMDRange(ctx, fbo.config, fbo.id(), NullBranchID,
+		mergedRev, mergedRev, Merged)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+
+	fbo.log.CDebugf(ctx, "Most recent fully merged revision is %d", mergedRev)
+	return rmds[0], nil
 }
 
 func (fbo *folderBranchOps) getMDForReadNoIdentify(

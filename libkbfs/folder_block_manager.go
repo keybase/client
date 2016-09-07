@@ -15,7 +15,8 @@ import (
 )
 
 type fbmHelper interface {
-	getMDForFBM(ctx context.Context) (ImmutableRootMetadata, error)
+	getMostRecentFullyMergedMD(ctx context.Context) (
+		ImmutableRootMetadata, error)
 	finalizeGCOp(ctx context.Context, gco *gcOp) error
 }
 
@@ -889,8 +890,10 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	// any considerable amount of time, so it should be safe to let it
 	// run indefinitely.
 
-	// First get the current head, and see if we're staged or not.
-	head, err := fbm.helper.getMDForFBM(ctx)
+	// First get the most recent fully merged MD (might be different
+	// from the local head if journaling is enabled), and see if we're
+	// staged or not.
+	head, err := fbm.helper.getMostRecentFullyMergedMD(ctx)
 	if err != nil {
 		return err
 	} else if err := isReadableOrError(ctx, fbm.config, head.ReadOnly()); err != nil {
