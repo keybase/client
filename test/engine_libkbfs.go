@@ -589,6 +589,46 @@ func (k *LibKBFS) EnableJournal(u User, tlfName string, isPublic bool) error {
 		libkbfs.TLFJournalBackgroundWorkEnabled)
 }
 
+// PauseJournal implements the Engine interface.
+func (k *LibKBFS) PauseJournal(u User, tlfName string, isPublic bool) error {
+	config := u.(*libkbfs.ConfigLocal)
+
+	ctx, cancel := k.newContext()
+	defer cancel()
+	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	if err != nil {
+		return err
+	}
+
+	jServer, err := libkbfs.GetJournalServer(config)
+	if err != nil {
+		return err
+	}
+
+	jServer.PauseBackgroundWork(ctx, dir.GetFolderBranch().Tlf)
+	return nil
+}
+
+// ResumeJournal implements the Engine interface.
+func (k *LibKBFS) ResumeJournal(u User, tlfName string, isPublic bool) error {
+	config := u.(*libkbfs.ConfigLocal)
+
+	ctx, cancel := k.newContext()
+	defer cancel()
+	dir, err := getRootNode(ctx, config, tlfName, isPublic)
+	if err != nil {
+		return err
+	}
+
+	jServer, err := libkbfs.GetJournalServer(config)
+	if err != nil {
+		return err
+	}
+
+	jServer.ResumeBackgroundWork(ctx, dir.GetFolderBranch().Tlf)
+	return nil
+}
+
 // FlushJournal implements the Engine interface.
 func (k *LibKBFS) FlushJournal(u User, tlfName string, isPublic bool) error {
 	config := u.(*libkbfs.ConfigLocal)

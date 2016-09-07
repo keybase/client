@@ -583,23 +583,25 @@ func rekey() fileOp {
 
 func enableJournal() fileOp {
 	return fileOp{func(c *ctx) error {
-		err := c.engine.EnableJournal(c.user, c.tlfName, c.tlfIsPublic)
-		if err != nil {
-			return err
-		}
-		return c.engine.SyncFromServerForTesting(c.user, c.tlfName,
-			c.tlfIsPublic)
+		return c.engine.EnableJournal(c.user, c.tlfName, c.tlfIsPublic)
+	}, IsInit}
+}
+
+func pauseJournal() fileOp {
+	return fileOp{func(c *ctx) error {
+		return c.engine.PauseJournal(c.user, c.tlfName, c.tlfIsPublic)
+	}, IsInit}
+}
+
+func resumeJournal() fileOp {
+	return fileOp{func(c *ctx) error {
+		return c.engine.ResumeJournal(c.user, c.tlfName, c.tlfIsPublic)
 	}, IsInit}
 }
 
 func flushJournal() fileOp {
 	return fileOp{func(c *ctx) error {
-		err := c.engine.FlushJournal(c.user, c.tlfName, c.tlfIsPublic)
-		if err != nil {
-			return err
-		}
-		return c.engine.SyncFromServerForTesting(c.user, c.tlfName,
-			c.tlfIsPublic)
+		return c.engine.FlushJournal(c.user, c.tlfName, c.tlfIsPublic)
 	}, IsInit}
 }
 
