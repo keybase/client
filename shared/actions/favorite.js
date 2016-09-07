@@ -26,7 +26,7 @@ function toggleShowIgnored (isPrivate: boolean): FavoriteToggleIgnored {
 
 const injectMeta = type => f => { f.meta = type }
 
-const _jsonToFolders = (json: Object, myKID: any) => {
+const _jsonToFolders = (json: Object, myKID: any): Array<FolderWithMeta> => {
   const folderSets = [json.favorites, json.ignored, json.new]
 
   folderSets.forEach(folders => {
@@ -91,7 +91,7 @@ function _getFavoritesRPC (): Promise<any> {
   })
 }
 
-function _folderToState (txt: string = '', username: string = '', loggedIn: boolean): FolderState {
+function _folderToState (txt: string = '', username: string, loggedIn: boolean): FolderState {
   const folders: Array<FolderWithMeta> = _getFavoritesRPCToFolders(txt, username, loggedIn)
   let privateBadge = 0
   let publicBadge = 0
@@ -215,12 +215,9 @@ function * getFavoritesListSaga (): SagaGenerator<any, any> {
   }
 
   const results = yield call(_getFavoritesRPC)
-  // $ForceType
-  const {username, loggedIn} = yield select(
-    ({config: {username = null, loggedIn = false} = {}}) => ({username, loggedIn}))
-
-  // $ForceType
-  const state: FolderState = yield call(_folderToState, results && results.body, username, loggedIn)
+  const username = yield select(state => state.config && state.config.username)
+  const loggedIn = yield select(state => state.config && state.config.loggedIn)
+  const state: FolderState = _folderToState(results && results.body, username || '', loggedIn || false)
 
   const listAction: FavoriteList = {type: Constants.favoriteList, payload: {folders: state}}
   yield put(listAction)
